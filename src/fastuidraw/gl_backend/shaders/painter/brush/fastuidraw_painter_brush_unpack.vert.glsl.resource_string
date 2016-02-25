@@ -1,0 +1,119 @@
+void
+fastuidraw_process_image_data(in uint shader_brush,
+                             in fastuidraw_brush_image_data_raw raw,
+                             out fastuidraw_brush_image_data cooked)
+{
+  uvec3 master_xyz;
+  uint index_pows, slack, number_index_lookups, ww;
+
+  master_xyz.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_master_index_x_bit0,
+                                        fastuidraw_image_master_index_x_num_bits,
+                                        raw.image_atlas_location_xyz);
+
+  master_xyz.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_master_index_y_bit0,
+                                        fastuidraw_image_master_index_y_num_bits,
+                                        raw.image_atlas_location_xyz);
+
+  master_xyz.z = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_master_index_z_bit0,
+                                        fastuidraw_image_master_index_z_num_bits,
+                                        raw.image_atlas_location_xyz);
+
+  cooked.image_size.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_size_x_bit0,
+                                               fastuidraw_image_size_x_num_bits,
+                                               raw.image_size_xy);
+
+  cooked.image_size.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_size_y_bit0,
+                                               fastuidraw_image_size_y_num_bits,
+                                               raw.image_size_xy);
+
+  cooked.image_start.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_size_x_bit0,
+                                                fastuidraw_image_size_x_num_bits,
+                                                raw.image_start_xy);
+
+  cooked.image_start.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_size_y_bit0,
+                                                fastuidraw_image_size_y_num_bits,
+                                                raw.image_start_xy);
+
+  slack = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_slack_bit0,
+                                 fastuidraw_image_slack_num_bits,
+                                 shader_brush);
+
+  number_index_lookups = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_number_index_lookup_bit0,
+                                                fastuidraw_image_number_index_lookup_num_bits,
+                                                shader_brush);
+
+  master_xyz.xy *= (uint(1) << uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE));
+  cooked.master_index_tile_atlas_location_xyz = vec3(master_xyz);
+  cooked.slack = slack;
+  cooked.number_index_lookups = number_index_lookups;
+
+  if(number_index_lookups > uint(0))
+    {
+      ww = uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE) * (number_index_lookups - uint(1));
+      index_pows = uint(1) << ww;
+      cooked.image_size_over_master_size = (uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE) - uint(2) * slack) * index_pows;
+    }
+  else
+    {
+      cooked.image_size_over_master_size = uint(1);
+    }
+}
+
+void
+fastuidraw_process_gradient_data(in fastuidraw_brush_gradient_raw raw,
+                                out fastuidraw_brush_gradient cooked)
+{
+  cooked.p0 = raw.p0;
+  cooked.p1 = raw.p1;
+
+  cooked.r0 = raw.r0;
+  cooked.r1 = raw.r1;
+
+  cooked.color_stop_sequence_length = float(raw.color_stop_sequence_length);
+
+  uvec2 color_stop_sequence_xy;
+  color_stop_sequence_xy.x = FASTUIDRAW_EXTRACT_BITS(fastuidraw_color_stop_x_bit0,
+                                                    fastuidraw_color_stop_x_num_bits,
+                                                    raw.color_stop_sequence_xy);
+
+  color_stop_sequence_xy.y = FASTUIDRAW_EXTRACT_BITS(fastuidraw_color_stop_y_bit0,
+                                                    fastuidraw_color_stop_y_num_bits,
+                                                    raw.color_stop_sequence_xy);
+
+  cooked.color_stop_sequence_xy = vec2(color_stop_sequence_xy);
+}
+
+uint
+fastuidraw_read_brush_image_data(in uint location, in uint shader, out fastuidraw_brush_image_data image)
+{
+  uint return_value;
+  fastuidraw_brush_image_data_raw raw;
+
+  return_value = fastuidraw_read_brush_image_raw_data(location, raw);
+  fastuidraw_process_image_data(shader, raw, image);
+  return return_value;
+}
+
+uint
+fastuidraw_read_brush_linear_gradient_data(in uint location, out fastuidraw_brush_gradient grad)
+{
+  uint return_value;
+  fastuidraw_brush_gradient_raw raw;
+
+  return_value = fastuidraw_read_brush_linear_gradient_data(location, raw);
+  raw.r0 = 0.0;
+  raw.r1 = 1.0;
+  fastuidraw_process_gradient_data(raw, grad);
+  return return_value;
+}
+
+uint
+fastuidraw_read_brush_radial_gradient_data(in uint location, out fastuidraw_brush_gradient grad)
+{
+  uint return_value;
+  fastuidraw_brush_gradient_raw raw;
+
+  return_value = fastuidraw_read_brush_radial_gradient_data(location, raw);
+  fastuidraw_process_gradient_data(raw, grad);
+  return return_value;
+}

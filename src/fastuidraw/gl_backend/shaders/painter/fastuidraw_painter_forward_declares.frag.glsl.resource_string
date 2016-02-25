@@ -1,0 +1,24 @@
+/* variables that are initialized at main(), but user defined
+   fragment shader can change.
+ */
+vec2 fastuidraw_brush_position;
+
+
+/* needed functions
+ */
+vec4
+fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location);
+
+vec4
+fastuidraw_compute_brush_color(void);
+
+void
+fastuidraw_run_blend_shader(in uint blend_shader, in vec4 color0, out vec4 src0, out vec4 src1);
+
+void
+fastuidraw_compute_image_atlas_coord(in vec2 image_shader_coord,
+                                    in int index_layer,
+                                    in int num_lookups,
+                                    in int slack,
+                                    out vec2 image_atlas_coord,
+                                    out int image_atlas_layer);

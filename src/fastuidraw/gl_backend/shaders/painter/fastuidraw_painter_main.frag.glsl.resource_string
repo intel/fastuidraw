@@ -1,0 +1,53 @@
+
+flat fastuidraw_varying uint fastuidraw_frag_shader;
+flat fastuidraw_varying uint fastuidraw_frag_shader_data_location;
+flat fastuidraw_varying uint fastuidraw_blend_shader;
+
+layout(location = 0, index = 0) out vec4 fastuidraw_final_color0;
+layout(location = 0, index = 1) out vec4 fastuidraw_final_color1;
+
+#ifdef FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES
+
+  void
+  apply_clipping(void)
+  {}
+
+#else
+
+  fastuidraw_varying vec4 fastuidraw_clip_plane;
+  void
+  apply_clipping(void)
+  {
+    /* hardware clipping is slightly different in output (on GEN atleast)
+       that using discard style clipping. The cause is because hardware
+       clipping changes what geometry is rasterized to the clip planes
+       where as discard style evaluates the value at a sample point
+       and the value is interpolated from the vertices. In exact arithematic
+       they are the same, but we do not have exact arithmatic. We fudge
+       the clip value by epsilon which is set to the width of half a
+       pixel (recall the clipping equations are already in clip coordinates).
+     */
+    float epsilon = 0.5 * fastuidraw_viewport_recip_pixels_magnitude;
+    if(fastuidraw_clip_plane.x < epsilon || fastuidraw_clip_plane.y < epsilon
+       || fastuidraw_clip_plane.z < epsilon  || fastuidraw_clip_plane.w < epsilon)
+      {
+        discard;
+      }
+  }
+
+#endif
+
+void
+main(void)
+{
+  vec4 c, b, v;
+
+  apply_clipping();
+
+  fastuidraw_brush_position = fastuidraw_brush_p;
+  c = fastuidraw_run_frag_shader(fastuidraw_frag_shader, fastuidraw_frag_shader_data_location);
+  b = fastuidraw_compute_brush_color();
+  v = b * c;
+  v.rgb *= v.a;
+  fastuidraw_run_blend_shader(fastuidraw_blend_shader, v, fastuidraw_final_color0, fastuidraw_final_color1);
+}

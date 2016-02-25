@@ -1,0 +1,20 @@
+in vec2 attrib_p;
+in vec3 attrib_tex_coord_layer;
+in vec3 attrib_secondary_tex_coord_layer;
+in uint attrib_geometry_data_location;
+
+uniform mat4 pvm;
+uniform vec2 translate;
+uniform float scale;
+
+out vec3 tex_coord_layer;
+flat out uint geometry_data_location;
+out vec3 secondary_tex_coord_layer;
+void
+main(void)
+{
+  tex_coord_layer = attrib_tex_coord_layer;
+  secondary_tex_coord_layer = attrib_secondary_tex_coord_layer;
+  geometry_data_location = attrib_geometry_data_location;
+  gl_Position = pvm * vec4(scale * attrib_p + translate, 0.0, 1.0);
+}

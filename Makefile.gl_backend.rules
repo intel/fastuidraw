@@ -1,0 +1,24 @@
+# $1 --> release or debug
+# $2 --> GL or GLES
+define libglrulesbase
+$(eval $(1)/$(2)/%.o: %.cpp $(1)/$(2)/%.d $$(NGL_$(2)_HPP)
+	@mkdir -p $$(dir $$@)
+	$(CXX) $$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(2)_$(1)_CFLAGS) $(fPIC) -c $$< -o $$@
+
+$(1)/$(2)/%.d: %.cpp $$(NGL_$(2)_HPP)
+	@mkdir -p $$(dir $$@)
+	@echo Generating $$@
+	@./makedepend.sh "$(CXX)" "$$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(2)_$(1)_CFLAGS) " $(1)/gl "$$*" "$$<" "$$@"
+.SECONDARY: $(1)/$(2)/%.d
+.PRECIOUS: $(1)/$(2)/%.d
+)
+endef
+
+define libglrules
+$(eval $(call libglrulesbase,release,$(1))
+$(call libglrulesbase,debug,$(1))
+)
+endef
+
+$(call libglrules,GL)
+$(call libglrules,GLES)

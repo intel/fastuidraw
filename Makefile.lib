@@ -1,0 +1,70 @@
+
+LIBRARY_STRING_RESOURCES_SRCS = $(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $(LIBRARY_RESOURCE_STRING) )
+CLEAN_FILES += $(LIBRARY_STRING_RESOURCES_SRCS)
+
+
+
+
+LIBRARY_release_OBJS = $(patsubst %.cpp, release/%.o, $(LIBRARY_SOURCES))
+LIBRARY_release_DEPS = $(patsubst %.cpp, release/%.d, $(LIBRARY_SOURCES))
+LIBRARY_release_DEPS += $(patsubst %.cpp, release/private/%.d, $(LIBRARY_PRIVATE_SOURCES))
+LIBRARY_PRIVATE_release_OBJS = $(patsubst %.cpp, release/private/%.o, $(LIBRARY_PRIVATE_SOURCES))
+LIBRARY_release_RESOURCE_OBJS = $(patsubst %.cpp, release/%.o, $(LIBRARY_STRING_RESOURCES_SRCS))
+LIBRARY_release_ALL_OBJS = $(LIBRARY_release_OBJS) $(LIBRARY_PRIVATE_release_OBJS) $(LIBRARY_release_RESOURCE_OBJS)
+
+LIBRARY_debug_OBJS = $(patsubst %.cpp, debug/%.o, $(LIBRARY_SOURCES))
+LIBRARY_debug_DEPS = $(patsubst %.cpp, debug/%.d, $(LIBRARY_SOURCES))
+LIBRARY_debug_DEPS += $(patsubst %.cpp, debug/private/%.d, $(LIBRARY_PRIVATE_SOURCES))
+LIBRARY_PRIVATE_debug_OBJS = $(patsubst %.cpp, debug/private/%.o, $(LIBRARY_PRIVATE_SOURCES))
+LIBRARY_debug_RESOURCE_OBJS = $(patsubst %.cpp, debug/%.o, $(LIBRARY_STRING_RESOURCES_SRCS))
+LIBRARY_debug_ALL_OBJS = $(LIBRARY_debug_OBJS) $(LIBRARY_PRIVATE_debug_OBJS) $(LIBRARY_debug_RESOURCE_OBJS)
+
+
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),clean-all)
+ifneq ($(MAKECMDGOALS),targets)
+ifneq ($(MAKECMDGOALS),docs)
+-include $(LIBRARY_release_DEPS)
+-include $(LIBRARY_debug_DEPS)
+endif
+endif
+endif
+endif
+
+libFastUIDraw: libFastUIDraw_debug libFastUIDraw_release
+.PHONY: libFastUIDraw libFastUIDraw_debug libFastUIDraw_release
+TARGETLIST += libFastUIDraw libFastUIDraw_debug libFastUIDraw_release
+CLEAN_FILES += $(LIBRARY_debug_ALL_OBJS) $(LIBRARY_debug_RESOURCE_OBJS)
+SUPER_CLEAN_FILES += $(LIBRARY_debug_DEPS)
+CLEAN_FILES += $(LIBRARY_release_ALL_OBJS) $(LIBRARY_release_RESOURCE_OBJS)
+SUPER_CLEAN_FILES += $(LIBRARY_release_DEPS)
+
+ifeq ($(MINGW_BUILD),1)
+
+libFastUIDraw_debug: libFastUIDraw_debug.dll
+libFastUIDraw_debug.dll: $(LIBRARY_debug_ALL_OBJS)
+	$(CXX) -shared -Wl,--out-implib,libFastUIDraw_debug.dll.a -o libFastUIDraw_debug.dll $(LIBRARY_debug_ALL_OBJS) $(LIBRARY_LIBS)
+CLEAN_FILES += libFastUIDraw_debug.dll libFastUIDraw_debug.dll.a
+INSTALL_LIBS += libFastUIDraw_debug.dll libFastUIDraw_debug.dll.a
+
+libFastUIDraw_release: libFastUIDraw_release.dll
+libFastUIDraw_release.dll: $(LIBRARY_release_ALL_OBJS)
+	$(CXX) -shared -Wl,--out-implib,libFastUIDraw_release.dll.a -o libFastUIDraw_release.dll $(LIBRARY_release_ALL_OBJS) $(LIBRARY_LIBS)
+CLEAN_FILES += libFastUIDraw_release.dll libFastUIDraw_release.dll.a
+INSTALL_LIBS += libFastUIDraw_release.dll libFastUIDraw_debug.dll.a
+
+else
+
+libFastUIDraw_debug: libFastUIDraw_debug.so
+libFastUIDraw_debug.so: $(LIBRARY_debug_ALL_OBJS) $(LIBRARY_debug_RESOURCE_OBJS)
+	$(CXX) -shared -Wl,-soname,libFastUIDraw_debug.so -o libFastUIDraw_debug.so $(LIBRARY_debug_ALL_OBJS) $(LIBRARY_LIBS)
+CLEAN_FILES += libFastUIDraw_debug.so
+INSTALL_LIBS += libFastUIDraw_debug.so
+
+libFastUIDraw_release: libFastUIDraw_release.so
+libFastUIDraw_release.so: $(LIBRARY_release_ALL_OBJS) $(LIBRARY_release_RESOURCE_OBJS)
+	$(CXX) -shared -Wl,-soname,libFastUIDraw_release.so -o libFastUIDraw_release.so $(LIBRARY_release_ALL_OBJS) $(LIBRARY_LIBS)
+CLEAN_FILES += libFastUIDraw_release.so
+INSTALL_LIBS += libFastUIDraw_release.so
+
+endif

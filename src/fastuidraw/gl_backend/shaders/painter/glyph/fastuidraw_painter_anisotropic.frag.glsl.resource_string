@@ -1,0 +1,7 @@
+float
+fastuidraw_anisotropic_coverage(float d, float dx, float dy)
+{
+  float mag_sq;
+  mag_sq = (dx * dx + dy * dy);
+  return clamp(0.5 + d * inversesqrt(mag_sq), 0.0, 1.0);
+}

@@ -1,0 +1,8 @@
+vec4
+fastuidraw_perform_blend(in uint blend_shader, in vec4 color)
+{
+  /* TODO:
+       - implement blending
+   */
+  return color;
+}

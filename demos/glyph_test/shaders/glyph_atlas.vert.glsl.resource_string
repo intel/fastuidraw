@@ -1,0 +1,14 @@
+in vec2 attrib_p;
+
+uniform mat4 pvm;
+uniform vec2 translate;
+uniform float scale;
+
+out vec2 coord;
+
+void
+main(void)
+{
+  coord = attrib_p;
+  gl_Position = pvm * vec4(scale * attrib_p + translate, 0.0, 1.0);
+}

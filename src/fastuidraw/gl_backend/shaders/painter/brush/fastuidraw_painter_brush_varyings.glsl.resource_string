@@ -1,0 +1,56 @@
+
+/* specifies what features are active on the brush
+   through values on its bits.
+ */
+flat fastuidraw_varying uint fastuidraw_brush_shader;
+
+/* Brush coordinate (with brush transformations already applied)
+ */
+fastuidraw_varying vec2 fastuidraw_brush_p;
+
+/* Repeat window paremters:
+    - fastuidraw_brush_repeat_window_xy (x,y) coordinate of repeat window
+    - fastuidraw_brush_repeat_window_wh dimensions of repeat window
+   (all in brush coordinate)
+ */
+flat fastuidraw_varying vec2 fastuidraw_brush_repeat_window_xy;
+flat fastuidraw_varying vec2 fastuidraw_brush_repeat_window_wh;
+
+/* Gradient paremters (all in brush coordinates)
+    - fastuidraw_brush_gradient_p0 start point of gradient
+    - fastuidraw_brush_gradient_p1 end point of gradient
+    - fastuidraw_brush_gradient_r0 start radius (radial gradients only)
+    - fastuidraw_brush_gradient_r1 end radius (radial gradients only)
+ */
+flat fastuidraw_varying vec2 fastuidraw_brush_gradient_p0;
+flat fastuidraw_varying vec2 fastuidraw_brush_gradient_p1;
+flat fastuidraw_varying float fastuidraw_brush_gradient_r0;
+flat fastuidraw_varying float fastuidraw_brush_gradient_r1;
+
+/* image parameters
+    - fastuidraw_brush_image_xy (x,y) texel coordinate in INDEX texture
+                               of start of image
+    - fastuidraw_brush_image_layer layer texel coordinate in INDEX
+                                  texture of start of image
+    - fastuidraw_brush_image_size size of image (needed for when brush
+                                 coordinate goes beyond image size)
+    - fastuidraw_brush_image_factor ratio of master index tile size to
+                                   dimension of image
+ */
+flat fastuidraw_varying vec2 fastuidraw_brush_image_xy;
+flat fastuidraw_varying float fastuidraw_brush_image_layer;
+flat fastuidraw_varying vec2 fastuidraw_brush_image_size;
+flat fastuidraw_varying float fastuidraw_brush_image_factor;
+
+/* ColorStop paremeters (only active if gradient active)
+    - fastuidraw_brush_color_stop_xy (x,y) texture coordinates of start of color stop
+                                    sequence
+    - fastuidraw_brush_color_stop_length length of color stop sequence in normalized
+                                        texture coordinates
+ */
+flat fastuidraw_varying vec2 fastuidraw_brush_color_stop_xy;
+flat fastuidraw_varying float fastuidraw_brush_color_stop_length;
+
+/* Initial color (pen color) for brush
+ */
+flat fastuidraw_varying vec4 fastuidraw_brush_pen_color;

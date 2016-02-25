@@ -1,0 +1,88 @@
+
+struct fastuidraw_brush_image_data
+{
+  vec3 master_index_tile_atlas_location_xyz;
+  uvec2 image_size;
+  uint slack, number_index_lookups;
+  uint image_size_over_master_size;
+  uvec2 image_start;
+};
+
+
+struct fastuidraw_brush_gradient
+{
+  /* location on atlas in texels
+   */
+  vec2 color_stop_sequence_xy;
+
+  /* just the length
+   */
+  float color_stop_sequence_length;
+
+  /* start and end of gradients packed as usual floats
+   */
+  vec2 p0, p1;
+
+  /* radial gradient values
+   */
+  float r0, r1;
+};
+
+struct fastuidraw_brush_repeat_window
+{
+  vec2 xy; //x-y position of window
+  vec2 wh; //width and height of window
+};
+
+
+struct fastuidraw_brush_image_data_raw
+{
+  /* packed: Image::master_index_tile().xyz()
+   */
+  uint image_atlas_location_xyz;
+
+  /* packed: Image::dimensions().xy() (or a sub-value for sub-imaging)
+
+     NOTE: The formula to go from image coordinates to
+           master index tile coordinates is given by:
+              i + p / A
+           where
+              i = Image::master_index_tile().xy()
+              p = image coordinates
+              A = ( (TileSize - 2 * Slack) * pow(IndexTileSize, NumberIndexLevels) )
+
+           TileSize is given by FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE
+           Slack comes from the shader_brush (it is packed into 2 bits)
+           NumberIndexLevels is also packed into shader_brush (occupying 5 bits)
+           IndexTileSize is given by (1 << FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE),
+                         note that then pow(IndexTileSize, NumberIndexLevels) is same as
+                         (1 << (FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE * NumberIndexLevels) )
+   */
+  uint image_size_xy;
+
+  /*
+    offset of start rectangle for sub-image.
+   */
+  uint image_start_xy;
+};
+
+struct fastuidraw_brush_gradient_raw
+{
+  /* start and end of gradients packed as usual floats
+   */
+  vec2 p0, p1;
+
+  /* packed:
+     - bits [0 , 15] ColorStopSequenceOnAtlas::texel_location().x()
+     - bits [16, 31] ColorStopSequenceOnAtlas::texel_location().y
+   */
+  uint color_stop_sequence_xy;
+
+  /* just the length
+   */
+  uint color_stop_sequence_length;
+
+  /* radial gradient values
+   */
+  float r0, r1;
+};

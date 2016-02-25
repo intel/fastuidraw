@@ -1,0 +1,112 @@
+vec4
+fastuidraw_gl_vert_main(in vec4 primary_attrib,
+                       in vec4 secondary_attrib,
+                       in uvec4 uint_attrib,
+                       in uint shader_data_offset,
+                       out uint z_add)
+{
+  vec2 p;
+  vec2 position, pre_offset;
+  float distance_from_edge_start, distance_from_outline_start;
+  float miter_distance, stroking_on_boundary;
+  fastuidraw_stroking_params stroke_params;
+
+  position = primary_attrib.xy;
+  pre_offset = primary_attrib.zw;
+  distance_from_edge_start = secondary_attrib.x;
+  distance_from_outline_start = secondary_attrib.y;
+  miter_distance = secondary_attrib.z;
+
+  fastuidraw_read_stroking_params(shader_data_offset, stroke_params);
+
+  float factor;
+  factor = (abs(miter_distance) > stroke_params.miter_limit && stroke_params.miter_limit >= 0.0) ?
+        sign(miter_distance) * stroke_params.miter_limit :
+        miter_distance;
+
+  vec2 perp, offset;
+  perp = vec2(-pre_offset.y, pre_offset.x);
+  offset = pre_offset + factor * perp;
+
+  /* declared in C++ code
+   */
+  stroking_on_boundary = secondary_attrib.w;
+
+  /* idea:
+      For anti-aliased via coverage, we have two passes:
+       pass 1: FASTUIDRAW_STROKE_OPAQUE_PASS which is to draw
+               the solid parts (i.e. fully covered). Thus
+               we draw slightly less in width
+       pass 2: FASTUIDRAW_STROKE_AA_PASS which is to draw just
+               the anti-aliasing fuzz. In this case we need
+               to start drawing where the FASTUIDRAW_STROKE_OPAQUE_PASS
+               stopped and extend to the end.
+
+   */
+
+  if(abs(stroking_on_boundary) > 0.5)
+    {
+      #if defined(FASTUIDRAW_STROKE_OPAQUE_PASS)
+        {
+          vec2 q, sQ, sP, sR, sV, sD;
+          vec3 P, Q;
+          float clip_t, screen_t, recQz, recPz;
+
+          q = position + (0.5 * stroke_params.width) * offset;
+          P = fastuidraw_item_matrix * vec3(position, 1.0);
+          Q = fastuidraw_item_matrix * vec3(q, 1.0);
+
+          recPz = 1.0 / P.z;
+          recQz = 1.0 / Q.z;
+          sP = P.xy * recPz;
+          sQ = Q.xy * recQz;
+          sD = sQ - sP;
+          sV = normalize(sD);
+
+          /* We pull back the number of pixels given by anti_alias_thickness,
+             that is the number of pixels we give to the anti-aliasing outline.
+           */
+          const float anti_alias_thickness = 1.0;
+          /*
+            normalized coordinates are -1 to 1, thus 1 pixel is
+            given by (2.0 / number_pixels) in normalized coordinates
+          */
+          const float anti_alias_coeff = 2.0 * anti_alias_thickness;
+          sR = sQ - (anti_alias_coeff * fastuidraw_viewport_recip_pixels_magnitude) * sV;
+
+          if(abs(sD.x) > abs(sD.y))
+            {
+              screen_t = (sR.x - sP.x) / sD.x;
+            }
+          else
+            {
+              screen_t = (sR.y - sP.y) / sD.y;
+            }
+          screen_t = clamp(screen_t, 0.0, 1.0);
+          clip_t = (screen_t * recQz) / mix(recPz, recQz, screen_t);
+          p = (1.0 - clip_t) * position + clip_t * q;
+        }
+      #else
+        {
+          p = position + (0.5 * stroke_params.width) * offset;
+        }
+      #endif
+    }
+  else
+    {
+      p = position;
+    }
+
+  #ifdef FASTUIDRAW_STROKE_AA_PASS
+    {
+      fastuidraw_stroking_on_boundary = stroking_on_boundary;
+      z_add = 0u;
+    }
+  #else
+    {
+      z_add = uint_attrib.x;
+    }
+  #endif
+
+  return vec4(p, p);
+}

@@ -1,0 +1,32 @@
+NEW IDEA: for text rendering
+       We store all the curves in Bezier form. A texel value is an
+       offset into the data buffer. The data packed is:
+         - Winding number at texel center
+         - N = # of curves
+         - offset to curve 1
+         - offset to curve 2
+         - .
+         - .
+         - offset to curve N.
+      Coverage computation is the following:
+        1. Let p = texel coordinate in glyph.
+        2. Let c = middle of the texel of p
+        3. Let L = [c,p] i.e. the line segment from p to c
+        4. for each curve A in the texel, compute the intersection
+           of L and A. Increment/decrement as required by nature
+           of intersection. That sum when added to the winding
+           number at c gives the winding number at p. In addition
+           we can also give a pseudo distance as the distance along
+           the ray from c to p to the nearest intersecting curve from -c-.
+           If there are no intersection, we can give the distance as
+           some "max value". For c near the texel boundary, it can be
+           totally wrong because a curve might be outside of the texel
+           but be close to c. [we could make it work better by saying a
+           texel gets all the curves that go through it or any neighboring
+           texels].
+
+NEW IDEA: for path rendering.
+    Currently paths are tessellated to line segments and from there we get the stroking
+    and filling. Instead, lets tessellate to arcs and line segments.
+      - For Stroking an arc, the gometry data of an arc is exactly that as of
+        miter join,

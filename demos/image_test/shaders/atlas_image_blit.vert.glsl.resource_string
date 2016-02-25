@@ -1,0 +1,23 @@
+
+in vec2 attrib_pos;
+in vec3 attrib_image_shader_coord;
+
+out vec2 image_shader_coord;
+out vec2 pos;
+flat out int index_layer;
+flat out int image_num_lookups;
+
+uniform mat4 pvm;
+uniform float scale;
+uniform vec2 translate;
+uniform int uniform_image_num_lookups;
+
+void main(void)
+{
+  vec2 p;
+  pos = attrib_pos;
+  image_shader_coord = attrib_image_shader_coord.xy;
+  index_layer = int(attrib_image_shader_coord.z);
+  image_num_lookups = uniform_image_num_lookups;
+  gl_Position = pvm * vec4(scale * attrib_pos + translate, 0.0, 1.0);
+}

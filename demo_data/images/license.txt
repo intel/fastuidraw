@@ -1,0 +1,9 @@
+The picture files in images/
+(ugly programmer art meet ugly programmy photography)
+are copyrighted:
+
+ Copyright of Nomovok Ltd. All rights reserved.
+ Contact: info@nomovok.com
+ author Kevin Rogovin <kevin.rogovin@nomovok.com>
+
+ License: MPLv2 (see COPYING)

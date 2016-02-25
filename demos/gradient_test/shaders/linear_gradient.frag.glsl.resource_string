@@ -1,0 +1,35 @@
+#ifdef GL_ES
+
+  precision highp int;
+  precision highp float;
+
+  uniform mediump sampler2DArray gradientAtlas;
+
+  #define fetch(x, L) texture(gradientAtlas, vec3(x, 0.0, L))
+
+#else
+
+  uniform sampler1DArray gradientAtlas;
+
+  #define fetch(x, L) texture(gradientAtlas, vec2(x, L))
+
+#endif
+
+in float interpolate;
+out vec4 out_color;
+
+uniform float atlasLayer;
+uniform float gradientStart, gradientLength;
+uniform float gradientAtlasWidth;
+
+void
+main(void)
+{
+  float s;
+
+  s = fract(interpolate);
+  s = 0.5 + gradientStart + s*gradientLength;
+  s /= gradientAtlasWidth;
+
+  out_color = fetch(s, atlasLayer);
+}

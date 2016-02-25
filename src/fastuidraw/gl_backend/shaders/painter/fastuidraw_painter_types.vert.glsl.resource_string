@@ -1,0 +1,31 @@
+struct fastuidraw_shader_header
+{
+  /* read directly from texels
+   */
+  uint clipping_location;
+  uint item_matrix_location;
+  uint brush_shader_data_location;
+  uint vert_shader_data_location;
+  uint frag_shader_data_location;
+  uint vert_frag_shader;
+  uint brush_shader;
+  uint z_blend_shader_raw;
+
+  /* derived from those values
+   */
+  uint vert_shader, frag_shader;
+  uint blend_shader;
+  uint z;
+
+};
+
+struct fastuidraw_clipping_data
+{
+  vec3 clip0, clip1, clip2, clip3;
+};
+
+struct fastuidraw_stroking_params
+{
+  float width;
+  float miter_limit;
+};

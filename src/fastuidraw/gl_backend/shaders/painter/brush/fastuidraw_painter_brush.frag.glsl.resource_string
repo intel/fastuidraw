@@ -1,0 +1,240 @@
+float
+compute_gradient_interpolate(in vec2 p, out float good)
+{
+  float t;
+
+  t = 1.0;
+
+  if(fastuidraw_brush_shader_has_radial_gradient(fastuidraw_brush_shader))
+    {
+      vec2 q, delta_p;
+      float delta_r, a, b, c, desc, t0, t1, recip_two_a;
+
+      q = p - fastuidraw_brush_gradient_p0;
+      delta_p = fastuidraw_brush_gradient_p1 - fastuidraw_brush_gradient_p0;
+      delta_r = fastuidraw_brush_gradient_r1 - fastuidraw_brush_gradient_r0;
+
+      c = dot(q, q) - fastuidraw_brush_gradient_r0 * fastuidraw_brush_gradient_r0;
+      b = 2.0 * (dot(q, delta_p) - fastuidraw_brush_gradient_r0 * delta_r);
+      a = dot(delta_p, delta_p) - delta_r * delta_r;
+
+      desc = b * b - 4.0 * a * c;
+      if(desc < 0.0)
+        {
+          good = 0.0;
+          t = 0.0;
+        }
+      else
+        {
+          good = 1.0;
+
+          desc = sqrt(abs(desc));
+          recip_two_a = 0.5 / a;
+          t0 = (-b + desc) * recip_two_a;
+          t1 = (-b - desc) * recip_two_a;
+
+          /* if both t0 and t1 are in range, then take the max
+             if both t0 and t1 are not in range, then take max
+             if only one of t0 and t1 are in range take that one.
+          */
+
+          /* G.x is 1 exactly when t0 is in range
+             G.y is 1 exactly when t1 is in range
+          */
+          vec2 G;
+          G = step(0.0, vec2(t0, t1)) * step(vec2(t0, t1), vec2(1.0, 1.0));
+
+          if(G.x == G.y)
+            {
+              t = max(t0, t1);
+            }
+          else
+            {
+              t = dot(G, vec2(t0, t1));
+            }
+        }
+    }
+  else if(fastuidraw_brush_shader_has_linear_gradient(fastuidraw_brush_shader))
+    {
+      vec2 v;
+      good = 1.0;
+      v = fastuidraw_brush_gradient_p1 - fastuidraw_brush_gradient_p0;
+      t = dot(v, p - fastuidraw_brush_gradient_p0) / dot(v, v);
+    }
+
+  return t;
+}
+
+vec4
+fastuidraw_brush_cubic_weights(float x)
+{
+    float x_squared = x * x;
+    float x_cubed = x_squared * x;
+    float one_minus_x = 1.0 - x;
+    float one_minus_x_squared = one_minus_x * one_minus_x;
+    float one_minus_x_cubed = one_minus_x_squared  * one_minus_x;
+    vec4 w;
+
+    w.x = one_minus_x_cubed;
+    w.y = 3.0 * x_cubed - 6.0 * x_squared + 4.0;
+    w.z = 3.0 * one_minus_x_cubed - 6.0 * one_minus_x_squared + 4.0;
+    w.w = x_cubed;
+    return w / 6.0;
+}
+
+void
+fastuidraw_brush_compute_image_atlas_coord(in vec2 image_shader_coord,
+                                          in int index_layer,
+                                          in int num_lookups,
+                                          in int slack,
+                                          out vec2 image_atlas_coord,
+                                          out int image_atlas_layer)
+{
+  /* this seams silly, but there is a reason.
+     On Mesa/i965 (as of Oct 23, 2015) without this wrapper,
+     the GLSL compiler produces an incorrect shader that
+     fails for the case where num_lookups is one.
+     However, making the case of 1 explicit makes this
+     thing work.
+   */
+  if(num_lookups == 1)
+    {
+      fastuidraw_compute_image_atlas_coord(image_shader_coord, index_layer,
+                                          1, slack,
+                                          image_atlas_coord,
+                                          image_atlas_layer);
+    }
+  else
+    {
+      fastuidraw_compute_image_atlas_coord(image_shader_coord, index_layer,
+                                          num_lookups, slack,
+                                          image_atlas_coord,
+                                          image_atlas_layer);
+    }
+}
+
+vec4
+fastuidraw_compute_brush_color(void)
+{
+  vec4 return_value = fastuidraw_brush_pen_color;
+  vec2 p;
+
+  p = fastuidraw_brush_position;
+  if(fastuidraw_brush_shader_has_repeat_window(fastuidraw_brush_shader))
+    {
+      p -= fastuidraw_brush_repeat_window_xy;
+      p = mod(p, fastuidraw_brush_repeat_window_wh);
+      p += fastuidraw_brush_repeat_window_xy;
+    }
+
+
+  if(fastuidraw_brush_shader_has_radial_gradient(fastuidraw_brush_shader)
+     || fastuidraw_brush_shader_has_linear_gradient(fastuidraw_brush_shader))
+    {
+      float t, good;
+
+      t = compute_gradient_interpolate(p, good);
+      if(fastuidraw_brush_shader_has_gradient_repeat(fastuidraw_brush_shader))
+        {
+          t = fract(t);
+        }
+      else
+        {
+          t = clamp(t, 0.0, 1.0);
+        }
+      t = fastuidraw_brush_color_stop_xy.x + t * fastuidraw_brush_color_stop_length;
+      return_value *= (good * fastuidraw_colorStopFetch(t, fastuidraw_brush_color_stop_xy.y));
+    }
+
+  if(fastuidraw_brush_shader_has_image(fastuidraw_brush_shader))
+    {
+      vec2 index_coord, texel_coord, image_xy;
+      int color_layer;
+      uint slack, number_lookups;
+      vec2 q;
+      uint image_filter;
+      vec4 image_color;
+
+      slack = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_slack_bit0,
+                                     fastuidraw_image_slack_num_bits,
+                                     fastuidraw_brush_shader);
+
+      number_lookups = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_number_index_lookup_bit0,
+                                              fastuidraw_image_number_index_lookup_num_bits,
+                                              fastuidraw_brush_shader);
+
+      image_filter = FASTUIDRAW_EXTRACT_BITS(fastuidraw_shader_image_filter_bit0,
+                                            fastuidraw_shader_image_filter_num_bits,
+                                            fastuidraw_brush_shader);
+
+      /* fract the brush coordinate to the size of
+         the image.
+         TODO: perhaps shader bit-flags to say to
+               repeat (fract), mirror_repeat, etc.
+       */
+      q = mod(p, fastuidraw_brush_image_size);
+
+      /* convert from image coordinates to index-tile coordinates
+       */
+      image_xy = q * fastuidraw_brush_image_factor + fastuidraw_brush_image_xy;
+
+      /* lookup the texel coordinate in the large atlas from the index-tile
+         coordinate.
+       */
+      fastuidraw_brush_compute_image_atlas_coord(image_xy, int(fastuidraw_brush_image_layer),
+                                                int(number_lookups), int(slack),
+                                                texel_coord, color_layer);
+
+      if(image_filter == uint(fastuidraw_shader_image_filter_nearest))
+        {
+          image_color = texelFetch(fastuidraw_imageAtlas, ivec3(texel_coord, color_layer), 0).rgba;
+        }
+      else if(image_filter == uint(fastuidraw_shader_image_filter_linear))
+        {
+          image_color = texture(fastuidraw_imageAtlasFiltered,
+                                vec3(texel_coord * fastuidraw_imageAtlas_size_reciprocal, color_layer)).rgba;
+        }
+      else
+        {
+          /* Cubic filtering by realizing cubic-filtering as repeated
+             bilinear filtering, see GPU Gems 2, Chapter 20.
+             Code inspired by StackOverflow (http://stackoverflow.com/questions/13501081/efficient-bicubic-filtering-code-in-glsl)
+             and from Shiny Pixels (http://vec3.ca/bicubic-filtering-in-fewer-taps/)
+           */
+          vec2 fract_texel_coord, linear_weight;
+          vec4 x_weights, y_weights;
+          vec4 corner_coords, weight_sums, texture_coords;
+          vec4 t00, t10, t01, t11;
+
+          texel_coord -= vec2(0.5, 0.5);
+          fract_texel_coord = fract(texel_coord);
+          texel_coord -= fract_texel_coord;
+
+          x_weights = fastuidraw_brush_cubic_weights(fract_texel_coord.x);
+          y_weights = fastuidraw_brush_cubic_weights(fract_texel_coord.y);
+
+          corner_coords = vec4(texel_coord.x - 0.5, texel_coord.x + 1.5,
+                               texel_coord.y - 0.5, texel_coord.y + 1.5);
+          weight_sums = vec4(x_weights.x + x_weights.y, x_weights.z + x_weights.w,
+                             y_weights.x + y_weights.y, y_weights.z + y_weights.w);
+
+          texture_coords = corner_coords + vec4(x_weights.y, x_weights.w, y_weights.y, y_weights.w) / weight_sums;
+          texture_coords *= fastuidraw_imageAtlas_size_reciprocal;
+
+          t00 = texture(fastuidraw_imageAtlasFiltered, vec3(texture_coords.xz, color_layer));
+          t10 = texture(fastuidraw_imageAtlasFiltered, vec3(texture_coords.yz, color_layer));
+          t01 = texture(fastuidraw_imageAtlasFiltered, vec3(texture_coords.xw, color_layer));
+          t11 = texture(fastuidraw_imageAtlasFiltered, vec3(texture_coords.yw, color_layer));
+
+          linear_weight.x = weight_sums.y / (weight_sums.x + weight_sums.y);
+          linear_weight.y = weight_sums.w / (weight_sums.z + weight_sums.w);
+
+          image_color = mix(mix(t00, t10, linear_weight.x),
+                            mix(t01, t11, linear_weight.x),
+                            linear_weight.y);
+        }
+      return_value *= image_color;
+    }
+
+  return return_value;
+}

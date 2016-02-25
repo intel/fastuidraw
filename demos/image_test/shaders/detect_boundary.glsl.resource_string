@@ -1,0 +1,23 @@
+
+#ifdef GL_ES
+precision highp float;
+precision highp int;
+#endif
+
+bool
+detect_boundary(in vec2 coord, in float boundary, in float boundary_thickness)
+{
+  vec2 ee, rr, dd;
+  float bb;
+
+  ee = abs(vec2(dFdx(coord.x), dFdy(coord.y)));
+  dd = boundary_thickness * ee;
+  rr = mod(coord, boundary);
+  return rr.x < dd.x || rr.y < dd.y;
+}
+
+bool
+detect_boundary(in vec2 coord, in float boundary)
+{
+  return detect_boundary(coord, boundary, 3.0);
+}

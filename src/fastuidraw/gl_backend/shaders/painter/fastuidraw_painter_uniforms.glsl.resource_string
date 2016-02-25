@@ -1,0 +1,31 @@
+#ifdef GL_ES
+
+uniform sampler2DArray fastuidraw_colorStopAtlas;
+#define fastuidraw_colorStopFetch(x, L) textureLod(fastuidraw_colorStopAtlas, vec3(float(x), 0.0, float(L)), 0.0)
+
+#else
+
+uniform sampler1DArray fastuidraw_colorStopAtlas;
+#define fastuidraw_colorStopFetch(x, L) textureLod(fastuidraw_colorStopAtlas, vec2(float(x), float(L)), 0.0)
+
+#endif
+
+uniform sampler2DArray fastuidraw_imageAtlas;
+uniform sampler2DArray fastuidraw_imageAtlasFiltered;
+uniform usampler2DArray fastuidraw_imageIndexAtlas;
+
+uniform usampler2DArray fastuidraw_glyphTexelStoreUINT;
+
+#ifndef FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT
+uniform sampler2DArray fastuidraw_glyphTexelStoreFLOAT;
+#endif
+
+uniform samplerBuffer fastuidraw_glyphGeometryDataStore;
+
+uniform samplerBuffer fastuidraw_painterStoreFLOAT;
+uniform usamplerBuffer fastuidraw_painterStoreUINT;
+uniform isamplerBuffer fastuidraw_painterStoreINT;
+
+uniform vec2 fastuidraw_viewport_pixels;
+uniform vec2 fastuidraw_viewport_recip_pixels;
+uniform float fastuidraw_viewport_recip_pixels_magnitude;

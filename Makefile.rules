@@ -1,0 +1,37 @@
+string_resources_cpp/%.resource_string.cpp: %.resource_string
+	@mkdir -p $(dir $@)
+	$(STRING_RESOURCE_CC) $< $(notdir $<) $(dir $@)
+.SECONDARY: string_resources_cpp/%.resource_string.cpp
+.PRECIOUS: string_resources_cpp/%.resource_string.cpp
+
+# $1 --> release or debug
+define librules
+$(eval $(1)/%.resource_string.o: string_resources_cpp/%.resource_string.cpp
+	@mkdir -p $$(dir $$@)
+	$(CXX) $$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_BASE_$(1)_CFLAGS) $(fPIC) -c $$< -o $$@
+
+$(1)/%.o: %.cpp $(1)/%.d
+	@mkdir -p $$(dir $$@)
+	$(CXX) $$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_BASE_$(1)_CFLAGS) $(fPIC) -c $$< -o $$@
+
+$(1)/private/%.o: %.cpp $(1)/private/%.d
+	@mkdir -p $$(dir $$@)
+	$(CXX) $$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_BASE_$(1)_CFLAGS) $(fPIC) $(fHIDDEN) -c $$< -o $$@
+
+$(1)/%.d: %.cpp
+	@mkdir -p $$(dir $$@)
+	@echo Generating $$@
+	@./makedepend.sh "$(CXX)" "$$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_BASE_$(1)_CFLAGS)" $(1) "$$*" "$$<" "$$@"
+
+$(1)/private/%.d: %.cpp
+	@mkdir -p $$(dir $$@)
+	@echo Generating $$@
+	@./makedepend.sh "$(CXX)" "$$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_BASE_$(1)_CFLAGS)" $(1) "$$*" "$$<" "$$@"
+.SECONDARY: $(1)/%.d
+.PRECIOUS: $(1)/%.d
+)
+endef
+
+
+$(call librules,release)
+$(call librules,debug)

@@ -1,0 +1,69 @@
+in vec3 tex_coord_layer;
+
+#ifdef USE_UINT_TEXEL_FETCH
+ uniform usampler2DArray glyph_texel_store;
+#else
+ uniform sampler2DArray glyph_texel_store;
+#endif
+
+uniform uint aa_mode;
+
+out vec4 color;
+
+void
+main(void)
+{
+  float raw, a, f;
+
+  #ifdef USE_UINT_TEXEL_FETCH
+  {
+    ivec2 coord, coord00, coord01, coord10, coord11;
+    int layer;
+    uint v00, v01, v10, v11;
+    vec2 mixer;
+    float f00, f10, f01, f11;
+    float f0, f1;
+    vec2 tex;
+
+    tex = tex_coord_layer.xy;
+    coord = ivec2(tex);
+    coord00 = coord;
+    coord10 = coord + ivec2(1, 0);
+    coord01 = coord + ivec2(0, 1);
+    coord11 = coord + ivec2(1, 1);
+
+    layer = int(tex_coord_layer.z);
+    mixer = tex - vec2(coord);
+
+    v00 = texelFetch(glyph_texel_store, ivec3(coord00, layer), 0).r;
+    v01 = texelFetch(glyph_texel_store, ivec3(coord01, layer), 0).r;
+    v10 = texelFetch(glyph_texel_store, ivec3(coord10, layer), 0).r;
+    v11 = texelFetch(glyph_texel_store, ivec3(coord11, layer), 0).r;
+
+    f00 = float(v00);
+    f10 = float(v10);
+    f01 = float(v01);
+    f11 = float(v11);
+
+    f0 = mix(f00, f01, mixer.y);
+    f1 = mix(f10, f11, mixer.y);
+    raw = mix(f0, f1, mixer.x) / 255.0;
+
+  }
+  #else
+  {
+    float v;
+    vec2 tex;
+
+    tex = (tex_coord_layer.xy) / vec2(textureSize(glyph_texel_store, 0).xy);
+    raw = texture(glyph_texel_store, vec3(tex, tex_coord_layer.z) ).r;
+  }
+  #endif
+
+  /* realize coverage value into range [-1, 1]
+   */
+  f = (raw - 0.5) * 2.0;
+  a = perform_aa(aa_mode, f, tex_coord_layer.xy);
+
+  color = vec4(1.0, 1.0, 1.0, a);
+}

@@ -1,0 +1,37 @@
+
+
+# detect MinGW: requires tweaks to various builds
+MINGW_BUILD = 0
+ifeq ($(findstring MINGW32,$(shell uname -a)),MINGW32)
+MINGW_BUILD = 1
+endif
+
+###########################################
+# Setting for building libFastUIDraw.so base library
+CXX ?= g++
+CC ?= gcc
+STRING_RESOURCE_CC = shell_scripts/create_cpp_from_string_resource.sh
+LIBRARY_LIBS = -lboost_system -lboost_thread `freetype-config --libs` -lm
+
+ifeq ($(MINGW_BUILD),1)
+LIBRARY_LIBS += -lmingw32
+fPIC =
+fHIDDEN =
+fHIDDEN_INLINES =
+else
+fPIC = -fPIC
+fHIDDEN_INLINES = -fvisibility-inlines-hidden
+fHIDDEN = -fvisibility=hidden
+endif
+
+LIBRARY_BASE_CFLAGS = `freetype-config --cflags`
+LIBRARY_debug_CFLAGS = -DFASTUIDRAW_VECTOR_BOUND_CHECK -DDEBUG
+LIBRARY_release_CFLAGS = -DNDEBUG
+LIBRARY_BASE_debug_CFLAGS = $(LIBRARY_debug_CFLAGS) $(LIBRARY_BASE_CFLAGS)
+LIBRARY_BASE_release_CFLAGS = $(LIBRARY_release_CFLAGS) $(LIBRARY_BASE_CFLAGS)
+
+LIBRARY_BUILD_debug_FLAGS = -g
+LIBRARY_BUILD_release_FLAGS = -O2
+LIBRARY_BUILD_WARN_FLAGS = -Wall -Wextra -Wcast-qual -Wwrite-strings
+LIBRARY_BUILD_INCLUDES_CFLAGS = -Iinc
+LIBRARY_BUILD_BASE_FLAGS = $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS)

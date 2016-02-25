@@ -1,0 +1,38 @@
+vec4
+fastuidraw_gl_vert_main(in vec4 primary_attrib,
+                       in vec4 secondary_attrib,
+                       in uvec4 uint_attrib,
+                       in uint shader_data_offset,
+                       out uint z_add)
+{
+  /*
+    varyings:
+     fastuidraw_glyph_tex_coord_x
+     fastuidraw_glyph_tex_coord_y
+     fastuidraw_glyph_secondary_tex_coord_x
+     fastuidraw_glyph_secondary_tex_coord_y
+     fastuidraw_glyph_tex_coord_layer
+     fastuidraw_glyph_secondary_tex_coord_layer
+     fastuidraw_glyph_geometry_data_location
+
+  packing:
+     - primary_attrib.xy -> xy-texel location in primary atlas
+     - primary_attrib.zw  -> xy-texel location in secondary atlas
+     - secondary_attrib.xy -> position in item coordinates
+     - secondary_attrib.z  -> (free)
+     - secondary_attrib.w  -> (free)
+     - uint_attrib.x -> 0
+     - uint_attrib.y -> glyph offset
+     - uint_attrib.z -> layer in primary atlas
+     - uint_attrib.w -> layer in secondary atlas
+  */
+  fastuidraw_glyph_tex_coord_x = primary_attrib.x;
+  fastuidraw_glyph_tex_coord_y = primary_attrib.y;
+  fastuidraw_glyph_secondary_tex_coord_x = primary_attrib.z;
+  fastuidraw_glyph_secondary_tex_coord_y = primary_attrib.w;
+  fastuidraw_glyph_tex_coord_layer = uint_attrib.z;
+  fastuidraw_glyph_secondary_tex_coord_layer = uint_attrib.w;
+  fastuidraw_glyph_geometry_data_location = uint_attrib.y;
+  z_add = 0u;
+  return secondary_attrib.xyxy;
+}

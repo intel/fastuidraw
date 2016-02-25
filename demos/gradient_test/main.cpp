@@ -1,0 +1,436 @@
+#include <fastuidraw/gl_backend/colorstop_atlas_gl.hpp>
+#include <fastuidraw/gl_backend/opengl_trait.hpp>
+#include <cstdlib>
+#include "sdl_demo.hpp"
+#include "colorstop_command_line.hpp"
+
+using namespace fastuidraw;
+typedef color_stop_arguments::hoard colorstop_data_hoard;
+
+
+class gradient_test:public sdl_demo
+{
+public:
+  gradient_test(void):
+    sdl_demo("gradient-test"),
+    m_color_stop_atlas_width(1024, "atlas_width",
+                             "width for color stop atlas", *this),
+    m_color_stop_atlas_layers(1024, "atlas_layers",
+                              "number of layers for the color stop atlas",
+                              *this),
+    m_color_stop_args(*this),
+    m_stress(false, "stress_color_stop_atlas",
+             "If true create and delete multiple color stops "
+             "to test ColorStopAtlas allocation and deletion", *this),
+    m_active_color_stop(0),
+    m_ibo(0),
+    m_bo(0),
+    m_vao(0),
+    m_pts_bo(0),
+    m_pts_vao(0),
+    m_p0(-1.0f, -1.0f),
+    m_p1(1.0f, 1.0f),
+    m_draw_gradient_points(true)
+  {
+    std::cout << "Controls:\n"
+              << "\tn: next color stop sequence\n"
+              << "\tp: previous color stop sequence\n"
+              << "\td: toggle drawing gradient points\n"
+              << "\tLeft Mouse Button: set p0(starting position bottom left) {drawn black with white inside} of linear gradient\n"
+              << "\tRight Mouse Button: set p1(starting position top right) {drawn white with black inside} of linear gradient\n";
+  }
+
+  ~gradient_test()
+  {
+    if(m_vao != 0)
+      {
+        glDeleteVertexArrays(1, &m_vao);
+      }
+
+    if(m_bo != 0)
+      {
+        glDeleteBuffers(1, &m_bo);
+      }
+
+    if(m_ibo != 0)
+      {
+        glDeleteBuffers(1, &m_ibo);
+      }
+
+    if(m_pts_bo != 0)
+      {
+        glDeleteBuffers(1, &m_pts_bo);
+      }
+
+    if(m_pts_vao != 0)
+      {
+        glDeleteVertexArrays(1, &m_pts_vao);
+      }
+
+  }
+
+protected:
+
+  void
+  init_gl(int w, int h)
+  {
+    (void)w;
+    (void)h;
+
+    create_colorstops_and_atlas();
+    set_attributes_indices();
+    build_programs();
+  }
+
+  void
+  draw_frame(void)
+  {
+    glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    {
+      glBindVertexArray(m_vao);
+      glBindTexture(m_atlas->texture_bind_target(), m_atlas->texture());
+      const ColorStopSequenceOnAtlas::handle cst(m_color_stops[m_active_color_stop].second);
+      m_program->use_program();
+      gl::Uniform(m_p0_loc, m_p0);
+      gl::Uniform(m_p1_loc, m_p1);
+      gl::Uniform(m_atlasLayer_loc, float(cst->texel_location().y()));
+      gl::Uniform(m_gradientStart_loc, float(cst->texel_location().x()));
+      gl::Uniform(m_gradientLength_loc, float(cst->width()));
+      glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+    }
+
+
+    if(m_draw_gradient_points)
+      {
+        float width(20.0f);
+
+        glBindVertexArray(m_pts_vao);
+        m_draw_pts->use_program();
+
+        #ifndef FASTUIDRAW_GL_USE_GLES
+          {
+            glEnable(GL_PROGRAM_POINT_SIZE);
+          }
+        #endif
+
+        glDisable(GL_DEPTH_TEST);
+
+        draw_pt(m_p0, width, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        draw_pt(m_p0, width * 0.5f, vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+        draw_pt(m_p1, width, vec4(1.0f, 1.0f, 1.0f, 1.0f));
+        draw_pt(m_p1, width * 0.5f, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+      }
+  }
+
+
+  void
+  draw_pt(const vec2 &pt, float size, const vec4 &color)
+  {
+    gl::Uniform(m_pts_pos_loc, vec3(pt.x(), pt.y(), size));
+    gl::Uniform(m_pts_color_loc, color);
+    glDrawArrays(GL_POINTS, 0, 1);
+  }
+
+  void
+  handle_event(const SDL_Event &ev)
+  {
+    switch(ev.type)
+      {
+      case SDL_WINDOWEVENT:
+	if(ev.window.event == SDL_WINDOWEVENT_RESIZED)
+	  {
+	    glViewport(0, 0, ev.window.data1, ev.window.data2);
+	  }
+	break;
+
+      case SDL_QUIT:
+        end_demo(0);
+        break;
+
+      case SDL_KEYUP:
+        switch(ev.key.keysym.sym)
+          {
+          case SDLK_ESCAPE:
+            end_demo(0);
+            break;
+
+          case SDLK_n:
+            ++m_active_color_stop;
+            if(m_active_color_stop >= m_color_stops.size())
+              {
+                m_active_color_stop = 0;
+              }
+            std::cout << "Active ColorStop: "
+                      << m_color_stops[m_active_color_stop].first << "\n";
+            break;
+
+          case SDLK_p:
+            m_active_color_stop = (m_active_color_stop == 0) ?
+              (m_color_stops.size() - 1):
+              (m_active_color_stop - 1);
+            std::cout << "Active ColorStop: "
+                      << m_color_stops[m_active_color_stop].first << "\n";
+            break;
+
+          case SDLK_d:
+            m_draw_gradient_points = !m_draw_gradient_points;
+            break;
+          }
+        break;
+
+      case SDL_MOUSEMOTION:
+        {
+          ivec2 c(ev.motion.x + ev.motion.xrel,
+                  ev.motion.y + ev.motion.yrel);
+
+          if(ev.motion.state & SDL_BUTTON(SDL_BUTTON_LEFT))
+            {
+              m_p0 = get_normalized_device_coords(c);
+            }
+          else if(ev.motion.state & SDL_BUTTON(SDL_BUTTON_RIGHT))
+            {
+              m_p1 = get_normalized_device_coords(c);
+            }
+        }
+        break;
+
+      case SDL_MOUSEBUTTONDOWN:
+        {
+          ivec2 c(ev.button.x, ev.button.y);
+          if(ev.button.button == SDL_BUTTON_LEFT)
+            {
+              m_p0 = get_normalized_device_coords(c);
+            }
+          else if(ev.button.button == SDL_BUTTON_RIGHT)
+            {
+              m_p1 = get_normalized_device_coords(c);
+            }
+        }
+        break;
+
+      }
+  }
+
+private:
+
+  vec2
+  get_normalized_device_coords(const ivec2 &c)
+  {
+    vec2 r01;
+
+    r01 = vec2(c) / vec2(dimensions());
+    r01.y() = 1.0f - r01.y();
+
+    return 2.0f * r01 - vec2(1.0f, 1.0f);
+  }
+
+  void
+  create_colorstops_and_atlas(void)
+  {
+    gl::ColorStopAtlasGL::params params;
+    params
+      .width(m_color_stop_atlas_width.m_value)
+      .num_layers(m_color_stop_atlas_layers.m_value)
+      .delayed(false);
+
+    m_atlas = FASTUIDRAWnew gl::ColorStopAtlasGL(params);
+
+    if(m_color_stop_args.m_values.empty())
+      {
+        const_c_array<ColorStop> src;
+
+        m_color_stop_args.fetch("default-32px").m_stops.add(ColorStop(u8vec4(255, 255, 255, 255), 0.00f));
+        m_color_stop_args.fetch("default-32px").m_stops.add(ColorStop(u8vec4(0,     0, 255, 255), 0.25f));
+        m_color_stop_args.fetch("default-32px").m_stops.add(ColorStop(u8vec4(0,   255,   0, 255), 0.75f));
+        m_color_stop_args.fetch("default-32px").m_stops.add(ColorStop(u8vec4(255,   0, 255, 255), 1.0f));
+        m_color_stop_args.fetch("default-32px").m_discretization = 32;
+
+        src = m_color_stop_args.fetch("default-32px").m_stops.values();
+        m_color_stop_args.fetch("default-16px").m_stops.add(src.begin(), src.end());
+        m_color_stop_args.fetch("default-16px").m_discretization = 16;
+        m_color_stop_args.fetch("default-8px").m_stops.add(src.begin(), src.end());
+        m_color_stop_args.fetch("default-8px").m_discretization = 8;
+
+        m_color_stop_args.fetch("default2-32px").m_stops.add(ColorStop(u8vec4(0,   255, 255, 255), 0.00f));
+        m_color_stop_args.fetch("default2-32px").m_stops.add(ColorStop(u8vec4(0,     0, 255, 255), 0.25f));
+        m_color_stop_args.fetch("default2-32px").m_stops.add(ColorStop(u8vec4(255,   0,   0, 255), 0.75f));
+        m_color_stop_args.fetch("default2-32px").m_stops.add(ColorStop(u8vec4(  0, 255,   0, 255), 1.0f));
+        m_color_stop_args.fetch("default2-32px").m_discretization = 32;
+
+        src = m_color_stop_args.fetch("default2-32px").m_stops.values();
+        m_color_stop_args.fetch("default2-16px").m_stops.add(src.begin(), src.end());
+        m_color_stop_args.fetch("default2-16px").m_discretization = 16;
+        m_color_stop_args.fetch("default2-8px").m_stops.add(src.begin(), src.end());
+        m_color_stop_args.fetch("default2-8px").m_discretization = 8;
+      }
+
+
+    for(colorstop_data_hoard::iterator
+          iter = m_color_stop_args.m_values.begin(),
+          end = m_color_stop_args.m_values.end();
+        iter != end; ++iter)
+      {
+        ColorStopSequenceOnAtlas::handle h;
+        ColorStopSequenceOnAtlas::handle temp1, temp2;
+
+        if(m_stress.m_value)
+          {
+            int sz1, sz2;
+            sz1 = std::max(1, m_color_stop_atlas_width.m_value / 2);
+            sz2 = std::max(1, sz1 / 2);
+            temp1 = FASTUIDRAWnew ColorStopSequenceOnAtlas(iter->second->m_stops, m_atlas, sz1);
+            temp2 = FASTUIDRAWnew ColorStopSequenceOnAtlas(iter->second->m_stops,  m_atlas, sz2);
+          }
+
+
+        h =  FASTUIDRAWnew ColorStopSequenceOnAtlas(iter->second->m_stops, m_atlas,
+                                                   iter->second->m_discretization);
+
+        m_color_stops.push_back(named_color_stop(iter->first, h));
+
+      }
+  }
+
+  void
+  set_attributes_indices(void)
+  {
+    glGenVertexArrays(1, &m_pts_vao);
+    assert(m_pts_vao != 0);
+    glBindVertexArray(m_pts_vao);
+
+    float value[] = { 1.0f };
+
+    glGenBuffers(1, &m_pts_bo);
+    glBindBuffer(GL_ARRAY_BUFFER, m_pts_bo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(value), value, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0,
+                          gl::opengl_trait<float>::count,
+                          gl::opengl_trait<float>::type,
+                          GL_FALSE,
+                          gl::opengl_trait<float>::stride,
+                          NULL);
+
+
+    glGenVertexArrays(1, &m_vao);
+    assert(m_vao != 0);
+    glBindVertexArray(m_vao);
+
+    glGenBuffers(1, &m_ibo);
+    assert(m_ibo != 0);
+
+    GLushort indices[]=
+      {
+        0, 1, 2,
+        0, 2, 3
+      };
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+
+    glGenBuffers(1, &m_bo);
+    assert(m_bo !=0);
+
+    vec2 positions[]=
+      {
+        vec2(-1.0f, -1.0f),
+        vec2(-1.0f, +1.0f),
+        vec2(+1.0f, +1.0f),
+        vec2(+1.0f, -1.0f)
+      };
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_bo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0,
+                          gl::opengl_trait<vec2>::count,
+                          gl::opengl_trait<vec2>::type,
+                          GL_FALSE,
+                          gl::opengl_trait<vec2>::stride,
+                          NULL);
+  }
+
+  void
+  build_programs(void)
+  {
+    m_draw_pts = FASTUIDRAWnew gl::Program(gl::Shader::shader_source()
+                                          .add_source("draw_pt.vert.glsl.resource_string",
+                                                      gl::Shader::from_resource),
+
+                                          gl::Shader::shader_source()
+                                          .add_source("draw_pt.frag.glsl.resource_string",
+                                                      gl::Shader::from_resource),
+
+                                          gl::PreLinkActionArray()
+                                          .add_binding("attrib_fake", 0));
+
+    m_pts_color_loc = m_draw_pts->uniform_location("color");
+    m_pts_pos_loc = m_draw_pts->uniform_location("pos_size");
+
+    m_program = FASTUIDRAWnew gl::Program(gl::Shader::shader_source()
+                                         .add_source("linear_gradient.vert.glsl.resource_string",
+                                                     gl::Shader::from_resource),
+
+                                         gl::Shader::shader_source()
+                                         .add_source("linear_gradient.frag.glsl.resource_string",
+                                                     gl::Shader::from_resource),
+
+                                         gl::PreLinkActionArray()
+                                         .add_binding("attrib_pos", 0),
+
+                                         gl::ProgramInitializerArray()
+                                         .add_sampler_initializer("gradientAtlas", 0)
+                                         .add_uniform_initializer<float>("gradientAtlasWidth", m_atlas->backing_store()->dimensions().x())
+                                         );
+#define GETLOC(x) do { \
+      m_##x##_loc = m_program->uniform_location(#x);    \
+      assert( m_##x##_loc != -1);                       \
+    } while(0)
+
+    GETLOC(p0);
+    GETLOC(p1);
+    GETLOC(atlasLayer);
+    GETLOC(gradientStart);
+    GETLOC(gradientLength);
+
+
+  }
+
+
+  typedef std::pair<std::string, ColorStopSequenceOnAtlas::handle> named_color_stop;
+
+  command_line_argument_value<int> m_color_stop_atlas_width;
+  command_line_argument_value<int> m_color_stop_atlas_layers;
+  color_stop_arguments m_color_stop_args;
+  command_line_argument_value<bool> m_stress;
+  gl::ColorStopAtlasGL::handle m_atlas;
+  std::vector<named_color_stop> m_color_stops;
+
+  unsigned int m_active_color_stop;
+  GLuint m_ibo, m_bo, m_vao;
+  gl::Program::handle m_program;
+
+  GLuint m_pts_bo, m_pts_vao;
+  GLint m_pts_color_loc, m_pts_pos_loc;
+  gl::Program::handle m_draw_pts;
+
+
+  vec2 m_p0, m_p1;
+  bool m_draw_gradient_points;
+
+  GLint m_p0_loc, m_p1_loc;
+  GLint m_atlasLayer_loc;
+  GLint m_gradientStart_loc, m_gradientLength_loc;
+
+};
+
+
+int
+main(int argc, char **argv)
+{
+  gradient_test G;
+  return G.main(argc, argv);
+}

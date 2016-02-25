@@ -1,0 +1,347 @@
+/*!
+  \file main.doxy
+  \brief main.doxy
+ */
+
+/*!
+\defgroup Utility Utility
+@{
+\brief
+Utility provides simple utility classes, the most important and
+commonly used ones being reference_counted_ptr, vecN, c_array
+and const_c_array.
+@}
+
+\defgroup Text Text
+@{
+\brief
+Text provides the interfaces to realizing glyph data for rendering
+glyphs. The big classes being Glyph, GlyphCache, GlyphAtlas and FontBase.
+@}
+
+\defgroup Core Core
+@{
+\brief
+Core provides in interfaces to realizing paths (see Path), images (see Image
+and ImageAtlas) and color stop sequences (see ColorStopSequenceOnAtlas and ColorStopAtlas)
+@}
+
+\defgroup Painter Painter
+@{
+\brief
+Painter provides the interface for Canvas drawing, the most important class
+being Painter.
+@}
+
+\defgroup PainterPacking Painter Packing
+@{
+\brief
+If one is making a painter backend, then this group provides the
+information, see particularly the enumerations in fastuidraw::PainterPacking
+for how data is packed by fastuidraw::PainterPacker. The more advanced
+user may wish to use fastuidraw::PainterPacker for a rawer, more powerful
+interface for drawing than that offered by fastuidraw::Painter.
+
+\section Overview
+The class fastuidraw::PainterPacker sits between the primary canvas interface
+fastuidraw::Painter and the backend interface fastuidraw::PainterBackend.
+The class fastuidraw::PainterPacker packs data that is used by multiple triangles
+into fastuidraw::PainterDrawCommand::m_store (for example the current transformation).
+In implementing a backend, the shader fed to the GPU needs to correctly unpack
+this data. The location of the header of the data is stored in the attribute
+from the value fastuidraw::PainterDrawCommand::m_header_attributes. The header
+consists of fastuidraw::PainterPacking::header_size uint32_t whose location relative
+to the start of the header and meaning are enumerated by
+fastuidraw::PainterPacking::item_header_offset_t. The header contains shader ID's
+and additional offsets to more data packed for a shader to unpack.
+
+
+
+@}
+
+\defgroup GLBackend GL Backend
+@{
+\brief
+Implementation of a backend using the OpenGL (or OpenGL ES) GPU API.
+@}
+
+\defgroup GLUtility GL Utility
+@{
+\brief
+Collection of utility interfaces used by \ref GLBackend that an application
+may wish to use as well.
+@}
+*/
+
+/*! \mainpage FastUIDraw
+
+  \section Overview
+
+  FastUIDraw provides a high performance, programmable implementation
+  of canvas, found in the class fastuidraw::Painter. FastUIDraw's implementation
+  of canvas reduces the CPU load dramatically and uses a very small
+  number of graphics pipeline states (for example the GL backend
+  using only the features of GL core v3.3, has only 3 pipeline states
+  to implement all of the traditional canvas interface and all 12
+  Porter-Duff blending modes). An API trace of the GL backend of
+  FastUIDraw in action will show that there are only a handful
+  of draw calls per frame (even if there are many different kinds
+  of elements drawn) with very few, if any, pipeline state changes.
+
+  \section Features
+
+  The features of fastuidraw::Painter (with the GL backend) are:
+   - Brush (embodied by fastuidraw::PainterBrush)
+     -# linear gradient
+     -# radial gradient
+     -# repeat window
+     -# linear brush tranformation
+     -# image (and repeat image)
+     -# "starting" constant pen color
+   - Drawing primitives
+     -# path stroking
+        -# Ability to change stroking width without recomputation of any data
+        -# Joins
+           - Miter Joins
+           - Bevel Joins
+           - Rounded Joins
+        -# Caps
+           - Square Caps
+           - Rounded Caps
+           - Flat Caps
+     -# Path filling (against arbitary fill rules)
+     -# GPU rendered glyphs
+     -# Quads
+     -# Ability for application to have custom drawing types via shaders
+   - Clipping
+     -# ClipIn against filled paths
+     -# ClipOut against filled paths
+   - Blend Modes
+     -# All Porter-Duff blend modes
+     -# Ability for application to have custom blending types via shaders
+
+  \section Resources
+  All of the "resources" used by a canvas are to reside on a set
+  of atlases:
+   - Images reside on a fastuidraw::ImageAtlas (see also fastuidraw::Image)
+   - Glyphs reside on a fastuidraw::GlyphAtlas (see also fastuidraw::Glyph)
+   - Color stops reside on a fastuidraw::ColorStopAtlas (see also fastuidraw::ColorStopSequenceOnAtlas)
+
+  An instance of fastuidraw::Painter has that it sources all its resources from a fixed
+  set of atlases.
+
+  \section Text
+  The elements in the group \ref Text are for the realization of glyphs. FastUIDraw
+  does <i>NOT</i> provide functions for layout of glyphs. The API exposed through
+  fastuidraw::PainterAttributeData is that an application provides a sequence
+  of glyphs, positions and sizing from which fastuidraw::PainterAttributeData
+  can create index and attribute data to draw those glyphs. Glyph objects reside
+  on a fastuidraw::GlyphCache which provides an interface to fetch glyphs from
+  a glyph code and a fastuidraw::GlyphRender. A fastuidraw::GlyphRender specifies
+  the type of resource data on how to render glyphs. The class
+  fastuidraw::GlyphSelector provides assistance for selection of glyphs from
+  character codes, but an application can use any system it likes for
+  glyph selection. FastUIDraw has the class fastuidraw::FontFreeType to
+  construct a font via Freetype (either from a file or FT_Face). Below
+  is an example of startup code and simple layout code.
+  \code
+  //startup
+    //create GlyphCache, myGlyphAtlas is of type fastuidraw::GlyphAtlas::handle
+    //and points to a fastuidraw::GlyphAtlas derived object already
+    fastuidraw::GlyphCache::handle myGlyphCache;
+    fastuidraw::GlyphSelector::handle myGlyphSelector;
+
+    myGlyphCache = VENGENACEnew fastuidraw::GlyphCache(myGlyphAtlas);
+    myGlyphSelector = FASTUIDRAWnew FASTUIDRAWnew fastuidraw::GlyphSelector(myGlyphCache);
+
+    //create Font
+    myFont = fastuidraw::FontFreeType::create("myFont.ttf");
+
+    //add font to GlyphSelector
+    myGlyphSelector->add_font(font);
+
+  //creating text attribute/indices
+    const char *text = "Hello World";
+    float layout_pixel_size(32.0f); //a pixel size by which to layout text
+    std::vector<fastuidraw::Glyph> glyphs;
+    std::vector<fastuidraw::vec2> glyph_positions;
+    fastuidraw::GlyphRender glyph_render(fastuidraw::curve_pair_glyph);
+    fastuidraw::vec2 pen_position(0.0f, 0.0f);
+    for(const char *p = text; *p; ++p)
+      {
+        Glyph g;
+        g = myGlyphSelector->fetch_glyph(glyph_render, myFont, *p);
+        if(g.valid())
+          {
+            glyphs.push_back(g);
+            glyph_positions.push_back(pen_positions);
+
+            float ratio;
+            ratio = layout_pixel_size / g.layout().m_pixel_size;
+            pen_positions.x() += ratio * g.layout().m_advance.x();
+          }
+      }
+    fastuidraw::PainterAttributeData helloWorld;
+    helloWorld.set_data(glyphs, glyph_positions, layout_pixel_size);
+  \endcode
+  Notes:
+   - One does not need to use fastuidraw::GlyphSelector at all, one can
+     choose glyph codes directly and then use fastuidraw::GlyphCache::fetch_glyph()
+     to fetch the glyphs.
+   - The above layout is very limited, but because an application can
+     construct fonts from FT_Face objects, one can use text shaping
+     and layout libraries of one's choice to perform layout.
+
+
+  \section CustomDrawing Custom Drawing
+  In addition to drawing glyph sequences, rectangles, filling and stroking paths,
+  FastUIDraw provides an interface to applications to create attribute and data as it sees fit.
+  For drawing of an item there are three kinds of data used to draw an item.
+  -# Attribute data which is value per vertex emitted. Attribute data is realized by
+     fastuidraw::PainterAttribute values.
+  -# Index data is indices into an array of fastuidraw::PainterAttibute to specify what
+     triangles to draw. Indices are realized as fastuidraw::PainterIndex values.
+  -# Reused data is data that is common to all vertices and pixels of an item or even
+     multiple items. This data is realized by fastuidraw::generic_data. This data
+     is realized as part of vengeane::Painter state, through the functions
+     fastuidraw::Painter::vertex_shader_data() and fastuidraw::Painter::fragment_shader_data().
+
+  To draw custom data, use the function fastuidraw::Painter::draw_generic(
+  const_c_array<PainterAttribute>, const_c_array<PainterIndex>,
+  const PainterItemShader&, const PainterPacker::DataCallBack::handle&).
+  The object fastuidraw::PainterItemShader encapsulates how to process vertices and
+  fragments for the draw. A custom shader is tied to the backend. Creating
+  a custom fastuidraw::PainterItemShader means creating a vertex shader
+  object and a fragment shader object both of type fastuidraw::PainterShader.
+  However, these classes are only the interface for fastuidraw::Painter.
+  The actual shading code is tied to the GPU API on is using. For GL (and GL ES)
+  backend, the shader class for vertices and fragments is vengeane::gl::PainterShaderGL.
+  In that class, one writes GLSL code. WARNING: if one write incorrect GLSL code,
+  the uber-shader will fail to compile and all painting is then disabled!
+
+  [TODO: augment fastuidraw::gl::PainterBackendGL to first build a known good
+  uber-shader from internal shaders, and whenever shaders are added, to work
+  backwards from adding shader until a good shader is found and provide a
+  mechanism to report that the source code in a fastuidraw::gl::PainterShaderGL
+  has an error].
+
+  [TODO: develop an interface to allow for chaining shaders, and from there
+  provide a number of standard shaders (that do what?!) so that a user
+  can create shaders just from chains of shaders].
+
+  All pixels are passed through the brush of fastuidraw::Painter,
+  embodied by fastuidraw::PainterBrush. That brush class contains the abiltiy
+  to apply gradients (linear, radial), repeat windowing, transformation of
+  brush image, pen color and image (complete with repeating the image).
+
+  \section Example
+  Below is an example of how to use fastuidraw::Painter
+  \code
+  // startup code, create data that is repeatedly used
+  fastuidraw::Path myPath;
+
+  myPath
+  .move(fastuidraw::vec2(0.0f, 0.0f))
+  .line_to(fastuidraw::vec2(100.0f, 0.0f))
+  .quadratic_to(fastuidraw::vec2(100, 50.0f), fastuidraw::vec2(100.0f, 100.0f))
+  .arc_end(45.0 * M_PI / 180.0f);
+
+  std::vector<fastuidraw::vec2> glyph_positions;
+  std::vector<fastuidraw::Glyph> glyphs;
+   // fill glyph_positions and glyphs (see fastuidraw::GlyphCache and fastuidraw::GlyphSelector)
+  fastuidraw::PainterAttributeData myStaticText;
+  myStaticText.set_data(fastuidraw::const_c_array<fastuidraw::vec2>(&glyph_positions[0], glyph_positions.size(),
+                        fastuidraw::const_c_array<fastuidraw::Glyph>(&glyphs[0], glyphs.size()),
+                        glyph_render_pixel_size);
+
+   // create and save an image
+  fastuidraw::Image::handle myImage;
+  myImage = fastuidraw::Image::create(myImageAtlas, width, height, pixels,
+                                     fastuidraw::PainterBrush::slack_requirement(fastuidraw::PainterBrush::image_filter_cubic));
+
+  //rendering code
+  // painter is type fastuidraw::Painter::handle
+
+  fastuidraw::Painter *p;
+  p = painter.get(); //Only using pointer instead of handle so that doxygen links to functions correctly.
+
+  p->begin();
+
+  bool anti_alias_stroking(true);
+  fastuidraw::PainterState::StrokeParams stroke_params;
+
+  p->brush().reset();
+  p->brush().pen(0.0f, 0.0f, 1.0f, 0.5f);
+  p->fill_path(myPath, fastuidraw::PainterEnums::odd_even_fill_rule);
+
+  p->save();
+  p->clipInPath(myPath, fastuidraw::PainterEnums::odd_even_fill_rule);
+  p->translate(fastuidraw::vec2(50.0f, 50.0f));
+  p->rotate(23.0f * M_PI / 180.0f);
+  p->brush().reset();
+  p->brush().pen(1.0f, 1.0f, 0.0f, 1.0f);
+  p->draw_glyphs(myStaticText);
+  p->restore();
+
+  p->brush().pen(1.0f, 1.0f, 1.0f, 1.0f);
+  p->brush().image(myImage, fastuidraw::PainterBrush::image_filter_cubic);
+  stroke_params.miter_limit(2.0f);
+  stroke_params.width(10.0f);
+  p->vertex_shader_data(stroke_params)
+  p->stroke_path(myPath,
+                 fastuidraw::PainterEnums::close_outlines,
+                 fastuidraw::PainterEnums::rounded_joins,
+                 anti_alias_stroking);
+
+  p->end();
+
+  \endcode
+
+  \subsection Backends
+  FastUIDraw is designed to support GPU API's beyond OpenGL and OpenGL ES.
+  To that end, FastUIDraw has a core (represented by libFastUIDraw) and an
+  interface to create a backend. A backend implementation encompasses
+  creating backend classes for the following base interface classes
+   - fastuidraw::ImageAtlas (the GL backend class is given by fastuidraw::gl::ImageAtlasGL)
+   - fastuidraw::ColorStopAtlas (the GL backend class is given by fastuidraw::gl::ColorStopAtlasGL)
+   - fastuidraw::GlyphAtlas (the GL backend class is given by fastuidraw::gl::GlyphAtlasGL)
+   - fastuidraw::PainterBackend (the GL backend class is given by fastuidraw::gl::PainterBackendGL)
+   - fastuidraw::PainterShader (the GL backend has two classes, fastuidraw::gl::PainterShaderGL and
+     fastuidraw::gl::PainterBlendShaderGL).
+
+  To create a GL backend, one does:
+  \code
+
+  //create atlases, the atlases hold all the GPU resources for glyphs, images and colorstops
+  //a single application should make only one set of atlases. For the case of multiple GL
+  //contexts, the application should make sure that the GL contexts all reside in the same
+  //share group.
+  fastuidraw::gl::ImageAtlasGL::handle imageAtlas;
+  fastuidraw::gl::ColorStopAtlasGL::handle colorStopAtlas;
+  fastuidraw::gl::GlyphAtlasGL::handle glyphAtlas;
+
+  imageAtlas = FASTUIDRAWnew fastuidraw::gl::ImageAtlasGL(fastuidraw::gl::ImageAtlasGL::params());
+  colorStopAtlas = FASTUIDRAWnew fastuidraw::gl::ColorStopAtlasGL(fastuidraw::gl::ColorStopAtlasGL::params());
+  glyphAtlas = FASTUIDRAWnew fastuidraw::gl::GlyphAtlasGL(fastuidraw::gl::GlyphAtlasGL::params());
+
+  //create the backend mapping to GL, the GL backend object creates the necessary GLSL programs,
+  //attribute and index pools.
+  fastuidraw::gl::PainterBackendGL::handle painterBackend;
+  painterBackend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(fastuidraw::gl::PainterBackendGL::params()
+                                                                  .image_atlas(imageAtlas)
+                                                                  .colorstop_atlas(colorStopAtlas)
+                                                                  .glyph_atlas(glyphAtlas));
+
+  //NOTES:
+  // 1. the atlases can be used by multiple PainterBackendGL simutaneously
+  // 2. the member class params of each of the atlas types and PainterBackendGL
+  //    have additional properties one can set.
+
+  fastuidraw::Painter::handle painter;
+  painter = FASTUIDRAWnew fastuidraw::Painter(painterBackend)
+
+  //NOTES:
+  // 3. it is fine to reuse a fastuidraw::Painter object or to create new ones,
+  //    however, a single painter can not be used concurrently from multiple threads
+  \endcode
+*/

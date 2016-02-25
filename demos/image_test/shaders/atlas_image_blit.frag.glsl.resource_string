@@ -1,0 +1,83 @@
+/*Must define IMAGE_NUM_INDIRECTION_LEVELS to work.
+*/
+
+#ifdef GL_ES
+precision highp float;
+precision highp int;
+precision highp sampler2DArray;
+precision highp usampler2DArray;
+#endif
+
+
+in vec2 pos;
+in vec2 image_shader_coord;
+flat in int index_layer;
+out vec4 frag;
+flat in int image_num_lookups;
+
+uniform sampler2DArray imageAtlas;
+uniform usampler2DArray indexAtlas;
+uniform vec3 imageAtlasDims;
+
+uniform float color_boundary_mix;
+uniform float color_tile_size;
+uniform int image_slack;
+uniform int uniform_image_num_lookups;
+
+uniform float filtered_lookup;
+
+uniform float index_boundary_mix[MAX_IMAGE_NUM_LOOKUPS + 1];
+uniform float index_tile_size;
+
+void
+compute_atlas_coord(in vec2 image_shader_coord,
+                    in int index_layer,
+                    in int num_lookups,
+                    in int slack,
+                    out vec2 image_atlas_coord,
+                    out int image_atlas_layer);
+
+
+void main()
+{
+  vec2 image_atlas_coord;
+  int image_atlas_layer;
+  vec2 texcoord;
+
+
+  compute_atlas_coord(image_shader_coord,
+                      index_layer,
+                      image_num_lookups,
+                      image_slack,
+                      image_atlas_coord,
+                      image_atlas_layer);
+
+
+  if(filtered_lookup < 0.5)
+    {
+      frag = texelFetch(imageAtlas, ivec3(image_atlas_coord, image_atlas_layer), 0);
+    }
+  else
+    {
+      vec3 vv;
+      vv.xy = image_atlas_coord.xy / imageAtlasDims.xy;
+      vv.z =  float(image_atlas_layer);
+      frag = texture(imageAtlas, vv);
+    }
+
+  if(detect_boundary(pos, color_tile_size))
+    {
+      frag = mix(frag, vec4(0.0, 1.0, 1.0, 1.0), color_boundary_mix);
+    }
+
+  vec2 current;
+  current = image_shader_coord;
+  for(int i = 0; i < image_num_lookups; ++i)
+    {
+      if(detect_boundary(current, index_tile_size))
+        {
+          frag = mix(frag, vec4(1.0, 0.0, 0.0, 1.0), index_boundary_mix[i]);
+        }
+      current *= index_tile_size;
+    }
+}

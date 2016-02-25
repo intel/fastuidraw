@@ -1,0 +1,59 @@
+
+/////////////////////////////////////////////////////////////
+// machine generated routines
+uint
+fastuidraw_read_brush_transformation_matrix(in uint location, out mat2 m);
+
+uint
+fastuidraw_read_brush_transformation_translation(in uint location, out vec2 p);
+
+uint
+fastuidraw_read_brush_repeat_window(in uint location, out fastuidraw_brush_repeat_window w);
+
+uint
+fastuidraw_read_brush_image_raw_data(in uint location, out fastuidraw_brush_image_data_raw raw);
+
+uint
+fastuidraw_read_brush_linear_gradient_data(in uint location, out fastuidraw_brush_gradient_raw raw);
+
+uint
+fastuidraw_read_brush_radial_gradient_data(in uint location, out fastuidraw_brush_gradient_raw raw);
+
+uint
+fastuidraw_read_pen_color(in uint location, out vec4 pen_color);
+
+uint
+fastuidraw_read_stroking_params(in uint location, out fastuidraw_stroking_params p);
+
+void
+fastuidraw_read_header(in uint location, out fastuidraw_shader_header h);
+
+void
+fastuidraw_read_clipping(in uint clipping_location, out fastuidraw_clipping_data p);
+
+void
+fastuidraw_read_item_matrix(in uint item_matrix_location, out mat3 m);
+
+vec4
+fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out uint add_z);
+
+
+///////////////////////////////////////////////////////////////////////
+// routines implemented in .glsl.resource_string files
+void
+fastuidraw_vert_brush_processing(in vec2 in_p, in fastuidraw_shader_header h);
+
+uint
+fastuidraw_read_brush_image_data(in uint location, in uint shader, out fastuidraw_brush_image_data image);
+
+uint
+fastuidraw_read_brush_linear_gradient_data(in uint location, out fastuidraw_brush_gradient grad);
+
+uint
+fastuidraw_read_brush_radial_gradient_data(in uint location, out fastuidraw_brush_gradient grad);
+
+void
+fastuidraw_vert_brush_processing(in vec2 p, in fastuidraw_shader_header h);
+
+void
+fastuidraw_apply_clipping(in vec3 p, in fastuidraw_clipping_data c);

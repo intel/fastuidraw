@@ -1,0 +1,9 @@
+#ifdef GL_ES
+  precision highp float;
+  precision highp int;
+  precision mediump sampler2DArray;
+  precision highp usampler2DArray;
+  precision highp samplerBuffer;
+  precision highp usamplerBuffer;
+  precision highp isamplerBuffer;
+#endif

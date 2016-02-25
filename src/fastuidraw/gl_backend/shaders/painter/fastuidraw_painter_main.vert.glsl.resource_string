@@ -1,0 +1,91 @@
+/* Skeleton for Uber-vertex shader, out's of the shader will
+   be placed -before- this code.
+ */
+
+
+/* our attributes
+ */
+in vec4 fastuidraw_primary_attribute;
+in vec4 fastuidraw_secondary_attribute;
+in uvec4 fastuidraw_uint_attribute;
+in uint fastuidraw_header_attribute;
+
+/* some attributes to send down to fragment
+   shader so that frag shader does not need
+   to re-read the header
+ */
+flat fastuidraw_varying uint fastuidraw_frag_shader;
+flat fastuidraw_varying uint fastuidraw_frag_shader_data_location;
+flat fastuidraw_varying uint fastuidraw_blend_shader;
+
+/*
+ */
+#define FASTUIDRAW_DEPTH_COEFF (1.0 / float(fastuidraw_half_max_z) )
+
+
+#ifdef FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES
+  #define fastuidraw_clip0 gl_ClipDistance[0]
+  #define fastuidraw_clip1 gl_ClipDistance[1]
+  #define fastuidraw_clip2 gl_ClipDistance[2]
+  #define fastuidraw_clip3 gl_ClipDistance[3]
+#else
+  fastuidraw_varying vec4 fastuidraw_clip_plane;
+  #define fastuidraw_clip0 fastuidraw_clip_plane.x
+  #define fastuidraw_clip1 fastuidraw_clip_plane.y
+  #define fastuidraw_clip2 fastuidraw_clip_plane.z
+  #define fastuidraw_clip3 fastuidraw_clip_plane.w
+#endif
+
+void
+fastuidraw_apply_clipping(in vec3 p, in fastuidraw_clipping_data c)
+{
+  fastuidraw_clip0 = dot(c.clip0, p);
+  fastuidraw_clip1 = dot(c.clip1, p);
+  fastuidraw_clip2 = dot(c.clip2, p);
+  fastuidraw_clip3 = dot(c.clip3, p);
+}
+
+
+/* make the transformation matrix available to
+   vertex shader by making it global here.
+ */
+mat3 fastuidraw_item_matrix;
+
+void
+main(void)
+{
+  fastuidraw_shader_header h;
+  vec4 item_p_brush_p;
+  vec3 clip_p;
+  fastuidraw_clipping_data clipping;
+  float normalized_depth, raw_depth;
+  uint add_z;
+
+  fastuidraw_read_header(fastuidraw_header_attribute, h);
+  fastuidraw_read_clipping(h.clipping_location, clipping);
+  fastuidraw_read_item_matrix(h.item_matrix_location, fastuidraw_item_matrix);
+
+  h.vert_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_vert_shader_bit0, fastuidraw_vert_shader_num_bits, h.vert_frag_shader);
+  h.frag_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_frag_shader_bit0, fastuidraw_frag_shader_num_bits, h.vert_frag_shader);
+  h.blend_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_blend_shader_bit0, fastuidraw_blend_shader_num_bits, h.z_blend_shader_raw);
+  h.z = FASTUIDRAW_EXTRACT_BITS(fastuidraw_z_bit0, fastuidraw_z_num_bits, h.z_blend_shader_raw);
+
+  fastuidraw_frag_shader = h.frag_shader;
+  fastuidraw_frag_shader_data_location = h.frag_shader_data_location;
+  fastuidraw_blend_shader = h.blend_shader;
+
+  item_p_brush_p = fastuidraw_run_vert_shader(h, add_z);
+  fastuidraw_vert_brush_processing(item_p_brush_p.zw, h);
+
+  clip_p = fastuidraw_item_matrix * vec3(item_p_brush_p.xy, 1.0);
+  fastuidraw_apply_clipping(clip_p, clipping);
+
+  /* and finally emit gl_Position; the value needed in the
+     depth buffer is stored in secondary_attribute.w, but
+     it is an integer that starts at 0 and is incremented
+     by one, we need to convert it to normalized coords.
+   */
+  raw_depth = float(add_z + h.z);
+  normalized_depth = (FASTUIDRAW_DEPTH_COEFF * raw_depth) - 1.0;
+  gl_Position = vec4(clip_p.xy, normalized_depth * clip_p.z, clip_p.z);
+}

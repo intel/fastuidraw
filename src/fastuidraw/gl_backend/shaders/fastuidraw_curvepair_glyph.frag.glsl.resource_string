@@ -1,0 +1,226 @@
+/*!
+ * \file fastuidraw_curvepair_glyph.frag.glsl.resource_string
+ * \brief file fastuidraw_curvepair_glyph.frag.glsl.resource_string
+ *
+ * Adapted from font_curve_analytic_base.frag.wrath-shader.glsl of WRATH:
+ *
+ * Copyright 2013 by Nomovok Ltd.
+ *
+ * Contact: info@nomovok.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@nomovok.com>
+ *
+ */
+
+
+/*
+  Must have defined:
+   - FASTUIDRAW_CURVEPAIR_COMPUTE_NAME name of function
+   - FASTUIDRAW_LOAD_CURVE_GEOMETRY(X, Y) horrible macro to load curve data
+  Must have declared:
+   - samplerBuffer of name used by FASTUIDRAW_LOAD_CURVE_GEOMETRY
+ */
+float
+FASTUIDRAW_CURVEPAIR_COMPUTE_NAME(in uint texel_value,
+                                 in vec2 glyph_position,
+                                 in uint geometry_offset)
+{
+  /* geomtetry data of curve
+   */
+  float zeta, combine_rule;
+  vec4 A0_B0_A1_B1;
+  vec4 Qa_Qb;
+  vec4 p2_QaScale_QbScale;
+
+  /* work room
+   */
+  float omega, sigma, sigma_min, sigma_max;
+  vec2 pp, sa_sb, ta_tb, sigma_ab, omega_ab;
+  vec4 pa_pb;
+
+#define A0 A0_B0_A1_B1.x
+#define B0 A0_B0_A1_B1.y
+#define A0_B0 A0_B0_A1_B1.xy
+#define A1 A0_B0_A1_B1.z
+#define B1 A0_B0_A1_B1.w
+#define A1_B1 A0_B0_A1_B1.zw
+
+#define curve0_m0 A0
+#define curve0_m1 A1
+
+#define curve1_m0 B0
+#define curve1_m1 B1
+
+#define Qa Qa_Qb.xy
+#define Qb Qa_Qb.zw
+#define Qa_Qb_x Qa_Qb.xz
+#define Qa_Qb_y Qa_Qb.yw
+
+#define curve0_q_x Qa.x
+#define curve0_q_y Qa.y
+
+#define curve1_q_x Qb.x
+#define curve1_q_y Qb.y
+
+#define p2 p2_QaScale_QbScale.xy
+#define QaScale p2_QaScale_QbScale.z
+#define QbScale p2_QaScale_QbScale.w
+#define QaScale_QbScale p2_QaScale_QbScale.zw
+
+#define p_x p2.x
+#define p_y p2.y
+#define curve0_quad_coeff QaScale
+#define curve1_quad_coeff QbScale
+
+#define sigma_a sigma_ab.x
+#define sigma_b sigma_ab.y
+#define omega_a omega_ab.x
+#define omega_b omega_ab.y
+#define pa_x pa_pb.x
+#define pa_y pa_pb.y
+#define pb_x pa_pb.z
+#define pb_y pa_pb.w
+#define pa pa_pb.xy
+#define pb pa_pb.zw
+#define pa_pb_x pa_pb.xz
+#define pa_pb_y pa_pb.yw
+
+  /* texel_value 0 means completely empty texel
+   */
+  if(texel_value == uint(0))
+    {
+      return -1.0;
+    }
+
+  /* texel_value 1 means completely full texel
+   */
+  if(texel_value == uint(1))
+    {
+      return 1.0;
+    }
+
+
+  FASTUIDRAW_LOAD_CURVE_GEOMETRY(geometry_offset, texel_value);
+
+
+  pp = glyph_position - p2;
+  /*
+    Qa:= | Qa_x  Qa_y |
+         |-Qa_y  Qa_x |
+
+    Qb:= | Qb_x  Qb_y |
+         |-Qb_y  Qb_x |
+
+    Apply Qa and Qb, the raw values are:
+    pa_x=  pp.x*Qa_x + pp.y*Qa_y;
+    pa_y= -pp.x*Qa_y + pp.y*Qa_x;
+    pb_x=  pp.x*Qb_x + pp.y*Qb_y;
+    pb_y= -pp.x*Qb_y + pp.y*Qb_x;
+  */
+  pa_pb_x =  pp.x * Qa_Qb_x + pp.y * Qa_Qb_y;
+  pa_pb_y = -pp.x * Qa_Qb_y + pp.y * Qa_Qb_x;
+
+  ta_tb = pa_pb_x * A0_B0;
+  /*
+    omega_a!=0 <--> t_a>=0
+    omega_b!=0 <--> t_b>=0
+
+    sa_sb is used in place of ta_tb*ta_tb.
+
+    if t<0, then making s=0
+    is equivalent to extending before t=0 as a line.
+
+    if t>1, then making s=2*t-1 is
+    equivalent to extending after t=1 as a line.
+  */
+  omega_ab = step(0.0, ta_tb);
+  sa_sb = omega_ab * mix(ta_tb * ta_tb,
+                         2.0 * ta_tb - vec2(1.0, 1.0),
+                         step(1.0, ta_tb) );
+
+  /*
+    omega!=0 <--> one of t_a, t_b positive
+
+    If fragment is not within the shadow
+    of either curve, then we extend
+    BOTH curves as lines in a C1 fashion
+    and use that as the result.
+  */
+  omega = max(omega_a, omega_b);
+
+  omega_ab = (omega < 0.5) ?
+    vec2(1.0, 1.0) :
+    omega_ab;
+
+  /*
+    Make:
+     sigma_a=-(A1*ta + ta*ta*QaScale - pa_y)*sign(A0);
+     sigma_b= (B1*tb + tb*tb*QbScale - pb_y)*sign(B0);
+  */
+  A0 = -A0;
+  sigma_ab = (A1_B1*ta_tb + sa_sb*QaScale_QbScale - pa_pb_y) * sign(A0_B0);
+  sigma_a = (omega_a > 0.5) ? sigma_a : zeta;
+  sigma_b = (omega_b > 0.5) ? sigma_b : zeta;
+
+  sigma_min = min(sigma_a, sigma_b);
+  sigma_max = max(sigma_a, sigma_b);
+  /*
+    rule:
+      0 <---> OR rule  <--> max
+      1 <---> AND rule <--> min
+   */
+  sigma = (combine_rule < 0.5) ? sigma_max : sigma_min;
+
+  return sigma;
+
+}
+
+#undef A0
+#undef B0
+#undef A1
+#undef B1
+#undef A0_B0
+#undef A1_B1
+
+#undef curve0_m0
+#undef curve1_m0
+#undef curve0_m1
+#undef curve1_m1
+
+#undef Qa
+#undef Qb
+#undef Qa_Qb_x
+#undef Qa_Qb_y
+
+#undef curve0_q_x
+#undef curve0_q_y
+#undef curve1_q_x
+#undef curve1_q_y
+
+#undef p2
+#undef QaScale
+#undef QbScale
+#undef QaScale_QbScale
+
+#undef p_x
+#undef p_y
+#undef curve0_quad_coeff
+#undef curve1_quad_coeff
+#undef sigma_a
+#undef sigma_b
+#undef omega_a
+#undef omega_b
+#undef pa_x
+#undef pa_y
+#undef pb_x
+#undef pb_y
+#undef pa
+#undef pb
+#undef pa_pb_x
+#undef pa_pb_y

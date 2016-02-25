@@ -1,0 +1,11 @@
+The GLU tessellator found in FASTUIDRAW has been modified from the original sources:
+   - all but tessellation removed
+   - arbitary winding rule
+   - prefix public functions with fastuidraw_
+   - prefix public macros with FASTUIDRAW_
+   - change source and header files to cpp and hpp extension
+   - so that API header allows for C++ niceties of overloading
+   - begin call backs pass a winding number
+   - remove triangle strips and fans rendering
+   - remove edge flag call back
+   - points provided are 2D only (skip computation of plane and projection)

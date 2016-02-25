@@ -1,0 +1,120 @@
+#!/bin/sh
+
+print_help() {
+    echo "Usage: $0 [--release] [--debug] [--cflags] [--libs] [--gl] [--gles]"
+    echo "  --release: indicate to compile/link for release"
+    echo "  --debug: indicate to compile/link for debug"
+    echo "  --cflags: print compile flags"
+    echo "  --libs: print link flags"
+    echo "  --gl: use GL API"
+    echo "  --gles: use GLES API"
+    echo "Notes: Never mix release and debug in a single executable, they are NOT ABI compatible"
+    echo "       if both --release and --debug options are placed, all but the last of those is ignored"
+    echo "       if both --gl and --gles options are placed, all but the last of those is ignored"
+}
+
+#if ! options=$(getopt -o- -l release,debug,cflags,libs,gl,gles,help -- "$@"); then
+#    print_help
+#    exit 1
+#fi
+
+if test $# -eq 0; then
+      print_help
+      exit 1
+fi
+
+mode=unknown
+print_cflags=0
+print_libs=0
+api=unknown
+printhelp=0
+location="@INSTALL_LOCATION@"
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case "$1" in
+      --prefix=*) location=$optarg ;;
+      --prefix) echo $location ;;
+      --release) mode=release ;;
+      --debug) mode=debug ;;
+      --cflags) print_cflags=1 ;;
+      --libs) print_libs=1 ;;
+      --gles) api=gles ;;
+      --gl) api=gl ;;
+      --help) printhelp=1 ;;
+      *)
+        print_help
+        exit 1 ;;
+  esac
+  shift
+done
+
+gl_supprted=@BUILD_GL
+gles_supported=@BUILD_GLES
+
+lib_location=$location/lib
+include_location=$location/include
+
+cflags=
+base_cflags=-I$include_location
+
+libs=
+base_libs=-L$lib_location
+
+if [ "$printhelp" = "1" ]; then
+    print_help
+    exit 1
+fi
+
+if [ "$print_cflags" = "1" ] || [ "$print_libs" = "1" ]; then
+  bad=0
+  if [ "$mode" = "unknown" ]; then
+      echo "Must specify debug or release (with --debug or --release respectively)"
+      bad=1
+  fi
+  if [ "$api" = "unknown" ]; then
+      echo "Must specify GPU API as OpenGL or OpenGL ES (with --gl or --gles respectively)"
+      bad=1
+  fi
+  if [ "$api" = "gl" ] && [ "$gl_supported" = "0" ]; then
+      echo "GL backend not built!"
+      bad=1
+  fi
+  if [ "$api" = "gles" ] && [ "$gles_supported" = "0" ]; then
+      echo "GLES backend not built!"
+      bad=1
+  fi
+  if [ "$bad" = 1 ]; then
+      exit 1
+  fi
+fi
+
+if [ "$mode" = "release" ]; then
+     if [ "$api" = "gles" ]; then
+         libs=$base_libs" @FASTUIDRAW_GLES_release_LIBS@"
+         cflags=$base_cflags" @LIBRARY_GLES_release_CFLAGS@"
+     else
+         libs=$base_libs" @FASTUIDRAW_GL_release_LIBS@"
+         cflags=$base_cflags" @LIBRARY_GL_release_CFLAGS@"
+     fi
+else
+     if [ "$api" = "gles" ]; then
+         libs=$base_libs" @FASTUIDRAW_GLES_debug_LIBS@"
+         cflags=$base_cflags" @LIBRARY_GLES_debug_CFLAGS@"
+     else
+         libs=$base_libs" @FASTUIDRAW_GL_debug_LIBS@"
+         cflags=$base_cflags" @LIBRARY_GL_debug_CFLAGS@"
+     fi
+fi
+
+if [ "$print_cflags" = "1" ]; then
+    echo $cflags
+fi
+
+if [ "$print_libs" = "1" ]; then
+    echo $libs
+fi

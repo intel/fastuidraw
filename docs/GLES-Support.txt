@@ -1,0 +1,24 @@
+Required extensions for GLES:
+   - glTextureViewOES or glTextureViewEXT
+       --> this is quasi optional; only needed for glyph texels. We can choose
+           to do filterig by hand (ewww!).
+
+   - glTexBufferOES or glTexBufferEXT (for GLES3.1, glTexBuffer is core in GLES3.2)
+       --> There is a work around to not using this. Essentially use TEXTURE_2D or
+           TEXTURE_2D_ARRAY. The texture will have its leading dimension as a power of two.
+	   For GL_TEXTUE_2D_ARRAY the height is 1 and the depth is the quotient (rounded up)
+	   of the leading dimension against number of block. For GL_TEXTURE_2D the height
+	   is thie value. Fetching a value at I becomes:
+	      x = I & ((1<<N) - 1)
+	      y = I >> N
+           and the value to grab is then texelFetch(sampler, ivec2(x, y), 0).rgba.
+	   To realize as integer data means either glTextureViewOES/EXT or
+	   duplicate the data.
+
+   - GL_APPLE_clip_distance
+       --> There is a workaround to not using this: discard.
+
+
+   - GL_EXT_blend_func_extended
+       --> needed for dual source blending; only workaround is that all
+           blending changes are draw call breaks.
