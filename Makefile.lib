@@ -42,17 +42,20 @@ SUPER_CLEAN_FILES += $(LIBRARY_release_DEPS)
 ifeq ($(MINGW_BUILD),1)
 
 libFastUIDraw_debug: libFastUIDraw_debug.dll
+libFastUIDraw_debug.dll.a: libFastUIDraw_debug.dll
 libFastUIDraw_debug.dll: $(LIBRARY_debug_ALL_OBJS)
 	$(CXX) -shared -Wl,--out-implib,libFastUIDraw_debug.dll.a -o libFastUIDraw_debug.dll $(LIBRARY_debug_ALL_OBJS) $(LIBRARY_LIBS)
 CLEAN_FILES += libFastUIDraw_debug.dll libFastUIDraw_debug.dll.a
-INSTALL_LIBS += libFastUIDraw_debug.dll libFastUIDraw_debug.dll.a
+INSTALL_LIBS += libFastUIDraw_debug.dll.a
+INSTALL_EXES += libFastUIDraw_debug.dll
 
 libFastUIDraw_release: libFastUIDraw_release.dll
+libFastUIDraw_release.dll.a: libFastUIDraw_release.dll
 libFastUIDraw_release.dll: $(LIBRARY_release_ALL_OBJS)
 	$(CXX) -shared -Wl,--out-implib,libFastUIDraw_release.dll.a -o libFastUIDraw_release.dll $(LIBRARY_release_ALL_OBJS) $(LIBRARY_LIBS)
 CLEAN_FILES += libFastUIDraw_release.dll libFastUIDraw_release.dll.a
-INSTALL_LIBS += libFastUIDraw_release.dll libFastUIDraw_debug.dll.a
-
+INSTALL_LIBS += libFastUIDraw_release.dll.a
+INSTALL_EXES += libFastUIDraw_release.dll
 else
 
 libFastUIDraw_debug: libFastUIDraw_debug.so

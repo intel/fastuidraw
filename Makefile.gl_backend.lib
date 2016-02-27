@@ -30,11 +30,14 @@ endif
 endif
 ifeq ($(MINGW_BUILD),1)
 libFastUIDraw$(1)_$(2): libFastUIDraw$(1)_$(2).dll
+libFastUIDraw$(1)_$(2).dll.a: libFastUIDraw$(1)_$(2).dll
 libFastUIDraw$(1)_$(2).dll: libFastUIDraw_$(2).dll libN$(1)_$(2).dll $$(LIBRARY_$(1)_$(2)_ALL_OBJS)
 	$(CXX) -shared -Wl,--out-implib,libFastUIDraw$(1)_$(2).dll.a -o libFastUIDraw$(1)_$(2).dll $$(LIBRARY_$(1)_$(2)_ALL_OBJS) $$(LIBRARY_GL_LIBS) -L. -lFastUIDraw_$(2) -lN$(1)_$(2) $$(LIBRARY_LIBS)
+libN$(1)_$(2).dll.a: libN$(1)_$(2).dll
 libN$(1)_$(2).dll: $$(NGL_$(1)_$(2)_OBJ)
 	$(CXX) -shared -Wl,--out-implib,libN$(1)_$(2).dll.a -o libN$(1)_$(2).dll $$(NGL_$(1)_$(2)_OBJ)
-INSTALL_LIBS += libFastUIDraw$(1)_$(2).dll libFastUIDraw$(1)_$(2).dll.a libN$(1)_$(2).dll libN$(1)_$(2).dll.a
+INSTALL_LIBS += libFastUIDraw$(1)_$(2).dll.a libN$(1)_$(2).dll.a
+INSTALL_EXES += libFastUIDraw$(1)_$(2).dll libN$(1)_$(2).dll
 else
 libFastUIDraw$(1)_$(2): libFastUIDraw$(1)_$(2).so
 libFastUIDraw$(1)_$(2).so: libFastUIDraw_$(2).so libN$(1)_$(2).so $$(LIBRARY_$(1)_$(2)_ALL_OBJS)
