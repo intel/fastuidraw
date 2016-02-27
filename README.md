@@ -47,8 +47,8 @@ Building
 ========
   "make targets" to see all build targets.
   The following variables control what is built:
-   - BUILD_GL (default value 1). If 0, skip libFastUIDrawGL (and demos for GL)
-   - BUILD_GLES (default value 1). If 0, skip libFastUIDrawGLES (and demos for GLES)
+   - BUILD_GL (default value 1). If 1, build libFastUIDrawGL (and demos for GL)
+   - BUILD_GLES (default value 0). If 1, build libFastUIDrawGLES (and demos for GLES)
 
 Installing
 ==========
@@ -58,7 +58,7 @@ Installing
   /usr/local, change as one sees fit. Placement is as follows:
    - INSTALL_LOCATION/lib: libraries
    - INSTALL_LOCATION/include: header files
-   - INSTALL_LOCATION/bin: fastuidraw-config script
+   - INSTALL_LOCATION/bin: fastuidraw-config script (and .dll's for MinGW)
    - INSTALL_LOCATION/share/doc/fastuidraw: documentation
 
 
