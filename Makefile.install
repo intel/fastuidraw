@@ -1,16 +1,4 @@
 
-install: $(INSTALL_LIBS) $(INSTALL_EXES) docs
-	-mkdir -p $(INSTALL_LOCATION)/lib
-	-mkdir -p $(INSTALL_LOCATION)/include
-	-mkdir -p $(INSTALL_LOCATION)/bin
-	-mkdir -p $(INSTALL_LOCATION)/share/doc/fastuidraw/html
-	-cp -r inc/fastuidraw $(INSTALL_LOCATION)/include
-	-cp $(INSTALL_LIBS) $(INSTALL_LOCATION)/lib
-	-cp $(INSTALL_EXES) $(INSTALL_LOCATION)/bin
-	-cp -r docs/doxy/html $(INSTALL_LOCATION)/share/doc/fastuidraw
-	-cp -r docs/*.txt $(INSTALL_LOCATION)/share/doc/fastuidraw
-TARGETLIST+=install
-
 fastuidraw-config: fastuidraw-config.in
 	echo Generating $@
 	@cp $< $@
@@ -30,5 +18,17 @@ fastuidraw-config: fastuidraw-config.in
 # variable (BUILD_GL, BUILD_GLES, INSTALL_LOCATION) changes, we can
 # guarantee that fastuidraw-config reflects it correctly.
 .PHONY: fastuidraw-config
-CLEAN_FILES += fastuidraw-config
-INSTALL_EXES += fastuidraw-config
+CLEAN_FILES+=fastuidraw-config
+INSTALL_EXES+=fastuidraw-config
+
+install: $(INSTALL_LIBS) $(INSTALL_EXES) docs
+	-mkdir -p $(INSTALL_LOCATION)/lib
+	-mkdir -p $(INSTALL_LOCATION)/include
+	-mkdir -p $(INSTALL_LOCATION)/bin
+	-mkdir -p $(INSTALL_LOCATION)/share/doc/fastuidraw/html
+	-cp -r inc/fastuidraw $(INSTALL_LOCATION)/include
+	-cp $(INSTALL_LIBS) $(INSTALL_LOCATION)/lib
+	-cp $(INSTALL_EXES) $(INSTALL_LOCATION)/bin
+	-cp -r docs/doxy/html $(INSTALL_LOCATION)/share/doc/fastuidraw
+	-cp -r docs/*.txt $(INSTALL_LOCATION)/share/doc/fastuidraw
+TARGETLIST+=install

@@ -29,18 +29,14 @@ targets:
 	@printf "%s\n" $(TARGETLIST)
 
 include Makefile.settings
-include Makefile.gl_backend.settings
+include Makefile.functions
 
-include Makefile.pre
+include Makefile.base.pre
 include Makefile.gl_backend.pre
 
-include Makefile.functions
 include Makefile.sources
 
-include Makefile.rules
-include Makefile.lib
-
-include Makefile.gl_backend.rules
+include Makefile.base.lib
 include Makefile.gl_backend.lib
 
 include Makefile.clean

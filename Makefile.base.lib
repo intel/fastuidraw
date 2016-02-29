@@ -1,0 +1,92 @@
+
+LIBRARY_BASE_CFLAGS = `freetype-config --cflags`
+LIBRARY_debug_CFLAGS = -DFASTUIDRAW_VECTOR_BOUND_CHECK -DDEBUG
+LIBRARY_release_CFLAGS = -DNDEBUG
+LIBRARY_BASE_debug_CFLAGS = $(LIBRARY_debug_CFLAGS) $(LIBRARY_BASE_CFLAGS)
+LIBRARY_BASE_release_CFLAGS = $(LIBRARY_release_CFLAGS) $(LIBRARY_BASE_CFLAGS)
+
+LIBRARY_BUILD_debug_FLAGS = -g
+LIBRARY_BUILD_release_FLAGS = -O2
+LIBRARY_BUILD_WARN_FLAGS = -Wall -Wextra -Wcast-qual -Wwrite-strings
+LIBRARY_BUILD_INCLUDES_CFLAGS = -Iinc
+LIBRARY_BUILD_BASE_FLAGS = $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS)
+
+LIBRARY_STRING_RESOURCES_SRCS = $(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $(LIBRARY_RESOURCE_STRING) )
+CLEAN_FILES += $(LIBRARY_STRING_RESOURCES_SRCS)
+
+string_resources_cpp/%.resource_string.cpp: %.resource_string
+	@mkdir -p $(dir $@)
+	$(STRING_RESOURCE_CC) $< $(notdir $<) $(dir $@)
+.SECONDARY: string_resources_cpp/%.resource_string.cpp
+.PRECIOUS: string_resources_cpp/%.resource_string.cpp
+
+# $1 --> release or debug
+define librules
+$(eval LIBRARY_$(1)_OBJS = $$(patsubst %.cpp, $(1)/%.o, $(LIBRARY_SOURCES))
+LIBRARY_$(1)_DEPS = $$(patsubst %.cpp, $(1)/%.d, $(LIBRARY_SOURCES))
+LIBRARY_$(1)_DEPS += $$(patsubst %.cpp, $(1)/private/%.d, $(LIBRARY_PRIVATE_SOURCES))
+LIBRARY_PRIVATE_$(1)_OBJS = $$(patsubst %.cpp, $(1)/private/%.o, $(LIBRARY_PRIVATE_SOURCES))
+LIBRARY_$(1)_RESOURCE_OBJS = $$(patsubst %.cpp, $(1)/%.o, $(LIBRARY_STRING_RESOURCES_SRCS))
+LIBRARY_$(1)_ALL_OBJS = $$(LIBRARY_$(1)_OBJS) $$(LIBRARY_PRIVATE_$(1)_OBJS) $$(LIBRARY_$(1)_RESOURCE_OBJS)
+CLEAN_FILES += $$(LIBRARY_$(1)_ALL_OBJS) $$(LIBRARY_$(1)_RESOURCE_OBJS)
+SUPER_CLEAN_FILES += $$(LIBRARY_$(1)_DEPS)
+$(1)/%.resource_string.o: string_resources_cpp/%.resource_string.cpp
+	@mkdir -p $$(dir $$@)
+	$(CXX) $$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_BASE_$(1)_CFLAGS) $(fPIC) -c $$< -o $$@
+
+$(1)/%.o: %.cpp $(1)/%.d
+	@mkdir -p $$(dir $$@)
+	$(CXX) $$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_BASE_$(1)_CFLAGS) $(fPIC) -c $$< -o $$@
+
+$(1)/private/%.o: %.cpp $(1)/private/%.d
+	@mkdir -p $$(dir $$@)
+	$(CXX) $$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_BASE_$(1)_CFLAGS) $(fPIC) $(fHIDDEN) -c $$< -o $$@
+
+$(1)/%.d: %.cpp
+	@mkdir -p $$(dir $$@)
+	@echo Generating $$@
+	@./makedepend.sh "$(CXX)" "$$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_BASE_$(1)_CFLAGS)" $(1) "$$*" "$$<" "$$@"
+
+$(1)/private/%.d: %.cpp
+	@mkdir -p $$(dir $$@)
+	@echo Generating $$@
+	@./makedepend.sh "$(CXX)" "$$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_BASE_$(1)_CFLAGS)" $(1) "$$*" "$$<" "$$@"
+.SECONDARY: $(1)/%.d
+.PRECIOUS: $(1)/%.d
+
+ifeq ($(MINGW_BUILD),1)
+
+libFastUIDraw_$(1): libFastUIDraw_$(1).dll
+libFastUIDraw_$(1).dll.a: libFastUIDraw_$(1).dll
+libFastUIDraw_$(1).dll: $$(LIBRARY_$(1)_ALL_OBJS)
+	$(CXX) -shared -Wl,--out-implib,libFastUIDraw_$(1).dll.a -o libFastUIDraw_$(1).dll $$(LIBRARY_$(1)_ALL_OBJS) $(LIBRARY_LIBS)
+CLEAN_FILES += libFastUIDraw_$(1).dll libFastUIDraw_$(1).dll.a
+INSTALL_LIBS += libFastUIDraw_$(1).dll.a
+INSTALL_EXES += libFastUIDraw_$(1).dll
+else
+
+libFastUIDraw_$(1): libFastUIDraw_$(1).so
+libFastUIDraw_$(1).so: $$(LIBRARY_$(1)_ALL_OBJS) $$(LIBRARY_$(1)_RESOURCE_OBJS)
+	$(CXX) -shared -Wl,-soname,libFastUIDraw_$(1).so -o libFastUIDraw_$(1).so $$(LIBRARY_$(1)_ALL_OBJS) $(LIBRARY_LIBS)
+CLEAN_FILES += libFastUIDraw_$(1).so
+INSTALL_LIBS += libFastUIDraw_$(1).so
+endif
+
+ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),clean-all)
+ifneq ($(MAKECMDGOALS),targets)
+ifneq ($(MAKECMDGOALS),docs)
+-include $$(LIBRARY_$(1)_DEPS)
+endif
+endif
+endif
+endif
+)
+endef
+
+$(call librules,release)
+$(call librules,debug)
+
+libFastUIDraw: libFastUIDraw_debug libFastUIDraw_release
+.PHONY: libFastUIDraw libFastUIDraw_debug libFastUIDraw_release
+TARGETLIST += libFastUIDraw libFastUIDraw_debug libFastUIDraw_release
