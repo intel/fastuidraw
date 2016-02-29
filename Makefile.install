@@ -22,13 +22,14 @@ CLEAN_FILES+=fastuidraw-config
 INSTALL_EXES+=fastuidraw-config
 
 install: $(INSTALL_LIBS) $(INSTALL_EXES) docs
-	-mkdir -p $(INSTALL_LOCATION)/lib
-	-mkdir -p $(INSTALL_LOCATION)/include
-	-mkdir -p $(INSTALL_LOCATION)/bin
-	-mkdir -p $(INSTALL_LOCATION)/share/doc/fastuidraw/html
-	-cp -r inc/fastuidraw $(INSTALL_LOCATION)/include
-	-cp $(INSTALL_LIBS) $(INSTALL_LOCATION)/lib
-	-cp $(INSTALL_EXES) $(INSTALL_LOCATION)/bin
-	-cp -r docs/doxy/html $(INSTALL_LOCATION)/share/doc/fastuidraw
-	-cp -r docs/*.txt $(INSTALL_LOCATION)/share/doc/fastuidraw
+	-install -d $(INSTALL_LOCATION)/lib
+	-install -d $(INSTALL_LOCATION)/bin
+	-install -d $(INSTALL_LOCATION)/share/doc/fastuidraw/
+	-install -t $(INSTALL_LOCATION)/lib $(INSTALL_LIBS)
+	-install -t $(INSTALL_LOCATION)/bin $(INSTALL_EXES)
+	-install -t $(INSTALL_LOCATION)/share/doc/fastuidraw docs/*.txt
+	-cp -r docs/doxy/html $(INSTALL_LOCATION)/share/doc/fastuidraw/
+	-find $(INSTALL_LOCATION)/share/doc/fastuidraw/html/ -type f -exec chmod a+rw {} \;
+	-find $(INSTALL_LOCATION)/share/doc/fastuidraw/html/ -type d -exec chmod a+x {} \;
+	-chown -R root $(INSTALL_LOCATION)/share/doc/fastuidraw/html/
 TARGETLIST+=install
