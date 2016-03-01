@@ -18,10 +18,9 @@ own shaders for custom drawing.
 
 Documentation
 =============
-  Fast UI Draw uses doxygen for documentation, build and view documentation
-  by:
-    make docs
-    xdg-open docs/doxy/html/index.html
+  Fast UI Draw uses doxygen for documentation, build and view documentation by:
+  - make docs
+  - xdg-open docs/doxy/html/index.html
 
 Building requirements
 =====================
