@@ -32,8 +32,8 @@ Building requirements
  - flex
  - up to date GL (and GLES) headers
    - You need
-      - from khronos.org: GLES2/gl2.h, GLES2/gl2ext.h, GLES3/gl3.h, GLES3/gl31.h, GLES3/gl32.h, KHR/khrplatform.h.
-      - from opengl.org: GL/glcorearb.h
+      - for GL, from https://www.opengl.org/registry/: GL/glcorearb.h
+      - for GLES, from https://www.khronos.org/registry/gles/: GLES2/gl2.h, GLES2/gl2ext.h, GLES3/gl3.h, GLES3/gl31.h, GLES3/gl32.h, KHR/khrplatform.h
    - The expected place of those headers is hard-coded to be system
      headers in the typical location. For Linux this is /usr/include
      and for MinGW this is /mingw/include. If the headers are located
