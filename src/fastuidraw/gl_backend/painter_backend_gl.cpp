@@ -351,7 +351,8 @@ namespace
       m_data_blocks_per_store_buffer(1024 * 64),
       m_number_pools(3),
       m_break_on_vertex_shader_change(false),
-      m_break_on_fragment_shader_change(false)
+      m_break_on_fragment_shader_change(false),
+      m_use_hw_clip_planes(true)
     {}
 
     unsigned int m_attributes_per_buffer;
@@ -363,6 +364,7 @@ namespace
     fastuidraw::gl::ImageAtlasGL::handle m_image_atlas;
     fastuidraw::gl::ColorStopAtlasGL::handle m_colorstop_atlas;
     fastuidraw::gl::GlyphAtlasGL::handle m_glyph_atlas;
+    bool m_use_hw_clip_planes;
   };
 }
 
@@ -1540,26 +1542,34 @@ query_extension_support(void)
 
   m_extension_support_queried = true;
 
-  #ifdef FASTUIDRAW_GL_USE_GLES
+  if(!m_params.use_hw_clip_planes())
     {
-      fastuidraw::gl::ContextProperties ctx;
-      if(ctx.has_extension("GL_APPLE_clip_distance"))
-        {
-          m_number_clip_planes = fastuidraw::gl::context_get<GLint>(GL_MAX_CLIP_DISTANCES_APPLE);
-          m_clip_plane0 = GL_CLIP_DISTANCE0_APPLE;
-        }
-      else
-        {
-          m_number_clip_planes = 0;
-          m_clip_plane0 = GL_INVALID_ENUM;
-        }
+      m_number_clip_planes = 0;
+      m_clip_plane0 = GL_INVALID_ENUM;
     }
-  #else
+  else
     {
-      m_number_clip_planes = fastuidraw::gl::context_get<GLint>(GL_MAX_CLIP_DISTANCES);
-      m_clip_plane0 = GL_CLIP_DISTANCE0;
+      #ifdef FASTUIDRAW_GL_USE_GLES
+        {
+          fastuidraw::gl::ContextProperties ctx;
+          if(ctx.has_extension("GL_APPLE_clip_distance"))
+            {
+              m_number_clip_planes = fastuidraw::gl::context_get<GLint>(GL_MAX_CLIP_DISTANCES_APPLE);
+              m_clip_plane0 = GL_CLIP_DISTANCE0_APPLE;
+            }
+          else
+            {
+              m_number_clip_planes = 0;
+              m_clip_plane0 = GL_INVALID_ENUM;
+            }
+        }
+      #else
+        {
+          m_number_clip_planes = fastuidraw::gl::context_get<GLint>(GL_MAX_CLIP_DISTANCES);
+          m_clip_plane0 = GL_CLIP_DISTANCE0;
+        }
+      #endif
     }
-  #endif
 
 }
 
@@ -1810,6 +1820,7 @@ paramsSetGet(bool, break_on_fragment_shader_change)
 paramsSetGet(const fastuidraw::gl::ImageAtlasGL::handle&, image_atlas)
 paramsSetGet(const fastuidraw::gl::ColorStopAtlasGL::handle&, colorstop_atlas)
 paramsSetGet(const fastuidraw::gl::GlyphAtlasGL::handle&, glyph_atlas)
+paramsSetGet(bool, use_hw_clip_planes)
 
 #undef paramsSetGet
 

@@ -85,6 +85,7 @@ private:
   command_line_argument_value<int> m_painter_number_pools;
   command_line_argument_value<bool> m_painter_break_on_vertex_shader_change;
   command_line_argument_value<bool> m_painter_break_on_fragment_shader_change;
+  command_line_argument_value<bool> m_use_hw_clip_planes;
 
   command_separator m_demo_options;
 };

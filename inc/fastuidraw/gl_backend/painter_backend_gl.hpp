@@ -171,6 +171,19 @@ namespace fastuidraw
         data_blocks_per_store_buffer(unsigned int v);
 
         /*!
+          If true, has the PainterBackendGL use hardware clip-planes
+          if available (i.e. gl_ClipDistance). Default value is true.
+         */
+        bool
+        use_hw_clip_planes(void) const;
+
+        /*!
+          Set the value for use_hw_clip_planes(void) const
+        */
+        params&
+        use_hw_clip_planes(bool v);
+
+        /*!
           A PainterBackendGL has a set of pools for the buffer
           objects to which to data to send to GL. Whenever
           on_end() is called, the next pool is used (wrapping around

@@ -95,6 +95,10 @@ sdl_painter_demo(const std::string &about_text):
                                             "painter_break_on_frag_shader_change",
                                             "If true, different fragment shadings are placed into different "
                                             "entries of a call to glMultiDrawElements", *this),
+  m_use_hw_clip_planes(m_painter_params.use_hw_clip_planes(),
+                       "painter_use_hw_clip_planes",
+                       "If true, use HW clip planes (i.e. gl_ClipDistance) for clipping",
+                       *this),
   m_demo_options("Demo Options", *this)
 {}
 
@@ -142,7 +146,8 @@ init_gl(int w, int h)
     .data_blocks_per_store_buffer(m_painter_data_blocks_per_buffer.m_value)
     .number_pools(m_painter_number_pools.m_value)
     .break_on_vertex_shader_change(m_painter_break_on_vertex_shader_change.m_value)
-    .break_on_fragment_shader_change(m_painter_break_on_fragment_shader_change.m_value);
+    .break_on_fragment_shader_change(m_painter_break_on_fragment_shader_change.m_value)
+    .use_hw_clip_planes(m_use_hw_clip_planes.m_value);
 
 
   m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params);
