@@ -139,7 +139,7 @@ namespace fastuidraw
     /*!
       Indicate to end drawing with methods of this Painter.
       Drawing commands sent to 3D hardware are buffered and not
-      sent to hardware until end is called.
+      sent to hardware until end() is called.
       All draw commands must be between a begin()/end() pair.
      */
     void
@@ -388,7 +388,7 @@ namespace fastuidraw
     default_shaders(void) const;
 
     /*!
-      Draw glyphs. Note: the value of current_z() is incremented on each glyph.
+      Draw glyphs.
       \param data attribute and index data with which to draw the glyphs.
       \param shader with which to draw the glyphs
      */
@@ -396,7 +396,7 @@ namespace fastuidraw
     draw_glyphs(const PainterAttributeData &data, const PainterGlyphShader &shader);
 
     /*!
-      Draw glyphs. Note: the value of current_z() is incremented on each glyph.
+      Draw glyphs.
       \param data attribute and index data with which to draw the glyphs
       \param use_anistopic_antialias if true, use default_shaders().glyph_shader_anisotropic()
                                      otherwise use default_shaders().glyph_shader()
@@ -500,7 +500,7 @@ namespace fastuidraw
               const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
-      Draw a quad
+      Draw a quad.
       \param p0 first point of quad, shares an edge with p3
       \param p1 point after p0, shares an edge with p0
       \param p2 point after p1, shares an edge with p1
@@ -512,7 +512,7 @@ namespace fastuidraw
               const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
-      Draw generic attribute data
+      Draw generic attribute data.
       \param attrib_chunk attribute data to draw
       \param index_chunk indx data into attrib_chunk
       \param shader shader with which to draw data
@@ -530,7 +530,7 @@ namespace fastuidraw
     }
 
     /*!
-      Draw generic attribute data
+      Draw generic attribute data.
       \param attrib_chunks attribute data to draw
       \param index_chunks the i'th element is index data into attrib_chunks[i]
       \param shader shader with which to draw data
@@ -543,7 +543,7 @@ namespace fastuidraw
                  const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
-      Return the z-depth value that the next item will have
+      Return the z-depth value that the next item will have.
      */
     unsigned int
     current_z(void) const;
