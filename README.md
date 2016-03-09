@@ -22,13 +22,19 @@ Documentation
   - make docs
   - xdg-open docs/doxy/html/index.html
 
+GL requirements
+=====================
+  The GL backend requires GL version 3.3. The GL extension GL_ARB_texture_view is not reqired, but strongly wanted, this extension is core in starting in GL version 4.3.
+
+  The GLES backend requires GLES version 3.1 and the extension GL_OES_texture_buffer. The extension GL_APPLE_clip_distance and GL_OES_texture_view are not reqired, but strongly wanted.
+  
+
 Building requirements
 =====================
  - GNU Make
  - g++ (clang should be fine too)
  - boost
  - freetype
- - boost
  - flex
  - up to date GL (and GLES) headers
    - You need

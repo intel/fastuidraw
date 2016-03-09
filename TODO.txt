@@ -1,0 +1,17 @@
+TODO.
+ 
+ 1. Dashed stroking is not implemented (yet).
+
+ 2. An interface to build attribute and text data from string(s). Currently
+    an application needs to do this by itself, the example code being in
+    demos/common/text_helper.[ch]pp.
+
+ 3. For some glyphs, curve pair glyph rendering is incorrect (this can be determined when
+    the glyph data is generated). Should have an interface that is "take scalable glyph
+    that is best" in GlyphSelector class.
+
+ 4. W3C blend modes are not yet implemented in GL backend, but Porter-Duff blend modes
+    are.
+
+
+    
