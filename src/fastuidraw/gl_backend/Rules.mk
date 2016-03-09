@@ -10,6 +10,9 @@ include $(dir)/Rules.mk
 dir := $(d)/ngl
 include $(dir)/Rules.mk
 
+dir := $(d)/private
+include $(dir)/Rules.mk
+
 dir := $(d)/shaders
 include $(dir)/Rules.mk
 
