@@ -23,80 +23,50 @@
 #include <vector>
 #include <algorithm>
 
+#include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/gl_backend/gl_header.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
 namespace fastuidraw { namespace gl { namespace detail {
 
-inline
 GLenum
-format_from_internal_format(GLenum fmt)
+format_from_internal_format(GLenum fmt);
+
+
+
+class CopyImageSubData
 {
-  switch(fmt)
+public:
+  CopyImageSubData(void);
+
+  void
+  operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
+             GLint srcX, GLint srcY, GLint srcZ,
+             GLuint dstName, GLenum dstTarget, GLint dstLevel,
+             GLint dstX, GLint dstY, GLint dstZ,
+             GLsizei width, GLsizei height, GLsizei depth) const;
+
+private:
+  enum type_t
     {
-    default:
-    case GL_RGB:
-    case GL_RGB8:
-    case GL_RGB32F:
-    case GL_RGB16F:
-      return GL_RGB;
+      unextended_function,
+      #ifdef FASTUIDRAW_GL_USE_GLES
+        oes_function,
+        ext_function,
+      #endif
+      emulate_function,
 
-    case GL_RGBA:
-    case GL_RGBA8:
-    case GL_RGBA32F:
-    case GL_RGBA16F:
-      return GL_RGBA;
+      uninited,
+    };
 
-      //integer formats:
-    case GL_RGBA32UI:
-    case GL_RGBA32I:
-    case GL_RGBA16UI:
-    case GL_RGBA16I:
-    case GL_RGBA8UI:
-    case GL_RGBA8I:
-      //GL_BRGA_INTEGER also ok
-      return GL_RGBA_INTEGER;
+  static
+  enum type_t
+  compute_type(void);
 
-    case GL_RGB32UI:
-    case GL_RGB32I:
-    case GL_RGB16UI:
-    case GL_RGB16I:
-    case GL_RGB8UI:
-    case GL_RGB8I:
-      //GL_BGR_INTEGER also ok
-      return GL_RGB_INTEGER;
+  mutable enum type_t m_type;
+};
 
-    case GL_RG8:
-    case GL_RG16F:
-    case GL_RG32F:
-      return GL_RG;
 
-    case GL_R8:
-    case GL_R16F:
-    case GL_R32F:
-      return GL_RED;
-
-    case GL_RG8I:
-    case GL_RG16I:
-    case GL_RG32I:
-    case GL_RG8UI:
-    case GL_RG16UI:
-    case GL_RG32UI:
-      return GL_RG_INTEGER;
-
-    case GL_R8I:
-    case GL_R16I:
-    case GL_R32I:
-    case GL_R8UI:
-    case GL_R16UI:
-    case GL_R32UI:
-      return GL_RED_INTEGER;
-
-    case GL_DEPTH_STENCIL:
-    case GL_DEPTH24_STENCIL8:
-      return GL_DEPTH_STENCIL;
-    }
-}
 
 template<GLenum texture_target>
 class TextureTargetDimension
@@ -332,6 +302,7 @@ private:
   mutable GLuint m_texture;
   mutable bool m_use_tex_storage;
   mutable int m_number_times_create_texture_called;
+  CopyImageSubData m_blitter;
 
   typedef typename EntryLocation::with_data with_data;
   typedef std::list<with_data> list_type;
@@ -442,27 +413,11 @@ flush_size_change(void)
             }
           #endif
 
-          /* TODO:
-              glCopyImageSubData is core in GL 4.3, available in
-              the extension GL_ARB_copy_image for GL version pre-4.3.
-              Also, the function glCopyImageSubDataNV is available in
-              the extension GL_NV_copy_image
-
-              For GLES, it is core in GLES3.2, and otherwise requires
-              an extension function, being one of glCopyImageSubDataOES
-              (extension GL_OES_copy_image) or glCopyImageSubDataEXT
-              (extension GL_EXT_copy_image).
-
-              If the function or any of its extension incarnations
-              are not available, then we can call glFramebufferBlit
-              blit_dims[2] times (changing the what layer each time
-              with glFramebufferTextureLayer()).
-           */
-          glCopyImageSubData(old_texture, texture_target, 0,
-                             0, 0, 0, //src
-                             m_texture, texture_target, 0,
-                             0, 0, 0, //dst
-                             blit_dims[0], blit_dims[1], blit_dims[2]);
+          m_blitter(old_texture, texture_target, 0,
+                    0, 0, 0, //src
+                    m_texture, texture_target, 0,
+                    0, 0, 0, //dst
+                    blit_dims[0], blit_dims[1], blit_dims[2]);
 
           /* now delete old_texture
            */
