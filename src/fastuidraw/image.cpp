@@ -526,23 +526,25 @@ allocate_tile(void)
   fastuidraw::ivec3 return_value;
   if(m_free_tiles.empty())
     {
-      return_value = m_next_tile;
-      ++m_next_tile.x();
-      if(m_next_tile.x() == m_num_tiles.x())
+      if(m_next_tile.x() < m_num_tiles.x() || m_next_tile.y() < m_num_tiles.y() || m_next_tile.z() < m_num_tiles.z())
         {
-          m_next_tile.x() = 0;
-          ++m_next_tile.y();
-          if(m_next_tile.y() == m_num_tiles.y())
+          return_value = m_next_tile;
+          ++m_next_tile.x();
+          if(m_next_tile.x() == m_num_tiles.x())
             {
-              m_next_tile.y() = 0;
-              ++m_next_tile.z();
-              if(m_next_tile.z() == m_num_tiles.z())
+              m_next_tile.x() = 0;
+              ++m_next_tile.y();
+              if(m_next_tile.y() == m_num_tiles.y())
                 {
-                  /* RAN out of color tiles */
-                  assert(!"Color tile room exhausted");
-                  return fastuidraw::ivec3(-1, -1,-1);
+                  m_next_tile.y() = 0;
+                  ++m_next_tile.z();
                 }
             }
+        }
+      else
+        {
+          assert(!"Color tile room exhausted");
+          return fastuidraw::ivec3(-1, -1,-1);
         }
     }
   else
