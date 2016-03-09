@@ -250,6 +250,7 @@ namespace
     bool m_extension_support_queried;
     int m_number_clip_planes; //0 indicates no hw clip planes.
     GLenum m_clip_plane0;
+    fastuidraw::gl::ContextProperties m_ctx_properties;
 
     fastuidraw::gl::Program::handle m_program;
     GLint m_target_resolution_loc, m_target_resolution_recip_loc;
@@ -1551,8 +1552,7 @@ query_extension_support(void)
     {
       #ifdef FASTUIDRAW_GL_USE_GLES
         {
-          fastuidraw::gl::ContextProperties ctx;
-          if(ctx.has_extension("GL_APPLE_clip_distance"))
+          if(m_ctx_properties.has_extension("GL_APPLE_clip_distance"))
             {
               m_number_clip_planes = fastuidraw::gl::context_get<GLint>(GL_MAX_CLIP_DISTANCES_APPLE);
               m_clip_plane0 = GL_CLIP_DISTANCE0_APPLE;
@@ -1621,13 +1621,24 @@ build_program(void)
 
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
-      vert
-        .specify_version("310 es")
-        .specify_extension("GL_OES_texture_buffer", fastuidraw::gl::Shader::require_extension);
-      frag
-        .specify_version("310 es")
-        .specify_extension("GL_EXT_blend_func_extended", fastuidraw::gl::Shader::require_extension)
-        .specify_extension("GL_OES_texture_buffer", fastuidraw::gl::Shader::require_extension);
+      if(m_ctx_properties.version() >= fastuidraw::ivec2(3, 2))
+        {
+          vert
+            .specify_version("320 es");
+          frag
+            .specify_version("320 es")
+            .specify_extension("GL_OES_texture_buffer", fastuidraw::gl::Shader::require_extension);
+        }
+      else
+        {
+          vert
+            .specify_version("310 es")
+            .specify_extension("GL_OES_texture_buffer", fastuidraw::gl::Shader::require_extension);
+          frag
+            .specify_version("310 es")
+            .specify_extension("GL_EXT_blend_func_extended", fastuidraw::gl::Shader::require_extension)
+            .specify_extension("GL_OES_texture_buffer", fastuidraw::gl::Shader::require_extension);
+        }
     }
   #endif
 
@@ -1727,6 +1738,7 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::params &P,
   m_extension_support_queried(false),
   m_number_clip_planes(0),
   m_clip_plane0(GL_INVALID_ENUM),
+  m_ctx_properties(false),
   m_pool(m_params),
   m_p(p)
 {
