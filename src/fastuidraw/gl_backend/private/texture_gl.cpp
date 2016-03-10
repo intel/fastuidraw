@@ -1,6 +1,57 @@
 #include <iostream>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
+#include <fastuidraw/gl_backend/gl_get.hpp>
 #include "texture_gl.hpp"
+
+namespace
+{
+  bool
+  texture_is_layered(GLenum texTarget)
+  {
+    bool return_value(false);
+
+    #ifdef GL_TEXTURE_1D_ARRAY
+      {
+	return_value = (texTarget == GL_TEXTURE_1D_ARRAY);
+      }
+    #endif
+
+    return return_value || texTarget == GL_TEXTURE_2D_ARRAY
+      || texTarget == GL_TEXTURE_3D;
+  }
+
+
+  void
+  set_color_attachment(GLenum fbo,
+		       GLenum texTarget,
+		       GLuint texName,
+		       GLint layer,
+		       GLint level)
+  {
+    if(texture_is_layered(texTarget))
+      {
+	glFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, texName, level, layer);
+      }
+    else
+      {
+	assert(layer == 0);
+	switch(texTarget)
+	  {
+#ifdef GL_TEXTURE_1D
+	  case GL_TEXTURE_1D:
+	    glFramebufferTexture1D(fbo, GL_COLOR_ATTACHMENT0, texTarget, texName, level);
+	    break;
+#endif
+	  default:
+	    // we do not need to worry about GL_TEXTURE_3D, because that target
+	    // is layered
+	    glFramebufferTexture2D(fbo, GL_COLOR_ATTACHMENT0, texTarget, texName, level);
+	    break;
+	  }
+      }
+  }
+
+}
 
 GLenum
 fastuidraw::gl::detail::
@@ -157,9 +208,35 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
 #endif
 
     default:
-      assert(m_type == emulate_function);
-      /* TODO:
-          Use FBO's and glBlitFramebuffer to grab each layer. Ick.
-       */
+      {
+	assert(m_type == emulate_function);
+	/* Use FBO's and glBlitFramebuffer to grab each layer. Ick.
+	 */
+	enum { fbo_draw, fbo_read };
+	
+	GLuint new_fbos[2] = { 0 }, old_fbos[2] = { 0 };
+	glGenFramebuffers(2, new_fbos);
+	assert(new_fbos[fbo_draw] != 0 && new_fbos[fbo_read] != 0);
+	
+	old_fbos[fbo_draw] = context_get<GLint>(GL_DRAW_FRAMEBUFFER_BINDING);
+	old_fbos[fbo_read] = context_get<GLint>(GL_READ_FRAMEBUFFER_BINDING);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, new_fbos[fbo_draw]);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, new_fbos[fbo_read]);
+	for(int layer = 0, src_layer = srcZ, dst_layer = dstZ;
+	    layer < depth; ++layer, ++src_layer, ++dst_layer)
+	  {
+	    assert(src_layer == 0 || texture_is_layered(srcTarget));
+	    assert(dst_layer == 0 || texture_is_layered(dstTarget));
+	    set_color_attachment(GL_DRAW_FRAMEBUFFER, dstTarget, dstName, dst_layer, dstLevel);
+	    set_color_attachment(GL_READ_FRAMEBUFFER, srcTarget, srcName, src_layer, srcLevel);
+	    glBlitFramebuffer(srcX, srcY, srcX + width, srcY + height,
+			      dstX, dstY, dstX + width, dstY + height,
+			      GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	  }
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_fbos[fbo_draw]);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, old_fbos[fbo_read]);
+	glDeleteFramebuffers(2, new_fbos);
+      }
+      break;
     }
 }
