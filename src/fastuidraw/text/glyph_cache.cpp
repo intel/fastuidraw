@@ -407,6 +407,10 @@ clear_atlas(void)
   for(unsigned int i = 0, endi = d->m_glyphs.size(); i < endi; ++i)
     {
       d->m_glyphs[i]->m_uploaded_to_atlas = false;
+      d->m_glyphs[i]->m_atlas_location[0] = fastuidraw::GlyphLocation();
+      d->m_glyphs[i]->m_atlas_location[1] = fastuidraw::GlyphLocation();
+      d->m_glyphs[i]->m_geometry_offset = -1;
+      d->m_glyphs[i]->m_geometry_length = 0;
     }
 }
 
