@@ -422,7 +422,17 @@ clear_cache(void)
   GlyphCachePrivate *d;
   d = reinterpret_cast<GlyphCachePrivate*>(m_d);
 
-  clear_atlas();
-  d->m_glyphs.clear();
-  d->m_free_slots.clear();
+  d->m_atlas->clear();
+  d->m_glyph_map.clear();
+  
+  for(unsigned int i = 0, endi = d->m_glyphs.size(); i < endi; ++i)
+    {
+      GlyphDataPrivate *p;
+      p = d->m_glyphs[i];
+      if(p->m_render.valid())
+	{
+	  p->clear();
+	  d->m_free_slots.push_back(p->m_cache_location);
+	}
+    }
 }
