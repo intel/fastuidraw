@@ -158,6 +158,10 @@ void
 fastuidraw::PainterBackend::
 register_vert_shader(const PainterShader::handle &shader)
 {
+  if(!shader)
+    {
+      return;
+    }
   assert(shader->registered_to() == NULL || shader->registered_to() == this);
   if(shader->registered_to() == NULL)
     {
@@ -172,6 +176,10 @@ void
 fastuidraw::PainterBackend::
 register_frag_shader(const PainterShader::handle &shader)
 {
+  if(!shader)
+    {
+      return;
+    }
   assert(shader->registered_to() == NULL || shader->registered_to() == this);
   if(shader->registered_to() == NULL)
     {
@@ -186,6 +194,10 @@ void
 fastuidraw::PainterBackend::
 register_blend_shader(const PainterShader::handle &shader)
 {
+  if(!shader)
+    {
+      return;
+    }
   assert(shader->registered_to() == NULL || shader->registered_to() == this);
   if(shader->registered_to() == NULL)
     {
@@ -216,10 +228,7 @@ register_shader(const PainterBlendShaderSet &p)
       tp = static_cast<enum PainterEnums::blend_mode_t>(i);
 
       const PainterShader::handle &sh(p.shader(tp));
-      if(sh)
-        {
-          register_blend_shader(sh);
-        }
+      register_blend_shader(sh);
     }
 }
 
@@ -228,6 +237,7 @@ fastuidraw::PainterBackend::
 register_shader(const PainterShaderSet &shaders)
 {
   register_shader(shaders.stroke_shader());
+  register_shader(shaders.pixel_width_stroke_shader());
   register_shader(shaders.fill_shader());
   register_shader(shaders.glyph_shader());
   register_shader(shaders.glyph_shader_anisotropic());

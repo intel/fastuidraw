@@ -435,7 +435,7 @@ namespace fastuidraw
     }
 
     /*!
-      Stroke a path using the default stroking shader of default_shaders().
+      Stroke a path using PainterShaderSet::stroke_shader() of default_shaders().
       \param path path to stroke
       \param cp cap style
       \param js join style
@@ -447,6 +447,23 @@ namespace fastuidraw
                 bool with_anti_aliasing)
     {
       stroke_path(path, cp, js, with_anti_aliasing, default_shaders().stroke_shader());
+    }
+
+    /*!
+      Stroke a path using PainterShaderSet::pixel_width_stroke_shader()
+      of default_shaders().
+      \param path path to stroke
+      \param cp cap style
+      \param js join style
+      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+     */
+    void
+    stroke_path_pixel_width(const Path &path,
+                            enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+                            bool with_anti_aliasing)
+    {
+      stroke_path(path, cp, js, with_anti_aliasing,
+                  default_shaders().pixel_width_stroke_shader());
     }
 
     /*!
