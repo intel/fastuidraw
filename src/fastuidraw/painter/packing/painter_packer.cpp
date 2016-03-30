@@ -1022,13 +1022,28 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const PainterItemShader &shader, unsigned int z,
              const DataCallBack::handle &call_back)
 {
+  draw_generic(attrib_chunks, index_chunks, const_c_array<unsigned int>(),
+               shader, z, call_back);
+}
+
+void
+fastuidraw::PainterPacker::
+draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
+             const_c_array<const_c_array<PainterIndex> > index_chunks,
+             const_c_array<unsigned int> attrib_chunk_selector,
+             const PainterItemShader &shader, unsigned int z,
+             const DataCallBack::handle &call_back)
+{
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
 
   bool allocate_header;
   unsigned int header_loc;
+  const unsigned int NOT_LOADED = ~0u;
+  std::vector<unsigned int> attribs_loaded;
 
-  assert(attrib_chunks.size() == index_chunks.size());
+  assert((attrib_chunk_selector.empty() && attrib_chunks.size() == index_chunks.size())
+         || (attrib_chunk_selector.size() == index_chunks.size()) );
 
   if(attrib_chunks.empty() || !shader.vert_shader() || !shader.frag_shader())
     {
@@ -1037,6 +1052,8 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
        */
       return;
     }
+
+  attribs_loaded.resize(attrib_chunk_selector.size(), NOT_LOADED);
 
   assert(shader.vert_shader());
   assert(shader.frag_shader());
@@ -1047,22 +1064,49 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
   for(unsigned chunk = 0, num_chunks = attrib_chunks.size(); chunk < num_chunks; ++chunk)
     {
       unsigned int attrib_room, index_room, data_room;
+      unsigned int attrib_src, needed_attrib_room;
 
       attrib_room = d->m_accumulated_draws.back().attribute_room();
       index_room = d->m_accumulated_draws.back().index_room();
       data_room = d->m_accumulated_draws.back().store_room();
 
-      if(attrib_room < attrib_chunks[chunk].size() || index_room < index_chunks[chunk].size()
+      if(attrib_chunk_selector.empty())
+        {
+          attrib_src = chunk;
+          needed_attrib_room = attrib_chunks[attrib_src].size();
+        }
+      else
+        {
+          attrib_src = attrib_chunk_selector[chunk];
+          needed_attrib_room = (attribs_loaded[attrib_src] == NOT_LOADED) ?
+            attrib_chunks[attrib_src].size() :
+            0;
+        }
+
+      if(index_room == 0 || attrib_chunks[attrib_src].empty())
+        {
+          continue;
+        }
+
+      if(attrib_room < needed_attrib_room || index_room < index_chunks[chunk].size()
          || (allocate_header && data_room < d->m_header_size))
         {
           d->start_new_command();
+
+          /* reset attribs_loaded[] and recompute needed_attrib_room
+           */
+          if(!attrib_chunk_selector.empty())
+            {
+              std::fill(attribs_loaded.begin(), attribs_loaded.end(), NOT_LOADED);
+              needed_attrib_room = attrib_chunks[attrib_src].size();
+            }
 
           attrib_room = d->m_accumulated_draws.back().attribute_room();
           index_room = d->m_accumulated_draws.back().index_room();
           data_room = d->m_accumulated_draws.back().store_room();
           allocate_header = true;
 
-          if(attrib_room < attrib_chunks[chunk].size() || index_room < index_chunks[chunk].size())
+          if(attrib_room < needed_attrib_room || index_room < index_chunks[chunk].size())
             {
               assert(!"Unable to fit chunk into freshly allocated draw command, not good!");
               continue;
@@ -1081,33 +1125,51 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                                        call_back);
         }
 
-      /* copy attribute and index data of the chunk
+      /* copy attribute data and get offset into attribute buffer
+         where attributes are copied
        */
-      c_array<PainterAttribute> attrib_dst;
-      c_array<PainterIndex> index_dst;
-      c_array<uint32_t> header_dst;
-      const_c_array<PainterAttribute> attrib_src;
-      const_c_array<PainterIndex> index_src;
+      unsigned int attrib_offset;
 
-      attrib_src = attrib_chunks[chunk];
-      index_src = index_chunks[chunk];
-
-      attrib_dst = cmd.m_draw_command->m_attributes.sub_array(cmd.m_attributes_written, attrib_src.size());
-      header_dst = cmd.m_draw_command->m_header_attributes.sub_array(cmd.m_attributes_written, attrib_src.size());
-      index_dst = cmd.m_draw_command->m_indices.sub_array(cmd.m_indices_written, index_src.size());
-
-      /* adjust the index value by incrementing them by cmd.m_attributes_written
-       */
-      for(unsigned int i = 0; i < index_dst.size(); ++i)
+      if(needed_attrib_room > 0)
         {
-          index_dst[i] = index_src[i] + cmd.m_attributes_written;
+          c_array<PainterAttribute> attrib_dst_ptr;
+          const_c_array<PainterAttribute> attrib_src_ptr;
+          c_array<uint32_t> header_dst_ptr;
+
+          attrib_src_ptr = attrib_chunks[attrib_src];
+          attrib_dst_ptr = cmd.m_draw_command->m_attributes.sub_array(cmd.m_attributes_written, attrib_src_ptr.size());
+          header_dst_ptr = cmd.m_draw_command->m_header_attributes.sub_array(cmd.m_attributes_written, attrib_src_ptr.size());
+
+          std::memcpy(attrib_dst_ptr.c_ptr(), attrib_src_ptr.c_ptr(), sizeof(PainterAttribute) * attrib_dst_ptr.size());
+          std::fill(header_dst_ptr.begin(), header_dst_ptr.end(), header_loc);
+
+          if(!attrib_chunk_selector.empty())
+            {
+              assert(attribs_loaded[attrib_src] == NOT_LOADED);
+              attribs_loaded[attrib_src] = cmd.m_attributes_written;
+            }
+          attrib_offset = cmd.m_attributes_written;
+          cmd.m_attributes_written += attrib_dst_ptr.size();
+        }
+      else
+        {
+          assert(!attrib_chunk_selector.empty());
+          assert(attribs_loaded[attrib_src] != NOT_LOADED);
+          attrib_offset = attribs_loaded[attrib_src];
         }
 
-      std::memcpy(attrib_dst.c_ptr(), attrib_src.c_ptr(), sizeof(PainterAttribute) * attrib_dst.size());
-      std::fill(header_dst.begin(), header_dst.end(), header_loc);
+      /* copy and adjust the index value by incrementing them by index_offset
+       */
+      c_array<PainterIndex> index_dst_ptr;
+      const_c_array<PainterIndex> index_src_ptr;
 
-      cmd.m_attributes_written += attrib_dst.size();
-      cmd.m_indices_written += index_dst.size();
+      index_src_ptr = index_chunks[chunk];
+      index_dst_ptr = cmd.m_draw_command->m_indices.sub_array(cmd.m_indices_written, index_src_ptr.size());
+      for(unsigned int i = 0; i < index_dst_ptr.size(); ++i)
+        {
+          index_dst_ptr[i] = index_src_ptr[i] + attrib_offset;
+        }
+      cmd.m_indices_written += index_dst_ptr.size();
     }
 }
 

@@ -307,8 +307,7 @@ namespace fastuidraw
     both stroking with and without anit-aliasing.
     The shader is to handle data as packed by
     PainterAttributeData for stroking of
-    paths. The stroking parameters are given
-    by StrokeParams.
+    paths.
    */
   class PainterStrokeShader
   {
@@ -450,6 +449,7 @@ namespace fastuidraw
     /*!
       Shader set for stroking of paths where the stroking
       width is given in same units as the original path.
+      The stroking parameters are given by StrokeParams.
      */
     const PainterStrokeShader&
     stroke_shader(void) const;
@@ -463,7 +463,8 @@ namespace fastuidraw
 
     /*!
       Shader set for stroking of paths where the stroking
-      width is given in pixels.
+      width is given in pixels. The stroking parameters are
+      given by StrokeParams.
      */
     const PainterStrokeShader&
     pixel_width_stroke_shader(void) const;

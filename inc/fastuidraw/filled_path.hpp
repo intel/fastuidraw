@@ -62,7 +62,7 @@ public:
   /*!
     Returns an array listing what winding number values
     for which indices() will return a non-empty
-    array.
+    array. The array is sorted in ascending order.
    */
   const_c_array<int>
   winding_numbers(void) const;

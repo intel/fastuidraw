@@ -23,6 +23,8 @@
 #include <fastuidraw/util/math.hpp>
 #include <fastuidraw/painter/painter.hpp>
 
+#include "../private/util_private.hpp"
+
 namespace
 {
   class ZDelayedAction;
@@ -314,6 +316,7 @@ namespace
     void
     draw_generic_check(fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
                        fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+                       fastuidraw::const_c_array<unsigned int> attrib_chunk_selector,
                        const fastuidraw::PainterItemShader &shader, unsigned int z,
                        const fastuidraw::PainterPacker::DataCallBack::handle &call_back);
 
@@ -526,12 +529,13 @@ void
 PainterPrivate::
 draw_generic_check(fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
                    fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+                   fastuidraw::const_c_array<unsigned int> attrib_chunk_selector,
                    const fastuidraw::PainterItemShader &shader, unsigned int z,
                    const fastuidraw::PainterPacker::DataCallBack::handle &call_back)
 {
   if(!m_clip_rect_state.m_all_content_culled)
     {
-      m_core->draw_generic(attrib_chunks, index_chunks, shader, z, call_back);
+      m_core->draw_generic(attrib_chunks, index_chunks, attrib_chunk_selector, shader, z, call_back);
     }
 }
 
@@ -621,7 +625,22 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
 {
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
-  d->draw_generic_check(attrib_chunks, index_chunks, shader, current_z(), call_back);
+  d->draw_generic_check(attrib_chunks, index_chunks, const_c_array<unsigned int>(),
+                        shader, current_z(), call_back);
+}
+
+void
+fastuidraw::Painter::
+draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
+             const_c_array<const_c_array<PainterIndex> > index_chunks,
+             const_c_array<unsigned int> attrib_chunk_selector,
+             const PainterItemShader &shader,
+             const PainterPacker::DataCallBack::handle &call_back)
+{
+  PainterPrivate *d;
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d->draw_generic_check(attrib_chunks, index_chunks, attrib_chunk_selector,
+                        shader, current_z(), call_back);
 }
 
 void
@@ -764,7 +783,114 @@ stroke_path(const PainterAttributeData &pdata,
     }
 
   d->m_current_z = startz + zincs[0] + zincs[1] + zincs[2] + 1;
+}
 
+void
+fastuidraw::Painter::
+stroke_path(const Path &path,
+            enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+            bool with_anti_aliasing, const PainterStrokeShader &shader)
+{
+  stroke_path(path.tessellation()->stroked()->painter_data(),
+              cp, js, with_anti_aliasing, shader);
+}
+
+void
+fastuidraw::Painter::
+stroke_path(const Path &path,
+            enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+            bool with_anti_aliasing)
+{
+  stroke_path(path, cp, js, with_anti_aliasing, default_shaders().stroke_shader());
+}
+
+void
+fastuidraw::Painter::
+stroke_path_pixel_width(const Path &path,
+                        enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+                        bool with_anti_aliasing)
+{
+  stroke_path(path, cp, js, with_anti_aliasing,
+              default_shaders().pixel_width_stroke_shader());
+}
+
+void
+fastuidraw::Painter::
+fill_path(const PainterAttributeData &data,
+          enum PainterEnums::fill_rule_t fill_rule,
+          const PainterItemShader &shader)
+{
+  draw_generic(data.attribute_data_chunk(0),
+               data.index_data_chunk(fill_rule),
+               shader);
+}
+
+void
+fastuidraw::Painter::
+fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule,
+          const PainterItemShader &shader)
+{
+  fill_path(path.tessellation()->filled()->painter_data(), fill_rule, shader);
+}
+
+void
+fastuidraw::Painter::
+fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
+{
+  fill_path(path, fill_rule, default_shaders().fill_shader());
+}
+
+void
+fastuidraw::Painter::
+fill_path(const PainterAttributeData &data,
+          CustomFillRule fill_rule,
+          const PainterItemShader &shader)
+{
+  std::vector<unsigned int> selector;
+  std::vector<const_c_array<PainterIndex> > index_chunks;
+
+  /* walk through what winding numbers are non-empty.
+   */
+  const_c_array<unsigned int> chks(data.non_empty_index_data_chunks());
+  for(unsigned int i = 0; i < chks.size(); ++i)
+    {
+      unsigned int k;
+      int winding_number;
+
+      k = chks[i];
+      if(k == PainterEnums::complement_nonzero_fill_rule || k >= PainterEnums::fill_rule_data_count)
+        {
+          winding_number = PainterAttributeData::winding_number_from_index_chunk(k);
+          if(fill_rule(winding_number))
+            {
+              assert(!data.index_data_chunk(k).empty());
+              index_chunks.push_back(data.index_data_chunk(k));
+              selector.push_back(0);
+            }
+        }
+    }
+
+  if(!selector.empty())
+    {
+      draw_generic(data.attribute_data_chunks(), make_c_array(index_chunks),
+                   make_c_array(selector), shader);
+    }
+
+}
+
+void
+fastuidraw::Painter::
+fill_path(const Path &path, CustomFillRule fill_rule,
+          const PainterItemShader &shader)
+{
+  fill_path(path.tessellation()->filled()->painter_data(), fill_rule, shader);
+}
+
+void
+fastuidraw::Painter::
+fill_path(const Path &path, CustomFillRule fill_rule)
+{
+  fill_path(path, fill_rule, default_shaders().fill_shader());
 }
 
 void
@@ -1016,7 +1142,7 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
 
   brush_state(d->m_black_brush);
   blend_shader(PainterEnums::blend_porter_duff_dst);
-  draw_generic(path.tessellation()->filled()->painter_data().attribute_data_chunk(fill_rule),
+  draw_generic(path.tessellation()->filled()->painter_data().attribute_data_chunk(0),
                path.tessellation()->filled()->painter_data().index_data_chunk(fill_rule),
                default_shaders().fill_shader(), zdatacallback);
   brush_state(old_brush);

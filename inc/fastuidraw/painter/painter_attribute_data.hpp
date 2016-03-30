@@ -138,9 +138,12 @@ namespace fastuidraw
     /*!
       Set the attribute and index data for filling a path.
       The enumeration values of PainterEnums::fill_rule_t provide
-      the indices into attribute_data_chunks() and
-      index_data_chunks() to use for the fill rules.
-      \param path path to fill
+      the indices into attribute_data_chunks() for the fill rules.
+      To get the index data for the component of a filled
+      path with a given winding number, use the function
+      index_chunk_from_winding_number(int). The attribute
+      data, regardless of winding number or fill rule is
+      the same value, the 0'th chunk.
      */
     void
     set_data(const FilledPath::const_handle &path);
@@ -213,11 +216,11 @@ namespace fastuidraw
     }
 
     /*!
-      Returns the attribute data chunks. For each
-      attribute data chunk, there is a matching index
-      data chunk. A chunk is an attribute and index
-      data chunk pair. Specifically one uses
-      index_data_chunks()[i] to draw the contents
+      Returns the attribute data chunks. For all but those
+      objects set by set_data(const FilledPath::const_handle &),
+      for each attribute data chunk, there is a matching index
+      data chunk. A chunk is an attribute and index data chunk pair.
+      Specifically one uses index_data_chunks()[i] to draw the contents
       of attribute_data_chunks()[i].
      */
     const_c_array<const_c_array<PainterAttribute> >
@@ -234,10 +237,11 @@ namespace fastuidraw
     attribute_data_chunk(unsigned int i) const;
 
     /*!
-      Returns the index data chunks. For each
-      index data chunk, there is a matching
-      attribute data chunk. Specifically one uses
-      index_data_chunks()[i] to draw the contents
+      Returns the index data chunks. For all but those
+      objects set by set_data(const FilledPath::const_handle &),
+      for each attribute data chunk, there is a matching index
+      data chunk. A chunk is an attribute and index data chunk pair.
+      Specifically one uses index_data_chunks()[i] to draw the contents
       of attribute_data_chunks()[i].
     */
     const_c_array<const_c_array<PainterIndex> >
@@ -277,6 +281,29 @@ namespace fastuidraw
      */
     unsigned int
     increment_z_value(unsigned int i) const;
+
+    /*!
+      Returns the value to feed to index_data_chunk()
+      to get the index data for the fill of a path
+      (see set_data(const FilledPath::const_handle&))
+      with a specified winding number.
+      \param winding_number winding number of fill data to fetch
+     */
+    static
+    unsigned int
+    index_chunk_from_winding_number(int winding_number);
+
+    /*!
+      Is the inverse of index_chunk_from_winding_number(), i.e.
+      returns the winding number that lives on a given index
+      chunk. It is required that the index fed is not one of
+      PainterEnums::odd_even_fill_rule, PainterEnums::nonzero_fill_rule
+      and PainterEnums::complement_odd_even_fill_rule.
+      \param idx index into index_data_chunk()
+     */
+    static
+    int
+    winding_number_from_index_chunk(unsigned int idx);
 
   private:
     void *m_d;

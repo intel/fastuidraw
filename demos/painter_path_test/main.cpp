@@ -81,6 +81,21 @@ private:
   void
   update_cts_params(void);
 
+  static
+  bool
+  custom_fill_rule(int winding_number)
+  {
+    return winding_number == current_custom_fill_rule();
+  }
+
+  static
+  int&
+  current_custom_fill_rule(void)
+  {
+    static int R(0);
+    return R;
+  }
+
   command_line_argument_value<int> m_max_segments_per_edge;
   command_line_argument_value<int> m_points_per_circle;
   command_line_argument_value<float> m_change_miter_limit_rate;
@@ -113,6 +128,7 @@ private:
   unsigned int m_join_style;
   unsigned int m_cap_style;
   unsigned int m_fill_rule;
+  unsigned int m_end_fill_rule;
   bool m_have_miter_limit;
   float m_miter_limit, m_stroke_width;
   bool m_draw_fill;
@@ -177,6 +193,7 @@ painter_stroke_test(void):
   m_join_style(PainterEnums::rounded_joins),
   m_cap_style(PainterEnums::close_outlines),
   m_fill_rule(PainterEnums::odd_even_fill_rule),
+  m_end_fill_rule(PainterEnums::fill_rule_data_count),
   m_have_miter_limit(true),
   m_miter_limit(5.0f),
   m_stroke_width(1.0f),
@@ -600,8 +617,19 @@ handle_event(const SDL_Event &ev)
         case SDLK_r:
           if(m_draw_fill)
             {
-              cycle_value(m_fill_rule, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), PainterEnums::fill_rule_data_count);
-              std::cout << "Fill rule set to: " << m_fill_labels[m_fill_rule] << "\n";
+              cycle_value(m_fill_rule, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_end_fill_rule);
+              if(m_fill_rule < PainterEnums::fill_rule_data_count)
+                {
+                  std::cout << "Fill rule set to: " << m_fill_labels[m_fill_rule] << "\n";
+                }
+              else
+                {
+                  const_c_array<int> wnd;
+                  wnd = m_path.tessellation()->filled()->winding_numbers();
+                  current_custom_fill_rule() = wnd[m_fill_rule - PainterEnums::fill_rule_data_count];
+                  std::cout << "Fill rule set to custom fill rule: winding_number == "
+                            << current_custom_fill_rule() << "\n";
+                }
             }
           break;
 
@@ -811,8 +839,14 @@ draw_frame(void)
           m_painter->brush().sub_image(m_image, m_image_offset, m_image_size, f);
         }
 
-      m_painter->fill_path(m_path,
-                           static_cast<enum PainterEnums::fill_rule_t>(m_fill_rule));
+      if(m_fill_rule < PainterEnums::fill_rule_data_count)
+        {
+          m_painter->fill_path(m_path, static_cast<enum PainterEnums::fill_rule_t>(m_fill_rule));
+        }
+      else
+        {
+          m_painter->fill_path(m_path, custom_fill_rule);
+        }
       m_painter->brush().no_image();
       m_painter->brush().no_gradient();
     }
@@ -905,6 +939,7 @@ derived_init(int w, int h)
   construct_path();
   create_stroked_path_attributes();
   contruct_color_stops();
+  m_end_fill_rule = m_path.tessellation()->filled()->winding_numbers().size() + PainterEnums::fill_rule_data_count;
 
   /* set transformation to center and contain path.
    */

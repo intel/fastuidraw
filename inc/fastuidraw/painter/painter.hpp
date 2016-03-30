@@ -87,6 +87,11 @@ namespace fastuidraw
     typedef PainterState::FragmentShaderDataState FragmentShaderDataState;
 
     /*!
+      Conveniance typedef to specify a custom fill rule.
+     */
+    typedef bool (*CustomFillRule)(int);
+
+    /*!
       Ctor.
      */
     explicit
@@ -428,11 +433,7 @@ namespace fastuidraw
     void
     stroke_path(const Path &path,
                 enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                bool with_anti_aliasing, const PainterStrokeShader &shader)
-    {
-      stroke_path(path.tessellation()->stroked()->painter_data(),
-                  cp, js, with_anti_aliasing, shader);
-    }
+                bool with_anti_aliasing, const PainterStrokeShader &shader);
 
     /*!
       Stroke a path using PainterShaderSet::stroke_shader() of default_shaders().
@@ -444,10 +445,7 @@ namespace fastuidraw
     void
     stroke_path(const Path &path,
                 enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                bool with_anti_aliasing)
-    {
-      stroke_path(path, cp, js, with_anti_aliasing, default_shaders().stroke_shader());
-    }
+                bool with_anti_aliasing);
 
     /*!
       Stroke a path using PainterShaderSet::pixel_width_stroke_shader()
@@ -460,11 +458,7 @@ namespace fastuidraw
     void
     stroke_path_pixel_width(const Path &path,
                             enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                            bool with_anti_aliasing)
-    {
-      stroke_path(path, cp, js, with_anti_aliasing,
-                  default_shaders().pixel_width_stroke_shader());
-    }
+                            bool with_anti_aliasing);
 
     /*!
       Fill a path.
@@ -475,12 +469,7 @@ namespace fastuidraw
     void
     fill_path(const PainterAttributeData &data,
               enum PainterEnums::fill_rule_t fill_rule,
-              const PainterItemShader &shader)
-    {
-      draw_generic(data.attribute_data_chunk(fill_rule),
-                   data.index_data_chunk(fill_rule),
-                   shader);
-    }
+              const PainterItemShader &shader);
 
     /*!
       Fill a path.
@@ -490,10 +479,7 @@ namespace fastuidraw
      */
     void
     fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule,
-              const PainterItemShader &shader)
-    {
-      fill_path(path.tessellation()->filled()->painter_data(), fill_rule, shader);
-    }
+              const PainterItemShader &shader);
 
     /*!
       Fill a path using the default shader to draw the fill.
@@ -501,10 +487,36 @@ namespace fastuidraw
       \param fill_rule fill rule with which to fill the path
      */
     void
-    fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
-    {
-      fill_path(path, fill_rule, default_shaders().fill_shader());
-    }
+    fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule);
+
+    /*!
+      Fill a path.
+      \param data attribute and index data with which to fill a path
+      \param fill_rule custom fill rule with which to fill the path
+      \param shader shader with which to fill the attribute data
+     */
+    void
+    fill_path(const PainterAttributeData &data,
+              CustomFillRule fill_rule,
+              const PainterItemShader &shader);
+
+    /*!
+      Fill a path.
+      \param path to fill
+      \param fill_rule custom fill rule with which to fill the path
+      \param shader shader with which to fill the attribute data
+     */
+    void
+    fill_path(const Path &path, CustomFillRule fill_rule,
+              const PainterItemShader &shader);
+
+    /*!
+      Fill a path using the default shader to draw the fill.
+      \param path path to fill
+      \param fill_rule custom fill rule with which to fill the path
+     */
+    void
+    fill_path(const Path &path, CustomFillRule fill_rule);
 
     /*!
       Draw a rect.
@@ -556,6 +568,23 @@ namespace fastuidraw
     void
     draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
+                 const PainterItemShader &shader,
+                 const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
+
+    /*!
+      Draw generic attribute data
+      \param attrib_chunks attribute data to draw
+      \param index_chunks the i'th element is index data into attrib_chunks[K]
+                          where K = attrib_chunk_selector[i]
+      \param shader shader with which to draw data
+      \param z z-value z value placed into the header
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
+     */
+    void
+    draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
+                 const_c_array<const_c_array<PainterIndex> > index_chunks,
+                 const_c_array<unsigned int> attrib_chunk_selector,
                  const PainterItemShader &shader,
                  const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 

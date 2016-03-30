@@ -331,9 +331,6 @@ namespace fastuidraw
     default_shaders(void) const;
 
     /*!
-                        const_c_array<const_c_array<PainterIndex> >,
-                        const PainterItemShader&, unsigned int,
-                        const DataCallBack::handle&)
       Draw generic attribute data
       \param attrib_chunks attribute data to draw
       \param index_chunks the i'th element is index data into attrib_chunks[i]
@@ -345,6 +342,23 @@ namespace fastuidraw
     void
     draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
+                 const PainterItemShader &shader, unsigned int z,
+                 const DataCallBack::handle &call_back = DataCallBack::handle());
+
+    /*!
+      Draw generic attribute data
+      \param attrib_chunks attribute data to draw
+      \param index_chunks the i'th element is index data into attrib_chunks[K]
+                          where K = attrib_chunk_selector[i]
+      \param shader shader with which to draw data
+      \param z z-value z value placed into the header
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
+     */
+    void
+    draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
+                 const_c_array<const_c_array<PainterIndex> > index_chunks,
+                 const_c_array<unsigned int> attrib_chunk_selector,
                  const PainterItemShader &shader, unsigned int z,
                  const DataCallBack::handle &call_back = DataCallBack::handle());
 
