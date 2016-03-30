@@ -304,6 +304,25 @@ namespace
     clip_rect_state m_clip_rect_state;
   };
 
+  class ComplementFillRule:public fastuidraw::Painter::CustomFillRuleBase
+  {
+  public:
+    ComplementFillRule(const fastuidraw::Painter::CustomFillRuleBase *p):
+      m_p(p)
+    {
+      assert(m_p);
+    }
+
+    bool
+    operator()(int w) const
+    {
+      return m_p && !(*m_p)(w);
+    }
+
+  private:
+    const fastuidraw::Painter::CustomFillRuleBase *m_p;
+  };
+
   class PainterWorkRoom
   {
   public:
@@ -693,7 +712,8 @@ void
 fastuidraw::Painter::
 stroke_path(const PainterAttributeData &pdata,
             enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-            bool with_anti_aliasing, const PainterStrokeShader &shader)
+            bool with_anti_aliasing, const PainterStrokeShader &shader,
+            const PainterPacker::DataCallBack::handle &call_back)
 {
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
@@ -765,19 +785,19 @@ stroke_path(const PainterAttributeData &pdata,
      written depth goes from (startz + zincs[1] + zincs[2] + 1) to (startz + zincs[0] + zincs[1] + zincs[2])
    */
   d->m_current_z = startz + zincs[1] + zincs[2] + 1;
-  draw_generic(attrib_chunks[0], index_chunks[0], sh);
+  draw_generic(attrib_chunks[0], index_chunks[0], sh, call_back);
 
   /* raw depth value goes from 0 to zincs[1] - 1
      written depth goes from (startz + zincs[2] + 1) to (startz + zincs[1] + zincs[2])
    */
   d->m_current_z = startz + zincs[2] + 1;
-  draw_generic(attrib_chunks[1], index_chunks[1], sh);
+  draw_generic(attrib_chunks[1], index_chunks[1], sh, call_back);
 
   /* raw depth value goes from 0 to zincs[2] - 1
      written depth goes from (startz + 1) to (startz + zincs[2])
    */
   d->m_current_z = startz + 1;
-  draw_generic(attrib_chunks[2], index_chunks[2], sh);
+  draw_generic(attrib_chunks[2], index_chunks[2], sh, call_back);
 
   if(with_anti_aliasing)
     {
@@ -787,7 +807,7 @@ stroke_path(const PainterAttributeData &pdata,
        */
       d->m_current_z = startz;
       sh = shader.aa_shader_pass2();
-      draw_generic(attrib_chunks, index_chunks, sh);
+      draw_generic(attrib_chunks, index_chunks, sh, call_back);
     }
 
   d->m_current_z = startz + zincs[0] + zincs[1] + zincs[2] + 1;
@@ -797,62 +817,69 @@ void
 fastuidraw::Painter::
 stroke_path(const Path &path,
             enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-            bool with_anti_aliasing, const PainterStrokeShader &shader)
+            bool with_anti_aliasing, const PainterStrokeShader &shader,
+            const PainterPacker::DataCallBack::handle &call_back)
 {
   stroke_path(path.tessellation()->stroked()->painter_data(),
-              cp, js, with_anti_aliasing, shader);
+              cp, js, with_anti_aliasing, shader, call_back);
 }
 
 void
 fastuidraw::Painter::
 stroke_path(const Path &path,
             enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-            bool with_anti_aliasing)
+            bool with_anti_aliasing,
+            const PainterPacker::DataCallBack::handle &call_back)
 {
-  stroke_path(path, cp, js, with_anti_aliasing, default_shaders().stroke_shader());
+  stroke_path(path, cp, js, with_anti_aliasing, default_shaders().stroke_shader(), call_back);
 }
 
 void
 fastuidraw::Painter::
 stroke_path_pixel_width(const Path &path,
                         enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                        bool with_anti_aliasing)
+                        bool with_anti_aliasing,
+                        const PainterPacker::DataCallBack::handle &call_back)
 {
   stroke_path(path, cp, js, with_anti_aliasing,
-              default_shaders().pixel_width_stroke_shader());
+              default_shaders().pixel_width_stroke_shader(), call_back);
 }
 
 void
 fastuidraw::Painter::
 fill_path(const PainterAttributeData &data,
           enum PainterEnums::fill_rule_t fill_rule,
-          const PainterItemShader &shader)
+          const PainterItemShader &shader,
+          const PainterPacker::DataCallBack::handle &call_back)
 {
   draw_generic(data.attribute_data_chunk(0),
                data.index_data_chunk(fill_rule),
-               shader);
+               shader, call_back);
 }
 
 void
 fastuidraw::Painter::
 fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule,
-          const PainterItemShader &shader)
+          const PainterItemShader &shader,
+          const PainterPacker::DataCallBack::handle &call_back)
 {
-  fill_path(path.tessellation()->filled()->painter_data(), fill_rule, shader);
+  fill_path(path.tessellation()->filled()->painter_data(), fill_rule, shader, call_back);
 }
 
 void
 fastuidraw::Painter::
-fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
+fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule,
+          const PainterPacker::DataCallBack::handle &call_back)
 {
-  fill_path(path, fill_rule, default_shaders().fill_shader());
+  fill_path(path, fill_rule, default_shaders().fill_shader(), call_back);
 }
 
 void
 fastuidraw::Painter::
 fill_path(const PainterAttributeData &data,
           const CustomFillRuleBase &fill_rule,
-          const PainterItemShader &shader)
+          const PainterItemShader &shader,
+          const PainterPacker::DataCallBack::handle &call_back)
 {
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
@@ -885,7 +912,7 @@ fill_path(const PainterAttributeData &data,
     {
       draw_generic(data.attribute_data_chunks(),
                    make_c_array(d->m_work_room.m_index_chunks),
-                   make_c_array(d->m_work_room.m_selector), shader);
+                   make_c_array(d->m_work_room.m_selector), shader, call_back);
     }
 
 }
@@ -893,21 +920,24 @@ fill_path(const PainterAttributeData &data,
 void
 fastuidraw::Painter::
 fill_path(const Path &path, const CustomFillRuleBase &fill_rule,
-          const PainterItemShader &shader)
+          const PainterItemShader &shader,
+          const PainterPacker::DataCallBack::handle &call_back)
 {
-  fill_path(path.tessellation()->filled()->painter_data(), fill_rule, shader);
+  fill_path(path.tessellation()->filled()->painter_data(), fill_rule, shader, call_back);
 }
 
 void
 fastuidraw::Painter::
-fill_path(const Path &path, const CustomFillRuleBase &fill_rule)
+fill_path(const Path &path, const CustomFillRuleBase &fill_rule,
+          const PainterPacker::DataCallBack::handle &call_back)
 {
-  fill_path(path, fill_rule, default_shaders().fill_shader());
+  fill_path(path, fill_rule, default_shaders().fill_shader(), call_back);
 }
 
 void
 fastuidraw::Painter::
-draw_glyphs(const PainterAttributeData &data, const PainterGlyphShader &shader)
+draw_glyphs(const PainterAttributeData &data, const PainterGlyphShader &shader,
+            const PainterPacker::DataCallBack::handle &call_back)
 {
   const_c_array<unsigned int> chks(data.non_empty_index_data_chunks());
   for(unsigned int i = 0; i < chks.size(); ++i)
@@ -916,21 +946,22 @@ draw_glyphs(const PainterAttributeData &data, const PainterGlyphShader &shader)
 
       k = chks[i];
       draw_generic(data.attribute_data_chunk(k), data.index_data_chunk(k),
-                   shader.shader(static_cast<enum glyph_type>(k)));
+                   shader.shader(static_cast<enum glyph_type>(k)), call_back);
     }
 }
 
 void
 fastuidraw::Painter::
-draw_glyphs(const PainterAttributeData &data, bool use_anistopic_antialias)
+draw_glyphs(const PainterAttributeData &data, bool use_anistopic_antialias,
+            const PainterPacker::DataCallBack::handle &call_back)
 {
   if(use_anistopic_antialias)
     {
-      draw_glyphs(data, default_shaders().glyph_shader_anisotropic());
+      draw_glyphs(data, default_shaders().glyph_shader_anisotropic(), call_back);
     }
   else
     {
-      draw_glyphs(data, default_shaders().glyph_shader());
+      draw_glyphs(data, default_shaders().glyph_shader(), call_back);
     }
 }
 
@@ -1154,9 +1185,43 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
 
   brush_state(d->m_black_brush);
   blend_shader(PainterEnums::blend_porter_duff_dst);
-  draw_generic(path.tessellation()->filled()->painter_data().attribute_data_chunk(0),
-               path.tessellation()->filled()->painter_data().index_data_chunk(fill_rule),
-               default_shaders().fill_shader(), zdatacallback);
+  fill_path(path, fill_rule, default_shaders().fill_shader(), zdatacallback);
+  brush_state(old_brush);
+  blend_shader(old_blend);
+
+  d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
+}
+
+void
+fastuidraw::Painter::
+clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
+{
+  PainterPrivate *d;
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+
+  if(d->m_clip_rect_state.m_all_content_culled)
+    {
+      /* everything is clipped anyways, adding more clipping does not matter
+       */
+      return;
+    }
+
+  PainterBrushState old_brush;
+  PainterShader::const_handle old_blend;
+  ZDataCallBack::handle zdatacallback;
+
+  /* zdatacallback generates a list of PainterDrawCommand::DelayedAction
+     objects (held in m_actions) who's action is to write the correct
+     z-value to occlude elements drawn after clipOut but not after
+     the next time m_occluder_stack is popped.
+   */
+  zdatacallback = FASTUIDRAWnew ZDataCallBack();
+  old_brush = brush_state();
+  old_blend = blend_shader();
+
+  brush_state(d->m_black_brush);
+  blend_shader(PainterEnums::blend_porter_duff_dst);
+  fill_path(path, fill_rule, default_shaders().fill_shader(), zdatacallback);
   brush_state(old_brush);
   blend_shader(old_blend);
 
@@ -1182,6 +1247,27 @@ clipInPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
   pmax = path.tessellation()->bounding_box_max();
   clipInRect(pmin, pmax);
   clipOutPath(path, PainterEnums::complement_fill_rule(fill_rule));
+}
+
+void
+fastuidraw::Painter::
+clipInPath(const Path &path, const CustomFillRuleBase &fill_rule)
+{
+  PainterPrivate *d;
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+
+  if(d->m_clip_rect_state.m_all_content_culled)
+    {
+      /* everything is clipped anyways, adding more clipping does not matter
+       */
+      return;
+    }
+
+  vec2 pmin, pmax;
+  pmin = path.tessellation()->bounding_box_min();
+  pmax = path.tessellation()->bounding_box_max();
+  clipInRect(pmin, pmax);
+  clipOutPath(path, ComplementFillRule(&fill_rule));
 }
 
 void

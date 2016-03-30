@@ -292,6 +292,26 @@ namespace fastuidraw
     clipInPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule);
 
     /*!
+      Clip-out by a path, i.e. set the clipping to be
+      the intersection of the current clipping against
+      the -complement- of the fill of a path.
+      \param path path by which to clip out
+      \param fill_rule custom fill rule to apply to path
+     */
+    void
+    clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule);
+
+    /*!
+      Clip-in by a path, i.e. set the clipping to be
+      the intersection of the current clipping against
+      the the fill of a path.
+      \param path path by which to clip out
+      \param fill_rule custom fill rule to apply to path
+     */
+    void
+    clipInPath(const Path &path, const CustomFillRuleBase &fill_rule);
+
+    /*!
       Returns a reference to the current PainterBrush for
       the purpose of changing the properties of the current brush.
      */
@@ -437,7 +457,8 @@ namespace fastuidraw
       \param shader with which to draw the glyphs
      */
     void
-    draw_glyphs(const PainterAttributeData &data, const PainterGlyphShader &shader);
+    draw_glyphs(const PainterAttributeData &data, const PainterGlyphShader &shader,
+                const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Draw glyphs.
@@ -446,7 +467,8 @@ namespace fastuidraw
                                      otherwise use default_shaders().glyph_shader()
      */
     void
-    draw_glyphs(const PainterAttributeData &data, bool use_anistopic_antialias = false);
+    draw_glyphs(const PainterAttributeData &data, bool use_anistopic_antialias = false,
+                const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Stroke a path.
@@ -459,7 +481,8 @@ namespace fastuidraw
     void
     stroke_path(const PainterAttributeData &data,
                 enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                bool with_anti_aliasing, const PainterStrokeShader &shader);
+                bool with_anti_aliasing, const PainterStrokeShader &shader,
+                const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Stroke a path.
@@ -472,7 +495,8 @@ namespace fastuidraw
     void
     stroke_path(const Path &path,
                 enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                bool with_anti_aliasing, const PainterStrokeShader &shader);
+                bool with_anti_aliasing, const PainterStrokeShader &shader,
+                const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Stroke a path using PainterShaderSet::stroke_shader() of default_shaders().
@@ -484,7 +508,8 @@ namespace fastuidraw
     void
     stroke_path(const Path &path,
                 enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                bool with_anti_aliasing);
+                bool with_anti_aliasing,
+                const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Stroke a path using PainterShaderSet::pixel_width_stroke_shader()
@@ -497,7 +522,8 @@ namespace fastuidraw
     void
     stroke_path_pixel_width(const Path &path,
                             enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                            bool with_anti_aliasing);
+                            bool with_anti_aliasing,
+                            const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Fill a path.
@@ -508,7 +534,8 @@ namespace fastuidraw
     void
     fill_path(const PainterAttributeData &data,
               enum PainterEnums::fill_rule_t fill_rule,
-              const PainterItemShader &shader);
+              const PainterItemShader &shader,
+              const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Fill a path.
@@ -518,7 +545,8 @@ namespace fastuidraw
      */
     void
     fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule,
-              const PainterItemShader &shader);
+              const PainterItemShader &shader,
+              const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Fill a path using the default shader to draw the fill.
@@ -526,7 +554,8 @@ namespace fastuidraw
       \param fill_rule fill rule with which to fill the path
      */
     void
-    fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule);
+    fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule,
+              const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Fill a path.
@@ -537,7 +566,8 @@ namespace fastuidraw
     void
     fill_path(const PainterAttributeData &data,
               const CustomFillRuleBase &fill_rule,
-              const PainterItemShader &shader);
+              const PainterItemShader &shader,
+              const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Fill a path.
@@ -547,7 +577,8 @@ namespace fastuidraw
      */
     void
     fill_path(const Path &path, const CustomFillRuleBase &fill_rule,
-              const PainterItemShader &shader);
+              const PainterItemShader &shader,
+              const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Fill a path using the default shader to draw the fill.
@@ -555,7 +586,8 @@ namespace fastuidraw
       \param fill_rule custom fill rule with which to fill the path
      */
     void
-    fill_path(const Path &path, const CustomFillRuleBase &fill_rule);
+    fill_path(const Path &path, const CustomFillRuleBase &fill_rule,
+              const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Draw a rect.
