@@ -656,6 +656,12 @@ namespace
     PainterShaderGroupPrivate m_prev_state;
   };
 
+  class PainterPackerPrivateWorkroom
+  {
+  public:
+    std::vector<unsigned int> m_attribs_loaded;
+  };
+
   class PainterPackerPrivate
   {
   public:
@@ -686,6 +692,8 @@ namespace
     PoolSet<fastuidraw::PainterBrush> m_brush_pool;
     PoolSet<fastuidraw::PainterState::VertexShaderData> m_vert_shader_data_pool;
     PoolSet<fastuidraw::PainterState::FragmentShaderData> m_frag_shader_data_pool;
+
+    PainterPackerPrivateWorkroom m_work_room;
   };
 }
 
@@ -1040,7 +1048,6 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
   bool allocate_header;
   unsigned int header_loc;
   const unsigned int NOT_LOADED = ~0u;
-  std::vector<unsigned int> attribs_loaded;
 
   assert((attrib_chunk_selector.empty() && attrib_chunks.size() == index_chunks.size())
          || (attrib_chunk_selector.size() == index_chunks.size()) );
@@ -1053,7 +1060,8 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
       return;
     }
 
-  attribs_loaded.resize(attrib_chunk_selector.size(), NOT_LOADED);
+  d->m_work_room.m_attribs_loaded.clear();
+  d->m_work_room.m_attribs_loaded.resize(attrib_chunk_selector.size(), NOT_LOADED);
 
   assert(shader.vert_shader());
   assert(shader.frag_shader());
@@ -1078,7 +1086,7 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
       else
         {
           attrib_src = attrib_chunk_selector[chunk];
-          needed_attrib_room = (attribs_loaded[attrib_src] == NOT_LOADED) ?
+          needed_attrib_room = (d->m_work_room.m_attribs_loaded[attrib_src] == NOT_LOADED) ?
             attrib_chunks[attrib_src].size() :
             0;
         }
@@ -1097,7 +1105,7 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
            */
           if(!attrib_chunk_selector.empty())
             {
-              std::fill(attribs_loaded.begin(), attribs_loaded.end(), NOT_LOADED);
+              std::fill(d->m_work_room.m_attribs_loaded.begin(), d->m_work_room.m_attribs_loaded.end(), NOT_LOADED);
               needed_attrib_room = attrib_chunks[attrib_src].size();
             }
 
@@ -1145,8 +1153,8 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
 
           if(!attrib_chunk_selector.empty())
             {
-              assert(attribs_loaded[attrib_src] == NOT_LOADED);
-              attribs_loaded[attrib_src] = cmd.m_attributes_written;
+              assert(d->m_work_room.m_attribs_loaded[attrib_src] == NOT_LOADED);
+              d->m_work_room.m_attribs_loaded[attrib_src] = cmd.m_attributes_written;
             }
           attrib_offset = cmd.m_attributes_written;
           cmd.m_attributes_written += attrib_dst_ptr.size();
@@ -1154,8 +1162,8 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
       else
         {
           assert(!attrib_chunk_selector.empty());
-          assert(attribs_loaded[attrib_src] != NOT_LOADED);
-          attrib_offset = attribs_loaded[attrib_src];
+          assert(d->m_work_room.m_attribs_loaded[attrib_src] != NOT_LOADED);
+          attrib_offset = d->m_work_room.m_attribs_loaded[attrib_src];
         }
 
       /* copy and adjust the index value by incrementing them by index_offset

@@ -304,6 +304,13 @@ namespace
     clip_rect_state m_clip_rect_state;
   };
 
+  class PainterWorkRoom
+  {
+  public:
+    std::vector<unsigned int> m_selector;
+    std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_index_chunks;
+  };
+
   class PainterPrivate
   {
   public:
@@ -329,6 +336,7 @@ namespace
     fastuidraw::Painter::PainterBrushState m_reset_brush, m_black_brush;
     fastuidraw::Painter::ItemMatrixState m_identiy_matrix;
     clip_rect m_clip_rect_in_item_coordinates;
+    PainterWorkRoom m_work_room;
   };
 
 }
@@ -846,8 +854,11 @@ fill_path(const PainterAttributeData &data,
           CustomFillRule fill_rule,
           const PainterItemShader &shader)
 {
-  std::vector<unsigned int> selector;
-  std::vector<const_c_array<PainterIndex> > index_chunks;
+  PainterPrivate *d;
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+
+  d->m_work_room.m_selector.clear();
+  d->m_work_room.m_index_chunks.clear();
 
   /* walk through what winding numbers are non-empty.
    */
@@ -864,16 +875,17 @@ fill_path(const PainterAttributeData &data,
           if(fill_rule(winding_number))
             {
               assert(!data.index_data_chunk(k).empty());
-              index_chunks.push_back(data.index_data_chunk(k));
-              selector.push_back(0);
+              d->m_work_room.m_index_chunks.push_back(data.index_data_chunk(k));
+              d->m_work_room.m_selector.push_back(0);
             }
         }
     }
 
-  if(!selector.empty())
+  if(!d->m_work_room.m_selector.empty())
     {
-      draw_generic(data.attribute_data_chunks(), make_c_array(index_chunks),
-                   make_c_array(selector), shader);
+      draw_generic(data.attribute_data_chunks(),
+                   make_c_array(d->m_work_room.m_index_chunks),
+                   make_c_array(d->m_work_room.m_selector), shader);
     }
 
 }
