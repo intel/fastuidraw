@@ -22,6 +22,23 @@ on_off(bool v)
   return v ? "ON" : "OFF";
 }
 
+class WindingValueFillRule:public Painter::CustomFillRuleBase
+{
+public:
+  WindingValueFillRule(int v):
+    m_winding_number(v)
+  {}
+
+  bool
+  operator()(int w) const
+  {
+    return w == m_winding_number;
+  }
+
+private:
+  int m_winding_number;
+};
+
 
 class painter_stroke_test:public sdl_painter_demo
 {
@@ -80,21 +97,6 @@ private:
 
   void
   update_cts_params(void);
-
-  static
-  bool
-  custom_fill_rule(int winding_number)
-  {
-    return winding_number == current_custom_fill_rule();
-  }
-
-  static
-  int&
-  current_custom_fill_rule(void)
-  {
-    static int R(0);
-    return R;
-  }
 
   command_line_argument_value<int> m_max_segments_per_edge;
   command_line_argument_value<int> m_points_per_circle;
@@ -625,10 +627,11 @@ handle_event(const SDL_Event &ev)
               else
                 {
                   const_c_array<int> wnd;
+                  int value;
                   wnd = m_path.tessellation()->filled()->winding_numbers();
-                  current_custom_fill_rule() = wnd[m_fill_rule - PainterEnums::fill_rule_data_count];
+                  value = wnd[m_fill_rule - PainterEnums::fill_rule_data_count];
                   std::cout << "Fill rule set to custom fill rule: winding_number == "
-                            << current_custom_fill_rule() << "\n";
+                            << value << "\n";
                 }
             }
           break;
@@ -845,7 +848,12 @@ draw_frame(void)
         }
       else
         {
-          m_painter->fill_path(m_path, custom_fill_rule);
+          const_c_array<int> wnd;
+          int value;
+
+          wnd = m_path.tessellation()->filled()->winding_numbers();
+          value = wnd[m_fill_rule - PainterEnums::fill_rule_data_count];
+          m_painter->fill_path(m_path, WindingValueFillRule(value));
         }
       m_painter->brush().no_image();
       m_painter->brush().no_gradient();

@@ -851,7 +851,7 @@ fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
 void
 fastuidraw::Painter::
 fill_path(const PainterAttributeData &data,
-          CustomFillRule fill_rule,
+          const CustomFillRuleBase &fill_rule,
           const PainterItemShader &shader)
 {
   PainterPrivate *d;
@@ -892,7 +892,7 @@ fill_path(const PainterAttributeData &data,
 
 void
 fastuidraw::Painter::
-fill_path(const Path &path, CustomFillRule fill_rule,
+fill_path(const Path &path, const CustomFillRuleBase &fill_rule,
           const PainterItemShader &shader)
 {
   fill_path(path.tessellation()->filled()->painter_data(), fill_rule, shader);
@@ -900,7 +900,7 @@ fill_path(const Path &path, CustomFillRule fill_rule,
 
 void
 fastuidraw::Painter::
-fill_path(const Path &path, CustomFillRule fill_rule)
+fill_path(const Path &path, const CustomFillRuleBase &fill_rule)
 {
   fill_path(path, fill_rule, default_shaders().fill_shader());
 }

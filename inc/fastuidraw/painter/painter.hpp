@@ -87,9 +87,48 @@ namespace fastuidraw
     typedef PainterState::FragmentShaderDataState FragmentShaderDataState;
 
     /*!
-      Conveniance typedef to specify a custom fill rule.
+      Base class to specify a custom fill rule.
      */
-    typedef bool (*CustomFillRule)(int);
+    class CustomFillRuleBase
+    {
+    public:
+      /*!
+        To be implemented by a derived class to return
+        true if to draw those regions with the passed
+        winding number.
+        \param winding_number winding number value to test.
+       */
+      virtual
+      bool
+      operator()(int winding_number) const = 0;
+    };
+
+    /*!
+      Class to specify a custom fill rule from
+      a function.
+     */
+    class CustomFillRuleFunction:public CustomFillRuleBase
+    {
+    public:
+      /*!
+        Ctor.
+        \param fill_rule function to use to implement
+                         operator(int) const.
+       */
+      CustomFillRuleFunction(bool (*fill_rule)(int)):
+        m_fill_rule(fill_rule)
+      {}
+
+      virtual
+      bool
+      operator()(int winding_number) const
+      {
+        return m_fill_rule && m_fill_rule(winding_number);
+      }
+
+    private:
+      bool (*m_fill_rule)(int);
+    };
 
     /*!
       Ctor.
@@ -497,7 +536,7 @@ namespace fastuidraw
      */
     void
     fill_path(const PainterAttributeData &data,
-              CustomFillRule fill_rule,
+              const CustomFillRuleBase &fill_rule,
               const PainterItemShader &shader);
 
     /*!
@@ -507,7 +546,7 @@ namespace fastuidraw
       \param shader shader with which to fill the attribute data
      */
     void
-    fill_path(const Path &path, CustomFillRule fill_rule,
+    fill_path(const Path &path, const CustomFillRuleBase &fill_rule,
               const PainterItemShader &shader);
 
     /*!
@@ -516,7 +555,7 @@ namespace fastuidraw
       \param fill_rule custom fill rule with which to fill the path
      */
     void
-    fill_path(const Path &path, CustomFillRule fill_rule);
+    fill_path(const Path &path, const CustomFillRuleBase &fill_rule);
 
     /*!
       Draw a rect.
