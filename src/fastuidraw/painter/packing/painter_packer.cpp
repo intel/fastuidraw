@@ -1069,7 +1069,7 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
   d->upload_changed_state();
   allocate_header = true;
 
-  for(unsigned chunk = 0, num_chunks = attrib_chunks.size(); chunk < num_chunks; ++chunk)
+  for(unsigned chunk = 0, num_chunks = index_chunks.size(); chunk < num_chunks; ++chunk)
     {
       unsigned int attrib_room, index_room, data_room;
       unsigned int attrib_src, needed_attrib_room;
