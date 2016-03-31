@@ -316,7 +316,7 @@ namespace
     bool
     operator()(int w) const
     {
-      return m_p && !(*m_p)(w);
+      return !m_p->operator()(w);
     }
 
   private:
@@ -884,8 +884,8 @@ fill_path(const PainterAttributeData &data,
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
 
-  d->m_work_room.m_selector.clear();
   d->m_work_room.m_index_chunks.clear();
+  d->m_work_room.m_selector.clear();
 
   /* walk through what winding numbers are non-empty.
    */
@@ -901,8 +901,10 @@ fill_path(const PainterAttributeData &data,
           winding_number = PainterAttributeData::winding_number_from_index_chunk(k);
           if(fill_rule(winding_number))
             {
+              const_c_array<PainterIndex> chunk;
               assert(!data.index_data_chunk(k).empty());
-              d->m_work_room.m_index_chunks.push_back(data.index_data_chunk(k));
+              chunk = data.index_data_chunk(k);
+              d->m_work_room.m_index_chunks.push_back(chunk);
               d->m_work_room.m_selector.push_back(0);
             }
         }
@@ -1245,7 +1247,7 @@ clipInPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
   vec2 pmin, pmax;
   pmin = path.tessellation()->bounding_box_min();
   pmax = path.tessellation()->bounding_box_max();
-  clipInRect(pmin, pmax);
+  clipInRect(pmin, pmax - pmin);
   clipOutPath(path, PainterEnums::complement_fill_rule(fill_rule));
 }
 
@@ -1266,7 +1268,7 @@ clipInPath(const Path &path, const CustomFillRuleBase &fill_rule)
   vec2 pmin, pmax;
   pmin = path.tessellation()->bounding_box_min();
   pmax = path.tessellation()->bounding_box_max();
-  clipInRect(pmin, pmax);
+  clipInRect(pmin, pmax - pmin);
   clipOutPath(path, ComplementFillRule(&fill_rule));
 }
 
