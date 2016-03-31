@@ -39,6 +39,23 @@ private:
   int m_winding_number;
 };
 
+void
+enable_wire_frame(bool b)
+{
+  #ifndef FASTUIDRAW_GL_USE_GLES
+    {
+      if(b)
+        {
+          glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+          glLineWidth(4.0);
+        }
+      else
+        {
+          glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+    }
+  #endif
+}
 
 class painter_stroke_test:public sdl_painter_demo
 {
@@ -152,6 +169,8 @@ private:
   bool m_stroke_aa;
   bool m_wire_frame;
 
+  bool m_fill_by_clipping;
+
   simple_time m_draw_timer;
 };
 
@@ -209,7 +228,8 @@ painter_stroke_test(void):
   m_repeat_window(false),
   m_clipping_window(false),
   m_stroke_aa(true),
-  m_wire_frame(false)
+  m_wire_frame(false),
+  m_fill_by_clipping(false)
 {
   std::cout << "Controls:\n"
             << "\tj: cycle through join styles for stroking\n"
@@ -221,6 +241,7 @@ painter_stroke_test(void):
             << "\tm: toggle miter limit enforced\n"
             << "\tf: toggle drawing path fill\n"
             << "\tr: cycle through fill rules\n"
+            << "\te: toggle fill by drawing clip rect\n"
             << "\ti: cycle through image filter to apply to fill (no image, nearest, linear, cubic)\n"
             << "\ts: cycle through defined color stops for gradient\n"
             << "\tg: cycle through gradient types (linear or radial)\n"
@@ -636,6 +657,22 @@ handle_event(const SDL_Event &ev)
             }
           break;
 
+        case SDLK_e:
+          if(m_draw_fill)
+            {
+              m_fill_by_clipping = !m_fill_by_clipping;
+              std::cout << "Set to ";
+              if(m_fill_by_clipping)
+                {
+                  std::cout << "fill by drawing rectangle clipped to path\n";
+                }
+              else
+                {
+                  std::cout << "fill by drawing fill\n";
+                }
+            }
+          break;
+
         case SDLK_f:
           m_draw_fill = !m_draw_fill;
           std::cout << "Set to ";
@@ -739,20 +776,7 @@ draw_frame(void)
   glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  #ifndef FASTUIDRAW_GL_USE_GLES
-    {
-      if(m_wire_frame)
-        {
-          glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-          glLineWidth(4.0);
-        }
-      else
-        {
-          glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
-    }
-  #endif
+  enable_wire_frame(m_wire_frame);
 
   m_painter->begin();
 
@@ -844,7 +868,22 @@ draw_frame(void)
 
       if(m_fill_rule < PainterEnums::fill_rule_data_count)
         {
-          m_painter->fill_path(m_path, static_cast<enum PainterEnums::fill_rule_t>(m_fill_rule));
+          enum PainterEnums::fill_rule_t v;
+          v = static_cast<enum PainterEnums::fill_rule_t>(m_fill_rule);
+          if(m_fill_by_clipping)
+            {
+              m_painter->save();
+              enable_wire_frame(false);
+              m_painter->clipInPath(m_path, v);
+              enable_wire_frame(m_wire_frame);
+              m_painter->transformation(float3x3());
+              m_painter->draw_rect(vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
+              m_painter->restore();
+            }
+          else
+            {
+              m_painter->fill_path(m_path, v);
+            }
         }
       else
         {
@@ -853,7 +892,21 @@ draw_frame(void)
 
           wnd = m_path.tessellation()->filled()->winding_numbers();
           value = wnd[m_fill_rule - PainterEnums::fill_rule_data_count];
-          m_painter->fill_path(m_path, WindingValueFillRule(value));
+
+          if(m_fill_by_clipping)
+            {
+              m_painter->save();
+              enable_wire_frame(false);
+              m_painter->clipInPath(m_path, WindingValueFillRule(value));
+              enable_wire_frame(m_wire_frame);
+              m_painter->transformation(float3x3());
+              m_painter->draw_rect(vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
+              m_painter->restore();
+            }
+          else
+            {
+              m_painter->fill_path(m_path, WindingValueFillRule(value));
+            }
         }
       m_painter->brush().no_image();
       m_painter->brush().no_gradient();
@@ -867,22 +920,26 @@ draw_frame(void)
 
   m_painter->brush_state(m_transparent_blue_pen);
 
-  PainterState::StrokeParams st;
-  if(m_have_miter_limit)
-    {
-      st.miter_limit(m_miter_limit);
-    }
-  else
-    {
-      st.miter_limit(-1.0f);
-    }
 
-  st.width(m_stroke_width);
-  m_painter->vertex_shader_data(st);
-  m_painter->stroke_path(m_path,
-                         static_cast<enum PainterEnums::cap_style>(m_cap_style),
-                         static_cast<enum PainterEnums::join_style>(m_join_style),
-                         m_stroke_aa);
+  if(m_stroke_width > 0.0f)
+    {
+      PainterState::StrokeParams st;
+      if(m_have_miter_limit)
+        {
+          st.miter_limit(m_miter_limit);
+        }
+      else
+        {
+          st.miter_limit(-1.0f);
+        }
+
+      st.width(m_stroke_width);
+      m_painter->vertex_shader_data(st);
+      m_painter->stroke_path(m_path,
+                             static_cast<enum PainterEnums::cap_style>(m_cap_style),
+                             static_cast<enum PainterEnums::join_style>(m_join_style),
+                             m_stroke_aa);
+    }
 
   if(m_draw_fill && m_gradient_draw_mode != draw_no_gradient)
     {
