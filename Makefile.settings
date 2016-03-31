@@ -21,3 +21,8 @@ fPIC = -fPIC
 fHIDDEN_INLINES = -fvisibility-inlines-hidden
 fHIDDEN = -fvisibility=hidden
 endif
+
+#########################
+## for using clang-tidy
+CLANG_TIDY ?= clang-tidy
+CLANG_TIDY_ARGS = -header-filter=.* -checks=* -analyze-temporary-dtors

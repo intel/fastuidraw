@@ -84,6 +84,10 @@ LIBFASTUIDRAW_$(1)_$(2) = libFastUIDraw$(1)_$(2).so
 LIBN$(1)_$(2) = libN$(1)_$(2).so
 INSTALL_LIBS += libFastUIDraw$(1)_$(2).so libN$(1)_$(2).so
 endif
+libFastUIDraw$(1)_$(2).clang_tidy: $$(LIBRARY_$(1)_$(2)_ALL_OBJS)
+	$(CLANG_TIDY) $(CLANG_TIDY_ARGS) $(LIBRARY_GL_SOURCES) $(LIBRARY_PRIVATE_GL_SOURCES) -- $$(LIBRARY_BUILD_$(2)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(1)_$(2)_CFLAGS) $(fPIC) -c > $$@
+CLEAN_FILES += libFastUIDraw$(1)_$(2).clang_tidy
+TARGETLIST += libFastUIDraw$(1)_$(2).clang_tidy
 endif
 )
 endef
