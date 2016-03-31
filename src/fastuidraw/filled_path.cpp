@@ -551,10 +551,11 @@ init_points(const fastuidraw::TessellatedPath &P)
     }
 
   fastuidraw::vec2 pmin, pmax, pdelta;
+  float tiny(1e-6);
 
   pmin = P.bounding_box_min();
   pmax = P.bounding_box_max();
-  pdelta = pmax - pmin;
+  pdelta = (pmax - pmin) * tiny;
 
   pmin -= pdelta;
   pmax += pdelta;
