@@ -29,7 +29,7 @@ install: $(INSTALL_LIBS) $(INSTALL_EXES) docs
 	-install -t $(INSTALL_LOCATION)/bin $(INSTALL_EXES)
 	-install -t $(INSTALL_LOCATION)/share/doc/fastuidraw docs/*.txt
 	-cp -r docs/doxy/html $(INSTALL_LOCATION)/share/doc/fastuidraw/
-	-find $(INSTALL_LOCATION)/share/doc/fastuidraw/html/ -type f -exec chmod a+rw {} \;
-	-find $(INSTALL_LOCATION)/share/doc/fastuidraw/html/ -type d -exec chmod a+x {} \;
+	-find $(INSTALL_LOCATION)/share/doc/fastuidraw/html/ -type f -exec chmod a+r {} \;
+	-find $(INSTALL_LOCATION)/share/doc/fastuidraw/html/ -type d -exec chmod a+rx {} \;
 	-chown -R root $(INSTALL_LOCATION)/share/doc/fastuidraw/html/
 TARGETLIST+=install
