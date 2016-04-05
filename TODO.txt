@@ -13,5 +13,22 @@ TODO.
  4. W3C blend modes are not yet implemented in GL backend, but Porter-Duff blend modes
     are.
 
+ 5. *Something* so that atlas sizes in GL backend are initalized to sizes that
+    are no larger the maximum sizes for textures.
+    a) for ColorStopAtlasGL where for GL3.3, the spec only gaurantees to
+       256 layers for array textures. For GL4.3 this value is 2048 which
+       is large.
+        --> this was real issue on older NVIDIA hardware (GeForce GTS 360M)
+            where GL_MAX_ARRAY_TEXTURE_LAYERS is 512 and the default
+	    number of layers for color stop atlas is 1024.
+    b) for ImageAtlasGL where for GL3.3, the spec only guarantees to 1024 
+       for width and height. For GL4.3, the gaurantee is 16384 which is
+       HUGE and larger than we would ever use.
+    c) for PainterBackendGL where for GL3.3, the spec only guarantees to
+       length of 65536 for length of sampler buffer. Worse, this is the
+       same value for GL4.3 as well; this limits the sampler buffer to
+       only be guaranteed to be safe for a total size of 256K of floats,
+       i.e. 1MB.
+
 
     
