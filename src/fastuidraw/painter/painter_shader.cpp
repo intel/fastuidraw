@@ -68,9 +68,14 @@ namespace
   class PainterStrokeShaderPrivate
   {
   public:
+    PainterStrokeShaderPrivate(void):
+      m_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz)
+    {}
+
     fastuidraw::PainterItemShader m_aa_shader_pass1;
     fastuidraw::PainterItemShader m_aa_shader_pass2;
     fastuidraw::PainterItemShader m_non_aa_shader;
+    enum fastuidraw::PainterStrokeShader::type_t m_aa_type;
   };
 }
 
@@ -479,8 +484,30 @@ operator=(const PainterStrokeShader &rhs)
     return d->m_##name;                                            \
   }
 
+#define setget_non_ref_implement(type, name)                        \
+  fastuidraw::PainterStrokeShader&                                  \
+  fastuidraw::PainterStrokeShader::                                 \
+  name(type v)                                                      \
+  {                                                                 \
+    PainterStrokeShaderPrivate *d;                                  \
+    d = reinterpret_cast<PainterStrokeShaderPrivate*>(m_d);         \
+    d->m_##name = v;                                                \
+      return *this;                                                 \
+  }                                                                 \
+                                                                    \
+  type                                                              \
+  fastuidraw::PainterStrokeShader::                                 \
+  name(void) const                                                  \
+  {                                                                 \
+    PainterStrokeShaderPrivate *d;                                  \
+    d = reinterpret_cast<PainterStrokeShaderPrivate*>(m_d);         \
+    return d->m_##name;                                             \
+  }
+
 setget_implement(fastuidraw::PainterItemShader, aa_shader_pass1)
 setget_implement(fastuidraw::PainterItemShader, aa_shader_pass2)
 setget_implement(fastuidraw::PainterItemShader, non_aa_shader)
+setget_non_ref_implement(enum fastuidraw::PainterStrokeShader::type_t, aa_type);
 
 #undef setget_implement
+#undef setget_non_ref_implement

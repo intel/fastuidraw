@@ -312,6 +312,37 @@ namespace fastuidraw
   class PainterStrokeShader
   {
   public:
+
+    /*!
+      Specifies how a PainterStrokeShader implements anti-alias stroking.
+     */
+    enum type_t
+      {
+        /*!
+          In this anti-aliasing mode, first the solid portions are drawn
+          and then the anti-alias boundary is drawn. When anti-alias
+          stroking is done this way, the depth-test is used to make
+          sure that there is no overdraw when stroking the path.
+          In this case, for aa_shader_pass1(), the vertex shader needs
+          to emit the depth value of the z-value from the painter header
+          (the value is Painter::current_z()) PLUS the value written
+          to in PainterAttribute::m_uint_attrib.x() by PainterAttributeData.
+          The vertex shader of aa_shader_pass2() should emit the depth
+          value the same as the z-value from the painter header.
+         */
+        draws_solid_then_fuzz,
+
+        /*!
+          In this anti-aliasing mode, the first pass draws to an auxilary
+          buffer the coverage values and in the second pass draws to
+          the color buffer using the coverage buffer value to set the
+          alpha. The second pass should also clear the coverage buffer
+          too. Both passes have that the vertex shader should emit the
+          depth value as the z-value from the painter header.
+         */
+        cover_then_draw,
+      };
+
     /*!
       Ctor
      */
@@ -331,13 +362,23 @@ namespace fastuidraw
     operator=(const PainterStrokeShader &rhs);
 
     /*!
+      Specifies how the stroke shader performs
+      anti-aliased stroking.
+     */
+    enum type_t
+    aa_type(void) const;
+
+    /*!
+      Set the value returned by aa_type(void) const.
+      Initial value is draws_solid_then_fuzz.
+      \param v value to use
+     */
+    PainterStrokeShader&
+    aa_type(enum type_t v);
+
+    /*!
       The 1st pass of stroking with anti-aliasing
-      via alpha-coverage. The depth value emitted
-      in vertex shading should be z-value from
-      the painter header (the value is
-      Painter::current_z()) PLUS the value written
-      to in PainterAttribute::m_uint_attrib.x()
-      by PainterAttributeData.
+      via alpha-coverage.
      */
     const PainterItemShader&
     aa_shader_pass1(void) const;
@@ -351,9 +392,7 @@ namespace fastuidraw
 
     /*!
       The 2nd pass of stroking with anti-aliasing
-      via alpha-coverage.  The depth value emitted
-      in vertex shading should be z-value from
-      the painter header (with nothing added).
+      via alpha-coverage.
      */
     const PainterItemShader&
     aa_shader_pass2(void) const;

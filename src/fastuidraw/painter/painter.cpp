@@ -718,9 +718,9 @@ stroke_path(const PainterAttributeData &pdata,
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
 
-  PainterItemShader sh;
   using namespace PainterEnums;
   enum PainterAttributeData::stroking_data_t cap, join, edge;
+  bool modify_z;
 
   switch(js)
     {
@@ -760,6 +760,7 @@ stroke_path(const PainterAttributeData &pdata,
   vecN<const_c_array<PainterIndex>, 3> index_chunks;
   vecN<unsigned int, 3> zincs;
   unsigned int startz;
+  const PainterItemShader *sh;
 
   attrib_chunks[0] = pdata.attribute_data_chunk(edge);
   attrib_chunks[1] = pdata.attribute_data_chunk(join);
@@ -772,32 +773,32 @@ stroke_path(const PainterAttributeData &pdata,
   zincs[2] = pdata.increment_z_value(cap);
 
   startz = d->m_current_z;
-  if(with_anti_aliasing)
+  modify_z = !with_anti_aliasing || shader.aa_type() == PainterStrokeShader::draws_solid_then_fuzz;
+  sh = (with_anti_aliasing) ? &shader.aa_shader_pass1(): &shader.non_aa_shader();
+  if(modify_z)
     {
-      sh = shader.aa_shader_pass1();
+      /* raw depth value goes from 0 to zincs[0] - 1
+         written depth goes from (startz + zincs[1] + zincs[2] + 1) to (startz + zincs[0] + zincs[1] + zincs[2])
+      */
+      d->m_current_z = startz + zincs[1] + zincs[2] + 1;
+      draw_generic(attrib_chunks[0], index_chunks[0], *sh, call_back);
+
+      /* raw depth value goes from 0 to zincs[1] - 1
+         written depth goes from (startz + zincs[2] + 1) to (startz + zincs[1] + zincs[2])
+      */
+      d->m_current_z = startz + zincs[2] + 1;
+      draw_generic(attrib_chunks[1], index_chunks[1], *sh, call_back);
+
+      /* raw depth value goes from 0 to zincs[2] - 1
+         written depth goes from (startz + 1) to (startz + zincs[2])
+      */
+      d->m_current_z = startz + 1;
+      draw_generic(attrib_chunks[2], index_chunks[2], *sh, call_back);
     }
   else
     {
-      sh = shader.non_aa_shader();
+      draw_generic(attrib_chunks, index_chunks, *sh, call_back);
     }
-
-  /* raw depth value goes from 0 to zincs[0] - 1
-     written depth goes from (startz + zincs[1] + zincs[2] + 1) to (startz + zincs[0] + zincs[1] + zincs[2])
-   */
-  d->m_current_z = startz + zincs[1] + zincs[2] + 1;
-  draw_generic(attrib_chunks[0], index_chunks[0], sh, call_back);
-
-  /* raw depth value goes from 0 to zincs[1] - 1
-     written depth goes from (startz + zincs[2] + 1) to (startz + zincs[1] + zincs[2])
-   */
-  d->m_current_z = startz + zincs[2] + 1;
-  draw_generic(attrib_chunks[1], index_chunks[1], sh, call_back);
-
-  /* raw depth value goes from 0 to zincs[2] - 1
-     written depth goes from (startz + 1) to (startz + zincs[2])
-   */
-  d->m_current_z = startz + 1;
-  draw_generic(attrib_chunks[2], index_chunks[2], sh, call_back);
 
   if(with_anti_aliasing)
     {
@@ -806,11 +807,13 @@ stroke_path(const PainterAttributeData &pdata,
          depth is always startz.
        */
       d->m_current_z = startz;
-      sh = shader.aa_shader_pass2();
-      draw_generic(attrib_chunks, index_chunks, sh, call_back);
+      draw_generic(attrib_chunks, index_chunks, shader.aa_shader_pass2(), call_back);
     }
 
-  d->m_current_z = startz + zincs[0] + zincs[1] + zincs[2] + 1;
+  if(modify_z)
+    {
+      d->m_current_z = startz + zincs[0] + zincs[1] + zincs[2] + 1;
+    }
 }
 
 void
