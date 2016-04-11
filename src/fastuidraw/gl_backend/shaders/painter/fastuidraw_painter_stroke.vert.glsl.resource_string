@@ -6,31 +6,30 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
                        out uint z_add)
 {
   vec2 p;
-  vec2 position, pre_offset;
+  vec2 position, normal, tangent, tn_offset, offset;
   float distance_from_edge_start, distance_from_outline_start;
   float miter_distance, stroking_on_boundary;
   fastuidraw_stroking_params stroke_params;
 
   position = primary_attrib.xy;
-  pre_offset = primary_attrib.zw;
+  normal = primary_attrib.zw;
+  tangent = vec2(normal.y, -normal.x);
+  tn_offset = secondary_attrib.zw;
   distance_from_edge_start = secondary_attrib.x;
   distance_from_outline_start = secondary_attrib.y;
-  miter_distance = secondary_attrib.z;
+
 
   fastuidraw_read_stroking_params(shader_data_offset, stroke_params);
 
-  float factor;
-  factor = (abs(miter_distance) > stroke_params.miter_limit && stroke_params.miter_limit >= 0.0) ?
-        sign(miter_distance) * stroke_params.miter_limit :
-        miter_distance;
-
-  vec2 perp, offset;
-  perp = vec2(-pre_offset.y, pre_offset.x);
-  offset = pre_offset + factor * perp;
+  /* TODO:
+      - if point type is miter point and if stroke_params.miter_limit >= 0.0
+        then clamp tn_offset.x so that absolute value is no more than stroke_params.miter_limit
+   */
+  offset = tn_offset.x * tangent + tn_offset.y * normal;
 
   /* stroking_on_boundary varying declared in C++ code
    */
-  stroking_on_boundary = secondary_attrib.w;
+  stroking_on_boundary = float(uint_attrib.z) - 1.0;
 
   /* idea:
       For anti-aliased via coverage, we have two passes:

@@ -162,15 +162,18 @@ namespace
 
     dst.m_primary_attrib.x() = src.m_position.x();
     dst.m_primary_attrib.y() = src.m_position.y();
-    dst.m_primary_attrib.z() = src.m_pre_offset.x();
-    dst.m_primary_attrib.w() = src.m_pre_offset.y();
+    dst.m_primary_attrib.z() = src.m_normal.x();
+    dst.m_primary_attrib.w() = src.m_normal.y();
 
     dst.m_secondary_attrib.x() = src.m_distance_from_edge_start;
     dst.m_secondary_attrib.y() = src.m_distance_from_outline_start;
-    dst.m_secondary_attrib.z() = src.m_miter_distance;
-    dst.m_secondary_attrib.w() = src.m_on_boundary;
+    dst.m_secondary_attrib.z() = src.m_tn_offset.x();
+    dst.m_secondary_attrib.w() = src.m_tn_offset.y();
 
-    dst.m_uint_attrib = fastuidraw::uvec4(src.m_depth, src.m_point_type, 0u, 0u);
+    int v;
+    v = src.m_on_boundary + 1;
+    assert(v >= 0);
+    dst.m_uint_attrib = fastuidraw::uvec4(src.m_depth, src.m_point_type, uint(v), 0u);
 
     return dst;
   }

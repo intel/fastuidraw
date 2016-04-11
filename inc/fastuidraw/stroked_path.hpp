@@ -78,7 +78,7 @@ public:
       rounded_cap_point,
 
       /*!
-        The point is for a squre cap of the path
+        The point is for a square cap of the path
        */
       square_cap_point
     };
@@ -98,29 +98,34 @@ public:
      */
     vec2 m_position;
 
-   /*!
-     For non-miter points, the position of the attribute data is
-     given by m_position + stroking_width * pre_m_offset.
-     For points on the boundary of stroking, m_pre_offset is
-     of unit length. For points in the interior of stroking,
-     m_pre_offset is zero.
+    /*!
+      Gives the normal vector to the path at the point.
+      For joint points and cap points, the normal vector
+      used is whatever is the normal at the edge point
+      that is closest when viewed as along the join or cap.
+    */
+    vec2 m_normal;
 
-     For miter-points, the computation is dependent on
-     the miter-limit and m_miter_distance. The methods
-     offset_vector(void) const and offset_vector(float) const
-     provide the offset vector needed. For reference, when
-     the miter limit is greater in magnitude that
-     m_miter_distance, formula is given by:
-     \code
-        m_pre_offset + m_miter_distance * vec2(-m_pre_offset.y(), m_pre_offset.x())
-     \endcode
-     When the miter limit is smaller in magnitude than
-     m_miter_distance it is then given by
-     \code
-        m_pre_offset + sign(m_miter_distance) * miter_limit * vec2(-m_pre_offset.y(), m_pre_offset.x())
-     \endcode
+    /*!
+      Provides the offset vector to compute where the point is
+      relative to the normal and tangent vectors. The location
+      of the point is then given by:
+      \code
+        tangent = fastuidraw::vec2(m_normal.y(), -m_normal.x())
+        if(m_point_type == miter_join_point && observe_miter_limit)
+          {
+             x = clamp(m_tn_offset.x, -miter_limit, +miter_limit);
+          }
+        else
+          {
+             x = m_tn_offset.x;
+          }
+        y = m_tn_offset.y;
+        offset_vector = x * tangent + y * m_normal;
+        location = m_position + stroke_width * offset_vector;
+      \endcode
      */
-    vec2 m_pre_offset;
+    vec2 m_tn_offset;
 
     /*!
       Gives the distance of the point from the start
@@ -135,24 +140,16 @@ public:
     float m_distance_from_outline_start;
 
     /*!
-      For a miter point, the absolute values gives the
-      distance of miter point to the edge of the stroking
-      in units of stroking width. If the point is not a
-      miter point, value is zero.
-     */
-    float m_miter_distance;
-
-    /*!
-      Has value -1.0, 0.0 or +1.0. If the value is 0.0,
+      Has value -1, 0 or +1. If the value is 0,
       then the point is on the path. If the value has
-      absolute value 1.0, then indicates a point that
+      absolute value 1, then indicates a point that
       is on the boundary of the stroked path. The triangles
       produced from stroking are so that when
       m_on_boundary is interpolated across the triangle
       the center of stroking the value is 0 and the
-      value has absolute value +1.0 on the boundary.
+      value has absolute value +1 on the boundary.
      */
-    float m_on_boundary;
+    int m_on_boundary;
 
     /*!
       When stroking the data, the depth test to only
@@ -163,20 +160,6 @@ public:
       drawn first have the largest z-values.
      */
     unsigned int m_depth;
-
-    /*!
-      For points not of the type edge_point,
-      i.e. those points from joins or caps,
-      provides an interpolate value that goes
-      from -1 to +1 along a join or cap. The
-      value -1 or +1 indicates that the point
-      is to be the same geometry point as that
-      from an edge. The value decreases along
-      a fixed joint from +1 to -1. Miter joins
-      have that the miter point has value 0
-      and caps have that the midpoint is 0.
-     */
-    float m_join_cap_interpolate;
 
     /*!
       Provides the point type for the point.
@@ -191,26 +174,6 @@ public:
      */
     bool
     depends_on_miter_limit(void) const;
-
-    /*!
-      Given a miter limit, returns the offset vector.
-      Return the offset vector so that miter point
-      is clamed to be within the miter limit. The
-      final position of the point is given by
-      m_position + stroking_width * offset_vector().
-     */
-    vec2
-    offset_vector(float miter_limit) const;
-
-    /*!
-      Returns the offset vector ignoring any miter limit.
-     */
-    vec2
-    offset_vector(void) const
-    {
-      vec2 miter_offset(-m_pre_offset.y(), m_pre_offset.x());
-      return m_pre_offset + m_miter_distance * miter_offset;
-    }
   };
 
   /*!
