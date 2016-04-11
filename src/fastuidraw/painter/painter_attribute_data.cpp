@@ -170,7 +170,7 @@ namespace
     dst.m_secondary_attrib.z() = src.m_miter_distance;
     dst.m_secondary_attrib.w() = src.m_on_boundary;
 
-    dst.m_uint_attrib = fastuidraw::uvec4(src.m_depth, 0u, 0u, 0u);
+    dst.m_uint_attrib = fastuidraw::uvec4(src.m_depth, src.m_point_type, 0u, 0u);
 
     return dst;
   }
