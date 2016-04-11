@@ -46,6 +46,33 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
 
   if(abs(stroking_on_boundary) > 0.5)
     {
+      #ifdef FASTUIDRAW_STROKE_WIDTH_IN_PIXELS
+        {
+          vec3 clip_offset, clip_p;
+          vec2 zeta;
+          float stroke_width_normalized_dc;
+
+          /* if stroking width is in pixels, then
+             convert stroke_params.width so that
+             after projection, we push off by that exact
+             number of pixels.
+          */
+          clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+          clip_offset = fastuidraw_item_matrix * vec3(offset, 0.0);
+          zeta = vec2(clip_offset.z * clip_p.x - clip_offset.x * clip_p.z,
+                      clip_offset.z * clip_p.y - clip_offset.y * clip_p.z);
+
+          /* when stroking in pixels and when the viewport is not a square,
+             if we just multiple by fastuidraw_viewport_recip_pixels_magnitude,
+             we get very ugly results, So instead, multiple by the
+             maxiumum of the two deltas.
+           */
+          stroke_width_normalized_dc = stroke_params.width * max(fastuidraw_viewport_recip_pixels.x, fastuidraw_viewport_recip_pixels.y);
+          stroke_params.width = stroke_width_normalized_dc * clip_p.z * clip_p.z;
+          stroke_params.width /= stroke_width_normalized_dc * (clip_p.z * clip_offset.z) + length(zeta);
+        }
+      #endif
+
       #if defined(FASTUIDRAW_STROKE_OPAQUE_PASS)
         {
           vec2 q, sQ, sP, sR, sV, sD;

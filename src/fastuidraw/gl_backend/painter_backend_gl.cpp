@@ -199,11 +199,12 @@ namespace
 
     static
     fastuidraw::PainterItemShader
-    create_stroke_item_shader(const std::string &macro, bool include_boundary_varying);
+    create_stroke_item_shader(const std::string &macro1, const std::string &macro2,
+                              bool include_boundary_varying);
 
     static
     fastuidraw::PainterStrokeShader
-    create_stroke_shader(void);
+    create_stroke_shader(const std::string &macro1);
 
     static
     fastuidraw::PainterItemShader
@@ -1330,7 +1331,8 @@ create_glyph_shader(bool anisotropic)
 
 fastuidraw::PainterItemShader
 PainterBackendGLPrivate::
-create_stroke_item_shader(const std::string &macro, bool include_boundary_varying)
+create_stroke_item_shader(const std::string &macro1, const std::string &macro2,
+                          bool include_boundary_varying)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::gl;
@@ -1341,19 +1343,24 @@ create_stroke_item_shader(const std::string &macro, bool include_boundary_varyin
     {
       varyings.add_float_varying("fastuidraw_stroking_on_boundary");
     }
+
   shader
     .vert_shader(FASTUIDRAWnew PainterShaderGL(Shader::shader_source()
-                                              .add_macro(macro.c_str())
-                                              .add_source("fastuidraw_painter_stroke.vert.glsl.resource_string",
-                                                          Shader::from_resource)
-                                              .remove_macro(macro.c_str()),
-                                              varyings))
+                                               .add_macro(macro1.c_str())
+                                               .add_macro(macro2.c_str())
+                                               .add_source("fastuidraw_painter_stroke.vert.glsl.resource_string",
+                                                           Shader::from_resource)
+                                               .remove_macro(macro2.c_str())
+                                               .remove_macro(macro1.c_str()),
+                                               varyings))
     .frag_shader(FASTUIDRAWnew PainterShaderGL(Shader::shader_source()
-                                              .add_macro(macro.c_str())
-                                              .add_source("fastuidraw_painter_stroke.frag.glsl.resource_string",
-                                                          Shader::from_resource)
-                                              .remove_macro(macro.c_str()),
-                                              varyings));
+                                               .add_macro(macro1.c_str())
+                                               .add_macro(macro2.c_str())
+                                               .add_source("fastuidraw_painter_stroke.frag.glsl.resource_string",
+                                                           Shader::from_resource)
+                                               .remove_macro(macro2.c_str())
+                                               .remove_macro(macro1.c_str()),
+                                               varyings));
   return shader;
 }
 
@@ -1361,13 +1368,13 @@ create_stroke_item_shader(const std::string &macro, bool include_boundary_varyin
 
 fastuidraw::PainterStrokeShader
 PainterBackendGLPrivate::
-create_stroke_shader(void)
+create_stroke_shader(const std::string &macro1)
 {
   fastuidraw::PainterStrokeShader return_value;
   return_value
-    .aa_shader_pass1(create_stroke_item_shader("FASTUIDRAW_STROKE_OPAQUE_PASS", false))
-    .aa_shader_pass2(create_stroke_item_shader("FASTUIDRAW_STROKE_AA_PASS", true))
-    .non_aa_shader(create_stroke_item_shader("FASTUIDRAW_STROKE_NO_AA", false));
+    .aa_shader_pass1(create_stroke_item_shader(macro1, "FASTUIDRAW_STROKE_OPAQUE_PASS", false))
+    .aa_shader_pass2(create_stroke_item_shader(macro1, "FASTUIDRAW_STROKE_AA_PASS", true))
+    .non_aa_shader(create_stroke_item_shader(macro1, "FASTUIDRAW_STROKE_NO_AA", false));
   return return_value;
 }
 
@@ -1507,7 +1514,8 @@ create_shader_set(void)
   return_value
     .glyph_shader(create_glyph_shader(false))
     .glyph_shader_anisotropic(create_glyph_shader(true))
-    .stroke_shader(create_stroke_shader())
+    .stroke_shader(create_stroke_shader("FASTUIDRAW_STROKE_WIDTH_NOT_IN_PIXELS"))
+    .pixel_width_stroke_shader(create_stroke_shader("FASTUIDRAW_STROKE_WIDTH_IN_PIXELS"))
     .fill_shader(create_fill_shader())
     .blend_shaders(create_blend_shaders());
 

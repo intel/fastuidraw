@@ -168,6 +168,7 @@ private:
 
   bool m_stroke_aa;
   bool m_wire_frame;
+  bool m_stroke_width_in_pixels;
 
   bool m_fill_by_clipping;
 
@@ -229,6 +230,7 @@ painter_stroke_test(void):
   m_clipping_window(false),
   m_stroke_aa(true),
   m_wire_frame(false),
+  m_stroke_width_in_pixels(false),
   m_fill_by_clipping(false)
 {
   std::cout << "Controls:\n"
@@ -236,6 +238,7 @@ painter_stroke_test(void):
             << "\tc: cycle through cap style for stroking\n"
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\t]: increase stroke width(hold left-shift for slower rate and right shift for faster)\n"
+            << "\tp: toggle stroke width in pixels or local coordinates\n"
             << "\tb: decrease miter limit(hold left-shift for slower rate and right shift for faster)\n"
             << "\tn: increase miter limit(hold left-shift for slower rate and right shift for faster)\n"
             << "\tm: toggle miter limit enforced\n"
@@ -248,7 +251,7 @@ painter_stroke_test(void):
             << "\th: toggle repeat gradient\n"
             << "\tt: toggle translate brush\n"
             << "\ty: toggle matrix brush\n"
-            << "\tp: toggle clipping window\n"
+            << "\to: toggle clipping window\n"
             << "\t4,6,2,8 (number pad): change location of clipping window\n"
             << "\tctrl-4,6,2,8 (number pad): change size of clipping window\n"
             << "\tw: toggle brush repeat window active\n"
@@ -549,6 +552,18 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_p:
+          m_stroke_width_in_pixels = !m_stroke_width_in_pixels;
+          if(m_stroke_width_in_pixels)
+            {
+              std::cout << "Stroke width specified in pixels\n";
+            }
+          else
+            {
+              std::cout << "Stroke width specified in local coordinates\n";
+            }
+          break;
+
+        case SDLK_o:
           m_clipping_window = !m_clipping_window;
           std::cout << "Clipping window: " << on_off(m_clipping_window) << "\n";
           break;
@@ -935,10 +950,20 @@ draw_frame(void)
 
       st.width(m_stroke_width);
       m_painter->vertex_shader_data(st);
-      m_painter->stroke_path(m_path,
-                             static_cast<enum PainterEnums::cap_style>(m_cap_style),
-                             static_cast<enum PainterEnums::join_style>(m_join_style),
-                             m_stroke_aa);
+      if(m_stroke_width_in_pixels)
+        {
+          m_painter->stroke_path_pixel_width(m_path,
+                                             static_cast<enum PainterEnums::cap_style>(m_cap_style),
+                                             static_cast<enum PainterEnums::join_style>(m_join_style),
+                                             m_stroke_aa);
+        }
+      else
+        {
+          m_painter->stroke_path(m_path,
+                                 static_cast<enum PainterEnums::cap_style>(m_cap_style),
+                                 static_cast<enum PainterEnums::join_style>(m_join_style),
+                                 m_stroke_aa);
+        }
     }
 
   if(m_draw_fill && m_gradient_draw_mode != draw_no_gradient)
