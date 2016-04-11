@@ -838,6 +838,10 @@ add_edge(unsigned int o, unsigned int e,
           pts[vert_offset + 4].m_on_boundary = -1.0f;
           pts[vert_offset + 5].m_on_boundary = 0.0f;
 
+          for(unsigned int k = 0; k < 6; ++k)
+            {
+              pts[vert_offset + k].m_join_cap_interpolate = 1.0f;
+            }
 
           indices[index_offset + 0] = vert_offset + 0;
           indices[index_offset + 1] = vert_offset + 2;
@@ -895,6 +899,9 @@ add_edge(unsigned int o, unsigned int e,
 
           pts[vert_offset + 0].m_on_boundary = 1.0f;
           pts[vert_offset + 1].m_on_boundary = -1.0f;
+
+          pts[vert_offset + 0].m_join_cap_interpolate = 1.0f;
+          pts[vert_offset + 1].m_join_cap_interpolate = 1.0f;
 
           vert_offset += 2;
         }
@@ -1134,6 +1141,7 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
   pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = m_distance_from_outline_start;
   pts[vertex_offset].m_on_boundary = 0.0f;
+  pts[vertex_offset].m_join_cap_interpolate = 0.0f;
   ++vertex_offset;
 
   pts[vertex_offset].m_position = m_p0;
@@ -1141,6 +1149,7 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
   pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = m_distance_from_outline_start;
   pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_join_cap_interpolate = -1.0f;
   ++vertex_offset;
 
   for(i = 1, theta = m_delta_theta; i < m_num_arc_points - 1; ++i, theta += m_delta_theta, ++vertex_offset)
@@ -1157,6 +1166,7 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
       pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
       pts[vertex_offset].m_distance_from_outline_start = m_distance_from_outline_start;
       pts[vertex_offset].m_on_boundary = 1.0f;
+      pts[vertex_offset].m_join_cap_interpolate = -1.0f + 2.0f * float(i) / float(m_num_arc_points - 1);
     }
 
   pts[vertex_offset].m_position = m_p1;
@@ -1164,6 +1174,7 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
   pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = m_distance_from_outline_start;
   pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_join_cap_interpolate = 1.0f;
   ++vertex_offset;
 
   for(i = first + 1; i < vertex_offset - 1; ++i, index_offset+=3)
@@ -1304,18 +1315,21 @@ fill_join_implement(unsigned int join_id,
   pts[vertex_offset + 0].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset + 0].m_distance_from_outline_start = J.m_distance_from_outline_start;
   pts[vertex_offset + 0].m_on_boundary = 1.0f;
+  pts[vertex_offset + 0].m_join_cap_interpolate = -1.0f;
 
   pts[vertex_offset + 1].m_position = J.m_p0;
   pts[vertex_offset + 1].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pts[vertex_offset + 1].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset + 1].m_distance_from_outline_start = J.m_distance_from_outline_start;
   pts[vertex_offset + 1].m_on_boundary = 0.0f;
+  pts[vertex_offset + 1].m_join_cap_interpolate = 0.0f;
 
   pts[vertex_offset + 2].m_position = J.m_p1;
   pts[vertex_offset + 2].m_pre_offset = J.m_lambda * J.m_n1;
   pts[vertex_offset + 2].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset + 2].m_distance_from_outline_start = J.m_distance_from_outline_start;
   pts[vertex_offset + 2].m_on_boundary = 1.0f;
+  pts[vertex_offset + 2].m_join_cap_interpolate = 1.0f;
 
   indices[index_offset + 0] = vertex_offset;
   indices[index_offset + 1] = vertex_offset + 1;
@@ -1420,6 +1434,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
   pts[vertex_offset].m_on_boundary = 0.0f;
+  pts[vertex_offset].m_join_cap_interpolate = 0.0f;
   ++vertex_offset;
 
   pts[vertex_offset].m_position = C.m_p;
@@ -1427,6 +1442,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
   pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_join_cap_interpolate = -1.0f;
   ++vertex_offset;
 
   for(i = 1, theta = m_delta_theta; i < m_num_arc_points_per_cap - 1; ++i, theta += m_delta_theta, ++vertex_offset)
@@ -1440,6 +1456,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
       pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
       pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
       pts[vertex_offset].m_on_boundary = 1.0f;
+      pts[vertex_offset].m_join_cap_interpolate = -1.0f + 2.0f * float(i) / float(m_num_arc_points_per_cap - 1);
     }
 
   pts[vertex_offset].m_position = C.m_p;
@@ -1447,6 +1464,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
   pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_join_cap_interpolate = 1.0f;
   ++vertex_offset;
 
   for(i = first + 1; i < vertex_offset - 1; ++i, index_offset+=3)
@@ -1497,6 +1515,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
   pts[vertex_offset].m_on_boundary = 0.0f;
+  pts[vertex_offset].m_join_cap_interpolate = 0.0f;
   ++vertex_offset;
 
   pts[vertex_offset].m_position = C.m_p;
@@ -1504,6 +1523,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
   pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_join_cap_interpolate = -1.0f;
   ++vertex_offset;
 
   pts[vertex_offset].m_position = C.m_p;
@@ -1511,6 +1531,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
   pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_join_cap_interpolate = -0.5f;
   ++vertex_offset;
 
   pts[vertex_offset].m_position = C.m_p;
@@ -1518,6 +1539,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
   pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_join_cap_interpolate = 0.5f;
   ++vertex_offset;
 
   pts[vertex_offset].m_position = C.m_p;
@@ -1525,6 +1547,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
   pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_join_cap_interpolate = 1.0f;
   ++vertex_offset;
 
   for(i = first + 1; i < vertex_offset - 1; ++i, index_offset+=3)

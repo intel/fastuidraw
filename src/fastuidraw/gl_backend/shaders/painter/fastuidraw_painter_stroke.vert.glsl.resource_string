@@ -28,7 +28,7 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
   perp = vec2(-pre_offset.y, pre_offset.x);
   offset = pre_offset + factor * perp;
 
-  /* declared in C++ code
+  /* stroking_on_boundary varying declared in C++ code
    */
   stroking_on_boundary = secondary_attrib.w;
 
@@ -63,10 +63,42 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
                       clip_offset.y * clip_p.z - clip_offset.z * clip_p.y);
 
           /* TODO:
-              - For non-square viewports, this is not really correct
-              - We have render issues for rounded and miter joins as well
+              - We have render issues for rounded joins because the stroke
+                width is not constant for the entire join, this happens
+                when the viewport is not a square. Quite visible on rounded
+                joins and rounded caps.
+
+              - If offset is not of unit length, then there is distortion
+                for those offset vectors. These offset values come up in
+                * Miter joins: at the Miter point
+                * Square caps: at the corners of the caps
+
+             Possible fix idea:
+              - For points on a join we have an additional attribute that
+                goes from -1 to 1, where when it is -1 or 1 indicates a
+                point shared from the usual stroking and value inbetween
+                are points of the join. We take the absolute value of that
+                parameter and then use that to mix() between isotropic
+                and anisotropic correction below. This will fix rounded
+                joins and caps.
+
+              - For Miter point (miter_distance != 0.0), we do:
+                  -- first walk by pre_offset as needed
+                  -- second walk by factor * perp as needed
+
+              - For Square points, we would first walk perpindicular
+                then tangentially, but we need a way to recognize that
+                we are using such points (tag them?)
            */
-          stroke_width_normalized_dc = stroke_params.width * fastuidraw_viewport_recip_pixels_magnitude;
+          stroke_width_normalized_dc = 0.5 * stroke_params.width;
+          if(abs(clip_offset.x) > abs(clip_offset.y))
+            {
+              stroke_width_normalized_dc *= fastuidraw_viewport_recip_pixels.x;
+            }
+          else
+            {
+              stroke_width_normalized_dc *= fastuidraw_viewport_recip_pixels.y;
+            }
 
           /* From where this formula comes. Our challenge is to give a stroking width
              in local (pre-projection) coordiantes from a stroking width of pixels.
@@ -105,7 +137,7 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
                            T(v,0)_y * T(p,1)_z - T(v,0)_z * T(p,1)_y)
           */
           stroke_params.width = stroke_width_normalized_dc * clip_p.z * clip_p.z;
-          stroke_params.width /= stroke_width_normalized_dc * clip_p.z * clip_offset.z + length(zeta);
+          stroke_params.width /= (stroke_width_normalized_dc * clip_p.z * clip_offset.z + length(zeta));
         }
       #endif
 

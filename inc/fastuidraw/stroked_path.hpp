@@ -135,7 +135,7 @@ public:
     float m_distance_from_outline_start;
 
     /*!
-      For a miter point, the he absolute values gives the
+      For a miter point, the absolute values gives the
       distance of miter point to the edge of the stroking
       in units of stroking width. If the point is not a
       miter point, value is zero.
@@ -163,6 +163,20 @@ public:
       drawn first have the largest z-values.
      */
     unsigned int m_depth;
+
+    /*!
+      For points not of the type edge_point,
+      i.e. those points from joins or caps,
+      provides an interpolate value that goes
+      from -1 to +1 along a join or cap. The
+      value -1 or +1 indicates that the point
+      is to be the same geometry point as that
+      from an edge. The value decreases along
+      a fixed joint from +1 to -1. Miter joins
+      have that the miter point has value 0
+      and caps have that the midpoint is 0.
+     */
+    float m_join_cap_interpolate;
 
     /*!
       Provides the point type for the point.
