@@ -242,6 +242,8 @@ namespace
     std::vector<fastuidraw::gl::PainterShaderGL::handle> m_vert_shaders;
     std::vector<fastuidraw::gl::PainterShaderGL::handle> m_frag_shaders;
     std::vector<fastuidraw::gl::PainterBlendShaderGL::handle> m_blend_shaders;
+    fastuidraw::gl::Shader::shader_source m_vert_shader_utils;
+    fastuidraw::gl::Shader::shader_source m_frag_shader_utils;
     std::map<fastuidraw::gl::BlendMode, uint32_t> m_map_blend_modes;
     std::vector<fastuidraw::gl::BlendMode> m_blend_modes;
     fastuidraw::vecN<size_t, fastuidraw::gl::varying_list::interpolation_number_types> m_number_float_varyings;
@@ -1674,7 +1676,8 @@ build_program(void)
     .add_source("fastuidraw_painter_forward_declares.vert.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
     .add_source("fastuidraw_painter_brush_unpack.vert.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
     .add_source("fastuidraw_painter_brush.vert.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
-    .add_source("fastuidraw_painter_main.vert.glsl.resource_string", fastuidraw::gl::Shader::from_resource);
+    .add_source("fastuidraw_painter_main.vert.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
+    .add_source(m_vert_shader_utils);
   stream_unpack_code(m_params.m_config.alignment(), vert);
   stream_uber_vert_shader(vert, make_c_array(m_vert_shaders));
 
@@ -1699,14 +1702,7 @@ build_program(void)
     .add_source(image_atlas_gl->glsl_compute_coord_src("fastuidraw_compute_image_atlas_coord", "fastuidraw_imageIndexAtlas"))
     .add_source("fastuidraw_painter_main.frag.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
     .add_source("fastuidraw_painter_anisotropic.frag.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
-    .add_source(fastuidraw::gl::GlyphAtlasGL::glsl_curvepair_compute_pseudo_distance(m_params.glyph_atlas()->param_values().alignment(),
-                                                                                    "fastuidraw_curvepair_pseudo_distance",
-                                                                                    "fastuidraw_glyphGeometryDataStore",
-                                                                                    false))
-    .add_source(fastuidraw::gl::GlyphAtlasGL::glsl_curvepair_compute_pseudo_distance(m_params.glyph_atlas()->param_values().alignment(),
-                                                                                    "fastuidraw_curvepair_pseudo_distance",
-                                                                                    "fastuidraw_glyphGeometryDataStore",
-                                                                                    true));
+    .add_source(m_frag_shader_utils);
   stream_uber_frag_shader(frag, make_c_array(m_frag_shaders));
   stream_uber_blend_shader(frag, make_c_array(m_blend_shaders));
 
@@ -1761,6 +1757,18 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::params &P,
   assert(entry == 0);
   FASTUIDRAWunused(entry);
 
+  /* add fastuidraw_curvepair_pseudo_distance functions
+     for fragment shading
+   */
+  m_frag_shader_utils
+    .add_source(fastuidraw::gl::GlyphAtlasGL::glsl_curvepair_compute_pseudo_distance(m_params.glyph_atlas()->param_values().alignment(),
+                                                                                     "fastuidraw_curvepair_pseudo_distance",
+                                                                                     "fastuidraw_glyphGeometryDataStore",
+                                                                                     false))
+    .add_source(fastuidraw::gl::GlyphAtlasGL::glsl_curvepair_compute_pseudo_distance(m_params.glyph_atlas()->param_values().alignment(),
+                                                                                     "fastuidraw_curvepair_pseudo_distance",
+                                                                                     "fastuidraw_glyphGeometryDataStore",
+                                                                                     true));
 }
 
 PainterBackendGLPrivate::
@@ -1864,6 +1872,24 @@ fastuidraw::gl::PainterBackendGL::
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
+}
+
+void
+fastuidraw::gl::PainterBackendGL::
+add_vertex_shader_util(const Shader::shader_source &src)
+{
+  PainterBackendGLPrivate *d;
+  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
+  d->m_vert_shader_utils.add_source(src);
+}
+
+void
+fastuidraw::gl::PainterBackendGL::
+add_fragment_shader_util(const Shader::shader_source &src)
+{
+  PainterBackendGLPrivate *d;
+  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
+  d->m_frag_shader_utils.add_source(src);
 }
 
 fastuidraw::PainterShader::Tag

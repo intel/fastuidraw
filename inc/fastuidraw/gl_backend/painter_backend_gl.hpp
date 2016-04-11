@@ -281,6 +281,22 @@ namespace fastuidraw
       Program::handle
       program(void);
 
+      /*!
+        Add GLSL code that is to be visible to all vertex
+        shaders. The code can define functions or macros.
+        \param src shader source to add
+       */
+      void
+      add_vertex_shader_util(const Shader::shader_source &src);
+
+      /*!
+        Add GLSL code that is to be visible to all vertex
+        shaders. The code can define functions or macros.
+        \param src shader source to add
+       */
+      void
+      add_fragment_shader_util(const Shader::shader_source &src);
+
     protected:
       virtual
       PainterShader::Tag
