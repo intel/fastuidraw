@@ -59,17 +59,53 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
           */
           clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
           clip_offset = fastuidraw_item_matrix * vec3(offset, 0.0);
-          zeta = vec2(clip_offset.z * clip_p.x - clip_offset.x * clip_p.z,
-                      clip_offset.z * clip_p.y - clip_offset.y * clip_p.z);
+          zeta = vec2(clip_offset.x * clip_p.z - clip_offset.z * clip_p.x,
+                      clip_offset.y * clip_p.z - clip_offset.z * clip_p.y);
 
-          /* when stroking in pixels and when the viewport is not a square,
-             if we just multiple by fastuidraw_viewport_recip_pixels_magnitude,
-             we get very ugly results, So instead, multiple by the
-             maxiumum of the two deltas.
+          /* TODO:
+              - For non-square viewports, this is not really correct
+              - We have render issues for rounded and miter joins as well
            */
-          stroke_width_normalized_dc = stroke_params.width * max(fastuidraw_viewport_recip_pixels.x, fastuidraw_viewport_recip_pixels.y);
+          stroke_width_normalized_dc = stroke_params.width * fastuidraw_viewport_recip_pixels_magnitude;
+
+          /* From where this formula comes. Our challenge is to give a stroking width
+             in local (pre-projection) coordiantes from a stroking width of pixels.
+             We have a point p (given by position) and a direction v (given by offset)
+             and we wish to find an L so that after projection p + L*v is W pixels
+             from p. Now for some math.
+
+             Let m>0, and let q(m) = a + m*v. Once m>0 is large enough, we can
+             project q(m) and p to the screen, find the screen space barycentric
+             W pixels from p.
+
+             Let P = projection(T(p,1))
+             Let Q(m) = projection(T(q(m),1))
+
+             where
+
+             T = fastuidraw_item_matrix
+             projection(x,y,z) = (x/z, y/z)
+
+             Let R = P + W * DELTA where DELTA = (Q(m) - P)/||Q(m)-P||
+             Let s = W / ||Q(m) - P|| gives that P + s * (Q(m) - P) = R.
+             Let t = ( s/Q(m)_z ) / ( (1-s)/P_z + s/Q(m)_z). Then
+             projection( T(p,1) + t * (T(q(m),1) - T(p,1)) ) = R
+
+                  t * (T(q(m),1) - T(p,1)) = t * (T(p,1) + m*T(v,0) - T(p,1)) = t * m * T(v, 0)
+
+             Thus the coefficient we want is given by (t*m).
+
+             t * m = ( m * s * P_z) / ( (1-s)Q(m)_z + s * P_z)
+
+             which simplifies to (after lots of algedra) to
+
+             t * m = (W * P_z * P_z) / (W * T(v,0)_z + ||zeta||)
+
+             where zeta = (T(v,0)_x * T(p,1)_z - T(v,0)_z * T(p,1)_x,
+                           T(v,0)_y * T(p,1)_z - T(v,0)_z * T(p,1)_y)
+          */
           stroke_params.width = stroke_width_normalized_dc * clip_p.z * clip_p.z;
-          stroke_params.width /= stroke_width_normalized_dc * (clip_p.z * clip_offset.z) + length(zeta);
+          stroke_params.width /= stroke_width_normalized_dc * clip_p.z * clip_offset.z + length(zeta);
         }
       #endif
 
@@ -101,6 +137,9 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
           const float anti_alias_coeff = 2.0 * anti_alias_thickness;
           sR = sQ - (anti_alias_coeff * fastuidraw_viewport_recip_pixels_magnitude) * sV;
 
+          /* screen_t is the screen space barycentric where sR is located
+             between sP and sQ.
+           */
           if(abs(sD.x) > abs(sD.y))
             {
               screen_t = (sR.x - sP.x) / sD.x;
@@ -110,6 +149,9 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
               screen_t = (sR.y - sP.y) / sD.y;
             }
           screen_t = clamp(screen_t, 0.0, 1.0);
+
+          /* clip_t is the clip-space barycentric coordinate that projects to sR.
+           */
           clip_t = (screen_t * recQz) / mix(recPz, recQz, screen_t);
           p = (1.0 - clip_t) * position + clip_t * q;
         }
