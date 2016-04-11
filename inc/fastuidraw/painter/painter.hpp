@@ -455,6 +455,8 @@ namespace fastuidraw
       Draw glyphs.
       \param data attribute and index data with which to draw the glyphs.
       \param shader with which to draw the glyphs
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
      */
     void
     draw_glyphs(const PainterAttributeData &data, const PainterGlyphShader &shader,
@@ -465,6 +467,8 @@ namespace fastuidraw
       \param data attribute and index data with which to draw the glyphs
       \param use_anistopic_antialias if true, use default_shaders().glyph_shader_anisotropic()
                                      otherwise use default_shaders().glyph_shader()
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
      */
     void
     draw_glyphs(const PainterAttributeData &data, bool use_anistopic_antialias = false,
@@ -476,7 +480,9 @@ namespace fastuidraw
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
       \param cp cap style
       \param js join style
-      \param shader shader with which to stroke the attribute data.
+      \param shader shader with which to stroke the attribute data
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
      */
     void
     stroke_path(const PainterAttributeData &data,
@@ -490,7 +496,9 @@ namespace fastuidraw
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
       \param cp cap style
       \param js join style
-      \param shader shader with which to stroke the attribute data.
+      \param shader shader with which to stroke the attribute data
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
      */
     void
     stroke_path(const Path &path,
@@ -504,6 +512,8 @@ namespace fastuidraw
       \param cp cap style
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
      */
     void
     stroke_path(const Path &path,
@@ -518,6 +528,8 @@ namespace fastuidraw
       \param cp cap style
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
      */
     void
     stroke_path_pixel_width(const Path &path,
@@ -530,6 +542,8 @@ namespace fastuidraw
       \param data attribute and index data with which to fill a path
       \param fill_rule fill rule with which to fill the path
       \param shader shader with which to fill the attribute data
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
      */
     void
     fill_path(const PainterAttributeData &data,
@@ -542,6 +556,8 @@ namespace fastuidraw
       \param path to fill
       \param fill_rule fill rule with which to fill the path
       \param shader shader with which to fill the attribute data
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
      */
     void
     fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule,
@@ -552,6 +568,8 @@ namespace fastuidraw
       Fill a path using the default shader to draw the fill.
       \param path path to fill
       \param fill_rule fill rule with which to fill the path
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
      */
     void
     fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule,
@@ -562,6 +580,8 @@ namespace fastuidraw
       \param data attribute and index data with which to fill a path
       \param fill_rule custom fill rule with which to fill the path
       \param shader shader with which to fill the attribute data
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
      */
     void
     fill_path(const PainterAttributeData &data,
@@ -574,6 +594,8 @@ namespace fastuidraw
       \param path to fill
       \param fill_rule custom fill rule with which to fill the path
       \param shader shader with which to fill the attribute data
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
      */
     void
     fill_path(const Path &path, const CustomFillRuleBase &fill_rule,
@@ -584,6 +606,8 @@ namespace fastuidraw
       Fill a path using the default shader to draw the fill.
       \param path path to fill
       \param fill_rule custom fill rule with which to fill the path
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
      */
     void
     fill_path(const Path &path, const CustomFillRuleBase &fill_rule,
@@ -594,6 +618,8 @@ namespace fastuidraw
       \param p min-corner of rect
       \param wh width and height of rect
       \param call_back handle to PainterPacker::DataCallBack for the draw
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
      */
     void
     draw_rect(const vec2 &p, const vec2 &wh,
@@ -606,6 +632,8 @@ namespace fastuidraw
       \param p2 point after p1, shares an edge with p1
       \param p3 point after p2, shares an edge with p2
       \param call_back handle to PainterPacker::DataCallBack for the draw
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
      */
     void
     draw_quad(const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
@@ -647,8 +675,9 @@ namespace fastuidraw
       \param attrib_chunks attribute data to draw
       \param index_chunks the i'th element is index data into attrib_chunks[K]
                           where K = attrib_chunk_selector[i]
+      \param attrib_chunk_selector selects which attribute chunk to use for
+             each index chunk
       \param shader shader with which to draw data
-      \param z z-value z value placed into the header
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
