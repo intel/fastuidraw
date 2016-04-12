@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 #include <bitset>
 #include <math.h>
 
@@ -13,6 +14,7 @@
 #include "ImageLoader.hpp"
 #include "colorstop_command_line.hpp"
 #include "cycle_value.hpp"
+#include "ostream_utility.hpp"
 
 using namespace fastuidraw;
 
@@ -519,7 +521,11 @@ handle_event(const SDL_Event &ev)
     case SDL_WINDOWEVENT:
       if(ev.window.event == SDL_WINDOWEVENT_RESIZED)
         {
-          on_resize(ev.window.data1, ev.window.data2);
+          int a, b;
+          a = ev.window.data1;
+          b = ev.window.data2;
+          a = b = std::max(a, b);
+          on_resize(a, b);
         }
       break;
 
@@ -800,7 +806,17 @@ draw_frame(void)
   m_painter->begin();
 
   ivec2 wh(dimensions());
-  float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0)), m;
+  int d;
+  d = std::max(wh.x(), wh.y());
+  on_resize(d, d);
+  /* when doing stroking with pixel widths, we need that the
+     coefficients from viewport coordinates to pixel coordinates
+     are the same, i.e. the viewport dimensions is a square.
+     The projection matrix below is the matrix to use for
+     orthogonal projection so that the top is 0 and the
+     bottom is wh.y().
+   */
+  float3x3 proj(float_orthogonal_projection_params(0, d, wh.y(), wh.y() - d)), m;
   m = proj * m_zoomer.transformation().matrix3();
   m_painter->transformation(m);
 
