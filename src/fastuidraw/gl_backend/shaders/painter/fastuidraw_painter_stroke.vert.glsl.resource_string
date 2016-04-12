@@ -8,7 +8,7 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
   vec2 p;
   vec2 position, normal, tangent, tn_offset, offset;
   float distance_from_edge_start, distance_from_outline_start;
-  float miter_distance, stroking_on_boundary;
+  float miter_distance, stroking_on_boundary, stroke_radius;
   fastuidraw_stroking_params stroke_params;
 
   position = primary_attrib.xy;
@@ -20,6 +20,7 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
 
 
   fastuidraw_read_stroking_params(shader_data_offset, stroke_params);
+  stroke_radius = 0.5 * stroke_params.width;
 
   /* TODO:
       - if point type is miter point and if stroke_params.miter_limit >= 0.0
@@ -52,52 +53,27 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
           float stroke_width_normalized_dc;
 
           /* if stroking width is in pixels, then
-             convert stroke_params.width so that
+             convert stroke_radius so that
              after projection, we push off by that exact
              number of pixels.
           */
           clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
-          clip_offset = fastuidraw_item_matrix * vec3(offset, 0.0);
+          clip_offset = fastuidraw_item_matrix * vec3(normal, 0.0);
           zeta = vec2(clip_offset.x * clip_p.z - clip_offset.z * clip_p.x,
                       clip_offset.y * clip_p.z - clip_offset.z * clip_p.y);
 
-          /* TODO:
-              - We have render issues for rounded joins because the stroke
-                width is not constant for the entire join, this happens
-                when the viewport is not a square. Quite visible on rounded
-                joins and rounded caps.
-
-              - If offset is not of unit length, then there is distortion
-                for those offset vectors. These offset values come up in
-                * Miter joins: at the Miter point
-                * Square caps: at the corners of the caps
-
-             Possible fix idea:
-              - For points on a join we have an additional attribute that
-                goes from -1 to 1, where when it is -1 or 1 indicates a
-                point shared from the usual stroking and value inbetween
-                are points of the join. We take the absolute value of that
-                parameter and then use that to mix() between isotropic
-                and anisotropic correction below. This will fix rounded
-                joins and caps.
-
-              - For Miter point (miter_distance != 0.0), we do:
-                  -- first walk by pre_offset as needed
-                  -- second walk by factor * perp as needed
-
-              - For Square points, we would first walk perpindicular
-                then tangentially, but we need a way to recognize that
-                we are using such points (tag them?)
-           */
-          stroke_width_normalized_dc = 0.5 * stroke_params.width;
-          if(abs(clip_offset.x) > abs(clip_offset.y))
-            {
-              stroke_width_normalized_dc *= fastuidraw_viewport_recip_pixels.x;
-            }
-          else
-            {
-              stroke_width_normalized_dc *= fastuidraw_viewport_recip_pixels.y;
-            }
+          /* Normalized device coordinates go from -1 to 1,
+             and a pixel is 1/fastuidraw_viewport_recip_pixels.x
+             (or fastuidraw_viewport_recip_pixels.y) thick.
+             Bad things happen to us if the transformation
+             coefficients from viewport coordinates to
+             window coordinates are not equal because the
+             notion of what the radius should is not clear
+             except for vertical and horizontal lines.
+             We CHEAT, as just always take the value
+             from fastuidraw_viewport_recip_pixels.x
+          */
+          stroke_width_normalized_dc = 2.0 * stroke_radius *  fastuidraw_viewport_recip_pixels.x;
 
           /* From where this formula comes. Our challenge is to give a stroking width
              in local (pre-projection) coordiantes from a stroking width of pixels.
@@ -128,15 +104,15 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
 
              t * m = ( m * s * P_z) / ( (1-s)Q(m)_z + s * P_z)
 
-             which simplifies to (after lots of algedra) to
+             which simplifies to (after lots of algebra) to
 
              t * m = (W * P_z * P_z) / (W * T(v,0)_z + ||zeta||)
 
              where zeta = (T(v,0)_x * T(p,1)_z - T(v,0)_z * T(p,1)_x,
                            T(v,0)_y * T(p,1)_z - T(v,0)_z * T(p,1)_y)
           */
-          stroke_params.width = stroke_width_normalized_dc * clip_p.z * clip_p.z;
-          stroke_params.width /= (stroke_width_normalized_dc * clip_p.z * clip_offset.z + length(zeta));
+          stroke_radius = stroke_width_normalized_dc * clip_p.z * clip_p.z;
+          stroke_radius /= (stroke_width_normalized_dc * clip_p.z * clip_offset.z + length(zeta));
         }
       #endif
 
@@ -146,7 +122,7 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
           vec3 P, Q;
           float clip_t, screen_t, recQz, recPz;
 
-          q = position + (0.5 * stroke_params.width) * offset;
+          q = position + stroke_radius * offset;
           P = fastuidraw_item_matrix * vec3(position, 1.0);
           Q = fastuidraw_item_matrix * vec3(q, 1.0);
 
@@ -188,7 +164,7 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
         }
       #else
         {
-          p = position + (0.5 * stroke_params.width) * offset;
+          p = position + stroke_radius * offset;
         }
       #endif
     }
