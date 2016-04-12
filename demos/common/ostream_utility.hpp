@@ -23,6 +23,7 @@
 
 
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <vector>
 #include <list>
@@ -34,6 +35,7 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
+#include <fastuidraw/util/matrix.hpp>
 
 /*!\class format_tabbing
   Simple class with overloaded operator<<
@@ -360,7 +362,21 @@ operator<<(std::ostream &str, const std::list<T,_Alloc> &obj)
   return str;
 }
 
-
+template<size_t N, size_t M, typename T>
+std::ostream&
+operator<<(std::ostream &str, const fastuidraw::matrixNxM<N, M, T> &matrix)
+{
+  for(unsigned int row = 0; row < N; ++row)
+    {
+      str << "|";
+      for(unsigned int col = 0; col < M; ++col)
+        {
+          str << std::setw(10) << matrix(row, col) << " ";
+        }
+      str << "|\n";
+    }
+  return str;
+}
 
 
 /*! @} */
