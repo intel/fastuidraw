@@ -108,11 +108,14 @@ public:
       For miter_join_point points, the final position is
       given by
       \code
-      vec2 n0(m_pre_offset), v0(-n0.y(), n0.x());
-      vec2 n1(m_auxilary_offset), v1(-n1.y(), n1.x());
-      r = (dot(v1, v0) - 1) / dot(v0, n1);
-      final_position = m_position + stroke_radius * (n0 - r * v0)
+      vec2 n = m_pre_offset, v = vec2(-n.y, n.x);
+      float r, lambda;
+      lambda = -sign(dot(v, m_auxilary_offset));
+      r = (dot(m_pre_offset, m_auxilary_offset) - 1.0) / dot(v, m_auxilary_offset);
+      final_position = m_position + stroke_radius * lambda * (n0 - r * v0)
       \endcode
+      The value r in the above represents the (signed) miter distance,
+      if there is a miter limit M, then r must be clamped to [-M,M].
     */
     vec2 m_pre_offset;
 

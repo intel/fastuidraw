@@ -31,12 +31,74 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
     {
     case fastuidraw_stroke_miter_join_point:
       {
-        vec2 n = pre_offset, v = vec2(-n.y, n.x);
-        float r, numer, denom;
-        numer = dot(pre_offset, auxilary_offset) - 1.0;
-        denom = dot(v, auxilary_offset);
-        r = (denom != 0.0) ? numer/denom : 0.0;
-        offset = (n - r * v);
+        #ifdef FASTUIDRAW_STROKE_WIDTH_IN_PIXELS
+          {
+            vec2 n0 = pre_offset, v0 = vec2(n0.y, -n0.x);
+            vec2 n1 = auxilary_offset, v1 = vec2(n1.y, -n1.x);
+            vec2 p0, p1, delta_p;
+            vec3 clip_p, clip_offset;
+            float det, r, lambda;
+
+            lambda = -sign(dot(v1, n0));
+
+            n0 *= lambda;
+            n1 *= lambda;
+
+            /* let p0 be p moved by n0 the named number of pixels.
+             */
+            clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+            clip_offset = fastuidraw_item_matrix * vec3(n0, 0.0);
+            r = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+            p0 = position + r * n0;
+
+            /* let p1 be p moved by n1 the named number of pixels.
+             */
+            clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+            clip_offset = fastuidraw_item_matrix * vec3(n1, 0.0);
+            r = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+            p1 = position + r * n1;
+
+            /* now compute where the lines L0 and L1 intersect
+               where L0 = { p0 + s*v0 | s > 0}
+               and L1 = { p1 - s*v1 | s > 0}
+             */
+            delta_p = p1 - p0;
+            det = v0.x * v1.y - v0.y * v1.x;
+
+            if(det != 0.0)
+              {
+                r = (v1.y * delta_p.x - v1.x * delta_p.y) / det;
+              }
+            else
+              {
+                r = 0.0;
+              }
+            /* should enforce miter limit? The issue
+               is that it is not clear to what we scale
+               by..
+             */
+
+            offset = p0 + r * v0 - position;
+            stroke_radius = 1.0;
+          }
+        #else
+          {
+            vec2 n = pre_offset, v = vec2(-n.y, n.x);
+            float r, numer, denom, lambda;
+            lambda = -sign(dot(v, auxilary_offset));
+            numer = dot(pre_offset, auxilary_offset) - 1.0;
+            denom = dot(v, auxilary_offset);
+            r = (denom != 0.0) ? numer/denom : 0.0;
+
+            /* enforce miter-limit
+             */
+            if(stroke_params.miter_limit >= 0.0)
+              {
+                r = clamp(r, -stroke_params.miter_limit, stroke_params.miter_limit);
+              }
+            offset = lambda * (n - r * v);
+          }
+        #endif
       }
       break;
 

@@ -1637,42 +1637,9 @@ fill_join_implement(unsigned int join_id,
     a(t) = J.m_p0 + stroke_width * ( J.m_lamba * J.m_n0 -  r * J.m_lamba * J.m_v0)
          = b(s)
          = J.m_p1 + stroke_width * ( J.m_lamba * J.m_n1 +  r * J.m_lamba * J.m_v1)
-
-    To support miter limit, we need to store a value for a(t) and b(s).
-    We store:
-      For the miter from a(t):
-         m_miter_distance = r
-         m_pre_offset = J.m_lamba * m_n0
-      For  the miter from b(s):
-         m_miter_distance = -r
-         m_pre_offset = J.m_lamba * m_n1
-    and recall that
-      - J.m_v0 = (-J.m_n0.y, J.m_n0.x)
-      - J.m_v1 = (-J.m_n1.y, J.m_n1.x)
-    thus we can recover (J.m_lamba * J.m_v0) from m_pre_offset
-
-    We have two ways to handle the case when <J.m_v0, J.m_n1> is zero:
-      - make r = 0. This makes the join act like a bevel
-      OR
-      - make r = HUGE, i.e. the miter point is far away.
-     We choose the first option.
    */
 
-  float numerator, denominator, miter_distance;
-  numerator = fastuidraw::dot(J.m_v1, J.m_v0) - 1.0f;
-  denominator = fastuidraw::dot(J.m_v0, J.m_n1);
-  if(std::abs(denominator) == 0.0f)
-    {
-      miter_distance = 0.0f;
-    }
-  else
-    {
-      miter_distance = numerator/denominator;
-    }
-
-
   first = vertex_offset;
-
 
   // join center point.
   pts[vertex_offset].m_position = J.m_p0;
@@ -1696,8 +1663,8 @@ fill_join_implement(unsigned int join_id,
 
   // miter point A
   pts[vertex_offset].m_position = J.m_p0;
-  pts[vertex_offset].m_pre_offset = J.m_lambda * J.m_n0;
-  pts[vertex_offset].m_auxilary_offset = J.m_lambda * J.m_n1;
+  pts[vertex_offset].m_pre_offset = J.m_n0;
+  pts[vertex_offset].m_auxilary_offset = J.m_n1;
   pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = J.m_distance_from_outline_start;
   pts[vertex_offset].m_on_boundary = 1.0f;
@@ -1706,8 +1673,8 @@ fill_join_implement(unsigned int join_id,
 
   // miter point B
   pts[vertex_offset].m_position = J.m_p1;
-  pts[vertex_offset].m_pre_offset = J.m_lambda * J.m_n1;
-  pts[vertex_offset].m_auxilary_offset = J.m_lambda * J.m_n0;
+  pts[vertex_offset].m_pre_offset = J.m_n0;
+  pts[vertex_offset].m_auxilary_offset = J.m_n1;
   pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = J.m_distance_from_outline_start;
   pts[vertex_offset].m_on_boundary = 1.0f;
