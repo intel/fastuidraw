@@ -777,7 +777,7 @@ create_stroked_path_attributes(void)
     {
       float v;
 
-      v = miter_points[p].m_tn_offset.x();
+      v = miter_points[p].miter_distance();
       if(isfinite(v))
         {
           m_max_miter = fastuidraw::t_max(m_max_miter, fastuidraw::t_abs(v) );

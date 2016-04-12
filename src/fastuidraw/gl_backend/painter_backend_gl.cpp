@@ -802,7 +802,6 @@ add_enums(fastuidraw::gl::Shader::shader_source &src)
     .add_macro("fastuidraw_stroke_edge_point", StrokedPath::edge_point)
     .add_macro("fastuidraw_stroke_rounded_join_point", StrokedPath::rounded_join_point)
     .add_macro("fastuidraw_stroke_miter_join_point", StrokedPath::miter_join_point)
-    .add_macro("fastuidraw_stroke_bevel_join_point", StrokedPath::bevel_join_point)
     .add_macro("fastuidraw_stroke_rounded_cap_point", StrokedPath::rounded_cap_point)
     .add_macro("fastuidraw_stroke_square_cap_point", StrokedPath::square_cap_point);
 }

@@ -42,10 +42,10 @@ namespace fastuidraw
 
     Data for stroking is packed as follows:
      - PainterAttribute::m_primary_attrib .xy -> StrokedPath::point::m_position
-     - PainterAttribute::m_primary_attrib .zw -> StrokedPath::point::m_normal
+     - PainterAttribute::m_primary_attrib .zw -> StrokedPath::point::m_pre_offset
      - PainterAttribute::m_secondary_attrib .x -> StrokedPath::point::m_distance_from_edge_start
      - PainterAttribute::m_secondary_attrib .y -> StrokedPath::point::m_distance_from_outline_start
-     - PainterAttribute::m_secondary_attrib .zw -> StrokedPath::point::m_tn_offset
+     - PainterAttribute::m_secondary_attrib .zw -> StrokedPath::point::m_auxilary_offset
      - PainterAttribute::m_uint_attrib .x -> StrokedPath::point::m_depth
      - PainterAttribute::m_uint_attrib .y -> StrokedPath::point::m_point_type
      - PainterAttribute::m_uint_attrib .z -> StrokedPath::point::m_on_boundary

@@ -162,13 +162,13 @@ namespace
 
     dst.m_primary_attrib.x() = src.m_position.x();
     dst.m_primary_attrib.y() = src.m_position.y();
-    dst.m_primary_attrib.z() = src.m_normal.x();
-    dst.m_primary_attrib.w() = src.m_normal.y();
+    dst.m_primary_attrib.z() = src.m_pre_offset.x();
+    dst.m_primary_attrib.w() = src.m_pre_offset.y();
 
     dst.m_secondary_attrib.x() = src.m_distance_from_edge_start;
     dst.m_secondary_attrib.y() = src.m_distance_from_outline_start;
-    dst.m_secondary_attrib.z() = src.m_tn_offset.x();
-    dst.m_secondary_attrib.w() = src.m_tn_offset.y();
+    dst.m_secondary_attrib.z() = src.m_auxilary_offset.x();
+    dst.m_secondary_attrib.w() = src.m_auxilary_offset.y();
 
     int v;
     v = src.m_on_boundary + 1;

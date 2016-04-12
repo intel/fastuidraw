@@ -68,11 +68,6 @@ public:
       miter_join_point,
 
       /*!
-        The point is for a bevel join of the path
-       */
-      bevel_join_point,
-
-      /*!
         The point is for a rounded cap of the path
        */
       rounded_cap_point,
@@ -99,33 +94,33 @@ public:
     vec2 m_position;
 
     /*!
-      Gives the normal vector to the path at the point.
-      For joint points and cap points, the normal vector
-      used is whatever is the normal at the edge point
-      that is closest when viewed as along the join or cap.
+      Gives the offset vector to the path at the point.
+      For all but miter_join_point and square_cap_point
+      the final position of the point is given by
+      \code
+      final_position = m_position * stoke_radius * m_pre_offset
+      \endcode
+      For square_cap_point points, the final position
+      is given by
+      \code
+      final_position = m_position + stoke_radius * m_pre_offset + 0.5 * stoke_radius * m_auxilary_offset;
+      \endcode
+      For miter_join_point points, the final position is
+      given by
+      \code
+      vec2 n0(m_pre_offset), v0(-n0.y(), n0.x());
+      vec2 n1(m_auxilary_offset), v1(-n1.y(), n1.x());
+      r = (dot(v1, v0) - 1) / dot(v0, n1);
+      final_position = m_position + stroke_radius * (n0 - r * v0)
+      \endcode
     */
-    vec2 m_normal;
+    vec2 m_pre_offset;
 
     /*!
-      Provides the offset vector to compute where the point is
-      relative to the normal and tangent vectors. The location
-      of the point is then given by:
-      \code
-        tangent = fastuidraw::vec2(m_normal.y(), -m_normal.x())
-        if(m_point_type == miter_join_point && observe_miter_limit)
-          {
-             x = clamp(m_tn_offset.x, -miter_limit, +miter_limit);
-          }
-        else
-          {
-             x = m_tn_offset.x;
-          }
-        y = m_tn_offset.y;
-        offset_vector = x * tangent + y * m_normal;
-        location = m_position + stroke_width * offset_vector;
-      \endcode
+      Provides an auxilary offset data, used ONLY for
+      miter_join_point points.
      */
-    vec2 m_tn_offset;
+    vec2 m_auxilary_offset;
 
     /*!
       Gives the distance of the point from the start
@@ -164,16 +159,22 @@ public:
     /*!
       Provides the point type for the point.
       The value is one of the enumerations of
-      point_type_t.
+      point_type_t. NOTE: if a point comes from
+      the geometry of an edge, it is always the
+      value edge_point; it takes on other values
+      for those points of those joins/caps that
+      are not the geometry of the edge. In particular,
+      since bevel joins do not add any points,
+      there is no enumeration with for bevel joins.
      */
     enum point_type_t m_point_type;
 
     /*!
-      Returns true if the return value to offset_vector(float)
-      depends on the miter limit
+      When m_point_type is miter_join_point, returns the distance
+      to the miter point. For other point types, returns 0.0.
      */
-    bool
-    depends_on_miter_limit(void) const;
+    float
+    miter_distance(void) const;
   };
 
   /*!
