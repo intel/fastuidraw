@@ -21,6 +21,10 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
   fastuidraw_read_stroking_params(shader_data_offset, stroke_params);
   stroke_radius = 0.5 * stroke_params.width;
 
+  /* stroking_on_boundary varying declared in C++ code
+   */
+  stroking_on_boundary = float(uint_attrib.z) - 1.0;
+
   /* Depending on the point type, we have a different way to produce offset
    */
   switch(int(uint_attrib.y))
@@ -32,21 +36,56 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
         numer = dot(pre_offset, auxilary_offset) - 1.0;
         denom = dot(v, auxilary_offset);
         r = (denom != 0.0) ? numer/denom : 0.0;
-        offset = stroke_radius * (n - r * v);
+        offset = (n - r * v);
       }
       break;
 
     case fastuidraw_stroke_square_cap_point:
-      offset = stroke_radius * pre_offset + (0.5 * stroke_radius) * auxilary_offset;
+      {
+        #ifdef FASTUIDRAW_STROKE_WIDTH_IN_PIXELS
+          {
+            vec3 clip_offset, clip_p;
+            float sx;
+            /* we first move position by the needed
+               number of pixels
+            */
+            clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+            clip_offset = fastuidraw_item_matrix * vec3(auxilary_offset, 0.0);
+
+            sx = fastuidraw_compute_local_distance_from_pixel_distance(0.5 * stroke_radius, clip_p, clip_offset);
+            position += sx * auxilary_offset;
+
+            /* now do for perpindicular
+             */
+            clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+            clip_offset = fastuidraw_item_matrix * vec3(pre_offset, 0.0);
+            stroke_radius = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+            offset = pre_offset;
+          }
+        #else
+          {
+            offset = pre_offset + 0.5 * auxilary_offset;
+          }
+        #endif
+      }
       break;
 
     default:
-      offset = stroke_radius * pre_offset;
+      {
+        #ifdef FASTUIDRAW_STROKE_WIDTH_IN_PIXELS
+          {
+            if(abs(stroking_on_boundary) > 0.5)
+              {
+                vec3 clip_offset, clip_p;
+                clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+                clip_offset = fastuidraw_item_matrix * vec3(pre_offset, 0.0);
+                stroke_radius = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+              }
+          }
+        #endif
+        offset = pre_offset;
+      }
     }
-
-  /* stroking_on_boundary varying declared in C++ code
-   */
-  stroking_on_boundary = float(uint_attrib.z) - 1.0;
 
   /* idea:
       For anti-aliased via coverage, we have two passes:
@@ -62,33 +101,6 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
 
   if(abs(stroking_on_boundary) > 0.5)
     {
-      #ifdef FASTUIDRAW_STROKE_WIDTH_IN_PIXELS
-        {
-          vec3 clip_offset, clip_p;
-          float sx, sy;
-
-          /* TODO: We have some uglies when stroke radius in pixels means
-                   that the stroke radius varies in local coordinates.
-
-              - Rounded-joins, rounded-caps: We can get around this by using
-                                             offset instead of normal
-
-              - Square Caps: We first apply algorithm to tangent,
-                             then move position by amount requested
-                             and then use offset as normal * tn_offset.y
-                             and width applied again with normal.
-
-              - Miter Joins: Such PAIN. The miter points (the two that make
-                             the tip which conincide under the miter limit)
-                             are made so that they coincide under the assumption
-                             that both have the exact same stroking radius applied.
-           */
-          clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
-          clip_offset = fastuidraw_item_matrix * vec3(offset, 0.0);
-          stroke_radius = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
-        }
-      #endif
-
       #if defined(FASTUIDRAW_STROKE_OPAQUE_PASS)
         {
           vec2 q, sQ, sP, sR, sV, sD;
