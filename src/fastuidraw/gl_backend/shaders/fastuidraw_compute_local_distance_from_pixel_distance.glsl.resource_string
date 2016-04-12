@@ -1,0 +1,65 @@
+float
+fastuidraw_compute_local_distance_from_pixel_distance(in float pixel_distance,
+                                                      in vec3 clip_p,
+                                                      in vec3 clip_offset)
+{
+  vec2 zeta;
+  float return_value, normalized_dc;
+
+  zeta = vec2(clip_offset.x * clip_p.z - clip_offset.z * clip_p.x,
+              clip_offset.y * clip_p.z - clip_offset.z * clip_p.y);
+
+  /* Normalized device coordinates go from -1 to 1,
+     and a pixel is 1/fastuidraw_viewport_recip_pixels.x
+     (or fastuidraw_viewport_recip_pixels.y) thick.
+     Bad things happen to us if the transformation
+     coefficients from viewport coordinates to
+     window coordinates are not equal because the
+     notion of what the radius should is not clear
+     except for vertical and horizontal lines.
+     We CHEAT, as just always take the value
+     from fastuidraw_viewport_recip_pixels.x
+  */
+  normalized_dc = 2.0 * pixel_distance *  fastuidraw_viewport_recip_pixels.x;
+
+  /* From where this formula comes. Our challenge is to give a stroking width
+     in local (pre-projection) coordiantes from a stroking width of pixels.
+     We have a point p (given by position) and a direction v (given by offset)
+     and we wish to find an L so that after projection p + L*v is W pixels
+     from p. Now for some math.
+
+     Let m>0, and let q(m) = a + m*v. Once m>0 is large enough, we can
+     project q(m) and p to the screen, find the screen space barycentric
+     W pixels from p.
+
+     Let P = projection(T(p,1))
+     Let Q(m) = projection(T(q(m),1))
+
+     where
+
+     T = fastuidraw_item_matrix
+     projection(x,y,z) = (x/z, y/z)
+
+     Let R = P + W * DELTA where DELTA = (Q(m) - P)/||Q(m)-P||
+     Let s = W / ||Q(m) - P|| gives that P + s * (Q(m) - P) = R.
+     Let t = ( s/Q(m)_z ) / ( (1-s)/P_z + s/Q(m)_z). Then
+     projection( T(p,1) + t * (T(q(m),1) - T(p,1)) ) = R
+
+     t * (T(q(m),1) - T(p,1)) = t * (T(p,1) + m*T(v,0) - T(p,1)) = t * m * T(v, 0)
+
+     Thus the coefficient we want is given by (t*m).
+
+     t * m = ( m * s * P_z) / ( (1-s)Q(m)_z + s * P_z)
+
+     which simplifies to (after lots of algebra) to
+
+     t * m = (W * P_z * P_z) / (W * T(v,0)_z + ||zeta||)
+
+     where zeta = (T(v,0)_x * T(p,1)_z - T(v,0)_z * T(p,1)_x,
+     T(v,0)_y * T(p,1)_z - T(v,0)_z * T(p,1)_y)
+  */
+  return_value = normalized_dc * clip_p.z * clip_p.z;
+  return_value /= (normalized_dc * clip_p.z * clip_offset.z + length(zeta));
+
+  return return_value;
+}

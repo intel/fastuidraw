@@ -10,7 +10,7 @@ include $(dir)/Rules.mk
 LIBRARY_GL_RESOURCE_STRING += $(call filelist, fastuidraw_atlas_image_fetch.glsl.resource_string \
 	fastuidraw_curvepair_glyph.frag.glsl.resource_string \
 	fastuidraw_curvepair_glyph_derivative.frag.glsl.resource_string \
-	)
+	fastuidraw_compute_local_distance_from_pixel_distance.glsl.resource_string)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))

@@ -26,6 +26,6 @@ uniform samplerBuffer fastuidraw_painterStoreFLOAT;
 uniform usamplerBuffer fastuidraw_painterStoreUINT;
 uniform isamplerBuffer fastuidraw_painterStoreINT;
 
-uniform vec2 fastuidraw_viewport_pixels;
+uniform ivec2 fastuidraw_viewport_pixels;
 uniform vec2 fastuidraw_viewport_recip_pixels;
 uniform float fastuidraw_viewport_recip_pixels_magnitude;

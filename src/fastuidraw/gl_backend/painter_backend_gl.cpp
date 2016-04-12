@@ -22,6 +22,7 @@
 #include <sstream>
 #include <vector>
 
+#include <fastuidraw/stroked_path.hpp>
 #include <fastuidraw/gl_backend/painter_backend_gl.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
@@ -129,7 +130,7 @@ namespace
 
     static
     void
-    add_unpack_enums(fastuidraw::gl::Shader::shader_source &src);
+    add_enums(fastuidraw::gl::Shader::shader_source &src);
 
     static
     void
@@ -258,7 +259,8 @@ namespace
     fastuidraw::gl::Program::handle m_program;
     GLint m_target_resolution_loc, m_target_resolution_recip_loc;
     GLint m_target_resolution_recip_magnitude_loc;
-    fastuidraw::vec2 m_target_resolution, m_target_resolution_recip;
+    fastuidraw::ivec2 m_target_resolution;
+    fastuidraw::vec2 m_target_resolution_recip;
     float m_target_resolution_recip_magnitude;
     painter_vao_pool m_pool;
 
@@ -739,7 +741,7 @@ add_entry(unsigned int indices_written) const
 // PainterBackendGLPrivate methods
 void
 PainterBackendGLPrivate::
-add_unpack_enums(fastuidraw::gl::Shader::shader_source &src)
+add_enums(fastuidraw::gl::Shader::shader_source &src)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::PainterPacking;
@@ -796,7 +798,13 @@ add_unpack_enums(fastuidraw::gl::Shader::shader_source &src)
     .add_macro("fastuidraw_z_bit0", z_bit0)
     .add_macro("fastuidraw_z_num_bits", z_num_bits)
     .add_macro("fastuidraw_blend_shader_bit0", blend_shader_bit0)
-    .add_macro("fastuidraw_blend_shader_num_bits", blend_shader_num_bits);
+    .add_macro("fastuidraw_blend_shader_num_bits", blend_shader_num_bits)
+    .add_macro("fastuidraw_stroke_edge_point", StrokedPath::edge_point)
+    .add_macro("fastuidraw_stroke_rounded_join_point", StrokedPath::rounded_join_point)
+    .add_macro("fastuidraw_stroke_miter_join_point", StrokedPath::miter_join_point)
+    .add_macro("fastuidraw_stroke_bevel_join_point", StrokedPath::bevel_join_point)
+    .add_macro("fastuidraw_stroke_rounded_cap_point", StrokedPath::rounded_cap_point)
+    .add_macro("fastuidraw_stroke_square_cap_point", StrokedPath::square_cap_point);
 }
 
 void
@@ -1613,7 +1621,7 @@ build_program(void)
   stream_declare_varyings(declare_varyings, m_number_uint_varyings,
                           m_number_int_varyings, m_number_float_varyings);
 
-  add_unpack_enums(vert);
+  add_enums(vert);
   add_texture_size_constants(vert, m_params);
 
   if(m_number_clip_planes > 0)
@@ -1686,7 +1694,7 @@ build_program(void)
   image_atlas_gl = dynamic_cast<fastuidraw::gl::ImageAtlasGL*>(m_p->image_atlas().get());
   assert(image_atlas_gl != NULL);
 
-  add_unpack_enums(frag);
+  add_enums(frag);
   add_texture_size_constants(frag, m_params);
   frag
     .add_source("fastuidraw_painter_gles_precision.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
@@ -1757,9 +1765,10 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::params &P,
   assert(entry == 0);
   FASTUIDRAWunused(entry);
 
-  /* add fastuidraw_curvepair_pseudo_distance functions
-     for fragment shading
-   */
+  m_vert_shader_utils
+    .add_source("fastuidraw_compute_local_distance_from_pixel_distance.glsl.resource_string",
+                fastuidraw::gl::Shader::from_resource);
+
   m_frag_shader_utils
     .add_source(fastuidraw::gl::GlyphAtlasGL::glsl_curvepair_compute_pseudo_distance(m_params.glyph_atlas()->param_values().alignment(),
                                                                                      "fastuidraw_curvepair_pseudo_distance",
@@ -1969,8 +1978,8 @@ target_resolution(int w, int h)
   w = std::max(1, w);
   h = std::max(1, h);
 
-  d->m_target_resolution = vec2(w, h);
-  d->m_target_resolution_recip = vec2(1.0f, 1.0f) / d->m_target_resolution;
+  d->m_target_resolution = ivec2(w, h);
+  d->m_target_resolution_recip = vec2(1.0f, 1.0f) / vec2(d->m_target_resolution);
   d->m_target_resolution_recip_magnitude = d->m_target_resolution_recip.magnitude();
 }
 
@@ -2081,7 +2090,7 @@ on_pre_draw(void)
   program()->use_program();
   if(d->m_target_resolution_loc != -1)
     {
-      glUniform2fv(d->m_target_resolution_loc, 1, d->m_target_resolution.c_ptr());
+      glUniform2iv(d->m_target_resolution_loc, 1, d->m_target_resolution.c_ptr());
     }
   if(d->m_target_resolution_recip_loc != -1)
     {
