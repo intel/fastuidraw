@@ -171,6 +171,7 @@ private:
   bool m_stroke_aa;
   bool m_wire_frame;
   bool m_stroke_width_in_pixels;
+  bool m_force_square_viewport;
 
   bool m_fill_by_clipping;
 
@@ -233,6 +234,7 @@ painter_stroke_test(void):
   m_stroke_aa(true),
   m_wire_frame(false),
   m_stroke_width_in_pixels(false),
+  m_force_square_viewport(true),
   m_fill_by_clipping(false)
 {
   std::cout << "Controls:\n"
@@ -241,6 +243,7 @@ painter_stroke_test(void):
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\t]: increase stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\tp: toggle stroke width in pixels or local coordinates\n"
+            << "\tv: toggle force square viewport\n"
             << "\tb: decrease miter limit(hold left-shift for slower rate and right shift for faster)\n"
             << "\tn: increase miter limit(hold left-shift for slower rate and right shift for faster)\n"
             << "\tm: toggle miter limit enforced\n"
@@ -310,14 +313,20 @@ update_cts_params(void)
       speed *= 10.0f;
     }
 
+  speed *= m_change_stroke_width_rate.m_value;
+  if(!m_stroke_width_in_pixels)
+    {
+      speed /= m_zoomer.transformation().scale();
+    }
+
   if(keyboard_state[SDL_SCANCODE_RIGHTBRACKET])
     {
-      m_stroke_width += m_change_stroke_width_rate.m_value * speed / m_zoomer.transformation().scale();
+      m_stroke_width += speed;
     }
 
   if(keyboard_state[SDL_SCANCODE_LEFTBRACKET])
     {
-      m_stroke_width -= m_change_stroke_width_rate.m_value  * speed / m_zoomer.transformation().scale();
+      m_stroke_width -= speed;
       m_stroke_width = fastuidraw::t_max(m_stroke_width, 0.0f);
     }
 
@@ -518,17 +527,6 @@ handle_event(const SDL_Event &ev)
       end_demo(0);
       break;
 
-    case SDL_WINDOWEVENT:
-      if(ev.window.event == SDL_WINDOWEVENT_RESIZED)
-        {
-          int a, b;
-          a = ev.window.data1;
-          b = ev.window.data2;
-          a = b = std::max(a, b);
-          on_resize(a, b);
-        }
-      break;
-
     case SDL_MOUSEMOTION:
       {
         ivec2 c(ev.motion.x + ev.motion.xrel,
@@ -566,6 +564,18 @@ handle_event(const SDL_Event &ev)
           else
             {
               std::cout << "Stroke width specified in local coordinates\n";
+            }
+          break;
+
+        case SDLK_v:
+          m_force_square_viewport = !m_force_square_viewport;
+          if(m_force_square_viewport)
+            {
+              std::cout << "Viewport made to square that contains window\n";
+            }
+          else
+            {
+              std::cout << "Viewport matches window dimension\n";
             }
           break;
 
@@ -806,18 +816,30 @@ draw_frame(void)
   m_painter->begin();
 
   ivec2 wh(dimensions());
-  int d;
-  d = std::max(wh.x(), wh.y());
-  on_resize(d, d);
-  /* when doing stroking with pixel widths, we need that the
-     coefficients from viewport coordinates to pixel coordinates
-     are the same, i.e. the viewport dimensions is a square.
-     The projection matrix below is the matrix to use for
-     orthogonal projection so that the top is 0 and the
-     bottom is wh.y().
-   */
-  float3x3 proj(float_orthogonal_projection_params(0, d, wh.y(), wh.y() - d)), m;
-  m = proj * m_zoomer.transformation().matrix3();
+  float3x3 m;
+
+  if(m_force_square_viewport)
+    {
+      int d;
+      d = std::max(wh.x(), wh.y());
+      on_resize(d, d);
+      /* when doing stroking with pixel widths, we need that the
+         coefficients from viewport coordinates to pixel coordinates
+         are the same, i.e. the viewport dimensions is a square.
+         The projection matrix below is the matrix to use for
+         orthogonal projection so that the top is 0 and the
+         bottom is wh.y().
+      */
+      float3x3 proj(float_orthogonal_projection_params(0, d, wh.y(), wh.y() - d));
+      m = proj * m_zoomer.transformation().matrix3();
+    }
+  else
+    {
+      on_resize(wh.x(), wh.y());
+      float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));
+      m = proj * m_zoomer.transformation().matrix3();
+    }
+
   m_painter->transformation(m);
 
   if(m_clipping_window)
