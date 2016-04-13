@@ -79,6 +79,24 @@ public:
     };
 
   /*!
+    Enumeration encoding how bits in m_tag are used.
+   */
+  enum tag_bit_layout_t
+    {
+      point_type_num_bits = 3,
+      point_type_bit0 = 0,
+
+      normal0_y_sign_bit = point_type_bit0 + point_type_num_bits,
+      normal1_y_sign_bit = normal0_y_sign_bit + 1,
+      sin_sign_bit = normal1_y_sign_bit + 1,
+
+      point_type_mask = FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(point_type_num_bits) << point_type_bit0,
+      normal0_y_sign_mask = 1 << normal0_y_sign_bit,
+      normal1_y_sign_mask = 1 << normal1_y_sign_bit,
+      sin_sign_mask = 1 << sin_sign_bit,
+    };
+
+  /*!
     A point holds the data for a point of stroking.
     The data is so that changing the stroking width
     or miter limit does not change the stroking data.
@@ -94,34 +112,14 @@ public:
     vec2 m_position;
 
     /*!
-      Gives the offset vector to the path at the point.
-      For all but miter_join_point and square_cap_point
-      the final position of the point is given by
-      \code
-      final_position = m_position * stoke_radius * m_pre_offset
-      \endcode
-      For square_cap_point points, the final position
-      is given by
-      \code
-      final_position = m_position + stoke_radius * m_pre_offset + 0.5 * stoke_radius * m_auxilary_offset;
-      \endcode
-      For miter_join_point points, the final position is
-      given by
-      \code
-      vec2 n = m_pre_offset, v = vec2(-n.y, n.x);
-      float r, lambda;
-      lambda = -sign(dot(v, m_auxilary_offset));
-      r = (dot(m_pre_offset, m_auxilary_offset) - 1.0) / dot(v, m_auxilary_offset);
-      final_position = m_position + stroke_radius * lambda * (n0 - r * v0)
-      \endcode
-      The value r in the above represents the (signed) miter distance,
-      if there is a miter limit M, then r must be clamped to [-M,M].
+      Gives the offset vector used to help compute
+      the point offset vector.
     */
     vec2 m_pre_offset;
 
     /*!
       Provides an auxilary offset data, used ONLY for
-      miter_join_point points.
+      StrokedPath::miter_join_point points.
      */
     vec2 m_auxilary_offset;
 
@@ -160,20 +158,99 @@ public:
     unsigned int m_depth;
 
     /*!
-      Provides the point type for the point.
-      The value is one of the enumerations of
-      point_type_t. NOTE: if a point comes from
-      the geometry of an edge, it is always the
-      value edge_point; it takes on other values
-      for those points of those joins/caps that
-      are not the geometry of the edge. In particular,
-      since bevel joins do not add any points,
-      there is no enumeration with for bevel joins.
+      Tag is a bit field where
+       - m_tag & point_type_mask gives the value to point_type()
+       - m_tag & normal0_y_sign_mask up if the y-component of n0 vector is negative (rounded join points only)
+       - m_tag & normal1_y_sign_mask up if the y-component of n1 vector is negative (rounded join points only)
+       - m_tag & sin_sign_mask  up if the y-component of sin value is negative (rounded join points only)
      */
-    enum point_type_t m_point_type;
+    uint32_t m_tag;
 
     /*!
-      When m_point_type is miter_join_point, returns the distance
+      Provides the point type for the point. The value is one of the
+      enumerations of StrokedPath::point_type_t. NOTE: if a point comes
+      from the geometry of an edge, it is always the value
+      StrokedPath::edge_point; it takes on other values for those points
+      of those joins/caps that are not the geometry of the edge. In
+      particular, since bevel joins do not add any points, there is no
+      enumeration with for bevel joins.
+     */
+    enum point_type_t
+    point_type(void) const
+    {
+      return static_cast<enum point_type_t>(m_tag & point_type_mask);
+    }
+
+    /*!
+      Computes the offset vector for a point. The final position
+      of a point when stroking with a width of W is given by
+      \code
+      m_position + 0.5f * W * offset_vector().
+      \endcode
+      The computation for offset_vector() is as follows.
+      - For those with point_type() being StrokedPath::edge_point,
+        the offset is given by
+        \code
+        m_pre_offset
+        \endcode
+      - For those with point_type() being StrokedPath::square_cap_points,
+        the value is given by
+        \code
+        m_pre_offset + 0.5 * m_auxilary_offset
+        \endcode
+      - For those with point_type() being StrokedPath::miter_join_point,
+        the value is given by the following code
+        \code
+        vec2 n = m_pre_offset, v = vec2(-n.y(), n.x());
+        float r, lambda;
+        lambda = -sign(dot(v, m_auxilary_offset));
+        r = (dot(m_pre_offset, m_auxilary_offset) - 1.0) / dot(v, m_auxilary_offset);
+        //result:
+        offset = lambda * (n - r * v);
+        \endcode
+        To enfore a miter limit M, clamp the value r to [-M,M].
+      - For those with point_type() being StrokedPath::rounded_cap_point,
+        the value is given by the following code
+        \code
+        vec2 n(m_pre_offset), v(n.y(), -n.x());
+        \endcode
+        offset = m_auxilary_offset.x() * v + m_auxilary_offset.y() * n;
+      - For those with point_type() being StrokedPath::rounded_join_point,
+        the value is given by the following code
+        \code
+        vec2 cs;
+        cs.x() = m_auxilary_offset.x();
+        cs.y() = sqrt(1.0 - cs.x() * cs.x());
+        if(m_tag & sin_sign_mask)
+          cs.y() = -cs.y();
+        offset = cs
+        \endcode
+        The normal vector n0 is fetched with
+        \code
+        vec2 n0;
+        n0.x() = m_pre_offset.x();
+        n0.y() = sqrt(1.0 - n0.x() * n0.x());
+        if(m_tag & normal0_y_sign_mask)
+          n0.y() = - n0.y();
+        \endcode
+        and the normal vector n1 is fetched with
+        \code
+        vec2 n0;
+        n1.x() = m_pre_offset.y();
+        n1.y() = sqrt(1.0 - n1.x() * n0.x());
+        if(m_tag & normal1_y_sign_mask)
+          n1.y() = - n1.y();
+        \endcode
+        The normal vector n0 is the normal to the path of the
+        edge going into the join and n1 is the normal to the
+        edge going out from the join where both n0 and n1 are
+        so that they point to the "outside" of the stroke.
+     */
+    vec2
+    offset_vector(void);
+
+    /*!
+      When point_type() is miter_join_point, returns the distance
       to the miter point. For other point types, returns 0.0.
      */
     float

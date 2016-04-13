@@ -173,7 +173,7 @@ namespace
     int v;
     v = src.m_on_boundary + 1;
     assert(v >= 0);
-    dst.m_uint_attrib = fastuidraw::uvec4(src.m_depth, src.m_point_type, v, 0u);
+    dst.m_uint_attrib = fastuidraw::uvec4(src.m_depth, src.m_tag, v, 0u);
 
     return dst;
   }

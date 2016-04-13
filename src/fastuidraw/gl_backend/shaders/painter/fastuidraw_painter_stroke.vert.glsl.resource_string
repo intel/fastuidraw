@@ -27,7 +27,7 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
 
   /* Depending on the point type, we have a different way to produce offset
    */
-  switch(int(uint_attrib.y))
+  switch(int(uint_attrib.y & uint(fastuidraw_stroke_point_type_mask)))
     {
     case fastuidraw_stroke_miter_join_point:
       {
@@ -149,6 +149,37 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
          length will be different because the normals point in different
          directions).
        */
+    case fastuidraw_stroke_rounded_join_point:
+      {
+        vec2 n0, n1, cs;
+        float t;
+        n0 = fastuidraw_unpack_unit_vector(pre_offset.x, uint(fastuidraw_stroke_normal0_y_sign_mask) & uint_attrib.y);
+        n1 = fastuidraw_unpack_unit_vector(pre_offset.y, uint(fastuidraw_stroke_normal1_y_sign_mask) & uint_attrib.y);
+        cs = fastuidraw_unpack_unit_vector(auxilary_offset.x, uint(fastuidraw_stroke_sin_sign_mask) & uint_attrib.y);
+        t = auxilary_offset.y;
+        #ifdef FASTUIDRAW_STROKE_WIDTH_IN_PIXELS
+          {
+            float r0, r1, r;
+            vec3 clip_p, clip_n0, clip_n1;
+
+            clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+
+            clip_n0 = fastuidraw_item_matrix * vec3(n0, 0.0);
+            r0 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_n0);
+
+            clip_n1 = fastuidraw_item_matrix * vec3(n1, 0.0);
+            r1 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_n1);
+            r = mix(r0, r1, t);
+            offset = r * cs;
+            stroke_radius = 1.0;
+          }
+        #else
+          {
+            offset = cs;
+          }
+        #endif
+      }
+      break;
 
     case fastuidraw_stroke_rounded_cap_point:
       {
