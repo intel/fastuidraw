@@ -211,10 +211,10 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
 #ifdef FASTUIDRAW_GL_USE_GLES
     case oes_function:
       glCopyImageSubDataOES(srcName, srcTarget, srcLevel,
-                         srcX, srcY, srcZ,
-                         dstName, dstTarget, dstLevel,
-                         dstX, dstY, dstZ,
-                         width, height, depth);
+			    srcX, srcY, srcZ,
+			    dstName, dstTarget, dstLevel,
+			    dstX, dstY, dstZ,
+			    width, height, depth);
       break;
     case ext_function:
       glCopyImageSubDataEXT(srcName, srcTarget, srcLevel,
@@ -243,6 +243,9 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
 	for(int layer = 0, src_layer = srcZ, dst_layer = dstZ;
 	    layer < depth; ++layer, ++src_layer, ++dst_layer)
 	  {
+	    /* TODO: handle depth, stencil and depth/stencil textures
+	       correctly.
+	     */
 	    assert(src_layer == 0 || texture_is_layered(srcTarget));
 	    assert(dst_layer == 0 || texture_is_layered(dstTarget));
 	    set_color_attachment(GL_DRAW_FRAMEBUFFER, dstTarget, dstName, dst_layer, dstLevel);
