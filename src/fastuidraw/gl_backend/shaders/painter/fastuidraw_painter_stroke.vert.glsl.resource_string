@@ -37,7 +37,7 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
             vec2 n1 = auxilary_offset, v1 = vec2(n1.y, -n1.x);
             vec2 p0, p1, delta_p;
             vec3 clip_p, clip_offset;
-            float det, r, lambda;
+            float det, r, r0, r1, m, lambda;
 
             lambda = -sign(dot(v1, n0));
 
@@ -48,15 +48,15 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
              */
             clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
             clip_offset = fastuidraw_item_matrix * vec3(n0, 0.0);
-            r = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
-            p0 = position + r * n0;
+            r0 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+            p0 = position + r0 * n0;
 
             /* let p1 be p moved by n1 the named number of pixels.
              */
             clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
             clip_offset = fastuidraw_item_matrix * vec3(n1, 0.0);
-            r = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
-            p1 = position + r * n1;
+            r1 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+            p1 = position + r1 * n1;
 
             /* now compute where the lines L0 and L1 intersect
                where L0 = { p0 + s*v0 | s > 0}
@@ -67,18 +67,25 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
 
             if(det != 0.0)
               {
-                r = (v1.y * delta_p.x - v1.x * delta_p.y) / det;
+                m = (v1.y * delta_p.x - v1.x * delta_p.y) / det;
               }
             else
               {
-                r = 0.0;
+                m = 0.0;
               }
-            /* should enforce miter limit? The issue
-               is that it is not clear to what we scale
-               by..
-             */
 
-            offset = p0 + r * v0 - position;
+            /* miter limit; we have an itchy situation in that
+               we have two different stroke radii, r0 and r1.
+               we will take their maximum as the stroke radius
+               for enforcing the miter limit.
+             */
+            if(stroke_params.miter_limit >= 0.0)
+              {
+                r = max(r0, r1) * stroke_params.miter_limit;
+                m = clamp(m, -r, r);
+              }
+
+            offset = p0 + m * v0 - position;
             stroke_radius = 1.0;
           }
         #else
@@ -106,29 +113,60 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
       {
         #ifdef FASTUIDRAW_STROKE_WIDTH_IN_PIXELS
           {
-            vec3 clip_offset, clip_p;
-            float sx;
+            vec3 clip_offset0, clip_offset1, clip_p;
+            float s0, s1;
             /* we first move position by the needed
                number of pixels
             */
             clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
-            clip_offset = fastuidraw_item_matrix * vec3(auxilary_offset, 0.0);
-
-            sx = fastuidraw_compute_local_distance_from_pixel_distance(0.5 * stroke_radius, clip_p, clip_offset);
-            position += sx * auxilary_offset;
+            clip_offset0 = fastuidraw_item_matrix * vec3(auxilary_offset, 0.0);
+            s0 = fastuidraw_compute_local_distance_from_pixel_distance(0.5 * stroke_radius, clip_p, clip_offset0);
 
             /* now do for perpindicular
              */
-            clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
-            clip_offset = fastuidraw_item_matrix * vec3(pre_offset, 0.0);
-            stroke_radius = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
-            offset = pre_offset;
+            clip_p = fastuidraw_item_matrix * vec3(position + s0 * auxilary_offset, 1.0);
+            clip_offset1 = fastuidraw_item_matrix * vec3(pre_offset, 0.0);
+            s1 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset1);
+
+            stroke_radius = 1.0;
+            offset = s0 * auxilary_offset + s1 * pre_offset;
           }
         #else
           {
             offset = pre_offset + 0.5 * auxilary_offset;
           }
         #endif
+      }
+      break;
+
+      /* TODO: the pain for rounded joins and rounded caps for pixel width
+         stroking. The radii changes depending on the slope of the line
+         in screen space, but this is really /BAD/ since we get lumpy
+         rounded joins and caps. To tackle this, we need to instead
+         do the computation as an ellipsoid in local coordinates. This
+         means we need either the angle or (cos, sin). In addition for
+         rounded joins we also need both normals (this is because the
+         length will be different because the normals point in different
+         directions).
+       */
+
+    case fastuidraw_stroke_rounded_cap_point:
+      {
+        /* Up to sign, normal is the same on both sides, we use the normal
+           vector to determine the radius of the cap. The (cos, sin) data
+           for the cap is packed in auxilary_offset and the normal is
+           in pre_offset.
+         */
+        vec2 v = vec2(pre_offset.y, -pre_offset.x);
+        #ifdef FASTUIDRAW_STROKE_WIDTH_IN_PIXELS
+          {
+            vec3 clip_offset, clip_p;
+            clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+            clip_offset = fastuidraw_item_matrix * vec3(pre_offset, 0.0);
+            stroke_radius = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+          }
+        #endif
+        offset = auxilary_offset.x * v + auxilary_offset.y * pre_offset;
       }
       break;
 

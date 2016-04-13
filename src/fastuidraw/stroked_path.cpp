@@ -1443,11 +1443,11 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
       s = std::sin(theta);
       c = std::cos(theta);
       pts[vertex_offset].m_position = C.m_p;
-      pts[vertex_offset].m_pre_offset = c * C.m_n + s * C.m_v;
+      pts[vertex_offset].m_pre_offset = C.m_n;
+      pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(s, c);
       pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
       pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
       pts[vertex_offset].m_on_boundary = 1.0f;
-      pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
       pts[vertex_offset].m_point_type = fastuidraw::StrokedPath::rounded_cap_point;
     }
 

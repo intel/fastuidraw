@@ -4,23 +4,24 @@ fastuidraw_compute_local_distance_from_pixel_distance(in float pixel_distance,
                                                       in vec3 clip_offset)
 {
   vec2 zeta;
-  float return_value, normalized_dc;
+  float return_value, normalized_dc, length_zeta;
 
   zeta = vec2(clip_offset.x * clip_p.z - clip_offset.z * clip_p.x,
               clip_offset.y * clip_p.z - clip_offset.z * clip_p.y);
+  length_zeta = length(zeta);
 
-  /* Normalized device coordinates go from -1 to 1,
-     and a pixel is 1/fastuidraw_viewport_recip_pixels.x
-     (or fastuidraw_viewport_recip_pixels.y) thick.
-     Bad things happen to us if the transformation
-     coefficients from viewport coordinates to
-     window coordinates are not equal because the
-     notion of what the radius should is not clear
-     except for vertical and horizontal lines.
-     We CHEAT, as just always take the value
-     from fastuidraw_viewport_recip_pixels.x
+  /* Normalized device coordinate go from -1 to 1.0,
+     so multiply by 2
   */
-  normalized_dc = 2.0 * pixel_distance *  fastuidraw_viewport_recip_pixels.x;
+  normalized_dc = 2.0 * pixel_distance;
+
+  /* if zeta is vertical use fastuidraw_viewport_recip_pixels.x
+     and if zeta is horizontal we use fastuidraw_viewport_recip_pixel.y.
+     The below computation gives a sliding scale from these
+     extremes as the direction of zeta changes.
+   */
+  normalized_dc *= max(fastuidraw_viewport_recip_pixels.x * abs(zeta.x),
+                       fastuidraw_viewport_recip_pixels.y * abs(zeta.y)) / length_zeta;
 
   /* From where this formula comes. Our challenge is to give a stroking width
      in local (pre-projection) coordiantes from a stroking width of pixels.
@@ -59,7 +60,7 @@ fastuidraw_compute_local_distance_from_pixel_distance(in float pixel_distance,
      T(v,0)_y * T(p,1)_z - T(v,0)_z * T(p,1)_y)
   */
   return_value = normalized_dc * clip_p.z * clip_p.z;
-  return_value /= (normalized_dc * clip_p.z * clip_offset.z + length(zeta));
+  return_value /= (normalized_dc * clip_p.z * clip_offset.z + length_zeta);
 
   return return_value;
 }
