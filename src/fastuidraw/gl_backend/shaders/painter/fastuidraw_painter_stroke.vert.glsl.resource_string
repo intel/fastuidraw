@@ -120,7 +120,7 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
             */
             clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
             clip_offset0 = fastuidraw_item_matrix * vec3(auxilary_offset, 0.0);
-            s0 = fastuidraw_compute_local_distance_from_pixel_distance(0.5 * stroke_radius, clip_p, clip_offset0);
+            s0 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset0);
 
             /* now do for perpindicular
              */
@@ -139,16 +139,6 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
       }
       break;
 
-      /* TODO: the pain for rounded joins and rounded caps for pixel width
-         stroking. The radii changes depending on the slope of the line
-         in screen space, but this is really /BAD/ since we get lumpy
-         rounded joins and caps. To tackle this, we need to instead
-         do the computation as an ellipsoid in local coordinates. This
-         means we need either the angle or (cos, sin). In addition for
-         rounded joins we also need both normals (this is because the
-         length will be different because the normals point in different
-         directions).
-       */
     case fastuidraw_stroke_rounded_join_point:
       {
         vec2 n0, n1, cs;
@@ -188,16 +178,28 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
            for the cap is packed in auxilary_offset and the normal is
            in pre_offset.
          */
-        vec2 v = vec2(pre_offset.y, -pre_offset.x);
+        vec2 n = pre_offset, v = vec2(n.y, -n.x);
         #ifdef FASTUIDRAW_STROKE_WIDTH_IN_PIXELS
           {
-            vec3 clip_offset, clip_p;
+            vec3 clip_n, clip_v, clip_p;
+            vec2 tn = auxilary_offset;
+
             clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
-            clip_offset = fastuidraw_item_matrix * vec3(pre_offset, 0.0);
-            stroke_radius = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+
+            clip_v = fastuidraw_item_matrix * vec3(v, 0.0);
+            tn.x *= fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_v);
+
+            clip_n = fastuidraw_item_matrix * vec3(n, 0.0);
+            tn.y *= fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_n);
+
+            stroke_radius = 1.0;
+            offset = tn.x * v + tn.y * n;
+          }
+        #else
+          {
+            offset = auxilary_offset.x * v + auxilary_offset.y * pre_offset;
           }
         #endif
-        offset = auxilary_offset.x * v + auxilary_offset.y * pre_offset;
       }
       break;
 
