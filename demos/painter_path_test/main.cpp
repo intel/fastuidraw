@@ -174,7 +174,7 @@ private:
   bool m_force_square_viewport;
 
   bool m_fill_by_clipping;
-  vec2 m_shear;
+  vec2 m_shear, m_shear2;
   bool m_draw_grid;
 
   float m_angle;
@@ -243,6 +243,7 @@ painter_stroke_test(void):
   m_force_square_viewport(false),
   m_fill_by_clipping(false),
   m_shear(1.0f, 1.0f),
+  m_shear2(1.0f, 1.0f),
   m_draw_grid(false),
   m_angle(0.0f),
   m_grid_path_dirty(true)
@@ -255,8 +256,8 @@ painter_stroke_test(void):
             << "\tp: toggle stroke width in pixels or local coordinates\n"
             << "\t5: toggle drawing grid\n"
             << "\tq: reset shear to 1.0\n"
-            << "\tMoust 8: x-shear (hold ctrl to decrease)\n"
-            << "\tMoust 9: y-shear (hold ctrl to decrease)\n"
+            << "\tMoust 8: x-shear (hold ctrl to decrease, hold enter for shear2)\n"
+            << "\tMoust 9: y-shear (hold ctrl to decrease, hold enter for shear2)\n"
             << "\t0: Rotate left\n"
             << "\t9: Rotate right\n"
             << "\tv: toggle force square viewport\n"
@@ -338,15 +339,23 @@ update_cts_params(void)
       speed_shear = -speed_shear;
     }
 
+  vec2 *pshear(&m_shear);
+  const char *shear_txt = "";
+  if(keyboard_state[SDL_SCANCODE_RETURN])
+    {
+      pshear = &m_shear2;
+      shear_txt = "2";
+    }
+
   if(mouse_mask & SDL_BUTTON(8))
     {
-      m_shear.x() += speed_shear;
-      std::cout << "Shear set to: " << m_shear << "\n";
+      pshear->x() += speed_shear;
+      std::cout << "Shear" << shear_txt << " set to: " << *pshear << "\n";
     }
   if(mouse_mask & SDL_BUTTON(9))
     {
-      m_shear.y() += speed_shear;
-      std::cout << "Shear set to: " << m_shear << "\n";
+      pshear->y() += speed_shear;
+      std::cout << "Shear " << shear_txt << " set to: " << *pshear << "\n";
     }
 
   if(keyboard_state[SDL_SCANCODE_9])
@@ -617,7 +626,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_q:
-          m_shear = vec2(1.0f, 1.0f);
+          m_shear = m_shear2 = vec2(1.0f, 1.0f);
           break;
 
         case SDLK_p:
@@ -804,7 +813,6 @@ construct_path(void)
         }
     }
 
-
   m_path << vec2(300.0f, 300.0f)
          << Path::end()
          << vec2(50.0f, 35.0f)
@@ -878,7 +886,7 @@ draw_frame(void)
 
   update_cts_params();
 
-  glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+  glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   /* draw grid using painter.
@@ -900,6 +908,7 @@ draw_frame(void)
                         << vec2(wh.x(), y)
                         << Path::end();
             }
+          m_grid_path_dirty = false;
           m_grid_path.swap(grid_path);
         }
 
@@ -911,10 +920,11 @@ draw_frame(void)
       m_painter->brush().pen(1.0f, 1.0f, 1.0f, 1.0f);
       PainterState::StrokeParams st;
       st.miter_limit(-1.0f);
-      st.width(4.0f);
-      m_painter->stroke_path_pixel_width(m_grid_path,
-                                         PainterEnums::no_caps, PainterEnums::no_joins,
-                                         false);
+      st.width(2.0f);
+      m_painter->vertex_shader_data(st);
+      m_painter->stroke_path(m_grid_path,
+                             PainterEnums::no_caps, PainterEnums::no_joins,
+                             false);
       m_painter->end();
   }
 
@@ -954,6 +964,10 @@ draw_frame(void)
   /* apply rotation
    */
   m_painter->rotate(m_angle * M_PI / 180.0f);
+
+  /* apply shear2
+   */
+  m_painter->shear(m_shear2.x(), m_shear2.y());
 
   if(m_clipping_window)
     {
