@@ -174,8 +174,14 @@ private:
   bool m_force_square_viewport;
 
   bool m_fill_by_clipping;
+  vec2 m_shear;
+  bool m_draw_grid;
+
+  float m_angle;
 
   simple_time m_draw_timer;
+  Path m_grid_path;
+  bool m_grid_path_dirty;
 };
 
 //////////////////////////////////////
@@ -233,9 +239,13 @@ painter_stroke_test(void):
   m_clipping_window(false),
   m_stroke_aa(true),
   m_wire_frame(false),
-  m_stroke_width_in_pixels(false),
-  m_force_square_viewport(true),
-  m_fill_by_clipping(false)
+  m_stroke_width_in_pixels(true),
+  m_force_square_viewport(false),
+  m_fill_by_clipping(false),
+  m_shear(1.0f, 1.0f),
+  m_draw_grid(false),
+  m_angle(0.0f),
+  m_grid_path_dirty(true)
 {
   std::cout << "Controls:\n"
             << "\tj: cycle through join styles for stroking\n"
@@ -243,6 +253,12 @@ painter_stroke_test(void):
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\t]: increase stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\tp: toggle stroke width in pixels or local coordinates\n"
+            << "\t5: toggle drawing grid\n"
+            << "\tq: reset shear to 1.0\n"
+            << "\tMoust 8: x-shear (hold ctrl to decrease)\n"
+            << "\tMoust 9: y-shear (hold ctrl to decrease)\n"
+            << "\t0: Rotate left\n"
+            << "\t9: Rotate right\n"
             << "\tv: toggle force square viewport\n"
             << "\tb: decrease miter limit(hold left-shift for slower rate and right shift for faster)\n"
             << "\tn: increase miter limit(hold left-shift for slower rate and right shift for faster)\n"
@@ -302,7 +318,10 @@ update_cts_params(void)
   const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
   assert(keyboard_state != NULL);
 
-  float speed = static_cast<float>(m_draw_timer.restart());
+  float speed = static_cast<float>(m_draw_timer.restart()), speed_stroke, speed_shear;
+  Uint32 mouse_mask = SDL_GetMouseState(NULL, NULL);
+
+  speed *= m_change_stroke_width_rate.m_value;
 
   if(keyboard_state[SDL_SCANCODE_LSHIFT])
     {
@@ -313,20 +332,50 @@ update_cts_params(void)
       speed *= 10.0f;
     }
 
-  speed *= m_change_stroke_width_rate.m_value;
+  speed_shear = 0.1f * speed;
+  if(keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL])
+    {
+      speed_shear = -speed_shear;
+    }
+
+  if(mouse_mask & SDL_BUTTON(8))
+    {
+      m_shear.x() += speed_shear;
+      std::cout << "Shear set to: " << m_shear << "\n";
+    }
+  if(mouse_mask & SDL_BUTTON(9))
+    {
+      m_shear.y() += speed_shear;
+      std::cout << "Shear set to: " << m_shear << "\n";
+    }
+
+  if(keyboard_state[SDL_SCANCODE_9])
+    {
+      m_angle += speed;
+      std::cout << "Angle set to: " << m_angle << "\n";
+    }
+  if(keyboard_state[SDL_SCANCODE_0])
+    {
+      m_angle -= speed;
+      std::cout << "Angle set to: " << m_angle << "\n";
+    }
+
+  speed_stroke = speed;
   if(!m_stroke_width_in_pixels)
     {
-      speed /= m_zoomer.transformation().scale();
+      speed_stroke /= m_zoomer.transformation().scale();
     }
 
   if(keyboard_state[SDL_SCANCODE_RIGHTBRACKET])
     {
-      m_stroke_width += speed;
+      m_grid_path_dirty = true;
+      m_stroke_width += speed_stroke;
     }
 
-  if(keyboard_state[SDL_SCANCODE_LEFTBRACKET])
+  if(keyboard_state[SDL_SCANCODE_LEFTBRACKET] && m_stroke_width > 0.0f)
     {
-      m_stroke_width -= speed;
+      m_grid_path_dirty = true;
+      m_stroke_width -= speed_stroke;
       m_stroke_width = fastuidraw::t_max(m_stroke_width, 0.0f);
     }
 
@@ -555,6 +604,22 @@ handle_event(const SDL_Event &ev)
           std::cout << "Anti-aliasing stroking = " << m_stroke_aa << "\n";
           break;
 
+        case SDLK_5:
+          m_draw_grid = !m_draw_grid;
+          if(m_draw_grid)
+            {
+              std::cout << "Draw grid\n";
+            }
+          else
+            {
+              std::cout << "Don't draw grid\n";
+            }
+          break;
+
+        case SDLK_q:
+          m_shear = vec2(1.0f, 1.0f);
+          break;
+
         case SDLK_p:
           m_stroke_width_in_pixels = !m_stroke_width_in_pixels;
           if(m_stroke_width_in_pixels)
@@ -755,9 +820,11 @@ construct_path(void)
          << vec2(400.0f, 400.0f)
          << vec2(200.0f, 400.0f)
          << Path::end()
-         << vec2(0.0f, 300.0f)
+         << vec2(-50.0f, 100.0f)
+         << vec2(0.0f, 200.0f)
          << vec2(100.0f, 300.0f)
-         << vec2(50.0f, 250.0f)
+         << vec2(150.0f, 325.0f)
+         << vec2(150.0f, 100.0f)
          << Path::end();
 }
 
@@ -807,17 +874,53 @@ void
 painter_stroke_test::
 draw_frame(void)
 {
-  update_cts_params();
-  glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
-
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  enable_wire_frame(m_wire_frame);
-
-  m_painter->begin();
-
   ivec2 wh(dimensions());
-  float3x3 m;
 
+  update_cts_params();
+
+  glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  /* draw grid using painter.
+   */
+  if(m_draw_grid && m_stroke_width_in_pixels && m_stroke_width > 0.0f)
+    {
+      if(m_grid_path_dirty)
+        {
+          Path grid_path;
+          for(float x = 0, endx = wh.x(); x < endx; x += m_stroke_width)
+            {
+              grid_path << vec2(x, 0.0f)
+                        << vec2(x, wh.y())
+                        << Path::end();
+            }
+          for(float y = 0, endy = wh.y(); y < endy; y += m_stroke_width)
+            {
+              grid_path << vec2(0.0f, y)
+                        << vec2(wh.x(), y)
+                        << Path::end();
+            }
+          m_grid_path.swap(grid_path);
+        }
+
+      enable_wire_frame(false);
+      m_painter->begin();
+      on_resize(wh.x(), wh.y());
+      float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));
+      m_painter->transformation(proj);
+      m_painter->brush().pen(1.0f, 1.0f, 1.0f, 1.0f);
+      PainterState::StrokeParams st;
+      st.miter_limit(-1.0f);
+      st.width(4.0f);
+      m_painter->stroke_path_pixel_width(m_grid_path,
+                                         PainterEnums::no_caps, PainterEnums::no_joins,
+                                         false);
+      m_painter->end();
+  }
+
+
+  enable_wire_frame(m_wire_frame);
+  m_painter->begin();
   if(m_force_square_viewport)
     {
       int d;
@@ -831,16 +934,26 @@ draw_frame(void)
          bottom is wh.y().
       */
       float3x3 proj(float_orthogonal_projection_params(0, d, wh.y(), wh.y() - d));
-      m = proj * m_zoomer.transformation().matrix3();
+      m_painter->transformation(proj);
     }
   else
     {
       on_resize(wh.x(), wh.y());
       float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));
-      m = proj * m_zoomer.transformation().matrix3();
+      m_painter->transformation(proj);
     }
 
-  m_painter->transformation(m);
+  /* apply m_zoomer
+   */
+  m_painter->concat(m_zoomer.transformation().matrix3());
+
+  /* apply shear
+   */
+  m_painter->shear(m_shear.x(), m_shear.y());
+
+  /* apply rotation
+   */
+  m_painter->rotate(m_angle * M_PI / 180.0f);
 
   if(m_clipping_window)
     {
