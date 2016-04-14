@@ -468,6 +468,20 @@ public:
   ~Path();
 
   /*!
+    Assignment operator
+    \param rhs value from which to assign.
+   */
+  const Path&
+  operator=(const Path &rhs);
+
+  /*!
+    Swap contents of Path with another Path
+    \param obj Path with which to swap
+   */
+  void
+  swap(Path &obj);
+
+  /*!
     Create an arc but specify the angle in degrees.
     \param angle angle of arc in degrees
     \param pt point to which to arc
