@@ -85,6 +85,12 @@ namespace
     fastuidraw::uvec2 m_data;
   };
 
+  class PerOutlineData
+  {
+  public:
+    std::vector<fastuidraw::vec2> m_edge_begin_normal, m_edge_end_normal;
+    fastuidraw::vec2 m_begin_cap_normal, m_end_cap_normal;
+  };
 
   class EdgeDataCreator
   {
@@ -93,8 +99,7 @@ namespace
 
     EdgeDataCreator(const fastuidraw::TessellatedPath &P):
       m_P(P),
-      m_outline_begin_cap_normal(m_P.number_outlines()),
-      m_outline_end_cap_normal(m_P.number_outlines())
+      m_per_outline_data(m_P.number_outlines())
     {
       compute_size();
     }
@@ -110,16 +115,10 @@ namespace
               fastuidraw::c_array<unsigned int> indices,
               unsigned int &pre_close_depth, unsigned int &close_depth);
 
-    const fastuidraw::vec2&
-    outline_begin_cap_normal(unsigned int outline) const
+    const PerOutlineData&
+    per_outline_data(unsigned int outline) const
     {
-      return m_outline_begin_cap_normal[outline];
-    }
-
-    const fastuidraw::vec2&
-    outline_end_cap_normal(unsigned int outline) const
-    {
-      return m_outline_end_cap_normal[outline];
+      return m_per_outline_data[outline];
     }
 
   private:
@@ -140,8 +139,7 @@ namespace
     PointIndexSize m_size;
     const fastuidraw::TessellatedPath &m_P;
     fastuidraw::vec2 m_prev_normal;
-    std::vector<fastuidraw::vec2> m_outline_begin_cap_normal;
-    std::vector<fastuidraw::vec2> m_outline_end_cap_normal;
+    std::vector<PerOutlineData> m_per_outline_data;
   };
 
   class JoinCount
@@ -160,6 +158,11 @@ namespace
     CommonJoinData(const fastuidraw::TessellatedPath::point &p0,
                    const fastuidraw::TessellatedPath::point &p1);
 
+    CommonJoinData(const fastuidraw::TessellatedPath::point &p0,
+                   const fastuidraw::vec2 &n0,
+                   const fastuidraw::TessellatedPath::point &p1,
+                   const fastuidraw::vec2 &n1);
+
     float m_det, m_lambda;
     fastuidraw::vec2 m_p0, m_v0, m_n0;
     fastuidraw::vec2 m_p1, m_v1, m_n1;
@@ -171,8 +174,10 @@ namespace
   {
   public:
     explicit
-    JoinCreatorBase(const fastuidraw::TessellatedPath &P):
+    JoinCreatorBase(const fastuidraw::TessellatedPath &P,
+                    const EdgeDataCreator &e):
       m_P(P),
+      m_e(e),
       m_size_ready(false)
     {}
 
@@ -197,6 +202,8 @@ namespace
     void
     add_join(unsigned int join_id,
              const fastuidraw::TessellatedPath &path,
+             const fastuidraw::vec2 &n0_from_stroking,
+             const fastuidraw::vec2 &n1_from_stroking,
              unsigned int outline, unsigned int edge,
              unsigned int &vert_count, unsigned int &index_count) = 0;
 
@@ -222,6 +229,7 @@ namespace
     compute_size(void);
 
     const fastuidraw::TessellatedPath &m_P;
+    const EdgeDataCreator &m_e;
     PointIndexSize m_size;
     bool m_size_ready;
   };
@@ -230,7 +238,8 @@ namespace
   class RoundedJoinCreator:public JoinCreatorBase
   {
   public:
-    RoundedJoinCreator(const fastuidraw::TessellatedPath &P);
+    RoundedJoinCreator(const fastuidraw::TessellatedPath &P,
+                       const EdgeDataCreator &e);
 
   private:
 
@@ -239,6 +248,8 @@ namespace
     public:
       PerJoinData(const fastuidraw::TessellatedPath::point &p0,
                   const fastuidraw::TessellatedPath::point &p1,
+                  const fastuidraw::vec2 &n0_from_stroking,
+                  const fastuidraw::vec2 &n1_from_stroking,
                   float curve_tessellation);
 
       void
@@ -256,6 +267,8 @@ namespace
     void
     add_join(unsigned int join_id,
              const fastuidraw::TessellatedPath &path,
+             const fastuidraw::vec2 &n0_from_stroking,
+             const fastuidraw::vec2 &n1_from_stroking,
              unsigned int outline, unsigned int edge,
              unsigned int &vert_count, unsigned int &index_count);
 
@@ -275,7 +288,8 @@ namespace
   {
   public:
     explicit
-    BevelJoinCreator(const fastuidraw::TessellatedPath &P);
+    BevelJoinCreator(const fastuidraw::TessellatedPath &P,
+                     const EdgeDataCreator &e);
 
   private:
 
@@ -283,6 +297,8 @@ namespace
     void
     add_join(unsigned int join_id,
              const fastuidraw::TessellatedPath &path,
+             const fastuidraw::vec2 &n0_from_stroking,
+             const fastuidraw::vec2 &n1_from_stroking,
              unsigned int outline, unsigned int edge,
              unsigned int &vert_count, unsigned int &index_count);
 
@@ -295,6 +311,8 @@ namespace
                         fastuidraw::c_array<unsigned int> indices,
                         unsigned int &vertex_offset, unsigned int &index_offset);
 
+    std::vector<fastuidraw::vec2> m_n0, m_n1;
+
   };
 
   class CommonCapData
@@ -305,23 +323,13 @@ namespace
                   const fastuidraw::vec2 &normal_from_stroking):
       m_is_start_cap(is_start_cap),
       m_p(src_pt.m_p),
-      m_v(src_pt.m_p_t)
+      m_n(normal_from_stroking)
     {
       //caps at the start are on the "other side"
       float lambda((is_start_cap) ? -1.0f : 1.0f);
-      float mag;
-
-      mag = m_v.magnitude();
-      if(mag < EdgeDataCreator::sm_mag_tol)
-        {
-          m_n = lambda * normal_from_stroking;
-          m_v = fastuidraw::vec2(m_n.y(), -m_n.x());
-        }
-      else
-        {
-          m_v *= (lambda / mag);
-          m_n = fastuidraw::vec2(-m_v.y(), m_v.x());
-        }
+      m_v = fastuidraw::vec2(m_n.y(), -m_n.x());
+      m_v *= lambda;
+      m_n *= lambda;
     }
 
     bool m_is_start_cap;
@@ -333,11 +341,9 @@ namespace
   {
   public:
     CapCreatorBase(const fastuidraw::TessellatedPath &P,
-                   PointIndexCapSize sz,
-                   enum fastuidraw::StrokedPath::point_type_t tp):
+                   PointIndexCapSize sz):
       m_P(P),
-      m_size(sz),
-      m_tp(tp)
+      m_size(sz)
     {}
 
     virtual
@@ -369,7 +375,6 @@ namespace
 
     const fastuidraw::TessellatedPath &m_P;
     PointIndexCapSize m_size;
-    enum fastuidraw::StrokedPath::point_type_t m_tp;
 
   };
 
@@ -377,8 +382,7 @@ namespace
   {
   public:
     RoundedCapCreator(const fastuidraw::TessellatedPath &P):
-      CapCreatorBase(P, compute_size(P),
-                     fastuidraw::StrokedPath::rounded_cap_point)
+      CapCreatorBase(P, compute_size(P))
     {
     }
 
@@ -404,8 +408,7 @@ namespace
   {
   public:
     SquareCapCreator(const fastuidraw::TessellatedPath &P):
-      CapCreatorBase(P, compute_size(P),
-                     fastuidraw::StrokedPath::square_cap_point)
+      CapCreatorBase(P, compute_size(P))
     {
     }
 
@@ -428,13 +431,16 @@ namespace
   {
   public:
     explicit
-    MiterJoinCreator(const fastuidraw::TessellatedPath &P);
+    MiterJoinCreator(const fastuidraw::TessellatedPath &P,
+                     const EdgeDataCreator &e);
 
   private:
     virtual
     void
     add_join(unsigned int join_id,
              const fastuidraw::TessellatedPath &path,
+             const fastuidraw::vec2 &n0_from_stroking,
+             const fastuidraw::vec2 &n1_from_stroking,
              unsigned int outline, unsigned int edge,
              unsigned int &vert_count, unsigned int &index_count);
 
@@ -446,6 +452,8 @@ namespace
                         fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
                         fastuidraw::c_array<unsigned int> indices,
                         unsigned int &vertex_offset, unsigned int &index_offset);
+
+    std::vector<fastuidraw::vec2> m_n0, m_n1;
   };
 
   void
@@ -693,6 +701,33 @@ CommonJoinData(const fastuidraw::TessellatedPath::point &p0,
     }
 }
 
+CommonJoinData::
+CommonJoinData(const fastuidraw::TessellatedPath::point &p0,
+               const fastuidraw::vec2 &n0,
+               const fastuidraw::TessellatedPath::point &p1,
+               const fastuidraw::vec2 &n1):
+  m_distance_from_edge_start(p0.m_distance_from_edge_start),
+  m_distance_from_outline_start(p1.m_distance_from_outline_start)
+{
+  m_p0 = p0.m_p;
+  m_n0 = n0;
+  m_v0 = fastuidraw::vec2(m_n0.y(), -m_n0.x());
+
+  m_p1 = p1.m_p;
+  m_n1 = n1;
+  m_v1 = fastuidraw::vec2(m_n1.y(), -m_n1.x());
+
+  m_det = fastuidraw::dot(m_v1, m_n0);
+  if(m_det > 0.0f)
+    {
+      m_lambda = -1.0f;
+    }
+  else
+    {
+      m_lambda = 1.0f;
+    }
+}
+
 ///////////////////////////////////////////////////
 // EdgeDataCreator methods
 void
@@ -701,6 +736,8 @@ compute_size(void)
 {
   for(unsigned int o = 0; o < m_P.number_outlines(); ++o)
     {
+      m_per_outline_data[o].m_edge_begin_normal.resize(m_P.number_edges(o), fastuidraw::vec2(999,999));
+      m_per_outline_data[o].m_edge_end_normal.resize(m_P.number_edges(o), fastuidraw::vec2(111,111));
       for(unsigned int e = 0; e < m_P.number_edges(o); ++e)
         {
           fastuidraw::range_type<unsigned int> R;
@@ -710,24 +747,25 @@ compute_size(void)
 
           /* Each sub-edge of the tessellation produces -6- points:
              (p,n), (p,-n), (p, 0),
-             (p_next, n_next), (p_next, -n_next), (p_next, n_next), (p_next, 0)
+             (p_next, -n), (p_next, n), (p_next, 0)
 
-             Also each edge introduces one extra vertex pair for
-             the bevel join (this can be optimized to one vertex
-             actually).
+             where n = J(v), v = (p - p_next) / || p-p_next ||
 
-             Each sub-edge has a 2 quads (12 indices) and one
-             triangle for a total of 15 indices
+             There are 5 triangles:
+               4 triangles for the 2 quads formed from the 6 points
+               1 triangle for the bevel-like join between the two quads
+               However, the last triangle is not present on the last
+               edge segment.
           */
           if(e + 1 == m_P.number_edges(o))
             {
-              m_size.close_verts() += 2 + 6 * ((R.m_end - R.m_begin) - 1);
-              m_size.close_indices() += 15 * ((R.m_end - R.m_begin) - 1);
+              m_size.close_verts() += 6 * ((R.m_end - R.m_begin) - 1);
+              m_size.close_indices() += 15 * ((R.m_end - R.m_begin) - 1) - 3;
             }
           else
             {
-              m_size.pre_close_verts() += 2 + 6 * ((R.m_end - R.m_begin) - 1);
-              m_size.pre_close_indices() += 15 * ((R.m_end - R.m_begin) - 1);
+              m_size.pre_close_verts() += 6 * ((R.m_end - R.m_begin) - 1);
+              m_size.pre_close_indices() += 15 * ((R.m_end - R.m_begin) - 1) - 3;
             }
         }
     }
@@ -743,118 +781,105 @@ add_edge(unsigned int o, unsigned int e,
 {
   fastuidraw::range_type<unsigned int> R;
   fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts(m_P.point_data());
+  fastuidraw::vec2 normal(1.0f, 0.0f);
 
   R = m_P.edge_range(o, e);
   assert(R.m_end > R.m_begin);
 
-  for(unsigned int i = R.m_begin, s = 0; i < R.m_end; ++i, ++s, ++depth)
+  for(unsigned int i = R.m_begin; i + 1 < R.m_end; ++i, ++depth)
     {
-      fastuidraw::vec2 normal;
-      float normal_mag;
+      /* for the edge connecting src_pts[i] to src_pts[i+1]
+       */
+      fastuidraw::vec2 delta;
 
-      normal = fastuidraw::vec2(src_pts[i].m_p_t.y(), -src_pts[i].m_p_t.x());
-      normal_mag = normal.magnitude();
-      if(normal_mag < sm_mag_tol)
+      delta = src_pts[i+1].m_p - src_pts[i].m_p;
+      if(delta.magnitudeSq() >= sm_mag_tol * sm_mag_tol)
         {
-          normal = m_prev_normal;
+          normal = fastuidraw::vec2(-delta.y(), delta.x());
         }
       else
         {
-          normal /= normal_mag;
+          if(src_pts[i].m_p_t.magnitudeSq() >= sm_mag_tol * sm_mag_tol)
+            {
+              normal = fastuidraw::vec2(-src_pts[i].m_p_t.y(), src_pts[i].m_p_t.x());
+            }
         }
+      normal.normalize();
 
-      if(e == 0 && i == R.m_begin)
+      if(i == R.m_begin)
         {
-          m_outline_begin_cap_normal[o] = normal;
+          m_per_outline_data[o].m_edge_begin_normal[e] = normal;
+          if(e == 0)
+            {
+              m_per_outline_data[o].m_begin_cap_normal = normal;
+            }
         }
 
-      if(e + 1 == m_P.number_edges(o) && (i+1) == R.m_end)
+      int boundary_values[3] =
         {
-          m_outline_end_cap_normal[o] = normal;
-        }
+          1,
+          1,
+          0,
+        };
 
-      /* the last vertex of an edge does not make a quad.
+      float normal_sign[3] =
+        {
+          1.0f,
+          -1.0f,
+          0.0f,
+        };
+
+      /* The quad is:
+         (p, n, delta,  1),
+         (p,-n, delta,  1),
+         (p, 0,     0,  0),
+         (p_next,  n, -delta, -1),
+         (p_next, -n, -delta, -1),
+         (p_next,  0, 0)
+
+         Notice that we are encoding if it is
+         start or end of edge from the sign of
+         m_on_boundary.
        */
-      if(i + 1 != R.m_end)
+      for(unsigned int k = 0; k < 3; ++k)
         {
-          fastuidraw::vec2 next_normal;
-          float next_normal_mag;
+          pts[vert_offset + k].m_position = src_pts[i].m_p;
+          pts[vert_offset + k].m_distance_from_edge_start = src_pts[i].m_distance_from_edge_start;
+          pts[vert_offset + k].m_distance_from_outline_start = src_pts[i].m_distance_from_outline_start;
+          pts[vert_offset + k].m_depth = depth;
+          pts[vert_offset + k].m_pre_offset = normal_sign[k] * normal;
+          pts[vert_offset + k].m_auxilary_offset = delta;
+          pts[vert_offset + k].m_on_boundary = boundary_values[k];
 
-          next_normal = fastuidraw::vec2(src_pts[i+1].m_p_t.y(), -src_pts[i+1].m_p_t.x());
-          next_normal_mag = next_normal.magnitude();
-          if(next_normal_mag < sm_mag_tol)
-            {
-              next_normal = normal;
-            }
-          else
-            {
-              next_normal /= next_normal_mag;
-            }
+          pts[vert_offset + k + 3].m_position = src_pts[i+1].m_p;
+          pts[vert_offset + k + 3].m_distance_from_edge_start = src_pts[i+1].m_distance_from_edge_start;
+          pts[vert_offset + k + 3].m_distance_from_outline_start = src_pts[i+1].m_distance_from_outline_start;
+          pts[vert_offset + k + 3].m_depth = depth;
+          pts[vert_offset + k + 3].m_pre_offset = normal_sign[k] * normal;
+          pts[vert_offset + k + 3].m_auxilary_offset = -delta;
+          pts[vert_offset + k + 3].m_on_boundary = -boundary_values[k];
+        }
 
-          for(unsigned int k = 0; k < 3; ++k)
-            {
-              pts[vert_offset + k].m_position = src_pts[i].m_p;
-              pts[vert_offset + k].m_distance_from_edge_start = src_pts[i].m_distance_from_edge_start;
-              pts[vert_offset + k].m_distance_from_outline_start = src_pts[i].m_distance_from_outline_start;
-              pts[vert_offset + k].m_depth = depth;
+      indices[index_offset + 0] = vert_offset + 0;
+      indices[index_offset + 1] = vert_offset + 2;
+      indices[index_offset + 2] = vert_offset + 5;
+      indices[index_offset + 3] = vert_offset + 0;
+      indices[index_offset + 4] = vert_offset + 5;
+      indices[index_offset + 5] = vert_offset + 3;
 
-              pts[vert_offset + k + 3].m_position = src_pts[i+1].m_p;
-              pts[vert_offset + k + 3].m_distance_from_edge_start = src_pts[i+1].m_distance_from_edge_start;
-              pts[vert_offset + k + 3].m_distance_from_outline_start = src_pts[i+1].m_distance_from_outline_start;
-              pts[vert_offset + k + 3].m_depth = depth;
-            }
+      indices[index_offset + 6] = vert_offset + 2;
+      indices[index_offset + 7] = vert_offset + 1;
+      indices[index_offset + 8] = vert_offset + 4;
+      indices[index_offset + 9] = vert_offset + 2;
+      indices[index_offset + 10] = vert_offset + 4;
+      indices[index_offset + 11] = vert_offset + 5;
+      index_offset += 12;
 
-          pts[vert_offset + 0].m_auxilary_offset = pts[vert_offset + 0].m_pre_offset = normal;
-          pts[vert_offset + 1].m_auxilary_offset = pts[vert_offset + 1].m_pre_offset = -normal;
-          pts[vert_offset + 2].m_auxilary_offset = pts[vert_offset + 2].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
-
-          if(i + 2 != R.m_end)
-            {
-              pts[vert_offset + 3].m_pre_offset = normal;
-              pts[vert_offset + 3].m_auxilary_offset = next_normal;
-
-              pts[vert_offset + 4].m_pre_offset = -normal;
-              pts[vert_offset + 4].m_auxilary_offset = -next_normal;
-            }
-          else
-            {
-              pts[vert_offset + 3].m_auxilary_offset = pts[vert_offset + 3].m_pre_offset = next_normal;
-              pts[vert_offset + 4].m_auxilary_offset = pts[vert_offset + 4].m_pre_offset = -next_normal;
-            }
-          pts[vert_offset + 5].m_auxilary_offset = pts[vert_offset + 5].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
-
-          pts[vert_offset + 0].m_on_boundary = 1.0f;
-          pts[vert_offset + 1].m_on_boundary = -1.0f;
-          pts[vert_offset + 2].m_on_boundary = 0.0f;
-          pts[vert_offset + 3].m_on_boundary = 1.0f;
-          pts[vert_offset + 4].m_on_boundary = -1.0f;
-          pts[vert_offset + 5].m_on_boundary = 0.0f;
-
-
-          indices[index_offset + 0] = vert_offset + 0;
-          indices[index_offset + 1] = vert_offset + 2;
-          indices[index_offset + 2] = vert_offset + 5;
-
-          indices[index_offset + 3] = vert_offset + 0;
-          indices[index_offset + 4] = vert_offset + 5;
-          indices[index_offset + 5] = vert_offset + 3;
-
-          indices[index_offset + 6] = vert_offset + 2;
-          indices[index_offset + 7] = vert_offset + 1;
-          indices[index_offset + 8] = vert_offset + 4;
-
-          indices[index_offset + 9] = vert_offset + 2;
-          indices[index_offset + 10] = vert_offset + 4;
-          indices[index_offset + 11] = vert_offset + 5;
-
-          /* we need to figure out which vertex from the
-             next to take for the bevel, this is the
-             same computation as needed for doing bevel
-             joins.
-           */
+      if(i + 2 != R.m_end)
+        {
           CommonJoinData CJ(src_pts[i], src_pts[i+1]);
           unsigned int offset;
-          if(CJ.m_lambda < 0.0f)
+          if(CJ.m_lambda > 0.0f)
             {
               //take side with n as negative
               offset = 0;
@@ -865,63 +890,32 @@ add_edge(unsigned int o, unsigned int e,
               offset = 1;
             }
 
-          indices[index_offset + 12] = vert_offset + 5;
-          indices[index_offset + 13] = vert_offset + offset + 3;
-          indices[index_offset + 14] = vert_offset + offset + 6;
-
-          index_offset += 15;
-          vert_offset += 6;
+          indices[index_offset + 0] = vert_offset + 5;
+          indices[index_offset + 1] = vert_offset + offset + 3;
+          indices[index_offset + 2] = vert_offset + offset + 6;
+          index_offset += 3;
         }
-      else
-        {
-          for(unsigned int k = 0; k < 2; ++k)
-            {
-              pts[vert_offset + k].m_position = src_pts[i].m_p;
-              pts[vert_offset + k].m_distance_from_edge_start = src_pts[i].m_distance_from_edge_start;
-              pts[vert_offset + k].m_distance_from_outline_start = src_pts[i].m_distance_from_outline_start;
-              pts[vert_offset + k].m_depth = depth;
-              pts[vert_offset + k].m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-            }
-
-          pts[vert_offset + 0].m_pre_offset = normal;
-          pts[vert_offset + 1].m_pre_offset = -normal;
-
-          pts[vert_offset + 0].m_on_boundary = 1.0f;
-          pts[vert_offset + 1].m_on_boundary = -1.0f;
-
-          vert_offset += 2;
-        }
-      m_prev_normal = normal;
+      vert_offset += 6;
     }
-}
 
-void
-EdgeDataCreator::
-init_prev_normal(unsigned int outline)
-{
-  m_prev_normal = fastuidraw::vec2(1.0f, 0.0f);
-
-  /* we need to initialize m_prev_normal
-     intelligently for the named outline.
-     Basic idea: walk backwars through
-     the outline until a "large" enough
-     tangent vector is found
-   */
-  for(fastuidraw::const_c_array<fastuidraw::TessellatedPath::point>::const_reverse_iterator
-        iter = m_P.outline_point_data(outline).rbegin(),
-        end = m_P.outline_point_data(outline).rend();
-      iter != end; ++iter)
+  if(R.m_begin + 1 >= R.m_end)
     {
-      float mag;
-      mag = iter->m_p_t.magnitude();
-      if(mag >= sm_mag_tol)
+      normal = fastuidraw::vec2(-src_pts[R.m_begin].m_p_t.y(), src_pts[R.m_begin].m_p_t.x());
+      normal.normalize();
+      m_per_outline_data[o].m_edge_begin_normal[e] = normal;
+      if(e == 0)
         {
-          m_prev_normal = iter->m_p_t / mag;
-          return;
+          m_per_outline_data[o].m_begin_cap_normal = normal;
         }
     }
 
+  m_per_outline_data[o].m_edge_end_normal[e] = normal;
+  if(e + 2 == m_P.number_edges(o))
+    {
+      m_per_outline_data[o].m_end_cap_normal = normal;
+    }
 }
+
 
 void
 EdgeDataCreator::
@@ -939,7 +933,6 @@ fill_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
   set_point_type_to_edge_point(pts);
   for(unsigned int o = 0; o < m_P.number_outlines(); ++o)
     {
-      init_prev_normal(o);
       for(unsigned int e = 0; e < m_P.number_edges(o); ++e)
         {
           if(e + 1 == m_P.number_edges(o))
@@ -991,15 +984,24 @@ compute_size(void)
         {
           for(unsigned int e = 1; e + 1 < m_P.number_edges(o); ++e, ++join_id)
             {
-              add_join(join_id, m_P, o, e, m_size.pre_close_verts(), m_size.pre_close_indices());
+              add_join(join_id, m_P,
+                       m_e.per_outline_data(o).m_edge_end_normal[e - 1],
+                       m_e.per_outline_data(o).m_edge_begin_normal[e],
+                       o, e, m_size.pre_close_verts(), m_size.pre_close_indices());
             }
 
           if(m_P.number_edges(o) >= 2)
             {
-              add_join(join_id, m_P, o, m_P.number_edges(o) - 1,
+              add_join(join_id, m_P,
+                       m_e.per_outline_data(o).m_edge_end_normal[m_P.number_edges(o) - 2],
+                       m_e.per_outline_data(o).m_edge_begin_normal[m_P.number_edges(o) - 1],
+                       o, m_P.number_edges(o) - 1,
                        m_size.close_verts(), m_size.close_indices());
 
-              add_join(join_id + 1, m_P, o, m_P.number_edges(o),
+              add_join(join_id + 1, m_P,
+                       m_e.per_outline_data(o).m_edge_end_normal.back(),
+                       m_e.per_outline_data(o).m_edge_begin_normal.front(),
+                       o, m_P.number_edges(o),
                        m_size.close_verts(), m_size.close_indices());
 
               join_id += 2;
@@ -1084,8 +1086,10 @@ fill_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
 RoundedJoinCreator::PerJoinData::
 PerJoinData(const fastuidraw::TessellatedPath::point &p0,
             const fastuidraw::TessellatedPath::point &p1,
+            const fastuidraw::vec2 &n0_from_stroking,
+            const fastuidraw::vec2 &n1_from_stroking,
             float curve_tessellation):
-  CommonJoinData(p0, p1)
+  CommonJoinData(p0, n0_from_stroking, p1, n1_from_stroking)
 {
   /* n0z represents the start point of the rounded join in the complex plane
      as if the join was at the origin, n1z represents the end point of the
@@ -1125,7 +1129,7 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
   pts[vertex_offset].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = m_distance_from_outline_start;
-  pts[vertex_offset].m_on_boundary = 0.0f;
+  pts[vertex_offset].m_on_boundary = 0;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::edge_point;
   ++vertex_offset;
@@ -1134,7 +1138,7 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
   pts[vertex_offset].m_pre_offset = m_lambda * m_n0;
   pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = m_distance_from_outline_start;
-  pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::edge_point;
   ++vertex_offset;
@@ -1181,14 +1185,14 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
 
       pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
       pts[vertex_offset].m_distance_from_outline_start = m_distance_from_outline_start;
-      pts[vertex_offset].m_on_boundary = 1.0f;
+      pts[vertex_offset].m_on_boundary = 1;
     }
 
   pts[vertex_offset].m_position = m_p1;
   pts[vertex_offset].m_pre_offset = m_lambda * m_n1;
   pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = m_distance_from_outline_start;
-  pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::edge_point;
   ++vertex_offset;
@@ -1205,8 +1209,9 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
 ///////////////////////////////////////////////////
 // RoundedJoinCreator methods
 RoundedJoinCreator::
-RoundedJoinCreator(const fastuidraw::TessellatedPath &P):
-  JoinCreatorBase(P)
+RoundedJoinCreator(const fastuidraw::TessellatedPath &P,
+                   const EdgeDataCreator &e):
+  JoinCreatorBase(P, e)
 {
   JoinCount J(P);
   m_per_join_data.reserve(J.m_number_close_joins + J.m_number_non_close_joins);
@@ -1216,6 +1221,8 @@ void
 RoundedJoinCreator::
 add_join(unsigned int join_id,
          const fastuidraw::TessellatedPath &path,
+         const fastuidraw::vec2 &n0_from_stroking,
+         const fastuidraw::vec2 &n1_from_stroking,
          unsigned int outline, unsigned int edge,
          unsigned int &vert_count, unsigned int &index_count)
 {
@@ -1238,7 +1245,8 @@ add_join(unsigned int join_id,
 
   const fastuidraw::TessellatedPath::point p0(src_pts[R0.m_end - 1]);
   const fastuidraw::TessellatedPath::point p1(src_pts[R1.m_begin]);
-  PerJoinData J(p0, p1, path.tessellation_parameters().m_curve_tessellation);
+  PerJoinData J(p0, p1, n0_from_stroking, n1_from_stroking,
+                path.tessellation_parameters().m_curve_tessellation);
 
   assert(m_per_join_data.size() == join_id);
   m_per_join_data.push_back(J);
@@ -1273,14 +1281,17 @@ fill_join_implement(unsigned int join_id,
 ///////////////////////////////////////////////////
 // BevelJoinCreator methods
 BevelJoinCreator::
-BevelJoinCreator(const fastuidraw::TessellatedPath &P):
-  JoinCreatorBase(P)
+BevelJoinCreator(const fastuidraw::TessellatedPath &P,
+                 const EdgeDataCreator &e):
+  JoinCreatorBase(P, e)
 {}
 
 void
 BevelJoinCreator::
 add_join(unsigned int join_id,
          const fastuidraw::TessellatedPath &path,
+         const fastuidraw::vec2 &n0_from_stroking,
+         const fastuidraw::vec2 &n1_from_stroking,
          unsigned int outline, unsigned int edge,
          unsigned int &vert_count, unsigned int &index_count)
 {
@@ -1293,6 +1304,9 @@ add_join(unsigned int join_id,
    */
   vert_count += 3;
   index_count += 3;
+
+  m_n0.push_back(n0_from_stroking);
+  m_n1.push_back(n1_from_stroking);
 }
 
 void
@@ -1323,13 +1337,13 @@ fill_join_implement(unsigned int join_id,
   i0 = R0.m_end - 1;
   i1 = R1.m_begin;
 
-  CommonJoinData J(src_pts[i0], src_pts[i1]);
+  CommonJoinData J(src_pts[i0], m_n0[join_id], src_pts[i1], m_n1[join_id]);
 
   pts[vertex_offset + 0].m_position = J.m_p0;
   pts[vertex_offset + 0].m_pre_offset = J.m_lambda * J.m_n0;
   pts[vertex_offset + 0].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset + 0].m_distance_from_outline_start = J.m_distance_from_outline_start;
-  pts[vertex_offset + 0].m_on_boundary = 1.0f;
+  pts[vertex_offset + 0].m_on_boundary = 1;
   pts[vertex_offset + 0].m_auxilary_offset = pts[vertex_offset + 0].m_pre_offset;
   pts[vertex_offset + 0].m_tag = fastuidraw::StrokedPath::edge_point;
 
@@ -1337,7 +1351,7 @@ fill_join_implement(unsigned int join_id,
   pts[vertex_offset + 1].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pts[vertex_offset + 1].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset + 1].m_distance_from_outline_start = J.m_distance_from_outline_start;
-  pts[vertex_offset + 1].m_on_boundary = 0.0f;
+  pts[vertex_offset + 1].m_on_boundary = 0;
   pts[vertex_offset + 1].m_auxilary_offset = pts[vertex_offset + 1].m_pre_offset;
   pts[vertex_offset + 1].m_tag = fastuidraw::StrokedPath::edge_point;
 
@@ -1345,7 +1359,7 @@ fill_join_implement(unsigned int join_id,
   pts[vertex_offset + 2].m_pre_offset = J.m_lambda * J.m_n1;
   pts[vertex_offset + 2].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset + 2].m_distance_from_outline_start = J.m_distance_from_outline_start;
-  pts[vertex_offset + 2].m_on_boundary = 1.0f;
+  pts[vertex_offset + 2].m_on_boundary = 1;
   pts[vertex_offset + 2].m_auxilary_offset = pts[vertex_offset + 2].m_pre_offset;
   pts[vertex_offset + 2].m_tag = fastuidraw::StrokedPath::edge_point;
 
@@ -1370,7 +1384,7 @@ fill_data(const EdgeDataCreator &edge_creator,
 
   for(unsigned int o = 0; o < m_P.number_outlines(); ++o)
     {
-      add_cap(edge_creator.outline_begin_cap_normal(o),
+      add_cap(edge_creator.per_outline_data(o).m_begin_cap_normal,
               true, m_P.unclosed_outline_point_data(o).front(),
               pts, indices,
               vertex_offset, index_offset);
@@ -1381,7 +1395,7 @@ fill_data(const EdgeDataCreator &edge_creator,
           ++depth;
         }
 
-      add_cap(edge_creator.outline_end_cap_normal(o),
+      add_cap(edge_creator.per_outline_data(o).m_end_cap_normal,
               false, m_P.unclosed_outline_point_data(o).back(),
               pts, indices,
               vertex_offset, index_offset);
@@ -1450,7 +1464,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
-  pts[vertex_offset].m_on_boundary = 0.0f;
+  pts[vertex_offset].m_on_boundary = 0;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::edge_point;
   ++vertex_offset;
@@ -1459,7 +1473,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_pre_offset = C.m_n;
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
-  pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::edge_point;
   ++vertex_offset;
@@ -1475,7 +1489,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
       pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(s, c);
       pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
       pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
-      pts[vertex_offset].m_on_boundary = 1.0f;
+      pts[vertex_offset].m_on_boundary = 1;
       pts[vertex_offset].m_tag = fastuidraw::StrokedPath::rounded_cap_point;
     }
 
@@ -1483,7 +1497,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_pre_offset = -C.m_n;
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
-  pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::edge_point;
   ++vertex_offset;
@@ -1535,7 +1549,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
-  pts[vertex_offset].m_on_boundary = 0.0f;
+  pts[vertex_offset].m_on_boundary = 0;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::edge_point;
   ++vertex_offset;
@@ -1544,7 +1558,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_pre_offset = C.m_n;
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
-  pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::edge_point;
   ++vertex_offset;
@@ -1553,7 +1567,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_pre_offset = C.m_n;
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
-  pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = C.m_v;
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::square_cap_point;
   ++vertex_offset;
@@ -1562,7 +1576,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_pre_offset = -C.m_n;
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
-  pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = C.m_v;
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::square_cap_point;
   ++vertex_offset;
@@ -1571,7 +1585,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_pre_offset = -C.m_n;
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = p.m_distance_from_outline_start;
-  pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::edge_point;
   ++vertex_offset;
@@ -1588,8 +1602,9 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
 ///////////////////////////////////////////////////
 // MiterJoinCreator methods
 MiterJoinCreator::
-MiterJoinCreator(const fastuidraw::TessellatedPath &P):
-  JoinCreatorBase(P)
+MiterJoinCreator(const fastuidraw::TessellatedPath &P,
+                 const EdgeDataCreator &e):
+  JoinCreatorBase(P, e)
 {
 }
 
@@ -1597,6 +1612,8 @@ void
 MiterJoinCreator::
 add_join(unsigned int join_id,
          const fastuidraw::TessellatedPath &path,
+         const fastuidraw::vec2 &n0_from_stroking,
+         const fastuidraw::vec2 &n1_from_stroking,
          unsigned int outline, unsigned int edge,
          unsigned int &vert_count, unsigned int &index_count)
 {
@@ -1610,6 +1627,9 @@ add_join(unsigned int join_id,
 
   vert_count += 5;
   index_count += 9;
+
+  m_n0.push_back(n0_from_stroking);
+  m_n1.push_back(n1_from_stroking);
 }
 
 
@@ -1641,7 +1661,7 @@ fill_join_implement(unsigned int join_id,
   i0 = R0.m_end - 1;
   i1 = R1.m_begin;
 
-  CommonJoinData J(src_pts[i0], src_pts[i1]);
+  CommonJoinData J(src_pts[i0], m_n0[join_id], src_pts[i1], m_n1[join_id]);
 
   /* The miter point is given by where the two boundary
      curves intersect. The two curves are given by:
@@ -1674,7 +1694,7 @@ fill_join_implement(unsigned int join_id,
   pts[vertex_offset].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = J.m_distance_from_outline_start;
-  pts[vertex_offset].m_on_boundary = 0.0f;
+  pts[vertex_offset].m_on_boundary = 0;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::edge_point;
   ++vertex_offset;
@@ -1684,7 +1704,7 @@ fill_join_implement(unsigned int join_id,
   pts[vertex_offset].m_pre_offset = J.m_lambda * J.m_n0;
   pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = J.m_distance_from_outline_start;
-  pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::edge_point;
   ++vertex_offset;
@@ -1695,7 +1715,7 @@ fill_join_implement(unsigned int join_id,
   pts[vertex_offset].m_auxilary_offset = J.m_n1;
   pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = J.m_distance_from_outline_start;
-  pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::miter_join_point;
   ++vertex_offset;
 
@@ -1705,7 +1725,7 @@ fill_join_implement(unsigned int join_id,
   pts[vertex_offset].m_auxilary_offset = J.m_n1;
   pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = J.m_distance_from_outline_start;
-  pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::miter_join_point;
   ++vertex_offset;
 
@@ -1714,7 +1734,7 @@ fill_join_implement(unsigned int join_id,
   pts[vertex_offset].m_pre_offset = J.m_lambda * J.m_n1;
   pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_outline_start = J.m_distance_from_outline_start;
-  pts[vertex_offset].m_on_boundary = 1.0f;
+  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::edge_point;
   ++vertex_offset;
@@ -1746,21 +1766,21 @@ StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
               m_edges.number_depth(false),
               m_edges.number_depth(true));
 
-  RoundedJoinCreator r(P);
+  RoundedJoinCreator r(P, e);
   m_rounded_joins.resize(r.sizes());
   r.fill_data(m_rounded_joins.m_points.data(true),
               m_rounded_joins.m_indices.data(true),
               m_rounded_joins.number_depth(false),
               m_rounded_joins.number_depth(true));
 
-  BevelJoinCreator b(P);
+  BevelJoinCreator b(P, e);
   m_bevel_joins.resize(b.sizes());
   b.fill_data(m_bevel_joins.m_points.data(true),
               m_bevel_joins.m_indices.data(true),
               m_bevel_joins.number_depth(false),
               m_bevel_joins.number_depth(true));
 
-  MiterJoinCreator m(P);
+  MiterJoinCreator m(P, e);
   m_miter_joins.resize(m.sizes());
   m.fill_data(m_miter_joins.m_points.data(true),
               m_miter_joins.m_indices.data(true),
