@@ -259,7 +259,7 @@ namespace
     fastuidraw::gl::Program::handle m_program;
     GLint m_target_resolution_loc, m_target_resolution_recip_loc;
     GLint m_target_resolution_recip_magnitude_loc;
-    fastuidraw::ivec2 m_target_resolution;
+    fastuidraw::vec2 m_target_resolution;
     fastuidraw::vec2 m_target_resolution_recip;
     float m_target_resolution_recip_magnitude;
     painter_vao_pool m_pool;
@@ -1981,7 +1981,7 @@ target_resolution(int w, int h)
   w = std::max(1, w);
   h = std::max(1, h);
 
-  d->m_target_resolution = ivec2(w, h);
+  d->m_target_resolution = vec2(w, h);
   d->m_target_resolution_recip = vec2(1.0f, 1.0f) / vec2(d->m_target_resolution);
   d->m_target_resolution_recip_magnitude = d->m_target_resolution_recip.magnitude();
 }
@@ -2093,7 +2093,7 @@ on_pre_draw(void)
   program()->use_program();
   if(d->m_target_resolution_loc != -1)
     {
-      glUniform2iv(d->m_target_resolution_loc, 1, d->m_target_resolution.c_ptr());
+      glUniform2fv(d->m_target_resolution_loc, 1, d->m_target_resolution.c_ptr());
     }
   if(d->m_target_resolution_recip_loc != -1)
     {
