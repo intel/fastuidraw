@@ -1,3 +1,52 @@
+#ifndef FASTUIDRAW_PAINTER_STROKE_VERT
+#define FASTUIDRAW_PAINTER_STROKE_VERT
+
+vec2
+fastuidraw_stroke_vert_align_normal_to_screen(in vec3 pclip_p, in vec2 n)
+{
+  vec2 t = vec2(n.y, -n.x), screen_t, screen_n;
+  vec3 clip_p;
+
+  /* Push t into screen space t, the transformation from
+     local coordainte to screen coordinates is:
+
+       M(projection(fastuidraw_item_matrix * vec3(t, 0)))
+
+     where
+        M(x, y) = (fastuidraw_viewport_pixels.x * x, fastuidraw_viewport_pixels.y * y),
+        projection(x, y, z) = (x/z, y/z)
+
+     The differential matrix at a point p is given by
+
+        DM * Dprojection * T
+
+     where DM is matrix of M, Dprojection = differential matrix of projection,
+     and T is first two columns of fastuidraw_item_matrix
+   */
+
+  float recip_z, recip_z_sq;
+
+  clip_p = vec3(fastuidraw_viewport_pixels, 1.0) * pclip_p;
+  recip_z = 1.0 / clip_p.z;
+  recip_z_sq = recip_z * recip_z;
+
+  /* recall GLSL notation,
+      matNxM -> N columns, M rows and m(col, row) is how a matrix is accessed
+   */
+  mat2x3 T = mat2x3(fastuidraw_item_matrix);
+  mat3x2 dP = mat3x2(vec2(recip_z, 0.0), //1st column
+                     vec2(0.0, recip_z), //2nd column
+                     vec2(-clip_p.x * recip_z_sq, -clip_p.y * recip_z_sq)); //3rd column
+
+  screen_t = fastuidraw_viewport_pixels * (dP * (T * t));
+  screen_n = vec2(-screen_t.y, screen_t.x);
+  screen_n = screen_n * fastuidraw_viewport_pixels;
+  screen_n = (screen_n * dP) * T;
+  return sign(dot(n, screen_n)) * screen_n;
+}
+
+#endif
+
 vec4
 fastuidraw_gl_vert_main(in vec4 primary_attrib,
                        in vec4 secondary_attrib,
@@ -40,20 +89,21 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
             float det, r, r0, r1, m, lambda;
 
             lambda = -sign(dot(v1, n0));
+            clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
 
-            n0 *= lambda;
-            n1 *= lambda;
+            /* we do NOT make the n's perpindicular to the tangents
+             */
+            n0 = lambda * n0;
+            n1 = lambda * n1;
 
             /* let p0 be p moved by n0 the named number of pixels.
              */
-            clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
             clip_offset = fastuidraw_item_matrix * vec3(n0, 0.0);
             r0 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
             p0 = position + r0 * n0;
 
             /* let p1 be p moved by n1 the named number of pixels.
              */
-            clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
             clip_offset = fastuidraw_item_matrix * vec3(n1, 0.0);
             r1 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
             p1 = position + r1 * n1;
@@ -115,25 +165,27 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
           {
             vec3 clip_offset0, clip_offset1, clip_p;
             float s0, s1;
-            /* we first move position by the needed
-               number of pixels
-            */
+            vec2 n;
+
+            /* move along tangent named number of pixels
+             */
             clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
             clip_offset0 = fastuidraw_item_matrix * vec3(auxilary_offset, 0.0);
             s0 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset0);
 
-            /* now do for perpindicular
+            /* move along normal named number of pixels
              */
             clip_p = fastuidraw_item_matrix * vec3(position + s0 * auxilary_offset, 1.0);
-            clip_offset1 = fastuidraw_item_matrix * vec3(pre_offset, 0.0);
+            n = fastuidraw_stroke_vert_align_normal_to_screen(clip_p, pre_offset);
+            clip_offset1 = fastuidraw_item_matrix * vec3(n, 0.0);
             s1 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset1);
 
             stroke_radius = 1.0;
-            offset = s0 * auxilary_offset + s1 * pre_offset;
+            offset = s0 * auxilary_offset + s1 * n;
           }
         #else
           {
-            offset = pre_offset + 0.5 * auxilary_offset;
+            offset = pre_offset + auxilary_offset;
           }
         #endif
       }
@@ -153,6 +205,8 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
             vec3 clip_p, clip_n0, clip_n1;
 
             clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+            n0 = fastuidraw_stroke_vert_align_normal_to_screen(clip_p, n0);
+            n1 = fastuidraw_stroke_vert_align_normal_to_screen(clip_p, n1);
 
             clip_n0 = fastuidraw_item_matrix * vec3(n0, 0.0);
             r0 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_n0);
@@ -160,6 +214,7 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
             clip_n1 = fastuidraw_item_matrix * vec3(n1, 0.0);
             r1 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_n1);
             r = mix(r0, r1, t);
+            cs = fastuidraw_stroke_vert_align_normal_to_screen(clip_p, cs);
             offset = r * cs;
             stroke_radius = 1.0;
           }
@@ -184,7 +239,13 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
             vec3 clip_n, clip_v, clip_p;
             vec2 tn = auxilary_offset;
 
+            /* regardless of the skew of the transformation matrix
+               we want a circle. Thus we get the screen oriented
+               normal and use that normal to produce the tangent.
+             */
             clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+            n = fastuidraw_stroke_vert_align_normal_to_screen(clip_p, n);
+            v = vec2(n.y, -n.x);
 
             clip_v = fastuidraw_item_matrix * vec3(v, 0.0);
             tn.x *= fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_v);
@@ -210,13 +271,19 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
             if(abs(stroking_on_boundary) > 0.5)
               {
                 vec3 clip_offset, clip_p;
+                vec2 n;
                 clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
-                clip_offset = fastuidraw_item_matrix * vec3(pre_offset, 0.0);
+                n = fastuidraw_stroke_vert_align_normal_to_screen(clip_p, pre_offset);
+                clip_offset = fastuidraw_item_matrix * vec3(n, 0.0);
                 stroke_radius = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+                offset = n;
               }
           }
+        #else
+          {
+            offset = pre_offset;
+          }
         #endif
-        offset = pre_offset;
       }
     }
 

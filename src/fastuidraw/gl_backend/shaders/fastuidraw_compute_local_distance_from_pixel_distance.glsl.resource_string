@@ -1,18 +1,17 @@
 float
 fastuidraw_compute_local_distance_from_pixel_distance(in float ppixel_distance,
                                                       in vec3 pclip_p,
-                                                      in vec3 pclip_offset,
+                                                      in vec3 clip_offset,
                                                       in bool adjust_width_from_orientation)
 {
   vec2 zeta;
-  vec3 clip_p, clip_offset;
+  vec3 clip_p;
   float return_value, length_zeta, pixel_distance;
 
   /* convert clip-coordinates so that after dividing by .z,
      the coordinates are in -pixel- units.
    */
   clip_p = vec3(0.5 * fastuidraw_viewport_pixels.xy, 1.0) * pclip_p;
-  clip_offset = vec3(0.5 * fastuidraw_viewport_pixels.xy, 1.0) * pclip_offset;
   pixel_distance = ppixel_distance;
 
   /* From where this formula comes. Our challenge is to give a stroking width
@@ -53,6 +52,7 @@ fastuidraw_compute_local_distance_from_pixel_distance(in float ppixel_distance,
   */
   zeta = vec2(clip_offset.x * clip_p.z - clip_offset.z * clip_p.x,
               clip_offset.y * clip_p.z - clip_offset.z * clip_p.y);
+  zeta *= (0.5 * fastuidraw_viewport_pixels.xy);
   length_zeta = length(zeta);
 
   if(adjust_width_from_orientation)
