@@ -424,7 +424,7 @@ clear_cache(void)
 
   d->m_atlas->clear();
   d->m_glyph_map.clear();
-  
+
   for(unsigned int i = 0, endi = d->m_glyphs.size(); i < endi; ++i)
     {
       GlyphDataPrivate *p;
