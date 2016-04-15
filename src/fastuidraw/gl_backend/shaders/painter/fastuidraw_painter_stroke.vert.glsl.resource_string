@@ -230,9 +230,19 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
           }
         #else
           {
-            vec2 n;
-            n = mix(n0, n1, interpolate);
-            offset = normalize(n);
+	    float d;
+
+	    d = dot(n0, n1);
+	    if(d > 0.0)
+	      {
+		vec2 n;
+		n = mix(n0, n1, interpolate);
+		offset = normalize(n);
+	      }
+	    else
+	      {
+		offset = fastuidraw_circular_interpolate(n0, n1, d, interpolate);
+	      }
           }
         #endif
       }

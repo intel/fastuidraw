@@ -155,19 +155,22 @@ namespace
   class CommonJoinData
   {
   public:
-    CommonJoinData(const fastuidraw::TessellatedPath::point &p0,
-                   const fastuidraw::TessellatedPath::point &p1);
-
-    CommonJoinData(const fastuidraw::TessellatedPath::point &p0,
+    CommonJoinData(const fastuidraw::vec2 &p0,
                    const fastuidraw::vec2 &n0,
-                   const fastuidraw::TessellatedPath::point &p1,
-                   const fastuidraw::vec2 &n1);
+                   const fastuidraw::vec2 &p1,
+                   const fastuidraw::vec2 &n1,
+		   float distance_from_edge_start,
+		   float distance_from_outline_start);
 
     float m_det, m_lambda;
     fastuidraw::vec2 m_p0, m_v0, m_n0;
     fastuidraw::vec2 m_p1, m_v1, m_n1;
     float m_distance_from_edge_start;
     float m_distance_from_outline_start;
+
+    static
+    float
+    compute_lambda(const fastuidraw::vec2 &n0, const fastuidraw::vec2 &n1);
   };
 
   class JoinCreatorBase
@@ -258,10 +261,8 @@ namespace
                fastuidraw::c_array<unsigned int> indices,
                unsigned int &index_offset) const;
 
-      bool m_is_flat;
-      float m_delta_theta, m_det;
+      float m_delta_theta;
       unsigned int m_num_arc_points;
-      std::complex<float> m_arc_start;
     };
 
     virtual
@@ -606,10 +607,14 @@ JoinCount(const fastuidraw::TessellatedPath &P):
 ////////////////////////////////////////////////
 // CommonJoinData methods
 CommonJoinData::
-CommonJoinData(const fastuidraw::TessellatedPath::point &p0,
-               const fastuidraw::TessellatedPath::point &p1):
-  m_distance_from_edge_start(p0.m_distance_from_edge_start),
-  m_distance_from_outline_start(p1.m_distance_from_outline_start)
+CommonJoinData(const fastuidraw::vec2 &p0,
+               const fastuidraw::vec2 &n0,
+               const fastuidraw::vec2 &p1,
+               const fastuidraw::vec2 &n1,
+	       float distance_from_edge_start,
+	       float distance_from_outline_start):
+  m_distance_from_edge_start(distance_from_edge_start),
+  m_distance_from_outline_start(distance_from_outline_start)
 {
   /* Explanation:
       We have two curves, a(t) and b(t) with a(1) = b(0)
@@ -679,17 +684,13 @@ CommonJoinData(const fastuidraw::TessellatedPath::point &p0,
 
       thus m_lambda is positive if <m_v1, m_n0> is negative.
    */
+  m_p0 = p0;
+  m_n0 = n0;
+  m_v0 = fastuidraw::vec2(m_n0.y(), -m_n0.x());
 
-  m_p0 = p0.m_p;
-  m_v0 = p0.m_p_t;
-  m_p1 = p1.m_p;
-  m_v1 = p1.m_p_t;
-
-  m_v0.normalize();
-  m_v1.normalize();
-
-  m_n0 = fastuidraw::vec2(-m_v0.y(), m_v0.x());
-  m_n1 = fastuidraw::vec2(-m_v1.y(), m_v1.x());
+  m_p1 = p1;
+  m_n1 = n1;
+  m_v1 = fastuidraw::vec2(m_n1.y(), -m_n1.x());
 
   m_det = fastuidraw::dot(m_v1, m_n0);
   if(m_det > 0.0f)
@@ -702,30 +703,22 @@ CommonJoinData(const fastuidraw::TessellatedPath::point &p0,
     }
 }
 
+float
 CommonJoinData::
-CommonJoinData(const fastuidraw::TessellatedPath::point &p0,
-               const fastuidraw::vec2 &n0,
-               const fastuidraw::TessellatedPath::point &p1,
-               const fastuidraw::vec2 &n1):
-  m_distance_from_edge_start(p0.m_distance_from_edge_start),
-  m_distance_from_outline_start(p1.m_distance_from_outline_start)
+compute_lambda(const fastuidraw::vec2 &n0, const fastuidraw::vec2 &n1)
 {
-  m_p0 = p0.m_p;
-  m_n0 = n0;
-  m_v0 = fastuidraw::vec2(m_n0.y(), -m_n0.x());
+  fastuidraw::vec2 v1;
+  float d;
 
-  m_p1 = p1.m_p;
-  m_n1 = n1;
-  m_v1 = fastuidraw::vec2(m_n1.y(), -m_n1.x());
-
-  m_det = fastuidraw::dot(m_v1, m_n0);
-  if(m_det > 0.0f)
+  v1 = fastuidraw::vec2(n1.y(), -n1.x());
+  d = fastuidraw::dot(v1, n0);
+  if(d > 0.0f)
     {
-      m_lambda = -1.0f;
+      return -1.0f;
     }
   else
     {
-      m_lambda = 1.0f;
+      return 1.0f;
     }
 }
 
@@ -878,9 +871,10 @@ add_edge(unsigned int o, unsigned int e,
 
       if(i + 2 != R.m_end)
         {
-          CommonJoinData CJ(src_pts[i], src_pts[i+1]);
           unsigned int offset;
-          if(CJ.m_lambda > 0.0f)
+	  float lambda;
+	  lambda = CommonJoinData::compute_lambda(src_pts[i].m_p_t, src_pts[i+1].m_p_t);
+          if(lambda > 0.0f)
             {
               //take side with n as negative
               offset = 0;
@@ -1090,29 +1084,26 @@ PerJoinData(const fastuidraw::TessellatedPath::point &p0,
             const fastuidraw::vec2 &n0_from_stroking,
             const fastuidraw::vec2 &n1_from_stroking,
             float curve_tessellation):
-  CommonJoinData(p0, n0_from_stroking, p1, n1_from_stroking)
+  CommonJoinData(p0.m_p, n0_from_stroking, p1.m_p, n1_from_stroking,
+		 p0.m_distance_from_edge_start, p0.m_distance_from_outline_start)
 {
-  m_det = m_n0.x() * m_n1.y() - m_n0.y() * m_n1.x();
   /* n0z represents the start point of the rounded join in the complex plane
      as if the join was at the origin, n1z represents the end point of the
      rounded join in the complex plane as if the join was at the origin.
   */
   std::complex<float> n0z(m_lambda * m_n0.x(), m_lambda * m_n0.y());
   std::complex<float> n1z(m_lambda * m_n1.x(), m_lambda * m_n1.y());
-  
+
   /* n1z_times_conj_n0z satisfies:
      n1z = n1z_times_conj_n0z * n0z
      i.e. it represents the arc-movement from n0z to n1z
   */
-  std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z) );
-  
-  m_is_flat = false;
-  m_arc_start = n0z;
+  std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z));
   m_delta_theta = std::atan2(n1z_times_conj_n0z.imag(), n1z_times_conj_n0z.real());
-  
+
   m_num_arc_points = static_cast<unsigned int>(std::abs(m_delta_theta) / curve_tessellation);
   m_num_arc_points = std::max(m_num_arc_points, 3u);
-  
+
   m_delta_theta /= static_cast<float>(m_num_arc_points - 1);
 }
 
@@ -1148,47 +1139,29 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
 
   for(i = 1, theta = m_delta_theta; i < m_num_arc_points - 1; ++i, theta += m_delta_theta, ++vertex_offset)
     {
-      if(!m_is_flat)
-        {
-          float t;
-          /* this is evil. We will just encode the interpolate
-             from 0 to 1. The shader will use that to blend the
-             two normals.
-           */
-          t = static_cast<float>(i) / static_cast<float>(m_num_arc_points);
-          pts[vertex_offset].m_position = m_p0;
-          pts[vertex_offset].m_pre_offset = m_lambda * fastuidraw::vec2(m_n0.x(), m_n1.x());
-          pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(t, 0);
-          pts[vertex_offset].m_tag = fastuidraw::StrokedPath::rounded_join_point;
-          pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
-          pts[vertex_offset].m_distance_from_outline_start = m_distance_from_outline_start;
-          pts[vertex_offset].m_on_boundary = 1;
+      float t;
+      /* this is evil. We will just encode the interpolate
+	 from 0 to 1. The shader will use that to blend the
+	 two normals.
+      */
+      t = static_cast<float>(i) / static_cast<float>(m_num_arc_points);
+      pts[vertex_offset].m_position = m_p0;
+      pts[vertex_offset].m_pre_offset = m_lambda * fastuidraw::vec2(m_n0.x(), m_n1.x());
+      pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(t, 0);
+      pts[vertex_offset].m_tag = fastuidraw::StrokedPath::rounded_join_point;
+      pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
+      pts[vertex_offset].m_distance_from_outline_start = m_distance_from_outline_start;
+      pts[vertex_offset].m_on_boundary = 1;
 
-          if(m_lambda * m_n0.y() < 0.0f)
-            {
-              pts[vertex_offset].m_tag |= fastuidraw::StrokedPath::normal0_y_sign_mask;
-            }
+      if(m_lambda * m_n0.y() < 0.0f)
+	{
+	  pts[vertex_offset].m_tag |= fastuidraw::StrokedPath::normal0_y_sign_mask;
+	}
 
-          if(m_lambda * m_n1.y() < 0.0f)
-            {
-              pts[vertex_offset].m_tag |= fastuidraw::StrokedPath::normal1_y_sign_mask;
-            }
-        }
-      else
-        {
-          float s, c;
-
-          s = std::sin(theta);
-          c = std::cos(theta);
-          /* the n0 and n1 are opposite, so is like a rounded cap. */
-          pts[vertex_offset].m_position = m_p0;
-          pts[vertex_offset].m_pre_offset = m_lambda * m_n0;
-          pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(s, c);
-          pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
-          pts[vertex_offset].m_distance_from_outline_start = m_distance_from_outline_start;
-          pts[vertex_offset].m_on_boundary = 1;
-          pts[vertex_offset].m_tag = fastuidraw::StrokedPath::rounded_cap_point;
-        }
+      if(m_lambda * m_n1.y() < 0.0f)
+	{
+	  pts[vertex_offset].m_tag |= fastuidraw::StrokedPath::normal1_y_sign_mask;
+	}
     }
 
   pts[vertex_offset].m_position = m_p1;
@@ -1246,12 +1219,10 @@ add_join(unsigned int join_id,
       R1 = path.edge_range(outline, 0);
     }
 
-  const fastuidraw::TessellatedPath::point p0(src_pts[R0.m_end - 1]);
-  const fastuidraw::TessellatedPath::point p1(src_pts[R1.m_begin]);
-  PerJoinData J(p0, p1, n0_from_stroking, n1_from_stroking,
-                path.tessellation_parameters().m_curve_tessellation);
+  PerJoinData J(src_pts[R0.m_end - 1], src_pts[R1.m_begin],
+		n0_from_stroking, n1_from_stroking,
+		path.tessellation_parameters().m_curve_tessellation);
 
-  assert(m_per_join_data.size() == join_id);
   m_per_join_data.push_back(J);
 
   /* a triangle fan centered at p0=p1 with
@@ -1340,7 +1311,10 @@ fill_join_implement(unsigned int join_id,
   i0 = R0.m_end - 1;
   i1 = R1.m_begin;
 
-  CommonJoinData J(src_pts[i0], m_n0[join_id], src_pts[i1], m_n1[join_id]);
+  CommonJoinData J(src_pts[i0].m_p, m_n0[join_id],
+		   src_pts[i1].m_p, m_n1[join_id],
+		   src_pts[i0].m_distance_from_edge_start,
+		   src_pts[i0].m_distance_from_outline_start);
 
   pts[vertex_offset + 0].m_position = J.m_p0;
   pts[vertex_offset + 0].m_pre_offset = J.m_lambda * J.m_n0;
@@ -1505,7 +1479,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_tag = fastuidraw::StrokedPath::edge_point;
   ++vertex_offset;
 
-  for(i = first + 1; i < vertex_offset - 1; ++i, index_offset+=3)
+  for(i = first + 1; i < vertex_offset - 1; ++i, index_offset += 3)
     {
       indices[index_offset + 0] = first;
       indices[index_offset + 1] = i;
@@ -1664,7 +1638,10 @@ fill_join_implement(unsigned int join_id,
   i0 = R0.m_end - 1;
   i1 = R1.m_begin;
 
-  CommonJoinData J(src_pts[i0], m_n0[join_id], src_pts[i1], m_n1[join_id]);
+  CommonJoinData J(src_pts[i0].m_p, m_n0[join_id],
+		   src_pts[i1].m_p, m_n1[join_id],
+		   src_pts[i0].m_distance_from_edge_start,
+		   src_pts[i0].m_distance_from_outline_start);
 
   /* The miter point is given by where the two boundary
      curves intersect. The two curves are given by:
