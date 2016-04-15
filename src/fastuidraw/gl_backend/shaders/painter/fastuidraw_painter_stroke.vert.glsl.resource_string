@@ -1,45 +1,40 @@
 #ifndef FASTUIDRAW_PAINTER_STROKE_VERT
 #define FASTUIDRAW_PAINTER_STROKE_VERT
 
-vec2
-fastuidraw_stroke_vert_align_normal_to_screen(in vec3 pclip_p, in vec2 n)
+void
+fastuidraw_stroke_vert_align_compute_Q_adjoint_Q(in vec3 pclip_p,
+                                                 out mat2 Q, out mat2 adjQ)
 {
   vec3 clip;
   clip = vec3(fastuidraw_viewport_pixels, 1.0) * pclip_p;
 
-  /*
-     M(p) = fastuidraw_viewport_pixels * p
-     proj(x, y, z) = (x/z, y/z)
-     L(x, y) = fastuidraw_item_matrix * vec3(x, y, 1)
-
-     Q = DM * Dproj * DL = derivative of transformation from local coordinate to screen
-   */
-
   vec2 c0, c1;
-
   c0.x = clip.z * fastuidraw_item_matrix[0].x - clip.x * fastuidraw_item_matrix[0].z;
   c0.y = clip.z * fastuidraw_item_matrix[0].y - clip.y * fastuidraw_item_matrix[0].z;
   c1.x = clip.z * fastuidraw_item_matrix[1].x - clip.x * fastuidraw_item_matrix[1].z;
   c1.y = clip.z * fastuidraw_item_matrix[1].y - clip.y * fastuidraw_item_matrix[1].z;
 
-  /*
-    Q gives Dproj * DL
-   */
-  mat2 Q = mat2(c0, c1);
+  Q = mat2(c0, c1);
+  adjQ = mat2( Q[1][1], -Q[0][1], -Q[1][0], Q[0][0]);
+}
 
-  mat2 adjQ = mat2( Q[1][1], -Q[0][1],
-                   -Q[1][0],  Q[0][0]);
+vec2
+fastuidraw_stroke_vert_align_normal_to_screen(in vec3 clip_p, in vec2 n)
+{
+  mat2 Q, adjQ;
 
-  vec2 t_screen, t, n_screen;
+  fastuidraw_stroke_vert_align_compute_Q_adjoint_Q(clip_p, Q, adjQ);
+
+  vec2 n_screen, t_screen, t;
 
   t = vec2(-n.y, n.x);
   t_screen = fastuidraw_viewport_pixels * (Q * t);
   n_screen = vec2(t_screen.y, -t_screen.x);
 
   /* NOTE!
-       We do NOT devide by the det of Q, this is because
+       We do NOT divide by the det of Q, this is because
        we only care about the -direction- of return
-       value, not the magnitude, this the adjoint is
+       value, not the magnitude, thus the adjoint is
        good enough [and it avoids us needing to deal
        with a the case if the determinant is 0].
    */
@@ -193,34 +188,38 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
 
     case fastuidraw_stroke_rounded_join_point:
       {
-        vec2 n0, n1, cs;
-        float t;
+        vec2 n0, n1;
+        float interpolate;
+
         n0 = fastuidraw_unpack_unit_vector(pre_offset.x, uint(fastuidraw_stroke_normal0_y_sign_mask) & uint_attrib.y);
         n1 = fastuidraw_unpack_unit_vector(pre_offset.y, uint(fastuidraw_stroke_normal1_y_sign_mask) & uint_attrib.y);
-        cs = fastuidraw_unpack_unit_vector(auxilary_offset.x, uint(fastuidraw_stroke_sin_sign_mask) & uint_attrib.y);
-        t = auxilary_offset.y;
+        interpolate = auxilary_offset.x;
         #ifdef FASTUIDRAW_STROKE_WIDTH_IN_PIXELS
           {
-            float r0, r1, r;
-            vec3 clip_p, clip_n0, clip_n1;
+            vec3 clip_p, clip_offset;
+            vec2 t0, t1, screen_t0, screen_t1, screen_t, screen_n;
+            mat2 Q, adjQ;
 
             clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
-            n0 = fastuidraw_stroke_vert_align_normal_to_screen(clip_p, n0);
-            n1 = fastuidraw_stroke_vert_align_normal_to_screen(clip_p, n1);
+            fastuidraw_stroke_vert_align_compute_Q_adjoint_Q(clip_p, Q, adjQ);
 
-            clip_n0 = fastuidraw_item_matrix * vec3(n0, 0.0);
-            r0 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_n0);
+            t0 = vec2(-n0.y, n0.x);
+            t1 = vec2(-n1.y, n1.x);
 
-            clip_n1 = fastuidraw_item_matrix * vec3(n1, 0.0);
-            r1 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_n1);
-            r = mix(r0, r1, t);
-            cs = fastuidraw_stroke_vert_align_normal_to_screen(clip_p, cs);
-            offset = r * cs;
-            stroke_radius = 1.0;
+            screen_t0 = normalize(fastuidraw_viewport_pixels * (Q * t0));
+            screen_t1 = normalize(fastuidraw_viewport_pixels * (Q * t1));
+            screen_t = mix(screen_t0, screen_t1, interpolate);
+            screen_n = vec2(screen_t.y, -screen_t.x);
+
+            offset = adjQ * (fastuidraw_viewport_recip_pixels * screen_n);
+            clip_offset = fastuidraw_item_matrix * vec3(offset, 0.0);
+            stroke_radius = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
           }
         #else
           {
-            offset = cs;
+            vec2 n;
+            n = mix(n0, n1, interpolate);
+            offset = normalize(n);
           }
         #endif
       }
