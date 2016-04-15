@@ -1768,10 +1768,14 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::params &P,
   FASTUIDRAWunused(entry);
 
   m_vert_shader_utils
+    .add_source("fastuidraw_circular_interpolate.glsl.resource_string",
+                fastuidraw::gl::Shader::from_resource)
     .add_source("fastuidraw_compute_local_distance_from_pixel_distance.glsl.resource_string",
                 fastuidraw::gl::Shader::from_resource);
 
   m_frag_shader_utils
+    .add_source("fastuidraw_circular_interpolate.glsl.resource_string",
+                fastuidraw::gl::Shader::from_resource)
     .add_source(fastuidraw::gl::GlyphAtlasGL::glsl_curvepair_compute_pseudo_distance(m_params.glyph_atlas()->param_values().alignment(),
                                                                                      "fastuidraw_curvepair_pseudo_distance",
                                                                                      "fastuidraw_glyphGeometryDataStore",

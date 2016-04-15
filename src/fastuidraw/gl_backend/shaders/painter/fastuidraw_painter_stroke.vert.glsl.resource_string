@@ -199,17 +199,30 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
             vec3 clip_p, clip_offset;
             vec2 t0, t1, screen_t0, screen_t1, screen_t, screen_n;
             mat2 Q, adjQ;
+	    float d;
 
             clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
             fastuidraw_stroke_vert_align_compute_Q_adjoint_Q(clip_p, Q, adjQ);
 
             t0 = vec2(-n0.y, n0.x);
             t1 = vec2(-n1.y, n1.x);
+	    screen_t0 = normalize(fastuidraw_viewport_pixels * (Q * t0));
+	    screen_t1 = normalize(fastuidraw_viewport_pixels * (Q * t1));
+	    d = dot(screen_t0, screen_t1);
 
-            screen_t0 = normalize(fastuidraw_viewport_pixels * (Q * t0));
-            screen_t1 = normalize(fastuidraw_viewport_pixels * (Q * t1));
-            screen_t = mix(screen_t0, screen_t1, interpolate);
-            screen_n = vec2(screen_t.y, -screen_t.x);
+	    if(d > 0.0)
+	      {
+		screen_t = mix(screen_t0, screen_t1, interpolate);
+	      }
+	    else
+	      {
+		/* "Joy", screen_t0 and screen_t1 point in different
+		   directions. In this painful case we will interpolate
+		   along a circle
+		 */
+		screen_t = fastuidraw_circular_interpolate(screen_t0, screen_t1, d, interpolate);
+	      }
+	    screen_n = vec2(screen_t.y, -screen_t.x);
 
             offset = adjQ * (fastuidraw_viewport_recip_pixels * screen_n);
             clip_offset = fastuidraw_item_matrix * vec3(offset, 0.0);

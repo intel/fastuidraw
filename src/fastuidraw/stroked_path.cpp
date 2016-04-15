@@ -1093,49 +1093,27 @@ PerJoinData(const fastuidraw::TessellatedPath::point &p0,
   CommonJoinData(p0, n0_from_stroking, p1, n1_from_stroking)
 {
   m_det = m_n0.x() * m_n1.y() - m_n0.y() * m_n1.x();
-  if(m_det == 0.0f || m_det == -0.0f)
-    {
-      m_is_flat = true;
-      if(dot(m_n0, m_n1) < 0.0f)
-        {
-          /* join is like a rounded cap, we will encode it as such.
-           */
-          m_num_arc_points = static_cast<unsigned int>(static_cast<float>(M_PI) / curve_tessellation);
-          m_num_arc_points = std::max(m_num_arc_points, 3u);
-          m_delta_theta = static_cast<float>(M_PI) / static_cast<float>(m_num_arc_points - 1);
-          m_arc_start = 1.0f;
-        }
-      else
-        {
-          /* join is effectively a Bevel join
-           */
-          m_num_arc_points = 2;
-        }
-    }
-  else
-    {
-      /* n0z represents the start point of the rounded join in the complex plane
-         as if the join was at the origin, n1z represents the end point of the
-         rounded join in the complex plane as if the join was at the origin.
-      */
-      std::complex<float> n0z(m_lambda * m_n0.x(), m_lambda * m_n0.y());
-      std::complex<float> n1z(m_lambda * m_n1.x(), m_lambda * m_n1.y());
-
-      /* n1z_times_conj_n0z satisfies:
-         n1z = n1z_times_conj_n0z * n0z
-         i.e. it represents the arc-movement from n0z to n1z
-      */
-      std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z) );
-
-      m_is_flat = false;
-      m_arc_start = n0z;
-      m_delta_theta = std::atan2(n1z_times_conj_n0z.imag(), n1z_times_conj_n0z.real());
-
-      m_num_arc_points = static_cast<unsigned int>(std::abs(m_delta_theta) / curve_tessellation);
-      m_num_arc_points = std::max(m_num_arc_points, 3u);
-
-      m_delta_theta /= static_cast<float>(m_num_arc_points - 1);
-    }
+  /* n0z represents the start point of the rounded join in the complex plane
+     as if the join was at the origin, n1z represents the end point of the
+     rounded join in the complex plane as if the join was at the origin.
+  */
+  std::complex<float> n0z(m_lambda * m_n0.x(), m_lambda * m_n0.y());
+  std::complex<float> n1z(m_lambda * m_n1.x(), m_lambda * m_n1.y());
+  
+  /* n1z_times_conj_n0z satisfies:
+     n1z = n1z_times_conj_n0z * n0z
+     i.e. it represents the arc-movement from n0z to n1z
+  */
+  std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z) );
+  
+  m_is_flat = false;
+  m_arc_start = n0z;
+  m_delta_theta = std::atan2(n1z_times_conj_n0z.imag(), n1z_times_conj_n0z.real());
+  
+  m_num_arc_points = static_cast<unsigned int>(std::abs(m_delta_theta) / curve_tessellation);
+  m_num_arc_points = std::max(m_num_arc_points, 3u);
+  
+  m_delta_theta /= static_cast<float>(m_num_arc_points - 1);
 }
 
 void
