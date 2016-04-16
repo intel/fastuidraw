@@ -889,11 +889,15 @@ draw_frame(void)
   glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  enable_wire_frame(m_wire_frame);
+
+  m_painter->begin();
+
   /* draw grid using painter.
    */
   if(m_draw_grid && m_stroke_width_in_pixels && m_stroke_width > 0.0f)
     {
-      if(m_grid_path_dirty)
+      if(m_grid_path_dirty && m_stroke_width > 0.0f)
         {
           Path grid_path;
           for(float x = 0, endx = wh.x(); x < endx; x += m_stroke_width)
@@ -912,8 +916,6 @@ draw_frame(void)
           m_grid_path.swap(grid_path);
         }
 
-      enable_wire_frame(false);
-      m_painter->begin();
       on_resize(wh.x(), wh.y());
       float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));
       m_painter->transformation(proj);
@@ -925,12 +927,8 @@ draw_frame(void)
       m_painter->stroke_path(m_grid_path,
                              PainterEnums::no_caps, PainterEnums::no_joins,
                              false);
-      m_painter->end();
-  }
+    }
 
-
-  enable_wire_frame(m_wire_frame);
-  m_painter->begin();
   if(m_force_square_viewport)
     {
       int d;
