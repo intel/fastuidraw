@@ -1770,7 +1770,7 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::params &P,
   m_vert_shader_utils
     .add_source("fastuidraw_circular_interpolate.glsl.resource_string",
                 fastuidraw::gl::Shader::from_resource)
-    .add_source("fastuidraw_compute_local_distance_from_pixel_distance.glsl.resource_string",
+    .add_source("fastuidraw_painter_compute_local_distance_from_pixel_distance.glsl.resource_string",
                 fastuidraw::gl::Shader::from_resource);
 
   m_frag_shader_utils

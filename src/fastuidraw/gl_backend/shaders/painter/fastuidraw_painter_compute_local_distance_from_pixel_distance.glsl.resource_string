@@ -1,5 +1,5 @@
 float
-fastuidraw_compute_local_distance_from_pixel_distance(in float ppixel_distance,
+fastuidraw_painter_local_distance_from_pixel_distance(in float ppixel_distance,
                                                       in vec3 pclip_p,
                                                       in vec3 clip_offset,
                                                       in bool adjust_width_from_orientation)
@@ -72,11 +72,11 @@ fastuidraw_compute_local_distance_from_pixel_distance(in float ppixel_distance,
 }
 
 float
-fastuidraw_compute_local_distance_from_pixel_distance(in float ppixel_distance,
+fastuidraw_painter_local_distance_from_pixel_distance(in float ppixel_distance,
                                                       in vec3 pclip_p,
                                                       in vec3 pclip_offset)
 {
-  return fastuidraw_compute_local_distance_from_pixel_distance(ppixel_distance, pclip_p,
+  return fastuidraw_painter_local_distance_from_pixel_distance(ppixel_distance, pclip_p,
                                                                pclip_offset, false);
 }
 

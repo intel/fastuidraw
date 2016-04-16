@@ -43,6 +43,19 @@ fastuidraw_stroke_vert_align_normal_to_screen(in vec3 clip_p, in vec2 n)
 
 #endif
 
+
+/* idea:
+   For anti-aliased via coverage, we have two passes:
+     pass 1: FASTUIDRAW_STROKE_OPAQUE_PASS which is to draw
+             the solid parts (i.e. fully covered). Thus
+             we draw slightly less in width
+
+     pass 2: FASTUIDRAW_STROKE_AA_PASS which is to draw just
+             the anti-aliasing fuzz. In this case we need
+             to start drawing where the FASTUIDRAW_STROKE_OPAQUE_PASS
+             stopped and extend to the end.
+*/
+
 vec4
 fastuidraw_gl_vert_main(in vec4 primary_attrib,
                        in vec4 secondary_attrib,
@@ -50,6 +63,8 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
                        in uint shader_data_offset,
                        out uint z_add)
 {
+  const float anti_alias_thickness = 1.0;
+
   vec2 p;
   vec2 position, pre_offset, auxilary_offset, offset;
   float distance_from_edge_start, distance_from_outline_start;
@@ -70,6 +85,12 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
   /* stroking_on_boundary varying declared in C++ code
    */
   on_boundary = int(uint_attrib.z) - 1;
+
+  #if defined(FASTUIDRAW_STROKE_OPAQUE_PASS) && defined(FASTUIDRAW_STROKE_WIDTH_IN_PIXELS)
+    {
+      stroke_radius = max(stroke_radius - anti_alias_thickness, 0.0);
+    }
+  #endif
 
   /* Depending on the point type, we have a different way to produce offset
    */
@@ -94,13 +115,13 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
             /* let p0 be p moved by n0 the named number of pixels.
              */
             clip_offset = fastuidraw_item_matrix * vec3(n0, 0.0);
-            r0 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+            r0 = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
             p0 = position + r0 * n0;
 
             /* let p1 be p moved by n1 the named number of pixels.
              */
             clip_offset = fastuidraw_item_matrix * vec3(n1, 0.0);
-            r1 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+            r1 = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
             p1 = position + r1 * n1;
 
             /* now compute where the lines L0 and L1 intersect
@@ -166,14 +187,14 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
              */
             clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
             clip_offset0 = fastuidraw_item_matrix * vec3(auxilary_offset, 0.0);
-            s0 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset0);
+            s0 = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset0);
 
             /* move along normal named number of pixels
              */
             clip_p = fastuidraw_item_matrix * vec3(position + s0 * auxilary_offset, 1.0);
             n = fastuidraw_stroke_vert_align_normal_to_screen(clip_p, pre_offset);
             clip_offset1 = fastuidraw_item_matrix * vec3(n, 0.0);
-            s1 = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset1);
+            s1 = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset1);
 
             stroke_radius = 1.0;
             offset = s0 * auxilary_offset + s1 * n;
@@ -226,7 +247,7 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
 
             offset = adjQ * (fastuidraw_viewport_recip_pixels * screen_n);
             clip_offset = fastuidraw_item_matrix * vec3(offset, 0.0);
-            stroke_radius = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+            stroke_radius = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
           }
         #else
           {
@@ -265,10 +286,10 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
             n = fastuidraw_stroke_vert_align_normal_to_screen(clip_p, n);
 
             clip_v = fastuidraw_item_matrix * vec3(v, 0.0);
-            tn.x = fastuidraw_compute_local_distance_from_pixel_distance(tn.x * stroke_radius, clip_p, clip_v);
+            tn.x = fastuidraw_painter_local_distance_from_pixel_distance(tn.x * stroke_radius, clip_p, clip_v);
 
             clip_n = fastuidraw_item_matrix * vec3(n, 0.0);
-            tn.y = fastuidraw_compute_local_distance_from_pixel_distance(tn.y * stroke_radius, clip_p, clip_n);
+            tn.y = fastuidraw_painter_local_distance_from_pixel_distance(tn.y * stroke_radius, clip_p, clip_n);
 
             stroke_radius = 1.0;
             offset = tn.x * v + tn.y * n;
@@ -299,7 +320,7 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
                   }
                 n = fastuidraw_stroke_vert_align_normal_to_screen(clip_p, pre_offset);
                 clip_offset = fastuidraw_item_matrix * vec3(n, 0.0);
-                stroke_radius = fastuidraw_compute_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+                stroke_radius = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
                 offset = n;
               }
           }
@@ -318,71 +339,20 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
       }
     }
 
-  /* idea:
-      For anti-aliased via coverage, we have two passes:
-       pass 1: FASTUIDRAW_STROKE_OPAQUE_PASS which is to draw
-               the solid parts (i.e. fully covered). Thus
-               we draw slightly less in width
-       pass 2: FASTUIDRAW_STROKE_AA_PASS which is to draw just
-               the anti-aliasing fuzz. In this case we need
-               to start drawing where the FASTUIDRAW_STROKE_OPAQUE_PASS
-               stopped and extend to the end.
-
-   */
-
   if(on_boundary != 0)
     {
-      #if defined(FASTUIDRAW_STROKE_OPAQUE_PASS)
+      #if defined(FASTUIDRAW_STROKE_OPAQUE_PASS) && !defined(FASTUIDRAW_STROKE_WIDTH_IN_PIXELS)
         {
-          vec2 q, sQ, sP, sR, sV, sD;
-          vec3 P, Q;
-          float clip_t, screen_t, recQz, recPz;
+          vec3 clip_p, clip_offset;
+          float r;
 
-          q = position + stroke_radius * offset;
-          P = fastuidraw_item_matrix * vec3(position, 1.0);
-          Q = fastuidraw_item_matrix * vec3(q, 1.0);
-
-          recPz = 1.0 / P.z;
-          recQz = 1.0 / Q.z;
-          sP = P.xy * recPz;
-          sQ = Q.xy * recQz;
-          sD = sQ - sP;
-          sV = normalize(sD);
-
-          /* We pull back the number of pixels given by anti_alias_thickness,
-             that is the number of pixels we give to the anti-aliasing outline.
-           */
-          const float anti_alias_thickness = 1.0;
-          /*
-            normalized coordinates are -1 to 1, thus 1 pixel is
-            given by (2.0 / number_pixels) in normalized coordinates
-          */
-          const float anti_alias_coeff = 2.0 * anti_alias_thickness;
-          sR = sQ - (anti_alias_coeff * fastuidraw_viewport_recip_pixels_magnitude) * sV;
-
-          /* screen_t is the screen space barycentric where sR is located
-             between sP and sQ.
-           */
-          if(abs(sD.x) > abs(sD.y))
-            {
-              screen_t = (sR.x - sP.x) / sD.x;
-            }
-          else
-            {
-              screen_t = (sR.y - sP.y) / sD.y;
-            }
-          screen_t = clamp(screen_t, 0.0, 1.0);
-
-          /* clip_t is the clip-space barycentric coordinate that projects to sR.
-           */
-          clip_t = (screen_t * recQz) / mix(recPz, recQz, screen_t);
-          p = (1.0 - clip_t) * position + clip_t * q;
-        }
-      #else
-        {
-          p = position + stroke_radius * offset;
+          clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+          clip_offset = fastuidraw_item_matrix * vec3(offset, 0);
+          r = fastuidraw_painter_local_distance_from_pixel_distance(anti_alias_thickness, clip_p, clip_offset);
+          stroke_radius = max(stroke_radius - r, 0.0);
         }
       #endif
+      p = position + stroke_radius * offset;
     }
   else
     {
