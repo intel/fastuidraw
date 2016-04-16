@@ -122,6 +122,7 @@ private:
   command_line_argument_value<float> m_change_miter_limit_rate;
   command_line_argument_value<float> m_change_stroke_width_rate;
   command_line_argument_value<float> m_window_change_rate;
+  command_line_argument_value<float> m_radial_gradient_change_rate;
   command_line_argument_value<std::string> m_path_file;
   color_stop_arguments m_color_stop_args;
   command_line_argument_value<std::string> m_image_file;
@@ -202,6 +203,9 @@ painter_stroke_test(void):
   m_window_change_rate(10.0f, "change_rate_brush_repeat_window",
                        "rate of change in pixels/sec when changing the repeat window",
                        *this),
+  m_radial_gradient_change_rate(10.0f, "change_rate_brush_radial_gradient",
+                                "rate of change in pixels/sec when changing the radial gradient radius",
+                                *this),
   m_path_file("", "path_file",
               "if non-empty read the geometry of the path from the specified file, "
               "otherwise use a default path",
@@ -445,7 +449,7 @@ update_cts_params(void)
     {
       float delta;
 
-      delta = m_window_change_rate.m_value * speed / m_zoomer.transformation().scale();
+      delta = m_radial_gradient_change_rate.m_value * speed / m_zoomer.transformation().scale();
       if(keyboard_state[SDL_SCANCODE_1])
         {
           m_gradient_r0 -= delta;
