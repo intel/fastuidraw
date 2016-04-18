@@ -209,18 +209,20 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
 
     case fastuidraw_stroke_rounded_join_point:
       {
-        vec2 n0, n1;
-        float interpolate;
-
-        n0 = fastuidraw_unpack_unit_vector(pre_offset.x, uint(fastuidraw_stroke_normal0_y_sign_mask) & uint_attrib.y);
-        n1 = fastuidraw_unpack_unit_vector(pre_offset.y, uint(fastuidraw_stroke_normal1_y_sign_mask) & uint_attrib.y);
-        interpolate = auxilary_offset.x;
         #ifdef FASTUIDRAW_STROKE_WIDTH_IN_PIXELS
           {
+            vec2 n0, n1;
+            float interpolate;
             vec3 clip_p, clip_offset;
             vec2 t0, t1, screen_t0, screen_t1, screen_t, screen_n;
             mat2 Q, adjQ;
 	    float d;
+
+            n0 = fastuidraw_unpack_unit_vector(pre_offset.x,
+                                               uint(fastuidraw_stroke_normal0_y_sign_mask) & uint_attrib.y);
+            n1 = fastuidraw_unpack_unit_vector(pre_offset.y,
+                                               uint(fastuidraw_stroke_normal1_y_sign_mask) & uint_attrib.y);
+            interpolate = auxilary_offset.x;
 
             clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
             fastuidraw_stroke_vert_align_compute_Q_adjoint_Q(clip_p, Q, adjQ);
@@ -251,19 +253,10 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
           }
         #else
           {
-	    float d;
-
-	    d = dot(n0, n1);
-	    if(d > 0.0)
-	      {
-		vec2 n;
-		n = mix(n0, n1, interpolate);
-		offset = normalize(n);
-	      }
-	    else
-	      {
-		offset = fastuidraw_circular_interpolate(n0, n1, d, interpolate);
-	      }
+            vec2 cs;
+            cs = fastuidraw_unpack_unit_vector(auxilary_offset.y,
+                                               uint(fastuidraw_stroke_sin_sign_mask) & uint_attrib.y);
+            offset = cs;
           }
         #endif
       }

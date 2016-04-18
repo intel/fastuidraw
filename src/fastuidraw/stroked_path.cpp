@@ -261,6 +261,7 @@ namespace
                fastuidraw::c_array<unsigned int> indices,
                unsigned int &index_offset) const;
 
+      std::complex<float> m_arc_start;
       float m_delta_theta;
       unsigned int m_num_arc_points;
     };
@@ -1099,6 +1100,8 @@ PerJoinData(const fastuidraw::TessellatedPath::point &p0,
      i.e. it represents the arc-movement from n0z to n1z
   */
   std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z));
+
+  m_arc_start = n0z;
   m_delta_theta = std::atan2(n1z_times_conj_n0z.imag(), n1z_times_conj_n0z.real());
 
   m_num_arc_points = static_cast<unsigned int>(std::abs(m_delta_theta) / curve_tessellation);
@@ -1139,15 +1142,17 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
 
   for(i = 1, theta = m_delta_theta; i < m_num_arc_points - 1; ++i, theta += m_delta_theta, ++vertex_offset)
     {
-      float t;
-      /* this is evil. We will just encode the interpolate
-	 from 0 to 1. The shader will use that to blend the
-	 two normals.
-      */
+      float t, c, s;
+      std::complex<float> cs_as_complex;
+
       t = static_cast<float>(i) / static_cast<float>(m_num_arc_points);
+      c = std::cos(theta);
+      s = std::sin(theta);
+      cs_as_complex = std::complex<float>(c, s) * m_arc_start;
+
       pts[vertex_offset].m_position = m_p0;
       pts[vertex_offset].m_pre_offset = m_lambda * fastuidraw::vec2(m_n0.x(), m_n1.x());
-      pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(t, 0);
+      pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(t, cs_as_complex.real());
       pts[vertex_offset].m_tag = fastuidraw::StrokedPath::rounded_join_point;
       pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
       pts[vertex_offset].m_distance_from_outline_start = m_distance_from_outline_start;
@@ -1162,6 +1167,11 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
 	{
 	  pts[vertex_offset].m_tag |= fastuidraw::StrokedPath::normal1_y_sign_mask;
 	}
+
+      if(cs_as_complex.imag() < 0.0f)
+        {
+	  pts[vertex_offset].m_tag |= fastuidraw::StrokedPath::sin_sign_mask;
+        }
     }
 
   pts[vertex_offset].m_position = m_p1;
@@ -1829,25 +1839,15 @@ offset_vector(void)
 
     case rounded_join_point:
       {
-        vec2 n0, n1, n;
-        float t;
+        vec2 cs;
 
-        n0.x() = m_pre_offset.x();
-        n1.x() = m_pre_offset.y();
-        t = m_auxilary_offset.x();
+        cs.x() = m_auxilary_offset.y();
+        cs.y() = sqrt(1.0 - cs.x() * cs.x());
 
-        n0.y() = sqrt(1.0 - n0.x() * n0.x());
-        n1.y() = sqrt(1.0 - n1.x() * n1.x());
+        if(m_tag & sin_sign_mask)
+          cs.y() = -cs.y();
 
-        if(m_tag & normal0_y_sign_mask)
-          n0.y() = - n0.y();
-
-        if(m_tag & normal1_y_sign_mask)
-          n1.y() = - n1.y();
-
-        n = n0 + t * (n1 - n0);
-        n.normalize();
-        return n;
+        return cs;
       }
 
     default:

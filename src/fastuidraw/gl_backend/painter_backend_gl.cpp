@@ -805,6 +805,7 @@ add_enums(fastuidraw::gl::Shader::shader_source &src)
     .add_macro("fastuidraw_stroke_rounded_cap_point", StrokedPath::rounded_cap_point)
     .add_macro("fastuidraw_stroke_square_cap_point", StrokedPath::square_cap_point)
     .add_macro("fastuidraw_stroke_point_type_mask", StrokedPath::point_type_mask)
+    .add_macro("fastuidraw_stroke_sin_sign_mask", StrokedPath::sin_sign_mask)
     .add_macro("fastuidraw_stroke_normal0_y_sign_mask", StrokedPath::normal0_y_sign_mask)
     .add_macro("fastuidraw_stroke_normal1_y_sign_mask", StrokedPath::normal1_y_sign_mask);
 }

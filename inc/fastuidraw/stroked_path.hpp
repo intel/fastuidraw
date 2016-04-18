@@ -79,7 +79,7 @@ public:
     };
 
   /*!
-    Enumeration encoding how bits in m_tag are used.
+    Enumeration encoding how bits of point::m_tag are used.
    */
   enum tag_bit_layout_t
     {
@@ -88,10 +88,12 @@ public:
 
       normal0_y_sign_bit = point_type_bit0 + point_type_num_bits,
       normal1_y_sign_bit = normal0_y_sign_bit + 1,
+      sin_sign_bit = normal1_y_sign_bit + 1,
 
       point_type_mask = FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(point_type_num_bits) << point_type_bit0,
       normal0_y_sign_mask = 1 << normal0_y_sign_bit,
       normal1_y_sign_mask = 1 << normal1_y_sign_bit,
+      sin_sign_mask = 1 << sin_sign_bit,
     };
 
   /*!
@@ -216,24 +218,33 @@ public:
       - For those with point_type() being StrokedPath::rounded_join_point,
         the value is given by the following code
         \code
-        vec2 n0, n1, n;
-        float t;
+        vec2 cs;
 
-        n0.x() = m_pre_offset.x();
-        n1.x() = m_pre_offset.y();
+        cs.x() = m_auxilary_offset.y();
+        cs.y() = sqrt(1.0 - cs.x() * cs.x());
+
+        if(m_tag & sin_sign_mask)
+          cs.y() = -cs.y();
+
+        offset = cs
+        \endcode
+        In addition, the source data fort join is encoded as follows:
+        \code
+        float t;
+        vec2 n0, n1;
+
         t = m_auxilary_offset.x();
+        n0.x() = m_offset.x();
+        n1.x() = m_offset.y();
 
         n0.y() = sqrt(1.0 - n0.x() * n0.x());
         n1.y() = sqrt(1.0 - n1.x() * n1.x());
 
         if(m_tag & normal0_y_sign_mask)
-          n0.y() = - n0.y();
+          n0.y() = -n0.y();
 
         if(m_tag & normal1_y_sign_mask)
-          n1.y() = - n1.y();
-
-        n = n0 + t * (n1 - n0);
-        offset = n / n.magnitude();
+          n1.y() = -n1.y();
         \endcode
         The vector n0 represents the normal of the path going into the join,
         the vector n1 represents the normal of the path going out of the join
