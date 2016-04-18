@@ -1145,7 +1145,7 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
       float t, c, s;
       std::complex<float> cs_as_complex;
 
-      t = static_cast<float>(i) / static_cast<float>(m_num_arc_points);
+      t = static_cast<float>(i) / static_cast<float>(m_num_arc_points - 1);
       c = std::cos(theta);
       s = std::sin(theta);
       cs_as_complex = std::complex<float>(c, s) * m_arc_start;
