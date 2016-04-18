@@ -260,8 +260,8 @@ painter_stroke_test(void):
             << "\tp: toggle stroke width in pixels or local coordinates\n"
             << "\t5: toggle drawing grid\n"
             << "\tq: reset shear to 1.0\n"
-            << "\tMoust 8: x-shear (hold ctrl to decrease, hold enter for shear2)\n"
-            << "\tMoust 9: y-shear (hold ctrl to decrease, hold enter for shear2)\n"
+            << "\t6: x-shear (hold ctrl to decrease, hold enter for shear2)\n"
+            << "\t7: y-shear (hold ctrl to decrease, hold enter for shear2)\n"
             << "\t0: Rotate left\n"
             << "\t9: Rotate right\n"
             << "\tv: toggle force square viewport\n"
@@ -324,7 +324,6 @@ update_cts_params(void)
   assert(keyboard_state != NULL);
 
   float speed = static_cast<float>(m_draw_timer.restart()), speed_stroke, speed_shear;
-  Uint32 mouse_mask = SDL_GetMouseState(NULL, NULL);
 
   speed *= m_change_stroke_width_rate.m_value;
 
@@ -351,12 +350,12 @@ update_cts_params(void)
       shear_txt = "2";
     }
 
-  if(mouse_mask & SDL_BUTTON(8))
+  if(keyboard_state[SDL_SCANCODE_6])
     {
       pshear->x() += speed_shear;
       std::cout << "Shear" << shear_txt << " set to: " << *pshear << "\n";
     }
-  if(mouse_mask & SDL_BUTTON(9))
+  if(keyboard_state[SDL_SCANCODE_7])
     {
       pshear->y() += speed_shear;
       std::cout << "Shear " << shear_txt << " set to: " << *pshear << "\n";
