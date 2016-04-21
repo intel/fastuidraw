@@ -588,6 +588,13 @@ handle_event(const SDL_Event &ev)
       end_demo(0);
       break;
 
+    case SDL_WINDOWEVENT:
+      if(ev.window.event == SDL_WINDOWEVENT_RESIZED)
+        {
+          m_grid_path_dirty = true;
+        }
+      break;
+
     case SDL_MOUSEMOTION:
       {
         ivec2 c(ev.motion.x + ev.motion.xrel,
