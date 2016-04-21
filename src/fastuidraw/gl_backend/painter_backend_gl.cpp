@@ -790,7 +790,14 @@ add_entry(unsigned int indices_written) const
 
   if(m_draws.empty())
     {
-      m_draws.push_back(m_blend_modes[0]);
+      if(!m_blend_modes.empty())
+        {
+          m_draws.push_back(m_blend_modes[0]);
+        }
+      else
+        {
+          m_draws.push_back(fastuidraw::gl::BlendMode());
+        }
     }
   assert(indices_written >= m_indices_written);
   count = indices_written - m_indices_written;
@@ -804,16 +811,6 @@ add_entry(unsigned int indices_written) const
 BlendModeTracker::
 BlendModeTracker(void)
 {
-  unsigned int entry;
-  entry = blend_index(fastuidraw::gl::BlendMode()
-                      .equation_rgb(GL_FUNC_ADD)
-                      .equation_alpha(GL_FUNC_ADD)
-                      .func_src_rgb(GL_ONE)
-                      .func_src_alpha(GL_ONE)
-                      .func_dst_rgb(GL_ZERO)
-                      .func_dst_alpha(GL_ZERO));
-  assert(entry == 0);
-  FASTUIDRAWunused(entry);
 }
 
 unsigned int
@@ -834,6 +831,7 @@ blend_index(const fastuidraw::gl::BlendMode &blend_mode)
       m_modes.push_back(blend_mode);
       m_map[blend_mode] = return_value;
     }
+
   return return_value;
 }
 
@@ -2079,8 +2077,6 @@ absorb_blend_shader(const PainterShader::handle &shader)
   return_value.m_ID = d->m_blend_shaders.size();
   return_value.m_group = pack_bits(dual_src_blend_bit0, dual_src_blend_num_bits, dual_src)
     | pack_bits(single_src_blend_bit0, single_src_blend_num_bits, single_src);
-
-  assert(return_value.m_group != 0);
   
   return return_value;
 }
