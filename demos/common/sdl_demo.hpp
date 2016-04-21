@@ -40,6 +40,8 @@
 #include "ostream_utility.hpp"
 #include "generic_command_line.hpp"
 #include "cast_c_array.hpp"
+#include "egl_gles_context.hpp"
+
 /*
   Notes:
     ~sdl_demo() destroy the window and GL context,
@@ -134,6 +136,8 @@ private:
   command_line_argument_value<bool> m_gl_forward_compatible_context;
   command_line_argument_value<bool> m_gl_debug_context;
   command_line_argument_value<bool> m_gl_core_profile;
+#else
+  command_line_argument_value<bool> m_use_egl;
 #endif
 
   command_line_argument_value<bool> m_show_framerate;
@@ -144,4 +148,5 @@ private:
 
   SDL_Window *m_window;
   SDL_GLContext m_ctx;
+  egl_gles_context::handle m_ctx_egl;
 };
