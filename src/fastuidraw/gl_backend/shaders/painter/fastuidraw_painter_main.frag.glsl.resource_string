@@ -3,8 +3,18 @@ flat fastuidraw_varying uint fastuidraw_frag_shader;
 flat fastuidraw_varying uint fastuidraw_frag_shader_data_location;
 flat fastuidraw_varying uint fastuidraw_blend_shader;
 
+#ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
 layout(location = 0, index = 0) out vec4 fastuidraw_final_color0;
 layout(location = 0, index = 1) out vec4 fastuidraw_final_color1;
+#endif
+
+#ifdef FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND
+layout(location = 0) out vec4 fastuidraw_final_color;
+#endif
+
+#ifdef FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH
+layout(location = 0) inout vec4 fastuidraw_final_color;
+#endif
 
 #ifdef FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES
 
@@ -49,5 +59,24 @@ main(void)
   b = fastuidraw_compute_brush_color();
   v = b * c;
   v.rgb *= v.a;
-  fastuidraw_run_blend_shader(fastuidraw_blend_shader, v, fastuidraw_final_color0, fastuidraw_final_color1);
+  #ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
+    {
+      fastuidraw_run_blend_shader(fastuidraw_blend_shader, v, fastuidraw_final_color0, fastuidraw_final_color1);
+    }
+  #endif
+
+  #ifdef FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND
+    {
+      fastuidraw_run_blend_shader(fastuidraw_blend_shader, v, fastuidraw_final_color);
+    }
+  #endif
+
+  #ifdef FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH
+    {
+      vec4 in_fb, out_fb;
+      in_fb = fastuidraw_final_color;
+      fastuidraw_run_blend_shader(fastuidraw_blend_shader, v, in_fb, out_fb);
+      fastuidraw_final_color = out_fb;
+    }
+  #endif
 }

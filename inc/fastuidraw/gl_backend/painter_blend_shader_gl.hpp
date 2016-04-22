@@ -37,17 +37,19 @@ namespace fastuidraw
     class BlendMode
     {
     public:
-      BlendMode(void):
-        m_data(GL_ONE)
+      BlendMode(void)
       {
         m_data[Kequation_rgb] = m_data[Kequation_alpha] = GL_FUNC_ADD;
+        m_data[Kfunc_src_rgb] = m_data[Kfunc_src_alpha] = GL_ONE;
+        m_data[Kfunc_dst_rgb] = m_data[Kfunc_dst_alpha] = GL_ZERO;
       }
 
       /*!
         Set the argument to feed for the RGB for
         glBlendEquationSeparate, should be one of
         GL_FUNC_ADD, GL_FUNC_SUBTRACT,
-        GL_FUNC_REVERSE_SUBTRACT, GL_MIN or GL_MAX
+        GL_FUNC_REVERSE_SUBTRACT, GL_MIN or GL_MAX.
+        Default value is GL_FUNC_ADD.
        */
       BlendMode&
       equation_rgb(GLenum v) { m_data[Kequation_rgb] = v; return *this; }
@@ -64,7 +66,8 @@ namespace fastuidraw
         Set the argument to feed for the Alpha for
         glBlendEquationSeparate, should be one of
         GL_FUNC_ADD, GL_FUNC_SUBTRACT,
-        GL_FUNC_REVERSE_SUBTRACT, GL_MIN or GL_MAX
+        GL_FUNC_REVERSE_SUBTRACT, GL_MIN or GL_MAX.
+        Default value is GL_FUNC_ADD.
        */
       BlendMode&
       equation_alpha(GLenum v) { m_data[Kequation_alpha] = v; return *this; }
@@ -100,6 +103,7 @@ namespace fastuidraw
         GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA,
         GL_SRC_ALPHA_SATURATE, GL_SRC1_COLOR, GL_SRC1_ALPHA,
         GL_ONE_MINUS_SRC1_COLOR or GL_ONE_MINUS_SRC1_ALPHA.
+        Default value is GL_ONE.
        */
       BlendMode&
       func_src_rgb(GLenum v) { m_data[Kfunc_src_rgb] = v; return *this; }
@@ -120,6 +124,7 @@ namespace fastuidraw
         GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA,
         GL_SRC_ALPHA_SATURATE, GL_SRC1_COLOR, GL_SRC1_ALPHA,
         GL_ONE_MINUS_SRC1_COLOR or GL_ONE_MINUS_SRC1_ALPHA.
+        Default value is GL_ONE.
        */
       BlendMode&
       func_src_alpha(GLenum v) { m_data[Kfunc_src_alpha] = v; return *this; }
@@ -142,8 +147,7 @@ namespace fastuidraw
       BlendMode&
       func_src(GLenum v)
       {
-        m_data[Kfunc_src_rgb] = v;
-        m_data[Kfunc_src_alpha] = v;
+        m_data[Kfunc_src_rgb] = m_data[Kfunc_src_alpha] = v;
         return *this;
       }
 
@@ -155,6 +159,7 @@ namespace fastuidraw
         GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA,
         GL_SRC_ALPHA_SATURATE, GL_SRC1_COLOR, GL_SRC1_ALPHA,
         GL_ONE_MINUS_SRC1_COLOR or GL_ONE_MINUS_SRC1_ALPHA.
+        Default value is GL_ZERO.
        */
       BlendMode&
       func_dst_rgb(GLenum v) { m_data[Kfunc_dst_rgb] = v; return *this; }
@@ -175,6 +180,7 @@ namespace fastuidraw
         GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA,
         GL_SRC_ALPHA_SATURATE, GL_SRC1_COLOR, GL_SRC1_ALPHA,
         GL_ONE_MINUS_SRC1_COLOR or GL_ONE_MINUS_SRC1_ALPHA.
+        Default value is GL_ZERO.
        */
       BlendMode&
       func_dst_alpha(GLenum v) { m_data[Kfunc_dst_alpha] = v; return *this; }
@@ -197,8 +203,22 @@ namespace fastuidraw
       BlendMode&
       func_dst(GLenum v)
       {
-        m_data[Kfunc_dst_rgb] = v;
-        m_data[Kfunc_dst_alpha] = v;
+        m_data[Kfunc_dst_rgb] = m_data[Kfunc_dst_alpha] = v;
+        return *this;
+      }
+
+      /*!
+        Provided as a conveniance, equivalent to
+        \code
+        func_src(src);
+        func_dst(dst);
+        \endcode
+       */
+      BlendMode&
+      func(GLenum src, GLenum dst)
+      {
+        m_data[Kfunc_src_rgb] = m_data[Kfunc_src_alpha] = src;
+        m_data[Kfunc_dst_rgb] = m_data[Kfunc_dst_alpha] = dst;
         return *this;
       }
 
@@ -270,7 +290,7 @@ namespace fastuidraw
         Provides the GLSL code fragment that provides the function
         \code
         void
-        fastuidraw_gl_compute_blended_value(in vec4 in_src, out vec4 out_src)
+        fastuidraw_gl_compute_blend_value(in vec4 in_src, out vec4 out_src)
         \endcode
         where in_src is the pre-multiplied by alpha color value for the
         fragment and out_src is the value for the fragment shader to emit.
