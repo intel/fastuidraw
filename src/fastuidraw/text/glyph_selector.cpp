@@ -386,6 +386,11 @@ void
 fastuidraw::GlyphSelector::
 add_font(FontBase::const_handle h)
 {
+  if(!h)
+    {
+      return;
+    }
+
   GlyphSelectorPrivate *d;
   d = reinterpret_cast<GlyphSelectorPrivate*>(m_d);
 
