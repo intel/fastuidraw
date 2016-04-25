@@ -24,6 +24,7 @@ pre_paint(void)
     }
   else
     {
+      m_skip_drawing = false;
       m_bb_against_parent_min = m_bb_min;
       m_bb_against_parent_max = m_bb_max;
     }

@@ -66,7 +66,7 @@ protected:
 private:
 
   void
-  update(void);
+  pre_paint(void);
 
   bool m_first_frame;
   simple_time m_time;
