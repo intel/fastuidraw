@@ -544,10 +544,10 @@ rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh)
   else
     {
       fastuidraw::PainterState::ClipEquations clip_eq;
-      clip_eq.m_clip_equations[0] = fastuidraw::vec3(1.0f, 0.0f, 1.0f);
-      clip_eq.m_clip_equations[1] = fastuidraw::vec3(-1.0f, 0.0f, 1.0f);
-      clip_eq.m_clip_equations[2] = fastuidraw::vec3(0.0f, 1.0f, 1.0f);
-      clip_eq.m_clip_equations[3] = fastuidraw::vec3(0.0f, -1.0f, 1.0f);
+      clip_eq.m_clip_equations[0] = fastuidraw::vec3( 1.0f,  0.0f, 1.0f);
+      clip_eq.m_clip_equations[1] = fastuidraw::vec3(-1.0f,  0.0f, 1.0f);
+      clip_eq.m_clip_equations[2] = fastuidraw::vec3( 0.0f,  1.0f, 1.0f);
+      clip_eq.m_clip_equations[3] = fastuidraw::vec3( 0.0f, -1.0f, 1.0f);
       return all_pts_culled_by_one_half_plane(pts, clip_eq);
     }
 }
@@ -616,7 +616,14 @@ begin(bool reset_z)
   d->m_clip_rect_state.m_item_matrix_changed = false;
   d->m_clip_rect_state.m_clip_rect.m_enabled = false;
   d->m_core->item_matrix(PainterState::ItemMatrix());
-  d->m_core->clip_equations(PainterState::ClipEquations());
+  {
+    PainterState::ClipEquations clip_eq;
+    clip_eq.m_clip_equations[0] = fastuidraw::vec3( 1.0f,  0.0f, 1.0f);
+    clip_eq.m_clip_equations[1] = fastuidraw::vec3(-1.0f,  0.0f, 1.0f);
+    clip_eq.m_clip_equations[2] = fastuidraw::vec3( 0.0f,  1.0f, 1.0f);
+    clip_eq.m_clip_equations[3] = fastuidraw::vec3( 0.0f, -1.0f, 1.0f);
+    d->m_core->clip_equations(clip_eq);
+  }
   d->m_core->brush_state(d->m_reset_brush);
   vertex_shader_data(VertexShaderData());
   fragment_shader_data(FragmentShaderData());
