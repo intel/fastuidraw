@@ -139,6 +139,15 @@ namespace
     return false;
   }
 
+  inline
+  bool
+  clip_equation_clips_everything(const fastuidraw::vec3 &cl)
+  {
+    return fastuidraw::t_abs(cl.x()) == 0.0f
+      && fastuidraw::t_abs(cl.y()) == 0.0f
+      && cl.z() <= 0.0f;
+  }
+
   void
   draw_half_plane_complement(fastuidraw::Painter *painter,
                              const fastuidraw::vec3 &plane,
@@ -243,6 +252,13 @@ namespace
 
     void
     scale(float s);
+
+    bool
+    empty(void)
+    {
+      return m_enabled
+        && (m_min.x() >= m_max.x() || m_min.y() >= m_max.y());
+    }
 
     bool m_enabled;
     fastuidraw::vec2 m_min, m_max;
@@ -448,6 +464,12 @@ clip_rect_state::
 set_painter_core_clip(const fastuidraw::PainterState::ClipEquationsState &pcl,
                       const fastuidraw::PainterPacker::handle &core)
 {
+  if(m_clip_rect.empty())
+    {
+      m_all_content_culled = true;
+      return std::bitset<4>();
+    }
+
   m_item_matrix_tricky = false;
   if(m_item_matrix_changed)
     {
@@ -472,6 +494,15 @@ set_painter_core_clip(const fastuidraw::PainterState::ClipEquationsState &pcl,
   cl.m_clip_equations[2] = m_item_matrix_inverse_transpose * fastuidraw::vec3( 0.0f,  1.0f, -m_clip_rect.m_min.y());
   cl.m_clip_equations[3] = m_item_matrix_inverse_transpose * fastuidraw::vec3( 0.0f, -1.0f,  m_clip_rect.m_max.y());
   core->clip_equations(cl);
+
+  for(int i = 0; i < 4; ++i)
+    {
+      if(clip_equation_clips_everything(cl.m_clip_equations[i]))
+        {
+          m_all_content_culled = true;
+          return std::bitset<4>();
+        }
+    }
 
   if(!pcl)
     {
@@ -1290,7 +1321,9 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   d = reinterpret_cast<PainterPrivate*>(m_d);
 
   d->m_clip_rect_state.m_all_content_culled =
-    d->m_clip_rect_state.m_all_content_culled || d->rect_is_culled(pmin, wh);
+    d->m_clip_rect_state.m_all_content_culled ||
+    wh.x() <= 0.0f || wh.y() <= 0.0f ||
+    d->rect_is_culled(pmin, wh);
 
   if(d->m_clip_rect_state.m_all_content_culled)
     {
@@ -1344,6 +1377,15 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   std::bitset<4> skip_occluder;
   skip_occluder = d->m_clip_rect_state.set_painter_core_clip(prev_clip, d->m_core);
   current_clip = d->m_core->clip_equations_state();
+
+  if(d->m_clip_rect_state.m_all_content_culled)
+    {
+      /* The clip equations coming from the new clipping
+         rectangle degenerate into an empty clipping region
+         on the screen; immediately return.
+       */
+      return;
+    }
 
   /* if the new clipping rectangle is completely contained
      in the older clipping region, then we can skip drawing
