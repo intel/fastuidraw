@@ -16,8 +16,9 @@
  *
  */
 
+#include <boost/version.hpp>
 
-#ifdef _WIN32
+#if (BOOST_VERSION < 105300)
   #define FASTUIDRAW_USE_DETAIL_ATOMIC
 #endif
 
