@@ -1,9 +1,12 @@
 # detect MinGW: requires tweaks to various builds
 MINGW_BUILD = 0
-UNAME =$(shell uname -s)
+UNAME = $(shell uname -s)
+UNAMER= $(shell uname -r)
 ifeq ($(findstring MINGW,$(UNAME)),MINGW)
   MINGW_BUILD = 1
-  ifeq ($(findstring MINGW64,$(UNAME)),MINGW64)
+  ifeq ($(findstring 1.0, $(UNAMER)), 1.0)
+	MINGW_MODE = MINGW
+  else ifeq ($(findstring MINGW64,$(UNAME)),MINGW64)
 	MINGW_MODE = MINGW64
   else ifeq ($(findstring MINGW32,$(UNAME)),MINGW32)
 	MINGW_MODE = MINGW32
@@ -19,7 +22,11 @@ LIBRARY_LIBS = `freetype-config --libs` -lm
 
 ifeq ($(MINGW_BUILD),1)
 LIBRARY_LIBS += -lmingw32
-LIBRARY_BOOST_LIBS = -lboost_system-mt -lboost_thread-mt
+  ifeq ($(MINGW_MODE),MINGW)
+    LIBRARY_BOOST_LIBS = -lboost_system -lboost_thread
+  else
+    LIBRARY_BOOST_LIBS = -lboost_system-mt -lboost_thread-mt
+  endif
 fPIC =
 fHIDDEN =
 fHIDDEN_INLINES =
