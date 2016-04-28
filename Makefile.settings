@@ -1,7 +1,13 @@
 # detect MinGW: requires tweaks to various builds
 MINGW_BUILD = 0
-ifeq ($(findstring MINGW,$(shell uname -a)),MINGW)
-MINGW_BUILD = 1
+UNAME =$(shell uname -s)
+ifeq ($(findstring MINGW,$(UNAME)),MINGW)
+  MINGW_BUILD = 1
+  ifeq ($(findstring MINGW64,$(UNAME)),MINGW64)
+	MINGW_MODE = MINGW64
+  else ifeq ($(findstring MINGW32,$(UNAME)),MINGW32)
+	MINGW_MODE = MINGW32
+  endif
 endif
 
 ###########################################
@@ -24,7 +30,7 @@ fHIDDEN = -fvisibility=hidden
 LIBRARY_BOOST_LIBS = -lboost_system -lboost_thread
 endif
 
-LIBRARY_LIBS += -lboost_system -lboost_thread 
+LIBRARY_LIBS += $(LIBRARY_BOOST_LIBS)
 
 #########################
 ## for using clang-tidy
