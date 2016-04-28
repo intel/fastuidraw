@@ -1,6 +1,6 @@
 # detect MinGW: requires tweaks to various builds
 MINGW_BUILD = 0
-ifeq ($(findstring MINGW32,$(shell uname -a)),MINGW32)
+ifeq ($(findstring MINGW,$(shell uname -a)),MINGW)
 MINGW_BUILD = 1
 endif
 
@@ -9,10 +9,11 @@ endif
 CXX ?= g++
 CC ?= gcc
 STRING_RESOURCE_CC = shell_scripts/create_cpp_from_string_resource.sh
-LIBRARY_LIBS = -lboost_system -lboost_thread `freetype-config --libs` -lm
+LIBRARY_LIBS = `freetype-config --libs` -lm
 
 ifeq ($(MINGW_BUILD),1)
 LIBRARY_LIBS += -lmingw32
+LIBRARY_BOOST_LIBS = -lboost_system-mt -lboost_thread-mt
 fPIC =
 fHIDDEN =
 fHIDDEN_INLINES =
@@ -20,7 +21,10 @@ else
 fPIC = -fPIC
 fHIDDEN_INLINES = -fvisibility-inlines-hidden
 fHIDDEN = -fvisibility=hidden
+LIBRARY_BOOST_LIBS = -lboost_system -lboost_thread
 endif
+
+LIBRARY_LIBS += -lboost_system -lboost_thread 
 
 #########################
 ## for using clang-tidy

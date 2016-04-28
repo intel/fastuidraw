@@ -1,7 +1,7 @@
 DEMO_COMMON_RESOURCE_STRING_SRCS = $(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $(COMMON_DEMO_RESOURCE_STRINGS))
 
 # This is awful. Makes me wish I used cmake.
-DEMO_COMMON_LIBS := -ldl $(shell sdl2-config --libs) -lSDL2_image $(LIBRARY_LIBS)
+DEMO_COMMON_LIBS := $(shell sdl2-config --libs) -lSDL2_image $(LIBRARY_LIBS)
 
 ifeq ($(MINGW_BUILD),1)
   TEMP := $(DEMO_COMMON_LIBS)
