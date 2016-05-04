@@ -190,8 +190,6 @@ public:
            const vec2 &ct2, const vec2 &end);
 
     /*!
-                  const_c_array<vec2> control_pts,
-                  const vec2 &)
       Ctor. Iterator range defines the control points of the bezier curve.
       \param start start of curve
       \param control_pts control points
