@@ -944,12 +944,9 @@ draw_frame(void)
       int d;
       d = std::max(wh.x(), wh.y());
       on_resize(d, d);
-      /* when doing stroking with pixel widths, we need that the
-         coefficients from viewport coordinates to pixel coordinates
-         are the same, i.e. the viewport dimensions is a square.
+      /* Make the viewport dimensions as a square.
          The projection matrix below is the matrix to use for
-         orthogonal projection so that the top is 0 and the
-         bottom is wh.y().
+         orthogonal projection so that the top is 0
       */
       float3x3 proj(float_orthogonal_projection_params(0, d, wh.y(), wh.y() - d));
       m_painter->transformation(proj);
@@ -1065,9 +1062,7 @@ draw_frame(void)
           if(m_fill_by_clipping)
             {
               m_painter->save();
-              enable_wire_frame(false);
               m_painter->clipInPath(m_path, v);
-              enable_wire_frame(m_wire_frame);
               m_painter->transformation(float3x3());
               m_painter->draw_rect(vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
               m_painter->restore();
@@ -1088,9 +1083,7 @@ draw_frame(void)
           if(m_fill_by_clipping)
             {
               m_painter->save();
-              enable_wire_frame(false);
               m_painter->clipInPath(m_path, WindingValueFillRule(value));
-              enable_wire_frame(m_wire_frame);
               m_painter->transformation(float3x3());
               m_painter->draw_rect(vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
               m_painter->restore();
