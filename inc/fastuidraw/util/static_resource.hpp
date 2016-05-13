@@ -28,8 +28,8 @@ namespace fastuidraw
  */
 
   /*!
-    Generate and store a string resource for use. Once a string resource
-    is added it cannot be removed.
+    Generate and store a resource for use. Once a resource is added it
+    cannot be removed.
     \param resource_label "name" of resource, the string is copied
     \param value "value" of resource, the data behind value is copied
    */
@@ -37,8 +37,8 @@ namespace fastuidraw
   generate_static_resource(const char *resource_label, const_c_array<uint8_t> value);
 
   /*!
-    Returns the string behind a string resource. If no
-    resource is found, returns 0.
+    Returns the data behind a resource. If no resource is found,
+    returns an empty const_c_array.
     \param resource_label label of resource as specified
                           by generate_static_resource().
    */

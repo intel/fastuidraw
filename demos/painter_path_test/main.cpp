@@ -903,6 +903,25 @@ draw_frame(void)
 
   m_painter->begin();
 
+  if(m_force_square_viewport)
+    {
+      int d;
+      d = std::max(wh.x(), wh.y());
+      on_resize(d, d);
+      /* Make the viewport dimensions as a square.
+         The projection matrix below is the matrix to use for
+         orthogonal projection so that the top is 0
+      */
+      float3x3 proj(float_orthogonal_projection_params(0, d, wh.y(), wh.y() - d));
+      m_painter->transformation(proj);
+    }
+  else
+    {
+      on_resize(wh.x(), wh.y());
+      float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));
+      m_painter->transformation(proj);
+    }
+
   /* draw grid using painter.
    */
   if(m_draw_grid && m_stroke_width_in_pixels && m_stroke_width > 0.0f)
@@ -925,10 +944,6 @@ draw_frame(void)
           m_grid_path_dirty = false;
           m_grid_path.swap(grid_path);
         }
-
-      on_resize(wh.x(), wh.y());
-      float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));
-      m_painter->transformation(proj);
       m_painter->brush().pen(1.0f, 1.0f, 1.0f, 1.0f);
       PainterState::StrokeParams st;
       st.miter_limit(-1.0f);
@@ -939,27 +954,7 @@ draw_frame(void)
                              false);
     }
 
-  if(m_force_square_viewport)
-    {
-      int d;
-      d = std::max(wh.x(), wh.y());
-      on_resize(d, d);
-      /* when doing stroking with pixel widths, we need that the
-         coefficients from viewport coordinates to pixel coordinates
-         are the same, i.e. the viewport dimensions is a square.
-         The projection matrix below is the matrix to use for
-         orthogonal projection so that the top is 0 and the
-         bottom is wh.y().
-      */
-      float3x3 proj(float_orthogonal_projection_params(0, d, wh.y(), wh.y() - d));
-      m_painter->transformation(proj);
-    }
-  else
-    {
-      on_resize(wh.x(), wh.y());
-      float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));
-      m_painter->transformation(proj);
-    }
+  
 
   /* apply m_zoomer
    */
@@ -1065,9 +1060,7 @@ draw_frame(void)
           if(m_fill_by_clipping)
             {
               m_painter->save();
-              enable_wire_frame(false);
               m_painter->clipInPath(m_path, v);
-              enable_wire_frame(m_wire_frame);
               m_painter->transformation(float3x3());
               m_painter->draw_rect(vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
               m_painter->restore();
@@ -1088,9 +1081,7 @@ draw_frame(void)
           if(m_fill_by_clipping)
             {
               m_painter->save();
-              enable_wire_frame(false);
               m_painter->clipInPath(m_path, WindingValueFillRule(value));
-              enable_wire_frame(m_wire_frame);
               m_painter->transformation(float3x3());
               m_painter->draw_rect(vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
               m_painter->restore();

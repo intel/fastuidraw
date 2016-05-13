@@ -1,6 +1,6 @@
 
 fastuidraw-config: fastuidraw-config.in
-	echo Generating $@
+	@echo Generating $@
 	@cp $< $@
 	@sed -i 's!@FASTUIDRAW_GLES_release_LIBS@!$(FASTUIDRAW_GLES_release_LIBS)!' $@
 	@sed -i 's!@FASTUIDRAW_GL_release_LIBS@!$(FASTUIDRAW_GL_release_LIBS)!' $@
