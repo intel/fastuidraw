@@ -319,11 +319,21 @@ set_data(const FilledPath::const_handle &path)
 {
   PainterAttributeDataPrivate *d;
   d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
+  const_c_array<int> winding_numbers(path->winding_numbers());
+
+  if(winding_numbers.empty())
+    {
+      d->m_attribute_data.clear();
+      d->m_attribute_chunks.clear();
+      d->m_increment_z.clear();
+      d->m_index_data.clear();
+      d->m_index_chunks.clear();
+      return;
+    }
 
   d->m_attribute_data.resize(path->points().size());
   std::transform(path->points().begin(), path->points().end(), d->m_attribute_data.begin(), generate_attribute_fill);
 
-  const_c_array<int> winding_numbers(path->winding_numbers());
   /* winding_numbers is already sorted, so largest and smallest
      winding numbers are at back and front
    */

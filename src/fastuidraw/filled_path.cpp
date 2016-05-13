@@ -148,6 +148,8 @@ namespace
 
     fastuidraw_GLUtesselator *m_tess;
     std::vector<fastuidraw::vec2> &m_points;
+    fastuidraw::vecN<unsigned int, 3> m_temp_verts;
+    unsigned int m_temp_vert_count;
   };
 
   class non_zero_tesser:private tesser
@@ -371,6 +373,7 @@ begin_callBack(FASTUIDRAW_GLUenum type, int winding_number, void *tess)
   FASTUIDRAWunused(type);
 
   //std::cout << "begin_callBack(" << winding_number << ")\n";
+  p->m_temp_vert_count = 0;
   p->on_begin_polygon(winding_number);
 }
 
@@ -382,7 +385,28 @@ vertex_callBack(unsigned int vertex_id, void *tess)
   p = static_cast<tesser*>(tess);
   // std::cout << "add vertex [" << *data << "] = " << p->m_points[*data] << "\n";
 
-  p->add_vertex_to_polygon(vertex_id);
+  /* Cache added vertices in groups of 3 (triangles),
+     then if all vertices are NOT FASTUIDRAW_GLU_NULL_CLIENT_ID,
+     then add them.
+   */
+  p->m_temp_verts[p->m_temp_vert_count] = vertex_id;
+  p->m_temp_vert_count++;
+  if(p->m_temp_vert_count == 3)
+    {
+      p->m_temp_vert_count = 0;
+      /*
+        if vertex_id is FASTUIDRAW_GLU_NULL_CLIENT_ID, that means
+        the triangle is junked.
+      */
+      if(p->m_temp_verts[0] != FASTUIDRAW_GLU_NULL_CLIENT_ID
+         && p->m_temp_verts[1] != FASTUIDRAW_GLU_NULL_CLIENT_ID
+         && p->m_temp_verts[2] != FASTUIDRAW_GLU_NULL_CLIENT_ID)
+        {
+          p->add_vertex_to_polygon(p->m_temp_verts[0]);
+          p->add_vertex_to_polygon(p->m_temp_verts[1]);
+          p->add_vertex_to_polygon(p->m_temp_verts[2]);
+        }
+    }
 }
 
 
@@ -644,7 +668,7 @@ fill_indices(std::vector<unsigned int> &indices,
 
   assert(current_zero == total);
   assert(current_odd == num_odd);
-  assert(current_even_non_zero = current_odd + num_even_non_zero);
+  assert(current_even_non_zero == current_odd + num_even_non_zero);
 
   even_non_zero_start = num_odd;
   zero_start = current_odd + num_even_non_zero;
