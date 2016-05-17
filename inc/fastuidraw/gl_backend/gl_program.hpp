@@ -560,7 +560,6 @@ protected:
   }
 
 private:
-  char *m_uniform_name;
   T m_value;
 };
 
@@ -568,6 +567,32 @@ private:
   Conveniance typedef to initialize samplers.
  */
 typedef UniformInitializer<int> SamplerInitializer;
+
+
+/*!
+  A UniformBlockInitializer is used to initalize the binding point
+  used by a bindable uniform (aka Uniform buffer object, see the
+  GL spec on glGetUniformBlockIndex and glUniformBlockBinding.
+ */
+class UniformBlockInitializer:public ProgramInitializer
+{
+public:
+  /*!
+    Ctor.
+    \param uniform_name name of uniform in GLSL to initialize
+    \param value value with which to set the uniform
+   */
+  UniformBlockInitializer(const char *uniform_name, int binding_point_index);
+
+  ~UniformBlockInitializer();
+
+  virtual
+  void
+  perform_initialization(Program *pr) const;
+
+private:
+  void *m_d;
+};
 
 /*!
   Conveniance class to hold an array of handles
@@ -629,6 +654,20 @@ public:
   add_sampler_initializer(const char *uniform_name, int value)
   {
     return add(FASTUIDRAWnew SamplerInitializer(uniform_name, value));
+  }
+
+  /*!
+    Provided as a conveniance, creates a UniformBlockInitializer
+    object and adds that via add().
+    \param uniform_name name of uniform in GLSL to initialize
+    \param value value with which to set the uniform, in this
+                 case specifies the binding point index to
+                 pass to glBindBufferBase or glBindBufferRange.
+  */
+  ProgramInitializerArray&
+  add_uniform_block_binding(const char *uniform_name, int value)
+  {
+    return add(FASTUIDRAWnew UniformBlockInitializer(uniform_name, value));
   }
 
   /*!

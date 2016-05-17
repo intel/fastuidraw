@@ -605,7 +605,7 @@ ready_program(void)
 
   gl::Shader::shader_source curve_pair_func;
   curve_pair_func = m_glyph_atlas->glsl_curvepair_compute_pseudo_distance("curvepair_pseudo_distance",
-                                                                          "glyph_geometry_data_store",
+                                                                          "fetch_glyph_geometry_data",
                                                                           true);
   for(int i = 0; i < number_texel_store_modes; ++i)
     {

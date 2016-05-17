@@ -74,12 +74,14 @@ namespace
       m_data_bo(0),
       m_data_tbo_float(0),
       m_data_tbo_uint(0),
-      m_data_tbo_int(0)
+      m_data_tbo_int(0),
+      m_use_ubo(false)
     {}
 
     GLuint m_vao;
     GLuint m_attribute_bo, m_header_bo, m_index_bo, m_data_bo;
     GLuint m_data_tbo_float, m_data_tbo_uint, m_data_tbo_int;
+    bool m_use_ubo;
   };
 
   class painter_vao_pool:fastuidraw::noncopyable
@@ -111,6 +113,7 @@ namespace
     unsigned int
     data_buffer_size(void) const
     {
+      assert(m_data_buffer_size > 0);
       return m_data_buffer_size;
     }
 
@@ -324,6 +327,7 @@ namespace
     GLenum m_clip_plane0;
     bool m_have_dual_src_blending, m_have_framebuffer_fetch;
     fastuidraw::gl::ContextProperties m_ctx_properties;
+    enum fastuidraw::gl::detail::tex_buffer_support_t m_tex_buffer_support;
     
     fastuidraw::gl::Program::handle m_program;
     GLint m_target_resolution_loc, m_target_resolution_recip_loc;
@@ -345,9 +349,16 @@ namespace
       bind_glyph_texel_sampler,
       bind_glyph_geomtry,
       bind_colorstop,
-      bind_painter_data_store_float,
-      bind_painter_data_store_uint,
-      bind_painter_data_store_int,
+      bind_painter_data_store_tbo_float,
+      bind_painter_data_store_tbo_uint,
+      bind_painter_data_store_tbo_int,
+    };
+
+  enum
+    {
+      bind_painter_data_store_ubo_float = 0,
+      bind_painter_data_store_ubo_uint,
+      bind_painter_data_store_ubo_int,
     };
 
   enum
@@ -458,7 +469,7 @@ painter_vao_pool(const fastuidraw::gl::PainterBackendGL::params &params):
   m_current(0),
   m_pool(0),
   m_vaos(params.number_pools()),
-  m_tex_buffer_support(fastuidraw::gl::detail::tex_buffer_not_supported)
+  m_tex_buffer_support(fastuidraw::gl::detail::tex_buffer_not_computed)
 {}
 
 painter_vao_pool::
@@ -486,19 +497,37 @@ request_vao(void)
 {
   painter_vao return_value;
 
-  if(m_tex_buffer_support == fastuidraw::gl::detail::tex_buffer_not_supported)
+  if(m_tex_buffer_support == fastuidraw::gl::detail::tex_buffer_not_computed)
     {
       m_tex_buffer_support = fastuidraw::gl::detail::compute_tex_buffer_support();
-      assert(m_tex_buffer_support != fastuidraw::gl::detail::tex_buffer_not_supported);
     }
 
   if(m_data_buffer_size == 0)
     {
-      int max_texture_buffer_size(0), num_blocks;
-      max_texture_buffer_size = fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_BUFFER_SIZE);
-      num_blocks = fastuidraw::t_min(m_requested_block_per_data_buffer, max_texture_buffer_size);
-      m_data_buffer_size = m_alignment * num_blocks * sizeof(fastuidraw::generic_data);
+      if(m_tex_buffer_support == fastuidraw::gl::detail::tex_buffer_not_supported)
+        {
+          unsigned int max_ubo_size, requested_size, block_size_bytes;
+
+          block_size_bytes = m_alignment * sizeof(fastuidraw::generic_data);
+          max_ubo_size = fastuidraw::gl::context_get<GLint>(GL_MAX_UNIFORM_BLOCK_SIZE);
+          requested_size = block_size_bytes * m_requested_block_per_data_buffer;
+          m_data_buffer_size = fastuidraw::t_min(max_ubo_size, requested_size);
+
+          /* make m_data_buffer_size a multiple of block_size_bytes */
+          m_data_buffer_size = (m_data_buffer_size / block_size_bytes) * block_size_bytes;
+          assert(m_data_buffer_size > 0);
+        }
+      else
+        {
+          int max_texture_buffer_size(0), num_blocks;
+          max_texture_buffer_size = fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_BUFFER_SIZE);
+          num_blocks = fastuidraw::t_min(m_requested_block_per_data_buffer, max_texture_buffer_size);
+          m_data_buffer_size = m_alignment * num_blocks * sizeof(fastuidraw::generic_data);
+          assert(m_data_buffer_size > 0);
+        }
+      std::cout << "m_data_buffer_size = " << m_data_buffer_size << "\n";
     }
+
 
   if(m_current == m_vaos[m_pool].size())
     {
@@ -510,27 +539,37 @@ request_vao(void)
       assert(m_vaos[m_pool][m_current].m_vao != 0);
       glBindVertexArray(m_vaos[m_pool][m_current].m_vao);
 
+      if(m_tex_buffer_support != fastuidraw::gl::detail::tex_buffer_not_supported)
+        {
+          m_vaos[m_pool][m_current].m_use_ubo = false;
+          m_vaos[m_pool][m_current].m_data_bo = generate_bo(GL_TEXTURE_BUFFER, m_data_buffer_size);
+          generate_tbos(m_vaos[m_pool][m_current]);
+        }
+      else
+        {
+          m_vaos[m_pool][m_current].m_use_ubo = true;
+          m_vaos[m_pool][m_current].m_data_bo = generate_bo(GL_ARRAY_BUFFER, m_data_buffer_size);
+        }
+
       /* generate_bo leaves the returned buffer object bound to
          the passed binding target.
       */
       m_vaos[m_pool][m_current].m_attribute_bo = generate_bo(GL_ARRAY_BUFFER, m_attribute_buffer_size);
       m_vaos[m_pool][m_current].m_index_bo = generate_bo(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size);
-      m_vaos[m_pool][m_current].m_data_bo = generate_bo(GL_TEXTURE_BUFFER, m_data_buffer_size);
-      generate_tbos(m_vaos[m_pool][m_current]);
 
       glEnableVertexAttribArray(0);
       v = fastuidraw::gl::opengl_trait_values<fastuidraw::vec4>(sizeof(fastuidraw::PainterAttribute),
-                                                              offsetof(fastuidraw::PainterAttribute, m_primary_attrib));
+                                                                offsetof(fastuidraw::PainterAttribute, m_primary_attrib));
       fastuidraw::gl::VertexAttribPointer(0, v);
 
       glEnableVertexAttribArray(1);
       v = fastuidraw::gl::opengl_trait_values<fastuidraw::vec4>(sizeof(fastuidraw::PainterAttribute),
-                                                              offsetof(fastuidraw::PainterAttribute, m_secondary_attrib));
+                                                                offsetof(fastuidraw::PainterAttribute, m_secondary_attrib));
       fastuidraw::gl::VertexAttribPointer(1, v);
 
       glEnableVertexAttribArray(2);
       v = fastuidraw::gl::opengl_trait_values<fastuidraw::uvec4>(sizeof(fastuidraw::PainterAttribute),
-                                                               offsetof(fastuidraw::PainterAttribute, m_uint_attrib));
+                                                                 offsetof(fastuidraw::PainterAttribute, m_uint_attrib));
       fastuidraw::gl::VertexAttribIPointer(2, v);
 
       m_vaos[m_pool][m_current].m_header_bo = generate_bo(GL_ARRAY_BUFFER, m_header_buffer_size);
@@ -588,9 +627,9 @@ generate_tbos(painter_vao &vao)
       GL_RGB32I,
       GL_RGBA32I,
     };
-  vao.m_data_tbo_float = generate_tbo(vao.m_data_bo, float_fmts[m_alignment - 1], bind_painter_data_store_float);
-  vao.m_data_tbo_uint = generate_tbo(vao.m_data_bo, uint_fmts[m_alignment - 1], bind_painter_data_store_uint);
-  vao.m_data_tbo_int = generate_tbo(vao.m_data_bo, int_fmts[m_alignment - 1], bind_painter_data_store_int);
+  vao.m_data_tbo_float = generate_tbo(vao.m_data_bo, float_fmts[m_alignment - 1], bind_painter_data_store_tbo_float);
+  vao.m_data_tbo_uint = generate_tbo(vao.m_data_bo, uint_fmts[m_alignment - 1], bind_painter_data_store_tbo_uint);
+  vao.m_data_tbo_int = generate_tbo(vao.m_data_bo, int_fmts[m_alignment - 1], bind_painter_data_store_tbo_int);
 }
 
 GLuint
@@ -702,15 +741,19 @@ DrawCommand(painter_vao_pool *hnd,
 
   glBindBuffer(GL_ARRAY_BUFFER, m_vao.m_attribute_bo);
   attr_bo = glMapBufferRange(GL_ARRAY_BUFFER, 0, hnd->attribute_buffer_size(), flags);
+  assert(attr_bo != NULL);
 
   glBindBuffer(GL_ARRAY_BUFFER, m_vao.m_header_bo);
   header_bo = glMapBufferRange(GL_ARRAY_BUFFER, 0, hnd->header_buffer_size(), flags);
+  assert(header_bo != NULL);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vao.m_index_bo);
   index_bo = glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, hnd->index_buffer_size(), flags);
+  assert(index_bo != NULL);
 
-  glBindBuffer(GL_TEXTURE_BUFFER, m_vao.m_data_bo);
-  data_bo = glMapBufferRange(GL_TEXTURE_BUFFER, 0, hnd->data_buffer_size(), flags);
+  glBindBuffer(GL_ARRAY_BUFFER, m_vao.m_data_bo);
+  data_bo = glMapBufferRange(GL_ARRAY_BUFFER, 0, hnd->data_buffer_size(), flags);
+  assert(data_bo != NULL);
 
   m_attributes = fastuidraw::c_array<fastuidraw::PainterAttribute>(reinterpret_cast<fastuidraw::PainterAttribute*>(attr_bo),
                                                                  params.attributes_per_buffer());
@@ -724,7 +767,6 @@ DrawCommand(painter_vao_pool *hnd,
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  glBindBuffer(GL_TEXTURE_BUFFER, 0);
 }
 
 void
@@ -766,12 +808,21 @@ DrawCommand::
 draw(void) const
 {
   glBindVertexArray(m_vao.m_vao);
-  glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_float);
-  glBindTexture(GL_TEXTURE_BUFFER, m_vao.m_data_tbo_float);
-  glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_uint);
-  glBindTexture(GL_TEXTURE_BUFFER, m_vao.m_data_tbo_uint);
-  glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_int);
-  glBindTexture(GL_TEXTURE_BUFFER, m_vao.m_data_tbo_int);
+  if(!m_vao.m_use_ubo)
+    {
+      glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_tbo_float);
+      glBindTexture(GL_TEXTURE_BUFFER, m_vao.m_data_tbo_float);
+      glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_tbo_uint);
+      glBindTexture(GL_TEXTURE_BUFFER, m_vao.m_data_tbo_uint);
+      glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_tbo_int);
+      glBindTexture(GL_TEXTURE_BUFFER, m_vao.m_data_tbo_int);
+    }
+  else
+    {
+      glBindBufferBase(GL_UNIFORM_BUFFER, bind_painter_data_store_ubo_float, m_vao.m_data_bo);
+      glBindBufferBase(GL_UNIFORM_BUFFER, bind_painter_data_store_ubo_uint, m_vao.m_data_bo);
+      glBindBufferBase(GL_UNIFORM_BUFFER, bind_painter_data_store_ubo_int, m_vao.m_data_bo);
+    }
 
   for(std::list<DrawEntry>::const_iterator iter = m_draws.begin(),
         end = m_draws.end(); iter != end; ++iter)
@@ -804,9 +855,9 @@ unmap_implement(unsigned int attributes_written,
   glFlushMappedBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, indices_written * sizeof(fastuidraw::PainterIndex));
   glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
 
-  glBindBuffer(GL_TEXTURE_BUFFER, m_vao.m_data_bo);
-  glFlushMappedBufferRange(GL_TEXTURE_BUFFER, 0, data_store_written * sizeof(fastuidraw::generic_data));
-  glUnmapBuffer(GL_TEXTURE_BUFFER);
+  glBindBuffer(GL_ARRAY_BUFFER, m_vao.m_data_bo);
+  glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0, data_store_written * sizeof(fastuidraw::generic_data));
+  glUnmapBuffer(GL_ARRAY_BUFFER);
 }
 
 void
@@ -1726,6 +1777,7 @@ query_extension_support(void)
   assert(!m_extension_support_queried);
 
   m_extension_support_queried = true;
+  m_tex_buffer_support = fastuidraw::gl::detail::compute_tex_buffer_support();
 
   if(!m_params.use_hw_clip_planes())
     {
@@ -1823,6 +1875,10 @@ build_program(void)
       query_extension_support();
     }
 
+  fastuidraw::gl::GlyphAtlasGL *glyphs;
+  glyphs = dynamic_cast<fastuidraw::gl::GlyphAtlasGL*>(m_p->glyph_atlas().get());
+  assert(glyphs != NULL);
+
   stream_declare_varyings(declare_varyings, m_number_uint_varyings,
                           m_number_int_varyings, m_number_float_varyings);
 
@@ -1842,6 +1898,64 @@ build_program(void)
       #endif
     }
 
+  if(m_tex_buffer_support == fastuidraw::gl::detail::tex_buffer_not_supported)
+    {
+      const char *FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE;
+      const char *FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE;
+      const char *FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE;
+      unsigned int max_ubo_size_bytes, max_num_blocks, block_size_bytes;
+      unsigned int FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE;
+
+      block_size_bytes = m_params.m_config.alignment() * sizeof(fastuidraw::generic_data);
+      max_ubo_size_bytes = fastuidraw::gl::context_get<GLint>(GL_MAX_UNIFORM_BLOCK_SIZE);
+      max_num_blocks = max_ubo_size_bytes / block_size_bytes;
+      FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE = fastuidraw::t_min(max_num_blocks, m_params.data_blocks_per_store_buffer());
+
+      assert(m_params.m_config.alignment() <= 4 && m_params.m_config.alignment() > 0);
+      switch(m_params.m_config.alignment())
+        {
+        case 1:
+          FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE = "float";
+          FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE = "uint";
+          FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE = "int";
+          break;
+
+        case 2:
+          FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE = "vec2";
+          FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE = "uvec2";
+          FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE = "ivec2";
+          break;
+
+        case 3:
+          FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE = "vec3";
+          FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE = "uvec3";
+          FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE = "ivec3";
+          break;
+
+        case 4:
+          FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE = "vec4";
+          FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE = "uvec4";
+          FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE = "ivec4";
+          break;
+        }
+
+      vert
+        .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_Y_SHIFT", glyphs->geometry_texture_as_2d_array_log2_width())
+        .add_macro("FASTUIDRAW_PAINTER_USE_DATA_UBO")
+        .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE", FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE)
+        .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE)
+        .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE)
+        .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE);
+
+      frag
+        .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_Y_SHIFT", glyphs->geometry_texture_as_2d_array_log2_width())
+        .add_macro("FASTUIDRAW_PAINTER_USE_DATA_UBO")
+        .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE", FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE)
+        .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE)
+        .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE)
+        .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE);
+    }
+
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
       if(m_ctx_properties.version() >= fastuidraw::ivec2(3, 2))
@@ -1855,19 +1969,15 @@ build_program(void)
       else
         {
           vert
-            .specify_version("310 es")
-            .specify_extension("GL_OES_texture_buffer", fastuidraw::gl::Shader::require_extension);
+            .specify_version("300 es")
+            .specify_extension("GL_OES_texture_buffer", fastuidraw::gl::Shader::enable_extension);
           frag
-            .specify_version("310 es")
+            .specify_version("300 es")
             .specify_extension("GL_EXT_blend_func_extended", fastuidraw::gl::Shader::enable_extension)
-            .specify_extension("GL_OES_texture_buffer", fastuidraw::gl::Shader::require_extension);
+            .specify_extension("GL_OES_texture_buffer", fastuidraw::gl::Shader::enable_extension);
         }
     }
   #endif
-
-  fastuidraw::gl::GlyphAtlasGL *glyphs;
-  glyphs = dynamic_cast<fastuidraw::gl::GlyphAtlasGL*>(m_p->glyph_atlas().get());
-  assert(glyphs != NULL);
 
   if(glyphs->texel_texture(false) == 0)
     {
@@ -1921,22 +2031,26 @@ build_program(void)
   stream_uber_blend_shader(frag, make_c_array(m_blend_shaders), m_blend_type);
 
   m_program = FASTUIDRAWnew fastuidraw::gl::Program(vert, frag,
-                                                  fastuidraw::gl::PreLinkActionArray()
-                                                  .add_binding("fastuidraw_primary_attribute", 0)
-                                                  .add_binding("fastuidraw_secondary_attribute", 1)
-                                                  .add_binding("fastuidraw_uint_attribute", 2)
-                                                  .add_binding("fastuidraw_header_attribute", 3),
-                                                  fastuidraw::gl::ProgramInitializerArray()
-                                                  .add_sampler_initializer("fastuidraw_imageAtlas", bind_image_color_unfiltered)
-                                                  .add_sampler_initializer("fastuidraw_imageAtlasFiltered", bind_image_color_filtered)
-                                                  .add_sampler_initializer("fastuidraw_imageIndexAtlas", bind_image_index)
-                                                  .add_sampler_initializer("fastuidraw_glyphTexelStoreUINT", bind_glyph_texel_usampler)
-                                                  .add_sampler_initializer("fastuidraw_glyphTexelStoreFLOAT", bind_glyph_texel_sampler)
-                                                  .add_sampler_initializer("fastuidraw_glyphGeometryDataStore", bind_glyph_geomtry)
-                                                  .add_sampler_initializer("fastuidraw_colorStopAtlas", bind_colorstop)
-                                                  .add_sampler_initializer("fastuidraw_painterStoreFLOAT", bind_painter_data_store_float)
-                                                  .add_sampler_initializer("fastuidraw_painterStoreUINT", bind_painter_data_store_uint)
-                                                  .add_sampler_initializer("fastuidraw_painterStoreINT", bind_painter_data_store_int) );
+                                                    fastuidraw::gl::PreLinkActionArray()
+                                                    .add_binding("fastuidraw_primary_attribute", 0)
+                                                    .add_binding("fastuidraw_secondary_attribute", 1)
+                                                    .add_binding("fastuidraw_uint_attribute", 2)
+                                                    .add_binding("fastuidraw_header_attribute", 3),
+                                                    fastuidraw::gl::ProgramInitializerArray()
+                                                    .add_sampler_initializer("fastuidraw_imageAtlas", bind_image_color_unfiltered)
+                                                    .add_sampler_initializer("fastuidraw_imageAtlasFiltered", bind_image_color_filtered)
+                                                    .add_sampler_initializer("fastuidraw_imageIndexAtlas", bind_image_index)
+                                                    .add_sampler_initializer("fastuidraw_glyphTexelStoreUINT", bind_glyph_texel_usampler)
+                                                    .add_sampler_initializer("fastuidraw_glyphTexelStoreFLOAT", bind_glyph_texel_sampler)
+                                                    .add_sampler_initializer("fastuidraw_glyphGeometryDataStore", bind_glyph_geomtry)
+                                                    .add_sampler_initializer("fastuidraw_colorStopAtlas", bind_colorstop)
+                                                    .add_sampler_initializer("fastuidraw_painterStoreFLOAT_tbo", bind_painter_data_store_tbo_float)
+                                                    .add_sampler_initializer("fastuidraw_painterStoreUINT_tbo", bind_painter_data_store_tbo_uint)
+                                                    .add_sampler_initializer("fastuidraw_painterStoreINT_tbo", bind_painter_data_store_tbo_int)
+                                                    .add_uniform_block_binding("fastuidraw_painterStoreFLOAT_ubo", bind_painter_data_store_ubo_float)
+                                                    .add_uniform_block_binding("fastuidraw_painterStoreUINT_ubo", bind_painter_data_store_ubo_uint)
+                                                    .add_uniform_block_binding("fastuidraw_painterStoreINT_ubo", bind_painter_data_store_ubo_int)
+                                                    );
 
   m_target_resolution_loc = m_program->uniform_location("fastuidraw_viewport_pixels");
   m_target_resolution_recip_loc = m_program->uniform_location("fastuidraw_viewport_recip_pixels");
@@ -1974,11 +2088,11 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::params &P,
                 fastuidraw::gl::Shader::from_resource)
     .add_source(fastuidraw::gl::GlyphAtlasGL::glsl_curvepair_compute_pseudo_distance(m_params.glyph_atlas()->param_values().alignment(),
                                                                                      "fastuidraw_curvepair_pseudo_distance",
-                                                                                     "fastuidraw_glyphGeometryDataStore",
+                                                                                     "fastuidraw_fetch_glyph_data",
                                                                                      false))
     .add_source(fastuidraw::gl::GlyphAtlasGL::glsl_curvepair_compute_pseudo_distance(m_params.glyph_atlas()->param_values().alignment(),
                                                                                      "fastuidraw_curvepair_pseudo_distance",
-                                                                                     "fastuidraw_glyphGeometryDataStore",
+                                                                                     "fastuidraw_fetch_glyph_data",
                                                                                      true));
 
 }
@@ -2311,7 +2425,7 @@ on_pre_draw(void)
 
   glActiveTexture(GL_TEXTURE0 + bind_glyph_geomtry);
   glBindSampler(bind_glyph_geomtry, 0);
-  glBindTexture(GL_TEXTURE_BUFFER, glyphs->geometry_texture());
+  glBindTexture(glyphs->geometry_texture_binding_point(), glyphs->geometry_texture());
 
   glActiveTexture(GL_TEXTURE0 + bind_colorstop);
   glBindSampler(bind_colorstop, 0);
@@ -2344,7 +2458,11 @@ on_end(void)
    */
   glUseProgram(0);
   glBindVertexArray(0);
-  glBindBuffer(GL_TEXTURE_BUFFER, 0);
+
+  if(d->m_tex_buffer_support != fastuidraw::gl::detail::tex_buffer_not_supported)
+    {
+      glBindBuffer(GL_TEXTURE_BUFFER, 0);
+    }
 
   glActiveTexture(GL_TEXTURE0 + bind_image_color_unfiltered);
   glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
@@ -2355,8 +2473,11 @@ on_end(void)
   glActiveTexture(GL_TEXTURE0 + bind_glyph_texel_usampler);
   glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
+  fastuidraw::gl::GlyphAtlasGL *glyphs;
+  glyphs = dynamic_cast<fastuidraw::gl::GlyphAtlasGL*>(glyph_atlas().get());
+  assert(glyphs != NULL);
   glActiveTexture(GL_TEXTURE0 + bind_glyph_geomtry);
-  glBindTexture(GL_TEXTURE_BUFFER, 0);
+  glBindTexture(glyphs->geometry_texture_binding_point(), 0);
 
   glActiveTexture(GL_TEXTURE0 + bind_colorstop);
   glBindTexture(ColorStopAtlasGL::texture_bind_target(), 0);
@@ -2368,15 +2489,23 @@ on_end(void)
   glActiveTexture(GL_TEXTURE0 + bind_glyph_texel_sampler);
   glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
-  glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_float);
-  glBindTexture(GL_TEXTURE_BUFFER, 0);
+  if(d->m_tex_buffer_support != fastuidraw::gl::detail::tex_buffer_not_supported)
+    {
+      glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_tbo_float);
+      glBindTexture(GL_TEXTURE_BUFFER, 0);
 
-  glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_uint);
-  glBindTexture(GL_TEXTURE_BUFFER, 0);
+      glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_tbo_uint);
+      glBindTexture(GL_TEXTURE_BUFFER, 0);
 
-  glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_int);
-  glBindTexture(GL_TEXTURE_BUFFER, 0);
-
+      glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_tbo_int);
+      glBindTexture(GL_TEXTURE_BUFFER, 0);
+    }
+  else
+    {
+      glBindBufferBase(GL_UNIFORM_BUFFER,  bind_painter_data_store_ubo_float, 0);
+      glBindBufferBase(GL_UNIFORM_BUFFER,  bind_painter_data_store_ubo_uint, 0);
+      glBindBufferBase(GL_UNIFORM_BUFFER,  bind_painter_data_store_ubo_int, 0);
+    }
   d->m_pool.next_pool();
 }
 

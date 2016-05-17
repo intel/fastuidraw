@@ -114,7 +114,6 @@ ErrorCheck(const char *call, const char *src_call,
       return;
     }
 
-
   std::ostringstream str;
 
   str << "[" << fileName << "," << line << "] " << call << "{";

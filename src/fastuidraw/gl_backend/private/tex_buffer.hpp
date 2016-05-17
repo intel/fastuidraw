@@ -30,6 +30,7 @@ enum tex_buffer_support_t
     tex_buffer_ext_extension,
 
     tex_buffer_not_supported,
+    tex_buffer_not_computed
   };
 
 enum tex_buffer_support_t

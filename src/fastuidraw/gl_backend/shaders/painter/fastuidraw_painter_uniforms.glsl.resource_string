@@ -20,11 +20,65 @@ uniform usampler2DArray fastuidraw_glyphTexelStoreUINT;
 uniform sampler2DArray fastuidraw_glyphTexelStoreFLOAT;
 #endif
 
-uniform samplerBuffer fastuidraw_glyphGeometryDataStore;
 
-uniform samplerBuffer fastuidraw_painterStoreFLOAT;
-uniform usamplerBuffer fastuidraw_painterStoreUINT;
-uniform isamplerBuffer fastuidraw_painterStoreINT;
+#ifndef FASTUIDRAW_PAINTER_USE_DATA_UBO
+
+  uniform samplerBuffer fastuidraw_glyphGeometryDataStore;
+  #define fastuidraw_fetch_glyph_data(block) texelFetch(fastuidraw_glyphGeometryDataStore, int(block))
+
+  uniform samplerBuffer fastuidraw_painterStoreFLOAT_tbo;
+  uniform usamplerBuffer fastuidraw_painterStoreUINT_tbo;
+  uniform isamplerBuffer fastuidraw_painterStoreINT_tbo;
+
+  #define fastuidraw_fetch_float_data(block) texelFetch(fastuidraw_painterStoreFLOAT_tbo, int(block))
+  #define fastuidraw_fetch_uint_data(block) texelFetch(fastuidraw_painterStoreUINT_tbo, int(block))
+  #define fastuidraw_fetch_int_data(block) texelFetch(fastuidraw_painterStoreINT_tbo, int(block))
+
+#else
+
+  /* The leading dimension of fastuidraw_glyphGeometryDataStore_tex
+     is a power of 2, and that power is given by the macro constant
+     FASTUIDRAW_GLYPH_GEOMETRY_Y_SHIFT, thus the coordinte at I
+     is given by
+       y = I >> FASTUIDRAW_GLYPH_GEOMETRY_Y_SHIFT
+       x = (I & FASTUIDRAW_GLYPH_GEOMETRY_X_MASK)
+     where FASTUIDRAW_GLYPH_GEOMETRY_X_MASK = ((1u << FASTUIDRAW_GLYPH_GEOMETRY_Y_SHIFT) - 1u)
+   */
+  uniform sampler2DArray fastuidraw_glyphGeometryDataStore;
+  #define FASTUIDRAW_GLYPH_GEOMETRY_X_MASK ((1u << uint(FASTUIDRAW_GLYPH_GEOMETRY_Y_SHIFT)) - 1u)
+  #define FASTUIDRAW_GLYPH_GEOMETRY_X(v) (uint(v) & FASTUIDRAW_GLYPH_GEOMETRY_X_MASK)
+  #define FASTUIDRAW_GLYPH_GEOMETRY_Y(v) (uint(v) >> uint(FASTUIDRAW_GLYPH_GEOMETRY_Y_SHIFT))
+  #define FASTUIDRAW_GLYPH_GEOMETRY_COORD(v) ivec3(FASTUIDRAW_GLYPH_GEOMETRY_X(v), 1, FASTUIDRAW_GLYPH_GEOMETRY_Y(v))
+  #define fastuidraw_fetch_glyph_data(block) texelFetch(fastuidraw_glyphGeometryDataStore, FASTUIDRAW_GLYPH_GEOMETRY_COORD(block), 0)
+
+/*
+  Type in the array for the uniform blocks:
+    FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE is float, vec2, vec3, or vec4
+    FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE is int, ivec2, ivec3 or ivec4
+    FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE is uint, uvec2, uvec3 or uvec4
+  Size of the array is given by FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE
+ */
+
+  layout(std140) uniform fastuidraw_painterStoreFLOAT_ubo
+  {
+    FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE fastuidraw_painterStoreFLOAT[FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE];
+  };
+
+  layout(std140) uniform fastuidraw_painterStoreUINT_ubo
+  {
+    FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE fastuidraw_painterStoreUINT[FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE];
+  };
+
+  layout(std140) uniform fastuidraw_painterStoreINT_ubo
+  {
+    FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE fastuidraw_painterStoreINT[FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE];
+  };
+
+  #define fastuidraw_fetch_float_data(block) vec4(fastuidraw_painterStoreFLOAT[int(block)])
+  #define fastuidraw_fetch_uint_data(block) uvec4(fastuidraw_painterStoreUINT[int(block)])
+  #define fastuidraw_fetch_int_data(block) ivec4(fastuidraw_painterStoreINT[int(block)])
+
+#endif
 
 uniform vec2 fastuidraw_viewport_pixels;
 uniform vec2 fastuidraw_viewport_recip_pixels;

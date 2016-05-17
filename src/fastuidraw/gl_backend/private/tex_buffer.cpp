@@ -77,7 +77,7 @@ tex_buffer(enum tex_buffer_support_t md, GLenum target, GLenum format, GLuint bo
           break;
 
         default:
-          assert(!"glTexBuffer not supported!");
+          assert(!"glTexBuffer not supported!" || true);
         }
     }
   #endif

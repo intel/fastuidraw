@@ -132,6 +132,12 @@ namespace
       return m_N;
     }
 
+    GLenum
+    binding_point(void) const;
+
+    unsigned int
+    texture_as_2d_array_log2_width(void) const;
+
     static
     handle
     create(unsigned int number_vecNs, bool delayed, unsigned int N);
@@ -139,17 +145,18 @@ namespace
   protected:
 
     void
-    resize_implement(unsigned int new_size)
-    {
-      m_backing_store.resize(new_size * m_N * sizeof(float));
-    }
+    resize_implement(unsigned int new_size);
 
   private:
+    void
+    compute_tex_buffer_support(void) const;
 
     typedef fastuidraw::gl::detail::BufferGL<GL_TEXTURE_BUFFER, GL_STATIC_DRAW> BufferGL;
     BufferGL m_backing_store;
     unsigned int m_N;
     mutable GLuint m_texture;
+    mutable enum fastuidraw::gl::detail::tex_buffer_support_t m_tex_buffer_support;
+    mutable unsigned int m_texture_as_2d_array_log2_width;
   };
 
   class LoaderMacro
@@ -329,7 +336,6 @@ texture(bool as_integer) const
   return m_texture_as_r8;
 }
 
-
 TexelStoreGL::handle
 TexelStoreGL::
 create(fastuidraw::ivec3 dims, bool delayed)
@@ -346,9 +352,15 @@ GeometryStoreGL(unsigned int number_vecNs, bool delayed, unsigned int N):
   fastuidraw::GlyphAtlasGeometryBackingStoreBase(N, number_vecNs, true),
   m_backing_store(number_vecNs * N * sizeof(float), delayed),
   m_N(N),
-  m_texture(0)
+  m_texture(0),
+  m_tex_buffer_support(fastuidraw::gl::detail::tex_buffer_not_computed),
+  m_texture_as_2d_array_log2_width(0)
 {
   assert(m_N <= 4 && m_N > 0);
+  if(!delayed)
+    {
+      compute_tex_buffer_support();
+    }
 }
 
 void
@@ -357,45 +369,118 @@ set_values(unsigned int location,
            fastuidraw::const_c_array<fastuidraw::generic_data> pdata)
 {
   assert(pdata.size() % m_N == 0);
-  m_backing_store.set_data(location * m_N * sizeof(float),
-                           pdata.reinterpret_pointer<uint8_t>());
+
+  if(m_tex_buffer_support != fastuidraw::gl::detail::tex_buffer_not_supported)
+    {
+      m_backing_store.set_data(location * m_N * sizeof(float),
+                               pdata.reinterpret_pointer<uint8_t>());
+    }
+  else
+    {
+      /* TODO: place the data in our sampler2D
+       */
+    }
+}
+
+void
+GeometryStoreGL::
+compute_tex_buffer_support(void) const
+{
+  if(m_tex_buffer_support == fastuidraw::gl::detail::tex_buffer_not_computed)
+    {
+      m_tex_buffer_support = fastuidraw::gl::detail::compute_tex_buffer_support();
+    }
 }
 
 void
 GeometryStoreGL::
 flush(void)
 {
-  m_backing_store.flush();
+  compute_tex_buffer_support();
+  if(m_tex_buffer_support != fastuidraw::gl::detail::tex_buffer_not_supported)
+    {
+      m_backing_store.flush();
+    }
+  else
+    {
+      /* TODO: if this is the first time flush() has been called and
+         if m_backing_store is non-empty, then we need to copy
+         the data stashed as delayed in m_backing_store and get
+         it to the texture.
+       */
+    }
+}
+
+void
+GeometryStoreGL::
+resize_implement(unsigned int new_size)
+{
+  if(m_tex_buffer_support != fastuidraw::gl::detail::tex_buffer_not_supported)
+    {
+      m_backing_store.resize(new_size * m_N * sizeof(float));
+    }
+  else
+    {
+      //tex_buffer support not allowed, resize the 2d-array texture
+    }
 }
 
 GLuint
 GeometryStoreGL::
 texture(void) const
 {
-  if(m_texture == 0)
+  compute_tex_buffer_support();
+  if(m_tex_buffer_support != fastuidraw::gl::detail::tex_buffer_not_supported)
     {
-      GLenum formats[4]=
+      if(m_texture == 0)
         {
-          GL_R32F,
-          GL_RG32F,
-          GL_RGB32F,
-          GL_RGBA32F,
-        };
+          glGenTextures(1, &m_texture);
+          assert(m_texture != 0);
 
-      GLuint bo;
+          GLenum formats[4]=
+            {
+              GL_R32F,
+              GL_RG32F,
+              GL_RGB32F,
+              GL_RGBA32F,
+            };
+          GLuint bo;
 
-      bo = m_backing_store.buffer();
-      assert(bo != 0);
-
-      glGenTextures(1, &m_texture);
-      assert(m_texture != 0);
-
-      glBindTexture(GL_TEXTURE_BUFFER, m_texture);
-      fastuidraw::gl::detail::tex_buffer(fastuidraw::gl::detail::compute_tex_buffer_support(),
-                                        GL_TEXTURE_BUFFER, formats[m_N - 1], bo);
+          bo = m_backing_store.buffer();
+          assert(bo != 0);
+          glBindTexture(GL_TEXTURE_BUFFER, m_texture);
+          fastuidraw::gl::detail::tex_buffer(m_tex_buffer_support, GL_TEXTURE_BUFFER, formats[m_N - 1], bo);
+        }
+    }
+  else
+    {
+      /* TODO: anything?? */
     }
   return m_texture;
 }
+
+unsigned int
+GeometryStoreGL::
+texture_as_2d_array_log2_width(void) const
+{
+  if(m_texture_as_2d_array_log2_width == 0)
+    {
+      compute_tex_buffer_support();
+      assert(m_tex_buffer_support == fastuidraw::gl::detail::tex_buffer_not_supported);
+      /* TODO: compute m_texture_as_2d_array_log2_width from max depth of 2D array textures */
+    }
+  return m_texture_as_2d_array_log2_width;
+}
+
+
+GLenum
+GeometryStoreGL::
+binding_point(void) const
+{
+  compute_tex_buffer_support();
+  return (m_tex_buffer_support != fastuidraw::gl::detail::tex_buffer_not_supported) ? GL_TEXTURE_BUFFER : GL_TEXTURE_2D_ARRAY;
+}
+
 
 GeometryStoreGL::handle
 GeometryStoreGL::
@@ -417,7 +502,7 @@ create(unsigned int number_floats, bool delayed, unsigned int N)
 ////////////////////////////////////////////////////
 // LoaderMacro methods
 LoaderMacro::
-LoaderMacro(unsigned int alignment, const char *geometry_store_name)
+LoaderMacro(unsigned int alignment, const char *geometry_store_fetch)
 {
   /* we are defining a macro, so on end of lines
      in code we need to add \\
@@ -457,7 +542,7 @@ LoaderMacro(unsigned int alignment, const char *geometry_store_name)
 
   for(unsigned int c = 0, j = 0; c < fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack; c += alignment, ++j)
     {
-      str << "\ttemp" << j << " = texelFetch("  << geometry_store_name << ", start_offset + "
+      str << "\ttemp" << j << " = " << geometry_store_fetch << "(start_offset + "
           << j << ")." << texelFetchExt[alignment - 1] << ";\\\n";
     }
 
@@ -596,6 +681,16 @@ texel_texture(bool as_integer) const
   return p->texture(as_integer);
 }
 
+GLenum
+fastuidraw::gl::GlyphAtlasGL::
+geometry_texture_binding_point(void) const
+{
+  const GeometryStoreGL *p;
+  p = dynamic_cast<const GeometryStoreGL*>(geometry_store().get());
+  assert(p);
+  return p->binding_point();
+}
+
 GLuint
 fastuidraw::gl::GlyphAtlasGL::
 geometry_texture(void) const
@@ -608,14 +703,26 @@ geometry_texture(void) const
   return p->texture();
 }
 
+unsigned int
+fastuidraw::gl::GlyphAtlasGL::
+geometry_texture_as_2d_array_log2_width(void) const
+{
+  flush();
+
+  const GeometryStoreGL *p;
+  p = dynamic_cast<const GeometryStoreGL*>(geometry_store().get());
+  assert(p);
+  return p->texture_as_2d_array_log2_width();
+}
+
 fastuidraw::gl::Shader::shader_source
 fastuidraw::gl::GlyphAtlasGL::
 glsl_curvepair_compute_pseudo_distance(const char *function_name,
-                                       const char *geometry_store_name,
+                                       const char *geometry_store_fetch,
                                        bool derivative_function)
 {
   return glsl_curvepair_compute_pseudo_distance(geometry_store()->alignment(),
-                                                function_name, geometry_store_name,
+                                                function_name, geometry_store_fetch,
                                                 derivative_function);
 }
 
@@ -623,7 +730,7 @@ fastuidraw::gl::Shader::shader_source
 fastuidraw::gl::GlyphAtlasGL::
 glsl_curvepair_compute_pseudo_distance(unsigned int alignment,
                                        const char *function_name,
-                                       const char *geometry_store_name,
+                                       const char *geometry_store_fetch,
                                        bool derivative_function)
 {
   Shader::shader_source return_value;
@@ -644,7 +751,7 @@ glsl_curvepair_compute_pseudo_distance(unsigned int alignment,
 
   return_value
     .add_macro("FASTUIDRAW_CURVEPAIR_COMPUTE_NAME", function_name)
-    .add_source(LoaderMacro(alignment, geometry_store_name).value(), Shader::from_string);
+    .add_source(LoaderMacro(alignment, geometry_store_fetch).value(), Shader::from_string);
 
   if(derivative_function)
     {

@@ -180,6 +180,23 @@ namespace gl
     geometry_texture(void) const;
 
     /*!
+      Returns the binding point to which to bind the texture returned
+      by geometry_texture(). A GL context must be current the first
+      time this is called.
+     */
+    GLenum
+    geometry_texture_binding_point(void) const;
+
+    /*!
+      In the case that the geometry data is stored in a texture
+      array (GL_TEXTURE_2D_ARRAY) instead of a textyre buffer
+      object, returns the width of the texture. The texture
+      will have height as 1 and a variable number of layers.
+     */
+    unsigned int
+    geometry_texture_as_2d_array_log2_width(void) const;
+
+    /*!
       Returns the params value used to construct
       the GlyphAtlasGL.
      */

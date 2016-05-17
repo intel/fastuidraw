@@ -115,6 +115,18 @@ namespace
     std::vector<fastuidraw::gl::PreLinkAction::handle> m_values;
   };
 
+  class UniformBlockInitializerPrivate
+  {
+  public:
+    UniformBlockInitializerPrivate(const char *n, int v):
+      m_block_name(n),
+      m_binding_point(v)
+    {}
+
+    std::string m_block_name;
+    int m_binding_point;
+  };
+
   class ProgramInitializerArrayPrivate
   {
   public:
@@ -1485,6 +1497,47 @@ clear(void)
   d->m_values.clear();
 }
 
+//////////////////////////////////////////////////
+// fastuidraw::gl::UniformBlockInitializer methods
+fastuidraw::gl::UniformBlockInitializer::
+UniformBlockInitializer(const char *uniform_name, int binding_point_index)
+{
+  m_d = FASTUIDRAWnew UniformBlockInitializerPrivate(uniform_name, binding_point_index);
+}
+
+fastuidraw::gl::UniformBlockInitializer::
+~UniformBlockInitializer()
+{
+  UniformBlockInitializerPrivate *d;
+  d = reinterpret_cast<UniformBlockInitializerPrivate*>(m_d);
+  assert(d != NULL);
+  FASTUIDRAWdelete(d);
+  m_d = NULL;
+}
+
+void
+fastuidraw::gl::UniformBlockInitializer::
+perform_initialization(Program *pr) const
+{
+  UniformBlockInitializerPrivate *d;
+  d = reinterpret_cast<UniformBlockInitializerPrivate*>(m_d);
+  assert(d != NULL);
+
+  int loc;
+  loc = glGetUniformBlockIndex(pr->name(), d->m_block_name.c_str());
+  if(loc != -1)
+    {
+      glUniformBlockBinding(pr->name(), loc, d->m_binding_point);
+    }
+  else
+    {
+      std::cerr << "Failed to find uniform block \""
+                << d->m_block_name
+                << "\" in program " << pr->name()
+                << " for initialization\n";
+    }
+}
+
 /////////////////////////////////////////////////
 // fastuidraw::gl::UniformInitalizerBase methods
 fastuidraw::gl::UniformInitalizerBase::
@@ -1499,6 +1552,7 @@ fastuidraw::gl::UniformInitalizerBase::
 {
   std::string *d;
   d = reinterpret_cast<std::string*>(m_d);
+  assert(d != NULL);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -1509,6 +1563,7 @@ perform_initialization(Program *pr) const
 {
   std::string *d;
   d = reinterpret_cast<std::string*>(m_d);
+  assert(d != NULL);
 
   int loc;
   loc = pr->uniform_location(d->c_str());

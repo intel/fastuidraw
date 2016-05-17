@@ -24,6 +24,13 @@
 
 namespace fastuidraw { namespace gl { namespace detail {
 
+class BufferGLEntryLocation
+{
+public:
+  int m_location;
+  std::vector<uint8_t> m_data;
+};
+
 /*!\class BufferGL
   Wrapper over the GL buffer API providing ability to delay updates to
   undlering buffer until flush().
@@ -37,7 +44,6 @@ template<GLenum binding_point,
 class BufferGL
 {
 public:
-
   BufferGL(GLsizei psize, bool delayed):
     m_size(psize),
     m_buffer_size(psize),
@@ -74,7 +80,7 @@ public:
     assert(!data.empty());
     if(m_delayed)
       {
-        m_unflushed_commands.push_back(EntryLocation());
+        m_unflushed_commands.push_back(BufferGLEntryLocation());
         m_unflushed_commands.back().m_location = offset;
         m_unflushed_commands.back().m_data.resize(data.size());
         std::copy(data.begin(), data.end(), m_unflushed_commands.back().m_data.begin());
@@ -88,12 +94,12 @@ public:
   }
 
   void
-  set_data_vector(int offset, const_c_array<uint8_t> &data)
+  set_data_vector(int offset, std::vector<uint8_t> &data)
   {
     assert(!data.empty());
     if(m_delayed)
       {
-        m_unflushed_commands.push_back(EntryLocation());
+        m_unflushed_commands.push_back(BufferGLEntryLocation());
         m_unflushed_commands.back().m_location = offset;
         m_unflushed_commands.back().m_data.swap(data);
       }
@@ -115,7 +121,7 @@ public:
     if(!m_unflushed_commands.empty())
       {
         glBindBuffer(binding_point, m_buffer);
-        for(typename std::list<EntryLocation>::iterator iter = m_unflushed_commands.begin(),
+        for(typename std::list<BufferGLEntryLocation>::iterator iter = m_unflushed_commands.begin(),
               end = m_unflushed_commands.end(); iter != end; ++iter)
           {
             assert(!iter->m_data.empty());
@@ -145,12 +151,6 @@ public:
   }
 
 private:
-  class EntryLocation
-  {
-  public:
-    int m_location;
-    std::vector<uint8_t> m_data;
-  };
 
   void
   flush_size_change(void)
@@ -205,7 +205,7 @@ private:
   GLsizei m_buffer_size;
   bool m_delayed;
   mutable GLuint m_buffer;
-  std::list<EntryLocation> m_unflushed_commands;
+  std::list<BufferGLEntryLocation> m_unflushed_commands;
 };
 
 } //namespace detail
