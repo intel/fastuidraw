@@ -132,7 +132,7 @@ namespace
 
     unsigned int m_attribute_buffer_size, m_header_buffer_size;
     unsigned int m_index_buffer_size, m_data_buffer_size;
-    int m_alignment;
+    int m_alignment, m_requested_block_per_data_buffer;
 
     unsigned int m_current, m_pool;
     std::vector<std::vector<painter_vao> > m_vaos;
@@ -452,8 +452,9 @@ painter_vao_pool(const fastuidraw::gl::PainterBackendGL::params &params):
   m_attribute_buffer_size(params.attributes_per_buffer() * sizeof(fastuidraw::PainterAttribute)),
   m_header_buffer_size(params.attributes_per_buffer() * sizeof(uint32_t)),
   m_index_buffer_size(params.indices_per_buffer() * sizeof(fastuidraw::PainterIndex)),
-  m_data_buffer_size(params.m_config.alignment() * params.data_blocks_per_store_buffer() * sizeof(fastuidraw::generic_data)),
+  m_data_buffer_size(0),
   m_alignment(params.m_config.alignment()),
+  m_requested_block_per_data_buffer(params.data_blocks_per_store_buffer()),
   m_current(0),
   m_pool(0),
   m_vaos(params.number_pools()),
@@ -489,6 +490,14 @@ request_vao(void)
     {
       m_tex_buffer_support = fastuidraw::gl::detail::compute_tex_buffer_support();
       assert(m_tex_buffer_support != fastuidraw::gl::detail::tex_buffer_not_supported);
+    }
+
+  if(m_data_buffer_size == 0)
+    {
+      int max_texture_buffer_size(0), num_blocks;
+      max_texture_buffer_size = fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_BUFFER_SIZE);
+      num_blocks = fastuidraw::t_min(m_requested_block_per_data_buffer, max_texture_buffer_size);
+      m_data_buffer_size = m_alignment * num_blocks * sizeof(fastuidraw::generic_data);
     }
 
   if(m_current == m_vaos[m_pool].size())
