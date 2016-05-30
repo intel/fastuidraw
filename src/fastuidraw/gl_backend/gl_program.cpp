@@ -235,6 +235,7 @@ namespace
 
     std::vector<fastuidraw::gl::Shader::handle> m_shaders;
     std::vector<ShaderData> m_shader_data;
+    std::map<GLenum, std::vector<int> > m_shader_data_sorted_by_type;
 
     GLuint m_name;
     bool m_link_success, m_assembled;
@@ -247,6 +248,7 @@ namespace
     fastuidraw::gl::ProgramInitializerArray m_initializers;
     fastuidraw::gl::PreLinkActionArray m_pre_link_actions;
     fastuidraw::gl::Program *m_p;
+
   };
 }
 
@@ -1086,8 +1088,6 @@ assemble(void)
   m_assembled = true;
   assert(m_name == 0);
   m_name = glCreateProgram();
-
-
   m_link_success = true;
 
   //attatch the shaders, attaching a bad shader makes
@@ -1183,6 +1183,7 @@ clear_shaders_and_save_shader_data(void)
       m_shader_data[i].m_name = m_shaders[i]->name();
       m_shader_data[i].m_shader_type = m_shaders[i]->shader_type();
       m_shader_data[i].m_compile_log = m_shaders[i]->compile_log();
+      m_shader_data_sorted_by_type[m_shader_data[i].m_shader_type].push_back(i);
     }
   m_shaders.clear();
 }
@@ -1408,6 +1409,40 @@ attribute_location(const char *pname)
   R = d->m_attribute_list.find_parameter(pname);
   return R.first;
 }
+
+
+unsigned int
+fastuidraw::gl::Program::
+num_shaders(GLenum tp) const
+{
+  ProgramPrivate *d;
+  d = reinterpret_cast<ProgramPrivate*>(m_d);
+
+  std::map<GLenum, std::vector<int> >::const_iterator iter;
+  iter = d->m_shader_data_sorted_by_type.find(tp);
+  return (iter != d->m_shader_data_sorted_by_type.end()) ?
+    iter->second.size() : 0;
+}
+
+const char*
+fastuidraw::gl::Program::
+shader_src_code(GLenum tp, unsigned int i) const
+{
+  ProgramPrivate *d;
+  d = reinterpret_cast<ProgramPrivate*>(m_d);
+
+  std::map<GLenum, std::vector<int> >::const_iterator iter;
+  iter = d->m_shader_data_sorted_by_type.find(tp);
+  if(iter != d->m_shader_data_sorted_by_type.end() && i < iter->second.size())
+    {
+      return d->m_shader_data[iter->second[i]].m_source_code.c_str();
+    }
+  else
+    {
+      return "";
+    }
+}
+
 
 //////////////////////////////////////
 //gl::ProgramInitializerArray methods

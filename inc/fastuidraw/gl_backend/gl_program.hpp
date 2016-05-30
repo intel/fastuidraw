@@ -892,6 +892,23 @@ public:
   GLint
   attribute_location(const char *attribute_name);
 
+  /*!
+    Returns the number of shaders of a given type attached to
+    the Program.
+    \param tp GL enumeration of the shader type, see Shader::shader_type()
+   */
+  unsigned int
+  num_shaders(GLenum tp) const;
+
+  /*!
+    Returns the source code string for a shader attached to
+    the Program.
+    \param tp GL enumeration of the shader type, see Shader::shader_type()
+    \param i which shader with 0 <= i < num_shaders(tp)
+   */
+  const char*
+  shader_src_code(GLenum tp, unsigned int i) const;
+
 private:
   void *m_d;
 };
