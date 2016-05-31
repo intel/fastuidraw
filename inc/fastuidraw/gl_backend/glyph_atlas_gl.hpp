@@ -21,7 +21,6 @@
 
 #include <fastuidraw/text/glyph_atlas.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
-#include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
 namespace fastuidraw
 {
@@ -133,14 +132,14 @@ namespace gl
         value is true.
        */
       bool
-      use_texture_buffer_geometry_store(void) const;
+      uses_texture_buffer_geometry_store(void) const;
 
       /*!
-        Set the value for use_texture_buffer_geometry_store(void) const
+        Set the value for uses_texture_buffer_geometry_store(void) const
         to return true.
        */
       params&
-      set_use_texture_buffer_geometry_store(void) const;
+      set_use_texture_buffer_geometry_store(void);
 
       /*!
         Set to use a 2D texture array to back the
@@ -149,21 +148,31 @@ namespace gl
         dimensions. The depth of the 2D texture array
         is set implicitely by the size given by
         GlyphAtlasGeometryBackingStoreBase::size().
+        NOTE: if either parameter is made negative, then
+        the call is the same as set_use_texture_buffer_geometry_store().
         \param log2_width Log2 of the width of the 2D texture array
         \param log2_height Log2 of the height of the 2D texture array
        */
       params&
-      use_texture_2d_array_geometry_store(unsigned int log2_width,
-                                          unsigned int log2_height = 0);
+      use_texture_2d_array_geometry_store(int log2_width,
+                                          int log2_height = 0);
+
+      /*!
+        Echoes the value set by use_texture_2d_array_geometry_store().
+        If set_use_texture_buffer_geometry_store() returns true returns
+        a value where both components are -1.
+       */
+      ivec2
+      texture_2d_array_geometry_store_log2_dims(void) const;
 
       /*!
         Query the GL context to decide what is the optimal settings
         to back the GlyphAtlasGeometryBackingStoreBase returned by
-        GlyphAtlas::geometry_store().
-        \param props context properties to use to query GL capabilities
+        GlyphAtlas::geometry_store(). A GL context must be current
+        so that GL capabilities may be queried.
        */
       params&
-      use_optimal_geometry_store_backing(const ContextProperties &props);
+      use_optimal_geometry_store_backing(void);
 
       /*!
         The alignment for the
@@ -234,7 +243,7 @@ namespace gl
       object, returns the log2 of the width and height of the
       backing texture 2D array.
      */
-    uvec2
+    ivec2
     geometry_texture_as_2d_array_log2_dims(void) const;
 
     /*!

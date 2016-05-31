@@ -24,6 +24,13 @@ fastuidraw::gl::detail::
 compute_tex_buffer_support(void)
 {
   ContextProperties ctx;
+  return compute_tex_buffer_support(ctx);
+}
+
+enum fastuidraw::gl::detail::tex_buffer_support_t
+fastuidraw::gl::detail::
+compute_tex_buffer_support(const ContextProperties &ctx)
+{
   if(ctx.is_es())
     {
       if(ctx.version() >= ivec2(3, 2))

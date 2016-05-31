@@ -525,7 +525,7 @@ request_vao(void)
           m_data_buffer_size = m_alignment * num_blocks * sizeof(fastuidraw::generic_data);
           assert(m_data_buffer_size > 0);
         }
-      std::cout << "m_data_buffer_size = " << m_data_buffer_size << "\n";
+      // std::cout << "m_data_buffer_size = " << m_data_buffer_size << "\n";
     }
 
 
@@ -1939,8 +1939,12 @@ build_program(void)
           break;
         }
 
+      fastuidraw::ivec2 log2_glyph_geom;
+      log2_glyph_geom = glyphs->geometry_texture_as_2d_array_log2_dims();
+
       vert
-        .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_Y_SHIFT", glyphs->geometry_texture_as_2d_array_log2_width())
+        .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2", log2_glyph_geom.x())
+        .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2", log2_glyph_geom.y())
         .add_macro("FASTUIDRAW_PAINTER_USE_DATA_UBO")
         .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE", FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE)
         .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE)
@@ -1948,7 +1952,8 @@ build_program(void)
         .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE);
 
       frag
-        .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_Y_SHIFT", glyphs->geometry_texture_as_2d_array_log2_width())
+        .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2", log2_glyph_geom.x())
+        .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2", log2_glyph_geom.y())
         .add_macro("FASTUIDRAW_PAINTER_USE_DATA_UBO")
         .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE", FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE)
         .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE)

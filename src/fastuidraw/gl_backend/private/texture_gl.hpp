@@ -240,7 +240,7 @@ tex_sub_image(GLenum texture_target, vecN<GLint, 1> offset,
 template<size_t N>
 class EntryLocationN
 {
-  public:
+public:
   typedef std::pair<EntryLocationN, std::vector<uint8_t> > with_data;
   vecN<int, N> m_location;
   vecN<GLsizei, N> m_size;

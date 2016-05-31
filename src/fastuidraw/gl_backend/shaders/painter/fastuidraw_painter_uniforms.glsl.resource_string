@@ -36,19 +36,18 @@ uniform sampler2DArray fastuidraw_glyphTexelStoreFLOAT;
 
 #else
 
-  /* The leading dimension of fastuidraw_glyphGeometryDataStore_tex
-     is a power of 2, and that power is given by the macro constant
-     FASTUIDRAW_GLYPH_GEOMETRY_Y_SHIFT, thus the coordinte at I
-     is given by
-       y = I >> FASTUIDRAW_GLYPH_GEOMETRY_Y_SHIFT
-       x = (I & FASTUIDRAW_GLYPH_GEOMETRY_X_MASK)
-     where FASTUIDRAW_GLYPH_GEOMETRY_X_MASK = ((1u << FASTUIDRAW_GLYPH_GEOMETRY_Y_SHIFT) - 1u)
-   */
+  /* The width and height of fastuidraw_glyphGeometryDataStore are
+     powers of 2, the values given by FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2
+     and FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2. We want to use
+     bit shifts and masking to get the correct layer, height and so on.
+  */
   uniform sampler2DArray fastuidraw_glyphGeometryDataStore;
-  #define FASTUIDRAW_GLYPH_GEOMETRY_X_MASK ((1u << uint(FASTUIDRAW_GLYPH_GEOMETRY_Y_SHIFT)) - 1u)
-  #define FASTUIDRAW_GLYPH_GEOMETRY_X(v) (uint(v) & FASTUIDRAW_GLYPH_GEOMETRY_X_MASK)
-  #define FASTUIDRAW_GLYPH_GEOMETRY_Y(v) (uint(v) >> uint(FASTUIDRAW_GLYPH_GEOMETRY_Y_SHIFT))
-  #define FASTUIDRAW_GLYPH_GEOMETRY_COORD(v) ivec3(FASTUIDRAW_GLYPH_GEOMETRY_X(v), 1, FASTUIDRAW_GLYPH_GEOMETRY_Y(v))
+  #define FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_PLUS_HEIGHT_LOG2 uint(FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2 + FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2)
+  #define FASTUIDRAW_GLYPH_GEOMETRY_LAYER(T) (uint(T) >> FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_PLUS_HEIGHT_LOG2)
+  #define FASTUIDRAW_GLYPH_GEOMETRY_Y(T) FASTUIDRAW_EXTRACT_BITS(FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2, FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2, T)
+  #define FASTUIDRAW_GLYPH_GEOMETRY_X(T) FASTUIDRAW_EXTRACT_BITS(0, FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2, T)
+  #define FASTUIDRAW_GLYPH_GEOMETRY_COORD(v) ivec3(FASTUIDRAW_GLYPH_GEOMETRY_X(v), FASTUIDRAW_GLYPH_GEOMETRY_Y(v), FASTUIDRAW_GLYPH_GEOMETRY_LAYER(v))
+
   #define fastuidraw_fetch_glyph_data(block) texelFetch(fastuidraw_glyphGeometryDataStore, FASTUIDRAW_GLYPH_GEOMETRY_COORD(block), 0)
 
 /*
