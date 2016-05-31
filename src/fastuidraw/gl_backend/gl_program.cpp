@@ -332,13 +332,18 @@ emit_source_line(std::ostream &output_stream,
 
   #ifndef NDEBUG
     {
-      if(S.empty() || *S.rbegin() != '\\')
+      if(!label.empty() && (S.empty() || *S.rbegin() != '\\'))
         {
-          output_stream << std::setw(80-S.length()) << "  //LOCATION("
+          output_stream << std::setw(80-S.length()) << "  //["
                         << std::setw(3) << line_number
                         << ", " << label
-                        << ")";
+                        << "]";
         }
+    }
+  #else
+    {
+      FASTUIDRAWunused(label);
+      FASTUIDRAWunused(line_number);
     }
   #endif
 
@@ -389,7 +394,7 @@ add_source_entry(const source_code_type &v, std::ostream &output_stream)
       if(v.second == fastuidraw::gl::Shader::from_string)
         {
           istr.str(v.first);
-          label="raw string";
+          label.clear();
         }
       else
         {
