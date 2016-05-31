@@ -488,15 +488,16 @@ public:
         ostr << v;
       }
 
-    ostr << ", possible values: ";
+    ostr << ")";
+    std::ostringstream ostr_desc;
+    ostr_desc << desc << " Possible values:\n\n";
     for(iter=m_value.m_label_set.m_value_Ts.begin(),
           end=m_value.m_label_set.m_value_Ts.end();
         iter!=end; ++iter)
       {
-        ostr << "\n\t\t" << iter->second << ", ";
+        ostr_desc << iter->second << "\n\n";
       }
-
-    ostr << "\n\t" << format_description_string(m_name, desc);
+    ostr << format_description_string(m_name, ostr_desc.str());
     m_description=tabs_to_spaces(ostr.str());
   }
 
