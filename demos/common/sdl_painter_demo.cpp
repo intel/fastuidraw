@@ -118,6 +118,18 @@ sdl_painter_demo(const std::string &about_text):
                        "painter_use_hw_clip_planes",
                        "If true, use HW clip planes (i.e. gl_ClipDistance) for clipping",
                        *this),
+  m_uber_vert_use_switch(m_painter_params.vert_shader_use_switch(),
+                         "uber_vert_use_switch",
+                         "If true, use a switch statement in uber vertex shader dispatch",
+                         *this),
+  m_uber_frag_use_switch(m_painter_params.frag_shader_use_switch(),
+                         "uber_frag_use_switch",
+                         "If true, use a switch statement in uber fragment shader dispatch",
+                         *this),
+  m_uber_blend_use_switch(m_painter_params.blend_shader_use_switch(),
+                          "uber_blend_use_switch",
+                          "If true, use a switch statement in uber blend shader dispatch",
+                          *this),
   m_demo_options("Demo Options", *this)
 {}
 
@@ -194,7 +206,10 @@ init_gl(int w, int h)
     .number_pools(m_painter_number_pools.m_value)
     .break_on_vertex_shader_change(m_painter_break_on_vertex_shader_change.m_value)
     .break_on_fragment_shader_change(m_painter_break_on_fragment_shader_change.m_value)
-    .use_hw_clip_planes(m_use_hw_clip_planes.m_value);
+    .use_hw_clip_planes(m_use_hw_clip_planes.m_value)
+    .vert_shader_use_switch(m_uber_vert_use_switch.m_value)
+    .frag_shader_use_switch(m_uber_frag_use_switch.m_value)
+    .blend_shader_use_switch(m_uber_blend_use_switch.m_value);
 
 
   m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params);
