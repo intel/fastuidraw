@@ -147,6 +147,7 @@ egl_get_proc(const char *name)
 #ifdef FASTUIDRAW_GL_USE_GLES
   return (void*)eglGetProcAddress(name);
 #else
+  FASTUIDRAWunused(name);
   return NULL;
 #endif
 }
