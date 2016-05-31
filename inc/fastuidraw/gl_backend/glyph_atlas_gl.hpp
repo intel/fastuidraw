@@ -21,6 +21,7 @@
 
 #include <fastuidraw/text/glyph_atlas.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
+#include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
 namespace fastuidraw
 {
@@ -125,6 +126,46 @@ namespace gl
       delayed(bool v);
 
       /*!
+        If true, use a texture buffer object to back the
+        GlyphAtlasGeometryBackingStoreBase returned by
+        GlyphAtlas::geometry_store(). If false, use
+        a 2D texture array to back the data. Default
+        value is true.
+       */
+      bool
+      use_texture_buffer_geometry_store(void) const;
+
+      /*!
+        Set the value for use_texture_buffer_geometry_store(void) const
+        to return true.
+       */
+      params&
+      set_use_texture_buffer_geometry_store(void) const;
+
+      /*!
+        Set to use a 2D texture array to back the
+        GlyphAtlasGeometryBackingStoreBase returned by
+        GlyphAtlas::geometry_store() with the given
+        dimensions. The depth of the 2D texture array
+        is set implicitely by the size given by
+        GlyphAtlasGeometryBackingStoreBase::size().
+        \param log2_width Log2 of the width of the 2D texture array
+        \param log2_height Log2 of the height of the 2D texture array
+       */
+      params&
+      use_texture_2d_array_geometry_store(unsigned int log2_width,
+                                          unsigned int log2_height = 0);
+
+      /*!
+        Query the GL context to decide what is the optimal settings
+        to back the GlyphAtlasGeometryBackingStoreBase returned by
+        GlyphAtlas::geometry_store().
+        \param props context properties to use to query GL capabilities
+       */
+      params&
+      use_optimal_geometry_store_backing(const ContextProperties &props);
+
+      /*!
         The alignment for the
         GlyphAtlasGeometryBackingStoreBase of the
         constructed GlyphAtlasGL. The value must be 1,
@@ -189,12 +230,12 @@ namespace gl
 
     /*!
       In the case that the geometry data is stored in a texture
-      array (GL_TEXTURE_2D_ARRAY) instead of a textyre buffer
-      object, returns the width of the texture. The texture
-      will have height as 1 and a variable number of layers.
+      array (GL_TEXTURE_2D_ARRAY) instead of a texture buffer
+      object, returns the log2 of the width and height of the
+      backing texture 2D array.
      */
-    unsigned int
-    geometry_texture_as_2d_array_log2_width(void) const;
+    uvec2
+    geometry_texture_as_2d_array_log2_dims(void) const;
 
     /*!
       Returns the params value used to construct
