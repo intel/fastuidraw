@@ -34,8 +34,8 @@ namespace
   {
   public:
     typedef fastuidraw::gl::detail::TextureGL<GL_TEXTURE_2D_ARRAY,
-                                             internal_format, external_format,
-                                             GL_UNSIGNED_BYTE, filter> type;
+                                              internal_format, external_format,
+                                              GL_UNSIGNED_BYTE, filter> type;
   };
 
   class ColorBackingStoreGL:public fastuidraw::AtlasColorBackingStoreBase
@@ -219,7 +219,7 @@ ColorBackingStoreGL(int log2_tile_size,
                     int number_layers,
                     bool delayed):
   fastuidraw::AtlasColorBackingStoreBase(store_size(log2_tile_size, log2_num_tiles_per_row_per_col, number_layers),
-                                        true),
+                                         true),
   m_backing_store(dimensions(), delayed)
 {}
 
