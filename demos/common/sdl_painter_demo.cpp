@@ -59,15 +59,16 @@ sdl_painter_demo(const std::string &about_text):
                                *this),
   m_glyph_geometry_backing_store_type(glyph_geometry_backing_store_auto,
                                       enumerated_string_type<enum glyph_geometry_backing_store_t>()
-                                      .add_entry("buffer", glyph_geometry_backing_store_texture_buffer)
-                                      .add_entry("texture_array", glyph_geometry_backing_store_texture_array)
-                                      .add_entry("auto", glyph_geometry_backing_store_auto),
-                                      "glyph_geometry_backing_store_type",
-                                      "Determines how the glyph geometry store is backed\n"
-                                      "buffer : use a texture buffer, feature is core in GL but for GLES requires version 3.2"
-                                      "or the extension GL_OES_texture_buffer or the extension GL_EXT_texture_buffer\n"
-                                      "texture_array: use a 2D texture array to store the glyph geometry data, GL and GLES have feature in core\n"
-                                      "auto: query context and decide optimal value",
+                                      .add_entry("buffer: use a texture buffer, feature is core in GL but for GLES requires version 3.2, "
+                                                 "for GLES version pre-3.2, requires the extension GL_OES_texture_buffer or the "
+                                                 "extension GL_EXT_texture_buffer",
+                                                 glyph_geometry_backing_store_texture_buffer)
+                                      .add_entry("texture_array: use a 2D texture array to store the glyph geometry data, "
+                                                 "GL and GLES have feature in core",
+                                                 glyph_geometry_backing_store_texture_array)
+                                      .add_entry("auto: query context and decide optimal value", glyph_geometry_backing_store_auto),
+                                      "geometry_backing_store_type",
+                                      "Determines how the glyph geometry store is backed.",
                                       *this),
   m_glyph_geometry_backing_texture_log2_w(10, "glyph_geometry_backing_texture_log2_w",
                                           "If glyph_geometry_backing_store_type is set to texture_array, then "
