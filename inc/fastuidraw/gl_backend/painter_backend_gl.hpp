@@ -184,6 +184,45 @@ namespace fastuidraw
         use_hw_clip_planes(bool v);
 
         /*!
+          If true, use switch() statements in uber vertex shader,
+          if false use a chain of if-else. Default value is true.
+         */
+        bool
+        vert_shader_use_switch(void) const;
+
+        /*!
+          Set the value for vert_shader_use_switch(void) const
+        */
+        params&
+        vert_shader_use_switch(bool v);
+
+        /*!
+          If true, use switch() statements in uber frag shader,
+          if false use a chain of if-else. Default value is true.
+         */
+        bool
+        frag_shader_use_switch(void) const;
+
+        /*!
+          Set the value for frag_shader_use_switch(void) const
+        */
+        params&
+        frag_shader_use_switch(bool v);
+
+        /*!
+          If true, use switch() statements in uber blend shader,
+          if false use a chain of if-else. Default value is true.
+         */
+        bool
+        blend_shader_use_switch(void) const;
+
+        /*!
+          Set the value for blend_shader_use_switch(void) const
+        */
+        params&
+        blend_shader_use_switch(bool v);
+
+        /*!
           A PainterBackendGL has a set of pools for the buffer
           objects to which to data to send to GL. Whenever
           on_end() is called, the next pool is used (wrapping around

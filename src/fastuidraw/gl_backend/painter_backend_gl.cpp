@@ -249,17 +249,20 @@ namespace
 
     static
     void
-    stream_uber_vert_shader(fastuidraw::gl::Shader::shader_source &vert,
+    stream_uber_vert_shader(bool use_switch,
+                            fastuidraw::gl::Shader::shader_source &vert,
                             fastuidraw::const_c_array<fastuidraw::gl::PainterShaderGL::handle> vert_shaders);
 
     static
     void
-    stream_uber_frag_shader(fastuidraw::gl::Shader::shader_source &frag,
+    stream_uber_frag_shader(bool use_switch,
+                            fastuidraw::gl::Shader::shader_source &frag,
                             fastuidraw::const_c_array<fastuidraw::gl::PainterShaderGL::handle> frag_shaders);
 
     static
     void
-    stream_uber_blend_shader(fastuidraw::gl::Shader::shader_source &frag,
+    stream_uber_blend_shader(bool use_switch,
+                             fastuidraw::gl::Shader::shader_source &frag,
                              fastuidraw::const_c_array<fastuidraw::gl::PainterBlendShaderGL::handle> blend_shaders,
                              enum blend_type tp);
 
@@ -440,7 +443,10 @@ namespace
       m_number_pools(3),
       m_break_on_vertex_shader_change(false),
       m_break_on_fragment_shader_change(false),
-      m_use_hw_clip_planes(true)
+      m_use_hw_clip_planes(true),
+      m_vert_shader_use_switch(true),
+      m_frag_shader_use_switch(true),
+      m_blend_shader_use_switch(true)
     {}
 
     unsigned int m_attributes_per_buffer;
@@ -453,6 +459,9 @@ namespace
     fastuidraw::gl::ColorStopAtlasGL::handle m_colorstop_atlas;
     fastuidraw::gl::GlyphAtlasGL::handle m_glyph_atlas;
     bool m_use_hw_clip_planes;
+    bool m_vert_shader_use_switch;
+    bool m_frag_shader_use_switch;
+    bool m_blend_shader_use_switch;
   };
 }
 
@@ -1288,7 +1297,8 @@ stream_unpack_code(unsigned int alignment,
 
 void
 PainterBackendGLPrivate::
-stream_uber_vert_shader(fastuidraw::gl::Shader::shader_source &vert,
+stream_uber_vert_shader(bool use_switch,
+                        fastuidraw::gl::Shader::shader_source &vert,
                         fastuidraw::const_c_array<fastuidraw::gl::PainterShaderGL::handle> vert_shaders)
 {
   /* first stream all of the vert_shaders with predefined macros. */
@@ -1312,25 +1322,45 @@ stream_uber_vert_shader(fastuidraw::gl::Shader::shader_source &vert,
       << "{\n"
       << "    vec4 p = vec4(0.0, 0.0, 0.0, 0.0);\n";
 
-  for(unsigned int i = 0; i < vert_shaders.size(); ++i)
+  if(use_switch)
     {
-      if(i != 0)
-        {
-          str << "    else if";
-        }
-      else
-        {
-          str << "    if";
-        }
+      str << "    switch(h.vert_shader)\n"
+          << "    {\n";
 
-      str << "(h.vert_shader == uint(" << vert_shaders[i]->ID() << "))\n"
-          << "    {\n"
-          << "        p = vec4(fastuidraw_gl_vert_main" << vert_shaders[i]->ID()
-          << "(fastuidraw_primary_attribute, "
-          << "fastuidraw_secondary_attribute, "
-          << "fastuidraw_uint_attribute, h.vert_shader_data_location, add_z));\n"
-          << "    }\n";
+      for(unsigned int i = 0; i < vert_shaders.size(); ++i)
+        {
+          str << "    case uint(" << vert_shaders[i]->ID() << "):\n"
+              << "        p = fastuidraw_gl_vert_main" << vert_shaders[i]->ID()
+              << "(fastuidraw_primary_attribute, "
+              << "fastuidraw_secondary_attribute, "
+              << "fastuidraw_uint_attribute, h.vert_shader_data_location, add_z);\n"
+              << "        break;\n";
+        }
+      str << "    }\n";
     }
+  else
+    {
+      for(unsigned int i = 0; i < vert_shaders.size(); ++i)
+        {
+          if(i != 0)
+            {
+              str << "    else if";
+            }
+          else
+            {
+              str << "    if";
+            }
+
+          str << "(h.vert_shader == uint(" << vert_shaders[i]->ID() << "))\n"
+              << "    {\n"
+              << "        p = fastuidraw_gl_vert_main" << vert_shaders[i]->ID()
+              << "(fastuidraw_primary_attribute, "
+              << "fastuidraw_secondary_attribute, "
+              << "fastuidraw_uint_attribute, h.vert_shader_data_location, add_z);\n"
+              << "    }\n";
+        }
+    }
+
   str << "    return p;\n"
       << "}\n";
 
@@ -1339,7 +1369,8 @@ stream_uber_vert_shader(fastuidraw::gl::Shader::shader_source &vert,
 
 void
 PainterBackendGLPrivate::
-stream_uber_frag_shader(fastuidraw::gl::Shader::shader_source &frag,
+stream_uber_frag_shader(bool use_switch,
+                        fastuidraw::gl::Shader::shader_source &frag,
                         fastuidraw::const_c_array<fastuidraw::gl::PainterShaderGL::handle> frag_shaders)
 {
   /* first stream all of the vert_shaders with predefined macros. */
@@ -1362,21 +1393,38 @@ stream_uber_frag_shader(fastuidraw::gl::Shader::shader_source &frag,
       << "{\n"
       << "    vec4 p = vec4(1.0, 1.0, 1.0, 1.0);\n";
 
-  for(unsigned int i = 0; i < frag_shaders.size(); ++i)
+  if(use_switch)
     {
-      if(i != 0)
+      str << "    switch(frag_shader)\n"
+          << "    {\n";
+
+      for(unsigned int i = 0; i < frag_shaders.size(); ++i)
         {
-          str << "    else if";
+          str << "    case uint(" << frag_shaders[i]->ID() << "):\n"
+              << "        p = fastuidraw_gl_frag_main" << frag_shaders[i]->ID()
+              << "(frag_shader_data_location);\n"
+              << "        break;\n";
         }
-      else
+      str << "    }\n";
+    }
+  else
+    {
+      for(unsigned int i = 0; i < frag_shaders.size(); ++i)
         {
-          str << "    if";
+          if(i != 0)
+            {
+              str << "    else if";
+            }
+          else
+            {
+              str << "    if";
+            }
+          str << "(frag_shader == uint(" << frag_shaders[i]->ID() << "))\n"
+              << "    {\n"
+              << "        p = fastuidraw_gl_frag_main" << frag_shaders[i]->ID()
+              << "(frag_shader_data_location);\n"
+              << "    }\n";
         }
-      str << "(frag_shader == uint(" << frag_shaders[i]->ID() << "))\n"
-          << "    {\n"
-          << "        p = vec4(fastuidraw_gl_frag_main" << frag_shaders[i]->ID()
-          << "(frag_shader_data_location));\n"
-          << "    }\n";
     }
   str << "    return p;\n"
       << "}\n";
@@ -1386,7 +1434,8 @@ stream_uber_frag_shader(fastuidraw::gl::Shader::shader_source &frag,
 
 void
 PainterBackendGLPrivate::
-stream_uber_blend_shader(fastuidraw::gl::Shader::shader_source &frag,
+stream_uber_blend_shader(bool use_switch,
+                         fastuidraw::gl::Shader::shader_source &frag,
                          fastuidraw::const_c_array<fastuidraw::gl::PainterBlendShaderGL::handle> blend_shaders,
                          enum blend_type tp)
 {
@@ -1442,18 +1491,41 @@ stream_uber_blend_shader(fastuidraw::gl::Shader::shader_source &frag,
   std::ostringstream str;
   str << "void\n"
       << func_name << "\n"
-      << "{\n"
-      << "    switch(blend_shader)\n"
-      << "    {\n";
+      << "{\n";
 
-  for(unsigned int i = 0; i < blend_shaders.size(); ++i)
+  if(use_switch)
     {
-      str << "        case uint(" << blend_shaders[i]->ID() << "):\n"
-          << "            " << sub_func_name << blend_shaders[i]->ID() << func_args << ";\n"
-          << "            break;\n";
+      str << "    switch(blend_shader)\n"
+          << "    {\n";
+
+      for(unsigned int i = 0; i < blend_shaders.size(); ++i)
+        {
+          str << "        case uint(" << blend_shaders[i]->ID() << "):\n"
+              << "            " << sub_func_name << blend_shaders[i]->ID() << func_args << ";\n"
+              << "            break;\n";
+        }
+      str << "    }\n";
     }
-  str << "    }\n"
-      << "}\n";
+  else
+    {
+      for(unsigned int i = 0; i < blend_shaders.size(); ++i)
+        {
+          if(i != 0)
+            {
+              str << "    else if";
+            }
+          else
+            {
+              str << "    if";
+            }
+          str << "(blend_shader == uint(" << blend_shaders[i]->ID() << "))\n"
+              << "    {\n"
+              << "        " << sub_func_name << blend_shaders[i]->ID() << func_args << ";\n"
+              << "    }\n";
+        }
+    }
+
+  str << "}\n";
 
   frag.add_source(str.str().c_str(), fastuidraw::gl::Shader::from_string);
 }
@@ -1932,6 +2004,7 @@ build_program(void)
           FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE = "ivec3";
           break;
 
+        default:
         case 4:
           FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE = "vec4";
           FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE = "uvec4";
@@ -2019,7 +2092,7 @@ build_program(void)
     .add_source("fastuidraw_painter_main.vert.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
     .add_source(m_vert_shader_utils);
   stream_unpack_code(m_params.m_config.alignment(), vert);
-  stream_uber_vert_shader(vert, make_c_array(m_vert_shaders));
+  stream_uber_vert_shader(m_params.vert_shader_use_switch(), vert, make_c_array(m_vert_shaders));
 
 
   fastuidraw::gl::ImageAtlasGL *image_atlas_gl;
@@ -2044,8 +2117,8 @@ build_program(void)
     .add_source("fastuidraw_painter_main.frag.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
     .add_source("fastuidraw_painter_anisotropic.frag.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
     .add_source(m_frag_shader_utils);
-  stream_uber_frag_shader(frag, make_c_array(m_frag_shaders));
-  stream_uber_blend_shader(frag, make_c_array(m_blend_shaders), m_blend_type);
+  stream_uber_frag_shader(m_params.frag_shader_use_switch(), frag, make_c_array(m_frag_shaders));
+  stream_uber_blend_shader(m_params.blend_shader_use_switch(), frag, make_c_array(m_blend_shaders), m_blend_type);
 
   m_program = FASTUIDRAWnew fastuidraw::gl::Program(vert, frag,
                                                     fastuidraw::gl::PreLinkActionArray()
@@ -2192,6 +2265,9 @@ paramsSetGet(const fastuidraw::gl::ImageAtlasGL::handle&, image_atlas)
 paramsSetGet(const fastuidraw::gl::ColorStopAtlasGL::handle&, colorstop_atlas)
 paramsSetGet(const fastuidraw::gl::GlyphAtlasGL::handle&, glyph_atlas)
 paramsSetGet(bool, use_hw_clip_planes)
+paramsSetGet(bool, vert_shader_use_switch)
+paramsSetGet(bool, frag_shader_use_switch)
+paramsSetGet(bool, blend_shader_use_switch)
 
 #undef paramsSetGet
 
