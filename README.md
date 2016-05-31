@@ -25,15 +25,14 @@ Documentation
 GL requirements
 =====================
   The GL backend requires GL version 3.3. The GL extension GL_ARB_texture_view
-  is not required but strongly recommended; this extension is core in starting
-  in GL version 4.3.
+  is not required but strongly recommended; this extension is core starting in
+  GL version 4.3.
 
-  The GLES backend requires GLES version 3.1. If the GLES version is 3.1, it is
-  strongly recommended that one of the extension GL_OES_texture_buffer or
-  GL_EXT_texture_buffer is present. For both GLES 3.1 and 3.2, the extensions
+  The GLES backend requires GLES version 3.0. If the GLES version is 3.0 or 3.1,
+  it is strongly recommended that one of the extension GL_OES_texture_buffer or
+  GL_EXT_texture_buffer is present. For GLES 3.0, 3.1 and 3.2, the extensions
   GL_EXT_blend_func_extended, GL_APPLE_clip_distance and GL_OES_texture_view
   are not required but strongly recommended.
-  
 
 Building requirements
 =====================

@@ -1973,12 +1973,24 @@ build_program(void)
         }
       else
         {
+          std::string version;
+          if(m_ctx_properties.version() >= fastuidraw::ivec2(3, 1))
+            {
+              version = "310 es";
+            }
+          else
+            {
+              version = "300 es";
+            }
+
           vert
-            .specify_version("300 es")
+            .specify_version(version.c_str())
+            .specify_extension("GL_EXT_texture_buffer", fastuidraw::gl::Shader::enable_extension)
             .specify_extension("GL_OES_texture_buffer", fastuidraw::gl::Shader::enable_extension);
           frag
-            .specify_version("300 es")
+            .specify_version(version.c_str())
             .specify_extension("GL_EXT_blend_func_extended", fastuidraw::gl::Shader::enable_extension)
+            .specify_extension("GL_EXT_texture_buffer", fastuidraw::gl::Shader::enable_extension)
             .specify_extension("GL_OES_texture_buffer", fastuidraw::gl::Shader::enable_extension);
         }
     }
@@ -2507,9 +2519,9 @@ on_end(void)
     }
   else
     {
-      glBindBufferBase(GL_UNIFORM_BUFFER,  bind_painter_data_store_ubo_float, 0);
-      glBindBufferBase(GL_UNIFORM_BUFFER,  bind_painter_data_store_ubo_uint, 0);
-      glBindBufferBase(GL_UNIFORM_BUFFER,  bind_painter_data_store_ubo_int, 0);
+      glBindBufferBase(GL_UNIFORM_BUFFER, bind_painter_data_store_ubo_float, 0);
+      glBindBufferBase(GL_UNIFORM_BUFFER, bind_painter_data_store_ubo_uint, 0);
+      glBindBufferBase(GL_UNIFORM_BUFFER, bind_painter_data_store_ubo_int, 0);
     }
   d->m_pool.next_pool();
 }
