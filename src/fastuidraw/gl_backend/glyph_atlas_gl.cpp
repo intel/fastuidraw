@@ -816,9 +816,13 @@ use_optimal_geometry_store_backing(void)
     }
   else
     {
-      /* get max texture size and max texture array size */
-      uint32_t max_layers(0), max_wh(0), wh_log2;
-      uint32_t required_size(1u << 30u), required_area_per_layer, required_height;
+      /* when alignment is 4, each texel is 4 float, thus 16 bytes.
+         We cap the size to 1GB which is 2^(26) texels when
+         alignment is 4.
+       */
+      uint32_t required_size(1u << 26u);
+      uint32_t max_layers(0), max_wh(0), width;
+      uint32_t required_area_per_layer, required_height;
       max_layers = fastuidraw::gl::context_get<int>(GL_MAX_ARRAY_TEXTURE_LAYERS);
       max_wh = fastuidraw::gl::context_get<int>(GL_MAX_TEXTURE_SIZE);
 
@@ -830,16 +834,16 @@ use_optimal_geometry_store_backing(void)
           Last resort, increase height
          so that we can store required_size texels.
        */
-      wh_log2 = floor_power_2(max_wh);
+      width = floor_power_2(max_wh);
       required_area_per_layer = required_size / max_layers;
-      required_height = required_area_per_layer / wh_log2;
-      if(required_height * wh_log2 < required_area_per_layer)
+      required_height = std::min(max_wh, required_area_per_layer / width);
+      if(required_height * width < required_area_per_layer)
         {
           ++required_height;
         }
 
       d->m_use_texture_buffer_geometry_store = false;
-      d->m_log2_dims_geometry_store.x() = fastuidraw::floor_log2(wh_log2);
+      d->m_log2_dims_geometry_store.x() = fastuidraw::floor_log2(width);
       d->m_log2_dims_geometry_store.y() = (required_height <= 1) ?
         0 : fastuidraw::floor_log2(required_height);
     }
