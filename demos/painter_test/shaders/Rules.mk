@@ -4,7 +4,7 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
-painter-test_RESOURCE_STRING := $(call filelist, vert0.glsl.resource_string vert1.glsl.resource_string)
+painter-test_RESOURCE_STRING :=
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))

@@ -24,25 +24,31 @@ protected:
   void
   derived_init(int, int)
   {
-    gl::PainterShaderGL::handle v0, v1;
-    v0 = FASTUIDRAWnew gl::PainterShaderGL(gl::Shader::shader_source()
-                                          .add_source("vert0.glsl.resource_string",
-                                                      gl::Shader::from_resource));
-
-    v1 = FASTUIDRAWnew gl::PainterShaderGL(gl::Shader::shader_source()
-                                          .add_source("vert1.glsl.resource_string",
-                                                      gl::Shader::from_resource));
-
-
-    m_backend->register_vert_shader(v0);
-    m_backend->register_vert_shader(v1);
-
-
     if(m_backend->program()->link_success())
       {
-        std::ofstream file("painter.program.glsl");
+        gl::Program::handle pr(m_backend->program());
         std::cout << "Link success\n";
-        file << m_backend->program()->log();
+        std::ofstream file("painter.program.glsl");
+        file << pr->log();
+
+        for(unsigned int i = 0, endi = pr->num_shaders(GL_VERTEX_SHADER); i < endi; ++i)
+          {
+            std::ostringstream name;
+            name << "painter.vert." << i << ".glsl";
+
+            std::ofstream file(name.str().c_str());
+            file << pr->shader_src_code(GL_VERTEX_SHADER, i);
+          }
+
+        for(unsigned int i = 0, endi = pr->num_shaders(GL_FRAGMENT_SHADER); i < endi; ++i)
+          {
+            std::ostringstream name;
+            name << "painter.frag." << i << ".glsl";
+
+            std::ofstream file(name.str().c_str());
+            file << pr->shader_src_code(GL_FRAGMENT_SHADER, i);
+          }
+
         m_backend->program()->use_program();
       }
     else
