@@ -57,6 +57,24 @@ sdl_painter_demo(const std::string &about_text):
                                "glyph_atlas_delayed_upload",
                                "if true delay uploading of data to GL from glyph atlas until atlas flush",
                                *this),
+  m_glyph_geometry_backing_store_type(glyph_geometry_backing_store_auto,
+                                      enumerated_string_type<enum glyph_geometry_backing_store_t>()
+                                      .add_entry("buffer", glyph_geometry_backing_store_texture_buffer)
+                                      .add_entry("texture_array", glyph_geometry_backing_store_texture_array)
+                                      .add_entry("auto", glyph_geometry_backing_store_auto),
+                                      "glyph_geometry_backing_store_type",
+                                      "Determines how the glyph geometry store is backed\n"
+                                      "buffer : use a texture buffer, feature is core in GL but for GLES requires version 3.2"
+                                      "or the extension GL_OES_texture_buffer or the extension GL_EXT_texture_buffer\n"
+                                      "texture_array: use a 2D texture array to store the glyph geometry data, GL and GLES have feature in core\n"
+                                      "auto: query context and decide optimal value",
+                                      *this),
+  m_glyph_geometry_backing_texture_log2_w(10, "glyph_geometry_backing_texture_log2_w",
+                                          "If glyph_geometry_backing_store_type is set to texture_array, then "
+                                          "this gives the log2 of the width of the texture array", *this),
+  m_glyph_geometry_backing_texture_log2_h(10, "glyph_geometry_backing_texture_log2_h",
+                                          "If glyph_geometry_backing_store_type is set to texture_array, then "
+                                          "this gives the log2 of the height of the texture array", *this),
   m_colorstop_atlas_options("ColorStop Atlas options", *this),
   m_color_stop_atlas_width(m_colorstop_atlas_params.width(),
                            "colorstop_atlas_width",
@@ -126,6 +144,34 @@ init_gl(int w, int h)
     .number_floats(m_geometry_store_size.m_value)
     .alignment(m_geometry_store_alignment.m_value)
     .delayed(m_glyph_atlas_delayed_upload.m_value);
+
+  switch(m_glyph_geometry_backing_store_type.m_value.m_value)
+    {
+    case glyph_geometry_backing_store_texture_buffer:
+      m_glyph_atlas_params.set_use_texture_buffer_geometry_store();
+      break;
+
+    case glyph_geometry_backing_store_texture_array:
+      m_glyph_atlas_params.use_texture_2d_array_geometry_store(m_glyph_geometry_backing_texture_log2_w.m_value,
+                                                               m_glyph_geometry_backing_texture_log2_h.m_value);
+      break;
+
+    default:
+      m_glyph_atlas_params.use_optimal_geometry_store_backing();
+      if(m_glyph_atlas_params.uses_texture_buffer_geometry_store())
+        {
+          std::cout << "Glyph Geometry Store: auto selected buffer\n";
+        }
+      else
+        {
+          fastuidraw::ivec2 log2_dims(m_glyph_atlas_params.texture_2d_array_geometry_store_log2_dims());
+          std::cout << "Glyph Geometry Store: auto selected texture with dimensions: (2^"
+                    << log2_dims.x() << ", 2^" << log2_dims.y() << ") = "
+                    << fastuidraw::ivec2(1 << log2_dims.x(), 1 << log2_dims.y())
+                    << "\n";
+        }
+    }
+
   m_glyph_atlas = FASTUIDRAWnew fastuidraw::gl::GlyphAtlasGL(m_glyph_atlas_params);
 
   m_colorstop_atlas_params
