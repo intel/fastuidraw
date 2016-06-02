@@ -826,9 +826,7 @@ use_optimal_geometry_store_backing(void)
       max_layers = fastuidraw::gl::context_get<int>(GL_MAX_ARRAY_TEXTURE_LAYERS);
       max_wh = fastuidraw::gl::context_get<int>(GL_MAX_TEXTURE_SIZE);
 
-      /* GLES3.1 (the lowest spec we allow) has that
-         max_layers >= 256 and max_wh >= 2048. Our selection
-         of size is as follows:
+      /* Our selection of size is as follows:
           First maximize width (to a power of 2)
           Second maximize depth
           Last resort, increase height
