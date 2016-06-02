@@ -97,7 +97,7 @@ namespace gl
 
       /*!
         number of layers of underling 1D texture, initial
-        value is 1024
+        value is 32
        */
       int
       num_layers(void) const;
@@ -107,6 +107,13 @@ namespace gl
        */
       params&
       num_layers(int v);
+
+      /*!
+	Query the current GL context and set the value for
+	width() const to GL_MAX_TEXTURE_SIZE.
+       */
+      params&
+      optimal_width(void);
 
       /*!
         if true, upload of texture data is delayed until

@@ -81,6 +81,7 @@ private:
    */
   command_separator m_colorstop_atlas_options;
   command_line_argument_value<int> m_color_stop_atlas_width;
+  command_line_argument_value<bool> m_color_stop_atlas_use_optimal_width;
   command_line_argument_value<int> m_color_stop_atlas_layers;
   command_line_argument_value<bool> m_color_stop_atlas_delayed_upload;
 

@@ -80,6 +80,11 @@ sdl_painter_demo(const std::string &about_text):
   m_color_stop_atlas_width(m_colorstop_atlas_params.width(),
                            "colorstop_atlas_width",
                            "width for color stop atlas", *this),
+  m_color_stop_atlas_use_optimal_width(false, "colorstop_atlas_use_optimal_width",
+				       "if true ignore the value of colorstop_atlas_layers "
+				       "and query the GL context for the optimal width for "
+				       "the colorstop atlas",
+				       *this),
   m_color_stop_atlas_layers(m_colorstop_atlas_params.num_layers(),
                             "colorstop_atlas_layers",
                             "number of layers for the color stop atlas",
@@ -191,6 +196,13 @@ init_gl(int w, int h)
     .width(m_color_stop_atlas_width.m_value)
     .num_layers(m_color_stop_atlas_layers.m_value)
     .delayed(m_color_stop_atlas_delayed_upload.m_value);
+
+  if(m_color_stop_atlas_use_optimal_width.m_value)
+    {
+      m_colorstop_atlas_params.optimal_width();
+      std::cout << "Colorstop Atlas optimal width selected to be "
+		<< m_colorstop_atlas_params.width() << "\n";
+    }
 
   m_colorstop_atlas = FASTUIDRAWnew fastuidraw::gl::ColorStopAtlasGL(m_colorstop_atlas_params);
 
