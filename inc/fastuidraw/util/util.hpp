@@ -179,7 +179,9 @@ namespace fastuidraw
   }
 
   /*!
-    Returns the floor of the log2 of an unsinged integer.
+    Returns the floor of the log2 of an unsinged integer,
+    i.e returns the ceiling log2, i.e. the value K so that
+    2^K <= x < 2^{K+1}
    */
   uint32_t
   uint32_log2(uint32_t v);
@@ -201,13 +203,6 @@ namespace fastuidraw
       v:
       n/2;
   }
-
-  /*!
-    Returns the ceiling log2, i.e. the value K so that
-    2^K <= x < 2^{K+1}
-   */
-  uint32_t
-  floor_log2(uint32_t x);
 
   /*!
     Returns true if a uint32_t is

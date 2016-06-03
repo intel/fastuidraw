@@ -54,19 +54,6 @@ round_up_to_multiple(unsigned int v, unsigned int alignment)
     }
 }
 
-uint32_t
-fastuidraw::
-floor_log2(uint32_t x)
-{
-  uint32_t r(0);
-  while(x > 1)
-    {
-      x >>= 1;
-      ++r;
-    }
-  return r;
-}
-
 //////////////////////////////////////
 // fastuidraw::noncopyable methods
 fastuidraw::noncopyable::

@@ -807,24 +807,23 @@ use_optimal_geometry_store_backing(void)
   GlyphAtlasGLParamsPrivate *d;
   d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(m_d);
 
-  /* if texture_buffer_object is supported prefer that always.
+  const uint32_t required_max_size(1u << 26u);
+
+  /* if texture_buffer_object is supported prefer that if it is
+     big enough.
    */
-  if(fastuidraw::gl::detail::compute_tex_buffer_support() != fastuidraw::gl::detail::tex_buffer_not_supported)
+  if(detail::compute_tex_buffer_support() != detail::tex_buffer_not_supported
+     && context_get<int>(GL_MAX_TEXTURE_BUFFER_SIZE) >= required_max_size)
     {
       d->m_use_texture_buffer_geometry_store = true;
-      d->m_log2_dims_geometry_store = fastuidraw::ivec2(-1, -1);
+      d->m_log2_dims_geometry_store = ivec2(-1, -1);
     }
   else
     {
-      /* when alignment is 4, each texel is 4 float, thus 16 bytes.
-         We cap the size to 1GB which is 2^(26) texels when
-         alignment is 4.
-       */
-      uint32_t required_size(1u << 26u);
       uint32_t max_layers(0), max_wh(0), width;
       uint32_t required_area_per_layer, required_height;
-      max_layers = fastuidraw::gl::context_get<int>(GL_MAX_ARRAY_TEXTURE_LAYERS);
-      max_wh = fastuidraw::gl::context_get<int>(GL_MAX_TEXTURE_SIZE);
+      max_layers = context_get<int>(GL_MAX_ARRAY_TEXTURE_LAYERS);
+      max_wh = context_get<int>(GL_MAX_TEXTURE_SIZE);
 
       /* Our selection of size is as follows:
           First maximize width (to a power of 2)
@@ -832,8 +831,8 @@ use_optimal_geometry_store_backing(void)
           Last resort, increase height
          so that we can store required_size texels.
        */
-      width = floor_power_2(max_wh);
-      required_area_per_layer = required_size / max_layers;
+      width = uint32_log2(max_wh);
+      required_area_per_layer = required_max_size / max_layers;
       required_height = std::min(max_wh, required_area_per_layer / width);
       if(required_height * width < required_area_per_layer)
         {
@@ -841,9 +840,9 @@ use_optimal_geometry_store_backing(void)
         }
 
       d->m_use_texture_buffer_geometry_store = false;
-      d->m_log2_dims_geometry_store.x() = fastuidraw::floor_log2(width);
+      d->m_log2_dims_geometry_store.x() = uint32_log2(width);
       d->m_log2_dims_geometry_store.y() = (required_height <= 1) ?
-        0 : fastuidraw::floor_log2(required_height);
+        0 : uint32_log2(required_height);
     }
   return *this;
 }
