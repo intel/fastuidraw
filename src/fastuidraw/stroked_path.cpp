@@ -95,7 +95,7 @@ namespace
   class EdgeDataCreator
   {
   public:
-    static const float sm_mag_tol = 0.000001f;
+    static const float sm_mag_tol;
 
     EdgeDataCreator(const fastuidraw::TessellatedPath &P):
       m_P(P),
@@ -725,6 +725,8 @@ compute_lambda(const fastuidraw::vec2 &n0, const fastuidraw::vec2 &n1)
 
 ///////////////////////////////////////////////////
 // EdgeDataCreator methods
+const float EdgeDataCreator::sm_mag_tol = 0.000001f;
+
 void
 EdgeDataCreator::
 compute_size(void)
