@@ -10,7 +10,12 @@
 # this file, You can obtain one at
 # http://mozilla.org/MPL/2.0/.
 
-
+# Usage:
+#   create_cpp_from_string_resource inputfile resourcename outputpath
+#     inputfile input file
+#     resourcename resource name to fetch the resource from fastuidraw::fetch_static_resource()
+#     outputpath directory to place generated cpp file, name of file is $(resourcename).cpp
+#
 set -e
 
 input_filename="$1"

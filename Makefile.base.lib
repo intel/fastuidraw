@@ -14,6 +14,11 @@ LIBRARY_BUILD_BASE_FLAGS = $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_
 LIBRARY_STRING_RESOURCES_SRCS = $(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $(LIBRARY_RESOURCE_STRING) )
 CLEAN_FILES += $(LIBRARY_STRING_RESOURCES_SRCS)
 
+#
+#  STRING_RESOURCE_CC inputfile resourcename outputpath
+#    inputfile has full path on it
+#    resourcename name to access string resource
+#    outputpath is path to place outputpath
 string_resources_cpp/%.resource_string.cpp: %.resource_string
 	@mkdir -p $(dir $@)
 	$(STRING_RESOURCE_CC) $< $(notdir $<) $(dir $@)
