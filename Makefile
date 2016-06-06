@@ -28,21 +28,21 @@ targets:
 	@echo "=============================="
 	@printf "%s\n" $(TARGETLIST)
 
-include Makefile.settings
-include Makefile.functions
+include Makefile.settings.mk
+include Makefile.functions.mk
 
-include Makefile.base.pre
-include Makefile.gl_backend.pre
+include Makefile.base.pre.mk
+include Makefile.gl_backend.pre.mk
 
-include Makefile.sources
+include Makefile.sources.mk
 
-include Makefile.base.lib
-include Makefile.gl_backend.lib
+include Makefile.base.lib.mk
+include Makefile.gl_backend.lib.mk
 
-include Makefile.clean
+include Makefile.clean.mk
 
-include Makefile.demo.sources
-include Makefile.demo.rules
+include Makefile.demo.sources.mk
+include Makefile.demo.rules.mk
 
-include Makefile.docs
-include Makefile.install
+include Makefile.docs.mk
+include Makefile.install.mk
