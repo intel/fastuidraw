@@ -17,7 +17,7 @@ endif
 # Setting for building libFastUIDraw.so base library
 CXX ?= g++
 CC ?= gcc
-STRING_RESOURCE_CC = shell_scripts/create_cpp_from_string_resource.sh
+STRING_RESOURCE_CC = shell_scripts/fastuidraw-create-resource-cpp-file.sh
 LIBRARY_LIBS = `freetype-config --libs` -lm
 
 ifeq ($(MINGW_BUILD),1)

@@ -19,7 +19,7 @@ fastuidraw-config: fastuidraw-config.in
 # guarantee that fastuidraw-config reflects it correctly.
 .PHONY: fastuidraw-config
 CLEAN_FILES+=fastuidraw-config
-INSTALL_EXES+=fastuidraw-config
+INSTALL_EXES+=fastuidraw-config shell_scripts/fastuidraw-create-resource-cpp-file.sh
 
 install: $(INSTALL_LIBS) $(INSTALL_EXES) docs
 	-install -d $(INSTALL_LOCATION)/lib

@@ -26,17 +26,14 @@ if [ -z "$output_directory" ]; then
 fi
 source_file_name="$output_directory/$source_file_name"
 
-thisdir="`dirname $0`"
-decoder="$thisdir/decode_file_chars_to_numbers.pl"
-
-if [ ! -f "$decoder" ]; then
-    echo decode_file_chars_to_numbers.pl not found in "$thisdir"
-    exit 1
-fi
+# Contents of the magick perl program taken 
+# from: decode_file_chars_to_numbers.pl of WRATH 
+# (same license as above)
+perl_magick_program='open(FILE, "$ARGV[0]") or die("Unable to open file"); @data = <FILE>; foreach $line (@data) { @ASCII = unpack("C*", $line); foreach (@ASCII) { print "$_,"; } }'
 
 echo -e "#include <fastuidraw/util/static_resource.hpp>\n" > "$source_file_name"
 echo -e "namespace { \n\tconst uint8_t values[]={ " >> "$source_file_name"
-perl "$decoder" "$1" >> "$source_file_name" || exit 1
+perl -e "$perl_magick_program" "$1" >> "$source_file_name" || exit 1
 echo -e " 0 };\n" >> "$source_file_name"
 echo -e " fastuidraw::static_resource R(\"$2\", fastuidraw::const_c_array<uint8_t>(values, sizeof(values)));\n " >> "$source_file_name"
 echo -e "\n}\n" >> "$source_file_name"
