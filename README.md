@@ -41,6 +41,7 @@ Building requirements
  - boost
  - freetype
  - flex
+ - perl
  - up to date GL (and GLES) headers
    - You need
       - for GL, from https://www.opengl.org/registry/: GL/glcorearb.h
