@@ -305,14 +305,16 @@ template<typename T>
 class enumerated_string_type
 {
 public:
+  typedef std::pair<std::string, std::string> label_desc;
+
   std::map<std::string, T> m_value_strings;
-  std::map<T, std::string> m_value_Ts;
+  std::map<T, label_desc> m_value_Ts;
 
   enumerated_string_type&
-  add_entry(const std::string &label, T v)
+  add_entry(const std::string &label, T v, const std::string &description)
   {
     m_value_strings[label]=v;
-    m_value_Ts[v]=label;
+    m_value_Ts[v]=label_desc(label, description);
     return *this;
   }
 };
@@ -473,7 +475,7 @@ public:
     m_value(v,L)
   {
     std::ostringstream ostr;
-    typename std::map<T, std::string>::const_iterator iter, end;
+    typename std::map<T, typename enumerated_string_type<T>::label_desc>::const_iterator iter, end;
 
     ostr << "\n\t"
          << m_name << " (default value=";
@@ -481,7 +483,7 @@ public:
     iter=m_value.m_label_set.m_value_Ts.find(v);
     if(iter!=m_value.m_label_set.m_value_Ts.end())
       {
-        ostr << iter->second;
+        ostr << iter->second.first;
       }
     else
       {
@@ -495,7 +497,7 @@ public:
           end=m_value.m_label_set.m_value_Ts.end();
         iter!=end; ++iter)
       {
-        ostr_desc << iter->second << "\n\n";
+        ostr_desc << iter->second.first << ":" << iter->second.second << "\n\n";
       }
     ostr << format_description_string(m_name, ostr_desc.str());
     m_description=tabs_to_spaces(ostr.str());
