@@ -2012,12 +2012,7 @@ build_program(void)
           break;
         }
 
-      fastuidraw::ivec2 log2_glyph_geom;
-      log2_glyph_geom = glyphs->geometry_texture_as_2d_array_log2_dims();
-
       vert
-        .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2", log2_glyph_geom.x())
-        .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2", log2_glyph_geom.y())
         .add_macro("FASTUIDRAW_PAINTER_USE_DATA_UBO")
         .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE", FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE)
         .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE)
@@ -2025,8 +2020,6 @@ build_program(void)
         .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE);
 
       frag
-        .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2", log2_glyph_geom.x())
-        .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2", log2_glyph_geom.y())
         .add_macro("FASTUIDRAW_PAINTER_USE_DATA_UBO")
         .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE", FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE)
         .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE)
@@ -2073,6 +2066,22 @@ build_program(void)
     {
       vert.add_macro("FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT");
       frag.add_macro("FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT");
+    }
+
+  if(glyphs->geometry_texture_binding_point() == GL_TEXTURE_2D_ARRAY)
+    {
+      fastuidraw::ivec2 log2_glyph_geom;
+      log2_glyph_geom = glyphs->geometry_texture_as_2d_array_log2_dims();
+
+      vert
+	.add_macro("FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_ARRAY")
+	.add_macro("FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2", log2_glyph_geom.x())
+        .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2", log2_glyph_geom.y());
+
+      frag
+	.add_macro("FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_ARRAY")
+	.add_macro("FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2", log2_glyph_geom.x())
+        .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2", log2_glyph_geom.y());	
     }
 
   vert
