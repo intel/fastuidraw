@@ -37,17 +37,19 @@ namespace fastuidraw
     class BlendMode
     {
     public:
-      BlendMode(void):
-        m_data(GL_ONE)
+      BlendMode(void)
       {
         m_data[Kequation_rgb] = m_data[Kequation_alpha] = GL_FUNC_ADD;
+        m_data[Kfunc_src_rgb] = m_data[Kfunc_src_alpha] = GL_ONE;
+        m_data[Kfunc_dst_rgb] = m_data[Kfunc_dst_alpha] = GL_ZERO;
       }
 
       /*!
         Set the argument to feed for the RGB for
         glBlendEquationSeparate, should be one of
         GL_FUNC_ADD, GL_FUNC_SUBTRACT,
-        GL_FUNC_REVERSE_SUBTRACT, GL_MIN or GL_MAX
+        GL_FUNC_REVERSE_SUBTRACT, GL_MIN or GL_MAX.
+        Default value is GL_FUNC_ADD.
        */
       BlendMode&
       equation_rgb(GLenum v) { m_data[Kequation_rgb] = v; return *this; }
@@ -64,7 +66,8 @@ namespace fastuidraw
         Set the argument to feed for the Alpha for
         glBlendEquationSeparate, should be one of
         GL_FUNC_ADD, GL_FUNC_SUBTRACT,
-        GL_FUNC_REVERSE_SUBTRACT, GL_MIN or GL_MAX
+        GL_FUNC_REVERSE_SUBTRACT, GL_MIN or GL_MAX.
+        Default value is GL_FUNC_ADD.
        */
       BlendMode&
       equation_alpha(GLenum v) { m_data[Kequation_alpha] = v; return *this; }
@@ -100,6 +103,7 @@ namespace fastuidraw
         GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA,
         GL_SRC_ALPHA_SATURATE, GL_SRC1_COLOR, GL_SRC1_ALPHA,
         GL_ONE_MINUS_SRC1_COLOR or GL_ONE_MINUS_SRC1_ALPHA.
+        Default value is GL_ONE.
        */
       BlendMode&
       func_src_rgb(GLenum v) { m_data[Kfunc_src_rgb] = v; return *this; }
@@ -120,6 +124,7 @@ namespace fastuidraw
         GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA,
         GL_SRC_ALPHA_SATURATE, GL_SRC1_COLOR, GL_SRC1_ALPHA,
         GL_ONE_MINUS_SRC1_COLOR or GL_ONE_MINUS_SRC1_ALPHA.
+        Default value is GL_ONE.
        */
       BlendMode&
       func_src_alpha(GLenum v) { m_data[Kfunc_src_alpha] = v; return *this; }
@@ -142,8 +147,7 @@ namespace fastuidraw
       BlendMode&
       func_src(GLenum v)
       {
-        m_data[Kfunc_src_rgb] = v;
-        m_data[Kfunc_src_alpha] = v;
+        m_data[Kfunc_src_rgb] = m_data[Kfunc_src_alpha] = v;
         return *this;
       }
 
@@ -155,6 +159,7 @@ namespace fastuidraw
         GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA,
         GL_SRC_ALPHA_SATURATE, GL_SRC1_COLOR, GL_SRC1_ALPHA,
         GL_ONE_MINUS_SRC1_COLOR or GL_ONE_MINUS_SRC1_ALPHA.
+        Default value is GL_ZERO.
        */
       BlendMode&
       func_dst_rgb(GLenum v) { m_data[Kfunc_dst_rgb] = v; return *this; }
@@ -175,6 +180,7 @@ namespace fastuidraw
         GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA,
         GL_SRC_ALPHA_SATURATE, GL_SRC1_COLOR, GL_SRC1_ALPHA,
         GL_ONE_MINUS_SRC1_COLOR or GL_ONE_MINUS_SRC1_ALPHA.
+        Default value is GL_ZERO.
        */
       BlendMode&
       func_dst_alpha(GLenum v) { m_data[Kfunc_dst_alpha] = v; return *this; }
@@ -197,8 +203,22 @@ namespace fastuidraw
       BlendMode&
       func_dst(GLenum v)
       {
-        m_data[Kfunc_dst_rgb] = v;
-        m_data[Kfunc_dst_alpha] = v;
+        m_data[Kfunc_dst_rgb] = m_data[Kfunc_dst_alpha] = v;
+        return *this;
+      }
+
+      /*!
+        Provided as a conveniance, equivalent to
+        \code
+        func_src(src);
+        func_dst(dst);
+        \endcode
+       */
+      BlendMode&
+      func(GLenum src, GLenum dst)
+      {
+        m_data[Kfunc_src_rgb] = m_data[Kfunc_src_alpha] = src;
+        m_data[Kfunc_dst_rgb] = m_data[Kfunc_dst_alpha] = dst;
         return *this;
       }
 
@@ -238,19 +258,120 @@ namespace fastuidraw
     };
 
     /*!
-      A PainterBlendShaderGL is a GL blend mode
-      together with GLSL source code -fragment- to perform
-      blending.
+      A SingleSourceBlenderShader gives GLSL code and GL API
+      blend mode for blend shading.
+     */
+    class SingleSourceBlenderShader
+    {
+    public:
+      /*!
+        Default ctor that leaves \ref m_src as empty
+        and uses default ctor for BlendMode
+       */
+      SingleSourceBlenderShader(void)
+      {}
 
-      The shader must implement the function
-      \code
+      /*!
+        Ctor to initialize \ref m_src and \ref m_blend_mode.
+        \param md value with which to initialize \ref m_blend_mode
+        \param src value with which to initialize \ref m_src
+       */
+      SingleSourceBlenderShader(const BlendMode &md,
+                                const Shader::shader_source &src):
+        m_blend_mode(md), m_src(src)
+      {}
+      
+      /*!
+        Provides the BlendMode to be used with the shader.
+       */
+      BlendMode m_blend_mode;
+
+      /*!
+        Provides the GLSL code fragment that provides the function
+        \code
+        void
+        fastuidraw_gl_compute_blend_value(in vec4 in_src, out vec4 out_src)
+        \endcode
+        where in_src is the pre-multiplied by alpha color value for the
+        fragment and out_src is the value for the fragment shader to emit.
+       */
+      Shader::shader_source m_src;
+    };
+
+    /*!
+      A DualSourceBlenderShader gives GLSL code and GL API
+      blend mode for blend shading when GL implementation
+      support dual source blending. That functionality is
+      available as follows:
+      - GL available in GL starting at version 3.2 and also
+        via the extension GL_ARB_blend_func_extended
+      - GLES available in the extension GL_EXT_blend_func_extended
+     */
+    class DualSourceBlenderShader
+    {
+    public:
+      /*!
+        Default ctor that leaves \ref m_src as empty
+        and uses default ctor for BlendMode
+       */
+      DualSourceBlenderShader(void)
+      {}
+
+      /*!
+        Ctor to initialize \ref m_src and \ref m_blend_mode.
+        \param md value with which to initialize \ref m_blend_mode
+        \param src value with which to initialize \ref m_src
+       */
+      DualSourceBlenderShader(const BlendMode &md,
+                              const Shader::shader_source &src):
+        m_blend_mode(md), m_src(src)
+      {}
+      
+      /*!
+        Provides the BlendMode to be used with the shader.
+       */
+      BlendMode m_blend_mode;
+
+      /*!
+        Provides the GLSL code fragment that provides the function
+        \code
         void
         fastuidraw_gl_compute_blend_factors(in vec4 in_src, out vec4 out_src0, out vec4 out_src1)
-      \endcode
+        \endcode
+        where in_src is the pre-multiplied by alpha color value for the
+        fragment, out_src0 is the value for the fragment shader to emit
+        for GL_SRC_COLOR and out_src1 is the value for the fragment shader
+        to emit value for GL_SRC1_COLOR.
+       */
+      Shader::shader_source m_src;
+    };
 
-      where in_src is the pre-multiplied alpha value of the incoming fragment,
-      out_src0 is the vec4 color value fed to GL for blending corresponding to GL_SRC_COLOR
-      and out_src1 is the vec4 color value fed to GL for blending corresponding to GL_SRC1_COLOR.
+    /*!
+      A FramebufferFetchBlendShader gives GLSL code for blend shading
+      that uses the framebuffer fetching to perform shader blending.
+     */
+    class FramebufferFetchBlendShader
+    {
+    public:      
+      /*!
+        Provides the GLSL code fragment that provides the function
+        \code
+        void
+        fastuidraw_gl_compute_post_blended_value(in vec4 in_src, in vec4 in_fb, out vec4 out_src)
+        \endcode
+        where in_src is the pre-multiplied by alpha color value for the
+        fragment, in_fb is the value of the framebuffer at the location
+        and out_src is the value for the fragment shader to emit.
+       */
+      Shader::shader_source m_src;
+    };
+
+    
+    /*!
+      A PainterBlendShaderGL is the GL backend's implementation of
+      PainterShader for blending. Internally, it is composed of
+      a SingleSourceBlenderShader, DualSourceBlenderShader and
+      FramebufferFetchBlendShader.
      */
     class PainterBlendShaderGL:public PainterShader
     {
@@ -267,25 +388,36 @@ namespace fastuidraw
 
       /*!
         Ctor.
-        \param src GLSL source for blending source code fragment
-        \param blend_mode BlendMode for shader
+        \param psingle_src_blender value copied that single_src_blender() returns
+        \param pdual_src_blender value copied that dual_src_blender() returns
+        \param pfetch_blender value copied that fetch_blender() returns
        */
-      PainterBlendShaderGL(const Shader::shader_source &src,
-                           const BlendMode &blend_mode);
+      PainterBlendShaderGL(const SingleSourceBlenderShader &psingle_src_blender,
+                           const DualSourceBlenderShader &pdual_src_blender,
+                           const FramebufferFetchBlendShader &pfetch_blender);
 
       ~PainterBlendShaderGL();
 
       /*!
-        Return the GLSL source of the shader
+        Returns the shader code and blend mode to use when
+        performing blending via single source blending.
        */
-      const Shader::shader_source&
-      src(void) const;
+      const SingleSourceBlenderShader&
+      single_src_blender(void) const;
 
       /*!
-        Return the blend mode of shader.
+        Returns the shader code and blend mode to use when
+        performing blending via dual source blending.
        */
-      const BlendMode&
-      blend_mode(void) const;
+      const DualSourceBlenderShader&
+      dual_src_blender(void) const;
+      
+      /*!
+        Returns the shader code and blend mode to use when
+        performing blending via framebuffer fetch.
+       */
+      const FramebufferFetchBlendShader&
+      fetch_blender(void) const;
 
     private:
       void *m_d;

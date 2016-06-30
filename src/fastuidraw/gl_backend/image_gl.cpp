@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <fastuidraw/gl_backend/gl_header.hpp>
+#include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/image_gl.hpp>
 #include "private/texture_gl.hpp"
 #include "../private/util_private.hpp"
@@ -34,8 +35,8 @@ namespace
   {
   public:
     typedef fastuidraw::gl::detail::TextureGL<GL_TEXTURE_2D_ARRAY,
-                                             internal_format, external_format,
-                                             GL_UNSIGNED_BYTE, filter> type;
+                                              internal_format, external_format,
+                                              GL_UNSIGNED_BYTE, filter> type;
   };
 
   class ColorBackingStoreGL:public fastuidraw::AtlasColorBackingStoreBase
@@ -219,7 +220,7 @@ ColorBackingStoreGL(int log2_tile_size,
                     int number_layers,
                     bool delayed):
   fastuidraw::AtlasColorBackingStoreBase(store_size(log2_tile_size, log2_num_tiles_per_row_per_col, number_layers),
-                                        true),
+                                         true),
   m_backing_store(dimensions(), delayed)
 {}
 
@@ -246,9 +247,10 @@ fastuidraw::ivec3
 ColorBackingStoreGL::
 store_size(int log2_tile_size, int log2_num_tiles_per_row_per_col, int num_layers)
 {
-  /* Index tile uses 8-bit integer, thus width and height
-     is given by (1<<8) * (1<<log2_tile_size)
-  */
+  /* Because the index type is an 8-bit integer, log2_num_tiles_per_row_per_col
+     must be clamped to 8.
+   */
+  log2_num_tiles_per_row_per_col = std::max(1, std::min(8, log2_num_tiles_per_row_per_col));
   int v(1 << (log2_num_tiles_per_row_per_col + log2_tile_size));
   return fastuidraw::ivec3(v, v, num_layers);
 }
@@ -315,9 +317,11 @@ fastuidraw::ivec3
 IndexBackingStoreGL::
 store_size(int log2_tile_size, int log2_num_index_tiles_per_row_per_col, int num_layers)
 {
-  /* Index tile uses 8-bit integer, thus width and height
-     is given by (1<<8) * (1<<log2_tile_size)
+  /* Size is just 2^(log2_tile_size + log2_num_index_tiles_per_row_per_col),
+     however, because index is an 8 bit integer, log2_num_index_tiles_per_row_per_col
+     must be capped to 8
   */
+  log2_num_index_tiles_per_row_per_col = std::min(8, std::max(1, log2_num_index_tiles_per_row_per_col)); 
   int v(1 << (log2_num_index_tiles_per_row_per_col + log2_tile_size));
   return fastuidraw::ivec3(v, v, num_layers);
 }
@@ -361,25 +365,37 @@ operator=(const params &rhs)
   return *this;
 }
 
-#define paramsSetGet(type, name)                                \
+fastuidraw::gl::ImageAtlasGL::params&
+fastuidraw::gl::ImageAtlasGL::params::
+optimal_color_sizes(int log2_color_tile_size)
+{
+  int m, log2m, c;
+  m = context_get<GLint>(GL_MAX_TEXTURE_SIZE);
+  log2m = uint32_log2(m);
+  c = std::min(8, std::max(1, log2m - log2_color_tile_size));
+  return log2_num_color_tiles_per_row_per_col(c);
+}
+
+#define paramsSetGet(type, name)				 \
   fastuidraw::gl::ImageAtlasGL::params&                          \
   fastuidraw::gl::ImageAtlasGL::params::                         \
-  name(type v)                                                  \
-  {                                                             \
-    ImageAtlasGLParamsPrivate *d;                               \
-    d = reinterpret_cast<ImageAtlasGLParamsPrivate*>(m_d);      \
-    d->m_##name = v;                                            \
-    return *this;                                               \
-  }                                                             \
-                                                                \
-  type                                                          \
+  name(type v)							 \
+  {								 \
+    ImageAtlasGLParamsPrivate *d;				 \
+    d = reinterpret_cast<ImageAtlasGLParamsPrivate*>(m_d);	 \
+    d->m_##name = v;						 \
+    return *this;						 \
+  }								 \
+  								 \
+  type								 \
   fastuidraw::gl::ImageAtlasGL::params::                         \
-  name(void) const                                              \
-  {                                                             \
-    ImageAtlasGLParamsPrivate *d;                               \
-    d = reinterpret_cast<ImageAtlasGLParamsPrivate*>(m_d);      \
-    return d->m_##name;                                         \
-  }                                                             \
+  name(void) const						 \
+  {								 \
+    ImageAtlasGLParamsPrivate *d;				 \
+    d = reinterpret_cast<ImageAtlasGLParamsPrivate*>(m_d);	 \
+    return d->m_##name;						 \
+  }								 \
+
 
 paramsSetGet(int, log2_color_tile_size)
 paramsSetGet(int, log2_num_color_tiles_per_row_per_col)

@@ -139,6 +139,15 @@ namespace
     return false;
   }
 
+  inline
+  bool
+  clip_equation_clips_everything(const fastuidraw::vec3 &cl)
+  {
+    return fastuidraw::t_abs(cl.x()) == 0.0f
+      && fastuidraw::t_abs(cl.y()) == 0.0f
+      && cl.z() <= 0.0f;
+  }
+
   void
   draw_half_plane_complement(fastuidraw::Painter *painter,
                              const fastuidraw::vec3 &plane,
@@ -243,6 +252,13 @@ namespace
 
     void
     scale(float s);
+
+    bool
+    empty(void)
+    {
+      return m_enabled
+        && (m_min.x() >= m_max.x() || m_min.y() >= m_max.y());
+    }
 
     bool m_enabled;
     fastuidraw::vec2 m_min, m_max;
@@ -448,6 +464,12 @@ clip_rect_state::
 set_painter_core_clip(const fastuidraw::PainterState::ClipEquationsState &pcl,
                       const fastuidraw::PainterPacker::handle &core)
 {
+  if(m_clip_rect.empty())
+    {
+      m_all_content_culled = true;
+      return std::bitset<4>();
+    }
+
   m_item_matrix_tricky = false;
   if(m_item_matrix_changed)
     {
@@ -472,6 +494,15 @@ set_painter_core_clip(const fastuidraw::PainterState::ClipEquationsState &pcl,
   cl.m_clip_equations[2] = m_item_matrix_inverse_transpose * fastuidraw::vec3( 0.0f,  1.0f, -m_clip_rect.m_min.y());
   cl.m_clip_equations[3] = m_item_matrix_inverse_transpose * fastuidraw::vec3( 0.0f, -1.0f,  m_clip_rect.m_max.y());
   core->clip_equations(cl);
+
+  for(int i = 0; i < 4; ++i)
+    {
+      if(clip_equation_clips_everything(cl.m_clip_equations[i]))
+        {
+          m_all_content_culled = true;
+          return std::bitset<4>();
+        }
+    }
 
   if(!pcl)
     {
@@ -544,10 +575,10 @@ rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh)
   else
     {
       fastuidraw::PainterState::ClipEquations clip_eq;
-      clip_eq.m_clip_equations[0] = fastuidraw::vec3(1.0f, 0.0f, 1.0f);
-      clip_eq.m_clip_equations[1] = fastuidraw::vec3(-1.0f, 0.0f, 1.0f);
-      clip_eq.m_clip_equations[2] = fastuidraw::vec3(0.0f, 1.0f, 1.0f);
-      clip_eq.m_clip_equations[3] = fastuidraw::vec3(0.0f, -1.0f, 1.0f);
+      clip_eq.m_clip_equations[0] = fastuidraw::vec3( 1.0f,  0.0f, 1.0f);
+      clip_eq.m_clip_equations[1] = fastuidraw::vec3(-1.0f,  0.0f, 1.0f);
+      clip_eq.m_clip_equations[2] = fastuidraw::vec3( 0.0f,  1.0f, 1.0f);
+      clip_eq.m_clip_equations[3] = fastuidraw::vec3( 0.0f, -1.0f, 1.0f);
       return all_pts_culled_by_one_half_plane(pts, clip_eq);
     }
 }
@@ -616,7 +647,14 @@ begin(bool reset_z)
   d->m_clip_rect_state.m_item_matrix_changed = false;
   d->m_clip_rect_state.m_clip_rect.m_enabled = false;
   d->m_core->item_matrix(PainterState::ItemMatrix());
-  d->m_core->clip_equations(PainterState::ClipEquations());
+  {
+    PainterState::ClipEquations clip_eq;
+    clip_eq.m_clip_equations[0] = fastuidraw::vec3( 1.0f,  0.0f, 1.0f);
+    clip_eq.m_clip_equations[1] = fastuidraw::vec3(-1.0f,  0.0f, 1.0f);
+    clip_eq.m_clip_equations[2] = fastuidraw::vec3( 0.0f,  1.0f, 1.0f);
+    clip_eq.m_clip_equations[3] = fastuidraw::vec3( 0.0f, -1.0f, 1.0f);
+    d->m_core->clip_equations(clip_eq);
+  }
   d->m_core->brush_state(d->m_reset_brush);
   vertex_shader_data(VertexShaderData());
   fragment_shader_data(FragmentShaderData());
@@ -718,9 +756,9 @@ stroke_path(const PainterAttributeData &pdata,
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
 
-  PainterItemShader sh;
   using namespace PainterEnums;
   enum PainterAttributeData::stroking_data_t cap, join, edge;
+  bool modify_z;
 
   switch(js)
     {
@@ -760,6 +798,7 @@ stroke_path(const PainterAttributeData &pdata,
   vecN<const_c_array<PainterIndex>, 3> index_chunks;
   vecN<unsigned int, 3> zincs;
   unsigned int startz;
+  const PainterItemShader *sh;
 
   attrib_chunks[0] = pdata.attribute_data_chunk(edge);
   attrib_chunks[1] = pdata.attribute_data_chunk(join);
@@ -772,32 +811,32 @@ stroke_path(const PainterAttributeData &pdata,
   zincs[2] = pdata.increment_z_value(cap);
 
   startz = d->m_current_z;
-  if(with_anti_aliasing)
+  modify_z = !with_anti_aliasing || shader.aa_type() == PainterStrokeShader::draws_solid_then_fuzz;
+  sh = (with_anti_aliasing) ? &shader.aa_shader_pass1(): &shader.non_aa_shader();
+  if(modify_z)
     {
-      sh = shader.aa_shader_pass1();
+      /* raw depth value goes from 0 to zincs[0] - 1
+         written depth goes from (startz + zincs[1] + zincs[2] + 1) to (startz + zincs[0] + zincs[1] + zincs[2])
+      */
+      d->m_current_z = startz + zincs[1] + zincs[2] + 1;
+      draw_generic(attrib_chunks[0], index_chunks[0], *sh, call_back);
+
+      /* raw depth value goes from 0 to zincs[1] - 1
+         written depth goes from (startz + zincs[2] + 1) to (startz + zincs[1] + zincs[2])
+      */
+      d->m_current_z = startz + zincs[2] + 1;
+      draw_generic(attrib_chunks[1], index_chunks[1], *sh, call_back);
+
+      /* raw depth value goes from 0 to zincs[2] - 1
+         written depth goes from (startz + 1) to (startz + zincs[2])
+      */
+      d->m_current_z = startz + 1;
+      draw_generic(attrib_chunks[2], index_chunks[2], *sh, call_back);
     }
   else
     {
-      sh = shader.non_aa_shader();
+      draw_generic(attrib_chunks, index_chunks, *sh, call_back);
     }
-
-  /* raw depth value goes from 0 to zincs[0] - 1
-     written depth goes from (startz + zincs[1] + zincs[2] + 1) to (startz + zincs[0] + zincs[1] + zincs[2])
-   */
-  d->m_current_z = startz + zincs[1] + zincs[2] + 1;
-  draw_generic(attrib_chunks[0], index_chunks[0], sh, call_back);
-
-  /* raw depth value goes from 0 to zincs[1] - 1
-     written depth goes from (startz + zincs[2] + 1) to (startz + zincs[1] + zincs[2])
-   */
-  d->m_current_z = startz + zincs[2] + 1;
-  draw_generic(attrib_chunks[1], index_chunks[1], sh, call_back);
-
-  /* raw depth value goes from 0 to zincs[2] - 1
-     written depth goes from (startz + 1) to (startz + zincs[2])
-   */
-  d->m_current_z = startz + 1;
-  draw_generic(attrib_chunks[2], index_chunks[2], sh, call_back);
 
   if(with_anti_aliasing)
     {
@@ -806,11 +845,13 @@ stroke_path(const PainterAttributeData &pdata,
          depth is always startz.
        */
       d->m_current_z = startz;
-      sh = shader.aa_shader_pass2();
-      draw_generic(attrib_chunks, index_chunks, sh, call_back);
+      draw_generic(attrib_chunks, index_chunks, shader.aa_shader_pass2(), call_back);
     }
 
-  d->m_current_z = startz + zincs[0] + zincs[1] + zincs[2] + 1;
+  if(modify_z)
+    {
+      d->m_current_z = startz + zincs[0] + zincs[1] + zincs[2] + 1;
+    }
 }
 
 void
@@ -1280,7 +1321,9 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   d = reinterpret_cast<PainterPrivate*>(m_d);
 
   d->m_clip_rect_state.m_all_content_culled =
-    d->m_clip_rect_state.m_all_content_culled || d->rect_is_culled(pmin, wh);
+    d->m_clip_rect_state.m_all_content_culled ||
+    wh.x() <= 0.0f || wh.y() <= 0.0f ||
+    d->rect_is_culled(pmin, wh);
 
   if(d->m_clip_rect_state.m_all_content_culled)
     {
@@ -1334,6 +1377,15 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   std::bitset<4> skip_occluder;
   skip_occluder = d->m_clip_rect_state.set_painter_core_clip(prev_clip, d->m_core);
   current_clip = d->m_core->clip_equations_state();
+
+  if(d->m_clip_rect_state.m_all_content_culled)
+    {
+      /* The clip equations coming from the new clipping
+         rectangle degenerate into an empty clipping region
+         on the screen; immediately return.
+       */
+      return;
+    }
 
   /* if the new clipping rectangle is completely contained
      in the older clipping region, then we can skip drawing

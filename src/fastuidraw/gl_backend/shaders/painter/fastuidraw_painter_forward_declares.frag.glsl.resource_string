@@ -3,6 +3,9 @@
  */
 vec2 fastuidraw_brush_position;
 
+void
+fastuidraw_read_header(in uint location, out fastuidraw_shader_header h);
+
 
 /* needed functions
  */
@@ -12,8 +15,21 @@ fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_locatio
 vec4
 fastuidraw_compute_brush_color(void);
 
+
+#ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
 void
 fastuidraw_run_blend_shader(in uint blend_shader, in vec4 color0, out vec4 src0, out vec4 src1);
+#endif
+
+#ifdef FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH
+void
+fastuidraw_run_blend_shader(in uint blend_shader, in vec4 in_src, in vec4 in_fb, out vec4 out_src);
+#endif
+
+#ifdef FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND
+void
+fastuidraw_run_blend_shader(in uint blend_shader, in vec4 in_src, out vec4 out_src);
+#endif
 
 void
 fastuidraw_compute_image_atlas_coord(in vec2 image_shader_coord,

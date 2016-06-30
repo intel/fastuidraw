@@ -57,10 +57,38 @@ sdl_painter_demo(const std::string &about_text):
                                "glyph_atlas_delayed_upload",
                                "if true delay uploading of data to GL from glyph atlas until atlas flush",
                                *this),
+  m_glyph_geometry_backing_store_type(glyph_geometry_backing_store_auto,
+                                      enumerated_string_type<enum glyph_geometry_backing_store_t>()
+                                      .add_entry("buffer",
+						 glyph_geometry_backing_store_texture_buffer,
+						 "use a texture buffer, feature is core in GL but for GLES requires version 3.2, "
+                                                 "for GLES version pre-3.2, requires the extension GL_OES_texture_buffer or the "
+                                                 "extension GL_EXT_texture_buffer")
+                                      .add_entry("texture_array",
+						 glyph_geometry_backing_store_texture_array,
+						 "use a 2D texture array to store the glyph geometry data, "
+                                                 "GL and GLES have feature in core")
+                                      .add_entry("auto",
+						 glyph_geometry_backing_store_auto,
+						 "query context and decide optimal value"),
+                                      "geometry_backing_store_type",
+                                      "Determines how the glyph geometry store is backed.",
+                                      *this),
+  m_glyph_geometry_backing_texture_log2_w(10, "glyph_geometry_backing_texture_log2_w",
+                                          "If glyph_geometry_backing_store_type is set to texture_array, then "
+                                          "this gives the log2 of the width of the texture array", *this),
+  m_glyph_geometry_backing_texture_log2_h(10, "glyph_geometry_backing_texture_log2_h",
+                                          "If glyph_geometry_backing_store_type is set to texture_array, then "
+                                          "this gives the log2 of the height of the texture array", *this),
   m_colorstop_atlas_options("ColorStop Atlas options", *this),
   m_color_stop_atlas_width(m_colorstop_atlas_params.width(),
                            "colorstop_atlas_width",
                            "width for color stop atlas", *this),
+  m_color_stop_atlas_use_optimal_width(false, "colorstop_atlas_use_optimal_width",
+				       "if true ignore the value of colorstop_atlas_layers "
+				       "and query the GL context for the optimal width for "
+				       "the colorstop atlas",
+				       *this),
   m_color_stop_atlas_layers(m_colorstop_atlas_params.num_layers(),
                             "colorstop_atlas_layers",
                             "number of layers for the color stop atlas",
@@ -99,6 +127,23 @@ sdl_painter_demo(const std::string &about_text):
                        "painter_use_hw_clip_planes",
                        "If true, use HW clip planes (i.e. gl_ClipDistance) for clipping",
                        *this),
+  m_uber_vert_use_switch(m_painter_params.vert_shader_use_switch(),
+                         "uber_vert_use_switch",
+                         "If true, use a switch statement in uber vertex shader dispatch",
+                         *this),
+  m_uber_frag_use_switch(m_painter_params.frag_shader_use_switch(),
+                         "uber_frag_use_switch",
+                         "If true, use a switch statement in uber fragment shader dispatch",
+                         *this),
+  m_uber_blend_use_switch(m_painter_params.blend_shader_use_switch(),
+                          "uber_blend_use_switch",
+                          "If true, use a switch statement in uber blend shader dispatch",
+                          *this),
+  m_unpack_header_and_brush_in_frag_shader(m_painter_params.unpack_header_and_brush_in_frag_shader(),
+                                           "unpack_header_and_brush_in_frag_shader",
+                                           "if true, unpack the brush and frag-shader specific data from "
+                                           "the header in the fragment shader instead of the vertex shader",
+                                           *this),
   m_demo_options("Demo Options", *this)
 {}
 
@@ -126,12 +171,52 @@ init_gl(int w, int h)
     .number_floats(m_geometry_store_size.m_value)
     .alignment(m_geometry_store_alignment.m_value)
     .delayed(m_glyph_atlas_delayed_upload.m_value);
+
+  switch(m_glyph_geometry_backing_store_type.m_value.m_value)
+    {
+    case glyph_geometry_backing_store_texture_buffer:
+      m_glyph_atlas_params.use_texture_buffer_geometry_store();
+      break;
+
+    case glyph_geometry_backing_store_texture_array:
+      m_glyph_atlas_params.use_texture_2d_array_geometry_store(m_glyph_geometry_backing_texture_log2_w.m_value,
+                                                               m_glyph_geometry_backing_texture_log2_h.m_value);
+      break;
+
+    default:
+      m_glyph_atlas_params.use_optimal_geometry_store_backing();
+      switch(m_glyph_atlas_params.glyph_geometry_backing_store_type())
+        {
+        case fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_buffer:
+          {
+            std::cout << "Glyph Geometry Store: auto selected buffer\n";
+          }
+          break;
+
+        case fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_2d_array:
+          {
+            fastuidraw::ivec2 log2_dims(m_glyph_atlas_params.texture_2d_array_geometry_store_log2_dims());
+            std::cout << "Glyph Geometry Store: auto selected texture with dimensions: (2^"
+                      << log2_dims.x() << ", 2^" << log2_dims.y() << ") = "
+                      << fastuidraw::ivec2(1 << log2_dims.x(), 1 << log2_dims.y())
+                      << "\n";
+          }
+          break;
+        }
+    }
   m_glyph_atlas = FASTUIDRAWnew fastuidraw::gl::GlyphAtlasGL(m_glyph_atlas_params);
 
   m_colorstop_atlas_params
     .width(m_color_stop_atlas_width.m_value)
     .num_layers(m_color_stop_atlas_layers.m_value)
     .delayed(m_color_stop_atlas_delayed_upload.m_value);
+
+  if(m_color_stop_atlas_use_optimal_width.m_value)
+    {
+      m_colorstop_atlas_params.optimal_width();
+      std::cout << "Colorstop Atlas optimal width selected to be "
+		<< m_colorstop_atlas_params.width() << "\n";
+    }
 
   m_colorstop_atlas = FASTUIDRAWnew fastuidraw::gl::ColorStopAtlasGL(m_colorstop_atlas_params);
 
@@ -147,8 +232,11 @@ init_gl(int w, int h)
     .number_pools(m_painter_number_pools.m_value)
     .break_on_vertex_shader_change(m_painter_break_on_vertex_shader_change.m_value)
     .break_on_fragment_shader_change(m_painter_break_on_fragment_shader_change.m_value)
-    .use_hw_clip_planes(m_use_hw_clip_planes.m_value);
-
+    .use_hw_clip_planes(m_use_hw_clip_planes.m_value)
+    .vert_shader_use_switch(m_uber_vert_use_switch.m_value)
+    .frag_shader_use_switch(m_uber_frag_use_switch.m_value)
+    .blend_shader_use_switch(m_uber_blend_use_switch.m_value)
+    .unpack_header_and_brush_in_frag_shader(m_unpack_header_and_brush_in_frag_shader.m_value);
 
   m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params);
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);

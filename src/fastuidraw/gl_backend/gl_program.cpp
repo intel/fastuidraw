@@ -115,6 +115,18 @@ namespace
     std::vector<fastuidraw::gl::PreLinkAction::handle> m_values;
   };
 
+  class UniformBlockInitializerPrivate
+  {
+  public:
+    UniformBlockInitializerPrivate(const char *n, int v):
+      m_block_name(n),
+      m_binding_point(v)
+    {}
+
+    std::string m_block_name;
+    int m_binding_point;
+  };
+
   class ProgramInitializerArrayPrivate
   {
   public:
@@ -235,6 +247,7 @@ namespace
 
     std::vector<fastuidraw::gl::Shader::handle> m_shaders;
     std::vector<ShaderData> m_shader_data;
+    std::map<GLenum, std::vector<int> > m_shader_data_sorted_by_type;
 
     GLuint m_name;
     bool m_link_success, m_assembled;
@@ -247,6 +260,7 @@ namespace
     fastuidraw::gl::ProgramInitializerArray m_initializers;
     fastuidraw::gl::PreLinkActionArray m_pre_link_actions;
     fastuidraw::gl::Program *m_p;
+
   };
 }
 
@@ -318,13 +332,18 @@ emit_source_line(std::ostream &output_stream,
 
   #ifndef NDEBUG
     {
-      if(S.empty() || *S.rbegin() != '\\')
+      if(!label.empty() && (S.empty() || *S.rbegin() != '\\'))
         {
-          output_stream << std::setw(80-S.length()) << "  //LOCATION("
+          output_stream << std::setw(80-S.length()) << "  //["
                         << std::setw(3) << line_number
                         << ", " << label
-                        << ")";
+                        << "]";
         }
+    }
+  #else
+    {
+      FASTUIDRAWunused(label);
+      FASTUIDRAWunused(line_number);
     }
   #endif
 
@@ -375,7 +394,7 @@ add_source_entry(const source_code_type &v, std::ostream &output_stream)
       if(v.second == fastuidraw::gl::Shader::from_string)
         {
           istr.str(v.first);
-          label="raw string";
+          label.clear();
         }
       else
         {
@@ -391,7 +410,7 @@ add_source_entry(const source_code_type &v, std::ostream &output_stream)
             }
           else
             {
-              output_stream << "\n//Unable to fetch string resource \"" << v.first
+              output_stream << "\n//WARNING: Unable to fetch string resource \"" << v.first
                             << "\"\n";
               return;
             }
@@ -1086,8 +1105,6 @@ assemble(void)
   m_assembled = true;
   assert(m_name == 0);
   m_name = glCreateProgram();
-
-
   m_link_success = true;
 
   //attatch the shaders, attaching a bad shader makes
@@ -1183,6 +1200,7 @@ clear_shaders_and_save_shader_data(void)
       m_shader_data[i].m_name = m_shaders[i]->name();
       m_shader_data[i].m_shader_type = m_shaders[i]->shader_type();
       m_shader_data[i].m_compile_log = m_shaders[i]->compile_log();
+      m_shader_data_sorted_by_type[m_shader_data[i].m_shader_type].push_back(i);
     }
   m_shaders.clear();
 }
@@ -1409,6 +1427,40 @@ attribute_location(const char *pname)
   return R.first;
 }
 
+
+unsigned int
+fastuidraw::gl::Program::
+num_shaders(GLenum tp) const
+{
+  ProgramPrivate *d;
+  d = reinterpret_cast<ProgramPrivate*>(m_d);
+
+  std::map<GLenum, std::vector<int> >::const_iterator iter;
+  iter = d->m_shader_data_sorted_by_type.find(tp);
+  return (iter != d->m_shader_data_sorted_by_type.end()) ?
+    iter->second.size() : 0;
+}
+
+const char*
+fastuidraw::gl::Program::
+shader_src_code(GLenum tp, unsigned int i) const
+{
+  ProgramPrivate *d;
+  d = reinterpret_cast<ProgramPrivate*>(m_d);
+
+  std::map<GLenum, std::vector<int> >::const_iterator iter;
+  iter = d->m_shader_data_sorted_by_type.find(tp);
+  if(iter != d->m_shader_data_sorted_by_type.end() && i < iter->second.size())
+    {
+      return d->m_shader_data[iter->second[i]].m_source_code.c_str();
+    }
+  else
+    {
+      return "";
+    }
+}
+
+
 //////////////////////////////////////
 //gl::ProgramInitializerArray methods
 fastuidraw::gl::ProgramInitializerArray::
@@ -1485,6 +1537,47 @@ clear(void)
   d->m_values.clear();
 }
 
+//////////////////////////////////////////////////
+// fastuidraw::gl::UniformBlockInitializer methods
+fastuidraw::gl::UniformBlockInitializer::
+UniformBlockInitializer(const char *uniform_name, int binding_point_index)
+{
+  m_d = FASTUIDRAWnew UniformBlockInitializerPrivate(uniform_name, binding_point_index);
+}
+
+fastuidraw::gl::UniformBlockInitializer::
+~UniformBlockInitializer()
+{
+  UniformBlockInitializerPrivate *d;
+  d = reinterpret_cast<UniformBlockInitializerPrivate*>(m_d);
+  assert(d != NULL);
+  FASTUIDRAWdelete(d);
+  m_d = NULL;
+}
+
+void
+fastuidraw::gl::UniformBlockInitializer::
+perform_initialization(Program *pr) const
+{
+  UniformBlockInitializerPrivate *d;
+  d = reinterpret_cast<UniformBlockInitializerPrivate*>(m_d);
+  assert(d != NULL);
+
+  int loc;
+  loc = glGetUniformBlockIndex(pr->name(), d->m_block_name.c_str());
+  if(loc != -1)
+    {
+      glUniformBlockBinding(pr->name(), loc, d->m_binding_point);
+    }
+  else
+    {
+      std::cerr << "Failed to find uniform block \""
+                << d->m_block_name
+                << "\" in program " << pr->name()
+                << " for initialization\n";
+    }
+}
+
 /////////////////////////////////////////////////
 // fastuidraw::gl::UniformInitalizerBase methods
 fastuidraw::gl::UniformInitalizerBase::
@@ -1499,6 +1592,7 @@ fastuidraw::gl::UniformInitalizerBase::
 {
   std::string *d;
   d = reinterpret_cast<std::string*>(m_d);
+  assert(d != NULL);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -1509,6 +1603,7 @@ perform_initialization(Program *pr) const
 {
   std::string *d;
   d = reinterpret_cast<std::string*>(m_d);
+  assert(d != NULL);
 
   int loc;
   loc = pr->uniform_location(d->c_str());

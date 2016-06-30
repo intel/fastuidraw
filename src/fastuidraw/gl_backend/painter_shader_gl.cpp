@@ -283,19 +283,19 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
           switch(type)
             {
             case fastuidraw::gl::glsl_shader_unpack_value::uint_type:
-              str << "utemp" << cnt_ext << " = texelFetch(fastuidraw_painterStoreUINT, "
+              str << "utemp" << cnt_ext << " = fastuidraw_fetch_uint_data("
                   << "int(" << offset_name << ") + " << b << ").";
               temp = "utemp";
               break;
 
             case fastuidraw::gl::glsl_shader_unpack_value::float_type:
-              str << "ftemp" << cnt_ext << " = texelFetch(fastuidraw_painterStoreFLOAT, "
+              str << "ftemp" << cnt_ext << " = fastuidraw_fetch_float_data("
                   << "int(" << offset_name << ") + " << b << ").";
               temp = "ftemp";
               break;
 
             case fastuidraw::gl::glsl_shader_unpack_value::int_type:
-              str << "itemp" << cnt_ext << " = texelFetch(fastuidraw_painterStoreINT, "
+              str << "itemp" << cnt_ext << " = fastuidraw_fetch_int_data("
                   << "int(" << offset_name << ") + " << b << ").";
               temp = "itemp";
               break;
@@ -515,7 +515,7 @@ stream_unpack_code(unsigned int alignment, Shader::shader_source &src,
 }
 
 
-void
+unsigned int
 fastuidraw::gl::glsl_shader_unpack_value::
 stream_unpack_function(unsigned int alignment, Shader::shader_source &src,
                        const_c_array<glsl_shader_unpack_value> labels,
@@ -545,6 +545,8 @@ stream_unpack_function(unsigned int alignment, Shader::shader_source &src,
     }
   str << "}\n\n";
   src.add_source(str.str().c_str(), Shader::from_string);
+
+  return number_blocks;
 }
 
 ///////////////////////////////////////////////

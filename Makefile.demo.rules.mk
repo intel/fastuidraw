@@ -1,7 +1,7 @@
 DEMO_COMMON_RESOURCE_STRING_SRCS = $(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $(COMMON_DEMO_RESOURCE_STRINGS))
 
 # This is awful. Makes me wish I used cmake.
-DEMO_COMMON_LIBS := -ldl $(shell sdl2-config --libs) -lSDL2_image $(LIBRARY_LIBS)
+DEMO_COMMON_LIBS := $(shell sdl2-config --libs) -lSDL2_image $(LIBRARY_LIBS)
 
 ifeq ($(MINGW_BUILD),1)
   TEMP := $(DEMO_COMMON_LIBS)
@@ -9,9 +9,9 @@ ifeq ($(MINGW_BUILD),1)
 endif
 
 DEMO_release_CFLAGS_GL = $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GL_release_CFLAGS) `sdl2-config --cflags` -Idemos/common
-DEMO_debug_CFLAGS_GL = $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GL_debug_CFLAGS) `sdl2-config --cflags` -Idemos/common
+DEMO_debug_CFLAGS_GL = -g $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GL_debug_CFLAGS) `sdl2-config --cflags` -Idemos/common
 DEMO_release_CFLAGS_GLES = $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GLES_release_CFLAGS) `sdl2-config --cflags` -Idemos/common
-DEMO_debug_CFLAGS_GLES = $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GLES_debug_CFLAGS) `sdl2-config --cflags` -Idemos/common
+DEMO_debug_CFLAGS_GLES = -g $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GLES_debug_CFLAGS) `sdl2-config --cflags` -Idemos/common
 
 MAKEDEPEND = ./makedepend.sh
 

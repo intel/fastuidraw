@@ -350,6 +350,8 @@ namespace fastuidraw
       \param attrib_chunks attribute data to draw
       \param index_chunks the i'th element is index data into attrib_chunks[K]
                           where K = attrib_chunk_selector[i]
+      \param attrib_chunk_selector selects which attribute chunk to use for
+             each index chunk
       \param shader shader with which to draw data
       \param z z-value z value placed into the header
       \param call_back if non-NULL handle, call back called when attribute data

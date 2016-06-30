@@ -151,8 +151,8 @@ may wish to use as well.
     fastuidraw::GlyphCache::handle myGlyphCache;
     fastuidraw::GlyphSelector::handle myGlyphSelector;
 
-    myGlyphCache = VENGENACEnew fastuidraw::GlyphCache(myGlyphAtlas);
-    myGlyphSelector = FASTUIDRAWnew FASTUIDRAWnew fastuidraw::GlyphSelector(myGlyphCache);
+    myGlyphCache = FASTUIDRAWnew fastuidraw::GlyphCache(myGlyphAtlas);
+    myGlyphSelector = FASTUIDRAWnew fastuidraw::GlyphSelector(myGlyphCache);
 
     //create Font
     myFont = fastuidraw::FontFreeType::create("myFont.ttf");
@@ -199,23 +199,21 @@ may wish to use as well.
   For drawing of an item there are three kinds of data used to draw an item.
   -# Attribute data which is value per vertex emitted. Attribute data is realized by
      fastuidraw::PainterAttribute values.
-  -# Index data is indices into an array of fastuidraw::PainterAttibute to specify what
+  -# Index data is indices into an array of fastuidraw::PainterAttribute to specify what
      triangles to draw. Indices are realized as fastuidraw::PainterIndex values.
   -# Reused data is data that is common to all vertices and pixels of an item or even
      multiple items. This data is realized by fastuidraw::generic_data. This data
-     is realized as part of vengeane::Painter state, through the functions
+     is realized as part of fastuidraw::Painter state, through the functions
      fastuidraw::Painter::vertex_shader_data() and fastuidraw::Painter::fragment_shader_data().
 
-  To draw custom data, use the function fastuidraw::Painter::draw_generic(
-  const_c_array<PainterAttribute>, const_c_array<PainterIndex>,
-  const PainterItemShader&, const PainterPacker::DataCallBack::handle&).
+  To draw custom data, use the function fastuidraw::Painter::draw_generic().
   The object fastuidraw::PainterItemShader encapsulates how to process vertices and
   fragments for the draw. A custom shader is tied to the backend. Creating
   a custom fastuidraw::PainterItemShader means creating a vertex shader
   object and a fragment shader object both of type fastuidraw::PainterShader.
   However, these classes are only the interface for fastuidraw::Painter.
   The actual shading code is tied to the GPU API on is using. For GL (and GL ES)
-  backend, the shader class for vertices and fragments is vengeane::gl::PainterShaderGL.
+  backend, the shader class for vertices and fragments is fastuidraw::gl::PainterShaderGL.
   In that class, one writes GLSL code. WARNING: if one write incorrect GLSL code,
   the uber-shader will fail to compile and all painting is then disabled!
 

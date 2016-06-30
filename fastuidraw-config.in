@@ -1,13 +1,15 @@
 #!/bin/sh
 
 print_help() {
-    echo "Usage: $0 [--release] [--debug] [--cflags] [--libs] [--gl] [--gles]"
+    echo "Usage: $0 [--release] [--debug] [--cflags] [--libs] [--gl] [--gles] [--prefix=[/some/path]]"
     echo "  --release: indicate to compile/link for release"
     echo "  --debug: indicate to compile/link for debug"
     echo "  --cflags: print compile flags"
     echo "  --libs: print link flags"
     echo "  --gl: use GL API"
     echo "  --gles: use GLES API"
+    echo "  --prefix: print path to which fastuidraw was installed"
+    echo "  --prefix=/some/path: specify the path to which fastuidraw was installed"
     echo "Notes: Never mix release and debug in a single executable, they are NOT ABI compatible"
     echo "       if both --release and --debug options are placed, all but the last of those is ignored"
     echo "       if both --gl and --gles options are placed, all but the last of those is ignored"
@@ -53,7 +55,7 @@ while test $# -gt 0; do
   shift
 done
 
-gl_supprted=@BUILD_GL
+gl_supported=@BUILD_GL
 gles_supported=@BUILD_GLES
 
 lib_location=$location/lib

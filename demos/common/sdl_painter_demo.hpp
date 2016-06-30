@@ -46,6 +46,13 @@ protected:
   fastuidraw::FreetypeLib::handle m_ft_lib;
 
 private:
+  enum glyph_geometry_backing_store_t
+    {
+      glyph_geometry_backing_store_texture_buffer,
+      glyph_geometry_backing_store_texture_array,
+      glyph_geometry_backing_store_auto,
+    };
+
   fastuidraw::gl::GlyphAtlasGL::params m_glyph_atlas_params;
   fastuidraw::gl::ColorStopAtlasGL::params m_colorstop_atlas_params;
   fastuidraw::gl::ImageAtlasGL::params m_image_atlas_params;
@@ -67,11 +74,14 @@ private:
   command_line_argument_value<int> m_texel_store_num_layers, m_geometry_store_size;
   command_line_argument_value<int> m_geometry_store_alignment;
   command_line_argument_value<bool> m_glyph_atlas_delayed_upload;
+  enumerated_command_line_argument_value<enum glyph_geometry_backing_store_t> m_glyph_geometry_backing_store_type;
+  command_line_argument_value<int> m_glyph_geometry_backing_texture_log2_w, m_glyph_geometry_backing_texture_log2_h;
 
   /* ColorStop atlas parameters
    */
   command_separator m_colorstop_atlas_options;
   command_line_argument_value<int> m_color_stop_atlas_width;
+  command_line_argument_value<bool> m_color_stop_atlas_use_optimal_width;
   command_line_argument_value<int> m_color_stop_atlas_layers;
   command_line_argument_value<bool> m_color_stop_atlas_delayed_upload;
 
@@ -86,6 +96,10 @@ private:
   command_line_argument_value<bool> m_painter_break_on_vertex_shader_change;
   command_line_argument_value<bool> m_painter_break_on_fragment_shader_change;
   command_line_argument_value<bool> m_use_hw_clip_planes;
+  command_line_argument_value<bool> m_uber_vert_use_switch;
+  command_line_argument_value<bool> m_uber_frag_use_switch;
+  command_line_argument_value<bool> m_uber_blend_use_switch;
+  command_line_argument_value<bool> m_unpack_header_and_brush_in_frag_shader;
 
   command_separator m_demo_options;
 };

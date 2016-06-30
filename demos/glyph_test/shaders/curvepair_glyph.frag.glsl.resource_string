@@ -1,6 +1,4 @@
-#ifdef GL_ES
-  precision highp samplerBuffer;
-#endif
+
 
 in vec3 tex_coord_layer;
 in vec3 secondary_tex_coord_layer;
@@ -12,8 +10,31 @@ flat in uint geometry_data_location;
  uniform sampler2DArray glyph_texel_store;
 #endif
 
-uniform samplerBuffer glyph_geometry_data_store;
+#ifdef GLYPH_GEOMETRY_USE_TEXTURE_BUFFER
+  uniform samplerBuffer glyph_geometry_data_store;
+  #define fetch_glyph_geometry_data(block) texelFetch(glyph_geometry_data_store, int(block))
+
+  #ifdef GL_ES
+    precision highp samplerBuffer;
+  #endif
+
+#else
+  #ifdef GL_ES
+    precision highp sampler2DArray;
+  #endif
+
+  uniform sampler2DArray glyph_geometry_data_store;
+  #define GLYPH_GEOM_WIDTH_PLUS_HEIGHT_LOG2 uint(GLYPH_GEOM_WIDTH_LOG2 + GLYPH_GEOM_HEIGHT_LOG2)
+  #define GLYPH_GEOM_LAYER(T) (uint(T) >> GLYPH_GEOM_WIDTH_PLUS_HEIGHT_LOG2)
+  #define GLYPH_GEOM_Y(T) FASTUIDRAW_EXTRACT_BITS(GLYPH_GEOM_WIDTH_LOG2, GLYPH_GEOM_HEIGHT_LOG2, T)
+  #define GLYPH_GEOM_X(T) FASTUIDRAW_EXTRACT_BITS(0, GLYPH_GEOM_WIDTH_LOG2, T)
+  #define GLYPH_GEOM_COORD(v) ivec3(GLYPH_GEOM_X(v), GLYPH_GEOM_Y(v), GLYPH_GEOM_LAYER(v))
+  #define fetch_glyph_geometry_data(block) texelFetch(glyph_geometry_data_store, GLYPH_GEOM_COORD(block), 0)
+#endif
+
 uniform uint aa_mode;
+
+
 
 out vec4 color;
 

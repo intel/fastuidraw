@@ -223,14 +223,14 @@ public:
   bounding_box_size(void) const;
 
   /*!
-    Returns this TessellatedPath stroked. Object
+    Returns this TessellatedPath stroked. The StrokedPath object
     is constructed lazily.
    */
   const StrokedPath::const_handle&
   stroked(void) const;
 
   /*!
-    Returns this TessellatedPath filled. Object
+    Returns this TessellatedPath filled. The FilledPath object
     is constructed lazily.
    */
   const FilledPath::const_handle&

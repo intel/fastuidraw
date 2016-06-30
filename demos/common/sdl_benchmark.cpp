@@ -9,9 +9,9 @@ sdl_benchmark(const std::string &about_text, bool allow_fbo):
   m_num_frames(100, "num_frame", "Number of frames to render", *this),
   m_render_to_fbo(no_fbo,
 		  enumerated_string_type<enum render_to_fbo_t>()
-		  .add_entry("no_fbo", no_fbo)
-		  .add_entry("blit_fbo", blit_fbo)
-		  .add_entry("no_blit_fbo", no_blit_fbo),
+		  .add_entry("no_fbo", no_fbo, "render directly to window")
+		  .add_entry("blit_fbo", blit_fbo, "render to fbo then blit to screen")
+		  .add_entry("no_blit_fbo", no_blit_fbo, "render to fbo only, no blit to screen"),
 		  "render_to_fbo",
 		  "Specifies to render to FBO and if so whether or not to blit the FBO to the framebuffer",
                   (allow_fbo) ? *this : m_avoid_allow_fbo),

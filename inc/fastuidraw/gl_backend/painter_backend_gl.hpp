@@ -184,6 +184,45 @@ namespace fastuidraw
         use_hw_clip_planes(bool v);
 
         /*!
+          If true, use switch() statements in uber vertex shader,
+          if false use a chain of if-else. Default value is true.
+         */
+        bool
+        vert_shader_use_switch(void) const;
+
+        /*!
+          Set the value for vert_shader_use_switch(void) const
+        */
+        params&
+        vert_shader_use_switch(bool v);
+
+        /*!
+          If true, use switch() statements in uber frag shader,
+          if false use a chain of if-else. Default value is true.
+         */
+        bool
+        frag_shader_use_switch(void) const;
+
+        /*!
+          Set the value for frag_shader_use_switch(void) const
+        */
+        params&
+        frag_shader_use_switch(bool v);
+
+        /*!
+          If true, use switch() statements in uber blend shader,
+          if false use a chain of if-else. Default value is true.
+         */
+        bool
+        blend_shader_use_switch(void) const;
+
+        /*!
+          Set the value for blend_shader_use_switch(void) const
+        */
+        params&
+        blend_shader_use_switch(bool v);
+
+        /*!
           A PainterBackendGL has a set of pools for the buffer
           objects to which to data to send to GL. Whenever
           on_end() is called, the next pool is used (wrapping around
@@ -241,6 +280,21 @@ namespace fastuidraw
         params&
         break_on_fragment_shader_change(bool v);
 
+        /*!
+          If true, unpacks the brush and fragment shader specific data
+          from the data buffer at the fragment shader. If false, unpacks
+          the data in the vertex shader and fowards the data as flats
+          to the fragment shader.
+         */
+        bool
+        unpack_header_and_brush_in_frag_shader(void) const;
+
+        /*!
+          Set the value for unpack_header_and_brush_in_frag_shader(void) const
+        */
+        params&
+        unpack_header_and_brush_in_frag_shader(bool v);
+
       private:
         void *m_d;
       };
@@ -280,6 +334,22 @@ namespace fastuidraw
        */
       Program::handle
       program(void);
+
+      /*!
+        Add GLSL code that is to be visible to all vertex
+        shaders. The code can define functions or macros.
+        \param src shader source to add
+       */
+      void
+      add_vertex_shader_util(const Shader::shader_source &src);
+
+      /*!
+        Add GLSL code that is to be visible to all vertex
+        shaders. The code can define functions or macros.
+        \param src shader source to add
+       */
+      void
+      add_fragment_shader_util(const Shader::shader_source &src);
 
     protected:
       virtual

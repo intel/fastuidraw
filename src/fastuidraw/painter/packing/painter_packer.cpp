@@ -1091,7 +1091,7 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
             0;
         }
 
-      if(index_room == 0 || attrib_chunks[attrib_src].empty())
+      if(index_chunks[chunk].empty() || attrib_chunks[attrib_src].empty())
         {
           continue;
         }

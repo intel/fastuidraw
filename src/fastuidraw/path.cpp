@@ -952,6 +952,22 @@ Path(const Path &obj, const TessellatedPath::TessellationParams &tess_param)
   tessellation_params(tess_param);
 }
 
+void
+fastuidraw::Path::
+swap(Path &obj)
+{
+  std::swap(obj.m_d, m_d);
+}
+
+const fastuidraw::Path&
+fastuidraw::Path::
+operator=(const Path &rhs)
+{
+  Path temp(rhs);
+  swap(temp);
+  return *this;
+}
+
 fastuidraw::Path::
 ~Path()
 {

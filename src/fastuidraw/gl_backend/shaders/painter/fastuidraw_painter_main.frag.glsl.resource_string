@@ -1,10 +1,26 @@
+#ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
+  flat fastuidraw_varying uint fastuidraw_header_varying;
+  uint fastuidraw_frag_shader;
+  uint fastuidraw_frag_shader_data_location;
+  uint fastuidraw_blend_shader;
+#else
+  flat fastuidraw_varying uint fastuidraw_frag_shader;
+  flat fastuidraw_varying uint fastuidraw_frag_shader_data_location;
+  flat fastuidraw_varying uint fastuidraw_blend_shader;
+#endif
 
-flat fastuidraw_varying uint fastuidraw_frag_shader;
-flat fastuidraw_varying uint fastuidraw_frag_shader_data_location;
-flat fastuidraw_varying uint fastuidraw_blend_shader;
-
+#ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
 layout(location = 0, index = 0) out vec4 fastuidraw_final_color0;
 layout(location = 0, index = 1) out vec4 fastuidraw_final_color1;
+#endif
+
+#ifdef FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND
+layout(location = 0) out vec4 fastuidraw_final_color;
+#endif
+
+#ifdef FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH
+layout(location = 0) inout vec4 fastuidraw_final_color;
+#endif
 
 #ifdef FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES
 
@@ -44,10 +60,47 @@ main(void)
 
   apply_clipping();
 
+  #ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
+  {
+    fastuidraw_shader_header h;
+
+    fastuidraw_read_header(fastuidraw_header_varying, h);
+    h.frag_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_frag_shader_bit0, fastuidraw_frag_shader_num_bits, h.vert_frag_shader);
+    h.blend_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_blend_shader_bit0, fastuidraw_blend_shader_num_bits, h.z_blend_shader_raw);
+
+    fastuidraw_frag_shader = h.frag_shader;
+    fastuidraw_frag_shader_data_location = h.frag_shader_data_location;
+    fastuidraw_blend_shader = h.blend_shader;
+
+    uint brush_data_loc;
+    brush_data_loc = h.brush_shader_data_location;
+    fastuidraw_painter_brush_unpack_values(h.brush_shader, brush_data_loc);
+  }
+  #endif
+
   fastuidraw_brush_position = fastuidraw_brush_p;
   c = fastuidraw_run_frag_shader(fastuidraw_frag_shader, fastuidraw_frag_shader_data_location);
   b = fastuidraw_compute_brush_color();
   v = b * c;
   v.rgb *= v.a;
-  fastuidraw_run_blend_shader(fastuidraw_blend_shader, v, fastuidraw_final_color0, fastuidraw_final_color1);
+  #ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
+    {
+      fastuidraw_run_blend_shader(fastuidraw_blend_shader, v, fastuidraw_final_color0, fastuidraw_final_color1);
+    }
+  #endif
+
+  #ifdef FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND
+    {
+      fastuidraw_run_blend_shader(fastuidraw_blend_shader, v, fastuidraw_final_color);
+    }
+  #endif
+
+  #ifdef FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH
+    {
+      vec4 in_fb, out_fb;
+      in_fb = fastuidraw_final_color;
+      fastuidraw_run_blend_shader(fastuidraw_blend_shader, v, in_fb, out_fb);
+      fastuidraw_final_color = out_fb;
+    }
+  #endif
 }

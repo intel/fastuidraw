@@ -138,11 +138,9 @@ namespace fastuidraw
   /*!
     Returns the smallest power of 2 which
     is atleast as large as the passed value,
-    i.e. returns n=2^k where v<=2^k and
-    2^{k-1} < v. If v=0, returns 1.
-
-    \param v value to find the least power of 2
-    that is atleast
+    i.e. returns n = 2^k where
+    2^{k-1} < v <= 2^k. If v=0, returns 1.
+    \param v value to find the least power of 2 that is atleast
   */
   inline
   uint32_t
@@ -181,7 +179,9 @@ namespace fastuidraw
   }
 
   /*!
-    Returns the floor of the log2 of an unsinged integer.
+    Returns the floor of the log2 of an unsinged integer,
+    i.e returns the ceiling log2, i.e. the value K so that
+    2^K <= x < 2^{K+1}
    */
   uint32_t
   uint32_log2(uint32_t v);

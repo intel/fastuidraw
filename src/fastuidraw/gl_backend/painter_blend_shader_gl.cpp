@@ -24,24 +24,30 @@ namespace
   class PainterBlendShaderGLPrivate
   {
   public:
-    PainterBlendShaderGLPrivate(const fastuidraw::gl::Shader::shader_source &src,
-                                const fastuidraw::gl::BlendMode &mode):
-      m_src(src),
-      m_blend_mode(mode)
+    PainterBlendShaderGLPrivate(const fastuidraw::gl::SingleSourceBlenderShader &psingle_src_blender,
+                                const fastuidraw::gl::DualSourceBlenderShader &pdual_src_blender,
+                                const fastuidraw::gl::FramebufferFetchBlendShader &pfetch_blender):
+      m_single_src_blender(psingle_src_blender),
+      m_dual_src_blender(pdual_src_blender),
+      m_fetch_blender(pfetch_blender)
     {}
 
-    fastuidraw::gl::Shader::shader_source m_src;
-    fastuidraw::gl::BlendMode m_blend_mode;
-
+    fastuidraw::gl::SingleSourceBlenderShader m_single_src_blender;
+    fastuidraw::gl::DualSourceBlenderShader m_dual_src_blender;
+    fastuidraw::gl::FramebufferFetchBlendShader m_fetch_blender;
   };
 }
 
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterBlendShaderGL methods
 fastuidraw::gl::PainterBlendShaderGL::
-PainterBlendShaderGL(const Shader::shader_source &src, const BlendMode &mode)
+PainterBlendShaderGL(const SingleSourceBlenderShader &psingle_src_blender,
+                     const DualSourceBlenderShader &pdual_src_blender,
+                     const FramebufferFetchBlendShader &pfetch_blender)
 {
-  m_d = FASTUIDRAWnew PainterBlendShaderGLPrivate(src, mode);
+  m_d = FASTUIDRAWnew PainterBlendShaderGLPrivate(psingle_src_blender,
+                                                  pdual_src_blender,
+                                                  pfetch_blender);
 }
 
 fastuidraw::gl::PainterBlendShaderGL::
@@ -53,20 +59,29 @@ fastuidraw::gl::PainterBlendShaderGL::
   m_d = NULL;
 }
 
-const fastuidraw::gl::BlendMode&
+const fastuidraw::gl::SingleSourceBlenderShader&
 fastuidraw::gl::PainterBlendShaderGL::
-blend_mode(void) const
+single_src_blender(void) const
 {
   PainterBlendShaderGLPrivate *d;
   d = reinterpret_cast<PainterBlendShaderGLPrivate*>(m_d);
-  return d->m_blend_mode;
+  return d->m_single_src_blender;
 }
 
-const fastuidraw::gl::Shader::shader_source&
+const fastuidraw::gl::DualSourceBlenderShader&
 fastuidraw::gl::PainterBlendShaderGL::
-src(void) const
+dual_src_blender(void) const
 {
   PainterBlendShaderGLPrivate *d;
   d = reinterpret_cast<PainterBlendShaderGLPrivate*>(m_d);
-  return d->m_src;
+  return d->m_dual_src_blender;
+}
+
+const fastuidraw::gl::FramebufferFetchBlendShader&
+fastuidraw::gl::PainterBlendShaderGL::
+fetch_blender(void) const
+{
+  PainterBlendShaderGLPrivate *d;
+  d = reinterpret_cast<PainterBlendShaderGLPrivate*>(m_d);
+  return d->m_fetch_blender;
 }

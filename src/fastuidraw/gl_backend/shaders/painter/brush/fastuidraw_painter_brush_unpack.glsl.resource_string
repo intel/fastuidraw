@@ -1,7 +1,7 @@
 void
 fastuidraw_process_image_data(in uint shader_brush,
-                             in fastuidraw_brush_image_data_raw raw,
-                             out fastuidraw_brush_image_data cooked)
+                              in fastuidraw_brush_image_data_raw raw,
+                              out fastuidraw_brush_image_data cooked)
 {
   uvec3 master_xyz;
   uint index_pows, slack, number_index_lookups, ww;
@@ -116,4 +116,112 @@ fastuidraw_read_brush_radial_gradient_data(in uint location, out fastuidraw_brus
   return_value = fastuidraw_read_brush_radial_gradient_data(location, raw);
   fastuidraw_process_gradient_data(raw, grad);
   return return_value;
+}
+
+/* Unpacks the brush data from the location at data_ptr
+   to the values defined in the shader file
+   fastuidraw_painter_brush_unpacked_values.glsl.resource_string.
+   In addition, increments data_ptr to the location of the
+   brush transformation matrix.
+ */
+void
+fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
+{
+  fastuidraw_brush_image_data image;
+  fastuidraw_brush_gradient gradient;
+  fastuidraw_brush_repeat_window repeat_window;
+
+  data_ptr = fastuidraw_read_pen_color(data_ptr, fastuidraw_brush_pen_color);
+
+  if(fastuidraw_brush_shader_has_image(shader))
+    {
+      data_ptr = fastuidraw_read_brush_image_data(data_ptr, shader, image);
+    }
+  else
+    {
+      image.master_index_tile_atlas_location_xyz = vec3(0.0, 0.0, 0.0);
+      image.image_size = uvec2(1, 1);
+      image.slack = uint(0);
+      image.number_index_lookups = uint(0);
+      image.image_size_over_master_size = uint(1);
+    }
+
+  if(fastuidraw_brush_shader_has_radial_gradient(shader))
+    {
+      data_ptr = fastuidraw_read_brush_radial_gradient_data(data_ptr, gradient);
+    }
+  else if(fastuidraw_brush_shader_has_linear_gradient(shader))
+    {
+      data_ptr = fastuidraw_read_brush_linear_gradient_data(data_ptr, gradient);
+    }
+  else
+    {
+      gradient.p0 = gradient.p1 = vec2(0.0, 0.0);
+      gradient.r0 = gradient.r1 = 0.0;
+      gradient.color_stop_sequence_length = 1.0;
+      gradient.color_stop_sequence_xy = vec2(0.0, 0.0);
+    }
+
+  if(fastuidraw_brush_shader_has_repeat_window(shader))
+    {
+      data_ptr = fastuidraw_read_brush_repeat_window(data_ptr, repeat_window);
+    }
+  else
+    {
+      repeat_window.xy = vec2(0.0, 0.0);
+      repeat_window.wh = vec2(1.0, 1.0);
+    }
+
+  float image_factor;
+
+  fastuidraw_brush_repeat_window_xy = repeat_window.xy;
+  fastuidraw_brush_repeat_window_wh = repeat_window.wh;
+
+  fastuidraw_brush_gradient_p0 = gradient.p0;
+  fastuidraw_brush_gradient_p1 = gradient.p1;
+  fastuidraw_brush_gradient_r0 = gradient.r0;
+  fastuidraw_brush_gradient_r1 = gradient.r1;
+
+  image_factor = 1.0 / float(image.image_size_over_master_size);
+  fastuidraw_brush_image_xy = image.master_index_tile_atlas_location_xyz.xy + vec2(image.image_start) * image_factor;
+  fastuidraw_brush_image_layer = image.master_index_tile_atlas_location_xyz.z;
+  fastuidraw_brush_image_factor = image_factor;
+  fastuidraw_brush_image_size = vec2(image.image_size);
+
+  float color_stop_recip;
+
+  color_stop_recip = fastuidraw_colorStopAtlas_size_reciprocal;
+  fastuidraw_brush_color_stop_length = color_stop_recip * gradient.color_stop_sequence_length;
+  fastuidraw_brush_color_stop_xy.x = color_stop_recip * gradient.color_stop_sequence_xy.x;
+  fastuidraw_brush_color_stop_xy.y = gradient.color_stop_sequence_xy.y;
+  fastuidraw_brush_shader = shader;
+}
+
+uint
+fastuidraw_painter_offset_to_transformation(uint shader)
+{
+  uint r;
+
+  r = uint(fastuidraw_shader_pen_num_blocks);
+
+  if(fastuidraw_brush_shader_has_image(shader))
+    {
+      r += uint(fastuidraw_shader_image_num_blocks);
+    }
+
+  if(fastuidraw_brush_shader_has_radial_gradient(shader))
+    {
+      r += uint(fastuidraw_shader_radial_gradient_num_blocks);
+    }
+  else if(fastuidraw_brush_shader_has_linear_gradient(shader))
+    {
+      r += uint(fastuidraw_shader_linear_gradient_num_blocks);
+    }
+
+  if(fastuidraw_brush_shader_has_repeat_window(shader))
+    {
+      r += uint(fastuidraw_shader_repeat_window_num_blocks);
+    }
+
+  return r;
 }

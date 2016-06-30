@@ -300,7 +300,7 @@ add_single_image(const std::string &filename, std::vector<named_image> &dest)
 
       im = Image::create(m_painter->image_atlas(), image_size.x(), image_size.y(),
                          cast_c_array(image_data), slack);
-      std::cout << "\tImage \"" << filename << "\" loaded @" << im << ".\n";
+      std::cout << "\tImage \"" << filename << "\" loaded @" << im.get() << ".\n";
 
       dest.push_back(named_image(im, filename));
     }

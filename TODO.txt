@@ -13,22 +13,27 @@ TODO.
  4. W3C blend modes are not yet implemented in GL backend, but Porter-Duff blend modes
     are.
 
- 5. *Something* so that atlas sizes in GL backend are initalized to sizes that
-    are no larger the maximum sizes for textures.
-    a) for ColorStopAtlasGL where for GL3.3, the spec only gaurantees to
-       256 layers for array textures. For GL4.3 this value is 2048 which
-       is large.
-        --> this was real issue on older NVIDIA hardware (GeForce GTS 360M)
-            where GL_MAX_ARRAY_TEXTURE_LAYERS is 512 and the default
-	    number of layers for color stop atlas is 1024.
-    b) for ImageAtlasGL where for GL3.3, the spec only guarantees to 1024 
-       for width and height. For GL4.3, the gaurantee is 16384 which is
-       HUGE and larger than we would ever use.
-    c) for PainterBackendGL where for GL3.3, the spec only guarantees to
-       length of 65536 for length of sampler buffer. Worse, this is the
-       same value for GL4.3 as well; this limits the sampler buffer to
-       only be guaranteed to be safe for a total size of 256K of floats,
-       i.e. 1MB.
-
-
-    
+ 5. Option to unpack brush and frag-shader stuff in fragment shader; the brush data that
+    is extracted takes a whopping 24 varying slots:
+     flat fastuidraw_varying uint fastuidraw_brush_shader;
+     flat fastuidraw_varying vec2 fastuidraw_brush_repeat_window_xy;
+     flat fastuidraw_varying vec2 fastuidraw_brush_repeat_window_wh;
+     flat fastuidraw_varying vec2 fastuidraw_brush_gradient_p0;
+     flat fastuidraw_varying vec2 fastuidraw_brush_gradient_p1;
+     flat fastuidraw_varying float fastuidraw_brush_gradient_r0;
+     flat fastuidraw_varying float fastuidraw_brush_gradient_r1;
+     flat fastuidraw_varying vec2 fastuidraw_brush_image_xy;
+     flat fastuidraw_varying float fastuidraw_brush_image_layer;
+     flat fastuidraw_varying vec2 fastuidraw_brush_image_size;
+     flat fastuidraw_varying float fastuidraw_brush_image_factor;
+     flat fastuidraw_varying vec2 fastuidraw_brush_color_stop_xy;
+     flat fastuidraw_varying float fastuidraw_brush_color_stop_length;
+     flat fastuidraw_varying vec4 fastuidraw_brush_pen_color;
+  The blend shader, frag shader and frag data take an additional 3 slots
+     flat fastuidraw_varying uint fastuidraw_frag_shader;
+     flat fastuidraw_varying uint fastuidraw_frag_shader_data_location;
+     flat fastuidraw_varying uint fastuidraw_blend_shader;
+ 
+  It might be better on some GPU's to extract this data in the frag shader
+  if the GPU and driver can realize that many of the loads are common to
+  all fragments in a triangle.

@@ -6,6 +6,10 @@ d		:= $(dir)
 
 ifeq ($(MINGW_BUILD),0)
   GL_INCLUDEPATH=/usr/include
+else ifeq ($(MINGW_MODE),MINGW64)
+  GL_INCLUDEPATH=/mingw64/include
+else ifeq ($(MINGW_MODE),MINGW32)
+  GL_INCLUDEPATH=/mingw32/include
 else
   GL_INCLUDEPATH=/mingw/include
 endif

@@ -67,7 +67,7 @@ Cell(PainterWidget *p, const CellParams &params):
 
 void
 Cell::
-update(void)
+pre_paint(void)
 {
   if(m_shared_state->m_pause)
     {
@@ -122,8 +122,6 @@ void
 Cell::
 paint_pre_children(const Painter::handle &painter)
 {
-  update();
-
   painter->save();
   painter->brush_state(m_background_brush);
   painter->draw_rect(vec2(0.0f, 0.0f), m_dimensions);

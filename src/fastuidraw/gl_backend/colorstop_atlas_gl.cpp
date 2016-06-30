@@ -19,6 +19,7 @@
 
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/gl_backend/gl_header.hpp>
+#include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/colorstop_atlas_gl.hpp>
 
 #include "private/texture_gl.hpp"
@@ -115,7 +116,7 @@ namespace
   public:
     ColorStopAtlasGLParamsPrivate(void):
       m_width(1024),
-      m_num_layers(1024),
+      m_num_layers(32),
       m_delayed(false)
     {}
 
@@ -239,6 +240,13 @@ paramsSetGet(bool, delayed)
 
 #undef paramsSetGet
 
+
+fastuidraw::gl::ColorStopAtlasGL::params&
+fastuidraw::gl::ColorStopAtlasGL::params::
+optimal_width(void)
+{
+  return width(fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_SIZE));
+}
 
 //////////////////////////////////////////////////////
 // fastuidraw::gl::ColorStopAtlasGL methods

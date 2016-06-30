@@ -167,10 +167,13 @@ namespace
 
     dst.m_secondary_attrib.x() = src.m_distance_from_edge_start;
     dst.m_secondary_attrib.y() = src.m_distance_from_outline_start;
-    dst.m_secondary_attrib.z() = src.m_miter_distance;
-    dst.m_secondary_attrib.w() = src.m_on_boundary;
+    dst.m_secondary_attrib.z() = src.m_auxilary_offset.x();
+    dst.m_secondary_attrib.w() = src.m_auxilary_offset.y();
 
-    dst.m_uint_attrib = fastuidraw::uvec4(src.m_depth, 0u, 0u, 0u);
+    int v;
+    v = src.m_on_boundary + 1;
+    assert(v >= 0);
+    dst.m_uint_attrib = fastuidraw::uvec4(src.m_depth, src.m_tag, v, 0u);
 
     return dst;
   }
@@ -316,11 +319,21 @@ set_data(const FilledPath::const_handle &path)
 {
   PainterAttributeDataPrivate *d;
   d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
+  const_c_array<int> winding_numbers(path->winding_numbers());
+
+  if(winding_numbers.empty())
+    {
+      d->m_attribute_data.clear();
+      d->m_attribute_chunks.clear();
+      d->m_increment_z.clear();
+      d->m_index_data.clear();
+      d->m_index_chunks.clear();
+      return;
+    }
 
   d->m_attribute_data.resize(path->points().size());
   std::transform(path->points().begin(), path->points().end(), d->m_attribute_data.begin(), generate_attribute_fill);
 
-  const_c_array<int> winding_numbers(path->winding_numbers());
   /* winding_numbers is already sorted, so largest and smallest
      winding numbers are at back and front
    */

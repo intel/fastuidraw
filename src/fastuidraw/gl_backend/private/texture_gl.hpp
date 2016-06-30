@@ -237,29 +237,31 @@ tex_sub_image(GLenum texture_target, vecN<GLint, 1> offset,
 
 #endif
 
-
 template<size_t N>
 class EntryLocationN
 {
-  public:
+public:
   typedef std::pair<EntryLocationN, std::vector<uint8_t> > with_data;
   vecN<int, N> m_location;
   vecN<GLsizei, N> m_size;
 };
 
-template<GLenum texture_target,
-         GLenum internal_format,
-         GLenum external_format,
-         GLenum external_type,
-         GLenum filter>
-class TextureGL
+template<GLenum texture_target>
+class TextureGLGeneric
 {
 public:
   enum { N = TextureTargetDimension<texture_target>::N };
-  typedef EntryLocationN<N> EntryLocation;
+  enum { BindingPoint = texture_target };
 
-  TextureGL(vecN<int, N> dims, bool delayed);
-  ~TextureGL();
+  typedef EntryLocationN<N> EntryLocation;
+  typedef vecN<int, N> DimensionType;
+
+  TextureGLGeneric(GLenum internal_format,
+                   GLenum external_format,
+                   GLenum external_type,
+                   GLenum filter,
+                   DimensionType dims, bool delayed);
+  ~TextureGLGeneric();
 
   void
   delete_texture(void);
@@ -296,6 +298,11 @@ private:
   void
   flush_size_change(void);
 
+  GLenum m_internal_format;
+  GLenum m_external_format;
+  GLenum m_external_type;
+  GLenum m_filter;
+
   bool m_delayed;
   vecN<int, N> m_dims;
   vecN<int, N> m_texture_dimension;
@@ -310,20 +317,19 @@ private:
   list_type m_unflushed_commands;
 };
 
-
 ///////////////////////////////////////
-//TextureGL methods
-template<GLenum texture_target,
-         GLenum internal_format,
-         GLenum external_format,
-         GLenum external_type,
-         GLenum filter>
-TextureGL<texture_target,
-          internal_format,
-          external_format,
-          external_type,
-          filter>::
-TextureGL(vecN<int, N> dims, bool delayed):
+//TextureGLGeneric methods
+template<GLenum texture_target>
+TextureGLGeneric<texture_target>::
+TextureGLGeneric(GLenum internal_format,
+                 GLenum external_format,
+                 GLenum external_type,
+                 GLenum filter,
+                 vecN<int, N> dims, bool delayed):
+  m_internal_format(internal_format),
+  m_external_format(external_format),
+  m_external_type(external_type),
+  m_filter(filter),
   m_delayed(delayed),
   m_dims(dims),
   m_texture(0),
@@ -336,17 +342,9 @@ TextureGL(vecN<int, N> dims, bool delayed):
   m_texture_dimension = m_dims;
 }
 
-template<GLenum texture_target,
-         GLenum internal_format,
-         GLenum external_format,
-         GLenum external_type,
-         GLenum filter>
-TextureGL<texture_target,
-          internal_format,
-          external_format,
-          external_type,
-          filter>::
-~TextureGL()
+template<GLenum texture_target>
+TextureGLGeneric<texture_target>::
+~TextureGLGeneric()
 {
   if(m_texture != 0)
     {
@@ -354,17 +352,9 @@ TextureGL<texture_target,
     }
 }
 
-template<GLenum texture_target,
-         GLenum internal_format,
-         GLenum external_format,
-         GLenum external_type,
-         GLenum filter>
+template<GLenum texture_target>
 void
-TextureGL<texture_target,
-          internal_format,
-          external_format,
-          external_type,
-          filter>::
+TextureGLGeneric<texture_target>::
 flush_size_change(void)
 {
   if(m_texture_dimension != m_dims)
@@ -427,17 +417,9 @@ flush_size_change(void)
     }
 }
 
-template<GLenum texture_target,
-         GLenum internal_format,
-         GLenum external_format,
-         GLenum external_type,
-         GLenum filter>
+template<GLenum texture_target>
 void
-TextureGL<texture_target,
-          internal_format,
-          external_format,
-          external_type,
-          filter>::
+TextureGLGeneric<texture_target>::
 delete_texture(void)
 {
   assert(m_texture != 0);
@@ -446,17 +428,9 @@ delete_texture(void)
 }
 
 
-template<GLenum texture_target,
-         GLenum internal_format,
-         GLenum external_format,
-         GLenum external_type,
-         GLenum filter>
+template<GLenum texture_target>
 GLuint
-TextureGL<texture_target,
-          internal_format,
-          external_format,
-          external_type,
-          filter>::
+TextureGLGeneric<texture_target>::
 texture(void) const
 {
   assert(m_texture != 0);
@@ -464,17 +438,9 @@ texture(void) const
 }
 
 
-template<GLenum texture_target,
-         GLenum internal_format,
-         GLenum external_format,
-         GLenum external_type,
-         GLenum filter>
+template<GLenum texture_target>
 void
-TextureGL<texture_target,
-          internal_format,
-          external_format,
-          external_type,
-          filter>::
+TextureGLGeneric<texture_target>::
 create_texture(void) const
 {
   assert(m_texture == 0);
@@ -487,24 +453,16 @@ create_texture(void) const
       m_use_tex_storage = ctx.is_es() || ctx.version() >= ivec2(4, 2)
         || ctx.has_extension("GL_ARB_texture_storage");
     }
-  tex_storage(m_use_tex_storage, texture_target, internal_format, m_dims);
-  glTexParameteri(texture_target, GL_TEXTURE_MIN_FILTER, filter);
-  glTexParameteri(texture_target, GL_TEXTURE_MAG_FILTER, filter);
+  tex_storage(m_use_tex_storage, texture_target, m_internal_format, m_dims);
+  glTexParameteri(texture_target, GL_TEXTURE_MIN_FILTER, m_filter);
+  glTexParameteri(texture_target, GL_TEXTURE_MAG_FILTER, m_filter);
   ++m_number_times_create_texture_called;
 }
 
 
-template<GLenum texture_target,
-         GLenum internal_format,
-         GLenum external_format,
-         GLenum external_type,
-         GLenum filter>
+template<GLenum texture_target>
 void
-TextureGL<texture_target,
-          internal_format,
-          external_format,
-          external_type,
-          filter>::
+TextureGLGeneric<texture_target>::
 flush(void)
 {
   flush_size_change();
@@ -523,7 +481,7 @@ flush(void)
           tex_sub_image(texture_target,
                         iter->first.m_location,
                         iter->first.m_size,
-                        external_format, external_type,
+                        m_external_format, m_external_type,
                         &iter->second[0]);
         }
       m_unflushed_commands.clear();
@@ -531,17 +489,9 @@ flush(void)
 }
 
 
-template<GLenum texture_target,
-         GLenum internal_format,
-         GLenum external_format,
-         GLenum external_type,
-         GLenum filter>
+template<GLenum texture_target>
 void
-TextureGL<texture_target,
-          internal_format,
-          external_format,
-          external_type,
-          filter>::
+TextureGLGeneric<texture_target>::
 set_data_vector(const EntryLocation &loc,
                 std::vector<uint8_t> &data)
 {
@@ -564,22 +514,14 @@ set_data_vector(const EntryLocation &loc,
       tex_sub_image(texture_target,
                     loc.m_location,
                     loc.m_size,
-                    external_format, external_type,
+                    m_external_format, m_external_type,
                     &data[0]);
     }
 }
 
-template<GLenum texture_target,
-         GLenum internal_format,
-         GLenum external_format,
-         GLenum external_type,
-         GLenum filter>
+template<GLenum texture_target>
 void
-TextureGL<texture_target,
-          internal_format,
-          external_format,
-          external_type,
-          filter>::
+TextureGLGeneric<texture_target>::
 set_data_c_array(const EntryLocation &loc,
                  fastuidraw::const_c_array<uint8_t> data)
 {
@@ -602,11 +544,26 @@ set_data_c_array(const EntryLocation &loc,
       tex_sub_image(texture_target,
                     loc.m_location,
                     loc.m_size,
-                    external_format, external_type,
+                    m_external_format, m_external_type,
                     data.c_ptr());
 
     }
 }
+
+template<GLenum texture_target,
+         GLenum internal_format,
+         GLenum external_format,
+         GLenum external_type,
+         GLenum filter>
+class TextureGL:public TextureGLGeneric<texture_target>
+{
+public:
+  TextureGL(typename TextureGLGeneric<texture_target>::DimensionType dims, bool delayed):
+    TextureGLGeneric<texture_target>(internal_format, external_format,
+                                     external_type, filter,
+                                     dims, delayed)
+  {}
+};
 
 
 

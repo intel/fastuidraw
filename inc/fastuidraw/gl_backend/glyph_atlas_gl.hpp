@@ -56,6 +56,25 @@ namespace gl
     typedef reference_counted_ptr<const GlyphAtlasGL> const_handle;
 
     /*!
+      Enumeration to specify the backing store used for the
+      glyph geometry data.
+     */
+    enum glyph_geometry_backing_store_t
+      {
+        /*!
+          Use GL's texture buffer objects to store the
+          glyph geometry data.
+         */
+        glyph_geometry_texture_buffer,
+
+        /*!
+          Use a 2D texture array to store the
+          glyph geometry data.
+         */
+        glyph_geometry_texture_2d_array,
+      };
+
+    /*!
       Class to hold the construction parameters for creating
       a GlyphAtlasGL.
      */
@@ -125,6 +144,57 @@ namespace gl
       delayed(bool v);
 
       /*!
+        Returns what kind of GL object is used to back
+        the glyph geometry data. Default value is
+        \ref glyph_geometry_texture_buffer.
+       */
+      enum glyph_geometry_backing_store_t
+      glyph_geometry_backing_store_type(void) const;
+
+      /*!
+        Set glyph_geometry_backing_store() to \ref
+        glyph_geometry_texture_buffer, i.e. for the
+        glyph geometry dta to be stored on a GL
+        texture buffer object.
+       */
+      params&
+      use_texture_buffer_geometry_store(void);
+
+      /*!
+        Set glyph_geometry_backing_store() to \ref
+        glyph_geometry_texture_2d_array, i.e.
+        to use a 2D texture array to store the
+        glyph geometry data. The depth of the
+        array is set implicitely by the size given by
+        GlyphAtlasGeometryBackingStoreBase::size().
+        NOTE: if either parameter is made negative, the
+        call is ignored.
+        \param log2_width Log2 of the width of the 2D texture array
+        \param log2_height Log2 of the height of the 2D texture array
+       */
+      params&
+      use_texture_2d_array_geometry_store(int log2_width,
+                                          int log2_height = 0);
+
+      /*!
+        If glyph_geometry_backing_store() returns \ref
+        glyph_geometry_texture_2d_array, returns the values
+        set in use_texture_2d_array_geometry_store(), otherwise
+        returns a value where both components are -1.
+       */
+      ivec2
+      texture_2d_array_geometry_store_log2_dims(void) const;
+
+      /*!
+        Query the GL context to decide what is the optimal settings
+        to back the GlyphAtlasGeometryBackingStoreBase returned by
+        GlyphAtlas::geometry_store(). A GL context must be current
+        so that GL capabilities may be queried.
+       */
+      params&
+      use_optimal_geometry_store_backing(void);
+
+      /*!
         The alignment for the
         GlyphAtlasGeometryBackingStoreBase of the
         constructed GlyphAtlasGL. The value must be 1,
@@ -178,6 +248,22 @@ namespace gl
      */
     GLuint
     geometry_texture(void) const;
+
+    /*!
+      Returns the binding point to which to bind the texture returned
+      by geometry_texture().
+     */
+    GLenum
+    geometry_texture_binding_point(void) const;
+
+    /*!
+      In the case that the geometry data is stored in a texture
+      array (GL_TEXTURE_2D_ARRAY) instead of a texture buffer
+      object, returns the log2 of the width and height of the
+      backing texture 2D array.
+     */
+    ivec2
+    geometry_texture_as_2d_array_log2_dims(void) const;
 
     /*!
       Returns the params value used to construct

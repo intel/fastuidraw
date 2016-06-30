@@ -190,8 +190,6 @@ public:
            const vec2 &ct2, const vec2 &end);
 
     /*!
-                  const_c_array<vec2> control_pts,
-                  const vec2 &)
       Ctor. Iterator range defines the control points of the bezier curve.
       \param start start of curve
       \param control_pts control points
@@ -466,6 +464,20 @@ public:
   Path(const Path &obj, const TessellatedPath::TessellationParams &tess_param);
 
   ~Path();
+
+  /*!
+    Assignment operator
+    \param rhs value from which to assign.
+   */
+  const Path&
+  operator=(const Path &rhs);
+
+  /*!
+    Swap contents of Path with another Path
+    \param obj Path with which to swap
+   */
+  void
+  swap(Path &obj);
 
   /*!
     Create an arc but specify the angle in degrees.

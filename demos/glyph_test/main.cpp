@@ -8,6 +8,7 @@
 #include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/gluniform.hpp>
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
+#include <fastuidraw/gl_backend/gl_context_properties.hpp>
 #include "sdl_demo.hpp"
 #include "ImageLoader.hpp"
 #include "PanZoomTracker.hpp"
@@ -80,6 +81,13 @@ private:
       texel_store_float,
 
       number_texel_store_modes,
+    };
+
+  enum geometry_backing_store_t
+    {
+      geometry_backing_store_texture_buffer,
+      geometry_backing_store_texture_array,
+      geometry_backing_store_auto,
     };
 
   class per_program:boost::noncopyable
@@ -155,6 +163,9 @@ private:
   command_line_argument_value<int> m_texel_store_width, m_texel_store_height;
   command_line_argument_value<int> m_texel_store_num_layers, m_geometry_store_size;
   command_line_argument_value<int> m_geometry_store_alignment;
+  command_line_argument_value<bool> m_atlas_delayed_upload;
+  enumerated_command_line_argument_value<enum geometry_backing_store_t> m_geometry_backing_store_type;
+  command_line_argument_value<int> m_geometry_backing_texture_log2_w, m_geometry_backing_texture_log2_h;
   command_line_argument_value<float> m_render_pixel_size;
 
   gl::GlyphAtlasGL::handle m_glyph_atlas;
@@ -237,7 +248,6 @@ set(vecN<gl::Program::handle, 2> prs,
   m_zoomer = zoomer;
   m_programs[0].set(prs[0]);
   m_programs[1].set(prs[1]);
-
 }
 
 void
@@ -438,6 +448,33 @@ glyph_test(void):
   m_geometry_store_size(1024 * 1024, "geometry_store_size", "size of geometry store in floats", *this),
   m_geometry_store_alignment(4, "geometry_store_alignment",
                               "alignment of the geometry store, must be one of 1, 2, 3 or 4", *this),
+  m_atlas_delayed_upload(false,
+                         "atlas_delayed_upload",
+                         "if true delay uploading of data to GL from glyph atlas until atlas flush",
+                         *this),
+  m_geometry_backing_store_type(geometry_backing_store_auto,
+                                enumerated_string_type<enum geometry_backing_store_t>()
+                                .add_entry("buffer",
+					   geometry_backing_store_texture_buffer,
+					   "use a texture buffer, feature is core in GL but for GLES requires version 3.2, "
+                                           "for GLES version pre-3.2, requires the extension GL_OES_texture_buffer or the "
+                                           "extension GL_EXT_texture_buffer")
+                                .add_entry("texture_array",
+					   geometry_backing_store_texture_array,
+					   "use a 2D texture array to store the glyph geometry data, "
+                                           "GL and GLES have feature in core")
+				.add_entry("auto",
+					   geometry_backing_store_auto,
+					   "query context and decide optimal value"),
+                                "geometry_backing_store_type",
+                                "Determines how the glyph geometry store is backed.",
+                                *this),
+  m_geometry_backing_texture_log2_w(10, "geometry_backing_texture_log2_w",
+                                    "If geometry_backing_store_type is set to texture_array, then "
+                                    "this gives the log2 of the width of the texture array", *this),
+  m_geometry_backing_texture_log2_h(10, "geometry_backing_texture_log2_h",
+                                    "If geometry_backing_store_type is set to texture_array, then "
+                                    "this gives the log2 of the height of the texture array", *this),
   m_render_pixel_size(24.0f, "render_pixel_size", "pixel size at which to display glyphs", *this),
   m_library(NULL),
   m_face(NULL),
@@ -535,7 +572,40 @@ init_gl(int w, int h)
     .texel_store_dimensions(texel_dims)
     .number_floats(m_geometry_store_size.m_value)
     .alignment(m_geometry_store_alignment.m_value)
-    .delayed(false);
+    .delayed(m_atlas_delayed_upload.m_value);
+
+  switch(m_geometry_backing_store_type.m_value.m_value)
+    {
+    case geometry_backing_store_texture_buffer:
+      glyph_atlas_options.use_texture_buffer_geometry_store();
+      break;
+
+    case geometry_backing_store_texture_array:
+      glyph_atlas_options.use_texture_2d_array_geometry_store(m_geometry_backing_texture_log2_w.m_value,
+                                                              m_geometry_backing_texture_log2_h.m_value);
+      break;
+
+    default:
+      glyph_atlas_options.use_optimal_geometry_store_backing();
+      switch(glyph_atlas_options.glyph_geometry_backing_store_type())
+        {
+        case fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_buffer:
+          {
+            std::cout << "Glyph Geometry Store: auto selected buffer\n";
+          }
+          break;
+
+        case fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_2d_array:
+          {
+            fastuidraw::ivec2 log2_dims(glyph_atlas_options.texture_2d_array_geometry_store_log2_dims());
+            std::cout << "Glyph Geometry Store: auto selected texture with dimensions: (2^"
+                      << log2_dims.x() << ", 2^" << log2_dims.y() << ") = "
+                      << fastuidraw::ivec2(1 << log2_dims.x(), 1 << log2_dims.y())
+                      << "\n";
+          }
+          break;
+        }
+    }
 
   m_glyph_atlas = FASTUIDRAWnew gl::GlyphAtlasGL(glyph_atlas_options);
   m_glyph_cache = FASTUIDRAWnew GlyphCache(m_glyph_atlas);
@@ -557,9 +627,21 @@ ready_program(void)
 {
   vecN<gl::Program::handle, number_texel_store_modes> pr;
   vecN<std::string, number_texel_store_modes> macros;
+  std::string glyph_geom_mode;
+  ivec2 geom_log2_dims(0, 0);
+
   macros[texel_store_uint] = "USE_UINT_TEXEL_FETCH";
   macros[texel_store_float] = "USE_FLOAT_TEXEL_FETCH";
 
+  if(m_glyph_atlas->geometry_texture_binding_point() == GL_TEXTURE_BUFFER)
+    {
+      glyph_geom_mode = "GLYPH_GEOMETRY_USE_TEXTURE_BUFFER";
+    }
+  else
+    {
+      glyph_geom_mode = "GLYPH_GEOMETRY_USE_TEXTURE_2D_ARRAY";
+      geom_log2_dims = m_glyph_atlas->geometry_texture_as_2d_array_log2_dims();
+    }
 
   for(int i = 0; i < number_texel_store_modes; ++i)
     {
@@ -605,7 +687,7 @@ ready_program(void)
 
   gl::Shader::shader_source curve_pair_func;
   curve_pair_func = m_glyph_atlas->glsl_curvepair_compute_pseudo_distance("curvepair_pseudo_distance",
-                                                                          "glyph_geometry_data_store",
+                                                                          "fetch_glyph_geometry_data",
                                                                           true);
   for(int i = 0; i < number_texel_store_modes; ++i)
     {
@@ -613,18 +695,44 @@ ready_program(void)
 
       #ifdef FASTUIDRAW_GL_USE_GLES
         {
+          /* Use the latest shader version.
+           */
+          gl::ContextProperties ctx;
+          std::string version;
+
+          if(ctx.version() >= ivec2(3, 2))
+            {
+              version = "320 es";
+            }
+          else if(ctx.version() >= ivec2(3,1))
+            {
+              version = "310 es";
+            }
+          else
+            {
+              version = "300 es";
+            }
+
           vert
-            .specify_version("310 es")
-            .specify_extension("GL_OES_texture_buffer", gl::Shader::require_extension);
+            .specify_version(version.c_str())
+            .specify_extension("GL_OES_texture_buffer", gl::Shader::enable_extension)
+            .specify_extension("GL_EXT_texture_buffer", gl::Shader::enable_extension);
           frag
-            .specify_version("310 es")
-            .specify_extension("GL_OES_texture_buffer", gl::Shader::require_extension);
+            .specify_version(version.c_str())
+            .specify_extension("GL_OES_texture_buffer", gl::Shader::enable_extension)
+            .specify_extension("GL_EXT_texture_buffer", gl::Shader::enable_extension);
         }
       #endif
 
-      vert.add_source("glyph.vert.glsl.resource_string", gl::Shader::from_resource);
+      vert
+        .add_macro(glyph_geom_mode.c_str())
+        .add_source("glyph.vert.glsl.resource_string", gl::Shader::from_resource);
+
       frag
         .add_macro(macros[i].c_str())
+        .add_macro(glyph_geom_mode.c_str())
+        .add_macro("GLYPH_GEOM_WIDTH_LOG2", geom_log2_dims.x())
+        .add_macro("GLYPH_GEOM_HEIGHT_LOG2", geom_log2_dims.y())
         .add_source("gles_prec.frag.glsl.resource_string", gl::Shader::from_resource)
         .add_source("perform_aa.frag.glsl.resource_string", gl::Shader::from_resource)
         .add_source("curvepair_glyph.frag.glsl.resource_string", gl::Shader::from_resource)
@@ -881,7 +989,7 @@ draw_frame(void)
   glBindTexture(GL_TEXTURE_2D_ARRAY, m_glyph_atlas->texel_texture(texel_store_uint == m_texel_access_mode));
 
   glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_BUFFER, m_glyph_atlas->geometry_texture());
+  glBindTexture(m_glyph_atlas->geometry_texture_binding_point(), m_glyph_atlas->geometry_texture());
 
   m_drawers[m_current_drawer].draw(m_texel_access_mode, m_pvm, m_current_layer, m_aa_mode);
 

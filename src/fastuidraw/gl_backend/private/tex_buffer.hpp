@@ -30,10 +30,14 @@ enum tex_buffer_support_t
     tex_buffer_ext_extension,
 
     tex_buffer_not_supported,
+    tex_buffer_not_computed
   };
 
 enum tex_buffer_support_t
 compute_tex_buffer_support(void);
+
+enum tex_buffer_support_t
+compute_tex_buffer_support(const ContextProperties &ctx);
 
 void
 tex_buffer(enum tex_buffer_support_t md, GLenum target, GLenum format, GLuint bo);

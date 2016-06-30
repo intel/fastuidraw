@@ -3,7 +3,11 @@
   precision highp int;
   precision mediump sampler2DArray;
   precision highp usampler2DArray;
-  precision highp samplerBuffer;
-  precision highp usamplerBuffer;
-  precision highp isamplerBuffer;
+
+  #ifndef FASTUIDRAW_PAINTER_USE_DATA_UBO
+    precision highp samplerBuffer;
+    precision highp usamplerBuffer;
+    precision highp isamplerBuffer;
+  #endif
+
 #endif

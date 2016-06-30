@@ -177,6 +177,7 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
   #ifdef FASTUIDRAW_GL_USE_GLES
   m_gl_major(2, "gles_major", "GLES major version", *this),
   m_gl_minor(0, "gles_minor", "GLES minor version", *this),
+  m_use_egl(true, "use_egl", "If true, use EGL API directly to create GLES context", *this),
   #else
   m_gl_major(3, "gl_major", "GL major version", *this),
   m_gl_minor(3, "gl_minor", "GL minor version", *this),
@@ -198,18 +199,21 @@ sdl_demo::
 {
   if(m_window)
     {
+
+      if(m_gl_logger)
+        {
+          if(m_gl_logger == fastuidraw::gl_binding::logger())
+            {
+              fastuidraw::gl_binding::logger(NULL);
+            }
+          FASTUIDRAWdelete(m_gl_logger);
+        }
+      
+      m_ctx_egl = egl_gles_context::handle();      
       if(m_ctx)
         {
-          if(m_gl_logger)
-            {
-              if(m_gl_logger == fastuidraw::gl_binding::logger())
-                {
-                  fastuidraw::gl_binding::logger(NULL);
-                }
-              FASTUIDRAWdelete(m_gl_logger);
-            }
-            SDL_GL_MakeCurrent(m_window, NULL);
-            SDL_GL_DeleteContext(m_ctx);
+          SDL_GL_MakeCurrent(m_window, NULL);
+          SDL_GL_DeleteContext(m_ctx);
         }
 
       SDL_ShowCursor(SDL_ENABLE);
@@ -338,25 +342,50 @@ init_sdl(void)
         }
     }
 
-  m_ctx = SDL_GL_CreateContext(m_window);
-  if(m_ctx == NULL)
-    {
-      std::cerr << "Unable to create GL context: " << SDL_GetError() << "\n";
-      return fastuidraw::routine_fail;
-    }
-  SDL_GL_MakeCurrent(m_window, m_ctx);
+  #ifdef FASTUIDRAW_GL_USE_GLES
+  {
+    if(m_use_egl.m_value)
+      {
+        egl_gles_context::params P;
+        P.m_red_bits = m_red_bits.m_value;
+        P.m_green_bits = m_green_bits.m_value;
+        P.m_blue_bits = m_blue_bits.m_value;
+        P.m_alpha_bits = m_alpha_bits.m_value;
+        P.m_depth_bits = m_depth_bits.m_value;
+        P.m_stencil_bits = m_stencil_bits.m_value;
+        if(m_use_msaa.m_value)
+          {
+            P.m_msaa = m_msaa.m_value;
+          }        
+        m_ctx_egl = FASTUIDRAWnew egl_gles_context(P, m_window);
+        m_ctx_egl->make_current();
+        fastuidraw::gl_binding::get_proc_function(egl_gles_context::egl_get_proc);
+      }
+  }
+  #endif
 
-  if(m_swap_interval.set_by_command_line())
+  if(!m_ctx_egl)
     {
-      if(SDL_GL_SetSwapInterval(m_swap_interval.m_value) != 0)
+      m_ctx = SDL_GL_CreateContext(m_window);
+      if(m_ctx == NULL)
         {
-          std::cerr << "Warning unable to set swap interval: "
-                    << SDL_GetError() << "\n";
-        };
+          std::cerr << "Unable to create GL context: " << SDL_GetError() << "\n";
+          return fastuidraw::routine_fail;
+        }
+      SDL_GL_MakeCurrent(m_window, m_ctx);
+  
+      if(m_swap_interval.set_by_command_line())
+        {
+          if(SDL_GL_SetSwapInterval(m_swap_interval.m_value) != 0)
+            {
+              std::cerr << "Warning unable to set swap interval: "
+                        << SDL_GetError() << "\n";
+            }
+        }
+      fastuidraw::gl_binding::get_proc_function(get_proc);
     }
 
 
-  fastuidraw::gl_binding::get_proc_function(get_proc);
 
   if(m_hide_cursor.m_value)
     {
@@ -426,9 +455,19 @@ void
 sdl_demo::
 swap_buffers(unsigned int count)
 {
-  for(unsigned int i = 0; i < count; ++i)
+  if(!m_ctx_egl)
     {
-      SDL_GL_SwapWindow(m_window);
+      for(unsigned int i = 0; i < count; ++i)
+        {
+          SDL_GL_SwapWindow(m_window);
+        }
+    }
+  else
+    {
+      for(unsigned int i = 0; i < count; ++i)
+        {
+          m_ctx_egl->swap_buffers();
+        }
     }
 }
 

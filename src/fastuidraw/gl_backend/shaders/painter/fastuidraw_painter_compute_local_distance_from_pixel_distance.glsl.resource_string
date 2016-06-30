@@ -1,0 +1,95 @@
+float
+fastuidraw_painter_local_distance_from_pixel_distance(in float ppixel_distance,
+                                                      in vec3 pclip_p,
+                                                      in vec3 pclip_offset,
+                                                      in bool adjust_width_from_orientation)
+{
+  vec2 zeta;
+  vec3 clip_p, clip_offset;
+  float return_value, length_zeta, pixel_distance;
+
+  /* convert clip-coordinates so that after dividing by .z,
+     the coordinates are in -pixel- units.
+   */
+  clip_p = vec3(0.5 * fastuidraw_viewport_pixels.xy, 1.0) * pclip_p;
+  clip_offset = vec3(0.5 * fastuidraw_viewport_pixels.xy, 1.0) * pclip_offset;
+  pixel_distance = ppixel_distance;
+
+  /* From where this formula comes. Our challenge is to give a stroking width
+     in local (pre-projection) coordiantes from a stroking width of pixels.
+     We have a point p (given by position) and a direction v (given by offset)
+     and we wish to find an L so that after projection p + L*v is W pixels
+     from p. Now for some math.
+
+     Let m>0, and let q(m) = a + m*v. Once m>0 is large enough, we can
+     project q(m) and p to the screen, find the screen space barycentric
+     W pixels from p.
+
+     Let P = projection(T(p,1))
+     Let Q(m) = projection(T(q(m),1))
+
+     where
+
+     T = K * fastuidraw_item_matrix
+     K = (0.5 * fastuidraw_viewport_pixels.x, 0.5 * fastuidraw_viewport_pixels.y, 1)
+     projection(x,y,z) = (x/z, y/z)
+
+     Let R = P + W * DELTA where DELTA = (Q(m) - P)/||Q(m)-P||
+     Let s = W / ||Q(m) - P|| gives that P + s * (Q(m) - P) = R.
+     Let t = ( s/Q(m)_z ) / ( (1-s)/P_z + s/Q(m)_z). Then
+     projection( T(p,1) + t * (T(q(m),1) - T(p,1)) ) = R
+
+     t * (T(q(m),1) - T(p,1)) = t * (T(p,1) + m*T(v,0) - T(p,1)) = t * m * T(v, 0)
+
+     Thus the coefficient we want is given by (t*m).
+
+     t * m = ( m * s * P_z) / ( (1-s)Q(m)_z + s * P_z)
+
+     which simplifies to (after lots of algebra) to
+
+     t * m = (W * P_z * P_z) / (- W * P_z * |T(v,0)_z| + ||zeta||)
+
+     where zeta = (T(v,0)_x * T(p,1)_z - T(v,0)_z * T(p,1)_x,
+                   T(v,0)_y * T(p,1)_z - T(v,0)_z * T(p,1)_y)
+  */
+  zeta = vec2(clip_offset.x * clip_p.z - clip_offset.z * clip_p.x,
+              clip_offset.y * clip_p.z - clip_offset.z * clip_p.y);
+  length_zeta = length(zeta);
+
+  if(adjust_width_from_orientation)
+    {
+      /* The direction in screen coordinates is given by (up to magnitude) zeta,
+         the multiply by ppixel_distance * max(abs(zeta.x), abs(zeta.y)) / length_zeta
+         makes so that non-vertical and non-horizontal lines have that their
+         thickness in a direction is the pixel distance requested
+      */
+      pixel_distance *= max(abs(zeta.x), abs(zeta.y)) / length_zeta;
+    }
+
+  return_value = pixel_distance * clip_p.z * clip_p.z;
+  return_value /= (-pixel_distance * abs(clip_p.z * clip_offset.z) + length_zeta);
+
+  return return_value;
+}
+
+float
+fastuidraw_painter_local_distance_from_pixel_distance(in float ppixel_distance,
+                                                      in vec3 pclip_p,
+                                                      in vec3 pclip_offset)
+{
+  return fastuidraw_painter_local_distance_from_pixel_distance(ppixel_distance, pclip_p,
+                                                               pclip_offset, false);
+}
+
+vec2
+fastuidraw_unpack_unit_vector(float x, uint b)
+{
+  vec2 return_value;
+  return_value.x = x;
+  return_value.y = sqrt(max(0.0, 1.0 - x * x));
+  if(b != 0u)
+    {
+      return_value.y = -return_value.y;
+    }
+  return return_value;
+}

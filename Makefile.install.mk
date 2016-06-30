@@ -1,6 +1,6 @@
 
 fastuidraw-config: fastuidraw-config.in
-	echo Generating $@
+	@echo Generating $@
 	@cp $< $@
 	@sed -i 's!@FASTUIDRAW_GLES_release_LIBS@!$(FASTUIDRAW_GLES_release_LIBS)!' $@
 	@sed -i 's!@FASTUIDRAW_GL_release_LIBS@!$(FASTUIDRAW_GL_release_LIBS)!' $@
@@ -19,17 +19,20 @@ fastuidraw-config: fastuidraw-config.in
 # guarantee that fastuidraw-config reflects it correctly.
 .PHONY: fastuidraw-config
 CLEAN_FILES+=fastuidraw-config
-INSTALL_EXES+=fastuidraw-config
+INSTALL_EXES+=fastuidraw-config shell_scripts/fastuidraw-create-resource-cpp-file.sh
 
-install: $(INSTALL_LIBS) $(INSTALL_EXES) docs
+install: $(INSTALL_LIBS) $(INSTALL_EXES)
 	-install -d $(INSTALL_LOCATION)/lib
 	-install -d $(INSTALL_LOCATION)/bin
-	-install -d $(INSTALL_LOCATION)/share/doc/fastuidraw/
 	-install -t $(INSTALL_LOCATION)/lib $(INSTALL_LIBS)
 	-install -t $(INSTALL_LOCATION)/bin $(INSTALL_EXES)
+TARGETLIST+=install
+
+install-docs: docs
+	-install -d $(INSTALL_LOCATION)/share/doc/fastuidraw/
 	-install -t $(INSTALL_LOCATION)/share/doc/fastuidraw docs/*.txt
-	-cp -r docs/doxy/html $(INSTALL_LOCATION)/share/doc/fastuidraw/
 	-find $(INSTALL_LOCATION)/share/doc/fastuidraw/html/ -type f -exec chmod a+r {} \;
 	-find $(INSTALL_LOCATION)/share/doc/fastuidraw/html/ -type d -exec chmod a+rx {} \;
 	-chown -R root $(INSTALL_LOCATION)/share/doc/fastuidraw/html/
-TARGETLIST+=install
+	-cp -r docs/doxy/html $(INSTALL_LOCATION)/share/doc/fastuidraw/
+TARGETLIST+=install-docs
