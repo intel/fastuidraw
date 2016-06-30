@@ -3,6 +3,9 @@
  */
 vec2 fastuidraw_brush_position;
 
+void
+fastuidraw_read_header(in uint location, out fastuidraw_shader_header h);
+
 
 /* needed functions
  */

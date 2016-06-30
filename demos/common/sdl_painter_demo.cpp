@@ -139,6 +139,11 @@ sdl_painter_demo(const std::string &about_text):
                           "uber_blend_use_switch",
                           "If true, use a switch statement in uber blend shader dispatch",
                           *this),
+  m_unpack_header_and_brush_in_frag_shader(m_painter_params.unpack_header_and_brush_in_frag_shader(),
+                                           "unpack_header_and_brush_in_frag_shader",
+                                           "if true, unpack the brush and frag-shader specific data from "
+                                           "the header in the fragment shader instead of the vertex shader",
+                                           *this),
   m_demo_options("Demo Options", *this)
 {}
 
@@ -230,8 +235,8 @@ init_gl(int w, int h)
     .use_hw_clip_planes(m_use_hw_clip_planes.m_value)
     .vert_shader_use_switch(m_uber_vert_use_switch.m_value)
     .frag_shader_use_switch(m_uber_frag_use_switch.m_value)
-    .blend_shader_use_switch(m_uber_blend_use_switch.m_value);
-
+    .blend_shader_use_switch(m_uber_blend_use_switch.m_value)
+    .unpack_header_and_brush_in_frag_shader(m_unpack_header_and_brush_in_frag_shader.m_value);
 
   m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params);
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);

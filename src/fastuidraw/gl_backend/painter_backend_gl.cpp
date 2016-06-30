@@ -450,7 +450,8 @@ namespace
       m_use_hw_clip_planes(true),
       m_vert_shader_use_switch(true),
       m_frag_shader_use_switch(true),
-      m_blend_shader_use_switch(true)
+      m_blend_shader_use_switch(true),
+      m_unpack_header_and_brush_in_frag_shader(false)
     {}
 
     unsigned int m_attributes_per_buffer;
@@ -466,6 +467,7 @@ namespace
     bool m_vert_shader_use_switch;
     bool m_frag_shader_use_switch;
     bool m_blend_shader_use_switch;
+    bool m_unpack_header_and_brush_in_frag_shader;
   };
 }
 
@@ -1152,6 +1154,7 @@ stream_alias_varyings(fastuidraw::gl::Shader::shader_source &shader,
       stream_alias_varyings(shader, p.floats(q), float_varying_label(q), define);
     }
 }
+
 
 void
 PainterBackendGLPrivate::
@@ -1977,6 +1980,12 @@ build_program(void)
   glyphs = dynamic_cast<fastuidraw::gl::GlyphAtlasGL*>(m_p->glyph_atlas().get());
   assert(glyphs != NULL);
 
+  if(m_params.unpack_header_and_brush_in_frag_shader())
+    {
+      vert.add_macro("FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER");
+      frag.add_macro("FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER");
+    }
+
   stream_declare_varyings(declare_varyings, m_number_uint_varyings,
                           m_number_int_varyings, m_number_float_varyings);
 
@@ -2133,6 +2142,7 @@ build_program(void)
     .add_source("fastuidraw_painter_brush_types.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
     .add_source("fastuidraw_painter_brush_unpacked_values.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
     .add_source("fastuidraw_painter_forward_declares.vert.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
+    .add_source("fastuidraw_painter_brush_unpack_forward_declares.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
     .add_source("fastuidraw_painter_brush_unpack.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
     .add_source("fastuidraw_painter_brush.vert.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
     .add_source("fastuidraw_painter_main.vert.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
@@ -2156,13 +2166,30 @@ build_program(void)
     .add_source(declare_varyings.str().c_str(), fastuidraw::gl::Shader::from_string)
     .add_source("fastuidraw_painter_uniforms.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
     .add_source("fastuidraw_painter_brush_macros.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
+    .add_source("fastuidraw_painter_types.vert.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
+    .add_source("fastuidraw_painter_brush_types.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
     .add_source("fastuidraw_painter_brush_unpacked_values.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
-    .add_source("fastuidraw_painter_forward_declares.frag.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
+    .add_source("fastuidraw_painter_forward_declares.frag.glsl.resource_string", fastuidraw::gl::Shader::from_resource);
+
+  if(m_params.unpack_header_and_brush_in_frag_shader())
+    {
+      frag
+        .add_source("fastuidraw_painter_brush_unpack_forward_declares.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
+        .add_source("fastuidraw_painter_brush_unpack.glsl.resource_string", fastuidraw::gl::Shader::from_resource);
+    }
+
+  frag
     .add_source("fastuidraw_painter_brush.frag.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
     .add_source(image_atlas_gl->glsl_compute_coord_src("fastuidraw_compute_image_atlas_coord", "fastuidraw_imageIndexAtlas"))
     .add_source("fastuidraw_painter_main.frag.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
     .add_source("fastuidraw_painter_anisotropic.frag.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
     .add_source(m_frag_shader_utils);
+
+  if(m_params.unpack_header_and_brush_in_frag_shader())
+    {
+      stream_unpack_code(m_params.m_config.alignment(), frag);
+    }
+
   stream_uber_frag_shader(m_params.frag_shader_use_switch(), frag, make_c_array(m_frag_shaders));
   stream_uber_blend_shader(m_params.blend_shader_use_switch(), frag, make_c_array(m_blend_shaders), m_blend_type);
 
@@ -2314,6 +2341,7 @@ paramsSetGet(bool, use_hw_clip_planes)
 paramsSetGet(bool, vert_shader_use_switch)
 paramsSetGet(bool, frag_shader_use_switch)
 paramsSetGet(bool, blend_shader_use_switch)
+paramsSetGet(bool, unpack_header_and_brush_in_frag_shader)
 
 #undef paramsSetGet
 

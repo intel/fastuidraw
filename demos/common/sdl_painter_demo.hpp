@@ -99,6 +99,7 @@ private:
   command_line_argument_value<bool> m_uber_vert_use_switch;
   command_line_argument_value<bool> m_uber_frag_use_switch;
   command_line_argument_value<bool> m_uber_blend_use_switch;
+  command_line_argument_value<bool> m_unpack_header_and_brush_in_frag_shader;
 
   command_separator m_demo_options;
 };

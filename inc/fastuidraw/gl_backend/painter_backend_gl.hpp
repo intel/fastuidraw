@@ -280,6 +280,21 @@ namespace fastuidraw
         params&
         break_on_fragment_shader_change(bool v);
 
+        /*!
+          If true, unpacks the brush and fragment shader specific data
+          from the data buffer at the fragment shader. If false, unpacks
+          the data in the vertex shader and fowards the data as flats
+          to the fragment shader.
+         */
+        bool
+        unpack_header_and_brush_in_frag_shader(void) const;
+
+        /*!
+          Set the value for unpack_header_and_brush_in_frag_shader(void) const
+        */
+        params&
+        unpack_header_and_brush_in_frag_shader(bool v);
+
       private:
         void *m_d;
       };
