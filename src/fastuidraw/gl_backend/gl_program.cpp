@@ -410,7 +410,7 @@ add_source_entry(const source_code_type &v, std::ostream &output_stream)
             }
           else
             {
-              output_stream << "\n//Unable to fetch string resource \"" << v.first
+              output_stream << "\n//WARNING: Unable to fetch string resource \"" << v.first
                             << "\"\n";
               return;
             }
