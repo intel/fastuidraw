@@ -396,6 +396,7 @@ init_sdl(void)
                 << "\nGL_MAX_COMBINED_UNIFORM_BLOCKS:" << fastuidraw::gl::context_get<GLint>(GL_MAX_COMBINED_UNIFORM_BLOCKS)
                 << "\nGL_MAX_UNIFORM_BLOCK_SIZE:" << fastuidraw::gl::context_get<GLint>(GL_MAX_UNIFORM_BLOCK_SIZE)
                 << "\nGL_MAX_TEXTURE_SIZE: " << fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_SIZE)
+		<< "\nGL_MAX_ARRAY_TEXTURE_LAYERS: " << fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS)
                 << "\nGL_MAX_TEXTURE_BUFFER_SIZE: " << fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_BUFFER_SIZE);
 
 
