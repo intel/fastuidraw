@@ -1,4 +1,4 @@
-#ifdef FASTUIDRAW_PAINTER_UNPACK_BRUSH_FRAGMENT_SHADER
+#ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
   #define fastuidraw_painter_brush_value
   #define fastuidraw_painter_brush_value_flat
 #else

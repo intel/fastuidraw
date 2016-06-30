@@ -197,8 +197,12 @@ namespace
     ~PainterBackendGLPrivate();
 
     static
+    unsigned int
+    number_data_blocks(unsigned int alignment, unsigned int sz);
+
+    static
     void
-    add_enums(fastuidraw::gl::Shader::shader_source &src);
+    add_enums(unsigned int alignment, fastuidraw::gl::Shader::shader_source &src);
 
     static
     void
@@ -925,9 +929,22 @@ blend_index(const fastuidraw::gl::BlendMode &blend_mode)
 
 /////////////////////////////////////////
 // PainterBackendGLPrivate methods
+unsigned int
+PainterBackendGLPrivate::
+number_data_blocks(unsigned int alignment, unsigned int sz)
+{
+  unsigned int number_blocks;
+  number_blocks = sz / alignment;
+  if(number_blocks * alignment < sz)
+    {
+      ++number_blocks;
+    }
+  return number_blocks;
+}
+
 void
 PainterBackendGLPrivate::
-add_enums(fastuidraw::gl::Shader::shader_source &src)
+add_enums(unsigned int alignment, fastuidraw::gl::Shader::shader_source &src)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::PainterPacking;
@@ -977,6 +994,15 @@ add_enums(fastuidraw::gl::Shader::shader_source &src)
     .add_macro("fastuidraw_color_stop_x_num_bits", Brush::gradient_color_stop_x_num_bits)
     .add_macro("fastuidraw_color_stop_y_bit0",     Brush::gradient_color_stop_y_bit0)
     .add_macro("fastuidraw_color_stop_y_num_bits", Brush::gradient_color_stop_y_num_bits)
+
+    .add_macro("fastuidraw_shader_pen_num_blocks", number_data_blocks(alignment, Brush::pen_data_size))
+    .add_macro("fastuidraw_shader_image_num_blocks", number_data_blocks(alignment, Brush::image_data_size))
+    .add_macro("fastuidraw_shader_linear_gradient_num_blocks", number_data_blocks(alignment, Brush::linear_gradient_data_size))
+    .add_macro("fastuidraw_shader_radial_gradient_num_blocks", number_data_blocks(alignment, Brush::radial_gradient_data_size))
+    .add_macro("fastuidraw_shader_repeat_window_num_blocks", number_data_blocks(alignment, Brush::repeat_window_data_size))
+    .add_macro("fastuidraw_shader_transformation_matrix_num_blocks", number_data_blocks(alignment, Brush::transformation_matrix_data_size))
+    .add_macro("fastuidraw_shader_transformation_translation_num_blocks", number_data_blocks(alignment, Brush::transformation_translation_data_size))
+
     .add_macro("fastuidraw_vert_shader_bit0", vert_shader_bit0)
     .add_macro("fastuidraw_vert_shader_num_bits", vert_shader_num_bits)
     .add_macro("fastuidraw_frag_shader_bit0", frag_shader_bit0)
@@ -1954,7 +1980,7 @@ build_program(void)
   stream_declare_varyings(declare_varyings, m_number_uint_varyings,
                           m_number_int_varyings, m_number_float_varyings);
 
-  add_enums(vert);
+  add_enums(m_params.m_config.alignment(), vert);
   add_texture_size_constants(vert, m_params);
 
   if(m_number_clip_planes > 0)
@@ -2119,7 +2145,7 @@ build_program(void)
   image_atlas_gl = dynamic_cast<fastuidraw::gl::ImageAtlasGL*>(m_p->image_atlas().get());
   assert(image_atlas_gl != NULL);
 
-  add_enums(frag);
+  add_enums(m_params.m_config.alignment(), frag);
   add_texture_size_constants(frag, m_params);
   frag
     .add_macro(m_shader_blend_macro.c_str())

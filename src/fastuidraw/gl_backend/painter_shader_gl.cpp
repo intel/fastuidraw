@@ -515,7 +515,7 @@ stream_unpack_code(unsigned int alignment, Shader::shader_source &src,
 }
 
 
-void
+unsigned int
 fastuidraw::gl::glsl_shader_unpack_value::
 stream_unpack_function(unsigned int alignment, Shader::shader_source &src,
                        const_c_array<glsl_shader_unpack_value> labels,
@@ -545,6 +545,8 @@ stream_unpack_function(unsigned int alignment, Shader::shader_source &src,
     }
   str << "}\n\n";
   src.add_source(str.str().c_str(), Shader::from_string);
+
+  return number_blocks;
 }
 
 ///////////////////////////////////////////////

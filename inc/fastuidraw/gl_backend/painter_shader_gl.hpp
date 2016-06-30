@@ -234,7 +234,8 @@ namespace fastuidraw
         function_name(uint location, out out_type v)
         \endcode
         whose body is the unpacking of the values into an
-        out.
+        out. Returns the number of blocks needed to unpack
+        the data in GLSL.
         \param alignment the alignment of the data store used in a
                           PainterBackendGL (i.e. the value of
                           PainterBackend::Configuration::alignment())
@@ -246,7 +247,7 @@ namespace fastuidraw
                                   the data it unpacks.
        */
       static
-      void
+      unsigned int
       stream_unpack_function(unsigned int alignment, Shader::shader_source &str,
                              const_c_array<glsl_shader_unpack_value> labels,
                              const char *function_name,
@@ -315,14 +316,14 @@ namespace fastuidraw
         \param returns_new_offset if true, function returns the offset after
                                   the data it unpacks.
        */
-      void
+      unsigned int
       stream_unpack_function(unsigned int alignment, Shader::shader_source &str,
                              const char *function_name,
                              const char *out_type,
                              bool returns_new_offset = true)
       {
-        glsl_shader_unpack_value::stream_unpack_function(alignment, str, *this, function_name,
-                                                         out_type, returns_new_offset);
+        return glsl_shader_unpack_value::stream_unpack_function(alignment, str, *this, function_name,
+                                                                out_type, returns_new_offset);
       }
     };
 

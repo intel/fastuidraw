@@ -12,11 +12,19 @@ fastuidraw_vert_brush_processing(in vec2 in_p, in fastuidraw_shader_header h)
   shader = h.brush_shader;
   data_ptr = h.brush_shader_data_location;
 
-  fastuidraw_painter_brush_unpack_values(shader, data_ptr);
+  #ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
+  {
+    data_ptr += fastuidraw_painter_offset_to_transformation(shader);
+  }
+  #else
+  {
+    /* fastuidraw_painter_brush_unpack_values() increments data_ptr
+       to the location of the transformation values for the brush
+    */
+    fastuidraw_painter_brush_unpack_values(shader, data_ptr);
+  }
+  #endif
 
-  /* fastuidraw_painter_brush_unpack_values() increments data_ptr
-     to the location of the transformation values for the brush
-   */
   if(fastuidraw_brush_shader_has_transformation_matrix(shader))
     {
       mat2 m;
@@ -30,5 +38,6 @@ fastuidraw_vert_brush_processing(in vec2 in_p, in fastuidraw_shader_header h)
       data_ptr = fastuidraw_read_brush_transformation_translation(data_ptr, q);
       p += q;
     }
+
   fastuidraw_brush_p = p;
 }

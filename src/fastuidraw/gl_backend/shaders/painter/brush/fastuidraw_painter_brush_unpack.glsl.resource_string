@@ -196,3 +196,32 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
   fastuidraw_brush_color_stop_xy.y = gradient.color_stop_sequence_xy.y;
   fastuidraw_brush_shader = shader;
 }
+
+uint
+fastuidraw_painter_offset_to_transformation(uint shader)
+{
+  uint r;
+
+  r = uint(fastuidraw_shader_pen_num_blocks);
+
+  if(fastuidraw_brush_shader_has_image(shader))
+    {
+      r += uint(fastuidraw_shader_image_num_blocks);
+    }
+
+  if(fastuidraw_brush_shader_has_radial_gradient(shader))
+    {
+      r += uint(fastuidraw_shader_radial_gradient_num_blocks);
+    }
+  else if(fastuidraw_brush_shader_has_linear_gradient(shader))
+    {
+      r += uint(fastuidraw_shader_linear_gradient_num_blocks);
+    }
+
+  if(fastuidraw_brush_shader_has_repeat_window(shader))
+    {
+      r += uint(fastuidraw_shader_repeat_window_num_blocks);
+    }
+
+  return r;
+}
