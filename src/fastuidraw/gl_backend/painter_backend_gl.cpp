@@ -2068,20 +2068,31 @@ build_program(void)
       frag.add_macro("FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT");
     }
 
-  if(glyphs->geometry_texture_binding_point() == GL_TEXTURE_2D_ARRAY)
+  switch(glyphs->param_values().glyph_geometry_backing_store_type())
     {
-      fastuidraw::ivec2 log2_glyph_geom;
-      log2_glyph_geom = glyphs->geometry_texture_as_2d_array_log2_dims();
+    case fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_2d_array:
+      {
+        fastuidraw::ivec2 log2_glyph_geom;
+        log2_glyph_geom = glyphs->geometry_texture_as_2d_array_log2_dims();
 
-      vert
-	.add_macro("FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_ARRAY")
-	.add_macro("FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2", log2_glyph_geom.x())
-        .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2", log2_glyph_geom.y());
+        vert
+          .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_ARRAY")
+          .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2", log2_glyph_geom.x())
+          .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2", log2_glyph_geom.y());
 
-      frag
-	.add_macro("FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_ARRAY")
-	.add_macro("FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2", log2_glyph_geom.x())
-        .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2", log2_glyph_geom.y());	
+        frag
+          .add_macro("FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_ARRAY")
+          .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2", log2_glyph_geom.x())
+          .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2", log2_glyph_geom.y());
+      }
+      break;
+
+    case fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_buffer:
+      {
+        vert.add_macro("FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_BUFFER");
+        frag.add_macro("FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_BUFFER");
+      }
+      break;
     }
 
   vert

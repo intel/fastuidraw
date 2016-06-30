@@ -577,7 +577,7 @@ init_gl(int w, int h)
   switch(m_geometry_backing_store_type.m_value.m_value)
     {
     case geometry_backing_store_texture_buffer:
-      glyph_atlas_options.set_use_texture_buffer_geometry_store();
+      glyph_atlas_options.use_texture_buffer_geometry_store();
       break;
 
     case geometry_backing_store_texture_array:
@@ -587,17 +587,23 @@ init_gl(int w, int h)
 
     default:
       glyph_atlas_options.use_optimal_geometry_store_backing();
-      if(glyph_atlas_options.uses_texture_buffer_geometry_store())
+      switch(glyph_atlas_options.glyph_geometry_backing_store_type())
         {
-          std::cout << "Glyph Geometry Store: auto selected buffer\n";
-        }
-      else
-        {
-          fastuidraw::ivec2 log2_dims(glyph_atlas_options.texture_2d_array_geometry_store_log2_dims());
-          std::cout << "Glyph Geometry Store: auto selected texture with dimensions: (2^"
-                    << log2_dims.x() << ", 2^" << log2_dims.y() << ") = "
-                    << fastuidraw::ivec2(1 << log2_dims.x(), 1 << log2_dims.y())
-                    << "\n";
+        case fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_buffer:
+          {
+            std::cout << "Glyph Geometry Store: auto selected buffer\n";
+          }
+          break;
+
+        case fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_2d_array:
+          {
+            fastuidraw::ivec2 log2_dims(glyph_atlas_options.texture_2d_array_geometry_store_log2_dims());
+            std::cout << "Glyph Geometry Store: auto selected texture with dimensions: (2^"
+                      << log2_dims.x() << ", 2^" << log2_dims.y() << ") = "
+                      << fastuidraw::ivec2(1 << log2_dims.x(), 1 << log2_dims.y())
+                      << "\n";
+          }
+          break;
         }
     }
 
