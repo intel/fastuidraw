@@ -2278,7 +2278,8 @@ params(void)
 }
 
 fastuidraw::gl::PainterBackendGL::params::
-params(const params &obj)
+params(const params &obj):
+  m_config(obj.m_config)
 {
   PainterBackendGLParamsPrivate *d;
   d = reinterpret_cast<PainterBackendGLParamsPrivate*>(obj.m_d);
