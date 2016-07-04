@@ -329,6 +329,11 @@ void
 painter_cells::
 derived_init(int w, int h)
 {
+  //set background color to same as painter-cells: grey
+  QPalette pal(QApplication::palette());
+  pal.setColor(QPalette::Background, QColor(127, 127, 127, 255));
+  widget()->setPalette(pal);
+
   m_table_params.m_wh = QSizeF(m_table_width.m_value, m_table_height.m_value);
   m_table_params.m_cell_count = QSize(m_num_cells_x.m_value, m_num_cells_y.m_value);
   m_table_params.m_line_color = QColor(255, 255, 255, 255);
@@ -480,6 +485,8 @@ paint(QPainter *painter)
     }
   update_cts_params();
 
+  painter->setRenderHint(QPainter::Antialiasing, true);
+  painter->setRenderHint(QPainter::HighQualityAntialiasing, false);
   painter->setFont(m_font);
   painter->save();
   painter->translate(m_zoomer.transformation().translation());

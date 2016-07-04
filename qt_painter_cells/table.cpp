@@ -269,6 +269,8 @@ paint_post_children(QPainter *painter)
     {
       QPen pen(m_line_brush);
 
+      painter->setRenderHint(QPainter::Antialiasing, m_params.m_cell_state->m_anti_alias_stroking);
+      painter->setRenderHint(QPainter::HighQualityAntialiasing, m_params.m_cell_state->m_anti_alias_stroking);
       pen.setWidthF(m_params.m_cell_state->m_stroke_width);
       pen.setStyle(Qt::SolidLine);
       pen.setJoinStyle(Qt::RoundJoin);
@@ -276,5 +278,7 @@ paint_post_children(QPainter *painter)
       painter->strokePath(m_horiz_grid_path, pen);
       painter->strokePath(m_vert_grid_path, pen);
       painter->strokePath(m_outline_path, pen);
+      painter->setRenderHint(QPainter::Antialiasing, true);
+      painter->setRenderHint(QPainter::HighQualityAntialiasing, false);
     }
 }

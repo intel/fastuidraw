@@ -190,12 +190,15 @@ paint_pre_children(QPainter *painter)
   if(m_shared_state->m_rotating && m_shared_state->m_stroke_width > 0.0)
     {
       QPen pen(m_line_brush);
-
+      painter->setRenderHint(QPainter::Antialiasing, m_shared_state->m_anti_alias_stroking);
+      painter->setRenderHint(QPainter::HighQualityAntialiasing, m_shared_state->m_anti_alias_stroking);
       pen.setWidthF(m_shared_state->m_stroke_width);
       pen.setStyle(Qt::SolidLine);
       pen.setJoinStyle(Qt::MiterJoin);
       pen.setCapStyle(Qt::FlatCap);
       painter->strokePath(m_shared_state->m_path, pen);
+      painter->setRenderHint(QPainter::Antialiasing, true);
+      painter->setRenderHint(QPainter::HighQualityAntialiasing, false);
     }
   m_shared_state->m_cells_drawn++;
 }

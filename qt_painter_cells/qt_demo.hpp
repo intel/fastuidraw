@@ -80,6 +80,12 @@ public:
   void
   handle_event(QEvent *ev) = 0;
 
+  QWidget*
+  widget(void)
+  {
+    return m_widget;
+  }
+
 private:
   friend class demo_widget;
   friend class demo_widget_gl;
