@@ -68,14 +68,11 @@ protected:
   void
   paint_pre_children(QPainter *painter);
 
-private:
-
+  virtual
   void
   pre_paint(void);
 
-  void
-  update(void);
-
+private:
   bool m_first_frame;
   simple_time m_time;
   int m_thousandths_degrees_rotation;
