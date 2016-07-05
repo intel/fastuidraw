@@ -143,6 +143,7 @@ private:
   command_line_argument_value<bool> m_init_draw_images;
   command_line_argument_value<float> m_init_stroke_width;
   command_line_argument_value<bool> m_init_anti_alias_stroking;
+  command_line_argument_value<bool> m_init_use_glyph_run;
 
   CellSharedState m_cell_shared_state;
   TableParams m_table_params;
@@ -214,6 +215,10 @@ painter_cells(void):
   m_init_anti_alias_stroking(true, "init_antialias_stroking",
                              "Initial value for anti-aliasing for stroking",
                              *this),
+  m_init_use_glyph_run(true, "init_use_glyph_run",
+                       "Intialize the value for using a QGlyphRun "
+                       "to render text",
+                       *this),
   m_table(NULL),
   m_key_downs(number_keys_tracked, false)
 {
