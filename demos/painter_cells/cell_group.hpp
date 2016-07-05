@@ -23,6 +23,7 @@ protected:
 
   vec2 m_bb_against_parent_min, m_bb_against_parent_max;
 
+  virtual
   void
   pre_paint(void);
 
