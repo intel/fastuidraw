@@ -119,7 +119,7 @@ handle_mouse_event(QMouseEvent &ev)
       if(ev.button() == Qt::LeftButton)
         {
           QPointF pt;
-          m_pt = ev.posF();
+          m_pt = QPointF(ev.pos());
           pt.rx() = m_scale_event.x() * m_pt.x() + m_translate_event.x();
           pt.ry() = m_scale_event.y() * m_pt.y() + m_translate_event.y();
           handle_down(pt);
@@ -137,8 +137,8 @@ handle_mouse_event(QMouseEvent &ev)
       if(ev.buttons() & Qt::LeftButton)
         {
           QPointF delta, pt;
-          delta = ev.posF() - m_pt;
-          m_pt = ev.posF();
+          delta = QPointF(ev.pos()) - m_pt;
+          m_pt = QPointF(ev.pos());
           pt.rx() = m_scale_event.x() * m_pt.x() + m_translate_event.x();
           pt.ry() = m_scale_event.y() * m_pt.y() + m_translate_event.y();
           delta.rx() *= m_scale_event.x();
