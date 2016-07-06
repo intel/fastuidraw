@@ -27,6 +27,8 @@ RELEASE_FLAGS=-O3 -DNDEBUG $(CFLAGS_BASE)
 RELEASE_OBJS=$(patsubst %.cpp, release/%.o, $(SOURCES))
 DEBUG_OBJS=$(patsubst %.cpp, debug/%.o, $(SOURCES))
 
+all: cairo-painter-cells-release cairo-painter-cells-debug
+
 cairo-painter-cells-release: $(RELEASE_OBJS)
 	$(CXX) -o $@ $(RELEASE_OBJS) $(LIBS)
 
