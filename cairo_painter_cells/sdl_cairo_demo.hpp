@@ -113,6 +113,9 @@ private:
   void
   init_cairo(int w, int h);
 
+  void
+  cleanup_cairo(void);
+
   std::string m_about;
   command_separator m_common_label;
   command_line_argument_value<bool> m_fullscreen;

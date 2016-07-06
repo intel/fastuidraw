@@ -103,6 +103,27 @@ sdl_cairo_demo(const std::string &about_text):
 sdl_cairo_demo::
 ~sdl_cairo_demo()
 {
+  cleanup_cairo();
+
+  /* Destroying the Cairo-GL stuff apparently also
+     destroys the GL context, thus we do NOT call
+     SDL_GL_DeleteContext()
+   */
+
+  if(m_window)
+    {
+      SDL_ShowCursor(SDL_ENABLE);
+      SDL_SetWindowGrab(m_window, SDL_FALSE);
+
+      SDL_DestroyWindow(m_window);
+      SDL_Quit();
+    }
+}
+
+void
+sdl_cairo_demo::
+cleanup_cairo(void)
+{
   if(m_cairo)
     {
       cairo_destroy(m_cairo);
@@ -133,21 +154,6 @@ sdl_cairo_demo::
   if(m_cairo_gl_device)
     {
       cairo_device_destroy(m_cairo_gl_device);
-    }
-
-  if(m_sdl_gl_ctx)
-    {
-      SDL_GL_MakeCurrent(m_window, NULL);
-      SDL_GL_DeleteContext(m_sdl_gl_ctx);
-    }
-
-  if(m_window)
-    {
-      SDL_ShowCursor(SDL_ENABLE);
-      SDL_SetWindowGrab(m_window, SDL_FALSE);
-
-      SDL_DestroyWindow(m_window);
-      SDL_Quit();
     }
 }
 
@@ -312,16 +318,7 @@ init_cairo(int w, int h)
         SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &double_buffered);
         m_cairo_window_surface = cairo_gl_surface_create_for_window(m_cairo_gl_device,
                                                                     m_x11_window, w, h);
-        if(double_buffered and false)
-          {
-            m_cairo_offscreen_surface = cairo_surface_create_similar(m_cairo_window_surface,
-                                                                     CAIRO_CONTENT_COLOR, w, h);
-            render_surface = m_cairo_offscreen_surface;
-          }
-        else
-          {
-            render_surface = m_cairo_window_surface;
-          }
+        render_surface = m_cairo_window_surface;
       }
       break;
 #endif
@@ -333,15 +330,24 @@ init_cairo(int w, int h)
     }
 
   m_cairo = cairo_create(render_surface);
-  derived_init(w, h);
 }
 
 void
 sdl_cairo_demo::
 on_resize(int w, int h)
 {
-  /* resize surfaces..
-   */
+  #if HAVE_CAIRO_GL
+    {
+      if(m_sdl_gl_ctx)
+        {
+          cairo_gl_surface_set_size(m_cairo_window_surface, w, h);
+          return;
+        }
+    }
+  #endif
+
+  cleanup_cairo();
+  init_cairo(w, h);
 }
 
 void
@@ -420,6 +426,7 @@ main(int argc, char **argv)
   m_run_demo = true;
   SDL_GetWindowSize(m_window, &w, &h);
   init_cairo(w, h);
+  derived_init(w, h);
 
   num_frames = 0;
   while(m_run_demo)
