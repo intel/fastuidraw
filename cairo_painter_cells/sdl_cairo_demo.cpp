@@ -96,7 +96,8 @@ sdl_cairo_demo(const std::string &about_text):
   m_cairo_offscreen_surface(NULL),
   m_pixmap(0),
   m_sdl_surface(NULL),
-  m_sdl_gl_ctx(NULL)
+  m_sdl_gl_ctx(NULL),
+  m_cairo_gl_device(NULL)
 {}
 
 sdl_cairo_demo::
@@ -127,6 +128,11 @@ sdl_cairo_demo::
   if(m_cairo_offscreen_surface)
     {
       cairo_surface_destroy(m_cairo_offscreen_surface);
+    }
+
+  if(m_cairo_gl_device)
+    {
+      cairo_device_destroy(m_cairo_gl_device);
     }
 
   if(m_sdl_gl_ctx)
@@ -364,7 +370,8 @@ present(void)
 #if HAVE_CAIRO_GL
     case backend_cairo_gl:
       {
-        cairo_gl_surface_swapbuffers(m_cairo_window_surface);
+        cairo_surface_flush(m_cairo_window_surface);
+        SDL_GL_SwapWindow(m_window);
       }
       break;
 #endif
