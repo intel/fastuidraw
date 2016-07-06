@@ -101,7 +101,7 @@ private:
     {
       backend_cairo_xlib_on_screen,
       backend_cairo_xlib_off_screen,
-      backend_cairo_ximage,
+      backend_cairo_sdl_surface,
     };
 
   enum return_code
@@ -136,6 +136,10 @@ private:
 
   /* offscreen surface for X
    */
-  bool m_allocated_pixmap;
   Pixmap m_pixmap;
+
+  /* offscreen surface for CPU rendering
+     to an SDL_Surface
+   */
+  SDL_Surface *m_sdl_surface;
 };

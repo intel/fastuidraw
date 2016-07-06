@@ -43,6 +43,7 @@ namespace
 sdl_cairo_demo::
 sdl_cairo_demo(const std::string &about_text):
   m_handle_events(true),
+  m_cairo(NULL),
   m_about(command_line_argument::tabs_to_spaces(command_line_argument::format_description_string("", about_text))),
   m_common_label("Screen Option", *this),
   m_fullscreen(false, "fullscreen", "fullscreen mode", *this),
@@ -54,14 +55,17 @@ sdl_cairo_demo(const std::string &about_text):
             enumerated_string_type<enum backend_cairo_t>()
             .add_entry("xlib_onscreen", backend_cairo_xlib_on_screen, "render directly to X window surface")
             .add_entry("xlib_offscreen", backend_cairo_xlib_off_screen, "render to X Pixmap then blit to window surface")
-            .add_entry("xlib_ximage", backend_cairo_ximage, "render to XImage"),
+            .add_entry("sdl_surface", backend_cairo_sdl_surface,
+                       "render to SDL_Surface (i.e. use cairo_image_surface_create_for_data "
+                       "with data buffer from SDL_Surface"),
             "cairo_backend",
             "Select Cairo backend",
             *this),
   m_window(NULL),
   m_cairo_window_surface(NULL),
   m_cairo_offscreen_surface(NULL),
-  m_allocated_pixmap(false)
+  m_pixmap(0),
+  m_sdl_surface(NULL)
 {}
 
 sdl_cairo_demo::
@@ -72,19 +76,26 @@ sdl_cairo_demo::
       cairo_destroy(m_cairo);
     }
 
-  if(m_cairo_offscreen_surface)
-    {
-      cairo_surface_destroy(m_cairo_offscreen_surface);
-    }
-
   if(m_cairo_window_surface)
     {
       cairo_surface_destroy(m_cairo_window_surface);
     }
 
-  if(m_allocated_pixmap)
+  if(m_pixmap)
     {
       XFreePixmap(m_x11_display, m_pixmap);
+      m_pixmap = 0;
+    }
+
+  if(m_sdl_surface)
+    {
+      SDL_UnlockSurface(m_sdl_surface);
+      SDL_FreeSurface(m_sdl_surface);
+    }
+
+  if(m_cairo_offscreen_surface)
+    {
+      cairo_surface_destroy(m_cairo_offscreen_surface);
     }
 
   if(m_window)
@@ -170,12 +181,32 @@ init_cairo(int w, int h)
 
     case backend_cairo_xlib_off_screen:
       {
-        m_allocated_pixmap = true;
         m_pixmap = XCreatePixmap(m_x11_display, m_x11_window,
                                  w, h, attribs.depth);
         m_cairo_offscreen_surface =
           cairo_xlib_surface_create(m_x11_display, m_pixmap,
                                     attribs.visual, w, h);
+        render_surface = m_cairo_offscreen_surface;
+      }
+      break;
+
+    case backend_cairo_sdl_surface:
+      {
+        Uint32 flags(0);
+        int bpp(32);
+        Uint32 red_mask(0x00FF0000), green_mask(0x0000FF00);
+        Uint32 blue_mask(0x000000FF), alpha_mask(0);
+        unsigned char *pixels;
+        m_sdl_surface = SDL_CreateRGBSurface(flags, w, h, bpp,
+                                             red_mask, green_mask,
+                                             blue_mask, alpha_mask);
+        SDL_LockSurface(m_sdl_surface);
+        pixels = static_cast<unsigned char*>(m_sdl_surface->pixels);
+        m_cairo_offscreen_surface = cairo_image_surface_create_for_data(pixels,
+                                                                        CAIRO_FORMAT_RGB24,
+                                                                        m_sdl_surface->w,
+                                                                        m_sdl_surface->h,
+                                                                        m_sdl_surface->pitch);
         render_surface = m_cairo_offscreen_surface;
       }
       break;
@@ -209,9 +240,11 @@ present(void)
       cairo_surface_flush(m_cairo_window_surface);
       break;
 
+    case backend_cairo_sdl_surface:
     case backend_cairo_xlib_off_screen:
       {
         cairo_t *cr;
+        cairo_surface_flush(m_cairo_offscreen_surface);
         cr = cairo_create(m_cairo_window_surface);
         cairo_set_source_surface (cr, m_cairo_offscreen_surface, 0, 0);
         cairo_paint(cr);
