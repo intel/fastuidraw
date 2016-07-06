@@ -25,6 +25,10 @@
 #include <SDL_render.h>
 #include <SDL_surface.h>
 
+#if HAVE_CAIRO_GL
+  #include <cairo-gl.h>
+#endif
+
 #include "generic_command_line.hpp"
 #include "simple_time.hpp"
 #include "sdl_cairo_demo.hpp"
@@ -55,17 +59,44 @@ sdl_cairo_demo(const std::string &about_text):
             enumerated_string_type<enum backend_cairo_t>()
             .add_entry("xlib_onscreen", backend_cairo_xlib_on_screen, "render directly to X window surface")
             .add_entry("xlib_offscreen", backend_cairo_xlib_off_screen, "render to X Pixmap then blit to window surface")
+#if HAVE_CAIRO_GL
+            .add_entry("gl", backend_cairo_gl, "use Cairo GL backend")
+#endif
             .add_entry("sdl_surface", backend_cairo_sdl_surface,
                        "render to SDL_Surface (i.e. use cairo_image_surface_create_for_data "
                        "with data buffer from SDL_Surface"),
             "cairo_backend",
             "Select Cairo backend",
             *this),
+#if HAVE_CAIRO_GL
+  m_gl_options("GL options (only active if cairo_backend is gl)", *this),
+  m_depth_bits(24, "depth_bits",
+               "Bpp of depth buffer of GL, non-positive values mean use SDL defaults",
+               *this),
+  m_stencil_bits(8, "stencil_bits",
+                 "Bpp of stencil buffer of GL, non-positive values mean use SDL defaults",
+                 *this),
+  m_use_msaa(false, "enable_msaa", "If true enables MSAA for GL", *this),
+  m_msaa(4, "msaa_samples",
+         "If greater than 0, specifies the number of samples "
+         "to request for MSAA for GL. If not, SDL will choose the "
+         "sample count as the highest available value",
+         *this),
+  m_swap_interval(-1, "swap_interval",
+                  "If set, pass the specified value to SDL_GL_SetSwapInterval, "
+                  "a value of 0 means no vsync, a value of 1 means vsync and "
+                  "a value of -1, if the platform supports, late swap tearing "
+                  "as found in extensions GLX_EXT_swap_control_tear and "
+                  "WGL_EXT_swap_control_tear. STRONG REMINDER: the value is "
+                  "only passed to SDL_GL_SetSwapInterval if the value is set "
+                  "at command line", *this),
+#endif
   m_window(NULL),
   m_cairo_window_surface(NULL),
   m_cairo_offscreen_surface(NULL),
   m_pixmap(0),
-  m_sdl_surface(NULL)
+  m_sdl_surface(NULL),
+  m_sdl_gl_ctx(NULL)
 {}
 
 sdl_cairo_demo::
@@ -98,6 +129,12 @@ sdl_cairo_demo::
       cairo_surface_destroy(m_cairo_offscreen_surface);
     }
 
+  if(m_sdl_gl_ctx)
+    {
+      SDL_GL_MakeCurrent(m_window, NULL);
+      SDL_GL_DeleteContext(m_sdl_gl_ctx);
+    }
+
   if(m_window)
     {
       SDL_ShowCursor(SDL_ENABLE);
@@ -125,9 +162,40 @@ init_sdl(void)
   int video_flags;
   video_flags = SDL_WINDOW_RESIZABLE;
 
+  #if HAVE_CAIRO_GL
+    {
+      if(m_backend.m_value.m_value == backend_cairo_gl)
+        {
+          video_flags |= SDL_WINDOW_OPENGL;
+
+          SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+          if(m_stencil_bits.m_value>=0)
+            {
+              SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, m_stencil_bits.m_value);
+            }
+
+          if(m_depth_bits.m_value>=0)
+            {
+              SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, m_depth_bits.m_value);
+            }
+
+          SDL_GL_SetAttribute( SDL_GL_RED_SIZE, 8);
+          SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, 8);
+          SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, 8);
+          SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, 8);
+
+          if(m_use_msaa.m_value)
+            {
+              SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1);
+              SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, m_msaa.m_value);
+            }
+        }
+    }
+  #endif
+
   if(m_fullscreen.m_value)
     {
-      video_flags=video_flags | SDL_WINDOW_FULLSCREEN;
+      video_flags = video_flags | SDL_WINDOW_FULLSCREEN;
     }
 
   // Create the SDL window
@@ -144,6 +212,21 @@ init_sdl(void)
       std::cerr << "\nFailed on SDL_SetVideoMode\n";
       return routine_fail;
     }
+
+  #if HAVE_CAIRO_GL
+    {
+      if(m_backend.m_value.m_value == backend_cairo_gl)
+        {
+          m_sdl_gl_ctx = SDL_GL_CreateContext(m_window);
+          if(m_sdl_gl_ctx == NULL)
+            {
+              std::cerr << "Unable to create GL context: " << SDL_GetError() << "\n";
+              return routine_fail;
+            }
+          SDL_GL_MakeCurrent(m_window, m_sdl_gl_ctx);
+        }
+    }
+  #endif
 
   if(m_hide_cursor.m_value)
     {
@@ -211,6 +294,32 @@ init_cairo(int w, int h)
       }
       break;
 
+#if HAVE_CAIRO_GL
+    case backend_cairo_gl:
+      {
+        GLXContext ctx;
+        int double_buffered(0);
+
+        ctx = glXGetCurrentContext();
+        assert(ctx);
+        m_cairo_gl_device = cairo_glx_device_create(m_x11_display, ctx);
+        SDL_GL_GetAttribute(SDL_GL_DOUBLEBUFFER, &double_buffered);
+        m_cairo_window_surface = cairo_gl_surface_create_for_window(m_cairo_gl_device,
+                                                                    m_x11_window, w, h);
+        if(double_buffered and false)
+          {
+            m_cairo_offscreen_surface = cairo_surface_create_similar(m_cairo_window_surface,
+                                                                     CAIRO_CONTENT_COLOR, w, h);
+            render_surface = m_cairo_offscreen_surface;
+          }
+        else
+          {
+            render_surface = m_cairo_window_surface;
+          }
+      }
+      break;
+#endif
+
     default:
       std::cerr << "Unsupported backend_cairo_t: " << m_backend.m_value.m_value
                 << "\n";
@@ -252,6 +361,13 @@ present(void)
         cairo_destroy(cr);
         }
       break;
+#if HAVE_CAIRO_GL
+    case backend_cairo_gl:
+      {
+        cairo_gl_surface_swapbuffers(m_cairo_window_surface);
+      }
+      break;
+#endif
 
     default:
       std::cerr << "Unsupported backend_cairo_t: " << bk << "\n";

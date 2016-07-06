@@ -102,6 +102,9 @@ private:
       backend_cairo_xlib_on_screen,
       backend_cairo_xlib_off_screen,
       backend_cairo_sdl_surface,
+#if HAVE_CAIRO_GL
+      backend_cairo_gl,
+#endif
     };
 
   enum return_code
@@ -118,6 +121,14 @@ private:
   command_line_argument_value<int> m_height;
   command_line_argument_value<bool> m_show_framerate;
   enumerated_command_line_argument_value<enum backend_cairo_t> m_backend;
+#if HAVE_CAIRO_GL
+  command_separator m_gl_options;
+  command_line_argument_value<int> m_depth_bits;
+  command_line_argument_value<int> m_stencil_bits;
+  command_line_argument_value<bool> m_use_msaa;
+  command_line_argument_value<int> m_msaa;
+  command_line_argument_value<int> m_swap_interval;
+#endif
 
   bool m_run_demo;
   int m_return_value;
@@ -142,4 +153,9 @@ private:
      to an SDL_Surface
    */
   SDL_Surface *m_sdl_surface;
+
+  /* Only active for GL backends!
+   */
+  SDL_GLContext m_sdl_gl_ctx;
+  cairo_device_t *m_cairo_gl_device;
 };
