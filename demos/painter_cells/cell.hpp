@@ -63,10 +63,11 @@ protected:
   void
   paint_pre_children(const Painter::handle &painter);
 
-private:
-
+  virtual
   void
   pre_paint(void);
+
+private:
 
   bool m_first_frame;
   simple_time m_time;

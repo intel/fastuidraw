@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include <fastuidraw/util/util.hpp>
 #include <sys/time.h>
+#include <stdint.h>
 
 class simple_time
 {
