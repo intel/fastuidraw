@@ -79,7 +79,7 @@ namespace
     fastuidraw::vec2 R;
     int fixed_coord;
 
-    fixed_coord=fastuidraw::fixed_coordinate(fastuidraw::detail::side_type(v));
+    fixed_coord=fastuidraw::detail::fixed_coordinate(fastuidraw::detail::side_type(v));
 
     R[fixed_coord]=(fastuidraw::detail::is_min_side_type(v))?
       texel_bl[fixed_coord]:
@@ -109,7 +109,7 @@ namespace
 
     if(v0==fastuidraw::detail::opposite_boundary(v1))
       {
-        if(fastuidraw::detail::side_type(v0)==fastuidraw::x_fixed)
+        if(fastuidraw::detail::side_type(v0)==fastuidraw::detail::x_fixed)
           {
             R[0]=vec2(texel_bl.x(), texel_bl.y());
             R[1]=vec2(texel_tr.x(), texel_bl.y());
@@ -124,7 +124,7 @@ namespace
       {
         R[1]=if_not_found;
 
-        if(side_type(v0)!=fastuidraw::x_fixed)
+        if(side_type(v0)!=fastuidraw::detail::x_fixed)
           {
             std::swap(v0, v1);
           }
@@ -821,8 +821,8 @@ compute_feature_importance(curve_cache &curves,
 
               int side(iter->second.begin()->first);
               enum fastuidraw::detail::boundary_type v(static_cast<enum fastuidraw::detail::boundary_type>(side));
-              enum fastuidraw::coordinate_type side_type(fastuidraw::detail::side_type(v));
-              int coord(fastuidraw::fixed_coordinate(side_type));
+              enum fastuidraw::detail::coordinate_type side_type(fastuidraw::detail::side_type(v));
+              int coord(fastuidraw::detail::fixed_coordinate(side_type));
 
               const char *side_type_labels[]=
                 {

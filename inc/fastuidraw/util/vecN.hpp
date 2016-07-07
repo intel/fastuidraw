@@ -89,11 +89,6 @@ public:
   typedef ptrdiff_t difference_type;
 
   /*!
-    Conveniance typedef.
-   */
-  typedef type_tag<T> value_type_tag;
-
-  /*!
     iterator typedef to pointer
    */
   typedef pointer iterator;
@@ -182,29 +177,6 @@ public:
     for(; i < N; ++i)
       {
         operator[](i) = value;
-      }
-  }
-
-  /*!
-    Copy constructor from an iterator range
-    \param pbegin iterator to first element
-    \param pend iterator to one past the last element
-    \param default_value value to use if iterator range is smaller than N
-  */
-  template<typename p_iterator>
-  vecN(p_iterator pbegin, p_iterator pend, enum copy_range_tag_type,
-       const T &default_value=T())
-  {
-    size_type i;
-
-    for(i = 0; pbegin != pend && i < N; ++pbegin, ++i)
-      {
-        operator[](i) = T(*pbegin);
-      }
-
-    for(; i < N; ++i)
-      {
-        operator[](i) = default_value;
       }
   }
 
