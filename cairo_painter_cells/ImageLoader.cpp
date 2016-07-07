@@ -20,10 +20,23 @@
 
 namespace
 {
+  inline
+  Uint8
+  pre_multiply_alpha(Uint8 alpha, Uint8 p)
+  {
+    float fa, fp;
+    fa = static_cast<float>(alpha) / 255.0;
+    fp = static_cast<float>(p);
+    fp *= fa;
+    return std::min(Uint32(255), static_cast<Uint32>(fp));
+  }
+
   ivec2
   load_image_worker(SDL_Surface *img, std::vector<uint8_t> &bits_data, bool flip)
   {
+    SDL_PixelFormat *fmt;
 
+    fmt = img->format;
     // Store some useful variables
     SDL_LockSurface(img);
 
@@ -36,6 +49,7 @@ namespace
 
     // Resize the vector holding the bit data
     bits_data.resize(w * h * 4);
+    assert(img->format->BytesPerPixel == 4);
 
     for(int y=0; y<h; ++y)
       {
@@ -43,43 +57,40 @@ namespace
 
 	for(int x=0; x<w; ++x)
 	  {
-	    int src_L, dest_L, channel;
+	    int src_L, dest_L;
+            Uint8 red, green, blue, alpha;
+            Uint32 temp, pixel;
 
 	    src_L = source_y * pitch + x * bytes_per_pixel;
 	    dest_L = 4 * (y * w + x);
 
-            if(img->format->BytesPerPixel == 4)
-              {
-                /* pre-multiply by alpha ...
-                 */
-                float alpha;
-                alpha = static_cast<float>(surface_data[src_L + 3]) / 255.0f;
-                bits_data[dest_L + 3] = surface_data[src_L + 3];
-                for(int i = 0; i < 3; ++i)
-                  {
-                    int v;
-                    float f;
+            pixel = *reinterpret_cast<const Uint32*>(surface_data + src_L);
 
-                    f = static_cast<float>(surface_data[src_L + i]) / 255.0f;
-                    f *= alpha;
-                    v = static_cast<int>(f);
-                    v = std::max(0, std::min(v, 255));
-                    bits_data[dest_L + i] = static_cast<uint8_t>(v);
-                  }
-              }
-            else
-              {
-                // Convert the pixel from surface data to Uint32
-                for(channel = 0; channel < img->format->BytesPerPixel && channel < 4; ++channel)
-                  {
-                    bits_data[dest_L + channel] = surface_data[src_L + channel];
-                  }
+            /* Get Alpha component */
+            temp = pixel & fmt->Amask;
+            temp = temp >> fmt->Ashift;
+            temp = temp << fmt->Aloss;
+            alpha = (Uint8)temp;
 
-                for(; channel < 4; ++channel)
-                  {
-                    bits_data[dest_L + channel] = 255;
-                  }
-              }
+            temp = pixel & fmt->Rmask;
+            temp = temp >> fmt->Rshift;
+            temp = temp << fmt->Rloss;
+            red = pre_multiply_alpha(alpha, (Uint8)temp);
+
+            temp = pixel & fmt->Gmask;
+            temp = temp >> fmt->Gshift;
+            temp = temp << fmt->Gloss;
+            green = pre_multiply_alpha(alpha, (Uint8)temp);
+
+            temp = pixel & fmt->Bmask;
+            temp = temp >> fmt->Bshift;
+            temp = temp << fmt->Bloss;
+            blue = pre_multiply_alpha(alpha, (Uint8)temp);
+
+            bits_data[dest_L + 3] = alpha;
+            bits_data[dest_L + 2] = red;
+            bits_data[dest_L + 1] = green;
+            bits_data[dest_L + 0] = blue;
 	  }
       }
     SDL_UnlockSurface(img);
@@ -103,31 +114,8 @@ load_image_to_array(const SDL_Surface *img,
       return ivec2(0,0);
     }
 
-  if( (img->format->BytesPerPixel != 4 ) || // Different bpp
-      (img->format->Rshift > img->format->Bshift)) // ABGR/BGR
-    {
-      SDL_PixelFormat tgt_fmt;
-
-      std::memset(&tgt_fmt, 0, sizeof(tgt_fmt));
-      tgt_fmt.palette = NULL;
-      tgt_fmt.BytesPerPixel = 4;
-      tgt_fmt.BitsPerPixel =  tgt_fmt.BytesPerPixel * 8;
-
-      tgt_fmt.Rshift = 0;
-      tgt_fmt.Gshift = 8;
-      tgt_fmt.Bshift = 16;
-      tgt_fmt.Ashift = 24;
-      tgt_fmt.Rmask = 0x000000FF;
-      tgt_fmt.Gmask = 0x0000FF00;
-      tgt_fmt.Bmask = 0x00FF0000;
-      tgt_fmt.Amask = 0xFF000000;
-      converted = SDL_ConvertSurface(const_cast<SDL_Surface*>(img), &tgt_fmt, 0);
-      q=converted;
-    }
-  else
-    {
-      q=const_cast<SDL_Surface*>(img);
-    }
+  converted = SDL_ConvertSurfaceFormat(const_cast<SDL_Surface*>(img), SDL_PIXELFORMAT_ARGB8888, 0);
+  q=converted;
 
   R=load_image_worker(q, out_bytes, flip);
 
@@ -171,6 +159,10 @@ create_image_from_array(const std::vector<uint8_t> &in_bytes,
                                             CAIRO_FORMAT_ARGB32,
                                             dimensions.x(), dimensions.y(),
                                             dimensions.x() * 4);
+
+  /* The actual image we return is so that Cairo choosed the pitch
+     to let it optimize its drawing.
+   */
   R = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
                                  dimensions.x(), dimensions.y());
   cr = cairo_create(R);
