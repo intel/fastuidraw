@@ -57,7 +57,60 @@ namespace fastuidraw
 namespace detail
 {
 
+  /*!
+    Enumeration to indicate which coordinate is fixed.
+   */
+  enum coordinate_type
+    {
+      /*!
+        indicates the x-coordinate is fixed
+        (and thus the y-coordinate is varying).
+       */
+      x_fixed=0,
 
+      /*!
+        indicates the y-coordinate is fixed
+        (and thus the x-coordinate is varying).
+       */
+      y_fixed=1,
+
+      /*!
+        Equivalent to y_fixed
+       */
+      x_varying=y_fixed,
+
+      /*!
+        Equivalent to x_fixed
+       */
+      y_varying=x_fixed
+    };
+
+  /*!
+    Returns the coordinate index that is fixed
+    for a given coordinate_type, i.e.
+    x_fixed returns 0.
+    \param tp coordinate_type to query.
+   */
+  inline
+  int
+  fixed_coordinate(enum coordinate_type tp)
+  {
+    return tp;
+  }
+
+  /*!
+    Returns the coordinateindex
+    that is varying for a given
+    coordinate_type, i.e.
+    x_fixed returns 1.
+    \param tp coordinate_type to query.
+   */
+  inline
+  int
+  varying_coordinate(enum coordinate_type tp)
+  {
+    return 1-fixed_coordinate(tp);
+  }
 
   /*!\class point_type
     For each glyph, there is a vectoral representation.

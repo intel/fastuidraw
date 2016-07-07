@@ -68,74 +68,6 @@ namespace fastuidraw
     };
 
   /*!
-    Enumeration type to label to copy a range
-    of values.
-  */
-  enum copy_range_tag_type
-    {
-      /*!
-        Enumeration type to label to copy a range
-        of values.
-      */
-      copy_range_tag,
-    };
-
-  /*!
-    Enumeration to indicate which coordinate is fixed.
-   */
-  enum coordinate_type
-    {
-      /*!
-        indicates the x-coordinate is fixed
-        (and thus the y-coordinate is varying).
-       */
-      x_fixed=0,
-
-      /*!
-        indicates the y-coordinate is fixed
-        (and thus the x-coordinate is varying).
-       */
-      y_fixed=1,
-
-      /*!
-        Equivalent to y_fixed
-       */
-      x_varying=y_fixed,
-
-      /*!
-        Equivalent to x_fixed
-       */
-      y_varying=x_fixed
-    };
-
-  /*!
-    Returns the coordinate index that is fixed
-    for a given coordinate_type, i.e.
-    x_fixed returns 0.
-    \param tp coordinate_type to query.
-   */
-  inline
-  int
-  fixed_coordinate(enum coordinate_type tp)
-  {
-    return tp;
-  }
-
-  /*!
-    Returns the coordinateindex
-    that is varying for a given
-    coordinate_type, i.e.
-    x_fixed returns 1.
-    \param tp coordinate_type to query.
-   */
-  inline
-  int
-  varying_coordinate(enum coordinate_type tp)
-  {
-    return 1-fixed_coordinate(tp);
-  }
-
-  /*!
     Returns the smallest power of 2 which
     is atleast as large as the passed value,
     i.e. returns n = 2^k where
@@ -272,30 +204,6 @@ namespace fastuidraw
     uint32_t mask;
     mask = (1u << num_bits) - 1u;
     return (value >> bit0) & mask;
-  }
-
-  /*!
-    Template meta-programming helper
-    to specify a type via a tag.
-  */
-  template<typename T>
-  struct type_tag
-  {
-    /*!
-      Get the original type from this typedef.
-    */
-    typedef T type;
-  };
-
-  /*!
-    Template meta-programming helper
-    to get a type tag from a type.
-  */
-  template<typename T>
-  struct type_tag<T>
-  get_type_tag(const T&)
-  {
-    return type_tag<T>();
   }
 
   /*!

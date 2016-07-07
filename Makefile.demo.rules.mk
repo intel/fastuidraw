@@ -8,10 +8,10 @@ ifeq ($(MINGW_BUILD),1)
   DEMO_COMMON_LIBS := $(subst -mwindows, ,$(TEMP))
 endif
 
-DEMO_release_CFLAGS_GL = $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GL_release_CFLAGS) `sdl2-config --cflags` -Idemos/common
-DEMO_debug_CFLAGS_GL = -g $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GL_debug_CFLAGS) `sdl2-config --cflags` -Idemos/common
-DEMO_release_CFLAGS_GLES = $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GLES_release_CFLAGS) `sdl2-config --cflags` -Idemos/common
-DEMO_debug_CFLAGS_GLES = -g $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GLES_debug_CFLAGS) `sdl2-config --cflags` -Idemos/common
+DEMO_release_CFLAGS_GL = $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GL_release_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
+DEMO_debug_CFLAGS_GL = -g $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GL_debug_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
+DEMO_release_CFLAGS_GLES = $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GLES_release_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
+DEMO_debug_CFLAGS_GLES = -g $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GLES_debug_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
 
 MAKEDEPEND = ./makedepend.sh
 

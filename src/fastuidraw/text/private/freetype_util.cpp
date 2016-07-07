@@ -131,12 +131,14 @@ Other important tricks:
 
 #include "freetype_util.hpp"
 
-using namespace fastuidraw;
 
 namespace
 {
-  typedef std::pair<enum fastuidraw::detail::boundary_type, const fastuidraw::detail::simple_line*> grab_entry;
-  typedef const fastuidraw::detail::BezierCurve* grab_key;
+  using namespace fastuidraw;
+  using namespace fastuidraw::detail;
+
+  typedef std::pair<enum boundary_type, const simple_line*> grab_entry;
+  typedef const BezierCurve* grab_key;
   typedef std::map<grab_key, std::list<grab_entry> > grab_map;
 
   void
@@ -636,34 +638,34 @@ namespace
   }
 
   bool
-  is_flat_curve(fastuidraw::detail::geometry_data dbg,
+  is_flat_curve(geometry_data dbg,
                 uint16_t i0, uint16_t i1, uint16_t i2)
   {
     return is_flat_curve(dbg.pt(i0), dbg.pt(i1), dbg.pt(i2));
 
   }
 
-  fastuidraw::detail::BezierCurve*
-  create_line_if_flat(fastuidraw::detail::geometry_data dbg,
+  BezierCurve*
+  create_line_if_flat(geometry_data dbg,
                       uint16_t i0, uint16_t i1, uint16_t i2)
   {
     if(is_flat_curve(dbg, i0, i1, i2))
       {
-        return FASTUIDRAWnew fastuidraw::detail::BezierCurve(dbg, i0, i2);
+        return FASTUIDRAWnew BezierCurve(dbg, i0, i2);
       }
     else
       {
-        return FASTUIDRAWnew fastuidraw::detail::BezierCurve(dbg, i0, i1, i2);
+        return FASTUIDRAWnew BezierCurve(dbg, i0, i1, i2);
       }
   }
 
 
   void
   grab_simple_lines(grab_map &hits_found,
-                    const boost::multi_array<fastuidraw::detail::analytic_return_type, 2> &dataLOD0,
+                    const boost::multi_array<analytic_return_type, 2> &dataLOD0,
                     int fixed_value, range_type<int> range,
                     enum coordinate_type coord,
-                    enum fastuidraw::detail::boundary_type which_to_grab)
+                    enum boundary_type which_to_grab)
   {
     ivec2 pix;
 
@@ -673,10 +675,10 @@ namespace
         pix[varying_coordinate(coord)]<range.m_end;
         ++pix[varying_coordinate(coord)])
       {
-        const fastuidraw::detail::analytic_return_type &R(dataLOD0[pix.x()][pix.y()]);
+        const analytic_return_type &R(dataLOD0[pix.x()][pix.y()]);
         for(int j=0, end_j=R.m_intersecions[which_to_grab].size(); j<end_j; ++j)
           {
-            const fastuidraw::detail::simple_line &L(R.m_intersecions[which_to_grab][j]);
+            const simple_line &L(R.m_intersecions[which_to_grab][j]);
             hits_found[L.m_source.m_bezier].push_back(grab_entry(which_to_grab, &L));
           }
       }
@@ -704,11 +706,11 @@ namespace
 
     if(prev.y()*next.y()<0.0f)
       {
-        return_value|=fastuidraw::detail::y_extremal_flag;
+        return_value|=y_extremal_flag;
       }
     if(prev.x()*next.x()<0.0f)
       {
-        return_value|=fastuidraw::detail::x_extremal_flag;
+        return_value|=x_extremal_flag;
       }
     return return_value;
   }
@@ -718,8 +720,8 @@ namespace
   {
     const int masks[2]=
       {
-        fastuidraw::detail::x_extremal_flag, //x_fixed=0
-        fastuidraw::detail::y_extremal_flag, //y_fixed=1
+        x_extremal_flag, //x_fixed=0
+        y_extremal_flag, //y_fixed=1
       };
     assert(tp==x_fixed or tp==y_fixed);
 
@@ -810,7 +812,7 @@ namespace detail
   }
 
   /////////////////////////////////////
-  //fastuidraw::detail::geometry_data methods
+  //geometry_data methods
   uint16_t
   geometry_data::
   push_back(const ivec2 &in_pt, char in_tag) const
@@ -848,7 +850,7 @@ namespace detail
 
 
   /////////////////////////////////////////
-  // fastuidraw::detail::BezierCurve methods
+  // BezierCurve methods
 
   BezierCurve::
   BezierCurve(geometry_data dbg,
@@ -1608,7 +1610,7 @@ namespace detail
   }
 
   /////////////////////////////////////////////
-  // fastuidraw::detail::ContourEmitterFromFT_Face metods
+  // ContourEmitterFromFT_Face metods
   ivec2
   ContourEmitterFromFT_Outline::
   transformation_filter(ivec2 p)
@@ -1805,7 +1807,7 @@ namespace detail
 
 
   /////////////////////////////////////////////
-  // fastuidraw::detail::RawOutlineData methods
+  // RawOutlineData methods
   RawOutlineData::
   RawOutlineData(const FT_Outline &outline,
                  int pscale_factor,
@@ -1975,7 +1977,7 @@ namespace detail
   }
 
   /////////////////////////////////////////////
-  // fastuidraw::detail::CoordinateConverter methods
+  // CoordinateConverter methods
   CoordinateConverter::
   CoordinateConverter(int pscale_factor,
                       const ivec2 &pbitmap_size,
@@ -2038,7 +2040,7 @@ namespace detail
 
 
   //////////////////////////////////////////////
-  // fastuidraw::detail::OutlineData methods
+  // OutlineData methods
   OutlineData::
   OutlineData(const FT_Outline &outline,
               const ivec2 &bitmap_size,
