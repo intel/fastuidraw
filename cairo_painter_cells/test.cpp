@@ -8,6 +8,7 @@ class test:public sdl_cairo_demo
 {
 public:
   test(void):
+    m_demo_options("Demo Options", *this),
     m_image_file("", "image", "Image to draw to moving rectangle", *this),
     m_x(0.0),
     m_y(0.0),
@@ -71,6 +72,10 @@ protected:
         m_pattern_dims.x() = cairo_image_surface_get_width(m_image);
         m_pattern_dims.y() = cairo_image_surface_get_height(m_image);
       }
+    else
+      {
+        m_pattern_dims = vec2(100.0, 100.0);
+      }
   }
 
   virtual
@@ -92,9 +97,10 @@ protected:
     cairo_paint(m_cairo);
 
     cairo_set_operator(m_cairo, CAIRO_OPERATOR_OVER);
+    cairo_translate(m_cairo, m_x - m_pattern_dims.x() * 0.5, m_y - m_pattern_dims.y() * 0.5);
+    cairo_save(m_cairo);
     if(m_pattern)
       {
-        cairo_translate(m_cairo, m_x - m_pattern_dims.x() * 0.5, m_y - m_pattern_dims.y() * 0.5);
         cairo_set_source(m_cairo, m_pattern);
         cairo_rectangle(m_cairo, 0.0, 0.0, m_pattern_dims.x(), m_pattern_dims.y());
         cairo_fill(m_cairo);
@@ -106,10 +112,19 @@ protected:
         g = 1.0;
         b = 1.0;
         cairo_new_path(m_cairo);
-        cairo_rectangle(m_cairo, m_x - 50.0, m_y - 50.0, 100.0, 100.0);
+        cairo_rectangle(m_cairo, 0.0, 0.0, m_pattern_dims.x(), m_pattern_dims.y());
         cairo_set_source_rgb(m_cairo, r, g, b);
         cairo_fill(m_cairo);
       }
+    cairo_restore(m_cairo);
+
+    cairo_save(m_cairo);
+    cairo_set_source_rgb(m_cairo, 1.0, 1.0, 0.0);
+    cairo_set_font_size (m_cairo, 240.0);
+    cairo_rotate(m_cairo, 45.0 * M_PI / 180.0);
+    cairo_move_to (m_cairo, 0, 0);
+    cairo_show_text (m_cairo, "Hello World");
+    cairo_restore(m_cairo);
 
     dx = delta_time_s * m_dx;
     dy = delta_time_s * m_dy;
@@ -133,6 +148,7 @@ protected:
   }
 
 private:
+  command_separator m_demo_options;
   command_line_argument_value<std::string> m_image_file;
 
   double m_x, m_y, m_dx, m_dy;
