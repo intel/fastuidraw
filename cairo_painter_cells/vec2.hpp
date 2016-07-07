@@ -26,6 +26,15 @@ public:
   }
 
   vec2
+  operator-(const vec2 &rhs) const
+  {
+    vec2 v(*this);
+    v.m_x -= rhs.m_x;
+    v.m_y -= rhs.m_y;
+    return v;
+  }
+
+  vec2
   operator*(const vec2 &rhs) const
   {
     vec2 v(*this);
@@ -43,6 +52,15 @@ public:
     return v;
   }
 
+  vec2
+  operator/(double s) const
+  {
+    vec2 v(*this);
+    v.m_x /= s;
+    v.m_y /= s;
+    return v;
+  }
+
   friend
   vec2
   operator*(const cairo_matrix_t &lhs, const vec2 &rhs)
@@ -53,6 +71,7 @@ public:
   }
 };
 
+inline
 cairo_matrix_t
 operator*(const cairo_matrix_t &lhs, const cairo_matrix_t &rhs)
 {

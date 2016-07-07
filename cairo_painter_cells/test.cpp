@@ -1,6 +1,7 @@
 #include "sdl_cairo_demo.hpp"
 #include "random.hpp"
 #include "simple_time.hpp"
+#include "ScaleTranslate.hpp"
 
 class test:public sdl_cairo_demo
 {
