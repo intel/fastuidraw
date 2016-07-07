@@ -21,6 +21,9 @@ namespace
   SkISize
   load_image_worker(SDL_Surface *img, std::vector<SkColor> &bits_data, bool flip)
   {
+    SDL_PixelFormat *fmt;
+
+    fmt = img->format;
     // Store some useful variables
     SDL_LockSurface(img);
 
@@ -40,24 +43,37 @@ namespace
 
 	for(int x=0; x<w; ++x)
 	  {
-	    int src_L, dest_L, channel;
-            uint8_t rgba[4];
+	    int src_L, dest_L;
+            Uint8 red, green, blue, alpha;
+            Uint32 temp, pixel;
 
 	    src_L = source_y * pitch + x * bytes_per_pixel;
 	    dest_L = y * w + x;
 
-	    // Convert the pixel from surface data to Uint32
-            for(channel = 0; channel < img->format->BytesPerPixel && channel < 4; ++channel)
-              {
-                rgba[channel] = surface_data[src_L + channel];
-              }
+            pixel = *reinterpret_cast<const Uint32*>(surface_data + src_L);
 
-            for(; channel < 4; ++channel)
-              {
-                rgba[channel] = 255;
-              }
+            /* Get Alpha component */
+            temp = pixel & fmt->Amask;
+            temp = temp >> fmt->Ashift;
+            temp = temp << fmt->Aloss;
+            alpha = (Uint8)temp;
 
-            bits_data[dest_L] = SkColorSetARGB(rgba[3], rgba[0], rgba[1], rgba[2]);
+            temp = pixel & fmt->Rmask;
+            temp = temp >> fmt->Rshift;
+            temp = temp << fmt->Rloss;
+            red = temp;
+
+            temp = pixel & fmt->Gmask;
+            temp = temp >> fmt->Gshift;
+            temp = temp << fmt->Gloss;
+            green = temp;
+
+            temp = pixel & fmt->Bmask;
+            temp = temp >> fmt->Bshift;
+            temp = temp << fmt->Bloss;
+            blue = temp;
+
+            bits_data[dest_L] = SkColorSetARGB(alpha, red, green, blue);
 	  }
       }
     SDL_UnlockSurface(img);
@@ -71,8 +87,6 @@ load_image_to_array(const SDL_Surface *img,
 		    std::vector<SkColor> &out_bytes,
 		    bool flip)
 {
-
-  SDL_Surface *converted(NULL);
   SDL_Surface *q;
   SkISize R;
 
@@ -80,40 +94,9 @@ load_image_to_array(const SDL_Surface *img,
     {
       return SkISize::Make(0, 0);
     }
-
-  if( (img->format->BytesPerPixel != 4 ) || // Different bpp
-      (img->format->Rshift > img->format->Bshift)) // ABGR/BGR
-    {
-      SDL_PixelFormat tgt_fmt;
-
-      std::memset(&tgt_fmt, 0, sizeof(tgt_fmt));
-      tgt_fmt.palette = NULL;
-      tgt_fmt.BytesPerPixel = 4;
-      tgt_fmt.BitsPerPixel =  tgt_fmt.BytesPerPixel * 8;
-
-      tgt_fmt.Rshift = 0;
-      tgt_fmt.Gshift = 8;
-      tgt_fmt.Bshift = 16;
-      tgt_fmt.Ashift = 24;
-      tgt_fmt.Rmask = 0x000000FF;
-      tgt_fmt.Gmask = 0x0000FF00;
-      tgt_fmt.Bmask = 0x00FF0000;
-      tgt_fmt.Amask = 0xFF000000;
-      converted = SDL_ConvertSurface(const_cast<SDL_Surface*>(img), &tgt_fmt, SDL_SWSURFACE);
-      q = converted;
-    }
-  else
-    {
-      q = const_cast<SDL_Surface*>(img);
-    }
-
+  q = SDL_ConvertSurfaceFormat(const_cast<SDL_Surface*>(img), SDL_PIXELFORMAT_RGBA8888, 0);
   R = load_image_worker(q, out_bytes, flip);
-
-  if(converted!=NULL)
-    {
-      SDL_FreeSurface(converted);
-    }
-
+  SDL_FreeSurface(q);
   return R;
 }
 
