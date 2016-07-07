@@ -17,6 +17,13 @@ public:
     m_y(py)
   {}
 
+  template<typename S>
+  explicit
+  Tvec2(const Tvec2<S> &obj):
+    m_x(obj.m_x),
+    m_y(obj.m_y)
+  {}
+
   T
   x(void) const { return m_x; }
 
@@ -95,4 +102,20 @@ operator*(const cairo_matrix_t &lhs, const cairo_matrix_t &rhs)
   cairo_matrix_t R;
   cairo_matrix_multiply(&R, &lhs, &rhs);
   return R;
+}
+
+template<typename T>
+inline
+void
+cairo_matrix_translate(cairo_matrix_t *m, const Tvec2<T> &t)
+{
+  cairo_matrix_translate(m, t.x(), t.y());
+}
+
+template<typename T>
+inline
+void
+cairo_translate(cairo_t *m, const Tvec2<T> &t)
+{
+  cairo_translate(m, t.x(), t.y());
 }

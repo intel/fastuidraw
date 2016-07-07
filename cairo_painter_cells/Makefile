@@ -21,6 +21,7 @@ endif
 
 SOURCES=generic_command_line.cpp random.cpp sdl_cairo_demo.cpp \
 	PainterWidget.cpp PanZoomTracker.cpp ImageLoader.cpp \
+	cell.cpp \
 	test.cpp
 
 CFLAGS_BASE=$(shell pkg-config --cflags $(CAIRO_PKG_STUFF)) $(shell sdl2-config --cflags) -Wall -Wextra -Wcast-qual -Wwrite-strings $(DEFINES)
