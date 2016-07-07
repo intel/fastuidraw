@@ -16,6 +16,18 @@ public:
     m_y(py)
   {}
 
+  double
+  x(void) const { return m_x; }
+
+  double
+  y(void) const { return m_y; }
+
+  double&
+  x(void) { return m_x; }
+
+  double&
+  y(void) { return m_y; }
+
   vec2
   operator+(const vec2 &rhs) const
   {

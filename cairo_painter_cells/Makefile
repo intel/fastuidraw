@@ -19,7 +19,9 @@ else
 DEFINES+=-DHAVE_CAIRO_GL=0
 endif
 
-SOURCES=generic_command_line.cpp random.cpp sdl_cairo_demo.cpp PainterWidget.cpp test.cpp
+SOURCES=generic_command_line.cpp random.cpp sdl_cairo_demo.cpp \
+	PainterWidget.cpp PanZoomTracker.cpp \
+	test.cpp
 
 CFLAGS_BASE=$(shell pkg-config --cflags $(CAIRO_PKG_STUFF)) $(shell sdl2-config --cflags) -Wall -Wextra -Wcast-qual -Wwrite-strings $(DEFINES)
 LIBS=-lm $(shell pkg-config --libs $(CAIRO_PKG_STUFF)) $(shell sdl2-config --libs)
