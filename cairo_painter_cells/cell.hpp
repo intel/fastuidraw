@@ -18,7 +18,8 @@ public:
     m_draw_text(true),
     m_draw_image(true),
     m_rotating(false),
-    m_pause(false)
+    m_pause(false),
+    m_stroke_width(10.0)
   {}
 
   bool m_draw_text;
@@ -26,6 +27,7 @@ public:
   bool m_rotating;
   bool m_pause;
   int m_cells_drawn;
+  double m_stroke_width;
 };
 
 class CellParams
