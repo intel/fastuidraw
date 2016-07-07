@@ -1,14 +1,17 @@
 CXX=g++
 
-CAIRO_PKG_STUFF:= cairo-xlib cairo-xcb xext
+CAIRO_PKG_STUFF= cairo-xlib
 
 # For many distros, Cairo is built without cairo-gl.
 # If using a custom cairo installed outside of default
 # distro paths, one needs to do:
 #  when building: export PKG_CONFIG_PATH=/path/to/custom/cairo/lib/pkgconfig
 #  when running: export LD_LIBRARY_PATH=/path/to/custom/cairo/lib/
-# where /path/to/custom is the value of --prefix used when running configure script of building Cairo
-CAIRO_GL:=$(shell pkg-config --exists cairo-gl && echo 1 || echo 0)
+# where /path/to/custom is the value of --prefix used when running configure
+# script of building Cairo; the LD_LIBRARY_PATH is needed because the linker
+# loader ends up prefering the system Cairo over the one in path although
+# pkgconfig --libs includes -L/path/to/custom/cairo
+CAIRO_GL=$(shell pkg-config --exists cairo-gl && echo 1 || echo 0)
 ifneq ($(CAIRO_GL),0)
 DEFINES+=-DHAVE_CAIRO_GL=1
 CAIRO_PKG_STUFF+=cairo-gl
