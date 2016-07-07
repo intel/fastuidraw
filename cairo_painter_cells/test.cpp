@@ -73,13 +73,13 @@ protected:
     dx = delta_time_s * m_dx;
     dy = delta_time_s * m_dy;
 
-    if(m_x + dx > wh.first || m_x + m_dx < 0.0)
+    if(m_x + dx > wh.first || m_x + dx < 0.0)
       {
         m_dx = -m_dx;
         dx = -dx;
       }
 
-    if(m_y + dy > wh.second || m_y + m_dy < 0.0)
+    if(m_y + dy > wh.second || m_y + dy < 0.0)
       {
         m_dy = -m_dy;
         dy = -dy;
