@@ -28,6 +28,7 @@ public:
   bool m_pause;
   int m_cells_drawn;
   double m_stroke_width;
+  color_t m_line_color;
 };
 
 class CellParams

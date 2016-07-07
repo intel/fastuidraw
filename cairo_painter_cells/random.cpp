@@ -25,3 +25,12 @@ random_value(float pmin, float pmax)
   r = static_cast<float>(v) / static_cast<float>(RAND_MAX);
   return pmin + r * (pmax - pmin);
 }
+
+vec2
+random_value(const vec2 &pmin, const vec2 &pmax)
+{
+  vec2 R;
+  R.x() = random_value(pmin.x(), pmax.x());
+  R.x() = random_value(pmin.y(), pmax.y());
+  return R;
+}

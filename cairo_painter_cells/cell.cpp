@@ -159,11 +159,11 @@ paint_pre_children(cairo_t *painter)
 
   if(m_shared_state->m_rotating && m_shared_state->m_stroke_width > 0.0)
     {
-      cairo_set_source_rgba(painter, 1.0, 1.0, 1.0, 1.0);
-      cairo_rectangle(painter, 0.0, 0.0, m_dimensions.x(), m_dimensions.y());
+      cairo_set_source_rgba(painter, m_shared_state->m_line_color);
       cairo_set_line_width(painter, m_shared_state->m_stroke_width);
       cairo_set_line_join(painter, CAIRO_LINE_JOIN_MITER);
       cairo_set_dash(painter, NULL, 0, 0.0);
+      cairo_rectangle(painter, 0.0, 0.0, m_dimensions.x(), m_dimensions.y());
       cairo_stroke(painter);
     }
   m_shared_state->m_cells_drawn++;

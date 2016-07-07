@@ -64,6 +64,15 @@ public:
   }
 
   Tvec2
+  operator/(const Tvec2 &rhs) const
+  {
+    Tvec2 v(*this);
+    v.m_x /= rhs.m_x;
+    v.m_y /= rhs.m_y;
+    return v;
+  }
+
+  Tvec2
   operator*(T s) const
   {
     Tvec2 v(*this);
