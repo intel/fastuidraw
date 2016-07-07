@@ -101,7 +101,7 @@ private:
     {
       backend_cairo_xlib_on_screen,
       backend_cairo_xlib_off_screen,
-      backend_cairo_sdl_surface,
+      backend_cairo_offscreen_data_surface,
 #if HAVE_CAIRO_GL
       backend_cairo_gl,
 #endif
@@ -153,9 +153,8 @@ private:
   Pixmap m_pixmap;
 
   /* offscreen surface for CPU rendering
-     to an SDL_Surface
    */
-  SDL_Surface *m_sdl_surface;
+  std::vector<unsigned char> m_offscreen_data_pixels;
 
   /* Only active for GL backends!
    */
