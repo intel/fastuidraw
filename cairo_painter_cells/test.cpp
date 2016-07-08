@@ -3,6 +3,7 @@
 #include "simple_time.hpp"
 #include "ScaleTranslate.hpp"
 #include "ImageLoader.hpp"
+#include "text.hpp"
 
 class test:public sdl_cairo_demo
 {
@@ -10,6 +11,9 @@ public:
   test(void):
     m_demo_options("Demo Options", *this),
     m_image_file("", "image", "Image to draw to moving rectangle", *this),
+    m_font_file("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "font_file", "Font to use", *this),
+    m_layout_pixel_size(24, "layout_pixel_size", "Font pixel size with which to layout text", *this),
+    m_render_pixel_size(48, "render_pixel_size", "Font pixel size with which to draw text", *this),
     m_x(0.0),
     m_y(0.0),
     m_dx(100.0),
@@ -17,7 +21,8 @@ public:
     m_image(NULL),
     m_pattern(NULL),
     m_pattern_dims(0.0, 0.0)
-  {}
+  {
+  }
 
   ~test()
   {
@@ -29,6 +34,11 @@ public:
     if(m_image)
       {
         cairo_surface_destroy(m_image);
+      }
+
+    if(m_font)
+      {
+        delete m_font;
       }
   }
 
@@ -76,6 +86,10 @@ protected:
       {
         m_pattern_dims = vec2(100.0, 100.0);
       }
+    double scale_factor;
+    m_font = ft_cairo_font::create_font(m_font_file.m_value, m_layout_pixel_size.m_value);
+    scale_factor = m_render_pixel_size.m_value / static_cast<double>(m_font->pixel_size());
+    m_font->layout_glyphs("Hello World\nSuch a World!", scale_factor, m_glyph_run);
   }
 
   virtual
@@ -120,10 +134,11 @@ protected:
 
     cairo_save(m_cairo);
     cairo_set_source_rgb(m_cairo, 1.0, 1.0, 0.0);
-    cairo_set_font_size (m_cairo, 240.0);
-    cairo_rotate(m_cairo, 45.0 * M_PI / 180.0);
+    cairo_set_font_size (m_cairo, m_render_pixel_size.m_value);
+    //cairo_rotate(m_cairo, 45.0 * M_PI / 180.0);
     cairo_move_to (m_cairo, 0, 0);
-    cairo_show_text (m_cairo, "Hello World");
+    cairo_set_font_face(m_cairo, m_font->cairo_font());
+    cairo_show_glyphs(m_cairo, &m_glyph_run[0], m_glyph_run.size());
     cairo_restore(m_cairo);
 
     dx = delta_time_s * m_dx;
@@ -150,12 +165,18 @@ protected:
 private:
   command_separator m_demo_options;
   command_line_argument_value<std::string> m_image_file;
+  command_line_argument_value<std::string> m_font_file;
+  command_line_argument_value<int> m_layout_pixel_size;
+  command_line_argument_value<float> m_render_pixel_size;
 
   double m_x, m_y, m_dx, m_dy;
   simple_time m_timer;
   cairo_surface_t *m_image;
   cairo_pattern_t *m_pattern;
   vec2 m_pattern_dims;
+
+  ft_cairo_font *m_font;
+  std::vector<cairo_glyph_t> m_glyph_run;
 };
 
 int
