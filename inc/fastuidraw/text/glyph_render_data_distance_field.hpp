@@ -43,7 +43,9 @@ namespace fastuidraw
     ~GlyphRenderDataDistanceField(void);
 
     /*!
-      Returns the resolution of the glyph
+      Returns the resolution of the glyph with padding.
+      The padding is to be 1 pixel wide on the bottom
+      and on the right.
      */
     ivec2
     resolution(void) const;

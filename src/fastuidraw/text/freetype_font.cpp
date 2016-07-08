@@ -165,13 +165,14 @@ common_compute_rendering_data(int pixel_size, FT_Int32 load_flags,
 
   output.m_size.x() = to_pixel_sizes(m_face->glyph->metrics.width);
   output.m_size.y() = to_pixel_sizes(m_face->glyph->metrics.height);
-  output.m_horizontal_layout_origin.x() = to_pixel_sizes(m_face->glyph->metrics.horiBearingX);
-  output.m_horizontal_layout_origin.y() = to_pixel_sizes(m_face->glyph->metrics.horiBearingY) - output.m_size.y();
-  output.m_vertical_layout_origin.x() = to_pixel_sizes(m_face->glyph->metrics.vertBearingX);
-  output.m_vertical_layout_origin.y() = to_pixel_sizes(m_face->glyph->metrics.vertBearingY) - output.m_size.y();
+  output.m_horizontal_layout_offset.x() = to_pixel_sizes(m_face->glyph->metrics.horiBearingX);
+  output.m_horizontal_layout_offset.y() = to_pixel_sizes(m_face->glyph->metrics.horiBearingY) - output.m_size.y();
+  output.m_vertical_layout_offset.x() = to_pixel_sizes(m_face->glyph->metrics.vertBearingX);
+  output.m_vertical_layout_offset.y() = to_pixel_sizes(m_face->glyph->metrics.vertBearingY) - output.m_size.y();
   output.m_advance.x() = to_pixel_sizes(m_face->glyph->metrics.horiAdvance);
   output.m_advance.y() = to_pixel_sizes(m_face->glyph->metrics.vertAdvance);
   output.m_glyph_code = glyph_code;
+  output.m_pixel_size = pixel_size;
   output.m_font = m_p;
 }
 
@@ -189,8 +190,6 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
 
   bitmap_sz.x() = m_face->glyph->bitmap.width;
   bitmap_sz.y() = m_face->glyph->bitmap.rows;
-  layout.m_texel_size = fastuidraw::vec2(bitmap_sz);
-  layout.m_pixel_size = pixel_size;
 
   /* add one pixel slack on glyph
    */
@@ -242,8 +241,6 @@ compute_rendering_data(uint32_t glyph_code,
     bitmap_sz.y() = m_face->glyph->bitmap.rows;
     bitmap_offset.x() = m_face->glyph->bitmap_left;
     bitmap_offset.y() = m_face->glyph->bitmap_top - m_face->glyph->bitmap.rows;
-    layout.m_texel_size = fastuidraw::vec2(bitmap_sz);
-    layout.m_pixel_size = pixel_size;
 
     fastuidraw::detail::OutlineData outline_data(m_face->glyph->outline, bitmap_sz, bitmap_offset, dbg);
 
@@ -297,8 +294,6 @@ compute_rendering_data(uint32_t glyph_code,
     bitmap_sz.y() = m_face->glyph->bitmap.rows;
     bitmap_offset.x() = m_face->glyph->bitmap_left;
     bitmap_offset.y() = m_face->glyph->bitmap_top - m_face->glyph->bitmap.rows;
-    layout.m_texel_size = fastuidraw::vec2(bitmap_sz);
-    layout.m_pixel_size = pixel_size;
     fastuidraw::detail::CurvePairGenerator gen(m_face->glyph->outline, bitmap_sz, bitmap_offset, output);
   m_mutex.unlock();
 

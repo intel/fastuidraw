@@ -112,8 +112,8 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
               empty_line = false;
               pen.x() += ratio * g.layout().m_advance.x();
 
-              tallest = std::max(tallest, ratio * (g.layout().m_horizontal_layout_origin.y() + g.layout().m_size.y()));
-              negative_tallest = std::min(negative_tallest, ratio * g.layout().m_horizontal_layout_origin.y());
+              tallest = std::max(tallest, ratio * (g.layout().m_horizontal_layout_offset.y() + g.layout().m_size.y()));
+              negative_tallest = std::min(negative_tallest, ratio * g.layout().m_horizontal_layout_offset.y());
             }
         }
 

@@ -229,6 +229,24 @@ namespace fastuidraw
     public reference_counted<GlyphAtlas>::default_base
   {
   public:
+
+    /*!
+      A Padding object holds how much of the data allocated
+      by \ref GlyphAtlas::allocate() is for padding.
+     */
+    class Padding
+    {
+    public:
+      Padding(void):
+        m_left(0),
+        m_right(0),
+        m_top(0),
+        m_bottom(0)
+      {}
+
+      unsigned int m_left, m_right, m_top, m_bottom;
+    };
+
     /*!
       Ctor.
       \param ptexel_store GlyphAtlasTexelBackingStoreBase to which to store texel data
@@ -246,9 +264,10 @@ namespace fastuidraw
       return false.
       \param size size of region to allocate
       \param data data to which to set the region allocated
+      \param padding amount of padding the passed data has
      */
     GlyphLocation
-    allocate(ivec2 size, const_c_array<uint8_t> data);
+    allocate(ivec2 size, const_c_array<uint8_t> data, const Padding &padding);
 
     /*!
       Free a region previously allocated by allocate().

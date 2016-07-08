@@ -218,7 +218,7 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
 
           assert(g.valid());
           assert(g.layout().m_glyph_code == uint32_t(glyph_index));
-          max_height = std::max(max_height, g.layout().m_texel_size.x());
+          max_height = std::max(max_height, g.layout().m_size.x());
           glyphs.push_back(g);
           character_codes.push_back(character_code);
         }
@@ -232,7 +232,7 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
           float advance;
 
           g = glyphs[i];
-          advance = scale_factor * std::max(g.layout().m_advance.x(), g.layout().m_texel_size.x());
+          advance = scale_factor * std::max(g.layout().m_advance.x(), g.layout().m_size.x());
 
           positions[i] = pen;
           pen.x() += advance;
