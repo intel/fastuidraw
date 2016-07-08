@@ -147,10 +147,13 @@ paint_pre_children(cairo_t *painter)
         }
     }
 
-  if(m_shared_state->m_draw_text && m_font)
+  if(m_shared_state->m_draw_text)
     {
+      if(m_font)
+        {
+          cairo_set_font_face(painter, m_font);
+        }
       cairo_set_source_rgba(painter, m_text_brush);
-      cairo_set_font_face(painter, m_font);
       cairo_move_to(painter, 0.0, 0.0);
       cairo_show_text(painter, m_text.c_str());
     }

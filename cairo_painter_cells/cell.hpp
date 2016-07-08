@@ -19,7 +19,8 @@ public:
     m_draw_image(true),
     m_rotating(false),
     m_pause(false),
-    m_stroke_width(10.0)
+    m_stroke_width(10.0),
+    m_anti_alias_stroking(true)
   {}
 
   bool m_draw_text;
@@ -29,6 +30,7 @@ public:
   int m_cells_drawn;
   double m_stroke_width;
   color_t m_line_color;
+  bool m_anti_alias_stroking;
 };
 
 class CellParams
