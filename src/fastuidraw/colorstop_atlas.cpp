@@ -439,12 +439,40 @@ ColorStopSequenceOnAtlas(const ColorStopSequence &pcolor_stops,
       {
         ColorStop prev_color(color_stops[color_stops_i-1]);
         ColorStop next_color(color_stops[color_stops_i]);
-        ColorInterpolator color_interpolate(prev_color, next_color);
 
-        for(; current_t <= next_color.m_place && data_i < data.size();
-            ++data_i, current_t += delta_t)
+        /* There are cases where an application might
+           add two color stops with the same stop location;
+           these are for the purpose of changing color
+           immediately at the named location. Adding the
+           check avoids a divide error. The next texel
+           in the gradient will observe the dramatic change.
+           However, passing an interpolate between the
+           immediate change and the texel after it will
+           have the gradient interpolate from before the
+           change to after the change sadly.
+
+           The only way to really handle "fast immediate"
+           changes is to make an array of (stop, color)
+           pair values packed into an array readable from
+           the shader and the fragment shader does the
+           search. This means that rather than a single
+           texture() command we would have multiple buffer
+           look up value in the frag shader to get the
+           interpolate. We can optimize it some where we
+           increase the array size to the nearest power of 2
+           so that within a triangle there is no branching
+           in the hunt, but that would mean log2(N) buffer
+           reads per pixel. ICK.
+         */
+        if(current_t < next_color.m_place)
           {
-            data[data_i] = color_interpolate.interpolate(current_t);
+            ColorInterpolator color_interpolate(prev_color, next_color);
+
+            for(; current_t < next_color.m_place && data_i < data.size();
+                ++data_i, current_t += delta_t)
+              {
+                data[data_i] = color_interpolate.interpolate(current_t);
+              }
           }
       }
 

@@ -94,7 +94,7 @@ values(void) const
   if(d->m_dirty)
     {
       d->m_dirty = false;
-      std::sort(d->m_values.begin(), d->m_values.end());
+      std::stable_sort(d->m_values.begin(), d->m_values.end());
     }
   return make_c_array(d->m_values);
 }
