@@ -30,6 +30,7 @@
 #include <SDL.h>
 
 #include "generic_command_line.hpp"
+#include "vec2.hpp"
 
 /*
   Notes:
@@ -81,7 +82,7 @@ protected:
     m_return_value=return_value;
   }
 
-  std::pair<int, int>
+  ivec2
   dimensions(void);
 
   virtual

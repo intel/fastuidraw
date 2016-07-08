@@ -46,13 +46,16 @@ Cell(PainterWidget *p, const CellParams &params):
   m_shared_state(params.m_state),
   m_timer_based_animation(params.m_timer_based_animation)
 {
-  std::ostringstream ostr;
-  ostr << "Cell (" << params.m_table_pos.x() << ", "
-       << params.m_table_pos.y() << ")"
-       << "\n" << params.m_text
-       << "\n" << params.m_image_name;
-
-  m_text = ostr.str();
+  if(m_font)
+    {
+      std::ostringstream ostr;
+      double scale_factor = 1.0;
+      ostr << "Cell (" << params.m_table_pos.x() << ", "
+           << params.m_table_pos.y() << ")"
+           << "\n" << params.m_text
+           << "\n" << params.m_image_name;
+      m_font->layout_glyphs(ostr.str(), scale_factor, m_glyph_run);
+    }
   m_dimensions = params.m_size;
   m_table_pos = m_dimensions * vec2(params.m_table_pos);
 }
@@ -147,15 +150,12 @@ paint_pre_children(cairo_t *painter)
         }
     }
 
-  if(m_shared_state->m_draw_text)
+  if(m_shared_state->m_draw_text && m_font)
     {
-      if(m_font)
-        {
-          cairo_set_font_face(painter, m_font);
-        }
+      cairo_set_font_face(painter, m_font->cairo_font());
       cairo_set_source_rgba(painter, m_text_brush);
       cairo_move_to(painter, 0.0, 0.0);
-      cairo_show_text(painter, m_text.c_str());
+      cairo_show_glyphs(painter, &m_glyph_run[0], m_glyph_run.size());
     }
 
   cairo_restore(painter);

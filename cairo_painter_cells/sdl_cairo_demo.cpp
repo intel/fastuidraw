@@ -453,13 +453,13 @@ main(int argc, char **argv)
   return m_return_value;
 }
 
-std::pair<int, int>
+ivec2
 sdl_cairo_demo::
 dimensions(void)
 {
-  std::pair<int, int> wh;
+  ivec2 wh;
 
   assert(m_window);
-  SDL_GetWindowSize(m_window, &wh.first, &wh.second);
+  SDL_GetWindowSize(m_window, &wh.x(), &wh.y());
   return wh;
 }

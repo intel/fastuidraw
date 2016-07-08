@@ -8,11 +8,11 @@
 #include <cairo.h>
 #include <cairo-ft.h>
 
-#include "color.h"
-#include "vec2.h"
+#include "color.hpp"
+#include "vec2.hpp"
 
 #include "PainterWidget.hpp"
-#include "sdl_skia_demo.hpp"
+#include "sdl_cairo_demo.hpp"
 #include "simple_time.hpp"
 #include "PanZoomTracker.hpp"
 #include "ImageLoader.hpp"
@@ -239,24 +239,24 @@ painter_cells::
     {
       if(m_table_params.m_images[i].first != NULL)
         {
-          delete m_table_params.m_images[i].first;
+          cairo_surface_destroy(m_table_params.m_images[i].first);
         }
     }
 }
 
 void
 painter_cells::
-generate_random_colors(int count, std::vector<SkColor> &out_values)
+generate_random_colors(int count, std::vector<color_t> &out_values)
 {
   out_values.resize(count);
   for(int i = 0; i < count; ++i)
     {
-      uint8_t r, g, b, a;
-      r = static_cast<uint8_t>(255.0f * random_value(0.0f, 1.0f));
-      g = static_cast<uint8_t>(255.0f * random_value(0.0f, 1.0f));
-      b = static_cast<uint8_t>(255.0f * random_value(0.0f, 1.0f));
-      a = static_cast<uint8_t>(255.0f * random_value(0.2f, 0.8f));
-      out_values[i] = SkColorSetARGB(a, r, g, b);
+      double r, g, b, a;
+      r = random_value(0.0f, 1.0f);
+      g = random_value(0.0f, 1.0f);
+      b = random_value(0.0f, 1.0f);
+      a = random_value(0.2f, 0.8f);
+      out_values[i] = color_t(r, g, b, a);
     }
 }
 
@@ -310,27 +310,12 @@ void
 painter_cells::
 add_single_image(const std::string &filename, std::vector<named_image> &dest)
 {
-  std::vector<SkColor> pixels;
-  SkISize image_size;
-
-  image_size = load_image_to_array(filename, pixels);
-  if(image_size.width() > 0 && image_size.height() > 0)
+  named_image p;
+  p.second = filename;
+  p.first = create_image_from_file(p.second);
+  if(p.first)
     {
-      SkBitmap bmp;
-      bmp.allocN32Pixels(image_size.width(), image_size.height());
-      bmp.lockPixels();
-      for(int y = 0; y < image_size.height(); ++y)
-        {
-          uint32_t *dst;
-          dst = bmp.getAddr32(0, y);
-          memcpy(dst, &pixels[y * image_size.width()], bmp.bytesPerPixel() * image_size.width());
-        }
-      bmp.unlockPixels();
-
-      SkImage *image;
-      image = SkImage::NewFromBitmap(bmp);
-      std::cout << "\tImage \"" << filename << "\" loaded @" << image << ".\n";
-      dest.push_back(named_image(image, filename));
+      dest.push_back(p);
     }
 }
 
@@ -347,7 +332,7 @@ derived_init(int w, int h)
   m_table_params.m_table_rotate_degrees_per_s = m_table_rotate_degrees_per_s.m_value;
   m_table_params.m_timer_based_animation = (m_num_frames.m_value <= 0);
   m_table_params.m_pixel_size = m_pixel_size.m_value;
-  m_table_params.m_font = NULL; //SkTypeface::CreateFromFile(m_font.m_value.c_str());
+  m_table_params.m_font = ft_cairo_font::create_font(m_font.m_value.c_str(), m_pixel_size.m_value);
   m_table_params.m_texts.reserve(m_strings.size() + m_files.size());
   for(command_line_list::iterator iter = m_strings.begin(); iter != m_strings.end(); ++iter)
     {
@@ -395,7 +380,7 @@ derived_init(int w, int h)
   ScaleTranslate tr1, tr2;
 
   twh = m_table_params.m_wh / vec2(w, h);
-  tr1.translation(m_table_params * double(-0.5));
+  tr1.translation(m_table_params.m_wh * double(-0.5));
   tr2.translation(vec2(w, h) * double(0.5f));
 
   if(m_init_show_all_table.m_value)
@@ -439,19 +424,13 @@ update_cts_params(void)
 
   if(keyboard_state[SDL_SCANCODE_RIGHTBRACKET])
     {
-      double w;
-      w = m_cell_shared_state.m_path_paint.getStrokeWidth();
-      w += m_change_stroke_width_rate.m_value * speed / m_zoomer.transformation().scale();
-      m_cell_shared_state.m_path_paint.setStrokeWidth(w);
+      m_cell_shared_state.m_stroke_width += m_change_stroke_width_rate.m_value * speed / m_zoomer.transformation().scale();
     }
 
   if(keyboard_state[SDL_SCANCODE_LEFTBRACKET])
     {
-      double w;
-      w = m_cell_shared_state.m_path_paint.getStrokeWidth();
-      w -= m_change_stroke_width_rate.m_value  * speed / m_zoomer.transformation().scale();
-      w = std::max(w, double(0));
-      m_cell_shared_state.m_path_paint.setStrokeWidth(w);
+      m_cell_shared_state.m_stroke_width -= m_change_stroke_width_rate.m_value  * speed / m_zoomer.transformation().scale();
+      m_cell_shared_state.m_stroke_width = std::max(m_cell_shared_state.m_stroke_width, 0.0);
     }
 }
 
@@ -497,44 +476,50 @@ draw_frame(void)
   cairo_t *painter;
   painter = m_cairo;
 
-  painter->resetMatrix();
-  painter->clear(SK_ColorGRAY);
+  cairo_save(painter);
 
-  painter->save();
-  painter->translate(m_zoomer.transformation().translation().x(),
-                     m_zoomer.transformation().translation().y());
-  painter->scale(m_zoomer.transformation().scale(),
-                 m_zoomer.transformation().scale());
+  //clear
+  cairo_set_operator(painter, CAIRO_OPERATOR_SOURCE);
+  cairo_set_source_rgb(painter, 0.5, 0.5, 0.5);
+  cairo_paint(painter);
+
+  //draw table
+  cairo_set_operator(m_cairo, CAIRO_OPERATOR_OVER);
+  cairo_save(painter);
+  cairo_translate(painter, m_zoomer.transformation().translation());
+  cairo_scale(painter, m_zoomer.transformation().scale(), m_zoomer.transformation().scale());
   m_table->m_bb_min = vec2(0, 0);
-  m_table->m_bb_max = dimensions();
+  m_table->m_bb_max = vec2(dimensions());
   m_table->paint(painter);
-  painter->restore();
+  cairo_restore(painter);
 
+  //draw text
   if(m_table_params.m_timer_based_animation)
      {
        std::ostringstream ostr;
-       std::string str;
-       const char *c_str;
 
-       ostr << "FPS = " << static_cast<int>(1000.0f / static_cast<float>(ms));
-       str = ostr.str();
-       c_str = str.c_str();
-       painter->drawText(c_str, strlen(c_str), 0, m_text_brush.getFontSpacing(), m_text_brush);
-
-       ostr.str("");
-       ostr << " ms = " << ms;
-       str = ostr.str();
-       c_str = str.c_str();
-       painter->drawText(c_str, strlen(c_str), 0, 2 * m_text_brush.getFontSpacing(), m_text_brush);
-
-       ostr.str("");
-       ostr << "Drew " << m_cell_shared_state.m_cells_drawn << " cells";
-       str = ostr.str();
-       c_str = str.c_str();
-       painter->drawText(c_str, strlen(c_str), 0, 3 * m_text_brush.getFontSpacing(), m_text_brush);
+       ostr << "FPS = ";
+       if(us > 0)
+         {
+           ostr << static_cast<int>(1000.0f * 1000.0f / static_cast<float>(us));
+         }
+       else
+         {
+           ostr << "NAN";
+         }
+       ostr << "\nms = " << ms
+            << "\nDrew " << m_cell_shared_state.m_cells_drawn << " cells";
+       if(m_table_params.m_font)
+         {
+           cairo_set_font_face(painter, m_table_params.m_font->cairo_font());
+         }
+       cairo_set_source_rgba(painter, 0.0, 1.0, 1.0, 0.0);
+       cairo_move_to(painter, 0.0, 0.0);
+       cairo_show_text(painter, ostr.str().c_str());
      }
 
-  painter->flush();
+  cairo_restore(painter);
+
   ++m_frame;
 }
 
@@ -564,9 +549,9 @@ handle_event(const SDL_Event &ev)
           end_demo(0);
           break;
         case SDLK_a:
-          m_cell_shared_state.m_path_paint.setAntiAlias(!m_cell_shared_state.m_path_paint.isAntiAlias());
+          m_cell_shared_state.m_anti_alias_stroking = !m_cell_shared_state.m_anti_alias_stroking;
           std::cout << "Stroking anti-aliasing = "
-                    << m_cell_shared_state.m_path_paint.isAntiAlias()
+                    << m_cell_shared_state.m_anti_alias_stroking
                     << "\n";
           break;
         case SDLK_v:

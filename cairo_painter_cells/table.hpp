@@ -12,7 +12,7 @@
 #include "cell_group.hpp"
 #include "simple_time.hpp"
 #include "PanZoomTracker.hpp"
-
+#include "text.hpp"
 
 typedef std::pair<cairo_surface_t*, std::string> named_image;
 class CellSharedState;
@@ -29,7 +29,7 @@ public:
   bool m_timer_based_animation;
   color_t m_line_color;
 
-  cairo_font_face_t *m_font;
+  ft_cairo_font *m_font;
   std::vector<color_t> m_text_colors;
   std::vector<color_t> m_background_colors;
   std::vector<std::string> m_texts;

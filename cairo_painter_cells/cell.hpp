@@ -7,6 +7,7 @@
 
 #include "vec2.hpp"
 #include "color.hpp"
+#include "text.hpp"
 
 #include "PainterWidget.hpp"
 #include "simple_time.hpp"
@@ -41,7 +42,7 @@ public:
   color_t m_rect_brush;
   color_t m_text_brush;
   double m_text_size;
-  cairo_font_face_t *m_font;
+  ft_cairo_font *m_font;
   std::string m_text;
   std::string m_image_name;
   vec2 m_pixels_per_ms;
@@ -85,11 +86,11 @@ private:
   color_t m_rect_brush;
   color_t m_text_brush;
   double m_text_size;
-  cairo_font_face_t *m_font;
+  ft_cairo_font *m_font;
 
   vec2 m_item_location;
   double m_item_rotation;
-  std::string m_text;
+  std::vector<cairo_glyph_t> m_glyph_run;
   CellSharedState *m_shared_state;
   bool m_timer_based_animation;
 };
