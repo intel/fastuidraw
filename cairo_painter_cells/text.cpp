@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <algorithm>
-#include <istream>
+#include <sstream>
 
 #include "text.hpp"
 
@@ -72,7 +72,15 @@ cleanup(void *p)
 
 void
 ft_cairo_font::
-layout_glyphs(std::istream &istr, std::vector<cairo_glyph_t> &output)
+layout_glyphs(const std::string &text, double scale_factor, std::vector<cairo_glyph_t> &output)
+{
+  std::istringstream str(text);
+  layout_glyphs(str, scale_factor, output);
+}
+
+void
+ft_cairo_font::
+layout_glyphs(std::istream &istr, double scale_factor, std::vector<cairo_glyph_t> &output)
 {
   std::streampos current_position, end_position;
   unsigned int loc(0);
@@ -112,9 +120,9 @@ layout_glyphs(std::istream &istr, std::vector<cairo_glyph_t> &output)
 
           const glyph_data &g(*m_glyph_data[sub_g[i].index]);
           empty_line = false;
-          pen.x() += g.m_advance.x();
-          tallest = std::max(tallest, (g.m_origin.y() + g.m_size.y()));
-          negative_tallest = std::min(negative_tallest, g.m_origin.y());
+          pen.x() += scale_factor * g.m_advance.x();
+          tallest = std::max(tallest, scale_factor * (g.m_origin.y() + g.m_size.y()));
+          negative_tallest = std::min(negative_tallest, scale_factor * g.m_origin.y());
         }
 
       if(empty_line)
@@ -136,6 +144,7 @@ layout_glyphs(std::istream &istr, std::vector<cairo_glyph_t> &output)
       loc += line.length();
       last_negative_tallest = negative_tallest;
     }
+
   output.resize(loc);
 }
 

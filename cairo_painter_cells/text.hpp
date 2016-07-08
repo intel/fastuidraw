@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <stdint.h>
+#include <istream>
 #include <cairo.h>
 #include <cairo-ft.h>
 #include "vec2.hpp"
@@ -26,8 +27,23 @@ public:
 
   ~ft_cairo_font(void);
 
+  cairo_font_face_t*
+  cairo_font(void)
+  {
+    return m_cairo_font;
+  }
+
+  int
+  pixel_size(void)
+  {
+    return m_pixel_size;
+  }
+
   void
-  layout_glyphs(std::istream &text, std::vector<cairo_glyph_t> &output);
+  layout_glyphs(std::istream &text, double scale_factor, std::vector<cairo_glyph_t> &output);
+
+  void
+  layout_glyphs(const std::string &text, double scale_factor, std::vector<cairo_glyph_t> &output);
 
 private:
   class ft_data
