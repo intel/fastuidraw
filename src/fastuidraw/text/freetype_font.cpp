@@ -33,6 +33,12 @@
 
 namespace
 {
+  float
+  to_pixel_sizes(FT_Pos p)
+  {
+    return static_cast<float>(p) / static_cast<float>(1<<6);
+  }
+
   inline
   uint8_t
   pixel_value_from_distance(float dist, bool outside)
@@ -156,24 +162,17 @@ common_compute_rendering_data(int pixel_size, FT_Int32 load_flags,
 
   FT_Set_Pixel_Sizes(m_face, pixel_size, pixel_size);
   FT_Load_Glyph(m_face, glyph_code, load_flags);
-  FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
 
-  bitmap_sz.x() = m_face->glyph->bitmap.width;
-  bitmap_sz.y() = m_face->glyph->bitmap.rows;
-
-  bitmap_offset.x() = m_face->glyph->bitmap_left;
-  bitmap_offset.y() = m_face->glyph->bitmap_top - m_face->glyph->bitmap.rows;
-
-  iadvance.x() = m_face->glyph->advance.x;
-  iadvance.y() = m_face->glyph->advance.y;
-
+  output.m_size.x() = to_pixel_sizes(m_face->glyph->metrics.width);
+  output.m_size.y() = to_pixel_sizes(m_face->glyph->metrics.height);
+  output.m_horizontal_layout_origin.x() = to_pixel_sizes(m_face->glyph->metrics.horiBearingX);
+  output.m_horizontal_layout_origin.y() = to_pixel_sizes(m_face->glyph->metrics.horiBearingY) - output.m_size.y();
+  output.m_vertical_layout_origin.x() = to_pixel_sizes(m_face->glyph->metrics.vertBearingX);
+  output.m_vertical_layout_origin.y() = to_pixel_sizes(m_face->glyph->metrics.vertBearingY) - output.m_size.y();
+  output.m_advance.x() = to_pixel_sizes(m_face->glyph->metrics.horiAdvance);
+  output.m_advance.y() = to_pixel_sizes(m_face->glyph->metrics.vertAdvance);
   output.m_glyph_code = glyph_code;
   output.m_font = m_p;
-  output.m_origin = fastuidraw::vec2(bitmap_offset);
-  output.m_advance = fastuidraw::vec2(iadvance) / 64.0f;
-  output.m_size = fastuidraw::vec2(bitmap_sz);
-  output.m_texel_size = fastuidraw::vec2(bitmap_sz);
-  output.m_pixel_size = pixel_size;
 }
 
 void
@@ -186,10 +185,12 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
   fastuidraw::autolock_mutex m(m_mutex);
 
   common_compute_rendering_data(pixel_size, FT_LOAD_DEFAULT, layout, glyph_code);
+  FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
 
   bitmap_sz.x() = m_face->glyph->bitmap.width;
   bitmap_sz.y() = m_face->glyph->bitmap.rows;
-
+  layout.m_texel_size = fastuidraw::vec2(bitmap_sz);
+  layout.m_pixel_size = pixel_size;
 
   /* add one pixel slack on glyph
    */
@@ -235,16 +236,18 @@ compute_rendering_data(uint32_t glyph_code,
   m_mutex.lock();
 
     common_compute_rendering_data(pixel_size, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING, layout, glyph_code);
+    FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
 
     bitmap_sz.x() = m_face->glyph->bitmap.width;
     bitmap_sz.y() = m_face->glyph->bitmap.rows;
     bitmap_offset.x() = m_face->glyph->bitmap_left;
     bitmap_offset.y() = m_face->glyph->bitmap_top - m_face->glyph->bitmap.rows;
+    layout.m_texel_size = fastuidraw::vec2(bitmap_sz);
+    layout.m_pixel_size = pixel_size;
 
     fastuidraw::detail::OutlineData outline_data(m_face->glyph->outline, bitmap_sz, bitmap_offset, dbg);
 
   m_mutex.unlock();
-
   if(bitmap_sz.x() != 0 && bitmap_sz.y() != 0)
     {
       /* add one pixel slack on glyph
@@ -276,7 +279,6 @@ compute_rendering_data(uint32_t glyph_code,
     {
       output.resize(fastuidraw::ivec2(0, 0));
     }
-
 }
 
 void
@@ -290,10 +292,13 @@ compute_rendering_data(uint32_t glyph_code,
 
   m_mutex.lock();
     common_compute_rendering_data(pixel_size, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING, layout, glyph_code);
+    FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
     bitmap_sz.x() = m_face->glyph->bitmap.width;
     bitmap_sz.y() = m_face->glyph->bitmap.rows;
     bitmap_offset.x() = m_face->glyph->bitmap_left;
     bitmap_offset.y() = m_face->glyph->bitmap_top - m_face->glyph->bitmap.rows;
+    layout.m_texel_size = fastuidraw::vec2(bitmap_sz);
+    layout.m_pixel_size = pixel_size;
     fastuidraw::detail::CurvePairGenerator gen(m_face->glyph->outline, bitmap_sz, bitmap_offset, output);
   m_mutex.unlock();
 

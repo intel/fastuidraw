@@ -65,17 +65,24 @@ namespace
     fastuidraw::vec2 glyph_size(SCALE * glyph.layout().m_size);
     fastuidraw::vec2 p_bl, p_tr;
 
+    /* ISSUE: we are assuming horizontal layout; we should probably
+       change the inteface so that caller chooses how to adjust
+       positions with the choices:
+         adjust_using_horizontal,
+         adjust_using_vertical,
+         no_adjust
+     */
     if(orientation == fastuidraw::PainterEnums::y_increases_downwards)
       {
-        p_bl.x() = p.x() + SCALE * glyph.layout().m_origin.x();
+        p_bl.x() = p.x() + SCALE * glyph.layout().m_horizontal_layout_origin.x();
         p_tr.x() = p_bl.x() + glyph_size.x();
 
-        p_bl.y() = p.y() - SCALE * glyph.layout().m_origin.y();
+        p_bl.y() = p.y() - SCALE * glyph.layout().m_horizontal_layout_origin.y();
         p_tr.y() = p_bl.y() - glyph_size.y();
       }
     else
       {
-        p_bl = p + SCALE * glyph.layout().m_origin;
+        p_bl = p + SCALE * glyph.layout().m_horizontal_layout_origin;
         p_tr = p_bl + glyph_size;
       }
 

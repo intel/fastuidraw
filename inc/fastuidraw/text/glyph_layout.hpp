@@ -42,7 +42,8 @@ namespace fastuidraw
     GlyphLayoutData(void):
       m_glyph_code(0),
       m_font(),
-      m_origin(0.0f, 0.0f),
+      m_horizontal_layout_origin(0.0f, 0.0f),
+      m_vertical_layout_origin(0.0f, 0.0f),
       m_size(0.0f, 0.0f),
       m_texel_size(0.0f, 0.0f),
       m_advance(0.0f, 0.0f),
@@ -61,10 +62,17 @@ namespace fastuidraw
 
     /*!
       The offset at which to display the
-      glyph (for drawing letters like y
-      that hang below the base line).
+      glyph when layouting the text horizontally
+      (for drawing letters like y that hang below
+      the base line).
      */
-    vec2 m_origin;
+    vec2 m_horizontal_layout_origin;
+
+    /*!
+      The offset at which to display the
+      glyph when layouting the text vertically.
+     */
+    vec2 m_vertical_layout_origin;
 
     /*!
       Size at which to draw the glyph
@@ -78,7 +86,10 @@ namespace fastuidraw
 
     /*!
       How much to advance the pen after
-      drawing the glyph.
+      drawing the glyph. The x-coordinate
+      holds the advance when performing
+      layout horizontally and y coordinate
+      when performing layout vertically
      */
     vec2 m_advance;
 
