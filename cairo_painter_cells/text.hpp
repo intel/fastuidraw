@@ -14,7 +14,6 @@ public:
   uint32_t m_glyph_code;
   vec2 m_origin;
   vec2 m_size;
-  vec2 m_texel_size;
   vec2 m_advance;
 };
 

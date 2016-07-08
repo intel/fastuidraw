@@ -6,6 +6,12 @@
 
 namespace
 {
+  double
+  to_pixel_sizes(FT_Pos p)
+  {
+    return static_cast<double>(p) / static_cast<double>(1<<6);
+  }
+
   void
   preprocess_text(std::string &text)
   {
@@ -140,7 +146,7 @@ layout_glyphs(std::istream &istr, double scale_factor, std::vector<cairo_glyph_t
         }
 
       pen.x() = 0.0;
-      pen.y() += offset + 1.0;
+      pen.y() += offset;
       loc += line.length();
       last_negative_tallest = negative_tallest;
     }
@@ -164,28 +170,19 @@ fetch_glyph(uint32_t character_code)
     {
       m_glyph_data[return_value] = new glyph_data();
 
-      ivec2 bitmap_sz, bitmap_offset, iadvance;
       glyph_data &output(*m_glyph_data[return_value]);
 
       FT_Set_Pixel_Sizes(m_ft_data->m_face, m_pixel_size, m_pixel_size);
       FT_Set_Transform(m_ft_data->m_face, NULL, NULL);
       FT_Load_Glyph(m_ft_data->m_face, return_value, FT_LOAD_DEFAULT);
-      FT_Render_Glyph(m_ft_data->m_face->glyph, FT_RENDER_MODE_NORMAL);
 
-      bitmap_sz.x() = m_ft_data->m_face->glyph->bitmap.width;
-      bitmap_sz.y() = m_ft_data->m_face->glyph->bitmap.rows;
-
-      bitmap_offset.x() = m_ft_data->m_face->glyph->bitmap_left;
-      bitmap_offset.y() = m_ft_data->m_face->glyph->bitmap_top - m_ft_data->m_face->glyph->bitmap.rows;
-
-      iadvance.x() = m_ft_data->m_face->glyph->advance.x;
-      iadvance.y() = m_ft_data->m_face->glyph->advance.y;
-
+      output.m_size.x() = to_pixel_sizes(m_ft_data->m_face->glyph->metrics.width);
+      output.m_size.y() = to_pixel_sizes(m_ft_data->m_face->glyph->metrics.height);
+      output.m_origin.x() = to_pixel_sizes(m_ft_data->m_face->glyph->metrics.horiBearingX) - output.m_size.x();
+      output.m_origin.y() = to_pixel_sizes(m_ft_data->m_face->glyph->metrics.horiBearingY) - output.m_size.y();
+      output.m_advance.x() = to_pixel_sizes(m_ft_data->m_face->glyph->metrics.horiAdvance);
+      output.m_advance.y() = to_pixel_sizes(m_ft_data->m_face->glyph->metrics.vertAdvance);
       output.m_glyph_code = return_value;
-      output.m_origin = vec2(bitmap_offset);
-      output.m_advance = vec2(iadvance) / 64.0f;
-      output.m_size = vec2(bitmap_sz);
-      output.m_texel_size = vec2(bitmap_sz);
     }
 
   return return_value;
