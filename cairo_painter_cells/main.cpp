@@ -486,6 +486,7 @@ draw_frame(void)
   //draw table
   cairo_set_operator(m_cairo, CAIRO_OPERATOR_OVER);
   cairo_save(painter);
+  cairo_identity_matrix(painter);
   cairo_translate(painter, m_zoomer.transformation().translation());
   cairo_scale(painter, m_zoomer.transformation().scale(), m_zoomer.transformation().scale());
   m_table->m_bb_min = vec2(0, 0);
@@ -494,7 +495,7 @@ draw_frame(void)
   cairo_restore(painter);
 
   //draw text
-  if(m_table_params.m_timer_based_animation)
+  if(m_table_params.m_timer_based_animation && m_table_params.m_font)
      {
        std::ostringstream ostr;
 
@@ -509,13 +510,16 @@ draw_frame(void)
          }
        ostr << "\nms = " << ms
             << "\nDrew " << m_cell_shared_state.m_cells_drawn << " cells";
-       if(m_table_params.m_font)
-         {
-           cairo_set_font_face(painter, m_table_params.m_font->cairo_font());
-         }
-       cairo_set_source_rgba(painter, 0.0, 1.0, 1.0, 0.0);
+
+       cairo_set_font_face(painter, m_table_params.m_font->cairo_font());
+       cairo_set_font_size(painter, m_table_params.m_font->pixel_size());
+       cairo_identity_matrix(painter);
+       cairo_set_source_rgba(painter, 0.0, 1.0, 1.0, 1.0);
        cairo_move_to(painter, 0.0, 0.0);
-       cairo_show_text(painter, ostr.str().c_str());
+
+       std::vector<cairo_glyph_t> glyph_run;
+       m_table_params.m_font->layout_glyphs(ostr.str(), 1.0, glyph_run);
+       cairo_show_glyphs(painter, &glyph_run[0], glyph_run.size());
      }
 
   cairo_restore(painter);

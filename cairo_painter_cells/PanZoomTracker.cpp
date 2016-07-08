@@ -109,8 +109,8 @@ handle_event(const SDL_Event &ev)
 
     case SDL_MOUSEMOTION:
       vec2 p, m;
-      p = vec2(ev.button.x, ev.button.y) * m_scale_event + m_translate_event;
-      m = vec2(ev.button.x, ev.button.y) * m_scale_event;
+      p = vec2(ev.motion.x, ev.motion.y) * m_scale_event + m_translate_event;
+      m = vec2(ev.motion.xrel, ev.motion.yrel) * m_scale_event;
       handle_motion(p, m);
       break;
     }

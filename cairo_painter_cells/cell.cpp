@@ -49,7 +49,8 @@ Cell(PainterWidget *p, const CellParams &params):
   if(m_font)
     {
       std::ostringstream ostr;
-      double scale_factor = 1.0;
+      double scale_factor;
+      scale_factor = double(m_text_size) / double(m_font->pixel_size());
       ostr << "Cell (" << params.m_table_pos.x() << ", "
            << params.m_table_pos.y() << ")"
            << "\n" << params.m_text
@@ -122,7 +123,8 @@ paint_pre_children(cairo_t *painter)
 
   //draw background
   cairo_set_source_rgba(painter, m_background_brush);
-  cairo_rectangle(painter, 0.0, 0.0, m_dimensions.x(), m_dimensions.y());
+  cairo_rectangle(painter, -1.0, -1.0, m_dimensions.x() + 1, m_dimensions.y() + 1);
+  cairo_fill(painter);
 
   //set transformation to rotate
   cairo_translate(painter, m_item_location);
@@ -153,6 +155,7 @@ paint_pre_children(cairo_t *painter)
   if(m_shared_state->m_draw_text && m_font)
     {
       cairo_set_font_face(painter, m_font->cairo_font());
+      cairo_set_font_size(painter, m_text_size);
       cairo_set_source_rgba(painter, m_text_brush);
       cairo_move_to(painter, 0.0, 0.0);
       cairo_show_glyphs(painter, &m_glyph_run[0], m_glyph_run.size());
