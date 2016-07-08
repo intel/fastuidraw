@@ -474,7 +474,9 @@ clear(void)
 
 const fastuidraw::detail::RectAtlas::rectangle*
 fastuidraw::detail::RectAtlas::
-add_rectangle(const ivec2 &dimensions)
+add_rectangle(const ivec2 &dimensions,
+              int left_padding, int right_padding,
+              int top_padding, int bottom_padding)
 {
   rectangle *return_value(NULL);
 
@@ -511,6 +513,8 @@ add_rectangle(const ivec2 &dimensions)
     }
   m_mutex.unlock();
 
+  return_value->finalize(left_padding, right_padding,
+                         top_padding, bottom_padding);
   return return_value;
 }
 

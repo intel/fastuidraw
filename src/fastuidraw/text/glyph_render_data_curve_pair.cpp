@@ -411,6 +411,10 @@ upload_to_atlas(const GlyphAtlas::handle &atlas,
   GlyphRenderDataCurvePairPrivate *d;
   d = reinterpret_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
 
+  GlyphAtlas::Padding padding;
+  padding.m_right = 1;
+  padding.m_bottom = 1;
+
   std::vector<uint8_t> primary, secondary;
   std::vector<float> geometry;
   bool has_secondary(false);
@@ -454,14 +458,14 @@ upload_to_atlas(const GlyphAtlas::handle &atlas,
   geometry_offset = -1;
   geometry_length = 0;
 
-  atlas_location = atlas->allocate(d->m_resolution, make_c_array(primary));
+  atlas_location = atlas->allocate(d->m_resolution, make_c_array(primary), padding);
   if(atlas_location.valid())
     {
       bool success(true);
 
       if(has_secondary)
         {
-          secondary_atlas_location = atlas->allocate(d->m_resolution, make_c_array(secondary));
+          secondary_atlas_location = atlas->allocate(d->m_resolution, make_c_array(secondary), padding);
           success = secondary_atlas_location.valid();
         }
 

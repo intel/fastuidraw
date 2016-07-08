@@ -57,7 +57,7 @@ namespace
     fastuidraw::GlyphLocation atlas(glyph.atlas_location());
     fastuidraw::GlyphLocation secondary_atlas(glyph.secondary_atlas_location());
     fastuidraw::uvec4 uint_values;
-    fastuidraw::vec2 tex_size(glyph.layout().m_texel_size);
+    fastuidraw::vec2 tex_size(atlas.size());
     fastuidraw::vec2 tex_xy(atlas.location());
     fastuidraw::vec2 secondary_tex_xy(secondary_atlas.location());
     fastuidraw::vec2 t_bl(tex_xy), t_tr(t_bl + tex_size);
@@ -74,15 +74,15 @@ namespace
      */
     if(orientation == fastuidraw::PainterEnums::y_increases_downwards)
       {
-        p_bl.x() = p.x() + SCALE * glyph.layout().m_horizontal_layout_origin.x();
+        p_bl.x() = p.x() + SCALE * glyph.layout().m_horizontal_layout_offset.x();
         p_tr.x() = p_bl.x() + glyph_size.x();
 
-        p_bl.y() = p.y() - SCALE * glyph.layout().m_horizontal_layout_origin.y();
+        p_bl.y() = p.y() - SCALE * glyph.layout().m_horizontal_layout_offset.y();
         p_tr.y() = p_bl.y() - glyph_size.y();
       }
     else
       {
-        p_bl = p + SCALE * glyph.layout().m_horizontal_layout_origin;
+        p_bl = p + SCALE * glyph.layout().m_horizontal_layout_offset;
         p_tr = p_bl + glyph_size;
       }
 

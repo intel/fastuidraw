@@ -107,7 +107,11 @@ upload_to_atlas(const GlyphAtlas::handle &atlas,
 {
   GlyphDataPrivate *d;
   d = reinterpret_cast<GlyphDataPrivate*>(m_d);
-  atlas_location = atlas->allocate(d->m_resolution, make_c_array(d->m_texels));
+
+  GlyphAtlas::Padding padding;
+  padding.m_right = 1;
+  padding.m_bottom = 1;
+  atlas_location = atlas->allocate(d->m_resolution, make_c_array(d->m_texels), padding);
   secondary_atlas_location = GlyphLocation();
   geometry_offset = -1;
   geometry_length = 0;

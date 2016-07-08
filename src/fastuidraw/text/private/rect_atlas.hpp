@@ -71,6 +71,18 @@ public:
       return m_size;
     }
 
+    const ivec2&
+    unpadded_minX_minY(void) const
+    {
+      return m_unpadded_minX_minY;
+    }
+
+    const ivec2&
+    unpadded_size(void) const
+    {
+      return m_unpadded_size;
+    }
+
     /*!\fn
       Returns the owning RectAtlas of this
       rectangle.
@@ -96,8 +108,17 @@ public:
       m_tree(NULL)
     {}
 
+    void
+    finalize(int left, int right,
+             int top, int bottom)
+    {
+      m_unpadded_minX_minY = m_minX_minY - ivec2(left, top);
+      m_unpadded_size = m_size - ivec2(left + right, top + bottom);
+    }
+
     RectAtlas *m_atlas;
     ivec2 m_minX_minY, m_size;
+    ivec2 m_unpadded_minX_minY, m_unpadded_size;
     tree_base *m_tree;
 
     void
@@ -124,7 +145,9 @@ public:
     \param dimension width and height of the rectangle
    */
   const rectangle*
-  add_rectangle(const ivec2 &dimension);
+  add_rectangle(const ivec2 &dimension,
+                int left_padding, int right_padding,
+                int top_padding, int bottom_padding);
 
   /*!\fn void clear
     Clears the RectAtlas, in doing so deleting

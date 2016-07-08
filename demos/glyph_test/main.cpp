@@ -380,7 +380,7 @@ pack_data(float SCALE, unsigned int i, Glyph G, vec2 p, vecN<GLuint, 6> &indices
 
   float layer(atlas_location.layer());
   float layer2(secondary_atlas_location.layer());
-  vec2 tex_size(G.layout().m_texel_size);
+  vec2 tex_size(atlas_location.size());
   vec2 atlas_loc(atlas_location.location());
   vec2 secondary_atlas_loc(secondary_atlas_location.location());
   vec2 t_bl(atlas_loc), t_tr(t_bl + tex_size);
@@ -388,10 +388,10 @@ pack_data(float SCALE, unsigned int i, Glyph G, vec2 p, vecN<GLuint, 6> &indices
   vec2 glyph_size(SCALE * G.layout().m_size);
   vec2 p_bl, p_tr;
 
-  p_bl.x() = p.x() + SCALE * G.layout().m_horizontal_layout_origin.x();
+  p_bl.x() = p.x() + SCALE * G.layout().m_horizontal_layout_offset.x();
   p_tr.x() = p_bl.x() + glyph_size.x();
 
-  p_bl.y() = p.y() - SCALE * G.layout().m_horizontal_layout_origin.y();
+  p_bl.y() = p.y() - SCALE * G.layout().m_horizontal_layout_offset.y();
   p_tr.y() = p_bl.y() - glyph_size.y();
 
   m_data[0].m_pos             = vec2(p_bl.x(), p_bl.y());
@@ -421,7 +421,7 @@ pack_data(float SCALE, unsigned int i, Glyph G, vec2 p, vecN<GLuint, 6> &indices
                 << "\n\tfrom location=" << p
                 << "\n\ttex_size=" << tex_size << " at " << t_bl << ":" << layer
                 << " and " << t2_bl << ":" << layer2
-                << "\n\torigin=" << G.layout().m_horizontal_layout_origin
+                << "\n\tglyph_offset=" << G.layout().m_horizontal_layout_offset
                 << "\n\toriginal_size=" << G.layout().m_size
                 << "\n\tadvance=" << G.layout().m_advance
                 << "\n\toffset = " << G.geometry_offset()
@@ -828,7 +828,7 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
 
           assert(g.valid());
           assert(g.layout().m_glyph_code == uint32_t(glyph_index));
-          max_height = std::max(max_height, g.layout().m_texel_size.x());
+          max_height = std::max(max_height, g.layout().m_size.y());
           glyphs.push_back(g);
           character_codes.push_back(character_code);
         }
@@ -842,7 +842,7 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
           float advance;
 
           g = glyphs[i];
-          advance = scale_factor * std::max(g.layout().m_advance.x(), g.layout().m_texel_size.x());
+          advance = scale_factor * std::max(g.layout().m_advance.x(), g.layout().m_size.x());
 
           positions[i] = pen;
           pen.x() += advance;
