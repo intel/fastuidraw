@@ -388,10 +388,10 @@ pack_data(float SCALE, unsigned int i, Glyph G, vec2 p, vecN<GLuint, 6> &indices
   vec2 glyph_size(SCALE * G.layout().m_size);
   vec2 p_bl, p_tr;
 
-  p_bl.x() = p.x() + SCALE * G.layout().m_origin.x();
+  p_bl.x() = p.x() + SCALE * G.layout().m_horizontal_layout_origin.x();
   p_tr.x() = p_bl.x() + glyph_size.x();
 
-  p_bl.y() = p.y() - SCALE * G.layout().m_origin.y();
+  p_bl.y() = p.y() - SCALE * G.layout().m_horizontal_layout_origin.y();
   p_tr.y() = p_bl.y() - glyph_size.y();
 
   m_data[0].m_pos             = vec2(p_bl.x(), p_bl.y());
@@ -418,9 +418,12 @@ pack_data(float SCALE, unsigned int i, Glyph G, vec2 p, vecN<GLuint, 6> &indices
     {
       std::cout << "Needs secondary: glyph_code = " << G.layout().m_glyph_code
                 << "\n\tglyph_size=" << glyph_size << " at " << p_bl << ":" << p_tr
+                << "\n\tfrom location=" << p
                 << "\n\ttex_size=" << tex_size << " at " << t_bl << ":" << layer
                 << " and " << t2_bl << ":" << layer2
-                << "\n\torigin=" << G.layout().m_origin
+                << "\n\torigin=" << G.layout().m_horizontal_layout_origin
+                << "\n\toriginal_size=" << G.layout().m_size
+                << "\n\tadvance=" << G.layout().m_advance
                 << "\n\toffset = " << G.geometry_offset()
                 << "\n";
     }
