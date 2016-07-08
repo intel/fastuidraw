@@ -172,6 +172,7 @@ qt_demo(void):
                     "If value is stderr then logged to stderr, if value is stdout logged to stdout", *this),
   m_log_alloc_commands("", "log_alloc", "If non empty, logs allocs and deallocs to the named file", *this),
   m_print_gl_info(false, "print_gl_info", "If true print to stdout GL information", *this),
+  m_demo_options("Demo Options", *this),
   m_inited(false),
   m_widget(NULL)
 {}

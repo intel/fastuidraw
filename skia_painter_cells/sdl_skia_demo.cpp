@@ -3,6 +3,7 @@
 sdl_skia_demo::
 sdl_skia_demo(const std::string &about_text):
   sdl_demo(about_text),
+  m_demo_options("Demo Options", *this),
   m_skia_context(NULL),
   m_skia_surface(NULL)
 {}

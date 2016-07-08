@@ -92,6 +92,7 @@ sdl_cairo_demo(const std::string &about_text):
                   "only passed to SDL_GL_SetSwapInterval if the value is set "
                   "at command line", *this),
 #endif
+  m_demo_options("Demo Options", *this),
   m_window(NULL),
   m_cairo_window_surface(NULL),
   m_cairo_offscreen_surface(NULL),

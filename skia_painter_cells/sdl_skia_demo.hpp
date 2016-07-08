@@ -32,6 +32,7 @@ protected:
   skia_canvas(void);
 
 private:
+  command_separator m_demo_options;
 
   void
   init_skia(int w, int h);

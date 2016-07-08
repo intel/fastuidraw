@@ -116,6 +116,7 @@ private:
   command_line_argument_value<std::string> m_log_gl_commands;
   command_line_argument_value<std::string> m_log_alloc_commands;
   command_line_argument_value<bool> m_print_gl_info;
+  command_separator m_demo_options;
 
   bool m_inited;
   QWidget *m_widget;

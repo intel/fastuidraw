@@ -133,6 +133,7 @@ private:
   command_line_argument_value<int> m_msaa;
   command_line_argument_value<int> m_swap_interval;
 #endif
+  command_separator m_demo_options;
 
   bool m_run_demo;
   int m_return_value;
