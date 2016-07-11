@@ -540,7 +540,7 @@ request_vao(void)
           m_data_buffer_size = m_alignment * num_blocks * sizeof(fastuidraw::generic_data);
           assert(m_data_buffer_size > 0);
         }
-      // std::cout << "m_data_buffer_size = " << m_data_buffer_size << "\n";
+      std::cout << "m_data_buffer_size = " << m_data_buffer_size << "\n";
     }
 
 
@@ -775,7 +775,7 @@ DrawCommand(painter_vao_pool *hnd,
   m_indices = fastuidraw::c_array<fastuidraw::PainterIndex>(reinterpret_cast<fastuidraw::PainterIndex*>(index_bo),
                                                           params.indices_per_buffer());
   m_store = fastuidraw::c_array<fastuidraw::generic_data>(reinterpret_cast<fastuidraw::generic_data*>(data_bo),
-                                                        params.m_config.alignment() * params.data_blocks_per_store_buffer());
+                                                          hnd->data_buffer_size() / sizeof(fastuidraw::generic_data));
 
   m_header_attributes = fastuidraw::c_array<uint32_t>(reinterpret_cast<uint32_t*>(header_bo),
                                                      params.attributes_per_buffer());
