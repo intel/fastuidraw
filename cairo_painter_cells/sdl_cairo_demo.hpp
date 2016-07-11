@@ -150,6 +150,10 @@ private:
    */
   cairo_surface_t *m_cairo_offscreen_surface;
 
+  /* cairo_t used to blit from offscreen buffer to onscreen buffer
+   */
+  cairo_t *m_present_cairo;
+
   /* offscreen surface for X
    */
   Pixmap m_pixmap;

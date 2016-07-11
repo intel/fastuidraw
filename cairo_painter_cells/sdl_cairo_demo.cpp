@@ -96,6 +96,7 @@ sdl_cairo_demo(const std::string &about_text):
   m_window(NULL),
   m_cairo_window_surface(NULL),
   m_cairo_offscreen_surface(NULL),
+  m_present_cairo(NULL),
   m_pixmap(0),
   m_sdl_gl_ctx(NULL),
   m_cairo_gl_device(NULL)
@@ -128,6 +129,11 @@ cleanup_cairo(void)
   if(m_cairo)
     {
       cairo_destroy(m_cairo);
+    }
+
+  if(m_present_cairo)
+    {
+      cairo_destroy(m_present_cairo);
     }
 
   if(m_cairo_window_surface)
@@ -258,19 +264,21 @@ init_cairo(int w, int h)
   m_x11_window = wm.info.x11.window;
 
   XGetWindowAttributes(m_x11_display, m_x11_window, &attribs);
-  m_cairo_window_surface = cairo_xlib_surface_create(m_x11_display, m_x11_window,
-                                                     attribs.visual, w, h);
 
   switch(m_backend.m_value.m_value)
     {
     case backend_cairo_xlib_on_screen:
       {
+        m_cairo_window_surface = cairo_xlib_surface_create(m_x11_display, m_x11_window,
+                                                           attribs.visual, w, h);
         render_surface = m_cairo_window_surface;
       }
       break;
 
     case backend_cairo_xlib_off_screen:
       {
+        m_cairo_window_surface = cairo_xlib_surface_create(m_x11_display, m_x11_window,
+                                                           attribs.visual, w, h);
         m_pixmap = XCreatePixmap(m_x11_display, m_x11_window,
                                  w, h, attribs.depth);
         m_cairo_offscreen_surface =
@@ -285,6 +293,8 @@ init_cairo(int w, int h)
         unsigned int stride;
         cairo_format_t fmt;
 
+        m_cairo_window_surface = cairo_xlib_surface_create(m_x11_display, m_x11_window,
+                                                           attribs.visual, w, h);
         fmt = CAIRO_FORMAT_ARGB32; //or should we use CAIRO_FORMAT_RGB24?
         stride = cairo_format_stride_for_width(fmt, w);
         m_offscreen_data_pixels.resize(stride * h);
@@ -318,6 +328,10 @@ init_cairo(int w, int h)
     }
 
   m_cairo = cairo_create(render_surface);
+  if(render_surface != m_cairo_window_surface)
+    {
+      m_present_cairo = cairo_create(m_cairo_window_surface);
+    }
 }
 
 void
@@ -352,13 +366,8 @@ present(void)
     case backend_cairo_offscreen_data_surface:
     case backend_cairo_xlib_off_screen:
       {
-        cairo_t *cr;
-        cairo_surface_flush(m_cairo_offscreen_surface);
-        cr = cairo_create(m_cairo_window_surface);
-        cairo_set_source_surface (cr, m_cairo_offscreen_surface, 0, 0);
-        cairo_paint(cr);
-        cairo_surface_flush(m_cairo_window_surface);
-        cairo_destroy(cr);
+        cairo_set_source_surface(m_present_cairo, m_cairo_offscreen_surface, 0, 0);
+        cairo_paint(m_present_cairo);
         }
       break;
 #if HAVE_CAIRO_GL
