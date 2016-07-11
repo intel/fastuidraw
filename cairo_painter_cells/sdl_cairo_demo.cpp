@@ -55,7 +55,7 @@ sdl_cairo_demo(const std::string &about_text):
   m_width(800, "width", "window width", *this),
   m_height(480, "height", "window height", *this),
   m_show_framerate(false, "show_framerate", "if true show the cumulative framerate at end", *this),
-  m_backend(backend_cairo_xlib_on_screen,
+  m_backend(backend_cairo_xlib_off_screen,
             enumerated_string_type<enum backend_cairo_t>()
             .add_entry("xlib_onscreen", backend_cairo_xlib_on_screen,
                        "render directly to X window surface")
@@ -373,7 +373,6 @@ present(void)
 #if HAVE_CAIRO_GL
     case backend_cairo_gl:
       {
-        cairo_surface_flush(m_cairo_window_surface);
         SDL_GL_SwapWindow(m_window);
       }
       break;
