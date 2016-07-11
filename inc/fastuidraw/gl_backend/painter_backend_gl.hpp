@@ -51,6 +51,24 @@ namespace fastuidraw
        */
       typedef reference_counted_ptr<const PainterBackendGL> const_handle;
 
+
+      /*!
+        Enumeration to specify how the data store filled by
+        \ref PainterDrawCommand::m_store is realized.
+       */
+      enum data_store_backing_t
+        {
+          /*!
+            Data store is backed by a texture buffer object
+           */
+          data_store_tbo,
+
+          /*!
+            Data store is backed by a uniform buffer object
+           */
+          data_store_ubo
+        };
+
       /*!
         A params gives parameters how to contruct
         a PainterBackendGL.
@@ -169,6 +187,22 @@ namespace fastuidraw
         */
         params&
         data_blocks_per_store_buffer(unsigned int v);
+
+        /*!
+          Returns how the data store is realized. The GL implementation
+          may impose size limits that will force that the size of the
+          data store might be smaller than that specified by
+          data_blocks_per_store_buffer(). The initial value
+          is data_store_tbo.
+         */
+        enum data_store_backing_t
+        data_store_backing(void) const;
+
+        /*!
+          Set the value for data_store_backing(void) const
+        */
+        params&
+        data_store_backing(enum data_store_backing_t v);
 
         /*!
           If true, has the PainterBackendGL use hardware clip-planes
