@@ -272,7 +272,9 @@ main(int argc, char **argv)
       print_detailed_help(std::cout);
 
       std::cout << "\nDon't foget Qt's -geometry XxY+A+B to set "
-                << "the window size to XxY and position to (A,B).\n";
+                << "the window size to XxY and position to (A,B).\n"
+                << "Also: -graphicssystem native|raster|opengl changes what "
+                << "backend to use if NOT using  GL widget\n";
       return 0;
     }
 
