@@ -75,7 +75,7 @@ may wish to use as well.
 
 /*! \mainpage FastUIDraw
 
-  \section Overview
+  \section Purpose
 
   FastUIDraw provides a high performance, programmable implementation
   of canvas, found in the class fastuidraw::Painter. FastUIDraw's implementation

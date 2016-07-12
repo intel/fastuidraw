@@ -244,7 +244,25 @@ namespace fastuidraw
         m_bottom(0)
       {}
 
-      unsigned int m_left, m_right, m_top, m_bottom;
+      /*!
+        Padding to the left
+       */
+      unsigned int m_left;
+
+      /*!
+        Padding to the right
+       */
+      unsigned int m_right;
+
+      /*!
+        Padding to the top (y=0 is the top of a glyph)
+       */
+      unsigned int m_top;
+
+      /*!
+        Padding to the bottom
+       */
+      unsigned int m_bottom;
     };
 
     /*!
