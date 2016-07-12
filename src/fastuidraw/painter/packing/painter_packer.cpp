@@ -1428,6 +1428,15 @@ default_shaders(void) const
   return d->m_default_shaders;
 }
 
+const fastuidraw::PainterBackend::PerformanceHints&
+fastuidraw::PainterPacker::
+hints(void)
+{
+  PainterPackerPrivate *d;
+  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  return d->m_backend->hints();
+}
+
 void
 fastuidraw::PainterPacker::
 register_vert_shader(const fastuidraw::PainterShader::handle &shader)

@@ -614,16 +614,15 @@ namespace fastuidraw
               const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
-      Draw a rect.
-      \param p min-corner of rect
-      \param wh width and height of rect
-      \param call_back handle to PainterPacker::DataCallBack for the draw
+      Draw a convex polygon.
+      \param pts points of the polygon so that neighboring points (modulo pts.size())
+                 are the edges of the polygon.
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
-    draw_rect(const vec2 &p, const vec2 &wh,
-              const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
+    draw_convex_polygon(const_c_array<vec2> pts,
+                        const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Draw a quad.
@@ -637,6 +636,17 @@ namespace fastuidraw
      */
     void
     draw_quad(const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
+              const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
+
+    /*!
+      Draw a rect.
+      \param p min-corner of rect
+      \param wh width and height of rect
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
+     */
+    void
+    draw_rect(const vec2 &p, const vec2 &wh,
               const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
