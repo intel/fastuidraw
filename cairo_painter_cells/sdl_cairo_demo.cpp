@@ -368,11 +368,21 @@ present(void)
       {
         cairo_set_source_surface(m_present_cairo, m_cairo_offscreen_surface, 0, 0);
         cairo_paint(m_present_cairo);
+        /* should we flush the surface? It does not seem to be
+           needed, but from the point of view of API, it looks
+           like it should be flushed before doing swap buffers.
+         */
+        //cairo_surface_flush(m_cairo_window_surface);
         }
       break;
 #if HAVE_CAIRO_GL
     case backend_cairo_gl:
       {
+        /* should we flush the surface? It does not seem to be
+           needed, but from the point of view of API, it looks
+           like it should be flushed before doing swap buffers.
+         */
+        //cairo_surface_flush(m_cairo_window_surface);
         SDL_GL_SwapWindow(m_window);
       }
       break;
