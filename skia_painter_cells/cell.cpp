@@ -70,16 +70,9 @@ void
 Cell::
 pre_paint(void)
 {
-  if(m_shared_state->m_pause)
-    {
-      m_time.restart();
-      return;
-    }
-
   if(!m_first_frame)
     {
       uint32_t ms;
-
       if(m_timer_based_animation)
         {
           ms = m_time.restart();
@@ -88,6 +81,12 @@ pre_paint(void)
         {
           ms = 16;
         }
+
+      if(m_shared_state->m_pause)
+        {
+          ms = 0;
+        }
+
       m_thousandths_degrees_rotation += m_degrees_per_s * ms;
       bounce_move(m_item_location, m_pixels_per_ms,
                   m_dimensions, static_cast<float>(ms));

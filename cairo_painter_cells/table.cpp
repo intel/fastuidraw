@@ -178,6 +178,12 @@ paint_pre_children(cairo_t *)
         {
           ms = 16;
         }
+
+      if(m_params.m_cell_state->m_pause)
+        {
+          ms = 0;
+        }
+
       m_thousandths_degrees_rotation += m_params.m_table_rotate_degrees_per_s * ms;
       if(m_thousandths_degrees_rotation >= 360 * 1000)
         {
