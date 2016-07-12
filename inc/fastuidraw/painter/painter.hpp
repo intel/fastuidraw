@@ -614,7 +614,24 @@ namespace fastuidraw
               const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
-      Draw a convex polygon.
+      Draw a convex polygon using a custom shader.
+      \param pts points of the polygon so that neighboring points (modulo pts.size())
+                 are the edges of the polygon.
+      \param shader shader with which to draw the convex polygon. The shader must
+                    accept the exact same format as the default fill shader (see
+                    the class description for PainterAttributeData) and in addition
+                    transform the point (packed into PainterAttribute::m_primary_attrib .xy)
+                    only by the transformation matrix.
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
+     */
+    void
+    draw_convex_polygon(const_c_array<vec2> pts,
+                        const PainterItemShader &shader,
+                        const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
+
+    /*!
+      Draw a convex polygon using the default fill shader.
       \param pts points of the polygon so that neighboring points (modulo pts.size())
                  are the edges of the polygon.
       \param call_back if non-NULL handle, call back called when attribute data
@@ -625,7 +642,26 @@ namespace fastuidraw
                         const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
-      Draw a quad.
+      Draw a quad using a custom shader.
+      \param p0 first point of quad, shares an edge with p3
+      \param p1 point after p0, shares an edge with p0
+      \param p2 point after p1, shares an edge with p1
+      \param p3 point after p2, shares an edge with p2
+      \param shader shader with which to draw the convex polygon. The shader must
+                    accept the exact same format as the default fill shader (see
+                    the class description for PainterAttributeData) and in addition
+                    transform the point (packed into PainterAttribute::m_primary_attrib .xy)
+                    only by the transformation matrix.
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
+     */
+    void
+    draw_quad(const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
+              const PainterItemShader &shader,
+              const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
+
+    /*!
+      Draw a quad using the default fill shader.
       \param p0 first point of quad, shares an edge with p3
       \param p1 point after p0, shares an edge with p0
       \param p2 point after p1, shares an edge with p1
@@ -639,7 +675,24 @@ namespace fastuidraw
               const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
-      Draw a rect.
+      Draw a rect using a custom shader.
+      \param p min-corner of rect
+      \param wh width and height of rect
+      \param shader shader with which to draw the convex polygon. The shader must
+                    accept the exact same format as the default fill shader (see
+                    the class description for PainterAttributeData) and in addition
+                    transform the point (packed into PainterAttribute::m_primary_attrib .xy)
+                    only by the transformation matrix.
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
+     */
+    void
+    draw_rect(const vec2 &p, const vec2 &wh,
+              const PainterItemShader &shader,
+              const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
+
+    /*!
+      Draw a rect using the default fill shader.
       \param p min-corner of rect
       \param wh width and height of rect
       \param call_back if non-NULL handle, call back called when attribute data

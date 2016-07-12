@@ -885,6 +885,7 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
 void
 fastuidraw::Painter::
 draw_convex_polygon(const_c_array<vec2> pts,
+                    const PainterItemShader &shader,
                     const PainterPacker::DataCallBack::handle &call_back)
 {
   PainterPrivate *d;
@@ -927,12 +928,21 @@ draw_convex_polygon(const_c_array<vec2> pts,
       indices.push_back(i);
     }
   draw_generic(make_c_array(attribs), make_c_array(indices),
-               default_shaders().fill_shader(), call_back);
+               shader, call_back);
+}
+
+void
+fastuidraw::Painter::
+draw_convex_polygon(const_c_array<vec2> pts,
+                    const PainterPacker::DataCallBack::handle &call_back)
+{
+  draw_convex_polygon(pts, default_shaders().fill_shader(), call_back);
 }
 
 void
 fastuidraw::Painter::
 draw_quad(const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
+          const PainterItemShader &shader,
           const PainterPacker::DataCallBack::handle &call_back)
 {
   vecN<vec2, 4> pts;
@@ -940,7 +950,27 @@ draw_quad(const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
   pts[1] = p1;
   pts[2] = p2;
   pts[3] = p3;
-  draw_convex_polygon(const_c_array<vec2>(&pts[0], pts.size()), call_back);
+  draw_convex_polygon(const_c_array<vec2>(&pts[0], pts.size()), shader, call_back);
+}
+
+void
+fastuidraw::Painter::
+draw_quad(const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
+          const PainterPacker::DataCallBack::handle &call_back)
+{
+  draw_quad(p0, p1, p2, p3, default_shaders().fill_shader(), call_back);
+}
+
+void
+fastuidraw::Painter::
+draw_rect(const vec2 &p, const vec2 &wh,
+          const PainterItemShader &shader,
+          const PainterPacker::DataCallBack::handle &call_back)
+{
+  draw_quad(p, p + vec2(0.0f, wh.y()),
+            p + wh, p + vec2(wh.x(), 0.0f),
+            shader,
+            call_back);
 }
 
 void
@@ -948,9 +978,7 @@ fastuidraw::Painter::
 draw_rect(const vec2 &p, const vec2 &wh,
           const PainterPacker::DataCallBack::handle &call_back)
 {
-  draw_quad(p, p + vec2(0.0f, wh.y()),
-            p + wh, p + vec2(wh.x(), 0.0f),
-            call_back);
+  draw_rect(p, wh, default_shaders().fill_shader(), call_back);
 }
 
 void
