@@ -35,6 +35,7 @@ Cell(PainterWidget *p, const CellParams &params):
   PainterWidget(p),
   m_first_frame(true),
   m_thousandths_degrees_rotation(0),
+  m_thousandths_degrees_cell_rotation(0),
   m_pixels_per_ms(params.m_pixels_per_ms),
   m_degrees_per_s(params.m_degrees_per_s),
   m_background_brush(params.m_background_brush),
@@ -69,16 +70,9 @@ void
 Cell::
 pre_paint(void)
 {
-  if(m_shared_state->m_pause)
-    {
-      m_time.restart();
-      return;
-    }
-
   if(!m_first_frame)
     {
       uint32_t ms;
-
       if(m_timer_based_animation)
         {
           ms = m_time.restart();
@@ -88,6 +82,11 @@ pre_paint(void)
           ms = 16;
         }
 
+      if(m_shared_state->m_pause)
+        {
+          ms = 0;
+        }
+
       m_thousandths_degrees_rotation += m_degrees_per_s * ms;
       bounce_move(m_item_location, m_pixels_per_ms,
                   m_dimensions, static_cast<float>(ms));
@@ -95,6 +94,19 @@ pre_paint(void)
       if(m_thousandths_degrees_rotation >= 360 * 1000)
         {
           m_thousandths_degrees_rotation = m_thousandths_degrees_rotation % (360 * 1000);
+        }
+
+      if(m_shared_state->m_rotating)
+        {
+          m_thousandths_degrees_cell_rotation += m_degrees_per_s * ms;
+          if(m_thousandths_degrees_rotation >= 360 * 1000)
+            {
+              m_thousandths_degrees_cell_rotation = m_thousandths_degrees_rotation % (360 * 1000);
+            }
+        }
+      else
+        {
+          m_thousandths_degrees_cell_rotation = 0;
         }
     }
   else
@@ -107,9 +119,12 @@ pre_paint(void)
 
   if(m_shared_state->m_rotating)
     {
+      float r;
+
+      r = static_cast<float>(M_PI) * static_cast<float>(m_thousandths_degrees_cell_rotation) / (1000.0f * 180.0f);
       m_parent_matrix_this.reset();
       m_parent_matrix_this.translate(m_dimensions * 0.5f + m_table_pos);
-      m_parent_matrix_this.rotate(m_item_rotation);
+      m_parent_matrix_this.rotate(r);
       m_parent_matrix_this.translate(-m_dimensions * 0.5f);
     }
   else
