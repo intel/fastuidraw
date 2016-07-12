@@ -144,6 +144,20 @@ sdl_painter_demo(const std::string &about_text):
                                            "if true, unpack the brush and frag-shader specific data from "
                                            "the header in the fragment shader instead of the vertex shader",
                                            *this),
+  m_data_store_backing(m_painter_params.data_store_backing(),
+                       enumerated_string_type<data_store_backing_t>()
+                       .add_entry("tbo",
+                                  fastuidraw::gl::PainterBackendGL::data_store_tbo,
+                                  "use a texture buffer (if available) to back the data store. "
+                                  "A texture buffer can have a very large maximum size")
+                       .add_entry("ubo",
+                                  fastuidraw::gl::PainterBackendGL::data_store_ubo,
+                                  "use a uniform buffer object to back the data store. "
+                                  "A uniform buffer object's maximum size is much smaller than that "
+                                  "of a texture buffer object usually"),
+                       "data_store_backing_type",
+                       "specifies how the data store buffer is backed",
+                       *this),
   m_demo_options("Demo Options", *this)
 {}
 
@@ -236,7 +250,8 @@ init_gl(int w, int h)
     .vert_shader_use_switch(m_uber_vert_use_switch.m_value)
     .frag_shader_use_switch(m_uber_frag_use_switch.m_value)
     .blend_shader_use_switch(m_uber_blend_use_switch.m_value)
-    .unpack_header_and_brush_in_frag_shader(m_unpack_header_and_brush_in_frag_shader.m_value);
+    .unpack_header_and_brush_in_frag_shader(m_unpack_header_and_brush_in_frag_shader.m_value)
+    .data_store_backing(m_data_store_backing.m_value.m_value);
 
   m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params);
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);

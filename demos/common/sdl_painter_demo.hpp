@@ -46,6 +46,7 @@ protected:
   fastuidraw::FreetypeLib::handle m_ft_lib;
 
 private:
+  typedef enum fastuidraw::gl::PainterBackendGL::data_store_backing_t data_store_backing_t;
   enum glyph_geometry_backing_store_t
     {
       glyph_geometry_backing_store_texture_buffer,
@@ -100,6 +101,7 @@ private:
   command_line_argument_value<bool> m_uber_frag_use_switch;
   command_line_argument_value<bool> m_uber_blend_use_switch;
   command_line_argument_value<bool> m_unpack_header_and_brush_in_frag_shader;
+  enumerated_command_line_argument_value<data_store_backing_t> m_data_store_backing;
 
   command_separator m_demo_options;
 };
