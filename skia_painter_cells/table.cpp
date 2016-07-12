@@ -215,6 +215,11 @@ paint_pre_children(SkCanvas *painter)
         {
           m_thousandths_degrees_rotation = m_thousandths_degrees_rotation % (360 * 1000);
         }
+
+      if(!m_rotating)
+        {
+          m_thousandths_degrees_rotation = 0;
+        }
     }
 
   m_rotation_degrees = static_cast<float>(m_thousandths_degrees_rotation) / (1000.0f);

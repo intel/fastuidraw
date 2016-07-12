@@ -43,6 +43,7 @@ class CellParams
 public:
   QColor m_background_brush;
   QImage m_image_brush;
+  QColor m_rect_brush;
   QColor m_text_brush;
   QColor m_line_brush;
   std::string m_text;
@@ -76,6 +77,7 @@ private:
   bool m_first_frame;
   simple_time m_time;
   int m_thousandths_degrees_rotation;
+  int m_thousandths_degrees_cell_rotation;
 
   QPointF m_table_pos;
 
@@ -84,6 +86,7 @@ private:
 
   QColor m_background_brush;
   const QImage m_image_brush;
+  QColor m_rect_brush;
   QColor m_text_brush;
   QColor m_line_brush;
 

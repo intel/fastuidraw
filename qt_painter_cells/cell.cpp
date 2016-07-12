@@ -35,10 +35,12 @@ Cell(PainterWidget *p, const CellParams &params):
   PainterWidget(p),
   m_first_frame(true),
   m_thousandths_degrees_rotation(0),
+  m_thousandths_degrees_cell_rotation(0),
   m_pixels_per_ms(params.m_pixels_per_ms),
   m_degrees_per_s(params.m_degrees_per_s),
   m_background_brush(params.m_background_brush),
   m_image_brush(params.m_image_brush),
+  m_rect_brush(params.m_rect_brush),
   m_text_brush(params.m_text_brush),
   m_line_brush(params.m_line_brush),
   m_item_location(params.m_size.width() * 0.5, params.m_size.height() * 0.5),
@@ -121,20 +123,36 @@ pre_paint(void)
         {
           m_thousandths_degrees_rotation = m_thousandths_degrees_rotation % (360 * 1000);
         }
+
+      if(m_shared_state->m_rotating)
+        {
+          m_thousandths_degrees_cell_rotation += m_degrees_per_s * ms;
+          if(m_thousandths_degrees_rotation >= 360 * 1000)
+            {
+              m_thousandths_degrees_cell_rotation = m_thousandths_degrees_rotation % (360 * 1000);
+            }
+        }
+      else
+        {
+          m_thousandths_degrees_cell_rotation = 0;
+        }
     }
   else
     {
       m_first_frame = false;
     }
 
-  m_item_rotation = static_cast<qreal>(m_thousandths_degrees_rotation) / (1000.0);
+  m_item_rotation = static_cast<qreal>(m_thousandths_degrees_rotation) / qreal(1000);
 
   if(m_shared_state->m_rotating)
     {
       QTransform M;
+      qreal r;
+
+      r = static_cast<qreal>(m_thousandths_degrees_cell_rotation) / qreal(1000);
       M.translate(m_table_pos.x(), m_table_pos.y());
       M.translate(m_dimensions.width() * 0.5, m_dimensions.height() * 0.5);
-      M.rotate(m_item_rotation);
+      M.rotate(r);
       M.translate(-m_dimensions.width() * 0.5, -m_dimensions.height() * 0.5);
       m_parent_matrix_this = M;
     }
@@ -155,12 +173,23 @@ paint_pre_children(QPainter *painter)
   painter->translate(m_item_location);
   painter->rotate(m_item_rotation);
 
-  if(!m_image_brush.isNull() && m_shared_state->m_draw_image)
+  if(m_shared_state->m_draw_image)
     {
-      QSizeF sz(m_image_brush.size());
-      painter->translate(-0.5 * sz.width(), -0.5 * sz.height());
-      painter->drawImage(QPointF(0.0, 0.0), m_image_brush);
-      painter->translate(0.5 * sz.width(), 0.5 * sz.height());
+      if(!m_image_brush.isNull())
+        {
+          QSizeF sz(m_image_brush.size());
+          painter->translate(-0.5 * sz.width(), -0.5 * sz.height());
+          painter->drawImage(QPointF(0.0, 0.0), m_image_brush);
+          painter->translate(0.5 * sz.width(), 0.5 * sz.height());
+        }
+      else
+        {
+          QPointF p(m_dimensions.width(), m_dimensions.height());
+          p *= qreal(0.25);
+          painter->translate(qreal(-0.5) * p.x(), qreal(-0.5) * p.y());
+          painter->fillRect(QRectF(0.0, 0.0, p.x(), p.y()), m_rect_brush);
+          painter->translate(qreal(0.5) * p.x(), qreal(0.5) * p.y());
+        }
     }
 
   if(m_shared_state->m_draw_text)

@@ -254,6 +254,11 @@ paint_pre_children(const Painter::handle &painter)
         {
           m_thousandths_degrees_rotation = m_thousandths_degrees_rotation % (360 * 1000);
         }
+
+      if(!m_rotating)
+        {
+          m_thousandths_degrees_rotation = 0;
+        }
     }
 
   m_rotation_radians =

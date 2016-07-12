@@ -75,6 +75,7 @@ private:
   bool m_first_frame;
   simple_time m_time;
   int m_thousandths_degrees_rotation;
+  int m_thousandths_degrees_cell_rotation;
 
   vec2 m_table_pos;
 

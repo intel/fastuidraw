@@ -120,6 +120,7 @@ generate_children_in_group(QPainter *painter,
               CellParams params;
               params.m_background_brush = m_params.m_background_colors[bgJ];
               params.m_image_brush = m_params.m_images[imJ].first;
+              params.m_rect_brush = QColor(255.0 * 0.2, 255.0 * 0.7, 255.0 * 0.7, 255.0 * 0.6);
               params.m_text_brush = m_params.m_text_colors[txtJ];
               params.m_text = m_params.m_texts[J % m_params.m_texts.size()];
               params.m_pixels_per_ms.rx() = random_value(m_params.m_min_speed.x(), m_params.m_max_speed.x()) / 1000.0f;
@@ -216,6 +217,11 @@ paint_pre_children(QPainter *painter)
       if(m_thousandths_degrees_rotation >= 360 * 1000)
         {
           m_thousandths_degrees_rotation = m_thousandths_degrees_rotation % (360 * 1000);
+        }
+
+      if(!m_rotating)
+        {
+          m_thousandths_degrees_rotation = 0;
         }
     }
 

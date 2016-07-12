@@ -78,6 +78,7 @@ private:
   bool m_first_frame;
   simple_time m_time;
   int m_thousandths_degrees_rotation;
+  int m_thousandths_degrees_cell_rotation;
 
   SkPoint m_table_pos;
 

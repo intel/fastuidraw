@@ -34,6 +34,7 @@ Cell(PainterWidget *p, const CellParams &params):
   PainterWidget(p),
   m_first_frame(true),
   m_thousandths_degrees_rotation(0),
+  m_thousandths_degrees_cell_rotation(0),
   m_pixels_per_ms(params.m_pixels_per_ms),
   m_degrees_per_s(params.m_degrees_per_s),
   m_background_brush(params.m_background_brush),
@@ -95,20 +96,36 @@ pre_paint(void)
         {
           m_thousandths_degrees_rotation = m_thousandths_degrees_rotation % (360 * 1000);
         }
+
+      if(m_shared_state->m_rotating)
+        {
+          m_thousandths_degrees_cell_rotation += m_degrees_per_s * ms;
+          if(m_thousandths_degrees_rotation >= 360 * 1000)
+            {
+              m_thousandths_degrees_cell_rotation = m_thousandths_degrees_rotation % (360 * 1000);
+            }
+        }
+      else
+        {
+          m_thousandths_degrees_cell_rotation = 0;
+        }
     }
   else
     {
       m_first_frame = false;
     }
 
-  m_item_rotation = static_cast<float>(m_thousandths_degrees_rotation) / (1000.0f);
+  m_item_rotation = static_cast<SkScalar>(m_thousandths_degrees_rotation) / SkScalar(1000);
 
   if(m_shared_state->m_rotating)
     {
+      SkScalar r;
+
+      r = static_cast<SkScalar>(m_thousandths_degrees_cell_rotation) / SkScalar(1000);
       m_parent_matrix_this.reset();
       m_parent_matrix_this.preTranslate(m_table_pos.x(), m_table_pos.y());
       m_parent_matrix_this.preTranslate(m_dimensions.width() * SkScalar(0.5), m_dimensions.height() * SkScalar(0.5));
-      m_parent_matrix_this.preRotate(m_item_rotation);
+      m_parent_matrix_this.preRotate(r);
       m_parent_matrix_this.preTranslate(-m_dimensions.width() * SkScalar(0.5), -m_dimensions.height() * SkScalar(0.5));
     }
   else

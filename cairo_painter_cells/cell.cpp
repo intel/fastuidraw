@@ -34,6 +34,7 @@ Cell(PainterWidget *p, const CellParams &params):
   PainterWidget(p),
   m_first_frame(true),
   m_thousandths_degrees_rotation(0),
+  m_thousandths_degrees_cell_rotation(0),
   m_pixels_per_ms(params.m_pixels_per_ms),
   m_degrees_per_s(params.m_degrees_per_s),
   m_background_brush(params.m_background_brush),
@@ -90,21 +91,38 @@ pre_paint(void)
         {
           m_thousandths_degrees_rotation = m_thousandths_degrees_rotation % (360 * 1000);
         }
+
+      if(m_shared_state->m_rotating)
+        {
+          m_thousandths_degrees_cell_rotation += m_degrees_per_s * ms;
+          if(m_thousandths_degrees_rotation >= 360 * 1000)
+            {
+              m_thousandths_degrees_cell_rotation = m_thousandths_degrees_rotation % (360 * 1000);
+            }
+        }
+      else
+        {
+          m_thousandths_degrees_cell_rotation = 0;
+        }
     }
   else
     {
       m_first_frame = false;
     }
 
-  m_item_rotation = static_cast<double>(m_thousandths_degrees_rotation) / (1000.0f);
+  m_item_rotation = static_cast<double>(m_thousandths_degrees_rotation) / (1000.0);
   m_item_rotation *= (M_PI / 180.0);
 
   if(m_shared_state->m_rotating)
     {
+      double r;
+
+      r = static_cast<double>(m_thousandths_degrees_cell_rotation) / (1000.0);
+      r *= (M_PI / 180.0);
       cairo_matrix_init_identity(&m_parent_matrix_this);
       cairo_matrix_translate(&m_parent_matrix_this, m_table_pos);
       cairo_matrix_translate(&m_parent_matrix_this, m_dimensions * 0.5);
-      cairo_matrix_rotate(&m_parent_matrix_this, m_item_rotation);
+      cairo_matrix_rotate(&m_parent_matrix_this, r);
       cairo_matrix_translate(&m_parent_matrix_this, m_dimensions * -0.5);
     }
   else
