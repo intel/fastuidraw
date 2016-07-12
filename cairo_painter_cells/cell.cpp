@@ -123,7 +123,7 @@ paint_pre_children(cairo_t *painter)
 
   //draw background
   cairo_set_source_rgba(painter, m_background_brush);
-  cairo_rectangle(painter, -1.0, -1.0, m_dimensions.x() + 1, m_dimensions.y() + 1);
+  cairo_rectangle(painter, 0.0, 0.0, m_dimensions.x(), m_dimensions.y());
   cairo_fill(painter);
 
   //set transformation to rotate
