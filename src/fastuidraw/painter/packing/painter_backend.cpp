@@ -21,6 +21,16 @@
 
 namespace
 {
+  class PerformanceHintsPrivate
+  {
+  public:
+    PerformanceHintsPrivate(void):
+      m_clipping_via_hw_clip_planes(true)
+    {}
+
+    bool m_clipping_via_hw_clip_planes;
+  };
+
   class PainterBackendPrivate
   {
   public:
@@ -41,6 +51,7 @@ namespace
     fastuidraw::ImageAtlas::handle m_image_atlas;
     fastuidraw::ColorStopAtlas::handle m_colorstop_atlas;
     fastuidraw::PainterBackend::Configuration m_config;
+    fastuidraw::PainterBackend::PerformanceHints m_hints;
     fastuidraw::PainterShaderSet m_default_shaders;
     bool m_default_shaders_registered;
   };
@@ -56,6 +67,42 @@ namespace
     uint32_t m_brush_shader_mask;
     int m_alignment;
   };
+}
+
+//////////////////////////////////////////////////
+// fastuidraw::PainterBackend::PerformanceHints methods
+fastuidraw::PainterBackend::PerformanceHints::
+PerformanceHints(void)
+{
+  m_d = FASTUIDRAWnew PerformanceHintsPrivate();
+}
+
+fastuidraw::PainterBackend::PerformanceHints::
+~PerformanceHints(void)
+{
+  PerformanceHintsPrivate *d;
+  d = static_cast<PerformanceHintsPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+  m_d = NULL;
+}
+
+bool
+fastuidraw::PainterBackend::PerformanceHints::
+clipping_via_hw_clip_planes(void) const
+{
+  PerformanceHintsPrivate *d;
+  d = static_cast<PerformanceHintsPrivate*>(m_d);
+  return d->m_clipping_via_hw_clip_planes;
+}
+
+fastuidraw::PainterBackend::PerformanceHints&
+fastuidraw::PainterBackend::PerformanceHints::
+clipping_via_hw_clip_planes(bool v)
+{
+  PerformanceHintsPrivate *d;
+  d = static_cast<PerformanceHintsPrivate*>(m_d);
+  d->m_clipping_via_hw_clip_planes = v;
+  return *this;
 }
 
 ///////////////////////////////////////////////////
@@ -152,6 +199,24 @@ fastuidraw::PainterBackend::
   d = reinterpret_cast<PainterBackendPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
+}
+
+fastuidraw::PainterBackend::PerformanceHints&
+fastuidraw::PainterBackend::
+set_hints(void)
+{
+  PainterBackendPrivate *d;
+  d = reinterpret_cast<PainterBackendPrivate*>(m_d);
+  return d->m_hints;
+}
+
+const fastuidraw::PainterBackend::PerformanceHints&
+fastuidraw::PainterBackend::
+hints(void) const
+{
+  PainterBackendPrivate *d;
+  d = reinterpret_cast<PainterBackendPrivate*>(m_d);
+  return d->m_hints;
 }
 
 void

@@ -213,7 +213,7 @@ namespace
                            callback);
 
       }
-    else if(plane.z() <= 0.0)
+    else if(plane.z() <= 0.0f)
       {
         /* complement of half plane covers entire [-1,1]x[-1,1]
          */
@@ -269,7 +269,7 @@ namespace
   public:
     clip_rect_state(void):
       m_item_matrix_tricky(false),
-      m_item_matrix_changed(false),
+      m_inverse_transpose_not_ready(false),
       m_all_content_culled(false)
     {}
 
@@ -282,7 +282,7 @@ namespace
 
     clip_rect m_clip_rect;
     bool m_item_matrix_tricky;
-    bool m_item_matrix_changed;
+    bool m_inverse_transpose_not_ready;
     bool m_all_content_culled;
     fastuidraw::float3x3 m_item_matrix_inverse_transpose;
   };
@@ -361,6 +361,17 @@ namespace
                        fastuidraw::const_c_array<unsigned int> attrib_chunk_selector,
                        const fastuidraw::PainterItemShader &shader, unsigned int z,
                        const fastuidraw::PainterPacker::DataCallBack::handle &call_back);
+
+    void
+    clip_against_planes(fastuidraw::const_c_array<fastuidraw::vec2> pts,
+                        std::vector<fastuidraw::vec2> &out_pts);
+
+    static
+    void
+    clip_against_plane(const fastuidraw::vec3 &clip_eq,
+                       fastuidraw::const_c_array<fastuidraw::vec2> pts,
+                       std::vector<fastuidraw::vec2> &out_pts,
+                       std::vector<float> &work_room);
 
     fastuidraw::vec2 m_one_pixel_width;
     unsigned int m_current_z;
@@ -471,9 +482,9 @@ set_painter_core_clip(const fastuidraw::PainterState::ClipEquationsState &pcl,
     }
 
   m_item_matrix_tricky = false;
-  if(m_item_matrix_changed)
+  if(m_inverse_transpose_not_ready)
     {
-      m_item_matrix_changed = false;
+      m_inverse_transpose_not_ready = false;
       core->item_matrix().m_item_matrix.inverse_transpose(m_item_matrix_inverse_transpose);
     }
   /* The clipping window is given by:
@@ -543,11 +554,174 @@ PainterPrivate(fastuidraw::PainterBackend::handle backend)
 {
   m_core = FASTUIDRAWnew fastuidraw::PainterPacker(backend);
   m_reset_brush = m_core->brush_state();
-  m_core->brush().pen(0.0, 0.0, 0.0, 0.0);
+  m_core->brush().pen(0.0f, 0.0f, 0.0f, 0.0f);
   m_black_brush = m_core->brush_state();
   m_identiy_matrix = m_core->item_matrix_state();
   m_current_z = 1;
   m_one_pixel_width = fastuidraw::vec2(0.0f, 0.0f);
+}
+
+void
+PainterPrivate::
+clip_against_planes(fastuidraw::const_c_array<fastuidraw::vec2> pts,
+                    std::vector<fastuidraw::vec2> &out_pts)
+{
+  std::vector<fastuidraw::vec2> temp;
+  std::vector<float> work_room;
+  const fastuidraw::PainterState::ClipEquations &eqs(m_core->clip_equations());
+  const fastuidraw::PainterState::ItemMatrix &m(m_core->item_matrix());
+
+  /* Clip planes are in clip coordinates, i.e.
+       ClipDistance[i] = dot(M * p, clip_equation[i])
+                       = dot(p, transpose(M)(clip_equation[i])
+     To place them in local coordinates, then we need to apply
+     the transpose of m_core->item_matrix to the clip planes
+     which is the same as post-multiplying the matrix.
+   */
+  clip_against_plane(eqs.m_clip_equations[0] * m.m_item_matrix, pts, temp, work_room);
+  clip_against_plane(eqs.m_clip_equations[1] * m.m_item_matrix, fastuidraw::make_c_array(temp), out_pts, work_room);
+  clip_against_plane(eqs.m_clip_equations[2] * m.m_item_matrix, fastuidraw::make_c_array(out_pts), temp, work_room);
+  clip_against_plane(eqs.m_clip_equations[3] * m.m_item_matrix, fastuidraw::make_c_array(temp), out_pts, work_room);
+}
+
+void
+PainterPrivate::
+clip_against_plane(const fastuidraw::vec3 &clip_eq,
+                   fastuidraw::const_c_array<fastuidraw::vec2> pts,
+                   std::vector<fastuidraw::vec2> &out_pts,
+                   std::vector<float> &work_room)
+{
+  /* clip the convex polygon of pts, placing the results
+     into out_pts.
+   */
+  bool all_clipped, all_unclipped;
+  unsigned int first_unclipped;
+
+  if(pts.empty())
+    {
+      out_pts.resize(0);
+      return;
+    }
+
+  work_room.resize(pts.size());
+  all_clipped = true;
+  all_unclipped = true;
+  first_unclipped = pts.size();
+  for(unsigned int i = 0; i < pts.size(); ++i)
+    {
+      work_room[i] = clip_eq.x() * pts[i].x() + clip_eq.y() * pts[i].y() + clip_eq.z();
+      all_clipped = all_clipped && work_room[i] < 0.0f;
+      all_unclipped = all_unclipped && work_room[i] >= 0.0f;
+      if(first_unclipped == pts.size() && work_room[i] >= 0.0f)
+        {
+          first_unclipped = i;
+        }
+    }
+
+  if(all_clipped)
+    {
+      /* all clipped, nothing to do!
+       */
+      out_pts.resize(0);
+      return;
+    }
+
+  if(all_unclipped)
+    {
+      out_pts.resize(pts.size());
+      std::copy(pts.begin(), pts.end(), out_pts.begin());
+      return;
+    }
+
+  /* the polygon is convex, and atleast one point is clipped, thus
+     the clip line goes through 2 edges.
+   */
+  fastuidraw::vecN<std::pair<unsigned int, unsigned int>, 2> edges;
+  unsigned int num_edges(0);
+
+  for(unsigned int i = 0, k = first_unclipped; i < pts.size() && num_edges < 2; ++i, ++k)
+    {
+      bool b0, b1;
+
+      if(k == pts.size())
+        {
+          k = 0;
+        }
+      assert(k < pts.size());
+
+      unsigned int next_k(k+1);
+      if(next_k == pts.size())
+        {
+          next_k = 0;
+        }
+      assert(next_k < pts.size());
+
+      b0 = work_room[k] >= 0.0f;
+      b1 = work_room[next_k] >= 0.0f;
+      if(b0 != b1)
+        {
+          edges[num_edges] = std::pair<unsigned int, unsigned int>(k, next_k);
+          ++num_edges;
+        }
+    }
+
+  assert(num_edges == 2);
+
+  out_pts.reserve(pts.size() + 1);
+  out_pts.resize(0);
+
+  /* now add the points that are unclipped (in order)
+     and the 2 new points representing the new points
+     added by the clipping plane.
+   */
+
+  for(unsigned int i = first_unclipped; i <= edges[0].first; ++i)
+    {
+      out_pts.push_back(pts[i]);
+    }
+
+  /* now add the implicitely made vertex of the clip equation
+     intersecting against the edge between pts[edges[0].first] and
+     pts[edges[0].second]
+   */
+  {
+    fastuidraw::vec2 pp;
+    float t;
+
+    t = -work_room[edges[0].first] / (work_room[edges[0].second] - work_room[edges[0].first]);
+    pp = pts[edges[0].first] + t * (pts[edges[0].second] - pts[edges[0].first]);
+    out_pts.push_back(pp);
+  }
+
+  /* the vertices from pts[edges[0].second] to pts[edges[1].first]
+     are all on the clipped size of the plane, so they are skipped.
+   */
+
+  /* now add the implicitely made vertex of the clip equation
+     intersecting against the edge between pts[edges[1].first] and
+     pts[edges[1].second]
+   */
+  {
+    fastuidraw::vec2 pp;
+    float t;
+
+    t = -work_room[edges[1].first] / (work_room[edges[1].second] - work_room[edges[1].first]);
+    pp = pts[edges[1].first] + t * (pts[edges[1].second] - pts[edges[1].first]);
+    out_pts.push_back(pp);
+  }
+
+  /* add all vertices starting from pts[edges[1].second] wrapping
+     around until the points are clipped again.
+   */
+  for(unsigned int i = edges[1].second; i != first_unclipped && work_room[i] >= 0.0f;)
+    {
+      out_pts.push_back(pts[i]);
+      ++i;
+      if(i == pts.size())
+        {
+          i = 0;
+        }
+    }
 }
 
 bool
@@ -644,7 +818,7 @@ begin(bool reset_z)
     }
 
   d->m_clip_rect_state.m_item_matrix_tricky = false;
-  d->m_clip_rect_state.m_item_matrix_changed = false;
+  d->m_clip_rect_state.m_inverse_transpose_not_ready = false;
   d->m_clip_rect_state.m_clip_rect.m_enabled = false;
   d->m_core->item_matrix(PainterState::ItemMatrix());
   {
@@ -710,30 +884,93 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
 
 void
 fastuidraw::Painter::
+draw_convex_polygon(const_c_array<vec2> pts,
+                    const PainterItemShader &shader,
+                    const PainterPacker::DataCallBack::handle &call_back)
+{
+  PainterPrivate *d;
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+
+  if(pts.size() < 3)
+    {
+      return;
+    }
+
+  std::vector<vec2> clipped_pts;
+  if(!d->m_core->hints().clipping_via_hw_clip_planes())
+    {
+      d->clip_against_planes(pts, clipped_pts);
+      pts = make_c_array(clipped_pts);
+      if(pts.size() < 3)
+        {
+          return;
+        }
+    }
+
+  std::vector<PainterIndex> indices;
+  std::vector<PainterAttribute> attribs;
+
+  /* Draw a triangle fan centered at pts[0]
+   */
+  attribs.resize(pts.size());
+  for(unsigned int i = 0; i < pts.size(); ++i)
+    {
+      attribs[i].m_primary_attrib = vec4(pts[i].x(), pts[i].y(), 0.0f, 0.0f);
+      attribs[i].m_secondary_attrib = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+      attribs[i].m_uint_attrib = uvec4(0, 0, 0, 0);
+    }
+
+  indices.reserve((pts.size() - 2) * 3);
+  for(unsigned int i = 2; i < pts.size(); ++i)
+    {
+      indices.push_back(0);
+      indices.push_back(i - 1);
+      indices.push_back(i);
+    }
+  draw_generic(make_c_array(attribs), make_c_array(indices),
+               shader, call_back);
+}
+
+void
+fastuidraw::Painter::
+draw_convex_polygon(const_c_array<vec2> pts,
+                    const PainterPacker::DataCallBack::handle &call_back)
+{
+  draw_convex_polygon(pts, default_shaders().fill_shader(), call_back);
+}
+
+void
+fastuidraw::Painter::
+draw_quad(const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
+          const PainterItemShader &shader,
+          const PainterPacker::DataCallBack::handle &call_back)
+{
+  vecN<vec2, 4> pts;
+  pts[0] = p0;
+  pts[1] = p1;
+  pts[2] = p2;
+  pts[3] = p3;
+  draw_convex_polygon(const_c_array<vec2>(&pts[0], pts.size()), shader, call_back);
+}
+
+void
+fastuidraw::Painter::
 draw_quad(const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
           const PainterPacker::DataCallBack::handle &call_back)
 {
-  vecN<PainterAttribute, 4> attribs;
-  vecN<PainterIndex, 6> indices;
+  draw_quad(p0, p1, p2, p3, default_shaders().fill_shader(), call_back);
+}
 
-  indices[0] = 0;
-  indices[1] = 1;
-  indices[2] = 2;
-  indices[3] = 0;
-  indices[4] = 2;
-  indices[5] = 3;
-
-  attribs[0].m_primary_attrib = vec4(p0.x(), p0.y(), 0.0, 0.0);
-  attribs[1].m_primary_attrib = vec4(p1.x(), p1.y(), 0.0, 0.0);
-  attribs[2].m_primary_attrib = vec4(p2.x(), p2.y(), 0.0, 0.0);
-  attribs[3].m_primary_attrib = vec4(p3.x(), p3.y(), 0.0, 0.0);
-
-  for(int i = 0; i < 4; ++i)
-    {
-      attribs[i].m_secondary_attrib = vec4(0.0, 0.0, 0.0, 0.0);
-      attribs[i].m_uint_attrib = uvec4(0, 0, 0, 0);
-    }
-  draw_generic(attribs, indices, default_shaders().fill_shader(), call_back);
+void
+fastuidraw::Painter::
+draw_rect(const vec2 &p, const vec2 &wh,
+          const PainterItemShader &shader,
+          const PainterPacker::DataCallBack::handle &call_back)
+{
+  draw_quad(p, p + vec2(0.0f, wh.y()),
+            p + wh, p + vec2(wh.x(), 0.0f),
+            shader,
+            call_back);
 }
 
 void
@@ -741,9 +978,7 @@ fastuidraw::Painter::
 draw_rect(const vec2 &p, const vec2 &wh,
           const PainterPacker::DataCallBack::handle &call_back)
 {
-  draw_quad(p, p + vec2(0.0f, wh.y()),
-            p + wh, p + vec2(wh.x(), 0.0f),
-            call_back);
+  draw_rect(p, wh, default_shaders().fill_shader(), call_back);
 }
 
 void
@@ -1018,7 +1253,7 @@ concat(const float3x3 &tr)
   float3x3 m;
   m = d->m_core->item_matrix().m_item_matrix * tr;
   d->m_core->item_matrix(m);
-  d->m_clip_rect_state.m_item_matrix_changed = true;
+  d->m_clip_rect_state.m_inverse_transpose_not_ready = true;
 
   if(d->m_clip_rect_state.m_item_matrix_tricky
      || tr(0, 1) != 0.0f || tr(1, 0) != 0.0f
@@ -1042,7 +1277,7 @@ transformation(const float3x3 &m)
   d = reinterpret_cast<PainterPrivate*>(m_d);
 
   d->m_core->item_matrix(m);
-  d->m_clip_rect_state.m_item_matrix_changed = true;
+  d->m_clip_rect_state.m_inverse_transpose_not_ready = true;
   d->m_clip_rect_state.m_item_matrix_tricky = true;
 }
 
@@ -1056,7 +1291,7 @@ transformation_state(const ItemMatrixState &h)
 
   d->m_core->item_matrix_state(h);
   d->m_clip_rect_state.m_item_matrix_tricky = true;
-  d->m_clip_rect_state.m_item_matrix_changed = true;
+  d->m_clip_rect_state.m_inverse_transpose_not_ready = true;
 }
 
 void
@@ -1070,7 +1305,7 @@ translate(const vec2 &p)
   m = d->m_core->item_matrix().m_item_matrix;
   m.translate(p.x(), p.y());
   d->m_core->item_matrix(m);
-  d->m_clip_rect_state.m_item_matrix_changed = true;
+  d->m_clip_rect_state.m_inverse_transpose_not_ready = true;
   d->m_clip_rect_state.m_clip_rect.translate(-p);
 }
 
@@ -1086,7 +1321,7 @@ scale(float s)
   m = d->m_core->item_matrix().m_item_matrix;
   m.scale(s);
   d->m_core->item_matrix(m);
-  d->m_clip_rect_state.m_item_matrix_changed = true;
+  d->m_clip_rect_state.m_inverse_transpose_not_ready = true;
   d->m_clip_rect_state.m_clip_rect.scale(1.0f / s);
 }
 
@@ -1102,7 +1337,7 @@ shear(float sx, float sy)
   m = d->m_core->item_matrix().m_item_matrix;
   m.shear(sx, sy);
   d->m_core->item_matrix(m);
-  d->m_clip_rect_state.m_item_matrix_changed = true;
+  d->m_clip_rect_state.m_inverse_transpose_not_ready = true;
   d->m_clip_rect_state.m_clip_rect.shear(1.0f / sx, 1.0f / sy);
 }
 
@@ -1128,7 +1363,7 @@ rotate(float angle)
   m = d->m_core->item_matrix().m_item_matrix * tr;
   d->m_core->item_matrix(m);
   d->m_clip_rect_state.m_item_matrix_tricky = true;
-  d->m_clip_rect_state.m_item_matrix_changed = true;
+  d->m_clip_rect_state.m_inverse_transpose_not_ready = true;
 }
 
 void

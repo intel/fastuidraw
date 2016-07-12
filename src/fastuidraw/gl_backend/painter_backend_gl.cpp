@@ -306,7 +306,7 @@ namespace
     update_varying_size(const fastuidraw::gl::varying_list &plist);
 
     void
-    query_extension_support(void);
+    configure_backend(void);
 
     fastuidraw::gl::PainterBackendGL::params m_params;
     unsigned int m_color_tile_size;
@@ -330,7 +330,7 @@ namespace
     size_t m_number_uint_varyings;
     size_t m_number_int_varyings;
 
-    bool m_extension_support_queried;
+    bool m_backend_configured;
     int m_number_clip_planes; //0 indicates no hw clip planes.
     GLenum m_clip_plane0;
     bool m_have_dual_src_blending, m_have_framebuffer_fetch;
@@ -1858,11 +1858,11 @@ create_shader_set(void)
 
 void
 PainterBackendGLPrivate::
-query_extension_support(void)
+configure_backend(void)
 {
-  assert(!m_extension_support_queried);
+  assert(!m_backend_configured);
 
-  m_extension_support_queried = true;
+  m_backend_configured = true;
   m_tex_buffer_support = fastuidraw::gl::detail::compute_tex_buffer_support();
 
   if(m_params.data_store_backing() == fastuidraw::gl::PainterBackendGL::data_store_tbo
@@ -1992,11 +1992,6 @@ build_program(void)
   using namespace fastuidraw::PainterPacking;
   fastuidraw::gl::Shader::shader_source vert, frag;
   std::ostringstream declare_varyings;
-
-  if(!m_extension_support_queried)
-    {
-      query_extension_support();
-    }
 
   fastuidraw::gl::GlyphAtlasGL *glyphs;
   glyphs = dynamic_cast<fastuidraw::gl::GlyphAtlasGL*>(m_p->glyph_atlas().get());
@@ -2259,7 +2254,7 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::params &P,
   m_number_float_varyings(0),
   m_number_uint_varyings(0),
   m_number_int_varyings(0),
-  m_extension_support_queried(false),
+  m_backend_configured(false),
   m_number_clip_planes(0),
   m_clip_plane0(GL_INVALID_ENUM),
   m_ctx_properties(false),
@@ -2515,6 +2510,11 @@ program(void)
   PainterBackendGLPrivate *d;
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
 
+  if(!d->m_backend_configured)
+    {
+      d->configure_backend();
+    }
+
   if(d->m_rebuild_program)
     {
       d->build_program();
@@ -2533,9 +2533,12 @@ on_begin(void)
    */
   PainterBackendGLPrivate *d;
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
-  if(!d->m_extension_support_queried)
+  if(!d->m_backend_configured)
     {
-      d->query_extension_support();
+      d->configure_backend();
+      /* Set performance rendering hints
+       */
+      set_hints().clipping_via_hw_clip_planes(d->m_number_clip_planes > 0);
     }
 }
 

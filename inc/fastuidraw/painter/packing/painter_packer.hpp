@@ -365,6 +365,13 @@ namespace fastuidraw
                  const DataCallBack::handle &call_back = DataCallBack::handle());
 
     /*!
+      Returns the PainterBackend::PerformanceHints of the underlying
+      PainterBackend of this PainterPacker.
+     */
+    const PainterBackend::PerformanceHints&
+    hints(void);
+
+    /*!
       Registers a shader for use. Must not be called within a
       begin() / end() pair.
      */
