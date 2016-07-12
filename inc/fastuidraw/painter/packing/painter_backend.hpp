@@ -103,6 +103,41 @@ namespace fastuidraw
     };
 
     /*!
+      PerformanceHints provides miscellaneous data about
+      an implementation of a PainterBackend.
+     */
+    class PerformanceHints:fastuidraw::noncopyable
+    {
+    public:
+      /*!
+        Ctor.
+       */
+      PerformanceHints(void);
+
+      ~PerformanceHints();
+
+      /*!
+        Returns true if an implementation of PainterBackend
+        clips triangles (for example by a hardware clipper
+        or geometry shading) instead of discard to implement
+        clipping as embodied by PainterState::ClipEquations.
+       */
+      bool
+      clipping_via_hw_clip_planes(void) const;
+
+      /*!
+        Set the value returned by
+        clipping_via_hw_clip_planes(void) const,
+        default value is true.
+       */
+      PerformanceHints&
+      clipping_via_hw_clip_planes(bool v);
+
+    private:
+      void *m_d;
+    };
+
+    /*!
       Ctor.
       \param glyph_atlas GlyphAtlas for glyphs drawn by the PainterBackend
       \param image_atlas ImageAtlas for images drawn by the PainterBackend
@@ -265,6 +300,15 @@ namespace fastuidraw
     const PainterShaderSet&
     default_shaders(void);
 
+    /*!
+      Returns the PerformanceHints for the PainterBackend,
+      may only be called after on_begin() has been called
+      atleast once. The value returned is expected to stay
+      constant once on_begin() has been called.
+     */
+    const PerformanceHints&
+    hints(void) const;
+
   protected:
     /*!
       To be implemented by a derived class to take into use
@@ -298,6 +342,13 @@ namespace fastuidraw
     virtual
     PainterShader::Tag
     absorb_blend_shader(const PainterShader::handle &shader) = 0;
+
+    /*!
+      To be accessed by a derived class in on_begin() (or before)
+      to set the performance hint values for itself.
+     */
+    PerformanceHints&
+    set_hints(void);
 
   private:
     void *m_d;
