@@ -331,6 +331,13 @@ namespace fastuidraw
     default_shaders(void) const;
 
     /*!
+      Returns the PainterSaveStatePool used to construct
+      PainterSaveState objects.
+     */
+    PainterSaveStatePool&
+    save_state_pool(void);
+
+    /*!
       Draw generic attribute data
       \param attrib_chunks attribute data to draw
       \param index_chunks the i'th element is index data into attrib_chunks[i]
