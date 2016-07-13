@@ -29,6 +29,7 @@ namespace
 {
   class ZDelayedAction;
   class ZDataCallBack;
+  class PainterPrivate;
 
   class change_header_z
   {
@@ -124,7 +125,7 @@ namespace
 
   bool
   all_pts_culled_by_one_half_plane(const fastuidraw::vecN<fastuidraw::vec3, 4> &pts,
-                                   const fastuidraw::PainterState::ClipEquations &eq)
+                                   const fastuidraw::PainterClipEquations &eq)
   {
     for(int i = 0; i < 4; ++i)
       {
@@ -149,7 +150,8 @@ namespace
   }
 
   void
-  draw_half_plane_complement(fastuidraw::Painter *painter,
+  draw_half_plane_complement(const fastuidraw::PainterData &draw,
+                             fastuidraw::Painter *painter,
                              const fastuidraw::vec3 &plane,
                              const ZDataCallBack::handle &callback)
   {
@@ -183,7 +185,8 @@ namespace
         /* the 4 points of the polygon are then
            (a, -1), (c, -1), (d, 1), (b, 1).
          */
-        painter->draw_quad(fastuidraw::vec2(a, -1.0f),
+        painter->draw_quad(draw,
+                           fastuidraw::vec2(a, -1.0f),
                            fastuidraw::vec2(c, -1.0f),
                            fastuidraw::vec2(d, +1.0f),
                            fastuidraw::vec2(b, +1.0f),
@@ -206,7 +209,8 @@ namespace
             d = fastuidraw::t_max(1.0f, b);
           }
 
-        painter->draw_quad(fastuidraw::vec2(-1.0f, a),
+        painter->draw_quad(draw,
+                           fastuidraw::vec2(-1.0f, a),
                            fastuidraw::vec2(-1.0f, c),
                            fastuidraw::vec2(+1.0f, d),
                            fastuidraw::vec2(+1.0f, b),
@@ -217,7 +221,8 @@ namespace
       {
         /* complement of half plane covers entire [-1,1]x[-1,1]
          */
-        painter->draw_quad(fastuidraw::vec2(-1.0f, -1.0f),
+        painter->draw_quad(draw,
+                           fastuidraw::vec2(-1.0f, -1.0f),
                            fastuidraw::vec2(-1.0f, +1.0f),
                            fastuidraw::vec2(+1.0f, +1.0f),
                            fastuidraw::vec2(+1.0f, -1.0f),
@@ -274,11 +279,11 @@ namespace
     {}
 
     void
-    set_painter_core_clip(const fastuidraw::PainterPacker::handle &core);
+    set_painter_core_clip(PainterPrivate *d);
 
     std::bitset<4>
-    set_painter_core_clip(const fastuidraw::PainterState::ClipEquationsState &cl,
-                          const fastuidraw::PainterPacker::handle &core);
+    set_painter_core_clip(const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> &cl,
+                          PainterPrivate *d);
 
     clip_rect m_clip_rect;
     bool m_item_matrix_tricky;
@@ -311,11 +316,8 @@ namespace
   {
   public:
     unsigned int m_occluder_stack_position;
-    fastuidraw::Painter::ItemMatrixState m_matrix;
-    fastuidraw::PainterState::ClipEquationsState m_clip;
-    fastuidraw::Painter::PainterBrushState m_brush;
-    fastuidraw::Painter::VertexShaderDataState m_vertex_shader_data;
-    fastuidraw::Painter::FragmentShaderDataState m_fragment_shader_data;
+    fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_matrix;
+    fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> m_clip;
 
     clip_rect_state m_clip_rect_state;
   };
@@ -361,7 +363,8 @@ namespace
     rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh);
 
     void
-    draw_generic_check(fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
+    draw_generic_check(const fastuidraw::PainterData &draw,
+                       fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
                        fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
                        fastuidraw::const_c_array<unsigned int> attrib_chunk_selector,
                        const fastuidraw::PainterItemShader &shader, unsigned int z,
@@ -378,14 +381,67 @@ namespace
                        std::vector<fastuidraw::vec2> &out_pts,
                        std::vector<float> &work_room);
 
+    void
+    set_current_item_matrix(const fastuidraw::PainterItemMatrix &v)
+    {
+      m_current_item_matrix = v;
+      m_current_item_matrix_state = fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>();
+    }
+
+    void
+    set_current_clip(const fastuidraw::PainterClipEquations &v)
+    {
+      m_current_clip = v;
+      m_current_clip_state = fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations>();
+    }
+
+    const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>&
+    current_item_marix_state(void)
+    {
+      if(!m_current_item_matrix_state)
+        {
+          m_current_item_matrix_state = m_pool.create_packed_value(m_current_item_matrix);
+        }
+      return m_current_item_matrix_state;
+    }
+
+    void
+    current_item_matrix_state(const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> &v)
+    {
+      m_current_item_matrix_state = v;
+      m_current_item_matrix = v.value();
+    }
+
+    const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations>&
+    current_clip_state(void)
+    {
+      if(!m_current_clip_state)
+        {
+          m_current_clip_state = m_pool.create_packed_value(m_current_clip);
+        }
+      return m_current_clip_state;
+    }
+
+    void
+    current_clip_state(const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> &v)
+    {
+      m_current_clip_state = v;
+      m_current_clip = v.value();
+    }
+
     fastuidraw::vec2 m_one_pixel_width;
     unsigned int m_current_z;
     clip_rect_state m_clip_rect_state;
     std::vector<occluder_stack_entry> m_occluder_stack;
     std::vector<state_stack_entry> m_state_stack;
     fastuidraw::PainterPacker::handle m_core;
-    fastuidraw::Painter::PainterBrushState m_reset_brush, m_black_brush;
-    fastuidraw::Painter::ItemMatrixState m_identiy_matrix;
+    fastuidraw::PainterPackedValuePool m_pool;
+    fastuidraw::PainterPackedValue<fastuidraw::PainterBrush> m_reset_brush, m_black_brush;
+    fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_identiy_matrix;
+    fastuidraw::PainterItemMatrix m_current_item_matrix;
+    fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_current_item_matrix_state;
+    fastuidraw::PainterClipEquations m_current_clip;
+    fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> m_current_clip_state;
     clip_rect m_clip_rect_in_item_coordinates;
     PainterWorkRoom m_work_room;
   };
@@ -468,17 +524,17 @@ on_pop(fastuidraw::Painter *p)
 // clip_rect_stat methods
 void
 clip_rect_state::
-set_painter_core_clip(const fastuidraw::PainterPacker::handle &core)
+set_painter_core_clip(PainterPrivate *d)
 {
-  fastuidraw::PainterState::ClipEquationsState null;
-  set_painter_core_clip(null, core);
+  fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> null;
+  set_painter_core_clip(null, d);
 }
 
 
 std::bitset<4>
 clip_rect_state::
-set_painter_core_clip(const fastuidraw::PainterState::ClipEquationsState &pcl,
-                      const fastuidraw::PainterPacker::handle &core)
+set_painter_core_clip(const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> &pcl,
+                      PainterPrivate *d)
 {
   if(m_clip_rect.empty())
     {
@@ -490,7 +546,7 @@ set_painter_core_clip(const fastuidraw::PainterState::ClipEquationsState &pcl,
   if(m_inverse_transpose_not_ready)
     {
       m_inverse_transpose_not_ready = false;
-      core->item_matrix().m_item_matrix.inverse_transpose(m_item_matrix_inverse_transpose);
+      d->m_current_item_matrix.m_item_matrix.inverse_transpose(m_item_matrix_inverse_transpose);
     }
   /* The clipping window is given by:
        w * min_x <= x <= w * max_x
@@ -504,12 +560,12 @@ set_painter_core_clip(const fastuidraw::PainterState::ClipEquationsState &pcl,
        so we need to apply the inverse transpose of the
        transformation matrix to the 4 vectors
    */
-  fastuidraw::PainterPacker::ClipEquations cl;
+  fastuidraw::PainterClipEquations cl;
   cl.m_clip_equations[0] = m_item_matrix_inverse_transpose * fastuidraw::vec3( 1.0f,  0.0f, -m_clip_rect.m_min.x());
   cl.m_clip_equations[1] = m_item_matrix_inverse_transpose * fastuidraw::vec3(-1.0f,  0.0f,  m_clip_rect.m_max.x());
   cl.m_clip_equations[2] = m_item_matrix_inverse_transpose * fastuidraw::vec3( 0.0f,  1.0f, -m_clip_rect.m_min.y());
   cl.m_clip_equations[3] = m_item_matrix_inverse_transpose * fastuidraw::vec3( 0.0f, -1.0f,  m_clip_rect.m_max.y());
-  core->clip_equations(cl);
+  d->set_current_clip(cl);
 
   for(int i = 0; i < 4; ++i)
     {
@@ -528,8 +584,8 @@ set_painter_core_clip(const fastuidraw::PainterState::ClipEquationsState &pcl,
   /* see if the vertices of the clipping rectangle (post m_item_matrix applied)
      are all within the passed clipped equations.
    */
-  const fastuidraw::PainterState::ClipEquations &eq(pcl.state());
-  const fastuidraw::float3x3 &m(core->item_matrix().m_item_matrix);
+  const fastuidraw::PainterClipEquations &eq(pcl.value());
+  const fastuidraw::float3x3 &m(d->m_current_item_matrix.m_item_matrix);
   std::bitset<4> return_value;
   fastuidraw::vecN<fastuidraw::vec3, 4> q;
 
@@ -555,13 +611,14 @@ set_painter_core_clip(const fastuidraw::PainterState::ClipEquationsState &pcl,
 //////////////////////////////////
 // PainterPrivate methods
 PainterPrivate::
-PainterPrivate(fastuidraw::PainterBackend::handle backend)
+PainterPrivate(fastuidraw::PainterBackend::handle backend):
+  m_pool(backend->configuration().alignment())
 {
   m_core = FASTUIDRAWnew fastuidraw::PainterPacker(backend);
-  m_reset_brush = m_core->brush_state();
-  m_core->brush().pen(0.0f, 0.0f, 0.0f, 0.0f);
-  m_black_brush = m_core->brush_state();
-  m_identiy_matrix = m_core->item_matrix_state();
+  m_reset_brush = m_pool.create_packed_value(fastuidraw::PainterBrush());
+  m_black_brush = m_pool.create_packed_value(fastuidraw::PainterBrush()
+                                             .pen(0.0f, 0.0f, 0.0f, 0.0f));
+  m_identiy_matrix = m_pool.create_packed_value(fastuidraw::PainterItemMatrix());
   m_current_z = 1;
   m_one_pixel_width = fastuidraw::vec2(0.0f, 0.0f);
 }
@@ -571,14 +628,14 @@ PainterPrivate::
 clip_against_planes(fastuidraw::const_c_array<fastuidraw::vec2> pts,
                     std::vector<fastuidraw::vec2> &out_pts)
 {
-  const fastuidraw::PainterState::ClipEquations &eqs(m_core->clip_equations());
-  const fastuidraw::PainterState::ItemMatrix &m(m_core->item_matrix());
+  const fastuidraw::PainterClipEquations &eqs(m_current_clip);
+  const fastuidraw::PainterItemMatrix &m(m_current_item_matrix);
 
   /* Clip planes are in clip coordinates, i.e.
        ClipDistance[i] = dot(M * p, clip_equation[i])
                        = dot(p, transpose(M)(clip_equation[i])
      To place them in local coordinates, then we need to apply
-     the transpose of m_core->item_matrix to the clip planes
+     the transpose of m_current_item_matrix to the clip planes
      which is the same as post-multiplying the matrix.
    */
   clip_against_plane(eqs.m_clip_equations[0] * m.m_item_matrix, pts,
@@ -752,20 +809,20 @@ rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh)
    */
   fastuidraw::vec2 pmax(wh + pmin);
   fastuidraw::vecN<fastuidraw::vec3, 4> pts;
-  pts[0] = m_core->item_matrix().m_item_matrix * fastuidraw::vec3(pmin.x(), pmin.y(), 1.0f);
-  pts[1] = m_core->item_matrix().m_item_matrix * fastuidraw::vec3(pmin.x(), pmax.y(), 1.0f);
-  pts[2] = m_core->item_matrix().m_item_matrix * fastuidraw::vec3(pmax.x(), pmax.y(), 1.0f);
-  pts[3] = m_core->item_matrix().m_item_matrix * fastuidraw::vec3(pmax.x(), pmin.y(), 1.0f);
+  pts[0] = m_current_item_matrix.m_item_matrix * fastuidraw::vec3(pmin.x(), pmin.y(), 1.0f);
+  pts[1] = m_current_item_matrix.m_item_matrix * fastuidraw::vec3(pmin.x(), pmax.y(), 1.0f);
+  pts[2] = m_current_item_matrix.m_item_matrix * fastuidraw::vec3(pmax.x(), pmax.y(), 1.0f);
+  pts[3] = m_current_item_matrix.m_item_matrix * fastuidraw::vec3(pmax.x(), pmin.y(), 1.0f);
 
   if(m_clip_rect_state.m_clip_rect.m_enabled)
     {
       /* use equations of from clip state
        */
-      return all_pts_culled_by_one_half_plane(pts, m_core->clip_equations());
+      return all_pts_culled_by_one_half_plane(pts, m_current_clip);
     }
   else
     {
-      fastuidraw::PainterState::ClipEquations clip_eq;
+      fastuidraw::PainterClipEquations clip_eq;
       clip_eq.m_clip_equations[0] = fastuidraw::vec3( 1.0f,  0.0f, 1.0f);
       clip_eq.m_clip_equations[1] = fastuidraw::vec3(-1.0f,  0.0f, 1.0f);
       clip_eq.m_clip_equations[2] = fastuidraw::vec3( 0.0f,  1.0f, 1.0f);
@@ -776,7 +833,8 @@ rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh)
 
 void
 PainterPrivate::
-draw_generic_check(fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
+draw_generic_check(const fastuidraw::PainterData &draw,
+                   fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
                    fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
                    fastuidraw::const_c_array<unsigned int> attrib_chunk_selector,
                    const fastuidraw::PainterItemShader &shader, unsigned int z,
@@ -784,7 +842,10 @@ draw_generic_check(fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidra
 {
   if(!m_clip_rect_state.m_all_content_culled)
     {
-      m_core->draw_generic(attrib_chunks, index_chunks, attrib_chunk_selector, shader, z, call_back);
+      fastuidraw::PainterPackerData p(draw);
+      p.m_clip = current_clip_state();
+      p.m_matrix = current_item_marix_state();
+      m_core->draw_generic(p, attrib_chunks, index_chunks, attrib_chunk_selector, shader, z, call_back);
     }
 }
 
@@ -804,6 +865,15 @@ fastuidraw::Painter::
   d = reinterpret_cast<PainterPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
+}
+
+fastuidraw::PainterPackedValuePool&
+fastuidraw::Painter::
+packed_value_pool(void)
+{
+  PainterPrivate *d;
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  return d->m_pool;
 }
 
 void
@@ -837,18 +907,15 @@ begin(bool reset_z)
   d->m_clip_rect_state.m_item_matrix_tricky = false;
   d->m_clip_rect_state.m_inverse_transpose_not_ready = false;
   d->m_clip_rect_state.m_clip_rect.m_enabled = false;
-  d->m_core->item_matrix(PainterState::ItemMatrix());
+  d->set_current_item_matrix(PainterItemMatrix());
   {
-    PainterState::ClipEquations clip_eq;
+    PainterClipEquations clip_eq;
     clip_eq.m_clip_equations[0] = fastuidraw::vec3( 1.0f,  0.0f, 1.0f);
     clip_eq.m_clip_equations[1] = fastuidraw::vec3(-1.0f,  0.0f, 1.0f);
     clip_eq.m_clip_equations[2] = fastuidraw::vec3( 0.0f,  1.0f, 1.0f);
     clip_eq.m_clip_equations[3] = fastuidraw::vec3( 0.0f, -1.0f, 1.0f);
-    d->m_core->clip_equations(clip_eq);
+    d->set_current_clip(clip_eq);
   }
-  d->m_core->brush_state(d->m_reset_brush);
-  vertex_shader_data(VertexShaderData());
-  fragment_shader_data(FragmentShaderData());
   blend_shader(PainterEnums::blend_porter_duff_src_over);
 }
 
@@ -874,20 +941,22 @@ end(void)
 
 void
 fastuidraw::Painter::
-draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
+draw_generic(const PainterData &draw,
+             const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
              const PainterItemShader &shader,
              const PainterPacker::DataCallBack::handle &call_back)
 {
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
-  d->draw_generic_check(attrib_chunks, index_chunks, const_c_array<unsigned int>(),
+  d->draw_generic_check(draw, attrib_chunks, index_chunks, const_c_array<unsigned int>(),
                         shader, current_z(), call_back);
 }
 
 void
 fastuidraw::Painter::
-draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
+draw_generic(const PainterData &draw,
+             const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
              const_c_array<unsigned int> attrib_chunk_selector,
              const PainterItemShader &shader,
@@ -895,13 +964,13 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
 {
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
-  d->draw_generic_check(attrib_chunks, index_chunks, attrib_chunk_selector,
+  d->draw_generic_check(draw, attrib_chunks, index_chunks, attrib_chunk_selector,
                         shader, current_z(), call_back);
 }
 
 void
 fastuidraw::Painter::
-draw_convex_polygon(const_c_array<vec2> pts,
+draw_convex_polygon(const PainterData &draw, const_c_array<vec2> pts,
                     const PainterItemShader &shader,
                     const PainterPacker::DataCallBack::handle &call_back)
 {
@@ -941,22 +1010,23 @@ draw_convex_polygon(const_c_array<vec2> pts,
       d->m_work_room.m_indices.push_back(i - 1);
       d->m_work_room.m_indices.push_back(i);
     }
-  draw_generic(make_c_array(d->m_work_room.m_attribs),
+  draw_generic(draw,
+               make_c_array(d->m_work_room.m_attribs),
                make_c_array(d->m_work_room.m_indices),
                shader, call_back);
 }
 
 void
 fastuidraw::Painter::
-draw_convex_polygon(const_c_array<vec2> pts,
+draw_convex_polygon(const PainterData &draw, const_c_array<vec2> pts,
                     const PainterPacker::DataCallBack::handle &call_back)
 {
-  draw_convex_polygon(pts, default_shaders().fill_shader(), call_back);
+  draw_convex_polygon(draw, pts, default_shaders().fill_shader(), call_back);
 }
 
 void
 fastuidraw::Painter::
-draw_quad(const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
+draw_quad(const PainterData &draw, const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
           const PainterItemShader &shader,
           const PainterPacker::DataCallBack::handle &call_back)
 {
@@ -965,24 +1035,24 @@ draw_quad(const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
   pts[1] = p1;
   pts[2] = p2;
   pts[3] = p3;
-  draw_convex_polygon(const_c_array<vec2>(&pts[0], pts.size()), shader, call_back);
+  draw_convex_polygon(draw, const_c_array<vec2>(&pts[0], pts.size()), shader, call_back);
 }
 
 void
 fastuidraw::Painter::
-draw_quad(const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
+draw_quad(const PainterData &draw, const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
           const PainterPacker::DataCallBack::handle &call_back)
 {
-  draw_quad(p0, p1, p2, p3, default_shaders().fill_shader(), call_back);
+  draw_quad(draw, p0, p1, p2, p3, default_shaders().fill_shader(), call_back);
 }
 
 void
 fastuidraw::Painter::
-draw_rect(const vec2 &p, const vec2 &wh,
+draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
           const PainterItemShader &shader,
           const PainterPacker::DataCallBack::handle &call_back)
 {
-  draw_quad(p, p + vec2(0.0f, wh.y()),
+  draw_quad(draw, p, p + vec2(0.0f, wh.y()),
             p + wh, p + vec2(wh.x(), 0.0f),
             shader,
             call_back);
@@ -990,15 +1060,15 @@ draw_rect(const vec2 &p, const vec2 &wh,
 
 void
 fastuidraw::Painter::
-draw_rect(const vec2 &p, const vec2 &wh,
+draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
           const PainterPacker::DataCallBack::handle &call_back)
 {
-  draw_rect(p, wh, default_shaders().fill_shader(), call_back);
+  draw_rect(draw, p, wh, default_shaders().fill_shader(), call_back);
 }
 
 void
 fastuidraw::Painter::
-stroke_path(const PainterAttributeData &pdata,
+stroke_path(const PainterData &draw, const PainterAttributeData &pdata,
             enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
             bool with_anti_aliasing, const PainterStrokeShader &shader,
             const PainterPacker::DataCallBack::handle &call_back)
@@ -1069,23 +1139,23 @@ stroke_path(const PainterAttributeData &pdata,
          written depth goes from (startz + zincs[1] + zincs[2] + 1) to (startz + zincs[0] + zincs[1] + zincs[2])
       */
       d->m_current_z = startz + zincs[1] + zincs[2] + 1;
-      draw_generic(attrib_chunks[0], index_chunks[0], *sh, call_back);
+      draw_generic(draw, attrib_chunks[0], index_chunks[0], *sh, call_back);
 
       /* raw depth value goes from 0 to zincs[1] - 1
          written depth goes from (startz + zincs[2] + 1) to (startz + zincs[1] + zincs[2])
       */
       d->m_current_z = startz + zincs[2] + 1;
-      draw_generic(attrib_chunks[1], index_chunks[1], *sh, call_back);
+      draw_generic(draw, attrib_chunks[1], index_chunks[1], *sh, call_back);
 
       /* raw depth value goes from 0 to zincs[2] - 1
          written depth goes from (startz + 1) to (startz + zincs[2])
       */
       d->m_current_z = startz + 1;
-      draw_generic(attrib_chunks[2], index_chunks[2], *sh, call_back);
+      draw_generic(draw, attrib_chunks[2], index_chunks[2], *sh, call_back);
     }
   else
     {
-      draw_generic(attrib_chunks, index_chunks, *sh, call_back);
+      draw_generic(draw, attrib_chunks, index_chunks, *sh, call_back);
     }
 
   if(with_anti_aliasing)
@@ -1095,7 +1165,7 @@ stroke_path(const PainterAttributeData &pdata,
          depth is always startz.
        */
       d->m_current_z = startz;
-      draw_generic(attrib_chunks, index_chunks, shader.aa_shader_pass2(), call_back);
+      draw_generic(draw, attrib_chunks, index_chunks, shader.aa_shader_pass2(), call_back);
     }
 
   if(modify_z)
@@ -1106,68 +1176,68 @@ stroke_path(const PainterAttributeData &pdata,
 
 void
 fastuidraw::Painter::
-stroke_path(const Path &path,
+stroke_path(const PainterData &draw, const Path &path,
             enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
             bool with_anti_aliasing, const PainterStrokeShader &shader,
             const PainterPacker::DataCallBack::handle &call_back)
 {
-  stroke_path(path.tessellation()->stroked()->painter_data(),
+  stroke_path(draw, path.tessellation()->stroked()->painter_data(),
               cp, js, with_anti_aliasing, shader, call_back);
 }
 
 void
 fastuidraw::Painter::
-stroke_path(const Path &path,
+stroke_path(const PainterData &draw, const Path &path,
             enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
             bool with_anti_aliasing,
             const PainterPacker::DataCallBack::handle &call_back)
 {
-  stroke_path(path, cp, js, with_anti_aliasing, default_shaders().stroke_shader(), call_back);
+  stroke_path(draw, path, cp, js, with_anti_aliasing, default_shaders().stroke_shader(), call_back);
 }
 
 void
 fastuidraw::Painter::
-stroke_path_pixel_width(const Path &path,
+stroke_path_pixel_width(const PainterData &draw, const Path &path,
                         enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                         bool with_anti_aliasing,
                         const PainterPacker::DataCallBack::handle &call_back)
 {
-  stroke_path(path, cp, js, with_anti_aliasing,
+  stroke_path(draw, path, cp, js, with_anti_aliasing,
               default_shaders().pixel_width_stroke_shader(), call_back);
 }
 
 void
 fastuidraw::Painter::
-fill_path(const PainterAttributeData &data,
+fill_path(const PainterData &draw, const PainterAttributeData &data,
           enum PainterEnums::fill_rule_t fill_rule,
           const PainterItemShader &shader,
           const PainterPacker::DataCallBack::handle &call_back)
 {
-  draw_generic(data.attribute_data_chunk(0),
+  draw_generic(draw, data.attribute_data_chunk(0),
                data.index_data_chunk(fill_rule),
                shader, call_back);
 }
 
 void
 fastuidraw::Painter::
-fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule,
+fill_path(const PainterData &draw, const Path &path, enum PainterEnums::fill_rule_t fill_rule,
           const PainterItemShader &shader,
           const PainterPacker::DataCallBack::handle &call_back)
 {
-  fill_path(path.tessellation()->filled()->painter_data(), fill_rule, shader, call_back);
+  fill_path(draw, path.tessellation()->filled()->painter_data(), fill_rule, shader, call_back);
 }
 
 void
 fastuidraw::Painter::
-fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule,
+fill_path(const PainterData &draw, const Path &path, enum PainterEnums::fill_rule_t fill_rule,
           const PainterPacker::DataCallBack::handle &call_back)
 {
-  fill_path(path, fill_rule, default_shaders().fill_shader(), call_back);
+  fill_path(draw, path, fill_rule, default_shaders().fill_shader(), call_back);
 }
 
 void
 fastuidraw::Painter::
-fill_path(const PainterAttributeData &data,
+fill_path(const PainterData &draw, const PainterAttributeData &data,
           const CustomFillRuleBase &fill_rule,
           const PainterItemShader &shader,
           const PainterPacker::DataCallBack::handle &call_back)
@@ -1203,7 +1273,7 @@ fill_path(const PainterAttributeData &data,
 
   if(!d->m_work_room.m_selector.empty())
     {
-      draw_generic(data.attribute_data_chunks(),
+      draw_generic(draw, data.attribute_data_chunks(),
                    make_c_array(d->m_work_room.m_index_chunks),
                    make_c_array(d->m_work_room.m_selector), shader, call_back);
     }
@@ -1212,24 +1282,25 @@ fill_path(const PainterAttributeData &data,
 
 void
 fastuidraw::Painter::
-fill_path(const Path &path, const CustomFillRuleBase &fill_rule,
+fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
           const PainterItemShader &shader,
           const PainterPacker::DataCallBack::handle &call_back)
 {
-  fill_path(path.tessellation()->filled()->painter_data(), fill_rule, shader, call_back);
+  fill_path(draw, path.tessellation()->filled()->painter_data(), fill_rule, shader, call_back);
 }
 
 void
 fastuidraw::Painter::
-fill_path(const Path &path, const CustomFillRuleBase &fill_rule,
+fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
           const PainterPacker::DataCallBack::handle &call_back)
 {
-  fill_path(path, fill_rule, default_shaders().fill_shader(), call_back);
+  fill_path(draw, path, fill_rule, default_shaders().fill_shader(), call_back);
 }
 
 void
 fastuidraw::Painter::
-draw_glyphs(const PainterAttributeData &data, const PainterGlyphShader &shader,
+draw_glyphs(const PainterData &draw,
+            const PainterAttributeData &data, const PainterGlyphShader &shader,
             const PainterPacker::DataCallBack::handle &call_back)
 {
   const_c_array<unsigned int> chks(data.non_empty_index_data_chunks());
@@ -1238,23 +1309,24 @@ draw_glyphs(const PainterAttributeData &data, const PainterGlyphShader &shader,
       unsigned int k;
 
       k = chks[i];
-      draw_generic(data.attribute_data_chunk(k), data.index_data_chunk(k),
+      draw_generic(draw, data.attribute_data_chunk(k), data.index_data_chunk(k),
                    shader.shader(static_cast<enum glyph_type>(k)), call_back);
     }
 }
 
 void
 fastuidraw::Painter::
-draw_glyphs(const PainterAttributeData &data, bool use_anistopic_antialias,
+draw_glyphs(const PainterData &draw,
+            const PainterAttributeData &data, bool use_anistopic_antialias,
             const PainterPacker::DataCallBack::handle &call_back)
 {
   if(use_anistopic_antialias)
     {
-      draw_glyphs(data, default_shaders().glyph_shader_anisotropic(), call_back);
+      draw_glyphs(draw, data, default_shaders().glyph_shader_anisotropic(), call_back);
     }
   else
     {
-      draw_glyphs(data, default_shaders().glyph_shader(), call_back);
+      draw_glyphs(draw, data, default_shaders().glyph_shader(), call_back);
     }
 }
 
@@ -1266,8 +1338,8 @@ concat(const float3x3 &tr)
   d = reinterpret_cast<PainterPrivate*>(m_d);
 
   float3x3 m;
-  m = d->m_core->item_matrix().m_item_matrix * tr;
-  d->m_core->item_matrix(m);
+  m = d->m_current_item_matrix.m_item_matrix * tr;
+  d->set_current_item_matrix(m);
   d->m_clip_rect_state.m_inverse_transpose_not_ready = true;
 
   if(d->m_clip_rect_state.m_item_matrix_tricky
@@ -1291,20 +1363,28 @@ transformation(const float3x3 &m)
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
 
-  d->m_core->item_matrix(m);
+  d->set_current_item_matrix(m);
   d->m_clip_rect_state.m_inverse_transpose_not_ready = true;
   d->m_clip_rect_state.m_item_matrix_tricky = true;
 }
 
+const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>&
+fastuidraw::Painter::
+transformation_state(void)
+{
+  PainterPrivate *d;
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  return d->current_item_marix_state();
+}
 
 void
 fastuidraw::Painter::
-transformation_state(const ItemMatrixState &h)
+transformation_state(const PainterPackedValue<PainterItemMatrix> &h)
 {
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
 
-  d->m_core->item_matrix_state(h);
+  d->current_item_matrix_state(h);
   d->m_clip_rect_state.m_item_matrix_tricky = true;
   d->m_clip_rect_state.m_inverse_transpose_not_ready = true;
 }
@@ -1317,9 +1397,9 @@ translate(const vec2 &p)
   d = reinterpret_cast<PainterPrivate*>(m_d);
 
   float3x3 m;
-  m = d->m_core->item_matrix().m_item_matrix;
+  m = d->m_current_item_matrix.m_item_matrix;
   m.translate(p.x(), p.y());
-  d->m_core->item_matrix(m);
+  d->set_current_item_matrix(m);
   d->m_clip_rect_state.m_inverse_transpose_not_ready = true;
   d->m_clip_rect_state.m_clip_rect.translate(-p);
 }
@@ -1333,9 +1413,9 @@ scale(float s)
 
   float3x3 m;
 
-  m = d->m_core->item_matrix().m_item_matrix;
+  m = d->m_current_item_matrix.m_item_matrix;
   m.scale(s);
-  d->m_core->item_matrix(m);
+  d->set_current_item_matrix(m);
   d->m_clip_rect_state.m_inverse_transpose_not_ready = true;
   d->m_clip_rect_state.m_clip_rect.scale(1.0f / s);
 }
@@ -1349,9 +1429,9 @@ shear(float sx, float sy)
 
   float3x3 m;
 
-  m = d->m_core->item_matrix().m_item_matrix;
+  m = d->m_current_item_matrix.m_item_matrix;
   m.shear(sx, sy);
-  d->m_core->item_matrix(m);
+  d->set_current_item_matrix(m);
   d->m_clip_rect_state.m_inverse_transpose_not_ready = true;
   d->m_clip_rect_state.m_clip_rect.shear(1.0f / sx, 1.0f / sy);
 }
@@ -1375,8 +1455,8 @@ rotate(float angle)
   tr(0, 1) = -s;
   tr(1, 1) = c;
 
-  m = d->m_core->item_matrix().m_item_matrix * tr;
-  d->m_core->item_matrix(m);
+  m = d->m_current_item_matrix.m_item_matrix * tr;
+  d->set_current_item_matrix(m);
   d->m_clip_rect_state.m_item_matrix_tricky = true;
   d->m_clip_rect_state.m_inverse_transpose_not_ready = true;
 }
@@ -1390,11 +1470,8 @@ save(void)
 
   state_stack_entry st;
   st.m_occluder_stack_position = d->m_occluder_stack.size();
-  st.m_matrix = d->m_core->item_matrix_state();
-  st.m_clip = d->m_core->clip_equations_state();
-  st.m_brush = brush_state();
-  st.m_vertex_shader_data = vertex_shader_data();
-  st.m_fragment_shader_data = fragment_shader_data();
+  st.m_matrix = d->current_item_marix_state();
+  st.m_clip = d->current_clip_state();
   st.m_clip_rect_state = d->m_clip_rect_state;
 
   d->m_state_stack.push_back(st);
@@ -1411,11 +1488,8 @@ restore(void)
   const state_stack_entry &st(d->m_state_stack.back());
 
   d->m_clip_rect_state = st.m_clip_rect_state;
-  d->m_core->item_matrix_state(st.m_matrix);
-  d->m_core->clip_equations_state(st.m_clip);
-  brush_state(st.m_brush);
-  vertex_shader_data(st.m_vertex_shader_data);
-  fragment_shader_data(st.m_fragment_shader_data);
+  d->current_item_matrix_state(st.m_matrix);
+  d->current_clip_state(st.m_clip);
   while(d->m_occluder_stack.size() > st.m_occluder_stack_position)
     {
       d->m_occluder_stack.back().on_pop(this);
@@ -1463,7 +1537,6 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
       return;
     }
 
-  PainterBrushState old_brush;
   PainterShader::const_handle old_blend;
   ZDataCallBack::handle zdatacallback;
 
@@ -1473,13 +1546,10 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
      the next time m_occluder_stack is popped.
    */
   zdatacallback = FASTUIDRAWnew ZDataCallBack();
-  old_brush = brush_state();
   old_blend = blend_shader();
 
-  brush_state(d->m_black_brush);
   blend_shader(PainterEnums::blend_porter_duff_dst);
-  fill_path(path, fill_rule, default_shaders().fill_shader(), zdatacallback);
-  brush_state(old_brush);
+  fill_path(PainterData(d->m_black_brush), path, fill_rule, default_shaders().fill_shader(), zdatacallback);
   blend_shader(old_blend);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
@@ -1499,7 +1569,6 @@ clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
       return;
     }
 
-  PainterBrushState old_brush;
   PainterShader::const_handle old_blend;
   ZDataCallBack::handle zdatacallback;
 
@@ -1509,13 +1578,10 @@ clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
      the next time m_occluder_stack is popped.
    */
   zdatacallback = FASTUIDRAWnew ZDataCallBack();
-  old_brush = brush_state();
   old_blend = blend_shader();
 
-  brush_state(d->m_black_brush);
   blend_shader(PainterEnums::blend_porter_duff_dst);
-  fill_path(path, fill_rule, default_shaders().fill_shader(), zdatacallback);
-  brush_state(old_brush);
+  fill_path(PainterData(d->m_black_brush), path, fill_rule, default_shaders().fill_shader(), zdatacallback);
   blend_shader(old_blend);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
@@ -1590,7 +1656,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
          as the clipping window
        */
       d->m_clip_rect_state.m_clip_rect = clip_rect(pmin, pmax);
-      d->m_clip_rect_state.set_painter_core_clip(d->m_core);
+      d->m_clip_rect_state.set_painter_core_clip(d);
       return;
     }
   else if(!d->m_clip_rect_state.m_item_matrix_tricky)
@@ -1603,7 +1669,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
          the passed rectangle.
        */
       d->m_clip_rect_state.m_clip_rect.intersect(clip_rect(pmin, pmax));
-      d->m_clip_rect_state.set_painter_core_clip(d->m_core);
+      d->m_clip_rect_state.set_painter_core_clip(d);
       return;
     }
 
@@ -1617,16 +1683,16 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
       2. we draw the -complement- of the half planes of each
          of the old clip equations as occluders
    */
-  PainterState::ClipEquationsState prev_clip, current_clip;
+  PainterPackedValue<PainterClipEquations> prev_clip, current_clip;
 
-  prev_clip = d->m_core->clip_equations_state();
+  prev_clip = d->current_clip_state();
   assert(prev_clip);
 
   d->m_clip_rect_state.m_clip_rect = clip_rect(pmin, pmax);
 
   std::bitset<4> skip_occluder;
-  skip_occluder = d->m_clip_rect_state.set_painter_core_clip(prev_clip, d->m_core);
-  current_clip = d->m_core->clip_equations_state();
+  skip_occluder = d->m_clip_rect_state.set_painter_core_clip(prev_clip, d);
+  current_clip = d->current_clip_state();
 
   if(d->m_clip_rect_state.m_all_content_culled)
     {
@@ -1652,19 +1718,16 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
      in m_core because this->transformation_state() sets
      m_clip_rect_state.m_item_matrix_tricky to true.
    */
-  ItemMatrixState matrix_state;
-  matrix_state = d->m_core->item_matrix_state();
+  PainterPackedValue<PainterItemMatrix> matrix_state;
+  matrix_state = d->current_item_marix_state();
   assert(matrix_state);
-  d->m_core->item_matrix_state(d->m_identiy_matrix);
+  d->current_item_matrix_state(d->m_identiy_matrix);
 
   ZDataCallBack::handle zdatacallback;
   zdatacallback = FASTUIDRAWnew ZDataCallBack();
 
-  PainterBrushState old_brush;
   PainterShader::const_handle old_blend;
-  old_brush = brush_state();
   old_blend = blend_shader();
-  brush_state(d->m_black_brush);
   blend_shader(PainterEnums::blend_porter_duff_dst);
 
   /* we temporarily set the clipping to a slightly
@@ -1672,7 +1735,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
      We do this because round off error can have us
      miss a few pixels when drawing the occluder
    */
-  PainterState::ClipEquations slightly_bigger(current_clip.state());
+  PainterClipEquations slightly_bigger(current_clip.value());
   for(unsigned int i = 0; i < 4; ++i)
     {
       float f;
@@ -1681,7 +1744,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
       f = fastuidraw::t_abs(eq.x()) * d->m_one_pixel_width.x() + fastuidraw::t_abs(eq.y()) * d->m_one_pixel_width.y();
       eq.z() += f;
     }
-  d->m_core->clip_equations(slightly_bigger);
+  d->set_current_clip(slightly_bigger);
 
   /* draw the half plane occluders
    */
@@ -1689,18 +1752,18 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
     {
       if(!skip_occluder[i])
         {
-          draw_half_plane_complement(this, prev_clip.state().m_clip_equations[i], zdatacallback);
+          draw_half_plane_complement(PainterData(d->m_black_brush), this,
+                                     prev_clip.value().m_clip_equations[i], zdatacallback);
         }
     }
 
-  d->m_core->clip_equations_state(current_clip);
+  d->current_clip_state(current_clip);
 
   /* add to occluder stack.
    */
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
 
-  d->m_core->item_matrix_state(matrix_state);
-  brush_state(old_brush);
+  d->current_item_matrix_state(matrix_state);
   blend_shader(old_blend);
 }
 
@@ -1731,51 +1794,6 @@ colorstop_atlas(void) const
   return d->m_core->colorstop_atlas();
 }
 
-const fastuidraw::Painter::ItemMatrixState&
-fastuidraw::Painter::
-transformation_state(void)
-{
-  PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
-  return d->m_core->item_matrix_state();
-}
-
-fastuidraw::PainterBrush&
-fastuidraw::Painter::
-brush(void)
-{
-  PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
-  return d->m_core->brush();
-}
-
-const fastuidraw::PainterBrush&
-fastuidraw::Painter::
-cbrush(void) const
-{
-  PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
-  return d->m_core->cbrush();
-}
-
-const fastuidraw::Painter::PainterBrushState&
-fastuidraw::Painter::
-brush_state(void) const
-{
-  PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
-  return d->m_core->brush_state();
-}
-
-void
-fastuidraw::Painter::
-brush_state(const PainterBrushState &h)
-{
-  PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
-  d->m_core->brush_state(h);
-}
-
 const fastuidraw::PainterShader::const_handle&
 fastuidraw::Painter::
 blend_shader(void) const
@@ -1792,60 +1810,6 @@ blend_shader(const PainterShader::const_handle &h)
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
   d->m_core->blend_shader(h);
-}
-
-void
-fastuidraw::Painter::
-vertex_shader_data(const VertexShaderData &shader_data)
-{
-  PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
-  d->m_core->vertex_shader_data(shader_data);
-}
-
-void
-fastuidraw::Painter::
-vertex_shader_data(const VertexShaderDataState &h)
-{
-  PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
-  d->m_core->vertex_shader_data(h);
-}
-
-const fastuidraw::Painter::VertexShaderDataState&
-fastuidraw::Painter::
-vertex_shader_data(void) const
-{
-  PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
-  return d->m_core->vertex_shader_data();
-}
-
-void
-fastuidraw::Painter::
-fragment_shader_data(const FragmentShaderData &shader_data)
-{
-  PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
-  d->m_core->fragment_shader_data(shader_data);
-}
-
-void
-fastuidraw::Painter::
-fragment_shader_data(const FragmentShaderDataState &h)
-{
-  PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
-  d->m_core->fragment_shader_data(h);
-}
-
-const fastuidraw::Painter::FragmentShaderDataState&
-fastuidraw::Painter::
-fragment_shader_data(void) const
-{
-  PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
-  return d->m_core->fragment_shader_data();
 }
 
 const fastuidraw::PainterShaderSet&
