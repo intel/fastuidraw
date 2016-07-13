@@ -340,8 +340,12 @@ draw_frame(void)
   float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0)), m;
   m = proj * m_zoomer.transformation().matrix3();
   m_painter->transformation(m);
-  m_painter->brush().pen(1.0, 1.0, 1.0, 1.0);
-  m_painter->draw_glyphs(m_draws[m_current_drawer], m_use_anisotropic_anti_alias);
+
+  PainterBrush brush;
+  brush.pen(1.0, 1.0, 1.0, 1.0);
+  m_painter->draw_glyphs(PainterData(&brush),
+                         m_draws[m_current_drawer],
+                         m_use_anisotropic_anti_alias);
   m_painter->end();
 }
 

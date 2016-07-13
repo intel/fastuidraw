@@ -185,10 +185,22 @@ namespace fastuidraw
 
     /*!
       Ctor. Initializes the brush to have no image, no gradient,
-      no repeat window and no transformation.
+      no repeat window and no transformation with the pen color
+      as (1.0, 1.0, 1.0, 1.0) which is solid white.
      */
     PainterBrush(void)
     {}
+
+    /*!
+      Ctor. Initializes the brush to have no image, no gradient,
+      no repeat window and no transformation with the given
+      pen color.
+      \param ppen_color inital pen color
+     */
+    PainterBrush(const vec4 &ppen_color)
+    {
+      m_data.m_pen = ppen_color;
+    }
 
     /*!
       Reset the brush to initial conditions.

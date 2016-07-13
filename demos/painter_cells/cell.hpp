@@ -35,10 +35,10 @@ class CellParams
 public:
   GlyphSelector::handle m_glyph_selector;
   FontBase::const_handle m_font;
-  PainterState::PainterBrushState m_background_brush;
-  PainterState::PainterBrushState m_image_brush;
-  PainterState::PainterBrushState m_text_brush;
-  PainterState::PainterBrushState m_line_brush;
+  PainterPackedValue<PainterBrush> m_background_brush;
+  PainterPackedValue<PainterBrush> m_image_brush;
+  PainterPackedValue<PainterBrush> m_text_brush;
+  PainterPackedValue<PainterBrush> m_line_brush;
   std::string m_text;
   std::string m_image_name;
   vec2 m_pixels_per_ms;
@@ -79,10 +79,10 @@ private:
   vec2 m_pixels_per_ms;
   int m_degrees_per_s;
 
-  PainterState::PainterBrushState m_background_brush;
-  PainterState::PainterBrushState m_image_brush;
-  PainterState::PainterBrushState m_text_brush;
-  PainterState::PainterBrushState m_line_brush;
+  PainterPackedValue<PainterBrush> m_background_brush;
+  PainterPackedValue<PainterBrush> m_image_brush;
+  PainterPackedValue<PainterBrush> m_text_brush;
+  PainterPackedValue<PainterBrush> m_line_brush;
 
   vec2 m_item_location;
   float m_item_rotation;
