@@ -25,6 +25,7 @@
 
 namespace fastuidraw
 {
+  class PainterSaveStatePool;
   class PainterPacker;
 
   template<typename T>
@@ -35,12 +36,23 @@ namespace fastuidraw
  */
 
   /*!
-    (Private) base classed used for PainterSaveState
+    (Private) base classe used for PainterSaveState
    */
   class PainterSaveStateBase
   {
+
+    /*!
+      Returns the alignment packing for PainterSaveState
+      object (see PainterPacker::Configuration::alignment());
+      If the PainterSaveState represents a NULL handle then
+      returns 0.
+     */
+    unsigned int
+    alignment_packing(void) const;
+
   private:
     friend class PainterPacker;
+    friend class PainterSaveStatePool;
     template<typename> friend class PainterSaveState;
 
     ~PainterSaveStateBase();
@@ -60,14 +72,15 @@ namespace fastuidraw
   };
 
   /*!
-    A PainterSaveStateBase represents a handle to a
-    portion of state of PainterPacker that is packed
-    into PainterDrawCommand::m_store. If already on
-    a store, the also location information to reuse
-    the data. The object behind the handle is NOT
-    thread safe including the reference counter.
-    They cannot be used in multiple threads
-    simutaneously!
+    A PainterSaveStateBase represents a handle to a portion of state of
+    PainterPacker that is packed into PainterDrawCommand::m_store. If already
+    on a store, the also location information to reuse the data. The object
+    behind the handle is NOT thread safe (including the reference counter!)
+    They cannot be used in multiple threads simutaneously. A fixed
+    PainterSaveState can be used by different Painter (and PainterPacker)
+    objects subject to the condition that the data store alignment (see
+    PainterPacker::Configuration::alignment()) is the same for each of these
+    objects.
    */
   template<typename T>
   class PainterSaveState:PainterSaveStateBase
@@ -143,6 +156,7 @@ namespace fastuidraw
 
   private:
     friend class PainterPacker;
+    friend class PainterSaveStatePool;
 
     explicit
     PainterSaveState(void *d):
@@ -150,30 +164,98 @@ namespace fastuidraw
     {}
   };
 
+  /*!
+    A PainterSaveStatePool can be used to create PainterSaveState
+    objects. Just like PainterSaveState, PainterSaveStatePool is
+    NOT thread safe, as such it is not a safe operation to use the
+    same PainterSaveStatePool object from multiple threads at the
+    same time. A fixed PainterSaveStatePool can create PainterSaveState
+    objects used by different Painter (and PainterPacker) objects subject
+    to the condition that the data store alignment (see
+    PainterPacker::Configuration::alignment()) is the same for each of
+    these objects.
+   */
+  class PainterSaveStatePool:noncopyable
+  {
+  public:
+    /*!
+      Ctor.
+      \param alignment the alignment to create packed data, see
+                       PainterPacker::Configuration::alignment()
+     */
+    explicit
+    PainterSaveStatePool(int painter_alignment);
+
+    ~PainterSaveStatePool();
+
+    /*!
+      Create and return a PainerSaveState object for
+      the value of a PainterBrush object.
+      \param value data to pack into returned PainterSaveState
+     */
+    PainterSaveState<PainterBrush>
+    create_state(const PainterBrush &value);
+
+    /*!
+      Create and return a PainerSaveState object for
+      the value of a PainterState::ClipEquations object.
+      \param value data to pack into returned PainterSaveState
+     */
+    PainterSaveState<PainterState::ClipEquations>
+    create_state(const PainterState::ClipEquations &value);
+
+    /*!
+      Create and return a PainerSaveState object for
+      the value of a PainterState::ItemMatrix object.
+      \param value data to pack into returned PainterSaveState
+     */
+    PainterSaveState<PainterState::ItemMatrix>
+    create_state(const PainterState::ItemMatrix &value);
+
+    /*!
+      Create and return a PainerSaveState object for
+      the value of a PainterState::VertexShaderData object.
+      \param value data to pack into returned PainterSaveState
+     */
+    PainterSaveState<PainterState::VertexShaderData>
+    create_state(const PainterState::VertexShaderData &value);
+
+    /*!
+      Create and return a PainerSaveState object for
+      the value of a  object.
+      \param value data to pack into returned PainterSaveState
+     */
+    PainterSaveState<PainterState::FragmentShaderData>
+    create_state(const PainterState::FragmentShaderData &value);
+
+  private:
+    void *m_d;
+  };
+
   namespace PainterState
   {
     /*!
-      Convenience typedef to PainterSaveState with PainterBrushState
+      Convenience typedef to PainterSaveState with PainterBrush
      */
     typedef PainterSaveState<PainterBrush> PainterBrushState;
 
     /*!
-      Convenience typedef to PainterSaveState with ClipEquationsState
+      Convenience typedef to PainterSaveState with ClipEquations
      */
     typedef PainterSaveState<ClipEquations> ClipEquationsState;
 
     /*!
-      Convenience typedef to PainterSaveState with ItemMatrixState
+      Convenience typedef to PainterSaveState with ItemMatrix
      */
     typedef PainterSaveState<ItemMatrix> ItemMatrixState;
 
     /*!
-      Convenience typedef to PainterSaveState with VertexShaderDataState
+      Convenience typedef to PainterSaveState with VertexShaderData
      */
     typedef PainterSaveState<VertexShaderData> VertexShaderDataState;
 
     /*!
-      Convenience typedef to PainterSaveState with FragmentShaderDataState
+      Convenience typedef to PainterSaveState with FragmentShaderData
      */
     typedef PainterSaveState<FragmentShaderData> FragmentShaderDataState;
   }

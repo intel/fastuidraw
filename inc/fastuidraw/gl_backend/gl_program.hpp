@@ -580,7 +580,7 @@ public:
   /*!
     Ctor.
     \param uniform_name name of uniform in GLSL to initialize
-    \param value value with which to set the uniform
+    \param binding_point_index value with which to set the uniform
    */
   UniformBlockInitializer(const char *uniform_name, int binding_point_index);
 

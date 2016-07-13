@@ -45,7 +45,9 @@ namespace fastuidraw
     /*!
       Returns the resolution of the glyph with padding.
       The padding is to be 1 pixel wide on the bottom
-      and on the right.
+      and on the right, i.e.
+      GlyphAtlas::Padding::m_right = GlyphAtlas::Padding::m_bottom = 1
+      and GlyphAtlas::Padding::m_left = GlyphAtlas::Padding::m_top = 0.
      */
     ivec2
     resolution(void) const;

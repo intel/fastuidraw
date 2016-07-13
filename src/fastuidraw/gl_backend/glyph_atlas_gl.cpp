@@ -614,7 +614,7 @@ GeometryStoreGL::
 create(const fastuidraw::gl::GlyphAtlasGL::params &P)
 {
   unsigned int number_vecNs, N;
-  GeometryStoreGL *p;
+  GeometryStoreGL *p(NULL);
   bool delayed;
 
   N = P.alignment();

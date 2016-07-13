@@ -176,6 +176,10 @@ namespace
     int m_begin_id;
     unsigned int m_draw_command_id, m_offset;
 
+    /* how m_data is aligned
+     */
+    unsigned int m_alignment;
+
   protected:
     /* pointer to raw state member held
        by derived class
@@ -217,6 +221,7 @@ namespace
       this->m_draw_command_id = 0;
       this->m_offset = 0;
       this->m_painter = NULL;
+      this->m_alignment = alignment;
       this->m_data.resize(m_state.data_size(alignment));
       m_state.pack_data(alignment, fastuidraw::make_c_array(this->m_data));
     }
@@ -282,6 +287,22 @@ namespace
     std::vector<typename Pool<T>::handle> m_pools;
   };
 
+  class PainterSaveStatePoolPrivate
+  {
+  public:
+    explicit
+    PainterSaveStatePoolPrivate(int d):
+      m_alignment(d)
+    {}
+
+    int m_alignment;
+
+    PoolSet<fastuidraw::PainterBrush> m_brush_pool;
+    PoolSet<fastuidraw::PainterState::ClipEquations> m_clip_equations_pool;
+    PoolSet<fastuidraw::PainterState::ItemMatrix> m_item_matrix_pool;
+    PoolSet<fastuidraw::PainterState::VertexShaderData> m_vertex_shader_data_pool;
+    PoolSet<fastuidraw::PainterState::FragmentShaderData> m_fragment_shader_data_pool;
+  };
 
   template<typename T>
   class tracked_state
@@ -686,12 +707,7 @@ namespace
 
     std::vector<per_draw_command> m_accumulated_draws;
     fastuidraw::PainterPacker *m_p;
-
-    PoolSet<fastuidraw::PainterState::ClipEquations> m_clipping_pool;
-    PoolSet<fastuidraw::PainterState::ItemMatrix> m_item_matrix_pool;
-    PoolSet<fastuidraw::PainterBrush> m_brush_pool;
-    PoolSet<fastuidraw::PainterState::VertexShaderData> m_vert_shader_data_pool;
-    PoolSet<fastuidraw::PainterState::FragmentShaderData> m_frag_shader_data_pool;
+    fastuidraw::PainterSaveStatePool m_pool;
 
     PainterPackerPrivateWorkroom m_work_room;
   };
@@ -877,9 +893,9 @@ PainterPackerPrivate::
 PainterPackerPrivate(fastuidraw::PainterBackend::handle backend,
                      fastuidraw::PainterPacker *p):
   m_backend(backend),
-  m_p(p)
+  m_p(p),
+  m_pool(backend->configuration().alignment())
 {
-  assert(m_backend);
   m_alignment = m_backend->configuration().alignment();
   m_header_size = fastuidraw::round_up_to_multiple(fastuidraw::PainterPacking::header_size, m_alignment);
   m_default_shaders = m_backend->default_shaders();
@@ -966,6 +982,7 @@ brush(void) const
 fastuidraw::PainterPacker::
 PainterPacker(PainterBackend::handle backend)
 {
+  assert(backend);
   m_d = FASTUIDRAWnew PainterPackerPrivate(backend, this);
 }
 
@@ -1234,9 +1251,9 @@ brush_state(void)
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
   if(!d->m_state.m_brush.state())
     {
-      Entry<PainterBrush> *e;
-      e = d->m_brush_pool.allocate(d->m_state.m_brush.cvalue(), d->m_alignment);
-      d->m_state.m_brush.set_state(e, PainterBrushState(e), true);
+      PainterBrushState e;
+      e = d->m_pool.create_state(d->m_state.m_brush.cvalue());
+      d->m_state.m_brush.set_state(e.m_d, e, true);
     }
   return d->m_state.m_brush.state();
 }
@@ -1247,6 +1264,7 @@ brush_state(const PainterBrushState &h)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  assert(h && h.alignment_packing() == d->m_alignment);
   d->m_state.m_brush.set_state(h.m_d, h, false);
 }
 
@@ -1295,9 +1313,9 @@ item_matrix_state(void)
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
   if(!d->m_state.m_item_matrix.state())
     {
-      Entry<ItemMatrix> *e;
-      e = d->m_item_matrix_pool.allocate(d->m_state.m_item_matrix.cvalue(), d->m_alignment);
-      d->m_state.m_item_matrix.set_state(e, ItemMatrixState(e));
+      ItemMatrixState e;
+      e = d->m_pool.create_state(d->m_state.m_item_matrix.cvalue());
+      d->m_state.m_item_matrix.set_state(e.m_d, e);
     }
   return d->m_state.m_item_matrix.state();
 }
@@ -1308,6 +1326,7 @@ item_matrix_state(const fastuidraw::PainterPacker::ItemMatrixState &h)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  assert(h && h.alignment_packing() == d->m_alignment);
   d->m_state.m_item_matrix.set_state(h.m_d, h);
 }
 
@@ -1337,9 +1356,9 @@ clip_equations_state(void)
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
   if(!d->m_state.m_clipping.state())
     {
-      Entry<ClipEquations> *e;
-      e = d->m_clipping_pool.allocate(d->m_state.m_clipping.cvalue(), d->m_alignment);
-      d->m_state.m_clipping.set_state(e, ClipEquationsState(e));
+      ClipEquationsState e;
+      e = d->m_pool.create_state(d->m_state.m_clipping.cvalue());
+      d->m_state.m_clipping.set_state(e.m_d, e);
     }
   return d->m_state.m_clipping.state();
 }
@@ -1350,6 +1369,7 @@ clip_equations_state(const fastuidraw::PainterPacker::ClipEquationsState &h)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  assert(h && h.alignment_packing() == d->m_alignment);
   d->m_state.m_clipping.set_state(h.m_d, h);
 }
 
@@ -1370,9 +1390,9 @@ vertex_shader_data(void)
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
   if(!d->m_state.m_vert_shader_data.state())
     {
-      Entry<VertexShaderData> *e;
-      e = d->m_vert_shader_data_pool.allocate(d->m_state.m_vert_shader_data.cvalue(), d->m_alignment);
-      d->m_state.m_vert_shader_data.set_state(e, VertexShaderDataState(e));
+      VertexShaderDataState e;
+      e = d->m_pool.create_state(d->m_state.m_vert_shader_data.cvalue());
+      d->m_state.m_vert_shader_data.set_state(e.m_d, e);
     }
   return d->m_state.m_vert_shader_data.state();
 }
@@ -1383,6 +1403,7 @@ vertex_shader_data(const fastuidraw::PainterPacker::VertexShaderDataState &h)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  assert(h && h.alignment_packing() == d->m_alignment);
   d->m_state.m_vert_shader_data.set_state(h.m_d, h);
 }
 
@@ -1403,9 +1424,9 @@ fragment_shader_data(void)
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
   if(!d->m_state.m_frag_shader_data.state())
     {
-      Entry<FragmentShaderData> *e;
-      e = d->m_frag_shader_data_pool.allocate(d->m_state.m_frag_shader_data.cvalue(), d->m_alignment);
-      d->m_state.m_frag_shader_data.set_state(e, FragmentShaderDataState(e));
+      FragmentShaderDataState e;
+      e = d->m_pool.create_state(d->m_state.m_frag_shader_data.cvalue());
+      d->m_state.m_frag_shader_data.set_state(e.m_d, e);
     }
   return d->m_state.m_frag_shader_data.state();
 }
@@ -1416,6 +1437,7 @@ fragment_shader_data(const fastuidraw::PainterPacker::FragmentShaderDataState &h
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  assert(h && h.alignment_packing() == d->m_alignment);
   d->m_state.m_frag_shader_data.set_state(h.m_d, h);
 }
 
@@ -1426,6 +1448,15 @@ default_shaders(void) const
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
   return d->m_default_shaders;
+}
+
+fastuidraw::PainterSaveStatePool&
+fastuidraw::PainterPacker::
+save_state_pool(void)
+{
+  PainterPackerPrivate *d;
+  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  return d->m_pool;
 }
 
 const fastuidraw::PainterBackend::PerformanceHints&
@@ -1580,6 +1611,15 @@ operator=(const PainterSaveStateBase &obj)
     }
 }
 
+unsigned int
+fastuidraw::PainterSaveStateBase::
+alignment_packing(void) const
+{
+  EntryBase *d;
+  d = reinterpret_cast<EntryBase*>(m_d);
+  return (d != NULL) ? d->m_alignment : 0;
+}
+
 const void*
 fastuidraw::PainterSaveStateBase::
 raw_state(void) const
@@ -1589,4 +1629,81 @@ raw_state(void) const
   assert(d);
   assert(d->raw_state());
   return d->raw_state();
+}
+
+/////////////////////////////////////////////////////
+// PainterSaveStatePool methods
+fastuidraw::PainterSaveStatePool::
+PainterSaveStatePool(int alignment)
+{
+  m_d = FASTUIDRAWnew PainterSaveStatePoolPrivate(alignment);
+}
+
+fastuidraw::PainterSaveStatePool::
+~PainterSaveStatePool()
+{
+  PainterSaveStatePoolPrivate *d;
+  d = reinterpret_cast<PainterSaveStatePoolPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+  m_d = NULL;
+}
+
+fastuidraw::PainterSaveState<fastuidraw::PainterBrush>
+fastuidraw::PainterSaveStatePool::
+create_state(const PainterBrush &value)
+{
+  PainterSaveStatePoolPrivate *d;
+  Entry<PainterBrush> *e;
+
+  d = reinterpret_cast<PainterSaveStatePoolPrivate*>(m_d);
+  e = d->m_brush_pool.allocate(value, d->m_alignment);
+  return fastuidraw::PainterSaveState<PainterBrush>(e);
+}
+
+fastuidraw::PainterSaveState<fastuidraw::PainterState::ClipEquations>
+fastuidraw::PainterSaveStatePool::
+create_state(const PainterState::ClipEquations &value)
+{
+  PainterSaveStatePoolPrivate *d;
+  Entry<PainterState::ClipEquations> *e;
+
+  d = reinterpret_cast<PainterSaveStatePoolPrivate*>(m_d);
+  e = d->m_clip_equations_pool.allocate(value, d->m_alignment);
+  return fastuidraw::PainterSaveState<PainterState::ClipEquations>(e);
+}
+
+fastuidraw::PainterSaveState<fastuidraw::PainterState::ItemMatrix>
+fastuidraw::PainterSaveStatePool::
+create_state(const PainterState::ItemMatrix &value)
+{
+  PainterSaveStatePoolPrivate *d;
+  Entry<PainterState::ItemMatrix> *e;
+
+  d = reinterpret_cast<PainterSaveStatePoolPrivate*>(m_d);
+  e = d->m_item_matrix_pool.allocate(value, d->m_alignment);
+  return fastuidraw::PainterSaveState<PainterState::ItemMatrix>(e);
+}
+
+fastuidraw::PainterSaveState<fastuidraw::PainterState::VertexShaderData>
+fastuidraw::PainterSaveStatePool::
+create_state(const PainterState::VertexShaderData &value)
+{
+  PainterSaveStatePoolPrivate *d;
+  Entry<PainterState::VertexShaderData> *e;
+
+  d = reinterpret_cast<PainterSaveStatePoolPrivate*>(m_d);
+  e = d->m_vertex_shader_data_pool.allocate(value, d->m_alignment);
+  return fastuidraw::PainterSaveState<PainterState::VertexShaderData>(e);
+}
+
+fastuidraw::PainterSaveState<fastuidraw::PainterState::FragmentShaderData>
+fastuidraw::PainterSaveStatePool::
+create_state(const PainterState::FragmentShaderData &value)
+{
+  PainterSaveStatePoolPrivate *d;
+  Entry<PainterState::FragmentShaderData> *e;
+
+  d = reinterpret_cast<PainterSaveStatePoolPrivate*>(m_d);
+  e = d->m_fragment_shader_data_pool.allocate(value, d->m_alignment);
+  return fastuidraw::PainterSaveState<PainterState::FragmentShaderData>(e);
 }

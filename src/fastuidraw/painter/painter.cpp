@@ -344,6 +344,11 @@ namespace
   public:
     std::vector<unsigned int> m_selector;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_index_chunks;
+    std::vector<fastuidraw::vec2> m_pts_clip_against_planes;
+    std::vector<fastuidraw::vec2> m_pts_draw_convex_polygon;
+    std::vector<float> m_clipper_floats;
+    std::vector<fastuidraw::PainterIndex> m_indices;
+    std::vector<fastuidraw::PainterAttribute> m_attribs;
   };
 
   class PainterPrivate
@@ -566,8 +571,6 @@ PainterPrivate::
 clip_against_planes(fastuidraw::const_c_array<fastuidraw::vec2> pts,
                     std::vector<fastuidraw::vec2> &out_pts)
 {
-  std::vector<fastuidraw::vec2> temp;
-  std::vector<float> work_room;
   const fastuidraw::PainterState::ClipEquations &eqs(m_core->clip_equations());
   const fastuidraw::PainterState::ItemMatrix &m(m_core->item_matrix());
 
@@ -578,10 +581,24 @@ clip_against_planes(fastuidraw::const_c_array<fastuidraw::vec2> pts,
      the transpose of m_core->item_matrix to the clip planes
      which is the same as post-multiplying the matrix.
    */
-  clip_against_plane(eqs.m_clip_equations[0] * m.m_item_matrix, pts, temp, work_room);
-  clip_against_plane(eqs.m_clip_equations[1] * m.m_item_matrix, fastuidraw::make_c_array(temp), out_pts, work_room);
-  clip_against_plane(eqs.m_clip_equations[2] * m.m_item_matrix, fastuidraw::make_c_array(out_pts), temp, work_room);
-  clip_against_plane(eqs.m_clip_equations[3] * m.m_item_matrix, fastuidraw::make_c_array(temp), out_pts, work_room);
+  clip_against_plane(eqs.m_clip_equations[0] * m.m_item_matrix, pts,
+                     m_work_room.m_pts_clip_against_planes,
+                     m_work_room.m_clipper_floats);
+
+  clip_against_plane(eqs.m_clip_equations[1] * m.m_item_matrix,
+                     fastuidraw::make_c_array(m_work_room.m_pts_clip_against_planes),
+                     out_pts,
+                     m_work_room.m_clipper_floats);
+
+  clip_against_plane(eqs.m_clip_equations[2] * m.m_item_matrix,
+                     fastuidraw::make_c_array(out_pts),
+                     m_work_room.m_pts_clip_against_planes,
+                     m_work_room.m_clipper_floats);
+
+  clip_against_plane(eqs.m_clip_equations[3] * m.m_item_matrix,
+                     fastuidraw::make_c_array(m_work_room.m_pts_clip_against_planes),
+                     out_pts,
+                     m_work_room.m_clipper_floats);
 }
 
 void
@@ -896,38 +913,36 @@ draw_convex_polygon(const_c_array<vec2> pts,
       return;
     }
 
-  std::vector<vec2> clipped_pts;
   if(!d->m_core->hints().clipping_via_hw_clip_planes())
     {
-      d->clip_against_planes(pts, clipped_pts);
-      pts = make_c_array(clipped_pts);
+      d->clip_against_planes(pts, d->m_work_room.m_pts_draw_convex_polygon);
+      pts = make_c_array(d->m_work_room.m_pts_draw_convex_polygon);
       if(pts.size() < 3)
         {
           return;
         }
     }
 
-  std::vector<PainterIndex> indices;
-  std::vector<PainterAttribute> attribs;
-
   /* Draw a triangle fan centered at pts[0]
    */
-  attribs.resize(pts.size());
+  d->m_work_room.m_attribs.resize(pts.size());
   for(unsigned int i = 0; i < pts.size(); ++i)
     {
-      attribs[i].m_primary_attrib = vec4(pts[i].x(), pts[i].y(), 0.0f, 0.0f);
-      attribs[i].m_secondary_attrib = vec4(0.0f, 0.0f, 0.0f, 0.0f);
-      attribs[i].m_uint_attrib = uvec4(0, 0, 0, 0);
+      d->m_work_room.m_attribs[i].m_primary_attrib = vec4(pts[i].x(), pts[i].y(), 0.0f, 0.0f);
+      d->m_work_room.m_attribs[i].m_secondary_attrib = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+      d->m_work_room.m_attribs[i].m_uint_attrib = uvec4(0, 0, 0, 0);
     }
 
-  indices.reserve((pts.size() - 2) * 3);
+  d->m_work_room.m_indices.clear();
+  d->m_work_room.m_indices.reserve((pts.size() - 2) * 3);
   for(unsigned int i = 2; i < pts.size(); ++i)
     {
-      indices.push_back(0);
-      indices.push_back(i - 1);
-      indices.push_back(i);
+      d->m_work_room.m_indices.push_back(0);
+      d->m_work_room.m_indices.push_back(i - 1);
+      d->m_work_room.m_indices.push_back(i);
     }
-  draw_generic(make_c_array(attribs), make_c_array(indices),
+  draw_generic(make_c_array(d->m_work_room.m_attribs),
+               make_c_array(d->m_work_room.m_indices),
                shader, call_back);
 }
 
