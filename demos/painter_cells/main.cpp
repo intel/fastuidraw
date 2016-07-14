@@ -145,7 +145,7 @@ private:
   PanZoomTrackerSDLEvent m_zoomer;
   Table *m_table;
   simple_time m_time, m_draw_timer;
-  PainterState::PainterBrushState m_text_brush;
+  PainterPackedValue<PainterBrush> m_text_brush;
 
   int m_frame;
   uint64_t m_benchmark_time_us;
@@ -537,13 +537,13 @@ draw_frame(void)
            << "\nDrew " << m_cell_shared_state.m_cells_drawn << " cells";
       if(!m_text_brush)
         {
-          m_painter->brush().reset();
-          m_painter->brush().pen(0.0, 1.0, 1.0, 1.0);
-          m_text_brush = m_painter->brush_state();
+          PainterBrush brush;
+          brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
+          m_text_brush = m_painter->packed_value_pool().create_packed_value(brush);
         }
-      m_painter->brush_state(m_text_brush);
       draw_text(ostr.str(), m_fps_pixel_size.m_value,
-                m_table_params.m_font, m_table_params.m_text_render);
+                m_table_params.m_font, m_table_params.m_text_render,
+                PainterData(m_text_brush));
     }
 
   m_painter->end();

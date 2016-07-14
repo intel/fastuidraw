@@ -210,10 +210,11 @@ painter_clip_test::
 draw_element(const Path &path, unsigned int clip_mode, const vec4 &pen_color,
              const float3x3 &matrix)
 {
-  m_painter->save();
+  PainterBrush brush;
 
+  m_painter->save();
   m_painter->concat(matrix);
-  m_painter->brush().pen(pen_color);
+  brush.pen(pen_color);
   switch(clip_mode)
     {
     default:
@@ -232,7 +233,7 @@ draw_element(const Path &path, unsigned int clip_mode, const vec4 &pen_color,
   p1 = path.tessellation()->bounding_box_max();
   sz = p1 - p0;
 
-  m_painter->draw_rect(p0 - 0.5f * sz, 2.0f * sz);
+  m_painter->draw_rect(PainterData(&brush), p0 - 0.5f * sz, 2.0f * sz);
 
   m_painter->restore();
 }

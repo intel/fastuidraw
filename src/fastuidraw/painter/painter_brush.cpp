@@ -195,9 +195,6 @@ sub_image(const Image::const_handle im, uvec2 xy, uvec2 wh, enum image_filter f)
   uint32_t filter_bits;
 
   filter_bits = im ? f : 0;
-  m_dirty = m_dirty || (im != m_data.m_image) ||
-    (im && ((m_data.m_shader_raw & image_mask) != filter_bits) ) ||
-    (im && (m_data.m_image_start != xy || m_data.m_image_size != wh) );
 
   m_data.m_image = im;
   m_data.m_image_start = xy;
@@ -253,7 +250,6 @@ fastuidraw::PainterBrush::
 reset(void)
 {
   pen(1.0, 1.0, 1.0, 1.0);
-  m_dirty = m_dirty || m_data.m_shader_raw != 0u;
   m_data.m_shader_raw = 0u;
   m_data.m_image = NULL;
   m_data.m_cs = NULL;
@@ -264,7 +260,6 @@ fastuidraw::PainterBrush::
 operator=(const PainterBrush &rhs)
 {
   m_data = rhs.m_data;
-  m_dirty = true;
   return *this;
 }
 

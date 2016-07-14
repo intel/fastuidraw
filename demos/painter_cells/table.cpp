@@ -43,9 +43,9 @@ generate_children_in_group(const Painter::handle &painter,
                            CellGroup *g, int &J,
                            const ivec2 &xy,
                            int count_x, int count_y,
-                           std::vector<PainterState::PainterBrushState> &txt,
-                           std::vector<PainterState::PainterBrushState> &bg,
-                           std::vector<PainterState::PainterBrushState> &im)
+                           std::vector<PainterPackedValue<PainterBrush> > &txt,
+                           std::vector<PainterPackedValue<PainterBrush> > &bg,
+                           std::vector<PainterPackedValue<PainterBrush> > &im)
 {
   g->m_bb_min = (vec2(xy) ) * m_cell_sz;
   g->m_bb_max = (vec2(xy) + vec2(count_x, count_y) ) * m_cell_sz;
@@ -117,30 +117,28 @@ generate_children_in_group(const Painter::handle &painter,
 
               if(!txt[txtJ])
                 {
-                  painter->brush().reset();
-                  painter->brush().pen(m_params.m_text_colors[txtJ]);
-                  txt[txtJ] = painter->brush_state();
+                  PainterBrush brush(m_params.m_text_colors[txtJ]);
+                  txt[txtJ] = painter->packed_value_pool().create_packed_value(brush);
                 }
 
               if(!bg[bgJ])
                 {
-                  painter->brush().reset();
-                  painter->brush().pen(m_params.m_background_colors[bgJ]);
-                  bg[bgJ] = painter->brush_state();
+                  PainterBrush brush(m_params.m_background_colors[bgJ]);
+                  bg[bgJ] = painter->packed_value_pool().create_packed_value(brush);
                 }
 
               if(!im[imJ])
                 {
-                  painter->brush().reset();
+                  PainterBrush brush;
                   if(m_params.m_images[imJ].first)
                     {
-                      painter->brush().image(m_params.m_images[imJ].first);
+                      brush.image(m_params.m_images[imJ].first);
                     }
                   else
                     {
-                      painter->brush().pen(vec4(0.2f, 0.7f, 0.7f, 0.6f));
+                      brush.pen(vec4(0.2f, 0.7f, 0.7f, 0.6f));
                     }
-                  im[imJ] = painter->brush_state();
+                  im[imJ] = painter->packed_value_pool().create_packed_value(brush);
                 }
 
               CellParams params;
@@ -185,7 +183,7 @@ paint_pre_children(const Painter::handle &painter)
     {
       vec2 cell_loc;
       int x, y, J;
-      std::vector<PainterState::PainterBrushState> txt, bg, im;
+      std::vector<PainterPackedValue<PainterBrush> > txt, bg, im;
 
       txt.resize(m_params.m_text_colors.size());
       bg.resize(m_params.m_background_colors.size());
@@ -220,9 +218,7 @@ paint_pre_children(const Painter::handle &painter)
                       << Path::end();
         }
 
-      painter->brush().reset();
-      painter->brush().pen(m_params.m_line_color);
-      m_line_brush = painter->brush_state();
+      m_line_brush = painter->packed_value_pool().create_packed_value(m_params.m_line_color);
 
       J = 0;
       generate_children_in_group(painter, this, J, ivec2(0, 0),
@@ -314,14 +310,15 @@ paint_post_children(const Painter::handle &painter)
 {
   if(!m_params.m_cell_state->m_rotating && m_params.m_cell_state->m_stroke_width > 0.0f)
     {
-      PainterState::StrokeParams st;
+      PainterStrokeParams st;
       st.miter_limit(-1.0f);
       st.width(m_params.m_cell_state->m_stroke_width);
-      painter->brush_state(m_line_brush);
-      painter->vertex_shader_data(st);
-      painter->stroke_path(m_outline_path, PainterEnums::close_outlines, PainterEnums::rounded_joins,
+
+      painter->stroke_path(PainterData(m_line_brush, &st),
+                           m_outline_path, PainterEnums::close_outlines, PainterEnums::rounded_joins,
                            m_params.m_cell_state->m_anti_alias_stroking);
-      painter->stroke_path(m_grid_path, PainterEnums::no_caps, PainterEnums::no_joins,
+      painter->stroke_path(PainterData(m_line_brush, &st),
+                           m_grid_path, PainterEnums::no_caps, PainterEnums::no_joins,
                            m_params.m_cell_state->m_anti_alias_stroking);
     }
 }

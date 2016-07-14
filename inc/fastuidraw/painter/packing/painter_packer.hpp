@@ -35,12 +35,11 @@
 #include <fastuidraw/painter/painter_shader.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
-#include <fastuidraw/painter/painter_state.hpp>
-#include <fastuidraw/painter/painter_save_state.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
 #include <fastuidraw/painter/packing/painter_draw.hpp>
 #include <fastuidraw/painter/packing/painter_packing_enums.hpp>
 #include <fastuidraw/painter/packing/painter_backend.hpp>
+#include <fastuidraw/painter/packing/painter_packer_data.hpp>
 
 namespace fastuidraw
 {
@@ -55,51 +54,6 @@ namespace fastuidraw
   class PainterPacker:public reference_counted<PainterPacker>::default_base
   {
   public:
-    /*!
-      Conveniance typedef to PainterState::ClipEquations
-     */
-    typedef PainterState::ClipEquations ClipEquations;
-
-    /*!
-      Conveniance typedef to PainterState::ItemMatrix
-     */
-    typedef PainterState::ItemMatrix ItemMatrix;
-
-    /*!
-      Conveniance typedef to PainterState::VertexShaderData
-     */
-    typedef PainterState::VertexShaderData VertexShaderData;
-
-    /*!
-      Conveniance typedef to PainterState::FragmentShaderData
-     */
-    typedef PainterState::FragmentShaderData FragmentShaderData;
-
-    /*!
-      Conveniance typedef to PainterState::ClipEquationsState
-     */
-    typedef PainterState::ClipEquationsState ClipEquationsState;
-
-    /*!
-      Conveniance typedef to PainterState::ItemMatrixState
-     */
-    typedef PainterState::ItemMatrixState ItemMatrixState;
-
-    /*!
-      Conveniance typedef to PainterState::PainterBrushState
-     */
-    typedef PainterState::PainterBrushState PainterBrushState;
-
-    /*!
-      Conveniance typedef to PainterState::VertexShaderDataState
-     */
-    typedef PainterState::VertexShaderDataState VertexShaderDataState;
-
-    /*!
-      Conveniance typedef to PainterState::FragmentShaderDataState
-     */
-    typedef PainterState::FragmentShaderDataState FragmentShaderDataState;
-
     /*!
       A DataCallBack represents a functor call back
       from PainterPacker called whenever attribute data
@@ -164,34 +118,6 @@ namespace fastuidraw
     colorstop_atlas(void) const;
 
     /*!
-      Returns a reference to the current PainterBrush for
-      the purpose of changing the properties of the current brush.
-     */
-    PainterBrush&
-    brush(void);
-
-    /*!
-      Returns a const reference to the current PainterBrush for
-      the purpose of querying the properties of the current brush.
-     */
-    const PainterBrush&
-    cbrush(void) const;
-
-    /*!
-      Returns a handle to brush state that can re-used by passing it to
-      brush_state(const PainterBrushState&).
-     */
-    const PainterBrushState&
-    brush_state(void);
-
-    /*!
-      Set the brush state from a brush state handle.
-      \param h handle to brush state.
-     */
-    void
-    brush_state(const PainterBrushState &h);
-
-    /*!
       Returns the active blend shader
      */
     const PainterShader::const_handle&
@@ -204,103 +130,6 @@ namespace fastuidraw
      */
     void
     blend_shader(const PainterShader::const_handle &h);
-
-    /*!
-      Returns the current value of the ItemMatrix state.
-     */
-    const ItemMatrix&
-    item_matrix(void) const;
-
-    /*!
-      Set the current value of the ItemMatrix state.
-      \param v value to which to assign the ItemMatrix
-     */
-    void
-    item_matrix(const ItemMatrix &v);
-
-    /*!
-      Returns a handle to current ItemMatrix (see
-      item_matrix(void) ) that can re-used by passing it to
-      image_matrix_state(const ItemMatrixState &).
-     */
-    const ItemMatrixState&
-    item_matrix_state(void);
-
-    /*!
-      Set the ItemMatrix state from a state handle.
-      \param h handle to ItemMatrix state
-     */
-    void
-    item_matrix_state(const ItemMatrixState &h);
-
-    /*!
-      Return the current ClipEquations state value
-     */
-    const ClipEquations&
-    clip_equations(void) const;
-
-    /*!
-      Set the current ClipEquations state value
-      \param v value to which to set the ClipEquations state
-     */
-    void
-    clip_equations(const ClipEquations &v);
-
-    /*!
-      Returns a handle to current ClipEquationsState that can re-used
-      by passing it to clip_equations(const ClipEquationsState &).
-     */
-    const ClipEquationsState&
-    clip_equations_state(void);
-
-    /*!
-      Set the ClipEquations state from a state handle.
-      \param h handle to ClipEquationsState
-     */
-    void
-    clip_equations_state(const ClipEquationsState &h);
-
-    /*!
-      Set the VertexShaderData state.
-      \param shader_data values to which to pass to vertex shader
-     */
-    void
-    vertex_shader_data(const VertexShaderData &shader_data);
-
-    /*!
-      Set the VertexShaderData state from a state handle
-      \param h handle to values to which to pass to vertex shader
-     */
-    void
-    vertex_shader_data(const VertexShaderDataState &h);
-
-    /*!
-      Returns a handle to current VertexShaderData state than can be reused
-      by passing it to vertex_shader_data(const VertexShaderDataState&).
-     */
-    const VertexShaderDataState&
-    vertex_shader_data(void);
-
-    /*!
-      Set the FragmentShaderData state.
-      \param shader_data values to which to pass to fragment shader
-     */
-    void
-    fragment_shader_data(const FragmentShaderData &shader_data);
-
-    /*!
-      Set the FragmentShaderData state from a state handle
-      \param h handle to values to which to pass to fragment shader
-     */
-    void
-    fragment_shader_data(const FragmentShaderDataState &h);
-
-    /*!
-      Returns a handle to current FragmentShaderDataState state than can be reused
-      by passing it to fragment_shader_data(const FragmentShaderDataState&).
-     */
-    const FragmentShaderDataState&
-    fragment_shader_data(void);
 
     /*!
       Indicate to start drawing. Commands are buffered and not
@@ -331,14 +160,8 @@ namespace fastuidraw
     default_shaders(void) const;
 
     /*!
-      Returns the PainterSaveStatePool used to construct
-      PainterSaveState objects.
-     */
-    PainterSaveStatePool&
-    save_state_pool(void);
-
-    /*!
       Draw generic attribute data
+      \param data data for how to draw
       \param attrib_chunks attribute data to draw
       \param index_chunks the i'th element is index data into attrib_chunks[i]
       \param shader shader with which to draw data
@@ -347,13 +170,15 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
+    draw_generic(const PainterPackerData &data,
+                 const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
                  const PainterItemShader &shader, unsigned int z,
                  const DataCallBack::handle &call_back = DataCallBack::handle());
 
     /*!
       Draw generic attribute data
+      \param data data for how to draw
       \param attrib_chunks attribute data to draw
       \param index_chunks the i'th element is index data into attrib_chunks[K]
                           where K = attrib_chunk_selector[i]
@@ -365,7 +190,8 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
+    draw_generic(const PainterPackerData &data,
+                 const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
                  const_c_array<unsigned int> attrib_chunk_selector,
                  const PainterItemShader &shader, unsigned int z,

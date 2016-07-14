@@ -1,6 +1,6 @@
 /*!
- * \file painter_state.cpp
- * \brief file painter_state.cpp
+ * \file painter_value.cpp
+ * \brief file painter_value.cpp
  *
  * Copyright 2016 by Intel.
  *
@@ -18,7 +18,7 @@
 
 
 #include <vector>
-#include <fastuidraw/painter/painter_state.hpp>
+#include <fastuidraw/painter/painter_value.hpp>
 #include "../private/util_private.hpp"
 
 namespace
@@ -39,9 +39,9 @@ namespace
 
 
 //////////////////////////////////////////////
-// fastuidraw::PainterState::ClipEquations methods
+// fastuidraw::PainterClipEquations methods
 void
-fastuidraw::PainterState::ClipEquations::
+fastuidraw::PainterClipEquations::
 pack_data(unsigned int, c_array<generic_data> dst) const
 {
   using namespace PainterPacking;
@@ -63,9 +63,9 @@ pack_data(unsigned int, c_array<generic_data> dst) const
 }
 
 //////////////////////////////////////////////
-// fastuidraw::PainterState::ItemMatrix methods
+// fastuidraw::PainterItemMatrix methods
 void
-fastuidraw::PainterState::ItemMatrix::
+fastuidraw::PainterItemMatrix::
 pack_data(unsigned int, c_array<generic_data> dst) const
 {
   using namespace PainterPacking;
@@ -83,29 +83,29 @@ pack_data(unsigned int, c_array<generic_data> dst) const
 }
 
 //////////////////////////////////////////////
-// fastuidraw::PainterState::ShaderData methods
-fastuidraw::PainterState::ShaderData::
-ShaderData(const_c_array<generic_data> pdata)
+// fastuidraw::PainterShaderData methods
+fastuidraw::PainterShaderData::
+PainterShaderData(const_c_array<generic_data> pdata)
 {
   m_d = FASTUIDRAWnew ShaderDataPrivate(pdata);
 }
 
-fastuidraw::PainterState::ShaderData::
-ShaderData(void)
+fastuidraw::PainterShaderData::
+PainterShaderData(void)
 {
   m_d = FASTUIDRAWnew ShaderDataPrivate();
 }
 
-fastuidraw::PainterState::ShaderData::
-ShaderData(const ShaderData &obj)
+fastuidraw::PainterShaderData::
+PainterShaderData(const PainterShaderData &obj)
 {
   ShaderDataPrivate *d;
   d = reinterpret_cast<ShaderDataPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew ShaderDataPrivate(*d);
 }
 
-fastuidraw::PainterState::ShaderData::
-~ShaderData()
+fastuidraw::PainterShaderData::
+~PainterShaderData()
 {
   ShaderDataPrivate *d;
   d = reinterpret_cast<ShaderDataPrivate*>(m_d);
@@ -113,9 +113,9 @@ fastuidraw::PainterState::ShaderData::
   m_d = NULL;
 }
 
-fastuidraw::PainterState::ShaderData&
-fastuidraw::PainterState::ShaderData::
-operator=(const ShaderData &rhs)
+fastuidraw::PainterShaderData&
+fastuidraw::PainterShaderData::
+operator=(const PainterShaderData &rhs)
 {
   ShaderDataPrivate *d, *rhs_d;
   d = reinterpret_cast<ShaderDataPrivate*>(m_d);
@@ -125,7 +125,7 @@ operator=(const ShaderData &rhs)
 }
 
 fastuidraw::c_array<fastuidraw::generic_data>
-fastuidraw::PainterState::ShaderData::
+fastuidraw::PainterShaderData::
 data(void)
 {
   ShaderDataPrivate *d;
@@ -134,7 +134,7 @@ data(void)
 }
 
 fastuidraw::const_c_array<fastuidraw::generic_data>
-fastuidraw::PainterState::ShaderData::
+fastuidraw::PainterShaderData::
 data(void) const
 {
   ShaderDataPrivate *d;
@@ -143,7 +143,7 @@ data(void) const
 }
 
 void
-fastuidraw::PainterState::ShaderData::
+fastuidraw::PainterShaderData::
 resize_data(unsigned int sz)
 {
   ShaderDataPrivate *d;
@@ -152,14 +152,14 @@ resize_data(unsigned int sz)
 }
 
 unsigned int
-fastuidraw::PainterState::ShaderData::
+fastuidraw::PainterShaderData::
 data_size(unsigned int alignment) const
 {
   return round_up_to_multiple(data().size(), alignment);
 }
 
 void
-fastuidraw::PainterState::ShaderData::
+fastuidraw::PainterShaderData::
 pack_data(unsigned int, c_array<generic_data> dst) const
 {
   const_c_array<generic_data> p(data());
@@ -171,37 +171,37 @@ pack_data(unsigned int, c_array<generic_data> dst) const
 }
 
 ///////////////////////////////////
-// fastuidraw::PainterState::StrokeParams methods
-fastuidraw::PainterState::StrokeParams::
-StrokeParams(void)
+// fastuidraw::PainterStrokeParams methods
+fastuidraw::PainterStrokeParams::
+PainterStrokeParams(void)
 {
   resize_data(2);
 }
 
 float
-fastuidraw::PainterState::StrokeParams::
+fastuidraw::PainterStrokeParams::
 miter_limit(void) const
 {
   return data()[PainterPacking::stroke_miter_limit_offset].f;
 }
 
 float
-fastuidraw::PainterState::StrokeParams::
+fastuidraw::PainterStrokeParams::
 width(void) const
 {
   return data()[PainterPacking::stroke_width_offset].f;
 }
 
-fastuidraw::PainterState::StrokeParams&
-fastuidraw::PainterState::StrokeParams::
+fastuidraw::PainterStrokeParams&
+fastuidraw::PainterStrokeParams::
 miter_limit(float f)
 {
   data()[PainterPacking::stroke_miter_limit_offset].f = f;
   return *this;
 }
 
-fastuidraw::PainterState::StrokeParams&
-fastuidraw::PainterState::StrokeParams::
+fastuidraw::PainterStrokeParams&
+fastuidraw::PainterStrokeParams::
 width(float f)
 {
   data()[PainterPacking::stroke_width_offset].f = f;

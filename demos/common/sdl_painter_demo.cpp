@@ -286,7 +286,8 @@ void
 sdl_painter_demo::
 draw_text(const std::string &text, float pixel_size,
           fastuidraw::FontBase::const_handle font,
-          fastuidraw::GlyphRender renderer)
+          fastuidraw::GlyphRender renderer,
+          const fastuidraw::PainterData &draw)
 {
   std::istringstream str(text);
   std::vector<fastuidraw::Glyph> glyphs;
@@ -297,5 +298,5 @@ draw_text(const std::string &text, float pixel_size,
   create_formatted_text(str, renderer, pixel_size, font,
                         m_glyph_selector, glyphs, positions, chars);
   P.set_data(cast_c_array(positions), cast_c_array(glyphs), pixel_size);
-  m_painter->draw_glyphs(P);
+  m_painter->draw_glyphs(draw, P);
 }

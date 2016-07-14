@@ -21,6 +21,7 @@
 
 
 #include <fastuidraw/painter/packing/painter_packer.hpp>
+#include <fastuidraw/painter/painter_data.hpp>
 
 namespace fastuidraw
 {
@@ -51,41 +52,6 @@ namespace fastuidraw
   class Painter:public reference_counted<Painter>::default_base
   {
   public:
-    /*!
-      Conveniance typedef to PainterState::ItemMatrix
-     */
-    typedef PainterState::ItemMatrix ItemMatrix;
-
-    /*!
-      Conveniance typedef to PainterState::VertexShaderData
-     */
-    typedef PainterState::VertexShaderData VertexShaderData;
-
-    /*!
-      Conveniance typedef to PainterState::FragmentShaderData
-     */
-    typedef PainterState::FragmentShaderData FragmentShaderData;
-
-    /*!
-      Conveniance typedef to PainterState::PainterBrushState
-     */
-    typedef PainterState::PainterBrushState PainterBrushState;
-
-    /*!
-      Conveniance typedef to PainterState::ItemMatrixState
-     */
-    typedef PainterState::ItemMatrixState ItemMatrixState;
-
-    /*!
-      Conveniance typedef to PainterState::VertexShaderDataState
-     */
-    typedef PainterState::VertexShaderDataState VertexShaderDataState;
-
-    /*!
-      Conveniance typedef to PainterState::FragmentShaderDataState
-     */
-    typedef PainterState::FragmentShaderDataState FragmentShaderDataState;
-
     /*!
       Base class to specify a custom fill rule.
      */
@@ -163,6 +129,57 @@ namespace fastuidraw
     colorstop_atlas(void) const;
 
     /*!
+      Returns the PainterPackedValuePool used to construct
+      PainterPackedValue objects.
+     */
+    PainterPackedValuePool&
+    packed_value_pool(void);
+
+    /*!
+      Returns the active blend shader
+     */
+    const PainterShader::const_handle&
+    blend_shader(void) const;
+
+    /*!
+      Sets the blend shader. It is a crashing error for
+      h to be NULL.
+      \param h blend shader to use for blending.
+     */
+    void
+    blend_shader(const PainterShader::const_handle &h);
+
+    /*!
+      Equivalent to
+     \code
+      blend_shader(default_shaders().blend_shaders().shader(m))
+      \endcode
+      It is a crashing error if default_shaders() does not support
+      the named blend mode.
+      \param m Blend mode to use
+     */
+    void
+    blend_shader(enum PainterEnums::blend_mode_t m)
+    {
+      blend_shader(default_shaders().blend_shaders().shader(m));
+    }
+
+    /*!
+      Provided as a conveniance to return if a blend
+      mode is supported by the default shaders, equivalent
+      to
+      \code
+      default_shaders().blend_shaders().shader(m)
+      \endcode
+      \param m blend mode to check.
+     */
+    bool
+    blend_mode_supported(enum PainterEnums::blend_mode_t m)
+    {
+      return default_shaders().blend_shaders().shader(m);
+    }
+
+    /*!
       Informs the Painter what the resolution of
       the target surface is.
       \param w width of target resolution
@@ -209,7 +226,7 @@ namespace fastuidraw
       \param m new value for transformation matrix
      */
     void
-    transformation(const ItemMatrix &m)
+    transformation(const PainterItemMatrix &m)
     {
       transformation(m.m_item_matrix);
     }
@@ -248,11 +265,17 @@ namespace fastuidraw
     shear(float sx, float sy);
 
     /*!
+      Returns the value of the current transformation.
+     */
+    const PainterItemMatrix&
+    transformation(void);
+
+    /*!
       Returns a handle to current state of the 3x3
       transformation that can be re-used by passing it to
-      transformation_state(const ItemMatrixState&)
+      transformation_state(const PainterPackedValue<PainterItemMatrix>&)
      */
-    const ItemMatrixState&
+    const PainterPackedValue<PainterItemMatrix>&
     transformation_state(void);
 
     /*!
@@ -260,7 +283,7 @@ namespace fastuidraw
       \param h handle to transformation state.
      */
     void
-    transformation_state(const ItemMatrixState &h);
+    transformation_state(const PainterPackedValue<PainterItemMatrix> &h);
 
     /*!
       Set clipping to the intersection of the current
@@ -312,128 +335,11 @@ namespace fastuidraw
     clipInPath(const Path &path, const CustomFillRuleBase &fill_rule);
 
     /*!
-      Returns a reference to the current PainterBrush for
-      the purpose of changing the properties of the current brush.
-     */
-    PainterBrush&
-    brush(void);
-
-    /*!
-      Returns a const reference to the current PainterBrush for
-      the purpose of querying the properties of the current brush.
-     */
-    const PainterBrush&
-    cbrush(void) const;
-
-    /*!
-      Returns a handle to brush state that can re-used by passing it to
-      brush_state(const PainterBrushState&).
-     */
-    const PainterBrushState&
-    brush_state(void) const;
-
-    /*!
-      Set the brush state from a brush state handle.
-      \param h handle to brush state.
-     */
-    void
-    brush_state(const PainterBrushState &h);
-
-    /*!
-      Returns the active blend shader
-     */
-    const PainterShader::const_handle&
-    blend_shader(void) const;
-
-    /*!
-      Sets the blend shader. It is a crashing error for
-      h to be NULL.
-      \param h blend shader to use for blending.
-     */
-    void
-    blend_shader(const PainterShader::const_handle &h);
-
-    /*!
-      Equivalent to
-      \code
-      blend_shader(default_shaders().blend_shaders().shader(m))
-      \endcode
-      It is a crashing error if default_shaders() does not support
-      the named blend mode.
-      \param m Blend mode to use
-     */
-    void
-    blend_shader(enum PainterEnums::blend_mode_t m)
-    {
-      blend_shader(default_shaders().blend_shaders().shader(m));
-    }
-
-    /*!
-      Provided as a conveniance to return if a blend
-      mode is supported by the default shaders, equivalent
-      to
-      \code
-      default_shaders().blend_shaders().shader(m)
-      \endcode
-      \param m blend mode to check.
-     */
-    bool
-    blend_mode_supported(enum PainterEnums::blend_mode_t m)
-    {
-      return default_shaders().blend_shaders().shader(m);
-    }
-
-    /*!
-      Set the VertexShaderData state.
-      \param shader_data values to which to pass to vertex shader
-     */
-    void
-    vertex_shader_data(const VertexShaderData &shader_data);
-
-    /*!
-      Set the VertexShaderData state from a state handle
-      \param h handle to values to which to pass to vertex shader
-     */
-    void
-    vertex_shader_data(const VertexShaderDataState &h);
-
-    /*!
-      Returns a handle to current VertexShaderData state than can be reused
-      by passing it to vertex_shader_data(const VertexShaderDataState&).
-     */
-    const VertexShaderDataState&
-    vertex_shader_data(void) const;
-
-    /*!
-      Set the FragmentShaderData state.
-      \param shader_data values to which to pass to fragment shader
-     */
-    void
-    fragment_shader_data(const FragmentShaderData &shader_data);
-
-    /*!
-      Set the FragmentShaderData state from a state handle
-      \param h handle to values to which to pass to fragment shader
-     */
-    void
-    fragment_shader_data(const FragmentShaderDataState &h);
-
-    /*!
-      Returns a handle to current FragmentShaderDataState state than can be reused
-      by passing it to fragment_shader_data(const FragmentShaderDataState&).
-     */
-    const FragmentShaderDataState&
-    fragment_shader_data(void) const;
-
-    /*!
       Save the current state of this Painter onto the save state stack.
       The state is restored (and the stack popped) by called restore().
       The state saved is:
       - transformation state
       - clip state
-      - brush state
-      - vertex shader data state
-      - fragment shader data state
      */
     void
     save(void);
@@ -453,17 +359,20 @@ namespace fastuidraw
 
     /*!
       Draw glyphs.
+      \param draw data for how to draw
       \param data attribute and index data with which to draw the glyphs.
       \param shader with which to draw the glyphs
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
-    draw_glyphs(const PainterAttributeData &data, const PainterGlyphShader &shader,
+    draw_glyphs(const PainterData &draw,
+                const PainterAttributeData &data, const PainterGlyphShader &shader,
                 const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Draw glyphs.
+      \param draw data for how to draw
       \param data attribute and index data with which to draw the glyphs
       \param use_anistopic_antialias if true, use default_shaders().glyph_shader_anisotropic()
                                      otherwise use default_shaders().glyph_shader()
@@ -471,11 +380,13 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_glyphs(const PainterAttributeData &data, bool use_anistopic_antialias = false,
+    draw_glyphs(const PainterData &draw,
+                const PainterAttributeData &data, bool use_anistopic_antialias = false,
                 const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Stroke a path.
+      \param draw data for how to draw
       \param data attribute and index data with which to stroke a path
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
       \param cp cap style
@@ -485,13 +396,14 @@ namespace fastuidraw
                        is added.
      */
     void
-    stroke_path(const PainterAttributeData &data,
+    stroke_path(const PainterData &draw, const PainterAttributeData &data,
                 enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                 bool with_anti_aliasing, const PainterStrokeShader &shader,
                 const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Stroke a path.
+      \param draw data for how to draw
       \param path path to stroke
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
       \param cp cap style
@@ -501,13 +413,14 @@ namespace fastuidraw
                        is added.
      */
     void
-    stroke_path(const Path &path,
+    stroke_path(const PainterData &draw, const Path &path,
                 enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                 bool with_anti_aliasing, const PainterStrokeShader &shader,
                 const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Stroke a path using PainterShaderSet::stroke_shader() of default_shaders().
+      \param draw data for how to draw
       \param path path to stroke
       \param cp cap style
       \param js join style
@@ -516,7 +429,7 @@ namespace fastuidraw
                        is added.
      */
     void
-    stroke_path(const Path &path,
+    stroke_path(const PainterData &draw, const Path &path,
                 enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                 bool with_anti_aliasing,
                 const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
@@ -524,6 +437,7 @@ namespace fastuidraw
     /*!
       Stroke a path using PainterShaderSet::pixel_width_stroke_shader()
       of default_shaders().
+      \param draw data for how to draw
       \param path path to stroke
       \param cp cap style
       \param js join style
@@ -532,13 +446,14 @@ namespace fastuidraw
                        is added.
      */
     void
-    stroke_path_pixel_width(const Path &path,
+    stroke_path_pixel_width(const PainterData &draw, const Path &path,
                             enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                             bool with_anti_aliasing,
                             const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Fill a path.
+      \param draw data for how to draw
       \param data attribute and index data with which to fill a path
       \param fill_rule fill rule with which to fill the path
       \param shader shader with which to fill the attribute data
@@ -546,13 +461,14 @@ namespace fastuidraw
                        is added.
      */
     void
-    fill_path(const PainterAttributeData &data,
+    fill_path(const PainterData &draw, const PainterAttributeData &data,
               enum PainterEnums::fill_rule_t fill_rule,
               const PainterItemShader &shader,
               const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Fill a path.
+      \param draw data for how to draw
       \param path to fill
       \param fill_rule fill rule with which to fill the path
       \param shader shader with which to fill the attribute data
@@ -560,23 +476,25 @@ namespace fastuidraw
                        is added.
      */
     void
-    fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule,
+    fill_path(const PainterData &draw, const Path &path, enum PainterEnums::fill_rule_t fill_rule,
               const PainterItemShader &shader,
               const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Fill a path using the default shader to draw the fill.
+      \param draw data for how to draw
       \param path path to fill
       \param fill_rule fill rule with which to fill the path
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
-    fill_path(const Path &path, enum PainterEnums::fill_rule_t fill_rule,
+    fill_path(const PainterData &draw, const Path &path, enum PainterEnums::fill_rule_t fill_rule,
               const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Fill a path.
+      \param draw data for how to draw
       \param data attribute and index data with which to fill a path
       \param fill_rule custom fill rule with which to fill the path
       \param shader shader with which to fill the attribute data
@@ -584,13 +502,14 @@ namespace fastuidraw
                        is added.
      */
     void
-    fill_path(const PainterAttributeData &data,
+    fill_path(const PainterData &draw, const PainterAttributeData &data,
               const CustomFillRuleBase &fill_rule,
               const PainterItemShader &shader,
               const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Fill a path.
+      \param draw data for how to draw
       \param path to fill
       \param fill_rule custom fill rule with which to fill the path
       \param shader shader with which to fill the attribute data
@@ -598,23 +517,25 @@ namespace fastuidraw
                        is added.
      */
     void
-    fill_path(const Path &path, const CustomFillRuleBase &fill_rule,
+    fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
               const PainterItemShader &shader,
               const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Fill a path using the default shader to draw the fill.
+      \param draw data for how to draw
       \param path path to fill
       \param fill_rule custom fill rule with which to fill the path
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
-    fill_path(const Path &path, const CustomFillRuleBase &fill_rule,
+    fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
               const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Draw a convex polygon using a custom shader.
+      \param draw data for how to draw
       \param pts points of the polygon so that neighboring points (modulo pts.size())
                  are the edges of the polygon.
       \param shader shader with which to draw the convex polygon. The shader must
@@ -626,23 +547,25 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_convex_polygon(const_c_array<vec2> pts,
+    draw_convex_polygon(const PainterData &draw, const_c_array<vec2> pts,
                         const PainterItemShader &shader,
                         const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Draw a convex polygon using the default fill shader.
+      \param draw data for how to draw
       \param pts points of the polygon so that neighboring points (modulo pts.size())
                  are the edges of the polygon.
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
-    draw_convex_polygon(const_c_array<vec2> pts,
+    draw_convex_polygon(const PainterData &draw, const_c_array<vec2> pts,
                         const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Draw a quad using a custom shader.
+      \param draw data for how to draw
       \param p0 first point of quad, shares an edge with p3
       \param p1 point after p0, shares an edge with p0
       \param p2 point after p1, shares an edge with p1
@@ -656,12 +579,14 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_quad(const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
+    draw_quad(const PainterData &draw,
+              const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
               const PainterItemShader &shader,
               const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Draw a quad using the default fill shader.
+      \param draw data for how to draw
       \param p0 first point of quad, shares an edge with p3
       \param p1 point after p0, shares an edge with p0
       \param p2 point after p1, shares an edge with p1
@@ -671,11 +596,13 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_quad(const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
+    draw_quad(const PainterData &draw,
+              const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
               const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Draw a rect using a custom shader.
+      \param draw data for how to draw
       \param p min-corner of rect
       \param wh width and height of rect
       \param shader shader with which to draw the convex polygon. The shader must
@@ -687,54 +614,59 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_rect(const vec2 &p, const vec2 &wh,
+    draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
               const PainterItemShader &shader,
               const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Draw a rect using the default fill shader.
+      \param draw data for how to draw
       \param p min-corner of rect
       \param wh width and height of rect
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
-    draw_rect(const vec2 &p, const vec2 &wh,
+    draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
               const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Draw generic attribute data.
+      \param draw data for how to draw
       \param attrib_chunk attribute data to draw
       \param index_chunk indx data into attrib_chunk
       \param shader shader with which to draw data
       \param call_back handle to PainterPacker::DataCallBack for the draw
      */
     void
-    draw_generic(const_c_array<PainterAttribute> attrib_chunk,
+    draw_generic(const PainterData &draw, const_c_array<PainterAttribute> attrib_chunk,
                  const_c_array<PainterIndex> index_chunk,
                  const PainterItemShader &shader,
                  const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle())
     {
       vecN<const_c_array<PainterAttribute>, 1> aa(attrib_chunk);
       vecN<const_c_array<PainterIndex>, 1> ii(index_chunk);
-      draw_generic(aa, ii, shader, call_back);
+      draw_generic(draw, aa, ii, shader, call_back);
     }
 
     /*!
       Draw generic attribute data.
+      \param draw data for how to draw
       \param attrib_chunks attribute data to draw
       \param index_chunks the i'th element is index data into attrib_chunks[i]
       \param shader shader with which to draw data
       \param call_back handle to PainterPacker::DataCallBack for the draw
      */
     void
-    draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
+    draw_generic(const PainterData &draw,
+                 const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
                  const PainterItemShader &shader,
                  const PainterPacker::DataCallBack::handle &call_back = PainterPacker::DataCallBack::handle());
 
     /*!
       Draw generic attribute data
+      \param draw data for how to draw
       \param attrib_chunks attribute data to draw
       \param index_chunks the i'th element is index data into attrib_chunks[K]
                           where K = attrib_chunk_selector[i]
@@ -745,7 +677,8 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
+    draw_generic(const PainterData &draw,
+                 const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
                  const_c_array<unsigned int> attrib_chunk_selector,
                  const PainterItemShader &shader,
@@ -757,7 +690,7 @@ namespace fastuidraw
     unsigned int
     current_z(void) const;
 
-   /*!
+    /*!
      Increment the value of current_z(void) const.
      \param amount amount by which to increment current_z(void) const
      */

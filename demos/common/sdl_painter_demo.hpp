@@ -32,9 +32,10 @@ protected:
 
 protected:
   void
-  draw_text(const std::string &text,float pixel_size,
+  draw_text(const std::string &text, float pixel_size,
             fastuidraw::FontBase::const_handle font,
-            fastuidraw::GlyphRender renderer);
+            fastuidraw::GlyphRender renderer,
+            const fastuidraw::PainterData &draw);
 
   fastuidraw::gl::ImageAtlasGL::handle m_image_atlas;
   fastuidraw::gl::GlyphAtlasGL::handle m_glyph_atlas;

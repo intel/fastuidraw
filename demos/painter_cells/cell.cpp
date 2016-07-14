@@ -138,8 +138,7 @@ Cell::
 paint_pre_children(const Painter::handle &painter)
 {
   painter->save();
-  painter->brush_state(m_background_brush);
-  painter->draw_rect(vec2(0.0f, 0.0f), m_dimensions);
+  painter->draw_rect(PainterData(m_background_brush), vec2(0.0f, 0.0f), m_dimensions);
 
   painter->translate(m_item_location);
   painter->rotate(m_item_rotation);
@@ -147,37 +146,34 @@ paint_pre_children(const Painter::handle &painter)
   if(m_shared_state->m_draw_image)
     {
       vec2 wh;
-      if(m_image_brush.state().image())
+      if(m_image_brush.value().image())
         {
-          wh = vec2(m_image_brush.state().image()->dimensions());
+          wh = vec2(m_image_brush.value().image()->dimensions());
         }
       else
         {
           wh = vec2(m_dimensions) * 0.25f;
         }
-      painter->brush_state(m_image_brush);
       painter->translate(-wh * 0.5f);
-      painter->draw_rect(vec2(0.0, 0.0), wh);
+      painter->draw_rect(PainterData(m_image_brush), vec2(0.0, 0.0), wh);
       painter->translate(wh * 0.5f);
     }
 
   if(m_shared_state->m_draw_text)
     {
-      painter->brush_state(m_text_brush);
-      painter->draw_glyphs(m_text);
+      painter->draw_glyphs(PainterData(m_text_brush), m_text);
     }
 
   painter->restore();
 
   if(m_shared_state->m_rotating && m_shared_state->m_stroke_width > 0.0f)
     {
-      PainterState::StrokeParams st;
+      PainterStrokeParams st;
       st.miter_limit(-1.0f);
       st.width(m_shared_state->m_stroke_width);
 
-      painter->vertex_shader_data(st);
-      painter->brush_state(m_line_brush);
-      painter->stroke_path(m_shared_state->m_path, PainterEnums::close_outlines,
+      painter->stroke_path(PainterData(m_line_brush, &st),
+                           m_shared_state->m_path, PainterEnums::close_outlines,
                            PainterEnums::miter_joins, m_shared_state->m_anti_alias_stroking);
     }
   m_shared_state->m_cells_drawn++;

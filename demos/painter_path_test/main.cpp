@@ -147,9 +147,9 @@ private:
   vecN<std::string, PainterEnums::fill_rule_data_count> m_fill_labels;
   vecN<std::string, number_image_filter_modes> m_image_filter_mode_labels;
 
-  PainterState::PainterBrushState m_black_pen;
-  PainterState::PainterBrushState m_white_pen;
-  PainterState::PainterBrushState m_transparent_blue_pen;
+  PainterPackedValue<PainterBrush> m_black_pen;
+  PainterPackedValue<PainterBrush> m_white_pen;
+  PainterPackedValue<PainterBrush> m_transparent_blue_pen;
 
   unsigned int m_join_style;
   unsigned int m_cap_style;
@@ -187,6 +187,9 @@ private:
   simple_time m_draw_timer;
   Path m_grid_path;
   bool m_grid_path_dirty;
+
+  Path m_clip_window_path;
+  bool m_clip_window_path_dirty;
 };
 
 //////////////////////////////////////
@@ -254,7 +257,8 @@ painter_stroke_test(void):
   m_shear2(1.0f, 1.0f),
   m_draw_grid(false),
   m_angle(0.0f),
-  m_grid_path_dirty(true)
+  m_grid_path_dirty(true),
+  m_clip_window_path_dirty(true)
 {
   std::cout << "Controls:\n"
             << "\tj: cycle through join styles for stroking\n"
@@ -329,8 +333,6 @@ update_cts_params(void)
 
   float speed = static_cast<float>(m_draw_timer.restart()), speed_stroke, speed_shear;
 
-  speed *= m_change_stroke_width_rate.m_value;
-
   if(keyboard_state[SDL_SCANCODE_LSHIFT])
     {
       speed *= 0.1f;
@@ -367,16 +369,16 @@ update_cts_params(void)
 
   if(keyboard_state[SDL_SCANCODE_9])
     {
-      m_angle += speed;
+      m_angle += speed * 0.1f;
       std::cout << "Angle set to: " << m_angle << "\n";
     }
   if(keyboard_state[SDL_SCANCODE_0])
     {
-      m_angle -= speed;
+      m_angle -= speed * 0.1f;
       std::cout << "Angle set to: " << m_angle << "\n";
     }
 
-  speed_stroke = speed;
+  speed_stroke = speed * m_change_stroke_width_rate.m_value;
   if(!m_stroke_width_in_pixels)
     {
       speed_stroke /= m_zoomer.transformation().scale();
@@ -543,6 +545,7 @@ update_cts_params(void)
       if(keyboard_state[SDL_SCANCODE_KP_2] || keyboard_state[SDL_SCANCODE_KP_4]
          || keyboard_state[SDL_SCANCODE_KP_6] || keyboard_state[SDL_SCANCODE_KP_8])
         {
+          m_clip_window_path_dirty = true;
           std::cout << "Clipping window set to: xy = " << m_clipping_xy << " wh = " << m_clipping_wh << "\n";
         }
     }
@@ -948,17 +951,19 @@ draw_frame(void)
           m_grid_path_dirty = false;
           m_grid_path.swap(grid_path);
         }
-      m_painter->brush().pen(1.0f, 1.0f, 1.0f, 1.0f);
-      PainterState::StrokeParams st;
+
+      PainterStrokeParams st;
       st.miter_limit(-1.0f);
       st.width(2.0f);
-      m_painter->vertex_shader_data(st);
-      m_painter->stroke_path(m_grid_path,
+
+      PainterBrush stroke_pen;
+      stroke_pen.pen(1.0f, 1.0f, 1.0f, 1.0f);
+
+      m_painter->stroke_path(PainterData(&stroke_pen, &st),
+                             m_grid_path,
                              PainterEnums::no_caps, PainterEnums::no_joins,
                              false);
     }
-
-  
 
   /* apply m_zoomer
    */
@@ -978,63 +983,88 @@ draw_frame(void)
 
   if(m_clipping_window)
     {
+      if(m_clip_window_path_dirty)
+        {
+          Path clip_window_path;
+          clip_window_path << m_clipping_xy
+                           << vec2(m_clipping_xy.x(), m_clipping_xy.y() + m_clipping_wh.y())
+                           << m_clipping_xy + m_clipping_wh
+                           << vec2(m_clipping_xy.x() + m_clipping_wh.x(), m_clipping_xy.y())
+                           << Path::end();
+          m_clip_window_path.swap(clip_window_path);
+          m_clip_window_path_dirty = false;
+        }
+
+      PainterBrush white;
+      white.pen(1.0f, 1.0f, 1.0f, 1.0f);
+      PainterStrokeParams st;
+      st.miter_limit(-1.0f);
+      st.width(4.0f);
+      m_painter->save();
+      m_painter->clipOutPath(m_clip_window_path, PainterEnums::nonzero_fill_rule);
+      m_painter->stroke_path(PainterData(&white, &st), m_clip_window_path,
+                             PainterEnums::close_outlines, PainterEnums::miter_joins,
+                             false);
+      m_painter->restore();
       m_painter->clipInRect(m_clipping_xy, m_clipping_wh);
     }
 
-  if(m_translate_brush)
-    {
-      m_painter->brush().transformation_translate(m_zoomer.transformation().translation());
-    }
-  else
-    {
-      m_painter->brush().no_transformation_translation();
-    }
-
-  if(m_matrix_brush)
-    {
-      float2x2 m;
-      m(0, 0) = m(1, 1) = m_zoomer.transformation().scale();
-      m_painter->brush().transformation_matrix(m);
-    }
-  else
-    {
-      m_painter->brush().no_transformation_matrix();
-    }
-
-  if(m_repeat_window)
-    {
-      m_painter->brush().repeat_window(m_repeat_xy, m_repeat_wh);
-    }
-  else
-    {
-      m_painter->brush().no_repeat_window();
-    }
 
   if(m_draw_fill)
     {
-      m_painter->brush().pen(1.0f, 1.0f, 1.0f, 1.0f);
+      PainterBrush fill_brush;
 
-      if(m_gradient_draw_mode == draw_linear_gradient && !m_color_stops.empty())
+      fill_brush.pen(1.0f, 1.0f, 1.0f, 1.0f);
+      if(m_translate_brush)
         {
-          m_painter->brush().linear_gradient(m_color_stops[m_active_color_stop].second,
-                                             m_gradient_p0, m_gradient_p1, m_repeat_gradient);
-        }
-      else if(m_gradient_draw_mode == draw_radial_gradient && !m_color_stops.empty())
-        {
-          m_painter->brush().radial_gradient(m_color_stops[m_active_color_stop].second,
-                                             m_gradient_p0, m_gradient_r0,
-                                             m_gradient_p1, m_gradient_r1,
-                                             m_repeat_gradient);
+          fill_brush.transformation_translate(m_zoomer.transformation().translation());
         }
       else
         {
-          m_painter->brush().no_gradient();
+          fill_brush.no_transformation_translation();
+        }
+
+      if(m_matrix_brush)
+        {
+          float2x2 m;
+          m(0, 0) = m(1, 1) = m_zoomer.transformation().scale();
+          fill_brush.transformation_matrix(m);
+        }
+      else
+        {
+          fill_brush.no_transformation_matrix();
+        }
+
+      if(m_repeat_window)
+        {
+          fill_brush.repeat_window(m_repeat_xy, m_repeat_wh);
+        }
+      else
+        {
+          fill_brush.no_repeat_window();
+        }
+
+      if(m_gradient_draw_mode == draw_linear_gradient && !m_color_stops.empty())
+        {
+          fill_brush.linear_gradient(m_color_stops[m_active_color_stop].second,
+                                     m_gradient_p0, m_gradient_p1, m_repeat_gradient);
+        }
+      else if(m_gradient_draw_mode == draw_radial_gradient && !m_color_stops.empty())
+        {
+          fill_brush.radial_gradient(m_color_stops[m_active_color_stop].second,
+                                     m_gradient_p0, m_gradient_r0,
+                                     m_gradient_p1, m_gradient_r1,
+                                     m_repeat_gradient);
+        }
+      else
+        {
+          fill_brush.no_gradient();
         }
 
 
       if(!m_image || m_image_filter == no_image)
         {
-          m_painter->brush().no_image();
+          fill_brush.no_image();
         }
       else
         {
@@ -1054,7 +1084,7 @@ draw_frame(void)
               assert(!"Incorrect value for m_image_filter!");
               f = PainterBrush::image_filter_nearest;
             }
-          m_painter->brush().sub_image(m_image, m_image_offset, m_image_size, f);
+          fill_brush.sub_image(m_image, m_image_offset, m_image_size, f);
         }
 
       if(m_fill_rule < PainterEnums::fill_rule_data_count)
@@ -1066,12 +1096,12 @@ draw_frame(void)
               m_painter->save();
               m_painter->clipInPath(m_path, v);
               m_painter->transformation(float3x3());
-              m_painter->draw_rect(vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
+              m_painter->draw_rect(PainterData(&fill_brush), vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
               m_painter->restore();
             }
           else
             {
-              m_painter->fill_path(m_path, v);
+              m_painter->fill_path(PainterData(&fill_brush), m_path, v);
             }
         }
       else
@@ -1087,30 +1117,24 @@ draw_frame(void)
               m_painter->save();
               m_painter->clipInPath(m_path, WindingValueFillRule(value));
               m_painter->transformation(float3x3());
-              m_painter->draw_rect(vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
+              m_painter->draw_rect(PainterData(&fill_brush), vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
               m_painter->restore();
             }
           else
             {
-              m_painter->fill_path(m_path, WindingValueFillRule(value));
+              m_painter->fill_path(PainterData(&fill_brush), m_path, WindingValueFillRule(value));
             }
         }
-      m_painter->brush().no_image();
-      m_painter->brush().no_gradient();
     }
 
   if(!m_transparent_blue_pen)
     {
-      m_painter->brush().pen(0.0f, 0.0f, 1.0f, 0.5f);
-      m_transparent_blue_pen = m_painter->brush_state();
+      m_transparent_blue_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0f, 0.0f, 1.0f, 0.5f));
     }
-
-  m_painter->brush_state(m_transparent_blue_pen);
-
 
   if(m_stroke_width > 0.0f)
     {
-      PainterState::StrokeParams st;
+      PainterStrokeParams st;
       if(m_have_miter_limit)
         {
           st.miter_limit(m_miter_limit);
@@ -1119,19 +1143,20 @@ draw_frame(void)
         {
           st.miter_limit(-1.0f);
         }
-
       st.width(m_stroke_width);
-      m_painter->vertex_shader_data(st);
+
       if(m_stroke_width_in_pixels)
         {
-          m_painter->stroke_path_pixel_width(m_path,
+          m_painter->stroke_path_pixel_width(PainterData(m_transparent_blue_pen, &st),
+                                             m_path,
                                              static_cast<enum PainterEnums::cap_style>(m_cap_style),
                                              static_cast<enum PainterEnums::join_style>(m_join_style),
                                              m_stroke_aa);
         }
       else
         {
-          m_painter->stroke_path(m_path,
+          m_painter->stroke_path(PainterData(m_transparent_blue_pen, &st),
+                                 m_path,
                                  static_cast<enum PainterEnums::cap_style>(m_cap_style),
                                  static_cast<enum PainterEnums::join_style>(m_join_style),
                                  m_stroke_aa);
@@ -1167,24 +1192,15 @@ draw_frame(void)
       if(!m_black_pen)
         {
           assert(!m_white_pen);
-          m_painter->brush().reset();
-
-          m_painter->brush().pen(0.0, 0.0, 0.0, 1.0);
-          m_black_pen = m_painter->brush_state();
-
-          m_painter->brush().pen(1.0, 1.0, 1.0, 1.0);
-          m_white_pen = m_painter->brush_state();
+          m_white_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(1.0, 1.0, 1.0, 1.0));
+          m_black_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0, 0.0, 0.0, 1.0));
         }
 
-      m_painter->brush_state(m_black_pen);
-      m_painter->draw_rect(p0 - vec2(r1) * 0.5, vec2(r1));
-      m_painter->brush_state(m_white_pen);
-      m_painter->draw_rect(p0 - vec2(r0) * 0.5, vec2(r0));
+      m_painter->draw_rect(PainterData(m_black_pen), p0 - vec2(r1) * 0.5, vec2(r1));
+      m_painter->draw_rect(PainterData(m_white_pen), p0 - vec2(r0) * 0.5, vec2(r0));
 
-      m_painter->brush_state(m_white_pen);
-      m_painter->draw_rect(p1 - vec2(r1) * 0.5, vec2(r1));
-      m_painter->brush_state(m_black_pen);
-      m_painter->draw_rect(p1 - vec2(r0) * 0.5, vec2(r0));
+      m_painter->draw_rect(PainterData(m_white_pen), p1 - vec2(r1) * 0.5, vec2(r1));
+      m_painter->draw_rect(PainterData(m_black_pen), p1 - vec2(r0) * 0.5, vec2(r0));
     }
   m_painter->end();
 }

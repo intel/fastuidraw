@@ -185,11 +185,22 @@ namespace fastuidraw
 
     /*!
       Ctor. Initializes the brush to have no image, no gradient,
-      no repeat window and no transformation.
+      no repeat window and no transformation with the pen color
+      as (1.0, 1.0, 1.0, 1.0) which is solid white.
      */
-    PainterBrush(void):
-      m_dirty(true)
+    PainterBrush(void)
     {}
+
+    /*!
+      Ctor. Initializes the brush to have no image, no gradient,
+      no repeat window and no transformation with the given
+      pen color.
+      \param ppen_color inital pen color
+     */
+    PainterBrush(const vec4 &ppen_color)
+    {
+      m_data.m_pen = ppen_color;
+    }
 
     /*!
       Reset the brush to initial conditions.
@@ -203,7 +214,6 @@ namespace fastuidraw
     PainterBrush&
     pen(const vec4 &color)
     {
-      m_dirty = m_dirty || (color != m_data.m_pen);
       m_data.m_pen = color;
       return *this;
     }
@@ -261,7 +271,6 @@ namespace fastuidraw
     linear_gradient(const ColorStopSequenceOnAtlas::const_handle cs,
                     const vec2 &start_p, const vec2 &end_p, bool repeat)
     {
-      m_dirty = m_dirty || cs;
       m_data.m_cs = cs;
       m_data.m_grad_start = start_p;
       m_data.m_grad_end = end_p;
@@ -287,7 +296,6 @@ namespace fastuidraw
                     const vec2 &start_p, float start_r,
                     const vec2 &end_p, float end_r, bool repeat)
     {
-      m_dirty = m_dirty || cs;
       m_data.m_cs = cs;
       m_data.m_grad_start = start_p;
       m_data.m_grad_start_r = start_r;
@@ -305,7 +313,6 @@ namespace fastuidraw
     PainterBrush&
     no_gradient(void)
     {
-      m_dirty = m_dirty || !m_data.m_cs;
       m_data.m_cs = ColorStopSequenceOnAtlas::const_handle();
       m_data.m_shader_raw &= ~(gradient_mask | gradient_repeat_mask | radial_gradient_mask);
       return *this;
@@ -318,7 +325,6 @@ namespace fastuidraw
     PainterBrush&
     transformation_translate(const vec2 &p)
     {
-      m_dirty = true;
       m_data.m_transformation_p = p;
       m_data.m_shader_raw |= transformation_translation_mask;
       return *this;
@@ -331,7 +337,6 @@ namespace fastuidraw
     PainterBrush&
     transformation_matrix(const float2x2 &m)
     {
-      m_dirty = true;
       m_data.m_transformation_matrix = m;
       m_data.m_shader_raw |= transformation_matrix_mask;
       return *this;
@@ -357,7 +362,6 @@ namespace fastuidraw
     PainterBrush&
     no_transformation_translation(void)
     {
-      m_dirty = m_dirty || (m_data.m_shader_raw & transformation_translation_mask) != 0;
       m_data.m_shader_raw &= ~transformation_translation_mask;
       return *this;
     }
@@ -368,7 +372,6 @@ namespace fastuidraw
     PainterBrush&
     no_transformation_matrix(void)
     {
-      m_dirty = m_dirty || (m_data.m_shader_raw & transformation_matrix_mask) != 0;
       m_data.m_shader_raw &= ~transformation_matrix_mask;
       return *this;
     }
@@ -392,7 +395,6 @@ namespace fastuidraw
     PainterBrush&
     repeat_window(const vec2 &pos, const vec2 &size)
     {
-      m_dirty = true;
       m_data.m_window_position = pos;
       m_data.m_window_size = size;
       m_data.m_shader_raw |= repeat_window_mask;
@@ -405,7 +407,6 @@ namespace fastuidraw
     PainterBrush&
     no_repeat_window(void)
     {
-      m_dirty = m_dirty || 0 != (m_data.m_shader_raw & repeat_window_mask);
       m_data.m_shader_raw &= ~repeat_window_mask;
       return *this;
     }
@@ -472,28 +473,6 @@ namespace fastuidraw
      */
     uint32_t
     shader(void) const;
-
-    /*!
-      Returns true if the brush properties have changed since the
-      last call to clear_dirty().
-     */
-    bool
-    clear_dirty(void)
-    {
-      bool return_value(m_dirty);
-      m_dirty = false;
-      return return_value;
-    }
-
-    /*!
-      Returns true if the brush properties have changed since the
-      last call to clear_dirty().
-     */
-    bool
-    is_dirty(void) const
-    {
-      return m_dirty;
-    }
 
     /*!
       Specialize assignment operator.
@@ -585,7 +564,6 @@ namespace fastuidraw
     };
 
     brush_data m_data;
-    bool m_dirty;
   };
 /*! @} */
 }

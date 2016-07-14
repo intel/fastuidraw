@@ -37,6 +37,24 @@ namespace
     uint32_t m_brush;
   };
 
+  template<typename T>
+  const T&
+  fetch_value(const fastuidraw::PainterData::value<T> &obj)
+  {
+    if(obj.m_packed_value)
+      {
+        return obj.m_packed_value.value();
+      }
+
+    if(obj.m_value != NULL)
+      {
+        return *obj.m_value;
+      }
+
+    static T default_value;
+    return default_value;
+  }
+
   class PainterShaderGroupPrivate:
     public fastuidraw::PainterShaderGroup,
     public PainterShaderGroupValues
@@ -137,7 +155,7 @@ namespace
   public:
 
     EntryBase(void):
-      m_raw_state(NULL),
+      m_raw_value(NULL),
       m_pool_slot(-1)
     {}
 
@@ -163,9 +181,9 @@ namespace
     }
 
     const void*
-    raw_state(void)
+    raw_value(void)
     {
-      return m_raw_state;
+      return m_raw_value;
     }
 
     /* To what painter and where in data store buffer
@@ -184,7 +202,7 @@ namespace
     /* pointer to raw state member held
        by derived class
      */
-    const void *m_raw_state;
+    const void *m_raw_value;
 
     /* location in pool and what pool
      */
@@ -204,7 +222,7 @@ namespace
   public:
     Entry(void)
     {
-      m_raw_state = &m_state;
+      m_raw_value = &m_state;
     }
 
     void
@@ -287,267 +305,21 @@ namespace
     std::vector<typename Pool<T>::handle> m_pools;
   };
 
-  class PainterSaveStatePoolPrivate
+  class PainterPackedValuePoolPrivate
   {
   public:
     explicit
-    PainterSaveStatePoolPrivate(int d):
+    PainterPackedValuePoolPrivate(int d):
       m_alignment(d)
     {}
 
     int m_alignment;
 
     PoolSet<fastuidraw::PainterBrush> m_brush_pool;
-    PoolSet<fastuidraw::PainterState::ClipEquations> m_clip_equations_pool;
-    PoolSet<fastuidraw::PainterState::ItemMatrix> m_item_matrix_pool;
-    PoolSet<fastuidraw::PainterState::VertexShaderData> m_vertex_shader_data_pool;
-    PoolSet<fastuidraw::PainterState::FragmentShaderData> m_fragment_shader_data_pool;
-  };
-
-  template<typename T>
-  class tracked_state
-  {
-  public:
-    typedef T State;
-
-    tracked_state(void):
-      m_raw(NULL),
-      m_changed_since_last_upload(true)
-    {}
-
-    void
-    set(const State &v)
-    {
-      m_value = v;
-      m_changed_since_last_upload = true;
-      m_save_state = fastuidraw::PainterSaveState<T>();
-      m_raw = NULL;
-    }
-
-    void
-    set_state(void *hraw, const fastuidraw::PainterSaveState<State> &h)
-    {
-      assert(h);
-      if(m_save_state != h)
-        {
-          m_save_state = h;
-          m_raw = hraw;
-          m_changed_since_last_upload = true;
-        }
-    }
-
-    unsigned int
-    room_needed_for_packing(unsigned int alignment) const
-    {
-      return m_changed_since_last_upload ? cvalue().data_size(alignment) : 0;
-    }
-
-    const State&
-    cvalue(void) const
-    {
-      if(m_save_state)
-        {
-          return m_save_state.state();
-        }
-      else
-        {
-          return m_value;
-        }
-    }
-
-    void*
-    raw(void)
-    {
-      return m_raw;
-    }
-
-    const fastuidraw::PainterSaveState<State>&
-    state(void) const
-    {
-      return m_save_state;
-    }
-
-    bool
-    changed_since_last_upload(void) const
-    {
-      return m_changed_since_last_upload;
-    }
-
-    void
-    mark_as_uploaded(void)
-    {
-      m_changed_since_last_upload = false;
-    }
-
-  private:
-    fastuidraw::PainterSaveState<State> m_save_state;
-    void *m_raw;
-    State m_value;
-    bool m_changed_since_last_upload;
-  };
-
-  /* brush required special implementation becuase of the
-     ability to partially update a PainterBrush; we need
-     the ability to return a reference to the brush
-
-     How it works:
-       when m_save_state is non-NULL, then m_value_clones_state
-       is true when the value in m_value is the same as
-       m_save_state->state().
-   */
-  template<>
-  class tracked_state<fastuidraw::PainterBrush>
-  {
-  public:
-    typedef fastuidraw::PainterBrush State;
-
-    tracked_state(void):
-      m_raw(NULL),
-      m_changed_since_last_upload(true)
-    {}
-
-    void
-    set(const State &v)
-    {
-      m_value = v;
-      m_changed_since_last_upload = true;
-      m_save_state = fastuidraw::PainterSaveState<State>();
-      m_raw = NULL;
-    }
-
-    void
-    set_state(void *hraw, const fastuidraw::PainterSaveState<State> &h,
-              bool clones_state)
-    {
-      assert(h);
-      if(h != m_save_state)
-        {
-          m_save_state = h;
-          m_raw = hraw;
-          m_changed_since_last_upload = true;
-          m_value_clones_state = clones_state;
-          m_value.clear_dirty();
-        }
-    }
-
-    unsigned int
-    room_needed_for_packing(unsigned int alignment) const
-    {
-      return changed_since_last_upload() ? cvalue().data_size(alignment) : 0;
-    }
-
-    const State&
-    cvalue(void) const
-    {
-      if(m_save_state)
-        {
-          if(m_value.is_dirty())
-            {
-              /* m_value was modified since we last
-                 had the state set, thus m_save_state
-                 does not reflect the real value, clear
-                 it
-               */
-              m_save_state = fastuidraw::PainterSaveState<State>();
-              m_raw = NULL;
-              m_changed_since_last_upload = true;
-            }
-          else
-            {
-              return m_save_state.state();
-            }
-        }
-      return m_value;
-    }
-
-    State&
-    value(void)
-    {
-      if(m_save_state && !m_value_clones_state)
-        {
-          m_value_clones_state = true;
-          m_value = m_save_state.state();
-          /* copying the value will set dirty bits up
-             but the contents of m_save_state are for
-             its value, so clear the bits.
-           */
-          m_value.clear_dirty();
-        }
-      return m_value;
-    }
-
-    const fastuidraw::PainterSaveState<State>&
-    state(void) const
-    {
-      if(m_save_state && m_value.is_dirty())
-        {
-          m_save_state = fastuidraw::PainterSaveState<State>();
-          m_raw = NULL;
-          m_changed_since_last_upload = true;
-        }
-      return m_save_state;
-    }
-
-    void*
-    raw(void)
-    {
-      return m_raw;
-    }
-
-    bool
-    changed_since_last_upload(void) const
-    {
-      if(m_value.is_dirty())
-        {
-          m_changed_since_last_upload = true;
-        }
-      return m_changed_since_last_upload;
-    }
-
-    void
-    mark_as_uploaded(void)
-    {
-      m_changed_since_last_upload = false;
-    }
-
-  private:
-    mutable void *m_raw;
-    mutable fastuidraw::PainterSaveState<State> m_save_state;
-    mutable State m_value;
-    mutable bool m_changed_since_last_upload;
-    bool m_value_clones_state;
-  };
-
-  class painter_state
-  {
-  public:
-    tracked_state<fastuidraw::PainterState::ClipEquations> m_clipping;
-    tracked_state<fastuidraw::PainterState::ItemMatrix> m_item_matrix;
-    tracked_state<fastuidraw::PainterBrush> m_brush;
-    tracked_state<fastuidraw::PainterState::VertexShaderData> m_vert_shader_data;
-    tracked_state<fastuidraw::PainterState::FragmentShaderData> m_frag_shader_data;
-
-    fastuidraw::PainterShader::const_handle m_blend_shader;
-
-    unsigned int
-    room_needed_for_packing(unsigned int alignment) const
-    {
-      return m_clipping.room_needed_for_packing(alignment)
-        + m_item_matrix.room_needed_for_packing(alignment)
-        + m_brush.room_needed_for_packing(alignment)
-        + m_vert_shader_data.room_needed_for_packing(alignment)
-        + m_frag_shader_data.room_needed_for_packing(alignment);
-    }
-
-    bool
-    changed_since_last_upload(void) const
-    {
-      return m_clipping.changed_since_last_upload()
-        || m_item_matrix.changed_since_last_upload()
-        || m_brush.changed_since_last_upload()
-        || m_vert_shader_data.changed_since_last_upload()
-        || m_frag_shader_data.changed_since_last_upload();
-    }
+    PoolSet<fastuidraw::PainterClipEquations> m_clip_equations_pool;
+    PoolSet<fastuidraw::PainterItemMatrix> m_item_matrix_pool;
+    PoolSet<fastuidraw::PainterVertexShaderData> m_vertex_shader_data_pool;
+    PoolSet<fastuidraw::PainterFragmentShaderData> m_fragment_shader_data_pool;
   };
 
   class painter_state_location
@@ -604,15 +376,16 @@ namespace
     }
 
     void
-    pack_painter_state(PainterPackerPrivate *p, bool force_upload,
-                       painter_state_location &out_data);
+    pack_painter_state(const fastuidraw::PainterPackerData &state,
+                       PainterPackerPrivate *p, painter_state_location &out_data);
 
     unsigned int
     pack_header(unsigned int header_size,
+                uint32_t brush_shader,
+                const fastuidraw::PainterShader::const_handle &blend_shader,
                 const fastuidraw::PainterShader::const_handle &vert_shader,
                 const fastuidraw::PainterShader::const_handle &frag_shader,
                 unsigned int z,
-                const painter_state &state,
                 const painter_state_location &loc,
                 const fastuidraw::PainterPacker::DataCallBack::handle &call_back);
 
@@ -647,22 +420,24 @@ namespace
 
     template<typename T>
     void
-    pack_state_data(PainterPackerPrivate *p, tracked_state<T> &obj,
-                    bool force_upload, uint32_t &location)
+    pack_state_data(PainterPackerPrivate *p,
+                    const fastuidraw::PainterData::value<T> &obj,
+                    uint32_t &location)
     {
-      if(force_upload || obj.changed_since_last_upload())
+      if(obj.m_packed_value)
         {
-          if(obj.state())
-            {
-              EntryBase *e;
-              e = reinterpret_cast<EntryBase*>(obj.raw());
-              pack_state_data(p, e, location);
-            }
-          else
-            {
-              pack_state_data_from_value(obj.cvalue(), location);
-            }
-	  obj.mark_as_uploaded();
+          EntryBase *e;
+          e = reinterpret_cast<EntryBase*>(obj.m_packed_value.opaque_data());
+          pack_state_data(p, e, location);
+        }
+      else if(obj.m_value != NULL)
+        {
+          pack_state_data_from_value(*obj.m_value, location);
+        }
+      else
+        {
+          static T v;
+          pack_state_data_from_value(v, location);
         }
     }
 
@@ -694,20 +469,51 @@ namespace
     start_new_command(void);
 
     void
-    upload_changed_state(void);
+    upload_draw_state(const fastuidraw::PainterPackerData &draw_state);
+
+    unsigned int
+    compute_room_needed_for_packing(const fastuidraw::PainterPackerData &draw_state);
+
+    template<typename T>
+    unsigned int
+    compute_room_needed_for_packing(const fastuidraw::PainterData::value<T> &obj)
+    {
+      if(obj.m_packed_value)
+        {
+          EntryBase *d;
+          d = reinterpret_cast<EntryBase*>(obj.m_packed_value.opaque_data());
+          if(d->m_painter == m_p && d->m_begin_id == m_number_begins
+             && d->m_draw_command_id == m_accumulated_draws.size())
+            {
+              return 0;
+            }
+          else
+            {
+              return d->m_data.size();
+            }
+        }
+      else if(obj.m_value != NULL)
+        {
+          return obj.m_value->data_size(m_alignment);
+        }
+      else
+        {
+          static T v;
+          return v.data_size(m_alignment);
+        }
+    };
 
     fastuidraw::PainterBackend::handle m_backend;
     fastuidraw::PainterShaderSet m_default_shaders;
     unsigned int m_alignment;
     unsigned int m_header_size;
 
-    painter_state m_state;
+    fastuidraw::PainterShader::const_handle m_blend_shader;
     painter_state_location m_painter_state_location;
     int m_number_begins;
 
     std::vector<per_draw_command> m_accumulated_draws;
     fastuidraw::PainterPacker *m_p;
-    fastuidraw::PainterSaveStatePool m_pool;
 
     PainterPackerPrivateWorkroom m_work_room;
   };
@@ -775,31 +581,30 @@ pack_state_data(PainterPackerPrivate *p,
 
 void
 per_draw_command::
-pack_painter_state(PainterPackerPrivate *p, bool force_upload,
-                   painter_state_location &out_data)
+pack_painter_state(const fastuidraw::PainterPackerData &state,
+                   PainterPackerPrivate *p, painter_state_location &out_data)
 {
-  painter_state &state(p->m_state);
-
-  pack_state_data(p, state.m_clipping, force_upload, out_data.m_clipping_data_loc);
-  pack_state_data(p, state.m_item_matrix, force_upload, out_data.m_item_matrix_data_loc);
-  pack_state_data(p, state.m_vert_shader_data, force_upload, out_data.m_vert_shader_data_loc);
-  pack_state_data(p, state.m_frag_shader_data, force_upload, out_data.m_frag_shader_data_loc);
-  pack_state_data(p, state.m_brush, force_upload, out_data.m_brush_shader_data_loc);
+  pack_state_data(p, state.m_clip, out_data.m_clipping_data_loc);
+  pack_state_data(p, state.m_matrix, out_data.m_item_matrix_data_loc);
+  pack_state_data(p, state.m_vertex_shader_data, out_data.m_vert_shader_data_loc);
+  pack_state_data(p, state.m_fragment_shader_data, out_data.m_frag_shader_data_loc);
+  pack_state_data(p, state.m_brush, out_data.m_brush_shader_data_loc);
 
   /* We save a handle to the image and colorstop used by the brush,
      to make sure the Image and ColorStopSequenceOnAtlas objects are
      not deleted until the draw command built is sent down to the 3D
      API.
    */
-  if(state.m_brush.cvalue().image() && m_last_image != state.m_brush.cvalue().image())
+  const fastuidraw::PainterBrush &brush(fetch_value(state.m_brush));
+  if(brush.image() && m_last_image != brush.image())
     {
-      m_last_image = state.m_brush.cvalue().image();
+      m_last_image = brush.image();
       m_images_active.push_back(m_last_image);
     }
 
-  if(state.m_brush.cvalue().color_stops() && m_last_color_stop != state.m_brush.cvalue().color_stops())
+  if(brush.color_stops() && m_last_color_stop != brush.color_stops())
     {
-      m_last_color_stop = state.m_brush.cvalue().color_stops();
+      m_last_color_stop = brush.color_stops();
       m_color_stops_active.push_back(m_last_color_stop);
     }
 }
@@ -807,10 +612,11 @@ pack_painter_state(PainterPackerPrivate *p, bool force_upload,
 unsigned int
 per_draw_command::
 pack_header(unsigned int header_size,
+            uint32_t brush_shader,
+            const fastuidraw::PainterShader::const_handle &blend_shader,
             const fastuidraw::PainterShader::const_handle &vert_shader,
             const fastuidraw::PainterShader::const_handle &frag_shader,
             unsigned int z,
-            const painter_state &state,
             const painter_state_location &loc,
             const fastuidraw::PainterPacker::DataCallBack::handle &call_back)
 {
@@ -841,15 +647,14 @@ pack_header(unsigned int header_size,
   PainterShaderGroupPrivate current;
   fastuidraw::PainterShader::Tag blend;
 
-  if(state.m_blend_shader)
+  if(blend_shader)
     {
-      blend = state.m_blend_shader->tag();
+      blend = blend_shader->tag();
     }
   current.m_vert_group = vert_shader->group();
   current.m_frag_group = frag_shader->group();
-  current.m_brush = state.m_brush.cvalue().shader();
+  current.m_brush = brush_shader;
   current.m_blend_group = blend.m_group;
-
 
   dst[fastuidraw::PainterPacking::vert_frag_shader_offset].u =
     fastuidraw::pack_bits(fastuidraw::PainterPacking::vert_shader_bit0,
@@ -893,8 +698,7 @@ PainterPackerPrivate::
 PainterPackerPrivate(fastuidraw::PainterBackend::handle backend,
                      fastuidraw::PainterPacker *p):
   m_backend(backend),
-  m_p(p),
-  m_pool(backend->configuration().alignment())
+  m_p(p)
 {
   m_alignment = m_backend->configuration().alignment();
   m_header_size = fastuidraw::round_up_to_multiple(fastuidraw::PainterPacking::header_size, m_alignment);
@@ -914,29 +718,34 @@ start_new_command(void)
   fastuidraw::PainterDrawCommand::const_handle r;
   r = m_backend->map_draw_command();
   m_accumulated_draws.push_back(per_draw_command(r, m_backend->configuration()));
-  m_accumulated_draws.back().pack_painter_state(this, true, m_painter_state_location);
+}
+
+unsigned int
+PainterPackerPrivate::
+compute_room_needed_for_packing(const fastuidraw::PainterPackerData &draw_state)
+{
+  unsigned int R(0);
+  R += compute_room_needed_for_packing(draw_state.m_clip);
+  R += compute_room_needed_for_packing(draw_state.m_matrix);
+  R += compute_room_needed_for_packing(draw_state.m_brush);
+  R += compute_room_needed_for_packing(draw_state.m_vertex_shader_data);
+  R += compute_room_needed_for_packing(draw_state.m_fragment_shader_data);
+  return R;
 }
 
 void
 PainterPackerPrivate::
-upload_changed_state(void)
+upload_draw_state(const fastuidraw::PainterPackerData &draw_state)
 {
+  unsigned int needed_room;
+
   assert(!m_accumulated_draws.empty());
-
-  if(m_state.changed_since_last_upload())
+  needed_room = compute_room_needed_for_packing(draw_state);
+  if(needed_room > m_accumulated_draws.back().store_room())
     {
-      unsigned int needed_room;
-
-      needed_room = m_state.room_needed_for_packing(m_alignment);
-      if(needed_room <= m_accumulated_draws.back().store_room())
-        {
-          m_accumulated_draws.back().pack_painter_state(this, false, m_painter_state_location);
-        }
-      else
-        {
-          start_new_command();
-        }
+      start_new_command();
     }
+  m_accumulated_draws.back().pack_painter_state(draw_state, this, m_painter_state_location);
 }
 
 /////////////////////////////////////////
@@ -1042,18 +851,21 @@ end(void)
 
 void
 fastuidraw::PainterPacker::
-draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
+draw_generic(const PainterPackerData &draw,
+             const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
              const PainterItemShader &shader, unsigned int z,
              const DataCallBack::handle &call_back)
 {
-  draw_generic(attrib_chunks, index_chunks, const_c_array<unsigned int>(),
+  draw_generic(draw, attrib_chunks, index_chunks,
+               const_c_array<unsigned int>(),
                shader, z, call_back);
 }
 
 void
 fastuidraw::PainterPacker::
-draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
+draw_generic(const PainterPackerData &draw,
+             const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
              const_c_array<unsigned int> attrib_chunk_selector,
              const PainterItemShader &shader, unsigned int z,
@@ -1083,7 +895,7 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
   assert(shader.vert_shader());
   assert(shader.frag_shader());
 
-  d->upload_changed_state();
+  d->upload_draw_state(draw);
   allocate_header = true;
 
   for(unsigned chunk = 0, num_chunks = index_chunks.size(); chunk < num_chunks; ++chunk)
@@ -1117,6 +929,7 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
          || (allocate_header && data_room < d->m_header_size))
         {
           d->start_new_command();
+          d->upload_draw_state(draw);
 
           /* reset attribs_loaded[] and recompute needed_attrib_room
            */
@@ -1145,8 +958,11 @@ draw_generic(const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
         {
           allocate_header = false;
           header_loc = cmd.pack_header(d->m_header_size,
-                                       shader.vert_shader(), shader.frag_shader(),
-                                       z, d->m_state, d->m_painter_state_location,
+                                       fetch_value(draw.m_brush).shader(),
+                                       d->m_blend_shader,
+                                       shader.vert_shader(),
+                                       shader.frag_shader(),
+                                       z, d->m_painter_state_location,
                                        call_back);
         }
 
@@ -1225,56 +1041,13 @@ colorstop_atlas(void) const
   return d->m_backend->colorstop_atlas();
 }
 
-fastuidraw::PainterBrush&
-fastuidraw::PainterPacker::
-brush(void)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  return d->m_state.m_brush.value();
-}
-
-const fastuidraw::PainterBrush&
-fastuidraw::PainterPacker::
-cbrush(void) const
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  return d->m_state.m_brush.cvalue();
-}
-
-const fastuidraw::PainterPacker::PainterBrushState&
-fastuidraw::PainterPacker::
-brush_state(void)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  if(!d->m_state.m_brush.state())
-    {
-      PainterBrushState e;
-      e = d->m_pool.create_state(d->m_state.m_brush.cvalue());
-      d->m_state.m_brush.set_state(e.m_d, e, true);
-    }
-  return d->m_state.m_brush.state();
-}
-
-void
-fastuidraw::PainterPacker::
-brush_state(const PainterBrushState &h)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  assert(h && h.alignment_packing() == d->m_alignment);
-  d->m_state.m_brush.set_state(h.m_d, h, false);
-}
-
 const fastuidraw::PainterShader::const_handle&
 fastuidraw::PainterPacker::
 blend_shader(void) const
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  return d->m_state.m_blend_shader;
+  return d->m_blend_shader;
 }
 
 void
@@ -1284,161 +1057,7 @@ blend_shader(const fastuidraw::PainterShader::const_handle &h)
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
   assert(h);
-  d->m_state.m_blend_shader = h;
-}
-
-const fastuidraw::PainterPacker::ItemMatrix&
-fastuidraw::PainterPacker::
-item_matrix(void) const
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  return d->m_state.m_item_matrix.cvalue();
-}
-
-void
-fastuidraw::PainterPacker::
-item_matrix(const fastuidraw::PainterPacker::ItemMatrix &v)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  d->m_state.m_item_matrix.set(v);
-}
-
-const fastuidraw::PainterPacker::ItemMatrixState&
-fastuidraw::PainterPacker::
-item_matrix_state(void)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  if(!d->m_state.m_item_matrix.state())
-    {
-      ItemMatrixState e;
-      e = d->m_pool.create_state(d->m_state.m_item_matrix.cvalue());
-      d->m_state.m_item_matrix.set_state(e.m_d, e);
-    }
-  return d->m_state.m_item_matrix.state();
-}
-
-void
-fastuidraw::PainterPacker::
-item_matrix_state(const fastuidraw::PainterPacker::ItemMatrixState &h)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  assert(h && h.alignment_packing() == d->m_alignment);
-  d->m_state.m_item_matrix.set_state(h.m_d, h);
-}
-
-const fastuidraw::PainterPacker::ClipEquations&
-fastuidraw::PainterPacker::
-clip_equations(void) const
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  return d->m_state.m_clipping.cvalue();
-}
-
-void
-fastuidraw::PainterPacker::
-clip_equations(const fastuidraw::PainterPacker::ClipEquations &v)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  d->m_state.m_clipping.set(v);
-}
-
-const fastuidraw::PainterPacker::ClipEquationsState&
-fastuidraw::PainterPacker::
-clip_equations_state(void)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  if(!d->m_state.m_clipping.state())
-    {
-      ClipEquationsState e;
-      e = d->m_pool.create_state(d->m_state.m_clipping.cvalue());
-      d->m_state.m_clipping.set_state(e.m_d, e);
-    }
-  return d->m_state.m_clipping.state();
-}
-
-void
-fastuidraw::PainterPacker::
-clip_equations_state(const fastuidraw::PainterPacker::ClipEquationsState &h)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  assert(h && h.alignment_packing() == d->m_alignment);
-  d->m_state.m_clipping.set_state(h.m_d, h);
-}
-
-void
-fastuidraw::PainterPacker::
-vertex_shader_data(const fastuidraw::PainterPacker::VertexShaderData &shader_data)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  d->m_state.m_vert_shader_data.set(shader_data);
-}
-
-const fastuidraw::PainterPacker::VertexShaderDataState&
-fastuidraw::PainterPacker::
-vertex_shader_data(void)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  if(!d->m_state.m_vert_shader_data.state())
-    {
-      VertexShaderDataState e;
-      e = d->m_pool.create_state(d->m_state.m_vert_shader_data.cvalue());
-      d->m_state.m_vert_shader_data.set_state(e.m_d, e);
-    }
-  return d->m_state.m_vert_shader_data.state();
-}
-
-void
-fastuidraw::PainterPacker::
-vertex_shader_data(const fastuidraw::PainterPacker::VertexShaderDataState &h)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  assert(h && h.alignment_packing() == d->m_alignment);
-  d->m_state.m_vert_shader_data.set_state(h.m_d, h);
-}
-
-void
-fastuidraw::PainterPacker::
-fragment_shader_data(const fastuidraw::PainterPacker::FragmentShaderData &shader_data)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  d->m_state.m_frag_shader_data.set(shader_data);
-}
-
-const fastuidraw::PainterPacker::FragmentShaderDataState&
-fastuidraw::PainterPacker::
-fragment_shader_data(void)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  if(!d->m_state.m_frag_shader_data.state())
-    {
-      FragmentShaderDataState e;
-      e = d->m_pool.create_state(d->m_state.m_frag_shader_data.cvalue());
-      d->m_state.m_frag_shader_data.set_state(e.m_d, e);
-    }
-  return d->m_state.m_frag_shader_data.state();
-}
-
-void
-fastuidraw::PainterPacker::
-fragment_shader_data(const fastuidraw::PainterPacker::FragmentShaderDataState &h)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  assert(h && h.alignment_packing() == d->m_alignment);
-  d->m_state.m_frag_shader_data.set_state(h.m_d, h);
+  d->m_blend_shader = h;
 }
 
 const fastuidraw::PainterShaderSet&
@@ -1448,15 +1067,6 @@ default_shaders(void) const
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
   return d->m_default_shaders;
-}
-
-fastuidraw::PainterSaveStatePool&
-fastuidraw::PainterPacker::
-save_state_pool(void)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  return d->m_pool;
 }
 
 const fastuidraw::PainterBackend::PerformanceHints&
@@ -1541,15 +1151,15 @@ target_resolution(int w, int h)
 }
 
 //////////////////////////////////////////
-// fastuidraw::PainterSaveStateBase methods
-fastuidraw::PainterSaveStateBase::
-PainterSaveStateBase(void)
+// fastuidraw::PainterPackedValueBase methods
+fastuidraw::PainterPackedValueBase::
+PainterPackedValueBase(void)
 {
   m_d = NULL;
 }
 
-fastuidraw::PainterSaveStateBase::
-PainterSaveStateBase(void *p):
+fastuidraw::PainterPackedValueBase::
+PainterPackedValueBase(void *p):
   m_d(p)
 {
   EntryBase *d;
@@ -1560,8 +1170,8 @@ PainterSaveStateBase(void *p):
     }
 }
 
-fastuidraw::PainterSaveStateBase::
-PainterSaveStateBase(const PainterSaveStateBase &obj)
+fastuidraw::PainterPackedValueBase::
+PainterPackedValueBase(const PainterPackedValueBase &obj)
 {
   m_d = obj.m_d;
 
@@ -1573,9 +1183,8 @@ PainterSaveStateBase(const PainterSaveStateBase &obj)
     }
 }
 
-
-fastuidraw::PainterSaveStateBase::
-~PainterSaveStateBase()
+fastuidraw::PainterPackedValueBase::
+~PainterPackedValueBase()
 {
   if(m_d)
     {
@@ -1586,10 +1195,9 @@ fastuidraw::PainterSaveStateBase::
     }
 }
 
-
 void
-fastuidraw::PainterSaveStateBase::
-operator=(const PainterSaveStateBase &obj)
+fastuidraw::PainterPackedValueBase::
+operator=(const PainterPackedValueBase &obj)
 {
   if(m_d != obj.m_d)
     {
@@ -1612,7 +1220,7 @@ operator=(const PainterSaveStateBase &obj)
 }
 
 unsigned int
-fastuidraw::PainterSaveStateBase::
+fastuidraw::PainterPackedValueBase::
 alignment_packing(void) const
 {
   EntryBase *d;
@@ -1621,89 +1229,89 @@ alignment_packing(void) const
 }
 
 const void*
-fastuidraw::PainterSaveStateBase::
-raw_state(void) const
+fastuidraw::PainterPackedValueBase::
+raw_value(void) const
 {
   EntryBase *d;
   d = reinterpret_cast<EntryBase*>(m_d);
   assert(d);
-  assert(d->raw_state());
-  return d->raw_state();
+  assert(d->raw_value());
+  return d->raw_value();
 }
 
 /////////////////////////////////////////////////////
-// PainterSaveStatePool methods
-fastuidraw::PainterSaveStatePool::
-PainterSaveStatePool(int alignment)
+// PainterPackedValuePool methods
+fastuidraw::PainterPackedValuePool::
+PainterPackedValuePool(int alignment)
 {
-  m_d = FASTUIDRAWnew PainterSaveStatePoolPrivate(alignment);
+  m_d = FASTUIDRAWnew PainterPackedValuePoolPrivate(alignment);
 }
 
-fastuidraw::PainterSaveStatePool::
-~PainterSaveStatePool()
+fastuidraw::PainterPackedValuePool::
+~PainterPackedValuePool()
 {
-  PainterSaveStatePoolPrivate *d;
-  d = reinterpret_cast<PainterSaveStatePoolPrivate*>(m_d);
+  PainterPackedValuePoolPrivate *d;
+  d = reinterpret_cast<PainterPackedValuePoolPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
 
-fastuidraw::PainterSaveState<fastuidraw::PainterBrush>
-fastuidraw::PainterSaveStatePool::
-create_state(const PainterBrush &value)
+fastuidraw::PainterPackedValue<fastuidraw::PainterBrush>
+fastuidraw::PainterPackedValuePool::
+create_packed_value(const PainterBrush &value)
 {
-  PainterSaveStatePoolPrivate *d;
+  PainterPackedValuePoolPrivate *d;
   Entry<PainterBrush> *e;
 
-  d = reinterpret_cast<PainterSaveStatePoolPrivate*>(m_d);
+  d = reinterpret_cast<PainterPackedValuePoolPrivate*>(m_d);
   e = d->m_brush_pool.allocate(value, d->m_alignment);
-  return fastuidraw::PainterSaveState<PainterBrush>(e);
+  return fastuidraw::PainterPackedValue<PainterBrush>(e);
 }
 
-fastuidraw::PainterSaveState<fastuidraw::PainterState::ClipEquations>
-fastuidraw::PainterSaveStatePool::
-create_state(const PainterState::ClipEquations &value)
+fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations>
+fastuidraw::PainterPackedValuePool::
+create_packed_value(const PainterClipEquations &value)
 {
-  PainterSaveStatePoolPrivate *d;
-  Entry<PainterState::ClipEquations> *e;
+  PainterPackedValuePoolPrivate *d;
+  Entry<PainterClipEquations> *e;
 
-  d = reinterpret_cast<PainterSaveStatePoolPrivate*>(m_d);
+  d = reinterpret_cast<PainterPackedValuePoolPrivate*>(m_d);
   e = d->m_clip_equations_pool.allocate(value, d->m_alignment);
-  return fastuidraw::PainterSaveState<PainterState::ClipEquations>(e);
+  return fastuidraw::PainterPackedValue<PainterClipEquations>(e);
 }
 
-fastuidraw::PainterSaveState<fastuidraw::PainterState::ItemMatrix>
-fastuidraw::PainterSaveStatePool::
-create_state(const PainterState::ItemMatrix &value)
+fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>
+fastuidraw::PainterPackedValuePool::
+create_packed_value(const PainterItemMatrix &value)
 {
-  PainterSaveStatePoolPrivate *d;
-  Entry<PainterState::ItemMatrix> *e;
+  PainterPackedValuePoolPrivate *d;
+  Entry<PainterItemMatrix> *e;
 
-  d = reinterpret_cast<PainterSaveStatePoolPrivate*>(m_d);
+  d = reinterpret_cast<PainterPackedValuePoolPrivate*>(m_d);
   e = d->m_item_matrix_pool.allocate(value, d->m_alignment);
-  return fastuidraw::PainterSaveState<PainterState::ItemMatrix>(e);
+  return fastuidraw::PainterPackedValue<PainterItemMatrix>(e);
 }
 
-fastuidraw::PainterSaveState<fastuidraw::PainterState::VertexShaderData>
-fastuidraw::PainterSaveStatePool::
-create_state(const PainterState::VertexShaderData &value)
+fastuidraw::PainterPackedValue<fastuidraw::PainterVertexShaderData>
+fastuidraw::PainterPackedValuePool::
+create_packed_value(const PainterVertexShaderData &value)
 {
-  PainterSaveStatePoolPrivate *d;
-  Entry<PainterState::VertexShaderData> *e;
+  PainterPackedValuePoolPrivate *d;
+  Entry<PainterVertexShaderData> *e;
 
-  d = reinterpret_cast<PainterSaveStatePoolPrivate*>(m_d);
+  d = reinterpret_cast<PainterPackedValuePoolPrivate*>(m_d);
   e = d->m_vertex_shader_data_pool.allocate(value, d->m_alignment);
-  return fastuidraw::PainterSaveState<PainterState::VertexShaderData>(e);
+  return fastuidraw::PainterPackedValue<PainterVertexShaderData>(e);
 }
 
-fastuidraw::PainterSaveState<fastuidraw::PainterState::FragmentShaderData>
-fastuidraw::PainterSaveStatePool::
-create_state(const PainterState::FragmentShaderData &value)
+fastuidraw::PainterPackedValue<fastuidraw::PainterFragmentShaderData>
+fastuidraw::PainterPackedValuePool::
+create_packed_value(const PainterFragmentShaderData &value)
 {
-  PainterSaveStatePoolPrivate *d;
-  Entry<PainterState::FragmentShaderData> *e;
+  PainterPackedValuePoolPrivate *d;
+  Entry<PainterFragmentShaderData> *e;
 
-  d = reinterpret_cast<PainterSaveStatePoolPrivate*>(m_d);
+  d = reinterpret_cast<PainterPackedValuePoolPrivate*>(m_d);
   e = d->m_fragment_shader_data_pool.allocate(value, d->m_alignment);
-  return fastuidraw::PainterSaveState<PainterState::FragmentShaderData>(e);
+  return fastuidraw::PainterPackedValue<PainterFragmentShaderData>(e);
 }
