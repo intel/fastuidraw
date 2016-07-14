@@ -198,8 +198,8 @@ namespace fastuidraw
   public:
     /*!
       Ctor.
-      \param alignment the alignment to create packed data, see
-                       PainterPacker::Configuration::alignment()
+      \param painter_alignment the alignment to create packed data, see
+                                PainterPacker::Configuration::alignment()
      */
     explicit
     PainterPackedValuePool(int painter_alignment);

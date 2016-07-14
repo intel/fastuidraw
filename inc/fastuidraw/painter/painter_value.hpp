@@ -1,6 +1,6 @@
 /*!
- * \file painter_state.hpp
- * \brief file painter_state.hpp
+ * \file painter_value.hpp
+ * \brief file painter_value.hpp
  *
  * Copyright 2016 by Intel.
  *
