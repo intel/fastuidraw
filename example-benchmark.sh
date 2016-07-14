@@ -1,5 +1,8 @@
 #/bin/bash
 
+# destination directory to place results
+RESULTS="."
+
 #can be true or false
 FULLSCREEN="true"
 
@@ -11,8 +14,8 @@ common_options="fullscreen $FULLSCREEN add_image /usr/share/games/blobwars/gfx/ 
 
 
 function run_benchmark {
-    echo "vblank_mode=0 $1 $common_options $2 > $3"
-    vblank_mode=0 $1 $common_options $2 > $3
+    echo "vblank_mode=0 $1 $common_options $2 > $RESULTS/$3"
+    vblank_mode=0 $1 $common_options $2 > $RESULTS/$3
 }
 
 run_benchmark qt_painter_cells/qt-painter-cells "-geometry $WIDTH_HEIGHT" qt-glwidget-results.txt
