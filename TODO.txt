@@ -1,5 +1,5 @@
 TODO.
- 
+
  1. Dashed stroking is not implemented (yet).
 
  2. An interface to build attribute and text data from string(s). Currently
@@ -13,27 +13,8 @@ TODO.
  4. W3C blend modes are not yet implemented in GL backend, but Porter-Duff blend modes
     are.
 
- 5. Option to unpack brush and frag-shader stuff in fragment shader; the brush data that
-    is extracted takes a whopping 24 varying slots:
-     flat fastuidraw_varying uint fastuidraw_brush_shader;
-     flat fastuidraw_varying vec2 fastuidraw_brush_repeat_window_xy;
-     flat fastuidraw_varying vec2 fastuidraw_brush_repeat_window_wh;
-     flat fastuidraw_varying vec2 fastuidraw_brush_gradient_p0;
-     flat fastuidraw_varying vec2 fastuidraw_brush_gradient_p1;
-     flat fastuidraw_varying float fastuidraw_brush_gradient_r0;
-     flat fastuidraw_varying float fastuidraw_brush_gradient_r1;
-     flat fastuidraw_varying vec2 fastuidraw_brush_image_xy;
-     flat fastuidraw_varying float fastuidraw_brush_image_layer;
-     flat fastuidraw_varying vec2 fastuidraw_brush_image_size;
-     flat fastuidraw_varying float fastuidraw_brush_image_factor;
-     flat fastuidraw_varying vec2 fastuidraw_brush_color_stop_xy;
-     flat fastuidraw_varying float fastuidraw_brush_color_stop_length;
-     flat fastuidraw_varying vec4 fastuidraw_brush_pen_color;
-  The blend shader, frag shader and frag data take an additional 3 slots
-     flat fastuidraw_varying uint fastuidraw_frag_shader;
-     flat fastuidraw_varying uint fastuidraw_frag_shader_data_location;
-     flat fastuidraw_varying uint fastuidraw_blend_shader;
- 
-  It might be better on some GPU's to extract this data in the frag shader
-  if the GPU and driver can realize that many of the loads are common to
-  all fragments in a triangle.
+ 5. Path tessellation is scale invariant because it is based upon curvature. However,
+    if a path (or rounded join) is dramtically zoomed in, we start to see the line segments.
+    The way out is to instead use curvature multiplied by arc length and when we stroke
+    a path to refine the tessellation by S where S is the operator norm of the
+    transformation.

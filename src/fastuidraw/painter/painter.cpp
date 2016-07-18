@@ -318,6 +318,7 @@ namespace
     unsigned int m_occluder_stack_position;
     fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_matrix;
     fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> m_clip;
+    fastuidraw::PainterShader::const_handle m_blend;
 
     clip_rect_state m_clip_rect_state;
   };
@@ -1472,6 +1473,7 @@ save(void)
   st.m_occluder_stack_position = d->m_occluder_stack.size();
   st.m_matrix = d->current_item_marix_state();
   st.m_clip = d->current_clip_state();
+  st.m_blend = d->m_core->blend_shader();
   st.m_clip_rect_state = d->m_clip_rect_state;
 
   d->m_state_stack.push_back(st);
@@ -1490,6 +1492,7 @@ restore(void)
   d->m_clip_rect_state = st.m_clip_rect_state;
   d->current_item_matrix_state(st.m_matrix);
   d->current_clip_state(st.m_clip);
+  d->m_core->blend_shader(st.m_blend);
   while(d->m_occluder_stack.size() > st.m_occluder_stack_position)
     {
       d->m_occluder_stack.back().on_pop(this);

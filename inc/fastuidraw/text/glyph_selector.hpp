@@ -39,7 +39,11 @@ namespace fastuidraw
 
     /*!
       A FontGroup represents a group of fonts which is selected
-      from a FontProperties.
+      from a FontProperties. The data of a FontGroup is entirely
+      opaque. In addition, if the GlyphSelector that created the
+      FontGroup goes out of scope, the object behind the opaque
+      FontGroup also goes out of scope and thus the FontGroup
+      should be discarded and no longer used.
      */
     class FontGroup
     {

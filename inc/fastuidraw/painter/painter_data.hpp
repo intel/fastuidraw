@@ -1,3 +1,21 @@
+/*!
+ * \file painter_data.hpp
+ * \brief file painter_data.hpp
+ *
+ * Copyright 2016 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
 #pragma once
 
 #include <fastuidraw/painter/painter_packed_value.hpp>
@@ -55,15 +73,33 @@ namespace fastuidraw
       PainterPackedValue<T> m_packed_value;
     };
 
+    /*!
+      Ctor. Intitializes all fields as default nothings.
+     */
     PainterData(void)
     {}
 
+    /*!
+      Ctor to initialize one field.
+      \param r1 calls one of the set() functions relying on C++
+                conversion and template logic to select the correct
+                field to set.
+     */
     template<typename T1>
     PainterData(const T1 &r1)
     {
       set(r1);
     }
 
+    /*!
+      Ctor to initialize two fields.
+      \param r1 calls one of the set() functions relying on C++
+                conversion and template logic to select the correct
+                field to set.
+      \param r2 calls one of the set() functions relying on C++
+                conversion and template logic to select the correct
+                field to set.
+     */
     template<typename T1, typename T2>
     PainterData(const T1 &r1, const T2 &r2)
     {
@@ -71,6 +107,18 @@ namespace fastuidraw
       set(r2);
     }
 
+    /*!
+      Ctor to initialize three fields.
+      \param r1 calls one of the set() functions relying on C++
+                conversion and template logic to select the correct
+                field to set.
+      \param r2 calls one of the set() functions relying on C++
+                conversion and template logic to select the correct
+                field to set.
+      \param r3 calls one of the set() functions relying on C++
+                conversion and template logic to select the correct
+                field to set.
+     */
     template<typename T1, typename T2, typename T3>
     PainterData(const T1 &r1, const T2 &r2, const T3 &r3)
     {

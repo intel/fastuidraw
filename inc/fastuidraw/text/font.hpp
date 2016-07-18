@@ -77,7 +77,7 @@ namespace fastuidraw
       To be implemented by a derived class to indicate
       that it will return non-NULL in
       compute_rendering_data() when passed a
-      GlyphRender whose GlyphRender::type()
+      GlyphRender whose GlyphRender::m_type
       is a specified value.
      */
     virtual

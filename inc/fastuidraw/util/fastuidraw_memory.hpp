@@ -23,7 +23,7 @@
   @{
  */
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <boost/checked_delete.hpp>
 #include <fastuidraw/util/fastuidraw_memory_private.hpp>
 
@@ -52,14 +52,14 @@
   When DEBUG is defined, allocations with FASTUIDRAWmalloc are tracked and
   at program exit a list of those objects not deleted by FASTUIDRAWfree
   are printed with the file and line number of the allocation. When DEBUG
-  is not defined, maps to ::malloc.
+  is not defined, maps to std::malloc.
  */
 
 /*!\def FASTUIDRAWcalloc
   When DEBUG is defined, allocations with FASTUIDRAWcalloc are tracked and
   at program exit a list of those objects not deleted by FASTUIDRAWfree
   are printed with the file and line number of the allocation. When DEBUG
-  is not defined, maps to ::malloc.
+  is not defined, maps to std::calloc.
   \param nmemb number of elements to allocate
   \param size size of each element in bytes
  */
@@ -68,7 +68,7 @@
   When DEBUG is defined, allocations with FASTUIDRAWrealloc are tracked and
   at program exit a list of those objects not deleted by FASTUIDRAWfree
   are printed with the file and line number of the allocation. When DEBUG
-  is not defined, maps to ::realloc.
+  is not defined, maps to std::realloc.
   \param ptr pointer at whcih to rellocate
   \param size new size
  */
@@ -76,7 +76,7 @@
 /*!\def FASTUIDRAWfree
   Use FASTUIDRAWfree for objects allocated with FASTUIDRAWmallo,
   FASTUIDRAWrealloc and FASTUIDRAWcalloc. When DEBUG is not defined,
-  maps to ::free(p).
+  maps to std::free.
   \param ptr address of object to free
  */
 #ifdef DEBUG
@@ -108,13 +108,13 @@
 #define FASTUIDRAWdelete_array(ptr) \
   do { boost::checked_array_delete(ptr); } while(0)
 #define FASTUIDRAWmalloc(size) \
-  ::malloc(size)
+  std::malloc(size)
 #define FASTUIDRAWcalloc(nmemb, size) \
-  ::calloc(nmemb, size);
+  std::calloc(nmemb, size);
 #define FASTUIDRAWrealloc(ptr, size) \
-  ::realloc(ptr, size);
+  std::realloc(ptr, size);
 #define FASTUIDRAWfree(ptr) \
-  ::free(ptr)
+  std::free(ptr)
 
 #endif
 

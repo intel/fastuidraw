@@ -27,7 +27,8 @@ namespace fastuidraw
 
   /*!
     Represents defining properties of a font
-    for the database.
+    used by GlyphSelector to perform font
+    merging.
    */
   class FontProperties
   {

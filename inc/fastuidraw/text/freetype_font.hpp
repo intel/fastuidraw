@@ -35,9 +35,10 @@ namespace fastuidraw
 
   /*!
     A FontFreeType implements the interface of FontBase
-    from a scalable font loaded by libfreetype. All glyph texel
-    data, for the sake of texturing, are padded on the bottom
-    and right by empty texels if the glyph has non-zero size.
+    from a scalable font loaded by libfreetype. The conversion
+    from character codes to glyph codes for FontFreeType,
+    i.e. glyph_code(uint32_t) const, is performed by libfreetype's
+    FT_Get_Char_Index().
    */
   class FontFreeType:public FontBase
   {
