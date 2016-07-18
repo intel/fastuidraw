@@ -34,15 +34,6 @@ namespace fastuidraw
   /*!
     A GlyphCache represents a cache of glyphs and manages the uploading
     of the data to a GlyphAtlas. Methods are NOT thread safe.
-
-    Data is uploaded as follows:
-    - CoverageGlyphData::m_coverage_values is uploaded directly to
-      the texel backing store of the GlyphAtlas and the location
-      is fetched from Glyph::atlas_location().
-
-    - DistanceFieldGyphData::m_distance_values is uploaded directly to
-      the texel backing store of the GlyphAtlas and the location
-      is fetched from Glyph::atlas_location().
    */
   class GlyphCache:public reference_counted<GlyphCache>::default_base
   {
@@ -57,8 +48,9 @@ namespace fastuidraw
     ~GlyphCache();
 
     /*!
-      Create and store a glyph into the GlyphCache
-      given a glyph code of a font and a glyph_type.
+      Fetch, and if necessay create and store, a glyph given a
+      glyph code of a font and a GlyphRender specifying how
+      to render the glyph.
      */
     Glyph
     fetch_glyph(GlyphRender render, FontBase::const_handle font,
@@ -66,8 +58,8 @@ namespace fastuidraw
 
     /*!
       Removes a glyph from the -CACHE-, i.e. the GlyphCache,
-      thus to use that glyph again requires calling create_glyph()
-      (and thus a new value for Glyph).
+      thus to use that glyph again requires calling fetch_glyph()
+      (and thus fetching a new value for Glyph).
      */
     void
     delete_glyph(Glyph);
