@@ -29,7 +29,7 @@ public:
   bool m_timer_based_animation;
   color_t m_line_color;
 
-  ft_cairo_font *m_font;
+  text_formatter *m_font;
   std::vector<color_t> m_text_colors;
   std::vector<color_t> m_background_colors;
   std::vector<std::string> m_texts;

@@ -42,7 +42,7 @@ public:
   color_t m_rect_brush;
   color_t m_text_brush;
   double m_text_size;
-  ft_cairo_font *m_font;
+  text_formatter *m_font;
   std::string m_text;
   std::string m_image_name;
   vec2 m_pixels_per_ms;
@@ -87,7 +87,7 @@ private:
   color_t m_rect_brush;
   color_t m_text_brush;
   double m_text_size;
-  ft_cairo_font *m_font;
+  text_formatter *m_font;
 
   vec2 m_item_location;
   double m_item_rotation;

@@ -35,7 +35,7 @@ namespace
 }
 
 
-ft_cairo_font::ft_data::
+text_formatter::ft_data::
 ft_data(FT_Library lib, FT_Face face):
   m_lib(lib),
   m_face(face)
@@ -44,15 +44,15 @@ ft_data(FT_Library lib, FT_Face face):
   assert(m_lib);
 }
 
-ft_cairo_font::ft_data::
+text_formatter::ft_data::
 ~ft_data()
 {
   FT_Done_Face(m_face);
   FT_Done_FreeType(m_lib);
 }
 
-ft_cairo_font::
-ft_cairo_font(FT_Library lib, FT_Face face, int pixel_size):
+text_formatter::
+text_formatter(FT_Library lib, FT_Face face, int pixel_size):
   m_pixel_size(pixel_size)
 {
   static cairo_user_data_key_t key = { 0 };
@@ -61,14 +61,14 @@ ft_cairo_font(FT_Library lib, FT_Face face, int pixel_size):
   cairo_font_face_set_user_data(m_cairo_font, &key, m_ft_data, &cleanup);
 }
 
-ft_cairo_font::
-~ft_cairo_font()
+text_formatter::
+~text_formatter()
 {
   cairo_font_face_destroy(m_cairo_font);
 }
 
 void
-ft_cairo_font::
+text_formatter::
 cleanup(void *p)
 {
   ft_data *d;
@@ -77,7 +77,7 @@ cleanup(void *p)
 }
 
 void
-ft_cairo_font::
+text_formatter::
 layout_glyphs(const std::string &text, double scale_factor, std::vector<cairo_glyph_t> &output)
 {
   std::istringstream str(text);
@@ -85,7 +85,7 @@ layout_glyphs(const std::string &text, double scale_factor, std::vector<cairo_gl
 }
 
 void
-ft_cairo_font::
+text_formatter::
 layout_glyphs(std::istream &istr, double scale_factor, std::vector<cairo_glyph_t> &output)
 {
   std::streampos current_position, end_position;
@@ -155,7 +155,7 @@ layout_glyphs(std::istream &istr, double scale_factor, std::vector<cairo_glyph_t
 }
 
 uint32_t
-ft_cairo_font::
+text_formatter::
 fetch_glyph(uint32_t character_code)
 {
   uint32_t return_value;
@@ -188,9 +188,9 @@ fetch_glyph(uint32_t character_code)
   return return_value;
 }
 
-ft_cairo_font*
-ft_cairo_font::
-create_font(const std::string &filename, int pixel_size)
+text_formatter*
+text_formatter::
+create(const std::string &filename, int pixel_size)
 {
   int error_code;
   FT_Face face;
@@ -216,5 +216,5 @@ create_font(const std::string &filename, int pixel_size)
       FT_Done_FreeType(lib);
       return NULL;
     }
-  return new ft_cairo_font(lib, face, pixel_size);
+  return new text_formatter(lib, face, pixel_size);
 }

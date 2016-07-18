@@ -17,14 +17,14 @@ public:
   vec2 m_advance;
 };
 
-class ft_cairo_font
+class text_formatter
 {
 public:
   static
-  ft_cairo_font*
-  create_font(const std::string &filename, int pixel_size);
+  text_formatter*
+  create(const std::string &filename, int pixel_size);
 
-  ~ft_cairo_font(void);
+  ~text_formatter(void);
 
   cairo_font_face_t*
   cairo_font(void)
@@ -55,7 +55,7 @@ private:
     FT_Face m_face;
   };
 
-  ft_cairo_font(FT_Library lib, FT_Face face, int pixel_size);
+  text_formatter(FT_Library lib, FT_Face face, int pixel_size);
 
   static
   void

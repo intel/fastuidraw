@@ -332,7 +332,7 @@ derived_init(int w, int h)
   m_table_params.m_table_rotate_degrees_per_s = m_table_rotate_degrees_per_s.m_value;
   m_table_params.m_timer_based_animation = (m_num_frames.m_value <= 0);
   m_table_params.m_pixel_size = m_pixel_size.m_value;
-  m_table_params.m_font = ft_cairo_font::create_font(m_font.m_value.c_str(), m_pixel_size.m_value);
+  m_table_params.m_font = text_formatter::create(m_font.m_value.c_str(), m_pixel_size.m_value);
   m_table_params.m_texts.reserve(m_strings.size() + m_files.size());
   for(command_line_list::iterator iter = m_strings.begin(); iter != m_strings.end(); ++iter)
     {
