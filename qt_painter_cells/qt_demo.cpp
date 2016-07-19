@@ -162,6 +162,10 @@ qt_demo(void):
          "to request for MSAA. If not, Qt will choose the "
          "sample count as the highest available value",
          *this),
+  m_swap_interval(-1, "swap_interval",
+                  "If set, pass the specified value to QGLFormat::setSwapInterval, "
+                  "a value of 0 means no vsync and a value of 1 means vsync.",
+                  *this),
   m_use_gl_widget(true, "use_gl_widget", "If true, use a QGLWidget. If false, use a QWidget", *this),
   m_gl_major(3, "gl_major", "GL major version", *this),
   m_gl_minor(3, "gl_minor", "GL minor version", *this),
@@ -221,6 +225,11 @@ computeFormat(void)
         {
           fmt.setSamples(m_msaa.m_value);
         }
+    }
+
+  if(m_swap_interval.set_by_command_line())
+    {
+      fmt.setSwapInterval(m_swap_interval.m_value);
     }
 
   return fmt;

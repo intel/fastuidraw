@@ -106,6 +106,7 @@ private:
   command_line_argument_value<bool> m_hide_cursor;
   command_line_argument_value<bool> m_use_msaa;
   command_line_argument_value<int> m_msaa;
+  command_line_argument_value<int> m_swap_interval;
 
   command_line_argument_value<bool> m_use_gl_widget;
   command_line_argument_value<int> m_gl_major, m_gl_minor;
