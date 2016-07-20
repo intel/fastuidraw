@@ -39,38 +39,20 @@ uniform sampler2DArray fastuidraw_glyphTexelStoreFLOAT;
 #endif
 
 #ifndef FASTUIDRAW_PAINTER_USE_DATA_UBO
-  uniform samplerBuffer fastuidraw_painterStoreFLOAT_tbo;
-  uniform usamplerBuffer fastuidraw_painterStoreUINT_tbo;
-  uniform isamplerBuffer fastuidraw_painterStoreINT_tbo;
-  #define fastuidraw_fetch_float_data(block) texelFetch(fastuidraw_painterStoreFLOAT_tbo, int(block))
-  #define fastuidraw_fetch_uint_data(block) texelFetch(fastuidraw_painterStoreUINT_tbo, int(block))
-  #define fastuidraw_fetch_int_data(block) texelFetch(fastuidraw_painterStoreINT_tbo, int(block))
+  uniform usamplerBuffer fastuidraw_painterStore_tbo;
+  #define fastuidraw_fetch_data(block) texelFetch(fastuidraw_painterStore_tbo, int(block))
 #else
 /*
   Type in the array for the uniform blocks:
-    FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE is float, vec2, vec3, or vec4
-    FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE is int, ivec2, ivec3 or ivec4
     FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE is uint, uvec2, uvec3 or uvec4
   Size of the array is given by FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE
  */
-  layout(std140) uniform fastuidraw_painterStoreFLOAT_ubo
+  layout(std140) uniform fastuidraw_painterStore_ubo
   {
-    FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE fastuidraw_painterStoreFLOAT[FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE];
+    FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE fastuidraw_painterStore[FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE];
   };
 
-  layout(std140) uniform fastuidraw_painterStoreUINT_ubo
-  {
-    FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE fastuidraw_painterStoreUINT[FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE];
-  };
-
-  layout(std140) uniform fastuidraw_painterStoreINT_ubo
-  {
-    FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE fastuidraw_painterStoreINT[FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE];
-  };
-
-  #define fastuidraw_fetch_float_data(block) vec4(fastuidraw_painterStoreFLOAT[int(block)])
-  #define fastuidraw_fetch_uint_data(block) uvec4(fastuidraw_painterStoreUINT[int(block)])
-  #define fastuidraw_fetch_int_data(block) ivec4(fastuidraw_painterStoreINT[int(block)])
+  #define fastuidraw_fetch_data(block) uvec4(fastuidraw_painterStore[int(block)])
 
 #endif
 

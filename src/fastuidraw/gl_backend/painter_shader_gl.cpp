@@ -200,8 +200,6 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
                    const char *offset_name,
                    const char *prefix)
 {
-
-
   const char *uint_types[5] =
     {
       "",
@@ -210,34 +208,6 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
       "uvec3",
       "uvec4"
     };
-
-  const char *int_types[5] =
-    {
-      "",
-      "int",
-      "ivec2",
-      "ivec3",
-      "ivec4"
-    };
-
-  const char *float_types[5] =
-    {
-      "",
-      "float",
-      "vec2",
-      "vec3",
-      "vec4"
-    };
-
-  const char *ext[5] =
-    {
-      "",
-      ".x",
-      ".xy",
-      ".xyz",
-      ".xyzw"
-    };
-
   const char ext_component[] = "xyzw";
 
   unsigned int number_blocks;
@@ -248,73 +218,41 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
     }
 
   str << "{\n"
-      << uint_types[alignment] << " utemp;\n"
-      << int_types[alignment] << " itemp;\n"
-      << float_types[alignment] << " ftemp;\n";
+      << uint_types[alignment] << " utemp;\n";
 
   for(unsigned int b = 0, i = 0; b < number_blocks; ++b)
     {
-      for(unsigned int k = 0, kk = 0; i < labels.size() && k < alignment;)
+      /* fetch the data from the store
+       */
+      str << "utemp.";
+      for(unsigned int k = 0, kk = i; k < alignment && kk < labels.size(); ++k, ++kk)
         {
-          enum fastuidraw::gl::glsl_shader_unpack_value::type_t type;
-          unsigned int start_i, start_kk, cnt;
-          std::string temp;
-          const char *cnt_ext;
+          str << ext_component[k];
+        }
+      str << " = fastuidraw_fetch_data("
+          << "int(" << offset_name << ") + " << b << ").";
+      for(unsigned int k = 0, kk = i; k < alignment && kk < labels.size(); ++k, ++kk)
+        {
+          str << ext_component[k];
+        }
+      str << ";\n";
 
-          start_i = i;
-          start_kk = kk;
-          type = labels[i].type();
-          for(cnt = 0; k < alignment && i < labels.size() && labels[i].type() == type; ++i, ++k, ++cnt, ++kk)
+      /* perform bit cast to correct type.
+       */
+      for(unsigned int k = 0; k < alignment && i < labels.size(); ++k, ++i)
+        {
+          switch(labels[i].type())
             {
-            }
-
-          if(alignment == 1)
-            {
-              cnt_ext = "";
-            }
-          else
-            {
-              cnt_ext = ext[cnt];
-            }
-
-          /* all the values from start to current are the same type,
-             the number is cnt.
-          */
-          switch(type)
-            {
-            case fastuidraw::gl::glsl_shader_unpack_value::uint_type:
-              str << "utemp" << cnt_ext << " = fastuidraw_fetch_uint_data("
-                  << "int(" << offset_name << ") + " << b << ").";
-              temp = "utemp";
-              break;
-
-            case fastuidraw::gl::glsl_shader_unpack_value::float_type:
-              str << "ftemp" << cnt_ext << " = fastuidraw_fetch_float_data("
-                  << "int(" << offset_name << ") + " << b << ").";
-              temp = "ftemp";
-              break;
-
             case fastuidraw::gl::glsl_shader_unpack_value::int_type:
-              str << "itemp" << cnt_ext << " = fastuidraw_fetch_int_data("
-                  << "int(" << offset_name << ") + " << b << ").";
-              temp = "itemp";
+              str << prefix << labels[i].name() << " = " << "int(utemp." << ext_component[k] << ");\n";
               break;
-            }
-
-          for(unsigned int c = 0; c < cnt; ++c)
-            {
-              str << ext_component[c + start_kk];
-            }
-          str << ";\n";
-
-          for(unsigned int c = 0; c < cnt; ++c)
-            {
-              str << prefix << labels[c + start_i].name() << " = " << temp;
-              if(alignment > 1)
-                {
-                  str << "." << ext_component[c];
-                }
-              str << ";\n";
+            case fastuidraw::gl::glsl_shader_unpack_value::uint_type:
+              str << prefix << labels[i].name() << " = " << "utemp." << ext_component[k] << ";\n";
+              break;
+            default:
+            case fastuidraw::gl::glsl_shader_unpack_value::float_type:
+              str << prefix << labels[i].name() << " = " << "uintBitsToFloat(utemp." << ext_component[k] << ");\n";
+              break;
             }
         }
     }
