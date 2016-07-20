@@ -1,3 +1,5 @@
+#include <fastuidraw/text/glyph_cache.hpp>
+#include <fastuidraw/text/glyph_selector.hpp>
 #include <fastuidraw/painter/painter.hpp>
 #include <fastuidraw/gl_backend/painter_backend_gl.hpp>
 #include <fastuidraw/text/freetype_font.hpp>

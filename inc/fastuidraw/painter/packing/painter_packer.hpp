@@ -25,12 +25,8 @@
 #include <fastuidraw/util/c_array.hpp>
 
 #include <fastuidraw/text/glyph_atlas.hpp>
-#include <fastuidraw/text/glyph_cache.hpp>
-#include <fastuidraw/text/glyph_selector.hpp>
-
-#include <fastuidraw/image.hpp>
 #include <fastuidraw/colorstop_atlas.hpp>
-#include <fastuidraw/path.hpp>
+#include <fastuidraw/image.hpp>
 
 #include <fastuidraw/painter/painter_shader.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>

@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <fastuidraw/path.hpp>
 
 #include <fastuidraw/painter/packing/painter_packer.hpp>
 #include <fastuidraw/painter/painter_data.hpp>
