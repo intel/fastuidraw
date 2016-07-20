@@ -430,40 +430,43 @@ fetch_font(const FontProperties &prop)
 
 fastuidraw::Glyph
 fastuidraw::GlyphSelector::
-fetch_glyph_no_merging(GlyphRender tp, FontBase::const_handle h, uint32_t character_code)
+fetch_glyph_no_merging_no_lock(GlyphRender tp, FontBase::const_handle h, uint32_t character_code)
 {
   GlyphSelectorPrivate *d;
   d = reinterpret_cast<GlyphSelectorPrivate*>(m_d);
-
-  autolock_mutex m(d->m_mutex);
   return d->fetch_glyph_no_merging_no_lock(tp, h, character_code);
 }
 
 fastuidraw::Glyph
 fastuidraw::GlyphSelector::
-fetch_glyph(GlyphRender tp, FontBase::const_handle h, uint32_t character_code)
+fetch_glyph_no_lock(GlyphRender tp, FontBase::const_handle h, uint32_t character_code)
 {
   GlyphSelectorPrivate *d;
   d = reinterpret_cast<GlyphSelectorPrivate*>(m_d);
-
-  autolock_mutex m(d->m_mutex);
   return d->fetch_glyph_no_lock(tp, h, character_code);
 }
 
-fastuidraw::Glyph
+void
 fastuidraw::GlyphSelector::
-fetch_glyph(GlyphRender tp, const FontProperties &props, uint32_t character_code)
+lock_mutex(void)
 {
   GlyphSelectorPrivate *d;
   d = reinterpret_cast<GlyphSelectorPrivate*>(m_d);
+  d->m_mutex.lock();
+}
 
-  autolock_mutex m(d->m_mutex);
-  return d->fetch_glyph_no_lock(tp, d->fetch_font_group_no_lock(props), character_code);
+void
+fastuidraw::GlyphSelector::
+unlock_mutex(void)
+{
+  GlyphSelectorPrivate *d;
+  d = reinterpret_cast<GlyphSelectorPrivate*>(m_d);
+  d->m_mutex.unlock();
 }
 
 fastuidraw::Glyph
 fastuidraw::GlyphSelector::
-fetch_glyph(GlyphRender tp, FontGroup group, uint32_t character_code)
+fetch_glyph_no_lock(GlyphRender tp, FontGroup group, uint32_t character_code)
 {
   GlyphSelectorPrivate *d;
   d = reinterpret_cast<GlyphSelectorPrivate*>(m_d);
@@ -492,4 +495,48 @@ fetch_group(const FontProperties &props)
   return_value.m_d = h.get();
 
   return return_value;
+}
+
+fastuidraw::Glyph
+fastuidraw::GlyphSelector::
+fetch_glyph(GlyphRender tp, const FontProperties &props, uint32_t character_code)
+{
+  GlyphSelectorPrivate *d;
+  d = reinterpret_cast<GlyphSelectorPrivate*>(m_d);
+
+  autolock_mutex m(d->m_mutex);
+  return d->fetch_glyph_no_lock(tp, d->fetch_font_group_no_lock(props), character_code);
+}
+
+fastuidraw::Glyph
+fastuidraw::GlyphSelector::
+fetch_glyph(GlyphRender tp, FontGroup h, uint32_t character_code)
+{
+  Glyph G;
+  lock_mutex();
+  G = fetch_glyph_no_lock(tp, h, character_code);
+  unlock_mutex();
+  return G;
+}
+
+fastuidraw::Glyph
+fastuidraw::GlyphSelector::
+fetch_glyph(GlyphRender tp, FontBase::const_handle h, uint32_t character_code)
+{
+  Glyph G;
+  lock_mutex();
+  G = fetch_glyph_no_lock(tp, h, character_code);
+  unlock_mutex();
+  return G;
+}
+
+fastuidraw::Glyph
+fastuidraw::GlyphSelector::
+fetch_glyph_no_merging(GlyphRender tp, FontBase::const_handle h, uint32_t character_code)
+{
+  Glyph G;
+  lock_mutex();
+  G = fetch_glyph_no_merging_no_lock(tp, h, character_code);
+  unlock_mutex();
+  return G;
 }

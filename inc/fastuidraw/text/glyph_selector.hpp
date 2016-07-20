@@ -136,7 +136,7 @@ namespace fastuidraw
       \tparam input_iterator read iterator to type that is castable to uint32_t
       \tparam output_iterator write iterator to Glyph
       \param tp glyph rendering type
-      \param props font properties used to select glyph
+      \param group FontGroup to choose what font
       \param character_codes_begin iterator to 1st character code
       \param character_codes_end iterator to one past last character code
       \param output_begin begin iterator to output
@@ -144,7 +144,7 @@ namespace fastuidraw
     template<typename input_iterator,
              typename output_iterator>
     void
-    create_glyph_sequence(GlyphRender tp, const FontProperties &props,
+    create_glyph_sequence(GlyphRender tp, FontGroup group,
                           input_iterator character_codes_begin,
                           input_iterator character_codes_end,
                           output_iterator output_begin);
@@ -191,6 +191,21 @@ namespace fastuidraw
                                      output_iterator output_begin);
 
   private:
+    void
+    lock_mutex(void);
+
+    void
+    unlock_mutex(void);
+
+    Glyph
+    fetch_glyph_no_lock(GlyphRender tp, FontGroup group, uint32_t character_code);
+
+    Glyph
+    fetch_glyph_no_lock(GlyphRender tp, FontBase::const_handle h, uint32_t character_code);
+
+    Glyph
+    fetch_glyph_no_merging_no_lock(GlyphRender tp, FontBase::const_handle h, uint32_t character_code);
+
     void *m_d;
   };
 
@@ -198,20 +213,19 @@ namespace fastuidraw
            typename output_iterator>
   void
   GlyphSelector::
-  create_glyph_sequence(GlyphRender tp, const FontProperties &props,
+  create_glyph_sequence(GlyphRender tp, FontGroup group,
                         input_iterator character_codes_begin,
                         input_iterator character_codes_end,
                         output_iterator output_begin)
   {
-    FontGroup group;
-
-    group = fetch_group(props);
+    lock_mutex();
     for(;character_codes_begin != character_codes_end; ++character_codes_begin, ++output_begin)
       {
         uint32_t v;
         v = static_cast<uint32_t>(*character_codes_begin);
-        *output_begin = fetch_glyph(tp, group, v);
+        *output_begin = fetch_glyph_no_lock(tp, group, v);
       }
+    unlock_mutex();
   }
 
   template<typename input_iterator,
@@ -223,12 +237,14 @@ namespace fastuidraw
                         input_iterator character_codes_end,
                         output_iterator output_begin)
   {
+    lock_mutex();
     for(;character_codes_begin != character_codes_end; ++character_codes_begin, ++output_begin)
       {
         uint32_t v;
         v = static_cast<uint32_t>(*character_codes_begin);
-        *output_begin = fetch_glyph(tp, h, v);
+        *output_begin = fetch_glyph_no_lock(tp, h, v);
       }
+    unlock_mutex();
   }
 
   template<typename input_iterator,
@@ -241,12 +257,14 @@ namespace fastuidraw
                                    input_iterator character_codes_end,
                                    output_iterator output_begin)
   {
+    lock_mutex();
     for(;character_codes_begin != character_codes_end; ++character_codes_begin, ++output_begin)
       {
         uint32_t v;
         v = static_cast<uint32_t>(*character_codes_begin);
-        *output_begin = fetch_glyph_no_merging(tp, h, v);
+        *output_begin = fetch_glyph_no_merging_no_lock(tp, h, v);
       }
+    unlock_mutex();
   }
 
 /*! @} */

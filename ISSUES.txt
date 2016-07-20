@@ -34,17 +34,15 @@ Issues:
 
      We should support sub-glyphs. This requires tweaking to the interaces:
      FontBase, Glyph, GlyphCache and GlyphDatabase. Supporting sub-glyphs
-     might lwt the curepair glyph rendering work on more glyphs.
+     might let the curepair glyph rendering work on more glyphs.
 
   GlyphSelector
   --------------------
-       GlyphSelector's thread safety is not complete or correct. Fetching
-       glyphs from multiple threads at the same time generates crashy race
-       conditions because the access of the GlyphCache is NOT protected
-       behind a mutex lock. The way to fix the mess is to -expose- the
-       mutex within a GlyphSelector's and allow an application to choose
-       to lock during glyph selection or not. Alternativly, remove the
-       class GlyphSelector and move it to demos/common.
+       GlyphSelector is of questionable value in FastUIDraw since
+       glyph selection is closely tied with layout and FastUIDraw
+       is supposed to do JUST drawing. However, taken to an extreme
+       also means that all of the layout data in GlpyhLayout except
+       for m_pixel_size is not needed either.
 
 
   To Uber shader or not

@@ -1,5 +1,10 @@
 #pragma once
 
+#include <fastuidraw/text/glyph_selector.hpp>
+#include <fastuidraw/text/glyph_cache.hpp>
+#include <fastuidraw/text/font.hpp>
+#include <fastuidraw/painter/painter.hpp>
+
 #include "ostream_utility.hpp"
 #include "PainterWidget.hpp"
 #include "cell_group.hpp"
