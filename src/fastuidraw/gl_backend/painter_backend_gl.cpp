@@ -72,14 +72,12 @@ namespace
       m_header_bo(0),
       m_index_bo(0),
       m_data_bo(0),
-      m_data_tbo_float(0),
-      m_data_tbo_uint(0),
-      m_data_tbo_int(0)
+      m_data_tbo(0)
     {}
 
     GLuint m_vao;
     GLuint m_attribute_bo, m_header_bo, m_index_bo, m_data_bo;
-    GLuint m_data_tbo_float, m_data_tbo_uint, m_data_tbo_int;
+    GLuint m_data_tbo;
     enum fastuidraw::gl::PainterBackendGL::data_store_backing_t m_data_store_backing;
   };
 
@@ -176,6 +174,11 @@ namespace
       blend_framebuffer_fetch,
     };
 
+  /* Enumerations that provide bit masks and shifts
+     to read from PainterShader::Tag::m_group to
+     extract the index into m_dual_src_blend_modes
+     and m_single_src_blend_modes of PainterBackendGLPrivate
+   */
   enum
     {      
       dual_src_blend_bit0 = 0,
@@ -348,7 +351,7 @@ namespace
     fastuidraw::gl::PainterBackendGL *m_p;
   };
 
-  enum
+  enum painter_backend_texture_bindings
     {
       bind_image_color_unfiltered = 0,
       bind_image_color_filtered,
@@ -357,25 +360,12 @@ namespace
       bind_glyph_texel_sampler,
       bind_glyph_geomtry,
       bind_colorstop,
-      bind_painter_data_store_tbo_float,
-      bind_painter_data_store_tbo_uint,
-      bind_painter_data_store_tbo_int,
+      bind_painter_data_store_tbo,
     };
 
-  enum
+  enum painter_backend_uniform_buffer_bindings
     {
-      bind_painter_data_store_ubo_float = 0,
-      bind_painter_data_store_ubo_uint,
-      bind_painter_data_store_ubo_int,
-    };
-
-  enum
-    {
-      store_texture_float,
-      store_texture_uint,
-      store_texture_int,
-
-      number_store_texture_modes
+      bind_painter_data_store_ubo,
     };
 
   class DrawEntry
@@ -499,9 +489,10 @@ painter_vao_pool::
     {
       for(unsigned int i = 0, endi = m_vaos[p].size(); i < endi; ++i)
         {
-          glDeleteTextures(1, &m_vaos[p][i].m_data_tbo_float);
-          glDeleteTextures(1, &m_vaos[p][i].m_data_tbo_uint);
-          glDeleteTextures(1, &m_vaos[p][i].m_data_tbo_int);
+          if(m_vaos[p][i].m_data_tbo != 0)
+            {
+              glDeleteTextures(1, &m_vaos[p][i].m_data_tbo);
+            }
           glDeleteBuffers(1, &m_vaos[p][i].m_attribute_bo);
           glDeleteBuffers(1, &m_vaos[p][i].m_header_bo);
           glDeleteBuffers(1, &m_vaos[p][i].m_index_bo);
@@ -598,14 +589,6 @@ void
 painter_vao_pool::
 generate_tbos(painter_vao &vao)
 {
-  const GLenum float_fmts[4] =
-    {
-      GL_R32F,
-      GL_RG32F,
-      GL_RGB32F,
-      GL_RGBA32F,
-    };
-
   const GLenum uint_fmts[4] =
     {
       GL_R32UI,
@@ -613,17 +596,7 @@ generate_tbos(painter_vao &vao)
       GL_RGB32UI,
       GL_RGBA32UI,
     };
-
-  const GLenum int_fmts[4] =
-    {
-      GL_R32I,
-      GL_RG32I,
-      GL_RGB32I,
-      GL_RGBA32I,
-    };
-  vao.m_data_tbo_float = generate_tbo(vao.m_data_bo, float_fmts[m_alignment - 1], bind_painter_data_store_tbo_float);
-  vao.m_data_tbo_uint = generate_tbo(vao.m_data_bo, uint_fmts[m_alignment - 1], bind_painter_data_store_tbo_uint);
-  vao.m_data_tbo_int = generate_tbo(vao.m_data_bo, int_fmts[m_alignment - 1], bind_painter_data_store_tbo_int);
+  vao.m_data_tbo = generate_tbo(vao.m_data_bo, uint_fmts[m_alignment - 1], bind_painter_data_store_tbo);
 }
 
 GLuint
@@ -806,20 +779,14 @@ draw(void) const
     {
     case fastuidraw::gl::PainterBackendGL::data_store_tbo:
       {
-        glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_tbo_float);
-        glBindTexture(GL_TEXTURE_BUFFER, m_vao.m_data_tbo_float);
-        glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_tbo_uint);
-        glBindTexture(GL_TEXTURE_BUFFER, m_vao.m_data_tbo_uint);
-        glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_tbo_int);
-        glBindTexture(GL_TEXTURE_BUFFER, m_vao.m_data_tbo_int);
+        glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_tbo);
+        glBindTexture(GL_TEXTURE_BUFFER, m_vao.m_data_tbo);
       }
       break;
 
     case fastuidraw::gl::PainterBackendGL::data_store_ubo:
       {
-        glBindBufferBase(GL_UNIFORM_BUFFER, bind_painter_data_store_ubo_float, m_vao.m_data_bo);
-        glBindBufferBase(GL_UNIFORM_BUFFER, bind_painter_data_store_ubo_uint, m_vao.m_data_bo);
-        glBindBufferBase(GL_UNIFORM_BUFFER, bind_painter_data_store_ubo_int, m_vao.m_data_bo);
+        glBindBufferBase(GL_UNIFORM_BUFFER, bind_painter_data_store_ubo, m_vao.m_data_bo);
       }
       break;
     }
@@ -2026,52 +1993,27 @@ build_program(void)
     {
     case fastuidraw::gl::PainterBackendGL::data_store_ubo:
       {
-        const char *FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE;
-        const char *FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE;
-        const char *FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE;
-
-        assert(m_params.m_config.alignment() <= 4 && m_params.m_config.alignment() > 0);
-        switch(m_params.m_config.alignment())
+        const char *uint_types[]=
           {
-          case 1:
-            FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE = "float";
-            FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE = "uint";
-            FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE = "int";
-            break;
+            "",
+            "uint",
+            "uvec2",
+            "uvec3",
+            "uvec4"
+          };
 
-          case 2:
-            FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE = "vec2";
-            FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE = "uvec2";
-            FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE = "ivec2";
-            break;
-
-          case 3:
-            FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE = "vec3";
-            FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE = "uvec3";
-            FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE = "ivec3";
-            break;
-
-          default:
-          case 4:
-            FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE = "vec4";
-            FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE = "uvec4";
-            FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE = "ivec4";
-            break;
-          }
+        unsigned int alignment(m_params.m_config.alignment());
+        assert(alignment <= 4 && alignment > 0);
 
         vert
           .add_macro("FASTUIDRAW_PAINTER_USE_DATA_UBO")
           .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE", m_params.data_blocks_per_store_buffer())
-          .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE)
-          .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE)
-          .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE);
+          .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE", uint_types[alignment]);
 
         frag
           .add_macro("FASTUIDRAW_PAINTER_USE_DATA_UBO")
           .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE", m_params.data_blocks_per_store_buffer())
-          .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_FLOAT_TYPE)
-          .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE)
-          .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE", FASTUIDRAW_PAINTER_DATA_STORE_INT_TYPE);
+          .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE", uint_types[alignment]);
       }
       break;
 
@@ -2228,12 +2170,8 @@ build_program(void)
                                                     .add_sampler_initializer("fastuidraw_glyphTexelStoreFLOAT", bind_glyph_texel_sampler)
                                                     .add_sampler_initializer("fastuidraw_glyphGeometryDataStore", bind_glyph_geomtry)
                                                     .add_sampler_initializer("fastuidraw_colorStopAtlas", bind_colorstop)
-                                                    .add_sampler_initializer("fastuidraw_painterStoreFLOAT_tbo", bind_painter_data_store_tbo_float)
-                                                    .add_sampler_initializer("fastuidraw_painterStoreUINT_tbo", bind_painter_data_store_tbo_uint)
-                                                    .add_sampler_initializer("fastuidraw_painterStoreINT_tbo", bind_painter_data_store_tbo_int)
-                                                    .add_uniform_block_binding("fastuidraw_painterStoreFLOAT_ubo", bind_painter_data_store_ubo_float)
-                                                    .add_uniform_block_binding("fastuidraw_painterStoreUINT_ubo", bind_painter_data_store_ubo_uint)
-                                                    .add_uniform_block_binding("fastuidraw_painterStoreINT_ubo", bind_painter_data_store_ubo_int)
+                                                    .add_sampler_initializer("fastuidraw_painterStore_tbo", bind_painter_data_store_tbo)
+                                                    .add_uniform_block_binding("fastuidraw_painterStore_ubo", bind_painter_data_store_ubo)
                                                     );
 
   m_target_resolution_loc = m_program->uniform_location("fastuidraw_viewport_pixels");
@@ -2692,23 +2630,10 @@ on_end(void)
   glActiveTexture(GL_TEXTURE0 + bind_glyph_texel_sampler);
   glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
-  if(d->m_tex_buffer_support != fastuidraw::gl::detail::tex_buffer_not_supported)
-    {
-      glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_tbo_float);
-      glBindTexture(GL_TEXTURE_BUFFER, 0);
+  glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_tbo);
+  glBindTexture(GL_TEXTURE_BUFFER, 0);
+  glBindBufferBase(GL_UNIFORM_BUFFER, bind_painter_data_store_ubo, 0);
 
-      glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_tbo_uint);
-      glBindTexture(GL_TEXTURE_BUFFER, 0);
-
-      glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_tbo_int);
-      glBindTexture(GL_TEXTURE_BUFFER, 0);
-    }
-  else
-    {
-      glBindBufferBase(GL_UNIFORM_BUFFER, bind_painter_data_store_ubo_float, 0);
-      glBindBufferBase(GL_UNIFORM_BUFFER, bind_painter_data_store_ubo_uint, 0);
-      glBindBufferBase(GL_UNIFORM_BUFFER, bind_painter_data_store_ubo_int, 0);
-    }
   d->m_pool->next_pool();
 }
 

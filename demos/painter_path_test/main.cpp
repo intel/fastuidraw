@@ -210,7 +210,7 @@ painter_stroke_test(void):
   m_window_change_rate(10.0f, "change_rate_brush_repeat_window",
                        "rate of change in pixels/sec when changing the repeat window",
                        *this),
-  m_radial_gradient_change_rate(10.0f, "change_rate_brush_radial_gradient",
+  m_radial_gradient_change_rate(0.1f, "change_rate_brush_radial_gradient",
                                 "rate of change in pixels/sec when changing the radial gradient radius",
                                 *this),
   m_path_file("", "path_file",
@@ -342,7 +342,7 @@ update_cts_params(void)
       speed *= 10.0f;
     }
 
-  speed_shear = 0.1f * speed;
+  speed_shear = 0.01f * speed;
   if(keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL])
     {
       speed_shear = -speed_shear;
