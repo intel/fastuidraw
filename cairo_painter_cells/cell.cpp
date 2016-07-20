@@ -153,9 +153,11 @@ paint_pre_children(cairo_t *painter)
         {
           double w, h;
           w = cairo_image_surface_get_width(m_image_brush);
-          h = cairo_image_surface_get_width(m_image_brush);
+          h = cairo_image_surface_get_height(m_image_brush);
+          cairo_translate(painter, -0.5 * w, -0.5 * h);
           cairo_set_source_surface(painter, m_image_brush, 0.0, 0.0);
-          cairo_rectangle(painter, -0.5 * w, -0.5 * h, w, h);
+          cairo_rectangle(painter, 0.0, 0.0, w, h);
+          cairo_translate(painter, 0.5 * w, 0.5 * h);
           cairo_fill(painter);
         }
       else
