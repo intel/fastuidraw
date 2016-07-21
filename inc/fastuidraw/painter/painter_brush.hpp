@@ -440,7 +440,10 @@ namespace fastuidraw
       bit masks from \ref shader_masks tells what features are
       active in the brush. The shader is decoded as follows:
 
-      - The value given by unpack_bits(image_filter_bit0, image_filter_num_bits, shader())
+      - The value given by
+        \code
+	unpack_bits(image_filter_bit0, image_filter_num_bits, shader())
+        \endcode
         is non-zero if an image is present and when is non-zero the value's meaning
         is enumerated by image_filter
       - If shader() & \ref gradient_mask is non-zero, then a gradient is applied.

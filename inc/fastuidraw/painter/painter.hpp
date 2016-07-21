@@ -35,11 +35,11 @@ namespace fastuidraw
     2D rendering interface:
      - stroking
      - filling
-     - brush
+     - applying a brush (see PainterBrush)
      - single 3x3 transformation
      - save and restore state
-     - clipIn against path or rect
-     - clipOut against path
+     - clipIn against Path or rectangle
+     - clipOut against Path
 
     The transformation of a Painter goes from local item coordinate
     to 3D API clip-coordinates (for example in GL, from item coordinates
