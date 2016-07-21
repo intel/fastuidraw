@@ -53,9 +53,6 @@ namespace
   class ZDelayedAction:public fastuidraw::PainterDrawCommand::DelayedAction
   {
   public:
-    typedef fastuidraw::reference_counted_ptr<ZDelayedAction> handle;
-    typedef fastuidraw::reference_counted_ptr<const ZDelayedAction> const_handle;
-
     void
     finalize_z(unsigned int z)
     {
@@ -92,9 +89,6 @@ namespace
   class ZDataCallBack:public fastuidraw::PainterPacker::DataCallBack
   {
   public:
-    typedef fastuidraw::reference_counted_ptr<ZDataCallBack> handle;
-    typedef fastuidraw::reference_counted_ptr<const ZDataCallBack> const_handle;
-
     virtual
     void
     current_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> &h)
