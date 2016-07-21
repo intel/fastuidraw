@@ -34,10 +34,10 @@ namespace fastuidraw
  */
 
   /*!
-    Store for attributes, indices of items
-    and shared data of items for items to draw.
-    indices are -ALWAYS- in triplets of indexes into
-    m_attributes of triangles to draw.
+    Store for attributes, indices of items and shared data of
+    items for items to draw. Indices (stored in \ref m_indices)
+    are -ALWAYS- in groups of three where each group is a single
+    triangle and each index is an index into \ref m_attributes.
    */
   class PainterDrawCommand:
     public reference_counted<PainterDrawCommand>::default_base
@@ -92,9 +92,9 @@ namespace fastuidraw
     /*!
       Location to which to place the attribute data
       storing the header locations. The size of
-      m_header_attributes must be the same
-      as the size of m_attributes. The pointer
-      is store to be write only.
+      \ref m_header_attributes must be the same
+      as the size of \ref m_attributes,
+      the store is understood to be write only. 
      */
     c_array<uint32_t> m_header_attributes;
 
@@ -114,9 +114,9 @@ namespace fastuidraw
     c_array<generic_data> m_store;
 
     /*!
-      Ctor, a derived class will set m_attributes,
-      m_header_attributes, m_indices and
-      m_store
+      Ctor, a derived class will set \ref m_attributes,
+      \ref m_header_attributes, \ref m_indices and
+      \ref m_store.
      */
     PainterDrawCommand(void);
 
