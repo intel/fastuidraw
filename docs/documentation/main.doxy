@@ -146,10 +146,13 @@ may wish to use as well.
   is an example of startup code and simple layout code.
   \code
   //startup
-    //create GlyphCache, myGlyphAtlas is of type fastuidraw::GlyphAtlas::handle
-    //and points to a fastuidraw::GlyphAtlas derived object already
-    fastuidraw::GlyphCache::handle myGlyphCache;
-    fastuidraw::GlyphSelector::handle myGlyphSelector;
+    fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> myGlyphAtlas;
+    //use GL backend atlas
+    myGlyphAtlas = FASTUIDRAWnew fastuidraw::gl::GlyphAtlasGL(fastuidraw::gl::GlyphAtlasGL::params());
+
+
+    fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> myGlyphCache;
+    fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> myGlyphSelector;
 
     myGlyphCache = FASTUIDRAWnew fastuidraw::GlyphCache(myGlyphAtlas);
     myGlyphSelector = FASTUIDRAWnew fastuidraw::GlyphSelector(myGlyphCache);
@@ -253,13 +256,12 @@ may wish to use as well.
                         glyph_render_pixel_size);
 
    // create and save an image
-  fastuidraw::Image::handle myImage;
+  fastuidraw::reference_counted_ptr<fastuidraw::Image>
   myImage = fastuidraw::Image::create(myImageAtlas, width, height, pixels,
                                      fastuidraw::PainterBrush::slack_requirement(fastuidraw::PainterBrush::image_filter_cubic));
 
   //rendering code
-  // painter is type fastuidraw::Painter::handle
-
+  // painter is of type reference_counted_ptr<Painter>
   fastuidraw::Painter *p;
   p = painter.get(); //Only using pointer instead of handle so that doxygen links to functions correctly.
 
@@ -314,9 +316,9 @@ may wish to use as well.
   //a single application should make only one set of atlases. For the case of multiple GL
   //contexts, the application should make sure that the GL contexts all reside in the same
   //share group.
-  fastuidraw::gl::ImageAtlasGL::handle imageAtlas;
-  fastuidraw::gl::ColorStopAtlasGL::handle colorStopAtlas;
-  fastuidraw::gl::GlyphAtlasGL::handle glyphAtlas;
+  fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL> imageAtlas;
+  fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL> colorStopAtlas;
+  fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> glyphAtlas;
 
   imageAtlas = FASTUIDRAWnew fastuidraw::gl::ImageAtlasGL(fastuidraw::gl::ImageAtlasGL::params());
   colorStopAtlas = FASTUIDRAWnew fastuidraw::gl::ColorStopAtlasGL(fastuidraw::gl::ColorStopAtlasGL::params());
@@ -324,7 +326,7 @@ may wish to use as well.
 
   //create the backend mapping to GL, the GL backend object creates the necessary GLSL programs,
   //attribute and index pools.
-  fastuidraw::gl::PainterBackendGL::handle painterBackend;
+  fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendGL> painterBackend;
   painterBackend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(fastuidraw::gl::PainterBackendGL::params()
                                                                   .image_atlas(imageAtlas)
                                                                   .colorstop_atlas(colorStopAtlas)
@@ -335,7 +337,7 @@ may wish to use as well.
   // 2. the member class params of each of the atlas types and PainterBackendGL
   //    have additional properties one can set.
 
-  fastuidraw::Painter::handle painter;
+  fastuidraw::reference_counted_ptr<fastuidraw::Painter> painter;
   painter = FASTUIDRAWnew fastuidraw::Painter(painterBackend)
 
   //NOTES:

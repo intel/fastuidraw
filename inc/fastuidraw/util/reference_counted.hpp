@@ -47,6 +47,8 @@ namespace fastuidraw
     where T::add_reference() increment the reference count and
     T::remove_reference() decrements the reference count and will
     delete the object if the reference count is decremented to 0.
+
+    See also reference_counted_base and reference_counted.
    */
   template<typename T>
   class reference_counted_ptr
@@ -369,7 +371,7 @@ namespace fastuidraw
 
   /*!
     Base class to use for reference counted objects,
-    using reference_counted_ptr
+    for using reference_counted_ptr. See also reference_counted.
     \tparam T object type that is reference counted
     \tparam Counter object type to perform reference counting.
                     The type Counter must expose the methods:
@@ -423,7 +425,9 @@ namespace fastuidraw
   };
 
   /*!
-    Defines a default reference counting base class
+    Defines default reference counting base classes.
+
+    See also reference_counted_base and reference_counted_ptr.
    */
   template<typename T>
   class reference_counted
