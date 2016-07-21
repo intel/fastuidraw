@@ -84,7 +84,7 @@ public:
       To be implemented by a derived class to produce the tessellation
       from start_pt() to end_pt(). The routine should
       include BOTH start_pt() and end_pt() in the result.
-      Assignments to the field TessellatedPath::point::m_distance_from_outline_start
+      Assignments to the field TessellatedPath::point::m_distance_from_contour_start
       will be ignored, but all other fields of TessellatedPath::point
       must be assigned values. Return the number of points actually added.
 
@@ -420,15 +420,15 @@ public:
   };
 
   /*!
-    Tag class to mark the end of an outline
+    Tag class to mark the end of an contour
    */
-  class end
+  class contour_end
   {};
 
   /*!
-    Tag class to mark the end of an outline with an arc
+    Tag class to mark the end of an contour with an arc
    */
-  class end_arc
+  class contour_end_arc
   {
   public:
     /*!
@@ -436,7 +436,7 @@ public:
       \param angle angle of arc in radians
      */
     explicit
-    end_arc(float angle):
+    contour_end_arc(float angle):
       m_angle(angle)
     {}
 
@@ -492,19 +492,19 @@ public:
   }
 
   /*!
-    Create an end_arc but specify the angle in degrees.
+    Create an contour_end_arc but specify the angle in degrees.
     \param angle angle or arc in degrees
    */
   static
-  end_arc
-  end_arc_degrees(float angle)
+  contour_end_arc
+  contour_end_arc_degrees(float angle)
   {
-    return end_arc(angle*float(M_PI)/180.0f);
+    return contour_end_arc(angle*float(M_PI)/180.0f);
   }
 
   /*!
     Operator overload to add a point of the current
-    outline in the Path.
+    contour in the Path.
     \param pt point to add
    */
   Path&
@@ -512,14 +512,14 @@ public:
 
   /*!
     Operator overload to add a control point of the current
-    outline in the Path.
+    contour in the Path.
     \param pt control point to add
    */
   Path&
   operator<<(const control_point &pt);
 
   /*!
-    Operator overload to add an arc to the current outline
+    Operator overload to add an arc to the current contour
     in the Path.
     \param a arc to add
    */
@@ -527,28 +527,28 @@ public:
   operator<<(const arc &a);
 
   /*!
-    Operator overload to end the current outline
+    Operator overload to end the current contour
    */
   Path&
-  operator<<(end);
+  operator<<(contour_end);
 
   /*!
-    Operator overload to end the current outline
+    Operator overload to end the current contour
     \param a specifies the angle of the arc for closing
-             the current outline
+             the current contour
    */
   Path&
-  operator<<(end_arc a);
+  operator<<(contour_end_arc a);
 
   /*!
-    Append a line to the current outline.
+    Append a line to the current contour.
     \param pt point to which the line goes
    */
   Path&
   line_to(const vec2 &pt);
 
   /*!
-    Append a quadratic Bezier curve to the current outline.
+    Append a quadratic Bezier curve to the current contour.
     \param ct control point of the quadratic Bezier curve
     \param pt point to which the quadratic Bezier curve goes
    */
@@ -556,7 +556,7 @@ public:
   quadratic_to(const vec2 &ct, const vec2 &pt);
 
   /*!
-    Append a cubic Bezier curve to the current outline.
+    Append a cubic Bezier curve to the current contour.
     \param ct1 first control point of the cubic Bezier curve
     \param ct2 second control point of the cubic Bezier curve
     \param pt point to which the cubic Bezier curve goes
@@ -565,7 +565,7 @@ public:
   cubic_to(const vec2 &ct1, const vec2 &ct2, const vec2 &pt);
 
   /*!
-    Append an arc curve to the current outline.
+    Append an arc curve to the current contour.
     \param angle gives the angle of the arc in radians. For a coordinate system
                  where y increases upwards and x increases to the right, a positive
                  value indicates counter-clockwise and a negative value indicates
@@ -577,7 +577,7 @@ public:
 
   /*!
     Returns the last interpolator added to this the current
-    outline of this Path. When creating custom
+    contour of this Path. When creating custom
     interpolator to be added with custom_to(),
     You MUST use this interpolator in the ctor of
     interpolator_base.
@@ -587,102 +587,102 @@ public:
 
   /*!
     Add a custom interpolator. Use prev_interpolator()
-    to get the last interpolator of the current outline.
+    to get the last interpolator of the current contour.
    */
   Path&
   custom_to(const PathContour::interpolator_base::const_handle &p);
 
   /*!
-    Begin a new outline
-    \param pt point at which the outline begins
+    Begin a new contour
+    \param pt point at which the contour begins
    */
   Path&
   move(const vec2 &pt);
 
   /*!
-    End the current outline in an arc and begin an new outline
+    End the current contour in an arc and begin a new contour
     \param angle gives the angle of the arc in radians. For a coordinate system
                  where y increases upwards and x increases to the right, a positive
                  value indicates counter-clockwise and a negative value indicates
                  clockwise
-    \param pt point at which the outline begins
+    \param pt point at which the contour begins
    */
   Path&
   arc_move(float angle, const vec2 &pt);
 
   /*!
-    End the current outline in an arc
+    End the current contour in an arc
     \param angle gives the angle of the arc in radians. For a coordinate system
                  where y increases upwards and x increases to the right, a positive
                  value indicates counter-clockwise and a negative value indicates
                  clockwise
    */
   Path&
-  arc_end(float angle);
+  end_contour_arc(float angle);
 
   /*!
-    End the current outline in a quadratic Bezier curve and begin an new outline
+    End the current contour in a quadratic Bezier curve and begin a new contour
     \param ct control point of the quadratic Bezier curve
-    \param pt point at which the outline begins
+    \param pt point at which the contour begins
    */
   Path&
   quadratic_move(const vec2 &ct, const vec2 &pt);
 
   /*!
-    End the current outline in a quadratic Bezier curve
+    End the current contour in a quadratic Bezier curve
     \param ct control point of the quadratic Bezier curve
    */
   Path&
-  quadratic_end(const vec2 &ct);
+  contour_end_quadratic(const vec2 &ct);
 
   /*!
-    End the current outline in a cubic Bezier curve and begin an new outline
+    End the current contour in a cubic Bezier curve and begin a new contour
     \param ct1 first control point of the cubic Bezier curve
     \param ct2 second control point of the cubic Bezier curve
-    \param pt point at which the outline begins
+    \param pt point at which the contour begins
    */
   Path&
   cubic_move(const vec2 &ct1, const vec2 &ct2, const vec2 &pt);
 
   /*!
-    End the current outline in a cubic Bezier curve
+    End the current contour in a cubic Bezier curve
     \param ct1 first control point of the cubic Bezier curve
     \param ct2 second control point of the cubic Bezier curve
    */
   Path&
-  cubic_end(const vec2 &ct1, const vec2 &ct2);
+  contour_end_cubic(const vec2 &ct1, const vec2 &ct2);
 
   /*!
-    Use a custom interpolator to end the current outline and begin a new outline
+    Use a custom interpolator to end the current contour and begin a new contour
     Use prev_interpolator() to get the last interpolator
-    of the current outline.
+    of the current contour.
     \param p custom interpolator
-    \param pt point at which the outline begins
+    \param pt point at which the contour begins
    */
   Path&
   custom_move(const PathContour::interpolator_base::const_handle &p, const vec2 &pt);
 
   /*!
-    Use a custom interpolator to end the current outline
+    Use a custom interpolator to end the current contour
     Use prev_interpolator() to get the last interpolator
-    of the current outline.
+    of the current contour.
     \param p custom interpolator
    */
   Path&
-  custom_end(const PathContour::interpolator_base::const_handle &p);
+  contour_end_custom(const PathContour::interpolator_base::const_handle &p);
 
   /*!
-    Returns the number of outlines of the Path.
+    Returns the number of contours of the Path.
    */
   unsigned int
-  number_outlines(void) const;
+  number_contours(void) const;
 
   /*!
-    Returns the named outline
-    \param i index of outline to fetch (0 <= i < number_outlines())
+    Returns the named contour
+    \param i index of contour to fetch (0 <= i < number_contours())
    */
   PathContour::const_handle
-  outline(unsigned int i) const;
+  contour(unsigned int i) const;
 
   /*!
     Returns the tessellation parameters used

@@ -173,7 +173,7 @@ paint_pre_children(const Painter::handle &painter)
       st.width(m_shared_state->m_stroke_width);
 
       painter->stroke_path(PainterData(m_line_brush, &st),
-                           m_shared_state->m_path, PainterEnums::close_outlines,
+                           m_shared_state->m_path, PainterEnums::close_contours,
                            PainterEnums::miter_joins, m_shared_state->m_anti_alias_stroking);
     }
   m_shared_state->m_cells_drawn++;

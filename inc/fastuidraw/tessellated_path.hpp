@@ -110,9 +110,9 @@ public:
 
     /*!
       Gives the distance of the point from the start
-      of the -outline- on which the point resides.
+      of the -contour- on which the point resides.
      */
-    float m_distance_from_outline_start;
+    float m_distance_from_contour_start;
   };
 
   /*!
@@ -138,68 +138,68 @@ public:
   point_data(void) const;
 
   /*!
-    Returns the number of outlines
+    Returns the number of contours
    */
   unsigned int
-  number_outlines(void) const;
+  number_contours(void) const;
 
   /*!
     Returns the range into point_data()
-    for the named outline. The outline data is a
+    for the named contour. The contour data is a
     sequence of lines. Points that are shared
     between edges are replicated (because the
     derivatives are different).
    */
   range_type<unsigned int>
-  outline_range(unsigned int outline) const;
+  contour_range(unsigned int contour) const;
 
   /*!
     Returns the range into point_data()
-    for the named outline lacking the closing
-    edge. The outline data is a sequence of
+    for the named contour lacking the closing
+    edge. The contour data is a sequence of
     lines. Points that are shared between
     edges are replicated (because the
     derivatives are different).
    */
   range_type<unsigned int>
-  unclosed_outline_range(unsigned int outline) const;
+  unclosed_contour_range(unsigned int contour) const;
 
   /*!
-    Returns the point data of the named outline.
-    The outline data is a sequence of lines.
+    Returns the point data of the named contour.
+    The contour data is a sequence of lines.
    */
   const_c_array<point>
-  outline_point_data(unsigned int outline) const;
+  contour_point_data(unsigned int contour) const;
 
   /*!
-    Returns the point data of the named outline
+    Returns the point data of the named contour
     lacking the point data of the closing edge.
-    The outline data is a sequence of lines.
+    The contour data is a sequence of lines.
    */
   const_c_array<point>
-  unclosed_outline_point_data(unsigned int outline) const;
+  unclosed_contour_point_data(unsigned int contour) const;
 
   /*!
-    Returns the number of edges for the named outline
+    Returns the number of edges for the named contour
    */
   unsigned int
-  number_edges(unsigned int outline) const;
+  number_edges(unsigned int contour) const;
 
   /*!
     Returns the range into point_data(void)
-    for the named edge of the named outline.
+    for the named edge of the named contour.
     The returned range does include the end
     point of the edge.
    */
   range_type<unsigned int>
-  edge_range(unsigned int outline, unsigned int edge) const;
+  edge_range(unsigned int contour, unsigned int edge) const;
 
   /*!
     Returns the point data of the named edge of the
-    named outline.
+    named contour.
    */
   const_c_array<point>
-  edge_point_data(unsigned int outline, unsigned int edge) const;
+  edge_point_data(unsigned int contour, unsigned int edge) const;
 
   /*!
     Returns the minimum point of the bounding box of

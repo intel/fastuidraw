@@ -194,20 +194,20 @@ paint_pre_children(const Painter::handle &painter)
                                     << vec2(m_cell_sz.x(), 0.0f)
                                     << vec2(m_cell_sz.x(), m_cell_sz.y())
                                     << vec2(0.0f, m_cell_sz.y())
-                                    << Path::end();
+                                    << Path::contour_end();
 
 
       m_outline_path << vec2(0.0f, 0.0f)
                      << vec2(m_params.m_wh.x(), 0.0f)
                      << vec2(m_params.m_wh.x(), m_params.m_wh.y())
                      << vec2(0.0f, m_params.m_wh.y())
-                     << Path::end();
+                     << Path::contour_end();
 
       for(x = 1, cell_loc.x() = m_cell_sz.x(); x < m_params.m_cell_count.x(); ++x, cell_loc.x() += m_cell_sz.x())
         {
           m_grid_path << vec2(cell_loc.x(), 0.0f)
                       << vec2(cell_loc.x(), m_params.m_wh.y())
-                      << Path::end();
+                      << Path::contour_end();
 
         }
 
@@ -215,7 +215,7 @@ paint_pre_children(const Painter::handle &painter)
         {
           m_grid_path << vec2(0.0f, cell_loc.y())
                       << vec2(m_params.m_wh.x(), cell_loc.y())
-                      << Path::end();
+                      << Path::contour_end();
         }
 
       m_line_brush = painter->packed_value_pool().create_packed_value(m_params.m_line_color);
@@ -315,7 +315,7 @@ paint_post_children(const Painter::handle &painter)
       st.width(m_params.m_cell_state->m_stroke_width);
 
       painter->stroke_path(PainterData(m_line_brush, &st),
-                           m_outline_path, PainterEnums::close_outlines, PainterEnums::rounded_joins,
+                           m_outline_path, PainterEnums::close_contours, PainterEnums::rounded_joins,
                            m_params.m_cell_state->m_anti_alias_stroking);
       painter->stroke_path(PainterData(m_line_brush, &st),
                            m_grid_path, PainterEnums::no_caps, PainterEnums::no_joins,

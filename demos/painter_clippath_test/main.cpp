@@ -181,7 +181,7 @@ make_paths(void)
       m_path1 << vec2(100.0f, 100.0f)
               << vec2(0.0f, 0.0f)
               << vec2(100.0f,  0.0f)
-              << Path::end();
+              << Path::contour_end();
     }
 
   if(routine_fail == load_path(m_path2, m_path2_file.m_value))
@@ -189,7 +189,7 @@ make_paths(void)
       m_path2 << vec2(100.0f, 0.0f)
               << vec2(0.0f, 100.0f)
               << vec2(100.0f, 100.0f)
-              << Path::end();
+              << Path::contour_end();
     }
 
 

@@ -233,7 +233,7 @@ painter_stroke_test(void):
                 "sub-image height of sub-image rectange (negative value means no-subimage)",
                 *this),
   m_join_style(PainterEnums::rounded_joins),
-  m_cap_style(PainterEnums::close_outlines),
+  m_cap_style(PainterEnums::close_contours),
   m_fill_rule(PainterEnums::odd_even_fill_rule),
   m_end_fill_rule(PainterEnums::fill_rule_data_count),
   m_have_miter_limit(true),
@@ -307,7 +307,7 @@ painter_stroke_test(void):
   m_join_labels[PainterEnums::bevel_joins] = "bevel_joins";
   m_join_labels[PainterEnums::miter_joins] = "miter_joins";
 
-  m_cap_labels[PainterEnums::close_outlines] = "close_outlines";
+  m_cap_labels[PainterEnums::close_contours] = "close_contours";
   m_cap_labels[PainterEnums::no_caps] = "no_caps";
   m_cap_labels[PainterEnums::rounded_caps] = "rounded_caps";
   m_cap_labels[PainterEnums::square_caps] = "square_caps";
@@ -831,7 +831,7 @@ construct_path(void)
     }
 
   m_path << vec2(300.0f, 300.0f)
-         << Path::end()
+         << Path::contour_end()
          << vec2(50.0f, 35.0f)
          << Path::control_point(60.0f, 50.0f)
          << vec2(70.0f, 35.0f)
@@ -839,18 +839,18 @@ construct_path(void)
          << Path::control_point(60.0f, -150.0f)
          << Path::control_point(30.0f, -50.0f)
          << vec2(0.0f, -100.0f)
-         << Path::end_arc_degrees(90.0f)
+         << Path::contour_end_arc_degrees(90.0f)
          << vec2(200.0f, 200.0f)
          << vec2(400.0f, 200.0f)
          << vec2(400.0f, 400.0f)
          << vec2(200.0f, 400.0f)
-         << Path::end()
+         << Path::contour_end()
          << vec2(-50.0f, 100.0f)
          << vec2(0.0f, 200.0f)
          << vec2(100.0f, 300.0f)
          << vec2(150.0f, 325.0f)
          << vec2(150.0f, 100.0f)
-         << Path::end();
+         << Path::contour_end();
 }
 
 void
@@ -940,13 +940,13 @@ draw_frame(void)
             {
               grid_path << vec2(x, 0.0f)
                         << vec2(x, wh.y())
-                        << Path::end();
+                        << Path::contour_end();
             }
           for(float y = 0, endy = wh.y(); y < endy; y += m_stroke_width)
             {
               grid_path << vec2(0.0f, y)
                         << vec2(wh.x(), y)
-                        << Path::end();
+                        << Path::contour_end();
             }
           m_grid_path_dirty = false;
           m_grid_path.swap(grid_path);
@@ -990,7 +990,7 @@ draw_frame(void)
                            << vec2(m_clipping_xy.x(), m_clipping_xy.y() + m_clipping_wh.y())
                            << m_clipping_xy + m_clipping_wh
                            << vec2(m_clipping_xy.x() + m_clipping_wh.x(), m_clipping_xy.y())
-                           << Path::end();
+                           << Path::contour_end();
           m_clip_window_path.swap(clip_window_path);
           m_clip_window_path_dirty = false;
         }
@@ -1003,7 +1003,7 @@ draw_frame(void)
       m_painter->save();
       m_painter->clipOutPath(m_clip_window_path, PainterEnums::nonzero_fill_rule);
       m_painter->stroke_path(PainterData(&white, &st), m_clip_window_path,
-                             PainterEnums::close_outlines, PainterEnums::miter_joins,
+                             PainterEnums::close_contours, PainterEnums::miter_joins,
                              false);
       m_painter->restore();
       m_painter->clipInRect(m_clipping_xy, m_clipping_wh);

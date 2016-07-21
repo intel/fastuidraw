@@ -166,11 +166,11 @@ read_path(fastuidraw::Path &path, const std::string &source)
                 {
                   path << fastuidraw::Path::control_point(current_edge.m_control_pts[c]);
                 }
-              path << fastuidraw::Path::end();
+              path << fastuidraw::Path::contour_end();
             }
           else
             {
-              path << fastuidraw::Path::end_arc_degrees(current_edge.m_angle);
+              path << fastuidraw::Path::contour_end_arc_degrees(current_edge.m_angle);
             }
         }
     }

@@ -242,7 +242,7 @@ may wish to use as well.
   .move(fastuidraw::vec2(0.0f, 0.0f))
   .line_to(fastuidraw::vec2(100.0f, 0.0f))
   .quadratic_to(fastuidraw::vec2(100, 50.0f), fastuidraw::vec2(100.0f, 100.0f))
-  .arc_end(45.0 * M_PI / 180.0f);
+  .end_contour_arc(45.0 * M_PI / 180.0f);
 
   std::vector<fastuidraw::vec2> glyph_positions;
   std::vector<fastuidraw::Glyph> glyphs;
