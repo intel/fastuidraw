@@ -47,16 +47,6 @@ namespace gl
   {
   public:
     /*!
-      Overload typedef for handle
-    */
-    typedef reference_counted_ptr<ImageAtlasGL> handle;
-
-    /*!
-      Overload typedef for const_handle
-    */
-    typedef reference_counted_ptr<const ImageAtlasGL> const_handle;
-
-    /*!
       Class to hold the construction parameters for creating
       a ImageAtlasGL.
      */
@@ -233,7 +223,7 @@ namespace gl
      */
     static
     vecN<vec2, 2>
-    shader_coords(Image::handle image);
+    shader_coords(reference_counted_ptr<Image> image);
 
     /*!
       Gives the shader source code for a function with

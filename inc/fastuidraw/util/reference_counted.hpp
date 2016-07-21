@@ -382,16 +382,6 @@ namespace fastuidraw
   {
   public:
     /*!
-      Typedef to reference_counted_ptr for type T
-     */
-    typedef reference_counted_ptr<T> handle;
-
-    /*!
-      Typedef to reference_counted_ptr for type const T
-     */
-    typedef reference_counted_ptr<const T> const_handle;
-
-    /*!
       Empty ctor.
      */
     reference_counted_base(void)

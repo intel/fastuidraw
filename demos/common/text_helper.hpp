@@ -24,13 +24,14 @@ operator<<(std::ostream &str, const fastuidraw::FontProperties &obj)
 void
 create_formatted_text(std::istream &stream, fastuidraw::GlyphRender renderer,
                       float pixel_size,
-                      fastuidraw::FontBase::const_handle font,
-                      fastuidraw::GlyphSelector::handle glyph_selector,
+                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
                       std::vector<fastuidraw::Glyph> &glyphs,
                       std::vector<fastuidraw::vec2> &positions,
                       std::vector<uint32_t> &character_codes);
 
 void
-add_fonts_from_path(const std::string &path, fastuidraw::FreetypeLib::handle lib,
-                    fastuidraw::GlyphSelector::handle glyph_selector,
+add_fonts_from_path(const std::string &path,
+                    fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> lib,
+                    fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
                     fastuidraw::FontFreeType::RenderParams render_params);

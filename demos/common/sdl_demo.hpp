@@ -148,5 +148,5 @@ private:
 
   SDL_Window *m_window;
   SDL_GLContext m_ctx;
-  egl_gles_context::handle m_ctx_egl;
+  fastuidraw::reference_counted_ptr<egl_gles_context> m_ctx_egl;
 };

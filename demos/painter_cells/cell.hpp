@@ -38,8 +38,8 @@ public:
 class CellParams
 {
 public:
-  GlyphSelector::handle m_glyph_selector;
-  FontBase::const_handle m_font;
+  reference_counted_ptr<GlyphSelector> m_glyph_selector;
+  reference_counted_ptr<const FontBase> m_font;
   PainterPackedValue<PainterBrush> m_background_brush;
   PainterPackedValue<PainterBrush> m_image_brush;
   PainterPackedValue<PainterBrush> m_text_brush;
@@ -66,7 +66,7 @@ protected:
 
   virtual
   void
-  paint_pre_children(const Painter::handle &painter);
+  paint_pre_children(const reference_counted_ptr<Painter> &painter);
 
   virtual
   void

@@ -310,7 +310,7 @@ add_single_image(const std::string &filename, std::vector<named_image> &dest)
   image_size = load_image_to_array(filename, image_data);
   if(image_size.x() > 0 && image_size.y() > 0)
     {
-      Image::const_handle im;
+      reference_counted_ptr<const Image> im;
       int slack(0);
 
       im = Image::create(m_painter->image_atlas(), image_size.x(), image_size.y(),

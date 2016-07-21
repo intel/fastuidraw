@@ -42,17 +42,6 @@ namespace fastuidraw
     {
     public:
       /*!
-        Overload typedef for handle
-       */
-      typedef reference_counted_ptr<PainterBackendGL> handle;
-
-      /*!
-        Overload typedef for const_handle
-       */
-      typedef reference_counted_ptr<const PainterBackendGL> const_handle;
-
-
-      /*!
         Enumeration to specify how the data store filled by
         \ref PainterDrawCommand::m_store is realized.
        */
@@ -104,38 +93,38 @@ namespace fastuidraw
         /*!
           The ImageAtlasGL to be used by the painter
          */
-        const ImageAtlasGL::handle&
+        const reference_counted_ptr<ImageAtlasGL>&
         image_atlas(void) const;
 
         /*!
           Set the value returned by image_atlas(void) const.
          */
         params&
-        image_atlas(const ImageAtlasGL::handle &v);
+        image_atlas(const reference_counted_ptr<ImageAtlasGL> &v);
 
         /*!
           The ColorStopAtlasGL to be used by the painter
          */
-        const ColorStopAtlasGL::handle&
+        const reference_counted_ptr<ColorStopAtlasGL>&
         colorstop_atlas(void) const;
 
         /*!
           Set the value returned by colorstop_atlas(void) const.
          */
         params&
-        colorstop_atlas(const ColorStopAtlasGL::handle &v);
+        colorstop_atlas(const reference_counted_ptr<ColorStopAtlasGL> &v);
 
         /*!
           The GlyphAtlasGL to be used by the painter
          */
-        const GlyphAtlasGL::handle&
+        const reference_counted_ptr<GlyphAtlasGL>&
         glyph_atlas(void) const;
 
         /*!
           Set the value returned by glyph_atlas(void) const.
          */
         params&
-        glyph_atlas(const GlyphAtlasGL::handle &v);
+        glyph_atlas(const reference_counted_ptr<GlyphAtlasGL> &v);
 
         /*!
           Specifies the maximum number of attributes
@@ -355,7 +344,7 @@ namespace fastuidraw
       on_pre_draw(void);
 
       virtual
-      PainterDrawCommand::const_handle
+      reference_counted_ptr<const PainterDrawCommand>
       map_draw_command(void);
 
       virtual
@@ -366,7 +355,7 @@ namespace fastuidraw
         Return the Program used to draw -all- content
         by this PainterBackendGL
        */
-      Program::handle
+      reference_counted_ptr<Program>
       program(void);
 
       /*!
@@ -388,15 +377,15 @@ namespace fastuidraw
     protected:
       virtual
       PainterShader::Tag
-      absorb_vert_shader(const PainterShader::handle &shader);
+      absorb_vert_shader(const reference_counted_ptr<PainterShader> &shader);
 
       virtual
       PainterShader::Tag
-      absorb_frag_shader(const PainterShader::handle &shader);
+      absorb_frag_shader(const reference_counted_ptr<PainterShader> &shader);
 
       virtual
       PainterShader::Tag
-      absorb_blend_shader(const PainterShader::handle &shader);
+      absorb_blend_shader(const reference_counted_ptr<PainterShader> &shader);
 
     private:
       void *m_d;

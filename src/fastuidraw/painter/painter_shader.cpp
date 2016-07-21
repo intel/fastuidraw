@@ -32,8 +32,8 @@ namespace
   class PainterBlendShaderSetPrivate
   {
   public:
-    std::vector<fastuidraw::PainterShader::handle> m_shaders;
-    fastuidraw::PainterShader::handle m_null;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterShader> > m_shaders;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterShader> m_null;
   };
 
   class PainterShaderSetPrivate
@@ -61,8 +61,8 @@ namespace
   class PainterItemShaderPrivate
   {
   public:
-    fastuidraw::PainterShader::handle m_vert_shader;
-    fastuidraw::PainterShader::handle m_frag_shader;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterShader> m_vert_shader;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterShader> m_frag_shader;
   };
 
   class PainterStrokeShaderPrivate
@@ -258,7 +258,7 @@ operator=(const PainterBlendShaderSet &rhs)
   return *this;
 }
 
-const fastuidraw::PainterShader::handle&
+const fastuidraw::reference_counted_ptr<fastuidraw::PainterShader>&
 fastuidraw::PainterBlendShaderSet::
 shader(enum PainterEnums::blend_mode_t tp) const
 {
@@ -270,7 +270,8 @@ shader(enum PainterEnums::blend_mode_t tp) const
 
 void
 fastuidraw::PainterBlendShaderSet::
-shader(enum PainterEnums::blend_mode_t tp, const PainterShader::handle &sh)
+shader(enum PainterEnums::blend_mode_t tp,
+       const reference_counted_ptr<PainterShader> &sh)
 {
   PainterBlendShaderSetPrivate *d;
   d = reinterpret_cast<PainterBlendShaderSetPrivate*>(m_d);
@@ -418,8 +419,8 @@ operator=(const PainterItemShader &rhs)
     return d->m_##name;                                          \
   }
 
-setget_implement(fastuidraw::PainterShader::handle, vert_shader)
-setget_implement(fastuidraw::PainterShader::handle, frag_shader)
+setget_implement(fastuidraw::reference_counted_ptr<fastuidraw::PainterShader>, vert_shader)
+setget_implement(fastuidraw::reference_counted_ptr<fastuidraw::PainterShader>, frag_shader)
 
 #undef setget_implement
 

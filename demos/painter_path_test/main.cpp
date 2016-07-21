@@ -101,7 +101,8 @@ private:
       number_image_filter_modes
     };
 
-  typedef std::pair<std::string, ColorStopSequenceOnAtlas::handle> named_color_stop;
+  typedef std::pair<std::string,
+                    reference_counted_ptr<ColorStopSequenceOnAtlas> > named_color_stop;
 
   void
   construct_path(void);
@@ -136,7 +137,7 @@ private:
 
   Path m_path;
   float m_max_miter;
-  Image::handle m_image;
+  reference_counted_ptr<Image> m_image;
   uvec2 m_image_offset, m_image_size;
   std::vector<named_color_stop> m_color_stops;
 
@@ -887,7 +888,7 @@ contruct_color_stops(void)
         end = m_color_stop_args.m_values.end();
       iter != end; ++iter)
     {
-      ColorStopSequenceOnAtlas::handle h;
+      reference_counted_ptr<ColorStopSequenceOnAtlas> h;
       h = FASTUIDRAWnew ColorStopSequenceOnAtlas(iter->second->m_stops,
                                                 m_painter->colorstop_atlas(),
                                                 iter->second->m_discretization);

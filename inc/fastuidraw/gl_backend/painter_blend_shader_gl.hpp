@@ -377,16 +377,6 @@ namespace fastuidraw
     {
     public:
       /*!
-        Overload typedef for handle
-      */
-      typedef reference_counted_ptr<PainterBlendShaderGL> handle;
-
-      /*!
-        Overload typedef for const_handle
-      */
-      typedef reference_counted_ptr<const PainterBlendShaderGL> const_handle;
-
-      /*!
         Ctor.
         \param psingle_src_blender value copied that single_src_blender() returns
         \param pdual_src_blender value copied that dual_src_blender() returns

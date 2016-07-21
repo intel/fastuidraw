@@ -283,7 +283,7 @@ namespace detail
   class geometry_data
   {
   public:
-    /*!\fn geometry_data(std::ostream*, std::vector<point_type>&, geometry_data_filter::handle)
+    /*!\fn geometry_data(std::ostream*, std::vector<point_type>&, reference_counted_ptr<geometry_data_filter>)
       Ctor.
       \param ostr std::ostream to which to log debug
                   messages. if NULL, no debug messages
@@ -294,13 +294,13 @@ namespace detail
      */
     geometry_data(std::ostream *ostr,
                   std::vector<point_type> &pts,
-                  geometry_data_filter::handle h=geometry_data_filter::handle()):
+                  reference_counted_ptr<geometry_data_filter> h=reference_counted_ptr<geometry_data_filter>()):
       m_debug_stream(ostr),
       m_pt_array(pts),
       m_filter(h)
     {}
 
-    /*!\fn geometry_data(std::vector<point_type>&, geometry_data_filter::handle)
+    /*!\fn geometry_data(std::vector<point_type>&, geometry_data_filter>)
       Ctor, set the debug stream to NULL, thus
       does not emit debug log messages.
       \param pts std::vector to hold the point data
@@ -309,7 +309,7 @@ namespace detail
      */
     explicit
     geometry_data(std::vector<point_type> &pts,
-                  geometry_data_filter::handle h=geometry_data_filter::handle()):
+                  reference_counted_ptr<geometry_data_filter> h=reference_counted_ptr<geometry_data_filter>()):
       m_debug_stream(NULL),
       m_pt_array(pts),
       m_filter(h)
@@ -384,7 +384,7 @@ namespace detail
   private:
     std::ostream *m_debug_stream;
     std::vector<point_type> &m_pt_array;
-    geometry_data_filter::handle m_filter;
+    reference_counted_ptr<geometry_data_filter> m_filter;
   };
 
   class BezierCurve;
@@ -1640,7 +1640,7 @@ namespace detail
                            create \ref BezierCurve objects
      */
     ContourEmitterFromFT_Outline(const FT_Outline &outline, int pscale_factor,
-                                 ContourCoordinateFilter::handle h = ContourCoordinateFilter::handle()):
+                                 reference_counted_ptr<ContourCoordinateFilter> h = reference_counted_ptr<ContourCoordinateFilter>()):
       m_outline(outline),
       m_scale_factor(pscale_factor),
       m_filter(h)
@@ -1664,7 +1664,7 @@ namespace detail
 
     const FT_Outline &m_outline;
     int m_scale_factor;
-    ContourCoordinateFilter::handle m_filter;
+    reference_counted_ptr<ContourCoordinateFilter> m_filter;
   };
 
 

@@ -55,12 +55,12 @@ namespace
     resize_implement(int new_num_layers);
 
     static
-    handle
+    fastuidraw::reference_counted_ptr<fastuidraw::ColorStopBackingStore>
     create(int w, int l, bool delayed)
     {
       BackingStore *p;
       p = FASTUIDRAWnew BackingStore(w, l, delayed);
-      return handle(p);
+      return fastuidraw::reference_counted_ptr<fastuidraw::ColorStopBackingStore>(p);
     }
 
   private:

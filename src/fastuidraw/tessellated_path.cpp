@@ -35,8 +35,8 @@ namespace
     std::vector<fastuidraw::TessellatedPath::point> m_point_data;
     fastuidraw::vec2 m_box_min, m_box_max;
     fastuidraw::TessellatedPath::TessellationParams m_params;
-    fastuidraw::StrokedPath::const_handle m_stroked;
-    fastuidraw::FilledPath::const_handle m_filled;
+    fastuidraw::reference_counted_ptr<const fastuidraw::StrokedPath> m_stroked;
+    fastuidraw::reference_counted_ptr<const fastuidraw::FilledPath> m_filled;
   };
 }
 
@@ -58,7 +58,7 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
 
       for(unsigned int loc = 0, o = 0, endo = input.number_contours(); o < endo; ++o)
         {
-          fastuidraw::PathContour::const_handle outline(input.contour(o));
+          fastuidraw::reference_counted_ptr<const fastuidraw::PathContour> outline(input.contour(o));
           float outline_length(0.0f);
 
           m_edge_ranges[o].resize(outline->number_points());
@@ -133,7 +133,7 @@ fastuidraw::TessellatedPath::
   m_d = NULL;
 }
 
-const fastuidraw::StrokedPath::const_handle&
+const fastuidraw::reference_counted_ptr<const fastuidraw::StrokedPath>&
 fastuidraw::TessellatedPath::
 stroked(void) const
 {
@@ -146,7 +146,7 @@ stroked(void) const
   return d->m_stroked;
 }
 
-const fastuidraw::FilledPath::const_handle&
+const fastuidraw::reference_counted_ptr<const fastuidraw::FilledPath>&
 fastuidraw::TessellatedPath::
 filled(void) const
 {

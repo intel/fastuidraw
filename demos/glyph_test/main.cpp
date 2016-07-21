@@ -94,9 +94,9 @@ private:
   {
   public:
     void
-    set(gl::Program::handle pr);
+    set(reference_counted_ptr<gl::Program> pr);
 
-    gl::Program::handle m_program;
+    reference_counted_ptr<gl::Program> m_program;
     GLint m_pvm_loc, m_scale_loc, m_translate_loc;
     GLint m_layer_loc;
     GLint m_aa_mode_loc;
@@ -109,7 +109,7 @@ private:
     ~per_draw();
 
     void
-    set(vecN<gl::Program::handle, 2> prs,
+    set(vecN<reference_counted_ptr<gl::Program>, 2> prs,
         const std::string &l, PanZoomTrackerSDLEvent *zoomer);
 
     void
@@ -168,10 +168,10 @@ private:
   command_line_argument_value<int> m_geometry_backing_texture_log2_w, m_geometry_backing_texture_log2_h;
   command_line_argument_value<float> m_render_pixel_size;
 
-  gl::GlyphAtlasGL::handle m_glyph_atlas;
-  GlyphCache::handle m_glyph_cache;
-  GlyphSelector::handle m_glyph_selector;
-  FontFreeType::const_handle m_font;
+  reference_counted_ptr<gl::GlyphAtlasGL> m_glyph_atlas;
+  reference_counted_ptr<GlyphCache> m_glyph_cache;
+  reference_counted_ptr<GlyphSelector> m_glyph_selector;
+  reference_counted_ptr<const FontFreeType> m_font;
   FT_Library m_library;
   FT_Face m_face;
 
@@ -190,7 +190,7 @@ private:
 // glyph_test::per_program methods
 void
 glyph_test::per_program::
-set(gl::Program::handle pr)
+set(reference_counted_ptr<gl::Program> pr)
 {
   m_program = pr;
   assert(m_program->link_success());
@@ -241,7 +241,7 @@ glyph_test::per_draw::
 
 void
 glyph_test::per_draw::
-set(vecN<gl::Program::handle, 2> prs,
+set(vecN<reference_counted_ptr<gl::Program>, 2> prs,
     const std::string &l, PanZoomTrackerSDLEvent *zoomer)
 {
   m_label = l;
@@ -628,7 +628,7 @@ void
 glyph_test::
 ready_program(void)
 {
-  vecN<gl::Program::handle, number_texel_store_modes> pr;
+  vecN<reference_counted_ptr<gl::Program>, number_texel_store_modes> pr;
   vecN<std::string, number_texel_store_modes> macros;
   std::string glyph_geom_mode;
   ivec2 geom_log2_dims(0, 0);

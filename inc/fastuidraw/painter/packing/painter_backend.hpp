@@ -147,9 +147,9 @@ namespace fastuidraw
                              backend; they will be registered laziy
                              at default_shaders().
      */
-    PainterBackend(GlyphAtlas::handle glyph_atlas,
-                   ImageAtlas::handle image_atlas,
-                   ColorStopAtlas::handle colorstop_atlas,
+    PainterBackend(reference_counted_ptr<GlyphAtlas> glyph_atlas,
+                   reference_counted_ptr<ImageAtlas> image_atlas,
+                   reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
                    const Configuration &config,
                    const PainterShaderSet &default_shaders);
 
@@ -171,7 +171,7 @@ namespace fastuidraw
       PainterBackend. All glyphs used by this
       PainterBackend must live on glyph_atlas().
      */
-    const GlyphAtlas::handle&
+    const reference_counted_ptr<GlyphAtlas>&
     glyph_atlas(void);
 
     /*!
@@ -179,7 +179,7 @@ namespace fastuidraw
       PainterBackend. All images used by all brushes
       of this PainterBackend must live on image_atlas().
      */
-    const ImageAtlas::handle&
+    const reference_counted_ptr<ImageAtlas>&
     image_atlas(void);
 
     /*!
@@ -187,7 +187,7 @@ namespace fastuidraw
       PainterBackend. All color stops used by all brushes
       of this PainterBackend must live on colorstop_atlas().
      */
-    const ColorStopAtlas::handle&
+    const reference_counted_ptr<ColorStopAtlas>&
     colorstop_atlas(void);
 
     /*!
@@ -225,7 +225,7 @@ namespace fastuidraw
       "Map" a PainterDrawCommand for filling of data.
      */
     virtual
-    PainterDrawCommand::const_handle
+    reference_counted_ptr<const PainterDrawCommand>
     map_draw_command(void) = 0;
 
     /*!
@@ -233,21 +233,21 @@ namespace fastuidraw
       on_begin()/on_end() pair.
      */
     void
-    register_vert_shader(const PainterShader::handle &shader);
+    register_vert_shader(const reference_counted_ptr<PainterShader> &shader);
 
     /*!
       Registers a fragment shader for use. Must not be called within
       a on_begin()/on_end() pair.
     */
     void
-    register_frag_shader(const PainterShader::handle &shader);
+    register_frag_shader(const reference_counted_ptr<PainterShader> &shader);
 
     /*!
       Registers a blend shader for use. Must not be called within
       a on_begin()/on_end() pair.
     */
     void
-    register_blend_shader(const PainterShader::handle &shader);
+    register_blend_shader(const reference_counted_ptr<PainterShader> &shader);
 
     /*!
       Provided as a conveniance, equivalent to
@@ -273,14 +273,14 @@ namespace fastuidraw
     register_shader(const PainterStrokeShader &p);
 
     /*!
-      Register each of the PainterShader::handle
+      Register each of the reference_counted_ptr<PainterShader>
       in a PainterGlyphShader.
      */
     void
     register_shader(const PainterGlyphShader &p);
 
     /*!
-      Register each of the PainterShader::handle
+      Register each of the reference_counted_ptr<PainterShader>
       in a PainterBlendShaderSet.
      */
     void
@@ -319,7 +319,7 @@ namespace fastuidraw
      */
     virtual
     PainterShader::Tag
-    absorb_vert_shader(const PainterShader::handle &shader) = 0;
+    absorb_vert_shader(const reference_counted_ptr<PainterShader> &shader) = 0;
 
     /*!
       To be implemented by a derived class to take into use
@@ -330,7 +330,7 @@ namespace fastuidraw
      */
     virtual
     PainterShader::Tag
-    absorb_frag_shader(const PainterShader::handle &shader) = 0;
+    absorb_frag_shader(const reference_counted_ptr<PainterShader> &shader) = 0;
 
     /*!
       To be implemented by a derived class to take into use
@@ -341,7 +341,7 @@ namespace fastuidraw
      */
     virtual
     PainterShader::Tag
-    absorb_blend_shader(const PainterShader::handle &shader) = 0;
+    absorb_blend_shader(const reference_counted_ptr<PainterShader> &shader) = 0;
 
     /*!
       To be accessed by a derived class in on_begin() (or before)

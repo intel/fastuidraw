@@ -322,7 +322,7 @@ winding_number_from_index_chunk(unsigned int idx)
 
 void
 fastuidraw::PainterAttributeData::
-set_data(const FilledPath::const_handle &path)
+set_data(const reference_counted_ptr<const FilledPath> &path)
 {
   PainterAttributeDataPrivate *d;
   d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
@@ -425,7 +425,7 @@ set_data(const FilledPath::const_handle &path)
 
 void
 fastuidraw::PainterAttributeData::
-set_data(const StrokedPath::const_handle &path)
+set_data(const reference_counted_ptr<const StrokedPath> &path)
 {
   PainterAttributeDataPrivate *d;
   d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);

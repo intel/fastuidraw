@@ -62,7 +62,7 @@ namespace fastuidraw
       \param cache GlyphCache to store/fetch glyphs.
      */
     explicit
-    GlyphSelector(GlyphCache::handle cache);
+    GlyphSelector(reference_counted_ptr<GlyphCache> cache);
 
     ~GlyphSelector();
 
@@ -71,14 +71,14 @@ namespace fastuidraw
       \param h font to add
      */
     void
-    add_font(FontBase::const_handle h);
+    add_font(reference_counted_ptr<const FontBase> h);
 
     /*!
       Fetch a font from a FontProperties description. The return
       value will be the closest matched font added with add_font().
       \param props FontProperties by which to search
      */
-    FontBase::const_handle
+    reference_counted_ptr<const FontBase>
     fetch_font(const FontProperties &props);
 
     /*!
@@ -118,7 +118,9 @@ namespace fastuidraw
       \param character_code character code of glyph to fetch
      */
     Glyph
-    fetch_glyph(GlyphRender tp, FontBase::const_handle h, uint32_t character_code);
+    fetch_glyph(GlyphRender tp,
+                reference_counted_ptr<const FontBase> h,
+                uint32_t character_code);
 
     /*!
       Fetch a Glyph (and if necessary generate it and place into GlyphCache)
@@ -129,7 +131,8 @@ namespace fastuidraw
       \param character_code character code of glyph to fetch
      */
     Glyph
-    fetch_glyph_no_merging(GlyphRender tp, FontBase::const_handle h, uint32_t character_code);
+    fetch_glyph_no_merging(GlyphRender tp, reference_counted_ptr<const FontBase> h,
+                           uint32_t character_code);
 
     /*!
       Fill Glyph values from an iterator range of character code values.
@@ -164,7 +167,8 @@ namespace fastuidraw
     template<typename input_iterator,
              typename output_iterator>
     void
-    create_glyph_sequence(GlyphRender tp, FontBase::const_handle h,
+    create_glyph_sequence(GlyphRender tp,
+                          reference_counted_ptr<const FontBase> h,
                           input_iterator character_codes_begin,
                           input_iterator character_codes_end,
                           output_iterator output_begin);
@@ -185,7 +189,7 @@ namespace fastuidraw
              typename output_iterator>
     void
     create_glyph_sequence_no_merging(GlyphRender tp,
-                                     FontBase::const_handle h,
+                                     reference_counted_ptr<const FontBase> h,
                                      input_iterator character_codes_begin,
                                      input_iterator character_codes_end,
                                      output_iterator output_begin);
@@ -201,10 +205,14 @@ namespace fastuidraw
     fetch_glyph_no_lock(GlyphRender tp, FontGroup group, uint32_t character_code);
 
     Glyph
-    fetch_glyph_no_lock(GlyphRender tp, FontBase::const_handle h, uint32_t character_code);
+    fetch_glyph_no_lock(GlyphRender tp,
+                        reference_counted_ptr<const FontBase> h,
+                        uint32_t character_code);
 
     Glyph
-    fetch_glyph_no_merging_no_lock(GlyphRender tp, FontBase::const_handle h, uint32_t character_code);
+    fetch_glyph_no_merging_no_lock(GlyphRender tp,
+                                   reference_counted_ptr<const FontBase> h,
+                                   uint32_t character_code);
 
     void *m_d;
   };
@@ -232,7 +240,8 @@ namespace fastuidraw
            typename output_iterator>
   void
   GlyphSelector::
-  create_glyph_sequence(GlyphRender tp, FontBase::const_handle h,
+  create_glyph_sequence(GlyphRender tp,
+                        reference_counted_ptr<const FontBase> h,
                         input_iterator character_codes_begin,
                         input_iterator character_codes_end,
                         output_iterator output_begin)
@@ -252,7 +261,7 @@ namespace fastuidraw
   void
   GlyphSelector::
   create_glyph_sequence_no_merging(GlyphRender tp,
-                                   FontBase::const_handle h,
+                                   reference_counted_ptr<const FontBase> h,
                                    input_iterator character_codes_begin,
                                    input_iterator character_codes_end,
                                    output_iterator output_begin)

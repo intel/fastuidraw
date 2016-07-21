@@ -189,7 +189,8 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
 
 fastuidraw::PainterBrush&
 fastuidraw::PainterBrush::
-sub_image(const Image::const_handle im, uvec2 xy, uvec2 wh, enum image_filter f)
+sub_image(const reference_counted_ptr<const Image> &im,
+          uvec2 xy, uvec2 wh, enum image_filter f)
 {
   uint32_t slack, lookups;
   uint32_t filter_bits;
@@ -218,7 +219,7 @@ sub_image(const Image::const_handle im, uvec2 xy, uvec2 wh, enum image_filter f)
 
 fastuidraw::PainterBrush&
 fastuidraw::PainterBrush::
-image(const Image::const_handle im, enum image_filter f)
+image(const reference_counted_ptr<const Image> &im, enum image_filter f)
 {
   uvec2 sz(0, 0);
   if(im)
@@ -265,7 +266,7 @@ operator=(const PainterBrush &rhs)
 
 enum fastuidraw::PainterBrush::image_filter
 fastuidraw::PainterBrush::
-best_filter_for_image(const Image::const_handle &im)
+best_filter_for_image(const reference_counted_ptr<const Image> &im)
 {
   return im ?
     static_cast<enum image_filter>(std::min(im->slack() + 1,
@@ -275,7 +276,7 @@ best_filter_for_image(const Image::const_handle &im)
 
 bool
 fastuidraw::PainterBrush::
-filter_suitable_for_image(const Image::const_handle &im,
+filter_suitable_for_image(const reference_counted_ptr<const Image> &im,
                           enum image_filter f)
 {
   assert(f >= image_filter_nearest);

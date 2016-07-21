@@ -13,7 +13,7 @@
 
 using namespace fastuidraw;
 
-typedef std::pair<Image::const_handle, std::string> named_image;
+typedef std::pair<reference_counted_ptr<const Image>, std::string> named_image;
 class CellSharedState;
 
 class TableParams
@@ -21,8 +21,8 @@ class TableParams
 public:
   vec2 m_wh;
   ivec2 m_cell_count;
-  GlyphSelector::handle m_glyph_selector;
-  FontBase::const_handle m_font;
+  reference_counted_ptr<GlyphSelector> m_glyph_selector;
+  reference_counted_ptr<const FontBase> m_font;
   GlyphRender m_text_render;
   float m_pixel_size;
   bool m_draw_image_name;
@@ -55,11 +55,11 @@ protected:
 
   virtual
   void
-  paint_pre_children(const Painter::handle &painter);
+  paint_pre_children(const reference_counted_ptr<Painter> &painter);
 
   virtual
   void
-  paint_post_children(const Painter::handle &painter);
+  paint_post_children(const reference_counted_ptr<Painter> &painter);
 
   virtual
   void
@@ -67,7 +67,7 @@ protected:
 
 private:
   void
-  generate_children_in_group(const Painter::handle &painter,
+  generate_children_in_group(const reference_counted_ptr<Painter> &painter,
                              CellGroup *parent, int &J,
                              const ivec2 &xy,
                              int count_x, int count_y,

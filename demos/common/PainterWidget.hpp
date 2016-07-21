@@ -18,7 +18,7 @@ public:
   ~PainterWidget(void);
 
   void
-  paint(const fastuidraw::Painter::handle &painter);
+  paint(const fastuidraw::reference_counted_ptr<fastuidraw::Painter> &painter);
 
   PainterWidget*
   parent(void)
@@ -59,11 +59,11 @@ protected:
 
   virtual
   void
-  paint_pre_children(const fastuidraw::Painter::handle &painter);
+  paint_pre_children(const fastuidraw::reference_counted_ptr<fastuidraw::Painter> &painter);
 
   virtual
   void
-  paint_post_children(const fastuidraw::Painter::handle &painter);
+  paint_post_children(const fastuidraw::reference_counted_ptr<fastuidraw::Painter> &painter);
 
 private:
   PainterWidget *m_parent;

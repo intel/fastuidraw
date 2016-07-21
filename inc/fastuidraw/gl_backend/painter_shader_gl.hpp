@@ -434,16 +434,6 @@ namespace fastuidraw
     {
     public:
       /*!
-        Overload typedef for handle
-      */
-      typedef reference_counted_ptr<PainterShaderGL> handle;
-
-      /*!
-        Overload typedef for const_handle
-      */
-      typedef reference_counted_ptr<const PainterShaderGL> const_handle;
-
-      /*!
         Ctor.
         \param src GLSL source holding shader routine
         \param varyings list of varyings of the shader

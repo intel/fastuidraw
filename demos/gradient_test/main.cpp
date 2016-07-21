@@ -90,7 +90,7 @@ protected:
     {
       glBindVertexArray(m_vao);
       glBindTexture(m_atlas->texture_bind_target(), m_atlas->texture());
-      const ColorStopSequenceOnAtlas::handle cst(m_color_stops[m_active_color_stop].second);
+      const reference_counted_ptr<ColorStopSequenceOnAtlas> cst(m_color_stops[m_active_color_stop].second);
       m_program->use_program();
       gl::Uniform(m_p0_loc, m_p0);
       gl::Uniform(m_p1_loc, m_p1);
@@ -272,8 +272,8 @@ private:
           end = m_color_stop_args.m_values.end();
         iter != end; ++iter)
       {
-        ColorStopSequenceOnAtlas::handle h;
-        ColorStopSequenceOnAtlas::handle temp1, temp2;
+        reference_counted_ptr<ColorStopSequenceOnAtlas> h;
+        reference_counted_ptr<ColorStopSequenceOnAtlas> temp1, temp2;
 
         if(m_stress.m_value)
           {
@@ -400,22 +400,22 @@ private:
   }
 
 
-  typedef std::pair<std::string, ColorStopSequenceOnAtlas::handle> named_color_stop;
+  typedef std::pair<std::string, reference_counted_ptr<ColorStopSequenceOnAtlas> > named_color_stop;
 
   command_line_argument_value<int> m_color_stop_atlas_width;
   command_line_argument_value<int> m_color_stop_atlas_layers;
   color_stop_arguments m_color_stop_args;
   command_line_argument_value<bool> m_stress;
-  gl::ColorStopAtlasGL::handle m_atlas;
+  reference_counted_ptr<gl::ColorStopAtlasGL> m_atlas;
   std::vector<named_color_stop> m_color_stops;
 
   unsigned int m_active_color_stop;
   GLuint m_ibo, m_bo, m_vao;
-  gl::Program::handle m_program;
+  reference_counted_ptr<gl::Program> m_program;
 
   GLuint m_pts_bo, m_pts_vao;
   GLint m_pts_color_loc, m_pts_pos_loc;
-  gl::Program::handle m_draw_pts;
+  reference_counted_ptr<gl::Program> m_draw_pts;
 
 
   vec2 m_p0, m_p1;

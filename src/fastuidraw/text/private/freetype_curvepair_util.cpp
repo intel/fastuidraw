@@ -1208,7 +1208,7 @@ fastuidraw::detail::CurvePairGenerator::
 CurvePairGenerator(FT_Outline outline, ivec2 bitmap_sz, ivec2 bitmap_offset,
                    GlyphRenderDataCurvePair &output)
 {
-  geometry_data_filter::handle filter;
+  fastuidraw::reference_counted_ptr<geometry_data_filter> filter;
 
   filter = FASTUIDRAWnew MakeEvenFilter();
   geometry_data gmt(NULL, m_pts, filter);

@@ -76,7 +76,7 @@ namespace fastuidraw
        */
       virtual
       void
-      action(const PainterDrawCommand::const_handle &h) = 0;
+      action(const reference_counted_ptr<const PainterDrawCommand> &h) = 0;
 
     private:
       friend class PainterDrawCommand;
@@ -146,7 +146,7 @@ namespace fastuidraw
       \param h handle to action to add.
      */
     void
-    add_action(const DelayedAction::handle &h) const;
+    add_action(const reference_counted_ptr<DelayedAction> &h) const;
 
     /*!
       Signals this PainterDrawCommand to be unmapped.

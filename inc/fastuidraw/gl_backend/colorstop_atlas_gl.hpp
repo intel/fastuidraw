@@ -46,16 +46,6 @@ namespace gl
   {
   public:
     /*!
-      Overload typedef for handle
-    */
-    typedef reference_counted_ptr<ColorStopAtlasGL> handle;
-
-    /*!
-      Overload typedef for const_handle
-    */
-    typedef reference_counted_ptr<const ColorStopAtlasGL> const_handle;
-
-    /*!
       Class to hold the construction parameters for creating
       a ColorStopAtlasGL.
      */

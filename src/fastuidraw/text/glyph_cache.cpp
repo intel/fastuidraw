@@ -78,7 +78,7 @@ namespace
       m_glyph_code(0)
     {}
 
-    GlyphSource(fastuidraw::FontBase::const_handle f,
+    GlyphSource(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> f,
                 uint32_t gc, fastuidraw::GlyphRender r):
       m_font(f),
       m_glyph_code(gc),
@@ -93,7 +93,7 @@ namespace
         m_render < rhs.m_render;
     }
 
-    fastuidraw::FontBase::const_handle m_font;
+    fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> m_font;
     uint32_t m_glyph_code;
     fastuidraw::GlyphRender m_render;
   };
@@ -102,7 +102,8 @@ namespace
   {
   public:
     explicit
-    GlyphCachePrivate(fastuidraw::GlyphAtlas::handle patlas, fastuidraw::GlyphCache *p);
+    GlyphCachePrivate(fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> patlas,
+                      fastuidraw::GlyphCache *p);
 
     ~GlyphCachePrivate();
 
@@ -115,7 +116,7 @@ namespace
     GlyphDataPrivate*
     fetch_or_allocate_glyph(GlyphSource src);
 
-    fastuidraw::GlyphAtlas::handle m_atlas;
+    fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> m_atlas;
     std::map<GlyphSource, GlyphDataPrivate*> m_glyph_map;
     std::vector<GlyphDataPrivate*> m_glyphs;
     std::vector<unsigned int> m_free_slots;
@@ -200,7 +201,7 @@ upload_to_atlas(void)
 /////////////////////////////////////////////////
 // GlyphCachePrivate methods
 GlyphCachePrivate::
-GlyphCachePrivate(fastuidraw::GlyphAtlas::handle patlas,
+GlyphCachePrivate(fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> patlas,
                   fastuidraw::GlyphCache *p):
   m_atlas(patlas),
   m_p(p)
@@ -334,7 +335,7 @@ upload_to_atlas(void) const
 //////////////////////////////////////////////////////////
 // fastuidraw::GlyphCache methods
 fastuidraw::GlyphCache::
-GlyphCache(GlyphAtlas::handle patlas)
+GlyphCache(reference_counted_ptr<GlyphAtlas> patlas)
 {
   m_d = FASTUIDRAWnew GlyphCachePrivate(patlas, this);
 }
@@ -351,7 +352,9 @@ fastuidraw::GlyphCache::
 
 fastuidraw::Glyph
 fastuidraw::GlyphCache::
-fetch_glyph(GlyphRender render, FontBase::const_handle font, uint32_t glyph_code)
+fetch_glyph(GlyphRender render,
+            const fastuidraw::reference_counted_ptr<const FontBase> &font,
+            uint32_t glyph_code)
 {
   if(!font || !font->can_create_rendering_data(render.m_type))
     {

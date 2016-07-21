@@ -259,19 +259,19 @@ namespace
     void
     stream_uber_vert_shader(bool use_switch,
                             fastuidraw::gl::Shader::shader_source &vert,
-                            fastuidraw::const_c_array<fastuidraw::gl::PainterShaderGL::handle> vert_shaders);
+                            fastuidraw::const_c_array<fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterShaderGL> > vert_shaders);
 
     static
     void
     stream_uber_frag_shader(bool use_switch,
                             fastuidraw::gl::Shader::shader_source &frag,
-                            fastuidraw::const_c_array<fastuidraw::gl::PainterShaderGL::handle> frag_shaders);
+                            fastuidraw::const_c_array<fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterShaderGL> > frag_shaders);
 
     static
     void
     stream_uber_blend_shader(bool use_switch,
                              fastuidraw::gl::Shader::shader_source &frag,
-                             fastuidraw::const_c_array<fastuidraw::gl::PainterBlendShaderGL::handle> blend_shaders,
+                             fastuidraw::const_c_array<fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBlendShaderGL> > blend_shaders,
                              enum blend_type tp);
 
     static
@@ -317,9 +317,9 @@ namespace
     GLuint m_linear_filter_sampler;
 
     bool m_rebuild_program;
-    std::vector<fastuidraw::gl::PainterShaderGL::handle> m_vert_shaders;
-    std::vector<fastuidraw::gl::PainterShaderGL::handle> m_frag_shaders;
-    std::vector<fastuidraw::gl::PainterBlendShaderGL::handle> m_blend_shaders;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterShaderGL> > m_vert_shaders;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterShaderGL> > m_frag_shaders;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBlendShaderGL> > m_blend_shaders;
     fastuidraw::gl::Shader::shader_source m_vert_shader_utils;
     fastuidraw::gl::Shader::shader_source m_frag_shader_utils;
     BlendModeTracker m_dual_src_blend_modes, m_single_src_blend_modes, m_no_blending;
@@ -340,7 +340,7 @@ namespace
     fastuidraw::gl::ContextProperties m_ctx_properties;
     enum fastuidraw::gl::detail::tex_buffer_support_t m_tex_buffer_support;
     
-    fastuidraw::gl::Program::handle m_program;
+    fastuidraw::reference_counted_ptr<fastuidraw::gl::Program> m_program;
     GLint m_target_resolution_loc, m_target_resolution_recip_loc;
     GLint m_target_resolution_recip_magnitude_loc;
     fastuidraw::vec2 m_target_resolution;
@@ -453,9 +453,9 @@ namespace
     unsigned int m_number_pools;
     bool m_break_on_vertex_shader_change;
     bool m_break_on_fragment_shader_change;
-    fastuidraw::gl::ImageAtlasGL::handle m_image_atlas;
-    fastuidraw::gl::ColorStopAtlasGL::handle m_colorstop_atlas;
-    fastuidraw::gl::GlyphAtlasGL::handle m_glyph_atlas;
+    fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL> m_image_atlas;
+    fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL> m_colorstop_atlas;
+    fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> m_glyph_atlas;
     bool m_use_hw_clip_planes;
     bool m_vert_shader_use_switch;
     bool m_frag_shader_use_switch;
@@ -1280,7 +1280,7 @@ void
 PainterBackendGLPrivate::
 stream_uber_vert_shader(bool use_switch,
                         fastuidraw::gl::Shader::shader_source &vert,
-                        fastuidraw::const_c_array<fastuidraw::gl::PainterShaderGL::handle> vert_shaders)
+                        fastuidraw::const_c_array<fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterShaderGL> > vert_shaders)
 {
   /* first stream all of the vert_shaders with predefined macros. */
   for(unsigned int i = 0; i < vert_shaders.size(); ++i)
@@ -1352,7 +1352,7 @@ void
 PainterBackendGLPrivate::
 stream_uber_frag_shader(bool use_switch,
                         fastuidraw::gl::Shader::shader_source &frag,
-                        fastuidraw::const_c_array<fastuidraw::gl::PainterShaderGL::handle> frag_shaders)
+                        fastuidraw::const_c_array<fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterShaderGL> > frag_shaders)
 {
   /* first stream all of the vert_shaders with predefined macros. */
   for(unsigned int i = 0; i < frag_shaders.size(); ++i)
@@ -1417,7 +1417,7 @@ void
 PainterBackendGLPrivate::
 stream_uber_blend_shader(bool use_switch,
                          fastuidraw::gl::Shader::shader_source &frag,
-                         fastuidraw::const_c_array<fastuidraw::gl::PainterBlendShaderGL::handle> blend_shaders,
+                         fastuidraw::const_c_array<fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBlendShaderGL> > blend_shaders,
                          enum blend_type tp)
 {
   std::string sub_func_name, func_name, func_args;
@@ -2299,9 +2299,9 @@ paramsSetGet(unsigned int, data_blocks_per_store_buffer)
 paramsSetGet(unsigned int, number_pools)
 paramsSetGet(bool, break_on_vertex_shader_change)
 paramsSetGet(bool, break_on_fragment_shader_change)
-paramsSetGet(const fastuidraw::gl::ImageAtlasGL::handle&, image_atlas)
-paramsSetGet(const fastuidraw::gl::ColorStopAtlasGL::handle&, colorstop_atlas)
-paramsSetGet(const fastuidraw::gl::GlyphAtlasGL::handle&, glyph_atlas)
+paramsSetGet(const fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL>&, image_atlas)
+paramsSetGet(const fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL>&, colorstop_atlas)
+paramsSetGet(const fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL>&, glyph_atlas)
 paramsSetGet(bool, use_hw_clip_planes)
 paramsSetGet(bool, vert_shader_use_switch)
 paramsSetGet(bool, frag_shader_use_switch)
@@ -2353,12 +2353,12 @@ add_fragment_shader_util(const Shader::shader_source &src)
 
 fastuidraw::PainterShader::Tag
 fastuidraw::gl::PainterBackendGL::
-absorb_vert_shader(const PainterShader::handle &shader)
+absorb_vert_shader(const reference_counted_ptr<PainterShader> &shader)
 {
   PainterBackendGLPrivate *d;
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
 
-  PainterShaderGL::handle h;
+  reference_counted_ptr<PainterShaderGL> h;
   fastuidraw::PainterShader::Tag return_value;
 
   h = shader.dynamic_cast_ptr<PainterShaderGL>();
@@ -2376,12 +2376,12 @@ absorb_vert_shader(const PainterShader::handle &shader)
 
 fastuidraw::PainterShader::Tag
 fastuidraw::gl::PainterBackendGL::
-absorb_frag_shader(const PainterShader::handle &shader)
+absorb_frag_shader(const reference_counted_ptr<PainterShader> &shader)
 {
   PainterBackendGLPrivate *d;
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
 
-  PainterShaderGL::handle h;
+  reference_counted_ptr<PainterShaderGL> h;
   fastuidraw::PainterShader::Tag return_value;
 
   h = shader.dynamic_cast_ptr<PainterShaderGL>();
@@ -2398,12 +2398,12 @@ absorb_frag_shader(const PainterShader::handle &shader)
 
 fastuidraw::PainterShader::Tag
 fastuidraw::gl::PainterBackendGL::
-absorb_blend_shader(const PainterShader::handle &shader)
+absorb_blend_shader(const reference_counted_ptr<PainterShader> &shader)
 {
   PainterBackendGLPrivate *d;
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
 
-  PainterBlendShaderGL::handle h;
+  reference_counted_ptr<PainterBlendShaderGL> h;
   fastuidraw::PainterShader::Tag return_value;
   uint32_t dual_src, single_src;
 
@@ -2441,7 +2441,7 @@ target_resolution(int w, int h)
   d->m_target_resolution_recip_magnitude = d->m_target_resolution_recip.magnitude();
 }
 
-fastuidraw::gl::Program::handle
+fastuidraw::reference_counted_ptr<fastuidraw::gl::Program>
 fastuidraw::gl::PainterBackendGL::
 program(void)
 {
@@ -2637,7 +2637,7 @@ on_end(void)
   d->m_pool->next_pool();
 }
 
-fastuidraw::PainterDrawCommand::const_handle
+fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand>
 fastuidraw::gl::PainterBackendGL::
 map_draw_command(void)
 {

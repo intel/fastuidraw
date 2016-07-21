@@ -28,11 +28,11 @@ namespace
 
   void
   add_fonts_from_file(const std::string &filename,
-                      fastuidraw::FreetypeLib::handle lib,
-                      fastuidraw::GlyphSelector::handle glyph_selector,
+                      fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> lib,
+                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
                       fastuidraw::FontFreeType::RenderParams render_params)
   {
-    std::vector<fastuidraw::FontFreeType::handle> h;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::FontFreeType> > h;
     unsigned int cnt;
 
     cnt = fastuidraw::FontFreeType::create(cast_c_array(h), filename.c_str(), lib, render_params);
@@ -52,8 +52,8 @@ namespace
 void
 create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
                       float pixel_size,
-                      fastuidraw::FontBase::const_handle font,
-                      fastuidraw::GlyphSelector::handle glyph_selector,
+                      fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
+                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
                       std::vector<fastuidraw::Glyph> &glyphs,
                       std::vector<fastuidraw::vec2> &positions,
                       std::vector<uint32_t> &character_codes)
@@ -141,8 +141,9 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
 }
 
 void
-add_fonts_from_path(const std::string &filename, fastuidraw::FreetypeLib::handle lib,
-                    fastuidraw::GlyphSelector::handle glyph_selector,
+add_fonts_from_path(const std::string &filename,
+                    fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> lib,
+                    fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
                     fastuidraw::FontFreeType::RenderParams render_params)
 {
   DIR *dir;

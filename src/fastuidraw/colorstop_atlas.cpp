@@ -56,7 +56,7 @@ namespace
   class ColorStopAtlasPrivate
   {
   public:
-    ColorStopAtlasPrivate(fastuidraw::ColorStopBackingStore::handle pbacking_store);
+    ColorStopAtlasPrivate(fastuidraw::reference_counted_ptr<fastuidraw::ColorStopBackingStore> pbacking_store);
 
     void
     remove_entry_from_available_layers(std::map<int, std::set<int> >::iterator, int y);
@@ -66,7 +66,7 @@ namespace
 
     mutable boost::mutex m_mutex;
 
-    fastuidraw::ColorStopBackingStore::handle m_backing_store;
+    fastuidraw::reference_counted_ptr<fastuidraw::ColorStopBackingStore> m_backing_store;
     int m_allocated;
 
     /* Each layer has an interval allocator to allocate
@@ -98,7 +98,7 @@ namespace
   class ColorStopSequenceOnAtlasPrivate
   {
   public:
-    fastuidraw::ColorStopAtlas::handle m_atlas;
+    fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas> m_atlas;
     fastuidraw::ivec2 m_texel_location;
     int m_width;
     int m_start_slack, m_end_slack;
@@ -108,7 +108,7 @@ namespace
 ////////////////////////////////////////
 // ColorStopAtlasPrivate methods
 ColorStopAtlasPrivate::
-ColorStopAtlasPrivate(fastuidraw::ColorStopBackingStore::handle pbacking_store):
+ColorStopAtlasPrivate(fastuidraw::reference_counted_ptr<fastuidraw::ColorStopBackingStore> pbacking_store):
   m_backing_store(pbacking_store),
   m_allocated(0)
 {
@@ -212,7 +212,7 @@ resize(int new_num_layers)
 ///////////////////////////////////////
 // fastuidraw::ColorStopAtlas methods
 fastuidraw::ColorStopAtlas::
-ColorStopAtlas(ColorStopBackingStore::handle pbacking_store)
+ColorStopAtlas(reference_counted_ptr<ColorStopBackingStore> pbacking_store)
 {
   m_d = FASTUIDRAWnew ColorStopAtlasPrivate(pbacking_store);
 }
@@ -375,7 +375,7 @@ max_width(void) const
   return d->m_backing_store->dimensions().x();
 }
 
-fastuidraw::ColorStopBackingStore::const_handle
+fastuidraw::reference_counted_ptr<const fastuidraw::ColorStopBackingStore>
 fastuidraw::ColorStopAtlas::
 backing_store(void) const
 {
@@ -388,7 +388,7 @@ backing_store(void) const
 // fastuidraw::ColorStopSequenceOnAtlas methods
 fastuidraw::ColorStopSequenceOnAtlas::
 ColorStopSequenceOnAtlas(const ColorStopSequence &pcolor_stops,
-                         ColorStopAtlas::handle atlas,
+                         reference_counted_ptr<ColorStopAtlas> atlas,
                          int pwidth)
 {
   ColorStopSequenceOnAtlasPrivate *d;
@@ -522,7 +522,7 @@ width(void) const
   return d->m_width;
 }
 
-fastuidraw::ColorStopAtlas::const_handle
+fastuidraw::reference_counted_ptr<const fastuidraw::ColorStopAtlas>
 fastuidraw::ColorStopSequenceOnAtlas::
 atlas(void) const
 {
