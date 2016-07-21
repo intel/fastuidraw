@@ -46,16 +46,6 @@ namespace gl
   {
   public:
     /*!
-      Overload typedef for handle
-    */
-    typedef reference_counted_ptr<GlyphAtlasGL> handle;
-
-    /*!
-      Overload typedef for const_handle
-    */
-    typedef reference_counted_ptr<const GlyphAtlasGL> const_handle;
-
-    /*!
       Enumeration to specify the backing store used for the
       glyph geometry data.
      */

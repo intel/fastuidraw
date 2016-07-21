@@ -30,9 +30,6 @@ namespace
     public fastuidraw::detail::RectAtlas
   {
   public:
-    typedef fastuidraw::reference_counted_ptr<rect_atlas_layer> handle;
-    typedef fastuidraw::reference_counted_ptr<const rect_atlas_layer> const_handle;
-
     explicit
     rect_atlas_layer(const fastuidraw::ivec2 &dimensions, int player):
       fastuidraw::detail::RectAtlas(dimensions),
@@ -86,8 +83,8 @@ namespace
   class GlyphAtlasPrivate
   {
   public:
-    GlyphAtlasPrivate(fastuidraw::GlyphAtlasTexelBackingStoreBase::handle ptexel_store,
-                      fastuidraw::GlyphAtlasGeometryBackingStoreBase::handle pgeometry_store):
+    GlyphAtlasPrivate(fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasTexelBackingStoreBase> ptexel_store,
+                      fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase> pgeometry_store):
       m_texel_store(ptexel_store),
       m_geometry_store(pgeometry_store),
       m_geometry_data_allocator(pgeometry_store->size())
@@ -112,9 +109,9 @@ namespace
     }
 
     boost::mutex m_mutex;
-    fastuidraw::GlyphAtlasTexelBackingStoreBase::handle m_texel_store;
-    fastuidraw::GlyphAtlasGeometryBackingStoreBase::handle m_geometry_store;
-    std::vector<rect_atlas_layer::handle> m_private_data;
+    fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasTexelBackingStoreBase> m_texel_store;
+    fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase> m_geometry_store;
+    std::vector<fastuidraw::reference_counted_ptr<rect_atlas_layer> > m_private_data;
     fastuidraw::interval_allocator m_geometry_data_allocator;
   };
 }
@@ -278,8 +275,8 @@ size(void) const
 ///////////////////////////////////////////////
 // fastuidraw::GlyphAtlas methods
 fastuidraw::GlyphAtlas::
-GlyphAtlas(GlyphAtlasTexelBackingStoreBase::handle ptexel_store,
-           GlyphAtlasGeometryBackingStoreBase::handle pgeometry_store)
+GlyphAtlas(reference_counted_ptr<GlyphAtlasTexelBackingStoreBase> ptexel_store,
+           reference_counted_ptr<GlyphAtlasGeometryBackingStoreBase> pgeometry_store)
 {
   m_d = FASTUIDRAWnew GlyphAtlasPrivate(ptexel_store, pgeometry_store);
 };
@@ -453,7 +450,7 @@ flush(void) const
   d->m_geometry_store->flush();
 }
 
-fastuidraw::GlyphAtlasTexelBackingStoreBase::const_handle
+fastuidraw::reference_counted_ptr<const fastuidraw::GlyphAtlasTexelBackingStoreBase>
 fastuidraw::GlyphAtlas::
 texel_store(void) const
 {
@@ -462,10 +459,8 @@ texel_store(void) const
   return d->m_texel_store;
 }
 
-/*!\fn
-  Returns the geometry store for this \ref GlyphAtlas.
-*/
-fastuidraw::GlyphAtlasGeometryBackingStoreBase::const_handle
+
+fastuidraw::reference_counted_ptr<const fastuidraw::GlyphAtlasGeometryBackingStoreBase>
 fastuidraw::GlyphAtlas::
 geometry_store(void) const
 {

@@ -226,14 +226,14 @@ public:
     Returns this TessellatedPath stroked. The StrokedPath object
     is constructed lazily.
    */
-  const StrokedPath::const_handle&
+  const reference_counted_ptr<const StrokedPath>&
   stroked(void) const;
 
   /*!
     Returns this TessellatedPath filled. The FilledPath object
     is constructed lazily.
    */
-  const FilledPath::const_handle&
+  const reference_counted_ptr<const FilledPath>&
   filled(void) const;
 
 private:

@@ -206,7 +206,7 @@ namespace
 
     /* location in pool and what pool
      */
-    PoolBase::handle m_pool;
+    fastuidraw::reference_counted_ptr<PoolBase> m_pool;
     int m_pool_slot;
 
   private:
@@ -302,7 +302,7 @@ namespace
     }
 
   private:
-    std::vector<typename Pool<T>::handle> m_pools;
+    std::vector<fastuidraw::reference_counted_ptr<Pool<T> > > m_pools;
   };
 
   class PainterPackedValuePoolPrivate
@@ -337,7 +337,7 @@ namespace
   class per_draw_command
   {
   public:
-    per_draw_command(const fastuidraw::PainterDrawCommand::const_handle &r,
+    per_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> &r,
                      const fastuidraw::PainterBackend::Configuration &config);
 
     unsigned int
@@ -382,14 +382,14 @@ namespace
     unsigned int
     pack_header(unsigned int header_size,
                 uint32_t brush_shader,
-                const fastuidraw::PainterShader::const_handle &blend_shader,
-                const fastuidraw::PainterShader::const_handle &vert_shader,
-                const fastuidraw::PainterShader::const_handle &frag_shader,
+                const fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader> &blend_shader,
+                const fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader> &vert_shader,
+                const fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader> &frag_shader,
                 unsigned int z,
                 const painter_state_location &loc,
-                const fastuidraw::PainterPacker::DataCallBack::handle &call_back);
+                const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
-    fastuidraw::PainterDrawCommand::const_handle m_draw_command;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> m_draw_command;
     unsigned int m_attributes_written, m_indices_written;
 
   private:
@@ -443,10 +443,10 @@ namespace
 
     unsigned int m_store_blocks_written;
     unsigned int m_alignment;
-    fastuidraw::Image::const_handle m_last_image;
-    fastuidraw::ColorStopSequenceOnAtlas::const_handle m_last_color_stop;
-    std::list<fastuidraw::Image::const_handle> m_images_active;
-    std::list<fastuidraw::ColorStopSequenceOnAtlas::const_handle> m_color_stops_active;
+    fastuidraw::reference_counted_ptr<const fastuidraw::Image> m_last_image;
+    fastuidraw::reference_counted_ptr<const fastuidraw::ColorStopSequenceOnAtlas> m_last_color_stop;
+    std::list<fastuidraw::reference_counted_ptr<const fastuidraw::Image> > m_images_active;
+    std::list<fastuidraw::reference_counted_ptr<const fastuidraw::ColorStopSequenceOnAtlas> > m_color_stops_active;
 
     uint32_t m_brush_shader_mask;
     PainterShaderGroupPrivate m_prev_state;
@@ -462,7 +462,7 @@ namespace
   {
   public:
     explicit
-    PainterPackerPrivate(fastuidraw::PainterBackend::handle backend,
+    PainterPackerPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> backend,
                          fastuidraw::PainterPacker *p);
 
     void
@@ -503,12 +503,12 @@ namespace
         }
     };
 
-    fastuidraw::PainterBackend::handle m_backend;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> m_backend;
     fastuidraw::PainterShaderSet m_default_shaders;
     unsigned int m_alignment;
     unsigned int m_header_size;
 
-    fastuidraw::PainterShader::const_handle m_blend_shader;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader> m_blend_shader;
     painter_state_location m_painter_state_location;
     int m_number_begins;
 
@@ -523,7 +523,7 @@ namespace
 //////////////////////////////////////////
 // per_draw_command methods
 per_draw_command::
-per_draw_command(const fastuidraw::PainterDrawCommand::const_handle &r,
+per_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> &r,
                  const fastuidraw::PainterBackend::Configuration &config):
   m_draw_command(r),
   m_attributes_written(0),
@@ -613,12 +613,12 @@ unsigned int
 per_draw_command::
 pack_header(unsigned int header_size,
             uint32_t brush_shader,
-            const fastuidraw::PainterShader::const_handle &blend_shader,
-            const fastuidraw::PainterShader::const_handle &vert_shader,
-            const fastuidraw::PainterShader::const_handle &frag_shader,
+            const fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader> &blend_shader,
+            const fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader> &vert_shader,
+            const fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader> &frag_shader,
             unsigned int z,
             const painter_state_location &loc,
-            const fastuidraw::PainterPacker::DataCallBack::handle &call_back)
+            const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
 {
   unsigned int return_value;
   fastuidraw::c_array<fastuidraw::generic_data> dst, dst_write;
@@ -695,7 +695,7 @@ pack_header(unsigned int header_size,
 ///////////////////////////////////////////
 // PainterPackerPrivate methods
 PainterPackerPrivate::
-PainterPackerPrivate(fastuidraw::PainterBackend::handle backend,
+PainterPackerPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> backend,
                      fastuidraw::PainterPacker *p):
   m_backend(backend),
   m_p(p)
@@ -715,7 +715,7 @@ start_new_command(void)
       m_accumulated_draws.back().unmap();
     }
 
-  fastuidraw::PainterDrawCommand::const_handle r;
+  fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> r;
   r = m_backend->map_draw_command();
   m_accumulated_draws.push_back(per_draw_command(r, m_backend->configuration()));
 }
@@ -787,9 +787,9 @@ brush(void) const
 }
 
 ////////////////////////////////////////////
-// fastuidraw::Painter methods
+// fastuidraw::PainterPacker methods
 fastuidraw::PainterPacker::
-PainterPacker(PainterBackend::handle backend)
+PainterPacker(reference_counted_ptr<PainterBackend> backend)
 {
   assert(backend);
   m_d = FASTUIDRAWnew PainterPackerPrivate(backend, this);
@@ -855,7 +855,7 @@ draw_generic(const PainterPackerData &draw,
              const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
              const PainterItemShader &shader, unsigned int z,
-             const DataCallBack::handle &call_back)
+             const reference_counted_ptr<DataCallBack> &call_back)
 {
   draw_generic(draw, attrib_chunks, index_chunks,
                const_c_array<unsigned int>(),
@@ -869,7 +869,7 @@ draw_generic(const PainterPackerData &draw,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
              const_c_array<unsigned int> attrib_chunk_selector,
              const PainterItemShader &shader, unsigned int z,
-             const DataCallBack::handle &call_back)
+             const reference_counted_ptr<DataCallBack> &call_back)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
@@ -1014,7 +1014,7 @@ draw_generic(const PainterPackerData &draw,
     }
 }
 
-const fastuidraw::GlyphAtlas::handle&
+const fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas>&
 fastuidraw::PainterPacker::
 glyph_atlas(void) const
 {
@@ -1023,7 +1023,7 @@ glyph_atlas(void) const
   return d->m_backend->glyph_atlas();
 }
 
-const fastuidraw::ImageAtlas::handle&
+const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas>&
 fastuidraw::PainterPacker::
 image_atlas(void) const
 {
@@ -1032,7 +1032,7 @@ image_atlas(void) const
   return d->m_backend->image_atlas();
 }
 
-const fastuidraw::ColorStopAtlas::handle&
+const fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas>&
 fastuidraw::PainterPacker::
 colorstop_atlas(void) const
 {
@@ -1041,7 +1041,7 @@ colorstop_atlas(void) const
   return d->m_backend->colorstop_atlas();
 }
 
-const fastuidraw::PainterShader::const_handle&
+const fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader>&
 fastuidraw::PainterPacker::
 blend_shader(void) const
 {
@@ -1052,7 +1052,7 @@ blend_shader(void) const
 
 void
 fastuidraw::PainterPacker::
-blend_shader(const fastuidraw::PainterShader::const_handle &h)
+blend_shader(const fastuidraw::reference_counted_ptr<const PainterShader> &h)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
@@ -1080,7 +1080,7 @@ hints(void)
 
 void
 fastuidraw::PainterPacker::
-register_vert_shader(const fastuidraw::PainterShader::handle &shader)
+register_vert_shader(const reference_counted_ptr<PainterShader> &shader)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
@@ -1089,7 +1089,7 @@ register_vert_shader(const fastuidraw::PainterShader::handle &shader)
 
 void
 fastuidraw::PainterPacker::
-register_frag_shader(const fastuidraw::PainterShader::handle &shader)
+register_frag_shader(const reference_counted_ptr<PainterShader> &shader)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
@@ -1098,7 +1098,7 @@ register_frag_shader(const fastuidraw::PainterShader::handle &shader)
 
 void
 fastuidraw::PainterPacker::
-register_blend_shader(const fastuidraw::PainterShader::handle &shader)
+register_blend_shader(const reference_counted_ptr<PainterShader> &shader)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
@@ -1107,7 +1107,7 @@ register_blend_shader(const fastuidraw::PainterShader::handle &shader)
 
 void
 fastuidraw::PainterPacker::
-register_shader(const fastuidraw::PainterItemShader &p)
+register_shader(const PainterItemShader &p)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
@@ -1116,7 +1116,7 @@ register_shader(const fastuidraw::PainterItemShader &p)
 
 void
 fastuidraw::PainterPacker::
-register_shader(const fastuidraw::PainterStrokeShader &p)
+register_shader(const PainterStrokeShader &p)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
@@ -1125,7 +1125,7 @@ register_shader(const fastuidraw::PainterStrokeShader &p)
 
 void
 fastuidraw::PainterPacker::
-register_shader(const fastuidraw::PainterGlyphShader &p)
+register_shader(const PainterGlyphShader &p)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
@@ -1134,7 +1134,7 @@ register_shader(const fastuidraw::PainterGlyphShader &p)
 
 void
 fastuidraw::PainterPacker::
-register_shader(const fastuidraw::PainterShaderSet &p)
+register_shader(const PainterShaderSet &p)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);

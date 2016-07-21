@@ -135,7 +135,7 @@ pre_paint(void)
 
 void
 Cell::
-paint_pre_children(const Painter::handle &painter)
+paint_pre_children(const reference_counted_ptr<Painter> &painter)
 {
   painter->save();
   painter->draw_rect(PainterData(m_background_brush), vec2(0.0f, 0.0f), m_dimensions);

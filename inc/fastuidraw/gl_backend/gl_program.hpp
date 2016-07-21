@@ -438,7 +438,7 @@ public:
     \param h handle to action to add
    */
   PreLinkActionArray&
-  add(PreLinkAction::handle h);
+  add(reference_counted_ptr<PreLinkAction> h);
 
   /*!
     Provided as a conveniance, equivalent to
@@ -451,7 +451,7 @@ public:
   PreLinkActionArray&
   add_binding(const char *pname, int plocation)
   {
-    PreLinkAction::handle h(FASTUIDRAWnew BindAttribute(pname, plocation));
+    reference_counted_ptr<PreLinkAction> h(FASTUIDRAWnew BindAttribute(pname, plocation));
     return add(h);
   }
 
@@ -626,7 +626,7 @@ public:
     \param h handle to initializer to add
    */
   ProgramInitializerArray&
-  add(ProgramInitializer::handle h);
+  add(reference_counted_ptr<ProgramInitializer> h);
 
   /*!
     Provided as a conveniance, creates a UniformInitializer
@@ -784,7 +784,7 @@ public:
     \param initers one-time initialization actions to perform the first time the
                    Program is used
    */
-  Program(const_c_array<Shader::handle> pshaders,
+  Program(const_c_array<reference_counted_ptr<Shader> > pshaders,
           const PreLinkActionArray &action=PreLinkActionArray(),
           const ProgramInitializerArray &initers=ProgramInitializerArray());
 
@@ -797,8 +797,8 @@ public:
     \param initers one-time initialization actions to perform the first time the
                    Program is used
    */
-  Program(Shader::handle vert_shader,
-          Shader::handle frag_shader,
+  Program(reference_counted_ptr<Shader> vert_shader,
+          reference_counted_ptr<Shader> frag_shader,
           const PreLinkActionArray &action=PreLinkActionArray(),
           const ProgramInitializerArray &initers=ProgramInitializerArray());
 

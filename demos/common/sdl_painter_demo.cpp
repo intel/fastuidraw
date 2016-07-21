@@ -285,7 +285,7 @@ on_resize(int w, int h)
 void
 sdl_painter_demo::
 draw_text(const std::string &text, float pixel_size,
-          fastuidraw::FontBase::const_handle font,
+          fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
           fastuidraw::GlyphRender renderer,
           const fastuidraw::PainterData &draw)
 {

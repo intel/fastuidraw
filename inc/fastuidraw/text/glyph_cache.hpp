@@ -43,7 +43,7 @@ namespace fastuidraw
       \param patlas GlyphAtlas to store glyph data
      */
     explicit
-    GlyphCache(GlyphAtlas::handle patlas);
+    GlyphCache(reference_counted_ptr<GlyphAtlas> patlas);
 
     ~GlyphCache();
 
@@ -53,7 +53,8 @@ namespace fastuidraw
       to render the glyph.
      */
     Glyph
-    fetch_glyph(GlyphRender render, FontBase::const_handle font,
+    fetch_glyph(GlyphRender render,
+                const reference_counted_ptr<const FontBase> &font,
                 uint32_t glyph_code);
 
     /*!

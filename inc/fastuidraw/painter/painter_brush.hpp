@@ -235,7 +235,7 @@ namespace fastuidraw
                is non-NULL
      */
     PainterBrush&
-    image(const Image::const_handle im, enum image_filter f = image_filter_nearest);
+    image(const reference_counted_ptr<const Image> &im, enum image_filter f = image_filter_nearest);
 
     /*!
       Set the brush to source from a sub-rectangle of an image
@@ -246,7 +246,7 @@ namespace fastuidraw
                is non-NULL
      */
     PainterBrush&
-    sub_image(const Image::const_handle im, uvec2 xy, uvec2 wh,
+    sub_image(const reference_counted_ptr<const Image> &im, uvec2 xy, uvec2 wh,
               enum image_filter f = image_filter_nearest);
 
     /*!
@@ -255,7 +255,7 @@ namespace fastuidraw
     PainterBrush&
     no_image(void)
     {
-      return image(Image::const_handle());
+      return image(reference_counted_ptr<const Image>());
     }
 
     /*!
@@ -268,7 +268,7 @@ namespace fastuidraw
                     clamps the gradient
      */
     PainterBrush&
-    linear_gradient(const ColorStopSequenceOnAtlas::const_handle cs,
+    linear_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
                     const vec2 &start_p, const vec2 &end_p, bool repeat)
     {
       m_data.m_cs = cs;
@@ -292,7 +292,7 @@ namespace fastuidraw
                     clamps the gradient
      */
     PainterBrush&
-    radial_gradient(const ColorStopSequenceOnAtlas::const_handle cs,
+    radial_gradient(const reference_counted_ptr<const ColorStopSequenceOnAtlas> &cs,
                     const vec2 &start_p, float start_r,
                     const vec2 &end_p, float end_r, bool repeat)
     {
@@ -313,7 +313,7 @@ namespace fastuidraw
     PainterBrush&
     no_gradient(void)
     {
-      m_data.m_cs = ColorStopSequenceOnAtlas::const_handle();
+      m_data.m_cs = reference_counted_ptr<const ColorStopSequenceOnAtlas>();
       m_data.m_shader_raw &= ~(gradient_mask | gradient_repeat_mask | radial_gradient_mask);
       return *this;
     }
@@ -484,7 +484,7 @@ namespace fastuidraw
       Returns the value of the handle to the
       Image that the brush is set to use.
      */
-    const Image::const_handle&
+    const reference_counted_ptr<const Image>&
     image(void) const
     {
       return m_data.m_image;
@@ -495,7 +495,7 @@ namespace fastuidraw
       ColorStopSequenceOnAtlas that the
       brush is set to use.
      */
-    const ColorStopSequenceOnAtlas::const_handle&
+    const reference_counted_ptr<const ColorStopSequenceOnAtlas>&
     color_stops(void) const
     {
       return m_data.m_cs;
@@ -510,7 +510,7 @@ namespace fastuidraw
      */
     static
     bool
-    filter_suitable_for_image(const Image::const_handle &im,
+    filter_suitable_for_image(const reference_counted_ptr<const Image> &im,
 			      enum image_filter f);
 
     /*!
@@ -520,7 +520,7 @@ namespace fastuidraw
      */
     static
     enum image_filter
-    best_filter_for_image(const Image::const_handle &im);
+    best_filter_for_image(const reference_counted_ptr<const Image> &im);
 
     /*!
       Returns the slack requirement for an image to
@@ -553,9 +553,9 @@ namespace fastuidraw
 
       uint32_t m_shader_raw;
       vec4 m_pen;
-      Image::const_handle m_image;
+      reference_counted_ptr<const Image> m_image;
       uvec2 m_image_size, m_image_start;
-      ColorStopSequenceOnAtlas::const_handle m_cs;
+      reference_counted_ptr<const ColorStopSequenceOnAtlas> m_cs;
       vec2 m_grad_start, m_grad_end;
       float m_grad_start_r, m_grad_end_r;
       vec2 m_window_position, m_window_size;

@@ -66,7 +66,7 @@ namespace fastuidraw
        */
       virtual
       void
-      current_draw_command(const PainterDrawCommand::const_handle &h) = 0;
+      current_draw_command(const reference_counted_ptr<const PainterDrawCommand> &h) = 0;
 
       /*!
         To be implemented by a derived class to note when a header
@@ -84,7 +84,7 @@ namespace fastuidraw
       \param backend handle to PainterBackend for the constructed PainterPacker
      */
     explicit
-    PainterPacker(PainterBackend::handle backend);
+    PainterPacker(reference_counted_ptr<PainterBackend> backend);
 
     virtual
     ~PainterPacker();
@@ -94,7 +94,7 @@ namespace fastuidraw
       PainterPacker. All glyphs used by this
       PainterPacker must live on glyph_atlas().
      */
-    const GlyphAtlas::handle&
+    const reference_counted_ptr<GlyphAtlas>&
     glyph_atlas(void) const;
 
     /*!
@@ -102,7 +102,7 @@ namespace fastuidraw
       PainterPacker. All images used by all brushes
       of this PainterPacker must live on image_atlas().
      */
-    const ImageAtlas::handle&
+    const reference_counted_ptr<ImageAtlas>&
     image_atlas(void) const;
 
     /*!
@@ -110,13 +110,13 @@ namespace fastuidraw
       PainterPacker. All color stops used by all brushes
       of this PainterPacker must live on colorstop_atlas().
      */
-    const ColorStopAtlas::handle&
+    const reference_counted_ptr<ColorStopAtlas>&
     colorstop_atlas(void) const;
 
     /*!
       Returns the active blend shader
      */
-    const PainterShader::const_handle&
+    const reference_counted_ptr<const PainterShader>&
     blend_shader(void) const;
 
     /*!
@@ -125,7 +125,7 @@ namespace fastuidraw
       \param h blend shader to use for blending.
      */
     void
-    blend_shader(const PainterShader::const_handle &h);
+    blend_shader(const reference_counted_ptr<const PainterShader> &h);
 
     /*!
       Indicate to start drawing. Commands are buffered and not
@@ -170,7 +170,7 @@ namespace fastuidraw
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
                  const PainterItemShader &shader, unsigned int z,
-                 const DataCallBack::handle &call_back = DataCallBack::handle());
+                 const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
 
     /*!
       Draw generic attribute data
@@ -191,7 +191,7 @@ namespace fastuidraw
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
                  const_c_array<unsigned int> attrib_chunk_selector,
                  const PainterItemShader &shader, unsigned int z,
-                 const DataCallBack::handle &call_back = DataCallBack::handle());
+                 const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
 
     /*!
       Returns the PainterBackend::PerformanceHints of the underlying
@@ -205,21 +205,21 @@ namespace fastuidraw
       begin() / end() pair.
      */
     void
-    register_vert_shader(const PainterShader::handle &shader);
+    register_vert_shader(const reference_counted_ptr<PainterShader> &shader);
 
     /*!
       Registers a shader for use. Must not be called within
       a begin() / end() pair.
     */
     void
-    register_frag_shader(const PainterShader::handle &shader);
+    register_frag_shader(const reference_counted_ptr<PainterShader> &shader);
 
     /*!
       Registers a shader for use. Must not be called within
       a begin() / end() pair.
     */
     void
-    register_blend_shader(const PainterShader::handle &shader);
+    register_blend_shader(const reference_counted_ptr<PainterShader> &shader);
 
     /*!
       Register an item shader for use. Must not be called within

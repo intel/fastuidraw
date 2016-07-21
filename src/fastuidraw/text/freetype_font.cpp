@@ -75,7 +75,8 @@ namespace
     FontFreeTypePrivate(fastuidraw::FontFreeType *p, FT_Face pface,
                         const fastuidraw::FontFreeType::RenderParams &render_params);
 
-    FontFreeTypePrivate(fastuidraw::FontFreeType *p, FT_Face pface, fastuidraw::FreetypeLib::handle lib,
+    FontFreeTypePrivate(fastuidraw::FontFreeType *p, FT_Face pface,
+                        fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> lib,
                         const fastuidraw::FontFreeType::RenderParams &render_params);
 
     ~FontFreeTypePrivate();
@@ -106,7 +107,7 @@ namespace
     boost::mutex m_mutex;
     FT_Face m_face;
     fastuidraw::FontFreeType::RenderParams m_render_params;
-    fastuidraw::FreetypeLib::handle m_lib;
+    fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> m_lib;
     fastuidraw::FontFreeType *m_p;
   };
 }
@@ -124,7 +125,8 @@ FontFreeTypePrivate(fastuidraw::FontFreeType *p, FT_Face pface,
 }
 
 FontFreeTypePrivate::
-FontFreeTypePrivate(fastuidraw::FontFreeType *p, FT_Face pface, fastuidraw::FreetypeLib::handle lib,
+FontFreeTypePrivate(fastuidraw::FontFreeType *p, FT_Face pface,
+                    fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> lib,
                     const fastuidraw::FontFreeType::RenderParams &render_params):
   m_face(pface),
   m_render_params(render_params),
@@ -411,7 +413,8 @@ FontFreeType(FT_Face pface, const RenderParams &render_params):
 }
 
 fastuidraw::FontFreeType::
-FontFreeType(FT_Face pface, FreetypeLib::handle lib, const FontProperties &props,
+FontFreeType(FT_Face pface, reference_counted_ptr<FreetypeLib> lib,
+             const FontProperties &props,
              const RenderParams &render_params):
   FontBase(props)
 {
@@ -419,7 +422,8 @@ FontFreeType(FT_Face pface, FreetypeLib::handle lib, const FontProperties &props
 }
 
 fastuidraw::FontFreeType::
-FontFreeType(FT_Face pface, FreetypeLib::handle lib, const RenderParams &render_params):
+FontFreeType(FT_Face pface, reference_counted_ptr<FreetypeLib> lib,
+             const RenderParams &render_params):
   FontBase(compute_font_propertes_from_face(pface))
 {
   m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface, lib, render_params);
@@ -518,8 +522,9 @@ face(void) const
 
 int
 fastuidraw::FontFreeType::
-create(c_array<handle> fonts, const char *filename,
-       FreetypeLib::handle lib, const RenderParams &render_params)
+create(c_array<reference_counted_ptr<FontFreeType> > fonts, const char *filename,
+       reference_counted_ptr<FreetypeLib> lib,
+       const RenderParams &render_params)
 {
   if(!lib || !lib->valid())
     {
@@ -533,7 +538,7 @@ create(c_array<handle> fonts, const char *filename,
   error_code = FT_New_Face(lib->lib(), filename, -1, &face);
   if(error_code == 0 && face != NULL && (face->face_flags & FT_FACE_FLAG_SCALABLE) == 0)
     {
-      fastuidraw::FontFreeType::handle f;
+      reference_counted_ptr<fastuidraw::FontFreeType> f;
 
       num = face->num_faces;
       for(unsigned int i = 0, c = 0; i < num && c < fonts.size(); ++i, ++c)
@@ -550,14 +555,14 @@ create(c_array<handle> fonts, const char *filename,
   return num;
 }
 
-fastuidraw::FontFreeType::handle
+fastuidraw::reference_counted_ptr<fastuidraw::FontFreeType>
 fastuidraw::FontFreeType::
-create(const char *filename, FreetypeLib::handle lib,
+create(const char *filename, reference_counted_ptr<FreetypeLib> lib,
        const RenderParams &render_params, int face_index)
 {
   if(!lib || !lib->valid())
     {
-      return handle();
+      return reference_counted_ptr<FontFreeType>();
     }
 
   int error_code;
@@ -569,7 +574,7 @@ create(const char *filename, FreetypeLib::handle lib,
         {
           FT_Done_Face(face);
         }
-      return handle();
+      return reference_counted_ptr<FontFreeType>();
     }
 
   FontProperties p;
@@ -582,11 +587,11 @@ create(const char *filename, FreetypeLib::handle lib,
   return FASTUIDRAWnew FontFreeType(face, lib, p, render_params);
 }
 
-fastuidraw::FontFreeType::handle
+fastuidraw::reference_counted_ptr<fastuidraw::FontFreeType>
 fastuidraw::FontFreeType::
 create(const char *filename, const RenderParams &render_params, int face_index)
 {
-  FreetypeLib::handle lib;
+  reference_counted_ptr<FreetypeLib> lib;
   lib = FASTUIDRAWnew FreetypeLib();
   return create(filename, lib, render_params, face_index);
 }

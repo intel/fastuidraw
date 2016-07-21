@@ -163,7 +163,7 @@ namespace fastuidraw
     /*!
       Vertex shader for the item.
      */
-    const PainterShader::handle&
+    const reference_counted_ptr<PainterShader>&
     vert_shader(void) const;
 
     /*!
@@ -171,12 +171,12 @@ namespace fastuidraw
       \param sh value to use
      */
     PainterItemShader&
-    vert_shader(const PainterShader::handle &sh);
+    vert_shader(const reference_counted_ptr<PainterShader> &sh);
 
     /*!
       Fragment shader for the item.
      */
-    const PainterShader::handle&
+    const reference_counted_ptr<PainterShader>&
     frag_shader(void) const;
 
     /*!
@@ -184,7 +184,7 @@ namespace fastuidraw
       \param sh value to use
      */
     PainterItemShader&
-    frag_shader(const PainterShader::handle &sh);
+    frag_shader(const reference_counted_ptr<PainterShader> &sh);
 
   private:
     void *m_d;
@@ -278,7 +278,7 @@ namespace fastuidraw
       PainterEnums::blend_mode_t.
       \param tp blend mode
      */
-    const PainterShader::handle&
+    const reference_counted_ptr<PainterShader>&
     shader(enum PainterEnums::blend_mode_t tp) const;
 
     /*!
@@ -288,11 +288,12 @@ namespace fastuidraw
       \param sh PainterShader to use for the blend mode
      */
     void
-    shader(enum PainterEnums::blend_mode_t tp, const PainterShader::handle &sh);
+    shader(enum PainterEnums::blend_mode_t tp,
+           const reference_counted_ptr<PainterShader> &sh);
 
     /*!
       Returns the one plus the largest value for which
-      shader(enum PainterEnums::blend_mode_t, PainterShader::handle)
+      shader(enum PainterEnums::blend_mode_t, const reference_counted_ptr<PainterShader>&)
       was called.
      */
     unsigned int

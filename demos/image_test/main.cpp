@@ -431,7 +431,7 @@ private:
   void
   build_programs(void)
   {
-    gl::Program::handle pr;
+    reference_counted_ptr<gl::Program> pr;
 
     {
       pr = FASTUIDRAWnew gl::Program(gl::Shader::shader_source()
@@ -454,7 +454,7 @@ private:
 
     {
       unsigned int max_num_look_ups(1);
-      for(std::vector<Image::handle>::iterator iter = m_image_handles.begin(),
+      for(std::vector<reference_counted_ptr<Image> >::iterator iter = m_image_handles.begin(),
             end = m_image_handles.end(); iter != end; ++iter)
         {
           max_num_look_ups = std::max(max_num_look_ups, (*iter)->number_index_lookups());
@@ -606,7 +606,7 @@ private:
     {}
 
     void
-    set(const std::string &label, gl::Program::handle pr)
+    set(const std::string &label, reference_counted_ptr<gl::Program> pr)
     {
       assert(pr);
       m_pr = pr;
@@ -627,7 +627,7 @@ private:
       assert(m_vbo != 0);
     }
 
-    gl::Program::handle m_pr;
+    reference_counted_ptr<gl::Program> m_pr;
     GLint m_pvm;
     GLint m_scale;
     GLint m_translate;
@@ -653,8 +653,8 @@ private:
   std::vector<float> m_index_boundary_mix_values;
   float m_filtered_lookup;
 
-  gl::ImageAtlasGL::handle m_atlas;
-  std::vector<Image::handle> m_image_handles;
+  reference_counted_ptr<gl::ImageAtlasGL> m_atlas;
+  std::vector<reference_counted_ptr<Image> > m_image_handles;
   std::vector<std::string> m_image_names;
   vecN<per_program, number_draw_types> m_program;
   unsigned int m_current_program;

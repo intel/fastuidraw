@@ -112,7 +112,7 @@ namespace
   class PreLinkActionArrayPrivate
   {
   public:
-    std::vector<fastuidraw::gl::PreLinkAction::handle> m_values;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::gl::PreLinkAction> > m_values;
   };
 
   class UniformBlockInitializerPrivate
@@ -130,7 +130,7 @@ namespace
   class ProgramInitializerArrayPrivate
   {
   public:
-    std::vector<fastuidraw::gl::ProgramInitializer::handle> m_values;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::gl::ProgramInitializer> > m_values;
   };
 
   class ParameterInfoPrivate
@@ -193,7 +193,7 @@ namespace
   class ProgramPrivate
   {
   public:
-    ProgramPrivate(const fastuidraw::const_c_array<fastuidraw::gl::Shader::handle> pshaders,
+    ProgramPrivate(const fastuidraw::const_c_array<fastuidraw::reference_counted_ptr<fastuidraw::gl::Shader> > pshaders,
                    const fastuidraw::gl::PreLinkActionArray &action,
                    const fastuidraw::gl::ProgramInitializerArray &initers,
                    fastuidraw::gl::Program *p):
@@ -206,8 +206,8 @@ namespace
     {
     }
 
-    ProgramPrivate(fastuidraw::gl::Shader::handle vert_shader,
-                   fastuidraw::gl::Shader::handle frag_shader,
+    ProgramPrivate(fastuidraw::reference_counted_ptr<fastuidraw::gl::Shader> vert_shader,
+                   fastuidraw::reference_counted_ptr<fastuidraw::gl::Shader> frag_shader,
                    const fastuidraw::gl::PreLinkActionArray &action,
                    const fastuidraw::gl::ProgramInitializerArray &initers,
                    fastuidraw::gl::Program *p):
@@ -245,7 +245,7 @@ namespace
     void
     generate_log(void);
 
-    std::vector<fastuidraw::gl::Shader::handle> m_shaders;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::gl::Shader> > m_shaders;
     std::vector<ShaderData> m_shader_data;
     std::map<GLenum, std::vector<int> > m_shader_data_sorted_by_type;
 
@@ -1004,7 +1004,7 @@ operator=(const PreLinkActionArray &rhs)
 
 fastuidraw::gl::PreLinkActionArray&
 fastuidraw::gl::PreLinkActionArray::
-add(PreLinkAction::handle h)
+add(reference_counted_ptr<PreLinkAction> h)
 {
   PreLinkActionArrayPrivate *d;
   d = reinterpret_cast<PreLinkActionArrayPrivate*>(m_d);
@@ -1020,7 +1020,7 @@ execute_actions(GLuint pr) const
 {
   PreLinkActionArrayPrivate *d;
   d = reinterpret_cast<PreLinkActionArrayPrivate*>(m_d);
-  for(std::vector<PreLinkAction::handle>::const_iterator
+  for(std::vector<reference_counted_ptr<PreLinkAction> >::const_iterator
         iter = d->m_values.begin(), end = d->m_values.end();
       iter != end; ++iter)
     {
@@ -1109,7 +1109,7 @@ assemble(void)
 
   //attatch the shaders, attaching a bad shader makes
   //m_link_success become false
-  for(std::vector<fastuidraw::gl::Shader::handle>::iterator iter = m_shaders.begin(),
+  for(std::vector<fastuidraw::reference_counted_ptr<fastuidraw::gl::Shader> >::iterator iter = m_shaders.begin(),
         end = m_shaders.end(); iter != end; ++iter)
     {
       if((*iter)->compile_success())
@@ -1265,7 +1265,7 @@ generate_log(void)
 ////////////////////////////////////////////////////////
 //fastuidraw::gl::Program methods
 fastuidraw::gl::Program::
-Program(const_c_array<Shader::handle> pshaders,
+Program(const_c_array<reference_counted_ptr<Shader> > pshaders,
         const PreLinkActionArray &action,
         const ProgramInitializerArray &initers)
 {
@@ -1273,8 +1273,8 @@ Program(const_c_array<Shader::handle> pshaders,
 }
 
 fastuidraw::gl::Program::
-Program(Shader::handle vert_shader,
-        Shader::handle frag_shader,
+Program(reference_counted_ptr<Shader> vert_shader,
+        reference_counted_ptr<Shader> frag_shader,
         const PreLinkActionArray &action,
         const ProgramInitializerArray &initers)
 {
@@ -1503,7 +1503,7 @@ operator=(const ProgramInitializerArray &rhs)
 
 fastuidraw::gl::ProgramInitializerArray&
 fastuidraw::gl::ProgramInitializerArray::
-add(ProgramInitializer::handle h)
+add(reference_counted_ptr<ProgramInitializer> h)
 {
   ProgramInitializerArrayPrivate *d;
   d = reinterpret_cast<ProgramInitializerArrayPrivate*>(m_d);
@@ -1518,11 +1518,11 @@ perform_initializations(Program *pr) const
 {
   ProgramInitializerArrayPrivate *d;
   d = reinterpret_cast<ProgramInitializerArrayPrivate*>(m_d);
-  for(std::vector<ProgramInitializer::handle>::const_iterator
+  for(std::vector<reference_counted_ptr<ProgramInitializer> >::const_iterator
         iter = d->m_values.begin(), end = d->m_values.end();
       iter != end; ++iter)
     {
-      const ProgramInitializer::handle &v(*iter);
+      const reference_counted_ptr<ProgramInitializer> &v(*iter);
       assert(v);
       v->perform_initialization(pr);
     }

@@ -146,7 +146,7 @@ namespace fastuidraw
              object to which the atlas will store color stops
      */
     explicit
-    ColorStopAtlas(ColorStopBackingStore::handle pbacking_store);
+    ColorStopAtlas(reference_counted_ptr<ColorStopBackingStore> pbacking_store);
 
     virtual
     ~ColorStopAtlas();
@@ -198,7 +198,7 @@ namespace fastuidraw
     /*!
       Returns a handle to the backing store of the atlas.
      */
-    ColorStopBackingStore::const_handle
+    reference_counted_ptr<const ColorStopBackingStore>
     backing_store(void) const;
 
     /*!
@@ -232,7 +232,7 @@ namespace fastuidraw
                     ColorStopAtlas::max_width().
      */
     ColorStopSequenceOnAtlas(const ColorStopSequence &color_stops,
-                             ColorStopAtlas::handle atlas,
+                             reference_counted_ptr<ColorStopAtlas> atlas,
                              int pwidth);
 
     ~ColorStopSequenceOnAtlas();
@@ -259,7 +259,7 @@ namespace fastuidraw
     /*!
       Returns the atlas on which the object resides
      */
-    ColorStopAtlas::const_handle
+    reference_counted_ptr<const ColorStopAtlas>
     atlas(void) const;
 
   private:

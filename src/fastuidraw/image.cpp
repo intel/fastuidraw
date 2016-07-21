@@ -224,8 +224,8 @@ namespace
   {
   public:
     ImageAtlasPrivate(int pcolor_tile_size, int pindex_tile_size,
-                      fastuidraw::AtlasColorBackingStoreBase::handle pcolor_store,
-                      fastuidraw::AtlasIndexBackingStoreBase::handle pindex_store):
+                      fastuidraw::reference_counted_ptr<fastuidraw::AtlasColorBackingStoreBase> pcolor_store,
+                      fastuidraw::reference_counted_ptr<fastuidraw::AtlasIndexBackingStoreBase> pindex_store):
       m_color_store(pcolor_store),
       m_color_tiles(pcolor_tile_size, pcolor_store->dimensions()),
       m_index_store(pindex_store),
@@ -235,10 +235,10 @@ namespace
 
     boost::mutex m_mutex;
 
-    fastuidraw::AtlasColorBackingStoreBase::handle m_color_store;
+    fastuidraw::reference_counted_ptr<fastuidraw::AtlasColorBackingStoreBase> m_color_store;
     tile_allocator m_color_tiles;
 
-    fastuidraw::AtlasIndexBackingStoreBase::handle m_index_store;
+    fastuidraw::reference_counted_ptr<fastuidraw::AtlasIndexBackingStoreBase> m_index_store;
     tile_allocator m_index_tiles;
 
     bool m_resizeable;
@@ -263,7 +263,7 @@ namespace
   class ImagePrivate
   {
   public:
-    ImagePrivate(fastuidraw::ImageAtlas::handle patlas,
+    ImagePrivate(fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> patlas,
                  int w, int h,
                  fastuidraw::const_c_array<fastuidraw::u8vec4> image_data,
                  unsigned int pslack);
@@ -282,7 +282,7 @@ namespace
                        fastuidraw::ivec2 src_dims, int slack,
                        std::list<std::vector<fastuidraw::ivec3> > &destination);
 
-    fastuidraw::ImageAtlas::handle m_atlas;
+    fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> m_atlas;
     fastuidraw::ivec2 m_dimensions;
     unsigned int m_slack;
     fastuidraw::ivec2 m_num_color_tiles;
@@ -301,7 +301,7 @@ namespace
 /////////////////////////////////////////////
 //ImagePrivate methods
 ImagePrivate::
-ImagePrivate(fastuidraw::ImageAtlas::handle patlas,
+ImagePrivate(fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> patlas,
              int w, int h,
              fastuidraw::const_c_array<fastuidraw::u8vec4> image_data,
              unsigned int pslack):
@@ -738,8 +738,8 @@ resize(int new_num_layers)
 // fastuidraw::ImageAtlas methods
 fastuidraw::ImageAtlas::
 ImageAtlas(int pcolor_tile_size, int pindex_tile_size,
-           AtlasColorBackingStoreBase::handle pcolor_store,
-           AtlasIndexBackingStoreBase::handle pindex_store)
+           fastuidraw::reference_counted_ptr<AtlasColorBackingStoreBase> pcolor_store,
+           fastuidraw::reference_counted_ptr<AtlasIndexBackingStoreBase> pindex_store)
 {
   m_d = FASTUIDRAWnew ImageAtlasPrivate(pcolor_tile_size, pindex_tile_size,
                                        pcolor_store, pindex_store);
@@ -896,7 +896,7 @@ flush(void) const
   d->m_color_store->flush();
 }
 
-fastuidraw::AtlasColorBackingStoreBase::const_handle
+fastuidraw::reference_counted_ptr<const fastuidraw::AtlasColorBackingStoreBase>
 fastuidraw::ImageAtlas::
 color_store(void) const
 {
@@ -905,7 +905,7 @@ color_store(void) const
   return d->m_color_store;
 }
 
-fastuidraw::AtlasIndexBackingStoreBase::const_handle
+fastuidraw::reference_counted_ptr<const fastuidraw::AtlasIndexBackingStoreBase>
 fastuidraw::ImageAtlas::
 index_store(void) const
 {
@@ -943,9 +943,9 @@ resize_to_fit(int num_color_tiles, int num_index_tiles)
 
 //////////////////////////////////////
 // fastuidraw::Image methods
-fastuidraw::Image::handle
+fastuidraw::reference_counted_ptr<fastuidraw::Image>
 fastuidraw::Image::
-create(ImageAtlas::handle atlas, int w, int h,
+create(fastuidraw::reference_counted_ptr<ImageAtlas> atlas, int w, int h,
        const_c_array<u8vec4> image_data, unsigned int pslack)
 {
   int tile_interior_size;
@@ -955,7 +955,7 @@ create(ImageAtlas::handle atlas, int w, int h,
 
   if(w <= 0 || h <= 0)
     {
-      return handle();
+      return reference_counted_ptr<Image>();
     }
 
   color_tile_size = atlas->color_tile_size();
@@ -963,7 +963,7 @@ create(ImageAtlas::handle atlas, int w, int h,
 
   if(tile_interior_size <= 0)
     {
-      return handle();
+      return reference_counted_ptr<Image>();
     }
 
   num_color_tiles = divide_up(ivec2(w, h), tile_interior_size);
@@ -981,7 +981,7 @@ create(ImageAtlas::handle atlas, int w, int h,
         }
       else
         {
-          return handle();
+          return reference_counted_ptr<Image>();
         }
     }
 
@@ -989,7 +989,7 @@ create(ImageAtlas::handle atlas, int w, int h,
 }
 
 fastuidraw::Image::
-Image(fastuidraw::ImageAtlas::handle patlas,
+Image(fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> patlas,
       int w, int h,
       fastuidraw::const_c_array<fastuidraw::u8vec4> image_data,
       unsigned int pslack)
@@ -1061,7 +1061,7 @@ dimensions_index_divisor(void) const
   return d->m_dimensions_index_divisor;
 }
 
-fastuidraw::ImageAtlas::const_handle
+const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas>&
 fastuidraw::Image::
 atlas(void) const
 {

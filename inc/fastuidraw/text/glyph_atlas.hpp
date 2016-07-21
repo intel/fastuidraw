@@ -270,8 +270,8 @@ namespace fastuidraw
       \param ptexel_store GlyphAtlasTexelBackingStoreBase to which to store texel data
       \param pgeometry_store GlyphAtlasGeometryBackingStoreBase to which to store geometry data
      */
-    GlyphAtlas(GlyphAtlasTexelBackingStoreBase::handle ptexel_store,
-               GlyphAtlasGeometryBackingStoreBase::handle pgeometry_store);
+    GlyphAtlas(reference_counted_ptr<GlyphAtlasTexelBackingStoreBase> ptexel_store,
+               reference_counted_ptr<GlyphAtlasGeometryBackingStoreBase> pgeometry_store);
 
     virtual
     ~GlyphAtlas();
@@ -325,13 +325,13 @@ namespace fastuidraw
     /*!
       Returns the texel store for this GlyphAtlas.
      */
-    GlyphAtlasTexelBackingStoreBase::const_handle
+    reference_counted_ptr<const GlyphAtlasTexelBackingStoreBase>
     texel_store(void) const;
 
     /*!
       Returns the geometry store for this GlyphAtlas.
      */
-    GlyphAtlasGeometryBackingStoreBase::const_handle
+    reference_counted_ptr<const GlyphAtlasGeometryBackingStoreBase>
     geometry_store(void) const;
 
   private:

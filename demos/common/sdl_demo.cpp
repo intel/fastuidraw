@@ -209,7 +209,7 @@ sdl_demo::
           FASTUIDRAWdelete(m_gl_logger);
         }
       
-      m_ctx_egl = egl_gles_context::handle();      
+      m_ctx_egl = fastuidraw::reference_counted_ptr<egl_gles_context>();
       if(m_ctx)
         {
           SDL_GL_MakeCurrent(m_window, NULL);

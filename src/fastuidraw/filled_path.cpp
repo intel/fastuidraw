@@ -71,7 +71,7 @@ namespace
     unsigned int m_count;
   };
 
-  typedef std::map<int, per_winding_data::handle> winding_index_hoard;
+  typedef std::map<int, fastuidraw::reference_counted_ptr<per_winding_data> > winding_index_hoard;
 
   bool
   is_even(int v)
@@ -184,7 +184,7 @@ namespace
 
     winding_index_hoard &m_hoard;
     int m_current_winding;
-    per_winding_data::handle m_current_indices;
+    fastuidraw::reference_counted_ptr<per_winding_data> m_current_indices;
   };
 
   class zero_tesser:private tesser
@@ -218,7 +218,7 @@ namespace
     FASTUIDRAW_GLUboolean
     fill_region(int winding_number);
 
-    per_winding_data::handle &m_indices;
+    fastuidraw::reference_counted_ptr<per_winding_data> &m_indices;
   };
 
   class builder:fastuidraw::noncopyable
@@ -470,7 +470,7 @@ on_begin_polygon(int winding_number)
   // std::cout << "nonzero_tesser::on_begin_polygon(" << winding_number << ")\n";
   if(!m_current_indices || m_current_winding != winding_number)
     {
-      per_winding_data::handle &h(m_hoard[winding_number]);
+      fastuidraw::reference_counted_ptr<per_winding_data> &h(m_hoard[winding_number]);
       m_current_winding = winding_number;
       if(!h)
         {

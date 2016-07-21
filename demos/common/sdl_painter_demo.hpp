@@ -35,18 +35,18 @@ protected:
 protected:
   void
   draw_text(const std::string &text, float pixel_size,
-            fastuidraw::FontBase::const_handle font,
+            fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
             fastuidraw::GlyphRender renderer,
             const fastuidraw::PainterData &draw);
 
-  fastuidraw::gl::ImageAtlasGL::handle m_image_atlas;
-  fastuidraw::gl::GlyphAtlasGL::handle m_glyph_atlas;
-  fastuidraw::gl::ColorStopAtlasGL::handle m_colorstop_atlas;
-  fastuidraw::gl::PainterBackendGL::handle m_backend;
-  fastuidraw::Painter::handle m_painter;
-  fastuidraw::GlyphCache::handle m_glyph_cache;
-  fastuidraw::GlyphSelector::handle m_glyph_selector;
-  fastuidraw::FreetypeLib::handle m_ft_lib;
+  fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL> m_image_atlas;
+  fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> m_glyph_atlas;
+  fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL> m_colorstop_atlas;
+  fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendGL> m_backend;
+  fastuidraw::reference_counted_ptr<fastuidraw::Painter> m_painter;
+  fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_glyph_cache;
+  fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> m_glyph_selector;
+  fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> m_ft_lib;
 
 private:
   typedef enum fastuidraw::gl::PainterBackendGL::data_store_backing_t data_store_backing_t;

@@ -34,9 +34,9 @@ namespace
   class PainterBackendPrivate
   {
   public:
-    PainterBackendPrivate(fastuidraw::GlyphAtlas::handle glyph_atlas,
-                          fastuidraw::ImageAtlas::handle image_atlas,
-                          fastuidraw::ColorStopAtlas::handle colorstop_atlas,
+    PainterBackendPrivate(fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> glyph_atlas,
+                          fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> image_atlas,
+                          fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas> colorstop_atlas,
                           const fastuidraw::PainterBackend::Configuration &config,
                           const fastuidraw::PainterShaderSet &shaders):
       m_glyph_atlas(glyph_atlas),
@@ -47,9 +47,9 @@ namespace
       m_default_shaders_registered(false)
     {}
 
-    fastuidraw::GlyphAtlas::handle m_glyph_atlas;
-    fastuidraw::ImageAtlas::handle m_image_atlas;
-    fastuidraw::ColorStopAtlas::handle m_colorstop_atlas;
+    fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> m_glyph_atlas;
+    fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> m_image_atlas;
+    fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas> m_colorstop_atlas;
     fastuidraw::PainterBackend::Configuration m_config;
     fastuidraw::PainterBackend::PerformanceHints m_hints;
     fastuidraw::PainterShaderSet m_default_shaders;
@@ -182,9 +182,9 @@ alignment(int v)
 ////////////////////////////////////
 // fastuidraw::PainterBackend methods
 fastuidraw::PainterBackend::
-PainterBackend(GlyphAtlas::handle glyph_atlas,
-               ImageAtlas::handle image_atlas,
-               ColorStopAtlas::handle colorstop_atlas,
+PainterBackend(reference_counted_ptr<GlyphAtlas> glyph_atlas,
+               reference_counted_ptr<ImageAtlas> image_atlas,
+               reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
                const Configuration &config,
                const PainterShaderSet &shaders)
 {
@@ -221,7 +221,7 @@ hints(void) const
 
 void
 fastuidraw::PainterBackend::
-register_vert_shader(const PainterShader::handle &shader)
+register_vert_shader(const reference_counted_ptr<PainterShader> &shader)
 {
   if(!shader)
     {
@@ -239,7 +239,7 @@ register_vert_shader(const PainterShader::handle &shader)
 
 void
 fastuidraw::PainterBackend::
-register_frag_shader(const PainterShader::handle &shader)
+register_frag_shader(const reference_counted_ptr<PainterShader> &shader)
 {
   if(!shader)
     {
@@ -257,7 +257,7 @@ register_frag_shader(const PainterShader::handle &shader)
 
 void
 fastuidraw::PainterBackend::
-register_blend_shader(const PainterShader::handle &shader)
+register_blend_shader(const reference_counted_ptr<PainterShader> &shader)
 {
   if(!shader)
     {
@@ -292,7 +292,7 @@ register_shader(const PainterBlendShaderSet &p)
       enum PainterEnums::blend_mode_t tp;
       tp = static_cast<enum PainterEnums::blend_mode_t>(i);
 
-      const PainterShader::handle &sh(p.shader(tp));
+      const reference_counted_ptr<PainterShader> &sh(p.shader(tp));
       register_blend_shader(sh);
     }
 }
@@ -342,7 +342,7 @@ register_shader(const PainterStrokeShader &p)
   register_shader(p.aa_shader_pass2());
 }
 
-const fastuidraw::GlyphAtlas::handle&
+const fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas>&
 fastuidraw::PainterBackend::
 glyph_atlas(void)
 {
@@ -351,7 +351,7 @@ glyph_atlas(void)
   return d->m_glyph_atlas;
 }
 
-const fastuidraw::ImageAtlas::handle&
+const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas>&
 fastuidraw::PainterBackend::
 image_atlas(void)
 {
@@ -360,7 +360,7 @@ image_atlas(void)
   return d->m_image_atlas;
 }
 
-const fastuidraw::ColorStopAtlas::handle&
+const fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas>&
 fastuidraw::PainterBackend::
 colorstop_atlas(void)
 {

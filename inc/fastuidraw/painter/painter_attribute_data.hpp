@@ -45,7 +45,7 @@ namespace fastuidraw
       and index_data_chunks() for different portions of
       data needed for stroking a path when the data of this
       PainterAttributeData has been set with
-      set_data(const StrokedPath::const_handle &).
+      set_data(const reference_counted_ptr<const StrokedPath> &).
      */
     enum stroking_data_t
       {
@@ -105,7 +105,7 @@ namespace fastuidraw
       - PainterAttribute::m_uint_attrib .w -> 0 (free)
      */
     void
-    set_data(const StrokedPath::const_handle &path);
+    set_data(const reference_counted_ptr<const StrokedPath> &path);
 
     /*!
       Set the attribute and index data for filling a path.
@@ -127,7 +127,7 @@ namespace fastuidraw
       - PainterAttribute::m_uint_attrib .w -> 0 (free)
      */
     void
-    set_data(const FilledPath::const_handle &path);
+    set_data(const reference_counted_ptr<const FilledPath> &path);
 
     /*!
       Set the data for drawing glyphs. The enumeration glyph_type
@@ -228,7 +228,7 @@ namespace fastuidraw
 
     /*!
       Returns the attribute data chunks. For all but those
-      objects set by set_data(const FilledPath::const_handle &),
+      objects set by set_data(const reference_counted_ptr<const FilledPath> &),
       for each attribute data chunk, there is a matching index
       data chunk. A chunk is an attribute and index data chunk pair.
       Specifically one uses index_data_chunks()[i] to draw the contents
@@ -249,7 +249,7 @@ namespace fastuidraw
 
     /*!
       Returns the index data chunks. For all but those
-      objects set by set_data(const FilledPath::const_handle &),
+      objects set by set_data(const reference_counted_ptr<const FilledPath> &),
       for each attribute data chunk, there is a matching index
       data chunk. A chunk is an attribute and index data chunk pair.
       Specifically one uses index_data_chunks()[i] to draw the contents
@@ -296,7 +296,7 @@ namespace fastuidraw
     /*!
       Returns the value to feed to index_data_chunk()
       to get the index data for the fill of a path
-      (see set_data(const FilledPath::const_handle&))
+      (see set_data(const reference_counted_ptr<const FilledPath>&))
       with a specified winding number.
       \param winding_number winding number of fill data to fetch
      */

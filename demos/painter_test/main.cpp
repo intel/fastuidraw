@@ -26,7 +26,7 @@ protected:
   {
     if(m_backend->program()->link_success())
       {
-        gl::Program::handle pr(m_backend->program());
+        reference_counted_ptr<gl::Program> pr(m_backend->program());
         std::cout << "Link success\n";
         std::ofstream file("painter.program.glsl");
         file << pr->log();

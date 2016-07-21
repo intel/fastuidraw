@@ -69,12 +69,12 @@ namespace
     store_size(int log2_tile_size, int log2_num_tiles_per_row_per_col, int num_layers);
 
     static
-    handle
+    fastuidraw::reference_counted_ptr<fastuidraw::AtlasColorBackingStoreBase>
     create(int log2_tile_size, int log2_num_tiles_per_row_per_col, int num_layers, bool delayed)
     {
       ColorBackingStoreGL *p;
       p = FASTUIDRAWnew ColorBackingStoreGL(log2_tile_size, log2_num_tiles_per_row_per_col, num_layers, delayed);
-      return handle(p);
+      return fastuidraw::reference_counted_ptr<fastuidraw::AtlasColorBackingStoreBase>(p);
     }
 
   protected:
@@ -139,7 +139,7 @@ namespace
                int num_layers);
 
     static
-    handle
+    fastuidraw::reference_counted_ptr<fastuidraw::AtlasIndexBackingStoreBase>
     create(int log2_tile_size,
            int log2_num_index_tiles_per_row_per_col,
            int num_layers, bool delayed)
@@ -148,7 +148,7 @@ namespace
       p = FASTUIDRAWnew IndexBackingStoreGL(log2_tile_size,
                                            log2_num_index_tiles_per_row_per_col,
                                            num_layers, delayed);
-      return handle(p);
+      return fastuidraw::reference_counted_ptr<fastuidraw::AtlasIndexBackingStoreBase>(p);
     }
 
   protected:
@@ -489,7 +489,7 @@ glsl_compute_coord_src(const char *function_name,
 
 fastuidraw::vecN<fastuidraw::vec2, 2>
 fastuidraw::gl::ImageAtlasGL::
-shader_coords(Image::handle image)
+shader_coords(reference_counted_ptr<Image> image)
 {
   ivec2 master_index_tile(image->master_index_tile());
 

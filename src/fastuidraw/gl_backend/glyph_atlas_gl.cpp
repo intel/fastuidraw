@@ -92,7 +92,7 @@ namespace
     texture(bool as_integer) const;
 
     static
-    handle
+    fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasTexelBackingStoreBase>
     create(fastuidraw::ivec3 dims, bool delayed);
 
   protected:
@@ -128,7 +128,7 @@ namespace
     texture(void) const = 0;
 
     static
-    handle
+    fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase>
     create(const fastuidraw::gl::GlyphAtlasGL::params &P);
 
     GLenum m_binding_point;
@@ -394,13 +394,13 @@ texture(bool as_integer) const
   return m_texture_as_r8;
 }
 
-TexelStoreGL::handle
+fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasTexelBackingStoreBase>
 TexelStoreGL::
 create(fastuidraw::ivec3 dims, bool delayed)
 {
   TexelStoreGL *p;
   p = FASTUIDRAWnew TexelStoreGL(dims, delayed);
-  return handle(p);
+  return fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasTexelBackingStoreBase>(p);
 }
 
 ///////////////////////////////////////////////
@@ -609,7 +609,7 @@ texture(void) const
 
 ////////////////////////////////////////
 // GeometryStoreGL methods
-GeometryStoreGL::handle
+fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase>
 GeometryStoreGL::
 create(const fastuidraw::gl::GlyphAtlasGL::params &P)
 {
@@ -637,7 +637,7 @@ create(const fastuidraw::gl::GlyphAtlasGL::params &P)
                                                 number_vecNs, delayed, N);
       break;
     }
-  return handle(p);
+  return fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase>(p);
 }
 
 ////////////////////////////////////////////////////

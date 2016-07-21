@@ -67,7 +67,7 @@ is_ancestor_of(PainterWidget *q)
 
 void
 PainterWidget::
-paint(const fastuidraw::Painter::handle &painter)
+paint(const fastuidraw::reference_counted_ptr<fastuidraw::Painter> &painter)
 {
   pre_paint();
   if(m_skip_drawing)
@@ -104,10 +104,10 @@ paint(const fastuidraw::Painter::handle &painter)
 
 void
 PainterWidget::
-paint_pre_children(const fastuidraw::Painter::handle &)
+paint_pre_children(const fastuidraw::reference_counted_ptr<fastuidraw::Painter> &)
 {}
 
 void
 PainterWidget::
-paint_post_children(const fastuidraw::Painter::handle &)
+paint_post_children(const fastuidraw::reference_counted_ptr<fastuidraw::Painter> &)
 {}

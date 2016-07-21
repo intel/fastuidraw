@@ -57,7 +57,7 @@ namespace fastuidraw
     /*!
       Font of the glyph;
      */
-    FontBase::const_handle m_font;
+    reference_counted_ptr<const FontBase> m_font;
 
     /*!
       The offset from the pen at which to

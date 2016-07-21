@@ -402,7 +402,7 @@ resize_geometry_data(int sz)
 
 enum fastuidraw::return_code
 fastuidraw::GlyphRenderDataCurvePair::
-upload_to_atlas(const GlyphAtlas::handle &atlas,
+upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
                 GlyphLocation &atlas_location,
                 GlyphLocation &secondary_atlas_location,
                 int &geometry_offset,

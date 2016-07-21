@@ -273,8 +273,8 @@ namespace fastuidraw
                           pindex_tile_size.
      */
     ImageAtlas(int pcolor_tile_size, int pindex_tile_size,
-               AtlasColorBackingStoreBase::handle pcolor_store,
-               AtlasIndexBackingStoreBase::handle pindex_store);
+               reference_counted_ptr<AtlasColorBackingStoreBase> pcolor_store,
+               reference_counted_ptr<AtlasIndexBackingStoreBase> pindex_store);
 
     virtual
     ~ImageAtlas();
@@ -364,13 +364,13 @@ namespace fastuidraw
     /*!
       Returns a handle to the backing store for the image data.
      */
-    AtlasColorBackingStoreBase::const_handle
+    reference_counted_ptr<const AtlasColorBackingStoreBase>
     color_store(void) const;
 
     /*!
       Returns a handle to the backing store for the index data.
      */
-    AtlasIndexBackingStoreBase::const_handle
+    reference_counted_ptr<const AtlasIndexBackingStoreBase>
     index_store(void) const;
 
     /*!
@@ -415,8 +415,8 @@ namespace fastuidraw
                     filtering and a value of two allows for cubic filtering.
      */
     static
-    handle
-    create(ImageAtlas::handle atlas, int w, int h,
+    reference_counted_ptr<Image>
+    create(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
            const_c_array<u8vec4> image_data, unsigned int pslack);
 
     ~Image();
@@ -468,11 +468,11 @@ namespace fastuidraw
     /*!
       Returns the ImageAtlas on which this Image resides.
      */
-    ImageAtlas::const_handle
+    const reference_counted_ptr<ImageAtlas>&
     atlas(void) const;
 
   private:
-    Image(ImageAtlas::handle atlas, int w, int h,
+    Image(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
           const_c_array<u8vec4> image_data, unsigned int pslack);
 
     void *m_d;

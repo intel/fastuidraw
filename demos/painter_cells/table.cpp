@@ -32,14 +32,15 @@ Table(const TableParams &params):
 
   if(m_params.m_images.empty())
     {
-      m_params.m_images.push_back(named_image(Image::const_handle(), "NULL"));
+      m_params.m_images.push_back(named_image(reference_counted_ptr<const Image>(),
+                                              "NULL"));
     }
 
 }
 
 void
 Table::
-generate_children_in_group(const Painter::handle &painter,
+generate_children_in_group(const reference_counted_ptr<Painter> &painter,
                            CellGroup *g, int &J,
                            const ivec2 &xy,
                            int count_x, int count_y,
@@ -177,7 +178,7 @@ generate_children_in_group(const Painter::handle &painter,
 
 void
 Table::
-paint_pre_children(const Painter::handle &painter)
+paint_pre_children(const reference_counted_ptr<Painter> &painter)
 {
   if(m_first_draw)
     {
@@ -306,7 +307,7 @@ pre_paint()
 
 void
 Table::
-paint_post_children(const Painter::handle &painter)
+paint_post_children(const reference_counted_ptr<Painter> &painter)
 {
   if(!m_params.m_cell_state->m_rotating && m_params.m_cell_state->m_stroke_width > 0.0f)
     {

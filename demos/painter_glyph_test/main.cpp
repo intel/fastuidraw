@@ -71,7 +71,7 @@ private:
   command_line_argument_value<bool> m_draw_glyph_set;
   command_line_argument_value<float> m_render_pixel_size;
 
-  FontFreeType::const_handle m_font;
+  reference_counted_ptr<const FontFreeType> m_font;
 
   vecN<PainterAttributeData, number_draw_modes> m_draws;
   vecN<std::string, number_draw_modes> m_draw_labels;
@@ -137,7 +137,7 @@ create_and_add_font(void)
                       .distance_field_pixel_size(m_distance_pixel_size.m_value)
                       .curve_pair_pixel_size(m_curve_pair_pixel_size.m_value));
 
-  FontBase::const_handle font;
+  reference_counted_ptr<const FontBase> font;
 
   font = m_glyph_selector->fetch_font(props);
   std::cout << "Chose font:" << font->properties() << "\n";

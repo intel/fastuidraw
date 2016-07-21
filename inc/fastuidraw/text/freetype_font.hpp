@@ -44,15 +44,6 @@ namespace fastuidraw
   {
   public:
     /*!
-      Overload typedef to handle
-     */
-    typedef reference_counted_ptr<FontFreeType> handle;
-    /*!
-      Overload typedef to const_handle
-     */
-    typedef reference_counted_ptr<const FontFreeType> const_handle;
-
-    /*!
       A RenderParams specifies the parameters
       for generating scalable glyph rendering data
      */
@@ -157,7 +148,7 @@ namespace fastuidraw
       \param props font properties describing the font
       \param render_params specifies how to generate data for scalable glyph data
      */
-    FontFreeType(FT_Face pface, FreetypeLib::handle lib,
+    FontFreeType(FT_Face pface, reference_counted_ptr<FreetypeLib> lib,
                  const FontProperties &props,
                  const RenderParams &render_params = RenderParams());
 
@@ -168,7 +159,7 @@ namespace fastuidraw
       \param lib FreetypeLib that was used to create pface
       \param render_params specifies how to generate data for scalable glyph data
      */
-    FontFreeType(FT_Face pface, FreetypeLib::handle lib,
+    FontFreeType(FT_Face pface, reference_counted_ptr<FreetypeLib> lib,
                  const RenderParams &render_params = RenderParams());
 
     /*!
@@ -179,8 +170,8 @@ namespace fastuidraw
       \param face_index face index for face into font file to load
      */
     static
-    handle
-    create(const char *filename, FreetypeLib::handle lib,
+    reference_counted_ptr<FontFreeType>
+    create(const char *filename, reference_counted_ptr<FreetypeLib> lib,
            const RenderParams &render_params = RenderParams(),
            int face_index = 0);
 
@@ -192,7 +183,7 @@ namespace fastuidraw
       \param face_index face index for face into font file to load
      */
     static
-    handle
+    reference_counted_ptr<FontFreeType>
     create(const char *filename,
            const RenderParams &render_params = RenderParams(),
            int face_index = 0);
@@ -207,8 +198,9 @@ namespace fastuidraw
      */
     static
     int
-    create(c_array<handle> fonts, const char *filename,
-           FreetypeLib::handle lib, const RenderParams &render_params = RenderParams());
+    create(c_array<reference_counted_ptr<FontFreeType> > fonts, const char *filename,
+           reference_counted_ptr<FreetypeLib> lib,
+           const RenderParams &render_params = RenderParams());
 
     virtual
     ~FontFreeType();

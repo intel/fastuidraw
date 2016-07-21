@@ -45,7 +45,7 @@ namespace
 
     enum map_status_t m_map_status;
     unsigned int m_action_count;
-    std::vector<fastuidraw::PainterDrawCommand::DelayedAction::handle> m_actions;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDrawCommand::DelayedAction> > m_actions;
     unsigned int m_attribs_written, m_indices_written, m_data_store_written;
     fastuidraw::PainterDrawCommand *m_p;
   };
@@ -93,7 +93,7 @@ perform_action(void)
 
   action(d->m_cmd->m_p);
 
-  d->m_cmd->m_actions[d->m_slot] = handle();
+  d->m_cmd->m_actions[d->m_slot] = reference_counted_ptr<DelayedAction>();
   d->m_cmd->m_action_count--;
   if(d->m_cmd->m_action_count == 0 && d->m_cmd->m_map_status == status_waiting_for_actions_to_complete)
     {
@@ -124,7 +124,7 @@ fastuidraw::PainterDrawCommand::
 
 void
 fastuidraw::PainterDrawCommand::
-add_action(const DelayedAction::handle &h) const
+add_action(const reference_counted_ptr<DelayedAction> &h) const
 {
   PainterDrawCommandPrivate *d;
   DelayedActionPrivate *hd;

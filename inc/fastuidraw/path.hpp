@@ -56,7 +56,8 @@ public:
                   of this interpolator
       \param end end point of the edge of this interpolator
      */
-    interpolator_base(const const_handle &prev, const vec2 &end);
+    interpolator_base(const reference_counted_ptr<const interpolator_base> &prev,
+                      const vec2 &end);
 
     virtual
     ~interpolator_base();
@@ -65,7 +66,7 @@ public:
       Returns the interpolator previous to this interpolator_base
       within the PathContour that this object resides.
      */
-    const_handle
+    reference_counted_ptr<const interpolator_base>
     prev_interpolator(void) const;
 
     /*!
@@ -113,7 +114,8 @@ public:
                   of this interpolator
       \param end end point of the edge of this interpolator
      */
-    flat(const const_handle &prev, const vec2 &end):
+    flat(const reference_counted_ptr<const interpolator_base> &prev,
+         const vec2 &end):
       interpolator_base(prev, end)
     {}
 
@@ -137,7 +139,8 @@ public:
                   of this interpolator
       \param end end point of the edge of this interpolator
      */
-    interpolator_generic(const const_handle &prev, const vec2 &end):
+    interpolator_generic(const reference_counted_ptr<const interpolator_base> &prev,
+                         const vec2 &end):
       interpolator_base(prev, end)
     {}
 
@@ -177,7 +180,8 @@ public:
       \param ct control point
       \param end end of curve
      */
-    bezier(const const_handle &start, const vec2 &ct, const vec2 &end);
+    bezier(const reference_counted_ptr<const interpolator_base> &start,
+           const vec2 &ct, const vec2 &end);
 
     /*!
       Ctor. Two control points, thus interpolation is a cubic curve.
@@ -186,8 +190,8 @@ public:
       \param ct2 2nd control point
       \param end end point of curve
      */
-    bezier(const const_handle &start, const vec2 &ct1,
-           const vec2 &ct2, const vec2 &end);
+    bezier(const reference_counted_ptr<const interpolator_base> &start,
+           const vec2 &ct1, const vec2 &ct2, const vec2 &end);
 
     /*!
       Ctor. Iterator range defines the control points of the bezier curve.
@@ -195,9 +199,8 @@ public:
       \param control_pts control points
       \param end end point of curve
      */
-    bezier(const const_handle &start,
-           const_c_array<vec2> control_pts,
-           const vec2 &end);
+    bezier(const reference_counted_ptr<const interpolator_base> &start,
+           const_c_array<vec2> control_pts, const vec2 &end);
 
     virtual
     ~bezier();
@@ -228,7 +231,8 @@ public:
                    a negative angle for the arc to go clockwise.
       \param end end of curve
      */
-    arc(const const_handle &start, float angle, const vec2 &end);
+    arc(const reference_counted_ptr<const interpolator_base> &start,
+        float angle, const vec2 &end);
 
     ~arc();
 
@@ -279,7 +283,7 @@ public:
     \param p interpolator describing edge
    */
   void
-  to_generic(const interpolator_base::const_handle &p);
+  to_generic(const reference_counted_ptr<const interpolator_base> &p);
 
   /*!
     Will fail if end() was called of if add_control_point() has been
@@ -296,7 +300,7 @@ public:
     \param h interpolator describing the closing edge
    */
   void
-  end_generic(interpolator_base::const_handle h);
+  end_generic(reference_counted_ptr<const interpolator_base> h);
 
   /*!
     Ends with the Bezier curve defined by the current
@@ -318,7 +322,7 @@ public:
     interpolator_base for interpolator passed to
     to_generic() and end().
    */
-  const interpolator_base::const_handle&
+  const reference_counted_ptr<const interpolator_base>&
   prev_interpolator(void);
 
   /*!
@@ -348,7 +352,7 @@ public:
     then returns the interpolator from the last
     point to the first point.
    */
-  const interpolator_base::const_handle&
+  const reference_counted_ptr<const interpolator_base>&
   interpolator(unsigned int I) const;
 
 private:
@@ -582,7 +586,7 @@ public:
     You MUST use this interpolator in the ctor of
     interpolator_base.
    */
-  const PathContour::interpolator_base::const_handle&
+  const reference_counted_ptr<const PathContour::interpolator_base>&
   prev_interpolator(void);
 
   /*!
@@ -590,7 +594,7 @@ public:
     to get the last interpolator of the current contour.
    */
   Path&
-  custom_to(const PathContour::interpolator_base::const_handle &p);
+  custom_to(const reference_counted_ptr<const PathContour::interpolator_base> &p);
 
   /*!
     Begin a new contour
@@ -660,7 +664,7 @@ public:
     \param pt point at which the contour begins
    */
   Path&
-  custom_move(const PathContour::interpolator_base::const_handle &p, const vec2 &pt);
+  custom_move(const reference_counted_ptr<const PathContour::interpolator_base> &p, const vec2 &pt);
 
   /*!
     Use a custom interpolator to end the current contour
@@ -669,7 +673,7 @@ public:
     \param p custom interpolator
    */
   Path&
-  contour_end_custom(const PathContour::interpolator_base::const_handle &p);
+  contour_end_custom(const reference_counted_ptr<const PathContour::interpolator_base> &p);
 
   /*!
     Returns the number of contours of the Path.
@@ -681,7 +685,7 @@ public:
     Returns the named contour
     \param i index of contour to fetch (0 <= i < number_contours())
    */
-  PathContour::const_handle
+  reference_counted_ptr<const PathContour>
   contour(unsigned int i) const;
 
   /*!
@@ -709,7 +713,7 @@ public:
     will be contructed on the next call to
     tessellation().
    */
-  const TessellatedPath::const_handle&
+  const reference_counted_ptr<const TessellatedPath>&
   tessellation(void) const;
 
 private:
