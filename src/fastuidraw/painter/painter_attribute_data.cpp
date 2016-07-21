@@ -173,7 +173,7 @@ namespace
     dst.m_primary_attrib.w() = src.m_pre_offset.y();
 
     dst.m_secondary_attrib.x() = src.m_distance_from_edge_start;
-    dst.m_secondary_attrib.y() = src.m_distance_from_outline_start;
+    dst.m_secondary_attrib.y() = src.m_distance_from_contour_start;
     dst.m_secondary_attrib.z() = src.m_auxilary_offset.x();
     dst.m_secondary_attrib.w() = src.m_auxilary_offset.y();
 

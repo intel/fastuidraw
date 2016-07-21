@@ -1109,7 +1109,7 @@ stroke_path(const PainterData &draw, const PainterAttributeData &pdata,
     }
 
   edge = PainterAttributeData::edge_closing_edge;
-  if(cp != close_outlines)
+  if(cp != close_contours)
     {
       join = PainterAttributeData::without_closing_edge(join);
       edge = PainterAttributeData::edge_no_closing_edge;

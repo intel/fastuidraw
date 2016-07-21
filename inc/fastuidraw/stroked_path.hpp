@@ -131,9 +131,9 @@ public:
 
     /*!
       Gives the distance of the point from the start
-      of the -outline- on which the point resides.
+      of the -contour- on which the point resides.
      */
-    float m_distance_from_outline_start;
+    float m_distance_from_contour_start;
 
     /*!
       Has value -1, 0 or +1. If the value is 0,

@@ -1068,7 +1068,7 @@ operator<<(const arc &a)
 
 fastuidraw::Path&
 fastuidraw::Path::
-operator<<(end)
+operator<<(contour_end)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
@@ -1078,7 +1078,7 @@ operator<<(end)
 
 fastuidraw::Path&
 fastuidraw::Path::
-operator<<(end_arc a)
+operator<<(contour_end_arc a)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
@@ -1165,7 +1165,7 @@ arc_move(float angle, const vec2 &pt)
 
 fastuidraw::Path&
 fastuidraw::Path::
-arc_end(float angle)
+end_contour_arc(float angle)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
@@ -1189,7 +1189,7 @@ quadratic_move(const vec2 &ct, const vec2 &pt)
 
 fastuidraw::Path&
 fastuidraw::Path::
-quadratic_end(const vec2 &ct)
+contour_end_quadratic(const vec2 &ct)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
@@ -1215,7 +1215,7 @@ cubic_move(const vec2 &ct1, const vec2 &ct2, const vec2 &pt)
 
 fastuidraw::Path&
 fastuidraw::Path::
-cubic_end(const vec2 &ct1, const vec2 &ct2)
+contour_end_cubic(const vec2 &ct1, const vec2 &ct2)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
@@ -1239,7 +1239,7 @@ custom_move(const PathContour::interpolator_base::const_handle &p, const vec2 &p
 
 fastuidraw::Path&
 fastuidraw::Path::
-custom_end(const PathContour::interpolator_base::const_handle &p)
+contour_end_custom(const PathContour::interpolator_base::const_handle &p)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
@@ -1249,7 +1249,7 @@ custom_end(const PathContour::interpolator_base::const_handle &p)
 
 unsigned int
 fastuidraw::Path::
-number_outlines(void) const
+number_contours(void) const
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
@@ -1258,7 +1258,7 @@ number_outlines(void) const
 
 fastuidraw::PathContour::const_handle
 fastuidraw::Path::
-outline(unsigned int i) const
+contour(unsigned int i) const
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);

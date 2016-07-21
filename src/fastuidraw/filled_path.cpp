@@ -323,7 +323,7 @@ void
 tesser::
 add_path(const fastuidraw::TessellatedPath &input)
 {
-  for(unsigned int o = 0, endo = input.number_outlines(); o < endo; ++o)
+  for(unsigned int o = 0, endo = input.number_contours(); o < endo; ++o)
     {
       fastuidraw_gluTessBeginContour(m_tess);
       for(unsigned int e = 0, ende = input.number_edges(o); e < ende; ++e)
