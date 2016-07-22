@@ -1189,7 +1189,7 @@ quadratic_move(const vec2 &ct, const vec2 &pt)
 
 fastuidraw::Path&
 fastuidraw::Path::
-contour_end_quadratic(const vec2 &ct)
+end_contour_quadratic(const vec2 &ct)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
@@ -1215,7 +1215,7 @@ cubic_move(const vec2 &ct1, const vec2 &ct2, const vec2 &pt)
 
 fastuidraw::Path&
 fastuidraw::Path::
-contour_end_cubic(const vec2 &ct1, const vec2 &ct2)
+end_contour_cubic(const vec2 &ct1, const vec2 &ct2)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
@@ -1239,7 +1239,7 @@ custom_move(const reference_counted_ptr<const PathContour::interpolator_base> &p
 
 fastuidraw::Path&
 fastuidraw::Path::
-contour_end_custom(const reference_counted_ptr<const PathContour::interpolator_base> &p)
+end_contour_custom(const reference_counted_ptr<const PathContour::interpolator_base> &p)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
