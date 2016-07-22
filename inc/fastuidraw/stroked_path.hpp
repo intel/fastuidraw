@@ -213,8 +213,8 @@ public:
         the value is given by the following code
         \code
         vec2 n(m_pre_offset), v(n.y(), -n.x());
-        \endcode
         offset = m_auxilary_offset.x() * v + m_auxilary_offset.y() * n;
+        \endcode
       - For those with point_type() being StrokedPath::rounded_join_point,
         the value is given by the following code
         \code
@@ -228,7 +228,7 @@ public:
 
         offset = cs
         \endcode
-        In addition, the source data fort join is encoded as follows:
+        In addition, the source data for join is encoded as follows:
         \code
         float t;
         vec2 n0, n1;
