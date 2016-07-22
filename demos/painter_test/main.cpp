@@ -27,9 +27,14 @@ protected:
     if(m_backend->program()->link_success())
       {
         reference_counted_ptr<gl::Program> pr(m_backend->program());
-        std::cout << "Link success\nProgram Log and contents written to painter.program.glsl\n";
-        std::ofstream file("painter.program.glsl");
-        file << pr->log();
+        std::cout << "Link success\n";
+        m_backend->program()->use_program();
+
+        {
+          std::ofstream file("painter.program.glsl");
+          file << pr->log();
+        }
+        std::cout << "Program Log and contents written to painter.program.glsl\n";
 
 	std::cout << "Vertex shaders written to:\n";
         for(unsigned int i = 0, endi = pr->num_shaders(GL_VERTEX_SHADER); i < endi; ++i)
@@ -56,8 +61,6 @@ protected:
           }
 	std::cout << "\nUseful command to see shader after pre-processor:\n"
 		  << "\tcpp file.glsl | grep -v \"#\" | sed '/^\\s*$/d'\n";
-
-        m_backend->program()->use_program();
       }
     else
       {
