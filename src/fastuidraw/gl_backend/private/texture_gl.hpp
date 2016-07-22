@@ -120,7 +120,6 @@ tex_sub_image(GLenum texture_target, vecN<GLint, 3> offset,
               vecN<GLsizei, 3> size, GLenum format, GLenum type,
               const void *pixels)
 {
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   glTexSubImage3D(texture_target, 0,
                   offset.x(), offset.y(), offset.z(),
                   size.x(), size.y(), size.z(),
@@ -183,7 +182,6 @@ tex_sub_image(GLenum texture_target,
               vecN<GLsizei, 2> size,
               GLenum format, GLenum type, const void *pixels)
 {
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   glTexSubImage2D(texture_target, 0,
                   offset.x(), offset.y(),
                   size.x(), size.y(),
@@ -231,7 +229,6 @@ tex_sub_image(GLenum texture_target, vecN<GLint, 1> offset,
               vecN<GLsizei, 1> size, GLenum format, GLenum type,
               const void *pixels)
 {
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   glTexSubImage1D(texture_target, 0, offset.x(), size.x(), format, type, pixels);
 }
 
@@ -474,6 +471,7 @@ flush(void)
   if(!m_unflushed_commands.empty())
     {
       glBindTexture(texture_target, m_texture);
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
       for(typename list_type::iterator iter = m_unflushed_commands.begin(),
             end = m_unflushed_commands.end(); iter != end; ++iter)
         {
@@ -510,6 +508,7 @@ set_data_vector(const EntryLocation &loc,
   else
     {
       flush_size_change();
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
       glBindTexture(texture_target, m_texture);
       tex_sub_image(texture_target,
                     loc.m_location,
@@ -540,6 +539,7 @@ set_data_c_array(const EntryLocation &loc,
   else
     {
       flush_size_change();
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
       glBindTexture(texture_target, m_texture);
       tex_sub_image(texture_target,
                     loc.m_location,
