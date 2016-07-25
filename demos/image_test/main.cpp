@@ -67,7 +67,8 @@ class image_test:public sdl_demo
 public:
   image_test(void):
     sdl_demo("image-test"),
-    m_images("add_image", "Add an image to be shown", *this),
+    m_images("add_image", "Add an image or images to be shown, directory values recurse into files", *this),
+    m_print_loaded_image_list(false, "print_loaded_image_list", "If true, print to stdout what images are loaded", *this),
     m_slack(0, "slack", "image slack in color tiles", *this),
     m_log2_color_tile_size(5, "log2_color_tile_size",
                            "Specifies the log2 of the width and height of each color tile",
@@ -140,13 +141,16 @@ protected:
         m_image_handles.push_back(Image::create(m_atlas, image_size.x(), image_size.y(),
                                                 cast_c_array(image_data), m_slack.m_value));
         m_image_names.push_back(filename);
-        std::cout << "Image \"" << filename
-                  << " of size " << m_image_handles.back()->dimensions()
-                  << "\" requires " << m_image_handles.back()->number_index_lookups()
-                  << " index look ups, "
-                  << "master tile at " << m_image_handles.back()->master_index_tile()
-                  << " of size " << m_image_handles.back()->master_index_tile_dims()
-                  << "\n";
+        if(m_print_loaded_image_list.m_value)
+          {
+            std::cout << "Image \"" << filename
+                      << " of size " << m_image_handles.back()->dimensions()
+                      << "\" requires " << m_image_handles.back()->number_index_lookups()
+                      << " index look ups, "
+                      << "master tile at " << m_image_handles.back()->master_index_tile()
+                      << " of size " << m_image_handles.back()->master_index_tile_dims()
+                      << "\n";
+          }
       }
   }
 
@@ -331,11 +335,30 @@ protected:
             break;
 
           case SDLK_f:
-            m_filtered_lookup = 1.0f - m_filtered_lookup;
+            if(m_current_program == draw_image_on_atlas)
+              {
+                m_filtered_lookup = 1.0f - m_filtered_lookup;
+                if(m_filtered_lookup > 0.5)
+                  {
+                    std::cout << "Filter set to bilinear filtering.\n";
+                  }
+                else
+                  {
+                    std::cout << "Filter set to nearest filtering.\n";
+                  }
+              }
             break;
 
           case SDLK_0:
             m_color_boundary_mix_value = 0.5f - m_color_boundary_mix_value;
+            if(m_color_boundary_mix_value > 0.25f)
+              {
+                std::cout << "Set to show tile boundaries.\n";
+              }
+            else
+              {
+                std::cout << "Set to hide tile boundaries.\n";
+              }
             break;
 
           case SDLK_1:
@@ -347,13 +370,22 @@ protected:
           case SDLK_7:
           case SDLK_8:
           case SDLK_9:
-            {
-              unsigned int idx(ev.key.keysym.sym - SDLK_1);
-              if(idx < m_index_boundary_mix_values.size())
-                {
-                  m_index_boundary_mix_values[idx] = 0.5f - m_index_boundary_mix_values[idx];
-                }
-            }
+            if(m_current_program == draw_image_on_atlas)
+              {
+                unsigned int idx(ev.key.keysym.sym - SDLK_1);
+                if(idx < m_index_boundary_mix_values.size())
+                  {
+                    m_index_boundary_mix_values[idx] = 0.5f - m_index_boundary_mix_values[idx];
+                    if(m_index_boundary_mix_values[idx] > 0.25f)
+                      {
+                        std::cout << "Set to show level " << idx << " tile boundaries.\n";
+                      }
+                    else
+                      {
+                        std::cout << "Set to hide level " << idx << " tile boundaries.\n";
+                      }
+                  }
+              }
             break;
           }
 
@@ -643,6 +675,7 @@ private:
   };
 
   command_line_list m_images;
+  command_line_argument_value<bool> m_print_loaded_image_list;
   command_line_argument_value<int> m_slack;
   command_line_argument_value<int> m_log2_color_tile_size, m_log2_num_color_tiles_per_row_per_col;
   command_line_argument_value<int> m_num_color_layers;

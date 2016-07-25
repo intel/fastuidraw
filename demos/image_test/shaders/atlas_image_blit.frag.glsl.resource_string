@@ -1,4 +1,4 @@
-/*Must define IMAGE_NUM_INDIRECTION_LEVELS to work.
+/*Must define MAX_IMAGE_NUM_LOOKUPS to work.
 */
 
 #ifdef GL_ES
