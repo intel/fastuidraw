@@ -93,12 +93,14 @@ namespace fastuidraw
     /*!
       A header is a set of uint32_t values. A headers is
       shared by all vertices of an invocation of a draw
-      method of Painter. The enumeration item_header_offset_t
+      method of PainterPacker. The enumeration item_header_offset_t
       gives the offsets from the header location for the
       values of the header. All offsets are packed as uint32_t
-      values. NOTE: the values -at- the named offsets
-      give location into the data store buffer in units
-      of alignment (see PainterBackend::Configuration::alignment())
+      values. NOTE: the values packed into a header
+      give location into the data store buffer in uint32_t units
+      of alignment (see PainterBackend::Configuration::alignment()).
+      In contrast, the offsets in item_header_offset_t that
+      specifies the offsets in the header are in uint32_t units.
      */
     enum item_header_offset_t
       {

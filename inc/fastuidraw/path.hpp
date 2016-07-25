@@ -34,7 +34,10 @@ namespace fastuidraw  {
 
 /*!
   An PathContour represents a single contour within
-  a Path.
+  a Path. Ending a contour, see \ref end(), \ref
+  end_generic() and end_arc(), means to specify
+  the edge from the last point of the PathContour
+  to the first point.
  */
 class PathContour:
     public reference_counted<PathContour>::non_concurrent
@@ -320,7 +323,7 @@ public:
     Returns the last interpolator added to this PathContour.
     You MUST use this interpolator in the ctor of
     interpolator_base for interpolator passed to
-    to_generic() and end().
+    to_generic() and end_generic().
    */
   const reference_counted_ptr<const interpolator_base>&
   prev_interpolator(void);
@@ -361,7 +364,13 @@ private:
 
 /*!
   A Path represents a collection of PathContour
-  objects.
+  objects. To end a contour in a Path, see
+  \ref end_contour_quadratic(), \ref
+  end_contour_arc(), \ref end_contour_cubic(),
+  \ref end_contour_custom(), \ref contour_end_arc
+  and \ref contour_end, means to specify
+  the edge from the last point of the current
+  contour to the first point of it.
  */
 class Path
 {
@@ -637,7 +646,7 @@ public:
     \param ct control point of the quadratic Bezier curve
    */
   Path&
-  contour_end_quadratic(const vec2 &ct);
+  end_contour_quadratic(const vec2 &ct);
 
   /*!
     End the current contour in a cubic Bezier curve and begin a new contour
@@ -654,7 +663,7 @@ public:
     \param ct2 second control point of the cubic Bezier curve
    */
   Path&
-  contour_end_cubic(const vec2 &ct1, const vec2 &ct2);
+  end_contour_cubic(const vec2 &ct1, const vec2 &ct2);
 
   /*!
     Use a custom interpolator to end the current contour and begin a new contour
@@ -673,7 +682,7 @@ public:
     \param p custom interpolator
    */
   Path&
-  contour_end_custom(const reference_counted_ptr<const PathContour::interpolator_base> &p);
+  end_contour_custom(const reference_counted_ptr<const PathContour::interpolator_base> &p);
 
   /*!
     Returns the number of contours of the Path.

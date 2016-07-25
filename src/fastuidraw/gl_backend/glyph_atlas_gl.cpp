@@ -664,7 +664,7 @@ LoaderMacro(unsigned int alignment, const char *geometry_store_fetch)
       "vec4"
     };
 
-  str << "\n#define FASTUIDRAW_LOAD_CURVE_GEOMETRY(geometry_offset, texel_value) \\\n"
+  str << "\n#define FASTUIDRAW_LOAD_CURVE_GEOMETRY(geometry_offset, texel_value) { \\\n"
       << "\t" << tempType[alignment - 1] << " ";
 
   for(unsigned int c = 0, j = 0; c < fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack; c += alignment, ++j)
@@ -710,7 +710,7 @@ LoaderMacro(unsigned int alignment, const char *geometry_store_fetch)
   EXTRACT_STREAM(curve1_q_y);
   EXTRACT_STREAM(curve1_quad_coeff);
 
-  str << "\n";
+  str << "\\\n}\n";
 
   m_value = str.str();
 }

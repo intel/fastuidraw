@@ -251,9 +251,6 @@ namespace
   class Pool:public PoolBase
   {
   public:
-    typedef fastuidraw::reference_counted_ptr<Pool> handle;
-    typedef fastuidraw::reference_counted_ptr<Pool const> const_handle;
-
     /* Returning NULL indicates no free entries left in the pool
      */
     Entry<T>*
