@@ -906,8 +906,8 @@ texel_texture(bool as_integer) const
 {
   flush();
   const TexelStoreGL *p;
-  p = dynamic_cast<const TexelStoreGL*>(texel_store().get());
-  assert(p);
+  assert(dynamic_cast<const TexelStoreGL*>(texel_store().get()));
+  p = static_cast<const TexelStoreGL*>(texel_store().get());
   return p->texture(as_integer);
 }
 
@@ -916,8 +916,8 @@ fastuidraw::gl::GlyphAtlasGL::
 geometry_texture_binding_point(void) const
 {
   const GeometryStoreGL *p;
-  p = dynamic_cast<const GeometryStoreGL*>(geometry_store().get());
-  assert(p);
+  assert(dynamic_cast<const GeometryStoreGL*>(geometry_store().get()));
+  p = static_cast<const GeometryStoreGL*>(geometry_store().get());
   return p->m_binding_point;
 }
 
@@ -927,8 +927,8 @@ geometry_texture(void) const
 {
   flush();
   const GeometryStoreGL *p;
-  p = dynamic_cast<const GeometryStoreGL*>(geometry_store().get());
-  assert(p);
+  assert(dynamic_cast<const GeometryStoreGL*>(geometry_store().get()));
+  p = static_cast<const GeometryStoreGL*>(geometry_store().get());
   return p->texture();
 }
 
@@ -937,8 +937,8 @@ fastuidraw::gl::GlyphAtlasGL::
 geometry_texture_as_2d_array_log2_dims(void) const
 {
   const GeometryStoreGL *p;
-  p = dynamic_cast<const GeometryStoreGL*>(geometry_store().get());
-  assert(p);
+  assert(dynamic_cast<const GeometryStoreGL*>(geometry_store().get()));
+  p = static_cast<const GeometryStoreGL*>(geometry_store().get());
   return p->m_log2_dims;
 }
 

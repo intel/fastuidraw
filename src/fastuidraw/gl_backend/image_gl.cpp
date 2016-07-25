@@ -447,10 +447,9 @@ fastuidraw::gl::ImageAtlasGL::
 color_texture(void) const
 {
   flush();
-
   const ColorBackingStoreGL *p;
-  p = dynamic_cast<const ColorBackingStoreGL*>(color_store().get());
-  assert(p);
+  assert(dynamic_cast<const ColorBackingStoreGL*>(color_store().get()));
+  p = static_cast<const ColorBackingStoreGL*>(color_store().get());
   return p->texture();
 }
 
@@ -459,10 +458,9 @@ fastuidraw::gl::ImageAtlasGL::
 index_texture(void) const
 {
   flush();
-
   const IndexBackingStoreGL *p;
-  p = dynamic_cast<const IndexBackingStoreGL*>(index_store().get());
-  assert(p);
+  assert(dynamic_cast<const IndexBackingStoreGL*>(index_store().get()));
+  p = static_cast<const IndexBackingStoreGL*>(index_store().get());
   return p->texture();
 }
 

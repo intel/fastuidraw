@@ -1961,8 +1961,8 @@ build_program(void)
   std::ostringstream declare_varyings;
 
   fastuidraw::gl::GlyphAtlasGL *glyphs;
-  glyphs = dynamic_cast<fastuidraw::gl::GlyphAtlasGL*>(m_p->glyph_atlas().get());
-  assert(glyphs != NULL);
+  assert(dynamic_cast<fastuidraw::gl::GlyphAtlasGL*>(m_p->glyph_atlas().get()));
+  glyphs = static_cast<fastuidraw::gl::GlyphAtlasGL*>(m_p->glyph_atlas().get());
 
   if(m_params.unpack_header_and_brush_in_frag_shader())
     {
@@ -2115,8 +2115,8 @@ build_program(void)
 
 
   fastuidraw::gl::ImageAtlasGL *image_atlas_gl;
-  image_atlas_gl = dynamic_cast<fastuidraw::gl::ImageAtlasGL*>(m_p->image_atlas().get());
-  assert(image_atlas_gl != NULL);
+  assert(dynamic_cast<fastuidraw::gl::ImageAtlasGL*>(m_p->image_atlas().get()));
+  image_atlas_gl = static_cast<fastuidraw::gl::ImageAtlasGL*>(m_p->image_atlas().get());
 
   add_enums(m_params.m_config.alignment(), frag);
   add_texture_size_constants(frag, m_params);
@@ -2361,8 +2361,8 @@ absorb_vert_shader(const reference_counted_ptr<PainterShader> &shader)
   reference_counted_ptr<PainterShaderGL> h;
   fastuidraw::PainterShader::Tag return_value;
 
-  h = shader.dynamic_cast_ptr<PainterShaderGL>();
-  assert(h);
+  assert(shader.dynamic_cast_ptr<PainterShaderGL>());
+  h = shader.static_cast_ptr<PainterShaderGL>();
 
   d->m_rebuild_program = true;
   d->m_vert_shaders.push_back(h);
@@ -2384,8 +2384,8 @@ absorb_frag_shader(const reference_counted_ptr<PainterShader> &shader)
   reference_counted_ptr<PainterShaderGL> h;
   fastuidraw::PainterShader::Tag return_value;
 
-  h = shader.dynamic_cast_ptr<PainterShaderGL>();
-  assert(h);
+  assert(shader.dynamic_cast_ptr<PainterShaderGL>());
+  h = shader.static_cast_ptr<PainterShaderGL>();
 
   d->m_rebuild_program = true;
   d->m_frag_shaders.push_back(h);
@@ -2407,8 +2407,8 @@ absorb_blend_shader(const reference_counted_ptr<PainterShader> &shader)
   fastuidraw::PainterShader::Tag return_value;
   uint32_t dual_src, single_src;
 
-  h = shader.dynamic_cast_ptr<PainterBlendShaderGL>();
-  assert(h);
+  assert(shader.dynamic_cast_ptr<PainterBlendShaderGL>());
+  h = shader.static_cast_ptr<PainterBlendShaderGL>();
 
   d->m_rebuild_program = true;
   d->m_blend_shaders.push_back(h);
@@ -2533,16 +2533,16 @@ on_pre_draw(void)
   /* all of our texture units, oh my.
    */
   GlyphAtlasGL *glyphs;
-  glyphs = dynamic_cast<GlyphAtlasGL*>(glyph_atlas().get());
-  assert(glyphs != NULL);
+  assert(dynamic_cast<GlyphAtlasGL*>(glyph_atlas().get()));
+  glyphs = static_cast<GlyphAtlasGL*>(glyph_atlas().get());
 
   ImageAtlasGL *image;
-  image = dynamic_cast<ImageAtlasGL*>(image_atlas().get());
-  assert(image != NULL);
+  assert(dynamic_cast<ImageAtlasGL*>(image_atlas().get()));
+  image = static_cast<ImageAtlasGL*>(image_atlas().get());
 
   ColorStopAtlasGL *color;
-  color = dynamic_cast<ColorStopAtlasGL*>(colorstop_atlas().get());
-  assert(color != NULL);
+  assert(dynamic_cast<ColorStopAtlasGL*>(colorstop_atlas().get()));
+  color = static_cast<ColorStopAtlasGL*>(colorstop_atlas().get());
 
   glActiveTexture(GL_TEXTURE0 + bind_image_color_unfiltered);
   glBindSampler(bind_image_color_unfiltered, 0);
@@ -2615,8 +2615,9 @@ on_end(void)
   glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
   fastuidraw::gl::GlyphAtlasGL *glyphs;
-  glyphs = dynamic_cast<fastuidraw::gl::GlyphAtlasGL*>(glyph_atlas().get());
-  assert(glyphs != NULL);
+  assert(dynamic_cast<fastuidraw::gl::GlyphAtlasGL*>(glyph_atlas().get()));
+  glyphs = static_cast<fastuidraw::gl::GlyphAtlasGL*>(glyph_atlas().get());
+
   glActiveTexture(GL_TEXTURE0 + bind_glyph_geomtry);
   glBindTexture(glyphs->geometry_texture_binding_point(), 0);
 

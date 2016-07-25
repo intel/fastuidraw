@@ -255,8 +255,8 @@ layer(void) const
       return -1;
     }
 
-  a = dynamic_cast<const rect_atlas_layer*>(p->atlas());
-  assert(a != NULL);
+  assert(dynamic_cast<const rect_atlas_layer*>(p->atlas()));
+  a = static_cast<const rect_atlas_layer*>(p->atlas());
 
   return a->layer();
 }

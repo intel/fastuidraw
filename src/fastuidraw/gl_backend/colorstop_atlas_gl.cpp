@@ -281,8 +281,8 @@ texture(void) const
 {
   flush();
   const BackingStore *p;
-  p = dynamic_cast<const BackingStore*>(backing_store().get());
-  assert(p);
+  assert(dynamic_cast<const BackingStore*>(backing_store().get()));
+  p = static_cast<const BackingStore*>(backing_store().get());
   return p->texture();
 }
 
