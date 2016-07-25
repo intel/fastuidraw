@@ -24,8 +24,10 @@ INSTALL_EXES+=fastuidraw-config shell_scripts/fastuidraw-create-resource-cpp-fil
 install: $(INSTALL_LIBS) $(INSTALL_EXES)
 	-install -d $(INSTALL_LOCATION)/lib
 	-install -d $(INSTALL_LOCATION)/bin
+	-install -d $(INSTALL_LOCATION)/include
 	-install -t $(INSTALL_LOCATION)/lib $(INSTALL_LIBS)
 	-install -t $(INSTALL_LOCATION)/bin $(INSTALL_EXES)
+	-cp -r inc/fastuidraw $(INSTALL_LOCATION)/include
 TARGETLIST+=install
 
 install-docs: docs
