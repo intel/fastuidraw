@@ -53,7 +53,7 @@ namespace fastuidraw
     {
     public:
       /*!
-        Ctor, initializes m_ID and m_group
+        Ctor, initializes \ref m_ID and \ref m_group
         to 0.
        */
       Tag(void):
@@ -62,14 +62,14 @@ namespace fastuidraw
       {}
 
       /*!
-        The m_ID of a PainterShader is unique.
-        Typically, the m_ID is used in a switch
+        The ID of a PainterShader is unique.
+        Typically, \ref m_ID is used in a switch
         statement of an uber-shader.
        */
       uint32_t m_ID;
 
       /*!
-        The m_group of a PainterShader is
+        The group of a PainterShader is
         used to classify PainterShader objects
         into groups for the cases when draw call breaks
         are needed either to improve performance (to
