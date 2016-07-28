@@ -52,8 +52,8 @@ namespace fastuidraw
   public:
     /*!
       A DataCallBack represents a functor call back
-      from PainterPacker called whenever attribute data
-      is generated or when a new PainterDrawCommand is
+      from PainterPacker called whenever a header is
+      added or when a new PainterDrawCommand is
       taken into use.
      */
     class DataCallBack:public reference_counted<DataCallBack>::default_base
