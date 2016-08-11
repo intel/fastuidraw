@@ -215,7 +215,7 @@ namespace
     std::vector<fastuidraw::ivec3> m_free_tiles;
     int m_tile_count;
 
-    #ifdef DEBUG
+    #ifdef FASTUIDRAW_DEBUG
     boost::multi_array<inited_bool, 3> m_tile_allocated;
     #endif
   };
@@ -505,7 +505,7 @@ tile_allocator(int tile_size, fastuidraw::ivec3 store_dimensions):
   assert(store_dimensions.x() % m_tile_size == 0);
   assert(store_dimensions.y() % m_tile_size == 0);
 
-  #ifdef DEBUG
+  #ifdef FASTUIDRAW_DEBUG
     {
       m_tile_allocated.resize(boost::extents[m_num_tiles.x()][m_num_tiles.y()][m_num_tiles.z()]);
     }
@@ -553,7 +553,7 @@ allocate_tile(void)
       m_free_tiles.pop_back();
     }
 
-  #ifdef DEBUG
+  #ifdef FASTUIDRAW_DEBUG
     {
       assert(!m_tile_allocated[return_value.x()][return_value.y()][return_value.z()].m_value);
       m_tile_allocated[return_value.x()][return_value.y()][return_value.z()] = true;
@@ -568,7 +568,7 @@ void
 tile_allocator::
 delete_tile(fastuidraw::ivec3 v)
 {
-  #ifdef DEBUG
+  #ifdef FASTUIDRAW_DEBUG
     {
       assert(m_tile_allocated[v.x()][v.y()][v.z()].m_value);
       m_tile_allocated[v.x()][v.y()][v.z()] = false;
@@ -610,7 +610,7 @@ resize_to_fit(int num_tiles)
           needed?
        */
       m_num_tiles.z() += needed_layers;
-      #ifdef DEBUG
+      #ifdef FASTUIDRAW_DEBUG
         {
           m_tile_allocated.resize(boost::extents[m_num_tiles.x()][m_num_tiles.y()][m_num_tiles.z()]);
         }

@@ -190,7 +190,7 @@ fastuidraw_GLUtesselator*
 fastuidraw_gluNewTess_release(void);
 
 
-#ifdef DEBUG
+#ifdef FASTUIDRAW_DEBUG
 
 #define fastuidraw_gluNewTess fastuidraw_gluNewTess_debug(__FILE__, __LINE__);
 #define fastuidraw_gluDeleteTess(tess) fastuidraw_gluDeleteTess_debug(tess, __FILE__, __LINE__)
