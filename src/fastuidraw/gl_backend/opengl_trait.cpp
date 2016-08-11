@@ -1,3 +1,4 @@
+#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
 
 namespace fastuidraw {

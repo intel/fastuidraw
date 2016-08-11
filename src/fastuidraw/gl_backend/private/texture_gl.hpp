@@ -24,7 +24,7 @@
 #include <algorithm>
 
 #include <fastuidraw/util/c_array.hpp>
-#include <fastuidraw/gl_backend/gl_header.hpp>
+#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
 namespace fastuidraw { namespace gl { namespace detail {

@@ -18,7 +18,7 @@
 
 
 #include <fastuidraw/util/c_array.hpp>
-#include <fastuidraw/gl_backend/gl_header.hpp>
+#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/colorstop_atlas_gl.hpp>
 

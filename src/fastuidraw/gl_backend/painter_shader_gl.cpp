@@ -24,6 +24,7 @@
 
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
+#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/painter_shader_gl.hpp>
 
 #include "../private/util_private.hpp"

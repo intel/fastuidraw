@@ -1,6 +1,6 @@
 /*!
- * \file gl_header.hpp
- * \brief file gl_header.hpp
+ * \file ngl_header.hpp
+ * \brief file ngl_header.hpp
  *
  * Copyright 2016 by Intel.
  *
@@ -16,12 +16,9 @@
  *
  */
 
+
 #ifdef FASTUIDRAW_GL_USE_GLES
-  #include <GLES3/gl3platform.h>
-  #include <GLES3/gl3.h>
-  #include <GLES3/gl31.h>
-  #include <GLES3/gl32.h>
-  #include <GLES2/gl2ext.h>
+  #include <fastuidraw/gl_backend/ngl_gles3.hpp>
 #else
-  #include <GL/glcorearb.h>
+  #include <fastuidraw/gl_backend/ngl_gl.hpp>
 #endif

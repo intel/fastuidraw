@@ -34,7 +34,7 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/math.hpp>
-#include <fastuidraw/gl_backend/gl_header.hpp>
+#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_binding.hpp>
 
 #include "ostream_utility.hpp"
