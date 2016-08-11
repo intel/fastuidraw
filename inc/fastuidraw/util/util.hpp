@@ -266,10 +266,12 @@ namespace fastuidraw
 
 /*!\def FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS
   Macro that gives the maximum value that can be
-  held with a given number of bits
+  held with a given number of bits. Caveat:
+  if X is 32 (or higher), bad things may happen
+  from overflow.
   \param X number bits
  */
-#define FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(X) ( (1<<(X)) - 1 )
+#define FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(X) ( (uint32_t(1) << uint32_t(X)) - uint32_t(1) )
 
 /*!\def FASTUIDRAWunused
   Macro to stop the compiler from reporting
