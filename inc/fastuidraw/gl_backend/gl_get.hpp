@@ -39,12 +39,8 @@ namespace gl {
   \param v GL enumeration to fetch
   \param ptr address to which to write values
  */
-inline
 void
-context_get(GLenum v, GLint *ptr)
-{
-  glGetIntegerv(v, ptr);
-}
+context_get(GLenum v, GLint *ptr);
 
 /*!
   Overloaded C++ version of glGet* family
@@ -53,12 +49,8 @@ context_get(GLenum v, GLint *ptr)
   \param v GL enumeration to fetch
   \param ptr address to which to write values
  */
-inline
 void
-context_get(GLenum v, GLboolean *ptr)
-{
-  glGetBooleanv(v, ptr);
-}
+context_get(GLenum v, GLboolean *ptr);
 
 /*!
   Overloaded C++ version of glGet* family
@@ -67,16 +59,8 @@ context_get(GLenum v, GLboolean *ptr)
   \param v GL enumeration to fetch
   \param ptr address to which to write values
  */
-inline
 void
-context_get(GLenum v, bool *ptr)
-{
-  GLboolean bptr( *ptr?GL_TRUE:GL_FALSE);
-  glGetBooleanv(v, &bptr);
-  *ptr=(bptr==GL_FALSE)?
-    false:
-    true;
-}
+context_get(GLenum v, bool *ptr);
 
 /*!
   Overloaded C++ version of glGet* family
@@ -85,12 +69,8 @@ context_get(GLenum v, bool *ptr)
   \param v GL enumeration to fetch
   \param ptr address to which to write values
  */
-inline
 void
-context_get(GLenum v, GLfloat *ptr)
-{
-  glGetFloatv(v, ptr);
-}
+context_get(GLenum v, GLfloat *ptr);
 
 /*!
   Overloaded C++ version of glGet* family

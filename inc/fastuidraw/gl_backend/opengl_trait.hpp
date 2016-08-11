@@ -284,12 +284,8 @@ opengl_trait_values(GLsizei offset)
   \param v traits for attribute
   \param normalized if attribute data should be normalized
  */
-inline
 void
-VertexAttribPointer(GLint index, const opengl_trait_value &v, GLboolean normalized = GL_FALSE)
-{
-  glVertexAttribPointer(index, v.m_count, v.m_type, normalized, v.m_stride, v.m_offset);
-}
+VertexAttribPointer(GLint index, const opengl_trait_value &v, GLboolean normalized = GL_FALSE);
 
 /*!
   Provided as a conveniance, equivalent to
@@ -299,12 +295,8 @@ VertexAttribPointer(GLint index, const opengl_trait_value &v, GLboolean normaliz
   \param index which attribute
   \param v traits for attribute
  */
-inline
 void
-VertexAttribIPointer(GLint index, const opengl_trait_value &v)
-{
-  glVertexAttribIPointer(index, v.m_count, v.m_type, v.m_stride, v.m_offset);
-}
+VertexAttribIPointer(GLint index, const opengl_trait_value &v);
 /*! @} */
 
 } //namespace gl
