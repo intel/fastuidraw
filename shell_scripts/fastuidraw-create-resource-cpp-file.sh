@@ -19,7 +19,7 @@
 set -e
 
 function show_usage {
-    echo "Usage: $0 input_file output_name [output_directory]"
+    echo "Usage: $0 input_file output_name output_directory"
     echo "Creates a .cpp file named output_name.cpp in the directory output_directory"
     echo "which when added to a project adds a resource for fastuidraw::fetch_static_resource()"
     echo "named output_name with value the contents of input_file. "

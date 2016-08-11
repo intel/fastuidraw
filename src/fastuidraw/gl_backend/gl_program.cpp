@@ -32,8 +32,8 @@
 #include <stdint.h>
 #include <boost/utility.hpp>
 
-
 #include <fastuidraw/util/static_resource.hpp>
+#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
 
 namespace

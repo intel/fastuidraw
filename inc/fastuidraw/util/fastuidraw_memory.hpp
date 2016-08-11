@@ -28,58 +28,58 @@
 #include <fastuidraw/util/fastuidraw_memory_private.hpp>
 
 /*!\def FASTUIDRAWnew
-  When DEBUG is defined, allocations with FASTUIDRAWnew are tracked and
+  When FASTUIDRAW_DEBUG is defined, allocations with FASTUIDRAWnew are tracked and
   at program exit a list of those objects not deleted by FASTUIDRAWdelete
-  are printed with the file and line number of the allocation. When DEBUG
+  are printed with the file and line number of the allocation. When FASTUIDRAW_DEBUG
   is not defined, FASTUIDRAWnew maps to new.
  */
 
 /*!\def FASTUIDRAWdelete
   Use FASTUIDRAWdelete for objects allocated with FASTUIDRAWnew.
-  When DEBUG is not defined, maps to boost::checked_delete(p).
+  When FASTUIDRAW_DEBUG is not defined, maps to boost::checked_delete(p).
   \param ptr address of object to delete, value must be a return
              value of FASTUIDRAWnew
  */
 
 /*!\def FASTUIDRAWdelete_array
   Use FASTUIDRAWdelete_array for arrays of objects allocated with FASTUIDRAWnew.
-  When DEBUG is not defined, maps to boost::checked_array_delete().
+  When FASTUIDRAW_DEBUG is not defined, maps to boost::checked_array_delete().
   \param ptr address of array of objects to delete, value must be a return
              value of FASTUIDRAWnew
  */
 
 /*!\def FASTUIDRAWmalloc
-  When DEBUG is defined, allocations with FASTUIDRAWmalloc are tracked and
+  When FASTUIDRAW_DEBUG is defined, allocations with FASTUIDRAWmalloc are tracked and
   at program exit a list of those objects not deleted by FASTUIDRAWfree
-  are printed with the file and line number of the allocation. When DEBUG
+  are printed with the file and line number of the allocation. When FASTUIDRAW_DEBUG
   is not defined, maps to std::malloc.
  */
 
 /*!\def FASTUIDRAWcalloc
-  When DEBUG is defined, allocations with FASTUIDRAWcalloc are tracked and
+  When FASTUIDRAW_DEBUG is defined, allocations with FASTUIDRAWcalloc are tracked and
   at program exit a list of those objects not deleted by FASTUIDRAWfree
-  are printed with the file and line number of the allocation. When DEBUG
+  are printed with the file and line number of the allocation. When FASTUIDRAW_DEBUG
   is not defined, maps to std::calloc.
   \param nmemb number of elements to allocate
   \param size size of each element in bytes
  */
 
 /*!\def FASTUIDRAWrealloc
-  When DEBUG is defined, allocations with FASTUIDRAWrealloc are tracked and
+  When FASTUIDRAW_DEBUG is defined, allocations with FASTUIDRAWrealloc are tracked and
   at program exit a list of those objects not deleted by FASTUIDRAWfree
-  are printed with the file and line number of the allocation. When DEBUG
+  are printed with the file and line number of the allocation. When FASTUIDRAW_DEBUG
   is not defined, maps to std::realloc.
   \param ptr pointer at whcih to rellocate
   \param size new size
  */
 
 /*!\def FASTUIDRAWfree
-  Use FASTUIDRAWfree for objects allocated with FASTUIDRAWmallo,
-  FASTUIDRAWrealloc and FASTUIDRAWcalloc. When DEBUG is not defined,
+  Use FASTUIDRAWfree for objects allocated with FASTUIDRAWmalloc,
+  FASTUIDRAWrealloc and FASTUIDRAWcalloc. When FASTUIDRAW_DEBUG is not defined,
   maps to std::free.
   \param ptr address of object to free
  */
-#ifdef DEBUG
+#ifdef FASTUIDRAW_DEBUG
 #define FASTUIDRAWnew \
   ::new(__FILE__, __LINE__)
 #define FASTUIDRAWdelete(ptr) \

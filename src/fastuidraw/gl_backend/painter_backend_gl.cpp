@@ -23,6 +23,7 @@
 #include <vector>
 
 #include <fastuidraw/stroked_path.hpp>
+#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/painter_backend_gl.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
 #include <fastuidraw/gl_backend/opengl_trait.hpp>

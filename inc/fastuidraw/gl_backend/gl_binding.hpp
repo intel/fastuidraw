@@ -36,19 +36,27 @@ namespace fastuidraw {
 
 
   Short version:
-   - application should include <fastuidraw/gl_backend/gl_header.hpp>
    - application should call fastuidraw::gl_binding::get_proc_function()
-     to set the function which the GL backend will use to fetch GL
-     function pointers.
+     to set the function which the GL backend for FastUIDraw will use to
+     fetch GL function pointers.
+   - If an application wishes, it can include <fastuidraw/gl_backend/ngl_header.hpp>.
+     The header will replace GL (and GLES) functions with macros. Under release
+     the macros are to function pointers that automatically set themselves up
+     correcty. For debug, the macros preceed and postceed each GL (and GLES)
+     function call with error checking call backs so an application writer
+     can quickly know what line/file triggered a GL error. If an application does
+     not wish to use the macro system (and will also need to fetch function pointers
+     somehow) but remain GL/GLES agnostic, it can instead include <fastuidraw/gl_backend/gl_header.hpp>.
 
   Long Version:
 
   The namespace gl_binding provides an interface for an application
   to specify to the GL module of FastUIDraw how to fetch function
   pointers (fastuidraw::gl_binding::get_proc_function()) and additional
-  functionality of where to write/store GL error messages.
-
-  if GL_DEBUG is defined, each GL call will be preceded by
+  functionality of where to write/store GL error messages. An application
+  can also use this functionality by including <fastuidraw/gl_backend/ngl_header.hpp>.
+  The header <fastuidraw/gl_backend/ngl_header.hpp> will create a macro
+  for each GL function. If GL_DEBUG is defined, each GL call will be preceded by
   a callback and postceeded by another call back. If logging
   is on (see log_gl_commands(bool)), the precede call back
   will print (file, line and arguments) to the LoggerBase
@@ -68,7 +76,7 @@ namespace fastuidraw {
   name as a function pointer will fail to compile
   and likely give an almost impossible to read
   error message. To use this, an application needs to
-  only include <fastuidraw/gl_backend/gl_header.hpp>.
+  only include <fastuidraw/gl_backend/ngl_header.hpp>.
 
   To fetch the function pointer of a GL function,
   use the macro <B>FASTUIDRAWglfunctionPointer</B> together

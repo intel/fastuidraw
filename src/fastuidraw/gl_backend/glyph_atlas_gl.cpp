@@ -20,6 +20,7 @@
 #include <sstream>
 
 #include <fastuidraw/text/glyph_render_data_curve_pair.hpp>
+#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
 

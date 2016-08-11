@@ -16,6 +16,7 @@
  *
  */
 
+#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 #include "tex_buffer.hpp"
 

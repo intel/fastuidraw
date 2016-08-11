@@ -16,7 +16,7 @@
  *
  */
 
-
+#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/painter_blend_shader_gl.hpp>
 
 namespace
