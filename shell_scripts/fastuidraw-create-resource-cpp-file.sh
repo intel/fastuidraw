@@ -18,13 +18,32 @@
 #
 set -e
 
+function show_usage {
+    echo "Usage: $0 input_file output_name [output_directory]"
+    echo "Creates a .cpp file named output_name.cpp in the directory output_directory"
+    echo "which when added to a project adds a resource for fastuidraw::fetch_static_resource()"
+    echo "named output_name with value the contents of input_file. "
+}
+
+if [ "$#" -ne 3 ]; then
+    show_usage
+    exit 1
+fi
+
 input_filename="$1"
 source_file_name="$2.cpp"
 output_directory="$3"
-if [ -z "$output_directory" ]; then
-    output_directory="."
-fi
 source_file_name="$output_directory/$source_file_name"
+
+if [ ! -f $1 ]; then
+   echo "Input file \"$1\" not found"
+   exit 1
+fi
+
+if [ ! -d $output_directory ]; then
+   echo "Output directoy \"$output_directory\" not found"
+   exit 1
+fi
 
 # Contents of the magick perl program taken 
 # from: decode_file_chars_to_numbers.pl of WRATH 
