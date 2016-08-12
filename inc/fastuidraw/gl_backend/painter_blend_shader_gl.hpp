@@ -373,7 +373,7 @@ namespace fastuidraw
       a SingleSourceBlenderShader, DualSourceBlenderShader and
       FramebufferFetchBlendShader.
      */
-    class PainterBlendShaderGL:public PainterShader
+    class PainterBlendShaderGL:public PainterBlendShader
     {
     public:
       /*!

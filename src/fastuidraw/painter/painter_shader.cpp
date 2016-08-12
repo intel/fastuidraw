@@ -188,7 +188,7 @@ shader(enum glyph_type tp) const
 }
 
 
-void
+fastuidraw::PainterGlyphShader&
 fastuidraw::PainterGlyphShader::
 shader(enum glyph_type tp,
        const fastuidraw::reference_counted_ptr<PainterItemShader> &sh)
@@ -200,6 +200,7 @@ shader(enum glyph_type tp,
       d->m_shaders.resize(tp + 1);
     }
   d->m_shaders[tp] = sh;
+  return *this;
 }
 
 unsigned int
@@ -262,7 +263,7 @@ shader(enum PainterEnums::blend_mode_t tp) const
 }
 
 
-void
+fastuidraw::PainterBlendShaderSet&
 fastuidraw::PainterBlendShaderSet::
 shader(enum PainterEnums::blend_mode_t tp,
        const reference_counted_ptr<PainterBlendShader> &sh)
@@ -274,6 +275,7 @@ shader(enum PainterEnums::blend_mode_t tp,
       d->m_shaders.resize(tp + 1);
     }
   d->m_shaders[tp] = sh;
+  return *this;
 }
 
 unsigned int

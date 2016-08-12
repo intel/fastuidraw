@@ -190,7 +190,7 @@ namespace fastuidraw
       \param tp glyph type to render
       \param sh PainterItemShader to use for the glyph type
      */
-    void
+    PainterGlyphShader&
     shader(enum glyph_type tp, const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
@@ -245,7 +245,7 @@ namespace fastuidraw
       \param tp blend mode
       \param sh PainterShader to use for the blend mode
      */
-    void
+    PainterBlendShaderSet&
     shader(enum PainterEnums::blend_mode_t tp,
            const reference_counted_ptr<PainterBlendShader> &sh);
 

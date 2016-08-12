@@ -98,13 +98,16 @@ namespace
   class PainterShaderGLPrivate
   {
   public:
-    PainterShaderGLPrivate(const fastuidraw::gl::Shader::shader_source &src,
+    PainterShaderGLPrivate(const fastuidraw::gl::Shader::shader_source &vertex_src,
+                           const fastuidraw::gl::Shader::shader_source &fragment_src,
                            const fastuidraw::gl::varying_list &varyings):
-      m_src(src),
+      m_vertex_src(vertex_src),
+      m_fragment_src(fragment_src),
       m_varyings(varyings)
     {}
 
-    fastuidraw::gl::Shader::shader_source m_src;
+    fastuidraw::gl::Shader::shader_source m_vertex_src;
+    fastuidraw::gl::Shader::shader_source m_fragment_src;
     fastuidraw::gl::varying_list m_varyings;
 
   };
@@ -489,15 +492,17 @@ stream_unpack_function(unsigned int alignment, Shader::shader_source &src,
 }
 
 ///////////////////////////////////////////////
-// fastuidraw::gl::PainterShaderGL methods
-fastuidraw::gl::PainterShaderGL::
-PainterShaderGL(const Shader::shader_source &src, const varying_list &varyings)
+// fastuidraw::gl::PainterItemShaderGL methods
+fastuidraw::gl::PainterItemShaderGL::
+PainterItemShaderGL(const Shader::shader_source &v_src,
+                    const Shader::shader_source &f_src,
+                    const varying_list &varyings)
 {
-  m_d = FASTUIDRAWnew PainterShaderGLPrivate(src, varyings);
+  m_d = FASTUIDRAWnew PainterShaderGLPrivate(v_src, f_src, varyings);
 }
 
-fastuidraw::gl::PainterShaderGL::
-~PainterShaderGL(void)
+fastuidraw::gl::PainterItemShaderGL::
+~PainterItemShaderGL(void)
 {
   PainterShaderGLPrivate *d;
   d = reinterpret_cast<PainterShaderGLPrivate*>(m_d);
@@ -506,7 +511,7 @@ fastuidraw::gl::PainterShaderGL::
 }
 
 const fastuidraw::gl::varying_list&
-fastuidraw::gl::PainterShaderGL::
+fastuidraw::gl::PainterItemShaderGL::
 varyings(void) const
 {
   PainterShaderGLPrivate *d;
@@ -515,10 +520,19 @@ varyings(void) const
 }
 
 const fastuidraw::gl::Shader::shader_source&
-fastuidraw::gl::PainterShaderGL::
-src(void) const
+fastuidraw::gl::PainterItemShaderGL::
+vertex_src(void) const
 {
   PainterShaderGLPrivate *d;
   d = reinterpret_cast<PainterShaderGLPrivate*>(m_d);
-  return d->m_src;
+  return d->m_vertex_src;
+}
+
+const fastuidraw::gl::Shader::shader_source&
+fastuidraw::gl::PainterItemShaderGL::
+fragment_src(void) const
+{
+  PainterShaderGLPrivate *d;
+  d = reinterpret_cast<PainterShaderGLPrivate*>(m_d);
+  return d->m_fragment_src;
 }

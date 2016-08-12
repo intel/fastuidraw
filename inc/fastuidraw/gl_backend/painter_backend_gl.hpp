@@ -267,41 +267,21 @@ namespace fastuidraw
         number_pools(unsigned int v);
 
         /*!
-          If true, place different vertex shadings in seperate
-          entries of a glMultiDrawElements call. The use case
-          is that if many vertices are processed in a single
-          vertex shader invocation, a seperate HW draw call
-          is issued but the API state remains the same.
-          The motivation is that by placing in a seperate call,
-          the shader invocation does not divergently branch.
-          Default value is false.
+          If true, place different item shaders in seperate
+          entries of a glMultiDrawElements call.
+          The motivation is that by placing in a seperate element
+          of a glMultiDrawElements call, each element is a seperate
+          HW draw call and by being seperate, the shader invocation
+          does not divergently branch. Default value is false.
          */
         bool
-        break_on_vertex_shader_change(void) const;
+        break_on_shader_change(void) const;
 
         /*!
-          Set the value for break_on_vertex_shader_change(void) const
+          Set the value for break_on_shader_change(void) const
         */
         params&
-        break_on_vertex_shader_change(bool v);
-
-        /*!
-          If true, place different fragment shadings in seperate
-          entries of a glMultiDrawElements call. The use case
-          is that if a GPU has fragments from different triangles
-          shaded in the same invocation of a fragment shader. By
-          placing in a seperate HW draw call, the shader invocation
-          will not divergenlty branch.
-          Default value is false.
-         */
-        bool
-        break_on_fragment_shader_change(void) const;
-
-        /*!
-          Set the value for break_on_fragment_shader_change(void) const
-        */
-        params&
-        break_on_fragment_shader_change(bool v);
+        break_on_shader_change(bool v);
 
         /*!
           If true, unpacks the brush and fragment shader specific data
@@ -377,15 +357,11 @@ namespace fastuidraw
     protected:
       virtual
       PainterShader::Tag
-      absorb_vert_shader(const reference_counted_ptr<PainterShader> &shader);
+      absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader);
 
       virtual
       PainterShader::Tag
-      absorb_frag_shader(const reference_counted_ptr<PainterShader> &shader);
-
-      virtual
-      PainterShader::Tag
-      absorb_blend_shader(const reference_counted_ptr<PainterShader> &shader);
+      absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader);
 
     private:
       void *m_d;
