@@ -133,17 +133,17 @@ namespace fastuidraw
     value<PainterBrush> m_brush;
 
     /*!
-      value for vertex shader data
+      value for item shader data
     */
-    value<PainterVertexShaderData> m_vertex_shader_data;
+    value<PainterItemShaderData> m_item_shader_data;
 
     /*!
-      value for fragment shader data
+      value for blend shader data
     */
-    value<PainterFragmentShaderData> m_fragment_shader_data;
+    value<PainterBlendShaderData> m_blend_shader_data;
 
     /*!
-      Sets m_brush
+      Sets \ref m_brush
      */
     PainterData&
     set(const value<PainterBrush> &value)
@@ -153,22 +153,22 @@ namespace fastuidraw
     }
 
     /*!
-      Sets m_vertex_shader_data
+      Sets \ref m_item_shader_data
      */
     PainterData&
-    set(const value<PainterVertexShaderData> &value)
+    set(const value<PainterItemShaderData> &value)
     {
-      m_vertex_shader_data = value;
+      m_item_shader_data = value;
       return *this;
     }
 
     /*!
-      Sets m_fragment_shader_data
+      Sets \ref m_blend_shader_data
      */
     PainterData&
-    set(const value<PainterFragmentShaderData> &value)
+    set(const value<PainterBlendShaderData> &value)
     {
-      m_fragment_shader_data = value;
+      m_blend_shader_data = value;
       return *this;
     }
   };

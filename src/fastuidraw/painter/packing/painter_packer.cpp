@@ -32,8 +32,7 @@ namespace
   {
   public:
     uint32_t m_blend_group;
-    uint32_t m_vert_group;
-    uint32_t m_frag_group;
+    uint32_t m_item_group;
     uint32_t m_brush;
   };
 
@@ -315,8 +314,8 @@ namespace
     PoolSet<fastuidraw::PainterBrush> m_brush_pool;
     PoolSet<fastuidraw::PainterClipEquations> m_clip_equations_pool;
     PoolSet<fastuidraw::PainterItemMatrix> m_item_matrix_pool;
-    PoolSet<fastuidraw::PainterVertexShaderData> m_vertex_shader_data_pool;
-    PoolSet<fastuidraw::PainterFragmentShaderData> m_fragment_shader_data_pool;
+    PoolSet<fastuidraw::PainterItemShaderData> m_item_shader_data_pool;
+    PoolSet<fastuidraw::PainterBlendShaderData> m_blend_shader_data_pool;
   };
 
   class painter_state_location
@@ -325,8 +324,8 @@ namespace
     uint32_t m_clipping_data_loc;
     uint32_t m_item_matrix_data_loc;
     uint32_t m_brush_shader_data_loc;
-    uint32_t m_vert_shader_data_loc;
-    uint32_t m_frag_shader_data_loc;
+    uint32_t m_item_shader_data_loc;
+    uint32_t m_blend_shader_data_loc;
   };
 
   class PainterPackerPrivate;
@@ -379,9 +378,8 @@ namespace
     unsigned int
     pack_header(unsigned int header_size,
                 uint32_t brush_shader,
-                const fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader> &blend_shader,
-                const fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader> &vert_shader,
-                const fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader> &frag_shader,
+                const fastuidraw::reference_counted_ptr<const fastuidraw::PainterBlendShader> &blend_shader,
+                const fastuidraw::reference_counted_ptr<const fastuidraw::PainterItemShader> &item_shader,
                 unsigned int z,
                 const painter_state_location &loc,
                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
@@ -505,7 +503,7 @@ namespace
     unsigned int m_alignment;
     unsigned int m_header_size;
 
-    fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader> m_blend_shader;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterBlendShader> m_blend_shader;
     painter_state_location m_painter_state_location;
     int m_number_begins;
 
@@ -529,8 +527,7 @@ per_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::Paint
   m_alignment(config.alignment()),
   m_brush_shader_mask(config.brush_shader_mask())
 {
-  m_prev_state.m_vert_group = 0;
-  m_prev_state.m_frag_group = 0;
+  m_prev_state.m_item_group = 0;
   m_prev_state.m_brush = 0;
   m_prev_state.m_blend_group = 0;
 }
@@ -583,8 +580,8 @@ pack_painter_state(const fastuidraw::PainterPackerData &state,
 {
   pack_state_data(p, state.m_clip, out_data.m_clipping_data_loc);
   pack_state_data(p, state.m_matrix, out_data.m_item_matrix_data_loc);
-  pack_state_data(p, state.m_vertex_shader_data, out_data.m_vert_shader_data_loc);
-  pack_state_data(p, state.m_fragment_shader_data, out_data.m_frag_shader_data_loc);
+  pack_state_data(p, state.m_item_shader_data, out_data.m_item_shader_data_loc);
+  pack_state_data(p, state.m_blend_shader_data, out_data.m_blend_shader_data_loc);
   pack_state_data(p, state.m_brush, out_data.m_brush_shader_data_loc);
 
   /* We save a handle to the image and colorstop used by the brush,
@@ -610,9 +607,8 @@ unsigned int
 per_draw_command::
 pack_header(unsigned int header_size,
             uint32_t brush_shader,
-            const fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader> &blend_shader,
-            const fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader> &vert_shader,
-            const fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader> &frag_shader,
+            const fastuidraw::reference_counted_ptr<const fastuidraw::PainterBlendShader> &blend_shader,
+            const fastuidraw::reference_counted_ptr<const fastuidraw::PainterItemShader> &item_shader,
             unsigned int z,
             const painter_state_location &loc,
             const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
@@ -638,8 +634,8 @@ pack_header(unsigned int header_size,
   dst[fastuidraw::PainterPacking::item_matrix_offset].u = loc.m_item_matrix_data_loc;
 
   dst[fastuidraw::PainterPacking::brush_shader_data_offset].u = loc.m_brush_shader_data_loc;
-  dst[fastuidraw::PainterPacking::vert_shader_data_offset].u = loc.m_vert_shader_data_loc;
-  dst[fastuidraw::PainterPacking::frag_shader_data_offset].u = loc.m_frag_shader_data_loc;
+  dst[fastuidraw::PainterPacking::item_shader_data_offset].u = loc.m_item_shader_data_loc;
+  dst[fastuidraw::PainterPacking::blend_shader_data_offset].u = loc.m_blend_shader_data_loc;
 
   PainterShaderGroupPrivate current;
   fastuidraw::PainterShader::Tag blend;
@@ -648,19 +644,11 @@ pack_header(unsigned int header_size,
     {
       blend = blend_shader->tag();
     }
-  current.m_vert_group = vert_shader->group();
-  current.m_frag_group = frag_shader->group();
+  current.m_item_group = item_shader->group();
   current.m_brush = brush_shader;
   current.m_blend_group = blend.m_group;
 
-  dst[fastuidraw::PainterPacking::vert_frag_shader_offset].u =
-    fastuidraw::pack_bits(fastuidraw::PainterPacking::vert_shader_bit0,
-                         fastuidraw::PainterPacking::vert_shader_num_bits,
-                         vert_shader->ID())
-    | fastuidraw::pack_bits(fastuidraw::PainterPacking::frag_shader_bit0,
-                           fastuidraw::PainterPacking::frag_shader_num_bits,
-                           frag_shader->ID());
-
+  dst[fastuidraw::PainterPacking::item_shader_offset].u = item_shader->ID();
   dst[fastuidraw::PainterPacking::brush_shader_offset].u = current.m_brush;
 
   dst[fastuidraw::PainterPacking::z_blend_shader_offset].u =
@@ -669,8 +657,7 @@ pack_header(unsigned int header_size,
     | fastuidraw::pack_bits(fastuidraw::PainterPacking::blend_shader_bit0,
                            fastuidraw::PainterPacking::blend_shader_num_bits, blend.m_ID);
 
-  if(current.m_vert_group != m_prev_state.m_vert_group
-     || current.m_frag_group != m_prev_state.m_frag_group
+  if(current.m_item_group != m_prev_state.m_item_group
      || current.m_blend_group != m_prev_state.m_blend_group
      || (m_brush_shader_mask & (current.m_brush ^ m_prev_state.m_brush)) != 0u)
     {
@@ -725,8 +712,8 @@ compute_room_needed_for_packing(const fastuidraw::PainterPackerData &draw_state)
   R += compute_room_needed_for_packing(draw_state.m_clip);
   R += compute_room_needed_for_packing(draw_state.m_matrix);
   R += compute_room_needed_for_packing(draw_state.m_brush);
-  R += compute_room_needed_for_packing(draw_state.m_vertex_shader_data);
-  R += compute_room_needed_for_packing(draw_state.m_fragment_shader_data);
+  R += compute_room_needed_for_packing(draw_state.m_item_shader_data);
+  R += compute_room_needed_for_packing(draw_state.m_blend_shader_data);
   return R;
 }
 
@@ -758,20 +745,11 @@ blend_group(void) const
 
 uint32_t
 fastuidraw::PainterShaderGroup::
-vert_group(void) const
+item_group(void) const
 {
   const PainterShaderGroupPrivate *d;
   d = static_cast<const PainterShaderGroupPrivate*>(this);
-  return d->m_vert_group;
-}
-
-uint32_t
-fastuidraw::PainterShaderGroup::
-frag_group(void) const
-{
-  const PainterShaderGroupPrivate *d;
-  d = static_cast<const PainterShaderGroupPrivate*>(this);
-  return d->m_frag_group;
+  return d->m_item_group;
 }
 
 uint32_t
@@ -851,7 +829,7 @@ fastuidraw::PainterPacker::
 draw_generic(const PainterPackerData &draw,
              const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
-             const PainterItemShader &shader, unsigned int z,
+             const reference_counted_ptr<PainterItemShader> &shader, unsigned int z,
              const reference_counted_ptr<DataCallBack> &call_back)
 {
   draw_generic(draw, attrib_chunks, index_chunks,
@@ -865,7 +843,7 @@ draw_generic(const PainterPackerData &draw,
              const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
              const_c_array<unsigned int> attrib_chunk_selector,
-             const PainterItemShader &shader, unsigned int z,
+             const reference_counted_ptr<PainterItemShader> &shader, unsigned int z,
              const reference_counted_ptr<DataCallBack> &call_back)
 {
   PainterPackerPrivate *d;
@@ -878,10 +856,10 @@ draw_generic(const PainterPackerData &draw,
   assert((attrib_chunk_selector.empty() && attrib_chunks.size() == index_chunks.size())
          || (attrib_chunk_selector.size() == index_chunks.size()) );
 
-  if(attrib_chunks.empty() || !shader.vert_shader() || !shader.frag_shader())
+  if(attrib_chunks.empty() || !shader)
     {
       /* should we emit a warning message that the PainterItemShader
-         was missing the vertex or fragment shader value?
+         was missing the item shader value?
        */
       return;
     }
@@ -889,8 +867,7 @@ draw_generic(const PainterPackerData &draw,
   d->m_work_room.m_attribs_loaded.clear();
   d->m_work_room.m_attribs_loaded.resize(attrib_chunk_selector.size(), NOT_LOADED);
 
-  assert(shader.vert_shader());
-  assert(shader.frag_shader());
+  assert(shader);
 
   d->upload_draw_state(draw);
   allocate_header = true;
@@ -957,8 +934,7 @@ draw_generic(const PainterPackerData &draw,
           header_loc = cmd.pack_header(d->m_header_size,
                                        fetch_value(draw.m_brush).shader(),
                                        d->m_blend_shader,
-                                       shader.vert_shader(),
-                                       shader.frag_shader(),
+                                       shader,
                                        z, d->m_painter_state_location,
                                        call_back);
         }
@@ -1038,7 +1014,7 @@ colorstop_atlas(void) const
   return d->m_backend->colorstop_atlas();
 }
 
-const fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader>&
+const fastuidraw::reference_counted_ptr<const fastuidraw::PainterBlendShader>&
 fastuidraw::PainterPacker::
 blend_shader(void) const
 {
@@ -1049,7 +1025,7 @@ blend_shader(void) const
 
 void
 fastuidraw::PainterPacker::
-blend_shader(const fastuidraw::reference_counted_ptr<const PainterShader> &h)
+blend_shader(const fastuidraw::reference_counted_ptr<const PainterBlendShader> &h)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
@@ -1077,38 +1053,20 @@ hints(void)
 
 void
 fastuidraw::PainterPacker::
-register_vert_shader(const reference_counted_ptr<PainterShader> &shader)
+register_shader(const reference_counted_ptr<PainterItemShader> &shader)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  d->m_backend->register_vert_shader(shader);
+  d->m_backend->register_shader(shader);
 }
 
 void
 fastuidraw::PainterPacker::
-register_frag_shader(const reference_counted_ptr<PainterShader> &shader)
+register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  d->m_backend->register_frag_shader(shader);
-}
-
-void
-fastuidraw::PainterPacker::
-register_blend_shader(const reference_counted_ptr<PainterShader> &shader)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  d->m_backend->register_blend_shader(shader);
-}
-
-void
-fastuidraw::PainterPacker::
-register_shader(const PainterItemShader &p)
-{
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  d->m_backend->register_shader(p);
+  d->m_backend->register_shader(shader);
 }
 
 void
@@ -1289,26 +1247,26 @@ create_packed_value(const PainterItemMatrix &value)
   return fastuidraw::PainterPackedValue<PainterItemMatrix>(e);
 }
 
-fastuidraw::PainterPackedValue<fastuidraw::PainterVertexShaderData>
+fastuidraw::PainterPackedValue<fastuidraw::PainterItemShaderData>
 fastuidraw::PainterPackedValuePool::
-create_packed_value(const PainterVertexShaderData &value)
+create_packed_value(const PainterItemShaderData &value)
 {
   PainterPackedValuePoolPrivate *d;
-  Entry<PainterVertexShaderData> *e;
+  Entry<PainterItemShaderData> *e;
 
   d = reinterpret_cast<PainterPackedValuePoolPrivate*>(m_d);
-  e = d->m_vertex_shader_data_pool.allocate(value, d->m_alignment);
-  return fastuidraw::PainterPackedValue<PainterVertexShaderData>(e);
+  e = d->m_item_shader_data_pool.allocate(value, d->m_alignment);
+  return fastuidraw::PainterPackedValue<PainterItemShaderData>(e);
 }
 
-fastuidraw::PainterPackedValue<fastuidraw::PainterFragmentShaderData>
+fastuidraw::PainterPackedValue<fastuidraw::PainterBlendShaderData>
 fastuidraw::PainterPackedValuePool::
-create_packed_value(const PainterFragmentShaderData &value)
+create_packed_value(const PainterBlendShaderData &value)
 {
   PainterPackedValuePoolPrivate *d;
-  Entry<PainterFragmentShaderData> *e;
+  Entry<PainterBlendShaderData> *e;
 
   d = reinterpret_cast<PainterPackedValuePoolPrivate*>(m_d);
-  e = d->m_fragment_shader_data_pool.allocate(value, d->m_alignment);
-  return fastuidraw::PainterPackedValue<PainterFragmentShaderData>(e);
+  e = d->m_blend_shader_data_pool.allocate(value, d->m_alignment);
+  return fastuidraw::PainterPackedValue<PainterBlendShaderData>(e);
 }

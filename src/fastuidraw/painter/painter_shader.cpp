@@ -25,15 +25,15 @@ namespace
   class PainterGlyphShaderPrivate
   {
   public:
-    std::vector<fastuidraw::PainterItemShader> m_shaders;
-    fastuidraw::PainterItemShader m_null;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> > m_shaders;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_null;
   };
 
   class PainterBlendShaderSetPrivate
   {
   public:
-    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterShader> > m_shaders;
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterShader> m_null;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> > m_shaders;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_null;
   };
 
   class PainterShaderSetPrivate
@@ -42,7 +42,7 @@ namespace
     fastuidraw::PainterGlyphShader m_glyph_shader, m_glyph_shader_anisotropic;
     fastuidraw::PainterStrokeShader m_stroke_shader;
     fastuidraw::PainterStrokeShader m_pixel_width_stroke_shader;
-    fastuidraw::PainterItemShader m_fill_shader;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_fill_shader;
     fastuidraw::PainterBlendShaderSet m_blend_shaders;
   };
 
@@ -58,13 +58,6 @@ namespace
     const fastuidraw::PainterBackend *m_registered_to;
   };
 
-  class PainterItemShaderPrivate
-  {
-  public:
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterShader> m_vert_shader;
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterShader> m_frag_shader;
-  };
-
   class PainterStrokeShaderPrivate
   {
   public:
@@ -72,9 +65,9 @@ namespace
       m_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz)
     {}
 
-    fastuidraw::PainterItemShader m_aa_shader_pass1;
-    fastuidraw::PainterItemShader m_aa_shader_pass2;
-    fastuidraw::PainterItemShader m_non_aa_shader;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_shader_pass1;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_shader_pass2;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_non_aa_shader;
     enum fastuidraw::PainterStrokeShader::type_t m_aa_type;
   };
 }
@@ -185,7 +178,7 @@ operator=(const PainterGlyphShader &rhs)
   return *this;
 }
 
-const fastuidraw::PainterItemShader&
+const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&
 fastuidraw::PainterGlyphShader::
 shader(enum glyph_type tp) const
 {
@@ -197,7 +190,8 @@ shader(enum glyph_type tp) const
 
 void
 fastuidraw::PainterGlyphShader::
-shader(enum glyph_type tp, const PainterItemShader &sh)
+shader(enum glyph_type tp,
+       const fastuidraw::reference_counted_ptr<PainterItemShader> &sh)
 {
   PainterGlyphShaderPrivate *d;
   d = reinterpret_cast<PainterGlyphShaderPrivate*>(m_d);
@@ -258,7 +252,7 @@ operator=(const PainterBlendShaderSet &rhs)
   return *this;
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::PainterShader>&
+const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader>&
 fastuidraw::PainterBlendShaderSet::
 shader(enum PainterEnums::blend_mode_t tp) const
 {
@@ -271,7 +265,7 @@ shader(enum PainterEnums::blend_mode_t tp) const
 void
 fastuidraw::PainterBlendShaderSet::
 shader(enum PainterEnums::blend_mode_t tp,
-       const reference_counted_ptr<PainterShader> &sh)
+       const reference_counted_ptr<PainterBlendShader> &sh)
 {
   PainterBlendShaderSetPrivate *d;
   d = reinterpret_cast<PainterBlendShaderSetPrivate*>(m_d);
@@ -355,76 +349,10 @@ setget_implement(fastuidraw::PainterGlyphShader, glyph_shader)
 setget_implement(fastuidraw::PainterGlyphShader, glyph_shader_anisotropic)
 setget_implement(fastuidraw::PainterStrokeShader, stroke_shader)
 setget_implement(fastuidraw::PainterStrokeShader, pixel_width_stroke_shader)
-setget_implement(fastuidraw::PainterItemShader, fill_shader)
+setget_implement(fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>, fill_shader)
 setget_implement(fastuidraw::PainterBlendShaderSet, blend_shaders)
 
 #undef setget_implement
-
-//////////////////////////////////////////
-// fastuidraw::PainterItemShader methods
-fastuidraw::PainterItemShader::
-PainterItemShader(void)
-{
-  m_d = FASTUIDRAWnew PainterItemShaderPrivate();
-}
-
-fastuidraw::PainterItemShader::
-PainterItemShader(const PainterItemShader &obj)
-{
-  PainterItemShaderPrivate *d;
-  d = reinterpret_cast<PainterItemShaderPrivate*>(obj.m_d);
-  m_d = FASTUIDRAWnew PainterItemShaderPrivate(*d);
-}
-
-fastuidraw::PainterItemShader::
-~PainterItemShader()
-{
-  PainterItemShaderPrivate *d;
-  d = reinterpret_cast<PainterItemShaderPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-  m_d = NULL;
-}
-
-fastuidraw::PainterItemShader&
-fastuidraw::PainterItemShader::
-operator=(const PainterItemShader &rhs)
-{
-  if(this != &rhs)
-    {
-      PainterItemShaderPrivate *d, *rhs_d;
-      d = reinterpret_cast<PainterItemShaderPrivate*>(m_d);
-      rhs_d = reinterpret_cast<PainterItemShaderPrivate*>(rhs.m_d);
-      *d = *rhs_d;
-    }
-  return *this;
-}
-
-#define setget_implement(type, name)                             \
-  fastuidraw::PainterItemShader&                                  \
-  fastuidraw::PainterItemShader::                                 \
-  name(const type &v)                                            \
-  {                                                              \
-    PainterItemShaderPrivate *d;                                 \
-    d = reinterpret_cast<PainterItemShaderPrivate*>(m_d);        \
-    d->m_##name = v;                                             \
-      return *this;                                              \
-  }                                                              \
-                                                                 \
-  const type&                                                    \
-  fastuidraw::PainterItemShader::                                 \
-  name(void) const                                               \
-  {                                                              \
-    PainterItemShaderPrivate *d;                                 \
-    d = reinterpret_cast<PainterItemShaderPrivate*>(m_d);        \
-    return d->m_##name;                                          \
-  }
-
-setget_implement(fastuidraw::reference_counted_ptr<fastuidraw::PainterShader>, vert_shader)
-setget_implement(fastuidraw::reference_counted_ptr<fastuidraw::PainterShader>, frag_shader)
-
-#undef setget_implement
-
-
 
 //////////////////////////////////////////
 // fastuidraw::PainterStrokeShader methods
@@ -465,24 +393,24 @@ operator=(const PainterStrokeShader &rhs)
   return *this;
 }
 
-#define setget_implement(type, name)                               \
+#define setget_implement(type, name)                                \
   fastuidraw::PainterStrokeShader&                                  \
   fastuidraw::PainterStrokeShader::                                 \
-  name(const type &v)                                              \
-  {                                                                \
-    PainterStrokeShaderPrivate *d;                                 \
-    d = reinterpret_cast<PainterStrokeShaderPrivate*>(m_d);        \
-    d->m_##name = v;                                               \
-      return *this;                                                \
-  }                                                                \
-                                                                   \
-  const type&                                                      \
+  name(const type &v)                                               \
+  {                                                                 \
+    PainterStrokeShaderPrivate *d;                                  \
+    d = reinterpret_cast<PainterStrokeShaderPrivate*>(m_d);         \
+    d->m_##name = v;                                                \
+    return *this;                                                   \
+  }                                                                 \
+                                                                    \
+  const type&                                                       \
   fastuidraw::PainterStrokeShader::                                 \
-  name(void) const                                                 \
-  {                                                                \
-    PainterStrokeShaderPrivate *d;                                 \
-    d = reinterpret_cast<PainterStrokeShaderPrivate*>(m_d);        \
-    return d->m_##name;                                            \
+  name(void) const                                                  \
+  {                                                                 \
+    PainterStrokeShaderPrivate *d;                                  \
+    d = reinterpret_cast<PainterStrokeShaderPrivate*>(m_d);         \
+    return d->m_##name;                                             \
   }
 
 #define setget_non_ref_implement(type, name)                        \
@@ -505,9 +433,9 @@ operator=(const PainterStrokeShader &rhs)
     return d->m_##name;                                             \
   }
 
-setget_implement(fastuidraw::PainterItemShader, aa_shader_pass1)
-setget_implement(fastuidraw::PainterItemShader, aa_shader_pass2)
-setget_implement(fastuidraw::PainterItemShader, non_aa_shader)
+setget_implement(fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>, aa_shader_pass1)
+setget_implement(fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>, aa_shader_pass2)
+setget_implement(fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>, non_aa_shader)
 setget_non_ref_implement(enum fastuidraw::PainterStrokeShader::type_t, aa_type);
 
 #undef setget_implement

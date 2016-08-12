@@ -116,7 +116,7 @@ namespace fastuidraw
     /*!
       Returns the active blend shader
      */
-    const reference_counted_ptr<const PainterShader>&
+    const reference_counted_ptr<const PainterBlendShader>&
     blend_shader(void) const;
 
     /*!
@@ -125,7 +125,7 @@ namespace fastuidraw
       \param h blend shader to use for blending.
      */
     void
-    blend_shader(const reference_counted_ptr<const PainterShader> &h);
+    blend_shader(const reference_counted_ptr<const PainterBlendShader> &h);
 
     /*!
       Indicate to start drawing. Commands are buffered and not
@@ -169,7 +169,7 @@ namespace fastuidraw
     draw_generic(const PainterPackerData &data,
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
-                 const PainterItemShader &shader, unsigned int z,
+                 const reference_counted_ptr<PainterItemShader> &shader, unsigned int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
 
     /*!
@@ -190,7 +190,7 @@ namespace fastuidraw
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
                  const_c_array<unsigned int> attrib_chunk_selector,
-                 const PainterItemShader &shader, unsigned int z,
+                 const reference_counted_ptr<PainterItemShader> &shader, unsigned int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
 
     /*!
@@ -205,29 +205,14 @@ namespace fastuidraw
       begin() / end() pair.
      */
     void
-    register_vert_shader(const reference_counted_ptr<PainterShader> &shader);
+    register_shader(const reference_counted_ptr<PainterItemShader> &shader);
 
     /*!
       Registers a shader for use. Must not be called within
       a begin() / end() pair.
     */
     void
-    register_frag_shader(const reference_counted_ptr<PainterShader> &shader);
-
-    /*!
-      Registers a shader for use. Must not be called within
-      a begin() / end() pair.
-    */
-    void
-    register_blend_shader(const reference_counted_ptr<PainterShader> &shader);
-
-    /*!
-      Register an item shader for use. Must not be called within
-      a begin() / end() pair.
-      \param p PainterItemShader hold shaders to register
-     */
-    void
-    register_shader(const PainterItemShader &p);
+    register_shader(const reference_counted_ptr<PainterBlendShader> &shader);
 
     /*!
       Registers a stroke shader for use. Must not be called within

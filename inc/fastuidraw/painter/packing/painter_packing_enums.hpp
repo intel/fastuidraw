@@ -37,33 +37,6 @@ namespace fastuidraw
   namespace PainterPacking
   {
     /*!
-      Bit packing for the vert-frag shader field of header
-      (located at vert_frag_shader_offset)
-     */
-    enum vert_frag_shader_encoding
-      {
-        /*!
-          Number of bits used to store the vertex shader ID.
-         */
-        vert_shader_num_bits = 16,
-
-        /*!
-          Number of bits to store the fragment shader ID.
-         */
-        frag_shader_num_bits = 16,
-
-        /*!
-          First bit used to store the vertex shader ID
-         */
-        vert_shader_bit0 = 0,
-
-        /*!
-          First bit used to store the frag shader ID
-         */
-        frag_shader_bit0 = vert_shader_num_bits,
-      };
-
-    /*!
       Bit packing for the z-blend-shader field of the header
       (located at z_blend_shader_offset)
      */
@@ -140,24 +113,21 @@ namespace fastuidraw
 
         /*!
           Location in item header for offset of the
-          data that is vertex shader specific
+          data that is item shader specific
          */
-        vert_shader_data_offset,
+        item_shader_data_offset,
 
         /*!
           Location in item header for offset of the
-          data that is fragment shader specific
+          data that is blend shader specific
          */
-        frag_shader_data_offset,
+        blend_shader_data_offset,
 
         /*!
-          Location in item header for the vertex
-          and fragment shader ID. The enumerants
-          \ref vert_shader_num_bits, \ref frag_shader_num_bits,
-          \ref vert_shader_bit0 and \ref frag_shader_bit0
-          describe how to unpack the value.
+          Location in item header for the item
+          shader ID.
          */
-        vert_frag_shader_offset,
+        item_shader_offset,
 
         /*!
           Location in item header for the brush
@@ -228,8 +198,8 @@ namespace fastuidraw
 
     /*!
       Enumeration that provides offsets for the stroking
-      parameters. These values are realized as vertex
-      shader data (Painter::vert_shader_data()).
+      parameters. These values are realized as item
+      shader data, see PainterStrokeParams
      */
     enum stroke_data_offset_t
       {

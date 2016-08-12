@@ -134,61 +134,19 @@ namespace fastuidraw
   };
 
   /*!
-    A PainterItemShader encapsulates the vertex and
-    fragment shader to draw an item type.
+    A PainterItemShader represents a shader to
+    draw an item (typically a vertex and fragment
+    shader pair).
    */
-  class PainterItemShader
-  {
-  public:
-    /*!
-      Default (empty) ctor.
-     */
-    PainterItemShader(void);
+  class PainterItemShader:public PainterShader
+  {};
 
-    /*!
-      Copy ctor
-      \param obj value from which to copy
-     */
-    PainterItemShader(const PainterItemShader &obj);
-
-    ~PainterItemShader();
-
-    /*!
-      Assignment operator
-      \param rhs value from which to copy
-     */
-    PainterItemShader&
-    operator=(const PainterItemShader &rhs);
-
-    /*!
-      Vertex shader for the item.
-     */
-    const reference_counted_ptr<PainterShader>&
-    vert_shader(void) const;
-
-    /*!
-      Set the value returned by vert_shader(void) const.
-      \param sh value to use
-     */
-    PainterItemShader&
-    vert_shader(const reference_counted_ptr<PainterShader> &sh);
-
-    /*!
-      Fragment shader for the item.
-     */
-    const reference_counted_ptr<PainterShader>&
-    frag_shader(void) const;
-
-    /*!
-      Set the value returned by frag_shader(void) const.
-      \param sh value to use
-     */
-    PainterItemShader&
-    frag_shader(const reference_counted_ptr<PainterShader> &sh);
-
-  private:
-    void *m_d;
-  };
+  /*!
+    A PainterBlendShader represents a shader
+    for performing blending operations.
+   */
+  class PainterBlendShader:public PainterShader
+  {};
 
   /*!
     A PainterGlyphShader holds a shader pair
@@ -201,7 +159,7 @@ namespace fastuidraw
   public:
     /*!
       Ctor, inits as all return value from shader(enum glyph_type)
-      return a PainterItemShader with no shaders
+      as a NULL PainterItemShader
      */
     PainterGlyphShader(void);
 
@@ -223,7 +181,7 @@ namespace fastuidraw
       glyph_type.
       \param tp glyph type to render
      */
-    const PainterItemShader&
+    const reference_counted_ptr<PainterItemShader>&
     shader(enum glyph_type tp) const;
 
     /*!
@@ -233,7 +191,7 @@ namespace fastuidraw
       \param sh PainterItemShader to use for the glyph type
      */
     void
-    shader(enum glyph_type tp, const PainterItemShader &sh);
+    shader(enum glyph_type tp, const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
       Returns the one plus the largest value for which
@@ -278,7 +236,7 @@ namespace fastuidraw
       PainterEnums::blend_mode_t.
       \param tp blend mode
      */
-    const reference_counted_ptr<PainterShader>&
+    const reference_counted_ptr<PainterBlendShader>&
     shader(enum PainterEnums::blend_mode_t tp) const;
 
     /*!
@@ -289,7 +247,7 @@ namespace fastuidraw
      */
     void
     shader(enum PainterEnums::blend_mode_t tp,
-           const reference_counted_ptr<PainterShader> &sh);
+           const reference_counted_ptr<PainterBlendShader> &sh);
 
     /*!
       Returns the one plus the largest value for which
@@ -381,7 +339,7 @@ namespace fastuidraw
       The 1st pass of stroking with anti-aliasing
       via alpha-coverage.
      */
-    const PainterItemShader&
+    const reference_counted_ptr<PainterItemShader>&
     aa_shader_pass1(void) const;
 
     /*!
@@ -389,13 +347,13 @@ namespace fastuidraw
       \param sh value to use
      */
     PainterStrokeShader&
-    aa_shader_pass1(const PainterItemShader &sh);
+    aa_shader_pass1(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
       The 2nd pass of stroking with anti-aliasing
       via alpha-coverage.
      */
-    const PainterItemShader&
+    const reference_counted_ptr<PainterItemShader>&
     aa_shader_pass2(void) const;
 
     /*!
@@ -403,7 +361,7 @@ namespace fastuidraw
       \param sh value to use
      */
     PainterStrokeShader&
-    aa_shader_pass2(const PainterItemShader &sh);
+    aa_shader_pass2(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
       Shader for rendering a stroked path without
@@ -414,7 +372,7 @@ namespace fastuidraw
       to in PainterAttribute::m_uint_attrib.x()
       by PainterAttributeData.
      */
-    const PainterItemShader&
+    const reference_counted_ptr<PainterItemShader>&
     non_aa_shader(void) const;
 
     /*!
@@ -422,7 +380,7 @@ namespace fastuidraw
       \param sh value to use
      */
     PainterStrokeShader&
-    non_aa_shader(const PainterItemShader &sh);
+    non_aa_shader(const reference_counted_ptr<PainterItemShader> &sh);
 
   private:
     void *m_d;
@@ -522,7 +480,7 @@ namespace fastuidraw
       takes attribute data as formatted by
       PainterAttributeData.
      */
-    const PainterItemShader&
+    const reference_counted_ptr<PainterItemShader>&
     fill_shader(void) const;
 
     /*!
@@ -530,7 +488,7 @@ namespace fastuidraw
       \param sh value to use
      */
     PainterShaderSet&
-    fill_shader(const PainterItemShader &sh);
+    fill_shader(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
       Blend shaders. If an element is a NULL shader, then that

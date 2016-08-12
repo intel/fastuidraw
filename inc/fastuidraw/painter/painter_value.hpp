@@ -138,8 +138,8 @@ namespace fastuidraw
   };
 
   /*!
-    Common base class to PainterVertexShaderData and
-    PainterFragmentShaderData to hold shader data for
+    Common base class to PainterItemShaderData and
+    PainterBlendShaderData to hold shader data for
     custom shaders.
    */
   class PainterShaderData
@@ -214,9 +214,9 @@ namespace fastuidraw
   };
 
   /*!
-    PainterVertexShaderData holds custom data for vertex shaders
+    PainterItemShaderData holds custom data for item shaders
    */
-  class PainterVertexShaderData:public PainterShaderData
+  class PainterItemShaderData:public PainterShaderData
   {
   public:
     /*!
@@ -224,21 +224,21 @@ namespace fastuidraw
       \param pdata data from which to copy
      */
     explicit
-    PainterVertexShaderData(const_c_array<generic_data> pdata):
+    PainterItemShaderData(const_c_array<generic_data> pdata):
       PainterShaderData(pdata)
     {}
 
     /*!
       Inits as having no data.
      */
-    PainterVertexShaderData(void)
+    PainterItemShaderData(void)
     {}
   };
 
   /*!
-    PainterFragmentShaderData holds custom data for fragment shaders
+    PainterBlendShaderData holds custom data for blend shaders
    */
-  class PainterFragmentShaderData:public PainterShaderData
+  class PainterBlendShaderData:public PainterShaderData
   {
   public:
     /*!
@@ -246,14 +246,14 @@ namespace fastuidraw
       \param pdata data from which to copy
      */
     explicit
-    PainterFragmentShaderData(const_c_array<generic_data> pdata):
+    PainterBlendShaderData(const_c_array<generic_data> pdata):
       PainterShaderData(pdata)
     {}
 
     /*!
       Inits as having no data.
      */
-    PainterFragmentShaderData(void)
+    PainterBlendShaderData(void)
     {}
   };
 
@@ -261,7 +261,7 @@ namespace fastuidraw
     Class to specify stroking parameters, data is packed
     as according to PainterPacking::stroke_data_offset_t.
    */
-  class PainterStrokeParams:public PainterVertexShaderData
+  class PainterStrokeParams:public PainterItemShaderData
   {
   public:
     /*!
