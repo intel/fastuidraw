@@ -16,6 +16,7 @@ in uint fastuidraw_header_attribute;
   flat fastuidraw_varying uint fastuidraw_frag_shader;
   flat fastuidraw_varying uint fastuidraw_frag_shader_data_location;
   flat fastuidraw_varying uint fastuidraw_blend_shader;
+  flat fastuidraw_varying uint fastuidraw_blend_shader_data_location;
 #endif
 
 /*
@@ -77,6 +78,7 @@ main(void)
     fastuidraw_frag_shader = h.item_shader;
     fastuidraw_frag_shader_data_location = h.item_shader_data_location;
     fastuidraw_blend_shader = h.blend_shader;
+    fastuidraw_blend_shader_data_location = h.blend_shader_data_location;
   }
   #endif
 
