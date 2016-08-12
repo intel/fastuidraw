@@ -28,9 +28,8 @@ namespace fastuidraw
  */
 
   /*!
-    Reference counting that is thread safe by being
-    having operations behind a mutex lock. Usually
-    slower (and much slower) than
+    Reference counting that is thread safe by having operations
+    behind a mutex lock. Usually slower (and much slower) than
     reference_count_atomic.
    */
   class reference_count_mutex:noncopyable

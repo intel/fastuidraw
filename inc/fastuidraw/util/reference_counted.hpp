@@ -374,10 +374,11 @@ namespace fastuidraw
     for using reference_counted_ptr. See also reference_counted.
     \tparam T object type that is reference counted
     \tparam Counter object type to perform reference counting.
-                    The type Counter must expose the methods:
-                     - void add_reference() to increment the counter
-                     - bool remove_reference() to decrement the counter and return true
-                       if the counter is zero after the decrement operation.
+
+    The type Counter must expose the methods:
+    - void add_reference() to increment the counter
+    - bool remove_reference() to decrement the counter and return true
+      if the counter is zero after the decrement operation.
    */
   template<typename T, typename Counter>
   class reference_counted_base:noncopyable
