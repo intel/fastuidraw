@@ -116,7 +116,7 @@ namespace fastuidraw
     /*!
       Returns the active blend shader
      */
-    const reference_counted_ptr<const PainterBlendShader>&
+    const reference_counted_ptr<PainterBlendShader>&
     blend_shader(void) const;
 
     /*!
@@ -125,7 +125,7 @@ namespace fastuidraw
       \param h blend shader to use for blending.
      */
     void
-    blend_shader(const reference_counted_ptr<const PainterBlendShader> &h);
+    blend_shader(const reference_counted_ptr<PainterBlendShader> &h);
 
     /*!
       Indicate to start drawing. Commands are buffered and not
@@ -166,10 +166,11 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_generic(const PainterPackerData &data,
+    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+                 const PainterPackerData &data,
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
-                 const reference_counted_ptr<PainterItemShader> &shader, unsigned int z,
+                 unsigned int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
 
     /*!
@@ -186,11 +187,12 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_generic(const PainterPackerData &data,
+    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+                 const PainterPackerData &data,
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
                  const_c_array<unsigned int> attrib_chunk_selector,
-                 const reference_counted_ptr<PainterItemShader> &shader, unsigned int z,
+                 unsigned int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
 
     /*!

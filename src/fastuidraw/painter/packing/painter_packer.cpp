@@ -378,8 +378,8 @@ namespace
     unsigned int
     pack_header(unsigned int header_size,
                 uint32_t brush_shader,
-                const fastuidraw::reference_counted_ptr<const fastuidraw::PainterBlendShader> &blend_shader,
-                const fastuidraw::reference_counted_ptr<const fastuidraw::PainterItemShader> &item_shader,
+                const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> &blend_shader,
+                const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &item_shader,
                 unsigned int z,
                 const painter_state_location &loc,
                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
@@ -503,7 +503,7 @@ namespace
     unsigned int m_alignment;
     unsigned int m_header_size;
 
-    fastuidraw::reference_counted_ptr<const fastuidraw::PainterBlendShader> m_blend_shader;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_blend_shader;
     painter_state_location m_painter_state_location;
     int m_number_begins;
 
@@ -607,8 +607,8 @@ unsigned int
 per_draw_command::
 pack_header(unsigned int header_size,
             uint32_t brush_shader,
-            const fastuidraw::reference_counted_ptr<const fastuidraw::PainterBlendShader> &blend_shader,
-            const fastuidraw::reference_counted_ptr<const fastuidraw::PainterItemShader> &item_shader,
+            const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> &blend_shader,
+            const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &item_shader,
             unsigned int z,
             const painter_state_location &loc,
             const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
@@ -826,24 +826,26 @@ end(void)
 
 void
 fastuidraw::PainterPacker::
-draw_generic(const PainterPackerData &draw,
+draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+             const PainterPackerData &draw,
              const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
-             const reference_counted_ptr<PainterItemShader> &shader, unsigned int z,
+             unsigned int z,
              const reference_counted_ptr<DataCallBack> &call_back)
 {
-  draw_generic(draw, attrib_chunks, index_chunks,
+  draw_generic(shader, draw, attrib_chunks, index_chunks,
                const_c_array<unsigned int>(),
-               shader, z, call_back);
+               z, call_back);
 }
 
 void
 fastuidraw::PainterPacker::
-draw_generic(const PainterPackerData &draw,
+draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+             const PainterPackerData &draw,
              const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
              const_c_array<unsigned int> attrib_chunk_selector,
-             const reference_counted_ptr<PainterItemShader> &shader, unsigned int z,
+             unsigned int z,
              const reference_counted_ptr<DataCallBack> &call_back)
 {
   PainterPackerPrivate *d;
@@ -1014,7 +1016,7 @@ colorstop_atlas(void) const
   return d->m_backend->colorstop_atlas();
 }
 
-const fastuidraw::reference_counted_ptr<const fastuidraw::PainterBlendShader>&
+const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader>&
 fastuidraw::PainterPacker::
 blend_shader(void) const
 {
@@ -1025,7 +1027,7 @@ blend_shader(void) const
 
 void
 fastuidraw::PainterPacker::
-blend_shader(const fastuidraw::reference_counted_ptr<const PainterBlendShader> &h)
+blend_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &h)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);

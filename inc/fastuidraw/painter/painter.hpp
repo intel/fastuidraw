@@ -139,7 +139,7 @@ namespace fastuidraw
     /*!
       Returns the active blend shader
      */
-    const reference_counted_ptr<const PainterBlendShader>&
+    const reference_counted_ptr<PainterBlendShader>&
     blend_shader(void) const;
 
     /*!
@@ -148,7 +148,7 @@ namespace fastuidraw
       \param h blend shader to use for blending.
      */
     void
-    blend_shader(const reference_counted_ptr<const PainterBlendShader> &h);
+    blend_shader(const reference_counted_ptr<PainterBlendShader> &h);
 
     /*!
       Equivalent to
@@ -639,14 +639,15 @@ namespace fastuidraw
       \param call_back handle to PainterPacker::DataCallBack for the draw
      */
     void
-    draw_generic(const PainterData &draw, const_c_array<PainterAttribute> attrib_chunk,
+    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+                 const PainterData &draw,
+                 const_c_array<PainterAttribute> attrib_chunk,
                  const_c_array<PainterIndex> index_chunk,
-                 const reference_counted_ptr<PainterItemShader> &shader,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>())
     {
       vecN<const_c_array<PainterAttribute>, 1> aa(attrib_chunk);
       vecN<const_c_array<PainterIndex>, 1> ii(index_chunk);
-      draw_generic(draw, aa, ii, shader, call_back);
+      draw_generic(shader, draw, aa, ii, call_back);
     }
 
     /*!
@@ -658,10 +659,10 @@ namespace fastuidraw
       \param call_back handle to PainterPacker::DataCallBack for the draw
      */
     void
-    draw_generic(const PainterData &draw,
+    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+                 const PainterData &draw,
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
-                 const reference_counted_ptr<PainterItemShader> &shader,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -677,11 +678,11 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_generic(const PainterData &draw,
+    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+                 const PainterData &draw,
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
                  const_c_array<unsigned int> attrib_chunk_selector,
-                 const reference_counted_ptr<PainterItemShader> &shader,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
