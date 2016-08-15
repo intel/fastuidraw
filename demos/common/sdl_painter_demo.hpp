@@ -97,8 +97,7 @@ private:
   command_line_argument_value<int> m_painter_data_blocks_per_buffer;
   command_line_argument_value<int> m_painter_alignment;
   command_line_argument_value<int> m_painter_number_pools;
-  command_line_argument_value<bool> m_painter_break_on_vertex_shader_change;
-  command_line_argument_value<bool> m_painter_break_on_fragment_shader_change;
+  command_line_argument_value<bool> m_painter_break_on_shader_change;
   command_line_argument_value<bool> m_use_hw_clip_planes;
   command_line_argument_value<bool> m_uber_vert_use_switch;
   command_line_argument_value<bool> m_uber_frag_use_switch;

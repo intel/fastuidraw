@@ -22,6 +22,7 @@
 #include <fastuidraw/path.hpp>
 
 #include <fastuidraw/painter/packing/painter_packer.hpp>
+#include <fastuidraw/painter/painter_stroke_value.hpp>
 #include <fastuidraw/painter/painter_data.hpp>
 
 namespace fastuidraw
@@ -139,7 +140,7 @@ namespace fastuidraw
     /*!
       Returns the active blend shader
      */
-    const reference_counted_ptr<const PainterShader>&
+    const reference_counted_ptr<PainterBlendShader>&
     blend_shader(void) const;
 
     /*!
@@ -148,7 +149,7 @@ namespace fastuidraw
       \param h blend shader to use for blending.
      */
     void
-    blend_shader(const reference_counted_ptr<const PainterShader> &h);
+    blend_shader(const reference_counted_ptr<PainterBlendShader> &h);
 
     /*!
       Equivalent to
@@ -367,8 +368,8 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_glyphs(const PainterData &draw,
-                const PainterAttributeData &data, const PainterGlyphShader &shader,
+    draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
+                const PainterAttributeData &data,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -397,9 +398,10 @@ namespace fastuidraw
                        is added.
      */
     void
-    stroke_path(const PainterData &draw, const PainterAttributeData &data,
+    stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
+                const PainterAttributeData &data,
                 enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                bool with_anti_aliasing, const PainterStrokeShader &shader,
+                bool with_anti_aliasing,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -414,9 +416,10 @@ namespace fastuidraw
                        is added.
      */
     void
-    stroke_path(const PainterData &draw, const Path &path,
+    stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
+                const Path &path,
                 enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                bool with_anti_aliasing, const PainterStrokeShader &shader,
+                bool with_anti_aliasing,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -462,9 +465,8 @@ namespace fastuidraw
                        is added.
      */
     void
-    fill_path(const PainterData &draw, const PainterAttributeData &data,
-              enum PainterEnums::fill_rule_t fill_rule,
-              const PainterItemShader &shader,
+    fill_path(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+              const PainterAttributeData &data, enum PainterEnums::fill_rule_t fill_rule,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -477,8 +479,8 @@ namespace fastuidraw
                        is added.
      */
     void
-    fill_path(const PainterData &draw, const Path &path, enum PainterEnums::fill_rule_t fill_rule,
-              const PainterItemShader &shader,
+    fill_path(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+              const Path &path, enum PainterEnums::fill_rule_t fill_rule,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -503,9 +505,8 @@ namespace fastuidraw
                        is added.
      */
     void
-    fill_path(const PainterData &draw, const PainterAttributeData &data,
-              const CustomFillRuleBase &fill_rule,
-              const PainterItemShader &shader,
+    fill_path(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+              const PainterAttributeData &data, const CustomFillRuleBase &fill_rule,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -518,8 +519,8 @@ namespace fastuidraw
                        is added.
      */
     void
-    fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
-              const PainterItemShader &shader,
+    fill_path(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+              const Path &path, const CustomFillRuleBase &fill_rule,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -548,8 +549,8 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_convex_polygon(const PainterData &draw, const_c_array<vec2> pts,
-                        const PainterItemShader &shader,
+    draw_convex_polygon(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+                        const_c_array<vec2> pts,
                         const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -580,9 +581,8 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_quad(const PainterData &draw,
+    draw_quad(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
               const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
-              const PainterItemShader &shader,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -615,8 +615,8 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
-              const PainterItemShader &shader,
+    draw_rect(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+              const vec2 &p, const vec2 &wh,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -640,14 +640,15 @@ namespace fastuidraw
       \param call_back handle to PainterPacker::DataCallBack for the draw
      */
     void
-    draw_generic(const PainterData &draw, const_c_array<PainterAttribute> attrib_chunk,
+    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+                 const PainterData &draw,
+                 const_c_array<PainterAttribute> attrib_chunk,
                  const_c_array<PainterIndex> index_chunk,
-                 const PainterItemShader &shader,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>())
     {
       vecN<const_c_array<PainterAttribute>, 1> aa(attrib_chunk);
       vecN<const_c_array<PainterIndex>, 1> ii(index_chunk);
-      draw_generic(draw, aa, ii, shader, call_back);
+      draw_generic(shader, draw, aa, ii, call_back);
     }
 
     /*!
@@ -659,10 +660,10 @@ namespace fastuidraw
       \param call_back handle to PainterPacker::DataCallBack for the draw
      */
     void
-    draw_generic(const PainterData &draw,
+    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+                 const PainterData &draw,
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
-                 const PainterItemShader &shader,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -678,11 +679,11 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_generic(const PainterData &draw,
+    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+                 const PainterData &draw,
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
                  const_c_array<unsigned int> attrib_chunk_selector,
-                 const PainterItemShader &shader,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -703,29 +704,14 @@ namespace fastuidraw
       begin() / end() pair.
      */
     void
-    register_vert_shader(const reference_counted_ptr<PainterShader> &shader);
+    register_shader(const reference_counted_ptr<PainterItemShader> &shader);
 
     /*!
       Registers a shader for use. Must not be called within
       a begin() / end() pair.
     */
     void
-    register_frag_shader(const reference_counted_ptr<PainterShader> &shader);
-
-    /*!
-      Registers a shader for use. Must not be called within
-      a begin() / end() pair.
-    */
-    void
-    register_blend_shader(const reference_counted_ptr<PainterShader> &shader);
-
-    /*!
-      Register an item shader for use. Must not be called within
-      a begin() / end() pair.
-      \param p PainterItemShader hold shaders to register
-     */
-    void
-    register_shader(const PainterItemShader &p);
+    register_shader(const reference_counted_ptr<PainterBlendShader> &shader);
 
     /*!
       Registers a stroke shader for use. Must not be called within

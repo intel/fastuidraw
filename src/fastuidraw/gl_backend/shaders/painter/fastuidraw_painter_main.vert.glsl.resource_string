@@ -16,6 +16,7 @@ in uint fastuidraw_header_attribute;
   flat fastuidraw_varying uint fastuidraw_frag_shader;
   flat fastuidraw_varying uint fastuidraw_frag_shader_data_location;
   flat fastuidraw_varying uint fastuidraw_blend_shader;
+  flat fastuidraw_varying uint fastuidraw_blend_shader_data_location;
 #endif
 
 /*
@@ -65,8 +66,6 @@ main(void)
   fastuidraw_read_clipping(h.clipping_location, clipping);
   fastuidraw_read_item_matrix(h.item_matrix_location, fastuidraw_item_matrix);
 
-  h.vert_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_vert_shader_bit0, fastuidraw_vert_shader_num_bits, h.vert_frag_shader);
-  h.frag_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_frag_shader_bit0, fastuidraw_frag_shader_num_bits, h.vert_frag_shader);
   h.blend_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_blend_shader_bit0, fastuidraw_blend_shader_num_bits, h.z_blend_shader_raw);
   h.z = FASTUIDRAW_EXTRACT_BITS(fastuidraw_z_bit0, fastuidraw_z_num_bits, h.z_blend_shader_raw);
 
@@ -76,9 +75,10 @@ main(void)
   }
   #else
   {
-    fastuidraw_frag_shader = h.frag_shader;
-    fastuidraw_frag_shader_data_location = h.frag_shader_data_location;
+    fastuidraw_frag_shader = h.item_shader;
+    fastuidraw_frag_shader_data_location = h.item_shader_data_location;
     fastuidraw_blend_shader = h.blend_shader;
+    fastuidraw_blend_shader_data_location = h.blend_shader_data_location;
   }
   #endif
 

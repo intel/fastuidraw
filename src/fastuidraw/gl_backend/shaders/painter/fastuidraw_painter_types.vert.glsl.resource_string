@@ -1,19 +1,18 @@
 struct fastuidraw_shader_header
 {
-  /* read directly from texels
+  /* read directly from data store buffer
    */
   uint clipping_location;
   uint item_matrix_location;
   uint brush_shader_data_location;
-  uint vert_shader_data_location;
-  uint frag_shader_data_location;
-  uint vert_frag_shader;
+  uint item_shader_data_location;
+  uint blend_shader_data_location;
+  uint item_shader;
   uint brush_shader;
   uint z_blend_shader_raw;
 
   /* derived from those values
    */
-  uint vert_shader, frag_shader;
   uint blend_shader;
   uint z;
 };

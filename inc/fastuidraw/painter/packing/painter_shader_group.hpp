@@ -43,17 +43,10 @@ namespace fastuidraw
 
     /*!
       The group (see PainterShader::group())
-      of the active vertex shader.
+      of the active item shader.
      */
     uint32_t
-    vert_group(void) const;
-
-    /*!
-      The group (see PainterShader::group())
-      of the active fragment shader.
-     */
-    uint32_t
-    frag_group(void) const;
+    item_group(void) const;
 
     /*!
       The shading ID as returned by PainterBrush::shader()

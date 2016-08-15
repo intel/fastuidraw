@@ -3,10 +3,12 @@
   uint fastuidraw_frag_shader;
   uint fastuidraw_frag_shader_data_location;
   uint fastuidraw_blend_shader;
+  uint fastuidraw_blend_shader_data_location;
 #else
   flat fastuidraw_varying uint fastuidraw_frag_shader;
   flat fastuidraw_varying uint fastuidraw_frag_shader_data_location;
   flat fastuidraw_varying uint fastuidraw_blend_shader;
+  flat fastuidraw_varying uint fastuidraw_blend_shader_data_location;
 #endif
 
 #ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
@@ -65,12 +67,12 @@ main(void)
     fastuidraw_shader_header h;
 
     fastuidraw_read_header(fastuidraw_header_varying, h);
-    h.frag_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_frag_shader_bit0, fastuidraw_frag_shader_num_bits, h.vert_frag_shader);
     h.blend_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_blend_shader_bit0, fastuidraw_blend_shader_num_bits, h.z_blend_shader_raw);
 
-    fastuidraw_frag_shader = h.frag_shader;
-    fastuidraw_frag_shader_data_location = h.frag_shader_data_location;
+    fastuidraw_frag_shader = h.item_shader;
+    fastuidraw_frag_shader_data_location = h.item_shader_data_location;
     fastuidraw_blend_shader = h.blend_shader;
+    fastuidraw_blend_shader_data_location = h.blend_shader_data_location;
 
     uint brush_data_loc;
     brush_data_loc = h.brush_shader_data_location;

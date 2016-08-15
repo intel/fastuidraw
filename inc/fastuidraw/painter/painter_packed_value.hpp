@@ -231,20 +231,20 @@ namespace fastuidraw
     create_packed_value(const PainterItemMatrix &value);
 
     /*!
-      Create and return a PainterPackedValue<PainterVertexShaderData>
-      object for the value of a PainterVertexShaderData object.
+      Create and return a PainterPackedValue<PainterItemShaderData>
+      object for the value of a PainterItemShaderData object.
       \param value data to pack into returned PainterPackedValue
      */
-    PainterPackedValue<PainterVertexShaderData>
-    create_packed_value(const PainterVertexShaderData &value);
+    PainterPackedValue<PainterItemShaderData>
+    create_packed_value(const PainterItemShaderData &value);
 
     /*!
-      Create and return a PainterPackedValue<PainterFragmentShaderData>
-      object for the value of a PainterFragmentShaderData object.
+      Create and return a PainterPackedValue<PainterBlendShaderData>
+      object for the value of a PainterBlendShaderData object.
       \param value data to pack into returned PainterPackedValue
      */
-    PainterPackedValue<PainterFragmentShaderData>
-    create_packed_value(const PainterFragmentShaderData &value);
+    PainterPackedValue<PainterBlendShaderData>
+    create_packed_value(const PainterBlendShaderData &value);
 
   private:
     void *m_d;

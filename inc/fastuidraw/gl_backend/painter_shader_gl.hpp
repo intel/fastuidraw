@@ -329,10 +329,10 @@ namespace fastuidraw
 
 
     /*!
-      A PainterShaderGL is a GLSL source code -fragment-
-      for a PainterBackendGL.
+      A PainterItemShaderGL is a collection of GLSL source code
+      fragments for a PainterBackendGL.
 
-      A vertex shader needs to implement the function:
+      The vertex shader code needs to implement the function:
       \code
         vec4
         fastuidraw_gl_vert_main(in vec4 primary_attrib,
@@ -377,7 +377,7 @@ namespace fastuidraw
       - is format RGB if PainterBackend::Configuration::alignment() is 3 and
       - is format RGBA if PainterBackend::Configuration::alignment() is 4.
 
-      A fragment shader needs to implement the function:
+      A fragment shader code needs to implement the function:
       \code
         vec4
         fastuidraw_gl_frag_main(in uint shader_data_offset)
@@ -430,18 +430,20 @@ namespace fastuidraw
       to unpack values from the data in fastuidraw_painterStoreFLOAT,
       fastuidraw_painterStoreUINT and fastuidraw_painterStoreINT.
      */
-    class PainterShaderGL:public PainterShader
+    class PainterItemShaderGL:public PainterItemShader
     {
     public:
       /*!
         Ctor.
-        \param src GLSL source holding shader routine
+        \param vertex_src GLSL source holding vertex shader routine
+        \param fragment_src GLSL source holding fragment shader routine
         \param varyings list of varyings of the shader
        */
-      PainterShaderGL(const Shader::shader_source &src,
-                      const varying_list &varyings = varying_list());
+      PainterItemShaderGL(const Shader::shader_source &vertex_src,
+                          const Shader::shader_source &fragment_src,
+                          const varying_list &varyings = varying_list());
 
-      ~PainterShaderGL();
+      ~PainterItemShaderGL();
 
       /*!
         Returns the varying of the shader
@@ -450,10 +452,16 @@ namespace fastuidraw
       varyings(void) const;
 
       /*!
-        Return the GLSL source of the shader
+        Return the GLSL source of the vertex shader
        */
       const Shader::shader_source&
-      src(void) const;
+      vertex_src(void) const;
+
+      /*!
+        Return the GLSL source of the fragment shader
+       */
+      const Shader::shader_source&
+      fragment_src(void) const;
 
     private:
       void *m_d;

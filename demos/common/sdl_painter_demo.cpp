@@ -115,14 +115,10 @@ sdl_painter_demo(const std::string &about_text):
                        "Alignment for data store of painter, must be 1, 2, 3 or 4", *this),
   m_painter_number_pools(m_painter_params.number_pools(), "painter_number_pools",
                          "Number of GL object pools used by the painter", *this),
-  m_painter_break_on_vertex_shader_change(m_painter_params.break_on_vertex_shader_change(),
-                                          "painter_break_on_vert_shader_change",
-                                          "If true, different vertex shadings are placed into different "
-                                          "entries of a call to glMultiDrawElements", *this),
-  m_painter_break_on_fragment_shader_change(m_painter_params.break_on_fragment_shader_change(),
-                                            "painter_break_on_frag_shader_change",
-                                            "If true, different fragment shadings are placed into different "
-                                            "entries of a call to glMultiDrawElements", *this),
+  m_painter_break_on_shader_change(m_painter_params.break_on_shader_change(),
+                                   "painter_break_on_shader_change",
+                                   "If true, different shadings are placed into different "
+                                   "entries of a call to glMultiDrawElements", *this),
   m_use_hw_clip_planes(m_painter_params.use_hw_clip_planes(),
                        "painter_use_hw_clip_planes",
                        "If true, use HW clip planes (i.e. gl_ClipDistance) for clipping",
@@ -244,8 +240,7 @@ init_gl(int w, int h)
     .indices_per_buffer(m_painter_indices_per_buffer.m_value)
     .data_blocks_per_store_buffer(m_painter_data_blocks_per_buffer.m_value)
     .number_pools(m_painter_number_pools.m_value)
-    .break_on_vertex_shader_change(m_painter_break_on_vertex_shader_change.m_value)
-    .break_on_fragment_shader_change(m_painter_break_on_fragment_shader_change.m_value)
+    .break_on_shader_change(m_painter_break_on_shader_change.m_value)
     .use_hw_clip_planes(m_use_hw_clip_planes.m_value)
     .vert_shader_use_switch(m_uber_vert_use_switch.m_value)
     .frag_shader_use_switch(m_uber_frag_use_switch.m_value)

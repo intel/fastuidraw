@@ -221,7 +221,7 @@ hints(void) const
 
 void
 fastuidraw::PainterBackend::
-register_vert_shader(const reference_counted_ptr<PainterShader> &shader)
+register_shader(const reference_counted_ptr<PainterItemShader> &shader)
 {
   if(!shader)
     {
@@ -232,32 +232,14 @@ register_vert_shader(const reference_counted_ptr<PainterShader> &shader)
     {
       PainterShader::Tag tag;
 
-      tag = absorb_vert_shader(shader);
+      tag = absorb_item_shader(shader);
       shader->register_shader(tag, this);
     }
 }
 
 void
 fastuidraw::PainterBackend::
-register_frag_shader(const reference_counted_ptr<PainterShader> &shader)
-{
-  if(!shader)
-    {
-      return;
-    }
-  assert(shader->registered_to() == NULL || shader->registered_to() == this);
-  if(shader->registered_to() == NULL)
-    {
-      PainterShader::Tag tag;
-
-      tag = absorb_frag_shader(shader);
-      shader->register_shader(tag, this);
-    }
-}
-
-void
-fastuidraw::PainterBackend::
-register_blend_shader(const reference_counted_ptr<PainterShader> &shader)
+register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
 {
   if(!shader)
     {
@@ -292,8 +274,8 @@ register_shader(const PainterBlendShaderSet &p)
       enum PainterEnums::blend_mode_t tp;
       tp = static_cast<enum PainterEnums::blend_mode_t>(i);
 
-      const reference_counted_ptr<PainterShader> &sh(p.shader(tp));
-      register_blend_shader(sh);
+      const reference_counted_ptr<PainterBlendShader> &sh(p.shader(tp));
+      register_shader(sh);
     }
 }
 
@@ -323,14 +305,6 @@ default_shaders(void)
       d->m_default_shaders_registered = true;
     }
   return d->m_default_shaders;
-}
-
-void
-fastuidraw::PainterBackend::
-register_shader(const PainterItemShader &p)
-{
-  register_vert_shader(p.vert_shader());
-  register_frag_shader(p.frag_shader());
 }
 
 void

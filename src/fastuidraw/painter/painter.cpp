@@ -312,7 +312,7 @@ namespace
     unsigned int m_occluder_stack_position;
     fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_matrix;
     fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> m_clip;
-    fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader> m_blend;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_blend;
 
     clip_rect_state m_clip_rect_state;
   };
@@ -358,11 +358,12 @@ namespace
     rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh);
 
     void
-    draw_generic_check(const fastuidraw::PainterData &draw,
+    draw_generic_check(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
+                       const fastuidraw::PainterData &draw,
                        fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
                        fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
                        fastuidraw::const_c_array<unsigned int> attrib_chunk_selector,
-                       const fastuidraw::PainterItemShader &shader, unsigned int z,
+                       unsigned int z,
                        const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
     void
@@ -828,11 +829,12 @@ rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh)
 
 void
 PainterPrivate::
-draw_generic_check(const fastuidraw::PainterData &draw,
+draw_generic_check(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
+                   const fastuidraw::PainterData &draw,
                    fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
                    fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
                    fastuidraw::const_c_array<unsigned int> attrib_chunk_selector,
-                   const fastuidraw::PainterItemShader &shader, unsigned int z,
+                   unsigned int z,
                    const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
 {
   if(!m_clip_rect_state.m_all_content_culled)
@@ -840,7 +842,7 @@ draw_generic_check(const fastuidraw::PainterData &draw,
       fastuidraw::PainterPackerData p(draw);
       p.m_clip = current_clip_state();
       p.m_matrix = current_item_marix_state();
-      m_core->draw_generic(p, attrib_chunks, index_chunks, attrib_chunk_selector, shader, z, call_back);
+      m_core->draw_generic(shader, p, attrib_chunks, index_chunks, attrib_chunk_selector, z, call_back);
     }
 }
 
@@ -936,37 +938,36 @@ end(void)
 
 void
 fastuidraw::Painter::
-draw_generic(const PainterData &draw,
+draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
              const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
-             const PainterItemShader &shader,
              const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
-  d->draw_generic_check(draw, attrib_chunks, index_chunks, const_c_array<unsigned int>(),
-                        shader, current_z(), call_back);
+  d->draw_generic_check(shader, draw, attrib_chunks, index_chunks,
+                        const_c_array<unsigned int>(),
+                        current_z(), call_back);
 }
 
 void
 fastuidraw::Painter::
-draw_generic(const PainterData &draw,
+draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
              const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
              const_c_array<unsigned int> attrib_chunk_selector,
-             const PainterItemShader &shader,
              const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
-  d->draw_generic_check(draw, attrib_chunks, index_chunks, attrib_chunk_selector,
-                        shader, current_z(), call_back);
+  d->draw_generic_check(shader, draw, attrib_chunks, index_chunks, attrib_chunk_selector,
+                        current_z(), call_back);
 }
 
 void
 fastuidraw::Painter::
-draw_convex_polygon(const PainterData &draw, const_c_array<vec2> pts,
-                    const PainterItemShader &shader,
+draw_convex_polygon(const reference_counted_ptr<PainterItemShader> &shader,
+                    const PainterData &draw, const_c_array<vec2> pts,
                     const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
@@ -1005,10 +1006,10 @@ draw_convex_polygon(const PainterData &draw, const_c_array<vec2> pts,
       d->m_work_room.m_indices.push_back(i - 1);
       d->m_work_room.m_indices.push_back(i);
     }
-  draw_generic(draw,
+  draw_generic(shader, draw,
                make_c_array(d->m_work_room.m_attribs),
                make_c_array(d->m_work_room.m_indices),
-               shader, call_back);
+               call_back);
 }
 
 void
@@ -1016,13 +1017,13 @@ fastuidraw::Painter::
 draw_convex_polygon(const PainterData &draw, const_c_array<vec2> pts,
                     const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  draw_convex_polygon(draw, pts, default_shaders().fill_shader(), call_back);
+  draw_convex_polygon(default_shaders().fill_shader(), draw, pts, call_back);
 }
 
 void
 fastuidraw::Painter::
-draw_quad(const PainterData &draw, const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
-          const PainterItemShader &shader,
+draw_quad(const reference_counted_ptr<PainterItemShader> &shader,
+          const PainterData &draw, const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   vecN<vec2, 4> pts;
@@ -1030,7 +1031,7 @@ draw_quad(const PainterData &draw, const vec2 &p0, const vec2 &p1, const vec2 &p
   pts[1] = p1;
   pts[2] = p2;
   pts[3] = p3;
-  draw_convex_polygon(draw, const_c_array<vec2>(&pts[0], pts.size()), shader, call_back);
+  draw_convex_polygon(shader, draw, const_c_array<vec2>(&pts[0], pts.size()), call_back);
 }
 
 void
@@ -1038,18 +1039,17 @@ fastuidraw::Painter::
 draw_quad(const PainterData &draw, const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  draw_quad(draw, p0, p1, p2, p3, default_shaders().fill_shader(), call_back);
+  draw_quad(default_shaders().fill_shader(), draw, p0, p1, p2, p3, call_back);
 }
 
 void
 fastuidraw::Painter::
-draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
-          const PainterItemShader &shader,
+draw_rect(const reference_counted_ptr<PainterItemShader> &shader,
+          const PainterData &draw, const vec2 &p, const vec2 &wh,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  draw_quad(draw, p, p + vec2(0.0f, wh.y()),
+  draw_quad(shader, draw, p, p + vec2(0.0f, wh.y()),
             p + wh, p + vec2(wh.x(), 0.0f),
-            shader,
             call_back);
 }
 
@@ -1058,14 +1058,15 @@ fastuidraw::Painter::
 draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  draw_rect(draw, p, wh, default_shaders().fill_shader(), call_back);
+  draw_rect(default_shaders().fill_shader(), draw, p, wh, call_back);
 }
 
 void
 fastuidraw::Painter::
-stroke_path(const PainterData &draw, const PainterAttributeData &pdata,
+stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
+            const PainterAttributeData &pdata,
             enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-            bool with_anti_aliasing, const PainterStrokeShader &shader,
+            bool with_anti_aliasing,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
@@ -1113,7 +1114,7 @@ stroke_path(const PainterData &draw, const PainterAttributeData &pdata,
   vecN<const_c_array<PainterIndex>, 3> index_chunks;
   vecN<unsigned int, 3> zincs;
   unsigned int startz;
-  const PainterItemShader *sh;
+  const reference_counted_ptr<PainterItemShader> *sh;
 
   attrib_chunks[0] = pdata.attribute_data_chunk(edge);
   attrib_chunks[1] = pdata.attribute_data_chunk(join);
@@ -1134,23 +1135,23 @@ stroke_path(const PainterData &draw, const PainterAttributeData &pdata,
          written depth goes from (startz + zincs[1] + zincs[2] + 1) to (startz + zincs[0] + zincs[1] + zincs[2])
       */
       d->m_current_z = startz + zincs[1] + zincs[2] + 1;
-      draw_generic(draw, attrib_chunks[0], index_chunks[0], *sh, call_back);
+      draw_generic(*sh, draw, attrib_chunks[0], index_chunks[0], call_back);
 
       /* raw depth value goes from 0 to zincs[1] - 1
          written depth goes from (startz + zincs[2] + 1) to (startz + zincs[1] + zincs[2])
       */
       d->m_current_z = startz + zincs[2] + 1;
-      draw_generic(draw, attrib_chunks[1], index_chunks[1], *sh, call_back);
+      draw_generic(*sh, draw, attrib_chunks[1], index_chunks[1], call_back);
 
       /* raw depth value goes from 0 to zincs[2] - 1
          written depth goes from (startz + 1) to (startz + zincs[2])
       */
       d->m_current_z = startz + 1;
-      draw_generic(draw, attrib_chunks[2], index_chunks[2], *sh, call_back);
+      draw_generic(*sh, draw, attrib_chunks[2], index_chunks[2], call_back);
     }
   else
     {
-      draw_generic(draw, attrib_chunks, index_chunks, *sh, call_back);
+      draw_generic(*sh, draw, attrib_chunks, index_chunks, call_back);
     }
 
   if(with_anti_aliasing)
@@ -1160,7 +1161,7 @@ stroke_path(const PainterData &draw, const PainterAttributeData &pdata,
          depth is always startz.
        */
       d->m_current_z = startz;
-      draw_generic(draw, attrib_chunks, index_chunks, shader.aa_shader_pass2(), call_back);
+      draw_generic(shader.aa_shader_pass2(), draw, attrib_chunks, index_chunks, call_back);
     }
 
   if(modify_z)
@@ -1171,13 +1172,14 @@ stroke_path(const PainterData &draw, const PainterAttributeData &pdata,
 
 void
 fastuidraw::Painter::
-stroke_path(const PainterData &draw, const Path &path,
+stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
+            const Path &path,
             enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-            bool with_anti_aliasing, const PainterStrokeShader &shader,
+            bool with_anti_aliasing,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  stroke_path(draw, path.tessellation()->stroked()->painter_data(),
-              cp, js, with_anti_aliasing, shader, call_back);
+  stroke_path(shader, draw, path.tessellation()->stroked()->painter_data(),
+              cp, js, with_anti_aliasing, call_back);
 }
 
 void
@@ -1187,7 +1189,7 @@ stroke_path(const PainterData &draw, const Path &path,
             bool with_anti_aliasing,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  stroke_path(draw, path, cp, js, with_anti_aliasing, default_shaders().stroke_shader(), call_back);
+  stroke_path(default_shaders().stroke_shader(), draw, path, cp, js, with_anti_aliasing, call_back);
 }
 
 void
@@ -1197,44 +1199,42 @@ stroke_path_pixel_width(const PainterData &draw, const Path &path,
                         bool with_anti_aliasing,
                         const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  stroke_path(draw, path, cp, js, with_anti_aliasing,
-              default_shaders().pixel_width_stroke_shader(), call_back);
+  stroke_path(default_shaders().pixel_width_stroke_shader(), draw,
+              path, cp, js, with_anti_aliasing, call_back);
 }
 
 void
 fastuidraw::Painter::
-fill_path(const PainterData &draw, const PainterAttributeData &data,
-          enum PainterEnums::fill_rule_t fill_rule,
-          const PainterItemShader &shader,
+fill_path(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+          const PainterAttributeData &data, enum PainterEnums::fill_rule_t fill_rule,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  draw_generic(draw, data.attribute_data_chunk(0),
+  draw_generic(shader, draw, data.attribute_data_chunk(0),
                data.index_data_chunk(fill_rule),
-               shader, call_back);
+               call_back);
+}
+
+void
+fastuidraw::Painter::
+fill_path(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+          const Path &path, enum PainterEnums::fill_rule_t fill_rule,
+          const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
+{
+  fill_path(shader, draw, path.tessellation()->filled()->painter_data(), fill_rule, call_back);
 }
 
 void
 fastuidraw::Painter::
 fill_path(const PainterData &draw, const Path &path, enum PainterEnums::fill_rule_t fill_rule,
-          const PainterItemShader &shader,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  fill_path(draw, path.tessellation()->filled()->painter_data(), fill_rule, shader, call_back);
+  fill_path(default_shaders().fill_shader(), draw, path, fill_rule, call_back);
 }
 
 void
 fastuidraw::Painter::
-fill_path(const PainterData &draw, const Path &path, enum PainterEnums::fill_rule_t fill_rule,
-          const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
-{
-  fill_path(draw, path, fill_rule, default_shaders().fill_shader(), call_back);
-}
-
-void
-fastuidraw::Painter::
-fill_path(const PainterData &draw, const PainterAttributeData &data,
-          const CustomFillRuleBase &fill_rule,
-          const PainterItemShader &shader,
+fill_path(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+          const PainterAttributeData &data, const CustomFillRuleBase &fill_rule,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
@@ -1268,20 +1268,20 @@ fill_path(const PainterData &draw, const PainterAttributeData &data,
 
   if(!d->m_work_room.m_selector.empty())
     {
-      draw_generic(draw, data.attribute_data_chunks(),
+      draw_generic(shader, draw, data.attribute_data_chunks(),
                    make_c_array(d->m_work_room.m_index_chunks),
-                   make_c_array(d->m_work_room.m_selector), shader, call_back);
+                   make_c_array(d->m_work_room.m_selector), call_back);
     }
 
 }
 
 void
 fastuidraw::Painter::
-fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
-          const PainterItemShader &shader,
+fill_path(const reference_counted_ptr<PainterItemShader> &shader,
+          const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  fill_path(draw, path.tessellation()->filled()->painter_data(), fill_rule, shader, call_back);
+  fill_path(shader, draw, path.tessellation()->filled()->painter_data(), fill_rule, call_back);
 }
 
 void
@@ -1289,13 +1289,13 @@ fastuidraw::Painter::
 fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  fill_path(draw, path, fill_rule, default_shaders().fill_shader(), call_back);
+  fill_path(default_shaders().fill_shader(), draw, path, fill_rule, call_back);
 }
 
 void
 fastuidraw::Painter::
-draw_glyphs(const PainterData &draw,
-            const PainterAttributeData &data, const PainterGlyphShader &shader,
+draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
+            const PainterAttributeData &data,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   const_c_array<unsigned int> chks(data.non_empty_index_data_chunks());
@@ -1304,8 +1304,9 @@ draw_glyphs(const PainterData &draw,
       unsigned int k;
 
       k = chks[i];
-      draw_generic(draw, data.attribute_data_chunk(k), data.index_data_chunk(k),
-                   shader.shader(static_cast<enum glyph_type>(k)), call_back);
+      draw_generic(shader.shader(static_cast<enum glyph_type>(k)), draw,
+                   data.attribute_data_chunk(k), data.index_data_chunk(k),
+                   call_back);
     }
 }
 
@@ -1317,11 +1318,11 @@ draw_glyphs(const PainterData &draw,
 {
   if(use_anistopic_antialias)
     {
-      draw_glyphs(draw, data, default_shaders().glyph_shader_anisotropic(), call_back);
+      draw_glyphs(default_shaders().glyph_shader_anisotropic(), draw, data, call_back);
     }
   else
     {
-      draw_glyphs(draw, data, default_shaders().glyph_shader(), call_back);
+      draw_glyphs(default_shaders().glyph_shader(), draw, data, call_back);
     }
 }
 
@@ -1534,7 +1535,7 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
       return;
     }
 
-  fastuidraw::reference_counted_ptr<const PainterShader> old_blend;
+  fastuidraw::reference_counted_ptr<PainterBlendShader> old_blend;
   reference_counted_ptr<ZDataCallBack> zdatacallback;
 
   /* zdatacallback generates a list of PainterDrawCommand::DelayedAction
@@ -1546,7 +1547,7 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
   old_blend = blend_shader();
 
   blend_shader(PainterEnums::blend_porter_duff_dst);
-  fill_path(PainterData(d->m_black_brush), path, fill_rule, default_shaders().fill_shader(), zdatacallback);
+  fill_path(PainterData(d->m_black_brush), path, fill_rule, zdatacallback);
   blend_shader(old_blend);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
@@ -1566,7 +1567,7 @@ clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
       return;
     }
 
-  fastuidraw::reference_counted_ptr<const PainterShader> old_blend;
+  fastuidraw::reference_counted_ptr<PainterBlendShader> old_blend;
   reference_counted_ptr<ZDataCallBack> zdatacallback;
 
   /* zdatacallback generates a list of PainterDrawCommand::DelayedAction
@@ -1578,7 +1579,7 @@ clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
   old_blend = blend_shader();
 
   blend_shader(PainterEnums::blend_porter_duff_dst);
-  fill_path(PainterData(d->m_black_brush), path, fill_rule, default_shaders().fill_shader(), zdatacallback);
+  fill_path(PainterData(d->m_black_brush), path, fill_rule, zdatacallback);
   blend_shader(old_blend);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
@@ -1723,7 +1724,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   reference_counted_ptr<ZDataCallBack> zdatacallback;
   zdatacallback = FASTUIDRAWnew ZDataCallBack();
 
-  fastuidraw::reference_counted_ptr<const PainterShader> old_blend;
+  fastuidraw::reference_counted_ptr<PainterBlendShader> old_blend;
   old_blend = blend_shader();
   blend_shader(PainterEnums::blend_porter_duff_dst);
 
@@ -1791,7 +1792,7 @@ colorstop_atlas(void) const
   return d->m_core->colorstop_atlas();
 }
 
-const fastuidraw::reference_counted_ptr<const fastuidraw::PainterShader>&
+const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader>&
 fastuidraw::Painter::
 blend_shader(void) const
 {
@@ -1802,7 +1803,7 @@ blend_shader(void) const
 
 void
 fastuidraw::Painter::
-blend_shader(const fastuidraw::reference_counted_ptr<const PainterShader> &h)
+blend_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &h)
 {
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
@@ -1838,38 +1839,20 @@ increment_z(int amount)
 
 void
 fastuidraw::Painter::
-register_vert_shader(const fastuidraw::reference_counted_ptr<PainterShader> &shader)
+register_shader(const fastuidraw::reference_counted_ptr<PainterItemShader> &shader)
 {
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
-  d->m_core->register_vert_shader(shader);
+  d->m_core->register_shader(shader);
 }
 
 void
 fastuidraw::Painter::
-register_frag_shader(const fastuidraw::reference_counted_ptr<PainterShader> &shader)
+register_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &shader)
 {
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
-  d->m_core->register_frag_shader(shader);
-}
-
-void
-fastuidraw::Painter::
-register_blend_shader(const fastuidraw::reference_counted_ptr<PainterShader> &shader)
-{
-  PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
-  d->m_core->register_blend_shader(shader);
-}
-
-void
-fastuidraw::Painter::
-register_shader(const PainterItemShader &p)
-{
-  PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
-  d->m_core->register_shader(p);
+  d->m_core->register_shader(shader);
 }
 
 void

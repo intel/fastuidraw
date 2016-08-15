@@ -233,32 +233,14 @@ namespace fastuidraw
       on_begin()/on_end() pair.
      */
     void
-    register_vert_shader(const reference_counted_ptr<PainterShader> &shader);
-
-    /*!
-      Registers a fragment shader for use. Must not be called within
-      a on_begin()/on_end() pair.
-    */
-    void
-    register_frag_shader(const reference_counted_ptr<PainterShader> &shader);
+    register_shader(const reference_counted_ptr<PainterItemShader> &shader);
 
     /*!
       Registers a blend shader for use. Must not be called within
       a on_begin()/on_end() pair.
     */
     void
-    register_blend_shader(const reference_counted_ptr<PainterShader> &shader);
-
-    /*!
-      Provided as a conveniance, equivalent to
-      \code
-      register_vert_shader(p.vert_shader());
-      register_frag_shader(p.frag_shader());
-      \endcode
-      \param p PainterItemShader hold shaders to register
-     */
-    void
-    register_shader(const PainterItemShader &p);
+    register_shader(const reference_counted_ptr<PainterBlendShader> &shader);
 
     /*!
       Provided as a conveniance, equivalent to
@@ -280,7 +262,7 @@ namespace fastuidraw
     register_shader(const PainterGlyphShader &p);
 
     /*!
-      Register each of the reference_counted_ptr<PainterShader>
+      Register each of the reference_counted_ptr<PainterBlendShader>
       in a PainterBlendShaderSet.
      */
     void
@@ -312,25 +294,14 @@ namespace fastuidraw
   protected:
     /*!
       To be implemented by a derived class to take into use
-      a vertex shader. Typically this means inserting the
-      the vertex shader into a large uber shader. Returns
+      an item shader. Typically this means inserting the
+      the shader into a large uber shader. Returns
       the PainterShader::Tag to be used by the backend
       to identify the shader.
      */
     virtual
     PainterShader::Tag
-    absorb_vert_shader(const reference_counted_ptr<PainterShader> &shader) = 0;
-
-    /*!
-      To be implemented by a derived class to take into use
-      a fragment shader. Typically this means inserting the
-      the fragment shader into a large uber shader. Returns
-      the PainterShader::Tag to be used by the backend
-      to identify the shader.
-     */
-    virtual
-    PainterShader::Tag
-    absorb_frag_shader(const reference_counted_ptr<PainterShader> &shader) = 0;
+    absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader) = 0;
 
     /*!
       To be implemented by a derived class to take into use
@@ -341,7 +312,7 @@ namespace fastuidraw
      */
     virtual
     PainterShader::Tag
-    absorb_blend_shader(const reference_counted_ptr<PainterShader> &shader) = 0;
+    absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader) = 0;
 
     /*!
       To be accessed by a derived class in on_begin() (or before)

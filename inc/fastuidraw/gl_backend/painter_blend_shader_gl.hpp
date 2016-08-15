@@ -294,6 +294,8 @@ namespace fastuidraw
         \endcode
         where in_src is the pre-multiplied by alpha color value for the
         fragment and out_src is the value for the fragment shader to emit.
+        The location of the blend shader data is store in the value of the
+        global fastuidraw_blend_shader_data_location.
        */
       Shader::shader_source m_src;
     };
@@ -341,7 +343,8 @@ namespace fastuidraw
         where in_src is the pre-multiplied by alpha color value for the
         fragment, out_src0 is the value for the fragment shader to emit
         for GL_SRC_COLOR and out_src1 is the value for the fragment shader
-        to emit value for GL_SRC1_COLOR.
+        to emit value for GL_SRC1_COLOR. The location of the blend shader
+        data is store in the value of the global fastuidraw_blend_shader_data_location.
        */
       Shader::shader_source m_src;
     };
@@ -361,7 +364,9 @@ namespace fastuidraw
         \endcode
         where in_src is the pre-multiplied by alpha color value for the
         fragment, in_fb is the value of the framebuffer at the location
-        and out_src is the value for the fragment shader to emit.
+        and out_src is the value for the fragment shader to emit. The
+        location of the blend shader data is store in the value of the
+        global fastuidraw_blend_shader_data_location.
        */
       Shader::shader_source m_src;
     };
@@ -373,7 +378,7 @@ namespace fastuidraw
       a SingleSourceBlenderShader, DualSourceBlenderShader and
       FramebufferFetchBlendShader.
      */
-    class PainterBlendShaderGL:public PainterShader
+    class PainterBlendShaderGL:public PainterBlendShader
     {
     public:
       /*!
