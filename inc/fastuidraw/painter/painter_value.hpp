@@ -123,12 +123,12 @@ namespace fastuidraw
     /*!
       Pack the values of this ItemMatrix
       \param alignment alignment of the data store
-                       in units of generic_data, see
-                       PainterBackend::Configuration::alignment()
+      in units of generic_data, see
+      PainterBackend::Configuration::alignment()
       \param dst place to which to pack data
-       */
-      void
-      pack_data(unsigned int alignment, c_array<generic_data> dst) const;
+    */
+    void
+    pack_data(unsigned int alignment, c_array<generic_data> dst) const;
 
     /*!
       The 3x3 matrix tranforming from item coordinate
@@ -146,19 +146,14 @@ namespace fastuidraw
   {
   public:
     /*!
-      Ctor. Copies the data into the data store.
-      \param pdata data from which to copy
-     */
-    explicit
-    PainterShaderData(const_c_array<generic_data> pdata);
-
-    /*!
-      Inits as having no data.
+      Ctor. A derived class from PainterShaderData
+      should set \ref m_data.
      */
     PainterShaderData(void);
 
     /*!
-      Copy ctor
+      Copy ctor, calls DataBase::copy() to
+      copy the data behind \ref m_data.
      */
     PainterShaderData(const PainterShaderData &obj);
 
@@ -171,130 +166,94 @@ namespace fastuidraw
     operator=(const PainterShaderData &rhs);
 
     /*!
-      Returns a writeable pointer to the backing store of the data
-     */
-    c_array<generic_data>
-    data(void);
-
-    /*!
-      Returns a readable pointer to the backing store of the data
-     */
-    const_c_array<generic_data>
-    data(void) const;
-
-    /*!
-      Resize the data store. After resize, previous value returned
-      by data() are not guaranteed to be valid.
-     */
-    void
-    resize_data(unsigned int sz);
-
-    /*!
       Returns the length of the data needed to encode the data.
       Data is padded to be multiple of alignment.
       \param alignment alignment of the data store
                        in units of generic_data, see
                        PainterBackend::Configuration::alignment()
-     */
+    */
     unsigned int
     data_size(unsigned int alignment) const;
 
     /*!
-      Copies the values of m_data.
+      Pack the values of this object
       \param alignment alignment of the data store
                        in units of generic_data, see
                        PainterBackend::Configuration::alignment()
       \param dst place to which to pack data
-     */
+    */
     void
     pack_data(unsigned int alignment, c_array<generic_data> dst) const;
 
-  private:
-    void *m_d;
+    /*!
+      Class that holds the actual data and packs the data.
+      A class derived from PainterShaderData should set the
+      field \ref m_data to point to an object derived from
+      DataBase for the purpose of holding and packing data.
+     */
+    class DataBase
+    {
+    public:
+      virtual
+      ~DataBase()
+      {}
+
+      /*!
+        To be implemented by a derived class to create
+        a copy of itself.
+       */
+      virtual
+      DataBase*
+      copy(void) const = 0;
+
+      /*!
+        To be implemented by a derived class to return
+        the length of the data needed to encode the data.
+        Data is padded to be multiple of alignment.
+        \param alignment alignment of the data store
+               in units of generic_data, see
+               PainterBackend::Configuration::alignment()
+       */
+      virtual
+      unsigned int
+      data_size(unsigned int alignment) const = 0;
+
+
+      /*!
+        To be implemtend by a derive dclass to pack its data.
+        \param alignment alignment of the data store
+               in units of generic_data, see
+               PainterBackend::Configuration::alignment()
+        \param dst place to which to pack data
+      */
+      virtual
+      void
+      pack_data(unsigned int alignment, c_array<generic_data> dst) const = 0;
+    };
+
+  protected:
+    /*!
+      Initialized as NULL by the ctor PainterShaderData(void).
+      A derived class of PainterShaderData should assign \ref
+      m_data to point to an object derived from DataBase.
+      That object is the object that is to determine the
+      size of data to pack and how to pack the data into
+      the data store buffer.
+     */
+    DataBase *m_data;
   };
 
   /*!
     PainterItemShaderData holds custom data for item shaders
    */
   class PainterItemShaderData:public PainterShaderData
-  {
-  public:
-    /*!
-      Ctor. Copies the data into the data store.
-      \param pdata data from which to copy
-     */
-    explicit
-    PainterItemShaderData(const_c_array<generic_data> pdata):
-      PainterShaderData(pdata)
-    {}
-
-    /*!
-      Inits as having no data.
-     */
-    PainterItemShaderData(void)
-    {}
-  };
+  {};
 
   /*!
     PainterBlendShaderData holds custom data for blend shaders
    */
   class PainterBlendShaderData:public PainterShaderData
-  {
-  public:
-    /*!
-      Ctor. Copies the data into the data store.
-      \param pdata data from which to copy
-     */
-    explicit
-    PainterBlendShaderData(const_c_array<generic_data> pdata):
-      PainterShaderData(pdata)
-    {}
-
-    /*!
-      Inits as having no data.
-     */
-    PainterBlendShaderData(void)
-    {}
-  };
-
-  /*!
-    Class to specify stroking parameters, data is packed
-    as according to PainterPacking::stroke_data_offset_t.
-   */
-  class PainterStrokeParams:public PainterItemShaderData
-  {
-  public:
-    /*!
-      Ctor.
-     */
-    PainterStrokeParams(void);
-
-    /*!
-      The miter limit for miter joins
-     */
-    float
-    miter_limit(void) const;
-
-    /*!
-      Set the value of miter_limit(void) const
-     */
-    PainterStrokeParams&
-    miter_limit(float f);
-
-    /*!
-      The stroking width
-     */
-    float
-    width(void) const;
-
-    /*!
-      Set the value of width(void) const
-     */
-    PainterStrokeParams&
-    width(float f);
-  };
-
-
+  {};
 /*! @} */
 
 } //namespace fastuidraw

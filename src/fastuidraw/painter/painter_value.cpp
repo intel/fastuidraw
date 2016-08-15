@@ -21,23 +21,6 @@
 #include <fastuidraw/painter/painter_value.hpp>
 #include "../private/util_private.hpp"
 
-namespace
-{
-  class ShaderDataPrivate
-  {
-  public:
-    ShaderDataPrivate(void)
-    {}
-
-    ShaderDataPrivate(fastuidraw::const_c_array<fastuidraw::generic_data> pdata):
-      m_data(pdata.begin(), pdata.end())
-    {}
-
-    std::vector<fastuidraw::generic_data> m_data;
-  };
-}
-
-
 //////////////////////////////////////////////
 // fastuidraw::PainterClipEquations methods
 void
@@ -85,125 +68,68 @@ pack_data(unsigned int, c_array<generic_data> dst) const
 //////////////////////////////////////////////
 // fastuidraw::PainterShaderData methods
 fastuidraw::PainterShaderData::
-PainterShaderData(const_c_array<generic_data> pdata)
-{
-  m_d = FASTUIDRAWnew ShaderDataPrivate(pdata);
-}
-
-fastuidraw::PainterShaderData::
 PainterShaderData(void)
 {
-  m_d = FASTUIDRAWnew ShaderDataPrivate();
+  m_data = NULL;
 }
 
 fastuidraw::PainterShaderData::
 PainterShaderData(const PainterShaderData &obj)
 {
-  ShaderDataPrivate *d;
-  d = reinterpret_cast<ShaderDataPrivate*>(obj.m_d);
-  m_d = FASTUIDRAWnew ShaderDataPrivate(*d);
+  if(obj.m_data)
+    {
+      m_data = obj.m_data->copy();
+    }
+  else
+    {
+      m_data = NULL;
+    }
 }
 
 fastuidraw::PainterShaderData::
 ~PainterShaderData()
 {
-  ShaderDataPrivate *d;
-  d = reinterpret_cast<ShaderDataPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-  m_d = NULL;
+  if(m_data)
+    {
+      FASTUIDRAWdelete(m_data);
+    }
+  m_data = NULL;
 }
 
 fastuidraw::PainterShaderData&
 fastuidraw::PainterShaderData::
 operator=(const PainterShaderData &rhs)
 {
-  ShaderDataPrivate *d, *rhs_d;
-  d = reinterpret_cast<ShaderDataPrivate*>(m_d);
-  rhs_d = reinterpret_cast<ShaderDataPrivate*>(rhs.m_d);
-  *d = *rhs_d;
+  if(this != &rhs)
+    {
+      if(m_data)
+        {
+          FASTUIDRAWdelete(m_data);
+        }
+
+      if(rhs.m_data)
+        {
+          m_data = rhs.m_data->copy();
+        }
+    }
   return *this;
-}
-
-fastuidraw::c_array<fastuidraw::generic_data>
-fastuidraw::PainterShaderData::
-data(void)
-{
-  ShaderDataPrivate *d;
-  d = reinterpret_cast<ShaderDataPrivate*>(m_d);
-  return make_c_array(d->m_data);
-}
-
-fastuidraw::const_c_array<fastuidraw::generic_data>
-fastuidraw::PainterShaderData::
-data(void) const
-{
-  ShaderDataPrivate *d;
-  d = reinterpret_cast<ShaderDataPrivate*>(m_d);
-  return make_c_array(d->m_data);
 }
 
 void
 fastuidraw::PainterShaderData::
-resize_data(unsigned int sz)
+pack_data(unsigned int alignment, c_array<generic_data> dst) const
 {
-  ShaderDataPrivate *d;
-  d = reinterpret_cast<ShaderDataPrivate*>(m_d);
-  d->m_data.resize(sz);
+  if(m_data)
+    {
+      m_data->pack_data(alignment, dst);
+    }
 }
 
 unsigned int
 fastuidraw::PainterShaderData::
 data_size(unsigned int alignment) const
 {
-  return round_up_to_multiple(data().size(), alignment);
-}
-
-void
-fastuidraw::PainterShaderData::
-pack_data(unsigned int, c_array<generic_data> dst) const
-{
-  const_c_array<generic_data> p(data());
-  if(!p.empty())
-    {
-      assert(dst.size() >= p.size());
-      std::copy(p.begin(), p.end(), dst.begin());
-    }
-}
-
-///////////////////////////////////
-// fastuidraw::PainterStrokeParams methods
-fastuidraw::PainterStrokeParams::
-PainterStrokeParams(void)
-{
-  resize_data(2);
-}
-
-float
-fastuidraw::PainterStrokeParams::
-miter_limit(void) const
-{
-  return data()[PainterPacking::stroke_miter_limit_offset].f;
-}
-
-float
-fastuidraw::PainterStrokeParams::
-width(void) const
-{
-  return data()[PainterPacking::stroke_width_offset].f;
-}
-
-fastuidraw::PainterStrokeParams&
-fastuidraw::PainterStrokeParams::
-miter_limit(float f)
-{
-  data()[PainterPacking::stroke_miter_limit_offset].f = f;
-  return *this;
-}
-
-fastuidraw::PainterStrokeParams&
-fastuidraw::PainterStrokeParams::
-width(float f)
-{
-  data()[PainterPacking::stroke_width_offset].f = f;
-  return *this;
+  return m_data ?
+    m_data->data_size(alignment) :
+    0;
 }

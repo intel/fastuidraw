@@ -195,20 +195,6 @@ namespace fastuidraw
 
         item_matrix_data_size /*!< Size of the data for the item matrix */
       };
-
-    /*!
-      Enumeration that provides offsets for the stroking
-      parameters. These values are realized as item
-      shader data, see PainterStrokeParams
-     */
-    enum stroke_data_offset_t
-      {
-        stroke_width_offset, /*!< offset to stroke width (packed as float) */
-        stroke_miter_limit_offset, /*!< offset to stroke miter limit (packed as float) */
-
-        stroke_data_size /*!< size of data for stroking*/
-      };
-
   }
 /*! @} */
 }

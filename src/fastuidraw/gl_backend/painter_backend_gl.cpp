@@ -33,6 +33,7 @@
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/packing/painter_packing_brush.hpp>
 #include <fastuidraw/painter/packing/painter_packing_enums.hpp>
+#include <fastuidraw/painter/painter_stroke_value.hpp>
 
 #include "private/tex_buffer.hpp"
 #include "../private/util_private.hpp"
@@ -1116,6 +1117,7 @@ stream_unpack_code(unsigned int alignment,
   using namespace fastuidraw::PainterPacking;
   using namespace fastuidraw::PainterPacking::Brush;
   using namespace fastuidraw::gl;
+  using namespace fastuidraw;
 
   {
     glsl_shader_unpack_value_set<pen_data_size> labels;
@@ -1265,10 +1267,10 @@ stream_unpack_code(unsigned int alignment,
   }
 
   {
-    glsl_shader_unpack_value_set<stroke_data_size> labels;
+    glsl_shader_unpack_value_set<PainterStrokeParams::stroke_data_size> labels;
     labels
-      .set(stroke_width_offset, ".width")
-      .set(stroke_miter_limit_offset, ".miter_limit")
+      .set(PainterStrokeParams::stroke_width_offset, ".width")
+      .set(PainterStrokeParams::stroke_miter_limit_offset, ".miter_limit")
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_stroking_params",
                               "fastuidraw_stroking_params",
