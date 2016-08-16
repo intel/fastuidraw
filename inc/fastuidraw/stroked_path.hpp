@@ -53,9 +53,20 @@ public:
   enum point_type_t
     {
       /*!
-        The point is for an edge of the path
+        The point is for an edge of the path that is neither
+        the start or end of an edge.
        */
       edge_point,
+
+      /*!
+        The point is a start point of an edge of the path.
+       */
+      start_edge_point,
+
+      /*!
+        The point is an end point of an edge of the path.
+       */
+      end_edge_point,
 
       /*!
         The point is for a rounded join of the path

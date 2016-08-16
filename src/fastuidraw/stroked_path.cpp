@@ -459,18 +459,6 @@ namespace
     std::vector<fastuidraw::vec2> m_n0, m_n1;
   };
 
-  void
-  set_point_type_to_edge_point(fastuidraw::c_array<fastuidraw::StrokedPath::point> data)
-  {
-    fastuidraw::c_array<fastuidraw::StrokedPath::point>::iterator iter;
-
-    for(iter = data.begin(); iter != data.end(); ++iter)
-      {
-        iter->m_tag = fastuidraw::StrokedPath::edge_point;
-      }
-  }
-
-
   template<typename T>
   class PartitionedArray
   {
@@ -826,6 +814,8 @@ add_edge(unsigned int o, unsigned int e,
           0.0f,
         };
 
+      fastuidraw::StrokedPath::point_type_t p_type, p_next_type;
+
       /* The quad is:
          (p, n, delta,  1),
          (p,-n, delta,  1),
@@ -838,6 +828,24 @@ add_edge(unsigned int o, unsigned int e,
          start or end of edge from the sign of
          m_on_boundary.
        */
+      if(i == R.m_begin)
+        {
+          p_type = fastuidraw::StrokedPath::start_edge_point;
+        }
+      else
+        {
+          p_type = fastuidraw::StrokedPath::edge_point;
+        }
+
+      if(i + 2 == R.m_end)
+        {
+          p_next_type = fastuidraw::StrokedPath::end_edge_point;
+        }
+      else
+        {
+          p_next_type = fastuidraw::StrokedPath::edge_point;
+        }
+
       for(unsigned int k = 0; k < 3; ++k)
         {
           pts[vert_offset + k].m_position = src_pts[i].m_p;
@@ -847,6 +855,7 @@ add_edge(unsigned int o, unsigned int e,
           pts[vert_offset + k].m_pre_offset = normal_sign[k] * normal;
           pts[vert_offset + k].m_auxilary_offset = delta;
           pts[vert_offset + k].m_on_boundary = boundary_values[k];
+          pts[vert_offset + k].m_tag = p_type;
 
           pts[vert_offset + k + 3].m_position = src_pts[i+1].m_p;
           pts[vert_offset + k + 3].m_distance_from_edge_start = src_pts[i+1].m_distance_from_edge_start;
@@ -855,6 +864,7 @@ add_edge(unsigned int o, unsigned int e,
           pts[vert_offset + k + 3].m_pre_offset = normal_sign[k] * normal;
           pts[vert_offset + k + 3].m_auxilary_offset = -delta;
           pts[vert_offset + k + 3].m_on_boundary = -boundary_values[k];
+          pts[vert_offset + k + 3].m_tag = p_next_type;
         }
 
       indices[index_offset + 0] = vert_offset + 0;
@@ -928,7 +938,6 @@ fill_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
   pre_close_depth = 0;
   close_depth = 0;
 
-  set_point_type_to_edge_point(pts);
   for(unsigned int o = 0; o < m_P.number_contours(); ++o)
     {
       for(unsigned int e = 0; e < m_P.number_edges(o); ++e)
