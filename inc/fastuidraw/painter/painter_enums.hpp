@@ -62,7 +62,7 @@ namespace fastuidraw
         dashed_no_caps_closed,       /*!< indicates to stroke with contours of path are closed and caps are not added     */
         dashed_rounded_caps_closed,  /*!< indicates to stroke with contours of path are closed and rounded caps are added */
         dashed_square_caps_closed,   /*!< indicates to stroke with contours of path are closed and square caps are added  */
-        number_dashed_closed, /*! number dashed cap styles where path is closed */
+        number_dashed_closed, /*! number dashed cap styles where contours of path are closed */
 
         dashed_no_caps = number_dashed_closed, /*!< indicates to stroke with contours of path are not closed and caps are not added     */
         dashed_rounded_caps,                   /*!< indicates to stroke with contours of path are not closed and rounded caps are added */

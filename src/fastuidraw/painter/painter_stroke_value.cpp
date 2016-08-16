@@ -106,11 +106,11 @@ namespace
               //shader can use that to know when it has reached the end.
               dst_pattern[i].f = (total_length + 1.0f) * 2.0f;
             }
-          dst[fastuidraw::PainterDashedStrokeParams::stroke_dash_pattern_total_length].f = total_length;
+          dst[fastuidraw::PainterDashedStrokeParams::stroke_dash_pattern_total_length_offset].f = total_length;
         }
       else
         {
-          dst[fastuidraw::PainterDashedStrokeParams::stroke_dash_pattern_total_length].f = -1.0f;
+          dst[fastuidraw::PainterDashedStrokeParams::stroke_dash_pattern_total_length_offset].f = -1.0f;
         }
     }
 

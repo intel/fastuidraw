@@ -386,6 +386,56 @@ namespace fastuidraw
     void *m_d;
   };
 
+
+  /*!
+    A PainterDashedStrokeShaderSet holds a collection of
+    PainterStrokeShaderSet objects for the purpose of
+    dashed stroking.
+   */
+  class PainterDashedStrokeShaderSet
+  {
+  public:
+    /*!
+      Ctor
+     */
+    PainterDashedStrokeShaderSet(void);
+
+    /*!
+      Copy ctor.
+     */
+    PainterDashedStrokeShaderSet(const PainterDashedStrokeShaderSet &obj);
+
+    ~PainterDashedStrokeShaderSet();
+
+    /*!
+      Assignment operator.
+     */
+    PainterDashedStrokeShaderSet&
+    operator=(const PainterDashedStrokeShaderSet &rhs);
+
+    /*!
+      Shader set for dashed stroking of paths where the stroking
+      width is given in same units as the original path.
+      The stroking parameters are given by PainterDashedStrokeParams.
+      NOTE: it is the shaders responsibility to draw the dashes and caps
+      made from dashed stroking.
+      \param st cap style
+     */
+    const PainterStrokeShader&
+    shader(enum PainterEnums::dashed_cap_style st) const;
+
+    /*!
+      Set the value returned by dashed_stroke_shader(enum PainterEnums::dashed_cap_style) const.
+      \param st cap style
+      \param sh value to use
+     */
+    PainterDashedStrokeShaderSet&
+    shader(enum PainterEnums::dashed_cap_style st, const PainterStrokeShader &sh);
+
+  private:
+    void *m_d;
+  };
+
   /*!
     A PainterShaderSet provides shaders for drawing
     each of the item types:
@@ -476,45 +526,35 @@ namespace fastuidraw
     pixel_width_stroke_shader(const PainterStrokeShader &sh);
 
     /*!
-      Shader set for dashed stroking of paths where the stroking
+      Shader set for stroking of paths where the stroking
       width is given in same units as the original path.
-      The stroking parameters are given by PainterDashedStrokeParams.
-      NOTE: it is the shaders responsibility to draw the dashes and caps
-      made from dashed stroking.
-      \param st cap style
+      The stroking parameters are given by PainterStrokeParams.
      */
-    const PainterStrokeShader&
-    dashed_stroke_shader(enum PainterEnums::dashed_cap_style st) const;
+    const PainterDashedStrokeShaderSet&
+    dashed_stroke_shader(void) const;
 
     /*!
-      Set the value returned by dashed_stroke_shader(enum PainterEnums::dashed_cap_style) const.
-      \param st cap style
+      Set the value returned by stroke_shader(void) const.
       \param sh value to use
      */
     PainterShaderSet&
-    dashed_stroke_shader(enum PainterEnums::dashed_cap_style st,
-                         const PainterStrokeShader &sh);
+    dashed_stroke_shader(const PainterDashedStrokeShaderSet &sh);
 
     /*!
-      Shader set for dashed stroking of paths where the stroking
+      Shader set for stroking of paths where the stroking
       width is given in pixels. The stroking parameters are
-      given by PainterDashedStrokeParams. NOTE: it is the
-      shaders responsibility to draw the dashes and caps made
-      from dashed stroking.
-      \param st cap style for dashes of dashed stroking
+      given by PainterStrokeParams.
      */
-    const PainterStrokeShader&
-    pixel_width_dashed_stroke_shader(enum PainterEnums::dashed_cap_style st) const;
+    const PainterDashedStrokeShaderSet&
+    pixel_width_dashed_stroke_shader(void) const;
 
     /*!
       Set the value returned by
-      pixel_width_dashed_stroke_shader(enum PainterEnums::dashed_cap_style) const.
-      \param st cap style
+      pixel_width_stroke_shader(void) const.
       \param sh value to use
      */
     PainterShaderSet&
-    pixel_width_dashed_stroke_shader(enum PainterEnums::dashed_cap_style st,
-                                     const PainterStrokeShader &sh);
+    pixel_width_dashed_stroke_shader(const PainterDashedStrokeShaderSet &sh);
 
     /*!
       Shader for filling of paths. The vertex shader

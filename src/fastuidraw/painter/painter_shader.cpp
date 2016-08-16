@@ -36,14 +36,20 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_null;
   };
 
+  class PainterDashedStrokeShaderSetPrivate
+  {
+  public:
+    fastuidraw::vecN<fastuidraw::PainterStrokeShader, fastuidraw::PainterEnums::number_dashed_cap_styles> m_shaders;
+  };
+
   class PainterShaderSetPrivate
   {
   public:
     fastuidraw::PainterGlyphShader m_glyph_shader, m_glyph_shader_anisotropic;
     fastuidraw::PainterStrokeShader m_stroke_shader;
     fastuidraw::PainterStrokeShader m_pixel_width_stroke_shader;
-    fastuidraw::vecN<fastuidraw::PainterStrokeShader, fastuidraw::PainterEnums::number_dashed_cap_styles> m_dashed_stroke_shader;
-    fastuidraw::vecN<fastuidraw::PainterStrokeShader, fastuidraw::PainterEnums::number_dashed_cap_styles> m_pixel_width_dashed_stroke_shader;
+    fastuidraw::PainterDashedStrokeShaderSet m_dashed_stroke_shader;
+    fastuidraw::PainterDashedStrokeShaderSet m_pixel_width_dashed_stroke_shader;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_fill_shader;
     fastuidraw::PainterBlendShaderSet m_blend_shaders;
   };
@@ -289,6 +295,69 @@ shader_count(void) const
   return d->m_shaders.size();
 }
 
+///////////////////////////////////////////////////
+// fastuidraw::PainterDashedStrokeShaderSet methods
+fastuidraw::PainterDashedStrokeShaderSet::
+PainterDashedStrokeShaderSet(void)
+{
+  m_d = FASTUIDRAWnew PainterDashedStrokeShaderSetPrivate();
+}
+
+fastuidraw::PainterDashedStrokeShaderSet::
+PainterDashedStrokeShaderSet(const PainterDashedStrokeShaderSet &obj)
+{
+  PainterDashedStrokeShaderSetPrivate *d;
+  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(obj.m_d);
+  m_d = FASTUIDRAWnew PainterDashedStrokeShaderSetPrivate(*d);
+}
+
+fastuidraw::PainterDashedStrokeShaderSet::
+~PainterDashedStrokeShaderSet()
+{
+  PainterDashedStrokeShaderSetPrivate *d;
+  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+  m_d = NULL;
+}
+
+fastuidraw::PainterDashedStrokeShaderSet&
+fastuidraw::PainterDashedStrokeShaderSet::
+operator=(const PainterDashedStrokeShaderSet &rhs)
+{
+  if(this != &rhs)
+    {
+      PainterDashedStrokeShaderSetPrivate *d, *rhs_d;
+      d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+      rhs_d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(rhs.m_d);
+      *d = *rhs_d;
+    }
+  return *this;
+}
+
+const fastuidraw::PainterStrokeShader&
+fastuidraw::PainterDashedStrokeShaderSet::
+shader(enum PainterEnums::dashed_cap_style st) const
+{
+  PainterDashedStrokeShaderSetPrivate *d;
+  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+  return (st < d->m_shaders.size()) ?
+    d->m_shaders[st] :
+    d->m_shaders[PainterEnums::dashed_no_caps];
+}
+
+fastuidraw::PainterDashedStrokeShaderSet&
+fastuidraw::PainterDashedStrokeShaderSet::
+shader(enum PainterEnums::dashed_cap_style st,
+                     const PainterStrokeShader &sh)
+{
+  PainterDashedStrokeShaderSetPrivate *d;
+  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+  if(st < d->m_shaders.size())
+    {
+      d->m_shaders[st] = sh;
+    }
+  return *this;
+}
 
 //////////////////////////////////////////////
 // fastuidraw::PainterShaderSet methods
@@ -353,60 +422,12 @@ setget_implement(fastuidraw::PainterGlyphShader, glyph_shader)
 setget_implement(fastuidraw::PainterGlyphShader, glyph_shader_anisotropic)
 setget_implement(fastuidraw::PainterStrokeShader, stroke_shader)
 setget_implement(fastuidraw::PainterStrokeShader, pixel_width_stroke_shader)
+setget_implement(fastuidraw::PainterDashedStrokeShaderSet, dashed_stroke_shader)
+setget_implement(fastuidraw::PainterDashedStrokeShaderSet, pixel_width_dashed_stroke_shader)
 setget_implement(fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>, fill_shader)
 setget_implement(fastuidraw::PainterBlendShaderSet, blend_shaders)
 
 #undef setget_implement
-
-const fastuidraw::PainterStrokeShader&
-fastuidraw::PainterShaderSet::
-dashed_stroke_shader(enum PainterEnums::dashed_cap_style st) const
-{
-  PainterShaderSetPrivate *d;
-  d = reinterpret_cast<PainterShaderSetPrivate*>(m_d);
-  return (st < d->m_dashed_stroke_shader.size()) ?
-    d->m_dashed_stroke_shader[st] :
-    d->m_dashed_stroke_shader[PainterEnums::dashed_no_caps];
-}
-
-fastuidraw::PainterShaderSet&
-fastuidraw::PainterShaderSet::
-dashed_stroke_shader(enum PainterEnums::dashed_cap_style st,
-                     const PainterStrokeShader &sh)
-{
-  PainterShaderSetPrivate *d;
-  d = reinterpret_cast<PainterShaderSetPrivate*>(m_d);
-  if(st < d->m_dashed_stroke_shader.size())
-    {
-      d->m_dashed_stroke_shader[st] = sh;
-    }
-  return *this;
-}
-
-const fastuidraw::PainterStrokeShader&
-fastuidraw::PainterShaderSet::
-pixel_width_dashed_stroke_shader(enum PainterEnums::dashed_cap_style st) const
-{
-  PainterShaderSetPrivate *d;
-  d = reinterpret_cast<PainterShaderSetPrivate*>(m_d);
-  return (st < d->m_pixel_width_dashed_stroke_shader.size()) ?
-    d->m_pixel_width_dashed_stroke_shader[st] :
-    d->m_pixel_width_dashed_stroke_shader[PainterEnums::dashed_no_caps];
-}
-
-fastuidraw::PainterShaderSet&
-fastuidraw::PainterShaderSet::
-pixel_width_dashed_stroke_shader(enum PainterEnums::dashed_cap_style st,
-                                 const PainterStrokeShader &sh)
-{
-  PainterShaderSetPrivate *d;
-  d = reinterpret_cast<PainterShaderSetPrivate*>(m_d);
-  if(st < d->m_pixel_width_dashed_stroke_shader.size())
-    {
-      d->m_pixel_width_dashed_stroke_shader[st] = sh;
-    }
-  return *this;
-}
 
 //////////////////////////////////////////
 // fastuidraw::PainterStrokeShader methods
