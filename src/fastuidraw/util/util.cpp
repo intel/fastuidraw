@@ -63,8 +63,8 @@ number_bits_required(uint32_t v)
       return 0;
     }
 
-  uint32_t return_value(1);
-  for(uint32_t mask = 1; mask < v; mask <<= 1, ++return_value)
+  uint32_t return_value(0);
+  for(uint32_t mask = 1; mask <= v; mask <<= 1, ++return_value)
     {}
 
   return return_value;
