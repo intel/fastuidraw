@@ -1900,6 +1900,15 @@ register_shader(const PainterStrokeShader &p)
 
 void
 fastuidraw::Painter::
+register_shader(const PainterDashedStrokeShaderSet &p)
+{
+  PainterPrivate *d;
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d->m_core->register_shader(p);
+}
+
+void
+fastuidraw::Painter::
 register_shader(const PainterGlyphShader &p)
 {
   PainterPrivate *d;

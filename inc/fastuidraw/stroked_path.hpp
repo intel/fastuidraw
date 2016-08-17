@@ -81,9 +81,14 @@ public:
       end_contour_point,
 
       /*!
+        number point types that come from an edge
+       */
+      number_edge_point_types,
+
+      /*!
         The point is for a rounded join of the path
        */
-      rounded_join_point,
+      rounded_join_point = number_edge_point_types,
 
       /*!
         The point is for a miter join of the path

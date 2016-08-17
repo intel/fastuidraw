@@ -285,6 +285,8 @@ register_shader(const PainterShaderSet &shaders)
 {
   register_shader(shaders.stroke_shader());
   register_shader(shaders.pixel_width_stroke_shader());
+  register_shader(shaders.dashed_stroke_shader());
+  register_shader(shaders.pixel_width_dashed_stroke_shader());
   register_shader(shaders.fill_shader());
   register_shader(shaders.glyph_shader());
   register_shader(shaders.glyph_shader_anisotropic());
@@ -314,6 +316,18 @@ register_shader(const PainterStrokeShader &p)
   register_shader(p.non_aa_shader());
   register_shader(p.aa_shader_pass1());
   register_shader(p.aa_shader_pass2());
+}
+
+void
+fastuidraw::PainterBackend::
+register_shader(const PainterDashedStrokeShaderSet &p)
+{
+  for(int i = 0; i < PainterEnums::number_dashed_cap_styles; ++i)
+    {
+      enum PainterEnums::dashed_cap_style c;
+      c = static_cast<enum PainterEnums::dashed_cap_style>(i);
+      register_shader(p.shader(c));
+    }
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas>&

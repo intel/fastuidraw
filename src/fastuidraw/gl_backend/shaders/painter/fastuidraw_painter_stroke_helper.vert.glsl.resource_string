@@ -1,0 +1,338 @@
+void
+fastuidraw_stroke_width_helper(in bool stroke_width_pixels,
+                               in uint point_tag,
+                               in int point_type,
+                               in vec2 position,
+                               in vec2 pre_offset,
+                               in vec2 auxilary_offset,
+                               in int on_boundary,
+                               in float miter_limit,
+                               out vec2 offset,
+                               inout float stroke_radius)
+{
+  switch(point_type)
+    {
+      case fastuidraw_stroke_miter_join_point:
+        {
+          if(stroke_width_pixels)
+            {
+              vec2 n0 = pre_offset, v0 = vec2(n0.y, -n0.x);
+              vec2 n1 = auxilary_offset, v1 = vec2(n1.y, -n1.x);
+              vec2 p0, p1, delta_p;
+              vec3 clip_p, clip_offset;
+              float det, r, r0, r1, m, lambda;
+
+              lambda = -sign(dot(v1, n0));
+              clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+
+              n0 = lambda * fastuidraw_align_normal_to_screen(clip_p, n0);
+              n1 = lambda * fastuidraw_align_normal_to_screen(clip_p, n1);
+
+              /* let p0 be p moved by n0 the named number of pixels.
+               */
+              clip_offset = fastuidraw_item_matrix * vec3(n0, 0.0);
+              r0 = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+              p0 = position + r0 * n0;
+
+              /* let p1 be p moved by n1 the named number of pixels.
+               */
+              clip_offset = fastuidraw_item_matrix * vec3(n1, 0.0);
+              r1 = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+              p1 = position + r1 * n1;
+
+              /* now compute where the lines L0 and L1 intersect
+                 where L0 = { p0 + s*v0 | s > 0}
+                 and L1 = { p1 - s*v1 | s > 0}
+              */
+              delta_p = p1 - p0;
+              det = v0.x * v1.y - v0.y * v1.x;
+
+              if(det != 0.0)
+                {
+                  m = (v1.y * delta_p.x - v1.x * delta_p.y) / det;
+                }
+              else
+                {
+                  m = 0.0;
+                }
+
+              /* miter limit; we have an itchy situation in that
+                 we have two different stroke radii, r0 and r1.
+                 we will take their maximum as the stroke radius
+                 for enforcing the miter limit.
+              */
+              if(miter_limit >= 0.0)
+                {
+                  r = max(r0, r1) * miter_limit;
+                  m = clamp(m, -r, r);
+                }
+
+              offset = p0 + m * v0 - position;
+              stroke_radius = 1.0;
+            }
+          else
+            {
+              vec2 n = pre_offset, v = vec2(-n.y, n.x);
+              float r, numer, denom, lambda;
+              lambda = -sign(dot(v, auxilary_offset));
+              numer = dot(pre_offset, auxilary_offset) - 1.0;
+              denom = dot(v, auxilary_offset);
+              r = (denom != 0.0) ? numer/denom : 0.0;
+
+              /* enforce miter-limit
+               */
+              if(miter_limit >= 0.0)
+                {
+                  r = clamp(r, -miter_limit, miter_limit);
+                }
+              offset = lambda * (n - r * v);
+            }
+        }
+        break;
+
+    case fastuidraw_stroke_rounded_join_point:
+      {
+        if(stroke_width_pixels)
+          {
+            vec2 n0, n1;
+            float interpolate;
+            vec3 clip_p, clip_offset;
+            vec2 t0, t1, screen_t0, screen_t1, screen_t, screen_n;
+            mat2 Q, adjQ;
+	    float d;
+
+            n0 = fastuidraw_unpack_unit_vector(pre_offset.x,
+                                               uint(fastuidraw_stroke_normal0_y_sign_mask) & point_tag);
+            n1 = fastuidraw_unpack_unit_vector(pre_offset.y,
+                                               uint(fastuidraw_stroke_normal1_y_sign_mask) & point_tag);
+            interpolate = auxilary_offset.x;
+
+            clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+            fastuidraw_align_compute_Q_adjoint_Q(clip_p, Q, adjQ);
+
+            t0 = vec2(-n0.y, n0.x);
+            t1 = vec2(-n1.y, n1.x);
+	    screen_t0 = normalize(fastuidraw_viewport_pixels * (Q * t0));
+	    screen_t1 = normalize(fastuidraw_viewport_pixels * (Q * t1));
+	    d = dot(screen_t0, screen_t1);
+
+	    if(d > 0.0)
+	      {
+		screen_t = mix(screen_t0, screen_t1, interpolate);
+	      }
+	    else
+	      {
+		/* "Joy", screen_t0 and screen_t1 point in different
+		   directions. In this painful case we will interpolate
+		   along a circle
+		 */
+		screen_t = fastuidraw_circular_interpolate(screen_t0, screen_t1, d, interpolate);
+	      }
+	    screen_n = vec2(screen_t.y, -screen_t.x);
+
+            offset = adjQ * (fastuidraw_viewport_recip_pixels * screen_n);
+            clip_offset = fastuidraw_item_matrix * vec3(offset, 0.0);
+            stroke_radius = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+          }
+        else
+          {
+            vec2 cs;
+            cs = fastuidraw_unpack_unit_vector(auxilary_offset.y,
+                                               uint(fastuidraw_stroke_sin_sign_mask) & point_tag);
+            offset = cs;
+          }
+      }
+      break;
+
+    case fastuidraw_stroke_square_cap_point:
+      {
+        if(stroke_width_pixels)
+          {
+            vec3 clip_offset0, clip_offset1, clip_p;
+            float s0, s1;
+            vec2 n;
+
+            /* move along tangent named number of pixels
+             */
+            clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+            clip_offset0 = fastuidraw_item_matrix * vec3(auxilary_offset, 0.0);
+            s0 = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset0);
+
+            /* move along normal named number of pixels
+             */
+            clip_p = fastuidraw_item_matrix * vec3(position + s0 * auxilary_offset, 1.0);
+            n = fastuidraw_align_normal_to_screen(clip_p, pre_offset);
+            clip_offset1 = fastuidraw_item_matrix * vec3(n, 0.0);
+            s1 = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset1);
+
+            stroke_radius = 1.0;
+            offset = s0 * auxilary_offset + s1 * n;
+          }
+        else
+          {
+            offset = pre_offset + auxilary_offset;
+          }
+      }
+      break;
+
+    case fastuidraw_stroke_rounded_cap_point:
+      {
+        /* Up to sign, normal is the same on both sides, we use the normal
+           vector to determine the radius of the cap. The (cos, sin) data
+           for the cap is packed in auxilary_offset and the normal is
+           in pre_offset.
+        */
+        vec2 n = pre_offset, v = vec2(n.y, -n.x);
+        if(stroke_width_pixels)
+          {
+            vec3 clip_n, clip_v, clip_p;
+            vec2 tn = auxilary_offset;
+
+            clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+            n = fastuidraw_align_normal_to_screen(clip_p, n);
+
+            clip_v = fastuidraw_item_matrix * vec3(v, 0.0);
+            tn.x = fastuidraw_painter_local_distance_from_pixel_distance(tn.x * stroke_radius, clip_p, clip_v);
+
+            clip_n = fastuidraw_item_matrix * vec3(n, 0.0);
+            tn.y = fastuidraw_painter_local_distance_from_pixel_distance(tn.y * stroke_radius, clip_p, clip_n);
+
+            stroke_radius = 1.0;
+            offset = tn.x * v + tn.y * n;
+          }
+        else
+          {
+            offset = auxilary_offset.x * v + auxilary_offset.y * pre_offset;
+          }
+      }
+      break;
+
+    case fastuidraw_stroke_edge_point:
+      {
+        if(stroke_width_pixels)
+          {
+            if(on_boundary != 0)
+              {
+                vec3 clip_offset, clip_p;
+                vec2 n;
+                if(on_boundary == 1)
+                  {
+                    clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+                  }
+                else
+                  {
+                    clip_p = fastuidraw_item_matrix * vec3(position + auxilary_offset, 1.0);
+                  }
+                n = fastuidraw_align_normal_to_screen(clip_p, pre_offset);
+                clip_offset = fastuidraw_item_matrix * vec3(n, 0.0);
+                stroke_radius = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+                offset = n;
+              }
+          }
+        else
+          {
+            if(on_boundary != 0)
+              {
+                offset = pre_offset;
+              }
+            else
+              {
+                offset = vec2(0.0, 0.0);
+              }
+          }
+      }
+    } //of switch
+}
+
+vec4
+fastuidraw_painter_stroke_generic(in bool stroke_width_pixels,
+                                  in int stroking_pass,
+                                  in int dash_style,
+                                  in vec4 primary_attrib,
+                                  in vec4 secondary_attrib,
+                                  in uvec4 uint_attrib,
+                                  in uint shader_data_offset,
+                                  out uint z_add,
+                                  out float fastuidraw_stroking_on_boundary)
+{
+  const float anti_alias_thickness = 1.5;
+
+  vec2 p;
+  vec2 position, pre_offset, auxilary_offset, offset;
+  float distance_from_edge_start, distance_from_outline_start;
+  float miter_distance, stroking_on_boundary, stroke_radius;
+  fastuidraw_stroking_params stroke_params;
+  int on_boundary, point_type;
+  uint point_tag;
+
+  position = primary_attrib.xy;
+  pre_offset = primary_attrib.zw;
+  auxilary_offset = secondary_attrib.zw;
+  distance_from_edge_start = secondary_attrib.x;
+  distance_from_outline_start = secondary_attrib.y;
+  point_tag = uint_attrib.y;
+  point_type = int(uint_attrib.y & uint(fastuidraw_stroke_point_type_mask));
+  on_boundary = int(uint_attrib.z) - 1;
+
+  fastuidraw_read_stroking_params(shader_data_offset, stroke_params);
+  stroke_radius = 0.5 * stroke_params.width;
+
+  if(stroking_pass == fastuidraw_stroke_opaque_pass && stroke_width_pixels)
+    {
+      stroke_radius = max(stroke_radius - anti_alias_thickness, 0.0);
+    }
+
+  if(dash_style == fastuidraw_stroke_no_dashes)
+    {
+      if(point_type < fastuidraw_stroke_number_edge_point_types)
+        {
+          point_type = fastuidraw_stroke_edge_point;
+        }
+    }
+  else
+    {
+      /* TODO: handle:
+          case fastuidraw_stroke_start_edge_point:
+          case fastuidraw_stroke_end_edge_point:
+          case fastuidraw_stroke_start_contour_point:
+          case fastuidraw_stroke_end_contour_point:
+       */
+    }
+
+  fastuidraw_stroke_width_helper(stroke_width_pixels, point_tag, point_type,
+                                 position, pre_offset,
+                                 auxilary_offset, on_boundary,
+                                 stroke_params.miter_limit,
+                                 offset, stroke_radius);
+
+  if(on_boundary != 0)
+    {
+      if(stroking_pass == fastuidraw_stroke_opaque_pass && !stroke_width_pixels)
+        {
+          vec3 clip_p, clip_offset;
+          float r;
+
+          clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+          clip_offset = fastuidraw_item_matrix * vec3(offset, 0);
+          r = fastuidraw_painter_local_distance_from_pixel_distance(anti_alias_thickness, clip_p, clip_offset, true);
+          stroke_radius = max(stroke_radius - r, 0.0);
+        }
+      p = position + stroke_radius * offset;
+    }
+  else
+    {
+      p = position;
+    }
+
+  fastuidraw_stroking_on_boundary = float(abs(on_boundary));
+  if(stroking_pass == fastuidraw_stroke_aa_pass)
+    {
+      z_add = 0u;
+    }
+  else
+    {
+      z_add = uint_attrib.x;
+    }
+
+  return vec4(p, p);
+}

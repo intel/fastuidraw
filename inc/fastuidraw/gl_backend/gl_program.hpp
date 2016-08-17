@@ -850,6 +850,13 @@ public:
   link_log(void);
 
   /*!
+    Returns how many seconds it took for the program
+    to be assembled and linked.
+   */
+  float
+  program_build_time(void);
+
+  /*!
     Returns true if and only if this Program
     successfully linked. This function should
     only be called either after use_program() has

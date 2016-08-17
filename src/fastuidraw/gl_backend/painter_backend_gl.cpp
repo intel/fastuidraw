@@ -194,6 +194,16 @@ namespace
       single_src_blend_mask = single_src_blend_max << single_src_blend_bit0,
     };
 
+  /*!
+    Values for stroke shading uber-shader
+   */
+  enum uber_stroke_render_pass_t
+    {
+      uber_stroke_opaque_pass,
+      uber_stroke_aa_pass,
+      uber_stroke_non_aa,
+    };
+
   class PainterBackendGLPrivate
   {
   public:
@@ -286,14 +296,24 @@ namespace
     fastuidraw::PainterGlyphShader
     create_glyph_shader(bool anisotropic);
 
-    static
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>
-    create_stroke_item_shader(const std::string &macro1, const std::string &macro2,
-                              bool include_boundary_varying);
-
+    /*
+      stroke_dash_style having value number_dashed_cap_styles means
+      to not have dashed stroking.
+     */
     static
     fastuidraw::PainterStrokeShader
-    create_stroke_shader(const std::string &macro1);
+    create_stroke_shader(enum fastuidraw::PainterEnums::dashed_cap_style stroke_dash_style,
+                         bool pixel_width_stroking);
+
+    static
+    fastuidraw::PainterDashedStrokeShaderSet
+    create_dashed_stroke_shader_set(bool pixel_width_stroking);
+
+    static
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>
+    create_stroke_item_shader(enum fastuidraw::PainterEnums::dashed_cap_style stroke_dash_style,
+                              bool pixel_width_stroking,
+                              enum uber_stroke_render_pass_t render_pass_macro);
 
     static
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>
@@ -966,9 +986,11 @@ add_enums(unsigned int alignment, fastuidraw::gl::Shader::shader_source &src)
     .add_macro("fastuidraw_z_num_bits", z_num_bits)
     .add_macro("fastuidraw_blend_shader_bit0", blend_shader_bit0)
     .add_macro("fastuidraw_blend_shader_num_bits", blend_shader_num_bits)
+
     .add_macro("fastuidraw_stroke_edge_point", StrokedPath::edge_point)
     .add_macro("fastuidraw_stroke_start_edge_point", StrokedPath::start_edge_point)
     .add_macro("fastuidraw_stroke_end_edge_point", StrokedPath::end_edge_point)
+    .add_macro("fastuidraw_stroke_number_edge_point_types", StrokedPath::number_edge_point_types)
     .add_macro("fastuidraw_stroke_start_contour_point", StrokedPath::start_contour_point)
     .add_macro("fastuidraw_stroke_end_contour_point", StrokedPath::end_contour_point)
     .add_macro("fastuidraw_stroke_rounded_join_point", StrokedPath::rounded_join_point)
@@ -978,7 +1000,19 @@ add_enums(unsigned int alignment, fastuidraw::gl::Shader::shader_source &src)
     .add_macro("fastuidraw_stroke_point_type_mask", StrokedPath::point_type_mask)
     .add_macro("fastuidraw_stroke_sin_sign_mask", StrokedPath::sin_sign_mask)
     .add_macro("fastuidraw_stroke_normal0_y_sign_mask", StrokedPath::normal0_y_sign_mask)
-    .add_macro("fastuidraw_stroke_normal1_y_sign_mask", StrokedPath::normal1_y_sign_mask);
+    .add_macro("fastuidraw_stroke_normal1_y_sign_mask", StrokedPath::normal1_y_sign_mask)
+
+    .add_macro("fastuidraw_stroke_dashed_no_caps_close", PainterEnums::dashed_no_caps_closed)
+    .add_macro("fastuidraw_stroke_dashed_rounded_caps_closed", PainterEnums::dashed_rounded_caps_closed)
+    .add_macro("fastuidraw_stroke_dashed_square_caps_closed", PainterEnums::dashed_square_caps_closed)
+    .add_macro("fastuidraw_stroke_dashed_no_caps", PainterEnums::dashed_no_caps)
+    .add_macro("fastuidraw_stroke_dashed_rounded_caps", PainterEnums::dashed_rounded_caps)
+    .add_macro("fastuidraw_stroke_dashed_square_caps", PainterEnums::dashed_square_caps)
+    .add_macro("fastuidraw_stroke_no_dashes", PainterEnums::number_dashed_cap_styles)
+
+    .add_macro("fastuidraw_stroke_opaque_pass", uber_stroke_opaque_pass)
+    .add_macro("fastuidraw_stroke_aa_pass", uber_stroke_aa_pass)
+    .add_macro("fastuidraw_stroke_non_aa", uber_stroke_non_aa);
 }
 
 void
@@ -1588,33 +1622,37 @@ create_glyph_shader(bool anisotropic)
 
 fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>
 PainterBackendGLPrivate::
-create_stroke_item_shader(const std::string &macro1, const std::string &macro2,
-                          bool include_boundary_varying)
+create_stroke_item_shader(enum fastuidraw::PainterEnums::dashed_cap_style stroke_dash_style,
+                          bool pixel_width_stroking,
+                          enum uber_stroke_render_pass_t render_pass)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::gl;
   fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> shader;
   varying_list varyings;
 
-  if(include_boundary_varying)
-    {
-      varyings.add_float_varying("fastuidraw_stroking_on_boundary");
-    }
+  varyings
+    .add_float_varying("fastuidraw_stroking_on_boundary")
+    .add_float_varying("fastuidraw_stroking_distance");
 
   shader = FASTUIDRAWnew PainterItemShaderGL(Shader::shader_source()
-                                             .add_macro(macro1.c_str())
-                                             .add_macro(macro2.c_str())
+                                             .add_macro("FASTUIDRAW_PAINTER_STROKE_WIDTH_PIXELS_VALUE", pixel_width_stroking ? "true" : "false")
+                                             .add_macro("FASTUIDRAW_PAINTER_STROKE_STROKING_PASS_VALUE", render_pass)
+                                             .add_macro("FASTUIDRAW_PAINTER_STROKE_DASH_STYLE_VALUE", stroke_dash_style)
                                              .add_source("fastuidraw_painter_stroke.vert.glsl.resource_string",
                                                          Shader::from_resource)
-                                             .remove_macro(macro2.c_str())
-                                             .remove_macro(macro1.c_str()),
+                                             .remove_macro("FASTUIDRAW_PAINTER_STROKE_WIDTH_PIXELS_VALUE")
+                                             .remove_macro("FASTUIDRAW_PAINTER_STROKE_STROKING_PASS_VALUE")
+                                             .remove_macro("FASTUIDRAW_PAINTER_STROKE_DASH_STYLE_VALUE"),
                                              Shader::shader_source()
-                                             .add_macro(macro1.c_str())
-                                             .add_macro(macro2.c_str())
+                                             .add_macro("FASTUIDRAW_PAINTER_STROKE_WIDTH_PIXELS_VALUE", pixel_width_stroking ? "true" : "false")
+                                             .add_macro("FASTUIDRAW_PAINTER_STROKE_STROKING_PASS_VALUE", render_pass)
+                                             .add_macro("FASTUIDRAW_PAINTER_STROKE_DASH_STYLE_VALUE", stroke_dash_style)
                                              .add_source("fastuidraw_painter_stroke.frag.glsl.resource_string",
                                                          Shader::from_resource)
-                                             .remove_macro(macro2.c_str())
-                                             .remove_macro(macro1.c_str()),
+                                             .remove_macro("FASTUIDRAW_PAINTER_STROKE_WIDTH_PIXELS_VALUE")
+                                             .remove_macro("FASTUIDRAW_PAINTER_STROKE_STROKING_PASS_VALUE")
+                                             .remove_macro("FASTUIDRAW_PAINTER_STROKE_DASH_STYLE_VALUE"),
                                              varyings);
   return shader;
 }
@@ -1623,13 +1661,35 @@ create_stroke_item_shader(const std::string &macro1, const std::string &macro2,
 
 fastuidraw::PainterStrokeShader
 PainterBackendGLPrivate::
-create_stroke_shader(const std::string &macro1)
+create_stroke_shader(enum fastuidraw::PainterEnums::dashed_cap_style stroke_dash_style,
+                     bool pixel_width_stroking)
 {
-  fastuidraw::PainterStrokeShader return_value;
+  using namespace fastuidraw;
+  using namespace fastuidraw::PainterEnums;
+
+  PainterStrokeShader return_value;
   return_value
-    .aa_shader_pass1(create_stroke_item_shader(macro1, "FASTUIDRAW_STROKE_OPAQUE_PASS", false))
-    .aa_shader_pass2(create_stroke_item_shader(macro1, "FASTUIDRAW_STROKE_AA_PASS", true))
-    .non_aa_shader(create_stroke_item_shader(macro1, "FASTUIDRAW_STROKE_NO_AA", false));
+    .aa_shader_pass1(create_stroke_item_shader(stroke_dash_style, pixel_width_stroking, uber_stroke_opaque_pass))
+    .aa_shader_pass2(create_stroke_item_shader(stroke_dash_style, pixel_width_stroking, uber_stroke_aa_pass))
+    .non_aa_shader(create_stroke_item_shader(stroke_dash_style, pixel_width_stroking, uber_stroke_non_aa));
+  return return_value;
+}
+
+fastuidraw::PainterDashedStrokeShaderSet
+PainterBackendGLPrivate::
+create_dashed_stroke_shader_set(bool pixel_width_stroking)
+{
+  using namespace fastuidraw;
+  using namespace fastuidraw::PainterEnums;
+  PainterDashedStrokeShaderSet return_value;
+
+  return_value
+    .shader(dashed_no_caps_closed, create_stroke_shader(dashed_no_caps_closed, pixel_width_stroking))
+    .shader(dashed_rounded_caps_closed, create_stroke_shader(dashed_rounded_caps_closed, pixel_width_stroking))
+    .shader(dashed_square_caps_closed, create_stroke_shader(dashed_square_caps_closed, pixel_width_stroking))
+    .shader(dashed_no_caps, create_stroke_shader(dashed_no_caps, pixel_width_stroking))
+    .shader(dashed_rounded_caps, create_stroke_shader(dashed_rounded_caps, pixel_width_stroking))
+    .shader(dashed_square_caps, create_stroke_shader(dashed_square_caps, pixel_width_stroking));
   return return_value;
 }
 
@@ -1799,15 +1859,19 @@ fastuidraw::PainterShaderSet
 PainterBackendGLPrivate::
 create_shader_set(void)
 {
-  fastuidraw::PainterShaderSet return_value;
+  using namespace fastuidraw;
+  using namespace fastuidraw::PainterEnums;
+  PainterShaderSet return_value;
+
   return_value
     .glyph_shader(create_glyph_shader(false))
     .glyph_shader_anisotropic(create_glyph_shader(true))
-    .stroke_shader(create_stroke_shader("FASTUIDRAW_STROKE_WIDTH_NOT_IN_PIXELS"))
-    .pixel_width_stroke_shader(create_stroke_shader("FASTUIDRAW_STROKE_WIDTH_IN_PIXELS"))
+    .stroke_shader(create_stroke_shader(number_dashed_cap_styles, false))
+    .pixel_width_stroke_shader(create_stroke_shader(number_dashed_cap_styles, true))
+    .dashed_stroke_shader(create_dashed_stroke_shader_set(false))
+    .pixel_width_dashed_stroke_shader(create_dashed_stroke_shader_set(true))
     .fill_shader(create_fill_shader())
     .blend_shaders(create_blend_shaders());
-
   return return_value;
 }
 
@@ -1823,7 +1887,7 @@ configure_backend(void)
   if(m_params.data_store_backing() == fastuidraw::gl::PainterBackendGL::data_store_tbo
      && m_tex_buffer_support == fastuidraw::gl::detail::tex_buffer_not_supported)
     {
-      // TBO's not supported, fall back to using TBO's.
+      // TBO's not supported, fall back to using UBO's.
       m_params.data_store_backing(fastuidraw::gl::PainterBackendGL::data_store_ubo);
     }
 
@@ -2188,10 +2252,10 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::params &P,
   m_p(p)
 {
   m_vert_shader_utils
-    .add_source("fastuidraw_circular_interpolate.glsl.resource_string",
-                fastuidraw::gl::Shader::from_resource)
-    .add_source("fastuidraw_painter_compute_local_distance_from_pixel_distance.glsl.resource_string",
-                fastuidraw::gl::Shader::from_resource);
+    .add_source("fastuidraw_circular_interpolate.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
+    .add_source("fastuidraw_painter_compute_local_distance_from_pixel_distance.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
+    .add_source("fastuidraw_painter_align.vert.glsl.resource_string", fastuidraw::gl::Shader::from_resource)
+    .add_source("fastuidraw_painter_stroke_helper.vert.glsl.resource_string", fastuidraw::gl::Shader::from_resource);
 
   m_frag_shader_utils
     .add_source("fastuidraw_circular_interpolate.glsl.resource_string",
@@ -2422,6 +2486,8 @@ program(void)
     {
       d->build_program();
       d->m_rebuild_program = false;
+      std::cout << "Took " << d->m_program->program_build_time()
+                << " seconds to build uber-shader\n";
     }
   return d->m_program;
 }

@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <sstream>
 #include <stdint.h>
+#include <sys/time.h>
 #include <boost/utility.hpp>
 
 #include <fastuidraw/util/static_resource.hpp>
@@ -253,6 +254,7 @@ namespace
     bool m_link_success, m_assembled;
     std::string m_link_log;
     std::string m_log;
+    float m_assemble_time;
 
     std::set<std::string> m_binded_attributes;
     ParameterInfoPrivateHoard m_uniform_list;
@@ -1100,6 +1102,9 @@ assemble(void)
       return;
     }
 
+  struct timeval start_time, end_time;
+  gettimeofday(&start_time, NULL);
+
   std::ostringstream error_ostr;
 
   m_assembled = true;
@@ -1187,6 +1192,10 @@ assemble(void)
       eek << "\n\nLink Log: " << m_link_log;
     }
   m_pre_link_actions = fastuidraw::gl::PreLinkActionArray();
+
+  gettimeofday(&end_time, NULL);
+  m_assemble_time = float(end_time.tv_sec - start_time.tv_sec)
+    + float(end_time.tv_usec - start_time.tv_usec) / 1e6f;
 }
 
 void
@@ -1337,6 +1346,16 @@ link_log(void)
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble();
   return d->m_link_log.c_str();
+}
+
+float
+fastuidraw::gl::Program::
+program_build_time(void)
+{
+  ProgramPrivate *d;
+  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d->assemble();
+  return d->m_assemble_time;
 }
 
 bool
