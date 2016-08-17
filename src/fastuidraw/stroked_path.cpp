@@ -1893,6 +1893,7 @@ miter_distance(void) const
 fastuidraw::StrokedPath::
 StrokedPath(const fastuidraw::TessellatedPath &P)
 {
+  assert(number_point_types < FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(point_type_num_bits));
   m_d = FASTUIDRAWnew StrokedPathPrivate(P);
 }
 

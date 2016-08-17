@@ -295,7 +295,11 @@ fastuidraw_gl_vert_main(in vec4 primary_attrib,
       }
       break;
 
-    default:
+    case fastuidraw_stroke_edge_point:
+    case fastuidraw_stroke_start_edge_point:
+    case fastuidraw_stroke_end_edge_point:
+    case fastuidraw_stroke_start_contour_point:
+    case fastuidraw_stroke_end_contour_point:
       {
         #ifdef FASTUIDRAW_STROKE_WIDTH_IN_PIXELS
           {

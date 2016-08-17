@@ -59,14 +59,26 @@ public:
       edge_point,
 
       /*!
-        The point is a start point of an edge of the path.
+        The point is a start point of an edge of the path but
+        not the start of a contour.
        */
       start_edge_point,
 
       /*!
-        The point is an end point of an edge of the path.
+        The point is an end point of an edge of the path but
+        not the end of a contour
        */
       end_edge_point,
+
+      /*!
+        The point is for an edge and is the start point of a contour
+       */
+      start_contour_point,
+
+      /*!
+        The point is for an edge and is the end point of a contour
+       */
+      end_contour_point,
 
       /*!
         The point is for a rounded join of the path
@@ -86,7 +98,12 @@ public:
       /*!
         The point is for a square cap of the path
        */
-      square_cap_point
+      square_cap_point,
+
+      /*!
+        Number point types possible.
+       */
+      number_point_types
     };
 
   /*!
@@ -94,7 +111,7 @@ public:
    */
   enum tag_bit_layout_t
     {
-      point_type_num_bits = 3,
+      point_type_num_bits = 4,
       point_type_bit0 = 0,
 
       normal0_y_sign_bit = point_type_bit0 + point_type_num_bits,
