@@ -44,7 +44,6 @@ namespace fastuidraw
     public reference_counted<PainterShader>::default_base
   {
   public:
-
     /*!
       A Tag is how a PainterShader is described for
       and by a PainterBackend.
@@ -82,13 +81,41 @@ namespace fastuidraw
     };
 
     /*!
-      Ctor.
+      Ctor for a PainterShader with no sub-shaders.
+     */
+    PainterShader(void);
+
+    /*!
+      Ctor for creating a PainterShader which has multiple
+      sub-shaders. The purpose of sub-shaders is for the
+      case where multiple shaders almost same code and those
+      code differences can be realized by examining a sub-shader
+      ID.
+      \param num_sub_shaders number of sub-shaders
      */
     explicit
-    PainterShader(void);
+    PainterShader(unsigned int num_sub_shaders);
+
+    /*!
+      Ctor to create a PainterShader realized as a sub-shader
+      of an existing PainterShader
+      \param sub_shader which sub-shader of the parent PainterShader
+      \param parent parent PainterShader that has sub-shaders.
+                    The parent PainterShader MUST already be registered
+		    to a PainterBackend.
+     */
+    PainterShader(unsigned int sub_shader,
+		  reference_counted_ptr<PainterShader> parent);
 
     virtual
     ~PainterShader();
+
+    /*!
+      Returns the number of sub-shaders the PainterShader
+      supports.
+     */
+    unsigned int
+    number_sub_shaders(void) const;
 
     /*!
       Returns the ID of the shader, the shader
@@ -139,14 +166,78 @@ namespace fastuidraw
     shader pair).
    */
   class PainterItemShader:public PainterShader
-  {};
+  {
+  public:
+    /*!
+      Ctor for a PainterItemShader with no sub-shaders.
+     */
+    PainterItemShader(void):
+      PainterShader()
+    {}
+
+    /*!
+      Ctor for creating a PainterItemShader which has multiple
+      sub-shaders. The purpose of sub-shaders is for the
+      case where multiple shaders almost same code and those
+      code differences can be realized by examining a sub-shader
+      ID.
+      \param num_sub_shaders number of sub-shaders
+     */
+    explicit
+    PainterItemShader(unsigned int num_sub_shaders):
+      PainterShader(num_sub_shaders)
+    {}
+
+    /*!
+      Ctor to create a PainterItemShader realized as a sub-shader
+      of an existing PainterItemShader
+      \param sub_shader which sub-shader of the parent PainterItemShader
+      \param parent parent PainterItemShader that has sub-shaders
+     */
+    PainterItemShader(unsigned int sub_shader,
+		      reference_counted_ptr<PainterItemShader> parent):
+      PainterShader(sub_shader, parent)
+    {}
+  };
 
   /*!
     A PainterBlendShader represents a shader
     for performing blending operations.
    */
   class PainterBlendShader:public PainterShader
-  {};
+  {
+  public:
+    /*!
+      Ctor for a PainterBlendShader with no sub-shaders.
+     */
+    PainterBlendShader(void):
+      PainterShader()
+    {}
+
+    /*!
+      Ctor for creating a PainterBlendShader which has multiple
+      sub-shaders. The purpose of sub-shaders is for the
+      case where multiple shaders almost same code and those
+      code differences can be realized by examining a sub-shader
+      ID.
+      \param num_sub_shaders number of sub-shaders
+     */
+    explicit
+    PainterBlendShader(unsigned int num_sub_shaders):
+      PainterShader(num_sub_shaders)
+    {}
+
+    /*!
+      Ctor to create a PainterBlendShader realized as a sub-shader
+      of an existing PainterBlendShader
+      \param sub_shader which sub-shader of the parent PainterBlendShader
+      \param parent parent PainterBlendShader that has sub-shaders
+     */
+    PainterBlendShader(unsigned int sub_shader,
+		      reference_counted_ptr<PainterBlendShader> parent):
+      PainterShader(sub_shader, parent)
+    {}
+  };
 
   /*!
     A PainterGlyphShader holds a shader pair

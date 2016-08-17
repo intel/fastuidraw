@@ -57,13 +57,15 @@ namespace
   class PainterShaderPrivate
   {
   public:
-    PainterShaderPrivate(void):
-      m_registered_to(NULL)
+    PainterShaderPrivate(unsigned int num_sub_shaders):
+      m_registered_to(NULL),
+      m_number_sub_shaders(num_sub_shaders)
     {
     }
 
     fastuidraw::PainterShader::Tag m_tag;
     const fastuidraw::PainterBackend *m_registered_to;
+    unsigned int m_number_sub_shaders;
   };
 
   class PainterStrokeShaderPrivate
@@ -85,7 +87,28 @@ namespace
 fastuidraw::PainterShader::
 PainterShader(void)
 {
-  m_d = FASTUIDRAWnew PainterShaderPrivate();
+  m_d = FASTUIDRAWnew PainterShaderPrivate(1);
+}
+
+fastuidraw::PainterShader::
+PainterShader(unsigned int num_sub_shaders)
+{
+  m_d = FASTUIDRAWnew PainterShaderPrivate(num_sub_shaders);
+}
+
+fastuidraw::PainterShader::
+PainterShader(unsigned int sub_shader,
+	      reference_counted_ptr<PainterShader> parent)
+{
+  PainterShaderPrivate *d;
+  m_d = d = FASTUIDRAWnew PainterShaderPrivate(1);
+
+  assert(parent);
+  assert(parent->registered_to() != NULL);
+  assert(sub_shader < parent->number_sub_shaders());
+  d->m_registered_to = parent->registered_to();
+  d->m_tag.m_ID = parent->ID() + sub_shader;
+  d->m_tag.m_group = parent->group();
 }
 
 fastuidraw::PainterShader::
@@ -125,6 +148,15 @@ tag(void) const
   d = reinterpret_cast<PainterShaderPrivate*>(m_d);
   assert(d->m_registered_to != NULL);
   return d->m_tag;
+}
+
+unsigned int
+fastuidraw::PainterShader::
+number_sub_shaders(void) const
+{
+  PainterShaderPrivate *d;
+  d = reinterpret_cast<PainterShaderPrivate*>(m_d);
+  return d->m_number_sub_shaders;
 }
 
 void
