@@ -830,7 +830,9 @@ add_edge(unsigned int o, unsigned int e,
        */
       if(i == R.m_begin)
         {
-          p_type = fastuidraw::StrokedPath::start_edge_point;
+          p_type = (e == 0) ?
+            fastuidraw::StrokedPath::start_contour_point :
+            fastuidraw::StrokedPath::start_edge_point;
         }
       else
         {
@@ -839,7 +841,9 @@ add_edge(unsigned int o, unsigned int e,
 
       if(i + 2 == R.m_end)
         {
-          p_next_type = fastuidraw::StrokedPath::end_edge_point;
+          p_next_type = (e + 2 == m_P.number_edges(o)) ?
+            fastuidraw::StrokedPath::end_contour_point :
+            fastuidraw::StrokedPath::end_edge_point;
         }
       else
         {
