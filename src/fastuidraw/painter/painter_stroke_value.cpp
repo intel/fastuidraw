@@ -232,6 +232,17 @@ miter_limit(float f)
   return *this;
 }
 
+fastuidraw::PainterDashedStrokeParams&
+fastuidraw::PainterDashedStrokeParams::
+width(float f)
+{
+  PainterDashedStrokeParamsData *d;
+  assert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != NULL);
+  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
+  d->m_width = f;
+  return *this;
+}
+
 float
 fastuidraw::PainterDashedStrokeParams::
 dash_offset(void) const
