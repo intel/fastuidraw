@@ -106,9 +106,23 @@ namespace fastuidraw
     class DashPatternElement
     {
     public:
+      /*!
+        Ctor, intializes both \ref m_draw_length and
+        \ref m_space_length as 0.
+       */
       DashPatternElement(void):
         m_draw_length(0.0f),
         m_space_length(0.0f)
+      {}
+
+      /*!
+        Ctor.
+        \param d value with which to initialize \ref m_draw_length
+        \param s value with which to initialize \ref m_space_length
+       */
+      DashPatternElement(float d, float s):
+        m_draw_length(d),
+        m_space_length(s)
       {}
 
       /*!
