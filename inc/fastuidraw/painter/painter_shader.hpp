@@ -390,7 +390,11 @@ namespace fastuidraw
   /*!
     A PainterDashedStrokeShaderSet holds a collection of
     PainterStrokeShaderSet objects for the purpose of
-    dashed stroking.
+    dashed stroking. The shaders within a
+    PainterDashedStrokeShaderSet are expected to draw
+    any caps of dashed stroking from using just the edge
+    data. In particular, attributes/indices for caps are
+    NEVER given to a shader within a PainterDashedStrokeShaderSet.
    */
   class PainterDashedStrokeShaderSet
   {
@@ -417,8 +421,6 @@ namespace fastuidraw
       Shader set for dashed stroking of paths where the stroking
       width is given in same units as the original path.
       The stroking parameters are given by PainterDashedStrokeParams.
-      NOTE: it is the shaders responsibility to draw the dashes and caps
-      made from dashed stroking.
       \param st cap style
      */
     const PainterStrokeShader&

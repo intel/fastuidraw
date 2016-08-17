@@ -99,6 +99,30 @@ namespace fastuidraw
       };
 
     /*!
+      A DashPatternElement is an element of a dash pattern.
+      It specifies how long to draw then how much space to
+      emit before the next DashPatternElement.
+     */
+    class DashPatternElement
+    {
+    public:
+      DashPatternElement(void):
+        m_draw_length(0.0f),
+        m_space_length(0.0f)
+      {}
+
+      /*!
+        How long to draw
+       */
+      float m_draw_length;
+
+      /*!
+        How much space to next DashPatternElement
+       */
+      float m_space_length;
+    };
+
+    /*!
       Ctor.
      */
     PainterDashedStrokeParams(void);
@@ -141,13 +165,9 @@ namespace fastuidraw
     dash_offset(float f);
 
     /*!
-      Returns the dash pattern for stroking. The dash
-      pattern is an even number of entries giving the
-      dash pattern, where:
-       - for all integers i, [2 * i] is how long the i'th dash is
-       - for all integers i, [2 * i + 1] is how long the space is between the i'th and (i+1)'th dash
+      Returns the dash pattern for stroking.
      */
-    const_c_array<float>
+    const_c_array<DashPatternElement>
     dash_pattern(void) const;
 
     /*!
@@ -155,7 +175,7 @@ namespace fastuidraw
       \param v dash pattern; the values are -copied-.
      */
     PainterDashedStrokeParams&
-    dash_pattern(const_c_array<float> v);
+    dash_pattern(const_c_array<DashPatternElement> v);
   };
 /*! @} */
 
