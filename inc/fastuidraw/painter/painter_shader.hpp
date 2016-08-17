@@ -120,11 +120,11 @@ namespace fastuidraw
     number_sub_shaders(void) const;
 
     /*!
-      Returns true if the PainterShader is realized
-      as a sub-shader of a different PainterShader.
+      If the PainterShader is a sub-shader returns the parent
+      shader, otherwise returns NULL.
      */
-    bool
-    is_sub_shader(void) const;
+    const reference_counted_ptr<PainterShader>&
+    parent(void) const;
 
     /*!
       Returns the ID of the shader, the shader

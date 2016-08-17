@@ -60,14 +60,20 @@ namespace
     PainterShaderPrivate(unsigned int num_sub_shaders):
       m_registered_to(NULL),
       m_number_sub_shaders(num_sub_shaders),
-      m_is_sub_shader(false)
+      m_sub_shader_ID(0)
     {
     }
 
     fastuidraw::PainterShader::Tag m_tag;
     const fastuidraw::PainterBackend *m_registered_to;
+
+    //for when shader has sub-shaders
     unsigned int m_number_sub_shaders;
-    bool m_is_sub_shader;
+    std::vector<fastuidraw::PainterShader*> m_constructed_sub_shaders;
+
+    //for when shader is a sub-shader
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterShader> m_parent;
+    unsigned int m_sub_shader_ID;
   };
 
   class PainterStrokeShaderPrivate
@@ -106,12 +112,14 @@ PainterShader(unsigned int sub_shader,
   m_d = d = FASTUIDRAWnew PainterShaderPrivate(1);
 
   assert(parent);
-  assert(parent->registered_to() != NULL);
   assert(sub_shader < parent->number_sub_shaders());
-  d->m_registered_to = parent->registered_to();
-  d->m_tag.m_ID = parent->ID() + sub_shader;
-  d->m_tag.m_group = parent->group();
-  d->m_is_sub_shader = true;
+
+  d->m_parent = parent;
+  d->m_sub_shader_ID = sub_shader;
+
+  PainterShaderPrivate *pd;
+  pd = reinterpret_cast<PainterShaderPrivate*>(d->m_parent->m_d);
+  pd->m_constructed_sub_shaders.push_back(this);
 }
 
 fastuidraw::PainterShader::
@@ -162,13 +170,13 @@ number_sub_shaders(void) const
   return d->m_number_sub_shaders;
 }
 
-bool
+const fastuidraw::reference_counted_ptr<fastuidraw::PainterShader>&
 fastuidraw::PainterShader::
-is_sub_shader(void) const
+parent(void) const
 {
   PainterShaderPrivate *d;
   d = reinterpret_cast<PainterShaderPrivate*>(m_d);
-  return d->m_is_sub_shader;
+  return d->m_parent;
 }
 
 void
@@ -178,8 +186,18 @@ register_shader(Tag tg, const PainterBackend *p)
   PainterShaderPrivate *d;
   d = reinterpret_cast<PainterShaderPrivate*>(m_d);
   assert(d->m_registered_to == NULL);
+  assert(!d->m_parent);
   d->m_tag = tg;
   d->m_registered_to = p;
+  for(unsigned int i = 0, endi = d->m_constructed_sub_shaders.size(); i < endi; ++i)
+    {
+      PainterShaderPrivate *q;
+      q = reinterpret_cast<PainterShaderPrivate*>(d->m_constructed_sub_shaders[i]->m_d);
+      assert(q->m_parent.get() == this);
+      q->m_registered_to = p;
+      q->m_tag.m_ID = tg.m_ID + q->m_sub_shader_ID;
+      q->m_tag.m_group = tg.m_group;
+    }
 }
 
 const fastuidraw::PainterBackend*

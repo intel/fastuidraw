@@ -502,6 +502,16 @@ PainterItemShaderGL(const Shader::shader_source &v_src,
 }
 
 fastuidraw::gl::PainterItemShaderGL::
+PainterItemShaderGL(unsigned int num_sub_shaders,
+		    const Shader::shader_source &v_src,
+                    const Shader::shader_source &f_src,
+                    const varying_list &varyings):
+  PainterItemShader(num_sub_shaders)
+{
+  m_d = FASTUIDRAWnew PainterShaderGLPrivate(v_src, f_src, varyings);
+}
+
+fastuidraw::gl::PainterItemShaderGL::
 ~PainterItemShaderGL(void)
 {
   PainterShaderGLPrivate *d;

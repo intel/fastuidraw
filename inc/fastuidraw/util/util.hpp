@@ -112,11 +112,17 @@ namespace fastuidraw
 
   /*!
     Returns the floor of the log2 of an unsinged integer,
-    i.e returns the ceiling log2, i.e. the value K so that
-    2^K <= x < 2^{K+1}
+    i.e. the value K so that 2^K <= x < 2^{K+1}
    */
   uint32_t
   uint32_log2(uint32_t v);
+
+  /*!
+    Returns the number of bits required to hold a 32-bit
+    unsigned integer value.
+   */
+  uint32_t
+  number_bits_required(uint32_t v);
 
   /*!
     Returns the smallest power of 2
@@ -133,7 +139,7 @@ namespace fastuidraw
     n=ceiling_power_2(v);
     return (n==v)?
       v:
-      n/2;
+      n >> 1;
   }
 
   /*!

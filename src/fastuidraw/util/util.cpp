@@ -54,6 +54,22 @@ round_up_to_multiple(unsigned int v, unsigned int alignment)
     }
 }
 
+uint32_t
+fastuidraw::
+number_bits_required(uint32_t v)
+{
+  if(v == 0)
+    {
+      return 0;
+    }
+
+  uint32_t return_value(1);
+  for(uint32_t mask = 1; mask < v; mask <<= 1, ++return_value)
+    {}
+
+  return return_value;
+}
+
 //////////////////////////////////////
 // fastuidraw::noncopyable methods
 fastuidraw::noncopyable::
