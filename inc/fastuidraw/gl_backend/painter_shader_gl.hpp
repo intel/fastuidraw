@@ -336,10 +336,10 @@ namespace fastuidraw
       \code
         vec4
         fastuidraw_gl_vert_main(in vec4 primary_attrib,
-                               in vec4 secondary_attrib,
-                               in uvec4 uint_attrib,
-                               in uint shader_data_offset,
-                               out uint z_add)
+                                in vec4 secondary_attrib,
+                                in uvec4 uint_attrib,
+                                in uint shader_data_offset,
+                                out uint z_add)
       \endcode
 
       which given the attribute data and the offset to the shader

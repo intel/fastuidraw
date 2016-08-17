@@ -11,7 +11,8 @@
 */
 
 vec4
-fastuidraw_gl_vert_main(in vec4 primary_attrib,
+fastuidraw_gl_vert_main(in uint sub_shader,
+			in vec4 primary_attrib,
                         in vec4 secondary_attrib,
                         in uvec4 uint_attrib,
                         in uint shader_data_offset,

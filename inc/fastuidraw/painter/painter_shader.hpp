@@ -98,7 +98,9 @@ namespace fastuidraw
 
     /*!
       Ctor to create a PainterShader realized as a sub-shader
-      of an existing PainterShader
+      of an existing PainterShader. A sub-shader does not need
+      to be registered to a PainterBackend (if register_shader()
+      is called on such a shader, the call is ignored).
       \param sub_shader which sub-shader of the parent PainterShader
       \param parent parent PainterShader that has sub-shaders.
                     The parent PainterShader MUST already be registered
@@ -116,6 +118,13 @@ namespace fastuidraw
      */
     unsigned int
     number_sub_shaders(void) const;
+
+    /*!
+      Returns true if the PainterShader is realized
+      as a sub-shader of a different PainterShader.
+     */
+    bool
+    is_sub_shader(void) const;
 
     /*!
       Returns the ID of the shader, the shader

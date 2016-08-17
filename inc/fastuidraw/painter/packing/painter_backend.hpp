@@ -306,7 +306,9 @@ namespace fastuidraw
       an item shader. Typically this means inserting the
       the shader into a large uber shader. Returns
       the PainterShader::Tag to be used by the backend
-      to identify the shader.
+      to identify the shader. An implementation will never
+      be passed an object for which
+      PainterShader::is_sub_shader() returns true.
      */
     virtual
     PainterShader::Tag
@@ -317,7 +319,9 @@ namespace fastuidraw
       a blend shader. Typically this means inserting the
       the blend shader into a large uber shader. Returns
       the PainterShader::Tag to be used by the backend
-      to identify the shader.
+      to identify the shader. An implementation will never
+      be passed an object for which
+      PainterShader::is_sub_shader() returns true.
      */
     virtual
     PainterShader::Tag
