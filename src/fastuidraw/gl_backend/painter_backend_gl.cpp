@@ -2783,10 +2783,19 @@ on_end(void)
   glActiveTexture(GL_TEXTURE0 + bind_glyph_texel_sampler);
   glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
-  glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_tbo);
-  glBindTexture(GL_TEXTURE_BUFFER, 0);
-  glBindBufferBase(GL_UNIFORM_BUFFER, bind_painter_data_store_ubo, 0);
-
+  switch(d->m_params.data_store_backing())
+    {
+    case fastuidraw::gl::PainterBackendGL::data_store_tbo:
+      {
+        glActiveTexture(GL_TEXTURE0 + bind_painter_data_store_tbo);
+        glBindTexture(GL_TEXTURE_BUFFER, 0);
+      }
+      break;
+    case fastuidraw::gl::PainterBackendGL::data_store_ubo:
+      {
+        glBindBufferBase(GL_UNIFORM_BUFFER, bind_painter_data_store_ubo, 0);
+      }
+    }
   d->m_pool->next_pool();
 }
 
