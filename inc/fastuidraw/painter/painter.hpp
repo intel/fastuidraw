@@ -457,9 +457,9 @@ namespace fastuidraw
 
     /*!
       Stroke a path using a custom PainterDashedStrokeShaderSet
+      \param shader shader with which to draw
       \param draw data for how to draw
       \param path path to stroke
-      \param close_path if true, stroke the closing edge
       \param cp cap style of dashes
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
@@ -476,7 +476,6 @@ namespace fastuidraw
       Stroke a path using PainterShaderSet::dashed_stroke_shader() of default_shaders().
       \param draw data for how to draw
       \param path path to stroke
-      \param close_path if true, stroke the closing edge
       \param cp cap style of dashes
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
@@ -493,7 +492,6 @@ namespace fastuidraw
       Stroke a path using PainterShaderSet::pixel_width_dashed_stroke_shader() of default_shaders().
       \param draw data for how to draw
       \param path path to stroke
-      \param close_path if true, stroke the closing edge
       \param cp cap style of dashes
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing

@@ -370,7 +370,8 @@ namespace fastuidraw
        - sampler2DArray fastuidraw_imageAtlas the color texels (AtlasColorBackingStoreBase) for images unfiltered
        - sampler2DArray fastuidraw_imageAtlasFiltered the color texels (AtlasColorBackingStoreBase) for images bilinearly filtered
        - usampler2DArray fastuidraw_imageIndexAtlas the texels of the index atlas (AtlasIndexBackingStoreBase) for images
-       - usampler2DArray fastuidraw_glyphTexelStoreUINT the glyph texels (GlyphAtlasTexelBackingStoreBase), only available if FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT is NOT defined
+       - usampler2DArray fastuidraw_glyphTexelStoreUINT the glyph texels (GlyphAtlasTexelBackingStoreBase), only available
+         if FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT is NOT defined
        - samplerBuffer fastuidraw_glyphGeometryDataStore the geometry data of glyphs (GlyphAtlasGeometryBackingStoreBase)
        - the macro fastuidraw_colorStopFetch(x, L) to retrieve the color stop value at location x of layer L
        - vec2 fastuidraw_viewport_pixels the viewport dimensions in pixels
@@ -383,11 +384,12 @@ namespace fastuidraw
       \code
       fastuidraw_fetch_data(shader_data_offset)
       \endcode
-      to read the raw bits of the data. The type returned by the macro fastuidraw_fetch_data()
-      - is uint if PainterBackend::Configuration::alignment() is 1,
-      - is uvec2 if PainterBackend::Configuration::alignment() is 2,
-      - is uvec3 if PainterBackend::Configuration::alignment() is 3 and
-      - is uvec4 if PainterBackend::Configuration::alignment() is 4.
+      to read the raw bits of the data. The type returned by the macro fastuidraw_fetch_data() is
+      - uint if PainterBackend::Configuration::alignment() is 1,
+      - uvec2 if PainterBackend::Configuration::alignment() is 2,
+      - uvec3 if PainterBackend::Configuration::alignment() is 3 and
+      - uvec4 if PainterBackend::Configuration::alignment() is 4.
+
       Use the GLSL built-in uintBitsToFloat() to covert the uint bit-value to float
       and just cast int() to get the value as an integer.
 
@@ -411,6 +413,7 @@ namespace fastuidraw
 
       /*!
         Ctor for creating a shader with sub-shaders.
+        \param num_sub_shaders the number of sub-shaders it supports
         \param vertex_src GLSL source holding vertex shader routine
         \param fragment_src GLSL source holding fragment shader routine
         \param varyings list of varyings of the shader
