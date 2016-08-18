@@ -20,7 +20,7 @@
 #pragma once
 
 #include <fastuidraw/painter/packing/painter_backend.hpp>
-#include <fastuidraw/gl_backend/painter_shader_gl.hpp>
+#include <fastuidraw/gl_backend/painter_item_shader_gl.hpp>
 #include <fastuidraw/gl_backend/painter_blend_shader_gl.hpp>
 #include <fastuidraw/gl_backend/image_gl.hpp>
 #include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>

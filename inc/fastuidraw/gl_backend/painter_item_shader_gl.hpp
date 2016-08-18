@@ -1,6 +1,6 @@
 /*!
- * \file painter_shader_gl.hpp
- * \brief file painter_shader_gl.hpp
+ * \file painter_item_shader_gl.hpp
+ * \brief file painter_item_shader_gl.hpp
  *
  * Copyright 2016 by Intel.
  *
