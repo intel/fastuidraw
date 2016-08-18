@@ -152,13 +152,6 @@ namespace fastuidraw
     tag(void) const;
 
     /*!
-      Called by a PainterBackend to register the shader to it.
-      A PainterShader may only be registered once.
-     */
-    void
-    register_shader(Tag tg, const PainterBackend *p);
-
-    /*!
       Returns the PainterBackend to which the shader
       is registed. If not yet registered, returns NULL.
      */
@@ -166,6 +159,21 @@ namespace fastuidraw
     registered_to(void) const;
 
   private:
+    friend class PainterBackend;
+
+    /*!
+      Called by a PainterBackend to register the shader to it.
+      A PainterShader may only be registered once.
+     */
+    void
+    register_shader(Tag tg, const PainterBackend *p);
+
+    /*!
+      Called by PainterBackend to set the group for a sub-shader.
+     */
+    void
+    set_group_of_sub_shader(uint32_t group);
+
     void *m_d;
   };
 

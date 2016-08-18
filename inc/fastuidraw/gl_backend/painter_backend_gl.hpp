@@ -360,8 +360,16 @@ namespace fastuidraw
       absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader);
 
       virtual
+      uint32_t
+      compute_item_sub_shader_group(const reference_counted_ptr<PainterItemShader> &shader);
+
+      virtual
       PainterShader::Tag
       absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader);
+
+      virtual
+      uint32_t
+      compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader);
 
     private:
       void *m_d;

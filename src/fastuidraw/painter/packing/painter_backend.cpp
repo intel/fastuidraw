@@ -234,6 +234,7 @@ register_shader(const reference_counted_ptr<PainterItemShader> &shader)
         {
           register_shader(shader->parent().static_cast_ptr<PainterItemShader>());
           assert(shader->registered_to() == this);
+          shader->set_group_of_sub_shader(compute_item_sub_shader_group(shader));
         }
       else
         {
@@ -259,6 +260,7 @@ register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
         {
           register_shader(shader->parent().static_cast_ptr<PainterBlendShader>());
           assert(shader->registered_to() == this);
+          shader->set_group_of_sub_shader(compute_blend_sub_shader_group(shader));
         }
       else
         {

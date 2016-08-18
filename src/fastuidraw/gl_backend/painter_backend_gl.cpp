@@ -2605,6 +2605,15 @@ absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader)
   return return_value;
 }
 
+uint32_t
+fastuidraw::gl::PainterBackendGL::
+compute_item_sub_shader_group(const reference_counted_ptr<PainterItemShader> &shader)
+{
+  PainterBackendGLPrivate *d;
+  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
+
+  return d->m_params.break_on_shader_change() ? shader->ID() : 0;
+}
 
 fastuidraw::PainterShader::Tag
 fastuidraw::gl::PainterBackendGL::
@@ -2636,6 +2645,13 @@ absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader)
     | pack_bits(single_src_blend_bit0, single_src_blend_num_bits, single_src);
   
   return return_value;
+}
+
+uint32_t
+fastuidraw::gl::PainterBackendGL::
+compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader)
+{
+  return shader->group();
 }
 
 void

@@ -200,6 +200,17 @@ register_shader(Tag tg, const PainterBackend *p)
     }
 }
 
+void
+fastuidraw::PainterShader::
+set_group_of_sub_shader(uint32_t gr)
+{
+  PainterShaderPrivate *d;
+  d = reinterpret_cast<PainterShaderPrivate*>(m_d);
+  assert(d->m_registered_to != NULL);
+  assert(d->m_parent);
+  d->m_tag.m_group = gr;
+}
+
 const fastuidraw::PainterBackend*
 fastuidraw::PainterShader::
 registered_to(void) const
