@@ -335,7 +335,8 @@ namespace fastuidraw
       The vertex shader code needs to implement the function:
       \code
         vec4
-        fastuidraw_gl_vert_main(in vec4 primary_attrib,
+        fastuidraw_gl_vert_main(in uint sub_shader,
+                                in vec4 primary_attrib,
                                 in vec4 secondary_attrib,
                                 in uvec4 uint_attrib,
                                 in uint shader_data_offset,
@@ -349,38 +350,12 @@ namespace fastuidraw
       in .zw. The out z_add, must be written to and represent the
       value by which to add to the unnormalized z-value from the
       item header (the z-value from the item header is a uint).
-      Available to the vertex shader are the following:
-       - mat3 fastuidraw_item_matrix (the 3x3 matrix from item coordinate to clip coordinates)
-       - sampler2DArray fastuidraw_imageAtlas the color texels (AtlasColorBackingStoreBase) for images unfiltered
-       - sampler2DArray fastuidraw_imageAtlasFiltered the color texels (AtlasColorBackingStoreBase) for images bilinearly filtered
-       - usampler2DArray fastuidraw_imageIndexAtlas the texels of the index atlas (AtlasIndexBackingStoreBase) for images
-       - usampler2DArray fastuidraw_glyphTexelStoreUINT the glyph texels (GlyphAtlasTexelBackingStoreBase), only available if FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT is NOT defined
-       - samplerBuffer fastuidraw_glyphGeometryDataStore the geometry data of glyphs (GlyphAtlasGeometryBackingStoreBase)
-       - samplerBuffer fastuidraw_painterStoreFLOAT the data store (PainterDrawCommand::m_store) as floats
-       - samplerBuffer fastuidraw_painterStoreUINT the data store (PainterDrawCommand::m_store) as uint
-       - samplerBuffer fastuidraw_painterStoreINT the data store (PainterDrawCommand::m_store) as int
-       - the macro fastuidraw_colorStopFetch(x, L) to retrieve the color stop value at location x of layer L
-       - vec2 fastuidraw_viewport_pixels the viewport dimensions in pixels
-       - vec2 fastuidraw_viewport_recip_pixels reciprocal of fastuidraw_viewport_pixels
-       - vec2 fastuidraw_viewport_recip_pixels_magnitude euclidean length of fastuidraw_viewport_recip_pixels
 
-      The value of shader_data_offset is the offset into data store
-      (PainterDrawCommand::m_store) of the custom vertex shader data in
-      units of the alignment of the data store. This way, reading from
-      \code
-      texelFetch(fastuidraw_painterStoreFLOAT, shader_data_offset)
-      \endcode
-      is the read to perform. The data store is so that the
-      sampler buffer
-      - is format R if PainterBackend::Configuration::alignment() is 1,
-      - is format RG if PainterBackend::Configuration::alignment() is 2,
-      - is format RGB if PainterBackend::Configuration::alignment() is 3 and
-      - is format RGBA if PainterBackend::Configuration::alignment() is 4.
-
-      A fragment shader code needs to implement the function:
+      The fragment shader code needs to implement the function:
       \code
         vec4
-        fastuidraw_gl_frag_main(in uint shader_data_offset)
+        fastuidraw_gl_frag_main(in uint sub_shader,
+                                in uint shader_data_offset)
       \endcode
 
       which returns the color of the fragment for the item -before-
@@ -388,47 +363,38 @@ namespace fastuidraw
       applied. In addition, the color value returned is NOT
       pre-multiplied by alpha either.
 
-      Available to the fragment shader are the following:
+      Available to only the vertex shader are the following:
+       - mat3 fastuidraw_item_matrix (the 3x3 matrix from item coordinate to clip coordinates)
+
+      Available to both the vertex and fragment shader are the following:
        - sampler2DArray fastuidraw_imageAtlas the color texels (AtlasColorBackingStoreBase) for images unfiltered
        - sampler2DArray fastuidraw_imageAtlasFiltered the color texels (AtlasColorBackingStoreBase) for images bilinearly filtered
        - usampler2DArray fastuidraw_imageIndexAtlas the texels of the index atlas (AtlasIndexBackingStoreBase) for images
-       - usampler2DArray fastuidraw_glyphTexelStoreUINT the glyph texels (GlyphAtlasTexelBackingStoreBase)
-       - ssampler2DArray fastuidraw_glyphTexelStoreFLOAT the glyph texels (GlyphAtlasTexelBackingStoreBase), only available if FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT is NOT defined
+       - usampler2DArray fastuidraw_glyphTexelStoreUINT the glyph texels (GlyphAtlasTexelBackingStoreBase), only available if FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT is NOT defined
        - samplerBuffer fastuidraw_glyphGeometryDataStore the geometry data of glyphs (GlyphAtlasGeometryBackingStoreBase)
-       - samplerBuffer fastuidraw_painterStoreFLOAT the data store (PainterDrawCommand::m_store) as floats
-       - samplerBuffer fastuidraw_painterStoreUINT the data store (PainterDrawCommand::m_store) as uint
-       - samplerBuffer fastuidraw_painterStoreINT the data store (PainterDrawCommand::m_store) as int
        - the macro fastuidraw_colorStopFetch(x, L) to retrieve the color stop value at location x of layer L
        - vec2 fastuidraw_viewport_pixels the viewport dimensions in pixels
        - vec2 fastuidraw_viewport_recip_pixels reciprocal of fastuidraw_viewport_pixels
        - vec2 fastuidraw_viewport_recip_pixels_magnitude euclidean length of fastuidraw_viewport_recip_pixels
-       - fastuidraw_compute_image_atlas_coord(in vec2 image_shader_coord, in int index_layer, in int num_lookups, in int slack, out vec2 image_atlas_coord, out int image_atlas_layer) to compute the texel coordinate in fastuidraw_imageAtlas/fastuidraw_imageAtlasFiltered from a coordinate in fastuidraw_imageIndexAtlas
-       - float fastuidraw_anisotropic_coverage(float d, float dx, float dy) for computing an anisotropic coverage value for d > 0, given
-         the derivatives of d in screen space
+       - the macro fastuidraw_fetch_data(x) to fetch the x'th block from the data store buffer (PainterDrawCommand::m_store)
 
-      The value of shader_data_offset is the offset into data store
-      (PainterDrawCommand::m_store) of the custom fragment shader data in
-      units of the alignment of the data store. This way, reading from
+      For both stages, the value of the argument of shader_data_offset is which block into the data
+      store (PainterDrawCommand::m_store) of the custom shader data. Do
       \code
-      texelFetch(fastuidraw_painterStoreFLOAT, shader_data_offset)
+      fastuidraw_fetch_data(shader_data_offset)
       \endcode
-      is the read to perform. The data store is so that the
-      sampler buffer
-      - is format R if PainterBackend::Configuration::alignment() is 1,
-      - is format RG if PainterBackend::Configuration::alignment() is 2,
-      - is format RGB if PainterBackend::Configuration::alignment() is 3 and
-      - is format RGBA if PainterBackend::Configuration::alignment() is 4.
-
-      In addition, a PainterShaderGL can require out's for a
-      vertex shader (or in's for a fragment shader). This
-      requirement is specified with a varying_list object.
-      The shader code is to refer directly to the names
-      in the varying_list object.
+      to read the raw bits of the data. The type returned by the macro fastuidraw_fetch_data()
+      - is uint if PainterBackend::Configuration::alignment() is 1,
+      - is uvec2 if PainterBackend::Configuration::alignment() is 2,
+      - is uvec3 if PainterBackend::Configuration::alignment() is 3 and
+      - is uvec4 if PainterBackend::Configuration::alignment() is 4.
+      Use the GLSL built-in uintBitsToFloat() to covert the uint bit-value to float
+      and just cast int() to get the value as an integer.
 
       Lastly, one can use the classes glsl_shader_unpack_value
       and glsl_shader_unpack_value_set to generate shader code
-      to unpack values from the data in fastuidraw_painterStoreFLOAT,
-      fastuidraw_painterStoreUINT and fastuidraw_painterStoreINT.
+      to unpack values from the data in the data store buffer.
+      That machine generated code uses the macro fastuidraw_fetch_data().
      */
     class PainterItemShaderGL:public PainterItemShader
     {

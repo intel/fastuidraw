@@ -259,6 +259,50 @@ namespace
       fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_uber_stroke_shader;
     };
 
+    template<typename T>
+    class UberShaderStreamer
+    {
+    public:
+      typedef fastuidraw::reference_counted_ptr<T> ref_type;
+      typedef fastuidraw::const_c_array<ref_type> array_type;
+      typedef fastuidraw::gl::Shader::shader_source shader_source;
+      typedef const shader_source& (T::*get_src_type)(void) const;
+      typedef void (*pre_post_stream_type)(shader_source &dst, const ref_type &sh);
+
+      static
+      void
+      stream_nothing(shader_source &, const ref_type &)
+      {}
+
+      static
+      void
+      stream_uber(bool use_switch, shader_source &dst, array_type shaders,
+                  get_src_type get_src,
+                  pre_post_stream_type pre_stream,
+                  pre_post_stream_type post_stream,
+                  const std::string &return_type,
+                  const std::string &uber_func_with_args,
+                  const std::string &shader_main,
+                  const std::string &shader_args, //of the form ", arg1, arg2,..,argN" or empty string
+                  const std::string &shader_id);
+
+      static
+      void
+      stream_uber(bool use_switch, shader_source &dst, array_type shaders,
+                  get_src_type get_src,
+                  const std::string &return_type,
+                  const std::string &uber_func_with_args,
+                  const std::string &shader_main,
+                  const std::string &shader_args,
+                  const std::string &shader_id)
+      {
+        stream_uber(use_switch, dst, shaders, get_src,
+                    &stream_nothing, &stream_nothing,
+                    return_type, uber_func_with_args,
+                    shader_main, shader_args, shader_id);
+      }
+    };
+
     PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::params &P,
                             fastuidraw::gl::PainterBackendGL *p);
 
@@ -319,54 +363,10 @@ namespace
     stream_unpack_code(unsigned int alignment,
                        fastuidraw::gl::Shader::shader_source &str);
 
-    template<typename T>
-    class UberShaderStreamer
-    {
-    public:
-      typedef fastuidraw::reference_counted_ptr<T> ref_type;
-      typedef fastuidraw::const_c_array<ref_type> array_type;
-      typedef fastuidraw::gl::Shader::shader_source shader_source;
-      typedef const shader_source& (T::*get_src_type)(void) const;
-      typedef void (*pre_post_stream_type)(shader_source &dst, const ref_type &sh);
-
-      static
-      void
-      stream_nothing(shader_source &, const ref_type &)
-      {}
-
-      static
-      void
-      stream_uber(bool use_switch, shader_source &dst, array_type shaders,
-                  get_src_type get_src,
-                  pre_post_stream_type pre_stream,
-                  pre_post_stream_type post_stream,
-                  const std::string &return_type,
-                  const std::string &uber_func_with_args,
-                  const std::string &shader_main,
-                  const std::string &shader_args, //of the form ", arg1, arg2,..,argN" or empty string
-                  const std::string &shader_id);
-
-      static
-      void
-      stream_uber(bool use_switch, shader_source &dst, array_type shaders,
-                  get_src_type get_src,
-                  const std::string &return_type,
-                  const std::string &uber_func_with_args,
-                  const std::string &shader_main,
-                  const std::string &shader_args,
-                  const std::string &shader_id)
-      {
-        stream_uber(use_switch, dst, shaders, get_src,
-                    &stream_nothing, &stream_nothing,
-                    return_type, uber_func_with_args,
-                    shader_main, shader_args, shader_id);
-      }
-    };
-
     static
     void
     pre_stream_varyings(fastuidraw::gl::Shader::shader_source &dst,
-                           const fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterItemShaderGL> &sh)
+                        const fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterItemShaderGL> &sh)
     {
       stream_alias_varyings(dst, sh->varyings(), true);
     }
@@ -374,7 +374,7 @@ namespace
     static
     void
     post_stream_varyings(fastuidraw::gl::Shader::shader_source &dst,
-                            const fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterItemShaderGL> &sh)
+                         const fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterItemShaderGL> &sh)
     {
       stream_alias_varyings(dst, sh->varyings(), false);
     }
@@ -1940,97 +1940,35 @@ stream_uber_blend_shader(bool use_switch,
                          fastuidraw::const_c_array<fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBlendShaderGL> > blend_shaders,
                          enum blend_type tp)
 {
-  std::string sub_func_name, func_name, func_args;
+  std::string sub_func_name, func_name, sub_func_args;
+  UberShaderStreamer<fastuidraw::gl::PainterBlendShaderGL>::get_src_type get_src;
 
   switch(tp)
     {
     case blend_dual_src_blend:
+      func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 color0, out vec4 src0, out vec4 src1)";
       sub_func_name = "fastuidraw_gl_compute_blend_factors";
-      func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in vec4 color0, out vec4 src0, out vec4 src1)";
-      func_args = "(color0, src0, src1)";
+      sub_func_args = ", blend_shader_data_location, color0, src0, src1";
+      get_src = &fastuidraw::gl::PainterBlendShaderGL::dual_src_blender_shader;
       break;
 
     case blend_framebuffer_fetch:
+      func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 in_src, in vec4 in_fb, out vec4 out_src)";
       sub_func_name = "fastuidraw_gl_compute_post_blended_value";
-      func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in vec4 in_src, in vec4 in_fb, out vec4 out_src)";
-      func_args = "(in_src, in_fb, out_src)";
+      sub_func_args = ", blend_shader_data_location, in_src, in_fb, out_src";
+      get_src = &fastuidraw::gl::PainterBlendShaderGL::fetch_blender_shader;
       break;
 
     case blend_single_src_blend:
+      func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 in_src, out vec4 out_src)";
       sub_func_name = "fastuidraw_gl_compute_blend_value";
-      func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in vec4 in_src, out vec4 out_src)";
-      func_args = "(in_src, out_src)";
+      sub_func_args = ", blend_shader_data_location, in_src, out_src";
+      get_src = &fastuidraw::gl::PainterBlendShaderGL::single_src_blender_shader;
       break;
     }
-
-  /* first stream all of the blend_shaders with predefined macros. */
-  for(unsigned int i = 0; i < blend_shaders.size(); ++i)
-    {
-      std::ostringstream str;
-      const fastuidraw::gl::Shader::shader_source *src(NULL);
-
-      switch(tp)
-        {
-        case blend_dual_src_blend:
-          src = &blend_shaders[i]->dual_src_blender().m_src;
-          break;
-        case blend_single_src_blend:
-          src = &blend_shaders[i]->single_src_blender().m_src;
-          break;
-        case blend_framebuffer_fetch:
-          src = &blend_shaders[i]->fetch_blender().m_src;
-          break;
-        }
-
-      str << sub_func_name << blend_shaders[i]->ID();
-      frag
-        .add_macro(sub_func_name.c_str(), str.str().c_str())
-        .add_source(*src)
-        .remove_macro(sub_func_name.c_str());
-    }
-
-  std::ostringstream str;
-  str << "void\n"
-      << func_name << "\n"
-      << "{\n";
-
-  if(use_switch)
-    {
-      str << "    switch(blend_shader)\n"
-          << "    {\n";
-
-      for(unsigned int i = 0; i < blend_shaders.size(); ++i)
-        {
-          str << "        case uint(" << blend_shaders[i]->ID() << "):\n"
-              << "            " << sub_func_name << blend_shaders[i]->ID()
-              << func_args << ";\n"
-              << "            break;\n";
-        }
-      str << "    }\n";
-    }
-  else
-    {
-      for(unsigned int i = 0; i < blend_shaders.size(); ++i)
-        {
-          if(i != 0)
-            {
-              str << "    else if";
-            }
-          else
-            {
-              str << "    if";
-            }
-          str << "(blend_shader == uint(" << blend_shaders[i]->ID() << "))\n"
-              << "    {\n"
-              << "        " << sub_func_name << blend_shaders[i]->ID()
-              << func_args << ";\n"
-              << "    }\n";
-        }
-    }
-
-  str << "}\n";
-
-  frag.add_source(str.str().c_str(), fastuidraw::gl::Shader::from_string);
+  UberShaderStreamer<fastuidraw::gl::PainterBlendShaderGL>::stream_uber(use_switch, frag, blend_shaders, get_src,
+                                                                        "void", func_name,
+                                                                        sub_func_name, sub_func_args, "blend_shader");
 }
 
 void
@@ -2119,6 +2057,10 @@ configure_backend(void)
     }
   #endif
 
+  /*
+    TODO: have a params options so that one can select how to perform
+    blending shaders.
+   */
   if(m_have_framebuffer_fetch and false)
     {
       m_blender_to_use = &m_no_blending;
