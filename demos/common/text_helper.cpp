@@ -162,8 +162,8 @@ add_fonts_from_path(const std::string &filename,
       file = entry->d_name;
       if(file != ".." && file != ".")
         {
-	  add_fonts_from_path(filename + "/" + file, lib, glyph_selector, render_params);
-	}
+          add_fonts_from_path(filename + "/" + file, lib, glyph_selector, render_params);
+        }
     }
   closedir(dir);
 }

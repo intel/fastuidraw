@@ -8,19 +8,19 @@ sdl_benchmark(const std::string &about_text, bool allow_fbo):
   m_common_options("Common Benchmark Options", *this),
   m_num_frames(100, "num_frame", "Number of frames to render", *this),
   m_render_to_fbo(no_fbo,
-		  enumerated_string_type<enum render_to_fbo_t>()
-		  .add_entry("no_fbo", no_fbo, "render directly to window")
-		  .add_entry("blit_fbo", blit_fbo, "render to fbo then blit to screen")
-		  .add_entry("no_blit_fbo", no_blit_fbo, "render to fbo only, no blit to screen"),
-		  "render_to_fbo",
-		  "Specifies to render to FBO and if so whether or not to blit the FBO to the framebuffer",
+                  enumerated_string_type<enum render_to_fbo_t>()
+                  .add_entry("no_fbo", no_fbo, "render directly to window")
+                  .add_entry("blit_fbo", blit_fbo, "render to fbo then blit to screen")
+                  .add_entry("no_blit_fbo", no_blit_fbo, "render to fbo only, no blit to screen"),
+                  "render_to_fbo",
+                  "Specifies to render to FBO and if so whether or not to blit the FBO to the framebuffer",
                   (allow_fbo) ? *this : m_avoid_allow_fbo),
   m_read_pixel(false, "read_pixel", "if true read the bottom right pixel just before swap_buffers()", *this),
   m_fbo_width(0, "fbo_width",
-	      "width of FBO to which to render (value of 0 means match window), only has effect if render_to_fbo is not no_fbo",
+              "width of FBO to which to render (value of 0 means match window), only has effect if render_to_fbo is not no_fbo",
               (allow_fbo) ? *this : m_avoid_allow_fbo),
   m_fbo_height(0, "fbo_height",
-	       "height of FBO to which to render (value of 0 means match window), only has effect if render_to_fbo is not no_fbo",
+               "height of FBO to which to render (value of 0 means match window), only has effect if render_to_fbo is not no_fbo",
                (allow_fbo) ? *this : m_avoid_allow_fbo),
   m_dry_run(false, "dry_run", "If true, do not execute any GL commands", *this),
   m_swap_buffer_extra(0, "swap_buffer_end",
@@ -97,12 +97,12 @@ create_and_bind_fbo(void)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexImage2D(GL_TEXTURE_2D,
-	       0,
-	       GL_RGBA8,
-	       m_fbo_width.m_value, m_fbo_height.m_value, 0,
-	       GL_RGBA,
-	       GL_UNSIGNED_BYTE,
-	       NULL);
+               0,
+               GL_RGBA8,
+               m_fbo_width.m_value, m_fbo_height.m_value, 0,
+               GL_RGBA,
+               GL_UNSIGNED_BYTE,
+               NULL);
 
 
   glGenTextures(1, &m_depth_stencil);
@@ -111,32 +111,32 @@ create_and_bind_fbo(void)
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexImage2D(GL_TEXTURE_2D,
-	       0,
-	       GL_DEPTH24_STENCIL8,
-	       m_fbo_width.m_value, m_fbo_height.m_value, 0,
-	       GL_DEPTH_STENCIL,
-	       GL_UNSIGNED_INT_24_8,
-	       NULL);
+               0,
+               GL_DEPTH24_STENCIL8,
+               m_fbo_width.m_value, m_fbo_height.m_value, 0,
+               GL_DEPTH_STENCIL,
+               GL_UNSIGNED_INT_24_8,
+               NULL);
 
   glBindTexture(GL_TEXTURE_2D, 0);
 
   glFramebufferTexture2D(GL_FRAMEBUFFER,
-			 GL_COLOR_ATTACHMENT0,
-			 GL_TEXTURE_2D,
-			 m_color,
-			 0);
+                         GL_COLOR_ATTACHMENT0,
+                         GL_TEXTURE_2D,
+                         m_color,
+                         0);
 
   glFramebufferTexture2D(GL_FRAMEBUFFER,
-			 GL_DEPTH_ATTACHMENT,
-			 GL_TEXTURE_2D,
-			 m_depth_stencil,
-			 0);
+                         GL_DEPTH_ATTACHMENT,
+                         GL_TEXTURE_2D,
+                         m_depth_stencil,
+                         0);
 
   glFramebufferTexture2D(GL_FRAMEBUFFER,
-			 GL_STENCIL_ATTACHMENT,
-			 GL_TEXTURE_2D,
-			 m_depth_stencil,
-			 0);
+                         GL_STENCIL_ATTACHMENT,
+                         GL_TEXTURE_2D,
+                         m_depth_stencil,
+                         0);
 
 
 }
@@ -150,11 +150,11 @@ draw_fbo_contents(void)
       glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo);
       glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
       glBlitFramebuffer(0, 0, //srcX0, srcY0
-			m_fbo_width.m_value, m_fbo_height.m_value, //srcX1, srcY1
-			0, 0,
-			m_screen_size.x(), m_screen_size.y(),
-			GL_COLOR_BUFFER_BIT,
-			GL_NEAREST);
+                        m_fbo_width.m_value, m_fbo_height.m_value, //srcX1, srcY1
+                        0, 0,
+                        m_screen_size.x(), m_screen_size.y(),
+                        GL_COLOR_BUFFER_BIT,
+                        GL_NEAREST);
       glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
     }
 
@@ -189,27 +189,27 @@ draw_frame(void)
       tt=m_time.elapsed();
 
       switch(m_frame)
-	{
-	case 0:
-	  std::cout << "\nTook " << tt << "ms to compile shader(s) and setup state.\n";
-	  break;
+        {
+        case 0:
+          std::cout << "\nTook " << tt << "ms to compile shader(s) and setup state.\n";
+          break;
 
-	case 1:
-	  m_to_create=tt;
-	  //fall through
-	default:
-	  std::cout << "\nTook " << m_to_create
-		    << "ms to init GL, compile shader(s), setup state and draw first frame\n";
+        case 1:
+          m_to_create=tt;
+          //fall through
+        default:
+          std::cout << "\nTook " << m_to_create
+                    << "ms to init GL, compile shader(s), setup state and draw first frame\n";
 
-	  if(m_frame>1)
-	    {
-	      std::cout << "After first frame, " << m_frame-1 << " frames done in "
-			<< tt << " ms"
-			<< "\nms/frame= "
-			<< static_cast<float>(tt)/static_cast<float>(m_frame-1)
-			<< "\n";
-	    }
-	}
+          if(m_frame>1)
+            {
+              std::cout << "After first frame, " << m_frame-1 << " frames done in "
+                        << tt << " ms"
+                        << "\nms/frame= "
+                        << static_cast<float>(tt)/static_cast<float>(m_frame-1)
+                        << "\n";
+            }
+        }
       end_benchmark(0);
     }
   else if(m_frame==0)
@@ -220,9 +220,9 @@ draw_frame(void)
   else
     {
       if(m_frame==1)
-	{
-	  m_to_create=m_time.restart();
-	}
+        {
+          m_to_create=m_time.restart();
+        }
       benchmark_draw_frame(m_frame, m_time.elapsed());
       draw_fbo_contents();
     }

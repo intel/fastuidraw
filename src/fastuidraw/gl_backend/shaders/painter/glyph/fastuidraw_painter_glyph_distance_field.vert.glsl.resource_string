@@ -1,10 +1,10 @@
 vec4
 fastuidraw_gl_vert_main(in uint sub_shader,
-			in vec4 primary_attrib,
-                       	in vec4 secondary_attrib,
-                       	in uvec4 uint_attrib,
-                       	in uint shader_data_offset,
-                       	out uint z_add)
+                        in vec4 primary_attrib,
+                        in vec4 secondary_attrib,
+                        in uvec4 uint_attrib,
+                        in uint shader_data_offset,
+                        out uint z_add)
 {
   /*
     varyings:

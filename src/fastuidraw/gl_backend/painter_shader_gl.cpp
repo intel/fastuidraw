@@ -503,7 +503,7 @@ PainterItemShaderGL(const Shader::shader_source &v_src,
 
 fastuidraw::gl::PainterItemShaderGL::
 PainterItemShaderGL(unsigned int num_sub_shaders,
-		    const Shader::shader_source &v_src,
+                    const Shader::shader_source &v_src,
                     const Shader::shader_source &f_src,
                     const varying_list &varyings):
   PainterItemShader(num_sub_shaders)

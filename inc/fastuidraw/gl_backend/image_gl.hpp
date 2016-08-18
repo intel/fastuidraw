@@ -89,7 +89,7 @@ namespace gl
       /*!
         The log2 of the number of color tiles across and
         down per layer, initial value is 8. Effective
-	value is clamped to 8.
+        value is clamped to 8.
        */
       int
       log2_num_color_tiles_per_row_per_col(void) const;
@@ -101,9 +101,9 @@ namespace gl
       log2_num_color_tiles_per_row_per_col(int v);
 
       /*!
-	Sets log2_color_tile_size() and log2_num_color_tiles_per_row_per_col()
-	to a size that is optimal for the GL implementation given a value
-	for log2_color_tile_size().
+        Sets log2_color_tile_size() and log2_num_color_tiles_per_row_per_col()
+        to a size that is optimal for the GL implementation given a value
+        for log2_color_tile_size().
        */
       params&
       optimal_color_sizes(int log2_color_tile_size);

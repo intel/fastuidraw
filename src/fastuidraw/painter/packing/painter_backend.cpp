@@ -231,17 +231,16 @@ register_shader(const reference_counted_ptr<PainterItemShader> &shader)
   if(shader->registered_to() == NULL)
     {
       if(shader->parent())
-	{
-	  register_shader(shader->parent().static_cast_ptr<PainterItemShader>());
-	  assert(shader->registered_to() == this);
-	}
+        {
+          register_shader(shader->parent().static_cast_ptr<PainterItemShader>());
+          assert(shader->registered_to() == this);
+        }
       else
-	{
-	  PainterShader::Tag tag;
-
-	  tag = absorb_item_shader(shader);
-	  shader->register_shader(tag, this);
-	}
+        {
+          PainterShader::Tag tag;
+          tag = absorb_item_shader(shader);
+          shader->register_shader(tag, this);
+        }
     }
 }
 
@@ -257,17 +256,16 @@ register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
   if(shader->registered_to() == NULL)
     {
       if(shader->parent())
-	{
-	  register_shader(shader->parent().static_cast_ptr<PainterBlendShader>());
-	  assert(shader->registered_to() == this);
-	}
+        {
+          register_shader(shader->parent().static_cast_ptr<PainterBlendShader>());
+          assert(shader->registered_to() == this);
+        }
       else
-	{
-	  PainterShader::Tag tag;
-	  
-	  tag = absorb_blend_shader(shader);
-	  shader->register_shader(tag, this);
-	}
+        {
+          PainterShader::Tag tag;
+          tag = absorb_blend_shader(shader);
+          shader->register_shader(tag, this);
+        }
     }
 }
 

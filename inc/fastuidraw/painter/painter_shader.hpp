@@ -104,10 +104,10 @@ namespace fastuidraw
       \param sub_shader which sub-shader of the parent PainterShader
       \param parent parent PainterShader that has sub-shaders.
                     The parent PainterShader MUST already be registered
-		    to a PainterBackend.
+                    to a PainterBackend.
      */
     PainterShader(unsigned int sub_shader,
-		  reference_counted_ptr<PainterShader> parent);
+                  reference_counted_ptr<PainterShader> parent);
 
     virtual
     ~PainterShader();
@@ -204,7 +204,7 @@ namespace fastuidraw
       \param parent parent PainterItemShader that has sub-shaders
      */
     PainterItemShader(unsigned int sub_shader,
-		      reference_counted_ptr<PainterItemShader> parent):
+                      reference_counted_ptr<PainterItemShader> parent):
       PainterShader(sub_shader, parent)
     {}
   };
@@ -243,7 +243,7 @@ namespace fastuidraw
       \param parent parent PainterBlendShader that has sub-shaders
      */
     PainterBlendShader(unsigned int sub_shader,
-		      reference_counted_ptr<PainterBlendShader> parent):
+                       reference_counted_ptr<PainterBlendShader> parent):
       PainterShader(sub_shader, parent)
     {}
   };

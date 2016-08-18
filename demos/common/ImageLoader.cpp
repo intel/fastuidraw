@@ -39,16 +39,16 @@ namespace
 
     for(int y=0; y<h; ++y)
       {
-	int source_y = (flip) ? h-1-y : y;
+        int source_y = (flip) ? h-1-y : y;
 
-	for(int x =0 ; x < w; ++x)
-	  {
-	    int src_L, dest_L;
+        for(int x =0 ; x < w; ++x)
+          {
+            int src_L, dest_L;
             Uint8 red, green, blue, alpha;
             Uint32 temp, pixel;
 
-	    src_L = source_y * pitch + x * bytes_per_pixel;
-	    dest_L = y * w + x;
+            src_L = source_y * pitch + x * bytes_per_pixel;
+            dest_L = y * w + x;
 
             pixel = *reinterpret_cast<const Uint32*>(surface_data + src_L);
 
@@ -77,7 +77,7 @@ namespace
             bits_data[dest_L][1] = green;
             bits_data[dest_L][2] = blue;
             bits_data[dest_L][3] = alpha;
-	  }
+          }
       }
     SDL_UnlockSurface(img);
     return fastuidraw::ivec2(w, h);
@@ -87,8 +87,8 @@ namespace
 
 fastuidraw::ivec2
 load_image_to_array(const SDL_Surface *img,
-		    std::vector<fastuidraw::u8vec4> &out_bytes,
-		    bool flip)
+            std::vector<fastuidraw::u8vec4> &out_bytes,
+            bool flip)
 {
   SDL_Surface *q;
   fastuidraw::ivec2 R;
@@ -106,8 +106,8 @@ load_image_to_array(const SDL_Surface *img,
 
 fastuidraw::ivec2
 load_image_to_array(const std::string &pfilename,
-		    std::vector<fastuidraw::u8vec4> &out_bytes,
-		    bool flip)
+            std::vector<fastuidraw::u8vec4> &out_bytes,
+            bool flip)
 {
   fastuidraw::ivec2 R;
 

@@ -225,27 +225,27 @@ namespace
 
       fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>
       create_glyph_item_shader(const std::string &vert_src,
-			       const std::string &frag_src,
-			       const fastuidraw::gl::varying_list &varyings);
+                               const std::string &frag_src,
+                               const fastuidraw::gl::varying_list &varyings);
 
       fastuidraw::PainterGlyphShader
       create_glyph_shader(bool anisotropic);
 
       /*
-	stroke_dash_style having value number_dashed_cap_styles means
-	to not have dashed stroking.
+        stroke_dash_style having value number_dashed_cap_styles means
+        to not have dashed stroking.
       */
       fastuidraw::PainterStrokeShader
       create_stroke_shader(enum fastuidraw::PainterEnums::dashed_cap_style stroke_dash_style,
-			   bool pixel_width_stroking);
+                           bool pixel_width_stroking);
 
       fastuidraw::PainterDashedStrokeShaderSet
       create_dashed_stroke_shader_set(bool pixel_width_stroking);
 
       fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>
       create_stroke_item_shader(enum fastuidraw::PainterEnums::dashed_cap_style stroke_dash_style,
-				bool pixel_width_stroking,
-				enum uber_stroke_render_pass_t render_pass_macro);
+                                bool pixel_width_stroking,
+                                enum uber_stroke_render_pass_t render_pass_macro);
 
       fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>
       create_fill_shader(void);
@@ -955,15 +955,15 @@ ShaderSetCreator(void)
 
   num_sub_shaders = 1u << (m_stroke_render_pass_num_bits + m_stroke_dash_num_bits + 1u);
   m_uber_stroke_shader = FASTUIDRAWnew PainterItemShaderGL(num_sub_shaders,
-							   Shader::shader_source()
-							   .add_source("fastuidraw_painter_stroke.vert.glsl.resource_string",
-								       Shader::from_resource),
-							   Shader::shader_source()
-							   .add_source("fastuidraw_painter_stroke.frag.glsl.resource_string",
-								       Shader::from_resource),
-							   varying_list()
-							   .add_float_varying("fastuidraw_stroking_on_boundary")
-							   .add_float_varying("fastuidraw_stroking_distance"));
+                                                           Shader::shader_source()
+                                                           .add_source("fastuidraw_painter_stroke.vert.glsl.resource_string",
+                                                                       Shader::from_resource),
+                                                           Shader::shader_source()
+                                                           .add_source("fastuidraw_painter_stroke.frag.glsl.resource_string",
+                                                                       Shader::from_resource),
+                                                           varying_list()
+                                                           .add_float_varying("fastuidraw_stroking_on_boundary")
+                                                           .add_float_varying("fastuidraw_stroking_distance"));
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>
@@ -1724,104 +1724,104 @@ stream_uber_vert_shader(bool use_switch,
 
       for(unsigned int i = 0; i < item_shaders.size(); ++i)
         {
-	  if(item_shaders[i]->number_sub_shaders() > 1)
-	    {
-	      unsigned int start, end;
-	      start = item_shaders[i]->ID();
-	      end = start + item_shaders[i]->number_sub_shaders();
-	      if(has_sub_shaders)
-		{
-		  str << "    else";
-		}
-	      else
-		{
-		  str << "    ";
-		}
+          if(item_shaders[i]->number_sub_shaders() > 1)
+            {
+              unsigned int start, end;
+              start = item_shaders[i]->ID();
+              end = start + item_shaders[i]->number_sub_shaders();
+              if(has_sub_shaders)
+                {
+                  str << "    else";
+                }
+              else
+                {
+                  str << "    ";
+                }
 
-	      str << "if(h.item_shader >= uint(" << start
-		  << ") && h.item_shader < uint(" << end << "))\n"
-		  << "    {\n"
-		  << "        p = fastuidraw_gl_vert_main" << item_shaders[i]->ID()
-		  << "(h.item_shader - uint(" << start << "), "
-		  << "fastuidraw_primary_attribute, "
-		  << "fastuidraw_secondary_attribute, "
-		  << "fastuidraw_uint_attribute, h.item_shader_data_location, add_z);\n"
-		  << "    }\n";
-	      has_sub_shaders = true;
-	    }
-	}
+              str << "if(h.item_shader >= uint(" << start
+                  << ") && h.item_shader < uint(" << end << "))\n"
+                  << "    {\n"
+                  << "        p = fastuidraw_gl_vert_main" << item_shaders[i]->ID()
+                  << "(h.item_shader - uint(" << start << "), "
+                  << "fastuidraw_primary_attribute, "
+                  << "fastuidraw_secondary_attribute, "
+                  << "fastuidraw_uint_attribute, h.item_shader_data_location, add_z);\n"
+                  << "    }\n";
+              has_sub_shaders = true;
+            }
+        }
 
       if(has_sub_shaders)
-	{
-	  str << "    else\n"
-	      << "    {\n";
-	  tab = "        ";
-	}
+        {
+          str << "    else\n"
+              << "    {\n";
+          tab = "        ";
+        }
       else
-	{
-	  tab = "    ";
-	}
+        {
+          tab = "    ";
+        }
 
       str << tab << "switch(h.item_shader)\n"
           << tab << "{\n";
 
       for(unsigned int i = 0; i < item_shaders.size(); ++i)
-	{
-	  if(item_shaders[i]->number_sub_shaders() == 1)
-	    {
-	      str << tab << "case uint(" << item_shaders[i]->ID() << "):\n"
-		  << tab << "    p = fastuidraw_gl_vert_main" << item_shaders[i]->ID()
-		  << "(uint(0), fastuidraw_primary_attribute, "
-		  << "fastuidraw_secondary_attribute, "
-		  << "fastuidraw_uint_attribute, h.item_shader_data_location, add_z);\n"
-		  << tab << "    break;\n";
-	    }
-	}
+        {
+          if(item_shaders[i]->number_sub_shaders() == 1)
+            {
+              str << tab << "case uint(" << item_shaders[i]->ID() << "):\n"
+                  << tab << "    p = fastuidraw_gl_vert_main" << item_shaders[i]->ID()
+                  << "(uint(0), fastuidraw_primary_attribute, "
+                  << "fastuidraw_secondary_attribute, "
+                  << "fastuidraw_uint_attribute, h.item_shader_data_location, add_z);\n"
+                  << tab << "    break;\n";
+            }
+        }
       str << tab << "}\n";
       if(has_sub_shaders)
-	{
-	  str << "    }\n";
-	}
+        {
+          str << "    }\n";
+        }
     }
   else
     {
       for(unsigned int i = 0; i < item_shaders.size(); ++i)
         {
-	  if(i != 0)
-	    {
-	      str << "    else if";
-	    }
-	  else
-	    {
-	      str << "    if";
-	    }
-	  
-	  if(item_shaders[i]->number_sub_shaders() > 1)
-	    {
-	      unsigned int start, end;
-	      start = item_shaders[i]->ID();
-	      end = start + item_shaders[i]->number_sub_shaders();
-	      str << "(h.item_shader >= uint(" << start
-		  << ") && h.item_shader < uint(" << end << "))\n"
-		  << "    {\n"
-		  << "        p = fastuidraw_gl_vert_main" << item_shaders[i]->ID()
-		  << "(h.item_shader - uint(" << start << "), "
-		  << "fastuidraw_primary_attribute, "
-		  << "fastuidraw_secondary_attribute, "
-		  << "fastuidraw_uint_attribute, h.item_shader_data_location, add_z);\n"
-		  << "    }\n";
-	    }
-	  else
-	    {
-	      str << "(h.item_shader == uint(" << item_shaders[i]->ID() << "))\n"
-		  << "    {\n"
-		  << "        p = fastuidraw_gl_vert_main" << item_shaders[i]->ID()
-		  << "(uint(0), fastuidraw_primary_attribute, "
-		  << "fastuidraw_secondary_attribute, "
-		  << "fastuidraw_uint_attribute, h.item_shader_data_location, add_z);\n"
-		  << "    }\n";
-	    }
-	}
+          if(i != 0)
+            {
+              str << "    else if";
+            }
+          else
+            {
+              str << "    if";
+            }
+
+          if(item_shaders[i]->number_sub_shaders() > 1)
+            {
+              unsigned int start, end;
+              start = item_shaders[i]->ID();
+              end = start + item_shaders[i]->number_sub_shaders();
+              str << "(h.item_shader >= uint(" << start
+                  << ") && h.item_shader < uint(" << end << "))\n"
+                  << "    {\n"
+                  << "        p = fastuidraw_gl_vert_main" << item_shaders[i]->ID()
+                  << "(h.item_shader - uint(" << start << "), "
+                  << "fastuidraw_primary_attribute, "
+                  << "fastuidraw_secondary_attribute, "
+                  << "fastuidraw_uint_attribute, h.item_shader_data_location, add_z);\n"
+                  << "    }\n";
+            }
+          else
+            {
+              str << "(h.item_shader == uint(" << item_shaders[i]->ID() << "))\n"
+                  << "    {\n"
+                  << "        p = fastuidraw_gl_vert_main" << item_shaders[i]->ID()
+                  << "(uint(0), fastuidraw_primary_attribute, "
+                  << "fastuidraw_secondary_attribute, "
+                  << "fastuidraw_uint_attribute, h.item_shader_data_location, add_z);\n"
+                  << "    }\n";
+            }
+        }
     }
 
   str << "    return p;\n"
@@ -1863,40 +1863,40 @@ stream_uber_frag_shader(bool use_switch,
 
       for(unsigned int i = 0; i < item_shaders.size(); ++i)
         {
-	  if(item_shaders[i]->number_sub_shaders() > 1)
-	    {
-	      unsigned int start, end;
-	      start = item_shaders[i]->ID();
-	      end = start + item_shaders[i]->number_sub_shaders();
-	      if(has_sub_shaders)
-		{
-		  str << "    else";
-		}
-	      else
-		{
-		  str << "    ";
-		}
+          if(item_shaders[i]->number_sub_shaders() > 1)
+            {
+              unsigned int start, end;
+              start = item_shaders[i]->ID();
+              end = start + item_shaders[i]->number_sub_shaders();
+              if(has_sub_shaders)
+                {
+                  str << "    else";
+                }
+              else
+                {
+                  str << "    ";
+                }
 
-	      str << "if(frag_shader >= uint(" << start
-		  << ") && frag_shader < uint(" << end << "))\n"
-		  << "    {\n"
-		  << "        p = fastuidraw_gl_frag_main" << item_shaders[i]->ID()
-		  << "(frag_shader - uint(" << start << "), frag_shader_data_location);\n"
-		  << "    }\n";
-	      has_sub_shaders = true;
-	    }
-	}
+          str << "if(frag_shader >= uint(" << start
+              << ") && frag_shader < uint(" << end << "))\n"
+              << "    {\n"
+              << "        p = fastuidraw_gl_frag_main" << item_shaders[i]->ID()
+              << "(frag_shader - uint(" << start << "), frag_shader_data_location);\n"
+              << "    }\n";
+          has_sub_shaders = true;
+        }
+    }
 
       if(has_sub_shaders)
-	{
-	  str << "    else\n"
-	      << "    {\n";
-	  tab = "        ";
-	}
+        {
+          str << "    else\n"
+              << "    {\n";
+          tab = "        ";
+        }
       else
-	{
-	  tab = "    ";
-	}
+        {
+          tab = "    ";
+        }
 
       str << tab << "switch(frag_shader)\n"
           << tab << "{\n";
@@ -1910,9 +1910,9 @@ stream_uber_frag_shader(bool use_switch,
         }
       str << tab << "}\n";
       if(has_sub_shaders)
-	{
-	  str << "    }\n";
-	}
+        {
+          str << "    }\n";
+        }
     }
   else
     {
@@ -1926,26 +1926,27 @@ stream_uber_frag_shader(bool use_switch,
             {
               str << "    if";
             }
-	  if(item_shaders[i]->number_sub_shaders() > 1)
-	    {
-	      unsigned int start, end;
-	      start = item_shaders[i]->ID();
-	      end = start + item_shaders[i]->number_sub_shaders();
-	      str << "(frag_shader >= uint(" << start
-		  << ") && frag_shader < uint(" << end << "))\n"
-		  << "    {\n"
-		  << "        p = fastuidraw_gl_frag_main" << item_shaders[i]->ID()
-		  << "(frag_shader - uint(" << start << "), frag_shader_data_location);\n"
-		  << "    }\n";
-	    }
-	  else
-	    {
-	      str << "(frag_shader == uint(" << item_shaders[i]->ID() << "))\n"
-		  << "    {\n"
-		  << "        p = fastuidraw_gl_frag_main" << item_shaders[i]->ID()
-		  << "(uint(0), frag_shader_data_location);\n"
-		  << "    }\n";
-	    }
+
+          if(item_shaders[i]->number_sub_shaders() > 1)
+            {
+              unsigned int start, end;
+              start = item_shaders[i]->ID();
+              end = start + item_shaders[i]->number_sub_shaders();
+              str << "(frag_shader >= uint(" << start
+                  << ") && frag_shader < uint(" << end << "))\n"
+                  << "    {\n"
+                  << "        p = fastuidraw_gl_frag_main" << item_shaders[i]->ID()
+                  << "(frag_shader - uint(" << start << "), frag_shader_data_location);\n"
+                  << "    }\n";
+            }
+          else
+            {
+              str << "(frag_shader == uint(" << item_shaders[i]->ID() << "))\n"
+                  << "    {\n"
+                  << "        p = fastuidraw_gl_frag_main" << item_shaders[i]->ID()
+                  << "(uint(0), frag_shader_data_location);\n"
+                  << "    }\n";
+            }
         }
     }
   str << "    return p;\n"

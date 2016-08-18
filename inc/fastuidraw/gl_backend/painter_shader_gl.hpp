@@ -450,7 +450,7 @@ namespace fastuidraw
         \param varyings list of varyings of the shader
        */
       PainterItemShaderGL(unsigned int num_sub_shaders,
-			  const Shader::shader_source &vertex_src,
+                          const Shader::shader_source &vertex_src,
                           const Shader::shader_source &fragment_src,
                           const varying_list &varyings = varying_list());
 

@@ -1,13 +1,13 @@
 vec4
 fastuidraw_gl_frag_main(in uint sub_shader,
-			in uint shader_data_offset)
+                        in uint shader_data_offset)
 {
   float alpha;
   uint render_pass;
 
   render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
-					fastuidraw_stroke_sub_shader_render_pass_num_bits,
-					sub_shader);
+                    fastuidraw_stroke_sub_shader_render_pass_num_bits,
+                    sub_shader);
   if(render_pass == uint(fastuidraw_stroke_aa_pass))
     {
       float dd, q;

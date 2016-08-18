@@ -176,7 +176,7 @@ class command_separator:public command_line_argument
 {
 public:
   command_separator(const std::string &label,
-		    command_line_register &parent):
+                    command_line_register &parent):
     command_line_argument(parent),
     m_label(label)
   {}
@@ -210,7 +210,7 @@ class command_about:public command_line_argument
 {
 public:
   command_about(const std::string &label,
-		command_line_register &parent):
+                command_line_register &parent):
     command_line_argument(parent),
     m_label(tabs_to_spaces(format_description_string("", label)))
   {}
@@ -411,7 +411,7 @@ public:
           }
 
         m_set_by_command_line=true;
-	on_set_by_command_line();
+        on_set_by_command_line();
         return 1;
       }
     else if(location<argc-1 and str==m_name)
@@ -427,7 +427,7 @@ public:
             writevalue_to_stream(m_value, std::cout);
           }
         m_set_by_command_line=true;
-	on_set_by_command_line();
+        on_set_by_command_line();
         return 2;
       }
 

@@ -376,26 +376,25 @@ optimal_color_sizes(int log2_color_tile_size)
   return log2_num_color_tiles_per_row_per_col(c);
 }
 
-#define paramsSetGet(type, name)				 \
+#define paramsSetGet(type, name)                                 \
   fastuidraw::gl::ImageAtlasGL::params&                          \
   fastuidraw::gl::ImageAtlasGL::params::                         \
-  name(type v)							 \
-  {								 \
-    ImageAtlasGLParamsPrivate *d;				 \
-    d = reinterpret_cast<ImageAtlasGLParamsPrivate*>(m_d);	 \
-    d->m_##name = v;						 \
-    return *this;						 \
-  }								 \
-  								 \
-  type								 \
+  name(type v)                                                   \
+  {                                                              \
+    ImageAtlasGLParamsPrivate *d;                                \
+    d = reinterpret_cast<ImageAtlasGLParamsPrivate*>(m_d);       \
+    d->m_##name = v;                                             \
+    return *this;                                                \
+  }                                                              \
+                                                                 \
+  type                                                           \
   fastuidraw::gl::ImageAtlasGL::params::                         \
-  name(void) const						 \
-  {								 \
-    ImageAtlasGLParamsPrivate *d;				 \
-    d = reinterpret_cast<ImageAtlasGLParamsPrivate*>(m_d);	 \
-    return d->m_##name;						 \
-  }								 \
-
+  name(void) const                                               \
+  {                                                              \
+    ImageAtlasGLParamsPrivate *d;                                \
+    d = reinterpret_cast<ImageAtlasGLParamsPrivate*>(m_d);       \
+    return d->m_##name;                                          \
+  }
 
 paramsSetGet(int, log2_color_tile_size)
 paramsSetGet(int, log2_num_color_tiles_per_row_per_col)

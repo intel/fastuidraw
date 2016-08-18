@@ -159,8 +159,8 @@ namespace
                    const fastuidraw::vec2 &n0,
                    const fastuidraw::vec2 &p1,
                    const fastuidraw::vec2 &n1,
-		   float distance_from_edge_start,
-		   float distance_from_contour_start);
+                   float distance_from_edge_start,
+                   float distance_from_contour_start);
 
     float m_det, m_lambda;
     fastuidraw::vec2 m_p0, m_v0, m_n0;
@@ -600,8 +600,8 @@ CommonJoinData(const fastuidraw::vec2 &p0,
                const fastuidraw::vec2 &n0,
                const fastuidraw::vec2 &p1,
                const fastuidraw::vec2 &n1,
-	       float distance_from_edge_start,
-	       float distance_from_contour_start):
+               float distance_from_edge_start,
+               float distance_from_contour_start):
   m_distance_from_edge_start(distance_from_edge_start),
   m_distance_from_contour_start(distance_from_contour_start)
 {
@@ -889,8 +889,8 @@ add_edge(unsigned int o, unsigned int e,
       if(i + 2 != R.m_end)
         {
           unsigned int offset;
-	  float lambda;
-	  lambda = CommonJoinData::compute_lambda(src_pts[i].m_p_t, src_pts[i+1].m_p_t);
+          float lambda;
+          lambda = CommonJoinData::compute_lambda(src_pts[i].m_p_t, src_pts[i+1].m_p_t);
           if(lambda > 0.0f)
             {
               //take side with n as negative
@@ -1101,7 +1101,7 @@ PerJoinData(const fastuidraw::TessellatedPath::point &p0,
             const fastuidraw::vec2 &n1_from_stroking,
             float curve_tessellation):
   CommonJoinData(p0.m_p, n0_from_stroking, p1.m_p, n1_from_stroking,
-		 p0.m_distance_from_edge_start, p0.m_distance_from_contour_start)
+         p0.m_distance_from_edge_start, p0.m_distance_from_contour_start)
 {
   /* n0z represents the start point of the rounded join in the complex plane
      as if the join was at the origin, n1z represents the end point of the
@@ -1174,18 +1174,18 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
       pts[vertex_offset].m_on_boundary = 1;
 
       if(m_lambda * m_n0.y() < 0.0f)
-	{
-	  pts[vertex_offset].m_tag |= fastuidraw::StrokedPath::normal0_y_sign_mask;
-	}
+        {
+          pts[vertex_offset].m_tag |= fastuidraw::StrokedPath::normal0_y_sign_mask;
+        }
 
       if(m_lambda * m_n1.y() < 0.0f)
-	{
-	  pts[vertex_offset].m_tag |= fastuidraw::StrokedPath::normal1_y_sign_mask;
-	}
+        {
+          pts[vertex_offset].m_tag |= fastuidraw::StrokedPath::normal1_y_sign_mask;
+        }
 
       if(cs_as_complex.imag() < 0.0f)
         {
-	  pts[vertex_offset].m_tag |= fastuidraw::StrokedPath::sin_sign_mask;
+          pts[vertex_offset].m_tag |= fastuidraw::StrokedPath::sin_sign_mask;
         }
     }
 
@@ -1245,8 +1245,8 @@ add_join(unsigned int join_id,
     }
 
   PerJoinData J(src_pts[R0.m_end - 1], src_pts[R1.m_begin],
-		n0_from_stroking, n1_from_stroking,
-		path.tessellation_parameters().m_curve_tessellation);
+        n0_from_stroking, n1_from_stroking,
+        path.tessellation_parameters().m_curve_tessellation);
 
   m_per_join_data.push_back(J);
 
@@ -1337,9 +1337,9 @@ fill_join_implement(unsigned int join_id,
   i1 = R1.m_begin;
 
   CommonJoinData J(src_pts[i0].m_p, m_n0[join_id],
-		   src_pts[i1].m_p, m_n1[join_id],
-		   src_pts[i0].m_distance_from_edge_start,
-		   src_pts[i0].m_distance_from_contour_start);
+                   src_pts[i1].m_p, m_n1[join_id],
+                   src_pts[i0].m_distance_from_edge_start,
+                   src_pts[i0].m_distance_from_contour_start);
 
   pts[vertex_offset + 0].m_position = J.m_p0;
   pts[vertex_offset + 0].m_pre_offset = J.m_lambda * J.m_n0;
@@ -1664,9 +1664,9 @@ fill_join_implement(unsigned int join_id,
   i1 = R1.m_begin;
 
   CommonJoinData J(src_pts[i0].m_p, m_n0[join_id],
-		   src_pts[i1].m_p, m_n1[join_id],
-		   src_pts[i0].m_distance_from_edge_start,
-		   src_pts[i0].m_distance_from_contour_start);
+                   src_pts[i1].m_p, m_n1[join_id],
+                   src_pts[i0].m_distance_from_edge_start,
+                   src_pts[i0].m_distance_from_contour_start);
 
   /* The miter point is given by where the two boundary
      curves intersect. The two curves are given by:
