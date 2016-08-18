@@ -79,26 +79,26 @@ namespace fastuidraw
      */
     enum image_filter
       {
-	/*!
-	  Indicates to use nearest filtering (i.e
-	  choose closest pixel). No requirement on
-	  Image::slack() when using this filtering
-	  option.
-	 */
+        /*!
+          Indicates to use nearest filtering (i.e
+          choose closest pixel). No requirement on
+          Image::slack() when using this filtering
+          option.
+         */
         image_filter_nearest = 1,
 
-	/*!
-	  Indicates to use bilinear filtering. Requires
-	  that Image::slack() is atleast 1, otherwise
-	  rendering results will be wrong.
-	 */
+        /*!
+          Indicates to use bilinear filtering. Requires
+          that Image::slack() is atleast 1, otherwise
+          rendering results will be wrong.
+         */
         image_filter_linear = 2,
 
-	/*!
-	  Indicates to use bicubic filtering. Requires
-	  that Image::slack() is atleast 2, otherwise
-	  rendering results will be wrong.
-	 */
+        /*!
+          Indicates to use bicubic filtering. Requires
+          that Image::slack() is atleast 2, otherwise
+          rendering results will be wrong.
+         */
         image_filter_cubic = 3
       };
 
@@ -442,7 +442,7 @@ namespace fastuidraw
 
       - The value given by
         \code
-	unpack_bits(image_filter_bit0, image_filter_num_bits, shader())
+        unpack_bits(image_filter_bit0, image_filter_num_bits, shader())
         \endcode
         is non-zero if an image is present and when is non-zero the value's meaning
         is enumerated by image_filter
@@ -514,7 +514,7 @@ namespace fastuidraw
     static
     bool
     filter_suitable_for_image(const reference_counted_ptr<const Image> &im,
-			      enum image_filter f);
+                  enum image_filter f);
 
     /*!
       Returns the highest quality filter with which

@@ -433,9 +433,9 @@ clear_cache(void)
       GlyphDataPrivate *p;
       p = d->m_glyphs[i];
       if(p->m_render.valid())
-	{
-	  p->clear();
-	  d->m_free_slots.push_back(p->m_cache_location);
-	}
+        {
+          p->clear();
+          d->m_free_slots.push_back(p->m_cache_location);
+        }
     }
 }

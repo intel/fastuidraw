@@ -295,7 +295,7 @@ add_images(const std::string &filename, std::vector<named_image> &dest)
       file = entry->d_name;
       if(file != ".." && file != ".")
         {
-	  add_images(filename + "/" + file, dest);
+          add_images(filename + "/" + file, dest);
         }
     }
   closedir(dir);
@@ -526,13 +526,13 @@ draw_frame(void)
 
       ostr << "FPS = ";
       if(us > 0)
-	{
-	  ostr << static_cast<int>(1000.0f * 1000.0f / static_cast<float>(us));
-	}
+        {
+          ostr << static_cast<int>(1000.0f * 1000.0f / static_cast<float>(us));
+        }
       else
-	{
-	  ostr << "NAN";
-	}
+        {
+          ostr << "NAN";
+        }
       ostr << "\nms = " << ms
            << "\nDrew " << m_cell_shared_state.m_cells_drawn << " cells";
       if(!m_text_brush)

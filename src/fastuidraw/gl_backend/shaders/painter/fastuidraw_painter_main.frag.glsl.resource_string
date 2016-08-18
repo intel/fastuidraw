@@ -85,15 +85,16 @@ main(void)
   b = fastuidraw_compute_brush_color();
   v = b * c;
   v.rgb *= v.a;
+
   #ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
     {
-      fastuidraw_run_blend_shader(fastuidraw_blend_shader, v, fastuidraw_final_color0, fastuidraw_final_color1);
+      fastuidraw_run_blend_shader(fastuidraw_blend_shader, fastuidraw_blend_shader_data_location, v, fastuidraw_final_color0, fastuidraw_final_color1);
     }
   #endif
 
   #ifdef FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND
     {
-      fastuidraw_run_blend_shader(fastuidraw_blend_shader, v, fastuidraw_final_color);
+      fastuidraw_run_blend_shader(fastuidraw_blend_shader, fastuidraw_blend_shader_data_location, v, fastuidraw_final_color);
     }
   #endif
 
@@ -101,7 +102,7 @@ main(void)
     {
       vec4 in_fb, out_fb;
       in_fb = fastuidraw_final_color;
-      fastuidraw_run_blend_shader(fastuidraw_blend_shader, v, in_fb, out_fb);
+      fastuidraw_run_blend_shader(fastuidraw_blend_shader, fastuidraw_blend_shader_data_location, v, in_fb, out_fb);
       fastuidraw_final_color = out_fb;
     }
   #endif

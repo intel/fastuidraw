@@ -53,14 +53,42 @@ public:
   enum point_type_t
     {
       /*!
-        The point is for an edge of the path
+        The point is for an edge of the path that is neither
+        the start or end of an edge.
        */
       edge_point,
 
       /*!
+        The point is a start point of an edge of the path but
+        not the start of a contour.
+       */
+      start_edge_point,
+
+      /*!
+        The point is an end point of an edge of the path but
+        not the end of a contour
+       */
+      end_edge_point,
+
+      /*!
+        The point is for an edge and is the start point of a contour
+       */
+      start_contour_point,
+
+      /*!
+        The point is for an edge and is the end point of a contour
+       */
+      end_contour_point,
+
+      /*!
+        number point types that come from an edge
+       */
+      number_edge_point_types,
+
+      /*!
         The point is for a rounded join of the path
        */
-      rounded_join_point,
+      rounded_join_point = number_edge_point_types,
 
       /*!
         The point is for a miter join of the path
@@ -75,7 +103,12 @@ public:
       /*!
         The point is for a square cap of the path
        */
-      square_cap_point
+      square_cap_point,
+
+      /*!
+        Number point types possible.
+       */
+      number_point_types
     };
 
   /*!
@@ -83,7 +116,7 @@ public:
    */
   enum tag_bit_layout_t
     {
-      point_type_num_bits = 3,
+      point_type_num_bits = 4,
       point_type_bit0 = 0,
 
       normal0_y_sign_bit = point_type_bit0 + point_type_num_bits,
@@ -169,11 +202,13 @@ public:
     /*!
       Provides the point type for the point. The value is one of the
       enumerations of StrokedPath::point_type_t. NOTE: if a point comes
-      from the geometry of an edge, it is always the value
-      StrokedPath::edge_point; it takes on other values for those points
-      of those joins/caps that are not the geometry of the edge. In
-      particular, since bevel joins do not add any points, there is no
-      enumeration with for bevel joins.
+      from the geometry of an edge and the point is for a cap or join,
+      it is the value StrokedPath::edge_point; a point of a cap or join
+      is viewed as taking geometry from an edge if the point is shared
+      with drawing the edge. As a side note, since the points of a bevel
+      join are always shared geometry with an edge, the point type is
+      StrokedPath::edge_point and thus there is no enumeration for bevel
+      joins.
      */
     enum point_type_t
     point_type(void) const

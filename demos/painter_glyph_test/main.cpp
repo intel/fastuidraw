@@ -172,9 +172,9 @@ change_glyph_renderer(GlyphRender renderer, c_array<Glyph> glyphs, const_c_array
   for(unsigned int i = 0; i < glyphs.size(); ++i)
     {
       if(glyphs[i].valid())
-	{
-	  glyphs[i] = m_glyph_selector->fetch_glyph_no_merging(renderer, glyphs[i].layout().m_font, character_codes[i]);
-	}
+        {
+          glyphs[i] = m_glyph_selector->fetch_glyph_no_merging(renderer, glyphs[i].layout().m_font, character_codes[i]);
+        }
     }
 }
 

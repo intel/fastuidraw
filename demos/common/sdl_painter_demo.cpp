@@ -60,17 +60,17 @@ sdl_painter_demo(const std::string &about_text):
   m_glyph_geometry_backing_store_type(glyph_geometry_backing_store_auto,
                                       enumerated_string_type<enum glyph_geometry_backing_store_t>()
                                       .add_entry("buffer",
-						 glyph_geometry_backing_store_texture_buffer,
-						 "use a texture buffer, feature is core in GL but for GLES requires version 3.2, "
+                                                 glyph_geometry_backing_store_texture_buffer,
+                                                 "use a texture buffer, feature is core in GL but for GLES requires version 3.2, "
                                                  "for GLES version pre-3.2, requires the extension GL_OES_texture_buffer or the "
                                                  "extension GL_EXT_texture_buffer")
                                       .add_entry("texture_array",
-						 glyph_geometry_backing_store_texture_array,
-						 "use a 2D texture array to store the glyph geometry data, "
+                                                 glyph_geometry_backing_store_texture_array,
+                                                 "use a 2D texture array to store the glyph geometry data, "
                                                  "GL and GLES have feature in core")
                                       .add_entry("auto",
-						 glyph_geometry_backing_store_auto,
-						 "query context and decide optimal value"),
+                                                 glyph_geometry_backing_store_auto,
+                                                 "query context and decide optimal value"),
                                       "geometry_backing_store_type",
                                       "Determines how the glyph geometry store is backed.",
                                       *this),
@@ -85,10 +85,10 @@ sdl_painter_demo(const std::string &about_text):
                            "colorstop_atlas_width",
                            "width for color stop atlas", *this),
   m_color_stop_atlas_use_optimal_width(false, "colorstop_atlas_use_optimal_width",
-				       "if true ignore the value of colorstop_atlas_layers "
-				       "and query the GL context for the optimal width for "
-				       "the colorstop atlas",
-				       *this),
+                                       "if true ignore the value of colorstop_atlas_layers "
+                                       "and query the GL context for the optimal width for "
+                                       "the colorstop atlas",
+                                       *this),
   m_color_stop_atlas_layers(m_colorstop_atlas_params.num_layers(),
                             "colorstop_atlas_layers",
                             "number of layers for the color stop atlas",
@@ -225,7 +225,7 @@ init_gl(int w, int h)
     {
       m_colorstop_atlas_params.optimal_width();
       std::cout << "Colorstop Atlas optimal width selected to be "
-		<< m_colorstop_atlas_params.width() << "\n";
+                << m_colorstop_atlas_params.width() << "\n";
     }
 
   m_colorstop_atlas = FASTUIDRAWnew fastuidraw::gl::ColorStopAtlasGL(m_colorstop_atlas_params);

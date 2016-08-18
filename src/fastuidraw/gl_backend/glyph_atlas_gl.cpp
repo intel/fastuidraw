@@ -829,7 +829,7 @@ use_optimal_geometry_store_backing(void)
           Last resort, increase height
          so that we can store required_size texels.
        */
-      width = uint32_log2(max_wh);
+      width = 1u << uint32_log2(max_wh);
       required_area_per_layer = required_max_size / max_layers;
       required_height = std::min(max_wh, required_area_per_layer / width);
       if(required_height * width < required_area_per_layer)

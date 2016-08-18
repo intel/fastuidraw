@@ -111,7 +111,10 @@ private:
   create_stroked_path_attributes(void);
 
   void
-  contruct_color_stops(void);
+  construct_color_stops(void);
+
+  void
+  construct_dash_patterns(void);
 
   vec2
   item_coordinates(ivec2 c);
@@ -140,6 +143,7 @@ private:
   reference_counted_ptr<Image> m_image;
   uvec2 m_image_offset, m_image_size;
   std::vector<named_color_stop> m_color_stops;
+  std::vector<std::vector<PainterDashedStrokeParams::DashPatternElement> > m_dash_patterns;
 
   PanZoomTrackerSDLEvent m_zoomer;
   vecN<std::string, number_gradient_draw_modes> m_gradient_mode_labels;
@@ -147,6 +151,7 @@ private:
   vecN<std::string, PainterEnums::number_join_styles> m_join_labels;
   vecN<std::string, PainterEnums::fill_rule_data_count> m_fill_labels;
   vecN<std::string, number_image_filter_modes> m_image_filter_mode_labels;
+  vecN<std::string, PainterEnums::number_dashed_cap_styles> m_dashed_labels;
 
   PainterPackedValue<PainterBrush> m_black_pen;
   PainterPackedValue<PainterBrush> m_white_pen;
@@ -155,6 +160,9 @@ private:
   unsigned int m_join_style;
   unsigned int m_cap_style;
   unsigned int m_fill_rule;
+  unsigned int m_dashed_style;
+  bool m_stroke_dashed;
+  unsigned int m_dash_pattern;
   unsigned int m_end_fill_rule;
   bool m_have_miter_limit;
   float m_miter_limit, m_stroke_width;
@@ -236,6 +244,9 @@ painter_stroke_test(void):
   m_join_style(PainterEnums::rounded_joins),
   m_cap_style(PainterEnums::close_contours),
   m_fill_rule(PainterEnums::odd_even_fill_rule),
+  m_dashed_style(PainterEnums::dashed_no_caps_closed),
+  m_stroke_dashed(false),
+  m_dash_pattern(0),
   m_end_fill_rule(PainterEnums::fill_rule_data_count),
   m_have_miter_limit(true),
   m_miter_limit(5.0f),
@@ -263,7 +274,8 @@ painter_stroke_test(void):
 {
   std::cout << "Controls:\n"
             << "\tj: cycle through join styles for stroking\n"
-            << "\tc: cycle through cap style for stroking\n"
+            << "\tc: cycle through cap style for stroking / cycle through dashed stroking style\n"
+            << "\td: cycle through dash patterns\n"
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\t]: increase stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\tp: toggle stroke width in pixels or local coordinates\n"
@@ -312,6 +324,13 @@ painter_stroke_test(void):
   m_cap_labels[PainterEnums::no_caps] = "no_caps";
   m_cap_labels[PainterEnums::rounded_caps] = "rounded_caps";
   m_cap_labels[PainterEnums::square_caps] = "square_caps";
+
+  m_dashed_labels[PainterEnums::dashed_no_caps_closed] = "dashed_no_caps_closed";
+  m_dashed_labels[PainterEnums::dashed_rounded_caps_closed] = "dashed_rounded_caps_closed";
+  m_dashed_labels[PainterEnums::dashed_square_caps_closed] = "dashed_square_caps_closed";
+  m_dashed_labels[PainterEnums::dashed_no_caps] = "dashed_no_caps";
+  m_dashed_labels[PainterEnums::dashed_rounded_caps] = "dashed_rounded_caps";
+  m_dashed_labels[PainterEnums::dashed_square_caps] = "dashed_square_caps";
 
   m_fill_labels[PainterEnums::odd_even_fill_rule] = "odd_even_fill_rule";
   m_fill_labels[PainterEnums::nonzero_fill_rule] = "nonzero_fill_rule";
@@ -735,7 +754,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_s:
-          if(m_draw_fill && !m_color_stops.empty())
+          if(m_draw_fill)
             {
               cycle_value(m_active_color_stop, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_color_stops.size());
               std::cout << "Drawing color stop: " << m_color_stops[m_active_color_stop].first << "\n";
@@ -743,7 +762,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_g:
-          if(m_draw_fill && !m_color_stops.empty())
+          if(m_draw_fill)
             {
               cycle_value(m_gradient_draw_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_gradient_draw_modes);
               std::cout << "Gradient mode set to: " << m_gradient_mode_labels[m_gradient_draw_mode] << "\n";
@@ -755,9 +774,41 @@ handle_event(const SDL_Event &ev)
           std::cout << "Join drawing mode set to: " << m_join_labels[m_join_style] << "\n";
           break;
 
+        case SDLK_d:
+          cycle_value(m_dash_pattern, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_dash_patterns.size() + 1);
+          m_stroke_dashed = (m_dash_pattern != 0);
+          if(m_stroke_dashed)
+            {
+              std::cout << "Set to stroke dashed with pattern: {";
+              for(unsigned int i = 0; i < m_dash_patterns[m_dash_pattern - 1].size(); ++i)
+                {
+                  if(i != 0)
+                    {
+                      std::cout << ", ";
+                    }
+                  std::cout << "Draw(" << m_dash_patterns[m_dash_pattern - 1][i].m_draw_length
+                            << "), Space(" << m_dash_patterns[m_dash_pattern - 1][i].m_space_length
+                            << ")";
+                }
+              std::cout << "}\n";
+            }
+          else
+            {
+              std::cout << "Set to stroke non-dashed\n";
+            }
+          break;
+
         case SDLK_c:
-          cycle_value(m_cap_style, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), PainterEnums::number_cap_styles);
-          std::cout << "Cap drawing mode set to: " << m_cap_labels[m_cap_style] << "\n";
+          if(m_stroke_dashed)
+            {
+              cycle_value(m_dashed_style, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), PainterEnums::number_dashed_cap_styles);
+              std::cout << "Dashed drawing mode set to: " << m_dashed_labels[m_dashed_style] << "\n";
+            }
+          else
+            {
+              cycle_value(m_cap_style, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), PainterEnums::number_cap_styles);
+              std::cout << "Cap drawing mode set to: " << m_cap_labels[m_cap_style] << "\n";
+            }
           break;
 
         case SDLK_r:
@@ -881,8 +932,18 @@ create_stroked_path_attributes(void)
 
 void
 painter_stroke_test::
-contruct_color_stops(void)
+construct_color_stops(void)
 {
+  ColorStopSequence S;
+  reference_counted_ptr<ColorStopSequenceOnAtlas> h;
+
+  S.add(ColorStop(u8vec4(0, 255, 0, 255), 0.0f));
+  S.add(ColorStop(u8vec4(0, 255, 255, 255), 0.33f));
+  S.add(ColorStop(u8vec4(255, 255, 0, 255), 0.66f));
+  S.add(ColorStop(u8vec4(255, 0, 0, 255), 1.0f));
+  h = FASTUIDRAWnew ColorStopSequenceOnAtlas(S, m_painter->colorstop_atlas(), 8);
+  m_color_stops.push_back(named_color_stop("Default ColorStop Sequence", h));
+
   for(color_stop_arguments::hoard::const_iterator
         iter = m_color_stop_args.m_values.begin(),
         end = m_color_stop_args.m_values.end();
@@ -890,10 +951,21 @@ contruct_color_stops(void)
     {
       reference_counted_ptr<ColorStopSequenceOnAtlas> h;
       h = FASTUIDRAWnew ColorStopSequenceOnAtlas(iter->second->m_stops,
-                                                m_painter->colorstop_atlas(),
-                                                iter->second->m_discretization);
+                                                 m_painter->colorstop_atlas(),
+                                                 iter->second->m_discretization);
       m_color_stops.push_back(named_color_stop(iter->first, h));
     }
+}
+
+void
+painter_stroke_test::
+construct_dash_patterns(void)
+{
+  m_dash_patterns.push_back(std::vector<PainterDashedStrokeParams::DashPatternElement>());
+  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(6.0f, 2.0f));
+  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(0.0f, 2.0f));
+  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(0.0f, 4.0f));
+  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(9.0f, 0.0f));
 }
 
 void
@@ -1045,12 +1117,12 @@ draw_frame(void)
           fill_brush.no_repeat_window();
         }
 
-      if(m_gradient_draw_mode == draw_linear_gradient && !m_color_stops.empty())
+      if(m_gradient_draw_mode == draw_linear_gradient)
         {
           fill_brush.linear_gradient(m_color_stops[m_active_color_stop].second,
                                      m_gradient_p0, m_gradient_p1, m_repeat_gradient);
         }
-      else if(m_gradient_draw_mode == draw_radial_gradient && !m_color_stops.empty())
+      else if(m_gradient_draw_mode == draw_radial_gradient)
         {
           fill_brush.radial_gradient(m_color_stops[m_active_color_stop].second,
                                      m_gradient_p0, m_gradient_r0,
@@ -1135,32 +1207,65 @@ draw_frame(void)
 
   if(m_stroke_width > 0.0f)
     {
-      PainterStrokeParams st;
-      if(m_have_miter_limit)
+      if(m_stroke_dashed)
         {
-          st.miter_limit(m_miter_limit);
-        }
-      else
-        {
-          st.miter_limit(-1.0f);
-        }
-      st.width(m_stroke_width);
+          PainterDashedStrokeParams st;
+          if(m_have_miter_limit)
+            {
+              st.miter_limit(m_miter_limit);
+            }
+          else
+            {
+              st.miter_limit(-1.0f);
+            }
+          st.width(m_stroke_width);
 
-      if(m_stroke_width_in_pixels)
-        {
-          m_painter->stroke_path_pixel_width(PainterData(m_transparent_blue_pen, &st),
-                                             m_path,
-                                             static_cast<enum PainterEnums::cap_style>(m_cap_style),
-                                             static_cast<enum PainterEnums::join_style>(m_join_style),
-                                             m_stroke_aa);
+          if(m_stroke_width_in_pixels)
+            {
+              m_painter->stroke_dashed_path_pixel_width(PainterData(m_transparent_blue_pen, &st),
+                                                        m_path,
+                                                        static_cast<enum PainterEnums::dashed_cap_style>(m_dashed_style),
+                                                        static_cast<enum PainterEnums::join_style>(m_join_style),
+                                                        m_stroke_aa);
+            }
+          else
+            {
+              m_painter->stroke_dashed_path(PainterData(m_transparent_blue_pen, &st),
+                                            m_path,
+                                            static_cast<enum PainterEnums::dashed_cap_style>(m_dashed_style),
+                                            static_cast<enum PainterEnums::join_style>(m_join_style),
+                                            m_stroke_aa);
+            }
         }
       else
         {
-          m_painter->stroke_path(PainterData(m_transparent_blue_pen, &st),
-                                 m_path,
-                                 static_cast<enum PainterEnums::cap_style>(m_cap_style),
-                                 static_cast<enum PainterEnums::join_style>(m_join_style),
-                                 m_stroke_aa);
+          PainterStrokeParams st;
+          if(m_have_miter_limit)
+            {
+              st.miter_limit(m_miter_limit);
+            }
+          else
+            {
+              st.miter_limit(-1.0f);
+            }
+          st.width(m_stroke_width);
+
+          if(m_stroke_width_in_pixels)
+            {
+              m_painter->stroke_path_pixel_width(PainterData(m_transparent_blue_pen, &st),
+                                                 m_path,
+                                                 static_cast<enum PainterEnums::cap_style>(m_cap_style),
+                                                 static_cast<enum PainterEnums::join_style>(m_join_style),
+                                                 m_stroke_aa);
+            }
+          else
+            {
+              m_painter->stroke_path(PainterData(m_transparent_blue_pen, &st),
+                                     m_path,
+                                     static_cast<enum PainterEnums::cap_style>(m_cap_style),
+                                     static_cast<enum PainterEnums::join_style>(m_join_style),
+                                     m_stroke_aa);
+            }
         }
     }
 
@@ -1217,7 +1322,8 @@ derived_init(int w, int h)
 
   construct_path();
   create_stroked_path_attributes();
-  contruct_color_stops();
+  construct_color_stops();
+  construct_dash_patterns();
   m_end_fill_rule = m_path.tessellation()->filled()->winding_numbers().size() + PainterEnums::fill_rule_data_count;
 
   /* set transformation to center and contain path.

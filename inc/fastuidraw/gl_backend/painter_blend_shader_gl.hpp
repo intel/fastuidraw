@@ -290,12 +290,13 @@ namespace fastuidraw
         Provides the GLSL code fragment that provides the function
         \code
         void
-        fastuidraw_gl_compute_blend_value(in vec4 in_src, out vec4 out_src)
+        fastuidraw_gl_compute_blend_value(in uint sub_shader, in uint blend_shader_data_location,
+                                          in vec4 in_src, out vec4 out_src)
         \endcode
         where in_src is the pre-multiplied by alpha color value for the
         fragment and out_src is the value for the fragment shader to emit.
-        The location of the blend shader data is store in the value of the
-        global fastuidraw_blend_shader_data_location.
+        The same globals available to a fragment shader in PainterItemShaderGL
+        are also avalailable to the blend shader.
        */
       Shader::shader_source m_src;
     };
@@ -338,13 +339,15 @@ namespace fastuidraw
         Provides the GLSL code fragment that provides the function
         \code
         void
-        fastuidraw_gl_compute_blend_factors(in vec4 in_src, out vec4 out_src0, out vec4 out_src1)
+        fastuidraw_gl_compute_blend_factors(in uint sub_shader, in uint blend_shader_data_location,
+                                            in vec4 in_src, out vec4 out_src0, out vec4 out_src1)
         \endcode
         where in_src is the pre-multiplied by alpha color value for the
         fragment, out_src0 is the value for the fragment shader to emit
         for GL_SRC_COLOR and out_src1 is the value for the fragment shader
-        to emit value for GL_SRC1_COLOR. The location of the blend shader
-        data is store in the value of the global fastuidraw_blend_shader_data_location.
+        to emit value for GL_SRC1_COLOR. The same globals available to a
+        fragment shader in PainterItemShaderGL are also avalailable to the
+        blend shader.
        */
       Shader::shader_source m_src;
     };
@@ -360,13 +363,14 @@ namespace fastuidraw
         Provides the GLSL code fragment that provides the function
         \code
         void
-        fastuidraw_gl_compute_post_blended_value(in vec4 in_src, in vec4 in_fb, out vec4 out_src)
+        fastuidraw_gl_compute_post_blended_value(in uint sub_shader, in uint blend_shader_data_location,
+                                                 in vec4 in_src, in vec4 in_fb, out vec4 out_src)
         \endcode
         where in_src is the pre-multiplied by alpha color value for the
         fragment, in_fb is the value of the framebuffer at the location
         and out_src is the value for the fragment shader to emit. The
-        location of the blend shader data is store in the value of the
-        global fastuidraw_blend_shader_data_location.
+        same globals available to a fragment shader in PainterItemShaderGL
+        are also avalailable to the blend shader.
        */
       Shader::shader_source m_src;
     };
@@ -401,11 +405,35 @@ namespace fastuidraw
       single_src_blender(void) const;
 
       /*!
+        Provided as a conveniance, equivalent to
+        \code
+        single_src_blender().m_src;
+        \endcode
+       */
+      const Shader::shader_source&
+      single_src_blender_shader(void) const
+      {
+        return single_src_blender().m_src;
+      }
+
+      /*!
         Returns the shader code and blend mode to use when
         performing blending via dual source blending.
        */
       const DualSourceBlenderShader&
       dual_src_blender(void) const;
+
+      /*!
+        Provided as a conveniance, equivalent to
+        \code
+        dual_src_blender().m_src;
+        \endcode
+       */
+      const Shader::shader_source&
+      dual_src_blender_shader(void) const
+      {
+        return dual_src_blender().m_src;
+      }
       
       /*!
         Returns the shader code and blend mode to use when
@@ -414,9 +442,21 @@ namespace fastuidraw
       const FramebufferFetchBlendShader&
       fetch_blender(void) const;
 
+      /*!
+        Provided as a conveniance, equivalent to
+        \code
+        fetch_blender().m_src;
+        \endcode
+       */
+      const Shader::shader_source&
+      fetch_blender_shader(void) const
+      {
+        return fetch_blender().m_src;
+      }
+
     private:
       void *m_d;
     };
-  }
 /*! @} */
+  }
 }

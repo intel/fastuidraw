@@ -18,17 +18,17 @@ fastuidraw_compute_brush_color(void);
 
 #ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
 void
-fastuidraw_run_blend_shader(in uint blend_shader, in vec4 color0, out vec4 src0, out vec4 src1);
+fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 color0, out vec4 src0, out vec4 src1);
 #endif
 
 #ifdef FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH
 void
-fastuidraw_run_blend_shader(in uint blend_shader, in vec4 in_src, in vec4 in_fb, out vec4 out_src);
+fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 in_src, in vec4 in_fb, out vec4 out_src);
 #endif
 
 #ifdef FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND
 void
-fastuidraw_run_blend_shader(in uint blend_shader, in vec4 in_src, out vec4 out_src);
+fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 in_src, out vec4 out_src);
 #endif
 
 void

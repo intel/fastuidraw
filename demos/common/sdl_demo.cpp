@@ -164,7 +164,7 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
                           "match precisely the width and height parameters", *this),
   m_bpp(32, "bpp", "bits per pixel", *this),
   m_log_gl_commands("", "log_gl", "if non-empty, GL commands are logged to the named file. "
-		    "If value is stderr then logged to stderr, if value is stdout logged to stdout", *this),
+                    "If value is stderr then logged to stderr, if value is stdout logged to stdout", *this),
   m_print_gl_info(false, "print_gl_info", "If true print to stdout GL information", *this),
   m_swap_interval(-1, "swap_interval",
                   "If set, pass the specified value to SDL_GL_SetSwapInterval, "
@@ -426,7 +426,7 @@ init_sdl(void)
                 << "\nGL_MAX_COMBINED_UNIFORM_BLOCKS:" << fastuidraw::gl::context_get<GLint>(GL_MAX_COMBINED_UNIFORM_BLOCKS)
                 << "\nGL_MAX_UNIFORM_BLOCK_SIZE:" << fastuidraw::gl::context_get<GLint>(GL_MAX_UNIFORM_BLOCK_SIZE)
                 << "\nGL_MAX_TEXTURE_SIZE: " << fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_SIZE)
-		<< "\nGL_MAX_ARRAY_TEXTURE_LAYERS: " << fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS)
+                << "\nGL_MAX_ARRAY_TEXTURE_LAYERS: " << fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS)
                 << "\nGL_MAX_TEXTURE_BUFFER_SIZE: " << fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_BUFFER_SIZE);
 
 
@@ -516,9 +516,9 @@ main(int argc, char **argv)
   while(m_run_demo)
     {
       if(num_frames == 0)
-	{
-	  render_time.restart();
-	}
+        {
+          render_time.restart();
+        }
 
       draw_frame();
       swap_buffers();
@@ -543,8 +543,8 @@ main(int argc, char **argv)
       numf = static_cast<float>(std::max(1u, num_frames));
       msf = static_cast<float>(std::max(1, ms));
       std::cout << "Rendered " << num_frames << " in " << ms << " ms.\n"
-		<< "ms/frame = " << msf / numf  << "\n"
-		<< "FPS = " << 1000.0f * numf / msf << "\n";
+                << "ms/frame = " << msf / numf  << "\n"
+                << "FPS = " << 1000.0f * numf / msf << "\n";
     }
 
   return m_return_value;

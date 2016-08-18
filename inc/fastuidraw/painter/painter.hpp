@@ -456,6 +456,55 @@ namespace fastuidraw
                             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
+      Stroke a path using a custom PainterDashedStrokeShaderSet
+      \param shader shader with which to draw
+      \param draw data for how to draw
+      \param path path to stroke
+      \param cp cap style of dashes
+      \param js join style
+      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
+     */
+    void
+    stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
+                       enum PainterEnums::dashed_cap_style cp, enum PainterEnums::join_style js,
+                       bool with_anti_aliasing,
+                       const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
+
+    /*!
+      Stroke a path using PainterShaderSet::dashed_stroke_shader() of default_shaders().
+      \param draw data for how to draw
+      \param path path to stroke
+      \param cp cap style of dashes
+      \param js join style
+      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
+     */
+    void
+    stroke_dashed_path(const PainterData &draw, const Path &path,
+                       enum PainterEnums::dashed_cap_style cp, enum PainterEnums::join_style js,
+                       bool with_anti_aliasing,
+                       const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
+
+    /*!
+      Stroke a path using PainterShaderSet::pixel_width_dashed_stroke_shader() of default_shaders().
+      \param draw data for how to draw
+      \param path path to stroke
+      \param cp cap style of dashes
+      \param js join style
+      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
+     */
+    void
+    stroke_dashed_path_pixel_width(const PainterData &draw, const Path &path,
+                                   enum PainterEnums::dashed_cap_style cp, enum PainterEnums::join_style js,
+                                   bool with_anti_aliasing,
+                                   const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
+
+    /*!
       Fill a path.
       \param draw data for how to draw
       \param data attribute and index data with which to fill a path
@@ -720,6 +769,14 @@ namespace fastuidraw
      */
     void
     register_shader(const PainterStrokeShader &p);
+
+    /*!
+      Registers a dashed stroke shader for use. Must not be called within
+      a begin() / end() pair.
+      \param p PainterDashedStrokeShaderSet hold shaders to register
+     */
+    void
+    register_shader(const PainterDashedStrokeShaderSet &p);
 
     /*!
       Registers a glyph shader for use. Must not be called within

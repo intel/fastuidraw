@@ -99,8 +99,8 @@ namespace gl
       num_layers(int v);
 
       /*!
-	Query the current GL context and set the value for
-	width() const to GL_MAX_TEXTURE_SIZE.
+        Query the current GL context and set the value for
+        width() const to GL_MAX_TEXTURE_SIZE.
        */
       params&
       optimal_width(void);

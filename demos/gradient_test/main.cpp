@@ -139,11 +139,11 @@ protected:
     switch(ev.type)
       {
       case SDL_WINDOWEVENT:
-	if(ev.window.event == SDL_WINDOWEVENT_RESIZED)
-	  {
-	    glViewport(0, 0, ev.window.data1, ev.window.data2);
-	  }
-	break;
+        if(ev.window.event == SDL_WINDOWEVENT_RESIZED)
+          {
+            glViewport(0, 0, ev.window.data1, ev.window.data2);
+          }
+        break;
 
       case SDL_QUIT:
         end_demo(0);

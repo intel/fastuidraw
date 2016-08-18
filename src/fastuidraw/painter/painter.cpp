@@ -1205,6 +1205,40 @@ stroke_path_pixel_width(const PainterData &draw, const Path &path,
 
 void
 fastuidraw::Painter::
+stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
+                   enum PainterEnums::dashed_cap_style cp, enum PainterEnums::join_style js,
+                   bool with_anti_aliasing,
+                   const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
+{
+  enum PainterEnums::cap_style c;
+  c = (cp < PainterEnums::number_dashed_closed) ? PainterEnums::close_contours : PainterEnums::no_caps;
+  stroke_path(shader.shader(cp), draw, path, c, js, with_anti_aliasing, call_back);
+}
+
+void
+fastuidraw::Painter::
+stroke_dashed_path(const PainterData &draw, const Path &path,
+                   enum PainterEnums::dashed_cap_style cp, enum PainterEnums::join_style js,
+                   bool with_anti_aliasing,
+                   const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
+{
+  stroke_dashed_path(default_shaders().dashed_stroke_shader(), draw, path,
+                     cp, js, with_anti_aliasing, call_back);
+}
+
+void
+fastuidraw::Painter::
+stroke_dashed_path_pixel_width(const PainterData &draw, const Path &path,
+                               enum PainterEnums::dashed_cap_style cp, enum PainterEnums::join_style js,
+                               bool with_anti_aliasing,
+                               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
+{
+   stroke_dashed_path(default_shaders().pixel_width_dashed_stroke_shader(), draw, path,
+                      cp, js, with_anti_aliasing, call_back);
+}
+
+void
+fastuidraw::Painter::
 fill_path(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
           const PainterAttributeData &data, enum PainterEnums::fill_rule_t fill_rule,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
@@ -1858,6 +1892,15 @@ register_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &sha
 void
 fastuidraw::Painter::
 register_shader(const PainterStrokeShader &p)
+{
+  PainterPrivate *d;
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d->m_core->register_shader(p);
+}
+
+void
+fastuidraw::Painter::
+register_shader(const PainterDashedStrokeShaderSet &p)
 {
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);

@@ -1,0 +1,39 @@
+void
+fastuidraw_align_compute_Q_adjoint_Q(in vec3 pclip_p,
+                                                 out mat2 Q, out mat2 adjQ)
+{
+  vec3 clip;
+  clip = vec3(fastuidraw_viewport_pixels, 1.0) * pclip_p;
+
+  vec2 c0, c1;
+  c0.x = clip.z * fastuidraw_item_matrix[0].x - clip.x * fastuidraw_item_matrix[0].z;
+  c0.y = clip.z * fastuidraw_item_matrix[0].y - clip.y * fastuidraw_item_matrix[0].z;
+  c1.x = clip.z * fastuidraw_item_matrix[1].x - clip.x * fastuidraw_item_matrix[1].z;
+  c1.y = clip.z * fastuidraw_item_matrix[1].y - clip.y * fastuidraw_item_matrix[1].z;
+
+  Q = mat2(c0, c1);
+  adjQ = mat2( Q[1][1], -Q[0][1], -Q[1][0], Q[0][0]);
+}
+
+vec2
+fastuidraw_align_normal_to_screen(in vec3 clip_p, in vec2 n)
+{
+  mat2 Q, adjQ;
+
+  fastuidraw_align_compute_Q_adjoint_Q(clip_p, Q, adjQ);
+
+  vec2 n_screen, t_screen, t;
+
+  t = vec2(-n.y, n.x);
+  t_screen = fastuidraw_viewport_pixels * (Q * t);
+  n_screen = vec2(t_screen.y, -t_screen.x);
+
+  /* NOTE!
+       We do NOT divide by the det of Q, this is because
+       we only care about the -direction- of return
+       value, not the magnitude, thus the adjoint is
+       good enough [and it avoids us needing to deal
+       with a the case if the determinant is 0].
+   */
+  return adjQ * (fastuidraw_viewport_recip_pixels * n_screen);
+}

@@ -44,7 +44,6 @@ namespace fastuidraw
     public reference_counted<PainterShader>::default_base
   {
   public:
-
     /*!
       A Tag is how a PainterShader is described for
       and by a PainterBackend.
@@ -82,13 +81,50 @@ namespace fastuidraw
     };
 
     /*!
-      Ctor.
+      Ctor for a PainterShader with no sub-shaders.
+     */
+    PainterShader(void);
+
+    /*!
+      Ctor for creating a PainterShader which has multiple
+      sub-shaders. The purpose of sub-shaders is for the
+      case where multiple shaders almost same code and those
+      code differences can be realized by examining a sub-shader
+      ID.
+      \param num_sub_shaders number of sub-shaders
      */
     explicit
-    PainterShader(void);
+    PainterShader(unsigned int num_sub_shaders);
+
+    /*!
+      Ctor to create a PainterShader realized as a sub-shader
+      of an existing PainterShader. A sub-shader does not need
+      to be registered to a PainterBackend (if register_shader()
+      is called on such a shader, the call is ignored).
+      \param sub_shader which sub-shader of the parent PainterShader
+      \param parent parent PainterShader that has sub-shaders.
+                    The parent PainterShader MUST already be registered
+                    to a PainterBackend.
+     */
+    PainterShader(unsigned int sub_shader,
+                  reference_counted_ptr<PainterShader> parent);
 
     virtual
     ~PainterShader();
+
+    /*!
+      Returns the number of sub-shaders the PainterShader
+      supports.
+     */
+    unsigned int
+    number_sub_shaders(void) const;
+
+    /*!
+      If the PainterShader is a sub-shader returns the parent
+      shader, otherwise returns NULL.
+     */
+    const reference_counted_ptr<PainterShader>&
+    parent(void) const;
 
     /*!
       Returns the ID of the shader, the shader
@@ -116,13 +152,6 @@ namespace fastuidraw
     tag(void) const;
 
     /*!
-      Called by a PainterBackend to register the shader to it.
-      A PainterShader may only be registered once.
-     */
-    void
-    register_shader(Tag tg, const PainterBackend *p);
-
-    /*!
       Returns the PainterBackend to which the shader
       is registed. If not yet registered, returns NULL.
      */
@@ -130,6 +159,21 @@ namespace fastuidraw
     registered_to(void) const;
 
   private:
+    friend class PainterBackend;
+
+    /*!
+      Called by a PainterBackend to register the shader to it.
+      A PainterShader may only be registered once.
+     */
+    void
+    register_shader(Tag tg, const PainterBackend *p);
+
+    /*!
+      Called by PainterBackend to set the group for a sub-shader.
+     */
+    void
+    set_group_of_sub_shader(uint32_t group);
+
     void *m_d;
   };
 
@@ -139,14 +183,78 @@ namespace fastuidraw
     shader pair).
    */
   class PainterItemShader:public PainterShader
-  {};
+  {
+  public:
+    /*!
+      Ctor for a PainterItemShader with no sub-shaders.
+     */
+    PainterItemShader(void):
+      PainterShader()
+    {}
+
+    /*!
+      Ctor for creating a PainterItemShader which has multiple
+      sub-shaders. The purpose of sub-shaders is for the
+      case where multiple shaders almost same code and those
+      code differences can be realized by examining a sub-shader
+      ID.
+      \param num_sub_shaders number of sub-shaders
+     */
+    explicit
+    PainterItemShader(unsigned int num_sub_shaders):
+      PainterShader(num_sub_shaders)
+    {}
+
+    /*!
+      Ctor to create a PainterItemShader realized as a sub-shader
+      of an existing PainterItemShader
+      \param sub_shader which sub-shader of the parent PainterItemShader
+      \param parent parent PainterItemShader that has sub-shaders
+     */
+    PainterItemShader(unsigned int sub_shader,
+                      reference_counted_ptr<PainterItemShader> parent):
+      PainterShader(sub_shader, parent)
+    {}
+  };
 
   /*!
     A PainterBlendShader represents a shader
     for performing blending operations.
    */
   class PainterBlendShader:public PainterShader
-  {};
+  {
+  public:
+    /*!
+      Ctor for a PainterBlendShader with no sub-shaders.
+     */
+    PainterBlendShader(void):
+      PainterShader()
+    {}
+
+    /*!
+      Ctor for creating a PainterBlendShader which has multiple
+      sub-shaders. The purpose of sub-shaders is for the
+      case where multiple shaders almost same code and those
+      code differences can be realized by examining a sub-shader
+      ID.
+      \param num_sub_shaders number of sub-shaders
+     */
+    explicit
+    PainterBlendShader(unsigned int num_sub_shaders):
+      PainterShader(num_sub_shaders)
+    {}
+
+    /*!
+      Ctor to create a PainterBlendShader realized as a sub-shader
+      of an existing PainterBlendShader
+      \param sub_shader which sub-shader of the parent PainterBlendShader
+      \param parent parent PainterBlendShader that has sub-shaders
+     */
+    PainterBlendShader(unsigned int sub_shader,
+                       reference_counted_ptr<PainterBlendShader> parent):
+      PainterShader(sub_shader, parent)
+    {}
+  };
 
   /*!
     A PainterGlyphShader holds a shader pair
@@ -386,6 +494,58 @@ namespace fastuidraw
     void *m_d;
   };
 
+
+  /*!
+    A PainterDashedStrokeShaderSet holds a collection of
+    PainterStrokeShaderSet objects for the purpose of
+    dashed stroking. The shaders within a
+    PainterDashedStrokeShaderSet are expected to draw
+    any caps of dashed stroking from using just the edge
+    data. In particular, attributes/indices for caps are
+    NEVER given to a shader within a PainterDashedStrokeShaderSet.
+   */
+  class PainterDashedStrokeShaderSet
+  {
+  public:
+    /*!
+      Ctor
+     */
+    PainterDashedStrokeShaderSet(void);
+
+    /*!
+      Copy ctor.
+     */
+    PainterDashedStrokeShaderSet(const PainterDashedStrokeShaderSet &obj);
+
+    ~PainterDashedStrokeShaderSet();
+
+    /*!
+      Assignment operator.
+     */
+    PainterDashedStrokeShaderSet&
+    operator=(const PainterDashedStrokeShaderSet &rhs);
+
+    /*!
+      Shader set for dashed stroking of paths where the stroking
+      width is given in same units as the original path.
+      The stroking parameters are given by PainterDashedStrokeParams.
+      \param st cap style
+     */
+    const PainterStrokeShader&
+    shader(enum PainterEnums::dashed_cap_style st) const;
+
+    /*!
+      Set the value returned by dashed_stroke_shader(enum PainterEnums::dashed_cap_style) const.
+      \param st cap style
+      \param sh value to use
+     */
+    PainterDashedStrokeShaderSet&
+    shader(enum PainterEnums::dashed_cap_style st, const PainterStrokeShader &sh);
+
+  private:
+    void *m_d;
+  };
+
   /*!
     A PainterShaderSet provides shaders for drawing
     each of the item types:
@@ -447,7 +607,7 @@ namespace fastuidraw
     /*!
       Shader set for stroking of paths where the stroking
       width is given in same units as the original path.
-      The stroking parameters are given by StrokeParams.
+      The stroking parameters are given by PainterStrokeParams.
      */
     const PainterStrokeShader&
     stroke_shader(void) const;
@@ -462,7 +622,7 @@ namespace fastuidraw
     /*!
       Shader set for stroking of paths where the stroking
       width is given in pixels. The stroking parameters are
-      given by StrokeParams.
+      given by PainterStrokeParams.
      */
     const PainterStrokeShader&
     pixel_width_stroke_shader(void) const;
@@ -474,6 +634,37 @@ namespace fastuidraw
      */
     PainterShaderSet&
     pixel_width_stroke_shader(const PainterStrokeShader &sh);
+
+    /*!
+      Shader set for stroking of paths where the stroking
+      width is given in same units as the original path.
+      The stroking parameters are given by PainterStrokeParams.
+     */
+    const PainterDashedStrokeShaderSet&
+    dashed_stroke_shader(void) const;
+
+    /*!
+      Set the value returned by stroke_shader(void) const.
+      \param sh value to use
+     */
+    PainterShaderSet&
+    dashed_stroke_shader(const PainterDashedStrokeShaderSet &sh);
+
+    /*!
+      Shader set for stroking of paths where the stroking
+      width is given in pixels. The stroking parameters are
+      given by PainterStrokeParams.
+     */
+    const PainterDashedStrokeShaderSet&
+    pixel_width_dashed_stroke_shader(void) const;
+
+    /*!
+      Set the value returned by
+      pixel_width_stroke_shader(void) const.
+      \param sh value to use
+     */
+    PainterShaderSet&
+    pixel_width_dashed_stroke_shader(const PainterDashedStrokeShaderSet &sh);
 
     /*!
       Shader for filling of paths. The vertex shader

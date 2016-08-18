@@ -66,75 +66,19 @@ namespace fastuidraw
       */
       routine_success
     };
-
-  /*!
-    Returns the smallest power of 2 which
-    is atleast as large as the passed value,
-    i.e. returns n = 2^k where
-    2^{k-1} < v <= 2^k. If v=0, returns 1.
-    \param v value to find the least power of 2 that is atleast
-  */
-  inline
-  uint32_t
-  ceiling_power_2(uint32_t v)
-  {
-    uint32_t n;
-
-    n=(v>0)?
-      (v-1):
-      0;
-
-    //algorithm:
-    //  n = v -1
-    // say n = abcdefgh (binary), then:
-    //
-    // n|= (n >> 1) makes n= a (a|b) (b|c) (c|d) (d|e) (e|f) (f|g)
-    // n|= (n >> 2) makes n= a (a|b) (a|b|c) (a|b|c|d) (b|c|d|e) (c|d|e|f) (d|e|f|g)
-    // n|= (n >> 4) makes n= a (a|b) (a|b|c) (a|b|c|d) (a|d|c|d|e) (a|b|c|d|e|f) (a|b|c|d|e|f|g)
-    //
-    // thus the bits of n have the property that once a bit is
-    // up, all following bits are also up, thus n=-1 + 2^k
-    // incrementing by 1 then makes n= 2^k, which is then
-    // the precise power of 2 which is strictly greater than v-1.
-    // ain't bits grand? Dug this algorithm up from somewhere
-    // on the internet. Operation count= 5 bit-ors, 5 bit-shits,
-    // one increment, one decrement and one conditional move.
-
-    n|= (n >> 1);
-    n|= (n >> 2);
-    n|= (n >> 4);
-    n|= (n >> 8);
-    n|= (n >> 16);
-    ++n;
-
-    return n;
-  }
-
   /*!
     Returns the floor of the log2 of an unsinged integer,
-    i.e returns the ceiling log2, i.e. the value K so that
-    2^K <= x < 2^{K+1}
+    i.e. the value K so that 2^K <= x < 2^{K+1}
    */
   uint32_t
   uint32_log2(uint32_t v);
 
   /*!
-    Returns the smallest power of 2
-    for which a given uint32_t is
-    greater than or equal to.
-    \param v uint32_t to query
-  */
-  inline
+    Returns the number of bits required to hold a 32-bit
+    unsigned integer value.
+   */
   uint32_t
-  floor_power_2(uint32_t v)
-  {
-    uint32_t n;
-
-    n=ceiling_power_2(v);
-    return (n==v)?
-      v:
-      n/2;
-  }
+  number_bits_required(uint32_t v);
 
   /*!
     Returns true if a uint32_t is
@@ -159,11 +103,11 @@ namespace fastuidraw
   inline
   uint32_t
   apply_bit_flag(uint32_t input_value, bool to_apply,
-		 uint32_t bitfield_value)
+                 uint32_t bitfield_value)
   {
     return to_apply?
-      input_value|bitfield_value:
-      input_value&(~bitfield_value);
+      input_value | bitfield_value:
+      input_value & (~bitfield_value);
   }
 
   /*!

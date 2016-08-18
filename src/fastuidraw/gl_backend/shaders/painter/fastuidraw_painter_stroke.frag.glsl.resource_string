@@ -1,21 +1,25 @@
 vec4
-fastuidraw_gl_frag_main(in uint shader_data_offset)
+fastuidraw_gl_frag_main(in uint sub_shader,
+                        in uint shader_data_offset)
 {
   float alpha;
+  uint render_pass;
 
-  #ifdef FASTUIDRAW_STROKE_AA_PASS
-  {
-    float dd, q;
+  render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
+                    fastuidraw_stroke_sub_shader_render_pass_num_bits,
+                    sub_shader);
+  if(render_pass == uint(fastuidraw_stroke_aa_pass))
+    {
+      float dd, q;
 
-    q = 1.0 - abs(fastuidraw_stroking_on_boundary);
-    dd = fwidth(q);
-    alpha = min(1.0, q / dd);
-  }
-  #else
-  {
-    alpha = 1.0;
-  }
-  #endif
+      q = 1.0 - abs(fastuidraw_stroking_on_boundary);
+      dd = fwidth(q);
+      alpha = min(1.0, q / dd);
+    }
+  else
+    {
+      alpha = 1.0;
+    }
 
   return vec4(1.0, 1.0, 1.0, alpha);
 }

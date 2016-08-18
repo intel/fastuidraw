@@ -46,12 +46,29 @@ namespace fastuidraw
      */
     enum cap_style
       {
-        close_contours, /*!< indicates to stroke with contours of path closed */
-        no_caps,        /*!< indicates to stroke with contours of path are not closed and caps are not added */
+        no_caps,        /*!< indicates to stroke with contours of path are not closed and caps are not added     */
         rounded_caps,   /*!< indicates to stroke with contours of path are not closed and rounded caps are added */
-        square_caps,    /*!< indicates to stroke with contours of path are not closed and square caps are added */
+        square_caps,    /*!< indicates to stroke with contours of path are not closed and square caps are added  */
+        close_contours, /*!< indicates to stroke with contours of path closed */
 
-        number_cap_styles, /*!< number of cap styles */
+        number_cap_styles /*!< number of cap styles */
+      };
+
+    /*!
+      Enumeration specifying if and how to draw caps when dash stroking.
+     */
+    enum dashed_cap_style
+      {
+        dashed_no_caps_closed,       /*!< indicates to stroke with contours of path are closed and caps are not added     */
+        dashed_rounded_caps_closed,  /*!< indicates to stroke with contours of path are closed and rounded caps are added */
+        dashed_square_caps_closed,   /*!< indicates to stroke with contours of path are closed and square caps are added  */
+        number_dashed_closed, /*! number dashed cap styles where contours of path are closed */
+
+        dashed_no_caps = number_dashed_closed, /*!< indicates to stroke with contours of path are not closed and caps are not added     */
+        dashed_rounded_caps,                   /*!< indicates to stroke with contours of path are not closed and rounded caps are added */
+        dashed_square_caps,                    /*!< indicates to stroke with contours of path are not closed and square caps are added  */
+
+        number_dashed_cap_styles /*!< number of dashed cap styles */
       };
 
     /*!

@@ -20,7 +20,7 @@
 #pragma once
 
 #include <fastuidraw/painter/packing/painter_backend.hpp>
-#include <fastuidraw/gl_backend/painter_shader_gl.hpp>
+#include <fastuidraw/gl_backend/painter_item_shader_gl.hpp>
 #include <fastuidraw/gl_backend/painter_blend_shader_gl.hpp>
 #include <fastuidraw/gl_backend/image_gl.hpp>
 #include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>
@@ -360,12 +360,20 @@ namespace fastuidraw
       absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader);
 
       virtual
+      uint32_t
+      compute_item_sub_shader_group(const reference_counted_ptr<PainterItemShader> &shader);
+
+      virtual
       PainterShader::Tag
       absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader);
+
+      virtual
+      uint32_t
+      compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader);
 
     private:
       void *m_d;
     };
-  }
 /*! @} */
+  }
 }

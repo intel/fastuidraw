@@ -223,17 +223,25 @@ void
 fastuidraw::PainterBackend::
 register_shader(const reference_counted_ptr<PainterItemShader> &shader)
 {
-  if(!shader)
+  if(!shader || shader->registered_to() == this)
     {
       return;
     }
-  assert(shader->registered_to() == NULL || shader->registered_to() == this);
+  assert(shader->registered_to() == NULL);
   if(shader->registered_to() == NULL)
     {
-      PainterShader::Tag tag;
-
-      tag = absorb_item_shader(shader);
-      shader->register_shader(tag, this);
+      if(shader->parent())
+        {
+          register_shader(shader->parent().static_cast_ptr<PainterItemShader>());
+          assert(shader->registered_to() == this);
+          shader->set_group_of_sub_shader(compute_item_sub_shader_group(shader));
+        }
+      else
+        {
+          PainterShader::Tag tag;
+          tag = absorb_item_shader(shader);
+          shader->register_shader(tag, this);
+        }
     }
 }
 
@@ -241,17 +249,25 @@ void
 fastuidraw::PainterBackend::
 register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
 {
-  if(!shader)
+  if(!shader || shader->registered_to() == this)
     {
       return;
     }
-  assert(shader->registered_to() == NULL || shader->registered_to() == this);
+  assert(shader->registered_to() == NULL);
   if(shader->registered_to() == NULL)
     {
-      PainterShader::Tag tag;
-
-      tag = absorb_blend_shader(shader);
-      shader->register_shader(tag, this);
+      if(shader->parent())
+        {
+          register_shader(shader->parent().static_cast_ptr<PainterBlendShader>());
+          assert(shader->registered_to() == this);
+          shader->set_group_of_sub_shader(compute_blend_sub_shader_group(shader));
+        }
+      else
+        {
+          PainterShader::Tag tag;
+          tag = absorb_blend_shader(shader);
+          shader->register_shader(tag, this);
+        }
     }
 }
 
@@ -285,6 +301,8 @@ register_shader(const PainterShaderSet &shaders)
 {
   register_shader(shaders.stroke_shader());
   register_shader(shaders.pixel_width_stroke_shader());
+  register_shader(shaders.dashed_stroke_shader());
+  register_shader(shaders.pixel_width_dashed_stroke_shader());
   register_shader(shaders.fill_shader());
   register_shader(shaders.glyph_shader());
   register_shader(shaders.glyph_shader_anisotropic());
@@ -314,6 +332,18 @@ register_shader(const PainterStrokeShader &p)
   register_shader(p.non_aa_shader());
   register_shader(p.aa_shader_pass1());
   register_shader(p.aa_shader_pass2());
+}
+
+void
+fastuidraw::PainterBackend::
+register_shader(const PainterDashedStrokeShaderSet &p)
+{
+  for(int i = 0; i < PainterEnums::number_dashed_cap_styles; ++i)
+    {
+      enum PainterEnums::dashed_cap_style c;
+      c = static_cast<enum PainterEnums::dashed_cap_style>(i);
+      register_shader(p.shader(c));
+    }
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas>&

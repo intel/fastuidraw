@@ -458,17 +458,17 @@ glyph_test(void):
   m_geometry_backing_store_type(geometry_backing_store_auto,
                                 enumerated_string_type<enum geometry_backing_store_t>()
                                 .add_entry("buffer",
-					   geometry_backing_store_texture_buffer,
-					   "use a texture buffer, feature is core in GL but for GLES requires version 3.2, "
+                                           geometry_backing_store_texture_buffer,
+                                           "use a texture buffer, feature is core in GL but for GLES requires version 3.2, "
                                            "for GLES version pre-3.2, requires the extension GL_OES_texture_buffer or the "
                                            "extension GL_EXT_texture_buffer")
                                 .add_entry("texture_array",
-					   geometry_backing_store_texture_array,
-					   "use a 2D texture array to store the glyph geometry data, "
+                                           geometry_backing_store_texture_array,
+                                           "use a 2D texture array to store the glyph geometry data, "
                                            "GL and GLES have feature in core")
-				.add_entry("auto",
-					   geometry_backing_store_auto,
-					   "query context and decide optimal value"),
+                                .add_entry("auto",
+                                           geometry_backing_store_auto,
+                                           "query context and decide optimal value"),
                                 "geometry_backing_store_type",
                                 "Determines how the glyph geometry store is backed.",
                                 *this),
@@ -782,9 +782,9 @@ change_glyph_renderer(GlyphRender renderer, c_array<Glyph> glyphs, const_c_array
   for(unsigned int i = 0; i < glyphs.size(); ++i)
     {
       if(glyphs[i].valid())
-	{
-	  glyphs[i] = m_glyph_selector->fetch_glyph_no_merging(renderer, glyphs[i].layout().m_font, character_codes[i]);
-	}
+        {
+          glyphs[i] = m_glyph_selector->fetch_glyph_no_merging(renderer, glyphs[i].layout().m_font, character_codes[i]);
+        }
     }
 }
 

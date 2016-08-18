@@ -36,12 +36,20 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_null;
   };
 
+  class PainterDashedStrokeShaderSetPrivate
+  {
+  public:
+    fastuidraw::vecN<fastuidraw::PainterStrokeShader, fastuidraw::PainterEnums::number_dashed_cap_styles> m_shaders;
+  };
+
   class PainterShaderSetPrivate
   {
   public:
     fastuidraw::PainterGlyphShader m_glyph_shader, m_glyph_shader_anisotropic;
     fastuidraw::PainterStrokeShader m_stroke_shader;
     fastuidraw::PainterStrokeShader m_pixel_width_stroke_shader;
+    fastuidraw::PainterDashedStrokeShaderSet m_dashed_stroke_shader;
+    fastuidraw::PainterDashedStrokeShaderSet m_pixel_width_dashed_stroke_shader;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_fill_shader;
     fastuidraw::PainterBlendShaderSet m_blend_shaders;
   };
@@ -49,13 +57,23 @@ namespace
   class PainterShaderPrivate
   {
   public:
-    PainterShaderPrivate(void):
-      m_registered_to(NULL)
+    PainterShaderPrivate(unsigned int num_sub_shaders):
+      m_registered_to(NULL),
+      m_number_sub_shaders(num_sub_shaders),
+      m_sub_shader_ID(0)
     {
     }
 
     fastuidraw::PainterShader::Tag m_tag;
     const fastuidraw::PainterBackend *m_registered_to;
+
+    //for when shader has sub-shaders
+    unsigned int m_number_sub_shaders;
+    std::vector<fastuidraw::PainterShader*> m_constructed_sub_shaders;
+
+    //for when shader is a sub-shader
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterShader> m_parent;
+    unsigned int m_sub_shader_ID;
   };
 
   class PainterStrokeShaderPrivate
@@ -77,7 +95,31 @@ namespace
 fastuidraw::PainterShader::
 PainterShader(void)
 {
-  m_d = FASTUIDRAWnew PainterShaderPrivate();
+  m_d = FASTUIDRAWnew PainterShaderPrivate(1);
+}
+
+fastuidraw::PainterShader::
+PainterShader(unsigned int num_sub_shaders)
+{
+  m_d = FASTUIDRAWnew PainterShaderPrivate(num_sub_shaders);
+}
+
+fastuidraw::PainterShader::
+PainterShader(unsigned int sub_shader,
+              reference_counted_ptr<PainterShader> parent)
+{
+  PainterShaderPrivate *d;
+  m_d = d = FASTUIDRAWnew PainterShaderPrivate(1);
+
+  assert(parent);
+  assert(sub_shader < parent->number_sub_shaders());
+
+  d->m_parent = parent;
+  d->m_sub_shader_ID = sub_shader;
+
+  PainterShaderPrivate *pd;
+  pd = reinterpret_cast<PainterShaderPrivate*>(d->m_parent->m_d);
+  pd->m_constructed_sub_shaders.push_back(this);
 }
 
 fastuidraw::PainterShader::
@@ -119,6 +161,24 @@ tag(void) const
   return d->m_tag;
 }
 
+unsigned int
+fastuidraw::PainterShader::
+number_sub_shaders(void) const
+{
+  PainterShaderPrivate *d;
+  d = reinterpret_cast<PainterShaderPrivate*>(m_d);
+  return d->m_number_sub_shaders;
+}
+
+const fastuidraw::reference_counted_ptr<fastuidraw::PainterShader>&
+fastuidraw::PainterShader::
+parent(void) const
+{
+  PainterShaderPrivate *d;
+  d = reinterpret_cast<PainterShaderPrivate*>(m_d);
+  return d->m_parent;
+}
+
 void
 fastuidraw::PainterShader::
 register_shader(Tag tg, const PainterBackend *p)
@@ -126,8 +186,29 @@ register_shader(Tag tg, const PainterBackend *p)
   PainterShaderPrivate *d;
   d = reinterpret_cast<PainterShaderPrivate*>(m_d);
   assert(d->m_registered_to == NULL);
+  assert(!d->m_parent);
   d->m_tag = tg;
   d->m_registered_to = p;
+  for(unsigned int i = 0, endi = d->m_constructed_sub_shaders.size(); i < endi; ++i)
+    {
+      PainterShaderPrivate *q;
+      q = reinterpret_cast<PainterShaderPrivate*>(d->m_constructed_sub_shaders[i]->m_d);
+      assert(q->m_parent.get() == this);
+      q->m_registered_to = p;
+      q->m_tag.m_ID = tg.m_ID + q->m_sub_shader_ID;
+      q->m_tag.m_group = tg.m_group;
+    }
+}
+
+void
+fastuidraw::PainterShader::
+set_group_of_sub_shader(uint32_t gr)
+{
+  PainterShaderPrivate *d;
+  d = reinterpret_cast<PainterShaderPrivate*>(m_d);
+  assert(d->m_registered_to != NULL);
+  assert(d->m_parent);
+  d->m_tag.m_group = gr;
 }
 
 const fastuidraw::PainterBackend*
@@ -287,6 +368,69 @@ shader_count(void) const
   return d->m_shaders.size();
 }
 
+///////////////////////////////////////////////////
+// fastuidraw::PainterDashedStrokeShaderSet methods
+fastuidraw::PainterDashedStrokeShaderSet::
+PainterDashedStrokeShaderSet(void)
+{
+  m_d = FASTUIDRAWnew PainterDashedStrokeShaderSetPrivate();
+}
+
+fastuidraw::PainterDashedStrokeShaderSet::
+PainterDashedStrokeShaderSet(const PainterDashedStrokeShaderSet &obj)
+{
+  PainterDashedStrokeShaderSetPrivate *d;
+  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(obj.m_d);
+  m_d = FASTUIDRAWnew PainterDashedStrokeShaderSetPrivate(*d);
+}
+
+fastuidraw::PainterDashedStrokeShaderSet::
+~PainterDashedStrokeShaderSet()
+{
+  PainterDashedStrokeShaderSetPrivate *d;
+  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+  m_d = NULL;
+}
+
+fastuidraw::PainterDashedStrokeShaderSet&
+fastuidraw::PainterDashedStrokeShaderSet::
+operator=(const PainterDashedStrokeShaderSet &rhs)
+{
+  if(this != &rhs)
+    {
+      PainterDashedStrokeShaderSetPrivate *d, *rhs_d;
+      d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+      rhs_d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(rhs.m_d);
+      *d = *rhs_d;
+    }
+  return *this;
+}
+
+const fastuidraw::PainterStrokeShader&
+fastuidraw::PainterDashedStrokeShaderSet::
+shader(enum PainterEnums::dashed_cap_style st) const
+{
+  PainterDashedStrokeShaderSetPrivate *d;
+  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+  return (st < d->m_shaders.size()) ?
+    d->m_shaders[st] :
+    d->m_shaders[PainterEnums::dashed_no_caps];
+}
+
+fastuidraw::PainterDashedStrokeShaderSet&
+fastuidraw::PainterDashedStrokeShaderSet::
+shader(enum PainterEnums::dashed_cap_style st,
+                     const PainterStrokeShader &sh)
+{
+  PainterDashedStrokeShaderSetPrivate *d;
+  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+  if(st < d->m_shaders.size())
+    {
+      d->m_shaders[st] = sh;
+    }
+  return *this;
+}
 
 //////////////////////////////////////////////
 // fastuidraw::PainterShaderSet methods
@@ -351,6 +495,8 @@ setget_implement(fastuidraw::PainterGlyphShader, glyph_shader)
 setget_implement(fastuidraw::PainterGlyphShader, glyph_shader_anisotropic)
 setget_implement(fastuidraw::PainterStrokeShader, stroke_shader)
 setget_implement(fastuidraw::PainterStrokeShader, pixel_width_stroke_shader)
+setget_implement(fastuidraw::PainterDashedStrokeShaderSet, dashed_stroke_shader)
+setget_implement(fastuidraw::PainterDashedStrokeShaderSet, pixel_width_dashed_stroke_shader)
 setget_implement(fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>, fill_shader)
 setget_implement(fastuidraw::PainterBlendShaderSet, blend_shaders)
 
