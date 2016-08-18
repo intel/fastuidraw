@@ -546,9 +546,12 @@ namespace
       m_number_pools(3),
       m_break_on_shader_change(false),
       m_use_hw_clip_planes(true),
-      m_vert_shader_use_switch(true),
-      m_frag_shader_use_switch(true),
-      m_blend_shader_use_switch(true),
+      /* on Mesa/i965 using switch statement gives much slower
+         performance than using if/else chain.
+       */
+      m_vert_shader_use_switch(false),
+      m_frag_shader_use_switch(false),
+      m_blend_shader_use_switch(false),
       m_unpack_header_and_brush_in_frag_shader(false)
     {}
 
