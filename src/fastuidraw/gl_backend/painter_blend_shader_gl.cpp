@@ -21,6 +21,23 @@
 
 namespace
 {
+  class BlendShaderSourceCodePrivate
+  {
+  public:
+    BlendShaderSourceCodePrivate(const fastuidraw::gl::Shader::shader_source &psrc,
+                                 unsigned int num_sub_shaders):
+      m_src(psrc),
+      m_number_sub_shaders(num_sub_shaders),
+      m_shader_id(0),
+      m_registered_to(NULL)
+    {}
+
+    fastuidraw::gl::Shader::shader_source m_src;
+    unsigned int m_number_sub_shaders;
+    uint32_t m_shader_id;
+    const fastuidraw::gl::PainterBackendGL *m_registered_to;
+  };
+
   class PainterBlendShaderGLPrivate
   {
   public:
@@ -36,6 +53,72 @@ namespace
     fastuidraw::gl::DualSourceBlenderShader m_dual_src_blender;
     fastuidraw::gl::FramebufferFetchBlendShader m_fetch_blender;
   };
+}
+
+//////////////////////////////////////////////
+// fastuidraw::gl::BlendShaderSourceCode
+fastuidraw::gl::BlendShaderSourceCode::
+BlendShaderSourceCode(const Shader::shader_source &psrc,
+                      unsigned int num_sub_shaders)
+{
+  m_d = FASTUIDRAWnew BlendShaderSourceCodePrivate(psrc, num_sub_shaders);
+}
+
+fastuidraw::gl::BlendShaderSourceCode::
+~BlendShaderSourceCode()
+{
+  BlendShaderSourceCodePrivate *d;
+  d = reinterpret_cast<BlendShaderSourceCodePrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+  m_d = NULL;
+}
+
+const fastuidraw::gl::Shader::shader_source&
+fastuidraw::gl::BlendShaderSourceCode::
+shader_src(void) const
+{
+  BlendShaderSourceCodePrivate *d;
+  d = reinterpret_cast<BlendShaderSourceCodePrivate*>(m_d);
+  return d->m_src;
+}
+
+unsigned int
+fastuidraw::gl::BlendShaderSourceCode::
+number_sub_shaders(void) const
+{
+  BlendShaderSourceCodePrivate *d;
+  d = reinterpret_cast<BlendShaderSourceCodePrivate*>(m_d);
+  return d->m_number_sub_shaders;
+}
+
+uint32_t
+fastuidraw::gl::BlendShaderSourceCode::
+ID(void) const
+{
+  BlendShaderSourceCodePrivate *d;
+  d = reinterpret_cast<BlendShaderSourceCodePrivate*>(m_d);
+  return d->m_shader_id;
+}
+
+const fastuidraw::gl::PainterBackendGL*
+fastuidraw::gl::BlendShaderSourceCode::
+registered_to(void) const
+{
+  BlendShaderSourceCodePrivate *d;
+  d = reinterpret_cast<BlendShaderSourceCodePrivate*>(m_d);
+  return d->m_registered_to;
+}
+
+void
+fastuidraw::gl::BlendShaderSourceCode::
+register_shader_code(uint32_t pshader_id,
+                     const PainterBackendGL *backend)
+{
+  BlendShaderSourceCodePrivate *d;
+  d = reinterpret_cast<BlendShaderSourceCodePrivate*>(m_d);
+  assert(d->m_registered_to == NULL);
+  d->m_registered_to = backend;
+  d->m_shader_id = pshader_id;
 }
 
 ///////////////////////////////////////////////
