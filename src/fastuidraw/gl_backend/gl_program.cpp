@@ -364,6 +364,35 @@ add_source_code_from_stream(const std::string &label,
 
   while(getline(istr, S))
     {
+      /* combine source lines that end with \
+       */
+      if(*S.rbegin() == '\\')
+        {
+          std::vector<std::string> strings;
+
+          strings.push_back(S);
+          while(!strings.rbegin()->empty() && *strings.rbegin()->rbegin() == '\\')
+            {
+              getline(istr, S);
+              strings.push_back(S);
+            }
+          getline(istr, S);
+          strings.push_back(S);
+
+          /* now remove the '\\' and put on S.
+           */
+          S.clear();
+          for(std::vector<std::string>::iterator
+                iter = strings.begin(), end = strings.end(); iter != end; ++iter)
+            {
+              if(!iter->empty() && *iter->rbegin() == '\\')
+                {
+                  iter->resize(iter->size() - 1);
+                }
+              S += *iter;
+            }
+        }
+
       emit_source_line(output_stream, S, line_number, label);
       ++line_number;
       S.clear();
@@ -787,7 +816,7 @@ assembled_code(void) const
 
       if(!d->m_version.empty())
         {
-          output_glsl_source_code <<"\n#version " << d->m_version << "\n";
+          output_glsl_source_code <<"#version " << d->m_version << "\n";
         }
 
       for(std::map<std::string, enum shader_extension_enable_type>::const_iterator
