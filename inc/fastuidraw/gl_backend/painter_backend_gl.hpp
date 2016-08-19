@@ -304,7 +304,11 @@ namespace fastuidraw
 
       /*!
         Ctor.
-        \param P parameters specifying properties
+        \param P parameters specifying properties. A GL context must
+                 be current when contructing a PainterBackendGL object.
+                 Any GL context used with the constructed PainterBackendGL
+                 must be in the same share group as the GL context that
+                 was current when the PainterBackendGL was constructed.
        */
       explicit
       PainterBackendGL(const params &P = params());
