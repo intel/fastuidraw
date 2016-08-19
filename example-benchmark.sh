@@ -33,6 +33,7 @@ common_options="fullscreen $FULLSCREEN swap_interval $SWAP_INTERVAL add_image /u
 
 
 function run_benchmark {
+    mkdir -p $RESULTS
     echo "vblank_mode=0 $1 $common_options $2 > $RESULTS/$3"
     vblank_mode=0 $1 $common_options $2 > $RESULTS/$3
 }
