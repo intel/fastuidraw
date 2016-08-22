@@ -133,24 +133,24 @@ namespace
     BlendModeTracker(void);
 
     unsigned int
-    blend_index(const fastuidraw::glsl::BlendMode &mode);
+    blend_index(const fastuidraw::BlendMode &mode);
 
-    const fastuidraw::glsl::BlendMode&
+    const fastuidraw::BlendMode&
     blend_mode(unsigned int idx) const
     {
       assert(idx < m_modes.size());
       return m_modes[idx];
     }
 
-    fastuidraw::const_c_array<fastuidraw::glsl::BlendMode>
+    fastuidraw::const_c_array<fastuidraw::BlendMode>
     blend_modes(void) const
     {
-      return fastuidraw::make_c_array<fastuidraw::glsl::BlendMode>(m_modes);
+      return fastuidraw::make_c_array<fastuidraw::BlendMode>(m_modes);
     }
     
   private:
-    std::map<fastuidraw::glsl::BlendMode, uint32_t> m_map;
-    std::vector<fastuidraw::glsl::BlendMode> m_modes;
+    std::map<fastuidraw::BlendMode, uint32_t> m_map;
+    std::vector<fastuidraw::BlendMode> m_modes;
   };
 
   class PainterBackendGLPrivate
@@ -240,7 +240,7 @@ namespace
   class DrawEntry
   {
   public:
-    DrawEntry(const fastuidraw::glsl::BlendMode &mode);
+    DrawEntry(const fastuidraw::BlendMode &mode);
 
     void
     add_entry(GLsizei count, const void *offset);
@@ -252,13 +252,13 @@ namespace
 
     static
     GLenum
-    convert_blend_op(enum fastuidraw::glsl::BlendMode::op_t v);
+    convert_blend_op(enum fastuidraw::BlendMode::op_t v);
 
     static
     GLenum
-    convert_blend_func(enum fastuidraw::glsl::BlendMode::func_t v);
+    convert_blend_func(enum fastuidraw::BlendMode::func_t v);
 
-    fastuidraw::glsl::BlendMode m_blend_mode;
+    fastuidraw::BlendMode m_blend_mode;
     std::vector<GLsizei> m_counts;
     std::vector<const GLvoid*> m_indices;
   };
@@ -269,7 +269,7 @@ namespace
     explicit
     DrawCommand(painter_vao_pool *hnd,
                 const fastuidraw::gl::PainterBackendGL::params &params,
-                fastuidraw::const_c_array<fastuidraw::glsl::BlendMode> blend_modes);
+                fastuidraw::const_c_array<fastuidraw::BlendMode> blend_modes);
 
     virtual
     ~DrawCommand()
@@ -299,7 +299,7 @@ namespace
     add_entry(unsigned int indices_written) const;
 
     painter_vao m_vao;
-    fastuidraw::const_c_array<fastuidraw::glsl::BlendMode> m_blend_modes;
+    fastuidraw::const_c_array<fastuidraw::BlendMode> m_blend_modes;
     mutable unsigned int m_attributes_written, m_indices_written;
     mutable std::list<DrawEntry> m_draws;
   };
@@ -507,7 +507,7 @@ generate_bo(GLenum bind_target, GLsizei psize)
 ///////////////////////////////////////////////
 // DrawEntry methods
 DrawEntry::
-DrawEntry(const fastuidraw::glsl::BlendMode &mode):
+DrawEntry(const fastuidraw::BlendMode &mode):
   m_blend_mode(mode)
 {}
 
@@ -566,10 +566,10 @@ draw(void) const
 
 GLenum
 DrawEntry::
-convert_blend_op(enum fastuidraw::glsl::BlendMode::op_t v)
+convert_blend_op(enum fastuidraw::BlendMode::op_t v)
 {
-#define C(X) case fastuidraw::glsl::BlendMode::X: return GL_FUNC_##X
-#define D(X) case fastuidraw::glsl::BlendMode::X: return GL_##X
+#define C(X) case fastuidraw::BlendMode::X: return GL_FUNC_##X
+#define D(X) case fastuidraw::BlendMode::X: return GL_##X
 
   switch(v)
     {
@@ -588,9 +588,9 @@ convert_blend_op(enum fastuidraw::glsl::BlendMode::op_t v)
 
 GLenum
 DrawEntry::
-convert_blend_func(enum fastuidraw::glsl::BlendMode::func_t v)
+convert_blend_func(enum fastuidraw::BlendMode::func_t v)
 {
-#define C(X) case fastuidraw::glsl::BlendMode::X: return GL_##X
+#define C(X) case fastuidraw::BlendMode::X: return GL_##X
   switch(v)
     {
       C(ZERO);
@@ -623,7 +623,7 @@ convert_blend_func(enum fastuidraw::glsl::BlendMode::func_t v)
 DrawCommand::
 DrawCommand(painter_vao_pool *hnd,
             const fastuidraw::gl::PainterBackendGL::params &params,
-            fastuidraw::const_c_array<fastuidraw::glsl::BlendMode> blend_modes):
+            fastuidraw::const_c_array<fastuidraw::BlendMode> blend_modes):
   m_vao(hnd->request_vao()),
   m_blend_modes(blend_modes),
   m_attributes_written(0),
@@ -770,7 +770,7 @@ add_entry(unsigned int indices_written) const
         }
       else
         {
-          m_draws.push_back(fastuidraw::glsl::BlendMode());
+          m_draws.push_back(fastuidraw::BlendMode());
         }
     }
   assert(indices_written >= m_indices_written);
@@ -789,9 +789,9 @@ BlendModeTracker(void)
 
 unsigned int
 BlendModeTracker::
-blend_index(const fastuidraw::glsl::BlendMode &blend_mode)
+blend_index(const fastuidraw::BlendMode &blend_mode)
 {
-  std::map<fastuidraw::glsl::BlendMode, unsigned int>::const_iterator iter;
+  std::map<fastuidraw::BlendMode, unsigned int>::const_iterator iter;
   unsigned int return_value;
 
   iter = m_map.find(blend_mode);
