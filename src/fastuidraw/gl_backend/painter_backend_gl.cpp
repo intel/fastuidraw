@@ -242,6 +242,15 @@ namespace
     draw(void) const;
 
   private:
+
+    static
+    GLenum
+    convert_blend_op(enum fastuidraw::gl::BlendMode::op_t v);
+
+    static
+    GLenum
+    convert_blend_func(enum fastuidraw::gl::BlendMode::func_t v);
+
     fastuidraw::gl::BlendMode m_blend_mode;
     std::vector<GLsizei> m_counts;
     std::vector<const GLvoid*> m_indices;
@@ -507,9 +516,12 @@ void
 DrawEntry::
 draw(void) const
 {
-  glBlendEquationSeparate(m_blend_mode.equation_rgb(), m_blend_mode.equation_alpha());
-  glBlendFuncSeparate(m_blend_mode.func_src_rgb(), m_blend_mode.func_dst_rgb(),
-                      m_blend_mode.func_src_alpha(), m_blend_mode.func_dst_alpha());
+  glBlendEquationSeparate(convert_blend_op(m_blend_mode.equation_rgb()),
+                          convert_blend_op(m_blend_mode.equation_alpha()));
+  glBlendFuncSeparate(convert_blend_func(m_blend_mode.func_src_rgb()),
+                      convert_blend_func(m_blend_mode.func_dst_rgb()),
+                      convert_blend_func(m_blend_mode.func_src_alpha()),
+                      convert_blend_func(m_blend_mode.func_dst_alpha()));
   assert(!m_counts.empty());
   assert(m_counts.size() == m_indices.size());
   //std::cout << m_counts.size() << " " ;
@@ -543,6 +555,60 @@ draw(void) const
         }
     }
   #endif
+}
+
+GLenum
+DrawEntry::
+convert_blend_op(enum fastuidraw::gl::BlendMode::op_t v)
+{
+#define C(X) case fastuidraw::gl::BlendMode::X: return GL_FUNC_##X
+#define D(X) case fastuidraw::gl::BlendMode::X: return GL_##X
+
+  switch(v)
+    {
+      C(ADD);
+      C(SUBTRACT);
+      C(REVERSE_SUBTRACT);
+      D(MIN);
+      D(MAX);
+    }
+#undef C
+#undef D
+
+  assert("Invalid blend_op_t");
+  return GL_INVALID_ENUM;
+}
+
+GLenum
+DrawEntry::
+convert_blend_func(enum fastuidraw::gl::BlendMode::func_t v)
+{
+#define C(X) case fastuidraw::gl::BlendMode::X: return GL_##X
+  switch(v)
+    {
+      C(ZERO);
+      C(ONE);
+      C(SRC_COLOR);
+      C(ONE_MINUS_SRC_COLOR);
+      C(SRC_ALPHA);
+      C(ONE_MINUS_SRC_ALPHA);
+      C(DST_COLOR);
+      C(ONE_MINUS_DST_COLOR);
+      C(DST_ALPHA);
+      C(ONE_MINUS_DST_ALPHA);
+      C(CONSTANT_COLOR);
+      C(ONE_MINUS_CONSTANT_COLOR);
+      C(CONSTANT_ALPHA);
+      C(ONE_MINUS_CONSTANT_ALPHA);
+      C(SRC_ALPHA_SATURATE);
+      C(SRC1_COLOR);
+      C(ONE_MINUS_SRC1_COLOR);
+      C(SRC1_ALPHA);
+      C(ONE_MINUS_SRC1_ALPHA);
+    }
+#undef C
+  assert("Invalid blend_t");
+  return GL_INVALID_ENUM;
 }
 
 ////////////////////////////////////

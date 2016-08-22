@@ -21,7 +21,6 @@
 
 #include <fastuidraw/painter/painter_shader.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
-#include <fastuidraw/gl_backend/gl_header.hpp>
 
 namespace fastuidraw
 {
@@ -30,7 +29,6 @@ namespace fastuidraw
 /*!\addtogroup GLBackend
   @{
  */
-
     /*!
       Class to hold the blend mode as exposed by the GL API
       points.
@@ -38,48 +36,80 @@ namespace fastuidraw
     class BlendMode
     {
     public:
+      /*!
+        Enumeration to specify blend equation, i.e. glBlendEquation.
+       */
+      enum op_t
+        {
+          ADD,
+          SUBTRACT,
+          REVERSE_SUBTRACT,
+          MIN,
+          MAX,
+        };
+
+      /*!
+        Enumeration to specify the blend coefficient factor,
+        i.e. glBlendFunc.
+       */
+      enum func_t
+        {
+          ZERO,
+          ONE,
+          SRC_COLOR,
+          ONE_MINUS_SRC_COLOR,
+          DST_COLOR,
+          ONE_MINUS_DST_COLOR,
+          SRC_ALPHA,
+          ONE_MINUS_SRC_ALPHA,
+          DST_ALPHA,
+          ONE_MINUS_DST_ALPHA,
+          CONSTANT_COLOR,
+          ONE_MINUS_CONSTANT_COLOR,
+          CONSTANT_ALPHA,
+          ONE_MINUS_CONSTANT_ALPHA,
+          SRC_ALPHA_SATURATE,
+          SRC1_COLOR,
+          ONE_MINUS_SRC1_COLOR,
+          SRC1_ALPHA,
+          ONE_MINUS_SRC1_ALPHA,
+        };
+
+      /*!
+        Ctor.
+       */
       BlendMode(void)
       {
-        m_data[Kequation_rgb] = m_data[Kequation_alpha] = GL_FUNC_ADD;
-        m_data[Kfunc_src_rgb] = m_data[Kfunc_src_alpha] = GL_ONE;
-        m_data[Kfunc_dst_rgb] = m_data[Kfunc_dst_alpha] = GL_ZERO;
+        m_blend_equation[Kequation_rgb] = m_blend_equation[Kequation_alpha] = ADD;
+        m_blend_func[Kfunc_src_rgb] = m_blend_func[Kfunc_src_alpha] = ONE;
+        m_blend_func[Kfunc_dst_rgb] = m_blend_func[Kfunc_dst_alpha] = ZERO;
       }
 
       /*!
-        Set the argument to feed for the RGB for
-        glBlendEquationSeparate, should be one of
-        GL_FUNC_ADD, GL_FUNC_SUBTRACT,
-        GL_FUNC_REVERSE_SUBTRACT, GL_MIN or GL_MAX.
-        Default value is GL_FUNC_ADD.
+        Set the blend equation for the RGB channels.
+        Default value is ADD.
        */
       BlendMode&
-      equation_rgb(GLenum v) { m_data[Kequation_rgb] = v; return *this; }
+      equation_rgb(enum op_t v) { m_blend_equation[Kequation_rgb] = v; return *this; }
 
       /*!
-        The value for the argument to feed for the RGB
-        for glBlendEquationSeparate, as set by
-        equation_rgb(GLenum).
+        Return the value as set by equation_rgb(enum op_t).
        */
-      GLenum
-      equation_rgb(void) const { return m_data[Kequation_rgb]; }
+      enum op_t
+      equation_rgb(void) const { return m_blend_equation[Kequation_rgb]; }
 
       /*!
-        Set the argument to feed for the Alpha for
-        glBlendEquationSeparate, should be one of
-        GL_FUNC_ADD, GL_FUNC_SUBTRACT,
-        GL_FUNC_REVERSE_SUBTRACT, GL_MIN or GL_MAX.
-        Default value is GL_FUNC_ADD.
+        Set the blend equation for the Alpha channel.
+        Default value is ADD.
        */
       BlendMode&
-      equation_alpha(GLenum v) { m_data[Kequation_alpha] = v; return *this; }
+      equation_alpha(enum op_t v) { m_blend_equation[Kequation_alpha] = v; return *this; }
 
       /*!
-        The value for the argument to feed for the Alpha
-        for glBlendEquationSeparate, as set by
-        equation_alpha(GLenum).
+        Return the value as set by equation_alpha(enum op_t).
        */
-      GLenum
-      equation_alpha(void) const { return m_data[Kequation_alpha]; }
+      enum op_t
+      equation_alpha(void) const { return m_blend_equation[Kequation_alpha]; }
 
       /*!
         Provided as a conveniance, equivalent to
@@ -89,54 +119,38 @@ namespace fastuidraw
         \endcode
        */
       BlendMode&
-      equation(GLenum v)
+      equation(enum op_t v)
       {
-        m_data[Kequation_rgb] = v;
-        m_data[Kequation_alpha] = v;
+        m_blend_equation[Kequation_rgb] = v;
+        m_blend_equation[Kequation_alpha] = v;
         return *this;
       }
 
       /*!
-        Set the argument to feed for the source coefficient RGB
-        value to feed glBlendFuncSeparate, should be one of
-        GL_ZERO, GL_ONE, GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR,
-        GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR, GL_SRC_ALPHA,
-        GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA,
-        GL_SRC_ALPHA_SATURATE, GL_SRC1_COLOR, GL_SRC1_ALPHA,
-        GL_ONE_MINUS_SRC1_COLOR or GL_ONE_MINUS_SRC1_ALPHA.
-        Default value is GL_ONE.
+        Set the source coefficient for the RGB channels.
+        Default value is ONE.
        */
       BlendMode&
-      func_src_rgb(GLenum v) { m_data[Kfunc_src_rgb] = v; return *this; }
+      func_src_rgb(enum func_t v) { m_blend_func[Kfunc_src_rgb] = v; return *this; }
 
       /*!
-        The value for the argument to feed for the source coefficient
-        RGB to feed to glBlendFuncSeparate, as set by
-        func_src_rgb(GLenum).
+        Return the value as set by func_src_rgb(enum t).
        */
-      GLenum
-      func_src_rgb(void) const { return m_data[Kfunc_src_rgb]; }
+      enum func_t
+      func_src_rgb(void) const { return m_blend_func[Kfunc_src_rgb]; }
 
       /*!
-        Set the argument to feed for the source coefficient Alpha
-        value to feed glBlendFuncSeparate, should be one of
-        GL_ZERO, GL_ONE, GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR,
-        GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR, GL_SRC_ALPHA,
-        GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA,
-        GL_SRC_ALPHA_SATURATE, GL_SRC1_COLOR, GL_SRC1_ALPHA,
-        GL_ONE_MINUS_SRC1_COLOR or GL_ONE_MINUS_SRC1_ALPHA.
-        Default value is GL_ONE.
+        Set the source coefficient for the Alpha channel.
+        Default value is ONE.
        */
       BlendMode&
-      func_src_alpha(GLenum v) { m_data[Kfunc_src_alpha] = v; return *this; }
+      func_src_alpha(enum func_t v) { m_blend_func[Kfunc_src_alpha] = v; return *this; }
 
       /*!
-        The value for the argument to feed for the source coefficient
-        Alpha to feed to glBlendFuncSeparate, as set by
-        func_src_alpha(GLenum).
+        Return the value as set by func_src_alpha(enum t).
        */
-      GLenum
-      func_src_alpha(void) const { return m_data[Kfunc_src_alpha]; }
+      enum func_t
+      func_src_alpha(void) const { return m_blend_func[Kfunc_src_alpha]; }
 
       /*!
         Provided as a conveniance, equivalent to
@@ -146,53 +160,37 @@ namespace fastuidraw
         \endcode
        */
       BlendMode&
-      func_src(GLenum v)
+      func_src(enum func_t v)
       {
-        m_data[Kfunc_src_rgb] = m_data[Kfunc_src_alpha] = v;
+        m_blend_func[Kfunc_src_rgb] = m_blend_func[Kfunc_src_alpha] = v;
         return *this;
       }
 
       /*!
-        Set the argument to feed for the destination coefficient RGB
-        value to feed glBlendFuncSeparate, should be one of
-        GL_ZERO, GL_ONE, GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR,
-        GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR, GL_SRC_ALPHA,
-        GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA,
-        GL_SRC_ALPHA_SATURATE, GL_SRC1_COLOR, GL_SRC1_ALPHA,
-        GL_ONE_MINUS_SRC1_COLOR or GL_ONE_MINUS_SRC1_ALPHA.
-        Default value is GL_ZERO.
+        Set the destication coefficient for the RGB channels.
+        Default value is ZERO.
        */
       BlendMode&
-      func_dst_rgb(GLenum v) { m_data[Kfunc_dst_rgb] = v; return *this; }
+      func_dst_rgb(enum func_t v) { m_blend_func[Kfunc_dst_rgb] = v; return *this; }
 
       /*!
-        The value for the argument to feed for the destination coefficient
-        RGB to feed to glBlendFuncSeparate, as set by
-        func_dst_rgb(GLenum).
+        Return the value as set by func_dst_rgb(enum t).
        */
-      GLenum
-      func_dst_rgb(void) const { return m_data[Kfunc_dst_rgb]; }
+      enum func_t
+      func_dst_rgb(void) const { return m_blend_func[Kfunc_dst_rgb]; }
 
       /*!
-        Set the argument to feed for the destination coefficient Alpha
-        value to feed glBlendFuncSeparate, should be one of
-        GL_ZERO, GL_ONE, GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR,
-        GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR, GL_SRC_ALPHA,
-        GL_ONE_MINUS_SRC_ALPHA, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA,
-        GL_SRC_ALPHA_SATURATE, GL_SRC1_COLOR, GL_SRC1_ALPHA,
-        GL_ONE_MINUS_SRC1_COLOR or GL_ONE_MINUS_SRC1_ALPHA.
-        Default value is GL_ZERO.
+        Set the destication coefficient for the Alpha channel.
+        Default value is ZERO.
        */
       BlendMode&
-      func_dst_alpha(GLenum v) { m_data[Kfunc_dst_alpha] = v; return *this; }
+      func_dst_alpha(enum func_t v) { m_blend_func[Kfunc_dst_alpha] = v; return *this; }
 
       /*!
-        The value for the argument to feed for the destination coefficient
-        Alpha to feed to glBlendFuncSeparate, as set by
-        func_dst_alpha(GLenum).
+        Return the value as set by func_dst_alpha(enum t).
        */
-      GLenum
-      func_dst_alpha(void) const { return m_data[Kfunc_dst_alpha]; }
+      enum func_t
+      func_dst_alpha(void) const { return m_blend_func[Kfunc_dst_alpha]; }
 
       /*!
         Provided as a conveniance, equivalent to
@@ -202,9 +200,9 @@ namespace fastuidraw
         \endcode
        */
       BlendMode&
-      func_dst(GLenum v)
+      func_dst(enum func_t v)
       {
-        m_data[Kfunc_dst_rgb] = m_data[Kfunc_dst_alpha] = v;
+        m_blend_func[Kfunc_dst_rgb] = m_blend_func[Kfunc_dst_alpha] = v;
         return *this;
       }
 
@@ -216,10 +214,10 @@ namespace fastuidraw
         \endcode
        */
       BlendMode&
-      func(GLenum src, GLenum dst)
+      func(enum func_t src, enum func_t dst)
       {
-        m_data[Kfunc_src_rgb] = m_data[Kfunc_src_alpha] = src;
-        m_data[Kfunc_dst_rgb] = m_data[Kfunc_dst_alpha] = dst;
+        m_blend_func[Kfunc_src_rgb] = m_blend_func[Kfunc_src_alpha] = src;
+        m_blend_func[Kfunc_dst_rgb] = m_blend_func[Kfunc_dst_alpha] = dst;
         return *this;
       }
 
@@ -230,7 +228,8 @@ namespace fastuidraw
       bool
       operator<(const BlendMode &rhs) const
       {
-        return m_data < rhs.m_data;
+        return m_blend_equation < rhs.m_blend_equation
+          || (m_blend_equation == rhs.m_blend_equation && m_blend_func < rhs.m_blend_func);
       }
 
       /*!
@@ -240,7 +239,8 @@ namespace fastuidraw
       bool
       operator==(const BlendMode &rhs) const
       {
-        return m_data == rhs.m_data;
+        return m_blend_equation == rhs.m_blend_equation
+          && m_blend_func == rhs.m_blend_func;
       }
 
     private:
@@ -248,14 +248,20 @@ namespace fastuidraw
         {
           Kequation_rgb,
           Kequation_alpha,
+          Knumber_blend_equation_args
+        };
+
+      enum
+        {
           Kfunc_src_rgb,
           Kfunc_src_alpha,
           Kfunc_dst_rgb,
           Kfunc_dst_alpha,
-          Knumber_args
+          Knumber_blend_args
         };
 
-      vecN<GLenum, Knumber_args> m_data;
+      vecN<enum op_t, Knumber_blend_equation_args> m_blend_equation;
+      vecN<enum func_t, Knumber_blend_args> m_blend_func;
     };
 
     /*!

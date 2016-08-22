@@ -1,9 +1,4 @@
-#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include "backend_shaders.hpp"
-
-#ifndef GL_SRC1_COLOR
-#define GL_SRC1_COLOR GL_SRC1_COLOR_EXT
-#endif
 
 namespace fastuidraw { namespace gl { namespace detail { namespace backend_shaders {
 
@@ -39,6 +34,7 @@ PainterBlendShaderSet
 BlendShaderSetCreator::
 create_blend_shaders(void)
 {
+  using namespace fastuidraw::gl;
   using namespace fastuidraw::PainterEnums;
   /* try to use as few blend modes as possible so that
      we have fewer draw call breaks. The convention is as
@@ -51,77 +47,77 @@ create_blend_shaders(void)
   PainterBlendShaderSet shaders;
 
   one_src1
-    .equation(GL_FUNC_ADD)
-    .func_src(GL_ONE)
-    .func_dst(GL_SRC1_COLOR);
+    .equation(BlendMode::ADD)
+    .func_src(BlendMode::ONE)
+    .func_dst(BlendMode::SRC1_COLOR);
 
   dst_alpha_src1
-    .equation(GL_FUNC_ADD)
-    .func_src(GL_DST_ALPHA)
-    .func_dst(GL_SRC1_COLOR);
+    .equation(BlendMode::ADD)
+    .func_src(BlendMode::DST_ALPHA)
+    .func_dst(BlendMode::SRC1_COLOR);
 
   one_minus_dst_alpha_src1
-    .equation(GL_FUNC_ADD)
-    .func_src(GL_ONE_MINUS_DST_ALPHA)
-    .func_dst(GL_SRC1_COLOR);
+    .equation(BlendMode::ADD)
+    .func_src(BlendMode::ONE_MINUS_DST_ALPHA)
+    .func_dst(BlendMode::SRC1_COLOR);
 
   shaders.shader(blend_porter_duff_src_over,
-                 create_blend_shader(BlendMode().equation(GL_FUNC_ADD).func(GL_ONE, GL_ONE_MINUS_SRC_ALPHA),
+                 create_blend_shader(BlendMode().func(BlendMode::ONE, BlendMode::ONE_MINUS_SRC_ALPHA),
                                      "fastuidraw_porter_duff_src_over.glsl.resource_string", one_src1,
                                      "fastuidraw_fbf_porter_duff_src_over.glsl.resource_string"));
 
   shaders.shader(blend_porter_duff_dst_over,
-                 create_blend_shader(BlendMode().equation(GL_FUNC_ADD).func(GL_ONE_MINUS_DST_ALPHA, GL_ONE),
+                 create_blend_shader(BlendMode().func(BlendMode::ONE_MINUS_DST_ALPHA, BlendMode::ONE),
                                      "fastuidraw_porter_duff_dst_over.glsl.resource_string", one_minus_dst_alpha_src1,
                                      "fastuidraw_fbf_porter_duff_dst_over.glsl.resource_string"));
 
   shaders.shader(blend_porter_duff_clear,
-                 create_blend_shader(BlendMode().equation(GL_FUNC_ADD).func(GL_ZERO, GL_ZERO),
+                 create_blend_shader(BlendMode().func(BlendMode::ZERO, BlendMode::ZERO),
                                      "fastuidraw_porter_duff_clear.glsl.resource_string", one_src1,
                                      "fastuidraw_fbf_porter_duff_clear.glsl.resource_string"));
 
   shaders.shader(blend_porter_duff_src,
-                 create_blend_shader(BlendMode().equation(GL_FUNC_ADD).func(GL_ONE, GL_ZERO),
+                 create_blend_shader(BlendMode().func(BlendMode::ONE, BlendMode::ZERO),
                                      "fastuidraw_porter_duff_src.glsl.resource_string", one_src1,
                                      "fastuidraw_fbf_porter_duff_src.glsl.resource_string"));
 
   shaders.shader(blend_porter_duff_dst,
-                 create_blend_shader(BlendMode().equation(GL_FUNC_ADD).func(GL_ZERO, GL_ONE),
+                 create_blend_shader(BlendMode().func(BlendMode::ZERO, BlendMode::ONE),
                                      "fastuidraw_porter_duff_dst.glsl.resource_string", one_src1,
                                      "fastuidraw_fbf_porter_duff_dst.glsl.resource_string"));
 
   shaders.shader(blend_porter_duff_src_in,
-                 create_blend_shader(BlendMode().equation(GL_FUNC_ADD).func(GL_DST_ALPHA, GL_ZERO),
+                 create_blend_shader(BlendMode().func(BlendMode::DST_ALPHA, BlendMode::ZERO),
                                      "fastuidraw_porter_duff_src_in.glsl.resource_string", dst_alpha_src1,
                                      "fastuidraw_fbf_porter_duff_src_in.glsl.resource_string"));
 
   shaders.shader(blend_porter_duff_dst_in,
-                 create_blend_shader(BlendMode().equation(GL_FUNC_ADD).func(GL_ZERO, GL_SRC_ALPHA),
+                 create_blend_shader(BlendMode().func(BlendMode::ZERO, BlendMode::SRC_ALPHA),
                                      "fastuidraw_porter_duff_dst_in.glsl.resource_string", one_src1,
                                      "fastuidraw_fbf_porter_duff_dst_in.glsl.resource_string"));
 
   shaders.shader(blend_porter_duff_src_out,
-                 create_blend_shader(BlendMode().equation(GL_FUNC_ADD).func(GL_ONE_MINUS_DST_ALPHA, GL_ZERO),
+                 create_blend_shader(BlendMode().func(BlendMode::ONE_MINUS_DST_ALPHA, BlendMode::ZERO),
                                      "fastuidraw_porter_duff_src_out.glsl.resource_string", one_minus_dst_alpha_src1,
                                      "fastuidraw_fbf_porter_duff_src_out.glsl.resource_string"));
 
   shaders.shader(blend_porter_duff_dst_out,
-                 create_blend_shader(BlendMode().equation(GL_FUNC_ADD).func(GL_ZERO, GL_ONE_MINUS_SRC_ALPHA),
+                 create_blend_shader(BlendMode().func(BlendMode::ZERO, BlendMode::ONE_MINUS_SRC_ALPHA),
                                      "fastuidraw_porter_duff_dst_out.glsl.resource_string", one_src1,
                                      "fastuidraw_fbf_porter_duff_dst_out.glsl.resource_string"));
 
   shaders.shader(blend_porter_duff_src_atop,
-                 create_blend_shader(BlendMode().equation(GL_FUNC_ADD).func(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA),
+                 create_blend_shader(BlendMode().func(BlendMode::DST_ALPHA, BlendMode::ONE_MINUS_SRC_ALPHA),
                                      "fastuidraw_porter_duff_src_atop.glsl.resource_string", dst_alpha_src1,
                                      "fastuidraw_fbf_porter_duff_src_atop.glsl.resource_string"));
 
   shaders.shader(blend_porter_duff_dst_atop,
-                 create_blend_shader(BlendMode().equation(GL_FUNC_ADD).func(GL_ONE_MINUS_DST_ALPHA, GL_SRC_ALPHA),
+                 create_blend_shader(BlendMode().func(BlendMode::ONE_MINUS_DST_ALPHA, BlendMode::SRC_ALPHA),
                                      "fastuidraw_porter_duff_dst_atop.glsl.resource_string", one_minus_dst_alpha_src1,
                                      "fastuidraw_fbf_porter_duff_dst_atop.glsl.resource_string"));
 
   shaders.shader(blend_porter_duff_xor,
-                 create_blend_shader(BlendMode().equation(GL_FUNC_ADD).func(GL_ONE_MINUS_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA),
+                 create_blend_shader(BlendMode().func(BlendMode::ONE_MINUS_DST_ALPHA, BlendMode::ONE_MINUS_SRC_ALPHA),
                                      "fastuidraw_porter_duff_xor.glsl.resource_string", one_minus_dst_alpha_src1,
                                      "fastuidraw_fbf_porter_duff_dst_atop.glsl.resource_string"));
 
