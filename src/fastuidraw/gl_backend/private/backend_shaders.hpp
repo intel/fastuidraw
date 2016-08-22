@@ -1,9 +1,9 @@
 #pragma once
 
-#include <fastuidraw/gl_backend/painter_item_shader_gl.hpp>
-#include <fastuidraw/gl_backend/painter_blend_shader_gl.hpp>
+#include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 
-namespace fastuidraw { namespace gl { namespace detail { namespace backend_shaders {
+namespace fastuidraw { namespace glsl { namespace detail { namespace backend_shaders {
 
 /*
   Values for render pass for stroke shading
@@ -26,7 +26,7 @@ public:
   create_blend_shaders(void);
 
 private:
-  reference_counted_ptr<PainterBlendShaderGL>
+  reference_counted_ptr<PainterBlendShaderGLSL>
   create_blend_shader(const BlendMode &single_md,
                       const std::string &dual_src_file,
                       const BlendMode &dual_md,

@@ -1,6 +1,6 @@
 /*!
- * \file painter_blend_shader_gl.cpp
- * \brief file painter_blend_shader_gl.cpp
+ * \file painter_blend_shader_glsl.cpp
+ * \brief file painter_blend_shader_glsl.cpp
  *
  * Copyright 2016 by Intel.
  *
@@ -16,8 +16,7 @@
  *
  */
 
-#include <fastuidraw/gl_backend/ngl_header.hpp>
-#include <fastuidraw/gl_backend/painter_blend_shader_gl.hpp>
+#include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 
 namespace
 {
@@ -38,33 +37,33 @@ namespace
     const fastuidraw::PainterBackend *m_registered_to;
   };
 
-  class PainterBlendShaderGLPrivate
+  class PainterBlendShaderGLSLPrivate
   {
   public:
-    PainterBlendShaderGLPrivate(const fastuidraw::gl::SingleSourceBlenderShader &psingle_src_blender,
-                                const fastuidraw::gl::DualSourceBlenderShader &pdual_src_blender,
-                                const fastuidraw::gl::FramebufferFetchBlendShader &pfetch_blender):
+    PainterBlendShaderGLSLPrivate(const fastuidraw::glsl::SingleSourceBlenderShader &psingle_src_blender,
+                                  const fastuidraw::glsl::DualSourceBlenderShader &pdual_src_blender,
+                                  const fastuidraw::glsl::FramebufferFetchBlendShader &pfetch_blender):
       m_single_src_blender(psingle_src_blender),
       m_dual_src_blender(pdual_src_blender),
       m_fetch_blender(pfetch_blender)
     {}
 
-    fastuidraw::gl::SingleSourceBlenderShader m_single_src_blender;
-    fastuidraw::gl::DualSourceBlenderShader m_dual_src_blender;
-    fastuidraw::gl::FramebufferFetchBlendShader m_fetch_blender;
+    fastuidraw::glsl::SingleSourceBlenderShader m_single_src_blender;
+    fastuidraw::glsl::DualSourceBlenderShader m_dual_src_blender;
+    fastuidraw::glsl::FramebufferFetchBlendShader m_fetch_blender;
   };
 }
 
 //////////////////////////////////////////////
-// fastuidraw::gl::BlendShaderSourceCode
-fastuidraw::gl::BlendShaderSourceCode::
+// fastuidraw::glsl::BlendShaderSourceCode
+fastuidraw::glsl::BlendShaderSourceCode::
 BlendShaderSourceCode(const glsl::ShaderSource &psrc,
                       unsigned int num_sub_shaders)
 {
   m_d = FASTUIDRAWnew BlendShaderSourceCodePrivate(psrc, num_sub_shaders);
 }
 
-fastuidraw::gl::BlendShaderSourceCode::
+fastuidraw::glsl::BlendShaderSourceCode::
 ~BlendShaderSourceCode()
 {
   BlendShaderSourceCodePrivate *d;
@@ -74,7 +73,7 @@ fastuidraw::gl::BlendShaderSourceCode::
 }
 
 const fastuidraw::glsl::ShaderSource&
-fastuidraw::gl::BlendShaderSourceCode::
+fastuidraw::glsl::BlendShaderSourceCode::
 shader_src(void) const
 {
   BlendShaderSourceCodePrivate *d;
@@ -83,7 +82,7 @@ shader_src(void) const
 }
 
 unsigned int
-fastuidraw::gl::BlendShaderSourceCode::
+fastuidraw::glsl::BlendShaderSourceCode::
 number_sub_shaders(void) const
 {
   BlendShaderSourceCodePrivate *d;
@@ -92,7 +91,7 @@ number_sub_shaders(void) const
 }
 
 uint32_t
-fastuidraw::gl::BlendShaderSourceCode::
+fastuidraw::glsl::BlendShaderSourceCode::
 ID(void) const
 {
   BlendShaderSourceCodePrivate *d;
@@ -102,7 +101,7 @@ ID(void) const
 }
 
 const fastuidraw::PainterBackend*
-fastuidraw::gl::BlendShaderSourceCode::
+fastuidraw::glsl::BlendShaderSourceCode::
 registered_to(void) const
 {
   BlendShaderSourceCodePrivate *d;
@@ -111,7 +110,7 @@ registered_to(void) const
 }
 
 void
-fastuidraw::gl::BlendShaderSourceCode::
+fastuidraw::glsl::BlendShaderSourceCode::
 register_shader_code(uint32_t pshader_id,
                      const PainterBackend *backend)
 {
@@ -123,49 +122,49 @@ register_shader_code(uint32_t pshader_id,
 }
 
 ///////////////////////////////////////////////
-// fastuidraw::gl::PainterBlendShaderGL methods
-fastuidraw::gl::PainterBlendShaderGL::
-PainterBlendShaderGL(const SingleSourceBlenderShader &psingle_src_blender,
+// fastuidraw::glsl::PainterBlendShaderGLSL methods
+fastuidraw::glsl::PainterBlendShaderGLSL::
+PainterBlendShaderGLSL(const SingleSourceBlenderShader &psingle_src_blender,
                      const DualSourceBlenderShader &pdual_src_blender,
                      const FramebufferFetchBlendShader &pfetch_blender)
 {
-  m_d = FASTUIDRAWnew PainterBlendShaderGLPrivate(psingle_src_blender,
+  m_d = FASTUIDRAWnew PainterBlendShaderGLSLPrivate(psingle_src_blender,
                                                   pdual_src_blender,
                                                   pfetch_blender);
 }
 
-fastuidraw::gl::PainterBlendShaderGL::
-~PainterBlendShaderGL(void)
+fastuidraw::glsl::PainterBlendShaderGLSL::
+~PainterBlendShaderGLSL(void)
 {
-  PainterBlendShaderGLPrivate *d;
-  d = reinterpret_cast<PainterBlendShaderGLPrivate*>(m_d);
+  PainterBlendShaderGLSLPrivate *d;
+  d = reinterpret_cast<PainterBlendShaderGLSLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
 
-const fastuidraw::gl::SingleSourceBlenderShader&
-fastuidraw::gl::PainterBlendShaderGL::
+const fastuidraw::glsl::SingleSourceBlenderShader&
+fastuidraw::glsl::PainterBlendShaderGLSL::
 single_src_blender(void) const
 {
-  PainterBlendShaderGLPrivate *d;
-  d = reinterpret_cast<PainterBlendShaderGLPrivate*>(m_d);
+  PainterBlendShaderGLSLPrivate *d;
+  d = reinterpret_cast<PainterBlendShaderGLSLPrivate*>(m_d);
   return d->m_single_src_blender;
 }
 
-const fastuidraw::gl::DualSourceBlenderShader&
-fastuidraw::gl::PainterBlendShaderGL::
+const fastuidraw::glsl::DualSourceBlenderShader&
+fastuidraw::glsl::PainterBlendShaderGLSL::
 dual_src_blender(void) const
 {
-  PainterBlendShaderGLPrivate *d;
-  d = reinterpret_cast<PainterBlendShaderGLPrivate*>(m_d);
+  PainterBlendShaderGLSLPrivate *d;
+  d = reinterpret_cast<PainterBlendShaderGLSLPrivate*>(m_d);
   return d->m_dual_src_blender;
 }
 
-const fastuidraw::gl::FramebufferFetchBlendShader&
-fastuidraw::gl::PainterBlendShaderGL::
+const fastuidraw::glsl::FramebufferFetchBlendShader&
+fastuidraw::glsl::PainterBlendShaderGLSL::
 fetch_blender(void) const
 {
-  PainterBlendShaderGLPrivate *d;
-  d = reinterpret_cast<PainterBlendShaderGLPrivate*>(m_d);
+  PainterBlendShaderGLSLPrivate *d;
+  d = reinterpret_cast<PainterBlendShaderGLSLPrivate*>(m_d);
   return d->m_fetch_blender;
 }

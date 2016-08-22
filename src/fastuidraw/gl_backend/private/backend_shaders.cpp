@@ -1,6 +1,6 @@
 #include "backend_shaders.hpp"
 
-namespace fastuidraw { namespace gl { namespace detail { namespace backend_shaders {
+namespace fastuidraw { namespace glsl { namespace detail { namespace backend_shaders {
 
 /////////////////////////////////////
 // BlendShaderSetCreator methods
@@ -8,33 +8,32 @@ BlendShaderSetCreator::
 BlendShaderSetCreator(void)
 {
   m_single_src_blend_shader_code =
-    FASTUIDRAWnew BlendShaderSourceCode(glsl::ShaderSource()
+    FASTUIDRAWnew BlendShaderSourceCode(ShaderSource()
                                         .add_source("fastuidraw_fall_through.glsl.resource_string",
-                                                    glsl::ShaderSource::from_resource));
+                                                    ShaderSource::from_resource));
 }
 
-reference_counted_ptr<PainterBlendShaderGL>
+reference_counted_ptr<PainterBlendShaderGLSL>
 BlendShaderSetCreator::
 create_blend_shader(const BlendMode &single_md,
                     const std::string &dual_src_file,
                     const BlendMode &dual_md,
                     const std::string &framebuffer_fetch_src_file)
 {
-  return FASTUIDRAWnew PainterBlendShaderGL(SingleSourceBlenderShader(single_md, m_single_src_blend_shader_code),
-                                            DualSourceBlenderShader(dual_md,
-                                                                    glsl::ShaderSource()
-                                                                    .add_source(dual_src_file.c_str(),
-                                                                                glsl::ShaderSource::from_resource)),
-                                            FramebufferFetchBlendShader(glsl::ShaderSource()
-                                                                        .add_source(framebuffer_fetch_src_file.c_str(),
-                                                                                    glsl::ShaderSource::from_resource)));
+  return FASTUIDRAWnew PainterBlendShaderGLSL(SingleSourceBlenderShader(single_md, m_single_src_blend_shader_code),
+                                              DualSourceBlenderShader(dual_md,
+                                                                      ShaderSource()
+                                                                      .add_source(dual_src_file.c_str(),
+                                                                                  ShaderSource::from_resource)),
+                                              FramebufferFetchBlendShader(ShaderSource()
+                                                                          .add_source(framebuffer_fetch_src_file.c_str(),
+                                                                                      ShaderSource::from_resource)));
 }
 
 PainterBlendShaderSet
 BlendShaderSetCreator::
 create_blend_shaders(void)
 {
-  using namespace fastuidraw::gl;
   using namespace fastuidraw::PainterEnums;
   /* try to use as few blend modes as possible so that
      we have fewer draw call breaks. The convention is as
@@ -149,32 +148,32 @@ ShaderSetCreator(void)
   unsigned int num_sub_shaders;
 
   num_sub_shaders = 1u << (m_stroke_render_pass_num_bits + m_stroke_dash_num_bits + 1u);
-  m_uber_stroke_shader = FASTUIDRAWnew PainterItemShaderGL(num_sub_shaders,
-                                                           glsl::ShaderSource()
-                                                           .add_macro("fastuidraw_stroke_sub_shader_width_pixels_bit0", m_stroke_width_pixels_bit0)
-                                                           .add_macro("fastuidraw_stroke_sub_shader_render_pass_bit0", m_stroke_render_pass_bit0)
-                                                           .add_macro("fastuidraw_stroke_sub_shader_render_pass_num_bits", m_stroke_render_pass_num_bits)
-                                                           .add_macro("fastuidraw_stroke_sub_shader_dash_style_bit0", m_stroke_dash_style_bit0)
-                                                           .add_macro("fastuidraw_stroke_sub_shader_dash_num_bits", m_stroke_dash_num_bits)
-                                                           .add_macro("fastuidraw_stroke_opaque_pass", uber_stroke_opaque_pass)
-                                                           .add_macro("fastuidraw_stroke_aa_pass", uber_stroke_aa_pass)
-                                                           .add_macro("fastuidraw_stroke_non_aa", uber_stroke_non_aa)
-                                                           .add_source("fastuidraw_painter_stroke.vert.glsl.resource_string",
-                                                                       glsl::ShaderSource::from_resource),
-                                                           glsl::ShaderSource()
-                                                           .add_macro("fastuidraw_stroke_sub_shader_width_pixels_bit0", m_stroke_width_pixels_bit0)
-                                                           .add_macro("fastuidraw_stroke_sub_shader_render_pass_bit0", m_stroke_render_pass_bit0)
-                                                           .add_macro("fastuidraw_stroke_sub_shader_render_pass_num_bits", m_stroke_render_pass_num_bits)
-                                                           .add_macro("fastuidraw_stroke_sub_shader_dash_style_bit0", m_stroke_dash_style_bit0)
-                                                           .add_macro("fastuidraw_stroke_sub_shader_dash_num_bits", m_stroke_dash_num_bits)
-                                                           .add_macro("fastuidraw_stroke_opaque_pass", uber_stroke_opaque_pass)
-                                                           .add_macro("fastuidraw_stroke_aa_pass", uber_stroke_aa_pass)
-                                                           .add_macro("fastuidraw_stroke_non_aa", uber_stroke_non_aa)
-                                                           .add_source("fastuidraw_painter_stroke.frag.glsl.resource_string",
-                                                                       glsl::ShaderSource::from_resource),
-                                                           varying_list()
-                                                           .add_float_varying("fastuidraw_stroking_on_boundary")
-                                                           .add_float_varying("fastuidraw_stroking_distance"));
+  m_uber_stroke_shader = FASTUIDRAWnew PainterItemShaderGLSL(num_sub_shaders,
+                                                             ShaderSource()
+                                                             .add_macro("fastuidraw_stroke_sub_shader_width_pixels_bit0", m_stroke_width_pixels_bit0)
+                                                             .add_macro("fastuidraw_stroke_sub_shader_render_pass_bit0", m_stroke_render_pass_bit0)
+                                                             .add_macro("fastuidraw_stroke_sub_shader_render_pass_num_bits", m_stroke_render_pass_num_bits)
+                                                             .add_macro("fastuidraw_stroke_sub_shader_dash_style_bit0", m_stroke_dash_style_bit0)
+                                                             .add_macro("fastuidraw_stroke_sub_shader_dash_num_bits", m_stroke_dash_num_bits)
+                                                             .add_macro("fastuidraw_stroke_opaque_pass", uber_stroke_opaque_pass)
+                                                             .add_macro("fastuidraw_stroke_aa_pass", uber_stroke_aa_pass)
+                                                             .add_macro("fastuidraw_stroke_non_aa", uber_stroke_non_aa)
+                                                             .add_source("fastuidraw_painter_stroke.vert.glsl.resource_string",
+                                                                         ShaderSource::from_resource),
+                                                             ShaderSource()
+                                                             .add_macro("fastuidraw_stroke_sub_shader_width_pixels_bit0", m_stroke_width_pixels_bit0)
+                                                             .add_macro("fastuidraw_stroke_sub_shader_render_pass_bit0", m_stroke_render_pass_bit0)
+                                                             .add_macro("fastuidraw_stroke_sub_shader_render_pass_num_bits", m_stroke_render_pass_num_bits)
+                                                             .add_macro("fastuidraw_stroke_sub_shader_dash_style_bit0", m_stroke_dash_style_bit0)
+                                                             .add_macro("fastuidraw_stroke_sub_shader_dash_num_bits", m_stroke_dash_num_bits)
+                                                             .add_macro("fastuidraw_stroke_opaque_pass", uber_stroke_opaque_pass)
+                                                             .add_macro("fastuidraw_stroke_aa_pass", uber_stroke_aa_pass)
+                                                             .add_macro("fastuidraw_stroke_non_aa", uber_stroke_non_aa)
+                                                             .add_source("fastuidraw_painter_stroke.frag.glsl.resource_string",
+                                                                         ShaderSource::from_resource),
+                                                             varying_list()
+                                                             .add_float_varying("fastuidraw_stroking_on_boundary")
+                                                             .add_float_varying("fastuidraw_stroking_distance"));
 }
 
 reference_counted_ptr<PainterItemShader>
@@ -184,11 +183,11 @@ create_glyph_item_shader(const std::string &vert_src,
                          const varying_list &varyings)
 {
   reference_counted_ptr<PainterItemShader> shader;
-  shader = FASTUIDRAWnew PainterItemShaderGL(glsl::ShaderSource()
-                                             .add_source(vert_src.c_str(), glsl::ShaderSource::from_resource),
-                                             glsl::ShaderSource()
-                                             .add_source(frag_src.c_str(), glsl::ShaderSource::from_resource),
-                                             varyings);
+  shader = FASTUIDRAWnew PainterItemShaderGLSL(ShaderSource()
+                                               .add_source(vert_src.c_str(), ShaderSource::from_resource),
+                                               ShaderSource()
+                                               .add_source(frag_src.c_str(), ShaderSource::from_resource),
+                                               varyings);
   return shader;
 }
 
@@ -301,13 +300,13 @@ create_fill_shader(void)
   varying_list varyings;
 
   varyings.add_float_varying("fastuidraw_stroking_on_boundary");
-  shader = FASTUIDRAWnew PainterItemShaderGL(glsl::ShaderSource()
-                                             .add_source("fastuidraw_painter_fill.vert.glsl.resource_string",
-                                                         glsl::ShaderSource::from_resource),
-                                             glsl::ShaderSource()
-                                             .add_source("fastuidraw_painter_fill.frag.glsl.resource_string",
-                                                         glsl::ShaderSource::from_resource),
-                                             varyings);
+  shader = FASTUIDRAWnew PainterItemShaderGLSL(ShaderSource()
+                                               .add_source("fastuidraw_painter_fill.vert.glsl.resource_string",
+                                                           ShaderSource::from_resource),
+                                               ShaderSource()
+                                               .add_source("fastuidraw_painter_fill.frag.glsl.resource_string",
+                                                           ShaderSource::from_resource),
+                                               varyings);
   return shader;
 }
 

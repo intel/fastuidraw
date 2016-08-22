@@ -40,6 +40,13 @@
 #include "private/backend_shaders.hpp"
 #include "../private/util_private.hpp"
 
+#ifdef FASTUIDRAW_GL_USE_GLES
+#define GL_SRC1_COLOR GL_SRC1_COLOR_EXT
+#define GL_SRC1_ALPHA GL_SRC1_ALPHA_EXT
+#define GL_ONE_MINUS_SRC1_COLOR GL_ONE_MINUS_SRC1_COLOR_EXT
+#define GL_ONE_MINUS_SRC1_ALPHA GL_ONE_MINUS_SRC1_ALPHA_EXT
+#endif
+
 namespace
 {
   class painter_vao
@@ -126,24 +133,24 @@ namespace
     BlendModeTracker(void);
 
     unsigned int
-    blend_index(const fastuidraw::gl::BlendMode &mode);
+    blend_index(const fastuidraw::glsl::BlendMode &mode);
 
-    const fastuidraw::gl::BlendMode&
+    const fastuidraw::glsl::BlendMode&
     blend_mode(unsigned int idx) const
     {
       assert(idx < m_modes.size());
       return m_modes[idx];
     }
 
-    fastuidraw::const_c_array<fastuidraw::gl::BlendMode>
+    fastuidraw::const_c_array<fastuidraw::glsl::BlendMode>
     blend_modes(void) const
     {
-      return fastuidraw::make_c_array<fastuidraw::gl::BlendMode>(m_modes);
+      return fastuidraw::make_c_array<fastuidraw::glsl::BlendMode>(m_modes);
     }
     
   private:
-    std::map<fastuidraw::gl::BlendMode, uint32_t> m_map;
-    std::vector<fastuidraw::gl::BlendMode> m_modes;
+    std::map<fastuidraw::glsl::BlendMode, uint32_t> m_map;
+    std::vector<fastuidraw::glsl::BlendMode> m_modes;
   };
 
   class PainterBackendGLPrivate
@@ -158,7 +165,7 @@ namespace
     fastuidraw::PainterShaderSet
     create_shader_set(void)
     {
-      fastuidraw::gl::detail::backend_shaders::ShaderSetCreator cr;
+      fastuidraw::glsl::detail::backend_shaders::ShaderSetCreator cr;
       return cr.create_shader_set();
     }
 
@@ -169,7 +176,7 @@ namespace
     build_vao_tbos(void);
 
     void
-    update_varying_size(const fastuidraw::gl::varying_list &plist);
+    update_varying_size(const fastuidraw::glsl::varying_list &plist);
 
     void
     configure_backend(void);
@@ -180,18 +187,18 @@ namespace
     GLuint m_linear_filter_sampler;
 
     bool m_rebuild_program;
-    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterItemShaderGL> > m_item_shaders;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> > m_item_shaders;
     unsigned int m_next_item_shader_ID;
-    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::gl::BlendShaderSourceCode> > m_blend_shaders;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::glsl::BlendShaderSourceCode> > m_blend_shaders;
     unsigned int m_next_blend_shader_ID;
     fastuidraw::glsl::ShaderSource m_vert_shader_utils;
     fastuidraw::glsl::ShaderSource m_frag_shader_utils;
     BlendModeTracker m_blend_mode_tracker;
     bool m_blend_enabled;
     std::string m_shader_blend_macro;
-    enum fastuidraw::gl::detail::shader_builder::blending_code_type m_blend_type;
+    enum fastuidraw::glsl::detail::shader_builder::blending_code_type m_blend_type;
     
-    fastuidraw::vecN<size_t, fastuidraw::gl::varying_list::interpolation_number_types> m_number_float_varyings;
+    fastuidraw::vecN<size_t, fastuidraw::glsl::varying_list::interpolation_number_types> m_number_float_varyings;
     size_t m_number_uint_varyings;
     size_t m_number_int_varyings;
 
@@ -233,7 +240,7 @@ namespace
   class DrawEntry
   {
   public:
-    DrawEntry(const fastuidraw::gl::BlendMode &mode);
+    DrawEntry(const fastuidraw::glsl::BlendMode &mode);
 
     void
     add_entry(GLsizei count, const void *offset);
@@ -245,13 +252,13 @@ namespace
 
     static
     GLenum
-    convert_blend_op(enum fastuidraw::gl::BlendMode::op_t v);
+    convert_blend_op(enum fastuidraw::glsl::BlendMode::op_t v);
 
     static
     GLenum
-    convert_blend_func(enum fastuidraw::gl::BlendMode::func_t v);
+    convert_blend_func(enum fastuidraw::glsl::BlendMode::func_t v);
 
-    fastuidraw::gl::BlendMode m_blend_mode;
+    fastuidraw::glsl::BlendMode m_blend_mode;
     std::vector<GLsizei> m_counts;
     std::vector<const GLvoid*> m_indices;
   };
@@ -262,7 +269,7 @@ namespace
     explicit
     DrawCommand(painter_vao_pool *hnd,
                 const fastuidraw::gl::PainterBackendGL::params &params,
-                fastuidraw::const_c_array<fastuidraw::gl::BlendMode> blend_modes);
+                fastuidraw::const_c_array<fastuidraw::glsl::BlendMode> blend_modes);
 
     virtual
     ~DrawCommand()
@@ -292,7 +299,7 @@ namespace
     add_entry(unsigned int indices_written) const;
 
     painter_vao m_vao;
-    fastuidraw::const_c_array<fastuidraw::gl::BlendMode> m_blend_modes;
+    fastuidraw::const_c_array<fastuidraw::glsl::BlendMode> m_blend_modes;
     mutable unsigned int m_attributes_written, m_indices_written;
     mutable std::list<DrawEntry> m_draws;
   };
@@ -500,7 +507,7 @@ generate_bo(GLenum bind_target, GLsizei psize)
 ///////////////////////////////////////////////
 // DrawEntry methods
 DrawEntry::
-DrawEntry(const fastuidraw::gl::BlendMode &mode):
+DrawEntry(const fastuidraw::glsl::BlendMode &mode):
   m_blend_mode(mode)
 {}
 
@@ -559,10 +566,10 @@ draw(void) const
 
 GLenum
 DrawEntry::
-convert_blend_op(enum fastuidraw::gl::BlendMode::op_t v)
+convert_blend_op(enum fastuidraw::glsl::BlendMode::op_t v)
 {
-#define C(X) case fastuidraw::gl::BlendMode::X: return GL_FUNC_##X
-#define D(X) case fastuidraw::gl::BlendMode::X: return GL_##X
+#define C(X) case fastuidraw::glsl::BlendMode::X: return GL_FUNC_##X
+#define D(X) case fastuidraw::glsl::BlendMode::X: return GL_##X
 
   switch(v)
     {
@@ -581,9 +588,9 @@ convert_blend_op(enum fastuidraw::gl::BlendMode::op_t v)
 
 GLenum
 DrawEntry::
-convert_blend_func(enum fastuidraw::gl::BlendMode::func_t v)
+convert_blend_func(enum fastuidraw::glsl::BlendMode::func_t v)
 {
-#define C(X) case fastuidraw::gl::BlendMode::X: return GL_##X
+#define C(X) case fastuidraw::glsl::BlendMode::X: return GL_##X
   switch(v)
     {
       C(ZERO);
@@ -616,7 +623,7 @@ convert_blend_func(enum fastuidraw::gl::BlendMode::func_t v)
 DrawCommand::
 DrawCommand(painter_vao_pool *hnd,
             const fastuidraw::gl::PainterBackendGL::params &params,
-            fastuidraw::const_c_array<fastuidraw::gl::BlendMode> blend_modes):
+            fastuidraw::const_c_array<fastuidraw::glsl::BlendMode> blend_modes):
   m_vao(hnd->request_vao()),
   m_blend_modes(blend_modes),
   m_attributes_written(0),
@@ -763,7 +770,7 @@ add_entry(unsigned int indices_written) const
         }
       else
         {
-          m_draws.push_back(fastuidraw::gl::BlendMode());
+          m_draws.push_back(fastuidraw::glsl::BlendMode());
         }
     }
   assert(indices_written >= m_indices_written);
@@ -782,9 +789,9 @@ BlendModeTracker(void)
 
 unsigned int
 BlendModeTracker::
-blend_index(const fastuidraw::gl::BlendMode &blend_mode)
+blend_index(const fastuidraw::glsl::BlendMode &blend_mode)
 {
-  std::map<fastuidraw::gl::BlendMode, unsigned int>::const_iterator iter;
+  std::map<fastuidraw::glsl::BlendMode, unsigned int>::const_iterator iter;
   unsigned int return_value;
 
   iter = m_map.find(blend_mode);
@@ -898,32 +905,32 @@ configure_backend(void)
     {
       m_blend_enabled = false;
       m_shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH";
-      m_blend_type = fastuidraw::gl::detail::shader_builder::framebuffer_fetch_blending;
+      m_blend_type = fastuidraw::glsl::detail::shader_builder::framebuffer_fetch_blending;
     }
   else if(m_have_dual_src_blending)
     {
       m_blend_enabled = true;
       m_shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND";
-      m_blend_type = fastuidraw::gl::detail::shader_builder::dual_src_blending;
+      m_blend_type = fastuidraw::glsl::detail::shader_builder::dual_src_blending;
     }
   else
     {
       m_blend_enabled = true;
       m_shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND";
-      m_blend_type = fastuidraw::gl::detail::shader_builder::single_src_blending;
+      m_blend_type = fastuidraw::glsl::detail::shader_builder::single_src_blending;
     }
 }
 
 void
 PainterBackendGLPrivate::
-update_varying_size(const fastuidraw::gl::varying_list &plist)
+update_varying_size(const fastuidraw::glsl::varying_list &plist)
 {
   m_number_uint_varyings = std::max(m_number_uint_varyings, plist.uints().size());
   m_number_int_varyings = std::max(m_number_int_varyings, plist.ints().size());
-  for(unsigned int i = 0; i < fastuidraw::gl::varying_list::interpolation_number_types; ++i)
+  for(unsigned int i = 0; i < fastuidraw::glsl::varying_list::interpolation_number_types; ++i)
     {
-      enum fastuidraw::gl::varying_list::interpolation_qualifier_t q;
-      q = static_cast<enum fastuidraw::gl::varying_list::interpolation_qualifier_t>(i);
+      enum fastuidraw::glsl::varying_list::interpolation_qualifier_t q;
+      q = static_cast<enum fastuidraw::glsl::varying_list::interpolation_qualifier_t>(i);
       m_number_float_varyings[q] = std::max(m_number_float_varyings[q], plist.floats(q).size());
     }
 }
@@ -935,7 +942,7 @@ build_program(void)
   using namespace fastuidraw;
   using namespace fastuidraw::gl;
   using namespace fastuidraw::gl::detail;
-  using namespace fastuidraw::gl::detail::shader_builder;
+  using namespace fastuidraw::glsl::detail::shader_builder;
   using namespace fastuidraw::PainterPacking;
 
   fastuidraw::glsl::ShaderSource vert, frag;
@@ -1344,12 +1351,12 @@ absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader)
   PainterBackendGLPrivate *d;
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
 
-  reference_counted_ptr<PainterItemShaderGL> h;
+  reference_counted_ptr<glsl::PainterItemShaderGLSL> h;
   fastuidraw::PainterShader::Tag return_value;
 
   assert(!shader->parent());
-  assert(shader.dynamic_cast_ptr<PainterItemShaderGL>());
-  h = shader.static_cast_ptr<PainterItemShaderGL>();
+  assert(shader.dynamic_cast_ptr<glsl::PainterItemShaderGLSL>());
+  h = shader.static_cast_ptr<glsl::PainterItemShaderGLSL>();
 
   d->m_rebuild_program = true;
   d->m_item_shaders.push_back(h);
@@ -1378,21 +1385,21 @@ absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader)
   PainterBackendGLPrivate *d;
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
 
-  reference_counted_ptr<PainterBlendShaderGL> h;
+  reference_counted_ptr<glsl::PainterBlendShaderGLSL> h;
   fastuidraw::PainterShader::Tag return_value;
   uint32_t group, sub_shader;
-  reference_counted_ptr<BlendShaderSourceCode> blend_code;
+  reference_counted_ptr<glsl::BlendShaderSourceCode> blend_code;
 
   assert(!shader->parent());
-  assert(shader.dynamic_cast_ptr<PainterBlendShaderGL>());
-  h = shader.static_cast_ptr<PainterBlendShaderGL>();
+  assert(shader.dynamic_cast_ptr<glsl::PainterBlendShaderGLSL>());
+  h = shader.static_cast_ptr<glsl::PainterBlendShaderGLSL>();
 
   switch(d->m_blend_type)
     {
     default:
       assert("Invalid blend_type");
       //fall through
-    case fastuidraw::gl::detail::shader_builder::single_src_blending:
+    case fastuidraw::glsl::detail::shader_builder::single_src_blending:
       {
         blend_code = h->single_src_blender().m_src;
         sub_shader = h->single_src_blender().m_sub_shader;
@@ -1400,7 +1407,7 @@ absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader)
       }
       break;
 
-    case fastuidraw::gl::detail::shader_builder::dual_src_blending:
+    case fastuidraw::glsl::detail::shader_builder::dual_src_blending:
       {
         blend_code = h->dual_src_blender().m_src;
         sub_shader = h->dual_src_blender().m_sub_shader;
@@ -1408,7 +1415,7 @@ absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader)
       }
       break;
 
-    case fastuidraw::gl::detail::shader_builder::framebuffer_fetch_blending:
+    case fastuidraw::glsl::detail::shader_builder::framebuffer_fetch_blending:
       {
         blend_code = h->fetch_blender().m_src;
         sub_shader = h->fetch_blender().m_sub_shader;

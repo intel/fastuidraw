@@ -1,7 +1,7 @@
 #include "uber_shader_builder.hpp"
 #include "../../private/util_private.hpp"
 
-namespace fastuidraw { namespace gl { namespace detail { namespace shader_builder {
+namespace fastuidraw { namespace glsl { namespace detail { namespace shader_builder {
 
 unsigned int
 number_data_blocks(unsigned int alignment, unsigned int sz)
@@ -16,7 +16,7 @@ number_data_blocks(unsigned int alignment, unsigned int sz)
 }
 
 void
-add_enums(unsigned int alignment, glsl::ShaderSource &src)
+add_enums(unsigned int alignment, ShaderSource &src)
 {
   using namespace fastuidraw::PainterPacking;
   using namespace fastuidraw::PainterEnums;
@@ -105,8 +105,8 @@ add_enums(unsigned int alignment, glsl::ShaderSource &src)
 }
 
 void
-add_texture_size_constants(glsl::ShaderSource &src,
-                           const PainterBackendGL::params &P)
+add_texture_size_constants(ShaderSource &src,
+                           const gl::PainterBackendGL::params &P)
 {
   ivec2 glyph_atlas_size;
   unsigned int image_atlas_size, colorstop_atlas_size;
@@ -189,7 +189,7 @@ stream_declare_varyings(std::ostream &str,
 }
 
 void
-stream_alias_varyings(glsl::ShaderSource &vert,
+stream_alias_varyings(ShaderSource &vert,
                       const_c_array<const char*> p,
                       const std::string &s, bool define)
 {
@@ -209,7 +209,7 @@ stream_alias_varyings(glsl::ShaderSource &vert,
 }
 
 void
-stream_alias_varyings(glsl::ShaderSource &shader,
+stream_alias_varyings(ShaderSource &shader,
                       const varying_list &p,
                       bool define)
 {
@@ -227,13 +227,13 @@ stream_alias_varyings(glsl::ShaderSource &shader,
 
 void
 stream_unpack_code(unsigned int alignment,
-                   glsl::ShaderSource &str)
+                   ShaderSource &str)
 {
   using namespace fastuidraw::PainterPacking;
   using namespace fastuidraw::PainterPacking::Brush;
 
   {
-    glsl_shader_unpack_value_set<pen_data_size> labels;
+    shader_unpack_value_set<pen_data_size> labels;
     labels
       .set(pen_red_offset, ".r")
       .set(pen_green_offset, ".g")
@@ -246,7 +246,7 @@ stream_unpack_code(unsigned int alignment,
     /* Matrics in GLSL are [column][row], that is why
        one sees the transposing to the loads
     */
-    glsl_shader_unpack_value_set<transformation_matrix_data_size> labels;
+    shader_unpack_value_set<transformation_matrix_data_size> labels;
     labels
       .set(transformation_matrix_m00_offset, "[0][0]")
       .set(transformation_matrix_m10_offset, "[0][1]")
@@ -258,7 +258,7 @@ stream_unpack_code(unsigned int alignment,
   }
 
   {
-    glsl_shader_unpack_value_set<transformation_translation_data_size> labels;
+    shader_unpack_value_set<transformation_translation_data_size> labels;
     labels
       .set(transformation_translation_x_offset, ".x")
       .set(transformation_translation_y_offset, ".y")
@@ -268,7 +268,7 @@ stream_unpack_code(unsigned int alignment,
   }
 
   {
-    glsl_shader_unpack_value_set<repeat_window_data_size> labels;
+    shader_unpack_value_set<repeat_window_data_size> labels;
     labels
       .set(repeat_window_x_offset, ".xy.x")
       .set(repeat_window_y_offset, ".xy.y")
@@ -280,39 +280,39 @@ stream_unpack_code(unsigned int alignment,
   }
 
   {
-    glsl_shader_unpack_value_set<image_data_size> labels;
+    shader_unpack_value_set<image_data_size> labels;
     labels
-      .set(image_atlas_location_xyz_offset, ".image_atlas_location_xyz", glsl_shader_unpack_value::uint_type)
-      .set(image_size_xy_offset, ".image_size_xy", glsl_shader_unpack_value::uint_type)
-      .set(image_start_xy_offset, ".image_start_xy", glsl_shader_unpack_value::uint_type)
+      .set(image_atlas_location_xyz_offset, ".image_atlas_location_xyz", shader_unpack_value::uint_type)
+      .set(image_size_xy_offset, ".image_size_xy", shader_unpack_value::uint_type)
+      .set(image_start_xy_offset, ".image_start_xy", shader_unpack_value::uint_type)
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_brush_image_raw_data",
                               "fastuidraw_brush_image_data_raw");
   }
 
   {
-    glsl_shader_unpack_value_set<linear_gradient_data_size> labels;
+    shader_unpack_value_set<linear_gradient_data_size> labels;
     labels
       .set(gradient_p0_x_offset, ".p0.x")
       .set(gradient_p0_y_offset, ".p0.y")
       .set(gradient_p1_x_offset, ".p1.x")
       .set(gradient_p1_y_offset, ".p1.y")
-      .set(gradient_color_stop_xy_offset, ".color_stop_sequence_xy", glsl_shader_unpack_value::uint_type)
-      .set(gradient_color_stop_length_offset, ".color_stop_sequence_length", glsl_shader_unpack_value::uint_type)
+      .set(gradient_color_stop_xy_offset, ".color_stop_sequence_xy", shader_unpack_value::uint_type)
+      .set(gradient_color_stop_length_offset, ".color_stop_sequence_length", shader_unpack_value::uint_type)
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_brush_linear_gradient_data",
                               "fastuidraw_brush_gradient_raw");
   }
 
   {
-    glsl_shader_unpack_value_set<radial_gradient_data_size> labels;
+    shader_unpack_value_set<radial_gradient_data_size> labels;
     labels
       .set(gradient_p0_x_offset, ".p0.x")
       .set(gradient_p0_y_offset, ".p0.y")
       .set(gradient_p1_x_offset, ".p1.x")
       .set(gradient_p1_y_offset, ".p1.y")
-      .set(gradient_color_stop_xy_offset, ".color_stop_sequence_xy", glsl_shader_unpack_value::uint_type)
-      .set(gradient_color_stop_length_offset, ".color_stop_sequence_length", glsl_shader_unpack_value::uint_type)
+      .set(gradient_color_stop_xy_offset, ".color_stop_sequence_xy", shader_unpack_value::uint_type)
+      .set(gradient_color_stop_length_offset, ".color_stop_sequence_length", shader_unpack_value::uint_type)
       .set(gradient_start_radius_offset, ".r0")
       .set(gradient_end_radius_offset, ".r1")
       .stream_unpack_function(alignment, str,
@@ -321,23 +321,23 @@ stream_unpack_code(unsigned int alignment,
   }
 
   {
-    glsl_shader_unpack_value_set<header_size> labels;
+    shader_unpack_value_set<header_size> labels;
     labels
-      .set(clip_equations_offset, ".clipping_location", glsl_shader_unpack_value::uint_type)
-      .set(item_matrix_offset, ".item_matrix_location", glsl_shader_unpack_value::uint_type)
-      .set(brush_shader_data_offset, ".brush_shader_data_location", glsl_shader_unpack_value::uint_type)
-      .set(item_shader_data_offset, ".item_shader_data_location", glsl_shader_unpack_value::uint_type)
-      .set(blend_shader_data_offset, ".blend_shader_data_location", glsl_shader_unpack_value::uint_type)
-      .set(item_shader_offset, ".item_shader", glsl_shader_unpack_value::uint_type)
-      .set(brush_shader_offset, ".brush_shader", glsl_shader_unpack_value::uint_type)
-      .set(z_blend_shader_offset, ".z_blend_shader_raw", glsl_shader_unpack_value::uint_type)
+      .set(clip_equations_offset, ".clipping_location", shader_unpack_value::uint_type)
+      .set(item_matrix_offset, ".item_matrix_location", shader_unpack_value::uint_type)
+      .set(brush_shader_data_offset, ".brush_shader_data_location", shader_unpack_value::uint_type)
+      .set(item_shader_data_offset, ".item_shader_data_location", shader_unpack_value::uint_type)
+      .set(blend_shader_data_offset, ".blend_shader_data_location", shader_unpack_value::uint_type)
+      .set(item_shader_offset, ".item_shader", shader_unpack_value::uint_type)
+      .set(brush_shader_offset, ".brush_shader", shader_unpack_value::uint_type)
+      .set(z_blend_shader_offset, ".z_blend_shader_raw", shader_unpack_value::uint_type)
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_header",
                               "fastuidraw_shader_header", false);
   }
 
   {
-    glsl_shader_unpack_value_set<clip_equations_data_size> labels;
+    shader_unpack_value_set<clip_equations_data_size> labels;
     labels
       .set(clip0_coeff_x, ".clip0.x")
       .set(clip0_coeff_y, ".clip0.y")
@@ -364,7 +364,7 @@ stream_unpack_code(unsigned int alignment,
     /* Matrics in GLSL are [column][row], that is why
        one sees the transposing to the loads
     */
-    glsl_shader_unpack_value_set<item_matrix_data_size> labels;
+    shader_unpack_value_set<item_matrix_data_size> labels;
     labels
       .set(item_matrix_m00_offset, "[0][0]")
       .set(item_matrix_m10_offset, "[0][1]")
@@ -380,7 +380,7 @@ stream_unpack_code(unsigned int alignment,
   }
 
   {
-    glsl_shader_unpack_value_set<PainterStrokeParams::stroke_data_size> labels;
+    shader_unpack_value_set<PainterStrokeParams::stroke_data_size> labels;
     labels
       .set(PainterStrokeParams::stroke_width_offset, ".width")
       .set(PainterStrokeParams::stroke_miter_limit_offset, ".miter_limit")
@@ -393,53 +393,53 @@ stream_unpack_code(unsigned int alignment,
 
 
 void
-pre_stream_varyings(glsl::ShaderSource &dst,
-                    const reference_counted_ptr<PainterItemShaderGL> &sh)
+pre_stream_varyings(ShaderSource &dst,
+                    const reference_counted_ptr<PainterItemShaderGLSL> &sh)
 {
   stream_alias_varyings(dst, sh->varyings(), true);
 }
 
 
 void
-post_stream_varyings(glsl::ShaderSource &dst,
-                     const reference_counted_ptr<PainterItemShaderGL> &sh)
+post_stream_varyings(ShaderSource &dst,
+                     const reference_counted_ptr<PainterItemShaderGLSL> &sh)
 {
   stream_alias_varyings(dst, sh->varyings(), false);
 }
 
 void
 stream_uber_vert_shader(bool use_switch,
-                        glsl::ShaderSource &vert,
-                        const_c_array<reference_counted_ptr<PainterItemShaderGL> > item_shaders)
+                        ShaderSource &vert,
+                        const_c_array<reference_counted_ptr<PainterItemShaderGLSL> > item_shaders)
 {
-  UberShaderStreamer<PainterItemShaderGL>::stream_uber(use_switch, vert, item_shaders,
-                                                       &PainterItemShaderGL::vertex_src,
-                                                       &pre_stream_varyings, &post_stream_varyings,
-                                                       "vec4", "fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out uint add_z)",
-                                                       "fastuidraw_gl_vert_main",
-                                                       ", fastuidraw_primary_attribute, fastuidraw_secondary_attribute, "
-                                                       "fastuidraw_uint_attribute, h.item_shader_data_location, add_z",
-                                                       "h.item_shader");
+  UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, vert, item_shaders,
+                                                         &PainterItemShaderGLSL::vertex_src,
+                                                         &pre_stream_varyings, &post_stream_varyings,
+                                                         "vec4", "fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out uint add_z)",
+                                                         "fastuidraw_gl_vert_main",
+                                                         ", fastuidraw_primary_attribute, fastuidraw_secondary_attribute, "
+                                                         "fastuidraw_uint_attribute, h.item_shader_data_location, add_z",
+                                                         "h.item_shader");
 }
 
 void
 stream_uber_frag_shader(bool use_switch,
-                        glsl::ShaderSource &frag,
-                        const_c_array<reference_counted_ptr<PainterItemShaderGL> > item_shaders)
+                        ShaderSource &frag,
+                        const_c_array<reference_counted_ptr<PainterItemShaderGLSL> > item_shaders)
 {
-  UberShaderStreamer<PainterItemShaderGL>::stream_uber(use_switch, frag, item_shaders,
-                                                       &PainterItemShaderGL::fragment_src,
-                                                       &pre_stream_varyings, &post_stream_varyings,
-                                                       "vec4",
-                                                       "fastuidraw_run_frag_shader(in uint frag_shader, "
-                                                       "in uint frag_shader_data_location)",
-                                                       "fastuidraw_gl_frag_main", ", frag_shader_data_location",
-                                                       "frag_shader");
+  UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, frag, item_shaders,
+                                                         &PainterItemShaderGLSL::fragment_src,
+                                                         &pre_stream_varyings, &post_stream_varyings,
+                                                         "vec4",
+                                                         "fastuidraw_run_frag_shader(in uint frag_shader, "
+                                                         "in uint frag_shader_data_location)",
+                                                         "fastuidraw_gl_frag_main", ", frag_shader_data_location",
+                                                         "frag_shader");
 }
 
 void
 stream_uber_blend_shader(bool use_switch,
-                         glsl::ShaderSource &frag,
+                         ShaderSource &frag,
                          const_c_array<reference_counted_ptr<BlendShaderSourceCode> > shaders,
                          enum blending_code_type tp)
 {

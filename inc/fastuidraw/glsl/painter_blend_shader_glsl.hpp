@@ -1,6 +1,6 @@
 /*!
- * \file painter_blend_shader_gl.hpp
- * \brief file painter_blend_shader_gl.hpp
+ * \file painter_blend_shader_glsl.hpp
+ * \brief file painter_blend_shader_glsl.hpp
  *
  * Copyright 2016 by Intel.
  *
@@ -24,9 +24,9 @@
 
 namespace fastuidraw
 {
-  namespace gl
+  namespace glsl
   {
-/*!\addtogroup GLBackend
+/*!\addtogroup GLSLShaderBuilder
   @{
  */
     /*!
@@ -369,7 +369,7 @@ namespace fastuidraw
                                 unsigned int sub_shader = 0):
         m_blend_mode(md), m_src(src), m_sub_shader(sub_shader)
       {}
-      
+
       /*!
         Provides the BlendMode to be used with the shader.
        */
@@ -436,7 +436,7 @@ namespace fastuidraw
                               unsigned int sub_shader = 0):
         m_blend_mode(md), m_src(src), m_sub_shader(sub_shader)
       {}
-      
+
       /*!
         Provides the BlendMode to be used with the shader.
        */
@@ -524,14 +524,13 @@ namespace fastuidraw
       unsigned int m_sub_shader;
     };
 
-    
     /*!
       A PainterBlendShaderGL is the GL backend's implementation of
       PainterShader for blending. Internally, it is composed of
       a SingleSourceBlenderShader, DualSourceBlenderShader and
       FramebufferFetchBlendShader.
      */
-    class PainterBlendShaderGL:public PainterBlendShader
+    class PainterBlendShaderGLSL:public PainterBlendShader
     {
     public:
       /*!
@@ -540,11 +539,11 @@ namespace fastuidraw
         \param pdual_src_blender value copied that dual_src_blender() returns
         \param pfetch_blender value copied that fetch_blender() returns
        */
-      PainterBlendShaderGL(const SingleSourceBlenderShader &psingle_src_blender,
-                           const DualSourceBlenderShader &pdual_src_blender,
-                           const FramebufferFetchBlendShader &pfetch_blender);
+      PainterBlendShaderGLSL(const SingleSourceBlenderShader &psingle_src_blender,
+                             const DualSourceBlenderShader &pdual_src_blender,
+                             const FramebufferFetchBlendShader &pfetch_blender);
 
-      ~PainterBlendShaderGL();
+      ~PainterBlendShaderGLSL();
 
       /*!
         Returns the shader code and blend mode to use when
@@ -559,7 +558,7 @@ namespace fastuidraw
        */
       const DualSourceBlenderShader&
       dual_src_blender(void) const;
-      
+
       /*!
         Returns the shader code and blend mode to use when
         performing blending via framebuffer fetch.

@@ -1,6 +1,6 @@
 /*!
- * \file painter_item_shader_gl.hpp
- * \brief file painter_item_shader_gl.hpp
+ * \file painter_item_shader_glsl.hpp
+ * \brief file painter_item_shader_glsl.hpp
  *
  * Copyright 2016 by Intel.
  *
@@ -24,9 +24,9 @@
 
 namespace fastuidraw
 {
-  namespace gl
+  namespace glsl
   {
-/*!\addtogroup GLBackend
+/*!\addtogroup GLSLShaderBuilder
   @{
  */
 
@@ -157,10 +157,10 @@ namespace fastuidraw
     };
 
     /*!
-      A glsl_shader_unpack_value represents a value to unpack
+      A shader_unpack_value represents a value to unpack
       from the data store.
      */
-    class glsl_shader_unpack_value
+    class shader_unpack_value
     {
     public:
       /*!
@@ -180,20 +180,20 @@ namespace fastuidraw
                      is copied
         \param ptype the value returned by type().
        */
-      glsl_shader_unpack_value(const char *pname = "", type_t ptype = float_type);
+      shader_unpack_value(const char *pname = "", type_t ptype = float_type);
 
       /*!
         Copy ctor
        */
-      glsl_shader_unpack_value(const glsl_shader_unpack_value &obj);
+      shader_unpack_value(const shader_unpack_value &obj);
 
-      ~glsl_shader_unpack_value();
+      ~shader_unpack_value();
 
       /*!
         Assignment operator
        */
-      glsl_shader_unpack_value&
-      operator=(const glsl_shader_unpack_value &rhs);
+      shader_unpack_value&
+      operator=(const shader_unpack_value &rhs);
 
       /*!
         The name of the value to unpack as it appears in GLSL
@@ -223,7 +223,7 @@ namespace fastuidraw
       static
       unsigned int
       stream_unpack_code(unsigned int alignment, glsl::ShaderSource &str,
-                         const_c_array<glsl_shader_unpack_value> labels,
+                         const_c_array<shader_unpack_value> labels,
                          const char *offset_name,
                          const char *prefix = "");
 
@@ -249,7 +249,7 @@ namespace fastuidraw
       static
       unsigned int
       stream_unpack_function(unsigned int alignment, glsl::ShaderSource &str,
-                             const_c_array<glsl_shader_unpack_value> labels,
+                             const_c_array<shader_unpack_value> labels,
                              const char *function_name,
                              const char *out_type,
                              bool returns_new_offset = true);
@@ -258,12 +258,12 @@ namespace fastuidraw
     };
 
     /*!
-      A glsl_shader_unpack_value_set is a convenience class wrapping
-      an array of glsl_shader_unpack_value objects.
+      A shader_unpack_value_set is a convenience class wrapping
+      an array of shader_unpack_value objects.
      */
     template<size_t N>
-    class glsl_shader_unpack_value_set:
-      public vecN<glsl_shader_unpack_value, N>
+    class shader_unpack_value_set:
+      public vecN<shader_unpack_value, N>
     {
     public:
       /*!
@@ -272,18 +272,18 @@ namespace fastuidraw
         \param name name value
         \param type type value
        */
-      glsl_shader_unpack_value_set&
+      shader_unpack_value_set&
       set(unsigned int i, const char *name,
-          glsl_shader_unpack_value::type_t type = glsl_shader_unpack_value::float_type)
+          shader_unpack_value::type_t type = shader_unpack_value::float_type)
       {
-        this->operator[](i) = glsl_shader_unpack_value(name, type);
+        this->operator[](i) = shader_unpack_value(name, type);
         return *this;
       }
 
       /*!
         Provided as an API convenience, equivalent to
         \code
-        glsl_shader_unpack_value::stream_unpack_code(alignment, str, *this, offset_name);
+        shader_unpack_value::stream_unpack_code(alignment, str, *this, offset_name);
         \endcode
         \param alignment the alignment of the data store used in a
                           PainterBackendGL (i.e. the value of
@@ -298,13 +298,13 @@ namespace fastuidraw
                          const char *offset_name,
                          const char *prefix = "")
       {
-        return glsl_shader_unpack_value::stream_unpack_code(alignment, str, *this, offset_name, prefix);
+        return shader_unpack_value::stream_unpack_code(alignment, str, *this, offset_name, prefix);
       }
 
       /*!
         Provided as an API convenience, equivalent to
         \code
-        glsl_shader_unpack_value::stream_unpack_function(alignment, str, *this, function_name,
+        shader_unpack_value::stream_unpack_function(alignment, str, *this, function_name,
                                                          out_type, returns_new_offset);
         \endcode
         \param alignment the alignment of the data store used in a
@@ -322,7 +322,7 @@ namespace fastuidraw
                              const char *out_type,
                              bool returns_new_offset = true)
       {
-        return glsl_shader_unpack_value::stream_unpack_function(alignment, str, *this, function_name,
+        return shader_unpack_value::stream_unpack_function(alignment, str, *this, function_name,
                                                                 out_type, returns_new_offset);
       }
     };
@@ -393,12 +393,12 @@ namespace fastuidraw
       Use the GLSL built-in uintBitsToFloat() to covert the uint bit-value to float
       and just cast int() to get the value as an integer.
 
-      Lastly, one can use the classes glsl_shader_unpack_value
-      and glsl_shader_unpack_value_set to generate shader code
+      Lastly, one can use the classes shader_unpack_value
+      and shader_unpack_value_set to generate shader code
       to unpack values from the data in the data store buffer.
       That machine generated code uses the macro fastuidraw_fetch_data().
      */
-    class PainterItemShaderGL:public PainterItemShader
+    class PainterItemShaderGLSL:public PainterItemShader
     {
     public:
       /*!
@@ -407,9 +407,9 @@ namespace fastuidraw
         \param fragment_src GLSL source holding fragment shader routine
         \param varyings list of varyings of the shader
        */
-      PainterItemShaderGL(const glsl::ShaderSource &vertex_src,
-                          const glsl::ShaderSource &fragment_src,
-                          const varying_list &varyings = varying_list());
+      PainterItemShaderGLSL(const glsl::ShaderSource &vertex_src,
+                            const glsl::ShaderSource &fragment_src,
+                            const varying_list &varyings = varying_list());
 
       /*!
         Ctor for creating a shader with sub-shaders.
@@ -418,12 +418,12 @@ namespace fastuidraw
         \param fragment_src GLSL source holding fragment shader routine
         \param varyings list of varyings of the shader
        */
-      PainterItemShaderGL(unsigned int num_sub_shaders,
-                          const glsl::ShaderSource &vertex_src,
-                          const glsl::ShaderSource &fragment_src,
-                          const varying_list &varyings = varying_list());
+      PainterItemShaderGLSL(unsigned int num_sub_shaders,
+                            const glsl::ShaderSource &vertex_src,
+                            const glsl::ShaderSource &fragment_src,
+                            const varying_list &varyings = varying_list());
 
-      ~PainterItemShaderGL();
+      ~PainterItemShaderGLSL();
 
       /*!
         Returns the varying of the shader

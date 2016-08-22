@@ -1,6 +1,6 @@
 /*!
- * \file painter_item_shader_gl.cpp
- * \brief file painter_item_shader_gl.cpp
+ * \file painter_item_shader_glsl.cpp
+ * \brief file painter_item_shader_glsl.cpp
  *
  * Copyright 2016 by Intel.
  *
@@ -24,8 +24,7 @@
 
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
-#include <fastuidraw/gl_backend/ngl_header.hpp>
-#include <fastuidraw/gl_backend/painter_item_shader_gl.hpp>
+#include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 
 #include "../private/util_private.hpp"
 
@@ -68,7 +67,7 @@ namespace
   public:
     enum
       {
-        interpolation_number_types = fastuidraw::gl::varying_list::interpolation_number_types
+        interpolation_number_types = fastuidraw::glsl::varying_list::interpolation_number_types
       };
 
     fastuidraw::vecN<StringArray, interpolation_number_types> m_floats;
@@ -79,28 +78,28 @@ namespace
   class GLSLShaderUnpackValuePrivate
   {
   public:
-    GLSLShaderUnpackValuePrivate(const char *p, enum fastuidraw::gl::glsl_shader_unpack_value::type_t t):
+    GLSLShaderUnpackValuePrivate(const char *p, enum fastuidraw::glsl::shader_unpack_value::type_t t):
       m_name(p),
       m_type(t)
     {}
 
     std::string m_name;
-    enum fastuidraw::gl::glsl_shader_unpack_value::type_t m_type;
+    enum fastuidraw::glsl::shader_unpack_value::type_t m_type;
 
     static
     unsigned int
     stream_unpack_code(unsigned int alignment, std::ostream &str,
-                       fastuidraw::const_c_array<fastuidraw::gl::glsl_shader_unpack_value> labels,
+                       fastuidraw::const_c_array<fastuidraw::glsl::shader_unpack_value> labels,
                        const char *offset_name,
                        const char *prefix);
   };
 
-  class PainterShaderGLPrivate
+  class PainterShaderGLSLPrivate
   {
   public:
-    PainterShaderGLPrivate(const fastuidraw::glsl::ShaderSource &vertex_src,
+    PainterShaderGLSLPrivate(const fastuidraw::glsl::ShaderSource &vertex_src,
                            const fastuidraw::glsl::ShaderSource &fragment_src,
-                           const fastuidraw::gl::varying_list &varyings):
+                           const fastuidraw::glsl::varying_list &varyings):
       m_vertex_src(vertex_src),
       m_fragment_src(fragment_src),
       m_varyings(varyings)
@@ -108,7 +107,7 @@ namespace
 
     fastuidraw::glsl::ShaderSource m_vertex_src;
     fastuidraw::glsl::ShaderSource m_fragment_src;
-    fastuidraw::gl::varying_list m_varyings;
+    fastuidraw::glsl::varying_list m_varyings;
 
   };
 }
@@ -200,7 +199,7 @@ implement_set(unsigned int slot, const std::string &pname)
 unsigned int
 GLSLShaderUnpackValuePrivate::
 stream_unpack_code(unsigned int alignment, std::ostream &str,
-                   fastuidraw::const_c_array<fastuidraw::gl::glsl_shader_unpack_value> labels,
+                   fastuidraw::const_c_array<fastuidraw::glsl::shader_unpack_value> labels,
                    const char *offset_name,
                    const char *prefix)
 {
@@ -247,14 +246,14 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
         {
           switch(labels[i].type())
             {
-            case fastuidraw::gl::glsl_shader_unpack_value::int_type:
+            case fastuidraw::glsl::shader_unpack_value::int_type:
               str << prefix << labels[i].name() << " = " << "int(utemp." << ext_component[k] << ");\n";
               break;
-            case fastuidraw::gl::glsl_shader_unpack_value::uint_type:
+            case fastuidraw::glsl::shader_unpack_value::uint_type:
               str << prefix << labels[i].name() << " = " << "utemp." << ext_component[k] << ";\n";
               break;
             default:
-            case fastuidraw::gl::glsl_shader_unpack_value::float_type:
+            case fastuidraw::glsl::shader_unpack_value::float_type:
               str << prefix << labels[i].name() << " = " << "uintBitsToFloat(utemp." << ext_component[k] << ");\n";
               break;
             }
@@ -265,14 +264,14 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
 }
 
 /////////////////////////////////////////////
-// fastuidraw::gl::varying_list methods
-fastuidraw::gl::varying_list::
+// fastuidraw::glsl::varying_list methods
+fastuidraw::glsl::varying_list::
 varying_list(void)
 {
   m_d = FASTUIDRAWnew VaryingListPrivate();
 }
 
-fastuidraw::gl::varying_list::
+fastuidraw::glsl::varying_list::
 varying_list(const varying_list &rhs)
 {
   VaryingListPrivate *d;
@@ -280,7 +279,7 @@ varying_list(const varying_list &rhs)
   m_d = FASTUIDRAWnew VaryingListPrivate(*d);
 }
 
-fastuidraw::gl::varying_list::
+fastuidraw::glsl::varying_list::
 ~varying_list()
 {
   VaryingListPrivate *d;
@@ -289,8 +288,8 @@ fastuidraw::gl::varying_list::
   m_d = NULL;
 }
 
-fastuidraw::gl::varying_list&
-fastuidraw::gl::varying_list::
+fastuidraw::glsl::varying_list&
+fastuidraw::glsl::varying_list::
 operator=(const varying_list &rhs)
 {
   if(this != &rhs)
@@ -304,7 +303,7 @@ operator=(const varying_list &rhs)
 }
 
 fastuidraw::const_c_array<const char*>
-fastuidraw::gl::varying_list::
+fastuidraw::glsl::varying_list::
 floats(enum interpolation_qualifier_t q) const
 {
   VaryingListPrivate *d;
@@ -313,7 +312,7 @@ floats(enum interpolation_qualifier_t q) const
 }
 
 fastuidraw::const_c_array<const char*>
-fastuidraw::gl::varying_list::
+fastuidraw::glsl::varying_list::
 uints(void) const
 {
   VaryingListPrivate *d;
@@ -322,7 +321,7 @@ uints(void) const
 }
 
 fastuidraw::const_c_array<const char*>
-fastuidraw::gl::varying_list::
+fastuidraw::glsl::varying_list::
 ints(void) const
 {
   VaryingListPrivate *d;
@@ -330,8 +329,8 @@ ints(void) const
   return d->m_ints.string_array();
 }
 
-fastuidraw::gl::varying_list&
-fastuidraw::gl::varying_list::
+fastuidraw::glsl::varying_list&
+fastuidraw::glsl::varying_list::
 set_float_varying(unsigned int slot, const char *pname,
                   enum interpolation_qualifier_t q)
 {
@@ -341,15 +340,15 @@ set_float_varying(unsigned int slot, const char *pname,
   return *this;
 }
 
-fastuidraw::gl::varying_list&
-fastuidraw::gl::varying_list::
+fastuidraw::glsl::varying_list&
+fastuidraw::glsl::varying_list::
 add_float_varying(const char *pname, enum interpolation_qualifier_t q)
 {
   return set_float_varying(floats(q).size(), pname, q);
 }
 
-fastuidraw::gl::varying_list&
-fastuidraw::gl::varying_list::
+fastuidraw::glsl::varying_list&
+fastuidraw::glsl::varying_list::
 set_uint_varying(unsigned int slot, const char *pname)
 {
   VaryingListPrivate *d;
@@ -358,15 +357,15 @@ set_uint_varying(unsigned int slot, const char *pname)
   return *this;
 }
 
-fastuidraw::gl::varying_list&
-fastuidraw::gl::varying_list::
+fastuidraw::glsl::varying_list&
+fastuidraw::glsl::varying_list::
 add_uint_varying(const char *pname)
 {
   return set_uint_varying(uints().size(), pname);
 }
 
-fastuidraw::gl::varying_list&
-fastuidraw::gl::varying_list::
+fastuidraw::glsl::varying_list&
+fastuidraw::glsl::varying_list::
 set_int_varying(unsigned int slot, const char *pname)
 {
   VaryingListPrivate *d;
@@ -375,8 +374,8 @@ set_int_varying(unsigned int slot, const char *pname)
   return *this;
 }
 
-fastuidraw::gl::varying_list&
-fastuidraw::gl::varying_list::
+fastuidraw::glsl::varying_list&
+fastuidraw::glsl::varying_list::
 add_int_varying(const char *pname)
 {
   return set_int_varying(ints().size(), pname);
@@ -384,23 +383,23 @@ add_int_varying(const char *pname)
 
 
 ///////////////////////////////////////////////////
-// fastuidraw::gl::glsl_shader_unpack_value methods
-fastuidraw::gl::glsl_shader_unpack_value::
-glsl_shader_unpack_value(const char *pname, type_t ptype)
+// fastuidraw::glsl::shader_unpack_value methods
+fastuidraw::glsl::shader_unpack_value::
+shader_unpack_value(const char *pname, type_t ptype)
 {
   m_d = FASTUIDRAWnew GLSLShaderUnpackValuePrivate(pname, ptype);
 }
 
-fastuidraw::gl::glsl_shader_unpack_value::
-glsl_shader_unpack_value(const glsl_shader_unpack_value &obj)
+fastuidraw::glsl::shader_unpack_value::
+shader_unpack_value(const shader_unpack_value &obj)
 {
   GLSLShaderUnpackValuePrivate *d;
   d = reinterpret_cast<GLSLShaderUnpackValuePrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew GLSLShaderUnpackValuePrivate(*d);
 }
 
-fastuidraw::gl::glsl_shader_unpack_value::
-~glsl_shader_unpack_value()
+fastuidraw::glsl::shader_unpack_value::
+~shader_unpack_value()
 {
   GLSLShaderUnpackValuePrivate *d;
   d = reinterpret_cast<GLSLShaderUnpackValuePrivate*>(m_d);
@@ -408,9 +407,9 @@ fastuidraw::gl::glsl_shader_unpack_value::
   m_d = NULL;
 }
 
-fastuidraw::gl::glsl_shader_unpack_value&
-fastuidraw::gl::glsl_shader_unpack_value::
-operator=(const glsl_shader_unpack_value &rhs)
+fastuidraw::glsl::shader_unpack_value&
+fastuidraw::glsl::shader_unpack_value::
+operator=(const shader_unpack_value &rhs)
 {
   if(this != &rhs)
     {
@@ -423,7 +422,7 @@ operator=(const glsl_shader_unpack_value &rhs)
 }
 
 const char*
-fastuidraw::gl::glsl_shader_unpack_value::
+fastuidraw::glsl::shader_unpack_value::
 name(void) const
 {
   GLSLShaderUnpackValuePrivate *d;
@@ -431,8 +430,8 @@ name(void) const
   return d->m_name.c_str();
 }
 
-enum fastuidraw::gl::glsl_shader_unpack_value::type_t
-fastuidraw::gl::glsl_shader_unpack_value::
+enum fastuidraw::glsl::shader_unpack_value::type_t
+fastuidraw::glsl::shader_unpack_value::
 type(void) const
 {
   GLSLShaderUnpackValuePrivate *d;
@@ -441,9 +440,9 @@ type(void) const
 }
 
 unsigned int
-fastuidraw::gl::glsl_shader_unpack_value::
+fastuidraw::glsl::shader_unpack_value::
 stream_unpack_code(unsigned int alignment, glsl::ShaderSource &src,
-                   const_c_array<glsl_shader_unpack_value> labels,
+                   const_c_array<shader_unpack_value> labels,
                    const char *offset_name,
                    const char *prefix)
 {
@@ -458,9 +457,9 @@ stream_unpack_code(unsigned int alignment, glsl::ShaderSource &src,
 
 
 unsigned int
-fastuidraw::gl::glsl_shader_unpack_value::
+fastuidraw::glsl::shader_unpack_value::
 stream_unpack_function(unsigned int alignment, glsl::ShaderSource &src,
-                       const_c_array<glsl_shader_unpack_value> labels,
+                       const_c_array<shader_unpack_value> labels,
                        const char *function_name,
                        const char *out_type,
                        bool has_return_value)
@@ -492,57 +491,57 @@ stream_unpack_function(unsigned int alignment, glsl::ShaderSource &src,
 }
 
 ///////////////////////////////////////////////
-// fastuidraw::gl::PainterItemShaderGL methods
-fastuidraw::gl::PainterItemShaderGL::
-PainterItemShaderGL(const glsl::ShaderSource &v_src,
+// fastuidraw::glsl::PainterItemShaderGLSL methods
+fastuidraw::glsl::PainterItemShaderGLSL::
+PainterItemShaderGLSL(const glsl::ShaderSource &v_src,
                     const glsl::ShaderSource &f_src,
                     const varying_list &varyings)
 {
-  m_d = FASTUIDRAWnew PainterShaderGLPrivate(v_src, f_src, varyings);
+  m_d = FASTUIDRAWnew PainterShaderGLSLPrivate(v_src, f_src, varyings);
 }
 
-fastuidraw::gl::PainterItemShaderGL::
-PainterItemShaderGL(unsigned int num_sub_shaders,
+fastuidraw::glsl::PainterItemShaderGLSL::
+PainterItemShaderGLSL(unsigned int num_sub_shaders,
                     const glsl::ShaderSource &v_src,
                     const glsl::ShaderSource &f_src,
                     const varying_list &varyings):
   PainterItemShader(num_sub_shaders)
 {
-  m_d = FASTUIDRAWnew PainterShaderGLPrivate(v_src, f_src, varyings);
+  m_d = FASTUIDRAWnew PainterShaderGLSLPrivate(v_src, f_src, varyings);
 }
 
-fastuidraw::gl::PainterItemShaderGL::
-~PainterItemShaderGL(void)
+fastuidraw::glsl::PainterItemShaderGLSL::
+~PainterItemShaderGLSL(void)
 {
-  PainterShaderGLPrivate *d;
-  d = reinterpret_cast<PainterShaderGLPrivate*>(m_d);
+  PainterShaderGLSLPrivate *d;
+  d = reinterpret_cast<PainterShaderGLSLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
 
-const fastuidraw::gl::varying_list&
-fastuidraw::gl::PainterItemShaderGL::
+const fastuidraw::glsl::varying_list&
+fastuidraw::glsl::PainterItemShaderGLSL::
 varyings(void) const
 {
-  PainterShaderGLPrivate *d;
-  d = reinterpret_cast<PainterShaderGLPrivate*>(m_d);
+  PainterShaderGLSLPrivate *d;
+  d = reinterpret_cast<PainterShaderGLSLPrivate*>(m_d);
   return d->m_varyings;
 }
 
 const fastuidraw::glsl::ShaderSource&
-fastuidraw::gl::PainterItemShaderGL::
+fastuidraw::glsl::PainterItemShaderGLSL::
 vertex_src(void) const
 {
-  PainterShaderGLPrivate *d;
-  d = reinterpret_cast<PainterShaderGLPrivate*>(m_d);
+  PainterShaderGLSLPrivate *d;
+  d = reinterpret_cast<PainterShaderGLSLPrivate*>(m_d);
   return d->m_vertex_src;
 }
 
 const fastuidraw::glsl::ShaderSource&
-fastuidraw::gl::PainterItemShaderGL::
+fastuidraw::glsl::PainterItemShaderGLSL::
 fragment_src(void) const
 {
-  PainterShaderGLPrivate *d;
-  d = reinterpret_cast<PainterShaderGLPrivate*>(m_d);
+  PainterShaderGLSLPrivate *d;
+  d = reinterpret_cast<PainterShaderGLSLPrivate*>(m_d);
   return d->m_fragment_src;
 }

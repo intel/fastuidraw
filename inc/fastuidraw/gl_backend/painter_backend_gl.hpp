@@ -20,8 +20,8 @@
 #pragma once
 
 #include <fastuidraw/painter/packing/painter_backend.hpp>
-#include <fastuidraw/gl_backend/painter_item_shader_gl.hpp>
-#include <fastuidraw/gl_backend/painter_blend_shader_gl.hpp>
+#include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 #include <fastuidraw/gl_backend/image_gl.hpp>
 #include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/colorstop_atlas_gl.hpp>
