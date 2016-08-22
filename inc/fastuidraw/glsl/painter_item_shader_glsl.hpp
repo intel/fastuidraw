@@ -406,22 +406,12 @@ namespace fastuidraw
         \param vertex_src GLSL source holding vertex shader routine
         \param fragment_src GLSL source holding fragment shader routine
         \param varyings list of varyings of the shader
+        \param num_sub_shaders the number of sub-shaders it supports
        */
       PainterItemShaderGLSL(const ShaderSource &vertex_src,
                             const ShaderSource &fragment_src,
-                            const varying_list &varyings = varying_list());
-
-      /*!
-        Ctor for creating a shader with sub-shaders.
-        \param num_sub_shaders the number of sub-shaders it supports
-        \param vertex_src GLSL source holding vertex shader routine
-        \param fragment_src GLSL source holding fragment shader routine
-        \param varyings list of varyings of the shader
-       */
-      PainterItemShaderGLSL(unsigned int num_sub_shaders,
-                            const ShaderSource &vertex_src,
-                            const ShaderSource &fragment_src,
-                            const varying_list &varyings = varying_list());
+                            const varying_list &varyings,
+                            unsigned int num_sub_shaders = 1);
 
       ~PainterItemShaderGLSL();
 

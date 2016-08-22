@@ -494,17 +494,9 @@ stream_unpack_function(unsigned int alignment, glsl::ShaderSource &src,
 // fastuidraw::glsl::PainterItemShaderGLSL methods
 fastuidraw::glsl::PainterItemShaderGLSL::
 PainterItemShaderGLSL(const glsl::ShaderSource &v_src,
-                    const glsl::ShaderSource &f_src,
-                    const varying_list &varyings)
-{
-  m_d = FASTUIDRAWnew PainterShaderGLSLPrivate(v_src, f_src, varyings);
-}
-
-fastuidraw::glsl::PainterItemShaderGLSL::
-PainterItemShaderGLSL(unsigned int num_sub_shaders,
-                    const glsl::ShaderSource &v_src,
-                    const glsl::ShaderSource &f_src,
-                    const varying_list &varyings):
+                      const glsl::ShaderSource &f_src,
+                      const varying_list &varyings,
+                      unsigned int num_sub_shaders):
   PainterItemShader(num_sub_shaders)
 {
   m_d = FASTUIDRAWnew PainterShaderGLSLPrivate(v_src, f_src, varyings);
