@@ -16,7 +16,7 @@ number_data_blocks(unsigned int alignment, unsigned int sz)
 }
 
 void
-add_enums(unsigned int alignment, Shader::shader_source &src)
+add_enums(unsigned int alignment, glsl::ShaderSource &src)
 {
   using namespace fastuidraw::PainterPacking;
   using namespace fastuidraw::PainterEnums;
@@ -105,7 +105,7 @@ add_enums(unsigned int alignment, Shader::shader_source &src)
 }
 
 void
-add_texture_size_constants(Shader::shader_source &src,
+add_texture_size_constants(glsl::ShaderSource &src,
                            const PainterBackendGL::params &P)
 {
   ivec2 glyph_atlas_size;
@@ -189,7 +189,7 @@ stream_declare_varyings(std::ostream &str,
 }
 
 void
-stream_alias_varyings(Shader::shader_source &vert,
+stream_alias_varyings(glsl::ShaderSource &vert,
                       const_c_array<const char*> p,
                       const std::string &s, bool define)
 {
@@ -209,7 +209,7 @@ stream_alias_varyings(Shader::shader_source &vert,
 }
 
 void
-stream_alias_varyings(Shader::shader_source &shader,
+stream_alias_varyings(glsl::ShaderSource &shader,
                       const varying_list &p,
                       bool define)
 {
@@ -227,7 +227,7 @@ stream_alias_varyings(Shader::shader_source &shader,
 
 void
 stream_unpack_code(unsigned int alignment,
-                   Shader::shader_source &str)
+                   glsl::ShaderSource &str)
 {
   using namespace fastuidraw::PainterPacking;
   using namespace fastuidraw::PainterPacking::Brush;
@@ -393,7 +393,7 @@ stream_unpack_code(unsigned int alignment,
 
 
 void
-pre_stream_varyings(Shader::shader_source &dst,
+pre_stream_varyings(glsl::ShaderSource &dst,
                     const reference_counted_ptr<PainterItemShaderGL> &sh)
 {
   stream_alias_varyings(dst, sh->varyings(), true);
@@ -401,7 +401,7 @@ pre_stream_varyings(Shader::shader_source &dst,
 
 
 void
-post_stream_varyings(Shader::shader_source &dst,
+post_stream_varyings(glsl::ShaderSource &dst,
                      const reference_counted_ptr<PainterItemShaderGL> &sh)
 {
   stream_alias_varyings(dst, sh->varyings(), false);
@@ -409,7 +409,7 @@ post_stream_varyings(Shader::shader_source &dst,
 
 void
 stream_uber_vert_shader(bool use_switch,
-                        Shader::shader_source &vert,
+                        glsl::ShaderSource &vert,
                         const_c_array<reference_counted_ptr<PainterItemShaderGL> > item_shaders)
 {
   UberShaderStreamer<PainterItemShaderGL>::stream_uber(use_switch, vert, item_shaders,
@@ -424,7 +424,7 @@ stream_uber_vert_shader(bool use_switch,
 
 void
 stream_uber_frag_shader(bool use_switch,
-                        Shader::shader_source &frag,
+                        glsl::ShaderSource &frag,
                         const_c_array<reference_counted_ptr<PainterItemShaderGL> > item_shaders)
 {
   UberShaderStreamer<PainterItemShaderGL>::stream_uber(use_switch, frag, item_shaders,
@@ -439,7 +439,7 @@ stream_uber_frag_shader(bool use_switch,
 
 void
 stream_uber_blend_shader(bool use_switch,
-                         Shader::shader_source &frag,
+                         glsl::ShaderSource &frag,
                          const_c_array<reference_counted_ptr<BlendShaderSourceCode> > shaders,
                          enum blending_code_type tp)
 {

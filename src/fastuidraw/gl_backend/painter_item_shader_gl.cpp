@@ -98,16 +98,16 @@ namespace
   class PainterShaderGLPrivate
   {
   public:
-    PainterShaderGLPrivate(const fastuidraw::gl::Shader::shader_source &vertex_src,
-                           const fastuidraw::gl::Shader::shader_source &fragment_src,
+    PainterShaderGLPrivate(const fastuidraw::glsl::ShaderSource &vertex_src,
+                           const fastuidraw::glsl::ShaderSource &fragment_src,
                            const fastuidraw::gl::varying_list &varyings):
       m_vertex_src(vertex_src),
       m_fragment_src(fragment_src),
       m_varyings(varyings)
     {}
 
-    fastuidraw::gl::Shader::shader_source m_vertex_src;
-    fastuidraw::gl::Shader::shader_source m_fragment_src;
+    fastuidraw::glsl::ShaderSource m_vertex_src;
+    fastuidraw::glsl::ShaderSource m_fragment_src;
     fastuidraw::gl::varying_list m_varyings;
 
   };
@@ -442,7 +442,7 @@ type(void) const
 
 unsigned int
 fastuidraw::gl::glsl_shader_unpack_value::
-stream_unpack_code(unsigned int alignment, Shader::shader_source &src,
+stream_unpack_code(unsigned int alignment, glsl::ShaderSource &src,
                    const_c_array<glsl_shader_unpack_value> labels,
                    const char *offset_name,
                    const char *prefix)
@@ -451,7 +451,7 @@ stream_unpack_code(unsigned int alignment, Shader::shader_source &src,
   unsigned int return_value;
 
   return_value = GLSLShaderUnpackValuePrivate::stream_unpack_code(alignment, str, labels, offset_name, prefix);
-  src.add_source(str.str().c_str(), Shader::from_string);
+  src.add_source(str.str().c_str(), glsl::ShaderSource::from_string);
 
   return return_value;
 }
@@ -459,7 +459,7 @@ stream_unpack_code(unsigned int alignment, Shader::shader_source &src,
 
 unsigned int
 fastuidraw::gl::glsl_shader_unpack_value::
-stream_unpack_function(unsigned int alignment, Shader::shader_source &src,
+stream_unpack_function(unsigned int alignment, glsl::ShaderSource &src,
                        const_c_array<glsl_shader_unpack_value> labels,
                        const char *function_name,
                        const char *out_type,
@@ -486,7 +486,7 @@ stream_unpack_function(unsigned int alignment, Shader::shader_source &src,
       str << "return uint(" << number_blocks << ") + location;\n";
     }
   str << "}\n\n";
-  src.add_source(str.str().c_str(), Shader::from_string);
+  src.add_source(str.str().c_str(), glsl::ShaderSource::from_string);
 
   return number_blocks;
 }
@@ -494,8 +494,8 @@ stream_unpack_function(unsigned int alignment, Shader::shader_source &src,
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterItemShaderGL methods
 fastuidraw::gl::PainterItemShaderGL::
-PainterItemShaderGL(const Shader::shader_source &v_src,
-                    const Shader::shader_source &f_src,
+PainterItemShaderGL(const glsl::ShaderSource &v_src,
+                    const glsl::ShaderSource &f_src,
                     const varying_list &varyings)
 {
   m_d = FASTUIDRAWnew PainterShaderGLPrivate(v_src, f_src, varyings);
@@ -503,8 +503,8 @@ PainterItemShaderGL(const Shader::shader_source &v_src,
 
 fastuidraw::gl::PainterItemShaderGL::
 PainterItemShaderGL(unsigned int num_sub_shaders,
-                    const Shader::shader_source &v_src,
-                    const Shader::shader_source &f_src,
+                    const glsl::ShaderSource &v_src,
+                    const glsl::ShaderSource &f_src,
                     const varying_list &varyings):
   PainterItemShader(num_sub_shaders)
 {
@@ -529,7 +529,7 @@ varyings(void) const
   return d->m_varyings;
 }
 
-const fastuidraw::gl::Shader::shader_source&
+const fastuidraw::glsl::ShaderSource&
 fastuidraw::gl::PainterItemShaderGL::
 vertex_src(void) const
 {
@@ -538,7 +538,7 @@ vertex_src(void) const
   return d->m_vertex_src;
 }
 
-const fastuidraw::gl::Shader::shader_source&
+const fastuidraw::glsl::ShaderSource&
 fastuidraw::gl::PainterItemShaderGL::
 fragment_src(void) const
 {

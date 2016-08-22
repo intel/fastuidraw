@@ -463,19 +463,19 @@ index_texture(void) const
   return p->texture();
 }
 
-fastuidraw::gl::Shader::shader_source
+fastuidraw::glsl::ShaderSource
 fastuidraw::gl::ImageAtlasGL::
 glsl_compute_coord_src(const char *function_name,
                        const char *index_texture) const
 {
-  Shader::shader_source return_value;
+  glsl::ShaderSource return_value;
 
   return_value
     .add_macro("FASTUIDRAW_INDEX_TILE_SIZE", index_tile_size())
     .add_macro("FASTUIDRAW_COLOR_TILE_SIZE", color_tile_size())
     .add_macro("FASTUIDRAW_INDEX_ATLAS", index_texture)
     .add_macro("FASTUIDRAW_ATLAS_COMPUTE_COORD", function_name)
-    .add_source("fastuidraw_atlas_image_fetch.glsl.resource_string", Shader::from_resource)
+    .add_source("fastuidraw_atlas_image_fetch.glsl.resource_string", glsl::ShaderSource::from_resource)
     .remove_macro("FASTUIDRAW_INDEX_TILE_SIZE")
     .remove_macro("FASTUIDRAW_COLOR_TILE_SIZE")
     .remove_macro("FASTUIDRAW_INDEX_ATLAS")

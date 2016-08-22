@@ -263,7 +263,7 @@ namespace gl
     param_values(void) const;
 
     /*!
-      Construct/returns a Shader::shader_source value that
+      Construct/returns a glsl::ShaderSource value that
       implements the two functions:
       \code
         float
@@ -290,7 +290,7 @@ namespace gl
                                  the function with repsect to texture_coordinate.
      */
     static
-    Shader::shader_source
+    glsl::ShaderSource
     glsl_curvepair_compute_pseudo_distance(unsigned int alignment,
                                            const char *function_name,
                                            const char *geometry_store_name,
@@ -314,7 +314,7 @@ namespace gl
                                  where the last argument is the gradient of
                                  the function with repsect to texture_coordinate.
      */
-    Shader::shader_source
+    glsl::ShaderSource
     glsl_curvepair_compute_pseudo_distance(const char *function_name,
                                            const char *geometry_store_name,
                                            bool derivative_function = false);

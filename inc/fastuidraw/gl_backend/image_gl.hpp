@@ -244,7 +244,7 @@ namespace gl
       \param function_name name to give the function
       \param index_texture name to give the index texture atlas
      */
-    Shader::shader_source
+    glsl::ShaderSource
     glsl_compute_coord_src(const char *function_name,
                            const char *index_texture) const;
 

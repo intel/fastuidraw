@@ -648,20 +648,22 @@ ready_program(void)
 
   for(int i = 0; i < number_texel_store_modes; ++i)
     {
-      pr[i] = FASTUIDRAWnew gl::Program(gl::Shader::shader_source()
-                                       .add_source("glyph.vert.glsl.resource_string",
-                                                   gl::Shader::from_resource),
-                                       gl::Shader::shader_source()
-                                       .add_macro(macros[i].c_str())
-                                       .add_source("gles_prec.frag.glsl.resource_string",
-                                                   gl::Shader::from_resource)
-                                       .add_source("coverage_glyph.frag.glsl.resource_string",
-                                                   gl::Shader::from_resource),
-                                       gl::PreLinkActionArray()
-                                       .add_binding("attrib_p", 0)
-                                       .add_binding("attrib_tex_coord_layer", 1),
-                                       gl::ProgramInitializerArray()
-                                       .add_sampler_initializer("glyph_texel_store", 0));
+      pr[i] = FASTUIDRAWnew gl::Program(glsl::ShaderSource()
+                                        .specify_version(gl::Shader::default_shader_version())
+                                        .add_source("glyph.vert.glsl.resource_string",
+                                                    glsl::ShaderSource::from_resource),
+                                        glsl::ShaderSource()
+                                        .specify_version(gl::Shader::default_shader_version())
+                                        .add_macro(macros[i].c_str())
+                                        .add_source("gles_prec.frag.glsl.resource_string",
+                                                    glsl::ShaderSource::from_resource)
+                                        .add_source("coverage_glyph.frag.glsl.resource_string",
+                                                    glsl::ShaderSource::from_resource),
+                                        gl::PreLinkActionArray()
+                                        .add_binding("attrib_p", 0)
+                                        .add_binding("attrib_tex_coord_layer", 1),
+                                        gl::ProgramInitializerArray()
+                                        .add_sampler_initializer("glyph_texel_store", 0));
     }
   m_drawers[draw_glyph_coverage].set(pr, "Coverage Text", &m_zoomer_text);
 
@@ -669,32 +671,34 @@ ready_program(void)
 
   for(int i = 0; i < number_texel_store_modes; ++i)
     {
-      pr[i] = FASTUIDRAWnew gl::Program(gl::Shader::shader_source()
-                                       .add_source("glyph.vert.glsl.resource_string",
-                                                   gl::Shader::from_resource),
-                                       gl::Shader::shader_source()
-                                       .add_macro(macros[i].c_str())
-                                       .add_source("gles_prec.frag.glsl.resource_string",
-                                                   gl::Shader::from_resource)
-                                       .add_source("perform_aa.frag.glsl.resource_string",
-                                                   gl::Shader::from_resource)
-                                       .add_source("distance_glyph.frag.glsl.resource_string",
-                                                   gl::Shader::from_resource),
-                                       gl::PreLinkActionArray()
-                                       .add_binding("attrib_p", 0)
-                                       .add_binding("attrib_tex_coord_layer", 1),
-                                       gl::ProgramInitializerArray()
-                                       .add_sampler_initializer("glyph_texel_store", 0));
+      pr[i] = FASTUIDRAWnew gl::Program(glsl::ShaderSource()
+                                        .specify_version(gl::Shader::default_shader_version())
+                                        .add_source("glyph.vert.glsl.resource_string",
+                                                    glsl::ShaderSource::from_resource),
+                                        glsl::ShaderSource()
+                                        .specify_version(gl::Shader::default_shader_version())
+                                        .add_macro(macros[i].c_str())
+                                        .add_source("gles_prec.frag.glsl.resource_string",
+                                                    glsl::ShaderSource::from_resource)
+                                        .add_source("perform_aa.frag.glsl.resource_string",
+                                                    glsl::ShaderSource::from_resource)
+                                        .add_source("distance_glyph.frag.glsl.resource_string",
+                                                    glsl::ShaderSource::from_resource),
+                                        gl::PreLinkActionArray()
+                                        .add_binding("attrib_p", 0)
+                                        .add_binding("attrib_tex_coord_layer", 1),
+                                        gl::ProgramInitializerArray()
+                                        .add_sampler_initializer("glyph_texel_store", 0));
     }
   m_drawers[draw_glyph_distance].set(pr, "Distance Text", &m_zoomer_text);
 
-  gl::Shader::shader_source curve_pair_func;
+  glsl::ShaderSource curve_pair_func;
   curve_pair_func = m_glyph_atlas->glsl_curvepair_compute_pseudo_distance("curvepair_pseudo_distance",
                                                                           "fetch_glyph_geometry_data",
                                                                           true);
   for(int i = 0; i < number_texel_store_modes; ++i)
     {
-      gl::Shader::shader_source vert, frag;
+      glsl::ShaderSource vert, frag;
 
       #ifdef FASTUIDRAW_GL_USE_GLES
         {
@@ -718,57 +722,64 @@ ready_program(void)
 
           vert
             .specify_version(version.c_str())
-            .specify_extension("GL_OES_texture_buffer", gl::Shader::enable_extension)
-            .specify_extension("GL_EXT_texture_buffer", gl::Shader::enable_extension);
+            .specify_extension("GL_OES_texture_buffer", glsl::ShaderSource::enable_extension)
+            .specify_extension("GL_EXT_texture_buffer", glsl::ShaderSource::enable_extension);
           frag
             .specify_version(version.c_str())
-            .specify_extension("GL_OES_texture_buffer", gl::Shader::enable_extension)
-            .specify_extension("GL_EXT_texture_buffer", gl::Shader::enable_extension);
+            .specify_extension("GL_OES_texture_buffer", glsl::ShaderSource::enable_extension)
+            .specify_extension("GL_EXT_texture_buffer", glsl::ShaderSource::enable_extension);
+        }
+      #else
+        {
+          vert.specify_version("330");
+          frag.specify_version("330");
         }
       #endif
 
       vert
         .add_macro(glyph_geom_mode.c_str())
-        .add_source("glyph.vert.glsl.resource_string", gl::Shader::from_resource);
+        .add_source("glyph.vert.glsl.resource_string", glsl::ShaderSource::from_resource);
 
       frag
         .add_macro(macros[i].c_str())
         .add_macro(glyph_geom_mode.c_str())
         .add_macro("GLYPH_GEOM_WIDTH_LOG2", geom_log2_dims.x())
         .add_macro("GLYPH_GEOM_HEIGHT_LOG2", geom_log2_dims.y())
-        .add_source("gles_prec.frag.glsl.resource_string", gl::Shader::from_resource)
-        .add_source("perform_aa.frag.glsl.resource_string", gl::Shader::from_resource)
-        .add_source("curvepair_glyph.frag.glsl.resource_string", gl::Shader::from_resource)
+        .add_source("gles_prec.frag.glsl.resource_string", glsl::ShaderSource::from_resource)
+        .add_source("perform_aa.frag.glsl.resource_string", glsl::ShaderSource::from_resource)
+        .add_source("curvepair_glyph.frag.glsl.resource_string", glsl::ShaderSource::from_resource)
         .add_source(curve_pair_func);
 
 
       pr[i] = FASTUIDRAWnew gl::Program(vert, frag,
-                                       gl::PreLinkActionArray()
-                                       .add_binding("attrib_p", 0)
-                                       .add_binding("attrib_tex_coord_layer", 1)
-                                       .add_binding("attrib_geometry_data_location", 2)
-                                       .add_binding("attrib_secondary_tex_coord_layer", 3),
-                                       gl::ProgramInitializerArray()
-                                       .add_sampler_initializer("glyph_texel_store", 0)
-                                       .add_sampler_initializer("glyph_geometry_data_store", 1) );
+                                        gl::PreLinkActionArray()
+                                        .add_binding("attrib_p", 0)
+                                        .add_binding("attrib_tex_coord_layer", 1)
+                                        .add_binding("attrib_geometry_data_location", 2)
+                                        .add_binding("attrib_secondary_tex_coord_layer", 3),
+                                        gl::ProgramInitializerArray()
+                                        .add_sampler_initializer("glyph_texel_store", 0)
+                                        .add_sampler_initializer("glyph_geometry_data_store", 1) );
     }
   m_drawers[draw_glyph_curvepair].set(pr, "CurvePair Text", &m_zoomer_text);
 
   for(int i = 0; i < number_texel_store_modes; ++i)
     {
-      pr[i] = FASTUIDRAWnew gl::Program(gl::Shader::shader_source()
-                                       .add_source("glyph_atlas.vert.glsl.resource_string",
-                                                   gl::Shader::from_resource),
-                                       gl::Shader::shader_source()
-                                       .add_macro(macros[i].c_str())
-                                       .add_source("gles_prec.frag.glsl.resource_string",
-                                                   gl::Shader::from_resource)
-                                       .add_source("glyph_atlas.frag.glsl.resource_string",
-                                                   gl::Shader::from_resource),
-                                       gl::PreLinkActionArray()
-                                       .add_binding("attrib_p", 0),
-                                       gl::ProgramInitializerArray()
-                                       .add_sampler_initializer("glyph_texel_store", 0));
+      pr[i] = FASTUIDRAWnew gl::Program(glsl::ShaderSource()
+                                        .specify_version(gl::Shader::default_shader_version())
+                                        .add_source("glyph_atlas.vert.glsl.resource_string",
+                                                    glsl::ShaderSource::from_resource),
+                                        glsl::ShaderSource()
+                                        .specify_version(gl::Shader::default_shader_version())
+                                        .add_macro(macros[i].c_str())
+                                        .add_source("gles_prec.frag.glsl.resource_string",
+                                                    glsl::ShaderSource::from_resource)
+                                        .add_source("glyph_atlas.frag.glsl.resource_string",
+                                                    glsl::ShaderSource::from_resource),
+                                        gl::PreLinkActionArray()
+                                        .add_binding("attrib_p", 0),
+                                        gl::ProgramInitializerArray()
+                                        .add_sampler_initializer("glyph_texel_store", 0));
     }
   m_drawers[draw_glyph_atlas].set(pr, "Atlas", &m_zoomer_atlas);
 }

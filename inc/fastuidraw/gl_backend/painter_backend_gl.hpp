@@ -348,7 +348,7 @@ namespace fastuidraw
         \param src shader source to add
        */
       void
-      add_vertex_shader_util(const Shader::shader_source &src);
+      add_vertex_shader_util(const glsl::ShaderSource &src);
 
       /*!
         Add GLSL code that is to be visible to all vertex
@@ -356,7 +356,7 @@ namespace fastuidraw
         \param src shader source to add
        */
       void
-      add_fragment_shader_util(const Shader::shader_source &src);
+      add_fragment_shader_util(const glsl::ShaderSource &src);
 
     protected:
       virtual

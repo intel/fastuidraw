@@ -943,7 +943,7 @@ geometry_texture_as_2d_array_log2_dims(void) const
   return p->m_log2_dims;
 }
 
-fastuidraw::gl::Shader::shader_source
+fastuidraw::glsl::ShaderSource
 fastuidraw::gl::GlyphAtlasGL::
 glsl_curvepair_compute_pseudo_distance(const char *function_name,
                                        const char *geometry_store_fetch,
@@ -954,14 +954,14 @@ glsl_curvepair_compute_pseudo_distance(const char *function_name,
                                                 derivative_function);
 }
 
-fastuidraw::gl::Shader::shader_source
+fastuidraw::glsl::ShaderSource
 fastuidraw::gl::GlyphAtlasGL::
 glsl_curvepair_compute_pseudo_distance(unsigned int alignment,
                                        const char *function_name,
                                        const char *geometry_store_fetch,
                                        bool derivative_function)
 {
-  Shader::shader_source return_value;
+  glsl::ShaderSource return_value;
 
   /* aww, this sucks; we can choose one of 4 options:
        1. dedicated shader for all variations.
@@ -979,21 +979,24 @@ glsl_curvepair_compute_pseudo_distance(unsigned int alignment,
 
   return_value
     .add_macro("FASTUIDRAW_CURVEPAIR_COMPUTE_NAME", function_name)
-    .add_source(LoaderMacro(alignment, geometry_store_fetch).value(), Shader::from_string);
+    .add_source(LoaderMacro(alignment, geometry_store_fetch).value(),
+                glsl::ShaderSource::from_string);
 
   if(derivative_function)
     {
       return_value
-        .add_source("fastuidraw_curvepair_glyph_derivative.frag.glsl.resource_string", Shader::from_resource);
+        .add_source("fastuidraw_curvepair_glyph_derivative.frag.glsl.resource_string",
+                    glsl::ShaderSource::from_resource);
     }
   else
     {
       return_value
-        .add_source("fastuidraw_curvepair_glyph.frag.glsl.resource_string", Shader::from_resource);
+        .add_source("fastuidraw_curvepair_glyph.frag.glsl.resource_string",
+                    glsl::ShaderSource::from_resource);
     }
 
   return_value
-    .add_source("#undef FASTUIDRAW_LOAD_CURVE_GEOMETRY\n", Shader::from_string)
+    .add_source("#undef FASTUIDRAW_LOAD_CURVE_GEOMETRY\n", glsl::ShaderSource::from_string)
     .remove_macro("FASTUIDRAW_CURVEPAIR_COMPUTE_NAME");
 
   return return_value;

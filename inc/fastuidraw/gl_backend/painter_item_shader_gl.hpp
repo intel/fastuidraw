@@ -20,7 +20,7 @@
 #pragma once
 
 #include <fastuidraw/painter/painter_shader.hpp>
-#include <fastuidraw/gl_backend/gl_program.hpp>
+#include <fastuidraw/glsl/shader_source.hpp>
 
 namespace fastuidraw
 {
@@ -208,7 +208,7 @@ namespace fastuidraw
       type(void) const;
 
       /*!
-        Adds to a Shader::shader_source the GLSL code to unpack a
+        Adds to a glsl::ShaderSource the GLSL code to unpack a
         stream of values. Returns the number of blocks needed to unpack
         the data in GLSL.
         \param alignment the alignment of the data store used in a
@@ -222,13 +222,13 @@ namespace fastuidraw
        */
       static
       unsigned int
-      stream_unpack_code(unsigned int alignment, Shader::shader_source &str,
+      stream_unpack_code(unsigned int alignment, glsl::ShaderSource &str,
                          const_c_array<glsl_shader_unpack_value> labels,
                          const char *offset_name,
                          const char *prefix = "");
 
       /*!
-        Adds to a Shader::shader_source the GLSL function:
+        Adds to a glsl::ShaderSource the GLSL function:
         \code
         uint
         function_name(uint location, out out_type v)
@@ -248,7 +248,7 @@ namespace fastuidraw
        */
       static
       unsigned int
-      stream_unpack_function(unsigned int alignment, Shader::shader_source &str,
+      stream_unpack_function(unsigned int alignment, glsl::ShaderSource &str,
                              const_c_array<glsl_shader_unpack_value> labels,
                              const char *function_name,
                              const char *out_type,
@@ -294,7 +294,7 @@ namespace fastuidraw
         \param prefix string prefix by which to prefix the name values of labels
        */
       unsigned int
-      stream_unpack_code(unsigned int alignment, Shader::shader_source &str,
+      stream_unpack_code(unsigned int alignment, glsl::ShaderSource &str,
                          const char *offset_name,
                          const char *prefix = "")
       {
@@ -317,7 +317,7 @@ namespace fastuidraw
                                   the data it unpacks.
        */
       unsigned int
-      stream_unpack_function(unsigned int alignment, Shader::shader_source &str,
+      stream_unpack_function(unsigned int alignment, glsl::ShaderSource &str,
                              const char *function_name,
                              const char *out_type,
                              bool returns_new_offset = true)
@@ -407,8 +407,8 @@ namespace fastuidraw
         \param fragment_src GLSL source holding fragment shader routine
         \param varyings list of varyings of the shader
        */
-      PainterItemShaderGL(const Shader::shader_source &vertex_src,
-                          const Shader::shader_source &fragment_src,
+      PainterItemShaderGL(const glsl::ShaderSource &vertex_src,
+                          const glsl::ShaderSource &fragment_src,
                           const varying_list &varyings = varying_list());
 
       /*!
@@ -419,8 +419,8 @@ namespace fastuidraw
         \param varyings list of varyings of the shader
        */
       PainterItemShaderGL(unsigned int num_sub_shaders,
-                          const Shader::shader_source &vertex_src,
-                          const Shader::shader_source &fragment_src,
+                          const glsl::ShaderSource &vertex_src,
+                          const glsl::ShaderSource &fragment_src,
                           const varying_list &varyings = varying_list());
 
       ~PainterItemShaderGL();
@@ -434,13 +434,13 @@ namespace fastuidraw
       /*!
         Return the GLSL source of the vertex shader
        */
-      const Shader::shader_source&
+      const glsl::ShaderSource&
       vertex_src(void) const;
 
       /*!
         Return the GLSL source of the fragment shader
        */
-      const Shader::shader_source&
+      const glsl::ShaderSource&
       fragment_src(void) const;
 
     private:

@@ -32,10 +32,10 @@ unsigned int
 number_data_blocks(unsigned int alignment, unsigned int sz);
 
 void
-add_enums(unsigned int alignment, Shader::shader_source &src);
+add_enums(unsigned int alignment, glsl::ShaderSource &src);
 
 void
-add_texture_size_constants(Shader::shader_source &src,
+add_texture_size_constants(glsl::ShaderSource &src,
                            const PainterBackendGL::params &P);
 
 const char*
@@ -59,37 +59,37 @@ stream_declare_varyings(std::ostream &str,
                         const_c_array<size_t> float_counts);
 
 void
-stream_alias_varyings(Shader::shader_source &vert,
+stream_alias_varyings(glsl::ShaderSource &vert,
                       const_c_array<const char*> p,
                       const std::string &s, bool define);
 
 void
-stream_alias_varyings(Shader::shader_source &shader,
+stream_alias_varyings(glsl::ShaderSource &shader,
                       const varying_list &p,
                       bool define);
 void
-pre_stream_varyings(Shader::shader_source &dst,
+pre_stream_varyings(glsl::ShaderSource &dst,
                     const reference_counted_ptr<PainterItemShaderGL> &sh);
 
 void
-post_stream_varyings(Shader::shader_source &dst,
+post_stream_varyings(glsl::ShaderSource &dst,
                      const reference_counted_ptr<PainterItemShaderGL> &sh);
 
 void
 stream_unpack_code(unsigned int alignment,
-                   Shader::shader_source &str);
+                   glsl::ShaderSource &str);
 
 void
-stream_uber_vert_shader(bool use_switch, Shader::shader_source &vert,
+stream_uber_vert_shader(bool use_switch, glsl::ShaderSource &vert,
                         const_c_array<reference_counted_ptr<PainterItemShaderGL> > item_shaders);
 
 void
-stream_uber_frag_shader(bool use_switch, Shader::shader_source &frag,
+stream_uber_frag_shader(bool use_switch, glsl::ShaderSource &frag,
                         const_c_array<reference_counted_ptr<PainterItemShaderGL> > item_shaders);
 
 
 void
-stream_uber_blend_shader(bool use_switch, Shader::shader_source &frag,
+stream_uber_blend_shader(bool use_switch, glsl::ShaderSource &frag,
                          const_c_array<reference_counted_ptr<BlendShaderSourceCode> > blend_shaders,
                          enum blending_code_type tp);
 template<typename T>
@@ -98,18 +98,17 @@ class UberShaderStreamer
 public:
   typedef reference_counted_ptr<T> ref_type;
   typedef const_c_array<ref_type> array_type;
-  typedef Shader::shader_source shader_source;
-  typedef const shader_source& (T::*get_src_type)(void) const;
-  typedef void (*pre_post_stream_type)(shader_source &dst, const ref_type &sh);
+  typedef const glsl::ShaderSource& (T::*get_src_type)(void) const;
+  typedef void (*pre_post_stream_type)(glsl::ShaderSource &dst, const ref_type &sh);
 
   static
   void
-  stream_nothing(shader_source &, const ref_type &)
+  stream_nothing(glsl::ShaderSource &, const ref_type &)
   {}
 
   static
   void
-  stream_uber(bool use_switch, shader_source &dst, array_type shaders,
+  stream_uber(bool use_switch, glsl::ShaderSource &dst, array_type shaders,
               get_src_type get_src,
               pre_post_stream_type pre_stream,
               pre_post_stream_type post_stream,
@@ -121,7 +120,7 @@ public:
 
   static
   void
-  stream_uber(bool use_switch, shader_source &dst, array_type shaders,
+  stream_uber(bool use_switch, glsl::ShaderSource &dst, array_type shaders,
               get_src_type get_src,
               const std::string &return_type,
               const std::string &uber_func_with_args,
@@ -139,7 +138,7 @@ public:
 template<typename T>
 void
 UberShaderStreamer<T>::
-stream_uber(bool use_switch, shader_source &dst, array_type shaders,
+stream_uber(bool use_switch, glsl::ShaderSource &dst, array_type shaders,
             get_src_type get_src,
             pre_post_stream_type pre_stream, pre_post_stream_type post_stream,
             const std::string &return_type,
@@ -285,7 +284,7 @@ stream_uber(bool use_switch, shader_source &dst, array_type shaders,
     }
 
   str << "}\n";
-  dst.add_source(str.str().c_str(), Shader::from_string);
+  dst.add_source(str.str().c_str(), glsl::ShaderSource::from_string);
 }
 
 }}}}

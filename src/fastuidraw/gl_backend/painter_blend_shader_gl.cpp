@@ -24,7 +24,7 @@ namespace
   class BlendShaderSourceCodePrivate
   {
   public:
-    BlendShaderSourceCodePrivate(const fastuidraw::gl::Shader::shader_source &psrc,
+    BlendShaderSourceCodePrivate(const fastuidraw::glsl::ShaderSource &psrc,
                                  unsigned int num_sub_shaders):
       m_src(psrc),
       m_number_sub_shaders(num_sub_shaders),
@@ -32,10 +32,10 @@ namespace
       m_registered_to(NULL)
     {}
 
-    fastuidraw::gl::Shader::shader_source m_src;
+    fastuidraw::glsl::ShaderSource m_src;
     unsigned int m_number_sub_shaders;
     uint32_t m_shader_id;
-    const fastuidraw::gl::PainterBackendGL *m_registered_to;
+    const fastuidraw::PainterBackend *m_registered_to;
   };
 
   class PainterBlendShaderGLPrivate
@@ -58,7 +58,7 @@ namespace
 //////////////////////////////////////////////
 // fastuidraw::gl::BlendShaderSourceCode
 fastuidraw::gl::BlendShaderSourceCode::
-BlendShaderSourceCode(const Shader::shader_source &psrc,
+BlendShaderSourceCode(const glsl::ShaderSource &psrc,
                       unsigned int num_sub_shaders)
 {
   m_d = FASTUIDRAWnew BlendShaderSourceCodePrivate(psrc, num_sub_shaders);
@@ -73,7 +73,7 @@ fastuidraw::gl::BlendShaderSourceCode::
   m_d = NULL;
 }
 
-const fastuidraw::gl::Shader::shader_source&
+const fastuidraw::glsl::ShaderSource&
 fastuidraw::gl::BlendShaderSourceCode::
 shader_src(void) const
 {
@@ -97,10 +97,11 @@ ID(void) const
 {
   BlendShaderSourceCodePrivate *d;
   d = reinterpret_cast<BlendShaderSourceCodePrivate*>(m_d);
+  assert(d->m_registered_to != NULL);
   return d->m_shader_id;
 }
 
-const fastuidraw::gl::PainterBackendGL*
+const fastuidraw::PainterBackend*
 fastuidraw::gl::BlendShaderSourceCode::
 registered_to(void) const
 {
@@ -112,7 +113,7 @@ registered_to(void) const
 void
 fastuidraw::gl::BlendShaderSourceCode::
 register_shader_code(uint32_t pshader_id,
-                     const PainterBackendGL *backend)
+                     const PainterBackend *backend)
 {
   BlendShaderSourceCodePrivate *d;
   d = reinterpret_cast<BlendShaderSourceCodePrivate*>(m_d);

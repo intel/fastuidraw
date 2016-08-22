@@ -20,7 +20,8 @@
 #pragma once
 
 #include <fastuidraw/painter/painter_shader.hpp>
-#include <fastuidraw/gl_backend/gl_program.hpp>
+#include <fastuidraw/glsl/shader_source.hpp>
+#include <fastuidraw/gl_backend/gl_header.hpp>
 
 namespace fastuidraw
 {
@@ -29,9 +30,6 @@ namespace fastuidraw
 /*!\addtogroup GLBackend
   @{
  */
-    ///@cond
-    class PainterBackendGL;
-    ///@endcond
 
     /*!
       Class to hold the blend mode as exposed by the GL API
@@ -280,7 +278,7 @@ namespace fastuidraw
         \param num_sub_shaders number of sub-shaders the code supports
        */
       explicit
-      BlendShaderSourceCode(const Shader::shader_source &psrc,
+      BlendShaderSourceCode(const glsl::ShaderSource &psrc,
                             unsigned int num_sub_shaders = 1);
 
       ~BlendShaderSourceCode();
@@ -289,7 +287,7 @@ namespace fastuidraw
         Returns the shader source code
         of the BlendShaderSourceCode.
        */
-      const Shader::shader_source&
+      const glsl::ShaderSource&
       shader_src(void) const;
 
       /*!
@@ -313,15 +311,22 @@ namespace fastuidraw
         by PainterBackendGL when a PainterBlendShaderGL that uses
         the BlendShaderSourceCode is registered to a PainterBackendGL.
        */
-      const PainterBackendGL*
+      const PainterBackend*
       registered_to(void) const;
 
-    private:
-      friend class PainterBackendGL;
-
+      /*!
+        Register the BlendShaderSourceCode to a PainterBackend.
+        This function is called automatically by PainterBackendGL
+        the first time a PainterBlendShaderGL needs to use the
+        BlendShaderSourceCode. A BlendShaderSourceCode may only
+        be registered once.
+        \param pshader_id value to be returned by ID(void) const
+        \param backend value to be returned by registered_to(void) const
+       */
       void
-      register_shader_code(uint32_t pshader_id, const PainterBackendGL *backend);
-
+      register_shader_code(uint32_t pshader_id,
+                           const PainterBackend *backend);
+    private:
       void *m_d;
     };
 
@@ -334,14 +339,14 @@ namespace fastuidraw
     public:
       /*!
         Ctor. Intializes \ref m_src with a BlendShaderSourceCode
-        constructed directly from a \ref Shader::shader_source
+        constructed directly from a \ref glsl::ShaderSource
         and sets \ref m_sub_shader to 0.
         \param md value with which to initialize \ref m_blend_mode
         \param src source code with which construct the BlendShaderSourceCode object
                    to be held by \ref m_src
        */
       SingleSourceBlenderShader(const BlendMode &md,
-                                const Shader::shader_source &src):
+                                const glsl::ShaderSource &src):
         m_blend_mode(md), m_sub_shader(0)
       {
         m_src = FASTUIDRAWnew BlendShaderSourceCode(src, 1);
@@ -401,14 +406,14 @@ namespace fastuidraw
 
       /*!
         Ctor. Intializes \ref m_src with a BlendShaderSourceCode
-        constructed directly from a \ref Shader::shader_source
+        constructed directly from a \ref glsl::ShaderSource
         and sets \ref m_sub_shader to 0.
         \param md value with which to initialize \ref m_blend_mode
         \param src source code with which construct the BlendShaderSourceCode object
                    to be held by \ref m_src
        */
       DualSourceBlenderShader(const BlendMode &md,
-                              const Shader::shader_source &src):
+                              const glsl::ShaderSource &src):
         m_blend_mode(md), m_sub_shader(0)
       {
         m_src = FASTUIDRAWnew BlendShaderSourceCode(src, 1);
@@ -465,14 +470,14 @@ namespace fastuidraw
 
       /*!
         Ctor. Intializes \ref m_src with a BlendShaderSourceCode
-        constructed directly from a \ref Shader::shader_source
+        constructed directly from a \ref glsl::ShaderSource
         and sets \ref m_sub_shader to 0.
         \param md value with which to initialize \ref m_blend_mode
         \param src source code with which construct the BlendShaderSourceCode object
                    to be held by \ref m_src
        */
       explicit
-      FramebufferFetchBlendShader(const Shader::shader_source &src):
+      FramebufferFetchBlendShader(const glsl::ShaderSource &src):
         m_sub_shader(0)
       {
         m_src = FASTUIDRAWnew BlendShaderSourceCode(src, 1);
