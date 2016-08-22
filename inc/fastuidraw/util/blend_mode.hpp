@@ -18,6 +18,10 @@
 
 #pragma once
 
+#include <stdint.h>
+
+#include <fastuidraw/util/vecN.hpp>
+
 namespace fastuidraw
 {
 /*!\addtogroup Utility
@@ -40,6 +44,8 @@ namespace fastuidraw
         REVERSE_SUBTRACT,
         MIN,
         MAX,
+
+        NUMBER_OPS
       };
 
     /*!
@@ -67,16 +73,52 @@ namespace fastuidraw
         ONE_MINUS_SRC1_COLOR,
         SRC1_ALPHA,
         ONE_MINUS_SRC1_ALPHA,
+
+        NUMBER_FUNCS,
       };
+
+    /*!
+      Represents a BlendMode packed as a single
+      32-bit integer value, see also packed().
+     */
+    typedef uint32_t packed_value;
 
     /*!
       Ctor.
      */
     BlendMode(void)
     {
+      m_blending_on = true;
       m_blend_equation[Kequation_rgb] = m_blend_equation[Kequation_alpha] = ADD;
       m_blend_func[Kfunc_src_rgb] = m_blend_func[Kfunc_src_alpha] = ONE;
       m_blend_func[Kfunc_dst_rgb] = m_blend_func[Kfunc_dst_alpha] = ZERO;
+    }
+
+    /*!
+      Construct a BlendMode from a value as packed by
+      packed().
+     */
+    explicit
+    BlendMode(packed_value v);
+
+    /*!
+      Set that 3D API blending is on or off.
+      Default value is true.
+     */
+    BlendMode&
+    blending_on(bool v)
+    {
+      m_blending_on = v;
+      return *this;
+    }
+
+    /*!
+      Return the value as set by equation_rgb(enum op_t).
+     */
+    bool
+    blending_on(void) const
+    {
+      return m_blending_on;
     }
 
     /*!
@@ -216,28 +258,13 @@ namespace fastuidraw
     }
 
     /*!
-      Comparison operator for sorting of blend modes
-      \param rhs value to which to compare
+      Return the blend mode as a single packed 64-bit
+      unsigned integer.
      */
-    bool
-    operator<(const BlendMode &rhs) const
-    {
-      return m_blend_equation < rhs.m_blend_equation
-        || (m_blend_equation == rhs.m_blend_equation && m_blend_func < rhs.m_blend_func);
-    }
+    packed_value
+    packed(void) const;
 
-    /*!
-      Comparison operator to check for equality of blend modes
-      \param rhs value to which to compare
-     */
-    bool
-    operator==(const BlendMode &rhs) const
-    {
-      return m_blend_equation == rhs.m_blend_equation
-        && m_blend_func == rhs.m_blend_func;
-    }
-
-    private:
+  private:
     enum
       {
         Kequation_rgb,
@@ -254,6 +281,7 @@ namespace fastuidraw
         Knumber_blend_args
       };
 
+    bool m_blending_on;
     vecN<enum op_t, Knumber_blend_equation_args> m_blend_equation;
     vecN<enum func_t, Knumber_blend_args> m_blend_func;
   };

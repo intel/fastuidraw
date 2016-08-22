@@ -120,12 +120,21 @@ namespace fastuidraw
     blend_shader(void) const;
 
     /*!
+      Returns the active 3D API blend mode packed
+      as in BlendMode::packed().
+     */
+    BlendMode::packed_value
+    blend_mode(void) const;
+
+    /*!
       Sets the active blend shader. It is a crashing error for
       h to be NULL.
       \param h blend shader to use for blending.
+      \param mode 3D API blend mode packed via BlendMode::packed().
      */
     void
-    blend_shader(const reference_counted_ptr<PainterBlendShader> &h);
+    blend_shader(const reference_counted_ptr<PainterBlendShader> &h,
+                 BlendMode::packed_value packed_blend_mode);
 
     /*!
       Indicate to start drawing. Commands are buffered and not

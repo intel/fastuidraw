@@ -129,8 +129,8 @@ namespace fastuidraw
       (or just break a draw) for when a PainterBackend
       cannot accomodate a PainterPacker state change
       without changing the API state.
-      \param old_groups shader groups before state change
-      \param new_groups shader groups after state change
+      \param old_groups PainterShaderGroup before state change
+      \param new_groups PainterShaderGroup after state change
       \param indices_written total number of indices written to m_indices -before- the change
       \param attributes_written total number of attributes written to m_attributes -before- the change
      */

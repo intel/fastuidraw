@@ -440,8 +440,8 @@ stream_uber_frag_shader(bool use_switch,
 void
 stream_uber_blend_shader(bool use_switch,
                          ShaderSource &frag,
-                         const_c_array<reference_counted_ptr<BlendShaderSourceCode> > shaders,
-                         enum blending_code_type tp)
+                         const_c_array<reference_counted_ptr<PainterBlendShaderGLSL> > shaders,
+                         enum PainterBlendShader::shader_type tp)
 {
   std::string sub_func_name, func_name, sub_func_args;
 
@@ -450,28 +450,28 @@ stream_uber_blend_shader(bool use_switch,
     default:
       assert("Unknown blend_code_type!");
       //fall through
-    case single_src_blending:
+    case PainterBlendShader::single_src:
       func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 in_src, out vec4 out_src)";
       sub_func_name = "fastuidraw_gl_compute_blend_value";
       sub_func_args = ", blend_shader_data_location, in_src, out_src";
       break;
 
-    case dual_src_blending:
+    case PainterBlendShader::dual_src:
       func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 color0, out vec4 src0, out vec4 src1)";
       sub_func_name = "fastuidraw_gl_compute_blend_factors";
       sub_func_args = ", blend_shader_data_location, color0, src0, src1";
       break;
 
-    case framebuffer_fetch_blending:
+    case PainterBlendShader::framebuffer_fetch:
       func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 in_src, in vec4 in_fb, out vec4 out_src)";
       sub_func_name = "fastuidraw_gl_compute_post_blended_value";
       sub_func_args = ", blend_shader_data_location, in_src, in_fb, out_src";
       break;
     }
-  UberShaderStreamer<BlendShaderSourceCode>::stream_uber(use_switch, frag, shaders,
-                                                         &BlendShaderSourceCode::shader_src,
-                                                         "void", func_name,
-                                                         sub_func_name, sub_func_args, "blend_shader");
+  UberShaderStreamer<PainterBlendShaderGLSL>::stream_uber(use_switch, frag, shaders,
+                                                          &PainterBlendShaderGLSL::blend_src,
+                                                          "void", func_name,
+                                                          sub_func_name, sub_func_args, "blend_shader");
 }
 
 

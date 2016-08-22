@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <fastuidraw/util/blend_mode.hpp>
 #include <fastuidraw/painter/painter_item_shader.hpp>
 #include <fastuidraw/painter/painter_blend_shader.hpp>
 #include <fastuidraw/text/glyph.hpp>
@@ -123,13 +124,23 @@ namespace fastuidraw
     shader(enum PainterEnums::blend_mode_t tp) const;
 
     /*!
+      Returns the BlendMode packed via BlendMode::packed()
+      for a given PainterEnums::blend_mode_t.
+      \param tp blend mode
+     */
+    BlendMode::packed_value
+    blend_mode(enum PainterEnums::blend_mode_t tp) const;
+
+    /*!
       Set the PainterShader for a given
       PainterEnums::blend_mode_t.
-      \param tp blend mode
+      \param tp blend shader being specified
+      \param mode 3D API BlendMode to use
       \param sh PainterShader to use for the blend mode
      */
     PainterBlendShaderSet&
     shader(enum PainterEnums::blend_mode_t tp,
+           const BlendMode &mode,
            const reference_counted_ptr<PainterBlendShader> &sh);
 
     /*!

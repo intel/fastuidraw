@@ -35,11 +35,29 @@ namespace fastuidraw
   {
   public:
     /*!
-      Ctor for a PainterBlendShader with no sub-shaders.
+      Enumeration to specify how blend shader operates
      */
-    PainterBlendShader(void):
-      PainterShader()
-    {}
+    enum shader_type
+      {
+        /*!
+          Indicates blending is via fixed function blending
+          with single source blending.
+         */
+        single_src,
+
+        /*!
+          Indicates blending is via fixed function blending
+          with dual source blending.
+         */
+        dual_src,
+
+        /*!
+          Indicates blending is via framebuffer fetch.
+         */
+        framebuffer_fetch,
+
+        number_types,
+      };
 
     /*!
       Ctor for creating a PainterBlendShader which has multiple
@@ -50,8 +68,10 @@ namespace fastuidraw
       \param num_sub_shaders number of sub-shaders
      */
     explicit
-    PainterBlendShader(unsigned int num_sub_shaders):
-      PainterShader(num_sub_shaders)
+    PainterBlendShader(enum shader_type tp,
+                       unsigned int num_sub_shaders = 1):
+      PainterShader(num_sub_shaders),
+      m_type(tp)
     {}
 
     /*!
@@ -62,8 +82,21 @@ namespace fastuidraw
      */
     PainterBlendShader(unsigned int sub_shader,
                        reference_counted_ptr<PainterBlendShader> parent):
-      PainterShader(sub_shader, parent)
+      PainterShader(sub_shader, parent),
+      m_type(parent->type())
     {}
+
+    /*!
+      Returns how the PainterBlendShader operates.
+     */
+    enum shader_type
+    type(void) const
+    {
+      return m_type;
+    }
+
+  private:
+    enum shader_type m_type;
   };
 
 /*! @} */

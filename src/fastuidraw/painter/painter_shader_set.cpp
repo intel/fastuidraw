@@ -45,8 +45,10 @@ namespace
   class PainterBlendShaderSetPrivate
   {
   public:
-    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> > m_shaders;
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_null;
+    typedef fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> shader_ref;
+    typedef std::pair<shader_ref, fastuidraw::BlendMode::packed_value> entry;
+    std::vector<entry> m_shaders;
+    entry m_null;
   };
 
   class PainterDashedStrokeShaderSetPrivate
@@ -188,13 +190,22 @@ shader(enum PainterEnums::blend_mode_t tp) const
 {
   PainterBlendShaderSetPrivate *d;
   d = reinterpret_cast<PainterBlendShaderSetPrivate*>(m_d);
-  return (tp < d->m_shaders.size()) ? d->m_shaders[tp] : d->m_null;
+  return (tp < d->m_shaders.size()) ? d->m_shaders[tp].first : d->m_null.first;
 }
 
+fastuidraw::BlendMode::packed_value
+fastuidraw::PainterBlendShaderSet::
+blend_mode(enum PainterEnums::blend_mode_t tp) const
+{
+  PainterBlendShaderSetPrivate *d;
+  d = reinterpret_cast<PainterBlendShaderSetPrivate*>(m_d);
+  return (tp < d->m_shaders.size()) ? d->m_shaders[tp].second : d->m_null.second;
+}
 
 fastuidraw::PainterBlendShaderSet&
 fastuidraw::PainterBlendShaderSet::
 shader(enum PainterEnums::blend_mode_t tp,
+       const BlendMode &mode,
        const reference_counted_ptr<PainterBlendShader> &sh)
 {
   PainterBlendShaderSetPrivate *d;
@@ -203,7 +214,7 @@ shader(enum PainterEnums::blend_mode_t tp,
     {
       d->m_shaders.resize(tp + 1);
     }
-  d->m_shaders[tp] = sh;
+  d->m_shaders[tp] = PainterBlendShaderSetPrivate::entry(sh, mode.packed());
   return *this;
 }
 

@@ -24,19 +24,6 @@
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/util/util.hpp>
 
-uint32_t
-fastuidraw::
-uint32_log2(uint32_t v)
-{
-  uint32_t return_value(0);
-  while(v >>= 1)
-    {
-      ++return_value;
-    }
-  return return_value;
-}
-
-
 unsigned int
 fastuidraw::
 round_up_to_multiple(unsigned int v, unsigned int alignment)
@@ -56,6 +43,18 @@ round_up_to_multiple(unsigned int v, unsigned int alignment)
 
 uint32_t
 fastuidraw::
+uint32_log2(uint32_t v)
+{
+  uint32_t return_value(0);
+  while(v >>= 1)
+    {
+      ++return_value;
+    }
+  return return_value;
+}
+
+uint32_t
+fastuidraw::
 number_bits_required(uint32_t v)
 {
   if(v == 0)
@@ -64,7 +63,35 @@ number_bits_required(uint32_t v)
     }
 
   uint32_t return_value(0);
-  for(uint32_t mask = 1; mask <= v; mask <<= 1, ++return_value)
+  for(uint32_t mask = 1u; mask <= v; mask <<= 1u, ++return_value)
+    {}
+
+  return return_value;
+}
+
+uint64_t
+fastuidraw::
+uint64_log2(uint64_t v)
+{
+  uint64_t return_value(0);
+  while(v >>= 1)
+    {
+      ++return_value;
+    }
+  return return_value;
+}
+
+uint64_t
+fastuidraw::
+uint64_number_bits_required(uint64_t v)
+{
+  if(v == 0)
+    {
+      return 0;
+    }
+
+  uint64_t return_value(0);
+  for(uint64_t mask = 1u; mask <= v; mask <<= 1u, ++return_value)
     {}
 
   return return_value;

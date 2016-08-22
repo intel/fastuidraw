@@ -76,11 +76,6 @@ namespace fastuidraw
     };
 
     /*!
-      Ctor for a PainterShader with no sub-shaders.
-     */
-    PainterShader(void);
-
-    /*!
       Ctor for creating a PainterShader which has multiple
       sub-shaders. The purpose of sub-shaders is for the
       case where multiple shaders almost same code and those
@@ -89,7 +84,7 @@ namespace fastuidraw
       \param num_sub_shaders number of sub-shaders
      */
     explicit
-    PainterShader(unsigned int num_sub_shaders);
+    PainterShader(unsigned int num_sub_shaders = 1);
 
     /*!
       Ctor to create a PainterShader realized as a sub-shader

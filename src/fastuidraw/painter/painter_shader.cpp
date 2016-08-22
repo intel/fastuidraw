@@ -49,12 +49,6 @@ namespace
 ///////////////////////////////////////////
 // fastuidraw::PainterShader methods
 fastuidraw::PainterShader::
-PainterShader(void)
-{
-  m_d = FASTUIDRAWnew PainterShaderPrivate(1);
-}
-
-fastuidraw::PainterShader::
 PainterShader(unsigned int num_sub_shaders)
 {
   m_d = FASTUIDRAWnew PainterShaderPrivate(num_sub_shaders);

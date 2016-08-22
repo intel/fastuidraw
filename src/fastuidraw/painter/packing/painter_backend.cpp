@@ -37,13 +37,11 @@ namespace
     PainterBackendPrivate(fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> glyph_atlas,
                           fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> image_atlas,
                           fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas> colorstop_atlas,
-                          const fastuidraw::PainterBackend::Configuration &config,
-                          const fastuidraw::PainterShaderSet &shaders):
+                          const fastuidraw::PainterBackend::Configuration &config):
       m_glyph_atlas(glyph_atlas),
       m_image_atlas(image_atlas),
       m_colorstop_atlas(colorstop_atlas),
       m_config(config),
-      m_default_shaders(shaders),
       m_default_shaders_registered(false)
     {}
 
@@ -185,11 +183,9 @@ fastuidraw::PainterBackend::
 PainterBackend(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                reference_counted_ptr<ImageAtlas> image_atlas,
                reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
-               const Configuration &config,
-               const PainterShaderSet &shaders)
+               const Configuration &config)
 {
-  m_d = FASTUIDRAWnew PainterBackendPrivate(glyph_atlas, image_atlas, colorstop_atlas,
-                                           config, shaders);
+  m_d = FASTUIDRAWnew PainterBackendPrivate(glyph_atlas, image_atlas, colorstop_atlas, config);
 }
 
 fastuidraw::PainterBackend::
@@ -316,13 +312,19 @@ default_shaders(void)
 {
   PainterBackendPrivate *d;
   d = reinterpret_cast<PainterBackendPrivate*>(m_d);
-
-  if(!d->m_default_shaders_registered)
-    {
-      register_shader(d->m_default_shaders);
-      d->m_default_shaders_registered = true;
-    }
   return d->m_default_shaders;
+}
+
+void
+fastuidraw::PainterBackend::
+set_default_shaders(const PainterShaderSet &st)
+{
+  PainterBackendPrivate *d;
+  d = reinterpret_cast<PainterBackendPrivate*>(m_d);
+  assert(!d->m_default_shaders_registered);
+  d->m_default_shaders = st;
+  register_shader(d->m_default_shaders);
+  d->m_default_shaders_registered = true;
 }
 
 void

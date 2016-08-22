@@ -19,7 +19,7 @@
 
 #pragma once
 
-
+#include <fastuidraw/util/blend_mode.hpp>
 #include <fastuidraw/text/glyph_atlas.hpp>
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/colorstop_atlas.hpp>
@@ -151,8 +151,7 @@ namespace fastuidraw
     PainterBackend(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                    reference_counted_ptr<ImageAtlas> image_atlas,
                    reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
-                   const Configuration &config,
-                   const PainterShaderSet &default_shaders);
+                   const Configuration &config);
 
     virtual
     ~PainterBackend();
@@ -356,6 +355,14 @@ namespace fastuidraw
      */
     PerformanceHints&
     set_hints(void);
+
+    /*!
+      To be called by a derived class in their contructor to
+      set the default shader set for the backend. May only be
+      called once for the lifetime of the PainterBackend.
+     */
+    void
+    set_default_shaders(const PainterShaderSet &sh);
 
   private:
     void *m_d;

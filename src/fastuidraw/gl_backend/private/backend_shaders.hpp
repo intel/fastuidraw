@@ -21,19 +21,23 @@ enum uber_stroke_render_pass_t
 class BlendShaderSetCreator
 {
 public:
-  BlendShaderSetCreator(void);
+  explicit
+  BlendShaderSetCreator(enum PainterBlendShader::shader_type tp);
 
   PainterBlendShaderSet
   create_blend_shaders(void);
 
 private:
-  reference_counted_ptr<PainterBlendShaderGLSL>
-  create_blend_shader(const BlendMode &single_md,
-                      const std::string &dual_src_file,
-                      const BlendMode &dual_md,
-                      const std::string &framebuffer_fetch_src_file);
+  void
+  add_blend_shader(PainterBlendShaderSet &out,
+                   enum PainterEnums::blend_mode_t md,
+                   const BlendMode &single_md,
+                   const std::string &dual_src_file,
+                   const BlendMode &dual_md,
+                   const std::string &framebuffer_fetch_src_file);
 
-  reference_counted_ptr<BlendShaderSourceCode> m_single_src_blend_shader_code;
+  enum PainterBlendShader::shader_type m_type;
+  reference_counted_ptr<PainterBlendShaderGLSL> m_single_src_blend_shader_code;
 };
 
 class ShaderSetCreatorConstants
@@ -50,7 +54,8 @@ class ShaderSetCreator:
   public BlendShaderSetCreator
 {
 public:
-  ShaderSetCreator(void);
+  explicit
+  ShaderSetCreator(enum PainterBlendShader::shader_type tp);
 
   reference_counted_ptr<PainterItemShader>
   create_glyph_item_shader(const std::string &vert_src,

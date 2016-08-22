@@ -19,15 +19,6 @@
 
 namespace fastuidraw { namespace glsl { namespace detail { namespace shader_builder {
 
-/*
-  enumeration for blend mode type
-*/
-enum blending_code_type
-  {
-    single_src_blending,
-    dual_src_blending,
-    framebuffer_fetch_blending,
-  };
 
 unsigned int
 number_data_blocks(unsigned int alignment, unsigned int sz);
@@ -91,8 +82,8 @@ stream_uber_frag_shader(bool use_switch, ShaderSource &frag,
 
 void
 stream_uber_blend_shader(bool use_switch, ShaderSource &frag,
-                         const_c_array<reference_counted_ptr<BlendShaderSourceCode> > blend_shaders,
-                         enum blending_code_type tp);
+                         const_c_array<reference_counted_ptr<PainterBlendShaderGLSL> > blend_shaders,
+                         enum PainterBlendShader::shader_type tp);
 template<typename T>
 class UberShaderStreamer
 {
