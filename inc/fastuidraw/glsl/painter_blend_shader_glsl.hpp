@@ -19,7 +19,8 @@
 
 #pragma once
 
-#include <fastuidraw/painter/painter_shader.hpp>
+#include <fastuidraw/util/vecN.hpp>
+#include <fastuidraw/painter/painter_blend_shader.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
 
 namespace fastuidraw

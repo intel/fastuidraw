@@ -11,6 +11,7 @@
 #include <fastuidraw/gl_backend/painter_backend_gl.hpp>
 
 #include <fastuidraw/stroked_path.hpp>
+#include <fastuidraw/painter/painter_shader_set.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/packing/painter_packing_brush.hpp>
 #include <fastuidraw/painter/packing/painter_packing_enums.hpp>

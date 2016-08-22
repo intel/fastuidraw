@@ -25,6 +25,7 @@
 #include <fastuidraw/colorstop_atlas.hpp>
 #include <fastuidraw/painter/packing/painter_draw.hpp>
 #include <fastuidraw/painter/painter_shader.hpp>
+#include <fastuidraw/painter/painter_shader_set.hpp>
 
 
 namespace fastuidraw

@@ -28,7 +28,7 @@
 #include <fastuidraw/colorstop_atlas.hpp>
 #include <fastuidraw/image.hpp>
 
-#include <fastuidraw/painter/painter_shader.hpp>
+#include <fastuidraw/painter/painter_shader_set.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
