@@ -39,13 +39,13 @@ fastuidraw_painter_brush_value_flat float fastuidraw_brush_gradient_r1;
 
 /* image parameters
     - fastuidraw_brush_image_xy (x,y) texel coordinate in INDEX texture
-                               of start of image
+                                of start of image
     - fastuidraw_brush_image_layer layer texel coordinate in INDEX
-                                  texture of start of image
+                                   texture of start of image
     - fastuidraw_brush_image_size size of image (needed for when brush
-                                 coordinate goes beyond image size)
+                                  coordinate goes beyond image size)
     - fastuidraw_brush_image_factor ratio of master index tile size to
-                                   dimension of image
+                                    dimension of image
  */
 fastuidraw_painter_brush_value_flat vec2 fastuidraw_brush_image_xy;
 fastuidraw_painter_brush_value_flat float fastuidraw_brush_image_layer;

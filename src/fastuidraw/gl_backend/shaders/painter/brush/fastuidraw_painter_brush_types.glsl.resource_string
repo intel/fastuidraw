@@ -1,10 +1,30 @@
 
 struct fastuidraw_brush_image_data
 {
+  // location of mater index tile for the image
   vec3 master_index_tile_atlas_location_xyz;
+
+  // size of the (sub)image in texels
   uvec2 image_size;
-  uint slack, number_index_lookups;
+
+  // slack in tiles, i.e. how many texel repeated
+  // on each size of tile to facilitate filtering
+  uint slack;
+
+  // number of index tile lookups
+  uint number_index_lookups;
+
+  // conversion factor from master index tile
+  // coordinates to image texel coordinates
+  // The formulat is given as:
+  //  image_size_over_master_size = pow(2, number_index_lookups - 1) * C
+  // where
+  //   C = FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE - 2 * slack
+  // and FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE is the color
+  // tile size.
   uint image_size_over_master_size;
+
+  // location within image of start of sub-image
   uvec2 image_start;
 };
 

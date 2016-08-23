@@ -39,8 +39,8 @@ fastuidraw_process_image_data(in uint shader_brush,
                                  shader_brush);
 
   number_index_lookups = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_number_index_lookup_bit0,
-                                                fastuidraw_image_number_index_lookup_num_bits,
-                                                shader_brush);
+                                                 fastuidraw_image_number_index_lookup_num_bits,
+                                                 shader_brush);
 
   master_xyz.xy *= (uint(1) << uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE));
   cooked.master_index_tile_atlas_location_xyz = vec3(master_xyz);
@@ -61,7 +61,7 @@ fastuidraw_process_image_data(in uint shader_brush,
 
 void
 fastuidraw_process_gradient_data(in fastuidraw_brush_gradient_raw raw,
-                                out fastuidraw_brush_gradient cooked)
+                                 out fastuidraw_brush_gradient cooked)
 {
   cooked.p0 = raw.p0;
   cooked.p1 = raw.p1;
