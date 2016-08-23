@@ -26,10 +26,6 @@
 namespace fastuidraw {
 namespace glsl {
 
-/*!\addtogroup GLSLShaderBuilder
- */
-
-
 /*!
   A ShaderSource represents the source code
   to a GLSL shader, specifying blocks of source

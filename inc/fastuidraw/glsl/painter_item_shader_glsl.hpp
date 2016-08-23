@@ -26,10 +26,6 @@ namespace fastuidraw
 {
   namespace glsl
   {
-/*!\addtogroup GLSLShaderBuilder
-  @{
- */
-
     /*!
       A varying_list lists all the in's of a frag
       shader (and their names) or all the out's of vertex
@@ -436,6 +432,6 @@ namespace fastuidraw
     private:
       void *m_d;
     };
-/*! @} */
+
   }
 }

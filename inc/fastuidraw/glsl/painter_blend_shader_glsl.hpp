@@ -28,9 +28,6 @@ namespace fastuidraw
 {
   namespace glsl
   {
-/*!\addtogroup GLSLShaderBuilder
-  @{
- */
     /*!
       A PainterBlendShaderGLSL is a PainterBlendShader whose
       shader code fragment is via GLSL. The code to implement
@@ -97,6 +94,6 @@ namespace fastuidraw
     private:
       void *m_d;
     };
-/*! @} */
+
   }
 }
