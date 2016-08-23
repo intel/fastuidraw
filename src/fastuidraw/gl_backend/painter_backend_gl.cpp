@@ -22,6 +22,10 @@
 #include <sstream>
 #include <vector>
 
+#include <fastuidraw/glsl/shader_code.hpp>
+#include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
+
 #include <fastuidraw/stroked_path.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/painter_backend_gl.hpp>
@@ -1148,14 +1152,14 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::params &P,
   m_frag_shader_utils
     .add_source("fastuidraw_circular_interpolate.glsl.resource_string",
                 fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source(fastuidraw::gl::GlyphAtlasGL::glsl_curvepair_compute_pseudo_distance(m_params.glyph_atlas()->param_values().alignment(),
-                                                                                     "fastuidraw_curvepair_pseudo_distance",
-                                                                                     "fastuidraw_fetch_glyph_data",
-                                                                                     false))
-    .add_source(fastuidraw::gl::GlyphAtlasGL::glsl_curvepair_compute_pseudo_distance(m_params.glyph_atlas()->param_values().alignment(),
-                                                                                     "fastuidraw_curvepair_pseudo_distance",
-                                                                                     "fastuidraw_fetch_glyph_data",
-                                                                                     true));
+    .add_source(fastuidraw::glsl::code::glsl_curvepair_compute_pseudo_distance(m_params.glyph_atlas()->param_values().alignment(),
+                                                                               "fastuidraw_curvepair_pseudo_distance",
+                                                                               "fastuidraw_fetch_glyph_data",
+                                                                               false))
+    .add_source(fastuidraw::glsl::code::glsl_curvepair_compute_pseudo_distance(m_params.glyph_atlas()->param_values().alignment(),
+                                                                               "fastuidraw_curvepair_pseudo_distance",
+                                                                               "fastuidraw_fetch_glyph_data",
+                                                                               true));
   configure_backend();
 }
 

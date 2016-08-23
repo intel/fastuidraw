@@ -19,6 +19,10 @@
 
 #pragma once
 
+#include <fastuidraw/util/util.hpp>
+#include <fastuidraw/util/vecN.hpp>
+#include <fastuidraw/util/c_array.hpp>
+
 namespace fastuidraw {
 namespace glsl {
 

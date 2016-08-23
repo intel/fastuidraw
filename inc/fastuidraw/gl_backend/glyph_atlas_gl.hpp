@@ -263,52 +263,16 @@ namespace gl
     param_values(void) const;
 
     /*!
-      Construct/returns a glsl::ShaderSource value that
-      implements the two functions:
-      \code
-        float
-        function_name(in int texel_value,
-                      in vec2 texture_coordinate,
-                      in int geometry_offset)
-      \endcode
-
-      which returns the signed pseudo-distance to the glyph boundary.
-      The value texel_value is value in the texel store from the
-      position texture_coordinate (the bottom left for the glyph being
-      at Glyph::atlas_location().location() and the top right
-      being at that value + Glyph::layout().m_texel_size.
-      The value geometry_offset is from Glyph::geometry_offset().
-
-      \param alignment alignment of the backing geometry store,
-                       GlyphAtlasGeometryBackingStoreBase::alignment().
-      \param function_name name for the function
-      \param geometry_store_name the samplerBuffer backed by the texture
-                                 ID returned by geometry_texture().
-      \param derivative_function if true, give the GLSL function with the
-                                 argument signature (in int, in vec2, in int, out vec2)
-                                 where the last argument is the gradient of
-                                 the function with repsect to texture_coordinate.
-     */
-    static
-    glsl::ShaderSource
-    glsl_curvepair_compute_pseudo_distance(unsigned int alignment,
-                                           const char *function_name,
-                                           const char *geometry_store_name,
-                                           bool derivative_function = false);
-
-
-
-
-    /*!
       Provided as a conveniance, equivalent to
       \code
-      glsl_curvepair_compute_pseudo_distance(geometry_store()->alignment(),
-                                             function_name, geometry_store_name)
+      glsl::code::glsl_curvepair_compute_pseudo_distance(geometry_store()->alignment(),
+                                                         function_name, geometry_store_fetch)
       \endcode
 
       \param function_name name for the function
-      \param geometry_store_name the samplerBuffer backed by the texture
-                                 ID returned by geometry_texture().
+      \param geometry_store_fetch the macro function (that returns a vec4)
+                                  to use in the produced GLSL code to fetch
+                                  the geometry store data.
       \param derivative_function if true, give the GLSL function with the
                                  argument signature (in int, in vec2, in int, out vec2)
                                  where the last argument is the gradient of
@@ -316,7 +280,7 @@ namespace gl
      */
     glsl::ShaderSource
     glsl_curvepair_compute_pseudo_distance(const char *function_name,
-                                           const char *geometry_store_name,
+                                           const char *geometry_store_fetch,
                                            bool derivative_function = false);
   private:
     void *m_d;
