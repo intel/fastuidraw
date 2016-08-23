@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <fastuidraw/glsl/shader_code.hpp>
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/freetype_font.hpp>
 #include <fastuidraw/text/glyph_selector.hpp>
@@ -9,6 +10,7 @@
 #include <fastuidraw/gl_backend/gluniform.hpp>
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
+#include <fastuidraw/gl_backend/gl_program.hpp>
 #include "sdl_demo.hpp"
 #include "ImageLoader.hpp"
 #include "PanZoomTracker.hpp"
@@ -693,9 +695,10 @@ ready_program(void)
   m_drawers[draw_glyph_distance].set(pr, "Distance Text", &m_zoomer_text);
 
   glsl::ShaderSource curve_pair_func;
-  curve_pair_func = m_glyph_atlas->glsl_curvepair_compute_pseudo_distance("curvepair_pseudo_distance",
-                                                                          "fetch_glyph_geometry_data",
-                                                                          true);
+  curve_pair_func = glsl::code::curvepair_compute_pseudo_distance(m_glyph_atlas->geometry_store()->alignment(),
+                                                                  "curvepair_pseudo_distance",
+                                                                  "fetch_glyph_geometry_data",
+                                                                  true);
   for(int i = 0; i < number_texel_store_modes; ++i)
     {
       glsl::ShaderSource vert, frag;

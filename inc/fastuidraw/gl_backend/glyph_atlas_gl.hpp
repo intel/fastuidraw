@@ -20,7 +20,7 @@
 #pragma once
 
 #include <fastuidraw/text/glyph_atlas.hpp>
-#include <fastuidraw/gl_backend/gl_program.hpp>
+#include <fastuidraw/gl_backend/gl_header.hpp>
 
 namespace fastuidraw
 {
@@ -262,26 +262,6 @@ namespace gl
     const params&
     param_values(void) const;
 
-    /*!
-      Provided as a conveniance, equivalent to
-      \code
-      glsl::code::glsl_curvepair_compute_pseudo_distance(geometry_store()->alignment(),
-                                                         function_name, geometry_store_fetch)
-      \endcode
-
-      \param function_name name for the function
-      \param geometry_store_fetch the macro function (that returns a vec4)
-                                  to use in the produced GLSL code to fetch
-                                  the geometry store data.
-      \param derivative_function if true, give the GLSL function with the
-                                 argument signature (in int, in vec2, in int, out vec2)
-                                 where the last argument is the gradient of
-                                 the function with repsect to texture_coordinate.
-     */
-    glsl::ShaderSource
-    glsl_curvepair_compute_pseudo_distance(const char *function_name,
-                                           const char *geometry_store_fetch,
-                                           bool derivative_function = false);
   private:
     void *m_d;
   };

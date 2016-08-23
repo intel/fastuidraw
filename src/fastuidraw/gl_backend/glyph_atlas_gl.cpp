@@ -810,14 +810,3 @@ geometry_texture_as_2d_array_log2_dims(void) const
   p = static_cast<const GeometryStoreGL*>(geometry_store().get());
   return p->m_log2_dims;
 }
-
-fastuidraw::glsl::ShaderSource
-fastuidraw::gl::GlyphAtlasGL::
-glsl_curvepair_compute_pseudo_distance(const char *function_name,
-                                       const char *geometry_store_fetch,
-                                       bool derivative_function)
-{
-  return glsl::code::glsl_curvepair_compute_pseudo_distance(geometry_store()->alignment(),
-                                                            function_name, geometry_store_fetch,
-                                                            derivative_function);
-}

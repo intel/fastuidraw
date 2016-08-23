@@ -894,15 +894,16 @@ build_program(void)
   using namespace fastuidraw;
   using namespace fastuidraw::gl;
   using namespace fastuidraw::gl::detail;
+  using namespace fastuidraw::glsl;
   using namespace fastuidraw::glsl::detail::shader_builder;
   using namespace fastuidraw::PainterPacking;
 
-  fastuidraw::glsl::ShaderSource vert, frag;
+  ShaderSource vert, frag;
   std::ostringstream declare_varyings;
 
-  fastuidraw::gl::GlyphAtlasGL *glyphs;
-  assert(dynamic_cast<fastuidraw::gl::GlyphAtlasGL*>(m_p->glyph_atlas().get()));
-  glyphs = static_cast<fastuidraw::gl::GlyphAtlasGL*>(m_p->glyph_atlas().get());
+  GlyphAtlasGL *glyphs;
+  assert(dynamic_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get()));
+  glyphs = static_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get());
 
   if(m_params.unpack_header_and_brush_in_frag_shader())
     {
@@ -923,15 +924,15 @@ build_program(void)
 
       #ifdef FASTUIDRAW_GL_USE_GLES
         {
-          vert.specify_extension("GL_APPLE_clip_distance", fastuidraw::glsl::ShaderSource::require_extension);
-          frag.specify_extension("GL_APPLE_clip_distance", fastuidraw::glsl::ShaderSource::require_extension);
+          vert.specify_extension("GL_APPLE_clip_distance", ShaderSource::require_extension);
+          frag.specify_extension("GL_APPLE_clip_distance", ShaderSource::require_extension);
         }
       #endif
     }
 
   switch(m_params.data_store_backing())
     {
-    case fastuidraw::gl::PainterBackendGL::data_store_ubo:
+    case PainterBackendGL::data_store_ubo:
       {
         const char *uint_types[]=
           {
@@ -957,7 +958,7 @@ build_program(void)
       }
       break;
 
-    case fastuidraw::gl::PainterBackendGL::data_store_tbo:
+    case PainterBackendGL::data_store_tbo:
       {
         vert.add_macro("FASTUIDRAW_PAINTER_USE_DATA_TBO");
         frag.add_macro("FASTUIDRAW_PAINTER_USE_DATA_TBO");
@@ -967,18 +968,18 @@ build_program(void)
 
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
-      if(m_ctx_properties.version() >= fastuidraw::ivec2(3, 2))
+      if(m_ctx_properties.version() >= ivec2(3, 2))
         {
           vert
             .specify_version("320 es");
           frag
             .specify_version("320 es")
-            .specify_extension("GL_EXT_blend_func_extended", fastuidraw::glsl::ShaderSource::enable_extension);
+            .specify_extension("GL_EXT_blend_func_extended", ShaderSource::enable_extension);
         }
       else
         {
           std::string version;
-          if(m_ctx_properties.version() >= fastuidraw::ivec2(3, 1))
+          if(m_ctx_properties.version() >= ivec2(3, 1))
             {
               version = "310 es";
             }
@@ -989,13 +990,13 @@ build_program(void)
 
           vert
             .specify_version(version.c_str())
-            .specify_extension("GL_EXT_texture_buffer", fastuidraw::glsl::ShaderSource::enable_extension)
-            .specify_extension("GL_OES_texture_buffer", fastuidraw::glsl::ShaderSource::enable_extension);
+            .specify_extension("GL_EXT_texture_buffer", ShaderSource::enable_extension)
+            .specify_extension("GL_OES_texture_buffer", ShaderSource::enable_extension);
           frag
             .specify_version(version.c_str())
-            .specify_extension("GL_EXT_blend_func_extended", fastuidraw::glsl::ShaderSource::enable_extension)
-            .specify_extension("GL_EXT_texture_buffer", fastuidraw::glsl::ShaderSource::enable_extension)
-            .specify_extension("GL_OES_texture_buffer", fastuidraw::glsl::ShaderSource::enable_extension);
+            .specify_extension("GL_EXT_blend_func_extended", ShaderSource::enable_extension)
+            .specify_extension("GL_EXT_texture_buffer", ShaderSource::enable_extension)
+            .specify_extension("GL_OES_texture_buffer", ShaderSource::enable_extension);
         }
     }
   #else
@@ -1013,7 +1014,7 @@ build_program(void)
 
   switch(glyphs->param_values().glyph_geometry_backing_store_type())
     {
-    case fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_2d_array:
+    case GlyphAtlasGL::glyph_geometry_texture_2d_array:
       {
         fastuidraw::ivec2 log2_glyph_geom;
         log2_glyph_geom = glyphs->geometry_texture_as_2d_array_log2_dims();
@@ -1030,7 +1031,7 @@ build_program(void)
       }
       break;
 
-    case fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_buffer:
+    case GlyphAtlasGL::glyph_geometry_texture_buffer:
       {
         vert.add_macro("FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_BUFFER");
         frag.add_macro("FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_BUFFER");
@@ -1039,58 +1040,59 @@ build_program(void)
     }
 
   vert
-    .add_source("fastuidraw_painter_gles_precision.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_gles_precision.glsl.resource_string", ShaderSource::from_resource)
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", m_params.image_atlas()->param_values().log2_index_tile_size())
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE", m_color_tile_size)
     .add_macro("fastuidraw_varying", "out")
-    .add_source(declare_varyings.str().c_str(), fastuidraw::glsl::ShaderSource::from_string)
-    .add_source("fastuidraw_painter_uniforms.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush_macros.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_types.vert.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush_types.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush_unpacked_values.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_forward_declares.vert.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush_unpack_forward_declares.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush_unpack.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush.vert.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_main.vert.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
+    .add_source(declare_varyings.str().c_str(), ShaderSource::from_string)
+    .add_source("fastuidraw_painter_uniforms.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_brush_macros.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_types.vert.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_brush_types.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_brush_unpacked_values.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_forward_declares.vert.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_brush_unpack_forward_declares.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_brush_unpack.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_brush.vert.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_main.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source(m_vert_shader_utils);
   stream_unpack_code(m_params.m_config.alignment(), vert);
   stream_uber_vert_shader(m_params.vert_shader_use_switch(), vert, make_c_array(m_item_shaders));
 
 
-  fastuidraw::gl::ImageAtlasGL *image_atlas_gl;
-  assert(dynamic_cast<fastuidraw::gl::ImageAtlasGL*>(m_p->image_atlas().get()));
-  image_atlas_gl = static_cast<fastuidraw::gl::ImageAtlasGL*>(m_p->image_atlas().get());
+  ImageAtlas *image_atlas;
+  image_atlas = m_p->image_atlas().get();
 
   add_enums(m_params.m_config.alignment(), frag);
   add_texture_size_constants(frag, m_params);
   frag
     .add_macro(m_shader_blend_macro.c_str())
-    .add_source("fastuidraw_painter_gles_precision.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_gles_precision.glsl.resource_string", ShaderSource::from_resource)
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", m_params.image_atlas()->param_values().log2_index_tile_size())
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE", m_color_tile_size)
     .add_macro("fastuidraw_varying", "in")
-    .add_source(declare_varyings.str().c_str(), fastuidraw::glsl::ShaderSource::from_string)
-    .add_source("fastuidraw_painter_uniforms.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush_macros.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_types.vert.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush_types.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush_unpacked_values.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_forward_declares.frag.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource);
+    .add_source(declare_varyings.str().c_str(), ShaderSource::from_string)
+    .add_source("fastuidraw_painter_uniforms.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_brush_macros.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_types.vert.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_brush_types.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_brush_unpacked_values.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_forward_declares.frag.glsl.resource_string", ShaderSource::from_resource);
 
   if(m_params.unpack_header_and_brush_in_frag_shader())
     {
       frag
-        .add_source("fastuidraw_painter_brush_unpack_forward_declares.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-        .add_source("fastuidraw_painter_brush_unpack.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource);
+        .add_source("fastuidraw_painter_brush_unpack_forward_declares.glsl.resource_string", ShaderSource::from_resource)
+        .add_source("fastuidraw_painter_brush_unpack.glsl.resource_string", ShaderSource::from_resource);
     }
 
   frag
-    .add_source("fastuidraw_painter_brush.frag.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source(image_atlas_gl->glsl_compute_coord_src("fastuidraw_compute_image_atlas_coord", "fastuidraw_imageIndexAtlas"))
-    .add_source("fastuidraw_painter_main.frag.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_anisotropic.frag.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_brush.frag.glsl.resource_string", ShaderSource::from_resource)
+    .add_source(code::image_atlas_compute_coord("fastuidraw_compute_image_atlas_coord",
+                                                "fastuidraw_imageIndexAtlas",
+                                                image_atlas->index_tile_size(), image_atlas->color_tile_size()))
+    .add_source("fastuidraw_painter_main.frag.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_anisotropic.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source(m_frag_shader_utils);
 
   if(m_params.unpack_header_and_brush_in_frag_shader())
@@ -1102,23 +1104,23 @@ build_program(void)
   stream_uber_blend_shader(m_params.blend_shader_use_switch(), frag,
                            make_c_array(m_blend_shaders[m_blend_type].m_shaders), m_blend_type);
 
-  m_program = FASTUIDRAWnew fastuidraw::gl::Program(vert, frag,
-                                                    fastuidraw::gl::PreLinkActionArray()
-                                                    .add_binding("fastuidraw_primary_attribute", 0)
-                                                    .add_binding("fastuidraw_secondary_attribute", 1)
-                                                    .add_binding("fastuidraw_uint_attribute", 2)
-                                                    .add_binding("fastuidraw_header_attribute", 3),
-                                                    fastuidraw::gl::ProgramInitializerArray()
-                                                    .add_sampler_initializer("fastuidraw_imageAtlas", bind_image_color_unfiltered)
-                                                    .add_sampler_initializer("fastuidraw_imageAtlasFiltered", bind_image_color_filtered)
-                                                    .add_sampler_initializer("fastuidraw_imageIndexAtlas", bind_image_index)
-                                                    .add_sampler_initializer("fastuidraw_glyphTexelStoreUINT", bind_glyph_texel_usampler)
-                                                    .add_sampler_initializer("fastuidraw_glyphTexelStoreFLOAT", bind_glyph_texel_sampler)
-                                                    .add_sampler_initializer("fastuidraw_glyphGeometryDataStore", bind_glyph_geomtry)
-                                                    .add_sampler_initializer("fastuidraw_colorStopAtlas", bind_colorstop)
-                                                    .add_sampler_initializer("fastuidraw_painterStore_tbo", bind_painter_data_store_tbo)
-                                                    .add_uniform_block_binding("fastuidraw_painterStore_ubo", bind_painter_data_store_ubo)
-                                                    );
+  m_program = FASTUIDRAWnew Program(vert, frag,
+                                    PreLinkActionArray()
+                                    .add_binding("fastuidraw_primary_attribute", 0)
+                                    .add_binding("fastuidraw_secondary_attribute", 1)
+                                    .add_binding("fastuidraw_uint_attribute", 2)
+                                    .add_binding("fastuidraw_header_attribute", 3),
+                                    ProgramInitializerArray()
+                                    .add_sampler_initializer("fastuidraw_imageAtlas", bind_image_color_unfiltered)
+                                    .add_sampler_initializer("fastuidraw_imageAtlasFiltered", bind_image_color_filtered)
+                                    .add_sampler_initializer("fastuidraw_imageIndexAtlas", bind_image_index)
+                                    .add_sampler_initializer("fastuidraw_glyphTexelStoreUINT", bind_glyph_texel_usampler)
+                                    .add_sampler_initializer("fastuidraw_glyphTexelStoreFLOAT", bind_glyph_texel_sampler)
+                                    .add_sampler_initializer("fastuidraw_glyphGeometryDataStore", bind_glyph_geomtry)
+                                    .add_sampler_initializer("fastuidraw_colorStopAtlas", bind_colorstop)
+                                    .add_sampler_initializer("fastuidraw_painterStore_tbo", bind_painter_data_store_tbo)
+                                    .add_uniform_block_binding("fastuidraw_painterStore_ubo", bind_painter_data_store_ubo)
+                                    );
 
   m_target_resolution_loc = m_program->uniform_location("fastuidraw_viewport_pixels");
   m_target_resolution_recip_loc = m_program->uniform_location("fastuidraw_viewport_recip_pixels");
@@ -1152,14 +1154,14 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::params &P,
   m_frag_shader_utils
     .add_source("fastuidraw_circular_interpolate.glsl.resource_string",
                 fastuidraw::glsl::ShaderSource::from_resource)
-    .add_source(fastuidraw::glsl::code::glsl_curvepair_compute_pseudo_distance(m_params.glyph_atlas()->param_values().alignment(),
-                                                                               "fastuidraw_curvepair_pseudo_distance",
-                                                                               "fastuidraw_fetch_glyph_data",
-                                                                               false))
-    .add_source(fastuidraw::glsl::code::glsl_curvepair_compute_pseudo_distance(m_params.glyph_atlas()->param_values().alignment(),
-                                                                               "fastuidraw_curvepair_pseudo_distance",
-                                                                               "fastuidraw_fetch_glyph_data",
-                                                                               true));
+    .add_source(fastuidraw::glsl::code::curvepair_compute_pseudo_distance(m_params.glyph_atlas()->geometry_store()->alignment(),
+                                                                          "fastuidraw_curvepair_pseudo_distance",
+                                                                          "fastuidraw_fetch_glyph_data",
+                                                                          false))
+    .add_source(fastuidraw::glsl::code::curvepair_compute_pseudo_distance(m_params.glyph_atlas()->geometry_store()->alignment(),
+                                                                          "fastuidraw_curvepair_pseudo_distance",
+                                                                          "fastuidraw_fetch_glyph_data",
+                                                                          true));
   configure_backend();
 }
 

@@ -57,10 +57,36 @@ namespace fastuidraw
                                    the function with repsect to texture_coordinate.
        */
       ShaderSource
-      glsl_curvepair_compute_pseudo_distance(unsigned int alignment,
-                                             const char *function_name,
-                                             const char *geometry_store_fetch,
-                                             bool derivative_function = false);
+      curvepair_compute_pseudo_distance(unsigned int alignment,
+                                        const char *function_name,
+                                        const char *geometry_store_fetch,
+                                        bool derivative_function = false);
+      /*!
+        Gives the shader source code for a function with
+        the signature:
+        \code
+        void
+        function(in vec2 punnormalized_index_tex_coord,
+                 in int pindex_layer,
+                 in int pnum_levels,
+                 in int tile_slack,
+                 out vec2 return_value_unnormalized_texcoord_xy,
+                 out int return_value_layer)
+        \endcode
+
+        which computes the unnormalized texture coordinate and
+        layer into the color atlas.
+
+        \param function_name name to give the function
+        \param index_texture name to give the index texture atlas
+        \param index_tile_size the size of each index tile (see ImageAtlas::index_tile_size())
+        \param color_tile_size the size of each color tile (see ImageAtlas::color_tile_size())
+       */
+      ShaderSource
+      image_atlas_compute_coord(const char *function_name,
+                                const char *index_texture,
+                                unsigned int index_tile_size,
+                                unsigned int color_tile_size);
     }
   }
 }

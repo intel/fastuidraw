@@ -157,10 +157,10 @@ LoaderMacro(unsigned int alignment, const char *geometry_store_fetch)
 // fastuidraw::glsl::code methods
 fastuidraw::glsl::ShaderSource
 fastuidraw::glsl::code::
-glsl_curvepair_compute_pseudo_distance(unsigned int alignment,
-                                       const char *function_name,
-                                       const char *geometry_store_fetch,
-                                       bool derivative_function)
+curvepair_compute_pseudo_distance(unsigned int alignment,
+                                  const char *function_name,
+                                  const char *geometry_store_fetch,
+                                  bool derivative_function)
 {
   ShaderSource return_value;
 
@@ -202,4 +202,27 @@ glsl_curvepair_compute_pseudo_distance(unsigned int alignment,
 
   return return_value;
 
+}
+
+fastuidraw::glsl::ShaderSource
+fastuidraw::glsl::code::
+image_atlas_compute_coord(const char *function_name,
+                          const char *index_texture,
+                          unsigned int index_tile_size,
+                          unsigned int color_tile_size)
+{
+  ShaderSource return_value;
+
+  return_value
+    .add_macro("FASTUIDRAW_INDEX_TILE_SIZE", index_tile_size)
+    .add_macro("FASTUIDRAW_COLOR_TILE_SIZE", color_tile_size)
+    .add_macro("FASTUIDRAW_INDEX_ATLAS", index_texture)
+    .add_macro("FASTUIDRAW_ATLAS_COMPUTE_COORD", function_name)
+    .add_source("fastuidraw_atlas_image_fetch.glsl.resource_string", glsl::ShaderSource::from_resource)
+    .remove_macro("FASTUIDRAW_INDEX_TILE_SIZE")
+    .remove_macro("FASTUIDRAW_COLOR_TILE_SIZE")
+    .remove_macro("FASTUIDRAW_INDEX_ATLAS")
+    .remove_macro("FASTUIDRAW_ATLAS_COMPUTE_COORD");
+
+  return return_value;
 }

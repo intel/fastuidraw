@@ -1,8 +1,10 @@
 #include <iostream>
 #include <dirent.h>
+#include <fastuidraw/glsl/shader_code.hpp>
 #include <fastuidraw/gl_backend/image_gl.hpp>
 #include <fastuidraw/gl_backend/gluniform.hpp>
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
+#include <fastuidraw/gl_backend/gl_program.hpp>
 #include "sdl_demo.hpp"
 #include "ImageLoader.hpp"
 #include "PanZoomTracker.hpp"
@@ -495,7 +497,9 @@ private:
       m_index_boundary_mix_values.resize(max_num_look_ups + 1, 0.0f);
 
       glsl::ShaderSource glsl_compute_coord;
-      glsl_compute_coord = m_atlas->glsl_compute_coord_src("compute_atlas_coord", "indexAtlas");
+      glsl_compute_coord = glsl::code::image_atlas_compute_coord("compute_atlas_coord", "indexAtlas",
+                                                                 m_atlas->index_tile_size(),
+                                                                 m_atlas->color_tile_size());
 
       pr = FASTUIDRAWnew gl::Program(glsl::ShaderSource()
                                      .specify_version(gl::Shader::default_shader_version())
