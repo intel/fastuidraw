@@ -895,15 +895,21 @@ build_program(void)
   using namespace fastuidraw::gl;
   using namespace fastuidraw::gl::detail;
   using namespace fastuidraw::glsl;
-  using namespace fastuidraw::glsl::detail::shader_builder;
+  using namespace fastuidraw::glsl::detail;
   using namespace fastuidraw::PainterPacking;
 
   ShaderSource vert, frag;
   std::ostringstream declare_varyings;
 
-  GlyphAtlasGL *glyphs;
-  assert(dynamic_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get()));
-  glyphs = static_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get());
+  const GlyphAtlasGL *glyphs;
+  assert(dynamic_cast<const GlyphAtlasGL*>(m_p->glyph_atlas().get()));
+  glyphs = static_cast<const GlyphAtlasGL*>(m_p->glyph_atlas().get());
+
+  const ImageAtlas *image_atlas;
+  image_atlas = m_p->image_atlas().get();
+
+  const ColorStopAtlas *colorstop_atlas;
+  colorstop_atlas = m_p->colorstop_atlas().get();
 
   if(m_params.unpack_header_and_brush_in_frag_shader())
     {
@@ -915,7 +921,7 @@ build_program(void)
                           m_number_int_varyings, m_number_float_varyings);
 
   add_enums(m_params.m_config.alignment(), vert);
-  add_texture_size_constants(vert, m_params);
+  add_texture_size_constants(vert, glyphs, image_atlas, colorstop_atlas);
 
   if(m_number_clip_planes > 0)
     {
@@ -1059,12 +1065,8 @@ build_program(void)
   stream_unpack_code(m_params.m_config.alignment(), vert);
   stream_uber_vert_shader(m_params.vert_shader_use_switch(), vert, make_c_array(m_item_shaders));
 
-
-  ImageAtlas *image_atlas;
-  image_atlas = m_p->image_atlas().get();
-
   add_enums(m_params.m_config.alignment(), frag);
-  add_texture_size_constants(frag, m_params);
+  add_texture_size_constants(frag, glyphs, image_atlas, colorstop_atlas);
   frag
     .add_macro(m_shader_blend_macro.c_str())
     .add_source("fastuidraw_painter_gles_precision.glsl.resource_string", ShaderSource::from_resource)
@@ -1268,7 +1270,7 @@ PainterBackendGL(const params &P):
   PainterBackendGLPrivate *d;
   m_d = d = FASTUIDRAWnew PainterBackendGLPrivate(P, this);
   set_hints().clipping_via_hw_clip_planes(d->m_number_clip_planes > 0);
-  glsl::detail::backend_shaders::ShaderSetCreator cr(d->m_blend_type);
+  glsl::detail::ShaderSetCreator cr(d->m_blend_type);
   set_default_shaders(cr.create_shader_set());
 }
 

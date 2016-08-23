@@ -4,6 +4,9 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
+dir := $(d)/painter
+include $(dir)/Rules.mk
+
 LIBRARY_RESOURCE_STRING += $(call filelist, fastuidraw_atlas_image_fetch.glsl.resource_string \
 	fastuidraw_curvepair_glyph.frag.glsl.resource_string \
 	fastuidraw_curvepair_glyph_derivative.frag.glsl.resource_string \

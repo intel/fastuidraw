@@ -609,7 +609,7 @@ set_painter_core_clip(const fastuidraw::PainterPackedValue<fastuidraw::PainterCl
 // PainterPrivate methods
 PainterPrivate::
 PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> backend):
-  m_pool(backend->configuration().alignment())
+  m_pool(backend->configuration_base().alignment())
 {
   m_core = FASTUIDRAWnew fastuidraw::PainterPacker(backend);
   m_reset_brush = m_pool.create_packed_value(fastuidraw::PainterBrush());

@@ -88,7 +88,7 @@ namespace fastuidraw
         /*!
           Configuration parameters inherited from PainterBackend
          */
-        PainterBackend::Configuration m_config;
+        PainterBackend::ConfigurationBase m_config;
 
         /*!
           The ImageAtlasGL to be used by the painter
