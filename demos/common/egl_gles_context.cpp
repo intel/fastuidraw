@@ -90,6 +90,7 @@ egl_gles_context(const params &P, SDL_Window *sdl)
     ret = eglChooseConfig(m_dpy, config_attribs, &config, 1, &num_configs);
     assert_and_check_errors(ret);
     assert(num_configs != 0);
+    FASTUIDRAWunused(ret);
   }
   m_surface = eglCreateWindowSurface(m_dpy, config, wm.info.x11.window, NULL);
   assert_and_check_errors(m_surface != EGL_NO_SURFACE);
