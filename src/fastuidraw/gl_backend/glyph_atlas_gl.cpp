@@ -179,7 +179,7 @@ namespace
       m_number_floats(1024 * 1024),
       m_delayed(false),
       m_alignment(4),
-      m_type(fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_buffer),
+      m_type(fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_tbo),
       m_log2_dims_geometry_store(-1, -1)
     {}
 
@@ -187,7 +187,7 @@ namespace
     unsigned int m_number_floats;
     bool m_delayed;
     unsigned int m_alignment;
-    enum fastuidraw::gl::GlyphAtlasGL::glyph_geometry_backing_store_t m_type;
+    enum fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_backing_t m_type;
     fastuidraw::ivec2 m_log2_dims_geometry_store;
   };
 
@@ -572,14 +572,17 @@ create(const fastuidraw::gl::GlyphAtlasGL::params &P)
 
   switch(P.glyph_geometry_backing_store_type())
     {
-    case fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_buffer:
+    case fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_tbo:
       p = FASTUIDRAWnew GeometryStoreGL_Buffer(number_vecNs, delayed, N);
       break;
 
-    case fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_2d_array:
+    case fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_texture_array:
       p = FASTUIDRAWnew GeometryStoreGL_Texture(P.texture_2d_array_geometry_store_log2_dims(),
                                                 number_vecNs, delayed, N);
       break;
+
+    default:
+      assert(!"Bad glyph geometry store backing type");
     }
   return fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase>(p);
 }
@@ -623,24 +626,24 @@ operator=(const params &rhs)
   return *this;
 }
 
-fastuidraw::gl::GlyphAtlasGL::params&
-fastuidraw::gl::GlyphAtlasGL::params::
-use_texture_buffer_geometry_store(void)
-{
-  GlyphAtlasGLParamsPrivate *d;
-  d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-  d->m_type = glyph_geometry_texture_buffer;
-  d->m_log2_dims_geometry_store = ivec2(-1, -1);
-  return *this;
-}
-
-enum fastuidraw::gl::GlyphAtlasGL::glyph_geometry_backing_store_t
+enum fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_backing_t
 fastuidraw::gl::GlyphAtlasGL::params::
 glyph_geometry_backing_store_type(void) const
 {
   GlyphAtlasGLParamsPrivate *d;
   d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(m_d);
   return d->m_type;
+}
+
+fastuidraw::gl::GlyphAtlasGL::params&
+fastuidraw::gl::GlyphAtlasGL::params::
+use_texture_buffer_geometry_store(void)
+{
+  GlyphAtlasGLParamsPrivate *d;
+  d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(m_d);
+  d->m_type = glsl::PainterBackendGLSL::glyph_geometry_tbo;
+  d->m_log2_dims_geometry_store = ivec2(-1, -1);
+  return *this;
 }
 
 fastuidraw::gl::GlyphAtlasGL::params&
@@ -652,7 +655,7 @@ use_texture_2d_array_geometry_store(int log2_width, int log2_height)
   if(log2_width >= 0 && log2_height >= 0)
     {
       d->m_log2_dims_geometry_store = ivec2(log2_width, log2_height);
-      d->m_type = glyph_geometry_texture_2d_array;
+      d->m_type = glsl::PainterBackendGLSL::glyph_geometry_texture_array;
     }
   return *this;
 }
@@ -681,7 +684,7 @@ use_optimal_geometry_store_backing(void)
   if(detail::compute_tex_buffer_support() != detail::tex_buffer_not_supported
      && context_get<int>(GL_MAX_TEXTURE_BUFFER_SIZE) >= required_max_size)
     {
-      d->m_type = glyph_geometry_texture_buffer;
+      d->m_type = glsl::PainterBackendGLSL::glyph_geometry_tbo;
       d->m_log2_dims_geometry_store = ivec2(-1, -1);
     }
   else
@@ -705,7 +708,7 @@ use_optimal_geometry_store_backing(void)
           ++required_height;
         }
 
-      d->m_type = glyph_geometry_texture_2d_array;
+      d->m_type = glsl::PainterBackendGLSL::glyph_geometry_texture_array;
       d->m_log2_dims_geometry_store.x() = uint32_log2(width);
       d->m_log2_dims_geometry_store.y() = (required_height <= 1) ?
         0 : uint32_log2(required_height);

@@ -39,9 +39,7 @@ namespace
     void
     update_varying_size(const fastuidraw::glsl::varying_list &plist);
 
-    bool m_unique_group_per_item_shader;
-    bool m_unique_group_per_blend_shader;
-    bool m_use_hw_clip_planes;
+    fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL m_config;
 
     bool m_shader_code_added;
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> > m_item_shaders;
@@ -64,10 +62,8 @@ namespace
 PainterBackendGLSLPrivate::
 PainterBackendGLSLPrivate(fastuidraw::glsl::PainterBackendGLSL *p,
                           const fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL &config):
-  m_unique_group_per_item_shader(config.m_unique_group_per_item_shader),
-  m_unique_group_per_blend_shader(config.m_unique_group_per_blend_shader),
-  m_use_hw_clip_planes(config.m_use_hw_clip_planes),
-  m_shader_code_added(true),
+  m_config(config),
+  m_shader_code_added(false),
   m_next_item_shader_ID(1),
   m_next_blend_shader_ID(1),
   m_number_float_varyings(0),
@@ -143,7 +139,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   stream_declare_varyings(declare_varyings, m_number_uint_varyings,
                           m_number_int_varyings, m_number_float_varyings);
 
-  if(m_use_hw_clip_planes)
+  if(m_config.m_use_hw_clip_planes)
     {
       vert.add_macro("FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES");
       frag.add_macro("FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES");
@@ -365,7 +361,7 @@ absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader)
 
   return_value.m_ID = d->m_next_item_shader_ID;
   d->m_next_item_shader_ID += h->number_sub_shaders();
-  return_value.m_group = d->m_unique_group_per_item_shader ? return_value.m_ID : 0;
+  return_value.m_group = d->m_config.m_unique_group_per_item_shader ? return_value.m_ID : 0;
   return return_value;
 }
 
@@ -376,7 +372,7 @@ compute_item_sub_shader_group(const reference_counted_ptr<PainterItemShader> &sh
   PainterBackendGLSLPrivate *d;
   d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
 
-  return d->m_unique_group_per_item_shader ? shader->ID() : 0;
+  return d->m_config.m_unique_group_per_item_shader ? shader->ID() : 0;
 }
 
 fastuidraw::PainterShader::Tag
@@ -398,7 +394,7 @@ absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader)
 
   return_value.m_ID = d->m_next_blend_shader_ID;
   d->m_next_blend_shader_ID += h->number_sub_shaders();
-  return_value.m_group = d->m_unique_group_per_blend_shader ? return_value.m_ID : 0;
+  return_value.m_group = d->m_config.m_unique_group_per_blend_shader ? return_value.m_ID : 0;
 
   return return_value;
 }
@@ -410,7 +406,7 @@ compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &
   PainterBackendGLSLPrivate *d;
   d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
 
-  return d->m_unique_group_per_blend_shader ? shader->ID() : 0;
+  return d->m_config.m_unique_group_per_blend_shader ? shader->ID() : 0;
 }
 
 bool
@@ -423,6 +419,15 @@ shader_code_added(void)
   return_value = d->m_shader_code_added;
   d->m_shader_code_added = false;
   return return_value;
+}
+
+const fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL&
+fastuidraw::glsl::PainterBackendGLSL::
+configuration_glsl(void) const
+{
+  PainterBackendGLSLPrivate *d;
+  d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
+  return d->m_config;
 }
 
 void

@@ -20,6 +20,7 @@
 #pragma once
 
 #include <fastuidraw/text/glyph_atlas.hpp>
+#include <fastuidraw/glsl/painter_backend_glsl.hpp>
 #include <fastuidraw/gl_backend/gl_header.hpp>
 
 namespace fastuidraw
@@ -45,25 +46,6 @@ namespace gl
   class GlyphAtlasGL:public GlyphAtlas
   {
   public:
-    /*!
-      Enumeration to specify the backing store used for the
-      glyph geometry data.
-     */
-    enum glyph_geometry_backing_store_t
-      {
-        /*!
-          Use GL's texture buffer objects to store the
-          glyph geometry data.
-         */
-        glyph_geometry_texture_buffer,
-
-        /*!
-          Use a 2D texture array to store the
-          glyph geometry data.
-         */
-        glyph_geometry_texture_2d_array,
-      };
-
     /*!
       Class to hold the construction parameters for creating
       a GlyphAtlasGL.
@@ -138,22 +120,22 @@ namespace gl
         the glyph geometry data. Default value is
         \ref glyph_geometry_texture_buffer.
        */
-      enum glyph_geometry_backing_store_t
+      enum glsl::PainterBackendGLSL::glyph_geometry_backing_t
       glyph_geometry_backing_store_type(void) const;
 
       /*!
         Set glyph_geometry_backing_store() to \ref
-        glyph_geometry_texture_buffer, i.e. for the
-        glyph geometry dta to be stored on a GL
-        texture buffer object.
+        glsl::PainterBackendGLSL::glyph_geometry_tbo,
+        i.e. for the glyph geometry data to be stored
+        on a GL texture buffer object.
        */
       params&
       use_texture_buffer_geometry_store(void);
 
       /*!
         Set glyph_geometry_backing_store() to \ref
-        glyph_geometry_texture_2d_array, i.e.
-        to use a 2D texture array to store the
+        glsl::PainterBackendGLSL::glyph_geometry_texture_array,
+        i.e. to use a 2D texture array to store the
         glyph geometry data. The depth of the
         array is set implicitely by the size given by
         GlyphAtlasGeometryBackingStoreBase::size().
@@ -168,7 +150,8 @@ namespace gl
 
       /*!
         If glyph_geometry_backing_store() returns \ref
-        glyph_geometry_texture_2d_array, returns the values
+        glsl::PainterBackendGLSL::glyph_geometry_texture_2d_array,
+        returns the values
         set in use_texture_2d_array_geometry_store(), otherwise
         returns a value where both components are -1.
        */

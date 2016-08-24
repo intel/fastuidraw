@@ -49,9 +49,20 @@ namespace fastuidraw
           data_store_ubo
         };
 
+      /*!
+        Enumeration to specify how to access the backing store
+        of the glyph geometry stored in GlyphAtlas::geometry_store()
+       */
       enum glyph_geometry_backing_t
         {
+          /*!
+            Use a samplerBuffer to access the data
+          */
           glyph_geometry_tbo,
+
+          /*!
+            Use a sampler2DArray to access the data
+           */
           glyph_geometry_texture_array,
         };
 
@@ -81,11 +92,11 @@ namespace fastuidraw
 
         //info about how to access PainterDrawCommand::m_store
         enum data_store_backing_t m_data_store_backing;
-        unsigned int m_data_blocks_per_store_buffer; //only makes sense if m_data_store_backing == data_store_ubo
+        unsigned int m_data_blocks_per_store_buffer; //only needed if m_data_store_backing == data_store_ubo
 
         //info on how to access GlyphAtlas::geometry_store()
         enum glyph_geometry_backing_t m_glyph_geometry_backing;
-        uvec2 m_glyph_geometry_backing_log2_dims; //only makes sense if m_glyph_geometry_backing == glyph_geometry_texture_array
+        ivec2 m_glyph_geometry_backing_log2_dims; //only makes sense if m_glyph_geometry_backing == glyph_geometry_texture_array
 
         // if can access GlyphAtlas::texel_store() as sampler2DArray as well
         bool m_have_float_glyph_texture_atlas;
@@ -100,6 +111,12 @@ namespace fastuidraw
                          const ConfigurationGLSL &config);
 
       ~PainterBackendGLSL();
+
+      /*!
+        Returns the ConfigurationBase passed in the ctor.
+      */
+      const ConfigurationGLSL&
+      configuration_glsl(void) const;
 
       /*!
         Add GLSL code that is to be visible to all vertex
@@ -117,6 +134,14 @@ namespace fastuidraw
       void
       add_fragment_shader_util(const ShaderSource &src);
 
+      /*!
+        Construct the uber vertex and fragment shader.
+       */
+      void
+      construct_shader(ShaderSource &out_vertex,
+                       ShaderSource &out_fragment,
+                       const uber_shader_params &contruct_params);
+
     protected:
       /*!
         Returns true if any shader code has been added since
@@ -127,13 +152,6 @@ namespace fastuidraw
       bool
       shader_code_added(void);
 
-      /*!
-        Construct the uber vertex and fragment shader.
-       */
-      void
-      construct_shader(ShaderSource &out_vertex,
-                       ShaderSource &out_fragment,
-                       const uber_shader_params &contruct_params);
       virtual
       PainterShader::Tag
       absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader);
