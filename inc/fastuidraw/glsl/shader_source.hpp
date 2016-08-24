@@ -25,6 +25,9 @@
 
 namespace fastuidraw {
 namespace glsl {
+/*!\addtogroup GLSLShaderBuilder
+  @{
+ */
 
 /*!
   A ShaderSource represents the source code
@@ -231,6 +234,7 @@ public:
   private:
     void *m_d;
 };
+/*! @} */
 
 } //namespace glsl
 } //namespace fastuidraw

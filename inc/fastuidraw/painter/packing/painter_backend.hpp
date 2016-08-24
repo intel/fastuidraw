@@ -144,9 +144,6 @@ namespace fastuidraw
       \param image_atlas ImageAtlas for images drawn by the PainterBackend
       \param colorstop_atlas ColorStopAtlas for color stop sequences drawn by the PainterBackend
       \param config ConfigurationBase for how to pack data to PainterBackend
-      \param default_shaders shaders are to NOT be registed yet to any
-                             backend; they will be registered laziy
-                             at default_shaders().
      */
     PainterBackend(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                    reference_counted_ptr<ImageAtlas> image_atlas,

@@ -292,7 +292,7 @@ namespace fastuidraw
  */
 #define FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(X) ( (uint32_t(1) << uint32_t(X)) - uint32_t(1) )
 
-/*!\def FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS_64U
+/*!\def FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS_U64
   Macro that gives the maximum value that can be
   held with a given number of bits, returning an
   unsigned 64-bit integer.

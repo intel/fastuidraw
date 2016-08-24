@@ -24,6 +24,14 @@ namespace fastuidraw
 {
   namespace glsl
   {
+/*!\addtogroup GLSLShaderBuilder
+  @{
+ */
+    /*!
+      \brief Namespace to encapsulate GLSL shader source
+             code using in rendering, part of the main
+             library libFastUIDraw
+     */
     namespace code
     {
       /*!
@@ -88,6 +96,7 @@ namespace fastuidraw
                                 unsigned int index_tile_size,
                                 unsigned int color_tile_size);
     }
+/*! @} */
   }
 
 }

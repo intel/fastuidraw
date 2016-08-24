@@ -26,8 +26,8 @@ namespace fastuidraw
  */
 
   /*!
-    Namespace to encapsulate enumerations used in Painter
-    interface
+    \brief Namespace to encapsulate enumerations used in Painter
+           interface, part of the main library libFastUIDraw.
    */
   namespace PainterEnums
   {

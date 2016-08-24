@@ -148,7 +148,7 @@ namespace fastuidraw
           map_draw_command() may store. The size of
           PainterDrawCommand::m_store is given by
           data_blocks_per_store_buffer() *
-          PainterBackend::Configuration::alignment(),
+          PainterBackend::ConfigurationBase::alignment(),
           Initial value is 1024 * 64.
          */
         unsigned int

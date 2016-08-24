@@ -25,6 +25,9 @@ namespace fastuidraw
 {
   namespace glsl
   {
+/*!\addtogroup GLSLShaderBuilder
+  @{
+ */
     /*!
       A PainterBackendGLSL is a partial implementation of PainterBackend.
       It handles the building of the GLSL source code of an Uber-Shader.
@@ -342,6 +345,13 @@ namespace fastuidraw
         void *m_d;
       };
 
+      /*!
+        Ctor.
+        \param glyph_atlas GlyphAtlas for glyphs drawn by the PainterBackend
+        \param image_atlas ImageAtlas for images drawn by the PainterBackend
+        \param colorstop_atlas ColorStopAtlas for color stop sequences drawn by the PainterBackend
+        \param config ConfigurationGLSL providing configuration parameters
+       */
       PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                          reference_counted_ptr<ImageAtlas> image_atlas,
                          reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
@@ -408,6 +418,7 @@ namespace fastuidraw
     private:
       void *m_d;
     };
+/*! @} */
 
   }
 }

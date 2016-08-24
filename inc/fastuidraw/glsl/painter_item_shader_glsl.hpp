@@ -26,6 +26,9 @@ namespace fastuidraw
 {
   namespace glsl
   {
+/*!\addtogroup GLSLShaderBuilder
+  @{
+ */
     /*!
       A varying_list lists all the in's of a frag
       shader (and their names) or all the out's of vertex
@@ -208,8 +211,8 @@ namespace fastuidraw
         stream of values. Returns the number of blocks needed to unpack
         the data in GLSL.
         \param alignment the alignment of the data store used in a
-                          PainterBackendGL (i.e. the value of
-                          PainterBackend::Configuration::alignment())
+                         PainterBackendGLSL (i.e. the value of
+                         PainterBackend::ConfigurationBase::alignment(void) const)
         \param str location to which to add the GLSL code
         \param labels GLSL names and types to which to unpack
         \param offset_name GLSL name for offset from which to unpack
@@ -233,8 +236,8 @@ namespace fastuidraw
         out. Returns the number of blocks needed to unpack
         the data in GLSL.
         \param alignment the alignment of the data store used in a
-                          PainterBackendGL (i.e. the value of
-                          PainterBackend::Configuration::alignment())
+                         PainterBackendGLSL (i.e. the value of
+                         PainterBackend::ConfigurationBase::alignment(void) const)
         \param str location to which to add the GLSL code
         \param labels GLSL names of the fields and their types
         \param function_name name to give the function
@@ -282,8 +285,8 @@ namespace fastuidraw
         shader_unpack_value::stream_unpack_code(alignment, str, *this, offset_name);
         \endcode
         \param alignment the alignment of the data store used in a
-                          PainterBackendGL (i.e. the value of
-                          PainterBackend::Configuration::alignment())
+                         PainterBackendGLSL (i.e. the value of
+                         PainterBackend::ConfigurationBase::alignment(void) const)
         \param str location to which to add the GLSL code
         \param offset_name GLSL name for offset from which to unpack
                            values
@@ -304,8 +307,8 @@ namespace fastuidraw
                                                          out_type, returns_new_offset);
         \endcode
         \param alignment the alignment of the data store used in a
-                          PainterBackendGL (i.e. the value of
-                          PainterBackend::Configuration::alignment())
+                         PainterBackendGLSL (i.e. the value of
+                         PainterBackend::ConfigurationBase::alignment(void) const)
         \param str location to which to add the GLSL code
         \param function_name name to give the function
         \param out_type the out type of the function
@@ -381,10 +384,10 @@ namespace fastuidraw
       fastuidraw_fetch_data(shader_data_offset)
       \endcode
       to read the raw bits of the data. The type returned by the macro fastuidraw_fetch_data() is
-      - uint if PainterBackend::Configuration::alignment() is 1,
-      - uvec2 if PainterBackend::Configuration::alignment() is 2,
-      - uvec3 if PainterBackend::Configuration::alignment() is 3 and
-      - uvec4 if PainterBackend::Configuration::alignment() is 4.
+      - uint if PainterBackend::ConfigurationBase::alignment() is 1,
+      - uvec2 if PainterBackend::ConfigurationBase::alignment() is 2,
+      - uvec3 if PainterBackend::ConfigurationBase::alignment() is 3 and
+      - uvec4 if PainterBackend::ConfigurationBase::alignment() is 4.
 
       Use the GLSL built-in uintBitsToFloat() to covert the uint bit-value to float
       and just cast int() to get the value as an integer.
@@ -432,6 +435,7 @@ namespace fastuidraw
     private:
       void *m_d;
     };
+/*! @} */
 
   }
 }

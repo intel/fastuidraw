@@ -118,7 +118,7 @@ namespace gl
       /*!
         Returns what kind of GL object is used to back
         the glyph geometry data. Default value is
-        \ref glyph_geometry_texture_buffer.
+        \ref glsl::PainterBackendGLSL::glyph_geometry_tbo.
        */
       enum glsl::PainterBackendGLSL::glyph_geometry_backing_t
       glyph_geometry_backing_store_type(void) const;
@@ -150,7 +150,7 @@ namespace gl
 
       /*!
         If glyph_geometry_backing_store() returns \ref
-        glsl::PainterBackendGLSL::glyph_geometry_texture_2d_array,
+        glsl::PainterBackendGLSL::glyph_geometry_texture_array,
         returns the values
         set in use_texture_2d_array_geometry_store(), otherwise
         returns a value where both components are -1.

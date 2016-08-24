@@ -65,6 +65,7 @@ namespace fastuidraw
       where multiple shaders have almost same code and those
       code differences can be realized by examining a sub-shader
       ID.
+      \param tp the "how" the blend shader operates
       \param num_sub_shaders number of sub-shaders
      */
     explicit

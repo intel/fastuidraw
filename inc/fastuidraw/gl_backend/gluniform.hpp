@@ -29,10 +29,7 @@
 
 namespace fastuidraw
 {
-/*!
-  Namespace to encapsulate GL backend end implementation,
-  utility functions and utility classes.
- */
+
 namespace gl {
 
 /*!\addtogroup GLUtility

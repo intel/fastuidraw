@@ -153,7 +153,7 @@ namespace fastuidraw
       Sets the blend shader. It is a crashing error for
       h to be NULL.
       \param h blend shader to use for blending.
-      \param mode 3D API blend mode packed by BlendMode::packed()
+      \param packed_blend_mode 3D API blend mode packed by BlendMode::packed()
      */
     void
     blend_shader(const reference_counted_ptr<PainterBlendShader> &h,

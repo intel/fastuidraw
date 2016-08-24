@@ -53,7 +53,7 @@ namespace fastuidraw
       Pack the values of this ClipEquations
       \param alignment alignment of the data store
              in units of generic_data, see
-             PainterBackend::Configuration::alignment()
+             PainterBackend::ConfigurationBase::alignment()
       \param dst place to which to pack data
     */
     void
@@ -64,7 +64,7 @@ namespace fastuidraw
       Data is padded to be multiple of alignment.
       \param alignment alignment of the data store
              in units of generic_data, see
-             PainterBackend::Configuration::alignment()
+             PainterBackend::ConfigurationBase::alignment()
     */
     unsigned int
     data_size(unsigned int alignment) const
@@ -111,7 +111,7 @@ namespace fastuidraw
       Data is padded to be multiple of alignment.
       \param alignment alignment of the data store
                        in units of generic_data, see
-                       PainterBackend::Configuration::alignment()
+                       PainterBackend::ConfigurationBase::alignment()
     */
     unsigned int
     data_size(unsigned int alignment) const
@@ -124,7 +124,7 @@ namespace fastuidraw
       Pack the values of this ItemMatrix
       \param alignment alignment of the data store
       in units of generic_data, see
-      PainterBackend::Configuration::alignment()
+      PainterBackend::ConfigurationBase::alignment()
       \param dst place to which to pack data
     */
     void
@@ -170,7 +170,7 @@ namespace fastuidraw
       Data is padded to be multiple of alignment.
       \param alignment alignment of the data store
                        in units of generic_data, see
-                       PainterBackend::Configuration::alignment()
+                       PainterBackend::ConfigurationBase::alignment()
     */
     unsigned int
     data_size(unsigned int alignment) const;
@@ -179,7 +179,7 @@ namespace fastuidraw
       Pack the values of this object
       \param alignment alignment of the data store
                        in units of generic_data, see
-                       PainterBackend::Configuration::alignment()
+                       PainterBackend::ConfigurationBase::alignment()
       \param dst place to which to pack data
     */
     void
@@ -212,7 +212,7 @@ namespace fastuidraw
         Data is padded to be multiple of alignment.
         \param alignment alignment of the data store
                in units of generic_data, see
-               PainterBackend::Configuration::alignment()
+               PainterBackend::ConfigurationBase::alignment()
        */
       virtual
       unsigned int
@@ -223,7 +223,7 @@ namespace fastuidraw
         To be implemtend by a derive dclass to pack its data.
         \param alignment alignment of the data store
                in units of generic_data, see
-               PainterBackend::Configuration::alignment()
+               PainterBackend::ConfigurationBase::alignment()
         \param dst place to which to pack data
       */
       virtual
