@@ -78,10 +78,6 @@ if [ "$print_cflags" = "1" ] || [ "$print_libs" = "1" ]; then
       echo "Must specify debug or release (with --debug or --release respectively)"
       bad=1
   fi
-  if [ "$api" = "unknown" ]; then
-      echo "Must specify GPU API as OpenGL or OpenGL ES (with --gl or --gles respectively)"
-      bad=1
-  fi
   if [ "$api" = "gl" ] && [ "$gl_supported" = "0" ]; then
       echo "GL backend not built!"
       bad=1
@@ -99,17 +95,23 @@ if [ "$mode" = "release" ]; then
      if [ "$api" = "gles" ]; then
          libs=$base_libs" @FASTUIDRAW_GLES_release_LIBS@"
          cflags=$base_cflags" @LIBRARY_GLES_release_CFLAGS@"
-     else
+     elif [ "$api" = "gl" ]; then
          libs=$base_libs" @FASTUIDRAW_GL_release_LIBS@"
          cflags=$base_cflags" @LIBRARY_GL_release_CFLAGS@"
+     else
+         libs=$base_libs
+         cflags=$base_cflags
      fi
 else
      if [ "$api" = "gles" ]; then
          libs=$base_libs" @FASTUIDRAW_GLES_debug_LIBS@"
          cflags=$base_cflags" @LIBRARY_GLES_debug_CFLAGS@"
-     else
+     elif [ "$api" = "gl" ]; then
          libs=$base_libs" @FASTUIDRAW_GL_debug_LIBS@"
          cflags=$base_cflags" @LIBRARY_GL_debug_CFLAGS@"
+     else
+         libs=$base_libs
+         cflags=$base_cflags
      fi
 fi
 
