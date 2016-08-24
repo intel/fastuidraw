@@ -68,18 +68,98 @@ namespace fastuidraw
 
       /*!
         A params gives parameters how to contruct
-        a PainterBackendGLSL.
+        a PainterBackendGLSL. These values influence
+        the behavior of both the PainterBackendGLSL
+        and the shaders it constructs via
+        PainterBackendGLSL::construct_shader().
        */
       class ConfigurationGLSL
       {
       public:
-        PainterBackend::ConfigurationBase m_config;
-        bool m_unique_group_per_item_shader;
-        bool m_unique_group_per_blend_shader;
-        bool m_use_hw_clip_planes;
+        /*!
+          Ctor.
+         */
+        ConfigurationGLSL(void);
 
-        //blend shader type for default shaders.
-        enum PainterBlendShader::shader_type m_blend_type;
+        /*!
+          Copy ctor.
+          \param obj value from which to copy
+         */
+        ConfigurationGLSL(const ConfigurationGLSL &obj);
+
+        ~ConfigurationGLSL();
+
+        /*!
+          Assignment operator
+          \param rhs value from which to copy
+         */
+        ConfigurationGLSL&
+        operator=(const ConfigurationGLSL &rhs);
+
+        /*!
+          Configuration parameters inherited from PainterBackend
+         */
+        PainterBackend::ConfigurationBase m_config;
+
+        /*!
+          If true, each item shader will be in a different
+          shader group (see PainterShader::group()).
+        */
+        bool
+        unique_group_per_item_shader(void) const;
+
+        /*!
+          Set the value returned by unique_group_per_item_shader(void) const.
+          Default value is false.
+         */
+        ConfigurationGLSL&
+        unique_group_per_item_shader(bool);
+
+        /*!
+          If true, each blend shader will be in a different
+          shader group (see PainterShader::group()).
+        */
+        bool
+        unique_group_per_blend_shader(void) const;
+
+        /*!
+          Set the value returned by unique_group_per_blend_shader(void) const.
+          Default value is false.
+         */
+        ConfigurationGLSL&
+        unique_group_per_blend_shader(bool);
+
+        /*!
+          If true, use HW clip planes (embodied by gl_ClipDistance).
+         */
+        bool
+        use_hw_clip_planes(void) const;
+
+        /*!
+          Set the value returned by use_hw_clip_planes(void) const.
+          Default value is true.
+         */
+        ConfigurationGLSL&
+        use_hw_clip_planes(bool);
+
+        /*!
+          Set the blend shader type used by the blend
+          shaders of the default shaders, as returned by
+          PainterShaderSet::blend_shaders() of
+          PainterBackend::default_shaders().
+         */
+        enum PainterBlendShader::shader_type
+        default_blend_shader_type(void) const;
+
+        /*!
+          Set the value returned by default_blend_shader_type(void) const.
+          Default value is PainterBlendShader::dual_src.
+         */
+        ConfigurationGLSL&
+        default_blend_shader_type(enum PainterBlendShader::shader_type);
+
+      private:
+        void *m_d;
       };
 
       class uber_shader_params

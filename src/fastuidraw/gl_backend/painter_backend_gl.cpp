@@ -778,17 +778,17 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::params &params)
   fastuidraw::gl::ContextProperties ctx;
 
   return_value.m_config = params.m_config;
-  return_value.m_unique_group_per_item_shader = params.break_on_shader_change();
-  return_value.m_unique_group_per_blend_shader = params.break_on_shader_change();
+  return_value.unique_group_per_item_shader(params.break_on_shader_change());
+  return_value.unique_group_per_blend_shader(params.break_on_shader_change());
 
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
-      return_value.m_use_hw_clip_planes = params.use_hw_clip_planes()
-        && ctx.has_extension("GL_APPLE_clip_distance");
+      return_value
+        .use_hw_clip_planes(params.use_hw_clip_planes() && ctx.has_extension("GL_APPLE_clip_distance"));
     }
   #else
     {
-      return_value.m_use_hw_clip_planes = params.use_hw_clip_planes();
+      return_value.use_hw_clip_planes(params.use_hw_clip_planes());
     }
   #endif
 
@@ -808,15 +808,18 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::params &params)
 
   if(have_framebuffer_fetch && false)
     {
-      return_value.m_blend_type = fastuidraw::PainterBlendShader::framebuffer_fetch;
+      return_value
+        .default_blend_shader_type(fastuidraw::PainterBlendShader::framebuffer_fetch);
     }
   else if(have_dual_src_blending)
     {
-      return_value.m_blend_type = fastuidraw::PainterBlendShader::dual_src;
+      return_value
+        .default_blend_shader_type(fastuidraw::PainterBlendShader::dual_src);
     }
   else
     {
-      return_value.m_blend_type = fastuidraw::PainterBlendShader::single_src;
+      return_value
+        .default_blend_shader_type(fastuidraw::PainterBlendShader::single_src);
     }
 
   return return_value;
@@ -891,7 +894,7 @@ configure_backend(void)
         }
       #endif
     }
-  assert(m_params.use_hw_clip_planes() == m_p->configuration_glsl().m_use_hw_clip_planes);
+  assert(m_params.use_hw_clip_planes() == m_p->configuration_glsl().use_hw_clip_planes());
 
   /*
     configure m_uber_shader_builder_params now that m_params has been
@@ -906,7 +909,7 @@ configure_backend(void)
   m_uber_shader_builder_params.m_glyph_geometry_backing = m_params.glyph_atlas()->param_values().glyph_geometry_backing_store_type();
   m_uber_shader_builder_params.m_glyph_geometry_backing_log2_dims = m_params.glyph_atlas()->param_values().texture_2d_array_geometry_store_log2_dims();
   m_uber_shader_builder_params.m_have_float_glyph_texture_atlas = (m_params.glyph_atlas()->texel_texture(false) != 0);
-  m_uber_shader_builder_params.m_blend_type = m_p->configuration_glsl().m_blend_type;
+  m_uber_shader_builder_params.m_blend_type = m_p->configuration_glsl().default_blend_shader_type();
 
   /* now allocate m_pool after adjusting m_params
    */
@@ -921,7 +924,7 @@ build_program(void)
 
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
-      if(m_p->configuration_glsl().m_use_hw_clip_planes)
+      if(m_p->configuration_glsl().use_hw_clip_planes())
         {
           vert.specify_extension("GL_APPLE_clip_distance", ShaderSource::require_extension);
           frag.specify_extension("GL_APPLE_clip_distance", ShaderSource::require_extension);

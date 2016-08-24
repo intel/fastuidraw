@@ -23,6 +23,22 @@ namespace
     std::vector<Ref> m_shaders;
   };
 
+  class ConfigurationGLSLPrivate
+  {
+  public:
+    ConfigurationGLSLPrivate(void):
+      m_unique_group_per_item_shader(false),
+      m_unique_group_per_blend_shader(false),
+      m_use_hw_clip_planes(true),
+      m_default_blend_shader_type(fastuidraw::PainterBlendShader::dual_src)
+    {}
+
+    bool m_unique_group_per_item_shader;
+    bool m_unique_group_per_blend_shader;
+    bool m_use_hw_clip_planes;
+    enum fastuidraw::PainterBlendShader::shader_type m_default_blend_shader_type;
+  };
+
   class PainterBackendGLSLPrivate
   {
   public:
@@ -139,7 +155,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   stream_declare_varyings(declare_varyings, m_number_uint_varyings,
                           m_number_int_varyings, m_number_float_varyings);
 
-  if(m_config.m_use_hw_clip_planes)
+  if(m_config.use_hw_clip_planes())
     {
       vert.add_macro("FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES");
       frag.add_macro("FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES");
@@ -299,6 +315,72 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
                            params.m_blend_type);
 }
 
+/////////////////////////////////////////////////////////////////
+//fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL methods
+fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
+ConfigurationGLSL(void)
+{
+  m_d = FASTUIDRAWnew ConfigurationGLSLPrivate();
+}
+
+fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
+ConfigurationGLSL(const ConfigurationGLSL &obj)
+{
+  ConfigurationGLSLPrivate *d;
+  d = reinterpret_cast<ConfigurationGLSLPrivate*>(obj.m_d);
+  m_d = FASTUIDRAWnew ConfigurationGLSLPrivate(*d);
+}
+
+fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
+~ConfigurationGLSL()
+{
+  ConfigurationGLSLPrivate *d;
+  d = reinterpret_cast<ConfigurationGLSLPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+  m_d = NULL;
+}
+
+fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL&
+fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
+operator=(const ConfigurationGLSL &rhs)
+{
+  if(this != &rhs)
+    {
+      ConfigurationGLSLPrivate *d, *rhs_d;
+      d = reinterpret_cast<ConfigurationGLSLPrivate*>(m_d);
+      rhs_d = reinterpret_cast<ConfigurationGLSLPrivate*>(rhs.m_d);
+      *d = *rhs_d;
+    }
+  return *this;
+}
+
+#define setget_implement(type, name)                                    \
+  fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL&              \
+  fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::             \
+  name(type v)                                                          \
+  {                                                                     \
+    ConfigurationGLSLPrivate *d;                                        \
+    d = reinterpret_cast<ConfigurationGLSLPrivate*>(m_d);               \
+    d->m_##name = v;                                                    \
+    return *this;                                                       \
+  }                                                                     \
+                                                                        \
+  type                                                                  \
+  fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::             \
+  name(void) const                                                      \
+  {                                                                     \
+    ConfigurationGLSLPrivate *d;                                        \
+    d = reinterpret_cast<ConfigurationGLSLPrivate*>(m_d);               \
+    return d->m_##name;                                                 \
+  }
+
+setget_implement(bool, unique_group_per_item_shader)
+setget_implement(bool, unique_group_per_blend_shader)
+setget_implement(bool, use_hw_clip_planes)
+setget_implement(enum fastuidraw::PainterBlendShader::shader_type, default_blend_shader_type)
+
+#undef setget_implement
+
 //////////////////////////////////////////////
 // fastuidraw::glsl::PainterBackendGLSL methods
 fastuidraw::glsl::PainterBackendGLSL::
@@ -309,8 +391,8 @@ PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
   PainterBackend(glyph_atlas, image_atlas, colorstop_atlas, config.m_config)
 {
   m_d = FASTUIDRAWnew PainterBackendGLSLPrivate(this, config);
-  set_hints().clipping_via_hw_clip_planes(config.m_use_hw_clip_planes);
-  glsl::detail::ShaderSetCreator cr(config.m_blend_type);
+  set_hints().clipping_via_hw_clip_planes(config.use_hw_clip_planes());
+  glsl::detail::ShaderSetCreator cr(config.default_blend_shader_type());
   set_default_shaders(cr.create_shader_set());
 }
 
@@ -361,7 +443,7 @@ absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader)
 
   return_value.m_ID = d->m_next_item_shader_ID;
   d->m_next_item_shader_ID += h->number_sub_shaders();
-  return_value.m_group = d->m_config.m_unique_group_per_item_shader ? return_value.m_ID : 0;
+  return_value.m_group = d->m_config.unique_group_per_item_shader() ? return_value.m_ID : 0;
   return return_value;
 }
 
@@ -372,7 +454,7 @@ compute_item_sub_shader_group(const reference_counted_ptr<PainterItemShader> &sh
   PainterBackendGLSLPrivate *d;
   d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
 
-  return d->m_config.m_unique_group_per_item_shader ? shader->ID() : 0;
+  return d->m_config.unique_group_per_item_shader() ? shader->ID() : 0;
 }
 
 fastuidraw::PainterShader::Tag
@@ -394,7 +476,7 @@ absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader)
 
   return_value.m_ID = d->m_next_blend_shader_ID;
   d->m_next_blend_shader_ID += h->number_sub_shaders();
-  return_value.m_group = d->m_config.m_unique_group_per_blend_shader ? return_value.m_ID : 0;
+  return_value.m_group = d->m_config.unique_group_per_blend_shader() ? return_value.m_ID : 0;
 
   return return_value;
 }
@@ -406,7 +488,7 @@ compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &
   PainterBackendGLSLPrivate *d;
   d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
 
-  return d->m_config.m_unique_group_per_blend_shader ? shader->ID() : 0;
+  return d->m_config.unique_group_per_blend_shader() ? shader->ID() : 0;
 }
 
 bool
