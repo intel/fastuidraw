@@ -1047,6 +1047,7 @@ build_program(void)
 
   vert
     .add_source("fastuidraw_painter_gles_precision.glsl.resource_string", ShaderSource::from_resource)
+    .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_SIZE", image_atlas->index_tile_size())
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", m_params.image_atlas()->param_values().log2_index_tile_size())
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE", m_color_tile_size)
     .add_macro("fastuidraw_varying", "out")
@@ -1070,6 +1071,7 @@ build_program(void)
   frag
     .add_macro(m_shader_blend_macro.c_str())
     .add_source("fastuidraw_painter_gles_precision.glsl.resource_string", ShaderSource::from_resource)
+    .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_SIZE", image_atlas->index_tile_size())
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", m_params.image_atlas()->param_values().log2_index_tile_size())
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE", m_color_tile_size)
     .add_macro("fastuidraw_varying", "in")

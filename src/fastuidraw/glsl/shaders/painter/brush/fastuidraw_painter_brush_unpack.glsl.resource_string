@@ -42,13 +42,19 @@ fastuidraw_process_image_data(in uint shader_brush,
                                                  fastuidraw_image_number_index_lookup_num_bits,
                                                  shader_brush);
 
-  master_xyz.xy *= (uint(1) << uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE));
+  master_xyz.xy *= uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_SIZE);
   cooked.master_index_tile_atlas_location_xyz = vec3(master_xyz);
   cooked.slack = slack;
   cooked.number_index_lookups = number_index_lookups;
 
   if(number_index_lookups > uint(0))
     {
+      /*
+        The factor from master index tile to color tile is given by
+          pow(SizeOfImageTile, NumberIndexLookUps - 1)
+          = pow(2, log2(SizeOfImageTile) * (NumberIndexLookUps - 1))
+        Bit shifting gives us the pow(2, V)
+       */
       ww = uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE) * (number_index_lookups - uint(1));
       index_pows = uint(1) << ww;
       cooked.image_size_over_master_size = (uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE) - uint(2) * slack) * index_pows;

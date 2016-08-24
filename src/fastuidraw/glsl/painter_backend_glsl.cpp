@@ -220,6 +220,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   add_texture_size_constants(vert, glyph_atlas, image_atlas, colorstop_atlas);
   vert
     .add_source("fastuidraw_painter_gles_precision.glsl.resource_string", ShaderSource::from_resource)
+    .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_SIZE", image_atlas->index_tile_size())
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", uint32_log2(image_atlas->index_tile_size()))
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE", image_atlas->color_tile_size())
     .add_macro("fastuidraw_varying", "out")
@@ -263,6 +264,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   frag
     .add_macro(shader_blend_macro)
     .add_source("fastuidraw_painter_gles_precision.glsl.resource_string", ShaderSource::from_resource)
+    .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_SIZE", image_atlas->index_tile_size())
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", uint32_log2(image_atlas->index_tile_size()))
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE", image_atlas->color_tile_size())
     .add_macro("fastuidraw_varying", "in")
