@@ -43,6 +43,8 @@ namespace
   {
   public:
     UberShaderParamsPrivate(void):
+      m_z_coordinate_convention(fastuidraw::glsl::PainterBackendGLSL::z_minus_1_to_1),
+      m_negate_normalized_y_coordinate(false),
       m_vert_shader_use_switch(false),
       m_frag_shader_use_switch(false),
       m_blend_shader_use_switch(false),
@@ -55,6 +57,8 @@ namespace
       m_blend_type(fastuidraw::PainterBlendShader::dual_src)
     {}
 
+    enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t m_z_coordinate_convention;
+    bool m_negate_normalized_y_coordinate;
     bool m_vert_shader_use_switch;
     bool m_frag_shader_use_switch;
     bool m_blend_shader_use_switch;
@@ -178,6 +182,23 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     {
       vert.add_macro("FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER");
       frag.add_macro("FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER");
+    }
+
+  if(params.negate_normalized_y_coordinate())
+    {
+      vert.add_macro("FASTUIDRAW_PAINTER_NEGATE_POSITION_Y_COORDINATE");
+      frag.add_macro("FASTUIDRAW_PAINTER_NEGATE_POSITION_Y_COORDINATE");
+    }
+
+  if(params.z_coordinate_convention() == PainterBackendGLSL::z_minus_1_to_1)
+    {
+      vert.add_macro("FASTUIDRAW_PAINTER_NORMALIZED_Z_MINUS_1_TO_1");
+      frag.add_macro("FASTUIDRAW_PAINTER_NORMALIZED_Z_MINUS_1_TO_1");
+    }
+  else
+    {
+      vert.add_macro("FASTUIDRAW_PAINTER_NORMALIZED_0_TO_1");
+      frag.add_macro("FASTUIDRAW_PAINTER_NORMALIZED_0_TO_1");
     }
 
   stream_declare_varyings(declare_varyings, m_number_uint_varyings,
@@ -468,6 +489,8 @@ operator=(const UberShaderParams &rhs)
     return d->m_##name;                                                 \
   }
 
+setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t, z_coordinate_convention)
+setget_implement(bool, negate_normalized_y_coordinate)
 setget_implement(bool, vert_shader_use_switch)
 setget_implement(bool, frag_shader_use_switch)
 setget_implement(bool, blend_shader_use_switch)

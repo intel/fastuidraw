@@ -70,6 +70,25 @@ namespace fastuidraw
         };
 
       /*!
+        Enumeration to specify the convention for a 3D API
+        for its normalized device coordinate in z.
+       */
+      enum z_coordinate_convention_t
+        {
+          /*!
+            Specifies that the normalized device coordinate
+            for z goes from -1 to 1.
+           */
+          z_minus_1_to_1,
+
+          /*!
+            Specifies that the normalized device coordinate
+            for z goes from 0 to 1.
+           */
+          z_0_to_1,
+        };
+
+      /*!
         A params gives parameters how to contruct
         a PainterBackendGLSL. These values influence
         the behavior of both the PainterBackendGLSL
@@ -192,6 +211,39 @@ namespace fastuidraw
          */
         UberShaderParams&
         operator=(const UberShaderParams &rhs);
+
+        /*!
+          Specifies the normalized device z-coordinate convention
+          that the shader is to use.
+         */
+        enum z_coordinate_convention_t
+        z_coordinate_convention(void) const;
+
+        /*!
+          Set the value returned by normalized_device_z_coordinate_convention(void) const.
+          Default value is z_minus_1_to_1.
+         */
+        UberShaderParams&
+        z_coordinate_convention(enum z_coordinate_convention_t);
+
+        /*!
+          If set to true, negate te y-coordinate of
+          gl_Position before emitting it. The convention
+          in FastUIDraw is that normalized coordinates are
+          so that the top of the window is y = -1 and the
+          bottom is y = 1. For those API's that have this
+          reversed (for example Vulkan), then set this to
+          true.
+         */
+        bool
+        negate_normalized_y_coordinate(void) const;
+
+        /*!
+          Set the value returned by negate_normalized_y_coordinate(void) const.
+          Default value is false.
+         */
+        UberShaderParams&
+        negate_normalized_y_coordinate(bool);
 
         /*!
           If true, use a switch() in the uber-vertex shader to

@@ -901,6 +901,8 @@ configure_backend(void)
     sanitized
    */
   m_uber_shader_builder_params
+    .z_coordinate_convention(fastuidraw::glsl::PainterBackendGLSL::z_minus_1_to_1)
+    .negate_normalized_y_coordinate(false)
     .vert_shader_use_switch(m_params.vert_shader_use_switch())
     .frag_shader_use_switch(m_params.frag_shader_use_switch())
     .blend_shader_use_switch(m_params.blend_shader_use_switch())
