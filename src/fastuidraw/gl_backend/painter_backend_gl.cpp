@@ -927,22 +927,22 @@ build_program(void)
     {
       if(m_p->configuration_glsl().use_hw_clip_planes())
         {
-          vert.specify_extension("GL_APPLE_clip_distance", ShaderSource::require_extension);
-          frag.specify_extension("GL_APPLE_clip_distance", ShaderSource::require_extension);
+          vert.specify_extension("GL_APPLE_clip_distance", fastuidraw::glsl::ShaderSource::require_extension);
+          frag.specify_extension("GL_APPLE_clip_distance", fastuidraw::glsl::ShaderSource::require_extension);
         }
 
-      if(m_ctx_properties.version() >= ivec2(3, 2))
+      if(m_ctx_properties.version() >= fastuidraw::ivec2(3, 2))
         {
           vert
             .specify_version("320 es");
           frag
             .specify_version("320 es")
-            .specify_extension("GL_EXT_blend_func_extended", ShaderSource::enable_extension);
+            .specify_extension("GL_EXT_blend_func_extended", fastuidraw::glsl::ShaderSource::enable_extension);
         }
       else
         {
           std::string version;
-          if(m_ctx_properties.version() >= ivec2(3, 1))
+          if(m_ctx_properties.version() >= fastuidraw::ivec2(3, 1))
             {
               version = "310 es";
             }
@@ -953,14 +953,14 @@ build_program(void)
 
           vert
             .specify_version(version.c_str())
-            .specify_extension("GL_EXT_texture_buffer", ShaderSource::enable_extension)
-            .specify_extension("GL_OES_texture_buffer", ShaderSource::enable_extension);
+            .specify_extension("GL_EXT_texture_buffer", fastuidraw::glsl::ShaderSource::enable_extension)
+            .specify_extension("GL_OES_texture_buffer", fastuidraw::glsl::ShaderSource::enable_extension);
 
           frag
             .specify_version(version.c_str())
-            .specify_extension("GL_EXT_blend_func_extended", ShaderSource::enable_extension)
-            .specify_extension("GL_EXT_texture_buffer", ShaderSource::enable_extension)
-            .specify_extension("GL_OES_texture_buffer", ShaderSource::enable_extension);
+            .specify_extension("GL_EXT_blend_func_extended", fastuidraw::glsl::ShaderSource::enable_extension)
+            .specify_extension("GL_EXT_texture_buffer", fastuidraw::glsl::ShaderSource::enable_extension)
+            .specify_extension("GL_OES_texture_buffer", fastuidraw::glsl::ShaderSource::enable_extension);
         }
     }
   #else
