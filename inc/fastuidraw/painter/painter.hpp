@@ -44,7 +44,9 @@ namespace fastuidraw
 
     The transformation of a Painter goes from local item coordinate
     to 3D API clip-coordinates (for example in GL, from item coordinates
-    to gl_Position.xyw).
+    to gl_Position.xyw). FastUIDraw follows the convention that
+    the top of the window is at normalized y-coordinate -1 and the
+    bottom of the window is at normalized y-coordinate +1.
 
     One can specify the exact attribute and index data for a Painter
     to consume, see \ref draw_generic(). In addition, the class
