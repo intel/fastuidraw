@@ -434,7 +434,11 @@ namespace fastuidraw
       add_fragment_shader_util(const ShaderSource &src);
 
       /*!
-        Construct the uber vertex and fragment shader.
+        Add the uber-vertex and fragment shaders to given
+        ShaderSource values.
+        \param out_vertex ShaderSource to which to add uber-vertex shader
+        \param out_fragment ShaderSource to which to add uber-fragment shader
+        \param contruct_params specifies how to construct the uber-shaders.
        */
       void
       construct_shader(ShaderSource &out_vertex,
