@@ -42,12 +42,25 @@ namespace
   class UberShaderParamsPrivate
   {
   public:
+    UberShaderParamsPrivate(void):
+      m_vert_shader_use_switch(false),
+      m_frag_shader_use_switch(false),
+      m_blend_shader_use_switch(false),
+      m_unpack_header_and_brush_in_frag_shader(false),
+      m_data_store_backing(fastuidraw::glsl::PainterBackendGLSL::data_store_tbo),
+      m_data_blocks_per_store_buffer(-1),
+      m_glyph_geometry_backing(fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_tbo),
+      m_glyph_geometry_backing_log2_dims(-1, -1),
+      m_have_float_glyph_texture_atlas(true),
+      m_blend_type(fastuidraw::PainterBlendShader::dual_src)
+    {}
+
     bool m_vert_shader_use_switch;
     bool m_frag_shader_use_switch;
     bool m_blend_shader_use_switch;
     bool m_unpack_header_and_brush_in_frag_shader;
     enum fastuidraw::glsl::PainterBackendGLSL::data_store_backing_t m_data_store_backing;
-    unsigned int m_data_blocks_per_store_buffer;
+    int m_data_blocks_per_store_buffer;
     enum fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_backing_t m_glyph_geometry_backing;
     fastuidraw::ivec2 m_glyph_geometry_backing_log2_dims;
     bool m_have_float_glyph_texture_atlas;
@@ -460,7 +473,7 @@ setget_implement(bool, frag_shader_use_switch)
 setget_implement(bool, blend_shader_use_switch)
 setget_implement(bool, unpack_header_and_brush_in_frag_shader)
 setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::data_store_backing_t, data_store_backing)
-setget_implement(unsigned int, data_blocks_per_store_buffer)
+setget_implement(int, data_blocks_per_store_buffer)
 setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_backing_t, glyph_geometry_backing)
 setget_implement(fastuidraw::ivec2, glyph_geometry_backing_log2_dims)
 setget_implement(enum fastuidraw::PainterBlendShader::shader_type, blend_type)

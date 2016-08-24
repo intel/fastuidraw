@@ -198,7 +198,8 @@ namespace fastuidraw
         vert_shader_use_switch(void) const;
 
         /*!
-          Set the value returned by vert_shader_use_switch(void) const
+          Set the value returned by vert_shader_use_switch(void) const.
+          Default value is false.
          */
         UberShaderParams&
         vert_shader_use_switch(bool);
@@ -211,7 +212,8 @@ namespace fastuidraw
         frag_shader_use_switch(void) const;
 
         /*!
-          Set the value returned by frag_shader_use_switch(void) const
+          Set the value returned by frag_shader_use_switch(void) const.
+          Default value is false.
          */
         UberShaderParams&
         frag_shader_use_switch(bool);
@@ -224,7 +226,8 @@ namespace fastuidraw
         blend_shader_use_switch(void) const;
 
         /*!
-          Set the value returned by blend_shader_use_switch(void) const
+          Set the value returned by blend_shader_use_switch(void) const.
+          Default value is false.
          */
         UberShaderParams&
         blend_shader_use_switch(bool);
@@ -238,7 +241,8 @@ namespace fastuidraw
         unpack_header_and_brush_in_frag_shader(void) const;
 
         /*!
-          Set the value returned by unpack_header_and_brush_in_frag_shader(void) const
+          Set the value returned by unpack_header_and_brush_in_frag_shader(void) const.
+          Default value is false.
          */
         UberShaderParams&
         unpack_header_and_brush_in_frag_shader(bool);
@@ -251,7 +255,8 @@ namespace fastuidraw
         data_store_backing(void) const;
 
         /*!
-          Set the value returned by data_store_backing(void) const
+          Set the value returned by data_store_backing(void) const.
+          Default value is data_store_tbo.
          */
         UberShaderParams&
         data_store_backing(enum data_store_backing_t);
@@ -263,14 +268,15 @@ namespace fastuidraw
           is PainterDrawCommand::m_store.size() divided
           by PainterBackend::configuration_base().alignment().
          */
-        unsigned int
+        int
         data_blocks_per_store_buffer(void) const;
 
         /*!
           Set the value returned by data_blocks_per_store_buffer(void) const
+          Default value is -1.
          */
         UberShaderParams&
-        data_blocks_per_store_buffer(unsigned int);
+        data_blocks_per_store_buffer(int);
 
         /*!
           Specifies how the glyph geometry data (GlyphAtlas::geometry_store())
@@ -280,7 +286,8 @@ namespace fastuidraw
         glyph_geometry_backing(void) const;
 
         /*!
-          Set the value returned by glyph_geometry_backing(void) const
+          Set the value returned by glyph_geometry_backing(void) const.
+          Default value is glyph_geometry_tbo.
          */
         UberShaderParams&
         glyph_geometry_backing(enum glyph_geometry_backing_t);
@@ -294,10 +301,11 @@ namespace fastuidraw
           2D texture array are powers of 2.
          */
         ivec2
-        glyph_geometry_backing_log2_dims(void) const; //only makes sense if m_glyph_geometry_backing == glyph_geometry_texture_array
+        glyph_geometry_backing_log2_dims(void) const;
 
         /*!
-          Set the value returned by glyph_geometry_backing_log2_dims(void) const
+          Set the value returned by glyph_geometry_backing_log2_dims(void) const.
+          Default value is (-1, -1).
          */
         UberShaderParams&
         glyph_geometry_backing_log2_dims(ivec2);
@@ -310,7 +318,8 @@ namespace fastuidraw
         have_float_glyph_texture_atlas(void) const;
 
         /*!
-          Set the value returned by have_float_glyph_texture_atlas(void) const
+          Set the value returned by have_float_glyph_texture_atlas(void) const.
+          Default value is true.
          */
         UberShaderParams&
         have_float_glyph_texture_atlas(bool);
@@ -323,7 +332,8 @@ namespace fastuidraw
         blend_type(void) const;
 
         /*!
-          Set the value returned by blend_type(void) const
+          Set the value returned by blend_type(void) const.
+          Default value is PainterBlendShader::dual_src.
          */
         UberShaderParams&
         blend_type(enum PainterBlendShader::shader_type);
