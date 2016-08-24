@@ -162,27 +162,174 @@ namespace fastuidraw
         void *m_d;
       };
 
-      class uber_shader_params
+      /*!
+        An UberShaderParams specifies how to construct an uber-shader.
+        Note that the usage of HW clip-planes is specified by by
+        ConfigurationGLSL, NOT UberShaderParams.
+       */
+      class UberShaderParams
       {
       public:
-        bool m_vert_shader_use_switch;
-        bool m_frag_shader_use_switch;
-        bool m_blend_shader_use_switch;
-        bool m_unpack_header_and_brush_in_frag_shader;
+        /*!
+          Ctor.
+         */
+        UberShaderParams(void);
 
-        //info about how to access PainterDrawCommand::m_store
-        enum data_store_backing_t m_data_store_backing;
-        unsigned int m_data_blocks_per_store_buffer; //only needed if m_data_store_backing == data_store_ubo
+        /*!
+          Copy ctor.
+          \param obj value from which to copy
+         */
+        UberShaderParams(const UberShaderParams &obj);
 
-        //info on how to access GlyphAtlas::geometry_store()
-        enum glyph_geometry_backing_t m_glyph_geometry_backing;
-        ivec2 m_glyph_geometry_backing_log2_dims; //only makes sense if m_glyph_geometry_backing == glyph_geometry_texture_array
+        ~UberShaderParams();
 
-        // if can access GlyphAtlas::texel_store() as sampler2DArray as well
-        bool m_have_float_glyph_texture_atlas;
+        /*!
+          Assignment operator
+          \param rhs value from which to copy
+         */
+        UberShaderParams&
+        operator=(const UberShaderParams &rhs);
 
-        // blend mode to build shader for
-        enum PainterBlendShader::shader_type m_blend_type;
+        /*!
+          If true, use a switch() in the uber-vertex shader to
+          dispatch to the PainterItemShader.
+         */
+        bool
+        vert_shader_use_switch(void) const;
+
+        /*!
+          Set the value returned by vert_shader_use_switch(void) const
+         */
+        UberShaderParams&
+        vert_shader_use_switch(bool);
+
+        /*!
+          If true, use a switch() in the uber-fragment shader to
+          dispatch to the PainterItemShader.
+         */
+        bool
+        frag_shader_use_switch(void) const;
+
+        /*!
+          Set the value returned by frag_shader_use_switch(void) const
+         */
+        UberShaderParams&
+        frag_shader_use_switch(bool);
+
+        /*!
+          If true, use a switch() in the uber-fragment shader to
+          dispatch to the PainterBlendShader.
+         */
+        bool
+        blend_shader_use_switch(void) const;
+
+        /*!
+          Set the value returned by blend_shader_use_switch(void) const
+         */
+        UberShaderParams&
+        blend_shader_use_switch(bool);
+
+        /*!
+          If true, unpack the PainterBrush data in the fragment shader.
+          If false, unpack the data in the vertex shader and forward
+          the data to the fragment shader via flat varyings.
+         */
+        bool
+        unpack_header_and_brush_in_frag_shader(void) const;
+
+        /*!
+          Set the value returned by unpack_header_and_brush_in_frag_shader(void) const
+         */
+        UberShaderParams&
+        unpack_header_and_brush_in_frag_shader(bool);
+
+        /*!
+          Specify how to access the data in PainterDrawCommand::m_store
+          from the GLSL shader.
+         */
+        enum data_store_backing_t
+        data_store_backing(void) const;
+
+        /*!
+          Set the value returned by data_store_backing(void) const
+         */
+        UberShaderParams&
+        data_store_backing(enum data_store_backing_t);
+
+        /*!
+          Only needed if data_store_backing(void) const
+          has value data_store_ubo. Gives the size in
+          blocks of PainterDrawCommand::m_store which
+          is PainterDrawCommand::m_store.size() divided
+          by PainterBackend::configuration_base().alignment().
+         */
+        unsigned int
+        data_blocks_per_store_buffer(void) const;
+
+        /*!
+          Set the value returned by data_blocks_per_store_buffer(void) const
+         */
+        UberShaderParams&
+        data_blocks_per_store_buffer(unsigned int);
+
+        /*!
+          Specifies how the glyph geometry data (GlyphAtlas::geometry_store())
+          is accessed from the uber-shaders.
+         */
+        enum glyph_geometry_backing_t
+        glyph_geometry_backing(void) const;
+
+        /*!
+          Set the value returned by glyph_geometry_backing(void) const
+         */
+        UberShaderParams&
+        glyph_geometry_backing(enum glyph_geometry_backing_t);
+
+        /*!
+          Only used if glyph_geometry_backing(void) const has value
+          glyph_geometry_texture_array. Gives the log2 of the
+          width and height of the texture array backing the
+          glyph geometry data (GlyphAtlas::geometry_store()).
+          Note: it must be that the width and height of the backing
+          2D texture array are powers of 2.
+         */
+        ivec2
+        glyph_geometry_backing_log2_dims(void) const; //only makes sense if m_glyph_geometry_backing == glyph_geometry_texture_array
+
+        /*!
+          Set the value returned by glyph_geometry_backing_log2_dims(void) const
+         */
+        UberShaderParams&
+        glyph_geometry_backing_log2_dims(ivec2);
+
+        /*!
+          If true, can access the data of GlyphAtlas::texel_store() as a
+          sampler2DArray as well.
+         */
+        bool
+        have_float_glyph_texture_atlas(void) const;
+
+        /*!
+          Set the value returned by have_float_glyph_texture_atlas(void) const
+         */
+        UberShaderParams&
+        have_float_glyph_texture_atlas(bool);
+
+        /*!
+          Build the uber-shader with those blend shaders registered to
+          the PainterBackendGLSL of this type only.
+         */
+        enum PainterBlendShader::shader_type
+        blend_type(void) const;
+
+        /*!
+          Set the value returned by blend_type(void) const
+         */
+        UberShaderParams&
+        blend_type(enum PainterBlendShader::shader_type);
+
+      private:
+        void *m_d;
       };
 
       PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
@@ -220,7 +367,7 @@ namespace fastuidraw
       void
       construct_shader(ShaderSource &out_vertex,
                        ShaderSource &out_fragment,
-                       const uber_shader_params &contruct_params);
+                       const UberShaderParams &contruct_params);
 
     protected:
       /*!

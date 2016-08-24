@@ -150,7 +150,7 @@ namespace
     compute_glsl_config(const fastuidraw::gl::PainterBackendGL::params &P);
 
     fastuidraw::gl::PainterBackendGL::params m_params;
-    fastuidraw::glsl::PainterBackendGLSL::uber_shader_params m_uber_shader_builder_params;
+    fastuidraw::glsl::PainterBackendGLSL::UberShaderParams m_uber_shader_builder_params;
 
     fastuidraw::gl::ContextProperties m_ctx_properties;
     bool m_backend_configured;
@@ -900,16 +900,17 @@ configure_backend(void)
     configure m_uber_shader_builder_params now that m_params has been
     sanitized
    */
-  m_uber_shader_builder_params.m_vert_shader_use_switch = m_params.vert_shader_use_switch();
-  m_uber_shader_builder_params.m_frag_shader_use_switch = m_params.frag_shader_use_switch();
-  m_uber_shader_builder_params.m_blend_shader_use_switch = m_params.blend_shader_use_switch();
-  m_uber_shader_builder_params.m_unpack_header_and_brush_in_frag_shader = m_params.unpack_header_and_brush_in_frag_shader();
-  m_uber_shader_builder_params.m_data_store_backing = m_params.data_store_backing();
-  m_uber_shader_builder_params.m_data_blocks_per_store_buffer = m_params.data_blocks_per_store_buffer();
-  m_uber_shader_builder_params.m_glyph_geometry_backing = m_params.glyph_atlas()->param_values().glyph_geometry_backing_store_type();
-  m_uber_shader_builder_params.m_glyph_geometry_backing_log2_dims = m_params.glyph_atlas()->param_values().texture_2d_array_geometry_store_log2_dims();
-  m_uber_shader_builder_params.m_have_float_glyph_texture_atlas = (m_params.glyph_atlas()->texel_texture(false) != 0);
-  m_uber_shader_builder_params.m_blend_type = m_p->configuration_glsl().default_blend_shader_type();
+  m_uber_shader_builder_params
+    .vert_shader_use_switch(m_params.vert_shader_use_switch())
+    .frag_shader_use_switch(m_params.frag_shader_use_switch())
+    .blend_shader_use_switch(m_params.blend_shader_use_switch())
+    .unpack_header_and_brush_in_frag_shader(m_params.unpack_header_and_brush_in_frag_shader())
+    .data_store_backing(m_params.data_store_backing())
+    .data_blocks_per_store_buffer(m_params.data_blocks_per_store_buffer())
+    .glyph_geometry_backing(m_params.glyph_atlas()->param_values().glyph_geometry_backing_store_type())
+    .glyph_geometry_backing_log2_dims(m_params.glyph_atlas()->param_values().texture_2d_array_geometry_store_log2_dims())
+    .have_float_glyph_texture_atlas(m_params.glyph_atlas()->texel_texture(false) != 0)
+    .blend_type(m_p->configuration_glsl().default_blend_shader_type());
 
   /* now allocate m_pool after adjusting m_params
    */
