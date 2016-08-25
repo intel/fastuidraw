@@ -73,6 +73,7 @@ namespace
     fastuidraw::vecN<StringArray, interpolation_number_types> m_floats;
     StringArray m_ints;
     StringArray m_uints;
+    fastuidraw::vecN<size_t, interpolation_number_types> m_float_counts;
   };
 
   class GLSLShaderUnpackValuePrivate
@@ -311,6 +312,15 @@ floats(enum interpolation_qualifier_t q) const
   return d->m_floats[q].string_array();
 }
 
+fastuidraw::const_c_array<size_t>
+fastuidraw::glsl::varying_list::
+float_counts(void) const
+{
+  VaryingListPrivate *d;
+  d = reinterpret_cast<VaryingListPrivate*>(m_d);
+  return const_c_array<size_t>(&d->m_float_counts[0], d->m_float_counts.size());
+}
+
 fastuidraw::const_c_array<const char*>
 fastuidraw::glsl::varying_list::
 uints(void) const
@@ -337,6 +347,7 @@ set_float_varying(unsigned int slot, const char *pname,
   VaryingListPrivate *d;
   d = reinterpret_cast<VaryingListPrivate*>(m_d);
   d->m_floats[q].implement_set(slot, pname);
+  d->m_float_counts[q] = d->m_floats[q].string_array().size();
   return *this;
 }
 

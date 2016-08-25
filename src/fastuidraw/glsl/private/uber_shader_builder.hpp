@@ -31,21 +31,43 @@ add_texture_size_constants(ShaderSource &src,
                            const ImageAtlas *image_atlas,
                            const ColorStopAtlas *colorstop_atlas);
 
-void
-stream_declare_varyings(std::ostream &str,
-                        size_t uint_count, size_t int_count,
-                        const_c_array<size_t> float_counts);
+class DeclareVaryingsStringDatum
+{
+public:
+  unsigned int m_uint_special_index;
+  unsigned int m_int_special_index;
+  vecN<unsigned int, varying_list::interpolation_number_types> m_float_special_index;
+};
 
+std::string
+declare_varyings_string(const char *append_to_name,
+                        size_t uint_count,
+                        size_t int_count,
+                        const_c_array<size_t> float_counts,
+                        unsigned int *slot,
+                        DeclareVaryingsStringDatum *datum);
+void
+stream_alias_varyings(const char *append_to_name,
+                      ShaderSource &shader,
+                      const varying_list &p,
+                      bool define,
+                      const DeclareVaryingsStringDatum &datum);
+
+void
+stream_varyings_as_local_variables(ShaderSource &shader,
+                                   const varying_list &p);
 void
 stream_unpack_code(unsigned int alignment, ShaderSource &str);
 
 void
 stream_uber_vert_shader(bool use_switch, ShaderSource &vert,
-                        const_c_array<reference_counted_ptr<PainterItemShaderGLSL> > item_shaders);
+                        const_c_array<reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
+                        const DeclareVaryingsStringDatum &datum);
 
 void
 stream_uber_frag_shader(bool use_switch, ShaderSource &frag,
-                        const_c_array<reference_counted_ptr<PainterItemShaderGLSL> > item_shaders);
+                        const_c_array<reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
+                        const DeclareVaryingsStringDatum &datum);
 
 
 void

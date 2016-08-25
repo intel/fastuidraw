@@ -4,7 +4,7 @@
   precision mediump sampler2DArray;
   precision highp usampler2DArray;
 
-  #ifndef FASTUIDRAW_PAINTER_USE_DATA_UBO
+  #if defined(GL_EXT_texture_buffer) || defined(GL_OES_texture_buffer)
     precision highp samplerBuffer;
     precision highp usamplerBuffer;
     precision highp isamplerBuffer;

@@ -902,6 +902,7 @@ configure_backend(void)
    */
   m_uber_shader_builder_params
     .z_coordinate_convention(fastuidraw::glsl::PainterBackendGLSL::z_minus_1_to_1)
+    .assign_layout_to_varyings(false)
     .negate_normalized_y_coordinate(false)
     .vert_shader_use_switch(m_params.vert_shader_use_switch())
     .frag_shader_use_switch(m_params.frag_shader_use_switch())
@@ -953,6 +954,12 @@ build_program(void)
               version = "300 es";
             }
 
+          if(m_uber_shader_builder_params.assign_layout_to_varyings())
+            {
+              vert.specify_extension("GL_EXT_separate_shader_objects", fastuidraw::glsl::ShaderSource::require_extension);
+              frag.specify_extension("GL_EXT_separate_shader_objects", fastuidraw::glsl::ShaderSource::require_extension);
+            }
+
           vert
             .specify_version(version.c_str())
             .specify_extension("GL_EXT_texture_buffer", fastuidraw::glsl::ShaderSource::enable_extension)
@@ -967,10 +974,22 @@ build_program(void)
     }
   #else
     {
+      /* NOTE: layout for vertex out / fragment in
+         is part of GLSL version 420 (or higher);
+         if we have hight enough GL, we can use
+         that version number instead of enabling
+         the extension GL_ARB_separate_shader_objects
+       */
       vert.specify_version("330");
       frag.specify_version("330");
+      if(m_uber_shader_builder_params.assign_layout_to_varyings())
+        {
+          vert.specify_extension("GL_ARB_separate_shader_objects", fastuidraw::glsl::ShaderSource::require_extension);
+          frag.specify_extension("GL_ARB_separate_shader_objects", fastuidraw::glsl::ShaderSource::require_extension);
+        }
     }
   #endif
+
 
   m_p->construct_shader(vert, frag, m_uber_shader_builder_params);
 

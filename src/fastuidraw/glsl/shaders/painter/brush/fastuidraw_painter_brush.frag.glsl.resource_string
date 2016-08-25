@@ -10,8 +10,9 @@ compute_gradient_interpolate(in vec2 p, out float good)
       vec2 q, delta_p;
       float delta_r, a, b, c, desc, t0, t1, recip_two_a;
 
-      q = p - fastuidraw_brush_gradient_p0;
-      delta_p = fastuidraw_brush_gradient_p1 - fastuidraw_brush_gradient_p0;
+      q = p - vec2(fastuidraw_brush_gradient_p0_x, fastuidraw_brush_gradient_p0_y);
+      delta_p.x = fastuidraw_brush_gradient_p1_x - fastuidraw_brush_gradient_p0_x;
+      delta_p.y = fastuidraw_brush_gradient_p1_y - fastuidraw_brush_gradient_p0_y;
       delta_r = fastuidraw_brush_gradient_r1 - fastuidraw_brush_gradient_r0;
 
       c = dot(q, q) - fastuidraw_brush_gradient_r0 * fastuidraw_brush_gradient_r0;
@@ -56,10 +57,13 @@ compute_gradient_interpolate(in vec2 p, out float good)
     }
   else if(fastuidraw_brush_shader_has_linear_gradient(fastuidraw_brush_shader))
     {
-      vec2 v;
+      vec2 v, d;
       good = 1.0;
-      v = fastuidraw_brush_gradient_p1 - fastuidraw_brush_gradient_p0;
-      t = dot(v, p - fastuidraw_brush_gradient_p0) / dot(v, v);
+      v.x = fastuidraw_brush_gradient_p1_x - fastuidraw_brush_gradient_p0_x;
+      v.y = fastuidraw_brush_gradient_p1_y - fastuidraw_brush_gradient_p0_y;
+      d.x = p.x - fastuidraw_brush_gradient_p0_x;
+      d.y = p.y - fastuidraw_brush_gradient_p0_y;
+      t = dot(v, d) / dot(v, v);
     }
 
   return t;
@@ -116,15 +120,18 @@ fastuidraw_brush_compute_image_atlas_coord(in vec2 image_shader_coord,
 vec4
 fastuidraw_compute_brush_color(void)
 {
-  vec4 return_value = fastuidraw_brush_pen_color;
+  vec4 return_value = vec4(fastuidraw_brush_pen_color_x,
+                           fastuidraw_brush_pen_color_y,
+                           fastuidraw_brush_pen_color_z,
+                           fastuidraw_brush_pen_color_w);
   vec2 p;
 
   p = fastuidraw_brush_position;
   if(fastuidraw_brush_shader_has_repeat_window(fastuidraw_brush_shader))
     {
-      p -= fastuidraw_brush_repeat_window_xy;
-      p = mod(p, fastuidraw_brush_repeat_window_wh);
-      p += fastuidraw_brush_repeat_window_xy;
+      p -= vec2(fastuidraw_brush_repeat_window_x, fastuidraw_brush_repeat_window_y);
+      p = mod(p, vec2(fastuidraw_brush_repeat_window_w, fastuidraw_brush_repeat_window_h));
+      p += vec2(fastuidraw_brush_repeat_window_x, fastuidraw_brush_repeat_window_y);
     }
 
 
@@ -142,8 +149,8 @@ fastuidraw_compute_brush_color(void)
         {
           t = clamp(t, 0.0, 1.0);
         }
-      t = fastuidraw_brush_color_stop_xy.x + t * fastuidraw_brush_color_stop_length;
-      return_value *= (good * fastuidraw_colorStopFetch(t, fastuidraw_brush_color_stop_xy.y));
+      t = fastuidraw_brush_color_stop_x + t * fastuidraw_brush_color_stop_length;
+      return_value *= (good * fastuidraw_colorStopFetch(t, fastuidraw_brush_color_stop_y));
     }
 
   if(fastuidraw_brush_shader_has_image(fastuidraw_brush_shader))
@@ -172,18 +179,18 @@ fastuidraw_compute_brush_color(void)
          TODO: perhaps shader bit-flags to say to
                repeat (fract), mirror_repeat, etc.
        */
-      q = mod(p, fastuidraw_brush_image_size);
+      q = mod(p, vec2(fastuidraw_brush_image_size_x, fastuidraw_brush_image_size_y));
 
       /* convert from image coordinates to index-tile coordinates
        */
-      image_xy = q * fastuidraw_brush_image_factor + fastuidraw_brush_image_xy;
+      image_xy = q * fastuidraw_brush_image_factor + vec2(fastuidraw_brush_image_x, fastuidraw_brush_image_y);
 
       /* lookup the texel coordinate in the large atlas from the index-tile
          coordinate.
        */
       fastuidraw_brush_compute_image_atlas_coord(image_xy, int(fastuidraw_brush_image_layer),
-                                                int(number_lookups), int(slack),
-                                                texel_coord, color_layer);
+                                                 int(number_lookups), int(slack),
+                                                 texel_coord, color_layer);
 
       if(image_filter == uint(fastuidraw_shader_image_filter_nearest))
         {

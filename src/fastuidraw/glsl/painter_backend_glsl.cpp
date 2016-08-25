@@ -45,6 +45,7 @@ namespace
     UberShaderParamsPrivate(void):
       m_z_coordinate_convention(fastuidraw::glsl::PainterBackendGLSL::z_minus_1_to_1),
       m_negate_normalized_y_coordinate(false),
+      m_assign_layout_to_varyings(true),
       m_vert_shader_use_switch(false),
       m_frag_shader_use_switch(false),
       m_blend_shader_use_switch(false),
@@ -59,6 +60,7 @@ namespace
 
     enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t m_z_coordinate_convention;
     bool m_negate_normalized_y_coordinate;
+    bool m_assign_layout_to_varyings;
     bool m_vert_shader_use_switch;
     bool m_frag_shader_use_switch;
     bool m_blend_shader_use_switch;
@@ -101,6 +103,10 @@ namespace
     size_t m_number_uint_varyings;
     size_t m_number_int_varyings;
 
+    fastuidraw::glsl::varying_list m_main_varyings_header_only;
+    fastuidraw::glsl::varying_list m_main_varyings_shaders_and_shader_datas;
+    fastuidraw::glsl::varying_list m_brush_varyings;
+
     fastuidraw::glsl::PainterBackendGLSL *m_p;
   };
 }
@@ -119,6 +125,100 @@ PainterBackendGLSLPrivate(fastuidraw::glsl::PainterBackendGLSL *p,
   m_number_int_varyings(0),
   m_p(p)
 {
+  /* add varyings needed by fastuidraw_painter_main
+   */
+
+  m_main_varyings_header_only
+    .add_uint_varying("fastuidraw_header_varying")
+    .add_float_varying("fastuidraw_brush_p_x")
+    .add_float_varying("fastuidraw_brush_p_y");
+
+  m_main_varyings_shaders_and_shader_datas
+    .add_uint_varying("fastuidraw_frag_shader")
+    .add_uint_varying("fastuidraw_frag_shader_data_location")
+    .add_uint_varying("fastuidraw_blend_shader")
+    .add_uint_varying("fastuidraw_blend_shader_data_location")
+    .add_float_varying("fastuidraw_brush_p_x")
+    .add_float_varying("fastuidraw_brush_p_y");
+
+  if(!m_config.use_hw_clip_planes())
+    {
+      m_main_varyings_header_only
+        .add_float_varying("fastuidraw_clip_plane0")
+        .add_float_varying("fastuidraw_clip_plane1")
+        .add_float_varying("fastuidraw_clip_plane2")
+        .add_float_varying("fastuidraw_clip_plane3");
+
+      m_main_varyings_shaders_and_shader_datas
+        .add_float_varying("fastuidraw_clip_plane0")
+        .add_float_varying("fastuidraw_clip_plane1")
+        .add_float_varying("fastuidraw_clip_plane2")
+        .add_float_varying("fastuidraw_clip_plane3");
+    }
+
+  m_brush_varyings
+    /* specifies what features are active on the brush
+       through values on its bits.
+    */
+    .add_uint_varying("fastuidraw_brush_shader")
+
+    /* Repeat window paremters:
+       - fastuidraw_brush_repeat_window_xy (x,y) coordinate of repeat window
+       - fastuidraw_brush_repeat_window_wh dimensions of repeat window
+       (all in brush coordinate)
+    */
+    .add_float_varying("fastuidraw_brush_repeat_window_x", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_repeat_window_y", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_repeat_window_w", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_repeat_window_h", fastuidraw::glsl::varying_list::interpolation_flat)
+
+    /* Gradient paremters (all in brush coordinates)
+       - fastuidraw_brush_gradient_p0 start point of gradient
+       - fastuidraw_brush_gradient_p1 end point of gradient
+       - fastuidraw_brush_gradient_r0 start radius (radial gradients only)
+       - fastuidraw_brush_gradient_r1 end radius (radial gradients only)
+    */
+    .add_float_varying("fastuidraw_brush_gradient_p0_x", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_gradient_p0_y", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_gradient_p1_x", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_gradient_p1_y", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_gradient_r0", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_gradient_r1", fastuidraw::glsl::varying_list::interpolation_flat)
+
+    /* image parameters
+       - fastuidraw_brush_image_xy (x,y) texel coordinate in INDEX texture
+                                   of start of image
+       - fastuidraw_brush_image_layer layer texel coordinate in INDEX
+                                      texture of start of image
+       - fastuidraw_brush_image_size size of image (needed for when brush
+                                     coordinate goes beyond image size)
+       - fastuidraw_brush_image_factor ratio of master index tile size to
+                                       dimension of image
+    */
+    .add_float_varying("fastuidraw_brush_image_x", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_image_y", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_image_layer", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_image_size_x", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_image_size_y", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_image_factor", fastuidraw::glsl::varying_list::interpolation_flat)
+
+    /* ColorStop paremeters (only active if gradient active)
+       - fastuidraw_brush_color_stop_xy (x,y) texture coordinates of start of color stop
+                                       sequence
+       - fastuidraw_brush_color_stop_length length of color stop sequence in normalized
+                                           texture coordinates
+    */
+    .add_float_varying("fastuidraw_brush_color_stop_x", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_color_stop_y", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_color_stop_length", fastuidraw::glsl::varying_list::interpolation_flat)
+
+    /* Pen color (RGBA)
+     */
+    .add_float_varying("fastuidraw_brush_pen_color_x", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_pen_color_y", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_pen_color_z", fastuidraw::glsl::varying_list::interpolation_flat)
+    .add_float_varying("fastuidraw_brush_pen_color_w", fastuidraw::glsl::varying_list::interpolation_flat);
+
   m_vert_shader_utils
     .add_source("fastuidraw_circular_interpolate.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
     .add_source("fastuidraw_painter_compute_local_distance_from_pixel_distance.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource)
@@ -167,7 +267,10 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   using namespace fastuidraw::glsl::detail;
   using namespace fastuidraw::PainterPacking;
 
-  std::ostringstream declare_varyings;
+  std::string declare_shader_varyings, layout_macro;
+  std::string declare_main_varyings, declare_brush_varyings;
+  const varying_list *main_varyings;
+  DeclareVaryingsStringDatum main_varying_datum, brush_varying_datum, shader_varying_datum;
 
   const GlyphAtlas *glyph_atlas;
   glyph_atlas = m_p->glyph_atlas().get();
@@ -177,6 +280,49 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
 
   const ImageAtlas *image_atlas;
   image_atlas = m_p->image_atlas().get();
+
+  if(params.assign_layout_to_varyings())
+    {
+      std::ostringstream ostr;
+      ostr << "\n#define FASTUIDRAW_LAYOUT_VARYING(X) layout(location = X)"
+           << "\n#define FASTUIDRAW_IO_BLOCKS_SUPPORTED\n";
+      layout_macro = ostr.str();
+    }
+  else
+    {
+      std::ostringstream ostr;
+      ostr << "\n#define FASTUIDRAW_LAYOUT_VARYING(X)\n";
+      layout_macro = ostr.str();
+    }
+
+  unsigned int varying_slot(0);
+  if(params.unpack_header_and_brush_in_frag_shader())
+    {
+      main_varyings = &m_main_varyings_header_only;
+    }
+  else
+    {
+      main_varyings = &m_main_varyings_shaders_and_shader_datas;
+      declare_brush_varyings = declare_varyings_string("_brush",
+                                                       m_brush_varyings.uints().size(),
+                                                       m_brush_varyings.ints().size(),
+                                                       m_brush_varyings.float_counts(),
+                                                       &varying_slot,
+                                                       &brush_varying_datum);
+    }
+  declare_main_varyings = declare_varyings_string("_main",
+                                                  main_varyings->uints().size(),
+                                                  main_varyings->ints().size(),
+                                                  main_varyings->float_counts(),
+                                                  &varying_slot,
+                                                  &main_varying_datum);
+
+  declare_shader_varyings = declare_varyings_string("_shader",
+                                                    m_number_uint_varyings,
+                                                    m_number_int_varyings,
+                                                    m_number_float_varyings,
+                                                    &varying_slot,
+                                                    &shader_varying_datum);
 
   if(params.unpack_header_and_brush_in_frag_shader())
     {
@@ -200,9 +346,6 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       vert.add_macro("FASTUIDRAW_PAINTER_NORMALIZED_0_TO_1");
       frag.add_macro("FASTUIDRAW_PAINTER_NORMALIZED_0_TO_1");
     }
-
-  stream_declare_varyings(declare_varyings, m_number_uint_varyings,
-                          m_number_int_varyings, m_number_float_varyings);
 
   if(m_config.use_hw_clip_planes())
     {
@@ -280,17 +423,33 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   add_enums(m_p->configuration_base().alignment(), vert);
   add_texture_size_constants(vert, glyph_atlas, image_atlas, colorstop_atlas);
   vert
+    .add_source(layout_macro.c_str(), ShaderSource::from_string)
     .add_source("fastuidraw_painter_gles_precision.glsl.resource_string", ShaderSource::from_resource)
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_SIZE", image_atlas->index_tile_size())
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", uint32_log2(image_atlas->index_tile_size()))
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE", image_atlas->color_tile_size())
     .add_macro("fastuidraw_varying", "out")
-    .add_source(declare_varyings.str().c_str(), ShaderSource::from_string)
+    .add_source(declare_brush_varyings.c_str(), ShaderSource::from_string)
+    .add_source(declare_main_varyings.c_str(), ShaderSource::from_string)
+    .add_source(declare_shader_varyings.c_str(), ShaderSource::from_string);
+
+  stream_alias_varyings("_main", vert, *main_varyings, true, main_varying_datum);
+  if(params.unpack_header_and_brush_in_frag_shader())
+    {
+      /* we need to declare the values named in m_brush_varyings
+       */
+      stream_varyings_as_local_variables(vert, m_brush_varyings);
+    }
+  else
+    {
+      stream_alias_varyings("_brush", vert, m_brush_varyings, true, brush_varying_datum);
+    }
+
+  vert
     .add_source("fastuidraw_painter_uniforms.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_brush_macros.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_types.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_brush_types.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush_unpacked_values.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_forward_declares.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_brush_unpack_forward_declares.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_brush_unpack.glsl.resource_string", ShaderSource::from_resource)
@@ -298,7 +457,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_source("fastuidraw_painter_main.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source(m_vert_shader_utils);
   stream_unpack_code(m_p->configuration_base().alignment(), vert);
-  stream_uber_vert_shader(params.vert_shader_use_switch(), vert, make_c_array(m_item_shaders));
+  stream_uber_vert_shader(params.vert_shader_use_switch(), vert, make_c_array(m_item_shaders), shader_varying_datum);
 
   const char *shader_blend_macro;
   switch(params.blend_type())
@@ -323,18 +482,34 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   add_enums(m_p->configuration_base().alignment(), frag);
   add_texture_size_constants(frag, glyph_atlas, image_atlas, colorstop_atlas);
   frag
+    .add_source(layout_macro.c_str(), ShaderSource::from_string)
     .add_macro(shader_blend_macro)
     .add_source("fastuidraw_painter_gles_precision.glsl.resource_string", ShaderSource::from_resource)
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_SIZE", image_atlas->index_tile_size())
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", uint32_log2(image_atlas->index_tile_size()))
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE", image_atlas->color_tile_size())
     .add_macro("fastuidraw_varying", "in")
-    .add_source(declare_varyings.str().c_str(), ShaderSource::from_string)
+    .add_source(declare_brush_varyings.c_str(), ShaderSource::from_string)
+    .add_source(declare_main_varyings.c_str(), ShaderSource::from_string)
+    .add_source(declare_shader_varyings.c_str(), ShaderSource::from_string);
+
+  stream_alias_varyings("_main", frag, *main_varyings, true, main_varying_datum);
+  if(params.unpack_header_and_brush_in_frag_shader())
+    {
+      /* we need to declare the values named in m_brush_varyings
+       */
+      stream_varyings_as_local_variables(frag, m_brush_varyings);
+    }
+  else
+    {
+      stream_alias_varyings("_brush", frag, m_brush_varyings, true, brush_varying_datum);
+    }
+
+  frag
     .add_source("fastuidraw_painter_uniforms.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_brush_macros.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_types.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_brush_types.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_brush_unpacked_values.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_forward_declares.frag.glsl.resource_string", ShaderSource::from_resource);
 
   if(params.unpack_header_and_brush_in_frag_shader())
@@ -358,7 +533,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       stream_unpack_code(m_p->configuration_base().alignment(), frag);
     }
 
-  stream_uber_frag_shader(params.frag_shader_use_switch(), frag, make_c_array(m_item_shaders));
+  stream_uber_frag_shader(params.frag_shader_use_switch(), frag, make_c_array(m_item_shaders), shader_varying_datum);
   stream_uber_blend_shader(params.blend_shader_use_switch(), frag,
                            make_c_array(m_blend_shaders[params.blend_type()].m_shaders),
                            params.blend_type());
@@ -491,6 +666,7 @@ operator=(const UberShaderParams &rhs)
 
 setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t, z_coordinate_convention)
 setget_implement(bool, negate_normalized_y_coordinate)
+setget_implement(bool, assign_layout_to_varyings)
 setget_implement(bool, vert_shader_use_switch)
 setget_implement(bool, frag_shader_use_switch)
 setget_implement(bool, blend_shader_use_switch)

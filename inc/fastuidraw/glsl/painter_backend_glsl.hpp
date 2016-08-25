@@ -246,6 +246,20 @@ namespace fastuidraw
         negate_normalized_y_coordinate(bool);
 
         /*!
+          If true, assign the slot locations (via layout() in GLSL)
+          for the varyings of the uber-shaders.
+         */
+        bool
+        assign_layout_to_varyings(void) const;
+
+        /*!
+          Set the value returned by assign_layout_to_varyings(void) const.
+          Default value is true.
+         */
+        UberShaderParams&
+        assign_layout_to_varyings(bool);
+
+        /*!
           If true, use a switch() in the uber-vertex shader to
           dispatch to the PainterItemShader.
          */
