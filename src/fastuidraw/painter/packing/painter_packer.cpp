@@ -34,6 +34,7 @@ namespace
     uint32_t m_blend_group;
     uint32_t m_item_group;
     uint32_t m_brush;
+    uint64_t m_blend_mode;
   };
 
   template<typename T>
@@ -334,7 +335,7 @@ namespace
   {
   public:
     per_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> &r,
-                     const fastuidraw::PainterBackend::Configuration &config);
+                     const fastuidraw::PainterBackend::ConfigurationBase &config);
 
     unsigned int
     attribute_room(void)
@@ -379,6 +380,7 @@ namespace
     pack_header(unsigned int header_size,
                 uint32_t brush_shader,
                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> &blend_shader,
+                uint64_t blend_mode,
                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &item_shader,
                 unsigned int z,
                 const painter_state_location &loc,
@@ -445,6 +447,7 @@ namespace
 
     uint32_t m_brush_shader_mask;
     PainterShaderGroupPrivate m_prev_state;
+    fastuidraw::BlendMode m_prev_blend_mode;
   };
 
   class PainterPackerPrivateWorkroom
@@ -504,6 +507,7 @@ namespace
     unsigned int m_header_size;
 
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_blend_shader;
+    uint64_t m_blend_mode;
     painter_state_location m_painter_state_location;
     int m_number_begins;
 
@@ -519,7 +523,7 @@ namespace
 // per_draw_command methods
 per_draw_command::
 per_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> &r,
-                 const fastuidraw::PainterBackend::Configuration &config):
+                 const fastuidraw::PainterBackend::ConfigurationBase &config):
   m_draw_command(r),
   m_attributes_written(0),
   m_indices_written(0),
@@ -608,6 +612,7 @@ per_draw_command::
 pack_header(unsigned int header_size,
             uint32_t brush_shader,
             const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> &blend_shader,
+            uint64_t blend_mode,
             const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &item_shader,
             unsigned int z,
             const painter_state_location &loc,
@@ -647,6 +652,7 @@ pack_header(unsigned int header_size,
   current.m_item_group = item_shader->group();
   current.m_brush = brush_shader;
   current.m_blend_group = blend.m_group;
+  current.m_blend_mode = blend_mode;
 
   dst[fastuidraw::PainterPacking::item_shader_offset].u = item_shader->ID();
   dst[fastuidraw::PainterPacking::brush_shader_offset].u = current.m_brush;
@@ -659,9 +665,11 @@ pack_header(unsigned int header_size,
 
   if(current.m_item_group != m_prev_state.m_item_group
      || current.m_blend_group != m_prev_state.m_blend_group
-     || (m_brush_shader_mask & (current.m_brush ^ m_prev_state.m_brush)) != 0u)
+     || (m_brush_shader_mask & (current.m_brush ^ m_prev_state.m_brush)) != 0u
+     || current.m_blend_mode != m_prev_state.m_blend_mode)
     {
-      m_draw_command->draw_break(m_prev_state, current, m_attributes_written, m_indices_written);
+      m_draw_command->draw_break(m_prev_state, current,
+                                 m_attributes_written, m_indices_written);
     }
 
   m_prev_state = current;
@@ -684,7 +692,7 @@ PainterPackerPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBacken
   m_backend(backend),
   m_p(p)
 {
-  m_alignment = m_backend->configuration().alignment();
+  m_alignment = m_backend->configuration_base().alignment();
   m_header_size = fastuidraw::round_up_to_multiple(fastuidraw::PainterPacking::header_size, m_alignment);
   m_default_shaders = m_backend->default_shaders();
   m_number_begins = 0;
@@ -701,7 +709,7 @@ start_new_command(void)
 
   fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> r;
   r = m_backend->map_draw_command();
-  m_accumulated_draws.push_back(per_draw_command(r, m_backend->configuration()));
+  m_accumulated_draws.push_back(per_draw_command(r, m_backend->configuration_base()));
 }
 
 unsigned int
@@ -759,6 +767,15 @@ brush(void) const
   const PainterShaderGroupPrivate *d;
   d = static_cast<const PainterShaderGroupPrivate*>(this);
   return d->m_brush;
+}
+
+fastuidraw::BlendMode::packed_value
+fastuidraw::PainterShaderGroup::
+packed_blend_mode(void) const
+{
+  const PainterShaderGroupPrivate *d;
+  d = static_cast<const PainterShaderGroupPrivate*>(this);
+  return d->m_blend_mode;
 }
 
 ////////////////////////////////////////////
@@ -936,6 +953,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
           header_loc = cmd.pack_header(d->m_header_size,
                                        fetch_value(draw.m_brush).shader(),
                                        d->m_blend_shader,
+                                       d->m_blend_mode,
                                        shader,
                                        z, d->m_painter_state_location,
                                        call_back);
@@ -1025,14 +1043,25 @@ blend_shader(void) const
   return d->m_blend_shader;
 }
 
+fastuidraw::BlendMode::packed_value
+fastuidraw::PainterPacker::
+blend_mode(void) const
+{
+  PainterPackerPrivate *d;
+  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  return d->m_blend_mode;
+}
+
 void
 fastuidraw::PainterPacker::
-blend_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &h)
+blend_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &h,
+             BlendMode::packed_value pblend_mode)
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
   assert(h);
   d->m_blend_shader = h;
+  d->m_blend_mode = pblend_mode;
 }
 
 const fastuidraw::PainterShaderSet&

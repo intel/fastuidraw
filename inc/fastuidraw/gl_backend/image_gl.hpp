@@ -20,7 +20,7 @@
 #pragma once
 
 #include <fastuidraw/image.hpp>
-#include <fastuidraw/gl_backend/gl_program.hpp>
+#include <fastuidraw/gl_backend/gl_header.hpp>
 
 namespace fastuidraw
 {
@@ -224,29 +224,6 @@ namespace gl
     static
     vecN<vec2, 2>
     shader_coords(reference_counted_ptr<Image> image);
-
-    /*!
-      Gives the shader source code for a function with
-      the signature:
-      \code
-      void
-      function(in vec2 punnormalized_index_tex_coord,
-               in int pindex_layer,
-               in int pnum_levels,
-               in int tile_slack,
-               out vec2 return_value_unnormalized_texcoord_xy,
-               out int return_value_layer)
-      \endcode
-
-      which computes the unnormalized texture coordinate and
-      layer into the color atlas.
-
-      \param function_name name to give the function
-      \param index_texture name to give the index texture atlas
-     */
-    Shader::shader_source
-    glsl_compute_coord_src(const char *function_name,
-                           const char *index_texture) const;
 
   private:
     void *m_d;

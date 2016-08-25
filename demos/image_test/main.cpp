@@ -1,8 +1,10 @@
 #include <iostream>
 #include <dirent.h>
+#include <fastuidraw/glsl/shader_code.hpp>
 #include <fastuidraw/gl_backend/image_gl.hpp>
 #include <fastuidraw/gl_backend/gluniform.hpp>
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
+#include <fastuidraw/gl_backend/gl_program.hpp>
 #include "sdl_demo.hpp"
 #include "ImageLoader.hpp"
 #include "PanZoomTracker.hpp"
@@ -466,21 +468,22 @@ private:
     reference_counted_ptr<gl::Program> pr;
 
     {
-      pr = FASTUIDRAWnew gl::Program(gl::Shader::shader_source()
-                                    .add_source("layer_texture_blit.vert.glsl.resource_string",
-                                                gl::Shader::from_resource),
-
-                                    gl::Shader::shader_source()
-                                    .add_source("detect_boundary.glsl.resource_string",
-                                                gl::Shader::from_resource)
-                                    .add_source("layer_texture_blit.frag.glsl.resource_string",
-                                                gl::Shader::from_resource),
-                                    gl::PreLinkActionArray()
-                                    .add_binding("attrib_pos", 0),
-                                    gl::ProgramInitializerArray()
-                                    .add_sampler_initializer("image", 0)
-                                    .add_uniform_initializer<float>("tile_size",
-                                                                    float(m_atlas->color_tile_size())) );
+      pr = FASTUIDRAWnew gl::Program(glsl::ShaderSource()
+                                     .specify_version(gl::Shader::default_shader_version())
+                                     .add_source("layer_texture_blit.vert.glsl.resource_string",
+                                                 glsl::ShaderSource::from_resource),
+                                     glsl::ShaderSource()
+                                     .specify_version(gl::Shader::default_shader_version())
+                                     .add_source("detect_boundary.glsl.resource_string",
+                                                 glsl::ShaderSource::from_resource)
+                                     .add_source("layer_texture_blit.frag.glsl.resource_string",
+                                                glsl::ShaderSource::from_resource),
+                                     gl::PreLinkActionArray()
+                                     .add_binding("attrib_pos", 0),
+                                     gl::ProgramInitializerArray()
+                                     .add_sampler_initializer("image", 0)
+                                     .add_uniform_initializer<float>("tile_size",
+                                                                     float(m_atlas->color_tile_size())) );
       m_program[draw_atlas].set("draw_atlas", pr);
     }
 
@@ -493,30 +496,37 @@ private:
         }
       m_index_boundary_mix_values.resize(max_num_look_ups + 1, 0.0f);
 
-      gl::Shader::shader_source glsl_compute_coord;
-      glsl_compute_coord = m_atlas->glsl_compute_coord_src("compute_atlas_coord", "indexAtlas");
+      glsl::ShaderSource glsl_compute_coord;
+      glsl_compute_coord = glsl::code::image_atlas_compute_coord("compute_atlas_coord", "indexAtlas",
+                                                                 m_atlas->index_tile_size(),
+                                                                 m_atlas->color_tile_size());
 
-      pr = FASTUIDRAWnew gl::Program(gl::Shader::shader_source()
-                                    .add_source("atlas_image_blit.vert.glsl.resource_string", gl::Shader::from_resource),
-
-                                    gl::Shader::shader_source()
-                                    .add_macro("MAX_IMAGE_NUM_LOOKUPS", max_num_look_ups)
-                                    .add_source("detect_boundary.glsl.resource_string", gl::Shader::from_resource)
-                                    .add_source("atlas_image_blit.frag.glsl.resource_string", gl::Shader::from_resource)
-                                    .add_source(glsl_compute_coord),
-
-                                    gl::PreLinkActionArray()
-                                    .add_binding("attrib_pos", attrib_pos_vertex_attrib)
-                                    .add_binding("attrib_image_shader_coord", index_coord_vertex_attrib),
-
-                                    gl::ProgramInitializerArray()
-                                    .add_sampler_initializer("imageAtlas", color_atlas_texture_unit)
-                                    .add_sampler_initializer("indexAtlas", index_atlas_texture_unit)
-                                    .add_uniform_initializer<float>("color_tile_size", float(m_atlas->color_tile_size() - 2 * m_slack.m_value))
-                                    .add_uniform_initializer<float>("index_tile_size", float(m_atlas->index_tile_size()))
-                                    .add_uniform_initializer<int>("uniform_image_num_lookups", m_image_handles.front()->number_index_lookups())
-                                    .add_uniform_initializer<int>("image_slack", m_slack.m_value)
-                                    .add_uniform_initializer<vec3>("imageAtlasDims", vec3(m_atlas->color_store()->dimensions())) );
+      pr = FASTUIDRAWnew gl::Program(glsl::ShaderSource()
+                                     .specify_version(gl::Shader::default_shader_version())
+                                     .add_source("atlas_image_blit.vert.glsl.resource_string",
+                                                 glsl::ShaderSource::from_resource),
+                                     glsl::ShaderSource()
+                                     .specify_version(gl::Shader::default_shader_version())
+                                     .add_macro("MAX_IMAGE_NUM_LOOKUPS", max_num_look_ups)
+                                     .add_source("detect_boundary.glsl.resource_string",
+                                                 glsl::ShaderSource::from_resource)
+                                     .add_source("atlas_image_blit.frag.glsl.resource_string",
+                                                 glsl::ShaderSource::from_resource)
+                                     .add_source(glsl_compute_coord),
+                                     gl::PreLinkActionArray()
+                                     .add_binding("attrib_pos", attrib_pos_vertex_attrib)
+                                     .add_binding("attrib_image_shader_coord", index_coord_vertex_attrib),
+                                     gl::ProgramInitializerArray()
+                                     .add_sampler_initializer("imageAtlas", color_atlas_texture_unit)
+                                     .add_sampler_initializer("indexAtlas", index_atlas_texture_unit)
+                                     .add_uniform_initializer<float>("color_tile_size",
+                                                                     float(m_atlas->color_tile_size() - 2 * m_slack.m_value))
+                                     .add_uniform_initializer<float>("index_tile_size", float(m_atlas->index_tile_size()))
+                                     .add_uniform_initializer<int>("uniform_image_num_lookups",
+                                                                   m_image_handles.front()->number_index_lookups())
+                                     .add_uniform_initializer<int>("image_slack", m_slack.m_value)
+                                     .add_uniform_initializer<vec3>("imageAtlasDims",
+                                                                    vec3(m_atlas->color_store()->dimensions())) );
 
       m_program[draw_image_on_atlas].set("draw_image_on_atlas", pr);
     }

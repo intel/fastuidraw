@@ -20,7 +20,8 @@
 #pragma once
 
 #include <fastuidraw/text/glyph_atlas.hpp>
-#include <fastuidraw/gl_backend/gl_program.hpp>
+#include <fastuidraw/glsl/painter_backend_glsl.hpp>
+#include <fastuidraw/gl_backend/gl_header.hpp>
 
 namespace fastuidraw
 {
@@ -45,25 +46,6 @@ namespace gl
   class GlyphAtlasGL:public GlyphAtlas
   {
   public:
-    /*!
-      Enumeration to specify the backing store used for the
-      glyph geometry data.
-     */
-    enum glyph_geometry_backing_store_t
-      {
-        /*!
-          Use GL's texture buffer objects to store the
-          glyph geometry data.
-         */
-        glyph_geometry_texture_buffer,
-
-        /*!
-          Use a 2D texture array to store the
-          glyph geometry data.
-         */
-        glyph_geometry_texture_2d_array,
-      };
-
     /*!
       Class to hold the construction parameters for creating
       a GlyphAtlasGL.
@@ -136,24 +118,24 @@ namespace gl
       /*!
         Returns what kind of GL object is used to back
         the glyph geometry data. Default value is
-        \ref glyph_geometry_texture_buffer.
+        \ref glsl::PainterBackendGLSL::glyph_geometry_tbo.
        */
-      enum glyph_geometry_backing_store_t
+      enum glsl::PainterBackendGLSL::glyph_geometry_backing_t
       glyph_geometry_backing_store_type(void) const;
 
       /*!
         Set glyph_geometry_backing_store() to \ref
-        glyph_geometry_texture_buffer, i.e. for the
-        glyph geometry dta to be stored on a GL
-        texture buffer object.
+        glsl::PainterBackendGLSL::glyph_geometry_tbo,
+        i.e. for the glyph geometry data to be stored
+        on a GL texture buffer object.
        */
       params&
       use_texture_buffer_geometry_store(void);
 
       /*!
         Set glyph_geometry_backing_store() to \ref
-        glyph_geometry_texture_2d_array, i.e.
-        to use a 2D texture array to store the
+        glsl::PainterBackendGLSL::glyph_geometry_texture_array,
+        i.e. to use a 2D texture array to store the
         glyph geometry data. The depth of the
         array is set implicitely by the size given by
         GlyphAtlasGeometryBackingStoreBase::size().
@@ -168,7 +150,8 @@ namespace gl
 
       /*!
         If glyph_geometry_backing_store() returns \ref
-        glyph_geometry_texture_2d_array, returns the values
+        glsl::PainterBackendGLSL::glyph_geometry_texture_array,
+        returns the values
         set in use_texture_2d_array_geometry_store(), otherwise
         returns a value where both components are -1.
        */
@@ -262,62 +245,6 @@ namespace gl
     const params&
     param_values(void) const;
 
-    /*!
-      Construct/returns a Shader::shader_source value that
-      implements the two functions:
-      \code
-        float
-        function_name(in int texel_value,
-                      in vec2 texture_coordinate,
-                      in int geometry_offset)
-      \endcode
-
-      which returns the signed pseudo-distance to the glyph boundary.
-      The value texel_value is value in the texel store from the
-      position texture_coordinate (the bottom left for the glyph being
-      at Glyph::atlas_location().location() and the top right
-      being at that value + Glyph::layout().m_texel_size.
-      The value geometry_offset is from Glyph::geometry_offset().
-
-      \param alignment alignment of the backing geometry store,
-                       GlyphAtlasGeometryBackingStoreBase::alignment().
-      \param function_name name for the function
-      \param geometry_store_name the samplerBuffer backed by the texture
-                                 ID returned by geometry_texture().
-      \param derivative_function if true, give the GLSL function with the
-                                 argument signature (in int, in vec2, in int, out vec2)
-                                 where the last argument is the gradient of
-                                 the function with repsect to texture_coordinate.
-     */
-    static
-    Shader::shader_source
-    glsl_curvepair_compute_pseudo_distance(unsigned int alignment,
-                                           const char *function_name,
-                                           const char *geometry_store_name,
-                                           bool derivative_function = false);
-
-
-
-
-    /*!
-      Provided as a conveniance, equivalent to
-      \code
-      glsl_curvepair_compute_pseudo_distance(geometry_store()->alignment(),
-                                             function_name, geometry_store_name)
-      \endcode
-
-      \param function_name name for the function
-      \param geometry_store_name the samplerBuffer backed by the texture
-                                 ID returned by geometry_texture().
-      \param derivative_function if true, give the GLSL function with the
-                                 argument signature (in int, in vec2, in int, out vec2)
-                                 where the last argument is the gradient of
-                                 the function with repsect to texture_coordinate.
-     */
-    Shader::shader_source
-    glsl_curvepair_compute_pseudo_distance(const char *function_name,
-                                           const char *geometry_store_name,
-                                           bool derivative_function = false);
   private:
     void *m_d;
   };

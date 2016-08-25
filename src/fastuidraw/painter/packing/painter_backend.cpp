@@ -37,20 +37,18 @@ namespace
     PainterBackendPrivate(fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> glyph_atlas,
                           fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> image_atlas,
                           fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas> colorstop_atlas,
-                          const fastuidraw::PainterBackend::Configuration &config,
-                          const fastuidraw::PainterShaderSet &shaders):
+                          const fastuidraw::PainterBackend::ConfigurationBase &config):
       m_glyph_atlas(glyph_atlas),
       m_image_atlas(image_atlas),
       m_colorstop_atlas(colorstop_atlas),
       m_config(config),
-      m_default_shaders(shaders),
       m_default_shaders_registered(false)
     {}
 
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> m_glyph_atlas;
     fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> m_image_atlas;
     fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas> m_colorstop_atlas;
-    fastuidraw::PainterBackend::Configuration m_config;
+    fastuidraw::PainterBackend::ConfigurationBase m_config;
     fastuidraw::PainterBackend::PerformanceHints m_hints;
     fastuidraw::PainterShaderSet m_default_shaders;
     bool m_default_shaders_registered;
@@ -106,23 +104,23 @@ clipping_via_hw_clip_planes(bool v)
 }
 
 ///////////////////////////////////////////////////
-// fastuidraw::PainterBackend::Configuration methods
-fastuidraw::PainterBackend::Configuration::
-Configuration(void)
+// fastuidraw::PainterBackend::ConfigurationBase methods
+fastuidraw::PainterBackend::ConfigurationBase::
+ConfigurationBase(void)
 {
   m_d = FASTUIDRAWnew ConfigurationPrivate();
 }
 
-fastuidraw::PainterBackend::Configuration::
-Configuration(const Configuration &obj)
+fastuidraw::PainterBackend::ConfigurationBase::
+ConfigurationBase(const ConfigurationBase &obj)
 {
   ConfigurationPrivate *d;
   d = reinterpret_cast<ConfigurationPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew ConfigurationPrivate(*d);
 }
 
-fastuidraw::PainterBackend::Configuration::
-~Configuration()
+fastuidraw::PainterBackend::ConfigurationBase::
+~ConfigurationBase()
 {
   ConfigurationPrivate *d;
   d = reinterpret_cast<ConfigurationPrivate*>(m_d);
@@ -130,9 +128,9 @@ fastuidraw::PainterBackend::Configuration::
   m_d = NULL;
 }
 
-fastuidraw::PainterBackend::Configuration&
-fastuidraw::PainterBackend::Configuration::
-operator=(const Configuration &obj)
+fastuidraw::PainterBackend::ConfigurationBase&
+fastuidraw::PainterBackend::ConfigurationBase::
+operator=(const ConfigurationBase &obj)
 {
   ConfigurationPrivate *d, *obj_d;
   d = reinterpret_cast<ConfigurationPrivate*>(m_d);
@@ -142,7 +140,7 @@ operator=(const Configuration &obj)
 }
 
 uint32_t
-fastuidraw::PainterBackend::Configuration::
+fastuidraw::PainterBackend::ConfigurationBase::
 brush_shader_mask(void) const
 {
   ConfigurationPrivate *d;
@@ -150,8 +148,8 @@ brush_shader_mask(void) const
   return d->m_brush_shader_mask;
 }
 
-fastuidraw::PainterBackend::Configuration&
-fastuidraw::PainterBackend::Configuration::
+fastuidraw::PainterBackend::ConfigurationBase&
+fastuidraw::PainterBackend::ConfigurationBase::
 brush_shader_mask(uint32_t v)
 {
   ConfigurationPrivate *d;
@@ -161,7 +159,7 @@ brush_shader_mask(uint32_t v)
 }
 
 int
-fastuidraw::PainterBackend::Configuration::
+fastuidraw::PainterBackend::ConfigurationBase::
 alignment(void) const
 {
   ConfigurationPrivate *d;
@@ -169,8 +167,8 @@ alignment(void) const
   return d->m_alignment;
 }
 
-fastuidraw::PainterBackend::Configuration&
-fastuidraw::PainterBackend::Configuration::
+fastuidraw::PainterBackend::ConfigurationBase&
+fastuidraw::PainterBackend::ConfigurationBase::
 alignment(int v)
 {
   ConfigurationPrivate *d;
@@ -185,11 +183,9 @@ fastuidraw::PainterBackend::
 PainterBackend(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                reference_counted_ptr<ImageAtlas> image_atlas,
                reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
-               const Configuration &config,
-               const PainterShaderSet &shaders)
+               const ConfigurationBase &config)
 {
-  m_d = FASTUIDRAWnew PainterBackendPrivate(glyph_atlas, image_atlas, colorstop_atlas,
-                                           config, shaders);
+  m_d = FASTUIDRAWnew PainterBackendPrivate(glyph_atlas, image_atlas, colorstop_atlas, config);
 }
 
 fastuidraw::PainterBackend::
@@ -316,13 +312,19 @@ default_shaders(void)
 {
   PainterBackendPrivate *d;
   d = reinterpret_cast<PainterBackendPrivate*>(m_d);
-
-  if(!d->m_default_shaders_registered)
-    {
-      register_shader(d->m_default_shaders);
-      d->m_default_shaders_registered = true;
-    }
   return d->m_default_shaders;
+}
+
+void
+fastuidraw::PainterBackend::
+set_default_shaders(const PainterShaderSet &st)
+{
+  PainterBackendPrivate *d;
+  d = reinterpret_cast<PainterBackendPrivate*>(m_d);
+  assert(!d->m_default_shaders_registered);
+  d->m_default_shaders = st;
+  register_shader(d->m_default_shaders);
+  d->m_default_shaders_registered = true;
 }
 
 void
@@ -373,9 +375,9 @@ colorstop_atlas(void)
   return d->m_colorstop_atlas;
 }
 
-const fastuidraw::PainterBackend::Configuration&
+const fastuidraw::PainterBackend::ConfigurationBase&
 fastuidraw::PainterBackend::
-configuration(void) const
+configuration_base(void) const
 {
   PainterBackendPrivate *d;
   d = reinterpret_cast<PainterBackendPrivate*>(m_d);

@@ -31,8 +31,8 @@ namespace fastuidraw
    */
 
   /*!
-    Namespace encapsulating the offsets used in data packing
-    by PainterPacker.
+    \brief Namespace encapsulating the offsets used in data packing
+           by PainterPacker, part of the main library libFastUIDraw.
    */
   namespace PainterPacking
   {
@@ -71,7 +71,7 @@ namespace fastuidraw
       values of the header. All offsets are packed as uint32_t
       values. NOTE: the values packed into a header
       give location into the data store buffer in uint32_t units
-      of alignment (see PainterBackend::Configuration::alignment()).
+      of alignment (see PainterBackend::ConfigurationBase::alignment()).
       In contrast, the offsets in item_header_offset_t that
       specifies the offsets in the header are in uint32_t units.
      */

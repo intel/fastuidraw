@@ -66,6 +66,7 @@ namespace fastuidraw
       */
       routine_success
     };
+
   /*!
     Returns the floor of the log2 of an unsinged integer,
     i.e. the value K so that 2^K <= x < 2^{K+1}
@@ -74,11 +75,25 @@ namespace fastuidraw
   uint32_log2(uint32_t v);
 
   /*!
+    Returns the floor of the log2 of an unsinged integer,
+    i.e. the value K so that 2^K <= x < 2^{K+1}
+   */
+  uint64_t
+  uint64_log2(uint64_t v);
+
+  /*!
     Returns the number of bits required to hold a 32-bit
     unsigned integer value.
    */
   uint32_t
   number_bits_required(uint32_t v);
+
+  /*!
+    Returns the number of bits required to hold a 32-bit
+    unsigned integer value.
+   */
+  uint64_t
+  uint64_number_bits_required(uint64_t v);
 
   /*!
     Returns true if a uint32_t is
@@ -89,7 +104,19 @@ namespace fastuidraw
   bool
   is_power_of_2(uint32_t v)
   {
-    return v && !(v & (v - 1));
+    return v && !(v & (v - uint32_t(1u)));
+  }
+
+  /*!
+    Returns true if a uint64_t is
+    an exact non-zero power of 2.
+    \param v uint64_t to query
+  */
+  inline
+  bool
+  uint64_is_power_of_2(uint64_t v)
+  {
+    return v && !(v & (v - uint64_t(1u)));
   }
 
   /*!
@@ -105,7 +132,25 @@ namespace fastuidraw
   apply_bit_flag(uint32_t input_value, bool to_apply,
                  uint32_t bitfield_value)
   {
-    return to_apply?
+    return to_apply ?
+      input_value | bitfield_value:
+      input_value & (~bitfield_value);
+  }
+
+  /*!
+    Given if a bit should be up or down returns
+    an input value with that bit made to be up
+    or down.
+    \param input_value value to return with the named bit(s) changed
+    \param to_apply if true, return value has bits made up, otherwise has bits down
+    \param bitfield_value bits to make up or down as according to to_apply
+   */
+  inline
+  uint64_t
+  uint64_apply_bit_flag(uint64_t input_value, bool to_apply,
+                        uint64_t bitfield_value)
+  {
+    return to_apply ?
       input_value | bitfield_value:
       input_value & (~bitfield_value);
   }
@@ -136,6 +181,21 @@ namespace fastuidraw
   }
 
   /*!
+    Pack the lowest N bits of a value at a bit.
+    \param bit0 bit location of return value at which to pack
+    \param num_bits number of bits from value to pack
+    \param value value to pack
+   */
+  inline
+  uint64_t
+  uint64_pack_bits(uint64_t bit0, uint64_t num_bits, uint64_t value)
+  {
+    uint64_t mask;
+    mask = (uint64_t(1u) << num_bits) - uint64_t(1u);
+    return (value & mask) << bit0;
+  }
+
+  /*!
     Unpack N bits from a bit location.
     \param bit0 starting bit from which to unpack
     \param num_bits number bits to unpack
@@ -146,7 +206,22 @@ namespace fastuidraw
   unpack_bits(uint32_t bit0, uint32_t num_bits, uint32_t value)
   {
     uint32_t mask;
-    mask = (1u << num_bits) - 1u;
+    mask = (uint32_t(1u) << num_bits) - uint32_t(1u);
+    return (value >> bit0) & mask;
+  }
+
+  /*!
+    Unpack N bits from a bit location.
+    \param bit0 starting bit from which to unpack
+    \param num_bits number bits to unpack
+    \param value value from which to unpack
+   */
+  inline
+  uint64_t
+  uint64_unpack_bits(uint64_t bit0, uint64_t num_bits, uint64_t value)
+  {
+    uint64_t mask;
+    mask = (uint64_t(1u) << num_bits) - uint64_t(1u);
     return (value >> bit0) & mask;
   }
 
@@ -216,6 +291,14 @@ namespace fastuidraw
   \param X number bits
  */
 #define FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(X) ( (uint32_t(1) << uint32_t(X)) - uint32_t(1) )
+
+/*!\def FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS_U64
+  Macro that gives the maximum value that can be
+  held with a given number of bits, returning an
+  unsigned 64-bit integer.
+  \param X number bits
+ */
+#define FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS_U64(X) ( (uint64_t(1) << uint64_t(X)) - uint64_t(1) )
 
 /*!\def FASTUIDRAWunused
   Macro to stop the compiler from reporting

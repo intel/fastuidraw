@@ -219,7 +219,7 @@ fastuidraw_compute_brush_color(void)
                              y_weights.x + y_weights.y, y_weights.z + y_weights.w);
 
           texture_coords = corner_coords + vec4(x_weights.y, x_weights.w, y_weights.y, y_weights.w) / weight_sums;
-          texture_coords *= fastuidraw_imageAtlas_size_reciprocal;
+          texture_coords *= fastuidraw_imageAtlas_size_reciprocal.xyxy;
 
           t00 = texture(fastuidraw_imageAtlasFiltered, vec3(texture_coords.xz, color_layer));
           t10 = texture(fastuidraw_imageAtlasFiltered, vec3(texture_coords.yz, color_layer));

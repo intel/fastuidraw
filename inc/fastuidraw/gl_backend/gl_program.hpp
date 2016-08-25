@@ -20,13 +20,12 @@
 
 #pragma once
 
-#include <fastuidraw/gl_backend/gl_header.hpp>
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/glsl/shader_source.hpp>
+#include <fastuidraw/gl_backend/gl_header.hpp>
 #include <fastuidraw/gl_backend/gluniform.hpp>
-
-
 
 namespace fastuidraw {
 namespace gl {
@@ -61,217 +60,13 @@ class Shader:
   public reference_counted<Shader>::default_base
 {
 public:
-
-  /*!
-    Enumeration to indiciate
-    the source for a shader.
-   */
-  enum shader_source_type
-    {
-      /*!
-        Shader source code is taken
-        from the file whose name
-        is the passed string.
-       */
-      from_file,
-
-      /*!
-        The passed string is the
-        shader source code.
-       */
-      from_string,
-
-      /*!
-        The passed string is label
-        for a string of text fetched
-        with fastuidraw::fetch_static_resource()
-       */
-      from_resource,
-    };
-
-  /*!
-    Enumeration to determine if source
-    code or a macro
-   */
-  enum add_source_location_type
-    {
-      /*!
-        add the source code or macro
-        to the back.
-       */
-      push_back,
-
-      /*!
-        add the source code or macro
-        to the front.
-       */
-      push_front
-    };
-
-  /*!
-    Enumeration to indicate extension
-    enable flags.
-   */
-  enum shader_extension_enable_type
-    {
-      /*!
-        Requires the named GLSL extension,
-        i.e. will add <B>"#extension extension_name: require"</B>
-        to GLSL source code.
-       */
-      require_extension,
-      /*!
-        Enables the named GLSL extension,
-        i.e. will add <B>"#extension extension_name: enable"</B>
-        to GLSL source code.
-       */
-      enable_extension,
-      /*!
-        Enables the named GLSL extension,
-        but request that the GLSL compiler
-        issues warning when the extension
-        is used, i.e. will add
-        <B>"#extension extension_name: warn"</B>
-        to GLSL source code.
-       */
-      warn_extension,
-      /*!
-        Disables the named GLSL extension,
-        i.e. will add <B>"#extension extension_name: disable"</B>
-        to GLSL source code.
-       */
-      disable_extension
-    };
-
-  /*!
-    A shader_source represents the source code
-    to a GLSL shader, specifying sets of source
-    code and macros to use.
-   */
-  class shader_source
-  {
-  public:
-    /*!
-      Ctor.
-    */
-    shader_source(void);
-
-    /*!
-      Copy ctor.
-      \param obj value from which to copy
-    */
-    shader_source(const shader_source &obj);
-
-    ~shader_source();
-
-    /*!
-      Assignment operator.
-      \param obj value from which to copy
-    */
-    shader_source&
-    operator=(const shader_source &obj);
-
-    /*!
-      Specifies the version of GLSL to which to
-      declare the shader. An empty string indicates
-      to not have a "#version" directive in the shader.
-     */
-    shader_source&
-    specify_version(const char *v);
-
-    /*!
-      Add shader source code to this shader_source.
-      \param str string that is a filename, GLSL source or a resource name
-      \param tp interpretation of str, i.e. determines if
-                str is a filename, raw GLSL source or a resource
-      \param loc location to add source
-     */
-    shader_source&
-    add_source(const char *str, enum shader_source_type tp = from_file,
-               enum add_source_location_type loc = push_back);
-
-    /*!
-      Add the sources from another shader_source object.
-      \param obj shader_source object from which to absorb
-     */
-    shader_source&
-    add_source(const shader_source &obj);
-
-    /*!
-      Add a macro to this shader_source.
-      Functionally, will insert \#define macro_name macro_value
-      in the GLSL source code.
-      \param macro_name name of macro
-      \param macro_value value to which macro is given
-      \param loc location to add macro within code
-     */
-    shader_source&
-    add_macro(const char *macro_name, const char *macro_value = "",
-              enum add_source_location_type loc = push_back);
-
-    /*!
-      Add a macro to this shader_source.
-      Functionally, will insert \#define macro_name macro_value
-      in the GLSL source code.
-      \param macro_name name of macro
-      \param macro_value value to which macro is given
-      \param loc location to add macro within code
-     */
-    shader_source&
-    add_macro(const char *macro_name, uint32_t macro_value,
-              enum add_source_location_type loc = push_back);
-
-    /*!
-      Add a macro to this shader_source.
-      Functionally, will insert \#define macro_name macro_value
-      in the GLSL source code.
-      \param macro_name name of macro
-      \param macro_value value to which macro is given
-      \param loc location to add macro within code
-     */
-    shader_source&
-    add_macro(const char *macro_name, int32_t macro_value,
-              enum add_source_location_type loc = push_back);
-
-    /*!
-      Adds the string
-      \code
-      #undef X
-      \endcode
-      where X is the passed macro name
-      \param macro_name name of macro
-     */
-    shader_source&
-    remove_macro(const char *macro_name);
-
-    /*!
-      Specifiy an extension and usage.
-      \param ext_name name of GL extension
-      \param tp usage of extension
-     */
-    shader_source&
-    specify_extension(const char *ext_name,
-                      enum shader_extension_enable_type tp = enable_extension);
-
-    /*!
-      Returns the GLSL code assembled. The returned string is only
-      gauranteed to be valid up until the shader_source object
-      is modified.
-     */
-    const char*
-    assembled_code(void) const;
-
-  private:
-    void *m_d;
-  };
-
   /*!
     Ctor. Construct a Shader.
     \param src GLSL source code of the shader
     \param pshader_type type of shader, i.e. GL_VERTEX_SHADER
                         for a vertex shader, etc.
    */
-  Shader(const shader_source &src, GLenum pshader_type);
+  Shader(const glsl::ShaderSource &src, GLenum pshader_type);
 
   ~Shader();
 
@@ -350,6 +145,16 @@ public:
   static
   const char*
   gl_shader_type_label(GLenum ptype);
+
+  /*!
+    Returns the default shader version to feed to
+    \ref glsl::ShaderSource::specify_version() to
+    match with the GL API. If GL backend, then
+    gives "330". If GLES backend, then gives "300 es".
+   */
+  static
+  const char*
+  default_shader_version(void);
 
 private:
   void *m_d;
@@ -811,8 +616,8 @@ public:
     \param initers one-time initialization actions to perform the first time the
                    Program is used
    */
-  Program(const Shader::shader_source &vert_shader,
-          const Shader::shader_source &frag_shader,
+  Program(const glsl::ShaderSource &vert_shader,
+          const glsl::ShaderSource &frag_shader,
           const PreLinkActionArray &action=PreLinkActionArray(),
           const ProgramInitializerArray &initers=ProgramInitializerArray());
 

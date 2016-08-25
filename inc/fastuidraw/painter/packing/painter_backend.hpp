@@ -19,12 +19,13 @@
 
 #pragma once
 
-
+#include <fastuidraw/util/blend_mode.hpp>
 #include <fastuidraw/text/glyph_atlas.hpp>
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/colorstop_atlas.hpp>
 #include <fastuidraw/painter/packing/painter_draw.hpp>
 #include <fastuidraw/painter/painter_shader.hpp>
+#include <fastuidraw/painter/painter_shader_set.hpp>
 
 
 namespace fastuidraw
@@ -42,29 +43,29 @@ namespace fastuidraw
   public:
 
     /*!
-      A Configuration holds how data should be set to a
+      A ConfigurationBase holds how data should be set to a
       PainterBackend
      */
-    class Configuration
+    class ConfigurationBase
     {
     public:
       /*!
         Ctor.
        */
-      Configuration(void);
+      ConfigurationBase(void);
 
       /*!
         Copy ctor.
        */
-      Configuration(const Configuration &obj);
+      ConfigurationBase(const ConfigurationBase &obj);
 
-      ~Configuration();
+      ~ConfigurationBase();
 
       /*!
         assignment operator
        */
-      Configuration&
-      operator=(const Configuration &obj);
+      ConfigurationBase&
+      operator=(const ConfigurationBase &obj);
 
       /*!
         Bits that are up in brush_shader_mask(void) that change
@@ -79,7 +80,7 @@ namespace fastuidraw
         default value is 0
         \param v value
        */
-      Configuration&
+      ConfigurationBase&
       brush_shader_mask(uint32_t v);
 
       /*!
@@ -95,7 +96,7 @@ namespace fastuidraw
         default value is 4
         \param v value
        */
-      Configuration&
+      ConfigurationBase&
       alignment(int v);
 
     private:
@@ -142,16 +143,12 @@ namespace fastuidraw
       \param glyph_atlas GlyphAtlas for glyphs drawn by the PainterBackend
       \param image_atlas ImageAtlas for images drawn by the PainterBackend
       \param colorstop_atlas ColorStopAtlas for color stop sequences drawn by the PainterBackend
-      \param config Configuration for how to pack data to PainterBackend
-      \param default_shaders shaders are to NOT be registed yet to any
-                             backend; they will be registered laziy
-                             at default_shaders().
+      \param config ConfigurationBase for how to pack data to PainterBackend
      */
     PainterBackend(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                    reference_counted_ptr<ImageAtlas> image_atlas,
                    reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
-                   const Configuration &config,
-                   const PainterShaderSet &default_shaders);
+                   const ConfigurationBase &config);
 
     virtual
     ~PainterBackend();
@@ -191,10 +188,10 @@ namespace fastuidraw
     colorstop_atlas(void);
 
     /*!
-      Returns the Configuration passed in the ctor.
+      Returns the ConfigurationBase passed in the ctor.
      */
-    const Configuration&
-    configuration(void) const;
+    const ConfigurationBase&
+    configuration_base(void) const;
 
     /*!
       Called by Painter to indicate the start of a painting session.
@@ -355,6 +352,14 @@ namespace fastuidraw
      */
     PerformanceHints&
     set_hints(void);
+
+    /*!
+      To be called by a derived class in their contructor to
+      set the default shader set for the backend. May only be
+      called once for the lifetime of the PainterBackend.
+     */
+    void
+    set_default_shaders(const PainterShaderSet &sh);
 
   private:
     void *m_d;

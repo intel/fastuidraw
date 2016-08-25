@@ -17,6 +17,9 @@ include $(dir)/Rules.mk
 dir := $(d)/private
 include $(dir)/Rules.mk
 
+dir := $(d)/glsl
+include $(dir)/Rules.mk
+
 dir := $(d)/gl_backend
 include $(dir)/Rules.mk
 

@@ -356,34 +356,39 @@ private:
   void
   build_programs(void)
   {
-    m_draw_pts = FASTUIDRAWnew gl::Program(gl::Shader::shader_source()
-                                          .add_source("draw_pt.vert.glsl.resource_string",
-                                                      gl::Shader::from_resource),
+    m_draw_pts = FASTUIDRAWnew gl::Program(glsl::ShaderSource()
+                                           .specify_version(gl::Shader::default_shader_version())
+                                           .add_source("draw_pt.vert.glsl.resource_string",
+                                                       glsl::ShaderSource::from_resource),
 
-                                          gl::Shader::shader_source()
-                                          .add_source("draw_pt.frag.glsl.resource_string",
-                                                      gl::Shader::from_resource),
+                                           glsl::ShaderSource()
+                                           .specify_version(gl::Shader::default_shader_version())
+                                           .add_source("draw_pt.frag.glsl.resource_string",
+                                                       glsl::ShaderSource::from_resource),
 
-                                          gl::PreLinkActionArray()
-                                          .add_binding("attrib_fake", 0));
+                                           gl::PreLinkActionArray()
+                                           .add_binding("attrib_fake", 0));
 
     m_pts_color_loc = m_draw_pts->uniform_location("color");
     m_pts_pos_loc = m_draw_pts->uniform_location("pos_size");
 
-    m_program = FASTUIDRAWnew gl::Program(gl::Shader::shader_source()
-                                         .add_source("linear_gradient.vert.glsl.resource_string",
-                                                     gl::Shader::from_resource),
+    m_program = FASTUIDRAWnew gl::Program(glsl::ShaderSource()
+                                          .specify_version(gl::Shader::default_shader_version())
+                                          .add_source("linear_gradient.vert.glsl.resource_string",
+                                                      glsl::ShaderSource::from_resource),
 
-                                         gl::Shader::shader_source()
-                                         .add_source("linear_gradient.frag.glsl.resource_string",
-                                                     gl::Shader::from_resource),
+                                          glsl::ShaderSource()
+                                          .specify_version(gl::Shader::default_shader_version())
+                                          .add_source("linear_gradient.frag.glsl.resource_string",
+                                                      glsl::ShaderSource::from_resource),
 
-                                         gl::PreLinkActionArray()
-                                         .add_binding("attrib_pos", 0),
+                                          gl::PreLinkActionArray()
+                                          .add_binding("attrib_pos", 0),
 
-                                         gl::ProgramInitializerArray()
-                                         .add_sampler_initializer("gradientAtlas", 0)
-                                         .add_uniform_initializer<float>("gradientAtlasWidth", m_atlas->backing_store()->dimensions().x())
+                                          gl::ProgramInitializerArray()
+                                          .add_sampler_initializer("gradientAtlas", 0)
+                                          .add_uniform_initializer<float>("gradientAtlasWidth",
+                                                                          m_atlas->backing_store()->dimensions().x())
                                          );
 #define GETLOC(x) do { \
       m_##x##_loc = m_program->uniform_location(#x);    \

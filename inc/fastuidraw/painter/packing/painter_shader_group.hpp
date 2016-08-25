@@ -19,7 +19,7 @@
 #pragma once
 
 #include <stdint.h>
-
+#include <fastuidraw/util/blend_mode.hpp>
 
 namespace fastuidraw
 {
@@ -54,6 +54,12 @@ namespace fastuidraw
      */
     uint32_t
     brush(void) const;
+
+    /*!
+      The BlendMode as packed by BlendMode::packed().
+     */
+    BlendMode::packed_value
+    packed_blend_mode(void) const;
 
   protected:
     /*!

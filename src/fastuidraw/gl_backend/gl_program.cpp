@@ -31,7 +31,6 @@
 #include <sstream>
 #include <stdint.h>
 #include <sys/time.h>
-#include <boost/utility.hpp>
 
 #include <fastuidraw/util/static_resource.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
@@ -39,51 +38,10 @@
 
 namespace
 {
-  class SourcePrivate
-  {
-  public:
-    SourcePrivate();
-
-    typedef enum fastuidraw::gl::Shader::shader_source_type source_type;
-    typedef enum fastuidraw::gl::Shader::shader_extension_enable_type extension_enable_type;
-    typedef std::pair<std::string, source_type> source_code_type;
-
-    bool m_dirty;
-    std::list<source_code_type> m_values;
-    std::map<std::string, extension_enable_type> m_extensions;
-    std::string m_version;
-
-    std::string m_assembled_code;
-
-    static
-    std::string
-    strip_leading_white_spaces(const std::string &S);
-
-    static
-    void
-    emit_source_line(std::ostream &output_stream,
-                     const std::string &source,
-                     int line_number, const std::string &label);
-
-    static
-    void
-    add_source_code_from_stream(const std::string &label,
-                                std::istream &istr,
-                                std::ostream &output_stream);
-
-    static
-    void
-    add_source_entry(const source_code_type &v, std::ostream &output_stream);
-
-    static
-    const char*
-    string_from_extension_type(extension_enable_type tp);
-  };
-
   class ShaderPrivate
   {
   public:
-    ShaderPrivate(const fastuidraw::gl::Shader::shader_source &src,
+    ShaderPrivate(const fastuidraw::glsl::ShaderSource &src,
                   GLenum pshader_type);
 
     void
@@ -222,8 +180,8 @@ namespace
       m_shaders.push_back(frag_shader);
     }
 
-    ProgramPrivate(const fastuidraw::gl::Shader::shader_source &vert_shader,
-                   const fastuidraw::gl::Shader::shader_source &frag_shader,
+    ProgramPrivate(const fastuidraw::glsl::ShaderSource &vert_shader,
+                   const fastuidraw::glsl::ShaderSource &frag_shader,
                    const fastuidraw::gl::PreLinkActionArray &action,
                    const fastuidraw::gl::ProgramInitializerArray &initers,
                    fastuidraw::gl::Program *p):
@@ -266,166 +224,10 @@ namespace
   };
 }
 
-//////////////////////////////////////////////////
-// SourcePrivate methods
-SourcePrivate::
-SourcePrivate(void):
-  m_dirty(true),
-#ifdef FASTUIDRAW_GL_USE_GLES
-  m_version("300 es")
-#else
-  m_version("330")
-#endif
-{
-}
-
-
-const char*
-SourcePrivate::
-string_from_extension_type(enum fastuidraw::gl::Shader::shader_extension_enable_type tp)
-{
-  switch(tp)
-    {
-    case fastuidraw::gl::Shader::enable_extension:
-      return "enable";
-      break;
-
-    case fastuidraw::gl::Shader::require_extension:
-      return "require";
-      break;
-
-    case fastuidraw::gl::Shader::warn_extension:
-      return "warn";
-      break;
-
-    case fastuidraw::gl::Shader::disable_extension:
-      return "disable";
-      break;
-
-    default:
-      assert(!"Unknown value for gl::Shader::shader_extension_enable_type");
-      return "";
-    }
-
-}
-
-std::string
-SourcePrivate::
-strip_leading_white_spaces(const std::string &S)
-{
-  std::string::const_iterator iter, end;
-  for(iter = S.begin(), end = S.end(); iter != end and isspace(*iter); ++iter)
-    {
-    }
-  return (iter != end and *iter == '#')?
-    std::string(iter, end):
-    S;
-}
-
-void
-SourcePrivate::
-emit_source_line(std::ostream &output_stream,
-                 const std::string &source,
-                 int line_number, const std::string &label)
-{
-  std::string S;
-  S = strip_leading_white_spaces(source);
-  output_stream << S;
-
-  #ifndef NDEBUG
-    {
-      if(!label.empty() && (S.empty() || *S.rbegin() != '\\'))
-        {
-          output_stream << std::setw(80-S.length()) << "  //["
-                        << std::setw(3) << line_number
-                        << ", " << label
-                        << "]";
-        }
-    }
-  #else
-    {
-      FASTUIDRAWunused(label);
-      FASTUIDRAWunused(line_number);
-    }
-  #endif
-
-  output_stream << "\n";
-}
-
-
-void
-SourcePrivate::
-add_source_code_from_stream(const std::string &label,
-                            std::istream &istr,
-                            std::ostream &output_stream)
-{
-  std::string S;
-  int line_number(1);
-
-  while(getline(istr, S))
-    {
-      emit_source_line(output_stream, S, line_number, label);
-      ++line_number;
-      S.clear();
-    }
-}
-
-void
-SourcePrivate::
-add_source_entry(const source_code_type &v, std::ostream &output_stream)
-{
-  if(v.second == fastuidraw::gl::Shader::from_file)
-    {
-      std::ifstream file(v.first.c_str());
-
-      if(file)
-        {
-          add_source_code_from_stream(v.first, file, output_stream);
-        }
-      else
-        {
-          output_stream << "\n//WARNING: Could not open file \""
-                        << v.first << "\"\n";
-        }
-    }
-  else
-    {
-      std::istringstream istr;
-      std::string label;
-
-      if(v.second == fastuidraw::gl::Shader::from_string)
-        {
-          istr.str(v.first);
-          label.clear();
-        }
-      else
-        {
-          fastuidraw::const_c_array<uint8_t> resource_string;
-
-          resource_string = fastuidraw::fetch_static_resource(v.first.c_str());
-          label=v.first;
-          if(!resource_string.empty() && resource_string.back() == 0)
-            {
-              const char *s;
-              s = reinterpret_cast<const char*>(resource_string.c_ptr());
-              istr.str(std::string(s));
-            }
-          else
-            {
-              output_stream << "\n//WARNING: Unable to fetch string resource \"" << v.first
-                            << "\"\n";
-              return;
-            }
-        }
-      add_source_code_from_stream(label, istr, output_stream);
-    }
-}
-
-
 /////////////////////////////////////////
 // ShaderPrivate methods
 ShaderPrivate::
-ShaderPrivate(const fastuidraw::gl::Shader::shader_source &src,
+ShaderPrivate(const fastuidraw::glsl::ShaderSource &src,
               GLenum pshader_type):
   m_shader_ready(false),
   m_name(0),
@@ -452,7 +254,6 @@ compile(void)
 
   const char *sourceString[1];
   sourceString[0] = m_source_code.c_str();
-
 
   glShaderSource(m_name, //shader handle
                  1, //number strings
@@ -636,196 +437,10 @@ filter_name(iterator begin, iterator end, int &array_index)
   return return_value;
 }
 
-////////////////////////////////////
-//fastuidraw::gl::Shader::shader_source methods
-fastuidraw::gl::Shader::shader_source::
-shader_source(void)
-{
-  m_d = FASTUIDRAWnew SourcePrivate();
-}
-
-fastuidraw::gl::Shader::shader_source::
-shader_source(const shader_source &obj)
-{
-  SourcePrivate *d;
-  d = reinterpret_cast<SourcePrivate*>(obj.m_d);
-  m_d = FASTUIDRAWnew SourcePrivate(*d);
-}
-
-fastuidraw::gl::Shader::shader_source::
-~shader_source()
-{
-  SourcePrivate *d;
-  d = reinterpret_cast<SourcePrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-  m_d = NULL;
-}
-
-fastuidraw::gl::Shader::shader_source&
-fastuidraw::gl::Shader::shader_source::
-operator=(const shader_source &obj)
-{
-  if(this != &obj)
-    {
-      SourcePrivate *d, *obj_d;
-      d = reinterpret_cast<SourcePrivate*>(m_d);
-      obj_d = reinterpret_cast<SourcePrivate*>(obj.m_d);
-      *d = *obj_d;
-    }
-  return *this;
-}
-
-fastuidraw::gl::Shader::shader_source&
-fastuidraw::gl::Shader::shader_source::
-specify_version(const char *v)
-{
-  SourcePrivate *d;
-  d = reinterpret_cast<SourcePrivate*>(m_d);
-  d->m_version = v ? std::string(v) : "";
-  d->m_dirty = true;
-  return *this;
-}
-
-fastuidraw::gl::Shader::shader_source&
-fastuidraw::gl::Shader::shader_source::
-add_source(const char *str, enum shader_source_type tp,
-           enum add_source_location_type loc)
-{
-  SourcePrivate *d;
-  d = reinterpret_cast<SourcePrivate*>(m_d);
-
-  assert(str);
-  SourcePrivate::source_code_type v(str, tp);
-
-  if(loc == push_front)
-    {
-      d->m_values.push_front(v);
-    }
-  else
-    {
-      d->m_values.push_back(v);
-    }
-  d->m_dirty = true;
-  return *this;
-}
-
-fastuidraw::gl::Shader::shader_source&
-fastuidraw::gl::Shader::shader_source::
-add_source(const shader_source &obj)
-{
-  SourcePrivate *d, *obj_d;
-  d = reinterpret_cast<SourcePrivate*>(m_d);
-  obj_d = reinterpret_cast<SourcePrivate*>(obj.m_d);
-
-  std::copy(obj_d->m_values.begin(), obj_d->m_values.end(),
-            std::insert_iterator<std::list<SourcePrivate::source_code_type> >(d->m_values, d->m_values.end()));
-  d->m_dirty = true;
-  return *this;
-}
-
-fastuidraw::gl::Shader::shader_source&
-fastuidraw::gl::Shader::shader_source::
-add_macro(const char *macro_name, const char *macro_value,
-          enum add_source_location_type loc)
-{
-  std::ostringstream ostr;
-  ostr << "#define " << macro_name << " " << macro_value;
-  return add_source(ostr.str().c_str(), from_string, loc);
-}
-
-fastuidraw::gl::Shader::shader_source&
-fastuidraw::gl::Shader::shader_source::
-add_macro(const char *macro_name, uint32_t macro_value,
-          enum add_source_location_type loc)
-{
-  std::ostringstream ostr;
-  ostr << "#define " << macro_name << " " << macro_value;
-  return add_source(ostr.str().c_str(), from_string, loc);
-}
-
-fastuidraw::gl::Shader::shader_source&
-fastuidraw::gl::Shader::shader_source::
-add_macro(const char *macro_name, int32_t macro_value,
-          enum add_source_location_type loc)
-{
-  std::ostringstream ostr;
-  ostr << "#define " << macro_name << " " << macro_value;
-  return add_source(ostr.str().c_str(), from_string, loc);
-}
-
-fastuidraw::gl::Shader::shader_source&
-fastuidraw::gl::Shader::shader_source::
-remove_macro(const char *macro_name)
-{
-  std::ostringstream ostr;
-  ostr << "#undef " << macro_name;
-  return add_source(ostr.str().c_str(), from_string);
-}
-
-
-fastuidraw::gl::Shader::shader_source&
-fastuidraw::gl::Shader::shader_source::
-specify_extension(const char *ext_name, enum shader_extension_enable_type tp)
-{
-  SourcePrivate *d;
-  d = reinterpret_cast<SourcePrivate*>(m_d);
-  d->m_extensions[std::string(ext_name)] = tp;
-  d->m_dirty = true;
-  return *this;
-}
-
-const char*
-fastuidraw::gl::Shader::shader_source::
-assembled_code(void) const
-{
-  SourcePrivate *d;
-  d = reinterpret_cast<SourcePrivate*>(m_d);
-
-  if(d->m_dirty)
-    {
-      std::ostringstream output_glsl_source_code;
-
-      if(!d->m_version.empty())
-        {
-          output_glsl_source_code <<"\n#version " << d->m_version << "\n";
-        }
-
-      for(std::map<std::string, enum shader_extension_enable_type>::const_iterator
-            iter = d->m_extensions.begin(), end = d->m_extensions.end(); iter != end; ++iter)
-        {
-          output_glsl_source_code << "#extension " << iter->first
-                                  << ": " << SourcePrivate::string_from_extension_type(iter->second) << "\n";
-        }
-
-      output_glsl_source_code << "uint fastuidraw_mask(uint num_bits) { return (uint(1) << num_bits) - uint(1); }\n"
-                              << "uint fastuidraw_extract_bits(uint bit0, uint num_bits, uint src) { return (src >> bit0) & fastuidraw_mask(num_bits); }\n"
-                              << "#define FASTUIDRAW_MASK(num_bits) fastuidraw_mask(uint(num_bits))\n"
-                              << "#define FASTUIDRAW_EXTRACT_BITS(bit0, num_bits, src) fastuidraw_extract_bits(uint(bit0), uint(num_bits), uint(src) )\n";
-
-      for(std::list<SourcePrivate::source_code_type>::const_iterator
-            iter= d->m_values.begin(), end = d->m_values.end(); iter != end; ++iter)
-        {
-          SourcePrivate::add_source_entry(*iter, output_glsl_source_code);
-        }
-
-      /*
-        some GLSL pre-processors do not like to end on a
-        comment or other certain tokens, to make them
-        less grouchy, we emit a few extra \n's
-      */
-      output_glsl_source_code << "\n\n\n";
-
-      d->m_assembled_code = output_glsl_source_code.str();
-      d->m_dirty = false;
-    }
-  return d->m_assembled_code.c_str();
-}
-
-
 ////////////////////////////////////////////////
-//gl::Shader methods
+// fastuidraw::gl::Shader methods
 fastuidraw::gl::Shader::
-Shader(const shader_source &src, GLenum pshader_type)
+Shader(const glsl::ShaderSource &src, GLenum pshader_type)
 {
   m_d = FASTUIDRAWnew ShaderPrivate(src, pshader_type);
 }
@@ -938,6 +553,21 @@ gl_shader_type_label(GLenum shader_type)
   #undef CASE
 }
 
+const char*
+fastuidraw::gl::Shader::
+default_shader_version(void)
+{
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      return "300 es";
+    }
+  #else
+    {
+      return "330";
+    }
+  #endif
+}
+
 ////////////////////////////////////////
 // fastuidraw::gl::BindAttribute methods
 fastuidraw::gl::BindAttribute::
@@ -966,7 +596,7 @@ action(GLuint glsl_program) const
 
 
 ////////////////////////////////////////////
-// gl::PreLinkActionArray methods
+// fastuidraw::gl::PreLinkActionArray methods
 fastuidraw::gl::PreLinkActionArray::
 PreLinkActionArray(void)
 {
@@ -1291,8 +921,8 @@ Program(reference_counted_ptr<Shader> vert_shader,
 }
 
 fastuidraw::gl::Program::
-Program(const Shader::shader_source &vert_shader,
-        const Shader::shader_source &frag_shader,
+Program(const glsl::ShaderSource &vert_shader,
+        const glsl::ShaderSource &frag_shader,
         const PreLinkActionArray &action,
         const ProgramInitializerArray &initers)
 {
@@ -1481,7 +1111,7 @@ shader_src_code(GLenum tp, unsigned int i) const
 
 
 //////////////////////////////////////
-//gl::ProgramInitializerArray methods
+// fastuidraw::gl::ProgramInitializerArray methods
 fastuidraw::gl::ProgramInitializerArray::
 ProgramInitializerArray(void)
 {

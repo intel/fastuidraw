@@ -44,7 +44,9 @@ namespace fastuidraw
 
     The transformation of a Painter goes from local item coordinate
     to 3D API clip-coordinates (for example in GL, from item coordinates
-    to gl_Position.xyw).
+    to gl_Position.xyw). FastUIDraw follows the convention that
+    the top of the window is at normalized y-coordinate -1 and the
+    bottom of the window is at normalized y-coordinate +1.
 
     One can specify the exact attribute and index data for a Painter
     to consume, see \ref draw_generic(). In addition, the class
@@ -144,17 +146,43 @@ namespace fastuidraw
     blend_shader(void) const;
 
     /*!
+      Returns the active 3D API blend mode
+     */
+    BlendMode::packed_value
+    blend_mode(void) const;
+
+    /*!
       Sets the blend shader. It is a crashing error for
       h to be NULL.
       \param h blend shader to use for blending.
+      \param packed_blend_mode 3D API blend mode packed by BlendMode::packed()
      */
     void
-    blend_shader(const reference_counted_ptr<PainterBlendShader> &h);
+    blend_shader(const reference_counted_ptr<PainterBlendShader> &h,
+                 BlendMode::packed_value packed_blend_mode);
 
     /*!
       Equivalent to
-     \code
-      blend_shader(default_shaders().blend_shaders().shader(m))
+      \code
+      blend_shader(shader_set.shader(m),
+                   shader_set.blend_mode(m))
+      \endcode
+      It is a crashing error if shader_set does not support
+      the named blend mode.
+      \param shader_set PainterBlendShaderSet from which to take blend shader
+      \param m Blend mode to use
+     */
+    void
+    blend_shader(const PainterBlendShaderSet &shader_set,
+                 enum PainterEnums::blend_mode_t m)
+    {
+      blend_shader(shader_set.shader(m), shader_set.blend_mode(m));
+    }
+
+    /*!
+      Equivalent to
+      \code
+      blend_shader(default_shaders().blend_shaders(), m)
       \endcode
       It is a crashing error if default_shaders() does not support
       the named blend mode.
@@ -163,7 +191,7 @@ namespace fastuidraw
     void
     blend_shader(enum PainterEnums::blend_mode_t m)
     {
-      blend_shader(default_shaders().blend_shaders().shader(m));
+      blend_shader(default_shaders().blend_shaders(), m);
     }
 
     /*!

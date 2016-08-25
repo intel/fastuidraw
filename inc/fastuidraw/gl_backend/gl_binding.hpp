@@ -33,7 +33,7 @@ namespace fastuidraw {
   \brief
   Provides interface for application to use GL and for application
   to specify to FastUIDraw GL backend how to get GL function pointers.
-
+  Part of the GL backend libraries, libFastUIDrawGL and libFastUIDrawGLES.
 
   Short version:
    - application should call fastuidraw::gl_binding::get_proc_function()

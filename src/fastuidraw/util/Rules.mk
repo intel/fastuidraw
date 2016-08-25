@@ -5,7 +5,7 @@ d		:= $(dir)
 # End standard header
 
 LIBRARY_SOURCES += $(call filelist, static_resource.cpp \
-	fastuidraw_memory.cpp util.cpp math.cpp \
+	fastuidraw_memory.cpp util.cpp math.cpp blend_mode.cpp \
 	reference_count_mutex.cpp reference_count_atomic.cpp)
 
 # Begin standard footer

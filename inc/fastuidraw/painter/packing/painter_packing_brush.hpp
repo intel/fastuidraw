@@ -36,7 +36,7 @@ namespace fastuidraw
         Enumeration giving the packing order for data of a brush.
         Each enumeration is an entry and when data is packed each
         entry starts on a multiple of the alignment (see
-        PainterBackend::Configuration::alignment()) to the
+        PainterBackend::ConfigurationBase::alignment()) to the
         destination packing store.
       */
       enum packing_order_t

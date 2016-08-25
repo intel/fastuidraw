@@ -19,9 +19,9 @@
 
 #pragma once
 
-#include <fastuidraw/painter/packing/painter_backend.hpp>
-#include <fastuidraw/gl_backend/painter_item_shader_gl.hpp>
-#include <fastuidraw/gl_backend/painter_blend_shader_gl.hpp>
+#include <fastuidraw/glsl/painter_backend_glsl.hpp>
+#include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 #include <fastuidraw/gl_backend/image_gl.hpp>
 #include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/colorstop_atlas_gl.hpp>
@@ -38,26 +38,9 @@ namespace fastuidraw
       A PainterBackendGL implements PainterBackend
       using the GL (or GLES) API.
      */
-    class PainterBackendGL:public PainterBackend
+    class PainterBackendGL:public glsl::PainterBackendGLSL
     {
     public:
-      /*!
-        Enumeration to specify how the data store filled by
-        \ref PainterDrawCommand::m_store is realized.
-       */
-      enum data_store_backing_t
-        {
-          /*!
-            Data store is backed by a texture buffer object
-           */
-          data_store_tbo,
-
-          /*!
-            Data store is backed by a uniform buffer object
-           */
-          data_store_ubo
-        };
-
       /*!
         A params gives parameters how to contruct
         a PainterBackendGL.
@@ -88,7 +71,7 @@ namespace fastuidraw
         /*!
           Configuration parameters inherited from PainterBackend
          */
-        PainterBackend::Configuration m_config;
+        PainterBackend::ConfigurationBase m_config;
 
         /*!
           The ImageAtlasGL to be used by the painter
@@ -165,7 +148,7 @@ namespace fastuidraw
           map_draw_command() may store. The size of
           PainterDrawCommand::m_store is given by
           data_blocks_per_store_buffer() *
-          PainterBackend::Configuration::alignment(),
+          PainterBackend::ConfigurationBase::alignment(),
           Initial value is 1024 * 64.
          */
         unsigned int
@@ -341,39 +324,6 @@ namespace fastuidraw
        */
       reference_counted_ptr<Program>
       program(void);
-
-      /*!
-        Add GLSL code that is to be visible to all vertex
-        shaders. The code can define functions or macros.
-        \param src shader source to add
-       */
-      void
-      add_vertex_shader_util(const Shader::shader_source &src);
-
-      /*!
-        Add GLSL code that is to be visible to all vertex
-        shaders. The code can define functions or macros.
-        \param src shader source to add
-       */
-      void
-      add_fragment_shader_util(const Shader::shader_source &src);
-
-    protected:
-      virtual
-      PainterShader::Tag
-      absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader);
-
-      virtual
-      uint32_t
-      compute_item_sub_shader_group(const reference_counted_ptr<PainterItemShader> &shader);
-
-      virtual
-      PainterShader::Tag
-      absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader);
-
-      virtual
-      uint32_t
-      compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader);
 
     private:
       void *m_d;

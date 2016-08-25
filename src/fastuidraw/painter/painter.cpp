@@ -313,6 +313,7 @@ namespace
     fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix> m_matrix;
     fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> m_clip;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_blend;
+    fastuidraw::BlendMode::packed_value m_blend_mode;
 
     clip_rect_state m_clip_rect_state;
   };
@@ -608,7 +609,7 @@ set_painter_core_clip(const fastuidraw::PainterPackedValue<fastuidraw::PainterCl
 // PainterPrivate methods
 PainterPrivate::
 PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> backend):
-  m_pool(backend->configuration().alignment())
+  m_pool(backend->configuration_base().alignment())
 {
   m_core = FASTUIDRAWnew fastuidraw::PainterPacker(backend);
   m_reset_brush = m_pool.create_packed_value(fastuidraw::PainterBrush());
@@ -1503,6 +1504,7 @@ save(void)
   st.m_matrix = d->current_item_marix_state();
   st.m_clip = d->current_clip_state();
   st.m_blend = d->m_core->blend_shader();
+  st.m_blend_mode = d->m_core->blend_mode();
   st.m_clip_rect_state = d->m_clip_rect_state;
 
   d->m_state_stack.push_back(st);
@@ -1521,7 +1523,7 @@ restore(void)
   d->m_clip_rect_state = st.m_clip_rect_state;
   d->current_item_matrix_state(st.m_matrix);
   d->current_clip_state(st.m_clip);
-  d->m_core->blend_shader(st.m_blend);
+  d->m_core->blend_shader(st.m_blend, st.m_blend_mode);
   while(d->m_occluder_stack.size() > st.m_occluder_stack_position)
     {
       d->m_occluder_stack.back().on_pop(this);
@@ -1569,7 +1571,8 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
       return;
     }
 
-  fastuidraw::reference_counted_ptr<PainterBlendShader> old_blend;
+  reference_counted_ptr<PainterBlendShader> old_blend;
+  BlendMode::packed_value old_blend_mode;
   reference_counted_ptr<ZDataCallBack> zdatacallback;
 
   /* zdatacallback generates a list of PainterDrawCommand::DelayedAction
@@ -1579,10 +1582,11 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
    */
   zdatacallback = FASTUIDRAWnew ZDataCallBack();
   old_blend = blend_shader();
+  old_blend_mode = blend_mode();
 
   blend_shader(PainterEnums::blend_porter_duff_dst);
   fill_path(PainterData(d->m_black_brush), path, fill_rule, zdatacallback);
-  blend_shader(old_blend);
+  blend_shader(old_blend, old_blend_mode);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
 }
@@ -1602,6 +1606,7 @@ clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
     }
 
   fastuidraw::reference_counted_ptr<PainterBlendShader> old_blend;
+  BlendMode::packed_value old_blend_mode;
   reference_counted_ptr<ZDataCallBack> zdatacallback;
 
   /* zdatacallback generates a list of PainterDrawCommand::DelayedAction
@@ -1611,10 +1616,11 @@ clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
    */
   zdatacallback = FASTUIDRAWnew ZDataCallBack();
   old_blend = blend_shader();
+  old_blend_mode = blend_mode();
 
   blend_shader(PainterEnums::blend_porter_duff_dst);
   fill_path(PainterData(d->m_black_brush), path, fill_rule, zdatacallback);
-  blend_shader(old_blend);
+  blend_shader(old_blend, old_blend_mode);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
 }
@@ -1759,7 +1765,9 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   zdatacallback = FASTUIDRAWnew ZDataCallBack();
 
   fastuidraw::reference_counted_ptr<PainterBlendShader> old_blend;
+  BlendMode::packed_value old_blend_mode;
   old_blend = blend_shader();
+  old_blend_mode = blend_mode();
   blend_shader(PainterEnums::blend_porter_duff_dst);
 
   /* we temporarily set the clipping to a slightly
@@ -1796,7 +1804,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
 
   d->current_item_matrix_state(matrix_state);
-  blend_shader(old_blend);
+  blend_shader(old_blend, old_blend_mode);
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas>&
@@ -1835,13 +1843,23 @@ blend_shader(void) const
   return d->m_core->blend_shader();
 }
 
-void
+fastuidraw::BlendMode::packed_value
 fastuidraw::Painter::
-blend_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &h)
+blend_mode(void) const
 {
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
-  d->m_core->blend_shader(h);
+  return d->m_core->blend_mode();
+}
+
+void
+fastuidraw::Painter::
+blend_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &h,
+             fastuidraw::BlendMode::packed_value mode)
+{
+  PainterPrivate *d;
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d->m_core->blend_shader(h, mode);
 }
 
 const fastuidraw::PainterShaderSet&

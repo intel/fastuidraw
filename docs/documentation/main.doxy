@@ -4,12 +4,36 @@
  */
 
 /*!
+  \brief all classes and functions of FastUIDraw are in the
+         namespace fastuidraw.
+ */
+namespace fastuidraw {
+
+  /*!
+    \brief Namesapce to encapsulate shader building to GLSL
+           shaders, part of the main library libFastUIDraw.
+   */
+  namespace glsl
+  {
+  }
+
+  /*!
+    \brief Namespace to encapsulate GL backend end implementation,
+           utility functions and utility classes. Part of the GL
+           backend libraries, libFastUIDrawGL and libFastUIDrawGLES.
+  */
+  namespace gl
+  {
+  }
+}
+
+/*!
 \defgroup Utility Utility
 @{
 \brief
 Utility provides simple utility classes, the most important and
 commonly used ones being reference_counted_ptr, vecN, c_array
-and const_c_array.
+and const_c_array. Part of the main library libFastUIDraw.
 @}
 
 \defgroup Text Text
@@ -17,20 +41,30 @@ and const_c_array.
 \brief
 Text provides the interfaces to realizing glyph data for rendering
 glyphs. The big classes being Glyph, GlyphCache, GlyphAtlas and FontBase.
+Part of the main library libFastUIDraw.
 @}
 
 \defgroup Core Core
 @{
 \brief
 Core provides in interfaces to realizing paths (see Path), images (see Image
-and ImageAtlas) and color stop sequences (see ColorStopSequenceOnAtlas and ColorStopAtlas)
+and ImageAtlas) and color stop sequences (see ColorStopSequenceOnAtlas
+and ColorStopAtlas). Part of the main library libFastUIDraw.
+@}
+
+\defgroup GLSLShaderBuilder GLSL Shader Build
+@{
+\brief
+Utility module to assist in creating GLSL shaders and also provides
+glsl::PainterBackendGLSL which provides shader assembly and default
+shaders via GLSL shaders. Part of the main library libFastUIDraw.
 @}
 
 \defgroup Painter Painter
 @{
 \brief
 Painter provides the interface for Canvas drawing, the most important class
-being Painter.
+being Painter. Part of the main library libFastUIDraw.
 @}
 
 \defgroup PainterPacking Painter Packing
@@ -41,6 +75,7 @@ information, see particularly the enumerations in fastuidraw::PainterPacking
 for how data is packed by fastuidraw::PainterPacker. The more advanced
 user may wish to use fastuidraw::PainterPacker for a rawer, more powerful
 interface for drawing than that offered by fastuidraw::Painter.
+Part of the main library libFastUIDraw.
 
 \section Overview
 The class fastuidraw::PainterPacker sits between the primary canvas interface

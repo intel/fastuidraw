@@ -417,7 +417,7 @@ namespace fastuidraw
       sub-data of brush is padded to be along alignment
       boundaries.
       \param alignment alignment of the data store, see
-                       PainterBackend::Configuration::alignment(void) const
+                       PainterBackend::ConfigurationBase::alignment(void) const
      */
     unsigned int
     data_size(unsigned int alignment) const;
@@ -430,7 +430,7 @@ namespace fastuidraw
       boundaries.
       \param dst location to which to encode the brush
       \param alignment alignment of the data store, see
-                       PainterBackend::Configuration::alignment(void) const
+                       PainterBackend::ConfigurationBase::alignment(void) const
      */
     void
     pack_data(unsigned int alignment, c_array<generic_data> dst) const;

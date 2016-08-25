@@ -16,10 +16,7 @@
  *
  */
 
-
-#include <sstream>
-
-#include <fastuidraw/text/glyph_render_data_curve_pair.hpp>
+#include <fastuidraw/glsl/shader_code.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
@@ -32,46 +29,6 @@
 
 namespace
 {
-  class Ending
-  {
-  public:
-    explicit
-    Ending(unsigned int N, enum fastuidraw::GlyphRenderDataCurvePair::geometry_packing pk):
-      m_N(N),
-      m_pk(pk)
-    {}
-
-    unsigned int m_N;
-    enum fastuidraw::GlyphRenderDataCurvePair::geometry_packing m_pk;
-
-  };
-
-  std::ostream&
-  operator<<(std::ostream &str, Ending obj)
-  {
-    int tempIndex, cc;
-    const char *component[]=
-      {
-        "r",
-        "g",
-        "b",
-        "a"
-      };
-
-    tempIndex = obj.m_pk / obj.m_N;
-    cc = obj.m_pk - obj.m_N * tempIndex;
-    assert(0<= cc && cc < 4);
-    if(obj.m_N > 1)
-      {
-        str << tempIndex << "." << component[cc];
-      }
-    else
-      {
-        str << tempIndex;
-      }
-    return str;
-  }
-
   class TexelStoreGL:public fastuidraw::GlyphAtlasTexelBackingStoreBase
   {
   public:
@@ -214,20 +171,6 @@ namespace
     TextureGL m_backing_store;
   };
 
-  class LoaderMacro
-  {
-  public:
-    LoaderMacro(unsigned int alignment, const char *geometry_store_name);
-
-    const char*
-    value(void) const
-    {
-      return m_value.c_str();
-    }
-  private:
-    std::string m_value;
-  };
-
   class GlyphAtlasGLParamsPrivate
   {
   public:
@@ -236,7 +179,7 @@ namespace
       m_number_floats(1024 * 1024),
       m_delayed(false),
       m_alignment(4),
-      m_type(fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_buffer),
+      m_type(fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_tbo),
       m_log2_dims_geometry_store(-1, -1)
     {}
 
@@ -244,7 +187,7 @@ namespace
     unsigned int m_number_floats;
     bool m_delayed;
     unsigned int m_alignment;
-    enum fastuidraw::gl::GlyphAtlasGL::glyph_geometry_backing_store_t m_type;
+    enum fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_backing_t m_type;
     fastuidraw::ivec2 m_log2_dims_geometry_store;
   };
 
@@ -629,91 +572,19 @@ create(const fastuidraw::gl::GlyphAtlasGL::params &P)
 
   switch(P.glyph_geometry_backing_store_type())
     {
-    case fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_buffer:
+    case fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_tbo:
       p = FASTUIDRAWnew GeometryStoreGL_Buffer(number_vecNs, delayed, N);
       break;
 
-    case fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_2d_array:
+    case fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_texture_array:
       p = FASTUIDRAWnew GeometryStoreGL_Texture(P.texture_2d_array_geometry_store_log2_dims(),
                                                 number_vecNs, delayed, N);
       break;
+
+    default:
+      assert(!"Bad glyph geometry store backing type");
     }
   return fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase>(p);
-}
-
-////////////////////////////////////////////////////
-// LoaderMacro methods
-LoaderMacro::
-LoaderMacro(unsigned int alignment, const char *geometry_store_fetch)
-{
-  /* we are defining a macro, so on end of lines
-     in code we need to add \\
-   */
-  std::ostringstream str;
-  const char *texelFetchExt[4] =
-    {
-      "r",
-      "rg",
-      "rgb",
-      "rgba"
-    };
-  const char *tempType[4] =
-    {
-      "float",
-      "vec2",
-      "vec3",
-      "vec4"
-    };
-
-  str << "\n#define FASTUIDRAW_LOAD_CURVE_GEOMETRY(geometry_offset, texel_value) { \\\n"
-      << "\t" << tempType[alignment - 1] << " ";
-
-  for(unsigned int c = 0, j = 0; c < fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack; c += alignment, ++j)
-    {
-      if(c != 0)
-        {
-          str << ", ";
-        }
-      str << "temp" << j;
-    }
-  str << ";\\\n"
-      << "\tint start_offset;\\\n"
-      << "\tstart_offset = int(geometry_offset) + ( int(texel_value) - 2 ) * int("
-      << fastuidraw::round_up_to_multiple(fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack, alignment) / alignment
-      <<");\\\n";
-
-  for(unsigned int c = 0, j = 0; c < fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack; c += alignment, ++j)
-    {
-      str << "\ttemp" << j << " = " << geometry_store_fetch << "(start_offset + "
-          << j << ")." << texelFetchExt[alignment - 1] << ";\\\n";
-    }
-
-  /* this is scary, the shader code will have the macros/whatever defined for us so that
-     that assignment from temp "just works".
-   */
-#define EXTRACT_STREAM(X) str << "\t"#X << " = temp" << Ending(alignment, fastuidraw::GlyphRenderDataCurvePair::pack_offset_##X) << ";\\\n"
-
-
-  EXTRACT_STREAM(p_x);
-  EXTRACT_STREAM(p_y);
-  EXTRACT_STREAM(zeta);
-  EXTRACT_STREAM(combine_rule);
-
-  EXTRACT_STREAM(curve0_m0);
-  EXTRACT_STREAM(curve0_m1);
-  EXTRACT_STREAM(curve0_q_x);
-  EXTRACT_STREAM(curve0_q_y);
-  EXTRACT_STREAM(curve0_quad_coeff);
-
-  EXTRACT_STREAM(curve1_m0);
-  EXTRACT_STREAM(curve1_m1);
-  EXTRACT_STREAM(curve1_q_x);
-  EXTRACT_STREAM(curve1_q_y);
-  EXTRACT_STREAM(curve1_quad_coeff);
-
-  str << "\\\n}\n";
-
-  m_value = str.str();
 }
 
 //////////////////////////////////////////////////////
@@ -755,24 +626,24 @@ operator=(const params &rhs)
   return *this;
 }
 
-fastuidraw::gl::GlyphAtlasGL::params&
-fastuidraw::gl::GlyphAtlasGL::params::
-use_texture_buffer_geometry_store(void)
-{
-  GlyphAtlasGLParamsPrivate *d;
-  d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-  d->m_type = glyph_geometry_texture_buffer;
-  d->m_log2_dims_geometry_store = ivec2(-1, -1);
-  return *this;
-}
-
-enum fastuidraw::gl::GlyphAtlasGL::glyph_geometry_backing_store_t
+enum fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_backing_t
 fastuidraw::gl::GlyphAtlasGL::params::
 glyph_geometry_backing_store_type(void) const
 {
   GlyphAtlasGLParamsPrivate *d;
   d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(m_d);
   return d->m_type;
+}
+
+fastuidraw::gl::GlyphAtlasGL::params&
+fastuidraw::gl::GlyphAtlasGL::params::
+use_texture_buffer_geometry_store(void)
+{
+  GlyphAtlasGLParamsPrivate *d;
+  d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(m_d);
+  d->m_type = glsl::PainterBackendGLSL::glyph_geometry_tbo;
+  d->m_log2_dims_geometry_store = ivec2(-1, -1);
+  return *this;
 }
 
 fastuidraw::gl::GlyphAtlasGL::params&
@@ -784,7 +655,7 @@ use_texture_2d_array_geometry_store(int log2_width, int log2_height)
   if(log2_width >= 0 && log2_height >= 0)
     {
       d->m_log2_dims_geometry_store = ivec2(log2_width, log2_height);
-      d->m_type = glyph_geometry_texture_2d_array;
+      d->m_type = glsl::PainterBackendGLSL::glyph_geometry_texture_array;
     }
   return *this;
 }
@@ -813,7 +684,7 @@ use_optimal_geometry_store_backing(void)
   if(detail::compute_tex_buffer_support() != detail::tex_buffer_not_supported
      && context_get<int>(GL_MAX_TEXTURE_BUFFER_SIZE) >= required_max_size)
     {
-      d->m_type = glyph_geometry_texture_buffer;
+      d->m_type = glsl::PainterBackendGLSL::glyph_geometry_tbo;
       d->m_log2_dims_geometry_store = ivec2(-1, -1);
     }
   else
@@ -837,7 +708,7 @@ use_optimal_geometry_store_backing(void)
           ++required_height;
         }
 
-      d->m_type = glyph_geometry_texture_2d_array;
+      d->m_type = glsl::PainterBackendGLSL::glyph_geometry_texture_array;
       d->m_log2_dims_geometry_store.x() = uint32_log2(width);
       d->m_log2_dims_geometry_store.y() = (required_height <= 1) ?
         0 : uint32_log2(required_height);
@@ -941,61 +812,4 @@ geometry_texture_as_2d_array_log2_dims(void) const
   assert(dynamic_cast<const GeometryStoreGL*>(geometry_store().get()));
   p = static_cast<const GeometryStoreGL*>(geometry_store().get());
   return p->m_log2_dims;
-}
-
-fastuidraw::gl::Shader::shader_source
-fastuidraw::gl::GlyphAtlasGL::
-glsl_curvepair_compute_pseudo_distance(const char *function_name,
-                                       const char *geometry_store_fetch,
-                                       bool derivative_function)
-{
-  return glsl_curvepair_compute_pseudo_distance(geometry_store()->alignment(),
-                                                function_name, geometry_store_fetch,
-                                                derivative_function);
-}
-
-fastuidraw::gl::Shader::shader_source
-fastuidraw::gl::GlyphAtlasGL::
-glsl_curvepair_compute_pseudo_distance(unsigned int alignment,
-                                       const char *function_name,
-                                       const char *geometry_store_fetch,
-                                       bool derivative_function)
-{
-  Shader::shader_source return_value;
-
-  /* aww, this sucks; we can choose one of 4 options:
-       1. dedicated shader for all variations.
-       2. a loader function (but we need to prefix its name)
-          along with the global values
-       3. break function into sections:
-          - function declaration and local variables
-          - loader code
-          - computation and closing code
-       4. Define the loading macro in C++ and make sure the
-          variable names used match between this C++ code
-          and the GLSL shader code
-     We choose option 4; which sucks for reading the shader code.
-   */
-
-  return_value
-    .add_macro("FASTUIDRAW_CURVEPAIR_COMPUTE_NAME", function_name)
-    .add_source(LoaderMacro(alignment, geometry_store_fetch).value(), Shader::from_string);
-
-  if(derivative_function)
-    {
-      return_value
-        .add_source("fastuidraw_curvepair_glyph_derivative.frag.glsl.resource_string", Shader::from_resource);
-    }
-  else
-    {
-      return_value
-        .add_source("fastuidraw_curvepair_glyph.frag.glsl.resource_string", Shader::from_resource);
-    }
-
-  return_value
-    .add_source("#undef FASTUIDRAW_LOAD_CURVE_GEOMETRY\n", Shader::from_string)
-    .remove_macro("FASTUIDRAW_CURVEPAIR_COMPUTE_NAME");
-
-  return return_value;
-
 }

@@ -28,8 +28,8 @@
  */
 float
 FASTUIDRAW_CURVEPAIR_COMPUTE_NAME(in uint texel_value,
-                                 in vec2 glyph_position,
-                                 in uint geometry_offset)
+                                  in vec2 glyph_position,
+                                  in uint geometry_offset)
 {
   /* geomtetry data of curve
    */

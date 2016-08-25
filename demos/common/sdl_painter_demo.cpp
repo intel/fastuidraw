@@ -197,13 +197,13 @@ init_gl(int w, int h)
       m_glyph_atlas_params.use_optimal_geometry_store_backing();
       switch(m_glyph_atlas_params.glyph_geometry_backing_store_type())
         {
-        case fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_buffer:
+        case fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_tbo:
           {
             std::cout << "Glyph Geometry Store: auto selected buffer\n";
           }
           break;
 
-        case fastuidraw::gl::GlyphAtlasGL::glyph_geometry_texture_2d_array:
+        case fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_texture_array:
           {
             fastuidraw::ivec2 log2_dims(m_glyph_atlas_params.texture_2d_array_geometry_store_log2_dims());
             std::cout << "Glyph Geometry Store: auto selected texture with dimensions: (2^"
