@@ -165,6 +165,7 @@ namespace
     GLenum m_clip_plane0;
 
     GLuint m_linear_filter_sampler;
+    fastuidraw::gl::PreLinkActionArray m_attribute_binder;
     fastuidraw::gl::ProgramInitializerArray m_initializer;
     fastuidraw::glsl::ShaderSource m_front_matter_vert;
     fastuidraw::glsl::ShaderSource m_front_matter_frag;
@@ -364,25 +365,25 @@ request_vao(void)
       m_vaos[m_pool][m_current].m_attribute_bo = generate_bo(GL_ARRAY_BUFFER, m_attribute_buffer_size);
       m_vaos[m_pool][m_current].m_index_bo = generate_bo(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size);
 
-      glEnableVertexAttribArray(0);
+      glEnableVertexAttribArray(fastuidraw::glsl::PainterBackendGLSL::primary_attrib_slot);
       v = fastuidraw::gl::opengl_trait_values<fastuidraw::vec4>(sizeof(fastuidraw::PainterAttribute),
                                                                 offsetof(fastuidraw::PainterAttribute, m_primary_attrib));
-      fastuidraw::gl::VertexAttribPointer(0, v);
+      fastuidraw::gl::VertexAttribPointer(fastuidraw::glsl::PainterBackendGLSL::primary_attrib_slot, v);
 
-      glEnableVertexAttribArray(1);
+      glEnableVertexAttribArray(fastuidraw::glsl::PainterBackendGLSL::secondary_attrib_slot);
       v = fastuidraw::gl::opengl_trait_values<fastuidraw::vec4>(sizeof(fastuidraw::PainterAttribute),
                                                                 offsetof(fastuidraw::PainterAttribute, m_secondary_attrib));
-      fastuidraw::gl::VertexAttribPointer(1, v);
+      fastuidraw::gl::VertexAttribPointer(fastuidraw::glsl::PainterBackendGLSL::secondary_attrib_slot, v);
 
-      glEnableVertexAttribArray(2);
+      glEnableVertexAttribArray(fastuidraw::glsl::PainterBackendGLSL::uint_attrib_slot);
       v = fastuidraw::gl::opengl_trait_values<fastuidraw::uvec4>(sizeof(fastuidraw::PainterAttribute),
                                                                  offsetof(fastuidraw::PainterAttribute, m_uint_attrib));
-      fastuidraw::gl::VertexAttribIPointer(2, v);
+      fastuidraw::gl::VertexAttribIPointer(fastuidraw::glsl::PainterBackendGLSL::uint_attrib_slot, v);
 
       m_vaos[m_pool][m_current].m_header_bo = generate_bo(GL_ARRAY_BUFFER, m_header_buffer_size);
-      glEnableVertexAttribArray(3);
+      glEnableVertexAttribArray(fastuidraw::glsl::PainterBackendGLSL::header_attrib_slot);
       v = fastuidraw::gl::opengl_trait_values<uint32_t>();
-      fastuidraw::gl::VertexAttribIPointer(3, v);
+      fastuidraw::gl::VertexAttribIPointer(fastuidraw::glsl::PainterBackendGLSL::header_attrib_slot, v);
 
       glBindVertexArray(0);
     }
@@ -920,6 +921,7 @@ configure_backend(void)
    */
   m_uber_shader_builder_params
     .z_coordinate_convention(fastuidraw::glsl::PainterBackendGLSL::z_minus_1_to_1)
+    .assign_layout_to_vertex_shader_inputs(true)
     .assign_layout_to_varyings(false)
     .assign_binding_points(false)
     .negate_normalized_y_coordinate(false)
@@ -975,6 +977,15 @@ configure_source_front_matter(void)
           }
           break;
         }
+    }
+
+  if(!m_uber_shader_builder_params.assign_layout_to_vertex_shader_inputs())
+    {
+      m_attribute_binder
+        .add_binding("fastuidraw_primary_attribute", PainterBackendGLSL::primary_attrib_slot)
+        .add_binding("fastuidraw_secondary_attribute", PainterBackendGLSL::secondary_attrib_slot)
+        .add_binding("fastuidraw_uint_attribute", PainterBackendGLSL::uint_attrib_slot)
+        .add_binding("fastuidraw_header_attribute", PainterBackendGLSL::header_attrib_slot);
     }
 
   #ifdef FASTUIDRAW_GL_USE_GLES
@@ -1071,11 +1082,7 @@ build_program(void)
 
   m_p->construct_shader(vert, frag, m_uber_shader_builder_params);
   m_program = FASTUIDRAWnew fastuidraw::gl::Program(vert, frag,
-                                                    fastuidraw::gl::PreLinkActionArray()
-                                                    .add_binding("fastuidraw_primary_attribute", 0)
-                                                    .add_binding("fastuidraw_secondary_attribute", 1)
-                                                    .add_binding("fastuidraw_uint_attribute", 2)
-                                                    .add_binding("fastuidraw_header_attribute", 3),
+                                                    m_attribute_binder,
                                                     m_initializer);
 
   m_target_resolution_loc = m_program->uniform_location("fastuidraw_viewport_pixels");

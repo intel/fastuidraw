@@ -71,6 +71,7 @@ namespace
     UberShaderParamsPrivate(void):
       m_z_coordinate_convention(fastuidraw::glsl::PainterBackendGLSL::z_minus_1_to_1),
       m_negate_normalized_y_coordinate(false),
+      m_assign_layout_to_vertex_shader_inputs(true),
       m_assign_layout_to_varyings(true),
       m_assign_binding_points(true),
       m_vert_shader_use_switch(false),
@@ -88,6 +89,7 @@ namespace
 
     enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t m_z_coordinate_convention;
     bool m_negate_normalized_y_coordinate;
+    bool m_assign_layout_to_vertex_shader_inputs;
     bool m_assign_layout_to_varyings;
     bool m_assign_binding_points;
     bool m_vert_shader_use_switch;
@@ -300,9 +302,10 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
 
   std::string varying_layout_macro, binding_layout_macro;
   std::string declare_shader_varyings, declare_main_varyings, declare_brush_varyings;
+  std::string declare_vertex_shader_ins;
   const varying_list *main_varyings;
   DeclareVaryingsStringDatum main_varying_datum, brush_varying_datum, shader_varying_datum;
-  const fastuidraw::glsl::PainterBackendGLSL::BindingPoints &binding_params(params.binding_points());
+  const PainterBackendGLSL::BindingPoints &binding_params(params.binding_points());
 
   const GlyphAtlas *glyph_atlas;
   glyph_atlas = m_p->glyph_atlas().get();
@@ -312,6 +315,25 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
 
   const ImageAtlas *image_atlas;
   image_atlas = m_p->image_atlas().get();
+
+  if(params.assign_layout_to_vertex_shader_inputs())
+    {
+      std::ostringstream ostr;
+      ostr << "layout(location = " << PainterBackendGLSL::primary_attrib_slot << ") in vec4 fastuidraw_primary_attribute;\n"
+           << "layout(location = " << PainterBackendGLSL::secondary_attrib_slot << ") in vec4 fastuidraw_secondary_attribute;\n"
+           << "layout(location = " << PainterBackendGLSL::uint_attrib_slot << ") in uvec4 fastuidraw_uint_attribute;\n"
+           << "layout(location = " << PainterBackendGLSL::header_attrib_slot << ") in uint fastuidraw_header_attribute;\n";
+      declare_vertex_shader_ins = ostr.str();
+    }
+  else
+    {
+      std::ostringstream ostr;
+      ostr << "in vec4 fastuidraw_primary_attribute;\n"
+           << "in vec4 fastuidraw_secondary_attribute;\n"
+           << "in uvec4 fastuidraw_uint_attribute;\n"
+           << "in uint fastuidraw_header_attribute;\n";
+      declare_vertex_shader_ins = ostr.str();
+    }
 
   if(params.assign_layout_to_varyings())
     {
@@ -508,6 +530,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", uint32_log2(image_atlas->index_tile_size()))
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE", image_atlas->color_tile_size())
     .add_macro("fastuidraw_varying", "out")
+    .add_source(declare_vertex_shader_ins.c_str(), ShaderSource::from_string)
     .add_source(declare_brush_varyings.c_str(), ShaderSource::from_string)
     .add_source(declare_main_varyings.c_str(), ShaderSource::from_string)
     .add_source(declare_shader_varyings.c_str(), ShaderSource::from_string);
@@ -825,6 +848,7 @@ operator=(const UberShaderParams &rhs)
 
 setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t, z_coordinate_convention)
 setget_implement(bool, negate_normalized_y_coordinate)
+setget_implement(bool, assign_layout_to_vertex_shader_inputs)
 setget_implement(bool, assign_layout_to_varyings)
 setget_implement(bool, assign_binding_points)
 setget_implement(bool, vert_shader_use_switch)

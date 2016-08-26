@@ -108,6 +108,36 @@ namespace fastuidraw
         };
 
       /*!
+        Enumeration to describe vertex shader input
+        slot layout.
+       */
+      enum vertex_shader_in_layout
+        {
+          /*!
+            Slot for the values of PainterAttribute::m_primary_attrib
+            of PainterDrawCommand::m_attributes
+           */
+          primary_attrib_slot = 0,
+
+          /*!
+            Slot for the values of PainterAttribute::m_secondary_attributes
+            of PainterDrawCommand::m_attributes
+           */
+          secondary_attrib_slot,
+
+          /*!
+            Slot for the values of PainterAttribute::m_uint_attrib
+            of PainterDrawCommand::m_attributes
+           */
+          uint_attrib_slot,
+
+          /*!
+            Slot for the values of PainterDrawCommand::m_header_attributes
+           */
+          header_attrib_slot,
+        };
+
+      /*!
         A params gives parameters how to contruct
         a PainterBackendGLSL. These values influence
         the behavior of both the PainterBackendGLSL
@@ -433,6 +463,22 @@ namespace fastuidraw
          */
         UberShaderParams&
         negate_normalized_y_coordinate(bool);
+
+        /*!
+          if true, assign the slot location of the vertex shader
+          inputs (via layout(location =) in GLSL ). The layout
+          locations are defined by the enumeration
+          vertex_shader_in_layout.
+         */
+        bool
+        assign_layout_to_vertex_shader_inputs(void) const;
+
+        /*!
+          Set the value returned by assign_layout_to_vertex_shader_inputs(void) const.
+          Default value is true.
+         */
+        UberShaderParams&
+        assign_layout_to_vertex_shader_inputs(bool);
 
         /*!
           If true, assign the slot locations (via layout(location = ) in GLSL)

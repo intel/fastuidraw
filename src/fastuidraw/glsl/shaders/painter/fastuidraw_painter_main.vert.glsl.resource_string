@@ -2,14 +2,6 @@
    be placed -before- this code.
  */
 
-
-/* our attributes
- */
-in vec4 fastuidraw_primary_attribute;
-in vec4 fastuidraw_secondary_attribute;
-in uvec4 fastuidraw_uint_attribute;
-in uint fastuidraw_header_attribute;
-
 #ifdef FASTUIDRAW_PAINTER_NORMALIZED_Z_MINUS_1_TO_1
   #define FASTUIDRAW_DEPTH_COEFF (1.0 / float(fastuidraw_half_max_z) )
 #else
