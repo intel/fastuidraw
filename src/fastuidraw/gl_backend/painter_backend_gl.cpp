@@ -959,9 +959,13 @@ configure_source_front_matter(void)
         .add_sampler_initializer("fastuidraw_imageAtlasFiltered", binding_points.image_atlas_color_tiles_filtered())
         .add_sampler_initializer("fastuidraw_imageIndexAtlas", binding_points.image_atlas_index_tiles())
         .add_sampler_initializer("fastuidraw_glyphTexelStoreUINT", binding_points.glyph_atlas_texel_store_uint())
-        .add_sampler_initializer("fastuidraw_glyphTexelStoreFLOAT", binding_points.glyph_atlas_texel_store_float())
         .add_sampler_initializer("fastuidraw_glyphGeometryDataStore", binding_points.glyph_atlas_geometry_store())
         .add_sampler_initializer("fastuidraw_colorStopAtlas", binding_points.colorstop_atlas());
+
+      if(m_uber_shader_builder_params.have_float_glyph_texture_atlas())
+        {
+          m_initializer.add_sampler_initializer("fastuidraw_glyphTexelStoreFLOAT", binding_points.glyph_atlas_texel_store_float());
+        }
 
       switch(m_uber_shader_builder_params.data_store_backing())
         {
