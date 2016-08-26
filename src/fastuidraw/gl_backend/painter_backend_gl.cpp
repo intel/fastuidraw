@@ -986,6 +986,8 @@ build_program(void)
             .specify_extension("GL_EXT_texture_buffer", fastuidraw::glsl::ShaderSource::enable_extension)
             .specify_extension("GL_OES_texture_buffer", fastuidraw::glsl::ShaderSource::enable_extension);
         }
+      vert.add_source("fastuidraw_painter_gles_precision.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource);
+      frag.add_source("fastuidraw_painter_gles_precision.glsl.resource_string", fastuidraw::glsl::ShaderSource::from_resource);
     }
   #else
     {
