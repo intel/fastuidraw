@@ -145,9 +145,18 @@ public:
     Specifies the version of GLSL to which to
     declare the shader. An empty string indicates
     to not have a "#version" directive in the shader.
+    String is -copied-.
    */
   ShaderSource&
   specify_version(const char *v);
+
+  /*!
+    Returns the value set by specify_version().
+    Returned pointer is only valid until the
+    next time that specify_version() is called.
+   */
+  const char*
+  version(void) const;
 
   /*!
     Add shader source code to this ShaderSource.
@@ -226,6 +235,9 @@ public:
   /*!
     Add all the extension specifacation from another
     ShaderSource object to this ShaderSource objects.
+    Extension already set in this ShaderSource that
+    are specified in obj are overwritten to the values
+    specified in obj.
     \param obj ShaderSource object from which to take
    */
   ShaderSource&

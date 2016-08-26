@@ -313,6 +313,15 @@ specify_version(const char *v)
   return *this;
 }
 
+const char*
+fastuidraw::glsl::ShaderSource::
+version(void) const
+{
+  SourcePrivate *d;
+  d = reinterpret_cast<SourcePrivate*>(m_d);
+  return d->m_version.c_str();
+}
+
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
 add_source(const char *str, enum source_t tp, enum add_location_t loc)
