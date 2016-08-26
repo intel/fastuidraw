@@ -58,7 +58,9 @@ protected:
         std::cout << "\t" << name.str() << "\n";
       }
     std::cout << "\nUseful command to see shader after pre-processor:\n"
-              << "\tcpp file.glsl | grep -v \"#\" | sed '/^\\s*$/d'\n";
+              << "\tsed 's/#version/@version/g' file.glsl | sed 's/#extension/@extension/g'"
+              << " | cpp | grep -v \"#\" | sed '/^\\s*$/d'"
+              << " | sed 's/@version/#version/g' | sed 's/@extension/#extension/g'\n";
 
     if(m_backend->program()->link_success())
       {
