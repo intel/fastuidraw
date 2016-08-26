@@ -400,6 +400,23 @@ specify_extension(const char *ext_name, enum extension_enable_t tp)
   return *this;
 }
 
+fastuidraw::glsl::ShaderSource&
+fastuidraw::glsl::ShaderSource::
+specify_extensions(const ShaderSource &obj)
+{
+  SourcePrivate *d;
+  const SourcePrivate *obj_d;
+  d = reinterpret_cast<SourcePrivate*>(m_d);
+  obj_d = reinterpret_cast<const SourcePrivate*>(obj.m_d);
+  for(std::map<std::string, extension_enable_t>::const_iterator
+        iter = obj_d->m_extensions.begin(), end = obj_d->m_extensions.end();
+      iter != end; ++iter)
+    {
+      d->m_extensions[iter->first] = iter->second;
+    }
+  return *this;
+}
+
 const char*
 fastuidraw::glsl::ShaderSource::
 assembled_code(void) const

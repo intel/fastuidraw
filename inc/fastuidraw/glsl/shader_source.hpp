@@ -121,115 +121,123 @@ public:
       disable_extension
     };
 
-    /*!
-      Ctor.
-     */
-    ShaderSource(void);
+  /*!
+    Ctor.
+   */
+  ShaderSource(void);
 
-    /*!
-      Copy ctor.
-      \param obj value from which to copy
-     */
-    ShaderSource(const ShaderSource &obj);
+  /*!
+    Copy ctor.
+    \param obj value from which to copy
+   */
+  ShaderSource(const ShaderSource &obj);
 
-    ~ShaderSource();
+  ~ShaderSource();
 
-    /*!
-      Assignment operator.
-      \param obj value from which to copy
-     */
-    ShaderSource&
-    operator=(const ShaderSource &obj);
+  /*!
+    Assignment operator.
+    \param obj value from which to copy
+   */
+  ShaderSource&
+  operator=(const ShaderSource &obj);
 
-    /*!
-      Specifies the version of GLSL to which to
-      declare the shader. An empty string indicates
-      to not have a "#version" directive in the shader.
-     */
-    ShaderSource&
-    specify_version(const char *v);
+  /*!
+    Specifies the version of GLSL to which to
+    declare the shader. An empty string indicates
+    to not have a "#version" directive in the shader.
+   */
+  ShaderSource&
+  specify_version(const char *v);
 
-    /*!
-      Add shader source code to this ShaderSource.
-      \param str string that is a filename, GLSL source or a resource name
-      \param tp interpretation of str, i.e. determines if
-                str is a filename, raw GLSL source or a resource
-      \param loc location to add source
-     */
-    ShaderSource&
-    add_source(const char *str, enum source_t tp = from_file,
-               enum add_location_t loc = push_back);
+  /*!
+    Add shader source code to this ShaderSource.
+    \param str string that is a filename, GLSL source or a resource name
+    \param tp interpretation of str, i.e. determines if
+              str is a filename, raw GLSL source or a resource
+    \param loc location to add source
+   */
+  ShaderSource&
+  add_source(const char *str, enum source_t tp = from_file,
+             enum add_location_t loc = push_back);
 
-    /*!
-      Add the sources from another ShaderSource object.
-      \param obj ShaderSource object from which to absorb
-     */
-    ShaderSource&
-    add_source(const ShaderSource &obj);
+  /*!
+    Add the sources from another ShaderSource object.
+    \param obj ShaderSource object from which to absorb
+   */
+  ShaderSource&
+  add_source(const ShaderSource &obj);
 
-    /*!
-      Add a macro to this ShaderSource.
-      Functionally, will insert \#define macro_name macro_value
-      in the GLSL source code.
-      \param macro_name name of macro
-      \param macro_value value to which macro is given
-      \param loc location to add macro within code
-     */
-    ShaderSource&
-    add_macro(const char *macro_name, const char *macro_value = "",
-              enum add_location_t loc = push_back);
+  /*!
+    Add a macro to this ShaderSource.
+    Functionally, will insert \#define macro_name macro_value
+    in the GLSL source code.
+    \param macro_name name of macro
+    \param macro_value value to which macro is given
+    \param loc location to add macro within code
+   */
+  ShaderSource&
+  add_macro(const char *macro_name, const char *macro_value = "",
+            enum add_location_t loc = push_back);
 
-    /*!
-      Add a macro to this ShaderSource.
-      Functionally, will insert \#define macro_name macro_value
-      in the GLSL source code.
-      \param macro_name name of macro
-      \param macro_value value to which macro is given
-      \param loc location to add macro within code
-     */
-    ShaderSource&
-    add_macro(const char *macro_name, uint32_t macro_value,
-              enum add_location_t loc = push_back);
+  /*!
+    Add a macro to this ShaderSource.
+    Functionally, will insert \#define macro_name macro_value
+    in the GLSL source code.
+    \param macro_name name of macro
+    \param macro_value value to which macro is given
+    \param loc location to add macro within code
+   */
+  ShaderSource&
+  add_macro(const char *macro_name, uint32_t macro_value,
+            enum add_location_t loc = push_back);
 
-    /*!
-      Add a macro to this ShaderSource.
-      Functionally, will insert \#define macro_name macro_value
-      in the GLSL source code.
-      \param macro_name name of macro
-      \param macro_value value to which macro is given
-      \param loc location to add macro within code
-     */
-    ShaderSource&
-    add_macro(const char *macro_name, int32_t macro_value,
-              enum add_location_t loc = push_back);
+  /*!
+    Add a macro to this ShaderSource.
+    Functionally, will insert \#define macro_name macro_value
+    in the GLSL source code.
+    \param macro_name name of macro
+    \param macro_value value to which macro is given
+    \param loc location to add macro within code
+   */
+  ShaderSource&
+  add_macro(const char *macro_name, int32_t macro_value,
+            enum add_location_t loc = push_back);
 
-    /*!
-      Adds the string
-      \code
-      #undef X
-      \endcode
-      where X is the passed macro name
-      \param macro_name name of macro
-     */
-    ShaderSource&
-    remove_macro(const char *macro_name);
+  /*!
+    Adds the string
+    \code
+    #undef X
+    \endcode
+    where X is the passed macro name
+    \param macro_name name of macro
+   */
+  ShaderSource&
+  remove_macro(const char *macro_name);
 
-    /*!
-      Specifiy an extension and usage.
-      \param ext_name name of GL extension
-      \param tp usage of extension
-     */
-    ShaderSource&
-    specify_extension(const char *ext_name,
-                      enum extension_enable_t tp = enable_extension);
+  /*!
+    Specifiy an extension and usage.
+    \param ext_name name of GL extension
+    \param tp usage of extension
+   */
+  ShaderSource&
+  specify_extension(const char *ext_name,
+                    enum extension_enable_t tp = enable_extension);
 
-    /*!
-      Returns the GLSL code assembled. The returned string is only
-      gauranteed to be valid up until the ShaderSource object
-      is modified.
-     */
-    const char*
-    assembled_code(void) const;
+  /*!
+    Add all the extension specifacation from another
+    ShaderSource object to this ShaderSource objects.
+    \param obj ShaderSource object from which to take
+   */
+  ShaderSource&
+  specify_extensions(const ShaderSource &obj);
+
+  /*!
+    Returns the GLSL code assembled. The returned string is only
+    gauranteed to be valid up until the ShaderSource object
+    is modified.
+   */
+  const char*
+  assembled_code(void) const;
 
   private:
     void *m_d;
