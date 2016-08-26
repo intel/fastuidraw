@@ -39,6 +39,32 @@ namespace
     enum fastuidraw::PainterBlendShader::shader_type m_default_blend_shader_type;
   };
 
+  class BindingPointsPrivate
+  {
+  public:
+    BindingPointsPrivate(void):
+      m_colorstop_atlas(0),
+      m_image_atlas_color_tiles_unfiltered(1),
+      m_image_atlas_color_tiles_filtered(2),
+      m_image_atlas_index_tiles(3),
+      m_glyph_atlas_texel_store_uint(4),
+      m_glyph_atlas_texel_store_float(5),
+      m_glyph_atlas_geometry_store(6),
+      m_data_store_buffer_tbo(7),
+      m_data_store_buffer_ubo(0)
+    {}
+
+    unsigned int m_colorstop_atlas;
+    unsigned int m_image_atlas_color_tiles_unfiltered;
+    unsigned int m_image_atlas_color_tiles_filtered;
+    unsigned int m_image_atlas_index_tiles;
+    unsigned int m_glyph_atlas_texel_store_uint;
+    unsigned int m_glyph_atlas_texel_store_float;
+    unsigned int m_glyph_atlas_geometry_store;
+    unsigned int m_data_store_buffer_tbo;
+    unsigned int m_data_store_buffer_ubo;
+  };
+
   class UberShaderParamsPrivate
   {
   public:
@@ -46,6 +72,7 @@ namespace
       m_z_coordinate_convention(fastuidraw::glsl::PainterBackendGLSL::z_minus_1_to_1),
       m_negate_normalized_y_coordinate(false),
       m_assign_layout_to_varyings(true),
+      m_assign_binding_points(true),
       m_vert_shader_use_switch(false),
       m_frag_shader_use_switch(false),
       m_blend_shader_use_switch(false),
@@ -55,12 +82,14 @@ namespace
       m_glyph_geometry_backing(fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_tbo),
       m_glyph_geometry_backing_log2_dims(-1, -1),
       m_have_float_glyph_texture_atlas(true),
+      m_colorstop_atlas_backing(fastuidraw::glsl::PainterBackendGLSL::colorstop_texture_1d_array),
       m_blend_type(fastuidraw::PainterBlendShader::dual_src)
     {}
 
     enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t m_z_coordinate_convention;
     bool m_negate_normalized_y_coordinate;
     bool m_assign_layout_to_varyings;
+    bool m_assign_binding_points;
     bool m_vert_shader_use_switch;
     bool m_frag_shader_use_switch;
     bool m_blend_shader_use_switch;
@@ -70,7 +99,9 @@ namespace
     enum fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_backing_t m_glyph_geometry_backing;
     fastuidraw::ivec2 m_glyph_geometry_backing_log2_dims;
     bool m_have_float_glyph_texture_atlas;
+    enum fastuidraw::glsl::PainterBackendGLSL::colorstop_backing_t m_colorstop_atlas_backing;
     enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
+    fastuidraw::glsl::PainterBackendGLSL::BindingPoints m_binding_points;
   };
 
   class PainterBackendGLSLPrivate
@@ -267,10 +298,11 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   using namespace fastuidraw::glsl::detail;
   using namespace fastuidraw::PainterPacking;
 
-  std::string declare_shader_varyings, layout_macro;
-  std::string declare_main_varyings, declare_brush_varyings;
+  std::string varying_layout_macro, binding_layout_macro;
+  std::string declare_shader_varyings, declare_main_varyings, declare_brush_varyings;
   const varying_list *main_varyings;
   DeclareVaryingsStringDatum main_varying_datum, brush_varying_datum, shader_varying_datum;
+  const fastuidraw::glsl::PainterBackendGLSL::BindingPoints &binding_params(params.binding_points());
 
   const GlyphAtlas *glyph_atlas;
   glyph_atlas = m_p->glyph_atlas().get();
@@ -284,15 +316,29 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   if(params.assign_layout_to_varyings())
     {
       std::ostringstream ostr;
-      ostr << "\n#define FASTUIDRAW_LAYOUT_VARYING(X) layout(location = X)"
-           << "\n#define FASTUIDRAW_IO_BLOCKS_SUPPORTED\n";
-      layout_macro = ostr.str();
+      ostr << "\n#define FASTUIDRAW_LAYOUT_VARYING(X) layout(location = X)";
+      varying_layout_macro = ostr.str();
     }
   else
     {
       std::ostringstream ostr;
       ostr << "\n#define FASTUIDRAW_LAYOUT_VARYING(X)\n";
-      layout_macro = ostr.str();
+      varying_layout_macro = ostr.str();
+    }
+
+  if(params.assign_binding_points())
+    {
+      std::ostringstream ostr;
+      ostr << "\n#define FASTUIDRAW_LAYOUT_BINDING(X) layout(binding = X)";
+      ostr << "\n#define FASTUIDRAW_LAYOUT_BINDING_ARGS(X, Y) layout(binding = X, Y)";
+      binding_layout_macro = ostr.str();
+    }
+  else
+    {
+      std::ostringstream ostr;
+      ostr << "\n#define FASTUIDRAW_LAYOUT_BINDING(X)";
+      ostr << "\n#define FASTUIDRAW_LAYOUT_BINDING_ARGS(X, Y) layout(Y)";
+      binding_layout_macro = ostr.str();
     }
 
   unsigned int varying_slot(0);
@@ -423,7 +469,17 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   add_enums(m_p->configuration_base().alignment(), vert);
   add_texture_size_constants(vert, glyph_atlas, image_atlas, colorstop_atlas);
   vert
-    .add_source(layout_macro.c_str(), ShaderSource::from_string)
+    .add_source(varying_layout_macro.c_str(), ShaderSource::from_string)
+    .add_source(binding_layout_macro.c_str(), ShaderSource::from_string)
+    .add_macro("FASTUIDRAW_COLORSTOP_ATLAS_BINDING", binding_params.colorstop_atlas())
+    .add_macro("FASTUIDRAW_COLOR_TILE_UNFILTERED_BINDING", binding_params.image_atlas_color_tiles_unfiltered())
+    .add_macro("FASTUIDRAW_COLOR_TILE_FILTERED_BINDING", binding_params.image_atlas_color_tiles_filtered())
+    .add_macro("FASTUIDRAW_INDEX_TILE_BINDING", binding_params.image_atlas_index_tiles())
+    .add_macro("FASTUIDRAW_GLYPH_TEXEL_ATLAS_UINT_BINDING", binding_params.glyph_atlas_texel_store_uint())
+    .add_macro("FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING", binding_params.glyph_atlas_texel_store_float())
+    .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING", binding_params.glyph_atlas_geometry_store())
+    .add_macro("FASTUIDRAW_PAINTER_STORE_TBO_BINDING", binding_params.data_store_buffer_tbo())
+    .add_macro("FASTUIDRAW_PAINTER_STORE_UBO_BINDING", binding_params.data_store_buffer_ubo())
     .add_source("fastuidraw_painter_gles_precision.glsl.resource_string", ShaderSource::from_resource)
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_SIZE", image_atlas->index_tile_size())
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", uint32_log2(image_atlas->index_tile_size()))
@@ -482,8 +538,18 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   add_enums(m_p->configuration_base().alignment(), frag);
   add_texture_size_constants(frag, glyph_atlas, image_atlas, colorstop_atlas);
   frag
-    .add_source(layout_macro.c_str(), ShaderSource::from_string)
+    .add_source(varying_layout_macro.c_str(), ShaderSource::from_string)
+    .add_source(binding_layout_macro.c_str(), ShaderSource::from_string)
     .add_macro(shader_blend_macro)
+    .add_macro("FASTUIDRAW_COLORSTOP_ATLAS_BINDING", binding_params.colorstop_atlas())
+    .add_macro("FASTUIDRAW_COLOR_TILE_UNFILTERED_BINDING", binding_params.image_atlas_color_tiles_unfiltered())
+    .add_macro("FASTUIDRAW_COLOR_TILE_FILTERED_BINDING", binding_params.image_atlas_color_tiles_filtered())
+    .add_macro("FASTUIDRAW_INDEX_TILE_BINDING", binding_params.image_atlas_index_tiles())
+    .add_macro("FASTUIDRAW_GLYPH_TEXEL_ATLAS_UINT_BINDING", binding_params.glyph_atlas_texel_store_uint())
+    .add_macro("FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING", binding_params.glyph_atlas_texel_store_float())
+    .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING", binding_params.glyph_atlas_geometry_store())
+    .add_macro("FASTUIDRAW_PAINTER_STORE_TBO_BINDING", binding_params.data_store_buffer_tbo())
+    .add_macro("FASTUIDRAW_PAINTER_STORE_UBO_BINDING", binding_params.data_store_buffer_ubo())
     .add_source("fastuidraw_painter_gles_precision.glsl.resource_string", ShaderSource::from_resource)
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_SIZE", image_atlas->index_tile_size())
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", uint32_log2(image_atlas->index_tile_size()))
@@ -605,6 +671,77 @@ setget_implement(enum fastuidraw::PainterBlendShader::shader_type, default_blend
 
 #undef setget_implement
 
+/////////////////////////////////////////////////////////////
+// fastuidraw::glsl::PainterBackendGLSL::BindingPoints methods
+fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
+BindingPoints(void)
+{
+  m_d = FASTUIDRAWnew BindingPointsPrivate();
+}
+
+fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
+BindingPoints(const BindingPoints &obj)
+{
+  BindingPointsPrivate *d;
+  d = reinterpret_cast<BindingPointsPrivate*>(obj.m_d);
+  m_d = FASTUIDRAWnew BindingPointsPrivate(*d);
+}
+
+fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
+~BindingPoints()
+{
+  BindingPointsPrivate *d;
+  d = reinterpret_cast<BindingPointsPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+  m_d = NULL;
+}
+
+fastuidraw::glsl::PainterBackendGLSL::BindingPoints&
+fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
+operator=(const BindingPoints &rhs)
+{
+  if(this != &rhs)
+    {
+      BindingPointsPrivate *d, *rhs_d;
+      d = reinterpret_cast<BindingPointsPrivate*>(m_d);
+      rhs_d = reinterpret_cast<BindingPointsPrivate*>(rhs.m_d);
+      *d = *rhs_d;
+    }
+  return *this;
+}
+
+#define setget_implement(type, name)                                    \
+  fastuidraw::glsl::PainterBackendGLSL::BindingPoints&                  \
+  fastuidraw::glsl::PainterBackendGLSL::BindingPoints::                 \
+  name(type v)                                                          \
+  {                                                                     \
+    BindingPointsPrivate *d;                                            \
+    d = reinterpret_cast<BindingPointsPrivate*>(m_d);                   \
+    d->m_##name = v;                                                    \
+    return *this;                                                       \
+  }                                                                     \
+                                                                        \
+  type                                                                  \
+  fastuidraw::glsl::PainterBackendGLSL::BindingPoints::                 \
+  name(void) const                                                      \
+  {                                                                     \
+    BindingPointsPrivate *d;                                            \
+    d = reinterpret_cast<BindingPointsPrivate*>(m_d);                   \
+    return d->m_##name;                                                 \
+  }
+
+setget_implement(unsigned int, colorstop_atlas)
+setget_implement(unsigned int, image_atlas_color_tiles_unfiltered)
+setget_implement(unsigned int, image_atlas_color_tiles_filtered)
+setget_implement(unsigned int, image_atlas_index_tiles)
+setget_implement(unsigned int, glyph_atlas_texel_store_uint)
+setget_implement(unsigned int, glyph_atlas_texel_store_float)
+setget_implement(unsigned int, glyph_atlas_geometry_store)
+setget_implement(unsigned int, data_store_buffer_tbo)
+setget_implement(unsigned int, data_store_buffer_ubo)
+
+#undef setget_implement
+
 ////////////////////////////////////////////////////////////////
 // fastuidraw::glsl::PainterBackendGLSL::UberShaderParams methods
 fastuidraw::glsl::PainterBackendGLSL::UberShaderParams::
@@ -667,6 +804,7 @@ operator=(const UberShaderParams &rhs)
 setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t, z_coordinate_convention)
 setget_implement(bool, negate_normalized_y_coordinate)
 setget_implement(bool, assign_layout_to_varyings)
+setget_implement(bool, assign_binding_points)
 setget_implement(bool, vert_shader_use_switch)
 setget_implement(bool, frag_shader_use_switch)
 setget_implement(bool, blend_shader_use_switch)
@@ -675,9 +813,10 @@ setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::data_store_backing_t
 setget_implement(int, data_blocks_per_store_buffer)
 setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_backing_t, glyph_geometry_backing)
 setget_implement(fastuidraw::ivec2, glyph_geometry_backing_log2_dims)
-setget_implement(enum fastuidraw::PainterBlendShader::shader_type, blend_type)
 setget_implement(bool, have_float_glyph_texture_atlas)
-
+setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::colorstop_backing_t, colorstop_atlas_backing)
+setget_implement(enum fastuidraw::PainterBlendShader::shader_type, blend_type)
+setget_implement(const fastuidraw::glsl::PainterBackendGLSL::BindingPoints&, binding_points)
 #undef setget_implement
 
 //////////////////////////////////////////////
