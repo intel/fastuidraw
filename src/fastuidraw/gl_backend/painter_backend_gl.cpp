@@ -887,6 +887,19 @@ configure_backend(void)
     }
   assert(m_params.use_hw_clip_planes() == m_p->configuration_glsl().use_hw_clip_planes());
 
+  fastuidraw::gl::ColorStopAtlasGL *color;
+  assert(dynamic_cast<fastuidraw::gl::ColorStopAtlasGL*>(m_params.colorstop_atlas().get()));
+  color = static_cast<fastuidraw::gl::ColorStopAtlasGL*>(m_params.colorstop_atlas().get());
+  enum fastuidraw::glsl::PainterBackendGLSL::colorstop_backing_t colorstop_tp;
+  if(color->texture_bind_target() == GL_TEXTURE_2D_ARRAY)
+    {
+      colorstop_tp = fastuidraw::glsl::PainterBackendGLSL::colorstop_texture_2d_array;
+    }
+  else
+    {
+      colorstop_tp = fastuidraw::glsl::PainterBackendGLSL::colorstop_texture_1d_array;
+    }
+
   /*
     configure m_uber_shader_builder_params now that m_params has been
     sanitized. NOTES:
@@ -913,6 +926,7 @@ configure_backend(void)
     .glyph_geometry_backing(m_params.glyph_atlas()->param_values().glyph_geometry_backing_store_type())
     .glyph_geometry_backing_log2_dims(m_params.glyph_atlas()->param_values().texture_2d_array_geometry_store_log2_dims())
     .have_float_glyph_texture_atlas(m_params.glyph_atlas()->texel_texture(false) != 0)
+    .colorstop_atlas_backing(colorstop_tp)
     .blend_type(m_p->configuration_glsl().default_blend_shader_type());
 
   /* now allocate m_pool after adjusting m_params

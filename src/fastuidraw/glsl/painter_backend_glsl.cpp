@@ -356,6 +356,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
                                                        &varying_slot,
                                                        &brush_varying_datum);
     }
+
   declare_main_varyings = declare_varyings_string("_main",
                                                   main_varyings->uints().size(),
                                                   main_varyings->ints().size(),
@@ -399,6 +400,26 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       frag.add_macro("FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES");
     }
 
+  switch(params.colorstop_atlas_backing())
+    {
+    case PainterBackendGLSL::colorstop_texture_1d_array:
+      {
+        vert.add_macro("FASTUIDRAW_PAINTER_COLORSTOP_ATLAS_1D_ARRAY");
+        frag.add_macro("FASTUIDRAW_PAINTER_COLORSTOP_ATLAS_1D_ARRAY");
+      }
+    break;
+
+    case PainterBackendGLSL::colorstop_texture_2d_array:
+      {
+        vert.add_macro("FASTUIDRAW_PAINTER_COLORSTOP_ATLAS_2D_ARRAY");
+        frag.add_macro("FASTUIDRAW_PAINTER_COLORSTOP_ATLAS_2D_ARRAY");
+      }
+    break;
+
+    default:
+      assert(!"Invalid colorstop_atlas_backing() value");
+    }
+
   switch(params.data_store_backing())
     {
     case PainterBackendGLSL::data_store_ubo:
@@ -433,6 +454,9 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
         frag.add_macro("FASTUIDRAW_PAINTER_USE_DATA_TBO");
       }
       break;
+
+    default:
+      assert(!"Invalid data_store_backing() value");
     }
 
   if(!params.have_float_glyph_texture_atlas())
