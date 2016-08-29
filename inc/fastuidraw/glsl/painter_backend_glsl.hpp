@@ -49,13 +49,10 @@ namespace fastuidraw
 
           /*!
             Data store is backed by a uniform buffer object
-            that is an array. The type in the array is
-            determined by the value of
-            PainterBackend::Configuration::alignment().
-            - uint array if the value is 1
-            - uvec2 array if the value is 2
-            - uvec3 array if the value is 3
-            - uvec4 array if the value is 4
+            that is an array of uvec4. The value for
+            PainterBackend::ConfigurationBase::alignment()
+            from PainterBackendGLSL::ConfigurationGLSL::m_config
+            must be 4.
            */
           data_store_ubo
         };

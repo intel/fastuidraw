@@ -522,27 +522,17 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     {
     case PainterBackendGLSL::data_store_ubo:
       {
-        const char *uint_types[]=
-          {
-            "",
-            "uint",
-            "uvec2",
-            "uvec3",
-            "uvec4"
-          };
-
         unsigned int alignment(m_p->configuration_base().alignment());
-        assert(alignment <= 4 && alignment > 0);
+        assert(alignment == 4);
+        FASTUIDRAWunused(alignment);
 
         vert
           .add_macro("FASTUIDRAW_PAINTER_USE_DATA_UBO")
-          .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE", params.data_blocks_per_store_buffer())
-          .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE", uint_types[alignment]);
+          .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE", params.data_blocks_per_store_buffer());
 
         frag
           .add_macro("FASTUIDRAW_PAINTER_USE_DATA_UBO")
-          .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE", params.data_blocks_per_store_buffer())
-          .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE", uint_types[alignment]);
+          .add_macro("FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE", params.data_blocks_per_store_buffer());
       }
       break;
 

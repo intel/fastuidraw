@@ -49,7 +49,7 @@ FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING) uniform sa
  */
   FASTUIDRAW_LAYOUT_BINDING_ARGS(FASTUIDRAW_PAINTER_STORE_UBO_BINDING, std140) uniform fastuidraw_painterStore_ubo
   {
-    FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE fastuidraw_painterStore[FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE];
+    uvec4 fastuidraw_painterStore[FASTUIDRAW_PAINTER_DATA_STORE_ARRAY_SIZE];
   };
 
   #define fastuidraw_fetch_data(block) uvec4(fastuidraw_painterStore[int(block)])
