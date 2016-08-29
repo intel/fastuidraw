@@ -21,6 +21,7 @@
 #include <map>
 #include <sstream>
 #include <vector>
+#include <iostream>
 
 #include <fastuidraw/glsl/shader_code.hpp>
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
@@ -33,6 +34,7 @@
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
+#include <fastuidraw/gl_backend/gluniform.hpp>
 
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/packing/painter_packing_brush.hpp>
@@ -109,6 +111,9 @@ namespace
     void
     next_pool(void);
 
+    GLuint //objects are recycled; make sure size never increases!
+    request_uniform_ubo(unsigned int ubo_size, GLenum target);
+
   private:
     void
     generate_tbos(painter_vao &vao);
@@ -129,6 +134,7 @@ namespace
 
     unsigned int m_current, m_pool;
     std::vector<std::vector<painter_vao> > m_vaos;
+    std::vector<GLuint> m_ubos;
   };
 
   class PainterBackendGLPrivate
@@ -170,11 +176,9 @@ namespace
     fastuidraw::glsl::ShaderSource m_front_matter_vert;
     fastuidraw::glsl::ShaderSource m_front_matter_frag;
     fastuidraw::reference_counted_ptr<fastuidraw::gl::Program> m_program;
-    GLint m_target_resolution_loc, m_target_resolution_recip_loc;
-    GLint m_target_resolution_recip_magnitude_loc;
-    fastuidraw::vec2 m_target_resolution;
-    fastuidraw::vec2 m_target_resolution_recip;
-    float m_target_resolution_recip_magnitude;
+    GLint m_shader_uniforms_loc;
+    std::vector<fastuidraw::generic_data> m_uniform_values;
+    fastuidraw::c_array<fastuidraw::generic_data> m_uniform_values_ptr;
     painter_vao_pool *m_pool;
 
     fastuidraw::gl::PainterBackendGL *m_p;
@@ -300,12 +304,14 @@ painter_vao_pool(const fastuidraw::gl::PainterBackendGL::params &params,
   m_binding_points(binding_points),
   m_current(0),
   m_pool(0),
-  m_vaos(params.number_pools())
+  m_vaos(params.number_pools()),
+  m_ubos(params.number_pools(), 0)
 {}
 
 painter_vao_pool::
 ~painter_vao_pool()
 {
+  assert(m_ubos.size() == m_vaos.size());
   for(unsigned int p = 0, endp = m_vaos.size(); p < endp; ++p)
     {
       for(unsigned int i = 0, endi = m_vaos[p].size(); i < endi; ++i)
@@ -320,7 +326,36 @@ painter_vao_pool::
           glDeleteBuffers(1, &m_vaos[p][i].m_data_bo);
           glDeleteVertexArrays(1, &m_vaos[p][i].m_vao);
         }
+
+      if(m_ubos[p] != 0)
+        {
+          glDeleteBuffers(1, &m_ubos[p]);
+        }
     }
+}
+
+GLuint
+painter_vao_pool::
+request_uniform_ubo(unsigned int sz, GLenum target)
+{
+  if(m_ubos[m_pool] == 0)
+    {
+      m_ubos[m_pool] = generate_bo(target, sz);
+    }
+  else
+    {
+      glBindBuffer(target, m_ubos[m_pool]);
+    }
+
+  #ifndef NDEBUG
+    {
+      GLint psize(0);
+      glGetBufferParameteriv(target, GL_BUFFER_SIZE, &psize);
+      assert(psize >= static_cast<int>(sz));
+    }
+  #endif
+
+  return m_ubos[m_pool];
 }
 
 painter_vao
@@ -935,6 +970,7 @@ configure_backend(void)
     .glyph_geometry_backing_log2_dims(m_params.glyph_atlas()->param_values().texture_2d_array_geometry_store_log2_dims())
     .have_float_glyph_texture_atlas(m_params.glyph_atlas()->texel_texture(false) != 0)
     .colorstop_atlas_backing(colorstop_tp)
+    .use_ubo_for_uniforms(false)
     .blend_type(m_p->configuration_glsl().default_blend_shader_type());
 
   /* now allocate m_pool after adjusting m_params
@@ -965,6 +1001,11 @@ configure_source_front_matter(void)
       if(m_uber_shader_builder_params.have_float_glyph_texture_atlas())
         {
           m_initializer.add_sampler_initializer("fastuidraw_glyphTexelStoreFLOAT", binding_points.glyph_atlas_texel_store_float());
+        }
+
+      if(m_uber_shader_builder_params.use_ubo_for_uniforms())
+        {
+          m_initializer.add_uniform_block_binding("fastuidraw_uniform_block", binding_points.uniforms_ubo());
         }
 
       switch(m_uber_shader_builder_params.data_store_backing())
@@ -1089,9 +1130,12 @@ build_program(void)
                                                     m_attribute_binder,
                                                     m_initializer);
 
-  m_target_resolution_loc = m_program->uniform_location("fastuidraw_viewport_pixels");
-  m_target_resolution_recip_loc = m_program->uniform_location("fastuidraw_viewport_recip_pixels");
-  m_target_resolution_recip_magnitude_loc = m_program->uniform_location("fastuidraw_viewport_recip_pixels_magnitude");
+  if(!m_uber_shader_builder_params.use_ubo_for_uniforms())
+    {
+      m_shader_uniforms_loc = m_program->uniform_location("fastuidraw_shader_uniforms");
+    }
+  m_uniform_values.resize(m_p->ubo_size());
+  m_uniform_values_ptr = fastuidraw::c_array<fastuidraw::generic_data>(&m_uniform_values[0], m_uniform_values.size());
 }
 
 ///////////////////////////////////////////////
@@ -1190,21 +1234,6 @@ fastuidraw::gl::PainterBackendGL::
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
-}
-
-void
-fastuidraw::gl::PainterBackendGL::
-target_resolution(int w, int h)
-{
-  PainterBackendGLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
-
-  w = std::max(1, w);
-  h = std::max(1, h);
-
-  d->m_target_resolution = vec2(w, h);
-  d->m_target_resolution_recip = vec2(1.0f, 1.0f) / vec2(d->m_target_resolution);
-  d->m_target_resolution_recip_magnitude = d->m_target_resolution_recip.magnitude();
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::gl::Program>
@@ -1318,17 +1347,29 @@ on_pre_draw(void)
   glBindTexture(ColorStopAtlasGL::texture_bind_target(), color->texture());
 
   program()->use_program();
-  if(d->m_target_resolution_loc != -1)
+
+  if(d->m_uber_shader_builder_params.use_ubo_for_uniforms())
     {
-      glUniform2fv(d->m_target_resolution_loc, 1, d->m_target_resolution.c_ptr());
+      /* Grab the buffer, map it, fill it and leave it bound.
+       */
+      GLuint ubo;
+      unsigned int ubo_size_bytes(sizeof(generic_data) * d->m_uniform_values_ptr.size());
+
+      ubo = d->m_pool->request_uniform_ubo(ubo_size_bytes, GL_ARRAY_BUFFER);
+      assert(ubo != 0);
+
+      fill_uniform_buffer(d->m_uniform_values_ptr);
+      glBufferSubData(GL_ARRAY_BUFFER, 0, ubo_size_bytes, d->m_uniform_values_ptr.c_ptr());
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+      glBindBufferBase(GL_UNIFORM_BUFFER, d->m_uber_shader_builder_params.binding_points().uniforms_ubo(), ubo);
     }
-  if(d->m_target_resolution_recip_loc != -1)
+  else
     {
-      glUniform2fv(d->m_target_resolution_recip_loc, 1, d->m_target_resolution_recip.c_ptr());
-    }
-  if(d->m_target_resolution_recip_magnitude_loc != -1)
-    {
-      glUniform1f(d->m_target_resolution_recip_magnitude_loc, d->m_target_resolution_recip_magnitude);
+      /* the uniform is type float[]
+       */
+      fill_uniform_buffer(d->m_uniform_values_ptr);
+      Uniform(d->m_shader_uniforms_loc, ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
     }
 }
 
@@ -1392,6 +1433,7 @@ on_end(void)
         glBindBufferBase(GL_UNIFORM_BUFFER, binding_points.data_store_buffer_ubo(), 0);
       }
     }
+  glBindBufferBase(GL_UNIFORM_BUFFER, binding_points.uniforms_ubo(), 0);
   d->m_pool->next_pool();
 }
 

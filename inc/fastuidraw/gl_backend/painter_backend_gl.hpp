@@ -314,10 +314,6 @@ namespace fastuidraw
       reference_counted_ptr<const PainterDrawCommand>
       map_draw_command(void);
 
-      virtual
-      void
-      target_resolution(int w, int h);
-
       /*!
         Return the Program used to draw -all- content
         by this PainterBackendGL

@@ -15,6 +15,17 @@
 
 namespace
 {
+  enum uniform_ubo_layout
+    {
+      uniform_ubo_resolution_x_offset,
+      uniform_ubo_resolution_y_offset,
+      uniform_ubo_recip_resolution_x_offset,
+      uniform_ubo_recip_resolution_y_offset,
+      uniform_ubo_recip_magnitude_offset,
+
+      uniform_ubo_number_entries
+    };
+
   class BlendShaderGroup
   {
   public:
@@ -51,7 +62,8 @@ namespace
       m_glyph_atlas_texel_store_float(5),
       m_glyph_atlas_geometry_store(6),
       m_data_store_buffer_tbo(7),
-      m_data_store_buffer_ubo(0)
+      m_data_store_buffer_ubo(0),
+      m_uniforms_ubo(1)
     {}
 
     unsigned int m_colorstop_atlas;
@@ -63,6 +75,7 @@ namespace
     unsigned int m_glyph_atlas_geometry_store;
     unsigned int m_data_store_buffer_tbo;
     unsigned int m_data_store_buffer_ubo;
+    unsigned int m_uniforms_ubo;
   };
 
   class UberShaderParamsPrivate
@@ -84,6 +97,7 @@ namespace
       m_glyph_geometry_backing_log2_dims(-1, -1),
       m_have_float_glyph_texture_atlas(true),
       m_colorstop_atlas_backing(fastuidraw::glsl::PainterBackendGLSL::colorstop_texture_1d_array),
+      m_use_ubo_for_uniforms(true),
       m_blend_type(fastuidraw::PainterBlendShader::dual_src)
     {}
 
@@ -102,6 +116,7 @@ namespace
     fastuidraw::ivec2 m_glyph_geometry_backing_log2_dims;
     bool m_have_float_glyph_texture_atlas;
     enum fastuidraw::glsl::PainterBackendGLSL::colorstop_backing_t m_colorstop_atlas_backing;
+    bool m_use_ubo_for_uniforms;
     enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
     fastuidraw::glsl::PainterBackendGLSL::BindingPoints m_binding_points;
   };
@@ -122,6 +137,9 @@ namespace
     void
     update_varying_size(const fastuidraw::glsl::varying_list &plist);
 
+    std::string
+    declare_shader_uniforms(const fastuidraw::glsl::PainterBackendGLSL::UberShaderParams &params);
+
     fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL m_config;
 
     bool m_shader_code_added;
@@ -139,6 +157,10 @@ namespace
     fastuidraw::glsl::varying_list m_main_varyings_header_only;
     fastuidraw::glsl::varying_list m_main_varyings_shaders_and_shader_datas;
     fastuidraw::glsl::varying_list m_brush_varyings;
+
+    fastuidraw::vec2 m_target_resolution;
+    fastuidraw::vec2 m_target_resolution_recip;
+    float m_target_resolution_recip_magnitude;
 
     fastuidraw::glsl::PainterBackendGLSL *m_p;
   };
@@ -289,6 +311,57 @@ update_varying_size(const fastuidraw::glsl::varying_list &plist)
     }
 }
 
+std::string
+PainterBackendGLSLPrivate::
+declare_shader_uniforms(const fastuidraw::glsl::PainterBackendGLSL::UberShaderParams &params)
+{
+  std::ostringstream ostr;
+
+  if(params.use_ubo_for_uniforms())
+    {
+      const char *ext="xyzw";
+      /* Mesa packs UBO data float[N] as really vec4[N],
+         so instead realize the data directly as vec4[K]
+       */
+      ostr << "FASTUIDRAW_LAYOUT_BINDING("
+           << params.binding_points().uniforms_ubo()
+           << ") " << " uniform fastuidraw_uniform_block {\n"
+           << "vec4 fastuidraw_shader_uniforms["
+           << m_p->ubo_size() / 4 << "];\n"
+           << "};\n"
+           << "#define fastuidraw_viewport_pixels vec2(fastuidraw_shader_uniforms["
+           << uniform_ubo_resolution_x_offset / 4 << "]."
+           << ext[uniform_ubo_resolution_x_offset % 4]
+           << ", fastuidraw_shader_uniforms[" << uniform_ubo_resolution_y_offset / 4 << "]."
+           << ext[uniform_ubo_resolution_y_offset % 4] << ")\n"
+           << "#define fastuidraw_viewport_recip_pixels vec2(fastuidraw_shader_uniforms["
+           << uniform_ubo_recip_resolution_x_offset / 4
+           << "]."<< ext[uniform_ubo_recip_resolution_x_offset % 4]
+           << ", fastuidraw_shader_uniforms["
+           << uniform_ubo_recip_resolution_y_offset / 4 << "]."
+           << ext[uniform_ubo_recip_resolution_y_offset % 4] << ")\n"
+           << "#define fastuidraw_viewport_recip_pixels_magnitude fastuidraw_shader_uniforms["
+           << uniform_ubo_recip_magnitude_offset / 4 << "]."
+           << ext[uniform_ubo_recip_magnitude_offset % 4] << "\n";
+    }
+  else
+    {
+      ostr << "uniform float fastuidraw_shader_uniforms["
+           << m_p->ubo_size() << "];\n"
+           << "#define fastuidraw_viewport_pixels vec2(fastuidraw_shader_uniforms["
+           << uniform_ubo_resolution_x_offset << "], fastuidraw_shader_uniforms["
+           << uniform_ubo_resolution_y_offset << "])\n"
+           << "#define fastuidraw_viewport_recip_pixels vec2(fastuidraw_shader_uniforms["
+           << uniform_ubo_recip_resolution_x_offset
+           << "], fastuidraw_shader_uniforms["
+           << uniform_ubo_recip_resolution_y_offset << "])\n"
+           << "#define fastuidraw_viewport_recip_pixels_magnitude fastuidraw_shader_uniforms["
+           << uniform_ubo_recip_magnitude_offset << "]\n";
+    }
+
+  return ostr.str();
+}
+
 void
 PainterBackendGLSLPrivate::
 construct_shader(fastuidraw::glsl::ShaderSource &vert,
@@ -303,6 +376,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   std::string varying_layout_macro, binding_layout_macro;
   std::string declare_shader_varyings, declare_main_varyings, declare_brush_varyings;
   std::string declare_vertex_shader_ins;
+  std::string declare_uniforms;
   const varying_list *main_varyings;
   DeclareVaryingsStringDatum main_varying_datum, brush_varying_datum, shader_varying_datum;
   const PainterBackendGLSL::BindingPoints &binding_params(params.binding_points());
@@ -392,6 +466,8 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
                                                     m_number_float_varyings,
                                                     &varying_slot,
                                                     &shader_varying_datum);
+
+  declare_uniforms = declare_shader_uniforms(params);
 
   if(params.unpack_header_and_brush_in_frag_shader())
     {
@@ -548,6 +624,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     }
 
   vert
+    .add_source(declare_uniforms.c_str(), ShaderSource::from_string)
     .add_source("fastuidraw_painter_uniforms.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_brush_macros.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_types.vert.glsl.resource_string", ShaderSource::from_resource)
@@ -617,6 +694,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     }
 
   frag
+    .add_source(declare_uniforms.c_str(), ShaderSource::from_string)
     .add_source("fastuidraw_painter_uniforms.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_brush_macros.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_types.vert.glsl.resource_string", ShaderSource::from_resource)
@@ -784,6 +862,7 @@ setget_implement(unsigned int, glyph_atlas_texel_store_float)
 setget_implement(unsigned int, glyph_atlas_geometry_store)
 setget_implement(unsigned int, data_store_buffer_tbo)
 setget_implement(unsigned int, data_store_buffer_ubo)
+setget_implement(unsigned int, uniforms_ubo)
 
 #undef setget_implement
 
@@ -861,6 +940,7 @@ setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_backi
 setget_implement(fastuidraw::ivec2, glyph_geometry_backing_log2_dims)
 setget_implement(bool, have_float_glyph_texture_atlas)
 setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::colorstop_backing_t, colorstop_atlas_backing)
+setget_implement(bool, use_ubo_for_uniforms)
 setget_implement(enum fastuidraw::PainterBlendShader::shader_type, blend_type)
 setget_implement(const fastuidraw::glsl::PainterBackendGLSL::BindingPoints&, binding_points)
 #undef setget_implement
@@ -975,6 +1055,21 @@ compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &
   return d->m_config.unique_group_per_blend_shader() ? shader->ID() : 0;
 }
 
+void
+fastuidraw::glsl::PainterBackendGLSL::
+target_resolution(int w, int h)
+{
+  PainterBackendGLSLPrivate *d;
+  d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
+
+  w = std::max(1, w);
+  h = std::max(1, h);
+
+  d->m_target_resolution = vec2(w, h);
+  d->m_target_resolution_recip = vec2(1.0f, 1.0f) / vec2(d->m_target_resolution);
+  d->m_target_resolution_recip_magnitude = d->m_target_resolution_recip.magnitude();
+}
+
 bool
 fastuidraw::glsl::PainterBackendGLSL::
 shader_code_added(void)
@@ -1005,4 +1100,24 @@ construct_shader(ShaderSource &out_vertex,
   PainterBackendGLSLPrivate *d;
   d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
   d->construct_shader(out_vertex, out_fragment, construct_params);
+}
+
+uint32_t
+fastuidraw::glsl::PainterBackendGLSL::
+ubo_size(void)
+{
+  return round_up_to_multiple(uniform_ubo_number_entries, 4);
+}
+
+void
+fastuidraw::glsl::PainterBackendGLSL::
+fill_uniform_buffer(c_array<generic_data> p)
+{
+  PainterBackendGLSLPrivate *d;
+  d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
+  p[uniform_ubo_resolution_x_offset].f = d->m_target_resolution.x();
+  p[uniform_ubo_resolution_y_offset].f = d->m_target_resolution.y();
+  p[uniform_ubo_recip_resolution_x_offset].f = d->m_target_resolution_recip.x();
+  p[uniform_ubo_recip_resolution_y_offset].f = d->m_target_resolution_recip.y();
+  p[uniform_ubo_recip_magnitude_offset].f = d->m_target_resolution_recip_magnitude;
 }

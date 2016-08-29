@@ -55,7 +55,3 @@ FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING) uniform sa
   #define fastuidraw_fetch_data(block) uvec4(fastuidraw_painterStore[int(block)])
 
 #endif
-
-uniform vec2 fastuidraw_viewport_pixels;
-uniform vec2 fastuidraw_viewport_recip_pixels;
-uniform float fastuidraw_viewport_recip_pixels_magnitude;

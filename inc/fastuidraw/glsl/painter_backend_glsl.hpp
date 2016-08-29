@@ -42,12 +42,20 @@ namespace fastuidraw
       enum data_store_backing_t
         {
           /*!
-            Data store is backed by a texture buffer object
+            Data store is accessed by a usamplerBuffer
+            (i.e. a texture a buffer object).
            */
           data_store_tbo,
 
           /*!
             Data store is backed by a uniform buffer object
+            that is an array. The type in the array is
+            determined by the value of
+            PainterBackend::Configuration::alignment().
+            - uint array if the value is 1
+            - uvec2 array if the value is 2
+            - uvec3 array if the value is 3
+            - uvec4 array if the value is 4
            */
           data_store_ubo
         };
@@ -368,6 +376,21 @@ namespace fastuidraw
         glyph_atlas_geometry_store(unsigned int);
 
         /*!
+          Specifies the binding point og the UBO for uniforms.
+          Only active if UberShaderParams::use_ubo_for_uniforms()
+          is true.
+         */
+        unsigned int
+        uniforms_ubo(void) const;
+
+        /*!
+          Set the value returned by uniforms_ubo(void) const.
+          Default value is 1.
+         */
+        BindingPoints&
+        uniforms_ubo(unsigned int);
+
+        /*!
           Specifies the buffer binding point of the data store
           buffer (PainterDrawCommand::m_store) as a samplerBuffer.
           Only active if UberShaderParams::data_store_backing()
@@ -675,6 +698,27 @@ namespace fastuidraw
         colorstop_atlas_backing(enum colorstop_backing_t);
 
         /*!
+          If true, use a UBO to back the uniforms of the
+          uber-shader. If false, use an array of uniforms
+          instead. The name of the UBO block is
+          fastuidraw_shader_uniforms and the name of the
+          uniform is fastuidraw_shader_uniforms. In both cases,
+          the buffer can be filled by the function
+          PainterBackendGLSL::fill_uniform_buffer().
+          For the non-UBO case, the uniforms are realized
+          as an array of floats in GLSL.
+         */
+        bool
+        use_ubo_for_uniforms(void) const;
+
+        /*!
+          Set the value returned by use_ubo_for_uniforms(void) const.
+          Default value is true.
+         */
+        UberShaderParams&
+        use_ubo_for_uniforms(bool);
+
+        /*!
           Build the uber-shader with those blend shaders registered to
           the PainterBackendGLSL of this type only.
          */
@@ -741,6 +785,26 @@ namespace fastuidraw
       construct_shader(ShaderSource &out_vertex,
                        ShaderSource &out_fragment,
                        const UberShaderParams &contruct_params);
+
+      /*!
+        Fill a buffer to hold the values for the uniforms
+        of the uber-shader. It must be that p.size() is atleast
+        ubo_size().
+        \param p buffer to which to fill uniform data
+       */
+      void
+      fill_uniform_buffer(c_array<generic_data> p);
+
+      /*!
+        Total size of UBO for uniforms in units of
+        generic_data, see also fill_uniform_ubo().
+      */
+      uint32_t
+      ubo_size(void);
+
+      virtual
+      void
+      target_resolution(int w, int h);
 
     protected:
       /*!
