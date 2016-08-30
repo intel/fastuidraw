@@ -93,7 +93,10 @@ namespace fastuidraw
       The enumerations of \ref stroking_data_t provide
       the indices into attribute_data_chunks() and
       index_data_chunks() for the data to draw the
-      path stroked. Data for stroking is packed as follows:
+      path stroked. The indices into attribute_data_chunks(V)
+      for a join style V match the indices for the join
+      style coming from the generating StrokedPath.
+      Data for stroking is packed as follows:
       - PainterAttribute::m_primary_attrib .xy -> StrokedPath::point::m_position
       - PainterAttribute::m_primary_attrib .zw -> StrokedPath::point::m_pre_offset
       - PainterAttribute::m_secondary_attrib .x -> StrokedPath::point::m_distance_from_edge_start
