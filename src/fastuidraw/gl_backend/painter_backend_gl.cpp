@@ -76,6 +76,7 @@ namespace
   public:
     explicit
     painter_vao_pool(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params,
+                     const fastuidraw::PainterBackend::ConfigurationBase &params_base,
                      enum fastuidraw::gl::detail::tex_buffer_support_t tex_buffer_support,
                      const fastuidraw::glsl::PainterBackendGLSL::BindingPoints &binding_points);
 
@@ -163,7 +164,8 @@ namespace
 
     static
     fastuidraw::PainterBackend::ConfigurationBase
-    compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P);
+    compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P,
+                        const fastuidraw::PainterBackend::ConfigurationBase &config_base);
 
     fastuidraw::gl::PainterBackendGL::ConfigurationGL m_params;
     fastuidraw::glsl::PainterBackendGLSL::UberShaderParams m_uber_shader_builder_params;
@@ -303,12 +305,13 @@ namespace
 // painter_vao_pool methods
 painter_vao_pool::
 painter_vao_pool(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params,
+                 const fastuidraw::PainterBackend::ConfigurationBase &params_base,
                  enum fastuidraw::gl::detail::tex_buffer_support_t tex_buffer_support,
                  const fastuidraw::glsl::PainterBackendGLSL::BindingPoints &binding_points):
   m_attribute_buffer_size(params.attributes_per_buffer() * sizeof(fastuidraw::PainterAttribute)),
   m_header_buffer_size(params.attributes_per_buffer() * sizeof(uint32_t)),
   m_index_buffer_size(params.indices_per_buffer() * sizeof(fastuidraw::PainterIndex)),
-  m_alignment(params.m_config.alignment()),
+  m_alignment(params_base.alignment()),
   m_blocks_per_data_buffer(params.data_blocks_per_store_buffer()),
   m_data_buffer_size(m_blocks_per_data_buffer * m_alignment * sizeof(fastuidraw::generic_data)),
   m_data_store_backing(params.data_store_backing()),
@@ -798,7 +801,6 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL 
   m_pool(NULL),
   m_p(p)
 {
-  m_params.m_config = m_p->configuration_base();
   configure_backend();
 }
 
@@ -818,10 +820,11 @@ PainterBackendGLPrivate::
 
 fastuidraw::PainterBackend::ConfigurationBase
 PainterBackendGLPrivate::
-compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params)
+compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params,
+                    const fastuidraw::PainterBackend::ConfigurationBase &config_base)
 {
   using namespace fastuidraw;
-  PainterBackend::ConfigurationBase return_value(params.m_config);
+  PainterBackend::ConfigurationBase return_value(config_base);
 
   if(params.data_store_backing() == gl::PainterBackendGL::data_store_ubo
      || gl::detail::compute_tex_buffer_support() == gl::detail::tex_buffer_not_supported)
@@ -920,7 +923,7 @@ configure_backend(void)
     case fastuidraw::gl::PainterBackendGL::data_store_ubo:
       {
         unsigned int max_ubo_size_bytes, max_num_blocks, block_size_bytes;
-        block_size_bytes = m_params.m_config.alignment() * sizeof(fastuidraw::generic_data);
+        block_size_bytes = m_p->configuration_base().alignment() * sizeof(fastuidraw::generic_data);
         max_ubo_size_bytes = fastuidraw::gl::context_get<GLint>(GL_MAX_UNIFORM_BLOCK_SIZE);
         max_num_blocks = max_ubo_size_bytes / block_size_bytes;
         m_params.data_blocks_per_store_buffer(fastuidraw::t_min(max_num_blocks,
@@ -1021,7 +1024,8 @@ configure_backend(void)
 
   /* now allocate m_pool after adjusting m_params
    */
-  m_pool = FASTUIDRAWnew painter_vao_pool(m_params, m_tex_buffer_support,
+  m_pool = FASTUIDRAWnew painter_vao_pool(m_params, m_p->configuration_base(),
+                                          m_tex_buffer_support,
                                           m_uber_shader_builder_params.binding_points());
 
   configure_source_front_matter();
@@ -1200,8 +1204,7 @@ ConfigurationGL(void)
 }
 
 fastuidraw::gl::PainterBackendGL::ConfigurationGL::
-ConfigurationGL(const ConfigurationGL &obj):
-  m_config(obj.m_config)
+ConfigurationGL(const ConfigurationGL &obj)
 {
   ConfigurationGLPrivate *d;
   d = reinterpret_cast<ConfigurationGLPrivate*>(obj.m_d);
@@ -1227,7 +1230,6 @@ operator=(const ConfigurationGL &rhs)
       d = reinterpret_cast<ConfigurationGLPrivate*>(m_d);
       rhs_d = reinterpret_cast<ConfigurationGLPrivate*>(rhs.m_d);
       *d = *rhs_d;
-      m_config = rhs.m_config;
     }
   return *this;
 }
@@ -1276,14 +1278,15 @@ setget_implement(bool, use_ubo_for_uniforms)
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL methods
 fastuidraw::gl::PainterBackendGL::
-PainterBackendGL(const ConfigurationGL &P):
-  PainterBackendGLSL(P.glyph_atlas(),
-                     P.image_atlas(),
-                     P.colorstop_atlas(),
-                     PainterBackendGLPrivate::compute_glsl_config(P),
-                     PainterBackendGLPrivate::compute_base_config(P))
+PainterBackendGL(const ConfigurationGL &config_gl,
+                 const ConfigurationBase &config_base):
+  PainterBackendGLSL(config_gl.glyph_atlas(),
+                     config_gl.image_atlas(),
+                     config_gl.colorstop_atlas(),
+                     PainterBackendGLPrivate::compute_glsl_config(config_gl),
+                     PainterBackendGLPrivate::compute_base_config(config_gl, config_base))
 {
-  m_d = FASTUIDRAWnew PainterBackendGLPrivate(P, this);
+  m_d = FASTUIDRAWnew PainterBackendGLPrivate(config_gl, this);
 }
 
 fastuidraw::gl::PainterBackendGL::
