@@ -467,19 +467,27 @@ set_data(const reference_counted_ptr<const StrokedPath> &path)
                             d->m_attribute_chunks[square_cap], d->m_index_chunks[square_cap]);
 
 #define GRAB_MACRO(enum_root_name, method_root_name) do {               \
-    grab_attribute_index_data(make_c_array(d->m_attribute_data), attr_loc, \
+                                                                        \
+    unsigned int closing_edge = enum_root_name##_closing_edge;          \
+    unsigned int no_closing_edge = enum_root_name##_no_closing_edge;    \
+                                                                        \
+    grab_attribute_index_data(make_c_array(d->m_attribute_data),        \
+                              attr_loc,                                 \
                               path->method_root_name##_points(true),    \
-                              make_c_array(d->m_index_data), idx_loc, \
+                              make_c_array(d->m_index_data), idx_loc,   \
                               path->method_root_name##_indices(true),   \
-                              d->m_attribute_chunks[enum_root_name##_closing_edge], \
-                              d->m_index_chunks[enum_root_name##_closing_edge]); \
-    d->m_attribute_chunks[enum_root_name##_no_closing_edge] =              \
-      d->m_attribute_chunks[enum_root_name##_closing_edge].sub_array(0, path->method_root_name##_points(false).size()); \
+                              d->m_attribute_chunks[closing_edge],      \
+                              d->m_index_chunks[closing_edge]);         \
+    d->m_attribute_chunks[no_closing_edge] =                            \
+      d->m_attribute_chunks[closing_edge].sub_array(0, path->method_root_name##_points(false).size()); \
+                                                                        \
     unsigned int with, without;                                         \
     with = path->method_root_name##_indices(true).size();               \
     without = path->method_root_name##_indices(false).size();           \
     assert(with >= without);                                            \
-    d->m_index_chunks[enum_root_name##_no_closing_edge] = d->m_index_chunks[enum_root_name##_closing_edge].sub_array(with - without); \
+                                                                        \
+    d->m_index_chunks[no_closing_edge] =                                \
+      d->m_index_chunks[closing_edge].sub_array(with - without);        \
   } while(0)
 
   GRAB_MACRO(rounded_joins, rounded_joins);
