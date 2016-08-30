@@ -1342,6 +1342,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
       draw_generic(shader.shader(static_cast<enum glyph_type>(k)), draw,
                    data.attribute_data_chunk(k), data.index_data_chunk(k),
                    call_back);
+      increment_z(data.increment_z_value(k));
     }
 }
 
