@@ -28,6 +28,27 @@
 
 namespace
 {
+  enum joint_type_t
+    {
+      rounded_join = 0,
+      miter_join,
+      bevel_join,
+
+      joint_type_count
+    };
+
+  class LocationOfJoin
+  {
+  public:
+    fastuidraw::range_type<unsigned int> m_attribs, m_indices;
+  };
+
+  class LocationsOfJoins
+  {
+  public:
+    fastuidraw::vecN<LocationOfJoin, joint_type_count> m_values;
+  };
+
   class PointIndexSize
   {
   public:
@@ -197,7 +218,9 @@ namespace
     void
     fill_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
               fastuidraw::c_array<unsigned int> indices,
-              unsigned int &pre_close_depth, unsigned int &close_depth);
+              unsigned int &pre_close_depth, unsigned int &close_depth,
+              std::vector<std::vector<LocationsOfJoins> > &join_locations,
+              enum joint_type_t Jtype);
 
   private:
 
@@ -217,7 +240,8 @@ namespace
               fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
               unsigned int &depth,
               fastuidraw::c_array<unsigned int> indices,
-              unsigned int &vertex_offset, unsigned int &index_offset);
+              unsigned int &vertex_offset, unsigned int &index_offset,
+              LocationOfJoin &loc);
 
     virtual
     void
@@ -565,6 +589,7 @@ namespace
     Data<fastuidraw::StrokedPath::point> m_rounded_joins;
     Data<fastuidraw::StrokedPath::point> m_bevel_joins;
     Data<fastuidraw::StrokedPath::point> m_miter_joins;
+    std::vector<std::vector<LocationsOfJoins> > m_join_locations;
 
     CapData m_rounded_cap;
     CapData m_square_cap;
@@ -1028,10 +1053,17 @@ fill_join(unsigned int join_id,
           fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
           unsigned int &depth,
           fastuidraw::c_array<unsigned int> indices,
-          unsigned int &vertex_offset, unsigned int &index_offset)
+          unsigned int &vertex_offset, unsigned int &index_offset,
+          LocationOfJoin &loc)
 {
   unsigned int v(vertex_offset);
+
+  loc.m_attribs.m_begin = vertex_offset;
+  loc.m_indices.m_begin = index_offset;
   fill_join_implement(join_id, m_P, contour, edge, pts, indices, vertex_offset, index_offset);
+  loc.m_attribs.m_end = vertex_offset;
+  loc.m_indices.m_end = index_offset;
+
   for(; v < vertex_offset; ++v)
     {
       pts[v].m_depth = depth;
@@ -1043,7 +1075,9 @@ void
 JoinCreatorBase::
 fill_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
           fastuidraw::c_array<unsigned int> indices,
-          unsigned int &pre_close_depth, unsigned int &close_depth)
+          unsigned int &pre_close_depth, unsigned int &close_depth,
+          std::vector<std::vector<LocationsOfJoins> > &join_locations,
+          enum joint_type_t Jtype)
 {
   unsigned int pre_close_vertex(0), pre_close_index(m_size.close_indices());
   unsigned int close_vertex(m_size.pre_close_verts()), close_index(0);
@@ -1056,13 +1090,21 @@ fill_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
     {
       for(unsigned int e = 1; e + 1 < m_P.number_edges(o); ++e, ++join_id)
         {
-          fill_join(join_id, o, e, pts, pre_close_depth, indices, pre_close_vertex, pre_close_index);
+          fill_join(join_id, o, e, pts, pre_close_depth, indices,
+                    pre_close_vertex, pre_close_index,
+                    join_locations[o][e - 1].m_values[Jtype]);
         }
 
       if(m_P.number_edges(o) >= 2)
         {
-          fill_join(join_id, o, m_P.number_edges(o) - 1, pts, close_depth, indices, close_vertex, close_index);
-          fill_join(join_id + 1, o, m_P.number_edges(o), pts, close_depth, indices, close_vertex, close_index);
+          fill_join(join_id, o, m_P.number_edges(o) - 1, pts, close_depth, indices,
+                    close_vertex, close_index,
+                    join_locations[o][m_P.number_edges(o) - 2].m_values[Jtype]);
+
+          fill_join(join_id + 1, o, m_P.number_edges(o), pts, close_depth, indices,
+                    close_vertex, close_index,
+                    join_locations[o][m_P.number_edges(o) - 1].m_values[Jtype]);
+
           join_id += 2;
         }
     }
@@ -1764,6 +1806,12 @@ StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
       return;
     }
 
+  m_join_locations.resize(P.number_contours());
+  for(unsigned int C = 0, endC = P.number_contours(); C < endC; ++C)
+    {
+      m_join_locations[C].resize(P.number_edges(C));
+    }
+
   EdgeDataCreator e(P);
   m_edges.resize(e.sizes());
   e.fill_data(m_edges.m_points.data(true),
@@ -1776,21 +1824,27 @@ StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
   r.fill_data(m_rounded_joins.m_points.data(true),
               m_rounded_joins.m_indices.data(true),
               m_rounded_joins.number_depth(false),
-              m_rounded_joins.number_depth(true));
+              m_rounded_joins.number_depth(true),
+              m_join_locations,
+              rounded_join);
 
   BevelJoinCreator b(P, e);
   m_bevel_joins.resize(b.sizes());
   b.fill_data(m_bevel_joins.m_points.data(true),
               m_bevel_joins.m_indices.data(true),
               m_bevel_joins.number_depth(false),
-              m_bevel_joins.number_depth(true));
+              m_bevel_joins.number_depth(true),
+              m_join_locations,
+              bevel_join);
 
   MiterJoinCreator m(P, e);
   m_miter_joins.resize(m.sizes());
   m.fill_data(m_miter_joins.m_points.data(true),
               m_miter_joins.m_indices.data(true),
               m_miter_joins.number_depth(false),
-              m_miter_joins.number_depth(true));
+              m_miter_joins.number_depth(true),
+              m_join_locations,
+              miter_join);
 
   RoundedCapCreator rc(P);
   m_rounded_cap.resize(rc.sizes());
@@ -2100,4 +2154,89 @@ cap_number_depth(void) const
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
 
   return d->m_cap_number_depth;
+}
+
+unsigned int
+fastuidraw::StrokedPath::
+number_contours(void) const
+{
+  StrokedPathPrivate *d;
+  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  return d->m_join_locations.size();
+}
+
+unsigned int
+fastuidraw::StrokedPath::
+number_joins(unsigned int contour) const
+{
+  StrokedPathPrivate *d;
+  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  assert(contour < d->m_join_locations.size());
+  return d->m_join_locations[contour].size();
+}
+
+fastuidraw::range_type<unsigned int>
+fastuidraw::StrokedPath::
+rounded_join_points(unsigned int contour, unsigned int join) const
+{
+  StrokedPathPrivate *d;
+  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  assert(contour < d->m_join_locations.size());
+  assert(join < d->m_join_locations[contour].size());
+  return d->m_join_locations[contour][join].m_values[rounded_join].m_attribs;
+}
+
+fastuidraw::range_type<unsigned int>
+fastuidraw::StrokedPath::
+rounded_join_indices(unsigned int contour, unsigned int join) const
+{
+  StrokedPathPrivate *d;
+  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  assert(contour < d->m_join_locations.size());
+  assert(join < d->m_join_locations[contour].size());
+  return d->m_join_locations[contour][join].m_values[rounded_join].m_indices;
+}
+
+fastuidraw::range_type<unsigned int>
+fastuidraw::StrokedPath::
+bevel_join_points(unsigned int contour, unsigned int join) const
+{
+  StrokedPathPrivate *d;
+  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  assert(contour < d->m_join_locations.size());
+  assert(join < d->m_join_locations[contour].size());
+  return d->m_join_locations[contour][join].m_values[bevel_join].m_attribs;
+}
+
+fastuidraw::range_type<unsigned int>
+fastuidraw::StrokedPath::
+bevel_join_indices(unsigned int contour, unsigned int join) const
+{
+  StrokedPathPrivate *d;
+  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  assert(contour < d->m_join_locations.size());
+  assert(join < d->m_join_locations[contour].size());
+  return d->m_join_locations[contour][join].m_values[bevel_join].m_indices;
+}
+
+fastuidraw::range_type<unsigned int>
+fastuidraw::StrokedPath::
+miter_join_points(unsigned int contour, unsigned int join) const
+{
+  StrokedPathPrivate *d;
+  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  assert(contour < d->m_join_locations.size());
+  assert(join < d->m_join_locations[contour].size());
+  return d->m_join_locations[contour][join].m_values[miter_join].m_attribs;
+}
+
+fastuidraw::range_type<unsigned int>
+fastuidraw::StrokedPath::
+miter_join_indices(unsigned int contour, unsigned int join) const
+{
+  StrokedPathPrivate *d;
+  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  assert(contour < d->m_join_locations.size());
+  assert(join < d->m_join_locations[contour].size());
+  return d->m_join_locations[contour][join].m_values[miter_join].m_indices;
 }
