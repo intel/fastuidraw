@@ -727,7 +727,8 @@ ConfigurationGLSL(void)
 }
 
 fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
-ConfigurationGLSL(const ConfigurationGLSL &obj)
+ConfigurationGLSL(const ConfigurationGLSL &obj):
+  m_config(obj.m_config)
 {
   ConfigurationGLSLPrivate *d;
   d = reinterpret_cast<ConfigurationGLSLPrivate*>(obj.m_d);
@@ -753,6 +754,7 @@ operator=(const ConfigurationGLSL &rhs)
       d = reinterpret_cast<ConfigurationGLSLPrivate*>(m_d);
       rhs_d = reinterpret_cast<ConfigurationGLSLPrivate*>(rhs.m_d);
       *d = *rhs_d;
+      m_config = rhs.m_config;
     }
   return *this;
 }

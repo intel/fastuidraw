@@ -75,7 +75,7 @@ namespace
   {
   public:
     explicit
-    painter_vao_pool(const fastuidraw::gl::PainterBackendGL::params &params,
+    painter_vao_pool(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params,
                      enum fastuidraw::gl::detail::tex_buffer_support_t tex_buffer_support,
                      const fastuidraw::glsl::PainterBackendGLSL::BindingPoints &binding_points);
 
@@ -140,7 +140,7 @@ namespace
   class PainterBackendGLPrivate
   {
   public:
-    PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::params &P,
+    PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P,
                             fastuidraw::gl::PainterBackendGL *p);
 
     ~PainterBackendGLPrivate();
@@ -159,9 +159,9 @@ namespace
 
     static
     fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL
-    compute_glsl_config(const fastuidraw::gl::PainterBackendGL::params &P);
+    compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P);
 
-    fastuidraw::gl::PainterBackendGL::params m_params;
+    fastuidraw::gl::PainterBackendGL::ConfigurationGL m_params;
     fastuidraw::glsl::PainterBackendGLSL::UberShaderParams m_uber_shader_builder_params;
 
     fastuidraw::gl::ContextProperties m_ctx_properties;
@@ -215,7 +215,7 @@ namespace
   public:
     explicit
     DrawCommand(painter_vao_pool *hnd,
-                const fastuidraw::gl::PainterBackendGL::params &params);
+                const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params);
 
     virtual
     ~DrawCommand()
@@ -249,10 +249,10 @@ namespace
     mutable std::list<DrawEntry> m_draws;
   };
 
-  class PainterBackendGLParamsPrivate
+  class ConfigurationGLPrivate
   {
   public:
-    PainterBackendGLParamsPrivate(void):
+    ConfigurationGLPrivate(void):
       m_attributes_per_buffer(512 * 512),
       m_indices_per_buffer((m_attributes_per_buffer * 6) / 4),
       m_data_blocks_per_store_buffer(1024 * 64),
@@ -266,7 +266,11 @@ namespace
       m_vert_shader_use_switch(false),
       m_frag_shader_use_switch(false),
       m_blend_shader_use_switch(false),
-      m_unpack_header_and_brush_in_frag_shader(false)
+      m_unpack_header_and_brush_in_frag_shader(false),
+      m_assign_layout_to_vertex_shader_inputs(true),
+      m_assign_layout_to_varyings(false),
+      m_assign_binding_points(true),
+      m_use_ubo_for_uniforms(false)
     {}
 
     unsigned int m_attributes_per_buffer;
@@ -283,6 +287,10 @@ namespace
     bool m_frag_shader_use_switch;
     bool m_blend_shader_use_switch;
     bool m_unpack_header_and_brush_in_frag_shader;
+    bool m_assign_layout_to_vertex_shader_inputs;
+    bool m_assign_layout_to_varyings;
+    bool m_assign_binding_points;
+    bool m_use_ubo_for_uniforms;
   };
 
 }
@@ -290,7 +298,7 @@ namespace
 ///////////////////////////////////////////
 // painter_vao_pool methods
 painter_vao_pool::
-painter_vao_pool(const fastuidraw::gl::PainterBackendGL::params &params,
+painter_vao_pool(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params,
                  enum fastuidraw::gl::detail::tex_buffer_support_t tex_buffer_support,
                  const fastuidraw::glsl::PainterBackendGLSL::BindingPoints &binding_points):
   m_attribute_buffer_size(params.attributes_per_buffer() * sizeof(fastuidraw::PainterAttribute)),
@@ -620,7 +628,7 @@ convert_blend_func(enum fastuidraw::BlendMode::func_t v)
 // DrawCommand methods
 DrawCommand::
 DrawCommand(painter_vao_pool *hnd,
-            const fastuidraw::gl::PainterBackendGL::params &params):
+            const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params):
   m_vao(hnd->request_vao()),
   m_attributes_written(0),
   m_indices_written(0)
@@ -775,7 +783,7 @@ add_entry(unsigned int indices_written) const
 /////////////////////////////////////////
 // PainterBackendGLPrivate methods
 PainterBackendGLPrivate::
-PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::params &P,
+PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P,
                         fastuidraw::gl::PainterBackendGL *p):
   m_params(P),
   m_backend_configured(false),
@@ -806,7 +814,7 @@ PainterBackendGLPrivate::
 
 fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL
 PainterBackendGLPrivate::
-compute_glsl_config(const fastuidraw::gl::PainterBackendGL::params &params)
+compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params)
 {
   using namespace fastuidraw;
   glsl::PainterBackendGLSL::ConfigurationGLSL return_value;
@@ -950,23 +958,41 @@ configure_backend(void)
       colorstop_tp = fastuidraw::glsl::PainterBackendGLSL::colorstop_texture_1d_array;
     }
 
-  /*
-    configure m_uber_shader_builder_params now that m_params has been
-    sanitized. NOTES:
-
-    assign_layout_to_varyings()
-       - for GL requires 4.2 or GL_ARB_seperate_shader_objects
-       - for GLES requires 3.2 or GL_EXT_seperate_shader_objects
-
-    assign_binding_points()
-       - for GL requires 4.2 or GL_ARB_shading_language_420pack
-       - for GLES requires 3.2
+  /* Some shader features require new version of GL or
+     specific extensions.
    */
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      if(m_ctx_properties.version() < fastuidraw::ivec2(3, 2))
+        {
+          m_params.assign_layout_to_varyings(m_params.assign_layout_to_varyings()
+                                             && m_ctx_properties.has_extension("GL_EXT_separate_shader_objects"));
+        }
+
+      if(m_ctx_properties.version() <= fastuidraw::ivec2(3, 0))
+        {
+          //GL ES 3.0 does not support layout(binding=).
+          m_params.assign_binding_points(false);
+        }
+    }
+  #else
+    {
+      if(m_ctx_properties.version() < fastuidraw::ivec2(4, 2))
+        {
+          m_params.assign_layout_to_varyings(m_params.assign_layout_to_varyings()
+                                             && m_ctx_properties.has_extension("GL_ARB_separate_shader_objects"));
+          m_params.assign_binding_points(m_params.assign_binding_points()
+                                         && m_ctx_properties.has_extension("GL_ARB_shading_language_420pack"));
+        }
+    }
+  #endif
+
   m_uber_shader_builder_params
+    .assign_layout_to_vertex_shader_inputs(m_params.assign_layout_to_vertex_shader_inputs())
+    .assign_layout_to_varyings(m_params.assign_layout_to_varyings())
+    .assign_binding_points(m_params.assign_binding_points())
+    .use_ubo_for_uniforms(m_params.use_ubo_for_uniforms())
     .z_coordinate_convention(fastuidraw::glsl::PainterBackendGLSL::z_minus_1_to_1)
-    .assign_layout_to_vertex_shader_inputs(true)
-    .assign_layout_to_varyings(false)
-    .assign_binding_points(false)
     .negate_normalized_y_coordinate(false)
     .vert_shader_use_switch(m_params.vert_shader_use_switch())
     .frag_shader_use_switch(m_params.frag_shader_use_switch())
@@ -978,7 +1004,6 @@ configure_backend(void)
     .glyph_geometry_backing_log2_dims(m_params.glyph_atlas()->param_values().texture_2d_array_geometry_store_log2_dims())
     .have_float_glyph_texture_atlas(m_params.glyph_atlas()->texel_texture(false) != 0)
     .colorstop_atlas_backing(colorstop_tp)
-    .use_ubo_for_uniforms(false)
     .blend_type(m_p->configuration_glsl().default_blend_shader_type());
 
   /* now allocate m_pool after adjusting m_params
@@ -1091,26 +1116,33 @@ configure_source_front_matter(void)
     }
   #else
     {
-      /* NOTE: layout for vertex out / fragment in
-         is part of GLSL version 420 (or higher);
-         if we have high enough GL, we can use
-         that version number instead of enabling
-         the extension GL_ARB_separate_shader_objects
-         or the extension GL_ARB_shading_language_420pack
-       */
-      m_front_matter_vert.specify_version("330");
-      m_front_matter_frag.specify_version("330");
+      bool using_glsl42;
 
-      if(m_uber_shader_builder_params.assign_layout_to_varyings())
+      using_glsl42 = m_ctx_properties.version() >= fastuidraw::ivec2(4, 2)
+        && (m_uber_shader_builder_params.assign_layout_to_varyings()
+            || m_uber_shader_builder_params.assign_binding_points());
+
+      if(using_glsl42)
         {
-          m_front_matter_vert.specify_extension("GL_ARB_separate_shader_objects", ShaderSource::require_extension);
-          m_front_matter_frag.specify_extension("GL_ARB_separate_shader_objects", ShaderSource::require_extension);
+          m_front_matter_vert.specify_version("420");
+          m_front_matter_frag.specify_version("420");
         }
-
-      if(m_uber_shader_builder_params.assign_binding_points())
+      else
         {
-          m_front_matter_vert.specify_extension("GL_ARB_shading_language_420pack", ShaderSource::require_extension);
-          m_front_matter_frag.specify_extension("GL_ARB_shading_language_420pack", ShaderSource::require_extension);
+          m_front_matter_vert.specify_version("330");
+          m_front_matter_frag.specify_version("330");
+
+          if(m_uber_shader_builder_params.assign_layout_to_varyings())
+            {
+              m_front_matter_vert.specify_extension("GL_ARB_separate_shader_objects", ShaderSource::require_extension);
+              m_front_matter_frag.specify_extension("GL_ARB_separate_shader_objects", ShaderSource::require_extension);
+            }
+
+          if(m_uber_shader_builder_params.assign_binding_points())
+            {
+              m_front_matter_vert.specify_extension("GL_ARB_shading_language_420pack", ShaderSource::require_extension);
+              m_front_matter_frag.specify_extension("GL_ARB_shading_language_420pack", ShaderSource::require_extension);
+            }
         }
     }
   #endif
@@ -1147,86 +1179,91 @@ build_program(void)
 }
 
 ///////////////////////////////////////////////
-// fastuidraw::gl::PainterBackendGL::params methods
-fastuidraw::gl::PainterBackendGL::params::
-params(void)
+// fastuidraw::gl::PainterBackendGL::ConfigurationGL methods
+fastuidraw::gl::PainterBackendGL::ConfigurationGL::
+ConfigurationGL(void)
 {
-  m_d = FASTUIDRAWnew PainterBackendGLParamsPrivate();
+  m_d = FASTUIDRAWnew ConfigurationGLPrivate();
 }
 
-fastuidraw::gl::PainterBackendGL::params::
-params(const params &obj):
+fastuidraw::gl::PainterBackendGL::ConfigurationGL::
+ConfigurationGL(const ConfigurationGL &obj):
   m_config(obj.m_config)
 {
-  PainterBackendGLParamsPrivate *d;
-  d = reinterpret_cast<PainterBackendGLParamsPrivate*>(obj.m_d);
-  m_d = FASTUIDRAWnew PainterBackendGLParamsPrivate(*d);
+  ConfigurationGLPrivate *d;
+  d = reinterpret_cast<ConfigurationGLPrivate*>(obj.m_d);
+  m_d = FASTUIDRAWnew ConfigurationGLPrivate(*d);
 }
 
-fastuidraw::gl::PainterBackendGL::params::
-~params()
+fastuidraw::gl::PainterBackendGL::ConfigurationGL::
+~ConfigurationGL()
 {
-  PainterBackendGLParamsPrivate *d;
-  d = reinterpret_cast<PainterBackendGLParamsPrivate*>(m_d);
+  ConfigurationGLPrivate *d;
+  d = reinterpret_cast<ConfigurationGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
 
-fastuidraw::gl::PainterBackendGL::params&
-fastuidraw::gl::PainterBackendGL::params::
-operator=(const params &rhs)
+fastuidraw::gl::PainterBackendGL::ConfigurationGL&
+fastuidraw::gl::PainterBackendGL::ConfigurationGL::
+operator=(const ConfigurationGL &rhs)
 {
   if(this != &rhs)
     {
-      PainterBackendGLParamsPrivate *d, *rhs_d;
-      d = reinterpret_cast<PainterBackendGLParamsPrivate*>(m_d);
-      rhs_d = reinterpret_cast<PainterBackendGLParamsPrivate*>(rhs.m_d);
+      ConfigurationGLPrivate *d, *rhs_d;
+      d = reinterpret_cast<ConfigurationGLPrivate*>(m_d);
+      rhs_d = reinterpret_cast<ConfigurationGLPrivate*>(rhs.m_d);
       *d = *rhs_d;
+      m_config = rhs.m_config;
     }
   return *this;
 }
 
-#define paramsSetGet(type, name)                                     \
-  fastuidraw::gl::PainterBackendGL::params&                          \
-  fastuidraw::gl::PainterBackendGL::params::                         \
-  name(type v)                                                       \
-  {                                                                  \
-    PainterBackendGLParamsPrivate *d;                                \
-    d = reinterpret_cast<PainterBackendGLParamsPrivate*>(m_d);       \
-    d->m_##name = v;                                                 \
-    return *this;                                                    \
-  }                                                                  \
-                                                                     \
-  type                                                               \
-  fastuidraw::gl::PainterBackendGL::params::                         \
-  name(void) const                                                   \
-  {                                                                  \
-    PainterBackendGLParamsPrivate *d;                                \
-    d = reinterpret_cast<PainterBackendGLParamsPrivate*>(m_d);       \
-    return d->m_##name;                                              \
+#define setget_implement(type, name)                                    \
+  fastuidraw::gl::PainterBackendGL::ConfigurationGL&                    \
+  fastuidraw::gl::PainterBackendGL::ConfigurationGL::                   \
+  name(type v)                                                          \
+  {                                                                     \
+    ConfigurationGLPrivate *d;                                          \
+    d = reinterpret_cast<ConfigurationGLPrivate*>(m_d);                 \
+    d->m_##name = v;                                                    \
+    return *this;                                                       \
+  }                                                                     \
+                                                                        \
+  type                                                                  \
+  fastuidraw::gl::PainterBackendGL::ConfigurationGL::                   \
+  name(void) const                                                      \
+  {                                                                     \
+    ConfigurationGLPrivate *d;                                          \
+    d = reinterpret_cast<ConfigurationGLPrivate*>(m_d);                 \
+    return d->m_##name;                                                 \
   }
 
-paramsSetGet(unsigned int, attributes_per_buffer)
-paramsSetGet(unsigned int, indices_per_buffer)
-paramsSetGet(unsigned int, data_blocks_per_store_buffer)
-paramsSetGet(unsigned int, number_pools)
-paramsSetGet(bool, break_on_shader_change)
-paramsSetGet(const fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL>&, image_atlas)
-paramsSetGet(const fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL>&, colorstop_atlas)
-paramsSetGet(const fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL>&, glyph_atlas)
-paramsSetGet(bool, use_hw_clip_planes)
-paramsSetGet(bool, vert_shader_use_switch)
-paramsSetGet(bool, frag_shader_use_switch)
-paramsSetGet(bool, blend_shader_use_switch)
-paramsSetGet(bool, unpack_header_and_brush_in_frag_shader)
-paramsSetGet(enum fastuidraw::gl::PainterBackendGL::data_store_backing_t, data_store_backing)
+setget_implement(unsigned int, attributes_per_buffer)
+setget_implement(unsigned int, indices_per_buffer)
+setget_implement(unsigned int, data_blocks_per_store_buffer)
+setget_implement(unsigned int, number_pools)
+setget_implement(bool, break_on_shader_change)
+setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL>&, image_atlas)
+setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL>&, colorstop_atlas)
+setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL>&, glyph_atlas)
+setget_implement(bool, use_hw_clip_planes)
+setget_implement(bool, vert_shader_use_switch)
+setget_implement(bool, frag_shader_use_switch)
+setget_implement(bool, blend_shader_use_switch)
+setget_implement(bool, unpack_header_and_brush_in_frag_shader)
+setget_implement(enum fastuidraw::gl::PainterBackendGL::data_store_backing_t, data_store_backing)
+setget_implement(bool, assign_layout_to_vertex_shader_inputs)
+setget_implement(bool, assign_layout_to_varyings)
+setget_implement(bool, assign_binding_points)
+setget_implement(bool, use_ubo_for_uniforms)
 
-#undef paramsSetGet
+#undef setget_implement
 
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL methods
 fastuidraw::gl::PainterBackendGL::
-PainterBackendGL(const params &P):
+PainterBackendGL(const ConfigurationGL &P):
   PainterBackendGLSL(P.glyph_atlas(),
                      P.image_atlas(),
                      P.colorstop_atlas(),
@@ -1259,6 +1296,15 @@ program(void)
     }
   assert(!shader_code_added());
   return d->m_program;
+}
+
+const fastuidraw::gl::PainterBackendGL::ConfigurationGL&
+fastuidraw::gl::PainterBackendGL::
+configuration_gl(void) const
+{
+  PainterBackendGLPrivate *d;
+  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
+  return d->m_params;
 }
 
 void
@@ -1436,10 +1482,15 @@ on_end(void)
         glBindTexture(GL_TEXTURE_BUFFER, 0);
       }
       break;
+
     case fastuidraw::gl::PainterBackendGL::data_store_ubo:
       {
         glBindBufferBase(GL_UNIFORM_BUFFER, binding_points.data_store_buffer_ubo(), 0);
       }
+      break;
+
+    default:
+      assert(!"Bad value for m_params.data_store_backing()");
     }
   glBindBufferBase(GL_UNIFORM_BUFFER, binding_points.uniforms_ubo(), 0);
   d->m_pool->next_pool();

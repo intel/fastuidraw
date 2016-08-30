@@ -26,7 +26,7 @@ protected:
   void
   on_resize(int, int);
 
-  const fastuidraw::gl::PainterBackendGL::params&
+  const fastuidraw::gl::PainterBackendGL::ConfigurationGL&
   painter_params(void)
   {
     return m_painter_params;
@@ -60,7 +60,7 @@ private:
   fastuidraw::gl::GlyphAtlasGL::params m_glyph_atlas_params;
   fastuidraw::gl::ColorStopAtlasGL::params m_colorstop_atlas_params;
   fastuidraw::gl::ImageAtlasGL::params m_image_atlas_params;
-  fastuidraw::gl::PainterBackendGL::params m_painter_params;
+  fastuidraw::gl::PainterBackendGL::ConfigurationGL m_painter_params;
 
   /* Image atlas parameters
    */
@@ -94,16 +94,24 @@ private:
   command_separator m_painter_options;
   command_line_argument_value<int> m_painter_attributes_per_buffer;
   command_line_argument_value<int> m_painter_indices_per_buffer;
-  command_line_argument_value<int> m_painter_data_blocks_per_buffer;
-  command_line_argument_value<int> m_painter_alignment;
   command_line_argument_value<int> m_painter_number_pools;
   command_line_argument_value<bool> m_painter_break_on_shader_change;
-  command_line_argument_value<bool> m_use_hw_clip_planes;
   command_line_argument_value<bool> m_uber_vert_use_switch;
   command_line_argument_value<bool> m_uber_frag_use_switch;
   command_line_argument_value<bool> m_uber_blend_use_switch;
   command_line_argument_value<bool> m_unpack_header_and_brush_in_frag_shader;
+
+  /* Painter params that can be overridden by properties of GL context
+   */
+  command_separator m_painter_options_affected_by_context;
+  command_line_argument_value<bool> m_use_hw_clip_planes;
+  command_line_argument_value<int> m_painter_alignment;
+  command_line_argument_value<int> m_painter_data_blocks_per_buffer;
   enumerated_command_line_argument_value<data_store_backing_t> m_data_store_backing;
+  command_line_argument_value<bool> m_assign_layout_to_vertex_shader_inputs;
+  command_line_argument_value<bool> m_assign_layout_to_varyings;
+  command_line_argument_value<bool> m_assign_binding_points;
+  command_line_argument_value<bool> m_use_ubo_for_uniforms;
 
   command_separator m_demo_options;
 };
