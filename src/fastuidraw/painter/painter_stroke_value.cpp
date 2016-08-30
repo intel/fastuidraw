@@ -52,6 +52,13 @@ namespace
       dst[fastuidraw::PainterStrokeParams::stroke_width_offset].f = m_width;
     }
 
+    virtual
+    bool
+    suitable_for_type(const std::type_info &info) const
+    {
+      return info == typeid(fastuidraw::PainterStrokeParams);
+    }
+
     float m_miter_limit;
     float m_width;
   };
@@ -72,6 +79,13 @@ namespace
     virtual
     void
     pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> dst) const;
+
+    virtual
+    bool
+    suitable_for_type(const std::type_info &info) const
+    {
+      return info == typeid(fastuidraw::PainterDashedStrokeParams);
+    }
 
     float m_miter_limit;
     float m_width;

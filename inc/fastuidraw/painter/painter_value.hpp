@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <typeinfo>
 
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
@@ -140,7 +141,12 @@ namespace fastuidraw
   /*!
     Common base class to PainterItemShaderData and
     PainterBlendShaderData to hold shader data for
-    custom shaders.
+    custom shaders. Derived classes CANNOT add any
+    data or virtual functions. The class
+    PainterShaderData is essentially a wrapper over
+    a PainterShaderData::DataBase object that handles
+    holding data and copying itself (for the purpose
+    of copying PainterShaderData objects).
    */
   class PainterShaderData
   {
@@ -186,6 +192,26 @@ namespace fastuidraw
     pack_data(unsigned int alignment, c_array<generic_data> dst) const;
 
     /*!
+      Cast the PainterShaderData into another type derived
+      from PainterShaderData. Underneath this is realized
+      as a static cast of unerlying data. If the cast cannot
+      be done, returns NULL.
+     */
+    template<typename T>
+    const T*
+    cast_object(void) const
+    {
+      if(m_data != NULL && m_data->suitable_for_type(typeid(T)))
+        {
+          return static_cast<const T*>(this);
+        }
+      else
+        {
+          return NULL;
+        }
+    }
+
+    /*!
       Class that holds the actual data and packs the data.
       A class derived from PainterShaderData should set the
       field \ref m_data to point to an object derived from
@@ -229,6 +255,16 @@ namespace fastuidraw
       virtual
       void
       pack_data(unsigned int alignment, c_array<generic_data> dst) const = 0;
+
+      /*!
+        To be implemented by a derived class if the type
+        derived from PainterShaderData can be use this
+        DataBase object as \ref PainterShaderData::m_data.
+        \param info type_info as taken from typeid() operator.
+       */
+      virtual
+      bool
+      suitable_for_type(const std::type_info &info) const = 0;
     };
 
   protected:
