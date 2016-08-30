@@ -69,11 +69,6 @@ namespace fastuidraw
         operator=(const ConfigurationGL &rhs);
 
         /*!
-          Configuration parameters inherited from PainterBackend
-         */
-        PainterBackend::ConfigurationBase m_config;
-
-        /*!
           The ImageAtlasGL to be used by the painter
          */
         const reference_counted_ptr<ImageAtlasGL>&
@@ -342,15 +337,20 @@ namespace fastuidraw
       };
 
       /*!
-        Ctor.
-        \param P parameters specifying properties. A GL context must
-                 be current when contructing a PainterBackendGL object.
-                 Any GL context used with the constructed PainterBackendGL
-                 must be in the same share group as the GL context that
-                 was current when the PainterBackendGL was constructed.
+        Ctor. When contructing a GL context must
+        be current when contructing a PainterBackendGL object.
+        Any GL context used with the constructed PainterBackendGL
+        must be in the same share group as the GL context that
+        was current when the PainterBackendGL was constructed.
+        The values for the parameters of the created object might
+        be adjusted from the passed parameters in order for the
+        object to function correctly in the GL context from which
+        it was created.
+        \param config_gl ConfigurationGL providing configuration parameters
+        \param config_base ConfigurationBase parameters inherited from PainterBackend
        */
-      explicit
-      PainterBackendGL(const ConfigurationGL &P = ConfigurationGL());
+      PainterBackendGL(const ConfigurationGL &config_gl,
+                       const ConfigurationBase &config_base);
 
       ~PainterBackendGL();
 

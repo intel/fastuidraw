@@ -157,7 +157,7 @@ sdl_painter_demo(const std::string &about_text,
                        "painter_use_hw_clip_planes",
                        "If true, use HW clip planes (i.e. gl_ClipDistance) for clipping",
                        *this),
-  m_painter_alignment(m_painter_params.m_config.alignment(), "painter_alignment",
+  m_painter_alignment(m_painter_base_params.alignment(), "painter_alignment",
                        "Alignment for data store of painter, must be 1, 2, 3 or 4", *this),
   m_painter_data_blocks_per_buffer(m_painter_params.data_blocks_per_store_buffer(),
                                    "painter_blocks_per_buffer",
@@ -269,7 +269,7 @@ init_gl(int w, int h)
   m_colorstop_atlas = FASTUIDRAWnew fastuidraw::gl::ColorStopAtlasGL(m_colorstop_atlas_params);
 
 
-  m_painter_params.m_config.alignment(m_painter_alignment.m_value);
+  m_painter_base_params.alignment(m_painter_alignment.m_value);
   m_painter_params
     .image_atlas(m_image_atlas)
     .glyph_atlas(m_glyph_atlas)
@@ -290,7 +290,7 @@ init_gl(int w, int h)
     .assign_binding_points(m_assign_binding_points.m_value)
     .use_ubo_for_uniforms(m_use_ubo_for_uniforms.m_value);
 
-  m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params);
+  m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params, m_painter_base_params);
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
   m_glyph_cache = FASTUIDRAWnew fastuidraw::GlyphCache(m_painter->glyph_atlas());
   m_glyph_selector = FASTUIDRAWnew fastuidraw::GlyphSelector(m_glyph_cache);
@@ -318,8 +318,8 @@ init_gl(int w, int h)
       LAZY(assign_layout_to_vertex_shader_inputs);
       LAZY(assign_layout_to_varyings);
       LAZY(use_ubo_for_uniforms);
-      std::cout << std::setw(40) << "alignment:" << std::setw(8) << m_backend->configuration_gl().m_config.alignment()
-                << "  (requested " << m_painter_params.m_config.alignment()
+      std::cout << std::setw(40) << "alignment:" << std::setw(8) << m_backend->configuration_base().alignment()
+                << "  (requested " << m_painter_base_params.alignment()
                 << ")\n" << std::setw(40) << "data_store_backing:"
                 << std::setw(8) << string_from_data_store_type(m_backend->configuration_gl().data_store_backing())
                 << "  (requested " << string_from_data_store_type(m_painter_params.data_store_backing())

@@ -51,8 +51,7 @@ namespace fastuidraw
             Data store is backed by a uniform buffer object
             that is an array of uvec4. The value for
             PainterBackend::ConfigurationBase::alignment()
-            from PainterBackendGLSL::ConfigurationGLSL::m_config
-            must be 4.
+            must then be 4.
            */
           data_store_ubo
         };
@@ -171,11 +170,6 @@ namespace fastuidraw
          */
         ConfigurationGLSL&
         operator=(const ConfigurationGLSL &rhs);
-
-        /*!
-          Configuration parameters inherited from PainterBackend
-         */
-        PainterBackend::ConfigurationBase m_config;
 
         /*!
           If true, each item shader will be in a different
@@ -738,12 +732,14 @@ namespace fastuidraw
         \param glyph_atlas GlyphAtlas for glyphs drawn by the PainterBackend
         \param image_atlas ImageAtlas for images drawn by the PainterBackend
         \param colorstop_atlas ColorStopAtlas for color stop sequences drawn by the PainterBackend
-        \param config ConfigurationGLSL providing configuration parameters
+        \param config_glsl ConfigurationGLSL providing configuration parameters
+        \param config_base ConfigurationBase parameters inherited from PainterBackend
        */
       PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                          reference_counted_ptr<ImageAtlas> image_atlas,
                          reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
-                         const ConfigurationGLSL &config);
+                         const ConfigurationGLSL &config_glsl,
+                         const ConfigurationBase &config_base);
 
       ~PainterBackendGLSL();
 

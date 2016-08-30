@@ -727,8 +727,7 @@ ConfigurationGLSL(void)
 }
 
 fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
-ConfigurationGLSL(const ConfigurationGLSL &obj):
-  m_config(obj.m_config)
+ConfigurationGLSL(const ConfigurationGLSL &obj)
 {
   ConfigurationGLSLPrivate *d;
   d = reinterpret_cast<ConfigurationGLSLPrivate*>(obj.m_d);
@@ -754,7 +753,6 @@ operator=(const ConfigurationGLSL &rhs)
       d = reinterpret_cast<ConfigurationGLSLPrivate*>(m_d);
       rhs_d = reinterpret_cast<ConfigurationGLSLPrivate*>(rhs.m_d);
       *d = *rhs_d;
-      m_config = rhs.m_config;
     }
   return *this;
 }
@@ -943,12 +941,13 @@ fastuidraw::glsl::PainterBackendGLSL::
 PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                    reference_counted_ptr<ImageAtlas> image_atlas,
                    reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
-                   const ConfigurationGLSL &config):
-  PainterBackend(glyph_atlas, image_atlas, colorstop_atlas, config.m_config)
+                   const ConfigurationGLSL &config_glsl,
+                   const ConfigurationBase &config_base):
+  PainterBackend(glyph_atlas, image_atlas, colorstop_atlas, config_base)
 {
-  m_d = FASTUIDRAWnew PainterBackendGLSLPrivate(this, config);
-  set_hints().clipping_via_hw_clip_planes(config.use_hw_clip_planes());
-  glsl::detail::ShaderSetCreator cr(config.default_blend_shader_type());
+  m_d = FASTUIDRAWnew PainterBackendGLSLPrivate(this, config_glsl);
+  set_hints().clipping_via_hw_clip_planes(config_glsl.use_hw_clip_planes());
+  glsl::detail::ShaderSetCreator cr(config_glsl.default_blend_shader_type());
   set_default_shaders(cr.create_shader_set());
 }
 
