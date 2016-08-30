@@ -161,6 +161,10 @@ namespace
     fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL
     compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P);
 
+    static
+    fastuidraw::PainterBackend::ConfigurationBase
+    compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P);
+
     fastuidraw::gl::PainterBackendGL::ConfigurationGL m_params;
     fastuidraw::glsl::PainterBackendGLSL::UberShaderParams m_uber_shader_builder_params;
 
@@ -812,6 +816,22 @@ PainterBackendGLPrivate::
     }
 }
 
+fastuidraw::PainterBackend::ConfigurationBase
+PainterBackendGLPrivate::
+compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params)
+{
+  using namespace fastuidraw;
+  PainterBackend::ConfigurationBase return_value(params.m_config);
+
+  if(params.data_store_backing() == gl::PainterBackendGL::data_store_ubo
+     || gl::detail::compute_tex_buffer_support() == gl::detail::tex_buffer_not_supported)
+    {
+      //using UBO's requires that the data store alignment is 4.
+      return_value.alignment(4);
+    }
+  return return_value;
+}
+
 fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL
 PainterBackendGLPrivate::
 compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params)
@@ -820,7 +840,6 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
   glsl::PainterBackendGLSL::ConfigurationGLSL return_value;
   gl::ContextProperties ctx;
 
-  return_value.m_config = params.m_config;
   return_value.unique_group_per_item_shader(params.break_on_shader_change());
   return_value.unique_group_per_blend_shader(params.break_on_shader_change());
 
@@ -865,12 +884,6 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
         .default_blend_shader_type(PainterBlendShader::single_src);
     }
 
-  if(params.data_store_backing() == gl::PainterBackendGL::data_store_ubo
-     || gl::detail::compute_tex_buffer_support(ctx) == gl::detail::tex_buffer_not_supported)
-    {
-      //using UBO's requires that the data store alignment is 4.
-      return_value.m_config.alignment(4);
-    }
   return return_value;
 }
 
@@ -1267,7 +1280,8 @@ PainterBackendGL(const ConfigurationGL &P):
   PainterBackendGLSL(P.glyph_atlas(),
                      P.image_atlas(),
                      P.colorstop_atlas(),
-                     PainterBackendGLPrivate::compute_glsl_config(P))
+                     PainterBackendGLPrivate::compute_glsl_config(P),
+                     PainterBackendGLPrivate::compute_base_config(P))
 {
   m_d = FASTUIDRAWnew PainterBackendGLPrivate(P, this);
 }
