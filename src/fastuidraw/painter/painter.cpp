@@ -1211,6 +1211,18 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
                    bool with_anti_aliasing,
                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
+  /* dashed stroking has some trickiness with respect to how to handle joins.
+     Without caps:
+       - we omit any join for which the dashing indicates to omit
+         via its distance from the start of a contour
+       - all other joins and edges are sent forward freely.
+     With Caps:
+       - we omit any join for which the dashing indicates to omit
+         via its distance from the start of a contour
+       - for those joins we omitted, we emit a square cap at
+         the join which pushes itself out by half the stroking
+         width.
+   */
   enum PainterEnums::cap_style c;
   c = (cp < PainterEnums::number_dashed_closed) ? PainterEnums::close_contours : PainterEnums::no_caps;
   stroke_path(shader.shader(cp), draw, path, c, js, with_anti_aliasing, call_back);
