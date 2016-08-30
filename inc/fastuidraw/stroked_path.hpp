@@ -349,6 +349,23 @@ public:
   rounded_joins_indices(bool including_closing_edge) const;
 
   /*!
+    Returns the number of contours of the generating path.
+   */
+  unsigned int
+  number_contours(void) const;
+
+  /*!
+    Returns the number of joins for the named contour
+    of the generating path. Joint numbering is so that
+    join A is the join that connects edge A to A + 1.
+    In particular the joins of a closing edge of contour
+    C are then at number_joins(C) - 2 and number_joins(C) - 1.
+    \param contour which contour, with contour < number_contours().
+   */
+  unsigned int
+  number_joins(unsigned int contour) const;
+
+  /*!
     The vertices returned by rounded_joins_indices()
     have that point::m_depth are in the half-open range
     [0, rounded_join_number_depth())
@@ -357,6 +374,26 @@ public:
    */
   unsigned int
   rounded_join_number_depth(bool including_closing_edge) const;
+
+  /*!
+    Returns the range into rounded_joins_points(true)
+    for the rounded join points for the named contour
+    and join.
+    \param contour which contour, with contour < number_contours().
+    \param join which join with join < number_joins(contour)
+   */
+  range_type<unsigned int>
+  rounded_join_points(unsigned int contour, unsigned int join) const;
+
+  /*!
+    Returns the range into rounded_joins_indices(true)
+    for the rounded join points for the named contour
+    and join.
+    \param contour which contour, with contour < number_contours().
+    \param join which join with join < number_joins(contour)
+   */
+  range_type<unsigned int>
+  rounded_join_indices(unsigned int contour, unsigned int join) const;
 
   /*!
     Returns the geometric data for stroking the bevel joins.
@@ -385,6 +422,26 @@ public:
   bevel_join_number_depth(bool including_closing_edge) const;
 
   /*!
+    Returns the range into bevel_joins_points(true)
+    for the bevel join points for the named contour
+    and join.
+    \param contour which contour, with contour < number_contours().
+    \param join which join with join < number_joins(contour)
+   */
+  range_type<unsigned int>
+  bevel_join_points(unsigned int contour, unsigned int join) const;
+
+  /*!
+    Returns the range into bevel_joins_indices(true)
+    for the bevel join points for the named contour
+    and join.
+    \param contour which contour, with contour < number_contours().
+    \param join which join with join < number_joins(contour)
+   */
+  range_type<unsigned int>
+  bevel_join_indices(unsigned int contour, unsigned int join) const;
+
+  /*!
     Returns the geometric data for stroking the miter joins.
     Danger: For Miter joins,
     \param including_closing_edge if true, include the geometric data for
@@ -410,6 +467,26 @@ public:
    */
   unsigned int
   miter_join_number_depth(bool including_closing_edge) const;
+
+  /*!
+    Returns the range into miter_joins_points(true)
+    for the miter join points for the named contour
+    and join.
+    \param contour which contour, with contour < number_contours().
+    \param join which join with join < number_joins(contour)
+   */
+  range_type<unsigned int>
+  miter_join_points(unsigned int contour, unsigned int join) const;
+
+  /*!
+    Returns the range into miter_joins_indices(true)
+    for the miter join points for the named contour
+    and join.
+    \param contour which contour, with contour < number_contours().
+    \param join which join with join < number_joins(contour)
+   */
+  range_type<unsigned int>
+  miter_join_indices(unsigned int contour, unsigned int join) const;
 
   /*!
     Returns the geometric data for stroking the rounded caps.
