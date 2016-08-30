@@ -10,7 +10,8 @@ class sdl_painter_demo:public sdl_demo
 {
 public:
   explicit
-  sdl_painter_demo(const std::string &about_text=std::string());
+  sdl_painter_demo(const std::string &about_text=std::string(),
+                   bool default_value_for_print_painter_config = false);
 
   ~sdl_painter_demo();
 
@@ -114,4 +115,5 @@ private:
   command_line_argument_value<bool> m_use_ubo_for_uniforms;
 
   command_separator m_demo_options;
+  command_line_argument_value<bool> m_print_painter_config;
 };

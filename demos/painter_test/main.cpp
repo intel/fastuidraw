@@ -17,7 +17,8 @@ typedef std::bitset<32> bitset;
 class painter_test:public sdl_painter_demo
 {
 public:
-  painter_test(void)
+  painter_test(void):
+    sdl_painter_demo("", true)
   {}
 
 protected:

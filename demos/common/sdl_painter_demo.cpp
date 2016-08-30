@@ -20,7 +20,8 @@ namespace
 }
 
 sdl_painter_demo::
-sdl_painter_demo(const std::string &about_text):
+sdl_painter_demo(const std::string &about_text,
+                 bool default_value_for_print_painter_config):
   sdl_demo(about_text),
 
   m_image_atlas_options("Image Atlas Options", *this),
@@ -190,7 +191,8 @@ sdl_painter_demo(const std::string &about_text):
                          "painter_use_ubo_for_uniforms",
                          "If true, use a UBO instead of uniforms to hold uniform values common to all items",
                          *this),
-  m_demo_options("Demo Options", *this)
+  m_demo_options("Demo Options", *this),
+  m_print_painter_config(default_value_for_print_painter_config, "print_painter_config", "Print PainterBackendGL config", *this)
 {}
 
 sdl_painter_demo::
@@ -294,31 +296,35 @@ init_gl(int w, int h)
   m_glyph_selector = FASTUIDRAWnew fastuidraw::GlyphSelector(m_glyph_cache);
   m_ft_lib = FASTUIDRAWnew fastuidraw::FreetypeLib();
 
-  std::cout << "\nPainterBackendGL configuration:\n";
+  if(m_print_painter_config.m_value)
+    {
+      std::cout << "\nPainterBackendGL configuration:\n";
 #define LAZY(X) do { \
     std::cout << std::setw(40) << #X": " << std::setw(8) << m_backend->configuration_gl().X() \
-              << "  (set as " << m_painter_params.X() << ")\n";           \
+              << "  (requested " << m_painter_params.X() << ")\n";           \
   } while(0)
-  LAZY(attributes_per_buffer);
-  LAZY(indices_per_buffer);
-  LAZY(number_pools);
-  LAZY(break_on_shader_change);
-  LAZY(vert_shader_use_switch);
-  LAZY(frag_shader_use_switch);
-  LAZY(blend_shader_use_switch);
-  LAZY(unpack_header_and_brush_in_frag_shader);
-  std::cout << "\n\nOptions affected by GL context\n";
-  LAZY(use_hw_clip_planes);
-  LAZY(data_blocks_per_store_buffer);
-  LAZY(assign_layout_to_vertex_shader_inputs);
-  LAZY(assign_layout_to_varyings);
-  LAZY(use_ubo_for_uniforms);
-  std::cout << std::setw(40) << "alignment:" << std::setw(8) << m_backend->configuration_gl().m_config.alignment()
-            << "  (set as " << m_painter_params.m_config.alignment()
-            << ")\n" << std::setw(40) << "data_store_backing:"
-            << std::setw(8) << string_from_data_store_type(m_backend->configuration_gl().data_store_backing())
-            << "  (set at " << string_from_data_store_type(m_painter_params.data_store_backing())
-            << ")\n\n\n";
+
+      LAZY(attributes_per_buffer);
+      LAZY(indices_per_buffer);
+      LAZY(number_pools);
+      LAZY(break_on_shader_change);
+      LAZY(vert_shader_use_switch);
+      LAZY(frag_shader_use_switch);
+      LAZY(blend_shader_use_switch);
+      LAZY(unpack_header_and_brush_in_frag_shader);
+      std::cout << "\n\nOptions affected by GL context\n";
+      LAZY(use_hw_clip_planes);
+      LAZY(data_blocks_per_store_buffer);
+      LAZY(assign_layout_to_vertex_shader_inputs);
+      LAZY(assign_layout_to_varyings);
+      LAZY(use_ubo_for_uniforms);
+      std::cout << std::setw(40) << "alignment:" << std::setw(8) << m_backend->configuration_gl().m_config.alignment()
+                << "  (requested " << m_painter_params.m_config.alignment()
+                << ")\n" << std::setw(40) << "data_store_backing:"
+                << std::setw(8) << string_from_data_store_type(m_backend->configuration_gl().data_store_backing())
+                << "  (requested " << string_from_data_store_type(m_painter_params.data_store_backing())
+                << ")\n\n\n";
+    }
 
   m_painter_params = m_backend->configuration_gl();
   m_painter->target_resolution(w, h);
