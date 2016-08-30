@@ -241,7 +241,7 @@ fastuidraw_painter_stroke_generic(in bool stroke_width_pixels,
 
   vec2 p;
   vec2 position, pre_offset, auxilary_offset, offset;
-  float distance_from_edge_start, distance_from_outline_start;
+  float distance_from_edge_start, distance_from_contour_start;
   float miter_distance, stroke_radius;
   fastuidraw_stroking_params stroke_params;
   int on_boundary, point_type;
@@ -251,7 +251,7 @@ fastuidraw_painter_stroke_generic(in bool stroke_width_pixels,
   pre_offset = primary_attrib.zw;
   auxilary_offset = secondary_attrib.zw;
   distance_from_edge_start = secondary_attrib.x;
-  distance_from_outline_start = secondary_attrib.y;
+  distance_from_contour_start = secondary_attrib.y;
   point_tag = uint_attrib.y;
   point_type = int(uint_attrib.y & uint(fastuidraw_stroke_point_type_mask));
   on_boundary = int(uint_attrib.z) - 1;
@@ -299,6 +299,7 @@ fastuidraw_painter_stroke_generic(in bool stroke_width_pixels,
       p = position;
     }
 
+  fastuidraw_stroking_distance = distance_from_contour_start;
   out_stroking_on_boundary = float(abs(on_boundary));
   if(stroking_pass == fastuidraw_stroke_aa_pass)
     {
