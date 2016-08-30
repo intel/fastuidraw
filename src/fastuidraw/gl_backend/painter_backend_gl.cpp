@@ -1173,9 +1173,9 @@ build_program(void)
   if(!m_uber_shader_builder_params.use_ubo_for_uniforms())
     {
       m_shader_uniforms_loc = m_program->uniform_location("fastuidraw_shader_uniforms");
+      m_uniform_values.resize(m_p->ubo_size());
+      m_uniform_values_ptr = fastuidraw::c_array<fastuidraw::generic_data>(&m_uniform_values[0], m_uniform_values.size());
     }
-  m_uniform_values.resize(m_p->ubo_size());
-  m_uniform_values_ptr = fastuidraw::c_array<fastuidraw::generic_data>(&m_uniform_values[0], m_uniform_values.size());
 }
 
 ///////////////////////////////////////////////
@@ -1407,14 +1407,19 @@ on_pre_draw(void)
       /* Grab the buffer, map it, fill it and leave it bound.
        */
       GLuint ubo;
-      unsigned int ubo_size_bytes(sizeof(generic_data) * d->m_uniform_values_ptr.size());
+      unsigned int size_generics(ubo_size());
+      unsigned int size_bytes(sizeof(generic_data) * size_generics);
+      void *ubo_mapped;
 
-      ubo = d->m_pool->request_uniform_ubo(ubo_size_bytes, GL_ARRAY_BUFFER);
+      ubo = d->m_pool->request_uniform_ubo(size_bytes, GL_UNIFORM_BUFFER);
       assert(ubo != 0);
+      // request_uniform_ubo also binds the buffer for us
+      ubo_mapped = glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
+                                    GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
 
-      fill_uniform_buffer(d->m_uniform_values_ptr);
-      glBufferSubData(GL_ARRAY_BUFFER, 0, ubo_size_bytes, d->m_uniform_values_ptr.c_ptr());
-      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      fill_uniform_buffer(c_array<generic_data>(reinterpret_cast<generic_data*>(ubo_mapped), size_generics));
+      glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
+      glUnmapBuffer(GL_UNIFORM_BUFFER);
 
       glBindBufferBase(GL_UNIFORM_BUFFER, d->m_uber_shader_builder_params.binding_points().uniforms_ubo(), ubo);
     }
