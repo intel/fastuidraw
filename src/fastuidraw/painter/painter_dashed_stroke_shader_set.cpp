@@ -27,7 +27,9 @@ namespace
   public:
     typedef fastuidraw::PainterStrokeShader PainterStrokeShader;
     enum { count = fastuidraw::PainterEnums::number_dashed_cap_styles };
+
     fastuidraw::vecN<PainterStrokeShader, count> m_shaders;
+    fastuidraw::reference_counted_ptr<const fastuidraw::DashEvaluator> m_dash_evaluator;
   };
 }
 
@@ -94,4 +96,23 @@ shader(enum PainterEnums::dashed_cap_style st,
       d->m_shaders[st] = sh;
     }
   return *this;
+}
+
+fastuidraw::PainterDashedStrokeShaderSet&
+fastuidraw::PainterDashedStrokeShaderSet::
+dash_evaluator(const reference_counted_ptr<const DashEvaluator>& v)
+{
+  PainterDashedStrokeShaderSetPrivate *d;
+  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+  d->m_dash_evaluator = v;
+  return *this;
+}
+
+const fastuidraw::reference_counted_ptr<const fastuidraw::DashEvaluator>&
+fastuidraw::PainterDashedStrokeShaderSet::
+dash_evaluator(void) const
+{
+  PainterDashedStrokeShaderSetPrivate *d;
+  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+  return d->m_dash_evaluator;
 }

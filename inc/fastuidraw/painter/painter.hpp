@@ -486,8 +486,7 @@ namespace fastuidraw
     /*!
       Stroke a path using a custom PainterDashedStrokeShaderSet
       \param shader shader with which to draw
-      \param draw data for how to draw, the data of PainterData::m_item_shader_data must be
-                  castable (via PainterShaderData::cast_object()) to PainterDashedStrokeParams.
+      \param draw data for how to draw
       \param path path to stroke
       \param cp cap style of dashes
       \param js join style
@@ -503,8 +502,7 @@ namespace fastuidraw
 
     /*!
       Stroke a path using PainterShaderSet::dashed_stroke_shader() of default_shaders().
-      \param draw data for how to draw, the data of PainterData::m_item_shader_data must be
-                  castable (via PainterShaderData::cast_object()) to PainterDashedStrokeParams.
+      \param draw data for how to draw
       \param path path to stroke
       \param cp cap style of dashes
       \param js join style
@@ -520,8 +518,7 @@ namespace fastuidraw
 
     /*!
       Stroke a path using PainterShaderSet::pixel_width_dashed_stroke_shader() of default_shaders().
-      \param draw data for how to draw, the data of PainterData::m_item_shader_data must be
-                  castable (via PainterShaderData::cast_object()) to PainterDashedStrokeParams.
+      \param draw data for how to draw
       \param path path to stroke
       \param cp cap style of dashes
       \param js join style

@@ -19,8 +19,6 @@
 
 #pragma once
 
-#include <typeinfo>
-
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -152,66 +150,6 @@ namespace fastuidraw
   {
   public:
     /*!
-      Ctor. A derived class from PainterShaderData
-      should set \ref m_data.
-     */
-    PainterShaderData(void);
-
-    /*!
-      Copy ctor, calls DataBase::copy() to
-      copy the data behind \ref m_data.
-     */
-    PainterShaderData(const PainterShaderData &obj);
-
-    ~PainterShaderData();
-
-    /*!
-      Assignment operator
-     */
-    PainterShaderData&
-    operator=(const PainterShaderData &rhs);
-
-    /*!
-      Returns the length of the data needed to encode the data.
-      Data is padded to be multiple of alignment.
-      \param alignment alignment of the data store
-                       in units of generic_data, see
-                       PainterBackend::ConfigurationBase::alignment()
-    */
-    unsigned int
-    data_size(unsigned int alignment) const;
-
-    /*!
-      Pack the values of this object
-      \param alignment alignment of the data store
-                       in units of generic_data, see
-                       PainterBackend::ConfigurationBase::alignment()
-      \param dst place to which to pack data
-    */
-    void
-    pack_data(unsigned int alignment, c_array<generic_data> dst) const;
-
-    /*!
-      Cast the PainterShaderData into another type derived
-      from PainterShaderData. Underneath this is realized
-      as a static cast of unerlying data. If the cast cannot
-      be done, returns NULL.
-     */
-    template<typename T>
-    const T*
-    cast_object(void) const
-    {
-      if(m_data != NULL && m_data->suitable_for_type(typeid(T)))
-        {
-          return static_cast<const T*>(this);
-        }
-      else
-        {
-          return NULL;
-        }
-    }
-
-    /*!
       Class that holds the actual data and packs the data.
       A class derived from PainterShaderData should set the
       field \ref m_data to point to an object derived from
@@ -255,17 +193,54 @@ namespace fastuidraw
       virtual
       void
       pack_data(unsigned int alignment, c_array<generic_data> dst) const = 0;
-
-      /*!
-        To be implemented by a derived class if the type
-        derived from PainterShaderData can be use this
-        DataBase object as \ref PainterShaderData::m_data.
-        \param info type_info as taken from typeid() operator.
-       */
-      virtual
-      bool
-      suitable_for_type(const std::type_info &info) const = 0;
     };
+
+    /*!
+      Ctor. A derived class from PainterShaderData
+      should set \ref m_data.
+     */
+    PainterShaderData(void);
+
+    /*!
+      Copy ctor, calls DataBase::copy() to
+      copy the data behind \ref m_data.
+     */
+    PainterShaderData(const PainterShaderData &obj);
+
+    ~PainterShaderData();
+
+    /*!
+      Assignment operator
+     */
+    PainterShaderData&
+    operator=(const PainterShaderData &rhs);
+
+    /*!
+      Returns the length of the data needed to encode the data.
+      Data is padded to be multiple of alignment.
+      \param alignment alignment of the data store
+                       in units of generic_data, see
+                       PainterBackend::ConfigurationBase::alignment()
+    */
+    unsigned int
+    data_size(unsigned int alignment) const;
+
+    /*!
+      Pack the values of this object
+      \param alignment alignment of the data store
+                       in units of generic_data, see
+                       PainterBackend::ConfigurationBase::alignment()
+      \param dst place to which to pack data
+    */
+    void
+    pack_data(unsigned int alignment, c_array<generic_data> dst) const;
+
+    /*!
+      Returns a pointer to the underlying object holding
+      the data of the PainterShaderData.
+     */
+    const DataBase*
+    data_base(void) const;
 
   protected:
     /*!

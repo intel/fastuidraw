@@ -19,17 +19,42 @@
 
 #pragma once
 
+#include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/painter/painter_stroke_shader.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 
-
-
 namespace fastuidraw
 {
+  class PainterItemShaderData;
 
 /*!\addtogroup Painter
   @{
  */
+
+  /*!
+    A DashEvaluator is used by Painter to realize the
+    data to send to a PainterPacker for the purpose
+    of dashed stroking.
+   */
+  class DashEvaluator:
+    public reference_counted<DashEvaluator>::default_base
+  {
+  public:
+    /*!
+      To be implemented by a derived class to give the distance
+      to the next dash boundary. Giving a negative value indicates
+      that the location passed is not drawn when dashed and giving
+      a positive indicates it is.
+      \param data PainterItemShaderData object holding the data to
+                  be sent to the shader
+      \param distance the distance to use to use to compute the
+                      return value
+     */
+    virtual
+    float
+    signed_distance_to_next_dash_boundary(const PainterItemShaderData &data,
+                                          float distance) const;
+  };
 
   /*!
     A PainterDashedStrokeShaderSet holds a collection of
@@ -60,6 +85,22 @@ namespace fastuidraw
      */
     PainterDashedStrokeShaderSet&
     operator=(const PainterDashedStrokeShaderSet &rhs);
+
+    /*!
+      Returns the DashEvaluator object to be used with
+      the expected PainterItemShaderData passed to the
+      PainterStrokeShader objects of this
+      PainterDashedStrokeShaderSet.
+     */
+    const reference_counted_ptr<const DashEvaluator>&
+    dash_evaluator(void) const;
+
+    /*!
+      Set the value returned by dash_evaluator(void) const.
+      Initial value is NULL.
+     */
+    PainterDashedStrokeShaderSet&
+    dash_evaluator(const reference_counted_ptr<const DashEvaluator>&);
 
     /*!
       Shader set for dashed stroking of paths where the stroking

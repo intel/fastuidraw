@@ -52,13 +52,6 @@ namespace
       dst[fastuidraw::PainterStrokeParams::stroke_width_offset].f = m_width;
     }
 
-    virtual
-    bool
-    suitable_for_type(const std::type_info &info) const
-    {
-      return info == typeid(fastuidraw::PainterStrokeParams);
-    }
-
     float m_miter_limit;
     float m_width;
   };
