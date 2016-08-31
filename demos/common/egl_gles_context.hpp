@@ -25,7 +25,8 @@ public:
     // 0 means no MSAA, all other values are enabled and number samples
     int m_msaa;
 
-    int m_gles_version;
+    int m_gles_major_version;
+    int m_gles_minor_version;
   };
 
   egl_gles_context(const params &P, SDL_Window *w);
