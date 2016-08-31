@@ -87,6 +87,13 @@ namespace fastuidraw
       floats(enum interpolation_qualifier_t q) const;
 
       /*!
+        Returns an array R, so that R[i] is
+        floats(i).size().
+       */
+      const_c_array<size_t>
+      float_counts(void) const;
+
+      /*!
         Returns the names for the slots of the uint varyings
        */
       const_c_array<const char*>

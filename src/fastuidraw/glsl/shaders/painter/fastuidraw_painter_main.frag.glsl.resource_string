@@ -1,14 +1,8 @@
 #ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
-  flat fastuidraw_varying uint fastuidraw_header_varying;
   uint fastuidraw_frag_shader;
   uint fastuidraw_frag_shader_data_location;
   uint fastuidraw_blend_shader;
   uint fastuidraw_blend_shader_data_location;
-#else
-  flat fastuidraw_varying uint fastuidraw_frag_shader;
-  flat fastuidraw_varying uint fastuidraw_frag_shader_data_location;
-  flat fastuidraw_varying uint fastuidraw_blend_shader;
-  flat fastuidraw_varying uint fastuidraw_blend_shader_data_location;
 #endif
 
 #ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
@@ -32,7 +26,6 @@ layout(location = 0) inout vec4 fastuidraw_final_color;
 
 #else
 
-  fastuidraw_varying vec4 fastuidraw_clip_plane;
   void
   apply_clipping(void)
   {
@@ -46,8 +39,8 @@ layout(location = 0) inout vec4 fastuidraw_final_color;
        pixel (recall the clipping equations are already in clip coordinates).
      */
     float epsilon = 0.5 * fastuidraw_viewport_recip_pixels_magnitude;
-    if(fastuidraw_clip_plane.x < epsilon || fastuidraw_clip_plane.y < epsilon
-       || fastuidraw_clip_plane.z < epsilon  || fastuidraw_clip_plane.w < epsilon)
+    if(fastuidraw_clip_plane0 < epsilon || fastuidraw_clip_plane1 < epsilon
+       || fastuidraw_clip_plane2 < epsilon  || fastuidraw_clip_plane3 < epsilon)
       {
         discard;
       }
@@ -80,7 +73,7 @@ main(void)
   }
   #endif
 
-  fastuidraw_brush_position = fastuidraw_brush_p;
+  fastuidraw_brush_position = vec2(fastuidraw_brush_p_x, fastuidraw_brush_p_y);
   c = fastuidraw_run_frag_shader(fastuidraw_frag_shader, fastuidraw_frag_shader_data_location);
   b = fastuidraw_compute_brush_color();
   v = b * c;

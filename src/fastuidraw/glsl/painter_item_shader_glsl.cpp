@@ -73,6 +73,7 @@ namespace
     fastuidraw::vecN<StringArray, interpolation_number_types> m_floats;
     StringArray m_ints;
     StringArray m_uints;
+    fastuidraw::vecN<size_t, interpolation_number_types> m_float_counts;
   };
 
   class GLSLShaderUnpackValuePrivate
@@ -211,7 +212,30 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
       "uvec3",
       "uvec4"
     };
-  const char ext_component[] = "xyzw";
+
+  const char *temp_components[] =
+    {
+      ".x",
+      ".xy",
+      ".xyz",
+      ".xyzw"
+    };
+
+  const char *read_components[] =
+    {
+      ".x",
+      ".xy",
+      ".xyz",
+      ".xyzw"
+    };
+
+  const char *ext_components[] =
+    {
+      ".x",
+      ".y",
+      ".z",
+      ".w"
+    };
 
   unsigned int number_blocks;
   number_blocks = labels.size() / alignment;
@@ -225,36 +249,34 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
 
   for(unsigned int b = 0, i = 0; b < number_blocks; ++b)
     {
-      /* fetch the data from the store
-       */
-      str << "utemp.";
-      for(unsigned int k = 0, kk = i; k < alignment && kk < labels.size(); ++k, ++kk)
-        {
-          str << ext_component[k];
-        }
-      str << " = fastuidraw_fetch_data("
-          << "int(" << offset_name << ") + " << b << ").";
-      for(unsigned int k = 0, kk = i; k < alignment && kk < labels.size(); ++k, ++kk)
-        {
-          str << ext_component[k];
-        }
-      str << ";\n";
+      unsigned int cmp, li;
+      const char *temp_comp;
+
+      li = labels.size() - i;
+      cmp = std::min(alignment, li);
+      assert(cmp >= 1 && cmp <= 4);
+
+      temp_comp = (alignment == 1) ? "" : temp_components[cmp - 1];
+      str << "utemp" << temp_comp << " = fastuidraw_fetch_data(int("
+          << offset_name << ") + " << b << ")" << read_components[cmp-1] << ";\n";
 
       /* perform bit cast to correct type.
        */
       for(unsigned int k = 0; k < alignment && i < labels.size(); ++k, ++i)
         {
+          const char *ext;
+          ext = (alignment == 1) ? "" : ext_components[k];
           switch(labels[i].type())
             {
             case fastuidraw::glsl::shader_unpack_value::int_type:
-              str << prefix << labels[i].name() << " = " << "int(utemp." << ext_component[k] << ");\n";
+              str << prefix << labels[i].name() << " = " << "int(utemp" << ext << ");\n";
               break;
             case fastuidraw::glsl::shader_unpack_value::uint_type:
-              str << prefix << labels[i].name() << " = " << "utemp." << ext_component[k] << ";\n";
+              str << prefix << labels[i].name() << " = " << "utemp" << ext << ";\n";
               break;
             default:
             case fastuidraw::glsl::shader_unpack_value::float_type:
-              str << prefix << labels[i].name() << " = " << "uintBitsToFloat(utemp." << ext_component[k] << ");\n";
+              str << prefix << labels[i].name() << " = " << "uintBitsToFloat(utemp" << ext << ");\n";
               break;
             }
         }
@@ -311,6 +333,15 @@ floats(enum interpolation_qualifier_t q) const
   return d->m_floats[q].string_array();
 }
 
+fastuidraw::const_c_array<size_t>
+fastuidraw::glsl::varying_list::
+float_counts(void) const
+{
+  VaryingListPrivate *d;
+  d = reinterpret_cast<VaryingListPrivate*>(m_d);
+  return const_c_array<size_t>(&d->m_float_counts[0], d->m_float_counts.size());
+}
+
 fastuidraw::const_c_array<const char*>
 fastuidraw::glsl::varying_list::
 uints(void) const
@@ -337,6 +368,7 @@ set_float_varying(unsigned int slot, const char *pname,
   VaryingListPrivate *d;
   d = reinterpret_cast<VaryingListPrivate*>(m_d);
   d->m_floats[q].implement_set(slot, pname);
+  d->m_float_counts[q] = d->m_floats[q].string_array().size();
   return *this;
 }
 

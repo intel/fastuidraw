@@ -137,7 +137,12 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
   fastuidraw_brush_gradient gradient;
   fastuidraw_brush_repeat_window repeat_window;
 
-  data_ptr = fastuidraw_read_pen_color(data_ptr, fastuidraw_brush_pen_color);
+  vec4 pen_color;
+  data_ptr = fastuidraw_read_pen_color(data_ptr, pen_color);
+  fastuidraw_brush_pen_color_x = pen_color.x;
+  fastuidraw_brush_pen_color_y = pen_color.y;
+  fastuidraw_brush_pen_color_z = pen_color.z;
+  fastuidraw_brush_pen_color_w = pen_color.w;
 
   if(fastuidraw_brush_shader_has_image(shader))
     {
@@ -180,26 +185,34 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
 
   float image_factor;
 
-  fastuidraw_brush_repeat_window_xy = repeat_window.xy;
-  fastuidraw_brush_repeat_window_wh = repeat_window.wh;
+  fastuidraw_brush_repeat_window_x = repeat_window.xy.x;
+  fastuidraw_brush_repeat_window_y = repeat_window.xy.y;
+  fastuidraw_brush_repeat_window_w = repeat_window.wh.x;
+  fastuidraw_brush_repeat_window_h = repeat_window.wh.y;
 
-  fastuidraw_brush_gradient_p0 = gradient.p0;
-  fastuidraw_brush_gradient_p1 = gradient.p1;
+  fastuidraw_brush_gradient_p0_x = gradient.p0.x;
+  fastuidraw_brush_gradient_p0_y = gradient.p0.y;
+  fastuidraw_brush_gradient_p1_x = gradient.p1.x;
+  fastuidraw_brush_gradient_p1_y = gradient.p1.y;
   fastuidraw_brush_gradient_r0 = gradient.r0;
   fastuidraw_brush_gradient_r1 = gradient.r1;
 
   image_factor = 1.0 / float(image.image_size_over_master_size);
-  fastuidraw_brush_image_xy = image.master_index_tile_atlas_location_xyz.xy + vec2(image.image_start) * image_factor;
+  vec2 T;
+  T = image.master_index_tile_atlas_location_xyz.xy + vec2(image.image_start) * image_factor;
+  fastuidraw_brush_image_x = T.x;
+  fastuidraw_brush_image_y = T.y;
   fastuidraw_brush_image_layer = image.master_index_tile_atlas_location_xyz.z;
   fastuidraw_brush_image_factor = image_factor;
-  fastuidraw_brush_image_size = vec2(image.image_size);
+  fastuidraw_brush_image_size_x = float(image.image_size.x);
+  fastuidraw_brush_image_size_y = float(image.image_size.y);
 
   float color_stop_recip;
 
   color_stop_recip = fastuidraw_colorStopAtlas_size_reciprocal;
   fastuidraw_brush_color_stop_length = color_stop_recip * gradient.color_stop_sequence_length;
-  fastuidraw_brush_color_stop_xy.x = color_stop_recip * gradient.color_stop_sequence_xy.x;
-  fastuidraw_brush_color_stop_xy.y = gradient.color_stop_sequence_xy.y;
+  fastuidraw_brush_color_stop_x = color_stop_recip * gradient.color_stop_sequence_xy.x;
+  fastuidraw_brush_color_stop_y = gradient.color_stop_sequence_xy.y;
   fastuidraw_brush_shader = shader;
 }
 

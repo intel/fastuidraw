@@ -42,36 +42,31 @@ namespace fastuidraw
     {
     public:
       /*!
-        A params gives parameters how to contruct
+        A ConfigurationGL gives parameters how to contruct
         a PainterBackendGL.
        */
-      class params
+      class ConfigurationGL
       {
       public:
         /*!
           Ctor.
          */
-        params(void);
+        ConfigurationGL(void);
 
         /*!
           Copy ctor.
           \param obj value from which to copy
          */
-        params(const params &obj);
+        ConfigurationGL(const ConfigurationGL &obj);
 
-        ~params();
+        ~ConfigurationGL();
 
         /*!
           Assignment operator
           \param rhs value from which to copy
          */
-        params&
-        operator=(const params &rhs);
-
-        /*!
-          Configuration parameters inherited from PainterBackend
-         */
-        PainterBackend::ConfigurationBase m_config;
+        ConfigurationGL&
+        operator=(const ConfigurationGL &rhs);
 
         /*!
           The ImageAtlasGL to be used by the painter
@@ -82,7 +77,7 @@ namespace fastuidraw
         /*!
           Set the value returned by image_atlas(void) const.
          */
-        params&
+        ConfigurationGL&
         image_atlas(const reference_counted_ptr<ImageAtlasGL> &v);
 
         /*!
@@ -94,7 +89,7 @@ namespace fastuidraw
         /*!
           Set the value returned by colorstop_atlas(void) const.
          */
-        params&
+        ConfigurationGL&
         colorstop_atlas(const reference_counted_ptr<ColorStopAtlasGL> &v);
 
         /*!
@@ -106,7 +101,7 @@ namespace fastuidraw
         /*!
           Set the value returned by glyph_atlas(void) const.
          */
-        params&
+        ConfigurationGL&
         glyph_atlas(const reference_counted_ptr<GlyphAtlasGL> &v);
 
         /*!
@@ -122,7 +117,7 @@ namespace fastuidraw
         /*!
           Set the value for attributes_per_buffer(void) const
         */
-        params&
+        ConfigurationGL&
         attributes_per_buffer(unsigned int v);
 
         /*!
@@ -139,7 +134,7 @@ namespace fastuidraw
         /*!
           Set the value for indices_per_buffer(void) const
         */
-        params&
+        ConfigurationGL&
         indices_per_buffer(unsigned int v);
 
         /*!
@@ -157,7 +152,7 @@ namespace fastuidraw
         /*!
           Set the value for data_blocks_per_store_buffer(void) const
         */
-        params&
+        ConfigurationGL&
         data_blocks_per_store_buffer(unsigned int v);
 
         /*!
@@ -173,7 +168,7 @@ namespace fastuidraw
         /*!
           Set the value for data_store_backing(void) const
         */
-        params&
+        ConfigurationGL&
         data_store_backing(enum data_store_backing_t v);
 
         /*!
@@ -186,7 +181,7 @@ namespace fastuidraw
         /*!
           Set the value for use_hw_clip_planes(void) const
         */
-        params&
+        ConfigurationGL&
         use_hw_clip_planes(bool v);
 
         /*!
@@ -199,7 +194,7 @@ namespace fastuidraw
         /*!
           Set the value for vert_shader_use_switch(void) const
         */
-        params&
+        ConfigurationGL&
         vert_shader_use_switch(bool v);
 
         /*!
@@ -212,7 +207,7 @@ namespace fastuidraw
         /*!
           Set the value for frag_shader_use_switch(void) const
         */
-        params&
+        ConfigurationGL&
         frag_shader_use_switch(bool v);
 
         /*!
@@ -225,7 +220,7 @@ namespace fastuidraw
         /*!
           Set the value for blend_shader_use_switch(void) const
         */
-        params&
+        ConfigurationGL&
         blend_shader_use_switch(bool v);
 
         /*!
@@ -246,7 +241,7 @@ namespace fastuidraw
         /*!
           Set the value for number_pools(void) const
         */
-        params&
+        ConfigurationGL&
         number_pools(unsigned int v);
 
         /*!
@@ -263,7 +258,7 @@ namespace fastuidraw
         /*!
           Set the value for break_on_shader_change(void) const
         */
-        params&
+        ConfigurationGL&
         break_on_shader_change(bool v);
 
         /*!
@@ -278,23 +273,84 @@ namespace fastuidraw
         /*!
           Set the value for unpack_header_and_brush_in_frag_shader(void) const
         */
-        params&
+        ConfigurationGL&
         unpack_header_and_brush_in_frag_shader(bool v);
+
+        /*!
+          If true, the vertex shader inputs should be qualified
+          with a layout(location=) specifier. Default value is
+          true.
+         */
+        bool
+        assign_layout_to_vertex_shader_inputs(void) const;
+
+        /*!
+          Set the value for assign_layout_to_vertex_shader_inputs(void) const
+        */
+        ConfigurationGL&
+        assign_layout_to_vertex_shader_inputs(bool v);
+
+        /*!
+          If true, the varyings between vertex and fragment
+          shading should be qualified with a layout(location=)
+          specifier. Default value is false.
+         */
+        bool
+        assign_layout_to_varyings(void) const;
+
+        /*!
+          Set the value for assign_layout_to_varyings(void) const
+        */
+        ConfigurationGL&
+        assign_layout_to_varyings(bool v);
+
+        /*!
+          If true, the textures and buffers used in the
+          uber-shader should be qualified with a layout(binding=)
+          specifier. Default value is true.
+         */
+        bool
+        assign_binding_points(void) const;
+
+        /*!
+          Set the value for assign_binding_points(void) const
+        */
+        ConfigurationGL&
+        assign_binding_points(bool v);
+
+        /*!
+          If true, the uber-shader will use a UBO for uniform
+          values common to all painter calls. Default value
+          is false.
+         */
+        bool
+        use_ubo_for_uniforms(void) const;
+
+        /*!
+          Set the value for use_ubo_for_uniforms(void) const
+        */
+        ConfigurationGL&
+        use_ubo_for_uniforms(bool v);
 
       private:
         void *m_d;
       };
 
       /*!
-        Ctor.
-        \param P parameters specifying properties. A GL context must
-                 be current when contructing a PainterBackendGL object.
-                 Any GL context used with the constructed PainterBackendGL
-                 must be in the same share group as the GL context that
-                 was current when the PainterBackendGL was constructed.
+        Ctor. When contructing a GL context must
+        be current when contructing a PainterBackendGL object.
+        Any GL context used with the constructed PainterBackendGL
+        must be in the same share group as the GL context that
+        was current when the PainterBackendGL was constructed.
+        The values for the parameters of the created object might
+        be adjusted from the passed parameters in order for the
+        object to function correctly in the GL context from which
+        it was created.
+        \param config_gl ConfigurationGL providing configuration parameters
+        \param config_base ConfigurationBase parameters inherited from PainterBackend
        */
-      explicit
-      PainterBackendGL(const params &P = params());
+      PainterBackendGL(const ConfigurationGL &config_gl,
+                       const ConfigurationBase &config_base);
 
       ~PainterBackendGL();
 
@@ -314,16 +370,20 @@ namespace fastuidraw
       reference_counted_ptr<const PainterDrawCommand>
       map_draw_command(void);
 
-      virtual
-      void
-      target_resolution(int w, int h);
-
       /*!
         Return the Program used to draw -all- content
         by this PainterBackendGL
        */
       reference_counted_ptr<Program>
       program(void);
+
+      /*!
+        Returns the ConfigurationGL adapted from that passed
+        by ctor (for the properties of the GL context) of
+        the PainterBackendGL.
+       */
+      const ConfigurationGL&
+      configuration_gl(void) const;
 
     private:
       void *m_d;

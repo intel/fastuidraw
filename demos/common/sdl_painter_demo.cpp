@@ -1,8 +1,27 @@
 #include "sdl_painter_demo.hpp"
 #include "text_helper.hpp"
 
+namespace
+{
+  const char*
+  string_from_data_store_type(enum fastuidraw::gl::PainterBackendGL::data_store_backing_t v)
+  {
+    switch(v)
+      {
+      case fastuidraw::gl::PainterBackendGL::data_store_tbo:
+        return "tbo";
+
+      case fastuidraw::gl::PainterBackendGL::data_store_ubo:
+        return "ubo";
+      }
+
+    return "invalid value";
+  }
+}
+
 sdl_painter_demo::
-sdl_painter_demo(const std::string &about_text):
+sdl_painter_demo(const std::string &about_text,
+                 bool default_value_for_print_painter_config):
   sdl_demo(about_text),
 
   m_image_atlas_options("Image Atlas Options", *this),
@@ -98,7 +117,7 @@ sdl_painter_demo(const std::string &about_text):
                                     "if true delay uploading of data to GL from color stop atlas until atlas flush",
                                     *this),
 
-  m_painter_options("Painter Buffer Options", *this),
+  m_painter_options("PainterBackendGL Options", *this),
   m_painter_attributes_per_buffer(m_painter_params.attributes_per_buffer(),
                                   "painter_verts_per_buffer",
                                   "Number of vertices a single API draw can hold",
@@ -107,39 +126,43 @@ sdl_painter_demo(const std::string &about_text):
                                "painter_indices_per_buffer",
                                "Number of indices a single API draw can hold",
                                *this),
-  m_painter_data_blocks_per_buffer(m_painter_params.data_blocks_per_store_buffer(),
-                                   "painter_blocks_per_buffer",
-                                   "Number of data blocks a single API draw can hold",
-                                   *this),
-  m_painter_alignment(m_painter_params.m_config.alignment(), "painter_alignment",
-                       "Alignment for data store of painter, must be 1, 2, 3 or 4", *this),
   m_painter_number_pools(m_painter_params.number_pools(), "painter_number_pools",
                          "Number of GL object pools used by the painter", *this),
   m_painter_break_on_shader_change(m_painter_params.break_on_shader_change(),
                                    "painter_break_on_shader_change",
                                    "If true, different shadings are placed into different "
                                    "entries of a call to glMultiDrawElements", *this),
+  m_uber_vert_use_switch(m_painter_params.vert_shader_use_switch(),
+                         "painter_uber_vert_use_switch",
+                         "If true, use a switch statement in uber vertex shader dispatch",
+                         *this),
+  m_uber_frag_use_switch(m_painter_params.frag_shader_use_switch(),
+                         "painter_uber_frag_use_switch",
+                         "If true, use a switch statement in uber fragment shader dispatch",
+                         *this),
+  m_uber_blend_use_switch(m_painter_params.blend_shader_use_switch(),
+                          "painter_uber_blend_use_switch",
+                          "If true, use a switch statement in uber blend shader dispatch",
+                          *this),
+  m_unpack_header_and_brush_in_frag_shader(m_painter_params.unpack_header_and_brush_in_frag_shader(),
+                                           "painter_unpack_header_and_brush_in_frag_shader",
+                                           "if true, unpack the brush and frag-shader specific data from "
+                                           "the header in the fragment shader instead of the vertex shader",
+                                           *this),
+
+  m_painter_options_affected_by_context("PainterBackendGL Options that can be overridden "
+                                        "by version and extension supported by GL/GLES context",
+                                        *this),
   m_use_hw_clip_planes(m_painter_params.use_hw_clip_planes(),
                        "painter_use_hw_clip_planes",
                        "If true, use HW clip planes (i.e. gl_ClipDistance) for clipping",
                        *this),
-  m_uber_vert_use_switch(m_painter_params.vert_shader_use_switch(),
-                         "uber_vert_use_switch",
-                         "If true, use a switch statement in uber vertex shader dispatch",
-                         *this),
-  m_uber_frag_use_switch(m_painter_params.frag_shader_use_switch(),
-                         "uber_frag_use_switch",
-                         "If true, use a switch statement in uber fragment shader dispatch",
-                         *this),
-  m_uber_blend_use_switch(m_painter_params.blend_shader_use_switch(),
-                          "uber_blend_use_switch",
-                          "If true, use a switch statement in uber blend shader dispatch",
-                          *this),
-  m_unpack_header_and_brush_in_frag_shader(m_painter_params.unpack_header_and_brush_in_frag_shader(),
-                                           "unpack_header_and_brush_in_frag_shader",
-                                           "if true, unpack the brush and frag-shader specific data from "
-                                           "the header in the fragment shader instead of the vertex shader",
-                                           *this),
+  m_painter_alignment(m_painter_base_params.alignment(), "painter_alignment",
+                       "Alignment for data store of painter, must be 1, 2, 3 or 4", *this),
+  m_painter_data_blocks_per_buffer(m_painter_params.data_blocks_per_store_buffer(),
+                                   "painter_blocks_per_buffer",
+                                   "Number of data blocks a single API draw can hold",
+                                   *this),
   m_data_store_backing(m_painter_params.data_store_backing(),
                        enumerated_string_type<data_store_backing_t>()
                        .add_entry("tbo",
@@ -151,10 +174,25 @@ sdl_painter_demo(const std::string &about_text):
                                   "use a uniform buffer object to back the data store. "
                                   "A uniform buffer object's maximum size is much smaller than that "
                                   "of a texture buffer object usually"),
-                       "data_store_backing_type",
+                       "painter_data_store_backing_type",
                        "specifies how the data store buffer is backed",
                        *this),
-  m_demo_options("Demo Options", *this)
+  m_assign_layout_to_vertex_shader_inputs(m_painter_params.assign_layout_to_vertex_shader_inputs(),
+                                          "painter_assign_layout_to_vertex_shader_inputs",
+                                          "If true, use layout(location=) in GLSL shader for vertex shader inputs",
+                                          *this),
+  m_assign_layout_to_varyings(m_painter_params.assign_layout_to_varyings(),
+                              "painter_assign_layout_to_varyings",
+                              "If true, use layout(location=) in GLSL shader for varyings", *this),
+  m_assign_binding_points(m_painter_params.assign_binding_points(),
+                          "painter_assign_binding_points",
+                          "If true, use layout(binding=) in GLSL shader on samplers and buffers", *this),
+  m_use_ubo_for_uniforms(m_painter_params.use_ubo_for_uniforms(),
+                         "painter_use_ubo_for_uniforms",
+                         "If true, use a UBO instead of uniforms to hold uniform values common to all items",
+                         *this),
+  m_demo_options("Demo Options", *this),
+  m_print_painter_config(default_value_for_print_painter_config, "print_painter_config", "Print PainterBackendGL config", *this)
 {}
 
 sdl_painter_demo::
@@ -231,7 +269,7 @@ init_gl(int w, int h)
   m_colorstop_atlas = FASTUIDRAWnew fastuidraw::gl::ColorStopAtlasGL(m_colorstop_atlas_params);
 
 
-  m_painter_params.m_config.alignment(m_painter_alignment.m_value);
+  m_painter_base_params.alignment(m_painter_alignment.m_value);
   m_painter_params
     .image_atlas(m_image_atlas)
     .glyph_atlas(m_glyph_atlas)
@@ -246,16 +284,50 @@ init_gl(int w, int h)
     .frag_shader_use_switch(m_uber_frag_use_switch.m_value)
     .blend_shader_use_switch(m_uber_blend_use_switch.m_value)
     .unpack_header_and_brush_in_frag_shader(m_unpack_header_and_brush_in_frag_shader.m_value)
-    .data_store_backing(m_data_store_backing.m_value.m_value);
+    .data_store_backing(m_data_store_backing.m_value.m_value)
+    .assign_layout_to_vertex_shader_inputs(m_assign_layout_to_vertex_shader_inputs.m_value)
+    .assign_layout_to_varyings(m_assign_layout_to_varyings.m_value)
+    .assign_binding_points(m_assign_binding_points.m_value)
+    .use_ubo_for_uniforms(m_use_ubo_for_uniforms.m_value);
 
-  m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params);
+  m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params, m_painter_base_params);
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
   m_glyph_cache = FASTUIDRAWnew fastuidraw::GlyphCache(m_painter->glyph_atlas());
   m_glyph_selector = FASTUIDRAWnew fastuidraw::GlyphSelector(m_glyph_cache);
   m_ft_lib = FASTUIDRAWnew fastuidraw::FreetypeLib();
 
-  m_painter->target_resolution(w, h);
+  if(m_print_painter_config.m_value)
+    {
+      std::cout << "\nPainterBackendGL configuration:\n";
+#define LAZY(X) do { \
+    std::cout << std::setw(40) << #X": " << std::setw(8) << m_backend->configuration_gl().X() \
+              << "  (requested " << m_painter_params.X() << ")\n";           \
+  } while(0)
 
+      LAZY(attributes_per_buffer);
+      LAZY(indices_per_buffer);
+      LAZY(number_pools);
+      LAZY(break_on_shader_change);
+      LAZY(vert_shader_use_switch);
+      LAZY(frag_shader_use_switch);
+      LAZY(blend_shader_use_switch);
+      LAZY(unpack_header_and_brush_in_frag_shader);
+      std::cout << "\n\nOptions affected by GL context\n";
+      LAZY(use_hw_clip_planes);
+      LAZY(data_blocks_per_store_buffer);
+      LAZY(assign_layout_to_vertex_shader_inputs);
+      LAZY(assign_layout_to_varyings);
+      LAZY(use_ubo_for_uniforms);
+      std::cout << std::setw(40) << "alignment:" << std::setw(8) << m_backend->configuration_base().alignment()
+                << "  (requested " << m_painter_base_params.alignment()
+                << ")\n" << std::setw(40) << "data_store_backing:"
+                << std::setw(8) << string_from_data_store_type(m_backend->configuration_gl().data_store_backing())
+                << "  (requested " << string_from_data_store_type(m_painter_params.data_store_backing())
+                << ")\n\n\n";
+    }
+
+  m_painter_params = m_backend->configuration_gl();
+  m_painter->target_resolution(w, h);
   derived_init(w, h);
 
   #ifdef FASTUIDRAW_GL_USE_GLES

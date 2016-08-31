@@ -1,0 +1,10 @@
+precision highp float;
+precision highp int;
+precision mediump sampler2DArray;
+precision highp usampler2DArray;
+
+#if defined(GL_EXT_texture_buffer) || defined(GL_OES_texture_buffer)
+  precision highp samplerBuffer;
+  precision highp usamplerBuffer;
+  precision highp isamplerBuffer;
+#endif

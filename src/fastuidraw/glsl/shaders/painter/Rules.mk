@@ -26,7 +26,6 @@ LIBRARY_RESOURCE_STRING += $(call filelist, fastuidraw_painter_main.vert.glsl.re
 	fastuidraw_painter_fill.vert.glsl.resource_string \
 	fastuidraw_painter_fill.frag.glsl.resource_string \
 	fastuidraw_painter_compute_local_distance_from_pixel_distance.glsl.resource_string \
-	fastuidraw_painter_gles_precision.glsl.resource_string \
 	)
 
 # Begin standard footer

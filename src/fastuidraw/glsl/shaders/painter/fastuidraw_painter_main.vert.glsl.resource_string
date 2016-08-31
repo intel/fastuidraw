@@ -2,24 +2,6 @@
    be placed -before- this code.
  */
 
-
-/* our attributes
- */
-in vec4 fastuidraw_primary_attribute;
-in vec4 fastuidraw_secondary_attribute;
-in uvec4 fastuidraw_uint_attribute;
-in uint fastuidraw_header_attribute;
-
-#ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
-  flat fastuidraw_varying uint fastuidraw_header_varying;
-#else
-  flat fastuidraw_varying uint fastuidraw_frag_shader;
-  flat fastuidraw_varying uint fastuidraw_frag_shader_data_location;
-  flat fastuidraw_varying uint fastuidraw_blend_shader;
-  flat fastuidraw_varying uint fastuidraw_blend_shader_data_location;
-#endif
-
-
 #ifdef FASTUIDRAW_PAINTER_NORMALIZED_Z_MINUS_1_TO_1
   #define FASTUIDRAW_DEPTH_COEFF (1.0 / float(fastuidraw_half_max_z) )
 #else
@@ -32,11 +14,10 @@ in uint fastuidraw_header_attribute;
   #define fastuidraw_clip2 gl_ClipDistance[2]
   #define fastuidraw_clip3 gl_ClipDistance[3]
 #else
-  fastuidraw_varying vec4 fastuidraw_clip_plane;
-  #define fastuidraw_clip0 fastuidraw_clip_plane.x
-  #define fastuidraw_clip1 fastuidraw_clip_plane.y
-  #define fastuidraw_clip2 fastuidraw_clip_plane.z
-  #define fastuidraw_clip3 fastuidraw_clip_plane.w
+  #define fastuidraw_clip0 fastuidraw_clip_plane0
+  #define fastuidraw_clip1 fastuidraw_clip_plane1
+  #define fastuidraw_clip2 fastuidraw_clip_plane2
+  #define fastuidraw_clip3 fastuidraw_clip_plane3
 #endif
 
 void

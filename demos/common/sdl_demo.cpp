@@ -175,7 +175,7 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
                   "only passed to SDL_GL_SetSwapInterval if the value is set "
                   "at command line", *this),
   #ifdef FASTUIDRAW_GL_USE_GLES
-  m_gl_major(2, "gles_major", "GLES major version", *this),
+  m_gl_major(3, "gles_major", "GLES major version", *this),
   m_gl_minor(0, "gles_minor", "GLES minor version", *this),
   m_use_egl(true, "use_egl", "If true, use EGL API directly to create GLES context", *this),
   #else
@@ -353,6 +353,8 @@ init_sdl(void)
         P.m_alpha_bits = m_alpha_bits.m_value;
         P.m_depth_bits = m_depth_bits.m_value;
         P.m_stencil_bits = m_stencil_bits.m_value;
+        P.m_gles_major_version = m_gl_major.m_value;
+        P.m_gles_minor_version = m_gl_minor.m_value;
         if(m_use_msaa.m_value)
           {
             P.m_msaa = m_msaa.m_value;
@@ -414,7 +416,9 @@ init_sdl(void)
                 << "\nblue bits: " << GetSDLGLValue(SDL_GL_BLUE_SIZE)
                 << "\nalpha bits: " << GetSDLGLValue(SDL_GL_ALPHA_SIZE)
                 << "\ndouble buffered: " << GetSDLGLValue(SDL_GL_DOUBLEBUFFER)
-                << "\nGL_VERSION:" << glGetString(GL_VERSION)
+		<< "\nGL_MAJOR_VERSION: " << fastuidraw::gl::context_get<GLint>(GL_MAJOR_VERSION)
+		<< "\nGL_MINOR_VERSION: " << fastuidraw::gl::context_get<GLint>(GL_MINOR_VERSION)
+                << "\nGL_VERSION string:" << glGetString(GL_VERSION)
                 << "\nGL_VENDOR:" << glGetString(GL_VENDOR)
                 << "\nGL_RENDERER:" << glGetString(GL_RENDERER)
                 << "\nGL_SHADING_LANGUAGE_VERSION:" << glGetString(GL_SHADING_LANGUAGE_VERSION)

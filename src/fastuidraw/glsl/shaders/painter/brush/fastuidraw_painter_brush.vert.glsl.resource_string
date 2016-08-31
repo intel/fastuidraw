@@ -39,5 +39,6 @@ fastuidraw_vert_brush_processing(in vec2 in_p, in fastuidraw_shader_header h)
       p += q;
     }
 
-  fastuidraw_brush_p = p;
+  fastuidraw_brush_p_x = p.x;
+  fastuidraw_brush_p_y = p.y;
 }

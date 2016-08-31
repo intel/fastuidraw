@@ -107,6 +107,27 @@ Uniform(int location, GLsizei count, const_c_array<T> v)
 }
 
 /*!
+  Template version for setting array of uniforms,
+  equivalent to
+  \code
+  Uniform(location, count, &v[0]);
+  \endcode
+  \param location location of uniform, i.e. return value
+                  of glGetUniformLocation
+  \param v array of values
+  \param count number of elements from the array v to use.
+ */
+template<typename T>
+void
+Uniform(int location, GLsizei count, c_array<T> v)
+{
+  if(!v.empty())
+    {
+      Uniform(location, count, &v[0]);
+    }
+}
+
+/*!
   Template version for setting array of uniform of matices,
   equivalent to
   \code

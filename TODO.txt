@@ -19,14 +19,8 @@ TODO.
     a path to refine the tessellation by S where S is the operator norm of the
     transformation.
 
- 6. Move GLSL code building and default shaders for GLSL to a separate library.
-    The motivation is to be able to reuse the shaders from the GL backend for
-    an (eventual) Vulkan backend that would convert (at run time) the GLSL
-    shaders to SPIR-V. The conversion would be handles by another external
-    library, for example libshaderc at https://github.com/google/shaderc.
-    It also appears that glslang from Khronos at https://github.com/KhronosGroup/glslang
-    also implements a C++(and C) interface to do stuff.
-
-    To make the GLSL code compatible with SPIR-V emision by
-    https://github.com/KhronosGroup/glslang, we need the following:
-      - global uniforms must be in a uniform block
+ 6. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
+    together with a 3rd party library to create SPIR-V from GLSL.
+    Options for third part library so far are:
+            a) libshaderc at https://github.com/google/shaderc.
+            b) glslang from Khronos at https://github.com/KhronosGroup/glslang

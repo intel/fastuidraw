@@ -17,50 +17,56 @@ typedef std::bitset<32> bitset;
 class painter_test:public sdl_painter_demo
 {
 public:
-  painter_test(void)
+  painter_test(void):
+    sdl_painter_demo("", true)
   {}
 
 protected:
   void
   derived_init(int, int)
   {
+    reference_counted_ptr<gl::Program> pr(m_backend->program());
+
+    {
+      std::ofstream file("painter.program.glsl");
+      file << pr->log();
+    }
+    std::cout << "Program Log and contents written to painter.program.glsl\n";
+
+    std::cout << "Vertex shaders written to:\n";
+    for(unsigned int i = 0, endi = pr->num_shaders(GL_VERTEX_SHADER);
+        i < endi; ++i)
+      {
+        std::ostringstream name;
+        name << "painter.vert." << i << ".glsl";
+
+        std::ofstream file(name.str().c_str());
+        file << pr->shader_src_code(GL_VERTEX_SHADER, i);
+
+        std::cout << "\t" << name.str() << "\n";
+      }
+
+    std::cout << "Fragment shaders written to:\n";
+    for(unsigned int i = 0, endi = pr->num_shaders(GL_FRAGMENT_SHADER);
+        i < endi; ++i)
+      {
+        std::ostringstream name;
+        name << "painter.frag." << i << ".glsl";
+
+        std::ofstream file(name.str().c_str());
+        file << pr->shader_src_code(GL_FRAGMENT_SHADER, i);
+
+        std::cout << "\t" << name.str() << "\n";
+      }
+    std::cout << "\nUseful command to see shader after pre-processor:\n"
+              << "\tsed 's/#version/@version/g' file.glsl | sed 's/#extension/@extension/g'"
+              << " | cpp | grep -v \"#\" | sed '/^\\s*$/d'"
+              << " | sed 's/@version/#version/g' | sed 's/@extension/#extension/g'\n";
+
     if(m_backend->program()->link_success())
       {
-        reference_counted_ptr<gl::Program> pr(m_backend->program());
         std::cout << "Link success\n";
         m_backend->program()->use_program();
-
-        {
-          std::ofstream file("painter.program.glsl");
-          file << pr->log();
-        }
-        std::cout << "Program Log and contents written to painter.program.glsl\n";
-
-        std::cout << "Vertex shaders written to:\n";
-        for(unsigned int i = 0, endi = pr->num_shaders(GL_VERTEX_SHADER); i < endi; ++i)
-          {
-            std::ostringstream name;
-            name << "painter.vert." << i << ".glsl";
-
-            std::ofstream file(name.str().c_str());
-            file << pr->shader_src_code(GL_VERTEX_SHADER, i);
-
-            std::cout << "\t" << name.str() << "\n";
-          }
-
-        std::cout << "Fragment shaders written to:\n";
-        for(unsigned int i = 0, endi = pr->num_shaders(GL_FRAGMENT_SHADER); i < endi; ++i)
-          {
-            std::ostringstream name;
-            name << "painter.frag." << i << ".glsl";
-
-            std::ofstream file(name.str().c_str());
-            file << pr->shader_src_code(GL_FRAGMENT_SHADER, i);
-
-            std::cout << "\t" << name.str() << "\n";
-          }
-        std::cout << "\nUseful command to see shader after pre-processor:\n"
-                  << "\tcpp file.glsl | grep -v \"#\" | sed '/^\\s*$/d'\n";
       }
     else
       {
