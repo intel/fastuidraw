@@ -99,8 +99,10 @@ egl_gles_context(const params &P, SDL_Window *sdl)
     EGLint context_attribs[32];
     int n(0);
 
-    context_attribs[n++] = EGL_CONTEXT_CLIENT_VERSION;
-    context_attribs[n++] = 2;
+    context_attribs[n++] = EGL_CONTEXT_MAJOR_VERSION;
+    context_attribs[n++] = P.m_gles_major_version;
+    context_attribs[n++] = EGL_CONTEXT_MINOR_VERSION;
+    context_attribs[n++] = P.m_gles_minor_version;
     context_attribs[n++] = EGL_NONE;
 
     eglBindAPI(EGL_OPENGL_ES_API);
