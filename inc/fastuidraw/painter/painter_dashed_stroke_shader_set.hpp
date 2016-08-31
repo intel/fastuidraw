@@ -20,13 +20,12 @@
 #pragma once
 
 #include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/painter/painter_value.hpp>
 #include <fastuidraw/painter/painter_stroke_shader.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 
 namespace fastuidraw
 {
-  class PainterItemShaderData;
-
 /*!\addtogroup Painter
   @{
  */
@@ -41,18 +40,17 @@ namespace fastuidraw
   {
   public:
     /*!
-      To be implemented by a derived class to give the distance
-      to the next dash boundary. Giving a negative value indicates
-      that the location passed is not drawn when dashed and giving
-      a positive indicates it is.
-      \param data PainterItemShaderData object holding the data to
+      To be implemented by a derived class to return the distance
+      to the next dash boundary. A negative return value indicates
+      that the location passed is not drawn when dashed and a
+      positive indicates it is.
+      \param data PainterItemShaderData::DataBase object holding the data to
                   be sent to the shader
-      \param distance the distance to use to use to compute the
-                      return value
+      \param distance the distance to use to compute the return value
      */
     virtual
     float
-    signed_distance_to_next_dash_boundary(const PainterItemShaderData &data,
+    signed_distance_to_next_dash_boundary(const PainterShaderData::DataBase *data,
                                           float distance) const;
   };
 
