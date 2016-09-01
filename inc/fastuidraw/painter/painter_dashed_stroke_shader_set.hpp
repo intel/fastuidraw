@@ -40,18 +40,20 @@ namespace fastuidraw
   {
   public:
     /*!
-      To be implemented by a derived class to return the distance
-      to the next dash boundary. A negative return value indicates
-      that the location passed is not drawn when dashed and a
-      positive indicates it is.
+      To be implemented by a derived class to compute the interval
+      a point along dashing belongs. If the interval is part of the
+      solid part of drawing, then returns true, otherwise returns
+      false.
       \param data PainterItemShaderData::DataBase object holding the data to
                   be sent to the shader
       \param distance the distance to use to compute the return value
+      \param[out] out_interval interval to which input point belongs.
      */
     virtual
-    float
-    signed_distance_to_next_dash_boundary(const PainterShaderData::DataBase *data,
-                                          float distance) const;
+    bool
+    compute_dash_interval(const PainterShaderData::DataBase *data,
+                          float distance,
+                          range_type<float> &out_interval) const;
   };
 
   /*!
