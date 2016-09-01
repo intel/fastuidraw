@@ -109,15 +109,15 @@ namespace fastuidraw
       \param st cap style
      */
     const PainterStrokeShader&
-    shader(enum PainterEnums::dashed_cap_style st) const;
+    shader(enum PainterEnums::cap_style st) const;
 
     /*!
-      Set the value returned by dashed_stroke_shader(enum PainterEnums::dashed_cap_style) const.
+      Set the value returned by dashed_stroke_shader(enum PainterEnums::cap_style) const.
       \param st cap style
       \param sh value to use
      */
     PainterDashedStrokeShaderSet&
-    shader(enum PainterEnums::dashed_cap_style st, const PainterStrokeShader &sh);
+    shader(enum PainterEnums::cap_style st, const PainterStrokeShader &sh);
 
   private:
     void *m_d;

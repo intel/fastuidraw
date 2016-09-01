@@ -340,10 +340,10 @@ void
 fastuidraw::PainterBackend::
 register_shader(const PainterDashedStrokeShaderSet &p)
 {
-  for(int i = 0; i < PainterEnums::number_dashed_cap_styles; ++i)
+  for(int i = 0; i < PainterEnums::number_cap_styles; ++i)
     {
-      enum PainterEnums::dashed_cap_style c;
-      c = static_cast<enum PainterEnums::dashed_cap_style>(i);
+      enum PainterEnums::cap_style c;
+      c = static_cast<enum PainterEnums::cap_style>(i);
       register_shader(p.shader(c));
     }
 }
