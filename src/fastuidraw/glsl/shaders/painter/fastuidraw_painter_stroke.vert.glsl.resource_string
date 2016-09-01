@@ -42,12 +42,6 @@ fastuidraw_stroke_compute_offset(in uint point_tag,
     }
   else
     {
-      /* TODO: handle:
-          case fastuidraw_stroke_start_edge_point:
-          case fastuidraw_stroke_end_edge_point:
-          case fastuidraw_stroke_start_contour_point:
-          case fastuidraw_stroke_end_contour_point:
-       */
       offset = pre_offset;
     }
 }
@@ -203,12 +197,6 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_tag,
     }
   else
     {
-      /* TODO: handle:
-          case fastuidraw_stroke_start_edge_point:
-          case fastuidraw_stroke_end_edge_point:
-          case fastuidraw_stroke_start_contour_point:
-          case fastuidraw_stroke_end_contour_point:
-       */
       vec3 clip_offset, clip_p;
       vec2 n;
       if(on_boundary == 1)
@@ -258,6 +246,17 @@ fastuidraw_painter_stroke_generic(in bool stroke_width_pixels,
 
   fastuidraw_read_stroking_params(shader_data_offset, stroke_params);
   stroke_radius = 0.5 * stroke_params.width;
+
+  if(point_type == fastuidraw_stroke_cap_join_point)
+    {
+      stroke_params.miter_limit = 1.0;
+      point_type = fastuidraw_stroke_miter_join_point;
+      fastuidraw_stroking_dashed_offset_computation = uint(1);
+    }
+  else
+    {
+      fastuidraw_stroking_dashed_offset_computation = uint(0);
+    }
 
   if(stroking_pass == fastuidraw_stroke_opaque_pass && stroke_width_pixels)
     {

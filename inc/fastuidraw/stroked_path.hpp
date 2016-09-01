@@ -59,36 +59,9 @@ public:
       edge_point,
 
       /*!
-        The point is a start point of an edge of the path but
-        not the start of a contour.
-       */
-      start_edge_point,
-
-      /*!
-        The point is an end point of an edge of the path but
-        not the end of a contour
-       */
-      end_edge_point,
-
-      /*!
-        The point is for an edge and is the start point of a contour
-       */
-      start_contour_point,
-
-      /*!
-        The point is for an edge and is the end point of a contour
-       */
-      end_contour_point,
-
-      /*!
-        number point types that come from an edge
-       */
-      number_edge_point_types,
-
-      /*!
         The point is for a rounded join of the path
        */
-      rounded_join_point = number_edge_point_types,
+      rounded_join_point,
 
       /*!
         The point is for a miter join of the path
@@ -104,6 +77,19 @@ public:
         The point is for a square cap of the path
        */
       square_cap_point,
+
+      /*!
+        The point is for a sqaure-cap join point.
+        These points are for dashed stroking when
+        the point of the join is NOT covered by
+        the dash pattern. Their layout of data
+        is the same as \ref miter_join_point. The
+        purpose of this point type is to make
+        sure caps of dashed stroking is drawn if
+        a cap would be drawn in the area covered
+        by a miter join with miter limit at 0.5.
+       */
+      cap_join_point,
 
       /*!
         Number point types possible.
