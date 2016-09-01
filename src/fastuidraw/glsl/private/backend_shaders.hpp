@@ -66,18 +66,18 @@ public:
   create_glyph_shader(bool anisotropic);
 
   /*
-    stroke_dash_style having value number_dashed_cap_styles means
+    stroke_dash_style having value number_cap_styles means
     to not have dashed stroking.
     */
   PainterStrokeShader
-  create_stroke_shader(enum PainterEnums::dashed_cap_style stroke_dash_style,
+  create_stroke_shader(enum PainterEnums::cap_style stroke_dash_style,
                        bool pixel_width_stroking);
 
   PainterDashedStrokeShaderSet
   create_dashed_stroke_shader_set(bool pixel_width_stroking);
 
   reference_counted_ptr<PainterItemShader>
-  create_stroke_item_shader(enum PainterEnums::dashed_cap_style stroke_dash_style,
+  create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
                             bool pixel_width_stroking,
                             enum uber_stroke_render_pass_t render_pass_macro);
 

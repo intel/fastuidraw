@@ -488,13 +488,9 @@ add_enums(unsigned int alignment, ShaderSource &src)
     .add_macro("fastuidraw_stroke_normal0_y_sign_mask", StrokedPath::normal0_y_sign_mask)
     .add_macro("fastuidraw_stroke_normal1_y_sign_mask", StrokedPath::normal1_y_sign_mask)
 
-    .add_macro("fastuidraw_stroke_dashed_no_caps_close", PainterEnums::dashed_no_caps_closed)
-    .add_macro("fastuidraw_stroke_dashed_rounded_caps_closed", PainterEnums::dashed_rounded_caps_closed)
-    .add_macro("fastuidraw_stroke_dashed_square_caps_closed", PainterEnums::dashed_square_caps_closed)
-    .add_macro("fastuidraw_stroke_dashed_no_caps", PainterEnums::dashed_no_caps)
-    .add_macro("fastuidraw_stroke_dashed_rounded_caps", PainterEnums::dashed_rounded_caps)
-    .add_macro("fastuidraw_stroke_dashed_square_caps", PainterEnums::dashed_square_caps)
-    .add_macro("fastuidraw_stroke_no_dashes", PainterEnums::number_dashed_cap_styles);
+    .add_macro("fastuidraw_stroke_dashed_no_caps", PainterEnums::no_caps)
+    .add_macro("fastuidraw_stroke_dashed_rounded_caps", PainterEnums::rounded_caps)
+    .add_macro("fastuidraw_stroke_dashed_square_caps", PainterEnums::square_caps);
 }
 
 void
