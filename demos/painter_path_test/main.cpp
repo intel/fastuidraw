@@ -273,6 +273,7 @@ painter_stroke_test(void):
   m_clip_window_path_dirty(true)
 {
   std::cout << "Controls:\n"
+            << "\ta: toggle anti-aliased stroking\n"
             << "\tj: cycle through join styles for stroking\n"
             << "\tc: cycle through cap style for stroking / cycle through dashed stroking style\n"
             << "\td: cycle through dash patterns\n"
