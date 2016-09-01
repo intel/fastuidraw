@@ -426,6 +426,15 @@ namespace
       m_current_clip = v.value();
     }
 
+    void
+    stroke_path_helper(const fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
+                       const fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+                       const fastuidraw::const_c_array<unsigned int > zincs,
+                       const fastuidraw::PainterStrokeShader &shader,
+                       const fastuidraw::PainterData &draw,
+                       bool with_anti_aliasing,
+                       const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
+
     fastuidraw::vec2 m_one_pixel_width;
     unsigned int m_current_z;
     clip_rect_state m_clip_rect_state;
@@ -847,6 +856,74 @@ draw_generic_check(const fastuidraw::reference_counted_ptr<fastuidraw::PainterIt
     }
 }
 
+void
+PainterPrivate::
+stroke_path_helper(const fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
+                   const fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+                   const fastuidraw::const_c_array<unsigned int > zincs,
+                   const fastuidraw::PainterStrokeShader &shader,
+                   const fastuidraw::PainterData &draw,
+                   bool with_anti_aliasing,
+                   const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+{
+  using namespace fastuidraw;
+
+  unsigned int startz, zinc_sum(0);
+  bool modify_z;
+  const reference_counted_ptr<PainterItemShader> *sh;
+
+  assert(attrib_chunks.size() == zincs.size());
+  assert(index_chunks.size() == zincs.size());
+
+  startz = m_current_z;
+  modify_z = !with_anti_aliasing || shader.aa_type() == PainterStrokeShader::draws_solid_then_fuzz;
+  sh = (with_anti_aliasing) ? &shader.aa_shader_pass1(): &shader.non_aa_shader();
+  if(modify_z)
+    {
+      for(unsigned int K = 0, endK = zincs.size(); K < endK; ++K)
+        {
+          zinc_sum += zincs[K];
+        }
+
+      /*
+        We want draw the passes so that the depth test prevents overlap drawing;
+        - The K'th set has that the raw_depth value does from 0 to zincs[K] - 1.
+        - We draw so that the K'th pass is drawn with the (K-1)-pass occluding it.
+          (recall that larger z's occlude smaller z's).
+       */
+      for(unsigned int incr_z = zinc_sum, K = 0, endK = zincs.size(); K < endK; ++K)
+        {
+          incr_z -= zincs[K];
+          draw_generic_check(*sh, draw,
+                             attrib_chunks.sub_array(K, 1),
+                             index_chunks.sub_array(K, 1),
+                             fastuidraw::const_c_array<unsigned int>(),
+                             startz + incr_z + 1, call_back);
+        }
+    }
+  else
+    {
+      draw_generic_check(*sh, draw, attrib_chunks, index_chunks,
+                         fastuidraw::const_c_array<unsigned int>(),
+                         m_current_z, call_back);
+    }
+
+  if(with_anti_aliasing)
+    {
+      /* the aa-pass does not add to depth from the
+         stroke attribute data, thus the written
+         depth is always startz.
+       */
+      draw_generic_check(shader.aa_shader_pass2(), draw, attrib_chunks, index_chunks,
+                         fastuidraw::const_c_array<unsigned int>(),
+                         startz, call_back);
+    }
+
+  if(modify_z)
+    {
+      m_current_z = startz + zinc_sum + 1;
+    }
+}
 
 //////////////////////////////////
 // fastuidraw::Painter methods
@@ -1075,7 +1152,6 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
 
   using namespace PainterEnums;
   enum PainterAttributeData::stroking_data_t cap, join, edge;
-  bool modify_z;
 
   switch(js)
     {
@@ -1114,8 +1190,6 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
   vecN<const_c_array<PainterAttribute>, 3> attrib_chunks;
   vecN<const_c_array<PainterIndex>, 3> index_chunks;
   vecN<unsigned int, 3> zincs;
-  unsigned int startz;
-  const reference_counted_ptr<PainterItemShader> *sh;
 
   attrib_chunks[0] = pdata.attribute_data_chunk(edge);
   attrib_chunks[1] = pdata.attribute_data_chunk(join);
@@ -1127,48 +1201,8 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
   zincs[1] = pdata.increment_z_value(join);
   zincs[2] = pdata.increment_z_value(cap);
 
-  startz = d->m_current_z;
-  modify_z = !with_anti_aliasing || shader.aa_type() == PainterStrokeShader::draws_solid_then_fuzz;
-  sh = (with_anti_aliasing) ? &shader.aa_shader_pass1(): &shader.non_aa_shader();
-  if(modify_z)
-    {
-      /* raw depth value goes from 0 to zincs[0] - 1
-         written depth goes from (startz + zincs[1] + zincs[2] + 1) to (startz + zincs[0] + zincs[1] + zincs[2])
-      */
-      d->m_current_z = startz + zincs[1] + zincs[2] + 1;
-      draw_generic(*sh, draw, attrib_chunks[0], index_chunks[0], call_back);
-
-      /* raw depth value goes from 0 to zincs[1] - 1
-         written depth goes from (startz + zincs[2] + 1) to (startz + zincs[1] + zincs[2])
-      */
-      d->m_current_z = startz + zincs[2] + 1;
-      draw_generic(*sh, draw, attrib_chunks[1], index_chunks[1], call_back);
-
-      /* raw depth value goes from 0 to zincs[2] - 1
-         written depth goes from (startz + 1) to (startz + zincs[2])
-      */
-      d->m_current_z = startz + 1;
-      draw_generic(*sh, draw, attrib_chunks[2], index_chunks[2], call_back);
-    }
-  else
-    {
-      draw_generic(*sh, draw, attrib_chunks, index_chunks, call_back);
-    }
-
-  if(with_anti_aliasing)
-    {
-      /* the aa-pass does not add to depth from the
-         stroke attribute data, thus the written
-         depth is always startz.
-       */
-      d->m_current_z = startz;
-      draw_generic(shader.aa_shader_pass2(), draw, attrib_chunks, index_chunks, call_back);
-    }
-
-  if(modify_z)
-    {
-      d->m_current_z = startz + zincs[0] + zincs[1] + zincs[2] + 1;
-    }
+  d->stroke_path_helper(attrib_chunks, index_chunks, zincs,
+                        shader, draw, with_anti_aliasing, call_back);
 }
 
 void
