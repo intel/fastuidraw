@@ -430,16 +430,16 @@ set_data(const reference_counted_ptr<const StrokedPath> &path)
   PainterAttributeDataPrivate *d;
   d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
 
-  unsigned int num_attributes, num_indices;
+  unsigned int num_attributes(0), num_indices(0);
   unsigned int attr_loc(0), idx_loc(0);
 
-  num_attributes = path->edge_points(true).size() + path->bevel_joins_points(true).size()
-    + path->miter_joins_points(true).size() + path->rounded_joins_points(true).size()
-    + path->rounded_cap_points().size() + path->square_cap_points().size();
-
-  num_indices = path->edge_indices(true).size() + path->bevel_joins_indices(true).size()
-    + path->miter_joins_indices(true).size() + path->rounded_joins_indices(true).size()
-    + path->rounded_cap_indices().size() + path->square_cap_indices().size();;
+  for(unsigned int i = 0; i < StrokedPath::number_point_set_types; ++i)
+    {
+      enum StrokedPath::point_set_t tp;
+      tp = static_cast<enum StrokedPath::point_set_t>(i);
+      num_attributes += path->points(tp, true).size();
+      num_indices += path->indices(tp, true).size();
+    }
 
   d->m_attribute_data.resize(num_attributes);
   d->m_index_data.resize(num_indices);
@@ -447,53 +447,59 @@ set_data(const reference_counted_ptr<const StrokedPath> &path)
   d->m_index_chunks.resize(stroking_data_count);
 
   d->m_increment_z.resize(stroking_data_count, 0);
-  d->m_increment_z[rounded_joins_closing_edge] = path->rounded_join_number_depth(true);
-  d->m_increment_z[bevel_joins_closing_edge] = path->bevel_join_number_depth(true);
-  d->m_increment_z[miter_joins_closing_edge] = path->miter_join_number_depth(true);
-  d->m_increment_z[edge_closing_edge] = path->edge_number_depth(true);
-  d->m_increment_z[rounded_joins_no_closing_edge] = path->rounded_join_number_depth(false);
-  d->m_increment_z[bevel_joins_no_closing_edge] = path->bevel_join_number_depth(false);
-  d->m_increment_z[miter_joins_no_closing_edge] = path->miter_join_number_depth(false);
-  d->m_increment_z[edge_no_closing_edge] = path->edge_number_depth(false);
-  d->m_increment_z[rounded_cap] = path->cap_number_depth();
-  d->m_increment_z[square_cap] = path->cap_number_depth();
+  d->m_increment_z[edge_closing_edge] = path->number_depth(StrokedPath::edge_point_set, true);
+  d->m_increment_z[bevel_joins_closing_edge] = path->number_depth(StrokedPath::bevel_join_point_set, true);
+  d->m_increment_z[rounded_joins_closing_edge] = path->number_depth(StrokedPath::rounded_join_point_set, true);
+  d->m_increment_z[miter_joins_closing_edge] = path->number_depth(StrokedPath::miter_join_point_set, true);
 
-  grab_attribute_index_data(make_c_array(d->m_attribute_data), attr_loc, path->rounded_cap_points(),
-                            make_c_array(d->m_index_data), idx_loc, path->rounded_cap_indices(),
-                            d->m_attribute_chunks[rounded_cap], d->m_index_chunks[rounded_cap]);
+  d->m_increment_z[edge_no_closing_edge] = path->number_depth(StrokedPath::edge_point_set, false);
+  d->m_increment_z[bevel_joins_no_closing_edge] = path->number_depth(StrokedPath::bevel_join_point_set, false);
+  d->m_increment_z[rounded_joins_no_closing_edge] = path->number_depth(StrokedPath::rounded_join_point_set, false);
+  d->m_increment_z[miter_joins_no_closing_edge] = path->number_depth(StrokedPath::miter_join_point_set, false);
 
-  grab_attribute_index_data(make_c_array(d->m_attribute_data), attr_loc, path->square_cap_points(),
-                            make_c_array(d->m_index_data), idx_loc, path->square_cap_indices(),
+  d->m_increment_z[square_cap] = path->number_depth(StrokedPath::square_cap_point_set, false);
+  d->m_increment_z[rounded_cap] = path->number_depth(StrokedPath::rounded_cap_point_set, false);
+
+  grab_attribute_index_data(make_c_array(d->m_attribute_data), attr_loc,
+                            path->points(StrokedPath::square_cap_point_set, false),
+                            make_c_array(d->m_index_data), idx_loc,
+                            path->indices(StrokedPath::square_cap_point_set, false),
                             d->m_attribute_chunks[square_cap], d->m_index_chunks[square_cap]);
 
-#define GRAB_MACRO(enum_root_name, method_root_name) do {               \
+  grab_attribute_index_data(make_c_array(d->m_attribute_data), attr_loc,
+                            path->points(StrokedPath::rounded_cap_point_set, false),
+                            make_c_array(d->m_index_data), idx_loc,
+                            path->indices(StrokedPath::rounded_cap_point_set, false),
+                            d->m_attribute_chunks[rounded_cap], d->m_index_chunks[rounded_cap]);
+
+#define GRAB_MACRO(dst_root_name, src_name) do {                        \
                                                                         \
-    unsigned int closing_edge = enum_root_name##_closing_edge;          \
-    unsigned int no_closing_edge = enum_root_name##_no_closing_edge;    \
+    unsigned int closing_edge = dst_root_name##_closing_edge;           \
+    unsigned int no_closing_edge = dst_root_name##_no_closing_edge;     \
                                                                         \
     grab_attribute_index_data(make_c_array(d->m_attribute_data),        \
                               attr_loc,                                 \
-                              path->method_root_name##_points(true),    \
+                              path->points(src_name, true),             \
                               make_c_array(d->m_index_data), idx_loc,   \
-                              path->method_root_name##_indices(true),   \
+                              path->indices(src_name, true),            \
                               d->m_attribute_chunks[closing_edge],      \
                               d->m_index_chunks[closing_edge]);         \
     d->m_attribute_chunks[no_closing_edge] =                            \
-      d->m_attribute_chunks[closing_edge].sub_array(0, path->method_root_name##_points(false).size()); \
+      d->m_attribute_chunks[closing_edge].sub_array(0, path->points(src_name, false).size()); \
                                                                         \
     unsigned int with, without;                                         \
-    with = path->method_root_name##_indices(true).size();               \
-    without = path->method_root_name##_indices(false).size();           \
+    with = path->indices(src_name, true).size();                        \
+    without = path->indices(src_name, false).size();                    \
     assert(with >= without);                                            \
                                                                         \
     d->m_index_chunks[no_closing_edge] =                                \
       d->m_index_chunks[closing_edge].sub_array(with - without);        \
   } while(0)
 
-  GRAB_MACRO(rounded_joins, rounded_joins);
-  GRAB_MACRO(bevel_joins, bevel_joins);
-  GRAB_MACRO(miter_joins, miter_joins);
-  GRAB_MACRO(edge, edge);
+  GRAB_MACRO(edge, StrokedPath::edge_point_set);
+  GRAB_MACRO(bevel_joins, StrokedPath::bevel_join_point_set);
+  GRAB_MACRO(rounded_joins, StrokedPath::rounded_join_point_set);
+  GRAB_MACRO(miter_joins, StrokedPath::miter_join_point_set);
 
 #undef GRAB_MACRO
 
