@@ -853,28 +853,7 @@ add_edge(unsigned int o, unsigned int e,
          start or end of edge from the sign of
          m_on_boundary.
        */
-      if(i == R.m_begin)
-        {
-          p_type = (e == 0) ?
-            fastuidraw::StrokedPath::start_contour_point :
-            fastuidraw::StrokedPath::start_edge_point;
-        }
-      else
-        {
-          p_type = fastuidraw::StrokedPath::edge_point;
-        }
-
-      if(i + 2 == R.m_end)
-        {
-          p_next_type = (e + 2 == m_P.number_edges(o)) ?
-            fastuidraw::StrokedPath::end_contour_point :
-            fastuidraw::StrokedPath::end_edge_point;
-        }
-      else
-        {
-          p_next_type = fastuidraw::StrokedPath::edge_point;
-        }
-
+      p_type = fastuidraw::StrokedPath::edge_point;
       for(unsigned int k = 0; k < 3; ++k)
         {
           pts[vert_offset + k].m_position = src_pts[i].m_p;

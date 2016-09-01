@@ -203,8 +203,8 @@ ShaderSetCreator(enum PainterBlendShader::shader_type tp):
                                                                          ShaderSource::from_resource),
                                                              varying_list()
                                                              .add_float_varying("fastuidraw_stroking_on_boundary")
-                                                             .add_float_varying("fastuidraw_stroking_distance"),
-
+                                                             .add_float_varying("fastuidraw_stroking_distance")
+                                                             .add_uint_varying("fastuidraw_stroking_dashed_offset_computation"),
                                                              num_sub_shaders
                                                              );
 }
