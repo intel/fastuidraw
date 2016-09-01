@@ -48,51 +48,51 @@ class StrokedPath:
 {
 public:
   /*!
-    Enumeration for specifing a point type.
+    Enumeration for specifing a point type; the point
+    type is used to tell how to position the point
+    within stroking (see \ref
+    StrokedPath::point::offset_vector()).
    */
   enum point_type_t
     {
       /*!
-        The point is for an edge of the path that is neither
-        the start or end of an edge.
+        The point is for an edge of the path.
        */
       edge_point,
 
       /*!
-        The point is for a rounded join of the path
+        The point is for a boundary point of a rounded join of the path
        */
       rounded_join_point,
 
       /*!
-        The point is for a miter join of the path
+        The point is for a boundary point of a miter join of the path
        */
       miter_join_point,
 
       /*!
-        The point is for a rounded cap of the path
+        The point is for a boundary point of a rounded cap of the path
        */
       rounded_cap_point,
 
       /*!
-        The point is for a square cap of the path
+        The point is for a boundary point of a square cap of the path
        */
       square_cap_point,
 
       /*!
-        The point is for a sqaure-cap join point.
-        These points are for dashed stroking when
-        the point of the join is NOT covered by
-        the dash pattern. Their layout of data
-        is the same as \ref miter_join_point. The
-        purpose of this point type is to make
-        sure caps of dashed stroking is drawn if
-        a cap would be drawn in the area covered
-        by a miter join with miter limit at 0.5.
+        The point is for a boundary point of a sqaure-cap join point.
+        These points are for dashed stroking when the point of the join
+        is NOT covered by the dash pattern. Their layout of data is the
+        same as \ref miter_join_point. The purpose of this point type is
+        to make sure caps of dashed stroking is drawn if a cap would be
+        drawn in the area covered by a miter join with miter limit at
+        0.5.
        */
       cap_join_point,
 
       /*!
-        Number point types possible.
+        Number different point types with respect to rendering
        */
       number_point_types
     };
@@ -113,6 +113,52 @@ public:
       normal0_y_sign_mask = 1 << normal0_y_sign_bit,
       normal1_y_sign_mask = 1 << normal1_y_sign_bit,
       sin_sign_mask = 1 << sin_sign_bit,
+    };
+
+  /*!
+    Enumeration to select what points of stroking to select.
+   */
+  enum point_set_t
+    {
+      /*!
+        Select the set of points for edges
+       */
+      edge_point_set,
+
+      /*!
+        Select the set of points for bevel joins
+       */
+      bevel_join_point_set,
+
+      /*!
+        Select the set of points for rounded joins
+       */
+      rounded_join_point_set,
+
+      /*!
+        Select the set of points for miter joins
+       */
+      miter_join_point_set,
+
+      /*!
+        Select the set of points for cap joins
+       */
+      cap_join_point_set,
+
+      /*!
+        Select the set of points for square caps
+       */
+      square_cap_point_set,
+
+      /*!
+        Select the set of points for rouded caps
+       */
+      rounded_cap_point_set,
+
+      /*!
+        Number point set types
+       */
+      number_point_set_types
     };
 
   /*!
@@ -219,8 +265,9 @@ public:
         \code
         m_pre_offset + 0.5 * m_auxilary_offset
         \endcode
-      - For those with point_type() being StrokedPath::miter_join_point,
-        the value is given by the following code
+      - For those with point_type() being StrokedPath::miter_join_point
+        or StrokedPath::cap_join_point, the value is given by the following
+        code
         \code
         vec2 n = m_pre_offset, v = vec2(-n.y(), n.x());
         float r, lambda;
@@ -293,46 +340,52 @@ public:
   ~StrokedPath();
 
   /*!
-    Returns the geometric data for stroking the edges.
-    \param including_closing_edge if true, include the geometric data for
-                                  the closing edge.
+    Returns the geomtric data for stroking the path. The backing data
+    store for with and without closing edge data is shared so that
+    \code
+    points(tp, false) == points(tp, true).sub_array(0, points(tp,false).size())
+    \endcode
+    i.e., the geometric data for the closing edge comes at the end.
+    \param tp what data to fetch, i.e. edge data, join data (which join data), etc.
+    \param including_closing_edge if true, include the geometric data for of the
+                                  closing edge. Asking for caps ignores the value
+                                  for closing edge.
    */
   const_c_array<point>
-  edge_points(bool including_closing_edge) const;
+  points(enum point_set_t tp, bool including_closing_edge) const;
 
   /*!
-    Returns the index data into edge_points() for stroking edges.
-    \param including_closing_edge if true, include the index data for
-                                  the closing edge.
+    Return the index data into as returned by points() for stroking
+    the path. The backing data store for with and without closing edge
+    data is shared so that
+    \code
+    unsigned int size_with, size_without;
+    size_with = indices(tp, true);
+    size_without  = indices(tp, false);
+    assert(size_with >= size_without);
+    assert(indices(tp, true).sub_array(size_with - size_without) == indices(tp, false))
+    \endcode
+    i.e., the index data for the closing edge is at the start of the
+    index array.
+    \param tp what data to fetch, i.e. edge data, join data (which join data), etc.
+    \param including_closing_edge if true, include the index data for of the
+                                  closing edge. Asking for caps ignores the value
+                                  for closing edge.
    */
   const_c_array<unsigned int>
-  edge_indices(bool including_closing_edge) const;
+  indices(enum point_set_t tp, bool including_closing_edge) const;
 
   /*!
-    The vertices returned by edge_points() have
-    that point::m_depth are in the half-open range
-    [0, edge_number_depth())
+    Points returned by points(tp, including_closing_edge) have that
+    their value for point::m_depth are in the half-open range
+    [0, number_depth(tp, including_closing_edge))
+    \param tp what data to fetch, i.e. edge data, join data (which join
+              data), etc.
     \param including_closing_edge if true, include the index data for
                                   the closing edge.
    */
   unsigned int
-  edge_number_depth(bool including_closing_edge) const;
-
-  /*!
-    Returns the geometric data for stroking the rounded joins.
-    \param including_closing_edge if true, include the geometric data for
-                                  the joins of the closing edge.
-   */
-  const_c_array<point>
-  rounded_joins_points(bool including_closing_edge) const;
-
-  /*!
-    Returns the index data into rounded_joins_points() for stroking edges.
-    \param including_closing_edge if true, include the index data for
-                                  the joins of the closing edge.
-   */
-  const_c_array<unsigned int>
-  rounded_joins_indices(bool including_closing_edge) const;
+  number_depth(enum point_set_t tp, bool including_closing_edge) const;
 
   /*!
     Returns the number of contours of the generating path.
@@ -352,159 +405,26 @@ public:
   number_joins(unsigned int contour) const;
 
   /*!
-    The vertices returned by rounded_joins_indices()
-    have that point::m_depth are in the half-open range
-    [0, rounded_join_number_depth())
-    \param including_closing_edge if true, include the index data for
-                                  the joins of the closing edge.
-   */
-  unsigned int
-  rounded_join_number_depth(bool including_closing_edge) const;
-
-  /*!
-    Returns the range into rounded_joins_points(true)
-    for the rounded join points for the named contour
-    and join.
+    Returns the range into points(tp, true) for the
+    indices of the named join of the named contour.
+    \param tp what join type to query. If tp is not a type for a
+              join, returns an empty range.
     \param contour which contour, with contour < number_contours().
     \param join which join with join < number_joins(contour)
    */
   range_type<unsigned int>
-  rounded_join_points(unsigned int contour, unsigned int join) const;
+  join_points_range(enum point_set_t tp, unsigned int contour, unsigned int join) const;
 
   /*!
-    Returns the range into rounded_joins_indices(true)
-    for the rounded join points for the named contour
-    and join.
+    Returns the range into indices(tp, true) for the
+    indices of the named join of the named contour.
+    \param tp what join type to query. If tp is not a type for a
+              join, returns an empty range.
     \param contour which contour, with contour < number_contours().
     \param join which join with join < number_joins(contour)
    */
   range_type<unsigned int>
-  rounded_join_indices(unsigned int contour, unsigned int join) const;
-
-  /*!
-    Returns the geometric data for stroking the bevel joins.
-    \param including_closing_edge if true, include the geometric data for
-                                  the joins of the closing edge.
-   */
-  const_c_array<point>
-  bevel_joins_points(bool including_closing_edge) const;
-
-  /*!
-    Returns the index data into bevel_joins_points() for stroking edges.
-    \param including_closing_edge if true, include the index data for
-                                  the joins of the closing edge.
-   */
-  const_c_array<unsigned int>
-  bevel_joins_indices(bool including_closing_edge) const;
-
-  /*!
-    The vertices returned by bevel_joins_indices()
-    have that point::m_depth are in the half-open range
-    [0, bevel_join_number_depth())
-    \param including_closing_edge if true, include the index data for
-                                  the joins of the closing edge.
-   */
-  unsigned int
-  bevel_join_number_depth(bool including_closing_edge) const;
-
-  /*!
-    Returns the range into bevel_joins_points(true)
-    for the bevel join points for the named contour
-    and join.
-    \param contour which contour, with contour < number_contours().
-    \param join which join with join < number_joins(contour)
-   */
-  range_type<unsigned int>
-  bevel_join_points(unsigned int contour, unsigned int join) const;
-
-  /*!
-    Returns the range into bevel_joins_indices(true)
-    for the bevel join points for the named contour
-    and join.
-    \param contour which contour, with contour < number_contours().
-    \param join which join with join < number_joins(contour)
-   */
-  range_type<unsigned int>
-  bevel_join_indices(unsigned int contour, unsigned int join) const;
-
-  /*!
-    Returns the geometric data for stroking the miter joins.
-    Danger: For Miter joins,
-    \param including_closing_edge if true, include the geometric data for
-                                  the joins of the closing edge.
-   */
-  const_c_array<point>
-  miter_joins_points(bool including_closing_edge) const;
-
-  /*!
-    Returns the index data into miter_joins_points() for stroking edges.
-    \param including_closing_edge if true, include the index data for
-                                  the joins of the closing edge.
-   */
-  const_c_array<unsigned int>
-  miter_joins_indices(bool including_closing_edge) const;
-
-  /*!
-    The vertices returned by miter_joins_indices()
-    have that point::m_depth are in the half-open range
-    [0, miter_join_number_depth())
-    \param including_closing_edge if true, include the index data for
-                                  the joins of the closing edge.
-   */
-  unsigned int
-  miter_join_number_depth(bool including_closing_edge) const;
-
-  /*!
-    Returns the range into miter_joins_points(true)
-    for the miter join points for the named contour
-    and join.
-    \param contour which contour, with contour < number_contours().
-    \param join which join with join < number_joins(contour)
-   */
-  range_type<unsigned int>
-  miter_join_points(unsigned int contour, unsigned int join) const;
-
-  /*!
-    Returns the range into miter_joins_indices(true)
-    for the miter join points for the named contour
-    and join.
-    \param contour which contour, with contour < number_contours().
-    \param join which join with join < number_joins(contour)
-   */
-  range_type<unsigned int>
-  miter_join_indices(unsigned int contour, unsigned int join) const;
-
-  /*!
-    Returns the geometric data for stroking the rounded caps.
-   */
-  const_c_array<point>
-  rounded_cap_points(void) const;
-
-  /*!
-    Returns the index data into rounded_cap_points() for the caps.
-   */
-  const_c_array<unsigned int>
-  rounded_cap_indices(void) const;
-
-  /*!
-    Returns the geometric data for stroking the square caps.
-   */
-  const_c_array<point>
-  square_cap_points(void) const;
-
-  /*!
-    Returns the index data into square_cap_points() for the caps.
-   */
-  const_c_array<unsigned int>
-  square_cap_indices(void) const;
-
-  /*!
-    The vertices returned by rounded_cap_indices(),
-    and square_cap_points() have that point::m_depth
-    are in the half-open range [0, cap_number_depth())
-   */
-  unsigned int
-  cap_number_depth(void) const;
+  join_indices_range(enum point_set_t tp, unsigned int contour, unsigned int join) const;
 
   /*!
     Returns data that can be passed to a PainterPacker
