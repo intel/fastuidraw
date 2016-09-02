@@ -93,8 +93,8 @@ namespace fastuidraw
       {
         stroke_width_offset, /*!< offset to dashed stroke width (packed as float) */
         stroke_miter_limit_offset, /*!< offset to dashed stroke miter limit (packed as float) */
-        stroke_dash_pattern_dash_offset, /*!< offset to dash offset value for dashed stroking (packed as float) */
-        stroke_dash_pattern_total_length_offset, /*!< offset to total legnth of dash pattern (packed as float) */
+        stroke_dash_offset_offset, /*!< offset to dash offset value for dashed stroking (packed as float) */
+        stroke_total_length_offset, /*!< offset to total legnth of dash pattern (packed as float) */
 
         stroke_static_data_size /*!< size of static data for dashed stroking */
       };

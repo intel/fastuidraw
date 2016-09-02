@@ -33,8 +33,41 @@ fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_loca
 
 void
 fastuidraw_compute_image_atlas_coord(in vec2 image_shader_coord,
-                                    in int index_layer,
-                                    in int num_lookups,
-                                    in int slack,
-                                    out vec2 image_atlas_coord,
-                                    out int image_atlas_layer);
+                                     in int index_layer,
+                                     in int num_lookups,
+                                     in int slack,
+                                     out vec2 image_atlas_coord,
+                                     out int image_atlas_layer);
+
+uint
+fastuidraw_read_dashed_stroking_params_header(in uint location, out fastuidraw_dashed_stroking_params_header p);
+
+/* returns the signed distance to the boundary
+ */
+float
+fastuidraw_compute_dash_interval(in uint dashed_stroking_data_location,
+                                 in float distance,
+                                 out fastuidraw_dashed_stroking_params_header p,
+                                 out uint interval_id)
+{
+  /* Implementation is a place holder that will be replaced by
+     a function (actually 4, 1 for each value of alignment)
+     that reads the draw-skip data in the shader-data and from
+     that compute the correct signed distance and interval ID.
+   */
+  float r;
+  const float L = 50.0;
+
+  fastuidraw_read_dashed_stroking_params_header(dashed_stroking_data_location, p);
+  r = mod(distance, 2.0 * L);
+  if(r <= 5.0)
+    {
+      interval_id = 0u;
+      return min(r, 2.0 * L - r);
+    }
+  else
+    {
+      interval_id = 1u;
+      return -min(r - L, 2.0 * L - r);
+    }
+}
