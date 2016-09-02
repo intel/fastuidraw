@@ -294,7 +294,7 @@ painter_stroke_test(void):
   m_clipping_window(false),
   m_stroke_aa(true),
   m_wire_frame(false),
-  m_stroke_width_in_pixels(true),
+  m_stroke_width_in_pixels(false),
   m_force_square_viewport(false),
   m_fill_by_clipping(false),
   m_shear(1.0f, 1.0f),

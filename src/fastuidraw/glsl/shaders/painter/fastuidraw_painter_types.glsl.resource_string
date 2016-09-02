@@ -27,3 +27,11 @@ struct fastuidraw_stroking_params
   float width;
   float miter_limit;
 };
+
+struct fastuidraw_dashed_stroking_params_header
+{
+  float width;
+  float miter_limit;
+  float dash_offset;
+  float total_length;
+};

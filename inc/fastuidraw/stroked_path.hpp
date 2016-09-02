@@ -406,25 +406,31 @@ public:
 
   /*!
     Returns the range into points(tp, true) for the
-    indices of the named join of the named contour.
+    indices of the named join or cap of the named contour.
     \param tp what join type to query. If tp is not a type for a
-              join, returns an empty range.
+              join or cap, returns an empty range.
     \param contour which contour, with contour < number_contours().
-    \param join which join with join < number_joins(contour)
+    \param J if tp is a joint type, gives which join with J < number_joins(contour).
+             if tp is a cap type, gives which cap with J = 0 meaning the
+             cap at the start of the contour and J = 1 the cap at the
+             end of the contour
    */
   range_type<unsigned int>
-  join_points_range(enum point_set_t tp, unsigned int contour, unsigned int join) const;
+  points_range(enum point_set_t tp, unsigned int contour, unsigned int J) const;
 
   /*!
     Returns the range into indices(tp, true) for the
-    indices of the named join of the named contour.
+    indices of the named join or cap of the named contour.
     \param tp what join type to query. If tp is not a type for a
-              join, returns an empty range.
+              join or cap, returns an empty range.
     \param contour which contour, with contour < number_contours().
-    \param join which join with join < number_joins(contour)
+    \param J if tp is a joint type, gives which join with J < number_joins(contour).
+             if tp is a cap type, gives which cap with J = 0 meaning the
+             cap at the start of the contour and J = 1 the cap at the
+             end of the contour
    */
   range_type<unsigned int>
-  join_indices_range(enum point_set_t tp, unsigned int contour, unsigned int join) const;
+  indices_range(enum point_set_t tp, unsigned int contour, unsigned int J) const;
 
   /*!
     Returns data that can be passed to a PainterPacker

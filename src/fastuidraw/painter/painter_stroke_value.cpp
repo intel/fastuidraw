@@ -73,13 +73,6 @@ namespace
     void
     pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> dst) const;
 
-    virtual
-    bool
-    suitable_for_type(const std::type_info &info) const
-    {
-      return info == typeid(fastuidraw::PainterDashedStrokeParams);
-    }
-
     float m_miter_limit;
     float m_width;
     float m_dash_offset;
@@ -119,7 +112,7 @@ pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> 
   using namespace fastuidraw;
   dst[PainterDashedStrokeParams::stroke_miter_limit_offset].f = m_miter_limit;
   dst[PainterDashedStrokeParams::stroke_width_offset].f = m_width;
-  dst[PainterDashedStrokeParams::stroke_dash_pattern_dash_offset].f = m_dash_offset;
+  dst[PainterDashedStrokeParams::stroke_dash_offset_offset].f = m_dash_offset;
 
   if(!m_dash_pattern.empty())
     {
@@ -142,11 +135,11 @@ pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> 
           //shader can use that to know when it has reached the end.
           dst_pattern[i].f = (total_length + 1.0f) * 2.0f;
         }
-      dst[PainterDashedStrokeParams::stroke_dash_pattern_total_length_offset].f = total_length;
+      dst[PainterDashedStrokeParams::stroke_total_length_offset].f = total_length;
     }
   else
     {
-      dst[PainterDashedStrokeParams::stroke_dash_pattern_total_length_offset].f = -1.0f;
+      dst[PainterDashedStrokeParams::stroke_total_length_offset].f = -1.0f;
     }
 }
 
@@ -283,12 +276,59 @@ dash_pattern(void) const
 
 fastuidraw::PainterDashedStrokeParams&
 fastuidraw::PainterDashedStrokeParams::
-dash_pattern(const_c_array<fastuidraw::PainterDashedStrokeParams::DashPatternElement> f)
+dash_pattern(const_c_array<DashPatternElement> f)
 {
   PainterDashedStrokeParamsData *d;
   assert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != NULL);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
+
+  /* skip to first element on f[] that is non-zero.
+   */
+  while(f.front().m_draw_length <= 0.0f && f.front().m_space_length <= 0.0f)
+    {
+      f = f.sub_array(1);
+    }
+
   d->m_dash_pattern.resize(f.size());
-  std::copy(f.begin(), f.end(), d->m_dash_pattern.begin());
+  if(d->m_dash_pattern.empty())
+    {
+      return *this;
+    }
+
+  /* santize the dash pattern:
+       - starting draw length can be 0
+       - any other 0 lengths are to be joined
+   */
+  unsigned int current_write(0);
+
+  d->m_dash_pattern[current_write].m_draw_length = std::max(0.0f, f[0].m_draw_length);
+  d->m_dash_pattern[current_write].m_space_length = std::max(0.0f, f[0].m_space_length);
+
+  for(unsigned int i = 1, endi = f.size(); i < endi; ++i)
+    {
+      /* things to do:
+           - if d->m_dash_pattern[current_write].m_space_length is 0,
+             then we join it with the element we are on by adding the
+             draw lengths.
+           - if f[i] has draw length 0 we join it's skip with
+             d->m_dash_pattern[current_write]
+       */
+      if(d->m_dash_pattern[current_write].m_space_length <= 0.0f)
+        {
+          d->m_dash_pattern[current_write].m_draw_length += std::max(0.0f, f[i].m_draw_length);
+          d->m_dash_pattern[current_write].m_space_length = std::max(0.0f, f[i].m_space_length);
+        }
+      else if(f[i].m_draw_length <= 0.0f)
+        {
+          d->m_dash_pattern[current_write].m_space_length += std::max(0.0f, f[i].m_space_length);
+        }
+      else
+        {
+          ++current_write;
+          d->m_dash_pattern[current_write].m_draw_length = std::max(0.0f, f[i].m_draw_length);
+          d->m_dash_pattern[current_write].m_space_length = std::max(0.0f, f[i].m_space_length);
+        }
+    }
+  d->m_dash_pattern.resize(current_write + 1);
   return *this;
 }

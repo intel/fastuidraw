@@ -318,8 +318,7 @@ create_dashed_stroke_shader_set(bool pixel_width_stroking)
   return_value
     .shader(no_caps, create_stroke_shader(no_caps, pixel_width_stroking))
     .shader(rounded_caps, create_stroke_shader(rounded_caps, pixel_width_stroking))
-    .shader(square_caps, create_stroke_shader(square_caps, pixel_width_stroking))
-    .shader(close_contours, create_stroke_shader(close_contours, pixel_width_stroking));
+    .shader(square_caps, create_stroke_shader(square_caps, pixel_width_stroking));
   return return_value;
 }
 

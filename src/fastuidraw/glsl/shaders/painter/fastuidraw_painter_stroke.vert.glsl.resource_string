@@ -230,7 +230,7 @@ fastuidraw_painter_stroke_generic(in bool stroke_width_pixels,
   vec2 p;
   vec2 position, pre_offset, auxilary_offset, offset;
   float distance_from_edge_start, distance_from_contour_start;
-  float miter_distance, stroke_radius;
+  float miter_distance, stroke_radius, dash_offset;
   fastuidraw_stroking_params stroke_params;
   int on_boundary, point_type;
   uint point_tag;
@@ -244,7 +244,21 @@ fastuidraw_painter_stroke_generic(in bool stroke_width_pixels,
   point_type = int(uint_attrib.y & uint(fastuidraw_stroke_point_type_mask));
   on_boundary = int(uint_attrib.z) - 1;
 
-  fastuidraw_read_stroking_params(shader_data_offset, stroke_params);
+  if(dash_style == fastuidraw_stroke_undashed)
+    {
+      fastuidraw_read_stroking_params(shader_data_offset, stroke_params);
+      dash_offset = 0.0;
+    }
+  else
+    {
+      fastuidraw_dashed_stroking_params_header H;
+      fastuidraw_read_dashed_stroking_params_header(shader_data_offset, H);
+
+      stroke_params.width = H.width;
+      stroke_params.miter_limit = H.miter_limit;
+      dash_offset = H.dash_offset;
+    }
+
   stroke_radius = 0.5 * stroke_params.width;
 
   if(point_type == fastuidraw_stroke_cap_join_point)
@@ -298,7 +312,7 @@ fastuidraw_painter_stroke_generic(in bool stroke_width_pixels,
       p = position;
     }
 
-  fastuidraw_stroking_distance = distance_from_contour_start;
+  fastuidraw_stroking_distance = distance_from_contour_start + dash_offset;
   out_stroking_on_boundary = float(abs(on_boundary));
   if(stroking_pass == fastuidraw_stroke_aa_pass)
     {

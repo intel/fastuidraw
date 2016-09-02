@@ -37,30 +37,18 @@ namespace
       joint_type_count
     };
 
-  enum joint_type_t
-  convert_from_point_set_type(enum fastuidraw::StrokedPath::point_set_t tp)
-  {
-  switch(tp)
+  enum cap_type_t
     {
-    case fastuidraw::StrokedPath::bevel_join_point_set:
-      return bevel_join;
+      rounded_cap = 0,
+      square_cap,
 
-    case fastuidraw::StrokedPath::rounded_join_point_set:
-      return rounded_join;
+      cap_type_count
+    };
 
-    case fastuidraw::StrokedPath::miter_join_point_set:
-      return miter_join;
-
-    default:
-      assert(!"Passed a non-joint type to fastuidraw::StrokedPath::join_indices_range/join_points_range");
-      return joint_type_count;
-    }
-  }
-
-  class LocationOfJoin
+  class Location
   {
   public:
-    LocationOfJoin(void):
+    Location(void):
       m_attribs(0, 0),
       m_indices(0, 0)
     {}
@@ -70,7 +58,33 @@ namespace
   class LocationsOfJoins
   {
   public:
-    fastuidraw::vecN<LocationOfJoin, joint_type_count + 1> m_values;
+    fastuidraw::vecN<Location, joint_type_count + 1> m_values;
+  };
+
+  class LocationsOfCaps
+  {
+  public:
+    /* 0 -> front, 1 -> back
+     */
+    fastuidraw::vecN<Location, 2> m_values;
+  };
+
+  class LocationsOfCapsAndJoins
+  {
+  public:
+    std::vector<LocationsOfJoins> m_joins;
+    fastuidraw::vecN<LocationsOfCaps, cap_type_count> m_caps;
+
+    const Location&
+    fetch(enum fastuidraw::StrokedPath::point_set_t tp, unsigned int J);
+
+    static
+    enum joint_type_t
+    get_join_type_t(enum fastuidraw::StrokedPath::point_set_t tp);
+
+    static
+    enum cap_type_t
+    get_cap_type_t(enum fastuidraw::StrokedPath::point_set_t tp);
   };
 
   class PointIndexSize
@@ -243,7 +257,7 @@ namespace
     fill_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
               fastuidraw::c_array<unsigned int> indices,
               unsigned int &pre_close_depth, unsigned int &close_depth,
-              std::vector<std::vector<LocationsOfJoins> > &join_locations,
+              std::vector<LocationsOfCapsAndJoins> &locations,
               enum joint_type_t Jtype);
 
   private:
@@ -265,7 +279,7 @@ namespace
               unsigned int &depth,
               fastuidraw::c_array<unsigned int> indices,
               unsigned int &vertex_offset, unsigned int &index_offset,
-              LocationOfJoin &loc);
+              Location &loc);
 
     virtual
     void
@@ -410,9 +424,21 @@ namespace
     unsigned int
     fill_data(const EdgeDataCreator &edge_creator,
               fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
-              fastuidraw::c_array<unsigned int> indices) const;
+              fastuidraw::c_array<unsigned int> indices,
+              std::vector<LocationsOfCapsAndJoins> &locations,
+              enum cap_type_t cp) const;
 
   private:
+
+    void
+    add_cap_and_set_location(const fastuidraw::vec2 &normal_from_stroking,
+                             bool is_starting_cap,
+                             const fastuidraw::TessellatedPath::point &p0,
+                             fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
+                             fastuidraw::c_array<unsigned int> indices,
+                             unsigned int &vertex_offset,
+                             unsigned int &index_offset,
+                             Location &location) const;
 
     virtual
     void
@@ -634,15 +660,83 @@ namespace
     Data<fastuidraw::StrokedPath::point> m_rounded_joins;
     Data<fastuidraw::StrokedPath::point> m_bevel_joins;
     Data<fastuidraw::StrokedPath::point> m_miter_joins;
-    std::vector<std::vector<LocationsOfJoins> > m_join_locations;
 
     CapData m_rounded_cap;
     CapData m_square_cap;
+    std::vector<LocationsOfCapsAndJoins> m_locations;
 
     fastuidraw::vecN<DataAsCArraysPair, fastuidraw::StrokedPath::number_point_set_types> m_return_values;
     fastuidraw::PainterAttributeData *m_attribute_data;
   };
 
+}
+
+//////////////////////////////////
+// LocationsOfCapsAndJoins methods
+enum joint_type_t
+LocationsOfCapsAndJoins::
+get_join_type_t(enum fastuidraw::StrokedPath::point_set_t tp)
+{
+  switch(tp)
+    {
+    case fastuidraw::StrokedPath::bevel_join_point_set:
+      return bevel_join;
+
+    case fastuidraw::StrokedPath::rounded_join_point_set:
+      return rounded_join;
+
+    case fastuidraw::StrokedPath::miter_join_point_set:
+      return miter_join;
+
+    default:
+      assert(!"Passed a non-joint type to get_join_type_t");
+      return joint_type_count;
+    }
+}
+
+enum cap_type_t
+LocationsOfCapsAndJoins::
+get_cap_type_t(enum fastuidraw::StrokedPath::point_set_t tp)
+{
+  switch(tp)
+    {
+    case fastuidraw::StrokedPath::square_cap_point_set:
+      return square_cap;
+
+    case fastuidraw::StrokedPath::rounded_cap_point_set:
+      return rounded_cap;
+
+    default:
+      assert(!"Passed a non-cap type to get_cap_type_t");
+      return cap_type_count;
+    }
+}
+
+const Location&
+LocationsOfCapsAndJoins::
+fetch(enum fastuidraw::StrokedPath::point_set_t tp, unsigned int N)
+{
+  switch(tp)
+    {
+    case fastuidraw::StrokedPath::square_cap_point_set:
+    case fastuidraw::StrokedPath::rounded_cap_point_set:
+      {
+        // NOTE: m_caps is indexed by cap_type_t
+        // and m_values holds the front and back
+        // cap locations.
+        enum cap_type_t C;
+        C = get_cap_type_t(tp);
+        return m_caps[C].m_values[N != 0];
+      }
+    default:
+      {
+        // NOTE: m_joins is indexed by which join
+        // and m_values is indexed by joint_type_t
+        enum joint_type_t J;
+        J = get_join_type_t(tp);
+        return m_joins[N].m_values[J];
+      }
+    }
 }
 
 //////////////////////////////////////////////
@@ -1078,7 +1172,7 @@ fill_join(unsigned int join_id,
           unsigned int &depth,
           fastuidraw::c_array<unsigned int> indices,
           unsigned int &vertex_offset, unsigned int &index_offset,
-          LocationOfJoin &loc)
+          Location &loc)
 {
   unsigned int v(vertex_offset);
 
@@ -1100,7 +1194,7 @@ JoinCreatorBase::
 fill_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
           fastuidraw::c_array<unsigned int> indices,
           unsigned int &pre_close_depth, unsigned int &close_depth,
-          std::vector<std::vector<LocationsOfJoins> > &join_locations,
+          std::vector<LocationsOfCapsAndJoins> &locations,
           enum joint_type_t Jtype)
 {
   unsigned int pre_close_vertex(0), pre_close_index(m_size.close_indices());
@@ -1116,18 +1210,18 @@ fill_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
         {
           fill_join(join_id, o, e, pts, pre_close_depth, indices,
                     pre_close_vertex, pre_close_index,
-                    join_locations[o][e - 1].m_values[Jtype]);
+                    locations[o].m_joins[e - 1].m_values[Jtype]);
         }
 
       if(m_P.number_edges(o) >= 2)
         {
           fill_join(join_id, o, m_P.number_edges(o) - 1, pts, close_depth, indices,
                     close_vertex, close_index,
-                    join_locations[o][m_P.number_edges(o) - 2].m_values[Jtype]);
+                    locations[o].m_joins[m_P.number_edges(o) - 2].m_values[Jtype]);
 
           fill_join(join_id + 1, o, m_P.number_edges(o), pts, close_depth, indices,
                     close_vertex, close_index,
-                    join_locations[o][m_P.number_edges(o) - 1].m_values[Jtype]);
+                    locations[o].m_joins[m_P.number_edges(o) - 1].m_values[Jtype]);
 
           join_id += 2;
         }
@@ -1442,20 +1536,44 @@ fill_join_implement(unsigned int join_id,
 
 ///////////////////////////////////////////////
 // CapCreatorBase methods
+void
+CapCreatorBase::
+add_cap_and_set_location(const fastuidraw::vec2 &normal_from_stroking,
+                         bool is_starting_cap,
+                         const fastuidraw::TessellatedPath::point &p0,
+                         fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
+                         fastuidraw::c_array<unsigned int> indices,
+                         unsigned int &vertex_offset,
+                         unsigned int &index_offset,
+                         Location &location) const
+{
+  location.m_attribs.m_begin = vertex_offset;
+  location.m_indices.m_begin = index_offset;
+
+  add_cap(normal_from_stroking, is_starting_cap, p0,
+          pts, indices, vertex_offset, index_offset);
+
+  location.m_attribs.m_end = vertex_offset;
+  location.m_indices.m_end = index_offset;
+}
+
 unsigned int
 CapCreatorBase::
 fill_data(const EdgeDataCreator &edge_creator,
           fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
-          fastuidraw::c_array<unsigned int> indices) const
+          fastuidraw::c_array<unsigned int> indices,
+          std::vector<LocationsOfCapsAndJoins> &locations,
+          enum cap_type_t cp) const
 {
   unsigned int vertex_offset(0), index_offset(0), v(0), depth(0);
 
   for(unsigned int o = 0; o < m_P.number_contours(); ++o)
     {
-      add_cap(edge_creator.per_contour_data(o).m_begin_cap_normal,
-              true, m_P.unclosed_contour_point_data(o).front(),
-              pts, indices,
-              vertex_offset, index_offset);
+      add_cap_and_set_location(edge_creator.per_contour_data(o).m_begin_cap_normal,
+                               true, m_P.unclosed_contour_point_data(o).front(),
+                               pts, indices,
+                               vertex_offset, index_offset,
+                               locations[o].m_caps[cp].m_values[0]);
 
       for(; v < vertex_offset; ++v)
         {
@@ -1463,10 +1581,11 @@ fill_data(const EdgeDataCreator &edge_creator,
           ++depth;
         }
 
-      add_cap(edge_creator.per_contour_data(o).m_end_cap_normal,
-              false, m_P.unclosed_contour_point_data(o).back(),
-              pts, indices,
-              vertex_offset, index_offset);
+      add_cap_and_set_location(edge_creator.per_contour_data(o).m_end_cap_normal,
+                               false, m_P.unclosed_contour_point_data(o).back(),
+                               pts, indices,
+                               vertex_offset, index_offset,
+                               locations[o].m_caps[cp].m_values[1]);
 
       assert(depth >= 1);
       for(; v < vertex_offset; ++v)
@@ -1830,10 +1949,10 @@ StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
       return;
     }
 
-  m_join_locations.resize(P.number_contours());
+  m_locations.resize(P.number_contours());
   for(unsigned int C = 0, endC = P.number_contours(); C < endC; ++C)
     {
-      m_join_locations[C].resize(P.number_edges(C));
+      m_locations[C].m_joins.resize(P.number_edges(C));
     }
 
   EdgeDataCreator e(P);
@@ -1849,8 +1968,7 @@ StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
               m_rounded_joins.m_indices.data(true),
               m_rounded_joins.m_number_depth[false],
               m_rounded_joins.m_number_depth[true],
-              m_join_locations,
-              rounded_join);
+              m_locations, rounded_join);
 
   BevelJoinCreator b(P, e);
   m_bevel_joins.resize(b.sizes());
@@ -1858,8 +1976,7 @@ StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
               m_bevel_joins.m_indices.data(true),
               m_bevel_joins.m_number_depth[false],
               m_bevel_joins.m_number_depth[true],
-              m_join_locations,
-              bevel_join);
+              m_locations, bevel_join);
 
   MiterJoinCreator m(P, e);
   m_miter_joins.resize(m.sizes());
@@ -1867,20 +1984,21 @@ StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
               m_miter_joins.m_indices.data(true),
               m_miter_joins.m_number_depth[false],
               m_miter_joins.m_number_depth[true],
-              m_join_locations,
-              miter_join);
+              m_locations, miter_join);
 
   RoundedCapCreator rc(P);
   m_rounded_cap.resize(rc.sizes());
   m_rounded_cap.m_number_depth = rc.fill_data(e,
                                               fastuidraw::make_c_array(m_rounded_cap.m_points),
-                                              fastuidraw::make_c_array(m_rounded_cap.m_indices));
+                                              fastuidraw::make_c_array(m_rounded_cap.m_indices),
+                                              m_locations, rounded_cap);
 
   SquareCapCreator sc(P);
   m_square_cap.resize(sc.sizes());
   m_square_cap.m_number_depth = sc.fill_data(e,
                                              fastuidraw::make_c_array(m_square_cap.m_points),
-                                             fastuidraw::make_c_array(m_square_cap.m_indices));
+                                             fastuidraw::make_c_array(m_square_cap.m_indices),
+                                             m_locations, square_cap);
 
   m_bevel_joins.compute_conveniance(m_return_values[fastuidraw::StrokedPath::bevel_join_point_set]);
   m_rounded_joins.compute_conveniance(m_return_values[fastuidraw::StrokedPath::rounded_join_point_set]);
@@ -2052,7 +2170,7 @@ number_contours(void) const
 {
   StrokedPathPrivate *d;
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
-  return d->m_join_locations.size();
+  return d->m_locations.size();
 }
 
 unsigned int
@@ -2061,28 +2179,26 @@ number_joins(unsigned int contour) const
 {
   StrokedPathPrivate *d;
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
-  assert(contour < d->m_join_locations.size());
-  return d->m_join_locations[contour].size();
+  assert(contour < d->m_locations.size());
+  return d->m_locations[contour].m_joins.size();
 }
 
 fastuidraw::range_type<unsigned int>
 fastuidraw::StrokedPath::
-join_points_range(enum point_set_t tp, unsigned int contour, unsigned int join) const
+points_range(enum point_set_t tp, unsigned int contour, unsigned int N) const
 {
-  enum joint_type_t J;
   StrokedPathPrivate *d;
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
-  J = convert_from_point_set_type(tp);
-  return d->m_join_locations[contour][join].m_values[J].m_attribs;
+  assert(contour < d->m_locations.size());
+  return d->m_locations[contour].fetch(tp, N).m_attribs;
 }
 
 fastuidraw::range_type<unsigned int>
 fastuidraw::StrokedPath::
-join_indices_range(enum point_set_t tp, unsigned int contour, unsigned int join) const
+indices_range(enum point_set_t tp, unsigned int contour, unsigned int N) const
 {
-  enum joint_type_t J;
   StrokedPathPrivate *d;
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
-  J = convert_from_point_set_type(tp);
-  return d->m_join_locations[contour][join].m_values[J].m_indices;
+  assert(contour < d->m_locations.size());
+  return d->m_locations[contour].fetch(tp, N).m_indices;
 }

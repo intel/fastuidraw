@@ -488,6 +488,7 @@ add_enums(unsigned int alignment, ShaderSource &src)
     .add_macro("fastuidraw_stroke_normal0_y_sign_mask", StrokedPath::normal0_y_sign_mask)
     .add_macro("fastuidraw_stroke_normal1_y_sign_mask", StrokedPath::normal1_y_sign_mask)
 
+    .add_macro("fastuidraw_stroke_undashed", PainterEnums::number_cap_styles)
     .add_macro("fastuidraw_stroke_dashed_no_caps", PainterEnums::no_caps)
     .add_macro("fastuidraw_stroke_dashed_rounded_caps", PainterEnums::rounded_caps)
     .add_macro("fastuidraw_stroke_dashed_square_caps", PainterEnums::square_caps);
@@ -744,6 +745,19 @@ stream_unpack_code(unsigned int alignment,
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_stroking_params",
                               "fastuidraw_stroking_params",
+                              true);
+  }
+
+  {
+    shader_unpack_value_set<PainterDashedStrokeParams::stroke_static_data_size> labels;
+    labels
+      .set(PainterDashedStrokeParams::stroke_width_offset, ".width")
+      .set(PainterDashedStrokeParams::stroke_miter_limit_offset, ".miter_limit")
+      .set(PainterDashedStrokeParams::stroke_dash_offset_offset, ".dash_offset")
+      .set(PainterDashedStrokeParams::stroke_total_length_offset, ".total_length")
+      .stream_unpack_function(alignment, str,
+                              "fastuidraw_read_dashed_stroking_params_header",
+                              "fastuidraw_dashed_stroking_params_header",
                               true);
   }
 }
