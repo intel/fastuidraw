@@ -23,13 +23,11 @@ namespace
   class PainterBlendShaderGLSLPrivate
   {
   public:
-    PainterBlendShaderGLSLPrivate(bool uses_discard,
-                                  const fastuidraw::glsl::ShaderSource &src):
-      m_uses_discard(uses_discard),
+    explicit
+    PainterBlendShaderGLSLPrivate(const fastuidraw::glsl::ShaderSource &src):
       m_src(src)
     {}
 
-    bool m_uses_discard;
     fastuidraw::glsl::ShaderSource m_src;
   };
 }
@@ -38,13 +36,12 @@ namespace
 ///////////////////////////////////////////////
 // fastuidraw::glsl::PainterBlendShaderGLSL methods
 fastuidraw::glsl::PainterBlendShaderGLSL::
-PainterBlendShaderGLSL(bool puses_discard,
-                       enum shader_type tp,
+PainterBlendShaderGLSL(enum shader_type tp,
                        const ShaderSource &src,
                        unsigned int num_sub_shaders):
   PainterBlendShader(tp, num_sub_shaders)
 {
-  m_d = FASTUIDRAWnew PainterBlendShaderGLSLPrivate(puses_discard, src);
+  m_d = FASTUIDRAWnew PainterBlendShaderGLSLPrivate(src);
 }
 
 fastuidraw::glsl::PainterBlendShaderGLSL::
@@ -63,13 +60,4 @@ blend_src(void) const
   PainterBlendShaderGLSLPrivate *d;
   d = reinterpret_cast<PainterBlendShaderGLSLPrivate*>(m_d);
   return d->m_src;
-}
-
-bool
-fastuidraw::glsl::PainterBlendShaderGLSL::
-uses_discard(void) const
-{
-  PainterBlendShaderGLSLPrivate *d;
-  d = reinterpret_cast<PainterBlendShaderGLSLPrivate*>(m_d);
-  return d->m_uses_discard;
 }

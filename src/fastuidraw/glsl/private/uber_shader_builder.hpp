@@ -63,21 +63,18 @@ stream_unpack_code(unsigned int alignment, ShaderSource &str);
 void
 stream_uber_vert_shader(bool use_switch, ShaderSource &vert,
                         const_c_array<reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
-                        const DeclareVaryingsStringDatum &datum,
-                        const PainterBackendGLSL::ItemShaderFilter *item_shader_filter);
+                        const DeclareVaryingsStringDatum &datum);
 
 void
 stream_uber_frag_shader(bool use_switch, ShaderSource &frag,
                         const_c_array<reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
-                        const DeclareVaryingsStringDatum &datum,
-                        const PainterBackendGLSL::ItemShaderFilter *item_shader_filter);
+                        const DeclareVaryingsStringDatum &datum);
 
 
 void
 stream_uber_blend_shader(bool use_switch, ShaderSource &frag,
                          const_c_array<reference_counted_ptr<PainterBlendShaderGLSL> > blend_shaders,
-                         enum PainterBlendShader::shader_type tp,
-                         const PainterBackendGLSL::BlendShaderFilter *blend_shader_filter);
+                         enum PainterBlendShader::shader_type tp);
 
 
 }}}

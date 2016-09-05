@@ -149,6 +149,12 @@ sdl_painter_demo(const std::string &about_text,
                                            "if true, unpack the brush and frag-shader specific data from "
                                            "the header in the fragment shader instead of the vertex shader",
                                            *this),
+  m_separate_program_for_discard(m_painter_params.separate_program_for_discard(),
+                                 "separate_program_for_discard",
+                                 "if true, there are two GLSL programs active when drawing: "
+                                 "one for those item shaders that have discard and one for "
+                                 "those that do not",
+                                 *this),
 
   m_painter_options_affected_by_context("PainterBackendGL Options that can be overridden "
                                         "by version and extension supported by GL/GLES context",
@@ -288,7 +294,8 @@ init_gl(int w, int h)
     .assign_layout_to_vertex_shader_inputs(m_assign_layout_to_vertex_shader_inputs.m_value)
     .assign_layout_to_varyings(m_assign_layout_to_varyings.m_value)
     .assign_binding_points(m_assign_binding_points.m_value)
-    .use_ubo_for_uniforms(m_use_ubo_for_uniforms.m_value);
+    .use_ubo_for_uniforms(m_use_ubo_for_uniforms.m_value)
+    .separate_program_for_discard(m_separate_program_for_discard.m_value);
 
   m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params, m_painter_base_params);
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
@@ -312,6 +319,7 @@ init_gl(int w, int h)
       LAZY(frag_shader_use_switch);
       LAZY(blend_shader_use_switch);
       LAZY(unpack_header_and_brush_in_frag_shader);
+      LAZY(separate_program_for_discard);
       std::cout << "\n\nOptions affected by GL context\n";
       LAZY(use_hw_clip_planes);
       LAZY(data_blocks_per_store_buffer);
