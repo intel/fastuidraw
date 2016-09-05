@@ -144,11 +144,15 @@ namespace fastuidraw
       \param image_atlas ImageAtlas for images drawn by the PainterBackend
       \param colorstop_atlas ColorStopAtlas for color stop sequences drawn by the PainterBackend
       \param config ConfigurationBase for how to pack data to PainterBackend
+      \param pdefault_shaders default shaders for PainterBackend; shaders are
+                              registered on the first call to default_shaders(),
+                              which does NOT occur on ctor of PainterBackend.
      */
     PainterBackend(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                    reference_counted_ptr<ImageAtlas> image_atlas,
                    reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
-                   const ConfigurationBase &config);
+                   const ConfigurationBase &config,
+                   const PainterShaderSet &pdefault_shaders);
 
     virtual
     ~PainterBackend();
@@ -352,14 +356,6 @@ namespace fastuidraw
      */
     PerformanceHints&
     set_hints(void);
-
-    /*!
-      To be called by a derived class in their contructor to
-      set the default shader set for the backend. May only be
-      called once for the lifetime of the PainterBackend.
-     */
-    void
-    set_default_shaders(const PainterShaderSet &sh);
 
   private:
     void *m_d;
