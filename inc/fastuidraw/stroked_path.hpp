@@ -48,53 +48,51 @@ class StrokedPath:
 {
 public:
   /*!
-    Enumeration for specifing a point type; the point
-    type is used to tell how to position the point
-    within stroking (see \ref
+    Enumeration for specifing how to compute
     StrokedPath::point::offset_vector()).
    */
-  enum point_type_t
+  enum offset_type_t
     {
       /*!
         The point is for an edge of the path.
        */
-      edge_point,
+      offset_edge,
 
       /*!
         The point is for a boundary point of a rounded join of the path
        */
-      rounded_join_point,
+      offset_rounded_join,
 
       /*!
         The point is for a boundary point of a miter join of the path
        */
-      miter_join_point,
+      offset_miter_join,
 
       /*!
         The point is for a boundary point of a rounded cap of the path
        */
-      rounded_cap_point,
+      offset_rounded_cap,
 
       /*!
         The point is for a boundary point of a square cap of the path
        */
-      square_cap_point,
+      offset_square_cap,
 
       /*!
         The point is for a boundary point of a sqaure-cap join point.
         These points are for dashed stroking when the point of the join
         is NOT covered by the dash pattern. Their layout of data is the
-        same as \ref miter_join_point. The purpose of this point type is
+        same as \ref miter_join_offset. The purpose of this point type is
         to make sure caps of dashed stroking is drawn if a cap would be
         drawn in the area covered by a miter join with miter limit at
         0.5.
        */
-      cap_join_point,
+      offset_cap_join,
 
       /*!
         Number different point types with respect to rendering
        */
-      number_point_types
+      number_offset_types
     };
 
   /*!
@@ -102,14 +100,14 @@ public:
    */
   enum tag_bit_layout_t
     {
-      point_type_num_bits = 4,
-      point_type_bit0 = 0,
+      offset_type_num_bits = 4,
+      offset_type_bit0 = 0,
 
-      normal0_y_sign_bit = point_type_bit0 + point_type_num_bits,
+      normal0_y_sign_bit = offset_type_bit0 + offset_type_num_bits,
       normal1_y_sign_bit = normal0_y_sign_bit + 1,
       sin_sign_bit = normal1_y_sign_bit + 1,
 
-      point_type_mask = FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(point_type_num_bits) << point_type_bit0,
+      offset_type_mask = FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(offset_type_num_bits) << offset_type_bit0,
       normal0_y_sign_mask = 1 << normal0_y_sign_bit,
       normal1_y_sign_mask = 1 << normal1_y_sign_bit,
       sin_sign_mask = 1 << sin_sign_bit,
@@ -183,8 +181,7 @@ public:
     vec2 m_pre_offset;
 
     /*!
-      Provides an auxilary offset data, used ONLY for
-      StrokedPath::miter_join_point points.
+      Provides an auxilary offset data
      */
     vec2 m_auxilary_offset;
 
@@ -224,7 +221,7 @@ public:
 
     /*!
       Tag is a bit field where
-       - m_tag & point_type_mask gives the value to point_type()
+       - m_tag & offset_type_mask gives the value to offset_type()
        - m_tag & normal0_y_sign_mask up if the y-component of n0 vector is negative (rounded join points only)
        - m_tag & normal1_y_sign_mask up if the y-component of n1 vector is negative (rounded join points only)
        - m_tag & sin_sign_mask  up if the y-component of sin value is negative (rounded join points only)
@@ -233,19 +230,12 @@ public:
 
     /*!
       Provides the point type for the point. The value is one of the
-      enumerations of StrokedPath::point_type_t. NOTE: if a point comes
-      from the geometry of an edge and the point is for a cap or join,
-      it is the value StrokedPath::edge_point; a point of a cap or join
-      is viewed as taking geometry from an edge if the point is shared
-      with drawing the edge. As a side note, since the points of a bevel
-      join are always shared geometry with an edge, the point type is
-      StrokedPath::edge_point and thus there is no enumeration for bevel
-      joins.
+      enumerations of StrokedPath::offset_type_t.
      */
-    enum point_type_t
-    point_type(void) const
+    enum offset_type_t
+    offset_type(void) const
     {
-      return static_cast<enum point_type_t>(m_tag & point_type_mask);
+      return static_cast<enum offset_type_t>(m_tag & offset_type_mask);
     }
 
     /*!
@@ -255,17 +245,17 @@ public:
       m_position + 0.5f * W * offset_vector().
       \endcode
       The computation for offset_vector() is as follows.
-      - For those with point_type() being StrokedPath::edge_point,
+      - For those with offset_type() being StrokedPath::offset_edge,
         the offset is given by
         \code
         m_pre_offset
         \endcode
-      - For those with point_type() being StrokedPath::square_cap_points,
+      - For those with offset_type() being StrokedPath::offset_square_cap,
         the value is given by
         \code
         m_pre_offset + 0.5 * m_auxilary_offset
         \endcode
-      - For those with point_type() being StrokedPath::miter_join_point
+      - For those with offset_type() being StrokedPath::offset_miter_join
         or StrokedPath::cap_join_point, the value is given by the following
         code
         \code
@@ -277,13 +267,13 @@ public:
         offset = lambda * (n - r * v);
         \endcode
         To enfore a miter limit M, clamp the value r to [-M,M].
-      - For those with point_type() being StrokedPath::rounded_cap_point,
+      - For those with offset_type() being StrokedPath::offset_rounded_cap,
         the value is given by the following code
         \code
         vec2 n(m_pre_offset), v(n.y(), -n.x());
         offset = m_auxilary_offset.x() * v + m_auxilary_offset.y() * n;
         \endcode
-      - For those with point_type() being StrokedPath::rounded_join_point,
+      - For those with offset_type() being StrokedPath::offset_rounded_join,
         the value is given by the following code
         \code
         vec2 cs;
@@ -322,7 +312,7 @@ public:
     offset_vector(void);
 
     /*!
-      When point_type() is miter_join_point, returns the distance
+      When offset_type() is offset_miter_join, returns the distance
       to the miter point. For other point types, returns 0.0.
      */
     float

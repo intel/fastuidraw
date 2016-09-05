@@ -103,7 +103,7 @@ namespace fastuidraw
       - PainterAttribute::m_secondary_attrib .y -> StrokedPath::point::m_distance_from_contour_start
       - PainterAttribute::m_secondary_attrib .zw -> StrokedPath::point::m_auxilary_offset
       - PainterAttribute::m_uint_attrib .x -> StrokedPath::point::m_depth
-      - PainterAttribute::m_uint_attrib .y -> StrokedPath::point::m_point_type
+      - PainterAttribute::m_uint_attrib .y -> StrokedPath::point::m_tag
       - PainterAttribute::m_uint_attrib .z -> StrokedPath::point::m_on_boundary
       - PainterAttribute::m_uint_attrib .w -> 0 (free)
      */
