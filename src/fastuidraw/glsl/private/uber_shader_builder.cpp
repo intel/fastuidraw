@@ -223,10 +223,11 @@ namespace
                    const Datum &)
     {}
 
+    template <typename F>
     static
     void
     stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
-                get_src_type get_src,
+                const F *filter, get_src_type get_src,
                 pre_post_stream_type pre_stream,
                 pre_post_stream_type post_stream,
                 const Datum &datum,
@@ -236,17 +237,18 @@ namespace
                 const std::string &shader_args, //of the form ", arg1, arg2,..,argN" or empty string
                 const std::string &shader_id);
 
+    template <typename F>
     static
     void
     stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
-                get_src_type get_src,
+                const F *filter,  get_src_type get_src,
                 const std::string &return_type,
                 const std::string &uber_func_with_args,
                 const std::string &shader_main,
                 const std::string &shader_args,
                 const std::string &shader_id)
     {
-      stream_uber(use_switch, dst, shaders, get_src,
+      stream_uber(use_switch, dst, shaders, filter, get_src,
                   &stream_nothing, &stream_nothing,
                   fastuidraw::glsl::detail::DeclareVaryingsStringDatum(),
                   return_type, uber_func_with_args,
@@ -257,10 +259,11 @@ namespace
 }
 
 template<typename T>
+template<typename F>
 void
 UberShaderStreamer<T>::
 stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
-            get_src_type get_src,
+            const F *filter, get_src_type get_src,
             pre_post_stream_type pre_stream, pre_post_stream_type post_stream,
             const Datum &datum,
             const std::string &return_type,
@@ -272,16 +275,19 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
   /* first stream all of the item_shaders with predefined macros. */
   for(unsigned int i = 0; i < shaders.size(); ++i)
     {
-      pre_stream(dst, shaders[i], datum);
+      if(!filter || filter->use_shader(shaders[i]))
+        {
+          pre_stream(dst, shaders[i], datum);
 
-      std::ostringstream str;
-      str << shader_main << shaders[i]->ID();
-      dst
-        .add_macro(shader_main.c_str(), str.str().c_str())
-        .add_source((shaders[i].get()->*get_src)())
-        .remove_macro(shader_main.c_str());
+          std::ostringstream str;
+          str << shader_main << shaders[i]->ID();
+          dst
+            .add_macro(shader_main.c_str(), str.str().c_str())
+            .add_source((shaders[i].get()->*get_src)())
+            .remove_macro(shader_main.c_str());
 
-      post_stream(dst, shaders[i], datum);
+          post_stream(dst, shaders[i], datum);
+        }
     }
 
   std::ostringstream str;
@@ -299,7 +305,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
 
   for(unsigned int i = 0; i < shaders.size(); ++i)
     {
-      if(shaders[i]->number_sub_shaders() > 1)
+      if((!filter || filter->use_shader(shaders[i])) && shaders[i]->number_sub_shaders() > 1)
         {
           unsigned int start, end;
           start = shaders[i]->ID();
@@ -347,7 +353,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
 
   for(unsigned int i = 0; i < shaders.size(); ++i)
     {
-      if(shaders[i]->number_sub_shaders() == 1)
+      if((!filter || filter->use_shader(shaders[i])) && shaders[i]->number_sub_shaders() == 1)
         {
           if(use_switch)
             {
@@ -773,9 +779,10 @@ void
 stream_uber_vert_shader(bool use_switch,
                         ShaderSource &vert,
                         const_c_array<reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
-                        const DeclareVaryingsStringDatum &datum)
+                        const DeclareVaryingsStringDatum &datum,
+                        const PainterBackendGLSL::ItemShaderFilter *item_shader_filter)
 {
-  UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, vert, item_shaders,
+  UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, vert, item_shaders, item_shader_filter,
                                                          &PainterItemShaderGLSL::vertex_src,
                                                          &pre_stream_varyings, &post_stream_varyings, datum,
                                                          "vec4", "fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out uint add_z)",
@@ -789,9 +796,10 @@ void
 stream_uber_frag_shader(bool use_switch,
                         ShaderSource &frag,
                         const_c_array<reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
-                        const DeclareVaryingsStringDatum &datum)
+                        const DeclareVaryingsStringDatum &datum,
+                        const PainterBackendGLSL::ItemShaderFilter *item_shader_filter)
 {
-  UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, frag, item_shaders,
+  UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, frag, item_shaders, item_shader_filter,
                                                          &PainterItemShaderGLSL::fragment_src,
                                                          &pre_stream_varyings, &post_stream_varyings, datum,
                                                          "vec4",
@@ -805,7 +813,8 @@ void
 stream_uber_blend_shader(bool use_switch,
                          ShaderSource &frag,
                          const_c_array<reference_counted_ptr<PainterBlendShaderGLSL> > shaders,
-                         enum PainterBlendShader::shader_type tp)
+                         enum PainterBlendShader::shader_type tp,
+                         const PainterBackendGLSL::BlendShaderFilter *blend_shader_filter)
 {
   std::string sub_func_name, func_name, sub_func_args;
 
@@ -832,7 +841,7 @@ stream_uber_blend_shader(bool use_switch,
       sub_func_args = ", blend_shader_data_location, in_src, in_fb, out_src";
       break;
     }
-  UberShaderStreamer<PainterBlendShaderGLSL>::stream_uber(use_switch, frag, shaders,
+  UberShaderStreamer<PainterBlendShaderGLSL>::stream_uber(use_switch, frag, shaders, blend_shader_filter,
                                                           &PainterBlendShaderGLSL::blend_src,
                                                           "void", func_name,
                                                           sub_func_name, sub_func_args, "blend_shader");
