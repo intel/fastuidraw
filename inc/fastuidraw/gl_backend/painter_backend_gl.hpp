@@ -385,6 +385,18 @@ namespace fastuidraw
       const ConfigurationGL&
       configuration_gl(void) const;
 
+    protected:
+
+      virtual
+      uint32_t
+      compute_item_shader_group(PainterShader::Tag tag,
+                                const reference_counted_ptr<PainterItemShader> &shader);
+
+      virtual
+      uint32_t
+      compute_blend_shader_group(PainterShader::Tag tag,
+                                const reference_counted_ptr<PainterBlendShader> &shader);
+
     private:
       void *m_d;
     };

@@ -843,9 +843,6 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
   glsl::PainterBackendGLSL::ConfigurationGLSL return_value;
   gl::ContextProperties ctx;
 
-  return_value.unique_group_per_item_shader(params.break_on_shader_change());
-  return_value.unique_group_per_blend_shader(params.break_on_shader_change());
-
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
       return_value
@@ -1322,6 +1319,28 @@ configuration_gl(void) const
   PainterBackendGLPrivate *d;
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
   return d->m_params;
+}
+
+uint32_t
+fastuidraw::gl::PainterBackendGL::
+compute_item_shader_group(PainterShader::Tag tag,
+                          const reference_counted_ptr<PainterItemShader> &shader)
+{
+  bool b;
+  b = configuration_gl().break_on_shader_change();
+  FASTUIDRAWunused(shader);
+  return b ? tag.m_ID : 0u;
+}
+
+uint32_t
+fastuidraw::gl::PainterBackendGL::
+compute_blend_shader_group(PainterShader::Tag tag,
+                           const reference_counted_ptr<PainterBlendShader> &shader)
+{
+  bool b;
+  b = configuration_gl().break_on_shader_change();
+  FASTUIDRAWunused(shader);
+  return b ? tag.m_ID : 0u;
 }
 
 void
