@@ -306,7 +306,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
           end = start + shaders[i]->number_sub_shaders();
           if(has_sub_shaders)
             {
-              str << "    else";
+              str << "    else ";
             }
           else
             {

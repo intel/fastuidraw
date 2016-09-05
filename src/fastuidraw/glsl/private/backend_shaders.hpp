@@ -87,7 +87,7 @@ public:
   PainterShaderSet
   create_shader_set(void);
 
-  reference_counted_ptr<PainterItemShader> m_uber_stroke_shader;
+  reference_counted_ptr<PainterItemShader> m_uber_stroke_shader, m_uber_dashed_stroke_shader;
 };
 
 }}}
