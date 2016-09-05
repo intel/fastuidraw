@@ -78,12 +78,16 @@ namespace fastuidraw
     {
     public:
       /*!
-        Ctor for creating a shader with sub-shaders.
+        Ctor.
+        \param puses_discard set to true if and only if the shader code
+                             will use discard. Discard should be used
+                             in the GLSL code via the macro FASTUIDRAW_DISCARD.
         \param tp blend shader type
         \param src GLSL code fragment for blend shading
         \param num_sub_shaders the number of sub-shaders it supports
        */
-      PainterBlendShaderGLSL(enum shader_type tp, const ShaderSource &src,
+      PainterBlendShaderGLSL(bool puses_discard,
+                             enum shader_type tp, const ShaderSource &src,
                              unsigned int num_sub_shaders = 1);
 
       ~PainterBlendShaderGLSL(void);
@@ -93,6 +97,12 @@ namespace fastuidraw
        */
       const glsl::ShaderSource&
       blend_src(void) const;
+
+      /*!
+        Returns true if the shader uses discard
+       */
+      bool
+      uses_discard(void) const;
 
     private:
       void *m_d;

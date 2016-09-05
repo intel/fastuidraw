@@ -11,7 +11,8 @@ BlendShaderSetCreator(enum PainterBlendShader::shader_type tp):
   if(m_type == PainterBlendShader::single_src)
     {
       m_single_src_blend_shader_code =
-        FASTUIDRAWnew PainterBlendShaderGLSL(PainterBlendShader::single_src,
+        FASTUIDRAWnew PainterBlendShaderGLSL(false,
+                                             PainterBlendShader::single_src,
                                              ShaderSource()
                                              .add_source("fastuidraw_fall_through.glsl.resource_string",
                                                          ShaderSource::from_resource));
@@ -38,7 +39,7 @@ add_blend_shader(PainterBlendShaderSet &out,
     case PainterBlendShader::dual_src:
       {
         reference_counted_ptr<PainterBlendShader> p;
-        p = FASTUIDRAWnew PainterBlendShaderGLSL(m_type,
+        p = FASTUIDRAWnew PainterBlendShaderGLSL(false, m_type,
                                                  ShaderSource()
                                                  .add_source(dual_src_file.c_str(), ShaderSource::from_resource));
         out.shader(md, dual_md, p);
@@ -48,7 +49,7 @@ add_blend_shader(PainterBlendShaderSet &out,
     case PainterBlendShader::framebuffer_fetch:
       {
         reference_counted_ptr<PainterBlendShader> p;
-        p = FASTUIDRAWnew PainterBlendShaderGLSL(m_type,
+        p = FASTUIDRAWnew PainterBlendShaderGLSL(false, m_type,
                                                  ShaderSource()
                                                  .add_source(framebuffer_fetch_src_file.c_str(), ShaderSource::from_resource));
         out.shader(md, BlendMode().blending_on(false), p);
@@ -180,7 +181,8 @@ ShaderSetCreator(enum PainterBlendShader::shader_type tp):
 
   num_undashed_sub_shaders = 1u << (m_stroke_render_pass_num_bits + 1);
   m_uber_stroke_shader =
-    FASTUIDRAWnew PainterItemShaderGLSL(ShaderSource()
+    FASTUIDRAWnew PainterItemShaderGLSL(false,
+                                        ShaderSource()
                                         .add_macro("fastuidraw_stroke_sub_shader_width_pixels_bit0", m_stroke_width_pixels_bit0)
                                         .add_macro("fastuidraw_stroke_sub_shader_render_pass_bit0", m_stroke_render_pass_bit0)
                                         .add_macro("fastuidraw_stroke_sub_shader_render_pass_num_bits", m_stroke_render_pass_num_bits)
@@ -210,7 +212,8 @@ ShaderSetCreator(enum PainterBlendShader::shader_type tp):
   num_dashed_sub_shaders = 1u << (m_stroke_render_pass_num_bits + m_stroke_dash_num_bits + 1u);
 
   m_uber_dashed_stroke_shader =
-    FASTUIDRAWnew PainterItemShaderGLSL(ShaderSource()
+    FASTUIDRAWnew PainterItemShaderGLSL(true,
+                                        ShaderSource()
                                         .add_macro("fastuidraw_stroke_sub_shader_width_pixels_bit0", m_stroke_width_pixels_bit0)
                                         .add_macro("fastuidraw_stroke_sub_shader_render_pass_bit0", m_stroke_render_pass_bit0)
                                         .add_macro("fastuidraw_stroke_sub_shader_render_pass_num_bits", m_stroke_render_pass_num_bits)
@@ -249,7 +252,8 @@ create_glyph_item_shader(const std::string &vert_src,
                          const varying_list &varyings)
 {
   reference_counted_ptr<PainterItemShader> shader;
-  shader = FASTUIDRAWnew PainterItemShaderGLSL(ShaderSource()
+  shader = FASTUIDRAWnew PainterItemShaderGLSL(false,
+                                               ShaderSource()
                                                .add_source(vert_src.c_str(), ShaderSource::from_resource),
                                                ShaderSource()
                                                .add_source(frag_src.c_str(), ShaderSource::from_resource),
@@ -371,7 +375,8 @@ create_fill_shader(void)
   varying_list varyings;
 
   varyings.add_float_varying("fastuidraw_stroking_on_boundary");
-  shader = FASTUIDRAWnew PainterItemShaderGLSL(ShaderSource()
+  shader = FASTUIDRAWnew PainterItemShaderGLSL(false,
+                                               ShaderSource()
                                                .add_source("fastuidraw_painter_fill.vert.glsl.resource_string",
                                                            ShaderSource::from_resource),
                                                ShaderSource()
