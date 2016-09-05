@@ -5,20 +5,21 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   float alpha;
   uint render_pass, dash_style;
 
-  dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
-                                       fastuidraw_stroke_sub_shader_dash_num_bits,
-                                       sub_shader);
-
   render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
                                         fastuidraw_stroke_sub_shader_render_pass_num_bits,
                                         sub_shader);
 
   alpha = 1.0;
-  if(dash_style != uint(fastuidraw_stroke_undashed))
+
+  #ifdef FASTUIDRAW_STROKE_DASHED
     {
       float d, q, ff;
-      uint interval_id, dash_pattern_at;
+      uint interval_id, dash_pattern_at, dash_style;
       fastuidraw_dashed_stroking_params_header stroke_params;
+
+      dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
+                                           fastuidraw_stroke_sub_shader_dash_num_bits,
+                                           sub_shader);
 
       /* stroke_params takes 4 elements
        */
@@ -77,6 +78,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
           discard;
         }
     }
+  #endif
 
   if(render_pass == uint(fastuidraw_stroke_aa_pass))
     {
