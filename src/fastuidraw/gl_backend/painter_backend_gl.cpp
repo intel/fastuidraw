@@ -175,11 +175,25 @@ namespace
   {
   public:
     typedef fastuidraw::reference_counted_ptr<fastuidraw::gl::Program> program_ref;
+    enum { program_count = fastuidraw::gl::PainterBackendGL::number_program_types };
+    typedef fastuidraw::vecN<program_ref, program_count> program_set;
 
     PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P,
                             fastuidraw::gl::PainterBackendGL *p);
 
     ~PainterBackendGLPrivate();
+
+    static
+    fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL
+    compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P);
+
+    static
+    fastuidraw::PainterBackend::ConfigurationBase
+    compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P,
+                        const fastuidraw::PainterBackend::ConfigurationBase &config_base);
+
+    const program_set&
+    programs(bool rebuild);
 
     void
     configure_backend(void);
@@ -196,15 +210,6 @@ namespace
     void
     build_vao_tbos(void);
 
-    static
-    fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL
-    compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P);
-
-    static
-    fastuidraw::PainterBackend::ConfigurationBase
-    compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P,
-                        const fastuidraw::PainterBackend::ConfigurationBase &config_base);
-
     fastuidraw::gl::PainterBackendGL::ConfigurationGL m_params;
     fastuidraw::glsl::PainterBackendGLSL::UberShaderParams m_uber_shader_builder_params;
 
@@ -219,7 +224,7 @@ namespace
     fastuidraw::gl::ProgramInitializerArray m_initializer;
     fastuidraw::glsl::ShaderSource m_front_matter_vert;
     fastuidraw::glsl::ShaderSource m_front_matter_frag;
-    fastuidraw::vecN<program_ref, fastuidraw::gl::PainterBackendGL::number_program_types> m_programs;
+    program_set m_programs;
     fastuidraw::gl::Program *m_with_discard;
     fastuidraw::gl::Program *m_without_discard;
     fastuidraw::vecN<GLint, fastuidraw::gl::PainterBackendGL::number_program_types> m_shader_uniforms_loc;
@@ -1242,6 +1247,17 @@ configure_source_front_matter(void)
 
 }
 
+const PainterBackendGLPrivate::program_set&
+PainterBackendGLPrivate::
+programs(bool rebuild)
+{
+  if(rebuild)
+    {
+      build_programs();
+    }
+  return m_programs;
+}
+
 void
 PainterBackendGLPrivate::
 build_programs(void)
@@ -1407,14 +1423,7 @@ program(enum program_type_t tp)
 {
   PainterBackendGLPrivate *d;
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
-
-  assert(d->m_backend_configured);
-  if(shader_code_added())
-    {
-      d->build_programs();
-    }
-  assert(!shader_code_added());
-  return d->m_programs[tp];
+  return d->programs(shader_code_added())[tp];
 }
 
 const fastuidraw::gl::PainterBackendGL::ConfigurationGL&
@@ -1468,7 +1477,6 @@ fastuidraw::gl::PainterBackendGL::
 on_begin(void)
 {
   default_shaders();
-
   /* Make sure the needed GLSL programs are built
      BEFORE creating DrawCommands; this is needed
      because the ctor to DrawCommands takes values
@@ -1476,11 +1484,7 @@ on_begin(void)
    */
   PainterBackendGLPrivate *d;
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
-  assert(d->m_backend_configured);
-  if(shader_code_added())
-    {
-      d->build_programs();
-    }
+  d->programs(shader_code_added());
   assert(!shader_code_added());
 }
 
