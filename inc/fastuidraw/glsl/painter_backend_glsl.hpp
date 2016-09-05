@@ -702,6 +702,46 @@ namespace fastuidraw
       };
 
       /*!
+        An ItemShaderFilter is used to specify whether or not
+        to include a named shader when creating an uber-shader.
+       */
+      class ItemShaderFilter
+      {
+      public:
+        virtual
+        ~ItemShaderFilter(void)
+        {}
+
+        /*!
+          To be implemented by a derived class to return true
+          if the named shader should be included in the uber-shader.
+         */
+        virtual
+        bool
+        use_shader(const reference_counted_ptr<PainterItemShaderGLSL> &shader) const = 0;
+      };
+
+      /*!
+        An BlendShaderFilter is used to specify whether or not
+        to include a named shader when creating an uber-shader.
+       */
+      class BlendShaderFilter
+      {
+      public:
+        virtual
+        ~BlendShaderFilter(void)
+        {}
+
+        /*!
+          To be implemented by a derived class to return true
+          if the named shader should be included in the uber-shader.
+         */
+        virtual
+        bool
+        use_shader(const reference_counted_ptr<PainterBlendShaderGLSL> &shader) const = 0;
+      };
+
+      /*!
         Ctor.
         \param glyph_atlas GlyphAtlas for glyphs drawn by the PainterBackend
         \param image_atlas ImageAtlas for images drawn by the PainterBackend
@@ -747,11 +787,21 @@ namespace fastuidraw
         \param contruct_params specifies how to construct the uber-shaders.
         \param binding_params specifies the binding points for buffers and
                               samplers used by the uber-shader.
+        \param item_shader_filter pointer to ItemShaderFilter to use to filter
+                                  which shader to place into the uber-shader.
+                                  A value of NULL indicates to add all item
+                                  shaders to the uber-shader.
+        \param blend_shader_filter pointer to BlendShaderFilter to use to filter
+                                   which shader to place into the uber-shader.
+                                   A value of NULL indicates to add all blend
+                                   shaders to the uber-shader.
        */
       void
       construct_shader(ShaderSource &out_vertex,
                        ShaderSource &out_fragment,
-                       const UberShaderParams &contruct_params);
+                       const UberShaderParams &contruct_params,
+                       const ItemShaderFilter *item_shader_filter = NULL,
+                       const BlendShaderFilter *blend_shader_filter = NULL);
 
       /*!
         Fill a buffer to hold the values for the uniforms
