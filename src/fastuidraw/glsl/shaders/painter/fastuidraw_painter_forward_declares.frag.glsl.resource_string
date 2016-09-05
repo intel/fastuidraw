@@ -46,28 +46,6 @@ fastuidraw_read_dashed_stroking_params_header(in uint location, out fastuidraw_d
  */
 float
 fastuidraw_compute_dash_interval(in uint dashed_stroking_data_location,
+                                 in float total_distance,
                                  in float distance,
-                                 out fastuidraw_dashed_stroking_params_header p,
-                                 out uint interval_id)
-{
-  /* Implementation is a place holder that will be replaced by
-     a function (actually 4, 1 for each value of alignment)
-     that reads the draw-skip data in the shader-data and from
-     that compute the correct signed distance and interval ID.
-   */
-  float r;
-  const float L = 50.0;
-
-  fastuidraw_read_dashed_stroking_params_header(dashed_stroking_data_location, p);
-  r = mod(distance, 2.0 * L);
-  if(r <= 5.0)
-    {
-      interval_id = 0u;
-      return min(r, 2.0 * L - r);
-    }
-  else
-    {
-      interval_id = 1u;
-      return -min(r - L, 2.0 * L - r);
-    }
-}
+                                 out uint interval_id);

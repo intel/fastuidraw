@@ -117,19 +117,19 @@ pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> 
   if(!m_dash_pattern.empty())
     {
       float total_length = 0.0f;
-      unsigned int i, endi;
+      unsigned int i, endi, j;
 
       c_array<generic_data> dst_pattern;
       dst_pattern = dst.sub_array(round_up_to_multiple(PainterDashedStrokeParams::stroke_static_data_size, alignment));
-      for(i = 0, endi = m_dash_pattern.size(); i < endi; ++i)
+      for(i = 0, j = 0, endi = m_dash_pattern.size(); i < endi; ++i, j += 2)
         {
           total_length += m_dash_pattern[i].m_draw_length;
-          dst_pattern[i].f = total_length;
+          dst_pattern[j].f = total_length;
 
           total_length += m_dash_pattern[i].m_space_length;
-          dst_pattern[i+1].f = total_length;
+          dst_pattern[j + 1].f = total_length;
         }
-      for(i = i - 1, endi = dst_pattern.size(); i < endi; ++i)
+      for(i = j, endi = dst_pattern.size(); i < endi; ++i)
         {
           //make the last entry larger than the total length so a
           //shader can use that to know when it has reached the end.

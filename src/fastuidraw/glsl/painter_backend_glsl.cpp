@@ -282,6 +282,7 @@ PainterBackendGLSLPrivate(fastuidraw::glsl::PainterBackendGLSL *p,
   m_frag_shader_utils
     .add_source("fastuidraw_circular_interpolate.glsl.resource_string",
                 fastuidraw::glsl::ShaderSource::from_resource)
+    .add_source(fastuidraw::glsl::code::dashed_stroking_compute("fastuidraw_compute_dash_interval", m_p->configuration_base().alignment()))
     .add_source(fastuidraw::glsl::code::curvepair_compute_pseudo_distance(m_p->glyph_atlas()->geometry_store()->alignment(),
                                                                           "fastuidraw_curvepair_pseudo_distance",
                                                                           "fastuidraw_fetch_glyph_data",
