@@ -23,22 +23,25 @@ public:
 
 protected:
   void
-  derived_init(int, int)
+  log_program(const reference_counted_ptr<gl::Program> &pr,
+              const std::string &prefix)
   {
-    reference_counted_ptr<gl::Program> pr(m_backend->program());
-
     {
-      std::ofstream file("painter.program.glsl");
+      std::ostringstream name;
+      name << prefix << "program.glsl";
+
+      std::ofstream file(name.str().c_str());
       file << pr->log();
+
+      std::cout << "Program Log and contents written to " << name << "\n";
     }
-    std::cout << "Program Log and contents written to painter.program.glsl\n";
 
     std::cout << "Vertex shaders written to:\n";
     for(unsigned int i = 0, endi = pr->num_shaders(GL_VERTEX_SHADER);
         i < endi; ++i)
       {
         std::ostringstream name;
-        name << "painter.vert." << i << ".glsl";
+        name << prefix << "vert." << i << ".glsl";
 
         std::ofstream file(name.str().c_str());
         file << pr->shader_src_code(GL_VERTEX_SHADER, i);
@@ -51,27 +54,36 @@ protected:
         i < endi; ++i)
       {
         std::ostringstream name;
-        name << "painter.frag." << i << ".glsl";
+        name << prefix << "frag." << i << ".glsl";
 
         std::ofstream file(name.str().c_str());
         file << pr->shader_src_code(GL_FRAGMENT_SHADER, i);
 
         std::cout << "\t" << name.str() << "\n";
       }
-    std::cout << "\nUseful command to see shader after pre-processor:\n"
-              << "\tsed 's/#version/@version/g' file.glsl | sed 's/#extension/@extension/g'"
-              << " | cpp | grep -v \"#\" | sed '/^\\s*$/d'"
-              << " | sed 's/@version/#version/g' | sed 's/@extension/#extension/g'\n";
 
-    if(m_backend->program()->link_success())
+    if(pr->link_success())
       {
         std::cout << "Link success\n";
-        m_backend->program()->use_program();
+        pr->use_program();
       }
     else
       {
         std::cout << "Link Failed\n";
       }
+  }
+
+  void
+  derived_init(int, int)
+  {
+    log_program(m_backend->program(gl::PainterBackendGL::program_all), "painter.all.");
+    log_program(m_backend->program(gl::PainterBackendGL::program_without_discard), "painter.without_discard.");
+    log_program(m_backend->program(gl::PainterBackendGL::program_with_discard), "painter.with_discard.");
+
+    std::cout << "\nUseful command to see shader after pre-processor:\n"
+              << "\tsed 's/#version/@version/g' file.glsl | sed 's/#extension/@extension/g'"
+              << " | cpp | grep -v \"#\" | sed '/^\\s*$/d'"
+              << " | sed 's/@version/#version/g' | sed 's/@extension/#extension/g'\n";
   }
 
   void

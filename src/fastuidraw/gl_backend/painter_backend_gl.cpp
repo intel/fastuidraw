@@ -138,9 +138,56 @@ namespace
     std::vector<GLuint> m_ubos;
   };
 
+  bool
+  use_shader_helper(enum fastuidraw::gl::PainterBackendGL::program_type_t tp,
+                    bool uses_discard)
+  {
+    return tp == fastuidraw::gl::PainterBackendGL::program_all
+      || (tp == fastuidraw::gl::PainterBackendGL::program_without_discard && !uses_discard)
+      || (tp == fastuidraw::gl::PainterBackendGL::program_with_discard && uses_discard);
+  }
+
+  class DiscardItemShaderFilter:public fastuidraw::glsl::PainterBackendGLSL::ItemShaderFilter
+  {
+  public:
+    explicit
+    DiscardItemShaderFilter(enum fastuidraw::gl::PainterBackendGL::program_type_t tp):
+      m_tp(tp)
+    {}
+
+    bool
+    use_shader(const fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> &shader) const
+    {
+      return use_shader_helper(m_tp, shader->uses_discard());
+    }
+
+  private:
+    enum fastuidraw::gl::PainterBackendGL::program_type_t m_tp;
+  };
+
+  class DiscardBlendShaderFilter:public fastuidraw::glsl::PainterBackendGLSL::BlendShaderFilter
+  {
+  public:
+    explicit
+    DiscardBlendShaderFilter(enum fastuidraw::gl::PainterBackendGL::program_type_t tp):
+      m_tp(tp)
+    {}
+
+    bool
+    use_shader(const fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterBlendShaderGLSL> &shader) const
+    {
+      return use_shader_helper(m_tp, shader->uses_discard());
+    }
+
+  private:
+    enum fastuidraw::gl::PainterBackendGL::program_type_t m_tp;
+  };
+
   class PainterBackendGLPrivate
   {
   public:
+    typedef fastuidraw::reference_counted_ptr<fastuidraw::gl::Program> program_ref;
+
     PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P,
                             fastuidraw::gl::PainterBackendGL *p);
 
@@ -153,7 +200,10 @@ namespace
     configure_source_front_matter(void);
 
     void
-    build_program(void);
+    build_programs(void);
+
+    program_ref
+    build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp);
 
     void
     build_vao_tbos(void);
@@ -181,8 +231,8 @@ namespace
     fastuidraw::gl::ProgramInitializerArray m_initializer;
     fastuidraw::glsl::ShaderSource m_front_matter_vert;
     fastuidraw::glsl::ShaderSource m_front_matter_frag;
-    fastuidraw::reference_counted_ptr<fastuidraw::gl::Program> m_program;
-    GLint m_shader_uniforms_loc;
+    fastuidraw::vecN<program_ref, fastuidraw::gl::PainterBackendGL::number_program_types> m_programs;
+    fastuidraw::vecN<GLint, fastuidraw::gl::PainterBackendGL::number_program_types> m_shader_uniforms_loc;
     std::vector<fastuidraw::generic_data> m_uniform_values;
     fastuidraw::c_array<fastuidraw::generic_data> m_uniform_values_ptr;
     painter_vao_pool *m_pool;
@@ -1165,9 +1215,31 @@ configure_source_front_matter(void)
 
 void
 PainterBackendGLPrivate::
-build_program(void)
+build_programs(void)
+{
+  for(unsigned int i = 0, endi = m_programs.size(); i < endi; ++i)
+    {
+      enum fastuidraw::gl::PainterBackendGL::program_type_t tp;
+      tp = static_cast<enum fastuidraw::gl::PainterBackendGL::program_type_t>(i);
+      m_programs[tp] = build_program(tp);
+      m_shader_uniforms_loc[tp] = m_programs[tp]->uniform_location("fastuidraw_shader_uniforms");
+    }
+
+  if(!m_uber_shader_builder_params.use_ubo_for_uniforms())
+    {
+      m_uniform_values.resize(m_p->ubo_size());
+      m_uniform_values_ptr = fastuidraw::c_array<fastuidraw::generic_data>(&m_uniform_values[0], m_uniform_values.size());
+    }
+}
+
+PainterBackendGLPrivate::program_ref
+PainterBackendGLPrivate::
+build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
 {
   fastuidraw::glsl::ShaderSource vert, frag;
+  program_ref return_value;
+  DiscardItemShaderFilter item_filter(tp);
+  DiscardBlendShaderFilter blend_filter(tp);
 
   vert
     .specify_version(m_front_matter_vert.version())
@@ -1179,17 +1251,12 @@ build_program(void)
     .specify_extensions(m_front_matter_frag)
     .add_source(m_front_matter_frag);
 
-  m_p->construct_shader(vert, frag, m_uber_shader_builder_params);
-  m_program = FASTUIDRAWnew fastuidraw::gl::Program(vert, frag,
-                                                    m_attribute_binder,
-                                                    m_initializer);
-
-  if(!m_uber_shader_builder_params.use_ubo_for_uniforms())
-    {
-      m_shader_uniforms_loc = m_program->uniform_location("fastuidraw_shader_uniforms");
-      m_uniform_values.resize(m_p->ubo_size());
-      m_uniform_values_ptr = fastuidraw::c_array<fastuidraw::generic_data>(&m_uniform_values[0], m_uniform_values.size());
-    }
+  m_p->construct_shader(vert, frag, m_uber_shader_builder_params,
+                        &item_filter, &blend_filter);
+  return_value = FASTUIDRAWnew fastuidraw::gl::Program(vert, frag,
+                                                       m_attribute_binder,
+                                                       m_initializer);
+  return return_value;
 }
 
 ///////////////////////////////////////////////
@@ -1297,7 +1364,7 @@ fastuidraw::gl::PainterBackendGL::
 
 fastuidraw::reference_counted_ptr<fastuidraw::gl::Program>
 fastuidraw::gl::PainterBackendGL::
-program(void)
+program(enum program_type_t tp)
 {
   PainterBackendGLPrivate *d;
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
@@ -1305,11 +1372,11 @@ program(void)
   assert(d->m_backend_configured);
   if(shader_code_added())
     {
-      d->build_program();
+      d->build_programs();
       //std::cout << "Took " << d->m_program->program_build_time() << " seconds to build uber-shader\n";
     }
   assert(!shader_code_added());
-  return d->m_program;
+  return d->m_programs[tp];
 }
 
 const fastuidraw::gl::PainterBackendGL::ConfigurationGL&
@@ -1436,7 +1503,7 @@ on_pre_draw(void)
   glBindSampler(binding_points.colorstop_atlas(), 0);
   glBindTexture(ColorStopAtlasGL::texture_bind_target(), color->texture());
 
-  program()->use_program();
+  program(program_all)->use_program();
 
   if(d->m_uber_shader_builder_params.use_ubo_for_uniforms())
     {
@@ -1464,7 +1531,7 @@ on_pre_draw(void)
       /* the uniform is type float[]
        */
       fill_uniform_buffer(d->m_uniform_values_ptr);
-      Uniform(d->m_shader_uniforms_loc, ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
+      Uniform(d->m_shader_uniforms_loc[program_all], ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
     }
 }
 
