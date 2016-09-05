@@ -11,8 +11,7 @@ BlendShaderSetCreator(enum PainterBlendShader::shader_type tp):
   if(m_type == PainterBlendShader::single_src)
     {
       m_single_src_blend_shader_code =
-        FASTUIDRAWnew PainterBlendShaderGLSL(false,
-                                             PainterBlendShader::single_src,
+        FASTUIDRAWnew PainterBlendShaderGLSL(PainterBlendShader::single_src,
                                              ShaderSource()
                                              .add_source("fastuidraw_fall_through.glsl.resource_string",
                                                          ShaderSource::from_resource));
@@ -39,7 +38,7 @@ add_blend_shader(PainterBlendShaderSet &out,
     case PainterBlendShader::dual_src:
       {
         reference_counted_ptr<PainterBlendShader> p;
-        p = FASTUIDRAWnew PainterBlendShaderGLSL(false, m_type,
+        p = FASTUIDRAWnew PainterBlendShaderGLSL(m_type,
                                                  ShaderSource()
                                                  .add_source(dual_src_file.c_str(), ShaderSource::from_resource));
         out.shader(md, dual_md, p);
@@ -49,7 +48,7 @@ add_blend_shader(PainterBlendShaderSet &out,
     case PainterBlendShader::framebuffer_fetch:
       {
         reference_counted_ptr<PainterBlendShader> p;
-        p = FASTUIDRAWnew PainterBlendShaderGLSL(false, m_type,
+        p = FASTUIDRAWnew PainterBlendShaderGLSL(m_type,
                                                  ShaderSource()
                                                  .add_source(framebuffer_fetch_src_file.c_str(), ShaderSource::from_resource));
         out.shader(md, BlendMode().blending_on(false), p);

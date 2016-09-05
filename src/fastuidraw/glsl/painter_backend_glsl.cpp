@@ -129,8 +129,7 @@ namespace
     construct_shader(fastuidraw::glsl::ShaderSource &out_vertex,
                      fastuidraw::glsl::ShaderSource &out_fragment,
                      const fastuidraw::glsl::PainterBackendGLSL::UberShaderParams &contruct_params,
-                     const fastuidraw::glsl::PainterBackendGLSL::ItemShaderFilter *item_shader_filter,
-                     const fastuidraw::glsl::PainterBackendGLSL::BlendShaderFilter *blend_shader_filter);
+                     const fastuidraw::glsl::PainterBackendGLSL::ItemShaderFilter *item_shader_filter);
 
     void
     update_varying_size(const fastuidraw::glsl::varying_list &plist);
@@ -366,8 +365,7 @@ PainterBackendGLSLPrivate::
 construct_shader(fastuidraw::glsl::ShaderSource &vert,
                  fastuidraw::glsl::ShaderSource &frag,
                  const fastuidraw::glsl::PainterBackendGLSL::UberShaderParams &params,
-                 const fastuidraw::glsl::PainterBackendGLSL::ItemShaderFilter *item_shader_filter,
-                 const fastuidraw::glsl::PainterBackendGLSL::BlendShaderFilter *blend_shader_filter)
+                 const fastuidraw::glsl::PainterBackendGLSL::ItemShaderFilter *item_shader_filter)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::glsl;
@@ -381,6 +379,24 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   const varying_list *main_varyings;
   DeclareVaryingsStringDatum main_varying_datum, brush_varying_datum, shader_varying_datum;
   const PainterBackendGLSL::BindingPoints &binding_params(params.binding_points());
+  std::vector<reference_counted_ptr<PainterItemShaderGLSL> > work_shaders;
+  const_c_array<reference_counted_ptr<PainterItemShaderGLSL> > item_shaders;
+
+  if(item_shader_filter)
+    {
+      for(unsigned int i = 0, endi = m_item_shaders.size(); i < endi; ++i)
+        {
+          if(item_shader_filter->use_shader(m_item_shaders[i]))
+            {
+              work_shaders.push_back(m_item_shaders[i]);
+            }
+        }
+      item_shaders = make_c_array(work_shaders);
+    }
+  else
+    {
+      item_shaders = make_c_array(m_item_shaders);
+    }
 
   const GlyphAtlas *glyph_atlas;
   glyph_atlas = m_p->glyph_atlas().get();
@@ -627,8 +643,8 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_source("fastuidraw_painter_main.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source(m_vert_shader_utils);
   stream_unpack_code(m_p->configuration_base().alignment(), vert);
-  stream_uber_vert_shader(params.vert_shader_use_switch(), vert, make_c_array(m_item_shaders),
-                          shader_varying_datum, item_shader_filter);
+  stream_uber_vert_shader(params.vert_shader_use_switch(), vert, item_shaders,
+                          shader_varying_datum);
 
   const char *shader_blend_macro;
   switch(params.blend_type())
@@ -711,11 +727,11 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_source(m_frag_shader_utils);
 
   stream_unpack_code(m_p->configuration_base().alignment(), frag);
-  stream_uber_frag_shader(params.frag_shader_use_switch(), frag, make_c_array(m_item_shaders),
-                          shader_varying_datum, item_shader_filter);
+  stream_uber_frag_shader(params.frag_shader_use_switch(), frag, item_shaders,
+                          shader_varying_datum);
   stream_uber_blend_shader(params.blend_shader_use_switch(), frag,
                            make_c_array(m_blend_shaders[params.blend_type()].m_shaders),
-                           params.blend_type(), blend_shader_filter);
+                           params.blend_type());
 }
 
 /////////////////////////////////////////////////////////////////
@@ -1017,6 +1033,7 @@ absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader)
   return_value.m_group = 0;
   d->m_next_item_shader_ID += h->number_sub_shaders();
   return_value.m_group = compute_item_shader_group(return_value, shader);
+
   return return_value;
 }
 
@@ -1100,13 +1117,12 @@ fastuidraw::glsl::PainterBackendGLSL::
 construct_shader(ShaderSource &out_vertex,
                  ShaderSource &out_fragment,
                  const UberShaderParams &construct_params,
-                 const ItemShaderFilter *item_shader_filter,
-                 const BlendShaderFilter *blend_shader_filter)
+                 const ItemShaderFilter *item_shader_filter)
 {
   PainterBackendGLSLPrivate *d;
   d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
   d->construct_shader(out_vertex, out_fragment, construct_params,
-                      item_shader_filter, blend_shader_filter);
+                      item_shader_filter);
 }
 
 uint32_t

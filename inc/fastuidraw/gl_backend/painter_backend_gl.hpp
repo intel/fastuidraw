@@ -359,6 +359,21 @@ namespace fastuidraw
         ConfigurationGL&
         use_ubo_for_uniforms(bool v);
 
+        /*!
+          If true, item and blend shaders are broken into
+          two classes: those that use discard and those that
+          do not. Each class is then realized as a seperate
+          GLSL program.
+         */
+        bool
+        separate_program_for_discard(void) const;
+
+        /*!
+          Set the value for separate_program_for_discard(void) const
+        */
+        ConfigurationGL&
+        separate_program_for_discard(bool v);
+
       private:
         void *m_d;
       };

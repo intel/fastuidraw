@@ -722,26 +722,6 @@ namespace fastuidraw
       };
 
       /*!
-        An BlendShaderFilter is used to specify whether or not
-        to include a named shader when creating an uber-shader.
-       */
-      class BlendShaderFilter
-      {
-      public:
-        virtual
-        ~BlendShaderFilter(void)
-        {}
-
-        /*!
-          To be implemented by a derived class to return true
-          if the named shader should be included in the uber-shader.
-         */
-        virtual
-        bool
-        use_shader(const reference_counted_ptr<PainterBlendShaderGLSL> &shader) const = 0;
-      };
-
-      /*!
         Ctor.
         \param glyph_atlas GlyphAtlas for glyphs drawn by the PainterBackend
         \param image_atlas ImageAtlas for images drawn by the PainterBackend
@@ -800,8 +780,7 @@ namespace fastuidraw
       construct_shader(ShaderSource &out_vertex,
                        ShaderSource &out_fragment,
                        const UberShaderParams &contruct_params,
-                       const ItemShaderFilter *item_shader_filter = NULL,
-                       const BlendShaderFilter *blend_shader_filter = NULL);
+                       const ItemShaderFilter *item_shader_filter = NULL);
 
       /*!
         Fill a buffer to hold the values for the uniforms
