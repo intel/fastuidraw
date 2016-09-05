@@ -986,10 +986,10 @@ painter_stroke_test::
 construct_dash_patterns(void)
 {
   m_dash_patterns.push_back(std::vector<PainterDashedStrokeParams::DashPatternElement>());
-  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(6.0f, 2.0f));
-  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(0.0f, 2.0f));
-  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(0.0f, 4.0f));
-  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(9.0f, 0.0f));
+  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(20.0f, 10.0f));
+  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(15.0f, 10.0f));
+  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(10.0f, 10.0f));
+  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement( 5.0f, 10.0f));
 }
 
 void
@@ -1243,8 +1243,10 @@ draw_frame(void)
               st.miter_limit(-1.0f);
             }
           st.width(m_stroke_width);
-          /* TODO: copy m_dash_patterns[dash_pattern()] to st.
-           */
+
+          unsigned int D(dash_pattern());
+          const_c_array<PainterDashedStrokeParams::DashPatternElement> dash_ptr(&m_dash_patterns[D][0], m_dash_patterns[D].size());
+          st.dash_pattern(dash_ptr);
 
           if(m_stroke_width_in_pixels)
             {

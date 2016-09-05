@@ -1,0 +1,73 @@
+float
+FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
+                               in float total_distance,
+                               in float in_distance,
+                               out uint interval_id)
+{
+  float d, lastd, r;
+  uint i, loc;
+
+  r = 0.0;
+  d = mod(in_distance, total_distance);
+  i = uint(0);
+  loc = dashed_stroking_data_location;
+  lastd = 0.0;
+
+  /* Data is packed quite trivially, where the values are just
+     the successive total lengths, so we just keep reading
+     until that value is greater than d. We also have that
+     the first interval is how much to draw, so the sign determines
+     the distance.
+   */
+  do
+    {
+      uvec4 V;
+      vec4 fV;
+
+      V = fastuidraw_fetch_data(loc);
+      fV = uintBitsToFloat(V);
+
+      if(d < fV.x)
+        {
+          interval_id = i;
+          r = min(fV.x - d, d - lastd);
+
+          //break out
+          return r;
+          lastd = 2.0 * total_distance + 1.0;
+        }
+      else if(d < fV.y)
+        {
+          interval_id = i + uint(1);
+          r = -min(fV.y - d, d - fV.x);
+
+          //break out
+          return r;
+          lastd = 2.0 * total_distance + 1.0;
+        }
+      else if(d < fV.z)
+        {
+          interval_id = i + uint(2);
+          r = min(fV.z - d, d - fV.y);
+
+          //break out
+          return r;
+          lastd = 2.0 * total_distance + 1.0;
+        }
+      else if(d < fV.w)
+        {
+          interval_id = i + uint(3);
+          r = -min(fV.w - d, d - fV.z);
+
+          //break out
+          return r;
+          lastd = 2.0 * total_distance + 1.0;
+        }
+      i += uint(4);
+      lastd = fV.w;
+      ++loc;
+    }
+  while(lastd < total_distance);
+
+  return r;
+}

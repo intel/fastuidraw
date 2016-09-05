@@ -17,11 +17,21 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   if(dash_style != uint(fastuidraw_stroke_undashed))
     {
       float d, q, ff;
-      uint interval_id;
+      uint interval_id, dash_pattern_at;
       fastuidraw_dashed_stroking_params_header stroke_params;
 
-      q = fastuidraw_compute_dash_interval(shader_data_offset, fastuidraw_stroking_distance,
-                                           stroke_params, interval_id);
+      /* stroke_params takes 4 elements
+       */
+      dash_pattern_at = shader_data_offset + uint(fastuidraw_data_store_block_offset4);
+
+      /* read the header data (includes the stroking width and total length
+         of the dash pattern).
+       */
+      fastuidraw_read_dashed_stroking_params_header(shader_data_offset, stroke_params);
+
+      q = fastuidraw_compute_dash_interval(dash_pattern_at, stroke_params.total_length,
+                                           fastuidraw_stroking_distance,
+                                           interval_id);
 
       if(dash_style == uint(fastuidraw_stroke_dashed_rounded_caps))
         {

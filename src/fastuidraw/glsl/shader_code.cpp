@@ -18,6 +18,7 @@
 
 #include <sstream>
 
+#include <fastuidraw/util/math.hpp>
 #include <fastuidraw/glsl/shader_code.hpp>
 #include <fastuidraw/text/glyph_render_data_curve_pair.hpp>
 
@@ -224,5 +225,29 @@ image_atlas_compute_coord(const char *function_name,
     .remove_macro("FASTUIDRAW_INDEX_ATLAS")
     .remove_macro("FASTUIDRAW_ATLAS_COMPUTE_COORD");
 
+  return return_value;
+}
+
+
+fastuidraw::glsl::ShaderSource
+fastuidraw::glsl::code::
+dashed_stroking_compute(const char *function_name,
+                        unsigned int data_alignment)
+{
+  ShaderSource return_value;
+  const char *src[] =
+    {
+      "fastuidraw_compute_dash_stroke_alignment_1.glsl.resource_string",
+      "fastuidraw_compute_dash_stroke_alignment_2.glsl.resource_string",
+      "fastuidraw_compute_dash_stroke_alignment_3.glsl.resource_string",
+      "fastuidraw_compute_dash_stroke_alignment_4.glsl.resource_string"
+    };
+
+  data_alignment = t_max(1u, t_min(data_alignment, 4u));
+
+  return_value
+    .add_macro("FASTUIDRAW_COMPUTE_DASH_STROKE", function_name)
+    .add_source(src[data_alignment - 1], glsl::ShaderSource::from_resource)
+    .remove_macro("FASTUIDRAW_COMPUTE_DASH_STROKE");
   return return_value;
 }

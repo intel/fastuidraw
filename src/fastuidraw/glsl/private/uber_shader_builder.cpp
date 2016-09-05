@@ -491,7 +491,13 @@ add_enums(unsigned int alignment, ShaderSource &src)
     .add_macro("fastuidraw_stroke_undashed", PainterEnums::number_cap_styles)
     .add_macro("fastuidraw_stroke_dashed_no_caps", PainterEnums::no_caps)
     .add_macro("fastuidraw_stroke_dashed_rounded_caps", PainterEnums::rounded_caps)
-    .add_macro("fastuidraw_stroke_dashed_square_caps", PainterEnums::square_caps);
+    .add_macro("fastuidraw_stroke_dashed_square_caps", PainterEnums::square_caps)
+
+    .add_macro("fastuidraw_data_store_alignment", alignment)
+    .add_macro("fastuidraw_data_store_block_offset1", number_data_blocks(alignment, 1))
+    .add_macro("fastuidraw_data_store_block_offset2", number_data_blocks(alignment, 2))
+    .add_macro("fastuidraw_data_store_block_offset3", number_data_blocks(alignment, 3))
+    .add_macro("fastuidraw_data_store_block_offset4", number_data_blocks(alignment, 4));
 }
 
 void
