@@ -655,6 +655,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   frag
     .add_source(varying_layout_macro.c_str(), ShaderSource::from_string)
     .add_source(binding_layout_macro.c_str(), ShaderSource::from_string)
+    .add_macro("FASTUIDRAW_DISCARD", "discard")
     .add_macro(shader_blend_macro)
     .add_macro("FASTUIDRAW_COLORSTOP_ATLAS_BINDING", binding_params.colorstop_atlas())
     .add_macro("FASTUIDRAW_COLOR_TILE_UNFILTERED_BINDING", binding_params.image_atlas_color_tiles_unfiltered())

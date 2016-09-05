@@ -70,12 +70,12 @@ fastuidraw_gl_frag_main(in uint sub_shader,
        */
       if(render_pass == uint(fastuidraw_stroke_opaque_pass) && alpha < 1.0 - 1.0 / 255.0)
         {
-          discard;
+          FASTUIDRAW_DISCARD;
         }
 
       if(render_pass == uint(fastuidraw_stroke_non_aa) && q < 0.0)
         {
-          discard;
+          FASTUIDRAW_DISCARD;
         }
     }
   #endif

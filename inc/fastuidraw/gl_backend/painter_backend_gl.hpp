@@ -33,7 +33,6 @@ namespace fastuidraw
 /*!\addtogroup GLBackend
   @{
  */
-
     /*!
       A PainterBackendGL implements PainterBackend
       using the GL (or GLES) API.
@@ -41,6 +40,34 @@ namespace fastuidraw
     class PainterBackendGL:public glsl::PainterBackendGLSL
     {
     public:
+      /*!
+        Enumeration to specify which GLSL program
+        to fetch from program(enum program_type_t).
+      */
+      enum program_type_t
+        {
+          /*!
+            Get the GLSL program that handles all shaders
+          */
+          program_all,
+
+          /*!
+            Get the GLSL program that only handles those
+            shader without discard
+          */
+          program_without_discard,
+
+          /*!
+            Get the GLSL program that only handles those
+            shader with discard
+          */
+          program_with_discard,
+
+          /*!
+           */
+          number_program_types
+        };
+
       /*!
         A ConfigurationGL gives parameters how to contruct
         a PainterBackendGL.
@@ -371,11 +398,11 @@ namespace fastuidraw
       map_draw_command(void);
 
       /*!
-        Return the Program used to draw -all- content
-        by this PainterBackendGL
+        Return the specified Program use to draw
+        with this PainterBackendGL.
        */
       reference_counted_ptr<Program>
-      program(void);
+      program(enum program_type_t tp);
 
       /*!
         Returns the ConfigurationGL adapted from that passed
