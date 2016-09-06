@@ -96,24 +96,6 @@ public:
     };
 
   /*!
-    Enumeration encoding how bits of point::m_tag are used.
-   */
-  enum tag_bit_layout_t
-    {
-      offset_type_num_bits = 4,
-      offset_type_bit0 = 0,
-
-      normal0_y_sign_bit = offset_type_bit0 + offset_type_num_bits,
-      normal1_y_sign_bit = normal0_y_sign_bit + 1,
-      sin_sign_bit = normal1_y_sign_bit + 1,
-
-      offset_type_mask = FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(offset_type_num_bits) << offset_type_bit0,
-      normal0_y_sign_mask = 1 << normal0_y_sign_bit,
-      normal1_y_sign_mask = 1 << normal1_y_sign_bit,
-      sin_sign_mask = 1 << sin_sign_bit,
-    };
-
-  /*!
     Enumeration to select what points of stroking to select.
    */
   enum point_set_t
@@ -160,6 +142,28 @@ public:
     };
 
   /*!
+    Enumeration encoding how bits of point::m_tag are used.
+   */
+  enum tag_bit_layout_t
+    {
+      offset_type_bit0 = 0,
+      offset_type_num_bits = 4,
+
+      normal0_y_sign_bit = offset_type_bit0 + offset_type_num_bits,
+      normal1_y_sign_bit = normal0_y_sign_bit + 1,
+      sin_sign_bit = normal1_y_sign_bit + 1,
+
+      boundary_bit0 = sin_sign_bit + 1,
+      boundary_num_bits = 2,
+
+      offset_type_mask = FASTUIDRAW_MASK(offset_type_bit0, offset_type_num_bits),
+      normal0_y_sign_mask = FASTUIDRAW_MASK(normal0_y_sign_bit, 1),
+      normal1_y_sign_mask = FASTUIDRAW_MASK(normal1_y_sign_bit, 1),
+      sin_sign_mask = FASTUIDRAW_MASK(sin_sign_bit, 1),
+      boundary_mask = FASTUIDRAW_MASK(boundary_bit0, boundary_num_bits),
+    };
+
+  /*!
     A point holds the data for a point of stroking.
     The data is so that changing the stroking width
     or miter limit does not change the stroking data.
@@ -198,18 +202,6 @@ public:
     float m_distance_from_contour_start;
 
     /*!
-      Has value -1, 0 or +1. If the value is 0,
-      then the point is on the path. If the value has
-      absolute value 1, then indicates a point that
-      is on the boundary of the stroked path. The triangles
-      produced from stroking are so that when
-      m_on_boundary is interpolated across the triangle
-      the center of stroking the value is 0 and the
-      value has absolute value +1 on the boundary.
-     */
-    int m_on_boundary;
-
-    /*!
       When stroking the data, the depth test to only
       pass when the depth value is -strictly- larger
       so that a fixed pixel is not stroked twice by
@@ -235,7 +227,27 @@ public:
     enum offset_type_t
     offset_type(void) const
     {
-      return static_cast<enum offset_type_t>(m_tag & offset_type_mask);
+      uint32_t v;
+      v = unpack_bits(offset_type_bit0, offset_type_num_bits, m_tag);
+      return static_cast<enum offset_type_t>(v);
+    }
+
+    /*!
+      Has value -1, 0 or +1. If the value is 0,
+      then the point is on the path. If the value has
+      absolute value 1, then indicates a point that
+      is on the boundary of the stroked path. The triangles
+      produced from stroking are so that when
+      m_on_boundary is interpolated across the triangle
+      the center of stroking the value is 0 and the
+      value has absolute value +1 on the boundary.
+     */
+    int
+    on_boundary(void) const
+    {
+      uint v;
+      v = unpack_bits(boundary_bit0, boundary_num_bits, m_tag);
+      return static_cast<int>(v) - 1;
     }
 
     /*!
