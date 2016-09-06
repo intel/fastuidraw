@@ -804,7 +804,6 @@ begin(void)
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
 
   assert(d->m_accumulated_draws.empty());
-  d->m_backend->on_begin();
   d->start_new_command();
   ++d->m_number_begins;
 }
@@ -828,6 +827,7 @@ flush(void)
       assert(iter->m_draw_command->unmapped());
       iter->m_draw_command->draw();
     }
+  d->m_backend->on_post_draw();
   d->m_accumulated_draws.clear();
 }
 
@@ -835,10 +835,7 @@ void
 fastuidraw::PainterPacker::
 end(void)
 {
-  PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
   flush();
-  d->m_backend->on_end();
 }
 
 void

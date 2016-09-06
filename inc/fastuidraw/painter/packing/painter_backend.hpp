@@ -198,29 +198,21 @@ namespace fastuidraw
     configuration_base(void) const;
 
     /*!
-      Called by Painter to indicate the start of a painting session.
-     */
-    virtual
-    void
-    on_begin(void) = 0;
-
-    /*!
-      Called by Painter to indicate the end of a painting session.
-     */
-    virtual
-    void
-    on_end(void) = 0;
-
-    /*!
-      Called by Painter just before calling
-      PainterDrawCommand::draw() on a sequence of
-      PainterDrawCommand objects who have had
-      their PainterDrawCommand::unmap() routine
-      called.
+      Called just before calling PainterDrawCommand::draw()
+      on a sequence of PainterDrawCommand objects who have
+      had their PainterDrawCommand::unmap() routine called.
      */
     virtual
     void
     on_pre_draw(void) = 0;
+
+    /*!
+      Called just after calling PainterDrawCommand::draw()
+      on a sequence of PainterDrawCommand objects.
+     */
+    virtual
+    void
+    on_post_draw(void) = 0;
 
     /*!
       "Map" a PainterDrawCommand for filling of data.
@@ -231,14 +223,14 @@ namespace fastuidraw
 
     /*!
       Registers a vertex shader for use. Must not be called within a
-      on_begin()/on_end() pair.
+      on_pre_draw()/on_post_draw() pair.
      */
     void
     register_shader(const reference_counted_ptr<PainterItemShader> &shader);
 
     /*!
       Registers a blend shader for use. Must not be called within
-      a on_begin()/on_end() pair.
+      a on_pre_draw()/on_post_draw() pair.
     */
     void
     register_shader(const reference_counted_ptr<PainterBlendShader> &shader);
@@ -320,7 +312,7 @@ namespace fastuidraw
       of a sub-shader. When called, the value of the shader's PainterShader::ID()
       and PainterShader::registered_to() are already set correctly. In addition,
       the value of PainterShader::group() is initialized to the same value as
-      that of the parent.
+      that of the PainterItemShader::parent().
      */
     virtual
     uint32_t
@@ -344,7 +336,7 @@ namespace fastuidraw
       of a sub-shader. When called, the value of the shader's PainterShader::ID()
       and PainterShader::registered_to() are already set correctly. In addition,
       the value of PainterShader::group() is initialized to the same value as
-      that of the parent.
+      that of the PainterBlendShader::parent().
      */
     virtual
     uint32_t
