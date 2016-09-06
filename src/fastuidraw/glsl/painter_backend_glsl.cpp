@@ -1019,7 +1019,7 @@ absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader)
   d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
 
   reference_counted_ptr<glsl::PainterItemShaderGLSL> h;
-  fastuidraw::PainterShader::Tag return_value;
+  PainterShader::Tag return_value;
 
   assert(!shader->parent());
   assert(shader.dynamic_cast_ptr<PainterItemShaderGLSL>());
@@ -1041,7 +1041,9 @@ uint32_t
 fastuidraw::glsl::PainterBackendGLSL::
 compute_item_sub_shader_group(const reference_counted_ptr<PainterItemShader> &shader)
 {
-  return compute_item_shader_group(shader->tag(), shader);
+  PainterShader::Tag tg(shader->parent()->tag());
+  tg.m_ID += shader->sub_shader();
+  return compute_item_shader_group(tg, shader);
 }
 
 fastuidraw::PainterShader::Tag
@@ -1073,7 +1075,9 @@ uint32_t
 fastuidraw::glsl::PainterBackendGLSL::
 compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader)
 {
-  return compute_blend_shader_group(shader->tag(), shader);
+  PainterShader::Tag tg(shader->parent()->tag());
+  tg.m_ID += shader->sub_shader();
+  return compute_blend_shader_group(tg, shader);
 }
 
 void

@@ -38,7 +38,6 @@ namespace
 
     //for when shader has sub-shaders
     unsigned int m_number_sub_shaders;
-    std::vector<fastuidraw::PainterShader*> m_constructed_sub_shaders;
 
     //for when shader is a sub-shader
     fastuidraw::reference_counted_ptr<fastuidraw::PainterShader> m_parent;
@@ -66,10 +65,6 @@ PainterShader(unsigned int sub_shader,
 
   d->m_parent = parent;
   d->m_sub_shader_ID = sub_shader;
-
-  PainterShaderPrivate *pd;
-  pd = reinterpret_cast<PainterShaderPrivate*>(d->m_parent->m_d);
-  pd->m_constructed_sub_shaders.push_back(this);
 }
 
 fastuidraw::PainterShader::
@@ -79,6 +74,15 @@ fastuidraw::PainterShader::
   d = reinterpret_cast<PainterShaderPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
+}
+
+uint32_t
+fastuidraw::PainterShader::
+sub_shader(void) const
+{
+  PainterShaderPrivate *d;
+  d = reinterpret_cast<PainterShaderPrivate*>(m_d);
+  return d->m_sub_shader_ID;
 }
 
 uint32_t
@@ -139,15 +143,6 @@ register_shader(Tag tg, const PainterBackend *p)
   assert(!d->m_parent);
   d->m_tag = tg;
   d->m_registered_to = p;
-  for(unsigned int i = 0, endi = d->m_constructed_sub_shaders.size(); i < endi; ++i)
-    {
-      PainterShaderPrivate *q;
-      q = reinterpret_cast<PainterShaderPrivate*>(d->m_constructed_sub_shaders[i]->m_d);
-      assert(q->m_parent.get() == this);
-      q->m_registered_to = p;
-      q->m_tag.m_ID = tg.m_ID + q->m_sub_shader_ID;
-      q->m_tag.m_group = tg.m_group;
-    }
 }
 
 void
@@ -156,8 +151,20 @@ set_group_of_sub_shader(uint32_t gr)
 {
   PainterShaderPrivate *d;
   d = reinterpret_cast<PainterShaderPrivate*>(m_d);
-  assert(d->m_registered_to != NULL);
+
   assert(d->m_parent);
+  PainterShaderPrivate *pd;
+  pd = reinterpret_cast<PainterShaderPrivate*>(d->m_parent->m_d);
+
+  /* the parent must all-ready be registered.
+   */
+  assert(pd->m_registered_to != NULL);
+
+  //but this shader is not yet registered!
+  assert(d->m_registered_to == NULL);
+
+  d->m_registered_to = pd->m_registered_to;
+  d->m_tag.m_ID = pd->m_tag.m_ID + d->m_sub_shader_ID;
   d->m_tag.m_group = gr;
 }
 

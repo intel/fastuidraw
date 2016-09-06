@@ -1445,6 +1445,7 @@ compute_item_shader_group(PainterShader::Tag tag,
 
   b = configuration_gl().break_on_shader_change();
   return_value = (b) ? tag.m_ID : 0u;
+  return_value |= (shader_group_discard_mask & tag.m_group);
 
   if(configuration_gl().separate_program_for_discard())
     {
@@ -1595,11 +1596,11 @@ on_pre_draw(void)
       fill_uniform_buffer(d->m_uniform_values_ptr);
       if(d->m_params.separate_program_for_discard())
         {
-          prs[program_with_discard]->use_program();
-          Uniform(d->m_shader_uniforms_loc[program_with_discard], ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
-
           prs[program_without_discard]->use_program();
           Uniform(d->m_shader_uniforms_loc[program_without_discard], ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
+
+          prs[program_with_discard]->use_program();
+          Uniform(d->m_shader_uniforms_loc[program_with_discard], ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
         }
       else
         {
