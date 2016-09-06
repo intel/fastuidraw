@@ -241,7 +241,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                                         sub_shader);
 
   width_pixels = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_width_pixels_bit0,
-                                         1,
+                                         fastuidraw_stroke_sub_shader_width_pixels_num_bits,
                                          sub_shader);
 
 
