@@ -302,6 +302,7 @@ namespace fastuidraw
       to identify the shader.  An implementation will never
       be passed an object for which PainterShader::parent()
       is non-NULL.
+      \param shader shader whose Tag is to be computed
      */
     virtual
     PainterShader::Tag
@@ -313,6 +314,7 @@ namespace fastuidraw
       and PainterShader::registered_to() are already set correctly. In addition,
       the value of PainterShader::group() is initialized to the same value as
       that of the PainterItemShader::parent().
+      \param shader shader whose group is to be computed
      */
     virtual
     uint32_t
@@ -326,6 +328,7 @@ namespace fastuidraw
       to identify the shader. An implementation will never
       be passed an object for which PainterShader::parent()
       is non-NULL.
+      \param shader shader whose Tag is to be computed
      */
     virtual
     PainterShader::Tag
@@ -337,6 +340,7 @@ namespace fastuidraw
       and PainterShader::registered_to() are already set correctly. In addition,
       the value of PainterShader::group() is initialized to the same value as
       that of the PainterBlendShader::parent().
+      \param shader shader whose group is to be computed
      */
     virtual
     uint32_t
