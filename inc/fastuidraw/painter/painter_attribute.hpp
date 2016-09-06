@@ -39,7 +39,17 @@ namespace fastuidraw
     /*!
       Generic attribute data
      */
-    uvec4 m_attrib0, m_attrib1, m_attrib2;
+    uvec4 m_attrib0;
+
+    /*!
+      Generic attribute data
+     */
+    uvec4 m_attrib1;
+
+    /*!
+      Generic attribute data
+     */
+    uvec4 m_attrib2;
   };
 
   /*!

@@ -765,16 +765,10 @@ namespace fastuidraw
         \param out_vertex ShaderSource to which to add uber-vertex shader
         \param out_fragment ShaderSource to which to add uber-fragment shader
         \param contruct_params specifies how to construct the uber-shaders.
-        \param binding_params specifies the binding points for buffers and
-                              samplers used by the uber-shader.
         \param item_shader_filter pointer to ItemShaderFilter to use to filter
                                   which shader to place into the uber-shader.
                                   A value of NULL indicates to add all item
                                   shaders to the uber-shader.
-        \param blend_shader_filter pointer to BlendShaderFilter to use to filter
-                                   which shader to place into the uber-shader.
-                                   A value of NULL indicates to add all blend
-                                   shaders to the uber-shader.
        */
       void
       construct_shader(ShaderSource &out_vertex,
@@ -823,6 +817,7 @@ namespace fastuidraw
                    will assign to the shader. Do NOT access PainterShader::tag(),
                    PainterShader::ID() or PainterShader::group() as they are
                    not yet assgined.
+        \param shader shader whose group is to be computed
        */
       virtual
       uint32_t
@@ -838,6 +833,7 @@ namespace fastuidraw
                    will assign to the shader. Do NOT access PainterShader::tag(),
                    PainterShader::ID() or PainterShader::group() as they are
                    not yet assgined.
+        \param shader shader whose group is to be computed
        */
       virtual
       uint32_t

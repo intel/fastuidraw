@@ -82,10 +82,10 @@ public:
         The point is for a boundary point of a sqaure-cap join point.
         These points are for dashed stroking when the point of the join
         is NOT covered by the dash pattern. Their layout of data is the
-        same as \ref miter_join_offset. The purpose of this point type is
-        to make sure caps of dashed stroking is drawn if a cap would be
-        drawn in the area covered by a miter join with miter limit at
-        0.5.
+        same as \ref offset_miter_join. The purpose of this point type is
+        to make sure caps of dashed stroking is drawn at the join location.
+        When placing such points, it is placed the same as \ref
+        offset_miter_join except that the miter limit is 0.5.
        */
       offset_cap_join,
 
