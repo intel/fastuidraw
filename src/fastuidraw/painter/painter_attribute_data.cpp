@@ -180,12 +180,7 @@ namespace
                               src.m_auxilary_offset.x(),
                               src.m_auxilary_offset.y());
 
-    int v;
-    v = src.on_boundary() + 1;
-    assert(v >= 0);
-    dst.m_attrib2 = fastuidraw::uvec4(src.m_depth,
-                                      src.m_tag & ~fastuidraw::StrokedPath::boundary_mask,
-                                      v, 0u);
+    dst.m_attrib2 = fastuidraw::uvec4(src.m_depth, src.m_tag, 0u, 0u);
 
     return dst;
   }
