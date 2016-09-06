@@ -398,15 +398,11 @@ namespace fastuidraw
 
       virtual
       void
-      on_begin(void);
-
-      virtual
-      void
-      on_end(void);
-
-      virtual
-      void
       on_pre_draw(void);
+
+      virtual
+      void
+      on_post_draw(void);
 
       virtual
       reference_counted_ptr<const PainterDrawCommand>

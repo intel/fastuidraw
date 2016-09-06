@@ -1475,13 +1475,6 @@ compute_blend_shader_group(PainterShader::Tag tag,
 
 void
 fastuidraw::gl::PainterBackendGL::
-on_begin(void)
-{
-  //nothing todo.
-}
-
-void
-fastuidraw::gl::PainterBackendGL::
 on_pre_draw(void)
 {
   PainterBackendGLPrivate *d;
@@ -1618,7 +1611,7 @@ on_pre_draw(void)
 
 void
 fastuidraw::gl::PainterBackendGL::
-on_end(void)
+on_post_draw(void)
 {
   PainterBackendGLPrivate *d;
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
