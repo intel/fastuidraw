@@ -46,14 +46,22 @@ namespace
     dst[5] = aa + 3;
   }
 
+  uint32_t
+  cast_float(float p)
+  {
+    const char *q;
+    q = reinterpret_cast<const char*>(&p);
+    return *reinterpret_cast<const uint32_t*>(q);
+  }
+
   fastuidraw::uvec4
   pack_vec4(float x, float y, float z, float w)
   {
     fastuidraw::uvec4 return_value;
-    return_value.x() = *reinterpret_cast<const unsigned int*>(&x);
-    return_value.y() = *reinterpret_cast<const unsigned int*>(&y);
-    return_value.z() = *reinterpret_cast<const unsigned int*>(&z);
-    return_value.w() = *reinterpret_cast<const unsigned int*>(&w);
+    return_value.x() = cast_float(x);
+    return_value.y() = cast_float(y);
+    return_value.z() = cast_float(z);
+    return_value.w() = cast_float(w);
     return return_value;
   }
 
