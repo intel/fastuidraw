@@ -45,6 +45,18 @@ namespace
       cap_type_count
     };
 
+  uint32_t
+  pack_tag(int on_boundary,
+           enum fastuidraw::StrokedPath::offset_type_t pt)
+  {
+    assert(on_boundary == 0 || on_boundary == 1 || on_boundary == -1);
+    assert(on_boundary == 1 || pt == fastuidraw::StrokedPath::offset_edge);
+
+    uint32_t bb(on_boundary + 1), pp(pt);
+    return fastuidraw::pack_bits(fastuidraw::StrokedPath::offset_type_bit0, fastuidraw::StrokedPath::offset_type_num_bits, pp)
+      | fastuidraw::pack_bits(fastuidraw::StrokedPath::boundary_bit0, fastuidraw::StrokedPath::boundary_num_bits, bb);
+  }
+
   class Location
   {
   public:
@@ -1001,8 +1013,7 @@ add_edge(unsigned int o, unsigned int e,
           pts[vert_offset + k].m_depth = depth;
           pts[vert_offset + k].m_pre_offset = normal_sign[k] * normal;
           pts[vert_offset + k].m_auxilary_offset = delta;
-          pts[vert_offset + k].m_on_boundary = boundary_values[k];
-          pts[vert_offset + k].m_tag = p_type;
+          pts[vert_offset + k].m_tag = pack_tag(boundary_values[k], p_type);
 
           pts[vert_offset + k + 3].m_position = src_pts[i+1].m_p;
           pts[vert_offset + k + 3].m_distance_from_edge_start = src_pts[i+1].m_distance_from_edge_start;
@@ -1010,8 +1021,7 @@ add_edge(unsigned int o, unsigned int e,
           pts[vert_offset + k + 3].m_depth = depth;
           pts[vert_offset + k + 3].m_pre_offset = normal_sign[k] * normal;
           pts[vert_offset + k + 3].m_auxilary_offset = -delta;
-          pts[vert_offset + k + 3].m_on_boundary = -boundary_values[k];
-          pts[vert_offset + k + 3].m_tag = p_type;
+          pts[vert_offset + k + 3].m_tag = pack_tag(-boundary_values[k], p_type);
         }
 
       indices[index_offset + 0] = vert_offset + 0;
@@ -1301,18 +1311,16 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
   pts[vertex_offset].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_contour_start = m_distance_from_contour_start;
-  pts[vertex_offset].m_on_boundary = 0;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
-  pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_edge;
+  pts[vertex_offset].m_tag = pack_tag(0, fastuidraw::StrokedPath::offset_edge);
   ++vertex_offset;
 
   pts[vertex_offset].m_position = m_p0;
   pts[vertex_offset].m_pre_offset = m_lambda * m_n0;
   pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_contour_start = m_distance_from_contour_start;
-  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
-  pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_edge;
+  pts[vertex_offset].m_tag = pack_tag(1, fastuidraw::StrokedPath::offset_edge);
   ++vertex_offset;
 
   for(i = 1, theta = m_delta_theta; i < m_num_arc_points - 1; ++i, theta += m_delta_theta, ++vertex_offset)
@@ -1328,10 +1336,9 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
       pts[vertex_offset].m_position = m_p0;
       pts[vertex_offset].m_pre_offset = m_lambda * fastuidraw::vec2(m_n0.x(), m_n1.x());
       pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(t, cs_as_complex.real());
-      pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_rounded_join;
       pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
       pts[vertex_offset].m_distance_from_contour_start = m_distance_from_contour_start;
-      pts[vertex_offset].m_on_boundary = 1;
+      pts[vertex_offset].m_tag = pack_tag(1, fastuidraw::StrokedPath::offset_rounded_join);
 
       if(m_lambda * m_n0.y() < 0.0f)
         {
@@ -1353,9 +1360,8 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
   pts[vertex_offset].m_pre_offset = m_lambda * m_n1;
   pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_contour_start = m_distance_from_contour_start;
-  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
-  pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_edge;
+  pts[vertex_offset].m_tag = pack_tag(1, fastuidraw::StrokedPath::offset_edge);
   ++vertex_offset;
 
   for(i = first + 1; i < vertex_offset - 1; ++i, index_offset+=3)
@@ -1505,25 +1511,22 @@ fill_join_implement(unsigned int join_id,
   pts[vertex_offset + 0].m_pre_offset = J.m_lambda * J.m_n0;
   pts[vertex_offset + 0].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset + 0].m_distance_from_contour_start = J.m_distance_from_contour_start;
-  pts[vertex_offset + 0].m_on_boundary = 1;
   pts[vertex_offset + 0].m_auxilary_offset = pts[vertex_offset + 0].m_pre_offset;
-  pts[vertex_offset + 0].m_tag = fastuidraw::StrokedPath::offset_edge;
+  pts[vertex_offset + 0].m_tag = pack_tag(1, fastuidraw::StrokedPath::offset_edge);
 
   pts[vertex_offset + 1].m_position = J.m_p0;
   pts[vertex_offset + 1].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pts[vertex_offset + 1].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset + 1].m_distance_from_contour_start = J.m_distance_from_contour_start;
-  pts[vertex_offset + 1].m_on_boundary = 0;
   pts[vertex_offset + 1].m_auxilary_offset = pts[vertex_offset + 1].m_pre_offset;
-  pts[vertex_offset + 1].m_tag = fastuidraw::StrokedPath::offset_edge;
+  pts[vertex_offset + 1].m_tag = pack_tag(0, fastuidraw::StrokedPath::offset_edge);
 
   pts[vertex_offset + 2].m_position = J.m_p1;
   pts[vertex_offset + 2].m_pre_offset = J.m_lambda * J.m_n1;
   pts[vertex_offset + 2].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset + 2].m_distance_from_contour_start = J.m_distance_from_contour_start;
-  pts[vertex_offset + 2].m_on_boundary = 1;
   pts[vertex_offset + 2].m_auxilary_offset = pts[vertex_offset + 2].m_pre_offset;
-  pts[vertex_offset + 2].m_tag = fastuidraw::StrokedPath::offset_edge;
+  pts[vertex_offset + 2].m_tag = pack_tag(1, fastuidraw::StrokedPath::offset_edge);
 
   indices[index_offset + 0] = vertex_offset;
   indices[index_offset + 1] = vertex_offset + 1;
@@ -1651,18 +1654,16 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_contour_start = p.m_distance_from_contour_start;
-  pts[vertex_offset].m_on_boundary = 0;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
-  pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_edge;
+  pts[vertex_offset].m_tag = pack_tag(0, fastuidraw::StrokedPath::offset_edge);
   ++vertex_offset;
 
   pts[vertex_offset].m_position = C.m_p;
   pts[vertex_offset].m_pre_offset = C.m_n;
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_contour_start = p.m_distance_from_contour_start;
-  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
-  pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_edge;
+  pts[vertex_offset].m_tag = pack_tag(1, fastuidraw::StrokedPath::offset_edge);
   ++vertex_offset;
 
   for(i = 1, theta = m_delta_theta; i < m_num_arc_points_per_cap - 1; ++i, theta += m_delta_theta, ++vertex_offset)
@@ -1676,17 +1677,15 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
       pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(s, c);
       pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
       pts[vertex_offset].m_distance_from_contour_start = p.m_distance_from_contour_start;
-      pts[vertex_offset].m_on_boundary = 1;
-      pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_rounded_cap;
+      pts[vertex_offset].m_tag = pack_tag(1, fastuidraw::StrokedPath::offset_rounded_cap);
     }
 
   pts[vertex_offset].m_position = C.m_p;
   pts[vertex_offset].m_pre_offset = -C.m_n;
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_contour_start = p.m_distance_from_contour_start;
-  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
-  pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_edge;
+  pts[vertex_offset].m_tag = pack_tag(1, fastuidraw::StrokedPath::offset_edge);
   ++vertex_offset;
 
   for(i = first + 1; i < vertex_offset - 1; ++i, index_offset += 3)
@@ -1736,45 +1735,40 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_contour_start = p.m_distance_from_contour_start;
-  pts[vertex_offset].m_on_boundary = 0;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
-  pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_edge;
+  pts[vertex_offset].m_tag = pack_tag(0, fastuidraw::StrokedPath::offset_edge);
   ++vertex_offset;
 
   pts[vertex_offset].m_position = C.m_p;
   pts[vertex_offset].m_pre_offset = C.m_n;
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_contour_start = p.m_distance_from_contour_start;
-  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
-  pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_edge;
+  pts[vertex_offset].m_tag = pack_tag(1, fastuidraw::StrokedPath::offset_edge);
   ++vertex_offset;
 
   pts[vertex_offset].m_position = C.m_p;
   pts[vertex_offset].m_pre_offset = C.m_n;
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_contour_start = p.m_distance_from_contour_start;
-  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = C.m_v;
-  pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_square_cap;
+  pts[vertex_offset].m_tag = pack_tag(1, fastuidraw::StrokedPath::offset_square_cap);
   ++vertex_offset;
 
   pts[vertex_offset].m_position = C.m_p;
   pts[vertex_offset].m_pre_offset = -C.m_n;
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_contour_start = p.m_distance_from_contour_start;
-  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = C.m_v;
-  pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_square_cap;
+  pts[vertex_offset].m_tag = pack_tag(1, fastuidraw::StrokedPath::offset_square_cap);
   ++vertex_offset;
 
   pts[vertex_offset].m_position = C.m_p;
   pts[vertex_offset].m_pre_offset = -C.m_n;
   pts[vertex_offset].m_distance_from_edge_start = p.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_contour_start = p.m_distance_from_contour_start;
-  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
-  pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_edge;
+  pts[vertex_offset].m_tag = pack_tag(1, fastuidraw::StrokedPath::offset_edge);
   ++vertex_offset;
 
   for(i = first + 1; i < vertex_offset - 1; ++i, index_offset+=3)
@@ -1884,9 +1878,8 @@ fill_join_implement(unsigned int join_id,
   pts[vertex_offset].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_contour_start = J.m_distance_from_contour_start;
-  pts[vertex_offset].m_on_boundary = 0;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
-  pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_edge;
+  pts[vertex_offset].m_tag = pack_tag(0, fastuidraw::StrokedPath::offset_edge);
   ++vertex_offset;
 
   // join point from curve into join
@@ -1894,9 +1887,8 @@ fill_join_implement(unsigned int join_id,
   pts[vertex_offset].m_pre_offset = J.m_lambda * J.m_n0;
   pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_contour_start = J.m_distance_from_contour_start;
-  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
-  pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_edge;
+  pts[vertex_offset].m_tag = pack_tag(1, fastuidraw::StrokedPath::offset_edge);
   ++vertex_offset;
 
   // miter point A
@@ -1905,8 +1897,7 @@ fill_join_implement(unsigned int join_id,
   pts[vertex_offset].m_auxilary_offset = J.m_n1;
   pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_contour_start = J.m_distance_from_contour_start;
-  pts[vertex_offset].m_on_boundary = 1;
-  pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_miter_join;
+  pts[vertex_offset].m_tag = pack_tag(1, fastuidraw::StrokedPath::offset_miter_join);
   ++vertex_offset;
 
   // miter point B
@@ -1915,8 +1906,7 @@ fill_join_implement(unsigned int join_id,
   pts[vertex_offset].m_auxilary_offset = J.m_n1;
   pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_contour_start = J.m_distance_from_contour_start;
-  pts[vertex_offset].m_on_boundary = 1;
-  pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_miter_join;
+  pts[vertex_offset].m_tag = pack_tag(1, fastuidraw::StrokedPath::offset_miter_join);
   ++vertex_offset;
 
   // join point from curve out from join
@@ -1924,9 +1914,8 @@ fill_join_implement(unsigned int join_id,
   pts[vertex_offset].m_pre_offset = J.m_lambda * J.m_n1;
   pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
   pts[vertex_offset].m_distance_from_contour_start = J.m_distance_from_contour_start;
-  pts[vertex_offset].m_on_boundary = 1;
   pts[vertex_offset].m_auxilary_offset = pts[vertex_offset].m_pre_offset;
-  pts[vertex_offset].m_tag = fastuidraw::StrokedPath::offset_edge;
+  pts[vertex_offset].m_tag = pack_tag(1, fastuidraw::StrokedPath::offset_edge);
   ++vertex_offset;
 
   for(i = first + 1; i < vertex_offset - 1; ++i, index_offset+=3)

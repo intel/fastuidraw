@@ -292,6 +292,14 @@ namespace fastuidraw
  */
 #define FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(X) ( (uint32_t(1) << uint32_t(X)) - uint32_t(1) )
 
+/*!\def FASTUIDRAW_MASK
+  Macro that generates a 32-bit mask from number
+  bits and location of bit0 to use
+  \param BIT0 first bit of mask
+  \param NUMBITS nuber bits of mask
+ */
+#define FASTUIDRAW_MASK(BIT0, NUMBITS) (FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(NUMBITS) << uint32_t(BIT0))
+
 /*!\def FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS_U64
   Macro that gives the maximum value that can be
   held with a given number of bits, returning an
@@ -299,6 +307,14 @@ namespace fastuidraw
   \param X number bits
  */
 #define FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS_U64(X) ( (uint64_t(1) << uint64_t(X)) - uint64_t(1) )
+
+/*!\def FASTUIDRAW_MASK_U64
+  Macro that generates a 64-bit mask from number
+  bits and location of bit0 to use
+  \param BIT0 first bit of mask
+  \param NUMBITS nuber bits of mask
+ */
+#define FASTUIDRAW_MASK_U64(BIT0, NUMBITS) (FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS_U64(NUMBITS) << uint64_t(BIT0))
 
 /*!\def FASTUIDRAWunused
   Macro to stop the compiler from reporting
