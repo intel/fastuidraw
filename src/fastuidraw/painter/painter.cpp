@@ -31,6 +31,17 @@ namespace
   class ZDataCallBack;
   class PainterPrivate;
 
+  fastuidraw::uvec4
+  pack_vec4(float x, float y, float z, float w)
+  {
+    fastuidraw::uvec4 return_value;
+    return_value.x() = *reinterpret_cast<const unsigned int*>(&x);
+    return_value.y() = *reinterpret_cast<const unsigned int*>(&y);
+    return_value.z() = *reinterpret_cast<const unsigned int*>(&z);
+    return_value.w() = *reinterpret_cast<const unsigned int*>(&w);
+    return return_value;
+  }
+
   class change_header_z
   {
   public:
@@ -1071,9 +1082,9 @@ draw_convex_polygon(const reference_counted_ptr<PainterItemShader> &shader,
   d->m_work_room.m_attribs.resize(pts.size());
   for(unsigned int i = 0; i < pts.size(); ++i)
     {
-      d->m_work_room.m_attribs[i].m_primary_attrib = vec4(pts[i].x(), pts[i].y(), 0.0f, 0.0f);
-      d->m_work_room.m_attribs[i].m_secondary_attrib = vec4(0.0f, 0.0f, 0.0f, 0.0f);
-      d->m_work_room.m_attribs[i].m_uint_attrib = uvec4(0, 0, 0, 0);
+      d->m_work_room.m_attribs[i].m_attrib0 = pack_vec4(pts[i].x(), pts[i].y(), 0.0f, 0.0f);
+      d->m_work_room.m_attribs[i].m_attrib1 = uvec4(0u, 0u, 0u, 0u);
+      d->m_work_room.m_attribs[i].m_attrib2 = uvec4(0, 0, 0, 0);
     }
 
   d->m_work_room.m_indices.clear();

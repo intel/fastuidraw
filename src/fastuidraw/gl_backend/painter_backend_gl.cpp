@@ -470,18 +470,18 @@ request_vao(void)
       m_vaos[m_pool][m_current].m_index_bo = generate_bo(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size);
 
       glEnableVertexAttribArray(fastuidraw::glsl::PainterBackendGLSL::primary_attrib_slot);
-      v = fastuidraw::gl::opengl_trait_values<fastuidraw::vec4>(sizeof(fastuidraw::PainterAttribute),
-                                                                offsetof(fastuidraw::PainterAttribute, m_primary_attrib));
-      fastuidraw::gl::VertexAttribPointer(fastuidraw::glsl::PainterBackendGLSL::primary_attrib_slot, v);
+      v = fastuidraw::gl::opengl_trait_values<fastuidraw::uvec4>(sizeof(fastuidraw::PainterAttribute),
+                                                                 offsetof(fastuidraw::PainterAttribute, m_attrib0));
+      fastuidraw::gl::VertexAttribIPointer(fastuidraw::glsl::PainterBackendGLSL::primary_attrib_slot, v);
 
       glEnableVertexAttribArray(fastuidraw::glsl::PainterBackendGLSL::secondary_attrib_slot);
-      v = fastuidraw::gl::opengl_trait_values<fastuidraw::vec4>(sizeof(fastuidraw::PainterAttribute),
-                                                                offsetof(fastuidraw::PainterAttribute, m_secondary_attrib));
-      fastuidraw::gl::VertexAttribPointer(fastuidraw::glsl::PainterBackendGLSL::secondary_attrib_slot, v);
+      v = fastuidraw::gl::opengl_trait_values<fastuidraw::uvec4>(sizeof(fastuidraw::PainterAttribute),
+                                                                 offsetof(fastuidraw::PainterAttribute, m_attrib1));
+      fastuidraw::gl::VertexAttribIPointer(fastuidraw::glsl::PainterBackendGLSL::secondary_attrib_slot, v);
 
       glEnableVertexAttribArray(fastuidraw::glsl::PainterBackendGLSL::uint_attrib_slot);
       v = fastuidraw::gl::opengl_trait_values<fastuidraw::uvec4>(sizeof(fastuidraw::PainterAttribute),
-                                                                 offsetof(fastuidraw::PainterAttribute, m_uint_attrib));
+                                                                 offsetof(fastuidraw::PainterAttribute, m_attrib2));
       fastuidraw::gl::VertexAttribIPointer(fastuidraw::glsl::PainterBackendGLSL::uint_attrib_slot, v);
 
       m_vaos[m_pool][m_current].m_header_bo = generate_bo(GL_ARRAY_BUFFER, m_header_buffer_size);
@@ -824,7 +824,6 @@ draw(void) const
       assert(!"Bad value for m_vao.m_data_store_backing");
     }
 
-  //m_without_discard is group 0
   if(m_pr->m_params.separate_program_for_discard())
     {
       m_pr->m_programs[fastuidraw::gl::PainterBackendGL::program_without_discard]->use_program();

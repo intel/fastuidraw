@@ -410,8 +410,8 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   if(params.assign_layout_to_vertex_shader_inputs())
     {
       std::ostringstream ostr;
-      ostr << "layout(location = " << PainterBackendGLSL::primary_attrib_slot << ") in vec4 fastuidraw_primary_attribute;\n"
-           << "layout(location = " << PainterBackendGLSL::secondary_attrib_slot << ") in vec4 fastuidraw_secondary_attribute;\n"
+      ostr << "layout(location = " << PainterBackendGLSL::primary_attrib_slot << ") in uvec4 fastuidraw_primary_attribute;\n"
+           << "layout(location = " << PainterBackendGLSL::secondary_attrib_slot << ") in uvec4 fastuidraw_secondary_attribute;\n"
            << "layout(location = " << PainterBackendGLSL::uint_attrib_slot << ") in uvec4 fastuidraw_uint_attribute;\n"
            << "layout(location = " << PainterBackendGLSL::header_attrib_slot << ") in uint fastuidraw_header_attribute;\n";
       declare_vertex_shader_ins = ostr.str();
@@ -419,8 +419,8 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   else
     {
       std::ostringstream ostr;
-      ostr << "in vec4 fastuidraw_primary_attribute;\n"
-           << "in vec4 fastuidraw_secondary_attribute;\n"
+      ostr << "in uvec4 fastuidraw_primary_attribute;\n"
+           << "in uvec4 fastuidraw_secondary_attribute;\n"
            << "in uvec4 fastuidraw_uint_attribute;\n"
            << "in uint fastuidraw_header_attribute;\n";
       declare_vertex_shader_ins = ostr.str();
