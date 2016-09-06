@@ -46,6 +46,17 @@ namespace
     dst[5] = aa + 3;
   }
 
+  fastuidraw::uvec4
+  pack_vec4(float x, float y, float z, float w)
+  {
+    fastuidraw::uvec4 return_value;
+    return_value.x() = *reinterpret_cast<const unsigned int*>(&x);
+    return_value.y() = *reinterpret_cast<const unsigned int*>(&y);
+    return_value.z() = *reinterpret_cast<const unsigned int*>(&z);
+    return_value.w() = *reinterpret_cast<const unsigned int*>(&w);
+    return return_value;
+  }
+
   inline
   void
   pack_glyph_attributes(enum fastuidraw::PainterEnums::glyph_orientation orientation,
@@ -96,21 +107,21 @@ namespace
     uint_values.z() = filter_atlas_layer(atlas.layer());
     uint_values.w() = filter_atlas_layer(secondary_atlas.layer());
 
-    dst[0].m_secondary_attrib = fastuidraw::vec4(p_bl.x(), p_bl.y(), 0.0f, 0.0f);
-    dst[0].m_primary_attrib = fastuidraw::vec4(t_bl.x(), t_bl.y(), t2_bl.x(), t2_bl.y());
-    dst[0].m_uint_attrib = uint_values;
+    dst[0].m_attrib0 = pack_vec4(t_bl.x(), t_bl.y(), t2_bl.x(), t2_bl.y());
+    dst[0].m_attrib1 = pack_vec4(p_bl.x(), p_bl.y(), 0.0f, 0.0f);
+    dst[0].m_attrib2 = uint_values;
 
-    dst[1].m_secondary_attrib = fastuidraw::vec4(p_tr.x(), p_bl.y(), 0.0f, 0.0f);
-    dst[1].m_primary_attrib = fastuidraw::vec4(t_tr.x(), t_bl.y(), t2_tr.x(), t2_bl.y());
-    dst[1].m_uint_attrib = uint_values;
+    dst[1].m_attrib0 = pack_vec4(t_tr.x(), t_bl.y(), t2_tr.x(), t2_bl.y());
+    dst[1].m_attrib1 = pack_vec4(p_tr.x(), p_bl.y(), 0.0f, 0.0f);
+    dst[1].m_attrib2 = uint_values;
 
-    dst[2].m_secondary_attrib = fastuidraw::vec4(p_tr.x(), p_tr.y(), 0.0f, 0.0f);
-    dst[2].m_primary_attrib = fastuidraw::vec4(t_tr.x(), t_tr.y(), t2_tr.x(), t2_tr.y());
-    dst[2].m_uint_attrib = uint_values;
+    dst[2].m_attrib0 = pack_vec4(t_tr.x(), t_tr.y(), t2_tr.x(), t2_tr.y());
+    dst[2].m_attrib1 = pack_vec4(p_tr.x(), p_tr.y(), 0.0f, 0.0f);
+    dst[2].m_attrib2 = uint_values;
 
-    dst[3].m_secondary_attrib = fastuidraw::vec4(p_bl.x(), p_tr.y(), 0.0f, 0.0f);
-    dst[3].m_primary_attrib = fastuidraw::vec4(t_bl.x(), t_tr.y(), t2_bl.x(), t2_tr.y());
-    dst[3].m_uint_attrib = uint_values;
+    dst[3].m_attrib0 = pack_vec4(t_bl.x(), t_tr.y(), t2_bl.x(), t2_tr.y());
+    dst[3].m_attrib1 = pack_vec4(p_bl.x(), p_tr.y(), 0.0f, 0.0f);
+    dst[3].m_attrib2 = uint_values;
   }
 
   unsigned int
@@ -147,17 +158,9 @@ namespace
   {
     fastuidraw::PainterAttribute dst;
 
-    dst.m_primary_attrib.x() = src.x();
-    dst.m_primary_attrib.y() = src.y();
-    dst.m_primary_attrib.z() = 0.0f;
-    dst.m_primary_attrib.w() = 0.0f;
-
-    dst.m_secondary_attrib.x() = 0.0f;
-    dst.m_secondary_attrib.y() = 0.0f;
-    dst.m_secondary_attrib.z() = 0.0f;
-    dst.m_secondary_attrib.w() = 0.0f;
-
-    dst.m_uint_attrib = fastuidraw::uvec4(0u, 0u, 0u, 0u);
+    dst.m_attrib0 = pack_vec4(src.x(), src.y(), 0.0f, 0.0f);
+    dst.m_attrib1 = fastuidraw::uvec4(0u, 0u, 0u, 0u);
+    dst.m_attrib2 = fastuidraw::uvec4(0u, 0u, 0u, 0u);
 
     return dst;
   }
@@ -167,20 +170,20 @@ namespace
   {
     fastuidraw::PainterAttribute dst;
 
-    dst.m_primary_attrib.x() = src.m_position.x();
-    dst.m_primary_attrib.y() = src.m_position.y();
-    dst.m_primary_attrib.z() = src.m_pre_offset.x();
-    dst.m_primary_attrib.w() = src.m_pre_offset.y();
+    dst.m_attrib0 = pack_vec4(src.m_position.x(),
+                              src.m_position.y(),
+                              src.m_pre_offset.x(),
+                              src.m_pre_offset.y());
 
-    dst.m_secondary_attrib.x() = src.m_distance_from_edge_start;
-    dst.m_secondary_attrib.y() = src.m_distance_from_contour_start;
-    dst.m_secondary_attrib.z() = src.m_auxilary_offset.x();
-    dst.m_secondary_attrib.w() = src.m_auxilary_offset.y();
+    dst.m_attrib1 = pack_vec4(src.m_distance_from_edge_start,
+                              src.m_distance_from_contour_start,
+                              src.m_auxilary_offset.x(),
+                              src.m_auxilary_offset.y());
 
     int v;
     v = src.m_on_boundary + 1;
     assert(v >= 0);
-    dst.m_uint_attrib = fastuidraw::uvec4(src.m_depth, src.m_tag, v, 0u);
+    dst.m_attrib2 = fastuidraw::uvec4(src.m_depth, src.m_tag, v, 0u);
 
     return dst;
   }

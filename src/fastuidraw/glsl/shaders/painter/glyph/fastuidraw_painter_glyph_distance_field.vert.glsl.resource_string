@@ -1,11 +1,15 @@
 vec4
 fastuidraw_gl_vert_main(in uint sub_shader,
-                        in vec4 primary_attrib,
-                        in vec4 secondary_attrib,
+                        in uvec4 uprimary_attrib,
+                        in uvec4 usecondary_attrib,
                         in uvec4 uint_attrib,
                         in uint shader_data_offset,
                         out uint z_add)
 {
+  vec4 primary_attrib, secondary_attrib;
+
+  primary_attrib = uintBitsToFloat(uprimary_attrib);
+  secondary_attrib = uintBitsToFloat(usecondary_attrib);
   /*
     varyings:
      fastuidraw_glyph_tex_coord_x
