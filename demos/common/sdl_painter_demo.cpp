@@ -17,6 +17,49 @@ namespace
 
     return "invalid value";
   }
+
+  std::ostream&
+  operator<<(std::ostream &ostr, const fastuidraw::PainterShader::Tag &tag)
+  {
+    ostr << "(ID=" << tag.m_ID << ", group=" << tag.m_group << ")";
+    return ostr;
+  }
+
+  void
+  print_glyph_shader_ids(const fastuidraw::PainterGlyphShader &sh)
+  {
+    for(unsigned int i = 0; i < sh.shader_count(); ++i)
+      {
+        enum fastuidraw::glyph_type tp;
+        tp = static_cast<enum fastuidraw::glyph_type>(i);
+        std::cout << "\t\t#" << i << ": " << sh.shader(tp)->tag() << "\n";
+      }
+  }
+
+  void
+  print_stroke_shader_ids(const fastuidraw::PainterStrokeShader &sh,
+                          const std::string &prefix = "\t\t")
+  {
+    std::cout << prefix << "aa_shader_pass1: " << sh.aa_shader_pass1()->tag() << "\n"
+              << prefix << "aa_shader_pass2: " << sh.aa_shader_pass2()->tag() << "\n"
+              << prefix << "non_aa_shader: " << sh.non_aa_shader()->tag() << "\n";
+  }
+
+  void
+  print_dashed_stroke_shader_ids(const fastuidraw::PainterDashedStrokeShaderSet &sh)
+  {
+    std::cout << "\t\tno_caps:\n";
+    print_stroke_shader_ids(sh.shader(fastuidraw::PainterEnums::no_caps), "\t\t\t");
+
+    std::cout << "\t\trounded_caps:\n";
+    print_stroke_shader_ids(sh.shader(fastuidraw::PainterEnums::rounded_caps), "\t\t\t");
+
+    std::cout << "\t\tsquare_caps:\n";
+    print_stroke_shader_ids(sh.shader(fastuidraw::PainterEnums::square_caps), "\t\t\t");
+
+    std::cout << "\t\tclose_contours:\n";
+    print_stroke_shader_ids(sh.shader(fastuidraw::PainterEnums::close_contours), "\t\t\t");
+  }
 }
 
 sdl_painter_demo::
@@ -332,6 +375,30 @@ init_gl(int w, int h)
                 << std::setw(8) << string_from_data_store_type(m_backend->configuration_gl().data_store_backing())
                 << "  (requested " << string_from_data_store_type(m_painter_params.data_store_backing())
                 << ")\n\n\n";
+
+      #undef LAZY
+      const fastuidraw::PainterShaderSet &sh(m_painter->default_shaders());
+      std::cout << "Default shader IDs:\n";
+
+      std::cout << "\tGlyph Shaders:\n";
+      print_glyph_shader_ids(sh.glyph_shader());
+
+      std::cout << "\tAnisoptropic Glyph shaders\n";
+      print_glyph_shader_ids(sh.glyph_shader_anisotropic());
+
+      std::cout << "\tSolid StrokeShaders:\n";
+      print_stroke_shader_ids(sh.stroke_shader());
+
+      std::cout << "\tPixel Width Stroke Shaders:\n";
+      print_stroke_shader_ids(sh.pixel_width_stroke_shader());
+
+      std::cout << "\tDashed Stroke Shader:\n";
+      print_dashed_stroke_shader_ids(sh.dashed_stroke_shader());
+
+      std::cout << "\tPixel Width Dashed Stroke Shader:\n";
+      print_dashed_stroke_shader_ids(sh.pixel_width_dashed_stroke_shader());
+
+      std::cout << "\tFill Shader:" << sh.fill_shader()->tag() << "\n";
     }
 
   m_painter_params = m_backend->configuration_gl();
