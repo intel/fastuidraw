@@ -47,14 +47,25 @@ namespace
 
   uint32_t
   pack_tag(int on_boundary,
-           enum fastuidraw::StrokedPath::offset_type_t pt)
+           enum fastuidraw::StrokedPath::offset_type_t pt,
+           uint32_t depth = 0u)
   {
     assert(on_boundary == 0 || on_boundary == 1 || on_boundary == -1);
     assert(on_boundary == 1 || pt == fastuidraw::StrokedPath::offset_edge);
 
     uint32_t bb(on_boundary + 1), pp(pt);
     return fastuidraw::pack_bits(fastuidraw::StrokedPath::offset_type_bit0, fastuidraw::StrokedPath::offset_type_num_bits, pp)
-      | fastuidraw::pack_bits(fastuidraw::StrokedPath::boundary_bit0, fastuidraw::StrokedPath::boundary_num_bits, bb);
+      | fastuidraw::pack_bits(fastuidraw::StrokedPath::boundary_bit0, fastuidraw::StrokedPath::boundary_num_bits, bb)
+      | fastuidraw::pack_bits(fastuidraw::StrokedPath::depth_bit0, fastuidraw::StrokedPath::depth_num_bits, depth);
+  }
+
+  void
+  assign_depth(fastuidraw::StrokedPath::point &pt, uint32_t depth)
+  {
+    uint32_t dd;
+    dd = fastuidraw::pack_bits(fastuidraw::StrokedPath::depth_bit0, fastuidraw::StrokedPath::depth_num_bits, depth);
+    pt.m_tag &= ~FASTUIDRAW_MASK(fastuidraw::StrokedPath::depth_bit0, fastuidraw::StrokedPath::depth_num_bits);
+    pt.m_tag |= dd;
   }
 
   class Location
@@ -1010,18 +1021,16 @@ add_edge(unsigned int o, unsigned int e,
           pts[vert_offset + k].m_position = src_pts[i].m_p;
           pts[vert_offset + k].m_distance_from_edge_start = src_pts[i].m_distance_from_edge_start;
           pts[vert_offset + k].m_distance_from_contour_start = src_pts[i].m_distance_from_contour_start;
-          pts[vert_offset + k].m_depth = depth;
           pts[vert_offset + k].m_pre_offset = normal_sign[k] * normal;
           pts[vert_offset + k].m_auxilary_offset = delta;
-          pts[vert_offset + k].m_tag = pack_tag(boundary_values[k], p_type);
+          pts[vert_offset + k].m_tag = pack_tag(boundary_values[k], p_type, depth);
 
           pts[vert_offset + k + 3].m_position = src_pts[i+1].m_p;
           pts[vert_offset + k + 3].m_distance_from_edge_start = src_pts[i+1].m_distance_from_edge_start;
           pts[vert_offset + k + 3].m_distance_from_contour_start = src_pts[i+1].m_distance_from_contour_start;
-          pts[vert_offset + k + 3].m_depth = depth;
           pts[vert_offset + k + 3].m_pre_offset = normal_sign[k] * normal;
           pts[vert_offset + k + 3].m_auxilary_offset = -delta;
-          pts[vert_offset + k + 3].m_tag = pack_tag(-boundary_values[k], p_type);
+          pts[vert_offset + k + 3].m_tag = pack_tag(-boundary_values[k], p_type, depth);
         }
 
       indices[index_offset + 0] = vert_offset + 0;
@@ -1123,14 +1132,14 @@ fill_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
   total = close_depth + pre_close_depth;
   for(unsigned int v = m_size.pre_close_verts(), endv = pts.size(); v < endv; ++v)
     {
-      assert(pts[v].m_depth < close_depth);
-      pts[v].m_depth = total - pts[v].m_depth  - 1;
+      assert(pts[v].depth() < close_depth);
+      assign_depth(pts[v], total - pts[v].depth()  - 1);
     }
 
   for(unsigned int v = 0, endv = m_size.pre_close_verts(); v < endv; ++v)
     {
-      assert(pts[v].m_depth < pre_close_depth);
-      pts[v].m_depth = total - (pts[v].m_depth + close_depth) - 1;
+      assert(pts[v].depth() < pre_close_depth);
+      assign_depth(pts[v], total - (pts[v].depth() + close_depth) - 1);
     }
   close_depth = total;
 }
@@ -1194,7 +1203,7 @@ fill_join(unsigned int join_id,
 
   for(; v < vertex_offset; ++v)
     {
-      pts[v].m_depth = depth;
+      assign_depth(pts[v], depth);
     }
   ++depth;
 }
@@ -1244,13 +1253,13 @@ fill_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
    */
   for(unsigned int i = m_size.pre_close_verts(); i < pts.size(); ++i)
     {
-      assert(pts[i].m_depth < close_depth);
-      pts[i].m_depth = total - pts[i].m_depth - 1;
+      assert(pts[i].depth() < close_depth);
+      assign_depth(pts[i], total - pts[i].depth() - 1);
     }
   for(unsigned int i = 0; i < m_size.pre_close_verts(); ++i)
     {
-      assert(pts[i].m_depth < pre_close_depth);
-      pts[i].m_depth = total - (pts[i].m_depth + close_depth) - 1;
+      assert(pts[i].depth() < pre_close_depth);
+      assign_depth(pts[i], total - (pts[i].depth() + close_depth) - 1);
     }
 
   assert(pre_close_vertex == m_size.pre_close_verts());
@@ -1580,7 +1589,7 @@ fill_data(const EdgeDataCreator &edge_creator,
 
       for(; v < vertex_offset; ++v)
         {
-          pts[v].m_depth = depth;
+          assign_depth(pts[v], depth);
           ++depth;
         }
 
@@ -1593,7 +1602,7 @@ fill_data(const EdgeDataCreator &edge_creator,
       assert(depth >= 1);
       for(; v < vertex_offset; ++v)
         {
-          pts[v].m_depth = depth;
+          assign_depth(pts[v], depth);
           ++depth;
         }
     }
@@ -1603,8 +1612,8 @@ fill_data(const EdgeDataCreator &edge_creator,
 
   for(unsigned int i = 0, endi = pts.size(); i < endi; ++i)
     {
-      assert(pts[i].m_depth < depth);
-      pts[i].m_depth = depth - pts[i].m_depth - 1;
+      assert(pts[i].depth() < depth);
+      assign_depth(pts[i], depth - pts[i].depth() - 1);
     }
 
   return depth;

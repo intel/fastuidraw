@@ -156,11 +156,15 @@ public:
       boundary_bit0 = sin_sign_bit + 1,
       boundary_num_bits = 2,
 
+      depth_bit0 = boundary_bit0 + boundary_num_bits,
+      depth_num_bits = 20,
+
       offset_type_mask = FASTUIDRAW_MASK(offset_type_bit0, offset_type_num_bits),
       normal0_y_sign_mask = FASTUIDRAW_MASK(normal0_y_sign_bit, 1),
       normal1_y_sign_mask = FASTUIDRAW_MASK(normal1_y_sign_bit, 1),
       sin_sign_mask = FASTUIDRAW_MASK(sin_sign_bit, 1),
       boundary_mask = FASTUIDRAW_MASK(boundary_bit0, boundary_num_bits),
+      depth_mask = FASTUIDRAW_MASK(depth_bit0, depth_num_bits),
     };
 
   /*!
@@ -202,21 +206,7 @@ public:
     float m_distance_from_contour_start;
 
     /*!
-      When stroking the data, the depth test to only
-      pass when the depth value is -strictly- larger
-      so that a fixed pixel is not stroked twice by
-      a single path. The value m_depth stores
-      a relative z-value for a vertex. The points
-      drawn first have the largest z-values.
-     */
-    unsigned int m_depth;
-
-    /*!
-      Tag is a bit field where
-       - m_tag & offset_type_mask gives the value to offset_type()
-       - m_tag & normal0_y_sign_mask up if the y-component of n0 vector is negative (rounded join points only)
-       - m_tag & normal1_y_sign_mask up if the y-component of n1 vector is negative (rounded join points only)
-       - m_tag & sin_sign_mask  up if the y-component of sin value is negative (rounded join points only)
+      Tag is a bit field with data packed as according to \ref tag_bit_layout_t.
      */
     uint32_t m_tag;
 
@@ -230,6 +220,19 @@ public:
       uint32_t v;
       v = unpack_bits(offset_type_bit0, offset_type_num_bits, m_tag);
       return static_cast<enum offset_type_t>(v);
+    }
+    /*!
+      When stroking the data, the depth test to only
+      pass when the depth value is -strictly- larger
+      so that a fixed pixel is not stroked twice by
+      a single path. The value m_depth stores
+      a relative z-value for a vertex. The points
+      drawn first have the largest z-values.
+     */
+    uint32_t
+    depth(void) const
+    {
+      return unpack_bits(depth_bit0, depth_num_bits, m_tag);
     }
 
     /*!
