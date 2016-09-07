@@ -58,18 +58,17 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
 
       for(unsigned int loc = 0, o = 0, endo = input.number_contours(); o < endo; ++o)
         {
-          fastuidraw::reference_counted_ptr<const fastuidraw::PathContour> outline(input.contour(o));
-          float outline_length(0.0f);
+          fastuidraw::reference_counted_ptr<const fastuidraw::PathContour> contour(input.contour(o));
+          float contour_length(0.0f), open_contour_length, closed_contour_length;
+          std::list<std::vector<fastuidraw::TessellatedPath::point> >::iterator start_contour;
 
-          m_edge_ranges[o].resize(outline->number_points());
-          for(unsigned int e = 0, ende = outline->number_points(); e < ende; ++e)
+          m_edge_ranges[o].resize(contour->number_points());
+          for(unsigned int e = 0, ende = contour->number_points(); e < ende; ++e)
             {
-              temp.push_back(std::vector<fastuidraw::TessellatedPath::point>());
-
               unsigned int needed;
 
-              needed = outline->interpolator(e)->produce_tessellation(m_params,
-                                                                      fastuidraw::make_c_array(work_room));
+              temp.push_back(std::vector<fastuidraw::TessellatedPath::point>());
+              needed = contour->interpolator(e)->produce_tessellation(m_params, fastuidraw::make_c_array(work_room));
               m_edge_ranges[o][e] = fastuidraw::range_type<unsigned int>(loc, loc + needed);
               loc += needed;
 
@@ -77,8 +76,7 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
                 {
                   const fastuidraw::vec2 &pt(work_room[n].m_p);
 
-                  work_room[n].m_distance_from_contour_start = outline_length
-                    + work_room[n].m_distance_from_edge_start;
+                  work_room[n].m_distance_from_contour_start = contour_length + work_room[n].m_distance_from_edge_start;
 
                   if(o == 0 and e == 0 and n == 0)
                     {
@@ -93,8 +91,39 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
                       m_box_max.y() = std::max(m_box_max.y(), pt.y());
                     }
                 }
-              temp.push_back(std::vector<fastuidraw::TessellatedPath::point>(work_room.begin(), work_room.begin() + needed));
-              outline_length = temp.back().back().m_distance_from_contour_start;
+              std::list<std::vector<fastuidraw::TessellatedPath::point> >::iterator t;
+              t = temp.insert(temp.end(),
+                              std::vector<fastuidraw::TessellatedPath::point>(work_room.begin(), work_room.begin() + needed));
+              if(e == 0)
+                {
+                  start_contour = t;
+                }
+
+              contour_length = temp.back().back().m_distance_from_contour_start;
+
+              if(e + 2 == ende)
+                {
+                  open_contour_length = contour_length;
+                }
+              else if(e + 1 == ende)
+                {
+                  closed_contour_length = contour_length;
+                }
+
+              for(unsigned int n = 0; n < needed; ++n)
+                {
+                  (*t)[n].m_edge_length = (*t)[needed - 1].m_distance_from_edge_start;
+                }
+            }
+
+          for(std::list<std::vector<fastuidraw::TessellatedPath::point> >::iterator
+                t = start_contour, endt = temp.end(); t != endt; ++t)
+            {
+              for(unsigned int e = 0, ende = t->size(); e < ende; ++e)
+                {
+                  (*t)[e].m_open_contour_length = open_contour_length;
+                  (*t)[e].m_closed_contour_length = closed_contour_length;
+                }
             }
         }
 
@@ -191,81 +220,81 @@ number_contours(void) const
 
 fastuidraw::range_type<unsigned int>
 fastuidraw::TessellatedPath::
-contour_range(unsigned int outline) const
+contour_range(unsigned int contour) const
 {
   TessellatedPathPrivate *d;
   d = reinterpret_cast<TessellatedPathPrivate*>(m_d);
 
-  return range_type<unsigned int>(d->m_edge_ranges[outline].front().m_begin,
-                                  d->m_edge_ranges[outline].back().m_end);
+  return range_type<unsigned int>(d->m_edge_ranges[contour].front().m_begin,
+                                  d->m_edge_ranges[contour].back().m_end);
 }
 
 fastuidraw::range_type<unsigned int>
 fastuidraw::TessellatedPath::
-unclosed_contour_range(unsigned int outline) const
+unclosed_contour_range(unsigned int contour) const
 {
   TessellatedPathPrivate *d;
   d = reinterpret_cast<TessellatedPathPrivate*>(m_d);
 
   range_type<unsigned int> return_value;
-  unsigned int num_edges(number_edges(outline));
+  unsigned int num_edges(number_edges(contour));
 
-  return_value.m_begin = d->m_edge_ranges[outline].front().m_begin;
+  return_value.m_begin = d->m_edge_ranges[contour].front().m_begin;
   return_value.m_end = (num_edges > 1) ?
-    d->m_edge_ranges[outline][num_edges - 2].m_end:
-    d->m_edge_ranges[outline][num_edges - 1].m_end;
+    d->m_edge_ranges[contour][num_edges - 2].m_end:
+    d->m_edge_ranges[contour][num_edges - 1].m_end;
 
   return return_value;
 }
 
 fastuidraw::const_c_array<fastuidraw::TessellatedPath::point>
 fastuidraw::TessellatedPath::
-contour_point_data(unsigned int outline) const
+contour_point_data(unsigned int contour) const
 {
   TessellatedPathPrivate *d;
   d = reinterpret_cast<TessellatedPathPrivate*>(m_d);
 
-  return make_c_array(d->m_point_data).sub_array(contour_range(outline));
+  return make_c_array(d->m_point_data).sub_array(contour_range(contour));
 }
 
 fastuidraw::const_c_array<fastuidraw::TessellatedPath::point>
 fastuidraw::TessellatedPath::
-unclosed_contour_point_data(unsigned int outline) const
+unclosed_contour_point_data(unsigned int contour) const
 {
   TessellatedPathPrivate *d;
   d = reinterpret_cast<TessellatedPathPrivate*>(m_d);
 
-  return make_c_array(d->m_point_data).sub_array(unclosed_contour_range(outline));
+  return make_c_array(d->m_point_data).sub_array(unclosed_contour_range(contour));
 }
 
 unsigned int
 fastuidraw::TessellatedPath::
-number_edges(unsigned int outline) const
+number_edges(unsigned int contour) const
 {
   TessellatedPathPrivate *d;
   d = reinterpret_cast<TessellatedPathPrivate*>(m_d);
 
-  return d->m_edge_ranges[outline].size();
+  return d->m_edge_ranges[contour].size();
 }
 
 fastuidraw::range_type<unsigned int>
 fastuidraw::TessellatedPath::
-edge_range(unsigned int outline, unsigned int edge) const
+edge_range(unsigned int contour, unsigned int edge) const
 {
   TessellatedPathPrivate *d;
   d = reinterpret_cast<TessellatedPathPrivate*>(m_d);
 
-  return d->m_edge_ranges[outline][edge];
+  return d->m_edge_ranges[contour][edge];
 }
 
 fastuidraw::const_c_array<fastuidraw::TessellatedPath::point>
 fastuidraw::TessellatedPath::
-edge_point_data(unsigned int outline, unsigned int edge) const
+edge_point_data(unsigned int contour, unsigned int edge) const
 {
   TessellatedPathPrivate *d;
   d = reinterpret_cast<TessellatedPathPrivate*>(m_d);
 
-  return make_c_array(d->m_point_data).sub_array(edge_range(outline, edge));
+  return make_c_array(d->m_point_data).sub_array(edge_range(contour, edge));
 }
 
 fastuidraw::vec2
