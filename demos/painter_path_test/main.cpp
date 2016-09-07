@@ -132,6 +132,7 @@ private:
   command_line_argument_value<float> m_window_change_rate;
   command_line_argument_value<float> m_radial_gradient_change_rate;
   command_line_argument_value<std::string> m_path_file;
+  command_line_argument_value<bool> m_print_path;
   color_stop_arguments m_color_stop_args;
   command_line_argument_value<std::string> m_image_file;
   command_line_argument_value<unsigned int> m_image_slack;
@@ -260,6 +261,9 @@ painter_stroke_test(void):
               "if non-empty read the geometry of the path from the specified file, "
               "otherwise use a default path",
               *this),
+  m_print_path(false, "print_path",
+               "If true, print the geometry data of the path drawn to stdout",
+               *this),
   m_color_stop_args(*this),
   m_image_file("", "image", "if a valid file name, apply an image to drawing the fill", *this),
   m_image_slack(0, "image_slack", "amount of slack on tiles when loading image", *this),
@@ -952,6 +956,36 @@ create_stroked_path_attributes(void)
         }
     }
   m_miter_limit = fastuidraw::t_min(100.0f, m_max_miter); //100 is an insane miter limit.
+
+  if(m_print_path.m_value)
+    {
+      reference_counted_ptr<const TessellatedPath> tess;
+
+      tess = m_path.tessellation();
+      std::cout << "Path tessellated:\n";
+      for(unsigned int c = 0; c < tess->number_contours(); ++c)
+        {
+          std::cout << "\tContour #" << c << "\n";
+          for(unsigned int e = 0; e < tess->number_edges(c); ++e)
+            {
+              fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> pts;
+
+              std::cout << "\t\tEdge #" << e << "\n";
+              pts = tess->edge_point_data(c, e);
+              for(unsigned int i = 0; i < pts.size(); ++i)
+                {
+                  std::cout << "\t\t\tPoint #" << i << ":\n"
+                            << "\t\t\t\tp          = " << pts[i].m_p << "\n"
+                            << "\t\t\t\tp_t        = " << pts[i].m_p_t << "\n"
+                            << "\t\t\t\tedge_d     = " << pts[i].m_distance_from_edge_start << "\n"
+                            << "\t\t\t\tcontour_d  = " << pts[i].m_distance_from_contour_start << "\n"
+                            << "\t\t\t\tedge_l     = " << pts[i].m_edge_length << "\n"
+                            << "\t\t\t\tcontour_l  = " << pts[i].m_open_contour_length << "\n"
+                            << "\t\t\t\tcontour_cl = " << pts[i].m_closed_contour_length << "\n";
+                }
+            }
+        }
+    }
 }
 
 void

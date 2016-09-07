@@ -86,11 +86,13 @@ public:
 
     /*!
       To be implemented by a derived class to produce the tessellation
-      from start_pt() to end_pt(). The routine should
-      include BOTH start_pt() and end_pt() in the result.
-      Assignments to the field TessellatedPath::point::m_distance_from_contour_start
-      will be ignored, but all other fields of TessellatedPath::point
-      must be assigned values. Return the number of points actually added.
+      from start_pt() to end_pt(). The routine must include BOTH start_pt()
+      and end_pt() in the result. Only the fields TessellatedPath::point::m_p,
+      TessellatedPath::point::m_p_t, TessellatedPath::point::m_distance_from_edge_start
+      are to be filled; the other fields of TessellatedPath::point are
+      filled by TessellatedPath using the named fields. In addition to
+      filling the output array, the function shall return the number of
+      points needed to perform the required tessellation.
 
       \param tess_params tessellation parameters
       \param out_data location to which to write the edge tessellated

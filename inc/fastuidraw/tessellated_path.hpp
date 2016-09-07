@@ -113,6 +113,27 @@ public:
       of the -contour- on which the point resides.
      */
     float m_distance_from_contour_start;
+
+    /*!
+      Gives the length of the edge on which the
+      point lies. This value is the same for all
+      points along a fixed edge.
+     */
+    float m_edge_length;
+
+    /*!
+      Gives the length of the contour open on which
+      the point lies. This value is the same for all
+      points along a fixed contour.
+     */
+    float m_open_contour_length;
+
+    /*!
+      Gives the length of the contour closed on which
+      the point lies. This value is the same for all
+      points along a fixed contour.
+     */
+    float m_closed_contour_length;
   };
 
   /*!
