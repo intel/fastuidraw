@@ -1,7 +1,7 @@
 #ifndef FASTUIDRAW_STROKE_COMPUTE_OFFSET_DEFINED
 #define FASTUIDRAW_STROKE_COMPUTE_OFFSET_DEFINED
 void
-fastuidraw_stroke_compute_offset(in uint point_tag,
+fastuidraw_stroke_compute_offset(in uint point_packed_data,
                                  in int offset_type,
                                  in vec2 position,
                                  in vec2 pre_offset,
@@ -30,7 +30,7 @@ fastuidraw_stroke_compute_offset(in uint point_tag,
     {
       vec2 cs;
       cs = fastuidraw_unpack_unit_vector(auxilary_offset.y,
-                                         uint(fastuidraw_stroke_sin_sign_mask) & point_tag);
+                                         uint(fastuidraw_stroke_sin_sign_mask) & point_packed_data);
       offset = cs;
     }
   else if(offset_type == fastuidraw_stroke_offset_square_cap)
@@ -49,7 +49,7 @@ fastuidraw_stroke_compute_offset(in uint point_tag,
 }
 
 void
-fastuidraw_stroke_compute_offset_pixels(in uint point_tag,
+fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
                                         in int offset_type,
                                         in vec2 position,
                                         in vec2 pre_offset,
@@ -125,9 +125,9 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_tag,
       float d;
 
       n0 = fastuidraw_unpack_unit_vector(pre_offset.x,
-                                         uint(fastuidraw_stroke_normal0_y_sign_mask) & point_tag);
+                                         uint(fastuidraw_stroke_normal0_y_sign_mask) & point_packed_data);
       n1 = fastuidraw_unpack_unit_vector(pre_offset.y,
-                                         uint(fastuidraw_stroke_normal1_y_sign_mask) & point_tag);
+                                         uint(fastuidraw_stroke_normal1_y_sign_mask) & point_packed_data);
       interpolate = auxilary_offset.x;
 
       clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
@@ -255,20 +255,20 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   float miter_distance, stroke_radius;
   fastuidraw_stroking_params stroke_params;
   int on_boundary, offset_type;
-  uint point_tag;
+  uint point_packed_data;
 
   position = primary_attrib.xy;
   pre_offset = primary_attrib.zw;
   auxilary_offset = secondary_attrib.zw;
   distance_from_edge_start = secondary_attrib.x;
   distance_from_contour_start = secondary_attrib.y;
-  point_tag = uint_attrib.y;
+  point_packed_data = uint_attrib.x;
   offset_type = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_offset_type_bit0,
                                             fastuidraw_stroke_offset_type_num_bits,
-                                            point_tag));
+                                            point_packed_data));
   on_boundary = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_boundary_bit0,
                                             fastuidraw_stroke_boundary_num_bits,
-                                            point_tag)) - 1;
+                                            point_packed_data)) - 1;
 
   #ifdef FASTUIDRAW_STROKE_DASHED
     {
@@ -305,14 +305,14 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     {
       if(stroke_width_pixels)
         {
-          fastuidraw_stroke_compute_offset_pixels(point_tag, offset_type, position,
+          fastuidraw_stroke_compute_offset_pixels(point_packed_data, offset_type, position,
                                                   pre_offset, auxilary_offset,
                                                   on_boundary, stroke_params.miter_limit,
                                                   offset, stroke_radius);
         }
       else
         {
-          fastuidraw_stroke_compute_offset(point_tag, offset_type, position,
+          fastuidraw_stroke_compute_offset(point_packed_data, offset_type, position,
                                            pre_offset, auxilary_offset,
                                            stroke_params.miter_limit,
                                            offset);
@@ -343,7 +343,9 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     }
   else
     {
-      z_add = uint_attrib.x;
+      z_add = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_depth_bit0,
+                                      fastuidraw_stroke_depth_num_bits,
+                                      point_packed_data);
     }
 
   return vec4(p, p);

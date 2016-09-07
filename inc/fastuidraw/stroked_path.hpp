@@ -142,9 +142,9 @@ public:
     };
 
   /*!
-    Enumeration encoding how bits of point::m_tag are used.
+    Enumeration encoding how bits of point::m_packed_data are used.
    */
-  enum tag_bit_layout_t
+  enum packed_data_bit_layout_t
     {
       offset_type_bit0 = 0,
       offset_type_num_bits = 4,
@@ -206,9 +206,9 @@ public:
     float m_distance_from_contour_start;
 
     /*!
-      Tag is a bit field with data packed as according to \ref tag_bit_layout_t.
+      Bit field with data packed as according to \ref packed_bit_layout_t.
      */
-    uint32_t m_tag;
+    uint32_t m_packed_data;
 
     /*!
       Provides the point type for the point. The value is one of the
@@ -218,7 +218,7 @@ public:
     offset_type(void) const
     {
       uint32_t v;
-      v = unpack_bits(offset_type_bit0, offset_type_num_bits, m_tag);
+      v = unpack_bits(offset_type_bit0, offset_type_num_bits, m_packed_data);
       return static_cast<enum offset_type_t>(v);
     }
     /*!
@@ -232,7 +232,7 @@ public:
     uint32_t
     depth(void) const
     {
-      return unpack_bits(depth_bit0, depth_num_bits, m_tag);
+      return unpack_bits(depth_bit0, depth_num_bits, m_packed_data);
     }
 
     /*!
@@ -249,7 +249,7 @@ public:
     on_boundary(void) const
     {
       uint v;
-      v = unpack_bits(boundary_bit0, boundary_num_bits, m_tag);
+      v = unpack_bits(boundary_bit0, boundary_num_bits, m_packed_data);
       return static_cast<int>(v) - 1;
     }
 
@@ -296,7 +296,7 @@ public:
         cs.x() = m_auxilary_offset.y();
         cs.y() = sqrt(1.0 - cs.x() * cs.x());
 
-        if(m_tag & sin_sign_mask)
+        if(m_packed_data & sin_sign_mask)
           cs.y() = -cs.y();
 
         offset = cs
@@ -313,10 +313,10 @@ public:
         n0.y() = sqrt(1.0 - n0.x() * n0.x());
         n1.y() = sqrt(1.0 - n1.x() * n1.x());
 
-        if(m_tag & normal0_y_sign_mask)
+        if(m_packed_data & normal0_y_sign_mask)
           n0.y() = -n0.y();
 
-        if(m_tag & normal1_y_sign_mask)
+        if(m_packed_data & normal1_y_sign_mask)
           n1.y() = -n1.y();
         \endcode
         The vector n0 represents the normal of the path going into the join,
