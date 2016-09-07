@@ -102,8 +102,8 @@ namespace fastuidraw
       - PainterAttribute::m_attrib1 .x -> StrokedPath::point::m_distance_from_edge_start (float)
       - PainterAttribute::m_attrib1 .y -> StrokedPath::point::m_distance_from_contour_start (float)
       - PainterAttribute::m_attrib1 .zw -> StrokedPath::point::m_auxilary_offset (float)
-      - PainterAttribute::m_attrib2 .x -> StrokedPath::point::m_depth (uint)
-      - PainterAttribute::m_attrib2 .y -> StrokedPath::point::m_tag (uint)
+      - PainterAttribute::m_attrib2 .x -> StrokedPath::point::m_packed_data (uint)
+      - PainterAttribute::m_attrib2 .y -> 0 (free)
       - PainterAttribute::m_attrib2 .z -> 0 (free)
       - PainterAttribute::m_attrib2 .w -> 0 (free)
      */
