@@ -147,24 +147,24 @@ namespace
     {}
 
     const fastuidraw::reference_counted_ptr<fastuidraw::PathContour>&
-    current_outline(void)
+    current_contour(void)
     {
-      assert(!m_outlines.empty());
+      assert(!m_contours.empty());
       m_tessellation = fastuidraw::reference_counted_ptr<const fastuidraw::TessellatedPath>();
-      return m_outlines.back();
+      return m_contours.back();
     }
 
     void
     move_common(const fastuidraw::vec2 &pt)
     {
       m_tessellation = fastuidraw::reference_counted_ptr<const fastuidraw::TessellatedPath>();
-      m_outlines.push_back(FASTUIDRAWnew fastuidraw::PathContour());
-      m_outlines.back()->start(pt);
+      m_contours.push_back(FASTUIDRAWnew fastuidraw::PathContour());
+      m_contours.back()->start(pt);
     }
 
     fastuidraw::TessellatedPath::TessellationParams m_tessellation_params;
     fastuidraw::reference_counted_ptr<const fastuidraw::TessellatedPath> m_tessellation;
-    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PathContour> > m_outlines;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PathContour> > m_contours;
   };
 }
 
@@ -905,7 +905,7 @@ interpolator(unsigned int I) const
 
   /* interpolator(number_points()) is the interpolator
      connecting the last point added to the first
-     point of the outline, i.e. is given by m_end_to_start
+     point of the contour, i.e. is given by m_end_to_start
    */
   return (J == d->m_interpolators.size())?
     d->m_end_to_start:
@@ -948,6 +948,19 @@ Path(const Path &obj, const TessellatedPath::TessellationParams &tess_param)
   PathPrivate *obj_d;
   obj_d = reinterpret_cast<PathPrivate*>(obj.m_d);
 
+  /*
+    ISSUE: we are NOT doing a deep copy of the
+    contours in a path; this means that modifying
+    a contour on either path object affects both.
+    However, the only contour that can be affected
+    is the last contour, and only if it has not
+    been ended.
+    TODO: if last contour is not ended, do a deep
+    copy of the data behind that last contour.
+    When we do that, that means we need to deep
+    copy the interpolators of that contour too
+    because interpolators are linked by references.
+   */
   m_d = FASTUIDRAWnew PathPrivate(*obj_d);
   tessellation_params(tess_param);
 }
@@ -984,9 +997,9 @@ move(const fastuidraw::vec2 &pt)
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
 
-  if(!d->m_outlines.empty())
+  if(!d->m_contours.empty())
     {
-      const reference_counted_ptr<PathContour> &h(d->current_outline());
+      const reference_counted_ptr<PathContour> &h(d->current_contour());
       if(!h->ended())
         {
           h->end();
@@ -1003,13 +1016,13 @@ operator<<(const fastuidraw::vec2 &pt)
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
 
-  if(d->m_outlines.empty() || d->m_outlines.back()->ended())
+  if(d->m_contours.empty() || d->m_contours.back()->ended())
     {
       d->move_common(pt);
     }
   else
     {
-      d->current_outline()->to_point(pt);
+      d->current_contour()->to_point(pt);
     }
   return *this;
 }
@@ -1052,7 +1065,7 @@ operator<<(const control_point &pt)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  d->current_outline()->add_control_point(pt.m_location);
+  d->current_contour()->add_control_point(pt.m_location);
   return *this;
 }
 
@@ -1062,7 +1075,7 @@ operator<<(const arc &a)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  d->current_outline()->to_arc(a.m_angle, a.m_pt);
+  d->current_contour()->to_arc(a.m_angle, a.m_pt);
   return *this;
 }
 
@@ -1072,7 +1085,7 @@ operator<<(contour_end)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  d->current_outline()->end();
+  d->current_contour()->end();
   return *this;
 }
 
@@ -1082,7 +1095,7 @@ operator<<(contour_end_arc a)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  d->current_outline()->end_arc(a.m_angle);
+  d->current_contour()->end_arc(a.m_angle);
   return *this;
 }
 
@@ -1092,7 +1105,7 @@ line_to(const vec2 &pt)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  d->current_outline()->to_point(pt);
+  d->current_contour()->to_point(pt);
   return *this;
 }
 
@@ -1102,7 +1115,7 @@ quadratic_to(const vec2 &ct, const vec2 &pt)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  const reference_counted_ptr<PathContour> &h(d->current_outline());
+  const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->add_control_point(ct);
   h->to_point(pt);
   return *this;
@@ -1114,7 +1127,7 @@ cubic_to(const vec2 &ct1, const vec2 &ct2, const vec2 &pt)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  const reference_counted_ptr<PathContour> &h(d->current_outline());
+  const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->add_control_point(ct1);
   h->add_control_point(ct2);
   h->to_point(pt);
@@ -1127,7 +1140,7 @@ arc_to(float angle, const vec2 &pt)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  const reference_counted_ptr<PathContour> &h(d->current_outline());
+  const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->to_arc(angle, pt);
   return *this;
 }
@@ -1138,7 +1151,7 @@ prev_interpolator(void)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  return d->current_outline()->prev_interpolator();
+  return d->current_contour()->prev_interpolator();
 }
 
 fastuidraw::Path&
@@ -1147,7 +1160,7 @@ custom_to(const reference_counted_ptr<const PathContour::interpolator_base> &p)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  d->current_outline()->to_generic(p);
+  d->current_contour()->to_generic(p);
   return *this;
 }
 
@@ -1157,7 +1170,7 @@ arc_move(float angle, const vec2 &pt)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  const reference_counted_ptr<PathContour> &h(d->current_outline());
+  const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->end_arc(angle);
   d->move_common(pt);
   return *this;
@@ -1169,7 +1182,7 @@ end_contour_arc(float angle)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  const reference_counted_ptr<PathContour> &h(d->current_outline());
+  const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->end_arc(angle);
   return *this;
 }
@@ -1180,7 +1193,7 @@ quadratic_move(const vec2 &ct, const vec2 &pt)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  const reference_counted_ptr<PathContour> &h(d->current_outline());
+  const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->add_control_point(ct);
   h->end();
   d->move_common(pt);
@@ -1193,7 +1206,7 @@ end_contour_quadratic(const vec2 &ct)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  const reference_counted_ptr<PathContour> &h(d->current_outline());
+  const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->add_control_point(ct);
   h->end();
   return *this;
@@ -1205,7 +1218,7 @@ cubic_move(const vec2 &ct1, const vec2 &ct2, const vec2 &pt)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  const reference_counted_ptr<PathContour> &h(d->current_outline());
+  const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->add_control_point(ct1);
   h->add_control_point(ct2);
   h->end();
@@ -1219,7 +1232,7 @@ end_contour_cubic(const vec2 &ct1, const vec2 &ct2)
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  const reference_counted_ptr<PathContour> &h(d->current_outline());
+  const reference_counted_ptr<PathContour> &h(d->current_contour());
   h->add_control_point(ct1);
   h->add_control_point(ct2);
   h->end();
@@ -1232,7 +1245,7 @@ custom_move(const reference_counted_ptr<const PathContour::interpolator_base> &p
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  d->current_outline()->end_generic(p);
+  d->current_contour()->end_generic(p);
   d->move_common(pt);
   return *this;
 }
@@ -1243,7 +1256,7 @@ end_contour_custom(const reference_counted_ptr<const PathContour::interpolator_b
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  d->current_outline()->end_generic(p);
+  d->current_contour()->end_generic(p);
   return *this;
 }
 
@@ -1253,7 +1266,7 @@ number_contours(void) const
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  return d->m_outlines.size();
+  return d->m_contours.size();
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::PathContour>
@@ -1262,7 +1275,7 @@ contour(unsigned int i) const
 {
   PathPrivate *d;
   d = reinterpret_cast<PathPrivate*>(m_d);
-  return d->m_outlines[i];
+  return d->m_contours[i];
 }
 
 const fastuidraw::TessellatedPath::TessellationParams&
