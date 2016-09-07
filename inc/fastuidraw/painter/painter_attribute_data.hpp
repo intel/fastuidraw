@@ -103,9 +103,9 @@ namespace fastuidraw
       - PainterAttribute::m_attrib1 .y -> StrokedPath::point::m_distance_from_contour_start (float)
       - PainterAttribute::m_attrib1 .zw -> StrokedPath::point::m_auxilary_offset (float)
       - PainterAttribute::m_attrib2 .x -> StrokedPath::point::m_packed_data (uint)
-      - PainterAttribute::m_attrib2 .y -> 0 (free)
-      - PainterAttribute::m_attrib2 .z -> 0 (free)
-      - PainterAttribute::m_attrib2 .w -> 0 (free)
+      - PainterAttribute::m_attrib2 .y -> StrokedPath::point::m_edge_length (float)
+      - PainterAttribute::m_attrib2 .z -> StrokedPath::point::m_open_contour_length (float)
+      - PainterAttribute::m_attrib2 .w -> StrokedPath::point::m_closed_contour_length (float)
      */
     void
     set_data(const reference_counted_ptr<const StrokedPath> &path);
