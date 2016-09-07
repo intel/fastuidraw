@@ -227,7 +227,7 @@ public:
     float m_closed_contour_length;
 
     /*!
-      Bit field with data packed as according to \ref packed_bit_layout_t.
+      Bit field with data packed as according to \ref packed_data_bit_layout_t.
      */
     uint32_t m_packed_data;
 
@@ -242,11 +242,12 @@ public:
       v = unpack_bits(offset_type_bit0, offset_type_num_bits, m_packed_data);
       return static_cast<enum offset_type_t>(v);
     }
+
     /*!
       When stroking the data, the depth test to only
       pass when the depth value is -strictly- larger
       so that a fixed pixel is not stroked twice by
-      a single path. The value m_depth stores
+      a single path. The value returned by depth() is
       a relative z-value for a vertex. The points
       drawn first have the largest z-values.
      */
