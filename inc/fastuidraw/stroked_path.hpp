@@ -270,7 +270,7 @@ public:
     int
     on_boundary(void) const
     {
-      uint v;
+      uint32_t v;
       v = unpack_bits(boundary_bit0, boundary_num_bits, m_packed_data);
       return static_cast<int>(v) - 1;
     }
