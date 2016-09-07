@@ -169,7 +169,10 @@ namespace
                                           src.m_auxilary_offset.x(),
                                           src.m_auxilary_offset.y());
 
-    dst.m_attrib2 = fastuidraw::uvec4(src.m_packed_data, 0u, 0u, 0u);
+    dst.m_attrib2 = fastuidraw::uvec4(src.m_packed_data,
+                                      fastuidraw::pack_float(src.m_edge_length),
+                                      fastuidraw::pack_float(src.m_open_contour_length),
+                                      fastuidraw::pack_float(src.m_closed_contour_length));
 
     return dst;
   }
