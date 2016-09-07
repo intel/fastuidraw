@@ -31,25 +31,6 @@ namespace
   class ZDataCallBack;
   class PainterPrivate;
 
- uint32_t
-  cast_float(float p)
-  {
-    const char *q;
-    q = reinterpret_cast<const char*>(&p);
-    return *reinterpret_cast<const uint32_t*>(q);
-  }
-
-  fastuidraw::uvec4
-  pack_vec4(float x, float y, float z, float w)
-  {
-    fastuidraw::uvec4 return_value;
-    return_value.x() = cast_float(x);
-    return_value.y() = cast_float(y);
-    return_value.z() = cast_float(z);
-    return_value.w() = cast_float(w);
-    return return_value;
-  }
-
   class change_header_z
   {
   public:
@@ -1090,7 +1071,7 @@ draw_convex_polygon(const reference_counted_ptr<PainterItemShader> &shader,
   d->m_work_room.m_attribs.resize(pts.size());
   for(unsigned int i = 0; i < pts.size(); ++i)
     {
-      d->m_work_room.m_attribs[i].m_attrib0 = pack_vec4(pts[i].x(), pts[i].y(), 0.0f, 0.0f);
+      d->m_work_room.m_attribs[i].m_attrib0 = fastuidraw::pack_vec4(pts[i].x(), pts[i].y(), 0.0f, 0.0f);
       d->m_work_room.m_attribs[i].m_attrib1 = uvec4(0u, 0u, 0u, 0u);
       d->m_work_room.m_attribs[i].m_attrib2 = uvec4(0, 0, 0, 0);
     }

@@ -226,6 +226,22 @@ namespace fastuidraw
   }
 
   /*!
+    Returns a float pack into a 32-bit unsigned integer.
+    \param f value to pack
+   */
+  inline
+  uint32_t
+  pack_float(float f)
+  {
+    // casting to const char* first
+    // prevents from breaking stricting
+    // aliasing rules
+    const char *q;
+    q = reinterpret_cast<const char *>(&f);
+    return *reinterpret_cast<const uint32_t*>(q);
+  }
+
+  /*!
     A class reprenting the STL range
     [m_begin, m_end).
   */
