@@ -197,7 +197,7 @@ namespace fastuidraw
       with the data of PainterDashedStrokeParams.
      */
     static
-    reference_counted_ptr<const DashEvaluator>
+    reference_counted_ptr<const DashEvaluatorBase>
     dash_evaluator(void);
   };
 /*! @} */

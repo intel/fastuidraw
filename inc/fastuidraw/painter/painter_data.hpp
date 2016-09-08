@@ -71,6 +71,14 @@ namespace fastuidraw
         Value pre-packed and ready for reuse.
        */
       PainterPackedValue<T> m_packed_value;
+
+      const T&
+      data(void) const
+      {
+        return m_packed_value ?
+          m_packed_value.value() :
+          *m_value;
+      }
     };
 
     /*!

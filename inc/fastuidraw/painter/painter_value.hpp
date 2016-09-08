@@ -240,7 +240,10 @@ namespace fastuidraw
       the data of the PainterShaderData.
      */
     const DataBase*
-    data_base(void) const;
+    data_base(void) const
+    {
+      return m_data;
+    }
 
   protected:
     /*!

@@ -242,6 +242,22 @@ namespace fastuidraw
   }
 
   /*!
+    Unpack a float from a 32-bit unsigned integer.
+    \param v value from which to unpack
+   */
+  inline
+  float
+  unpack_float(uint32_t v)
+  {
+    // casting to const char* first
+    // prevents from breaking stricting
+    // aliasing rules
+    const char *q;
+    q = reinterpret_cast<const char *>(&v);
+    return *reinterpret_cast<const float*>(q);
+  }
+
+  /*!
     A class reprenting the STL range
     [m_begin, m_end).
   */
@@ -274,6 +290,18 @@ namespace fastuidraw
       iterator to one past the last element
     */
     T m_end;
+
+    /*!
+      Provided as a conveniance, equivalent to
+      \code
+      m_end - m_begin
+      \endcode
+     */
+    T
+    difference(void) const
+    {
+      return m_end - m_begin;
+    }
   };
 
   /*!
