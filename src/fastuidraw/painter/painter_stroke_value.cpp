@@ -76,7 +76,18 @@ namespace
     float m_miter_limit;
     float m_width;
     float m_dash_offset;
+    float m_total_length;
     std::vector<fastuidraw::PainterDashedStrokeParams::DashPatternElement> m_dash_pattern;
+  };
+
+  class DashEvaluator:public fastuidraw::DashEvaluatorBase
+  {
+  public:
+    virtual
+    bool
+    compute_dash_interval(const fastuidraw::PainterShaderData::DataBase *data,
+                          float distance,
+                          fastuidraw::range_type<float> &out_interval) const;
   };
 }
 
@@ -86,7 +97,8 @@ PainterDashedStrokeParamsData::
 PainterDashedStrokeParamsData(void):
   m_miter_limit(15.0f),
   m_width(2.0f),
-  m_dash_offset(0.0f)
+  m_dash_offset(0.0f),
+  m_total_length(0.0f)
 {}
 
 fastuidraw::PainterShaderData::DataBase*
@@ -110,9 +122,11 @@ PainterDashedStrokeParamsData::
 pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> dst) const
 {
   using namespace fastuidraw;
+
   dst[PainterDashedStrokeParams::stroke_miter_limit_offset].f = m_miter_limit;
   dst[PainterDashedStrokeParams::stroke_width_offset].f = m_width;
   dst[PainterDashedStrokeParams::stroke_dash_offset_offset].f = m_dash_offset;
+  dst[PainterDashedStrokeParams::stroke_total_length_offset].f = m_total_length;
 
   if(!m_dash_pattern.empty())
     {
@@ -135,12 +149,61 @@ pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> 
           //shader can use that to know when it has reached the end.
           dst_pattern[i].f = (total_length + 1.0f) * 2.0f;
         }
-      dst[PainterDashedStrokeParams::stroke_total_length_offset].f = total_length;
     }
-  else
+}
+
+///////////////////////////////
+// DashEvaluator methods
+bool
+DashEvaluator::
+compute_dash_interval(const fastuidraw::PainterShaderData::DataBase *data,
+                      float distance,
+                      fastuidraw::range_type<float> &out_interval) const
+{
+  const PainterDashedStrokeParamsData *d;
+  assert(dynamic_cast<const PainterDashedStrokeParamsData*>(data) != NULL);
+  d = static_cast<const PainterDashedStrokeParamsData*>(data);
+
+  if(d->m_total_length <= 0.0f)
     {
-      dst[PainterDashedStrokeParams::stroke_total_length_offset].f = -1.0f;
+      out_interval.m_begin = out_interval.m_end = 0.0f;
+      return false;
     }
+
+  float q, r, iq;
+  q = distance / d->m_total_length;
+  r = std::modf(q, &iq);
+
+  distance = r * d->m_total_length;
+  iq *= d->m_total_length;
+
+  out_interval.m_begin = 0.0f;
+  for(unsigned int i = 0, endi = d->m_dash_pattern.size(); i < endi; ++i)
+    {
+      float f, draw, skip;
+
+      f = distance - out_interval.m_begin;
+      draw = d->m_dash_pattern[i].m_draw_length;
+      skip = d->m_dash_pattern[i].m_space_length;
+      if(f <= draw)
+        {
+          out_interval.m_begin += iq;
+          out_interval.m_end = out_interval.m_begin + draw;
+          return true;
+        }
+
+      out_interval.m_begin += draw;
+      f -= draw;
+      if(f <= skip)
+        {
+          out_interval.m_begin += iq;
+          out_interval.m_end = out_interval.m_begin + skip;
+          return false;
+        }
+    }
+
+  out_interval.m_end = out_interval.m_begin;
+  return false;
 }
 
 ///////////////////////////////////
@@ -303,7 +366,6 @@ dash_pattern(const_c_array<DashPatternElement> f)
 
   d->m_dash_pattern[current_write].m_draw_length = std::max(0.0f, f[0].m_draw_length);
   d->m_dash_pattern[current_write].m_space_length = std::max(0.0f, f[0].m_space_length);
-
   for(unsigned int i = 1, endi = f.size(); i < endi; ++i)
     {
       /* things to do:
@@ -329,6 +391,22 @@ dash_pattern(const_c_array<DashPatternElement> f)
           d->m_dash_pattern[current_write].m_space_length = std::max(0.0f, f[i].m_space_length);
         }
     }
+
   d->m_dash_pattern.resize(current_write + 1);
+
+  d->m_total_length = 0.0f;
+  for(unsigned int i = 0, endi = current_write + 1; i < endi; ++i)
+    {
+      d->m_total_length += d->m_dash_pattern[i].m_draw_length;
+      d->m_total_length += d->m_dash_pattern[i].m_space_length;
+    }
+
   return *this;
+}
+
+fastuidraw::reference_counted_ptr<const fastuidraw::DashEvaluatorBase>
+fastuidraw::PainterDashedStrokeParams::
+dash_evaluator(void)
+{
+  return FASTUIDRAWnew DashEvaluator();
 }

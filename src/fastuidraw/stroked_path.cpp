@@ -265,9 +265,11 @@ namespace
   public:
     explicit
     JoinCreatorBase(const fastuidraw::TessellatedPath &P,
-                    const EdgeDataCreator &e):
+                    const EdgeDataCreator &e,
+                    bool set_skip_dash_computation = true):
       m_P(P),
       m_e(e),
+      m_set_skip_dash_computation(set_skip_dash_computation),
       m_size_ready(false)
     {}
 
@@ -323,6 +325,7 @@ namespace
 
     const fastuidraw::TessellatedPath &m_P;
     const EdgeDataCreator &m_e;
+    bool m_set_skip_dash_computation;
     PointIndexSize m_size;
     bool m_size_ready;
   };
@@ -1218,9 +1221,15 @@ fill_join(unsigned int join_id,
   loc.m_attribs.m_end = vertex_offset;
   loc.m_indices.m_end = index_offset;
 
+  uint32_t ss;
+  ss = (m_set_skip_dash_computation) ?
+    static_cast<uint32_t>(fastuidraw::StrokedPath::skip_dash_computation_mask) :
+    0u;
+
   for(; v < vertex_offset; ++v)
     {
       assign_depth(pts[v], depth);
+      pts[v].m_packed_data |= ss;
     }
   ++depth;
 }

@@ -121,11 +121,6 @@ public:
       miter_join_point_set,
 
       /*!
-        Select the set of points for cap joins
-       */
-      cap_join_point_set,
-
-      /*!
         Select the set of points for square caps
        */
       square_cap_point_set,
@@ -134,6 +129,11 @@ public:
         Select the set of points for rouded caps
        */
       rounded_cap_point_set,
+
+      /*!
+        Select the set of points for cap joins
+       */
+      cap_join_point_set,
 
       /*!
         Number point set types
@@ -159,12 +159,15 @@ public:
       depth_bit0 = boundary_bit0 + boundary_num_bits,
       depth_num_bits = 20,
 
+      skip_dash_computation_bit = depth_bit0 + depth_num_bits,
+
       offset_type_mask = FASTUIDRAW_MASK(offset_type_bit0, offset_type_num_bits),
       normal0_y_sign_mask = FASTUIDRAW_MASK(normal0_y_sign_bit, 1),
       normal1_y_sign_mask = FASTUIDRAW_MASK(normal1_y_sign_bit, 1),
       sin_sign_mask = FASTUIDRAW_MASK(sin_sign_bit, 1),
       boundary_mask = FASTUIDRAW_MASK(boundary_bit0, boundary_num_bits),
       depth_mask = FASTUIDRAW_MASK(depth_bit0, depth_num_bits),
+      skip_dash_computation_mask = FASTUIDRAW_MASK(skip_dash_computation_bit, 1)
     };
 
   /*!
@@ -273,6 +276,21 @@ public:
       uint32_t v;
       v = unpack_bits(boundary_bit0, boundary_num_bits, m_packed_data);
       return static_cast<int>(v) - 1;
+    }
+
+    /*!
+      When performing dashed stroking, some stroke data sent
+      to the shader is so that the triangle it generates
+      is that it is covered regardless of dash pattern.
+      This returns true (by checking if the bit \ref
+      skip_dash_computation_bit is up) if the point is
+      such a point (if a triangle has a point with this
+      true, all the points have it true).
+     */
+    bool
+    skip_dash_computation(void) const
+    {
+      return m_packed_data & skip_dash_computation_bit;
     }
 
     /*!

@@ -281,12 +281,8 @@ fastuidraw_gl_vert_main(in uint sub_shader,
         {
           stroke_params.miter_limit = 1.0;
           offset_type = fastuidraw_stroke_offset_miter_join;
-          fastuidraw_stroking_dashed_offset_computation = uint(1);
         }
-      else
-        {
-          fastuidraw_stroking_dashed_offset_computation = uint(0);
-        }
+      fastuidraw_stroking_packed_data = point_packed_data;
       fastuidraw_stroking_distance = distance_from_contour_start + H.dash_offset;
     }
   #else

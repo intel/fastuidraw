@@ -31,12 +31,12 @@ namespace fastuidraw
  */
 
   /*!
-    A DashEvaluator is used by Painter to realize the
-    data to send to a PainterPacker for the purpose
-    of dashed stroking.
+    A DashEvaluatorBase is the interface used by Painter
+    to realize the data to send to a PainterPacker for
+    the purpose of dashed stroking.
    */
-  class DashEvaluator:
-    public reference_counted<DashEvaluator>::default_base
+  class DashEvaluatorBase:
+    public reference_counted<DashEvaluatorBase>::default_base
   {
   public:
     /*!
@@ -53,7 +53,7 @@ namespace fastuidraw
     bool
     compute_dash_interval(const PainterShaderData::DataBase *data,
                           float distance,
-                          range_type<float> &out_interval) const;
+                          range_type<float> &out_interval) const = 0;
   };
 
   /*!
@@ -92,7 +92,7 @@ namespace fastuidraw
       PainterStrokeShader objects of this
       PainterDashedStrokeShaderSet.
      */
-    const reference_counted_ptr<const DashEvaluator>&
+    const reference_counted_ptr<const DashEvaluatorBase>&
     dash_evaluator(void) const;
 
     /*!
@@ -100,7 +100,7 @@ namespace fastuidraw
       Initial value is NULL.
      */
     PainterDashedStrokeShaderSet&
-    dash_evaluator(const reference_counted_ptr<const DashEvaluator>&);
+    dash_evaluator(const reference_counted_ptr<const DashEvaluatorBase>&);
 
     /*!
       Shader set for dashed stroking of paths where the stroking

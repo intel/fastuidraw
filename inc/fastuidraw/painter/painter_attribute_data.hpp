@@ -64,7 +64,11 @@ namespace fastuidraw
         rounded_cap, /*!< index for rounded cap data */
         square_cap,  /*!< index for square cap data */
 
-        stroking_data_count /*!< count of enums */
+        /*!
+          count of enums, using this enumeration when on data created
+          from a StrokedPath, gives empty indices and attributes.
+         */
+        stroking_data_count
       };
 
     /*!
@@ -93,9 +97,13 @@ namespace fastuidraw
       The enumerations of \ref stroking_data_t provide
       the indices into attribute_data_chunks() and
       index_data_chunks() for the data to draw the
-      path stroked. The indices into attribute_data_chunks(V)
-      for a join style V match the indices for the join
-      style coming from the generating StrokedPath.
+      path stroked. The number of total joins can be
+      computed with increment_z_value(unsigned int)
+      passing an enumeration from enum stroking_data_t.
+      In addition, the data for an individual join can
+      is stored at index K where K is given by the function
+      chunk_from_join().
+
       Data for stroking is packed as follows:
       - PainterAttribute::m_attrib0 .xy -> StrokedPath::point::m_position (float)
       - PainterAttribute::m_attrib0 .zw -> StrokedPath::point::m_pre_offset (float)
@@ -318,6 +326,18 @@ namespace fastuidraw
     static
     int
     winding_number_from_index_chunk(unsigned int idx);
+
+    /*!
+      Returns the value to feed to index_data_chunk()
+      and attribute_data_chunk() for the index and
+      attribute data for the named join.
+      \param tp join type one wishes to access, tp must
+                be a join type.
+      \param J which join to access
+     */
+    static
+    unsigned int
+    chunk_from_join(enum stroking_data_t tp, unsigned int J);
 
   private:
     void *m_d;

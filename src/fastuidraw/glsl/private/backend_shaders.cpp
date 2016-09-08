@@ -1,3 +1,4 @@
+#include <fastuidraw/painter/painter_stroke_value.hpp>
 #include "backend_shaders.hpp"
 
 namespace fastuidraw { namespace glsl { namespace detail {
@@ -285,7 +286,7 @@ ShaderSetCreator(enum PainterBlendShader::shader_type tp):
                                         varying_list()
                                         .add_float_varying("fastuidraw_stroking_on_boundary")
                                         .add_float_varying("fastuidraw_stroking_distance")
-                                        .add_uint_varying("fastuidraw_stroking_dashed_offset_computation"),
+                                        .add_uint_varying("fastuidraw_stroking_packed_data"),
                                         num_dashed_sub_shaders
                                         );
 }
@@ -404,8 +405,11 @@ create_dashed_stroke_shader_set(bool pixel_width_stroking)
 {
   using namespace fastuidraw::PainterEnums;
   PainterDashedStrokeShaderSet return_value;
+  reference_counted_ptr<const DashEvaluatorBase> de;
 
+  de = PainterDashedStrokeParams::dash_evaluator();
   return_value
+    .dash_evaluator(de)
     .shader(no_caps, create_stroke_shader(no_caps, pixel_width_stroking))
     .shader(close_contours, create_stroke_shader(close_contours, pixel_width_stroking))
     .shader(rounded_caps, create_stroke_shader(rounded_caps, pixel_width_stroking))
