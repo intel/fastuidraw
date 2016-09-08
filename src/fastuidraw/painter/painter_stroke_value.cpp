@@ -77,6 +77,7 @@ namespace
     float m_width;
     float m_dash_offset;
     float m_total_length;
+    float m_first_interval_start;
     std::vector<fastuidraw::PainterDashedStrokeParams::DashPatternElement> m_dash_pattern;
   };
 
@@ -98,7 +99,8 @@ PainterDashedStrokeParamsData(void):
   m_miter_limit(15.0f),
   m_width(2.0f),
   m_dash_offset(0.0f),
-  m_total_length(0.0f)
+  m_total_length(0.0f),
+  m_first_interval_start(0.0f)
 {}
 
 fastuidraw::PainterShaderData::DataBase*
@@ -127,6 +129,7 @@ pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> 
   dst[PainterDashedStrokeParams::stroke_width_offset].f = m_width;
   dst[PainterDashedStrokeParams::stroke_dash_offset_offset].f = m_dash_offset;
   dst[PainterDashedStrokeParams::stroke_total_length_offset].f = m_total_length;
+  dst[PainterDashedStrokeParams::stroke_first_interval_start].f = m_first_interval_start;
 
   if(!m_dash_pattern.empty())
     {
@@ -399,6 +402,19 @@ dash_pattern(const_c_array<DashPatternElement> f)
     {
       d->m_total_length += d->m_dash_pattern[i].m_draw_length;
       d->m_total_length += d->m_dash_pattern[i].m_space_length;
+    }
+
+  if(d->m_dash_pattern.back().m_space_length <= 0.0f && d->m_dash_pattern.front().m_draw_length > 0.0f)
+    {
+      d->m_first_interval_start = -d->m_dash_pattern.back().m_draw_length;
+    }
+  else if(d->m_dash_pattern.back().m_space_length > 0.0f && d->m_dash_pattern.front().m_draw_length <= 0.0f)
+    {
+      d->m_first_interval_start = -d->m_dash_pattern.back().m_space_length;
+    }
+  else
+    {
+      d->m_first_interval_start = 0.0f;
     }
 
   return *this;

@@ -1,6 +1,7 @@
 float
 FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
                                in float total_distance,
+                               in float first_interval_start,
                                in float in_distance,
                                out uint interval_id)
 {
@@ -12,7 +13,7 @@ FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
   d = mod(in_distance, total_distance);
   i = uint(0);
   loc = dashed_stroking_data_location;
-  lastd = 0.0;
+  lastd = first_interval_start;
 
   /* Data is packed quite trivially, where the values are just
      the successive total lengths, so we just keep reading

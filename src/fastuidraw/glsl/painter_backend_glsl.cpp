@@ -650,6 +650,7 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
       .set(PainterDashedStrokeParams::stroke_miter_limit_offset, ".miter_limit")
       .set(PainterDashedStrokeParams::stroke_dash_offset_offset, ".dash_offset")
       .set(PainterDashedStrokeParams::stroke_total_length_offset, ".total_length")
+      .set(PainterDashedStrokeParams::stroke_first_interval_start, ".first_interval_start")
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_dashed_stroking_params_header",
                               "fastuidraw_dashed_stroking_params_header",
