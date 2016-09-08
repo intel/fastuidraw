@@ -24,7 +24,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
       /* stroke_params takes 4 elements
        */
-      dash_pattern_at = shader_data_offset + uint(fastuidraw_data_store_block_offset4);
+      dash_pattern_at = shader_data_offset + uint(fastuidraw_stroke_dashed_stroking_params_header_num_blocks);
 
       /* read the header data (includes the stroking width and total length
          of the dash pattern).

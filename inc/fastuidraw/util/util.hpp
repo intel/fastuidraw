@@ -166,6 +166,14 @@ namespace fastuidraw
   round_up_to_multiple(unsigned int v, unsigned int alignment);
 
   /*!
+    Returns the number blocks of a given size to hold data.
+    \param block_size size of block
+    \param size size query
+   */
+  unsigned int
+  number_blocks(unsigned int block_size, unsigned int size);
+
+  /*!
     Pack the lowest N bits of a value at a bit.
     \param bit0 bit location of return value at which to pack
     \param num_bits number of bits from value to pack

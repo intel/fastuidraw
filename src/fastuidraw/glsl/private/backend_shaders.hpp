@@ -45,6 +45,9 @@ class ShaderSetCreatorConstants
 public:
   ShaderSetCreatorConstants(void);
 
+  void
+  add_constants(ShaderSource &src);
+
   uint32_t m_stroke_render_pass_num_bits, m_stroke_dash_style_num_bits;
   uint32_t m_stroke_width_pixels_bit0, m_stroke_render_pass_bit0, m_stroke_dash_style_bit0;
 };
