@@ -41,6 +41,19 @@ round_up_to_multiple(unsigned int v, unsigned int alignment)
     }
 }
 
+unsigned int
+fastuidraw::
+number_blocks(unsigned int alignment, unsigned int sz)
+{
+  unsigned int return_value;
+  return_value = sz / alignment;
+  if(return_value * alignment < sz)
+    {
+      ++return_value;
+    }
+  return return_value;
+}
+
 uint32_t
 fastuidraw::
 uint32_log2(uint32_t v)

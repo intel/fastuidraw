@@ -329,7 +329,7 @@ namespace fastuidraw
                              bool returns_new_offset = true)
       {
         return shader_unpack_value::stream_unpack_function(alignment, str, *this, function_name,
-                                                                out_type, returns_new_offset);
+                                                           out_type, returns_new_offset);
       }
     };
 
