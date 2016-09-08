@@ -47,5 +47,6 @@ fastuidraw_read_dashed_stroking_params_header(in uint location, out fastuidraw_d
 float
 fastuidraw_compute_dash_interval(in uint dashed_stroking_data_location,
                                  in float total_distance,
+                                 in float first_interval_start,
                                  in float distance,
                                  out uint interval_id);

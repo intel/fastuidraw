@@ -31,7 +31,9 @@ fastuidraw_gl_frag_main(in uint sub_shader,
        */
       fastuidraw_read_dashed_stroking_params_header(shader_data_offset, stroke_params);
 
-      q = fastuidraw_compute_dash_interval(dash_pattern_at, stroke_params.total_length,
+      q = fastuidraw_compute_dash_interval(dash_pattern_at,
+                                           stroke_params.total_length,
+                                           stroke_params.first_interval_start,
                                            fastuidraw_stroking_distance,
                                            interval_id);
 

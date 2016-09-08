@@ -989,7 +989,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
           attrib_offset = d->m_work_room.m_attribs_loaded[attrib_src];
         }
 
-      /* copy and adjust the index value by incrementing them by index_offset
+      /* copy and adjust the index value by incrementing them by attrib_offset
        */
       c_array<PainterIndex> index_dst_ptr;
       const_c_array<PainterIndex> index_src_ptr;
