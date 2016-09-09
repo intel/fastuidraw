@@ -23,8 +23,9 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/path.hpp>
 #include <fastuidraw/text/glyph_location.hpp>
-#include <fastuidraw/text/glyph_render_data.hpp>
+#include <fastuidraw/text/glyph_layout_data.hpp>
 
 namespace fastuidraw
 {
@@ -33,8 +34,6 @@ namespace fastuidraw
 */
 
   class GlyphCache;
-  class GlyphLayoutData;
-  class GlyphAtlas;
 
   /*!
     A Glyph is essentially an opaque pointer to
@@ -134,6 +133,12 @@ namespace fastuidraw
      */
     enum return_code
     upload_to_atlas(void) const;
+
+    /*!
+      Returns the path of the Glyph.
+     */
+    const Path&
+    path(void) const;
 
     /* How to use: when printing a bunch of glyphs do this:
         for(each glyph G)

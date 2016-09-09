@@ -166,6 +166,14 @@ namespace fastuidraw
   round_up_to_multiple(unsigned int v, unsigned int alignment);
 
   /*!
+    Returns the number blocks of a given size to hold data.
+    \param block_size size of block
+    \param size size query
+   */
+  unsigned int
+  number_blocks(unsigned int block_size, unsigned int size);
+
+  /*!
     Pack the lowest N bits of a value at a bit.
     \param bit0 bit location of return value at which to pack
     \param num_bits number of bits from value to pack
@@ -226,6 +234,38 @@ namespace fastuidraw
   }
 
   /*!
+    Returns a float pack into a 32-bit unsigned integer.
+    \param f value to pack
+   */
+  inline
+  uint32_t
+  pack_float(float f)
+  {
+    // casting to const char* first
+    // prevents from breaking stricting
+    // aliasing rules
+    const char *q;
+    q = reinterpret_cast<const char *>(&f);
+    return *reinterpret_cast<const uint32_t*>(q);
+  }
+
+  /*!
+    Unpack a float from a 32-bit unsigned integer.
+    \param v value from which to unpack
+   */
+  inline
+  float
+  unpack_float(uint32_t v)
+  {
+    // casting to const char* first
+    // prevents from breaking stricting
+    // aliasing rules
+    const char *q;
+    q = reinterpret_cast<const char *>(&v);
+    return *reinterpret_cast<const float*>(q);
+  }
+
+  /*!
     A class reprenting the STL range
     [m_begin, m_end).
   */
@@ -258,6 +298,18 @@ namespace fastuidraw
       iterator to one past the last element
     */
     T m_end;
+
+    /*!
+      Provided as a conveniance, equivalent to
+      \code
+      m_end - m_begin
+      \endcode
+     */
+    T
+    difference(void) const
+    {
+      return m_end - m_begin;
+    }
   };
 
   /*!
@@ -292,6 +344,14 @@ namespace fastuidraw
  */
 #define FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(X) ( (uint32_t(1) << uint32_t(X)) - uint32_t(1) )
 
+/*!\def FASTUIDRAW_MASK
+  Macro that generates a 32-bit mask from number
+  bits and location of bit0 to use
+  \param BIT0 first bit of mask
+  \param NUMBITS nuber bits of mask
+ */
+#define FASTUIDRAW_MASK(BIT0, NUMBITS) (FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(NUMBITS) << uint32_t(BIT0))
+
 /*!\def FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS_U64
   Macro that gives the maximum value that can be
   held with a given number of bits, returning an
@@ -299,6 +359,14 @@ namespace fastuidraw
   \param X number bits
  */
 #define FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS_U64(X) ( (uint64_t(1) << uint64_t(X)) - uint64_t(1) )
+
+/*!\def FASTUIDRAW_MASK_U64
+  Macro that generates a 64-bit mask from number
+  bits and location of bit0 to use
+  \param BIT0 first bit of mask
+  \param NUMBITS nuber bits of mask
+ */
+#define FASTUIDRAW_MASK_U64(BIT0, NUMBITS) (FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS_U64(NUMBITS) << uint64_t(BIT0))
 
 /*!\def FASTUIDRAWunused
   Macro to stop the compiler from reporting

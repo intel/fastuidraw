@@ -488,7 +488,9 @@ namespace fastuidraw
       \param shader shader with which to draw
       \param draw data for how to draw
       \param path path to stroke
-      \param cp cap style of dashes
+      \param close_contour if true, stroke the path with each contour closed
+      \param cp cap style of dashes, the value PainterEnums::close_contours is treated
+                the same as PainterEnums::no_caps
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
@@ -496,7 +498,7 @@ namespace fastuidraw
      */
     void
     stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
-                       enum PainterEnums::dashed_cap_style cp, enum PainterEnums::join_style js,
+                       bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                        bool with_anti_aliasing,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
@@ -504,7 +506,9 @@ namespace fastuidraw
       Stroke a path using PainterShaderSet::dashed_stroke_shader() of default_shaders().
       \param draw data for how to draw
       \param path path to stroke
-      \param cp cap style of dashes
+      \param close_contour if true, stroke the path with each contour closed
+      \param cp cap style of dashes, the value PainterEnums::close_contours is treated
+                the same as PainterEnums::no_caps
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
@@ -512,7 +516,7 @@ namespace fastuidraw
      */
     void
     stroke_dashed_path(const PainterData &draw, const Path &path,
-                       enum PainterEnums::dashed_cap_style cp, enum PainterEnums::join_style js,
+                       bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                        bool with_anti_aliasing,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
@@ -520,7 +524,9 @@ namespace fastuidraw
       Stroke a path using PainterShaderSet::pixel_width_dashed_stroke_shader() of default_shaders().
       \param draw data for how to draw
       \param path path to stroke
-      \param cp cap style of dashes
+      \param close_contour if true, stroke the path with each contour closed
+      \param cp cap style of dashes, the value PainterEnums::close_contours is treated
+                the same as PainterEnums::no_caps
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
@@ -528,7 +534,7 @@ namespace fastuidraw
      */
     void
     stroke_dashed_path_pixel_width(const PainterData &draw, const Path &path,
-                                   enum PainterEnums::dashed_cap_style cp, enum PainterEnums::join_style js,
+                                   bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                                    bool with_anti_aliasing,
                                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 

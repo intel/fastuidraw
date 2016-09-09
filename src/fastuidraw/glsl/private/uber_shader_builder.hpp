@@ -18,18 +18,9 @@
 #include <fastuidraw/glsl/shader_source.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_backend_glsl.hpp>
 
 namespace fastuidraw { namespace glsl { namespace detail {
-
-
-void
-add_enums(unsigned int alignment, ShaderSource &src);
-
-void
-add_texture_size_constants(ShaderSource &src,
-                           const GlyphAtlas *glyph_atlas,
-                           const ImageAtlas *image_atlas,
-                           const ColorStopAtlas *colorstop_atlas);
 
 class DeclareVaryingsStringDatum
 {
@@ -54,10 +45,7 @@ stream_alias_varyings(const char *append_to_name,
                       const DeclareVaryingsStringDatum &datum);
 
 void
-stream_varyings_as_local_variables(ShaderSource &shader,
-                                   const varying_list &p);
-void
-stream_unpack_code(unsigned int alignment, ShaderSource &str);
+stream_varyings_as_local_variables(ShaderSource &shader, const varying_list &p);
 
 void
 stream_uber_vert_shader(bool use_switch, ShaderSource &vert,

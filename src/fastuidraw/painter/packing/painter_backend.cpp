@@ -37,11 +37,13 @@ namespace
     PainterBackendPrivate(fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> glyph_atlas,
                           fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> image_atlas,
                           fastuidraw::reference_counted_ptr<fastuidraw::ColorStopAtlas> colorstop_atlas,
-                          const fastuidraw::PainterBackend::ConfigurationBase &config):
+                          const fastuidraw::PainterBackend::ConfigurationBase &config,
+                          const fastuidraw::PainterShaderSet &pdefault_shaders):
       m_glyph_atlas(glyph_atlas),
       m_image_atlas(image_atlas),
       m_colorstop_atlas(colorstop_atlas),
       m_config(config),
+      m_default_shaders(pdefault_shaders),
       m_default_shaders_registered(false)
     {}
 
@@ -183,9 +185,11 @@ fastuidraw::PainterBackend::
 PainterBackend(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                reference_counted_ptr<ImageAtlas> image_atlas,
                reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
-               const ConfigurationBase &config)
+               const ConfigurationBase &config,
+               const PainterShaderSet &pdefault_shaders)
 {
-  m_d = FASTUIDRAWnew PainterBackendPrivate(glyph_atlas, image_atlas, colorstop_atlas, config);
+  m_d = FASTUIDRAWnew PainterBackendPrivate(glyph_atlas, image_atlas, colorstop_atlas,
+                                            config, pdefault_shaders);
 }
 
 fastuidraw::PainterBackend::
@@ -229,7 +233,6 @@ register_shader(const reference_counted_ptr<PainterItemShader> &shader)
       if(shader->parent())
         {
           register_shader(shader->parent().static_cast_ptr<PainterItemShader>());
-          assert(shader->registered_to() == this);
           shader->set_group_of_sub_shader(compute_item_sub_shader_group(shader));
         }
       else
@@ -255,7 +258,6 @@ register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
       if(shader->parent())
         {
           register_shader(shader->parent().static_cast_ptr<PainterBlendShader>());
-          assert(shader->registered_to() == this);
           shader->set_group_of_sub_shader(compute_blend_sub_shader_group(shader));
         }
       else
@@ -312,19 +314,12 @@ default_shaders(void)
 {
   PainterBackendPrivate *d;
   d = reinterpret_cast<PainterBackendPrivate*>(m_d);
+  if(!d->m_default_shaders_registered)
+    {
+      register_shader(d->m_default_shaders);
+      d->m_default_shaders_registered = true;
+    }
   return d->m_default_shaders;
-}
-
-void
-fastuidraw::PainterBackend::
-set_default_shaders(const PainterShaderSet &st)
-{
-  PainterBackendPrivate *d;
-  d = reinterpret_cast<PainterBackendPrivate*>(m_d);
-  assert(!d->m_default_shaders_registered);
-  d->m_default_shaders = st;
-  register_shader(d->m_default_shaders);
-  d->m_default_shaders_registered = true;
 }
 
 void
@@ -340,10 +335,10 @@ void
 fastuidraw::PainterBackend::
 register_shader(const PainterDashedStrokeShaderSet &p)
 {
-  for(int i = 0; i < PainterEnums::number_dashed_cap_styles; ++i)
+  for(int i = 0; i < PainterEnums::number_cap_styles; ++i)
     {
-      enum PainterEnums::dashed_cap_style c;
-      c = static_cast<enum PainterEnums::dashed_cap_style>(i);
+      enum PainterEnums::cap_style c;
+      c = static_cast<enum PainterEnums::cap_style>(i);
       register_shader(p.shader(c));
     }
 }

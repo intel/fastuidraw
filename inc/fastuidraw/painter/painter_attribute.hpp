@@ -29,24 +29,27 @@ namespace fastuidraw
 
   /*!
     The attribute data generated/filled by PainterPacker.
+    Attribute data is sent to 3D API as raw bits with
+    the expectation that shaders will cast the bits
+    to the appropiate types for themselves.
    */
   class PainterAttribute
   {
   public:
     /*!
-      Generic float attribute data
+      Generic attribute data
      */
-    vec4 m_primary_attrib;
+    uvec4 m_attrib0;
 
     /*!
-      Generic float attribute data
+      Generic attribute data
      */
-    vec4 m_secondary_attrib;
+    uvec4 m_attrib1;
 
     /*!
-       Generic attribute uint data
+      Generic attribute data
      */
-    uvec4 m_uint_attrib;
+    uvec4 m_attrib2;
   };
 
   /*!

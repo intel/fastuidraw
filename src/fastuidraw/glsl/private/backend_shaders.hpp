@@ -45,7 +45,10 @@ class ShaderSetCreatorConstants
 public:
   ShaderSetCreatorConstants(void);
 
-  uint32_t m_stroke_render_pass_num_bits, m_stroke_dash_num_bits;
+  void
+  add_constants(ShaderSource &src);
+
+  uint32_t m_stroke_render_pass_num_bits, m_stroke_dash_style_num_bits;
   uint32_t m_stroke_width_pixels_bit0, m_stroke_render_pass_bit0, m_stroke_dash_style_bit0;
 };
 
@@ -66,18 +69,18 @@ public:
   create_glyph_shader(bool anisotropic);
 
   /*
-    stroke_dash_style having value number_dashed_cap_styles means
+    stroke_dash_style having value number_cap_styles means
     to not have dashed stroking.
     */
   PainterStrokeShader
-  create_stroke_shader(enum PainterEnums::dashed_cap_style stroke_dash_style,
+  create_stroke_shader(enum PainterEnums::cap_style stroke_dash_style,
                        bool pixel_width_stroking);
 
   PainterDashedStrokeShaderSet
   create_dashed_stroke_shader_set(bool pixel_width_stroking);
 
   reference_counted_ptr<PainterItemShader>
-  create_stroke_item_shader(enum PainterEnums::dashed_cap_style stroke_dash_style,
+  create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
                             bool pixel_width_stroking,
                             enum uber_stroke_render_pass_t render_pass_macro);
 
@@ -87,7 +90,7 @@ public:
   PainterShaderSet
   create_shader_set(void);
 
-  reference_counted_ptr<PainterItemShader> m_uber_stroke_shader;
+  reference_counted_ptr<PainterItemShader> m_uber_stroke_shader, m_uber_dashed_stroke_shader;
 };
 
 }}}

@@ -1,5 +1,10 @@
+/////////////////////////////////////////////////////
+// machine generated header from C++ sources
 uint
 fastuidraw_read_stroking_params(in uint location, out fastuidraw_stroking_params p);
+
+uint
+fastuidraw_read_dashed_stroking_params_header(in uint location, out fastuidraw_dashed_stroking_params_header p);
 
 void
 fastuidraw_read_header(in uint location, out fastuidraw_shader_header h);
@@ -12,7 +17,6 @@ fastuidraw_read_item_matrix(in uint item_matrix_location, out mat3 m);
 
 vec4
 fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out uint add_z);
-
 
 ///////////////////////////////////////////////////////////////////////
 // routines implemented in .glsl.resource_string files

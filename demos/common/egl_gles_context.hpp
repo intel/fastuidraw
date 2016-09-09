@@ -18,10 +18,10 @@ public:
     params(void):
       m_msaa(0)
     {}
-    
+
     int m_red_bits, m_green_bits, m_blue_bits, m_alpha_bits;
     int m_depth_bits, m_stencil_bits;
-    
+
     // 0 means no MSAA, all other values are enabled and number samples
     int m_msaa;
 
@@ -41,7 +41,7 @@ public:
   static
   void*
   egl_get_proc(const char *name);
-  
+
 private:
 
 #ifdef FASTUIDRAW_GL_USE_GLES

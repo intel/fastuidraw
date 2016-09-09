@@ -323,11 +323,11 @@ public:
   /*!
     Returns a sub-array, equivalent to
     \code
-    sub_array(pos, size()-pos)
+    sub_array(pos, size() - pos)
     \endcode
     \param pos position of returned sub-array to start,
                i.e. returned c_array's c_ptr() will return
-               this->c_ptr()+pos. It is an error is pos
+               this->c_ptr() + pos. It is an error is pos
                is negative.
    */
   c_array

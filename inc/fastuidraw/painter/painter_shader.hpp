@@ -117,6 +117,13 @@ namespace fastuidraw
     parent(void) const;
 
     /*!
+      Returns the sub-shader value as passed in ctor if
+      a sub-shader, otherwise returns 0.
+     */
+    uint32_t
+    sub_shader(void) const;
+
+    /*!
       Returns the ID of the shader, the shader
       must be registered to a PainterBackend
       to have an ID.
@@ -128,7 +135,8 @@ namespace fastuidraw
       Returns the shader group to which the shader belongs.
       A different value in group() triggers a call to
       PainterDrawCommand:draw_break() to note that
-      the shader group changed.
+      the shader group changed. The shader must be
+      registered in order to have a group value.
      */
     uint32_t
     group(void) const;
@@ -136,7 +144,8 @@ namespace fastuidraw
     /*!
       Returns the Tag of the shader which holds
       the value for ID() in Tag::m_ID and group()
-      in Tag::m_group.
+      in Tag::m_group. The shader must be registered
+      to have a Tag value.
      */
     Tag
     tag(void) const;

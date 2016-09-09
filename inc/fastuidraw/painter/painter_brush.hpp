@@ -39,41 +39,6 @@ namespace fastuidraw
   class PainterBrush
   {
   public:
-
-    enum
-      {
-        /*!
-          Number bits used to store the value of
-          Image::number_index_lookups()
-         */
-        image_number_index_lookups_num_bits = 5,
-
-        /*! max value storeable for Image::number_index_lookups()
-         */
-        image_number_index_lookups_max = FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(image_number_index_lookups_num_bits),
-
-        /*!
-          Number bits used to store the value of
-          Image::slack().
-         */
-        image_slack_num_bits = 2,
-
-        /*! max value storeable for Image::slack()
-         */
-        image_slack_max = FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(image_slack_num_bits),
-
-        /*!
-          Number of bits needed to encode filter for image,
-          the value packed into the shader ID encodes both
-          what filter to use and whether or not an image
-          is present. A value of 0 indicates no image applied,
-          a non-zero value indicates an image applied and
-          the value specifies what filter via the enumeration
-          image_filter.
-         */
-        image_filter_num_bits = 2,
-      };
-
     /*!
       Enumeration specifying what filter to apply to an image
      */
@@ -108,19 +73,88 @@ namespace fastuidraw
      */
     enum shader_bits
       {
-        image_filter_bit0, /*!< first bit for if image is present on the brush and if so, what filter */
-        gradient_bit = image_filter_bit0 + image_filter_num_bits, /*!< Bit is up if a gradient is present */
-        radial_gradient_bit, /*!< bit is up if gradient is present and it is radial */
-        gradient_repeat_bit, /*!< bit is up if gradient is present and gradient lookup repeats outside of [0,1] */
-        repeat_window_bit, /*!< Bit up if the brush has a repeat window */
-        transformation_translation_bit, /*!< Bit up if transformation 2x2 matrix is present */
-        transformation_matrix_bit, /*!< Bit up is translation is present */
-        image_number_index_lookups_bit0, /*!< first bit used to store Image::number_index_lookups() */
+        /*!
+          Number bits used to store the value of
+          Image::slack().
+         */
+        image_slack_num_bits = 2,
+
+        /*!
+          Number bits used to store the value of
+          Image::number_index_lookups()
+         */
+        image_number_index_lookups_num_bits = 5,
+
+        /*!
+          Number of bits needed to encode filter for image,
+          the value packed into the shader ID encodes both
+          what filter to use and whether or not an image
+          is present. A value of 0 indicates no image applied,
+          a non-zero value indicates an image applied and
+          the value specifies what filter via the enumeration
+          image_filter.
+         */
+        image_filter_num_bits = 2,
+
+        /*!
+          first bit for if image is present on the brush and if so, what filter
+         */
+        image_filter_bit0 = 0,
+
+        /*!
+          Bit is up if a gradient is present
+         */
+        gradient_bit = image_filter_bit0 + image_filter_num_bits,
+
+        /*!
+          bit is up if gradient is present and it is radial
+         */
+        radial_gradient_bit,
+
+        /*!
+          bit is up if gradient is present and gradient lookup repeats outside of [0,1]
+         */
+        gradient_repeat_bit,
+
+        /*!
+          Bit up if the brush has a repeat window
+         */
+        repeat_window_bit,
+
+        /*!
+          Bit up if transformation 2x2 matrix is present
+         */
+        transformation_translation_bit,
+
+        /*!
+          Bit up is translation is present
+         */
+        transformation_matrix_bit,
+
+        /*!
+          first bit used to store Image::number_index_lookups()
+         */
+        image_number_index_lookups_bit0,
 
         /*!
           first bit used to store Image::slack()
          */
         image_slack_bit0 = image_number_index_lookups_bit0 + image_number_index_lookups_num_bits,
+      };
+
+    /*!
+      Max values generated from shader_bits that different
+      field can consume
+     */
+    enum shader_max
+      {
+        /*! max value storeable for Image::number_index_lookups()
+         */
+        image_number_index_lookups_max = FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(image_number_index_lookups_num_bits),
+
+        /*! max value storeable for Image::slack()
+         */
+        image_slack_max = FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(image_slack_num_bits),
       };
 
     /*!
@@ -138,49 +172,49 @@ namespace fastuidraw
           to use from the values of the enumeration
           of image_filter.
          */
-        image_mask = (3 << image_filter_bit0),
+        image_mask = FASTUIDRAW_MASK(image_filter_bit0, image_filter_num_bits),
 
         /*!
           bit for if gradient is used in brush
          */
-        gradient_mask = (1 << gradient_bit),
+        gradient_mask = FASTUIDRAW_MASK(gradient_bit, 1),
 
         /*!
           bit for if radial_gradient is used in brush
           (only up if gradient_mask is also up)
          */
-        radial_gradient_mask = (1 << radial_gradient_bit),
+        radial_gradient_mask = FASTUIDRAW_MASK(radial_gradient_bit, 1),
 
         /*!
           bit for if repeat gradient is used in brush
           (only up if gradient_mask is also up)
          */
-        gradient_repeat_mask = (1 << gradient_repeat_bit),
+        gradient_repeat_mask = FASTUIDRAW_MASK(gradient_repeat_bit, 1),
 
         /*!
           bit for if repeat_window is used in brush
          */
-        repeat_window_mask = (1 << repeat_window_bit),
+        repeat_window_mask = FASTUIDRAW_MASK(repeat_window_bit, 1),
 
         /*!
           bit mask for if translation is used in brush
          */
-        transformation_translation_mask = (1 << transformation_translation_bit),
+        transformation_translation_mask = FASTUIDRAW_MASK(transformation_translation_bit, 1),
 
         /*!
           bit mask for if matrix is used in brush
          */
-        transformation_matrix_mask = (1 << transformation_matrix_bit),
+        transformation_matrix_mask = FASTUIDRAW_MASK(transformation_matrix_bit, 1),
 
         /*!
           bit mask for how many index lookups needed for image used in brush
          */
-        image_number_index_lookups_mask = (image_number_index_lookups_max << image_number_index_lookups_bit0),
+        image_number_index_lookups_mask = FASTUIDRAW_MASK(image_number_index_lookups_bit0, image_number_index_lookups_num_bits),
 
         /*!
           bit mask for how much slack for image used in brush
          */
-        image_slack_mask = (image_slack_max << image_slack_bit0),
+        image_slack_mask = FASTUIDRAW_MASK(image_slack_bit0, image_slack_num_bits),
       };
 
     /*!

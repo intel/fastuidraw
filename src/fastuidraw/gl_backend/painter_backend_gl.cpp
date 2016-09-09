@@ -52,6 +52,12 @@
 
 namespace
 {
+  enum
+    {
+      shader_group_discard_bit = 31u,
+      shader_group_discard_mask = (1u << 31u)
+    };
+
   class painter_vao
   {
   public:
@@ -138,25 +144,44 @@ namespace
     std::vector<GLuint> m_ubos;
   };
 
+  bool
+  use_shader_helper(enum fastuidraw::gl::PainterBackendGL::program_type_t tp,
+                    bool uses_discard)
+  {
+    return tp == fastuidraw::gl::PainterBackendGL::program_all
+      || (tp == fastuidraw::gl::PainterBackendGL::program_without_discard && !uses_discard)
+      || (tp == fastuidraw::gl::PainterBackendGL::program_with_discard && uses_discard);
+  }
+
+  class DiscardItemShaderFilter:public fastuidraw::glsl::PainterBackendGLSL::ItemShaderFilter
+  {
+  public:
+    explicit
+    DiscardItemShaderFilter(enum fastuidraw::gl::PainterBackendGL::program_type_t tp):
+      m_tp(tp)
+    {}
+
+    bool
+    use_shader(const fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> &shader) const
+    {
+      return use_shader_helper(m_tp, shader->uses_discard());
+    }
+
+  private:
+    enum fastuidraw::gl::PainterBackendGL::program_type_t m_tp;
+  };
+
   class PainterBackendGLPrivate
   {
   public:
+    typedef fastuidraw::reference_counted_ptr<fastuidraw::gl::Program> program_ref;
+    enum { program_count = fastuidraw::gl::PainterBackendGL::number_program_types };
+    typedef fastuidraw::vecN<program_ref, program_count + 1> program_set;
+
     PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P,
                             fastuidraw::gl::PainterBackendGL *p);
 
     ~PainterBackendGLPrivate();
-
-    void
-    configure_backend(void);
-
-    void
-    configure_source_front_matter(void);
-
-    void
-    build_program(void);
-
-    void
-    build_vao_tbos(void);
 
     static
     fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL
@@ -166,6 +191,24 @@ namespace
     fastuidraw::PainterBackend::ConfigurationBase
     compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P,
                         const fastuidraw::PainterBackend::ConfigurationBase &config_base);
+
+    const program_set&
+    programs(bool rebuild);
+
+    void
+    configure_backend(void);
+
+    void
+    configure_source_front_matter(void);
+
+    void
+    build_programs(void);
+
+    program_ref
+    build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp);
+
+    void
+    build_vao_tbos(void);
 
     fastuidraw::gl::PainterBackendGL::ConfigurationGL m_params;
     fastuidraw::glsl::PainterBackendGLSL::UberShaderParams m_uber_shader_builder_params;
@@ -181,8 +224,8 @@ namespace
     fastuidraw::gl::ProgramInitializerArray m_initializer;
     fastuidraw::glsl::ShaderSource m_front_matter_vert;
     fastuidraw::glsl::ShaderSource m_front_matter_frag;
-    fastuidraw::reference_counted_ptr<fastuidraw::gl::Program> m_program;
-    GLint m_shader_uniforms_loc;
+    program_set m_programs;
+    fastuidraw::vecN<GLint, fastuidraw::gl::PainterBackendGL::number_program_types> m_shader_uniforms_loc;
     std::vector<fastuidraw::generic_data> m_uniform_values;
     fastuidraw::c_array<fastuidraw::generic_data> m_uniform_values_ptr;
     painter_vao_pool *m_pool;
@@ -193,6 +236,11 @@ namespace
   class DrawEntry
   {
   public:
+    DrawEntry(const fastuidraw::BlendMode &mode,
+              PainterBackendGLPrivate *pr,
+              unsigned int pz);
+
+
     DrawEntry(const fastuidraw::BlendMode &mode);
 
     void
@@ -214,6 +262,8 @@ namespace
     fastuidraw::BlendMode m_blend_mode;
     std::vector<GLsizei> m_counts;
     std::vector<const GLvoid*> m_indices;
+    PainterBackendGLPrivate *m_private;
+    unsigned int m_choice;
   };
 
   class DrawCommand:public fastuidraw::PainterDrawCommand
@@ -221,7 +271,8 @@ namespace
   public:
     explicit
     DrawCommand(painter_vao_pool *hnd,
-                const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params);
+                const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params,
+                PainterBackendGLPrivate *pr);
 
     virtual
     ~DrawCommand()
@@ -250,6 +301,7 @@ namespace
     void
     add_entry(unsigned int indices_written) const;
 
+    PainterBackendGLPrivate *m_pr;
     painter_vao m_vao;
     mutable unsigned int m_attributes_written, m_indices_written;
     mutable std::list<DrawEntry> m_draws;
@@ -276,7 +328,8 @@ namespace
       m_assign_layout_to_vertex_shader_inputs(true),
       m_assign_layout_to_varyings(false),
       m_assign_binding_points(true),
-      m_use_ubo_for_uniforms(false)
+      m_use_ubo_for_uniforms(false),
+      m_separate_program_for_discard(true)
     {}
 
     unsigned int m_attributes_per_buffer;
@@ -297,6 +350,7 @@ namespace
     bool m_assign_layout_to_varyings;
     bool m_assign_binding_points;
     bool m_use_ubo_for_uniforms;
+    bool m_separate_program_for_discard;
   };
 
 }
@@ -416,18 +470,18 @@ request_vao(void)
       m_vaos[m_pool][m_current].m_index_bo = generate_bo(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size);
 
       glEnableVertexAttribArray(fastuidraw::glsl::PainterBackendGLSL::primary_attrib_slot);
-      v = fastuidraw::gl::opengl_trait_values<fastuidraw::vec4>(sizeof(fastuidraw::PainterAttribute),
-                                                                offsetof(fastuidraw::PainterAttribute, m_primary_attrib));
-      fastuidraw::gl::VertexAttribPointer(fastuidraw::glsl::PainterBackendGLSL::primary_attrib_slot, v);
+      v = fastuidraw::gl::opengl_trait_values<fastuidraw::uvec4>(sizeof(fastuidraw::PainterAttribute),
+                                                                 offsetof(fastuidraw::PainterAttribute, m_attrib0));
+      fastuidraw::gl::VertexAttribIPointer(fastuidraw::glsl::PainterBackendGLSL::primary_attrib_slot, v);
 
       glEnableVertexAttribArray(fastuidraw::glsl::PainterBackendGLSL::secondary_attrib_slot);
-      v = fastuidraw::gl::opengl_trait_values<fastuidraw::vec4>(sizeof(fastuidraw::PainterAttribute),
-                                                                offsetof(fastuidraw::PainterAttribute, m_secondary_attrib));
-      fastuidraw::gl::VertexAttribPointer(fastuidraw::glsl::PainterBackendGLSL::secondary_attrib_slot, v);
+      v = fastuidraw::gl::opengl_trait_values<fastuidraw::uvec4>(sizeof(fastuidraw::PainterAttribute),
+                                                                 offsetof(fastuidraw::PainterAttribute, m_attrib1));
+      fastuidraw::gl::VertexAttribIPointer(fastuidraw::glsl::PainterBackendGLSL::secondary_attrib_slot, v);
 
       glEnableVertexAttribArray(fastuidraw::glsl::PainterBackendGLSL::uint_attrib_slot);
       v = fastuidraw::gl::opengl_trait_values<fastuidraw::uvec4>(sizeof(fastuidraw::PainterAttribute),
-                                                                 offsetof(fastuidraw::PainterAttribute, m_uint_attrib));
+                                                                 offsetof(fastuidraw::PainterAttribute, m_attrib2));
       fastuidraw::gl::VertexAttribIPointer(fastuidraw::glsl::PainterBackendGLSL::uint_attrib_slot, v);
 
       m_vaos[m_pool][m_current].m_header_bo = generate_bo(GL_ARRAY_BUFFER, m_header_buffer_size);
@@ -504,8 +558,20 @@ generate_bo(GLenum bind_target, GLsizei psize)
 ///////////////////////////////////////////////
 // DrawEntry methods
 DrawEntry::
+DrawEntry(const fastuidraw::BlendMode &mode,
+          PainterBackendGLPrivate *pr,
+          unsigned int pz):
+  m_blend_mode(mode),
+  m_private(pr),
+  m_choice(pz)
+{}
+
+
+DrawEntry::
 DrawEntry(const fastuidraw::BlendMode &mode):
-  m_blend_mode(mode)
+  m_blend_mode(mode),
+  m_private(NULL),
+  m_choice(fastuidraw::gl::PainterBackendGL::number_program_types)
 {}
 
 void
@@ -520,6 +586,11 @@ void
 DrawEntry::
 draw(void) const
 {
+  if(m_private)
+    {
+      m_private->m_programs[m_choice]->use_program();
+    }
+
   if(m_blend_mode.blending_on())
     {
       glEnable(GL_BLEND);
@@ -536,7 +607,7 @@ draw(void) const
     }
   assert(!m_counts.empty());
   assert(m_counts.size() == m_indices.size());
-  //std::cout << m_counts.size() << " " ;
+
   /* TODO:
      Get rid of this unholy mess of #ifdef's here and move
      it to an internal private function that also has a tag
@@ -635,7 +706,9 @@ convert_blend_func(enum fastuidraw::BlendMode::func_t v)
 // DrawCommand methods
 DrawCommand::
 DrawCommand(painter_vao_pool *hnd,
-            const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params):
+            const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params,
+            PainterBackendGLPrivate *pr):
+  m_pr(pr),
   m_vao(hnd->request_vao()),
   m_attributes_written(0),
   m_indices_written(0)
@@ -687,10 +760,28 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
   /* if the blend mode changes, then we need to start a new DrawEntry
    */
   fastuidraw::BlendMode::packed_value old_mode, new_mode;
-      
+  uint32_t new_disc, old_disc;
+
   old_mode = old_shaders.packed_blend_mode();
   new_mode = new_shaders.packed_blend_mode();
-  if(old_mode != new_mode)
+
+  old_disc = old_shaders.item_group() & shader_group_discard_mask;
+  new_disc = new_shaders.item_group() & shader_group_discard_mask;
+
+  if(old_disc != new_disc)
+    {
+      unsigned int pz;
+      pz = (new_disc != 0u) ?
+        fastuidraw::gl::PainterBackendGL::program_with_discard :
+        fastuidraw::gl::PainterBackendGL::program_without_discard;
+
+      if(!m_draws.empty())
+        {
+          add_entry(indices_written);
+        }
+      m_draws.push_back(DrawEntry(fastuidraw::BlendMode(new_mode), m_pr, pz));
+    }
+  else if(old_mode != new_mode)
     {
       if(!m_draws.empty())
         {
@@ -733,12 +824,16 @@ draw(void) const
       assert(!"Bad value for m_vao.m_data_store_backing");
     }
 
+  if(m_pr->m_params.separate_program_for_discard())
+    {
+      m_pr->m_programs[fastuidraw::gl::PainterBackendGL::program_without_discard]->use_program();
+    }
+
   for(std::list<DrawEntry>::const_iterator iter = m_draws.begin(),
         end = m_draws.end(); iter != end; ++iter)
     {
       iter->draw();
     }
-  //std::cout << "\n";
   glBindVertexArray(0);
 }
 
@@ -842,9 +937,6 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
   using namespace fastuidraw;
   glsl::PainterBackendGLSL::ConfigurationGLSL return_value;
   gl::ContextProperties ctx;
-
-  return_value.unique_group_per_item_shader(params.break_on_shader_change());
-  return_value.unique_group_per_blend_shader(params.break_on_shader_change());
 
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
@@ -1166,11 +1258,43 @@ configure_source_front_matter(void)
 
 }
 
+const PainterBackendGLPrivate::program_set&
+PainterBackendGLPrivate::
+programs(bool rebuild)
+{
+  if(rebuild)
+    {
+      build_programs();
+    }
+  return m_programs;
+}
+
 void
 PainterBackendGLPrivate::
-build_program(void)
+build_programs(void)
+{
+  for(unsigned int i = 0; i < fastuidraw::gl::PainterBackendGL::number_program_types; ++i)
+    {
+      enum fastuidraw::gl::PainterBackendGL::program_type_t tp;
+      tp = static_cast<enum fastuidraw::gl::PainterBackendGL::program_type_t>(i);
+      m_programs[tp] = build_program(tp);
+      m_shader_uniforms_loc[tp] = m_programs[tp]->uniform_location("fastuidraw_shader_uniforms");
+    }
+
+  if(!m_uber_shader_builder_params.use_ubo_for_uniforms())
+    {
+      m_uniform_values.resize(m_p->ubo_size());
+      m_uniform_values_ptr = fastuidraw::c_array<fastuidraw::generic_data>(&m_uniform_values[0], m_uniform_values.size());
+    }
+}
+
+PainterBackendGLPrivate::program_ref
+PainterBackendGLPrivate::
+build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
 {
   fastuidraw::glsl::ShaderSource vert, frag;
+  program_ref return_value;
+  DiscardItemShaderFilter item_filter(tp);
 
   vert
     .specify_version(m_front_matter_vert.version())
@@ -1182,17 +1306,11 @@ build_program(void)
     .specify_extensions(m_front_matter_frag)
     .add_source(m_front_matter_frag);
 
-  m_p->construct_shader(vert, frag, m_uber_shader_builder_params);
-  m_program = FASTUIDRAWnew fastuidraw::gl::Program(vert, frag,
-                                                    m_attribute_binder,
-                                                    m_initializer);
-
-  if(!m_uber_shader_builder_params.use_ubo_for_uniforms())
-    {
-      m_shader_uniforms_loc = m_program->uniform_location("fastuidraw_shader_uniforms");
-      m_uniform_values.resize(m_p->ubo_size());
-      m_uniform_values_ptr = fastuidraw::c_array<fastuidraw::generic_data>(&m_uniform_values[0], m_uniform_values.size());
-    }
+  m_p->construct_shader(vert, frag, m_uber_shader_builder_params, &item_filter);
+  return_value = FASTUIDRAWnew fastuidraw::gl::Program(vert, frag,
+                                                       m_attribute_binder,
+                                                       m_initializer);
+  return return_value;
 }
 
 ///////////////////////////////////////////////
@@ -1272,6 +1390,7 @@ setget_implement(bool, assign_layout_to_vertex_shader_inputs)
 setget_implement(bool, assign_layout_to_varyings)
 setget_implement(bool, assign_binding_points)
 setget_implement(bool, use_ubo_for_uniforms)
+setget_implement(bool, separate_program_for_discard)
 
 #undef setget_implement
 
@@ -1300,19 +1419,11 @@ fastuidraw::gl::PainterBackendGL::
 
 fastuidraw::reference_counted_ptr<fastuidraw::gl::Program>
 fastuidraw::gl::PainterBackendGL::
-program(void)
+program(enum program_type_t tp)
 {
   PainterBackendGLPrivate *d;
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
-
-  assert(d->m_backend_configured);
-  if(shader_code_added())
-    {
-      d->build_program();
-      //std::cout << "Took " << d->m_program->program_build_time() << " seconds to build uber-shader\n";
-    }
-  assert(!shader_code_added());
-  return d->m_program;
+  return d->programs(shader_code_added())[tp];
 }
 
 const fastuidraw::gl::PainterBackendGL::ConfigurationGL&
@@ -1324,11 +1435,42 @@ configuration_gl(void) const
   return d->m_params;
 }
 
-void
+uint32_t
 fastuidraw::gl::PainterBackendGL::
-on_begin(void)
+compute_item_shader_group(PainterShader::Tag tag,
+                          const reference_counted_ptr<PainterItemShader> &shader)
 {
-  //nothing to do.
+  bool b;
+  uint32_t return_value;
+
+  b = configuration_gl().break_on_shader_change();
+  return_value = (b) ? tag.m_ID : 0u;
+  return_value |= (shader_group_discard_mask & tag.m_group);
+
+  if(configuration_gl().separate_program_for_discard())
+    {
+      const glsl::PainterItemShaderGLSL *sh;
+      sh = dynamic_cast<const glsl::PainterItemShaderGLSL*>(shader.get());
+      if(sh && sh->uses_discard())
+        {
+          return_value |= shader_group_discard_mask;
+        }
+    }
+  return return_value;
+}
+
+uint32_t
+fastuidraw::gl::PainterBackendGL::
+compute_blend_shader_group(PainterShader::Tag tag,
+                           const reference_counted_ptr<PainterBlendShader> &shader)
+{
+  bool b;
+  uint32_t return_value;
+
+  FASTUIDRAWunused(shader);
+  b = configuration_gl().break_on_shader_change();
+  return_value = (b) ? tag.m_ID : 0u;
+  return return_value;
 }
 
 void
@@ -1358,8 +1500,7 @@ on_pre_draw(void)
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_GEQUAL);
   glDisable(GL_STENCIL_TEST);
-  
-  // std::cout << "number_clip_planes = " << m_number_clip_planes << "\n";
+
   if(d->m_number_clip_planes > 0)
     {
       glEnable(d->m_clip_plane0 + 0);
@@ -1417,7 +1558,15 @@ on_pre_draw(void)
   glBindSampler(binding_points.colorstop_atlas(), 0);
   glBindTexture(ColorStopAtlasGL::texture_bind_target(), color->texture());
 
-  program()->use_program();
+  //grabbing the programs via programs() makes sure they
+  //are built.
+  const PainterBackendGLPrivate::program_set &prs(d->programs(shader_code_added()));
+  assert(!shader_code_added());
+
+  if(!d->m_params.separate_program_for_discard())
+    {
+      prs[program_all]->use_program();
+    }
 
   if(d->m_uber_shader_builder_params.use_ubo_for_uniforms())
     {
@@ -1445,13 +1594,24 @@ on_pre_draw(void)
       /* the uniform is type float[]
        */
       fill_uniform_buffer(d->m_uniform_values_ptr);
-      Uniform(d->m_shader_uniforms_loc, ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
+      if(d->m_params.separate_program_for_discard())
+        {
+          prs[program_without_discard]->use_program();
+          Uniform(d->m_shader_uniforms_loc[program_without_discard], ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
+
+          prs[program_with_discard]->use_program();
+          Uniform(d->m_shader_uniforms_loc[program_with_discard], ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
+        }
+      else
+        {
+          Uniform(d->m_shader_uniforms_loc[program_all], ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
+        }
     }
 }
 
 void
 fastuidraw::gl::PainterBackendGL::
-on_end(void)
+on_post_draw(void)
 {
   PainterBackendGLPrivate *d;
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
@@ -1525,5 +1685,5 @@ map_draw_command(void)
   PainterBackendGLPrivate *d;
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
 
-  return FASTUIDRAWnew DrawCommand(d->m_pool, d->m_params);
+  return FASTUIDRAWnew DrawCommand(d->m_pool, d->m_params, d);
 }

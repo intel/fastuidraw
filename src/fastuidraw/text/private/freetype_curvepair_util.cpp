@@ -290,8 +290,8 @@ TaggedOutlineData::
 TaggedOutlineData(CollapsingContourEmitter *collapsing_contour_emitter,
                   const fastuidraw::detail::geometry_data gmt):
   fastuidraw::detail::OutlineData(collapsing_contour_emitter,
-                                 *collapsing_contour_emitter,
-                                 gmt)
+                                  *collapsing_contour_emitter,
+                                  gmt)
 {}
 
 void
@@ -1263,7 +1263,14 @@ fastuidraw::detail::CurvePairGenerator::
   FASTUIDRAWdelete(contour_emitter);
 }
 
-
+void
+fastuidraw::detail::CurvePairGenerator::
+extract_path(Path &path) const
+{
+  TaggedOutlineData *outline_data;
+  outline_data = static_cast<TaggedOutlineData*>(m_outline_data);
+  outline_data->extract_path(path);
+}
 
 void
 fastuidraw::detail::CurvePairGenerator::

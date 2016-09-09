@@ -132,6 +132,7 @@ private:
   command_line_argument_value<float> m_window_change_rate;
   command_line_argument_value<float> m_radial_gradient_change_rate;
   command_line_argument_value<std::string> m_path_file;
+  command_line_argument_value<bool> m_print_path;
   color_stop_arguments m_color_stop_args;
   command_line_argument_value<std::string> m_image_file;
   command_line_argument_value<unsigned int> m_image_slack;
@@ -151,7 +152,6 @@ private:
   vecN<std::string, PainterEnums::number_join_styles> m_join_labels;
   vecN<std::string, PainterEnums::fill_rule_data_count> m_fill_labels;
   vecN<std::string, number_image_filter_modes> m_image_filter_mode_labels;
-  vecN<std::string, PainterEnums::number_dashed_cap_styles> m_dashed_labels;
 
   PainterPackedValue<PainterBrush> m_black_pen;
   PainterPackedValue<PainterBrush> m_white_pen;
@@ -160,9 +160,44 @@ private:
   unsigned int m_join_style;
   unsigned int m_cap_style;
   unsigned int m_fill_rule;
-  unsigned int m_dashed_style;
-  bool m_stroke_dashed;
-  unsigned int m_dash_pattern;
+  /* m_dash pattern:
+      0 -> undashed stroking
+      [1, m_dash_patterns.size()] -> dashed stroking unclosed
+      [1 + m_dash_patterns.size(), 2 * m_dash_patterns.size()] -> dashed stroking closed
+   */
+  unsigned int m_dash;
+
+  bool
+  is_dashed_stroking(void)
+  {
+    return m_dash != 0;
+  }
+
+  unsigned int
+  dash_pattern(void)
+  {
+    unsigned int v;
+    v = m_dash - 1;
+    if(m_dash == 0)
+      {
+        return 0;
+      }
+    else if (v < m_dash_patterns.size())
+      {
+        return v;
+      }
+    else
+      {
+        return v - m_dash_patterns.size();
+      }
+  }
+
+  bool
+  dashed_stroking_is_closed(void)
+  {
+    return m_dash > m_dash_patterns.size();
+  }
+
   unsigned int m_end_fill_rule;
   bool m_have_miter_limit;
   float m_miter_limit, m_stroke_width;
@@ -226,6 +261,9 @@ painter_stroke_test(void):
               "if non-empty read the geometry of the path from the specified file, "
               "otherwise use a default path",
               *this),
+  m_print_path(false, "print_path",
+               "If true, print the geometry data of the path drawn to stdout",
+               *this),
   m_color_stop_args(*this),
   m_image_file("", "image", "if a valid file name, apply an image to drawing the fill", *this),
   m_image_slack(0, "image_slack", "amount of slack on tiles when loading image", *this),
@@ -244,9 +282,7 @@ painter_stroke_test(void):
   m_join_style(PainterEnums::rounded_joins),
   m_cap_style(PainterEnums::close_contours),
   m_fill_rule(PainterEnums::odd_even_fill_rule),
-  m_dashed_style(PainterEnums::dashed_no_caps_closed),
-  m_stroke_dashed(false),
-  m_dash_pattern(0),
+  m_dash(0),
   m_end_fill_rule(PainterEnums::fill_rule_data_count),
   m_have_miter_limit(true),
   m_miter_limit(5.0f),
@@ -262,7 +298,7 @@ painter_stroke_test(void):
   m_clipping_window(false),
   m_stroke_aa(true),
   m_wire_frame(false),
-  m_stroke_width_in_pixels(true),
+  m_stroke_width_in_pixels(false),
   m_force_square_viewport(false),
   m_fill_by_clipping(false),
   m_shear(1.0f, 1.0f),
@@ -273,8 +309,9 @@ painter_stroke_test(void):
   m_clip_window_path_dirty(true)
 {
   std::cout << "Controls:\n"
+            << "\ta: toggle anti-aliased stroking\n"
             << "\tj: cycle through join styles for stroking\n"
-            << "\tc: cycle through cap style for stroking / cycle through dashed stroking style\n"
+            << "\tc: cycle through cap style for stroking\n"
             << "\td: cycle through dash patterns\n"
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\t]: increase stroke width(hold left-shift for slower rate and right shift for faster)\n"
@@ -324,13 +361,6 @@ painter_stroke_test(void):
   m_cap_labels[PainterEnums::no_caps] = "no_caps";
   m_cap_labels[PainterEnums::rounded_caps] = "rounded_caps";
   m_cap_labels[PainterEnums::square_caps] = "square_caps";
-
-  m_dashed_labels[PainterEnums::dashed_no_caps_closed] = "dashed_no_caps_closed";
-  m_dashed_labels[PainterEnums::dashed_rounded_caps_closed] = "dashed_rounded_caps_closed";
-  m_dashed_labels[PainterEnums::dashed_square_caps_closed] = "dashed_square_caps_closed";
-  m_dashed_labels[PainterEnums::dashed_no_caps] = "dashed_no_caps";
-  m_dashed_labels[PainterEnums::dashed_rounded_caps] = "dashed_rounded_caps";
-  m_dashed_labels[PainterEnums::dashed_square_caps] = "dashed_square_caps";
 
   m_fill_labels[PainterEnums::odd_even_fill_rule] = "odd_even_fill_rule";
   m_fill_labels[PainterEnums::nonzero_fill_rule] = "nonzero_fill_rule";
@@ -775,19 +805,25 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_d:
-          cycle_value(m_dash_pattern, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_dash_patterns.size() + 1);
-          m_stroke_dashed = (m_dash_pattern != 0);
-          if(m_stroke_dashed)
+          cycle_value(m_dash, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), 2 * m_dash_patterns.size() + 1);
+          if(is_dashed_stroking())
             {
-              std::cout << "Set to stroke dashed with pattern: {";
-              for(unsigned int i = 0; i < m_dash_patterns[m_dash_pattern - 1].size(); ++i)
+              unsigned int P;
+              P = dash_pattern();
+              std::cout << "Set to ";
+              if(dashed_stroking_is_closed())
+                {
+                  std::cout << "closed ";
+                }
+              std::cout << "stroke dashed with pattern: {";
+              for(unsigned int i = 0; i < m_dash_patterns[P].size(); ++i)
                 {
                   if(i != 0)
                     {
                       std::cout << ", ";
                     }
-                  std::cout << "Draw(" << m_dash_patterns[m_dash_pattern - 1][i].m_draw_length
-                            << "), Space(" << m_dash_patterns[m_dash_pattern - 1][i].m_space_length
+                  std::cout << "Draw(" << m_dash_patterns[P][i].m_draw_length
+                            << "), Space(" << m_dash_patterns[P][i].m_space_length
                             << ")";
                 }
               std::cout << "}\n";
@@ -799,16 +835,8 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_c:
-          if(m_stroke_dashed)
-            {
-              cycle_value(m_dashed_style, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), PainterEnums::number_dashed_cap_styles);
-              std::cout << "Dashed drawing mode set to: " << m_dashed_labels[m_dashed_style] << "\n";
-            }
-          else
-            {
-              cycle_value(m_cap_style, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), PainterEnums::number_cap_styles);
-              std::cout << "Cap drawing mode set to: " << m_cap_labels[m_cap_style] << "\n";
-            }
+          cycle_value(m_cap_style, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), PainterEnums::number_cap_styles);
+          std::cout << "Cap drawing mode set to: " << m_cap_labels[m_cap_style] << "\n";
           break;
 
         case SDLK_r:
@@ -916,7 +944,7 @@ create_stroked_path_attributes(void)
 
   m_max_miter = 0.0f;
   const_c_array<StrokedPath::point> miter_points;
-  miter_points = m_path.tessellation()->stroked()->miter_joins_points(true);
+  miter_points = m_path.tessellation()->stroked()->points(StrokedPath::miter_join_point_set, true);
   for(unsigned p = 0, endp = miter_points.size(); p < endp; ++p)
     {
       float v;
@@ -928,6 +956,36 @@ create_stroked_path_attributes(void)
         }
     }
   m_miter_limit = fastuidraw::t_min(100.0f, m_max_miter); //100 is an insane miter limit.
+
+  if(m_print_path.m_value)
+    {
+      reference_counted_ptr<const TessellatedPath> tess;
+
+      tess = m_path.tessellation();
+      std::cout << "Path tessellated:\n";
+      for(unsigned int c = 0; c < tess->number_contours(); ++c)
+        {
+          std::cout << "\tContour #" << c << "\n";
+          for(unsigned int e = 0; e < tess->number_edges(c); ++e)
+            {
+              fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> pts;
+
+              std::cout << "\t\tEdge #" << e << "\n";
+              pts = tess->edge_point_data(c, e);
+              for(unsigned int i = 0; i < pts.size(); ++i)
+                {
+                  std::cout << "\t\t\tPoint #" << i << ":\n"
+                            << "\t\t\t\tp          = " << pts[i].m_p << "\n"
+                            << "\t\t\t\tp_t        = " << pts[i].m_p_t << "\n"
+                            << "\t\t\t\tedge_d     = " << pts[i].m_distance_from_edge_start << "\n"
+                            << "\t\t\t\tcontour_d  = " << pts[i].m_distance_from_contour_start << "\n"
+                            << "\t\t\t\tedge_l     = " << pts[i].m_edge_length << "\n"
+                            << "\t\t\t\tcontour_l  = " << pts[i].m_open_contour_length << "\n"
+                            << "\t\t\t\tcontour_cl = " << pts[i].m_closed_contour_length << "\n";
+                }
+            }
+        }
+    }
 }
 
 void
@@ -962,10 +1020,10 @@ painter_stroke_test::
 construct_dash_patterns(void)
 {
   m_dash_patterns.push_back(std::vector<PainterDashedStrokeParams::DashPatternElement>());
-  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(6.0f, 2.0f));
-  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(0.0f, 2.0f));
-  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(0.0f, 4.0f));
-  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(9.0f, 0.0f));
+  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(20.0f, 10.0f));
+  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(15.0f, 10.0f));
+  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(10.0f, 10.0f));
+  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement( 5.0f, 10.0f));
 }
 
 void
@@ -1207,7 +1265,7 @@ draw_frame(void)
 
   if(m_stroke_width > 0.0f)
     {
-      if(m_stroke_dashed)
+      if(is_dashed_stroking())
         {
           PainterDashedStrokeParams st;
           if(m_have_miter_limit)
@@ -1220,19 +1278,23 @@ draw_frame(void)
             }
           st.width(m_stroke_width);
 
+          unsigned int D(dash_pattern());
+          const_c_array<PainterDashedStrokeParams::DashPatternElement> dash_ptr(&m_dash_patterns[D][0], m_dash_patterns[D].size());
+          st.dash_pattern(dash_ptr);
+
           if(m_stroke_width_in_pixels)
             {
               m_painter->stroke_dashed_path_pixel_width(PainterData(m_transparent_blue_pen, &st),
-                                                        m_path,
-                                                        static_cast<enum PainterEnums::dashed_cap_style>(m_dashed_style),
+                                                        m_path, dashed_stroking_is_closed(),
+                                                        static_cast<enum PainterEnums::cap_style>(m_cap_style),
                                                         static_cast<enum PainterEnums::join_style>(m_join_style),
                                                         m_stroke_aa);
             }
           else
             {
               m_painter->stroke_dashed_path(PainterData(m_transparent_blue_pen, &st),
-                                            m_path,
-                                            static_cast<enum PainterEnums::dashed_cap_style>(m_dashed_style),
+                                            m_path, dashed_stroking_is_closed(),
+                                            static_cast<enum PainterEnums::cap_style>(m_cap_style),
                                             static_cast<enum PainterEnums::join_style>(m_join_style),
                                             m_stroke_aa);
             }

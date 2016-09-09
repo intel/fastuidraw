@@ -20,6 +20,8 @@
 
 #include <fastuidraw/painter/packing/painter_backend.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
+#include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 
 namespace fastuidraw
 {
@@ -170,34 +172,6 @@ namespace fastuidraw
          */
         ConfigurationGLSL&
         operator=(const ConfigurationGLSL &rhs);
-
-        /*!
-          If true, each item shader will be in a different
-          shader group (see PainterShader::group()).
-        */
-        bool
-        unique_group_per_item_shader(void) const;
-
-        /*!
-          Set the value returned by unique_group_per_item_shader(void) const.
-          Default value is false.
-         */
-        ConfigurationGLSL&
-        unique_group_per_item_shader(bool);
-
-        /*!
-          If true, each blend shader will be in a different
-          shader group (see PainterShader::group()).
-        */
-        bool
-        unique_group_per_blend_shader(void) const;
-
-        /*!
-          Set the value returned by unique_group_per_blend_shader(void) const.
-          Default value is false.
-         */
-        ConfigurationGLSL&
-        unique_group_per_blend_shader(bool);
 
         /*!
           If true, use HW clip planes (embodied by gl_ClipDistance).
@@ -728,6 +702,26 @@ namespace fastuidraw
       };
 
       /*!
+        An ItemShaderFilter is used to specify whether or not
+        to include a named shader when creating an uber-shader.
+       */
+      class ItemShaderFilter
+      {
+      public:
+        virtual
+        ~ItemShaderFilter(void)
+        {}
+
+        /*!
+          To be implemented by a derived class to return true
+          if the named shader should be included in the uber-shader.
+         */
+        virtual
+        bool
+        use_shader(const reference_counted_ptr<PainterItemShaderGLSL> &shader) const = 0;
+      };
+
+      /*!
         Ctor.
         \param glyph_atlas GlyphAtlas for glyphs drawn by the PainterBackend
         \param image_atlas ImageAtlas for images drawn by the PainterBackend
@@ -771,13 +765,16 @@ namespace fastuidraw
         \param out_vertex ShaderSource to which to add uber-vertex shader
         \param out_fragment ShaderSource to which to add uber-fragment shader
         \param contruct_params specifies how to construct the uber-shaders.
-        \param binding_params specifies the binding points for buffers and
-                              samplers used by the uber-shader.
+        \param item_shader_filter pointer to ItemShaderFilter to use to filter
+                                  which shader to place into the uber-shader.
+                                  A value of NULL indicates to add all item
+                                  shaders to the uber-shader.
        */
       void
       construct_shader(ShaderSource &out_vertex,
                        ShaderSource &out_fragment,
-                       const UberShaderParams &contruct_params);
+                       const UberShaderParams &contruct_params,
+                       const ItemShaderFilter *item_shader_filter = NULL);
 
       /*!
         Fill a buffer to hold the values for the uniforms
@@ -795,6 +792,8 @@ namespace fastuidraw
       uint32_t
       ubo_size(void);
 
+      //////////////////////////////////////////////////////////////
+      // virtual methods from PainterBackend, do NOT reimplement(!)
       virtual
       void
       target_resolution(int w, int h);
@@ -804,11 +803,45 @@ namespace fastuidraw
         Returns true if any shader code has been added since
         the last call to shader_code_added(). A derived class
         shall use this function to determine when it needs
-        to recreate its uber-shader.
+        to recreate its uber-shader(s).
        */
       bool
       shader_code_added(void);
 
+      /*!
+        To be optionally implemented by a derived class to
+        compute the shader group of a PainterItemShader.
+        The passed shader may or may not be a sub-shader.
+        Default implementation is to return 0.
+        \param tag The value of PainterShader::tag() that PainterBackendGLSL
+                   will assign to the shader. Do NOT access PainterShader::tag(),
+                   PainterShader::ID() or PainterShader::group() as they are
+                   not yet assgined.
+        \param shader shader whose group is to be computed
+       */
+      virtual
+      uint32_t
+      compute_item_shader_group(PainterShader::Tag tag,
+                                const reference_counted_ptr<PainterItemShader> &shader);
+
+      /*!
+        To be optionally implemented by a derived class to
+        compute the shader group of a PainterItemShader.
+        The passed shader may or may not be a sub-shader.
+        Default implementation is to return 0.
+        \param tag The value of PainterShader::tag() that PainterBackendGLSL
+                   will assign to the shader. Do NOT access PainterShader::tag(),
+                   PainterShader::ID() or PainterShader::group() as they are
+                   not yet assgined.
+        \param shader shader whose group is to be computed
+       */
+      virtual
+      uint32_t
+      compute_blend_shader_group(PainterShader::Tag tag,
+                                const reference_counted_ptr<PainterBlendShader> &shader);
+
+      //////////////////////////////////////////////////////////////
+      // virtual methods from PainterBackend, do NOT reimplement(!)
       virtual
       PainterShader::Tag
       absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader);

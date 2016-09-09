@@ -321,7 +321,7 @@ store_size(int log2_tile_size, int log2_num_index_tiles_per_row_per_col, int num
      however, because index is an 8 bit integer, log2_num_index_tiles_per_row_per_col
      must be capped to 8
   */
-  log2_num_index_tiles_per_row_per_col = std::min(8, std::max(1, log2_num_index_tiles_per_row_per_col)); 
+  log2_num_index_tiles_per_row_per_col = std::min(8, std::max(1, log2_num_index_tiles_per_row_per_col));
   int v(1 << (log2_num_index_tiles_per_row_per_col + log2_tile_size));
   return fastuidraw::ivec3(v, v, num_layers);
 }

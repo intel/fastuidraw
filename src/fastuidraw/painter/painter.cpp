@@ -349,6 +349,26 @@ namespace
     std::vector<fastuidraw::PainterAttribute> m_attribs;
   };
 
+  class AtrribIndex
+  {
+  public:
+    fastuidraw::const_c_array<fastuidraw::PainterAttribute> m_attribs;
+    fastuidraw::const_c_array<fastuidraw::PainterIndex> m_indices;
+  };
+
+  class StrokingData
+  {
+  public:
+    AtrribIndex m_edges;
+    unsigned int m_edge_zinc;
+
+    std::vector<AtrribIndex> m_joins;
+    unsigned int m_join_zinc;
+
+    AtrribIndex m_caps;
+    unsigned int m_cap_zinc;
+  };
+
   class PainterPrivate
   {
   public:
@@ -425,6 +445,13 @@ namespace
       m_current_clip_state = v;
       m_current_clip = v.value();
     }
+
+    void
+    stroke_path_helper(const StrokingData &str,
+                       const fastuidraw::PainterStrokeShader &shader,
+                       const fastuidraw::PainterData &draw,
+                       bool with_anti_aliasing,
+                       const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
     fastuidraw::vec2 m_one_pixel_width;
     unsigned int m_current_z;
@@ -847,6 +874,95 @@ draw_generic_check(const fastuidraw::reference_counted_ptr<fastuidraw::PainterIt
     }
 }
 
+void
+PainterPrivate::
+stroke_path_helper(const StrokingData &str,
+                   const fastuidraw::PainterStrokeShader &shader,
+                   const fastuidraw::PainterData &draw,
+                   bool with_anti_aliasing,
+                   const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+{
+  using namespace fastuidraw;
+
+  unsigned int startz, zinc_sum(0);
+  bool modify_z;
+  const reference_counted_ptr<PainterItemShader> *sh;
+  std::vector<const_c_array<PainterAttribute> > vattrib_chunks(str.m_joins.size() + 2);
+  std::vector<const_c_array<PainterIndex> > vindex_chunks(str.m_joins.size() + 2);
+  c_array<const_c_array<PainterAttribute> > attrib_chunks;
+  c_array<const_c_array<PainterIndex> > index_chunks;
+
+  attrib_chunks = make_c_array(vattrib_chunks);
+  index_chunks = make_c_array(vindex_chunks);
+
+  attrib_chunks[0] = str.m_edges.m_attribs;
+  index_chunks [0] = str.m_edges.m_indices;
+  attrib_chunks[1] = str.m_caps.m_attribs;
+  index_chunks [1] = str.m_caps.m_indices;
+  for(unsigned int J = 0, endJ = str.m_joins.size(); J < endJ; ++J)
+    {
+      attrib_chunks[J + 2] = str.m_joins[J].m_attribs;
+      index_chunks [J + 2] = str.m_joins[J].m_indices;
+    }
+
+  startz = m_current_z;
+  modify_z = !with_anti_aliasing || shader.aa_type() == PainterStrokeShader::draws_solid_then_fuzz;
+  sh = (with_anti_aliasing) ? &shader.aa_shader_pass1(): &shader.non_aa_shader();
+  if(modify_z)
+    {
+      unsigned int incr_z;
+      zinc_sum = incr_z = str.m_edge_zinc + str.m_join_zinc + str.m_cap_zinc;
+
+      /*
+        We want draw the passes so that the depth test prevents overlap drawing;
+        - The K'th set has that the raw_depth value does from 0 to zincs[K] - 1.
+        - We draw so that the K'th pass is drawn with the (K-1)-pass occluding it.
+          (recall that larger z's occlude smaller z's).
+       */
+      incr_z -= str.m_edge_zinc;
+      draw_generic_check(*sh, draw,
+                         attrib_chunks.sub_array(0, 1),
+                         index_chunks.sub_array(0, 1),
+                         fastuidraw::const_c_array<unsigned int>(),
+                         startz + incr_z + 1, call_back);
+
+      incr_z -= str.m_join_zinc;
+      draw_generic_check(*sh, draw,
+                         attrib_chunks.sub_array(2),
+                         index_chunks.sub_array(2),
+                         fastuidraw::const_c_array<unsigned int>(),
+                         startz + incr_z + 1, call_back);
+
+      incr_z -= str.m_cap_zinc;
+      draw_generic_check(*sh, draw,
+                         attrib_chunks.sub_array(1, 1),
+                         index_chunks.sub_array(1, 1),
+                         fastuidraw::const_c_array<unsigned int>(),
+                         startz + incr_z + 1, call_back);
+    }
+  else
+    {
+      draw_generic_check(*sh, draw, attrib_chunks, index_chunks,
+                         fastuidraw::const_c_array<unsigned int>(),
+                         m_current_z, call_back);
+    }
+
+  if(with_anti_aliasing)
+    {
+      /* the aa-pass does not add to depth from the
+         stroke attribute data, thus the written
+         depth is always startz.
+       */
+      draw_generic_check(shader.aa_shader_pass2(), draw, attrib_chunks, index_chunks,
+                         fastuidraw::const_c_array<unsigned int>(),
+                         startz, call_back);
+    }
+
+  if(modify_z)
+    {
+      m_current_z = startz + zinc_sum + 1;
+    }
+}
 
 //////////////////////////////////
 // fastuidraw::Painter methods
@@ -994,9 +1110,9 @@ draw_convex_polygon(const reference_counted_ptr<PainterItemShader> &shader,
   d->m_work_room.m_attribs.resize(pts.size());
   for(unsigned int i = 0; i < pts.size(); ++i)
     {
-      d->m_work_room.m_attribs[i].m_primary_attrib = vec4(pts[i].x(), pts[i].y(), 0.0f, 0.0f);
-      d->m_work_room.m_attribs[i].m_secondary_attrib = vec4(0.0f, 0.0f, 0.0f, 0.0f);
-      d->m_work_room.m_attribs[i].m_uint_attrib = uvec4(0, 0, 0, 0);
+      d->m_work_room.m_attribs[i].m_attrib0 = fastuidraw::pack_vec4(pts[i].x(), pts[i].y(), 0.0f, 0.0f);
+      d->m_work_room.m_attribs[i].m_attrib1 = uvec4(0u, 0u, 0u, 0u);
+      d->m_work_room.m_attribs[i].m_attrib2 = uvec4(0, 0, 0, 0);
     }
 
   d->m_work_room.m_indices.clear();
@@ -1075,7 +1191,6 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
 
   using namespace PainterEnums;
   enum PainterAttributeData::stroking_data_t cap, join, edge;
-  bool modify_z;
 
   switch(js)
     {
@@ -1111,64 +1226,22 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
       edge = PainterAttributeData::edge_no_closing_edge;
     }
 
-  vecN<const_c_array<PainterAttribute>, 3> attrib_chunks;
-  vecN<const_c_array<PainterIndex>, 3> index_chunks;
-  vecN<unsigned int, 3> zincs;
-  unsigned int startz;
-  const reference_counted_ptr<PainterItemShader> *sh;
+  StrokingData str;
 
-  attrib_chunks[0] = pdata.attribute_data_chunk(edge);
-  attrib_chunks[1] = pdata.attribute_data_chunk(join);
-  attrib_chunks[2] = pdata.attribute_data_chunk(cap);
-  index_chunks[0] = pdata.index_data_chunk(edge);
-  index_chunks[1] = pdata.index_data_chunk(join);
-  index_chunks[2] = pdata.index_data_chunk(cap);
-  zincs[0] = pdata.increment_z_value(edge);
-  zincs[1] = pdata.increment_z_value(join);
-  zincs[2] = pdata.increment_z_value(cap);
+  str.m_edges.m_attribs = pdata.attribute_data_chunk(edge);
+  str.m_edges.m_indices = pdata.index_data_chunk(edge);
+  str.m_edge_zinc = pdata.increment_z_value(edge);
 
-  startz = d->m_current_z;
-  modify_z = !with_anti_aliasing || shader.aa_type() == PainterStrokeShader::draws_solid_then_fuzz;
-  sh = (with_anti_aliasing) ? &shader.aa_shader_pass1(): &shader.non_aa_shader();
-  if(modify_z)
-    {
-      /* raw depth value goes from 0 to zincs[0] - 1
-         written depth goes from (startz + zincs[1] + zincs[2] + 1) to (startz + zincs[0] + zincs[1] + zincs[2])
-      */
-      d->m_current_z = startz + zincs[1] + zincs[2] + 1;
-      draw_generic(*sh, draw, attrib_chunks[0], index_chunks[0], call_back);
+  str.m_caps.m_attribs = pdata.attribute_data_chunk(cap);
+  str.m_caps.m_indices = pdata.index_data_chunk(cap);
+  str.m_cap_zinc = pdata.increment_z_value(cap);
 
-      /* raw depth value goes from 0 to zincs[1] - 1
-         written depth goes from (startz + zincs[2] + 1) to (startz + zincs[1] + zincs[2])
-      */
-      d->m_current_z = startz + zincs[2] + 1;
-      draw_generic(*sh, draw, attrib_chunks[1], index_chunks[1], call_back);
+  str.m_joins.resize(1);
+  str.m_joins[0].m_attribs = pdata.attribute_data_chunk(join);
+  str.m_joins[0].m_indices = pdata.index_data_chunk(join);
+  str.m_join_zinc = pdata.increment_z_value(join);
 
-      /* raw depth value goes from 0 to zincs[2] - 1
-         written depth goes from (startz + 1) to (startz + zincs[2])
-      */
-      d->m_current_z = startz + 1;
-      draw_generic(*sh, draw, attrib_chunks[2], index_chunks[2], call_back);
-    }
-  else
-    {
-      draw_generic(*sh, draw, attrib_chunks, index_chunks, call_back);
-    }
-
-  if(with_anti_aliasing)
-    {
-      /* the aa-pass does not add to depth from the
-         stroke attribute data, thus the written
-         depth is always startz.
-       */
-      d->m_current_z = startz;
-      draw_generic(shader.aa_shader_pass2(), draw, attrib_chunks, index_chunks, call_back);
-    }
-
-  if(modify_z)
-    {
-      d->m_current_z = startz + zincs[0] + zincs[1] + zincs[2] + 1;
-    }
+  d->stroke_path_helper(str, shader, draw, with_anti_aliasing, call_back);
 }
 
 void
@@ -1207,35 +1280,117 @@ stroke_path_pixel_width(const PainterData &draw, const Path &path,
 void
 fastuidraw::Painter::
 stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
-                   enum PainterEnums::dashed_cap_style cp, enum PainterEnums::join_style js,
+                   bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                    bool with_anti_aliasing,
                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  enum PainterEnums::cap_style c;
-  c = (cp < PainterEnums::number_dashed_closed) ? PainterEnums::close_contours : PainterEnums::no_caps;
-  stroke_path(shader.shader(cp), draw, path, c, js, with_anti_aliasing, call_back);
+  /* dashed stroking has some trickiness with respect to how to handle joins.
+     Without caps:
+       - we omit any join for which the dashing indicates to omit
+         via its distance from the start of a contour
+       - all other joins and edges are sent forward freely.
+     With Caps:
+       - we omit any join for which the dashing indicates to omit
+         via its distance from the start of a contour
+       - for those joins we omitted, we emit a cap-join at
+         the join which covers the area (without overlap)
+         to catch the region needed for caps made by dashing.
+       - if the path is stroked unclosed, we use square cap
+         points whose length is computed in CPU (sadly)
+   */
+  using namespace PainterEnums;
+
+  enum PainterAttributeData::stroking_data_t edge, join;
+  StrokingData str;
+
+  switch(js)
+    {
+    case rounded_joins:
+      join = PainterAttributeData::rounded_joins_closing_edge;
+      break;
+    case bevel_joins:
+      join = PainterAttributeData::bevel_joins_closing_edge;
+      break;
+    case miter_joins:
+      join = PainterAttributeData::miter_joins_closing_edge;
+      break;
+    default:
+      join = PainterAttributeData::stroking_data_count;
+    }
+
+  if(close_contour)
+    {
+      edge = PainterAttributeData::edge_closing_edge;
+    }
+  else
+    {
+      join = PainterAttributeData::without_closing_edge(join);
+      edge = PainterAttributeData::edge_no_closing_edge;
+    }
+  const PainterAttributeData &pdata(path.tessellation()->stroked()->painter_data());
+  str.m_edges.m_attribs = pdata.attribute_data_chunk(edge);
+  str.m_edges.m_indices = pdata.index_data_chunk(edge);
+  str.m_edge_zinc = pdata.increment_z_value(edge);
+
+  /* Those joins for which the distance value is inside the
+     dash pattern, we include in str.m_joins with the join
+     type, for those outside, we take the cap-join at the
+     location. We know how many joins we need from the
+     value of pdata.increment_z_value(join).
+   */
+  const PainterShaderData::DataBase *raw_data;
+  raw_data = draw.m_item_shader_data.data().data_base();
+
+  str.m_join_zinc = pdata.increment_z_value(join);
+  for(unsigned int J = 0; J < str.m_join_zinc; ++J)
+    {
+      const_c_array<PainterIndex> idx;
+      unsigned int chunk;
+
+      chunk = PainterAttributeData::chunk_from_join(join, J);
+      idx = pdata.index_data_chunk(chunk);
+      if(!idx.empty())
+        {
+          float dist;
+          range_type<float> dash_interval;
+          const_c_array<PainterAttribute> atr(pdata.attribute_data_chunk(chunk));
+          assert(!atr.empty());
+
+          dist = unpack_float(atr[0].m_attrib1.y());
+          if(shader.dash_evaluator()->compute_dash_interval(raw_data, dist, dash_interval))
+            {
+              str.m_joins.push_back(AtrribIndex());
+              str.m_joins.back().m_attribs = atr;
+              str.m_joins.back().m_indices = idx;
+            }
+        }
+    }
+
+  PainterPrivate *d;
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d->stroke_path_helper(str, shader.shader(cp), draw, with_anti_aliasing, call_back);
 }
 
 void
 fastuidraw::Painter::
 stroke_dashed_path(const PainterData &draw, const Path &path,
-                   enum PainterEnums::dashed_cap_style cp, enum PainterEnums::join_style js,
+                   bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                    bool with_anti_aliasing,
                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   stroke_dashed_path(default_shaders().dashed_stroke_shader(), draw, path,
-                     cp, js, with_anti_aliasing, call_back);
+                     close_contour, cp, js, with_anti_aliasing, call_back);
 }
 
 void
 fastuidraw::Painter::
 stroke_dashed_path_pixel_width(const PainterData &draw, const Path &path,
-                               enum PainterEnums::dashed_cap_style cp, enum PainterEnums::join_style js,
+                               bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                                bool with_anti_aliasing,
                                const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
    stroke_dashed_path(default_shaders().pixel_width_dashed_stroke_shader(), draw, path,
-                      cp, js, with_anti_aliasing, call_back);
+                      close_contour, cp, js, with_anti_aliasing, call_back);
 }
 
 void
@@ -1342,6 +1497,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
       draw_generic(shader.shader(static_cast<enum glyph_type>(k)), draw,
                    data.attribute_data_chunk(k), data.index_data_chunk(k),
                    call_back);
+      increment_z(data.increment_z_value(k));
     }
 }
 

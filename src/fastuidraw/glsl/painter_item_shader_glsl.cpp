@@ -98,14 +98,17 @@ namespace
   class PainterShaderGLSLPrivate
   {
   public:
-    PainterShaderGLSLPrivate(const fastuidraw::glsl::ShaderSource &vertex_src,
-                           const fastuidraw::glsl::ShaderSource &fragment_src,
-                           const fastuidraw::glsl::varying_list &varyings):
+    PainterShaderGLSLPrivate(bool uses_discard,
+                             const fastuidraw::glsl::ShaderSource &vertex_src,
+                             const fastuidraw::glsl::ShaderSource &fragment_src,
+                             const fastuidraw::glsl::varying_list &varyings):
+      m_uses_discard(uses_discard),
       m_vertex_src(vertex_src),
       m_fragment_src(fragment_src),
       m_varyings(varyings)
     {}
 
+    bool m_uses_discard;
     fastuidraw::glsl::ShaderSource m_vertex_src;
     fastuidraw::glsl::ShaderSource m_fragment_src;
     fastuidraw::glsl::varying_list m_varyings;
@@ -525,13 +528,14 @@ stream_unpack_function(unsigned int alignment, glsl::ShaderSource &src,
 ///////////////////////////////////////////////
 // fastuidraw::glsl::PainterItemShaderGLSL methods
 fastuidraw::glsl::PainterItemShaderGLSL::
-PainterItemShaderGLSL(const glsl::ShaderSource &v_src,
+PainterItemShaderGLSL(bool puses_discard,
+                      const glsl::ShaderSource &v_src,
                       const glsl::ShaderSource &f_src,
                       const varying_list &varyings,
                       unsigned int num_sub_shaders):
   PainterItemShader(num_sub_shaders)
 {
-  m_d = FASTUIDRAWnew PainterShaderGLSLPrivate(v_src, f_src, varyings);
+  m_d = FASTUIDRAWnew PainterShaderGLSLPrivate(puses_discard, v_src, f_src, varyings);
 }
 
 fastuidraw::glsl::PainterItemShaderGLSL::
@@ -568,4 +572,13 @@ fragment_src(void) const
   PainterShaderGLSLPrivate *d;
   d = reinterpret_cast<PainterShaderGLSLPrivate*>(m_d);
   return d->m_fragment_src;
+}
+
+bool
+fastuidraw::glsl::PainterItemShaderGLSL::
+uses_discard(void) const
+{
+  PainterShaderGLSLPrivate *d;
+  d = reinterpret_cast<PainterShaderGLSLPrivate*>(m_d);
+  return d->m_uses_discard;
 }

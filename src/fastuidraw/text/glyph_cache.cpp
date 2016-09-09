@@ -66,6 +66,10 @@ namespace
     int m_geometry_offset, m_geometry_length;
     bool m_uploaded_to_atlas;
 
+    /* Path of the glyph
+     */
+    fastuidraw::Path m_path;
+
     /* data to generate glyph data
      */
     fastuidraw::GlyphRenderData *m_glyph_data;
@@ -158,6 +162,7 @@ clear(void)
       FASTUIDRAWdelete(m_glyph_data);
       m_glyph_data = NULL;
     }
+  m_path.clear();
 }
 
 enum fastuidraw::return_code
@@ -331,6 +336,16 @@ upload_to_atlas(void) const
   return p->upload_to_atlas();
 }
 
+const fastuidraw::Path&
+fastuidraw::Glyph::
+path(void) const
+{
+  GlyphDataPrivate *p;
+  p = reinterpret_cast<GlyphDataPrivate*>(m_opaque);
+  assert(p != NULL && p->m_render.valid());
+  return p->m_path;
+}
+
 
 //////////////////////////////////////////////////////////
 // fastuidraw::GlyphCache methods
@@ -373,7 +388,7 @@ fetch_glyph(GlyphRender render,
     {
       q->m_render = render;
       assert(!q->m_glyph_data);
-      q->m_glyph_data = font->compute_rendering_data(q->m_render, glyph_code, q->m_layout);
+      q->m_glyph_data = font->compute_rendering_data(q->m_render, glyph_code, q->m_layout, q->m_path);
     }
 
   return Glyph(q);

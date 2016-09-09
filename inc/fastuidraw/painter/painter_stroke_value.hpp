@@ -19,6 +19,7 @@
 #pragma once
 
 #include <fastuidraw/painter/painter_value.hpp>
+#include <fastuidraw/painter/painter_dashed_stroke_shader_set.hpp>
 
 namespace fastuidraw
 {
@@ -92,8 +93,9 @@ namespace fastuidraw
       {
         stroke_width_offset, /*!< offset to dashed stroke width (packed as float) */
         stroke_miter_limit_offset, /*!< offset to dashed stroke miter limit (packed as float) */
-        stroke_dash_pattern_dash_offset, /*!< offset to dash offset value for dashed stroking (packed as float) */
-        stroke_dash_pattern_total_length_offset, /*!< offset to total legnth of dash pattern (packed as float) */
+        stroke_dash_offset_offset, /*!< offset to dash offset value for dashed stroking (packed as float) */
+        stroke_total_length_offset, /*!< offset to total legnth of dash pattern (packed as float) */
+        stroke_first_interval_start, /*!< offset to value recording where the start of the first draw interval is */
 
         stroke_static_data_size /*!< size of static data for dashed stroking */
       };
@@ -190,6 +192,14 @@ namespace fastuidraw
      */
     PainterDashedStrokeParams&
     dash_pattern(const_c_array<DashPatternElement> v);
+
+    /*!
+      Constructs and returns a DashEvaluator compatible
+      with the data of PainterDashedStrokeParams.
+     */
+    static
+    reference_counted_ptr<const DashEvaluatorBase>
+    dash_evaluator(void);
   };
 /*! @} */
 

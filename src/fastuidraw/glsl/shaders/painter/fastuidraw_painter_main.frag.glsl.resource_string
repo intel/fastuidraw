@@ -42,7 +42,7 @@ layout(location = 0) inout vec4 fastuidraw_final_color;
     if(fastuidraw_clip_plane0 < epsilon || fastuidraw_clip_plane1 < epsilon
        || fastuidraw_clip_plane2 < epsilon  || fastuidraw_clip_plane3 < epsilon)
       {
-        discard;
+        FASTUIDRAW_DISCARD;
       }
   }
 

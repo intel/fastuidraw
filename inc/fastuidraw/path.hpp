@@ -86,11 +86,13 @@ public:
 
     /*!
       To be implemented by a derived class to produce the tessellation
-      from start_pt() to end_pt(). The routine should
-      include BOTH start_pt() and end_pt() in the result.
-      Assignments to the field TessellatedPath::point::m_distance_from_contour_start
-      will be ignored, but all other fields of TessellatedPath::point
-      must be assigned values. Return the number of points actually added.
+      from start_pt() to end_pt(). The routine must include BOTH start_pt()
+      and end_pt() in the result. Only the fields TessellatedPath::point::m_p,
+      TessellatedPath::point::m_p_t, TessellatedPath::point::m_distance_from_edge_start
+      are to be filled; the other fields of TessellatedPath::point are
+      filled by TessellatedPath using the named fields. In addition to
+      filling the output array, the function shall return the number of
+      points needed to perform the required tessellation.
 
       \param tess_params tessellation parameters
       \param out_data location to which to write the edge tessellated
@@ -99,6 +101,14 @@ public:
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          c_array<TessellatedPath::point> out_data) const = 0;
+
+    /*!
+      To be implemented by a derived class to create and
+      return a deep copy of the interpolator object.
+     */
+    virtual
+    interpolator_base*
+    deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const = 0;
 
   private:
     friend class PathContour;
@@ -126,6 +136,10 @@ public:
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          c_array<TessellatedPath::point> out_data) const;
+
+    virtual
+    interpolator_base*
+    deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const;
   };
 
   /*!
@@ -212,7 +226,14 @@ public:
     void
     compute(float in_t, vec2 &outp, vec2 &outp_t, vec2 &outp_tt) const;
 
+    virtual
+    interpolator_base*
+    deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const;
+
   private:
+    bezier(const bezier &q,
+           const reference_counted_ptr<const interpolator_base> &prev);
+
     void *m_d;
   };
 
@@ -243,7 +264,13 @@ public:
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          c_array<TessellatedPath::point> out_data) const;
 
+    virtual
+    interpolator_base*
+    deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const;
+
   private:
+    arc(const arc &q, const reference_counted_ptr<const interpolator_base> &prev);
+
     void *m_d;
   };
 
@@ -329,7 +356,7 @@ public:
   prev_interpolator(void);
 
   /*!
-    Returns true if the current path has ended
+    Returns true if the PathContour has ended
    */
   bool
   ended(void) const;
@@ -357,6 +384,12 @@ public:
    */
   const reference_counted_ptr<const interpolator_base>&
   interpolator(unsigned int I) const;
+
+  /*!
+    Create a deep copy of this PathContour.
+   */
+  PathContour*
+  deep_copy(void);
 
 private:
   void *m_d;
@@ -469,6 +502,14 @@ public:
   Path(const TessellatedPath::TessellationParams &tess_params = TessellatedPath::TessellationParams());
 
   /*!
+    Copy ctor.
+    \param obj Path from which to copy path data
+    \param tess_param tessellation parameters to use for new
+                      Path.
+   */
+  Path(const Path &obj);
+
+  /*!
     Ctor.
     \param obj Path from which to copy path data
     \param tess_param tessellation parameters to use for new
@@ -484,6 +525,13 @@ public:
    */
   const Path&
   operator=(const Path &rhs);
+
+  /*!
+    Clear the path, i.e. remove all PathContour's from the
+    path
+   */
+  void
+  clear(void);
 
   /*!
     Swap contents of Path with another Path
@@ -683,6 +731,23 @@ public:
    */
   Path&
   end_contour_custom(const reference_counted_ptr<const PathContour::interpolator_base> &p);
+
+  /*!
+    Adds a PathContour to this Path. PathContour is only added
+    if the contour is ended (i.e. PathContour::ended() returns
+    true). A fixed, ended PathContour can be used by multiple
+    Path's at the same time.
+    \param contour PathContour to add to the Path
+   */
+  Path&
+  add_contour(const reference_counted_ptr<const PathContour> &contour);
+
+  /*!
+    Add all the ended PathContour objects of a Path into this Path.
+    \param path Path to add
+   */
+  Path&
+  add_contours(const Path &path);
 
   /*!
     Returns the number of contours of the Path.

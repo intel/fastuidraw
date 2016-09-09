@@ -33,8 +33,20 @@ fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_loca
 
 void
 fastuidraw_compute_image_atlas_coord(in vec2 image_shader_coord,
-                                    in int index_layer,
-                                    in int num_lookups,
-                                    in int slack,
-                                    out vec2 image_atlas_coord,
-                                    out int image_atlas_layer);
+                                     in int index_layer,
+                                     in int num_lookups,
+                                     in int slack,
+                                     out vec2 image_atlas_coord,
+                                     out int image_atlas_layer);
+
+uint
+fastuidraw_read_dashed_stroking_params_header(in uint location, out fastuidraw_dashed_stroking_params_header p);
+
+/* returns the signed distance to the boundary
+ */
+float
+fastuidraw_compute_dash_interval(in uint dashed_stroking_data_location,
+                                 in float total_distance,
+                                 in float first_interval_start,
+                                 in float distance,
+                                 out uint interval_id);

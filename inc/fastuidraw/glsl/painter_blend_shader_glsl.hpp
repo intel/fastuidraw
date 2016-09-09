@@ -78,7 +78,7 @@ namespace fastuidraw
     {
     public:
       /*!
-        Ctor for creating a shader with sub-shaders.
+        Ctor.
         \param tp blend shader type
         \param src GLSL code fragment for blend shading
         \param num_sub_shaders the number of sub-shaders it supports

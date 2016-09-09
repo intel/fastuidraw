@@ -33,7 +33,6 @@ namespace fastuidraw
 /*!\addtogroup GLBackend
   @{
  */
-
     /*!
       A PainterBackendGL implements PainterBackend
       using the GL (or GLES) API.
@@ -41,6 +40,34 @@ namespace fastuidraw
     class PainterBackendGL:public glsl::PainterBackendGLSL
     {
     public:
+      /*!
+        Enumeration to specify which GLSL program
+        to fetch from program(enum program_type_t).
+      */
+      enum program_type_t
+        {
+          /*!
+            Get the GLSL program that handles all shaders
+          */
+          program_all,
+
+          /*!
+            Get the GLSL program that only handles those
+            shader without discard
+          */
+          program_without_discard,
+
+          /*!
+            Get the GLSL program that only handles those
+            shader with discard
+          */
+          program_with_discard,
+
+          /*!
+           */
+          number_program_types
+        };
+
       /*!
         A ConfigurationGL gives parameters how to contruct
         a PainterBackendGL.
@@ -332,6 +359,21 @@ namespace fastuidraw
         ConfigurationGL&
         use_ubo_for_uniforms(bool v);
 
+        /*!
+          If true, item and blend shaders are broken into
+          two classes: those that use discard and those that
+          do not. Each class is then realized as a seperate
+          GLSL program.
+         */
+        bool
+        separate_program_for_discard(void) const;
+
+        /*!
+          Set the value for separate_program_for_discard(void) const
+        */
+        ConfigurationGL&
+        separate_program_for_discard(bool v);
+
       private:
         void *m_d;
       };
@@ -356,26 +398,22 @@ namespace fastuidraw
 
       virtual
       void
-      on_begin(void);
-
-      virtual
-      void
-      on_end(void);
-
-      virtual
-      void
       on_pre_draw(void);
+
+      virtual
+      void
+      on_post_draw(void);
 
       virtual
       reference_counted_ptr<const PainterDrawCommand>
       map_draw_command(void);
 
       /*!
-        Return the Program used to draw -all- content
-        by this PainterBackendGL
+        Return the specified Program use to draw
+        with this PainterBackendGL.
        */
       reference_counted_ptr<Program>
-      program(void);
+      program(enum program_type_t tp);
 
       /*!
         Returns the ConfigurationGL adapted from that passed
@@ -384,6 +422,18 @@ namespace fastuidraw
        */
       const ConfigurationGL&
       configuration_gl(void) const;
+
+    protected:
+
+      virtual
+      uint32_t
+      compute_item_shader_group(PainterShader::Tag tag,
+                                const reference_counted_ptr<PainterItemShader> &shader);
+
+      virtual
+      uint32_t
+      compute_blend_shader_group(PainterShader::Tag tag,
+                                const reference_counted_ptr<PainterBlendShader> &shader);
 
     private:
       void *m_d;

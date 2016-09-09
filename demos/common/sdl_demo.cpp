@@ -199,7 +199,6 @@ sdl_demo::
 {
   if(m_window)
     {
-
       if(m_gl_logger)
         {
           if(m_gl_logger == fastuidraw::gl_binding::logger())
@@ -208,7 +207,7 @@ sdl_demo::
             }
           FASTUIDRAWdelete(m_gl_logger);
         }
-      
+
       m_ctx_egl = fastuidraw::reference_counted_ptr<egl_gles_context>();
       if(m_ctx)
         {
@@ -358,7 +357,7 @@ init_sdl(void)
         if(m_use_msaa.m_value)
           {
             P.m_msaa = m_msaa.m_value;
-          }        
+          }
         m_ctx_egl = FASTUIDRAWnew egl_gles_context(P, m_window);
         m_ctx_egl->make_current();
         fastuidraw::gl_binding::get_proc_function(egl_gles_context::egl_get_proc);
@@ -375,7 +374,7 @@ init_sdl(void)
           return fastuidraw::routine_fail;
         }
       SDL_GL_MakeCurrent(m_window, m_ctx);
-  
+
       if(m_swap_interval.set_by_command_line())
         {
           if(SDL_GL_SetSwapInterval(m_swap_interval.m_value) != 0)

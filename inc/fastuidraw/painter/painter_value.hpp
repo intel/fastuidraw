@@ -19,7 +19,6 @@
 
 #pragma once
 
-
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -140,51 +139,16 @@ namespace fastuidraw
   /*!
     Common base class to PainterItemShaderData and
     PainterBlendShaderData to hold shader data for
-    custom shaders.
+    custom shaders. Derived classes CANNOT add any
+    data or virtual functions. The class
+    PainterShaderData is essentially a wrapper over
+    a PainterShaderData::DataBase object that handles
+    holding data and copying itself (for the purpose
+    of copying PainterShaderData objects).
    */
   class PainterShaderData
   {
   public:
-    /*!
-      Ctor. A derived class from PainterShaderData
-      should set \ref m_data.
-     */
-    PainterShaderData(void);
-
-    /*!
-      Copy ctor, calls DataBase::copy() to
-      copy the data behind \ref m_data.
-     */
-    PainterShaderData(const PainterShaderData &obj);
-
-    ~PainterShaderData();
-
-    /*!
-      Assignment operator
-     */
-    PainterShaderData&
-    operator=(const PainterShaderData &rhs);
-
-    /*!
-      Returns the length of the data needed to encode the data.
-      Data is padded to be multiple of alignment.
-      \param alignment alignment of the data store
-                       in units of generic_data, see
-                       PainterBackend::ConfigurationBase::alignment()
-    */
-    unsigned int
-    data_size(unsigned int alignment) const;
-
-    /*!
-      Pack the values of this object
-      \param alignment alignment of the data store
-                       in units of generic_data, see
-                       PainterBackend::ConfigurationBase::alignment()
-      \param dst place to which to pack data
-    */
-    void
-    pack_data(unsigned int alignment, c_array<generic_data> dst) const;
-
     /*!
       Class that holds the actual data and packs the data.
       A class derived from PainterShaderData should set the
@@ -230,6 +194,56 @@ namespace fastuidraw
       void
       pack_data(unsigned int alignment, c_array<generic_data> dst) const = 0;
     };
+
+    /*!
+      Ctor. A derived class from PainterShaderData
+      should set \ref m_data.
+     */
+    PainterShaderData(void);
+
+    /*!
+      Copy ctor, calls DataBase::copy() to
+      copy the data behind \ref m_data.
+     */
+    PainterShaderData(const PainterShaderData &obj);
+
+    ~PainterShaderData();
+
+    /*!
+      Assignment operator
+     */
+    PainterShaderData&
+    operator=(const PainterShaderData &rhs);
+
+    /*!
+      Returns the length of the data needed to encode the data.
+      Data is padded to be multiple of alignment.
+      \param alignment alignment of the data store
+                       in units of generic_data, see
+                       PainterBackend::ConfigurationBase::alignment()
+    */
+    unsigned int
+    data_size(unsigned int alignment) const;
+
+    /*!
+      Pack the values of this object
+      \param alignment alignment of the data store
+                       in units of generic_data, see
+                       PainterBackend::ConfigurationBase::alignment()
+      \param dst place to which to pack data
+    */
+    void
+    pack_data(unsigned int alignment, c_array<generic_data> dst) const;
+
+    /*!
+      Returns a pointer to the underlying object holding
+      the data of the PainterShaderData.
+     */
+    const DataBase*
+    data_base(void) const
+    {
+      return m_data;
+    }
 
   protected:
     /*!

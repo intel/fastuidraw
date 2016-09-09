@@ -26,8 +26,10 @@ namespace
   {
   public:
     typedef fastuidraw::PainterStrokeShader PainterStrokeShader;
-    enum { count = fastuidraw::PainterEnums::number_dashed_cap_styles };
+    enum { count = fastuidraw::PainterEnums::number_cap_styles };
+
     fastuidraw::vecN<PainterStrokeShader, count> m_shaders;
+    fastuidraw::reference_counted_ptr<const fastuidraw::DashEvaluatorBase> m_dash_evaluator;
   };
 }
 
@@ -73,25 +75,39 @@ operator=(const PainterDashedStrokeShaderSet &rhs)
 
 const fastuidraw::PainterStrokeShader&
 fastuidraw::PainterDashedStrokeShaderSet::
-shader(enum PainterEnums::dashed_cap_style st) const
+shader(enum PainterEnums::cap_style st) const
 {
   PainterDashedStrokeShaderSetPrivate *d;
   d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
-  return (st < d->m_shaders.size()) ?
-    d->m_shaders[st] :
-    d->m_shaders[PainterEnums::dashed_no_caps];
+  return d->m_shaders[st];
 }
 
 fastuidraw::PainterDashedStrokeShaderSet&
 fastuidraw::PainterDashedStrokeShaderSet::
-shader(enum PainterEnums::dashed_cap_style st,
+shader(enum PainterEnums::cap_style st,
        const PainterStrokeShader &sh)
 {
   PainterDashedStrokeShaderSetPrivate *d;
   d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
-  if(st < d->m_shaders.size())
-    {
-      d->m_shaders[st] = sh;
-    }
+  d->m_shaders[st] = sh;
   return *this;
+}
+
+fastuidraw::PainterDashedStrokeShaderSet&
+fastuidraw::PainterDashedStrokeShaderSet::
+dash_evaluator(const reference_counted_ptr<const DashEvaluatorBase>& v)
+{
+  PainterDashedStrokeShaderSetPrivate *d;
+  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+  d->m_dash_evaluator = v;
+  return *this;
+}
+
+const fastuidraw::reference_counted_ptr<const fastuidraw::DashEvaluatorBase>&
+fastuidraw::PainterDashedStrokeShaderSet::
+dash_evaluator(void) const
+{
+  PainterDashedStrokeShaderSetPrivate *d;
+  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+  return d->m_dash_evaluator;
 }

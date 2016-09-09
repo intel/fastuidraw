@@ -329,7 +329,7 @@ namespace fastuidraw
                              bool returns_new_offset = true)
       {
         return shader_unpack_value::stream_unpack_function(alignment, str, *this, function_name,
-                                                                out_type, returns_new_offset);
+                                                           out_type, returns_new_offset);
       }
     };
 
@@ -409,12 +409,16 @@ namespace fastuidraw
     public:
       /*!
         Ctor.
+        \param puses_discard set to true if and only if the shader code
+                             will use discard. Discard should be used
+                             in the GLSL code via the macro FASTUIDRAW_DISCARD.
         \param vertex_src GLSL source holding vertex shader routine
         \param fragment_src GLSL source holding fragment shader routine
         \param varyings list of varyings of the shader
         \param num_sub_shaders the number of sub-shaders it supports
        */
-      PainterItemShaderGLSL(const ShaderSource &vertex_src,
+      PainterItemShaderGLSL(bool puses_discard,
+                            const ShaderSource &vertex_src,
                             const ShaderSource &fragment_src,
                             const varying_list &varyings,
                             unsigned int num_sub_shaders = 1);
@@ -438,6 +442,12 @@ namespace fastuidraw
        */
       const ShaderSource&
       fragment_src(void) const;
+
+      /*!
+        Returns true if the fragment shader uses discard
+       */
+      bool
+      uses_discard(void) const;
 
     private:
       void *m_d;

@@ -20,26 +20,10 @@
 
 namespace
 {
-  class BlendShaderSourceCodePrivate
-  {
-  public:
-    BlendShaderSourceCodePrivate(const fastuidraw::glsl::ShaderSource &psrc,
-                                 unsigned int num_sub_shaders):
-      m_src(psrc),
-      m_number_sub_shaders(num_sub_shaders),
-      m_shader_id(0),
-      m_registered_to(NULL)
-    {}
-
-    fastuidraw::glsl::ShaderSource m_src;
-    unsigned int m_number_sub_shaders;
-    uint32_t m_shader_id;
-    const fastuidraw::PainterBackend *m_registered_to;
-  };
-
   class PainterBlendShaderGLSLPrivate
   {
   public:
+    explicit
     PainterBlendShaderGLSLPrivate(const fastuidraw::glsl::ShaderSource &src):
       m_src(src)
     {}

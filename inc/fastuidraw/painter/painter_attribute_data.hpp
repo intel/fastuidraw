@@ -64,7 +64,11 @@ namespace fastuidraw
         rounded_cap, /*!< index for rounded cap data */
         square_cap,  /*!< index for square cap data */
 
-        stroking_data_count /*!< count of enums */
+        /*!
+          count of enums, using this enumeration when on data created
+          from a StrokedPath, gives empty indices and attributes.
+         */
+        stroking_data_count
       };
 
     /*!
@@ -93,16 +97,23 @@ namespace fastuidraw
       The enumerations of \ref stroking_data_t provide
       the indices into attribute_data_chunks() and
       index_data_chunks() for the data to draw the
-      path stroked. Data for stroking is packed as follows:
-      - PainterAttribute::m_primary_attrib .xy -> StrokedPath::point::m_position
-      - PainterAttribute::m_primary_attrib .zw -> StrokedPath::point::m_pre_offset
-      - PainterAttribute::m_secondary_attrib .x -> StrokedPath::point::m_distance_from_edge_start
-      - PainterAttribute::m_secondary_attrib .y -> StrokedPath::point::m_distance_from_contour_start
-      - PainterAttribute::m_secondary_attrib .zw -> StrokedPath::point::m_auxilary_offset
-      - PainterAttribute::m_uint_attrib .x -> StrokedPath::point::m_depth
-      - PainterAttribute::m_uint_attrib .y -> StrokedPath::point::m_point_type
-      - PainterAttribute::m_uint_attrib .z -> StrokedPath::point::m_on_boundary
-      - PainterAttribute::m_uint_attrib .w -> 0 (free)
+      path stroked. The number of total joins can be
+      computed with increment_z_value(unsigned int)
+      passing an enumeration from enum stroking_data_t.
+      In addition, the data for an individual join can
+      is stored at index K where K is given by the function
+      chunk_from_join().
+
+      Data for stroking is packed as follows:
+      - PainterAttribute::m_attrib0 .xy -> StrokedPath::point::m_position (float)
+      - PainterAttribute::m_attrib0 .zw -> StrokedPath::point::m_pre_offset (float)
+      - PainterAttribute::m_attrib1 .x -> StrokedPath::point::m_distance_from_edge_start (float)
+      - PainterAttribute::m_attrib1 .y -> StrokedPath::point::m_distance_from_contour_start (float)
+      - PainterAttribute::m_attrib1 .zw -> StrokedPath::point::m_auxilary_offset (float)
+      - PainterAttribute::m_attrib2 .x -> StrokedPath::point::m_packed_data (uint)
+      - PainterAttribute::m_attrib2 .y -> StrokedPath::point::m_edge_length (float)
+      - PainterAttribute::m_attrib2 .z -> StrokedPath::point::m_open_contour_length (float)
+      - PainterAttribute::m_attrib2 .w -> StrokedPath::point::m_closed_contour_length (float)
      */
     void
     set_data(const reference_counted_ptr<const StrokedPath> &path);
@@ -117,14 +128,14 @@ namespace fastuidraw
       data, regardless of winding number or fill rule is
       the same value, the 0'th chunk. Data for filling is packed
       as follows:
-      - PainterAttribute::m_primary_attrib .xy    -> coordinate of point.
-      - PainterAttribute::m_primary_attrib .zw    -> 0.0 (free)
-      - PainterAttribute::m_secondary_attrib .xyz -> 0.0 (free)
-      - PainterAttribute::m_secondary_attrib .w   -> 0.0 (free)
-      - PainterAttribute::m_uint_attrib .x -> 0 (free)
-      - PainterAttribute::m_uint_attrib .y -> 0 (free)
-      - PainterAttribute::m_uint_attrib .z -> 0 (free)
-      - PainterAttribute::m_uint_attrib .w -> 0 (free)
+      - PainterAttribute::m_attrib0 .xy    -> coordinate of point (float)
+      - PainterAttribute::m_attrib0 .zw    -> 0 (free)
+      - PainterAttribute::m_attrib1 .xyz -> 0 (free)
+      - PainterAttribute::m_attrib1 .w   -> 0 (free)
+      - PainterAttribute::m_attrib2 .x -> 0 (free)
+      - PainterAttribute::m_attrib2 .y -> 0 (free)
+      - PainterAttribute::m_attrib2 .z -> 0 (free)
+      - PainterAttribute::m_attrib2 .w -> 0 (free)
      */
     void
     set_data(const reference_counted_ptr<const FilledPath> &path);
@@ -139,15 +150,15 @@ namespace fastuidraw
       index into glyphs of the glyph that failed to be uploaded.
       If all glyphs can be in the cache, then returns the
       size of the array. Data for glyphs is packed as follows:
-      - PainterAttribute::m_primary_attrib .xy   -> xy-texel location in primary atlas
-      - PainterAttribute::m_primary_attrib .zw   -> xy-texel location in secondary atlas
-      - PainterAttribute::m_secondary_attrib .xy -> position in item coordinates
-      - PainterAttribute::m_secondary_attrib .z  -> 0.0 (free)
-      - PainterAttribute::m_secondary_attrib .w  -> 0.0 (free)
-      - PainterAttribute::m_uint_attrib .x -> 0
-      - PainterAttribute::m_uint_attrib .y -> glyph offset
-      - PainterAttribute::m_uint_attrib .z -> layer in primary atlas
-      - PainterAttribute::m_uint_attrib .w -> layer in secondary atlas
+      - PainterAttribute::m_attrib0 .xy   -> xy-texel location in primary atlas (float)
+      - PainterAttribute::m_attrib0 .zw   -> xy-texel location in secondary atlas (float)
+      - PainterAttribute::m_attrib1 .xy -> position in item coordinates (float)
+      - PainterAttribute::m_attrib1 .z  -> 0 (free)
+      - PainterAttribute::m_attrib1 .w  -> 0 (free)
+      - PainterAttribute::m_attrib2 .x -> 0 (free)
+      - PainterAttribute::m_attrib2 .y -> glyph offset (uint)
+      - PainterAttribute::m_attrib2 .z -> layer in primary atlas (uint)
+      - PainterAttribute::m_attrib2 .w -> layer in secondary atlas (uint)
 
       \param glyph_positions position of the bottom left corner of each glyph
       \param glyphs glyphs to draw, array must be same size as glyph_positions
@@ -172,15 +183,15 @@ namespace fastuidraw
       index into glyphs of the glyph that failed to be uploaded.
       If all glyphs can be in the cache, then returns the
       size of the array. Data for glyphs is packed as follows:
-      - PainterAttribute::m_primary_attrib .xy   -> xy-texel location in primary atlas
-      - PainterAttribute::m_primary_attrib .zw   -> xy-texel location in secondary atlas
-      - PainterAttribute::m_secondary_attrib .xy -> position in item coordinates
-      - PainterAttribute::m_secondary_attrib .z  -> 0.0 (free)
-      - PainterAttribute::m_secondary_attrib .w  -> 0.0 (free)
-      - PainterAttribute::m_uint_attrib .x -> 0
-      - PainterAttribute::m_uint_attrib .y -> glyph offset
-      - PainterAttribute::m_uint_attrib .z -> layer in primary atlas
-      - PainterAttribute::m_uint_attrib .w -> layer in secondary atlas
+      - PainterAttribute::m_attrib0 .xy   -> xy-texel location in primary atlas (float)
+      - PainterAttribute::m_attrib0 .zw   -> xy-texel location in secondary atlas (float)
+      - PainterAttribute::m_attrib1 .xy -> position in item coordinates (float)
+      - PainterAttribute::m_attrib1 .z  -> 0 (free)
+      - PainterAttribute::m_attrib1 .w  -> 0 (free)
+      - PainterAttribute::m_attrib2 .x -> 0 (free)
+      - PainterAttribute::m_attrib2 .y -> glyph offset (uint)
+      - PainterAttribute::m_attrib2 .z -> layer in primary atlas (uint)
+      - PainterAttribute::m_attrib2 .w -> layer in secondary atlas (uint)
 
       \param glyph_positions position of the bottom left corner of each glyph
       \param glyphs glyphs to draw, array must be same size as glyph_positions
@@ -203,15 +214,15 @@ namespace fastuidraw
       index into glyphs of the glyph that failed to be uploaded.
       If all glyphs can be in the cache, then returns the
       size of the array. Data for glyphs is packed as follows:
-      - PainterAttribute::m_primary_attrib .xy   -> xy-texel location in primary atlas
-      - PainterAttribute::m_primary_attrib .zw   -> xy-texel location in secondary atlas
-      - PainterAttribute::m_secondary_attrib .xy -> position in item coordinates
-      - PainterAttribute::m_secondary_attrib .z  -> 0.0 (free)
-      - PainterAttribute::m_secondary_attrib .w  -> 0.0 (free)
-      - PainterAttribute::m_uint_attrib .x -> 0
-      - PainterAttribute::m_uint_attrib .y -> glyph offset
-      - PainterAttribute::m_uint_attrib .z -> layer in primary atlas
-      - PainterAttribute::m_uint_attrib .w -> layer in secondary atlas
+      - PainterAttribute::m_attrib0 .xy   -> xy-texel location in primary atlas (float)
+      - PainterAttribute::m_attrib0 .zw   -> xy-texel location in secondary atlas (float)
+      - PainterAttribute::m_attrib1 .xy -> position in item coordinates (float)
+      - PainterAttribute::m_attrib1 .z  -> 0 (free)
+      - PainterAttribute::m_attrib1 .w  -> 0 (free)
+      - PainterAttribute::m_attrib2 .x -> 0 (free)
+      - PainterAttribute::m_attrib2 .y -> glyph offset (uint)
+      - PainterAttribute::m_attrib2 .z -> layer in primary atlas (uint)
+      - PainterAttribute::m_attrib2 .w -> layer in secondary atlas (uint)
 
       \param glyph_positions position of the bottom left corner of each glyph
       \param glyphs glyphs to draw, array must be same size as glyph_positions
@@ -315,6 +326,18 @@ namespace fastuidraw
     static
     int
     winding_number_from_index_chunk(unsigned int idx);
+
+    /*!
+      Returns the value to feed to index_data_chunk()
+      and attribute_data_chunk() for the index and
+      attribute data for the named join.
+      \param tp join type one wishes to access, tp must
+                be a join type.
+      \param J which join to access
+     */
+    static
+    unsigned int
+    chunk_from_join(enum stroking_data_t tp, unsigned int J);
 
   private:
     void *m_d;

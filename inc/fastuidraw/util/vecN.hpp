@@ -1274,36 +1274,36 @@ magnitude_compare(const vecN<T,N> &a,
   /*!
     Conveniance typedef
    */
-  typedef vecN<int, 1> ivec1;
+  typedef vecN<int32_t, 1> ivec1;
   /*!
     Conveniance typedef
    */
-  typedef vecN<int, 2> ivec2;
+  typedef vecN<int32_t, 2> ivec2;
   /*!
     Conveniance typedef
    */
-  typedef vecN<int, 3> ivec3;
+  typedef vecN<int32_t, 3> ivec3;
   /*!
     Conveniance typedef
    */
-  typedef vecN<int, 4> ivec4;
+  typedef vecN<int32_t, 4> ivec4;
 
   /*!
     Conveniance typedef
    */
-  typedef vecN<unsigned int, 1> uvec1;
+  typedef vecN<uint32_t, 1> uvec1;
   /*!
     Conveniance typedef
    */
-  typedef vecN<unsigned int, 2> uvec2;
+  typedef vecN<uint32_t, 2> uvec2;
   /*!
     Conveniance typedef
    */
-  typedef vecN<unsigned int, 3> uvec3;
+  typedef vecN<uint32_t, 3> uvec3;
   /*!
     Conveniance typedef
    */
-  typedef vecN<unsigned int, 4> uvec4;
+  typedef vecN<uint32_t, 4> uvec4;
 
   /*!
     Conveniance typedef
@@ -1440,6 +1440,26 @@ magnitude_compare(const vecN<T,N> &a,
     Conveniance typedef
    */
   typedef vecN<uint64_t, 4> u64vec4;
+
+/*!
+  Pack 4 float values into a vecN<uint32_t, 4>
+  values via pack_float().
+  \param x x-value
+  \param y y-value
+  \param z z-value
+  \param w w-value
+ */
+inline
+uvec4
+pack_vec4(float x, float y, float z, float w)
+{
+  uvec4 return_value;
+  return_value.x() = pack_float(x);
+  return_value.y() = pack_float(y);
+  return_value.z() = pack_float(z);
+  return_value.w() = pack_float(w);
+  return return_value;
+}
 
 /*! @} */
 
