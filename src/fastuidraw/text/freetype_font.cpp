@@ -135,8 +135,7 @@ namespace
     void
     common_compute_rendering_data(int pixel_size, FT_Int32 load_flags,
                                   fastuidraw::GlyphLayoutData &layout,
-                                  uint32_t glyph_code,
-                                  fastuidraw::Path &path);
+                                  uint32_t glyph_code);
 
     void
     compute_rendering_data(int pixel_size, uint32_t glyph_code,
@@ -329,8 +328,7 @@ void
 FontFreeTypePrivate::
 common_compute_rendering_data(int pixel_size, FT_Int32 load_flags,
                               fastuidraw::GlyphLayoutData &output,
-                              uint32_t glyph_code,
-                              fastuidraw::Path &path)
+                              uint32_t glyph_code)
 {
   fastuidraw::ivec2 bitmap_sz, bitmap_offset, iadvance;
 
@@ -348,8 +346,6 @@ common_compute_rendering_data(int pixel_size, FT_Int32 load_flags,
   output.m_glyph_code = glyph_code;
   output.m_pixel_size = pixel_size;
   output.m_font = m_p;
-
-  PathCreator::decompose_to_path(&m_face->glyph->outline, path);
 }
 
 void
@@ -362,7 +358,8 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
   fastuidraw::ivec2 bitmap_sz;
   fastuidraw::autolock_mutex m(m_mutex);
 
-  common_compute_rendering_data(pixel_size, FT_LOAD_DEFAULT, layout, glyph_code, path);
+  common_compute_rendering_data(pixel_size, FT_LOAD_DEFAULT, layout, glyph_code);
+  PathCreator::decompose_to_path(&m_face->glyph->outline, path);
   FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
 
   bitmap_sz.x() = m_face->glyph->bitmap.width;
@@ -412,8 +409,7 @@ compute_rendering_data(uint32_t glyph_code,
 
   m_mutex.lock();
 
-    common_compute_rendering_data(pixel_size, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING,
-                                  layout, glyph_code, path);
+    common_compute_rendering_data(pixel_size, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING, layout, glyph_code);
     FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
 
     bitmap_sz.x() = m_face->glyph->bitmap.width;
@@ -424,6 +420,8 @@ compute_rendering_data(uint32_t glyph_code,
     fastuidraw::detail::OutlineData outline_data(m_face->glyph->outline, bitmap_sz, bitmap_offset, dbg);
 
   m_mutex.unlock();
+
+  outline_data.extract_path(path);
   if(bitmap_sz.x() != 0 && bitmap_sz.y() != 0)
     {
       /* add one pixel slack on glyph
@@ -468,8 +466,7 @@ compute_rendering_data(uint32_t glyph_code,
   fastuidraw::ivec2 bitmap_offset, bitmap_sz;
 
   m_mutex.lock();
-    common_compute_rendering_data(pixel_size, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING,
-                                  layout, glyph_code, path);
+    common_compute_rendering_data(pixel_size, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING, layout, glyph_code);
     FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
     bitmap_sz.x() = m_face->glyph->bitmap.width;
     bitmap_sz.y() = m_face->glyph->bitmap.rows;
@@ -479,6 +476,7 @@ compute_rendering_data(uint32_t glyph_code,
   m_mutex.unlock();
 
   gen.extract_data(output);
+  gen.extract_path(path);
 }
 
 /////////////////////////////////////////////
