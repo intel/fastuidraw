@@ -1,6 +1,6 @@
 /*!
- * \file glyph_layout.hpp
- * \brief file glyph_layout.hpp
+ * \file glyph_layout_data.hpp
+ * \brief file glyph_layout_data.hpp
  *
  * Copyright 2016 by Intel.
  *

@@ -24,7 +24,7 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/text/glyph_location.hpp>
-#include <fastuidraw/text/glyph_render_data.hpp>
+#include <fastuidraw/text/glyph_layout_data.hpp>
 
 namespace fastuidraw
 {
@@ -33,8 +33,6 @@ namespace fastuidraw
 */
 
   class GlyphCache;
-  class GlyphLayoutData;
-  class GlyphAtlas;
 
   /*!
     A Glyph is essentially an opaque pointer to

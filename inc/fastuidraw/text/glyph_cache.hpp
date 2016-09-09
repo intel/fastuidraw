@@ -22,7 +22,7 @@
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/text/glyph_atlas.hpp>
 #include <fastuidraw/text/font.hpp>
-#include <fastuidraw/text/glyph_layout.hpp>
+#include <fastuidraw/text/glyph_layout_data.hpp>
 #include <fastuidraw/text/glyph.hpp>
 
 namespace fastuidraw

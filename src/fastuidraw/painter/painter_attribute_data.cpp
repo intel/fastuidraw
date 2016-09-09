@@ -20,7 +20,6 @@
 #include <algorithm>
 #include <vector>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
-#include <fastuidraw/text/glyph_layout.hpp>
 #include "../private/util_private.hpp"
 
 namespace
