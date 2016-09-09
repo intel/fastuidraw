@@ -47,18 +47,18 @@ egl_gles_context(const params &P, SDL_Window *sdl)
   FASTUIDRAWunused(P);
   FASTUIDRAWunused(sdl);
 #ifdef FASTUIDRAW_GL_USE_GLES
-  
+
   SDL_SysWMinfo wm;
   int egl_major(0), egl_minor(0);
 
   SDL_VERSION(&wm.version);
   SDL_GetWindowWMInfo(sdl, &wm);
   //assert(wm.subsystem == SDL_SYSWM_X11);
-  
+
   m_dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
   eglInitialize(m_dpy, &egl_major, &egl_minor);
   assert_and_check_errors(true);
-  
+
   /* find a config.
    */
   EGLConfig config;
@@ -68,7 +68,7 @@ egl_gles_context(const params &P, SDL_Window *sdl)
     EGLBoolean ret;
 
     renderable_type |= EGL_OPENGL_ES2_BIT;
-    
+
     config_attribs[n++] = EGL_RED_SIZE;
     config_attribs[n++] = P.m_red_bits;
     config_attribs[n++] = EGL_GREEN_SIZE;
