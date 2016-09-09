@@ -31,6 +31,9 @@
 #include "private/freetype_curvepair_util.hpp"
 #include "../private/util_private.hpp"
 
+#include <ft2build.h>
+#include FT_OUTLINE_H
+
 namespace
 {
   float
@@ -69,6 +72,25 @@ namespace
     unsigned int m_curve_pair_pixel_size;
   };
 
+  class PathAndStart
+  {
+  public:
+    PathAndStart(fastuidraw::Path &p):
+      m_path(p),
+      m_started(false)
+    {}
+
+    fastuidraw::Path &m_path;
+    FT_Vector m_pt;
+    bool m_started;
+  };
+
+  bool
+  operator==(const FT_Vector &lhs, const FT_Vector &rhs)
+  {
+    return lhs.x == rhs.x && lhs.y == rhs.y;
+  }
+
   class FontFreeTypePrivate
   {
   public:
@@ -87,22 +109,56 @@ namespace
     void
     common_compute_rendering_data(int pixel_size, FT_Int32 load_flags,
                                   fastuidraw::GlyphLayoutData &layout,
-                                  uint32_t glyph_code);
+                                  uint32_t glyph_code,
+                                  fastuidraw::Path &path);
 
     void
     compute_rendering_data(int pixel_size, uint32_t glyph_code,
                            fastuidraw::GlyphLayoutData &layout,
-                           fastuidraw::GlyphRenderDataCoverage &output);
+                           fastuidraw::GlyphRenderDataCoverage &output,
+                           fastuidraw::Path &path);
 
     void
     compute_rendering_data(uint32_t glyph_code,
                            fastuidraw::GlyphLayoutData &layout,
-                           fastuidraw::GlyphRenderDataDistanceField &output);
+                           fastuidraw::GlyphRenderDataDistanceField &output,
+                           fastuidraw::Path &path);
 
     void
     compute_rendering_data(uint32_t glyph_code,
                            fastuidraw::GlyphLayoutData &layout,
-                           fastuidraw::GlyphRenderDataCurvePair &output);
+                           fastuidraw::GlyphRenderDataCurvePair &output,
+                           fastuidraw::Path &path);
+
+    static
+    int
+    ft_outline_move_to(const FT_Vector *pt, void *user);
+
+    static
+    int
+    ft_outline_line_to(const FT_Vector *pt, void *user);
+
+    static
+    int
+    ft_outline_conic_to(const FT_Vector *control_pt,
+                        const FT_Vector *pt, void *user);
+
+    static
+    int
+    ft_outline_cubic_to(const FT_Vector *control_pt1,
+                        const FT_Vector *control_pt2,
+                        const FT_Vector *pt, void *user);
+
+    static
+    fastuidraw::vec2
+    make_vec2(const FT_Vector &pt)
+    {
+      fastuidraw::vec2 r;
+      // pt should be 26.6 format
+      r.x() = static_cast<float>(pt.x) / 64.0f;
+      r.y() = static_cast<float>(pt.y) / 64.0f;
+      return r;
+    }
 
     boost::mutex m_mutex;
     FT_Face m_face;
@@ -154,11 +210,89 @@ common_init(void)
   FT_Set_Transform(m_face, NULL, NULL);
 }
 
+int
+FontFreeTypePrivate::
+ft_outline_move_to(const FT_Vector *pt, void *user)
+{
+  PathAndStart *p;
+  p = reinterpret_cast<PathAndStart*>(user);
+
+  assert(!p->m_started);
+  p->m_started = true;
+  p->m_pt = *pt;
+  p->m_path.move(make_vec2(*pt));
+  return 0;
+}
+
+int
+FontFreeTypePrivate::
+ft_outline_line_to(const FT_Vector *pt, void *user)
+{
+  PathAndStart *p;
+  p = reinterpret_cast<PathAndStart*>(user);
+
+  assert(p->m_started);
+  if(p->m_pt == *pt)
+    {
+      p->m_path << fastuidraw::Path::contour_end();
+      p->m_started = false;
+    }
+  else
+    {
+      p->m_path.line_to(make_vec2(*pt));
+    }
+  return 0;
+}
+
+int
+FontFreeTypePrivate::
+ft_outline_conic_to(const FT_Vector *ct,
+                    const FT_Vector *pt, void *user)
+{
+  PathAndStart *p;
+  p = reinterpret_cast<PathAndStart*>(user);
+
+  assert(p->m_started);
+  if(p->m_pt == *pt)
+    {
+      p->m_path.end_contour_quadratic(make_vec2(*ct));
+      p->m_started = false;
+    }
+  else
+    {
+      p->m_path.quadratic_to(make_vec2(*ct), make_vec2(*pt));
+    }
+  return 0;
+}
+
+int
+FontFreeTypePrivate::
+ft_outline_cubic_to(const FT_Vector *ct1,
+                    const FT_Vector *ct2,
+                    const FT_Vector *pt, void *user)
+{
+  PathAndStart *p;
+  p = reinterpret_cast<PathAndStart*>(user);
+
+  assert(p->m_started);
+  if(p->m_pt == *pt)
+    {
+      p->m_path.end_contour_cubic(make_vec2(*ct1), make_vec2(*ct2));
+      p->m_started = false;
+    }
+  else
+    {
+      p->m_path.cubic_to(make_vec2(*ct1), make_vec2(*ct2), make_vec2(*pt));
+    }
+  return 0;
+}
+
 void
 FontFreeTypePrivate::
 common_compute_rendering_data(int pixel_size, FT_Int32 load_flags,
                               fastuidraw::GlyphLayoutData &output,
-                              uint32_t glyph_code)
+                              uint32_t glyph_code,
+                              fastuidraw::Path &path)
 {
   fastuidraw::ivec2 bitmap_sz, bitmap_offset, iadvance;
 
@@ -176,18 +310,30 @@ common_compute_rendering_data(int pixel_size, FT_Int32 load_flags,
   output.m_glyph_code = glyph_code;
   output.m_pixel_size = pixel_size;
   output.m_font = m_p;
+
+  FT_Outline_Funcs funcs;
+  PathAndStart user(path);
+
+  funcs.move_to = &ft_outline_move_to;
+  funcs.line_to = &ft_outline_line_to;
+  funcs.conic_to = &ft_outline_conic_to;
+  funcs.cubic_to = &ft_outline_cubic_to;
+  funcs.shift = 0;
+  funcs.delta = 0;
+  FT_Outline_Decompose(&m_face->glyph->outline, &funcs, &user);
 }
 
 void
 FontFreeTypePrivate::
 compute_rendering_data(int pixel_size, uint32_t glyph_code,
                        fastuidraw::GlyphLayoutData &layout,
-                       fastuidraw::GlyphRenderDataCoverage &output)
+                       fastuidraw::GlyphRenderDataCoverage &output,
+                       fastuidraw::Path &path)
 {
   fastuidraw::ivec2 bitmap_sz;
   fastuidraw::autolock_mutex m(m_mutex);
 
-  common_compute_rendering_data(pixel_size, FT_LOAD_DEFAULT, layout, glyph_code);
+  common_compute_rendering_data(pixel_size, FT_LOAD_DEFAULT, layout, glyph_code, path);
   FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
 
   bitmap_sz.x() = m_face->glyph->bitmap.width;
@@ -224,7 +370,8 @@ void
 FontFreeTypePrivate::
 compute_rendering_data(uint32_t glyph_code,
                        fastuidraw::GlyphLayoutData &layout,
-                       fastuidraw::GlyphRenderDataDistanceField &output)
+                       fastuidraw::GlyphRenderDataDistanceField &output,
+                       fastuidraw::Path &path)
 {
   int pixel_size(m_render_params.distance_field_pixel_size());
   float max_distance(m_render_params.distance_field_max_distance());
@@ -236,7 +383,8 @@ compute_rendering_data(uint32_t glyph_code,
 
   m_mutex.lock();
 
-    common_compute_rendering_data(pixel_size, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING, layout, glyph_code);
+    common_compute_rendering_data(pixel_size, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING,
+                                  layout, glyph_code, path);
     FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
 
     bitmap_sz.x() = m_face->glyph->bitmap.width;
@@ -284,13 +432,15 @@ void
 FontFreeTypePrivate::
 compute_rendering_data(uint32_t glyph_code,
                        fastuidraw::GlyphLayoutData &layout,
-                       fastuidraw::GlyphRenderDataCurvePair &output)
+                       fastuidraw::GlyphRenderDataCurvePair &output,
+                       fastuidraw::Path &path)
 {
   int pixel_size(m_render_params.curve_pair_pixel_size());
   fastuidraw::ivec2 bitmap_offset, bitmap_sz;
 
   m_mutex.lock();
-    common_compute_rendering_data(pixel_size, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING, layout, glyph_code);
+    common_compute_rendering_data(pixel_size, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING,
+                                  layout, glyph_code, path);
     FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
     bitmap_sz.x() = m_face->glyph->bitmap.width;
     bitmap_sz.y() = m_face->glyph->bitmap.rows;
@@ -467,15 +617,13 @@ compute_rendering_data(GlyphRender render, uint32_t glyph_code,
   FontFreeTypePrivate *d;
   d = reinterpret_cast<FontFreeTypePrivate*>(m_d);
 
-  /* TODO: Grab the Path from libFreeType
-   */
   switch(render.m_type)
     {
     case coverage_glyph:
       {
         GlyphRenderDataCoverage *data;
         data = FASTUIDRAWnew GlyphRenderDataCoverage();
-        d->compute_rendering_data(render.m_pixel_size, glyph_code, layout, *data);
+        d->compute_rendering_data(render.m_pixel_size, glyph_code, layout, *data, path);
         return data;
       }
       break;
@@ -484,7 +632,7 @@ compute_rendering_data(GlyphRender render, uint32_t glyph_code,
       {
         GlyphRenderDataDistanceField *data;
         data = FASTUIDRAWnew GlyphRenderDataDistanceField();
-        d->compute_rendering_data(glyph_code, layout, *data);
+        d->compute_rendering_data(glyph_code, layout, *data, path);
         return data;
       }
       break;
@@ -493,7 +641,7 @@ compute_rendering_data(GlyphRender render, uint32_t glyph_code,
       {
         GlyphRenderDataCurvePair *data;
         data = FASTUIDRAWnew GlyphRenderDataCurvePair();
-        d->compute_rendering_data(glyph_code, layout, *data);
+        d->compute_rendering_data(glyph_code, layout, *data, path);
         return data;
       }
       break;
