@@ -527,6 +527,13 @@ public:
   operator=(const Path &rhs);
 
   /*!
+    Clear the path, i.e. remove all PathContour's from the
+    path
+   */
+  void
+  clear(void);
+
+  /*!
     Swap contents of Path with another Path
     \param obj Path with which to swap
    */
