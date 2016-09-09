@@ -72,13 +72,39 @@ namespace
     unsigned int m_curve_pair_pixel_size;
   };
 
-  class PathAndStart
+  class PathCreator
   {
   public:
-    PathAndStart(fastuidraw::Path &p):
-      m_path(p),
-      m_started(false)
-    {}
+
+    static
+    void
+    decompose_to_path(FT_Outline *outline, fastuidraw::Path &p);
+
+  private:
+    PathCreator(fastuidraw::Path &p);
+
+    static
+    int
+    ft_outline_move_to(const FT_Vector *pt, void *user);
+
+    static
+    int
+    ft_outline_line_to(const FT_Vector *pt, void *user);
+
+    static
+    int
+    ft_outline_conic_to(const FT_Vector *control_pt,
+                        const FT_Vector *pt, void *user);
+
+    static
+    int
+    ft_outline_cubic_to(const FT_Vector *control_pt1,
+                        const FT_Vector *control_pt2,
+                        const FT_Vector *pt, void *user);
+
+    static
+    fastuidraw::vec2
+    make_vec2(const FT_Vector &pt);
 
     fastuidraw::Path &m_path;
     FT_Vector m_pt;
@@ -130,36 +156,6 @@ namespace
                            fastuidraw::GlyphRenderDataCurvePair &output,
                            fastuidraw::Path &path);
 
-    static
-    int
-    ft_outline_move_to(const FT_Vector *pt, void *user);
-
-    static
-    int
-    ft_outline_line_to(const FT_Vector *pt, void *user);
-
-    static
-    int
-    ft_outline_conic_to(const FT_Vector *control_pt,
-                        const FT_Vector *pt, void *user);
-
-    static
-    int
-    ft_outline_cubic_to(const FT_Vector *control_pt1,
-                        const FT_Vector *control_pt2,
-                        const FT_Vector *pt, void *user);
-
-    static
-    fastuidraw::vec2
-    make_vec2(const FT_Vector &pt)
-    {
-      fastuidraw::vec2 r;
-      // pt should be 26.6 format
-      r.x() = static_cast<float>(pt.x) / 64.0f;
-      r.y() = static_cast<float>(pt.y) / 64.0f;
-      return r;
-    }
-
     boost::mutex m_mutex;
     FT_Face m_face;
     fastuidraw::FontFreeType::RenderParams m_render_params;
@@ -167,6 +163,125 @@ namespace
     fastuidraw::FontFreeType *m_p;
   };
 }
+
+//////////////////////////////////////////
+// PathCreator methods
+PathCreator::
+PathCreator(fastuidraw::Path &p):
+  m_path(p),
+  m_started(false)
+{}
+
+void
+PathCreator::
+decompose_to_path(FT_Outline *outline, fastuidraw::Path &p)
+{
+  PathCreator datum(p);
+  FT_Outline_Funcs funcs;
+
+  funcs.move_to = &ft_outline_move_to;
+  funcs.line_to = &ft_outline_line_to;
+  funcs.conic_to = &ft_outline_conic_to;
+  funcs.cubic_to = &ft_outline_cubic_to;
+  funcs.shift = 0;
+  funcs.delta = 0;
+  FT_Outline_Decompose(outline, &funcs, &datum);
+}
+
+fastuidraw::vec2
+PathCreator::
+make_vec2(const FT_Vector &pt)
+{
+  fastuidraw::vec2 r;
+  // pt should be 26.6 format
+  r.x() = static_cast<float>(pt.x) / 64.0f;
+  r.y() = -static_cast<float>(pt.y) / 64.0f;
+  return r;
+}
+
+int
+PathCreator::
+ft_outline_move_to(const FT_Vector *pt, void *user)
+{
+  PathCreator *p;
+  p = reinterpret_cast<PathCreator*>(user);
+
+  assert(!p->m_started);
+  p->m_started = true;
+  p->m_pt = *pt;
+  p->m_path << make_vec2(*pt);
+  return 0;
+}
+
+int
+PathCreator::
+ft_outline_line_to(const FT_Vector *pt, void *user)
+{
+  PathCreator *p;
+  p = reinterpret_cast<PathCreator*>(user);
+
+  assert(p->m_started);
+  if(p->m_pt == *pt)
+    {
+      p->m_path << fastuidraw::Path::contour_end();
+      p->m_started = false;
+    }
+  else
+    {
+      p->m_path << make_vec2(*pt);
+    }
+  return 0;
+}
+
+int
+PathCreator::
+ft_outline_conic_to(const FT_Vector *ct,
+                    const FT_Vector *pt, void *user)
+{
+  PathCreator *p;
+  p = reinterpret_cast<PathCreator*>(user);
+
+  assert(p->m_started);
+  if(p->m_pt == *pt)
+    {
+      p->m_path << fastuidraw::Path::control_point(make_vec2(*ct))
+                << fastuidraw::Path::contour_end();
+      p->m_started = false;
+    }
+  else
+    {
+      p->m_path << fastuidraw::Path::control_point(make_vec2(*ct))
+                << make_vec2(*pt);
+    }
+  return 0;
+}
+
+int
+PathCreator::
+ft_outline_cubic_to(const FT_Vector *ct1,
+                    const FT_Vector *ct2,
+                    const FT_Vector *pt, void *user)
+{
+  PathCreator *p;
+  p = reinterpret_cast<PathCreator*>(user);
+
+  assert(p->m_started);
+  if(p->m_pt == *pt)
+    {
+      p->m_path << fastuidraw::Path::control_point(make_vec2(*ct1))
+                << fastuidraw::Path::control_point(make_vec2(*ct2))
+                << fastuidraw::Path::contour_end();
+      p->m_started = false;
+    }
+  else
+    {
+      p->m_path << fastuidraw::Path::control_point(make_vec2(*ct1))
+                << fastuidraw::Path::control_point(make_vec2(*ct2))
+                << make_vec2(*pt);
+    }
+  return 0;
+}
+
 
 //////////////////////////////////////////////////
 // FontFreeTypePrivate methods
@@ -210,83 +325,6 @@ common_init(void)
   FT_Set_Transform(m_face, NULL, NULL);
 }
 
-int
-FontFreeTypePrivate::
-ft_outline_move_to(const FT_Vector *pt, void *user)
-{
-  PathAndStart *p;
-  p = reinterpret_cast<PathAndStart*>(user);
-
-  assert(!p->m_started);
-  p->m_started = true;
-  p->m_pt = *pt;
-  p->m_path.move(make_vec2(*pt));
-  return 0;
-}
-
-int
-FontFreeTypePrivate::
-ft_outline_line_to(const FT_Vector *pt, void *user)
-{
-  PathAndStart *p;
-  p = reinterpret_cast<PathAndStart*>(user);
-
-  assert(p->m_started);
-  if(p->m_pt == *pt)
-    {
-      p->m_path << fastuidraw::Path::contour_end();
-      p->m_started = false;
-    }
-  else
-    {
-      p->m_path.line_to(make_vec2(*pt));
-    }
-  return 0;
-}
-
-int
-FontFreeTypePrivate::
-ft_outline_conic_to(const FT_Vector *ct,
-                    const FT_Vector *pt, void *user)
-{
-  PathAndStart *p;
-  p = reinterpret_cast<PathAndStart*>(user);
-
-  assert(p->m_started);
-  if(p->m_pt == *pt)
-    {
-      p->m_path.end_contour_quadratic(make_vec2(*ct));
-      p->m_started = false;
-    }
-  else
-    {
-      p->m_path.quadratic_to(make_vec2(*ct), make_vec2(*pt));
-    }
-  return 0;
-}
-
-int
-FontFreeTypePrivate::
-ft_outline_cubic_to(const FT_Vector *ct1,
-                    const FT_Vector *ct2,
-                    const FT_Vector *pt, void *user)
-{
-  PathAndStart *p;
-  p = reinterpret_cast<PathAndStart*>(user);
-
-  assert(p->m_started);
-  if(p->m_pt == *pt)
-    {
-      p->m_path.end_contour_cubic(make_vec2(*ct1), make_vec2(*ct2));
-      p->m_started = false;
-    }
-  else
-    {
-      p->m_path.cubic_to(make_vec2(*ct1), make_vec2(*ct2), make_vec2(*pt));
-    }
-  return 0;
-}
-
 void
 FontFreeTypePrivate::
 common_compute_rendering_data(int pixel_size, FT_Int32 load_flags,
@@ -311,16 +349,7 @@ common_compute_rendering_data(int pixel_size, FT_Int32 load_flags,
   output.m_pixel_size = pixel_size;
   output.m_font = m_p;
 
-  FT_Outline_Funcs funcs;
-  PathAndStart user(path);
-
-  funcs.move_to = &ft_outline_move_to;
-  funcs.line_to = &ft_outline_line_to;
-  funcs.conic_to = &ft_outline_conic_to;
-  funcs.cubic_to = &ft_outline_cubic_to;
-  funcs.shift = 0;
-  funcs.delta = 0;
-  FT_Outline_Decompose(&m_face->glyph->outline, &funcs, &user);
+  PathCreator::decompose_to_path(&m_face->glyph->outline, path);
 }
 
 void
