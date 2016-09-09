@@ -41,14 +41,19 @@ private:
   ready_glyph_attribute_data(void);
 
   void
-  compute_glyphs_and_positions(GlyphRender renderer, float pixel_size_formatting,
-                               std::vector<Glyph> &glyphs,
-                               std::vector<vec2> &positions,
+  compute_glyphs_and_positions(GlyphRender renderer,
+                               float pixel_size_formatting,
+                               std::vector<Glyph> &out_glyphs,
                                std::vector<uint32_t> &character_codes);
 
   void
-  change_glyph_renderer(GlyphRender renderer, c_array<Glyph> glyphs,
+  change_glyph_renderer(GlyphRender renderer,
+                        const_c_array<Glyph> in_glyphs,
+                        std::vector<Glyph> &out_glyphs,
                         const_c_array<uint32_t> character_codes);
+
+  void
+  update_cts_params(void);
 
   enum
     {
@@ -70,15 +75,21 @@ private:
   command_line_argument_value<bool> m_use_file;
   command_line_argument_value<bool> m_draw_glyph_set;
   command_line_argument_value<float> m_render_pixel_size;
+  command_line_argument_value<float> m_change_stroke_width_rate;
 
   reference_counted_ptr<const FontFreeType> m_font;
 
   vecN<PainterAttributeData, number_draw_modes> m_draws;
   vecN<std::string, number_draw_modes> m_draw_labels;
+  vecN<std::vector<Glyph>, number_draw_modes> m_glyphs;
+  std::vector<vec2> m_glyph_positions;
 
   bool m_use_anisotropic_anti_alias;
+  bool m_stroke_glyphs;
+  float m_stroke_width;
   unsigned int m_current_drawer;
   PanZoomTrackerSDLEvent m_zoomer;
+  simple_time m_draw_timer;
 };
 
 
@@ -102,7 +113,13 @@ painter_glyph_test(void):
   m_use_file(false, "use_file", "if true the value for text gives a filename to display", *this),
   m_draw_glyph_set(false, "draw_glyph_set", "if true, display all glyphs of font instead of text", *this),
   m_render_pixel_size(24.0f, "render_pixel_size", "pixel size at which to display glyphs", *this),
+  m_change_stroke_width_rate(10.0f, "change_stroke_width_rate",
+                             "rate of change in pixels/sec for changing stroke width "
+                             "when changing stroke when key is down",
+                             *this),
   m_use_anisotropic_anti_alias(false),
+  m_stroke_glyphs(false),
+  m_stroke_width(1.0f),
   m_current_drawer(draw_glyph_curvepair)
 {
   std::cout << "Controls:\n"
@@ -111,6 +128,9 @@ painter_glyph_test(void):
             << "\ta:Toggle using anistropic anti-alias glyph rendering\n"
             << "\td:Cycle though text renderer\n"
             << "\tz:reset zoom factor to 1.0\n"
+            << "\ts: toggle stroking glyph path\n"
+            << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
+            << "\t]: increase stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\tMouse Drag (left button): pan\n"
             << "\tHold Mouse (left button), then drag up/down: zoom out/in\n";
 }
@@ -161,27 +181,36 @@ derived_init(int w, int h)
       return;
     }
 
+  //put into unit of per ms
+  m_change_stroke_width_rate.m_value /= 1000.0f;
+
   ready_glyph_attribute_data();
+  m_draw_timer.restart();
 }
 
 
 void
 painter_glyph_test::
-change_glyph_renderer(GlyphRender renderer, c_array<Glyph> glyphs, const_c_array<uint32_t> character_codes)
+change_glyph_renderer(GlyphRender renderer,
+                      const_c_array<Glyph> in_glyphs,
+                      std::vector<Glyph> &out_glyphs,
+                      const_c_array<uint32_t> character_codes)
 {
-  for(unsigned int i = 0; i < glyphs.size(); ++i)
+  out_glyphs.resize(in_glyphs.size());
+  for(unsigned int i = 0; i < in_glyphs.size(); ++i)
     {
-      if(glyphs[i].valid())
+      if(in_glyphs[i].valid())
         {
-          glyphs[i] = m_glyph_selector->fetch_glyph_no_merging(renderer, glyphs[i].layout().m_font, character_codes[i]);
+          out_glyphs[i] = m_glyph_selector->fetch_glyph_no_merging(renderer, in_glyphs[i].layout().m_font, character_codes[i]);
         }
     }
 }
 
 void
 painter_glyph_test::
-compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_formatting,
-                             std::vector<Glyph> &glyphs, std::vector<vec2> &positions,
+compute_glyphs_and_positions(fastuidraw::GlyphRender renderer,
+                             float pixel_size_formatting,
+                             std::vector<Glyph> &out_glyphs,
                              std::vector<uint32_t> &character_codes)
 {
   if(m_draw_glyph_set.m_value)
@@ -219,22 +248,22 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
           assert(g.valid());
           assert(g.layout().m_glyph_code == uint32_t(glyph_index));
           max_height = std::max(max_height, g.layout().m_size.x());
-          glyphs.push_back(g);
+          out_glyphs.push_back(g);
           character_codes.push_back(character_code);
         }
 
-      positions.resize(glyphs.size());
+      m_glyph_positions.resize(out_glyphs.size());
 
       vec2 pen(0.0f, scale_factor * max_height);
-      for(navigator_chars = 0, i = 0, endi = glyphs.size(), glyph_at_start = 0; i < endi; ++i)
+      for(navigator_chars = 0, i = 0, endi = out_glyphs.size(), glyph_at_start = 0; i < endi; ++i)
         {
           Glyph g;
           float advance;
 
-          g = glyphs[i];
+          g = out_glyphs[i];
           advance = scale_factor * std::max(g.layout().m_advance.x(), g.layout().m_size.x());
 
-          positions[i] = pen;
+          m_glyph_positions[i] = pen;
           pen.x() += advance;
           if(pen.x() >= line_length)
             {
@@ -246,15 +275,15 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
 
               pen.y() += scale_factor * max_height;
               pen.x() = 0.0f;
-              positions[i] = pen;
+              m_glyph_positions[i] = pen;
               pen.x() += advance;
               glyph_at_start = i + 1;
             }
         }
 
-      character_codes.reserve(glyphs.size() + navigator_chars);
-      positions.reserve(glyphs.size() + navigator_chars);
-      glyphs.reserve(glyphs.size() + navigator_chars);
+      character_codes.reserve(out_glyphs.size() + navigator_chars);
+      m_glyph_positions.reserve(out_glyphs.size() + navigator_chars);
+      out_glyphs.reserve(out_glyphs.size() + navigator_chars);
 
       std::vector<fastuidraw::Glyph> temp_glyphs;
       std::vector<fastuidraw::vec2> temp_positions;
@@ -273,9 +302,9 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
           assert(temp_glyphs.size() == temp_positions.size());
           for(unsigned int c = 0; c < temp_glyphs.size(); ++c)
             {
-              glyphs.push_back(temp_glyphs[c]);
+              out_glyphs.push_back(temp_glyphs[c]);
               character_codes.push_back(temp_character_codes[c]);
-              positions.push_back(vec2(line_length + temp_positions[c].x(), nav_iter->first) );
+              m_glyph_positions.push_back(vec2(line_length + temp_positions[c].x(), nav_iter->first) );
             }
         }
     }
@@ -285,7 +314,8 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
       if(istr)
         {
           create_formatted_text(istr, renderer, pixel_size_formatting,
-                                m_font, m_glyph_selector, glyphs, positions,
+                                m_font, m_glyph_selector,
+                                out_glyphs, m_glyph_positions,
                                 character_codes);
         }
     }
@@ -293,7 +323,8 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
     {
       std::istringstream istr(m_text.m_value);
       create_formatted_text(istr, renderer, pixel_size_formatting,
-                            m_font, m_glyph_selector, glyphs, positions,
+                            m_font, m_glyph_selector,
+                            out_glyphs, m_glyph_positions,
                             character_codes);
     }
 }
@@ -304,28 +335,39 @@ void
 painter_glyph_test::
 ready_glyph_attribute_data(void)
 {
-  std::vector<vec2> glyph_positions;
-  std::vector<Glyph> glyphs;
   std::vector<uint32_t> character_codes;
 
   {
     GlyphRender renderer(m_coverage_pixel_size.m_value);
-    compute_glyphs_and_positions(renderer, m_render_pixel_size.m_value, glyphs, glyph_positions, character_codes);
-    m_draws[draw_glyph_coverage].set_data(cast_c_array(glyph_positions), cast_c_array(glyphs), m_render_pixel_size.m_value);
+    compute_glyphs_and_positions(renderer, m_render_pixel_size.m_value,
+                                 m_glyphs[draw_glyph_coverage], character_codes);
+    m_draws[draw_glyph_coverage].set_data(cast_c_array(m_glyph_positions),
+                                          cast_c_array(m_glyphs[draw_glyph_coverage]),
+                                          m_render_pixel_size.m_value);
     m_draw_labels[draw_glyph_coverage] = "draw_glyph_coverage";
   }
 
   {
     GlyphRender renderer(distance_field_glyph);
-    change_glyph_renderer(renderer, cast_c_array(glyphs), cast_c_array(character_codes));
-    m_draws[draw_glyph_distance].set_data(cast_c_array(glyph_positions), cast_c_array(glyphs), m_render_pixel_size.m_value);
+    change_glyph_renderer(renderer,
+                          cast_c_array(m_glyphs[draw_glyph_coverage]),
+                          m_glyphs[draw_glyph_distance],
+                          cast_c_array(character_codes));
+    m_draws[draw_glyph_distance].set_data(cast_c_array(m_glyph_positions),
+                                          cast_c_array(m_glyphs[draw_glyph_distance]),
+                                          m_render_pixel_size.m_value);
     m_draw_labels[draw_glyph_distance] = "draw_glyph_distance";
   }
 
   {
     GlyphRender renderer(curve_pair_glyph);
-    change_glyph_renderer(renderer, cast_c_array(glyphs), cast_c_array(character_codes));
-    m_draws[draw_glyph_curvepair].set_data(cast_c_array(glyph_positions), cast_c_array(glyphs), m_render_pixel_size.m_value);
+    change_glyph_renderer(renderer,
+                          cast_c_array(m_glyphs[draw_glyph_coverage]),
+                          m_glyphs[draw_glyph_curvepair],
+                          cast_c_array(character_codes));
+    m_draws[draw_glyph_curvepair].set_data(cast_c_array(m_glyph_positions),
+                                           cast_c_array(m_glyphs[draw_glyph_curvepair]),
+                                           m_render_pixel_size.m_value);
     m_draw_labels[draw_glyph_curvepair] = "draw_glyph_curvepair";
   }
 }
@@ -334,6 +376,8 @@ void
 painter_glyph_test::
 draw_frame(void)
 {
+  update_cts_params();
+
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
   m_painter->begin();
   ivec2 wh(dimensions());
@@ -346,7 +390,77 @@ draw_frame(void)
   m_painter->draw_glyphs(PainterData(&brush),
                          m_draws[m_current_drawer],
                          m_use_anisotropic_anti_alias);
+
+  if(m_stroke_glyphs)
+    {
+      PainterBrush stroke_brush;
+      stroke_brush.pen(0.0, 1.0, 1.0, 0.8);
+
+      PainterStrokeParams st;
+      st.miter_limit(1.0f);
+      st.width(m_stroke_width);
+
+      // reuse stroke and brush parameters across all glyphs
+      PainterPackedValue<PainterBrush> pbr;
+      pbr = m_painter->packed_value_pool().create_packed_value(stroke_brush);
+
+      PainterPackedValue<PainterItemShaderData> pst;
+      pst = m_painter->packed_value_pool().create_packed_value(st);
+
+      for(unsigned int i = 0; i < m_glyphs[m_current_drawer].size(); ++i)
+        {
+          if(m_glyphs[m_current_drawer][i].valid())
+            {
+              m_painter->save();
+              m_painter->translate(m_glyph_positions[i]);
+
+              //make the scale of the path match how we scaled the text.
+              float sc;
+              sc = static_cast<float>(m_render_pixel_size.m_value) / static_cast<float>(m_glyphs[m_current_drawer][i].layout().m_pixel_size);
+              m_painter->scale(sc);
+              m_painter->stroke_path(PainterData(pst, pbr),
+                                     m_glyphs[m_current_drawer][i].path(),
+                                     PainterEnums::close_contours, PainterEnums::miter_joins,
+                                     true);
+              m_painter->restore();
+            }
+        }
+    }
+
   m_painter->end();
+}
+
+void
+painter_glyph_test::
+update_cts_params(void)
+{
+  const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
+  assert(keyboard_state != NULL);
+
+  float speed;
+  speed = static_cast<float>(m_draw_timer.restart());
+  speed *= m_change_stroke_width_rate.m_value;
+  speed /= m_zoomer.transformation().scale();
+
+  if(keyboard_state[SDL_SCANCODE_LSHIFT])
+    {
+      speed *= 0.1f;
+    }
+  if(keyboard_state[SDL_SCANCODE_RSHIFT])
+    {
+      speed *= 10.0f;
+    }
+
+  if(keyboard_state[SDL_SCANCODE_RIGHTBRACKET])
+    {
+      m_stroke_width += speed;
+    }
+
+  if(keyboard_state[SDL_SCANCODE_LEFTBRACKET] && m_stroke_width > 0.0f)
+    {
+      m_stroke_width -= speed;
+      m_stroke_width = fastuidraw::t_max(m_stroke_width, 0.0f);
+    }
 }
 
 void
@@ -398,6 +512,18 @@ handle_event(const SDL_Event &ev)
             tr = m_zoomer.transformation();
             p = fixed_point - (fixed_point - tr.translation()) / tr.scale();
             m_zoomer.transformation(ScaleTranslate<float>(p));
+          }
+          break;
+
+        case SDLK_s:
+          {
+            m_stroke_glyphs = !m_stroke_glyphs;
+            std::cout << "Set to ";
+            if(!m_stroke_glyphs)
+              {
+                std::cout << "not ";
+              }
+            std::cout << " stroke glyph paths\n";
           }
           break;
         }
