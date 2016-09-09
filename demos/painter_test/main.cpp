@@ -33,7 +33,7 @@ protected:
       std::ofstream file(name.str().c_str());
       file << pr->log();
 
-      std::cout << "Program Log and contents written to " << name << "\n";
+      std::cout << "Program Log and contents written to " << name.str() << "\n";
     }
 
     std::cout << "Vertex shaders written to:\n";
