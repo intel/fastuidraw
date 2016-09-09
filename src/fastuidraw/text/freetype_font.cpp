@@ -21,7 +21,7 @@
 #include <boost/thread.hpp>
 
 #include <fastuidraw/text/freetype_font.hpp>
-#include <fastuidraw/text/glyph_layout.hpp>
+#include <fastuidraw/text/glyph_layout_data.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
 #include <fastuidraw/text/glyph_render_data_curve_pair.hpp>
 #include <fastuidraw/text/glyph_render_data_distance_field.hpp>
