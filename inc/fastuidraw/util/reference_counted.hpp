@@ -288,6 +288,22 @@ namespace fastuidraw
     }
 
     /*!
+      Clears the reference_counted_ptr object,
+      equivalent to
+      \code
+      operator=(reference_counted_ptr());
+      \endcode
+     */
+    void
+    clear(void)
+    {
+      if(m_p)
+        {
+          T::remove_reference(m_p);
+          m_p = NULL;
+        }
+    }
+    /*!
       Perform static cast to down cast (uses static_cast internally).
       \tparam U type to which to cast
      */
