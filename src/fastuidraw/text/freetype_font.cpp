@@ -461,11 +461,14 @@ can_create_rendering_data(enum glyph_type tp) const
 
 fastuidraw::GlyphRenderData*
 fastuidraw::FontFreeType::
-compute_rendering_data(GlyphRender render, uint32_t glyph_code, GlyphLayoutData &layout) const
+compute_rendering_data(GlyphRender render, uint32_t glyph_code,
+                       GlyphLayoutData &layout, Path &path) const
 {
   FontFreeTypePrivate *d;
   d = reinterpret_cast<FontFreeTypePrivate*>(m_d);
 
+  /* TODO: Grab the Path from libFreeType
+   */
   switch(render.m_type)
     {
     case coverage_glyph:

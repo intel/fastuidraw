@@ -22,6 +22,7 @@
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
+#include <fastuidraw/path.hpp>
 #include <fastuidraw/text/font_properties.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
 
@@ -91,11 +92,13 @@ namespace fastuidraw
                     it is guaranteed by the caller that can_create_rendering_data()
                     returns true on render.type()
       \param glyph_code glyph code of glyph rendering data to create
-      \param layout location to which to place the GlyphLayoutData for the glyph
+      \param [output] layout location to which to place the GlyphLayoutData for the glyph
+      \param [output] path Path of the glyph
      */
     virtual
     GlyphRenderData*
-    compute_rendering_data(GlyphRender render, uint32_t glyph_code, GlyphLayoutData &layout) const = 0;
+    compute_rendering_data(GlyphRender render, uint32_t glyph_code,
+                           GlyphLayoutData &layout, Path &path) const = 0;
 
   private:
     FontProperties m_props;

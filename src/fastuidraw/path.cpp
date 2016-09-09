@@ -1077,6 +1077,16 @@ fastuidraw::Path::
   m_d = NULL;
 }
 
+void
+fastuidraw::Path::
+clear(void)
+{
+  PathPrivate *d;
+  d = reinterpret_cast<PathPrivate*>(m_d);
+  d->m_tessellation.clear();
+  d->m_contours.clear();
+}
+
 fastuidraw::Path&
 fastuidraw::Path::
 add_contour(const reference_counted_ptr<const PathContour> &pcontour)
