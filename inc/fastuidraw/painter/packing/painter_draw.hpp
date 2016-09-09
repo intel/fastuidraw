@@ -94,7 +94,7 @@ namespace fastuidraw
       storing the header locations. The size of
       \ref m_header_attributes must be the same
       as the size of \ref m_attributes,
-      the store is understood to be write only. 
+      the store is understood to be write only.
      */
     c_array<uint32_t> m_header_attributes;
 

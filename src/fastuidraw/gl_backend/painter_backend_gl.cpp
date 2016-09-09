@@ -1500,7 +1500,7 @@ on_pre_draw(void)
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_GEQUAL);
   glDisable(GL_STENCIL_TEST);
-  
+
   if(d->m_number_clip_planes > 0)
     {
       glEnable(d->m_clip_plane0 + 0);
