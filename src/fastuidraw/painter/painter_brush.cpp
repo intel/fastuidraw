@@ -18,7 +18,6 @@
 
 
 #include <fastuidraw/painter/painter_brush.hpp>
-#include <fastuidraw/painter/packing/painter_packing_brush.hpp>
 
 ////////////////////////////////////
 // fastuidraw::PainterBrush methods
@@ -26,7 +25,6 @@ unsigned int
 fastuidraw::PainterBrush::
 data_size(unsigned int alignment) const
 {
-  using namespace PainterPacking::Brush;
   unsigned int return_value(0);
   uint32_t pshader = shader();
 
@@ -69,8 +67,6 @@ void
 fastuidraw::PainterBrush::
 pack_data(unsigned int alignment, c_array<generic_data> dst) const
 {
-  using namespace PainterPacking::Brush;
-
   unsigned int current(0);
   unsigned int sz;
   c_array<generic_data> sub_dest;
