@@ -134,7 +134,7 @@ namespace fastuidraw
     /*!
       Returns the shader group to which the shader belongs.
       A different value in group() triggers a call to
-      PainterDrawCommand:draw_break() to note that
+      PainterDraw:draw_break() to note that
       the shader group changed. The shader must be
       registered in order to have a group value.
      */

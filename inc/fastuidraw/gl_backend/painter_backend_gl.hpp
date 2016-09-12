@@ -133,9 +133,9 @@ namespace fastuidraw
 
         /*!
           Specifies the maximum number of attributes
-          a PainterDrawCommand returned by
-          map_draw_command() may store, i.e. the size
-          of PainterDrawCommand::m_attributes.
+          a PainterDraw returned by
+          map_draw() may store, i.e. the size
+          of PainterDraw::m_attributes.
           Initial value is 512 * 512.
          */
         unsigned int
@@ -149,9 +149,9 @@ namespace fastuidraw
 
         /*!
           Specifies the maximum number of indices
-          a PainterDrawCommand returned by
-          map_draw_command() may store, i.e. the size
-          of PainterDrawCommand::m_indices.
+          a PainterDraw returned by
+          map_draw() may store, i.e. the size
+          of PainterDraw::m_indices.
           Initial value is 1.5 times the initial value
           for attributes_per_buffer(void) const.
          */
@@ -166,9 +166,9 @@ namespace fastuidraw
 
         /*!
           Specifies the maximum number of blocks of
-          data a PainterDrawCommand returned by
-          map_draw_command() may store. The size of
-          PainterDrawCommand::m_store is given by
+          data a PainterDraw returned by
+          map_draw() may store. The size of
+          PainterDraw::m_store is given by
           data_blocks_per_store_buffer() *
           PainterBackend::ConfigurationBase::alignment(),
           Initial value is 1024 * 64.
@@ -405,8 +405,8 @@ namespace fastuidraw
       on_post_draw(void);
 
       virtual
-      reference_counted_ptr<const PainterDrawCommand>
-      map_draw_command(void);
+      reference_counted_ptr<const PainterDraw>
+      map_draw(void);
 
       /*!
         Return the specified Program use to draw

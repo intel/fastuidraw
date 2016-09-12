@@ -39,16 +39,16 @@ namespace fastuidraw
     are -ALWAYS- in groups of three where each group is a single
     triangle and each index is an index into \ref m_attributes.
    */
-  class PainterDrawCommand:
-    public reference_counted<PainterDrawCommand>::default_base
+  class PainterDraw:
+    public reference_counted<PainterDraw>::default_base
   {
   public:
     /*!
       A delayed action is an action that is to be called just
-      before the buffers of a PainterDrawCommand are to
+      before the buffers of a PainterDraw are to
       be unmapped. Typically, this is to allow for later writes
       of values. A DelayedAction object may only be added
-      to one PainterDrawCommand object.
+      to one PainterDraw object.
      */
     class DelayedAction:public reference_counted<DelayedAction>::default_base
     {
@@ -63,7 +63,7 @@ namespace fastuidraw
       /*!
         Perform the action of this DelayedAction object
         and remove it from the list of delayed actions of
-        the PainterDrawCommand.
+        the PainterDraw.
        */
       void
       perform_action(void);
@@ -71,15 +71,15 @@ namespace fastuidraw
     protected:
       /*!
         To be implemented by a derived class to execute its delayed action.
-        \param h handle to PainterDrawCommand on which the action has
+        \param h handle to PainterDraw on which the action has
                  been placed
        */
       virtual
       void
-      action(const reference_counted_ptr<const PainterDrawCommand> &h) = 0;
+      action(const reference_counted_ptr<const PainterDraw> &h) = 0;
 
     private:
-      friend class PainterDrawCommand;
+      friend class PainterDraw;
       void *m_d;
     };
 
@@ -118,13 +118,13 @@ namespace fastuidraw
       \ref m_header_attributes, \ref m_indices and
       \ref m_store.
      */
-    PainterDrawCommand(void);
+    PainterDraw(void);
 
-    ~PainterDrawCommand();
+    ~PainterDraw();
 
     /*!
       Called to indicate a change in value to the
-      painter header that this PainterDrawCommand needs
+      painter header that this PainterDraw needs
       to record. The most common case is to insert API state changes
       (or just break a draw) for when a PainterBackend
       cannot accomodate a PainterPacker state change
@@ -149,7 +149,7 @@ namespace fastuidraw
     add_action(const reference_counted_ptr<DelayedAction> &h) const;
 
     /*!
-      Signals this PainterDrawCommand to be unmapped.
+      Signals this PainterDraw to be unmapped.
       Actual unmapping is delayed until all actions that
       have been added with add_action() have been
       called.
@@ -163,7 +163,7 @@ namespace fastuidraw
           unsigned int data_store_written) const;
 
     /*!
-      Returns true if and only if this PainterDrawCommand
+      Returns true if and only if this PainterDraw
       is unmapped.
      */
     bool
@@ -175,7 +175,7 @@ namespace fastuidraw
       is called. In addition, may only be called within
       a PainterBackend::on_begin()/on_end() pair
       of the PainterBackend whose
-      PainterBackend::map_draw_command() created this
+      PainterBackend::map_draw() created this
       object.
      */
     virtual
