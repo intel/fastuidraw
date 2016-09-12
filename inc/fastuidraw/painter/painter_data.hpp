@@ -72,9 +72,15 @@ namespace fastuidraw
        */
       PainterPackedValue<T> m_packed_value;
 
+      /*!
+        If m_packed_value is non-NULL, returns the value behind it
+        (i.e. PainterPackedValue<T>::value()), otherwise returns
+        the dereference of \ref m_value.
+       */
       const T&
       data(void) const
       {
+        assert(m_packed_value || m_value != NULL);
         return m_packed_value ?
           m_packed_value.value() :
           *m_value;

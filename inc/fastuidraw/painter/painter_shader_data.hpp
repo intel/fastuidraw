@@ -1,6 +1,6 @@
 /*!
- * \file painter_value.hpp
- * \brief file painter_value.hpp
+ * \file painter_shader_data.hpp
+ * \brief file painter_shader_data.hpp
  *
  * Copyright 2016 by Intel.
  *
