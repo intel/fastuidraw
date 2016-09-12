@@ -379,7 +379,7 @@ set_data(const reference_counted_ptr<const FilledPath> &path)
     dst = dst.sub_array(current, path->function_name().size()); \
     std::copy(path->function_name().begin(),                    \
               path->function_name().end(), dst.begin());        \
-    index_chunks[PainterEnums::enum_name] = dst;           \
+    index_chunks[PainterEnums::enum_name] = dst;                \
     current += dst.size();                                      \
   } while(0)
 
