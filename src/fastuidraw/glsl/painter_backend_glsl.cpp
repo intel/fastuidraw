@@ -592,23 +592,23 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
   }
 
   {
-    shader_unpack_value_set<clip_equations_data_size> labels;
+    shader_unpack_value_set<PainterClipEquations::clip_data_size> labels;
     labels
-      .set(clip0_coeff_x, ".clip0.x")
-      .set(clip0_coeff_y, ".clip0.y")
-      .set(clip0_coeff_w, ".clip0.z")
+      .set(PainterClipEquations::clip0_coeff_x, ".clip0.x")
+      .set(PainterClipEquations::clip0_coeff_y, ".clip0.y")
+      .set(PainterClipEquations::clip0_coeff_w, ".clip0.z")
 
-      .set(clip1_coeff_x, ".clip1.x")
-      .set(clip1_coeff_y, ".clip1.y")
-      .set(clip1_coeff_w, ".clip1.z")
+      .set(PainterClipEquations::clip1_coeff_x, ".clip1.x")
+      .set(PainterClipEquations::clip1_coeff_y, ".clip1.y")
+      .set(PainterClipEquations::clip1_coeff_w, ".clip1.z")
 
-      .set(clip2_coeff_x, ".clip2.x")
-      .set(clip2_coeff_y, ".clip2.y")
-      .set(clip2_coeff_w, ".clip2.z")
+      .set(PainterClipEquations::clip2_coeff_x, ".clip2.x")
+      .set(PainterClipEquations::clip2_coeff_y, ".clip2.y")
+      .set(PainterClipEquations::clip2_coeff_w, ".clip2.z")
 
-      .set(clip3_coeff_x, ".clip3.x")
-      .set(clip3_coeff_y, ".clip3.y")
-      .set(clip3_coeff_w, ".clip3.z")
+      .set(PainterClipEquations::clip3_coeff_x, ".clip3.x")
+      .set(PainterClipEquations::clip3_coeff_y, ".clip3.y")
+      .set(PainterClipEquations::clip3_coeff_w, ".clip3.z")
 
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_clipping",
@@ -619,17 +619,17 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
     /* Matrics in GLSL are [column][row], that is why
        one sees the transposing to the loads
     */
-    shader_unpack_value_set<item_matrix_data_size> labels;
+    shader_unpack_value_set<PainterItemMatrix::matrix_data_size> labels;
     labels
-      .set(item_matrix_m00_offset, "[0][0]")
-      .set(item_matrix_m10_offset, "[0][1]")
-      .set(item_matrix_m20_offset, "[0][2]")
-      .set(item_matrix_m01_offset, "[1][0]")
-      .set(item_matrix_m11_offset, "[1][1]")
-      .set(item_matrix_m21_offset, "[1][2]")
-      .set(item_matrix_m02_offset, "[2][0]")
-      .set(item_matrix_m12_offset, "[2][1]")
-      .set(item_matrix_m22_offset, "[2][2]")
+      .set(PainterItemMatrix::matrix00_offset, "[0][0]")
+      .set(PainterItemMatrix::matrix10_offset, "[0][1]")
+      .set(PainterItemMatrix::matrix20_offset, "[0][2]")
+      .set(PainterItemMatrix::matrix01_offset, "[1][0]")
+      .set(PainterItemMatrix::matrix11_offset, "[1][1]")
+      .set(PainterItemMatrix::matrix21_offset, "[1][2]")
+      .set(PainterItemMatrix::matrix02_offset, "[2][0]")
+      .set(PainterItemMatrix::matrix12_offset, "[2][1]")
+      .set(PainterItemMatrix::matrix22_offset, "[2][2]")
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_item_matrix", "mat3", false);
   }

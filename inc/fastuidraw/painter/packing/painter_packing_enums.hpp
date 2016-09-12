@@ -149,52 +149,6 @@ namespace fastuidraw
          */
         header_size
       };
-
-    /*!
-      Enumeration that provides offsets for the
-      elements of the clip equation offsets
-      (clip_equations_offset)
-     */
-    enum clip_equations_data_offset_t
-      {
-        clip0_coeff_x, /*!< offset to x-coefficient for clip equation 0 */
-        clip0_coeff_y, /*!< offset to y-coefficient for clip equation 0 */
-        clip0_coeff_w, /*!< offset to w-coefficient for clip equation 0 */
-
-        clip1_coeff_x, /*!< offset to x-coefficient for clip equation 1 */
-        clip1_coeff_y, /*!< offset to y-coefficient for clip equation 1 */
-        clip1_coeff_w, /*!< offset to w-coefficient for clip equation 1 */
-
-        clip2_coeff_x, /*!< offset to x-coefficient for clip equation 2 */
-        clip2_coeff_y, /*!< offset to y-coefficient for clip equation 2 */
-        clip2_coeff_w, /*!< offset to w-coefficient for clip equation 2 */
-
-        clip3_coeff_x, /*!< offset to x-coefficient for clip equation 3 */
-        clip3_coeff_y, /*!< offset to y-coefficient for clip equation 3 */
-        clip3_coeff_w, /*!< offset to w-coefficient for clip equation 3 */
-
-        clip_equations_data_size /*!< number of elements for clip equations */
-      };
-
-    /*!
-      Enumeration that provides offsets for the
-      item matrix from the location of that data
-      (item_matrix_offset)
-     */
-    enum item_matrix_data_offset_t
-      {
-        item_matrix_m00_offset, /*!< offset of item matrix float3x3(0,0) (packed as float) */
-        item_matrix_m01_offset, /*!< offset of item matrix float3x3(0,1) (packed as float) */
-        item_matrix_m02_offset, /*!< offset of item matrix float3x3(0,2) (packed as float) */
-        item_matrix_m10_offset, /*!< offset of item matrix float3x3(1,0) (packed as float) */
-        item_matrix_m11_offset, /*!< offset of item matrix float3x3(1,1) (packed as float) */
-        item_matrix_m12_offset, /*!< offset of item matrix float3x3(1,2) (packed as float) */
-        item_matrix_m20_offset, /*!< offset of item matrix float3x3(2,0) (packed as float) */
-        item_matrix_m21_offset, /*!< offset of item matrix float3x3(2,1) (packed as float) */
-        item_matrix_m22_offset, /*!< offset of item matrix float3x3(2,2) (packed as float) */
-
-        item_matrix_data_size /*!< Size of the data for the item matrix */
-      };
   }
 /*! @} */
 }

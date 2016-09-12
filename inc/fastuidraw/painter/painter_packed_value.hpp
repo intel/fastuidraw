@@ -21,7 +21,9 @@
 
 
 #include <fastuidraw/util/reference_counted.hpp>
-#include <fastuidraw/painter/painter_value.hpp>
+#include <fastuidraw/painter/painter_item_matrix.hpp>
+#include <fastuidraw/painter/painter_clip_equations.hpp>
+#include <fastuidraw/painter/painter_shader_data.hpp>
 
 namespace fastuidraw
 {
