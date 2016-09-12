@@ -11,9 +11,11 @@
 #include <fastuidraw/stroked_path.hpp>
 #include <fastuidraw/painter/packing/painter_backend.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>
-#include <fastuidraw/painter/painter_value.hpp>
-#include <fastuidraw/painter/painter_stroke_value.hpp>
-#include <fastuidraw/painter/packing/painter_packing_enums.hpp>
+#include <fastuidraw/painter/painter_item_matrix.hpp>
+#include <fastuidraw/painter/painter_shader_data.hpp>
+#include <fastuidraw/painter/painter_clip_equations.hpp>
+#include <fastuidraw/painter/painter_stroke_params.hpp>
+#include <fastuidraw/painter/painter_header.hpp>
 #include <fastuidraw/painter/packing/painter_packing_brush.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>

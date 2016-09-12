@@ -39,7 +39,7 @@ namespace fastuidraw
     public:
       /*!
         Enumeration to specify how the data store filled by
-        \ref PainterDrawCommand::m_store is realized.
+        \ref PainterDraw::m_store is realized.
        */
       enum data_store_backing_t
         {
@@ -121,24 +121,24 @@ namespace fastuidraw
         {
           /*!
             Slot for the values of PainterAttribute::m_primary_attrib
-            of PainterDrawCommand::m_attributes
+            of PainterDraw::m_attributes
            */
           primary_attrib_slot = 0,
 
           /*!
             Slot for the values of PainterAttribute::m_secondary_attributes
-            of PainterDrawCommand::m_attributes
+            of PainterDraw::m_attributes
            */
           secondary_attrib_slot,
 
           /*!
             Slot for the values of PainterAttribute::m_uint_attrib
-            of PainterDrawCommand::m_attributes
+            of PainterDraw::m_attributes
            */
           uint_attrib_slot,
 
           /*!
-            Slot for the values of PainterDrawCommand::m_header_attributes
+            Slot for the values of PainterDraw::m_header_attributes
            */
           header_attrib_slot,
         };
@@ -357,7 +357,7 @@ namespace fastuidraw
 
         /*!
           Specifies the buffer binding point of the data store
-          buffer (PainterDrawCommand::m_store) as a samplerBuffer.
+          buffer (PainterDraw::m_store) as a samplerBuffer.
           Only active if UberShaderParams::data_store_backing()
           is \ref data_store_tbo.
          */
@@ -373,7 +373,7 @@ namespace fastuidraw
 
         /*!
           Specifies the buffer binding point of the data store
-          buffer (PainterDrawCommand::m_store) as a UBO.
+          buffer (PainterDraw::m_store) as a UBO.
           Only active if UberShaderParams::data_store_backing()
           is \ref data_store_ubo.
          */
@@ -571,7 +571,7 @@ namespace fastuidraw
         unpack_header_and_brush_in_frag_shader(bool);
 
         /*!
-          Specify how to access the data in PainterDrawCommand::m_store
+          Specify how to access the data in PainterDraw::m_store
           from the GLSL shader.
          */
         enum data_store_backing_t
@@ -587,8 +587,8 @@ namespace fastuidraw
         /*!
           Only needed if data_store_backing(void) const
           has value data_store_ubo. Gives the size in
-          blocks of PainterDrawCommand::m_store which
-          is PainterDrawCommand::m_store.size() divided
+          blocks of PainterDraw::m_store which
+          is PainterDraw::m_store.size() divided
           by PainterBackend::configuration_base().alignment().
          */
         int

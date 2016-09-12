@@ -1,6 +1,6 @@
 /*!
- * \file painter_stroke_value.hpp
- * \brief file painter_stroke_value.hpp
+ * \file painter_dashed_stroke_params.hpp
+ * \brief file painter_dashed_stroke_params.hpp
  *
  * Copyright 2016 by Intel.
  *
@@ -18,63 +18,14 @@
 
 #pragma once
 
-#include <fastuidraw/painter/painter_value.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_shader_set.hpp>
+#include <fastuidraw/painter/painter_shader_data.hpp>
 
 namespace fastuidraw
 {
 /*!\addtogroup Painter
   @{
  */
-
-  /*!
-    Class to specify stroking parameters, data is packed
-    as according to PainterStrokeParams::stroke_data_offset_t.
-   */
-  class PainterStrokeParams:public PainterItemShaderData
-  {
-  public:
-    /*!
-      Enumeration that provides offsets for the stroking
-      parameters.
-     */
-    enum stroke_data_offset_t
-      {
-        stroke_width_offset, /*!< offset to stroke width (packed as float) */
-        stroke_miter_limit_offset, /*!< offset to stroke miter limit (packed as float) */
-
-        stroke_data_size /*!< size of data for stroking*/
-      };
-
-    /*!
-      Ctor.
-     */
-    PainterStrokeParams(void);
-
-    /*!
-      The miter limit for miter joins
-     */
-    float
-    miter_limit(void) const;
-
-    /*!
-      Set the value of miter_limit(void) const
-     */
-    PainterStrokeParams&
-    miter_limit(float f);
-
-    /*!
-      The stroking width
-     */
-    float
-    width(void) const;
-
-    /*!
-      Set the value of width(void) const
-     */
-    PainterStrokeParams&
-    width(float f);
-  };
 
   /*!
     Class to specify dashed stroking parameters, data is packed

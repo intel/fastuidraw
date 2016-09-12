@@ -20,9 +20,9 @@
 #pragma once
 
 #include <fastuidraw/util/reference_counted.hpp>
-#include <fastuidraw/painter/painter_value.hpp>
 #include <fastuidraw/painter/painter_stroke_shader.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/painter_shader_data.hpp>
 
 namespace fastuidraw
 {

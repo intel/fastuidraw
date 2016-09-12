@@ -23,23 +23,13 @@
 #include <vector>
 #include <iostream>
 
-#include <fastuidraw/glsl/shader_code.hpp>
-#include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
-#include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
-
-#include <fastuidraw/stroked_path.hpp>
-#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/painter_backend_gl.hpp>
+#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 #include <fastuidraw/gl_backend/gluniform.hpp>
-
-#include <fastuidraw/painter/painter_brush.hpp>
-#include <fastuidraw/painter/packing/painter_packing_brush.hpp>
-#include <fastuidraw/painter/packing/painter_packing_enums.hpp>
-#include <fastuidraw/painter/painter_stroke_value.hpp>
 
 #include "private/tex_buffer.hpp"
 
@@ -266,7 +256,7 @@ namespace
     unsigned int m_choice;
   };
 
-  class DrawCommand:public fastuidraw::PainterDrawCommand
+  class DrawCommand:public fastuidraw::PainterDraw
   {
   public:
     explicit
@@ -714,7 +704,7 @@ DrawCommand(painter_vao_pool *hnd,
   m_indices_written(0)
 {
   /* map the buffers and set to the c_array<> fields of
-     fastuidraw::PainterDrawCommand to the mapping location.
+     fastuidraw::PainterDraw to the mapping location.
   */
   void *attr_bo, *index_bo, *data_bo, *header_bo;
   uint32_t flags;
@@ -1486,7 +1476,7 @@ on_pre_draw(void)
        2. we gaurantee GL state regardless of what the calling application
           is doing because PainterPacker() calls on_pre_draw() within
           PainterPacker::end() and the on_pre_draw() call is immediately
-          followed by PainterDrawCommand::draw() calls.
+          followed by PainterDraw::draw() calls.
    */
 
   if(d->m_linear_filter_sampler == 0)
@@ -1678,9 +1668,9 @@ on_post_draw(void)
   d->m_pool->next_pool();
 }
 
-fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand>
+fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw>
 fastuidraw::gl::PainterBackendGL::
-map_draw_command(void)
+map_draw(void)
 {
   PainterBackendGLPrivate *d;
   d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);

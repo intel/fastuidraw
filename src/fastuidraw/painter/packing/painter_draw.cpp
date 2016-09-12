@@ -30,11 +30,11 @@ namespace
       status_unmapped,
     };
 
-  class PainterDrawCommandPrivate
+  class PainterDrawPrivate
   {
   public:
     explicit
-    PainterDrawCommandPrivate(fastuidraw::PainterDrawCommand *p):
+    PainterDrawPrivate(fastuidraw::PainterDraw *p):
       m_map_status(status_mapped),
       m_action_count(0),
       m_attribs_written(0),
@@ -45,9 +45,9 @@ namespace
 
     enum map_status_t m_map_status;
     unsigned int m_action_count;
-    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDrawCommand::DelayedAction> > m_actions;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw::DelayedAction> > m_actions;
     unsigned int m_attribs_written, m_indices_written, m_data_store_written;
-    fastuidraw::PainterDrawCommand *m_p;
+    fastuidraw::PainterDraw *m_p;
   };
 
   class DelayedActionPrivate
@@ -58,20 +58,20 @@ namespace
       m_slot(0)
     {}
 
-    PainterDrawCommandPrivate *m_cmd;
+    PainterDrawPrivate *m_cmd;
     unsigned int m_slot;
   };
 }
 
 /////////////////////////////////////////
-// fastuidraw::PainterDrawCommand::DelayedAction methods
-fastuidraw::PainterDrawCommand::DelayedAction::
+// fastuidraw::PainterDraw::DelayedAction methods
+fastuidraw::PainterDraw::DelayedAction::
 DelayedAction(void)
 {
   m_d = FASTUIDRAWnew DelayedActionPrivate();
 }
 
-fastuidraw::PainterDrawCommand::DelayedAction::
+fastuidraw::PainterDraw::DelayedAction::
 ~DelayedAction(void)
 {
   DelayedActionPrivate *d;
@@ -81,7 +81,7 @@ fastuidraw::PainterDrawCommand::DelayedAction::
 }
 
 void
-fastuidraw::PainterDrawCommand::DelayedAction::
+fastuidraw::PainterDraw::DelayedAction::
 perform_action(void)
 {
   DelayedActionPrivate *d;
@@ -106,32 +106,32 @@ perform_action(void)
 
 
 /////////////////////////////////////////
-// fastuidraw::PainterDrawCommand methods
-fastuidraw::PainterDrawCommand::
-PainterDrawCommand(void)
+// fastuidraw::PainterDraw methods
+fastuidraw::PainterDraw::
+PainterDraw(void)
 {
-  m_d = FASTUIDRAWnew PainterDrawCommandPrivate(this);
+  m_d = FASTUIDRAWnew PainterDrawPrivate(this);
 }
 
-fastuidraw::PainterDrawCommand::
-~PainterDrawCommand(void)
+fastuidraw::PainterDraw::
+~PainterDraw(void)
 {
-  PainterDrawCommandPrivate *d;
-  d = reinterpret_cast<PainterDrawCommandPrivate*>(m_d);
+  PainterDrawPrivate *d;
+  d = reinterpret_cast<PainterDrawPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
 
 void
-fastuidraw::PainterDrawCommand::
+fastuidraw::PainterDraw::
 add_action(const reference_counted_ptr<DelayedAction> &h) const
 {
-  PainterDrawCommandPrivate *d;
+  PainterDrawPrivate *d;
   DelayedActionPrivate *hd;
 
   assert(h);
 
-  d = reinterpret_cast<PainterDrawCommandPrivate*>(m_d);
+  d = reinterpret_cast<PainterDrawPrivate*>(m_d);
   hd = reinterpret_cast<DelayedActionPrivate*>(h->m_d);
 
   assert(hd->m_cmd == NULL);
@@ -144,13 +144,13 @@ add_action(const reference_counted_ptr<DelayedAction> &h) const
 }
 
 void
-fastuidraw::PainterDrawCommand::
+fastuidraw::PainterDraw::
 unmap(unsigned int attributes_written,
       unsigned int indices_written,
       unsigned int data_store_written) const
 {
-  PainterDrawCommandPrivate *d;
-  d = reinterpret_cast<PainterDrawCommandPrivate*>(m_d);
+  PainterDrawPrivate *d;
+  d = reinterpret_cast<PainterDrawPrivate*>(m_d);
 
   assert(d->m_map_status == status_mapped);
 
@@ -165,11 +165,11 @@ unmap(unsigned int attributes_written,
 }
 
 void
-fastuidraw::PainterDrawCommand::
+fastuidraw::PainterDraw::
 complete_unmapping(void) const
 {
-  PainterDrawCommandPrivate *d;
-  d = reinterpret_cast<PainterDrawCommandPrivate*>(m_d);
+  PainterDrawPrivate *d;
+  d = reinterpret_cast<PainterDrawPrivate*>(m_d);
 
   assert(d->m_map_status == status_waiting_for_actions_to_complete);
   assert(d->m_action_count == 0);
@@ -178,10 +178,10 @@ complete_unmapping(void) const
 }
 
 bool
-fastuidraw::PainterDrawCommand::
+fastuidraw::PainterDraw::
 unmapped(void) const
 {
-  PainterDrawCommandPrivate *d;
-  d = reinterpret_cast<PainterDrawCommandPrivate*>(m_d);
+  PainterDrawPrivate *d;
+  d = reinterpret_cast<PainterDrawPrivate*>(m_d);
   return d->m_map_status == status_unmapped;
 }

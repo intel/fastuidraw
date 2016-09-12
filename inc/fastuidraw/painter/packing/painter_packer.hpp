@@ -31,9 +31,9 @@
 #include <fastuidraw/painter/painter_shader_set.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/painter_header.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
 #include <fastuidraw/painter/packing/painter_draw.hpp>
-#include <fastuidraw/painter/packing/painter_packing_enums.hpp>
 #include <fastuidraw/painter/packing/painter_backend.hpp>
 #include <fastuidraw/painter/packing/painter_packer_data.hpp>
 
@@ -53,7 +53,7 @@ namespace fastuidraw
     /*!
       A DataCallBack represents a functor call back
       from PainterPacker called whenever a header is
-      added or when a new PainterDrawCommand is
+      added or when a new PainterDraw is
       taken into use.
      */
     class DataCallBack:public reference_counted<DataCallBack>::default_base
@@ -61,22 +61,22 @@ namespace fastuidraw
     public:
       /*!
         To be implemented by a derived class to note the current
-        PainterDrawCommand being filled by the PainterPacker.
-        \param h handle to active PainterDrawCommand
+        PainterDraw being filled by the PainterPacker.
+        \param h handle to active PainterDraw
        */
       virtual
       void
-      current_draw_command(const reference_counted_ptr<const PainterDrawCommand> &h) = 0;
+      current_draw(const reference_counted_ptr<const PainterDraw> &h) = 0;
 
       /*!
         To be implemented by a derived class to note when a header
         was added.
-        \param original_value values written to PainterDrawCommand::m_store for the header, read access is ok
-        \param mapped_location sub-array into PainterDrawCommand::m_store where header is located
+        \param original_value header values written to PainterDraw::m_store
+        \param mapped_location sub-array into PainterDraw::m_store where header is written
        */
       virtual
       void
-      header_added(const_c_array<generic_data> original_value, c_array<generic_data> mapped_location) = 0;
+      header_added(const PainterHeader &original_value, c_array<generic_data> mapped_location) = 0;
     };
 
     /*!

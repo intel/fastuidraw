@@ -4,6 +4,10 @@
 #include <sstream>
 #include <vector>
 
+#include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
+#include <fastuidraw/painter/painter_stroke_params.hpp>
+#include <fastuidraw/painter/painter_header.hpp>
+
 #include <fastuidraw/glsl/painter_backend_glsl.hpp>
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
@@ -397,7 +401,7 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
   unsigned int alignment;
 
   alignment = m_p->configuration_base().alignment();
-  z_bits_supported = std::min(23u, static_cast<uint32_t>(z_num_bits));
+  z_bits_supported = 23u;
 
   src
     .add_macro("fastuidraw_half_max_z", FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(z_bits_supported - 1))
@@ -443,10 +447,10 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_stroke_dashed_stroking_params_header_num_blocks",
                number_blocks(alignment, PainterDashedStrokeParams::stroke_static_data_size))
 
-    .add_macro("fastuidraw_z_bit0", z_bit0)
-    .add_macro("fastuidraw_z_num_bits", z_num_bits)
-    .add_macro("fastuidraw_blend_shader_bit0", blend_shader_bit0)
-    .add_macro("fastuidraw_blend_shader_num_bits", blend_shader_num_bits)
+    .add_macro("fastuidraw_item_shader_bit0", PainterHeader::item_shader_bit0)
+    .add_macro("fastuidraw_item_shader_num_bits", PainterHeader::item_shader_num_bits)
+    .add_macro("fastuidraw_blend_shader_bit0", PainterHeader::blend_shader_bit0)
+    .add_macro("fastuidraw_blend_shader_num_bits", PainterHeader::blend_shader_num_bits)
 
     .add_macro("fastuidraw_stroke_offset_edge", StrokedPath::offset_edge)
     .add_macro("fastuidraw_stroke_offset_rounded_join", StrokedPath::offset_rounded_join)
@@ -574,39 +578,39 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
   }
 
   {
-    shader_unpack_value_set<header_size> labels;
+    shader_unpack_value_set<PainterHeader::header_size> labels;
     labels
-      .set(clip_equations_offset, ".clipping_location", shader_unpack_value::uint_type)
-      .set(item_matrix_offset, ".item_matrix_location", shader_unpack_value::uint_type)
-      .set(brush_shader_data_offset, ".brush_shader_data_location", shader_unpack_value::uint_type)
-      .set(item_shader_data_offset, ".item_shader_data_location", shader_unpack_value::uint_type)
-      .set(blend_shader_data_offset, ".blend_shader_data_location", shader_unpack_value::uint_type)
-      .set(item_shader_offset, ".item_shader", shader_unpack_value::uint_type)
-      .set(brush_shader_offset, ".brush_shader", shader_unpack_value::uint_type)
-      .set(z_blend_shader_offset, ".z_blend_shader_raw", shader_unpack_value::uint_type)
+      .set(PainterHeader::clip_equations_location_offset, ".clipping_location", shader_unpack_value::uint_type)
+      .set(PainterHeader::item_matrix_location_offset, ".item_matrix_location", shader_unpack_value::uint_type)
+      .set(PainterHeader::brush_shader_data_location_offset, ".brush_shader_data_location", shader_unpack_value::uint_type)
+      .set(PainterHeader::item_shader_data_location_offset, ".item_shader_data_location", shader_unpack_value::uint_type)
+      .set(PainterHeader::blend_shader_data_location_offset, ".blend_shader_data_location", shader_unpack_value::uint_type)
+      .set(PainterHeader::brush_shader_offset, ".brush_shader", shader_unpack_value::uint_type)
+      .set(PainterHeader::z_offset, ".z", shader_unpack_value::uint_type)
+      .set(PainterHeader::item_blend_shader_offset, ".item_blend_shader_packed", shader_unpack_value::uint_type)
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_header",
                               "fastuidraw_shader_header", false);
   }
 
   {
-    shader_unpack_value_set<clip_equations_data_size> labels;
+    shader_unpack_value_set<PainterClipEquations::clip_data_size> labels;
     labels
-      .set(clip0_coeff_x, ".clip0.x")
-      .set(clip0_coeff_y, ".clip0.y")
-      .set(clip0_coeff_w, ".clip0.z")
+      .set(PainterClipEquations::clip0_coeff_x, ".clip0.x")
+      .set(PainterClipEquations::clip0_coeff_y, ".clip0.y")
+      .set(PainterClipEquations::clip0_coeff_w, ".clip0.z")
 
-      .set(clip1_coeff_x, ".clip1.x")
-      .set(clip1_coeff_y, ".clip1.y")
-      .set(clip1_coeff_w, ".clip1.z")
+      .set(PainterClipEquations::clip1_coeff_x, ".clip1.x")
+      .set(PainterClipEquations::clip1_coeff_y, ".clip1.y")
+      .set(PainterClipEquations::clip1_coeff_w, ".clip1.z")
 
-      .set(clip2_coeff_x, ".clip2.x")
-      .set(clip2_coeff_y, ".clip2.y")
-      .set(clip2_coeff_w, ".clip2.z")
+      .set(PainterClipEquations::clip2_coeff_x, ".clip2.x")
+      .set(PainterClipEquations::clip2_coeff_y, ".clip2.y")
+      .set(PainterClipEquations::clip2_coeff_w, ".clip2.z")
 
-      .set(clip3_coeff_x, ".clip3.x")
-      .set(clip3_coeff_y, ".clip3.y")
-      .set(clip3_coeff_w, ".clip3.z")
+      .set(PainterClipEquations::clip3_coeff_x, ".clip3.x")
+      .set(PainterClipEquations::clip3_coeff_y, ".clip3.y")
+      .set(PainterClipEquations::clip3_coeff_w, ".clip3.z")
 
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_clipping",
@@ -617,17 +621,17 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
     /* Matrics in GLSL are [column][row], that is why
        one sees the transposing to the loads
     */
-    shader_unpack_value_set<item_matrix_data_size> labels;
+    shader_unpack_value_set<PainterItemMatrix::matrix_data_size> labels;
     labels
-      .set(item_matrix_m00_offset, "[0][0]")
-      .set(item_matrix_m10_offset, "[0][1]")
-      .set(item_matrix_m20_offset, "[0][2]")
-      .set(item_matrix_m01_offset, "[1][0]")
-      .set(item_matrix_m11_offset, "[1][1]")
-      .set(item_matrix_m21_offset, "[1][2]")
-      .set(item_matrix_m02_offset, "[2][0]")
-      .set(item_matrix_m12_offset, "[2][1]")
-      .set(item_matrix_m22_offset, "[2][2]")
+      .set(PainterItemMatrix::matrix00_offset, "[0][0]")
+      .set(PainterItemMatrix::matrix10_offset, "[0][1]")
+      .set(PainterItemMatrix::matrix20_offset, "[0][2]")
+      .set(PainterItemMatrix::matrix01_offset, "[1][0]")
+      .set(PainterItemMatrix::matrix11_offset, "[1][1]")
+      .set(PainterItemMatrix::matrix21_offset, "[1][2]")
+      .set(PainterItemMatrix::matrix02_offset, "[2][0]")
+      .set(PainterItemMatrix::matrix12_offset, "[2][1]")
+      .set(PainterItemMatrix::matrix22_offset, "[2][2]")
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_item_matrix", "mat3", false);
   }

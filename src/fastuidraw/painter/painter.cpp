@@ -21,6 +21,7 @@
 #include <bitset>
 
 #include <fastuidraw/util/math.hpp>
+#include <fastuidraw/painter/painter_header.hpp>
 #include <fastuidraw/painter/painter.hpp>
 
 #include "../private/util_private.hpp"
@@ -34,23 +35,18 @@ namespace
   class change_header_z
   {
   public:
-    change_header_z(fastuidraw::const_c_array<fastuidraw::generic_data> original_value,
+    change_header_z(const fastuidraw::PainterHeader &header,
                     fastuidraw::c_array<fastuidraw::generic_data> mapped_location)
     {
-      m_blend_shader = fastuidraw::unpack_bits(fastuidraw::PainterPacking::blend_shader_bit0,
-                                              fastuidraw::PainterPacking::blend_shader_num_bits,
-                                              original_value[fastuidraw::PainterPacking::z_blend_shader_offset].u);
-      m_mapped = &mapped_location[fastuidraw::PainterPacking::z_blend_shader_offset].u;
+      FASTUIDRAWunused(header);
+      m_mapped = &mapped_location[fastuidraw::PainterHeader::z_offset].u;
     }
-
-    //value of blend shader where z is written
-    uint32_t m_blend_shader;
 
     //location to which to write to overwrite value.
     uint32_t *m_mapped;
   };
 
-  class ZDelayedAction:public fastuidraw::PainterDrawCommand::DelayedAction
+  class ZDelayedAction:public fastuidraw::PainterDraw::DelayedAction
   {
   public:
     void
@@ -64,19 +60,11 @@ namespace
 
     virtual
     void
-    action(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> &)
+    action(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &)
     {
       for(unsigned int i = 0, endi = m_dests.size(); i < endi; ++i)
         {
-          uint32_t zbits, blendbits;
-
-          zbits = fastuidraw::pack_bits(fastuidraw::PainterPacking::z_bit0,
-                                       fastuidraw::PainterPacking::z_num_bits,
-                                       m_z_to_write);
-          blendbits = fastuidraw::pack_bits(fastuidraw::PainterPacking::blend_shader_bit0,
-                                           fastuidraw::PainterPacking::blend_shader_num_bits,
-                                           m_dests[i].m_blend_shader);
-          *m_dests[i].m_mapped = zbits | blendbits;
+          *m_dests[i].m_mapped = m_z_to_write;
         }
     }
 
@@ -91,7 +79,7 @@ namespace
   public:
     virtual
     void
-    current_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> &h)
+    current_draw(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &h)
     {
       if(h != m_cmd)
         {
@@ -104,16 +92,16 @@ namespace
 
     virtual
     void
-    header_added(fastuidraw::const_c_array<fastuidraw::generic_data> original_value,
+    header_added(const fastuidraw::PainterHeader &original_value,
                  fastuidraw::c_array<fastuidraw::generic_data> mapped_location)
     {
       m_current->m_dests.push_back(change_header_z(original_value, mapped_location));
     }
 
-    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDrawCommand::DelayedAction> > m_actions;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw::DelayedAction> > m_actions;
 
   private:
-    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> m_cmd;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> m_cmd;
     fastuidraw::reference_counted_ptr<ZDelayedAction> m_current;
   };
 
@@ -292,7 +280,7 @@ namespace
     /* steals the data it does.
      */
     explicit
-    occluder_stack_entry(std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDrawCommand::DelayedAction> > &pz)
+    occluder_stack_entry(std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw::DelayedAction> > &pz)
     {
       m_set_occluder_z.swap(pz);
     }
@@ -303,7 +291,7 @@ namespace
   private:
     /* action to execute on popping.
      */
-    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDrawCommand::DelayedAction> > m_set_occluder_z;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw::DelayedAction> > m_set_occluder_z;
   };
 
   class state_stack_entry
@@ -1332,6 +1320,9 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
   str.m_edges.m_indices = pdata.index_data_chunk(edge);
   str.m_edge_zinc = pdata.increment_z_value(edge);
 
+  //no caps
+  str.m_cap_zinc = 0u;
+
   /* Those joins for which the distance value is inside the
      dash pattern, we include in str.m_joins with the join
      type, for those outside, we take the cap-join at the
@@ -1731,7 +1722,7 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
   BlendMode::packed_value old_blend_mode;
   reference_counted_ptr<ZDataCallBack> zdatacallback;
 
-  /* zdatacallback generates a list of PainterDrawCommand::DelayedAction
+  /* zdatacallback generates a list of PainterDraw::DelayedAction
      objects (held in m_actions) who's action is to write the correct
      z-value to occlude elements drawn after clipOut but not after
      the next time m_occluder_stack is popped.
@@ -1765,7 +1756,7 @@ clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
   BlendMode::packed_value old_blend_mode;
   reference_counted_ptr<ZDataCallBack> zdatacallback;
 
-  /* zdatacallback generates a list of PainterDrawCommand::DelayedAction
+  /* zdatacallback generates a list of PainterDraw::DelayedAction
      objects (held in m_actions) who's action is to write the correct
      z-value to occlude elements drawn after clipOut but not after
      the next time m_occluder_stack is popped.

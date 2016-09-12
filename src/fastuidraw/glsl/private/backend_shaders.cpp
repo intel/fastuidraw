@@ -1,4 +1,5 @@
-#include <fastuidraw/painter/painter_stroke_value.hpp>
+#include <fastuidraw/painter/painter_stroke_params.hpp>
+#include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
 #include "backend_shaders.hpp"
 
 namespace fastuidraw { namespace glsl { namespace detail {
