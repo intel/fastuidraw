@@ -23,6 +23,7 @@
 
 #include <fastuidraw/painter/packing/painter_packer.hpp>
 #include <fastuidraw/painter/painter_stroke_params.hpp>
+#include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
 #include <fastuidraw/painter/painter_data.hpp>
 
 namespace fastuidraw

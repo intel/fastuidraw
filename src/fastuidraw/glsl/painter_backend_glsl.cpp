@@ -4,6 +4,8 @@
 #include <sstream>
 #include <vector>
 
+#include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
+
 #include <fastuidraw/glsl/painter_backend_glsl.hpp>
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
