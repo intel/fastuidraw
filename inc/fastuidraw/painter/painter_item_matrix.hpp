@@ -88,7 +88,7 @@ namespace fastuidraw
     }
 
     /*!
-      Pack the values of this ItemMatrix
+      Pack the values of this PainterItemMatrix
       \param alignment alignment of the data store
       in units of generic_data, see
       PainterBackend::ConfigurationBase::alignment()

@@ -651,7 +651,7 @@ pack_header(unsigned int header_size,
   header.m_brush_shader = current.m_brush;
   header.m_blend_shader = blend.m_ID;
   header.m_z = z;
-  header.pack_data(dst);
+  header.pack_data(m_alignment, dst);
 
   if(current.m_item_group != m_prev_state.m_item_group
      || current.m_blend_group != m_prev_state.m_blend_group
@@ -682,7 +682,7 @@ PainterPackerPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBacken
   m_p(p)
 {
   m_alignment = m_backend->configuration_base().alignment();
-  m_header_size = fastuidraw::round_up_to_multiple(fastuidraw::PainterHeader::header_size, m_alignment);
+  m_header_size = fastuidraw::PainterHeader::data_size(m_alignment);
   m_default_shaders = m_backend->default_shaders();
   m_number_begins = 0;
 }

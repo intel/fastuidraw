@@ -166,7 +166,21 @@ namespace fastuidraw
       \param dst place to which to pack data
     */
     void
-    pack_data(c_array<generic_data> dst) const;
+    pack_data(unsigned int alignment, c_array<generic_data> dst) const;
+
+    /*!
+      Returns the length of the data needed to encode the data.
+      Data is padded to be multiple of alignment.
+      \param alignment alignment of the data store
+                       in units of generic_data, see
+                       PainterBackend::ConfigurationBase::alignment()
+    */
+    static
+    unsigned int
+    data_size(unsigned int alignment)
+    {
+      return round_up_to_multiple(header_size, alignment);
+    }
   };
 
 /*! @} */
