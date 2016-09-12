@@ -69,7 +69,7 @@ namespace fastuidraw
   /*!
     A PainterPackedValue represents a handle to an object that stores
     packed state data and tracks if that underlying data is already is
-    already copied to PainterDrawCommand::m_store. If already
+    already copied to PainterDraw::m_store. If already
     on a store, then rather than copying the data again, the data is
     reused. The object behind the handle is NOT thread safe. In addition
     the underlying reference count is not either. Hence any access

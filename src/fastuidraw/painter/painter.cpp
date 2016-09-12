@@ -51,7 +51,7 @@ namespace
     uint32_t *m_mapped;
   };
 
-  class ZDelayedAction:public fastuidraw::PainterDrawCommand::DelayedAction
+  class ZDelayedAction:public fastuidraw::PainterDraw::DelayedAction
   {
   public:
     void
@@ -65,7 +65,7 @@ namespace
 
     virtual
     void
-    action(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> &)
+    action(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &)
     {
       for(unsigned int i = 0, endi = m_dests.size(); i < endi; ++i)
         {
@@ -92,7 +92,7 @@ namespace
   public:
     virtual
     void
-    current_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> &h)
+    current_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &h)
     {
       if(h != m_cmd)
         {
@@ -111,10 +111,10 @@ namespace
       m_current->m_dests.push_back(change_header_z(original_value, mapped_location));
     }
 
-    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDrawCommand::DelayedAction> > m_actions;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw::DelayedAction> > m_actions;
 
   private:
-    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> m_cmd;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> m_cmd;
     fastuidraw::reference_counted_ptr<ZDelayedAction> m_current;
   };
 
@@ -293,7 +293,7 @@ namespace
     /* steals the data it does.
      */
     explicit
-    occluder_stack_entry(std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDrawCommand::DelayedAction> > &pz)
+    occluder_stack_entry(std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw::DelayedAction> > &pz)
     {
       m_set_occluder_z.swap(pz);
     }
@@ -304,7 +304,7 @@ namespace
   private:
     /* action to execute on popping.
      */
-    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDrawCommand::DelayedAction> > m_set_occluder_z;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw::DelayedAction> > m_set_occluder_z;
   };
 
   class state_stack_entry
@@ -1732,7 +1732,7 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
   BlendMode::packed_value old_blend_mode;
   reference_counted_ptr<ZDataCallBack> zdatacallback;
 
-  /* zdatacallback generates a list of PainterDrawCommand::DelayedAction
+  /* zdatacallback generates a list of PainterDraw::DelayedAction
      objects (held in m_actions) who's action is to write the correct
      z-value to occlude elements drawn after clipOut but not after
      the next time m_occluder_stack is popped.
@@ -1766,7 +1766,7 @@ clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
   BlendMode::packed_value old_blend_mode;
   reference_counted_ptr<ZDataCallBack> zdatacallback;
 
-  /* zdatacallback generates a list of PainterDrawCommand::DelayedAction
+  /* zdatacallback generates a list of PainterDraw::DelayedAction
      objects (held in m_actions) who's action is to write the correct
      z-value to occlude elements drawn after clipOut but not after
      the next time m_occluder_stack is popped.

@@ -70,7 +70,7 @@ namespace fastuidraw
       /*!
         Bits that are up in brush_shader_mask(void) that change
         in PainterBrush::shader() trigger a call to
-        PainterDrawCommand::draw_break().
+        PainterDraw::draw_break().
       */
       uint32_t
       brush_shader_mask(void) const;
@@ -86,7 +86,7 @@ namespace fastuidraw
       /*!
         Specifies the alignment in units of generic_data for
         packing of seperately accessible entries of generic data
-        in PainterDrawCommand::m_store.
+        in PainterDraw::m_store.
        */
       int
       alignment(void) const;
@@ -198,28 +198,28 @@ namespace fastuidraw
     configuration_base(void) const;
 
     /*!
-      Called just before calling PainterDrawCommand::draw()
-      on a sequence of PainterDrawCommand objects who have
-      had their PainterDrawCommand::unmap() routine called.
+      Called just before calling PainterDraw::draw()
+      on a sequence of PainterDraw objects who have
+      had their PainterDraw::unmap() routine called.
      */
     virtual
     void
     on_pre_draw(void) = 0;
 
     /*!
-      Called just after calling PainterDrawCommand::draw()
-      on a sequence of PainterDrawCommand objects.
+      Called just after calling PainterDraw::draw()
+      on a sequence of PainterDraw objects.
      */
     virtual
     void
     on_post_draw(void) = 0;
 
     /*!
-      "Map" a PainterDrawCommand for filling of data.
+      "Map" a PainterDraw for filling of data.
      */
     virtual
-    reference_counted_ptr<const PainterDrawCommand>
-    map_draw_command(void) = 0;
+    reference_counted_ptr<const PainterDraw>
+    map_draw(void) = 0;
 
     /*!
       Registers a vertex shader for use. Must not be called within a

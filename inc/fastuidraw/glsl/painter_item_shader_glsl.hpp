@@ -383,10 +383,10 @@ namespace fastuidraw
        - vec2 fastuidraw_viewport_pixels the viewport dimensions in pixels
        - vec2 fastuidraw_viewport_recip_pixels reciprocal of fastuidraw_viewport_pixels
        - vec2 fastuidraw_viewport_recip_pixels_magnitude euclidean length of fastuidraw_viewport_recip_pixels
-       - the macro fastuidraw_fetch_data(x) to fetch the x'th block from the data store buffer (PainterDrawCommand::m_store)
+       - the macro fastuidraw_fetch_data(x) to fetch the x'th block from the data store buffer (PainterDraw::m_store)
 
       For both stages, the value of the argument of shader_data_offset is which block into the data
-      store (PainterDrawCommand::m_store) of the custom shader data. Do
+      store (PainterDraw::m_store) of the custom shader data. Do
       \code
       fastuidraw_fetch_data(shader_data_offset)
       \endcode

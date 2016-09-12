@@ -187,7 +187,7 @@ namespace
     }
 
     /* To what painter and where in data store buffer
-       already packed into PainterDrawCommand::m_store
+       already packed into PainterDraw::m_store
      */
     const fastuidraw::PainterPacker *m_painter;
     std::vector<fastuidraw::generic_data> m_data;
@@ -334,7 +334,7 @@ namespace
   class per_draw_command
   {
   public:
-    per_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> &r,
+    per_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &r,
                      const fastuidraw::PainterBackend::ConfigurationBase &config);
 
     unsigned int
@@ -386,7 +386,7 @@ namespace
                 const painter_state_location &loc,
                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
-    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> m_draw_command;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> m_draw_command;
     unsigned int m_attributes_written, m_indices_written;
 
   private:
@@ -522,7 +522,7 @@ namespace
 //////////////////////////////////////////
 // per_draw_command methods
 per_draw_command::
-per_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> &r,
+per_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &r,
                  const fastuidraw::PainterBackend::ConfigurationBase &config):
   m_draw_command(r),
   m_attributes_written(0),
@@ -703,8 +703,8 @@ start_new_command(void)
       m_accumulated_draws.back().unmap();
     }
 
-  fastuidraw::reference_counted_ptr<const fastuidraw::PainterDrawCommand> r;
-  r = m_backend->map_draw_command();
+  fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> r;
+  r = m_backend->map_draw();
   m_accumulated_draws.push_back(per_draw_command(r, m_backend->configuration_base()));
 }
 
