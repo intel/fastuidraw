@@ -5,7 +5,7 @@
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/painter/painter.hpp>
-#include <fastuidraw/painter/packing/painter_packing_enums.hpp>
+#include <fastuidraw/painter/painter_header.hpp>
 #include <fastuidraw/painter/packing/painter_packing_brush.hpp>
 
 #include "sdl_painter_demo.hpp"
@@ -119,7 +119,7 @@ private:
 int
 main(int argc, char **argv)
 {
-  std::cout << std::setw(40) << "header_size = " << PainterPacking::header_size << "\n"
+  std::cout << std::setw(40) << "header_size = " << PainterHeader::header_size << "\n"
             << std::setw(40) << "clip_equations_data_size = " << PainterClipEquations::clip_data_size << "\n"
             << std::setw(40) << "item_matrix_data_size = " << PainterItemMatrix::matrix_data_size << "\n"
             << std::setw(40) << "image_data_size = " << PainterPacking::Brush::image_data_size << "\n"
