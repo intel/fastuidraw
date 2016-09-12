@@ -35,12 +35,10 @@ namespace
   class change_header_z
   {
   public:
-    change_header_z(fastuidraw::const_c_array<fastuidraw::generic_data> original_value,
+    change_header_z(const fastuidraw::PainterHeader &header,
                     fastuidraw::c_array<fastuidraw::generic_data> mapped_location)
     {
-      m_blend_shader = fastuidraw::unpack_bits(fastuidraw::PainterHeader::blend_shader_bit0,
-                                              fastuidraw::PainterHeader::blend_shader_num_bits,
-                                              original_value[fastuidraw::PainterHeader::z_blend_shader_offset].u);
+      m_blend_shader = header.m_blend_shader;
       m_mapped = &mapped_location[fastuidraw::PainterHeader::z_blend_shader_offset].u;
     }
 
@@ -92,7 +90,7 @@ namespace
   public:
     virtual
     void
-    current_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &h)
+    current_draw(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &h)
     {
       if(h != m_cmd)
         {
@@ -105,7 +103,7 @@ namespace
 
     virtual
     void
-    header_added(fastuidraw::const_c_array<fastuidraw::generic_data> original_value,
+    header_added(const fastuidraw::PainterHeader &original_value,
                  fastuidraw::c_array<fastuidraw::generic_data> mapped_location)
     {
       m_current->m_dests.push_back(change_header_z(original_value, mapped_location));
