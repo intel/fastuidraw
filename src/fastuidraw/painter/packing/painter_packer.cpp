@@ -23,7 +23,7 @@
 #include <cstring>
 
 #include <fastuidraw/painter/packing/painter_packer.hpp>
-#include <fastuidraw/painter/packing/painter_packing_enums.hpp>
+#include <fastuidraw/painter/painter_header.hpp>
 #include "../../private/util_private.hpp"
 
 namespace
@@ -620,7 +620,8 @@ pack_header(unsigned int header_size,
 {
   unsigned int return_value;
   fastuidraw::c_array<fastuidraw::generic_data> dst, dst_write;
-  fastuidraw::vecN<fastuidraw::generic_data, fastuidraw::PainterPacking::header_size> dst_read_write;
+  fastuidraw::vecN<fastuidraw::generic_data, fastuidraw::PainterHeader::header_size> dst_read_write;
+  fastuidraw::PainterHeader header;
 
   return_value = current_block();
   dst_write = allocate_store(header_size);
@@ -635,13 +636,6 @@ pack_header(unsigned int header_size,
       dst = dst_write;
     }
 
-  dst[fastuidraw::PainterPacking::clip_equations_offset].u = loc.m_clipping_data_loc;
-  dst[fastuidraw::PainterPacking::item_matrix_offset].u = loc.m_item_matrix_data_loc;
-
-  dst[fastuidraw::PainterPacking::brush_shader_data_offset].u = loc.m_brush_shader_data_loc;
-  dst[fastuidraw::PainterPacking::item_shader_data_offset].u = loc.m_item_shader_data_loc;
-  dst[fastuidraw::PainterPacking::blend_shader_data_offset].u = loc.m_blend_shader_data_loc;
-
   PainterShaderGroupPrivate current;
   fastuidraw::PainterShader::Tag blend;
 
@@ -654,14 +648,16 @@ pack_header(unsigned int header_size,
   current.m_blend_group = blend.m_group;
   current.m_blend_mode = blend_mode;
 
-  dst[fastuidraw::PainterPacking::item_shader_offset].u = item_shader->ID();
-  dst[fastuidraw::PainterPacking::brush_shader_offset].u = current.m_brush;
-
-  dst[fastuidraw::PainterPacking::z_blend_shader_offset].u =
-    fastuidraw::pack_bits(fastuidraw::PainterPacking::z_bit0,
-                         fastuidraw::PainterPacking::z_num_bits, z)
-    | fastuidraw::pack_bits(fastuidraw::PainterPacking::blend_shader_bit0,
-                           fastuidraw::PainterPacking::blend_shader_num_bits, blend.m_ID);
+  header.m_clip_equations_location = loc.m_clipping_data_loc;
+  header.m_item_matrix_location = loc.m_item_matrix_data_loc;
+  header.m_brush_shader_data_location = loc.m_brush_shader_data_loc;
+  header.m_item_shader_data_location = loc.m_item_shader_data_loc;
+  header.m_blend_shader_data_location = loc.m_blend_shader_data_loc;
+  header.m_item_shader = item_shader->ID();
+  header.m_brush_shader = current.m_brush;
+  header.m_blend_shader = blend.m_ID;
+  header.m_z = z;
+  header.pack_data(dst);
 
   if(current.m_item_group != m_prev_state.m_item_group
      || current.m_blend_group != m_prev_state.m_blend_group
@@ -693,7 +689,7 @@ PainterPackerPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBacken
   m_p(p)
 {
   m_alignment = m_backend->configuration_base().alignment();
-  m_header_size = fastuidraw::round_up_to_multiple(fastuidraw::PainterPacking::header_size, m_alignment);
+  m_header_size = fastuidraw::round_up_to_multiple(fastuidraw::PainterHeader::header_size, m_alignment);
   m_default_shaders = m_backend->default_shaders();
   m_number_begins = 0;
 }

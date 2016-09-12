@@ -31,9 +31,9 @@
 #include <fastuidraw/painter/painter_shader_set.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/painter_header.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
 #include <fastuidraw/painter/packing/painter_draw.hpp>
-#include <fastuidraw/painter/packing/painter_packing_enums.hpp>
 #include <fastuidraw/painter/packing/painter_backend.hpp>
 #include <fastuidraw/painter/packing/painter_packer_data.hpp>
 
