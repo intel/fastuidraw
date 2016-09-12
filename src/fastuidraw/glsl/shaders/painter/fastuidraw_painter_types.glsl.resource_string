@@ -7,14 +7,14 @@ struct fastuidraw_shader_header
   uint brush_shader_data_location;
   uint item_shader_data_location;
   uint blend_shader_data_location;
-  uint item_shader;
   uint brush_shader;
-  uint z_blend_shader_raw;
-
-  /* derived from those values
-   */
-  uint blend_shader;
   uint z;
+  uint item_blend_shader_packed;
+
+  /* derived values
+   */
+  uint item_shader;
+  uint blend_shader;
 };
 
 struct fastuidraw_clipping_data
