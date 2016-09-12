@@ -17,6 +17,7 @@
  */
 
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
+#include <fastuidraw/util/fastuidraw_memory.hpp>
 #include "../private/util_private.hpp"
 
 
