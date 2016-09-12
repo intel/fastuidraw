@@ -12,7 +12,7 @@
 #include <fastuidraw/painter/packing/painter_backend.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_value.hpp>
-#include <fastuidraw/painter/painter_stroke_value.hpp>
+#include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/packing/painter_packing_enums.hpp>
 #include <fastuidraw/painter/packing/painter_packing_brush.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>

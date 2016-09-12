@@ -22,7 +22,7 @@
 #include <fastuidraw/path.hpp>
 
 #include <fastuidraw/painter/packing/painter_packer.hpp>
-#include <fastuidraw/painter/painter_stroke_value.hpp>
+#include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_data.hpp>
 
 namespace fastuidraw

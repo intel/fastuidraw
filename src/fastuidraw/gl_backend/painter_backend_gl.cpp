@@ -23,23 +23,13 @@
 #include <vector>
 #include <iostream>
 
-#include <fastuidraw/glsl/shader_code.hpp>
-#include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
-#include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
-
-#include <fastuidraw/stroked_path.hpp>
-#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/painter_backend_gl.hpp>
+#include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 #include <fastuidraw/gl_backend/gluniform.hpp>
-
-#include <fastuidraw/painter/painter_brush.hpp>
-#include <fastuidraw/painter/packing/painter_packing_brush.hpp>
-#include <fastuidraw/painter/packing/painter_packing_enums.hpp>
-#include <fastuidraw/painter/painter_stroke_value.hpp>
 
 #include "private/tex_buffer.hpp"
 

@@ -1,6 +1,6 @@
 /*!
- * \file painter_stroke_value.hpp
- * \brief file painter_stroke_value.hpp
+ * \file painter_stroke_params.hpp
+ * \brief file painter_stroke_params.hpp
  *
  * Copyright 2016 by Intel.
  *
