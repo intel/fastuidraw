@@ -92,8 +92,8 @@ namespace fastuidraw
                     it is guaranteed by the caller that can_create_rendering_data()
                     returns true on render.type()
       \param glyph_code glyph code of glyph rendering data to create
-      \param [output] layout location to which to place the GlyphLayoutData for the glyph
-      \param [output] path Path of the glyph
+      \param[out] layout location to which to place the GlyphLayoutData for the glyph
+      \param[out] path Path of the glyph
      */
     virtual
     GlyphRenderData*
