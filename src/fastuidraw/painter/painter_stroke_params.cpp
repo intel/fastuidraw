@@ -1,6 +1,6 @@
 /*!
- * \file painter_stroke_value.cpp
- * \brief file painter_stroke_vvalue.cpp
+ * \file painter_stroke_params.cpp
+ * \brief file painter_stroke_params.cpp
  *
  * Copyright 2016 by Intel.
  *
@@ -16,7 +16,7 @@
  *
  */
 
-#include <fastuidraw/painter/painter_stroke_value.hpp>
+#include <fastuidraw/painter/painter_stroke_params.hpp>
 #include "../private/util_private.hpp"
 
 namespace
