@@ -5,6 +5,8 @@
 #include <vector>
 
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
+#include <fastuidraw/painter/painter_stroke_params.hpp>
+#include <fastuidraw/painter/painter_header.hpp>
 
 #include <fastuidraw/glsl/painter_backend_glsl.hpp>
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
@@ -399,7 +401,7 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
   unsigned int alignment;
 
   alignment = m_p->configuration_base().alignment();
-  z_bits_supported = std::min(23u, static_cast<uint32_t>(z_num_bits));
+  z_bits_supported = std::min(23u, static_cast<uint32_t>(PainterHeader::z_num_bits));
 
   src
     .add_macro("fastuidraw_half_max_z", FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(z_bits_supported - 1))
@@ -445,10 +447,10 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_stroke_dashed_stroking_params_header_num_blocks",
                number_blocks(alignment, PainterDashedStrokeParams::stroke_static_data_size))
 
-    .add_macro("fastuidraw_z_bit0", z_bit0)
-    .add_macro("fastuidraw_z_num_bits", z_num_bits)
-    .add_macro("fastuidraw_blend_shader_bit0", blend_shader_bit0)
-    .add_macro("fastuidraw_blend_shader_num_bits", blend_shader_num_bits)
+    .add_macro("fastuidraw_z_bit0", PainterHeader::z_bit0)
+    .add_macro("fastuidraw_z_num_bits", PainterHeader::z_num_bits)
+    .add_macro("fastuidraw_blend_shader_bit0", PainterHeader::blend_shader_bit0)
+    .add_macro("fastuidraw_blend_shader_num_bits", PainterHeader::blend_shader_num_bits)
 
     .add_macro("fastuidraw_stroke_offset_edge", StrokedPath::offset_edge)
     .add_macro("fastuidraw_stroke_offset_rounded_join", StrokedPath::offset_rounded_join)
@@ -576,16 +578,16 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
   }
 
   {
-    shader_unpack_value_set<header_size> labels;
+    shader_unpack_value_set<PainterHeader::header_size> labels;
     labels
-      .set(clip_equations_offset, ".clipping_location", shader_unpack_value::uint_type)
-      .set(item_matrix_offset, ".item_matrix_location", shader_unpack_value::uint_type)
-      .set(brush_shader_data_offset, ".brush_shader_data_location", shader_unpack_value::uint_type)
-      .set(item_shader_data_offset, ".item_shader_data_location", shader_unpack_value::uint_type)
-      .set(blend_shader_data_offset, ".blend_shader_data_location", shader_unpack_value::uint_type)
-      .set(item_shader_offset, ".item_shader", shader_unpack_value::uint_type)
-      .set(brush_shader_offset, ".brush_shader", shader_unpack_value::uint_type)
-      .set(z_blend_shader_offset, ".z_blend_shader_raw", shader_unpack_value::uint_type)
+      .set(PainterHeader::clip_equations_location_offset, ".clipping_location", shader_unpack_value::uint_type)
+      .set(PainterHeader::item_matrix_location_offset, ".item_matrix_location", shader_unpack_value::uint_type)
+      .set(PainterHeader::brush_shader_data_location_offset, ".brush_shader_data_location", shader_unpack_value::uint_type)
+      .set(PainterHeader::item_shader_data_location_offset, ".item_shader_data_location", shader_unpack_value::uint_type)
+      .set(PainterHeader::blend_shader_data_location_offset, ".blend_shader_data_location", shader_unpack_value::uint_type)
+      .set(PainterHeader::item_shader_offset, ".item_shader", shader_unpack_value::uint_type)
+      .set(PainterHeader::brush_shader_offset, ".brush_shader", shader_unpack_value::uint_type)
+      .set(PainterHeader::z_blend_shader_offset, ".z_blend_shader_raw", shader_unpack_value::uint_type)
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_header",
                               "fastuidraw_shader_header", false);

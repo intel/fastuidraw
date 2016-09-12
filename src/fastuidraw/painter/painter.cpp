@@ -21,6 +21,7 @@
 #include <bitset>
 
 #include <fastuidraw/util/math.hpp>
+#include <fastuidraw/painter/painter_header.hpp>
 #include <fastuidraw/painter/painter.hpp>
 
 #include "../private/util_private.hpp"
@@ -37,10 +38,10 @@ namespace
     change_header_z(fastuidraw::const_c_array<fastuidraw::generic_data> original_value,
                     fastuidraw::c_array<fastuidraw::generic_data> mapped_location)
     {
-      m_blend_shader = fastuidraw::unpack_bits(fastuidraw::PainterPacking::blend_shader_bit0,
-                                              fastuidraw::PainterPacking::blend_shader_num_bits,
-                                              original_value[fastuidraw::PainterPacking::z_blend_shader_offset].u);
-      m_mapped = &mapped_location[fastuidraw::PainterPacking::z_blend_shader_offset].u;
+      m_blend_shader = fastuidraw::unpack_bits(fastuidraw::PainterHeader::blend_shader_bit0,
+                                              fastuidraw::PainterHeader::blend_shader_num_bits,
+                                              original_value[fastuidraw::PainterHeader::z_blend_shader_offset].u);
+      m_mapped = &mapped_location[fastuidraw::PainterHeader::z_blend_shader_offset].u;
     }
 
     //value of blend shader where z is written
@@ -70,11 +71,11 @@ namespace
         {
           uint32_t zbits, blendbits;
 
-          zbits = fastuidraw::pack_bits(fastuidraw::PainterPacking::z_bit0,
-                                       fastuidraw::PainterPacking::z_num_bits,
+          zbits = fastuidraw::pack_bits(fastuidraw::PainterHeader::z_bit0,
+                                       fastuidraw::PainterHeader::z_num_bits,
                                        m_z_to_write);
-          blendbits = fastuidraw::pack_bits(fastuidraw::PainterPacking::blend_shader_bit0,
-                                           fastuidraw::PainterPacking::blend_shader_num_bits,
+          blendbits = fastuidraw::pack_bits(fastuidraw::PainterHeader::blend_shader_bit0,
+                                           fastuidraw::PainterHeader::blend_shader_num_bits,
                                            m_dests[i].m_blend_shader);
           *m_dests[i].m_mapped = zbits | blendbits;
         }
