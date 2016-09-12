@@ -1331,6 +1331,9 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
   str.m_edges.m_indices = pdata.index_data_chunk(edge);
   str.m_edge_zinc = pdata.increment_z_value(edge);
 
+  //no caps
+  str.m_cap_zinc = 0u;
+
   /* Those joins for which the distance value is inside the
      dash pattern, we include in str.m_joins with the join
      type, for those outside, we take the cap-join at the
