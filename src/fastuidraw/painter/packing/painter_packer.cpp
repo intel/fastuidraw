@@ -619,21 +619,15 @@ pack_header(unsigned int header_size,
             const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
 {
   unsigned int return_value;
-  fastuidraw::c_array<fastuidraw::generic_data> dst, dst_write;
-  fastuidraw::vecN<fastuidraw::generic_data, fastuidraw::PainterHeader::header_size> dst_read_write;
+  fastuidraw::c_array<fastuidraw::generic_data> dst;
   fastuidraw::PainterHeader header;
 
   return_value = current_block();
-  dst_write = allocate_store(header_size);
+  dst = allocate_store(header_size);
 
   if(call_back)
     {
-      call_back->current_draw_command(m_draw_command);
-      dst = dst_read_write;
-    }
-  else
-    {
-      dst = dst_write;
+      call_back->current_draw(m_draw_command);
     }
 
   PainterShaderGroupPrivate current;
@@ -665,16 +659,15 @@ pack_header(unsigned int header_size,
      || current.m_blend_mode != m_prev_state.m_blend_mode)
     {
       m_draw_command->draw_break(m_prev_state, current,
-                                 m_attributes_written, m_indices_written);
+                                 m_attributes_written,
+                                 m_indices_written);
     }
 
   m_prev_state = current;
 
   if(call_back)
     {
-      std::memcpy(dst_write.c_ptr(), dst_read_write.c_ptr(),
-                  sizeof(fastuidraw::generic_data) * dst_read_write.size());
-      call_back->header_added(dst_read_write, dst_write);
+      call_back->header_added(header, dst);
     }
 
   return return_value;

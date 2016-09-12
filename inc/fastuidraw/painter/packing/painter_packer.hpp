@@ -66,17 +66,17 @@ namespace fastuidraw
        */
       virtual
       void
-      current_draw_command(const reference_counted_ptr<const PainterDraw> &h) = 0;
+      current_draw(const reference_counted_ptr<const PainterDraw> &h) = 0;
 
       /*!
         To be implemented by a derived class to note when a header
         was added.
-        \param original_value values written to PainterDraw::m_store for the header, read access is ok
-        \param mapped_location sub-array into PainterDraw::m_store where header is located
+        \param original_value header values written to PainterDraw::m_store
+        \param mapped_location sub-array into PainterDraw::m_store where header is written
        */
       virtual
       void
-      header_added(const_c_array<generic_data> original_value, c_array<generic_data> mapped_location) = 0;
+      header_added(const PainterHeader &original_value, c_array<generic_data> mapped_location) = 0;
     };
 
     /*!
