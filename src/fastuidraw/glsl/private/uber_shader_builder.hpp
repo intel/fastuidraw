@@ -1,23 +1,26 @@
-#pragma once
+/*!
+ * \file uber_shader_builder.hpp
+ * \brief file uber_shader_builder.hpp
+ *
+ * Copyright 2016 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
 
-#include <list>
-#include <map>
-#include <sstream>
-#include <vector>
+#pragma once
 
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/util.hpp>
-#include <fastuidraw/stroked_path.hpp>
-#include <fastuidraw/painter/packing/painter_backend.hpp>
-#include <fastuidraw/painter/painter_brush.hpp>
-#include <fastuidraw/painter/painter_item_matrix.hpp>
-#include <fastuidraw/painter/painter_shader_data.hpp>
-#include <fastuidraw/painter/painter_clip_equations.hpp>
-#include <fastuidraw/painter/painter_stroke_params.hpp>
-#include <fastuidraw/painter/painter_header.hpp>
-#include <fastuidraw/painter/packing/painter_packing_brush.hpp>
-#include <fastuidraw/glsl/shader_source.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_backend_glsl.hpp>
