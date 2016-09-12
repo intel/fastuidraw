@@ -401,7 +401,7 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
   unsigned int alignment;
 
   alignment = m_p->configuration_base().alignment();
-  z_bits_supported = std::min(23u, static_cast<uint32_t>(PainterHeader::z_num_bits));
+  z_bits_supported = 23u;
 
   src
     .add_macro("fastuidraw_half_max_z", FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(z_bits_supported - 1))
@@ -447,8 +447,8 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_stroke_dashed_stroking_params_header_num_blocks",
                number_blocks(alignment, PainterDashedStrokeParams::stroke_static_data_size))
 
-    .add_macro("fastuidraw_z_bit0", PainterHeader::z_bit0)
-    .add_macro("fastuidraw_z_num_bits", PainterHeader::z_num_bits)
+    .add_macro("fastuidraw_item_shader_bit0", PainterHeader::item_shader_bit0)
+    .add_macro("fastuidraw_item_shader_num_bits", PainterHeader::item_shader_num_bits)
     .add_macro("fastuidraw_blend_shader_bit0", PainterHeader::blend_shader_bit0)
     .add_macro("fastuidraw_blend_shader_num_bits", PainterHeader::blend_shader_num_bits)
 
@@ -585,9 +585,9 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
       .set(PainterHeader::brush_shader_data_location_offset, ".brush_shader_data_location", shader_unpack_value::uint_type)
       .set(PainterHeader::item_shader_data_location_offset, ".item_shader_data_location", shader_unpack_value::uint_type)
       .set(PainterHeader::blend_shader_data_location_offset, ".blend_shader_data_location", shader_unpack_value::uint_type)
-      .set(PainterHeader::item_shader_offset, ".item_shader", shader_unpack_value::uint_type)
       .set(PainterHeader::brush_shader_offset, ".brush_shader", shader_unpack_value::uint_type)
-      .set(PainterHeader::z_blend_shader_offset, ".z_blend_shader_raw", shader_unpack_value::uint_type)
+      .set(PainterHeader::z_offset, ".z", shader_unpack_value::uint_type)
+      .set(PainterHeader::item_blend_shader_offset, ".item_blend_shader_packed", shader_unpack_value::uint_type)
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_header",
                               "fastuidraw_shader_header", false);

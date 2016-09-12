@@ -38,30 +38,29 @@ namespace fastuidraw
   {
   public:
     /*!
-      Bit packing for the z-blend-shader field of the header
-      (located at z_blend_shader_offset)
+      Bit packing for item and blend shader
      */
-    enum z_blend_shader_encoding
+    enum item_blend_shader_encoding
       {
        /*!
-          Number of bits used for the z-value
+          Number of bits used for the item shader ID
          */
-        z_num_bits = 23,
+        item_shader_num_bits = 16,
 
         /*!
           Number of bits used for the blend shader ID
          */
-        blend_shader_num_bits = 32 - z_num_bits,
+        blend_shader_num_bits = 16,
 
         /*!
-          First bit used to store the z value
-         */
-        z_bit0 = 0,
+          First bit used to store the item shader ID
+        */
+        item_shader_bit0 = 0,
 
         /*!
           First bit used to store the blend shader ID
          */
-        blend_shader_bit0 = z_num_bits,
+        blend_shader_bit0 = item_shader_num_bits,
       };
 
     /*!
@@ -75,9 +74,13 @@ namespace fastuidraw
         brush_shader_data_location_offset, /*!< offset to \ref m_brush_shader_data_location */
         item_shader_data_location_offset, /*!< offset to \ref m_item_shader_data_location */
         blend_shader_data_location_offset, /*!< offset to \ref m_blend_shader_data_location */
-        item_shader_offset, /*!< offset to \ref m_item_shader */
+        /*!
+          offset to \ref m_item_shader and m_blend_shader packed as
+          according to item_blend_shader_encoding
+         */
+        item_blend_shader_offset,
         brush_shader_offset, /*!< offset to \ref m_brush_shader */
-        z_blend_shader_offset, /*!< offset to \ref m_blend_shader and m_z packed into single 32-bit value */
+        z_offset, /*!< offset to \ref m_z */
 
         header_size /*!< size of header */
       };

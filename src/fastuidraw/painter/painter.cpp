@@ -38,12 +38,9 @@ namespace
     change_header_z(const fastuidraw::PainterHeader &header,
                     fastuidraw::c_array<fastuidraw::generic_data> mapped_location)
     {
-      m_blend_shader = header.m_blend_shader;
-      m_mapped = &mapped_location[fastuidraw::PainterHeader::z_blend_shader_offset].u;
+      FASTUIDRAWunused(header);
+      m_mapped = &mapped_location[fastuidraw::PainterHeader::z_offset].u;
     }
-
-    //value of blend shader where z is written
-    uint32_t m_blend_shader;
 
     //location to which to write to overwrite value.
     uint32_t *m_mapped;
@@ -67,15 +64,7 @@ namespace
     {
       for(unsigned int i = 0, endi = m_dests.size(); i < endi; ++i)
         {
-          uint32_t zbits, blendbits;
-
-          zbits = fastuidraw::pack_bits(fastuidraw::PainterHeader::z_bit0,
-                                       fastuidraw::PainterHeader::z_num_bits,
-                                       m_z_to_write);
-          blendbits = fastuidraw::pack_bits(fastuidraw::PainterHeader::blend_shader_bit0,
-                                           fastuidraw::PainterHeader::blend_shader_num_bits,
-                                           m_dests[i].m_blend_shader);
-          *m_dests[i].m_mapped = zbits | blendbits;
+          *m_dests[i].m_mapped = m_z_to_write;
         }
     }
 

@@ -30,9 +30,10 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
   dst[brush_shader_data_location_offset].u = m_brush_shader_data_location;
   dst[item_shader_data_location_offset].u  = m_item_shader_data_location;
   dst[blend_shader_data_location_offset].u = m_blend_shader_data_location;
-  dst[item_shader_offset].u                = m_item_shader;
   dst[brush_shader_offset].u               = m_brush_shader;
+  dst[z_offset].u                          = m_z;
 
-  dst[z_blend_shader_offset].u = pack_bits(z_bit0, z_num_bits, m_z)
-    | pack_bits(blend_shader_bit0, blend_shader_num_bits,m_blend_shader);
+  dst[item_blend_shader_offset].u
+    = pack_bits(item_shader_bit0, item_shader_num_bits, m_item_shader)
+    | pack_bits(blend_shader_bit0, blend_shader_num_bits, m_blend_shader);
 }
