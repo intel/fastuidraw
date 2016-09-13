@@ -1437,7 +1437,7 @@ fill_path(const reference_counted_ptr<PainterItemShader> &shader, const PainterD
       k = chks[i];
       if(k == PainterEnums::complement_nonzero_fill_rule || k >= PainterEnums::fill_rule_data_count)
         {
-          winding_number = PainterAttributeDataFilledPathFill::winding_number_from_index_chunk(k);
+          winding_number = PainterAttributeDataFillerPathFill::winding_number_from_index_chunk(k);
           if(fill_rule(winding_number))
             {
               const_c_array<PainterIndex> chunk;

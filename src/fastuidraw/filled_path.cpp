@@ -783,7 +783,7 @@ painter_data(void) const
   if(d->m_attribute_data == NULL)
     {
       d->m_attribute_data = FASTUIDRAWnew PainterAttributeData();
-      d->m_attribute_data->set_data(PainterAttributeDataFilledPathFill(this));
+      d->m_attribute_data->set_data(PainterAttributeDataFillerPathFill(this));
     }
   return *d->m_attribute_data;
 }
