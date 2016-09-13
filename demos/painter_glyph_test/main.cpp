@@ -341,9 +341,9 @@ ready_glyph_attribute_data(void)
     GlyphRender renderer(m_coverage_pixel_size.m_value);
     compute_glyphs_and_positions(renderer, m_render_pixel_size.m_value,
                                  m_glyphs[draw_glyph_coverage], character_codes);
-    m_draws[draw_glyph_coverage].set_data(cast_c_array(m_glyph_positions),
-                                          cast_c_array(m_glyphs[draw_glyph_coverage]),
-                                          m_render_pixel_size.m_value);
+    m_draws[draw_glyph_coverage].set_data(PainterAttributeDataFillerGlyphs(cast_c_array(m_glyph_positions),
+                                                                           cast_c_array(m_glyphs[draw_glyph_coverage]),
+                                                                           m_render_pixel_size.m_value));
     m_draw_labels[draw_glyph_coverage] = "draw_glyph_coverage";
   }
 
@@ -353,9 +353,9 @@ ready_glyph_attribute_data(void)
                           cast_c_array(m_glyphs[draw_glyph_coverage]),
                           m_glyphs[draw_glyph_distance],
                           cast_c_array(character_codes));
-    m_draws[draw_glyph_distance].set_data(cast_c_array(m_glyph_positions),
-                                          cast_c_array(m_glyphs[draw_glyph_distance]),
-                                          m_render_pixel_size.m_value);
+    m_draws[draw_glyph_distance].set_data(PainterAttributeDataFillerGlyphs(cast_c_array(m_glyph_positions),
+                                                                           cast_c_array(m_glyphs[draw_glyph_distance]),
+                                                                           m_render_pixel_size.m_value));
     m_draw_labels[draw_glyph_distance] = "draw_glyph_distance";
   }
 
@@ -365,9 +365,9 @@ ready_glyph_attribute_data(void)
                           cast_c_array(m_glyphs[draw_glyph_coverage]),
                           m_glyphs[draw_glyph_curvepair],
                           cast_c_array(character_codes));
-    m_draws[draw_glyph_curvepair].set_data(cast_c_array(m_glyph_positions),
-                                           cast_c_array(m_glyphs[draw_glyph_curvepair]),
-                                           m_render_pixel_size.m_value);
+    m_draws[draw_glyph_curvepair].set_data(PainterAttributeDataFillerGlyphs(cast_c_array(m_glyph_positions),
+                                                                            cast_c_array(m_glyphs[draw_glyph_curvepair]),
+                                                                            m_render_pixel_size.m_value));
     m_draw_labels[draw_glyph_curvepair] = "draw_glyph_curvepair";
   }
 }
