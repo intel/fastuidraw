@@ -155,7 +155,7 @@ namespace fastuidraw
     /*!
       Shader for filling of paths. The vertex shader
       takes attribute data as formatted by
-      PainterAttributeData.
+      PainterAttributeDataFillerPathFilled.
      */
     const reference_counted_ptr<PainterItemShader>&
     fill_shader(void) const;

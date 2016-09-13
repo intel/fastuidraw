@@ -504,8 +504,6 @@ public:
   /*!
     Copy ctor.
     \param obj Path from which to copy path data
-    \param tess_param tessellation parameters to use for new
-                      Path.
    */
   Path(const Path &obj);
 

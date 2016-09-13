@@ -22,6 +22,8 @@
 
 #include <fastuidraw/util/math.hpp>
 #include <fastuidraw/painter/painter_header.hpp>
+#include <fastuidraw/painter/painter_attribute_data_filler_path_stroked.hpp>
+#include <fastuidraw/painter/painter_attribute_data_filler_path_fill.hpp>
 #include <fastuidraw/painter/painter.hpp>
 
 #include "../private/util_private.hpp"
@@ -1178,40 +1180,40 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
   d = reinterpret_cast<PainterPrivate*>(m_d);
 
   using namespace PainterEnums;
-  enum PainterAttributeData::stroking_data_t cap, join, edge;
+  enum PainterAttributeDataFillerPathStroked::stroking_data_t cap, join, edge;
 
   switch(js)
     {
     case rounded_joins:
-      join = PainterAttributeData::rounded_joins_closing_edge;
+      join = PainterAttributeDataFillerPathStroked::rounded_joins_closing_edge;
       break;
     case bevel_joins:
-      join = PainterAttributeData::bevel_joins_closing_edge;
+      join = PainterAttributeDataFillerPathStroked::bevel_joins_closing_edge;
       break;
     case miter_joins:
-      join = PainterAttributeData::miter_joins_closing_edge;
+      join = PainterAttributeDataFillerPathStroked::miter_joins_closing_edge;
       break;
     default:
-      join = PainterAttributeData::stroking_data_count;
+      join = PainterAttributeDataFillerPathStroked::stroking_data_count;
     }
 
   switch(cp)
     {
     case rounded_caps:
-      cap = PainterAttributeData::rounded_cap;
+      cap = PainterAttributeDataFillerPathStroked::rounded_cap;
       break;
     case square_caps:
-      cap = PainterAttributeData::square_cap;
+      cap = PainterAttributeDataFillerPathStroked::square_cap;
       break;
     default:
-      cap = PainterAttributeData::stroking_data_count;
+      cap = PainterAttributeDataFillerPathStroked::stroking_data_count;
     }
 
-  edge = PainterAttributeData::edge_closing_edge;
+  edge = PainterAttributeDataFillerPathStroked::edge_closing_edge;
   if(cp != close_contours)
     {
-      join = PainterAttributeData::without_closing_edge(join);
-      edge = PainterAttributeData::edge_no_closing_edge;
+      join = PainterAttributeDataFillerPathStroked::without_closing_edge(join);
+      edge = PainterAttributeDataFillerPathStroked::edge_no_closing_edge;
     }
 
   StrokingData str;
@@ -1288,32 +1290,32 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
    */
   using namespace PainterEnums;
 
-  enum PainterAttributeData::stroking_data_t edge, join;
+  enum PainterAttributeDataFillerPathStroked::stroking_data_t edge, join;
   StrokingData str;
 
   switch(js)
     {
     case rounded_joins:
-      join = PainterAttributeData::rounded_joins_closing_edge;
+      join = PainterAttributeDataFillerPathStroked::rounded_joins_closing_edge;
       break;
     case bevel_joins:
-      join = PainterAttributeData::bevel_joins_closing_edge;
+      join = PainterAttributeDataFillerPathStroked::bevel_joins_closing_edge;
       break;
     case miter_joins:
-      join = PainterAttributeData::miter_joins_closing_edge;
+      join = PainterAttributeDataFillerPathStroked::miter_joins_closing_edge;
       break;
     default:
-      join = PainterAttributeData::stroking_data_count;
+      join = PainterAttributeDataFillerPathStroked::stroking_data_count;
     }
 
   if(close_contour)
     {
-      edge = PainterAttributeData::edge_closing_edge;
+      edge = PainterAttributeDataFillerPathStroked::edge_closing_edge;
     }
   else
     {
-      join = PainterAttributeData::without_closing_edge(join);
-      edge = PainterAttributeData::edge_no_closing_edge;
+      join = PainterAttributeDataFillerPathStroked::without_closing_edge(join);
+      edge = PainterAttributeDataFillerPathStroked::edge_no_closing_edge;
     }
   const PainterAttributeData &pdata(path.tessellation()->stroked()->painter_data());
   str.m_edges.m_attribs = pdata.attribute_data_chunk(edge);
@@ -1338,7 +1340,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
       const_c_array<PainterIndex> idx;
       unsigned int chunk;
 
-      chunk = PainterAttributeData::chunk_from_join(join, J);
+      chunk = PainterAttributeDataFillerPathStroked::chunk_from_join(join, J);
       idx = pdata.index_data_chunk(chunk);
       if(!idx.empty())
         {
@@ -1435,7 +1437,7 @@ fill_path(const reference_counted_ptr<PainterItemShader> &shader, const PainterD
       k = chks[i];
       if(k == PainterEnums::complement_nonzero_fill_rule || k >= PainterEnums::fill_rule_data_count)
         {
-          winding_number = PainterAttributeData::winding_number_from_index_chunk(k);
+          winding_number = PainterAttributeDataFillerPathFill::winding_number_from_index_chunk(k);
           if(fill_rule(winding_number))
             {
               const_c_array<PainterIndex> chunk;

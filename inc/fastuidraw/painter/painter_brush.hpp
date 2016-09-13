@@ -34,7 +34,16 @@ namespace fastuidraw
  */
 
   /*!
-    A PainterBrush defines a brush for painting via Painter.
+    A PainterBrush defines a brush for painting via Painter
+    providng a color (see \ref pen()), optionally applying
+    an image (see \ref image() and \ref sub_image()) and
+    optionally applying a linear or radial gradient (see
+    \ref linear_gradient() and \ref radial_gradient()).
+    In addition, a tranformation can be optionally applied
+    to the brush (see \ref transformation_translate(),
+    transformation_matrix() and transformation()) and a
+    repeat window can also be optionally applied (see
+    \ref repeat_window()).
   */
   class PainterBrush
   {

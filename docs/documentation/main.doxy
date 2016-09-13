@@ -220,7 +220,8 @@ may wish to use as well.
           }
       }
     fastuidraw::PainterAttributeData helloWorld;
-    helloWorld.set_data(glyphs, glyph_positions, layout_pixel_size);
+    fastuidraw::PainterAttributeDataFillerGlyphs filler(glyphs, glyph_positions, layout_pixel_size);
+    helloWorld.set_data(filler);
   \endcode
   Notes:
    - One does not need to use fastuidraw::GlyphSelector at all, one can
@@ -229,7 +230,6 @@ may wish to use as well.
    - The above layout is very limited, but because an application can
      construct fonts from FT_Face objects, one can use text shaping
      and layout libraries of one's choice to perform layout.
-
 
   \section CustomDrawing Custom Drawing
   In addition to drawing glyph sequences, rectangles, filling and stroking paths,
@@ -371,6 +371,8 @@ may wish to use as well.
   // 1. the atlases can be used by multiple PainterBackendGL simutaneously
   // 2. the member class params of each of the atlas types and PainterBackendGL
   //    have additional properties one can set.
+  // 3. A PainterBackendGL is a very -heavy- object (because it maintains a GLSL
+  //    program. Hence, these objects should reused during an applications lifetime.
 
   fastuidraw::reference_counted_ptr<fastuidraw::Painter> painter;
   painter = FASTUIDRAWnew fastuidraw::Painter(painterBackend)

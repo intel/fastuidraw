@@ -1003,6 +1003,7 @@ deep_copy(void)
 
       //we also need to replace r->m_interpolators[1]->m_prev with
       //the new value for r->m_interpolators[0]
+      assert(r->m_interpolators.size() > 1);
       InterpolatorBasePrivate *q;
       q = reinterpret_cast<InterpolatorBasePrivate*>(r->m_interpolators[1]->m_d);
       q->m_prev = r->m_end_to_start.get();
