@@ -49,7 +49,6 @@ namespace fastuidraw
       of the outputs is initialized as zero.
       \param[out] number_attributes number of total attributes to be set
       \param[out] number_indices number of total indices to be set
-      \param[out] number_chunks number of chunks to be set
       \param[out] number_attribute_chunks number of attribute chunks to be set
       \param[out] number_index_chunks number of index chunks to be set
       \param[out] number_z_increments the number of z-increments to be set;
