@@ -23,6 +23,7 @@
 #include <fastuidraw/stroked_path.hpp>
 #include <fastuidraw/filled_path.hpp>
 #include <fastuidraw/painter/painter_attribute.hpp>
+#include <fastuidraw/painter/painter_attribute_data_filler.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/text/glyph.hpp>
 
@@ -91,6 +92,15 @@ namespace fastuidraw
     PainterAttributeData(void);
 
     ~PainterAttributeData();
+
+    /*!
+      Set the index, attribute, z-increment and chunk
+      data of this PainterAttributeData using a
+      PainterAttributeDataFiller.
+      \param filler object that fills the data.
+     */
+    void
+    set_data(const PainterAttributeDataFiller &filler);
 
     /*!
       Set the attribute and index data for stroking a path.
