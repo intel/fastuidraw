@@ -7,13 +7,7 @@ d		:= $(dir)
 dir := $(d)/common
 include $(dir)/Rules.mk
 
-dir := $(d)/image_test
-include $(dir)/Rules.mk
-
-dir := $(d)/gradient_test
-include $(dir)/Rules.mk
-
-dir := $(d)/glyph_test
+dir := $(d)/atlas_tests
 include $(dir)/Rules.mk
 
 dir := $(d)/painter_test
