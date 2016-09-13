@@ -683,6 +683,11 @@ PainterPackerPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBacken
 {
   m_alignment = m_backend->configuration_base().alignment();
   m_header_size = fastuidraw::PainterHeader::data_size(m_alignment);
+  // By calling PainterBackend::default_shaders(), we make the shaders
+  // registered. By setting m_default_shaders to its return value,
+  // and using that for the return value of PainterPacker::default_shaders(),
+  // we skip the check in PainterBackend::default_shaders() to register
+  // the shaders as well.
   m_default_shaders = m_backend->default_shaders();
   m_number_begins = 0;
 }
