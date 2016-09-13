@@ -1,5 +1,5 @@
 /*!
- * \file painter_attribute_data_filler_gkyphs.hpp
+ * \file painter_attribute_data_filler_glyphs.hpp
  * \brief file painter_attribute_data_filler_glyphs.hpp
  *
  * Copyright 2016 by Intel.

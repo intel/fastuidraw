@@ -34,8 +34,7 @@ namespace fastuidraw
     A PainterStrokeShader hold shading for
     both stroking with and without anit-aliasing.
     The shader is to handle data as packed by
-    PainterAttributeData for stroking of
-    paths.
+    PainterAttributeDataFillerPathStroked.
    */
   class PainterStrokeShader
   {

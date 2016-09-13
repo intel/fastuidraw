@@ -33,7 +33,7 @@ namespace fastuidraw
     A PainterGlyphShader holds a shader pair
     for each glyph_type. The shaders are to
     handle attribute data as packed by
-    PainterAttributeData.
+    PainterAttributeDataFillerGlyphs.
    */
   class PainterGlyphShader
   {
