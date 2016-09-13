@@ -44,15 +44,15 @@ namespace
 }
 
 //////////////////////////////////////////////////////////
-// fastuidraw::PainterAttributeDataFilledPathFill methods
-fastuidraw::PainterAttributeDataFilledPathFill::
-PainterAttributeDataFilledPathFill(const reference_counted_ptr<const FilledPath> &path)
+// fastuidraw::PainterAttributeDataFillerPathFill methods
+fastuidraw::PainterAttributeDataFillerPathFill::
+PainterAttributeDataFillerPathFill(const reference_counted_ptr<const FilledPath> &path)
 {
   m_d = FASTUIDRAWnew PathFillerPrivate(path);
 }
 
-fastuidraw::PainterAttributeDataFilledPathFill::
-~PainterAttributeDataFilledPathFill()
+fastuidraw::PainterAttributeDataFillerPathFill::
+~PainterAttributeDataFillerPathFill()
 {
   PathFillerPrivate *d;
   d = reinterpret_cast<PathFillerPrivate*>(m_d);
@@ -61,7 +61,7 @@ fastuidraw::PainterAttributeDataFilledPathFill::
 }
 
 const fastuidraw::reference_counted_ptr<const fastuidraw::FilledPath>&
-fastuidraw::PainterAttributeDataFilledPathFill::
+fastuidraw::PainterAttributeDataFillerPathFill::
 path(void) const
 {
   PathFillerPrivate *d;
@@ -71,7 +71,7 @@ path(void) const
 }
 
 void
-fastuidraw::PainterAttributeDataFilledPathFill::
+fastuidraw::PainterAttributeDataFillerPathFill::
 compute_sizes(unsigned int &number_attributes,
               unsigned int &number_indices,
               unsigned int &number_attribute_chunks,
@@ -116,7 +116,7 @@ compute_sizes(unsigned int &number_attributes,
 }
 
 void
-fastuidraw::PainterAttributeDataFilledPathFill::
+fastuidraw::PainterAttributeDataFillerPathFill::
 fill_data(c_array<PainterAttribute> attributes,
           c_array<PainterIndex> index_data,
           c_array<const_c_array<PainterAttribute> > attrib_chunks,
@@ -183,7 +183,7 @@ fill_data(c_array<PainterAttribute> attributes,
 }
 
 unsigned int
-fastuidraw::PainterAttributeDataFilledPathFill::
+fastuidraw::PainterAttributeDataFillerPathFill::
 index_chunk_from_winding_number(int winding_number)
 {
   /* basic idea:
@@ -203,7 +203,7 @@ index_chunk_from_winding_number(int winding_number)
 }
 
 int
-fastuidraw::PainterAttributeDataFilledPathFill::
+fastuidraw::PainterAttributeDataFillerPathFill::
 winding_number_from_index_chunk(unsigned int idx)
 {
   int abs_winding;

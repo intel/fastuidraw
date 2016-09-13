@@ -30,7 +30,7 @@ namespace fastuidraw
   @{
  */
   /*!
-    A PainterAttributeDataFilledPathFill is an implementation for
+    A PainterAttributeDataFillerPathFill is an implementation for
     PainterAttributeDataFiller to construct index and attribute
     data to fill a path. The enumeration values of
     PainterEnums::fill_rule_t provide the indices into
@@ -50,7 +50,7 @@ namespace fastuidraw
       - PainterAttribute::m_attrib2 .z -> 0 (free)
       - PainterAttribute::m_attrib2 .w -> 0 (free)
    */
-  class PainterAttributeDataFilledPathFill:public PainterAttributeDataFiller
+  class PainterAttributeDataFillerPathFill:public PainterAttributeDataFiller
   {
   public:
     /*!
@@ -58,9 +58,9 @@ namespace fastuidraw
       \param path FilledPath from which to construct attribute and index data.
      */
     explicit
-    PainterAttributeDataFilledPathFill(const reference_counted_ptr<const FilledPath> &path);
+    PainterAttributeDataFillerPathFill(const reference_counted_ptr<const FilledPath> &path);
 
-    ~PainterAttributeDataFilledPathFill();
+    ~PainterAttributeDataFillerPathFill();
 
     virtual
     void
