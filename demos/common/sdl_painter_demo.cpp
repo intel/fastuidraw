@@ -439,6 +439,7 @@ draw_text(const std::string &text, float pixel_size,
 
   create_formatted_text(str, renderer, pixel_size, font,
                         m_glyph_selector, glyphs, positions, chars);
-  P.set_data(cast_c_array(positions), cast_c_array(glyphs), pixel_size);
+  P.set_data(fastuidraw::PainterAttributeDataFillerGlyphs(cast_c_array(positions),
+                                                          cast_c_array(glyphs), pixel_size));
   m_painter->draw_glyphs(draw, P);
 }

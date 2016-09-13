@@ -1,4 +1,5 @@
 #include <sstream>
+#include <fastuidraw/painter/painter_attribute_data_filler_glyphs.hpp>
 #include "cell.hpp"
 #include "text_helper.hpp"
 
@@ -59,9 +60,9 @@ Cell(PainterWidget *p, const CellParams &params):
                         params.m_font, params.m_glyph_selector,
                         glyphs, positions, character_codes);
 
-  m_text.set_data(cast_c_array(positions),
-                  cast_c_array(glyphs),
-                  params.m_pixel_size);
+  m_text.set_data(PainterAttributeDataFillerGlyphs(cast_c_array(positions),
+                                                   cast_c_array(glyphs),
+                                                   params.m_pixel_size));
   m_dimensions = params.m_size;
   m_table_pos = m_dimensions * vec2(params.m_table_pos);
 }
