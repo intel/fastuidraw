@@ -26,6 +26,7 @@
 #include <fastuidraw/tessellated_path.hpp>
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
+#include <fastuidraw/painter/painter_attribute_data_filler_path_fill.hpp>
 #include "private/util_private.hpp"
 
 /* internal header
@@ -782,7 +783,7 @@ painter_data(void) const
   if(d->m_attribute_data == NULL)
     {
       d->m_attribute_data = FASTUIDRAWnew PainterAttributeData();
-      d->m_attribute_data->set_data(this);
+      d->m_attribute_data->set_data(PainterAttributeDataFilledPathFill(this));
     }
   return *d->m_attribute_data;
 }

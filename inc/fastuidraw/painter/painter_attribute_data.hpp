@@ -42,51 +42,6 @@ namespace fastuidraw
   {
   public:
     /*!
-      Enumation values are indexes into attribute_data_chunks()
-      and index_data_chunks() for different portions of
-      data needed for stroking a path when the data of this
-      PainterAttributeData has been set with
-      set_data(const reference_counted_ptr<const StrokedPath> &).
-     */
-    enum stroking_data_t
-      {
-        rounded_joins_closing_edge, /*!< index for rounded join data with closing edge */
-        bevel_joins_closing_edge, /*!< index for bevel join data with closing edge */
-        miter_joins_closing_edge, /*!< index for miter join data with closing edge */
-        edge_closing_edge, /*!< index for edge data including closing edge */
-
-        number_with_closing_edge, /*!< number of types with closing edge */
-
-        rounded_joins_no_closing_edge = number_with_closing_edge, /*!< index for rounded join data without closing edge */
-        bevel_joins_no_closing_edge, /*!< index for bevel join data without closing edge */
-        miter_joins_no_closing_edge, /*!< index for miter join data without closing edge */
-        edge_no_closing_edge, /*!< index for edge data not including closing edge */
-
-        rounded_cap, /*!< index for rounded cap data */
-        square_cap,  /*!< index for square cap data */
-
-        /*!
-          count of enums, using this enumeration when on data created
-          from a StrokedPath, gives empty indices and attributes.
-         */
-        stroking_data_count
-      };
-
-    /*!
-      Given an enumeration of stroking_data_t, returns
-      the matching enumeration for drawing without the
-      closing edge.
-     */
-    static
-    enum stroking_data_t
-    without_closing_edge(enum stroking_data_t v)
-    {
-      return (v < number_with_closing_edge) ?
-        static_cast<enum stroking_data_t>(v + number_with_closing_edge) :
-        v;
-    }
-
-    /*!
       Ctor.
      */
     PainterAttributeData(void);
@@ -101,54 +56,6 @@ namespace fastuidraw
      */
     void
     set_data(const PainterAttributeDataFiller &filler);
-
-    /*!
-      Set the attribute and index data for stroking a path.
-      The enumerations of \ref stroking_data_t provide
-      the indices into attribute_data_chunks() and
-      index_data_chunks() for the data to draw the
-      path stroked. The number of total joins can be
-      computed with increment_z_value(unsigned int)
-      passing an enumeration from enum stroking_data_t.
-      In addition, the data for an individual join can
-      is stored at index K where K is given by the function
-      chunk_from_join().
-
-      Data for stroking is packed as follows:
-      - PainterAttribute::m_attrib0 .xy -> StrokedPath::point::m_position (float)
-      - PainterAttribute::m_attrib0 .zw -> StrokedPath::point::m_pre_offset (float)
-      - PainterAttribute::m_attrib1 .x -> StrokedPath::point::m_distance_from_edge_start (float)
-      - PainterAttribute::m_attrib1 .y -> StrokedPath::point::m_distance_from_contour_start (float)
-      - PainterAttribute::m_attrib1 .zw -> StrokedPath::point::m_auxilary_offset (float)
-      - PainterAttribute::m_attrib2 .x -> StrokedPath::point::m_packed_data (uint)
-      - PainterAttribute::m_attrib2 .y -> StrokedPath::point::m_edge_length (float)
-      - PainterAttribute::m_attrib2 .z -> StrokedPath::point::m_open_contour_length (float)
-      - PainterAttribute::m_attrib2 .w -> StrokedPath::point::m_closed_contour_length (float)
-     */
-    void
-    set_data(const reference_counted_ptr<const StrokedPath> &path);
-
-    /*!
-      Set the attribute and index data for filling a path.
-      The enumeration values of PainterEnums::fill_rule_t provide
-      the indices into attribute_data_chunks() for the fill rules.
-      To get the index data for the component of a filled
-      path with a given winding number, use the function
-      index_chunk_from_winding_number(int). The attribute
-      data, regardless of winding number or fill rule is
-      the same value, the 0'th chunk. Data for filling is packed
-      as follows:
-      - PainterAttribute::m_attrib0 .xy    -> coordinate of point (float)
-      - PainterAttribute::m_attrib0 .zw    -> 0 (free)
-      - PainterAttribute::m_attrib1 .xyz -> 0 (free)
-      - PainterAttribute::m_attrib1 .w   -> 0 (free)
-      - PainterAttribute::m_attrib2 .x -> 0 (free)
-      - PainterAttribute::m_attrib2 .y -> 0 (free)
-      - PainterAttribute::m_attrib2 .z -> 0 (free)
-      - PainterAttribute::m_attrib2 .w -> 0 (free)
-     */
-    void
-    set_data(const reference_counted_ptr<const FilledPath> &path);
 
     /*!
       Set the data for drawing glyphs. The enumeration glyph_type
@@ -313,41 +220,6 @@ namespace fastuidraw
      */
     unsigned int
     increment_z_value(unsigned int i) const;
-
-    /*!
-      Returns the value to feed to index_data_chunk()
-      to get the index data for the fill of a path
-      (see set_data(const reference_counted_ptr<const FilledPath>&))
-      with a specified winding number.
-      \param winding_number winding number of fill data to fetch
-     */
-    static
-    unsigned int
-    index_chunk_from_winding_number(int winding_number);
-
-    /*!
-      Is the inverse of index_chunk_from_winding_number(), i.e.
-      returns the winding number that lives on a given index
-      chunk. It is required that the index fed is not one of
-      PainterEnums::odd_even_fill_rule, PainterEnums::nonzero_fill_rule
-      and PainterEnums::complement_odd_even_fill_rule.
-      \param idx index into index_data_chunk()
-     */
-    static
-    int
-    winding_number_from_index_chunk(unsigned int idx);
-
-    /*!
-      Returns the value to feed to index_data_chunk()
-      and attribute_data_chunk() for the index and
-      attribute data for the named join.
-      \param tp join type one wishes to access, tp must
-                be a join type.
-      \param J which join to access
-     */
-    static
-    unsigned int
-    chunk_from_join(enum stroking_data_t tp, unsigned int J);
 
   private:
     void *m_d;

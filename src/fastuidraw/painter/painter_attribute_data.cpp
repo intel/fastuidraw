@@ -20,7 +20,6 @@
 #include <algorithm>
 #include <vector>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
-#include <fastuidraw/painter/painter_attribute_data_filler_path_fill.hpp>
 #include "../private/util_private.hpp"
 
 namespace
@@ -142,56 +141,9 @@ namespace
     return return_value;
   }
 
-  fastuidraw::PainterAttribute
-  generate_attribute_stroke(const fastuidraw::StrokedPath::point &src)
-  {
-    fastuidraw::PainterAttribute dst;
-
-    dst.m_attrib0 = fastuidraw::pack_vec4(src.m_position.x(),
-                                          src.m_position.y(),
-                                          src.m_pre_offset.x(),
-                                          src.m_pre_offset.y());
-
-    dst.m_attrib1 = fastuidraw::pack_vec4(src.m_distance_from_edge_start,
-                                          src.m_distance_from_contour_start,
-                                          src.m_auxilary_offset.x(),
-                                          src.m_auxilary_offset.y());
-
-    dst.m_attrib2 = fastuidraw::uvec4(src.m_packed_data,
-                                      fastuidraw::pack_float(src.m_edge_length),
-                                      fastuidraw::pack_float(src.m_open_contour_length),
-                                      fastuidraw::pack_float(src.m_closed_contour_length));
-
-    return dst;
-  }
-
-  void
-  grab_attribute_index_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attrib_dst,
-                            unsigned int &attr_loc,
-                            fastuidraw::const_c_array<fastuidraw::StrokedPath::point> attr_src,
-                            fastuidraw::c_array<fastuidraw::PainterIndex> idx_dst, unsigned int &idx_loc,
-                            fastuidraw::const_c_array<unsigned int> idx_src,
-                            fastuidraw::const_c_array<fastuidraw::PainterAttribute> &attrib_chunks,
-                            fastuidraw::const_c_array<fastuidraw::PainterIndex> &index_chunks)
-  {
-    attrib_dst = attrib_dst.sub_array(attr_loc, attr_src.size());
-    idx_dst = idx_dst.sub_array(idx_loc, idx_src.size());
-
-    attrib_chunks = attrib_dst;
-    index_chunks = idx_dst;
-
-    std::copy(idx_src.begin(), idx_src.end(), idx_dst.begin());
-    std::transform(attr_src.begin(), attr_src.end(), attrib_dst.begin(), generate_attribute_stroke);
-
-    attr_loc += attr_src.size();
-    idx_loc += idx_src.size();
-  }
-
   class PainterAttributeDataPrivate
   {
   public:
-    enum { number_join_types = 3 };
-
     unsigned int
     prepare_arrays_for_text(fastuidraw::const_c_array<fastuidraw::Glyph> glyphs);
 
@@ -265,20 +217,6 @@ fastuidraw::PainterAttributeData::
   m_d = NULL;
 }
 
-unsigned int
-fastuidraw::PainterAttributeData::
-index_chunk_from_winding_number(int winding_number)
-{
-  return PainterAttributeDataFilledPathFill::index_chunk_from_winding_number(winding_number);
-}
-
-int
-fastuidraw::PainterAttributeData::
-winding_number_from_index_chunk(unsigned int idx)
-{
-  return PainterAttributeDataFilledPathFill::winding_number_from_index_chunk(idx);
-}
-
 void
 fastuidraw::PainterAttributeData::
 set_data(const PainterAttributeDataFiller &filler)
@@ -315,173 +253,6 @@ set_data(const PainterAttributeDataFiller &filler)
   d->ready_non_empty_index_data_chunks();
 }
 
-void
-fastuidraw::PainterAttributeData::
-set_data(const reference_counted_ptr<const FilledPath> &path)
-{
-  PainterAttributeDataFilledPathFill filler(path);
-  set_data(filler);
-}
-
-void
-fastuidraw::PainterAttributeData::
-set_data(const reference_counted_ptr<const StrokedPath> &path)
-{
-  PainterAttributeDataPrivate *d;
-  d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
-
-  unsigned int num_attributes(0), num_indices(0);
-  unsigned int attr_loc(0), idx_loc(0);
-  unsigned int numJoins(0);
-
-  for(unsigned int i = 0; i < StrokedPath::number_point_set_types; ++i)
-    {
-      enum StrokedPath::point_set_t tp;
-      tp = static_cast<enum StrokedPath::point_set_t>(i);
-      num_attributes += path->points(tp, true).size();
-      num_indices += path->indices(tp, true).size();
-    }
-
-  for(unsigned int C = 0, endC = path->number_contours(); C < endC; ++C)
-    {
-      unsigned int endJ;
-
-      endJ = path->number_joins(C);
-      numJoins += endJ;
-      for(unsigned int J = 0; J < endJ; ++J)
-        {
-          /* indices for joins appear twice, once all together
-             and then again as seperate chunks.
-           */
-          num_indices += path->indices_range(StrokedPath::bevel_join_point_set, C, J).difference();
-          num_indices += path->indices_range(StrokedPath::rounded_join_point_set, C, J).difference();
-          num_indices += path->indices_range(StrokedPath::miter_join_point_set, C, J).difference();
-        }
-    }
-
-  d->m_attribute_data.resize(num_attributes);
-  d->m_index_data.resize(num_indices);
-  d->m_attribute_chunks.resize(stroking_data_count + 1 + PainterAttributeDataPrivate::number_join_types * numJoins);
-  d->m_index_chunks.resize(stroking_data_count + 1 + PainterAttributeDataPrivate::number_join_types * numJoins);
-
-  d->m_increment_z.resize(stroking_data_count, 0);
-  d->m_increment_z[edge_closing_edge] = path->number_depth(StrokedPath::edge_point_set, true);
-  d->m_increment_z[bevel_joins_closing_edge] = path->number_depth(StrokedPath::bevel_join_point_set, true);
-  d->m_increment_z[rounded_joins_closing_edge] = path->number_depth(StrokedPath::rounded_join_point_set, true);
-  d->m_increment_z[miter_joins_closing_edge] = path->number_depth(StrokedPath::miter_join_point_set, true);
-
-  d->m_increment_z[edge_no_closing_edge] = path->number_depth(StrokedPath::edge_point_set, false);
-  d->m_increment_z[bevel_joins_no_closing_edge] = path->number_depth(StrokedPath::bevel_join_point_set, false);
-  d->m_increment_z[rounded_joins_no_closing_edge] = path->number_depth(StrokedPath::rounded_join_point_set, false);
-  d->m_increment_z[miter_joins_no_closing_edge] = path->number_depth(StrokedPath::miter_join_point_set, false);
-
-  d->m_increment_z[square_cap] = path->number_depth(StrokedPath::square_cap_point_set, false);
-  d->m_increment_z[rounded_cap] = path->number_depth(StrokedPath::rounded_cap_point_set, false);
-
-  grab_attribute_index_data(make_c_array(d->m_attribute_data), attr_loc,
-                            path->points(StrokedPath::square_cap_point_set, false),
-                            make_c_array(d->m_index_data), idx_loc,
-                            path->indices(StrokedPath::square_cap_point_set, false),
-                            d->m_attribute_chunks[square_cap], d->m_index_chunks[square_cap]);
-
-  grab_attribute_index_data(make_c_array(d->m_attribute_data), attr_loc,
-                            path->points(StrokedPath::rounded_cap_point_set, false),
-                            make_c_array(d->m_index_data), idx_loc,
-                            path->indices(StrokedPath::rounded_cap_point_set, false),
-                            d->m_attribute_chunks[rounded_cap], d->m_index_chunks[rounded_cap]);
-
-#define GRAB_MACRO(dst_root_name, src_name) do {                        \
-                                                                        \
-    enum stroking_data_t closing_edge = dst_root_name##_closing_edge;   \
-    enum stroking_data_t no_closing_edge = dst_root_name##_no_closing_edge; \
-                                                                        \
-    grab_attribute_index_data(make_c_array(d->m_attribute_data),        \
-                              attr_loc,                                 \
-                              path->points(src_name, true),             \
-                              make_c_array(d->m_index_data), idx_loc,   \
-                              path->indices(src_name, true),            \
-                              d->m_attribute_chunks[closing_edge],      \
-                              d->m_index_chunks[closing_edge]);         \
-    d->m_attribute_chunks[no_closing_edge] =                            \
-      d->m_attribute_chunks[closing_edge].sub_array(0, path->points(src_name, false).size()); \
-                                                                        \
-    unsigned int with, without;                                         \
-    with = path->indices(src_name, true).size();                        \
-    without = path->indices(src_name, false).size();                    \
-    assert(with >= without);                                            \
-                                                                        \
-    d->m_index_chunks[no_closing_edge] =                                \
-      d->m_index_chunks[closing_edge].sub_array(with - without);        \
-  } while(0)
-
-#define GRAB_JOIN_MACRO_HELPER(src_name, closing_edge, C, J, gJ) do {   \
-    unsigned int Kc;                                                    \
-    range_type<unsigned int> Ri, Ra;                                    \
-    const_c_array<unsigned int> srcI;                                   \
-    c_array<unsigned int> dst;                                          \
-                                                                        \
-    Ra = path->points_range(src_name, C, J);                            \
-    Ri = path->indices_range(src_name, C, J);                           \
-    srcI = path->indices(src_name, true).sub_array(Ri);                 \
-    Kc = chunk_from_join(closing_edge, gJ);                             \
-    d->m_attribute_chunks[Kc] = d->m_attribute_chunks[closing_edge].sub_array(Ra); \
-    dst = make_c_array(d->m_index_data).sub_array(idx_loc, srcI.size()); \
-    d->m_index_chunks[Kc] =  dst;                                       \
-    for(unsigned int I = 0; I < srcI.size(); ++I)                       \
-      {                                                                 \
-        dst[I] = srcI[I] - Ra.m_begin;                                  \
-      }                                                                 \
-    idx_loc += srcI.size();                                             \
-    ++gJ;                                                               \
-  } while(0)
-
-  /* note that the last two joins of each contour are grabbed last,
-     this is to make sure that the joins for the closing edge are
-     always at the end of our join list.
-   */
-#define GRAB_JOIN_MACRO(dst_root_name, src_name) do {                   \
-    enum stroking_data_t closing_edge = dst_root_name##_closing_edge;   \
-    unsigned int gJ = 0;                                                \
-    for(unsigned int C = 0, endC = path->number_contours();             \
-        C < endC; ++C)                                                  \
-      {                                                                 \
-        for(unsigned int J = 0, endJ = path->number_joins(C) - 2;       \
-            J < endJ; ++J)                                        \
-          {                                                             \
-            GRAB_JOIN_MACRO_HELPER(src_name, closing_edge, C, J, gJ);   \
-          }                                                             \
-      }                                                                 \
-    for(unsigned int C = 0, endC = path->number_contours();             \
-        C < endC; ++C)                                                  \
-      {                                                                 \
-        if(path->number_joins(C) >= 2)                                  \
-          {                                                             \
-            unsigned int J;                                             \
-            J = path->number_joins(C) - 1;                              \
-            GRAB_JOIN_MACRO_HELPER(src_name, closing_edge, C, J, gJ);   \
-            J = path->number_joins(C) - 2;                              \
-            GRAB_JOIN_MACRO_HELPER(src_name, closing_edge, C, J, gJ);   \
-          }                                                             \
-      }                                                                 \
-  } while(0)
-
-  //grab the data for edges and joint together
-  GRAB_MACRO(edge, StrokedPath::edge_point_set);
-  GRAB_MACRO(bevel_joins, StrokedPath::bevel_join_point_set);
-  GRAB_MACRO(rounded_joins, StrokedPath::rounded_join_point_set);
-  GRAB_MACRO(miter_joins, StrokedPath::miter_join_point_set);
-
-  // then grab individual joins, this must be done after
-  // all the blocks because although it does not generate new
-  // attribute data, it does generate new index data
-  GRAB_JOIN_MACRO(rounded_joins, StrokedPath::rounded_join_point_set);
-  GRAB_JOIN_MACRO(bevel_joins, StrokedPath::bevel_join_point_set);
-  GRAB_JOIN_MACRO(miter_joins, StrokedPath::miter_join_point_set);
-
-#undef GRAB_MACRO
-
-  d->ready_non_empty_index_data_chunks();
-}
 
 unsigned int
 fastuidraw::PainterAttributeData::
@@ -627,45 +398,4 @@ non_empty_index_data_chunks(void) const
   PainterAttributeDataPrivate *d;
   d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
   return make_c_array(d->m_non_empty_index_data_chunks);
-}
-
-unsigned int
-fastuidraw::PainterAttributeData::
-chunk_from_join(enum stroking_data_t tp, unsigned int J)
-{
-  /*
-    There are number_join_types joins, the chunk
-    for the J'th join for type tp is located
-    at number_join_types * J + t + stroking_data_count
-    where 0 <=t < 6 is derived from tp.
-   */
-  unsigned int t;
-  switch(tp)
-    {
-    case rounded_joins_closing_edge:
-    case rounded_joins_no_closing_edge:
-      t = 0u;
-      break;
-
-    case bevel_joins_closing_edge:
-    case bevel_joins_no_closing_edge:
-      t = 1u;
-      break;
-
-    case miter_joins_closing_edge:
-    case miter_joins_no_closing_edge:
-      t = 2u;
-      break;
-
-    default:
-      assert(!"Type not mapping to join type");
-      t = 0u;
-    }
-
-  /* The +1 is so that the chunk at stroking_data_count
-     is left as empty for PainterAttributeData set
-     from a StrokedPath (Painter relies on this!).
-   */
-  return stroking_data_count + t + 1
-    + J * PainterAttributeDataPrivate::number_join_types;
 }
