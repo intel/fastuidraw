@@ -18,7 +18,6 @@
 
 
 #pragma once
-#pragma once
 
 #include <fastuidraw/painter/painter_attribute_data_filler.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
