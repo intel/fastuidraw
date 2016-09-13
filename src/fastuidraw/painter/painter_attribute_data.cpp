@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <vector>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
+#include <fastuidraw/painter/painter_attribute_data_filler_path_fill.hpp>
 #include "../private/util_private.hpp"
 
 namespace
@@ -139,18 +140,6 @@ namespace
           }
       }
     return return_value;
-  }
-
-  fastuidraw::PainterAttribute
-  generate_attribute_fill(const fastuidraw::vec2 &src)
-  {
-    fastuidraw::PainterAttribute dst;
-
-    dst.m_attrib0 = fastuidraw::pack_vec4(src.x(), src.y(), 0.0f, 0.0f);
-    dst.m_attrib1 = fastuidraw::uvec4(0u, 0u, 0u, 0u);
-    dst.m_attrib2 = fastuidraw::uvec4(0u, 0u, 0u, 0u);
-
-    return dst;
   }
 
   fastuidraw::PainterAttribute
@@ -280,140 +269,58 @@ unsigned int
 fastuidraw::PainterAttributeData::
 index_chunk_from_winding_number(int winding_number)
 {
-  /* basic idea:
-      - start counting at fill_rule_data_count
-      - ordering is: 1, -1, 2, -2, ...
-   */
-  int value, sg;
-
-  if(winding_number == 0)
-    {
-      return PainterEnums::complement_nonzero_fill_rule;
-    }
-
-  value = std::abs(winding_number);
-  sg = (winding_number < 0) ? 1 : 0;
-  return PainterEnums::fill_rule_data_count + sg + 2 * (value - 1);
+  return PainterAttributeDataFilledPathFill::index_chunk_from_winding_number(winding_number);
 }
 
 int
 fastuidraw::PainterAttributeData::
 winding_number_from_index_chunk(unsigned int idx)
 {
-  int abs_winding;
+  return PainterAttributeDataFilledPathFill::winding_number_from_index_chunk(idx);
+}
 
-  if(idx == PainterEnums::complement_nonzero_fill_rule)
-    {
-      return 0;
-    }
+void
+fastuidraw::PainterAttributeData::
+set_data(const PainterAttributeDataFiller &filler)
+{
+  PainterAttributeDataPrivate *d;
+  d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
 
-  assert(idx >= PainterEnums::fill_rule_data_count);
-  idx -= PainterEnums::fill_rule_data_count;
-  abs_winding = 1 + idx / 2;
-  return (idx & 1) ? -abs_winding : abs_winding;
+  unsigned int number_attributes(0), number_indices(0);
+  unsigned int number_attribute_chunks(0), number_index_chunks(0);
+  unsigned int number_z_increments(0);
+
+  filler.compute_sizes(number_attributes, number_indices,
+                       number_attribute_chunks, number_index_chunks,
+                       number_z_increments);
+
+  d->m_attribute_data.resize(number_attributes);
+  d->m_index_data.resize(number_indices);
+
+  d->m_attribute_chunks.clear();
+  d->m_attribute_chunks.resize(number_attribute_chunks);
+
+  d->m_index_chunks.clear();
+  d->m_index_chunks.resize(number_index_chunks);
+
+  d->m_increment_z.clear();
+  d->m_increment_z.resize(number_z_increments, 0u);
+
+  filler.fill_data(make_c_array(d->m_attribute_data),
+                   make_c_array(d->m_index_data),
+                   make_c_array(d->m_attribute_chunks),
+                   make_c_array(d->m_index_chunks),
+                   make_c_array(d->m_increment_z));
+
+  d->ready_non_empty_index_data_chunks();
 }
 
 void
 fastuidraw::PainterAttributeData::
 set_data(const reference_counted_ptr<const FilledPath> &path)
 {
-  PainterAttributeDataPrivate *d;
-  d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
-  const_c_array<int> winding_numbers(path->winding_numbers());
-
-  if(winding_numbers.empty())
-    {
-      d->m_attribute_data.clear();
-      d->m_attribute_chunks.clear();
-      d->m_increment_z.clear();
-      d->m_index_data.clear();
-      d->m_index_chunks.clear();
-      return;
-    }
-
-  d->m_attribute_data.resize(path->points().size());
-  std::transform(path->points().begin(), path->points().end(), d->m_attribute_data.begin(), generate_attribute_fill);
-
-  /* winding_numbers is already sorted, so largest and smallest
-     winding numbers are at back and front
-   */
-  int largest_winding(winding_numbers.back());
-  int smallest_winding(winding_numbers.front());
-
-  /* now get how big the index_chunks really needs to be
-   */
-  unsigned int largest_winding_idx(index_chunk_from_winding_number(largest_winding));
-  unsigned int smallest_winding_idx(index_chunk_from_winding_number(smallest_winding));
-  unsigned int num_idx_chunks(1 + std::max(largest_winding_idx, smallest_winding_idx));
-
-  d->m_attribute_chunks.resize(1);
-  d->m_index_chunks.resize(num_idx_chunks);
-  d->m_increment_z.resize(d->m_index_chunks.size(), 0);
-
-  /* the attribute data is the same for all elements
-   */
-  d->m_attribute_chunks[0] = make_c_array(d->m_attribute_data);
-
-  unsigned int num_indices, current(0);
-  c_array<const_c_array<PainterIndex> > index_chunks;
-
-  index_chunks = make_c_array(d->m_index_chunks);
-  num_indices = path->odd_winding_indices().size()
-    + path->nonzero_winding_indices().size()
-    + path->even_winding_indices().size()
-    + path->zero_winding_indices().size();
-
-  for(const_c_array<int>::iterator iter = path->winding_numbers().begin(),
-        end = path->winding_numbers().end(); iter != end; ++iter)
-    {
-      if(*iter != 0) //winding number 0 is by complement_nonzero_fill_rule
-        {
-          num_indices += path->indices(*iter).size();
-        }
-    }
-  d->m_index_data.resize(num_indices);
-
-#define GRAB_MACRO(enum_name, function_name) do {               \
-    c_array<PainterIndex> dst;                                  \
-    dst = make_c_array(d->m_index_data);                        \
-    dst = dst.sub_array(current, path->function_name().size()); \
-    std::copy(path->function_name().begin(),                    \
-              path->function_name().end(), dst.begin());        \
-    index_chunks[PainterEnums::enum_name] = dst;                \
-    current += dst.size();                                      \
-  } while(0)
-
-  GRAB_MACRO(odd_even_fill_rule, odd_winding_indices);
-  GRAB_MACRO(nonzero_fill_rule, nonzero_winding_indices);
-  GRAB_MACRO(complement_odd_even_fill_rule, even_winding_indices);
-  GRAB_MACRO(complement_nonzero_fill_rule, zero_winding_indices);
-
-#undef GRAB_MACRO
-
-  for(const_c_array<int>::iterator iter = winding_numbers.begin(),
-        end = winding_numbers.end(); iter != end; ++iter)
-    {
-      if(*iter != 0) //winding number 0 is by complement_nonzero_fill_rule
-        {
-          c_array<PainterIndex> dst;
-          const_c_array<unsigned int> src;
-          unsigned int idx;
-
-          idx = index_chunk_from_winding_number(*iter);
-          assert(*iter == winding_number_from_index_chunk(idx));
-
-          src = path->indices(*iter);
-          dst = make_c_array(d->m_index_data).sub_array(current, src.size());
-          assert(dst.size() == src.size());
-
-          std::copy(src.begin(), src.end(), dst.begin());
-
-          index_chunks[idx] = dst;
-          current += dst.size();
-        }
-    }
-
-  d->ready_non_empty_index_data_chunks();
+  PainterAttributeDataFilledPathFill filler(path);
+  set_data(filler);
 }
 
 void
