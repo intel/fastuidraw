@@ -20,12 +20,8 @@
 #pragma once
 
 #include <fastuidraw/util/util.hpp>
-#include <fastuidraw/stroked_path.hpp>
-#include <fastuidraw/filled_path.hpp>
 #include <fastuidraw/painter/painter_attribute.hpp>
 #include <fastuidraw/painter/painter_attribute_data_filler.hpp>
-#include <fastuidraw/painter/painter_enums.hpp>
-#include <fastuidraw/text/glyph.hpp>
 
 namespace fastuidraw
 {
@@ -58,109 +54,10 @@ namespace fastuidraw
     set_data(const PainterAttributeDataFiller &filler);
 
     /*!
-      Set the data for drawing glyphs. The enumeration glyph_type
-      provide the indices into attribute_data_chunks() and
-      index_data_chunks() for the different glyph types.
-      If a glyph is not uploaded to the GlyphCache and failed to
-      be uploaded to its GlyphCache, then set_data() will create
-      index and attribute data up to that glyph and returns the
-      index into glyphs of the glyph that failed to be uploaded.
-      If all glyphs can be in the cache, then returns the
-      size of the array. Data for glyphs is packed as follows:
-      - PainterAttribute::m_attrib0 .xy   -> xy-texel location in primary atlas (float)
-      - PainterAttribute::m_attrib0 .zw   -> xy-texel location in secondary atlas (float)
-      - PainterAttribute::m_attrib1 .xy -> position in item coordinates (float)
-      - PainterAttribute::m_attrib1 .z  -> 0 (free)
-      - PainterAttribute::m_attrib1 .w  -> 0 (free)
-      - PainterAttribute::m_attrib2 .x -> 0 (free)
-      - PainterAttribute::m_attrib2 .y -> glyph offset (uint)
-      - PainterAttribute::m_attrib2 .z -> layer in primary atlas (uint)
-      - PainterAttribute::m_attrib2 .w -> layer in secondary atlas (uint)
-
-      \param glyph_positions position of the bottom left corner of each glyph
-      \param glyphs glyphs to draw, array must be same size as glyph_positions
-      \param scale_factors scale factors to apply to each glyph, must be either
-                           empty (indicating no scaling factors) or the exact
-                           same length as glyph_positions
-      \param orientation orientation of drawing
-     */
-    unsigned int
-    set_data(const_c_array<vec2> glyph_positions,
-             const_c_array<Glyph> glyphs,
-             const_c_array<float> scale_factors,
-             enum PainterEnums::glyph_orientation orientation = PainterEnums::y_increases_downwards);
-
-    /*!
-      Set the data for drawing glyphs. The enumeration glyph_type
-      provide the indices into attribute_data_chunks() and
-      index_data_chunks() for the different glyph types.
-      If a glyph is not uploaded to the GlyphCache and failed to
-      be uploaded to its GlyphCache, then set_data() will create
-      index and attribute data up to that glyph and returns the
-      index into glyphs of the glyph that failed to be uploaded.
-      If all glyphs can be in the cache, then returns the
-      size of the array. Data for glyphs is packed as follows:
-      - PainterAttribute::m_attrib0 .xy   -> xy-texel location in primary atlas (float)
-      - PainterAttribute::m_attrib0 .zw   -> xy-texel location in secondary atlas (float)
-      - PainterAttribute::m_attrib1 .xy -> position in item coordinates (float)
-      - PainterAttribute::m_attrib1 .z  -> 0 (free)
-      - PainterAttribute::m_attrib1 .w  -> 0 (free)
-      - PainterAttribute::m_attrib2 .x -> 0 (free)
-      - PainterAttribute::m_attrib2 .y -> glyph offset (uint)
-      - PainterAttribute::m_attrib2 .z -> layer in primary atlas (uint)
-      - PainterAttribute::m_attrib2 .w -> layer in secondary atlas (uint)
-
-      \param glyph_positions position of the bottom left corner of each glyph
-      \param glyphs glyphs to draw, array must be same size as glyph_positions
-      \param render_pixel_size pixel size to which to scale the glyphs
-      \param orientation orientation of drawing
-     */
-    unsigned int
-    set_data(const_c_array<vec2> glyph_positions,
-             const_c_array<Glyph> glyphs,
-             float render_pixel_size,
-             enum PainterEnums::glyph_orientation orientation = PainterEnums::y_increases_downwards);
-
-    /*!
-      Set the data for drawing glyphs. The enumeration glyph_type
-      provide the indices into attribute_data_chunks() and
-      index_data_chunks() for the different glyph types.
-      If a glyph is not uploaded to the GlyphCache and failed to
-      be uploaded to its GlyphCache, then set_data() will create
-      index and attribute data up to that glyph and returns the
-      index into glyphs of the glyph that failed to be uploaded.
-      If all glyphs can be in the cache, then returns the
-      size of the array. Data for glyphs is packed as follows:
-      - PainterAttribute::m_attrib0 .xy   -> xy-texel location in primary atlas (float)
-      - PainterAttribute::m_attrib0 .zw   -> xy-texel location in secondary atlas (float)
-      - PainterAttribute::m_attrib1 .xy -> position in item coordinates (float)
-      - PainterAttribute::m_attrib1 .z  -> 0 (free)
-      - PainterAttribute::m_attrib1 .w  -> 0 (free)
-      - PainterAttribute::m_attrib2 .x -> 0 (free)
-      - PainterAttribute::m_attrib2 .y -> glyph offset (uint)
-      - PainterAttribute::m_attrib2 .z -> layer in primary atlas (uint)
-      - PainterAttribute::m_attrib2 .w -> layer in secondary atlas (uint)
-
-      \param glyph_positions position of the bottom left corner of each glyph
-      \param glyphs glyphs to draw, array must be same size as glyph_positions
-      \param orientation orientation of drawing
-     */
-    unsigned int
-    set_data(const_c_array<vec2> glyph_positions,
-             const_c_array<Glyph> glyphs,
-             enum PainterEnums::glyph_orientation orientation = PainterEnums::y_increases_downwards)
-    {
-      c_array<float> empty;
-      return set_data(glyph_positions, glyphs, empty, orientation);
-    }
-
-    /*!
-      Returns the attribute data chunks. For all but those
-      objects set by set_data(const reference_counted_ptr<const FilledPath> &),
-      for each attribute data chunk, there is a matching index
-      data chunk. A chunk is an attribute and index data chunk pair.
-      Specifically one uses index_data_chunks()[i] to draw the contents
-      of attribute_data_chunks()[i].
+      Returns the attribute data chunks. Usually, for each
+      attribute data chunk, there is a matching index data
+      chunk. Usually, one uses index_data_chunks()[i]
+      to draw the contents of attribute_data_chunks()[i].
      */
     const_c_array<const_c_array<PainterAttribute> >
     attribute_data_chunks(void) const;
@@ -176,12 +73,10 @@ namespace fastuidraw
     attribute_data_chunk(unsigned int i) const;
 
     /*!
-      Returns the index data chunks. For all but those
-      objects set by set_data(const reference_counted_ptr<const FilledPath> &),
-      for each attribute data chunk, there is a matching index
-      data chunk. A chunk is an attribute and index data chunk pair.
-      Specifically one uses index_data_chunks()[i] to draw the contents
-      of attribute_data_chunks()[i].
+      Returns the index data chunks. Usually, for each
+      attribute data chunk, there is a matching index data
+      chunk. Usually, one uses index_data_chunks()[i]
+      to draw the contents of attribute_data_chunks()[i].
     */
     const_c_array<const_c_array<PainterIndex> >
     index_data_chunks(void) const;

@@ -11,6 +11,7 @@ include $(dir)/Rules.mk
 LIBRARY_SOURCES += $(call filelist, painter_attribute_data.cpp \
 	painter_attribute_data_filler_path_fill.cpp \
 	painter_attribute_data_filler_path_stroked.cpp \
+	painter_attribute_data_filler_glyphs.cpp \
 	painter_brush.cpp painter_stroke_params.cpp \
 	painter_dashed_stroke_params.cpp \
 	painter.cpp painter_enums.cpp \
