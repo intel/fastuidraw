@@ -201,7 +201,7 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
     {
       vec3 clip_offset, clip_p;
       vec2 n;
-      if(on_boundary == fastuidraw_stroke_offset_edge)
+      if(offset_type == fastuidraw_stroke_offset_edge)
         {
           clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
         }

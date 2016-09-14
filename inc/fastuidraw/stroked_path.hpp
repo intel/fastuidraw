@@ -54,14 +54,24 @@ public:
   enum offset_type_t
     {
       /*!
-        The point is for an edge of the path.
+        The point is for an edge of the path,
+        point signifies the start of a sub-edge
+        (quad) of drawing an edge.
        */
       offset_edge,
 
       /*!
-        The point is for an edge of the path.
+        The point is for an edge of the path,
+        point signifies the end of a sub-edge
+        (quad) of drawing an edge.
        */
       offset_next_edge,
+
+      /*!
+        The point is at a position that has the
+        same value as point on an edge
+       */
+      offset_shared_with_edge,
 
       /*!
         The point is for a boundary point of a rounded join of the path
@@ -377,13 +387,15 @@ public:
       \endcode
       The computation for offset_vector() is as follows.
       - For those with offset_type() being StrokedPath::offset_edge,
+        StrokedPath::offset_next_edge and StrokedPath::offset_shared_with_edge,
         the offset is given by
         \code
         m_pre_offset
         \endcode
-        In addition, \ref m_auxilary_offset holds the the delta
-        vector to the point on edge with which the point makes
-        a quad.
+        In addition, for types StrokedPath::offset_edge and
+        StrokedPath::offset_next_edge, \ref m_auxilary_offset
+        holds the the delta vector to the point on edge with
+        which the point makes a quad.
       - For those with offset_type() being StrokedPath::offset_square_cap,
         the value is given by
         \code
