@@ -59,6 +59,11 @@ public:
       offset_edge,
 
       /*!
+        The point is for an edge of the path.
+       */
+      offset_next_edge,
+
+      /*!
         The point is for a boundary point of a rounded join of the path
        */
       offset_rounded_join,
@@ -188,16 +193,10 @@ public:
       boundary_bit0 = sin_sign_bit + 1,
 
       /*!
-        number of bits needed to hold the
-        boundary() - 1 value of the point.
-       */
-      boundary_num_bits = 2,
-
-      /*!
         Bit0 for holding the depth() value
         of the point
        */
-      depth_bit0 = boundary_bit0 + boundary_num_bits,
+      depth_bit0 = boundary_bit0 + 1,
 
       /*!
         number of bits needed to hold the
@@ -236,7 +235,7 @@ public:
       /*!
         Mask generated for \ref boundary_bit0 and \ref boundary_num_bits
        */
-      boundary_mask = FASTUIDRAW_MASK(boundary_bit0, boundary_num_bits),
+      boundary_mask = FASTUIDRAW_MASK(boundary_bit0, 1),
 
       /*!
         Mask generated for \ref depth_bit0 and \ref depth_num_bits
@@ -340,8 +339,8 @@ public:
     }
 
     /*!
-      Has value -1, 0 or +1. If the value is 0,
-      then the point is on the path. If the value has
+      Has value 0 or +1. If the value is 0, then
+      the point is on the path. If the value has
       absolute value 1, then indicates a point that
       is on the boundary of the stroked path. The triangles
       produced from stroking are so that when
@@ -352,9 +351,7 @@ public:
     int
     on_boundary(void) const
     {
-      uint32_t v;
-      v = unpack_bits(boundary_bit0, boundary_num_bits, m_packed_data);
-      return static_cast<int>(v) - 1;
+      return unpack_bits(boundary_bit0, 1u, m_packed_data);
     }
 
     /*!

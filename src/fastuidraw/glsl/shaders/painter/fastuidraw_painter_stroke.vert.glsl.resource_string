@@ -201,7 +201,7 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
     {
       vec3 clip_offset, clip_p;
       vec2 n;
-      if(on_boundary == 1)
+      if(on_boundary == fastuidraw_stroke_offset_edge)
         {
           clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
         }
@@ -267,8 +267,8 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                                             fastuidraw_stroke_offset_type_num_bits,
                                             point_packed_data));
   on_boundary = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_boundary_bit0,
-                                            fastuidraw_stroke_boundary_num_bits,
-                                            point_packed_data)) - 1;
+                                            1,
+                                            point_packed_data));
 
   #ifdef FASTUIDRAW_STROKE_DASHED
     {

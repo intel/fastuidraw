@@ -51,12 +51,12 @@ namespace
             enum fastuidraw::StrokedPath::offset_type_t pt,
             uint32_t depth = 0u)
   {
-    assert(on_boundary == 0 || on_boundary == 1 || on_boundary == -1);
-    assert(on_boundary == 1 || pt == fastuidraw::StrokedPath::offset_edge);
+    assert(on_boundary == 0 || on_boundary == 1);
+    assert(on_boundary == 1 || pt == fastuidraw::StrokedPath::offset_edge || pt == fastuidraw::StrokedPath::offset_next_edge);
 
-    uint32_t bb(on_boundary + 1), pp(pt);
+    uint32_t bb(on_boundary), pp(pt);
     return fastuidraw::pack_bits(fastuidraw::StrokedPath::offset_type_bit0, fastuidraw::StrokedPath::offset_type_num_bits, pp)
-      | fastuidraw::pack_bits(fastuidraw::StrokedPath::boundary_bit0, fastuidraw::StrokedPath::boundary_num_bits, bb)
+      | fastuidraw::pack_bits(fastuidraw::StrokedPath::boundary_bit0, 1u, bb)
       | fastuidraw::pack_bits(fastuidraw::StrokedPath::depth_bit0, fastuidraw::StrokedPath::depth_num_bits, depth);
   }
 
@@ -1016,21 +1016,18 @@ add_edge(unsigned int o, unsigned int e,
           0.0f,
         };
 
-      fastuidraw::StrokedPath::offset_type_t p_type;
-
       /* The quad is:
          (p, n, delta,  1),
          (p,-n, delta,  1),
          (p, 0,     0,  0),
-         (p_next,  n, -delta, -1),
-         (p_next, -n, -delta, -1),
+         (p_next,  n, -delta, 1),
+         (p_next, -n, -delta, 1),
          (p_next,  0, 0)
 
          Notice that we are encoding if it is
          start or end of edge from the sign of
          m_on_boundary.
        */
-      p_type = fastuidraw::StrokedPath::offset_edge;
       for(unsigned int k = 0; k < 3; ++k)
         {
           pts[vert_offset + k].m_position = src_pts[i].m_p;
@@ -1041,7 +1038,7 @@ add_edge(unsigned int o, unsigned int e,
           pts[vert_offset + k].m_closed_contour_length = src_pts[i].m_closed_contour_length;
           pts[vert_offset + k].m_pre_offset = normal_sign[k] * normal;
           pts[vert_offset + k].m_auxilary_offset = delta;
-          pts[vert_offset + k].m_packed_data = pack_data(boundary_values[k], p_type, depth);
+          pts[vert_offset + k].m_packed_data = pack_data(boundary_values[k], fastuidraw::StrokedPath::offset_edge, depth);
 
           pts[vert_offset + k + 3].m_position = src_pts[i + 1].m_p;
           pts[vert_offset + k + 3].m_distance_from_edge_start = src_pts[i + 1].m_distance_from_edge_start;
@@ -1051,7 +1048,7 @@ add_edge(unsigned int o, unsigned int e,
           pts[vert_offset + k + 3].m_closed_contour_length = src_pts[i + 1].m_closed_contour_length;
           pts[vert_offset + k + 3].m_pre_offset = normal_sign[k] * normal;
           pts[vert_offset + k + 3].m_auxilary_offset = -delta;
-          pts[vert_offset + k + 3].m_packed_data = pack_data(-boundary_values[k], p_type, depth);
+          pts[vert_offset + k + 3].m_packed_data = pack_data(boundary_values[k], fastuidraw::StrokedPath::offset_next_edge, depth);
         }
 
       indices[index_offset + 0] = vert_offset + 0;
