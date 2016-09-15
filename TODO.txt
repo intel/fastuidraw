@@ -2,24 +2,34 @@ TODO.
 
  1. Dashed stroking is not implemented (yet).
 
- 2. An interface to build attribute and text data from string(s). Currently
+ 2. Rework dashed stroking anti-aliasing as follows:
+     - Draw opaque pass as is
+     - On anti-alias pass, instead of relying on depth buffer to
+       obscure pixels, draw the quads representing the anti-alias
+       fuzz.
+    The main issue for the rework is that we need to add essentially
+    new attribute and index data for the anti-alias pass for the
+    fuzz-quads strongly for joins and caps. Edges can be handled
+    by making 8 verts per quad instead of the current 6.
+
+ 3. An interface to build attribute and text data from string(s). Currently
     an application needs to do this by itself, the example code being in
     demos/common/text_helper.[ch]pp.
 
- 3. For some glyphs, curve pair glyph rendering is incorrect (this can be determined when
+ 4. For some glyphs, curve pair glyph rendering is incorrect (this can be determined when
     the glyph data is generated). Should have an interface that is "take scalable glyph
     that is best" in GlyphSelector class.
 
- 4. W3C blend modes are not yet implemented in GL backend, but Porter-Duff blend modes
+ 5. W3C blend modes are not yet implemented in GL backend, but Porter-Duff blend modes
     are.
 
- 5. Path tessellation is scale invariant because it is based upon curvature. However,
+ 6. Path tessellation is scale invariant because it is based upon curvature. However,
     if a path (or rounded join) is dramtically zoomed in, we start to see the line segments.
     The way out is to instead use curvature multiplied by arc length and when we stroke
     a path to refine the tessellation by S where S is the operator norm of the
     transformation.
 
- 6. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
+ 7. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
     together with a 3rd party library to create SPIR-V from GLSL.
     Options for third part library so far are:
             a) libshaderc at https://github.com/google/shaderc.

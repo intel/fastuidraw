@@ -14,7 +14,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   #ifdef FASTUIDRAW_STROKE_DASHED
   if((fastuidraw_stroking_packed_data & uint(fastuidraw_stroke_skip_dash_computation_mask)) == 0u)
     {
-      float d, q, ff;
+      float d, q, fw;
       uint interval_id, dash_pattern_at, dash_style;
       fastuidraw_dashed_stroking_params_header stroke_params;
 
@@ -37,6 +37,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                                            fastuidraw_stroking_distance,
                                            interval_id);
 
+      fw = fwidth(fastuidraw_stroking_distance);
       if(dash_style == uint(fastuidraw_stroke_dashed_rounded_caps))
         {
           float y, r;
@@ -44,9 +45,14 @@ fastuidraw_gl_frag_main(in uint sub_shader,
           y = r * fastuidraw_stroking_on_boundary;
           if(q < r)
             {
-              float f;
-              f = r - sqrt(q * q + y * y);
-              q = max(f, q);
+              float f, sq;
+              sq = sqrt(q * q + y * y);
+              f = r - sq;
+              if(f > q)
+                {
+                  fw *= abs(q) / sq;
+                  q = f;
+                }
             }
         }
       else if(dash_style == uint(fastuidraw_stroke_dashed_square_caps))
@@ -54,7 +60,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
           q += stroke_params.width * 0.5;
         }
 
-      d = max(abs(q), fwidth(fastuidraw_stroking_distance));
+      d = max(abs(q), fw);
       alpha = max(0.0, q / d);
 
       /* Rather than discarding on opaque passes, we could
@@ -92,7 +98,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
     {
       float dd, q;
 
-      q = 1.0 - abs(fastuidraw_stroking_on_boundary);
+      q = 1.0 - fastuidraw_stroking_on_boundary;
       dd = max(q, fwidth(q));
       alpha *= q / dd;
     }
