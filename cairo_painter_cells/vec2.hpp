@@ -165,7 +165,7 @@ cairo_bezier_to(cairo_t *cr,
                  2.0 / 3.0 * y1 + 1.0 / 3.0 * y0,
                  2.0 / 3.0 * x1 + 1.0 / 3.0 * x2,
                  2.0 / 3.0 * y1 + 1.0 / 3.0 * y2,
-                 y1, y2);
+                 x2, y2);
 }
 
 inline
@@ -191,6 +191,7 @@ cairo_arc_to(cairo_t *cr,
   c = std::cos(angle * 0.5);
   t = angle_coeff_dir * 0.5 * c / s;
 
+
   circle_center = mid + (n * t);
   vec2 start_center(start_pt - circle_center);
 
@@ -206,6 +207,7 @@ cairo_arc_to(cairo_t *cr,
     {
       cairo_arc(cr, circle_center.x(), circle_center.y(), radius, start_angle, end_angle);
     }
+  cairo_get_current_point (cr, &end_pt.x(), &end_pt.y());
 }
 
 inline
