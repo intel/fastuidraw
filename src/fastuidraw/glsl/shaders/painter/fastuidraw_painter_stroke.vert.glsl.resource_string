@@ -332,7 +332,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       p = position;
     }
 
-  fastuidraw_stroking_on_boundary = float(abs(on_boundary));
+  fastuidraw_stroking_on_boundary = float(on_boundary);
   if(stroking_pass == fastuidraw_stroke_aa_pass)
     {
       z_add = 0u;
