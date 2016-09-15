@@ -54,7 +54,6 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
                                         in vec2 position,
                                         in vec2 pre_offset,
                                         in vec2 auxilary_offset,
-                                        in int on_boundary,
                                         in float miter_limit,
                                         out vec2 offset,
                                         inout float stroke_radius)
@@ -303,7 +302,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
         {
           fastuidraw_stroke_compute_offset_pixels(point_packed_data, offset_type, position,
                                                   pre_offset, auxilary_offset,
-                                                  on_boundary, stroke_params.miter_limit,
+                                                  stroke_params.miter_limit,
                                                   offset, stroke_radius);
         }
       else
