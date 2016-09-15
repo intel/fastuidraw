@@ -107,6 +107,7 @@ painter_stroke_test(void):
               "if non-empty read the geometry of the path from the specified file, "
               "otherwise use a default path",
               *this),
+  m_path(NULL),
   m_join_style(0),
   m_cap_style(0),
   m_dash(0),

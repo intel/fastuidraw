@@ -185,12 +185,11 @@ cairo_arc_to(cairo_t *cr,
   angle_coeff_dir = (angle > 0.0) ? 1.0 : -1.0;
   angle = angle_coeff_dir * angle;
   end_start = end_pt - start_pt;
-  mid = (end_pt + start_pt) * 0.5f;
+  mid = (end_pt + start_pt) * 0.5;
   n = vec2(-end_start.y(), end_start.x());
   s = std::sin(angle * 0.5);
   c = std::cos(angle * 0.5);
-  t = angle_coeff_dir * 0.5f * c / s;
-
+  t = angle_coeff_dir * 0.5 * c / s;
 
   circle_center = mid + (n * t);
   vec2 start_center(start_pt - circle_center);
@@ -198,7 +197,15 @@ cairo_arc_to(cairo_t *cr,
   radius = std::sqrt(start_center.x() * start_center.x() + start_center.y() * start_center.y());
   start_angle = std::atan2(start_center.y(), start_center.x());
   end_angle = start_angle + angle_coeff_dir * angle;
-  cairo_arc(cr, circle_center.x(), circle_center.y(), radius, start_angle, end_angle);
+
+  if(start_angle > end_angle)
+    {
+      cairo_arc_negative(cr, circle_center.x(), circle_center.y(), radius, start_angle, end_angle);
+    }
+  else
+    {
+      cairo_arc(cr, circle_center.x(), circle_center.y(), radius, start_angle, end_angle);
+    }
 }
 
 inline
