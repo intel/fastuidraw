@@ -200,13 +200,13 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
     {
       vec3 clip_offset, clip_p;
       vec2 n;
-      if(offset_type == fastuidraw_stroke_offset_edge)
+      if(offset_type == fastuidraw_stroke_offset_next_edge)
         {
-          clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+          clip_p = fastuidraw_item_matrix * vec3(position + auxilary_offset, 1.0);
         }
       else
         {
-          clip_p = fastuidraw_item_matrix * vec3(position + auxilary_offset, 1.0);
+          clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
         }
       n = fastuidraw_align_normal_to_screen(clip_p, pre_offset);
       clip_offset = fastuidraw_item_matrix * vec3(n, 0.0);
