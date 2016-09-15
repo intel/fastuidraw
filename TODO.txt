@@ -2,24 +2,44 @@ TODO.
 
  1. Dashed stroking is not implemented (yet).
 
- 2. An interface to build attribute and text data from string(s). Currently
+ 2. Add arc methods that are same as that ofW3C canvase:
+    - Add ctor for PathContour::arc(vec2 center, float radius,
+                                    float startAngle, float endAngle,
+                                    bool counterclockwise)
+       where the center of the arc is specified as are the
+       starting and ending angles and if it goes clockwise
+       or counter-clockwise.
+
+    - Add new function/thing: arcTo(vec2 pt1, vec2 pt2, R)
+       That makes an arc and 2 line segments as follows.
+       Let L be the ray from the previous point to
+       pt1 and M be the ray from pt1 to pt2. Let C
+       be the circle tangent to both L and M with
+       radius R. Let A be the arc of a circle that
+       starts at where the C intersects L and ends
+       where C intersects M. Then arcTo(pt1, pt2, R)
+       is first connect by line segment from previous
+       point to the start of A, then A, and then from
+       end point of A to pt2.
+
+ 3. An interface to build attribute and text data from string(s). Currently
     an application needs to do this by itself, the example code being in
     demos/common/text_helper.[ch]pp.
 
- 3. For some glyphs, curve pair glyph rendering is incorrect (this can be determined when
+ 4. For some glyphs, curve pair glyph rendering is incorrect (this can be determined when
     the glyph data is generated). Should have an interface that is "take scalable glyph
     that is best" in GlyphSelector class.
 
- 4. W3C blend modes are not yet implemented in GL backend, but Porter-Duff blend modes
+ 5. W3C blend modes are not yet implemented in GL backend, but Porter-Duff blend modes
     are.
 
- 5. Path tessellation is scale invariant because it is based upon curvature. However,
+ 6. Path tessellation is scale invariant because it is based upon curvature. However,
     if a path (or rounded join) is dramtically zoomed in, we start to see the line segments.
     The way out is to instead use curvature multiplied by arc length and when we stroke
     a path to refine the tessellation by S where S is the operator norm of the
     transformation.
 
- 6. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
+ 7. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
     together with a 3rd party library to create SPIR-V from GLSL.
     Options for third part library so far are:
             a) libshaderc at https://github.com/google/shaderc.
