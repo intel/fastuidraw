@@ -54,9 +54,24 @@ public:
   enum offset_type_t
     {
       /*!
-        The point is for an edge of the path.
+        The point is for an edge of the path,
+        point signifies the start of a sub-edge
+        (quad) of drawing an edge.
        */
       offset_edge,
+
+      /*!
+        The point is for an edge of the path,
+        point signifies the end of a sub-edge
+        (quad) of drawing an edge.
+       */
+      offset_next_edge,
+
+      /*!
+        The point is at a position that has the
+        same value as point on an edge
+       */
+      offset_shared_with_edge,
 
       /*!
         The point is for a boundary point of a rounded join of the path
@@ -188,16 +203,10 @@ public:
       boundary_bit0 = sin_sign_bit + 1,
 
       /*!
-        number of bits needed to hold the
-        boundary() - 1 value of the point.
-       */
-      boundary_num_bits = 2,
-
-      /*!
         Bit0 for holding the depth() value
         of the point
        */
-      depth_bit0 = boundary_bit0 + boundary_num_bits,
+      depth_bit0 = boundary_bit0 + 1,
 
       /*!
         number of bits needed to hold the
@@ -236,7 +245,7 @@ public:
       /*!
         Mask generated for \ref boundary_bit0 and \ref boundary_num_bits
        */
-      boundary_mask = FASTUIDRAW_MASK(boundary_bit0, boundary_num_bits),
+      boundary_mask = FASTUIDRAW_MASK(boundary_bit0, 1),
 
       /*!
         Mask generated for \ref depth_bit0 and \ref depth_num_bits
@@ -340,8 +349,8 @@ public:
     }
 
     /*!
-      Has value -1, 0 or +1. If the value is 0,
-      then the point is on the path. If the value has
+      Has value 0 or +1. If the value is 0, then
+      the point is on the path. If the value has
       absolute value 1, then indicates a point that
       is on the boundary of the stroked path. The triangles
       produced from stroking are so that when
@@ -352,9 +361,7 @@ public:
     int
     on_boundary(void) const
     {
-      uint32_t v;
-      v = unpack_bits(boundary_bit0, boundary_num_bits, m_packed_data);
-      return static_cast<int>(v) - 1;
+      return unpack_bits(boundary_bit0, 1u, m_packed_data);
     }
 
     /*!
@@ -380,13 +387,15 @@ public:
       \endcode
       The computation for offset_vector() is as follows.
       - For those with offset_type() being StrokedPath::offset_edge,
+        StrokedPath::offset_next_edge and StrokedPath::offset_shared_with_edge,
         the offset is given by
         \code
         m_pre_offset
         \endcode
-        In addition, \ref m_auxilary_offset holds the the delta
-        vector to the point on edge with which the point makes
-        a quad.
+        In addition, for types StrokedPath::offset_edge and
+        StrokedPath::offset_next_edge, \ref m_auxilary_offset
+        holds the the delta vector to the point on edge with
+        which the point makes a quad.
       - For those with offset_type() being StrokedPath::offset_square_cap,
         the value is given by
         \code
