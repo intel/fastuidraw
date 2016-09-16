@@ -202,6 +202,25 @@ namespace fastuidraw
         ConfigurationGLSL&
         default_blend_shader_type(enum PainterBlendShader::shader_type);
 
+        /*!
+          Sets the non-dashed stroke shader to use discard
+          instead of on opaque pass stroking a small amount
+          less in width to allow for the translusent
+          anti-alias pass to cover that small amount.
+          Under severe transformation distortion of the
+          path, gives better anti-aliasing, but at cost
+          of shader using discard.
+         */
+        bool
+        non_dashed_stroke_shader_uses_discard(void) const;
+
+        /*!
+          Set the value returned by non_dashed_stroke_shader_uses_discard(void) const.
+          Default value is false.
+         */
+        ConfigurationGLSL&
+        non_dashed_stroke_shader_uses_discard(bool);
+
       private:
         void *m_d;
       };

@@ -61,11 +61,13 @@ namespace
   public:
     ConfigurationGLSLPrivate(void):
       m_use_hw_clip_planes(true),
-      m_default_blend_shader_type(fastuidraw::PainterBlendShader::dual_src)
+      m_default_blend_shader_type(fastuidraw::PainterBlendShader::dual_src),
+      m_non_dashed_stroke_shader_uses_discard(false)
     {}
 
     bool m_use_hw_clip_planes;
     enum fastuidraw::PainterBlendShader::shader_type m_default_blend_shader_type;
+    bool m_non_dashed_stroke_shader_uses_discard;
   };
 
   class BindingPointsPrivate
@@ -1159,6 +1161,7 @@ operator=(const ConfigurationGLSL &rhs)
 
 setget_implement(bool, use_hw_clip_planes)
 setget_implement(enum fastuidraw::PainterBlendShader::shader_type, default_blend_shader_type)
+setget_implement(bool, non_dashed_stroke_shader_uses_discard)
 
 #undef setget_implement
 
@@ -1322,7 +1325,9 @@ PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                    const ConfigurationGLSL &config_glsl,
                    const ConfigurationBase &config_base):
   PainterBackend(glyph_atlas, image_atlas, colorstop_atlas, config_base,
-                 glsl::detail::ShaderSetCreator(config_glsl.default_blend_shader_type()).create_shader_set())
+                 detail::ShaderSetCreator(config_glsl.default_blend_shader_type(),
+                                          config_glsl.non_dashed_stroke_shader_uses_discard())
+                 .create_shader_set())
 {
   m_d = FASTUIDRAWnew PainterBackendGLSLPrivate(this, config_glsl);
   set_hints().clipping_via_hw_clip_planes(config_glsl.use_hw_clip_planes());

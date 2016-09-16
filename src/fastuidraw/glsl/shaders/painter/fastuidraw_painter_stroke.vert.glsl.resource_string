@@ -291,10 +291,15 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   #endif
 
   stroke_radius = 0.5 * stroke_params.width;
-  if(stroking_pass == fastuidraw_stroke_opaque_pass && stroke_width_pixels)
+
+  #ifndef FASTUIDRAW_STROKE_USE_DISCARD
     {
-      stroke_radius = max(stroke_radius - anti_alias_thickness, 0.0);
+      if(stroking_pass == fastuidraw_stroke_opaque_pass && stroke_width_pixels)
+        {
+          stroke_radius = max(stroke_radius - anti_alias_thickness, 0.0);
+        }
     }
+  #endif
 
   if(on_boundary != 0)
     {
@@ -313,16 +318,20 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                                            offset);
         }
 
-      if(stroking_pass == fastuidraw_stroke_opaque_pass && !stroke_width_pixels)
+      #ifndef FASTUIDRAW_STROKE_USE_DISCARD
         {
-          vec3 clip_p, clip_offset;
-          float r;
+          if(stroking_pass == fastuidraw_stroke_opaque_pass && !stroke_width_pixels)
+            {
+              vec3 clip_p, clip_offset;
+              float r;
 
-          clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
-          clip_offset = fastuidraw_item_matrix * vec3(offset, 0);
-          r = fastuidraw_painter_local_distance_from_pixel_distance(anti_alias_thickness, clip_p, clip_offset, true);
-          stroke_radius = max(stroke_radius - r, 0.0);
+              clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+              clip_offset = fastuidraw_item_matrix * vec3(offset, 0);
+              r = fastuidraw_painter_local_distance_from_pixel_distance(anti_alias_thickness, clip_p, clip_offset, true);
+              stroke_radius = max(stroke_radius - r, 0.0);
+            }
         }
+      #endif
 
       p = position + stroke_radius * offset;
     }

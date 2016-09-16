@@ -76,7 +76,8 @@ class ShaderSetCreator:
 {
 public:
   explicit
-  ShaderSetCreator(enum PainterBlendShader::shader_type tp);
+  ShaderSetCreator(enum PainterBlendShader::shader_type tp,
+                   bool non_dashed_stroke_shader_uses_discard);
 
   reference_counted_ptr<PainterItemShader>
   create_glyph_item_shader(const std::string &vert_src,
