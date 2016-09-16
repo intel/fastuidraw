@@ -2,15 +2,25 @@ TODO.
 
  1. Dashed stroking is not implemented (yet).
 
- 2. Rework dashed stroking anti-aliasing as follows:
-     - Draw opaque pass as is
-     - On anti-alias pass, instead of relying on depth buffer to
-       obscure pixels, draw the quads representing the anti-alias
-       fuzz.
-    The main issue for the rework is that we need to add essentially
-    new attribute and index data for the anti-alias pass for the
-    fuzz-quads strongly for joins and caps. Edges can be handled
-    by making 8 verts per quad instead of the current 6.
+ 2. Add arc methods that are same as that ofW3C canvase:
+    - Add ctor for PathContour::arc(vec2 center, float radius,
+                                    float startAngle, float endAngle,
+                                    bool counterclockwise)
+       where the center of the arc is specified as are the
+       starting and ending angles and if it goes clockwise
+       or counter-clockwise.
+
+    - Add new function/thing: arcTo(vec2 pt1, vec2 pt2, R)
+       That makes an arc and 2 line segments as follows.
+       Let L be the ray from the previous point to
+       pt1 and M be the ray from pt1 to pt2. Let C
+       be the circle tangent to both L and M with
+       radius R. Let A be the arc of a circle that
+       starts at where the C intersects L and ends
+       where C intersects M. Then arcTo(pt1, pt2, R)
+       is first connect by line segment from previous
+       point to the start of A, then A, and then from
+       end point of A to pt2.
 
  3. An interface to build attribute and text data from string(s). Currently
     an application needs to do this by itself, the example code being in
