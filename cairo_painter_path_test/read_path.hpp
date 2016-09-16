@@ -15,4 +15,5 @@
    value0 value1 marks a coordinate (control point of edge point)
  */
 cairo_path_t*
-read_path(cairo_t *cr, const std::string &source);
+read_path(cairo_t *cr, const std::string &source,
+          vec2 &bounding_box_min, vec2 &bounding_box_max);

@@ -73,7 +73,8 @@ add_to_path(cairo_t *cr, const vec2 &end_pt) const
 }
 
 cairo_path_t*
-read_path(cairo_t *cr, const std::string &source)
+read_path(cairo_t *cr, const std::string &source,
+          vec2 &bounding_box_min, vec2 &bounding_box_max)
 {
   std::string filtered(source);
 
@@ -183,6 +184,11 @@ read_path(cairo_t *cr, const std::string &source)
     }
   cairo_path_t *return_value;
   return_value = cairo_copy_path(cr);
+  cairo_set_line_width(cr, 4.0);
+  cairo_stroke_extents(cr,
+                       &bounding_box_min.x(), &bounding_box_min.y(),
+                       &bounding_box_max.x(), &bounding_box_max.y());
+
   cairo_new_path(cr);
   return return_value;
 }

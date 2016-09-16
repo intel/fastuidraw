@@ -10,6 +10,7 @@
 #include "PanZoomTracker.hpp"
 #include "read_path.hpp"
 #include "cycle_value.hpp"
+#include "text.hpp"
 
 const char*
 on_off(bool v)
@@ -66,15 +67,20 @@ private:
   construct_path(void);
 
   void
-  construct_dash_patterns(void);
+  init_zoomer(int w, int h);
 
   void
+  construct_dash_patterns(void);
+
+  uint64_t
   update_cts_params(void);
 
   command_line_argument_value<float> m_change_stroke_width_rate;
   command_line_argument_value<std::string> m_path_file;
+  command_line_argument_value<std::string> m_font_file;
 
   cairo_path_t *m_path;
+  vec2 m_bounding_box_min, m_bounding_box_max;
   std::vector<DashPattern> m_dash_patterns;
 
   PanZoomTrackerSDLEvent m_zoomer;
@@ -87,11 +93,14 @@ private:
 
   float m_stroke_width;
   bool m_stroke_aa;
+  bool m_show_fps;
 
   vec2 m_shear, m_shear2;
   float m_angle;
 
   simple_time m_draw_timer;
+  text_formatter *m_font;
+  int m_pixel_size;
 };
 
 //////////////////////////////////////
@@ -107,17 +116,20 @@ painter_stroke_test(void):
               "if non-empty read the geometry of the path from the specified file, "
               "otherwise use a default path",
               *this),
+  m_font_file("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "font", "File from which to take font", *this),
   m_path(NULL),
   m_join_style(0),
   m_cap_style(0),
   m_dash(0),
   m_stroke_width(1.0f),
   m_stroke_aa(true),
+  m_show_fps(false),
   m_shear(1.0f, 1.0f),
   m_shear2(1.0f, 1.0f),
   m_angle(0.0f)
 {
   std::cout << "Controls:\n"
+            << "\tu: toggle show FPS\n"
             << "\ta: toggle anti-aliased stroking\n"
             << "\tj: cycle through join styles for stroking\n"
             << "\tc: cycle through cap style for stroking\n"
@@ -146,14 +158,15 @@ painter_stroke_test(void):
 }
 
 
-void
+uint64_t
 painter_stroke_test::
 update_cts_params(void)
 {
   const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
   assert(keyboard_state != NULL);
 
-  float speed = static_cast<float>(m_draw_timer.restart()), speed_stroke, speed_shear;
+  uint64_t return_value(m_draw_timer.restart_us());
+  float speed = static_cast<float>(return_value) / 1000.0f, speed_stroke, speed_shear;
 
   if(keyboard_state[SDL_SCANCODE_LSHIFT])
     {
@@ -218,6 +231,7 @@ update_cts_params(void)
     {
       std::cout << "Stroke width set to: " << m_stroke_width << "\n";
     }
+  return return_value;
 }
 
 void
@@ -243,6 +257,10 @@ handle_event(const SDL_Event &ev)
         {
         case SDLK_ESCAPE:
           end_demo(0);
+          break;
+
+        case SDLK_u:
+          m_show_fps = !m_show_fps;
           break;
 
         case SDLK_a:
@@ -302,42 +320,65 @@ construct_path(void)
         {
           std::stringstream buffer;
           buffer << path_file.rdbuf();
-          m_path = read_path(m_cairo, buffer.str());
+          m_path = read_path(m_cairo, buffer.str(), m_bounding_box_min, m_bounding_box_max);
           return;
         }
     }
-  else
-    {
-      cairo_new_path(m_cairo);
+  cairo_new_path(m_cairo);
 
-      cairo_move_to(m_cairo, 300.0, 300.0);
-      cairo_close_path(m_cairo);
+  cairo_move_to(m_cairo, 300.0, 300.0);
+  cairo_close_path(m_cairo);
 
-      cairo_move_to(m_cairo, 50.0, 35.0);
-      cairo_bezier_to(m_cairo, 60.0, 50.0, 70.0, 35.0);
-      cairo_arc_degrees_to(m_cairo, 180.0, 70.0, -100.0);
-      cairo_curve_to(m_cairo, 60.0, -150.0, 30.0, -50.0, 0.0, -100.0);
-      cairo_arc_degrees_to(m_cairo, 90.0, 50.0, 35.0);
-      cairo_close_path(m_cairo);
+  cairo_move_to(m_cairo, 50.0, 35.0);
+  cairo_bezier_to(m_cairo, 60.0, 50.0, 70.0, 35.0);
+  cairo_arc_degrees_to(m_cairo, 180.0, 70.0, -100.0);
+  cairo_curve_to(m_cairo, 60.0, -150.0, 30.0, -50.0, 0.0, -100.0);
+  cairo_arc_degrees_to(m_cairo, 90.0, 50.0, 35.0);
+  cairo_close_path(m_cairo);
 
-      cairo_move_to(m_cairo, 200.0, 200.0);
-      cairo_line_to(m_cairo, 400.0, 200.0);
-      cairo_line_to(m_cairo, 400.0, 400.0);
-      cairo_line_to(m_cairo, 200.0, 400.0);
-      cairo_line_to(m_cairo, 200.0, 200.0);
-      cairo_close_path(m_cairo);
+  cairo_move_to(m_cairo, 200.0, 200.0);
+  cairo_line_to(m_cairo, 400.0, 200.0);
+  cairo_line_to(m_cairo, 400.0, 400.0);
+  cairo_line_to(m_cairo, 200.0, 400.0);
+  cairo_line_to(m_cairo, 200.0, 200.0);
+  cairo_close_path(m_cairo);
 
-      cairo_move_to(m_cairo, -50.0, 100.0);
-      cairo_line_to(m_cairo, 0.0, 200.0);
-      cairo_line_to(m_cairo, 100.0, 300.0);
-      cairo_line_to(m_cairo, 150.0, 325.0);
-      cairo_line_to(m_cairo, 150.0, 100.0);
-      cairo_line_to(m_cairo, -50.0, 100.0);
-      cairo_close_path(m_cairo);
+  cairo_move_to(m_cairo, -50.0, 100.0);
+  cairo_line_to(m_cairo, 0.0, 200.0);
+  cairo_line_to(m_cairo, 100.0, 300.0);
+  cairo_line_to(m_cairo, 150.0, 325.0);
+  cairo_line_to(m_cairo, 150.0, 100.0);
+  cairo_line_to(m_cairo, -50.0, 100.0);
+  cairo_close_path(m_cairo);
 
-      m_path = cairo_copy_path(m_cairo);
-      cairo_new_path(m_cairo);
-    }
+  m_path = cairo_copy_path(m_cairo);
+  cairo_stroke_extents(m_cairo,
+                       &m_bounding_box_min.x(), &m_bounding_box_min.y(),
+                       &m_bounding_box_max.x(), &m_bounding_box_max.y());
+  cairo_new_path(m_cairo);
+}
+
+void
+painter_stroke_test::
+init_zoomer(int w, int h)
+{
+  assert(m_path != NULL);
+
+  vec2 p0, p1, delta, dsp(w, h), ratio, mid;
+  double mm;
+  p0 = m_bounding_box_min;
+  p1 = m_bounding_box_max;
+
+  delta = p1 - p0;
+  ratio = delta / dsp;
+  mm = std::max(0.00001, std::max(ratio.x(), ratio.y()) );
+  mid = (p1 + p0) * 0.5;
+
+  ScaleTranslate sc, tr1, tr2;
+  tr1.translation(mid * -1.0);
+  sc.scale( 1.0 / mm);
+  tr2.translation(dsp * 0.5);
+  m_zoomer.transformation(tr2 * sc * tr1);
 }
 
 void
@@ -358,8 +399,9 @@ painter_stroke_test::
 draw_frame(void)
 {
   ivec2 wh(dimensions());
+  uint64_t us;
 
-  update_cts_params();
+  us = update_cts_params();
 
   cairo_save(m_cairo);
 
@@ -395,11 +437,6 @@ draw_frame(void)
       cairo_set_dash(m_cairo, NULL, 0, 0.0);
     }
 
-  if(m_path == NULL)
-    {
-      construct_path();
-    }
-
   assert(m_path != NULL);
   cairo_new_path(m_cairo);
   cairo_append_path(m_cairo, m_path);
@@ -411,6 +448,29 @@ draw_frame(void)
   cairo_stroke(m_cairo);
 
   cairo_restore(m_cairo);
+  if(m_font != NULL && m_show_fps)
+    {
+      std::ostringstream ostr;
+
+      ostr << "FPS = ";
+      if(us > 0)
+        {
+          ostr << static_cast<int>(1000.0f * 1000.0f / static_cast<float>(us));
+        }
+      else
+        {
+          ostr << "NAN";
+        }
+      ostr << "\n" << static_cast<float>(us) / 1000.0f << " ms";
+      cairo_set_font_face(m_cairo, m_font->cairo_font());
+      cairo_set_font_size(m_cairo, m_font->pixel_size());
+      cairo_set_source_rgba(m_cairo, 0.0, 1.0, 1.0, 1.0);
+      cairo_move_to(m_cairo, 0.0, 0.0);
+
+      std::vector<cairo_glyph_t> glyph_run;
+      m_font->layout_glyphs(ostr.str(), 1.0, glyph_run);
+      cairo_show_glyphs(m_cairo, &glyph_run[0], glyph_run.size());
+    }
 }
 
 void
@@ -423,6 +483,11 @@ derived_init(int w, int h)
   construct_dash_patterns();
 
   m_draw_timer.restart();
+
+  m_pixel_size = 32;
+  m_font = text_formatter::create(m_font_file.m_value.c_str(), m_pixel_size);
+  construct_path();
+  init_zoomer(w, h);
 }
 
 int

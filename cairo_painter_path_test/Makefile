@@ -21,7 +21,7 @@ endif
 
 SOURCES=generic_command_line.cpp random.cpp sdl_cairo_demo.cpp \
 	PanZoomTracker.cpp ImageLoader.cpp cycle_value.cpp \
-	read_path.cpp main.cpp
+	read_path.cpp text.cpp main.cpp
 
 CFLAGS_BASE=$(shell pkg-config --cflags $(CAIRO_PKG_STUFF)) $(shell sdl2-config --cflags) -Wall -Wextra -Wcast-qual -Wwrite-strings $(DEFINES)
 LIBS=-lm $(shell pkg-config --libs $(CAIRO_PKG_STUFF)) $(shell sdl2-config --libs) -lSDL2_image

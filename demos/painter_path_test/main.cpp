@@ -122,7 +122,7 @@ private:
   vec2
   brush_item_coordinate(ivec2 c);
 
-  void
+  uint64_t
   update_cts_params(void);
 
   command_line_argument_value<int> m_max_segments_per_edge;
@@ -138,6 +138,7 @@ private:
   command_line_argument_value<unsigned int> m_image_slack;
   command_line_argument_value<int> m_sub_image_x, m_sub_image_y;
   command_line_argument_value<int> m_sub_image_w, m_sub_image_h;
+  command_line_argument_value<std::string> m_font_file;
 
   Path m_path;
   float m_max_miter;
@@ -201,6 +202,7 @@ private:
   unsigned int m_end_fill_rule;
   bool m_have_miter_limit;
   float m_miter_limit, m_stroke_width;
+  bool m_show_fps;
   bool m_draw_fill;
   unsigned int m_active_color_stop;
   unsigned int m_gradient_draw_mode;
@@ -234,6 +236,11 @@ private:
 
   Path m_clip_window_path;
   bool m_clip_window_path_dirty;
+
+  reference_counted_ptr<const FontBase> m_font;
+  GlyphRender m_text_render;
+  float m_pixel_size;
+  PainterPackedValue<PainterBrush> m_text_brush;
 };
 
 //////////////////////////////////////
@@ -279,6 +286,7 @@ painter_stroke_test(void):
   m_sub_image_h(-1, "sub_image_h",
                 "sub-image height of sub-image rectange (negative value means no-subimage)",
                 *this),
+  m_font_file("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "font", "File from which to take font", *this),
   m_join_style(PainterEnums::rounded_joins),
   m_cap_style(PainterEnums::close_contours),
   m_fill_rule(PainterEnums::odd_even_fill_rule),
@@ -287,6 +295,7 @@ painter_stroke_test(void):
   m_have_miter_limit(true),
   m_miter_limit(5.0f),
   m_stroke_width(1.0f),
+  m_show_fps(false),
   m_draw_fill(false),
   m_active_color_stop(0),
   m_gradient_draw_mode(draw_no_gradient),
@@ -309,6 +318,7 @@ painter_stroke_test(void):
   m_clip_window_path_dirty(true)
 {
   std::cout << "Controls:\n"
+            << "\tu: toggle show FPS\n"
             << "\ta: toggle anti-aliased stroking\n"
             << "\tj: cycle through join styles for stroking\n"
             << "\tc: cycle through cap style for stroking\n"
@@ -374,14 +384,15 @@ painter_stroke_test(void):
 }
 
 
-void
+uint64_t
 painter_stroke_test::
 update_cts_params(void)
 {
   const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
   assert(keyboard_state != NULL);
 
-  float speed = static_cast<float>(m_draw_timer.restart()), speed_stroke, speed_shear;
+  uint64_t return_value(m_draw_timer.restart_us());
+  float speed = static_cast<float>(return_value) / 1000.0f, speed_stroke, speed_shear;
 
   if(keyboard_state[SDL_SCANCODE_LSHIFT])
     {
@@ -599,6 +610,7 @@ update_cts_params(void)
           std::cout << "Clipping window set to: xy = " << m_clipping_xy << " wh = " << m_clipping_wh << "\n";
         }
     }
+  return return_value;
 }
 
 
@@ -673,6 +685,10 @@ handle_event(const SDL_Event &ev)
         {
         case SDLK_ESCAPE:
           end_demo(0);
+          break;
+
+        case SDLK_u:
+          m_show_fps = !m_show_fps;
           break;
 
         case SDLK_a:
@@ -1031,8 +1047,9 @@ painter_stroke_test::
 draw_frame(void)
 {
   ivec2 wh(dimensions());
+  uint64_t us;
 
-  update_cts_params();
+  us = update_cts_params();
 
   glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1095,6 +1112,7 @@ draw_frame(void)
                              PainterEnums::no_caps, PainterEnums::no_joins,
                              false);
     }
+  m_painter->save();
 
   /* apply m_zoomer
    */
@@ -1370,6 +1388,33 @@ draw_frame(void)
       m_painter->draw_rect(PainterData(m_white_pen), p1 - vec2(r1) * 0.5, vec2(r1));
       m_painter->draw_rect(PainterData(m_black_pen), p1 - vec2(r0) * 0.5, vec2(r0));
     }
+  m_painter->restore();
+
+  if(m_font && m_show_fps)
+    {
+      std::ostringstream ostr;
+
+      ostr << "FPS = ";
+      if(us > 0)
+        {
+          ostr << static_cast<int>(1000.0f * 1000.0f / static_cast<float>(us));
+        }
+      else
+        {
+          ostr << "NAN";
+        }
+      ostr << "\n" << static_cast<float>(us) / 1000.0f << " ms";
+      if(!m_text_brush)
+        {
+          PainterBrush brush;
+          brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
+          m_text_brush = m_painter->packed_value_pool().create_packed_value(brush);
+        }
+      draw_text(ostr.str(), m_pixel_size,
+                m_font, m_text_render,
+                PainterData(m_text_brush));
+    }
+
   m_painter->end();
 }
 
@@ -1447,6 +1492,10 @@ derived_init(int w, int h)
   m_clipping_wh = m_repeat_wh;
 
   m_draw_timer.restart();
+
+  m_font = FontFreeType::create(m_font_file.m_value.c_str(), m_ft_lib, FontFreeType::RenderParams());;
+  m_text_render = GlyphRender(curve_pair_glyph);
+  m_pixel_size = 32;
 }
 
 int
