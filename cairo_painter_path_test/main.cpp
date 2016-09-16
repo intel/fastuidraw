@@ -410,6 +410,7 @@ draw_frame(void)
   cairo_set_source_rgba(m_cairo, 1.0, 0.0, 0.0, 1.0);
   cairo_paint(m_cairo);
 
+  cairo_save(m_cairo);
   /* apply m_zoomer
    */
   cairo_identity_matrix(m_cairo);
@@ -462,6 +463,7 @@ draw_frame(void)
           ostr << "NAN";
         }
       ostr << "\n" << static_cast<float>(us) / 1000.0f << " ms";
+      cairo_set_operator(m_cairo, CAIRO_OPERATOR_OVER);
       cairo_set_font_face(m_cairo, m_font->cairo_font());
       cairo_set_font_size(m_cairo, m_font->pixel_size());
       cairo_set_source_rgba(m_cairo, 0.0, 1.0, 1.0, 1.0);
@@ -471,6 +473,7 @@ draw_frame(void)
       m_font->layout_glyphs(ostr.str(), 1.0, glyph_run);
       cairo_show_glyphs(m_cairo, &glyph_run[0], glyph_run.size());
     }
+  cairo_restore(m_cairo);
 }
 
 void

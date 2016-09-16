@@ -382,7 +382,7 @@ present(void)
            needed, but from the point of view of API, it looks
            like it should be flushed before doing swap buffers.
          */
-        //cairo_surface_flush(m_cairo_window_surface);
+        cairo_surface_flush(m_cairo_window_surface);
         SDL_GL_SwapWindow(m_window);
       }
       break;
