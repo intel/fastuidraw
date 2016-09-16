@@ -1043,6 +1043,11 @@ configure_backend(void)
     }
   assert(m_params.use_hw_clip_planes() == m_p->configuration_glsl().use_hw_clip_planes());
 
+  /* if have to use discard for clipping, then there is zero point to
+     separate the discarding and non-discarding item shaders.
+  */
+  m_params.separate_program_for_discard(m_params.separate_program_for_discard() && m_params.use_hw_clip_planes());
+
   fastuidraw::gl::ColorStopAtlasGL *color;
   assert(dynamic_cast<fastuidraw::gl::ColorStopAtlasGL*>(m_params.colorstop_atlas().get()));
   color = static_cast<fastuidraw::gl::ColorStopAtlasGL*>(m_params.colorstop_atlas().get());
@@ -1285,6 +1290,16 @@ build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
   fastuidraw::glsl::ShaderSource vert, frag;
   program_ref return_value;
   DiscardItemShaderFilter item_filter(tp);
+  const char *discard_macro;
+
+  if(tp == fastuidraw::gl::PainterBackendGL::program_without_discard)
+    {
+      discard_macro = "fastuidraw_do_nothing()";
+    }
+  else
+    {
+      discard_macro = "discard";
+    }
 
   vert
     .specify_version(m_front_matter_vert.version())

@@ -151,7 +151,8 @@ namespace
     construct_shader(fastuidraw::glsl::ShaderSource &out_vertex,
                      fastuidraw::glsl::ShaderSource &out_fragment,
                      const fastuidraw::glsl::PainterBackendGLSL::UberShaderParams &contruct_params,
-                     const fastuidraw::glsl::PainterBackendGLSL::ItemShaderFilter *item_shader_filter);
+                     const fastuidraw::glsl::PainterBackendGLSL::ItemShaderFilter *item_shader_filter,
+                     const char *discard_macro_value);
 
     void
     update_varying_size(const fastuidraw::glsl::varying_list &plist);
@@ -234,6 +235,7 @@ PainterBackendGLSLPrivate(fastuidraw::glsl::PainterBackendGLSL *p,
   add_texture_size_constants(m_constant_code);
 
   m_vert_shader_utils
+    .add_source("fastuidraw_do_nothing.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_circular_interpolate.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_anisotropic.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_compute_local_distance_from_pixel_distance.glsl.resource_string",
@@ -241,6 +243,7 @@ PainterBackendGLSLPrivate(fastuidraw::glsl::PainterBackendGLSL *p,
     .add_source("fastuidraw_painter_align.vert.glsl.resource_string", ShaderSource::from_resource);
 
   m_frag_shader_utils
+    .add_source("fastuidraw_do_nothing.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_circular_interpolate.glsl.resource_string",
                 ShaderSource::from_resource)
     .add_source("fastuidraw_anisotropic.frag.glsl.resource_string", ShaderSource::from_resource)
@@ -747,7 +750,8 @@ PainterBackendGLSLPrivate::
 construct_shader(fastuidraw::glsl::ShaderSource &vert,
                  fastuidraw::glsl::ShaderSource &frag,
                  const fastuidraw::glsl::PainterBackendGLSL::UberShaderParams &params,
-                 const fastuidraw::glsl::PainterBackendGLSL::ItemShaderFilter *item_shader_filter)
+                 const fastuidraw::glsl::PainterBackendGLSL::ItemShaderFilter *item_shader_filter,
+                 const char *discard_macro_value)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::glsl;
@@ -1038,7 +1042,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_source(m_constant_code)
     .add_source(varying_layout_macro.c_str(), ShaderSource::from_string)
     .add_source(binding_layout_macro.c_str(), ShaderSource::from_string)
-    .add_macro("FASTUIDRAW_DISCARD", "discard")
+    .add_macro("FASTUIDRAW_DISCARD", discard_macro_value)
     .add_macro(shader_blend_macro)
     .add_macro("FASTUIDRAW_COLORSTOP_ATLAS_BINDING", binding_params.colorstop_atlas())
     .add_macro("FASTUIDRAW_COLOR_TILE_UNFILTERED_BINDING", binding_params.image_atlas_color_tiles_unfiltered())
@@ -1481,12 +1485,13 @@ fastuidraw::glsl::PainterBackendGLSL::
 construct_shader(ShaderSource &out_vertex,
                  ShaderSource &out_fragment,
                  const UberShaderParams &construct_params,
-                 const ItemShaderFilter *item_shader_filter)
+                 const ItemShaderFilter *item_shader_filter,
+                 const char *discard_macro_value)
 {
   PainterBackendGLSLPrivate *d;
   d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
   d->construct_shader(out_vertex, out_fragment, construct_params,
-                      item_shader_filter);
+                      item_shader_filter, discard_macro_value);
 }
 
 uint32_t

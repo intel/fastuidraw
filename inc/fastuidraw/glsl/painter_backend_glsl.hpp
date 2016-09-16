@@ -769,12 +769,17 @@ namespace fastuidraw
                                   which shader to place into the uber-shader.
                                   A value of NULL indicates to add all item
                                   shaders to the uber-shader.
+        \param discard_macro_value macro-value definintion for the macro
+                                   FASTUIDRAW_DISCARD. PainterItemShaderGLSL
+                                   fragment sources use FASTUIDRAW_DISCARD
+                                   instead of discard.
        */
       void
       construct_shader(ShaderSource &out_vertex,
                        ShaderSource &out_fragment,
                        const UberShaderParams &contruct_params,
-                       const ItemShaderFilter *item_shader_filter = NULL);
+                       const ItemShaderFilter *item_shader_filter = NULL,
+                       const char *discard_macro_value = "discard");
 
       /*!
         Fill a buffer to hold the values for the uniforms
