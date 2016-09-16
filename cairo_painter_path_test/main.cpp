@@ -462,7 +462,8 @@ draw_frame(void)
         {
           ostr << "NAN";
         }
-      ostr << "\n" << static_cast<float>(us) / 1000.0f << " ms";
+      ostr << "(" << static_cast<float>(us) / 1000.0f << " ms)";
+      cairo_identity_matrix(m_cairo);
       cairo_set_operator(m_cairo, CAIRO_OPERATOR_OVER);
       cairo_set_font_face(m_cairo, m_font->cairo_font());
       cairo_set_font_size(m_cairo, m_font->pixel_size());
