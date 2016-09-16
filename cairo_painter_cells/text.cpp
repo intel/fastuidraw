@@ -27,7 +27,10 @@ namespace
           }
         else
           {
-            v.push_back(' ');
+            for(unsigned int i = 0; i < 4; ++i)
+              {
+                v.push_back(' ');
+              }
           }
       }
     text.swap(v);
