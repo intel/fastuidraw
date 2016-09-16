@@ -434,24 +434,6 @@ namespace fastuidraw
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
-      Stroke a path.
-      \param draw data for how to draw
-      \param path path to stroke
-      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
-      \param cp cap style
-      \param js join style
-      \param shader shader with which to stroke the attribute data
-      \param call_back if non-NULL handle, call back called when attribute data
-                       is added.
-     */
-    void
-    stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
-                const Path &path,
-                enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                bool with_anti_aliasing,
-                const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
-
-    /*!
       Stroke a path using PainterShaderSet::stroke_shader() of default_shaders().
       \param draw data for how to draw
       \param path path to stroke
@@ -488,7 +470,7 @@ namespace fastuidraw
       Stroke a path using a custom PainterDashedStrokeShaderSet
       \param shader shader with which to draw
       \param draw data for how to draw
-      \param path path to stroke
+      \param data attribute and index data with which to stroke a path
       \param close_contour if true, stroke the path with each contour closed
       \param cp cap style of dashes, the value PainterEnums::close_contours is treated
                 the same as PainterEnums::no_caps
@@ -498,7 +480,8 @@ namespace fastuidraw
                        is added.
      */
     void
-    stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
+    stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
+                       const PainterAttributeData &data,
                        bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                        bool with_anti_aliasing,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());

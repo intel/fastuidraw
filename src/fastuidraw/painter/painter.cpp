@@ -1236,24 +1236,14 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
 
 void
 fastuidraw::Painter::
-stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
-            const Path &path,
-            enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-            bool with_anti_aliasing,
-            const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
-{
-  stroke_path(shader, draw, path.tessellation()->stroked()->painter_data(),
-              cp, js, with_anti_aliasing, call_back);
-}
-
-void
-fastuidraw::Painter::
 stroke_path(const PainterData &draw, const Path &path,
             enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
             bool with_anti_aliasing,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  stroke_path(default_shaders().stroke_shader(), draw, path, cp, js, with_anti_aliasing, call_back);
+  stroke_path(default_shaders().stroke_shader(), draw,
+              path.tessellation()->stroked()->painter_data(),
+              cp, js, with_anti_aliasing, call_back);
 }
 
 void
@@ -1264,12 +1254,14 @@ stroke_path_pixel_width(const PainterData &draw, const Path &path,
                         const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   stroke_path(default_shaders().pixel_width_stroke_shader(), draw,
-              path, cp, js, with_anti_aliasing, call_back);
+              path.tessellation()->stroked()->painter_data(),
+              cp, js, with_anti_aliasing, call_back);
 }
 
 void
 fastuidraw::Painter::
-stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
+stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
+                   const PainterAttributeData &pdata,
                    bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                    bool with_anti_aliasing,
                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
@@ -1317,7 +1309,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
       join = PainterAttributeDataFillerPathStroked::without_closing_edge(join);
       edge = PainterAttributeDataFillerPathStroked::edge_no_closing_edge;
     }
-  const PainterAttributeData &pdata(path.tessellation()->stroked()->painter_data());
+
   str.m_edges.m_attribs = pdata.attribute_data_chunk(edge);
   str.m_edges.m_indices = pdata.index_data_chunk(edge);
   str.m_edge_zinc = pdata.increment_z_value(edge);
@@ -1371,7 +1363,8 @@ stroke_dashed_path(const PainterData &draw, const Path &path,
                    bool with_anti_aliasing,
                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  stroke_dashed_path(default_shaders().dashed_stroke_shader(), draw, path,
+  stroke_dashed_path(default_shaders().dashed_stroke_shader(), draw,
+                     path.tessellation()->stroked()->painter_data(),
                      close_contour, cp, js, with_anti_aliasing, call_back);
 }
 
@@ -1382,7 +1375,8 @@ stroke_dashed_path_pixel_width(const PainterData &draw, const Path &path,
                                bool with_anti_aliasing,
                                const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-   stroke_dashed_path(default_shaders().pixel_width_dashed_stroke_shader(), draw, path,
+   stroke_dashed_path(default_shaders().pixel_width_dashed_stroke_shader(), draw,
+                      path.tessellation()->stroked()->painter_data(),
                       close_contour, cp, js, with_anti_aliasing, call_back);
 }
 
