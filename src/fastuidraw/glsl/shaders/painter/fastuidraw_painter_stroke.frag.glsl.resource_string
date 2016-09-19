@@ -38,21 +38,20 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                                            interval_id);
 
       fw = fwidth(fastuidraw_stroking_distance);
+
+      float y, r, qq_yy;
+      r = stroke_params.width * 0.5;
+      y = r * fastuidraw_stroking_on_boundary;
+      qq_yy = q * q + y * y;
       if(dash_style == uint(fastuidraw_stroke_dashed_rounded_caps))
         {
-          float y, r;
-          r = stroke_params.width * 0.5;
-          y = r * fastuidraw_stroking_on_boundary;
-          if(q < r)
+          if(q < fw)
             {
-              float f, sq;
-              sq = sqrt(q * q + y * y);
-              f = r - sq;
-              if(f > q)
-                {
-                  fw *= abs(q) / sq;
-                  q = f;
-                }
+              float sq;
+
+              sq = sqrt(qq_yy);
+              q = r - sq;
+              fw = 0.5 * fwidth(qq_yy) / sq;
             }
         }
       else if(dash_style == uint(fastuidraw_stroke_dashed_square_caps))
