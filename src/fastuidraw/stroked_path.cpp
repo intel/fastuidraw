@@ -421,14 +421,14 @@ namespace
                   const fastuidraw::TessellatedPath::point &src_pt,
                   const fastuidraw::vec2 &normal_from_stroking):
       m_is_start_cap(is_start_cap),
+      m_lambda((is_start_cap) ? -1.0f : 1.0f),
       m_p(src_pt.m_p),
       m_n(normal_from_stroking)
     {
       //caps at the start are on the "other side"
-      float lambda((is_start_cap) ? -1.0f : 1.0f);
       m_v = fastuidraw::vec2(m_n.y(), -m_n.x());
-      m_v *= lambda;
-      m_n *= lambda;
+      m_v *= m_lambda;
+      m_n *= m_lambda;
     }
 
     bool m_is_start_cap;
@@ -2065,8 +2065,8 @@ StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
   m_bevel_joins.compute_conveniance(m_return_values[fastuidraw::StrokedPath::bevel_join_point_set]);
   m_rounded_joins.compute_conveniance(m_return_values[fastuidraw::StrokedPath::rounded_join_point_set]);
   m_miter_joins.compute_conveniance(m_return_values[fastuidraw::StrokedPath::miter_join_point_set]);
-  m_rounded_cap.compute_conveniance(m_return_values[fastuidraw::StrokedPath::square_cap_point_set]);
-  m_square_cap.compute_conveniance(m_return_values[fastuidraw::StrokedPath::rounded_cap_point_set]);
+  m_rounded_cap.compute_conveniance(m_return_values[fastuidraw::StrokedPath::rounded_cap_point_set]);
+  m_square_cap.compute_conveniance(m_return_values[fastuidraw::StrokedPath::square_cap_point_set]);
   m_edges.compute_conveniance(m_return_values[fastuidraw::StrokedPath::edge_point_set]);
 }
 
