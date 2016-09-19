@@ -18,6 +18,7 @@
 
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
+#include <fastuidraw/painter/painter_attribute_data_filler_path_stroked.hpp>
 #include "backend_shaders.hpp"
 
 namespace fastuidraw { namespace glsl { namespace detail {
@@ -373,9 +374,12 @@ create_stroke_shader(enum PainterEnums::cap_style stroke_style,
                      bool pixel_width_stroking)
 {
   using namespace fastuidraw::PainterEnums;
-
   PainterStrokeShader return_value;
+  reference_counted_ptr<StrokingChunkSelectorBase> se;
+
+  se = PainterAttributeDataFillerPathStroked::chunk_selector();
   return_value
+    .chunk_selector(se)
     .aa_shader_pass1(create_stroke_item_shader(stroke_style, pixel_width_stroking, uber_stroke_opaque_pass))
     .aa_shader_pass2(create_stroke_item_shader(stroke_style, pixel_width_stroking, uber_stroke_aa_pass))
     .non_aa_shader(create_stroke_item_shader(stroke_style, pixel_width_stroking, uber_stroke_non_aa));
@@ -394,7 +398,6 @@ create_dashed_stroke_shader_set(bool pixel_width_stroking)
   return_value
     .dash_evaluator(de)
     .shader(no_caps, create_stroke_shader(no_caps, pixel_width_stroking))
-    .shader(close_contours, create_stroke_shader(close_contours, pixel_width_stroking))
     .shader(rounded_caps, create_stroke_shader(rounded_caps, pixel_width_stroking))
     .shader(square_caps, create_stroke_shader(square_caps, pixel_width_stroking));
   return return_value;

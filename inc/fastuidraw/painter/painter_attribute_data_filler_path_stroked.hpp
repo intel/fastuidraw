@@ -21,6 +21,7 @@
 
 #include <fastuidraw/painter/painter_attribute_data_filler.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/painter_stroke_shader.hpp>
 #include <fastuidraw/stroked_path.hpp>
 
 namespace fastuidraw
@@ -61,48 +62,6 @@ namespace fastuidraw
   {
   public:
     /*!
-      Enumation values are indexes into attribute_data_chunks()
-      and index_data_chunks() for different portions of
-      data needed for stroking a path when the data of this
-      PainterAttributeData has been set with
-      set_data(const reference_counted_ptr<const StrokedPath> &).
-     */
-    enum stroking_data_t
-      {
-        rounded_joins_closing_edge, /*!< index for rounded join data with closing edge */
-        bevel_joins_closing_edge, /*!< index for bevel join data with closing edge */
-        miter_joins_closing_edge, /*!< index for miter join data with closing edge */
-        cap_joins_closing_edge, /*!< index for cap-join data with closing edge */
-        edge_closing_edge, /*!< index for edge data including closing edge */
-
-        number_with_closing_edge, /*!< number of types with closing edge */
-
-        rounded_joins_no_closing_edge = number_with_closing_edge, /*!< index for rounded join data without closing edge */
-        bevel_joins_no_closing_edge, /*!< index for bevel join data without closing edge */
-        miter_joins_no_closing_edge, /*!< index for miter join data without closing edge */
-        cap_joins_no_closing_edge, /*!< index for cap-join data without closing edge */
-        edge_no_closing_edge, /*!< index for edge data not including closing edge */
-
-        rounded_cap, /*!< index for rounded cap data */
-        square_cap,  /*!< index for square cap data */
-
-        /*!
-          count of enums, using this enumeration when on data created
-          from a StrokedPath, gives empty indices and attributes.
-         */
-        stroking_data_count
-      };
-
-    /*!
-      Given an enumeration of stroking_data_t, returns
-      the matching enumeration for drawing without the
-      closing edge.
-     */
-    static
-    enum stroking_data_t
-    without_closing_edge(enum stroking_data_t v);
-
-    /*!
       Ctor.
       \param path FilledPath from which to construct attribute and index data.
      */
@@ -134,15 +93,12 @@ namespace fastuidraw
     path(void) const;
 
     /*!
-      Returns the value to feed to PainterAttributeData::index_data_chunk()
-      and PainterAttributeData::attribute_data_chunk() for the index and
-      attribute data for the named join.
-      \param tp join type one wishes to access, tp must be a join type.
-      \param J which join to access
+      Create and return a PainterStrokeShader::StrokingChunkSelectorBase
+      compatible with PainterAttributeDataFillerPathStroked
      */
     static
-    unsigned int
-    chunk_from_join(enum stroking_data_t tp, unsigned int J);
+    reference_counted_ptr<StrokingChunkSelectorBase>
+    chunk_selector(void);
 
   private:
     void *m_d;

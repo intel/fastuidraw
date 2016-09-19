@@ -56,9 +56,6 @@ namespace
 
     std::cout << "\t\tsquare_caps:\n";
     print_stroke_shader_ids(sh.shader(fastuidraw::PainterEnums::square_caps), "\t\t\t");
-
-    std::cout << "\t\tclose_contours:\n";
-    print_stroke_shader_ids(sh.shader(fastuidraw::PainterEnums::close_contours), "\t\t\t");
   }
 }
 

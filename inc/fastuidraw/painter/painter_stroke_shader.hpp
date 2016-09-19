@@ -31,6 +31,80 @@ namespace fastuidraw
  */
 
   /*!
+    A ChunkSelector provides an interface to know
+    what chuck of a PainterAttributeData to grab
+    for different data to stroke.
+  */
+  class StrokingChunkSelectorBase:
+    public reference_counted<StrokingChunkSelectorBase>::default_base
+  {
+  public:
+    /*!
+      To be implemented by a derived class to return
+      the chunk index, i.e. the value to feed
+      \ref PainterAttributeData::attribute_data_chunk()
+      and \ref PainterAttributeData::index_data_chunk(),
+      for the named cap style.
+      \param cp cap style
+     */
+    virtual
+    unsigned int
+    cap_chunk(enum PainterEnums::cap_style cp) const = 0;
+
+    /*!
+      To be implemented by a derived class to return
+      the chunk index, i.e. the value to feed
+      \ref PainterAttributeData::attribute_data_chunk()
+      and \ref PainterAttributeData::index_data_chunk()
+      for the edges.
+      \param edge_closed if true, return the chunk that includes
+                         the closing edge
+     */
+    virtual
+    unsigned int
+    edge_chunk(bool edge_closed) const = 0;
+
+    /*!
+      To be implemented by a derived class to return
+      the chunk index, i.e. the value to feed
+      \ref PainterAttributeData::attribute_data_chunk()
+      and \ref PainterAttributeData::index_data_chunk(),
+      for the named join style.
+      \param js join style
+      \param edge_closed if true, return the chunk that includes
+                         the joins for the closing edge
+     */
+    virtual
+    unsigned int
+    join_chunk(enum PainterEnums::join_style js, bool edge_closed) const = 0;
+
+      /*!
+        To be implemented by a derived class to return
+        the chunk index, i.e. the value to feed
+        \ref PainterAttributeData::attribute_data_chunk()
+        and \ref PainterAttributeData::index_data_chunk(),
+        for the named join of a join style.
+        \param js join style
+        \param J (global) join index
+       */
+      virtual
+      unsigned int
+      named_join_chunk(enum PainterEnums::join_style js, unsigned int J) const = 0;
+
+      /*!
+        To be implemented by a derived class to return
+        the chunk index, i.e. the value to feed
+        \ref PainterAttributeData::attribute_data_chunk()
+        and \ref PainterAttributeData::index_data_chunk(),
+        for the cap joins
+        \param J (global) join index
+       */
+      virtual
+      unsigned int
+      chunk_from_cap_join(unsigned int J) const = 0;
+    };
+
+  /*!
     A PainterStrokeShader hold shading for
     both stroking with and without anit-aliasing.
     The shader is to handle data as packed by
@@ -39,7 +113,6 @@ namespace fastuidraw
   class PainterStrokeShader
   {
   public:
-
     /*!
       Specifies how a PainterStrokeShader implements anti-alias stroking.
      */
@@ -149,6 +222,20 @@ namespace fastuidraw
      */
     PainterStrokeShader&
     non_aa_shader(const reference_counted_ptr<PainterItemShader> &sh);
+
+    /*!
+      Returns a reference to the ChunkSelector to be used
+      with the PainterStrokeShader
+     */
+    const reference_counted_ptr<StrokingChunkSelectorBase>&
+    chunk_selector(void) const;
+
+    /*!
+      Set the value returned by chunk_selector(void) const.
+      \param ch value to use
+     */
+    PainterStrokeShader&
+    chunk_selector(const reference_counted_ptr<StrokingChunkSelectorBase> &ch);
 
   private:
     void *m_d;

@@ -21,10 +21,119 @@
 
 namespace
 {
+
+  /*!
+    Enumation values are indexes into attribute_data_chunks()
+    and index_data_chunks() for different portions of
+    data needed for stroking a path when the data of this
+    PainterAttributeData has been set with
+    set_data(const reference_counted_ptr<const StrokedPath> &).
+  */
+  enum stroking_data_t
+    {
+      rounded_joins_closing_edge, /*!< index for rounded join data with closing edge */
+      bevel_joins_closing_edge, /*!< index for bevel join data with closing edge */
+      miter_joins_closing_edge, /*!< index for miter join data with closing edge */
+      cap_joins_closing_edge, /*!< index for cap-join data with closing edge */
+      edge_closing_edge, /*!< index for edge data including closing edge */
+
+      number_with_closing_edge, /*!< number of types with closing edge */
+
+      rounded_joins_no_closing_edge = number_with_closing_edge, /*!< index for rounded join data without closing edge */
+      bevel_joins_no_closing_edge, /*!< index for bevel join data without closing edge */
+      miter_joins_no_closing_edge, /*!< index for miter join data without closing edge */
+      cap_joins_no_closing_edge, /*!< index for cap-join data without closing edge */
+      edge_no_closing_edge, /*!< index for edge data not including closing edge */
+
+      rounded_cap, /*!< index for rounded cap data */
+      square_cap,  /*!< index for square cap data */
+
+      /*!
+        count of enums, using this enumeration when on data created
+        from a StrokedPath, gives empty indices and attributes.
+      */
+      stroking_data_count
+    };
+
+  enum stroking_data_t
+  without_closing_edge(enum stroking_data_t v)
+  {
+    return (v < number_with_closing_edge) ?
+      static_cast<enum stroking_data_t>(v + number_with_closing_edge) :
+      v;
+  }
+
+  class ChunkSelector:public fastuidraw::StrokingChunkSelectorBase
+  {
+  public:
+    static
+    enum stroking_data_t
+    static_cap_chunk(enum fastuidraw::PainterEnums::cap_style cp);
+
+    static
+    enum stroking_data_t
+    static_edge_chunk(bool edge_closed);
+
+    static
+    enum stroking_data_t
+    static_join_chunk(enum fastuidraw::PainterEnums::join_style js, bool edge_closed);
+
+    static
+    unsigned int
+    static_named_join_chunk(enum stroking_data_t join, unsigned int J);
+
+    virtual
+    unsigned int
+    cap_chunk(enum fastuidraw::PainterEnums::cap_style cp) const
+    {
+      return static_cap_chunk(cp);
+    }
+
+    virtual
+    unsigned int
+    edge_chunk(bool edge_closed) const
+    {
+      return static_edge_chunk(edge_closed);
+    }
+
+    virtual
+    unsigned int
+    join_chunk(enum fastuidraw::PainterEnums::join_style js, bool edge_closed) const
+    {
+      return static_join_chunk(js, edge_closed);
+    }
+
+    virtual
+    unsigned int
+    named_join_chunk(enum fastuidraw::PainterEnums::join_style js, unsigned int J) const
+    {
+      enum stroking_data_t join;
+      join = static_join_chunk(js, true);
+      return static_named_join_chunk(join, J);
+    }
+
+    virtual
+    unsigned int
+    chunk_from_cap_join(unsigned int J) const
+    {
+      return static_named_join_chunk(cap_joins_closing_edge, J);
+    }
+  };
+
   class PathStrokerPrivate
   {
   public:
     enum { number_join_types = 4 };
+
+    /*!
+      Given an enumeration of stroking_data_t, returns
+      the matching enumeration for drawing without the
+      closing edge.
+     */
+    static
+    enum stroking_data_t
+    without_closing_edge(enum stroking_data_t v);
+
 
     PathStrokerPrivate(const fastuidraw::reference_counted_ptr<const fastuidraw::StrokedPath> &p):
       m_path(p)
@@ -79,7 +188,112 @@ namespace
   }
 }
 
+/////////////////////////////////////////////////////
+// ChunkSelector methods
+enum stroking_data_t
+ChunkSelector::
+static_cap_chunk(enum fastuidraw::PainterEnums::cap_style cp)
+{
+  using namespace fastuidraw::PainterEnums;
+  enum stroking_data_t cap;
 
+  switch(cp)
+    {
+    case rounded_caps:
+      cap = rounded_cap;
+      break;
+    case square_caps:
+      cap = square_cap;
+      break;
+    default:
+      cap = stroking_data_count;
+    }
+  return cap;
+}
+
+enum stroking_data_t
+ChunkSelector::
+static_edge_chunk(bool edge_closed)
+{
+  return edge_closed ?
+    edge_closing_edge :
+    edge_no_closing_edge;
+}
+
+enum stroking_data_t
+ChunkSelector::
+static_join_chunk(enum fastuidraw::PainterEnums::join_style js, bool edge_closed)
+{
+  using namespace fastuidraw::PainterEnums;
+  enum stroking_data_t join;
+
+  switch(js)
+    {
+    case rounded_joins:
+      join = rounded_joins_closing_edge;
+      break;
+    case bevel_joins:
+      join = bevel_joins_closing_edge;
+      break;
+    case miter_joins:
+      join = miter_joins_closing_edge;
+      break;
+    default:
+      join = stroking_data_count;
+    }
+
+  if(!edge_closed)
+    {
+      join = without_closing_edge(join);
+    }
+  return join;
+}
+
+unsigned int
+ChunkSelector::
+static_named_join_chunk(enum stroking_data_t join, unsigned int J)
+{
+  /*
+    There are number_join_types joins, the chunk
+    for the J'th join for type tp is located
+    at number_join_types * J + t + stroking_data_count
+    where 0 <=t < number_join_types is derived from tp.
+   */
+  unsigned int t;
+  switch(join)
+    {
+    case rounded_joins_closing_edge:
+    case rounded_joins_no_closing_edge:
+      t = 0u;
+      break;
+
+    case bevel_joins_closing_edge:
+    case bevel_joins_no_closing_edge:
+      t = 1u;
+      break;
+
+    case miter_joins_closing_edge:
+    case miter_joins_no_closing_edge:
+      t = 2u;
+      break;
+
+    case cap_joins_closing_edge:
+    case cap_joins_no_closing_edge:
+      t = 3u;
+      break;
+
+    default:
+      assert(!"Type not mapping to join type");
+      t = 0u;
+    }
+
+  /* The +1 is so that the chunk at stroking_data_count
+     is left as empty for PainterAttributeData set
+     from a StrokedPath (Painter relies on this!).
+   */
+  return stroking_data_count + t + 1
+    + J * PathStrokerPrivate::number_join_types;
+}
 
 //////////////////////////////////////////////////////////
 // fastuidraw::PainterAttributeDataFillerPathStroked methods
@@ -231,7 +445,7 @@ fill_data(c_array<PainterAttribute> attribute_data,
     Ra = p->points_range(src_name, C, J);                               \
     Ri = p->indices_range(src_name, C, J);                              \
     srcI = p->indices(src_name, true).sub_array(Ri);                    \
-    Kc = chunk_from_join(closing_edge, gJ);                             \
+    Kc = ChunkSelector::static_named_join_chunk(closing_edge, gJ);      \
     attribute_chunks[Kc] = attribute_chunks[closing_edge].sub_array(Ra); \
     dst = index_data.sub_array(idx_loc, srcI.size());                   \
     index_chunks[Kc] =  dst;                                            \
@@ -289,57 +503,10 @@ fill_data(c_array<PainterAttribute> attribute_data,
   GRAB_JOIN_MACRO(cap_joins, StrokedPath::cap_join_point_set);
 }
 
-unsigned int
+
+fastuidraw::reference_counted_ptr<fastuidraw::StrokingChunkSelectorBase>
 fastuidraw::PainterAttributeDataFillerPathStroked::
-chunk_from_join(enum stroking_data_t tp, unsigned int J)
+chunk_selector(void)
 {
-  /*
-    There are number_join_types joins, the chunk
-    for the J'th join for type tp is located
-    at number_join_types * J + t + stroking_data_count
-    where 0 <=t < number_join_types is derived from tp.
-   */
-  unsigned int t;
-  switch(tp)
-    {
-    case rounded_joins_closing_edge:
-    case rounded_joins_no_closing_edge:
-      t = 0u;
-      break;
-
-    case bevel_joins_closing_edge:
-    case bevel_joins_no_closing_edge:
-      t = 1u;
-      break;
-
-    case miter_joins_closing_edge:
-    case miter_joins_no_closing_edge:
-      t = 2u;
-      break;
-
-    case cap_joins_closing_edge:
-    case cap_joins_no_closing_edge:
-      t = 3u;
-      break;
-
-    default:
-      assert(!"Type not mapping to join type");
-      t = 0u;
-    }
-
-  /* The +1 is so that the chunk at stroking_data_count
-     is left as empty for PainterAttributeData set
-     from a StrokedPath (Painter relies on this!).
-   */
-  return stroking_data_count + t + 1
-    + J * PathStrokerPrivate::number_join_types;
-}
-
-enum fastuidraw::PainterAttributeDataFillerPathStroked::stroking_data_t
-fastuidraw::PainterAttributeDataFillerPathStroked::
-without_closing_edge(enum stroking_data_t v)
-{
-  return (v < number_with_closing_edge) ?
-    static_cast<enum stroking_data_t>(v + number_with_closing_edge) :
-    v;
+  return FASTUIDRAWnew ChunkSelector();
 }

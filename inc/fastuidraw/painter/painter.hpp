@@ -429,7 +429,7 @@ namespace fastuidraw
     void
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
                 const PainterAttributeData &data,
-                enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+                bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                 bool with_anti_aliasing,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
@@ -445,7 +445,7 @@ namespace fastuidraw
      */
     void
     stroke_path(const PainterData &draw, const Path &path,
-                enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+                bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                 bool with_anti_aliasing,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
@@ -462,7 +462,7 @@ namespace fastuidraw
      */
     void
     stroke_path_pixel_width(const PainterData &draw, const Path &path,
-                            enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+                            bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                             bool with_anti_aliasing,
                             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
