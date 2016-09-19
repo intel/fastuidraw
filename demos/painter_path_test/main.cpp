@@ -11,6 +11,7 @@
 #include "simple_time.hpp"
 #include "PanZoomTracker.hpp"
 #include "read_path.hpp"
+#include "read_dash_pattern.hpp"
 #include "ImageLoader.hpp"
 #include "colorstop_command_line.hpp"
 #include "cycle_value.hpp"
@@ -23,6 +24,49 @@ on_off(bool v)
 {
   return v ? "ON" : "OFF";
 }
+
+class DashPatternList:public command_line_argument
+{
+public:
+  DashPatternList(command_line_register &parent):
+    command_line_argument(parent)
+  {
+    m_desc = produce_formatted_detailed_description("add_dash_pattern filename",
+                                                    "Adds a dash pattern to use source from a file");
+  }
+
+  virtual
+  int
+  check_arg(const std::vector<std::string> &args, int location)
+  {
+    if(static_cast<unsigned int>(location + 1) < args.size() && args[location] == "add_dash_pattern")
+      {
+        m_files.push_back(args[location + 1]);
+        std::cout << "\nAdded dash pattern from file " << args[location + 1];
+        return 2;
+      }
+    return 0;
+  }
+
+  virtual
+  void
+  print_command_line_description(std::ostream &ostr) const
+  {
+    ostr << "[add_dash_pattern file]";
+  }
+
+  virtual
+  void
+  print_detailed_description(std::ostream &ostr) const
+  {
+    ostr << m_desc;
+  }
+
+  std::vector<std::string> m_files;
+
+private:
+  std::string m_desc;
+};
 
 class WindingValueFillRule:public Painter::CustomFillRuleBase
 {
@@ -132,6 +176,7 @@ private:
   command_line_argument_value<float> m_window_change_rate;
   command_line_argument_value<float> m_radial_gradient_change_rate;
   command_line_argument_value<std::string> m_path_file;
+  DashPatternList m_dash_pattern_files;
   command_line_argument_value<bool> m_print_path;
   color_stop_arguments m_color_stop_args;
   command_line_argument_value<std::string> m_image_file;
@@ -242,6 +287,7 @@ painter_stroke_test(void):
               "if non-empty read the geometry of the path from the specified file, "
               "otherwise use a default path",
               *this),
+  m_dash_pattern_files(*this),
   m_print_path(false, "print_path",
                "If true, print the geometry data of the path drawn to stdout",
                *this),
@@ -1009,11 +1055,29 @@ void
 painter_stroke_test::
 construct_dash_patterns(void)
 {
-  m_dash_patterns.push_back(std::vector<PainterDashedStrokeParams::DashPatternElement>());
-  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(20.0f, 10.0f));
-  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(15.0f, 10.0f));
-  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(10.0f, 10.0f));
-  m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement( 5.0f, 10.0f));
+  std::vector<PainterDashedStrokeParams::DashPatternElement> tmp;
+  for(unsigned int i = 0, endi = m_dash_pattern_files.m_files.size(); i < endi; ++i)
+    {
+      std::ifstream file(m_dash_pattern_files.m_files[i].c_str());
+      float length;
+
+      length = read_dash_pattern(tmp, file);
+      if(length > 0.0f)
+        {
+          m_dash_patterns.push_back(std::vector<PainterDashedStrokeParams::DashPatternElement>());
+          std::swap(tmp, m_dash_patterns.back());
+        }
+      tmp.clear();
+    }
+
+  if(m_dash_patterns.empty())
+    {
+      m_dash_patterns.push_back(std::vector<PainterDashedStrokeParams::DashPatternElement>());
+      m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(20.0f, 10.0f));
+      m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(15.0f, 10.0f));
+      m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(10.0f, 10.0f));
+      m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement( 5.0f, 10.0f));
+    }
 }
 
 void
