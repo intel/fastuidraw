@@ -95,14 +95,27 @@ public:
 
       /*!
         The point is for a boundary point of a sqaure-cap join point.
-        These points are for dashed stroking when the point of the join
-        is NOT covered by the dash pattern. Their layout of data is the
-        same as \ref offset_miter_join. The purpose of this point type is
-        to make sure caps of dashed stroking is drawn at the join location.
-        When placing such points, it is placed the same as \ref
-        offset_miter_join except that the miter limit is 0.5.
+        These points are for dashed stroking with caps when the point
+        of the join is NOT covered by the dash pattern. They represent
+        a square cap at the start or end of an edge. Unlike the type
+        offset_square_cap, the data sent down the pipeline is to
+        be modified from the starting value so that the just enough
+        of the cap is drawn to "catch" all of a cap that come just
+        before or after the join.
        */
-      offset_cap_join,
+      offset_cap_entering_join,
+
+      /*!
+        The point is for a boundary point of a sqaure-cap join point.
+        These points are for dashed stroking with caps when the point
+        of the join is NOT covered by the dash pattern. They represent
+        a square cap at the start or end of an edge. Unlike the type
+        offset_square_cap, the data sent down the pipeline is to
+        be modified from the starting value so that the just enough
+        of the cap is drawn to "catch" all of a cap that come just
+        before or after the join.
+       */
+      offset_cap_leaving_join,
 
       /*!
         Number different point types with respect to rendering
@@ -203,7 +216,8 @@ public:
       boundary_bit = sin_sign_bit + 1,
 
       /*!
-        Bit to indicate point is from a join set.
+        Bit to indicate point is from a join set,
+        but not from a cap-join set.
        */
       join_bit = boundary_bit + 1,
 
@@ -333,15 +347,27 @@ public:
     uint32_t m_packed_data;
 
     /*!
-      Provides the point type for the point. The value is one of the
-      enumerations of StrokedPath::offset_type_t.
+      Provides the point type from a value of \ref m_packed_data.
+      The return value is one of the enumerations of
+      StrokedPath::offset_type_t.
+     */
+    static
+    enum offset_type_t
+    offset_type(uint32_t packed_data_value)
+    {
+      uint32_t v;
+      v = unpack_bits(offset_type_bit0, offset_type_num_bits, packed_data_value);
+      return static_cast<enum offset_type_t>(v);
+    }
+
+    /*!
+      Provides the point type for the point. The return value
+      is one of the enumerations of StrokedPath::offset_type_t.
      */
     enum offset_type_t
     offset_type(void) const
     {
-      uint32_t v;
-      v = unpack_bits(offset_type_bit0, offset_type_num_bits, m_packed_data);
-      return static_cast<enum offset_type_t>(v);
+      return offset_type(m_packed_data);
     }
 
     /*!

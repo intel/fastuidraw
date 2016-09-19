@@ -1402,7 +1402,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
     }
 
   /* if we are drawing with caps, those joins that are not
-     covered, induces two overlapping quads. To handle this,
+     covered, induce two overlapping quads. To handle this,
      the amount by which we increment the depth is doubled
      for joins.
    */

@@ -18,6 +18,7 @@
 
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
+#include <fastuidraw/stroked_path.hpp>
 #include "../private/util_private.hpp"
 
 
@@ -64,6 +65,11 @@ namespace
                      fastuidraw::c_array<fastuidraw::PainterAttribute> attribs,
                      fastuidraw::range_type<float> out_interval,
                      float distance) const;
+  private:
+    static
+    void
+    repack_position_and_packed_data(fastuidraw::PainterAttribute &attrib,
+                                    float distance_delta);
   };
 }
 //////////////////////////////////////
@@ -149,7 +155,7 @@ compute_dash_interval(const fastuidraw::PainterShaderData::DataBase *data,
       return false;
     }
 
-  float q, r, iq;
+  float q, r, aiq, iq, dist;
   /* PainterDashedStrokeParams is for attributes packed
      by PainterAttributeDataFillerPathStroked which
      stores the distance from the contour start at
@@ -157,22 +163,21 @@ compute_dash_interval(const fastuidraw::PainterShaderData::DataBase *data,
    */
   distance = fastuidraw::unpack_float(attrib.m_attrib1.y());
   q = distance / d->m_total_length;
-  r = std::modf(q, &iq);
+  r = std::modf(q, &aiq);
 
-  distance = r * d->m_total_length;
-  iq *= d->m_total_length;
+  dist = r * d->m_total_length;
+  iq = aiq * d->m_total_length;
 
   out_interval.m_begin = 0.0f;
   for(unsigned int i = 0, endi = d->m_dash_pattern.size(); i < endi; ++i)
     {
       float f, draw, skip;
 
-      f = distance - out_interval.m_begin;
+      f = dist - out_interval.m_begin;
       draw = d->m_dash_pattern[i].m_draw_length;
       skip = d->m_dash_pattern[i].m_space_length;
       if(f <= draw)
         {
-          distance += iq;
           out_interval.m_begin += iq;
           out_interval.m_end = out_interval.m_begin + draw;
           return true;
@@ -182,14 +187,13 @@ compute_dash_interval(const fastuidraw::PainterShaderData::DataBase *data,
       f -= draw;
       if(f <= skip)
         {
-          distance += iq;
           out_interval.m_begin += iq;
           out_interval.m_end = out_interval.m_begin + skip;
           return false;
         }
+      out_interval.m_begin += skip;
     }
 
-  distance = 0.0f;
   out_interval.m_end = out_interval.m_begin;
   return false;
 }
@@ -198,14 +202,71 @@ void
 DashEvaluator::
 adjust_cap_joins(const fastuidraw::PainterShaderData::DataBase *data,
                  fastuidraw::c_array<fastuidraw::PainterAttribute> attribs,
-                 fastuidraw::range_type<float> out_interval,
+                 fastuidraw::range_type<float> interval,
                  float distance) const
 {
-  FASTUIDRAWunused(data);
-  FASTUIDRAWunused(attribs);
-  FASTUIDRAWunused(out_interval);
-  FASTUIDRAWunused(distance);
-  assert(false);
+  const PainterDashedStrokeParamsData *d;
+  assert(dynamic_cast<const PainterDashedStrokeParamsData*>(data) != NULL);
+  d = static_cast<const PainterDashedStrokeParamsData*>(data);
+  float r(d->m_width * 0.5f);
+
+  for(unsigned int i = 0; i < attribs.size(); ++i)
+    {
+      uint32_t packed_data;
+      enum fastuidraw::StrokedPath::offset_type_t tp;
+
+      packed_data = attribs[i].m_attrib2.x();
+      /* when tp is a cap-join, auxilary_offset holds the direction
+         of the path at the join.
+       */
+      tp = fastuidraw::StrokedPath::point::offset_type(packed_data);
+      if(tp == fastuidraw::StrokedPath::offset_cap_entering_join)
+        {
+          float endq, q;
+          endq = interval.m_begin + r;
+          q = std::max(0.0f, endq - distance);
+          repack_position_and_packed_data(attribs[i], q);
+        }
+      else if(tp == fastuidraw::StrokedPath::offset_cap_leaving_join)
+        {
+          float q, startq;
+          startq = interval.m_end - r;
+          q = std::max(0.0f, distance - startq);
+          repack_position_and_packed_data(attribs[i], q);
+        }
+      attribs[i].m_attrib2.x() |= (1u << 31u);
+    }
+}
+
+void
+DashEvaluator::
+repack_position_and_packed_data(fastuidraw::PainterAttribute &attrib,
+                                float distance_delta)
+{
+  float cap_join_length, d0, d1;
+  fastuidraw::vec2 pos, auxilary_offset;
+
+  cap_join_length = fastuidraw::t_abs(distance_delta);
+
+  pos.x() = fastuidraw::unpack_float(attrib.m_attrib0.x());
+  pos.y() = fastuidraw::unpack_float(attrib.m_attrib0.y());
+  d0 = fastuidraw::unpack_float(attrib.m_attrib1.x());
+  d1 = fastuidraw::unpack_float(attrib.m_attrib1.y());
+  auxilary_offset.x() = fastuidraw::unpack_float(attrib.m_attrib1.z());
+  auxilary_offset.y() = fastuidraw::unpack_float(attrib.m_attrib1.w());
+
+  pos += cap_join_length * auxilary_offset;
+  d0 += distance_delta;
+  d1 += distance_delta;
+  attrib.m_attrib2.x() &= ~(fastuidraw::StrokedPath::offset_type_mask);
+  attrib.m_attrib2.x() |= fastuidraw::StrokedPath::offset_shared_with_edge;
+
+  attrib.m_attrib0.x() = fastuidraw::pack_float(pos.x());
+  attrib.m_attrib0.y() = fastuidraw::pack_float(pos.y());
+  attrib.m_attrib1.x() = fastuidraw::pack_float(d0);
+  attrib.m_attrib1.y() = fastuidraw::pack_float(d1);
+  attrib.m_attrib1.z() = fastuidraw::pack_float(0.0f);
+  attrib.m_attrib1.w() = fastuidraw::pack_float(0.0f);
 }
 
 ///////////////////////////////////
