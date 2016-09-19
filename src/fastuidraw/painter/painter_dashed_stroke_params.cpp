@@ -58,6 +58,12 @@ namespace
                           const fastuidraw::PainterAttribute &attrib,
                           fastuidraw::range_type<float> &out_interval,
                           float &distance) const;
+    virtual
+    void
+    adjust_cap_joins(const fastuidraw::PainterShaderData::DataBase *data,
+                     fastuidraw::c_array<fastuidraw::PainterAttribute> attribs,
+                     fastuidraw::range_type<float> out_interval,
+                     float distance) const;
   };
 }
 //////////////////////////////////////
@@ -188,6 +194,19 @@ compute_dash_interval(const fastuidraw::PainterShaderData::DataBase *data,
   return false;
 }
 
+void
+DashEvaluator::
+adjust_cap_joins(const fastuidraw::PainterShaderData::DataBase *data,
+                 fastuidraw::c_array<fastuidraw::PainterAttribute> attribs,
+                 fastuidraw::range_type<float> out_interval,
+                 float distance) const
+{
+  FASTUIDRAWunused(data);
+  FASTUIDRAWunused(attribs);
+  FASTUIDRAWunused(out_interval);
+  FASTUIDRAWunused(distance);
+  assert(false);
+}
 
 ///////////////////////////////////
 // fastuidraw::PainterDashedStrokeParams methods

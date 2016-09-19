@@ -197,16 +197,21 @@ public:
       sin_sign_bit = normal1_y_sign_bit + 1,
 
       /*!
-        Bit0 for holding boundary() - 1 value
+        Bit for holding boundary() value
         of the point
        */
-      boundary_bit0 = sin_sign_bit + 1,
+      boundary_bit = sin_sign_bit + 1,
+
+      /*!
+        Bit to indicate point is from a join set.
+       */
+      join_bit = boundary_bit + 1,
 
       /*!
         Bit0 for holding the depth() value
         of the point
        */
-      depth_bit0 = boundary_bit0 + 1,
+      depth_bit0 = join_bit + 1,
 
       /*!
         number of bits needed to hold the
@@ -243,9 +248,14 @@ public:
       sin_sign_mask = FASTUIDRAW_MASK(sin_sign_bit, 1),
 
       /*!
-        Mask generated for \ref boundary_bit0 and \ref boundary_num_bits
+        Mask generated for \ref boundary_bit
        */
-      boundary_mask = FASTUIDRAW_MASK(boundary_bit0, 1),
+      boundary_mask = FASTUIDRAW_MASK(boundary_bit, 1),
+
+      /*!
+        Mask generated for \ref join_bit
+       */
+      join_mask = FASTUIDRAW_MASK(join_bit, 1),
 
       /*!
         Mask generated for \ref depth_bit0 and \ref depth_num_bits
@@ -361,7 +371,7 @@ public:
     int
     on_boundary(void) const
     {
-      return unpack_bits(boundary_bit0, 1u, m_packed_data);
+      return unpack_bits(boundary_bit, 1u, m_packed_data);
     }
 
     /*!

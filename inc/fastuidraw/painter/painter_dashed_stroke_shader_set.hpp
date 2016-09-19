@@ -58,6 +58,23 @@ namespace fastuidraw
                           const PainterAttribute &attrib,
                           range_type<float> &out_interval,
                           float &distance) const = 0;
+
+    /*!
+      To be implemented by derived class to adjust cap-join
+      attribute values at join whose distance value is in a
+      skip interval.
+      \param data PainterItemShaderData::DataBase object holding the data to
+                  be sent to the shader
+      \param [inout] attribs attributes to adjust
+      \param out_interval out_interval value as returned by compute_dash_interval()
+      \param distance distance as returned by compute_dash_interval()
+     */
+    virtual
+    void
+    adjust_cap_joins(const PainterShaderData::DataBase *data,
+                     c_array<PainterAttribute> attribs,
+                     range_type<float> out_interval,
+                     float distance) const = 0;
   };
 
   /*!

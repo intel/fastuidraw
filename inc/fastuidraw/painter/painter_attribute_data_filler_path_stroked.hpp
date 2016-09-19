@@ -72,6 +72,7 @@ namespace fastuidraw
         rounded_joins_closing_edge, /*!< index for rounded join data with closing edge */
         bevel_joins_closing_edge, /*!< index for bevel join data with closing edge */
         miter_joins_closing_edge, /*!< index for miter join data with closing edge */
+        cap_joins_closing_edge, /*!< index for cap-join data with closing edge */
         edge_closing_edge, /*!< index for edge data including closing edge */
 
         number_with_closing_edge, /*!< number of types with closing edge */
@@ -79,6 +80,7 @@ namespace fastuidraw
         rounded_joins_no_closing_edge = number_with_closing_edge, /*!< index for rounded join data without closing edge */
         bevel_joins_no_closing_edge, /*!< index for bevel join data without closing edge */
         miter_joins_no_closing_edge, /*!< index for miter join data without closing edge */
+        cap_joins_no_closing_edge, /*!< index for cap-join data without closing edge */
         edge_no_closing_edge, /*!< index for edge data not including closing edge */
 
         rounded_cap, /*!< index for rounded cap data */

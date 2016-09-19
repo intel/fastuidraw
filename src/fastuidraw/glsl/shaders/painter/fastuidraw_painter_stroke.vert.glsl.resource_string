@@ -265,7 +265,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   offset_type = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_offset_type_bit0,
                                             fastuidraw_stroke_offset_type_num_bits,
                                             point_packed_data));
-  on_boundary = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_boundary_bit0,
+  on_boundary = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_boundary_bit,
                                             1,
                                             point_packed_data));
 
@@ -350,6 +350,14 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       z_add = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_depth_bit0,
                                       fastuidraw_stroke_depth_num_bits,
                                       point_packed_data);
+      #ifdef FASTUIDRAW_STROKE_DASHED
+        {
+          if((point_packed_data & uint(fastuidraw_stroke_join_mask)) != 0u)
+            {
+              z_add *= 2u;
+            }
+        }
+      #endif
     }
 
   return vec4(p, p);

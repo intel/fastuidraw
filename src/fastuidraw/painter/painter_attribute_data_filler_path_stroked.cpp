@@ -24,7 +24,7 @@ namespace
   class PathStrokerPrivate
   {
   public:
-    enum { number_join_types = 3 };
+    enum { number_join_types = 4 };
 
     PathStrokerPrivate(const fastuidraw::reference_counted_ptr<const fastuidraw::StrokedPath> &p):
       m_path(p)
@@ -146,6 +146,7 @@ compute_sizes(unsigned int &num_attributes,
           num_indices += p->indices_range(StrokedPath::bevel_join_point_set, C, J).difference();
           num_indices += p->indices_range(StrokedPath::rounded_join_point_set, C, J).difference();
           num_indices += p->indices_range(StrokedPath::miter_join_point_set, C, J).difference();
+          num_indices += p->indices_range(StrokedPath::cap_join_point_set, C, J).difference();
         }
     }
   num_attribute_chunks = stroking_data_count + 1 + PathStrokerPrivate::number_join_types * numJoins;
@@ -175,11 +176,13 @@ fill_data(c_array<PainterAttribute> attribute_data,
   zincrements[bevel_joins_closing_edge] = p->number_depth(StrokedPath::bevel_join_point_set, true);
   zincrements[rounded_joins_closing_edge] = p->number_depth(StrokedPath::rounded_join_point_set, true);
   zincrements[miter_joins_closing_edge] = p->number_depth(StrokedPath::miter_join_point_set, true);
+  zincrements[cap_joins_closing_edge] = p->number_depth(StrokedPath::cap_join_point_set, true);
 
   zincrements[edge_no_closing_edge] = p->number_depth(StrokedPath::edge_point_set, false);
   zincrements[bevel_joins_no_closing_edge] = p->number_depth(StrokedPath::bevel_join_point_set, false);
   zincrements[rounded_joins_no_closing_edge] = p->number_depth(StrokedPath::rounded_join_point_set, false);
   zincrements[miter_joins_no_closing_edge] = p->number_depth(StrokedPath::miter_join_point_set, false);
+  zincrements[cap_joins_no_closing_edge] = p->number_depth(StrokedPath::cap_join_point_set, false);
 
   zincrements[square_cap] = p->number_depth(StrokedPath::square_cap_point_set, false);
   zincrements[rounded_cap] = p->number_depth(StrokedPath::rounded_cap_point_set, false);
@@ -275,13 +278,15 @@ fill_data(c_array<PainterAttribute> attribute_data,
   GRAB_MACRO(bevel_joins, StrokedPath::bevel_join_point_set);
   GRAB_MACRO(rounded_joins, StrokedPath::rounded_join_point_set);
   GRAB_MACRO(miter_joins, StrokedPath::miter_join_point_set);
+  GRAB_MACRO(cap_joins, StrokedPath::cap_join_point_set);
 
   // then grab individual joins, this must be done after
   // all the blocks because although it does not generate new
-  // attribute data, it does generate new index data
+  // attribute data, but it does generate new index data
   GRAB_JOIN_MACRO(rounded_joins, StrokedPath::rounded_join_point_set);
   GRAB_JOIN_MACRO(bevel_joins, StrokedPath::bevel_join_point_set);
   GRAB_JOIN_MACRO(miter_joins, StrokedPath::miter_join_point_set);
+  GRAB_JOIN_MACRO(cap_joins, StrokedPath::cap_join_point_set);
 }
 
 unsigned int
@@ -292,7 +297,7 @@ chunk_from_join(enum stroking_data_t tp, unsigned int J)
     There are number_join_types joins, the chunk
     for the J'th join for type tp is located
     at number_join_types * J + t + stroking_data_count
-    where 0 <=t < 6 is derived from tp.
+    where 0 <=t < number_join_types is derived from tp.
    */
   unsigned int t;
   switch(tp)
@@ -310,6 +315,11 @@ chunk_from_join(enum stroking_data_t tp, unsigned int J)
     case miter_joins_closing_edge:
     case miter_joins_no_closing_edge:
       t = 2u;
+      break;
+
+    case cap_joins_closing_edge:
+    case cap_joins_no_closing_edge:
+      t = 3u;
       break;
 
     default:

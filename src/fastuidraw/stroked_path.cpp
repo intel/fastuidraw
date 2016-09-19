@@ -34,6 +34,7 @@ namespace
       rounded_join = 0,
       miter_join,
       bevel_join,
+      cap_join,
 
       joint_type_count
     };
@@ -58,7 +59,7 @@ namespace
 
     uint32_t bb(on_boundary), pp(pt);
     return fastuidraw::pack_bits(fastuidraw::StrokedPath::offset_type_bit0, fastuidraw::StrokedPath::offset_type_num_bits, pp)
-      | fastuidraw::pack_bits(fastuidraw::StrokedPath::boundary_bit0, 1u, bb)
+      | fastuidraw::pack_bits(fastuidraw::StrokedPath::boundary_bit, 1u, bb)
       | fastuidraw::pack_bits(fastuidraw::StrokedPath::depth_bit0, fastuidraw::StrokedPath::depth_num_bits, depth);
   }
 
@@ -722,6 +723,9 @@ get_join_type_t(enum fastuidraw::StrokedPath::point_set_t tp)
     case fastuidraw::StrokedPath::miter_join_point_set:
       return miter_join;
 
+    case fastuidraw::StrokedPath::cap_join_point_set:
+      return cap_join;
+
     default:
       assert(!"Passed a non-joint type to get_join_type_t");
       return joint_type_count;
@@ -1229,7 +1233,7 @@ fill_join(unsigned int join_id,
   for(; v < vertex_offset; ++v)
     {
       assign_depth(pts[v], depth);
-      pts[v].m_packed_data |= ss;
+      pts[v].m_packed_data |= (ss | fastuidraw::StrokedPath::join_mask);
     }
   ++depth;
 }
