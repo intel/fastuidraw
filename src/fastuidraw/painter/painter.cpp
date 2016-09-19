@@ -1341,8 +1341,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
           const_c_array<PainterAttribute> atr(pdata.attribute_data_chunk(chunk));
           assert(!atr.empty());
 
-          dist = unpack_float(atr[0].m_attrib1.y());
-          if(shader.dash_evaluator()->compute_dash_interval(raw_data, dist, dash_interval))
+          if(shader.dash_evaluator()->compute_dash_interval(raw_data, atr[0], dash_interval, dist))
             {
               str.m_joins.push_back(AtrribIndex());
               str.m_joins.back().m_attribs = atr;

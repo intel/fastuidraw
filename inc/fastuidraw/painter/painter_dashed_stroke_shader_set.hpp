@@ -20,6 +20,7 @@
 #pragma once
 
 #include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/painter/painter_attribute.hpp>
 #include <fastuidraw/painter/painter_stroke_shader.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/painter_shader_data.hpp>
@@ -46,14 +47,17 @@ namespace fastuidraw
       false.
       \param data PainterItemShaderData::DataBase object holding the data to
                   be sent to the shader
-      \param distance the distance to use to compute the return value
-      \param[out] out_interval interval to which input point belongs.
+      \param attrib PainterAttribute from which to extract the distance to
+                    use to compute the return value
+      \param[out] out_interval interval to which input point belongs
+      \param[out] distance distance value within out_interval
      */
     virtual
     bool
     compute_dash_interval(const PainterShaderData::DataBase *data,
-                          float distance,
-                          range_type<float> &out_interval) const = 0;
+                          const PainterAttribute &attrib,
+                          range_type<float> &out_interval,
+                          float &distance) const = 0;
   };
 
   /*!

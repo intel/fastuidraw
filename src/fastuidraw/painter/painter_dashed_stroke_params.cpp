@@ -55,8 +55,9 @@ namespace
     virtual
     bool
     compute_dash_interval(const fastuidraw::PainterShaderData::DataBase *data,
-                          float distance,
-                          fastuidraw::range_type<float> &out_interval) const;
+                          const fastuidraw::PainterAttribute &attrib,
+                          fastuidraw::range_type<float> &out_interval,
+                          float &distance) const;
   };
 }
 //////////////////////////////////////
@@ -127,8 +128,9 @@ pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> 
 bool
 DashEvaluator::
 compute_dash_interval(const fastuidraw::PainterShaderData::DataBase *data,
-                      float distance,
-                      fastuidraw::range_type<float> &out_interval) const
+                      const fastuidraw::PainterAttribute &attrib,
+                      fastuidraw::range_type<float> &out_interval,
+                      float &distance) const
 {
   const PainterDashedStrokeParamsData *d;
   assert(dynamic_cast<const PainterDashedStrokeParamsData*>(data) != NULL);
@@ -137,10 +139,17 @@ compute_dash_interval(const fastuidraw::PainterShaderData::DataBase *data,
   if(d->m_total_length <= 0.0f)
     {
       out_interval.m_begin = out_interval.m_end = 0.0f;
+      distance = 0.0f;
       return false;
     }
 
   float q, r, iq;
+  /* PainterDashedStrokeParams is for attributes packed
+     by PainterAttributeDataFillerPathStroked which
+     stores the distance from the contour start at
+     m_attrib1.y packed as a float
+   */
+  distance = fastuidraw::unpack_float(attrib.m_attrib1.y());
   q = distance / d->m_total_length;
   r = std::modf(q, &iq);
 
@@ -157,6 +166,7 @@ compute_dash_interval(const fastuidraw::PainterShaderData::DataBase *data,
       skip = d->m_dash_pattern[i].m_space_length;
       if(f <= draw)
         {
+          distance += iq;
           out_interval.m_begin += iq;
           out_interval.m_end = out_interval.m_begin + draw;
           return true;
@@ -166,12 +176,14 @@ compute_dash_interval(const fastuidraw::PainterShaderData::DataBase *data,
       f -= draw;
       if(f <= skip)
         {
+          distance += iq;
           out_interval.m_begin += iq;
           out_interval.m_end = out_interval.m_begin + skip;
           return false;
         }
     }
 
+  distance = 0.0f;
   out_interval.m_end = out_interval.m_begin;
   return false;
 }
