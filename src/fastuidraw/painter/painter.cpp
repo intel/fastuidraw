@@ -874,7 +874,7 @@ stroke_path_helper(const StrokingData &str,
 {
   using namespace fastuidraw;
 
-  unsigned int startz, zinc_sum(0);
+  unsigned int startz, zinc_sum(0), num_joins;
   bool modify_z;
   const reference_counted_ptr<PainterItemShader> *sh;
   std::vector<const_c_array<PainterAttribute> > vattrib_chunks(str.m_joins.size() + 2);
@@ -885,15 +885,16 @@ stroke_path_helper(const StrokingData &str,
   attrib_chunks = make_c_array(vattrib_chunks);
   index_chunks = make_c_array(vindex_chunks);
 
-  attrib_chunks[0] = str.m_edges.m_attribs;
-  index_chunks [0] = str.m_edges.m_indices;
-  attrib_chunks[1] = str.m_caps.m_attribs;
-  index_chunks [1] = str.m_caps.m_indices;
-  for(unsigned int J = 0, endJ = str.m_joins.size(); J < endJ; ++J)
+  num_joins = str.m_joins.size();
+  for(unsigned int J = 0; J < num_joins; ++J)
     {
-      attrib_chunks[J + 2] = str.m_joins[J].m_attribs;
-      index_chunks [J + 2] = str.m_joins[J].m_indices;
+      attrib_chunks[J] = str.m_joins[J].m_attribs;
+      index_chunks [J] = str.m_joins[J].m_indices;
     }
+  attrib_chunks[1] = str.m_edges.m_attribs;
+  index_chunks [1] = str.m_edges.m_indices;
+  attrib_chunks[2] = str.m_caps.m_attribs;
+  index_chunks [2] = str.m_caps.m_indices;
 
   startz = m_current_z;
   modify_z = !with_anti_aliasing || shader.aa_type() == PainterStrokeShader::draws_solid_then_fuzz;
@@ -904,29 +905,29 @@ stroke_path_helper(const StrokingData &str,
       zinc_sum = incr_z = str.m_edge_zinc + str.m_join_zinc + str.m_cap_zinc;
 
       /*
-        We want draw the passes so that the depth test prevents overlap drawing;
-        - The K'th set has that the raw_depth value does from 0 to zincs[K] - 1.
-        - We draw so that the K'th pass is drawn with the (K-1)-pass occluding it.
+        We want draw the passes so that the depth test prevents overlap drawing
+        - For each set X, the raw depth value is from 0 to str.m_X_zinc
+        - We draw so that the X'th set is drawn with the set before it occluding it.
           (recall that larger z's occlude smaller z's).
        */
-      incr_z -= str.m_edge_zinc;
+      incr_z -= str.m_join_zinc;
       draw_generic_check(*sh, draw,
-                         attrib_chunks.sub_array(0, 1),
-                         index_chunks.sub_array(0, 1),
+                         attrib_chunks.sub_array(0, num_joins),
+                         index_chunks.sub_array(0, num_joins),
                          fastuidraw::const_c_array<unsigned int>(),
                          startz + incr_z + 1, call_back);
 
-      incr_z -= str.m_join_zinc;
+      incr_z -= str.m_edge_zinc;
       draw_generic_check(*sh, draw,
-                         attrib_chunks.sub_array(2),
-                         index_chunks.sub_array(2),
+                         attrib_chunks.sub_array(num_joins, 1),
+                         index_chunks.sub_array(num_joins, 1),
                          fastuidraw::const_c_array<unsigned int>(),
                          startz + incr_z + 1, call_back);
 
       incr_z -= str.m_cap_zinc;
       draw_generic_check(*sh, draw,
-                         attrib_chunks.sub_array(1, 1),
-                         index_chunks.sub_array(1, 1),
+                         attrib_chunks.sub_array(num_joins + 1, 1),
+                         index_chunks.sub_array(num_joins + 1, 1),
                          fastuidraw::const_c_array<unsigned int>(),
                          startz + incr_z + 1, call_back);
     }
