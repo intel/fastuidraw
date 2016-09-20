@@ -45,6 +45,13 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       qq_yy = q * q + y * y;
       if(dash_style == uint(fastuidraw_stroke_dashed_rounded_caps))
         {
+          /* fw represents the tolerance of a pixel. The expected
+             condition is if(q < 0.0), but that gives black-line
+             render issue on the boundary between the cap and the
+             dash-pattern boundary. By relaxing the condition by
+             (essentially) 1-pixel, we can avoid that rendering
+             issue.
+           */
           if(q < fw)
             {
               float sq;
