@@ -401,7 +401,7 @@ init_gl(int w, int h)
       std::cout << "\tPixel Width Dashed Stroke Shader:\n";
       print_dashed_stroke_shader_ids(sh.pixel_width_dashed_stroke_shader());
 
-      std::cout << "\tFill Shader:" << sh.fill_shader()->tag() << "\n";
+      std::cout << "\tFill Shader:" << sh.fill_shader().item_shader()->tag() << "\n";
     }
 
   m_painter_params = m_backend->configuration_gl();
