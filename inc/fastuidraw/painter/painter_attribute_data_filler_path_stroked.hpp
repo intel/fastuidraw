@@ -93,7 +93,7 @@ namespace fastuidraw
     path(void) const;
 
     /*!
-      Create and return a PainterStrokeShader::StrokingChunkSelectorBase
+      Create and return a StrokingChunkSelectorBase
       compatible with PainterAttributeDataFillerPathStroked
      */
     static

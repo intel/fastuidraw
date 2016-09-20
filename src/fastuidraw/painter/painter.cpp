@@ -332,6 +332,7 @@ namespace
   public:
     std::vector<unsigned int> m_selector;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_index_chunks;
+    std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_attrib_chunks;
     std::vector<fastuidraw::vec2> m_pts_clip_against_planes;
     std::vector<fastuidraw::vec2> m_pts_draw_convex_polygon;
     std::vector<float> m_clipper_floats;
@@ -1393,8 +1394,13 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
           const PainterAttributeData &data, enum PainterEnums::fill_rule_t fill_rule,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  draw_generic(shader.item_shader(), draw, data.attribute_data_chunk(0),
-               data.index_data_chunk(fill_rule),
+  unsigned int idx_chunk, atr_chunk;
+  idx_chunk = shader.chunk_selector()->chunk_from_fill_rule(fill_rule);
+  atr_chunk = (shader.chunk_selector()->common_attribute_data()) ? 0 : idx_chunk;
+
+  draw_generic(shader.item_shader(), draw,
+               data.attribute_data_chunk(atr_chunk),
+               data.index_data_chunk(idx_chunk),
                call_back);
 }
 
@@ -1429,7 +1435,11 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       return;
     }
 
+  bool common_attribs;
+  common_attribs = shader.chunk_selector()->common_attribute_data();
+
   d->m_work_room.m_index_chunks.clear();
+  d->m_work_room.m_attrib_chunks.clear();
   d->m_work_room.m_selector.clear();
 
   /* walk through what winding numbers are non-empty.
@@ -1441,25 +1451,43 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       int winding_number;
 
       k = chks[i];
-      if(k == PainterEnums::complement_nonzero_fill_rule || k >= PainterEnums::fill_rule_data_count)
+      if(shader.chunk_selector()->winding_number_from_chunk(k, winding_number))
         {
-          winding_number = PainterAttributeDataFillerPathFill::winding_number_from_index_chunk(k);
           if(fill_rule(winding_number))
             {
               const_c_array<PainterIndex> chunk;
               assert(!data.index_data_chunk(k).empty());
               chunk = data.index_data_chunk(k);
               d->m_work_room.m_index_chunks.push_back(chunk);
-              d->m_work_room.m_selector.push_back(0);
+              if(common_attribs)
+                {
+                  d->m_work_room.m_selector.push_back(0);
+                }
+              else
+                {
+                  const_c_array<PainterAttribute> attr_chunk;
+                  attr_chunk = data.attribute_data_chunk(k);
+                  d->m_work_room.m_attrib_chunks.push_back(attr_chunk);
+                }
             }
         }
     }
 
-  if(!d->m_work_room.m_selector.empty())
+  if(!d->m_work_room.m_index_chunks.empty())
     {
-      draw_generic(shader.item_shader(), draw, data.attribute_data_chunks(),
-                   make_c_array(d->m_work_room.m_index_chunks),
-                   make_c_array(d->m_work_room.m_selector), call_back);
+      if(common_attribs)
+        {
+          draw_generic(shader.item_shader(), draw, data.attribute_data_chunks(),
+                       make_c_array(d->m_work_room.m_index_chunks),
+                       make_c_array(d->m_work_room.m_selector), call_back);
+        }
+      else
+        {
+          draw_generic(shader.item_shader(), draw,
+                       make_c_array(d->m_work_room.m_attrib_chunks),
+                       make_c_array(d->m_work_room.m_index_chunks),
+                       call_back);
+        }
     }
 
 }

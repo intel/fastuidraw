@@ -222,8 +222,8 @@ namespace fastuidraw
     non_aa_shader(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
-      Returns a reference to the ChunkSelector to be used
-      with the PainterStrokeShader
+      Returns a reference to the StrokingChunkSelectorBase
+      to be used with the PainterStrokeShader
      */
     const reference_counted_ptr<StrokingChunkSelectorBase>&
     chunk_selector(void) const;
