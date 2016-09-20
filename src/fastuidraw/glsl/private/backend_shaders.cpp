@@ -78,7 +78,7 @@ add_blend_shader(PainterBlendShaderSet &out,
       break;
 
     default:
-      assert("Bad m_type");
+      assert(!"Bad m_type");
     }
 }
 
@@ -153,7 +153,7 @@ create_blend_shaders(void)
                    "fastuidraw_fbf_porter_duff_src_out.glsl.resource_string");
 
   add_blend_shader(shaders, blend_porter_duff_dst_out,
-                 BlendMode().func(BlendMode::ZERO, BlendMode::ONE_MINUS_SRC_ALPHA),
+                   BlendMode().func(BlendMode::ZERO, BlendMode::ONE_MINUS_SRC_ALPHA),
                    "fastuidraw_porter_duff_dst_out.glsl.resource_string", one_src1,
                    "fastuidraw_fbf_porter_duff_dst_out.glsl.resource_string");
 
