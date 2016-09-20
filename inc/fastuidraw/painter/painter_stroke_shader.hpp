@@ -31,7 +31,7 @@ namespace fastuidraw
  */
 
   /*!
-    A ChunkSelector provides an interface to know
+    A StrokingChunkSelector provides an interface to know
     what chuck of a PainterAttributeData to grab
     for different data to stroke.
   */
@@ -105,11 +105,9 @@ namespace fastuidraw
     };
 
   /*!
-    A PainterStrokeShader hold shading for
-    both stroking with and without anit-aliasing.
-    The shader is to handle data as packed by
-    PainterAttributeDataFillerPathStroked.
-   */
+    A PainterStrokeShader holds shaders for
+    stroking with and without anit-aliasing.
+  */
   class PainterStrokeShader
   {
   public:
