@@ -429,25 +429,7 @@ namespace fastuidraw
     void
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
                 const PainterAttributeData &data,
-                enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                bool with_anti_aliasing,
-                const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
-
-    /*!
-      Stroke a path.
-      \param draw data for how to draw
-      \param path path to stroke
-      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
-      \param cp cap style
-      \param js join style
-      \param shader shader with which to stroke the attribute data
-      \param call_back if non-NULL handle, call back called when attribute data
-                       is added.
-     */
-    void
-    stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
-                const Path &path,
-                enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+                bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                 bool with_anti_aliasing,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
@@ -463,7 +445,7 @@ namespace fastuidraw
      */
     void
     stroke_path(const PainterData &draw, const Path &path,
-                enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+                bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                 bool with_anti_aliasing,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
@@ -480,7 +462,7 @@ namespace fastuidraw
      */
     void
     stroke_path_pixel_width(const PainterData &draw, const Path &path,
-                            enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+                            bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                             bool with_anti_aliasing,
                             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
@@ -488,7 +470,7 @@ namespace fastuidraw
       Stroke a path using a custom PainterDashedStrokeShaderSet
       \param shader shader with which to draw
       \param draw data for how to draw
-      \param path path to stroke
+      \param data attribute and index data with which to stroke a path
       \param close_contour if true, stroke the path with each contour closed
       \param cp cap style of dashes, the value PainterEnums::close_contours is treated
                 the same as PainterEnums::no_caps
@@ -498,7 +480,8 @@ namespace fastuidraw
                        is added.
      */
     void
-    stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
+    stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
+                       const PainterAttributeData &data,
                        bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                        bool with_anti_aliasing,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
@@ -541,29 +524,29 @@ namespace fastuidraw
 
     /*!
       Fill a path.
+      \param shader shader with which to fill the attribute data
       \param draw data for how to draw
       \param data attribute and index data with which to fill a path
       \param fill_rule fill rule with which to fill the path
-      \param shader shader with which to fill the attribute data
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
-    fill_path(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+    fill_path(const PainterFillShader &shader, const PainterData &draw,
               const PainterAttributeData &data, enum PainterEnums::fill_rule_t fill_rule,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
       Fill a path.
+      \param shader shader with which to fill the attribute data
       \param draw data for how to draw
       \param path to fill
       \param fill_rule fill rule with which to fill the path
-      \param shader shader with which to fill the attribute data
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
-    fill_path(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+    fill_path(const PainterFillShader &shader, const PainterData &draw,
               const Path &path, enum PainterEnums::fill_rule_t fill_rule,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
@@ -581,29 +564,29 @@ namespace fastuidraw
 
     /*!
       Fill a path.
+      \param shader shader with which to fill the attribute data
       \param draw data for how to draw
       \param data attribute and index data with which to fill a path
       \param fill_rule custom fill rule with which to fill the path
-      \param shader shader with which to fill the attribute data
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
-    fill_path(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+    fill_path(const PainterFillShader &shader, const PainterData &draw,
               const PainterAttributeData &data, const CustomFillRuleBase &fill_rule,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
       Fill a path.
+      \param shader shader with which to fill the attribute data
       \param draw data for how to draw
       \param path to fill
       \param fill_rule custom fill rule with which to fill the path
-      \param shader shader with which to fill the attribute data
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
-    fill_path(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+    fill_path(const PainterFillShader &shader, const PainterData &draw,
               const Path &path, const CustomFillRuleBase &fill_rule,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
@@ -625,10 +608,8 @@ namespace fastuidraw
       \param pts points of the polygon so that neighboring points (modulo pts.size())
                  are the edges of the polygon.
       \param shader shader with which to draw the convex polygon. The shader must
-                    accept the exact same format as the default fill shader (see
-                    the class description for PainterAttributeData) and in addition
-                    transform the point (packed into PainterAttribute::m_primary_attrib .xy)
-                    only by the transformation matrix.
+                    accept the exact same format as packed by
+                    PainterAttributeDataFillerPathFill
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
@@ -657,10 +638,8 @@ namespace fastuidraw
       \param p2 point after p1, shares an edge with p1
       \param p3 point after p2, shares an edge with p2
       \param shader shader with which to draw the convex polygon. The shader must
-                    accept the exact same format as the default fill shader (see
-                    the class description for PainterAttributeData) and in addition
-                    transform the point (packed into PainterAttribute::m_primary_attrib .xy)
-                    only by the transformation matrix.
+                    accept the exact same format as packed by
+                    PainterAttributeDataFillerPathFill
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
@@ -691,10 +670,8 @@ namespace fastuidraw
       \param p min-corner of rect
       \param wh width and height of rect
       \param shader shader with which to draw the convex polygon. The shader must
-                    accept the exact same format as the default fill shader (see
-                    the class description for PainterAttributeData) and in addition
-                    transform the point (packed into PainterAttribute::m_primary_attrib .xy)
-                    only by the transformation matrix.
+                    accept the exact same format as packed by
+                    PainterAttributeDataFillerPathFill
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
@@ -804,6 +781,14 @@ namespace fastuidraw
      */
     void
     register_shader(const PainterStrokeShader &p);
+
+    /*!
+      Registers a fill shader for use. Must not be called within
+      a begin() / end() pair.
+      \param p PainterFillShader hold shaders to register
+     */
+    void
+    register_shader(const PainterFillShader &p);
 
     /*!
       Registers a dashed stroke shader for use. Must not be called within

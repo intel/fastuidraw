@@ -29,7 +29,7 @@ namespace
     fastuidraw::PainterStrokeShader m_pixel_width_stroke_shader;
     fastuidraw::PainterDashedStrokeShaderSet m_dashed_stroke_shader;
     fastuidraw::PainterDashedStrokeShaderSet m_pixel_width_dashed_stroke_shader;
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_fill_shader;
+    fastuidraw::PainterFillShader m_fill_shader;
     fastuidraw::PainterBlendShaderSet m_blend_shaders;
   };
 }
@@ -99,7 +99,7 @@ setget_implement(fastuidraw::PainterStrokeShader, stroke_shader)
 setget_implement(fastuidraw::PainterStrokeShader, pixel_width_stroke_shader)
 setget_implement(fastuidraw::PainterDashedStrokeShaderSet, dashed_stroke_shader)
 setget_implement(fastuidraw::PainterDashedStrokeShaderSet, pixel_width_dashed_stroke_shader)
-setget_implement(fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>, fill_shader)
+setget_implement(fastuidraw::PainterFillShader, fill_shader)
 setget_implement(fastuidraw::PainterBlendShaderSet, blend_shaders)
 
 #undef setget_implement

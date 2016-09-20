@@ -374,6 +374,31 @@ namespace fastuidraw
         ConfigurationGL&
         separate_program_for_discard(bool v);
 
+        /*!
+          If framebuffer fetch is available, this value is ignored.
+          When framebuffer fetch is not availabe, for non-dashed
+          anti-aliased stroking, the opaque pass draws the stroking
+          at about 1-pixel less and the anti-alias pass draws after
+          and underneath the entire stroke width with an alpha
+          value. Under severe transformation distrotion, the opaque
+          pass is unable to leave enough uncovered for the anti-alias
+          pass (but only under severe skew/perspective does this
+          occur). When discard is used, both passes cover the entire
+          stroking width, but the opaque pass discards when coverage
+          is less than 100%. Again, this option is ignored if
+          framebuffer fetch is available because when that is available
+          the coverage is handled by a secondary buffer.
+         */
+        bool
+        non_dashed_stroke_shader_uses_discard(void) const;
+
+        /*!
+          Set the value returned by non_dashed_stroke_shader_uses_discard(void) const.
+          Default value is false.
+         */
+        ConfigurationGL&
+        non_dashed_stroke_shader_uses_discard(bool);
+
       private:
         void *m_d;
       };

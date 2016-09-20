@@ -95,14 +95,27 @@ public:
 
       /*!
         The point is for a boundary point of a sqaure-cap join point.
-        These points are for dashed stroking when the point of the join
-        is NOT covered by the dash pattern. Their layout of data is the
-        same as \ref offset_miter_join. The purpose of this point type is
-        to make sure caps of dashed stroking is drawn at the join location.
-        When placing such points, it is placed the same as \ref
-        offset_miter_join except that the miter limit is 0.5.
+        These points are for dashed stroking with caps when the point
+        of the join is NOT covered by the dash pattern. They represent
+        a square cap at the start or end of an edge. Unlike the type
+        offset_square_cap, the data sent down the pipeline is to
+        be modified from the starting value so that the just enough
+        of the cap is drawn to "catch" all of a cap that come just
+        before or after the join.
        */
-      offset_cap_join,
+      offset_cap_entering_join,
+
+      /*!
+        The point is for a boundary point of a sqaure-cap join point.
+        These points are for dashed stroking with caps when the point
+        of the join is NOT covered by the dash pattern. They represent
+        a square cap at the start or end of an edge. Unlike the type
+        offset_square_cap, the data sent down the pipeline is to
+        be modified from the starting value so that the just enough
+        of the cap is drawn to "catch" all of a cap that come just
+        before or after the join.
+       */
+      offset_cap_leaving_join,
 
       /*!
         Number different point types with respect to rendering
@@ -197,16 +210,22 @@ public:
       sin_sign_bit = normal1_y_sign_bit + 1,
 
       /*!
-        Bit0 for holding boundary() - 1 value
+        Bit for holding boundary() value
         of the point
        */
-      boundary_bit0 = sin_sign_bit + 1,
+      boundary_bit = sin_sign_bit + 1,
+
+      /*!
+        Bit to indicate point is from a join set,
+        but not from a cap-join set.
+       */
+      join_bit = boundary_bit + 1,
 
       /*!
         Bit0 for holding the depth() value
         of the point
        */
-      depth_bit0 = boundary_bit0 + 1,
+      depth_bit0 = join_bit + 1,
 
       /*!
         number of bits needed to hold the
@@ -243,9 +262,14 @@ public:
       sin_sign_mask = FASTUIDRAW_MASK(sin_sign_bit, 1),
 
       /*!
-        Mask generated for \ref boundary_bit0 and \ref boundary_num_bits
+        Mask generated for \ref boundary_bit
        */
-      boundary_mask = FASTUIDRAW_MASK(boundary_bit0, 1),
+      boundary_mask = FASTUIDRAW_MASK(boundary_bit, 1),
+
+      /*!
+        Mask generated for \ref join_bit
+       */
+      join_mask = FASTUIDRAW_MASK(join_bit, 1),
 
       /*!
         Mask generated for \ref depth_bit0 and \ref depth_num_bits
@@ -323,15 +347,27 @@ public:
     uint32_t m_packed_data;
 
     /*!
-      Provides the point type for the point. The value is one of the
-      enumerations of StrokedPath::offset_type_t.
+      Provides the point type from a value of \ref m_packed_data.
+      The return value is one of the enumerations of
+      StrokedPath::offset_type_t.
+     */
+    static
+    enum offset_type_t
+    offset_type(uint32_t packed_data_value)
+    {
+      uint32_t v;
+      v = unpack_bits(offset_type_bit0, offset_type_num_bits, packed_data_value);
+      return static_cast<enum offset_type_t>(v);
+    }
+
+    /*!
+      Provides the point type for the point. The return value
+      is one of the enumerations of StrokedPath::offset_type_t.
      */
     enum offset_type_t
     offset_type(void) const
     {
-      uint32_t v;
-      v = unpack_bits(offset_type_bit0, offset_type_num_bits, m_packed_data);
-      return static_cast<enum offset_type_t>(v);
+      return offset_type(m_packed_data);
     }
 
     /*!
@@ -361,7 +397,7 @@ public:
     int
     on_boundary(void) const
     {
-      return unpack_bits(boundary_bit0, 1u, m_packed_data);
+      return unpack_bits(boundary_bit, 1u, m_packed_data);
     }
 
     /*!

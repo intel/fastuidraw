@@ -200,13 +200,13 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
     {
       vec3 clip_offset, clip_p;
       vec2 n;
-      if(offset_type == fastuidraw_stroke_offset_edge)
+      if(offset_type == fastuidraw_stroke_offset_next_edge)
         {
-          clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+          clip_p = fastuidraw_item_matrix * vec3(position + auxilary_offset, 1.0);
         }
       else
         {
-          clip_p = fastuidraw_item_matrix * vec3(position + auxilary_offset, 1.0);
+          clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
         }
       n = fastuidraw_align_normal_to_screen(clip_p, pre_offset);
       clip_offset = fastuidraw_item_matrix * vec3(n, 0.0);
@@ -265,7 +265,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   offset_type = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_offset_type_bit0,
                                             fastuidraw_stroke_offset_type_num_bits,
                                             point_packed_data));
-  on_boundary = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_boundary_bit0,
+  on_boundary = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_boundary_bit,
                                             1,
                                             point_packed_data));
 
@@ -276,11 +276,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       fastuidraw_read_dashed_stroking_params_header(shader_data_offset, H);
       stroke_params.width = H.width;
       stroke_params.miter_limit = H.miter_limit;
-      if(offset_type == fastuidraw_stroke_offset_cap_join)
-        {
-          stroke_params.miter_limit = 1.0;
-          offset_type = fastuidraw_stroke_offset_miter_join;
-        }
       fastuidraw_stroking_packed_data = point_packed_data;
       fastuidraw_stroking_distance = distance_from_contour_start + H.dash_offset;
     }
@@ -291,10 +286,15 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   #endif
 
   stroke_radius = 0.5 * stroke_params.width;
-  if(stroking_pass == fastuidraw_stroke_opaque_pass && stroke_width_pixels)
+
+  #ifndef FASTUIDRAW_STROKE_USE_DISCARD
     {
-      stroke_radius = max(stroke_radius - anti_alias_thickness, 0.0);
+      if(stroking_pass == fastuidraw_stroke_opaque_pass && stroke_width_pixels)
+        {
+          stroke_radius = max(stroke_radius - anti_alias_thickness, 0.0);
+        }
     }
+  #endif
 
   if(on_boundary != 0)
     {
@@ -313,16 +313,20 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                                            offset);
         }
 
-      if(stroking_pass == fastuidraw_stroke_opaque_pass && !stroke_width_pixels)
+      #ifndef FASTUIDRAW_STROKE_USE_DISCARD
         {
-          vec3 clip_p, clip_offset;
-          float r;
+          if(stroking_pass == fastuidraw_stroke_opaque_pass && !stroke_width_pixels)
+            {
+              vec3 clip_p, clip_offset;
+              float r;
 
-          clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
-          clip_offset = fastuidraw_item_matrix * vec3(offset, 0);
-          r = fastuidraw_painter_local_distance_from_pixel_distance(anti_alias_thickness, clip_p, clip_offset, true);
-          stroke_radius = max(stroke_radius - r, 0.0);
+              clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+              clip_offset = fastuidraw_item_matrix * vec3(offset, 0);
+              r = fastuidraw_painter_local_distance_from_pixel_distance(anti_alias_thickness, clip_p, clip_offset, true);
+              stroke_radius = max(stroke_radius - r, 0.0);
+            }
         }
+      #endif
 
       p = position + stroke_radius * offset;
     }
@@ -341,6 +345,14 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       z_add = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_depth_bit0,
                                       fastuidraw_stroke_depth_num_bits,
                                       point_packed_data);
+      #ifdef FASTUIDRAW_STROKE_DASHED
+        {
+          if((point_packed_data & uint(fastuidraw_stroke_join_mask)) != 0u)
+            {
+              z_add *= 2u;
+            }
+        }
+      #endif
     }
 
   return vec4(p, p);

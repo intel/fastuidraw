@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <fastuidraw/painter/painter_fill_shader.hpp>
 #include <fastuidraw/painter/painter_stroke_shader.hpp>
 #include <fastuidraw/painter/painter_glyph_shader.hpp>
 #include <fastuidraw/painter/painter_blend_shader_set.hpp>
@@ -153,11 +154,9 @@ namespace fastuidraw
     pixel_width_dashed_stroke_shader(const PainterDashedStrokeShaderSet &sh);
 
     /*!
-      Shader for filling of paths. The vertex shader
-      takes attribute data as formatted by
-      PainterAttributeDataFillerPathFilled.
+      Shader for filling of paths.
      */
-    const reference_counted_ptr<PainterItemShader>&
+    const PainterFillShader&
     fill_shader(void) const;
 
     /*!
@@ -165,7 +164,7 @@ namespace fastuidraw
       \param sh value to use
      */
     PainterShaderSet&
-    fill_shader(const reference_counted_ptr<PainterItemShader> &sh);
+    fill_shader(const PainterFillShader &sh);
 
     /*!
       Blend shaders. If an element is a NULL shader, then that

@@ -56,9 +56,6 @@ namespace
 
     std::cout << "\t\tsquare_caps:\n";
     print_stroke_shader_ids(sh.shader(fastuidraw::PainterEnums::square_caps), "\t\t\t");
-
-    std::cout << "\t\tclose_contours:\n";
-    print_stroke_shader_ids(sh.shader(fastuidraw::PainterEnums::close_contours), "\t\t\t");
   }
 }
 
@@ -198,6 +195,11 @@ sdl_painter_demo(const std::string &about_text,
                                  "one for those item shaders that have discard and one for "
                                  "those that do not",
                                  *this),
+  m_non_dashed_stroke_shader_uses_discard(m_painter_params.non_dashed_stroke_shader_uses_discard(),
+                                          "non_dashed_stroke_shader_uses_discard",
+                                          "Use discard in instead of thinner widths when stroking "
+                                          "opaque pass for anti-aliased stroking of paths",
+                                          *this),
 
   m_painter_options_affected_by_context("PainterBackendGL Options that can be overridden "
                                         "by version and extension supported by GL/GLES context",
@@ -338,7 +340,8 @@ init_gl(int w, int h)
     .assign_layout_to_varyings(m_assign_layout_to_varyings.m_value)
     .assign_binding_points(m_assign_binding_points.m_value)
     .use_ubo_for_uniforms(m_use_ubo_for_uniforms.m_value)
-    .separate_program_for_discard(m_separate_program_for_discard.m_value);
+    .separate_program_for_discard(m_separate_program_for_discard.m_value)
+    .non_dashed_stroke_shader_uses_discard(m_non_dashed_stroke_shader_uses_discard.m_value);
 
   m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params, m_painter_base_params);
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
@@ -398,7 +401,7 @@ init_gl(int w, int h)
       std::cout << "\tPixel Width Dashed Stroke Shader:\n";
       print_dashed_stroke_shader_ids(sh.pixel_width_dashed_stroke_shader());
 
-      std::cout << "\tFill Shader:" << sh.fill_shader()->tag() << "\n";
+      std::cout << "\tFill Shader:" << sh.fill_shader().item_shader()->tag() << "\n";
     }
 
   m_painter_params = m_backend->configuration_gl();

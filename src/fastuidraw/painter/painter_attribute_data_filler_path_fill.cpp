@@ -30,6 +30,58 @@ namespace
     fastuidraw::reference_counted_ptr<const fastuidraw::FilledPath> m_path;
   };
 
+  class WindingSelectorChunk:public fastuidraw::WindingSelectorChunkBase
+  {
+  public:
+    static
+    unsigned int
+    static_chunk_from_winding_number(int winding_number);
+
+    static
+    bool
+    static_winding_number_from_chunk(unsigned int chunk, int &winding_number);
+
+    static
+    int
+    static_winding_number_from_chunk(unsigned int chunk)
+    {
+      bool b;
+      int r;
+      b = static_winding_number_from_chunk(chunk, r);
+      assert(b);
+      assert(static_chunk_from_winding_number(r) == chunk);
+      return r;
+    }
+
+    virtual
+    bool
+    common_attribute_data(void) const
+    {
+      return true;
+    }
+
+    virtual
+    unsigned int
+    chunk_from_fill_rule(enum fastuidraw::PainterEnums::fill_rule_t fill_rule) const
+    {
+      return fill_rule;
+    }
+
+    virtual
+    unsigned int
+    chunk_from_winding_number(int winding_number) const
+    {
+      return static_chunk_from_winding_number(winding_number);
+    }
+
+    virtual
+    bool
+    winding_number_from_chunk(unsigned int chunk, int &winding_number) const
+    {
+      return static_winding_number_from_chunk(chunk, winding_number);
+    }
+  };
+
   fastuidraw::PainterAttribute
   generate_attribute(const fastuidraw::vec2 &src)
   {
@@ -41,6 +93,51 @@ namespace
 
     return dst;
   }
+}
+
+////////////////////////////////////////////
+// WindingSelectorChunk methods
+unsigned int
+WindingSelectorChunk::
+static_chunk_from_winding_number(int winding_number)
+{
+  /* basic idea:
+     - start counting at fill_rule_data_count
+     - ordering is: 1, -1, 2, -2, ...
+  */
+  int value, sg;
+
+  if(winding_number == 0)
+    {
+      return fastuidraw::PainterEnums::complement_nonzero_fill_rule;
+    }
+
+  value = std::abs(winding_number);
+  sg = (winding_number < 0) ? 1 : 0;
+  return fastuidraw::PainterEnums::fill_rule_data_count + sg + 2 * (value - 1);
+}
+
+bool
+WindingSelectorChunk::
+static_winding_number_from_chunk(unsigned int chunk, int &winding_number)
+{
+  if(chunk == fastuidraw::PainterEnums::complement_nonzero_fill_rule)
+    {
+      winding_number = 0;
+      return true;
+    }
+
+  if(chunk >= fastuidraw::PainterEnums::fill_rule_data_count)
+    {
+      int idx, abs_winding;
+
+      idx = chunk - fastuidraw::PainterEnums::fill_rule_data_count;
+      abs_winding = 1 + idx / 2;
+      winding_number = (idx & 1) ? -abs_winding : abs_winding;
+      return true;
+    }
+
+  return false;
 }
 
 //////////////////////////////////////////////////////////
@@ -110,8 +207,8 @@ compute_sizes(unsigned int &number_attributes,
    */
   int smallest_winding(p->winding_numbers().front());
   int largest_winding(p->winding_numbers().back());
-  unsigned int largest_winding_idx(index_chunk_from_winding_number(largest_winding));
-  unsigned int smallest_winding_idx(index_chunk_from_winding_number(smallest_winding));
+  unsigned int largest_winding_idx(WindingSelectorChunk::static_chunk_from_winding_number(largest_winding));
+  unsigned int smallest_winding_idx(WindingSelectorChunk::static_chunk_from_winding_number(smallest_winding));
   number_index_chunks = 1 + std::max(largest_winding_idx, smallest_winding_idx);
 }
 
@@ -167,8 +264,8 @@ fill_data(c_array<PainterAttribute> attributes,
           const_c_array<unsigned int> src;
           unsigned int idx;
 
-          idx = index_chunk_from_winding_number(*iter);
-          assert(*iter == winding_number_from_index_chunk(idx));
+          idx = WindingSelectorChunk::static_chunk_from_winding_number(*iter);
+          assert(*iter == WindingSelectorChunk::static_winding_number_from_chunk(idx));
 
           src = p->indices(*iter);
           dst = index_data.sub_array(current, src.size());
@@ -182,39 +279,9 @@ fill_data(c_array<PainterAttribute> attributes,
     }
 }
 
-unsigned int
+fastuidraw::reference_counted_ptr<fastuidraw::WindingSelectorChunkBase>
 fastuidraw::PainterAttributeDataFillerPathFill::
-index_chunk_from_winding_number(int winding_number)
+chunk_selector(void)
 {
-  /* basic idea:
-      - start counting at fill_rule_data_count
-      - ordering is: 1, -1, 2, -2, ...
-   */
-  int value, sg;
-
-  if(winding_number == 0)
-    {
-      return PainterEnums::complement_nonzero_fill_rule;
-    }
-
-  value = std::abs(winding_number);
-  sg = (winding_number < 0) ? 1 : 0;
-  return PainterEnums::fill_rule_data_count + sg + 2 * (value - 1);
-}
-
-int
-fastuidraw::PainterAttributeDataFillerPathFill::
-winding_number_from_index_chunk(unsigned int idx)
-{
-  int abs_winding;
-
-  if(idx == PainterEnums::complement_nonzero_fill_rule)
-    {
-      return 0;
-    }
-
-  assert(idx >= PainterEnums::fill_rule_data_count);
-  idx -= PainterEnums::fill_rule_data_count;
-  abs_winding = 1 + idx / 2;
-  return (idx & 1) ? -abs_winding : abs_winding;
+  return FASTUIDRAWnew WindingSelectorChunk();
 }

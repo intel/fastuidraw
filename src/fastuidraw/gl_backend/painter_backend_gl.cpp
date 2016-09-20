@@ -319,7 +319,8 @@ namespace
       m_assign_layout_to_varyings(false),
       m_assign_binding_points(true),
       m_use_ubo_for_uniforms(false),
-      m_separate_program_for_discard(true)
+      m_separate_program_for_discard(true),
+      m_non_dashed_stroke_shader_uses_discard(false)
     {}
 
     unsigned int m_attributes_per_buffer;
@@ -341,6 +342,7 @@ namespace
     bool m_assign_binding_points;
     bool m_use_ubo_for_uniforms;
     bool m_separate_program_for_discard;
+    bool m_non_dashed_stroke_shader_uses_discard;
   };
 
 }
@@ -939,6 +941,8 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
     }
   #endif
 
+  return_value.non_dashed_stroke_shader_uses_discard(params.non_dashed_stroke_shader_uses_discard());
+
   bool have_dual_src_blending, have_framebuffer_fetch;
 
   #ifdef FASTUIDRAW_GL_USE_GLES
@@ -1042,6 +1046,11 @@ configure_backend(void)
       #endif
     }
   assert(m_params.use_hw_clip_planes() == m_p->configuration_glsl().use_hw_clip_planes());
+
+  /* if have to use discard for clipping, then there is zero point to
+     separate the discarding and non-discarding item shaders.
+  */
+  m_params.separate_program_for_discard(m_params.separate_program_for_discard() && m_params.use_hw_clip_planes());
 
   fastuidraw::gl::ColorStopAtlasGL *color;
   assert(dynamic_cast<fastuidraw::gl::ColorStopAtlasGL*>(m_params.colorstop_atlas().get()));
@@ -1285,6 +1294,16 @@ build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
   fastuidraw::glsl::ShaderSource vert, frag;
   program_ref return_value;
   DiscardItemShaderFilter item_filter(tp);
+  const char *discard_macro;
+
+  if(tp == fastuidraw::gl::PainterBackendGL::program_without_discard)
+    {
+      discard_macro = "fastuidraw_do_nothing()";
+    }
+  else
+    {
+      discard_macro = "discard";
+    }
 
   vert
     .specify_version(m_front_matter_vert.version())
@@ -1296,7 +1315,7 @@ build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
     .specify_extensions(m_front_matter_frag)
     .add_source(m_front_matter_frag);
 
-  m_p->construct_shader(vert, frag, m_uber_shader_builder_params, &item_filter);
+  m_p->construct_shader(vert, frag, m_uber_shader_builder_params, &item_filter, discard_macro);
   return_value = FASTUIDRAWnew fastuidraw::gl::Program(vert, frag,
                                                        m_attribute_binder,
                                                        m_initializer);
@@ -1381,6 +1400,7 @@ setget_implement(bool, assign_layout_to_varyings)
 setget_implement(bool, assign_binding_points)
 setget_implement(bool, use_ubo_for_uniforms)
 setget_implement(bool, separate_program_for_discard)
+setget_implement(bool, non_dashed_stroke_shader_uses_discard)
 
 #undef setget_implement
 

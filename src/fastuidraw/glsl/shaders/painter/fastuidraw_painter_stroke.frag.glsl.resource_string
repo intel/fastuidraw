@@ -38,21 +38,20 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                                            interval_id);
 
       fw = fwidth(fastuidraw_stroking_distance);
+
+      float y, r, qq_yy;
+      r = stroke_params.width * 0.5;
+      y = r * fastuidraw_stroking_on_boundary;
+      qq_yy = q * q + y * y;
       if(dash_style == uint(fastuidraw_stroke_dashed_rounded_caps))
         {
-          float y, r;
-          r = stroke_params.width * 0.5;
-          y = r * fastuidraw_stroking_on_boundary;
-          if(q < r)
+          if(q < fw)
             {
-              float f, sq;
-              sq = sqrt(q * q + y * y);
-              f = r - sq;
-              if(f > q)
-                {
-                  fw *= abs(q) / sq;
-                  q = f;
-                }
+              float sq;
+
+              sq = sqrt(qq_yy);
+              q = r - sq;
+              fw = 0.5 * fwidth(qq_yy) / sq;
             }
         }
       else if(dash_style == uint(fastuidraw_stroke_dashed_square_caps))
@@ -62,6 +61,20 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
       d = max(abs(q), fw);
       alpha = max(0.0, q / d);
+
+      if(render_pass == uint(fastuidraw_stroke_non_aa) && q < 0.0)
+        {
+          FASTUIDRAW_DISCARD;
+        }
+    }
+  #endif
+
+  #ifdef FASTUIDRAW_STROKE_USE_DISCARD
+    {
+      float dd, q;
+      q = 1.0 - fastuidraw_stroking_on_boundary;
+      dd = max(q, fwidth(q));
+      alpha *= q / dd;
 
       /* Rather than discarding on opaque passes, we could
          instead render in a single pass and be Ok with
@@ -82,30 +95,27 @@ fastuidraw_gl_frag_main(in uint sub_shader,
           FASTUIDRAW_DISCARD;
         }
 
-      if(render_pass == uint(fastuidraw_stroke_non_aa) && q < 0.0)
-        {
-          FASTUIDRAW_DISCARD;
-        }
-
       if(render_pass != uint(fastuidraw_stroke_aa_pass))
         {
           alpha = 1.0;
         }
     }
+  #else
+    {
+      if(render_pass == uint(fastuidraw_stroke_aa_pass))
+        {
+          float dd, q;
+
+          q = 1.0 - fastuidraw_stroking_on_boundary;
+          dd = max(q, fwidth(q));
+          alpha *= q / dd;
+        }
+      else
+        {
+          alpha = 1.0;
+        }
+    }
   #endif
-
-  if(render_pass == uint(fastuidraw_stroke_aa_pass))
-    {
-      float dd, q;
-
-      q = 1.0 - fastuidraw_stroking_on_boundary;
-      dd = max(q, fwidth(q));
-      alpha *= q / dd;
-    }
-  else
-    {
-      alpha = 1.0;
-    }
 
   return vec4(1.0, 1.0, 1.0, alpha);
 }

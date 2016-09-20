@@ -20,6 +20,7 @@
 #pragma once
 
 #include <fastuidraw/painter/painter_attribute_data_filler.hpp>
+#include <fastuidraw/painter/painter_fill_shader.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/filled_path.hpp>
 
@@ -84,26 +85,12 @@ namespace fastuidraw
     path(void) const;
 
     /*!
-      Returns the value to feed to index_data_chunk()
-      to get the index data for the fill of a path
-      with a specified winding number.
-      \param winding_number winding number of fill data to fetch
+      Create and return a WindingSelectorChunkBase
+      compatible with PainterAttributeDataFillerPathFill
      */
     static
-    unsigned int
-    index_chunk_from_winding_number(int winding_number);
-
-    /*!
-      Is the inverse of index_chunk_from_winding_number(), i.e.
-      returns the winding number that lives on a given index
-      chunk. It is required that the index fed is not one of
-      PainterEnums::odd_even_fill_rule, PainterEnums::nonzero_fill_rule
-      and PainterEnums::complement_odd_even_fill_rule.
-      \param idx index into PainterAttributeData::index_data_chunk()
-     */
-    static
-    int
-    winding_number_from_index_chunk(unsigned int idx);
+    reference_counted_ptr<WindingSelectorChunkBase>
+    chunk_selector(void);
 
   private:
     void *m_d;
