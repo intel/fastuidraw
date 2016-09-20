@@ -833,7 +833,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_d:
-          cycle_value(m_dash, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), 2 * m_dash_patterns.size() + 1);
+          cycle_value(m_dash, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_dash_patterns.size() + 1);
           if(is_dashed_stroking())
             {
               unsigned int P;
