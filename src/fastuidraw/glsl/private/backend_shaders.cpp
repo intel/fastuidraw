@@ -403,23 +403,24 @@ create_dashed_stroke_shader_set(bool pixel_width_stroking)
   return return_value;
 }
 
-reference_counted_ptr<PainterItemShader>
+PainterFillShader
 ShaderSetCreator::
 create_fill_shader(void)
 {
-  reference_counted_ptr<PainterItemShader> shader;
+  PainterFillShader fill_shader;
   varying_list varyings;
 
   varyings.add_float_varying("fastuidraw_stroking_on_boundary");
-  shader = FASTUIDRAWnew PainterItemShaderGLSL(false,
-                                               ShaderSource()
-                                               .add_source("fastuidraw_painter_fill.vert.glsl.resource_string",
-                                                           ShaderSource::from_resource),
-                                               ShaderSource()
-                                               .add_source("fastuidraw_painter_fill.frag.glsl.resource_string",
-                                                           ShaderSource::from_resource),
-                                               varyings);
-  return shader;
+  fill_shader
+    .item_shader(FASTUIDRAWnew PainterItemShaderGLSL(false,
+                                                     ShaderSource()
+                                                     .add_source("fastuidraw_painter_fill.vert.glsl.resource_string",
+                                                                 ShaderSource::from_resource),
+                                                     ShaderSource()
+                                                     .add_source("fastuidraw_painter_fill.frag.glsl.resource_string",
+                                                                 ShaderSource::from_resource),
+                                                     varyings));;
+  return fill_shader;
 }
 
 PainterShaderSet

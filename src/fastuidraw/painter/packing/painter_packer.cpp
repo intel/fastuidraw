@@ -1102,6 +1102,15 @@ register_shader(const PainterStrokeShader &p)
 
 void
 fastuidraw::PainterPacker::
+register_shader(const PainterFillShader &p)
+{
+  PainterPackerPrivate *d;
+  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d->m_backend->register_shader(p);
+}
+
+void
+fastuidraw::PainterPacker::
 register_shader(const PainterDashedStrokeShaderSet &p)
 {
   PainterPackerPrivate *d;

@@ -333,6 +333,13 @@ register_shader(const PainterStrokeShader &p)
 
 void
 fastuidraw::PainterBackend::
+register_shader(const PainterFillShader &p)
+{
+  register_shader(p.item_shader());
+}
+
+void
+fastuidraw::PainterBackend::
 register_shader(const PainterDashedStrokeShaderSet &p)
 {
   for(int i = 0; i < PainterEnums::number_cap_styles; ++i)

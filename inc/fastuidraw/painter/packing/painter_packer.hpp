@@ -234,6 +234,14 @@ namespace fastuidraw
     register_shader(const PainterStrokeShader &p);
 
     /*!
+      Registers a stroke shader for use. Must not be called within
+      a begin() / end() pair.
+      \param p PainterFillShader hold shaders to register
+     */
+    void
+    register_shader(const PainterFillShader &p);
+
+    /*!
       Registers a dashed stroke shader for use. Must not be called within
       a begin() / end() pair.
       \param p PainterDashedStrokeShaderSet hold shaders to register

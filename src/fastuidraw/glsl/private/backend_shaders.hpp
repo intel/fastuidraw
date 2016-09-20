@@ -103,7 +103,7 @@ public:
                             bool pixel_width_stroking,
                             enum uber_stroke_render_pass_t render_pass_macro);
 
-  reference_counted_ptr<PainterItemShader>
+  PainterFillShader
   create_fill_shader(void);
 
   PainterShaderSet

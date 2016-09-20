@@ -248,6 +248,16 @@ namespace fastuidraw
     register_shader(const PainterStrokeShader &p);
 
     /*!
+      Provided as a conveniance, equivalent to
+      \code
+      register_shader(p.fill_shader());
+      \endcode
+      \param p PainterFillShader hold shaders to register
+     */
+    void
+    register_shader(const PainterFillShader &sh);
+
+    /*!
       Provided as a conveniance, equivalent to calling
       register_shader(const PainterStrokeShader&) on each
       PainterDashedStrokeShaderSet::shader(enum PainterEnums::dashed_cap_style) const.
