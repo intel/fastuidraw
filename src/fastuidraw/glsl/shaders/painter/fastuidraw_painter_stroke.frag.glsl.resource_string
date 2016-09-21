@@ -12,10 +12,10 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   alpha = 1.0;
 
   #ifdef FASTUIDRAW_STROKE_DASHED
-  if((fastuidraw_stroking_packed_data & uint(fastuidraw_stroke_skip_dash_computation_mask)) == 0u)
+  if((fastuidraw_stroking_packed_data & uint(fastuidraw_stroke_join_mask)) == 0u)
     {
       float d, q, fw;
-      uint interval_id, dash_pattern_at, dash_style;
+      uint dash_pattern_at, dash_style;
       fastuidraw_dashed_stroking_params_header stroke_params;
 
       dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
@@ -31,11 +31,20 @@ fastuidraw_gl_frag_main(in uint sub_shader,
        */
       fastuidraw_read_dashed_stroking_params_header(shader_data_offset, stroke_params);
 
-      q = fastuidraw_compute_dash_interval(dash_pattern_at,
-                                           stroke_params.total_length,
-                                           stroke_params.first_interval_start,
-                                           fastuidraw_stroking_distance,
-                                           interval_id);
+      if((fastuidraw_stroking_packed_data & uint(fastuidraw_stroke_cap_join_mask)) != 0u)
+        {
+          q = fastuidraw_stroking_distance_from_edge_start;
+        }
+      else
+        {
+          q = fastuidraw_compute_dash_interval(dash_pattern_at,
+                                               stroke_params.total_length,
+                                               stroke_params.first_interval_start,
+                                               fastuidraw_stroking_distance,
+                                               fastuidraw_stroking_distance_from_edge_start,
+                                               fastuidraw_stroking_distance_to_end_of_edge,
+                                               stroke_params.width);
+        }
 
       fw = fwidth(fastuidraw_stroking_distance);
 
@@ -45,7 +54,14 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       qq_yy = q * q + y * y;
       if(dash_style == uint(fastuidraw_stroke_dashed_rounded_caps))
         {
-          if(q < fw)
+          /* fw represents the tolerance of a pixel. The expected
+             condition is if(q < 0.0), but that gives black-line
+             render issue on the boundary between the cap and the
+             dash-pattern boundary. By relaxing the condition by
+             (essentially) 1-pixel, we can avoid that rendering
+             issue.
+           */
+          if(q < fw && q > -fw - r)
             {
               float sq;
 

@@ -51,11 +51,13 @@ namespace fastuidraw
                     use to compute the return value
       \param[out] out_interval interval to which input point belongs
       \param[out] distance distance value within out_interval
+      \param[out] inntervalID ID of out_interval
      */
     virtual
     bool
     compute_dash_interval(const PainterShaderData::DataBase *data,
                           const PainterAttribute &attrib,
+                          int &intervalID,
                           range_type<float> &out_interval,
                           float &distance) const = 0;
 
@@ -73,6 +75,7 @@ namespace fastuidraw
     void
     adjust_cap_joins(const PainterShaderData::DataBase *data,
                      c_array<PainterAttribute> attribs,
+                     int intervalID,
                      range_type<float> out_interval,
                      float distance) const = 0;
   };

@@ -339,6 +339,8 @@ namespace
     std::vector<fastuidraw::PainterIndex> m_indices;
     std::vector<fastuidraw::PainterAttribute> m_attribs;
     std::vector<std::vector<fastuidraw::PainterAttribute> > m_cap_join_attribs;
+    std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_stroke_helper_attrib_chunks;
+    std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_stroke_helper_index_chunks;
   };
 
   class AtrribIndex
@@ -879,13 +881,14 @@ stroke_path_helper(const StrokingData &str,
   unsigned int startz, zinc_sum(0), num_joins;
   bool modify_z;
   const reference_counted_ptr<PainterItemShader> *sh;
-  std::vector<const_c_array<PainterAttribute> > vattrib_chunks(str.m_joins.size() + 2);
-  std::vector<const_c_array<PainterIndex> > vindex_chunks(str.m_joins.size() + 2);
   c_array<const_c_array<PainterAttribute> > attrib_chunks;
   c_array<const_c_array<PainterIndex> > index_chunks;
 
-  attrib_chunks = make_c_array(vattrib_chunks);
-  index_chunks = make_c_array(vindex_chunks);
+  m_work_room.m_stroke_helper_attrib_chunks.resize(str.m_joins.size() + 2);
+  m_work_room.m_stroke_helper_index_chunks.resize(str.m_joins.size() + 2);
+
+  attrib_chunks = make_c_array(m_work_room.m_stroke_helper_attrib_chunks);
+  index_chunks = make_c_array(m_work_room.m_stroke_helper_index_chunks);
 
   num_joins = str.m_joins.size();
   for(unsigned int J = 0; J < num_joins; ++J)
@@ -1317,10 +1320,12 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
         {
           float dist;
           range_type<float> dash_interval;
+          int intervalID;
           const_c_array<PainterAttribute> atr(pdata.attribute_data_chunk(chunk));
           assert(!atr.empty());
 
-          if(shader.dash_evaluator()->compute_dash_interval(raw_data, atr[0], dash_interval, dist))
+          if(shader.dash_evaluator()->compute_dash_interval(raw_data, atr[0], intervalID,
+                                                            dash_interval, dist))
             {
               str.m_joins.push_back(AtrribIndex());
               str.m_joins.back().m_attribs = atr;
@@ -1342,7 +1347,8 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
                   d->m_work_room.m_cap_join_attribs[J].resize(atr.size());
                   cap_join_attribs = make_c_array(d->m_work_room.m_cap_join_attribs[J]);
                   std::copy(atr.begin(), atr.end(), cap_join_attribs.begin());
-                  shader.dash_evaluator()->adjust_cap_joins(raw_data, cap_join_attribs, dash_interval, dist);
+                  shader.dash_evaluator()->adjust_cap_joins(raw_data, cap_join_attribs,
+                                                            intervalID, dash_interval, dist);
                   str.m_joins.push_back(AtrribIndex());
                   str.m_joins.back().m_attribs = cap_join_attribs;
                   str.m_joins.back().m_indices = idx;

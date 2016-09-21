@@ -3,14 +3,19 @@ FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
                                in float total_distance,
                                in float first_interval_start,
                                in float in_distance,
-                               out uint interval_id)
+                               in float distance_from_edge_start,
+                               in float distance_to_end_of_edge,
+                               in float stroke_width)
 {
-  float d, lastd, r;
-  uint i, loc;
+  float d, lastd, r, ff;
+  uint loc;
+
+#define HELPER_MACRO(b0, b1)                                            \
+  FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in_distance, distance_from_edge_start, distance_to_end_of_edge, b0 + ff, b1 + ff, stroke_width)
 
   r = 0.0;
-  d = mod(in_distance, total_distance);
-  i = uint(0);
+  ff = total_distance * floor(in_distance / total_distance);
+  d = in_distance - ff;
   loc = dashed_stroking_data_location;
   lastd = first_interval_start;
 
@@ -30,8 +35,7 @@ FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
 
       if(d < fV.x)
         {
-          interval_id = i;
-          r = min(fV.x - d, d - lastd);
+          r = HELPER_MACRO(lastd, fV.x);
 
           //break out
           return r;
@@ -39,14 +43,13 @@ FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
         }
       else if(d < fV.y)
         {
-          interval_id = i + uint(1);
-          r = -min(fV.y - d, d - fV.x);
+          r = -HELPER_MACRO(fV.x, fV.y);
 
           //break out
           return r;
           lastd = 2.0 * total_distance + 1.0;
         }
-      i += uint(2);
+
       lastd = fV.y;
       ++loc;
     }
@@ -54,3 +57,5 @@ FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
 
   return r;
 }
+
+#undef HELPER_MACRO

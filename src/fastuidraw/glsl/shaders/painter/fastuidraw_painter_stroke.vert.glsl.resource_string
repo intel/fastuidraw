@@ -251,6 +251,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   vec2 p;
   vec2 position, pre_offset, auxilary_offset, offset;
   float distance_from_edge_start, distance_from_contour_start;
+  float total_edge_length, total_open_contour_length, total_closed_contour_length;
   float miter_distance, stroke_radius;
   fastuidraw_stroking_params stroke_params;
   int on_boundary, offset_type;
@@ -261,6 +262,9 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   auxilary_offset = secondary_attrib.zw;
   distance_from_edge_start = secondary_attrib.x;
   distance_from_contour_start = secondary_attrib.y;
+  total_edge_length = uintBitsToFloat(uint_attrib.y);
+  total_open_contour_length = uintBitsToFloat(uint_attrib.z);
+  total_closed_contour_length = uintBitsToFloat(uint_attrib.w);
   point_packed_data = uint_attrib.x;
   offset_type = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_offset_type_bit0,
                                             fastuidraw_stroke_offset_type_num_bits,
@@ -278,6 +282,8 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       stroke_params.miter_limit = H.miter_limit;
       fastuidraw_stroking_packed_data = point_packed_data;
       fastuidraw_stroking_distance = distance_from_contour_start + H.dash_offset;
+      fastuidraw_stroking_distance_to_end_of_edge = total_edge_length - distance_from_edge_start;
+      fastuidraw_stroking_distance_from_edge_start = distance_from_edge_start;
     }
   #else
     {

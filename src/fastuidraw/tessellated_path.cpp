@@ -59,7 +59,7 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
       for(unsigned int loc = 0, o = 0, endo = input.number_contours(); o < endo; ++o)
         {
           fastuidraw::reference_counted_ptr<const fastuidraw::PathContour> contour(input.contour(o));
-          float contour_length(0.0f), open_contour_length, closed_contour_length;
+          float contour_length(0.0f), open_contour_length(0.0f), closed_contour_length(0.0f);
           std::list<std::vector<fastuidraw::TessellatedPath::point> >::iterator start_contour;
 
           m_edge_ranges[o].resize(contour->number_points());
