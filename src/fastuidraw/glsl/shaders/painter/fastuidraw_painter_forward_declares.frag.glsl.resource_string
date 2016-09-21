@@ -49,4 +49,5 @@ fastuidraw_compute_dash_interval(in uint dashed_stroking_data_location,
                                  in float total_distance,
                                  in float first_interval_start,
                                  in float distance,
+                                 in float distance_from_edge_start,
                                  in float distance_to_end_of_edge);

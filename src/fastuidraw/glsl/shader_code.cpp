@@ -247,6 +247,7 @@ dashed_stroking_compute(const char *function_name,
 
   return_value
     .add_macro("FASTUIDRAW_COMPUTE_DASH_STROKE", function_name)
+    .add_source("fastuidraw_compute_dash_stroke_helper.glsl.resource_string", glsl::ShaderSource::from_resource)
     .add_source(src[data_alignment - 1], glsl::ShaderSource::from_resource)
     .remove_macro("FASTUIDRAW_COMPUTE_DASH_STROKE");
   return return_value;

@@ -1,0 +1,21 @@
+float
+FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in float distance,
+                                      in float distance_from_edge_start,
+                                      in float distance_to_end,
+                                      in float boundary0,
+                                      in float boundary1,
+                                      in float total_distance)
+{
+  float r, d0, d1;
+
+  r = total_distance;
+  d0 = distance - boundary0;
+  d1 = boundary1 - distance;
+  r = (d0 <= distance_from_edge_start) ?
+    min(d0, r) :
+    r;
+
+  return (d1 <= distance_to_end) ?
+    min(r, d1) :
+    r;
+}

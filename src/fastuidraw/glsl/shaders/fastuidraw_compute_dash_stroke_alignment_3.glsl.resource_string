@@ -1,26 +1,16 @@
 float
-FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in float distance,
-                                      in float distance_to_end,
-                                      in float boundary0,
-                                      in float boundary1)
-{
-  float d0, d1;
-  d0 = distance - boundary0;
-  d1 = boundary1 - distance;
-  return (d1 <= distance_to_end) ?
-    min(d0, d1) :
-    d0;
-}
-
-float
 FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
                                in float total_distance,
                                in float first_interval_start,
                                in float in_distance,
+                               in float distance_from_edge_start,
                                in float distance_to_end_of_edge)
 {
   float d, lastd, r, ff, s;
   uint loc;
+
+#define HELPER_MACRO(b0, b1)                                            \
+  FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in_distance, distance_from_edge_start, distance_to_end_of_edge, b0 + ff, b1 + ff, total_distance)
 
   r = 0.0;
   s = 1.0;
@@ -45,7 +35,7 @@ FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
 
       if(d < fV.x)
         {
-          r = s * FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in_distance, distance_to_end_of_edge, lastd + ff, fV.x + ff);
+          r = s * HELPER_MACRO(lastd, fV.x);
 
           //break out
           return r;
@@ -53,7 +43,7 @@ FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
         }
       else if(d < fV.y)
         {
-          r = -s * FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in_distance, distance_to_end_of_edge, fV.x + ff, fV.y + ff);
+          r = -s * HELPER_MACRO(fV.x, fV.y);
 
           //break out
           return r;
@@ -61,7 +51,7 @@ FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
         }
       else if(d < fV.z)
         {
-          r = s * FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in_distance, distance_to_end_of_edge, fV.y + ff, fV.z + ff);
+          r = s * HELPER_MACRO(fV.y, fV.z);
 
           //break out
           return r;

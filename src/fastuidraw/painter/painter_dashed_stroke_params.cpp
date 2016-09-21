@@ -232,7 +232,7 @@ adjust_cap_joins(const fastuidraw::PainterShaderData::DataBase *data,
           float q, startq;
           startq = interval.m_end - r;
           q = std::max(0.0f, distance - startq);
-          repack_position_and_packed_data(attribs[i], q);
+          repack_position_and_packed_data(attribs[i], -q);
         }
       attribs[i].m_attrib2.x() |= (1u << 31u);
     }
