@@ -47,9 +47,12 @@ namespace
     {
       bool b;
       int r;
+
       b = static_winding_number_from_chunk(chunk, r);
       assert(b);
+      FASTUIDRAWunused(b);
       assert(static_chunk_from_winding_number(r) == chunk);
+
       return r;
     }
 

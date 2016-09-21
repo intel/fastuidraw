@@ -43,7 +43,8 @@ int glu_fastuidraw_gl_memInit( size_t maxFast )
   mallopt( M_DEBUG, 1 );
 #endif
 #endif
-   return 1;
+  (void)maxFast;
+  return 1;
 }
 
 #ifdef MEMORY_DEBUG

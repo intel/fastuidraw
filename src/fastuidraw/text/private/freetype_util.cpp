@@ -685,20 +685,6 @@ namespace
   }
 
 
-  float
-  compute_distance_sign(const vec2 &texel_pt,
-                        const vec2 &curve_pt,
-                        const vec2 &curve_deriv)
-  {
-    vec2 delta(texel_pt-curve_pt);
-    vec2 normal_vector(curve_deriv.y(), -curve_deriv.x());
-    float d;
-
-    d=dot(delta, normal_vector);
-    return (d>0.0f)?1.0f:-1.0f;
-  }
-
-
   int
   compute_tag_value(const vec2 &prev, const vec2 &next)
   {
@@ -1132,7 +1118,7 @@ namespace detail
             where Z = 2*q(3/4) - q(1/2)/2 - c/2
            */
 
-          ivec2 a, b, c;
+          ivec2 a(0, 0), b, c;
           ivec2 Y, Z, q12;
           ivec2 four_q12;
           ivec2 sixteen_q14, sixteen_q12, sixteen_q34;
