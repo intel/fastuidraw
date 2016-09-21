@@ -4,13 +4,15 @@ FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
                                in float first_interval_start,
                                in float in_distance,
                                in float distance_from_edge_start,
-                               in float distance_to_end_of_edge)
+                               in float distance_to_end_of_edge,
+                               in float stroke_width)
 {
   float d, lastd, r, ff;
   uint loc;
+  bool happy;
 
-#define HELPER_MACRO(b0, b1) \
-  FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in_distance, distance_from_edge_start, distance_to_end_of_edge, b0 + ff, b1 + ff, total_distance)
+#define HELPER_MACRO(b0, b1)                                            \
+  FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in_distance, distance_from_edge_start, distance_to_end_of_edge, b0 + ff, b1 + ff, stroke_width)
 
   r = 0.0;
   ff = total_distance * floor(in_distance / total_distance);

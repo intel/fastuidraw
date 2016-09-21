@@ -100,6 +100,14 @@ namespace fastuidraw
     reference_counted_ptr<StrokingChunkSelectorBase>
     chunk_selector(void);
 
+    static
+    StrokedPath::point
+    unpack_point(const PainterAttribute &attrib);
+
+    static
+    PainterAttribute
+    pack_point(const StrokedPath::point &pt);
+
   private:
     void *m_d;
   };
