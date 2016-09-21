@@ -1,18 +1,32 @@
 float
+FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in float distance,
+                                      in float distance_to_end,
+                                      in float boundary0,
+                                      in float boundary1)
+{
+  float d0, d1;
+  d0 = distance - boundary0;
+  d1 = boundary1 - distance;
+  return (d1 <= distance_to_end) ?
+    min(d0, d1) :
+    d0;
+}
+
+float
 FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
                                in float total_distance,
                                in float first_interval_start,
                                in float in_distance,
-                               out uint interval_id)
+                               in float distance_to_end_of_edge)
 {
-  float d, lastd, r, s;
-  uint i, loc;
+  float d, lastd, r, ff, s;
+  uint loc;
 
   r = 0.0;
-  d = mod(in_distance, total_distance);
-  i = uint(0);
-  loc = dashed_stroking_data_location;
   s = 1.0;
+  ff = total_distance * floor(in_distance / total_distance);
+  d = in_distance - ff;
+  loc = dashed_stroking_data_location;
   lastd = first_interval_start;
 
   /* Data is packed quite trivially, where the values are just
@@ -31,8 +45,7 @@ FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
 
       if(d < fV.x)
         {
-          interval_id = i;
-          r = s * min(fV.x - d, d - lastd);
+          r = s * FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in_distance, distance_to_end_of_edge, lastd + ff, fV.x + ff);
 
           //break out
           return r;
@@ -40,8 +53,7 @@ FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
         }
       else if(d < fV.y)
         {
-          interval_id = i + uint(1);
-          r = -s * min(fV.y - d, d - fV.x);
+          r = -s * FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in_distance, distance_to_end_of_edge, fV.x + ff, fV.y + ff);
 
           //break out
           return r;
@@ -49,8 +61,7 @@ FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
         }
       else if(d < fV.z)
         {
-          interval_id = i + uint(2);
-          r = s * min(fV.z - d, d - fV.y);
+          r = s * FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in_distance, distance_to_end_of_edge, fV.y + ff, fV.z + ff);
 
           //break out
           return r;
@@ -58,7 +69,6 @@ FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
         }
 
       s = -s;
-      i += uint(3);
       lastd = fV.z;
       ++loc;
     }

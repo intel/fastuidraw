@@ -1,17 +1,31 @@
 float
+FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in float distance,
+                                      in float distance_to_end,
+                                      in float boundary0,
+                                      in float boundary1)
+{
+  float d0, d1;
+  d0 = distance - boundary0;
+  d1 = boundary1 - distance;
+  return (d1 <= distance_to_end) ?
+    min(d0, d1) :
+    d0;
+}
+
+float
 FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
                                in float total_distance,
                                in float first_interval_start,
                                in float in_distance,
-                               out uint interval_id)
+                               in float distance_to_end_of_edge)
 {
-  float d, lastd, r, s;
-  uint i, loc;
+  float d, lastd, r, ff, s;
+  uint loc;
 
-  s = 1.0;
   r = 0.0;
-  d = mod(in_distance, total_distance);
-  i = uint(0);
+  s = 1.0;
+  ff = total_distance * floor(in_distance / total_distance);
+  d = in_distance - ff;
   loc = dashed_stroking_data_location;
   lastd = first_interval_start;
 
@@ -28,17 +42,16 @@ FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
 
       V = fastuidraw_fetch_data(loc).x;
       fV = uintBitsToFloat(V);
+
       if(d < fV)
         {
-          interval_id = i;
-          r = s * min(fV - d, d - lastd);
+          r = s * FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in_distance, distance_to_end_of_edge, lastd + ff, fV + ff);
 
           //break out
           return r;
           lastd = 2.0 * total_distance + 1.0;
         }
 
-      ++i;
       s = -s;
       lastd = fV;
       ++loc;
