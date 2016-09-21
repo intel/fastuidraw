@@ -73,3 +73,5 @@ FASTUIDRAW_COMPUTE_DASH_STROKE(in uint dashed_stroking_data_location,
 
   return r;
 }
+
+#undef HELPER_MACRO

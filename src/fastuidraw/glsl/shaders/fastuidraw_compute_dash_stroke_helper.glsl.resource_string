@@ -1,13 +1,27 @@
 float
 FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in float distance,
                                       in float distance_from_edge_start,
-                                      in float distance_to_end,
+                                      in float distance_to_edge_end,
                                       in float boundary0,
                                       in float boundary1,
                                       in float stroke_width)
 {
   float r, d0, d1;
-
+  /* Compute the distance to the nearest boundary;
+     we need the distance value for two reasons:
+      - compute anti-alias coverage
+      - draw caps induced from dashing.
+     For the latter, we only care about those
+     boundary points of the dash pattern that
+     are within the edge. We initialize r as
+     stroke_width because, if the nearest boundary
+     is off the edge, then letting r be stroke_width
+     marks as the boundary as so far away to not help
+     draw a cap when we are in a skip interval. If
+     we are in a draw interval of the dash pattern,
+     then since the boundary is so far away, we make
+     the distance "large" to be solidly non-opaque.
+   */
   r = stroke_width;
   d0 = distance - boundary0;
   d1 = boundary1 - distance;
@@ -16,7 +30,7 @@ FASTUIDRAW_COMPUTE_DASH_STROKE_HELPER(in float distance,
     min(d0, r) :
     r;
 
-  return (d1 <= distance_to_end) ?
+  return (d1 <= distance_to_edge_end) ?
     min(r, d1) :
     r;
 }
