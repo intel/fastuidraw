@@ -67,6 +67,12 @@ namespace
                      fastuidraw::range_type<float> out_interval,
                      float distance,
                      const fastuidraw::float3x3 &item_matrix) const;
+
+    virtual
+    void
+    adjust_caps(const fastuidraw::PainterShaderData::DataBase *data,
+                fastuidraw::c_array<fastuidraw::PainterAttribute> attribs,
+                const fastuidraw::float3x3 &item_matrix) const;
   };
 }
 //////////////////////////////////////
@@ -257,6 +263,32 @@ adjust_cap_joins(const fastuidraw::PainterShaderData::DataBase *data,
       point.m_packed_data |= fastuidraw::StrokedPath::offset_shared_with_edge;
       point.m_packed_data |= fastuidraw::StrokedPath::cap_join_ending_mask;
 
+      attribs[i] = fastuidraw::PainterAttributeDataFillerPathStroked::pack_point(point);
+    }
+}
+
+void
+DashEvaluator::
+adjust_caps(const fastuidraw::PainterShaderData::DataBase *data,
+            fastuidraw::c_array<fastuidraw::PainterAttribute> attribs,
+            const fastuidraw::float3x3 &item_matrix) const
+{
+  const PainterDashedStrokeParamsData *d;
+  assert(dynamic_cast<const PainterDashedStrokeParamsData*>(data) != NULL);
+  d = static_cast<const PainterDashedStrokeParamsData*>(data);
+  float r(d->m_width * 0.5f);
+
+  FASTUIDRAWunused(item_matrix);
+  for(unsigned int i = 0; i < attribs.size(); ++i)
+    {
+      fastuidraw::StrokedPath::point point;
+
+      point = fastuidraw::PainterAttributeDataFillerPathStroked::unpack_point(attribs[i]);
+      /* TODO: adjust just as we do for cap-joins; for now we make the
+         adjutable caps degenerate by leaving the positions as is.
+       */
+      point.m_packed_data &= ~(fastuidraw::StrokedPath::offset_type_mask);
+      point.m_packed_data |= fastuidraw::StrokedPath::offset_shared_with_edge;
       attribs[i] = fastuidraw::PainterAttributeDataFillerPathStroked::pack_point(point);
     }
 }

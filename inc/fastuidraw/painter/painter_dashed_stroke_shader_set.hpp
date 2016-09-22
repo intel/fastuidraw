@@ -81,6 +81,23 @@ namespace fastuidraw
                      range_type<float> out_interval,
                      float distance,
                      const float3x3 &item_matrix) const = 0;
+    /*!
+      To be implemented by derived class to adjust attributes
+      coming from adjustable caps of starts and endings of
+      contours.
+      \param data PainterItemShaderData::DataBase object holding the data to
+                  be sent to the shader
+      \param [inout] attribs attributes to adjust
+      \param item_matrix transformation from local item coordinates
+                         to 3D API clip coordinates (i.e. the value of
+                         PainterItemMatrix::m_item_matrix of
+                         Painter::transformation(void) const.
+     */
+    virtual
+    void
+    adjust_caps(const PainterShaderData::DataBase *data,
+                c_array<PainterAttribute> attribs,
+                const float3x3 &item_matrix) const = 0;
   };
 
   /*!
