@@ -94,26 +94,32 @@ public:
       offset_square_cap,
 
       /*!
-        The point is for a boundary point of a sqaure-cap join point.
-        These points are for dashed stroking with caps when the point
-        of the join is NOT covered by the dash pattern. They represent
-        a square cap at the start or end of an edge. Unlike the type
-        offset_square_cap, the data sent down the pipeline is to
-        be modified from the starting value so that the just enough
-        of the cap is drawn to "catch" all of a cap that come just
-        before or after the join.
+        The point is from either from \ref cap_join_point_set or
+        \ref cap_adjustable_point_set point sets. In either case,
+        it is for a point for a cap entering the join (or equivalently,
+        at the end of a contour). These points are for dashed stroking
+        with caps when the point of the join is NOT covered by the
+        dash pattern or to correctly adjust a cap data at the start
+        or end of a contour. Unlike other offset_type_t values, the
+        data sent down the pipeline is to be modified from the starting
+        value so that the just enough of the cap is drawn to "catch"
+        all of a cap from a dash pattern and/or end or begining of
+        a contour.
        */
       offset_cap_entering_join,
 
       /*!
-        The point is for a boundary point of a sqaure-cap join point.
-        These points are for dashed stroking with caps when the point
-        of the join is NOT covered by the dash pattern. They represent
-        a square cap at the start or end of an edge. Unlike the type
-        offset_square_cap, the data sent down the pipeline is to
-        be modified from the starting value so that the just enough
-        of the cap is drawn to "catch" all of a cap that come just
-        before or after the join.
+        The point is from either from \ref cap_join_point_set or
+        \ref cap_adjustable_point_set point sets. In either case,
+        it is for a point for a cap leacing the join (or equivalently,
+        at the start of a contour). These points are for dashed stroking
+        with caps when the point of the join is NOT covered by the
+        dash pattern or to correctly adjust a cap data at the start
+        or end of a contour. Unlike other offset_type_t values, the
+        data sent down the pipeline is to be modified from the starting
+        value so that the just enough of the cap is drawn to "catch"
+        all of a cap from a dash pattern and/or end or begining of
+        a contour.
        */
       offset_cap_leaving_join,
 
@@ -162,6 +168,13 @@ public:
         Select the set of points for cap joins
        */
       cap_join_point_set,
+
+      /*!
+        Select the set of points for caps that are
+        tagged with \ref offset_cap_entering_join
+        and \ref offset_cap_leaving_join
+       */
+      adjustable_cap_point_set,
 
       /*!
         Number point set types
@@ -223,9 +236,12 @@ public:
 
       /*!
         Bit is only up for those points coming from
-        cap-joins. The bit is up if the point is for
-        end of cap-join (i.e. the side to be extended
-        to make sure cap near end of edge is drawn).
+        those points with offset_type() either \ref
+        offset_cap_entering_join or \ref
+        offset_cap_leaving_join. The bit is up if the
+        point is for end of point (i.e. the side to
+        be extended to make sure the entire cap near
+        the end of edge is drawn).
        */
       cap_join_ending_bit = join_bit + 1,
 
