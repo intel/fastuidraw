@@ -1320,12 +1320,10 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
         {
           float dist;
           range_type<float> dash_interval;
-          int intervalID;
           const_c_array<PainterAttribute> atr(pdata.attribute_data_chunk(chunk));
           assert(!atr.empty());
 
-          if(shader.dash_evaluator()->compute_dash_interval(raw_data, atr[0], intervalID,
-                                                            dash_interval, dist))
+          if(shader.dash_evaluator()->compute_dash_interval(raw_data, atr[0], dash_interval, dist))
             {
               str.m_joins.push_back(AtrribIndex());
               str.m_joins.back().m_attribs = atr;
@@ -1348,7 +1346,8 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
                   cap_join_attribs = make_c_array(d->m_work_room.m_cap_join_attribs[J]);
                   std::copy(atr.begin(), atr.end(), cap_join_attribs.begin());
                   shader.dash_evaluator()->adjust_cap_joins(raw_data, cap_join_attribs,
-                                                            intervalID, dash_interval, dist);
+                                                            dash_interval, dist,
+                                                            d->m_current_item_matrix.m_item_matrix);
                   str.m_joins.push_back(AtrribIndex());
                   str.m_joins.back().m_attribs = cap_join_attribs;
                   str.m_joins.back().m_indices = idx;
@@ -1582,6 +1581,15 @@ concat(const float3x3 &tr)
       d->m_clip_rect_state.m_clip_rect.translate(vec2(-tr(0, 2), -tr(1, 2)));
       d->m_clip_rect_state.m_clip_rect.shear(1.0f / tr(0,0), 1.0f / tr(1,1));
     }
+}
+
+const fastuidraw::PainterItemMatrix&
+fastuidraw::Painter::
+transformation(void)
+{
+  PainterPrivate *d;
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  return d->m_current_item_matrix;
 }
 
 void

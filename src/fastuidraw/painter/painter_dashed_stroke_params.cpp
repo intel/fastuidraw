@@ -58,16 +58,15 @@ namespace
     bool
     compute_dash_interval(const fastuidraw::PainterShaderData::DataBase *data,
                           const fastuidraw::PainterAttribute &attrib,
-                          int &intervalID,
                           fastuidraw::range_type<float> &out_interval,
                           float &distance) const;
     virtual
     void
     adjust_cap_joins(const fastuidraw::PainterShaderData::DataBase *data,
                      fastuidraw::c_array<fastuidraw::PainterAttribute> attribs,
-                     int intervalID,
                      fastuidraw::range_type<float> out_interval,
-                     float distance) const;
+                     float distance,
+                     const fastuidraw::float3x3 &item_matrix) const;
   };
 }
 //////////////////////////////////////
@@ -139,7 +138,6 @@ bool
 DashEvaluator::
 compute_dash_interval(const fastuidraw::PainterShaderData::DataBase *data,
                       const fastuidraw::PainterAttribute &attrib,
-                      int &intervalID,
                       fastuidraw::range_type<float> &out_interval,
                       float &distance) const
 {
@@ -151,7 +149,6 @@ compute_dash_interval(const fastuidraw::PainterShaderData::DataBase *data,
     {
       out_interval.m_begin = out_interval.m_end = 0.0f;
       distance = 0.0f;
-      intervalID = -1;
       return false;
     }
 
@@ -180,7 +177,6 @@ compute_dash_interval(const fastuidraw::PainterShaderData::DataBase *data,
         {
           out_interval.m_begin += iq;
           out_interval.m_end = out_interval.m_begin + draw;
-          intervalID = 2 * i;
           return true;
         }
 
@@ -190,14 +186,12 @@ compute_dash_interval(const fastuidraw::PainterShaderData::DataBase *data,
         {
           out_interval.m_begin += iq;
           out_interval.m_end = out_interval.m_begin + skip;
-          intervalID = 2 * i + 1;
           return false;
         }
       out_interval.m_begin += skip;
     }
 
   out_interval.m_end = out_interval.m_begin;
-  intervalID = 2 * d->m_dash_pattern.size();
   return false;
 }
 
@@ -205,22 +199,16 @@ void
 DashEvaluator::
 adjust_cap_joins(const fastuidraw::PainterShaderData::DataBase *data,
                  fastuidraw::c_array<fastuidraw::PainterAttribute> attribs,
-                 int intervalID,
                  fastuidraw::range_type<float> interval,
-                 float distance) const
+                 float distance,
+                 const fastuidraw::float3x3 &item_matrix) const
 {
   const PainterDashedStrokeParamsData *d;
   assert(dynamic_cast<const PainterDashedStrokeParamsData*>(data) != NULL);
   d = static_cast<const PainterDashedStrokeParamsData*>(data);
   float r(d->m_width * 0.5f);
-  int endIntervalID;
 
-  endIntervalID = 2 * d->m_dash_pattern.size();
-  if(intervalID < 0 || intervalID >= endIntervalID)
-    {
-      return;
-    }
-
+  FASTUIDRAWunused(item_matrix);
   for(unsigned int i = 0; i < attribs.size(); ++i)
     {
       fastuidraw::StrokedPath::point point;
