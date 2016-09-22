@@ -20,6 +20,7 @@
 #pragma once
 
 #include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/painter/painter_attribute.hpp>
 #include <fastuidraw/painter/painter_stroke_shader.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
@@ -51,13 +52,11 @@ namespace fastuidraw
                     use to compute the return value
       \param[out] out_interval interval to which input point belongs
       \param[out] distance distance value within out_interval
-      \param[out] inntervalID ID of out_interval
      */
     virtual
     bool
     compute_dash_interval(const PainterShaderData::DataBase *data,
                           const PainterAttribute &attrib,
-                          int &intervalID,
                           range_type<float> &out_interval,
                           float &distance) const = 0;
 
@@ -70,14 +69,35 @@ namespace fastuidraw
       \param [inout] attribs attributes to adjust
       \param out_interval out_interval value as returned by compute_dash_interval()
       \param distance distance as returned by compute_dash_interval()
+      \param item_matrix transformation from local item coordinates
+                         to 3D API clip coordinates (i.e. the value of
+                         PainterItemMatrix::m_item_matrix of
+                         Painter::transformation(void) const.
      */
     virtual
     void
     adjust_cap_joins(const PainterShaderData::DataBase *data,
                      c_array<PainterAttribute> attribs,
-                     int intervalID,
                      range_type<float> out_interval,
-                     float distance) const = 0;
+                     float distance,
+                     const float3x3 &item_matrix) const = 0;
+    /*!
+      To be implemented by derived class to adjust attributes
+      coming from adjustable caps of starts and endings of
+      contours.
+      \param data PainterItemShaderData::DataBase object holding the data to
+                  be sent to the shader
+      \param [inout] attribs attributes to adjust
+      \param item_matrix transformation from local item coordinates
+                         to 3D API clip coordinates (i.e. the value of
+                         PainterItemMatrix::m_item_matrix of
+                         Painter::transformation(void) const.
+     */
+    virtual
+    void
+    adjust_caps(const PainterShaderData::DataBase *data,
+                c_array<PainterAttribute> attribs,
+                const float3x3 &item_matrix) const = 0;
   };
 
   /*!

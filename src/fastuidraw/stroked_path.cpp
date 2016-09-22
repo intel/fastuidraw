@@ -43,6 +43,7 @@ namespace
     {
       rounded_cap = 0,
       square_cap,
+      adjustable_cap,
 
       cap_type_count
     };
@@ -429,6 +430,17 @@ namespace
     CapJoinCreator(const fastuidraw::TessellatedPath &P,
                    const EdgeDataCreator &e);
 
+    static
+    void
+    pack_fan(bool leaving_join,
+             const fastuidraw::TessellatedPath::point &edge_pt,
+             const fastuidraw::vec2 &stroking_normal,
+             fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
+             unsigned int &vertex_offset,
+             fastuidraw::c_array<unsigned int> indices,
+             unsigned int &index_offset);
+
+
   private:
 
     virtual
@@ -453,14 +465,6 @@ namespace
                         fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
                         fastuidraw::c_array<unsigned int> indices,
                         unsigned int &vertex_offset, unsigned int &index_offset);
-    void
-    pack_fan(bool leaving_join,
-             const fastuidraw::TessellatedPath::point &edge_pt,
-             const fastuidraw::vec2 &stroking_normal,
-             fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
-             unsigned int &vertex_offset,
-             fastuidraw::c_array<unsigned int> indices,
-             unsigned int &index_offset);
 
     std::vector<fastuidraw::vec2> m_n0, m_n1;
   };
@@ -570,6 +574,29 @@ namespace
   {
   public:
     SquareCapCreator(const fastuidraw::TessellatedPath &P):
+      CapCreatorBase(P, compute_size(P))
+    {
+    }
+
+  private:
+
+    PointIndexCapSize
+    compute_size(const fastuidraw::TessellatedPath &P);
+
+    void
+    add_cap(const fastuidraw::vec2 &normal_from_stroking,
+            bool is_starting_cap,
+            const fastuidraw::TessellatedPath::point &p0,
+            fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
+            fastuidraw::c_array<unsigned int> indices,
+            unsigned int &vertex_offset,
+            unsigned int &index_offset) const;
+  };
+
+  class AdjustableCapCreator:public CapCreatorBase
+  {
+  public:
+    AdjustableCapCreator(const fastuidraw::TessellatedPath &P):
       CapCreatorBase(P, compute_size(P))
     {
     }
@@ -749,6 +776,7 @@ namespace
 
     CapData m_rounded_cap;
     CapData m_square_cap;
+    CapData m_adjustable_cap;
     std::vector<LocationsOfCapsAndJoins> m_locations;
 
     fastuidraw::vecN<DataAsCArraysPair, fastuidraw::StrokedPath::number_point_set_types> m_return_values;
@@ -2104,6 +2132,35 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
     }
 }
 
+//////////////////////////////////////
+// AdjustableCapCreator methods
+PointIndexCapSize
+AdjustableCapCreator::
+compute_size(const fastuidraw::TessellatedPath &P)
+{
+  PointIndexCapSize return_value;
+  unsigned int num_caps;
+
+  num_caps = 2 * P.number_contours();
+  return_value.verts() = CapJoinCreator::number_points_per_fan * num_caps;
+  return_value.indices() = CapJoinCreator::number_indices_per_fan * num_caps;
+
+  return return_value;
+}
+
+void
+AdjustableCapCreator::
+add_cap(const fastuidraw::vec2 &normal_from_stroking,
+        bool is_starting_cap,
+        const fastuidraw::TessellatedPath::point &p0,
+        fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
+        fastuidraw::c_array<unsigned int> indices,
+        unsigned int &vertex_offset,
+        unsigned int &index_offset) const
+{
+  CapJoinCreator::pack_fan(is_starting_cap, p0, normal_from_stroking,
+                           pts, vertex_offset, indices, index_offset);
+}
 
 ///////////////////////////////////////////////////
 // MiterJoinCreator methods
@@ -2344,6 +2401,13 @@ StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
                                              fastuidraw::make_c_array(m_square_cap.m_indices),
                                              m_locations, square_cap);
 
+  AdjustableCapCreator ac(P);
+  m_adjustable_cap.resize(ac.sizes());
+  m_adjustable_cap.m_number_depth = ac.fill_data(e,
+                                                 fastuidraw::make_c_array(m_adjustable_cap.m_points),
+                                                 fastuidraw::make_c_array(m_adjustable_cap.m_indices),
+                                                 m_locations, adjustable_cap);
+
   m_bevel_joins.compute_conveniance(m_return_values[fastuidraw::StrokedPath::bevel_join_point_set]);
   m_rounded_joins.compute_conveniance(m_return_values[fastuidraw::StrokedPath::rounded_join_point_set]);
   m_miter_joins.compute_conveniance(m_return_values[fastuidraw::StrokedPath::miter_join_point_set]);
@@ -2351,6 +2415,7 @@ StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
 
   m_rounded_cap.compute_conveniance(m_return_values[fastuidraw::StrokedPath::rounded_cap_point_set]);
   m_square_cap.compute_conveniance(m_return_values[fastuidraw::StrokedPath::square_cap_point_set]);
+  m_adjustable_cap.compute_conveniance(m_return_values[fastuidraw::StrokedPath::adjustable_cap_point_set]);
 
   m_edges.compute_conveniance(m_return_values[fastuidraw::StrokedPath::edge_point_set]);
 }

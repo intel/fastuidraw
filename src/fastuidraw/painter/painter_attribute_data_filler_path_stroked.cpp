@@ -47,6 +47,7 @@ namespace
 
       rounded_cap, /*!< index for rounded cap data */
       square_cap,  /*!< index for square cap data */
+      adjustable_cap,
 
       /*!
         count of enums, using this enumeration when on data created
@@ -82,11 +83,25 @@ namespace
     unsigned int
     static_named_join_chunk(enum stroking_data_t join, unsigned int J);
 
+    static
+    unsigned int
+    static_adjustable_cap_chunk(void)
+    {
+      return adjustable_cap;
+    }
+
     virtual
     unsigned int
     cap_chunk(enum fastuidraw::PainterEnums::cap_style cp) const
     {
       return static_cap_chunk(cp);
+    }
+
+    virtual
+    unsigned int
+    adjustable_cap_chunk(void) const
+    {
+      return static_adjustable_cap_chunk();
     }
 
     virtual
@@ -390,6 +405,12 @@ fill_data(c_array<PainterAttribute> attribute_data,
                             index_data, idx_loc,
                             p->indices(StrokedPath::rounded_cap_point_set, false),
                             attribute_chunks[rounded_cap], index_chunks[rounded_cap]);
+
+  grab_attribute_index_data(attribute_data, attr_loc,
+                            p->points(StrokedPath::adjustable_cap_point_set, false),
+                            index_data, idx_loc,
+                            p->indices(StrokedPath::adjustable_cap_point_set, false),
+                            attribute_chunks[adjustable_cap], index_chunks[adjustable_cap]);
 
 #define GRAB_MACRO(dst_root_name, src_name) do {                        \
                                                                         \

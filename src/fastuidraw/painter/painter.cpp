@@ -339,6 +339,7 @@ namespace
     std::vector<fastuidraw::PainterIndex> m_indices;
     std::vector<fastuidraw::PainterAttribute> m_attribs;
     std::vector<std::vector<fastuidraw::PainterAttribute> > m_cap_join_attribs;
+    std::vector<fastuidraw::PainterAttribute> m_adjustable_caps;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_stroke_helper_attrib_chunks;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_stroke_helper_index_chunks;
   };
@@ -1288,17 +1289,40 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
   str.m_edges.m_indices = pdata.index_data_chunk(edge);
   str.m_edge_zinc = pdata.increment_z_value(edge);
 
-  //no caps
-  str.m_cap_zinc = 0u;
+  const PainterShaderData::DataBase *raw_data;
+  raw_data = draw.m_item_shader_data.data().data_base();
 
+  if(have_caps && !close_contour)
+    {
+      unsigned int chunk;
+      const_c_array<PainterAttribute> src_attr;
+      c_array<PainterAttribute> dst_attr;
+
+      chunk = shader.shader(cp).chunk_selector()->adjustable_cap_chunk();
+      str.m_cap_zinc = pdata.increment_z_value(chunk);
+      str.m_caps.m_indices = pdata.index_data_chunk(chunk);
+      src_attr = pdata.attribute_data_chunk(chunk);
+      assert(!src_attr.empty());
+      assert(!str.m_caps.m_indices.empty());
+      if(src_attr.size() > d->m_work_room.m_adjustable_caps.size())
+        {
+          d->m_work_room.m_adjustable_caps.resize(src_attr.size());
+        }
+      dst_attr = make_c_array(d->m_work_room.m_adjustable_caps);
+      std::copy(src_attr.begin(), src_attr.end(), dst_attr.begin());
+      shader.dash_evaluator()->adjust_caps(raw_data, dst_attr, d->m_current_item_matrix.m_item_matrix);
+      str.m_caps.m_attribs = dst_attr;
+    }
+  else
+    {
+      str.m_cap_zinc = 0u;
+    }
   /* Those joins for which the distance value is inside the
      dash pattern, we include in str.m_joins with the join
      type, for those outside, we take the cap-join at the
      location. We know how many joins we need from the
      value of pdata.increment_z_value(join).
    */
-  const PainterShaderData::DataBase *raw_data;
-  raw_data = draw.m_item_shader_data.data().data_base();
 
   str.m_join_zinc = pdata.increment_z_value(join);
   if(have_caps)
@@ -1320,12 +1344,10 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
         {
           float dist;
           range_type<float> dash_interval;
-          int intervalID;
           const_c_array<PainterAttribute> atr(pdata.attribute_data_chunk(chunk));
           assert(!atr.empty());
 
-          if(shader.dash_evaluator()->compute_dash_interval(raw_data, atr[0], intervalID,
-                                                            dash_interval, dist))
+          if(shader.dash_evaluator()->compute_dash_interval(raw_data, atr[0], dash_interval, dist))
             {
               str.m_joins.push_back(AtrribIndex());
               str.m_joins.back().m_attribs = atr;
@@ -1348,7 +1370,8 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
                   cap_join_attribs = make_c_array(d->m_work_room.m_cap_join_attribs[J]);
                   std::copy(atr.begin(), atr.end(), cap_join_attribs.begin());
                   shader.dash_evaluator()->adjust_cap_joins(raw_data, cap_join_attribs,
-                                                            intervalID, dash_interval, dist);
+                                                            dash_interval, dist,
+                                                            d->m_current_item_matrix.m_item_matrix);
                   str.m_joins.push_back(AtrribIndex());
                   str.m_joins.back().m_attribs = cap_join_attribs;
                   str.m_joins.back().m_indices = idx;
@@ -1582,6 +1605,15 @@ concat(const float3x3 &tr)
       d->m_clip_rect_state.m_clip_rect.translate(vec2(-tr(0, 2), -tr(1, 2)));
       d->m_clip_rect_state.m_clip_rect.shear(1.0f / tr(0,0), 1.0f / tr(1,1));
     }
+}
+
+const fastuidraw::PainterItemMatrix&
+fastuidraw::Painter::
+transformation(void)
+{
+  PainterPrivate *d;
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  return d->m_current_item_matrix;
 }
 
 void

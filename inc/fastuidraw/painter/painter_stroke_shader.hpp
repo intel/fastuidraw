@@ -78,31 +78,42 @@ namespace fastuidraw
     unsigned int
     join_chunk(enum PainterEnums::join_style js, bool edge_closed) const = 0;
 
-      /*!
-        To be implemented by a derived class to return
-        the chunk index, i.e. the value to feed
-        \ref PainterAttributeData::attribute_data_chunk()
-        and \ref PainterAttributeData::index_data_chunk(),
-        for the named join of a join style.
-        \param js join style
-        \param J (global) join index
-       */
-      virtual
-      unsigned int
-      named_join_chunk(enum PainterEnums::join_style js, unsigned int J) const = 0;
+    /*!
+      To be implemented by a derived class to return
+      the chunk index, i.e. the value to feed
+      \ref PainterAttributeData::attribute_data_chunk()
+      and \ref PainterAttributeData::index_data_chunk(),
+      for the named join of a join style.
+      \param js join style
+      \param J (global) join index
+    */
+    virtual
+    unsigned int
+    named_join_chunk(enum PainterEnums::join_style js, unsigned int J) const = 0;
 
-      /*!
-        To be implemented by a derived class to return
-        the chunk index, i.e. the value to feed
-        \ref PainterAttributeData::attribute_data_chunk()
-        and \ref PainterAttributeData::index_data_chunk(),
-        for the cap joins
-        \param J (global) join index
-       */
-      virtual
-      unsigned int
-      chunk_from_cap_join(unsigned int J) const = 0;
-    };
+    /*!
+      To be implemented by a derived class to return
+      the chunk index, i.e. the value to feed
+      \ref PainterAttributeData::attribute_data_chunk()
+      and \ref PainterAttributeData::index_data_chunk(),
+      for the cap joins
+      \param J (global) join index
+    */
+    virtual
+    unsigned int
+    chunk_from_cap_join(unsigned int J) const = 0;
+
+    /*!
+      To be implemented by a derived class to return
+      the chunk index, i.e. the value to feed
+      \ref PainterAttributeData::attribute_data_chunk()
+      and \ref PainterAttributeData::index_data_chunk(),
+      for adjustable caps.
+    */
+    virtual
+    unsigned int
+    adjustable_cap_chunk(void) const = 0;
+  };
 
   /*!
     A PainterStrokeShader holds shaders for
