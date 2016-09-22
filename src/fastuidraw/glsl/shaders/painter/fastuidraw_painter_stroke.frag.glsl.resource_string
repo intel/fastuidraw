@@ -48,10 +48,17 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
       fw = fwidth(fastuidraw_stroking_distance);
 
-      float y, r, qq_yy;
+      /* the value of q is branchy-pixel-dependent, the
+         code path if we are to hit rounded-cap code is
+         dependent on the value of q. To keep the anti-aliasing
+         from going ugly at boundaries, we explicitely compute
+         fwidth() from values that are not branchy-pixel-dependent.
+       */
+      float y, r, qq_yy, fwidth_qq_yy;
       r = stroke_params.width * 0.5;
       y = r * fastuidraw_stroking_on_boundary;
       qq_yy = q * q + y * y;
+      fwidth_qq_yy = 2.0 * abs(q) * fw + 2.0 * abs(y) * fwidth(y);
       if(dash_style == uint(fastuidraw_stroke_dashed_rounded_caps))
         {
           /* fw represents the tolerance of a pixel. The expected
@@ -67,7 +74,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
               sq = sqrt(qq_yy);
               q = r - sq;
-              fw = 0.5 * fwidth(qq_yy) / sq;
+              fw = 0.5 * fwidth_qq_yy / sq;
             }
         }
       else if(dash_style == uint(fastuidraw_stroke_dashed_square_caps))
