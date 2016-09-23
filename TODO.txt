@@ -22,7 +22,25 @@ TODO.
     there is an icky side: the dash hit check is done for each vertex of the sub-edge
     (instead of once per sub-edge).
 
- 2. Add arc methods that are same as that ofW3C canvase:
+ 2. The shader(s) for computing dash pattern inclusiveness can be improved.
+     A. We have a seperate shader for each alignment value. Ideally there
+        would be "some way" to make the shader more machine generated so
+        that I do not have 4 shaders, one for each alignment.
+     B. The shaders do a simple linear search. It would be better to do a
+        divide-and-conquer search that notes the alignment. Specifically,
+        if alignment is 1, the search is a binary search. If the alignment
+        is N, then there are (N+1) segments at each level of the search.
+        The idea is that since N-values are read at a time, to make the
+        next iteration of the search do the right thing. Doing this also
+        requires that how we pack data is also changed so that the search
+        at each level (each level realized as an iteration in a loop),
+        has that the next location to read is easy to compute from the
+        previous level and hopefully to be more cache-line friendly.
+        Worth nothing however, is that for dash patterns that are not
+        big in size, that the current linear search is ok (for example
+        if dash-pattern is just 4 or 8 elements under alignment 4).
+
+ 3. Add arc methods that are same as that ofW3C canvase:
     - Add ctor for PathContour::arc(vec2 center, float radius,
                                     float startAngle, float endAngle,
                                     bool counterclockwise)
@@ -42,18 +60,18 @@ TODO.
        point to the start of A, then A, and then from
        end point of A to pt2.
 
- 3. An interface to build attribute and text data from string(s). Currently
+ 4. An interface to build attribute and text data from string(s). Currently
     an application needs to do this by itself, the example code being in
     demos/common/text_helper.[ch]pp.
 
- 4. For some glyphs, curve pair glyph rendering is incorrect (this can be determined when
+ 5. For some glyphs, curve pair glyph rendering is incorrect (this can be determined when
     the glyph data is generated). Should have an interface that is "take scalable glyph
     that is best" in GlyphSelector class.
 
- 5. W3C blend modes are not yet implemented in GL backend, but Porter-Duff blend modes
+ 6. W3C blend modes are not yet implemented in GL backend, but Porter-Duff blend modes
     are.
 
- 6. Path tessellation is scale invariant because it is based upon curvature. However,
+ 7. Path tessellation is scale invariant because it is based upon curvature. However,
     if a path (or rounded join) is dramtically zoomed in, we start to see the line segments.
     A better tessellation paramater would be a thresshold T which specifies what would
     the maximum distance be allowed between a curve segment and its line segment.
@@ -61,7 +79,7 @@ TODO.
     (or contracts) distances within the bounding box of the curve. From that we can
     decide what is the tessellation we should choose for a path.
 
- 7. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
+ 8. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
     together with a 3rd party library to create SPIR-V from GLSL.
     Options for third part library so far are:
             a) libshaderc at https://github.com/google/shaderc.
