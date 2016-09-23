@@ -448,6 +448,7 @@ namespace
                        bool with_anti_aliasing,
                        const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
+    fastuidraw::vec2 m_resolution;
     fastuidraw::vec2 m_one_pixel_width;
     unsigned int m_current_z;
     clip_rect_state m_clip_rect_state;
@@ -631,6 +632,8 @@ set_painter_core_clip(const fastuidraw::PainterPackedValue<fastuidraw::PainterCl
 // PainterPrivate methods
 PainterPrivate::
 PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> backend):
+  m_resolution(1.0f, 1.0f),
+  m_one_pixel_width(1.0f, 1.0f),
   m_pool(backend->configuration_base().alignment())
 {
   m_core = FASTUIDRAWnew fastuidraw::PainterPacker(backend);
@@ -639,7 +642,6 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
                                              .pen(0.0f, 0.0f, 0.0f, 0.0f));
   m_identiy_matrix = m_pool.create_packed_value(fastuidraw::PainterItemMatrix());
   m_current_z = 1;
-  m_one_pixel_width = fastuidraw::vec2(0.0f, 0.0f);
 }
 
 void
@@ -996,8 +998,9 @@ target_resolution(int w, int h)
 
   w = t_max(w, 1);
   h = t_max(h, 1);
-  d->m_one_pixel_width.x() = 1.0f / static_cast<float>(w);
-  d->m_one_pixel_width.y() = 1.0f / static_cast<float>(h);
+  d->m_resolution.x() = static_cast<float>(w);
+  d->m_resolution.y() = static_cast<float>(h);
+  d->m_one_pixel_width = 1.0f / d->m_resolution;
   d->m_core->target_resolution(w, h);
 }
 
@@ -1310,7 +1313,8 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
         }
       dst_attr = make_c_array(d->m_work_room.m_adjustable_caps);
       std::copy(src_attr.begin(), src_attr.end(), dst_attr.begin());
-      shader.dash_evaluator()->adjust_caps(raw_data, dst_attr, d->m_current_item_matrix.m_item_matrix);
+      shader.dash_evaluator()->adjust_caps(raw_data, dst_attr, d->m_resolution,
+                                           d->m_current_item_matrix.m_item_matrix);
       str.m_caps.m_attribs = dst_attr;
     }
   else
@@ -1371,6 +1375,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
                   std::copy(atr.begin(), atr.end(), cap_join_attribs.begin());
                   shader.dash_evaluator()->adjust_cap_joins(raw_data, cap_join_attribs,
                                                             dash_interval, dist,
+                                                            d->m_resolution,
                                                             d->m_current_item_matrix.m_item_matrix);
                   str.m_joins.push_back(AtrribIndex());
                   str.m_joins.back().m_attribs = cap_join_attribs;

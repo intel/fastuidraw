@@ -80,6 +80,7 @@ namespace fastuidraw
                      c_array<PainterAttribute> attribs,
                      range_type<float> out_interval,
                      float distance,
+                     const fastuidraw::vec2 &resolution,
                      const float3x3 &item_matrix) const = 0;
     /*!
       To be implemented by derived class to adjust attributes
@@ -97,6 +98,7 @@ namespace fastuidraw
     void
     adjust_caps(const PainterShaderData::DataBase *data,
                 c_array<PainterAttribute> attribs,
+                const fastuidraw::vec2 &resolution,
                 const float3x3 &item_matrix) const = 0;
   };
 

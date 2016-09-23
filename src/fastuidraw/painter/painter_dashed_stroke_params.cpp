@@ -17,9 +17,9 @@
  */
 
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
-#include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/painter/painter_attribute_data_filler_path_stroked.hpp>
 #include <fastuidraw/stroked_path.hpp>
+#include <fastuidraw/util/pixel_distance_math.hpp>
 #include "../private/util_private.hpp"
 
 
@@ -71,12 +71,14 @@ namespace
                      fastuidraw::c_array<fastuidraw::PainterAttribute> attribs,
                      fastuidraw::range_type<float> out_interval,
                      float distance,
+                     const fastuidraw::vec2 &resolution,
                      const fastuidraw::float3x3 &item_matrix) const;
 
     virtual
     void
     adjust_caps(const fastuidraw::PainterShaderData::DataBase *data,
                 fastuidraw::c_array<fastuidraw::PainterAttribute> attribs,
+                const fastuidraw::vec2 &resolution,
                 const fastuidraw::float3x3 &item_matrix) const;
 
   private:
@@ -85,6 +87,7 @@ namespace
                   fastuidraw::StrokedPath::point &point,
                   fastuidraw::range_type<float> interval,
                   float distance, bool covered,
+                  const fastuidraw::vec2 &resolution,
                   const fastuidraw::float3x3 &item_matrix) const;
 
     bool m_pixel_width_stroking;
@@ -222,17 +225,15 @@ adjust_worker(const PainterDashedStrokeParamsData *d,
               fastuidraw::StrokedPath::point &point,
               fastuidraw::range_type<float> interval,
               float distance, bool covered,
+              const fastuidraw::vec2 &resolution,
               const fastuidraw::float3x3 &item_matrix) const
 {
   float q, r(d->m_width * 0.5f);
 
   if(m_pixel_width_stroking)
     {
-      /* TODO: adjust r to be in pixel units. The direction
-         to take comes from point.m_v (the direction the cap
-         extents) under the transformation item_matrix
-       */
-      FASTUIDRAWunused(item_matrix);
+      r = fastuidraw::local_distance_from_pixel_distance(r, resolution, item_matrix,
+                                                         point.m_position, point.m_auxilary_offset);
     }
 
   if(covered)
@@ -290,6 +291,7 @@ adjust_cap_joins(const fastuidraw::PainterShaderData::DataBase *data,
                  fastuidraw::c_array<fastuidraw::PainterAttribute> attribs,
                  fastuidraw::range_type<float> interval,
                  float distance,
+                 const fastuidraw::vec2 &resolution,
                  const fastuidraw::float3x3 &item_matrix) const
 {
   const PainterDashedStrokeParamsData *d;
@@ -306,7 +308,7 @@ adjust_cap_joins(const fastuidraw::PainterShaderData::DataBase *data,
          cap-joins when drawn by Painter.
        */
       covered_by_dash_pattern = false;
-      adjust_worker(d, point, interval, distance, covered_by_dash_pattern, item_matrix);
+      adjust_worker(d, point, interval, distance, covered_by_dash_pattern, resolution, item_matrix);
       attribs[i] = fastuidraw::PainterAttributeDataFillerPathStroked::pack_point(point);
     }
 }
@@ -315,6 +317,7 @@ void
 DashEvaluator::
 adjust_caps(const fastuidraw::PainterShaderData::DataBase *data,
             fastuidraw::c_array<fastuidraw::PainterAttribute> attribs,
+            const fastuidraw::vec2 &resolution,
             const fastuidraw::float3x3 &item_matrix) const
 {
   const PainterDashedStrokeParamsData *d;
@@ -336,7 +339,7 @@ adjust_caps(const fastuidraw::PainterShaderData::DataBase *data,
           cap_end_point_in_dash_pattern = compute_dash_interval(data, attribs[i], interval, distance);
           last_p = point.m_position;
         }
-      adjust_worker(d, point, interval, distance, cap_end_point_in_dash_pattern, item_matrix);
+      adjust_worker(d, point, interval, distance, cap_end_point_in_dash_pattern, resolution, item_matrix);
       attribs[i] = fastuidraw::PainterAttributeDataFillerPathStroked::pack_point(point);
     }
 }
