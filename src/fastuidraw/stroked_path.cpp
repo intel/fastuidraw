@@ -70,6 +70,19 @@ namespace
     pt.m_packed_data |= dd;
   }
 
+  void
+  add_triangle_fan(unsigned int begin, unsigned int end,
+                   fastuidraw::c_array<unsigned int> indices,
+                   unsigned int &index_offset)
+  {
+    for(unsigned int i = begin + 1; i < end - 1; ++i, index_offset += 3)
+      {
+        indices[index_offset + 0] = begin;
+        indices[index_offset + 1] = i;
+        indices[index_offset + 2] = i + 1;
+      }
+  }
+
   class Location
   {
   public:
@@ -206,6 +219,12 @@ namespace
     }
 
   private:
+    enum
+      {
+        points_per_segment = 6,
+        triangles_per_segment = points_per_segment - 2,
+        indices_per_segment_without_bevel = 3 * triangles_per_segment,
+      };
 
     void
     compute_size(void);
@@ -1013,31 +1032,32 @@ compute_size(void)
       for(unsigned int e = 0; e < m_P.number_edges(o); ++e)
         {
           fastuidraw::range_type<unsigned int> R;
+          unsigned int number_segments, number_verts, number_indices;
 
           R = m_P.edge_range(o, e);
           assert(R.m_end > R.m_begin);
 
-          /* Each sub-edge of the tessellation produces -6- points:
-             (p,n), (p,-n), (p, 0),
-             (p_next, -n), (p_next, n), (p_next, 0)
-
-             where n = J(v), v = (p - p_next) / || p-p_next ||
-
-             There are 5 triangles:
-               4 triangles for the 2 quads formed from the 6 points
-               1 triangle for the bevel-like join between the two quads
-               However, the last triangle is not present on the last
-               edge segment.
-          */
+          /* Each sub-edge induces points_per_segment vertices
+             and indices_per_segment_without_bevel indices.
+             In addition, between each sub-edge, there is a
+             bevel-join triangle that adds 3 more indices
+           */
+          number_segments = R.m_end - R.m_begin - 1;
+          number_verts = points_per_segment * number_segments;
+          number_indices = indices_per_segment_without_bevel * number_segments;
+          if(number_segments >= 1)
+            {
+              number_indices += 3 * (number_segments - 1);
+            }
           if(e + 1 == m_P.number_edges(o))
             {
-              m_size.close_verts() += 6 * ((R.m_end - R.m_begin) - 1);
-              m_size.close_indices() += 15 * ((R.m_end - R.m_begin) - 1) - 3;
+              m_size.close_verts() += number_verts;
+              m_size.close_indices() += number_indices;
             }
           else
             {
-              m_size.pre_close_verts() += 6 * ((R.m_end - R.m_begin) - 1);
-              m_size.pre_close_indices() += 15 * ((R.m_end - R.m_begin) - 1) - 3;
+              m_size.pre_close_verts() += number_verts;
+              m_size.pre_close_indices() += number_indices;
             }
         }
     }
@@ -1149,7 +1169,7 @@ add_edge(unsigned int o, unsigned int e,
       indices[index_offset + 9] = vert_offset + 2;
       indices[index_offset + 10] = vert_offset + 4;
       indices[index_offset + 11] = vert_offset + 5;
-      index_offset += 12;
+      index_offset += indices_per_segment_without_bevel;
 
       if(i + 2 != R.m_end)
         {
@@ -1172,7 +1192,7 @@ add_edge(unsigned int o, unsigned int e,
           indices[index_offset + 2] = vert_offset + offset + 6;
           index_offset += 3;
         }
-      vert_offset += 6;
+      vert_offset += points_per_segment;
     }
 
   if(R.m_begin + 1 >= R.m_end)
@@ -1498,13 +1518,7 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
   pts[vertex_offset].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_shared_with_edge);
   ++vertex_offset;
 
-  for(i = first + 1; i < vertex_offset - 1; ++i, index_offset += 3)
-    {
-      indices[index_offset + 0] = first;
-      indices[index_offset + 1] = i;
-      indices[index_offset + 2] = i + 1;
-    }
-
+  add_triangle_fan(first, vertex_offset, indices, index_offset);
 }
 
 ///////////////////////////////////////////////////
@@ -1676,12 +1690,8 @@ fill_join_implement(unsigned int join_id,
   pts[vertex_offset + 2].m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
   pts[vertex_offset + 2].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_shared_with_edge);
 
-  indices[index_offset + 0] = vertex_offset;
-  indices[index_offset + 1] = vertex_offset + 1;
-  indices[index_offset + 2] = vertex_offset + 2;
-
+  add_triangle_fan(vertex_offset, vertex_offset + 3, indices, index_offset);
   vertex_offset += 3;
-  index_offset += 3;
 }
 
 ///////////////////////////////////////////////
@@ -1782,7 +1792,7 @@ pack_fan(bool leaving_join,
          unsigned int &index_offset)
 {
   CommonCapData C(leaving_join, p, stroking_normal);
-  unsigned int first(vertex_offset), i;
+  unsigned int first(vertex_offset);
   enum fastuidraw::StrokedPath::offset_type_t cp_js_type;
 
   cp_js_type = leaving_join ?
@@ -1855,12 +1865,7 @@ pack_fan(bool leaving_join,
   pts[vertex_offset].m_packed_data = pack_data(1, cp_js_type);
   ++vertex_offset;
 
-  for(i = first + 1; i < vertex_offset - 1; ++i, index_offset += 3)
-    {
-      indices[index_offset + 0] = first;
-      indices[index_offset + 1] = i;
-      indices[index_offset + 2] = i + 1;
-    }
+  add_triangle_fan(first, vertex_offset, indices, index_offset);
 }
 
 ///////////////////////////////////////////////
@@ -1971,7 +1976,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
         unsigned int &index_offset) const
 {
   CommonCapData C(is_starting_cap, p, normal_from_stroking);
-  unsigned int i, first;
+  unsigned int first, i;
   float theta;
 
   first = vertex_offset;
@@ -2026,12 +2031,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_shared_with_edge);
   ++vertex_offset;
 
-  for(i = first + 1; i < vertex_offset - 1; ++i, index_offset += 3)
-    {
-      indices[index_offset + 0] = first;
-      indices[index_offset + 1] = i;
-      indices[index_offset + 2] = i + 1;
-    }
+  add_triangle_fan(first, vertex_offset, indices, index_offset);
 }
 
 
@@ -2065,7 +2065,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
         unsigned int &index_offset) const
 {
   CommonCapData C(is_starting_cap, p, normal_from_stroking);
-  unsigned int first, i;
+  unsigned int first;
 
   first = vertex_offset;
 
@@ -2124,12 +2124,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pts[vertex_offset].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_shared_with_edge);
   ++vertex_offset;
 
-  for(i = first + 1; i < vertex_offset - 1; ++i, index_offset += 3)
-    {
-      indices[index_offset + 0] = first;
-      indices[index_offset + 1] = i;
-      indices[index_offset + 2] = i + 1;
-    }
+  add_triangle_fan(first, vertex_offset, indices, index_offset);
 }
 
 //////////////////////////////////////
@@ -2206,7 +2201,7 @@ fill_join_implement(unsigned int join_id,
                     unsigned int &vertex_offset, unsigned int &index_offset)
 {
   fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts(path.point_data());
-  unsigned int i, i0, i1, first;
+  unsigned int i0, i1, first;
   fastuidraw::range_type<unsigned int> R0, R1;
 
   FASTUIDRAWunused(join_id);
@@ -2322,13 +2317,7 @@ fill_join_implement(unsigned int join_id,
   pts[vertex_offset].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_shared_with_edge);
   ++vertex_offset;
 
-  for(i = first + 1; i < vertex_offset - 1; ++i, index_offset += 3)
-    {
-      indices[index_offset + 0] = first;
-      indices[index_offset + 1] = i;
-      indices[index_offset + 2] = i + 1;
-    }
-
+  add_triangle_fan(first, vertex_offset, indices, index_offset);
 }
 
 /////////////////////////////////////////////
