@@ -1,6 +1,26 @@
 TODO.
 
- 1. Dashed stroking is not implemented (yet).
+ 1. On dashed path stroking with caps (with the shades in glsl module), there can
+    be a rendering issue occur when for a rounded cap that is induced by the dash
+    pattern near points where the path curves strongly. The rendering issue (only
+    on those kinds of caps) is caused by the fact that the distance along the path
+    is coming from different segments. One way out is the following (which will make
+    the vertex shader even more horribly heavy):
+       - If doing dashed stroking, look at the sub-edge one is on. The data at each vertex
+         gives the start and stop of each sub-edge. If the entire sub-edge is within
+         the dash pattern proceed as now. If the entire sub-edge is within the skip
+         pattern, then collapse the edge. If the sub-edge walks though the boundary,
+         then extend the sub-edge just enough to cover the cap(s) and emit modified
+         distance values (and flags) so that the frag shader will do the right thing.
+    One nice benefit is that then the frag shader can skip the dash computation
+    except for those segments that go though the dash pattern. Moreover, since
+    the geometry is modified respecting the dash pattern, we can (on paper) even
+    avoid doing discard except for rounded caps. To make square caps and non-caps
+    anti-aliased at cap boundaries, we need to change the edge from the current
+    2 quads to be a 5-triangle fan. Another benefit is that we can modify/tweak
+    the values on in vertex shader to make pixel width stroking very easy. However,
+    there is an icky side: the dash hit check is done for each vertex of the sub-edge
+    (instead of once per sub-edge).
 
  2. Add arc methods that are same as that ofW3C canvase:
     - Add ctor for PathContour::arc(vec2 center, float radius,
@@ -35,9 +55,11 @@ TODO.
 
  6. Path tessellation is scale invariant because it is based upon curvature. However,
     if a path (or rounded join) is dramtically zoomed in, we start to see the line segments.
-    The way out is to instead use curvature multiplied by arc length and when we stroke
-    a path to refine the tessellation by S where S is the operator norm of the
-    transformation.
+    A better tessellation paramater would be a thresshold T which specifies what would
+    the maximum distance be allowed between a curve segment and its line segment.
+    Then given a transformation matrix M, we can compute by how much it stretches
+    (or contracts) distances within the bounding box of the curve. From that we can
+    decide what is the tessellation we should choose for a path.
 
  7. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
     together with a 3rd party library to create SPIR-V from GLSL.
