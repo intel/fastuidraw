@@ -147,10 +147,16 @@ namespace fastuidraw
     /*!
       Constructs and returns a DashEvaluator compatible
       with the data of PainterDashedStrokeParams.
+      \param pixel_width_stroking if true return an object to
+                                  be used when stroking width
+                                  is in pixels; if false return
+                                  an object to be used when
+                                  stroking width is in coordinates
+                                  of the path.
      */
     static
     reference_counted_ptr<const DashEvaluatorBase>
-    dash_evaluator(void);
+    dash_evaluator(bool pixel_width_stroking);
   };
 /*! @} */
 

@@ -397,7 +397,7 @@ create_dashed_stroke_shader_set(bool pixel_width_stroking)
   PainterDashedStrokeShaderSet return_value;
   reference_counted_ptr<const DashEvaluatorBase> de;
 
-  de = PainterDashedStrokeParams::dash_evaluator();
+  de = PainterDashedStrokeParams::dash_evaluator(pixel_width_stroking);
   return_value
     .dash_evaluator(de)
     .shader(no_caps, create_stroke_shader(no_caps, pixel_width_stroking))
