@@ -10,3 +10,4 @@ The GLU tessellator found in FASTUIDRAW has been modified from the original sour
    - remove edge flag call back
    - points provided are 2D only (skip computation of plane and projection)
    - remove malloc.h include due to it being unnecessary
+   - changed fastuidraw_GLUtesselator to class to remove warning
