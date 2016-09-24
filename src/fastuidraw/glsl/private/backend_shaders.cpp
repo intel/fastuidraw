@@ -22,6 +22,8 @@
 #include <fastuidraw/painter/painter_attribute_data_filler_path_fill.hpp>
 #include "backend_shaders.hpp"
 
+#include <string>
+
 namespace fastuidraw { namespace glsl { namespace detail {
 
 /////////////////////////////////////
