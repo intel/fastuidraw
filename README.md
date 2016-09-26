@@ -49,8 +49,9 @@ Building requirements
    - The expected place of those headers is hard-coded to be system
      headers in the typical location. For Linux this is /usr/include
      and for MinGW this is /mingw/include. If the headers are located
-     elsewhere on your system, edit src/fastuidraw/gl_backend/ngl/Rules.mk
-     and change GL_INCLUDEPATH as required by your system.
+     elsewhere on your system, edit Makefile.gl_backend.settings.mk
+     and change GL_INCLUDEPATH (and possibly GL_RAW_HEADER_FILES and/or
+     GLES_RAW_HEADER_FILES) as required by your system.
  - SDL2 (demos only)
  - doxygen (for documentation)
 
