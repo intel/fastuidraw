@@ -29,6 +29,7 @@ targets:
 	@printf "%s\n" $(TARGETLIST)
 
 include Makefile.settings.mk
+include Makefile.gl_backend.settings.mk
 include Makefile.functions.mk
 
 include Makefile.base.pre.mk

@@ -4,19 +4,6 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
-ifeq ($(MINGW_BUILD),0)
-  GL_INCLUDEPATH=/usr/include
-else ifeq ($(MINGW_MODE),MINGW64)
-  GL_INCLUDEPATH=/mingw64/include
-else ifeq ($(MINGW_MODE),MINGW32)
-  GL_INCLUDEPATH=/mingw32/include
-else
-  GL_INCLUDEPATH=/mingw/include
-endif
-
-GL_RAW_HEADER_FILES=GL/glcorearb.h
-GLES_RAW_HEADER_FILES=GLES3/gl3platform.h GLES3/gl3.h GLES3/gl31.h GLES3/gl32.h GLES2/gl2ext.h
-
 GL_HEADER_FILES=$(GL_RAW_HEADER_FILES:%.h=$(GL_INCLUDEPATH)/%.h)
 GLES_HEADER_FILES=$(GLES_RAW_HEADER_FILES:%.h=$(GL_INCLUDEPATH)/%.h)
 
