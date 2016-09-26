@@ -67,8 +67,9 @@ namespace fastuidraw
       \param data PainterItemShaderData::DataBase object holding the data to
                   be sent to the shader
       \param [inout] attribs attributes to adjust
-      \param out_interval out_interval value as returned by compute_dash_interval()
+      \param interval out_interval value as returned by compute_dash_interval()
       \param distance distance as returned by compute_dash_interval()
+      \param resolution resolution of target viewport of rendering
       \param item_matrix transformation from local item coordinates
                          to 3D API clip coordinates (i.e. the value of
                          PainterItemMatrix::m_item_matrix of
@@ -78,7 +79,7 @@ namespace fastuidraw
     void
     adjust_cap_joins(const PainterShaderData::DataBase *data,
                      c_array<PainterAttribute> attribs,
-                     range_type<float> out_interval,
+                     range_type<float> interval,
                      float distance,
                      const fastuidraw::vec2 &resolution,
                      const float3x3 &item_matrix) const = 0;
@@ -89,6 +90,7 @@ namespace fastuidraw
       \param data PainterItemShaderData::DataBase object holding the data to
                   be sent to the shader
       \param [inout] attribs attributes to adjust
+      \param resolution resolution of target viewport of rendering
       \param item_matrix transformation from local item coordinates
                          to 3D API clip coordinates (i.e. the value of
                          PainterItemMatrix::m_item_matrix of

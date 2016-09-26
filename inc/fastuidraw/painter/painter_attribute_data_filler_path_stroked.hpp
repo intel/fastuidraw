@@ -36,16 +36,6 @@ namespace fastuidraw
     data to stroke a path. The data is so that it provides all that
     is needed to stroke a path regardless of join style, cap style,
     stroking width, stroking miter limit or even dash pattern.
-    The enumerations of \ref stroking_data_t provide the indices
-    into PainterAttributeData::attribute_data_chunks() and
-    PainterAttributeData::index_data_chunks() for the
-    data to draw the path stroked. The number of total joins can be
-    computed with PainterAttributeData::increment_z_value(unsigned int)
-    passing an enumeration from enum stroking_data_t. In addition,
-    the function chunk_from_join() returns a value K to be fed to
-    PainterAttributeData::attribute_data_chunk() and
-    PainterAttributeData::index_data_chunk() to get the attribute
-    and index data or an individual join.
 
     Data for stroking is packed as follows:
     - PainterAttribute::m_attrib0 .xy -> StrokedPath::point::m_position (float)
@@ -100,10 +90,22 @@ namespace fastuidraw
     reference_counted_ptr<StrokingChunkSelectorBase>
     chunk_selector(void);
 
+    /*!
+      Unpack a StrokedPath::point from a PainterAttribute
+      as packed by PainterAttributeDataFillerPathStroked.
+      \param attrib PainterAttribute from which to unpack
+             a StrokedPath::point
+     */
     static
     StrokedPath::point
     unpack_point(const PainterAttribute &attrib);
 
+    /*!
+      Pack a StrokedPath::point into a PainterAttribute
+      as packed by PainterAttributeDataFillerPathStroked.
+      \param pt StrokedPath::point from which to pack a
+                PainterAttribute
+     */
     static
     PainterAttribute
     pack_point(const StrokedPath::point &pt);

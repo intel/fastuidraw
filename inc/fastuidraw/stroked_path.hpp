@@ -95,7 +95,7 @@ public:
 
       /*!
         The point is from either from \ref cap_join_point_set or
-        \ref cap_adjustable_point_set point sets. In either case,
+        \ref adjustable_cap_point_set point sets. In either case,
         it is for a point for a cap entering the join (or equivalently,
         at the end of a contour). These points are for dashed stroking
         with caps when the point of the join is NOT covered by the
@@ -110,8 +110,8 @@ public:
 
       /*!
         The point is from either from \ref cap_join_point_set or
-        \ref cap_adjustable_point_set point sets. In either case,
-        it is for a point for a cap leacing the join (or equivalently,
+        \ref adjustable_cap_point_set point sets. In either case,
+        it is for a point for a cap leaving the join (or equivalently,
         at the start of a contour). These points are for dashed stroking
         with caps when the point of the join is NOT covered by the
         dash pattern or to correctly adjust a cap data at the start
