@@ -30,6 +30,10 @@ namespace fastuidraw
   @{
  */
 
+  ///@cond
+  class PainterAttributeData;
+  ///@endcond
+
   /*!
     A StrokingChunkSelector provides an interface to know
     what chuck of a PainterAttributeData to grab
@@ -77,6 +81,17 @@ namespace fastuidraw
     virtual
     unsigned int
     join_chunk(enum PainterEnums::join_style js, bool edge_closed) const = 0;
+
+    /*!
+      To be implemented by a derived class to return the number
+      of joins.
+      \param edge_closed if true, include in the return value the
+                         number of joins including those joins
+                         from the closing edges of each contour.
+     */
+    virtual
+    unsigned int
+    number_joins(const PainterAttributeData &data, bool edge_closed) const = 0;
 
     /*!
       To be implemented by a derived class to return

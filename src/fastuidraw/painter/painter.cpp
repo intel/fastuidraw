@@ -1275,7 +1275,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
    */
   using namespace PainterEnums;
 
-  unsigned int edge, join;
+  unsigned int edge;
   StrokingData str;
   bool have_caps(cp == rounded_caps || cp == square_caps);
   PainterPrivate *d;
@@ -1285,7 +1285,6 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
     {
       return;
     }
-  join = shader.shader(cp).chunk_selector()->join_chunk(js, close_contour);
   edge = shader.shader(cp).chunk_selector()->edge_chunk(close_contour);
 
   str.m_edges.m_attribs = pdata.attribute_data_chunk(edge);
@@ -1321,14 +1320,16 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
     {
       str.m_cap_zinc = 0u;
     }
+
   /* Those joins for which the distance value is inside the
      dash pattern, we include in str.m_joins with the join
      type, for those outside, we take the cap-join at the
-     location. We know how many joins we need from the
-     value of pdata.increment_z_value(join).
+     location.
    */
+  str.m_join_zinc = (js != no_joins) ?
+    shader.shader(cp).chunk_selector()->number_joins(pdata, close_contour) :
+    0;
 
-  str.m_join_zinc = pdata.increment_z_value(join);
   if(have_caps)
     {
       if(str.m_join_zinc > d->m_work_room.m_cap_join_attribs.size())

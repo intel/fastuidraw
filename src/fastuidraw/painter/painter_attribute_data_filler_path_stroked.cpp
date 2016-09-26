@@ -17,6 +17,7 @@
  */
 
 #include <algorithm>
+#include <fastuidraw/painter/painter_attribute_data.hpp>
 #include <fastuidraw/painter/painter_attribute_data_filler_path_stroked.hpp>
 
 namespace
@@ -88,6 +89,24 @@ namespace
     static_adjustable_cap_chunk(void)
     {
       return adjustable_cap;
+    }
+
+    static
+    unsigned int
+    static_number_joins(const fastuidraw::PainterAttributeData &data, bool edge_closed)
+    {
+      /* increment_z_value() holds the number of joins
+       */
+      return edge_closed ?
+        data.increment_z_value(rounded_joins_closing_edge) :
+        data.increment_z_value(rounded_joins_no_closing_edge);
+    }
+
+    virtual
+    unsigned int
+    number_joins(const fastuidraw::PainterAttributeData &data, bool edge_closed) const
+    {
+      return static_number_joins(data, edge_closed);
     }
 
     virtual
