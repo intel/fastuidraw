@@ -315,7 +315,7 @@ compute_interval(const char *function_name, unsigned int data_alignment)
        << "\t\t" << ftypes[data_alignment - 1] << " fV;\n"
        << "\t\tV = fastuidraw_fetch_data(loc + int(intervals_location))." << extract_swizzle[data_alignment - 1] << ";\n"
        << "\t\tfV = uintBitsToFloat(V);\n";
-  for(int i = 0; i < data_alignment; ++i)
+  for(unsigned int i = 0; i < data_alignment; ++i)
     {
       ostr << "\t\t";
       if(i != 0)
