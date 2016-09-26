@@ -100,26 +100,31 @@ namespace fastuidraw
         Construct/returns a ShaderSource value that
         implements the function:
         \code
-        float
-        function_name(in uint dashed_stroking_data_location,
-                      in float total_dash_pattern_distance,
+        void
+        function_name(in uint intervals_location,
+                      in float total_distance,
+                      in float first_interval_start,
                       in float in_distance,
-                      out uint interval_id)
+                      out int interval_id,
+                      out float interval_begin,
+                      out float interval_end)
         \endcode
-        that returns the signed distance to the nearest dash boundary.
-        The parameter dashed_stroking_data_location is the data location
-        to the dashed stroking data packed as (TODO specify format),
-        the parameter total_dash_pattern_distance is the total length
-        of the dash pattern and the paremeter in_distance is the input
-        distance from the start of the contour. The out value, interval_id,
-        is the interval ID for where in_distance is located.
+        that compute the interval a distance value lies upon from
+        a repeated interval pattern. The parameter meanins are:
+        - intervals_location gives the location into the data store buffer where the
+          interval data is packed as (TODO: document format).
+        - total_distance the period of the repeat interval pattern
+        - first_interval_start
+        - in_distance distance value to evaluate
+        - interval_id (output) interval ID of interval
+        - interval_begin (output) interval start of interval
+        - interval_end (output) interval end of interval
 
         \param function_name name to give to the function
         \param data_alignment the alignment of the data store (see PainterBackend::ConfigurationBase::alignemnt()).
        */
       ShaderSource
-      dashed_stroking_compute(const char *function_name,
-                              unsigned int data_alignment);
+      compute_interval(const char *function_name, unsigned int data_alignment);
     }
 /*! @} */
   }
