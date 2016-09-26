@@ -322,7 +322,7 @@ compute_interval(const char *function_name, unsigned int data_alignment)
         {
           ostr << "else ";
         }
-      ostr << "if(d <= fV." << xyzw[i] << ")\n"
+      ostr << "if(d < fV." << xyzw[i] << ")\n"
            << "\t\t{\n"
            << "\t\t\tinterval_begin = ff + " << start_interval[i] << ";\n"
            << "\t\t\tinterval_end = ff + " << end_interval[i] << ";\n"

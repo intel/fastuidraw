@@ -451,7 +451,7 @@ assembled_code(void) const
 
       output_glsl_source_code << "uint fastuidraw_mask(uint num_bits) { return (uint(1) << num_bits) - uint(1); }\n"
                               << "uint fastuidraw_extract_bits(uint bit0, uint num_bits, uint src) { return (src >> bit0) & fastuidraw_mask(num_bits); }\n"
-                              << "#define FASTUIDRAW_MASK(num_bits) fastuidraw_mask(uint(num_bits))\n"
+                              << "#define FASTUIDRAW_MASK(bit0, num_bits) (fastuidraw_mask(uint(num_bits)) << uint(bit0))\n"
                               << "#define FASTUIDRAW_EXTRACT_BITS(bit0, num_bits, src) fastuidraw_extract_bits(uint(bit0), uint(num_bits), uint(src) )\n";
 
       for(std::list<SourcePrivate::source_code_t>::const_iterator

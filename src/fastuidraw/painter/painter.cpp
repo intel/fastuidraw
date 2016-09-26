@@ -354,6 +354,12 @@ namespace
   class StrokingData
   {
   public:
+    StrokingData(void):
+      m_edge_zinc(0),
+      m_join_zinc(0),
+      m_cap_zinc(0)
+    {}
+
     AtrribIndex m_edges;
     unsigned int m_edge_zinc;
 
@@ -1297,24 +1303,11 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
   if(have_caps && !close_contour)
     {
       unsigned int chunk;
-      const_c_array<PainterAttribute> src_attr;
-      c_array<PainterAttribute> dst_attr;
 
       chunk = shader.shader(cp).chunk_selector()->adjustable_cap_chunk();
       str.m_cap_zinc = pdata.increment_z_value(chunk);
       str.m_caps.m_indices = pdata.index_data_chunk(chunk);
-      src_attr = pdata.attribute_data_chunk(chunk);
-      assert(!src_attr.empty());
-      assert(!str.m_caps.m_indices.empty());
-      if(src_attr.size() > d->m_work_room.m_adjustable_caps.size())
-        {
-          d->m_work_room.m_adjustable_caps.resize(src_attr.size());
-        }
-      dst_attr = make_c_array(d->m_work_room.m_adjustable_caps);
-      std::copy(src_attr.begin(), src_attr.end(), dst_attr.begin());
-      shader.dash_evaluator()->adjust_caps(raw_data, dst_attr, d->m_resolution,
-                                           d->m_current_item_matrix.m_item_matrix);
-      str.m_caps.m_attribs = dst_attr;
+      str.m_caps.m_attribs = pdata.attribute_data_chunk(chunk);
     }
   else
     {
@@ -1330,14 +1323,6 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
     shader.shader(cp).chunk_selector()->number_joins(pdata, close_contour) :
     0;
 
-  if(have_caps)
-    {
-      if(str.m_join_zinc > d->m_work_room.m_cap_join_attribs.size())
-        {
-          d->m_work_room.m_cap_join_attribs.resize(str.m_join_zinc);
-        }
-    }
-
   for(unsigned int J = 0; J < str.m_join_zinc; ++J)
     {
       const_c_array<PainterIndex> idx;
@@ -1347,12 +1332,10 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
       idx = pdata.index_data_chunk(chunk);
       if(!idx.empty())
         {
-          float dist;
-          range_type<float> dash_interval;
           const_c_array<PainterAttribute> atr(pdata.attribute_data_chunk(chunk));
           assert(!atr.empty());
 
-          if(shader.dash_evaluator()->compute_dash_interval(raw_data, atr[0], dash_interval, dist))
+          if(shader.dash_evaluator()->covered_by_dash_pattern(raw_data, atr[0]))
             {
               str.m_joins.push_back(AtrribIndex());
               str.m_joins.back().m_attribs = atr;
@@ -1369,17 +1352,8 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
               assert(idx.empty() == atr.empty());
               if(!idx.empty())
                 {
-                  c_array<PainterAttribute> cap_join_attribs;
-
-                  d->m_work_room.m_cap_join_attribs[J].resize(atr.size());
-                  cap_join_attribs = make_c_array(d->m_work_room.m_cap_join_attribs[J]);
-                  std::copy(atr.begin(), atr.end(), cap_join_attribs.begin());
-                  shader.dash_evaluator()->adjust_cap_joins(raw_data, cap_join_attribs,
-                                                            dash_interval, dist,
-                                                            d->m_resolution,
-                                                            d->m_current_item_matrix.m_item_matrix);
                   str.m_joins.push_back(AtrribIndex());
-                  str.m_joins.back().m_attribs = cap_join_attribs;
+                  str.m_joins.back().m_attribs = atr;
                   str.m_joins.back().m_indices = idx;
                 }
             }

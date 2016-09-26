@@ -42,66 +42,18 @@ namespace fastuidraw
   {
   public:
     /*!
-      To be implemented by a derived class to compute the interval
-      a point along dashing belongs. If the interval is part of the
-      solid part of drawing, then returns true, otherwise returns
-      false.
+      To be implemented by a derived class to return true if and
+      only if a point from a join emobodied by a PainterAttribute
+      is covered by a dash pattern.
       \param data PainterItemShaderData::DataBase object holding the data to
                   be sent to the shader
       \param attrib PainterAttribute from which to extract the distance to
                     use to compute the return value
-      \param[out] out_interval interval to which input point belongs
-      \param[out] distance distance value within out_interval
      */
     virtual
     bool
-    compute_dash_interval(const PainterShaderData::DataBase *data,
-                          const PainterAttribute &attrib,
-                          range_type<float> &out_interval,
-                          float &distance) const = 0;
-
-    /*!
-      To be implemented by derived class to adjust cap-join
-      attribute values at join whose distance value is in a
-      skip interval.
-      \param data PainterItemShaderData::DataBase object holding the data to
-                  be sent to the shader
-      \param [inout] attribs attributes to adjust
-      \param interval out_interval value as returned by compute_dash_interval()
-      \param distance distance as returned by compute_dash_interval()
-      \param resolution resolution of target viewport of rendering
-      \param item_matrix transformation from local item coordinates
-                         to 3D API clip coordinates (i.e. the value of
-                         PainterItemMatrix::m_item_matrix of
-                         Painter::transformation(void) const.
-     */
-    virtual
-    void
-    adjust_cap_joins(const PainterShaderData::DataBase *data,
-                     c_array<PainterAttribute> attribs,
-                     range_type<float> interval,
-                     float distance,
-                     const fastuidraw::vec2 &resolution,
-                     const float3x3 &item_matrix) const = 0;
-    /*!
-      To be implemented by derived class to adjust attributes
-      coming from adjustable caps of starts and endings of
-      contours.
-      \param data PainterItemShaderData::DataBase object holding the data to
-                  be sent to the shader
-      \param [inout] attribs attributes to adjust
-      \param resolution resolution of target viewport of rendering
-      \param item_matrix transformation from local item coordinates
-                         to 3D API clip coordinates (i.e. the value of
-                         PainterItemMatrix::m_item_matrix of
-                         Painter::transformation(void) const.
-     */
-    virtual
-    void
-    adjust_caps(const PainterShaderData::DataBase *data,
-                c_array<PainterAttribute> attribs,
-                const fastuidraw::vec2 &resolution,
-                const float3x3 &item_matrix) const = 0;
+    covered_by_dash_pattern(const PainterShaderData::DataBase *data,
+                            const PainterAttribute &attrib) const = 0;
   };
 
   /*!

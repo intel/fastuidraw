@@ -242,7 +242,8 @@ PainterBackendGLSLPrivate(fastuidraw::glsl::PainterBackendGLSL *p,
     .add_source("fastuidraw_anisotropic.frag.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_compute_local_distance_from_pixel_distance.glsl.resource_string",
                 ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_align.vert.glsl.resource_string", ShaderSource::from_resource);
+    .add_source("fastuidraw_painter_align.vert.glsl.resource_string", ShaderSource::from_resource)
+    .add_source(code::compute_interval("fastuidraw_compute_interval", m_p->configuration_base().alignment()));
 
   m_frag_shader_utils
     .add_source("fastuidraw_do_nothing.glsl.resource_string", ShaderSource::from_resource)
@@ -475,10 +476,13 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
 
     .add_macro("fastuidraw_stroke_offset_edge", StrokedPath::offset_edge)
     .add_macro("fastuidraw_stroke_offset_next_edge", StrokedPath::offset_next_edge)
+    .add_macro("fastuidraw_stroke_offset_shared_with_edge", StrokedPath::offset_shared_with_edge)
     .add_macro("fastuidraw_stroke_offset_rounded_join", StrokedPath::offset_rounded_join)
     .add_macro("fastuidraw_stroke_offset_miter_join", StrokedPath::offset_miter_join)
     .add_macro("fastuidraw_stroke_offset_rounded_cap", StrokedPath::offset_rounded_cap)
     .add_macro("fastuidraw_stroke_offset_square_cap", StrokedPath::offset_square_cap)
+    .add_macro("fastuidraw_stroke_offset_cap_entering_join", StrokedPath::offset_cap_entering_join)
+    .add_macro("fastuidraw_stroke_offset_cap_leaving_join", StrokedPath::offset_cap_leaving_join)
     .add_macro("fastuidraw_stroke_offset_type_bit0", StrokedPath::offset_type_bit0)
     .add_macro("fastuidraw_stroke_offset_type_num_bits", StrokedPath::offset_type_num_bits)
     .add_macro("fastuidraw_stroke_sin_sign_mask", StrokedPath::sin_sign_mask)
@@ -486,7 +490,7 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_stroke_normal1_y_sign_mask", StrokedPath::normal1_y_sign_mask)
     .add_macro("fastuidraw_stroke_boundary_bit", StrokedPath::boundary_bit)
     .add_macro("fastuidraw_stroke_join_mask", StrokedPath::join_mask)
-    .add_macro("fastuidraw_stroke_cap_join_mask", StrokedPath::cap_join_ending_mask)
+    .add_macro("fastuidraw_stroke_cap_join_ending_mask", StrokedPath::cap_join_ending_mask)
     .add_macro("fastuidraw_stroke_depth_bit0", StrokedPath::depth_bit0)
     .add_macro("fastuidraw_stroke_depth_num_bits", StrokedPath::depth_num_bits)
     .add_macro("fastuidraw_stroke_undashed", PainterEnums::number_cap_styles)
