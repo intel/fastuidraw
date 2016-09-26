@@ -295,15 +295,20 @@ compute_interval(const char *function_name, unsigned int data_alignment)
        << "\tout int interval_ID, out int interval_period,\n"
        << "\tout float interval_begin, out float interval_end)\n"
        << "{\n"
-       << "\tfloat d, lastd, ff, fd, s;\n"
        << "\tint loc;\n"
-       << "\n"
+       << "\tfloat d, lastd, ff, fd;\n";
+
+  if(data_alignment == 1 || data_alignment == 3)
+    {
+      ostr << "\tfloat s = 1.0;\n";
+    }
+
+  ostr << "\n"
        << "\tfd = floor(in_distance / total_distance);\n"
        << "\tff = total_distance * fd;\n"
        << "\td = in_distance - ff;\n"
        << "\tlastd = first_interval_start;\n"
        << "\tloc = 0;\n"
-       << "\ts = 1.0;\n\n"
        << "\tinterval_begin = 0.0;\n"
        << "\tinterval_end = 0.0;\n"
        << "\tinterval_ID = -1;\n"
@@ -327,17 +332,26 @@ compute_interval(const char *function_name, unsigned int data_alignment)
            << "\t\t\tinterval_begin = ff + " << start_interval[i] << ";\n"
            << "\t\t\tinterval_end = ff + " << end_interval[i] << ";\n"
            << "\t\t\tinterval_ID = int(" << data_alignment << ") * loc + int(" << i << ");\n"
-           << "\t\t\tinterval_period = int(fd);\n"
-           << "\t\t\treturn s * " << return_signs[i] << ";\n"
-           << "\t\t\tlastd = 2.0 * total_distance + 1.0;\n"
+           << "\t\t\tinterval_period = int(fd);\n";
+      if(data_alignment == 1 || data_alignment == 3)
+        {
+          ostr << "\t\t\treturn s * " << return_signs[i] << ";\n";
+        }
+      else
+        {
+          ostr << "\t\t\treturn " << return_signs[i] << ";\n";
+        }
+      ostr << "\t\t\tlastd = 2.0 * total_distance + 1.0;\n"
            << "\t\t}\n";
     }
   ostr << "\t\tlastd = fV." << xyzw[data_alignment - 1] << ";\n"
        << "\t\t++loc;\n";
+
   if(data_alignment == 1 || data_alignment == 3)
     {
       ostr << "\t\ts *= -1.0;\n";
     }
+
   ostr << "\t}\n"
        << "\twhile(lastd < total_distance);\n"
        << "\treturn -1.0;\n"

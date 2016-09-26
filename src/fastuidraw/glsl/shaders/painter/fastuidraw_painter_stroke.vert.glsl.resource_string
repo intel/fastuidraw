@@ -10,17 +10,22 @@ fastuidraw_stroke_adjust_cap_join(in uint dash_pattern_location,
                                   in float distance,
                                   in float r,
                                   in vec2 auxilary_offset,
+                                  in bool for_end_caps,
                                   inout vec2 position)
 {
-  float return_value, q, interval_begin, interval_end;
+  float s, return_value, q, interval_begin, interval_end;
   int interval_id, interval_period;
 
-  fastuidraw_compute_interval(dash_pattern_location,
-                              total_distance, first_interval_start,
-                              distance,
-                              interval_period, interval_id,
-                              interval_begin, interval_end);
-  if(entering_join)
+  s = fastuidraw_compute_interval(dash_pattern_location,
+                                  total_distance, first_interval_start,
+                                  distance,
+                                  interval_period, interval_id,
+                                  interval_begin, interval_end);
+  if(for_end_caps && s > 0.0)
+    {
+      q = r;
+    }
+  else if(entering_join)
     {
       float endq;
       endq = interval_begin + r;
@@ -327,7 +332,9 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       stroke_params.miter_limit = H.miter_limit;
       H.dash_offset = 0.0;
 
-      if(offset_type == fastuidraw_stroke_offset_cap_entering_join
+      if(offset_type == fastuidraw_stroke_offset_cap_join_entering_join
+         || offset_type == fastuidraw_stroke_offset_cap_join_leaving_join
+         || offset_type == fastuidraw_stroke_offset_cap_entering_join
          || offset_type == fastuidraw_stroke_offset_cap_leaving_join)
         {
           float d, r;
@@ -336,11 +343,14 @@ fastuidraw_gl_vert_main(in uint sub_shader,
           r = 0.5 * H.width;
           dash_pattern_at = shader_data_offset + uint(fastuidraw_stroke_dashed_stroking_params_header_num_blocks);
           d = fastuidraw_stroke_adjust_cap_join(dash_pattern_at, H.total_length, H.first_interval_start,
-                                                offset_type == fastuidraw_stroke_offset_cap_entering_join,
+                                                offset_type == fastuidraw_stroke_offset_cap_join_entering_join
+                                                || offset_type == fastuidraw_stroke_offset_cap_entering_join,
                                                 (point_packed_data & uint(fastuidraw_stroke_cap_join_ending_mask)) != 0u,
                                                 distance_from_contour_start,
                                                 r,
                                                 auxilary_offset,
+                                                offset_type == fastuidraw_stroke_offset_cap_entering_join
+                                                || offset_type == fastuidraw_stroke_offset_cap_leaving_join,
                                                 position);
           distance_from_contour_start = d;
           distance_from_edge_start = d;

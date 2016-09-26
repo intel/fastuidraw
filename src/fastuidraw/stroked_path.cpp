@@ -452,6 +452,7 @@ namespace
     static
     void
     pack_fan(bool leaving_join,
+             enum fastuidraw::StrokedPath::offset_type_t type,
              const fastuidraw::TessellatedPath::point &edge_pt,
              const fastuidraw::vec2 &stroking_normal,
              fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
@@ -1777,13 +1778,14 @@ fill_join_implement(unsigned int join_id,
   i0 = R0.m_end - 1;
   i1 = R1.m_begin;
 
-  pack_fan(false, src_pts[i0], m_n0[join_id], pts, vertex_offset, indices, index_offset);
-  pack_fan(true , src_pts[i1], m_n1[join_id], pts, vertex_offset, indices, index_offset);
+  pack_fan(false, fastuidraw::StrokedPath::offset_cap_join_entering_join, src_pts[i0], m_n0[join_id], pts, vertex_offset, indices, index_offset);
+  pack_fan(true, fastuidraw::StrokedPath::offset_cap_join_leaving_join, src_pts[i1], m_n1[join_id], pts, vertex_offset, indices, index_offset);
 }
 
 void
 CapJoinCreator::
 pack_fan(bool leaving_join,
+         enum fastuidraw::StrokedPath::offset_type_t cp_js_type,
          const fastuidraw::TessellatedPath::point &p,
          const fastuidraw::vec2 &stroking_normal,
          fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
@@ -1793,11 +1795,6 @@ pack_fan(bool leaving_join,
 {
   CommonCapData C(leaving_join, p, stroking_normal);
   unsigned int first(vertex_offset);
-  enum fastuidraw::StrokedPath::offset_type_t cp_js_type;
-
-  cp_js_type = leaving_join ?
-    fastuidraw::StrokedPath::offset_cap_leaving_join :
-    fastuidraw::StrokedPath::offset_cap_entering_join;
 
   pts[vertex_offset].m_position = C.m_p;
   pts[vertex_offset].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
@@ -2153,7 +2150,13 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
         unsigned int &vertex_offset,
         unsigned int &index_offset) const
 {
-  CapJoinCreator::pack_fan(is_starting_cap, p0, normal_from_stroking,
+  enum fastuidraw::StrokedPath::offset_type_t tp;
+  tp = (is_starting_cap) ?
+    fastuidraw::StrokedPath::offset_cap_leaving_join :
+    fastuidraw::StrokedPath::offset_cap_entering_join;
+
+  CapJoinCreator::pack_fan(is_starting_cap, tp,
+                           p0, normal_from_stroking,
                            pts, vertex_offset, indices, index_offset);
 }
 
