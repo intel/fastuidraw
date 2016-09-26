@@ -9,13 +9,13 @@ fastuidraw_stroke_compute_dash_interval(in uint dashed_stroking_data_location,
                                         in float distance_to_end_of_edge,
                                         in float stroke_width)
 {
-  int interval_id;
+  int interval_id, interval_period;
   float interval_begin, interval_end, d0, d1, s, r;
 
   s = fastuidraw_compute_interval(dashed_stroking_data_location,
                                   total_distance,
                                   first_interval_start,
-                                  in_distance,
+                                  in_distance, interval_period,
                                   interval_id,
                                   interval_begin,
                                   interval_end);

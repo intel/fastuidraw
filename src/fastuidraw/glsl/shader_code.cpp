@@ -291,9 +291,9 @@ compute_interval(const char *function_name, unsigned int data_alignment)
    */
   ostr << "float\n" << function_name
        << "(in uint intervals_location, in float total_distance,\n"
-       << "in float first_interval_start, in float in_distance,\n"
-       << "out int interval_ID,\n"
-       << "out float interval_begin, out float interval_end)\n"
+       << "\tin float first_interval_start, in float in_distance,\n"
+       << "\tout int interval_ID, out int interval_period,\n"
+       << "\tout float interval_begin, out float interval_end)\n"
        << "{\n"
        << "\tfloat d, lastd, ff, fd, s;\n"
        << "\tint loc;\n"
@@ -307,6 +307,7 @@ compute_interval(const char *function_name, unsigned int data_alignment)
        << "\tinterval_begin = 0.0;\n"
        << "\tinterval_end = 0.0;\n"
        << "\tinterval_ID = -1;\n"
+       << "\tinterval_period = -1;\n"
        << "\n\n"
        << "\tdo\n"
        << "\t{\n"
@@ -326,9 +327,10 @@ compute_interval(const char *function_name, unsigned int data_alignment)
            << "\t\t\tinterval_begin = ff + " << start_interval[i] << ";\n"
            << "\t\t\tinterval_end = ff + " << end_interval[i] << ";\n"
            << "\t\t\tinterval_ID = int(" << data_alignment << ") * loc + int(" << i << ");\n"
+           << "\t\t\tinterval_period = int(fd);\n"
            << "\t\t\treturn s * " << return_signs[i] << ";\n"
            << "\t\t\tlastd = 2.0 * total_distance + 1.0;\n"
-           << "\t\t}";
+           << "\t\t}\n";
     }
   ostr << "\t\tlastd = fV." << xyzw[data_alignment - 1] << ";\n"
        << "\t\t++loc;\n";

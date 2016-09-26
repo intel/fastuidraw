@@ -106,6 +106,7 @@ namespace fastuidraw
                       in float first_interval_start,
                       in float in_distance,
                       out int interval_id,
+                      out int interval_period,
                       out float interval_begin,
                       out float interval_end)
         \endcode
@@ -116,7 +117,8 @@ namespace fastuidraw
         - total_distance the period of the repeat interval pattern
         - first_interval_start
         - in_distance distance value to evaluate
-        - interval_id (output) interval ID of interval
+        - interval_id (output) ID of interval within in repeat pattern
+        - interval_period (output) cycle ID
         - interval_begin (output) interval start of interval
         - interval_end (output) interval end of interval
 
