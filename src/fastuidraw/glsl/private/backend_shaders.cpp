@@ -275,7 +275,7 @@ ShaderSetCreator(enum PainterBlendShader::shader_type tp,
                                         .add_float_varying("fastuidraw_stroking_distance")
                                         .add_float_varying("fastuidraw_stroking_distance_to_end_of_edge")
                                         .add_float_varying("fastuidraw_stroking_distance_from_edge_start")
-                                        .add_uint_varying("fastuidraw_stroking_packed_data"),
+                                        .add_uint_varying("fastuidraw_stroking_dash_bits"),
                                         num_dashed_sub_shaders
                                         );
 }

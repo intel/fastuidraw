@@ -1087,20 +1087,23 @@ add_edge(unsigned int o, unsigned int e,
       /* for the edge connecting src_pts[i] to src_pts[i+1]
        */
       fastuidraw::vec2 delta;
+      float delta_magnitude;
 
       delta = src_pts[i+1].m_p - src_pts[i].m_p;
-      if(delta.magnitudeSq() >= sm_mag_tol * sm_mag_tol)
+      delta_magnitude = delta.magnitude();
+      if(delta.magnitude() >= sm_mag_tol)
         {
-          normal = fastuidraw::vec2(-delta.y(), delta.x());
+          normal = fastuidraw::vec2(-delta.y(), delta.x()) / delta_magnitude;
         }
       else
         {
+          delta_magnitude = 0.0;
           if(src_pts[i].m_p_t.magnitudeSq() >= sm_mag_tol * sm_mag_tol)
             {
               normal = fastuidraw::vec2(-src_pts[i].m_p_t.y(), src_pts[i].m_p_t.x());
+              normal.normalize();
             }
         }
-      normal.normalize();
 
       if(i == R.m_begin)
         {
@@ -1140,6 +1143,11 @@ add_edge(unsigned int o, unsigned int e,
           pts[vert_offset + 2].m_pre_offset = lambda * normal;
           pts[vert_offset + 2].m_auxilary_offset = delta;
           pts[vert_offset + 2].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_start_sub_edge, depth);
+
+          for(unsigned int k = 0; k < 3; ++k)
+            {
+              pts[vert_offset + k].m_packed_data |= fastuidraw::StrokedPath::bevel_edge_mask;
+            }
           vert_offset += 3;
         }
 

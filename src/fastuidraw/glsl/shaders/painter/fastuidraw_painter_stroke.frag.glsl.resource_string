@@ -47,7 +47,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   alpha = 1.0;
 
   #ifdef FASTUIDRAW_STROKE_DASHED
-  if((fastuidraw_stroking_packed_data & uint(fastuidraw_stroke_join_mask)) == 0u)
+  if((fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_gauranteed_to_be_covered_mask)) == 0u)
     {
       float d, q, fw;
       uint dash_pattern_at, dash_style;
@@ -66,7 +66,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
        */
       fastuidraw_read_dashed_stroking_params_header(shader_data_offset, stroke_params);
 
-      if((fastuidraw_stroking_packed_data & uint(fastuidraw_stroke_cap_join_ending_mask)) != 0u)
+      if((fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u)
         {
           q = fastuidraw_stroking_distance_from_edge_start;
         }

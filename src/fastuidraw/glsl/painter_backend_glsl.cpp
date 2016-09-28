@@ -48,6 +48,15 @@ namespace
       uniform_ubo_number_entries
     };
 
+  enum stroke_shader_dash_bits_t
+    {
+      stroke_gauranteed_to_be_covered_bit,
+      stroke_skip_dash_interval_lookup_bit,
+
+      stroke_gauranteed_to_be_covered_mask = FASTUIDRAW_MASK(stroke_gauranteed_to_be_covered_bit, 1),
+      stroke_skip_dash_interval_lookup_mask = FASTUIDRAW_MASK(stroke_skip_dash_interval_lookup_bit, 1)
+    };
+
   class BlendShaderGroup
   {
   public:
@@ -499,6 +508,8 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_stroke_dashed_no_caps", PainterEnums::no_caps)
     .add_macro("fastuidraw_stroke_dashed_rounded_caps", PainterEnums::rounded_caps)
     .add_macro("fastuidraw_stroke_dashed_square_caps", PainterEnums::square_caps)
+    .add_macro("fastuidraw_stroke_gauranteed_to_be_covered_mask", stroke_gauranteed_to_be_covered_mask)
+    .add_macro("fastuidraw_stroke_skip_dash_interval_lookup_mask", stroke_skip_dash_interval_lookup_mask)
 
     .add_macro("fastuidraw_data_store_alignment", alignment);
 }

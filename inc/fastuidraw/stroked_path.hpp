@@ -184,9 +184,10 @@ public:
     };
 
   /*!
-    Enumeration encoding how bits of point::m_packed_data are used.
+    Enumeration encoding of bits of point::m_packed_data
+    common to all offset types.
    */
-  enum packed_data_bit_layout_t
+  enum packed_data_bit_layout_common_t
     {
       /*!
         Bit0 for holding the offset_type() value
@@ -201,12 +202,56 @@ public:
       offset_type_num_bits = 4,
 
       /*!
+        Bit for holding boundary() value
+        of the point
+       */
+      boundary_bit = offset_type_bit0 + offset_type_num_bits,
+
+      /*!
+        Bit0 for holding the depth() value
+        of the point
+       */
+      depth_bit0,
+
+      /*!
+        number of bits needed to hold the
+        depth() value of the point.
+       */
+      depth_num_bits = 20,
+
+      /*!
+        Bit to indicate point is from a join set,
+        but not from a cap-join set. For these
+        points, during dashed stroking, Painter
+        does the check if a join should be drawn,
+        as such when the bit is up encountered
+        in a shader, the computation to check
+        that it is drawn from dashing can be
+        skipped and assume that fragments from
+        such points are covered by the dash
+        pattern.
+       */
+      join_bit = depth_bit0 + depth_num_bits,
+
+      /*!
+        Number of bits used on common packed data
+       */
+      number_common_bits,
+    };
+
+  /*!
+    Enumeration encoding of bits of point::m_packed_data
+    for those with offset type \ref offset_rounded_join
+   */
+  enum packed_data_bit_layout_rounded_join_t
+    {
+      /*!
         Bit for holding the the sign of
         the y-coordinate of the normal 0
         for the offset_type() \ref
         offset_rounded_join.
        */
-      normal0_y_sign_bit = offset_type_bit0 + offset_type_num_bits,
+      normal0_y_sign_bit = number_common_bits,
 
       /*!
         Bit for holding the the sign of
@@ -222,50 +267,47 @@ public:
         \ref offset_rounded_join.
        */
       sin_sign_bit,
+    };
 
+  /*!
+    Enumeration encoding of bits of point::m_packed_data
+    for those with offset type \ref offset_cap_entering_join
+    \ref offset_cap_leaving_join, \ref offset_cap_entering_join
+    or \ref offset_cap_leaving_join
+   */
+  enum packed_data_bit_cap_join_t
+    {
       /*!
-        Bit for holding boundary() value
-        of the point
+        The bit is up if the point is for end of point
+        (i.e. the side to be extended to make sure the
+        entire cap near the end of edge is drawn).
        */
-      boundary_bit,
+      cap_join_ending_bit = number_common_bits,
+    };
 
+  /*!
+    Enumeration encoding of bits of point::m_packed_data
+    for those with offset type \ref offset_start_sub_edge
+    or \ref offset_end_sub_edge.
+   */
+  enum packed_data_bit_sub_edge_t
+    {
       /*!
-        Bit to indicate point is from a join set,
-        but not from a cap-join set. For these
-        points, during dashed stroking, Painter
-        does the check if a join should be drawn,
-        as such when the bit is up encountered
-        in a shader, the computation to check
-        that it is drawn frm dashing can be
-        skipped and assume that fragments from
-        such points are covered by the dash
-        pattern.
+        The bit is up if the point is for the
+        geometry of a bevel between two sub-edges.
        */
-      join_bit,
+      bevel_edge_bit = number_common_bits,
+    };
 
-      /*!
-        Bit is only up for those points coming from
-        those points with offset_type() either \ref
-        offset_cap_entering_join or \ref
-        offset_cap_leaving_join. The bit is up if the
-        point is for end of point (i.e. the side to
-        be extended to make sure the entire cap near
-        the end of edge is drawn).
-       */
-      cap_join_ending_bit,
-
-      /*!
-        Bit0 for holding the depth() value
-        of the point
-       */
-      depth_bit0,
-
-      /*!
-        number of bits needed to hold the
-        depth() value of the point.
-       */
-      depth_num_bits = 32 - depth_bit0,
-
+  /*!
+    Enumeration holding bit masks generated from
+    values in \ref packed_data_bit_layout_common_t,
+    \ref packed_data_bit_layout_rounded_join_t,
+    \ref packed_data_bit_cap_join_t and \ref
+    packed_data_bit_sub_edge_t.
+   */
+  enum packed_data_bit_masks_t
+    {
       /*!
         Mask generated for \ref offset_type_bit0 and
         \ref offset_type_num_bits
@@ -301,6 +343,11 @@ public:
         Mask generated for \ref cap_join_ending_bit
        */
       cap_join_ending_mask = FASTUIDRAW_MASK(cap_join_ending_bit, 1),
+
+      /*!
+        Mask generated for \ref bevel_edge_bit
+       */
+      bevel_edge_mask = FASTUIDRAW_MASK(bevel_edge_bit, 1),
 
       /*!
         Mask generated for \ref depth_bit0 and \ref depth_num_bits
