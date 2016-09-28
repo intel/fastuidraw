@@ -58,18 +58,19 @@ public:
         point signifies the start of a sub-edge
         (quad) of drawing an edge.
        */
-      offset_edge,
+      offset_start_sub_edge,
 
       /*!
         The point is for an edge of the path,
         point signifies the end of a sub-edge
         (quad) of drawing an edge.
        */
-      offset_next_edge,
+      offset_end_sub_edge,
 
       /*!
         The point is at a position that has the
-        same value as point on an edge
+        same value as point on an edge but the
+        point itself is part of a cap or join.
        */
       offset_shared_with_edge,
 
@@ -213,26 +214,34 @@ public:
         for the offset_type() \ref
         offset_rounded_join.
        */
-      normal1_y_sign_bit = normal0_y_sign_bit + 1,
+      normal1_y_sign_bit,
 
       /*!
         Bit for holding the the sign of
         sin() value for the offset_type()
         \ref offset_rounded_join.
        */
-      sin_sign_bit = normal1_y_sign_bit + 1,
+      sin_sign_bit,
 
       /*!
         Bit for holding boundary() value
         of the point
        */
-      boundary_bit = sin_sign_bit + 1,
+      boundary_bit,
 
       /*!
         Bit to indicate point is from a join set,
-        but not from a cap-join set.
+        but not from a cap-join set. For these
+        points, during dashed stroking, Painter
+        does the check if a join should be drawn,
+        as such when the bit is up encountered
+        in a shader, the computation to check
+        that it is drawn frm dashing can be
+        skipped and assume that fragments from
+        such points are covered by the dash
+        pattern.
        */
-      join_bit = boundary_bit + 1,
+      join_bit,
 
       /*!
         Bit is only up for those points coming from
@@ -243,13 +252,13 @@ public:
         be extended to make sure the entire cap near
         the end of edge is drawn).
        */
-      cap_join_ending_bit = join_bit + 1,
+      cap_join_ending_bit,
 
       /*!
         Bit0 for holding the depth() value
         of the point
        */
-      depth_bit0 = cap_join_ending_bit + 1,
+      depth_bit0,
 
       /*!
         number of bits needed to hold the

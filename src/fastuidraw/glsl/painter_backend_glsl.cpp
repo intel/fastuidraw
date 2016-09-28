@@ -474,8 +474,8 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_blend_shader_bit0", PainterHeader::blend_shader_bit0)
     .add_macro("fastuidraw_blend_shader_num_bits", PainterHeader::blend_shader_num_bits)
 
-    .add_macro("fastuidraw_stroke_offset_edge", StrokedPath::offset_edge)
-    .add_macro("fastuidraw_stroke_offset_next_edge", StrokedPath::offset_next_edge)
+    .add_macro("fastuidraw_stroke_offset_start_sub_edge", StrokedPath::offset_start_sub_edge)
+    .add_macro("fastuidraw_stroke_offset_end_sub_edge", StrokedPath::offset_end_sub_edge)
     .add_macro("fastuidraw_stroke_offset_shared_with_edge", StrokedPath::offset_shared_with_edge)
     .add_macro("fastuidraw_stroke_offset_rounded_join", StrokedPath::offset_rounded_join)
     .add_macro("fastuidraw_stroke_offset_miter_join", StrokedPath::offset_miter_join)
@@ -678,7 +678,8 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
       .set(PainterDashedStrokeParams::stroke_miter_limit_offset, ".miter_limit")
       .set(PainterDashedStrokeParams::stroke_dash_offset_offset, ".dash_offset")
       .set(PainterDashedStrokeParams::stroke_total_length_offset, ".total_length")
-      .set(PainterDashedStrokeParams::stroke_first_interval_start, ".first_interval_start")
+      .set(PainterDashedStrokeParams::stroke_first_interval_start_offset, ".first_interval_start")
+      .set(PainterDashedStrokeParams::stroke_number_intervals_offset, ".number_intervals", shader_unpack_value::uint_type)
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_dashed_stroking_params_header",
                               "fastuidraw_dashed_stroking_params_header",

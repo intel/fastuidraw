@@ -35,4 +35,5 @@ struct fastuidraw_dashed_stroking_params_header
   float dash_offset;
   float total_length;
   float first_interval_start;
+  uint number_intervals;
 };

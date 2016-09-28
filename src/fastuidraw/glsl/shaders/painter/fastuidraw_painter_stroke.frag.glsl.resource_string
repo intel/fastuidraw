@@ -23,10 +23,10 @@ fastuidraw_stroke_compute_dash_interval(in uint dashed_stroking_data_location,
 
   d0 = in_distance - interval_begin;
   d1 = interval_end - in_distance;
-  r = (d0 <= distance_from_edge_start) ?
+  r = (d0 < distance_from_edge_start) ?
     min(d0, r) :
     r;
-  r = (d1 <= distance_to_end_of_edge) ?
+  r = (d1 < distance_to_end_of_edge) ?
     min(d1, r) :
     r;
   return s * r;

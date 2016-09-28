@@ -110,7 +110,8 @@ pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> 
   dst[PainterDashedStrokeParams::stroke_width_offset].f = m_width;
   dst[PainterDashedStrokeParams::stroke_dash_offset_offset].f = m_dash_offset;
   dst[PainterDashedStrokeParams::stroke_total_length_offset].f = m_total_length;
-  dst[PainterDashedStrokeParams::stroke_first_interval_start].f = m_first_interval_start;
+  dst[PainterDashedStrokeParams::stroke_first_interval_start_offset].f = m_first_interval_start;
+  dst[PainterDashedStrokeParams::stroke_number_intervals_offset].u = m_dash_pattern_packed.size();
 
   if(!m_dash_pattern_packed.empty())
     {
