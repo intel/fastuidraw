@@ -111,18 +111,6 @@ namespace fastuidraw
       the chunk index, i.e. the value to feed
       \ref PainterAttributeData::attribute_data_chunk()
       and \ref PainterAttributeData::index_data_chunk(),
-      for a named cap join.
-      \param J (global) join index
-    */
-    virtual
-    unsigned int
-    chunk_from_cap_join(unsigned int J) const = 0;
-
-    /*!
-      To be implemented by a derived class to return
-      the chunk index, i.e. the value to feed
-      \ref PainterAttributeData::attribute_data_chunk()
-      and \ref PainterAttributeData::index_data_chunk(),
       for adjustable caps.
     */
     virtual

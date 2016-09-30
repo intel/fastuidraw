@@ -2,17 +2,17 @@
 #define FASTUIDRAW_STROKE_VERT
 
 float
-fastuidraw_stroke_adjust_cap_join(in uint dash_pattern_location,
-                                  in float total_distance,
-                                  in float first_interval_start,
-                                  in bool entering_join,
-                                  in bool extend,
-                                  in float distance,
-                                  in float r,
-                                  in vec2 auxilary_offset,
-                                  in bool for_end_caps,
-                                  in uint number_intervals,
-                                  inout vec2 position)
+fastuidraw_stroke_adjust_cap(in uint dash_pattern_location,
+                             in float total_distance,
+                             in float first_interval_start,
+                             in bool entering_join,
+                             in bool extend,
+                             in float distance,
+                             in float r,
+                             in vec2 auxilary_offset,
+                             in bool for_end_caps,
+                             in uint number_intervals,
+                             inout vec2 position)
 {
   float s, return_value, q, interval_begin, interval_end;
   int interval_id;
@@ -485,10 +485,8 @@ fastuidraw_gl_vert_main(in uint sub_shader,
             }
 
         }
-      else if(offset_type == fastuidraw_stroke_offset_cap_join_entering_join
-         || offset_type == fastuidraw_stroke_offset_cap_join_leaving_join
-         || offset_type == fastuidraw_stroke_offset_cap_entering_join
-         || offset_type == fastuidraw_stroke_offset_cap_leaving_join)
+      else if(offset_type == fastuidraw_stroke_offset_adjustable_cap_contour_start
+         || offset_type == fastuidraw_stroke_offset_adjustable_cap_contour_end)
         {
           float d, r;
           uint dash_pattern_at;
@@ -505,17 +503,15 @@ fastuidraw_gl_vert_main(in uint sub_shader,
               r = stroke_radius;
             }
           dash_pattern_at = shader_data_offset + uint(fastuidraw_stroke_dashed_stroking_params_header_num_blocks);
-          d = fastuidraw_stroke_adjust_cap_join(dash_pattern_at, stroke_params.total_length, stroke_params.first_interval_start,
-                                                offset_type == fastuidraw_stroke_offset_cap_join_entering_join
-                                                || offset_type == fastuidraw_stroke_offset_cap_entering_join,
-                                                (point_packed_data & uint(fastuidraw_stroke_cap_join_ending_mask)) != 0u,
-                                                distance_from_contour_start + stroke_params.dash_offset,
-                                                r,
-                                                auxilary_offset,
-                                                offset_type == fastuidraw_stroke_offset_cap_entering_join
-                                                || offset_type == fastuidraw_stroke_offset_cap_leaving_join,
-                                                stroke_params.number_intervals,
-                                                position);
+          d = fastuidraw_stroke_adjust_cap(dash_pattern_at, stroke_params.total_length, stroke_params.first_interval_start,
+                                           offset_type == fastuidraw_stroke_offset_adjustable_cap_contour_start,
+                                           (point_packed_data & uint(fastuidraw_stroke_adjustable_cap_ending_mask)) != 0u,
+                                           distance_from_contour_start + stroke_params.dash_offset,
+                                           r,
+                                           auxilary_offset,
+                                           offset_type == fastuidraw_stroke_offset_adjustable_cap_contour_end,
+                                           stroke_params.number_intervals,
+                                           position);
           fastuidraw_stroking_distance = d;
           auxilary_offset = vec2(0.0, 0.0);
           fastuidraw_stroking_dash_bits = uint(fastuidraw_stroke_skip_dash_interval_lookup_mask);
@@ -593,14 +589,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       z_add = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_depth_bit0,
                                       fastuidraw_stroke_depth_num_bits,
                                       point_packed_data);
-      #ifdef FASTUIDRAW_STROKE_DASHED
-        {
-          if((point_packed_data & uint(fastuidraw_stroke_join_mask)) != 0u)
-            {
-              z_add *= 2u;
-            }
-        }
-      #endif
     }
 
   return vec4(p, p);

@@ -338,7 +338,6 @@ namespace
     std::vector<float> m_clipper_floats;
     std::vector<fastuidraw::PainterIndex> m_indices;
     std::vector<fastuidraw::PainterAttribute> m_attribs;
-    std::vector<std::vector<fastuidraw::PainterAttribute> > m_cap_join_attribs;
     std::vector<fastuidraw::PainterAttribute> m_adjustable_caps;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_stroke_helper_attrib_chunks;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_stroke_helper_index_chunks;
@@ -1341,33 +1340,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
               str.m_joins.back().m_attribs = atr;
               str.m_joins.back().m_indices = idx;
             }
-          else if(have_caps)
-            {
-              /* we will add the cap-join data, but modified to only extend
-                 as far as needed if we have caps.
-               */
-              chunk = shader.shader(cp).chunk_selector()->chunk_from_cap_join(J);
-              idx = pdata.index_data_chunk(chunk);
-              atr = pdata.attribute_data_chunk(chunk);
-              assert(idx.empty() == atr.empty());
-              if(!idx.empty())
-                {
-                  str.m_joins.push_back(AtrribIndex());
-                  str.m_joins.back().m_attribs = atr;
-                  str.m_joins.back().m_indices = idx;
-                }
-            }
         }
-    }
-
-  /* if we are drawing with caps, those joins that are not
-     covered, induce two overlapping quads. To handle this,
-     the amount by which we increment the depth is doubled
-     for joins.
-   */
-  if(have_caps)
-    {
-      str.m_join_zinc *= 2u;
     }
 
   d->stroke_path_helper(str, shader.shader(cp), draw, with_anti_aliasing, call_back);

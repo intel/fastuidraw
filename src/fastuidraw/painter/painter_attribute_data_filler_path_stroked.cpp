@@ -35,7 +35,6 @@ namespace
       rounded_joins_closing_edge, /*!< index for rounded join data with closing edge */
       bevel_joins_closing_edge, /*!< index for bevel join data with closing edge */
       miter_joins_closing_edge, /*!< index for miter join data with closing edge */
-      cap_joins_closing_edge, /*!< index for cap-join data with closing edge */
       edge_closing_edge, /*!< index for edge data including closing edge */
 
       number_with_closing_edge, /*!< number of types with closing edge */
@@ -43,7 +42,6 @@ namespace
       rounded_joins_no_closing_edge = number_with_closing_edge, /*!< index for rounded join data without closing edge */
       bevel_joins_no_closing_edge, /*!< index for bevel join data without closing edge */
       miter_joins_no_closing_edge, /*!< index for miter join data without closing edge */
-      cap_joins_no_closing_edge, /*!< index for cap-join data without closing edge */
       edge_no_closing_edge, /*!< index for edge data not including closing edge */
 
       rounded_cap, /*!< index for rounded cap data */
@@ -145,19 +143,12 @@ namespace
       join = static_join_chunk(js, true);
       return static_named_join_chunk(join, J);
     }
-
-    virtual
-    unsigned int
-    chunk_from_cap_join(unsigned int J) const
-    {
-      return static_named_join_chunk(cap_joins_closing_edge, J);
-    }
   };
 
   class PathStrokerPrivate
   {
   public:
-    enum { number_join_types = 4 };
+    enum { number_join_types = 3 };
 
     /*!
       Given an enumeration of stroking_data_t, returns
@@ -289,11 +280,6 @@ static_named_join_chunk(enum stroking_data_t join, unsigned int J)
       t = 2u;
       break;
 
-    case cap_joins_closing_edge:
-    case cap_joins_no_closing_edge:
-      t = 3u;
-      break;
-
     default:
       assert(!"Type not mapping to join type");
       t = 0u;
@@ -372,7 +358,6 @@ compute_sizes(unsigned int &num_attributes,
           num_indices += p->indices_range(StrokedPath::bevel_join_point_set, C, J).difference();
           num_indices += p->indices_range(StrokedPath::rounded_join_point_set, C, J).difference();
           num_indices += p->indices_range(StrokedPath::miter_join_point_set, C, J).difference();
-          num_indices += p->indices_range(StrokedPath::cap_join_point_set, C, J).difference();
         }
     }
   num_attribute_chunks = stroking_data_count + 1 + PathStrokerPrivate::number_join_types * numJoins;
@@ -402,13 +387,11 @@ fill_data(c_array<PainterAttribute> attribute_data,
   zincrements[bevel_joins_closing_edge] = p->number_depth(StrokedPath::bevel_join_point_set, true);
   zincrements[rounded_joins_closing_edge] = p->number_depth(StrokedPath::rounded_join_point_set, true);
   zincrements[miter_joins_closing_edge] = p->number_depth(StrokedPath::miter_join_point_set, true);
-  zincrements[cap_joins_closing_edge] = p->number_depth(StrokedPath::cap_join_point_set, true);
 
   zincrements[edge_no_closing_edge] = p->number_depth(StrokedPath::edge_point_set, false);
   zincrements[bevel_joins_no_closing_edge] = p->number_depth(StrokedPath::bevel_join_point_set, false);
   zincrements[rounded_joins_no_closing_edge] = p->number_depth(StrokedPath::rounded_join_point_set, false);
   zincrements[miter_joins_no_closing_edge] = p->number_depth(StrokedPath::miter_join_point_set, false);
-  zincrements[cap_joins_no_closing_edge] = p->number_depth(StrokedPath::cap_join_point_set, false);
 
   zincrements[square_cap] = p->number_depth(StrokedPath::square_cap_point_set, false);
   zincrements[rounded_cap] = p->number_depth(StrokedPath::rounded_cap_point_set, false);
@@ -510,7 +493,6 @@ fill_data(c_array<PainterAttribute> attribute_data,
   GRAB_MACRO(bevel_joins, StrokedPath::bevel_join_point_set);
   GRAB_MACRO(rounded_joins, StrokedPath::rounded_join_point_set);
   GRAB_MACRO(miter_joins, StrokedPath::miter_join_point_set);
-  GRAB_MACRO(cap_joins, StrokedPath::cap_join_point_set);
 
   // then grab individual joins, this must be done after
   // all the blocks because although it does not generate new
@@ -518,7 +500,6 @@ fill_data(c_array<PainterAttribute> attribute_data,
   GRAB_JOIN_MACRO(rounded_joins, StrokedPath::rounded_join_point_set);
   GRAB_JOIN_MACRO(bevel_joins, StrokedPath::bevel_join_point_set);
   GRAB_JOIN_MACRO(miter_joins, StrokedPath::miter_join_point_set);
-  GRAB_JOIN_MACRO(cap_joins, StrokedPath::cap_join_point_set);
 }
 
 

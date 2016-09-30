@@ -95,34 +95,18 @@ public:
       offset_square_cap,
 
       /*!
-        The point is from \ref cap_join_point_set point set. It is for a
-        point for entering the join. These points are for dashed stroking
-        with caps when the point of the join is NOT covered by the
-        dash pattern.
-       */
-      offset_cap_join_entering_join,
-
-      /*!
-        The point is from \ref cap_join_point_set point set. It is for a
-        point for leaving the join. These points are for dashed stroking
-        with caps when the point of the join is NOT covered by the
-        dash pattern.
-       */
-      offset_cap_join_leaving_join,
-
-      /*!
         The point is from \ref adjustable_cap_point_set point set.
         It is for a point for a cap at the start of a contour. These
         points are for dashed stroking with caps.
        */
-      offset_cap_entering_join,
+      offset_adjustable_cap_contour_start,
 
       /*!
         The point is from \ref adjustable_cap_point_set point set.
         It is for a point for a cap at the end of a contour. These
         points are for dashed stroking with caps.
        */
-      offset_cap_leaving_join,
+      offset_adjustable_cap_contour_end,
 
       /*!
         Number different point types with respect to rendering
@@ -164,11 +148,6 @@ public:
         Select the set of points for rouded caps
        */
       rounded_cap_point_set,
-
-      /*!
-        Select the set of points for cap joins
-       */
-      cap_join_point_set,
 
       /*!
         Select the set of points for caps that are
@@ -272,17 +251,16 @@ public:
   /*!
     Enumeration encoding of bits of point::m_packed_data
     for those with offset type \ref offset_cap_entering_join
-    \ref offset_cap_leaving_join, \ref offset_cap_entering_join
-    or \ref offset_cap_leaving_join
+    or \ref offset_cap_leaving_join.
    */
-  enum packed_data_bit_cap_join_t
+  enum packed_data_bit_adjustable_cap_t
     {
       /*!
         The bit is up if the point is for end of point
         (i.e. the side to be extended to make sure the
         entire cap near the end of edge is drawn).
        */
-      cap_join_ending_bit = number_common_bits,
+      adjustable_cap_ending_bit = number_common_bits,
     };
 
   /*!
@@ -303,7 +281,7 @@ public:
     Enumeration holding bit masks generated from
     values in \ref packed_data_bit_layout_common_t,
     \ref packed_data_bit_layout_rounded_join_t,
-    \ref packed_data_bit_cap_join_t and \ref
+    \ref packed_data_bit_adjustable_cap_t and \ref
     packed_data_bit_sub_edge_t.
    */
   enum packed_data_bit_masks_t
@@ -340,9 +318,9 @@ public:
       join_mask = FASTUIDRAW_MASK(join_bit, 1),
 
       /*!
-        Mask generated for \ref cap_join_ending_bit
+        Mask generated for \ref adjustable_cap_ending_bit
        */
-      cap_join_ending_mask = FASTUIDRAW_MASK(cap_join_ending_bit, 1),
+      adjustable_cap_ending_mask = FASTUIDRAW_MASK(adjustable_cap_ending_bit, 1),
 
       /*!
         Mask generated for \ref bevel_edge_bit
@@ -497,9 +475,8 @@ public:
         \endcode
         In addition, \ref m_auxilary_offset holds the vector leaving
         from the contour where the cap is located.
-      - For those with offset_type() being StrokedPath::offset_miter_join
-        or StrokedPath::cap_join_point, the value is given by the following
-        code
+      - For those with offset_type() being StrokedPath::offset_miter_join,
+        the value is given by the following code
         \code
         vec2 n = m_pre_offset, v = vec2(-n.y(), n.x());
         float r, lambda;
