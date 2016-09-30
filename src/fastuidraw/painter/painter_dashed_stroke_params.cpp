@@ -303,17 +303,10 @@ dash_pattern(const_c_array<DashPatternElement> f)
            - if d->m_dash_pattern[current_write].m_space_length is 0,
              then we join it with the element we are on by adding the
              draw lengths.
-           - if f[i] has draw length 0 we join it's skip with
-             d->m_dash_pattern[current_write]
        */
       if(d->m_dash_pattern[current_write].m_space_length <= 0.0f)
         {
           d->m_dash_pattern[current_write].m_draw_length += std::max(0.0f, f[i].m_draw_length);
-          d->m_dash_pattern[current_write].m_space_length = std::max(0.0f, f[i].m_space_length);
-        }
-      else if(f[i].m_draw_length <= 0.0f)
-        {
-          d->m_dash_pattern[current_write].m_space_length += std::max(0.0f, f[i].m_space_length);
         }
       else
         {
@@ -335,10 +328,6 @@ dash_pattern(const_c_array<DashPatternElement> f)
   if(d->m_dash_pattern.back().m_space_length <= 0.0f && d->m_dash_pattern.front().m_draw_length > 0.0f)
     {
       d->m_first_interval_start = -d->m_dash_pattern.back().m_draw_length;
-    }
-  else if(d->m_dash_pattern.back().m_space_length > 0.0f && d->m_dash_pattern.front().m_draw_length <= 0.0f)
-    {
-      d->m_first_interval_start = -d->m_dash_pattern.back().m_space_length;
     }
   else
     {
