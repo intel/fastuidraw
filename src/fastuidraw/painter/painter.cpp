@@ -1299,7 +1299,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
   const PainterShaderData::DataBase *raw_data;
   raw_data = draw.m_item_shader_data.data().data_base();
 
-  if(have_caps && !close_contour && false)
+  if(have_caps && !close_contour)
     {
       unsigned int chunk;
 
