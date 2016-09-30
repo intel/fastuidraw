@@ -141,7 +141,22 @@ main(int argc, char **argv)
             << std::setw(40) << "transformation_translation_mask = " << bitset(PainterBrush::transformation_translation_mask) << "\n"
             << std::setw(40) << "transformation_matrix_mask = " << bitset(PainterBrush::transformation_matrix_mask) << "\n"
             << std::setw(40) << "image_number_index_lookups_mask = " << bitset(PainterBrush::image_number_index_lookups_mask) << "\n"
-            << std::setw(40) << "image_slack_mask = " << bitset(PainterBrush::image_slack_mask) << "\n";
+            << std::setw(40) << "image_slack_mask = " << bitset(PainterBrush::image_slack_mask) << "\n"
+
+            << std::setw(40) << "stroked_number_offset_types = " << StrokedPath::number_offset_types << "\n"
+            << std::setw(40) << "stroked_number_point_set_types = " << StrokedPath::number_point_set_types << "\n"
+            << std::setw(40) << "stroked_offset_type_bit0 = " << StrokedPath::offset_type_bit0 << "\n"
+            << std::setw(40) << "stroked_offset_type_num_bits = " << StrokedPath::offset_type_num_bits << "\n"
+            << std::setw(40) << "stroked_boundary_bit = " << StrokedPath::boundary_bit << "\n"
+            << std::setw(40) << "stroked_depth_bit0 = " << StrokedPath::depth_bit0 << "\n"
+            << std::setw(40) << "stroked_depth_num_bits = " << StrokedPath::depth_num_bits << "\n"
+            << std::setw(40) << "stroked_join_bit = " << StrokedPath::join_bit << "\n"
+            << std::setw(40) << "stroked_number_common_bits = " << StrokedPath::number_common_bits << "\n"
+            << std::setw(40) << "stroked_normal0_y_sign_bit = " << StrokedPath::normal0_y_sign_bit << "\n"
+            << std::setw(40) << "stroked_normal1_y_sign_bit = " << StrokedPath::normal1_y_sign_bit << "\n"
+            << std::setw(40) << "stroked_sin_sign_bit = " << StrokedPath::sin_sign_bit << "\n"
+            << std::setw(40) << "stroked_adjustable_cap_ending_bit = " << StrokedPath::adjustable_cap_ending_bit << "\n"
+            << std::setw(40) << "stroked_bevel_edge_bit = " << StrokedPath::bevel_edge_bit << "\n";
 
   painter_test P;
   return P.main(argc, argv);
