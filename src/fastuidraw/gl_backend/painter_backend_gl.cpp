@@ -208,6 +208,7 @@ namespace
     enum fastuidraw::gl::detail::tex_buffer_support_t m_tex_buffer_support;
     int m_number_clip_planes;
     GLenum m_clip_plane0;
+    std::string m_gles_clip_plane_extension;
 
     GLuint m_linear_filter_sampler;
     fastuidraw::gl::PreLinkActionArray m_attribute_binder;
@@ -932,8 +933,11 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
 
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
-      return_value
-        .use_hw_clip_planes(params.use_hw_clip_planes() && ctx.has_extension("GL_APPLE_clip_distance"));
+      bool use_hw_clip_planes;
+      use_hw_clip_planes = params.use_hw_clip_planes()
+        && (ctx.has_extension("GL_APPLE_clip_distance") || ctx.has_extension("GL_EXT_clip_cull_distance"));
+
+      return_value.use_hw_clip_planes(use_hw_clip_planes);
     }
   #else
     {
@@ -1026,10 +1030,17 @@ configure_backend(void)
     {
       #ifdef FASTUIDRAW_GL_USE_GLES
         {
-          if(m_ctx_properties.has_extension("GL_APPLE_clip_distance"))
+          if(m_ctx_properties.has_extension("GL_EXT_clip_cull_distance"))
+            {
+              m_number_clip_planes = fastuidraw::gl::context_get<GLint>(GL_MAX_CLIP_DISTANCES_EXT );
+              m_clip_plane0 = GL_CLIP_DISTANCE0_EXT;
+              m_gles_clip_plane_extension = "GL_EXT_clip_cull_distance";
+            }
+          else if(m_ctx_properties.has_extension("GL_APPLE_clip_distance"))
             {
               m_number_clip_planes = fastuidraw::gl::context_get<GLint>(GL_MAX_CLIP_DISTANCES_APPLE);
               m_clip_plane0 = GL_CLIP_DISTANCE0_APPLE;
+              m_gles_clip_plane_extension = "GL_APPLE_clip_distance";
             }
           else
             {
@@ -1178,8 +1189,7 @@ configure_source_front_matter(void)
     {
       if(m_p->configuration_glsl().use_hw_clip_planes())
         {
-          m_front_matter_vert.specify_extension("GL_APPLE_clip_distance", ShaderSource::require_extension);
-          m_front_matter_frag.specify_extension("GL_APPLE_clip_distance", ShaderSource::require_extension);
+          m_front_matter_vert.specify_extension(m_gles_clip_plane_extension.c_str(), ShaderSource::require_extension);
         }
 
       if(m_ctx_properties.version() >= fastuidraw::ivec2(3, 2))

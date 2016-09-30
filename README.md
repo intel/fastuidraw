@@ -31,8 +31,8 @@ GL requirements
   The GLES backend requires GLES version 3.0. If the GLES version is 3.0 or 3.1,
   it is strongly recommended that one of the extension GL_OES_texture_buffer or
   GL_EXT_texture_buffer is present. For GLES 3.0, 3.1 and 3.2, the extensions
-  GL_EXT_blend_func_extended, GL_APPLE_clip_distance and GL_OES_texture_view
-  are not required but strongly recommended.
+  GL_EXT_blend_func_extended, GL_OES_texture_view and (GL_APPLE_clip_distance
+  or GL_EXT_clip_cull_distance) are not required but strongly recommended.
 
 Building requirements
 =====================
