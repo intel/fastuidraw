@@ -36,8 +36,8 @@ namespace fastuidraw
 
   /*!
     A StrokingChunkSelector provides an interface to know
-    what chuck of a PainterAttributeData to grab
-    for different data to stroke.
+    what chuck of a PainterAttributeData to grab for
+    different data to stroke.
   */
   class StrokingChunkSelectorBase:
     public reference_counted<StrokingChunkSelectorBase>::default_base
@@ -85,6 +85,7 @@ namespace fastuidraw
     /*!
       To be implemented by a derived class to return the number
       of joins.
+      \param data source PainterAttributeData
       \param edge_closed if true, include in the return value the
                          number of joins including those joins
                          from the closing edges of each contour.

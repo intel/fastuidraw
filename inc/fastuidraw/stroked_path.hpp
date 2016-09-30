@@ -150,9 +150,10 @@ public:
       rounded_cap_point_set,
 
       /*!
-        Select the set of points for caps that are
-        tagged with \ref offset_cap_entering_join
-        or \ref offset_cap_leaving_join
+        Select the set of points for caps whose geometry
+        is to be adjustable. These caps are drawn for
+        the start and end of contours when doing dashed
+        stroking.
        */
       adjustable_cap_point_set,
 
@@ -249,9 +250,9 @@ public:
     };
 
   /*!
-    Enumeration encoding of bits of point::m_packed_data
-    for those with offset type \ref offset_cap_entering_join
-    or \ref offset_cap_leaving_join.
+    Enumeration encoding of bits of point::m_packed_data for
+    those with offset type \ref offset_adjustable_cap_contour_end
+    or \ref offset_adjustable_cap_contour_start.
    */
   enum packed_data_bit_adjustable_cap_t
     {
@@ -393,7 +394,13 @@ public:
     float m_closed_contour_length;
 
     /*!
-      Bit field with data packed as according to \ref packed_data_bit_layout_t.
+      Bit field with data packed as according to
+      \ref packed_data_bit_layout_common_t, \ref
+      packed_data_bit_layout_rounded_join_t, \ref
+      packed_data_bit_adjustable_cap_t and \ref
+      packed_data_bit_sub_edge_t. See also,
+      \ref packed_data_bit_masks_t for bit masks
+      generated.
      */
     uint32_t m_packed_data;
 
