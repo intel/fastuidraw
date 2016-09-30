@@ -55,6 +55,13 @@ TODO.
     stroking width sqaured). From there, for non-perspective transformations, we
     can select a good tessellation of the path having a pixel threshold for rendering
     by just multiplying that value by the determinat of the transformation matrix.
+    In addition to changing the tessellation parameters, we should change Path so
+    that given a tessellation parameter to fetch (and possibly) construct a TessellatedPath
+    with atleast that level of tessellation and then change Painter so that what
+    TessellatedPath is taken from the passed path is determined by the transformation
+    matrix and stroking width (specifically, bevel area <= width * width * det(transformation).
+    Trickiness to decide best tessellation if transformation has clipping when
+    bounding box of Path transformed would pass through w > 0.
 
  8. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
     together with a 3rd party library to create SPIR-V from GLSL.
