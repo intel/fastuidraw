@@ -413,48 +413,74 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                       on_boundary = 0;
                     }
                 }
-              else if(s < 0.0)
+              else if(s < 0.0 || s2 < 0.0)
                 {
                   /* contract to avoid drawing extras and expand to draw caps.
                    */
                   fastuidraw_stroking_dash_bits = 0u;
                   if(offset_type == fastuidraw_stroke_offset_start_sub_edge)
                     {
-                      float new_d;
+                      float new_d, clamp_interval_end;
 
-                      /* clamp interval_end to the end of the sub-edge.
-                       */
-                      interval_end = min(interval_end, d2);
+                      fastuidraw_stroking_distance_sub_edge_start = (s < 0.0 )?
+                        interval_end :
+                        d;
 
-                      new_d = interval_end - stroke_radius;
+                      fastuidraw_stroking_distance_sub_edge_end = (s2 < 0.0) ?
+                        interval_begin2 :
+                        d2;
 
-                      position += (new_d - d) * auxilary_offset / delta_mag;
-                      fastuidraw_stroking_distance = new_d;
+                      if(s < 0.0)
+                        {
+                          clamp_interval_end = min(interval_end, d2);
+                          new_d = clamp_interval_end - stroke_radius;
+
+                          position += (new_d - d) * auxilary_offset / delta_mag;
+                          fastuidraw_stroking_distance = new_d;
+                        }
+                      else
+                        {
+                          fastuidraw_stroking_distance = d;
+                        }
                     }
                   else
                     {
-                      float new_d;
+                      float new_d, clamp_interval_begin;
 
-                      /* clamp interval_begin to the start of the sub-edge
-                       */
-                      interval_begin = max(interval_begin, d2);
+                      fastuidraw_stroking_distance_sub_edge_start = (s2 < 0.0) ?
+                        interval_end2 :
+                        d2;
 
-                      new_d = interval_begin + stroke_radius;
+                      fastuidraw_stroking_distance_sub_edge_end = (s < 0.0) ?
+                        interval_begin :
+                        d;
 
-                      /* auxilary_offset is the direction from this point
-                         (the end of the sub-edge) to the start of the
-                         sub-edge. This is why we have the coefficient
-                         (d - new_d) because moving in auxilary_offset
-                         is moving towards the start.
-                       */
-                      position += (d - new_d) * auxilary_offset / delta_mag;
-                      fastuidraw_stroking_distance = new_d;
+                      if(s < 0.0)
+                        {
+                          clamp_interval_begin = max(clamp_interval_begin, d2);
+                          new_d = interval_begin + stroke_radius;
+
+                          /* auxilary_offset is the direction from this point
+                             (the end of the sub-edge) to the start of the
+                             sub-edge. This is why we have the coefficient
+                             (d - new_d) because moving in auxilary_offset
+                             is moving towards the start.
+                          */
+                          position += (d - new_d) * auxilary_offset / delta_mag;
+                          fastuidraw_stroking_distance = new_d;
+                        }
+                       else
+                         {
+                           fastuidraw_stroking_distance = d;
+                         }
                     }
                 }
               else
                 {
                   fastuidraw_stroking_distance = d;
                   fastuidraw_stroking_dash_bits = 0u;
+                  fastuidraw_stroking_distance_sub_edge_start = min(d, d2);
+                  fastuidraw_stroking_distance_sub_edge_end = max(d, d2);
                 }
             }
 

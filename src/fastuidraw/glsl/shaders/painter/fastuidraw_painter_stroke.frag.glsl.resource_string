@@ -5,21 +5,33 @@ fastuidraw_stroke_compute_dash_interval(in uint dashed_stroking_data_location,
                                         in float total_distance,
                                         in float first_interval_start,
                                         in float in_distance,
+                                        in float start, in float end,
                                         in float stroke_width,
                                         in uint number_intervals)
 {
-  int interval_id;
-  float interval_begin, interval_end, s;
+  if(in_distance <= start)
+    {
+      return in_distance - start;
+    }
+  else if(in_distance >= end)
+    {
+      return end - in_distance;
+    }
+  else
+    {
+      int interval_id;
+      float interval_begin, interval_end, s;
 
-  s = fastuidraw_compute_interval(dashed_stroking_data_location,
-                                  total_distance,
-                                  first_interval_start,
-                                  in_distance, number_intervals,
-                                  interval_id,
-                                  interval_begin,
-                                  interval_end);
+      s = fastuidraw_compute_interval(dashed_stroking_data_location,
+                                      total_distance,
+                                      first_interval_start,
+                                      in_distance, number_intervals,
+                                      interval_id,
+                                      interval_begin,
+                                      interval_end);
 
-  return s * min(in_distance - interval_begin, interval_end - in_distance);
+      return s * min(in_distance - interval_begin, interval_end - in_distance);
+    }
 }
 #endif
 
@@ -66,6 +78,8 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                                                       stroke_params.total_length,
                                                       stroke_params.first_interval_start,
                                                       fastuidraw_stroking_distance,
+                                                      fastuidraw_stroking_distance_sub_edge_start,
+                                                      fastuidraw_stroking_distance_sub_edge_end,
                                                       stroke_params.width,
                                                       stroke_params.number_intervals);
         }
