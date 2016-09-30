@@ -483,6 +483,8 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_blend_shader_bit0", PainterHeader::blend_shader_bit0)
     .add_macro("fastuidraw_blend_shader_num_bits", PainterHeader::blend_shader_num_bits)
 
+    /* offset types for stroking.
+     */
     .add_macro("fastuidraw_stroke_offset_start_sub_edge", StrokedPath::offset_start_sub_edge)
     .add_macro("fastuidraw_stroke_offset_end_sub_edge", StrokedPath::offset_end_sub_edge)
     .add_macro("fastuidraw_stroke_offset_shared_with_edge", StrokedPath::offset_shared_with_edge)
@@ -496,18 +498,25 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_stroke_offset_cap_leaving_join", StrokedPath::offset_cap_leaving_join)
     .add_macro("fastuidraw_stroke_offset_type_bit0", StrokedPath::offset_type_bit0)
     .add_macro("fastuidraw_stroke_offset_type_num_bits", StrokedPath::offset_type_num_bits)
+
+    /* bit masks for StrokedPath::point::m_packed_data
+     */
     .add_macro("fastuidraw_stroke_sin_sign_mask", StrokedPath::sin_sign_mask)
     .add_macro("fastuidraw_stroke_normal0_y_sign_mask", StrokedPath::normal0_y_sign_mask)
     .add_macro("fastuidraw_stroke_normal1_y_sign_mask", StrokedPath::normal1_y_sign_mask)
     .add_macro("fastuidraw_stroke_boundary_bit", StrokedPath::boundary_bit)
     .add_macro("fastuidraw_stroke_join_mask", StrokedPath::join_mask)
+    .add_macro("fastuidraw_stroke_bevel_edge_mask", StrokedPath::bevel_edge_mask)
     .add_macro("fastuidraw_stroke_cap_join_ending_mask", StrokedPath::cap_join_ending_mask)
     .add_macro("fastuidraw_stroke_depth_bit0", StrokedPath::depth_bit0)
     .add_macro("fastuidraw_stroke_depth_num_bits", StrokedPath::depth_num_bits)
-    .add_macro("fastuidraw_stroke_undashed", PainterEnums::number_cap_styles)
+
+    /* dash shader modes.
+     */
     .add_macro("fastuidraw_stroke_dashed_no_caps", PainterEnums::no_caps)
     .add_macro("fastuidraw_stroke_dashed_rounded_caps", PainterEnums::rounded_caps)
     .add_macro("fastuidraw_stroke_dashed_square_caps", PainterEnums::square_caps)
+
     .add_macro("fastuidraw_stroke_gauranteed_to_be_covered_mask", stroke_gauranteed_to_be_covered_mask)
     .add_macro("fastuidraw_stroke_skip_dash_interval_lookup_mask", stroke_skip_dash_interval_lookup_mask)
 

@@ -11,15 +11,16 @@ fastuidraw_stroke_adjust_cap_join(in uint dash_pattern_location,
                                   in float r,
                                   in vec2 auxilary_offset,
                                   in bool for_end_caps,
+                                  in uint number_intervals,
                                   inout vec2 position)
 {
   float s, return_value, q, interval_begin, interval_end;
-  int interval_id, interval_period;
+  int interval_id;
 
   s = fastuidraw_compute_interval(dash_pattern_location,
                                   total_distance, first_interval_start,
-                                  distance,
-                                  interval_period, interval_id,
+                                  distance, number_intervals,
+                                  interval_id,
                                   interval_begin, interval_end);
   if(for_end_caps && s > 0.0)
     {
@@ -337,7 +338,126 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       if(offset_type == fastuidraw_stroke_offset_start_sub_edge
          || offset_type == fastuidraw_stroke_offset_end_sub_edge)
         {
-          fastuidraw_stroking_dash_bits = 0u;
+          int interval_id;
+          float d, s, interval_begin, interval_end;
+          uint dash_pattern_at;
+
+          dash_pattern_at = shader_data_offset + uint(fastuidraw_stroke_dashed_stroking_params_header_num_blocks);
+
+          d = distance_from_contour_start + stroke_params.dash_offset;
+          s = fastuidraw_compute_interval(dash_pattern_at,
+                                          stroke_params.total_length,
+                                          stroke_params.first_interval_start,
+                                          d,
+                                          stroke_params.number_intervals,
+                                          interval_id,
+                                          interval_begin, interval_end);
+
+          if((point_packed_data & uint(fastuidraw_stroke_bevel_edge_mask)) != 0u)
+            {
+              /* bevel points have either the computation for dashing
+                 skipped OR are collapsed to a point to avoid drawing.
+               */
+              fastuidraw_stroking_dash_bits = uint(fastuidraw_stroke_gauranteed_to_be_covered_mask);
+              fastuidraw_stroking_distance = 0.0;
+              if(s < 0.0)
+                {
+                  on_boundary = 0;
+                }
+            }
+          else
+            {
+              float s2, interval_begin2, interval_end2, d2, delta_mag, grow;
+              int interval_id2, dash_style;
+
+              dash_style = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
+                                                       fastuidraw_stroke_sub_shader_dash_style_num_bits,
+                                                       sub_shader));
+
+              delta_mag = length(auxilary_offset);
+              d2 = (offset_type == fastuidraw_stroke_offset_start_sub_edge) ?
+                d + delta_mag:
+                d - delta_mag;
+
+              grow = (dash_style == fastuidraw_stroke_dashed_no_caps) ?
+                0.0 :
+                stroke_radius;
+
+              s2 = fastuidraw_compute_interval(dash_pattern_at,
+                                               stroke_params.total_length,
+                                               stroke_params.first_interval_start,
+                                               d2,
+                                               stroke_params.number_intervals,
+                                               interval_id2,
+                                               interval_begin2, interval_end2);
+
+              /* examine what happens on the other side of the edge.
+                 We have the following cases:
+                  - in same interval, then handle just like we do a bevel-edge
+                    where either the thing is completely drawn or collapsed
+                    to a point.
+                  - in different intervals; if we have caps, then expand
+                    the length of the sub-edge to include the area that
+                    caps may cover (which may be beyond the original
+                    sub-edge area). Also pay attention if the point we
+                    are at is a sub-edge at the start or end of the edge.
+                    If so, avoid expanding past the start or end of the
+                    edge.
+               */
+              if(interval_id2 == interval_id)
+                {
+                  fastuidraw_stroking_dash_bits = uint(fastuidraw_stroke_gauranteed_to_be_covered_mask);
+                  fastuidraw_stroking_distance = 0.0f;
+                  if(s < 0.0)
+                    {
+                      on_boundary = 0;
+                    }
+                }
+              else if(s < 0.0)
+                {
+                  /* contract to avoid drawing extras and expand to draw caps.
+                   */
+                  fastuidraw_stroking_dash_bits = 0u;
+                  if(offset_type == fastuidraw_stroke_offset_start_sub_edge)
+                    {
+                      float new_d;
+
+                      /* clamp interval_end to the end of the sub-edge.
+                       */
+                      interval_end = min(interval_end, d2);
+
+                      new_d = interval_end - stroke_radius;
+
+                      position += (new_d - d) * auxilary_offset / delta_mag;
+                      fastuidraw_stroking_distance = new_d;
+                    }
+                  else
+                    {
+                      float new_d;
+
+                      /* clamp interval_begin to the start of the sub-edge
+                       */
+                      interval_begin = max(interval_begin, d2);
+
+                      new_d = interval_begin + stroke_radius;
+
+                      /* auxilary_offset is the direction from this point
+                         (the end of the sub-edge) to the start of the
+                         sub-edge. This is why we have the coefficient
+                         (d - new_d) because moving in auxilary_offset
+                         is moving towards the start.
+                       */
+                      position += (d - new_d) * auxilary_offset / delta_mag;
+                      fastuidraw_stroking_distance = new_d;
+                    }
+                }
+              else
+                {
+                  fastuidraw_stroking_distance = d;
+                  fastuidraw_stroking_dash_bits = 0u;
+                }
+            }
+
         }
       else if(offset_type == fastuidraw_stroke_offset_cap_join_entering_join
          || offset_type == fastuidraw_stroke_offset_cap_join_leaving_join
@@ -363,17 +483,14 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                                                 offset_type == fastuidraw_stroke_offset_cap_join_entering_join
                                                 || offset_type == fastuidraw_stroke_offset_cap_entering_join,
                                                 (point_packed_data & uint(fastuidraw_stroke_cap_join_ending_mask)) != 0u,
-                                                distance_from_contour_start,
+                                                distance_from_contour_start + stroke_params.dash_offset,
                                                 r,
                                                 auxilary_offset,
                                                 offset_type == fastuidraw_stroke_offset_cap_entering_join
                                                 || offset_type == fastuidraw_stroke_offset_cap_leaving_join,
+                                                stroke_params.number_intervals,
                                                 position);
-          distance_from_contour_start = d;
-          distance_from_edge_start = d;
-          total_edge_length = r;
-          total_open_contour_length = r;
-          total_closed_contour_length = r;
+          fastuidraw_stroking_distance = d;
           auxilary_offset = vec2(0.0, 0.0);
           fastuidraw_stroking_dash_bits = uint(fastuidraw_stroke_skip_dash_interval_lookup_mask);
           /* change offset_type to shared_with_edge since
@@ -387,11 +504,8 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       else if((point_packed_data & uint(fastuidraw_stroke_join_mask)) != 0u)
         {
           fastuidraw_stroking_dash_bits = uint(fastuidraw_stroke_gauranteed_to_be_covered_mask);
+          fastuidraw_stroking_distance = 0.0;
         }
-
-      fastuidraw_stroking_distance = distance_from_contour_start + stroke_params.dash_offset;
-      fastuidraw_stroking_distance_to_end_of_edge = total_edge_length - distance_from_edge_start;
-      fastuidraw_stroking_distance_from_edge_start = distance_from_edge_start;
     }
   #endif
 

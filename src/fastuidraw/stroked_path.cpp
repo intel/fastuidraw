@@ -1087,7 +1087,7 @@ add_edge(unsigned int o, unsigned int e,
       /* for the edge connecting src_pts[i] to src_pts[i+1]
        */
       fastuidraw::vec2 delta;
-      float delta_magnitude;
+      float delta_magnitude, lambda;
 
       delta = src_pts[i+1].m_p - src_pts[i].m_p;
       delta_magnitude = delta.magnitude();
@@ -1107,6 +1107,7 @@ add_edge(unsigned int o, unsigned int e,
 
       if(i == R.m_begin)
         {
+          lambda = 0.0f;
           m_per_contour_data[o].m_edge_begin_normal[e] = normal;
           if(e == 0)
             {
@@ -1117,7 +1118,6 @@ add_edge(unsigned int o, unsigned int e,
         {
           /*! add a join from the last sub-edge to this sub-edge
            */
-          float lambda;
           lambda = CommonJoinData::compute_lambda(src_pts[i-1].m_p_t, src_pts[i].m_p_t);
 
           indices[index_offset + 0] = vert_offset + 0;
@@ -1141,8 +1141,13 @@ add_edge(unsigned int o, unsigned int e,
           pts[vert_offset + 2].m_open_contour_length = src_pts[i].m_open_contour_length;
           pts[vert_offset + 2].m_closed_contour_length = src_pts[i].m_closed_contour_length;
           pts[vert_offset + 2].m_pre_offset = lambda * normal;
-          pts[vert_offset + 2].m_auxilary_offset = delta;
           pts[vert_offset + 2].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_start_sub_edge, depth);
+          /* for the point of the bevel that is on the edge to
+             connect to, we do not need the delta-vector, but
+             we do need the normal from the edge that the bevel
+             connects from.
+           */
+          pts[vert_offset + 2].m_auxilary_offset = lambda * pts[vert_offset + 1].m_pre_offset;
 
           for(unsigned int k = 0; k < 3; ++k)
             {
@@ -1204,6 +1209,35 @@ add_edge(unsigned int o, unsigned int e,
                                                              depth);
         }
 
+      if(i != R.m_begin)
+        {
+          /* modify and tag the start vertex on the inside so
+             that when we draw the sub-edge it won't intersect
+             in screen-space with the previous sub-edge. The
+             starting vertices do NOT need the delta vector,
+             the delta-vector is only needed for end-sub-edge
+             points (when pixel-width stroking). The point on
+             the inside is the opposite side for the bevel that
+             the next edge makes from this edge.
+           */
+          if(lambda < 0.0f)
+            {
+              assert(fastuidraw::dot(pts[vert_offset + 0].m_pre_offset, pts[last_edge_positive_normal].m_pre_offset) >= 0.0f);
+              //pts[vert_offset + 0].m_auxilary_offset = pts[last_edge_positive_normal].m_pre_offset;
+              //pts[vert_offset + 0].m_packed_data |= fastuidraw::StrokedPath::anti_bevel_edge_mask;
+            }
+          else
+            {
+              assert(fastuidraw::dot(pts[vert_offset + 1].m_pre_offset, pts[last_edge_negative_normal].m_pre_offset) >= 0.0f);
+              //pts[vert_offset + 1].m_auxilary_offset = pts[last_edge_negative_normal].m_pre_offset;
+              //pts[vert_offset + 1].m_packed_data |= fastuidraw::StrokedPath::anti_bevel_edge_mask;
+            }
+        }
+
+      last_edge_middle = vert_offset + 5;
+      last_edge_positive_normal = vert_offset + 3;
+      last_edge_negative_normal = vert_offset + 4;
+
       indices[index_offset + 0] = vert_offset + 0;
       indices[index_offset + 1] = vert_offset + 2;
       indices[index_offset + 2] = vert_offset + 5;
@@ -1218,9 +1252,6 @@ add_edge(unsigned int o, unsigned int e,
       indices[index_offset + 10] = vert_offset + 4;
       indices[index_offset + 11] = vert_offset + 5;
 
-      last_edge_middle = vert_offset + 5;
-      last_edge_positive_normal = vert_offset + 3;
-      last_edge_negative_normal = vert_offset + 4;
       index_offset += indices_per_segment_without_bevel;
       vert_offset += points_per_segment;
     }
