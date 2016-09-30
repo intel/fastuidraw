@@ -1059,10 +1059,9 @@ construct_dash_patterns(void)
   for(unsigned int i = 0, endi = m_dash_pattern_files.m_files.size(); i < endi; ++i)
     {
       std::ifstream file(m_dash_pattern_files.m_files[i].c_str());
-      float length;
 
-      length = read_dash_pattern(tmp, file);
-      if(length > 0.0f)
+      read_dash_pattern(tmp, file);
+      if(!tmp.empty())
         {
           m_dash_patterns.push_back(std::vector<PainterDashedStrokeParams::DashPatternElement>());
           std::swap(tmp, m_dash_patterns.back());
@@ -1088,7 +1087,7 @@ draw_frame(void)
 
   update_cts_params();
 
-  glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   enable_wire_frame(m_wire_frame);
@@ -1314,7 +1313,7 @@ draw_frame(void)
 
   if(!m_transparent_blue_pen)
     {
-      m_transparent_blue_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0f, 0.0f, 1.0f, 0.5f));
+      m_transparent_blue_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(1.0f, 1.0f, 1.0f, 0.5f));
     }
 
   if(m_stroke_width > 0.0f)
