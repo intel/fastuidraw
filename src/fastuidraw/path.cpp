@@ -333,7 +333,7 @@ analytic_point_data(float time, const fastuidraw::PathContour::interpolator_gene
      K ||p_t || = || p_t x p_tt || / ||p_t||^2
   */
   m_time = time;
-  h->compute(time, m_p, m_p_t, p_tt);
+  h->compute(time, &m_p, &m_p_t, &p_tt);
 
   cross_mag = std::abs(m_p_t.x() * p_tt.y() - p_tt.x() * m_p_t.y());
   speed_sq = std::max(dot(m_p_t, m_p_t), epsilon_sq);
@@ -591,13 +591,13 @@ fastuidraw::PathContour::bezier::
 
 void
 fastuidraw::PathContour::bezier::
-compute(float t, vec2 &outp, vec2 &outp_t, vec2 &outp_tt) const
+compute(float t, vec2 *outp, vec2 *outp_t, vec2 *outp_tt) const
 {
   BezierPrivate *d;
   d = reinterpret_cast<BezierPrivate*>(m_d);
-  outp = poly::compute_poly(t, make_c_array(d->m_poly));
-  outp_t = poly::compute_poly(t, make_c_array(d->m_poly_prime));
-  outp_tt = poly::compute_poly(t, make_c_array(d->m_poly_prime_prime));
+  *outp = poly::compute_poly(t, make_c_array(d->m_poly));
+  *outp_t = poly::compute_poly(t, make_c_array(d->m_poly_prime));
+  *outp_tt = poly::compute_poly(t, make_c_array(d->m_poly_prime_prime));
 }
 
 fastuidraw::PathContour::interpolator_base*

@@ -173,13 +173,13 @@ public:
                   interpolator_base represents with in_t = 0.0
                   indicating the start of the curve and in_t = 1.0
                   the end of the curve
-      \param outp (output) reference to place position of the curve
-      \param outp_t (output) reference to place the first derivative
-      \param outp_tt (output) reference to place the second derivative
+      \param outp (output) if non-NULL, location to which to write the position value
+      \param outp_t (output) if non-NULL, location to which to write the first derivative value
+      \param outp_tt (output) if non-NULL, location to which to write the second derivative value
      */
     virtual
     void
-    compute(float in_t, vec2 &outp, vec2 &outp_t, vec2 &outp_tt) const = 0;
+    compute(float in_t, vec2 *outp, vec2 *outp_t, vec2 *outp_tt) const = 0;
 
   private:
   };
@@ -224,7 +224,7 @@ public:
 
     virtual
     void
-    compute(float in_t, vec2 &outp, vec2 &outp_t, vec2 &outp_tt) const;
+    compute(float in_t, vec2 *outp, vec2 *outp_t, vec2 *outp_tt) const;
 
     virtual
     interpolator_base*
