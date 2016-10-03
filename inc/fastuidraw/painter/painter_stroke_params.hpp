@@ -39,7 +39,7 @@ namespace fastuidraw
      */
     enum stroke_data_offset_t
       {
-        stroke_width_offset, /*!< offset to stroke width (packed as float) */
+        stroke_radius_offset, /*!< offset to stroke radius (packed as float) */
         stroke_miter_limit_offset, /*!< offset to stroke miter limit (packed as float) */
 
         stroke_data_size /*!< size of data for stroking*/
@@ -73,6 +73,25 @@ namespace fastuidraw
      */
     PainterStrokeParams&
     width(float f);
+
+    /*!
+      The stroking radius, equivalent to
+      \code
+      width() * 0.5
+      \endcode
+     */
+    float
+    radius(void) const;
+
+    /*!
+      Set the value of radius(void) const,
+      equivalent to
+      \code
+      width(2.0 * f)
+      \endcode
+     */
+    PainterStrokeParams&
+    radius(float f);
   };
 
 /*! @} */

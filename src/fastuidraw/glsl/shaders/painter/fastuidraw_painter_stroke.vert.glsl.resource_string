@@ -281,7 +281,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                                             1,
                                             point_packed_data));
 
-  stroke_radius = 0.5 * stroke_params.width;
+  stroke_radius = stroke_params.radius;
 
   #ifdef FASTUIDRAW_STROKE_DASHED
     {

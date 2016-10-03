@@ -446,6 +446,9 @@ namespace
       m_current_clip = v.value();
     }
 
+    float
+    select_path_tessellation_lod(const fastuidraw::Path &path);
+
     void
     stroke_path_helper(const StrokingData &str,
                        const fastuidraw::PainterStrokeShader &shader,
@@ -647,6 +650,50 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
                                              .pen(0.0f, 0.0f, 0.0f, 0.0f));
   m_identiy_matrix = m_pool.create_packed_value(fastuidraw::PainterItemMatrix());
   m_current_z = 1;
+}
+
+
+float
+PainterPrivate::
+select_path_tessellation_lod(const fastuidraw::Path &path)
+{
+  /* easy case: no projection
+   */
+  const float thresh = 2.0f;
+  float return_value;
+  bool no_perspective;
+
+  const fastuidraw::float3x3 &m(m_current_item_matrix.m_item_matrix);
+
+  no_perspective = (m(2, 0) == 0.0f && m(2, 1) == 0.0f);
+  if(no_perspective || true)
+    {
+      float d0, d1, d;
+
+      /* Poor man's approximation to operator norm coming from
+         taking the supremum norm of matrix then multiplying
+         by n * sqrt(n) where n = #dimensions = 2
+       */
+      d0 = m_resolution.x() * fastuidraw::t_max(fastuidraw::t_abs(m(0, 0)), fastuidraw::t_abs(m(0, 1)));
+      d1 = m_resolution.y() * fastuidraw::t_max(fastuidraw::t_abs(m(1, 0)), fastuidraw::t_abs(m(1, 1)));
+      d = fastuidraw::t_max(d0, d1);
+      d *= 2.0 * fastuidraw::t_sqrt(2.0f);
+
+      return_value = thresh / d / m(2, 2);
+    }
+  else
+    {
+      /* TODO:
+         Use path bounding box to determine how small w might
+         be on the points of the path; if the bounding box
+         goes through the near plane, then clip it against
+         the view-port. If the bounding box still includes
+         w = 0, then clamp it anyways.
+       */
+      FASTUIDRAWunused(path);
+    }
+
+  return return_value;
 }
 
 void
@@ -1239,8 +1286,13 @@ stroke_path(const PainterData &draw, const Path &path,
             bool with_anti_aliasing,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
+  PainterPrivate *d;
+  float lod;
+
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  lod = d->select_path_tessellation_lod(path);
   stroke_path(default_shaders().stroke_shader(), draw,
-              path.tessellation()->stroked()->painter_data(),
+              path.tessellation_lod(lod)->stroked()->painter_data(),
               close_contours, cp, js, with_anti_aliasing, call_back);
 }
 
@@ -1251,8 +1303,13 @@ stroke_path_pixel_width(const PainterData &draw, const Path &path,
                         bool with_anti_aliasing,
                         const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
+  PainterPrivate *d;
+  float lod;
+
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  lod = d->select_path_tessellation_lod(path);
   stroke_path(default_shaders().pixel_width_stroke_shader(), draw,
-              path.tessellation()->stroked()->painter_data(),
+              path.tessellation_lod(lod)->stroked()->painter_data(),
               close_contours, cp, js, with_anti_aliasing, call_back);
 }
 
@@ -1353,8 +1410,13 @@ stroke_dashed_path(const PainterData &draw, const Path &path,
                    bool with_anti_aliasing,
                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
+  PainterPrivate *d;
+  float lod;
+
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  lod = d->select_path_tessellation_lod(path);
   stroke_dashed_path(default_shaders().dashed_stroke_shader(), draw,
-                     path.tessellation()->stroked()->painter_data(),
+                     path.tessellation_lod(lod)->stroked()->painter_data(),
                      close_contour, cp, js, with_anti_aliasing, call_back);
 }
 
@@ -1365,8 +1427,13 @@ stroke_dashed_path_pixel_width(const PainterData &draw, const Path &path,
                                bool with_anti_aliasing,
                                const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-   stroke_dashed_path(default_shaders().pixel_width_dashed_stroke_shader(), draw,
-                      path.tessellation()->stroked()->painter_data(),
+  PainterPrivate *d;
+  float lod;
+
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  lod = d->select_path_tessellation_lod(path);
+  stroke_dashed_path(default_shaders().pixel_width_dashed_stroke_shader(), draw,
+                      path.tessellation_lod(lod)->stroked()->painter_data(),
                       close_contour, cp, js, with_anti_aliasing, call_back);
 }
 
@@ -1392,7 +1459,12 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
           const Path &path, enum PainterEnums::fill_rule_t fill_rule,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  fill_path(shader, draw, path.tessellation()->filled()->painter_data(), fill_rule, call_back);
+  PainterPrivate *d;
+  float lod;
+
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  lod = d->select_path_tessellation_lod(path);
+  fill_path(shader, draw, path.tessellation_lod(lod)->filled()->painter_data(), fill_rule, call_back);
 }
 
 void
@@ -1480,7 +1552,12 @@ fill_path(const PainterFillShader &shader,
           const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  fill_path(shader, draw, path.tessellation()->filled()->painter_data(), fill_rule, call_back);
+  PainterPrivate *d;
+  float lod;
+
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  lod = d->select_path_tessellation_lod(path);
+  fill_path(shader, draw, path.tessellation_lod(lod)->filled()->painter_data(), fill_rule, call_back);
 }
 
 void

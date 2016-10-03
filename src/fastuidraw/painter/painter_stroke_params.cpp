@@ -27,7 +27,7 @@ namespace
   public:
     PainterStrokeParamsData(void):
       m_miter_limit(15.0f),
-      m_width(2.0f)
+      m_radius(1.0f)
     {}
 
     virtual
@@ -50,11 +50,11 @@ namespace
     {
       FASTUIDRAWunused(alignment);
       dst[fastuidraw::PainterStrokeParams::stroke_miter_limit_offset].f = m_miter_limit;
-      dst[fastuidraw::PainterStrokeParams::stroke_width_offset].f = m_width;
+      dst[fastuidraw::PainterStrokeParams::stroke_radius_offset].f = m_radius;
     }
 
     float m_miter_limit;
-    float m_width;
+    float m_radius;
   };
 }
 
@@ -64,6 +64,17 @@ fastuidraw::PainterStrokeParams::
 PainterStrokeParams(void)
 {
   m_data = FASTUIDRAWnew PainterStrokeParamsData();
+}
+
+fastuidraw::PainterStrokeParams&
+fastuidraw::PainterStrokeParams::
+miter_limit(float f)
+{
+  PainterStrokeParamsData *d;
+  assert(dynamic_cast<PainterStrokeParamsData*>(m_data) != NULL);
+  d = static_cast<PainterStrokeParamsData*>(m_data);
+  d->m_miter_limit = f;
+  return *this;
 }
 
 float
@@ -83,18 +94,7 @@ width(void) const
   PainterStrokeParamsData *d;
   assert(dynamic_cast<PainterStrokeParamsData*>(m_data) != NULL);
   d = static_cast<PainterStrokeParamsData*>(m_data);
-  return d->m_miter_limit;
-}
-
-fastuidraw::PainterStrokeParams&
-fastuidraw::PainterStrokeParams::
-miter_limit(float f)
-{
-  PainterStrokeParamsData *d;
-  assert(dynamic_cast<PainterStrokeParamsData*>(m_data) != NULL);
-  d = static_cast<PainterStrokeParamsData*>(m_data);
-  d->m_miter_limit = f;
-  return *this;
+  return d->m_radius * 2.0f;
 }
 
 fastuidraw::PainterStrokeParams&
@@ -104,6 +104,27 @@ width(float f)
   PainterStrokeParamsData *d;
   assert(dynamic_cast<PainterStrokeParamsData*>(m_data) != NULL);
   d = static_cast<PainterStrokeParamsData*>(m_data);
-  d->m_width = f;
+  d->m_radius = 0.5f * f;
+  return *this;
+}
+
+float
+fastuidraw::PainterStrokeParams::
+radius(void) const
+{
+  PainterStrokeParamsData *d;
+  assert(dynamic_cast<PainterStrokeParamsData*>(m_data) != NULL);
+  d = static_cast<PainterStrokeParamsData*>(m_data);
+  return d->m_radius;
+}
+
+fastuidraw::PainterStrokeParams&
+fastuidraw::PainterStrokeParams::
+radius(float f)
+{
+  PainterStrokeParamsData *d;
+  assert(dynamic_cast<PainterStrokeParamsData*>(m_data) != NULL);
+  d = static_cast<PainterStrokeParamsData*>(m_data);
+  d->m_radius = f;
   return *this;
 }

@@ -22,6 +22,7 @@
 #include <vector>
 #include <fastuidraw/path.hpp>
 #include "private/util_private.hpp"
+#include "private/path_util_private.hpp"
 
 namespace
 {
@@ -62,7 +63,9 @@ namespace
   class analytic_point_data:public fastuidraw::TessellatedPath::point
   {
   public:
-    analytic_point_data(float time, const fastuidraw::PathContour::interpolator_generic *h);
+    analytic_point_data(float t, const fastuidraw::vec2 &p,
+                        const fastuidraw::vec2 &p_t, const fastuidraw::vec2 &p_tt);
+    analytic_point_data(float t, const fastuidraw::PathContour::interpolator_generic *h);
 
     bool
     operator<(const analytic_point_data &rhs) const
@@ -70,37 +73,128 @@ namespace
       return m_time < rhs.m_time;
     }
 
-    float m_time;
+    static
+    float
+    compute_approximate_curvature(float delta_t,
+                                  const analytic_point_data &a,
+                                  const analytic_point_data &b,
+                                  const analytic_point_data &c)
+    {
+      float Ka, Kb, Kc;
+
+      Ka = a.m_K_times_speed;
+      Kb = b.m_K_times_speed;
+      Kc = c.m_K_times_speed;
+      return (Ka + 4.0f * Kb + Kc) * delta_t / 6.0f;
+    }
+
+    static
+    float
+    compute_K_times_speed(const fastuidraw::vec2 &p_t,
+                          const fastuidraw::vec2 &p_tt);
+
     float m_K_times_speed;
+    float m_time;
+    fastuidraw::vec2 m_p_tt;
   };
 
+  inline
+  float
+  compute_distance(const fastuidraw::vec2 &a,
+                   const fastuidraw::vec2 &p,
+                   const fastuidraw::vec2 &b)
+  {
+    fastuidraw::vec2 a_p, b_a;
+    float d, d_sq, b_a_mag_sq, a_p_mag_sq;
 
-  class Tessellator:fastuidraw::noncopyable
+    a_p = a - p;
+    b_a = b - a;
+    d = fastuidraw::dot(a_p, b_a);
+    d_sq = d * d;
+    a_p_mag_sq = a_p.magnitudeSq();
+    b_a_mag_sq = b_a.magnitudeSq();
+    return fastuidraw::t_sqrt(fastuidraw::t_max(0.0f, a_p_mag_sq - d_sq / b_a_mag_sq));
+  }
+
+  class TessellatorBase:fastuidraw::noncopyable
   {
   public:
-    Tessellator(const fastuidraw::TessellatedPath::TessellationParams &tess_params,
-                const fastuidraw::PathContour::interpolator_generic *h);
+    TessellatorBase(const fastuidraw::TessellatedPath::TessellationParams &tess_params,
+                     const fastuidraw::PathContour::interpolator_generic *h):
+      m_h(h),
+      m_thresh(tess_params.m_threshhold),
+      m_max_recursion(fastuidraw::uint32_log2(tess_params.m_max_segments)),
+      m_max_size(tess_params.m_max_segments + 1)
+    {
+    }
+
+    virtual
+    ~TessellatorBase()
+    {}
 
     unsigned int
-    dump(fastuidraw::c_array<fastuidraw::TessellatedPath::point> out_data) const;
+    dump(fastuidraw::c_array<fastuidraw::TessellatedPath::point> out_data,
+         float *out_effective_curve_distance, float *out_effective_curvature);
 
+  protected:
+
+    const fastuidraw::PathContour::interpolator_generic *m_h;
+    float m_thresh;
+    unsigned int m_max_recursion, m_max_size;
+
+    virtual
+    unsigned int
+    fill_data(fastuidraw::c_array<fastuidraw::TessellatedPath::point> out_data,
+              float *out_effective_curve_distance, float *out_effective_curvature) = 0;
+  };
+
+  class TessellatorCurvature:public TessellatorBase
+  {
+  public:
+    TessellatorCurvature(const fastuidraw::TessellatedPath::TessellationParams &tess_params,
+                         const fastuidraw::PathContour::interpolator_generic *h):
+      TessellatorBase(tess_params, h)
+    {
+      assert(tess_params.m_curvature_tessellation);
+    }
 
   private:
-    unsigned int m_max_recursion, m_max_size;
-    const fastuidraw::PathContour::interpolator_generic *m_h;
-    float m_thresh_times_six;
     std::vector<analytic_point_data> m_data;
 
     void
     tessellation_worker(unsigned int idx_p, unsigned int idx_q,
-                        unsigned int recursion_level);
+                        unsigned int recursion_level,
+                        float *out_effective_curve_distance, float *out_effective_curvature);
 
+    virtual
+    unsigned int
+    fill_data(fastuidraw::c_array<fastuidraw::TessellatedPath::point> out_data,
+              float *out_effective_curve_distance, float *out_effective_curvature);
+  };
 
-    bool
-    requires_recursion(float delta_t,
-                       unsigned int idx_p,
-                       unsigned int idx_mid,
-                       unsigned int idx_q);
+  class TessellatorDistance:public TessellatorBase
+  {
+  public:
+    TessellatorDistance(const fastuidraw::TessellatedPath::TessellationParams &tess_params,
+                        const fastuidraw::PathContour::interpolator_generic *h):
+      TessellatorBase(tess_params, h)
+    {
+      assert(!tess_params.m_curvature_tessellation);
+    }
+
+  private:
+    std::vector<analytic_point_data> m_data;
+
+    void
+    tessellation_worker(unsigned int idx_p, unsigned int idx_q,
+                        unsigned int recursion_level,
+                        fastuidraw::PathContour::interpolator_generic::tessellated_region *in_src,
+                        float *out_effective_curve_distance, float *out_effective_curvature);
+
+    virtual
+    unsigned int
+    fill_data(fastuidraw::c_array<fastuidraw::TessellatedPath::point> out_data,
+              float *out_effective_curve_distance, float *out_effective_curvature);
   };
 
   class InterpolatorBasePrivate
@@ -111,15 +205,71 @@ namespace
     fastuidraw::vec2 m_end;
   };
 
+  class BezierTessRegion:
+    public fastuidraw::PathContour::interpolator_generic::tessellated_region
+  {
+  public:
+    explicit
+    BezierTessRegion(BezierTessRegion *parent, bool is_region_start)
+    {
+      float mid;
+
+      m_pts.reserve(parent->m_pts.size());
+      mid = 0.5f * (parent->m_start + parent->m_end);
+      if(is_region_start)
+        {
+          m_start = parent->m_start;
+          m_end = mid;
+        }
+      else
+        {
+          m_start = mid;
+          m_end = parent->m_end;
+        }
+    }
+
+    explicit
+    BezierTessRegion(void):
+      m_start(0.0f),
+      m_end(1.0f)
+    {}
+
+    float
+    compute_curve_distance(void)
+    {
+      /* Compute the maximum distance between the points
+         of a BezierTessRegion and the line segment between
+         the start and  end point of the BezierTessRegion.
+         The curve is contained within the convex hull of the
+         points, so this computation is fast, conservative
+         value for getting the curve_distance.
+       */
+      float return_value(0.0f);
+      for(unsigned int i = 1, endi = m_pts.size(); i + 1 < endi; ++i)
+        {
+          float v;
+          v = compute_distance(m_pts.front(), m_pts[i], m_pts.back());
+          return_value = fastuidraw::t_max(return_value, v);
+        }
+      return return_value;
+    }
+
+    std::vector<fastuidraw::vec2> m_pts;
+    float m_start, m_end;
+  };
+
   class BezierPrivate
   {
   public:
     void
     init(void);
 
+    fastuidraw::vec2 m_min_bb, m_max_bb;
+    BezierTessRegion m_start_region;
     std::vector<fastuidraw::vec2> m_poly;
     std::vector<fastuidraw::vec2> m_poly_prime;
     std::vector<fastuidraw::vec2> m_poly_prime_prime;
+    fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_work_room;
   };
 
   class ArcPrivate
@@ -128,6 +278,7 @@ namespace
     float m_radius, m_angle_speed;
     float m_start_angle;
     fastuidraw::vec2 m_center;
+    fastuidraw::vec2 m_min_bb, m_max_bb;
   };
 
   class PathContourPrivate
@@ -137,13 +288,20 @@ namespace
     std::vector<fastuidraw::vec2> m_current_control_points;
     fastuidraw::reference_counted_ptr<const fastuidraw::PathContour::interpolator_base> m_end_to_start;
     std::vector<fastuidraw::reference_counted_ptr<const fastuidraw::PathContour::interpolator_base> > m_interpolators;
+
+    fastuidraw::vec2 m_min_bb, m_max_bb;
   };
 
   class PathPrivate
   {
   public:
+    typedef fastuidraw::TessellatedPath TessellatedPath;
+    typedef fastuidraw::reference_counted_ptr<const TessellatedPath> tessellated_path_ref;
+
     PathPrivate(const fastuidraw::TessellatedPath::TessellationParams &tess_params):
-      m_tessellation_params(tess_params)
+      m_tessellation_params(tess_params),
+      m_tessellation_lod_done(false),
+      m_start_check_bb(0)
     {}
 
     PathPrivate(const PathPrivate &obj);
@@ -153,6 +311,8 @@ namespace
     {
       assert(!m_contours.empty());
       m_tessellation.clear();
+      m_tessellation_lod.clear();
+      m_tessellation_lod_done = false;
       return m_contours.back();
     }
 
@@ -160,19 +320,29 @@ namespace
     move_common(const fastuidraw::vec2 &pt)
     {
       m_tessellation.clear();
+      m_tessellation_lod.clear();
+      m_tessellation_lod_done = false;
       m_contours.push_back(FASTUIDRAWnew fastuidraw::PathContour());
       m_contours.back()->start(pt);
     }
 
     fastuidraw::TessellatedPath::TessellationParams m_tessellation_params;
-    fastuidraw::reference_counted_ptr<const fastuidraw::TessellatedPath> m_tessellation;
+    tessellated_path_ref m_tessellation;
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PathContour> > m_contours;
+
+    /* m_tessellation_lod are gauranteed to be sorted from lowest to highest LOD.
+     */
+    std::vector<tessellated_path_ref> m_tessellation_lod;
+    bool m_tessellation_lod_done;
+
+    /* m_start_check_bb gives the index into m_contours that
+       have not had their bounding box absorbed into
+       m_max_bb and m_min_bb.
+     */
+    unsigned int m_start_check_bb;
+    fastuidraw::vec2 m_max_bb, m_min_bb;
   };
 }
-
-
-
-
 
 ////////////////////////////////////
 // poly methods
@@ -318,11 +488,31 @@ prepare_bernstein(std::vector<fastuidraw::vec2> &victim) const
 ////////////////////////////////////
 // analytic_point_data methods
 analytic_point_data::
-analytic_point_data(float time, const fastuidraw::PathContour::interpolator_generic *h)
+analytic_point_data(float t, const fastuidraw::vec2 &p,
+                    const fastuidraw::vec2 &p_t,
+                    const fastuidraw::vec2 &p_tt):
+  m_time(t)
+{
+  m_p = p;
+  m_p_t = p_t;
+  m_p_tt = p_tt;
+  m_K_times_speed = compute_K_times_speed(m_p_t, m_p_tt);
+}
+
+analytic_point_data::
+analytic_point_data(float t, const fastuidraw::PathContour::interpolator_generic *h):
+  m_time(t)
 {
   assert(h);
+  h->compute(m_time, &m_p, &m_p_t, &m_p_tt);
+  m_K_times_speed = compute_K_times_speed(m_p_t, m_p_tt);
+}
 
-  fastuidraw::vec2 p_tt;
+float
+analytic_point_data::
+compute_K_times_speed(const fastuidraw::vec2 &p_t,
+                      const fastuidraw::vec2 &p_tt)
+{
   float cross_mag, speed_sq;
   const float epsilon(0.000001f);
   const float epsilon_sq(epsilon * epsilon);
@@ -332,83 +522,147 @@ analytic_point_data(float time, const fastuidraw::PathContour::interpolator_gene
      thus
      K ||p_t || = || p_t x p_tt || / ||p_t||^2
   */
-  m_time = time;
-  h->compute(time, &m_p, &m_p_t, &p_tt);
-
-  cross_mag = std::abs(m_p_t.x() * p_tt.y() - p_tt.x() * m_p_t.y());
-  speed_sq = std::max(dot(m_p_t, m_p_t), epsilon_sq);
-  m_K_times_speed= cross_mag / speed_sq;
+  cross_mag = fastuidraw::t_abs(p_t.x() * p_tt.y() - p_tt.x() * p_t.y());
+  speed_sq = std::max(dot(p_t, p_t), epsilon_sq);
+  return cross_mag / speed_sq;;
 }
 
-/////////////////////////////////////
-// Tessellator methods
-Tessellator::
-Tessellator(const fastuidraw::TessellatedPath::TessellationParams &tess_params,
-            const fastuidraw::PathContour::interpolator_generic *h):
-  m_max_recursion(fastuidraw::uint32_log2(tess_params.m_max_segments)),
-  m_max_size(tess_params.m_max_segments + 1),
-  m_h(h),
-  m_thresh_times_six(tess_params.m_curve_tessellation * 6.0f)
+/////////////////////////////////
+// TessellatorBase methods
+unsigned int
+TessellatorBase::
+dump(fastuidraw::c_array<fastuidraw::TessellatedPath::point> out_data,
+     float *out_effective_curve_distance, float *out_effective_curvature)
 {
-  assert(m_h);
+  unsigned int return_value;
 
-  m_data.push_back(analytic_point_data(0.0f, m_h));
-  m_data.push_back(analytic_point_data(1.0f, m_h));
-  tessellation_worker(0, 1, 0);
-  std::sort(m_data.begin(), m_data.end());
+  *out_effective_curve_distance = 0.0f;
+  *out_effective_curvature = 0.0f;
+  return_value = fill_data(out_data, out_effective_curve_distance, out_effective_curvature);
+  out_data = out_data.sub_array(0, return_value);
 
-  /*! enforce start and end point values
+  /* enforce start and end point values
    */
-  m_data.front().m_p = h->start_pt();
-  m_data.back().m_p = h->end_pt();
+  out_data.front().m_p = m_h->start_pt();
+  out_data.back().m_p = m_h->end_pt();
 
   /* compute distance values along edge
    */
-  m_data[0].m_distance_from_edge_start = 0.0f;
-  for(unsigned int i = 1, endi = m_data.size(); i < endi; ++i)
+  out_data[0].m_distance_from_edge_start = 0.0f;
+  for(unsigned int i = 1, endi = out_data.size(); i < endi; ++i)
     {
       fastuidraw::vec2 delta;
 
-      delta = m_data[i].m_p - m_data[i-1].m_p;
-      m_data[i].m_distance_from_edge_start = delta.magnitude()
-        + m_data[i-1].m_distance_from_edge_start;
+      delta = out_data[i].m_p - out_data[i-1].m_p;
+      out_data[i].m_distance_from_edge_start = delta.magnitude()
+        + out_data[i-1].m_distance_from_edge_start;
     }
+
+  return return_value;
 }
 
-inline
-bool
-Tessellator::
-requires_recursion(float delta_t,
-                   unsigned int idx_p,
-                   unsigned int idx_mid,
-                   unsigned int idx_q)
-
+/////////////////////////////////////
+// TessellatorDistance methods
+unsigned int
+TessellatorDistance::
+fill_data(fastuidraw::c_array<fastuidraw::TessellatedPath::point> out_data,
+          float *out_effective_curve_distance, float *out_effective_curvature)
 {
-  /* Use simpson's Rule on the integral:
-       integral_[t, t + delta_t] K_times_speed(t) dt
-  */
-  float K0, K1, K;
+  /* initialize m_data with start and end point data.
+   */
+  m_data.push_back(analytic_point_data(0.0f, m_h));
+  m_data.push_back(analytic_point_data(1.0f, m_h));
 
-  K0 = m_data[idx_p].m_K_times_speed;
-  K = m_data[idx_mid].m_K_times_speed;
-  K1 = m_data[idx_q].m_K_times_speed;
+  /* tessellate
+   */
+  tessellation_worker(0, 1, 0, NULL,
+                      out_effective_curve_distance,
+                      out_effective_curvature);
 
-  return (K0 + K1 + 4.0f * K ) * delta_t > m_thresh_times_six;
+  /* sort the values by time
+   */
+  std::sort(m_data.begin(), m_data.end());
+
+  assert(m_data.size() <= out_data.size());
+  std::copy(m_data.begin(), m_data.end(), out_data.begin());
+  return m_data.size();
 }
 
 void
-Tessellator::
+TessellatorDistance::
 tessellation_worker(unsigned int idx_start, unsigned int idx_end,
-                    unsigned int recurse_level)
+                    unsigned int recurse_level,
+                    fastuidraw::PathContour::interpolator_generic::tessellated_region *in_src,
+                    float *out_effective_curve_distance, float *out_effective_curvature)
 {
-
-  if(recurse_level >= m_max_recursion)
-    {
-      return;
-    }
-
-  float delta_t, start_t, end_t, mid_t;
   unsigned int idx_mid(m_data.size());
+  float out_tess;
+  fastuidraw::PathContour::interpolator_generic::tessellated_region *rgnA, *rgnB;
+  fastuidraw::vec2 p, p_t, p_tt;
+  float t;
+
+  m_h->tessellate(in_src, &rgnA, &rgnB,
+                  &t, &p, &p_t, &p_tt,
+                  &out_tess);
+
+  m_data.push_back(analytic_point_data(t, p, p_t, p_tt));
+
+  if(recurse_level + 1u < m_max_recursion && out_tess > m_thresh)
+    {
+      tessellation_worker(idx_start, idx_mid, recurse_level + 1, rgnA,
+                          out_effective_curve_distance, out_effective_curvature);
+      tessellation_worker(idx_mid, idx_end, recurse_level + 1, rgnB,
+                          out_effective_curve_distance, out_effective_curvature);
+    }
+  else
+    {
+      float v, delta_t;
+
+      delta_t = m_data[idx_end].m_time - m_data[idx_start].m_time;
+      v = analytic_point_data::compute_approximate_curvature(delta_t, m_data[idx_start], m_data[idx_mid], m_data[idx_end]);
+
+      *out_effective_curve_distance = fastuidraw::t_max(*out_effective_curve_distance, out_tess);
+      *out_effective_curvature = fastuidraw::t_max(*out_effective_curvature, v);
+    }
+  FASTUIDRAWdelete(rgnA);
+  FASTUIDRAWdelete(rgnB);
+}
+
+/////////////////////////////////////
+// TessellatorCurvature methods
+unsigned int
+TessellatorCurvature::
+fill_data(fastuidraw::c_array<fastuidraw::TessellatedPath::point> out_data,
+          float *out_effective_curve_distance, float *out_effective_curvature)
+{
+  /* initialize m_data with start and end point data.
+   */
+  m_data.push_back(analytic_point_data(0.0f, m_h));
+  m_data.push_back(analytic_point_data(1.0f, m_h));
+
+  /* tessellate
+   */
+  tessellation_worker(0, 1, 0, out_effective_curve_distance, out_effective_curvature);
+
+  /* sort the values by time
+   */
+  std::sort(m_data.begin(), m_data.end());
+
+  assert(m_data.size() <= out_data.size());
+  std::copy(m_data.begin(), m_data.end(), out_data.begin());
+  return m_data.size();
+}
+
+void
+TessellatorCurvature::
+tessellation_worker(unsigned int idx_start, unsigned int idx_end,
+                    unsigned int recurse_level,
+                    float *out_effective_curve_distance,
+                    float *out_effective_curvature)
+{
+  float delta_t, start_t, end_t, mid_t, curvature;
+  unsigned int idx_mid(m_data.size());
+  bool recurse;
 
   start_t = m_data[idx_start].m_time;
   end_t = m_data[idx_end].m_time;
@@ -416,28 +670,27 @@ tessellation_worker(unsigned int idx_start, unsigned int idx_end,
   delta_t = (end_t - start_t);
 
   m_data.push_back(analytic_point_data(mid_t, m_h));
+  curvature = analytic_point_data::compute_approximate_curvature(delta_t,
+                                                                 m_data[idx_start],
+                                                                 m_data[idx_mid],
+                                                                 m_data[idx_end]);
 
+  recurse = (curvature > m_thresh) || (recurse_level == 0u);
 
-  if(requires_recursion(delta_t, idx_start, idx_mid, idx_end))
+  if(recurse_level + 1u < m_max_recursion && recurse)
     {
-      tessellation_worker(idx_start, idx_mid,
-                          recurse_level + 1);
-
-      tessellation_worker(idx_mid, idx_end,
-                          recurse_level + 1);
-
+      tessellation_worker(idx_start, idx_mid, recurse_level + 1,
+                          out_effective_curve_distance, out_effective_curvature);
+      tessellation_worker(idx_mid, idx_end, recurse_level + 1,
+                          out_effective_curve_distance, out_effective_curvature);
     }
-
-}
-
-
-unsigned int
-Tessellator::
-dump(fastuidraw::c_array<fastuidraw::TessellatedPath::point> out_data) const
-{
-  assert(out_data.size() >= m_data.size());
-  std::copy(m_data.begin(), m_data.end(), out_data.begin());
-  return m_data.size();
+  else
+    {
+      *out_effective_curvature = curvature;
+      *out_effective_curve_distance = compute_distance(m_data[idx_start].m_p,
+                                                       m_data[idx_mid].m_p,
+                                                       m_data[idx_end].m_p);
+    }
 }
 
 ////////////////////////////////////////
@@ -451,15 +704,32 @@ init(void)
      of it is O(n^2) where as once it is made, the creation
      of bezier is O(n)
    */
+  assert(!m_poly.empty());
   unsigned int degree = m_poly.size() - 1;
   binomial_coeff BC(degree);
 
+  m_min_bb = m_max_bb = m_poly[0];
+  for(unsigned int i = 1, endi = m_poly.size(); i < endi; ++i)
+    {
+      m_min_bb.x() = fastuidraw::t_min(m_min_bb.x(), m_poly[i].x());
+      m_min_bb.y() = fastuidraw::t_min(m_min_bb.y(), m_poly[i].y());
+
+      m_max_bb.x() = fastuidraw::t_max(m_max_bb.x(), m_poly[i].x());
+      m_max_bb.y() = fastuidraw::t_max(m_max_bb.y(), m_poly[i].y());
+    }
+  m_start_region.m_pts = m_poly; //original region uses original points.
+
+  //compute derivatives in Bernstein basis
   poly::compute_bernstein_derivative(m_poly, m_poly_prime);
   poly::compute_bernstein_derivative(m_poly_prime, m_poly_prime_prime);
 
+  //pre-mulitple by binomial coefficients.
   BC.prepare_bernstein(m_poly);
   BC.prepare_bernstein(m_poly_prime);
   BC.prepare_bernstein(m_poly_prime_prime);
+
+  m_work_room[0].resize(m_poly.size());
+  m_work_room[1].resize(m_poly.size());
 }
 
 ////////////////////////////////////////////
@@ -515,10 +785,22 @@ end_pt(void) const
 unsigned int
 fastuidraw::PathContour::interpolator_generic::
 produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
-                     c_array<TessellatedPath::point> out_data) const
+                     c_array<TessellatedPath::point> out_data,
+                     float *out_effective_curve_distance,
+                     float *out_effective_curvature) const
 {
-  Tessellator tesser(tess_params, this);
-  return tesser.dump(out_data);
+  unsigned int return_value;
+  if(tess_params.m_curvature_tessellation)
+    {
+      TessellatorCurvature tesser(tess_params, this);
+      return_value = tesser.dump(out_data, out_effective_curve_distance, out_effective_curvature);
+    }
+  else
+    {
+      TessellatorDistance tesser(tess_params, this);
+      return_value = tesser.dump(out_data, out_effective_curve_distance, out_effective_curvature);
+    }
+  return return_value;
 }
 
 
@@ -588,6 +870,15 @@ fastuidraw::PathContour::bezier::
   m_d = NULL;
 }
 
+void
+fastuidraw::PathContour::bezier::
+approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
+{
+  BezierPrivate *d;
+  d = reinterpret_cast<BezierPrivate*>(m_d);
+  *out_min_bb = d->m_min_bb;
+  *out_max_bb = d->m_max_bb;
+}
 
 void
 fastuidraw::PathContour::bezier::
@@ -598,6 +889,74 @@ compute(float t, vec2 *outp, vec2 *outp_t, vec2 *outp_tt) const
   *outp = poly::compute_poly(t, make_c_array(d->m_poly));
   *outp_t = poly::compute_poly(t, make_c_array(d->m_poly_prime));
   *outp_tt = poly::compute_poly(t, make_c_array(d->m_poly_prime_prime));
+}
+
+
+void
+fastuidraw::PathContour::bezier::
+tessellate(tessellated_region *in_region,
+           tessellated_region **out_regionA, tessellated_region **out_regionB,
+           float *out_t, vec2 *out_p, vec2 *out_p_t, vec2 *out_p_tt,
+           float *out_effective_curve_distance) const
+{
+  BezierPrivate *d;
+  d = reinterpret_cast<BezierPrivate*>(m_d);
+
+  if(in_region == NULL)
+    {
+      in_region = &d->m_start_region;
+    }
+
+  BezierTessRegion *in_region_casted;
+  assert(dynamic_cast<BezierTessRegion*>(in_region) != NULL);
+  in_region_casted = static_cast<BezierTessRegion*>(in_region);
+
+  BezierTessRegion *newA, *newB;
+  newA = FASTUIDRAWnew BezierTessRegion(in_region_casted, true);
+  newB = FASTUIDRAWnew BezierTessRegion(in_region_casted, false);
+
+  c_array<vec2> dst, src;
+  src = make_c_array(in_region_casted->m_pts);
+
+  newA->m_pts.push_back(src.front());
+  newB->m_pts.push_back(src.back());
+
+  /* For a Bezier curve, given by points p(0), .., p(n),
+     and a time 0 <= t <= 1, De Casteljau's algorithm is
+     the following.
+
+     Let
+       q(0, j) = p(j) for 0 <= j <= n,
+       q(i + 1, j) = (1 - t) * q(i, j) + t * q(i, j + 1) for 0 <= i <= n, 0 <= j <= n - i
+     then
+       The curve split at time t is given by
+         A = { q(0, 0), q(1, 0), q(2, 0), ... , q(n, 0) }
+         B = { q(n, 0), q(n - 1, 1), q(n - 2, 2), ... , q(0, n) }
+       and
+         the curve evaluated at t is given by q(n, 0).
+     We use t = 0.5 because we are always doing mid-point cutting.
+   */
+  for(unsigned int i = 0, endi = src.size(), sz = endi - 1; sz > 0 && i < endi; ++i, --sz)
+    {
+      dst = make_c_array(d->m_work_room[i & 1]).sub_array(0, sz);
+      for(unsigned int j = 0; j < dst.size(); ++j)
+        {
+          dst[j] = 0.5f * src[j] + 0.5f * src[j + 1];
+        }
+      newA->m_pts.push_back(dst.front());
+      newB->m_pts.push_back(dst.back());
+      src = dst;
+    }
+  std::reverse(newB->m_pts.begin(), newB->m_pts.end());
+
+  *out_regionA = newA;
+  *out_regionB = newB;
+  *out_t = newA->m_end;
+  *out_p = newA->m_pts.back();
+  *out_p_t = poly::compute_poly(*out_t, make_c_array(d->m_poly_prime));
+  *out_p_tt = poly::compute_poly(*out_t, make_c_array(d->m_poly_prime_prime));
+
+  *out_effective_curve_distance = fastuidraw::t_max(newA->compute_curve_distance(), newB->compute_curve_distance());
 }
 
 fastuidraw::PathContour::interpolator_base*
@@ -612,7 +971,9 @@ deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const
 unsigned int
 fastuidraw::PathContour::flat::
 produce_tessellation(const TessellatedPath::TessellationParams&,
-                     c_array<TessellatedPath::point> out_data) const
+                     c_array<TessellatedPath::point> out_data,
+                     float *out_effective_curve_distance,
+                     float *out_effective_curvature) const
 {
   vec2 delta(end_pt() - start_pt());
   float mag(delta.magnitude());
@@ -624,6 +985,10 @@ produce_tessellation(const TessellatedPath::TessellationParams&,
   out_data[1].m_p = end_pt();
   out_data[1].m_p_t = delta;
   out_data[1].m_distance_from_edge_start = mag;
+
+  *out_effective_curve_distance = 0.0f;
+  *out_effective_curvature = 0.0f;
+
   return 2;
 }
 
@@ -632,6 +997,20 @@ fastuidraw::PathContour::flat::
 deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const
 {
   return FASTUIDRAWnew flat(prev, end_pt());
+}
+
+void
+fastuidraw::PathContour::flat::
+approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
+{
+  const vec2 &p0(start_pt());
+  const vec2 &p1(end_pt());
+
+  out_min_bb->x() = fastuidraw::t_min(p0.x(), p1.x());
+  out_min_bb->y() = fastuidraw::t_min(p0.y(), p1.y());
+
+  out_max_bb->x() = fastuidraw::t_max(p0.x(), p1.x());
+  out_max_bb->y() = fastuidraw::t_max(p0.y(), p1.y());
 }
 
 //////////////////////////////////////
@@ -655,7 +1034,7 @@ arc(const reference_counted_ptr<const interpolator_base> &start, float angle, co
      The perpindicular bisector is given by
      { t*n + mid | t real }
    */
-  angle = std::abs(angle);
+  angle = fastuidraw::t_abs(angle);
   end_start = end_pt() - start_pt();
   mid = (end_pt() + start_pt()) * 0.5f;
   n = vec2(-end_start.y(), end_start.x());
@@ -678,6 +1057,19 @@ arc(const reference_counted_ptr<const interpolator_base> &start, float angle, co
   d->m_radius = start_center.magnitude();
   d->m_start_angle = std::atan2(start_center.y(), start_center.x());
   d->m_angle_speed = angle_coeff_dir * angle;
+
+  vec2 p0, p1;
+  p0 = vec2(std::cos(d->m_start_angle), std::sin(d->m_start_angle));
+  p1 = vec2(std::cos(d->m_start_angle + d->m_angle_speed), std::sin(d->m_start_angle + d->m_angle_speed));
+
+  d->m_min_bb.x() = fastuidraw::t_min(p0.x(), p1.x());
+  d->m_min_bb.y() = fastuidraw::t_min(p0.y(), p1.y());
+
+  d->m_max_bb.x() = fastuidraw::t_max(p0.x(), p1.x());
+  d->m_max_bb.y() = fastuidraw::t_max(p0.y(), p1.y());
+
+  d->m_min_bb = d->m_center + d->m_radius * d->m_min_bb;
+  d->m_max_bb = d->m_center + d->m_radius * d->m_max_bb;
 }
 
 fastuidraw::PathContour::arc::
@@ -701,18 +1093,18 @@ fastuidraw::PathContour::arc::
 unsigned int
 fastuidraw::PathContour::arc::
 produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
-                     c_array<TessellatedPath::point> out_data) const
+                     c_array<TessellatedPath::point> out_data,
+                     float *out_effective_curve_distance,
+                     float *out_effective_curvature) const
 {
   ArcPrivate *d;
   d = reinterpret_cast<ArcPrivate*>(m_d);
-
+  unsigned int return_value;
   float s, c, a, da;
   unsigned int needed_size;
-  float needed_sizef, delta_angle, sgn, sgn_radius;
+  float delta_angle, sgn, sgn_radius;
 
-  needed_sizef = std::abs(d->m_angle_speed) / tess_params.m_curve_tessellation;
-  needed_size = static_cast<unsigned int>(needed_sizef);
-  needed_size = std::min(needed_size, tess_params.m_max_segments);
+  needed_size = detail::number_segments_for_tessellation(d->m_radius, t_abs(d->m_angle_speed), tess_params);
   delta_angle = d->m_angle_speed / static_cast<float>(needed_size);
   sgn = d->m_angle_speed > 0.0 ? 1.0 : -1.0;
   sgn_radius = sgn * d->m_radius;
@@ -729,7 +1121,21 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
     }
   out_data[0].m_p = start_pt();
   out_data[needed_size].m_p = end_pt();
-  return needed_size + 1;
+  *out_effective_curve_distance = d->m_radius * (1.0f - std::cos(delta_angle * 0.5f));
+  *out_effective_curvature = delta_angle;
+
+  return_value = needed_size + 1;
+  return return_value;
+}
+
+void
+fastuidraw::PathContour::arc::
+approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
+{
+  ArcPrivate *d;
+  d = reinterpret_cast<ArcPrivate*>(m_d);
+  *out_min_bb = d->m_min_bb;
+  *out_max_bb = d->m_max_bb;
 }
 
 fastuidraw::PathContour::interpolator_base*
@@ -873,6 +1279,21 @@ end_generic(reference_counted_ptr<const interpolator_base> p)
 
   d->m_interpolators[0] = p;
   d->m_end_to_start = p;
+
+  /* compute bounding box after ending the PathContour.
+   */
+  d->m_interpolators[0]->approximate_bounding_box(&d->m_min_bb, &d->m_max_bb);
+  for(unsigned int i = 1, endi = d->m_interpolators.size(); i < endi; ++i)
+    {
+      vec2 p0, p1;
+      d->m_interpolators[i]->approximate_bounding_box(&p0, &p1);
+
+      d->m_min_bb.x() = fastuidraw::t_min(d->m_min_bb.x(), p0.x());
+      d->m_min_bb.y() = fastuidraw::t_min(d->m_min_bb.y(), p0.y());
+
+      d->m_max_bb.x() = fastuidraw::t_max(d->m_max_bb.x(), p1.x());
+      d->m_max_bb.y() = fastuidraw::t_max(d->m_max_bb.y(), p1.y());
+    }
 }
 
 void
@@ -891,8 +1312,8 @@ end(void)
   else
     {
       h = FASTUIDRAWnew bezier(prev_interpolator(),
-                              make_c_array(d->m_current_control_points),
-                              d->m_start_pt);
+                               make_c_array(d->m_current_control_points),
+                               d->m_start_pt);
     }
 
   d->m_current_control_points.clear();
@@ -1011,6 +1432,24 @@ deep_copy(void)
   return return_value;
 }
 
+bool
+fastuidraw::PathContour::
+approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
+{
+  if(!ended())
+    {
+      return false;
+    }
+
+  PathContourPrivate *d;
+  d = reinterpret_cast<PathContourPrivate*>(m_d);
+
+  *out_min_bb = d->m_min_bb;
+  *out_max_bb = d->m_max_bb;
+
+  return true;
+}
+
 /////////////////////////////////
 // PathPrivate methods
 PathPrivate::
@@ -1086,6 +1525,9 @@ clear(void)
   d = reinterpret_cast<PathPrivate*>(m_d);
   d->m_tessellation.clear();
   d->m_contours.clear();
+  d->m_tessellation_lod.clear();
+  d->m_tessellation_lod_done = false;
+  d->m_start_check_bb = 0u;
 }
 
 fastuidraw::Path&
@@ -1223,10 +1665,130 @@ tessellation(void) const
   d = reinterpret_cast<PathPrivate*>(m_d);
   if(!d->m_tessellation)
     {
-      d->m_tessellation = FASTUIDRAWnew TessellatedPath(*this,
-                                                        d->m_tessellation_params);
+      d->m_tessellation = FASTUIDRAWnew TessellatedPath(*this, d->m_tessellation_params);
     }
   return d->m_tessellation;
+}
+
+const fastuidraw::reference_counted_ptr<const fastuidraw::TessellatedPath>&
+fastuidraw::Path::
+tessellation_lod(float thresh) const
+{
+  PathPrivate *d;
+  d = reinterpret_cast<PathPrivate*>(m_d);
+
+  if(d->m_tessellation_lod.empty())
+    {
+      PathPrivate::tessellated_path_ref ref;
+      ref = tessellation();
+      d->m_tessellation_lod.push_back(ref);
+    }
+
+  if(d->m_tessellation_lod.back()->effective_curve_distance_threshhold() <= thresh)
+    {
+      /* TODO: use binary search via std::lower_bound()
+       */
+      for(unsigned int i = 0, endi = d->m_tessellation_lod.size(); i < endi; ++i)
+        {
+          if(d->m_tessellation_lod[i]->effective_curve_distance_threshhold() <= thresh)
+            {
+              return d->m_tessellation_lod[i];
+            }
+        }
+      assert(!"Should not reach here!");
+    }
+  else
+    {
+      if(d->m_tessellation_lod_done)
+        {
+          return d->m_tessellation_lod.back();
+        }
+
+      PathPrivate::tessellated_path_ref prev_ref, ref;
+      TessellatedPath::TessellationParams params;
+
+      ref = d->m_tessellation_lod.back();
+      params
+        .max_segments(2 * ref->max_segments())
+        .curve_distance_tessellate(ref->effective_curve_distance_threshhold());
+
+      while(!d->m_tessellation_lod_done
+            && ref->effective_curve_distance_threshhold() > thresh)
+        {
+          float last_tess;
+
+          params.m_threshhold *= 0.5f;
+          last_tess = ref->effective_curve_distance_threshhold();
+          ref = FASTUIDRAWnew TessellatedPath(*this, params);
+          d->m_tessellation_lod_done = (last_tess <= ref->effective_curve_distance_threshhold());
+
+          while(!d->m_tessellation_lod_done && ref->effective_curve_distance_threshhold() > params.m_threshhold)
+            {
+              params.m_max_segments *= 2;
+              last_tess = ref->effective_curve_distance_threshhold();
+              ref = FASTUIDRAWnew TessellatedPath(*this, params);
+              d->m_tessellation_lod_done = (last_tess <= ref->effective_curve_distance_threshhold());
+            }
+
+          if(d->m_tessellation_lod_done)
+            {
+              std::cout << "Tapped out at (max_segs = "
+                        << ref->max_segments() << ", tess_factor = "
+                        << ref->effective_curve_distance_threshhold()
+                        << ", num_points = " << ref->point_data().size()
+                        << ")\n";
+            }
+          d->m_tessellation_lod.push_back(ref);
+        }
+      return d->m_tessellation_lod.back();
+    }
+}
+
+bool
+fastuidraw::Path::
+approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
+{
+  PathPrivate *d;
+  d = reinterpret_cast<PathPrivate*>(m_d);
+
+  bool assigned_value(d->m_start_check_bb != 0u);
+  for(unsigned endi = d->m_contours.size();
+      d->m_start_check_bb < endi && d->m_contours[d->m_start_check_bb]->ended();
+      ++d->m_start_check_bb)
+    {
+      vec2 p0, p1;
+      bool value_valid;
+
+      value_valid = d->m_contours[d->m_start_check_bb]->approximate_bounding_box(&p0, &p1);
+      assert(value_valid);
+      FASTUIDRAWunused(value_valid);
+
+      if(assigned_value)
+        {
+          d->m_min_bb.x() = fastuidraw::t_min(d->m_min_bb.x(), p0.x());
+          d->m_min_bb.y() = fastuidraw::t_min(d->m_min_bb.y(), p0.y());
+
+          d->m_max_bb.x() = fastuidraw::t_max(d->m_max_bb.x(), p1.x());
+          d->m_max_bb.y() = fastuidraw::t_max(d->m_max_bb.y(), p1.y());
+        }
+      else
+        {
+          d->m_min_bb = p0;
+          d->m_max_bb = p1;
+          assigned_value = true;
+        }
+    }
+
+  if(assigned_value)
+    {
+      *out_min_bb = d->m_min_bb;
+      *out_max_bb = d->m_max_bb;
+      return true;
+    }
+  else
+    {
+      return false;
+    }
 }
 
 fastuidraw::Path&

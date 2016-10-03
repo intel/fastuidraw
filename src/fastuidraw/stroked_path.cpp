@@ -26,6 +26,7 @@
 #include <fastuidraw/painter/painter_attribute_data.hpp>
 #include <fastuidraw/painter/painter_attribute_data_filler_path_stroked.hpp>
 #include "private/util_private.hpp"
+#include "private/path_util_private.hpp"
 
 namespace
 {
@@ -275,6 +276,7 @@ namespace
     float m_edge_length;
     float m_open_contour_length;
     float m_closed_contour_length;
+
     static
     float
     compute_lambda(const fastuidraw::vec2 &n0, const fastuidraw::vec2 &n1);
@@ -368,7 +370,7 @@ namespace
                   const fastuidraw::TessellatedPath::point &p1,
                   const fastuidraw::vec2 &n0_from_stroking,
                   const fastuidraw::vec2 &n1_from_stroking,
-                  float curve_tessellation);
+                  float curvature_thresh);
 
       void
       add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
@@ -1034,7 +1036,7 @@ add_edge(unsigned int o, unsigned int e,
 {
   fastuidraw::range_type<unsigned int> R;
   fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts(m_P.point_data());
-  fastuidraw::vec2 normal(1.0f, 0.0f);
+  fastuidraw::vec2 normal(1.0f, 0.0f), last_normal(1.0f, 0.0f);
   unsigned int last_edge_middle, last_edge_positive_normal, last_edge_negative_normal;
 
   R = m_P.edge_range(o, e);
@@ -1045,7 +1047,7 @@ add_edge(unsigned int o, unsigned int e,
       /* for the edge connecting src_pts[i] to src_pts[i+1]
        */
       fastuidraw::vec2 delta;
-      float delta_magnitude, lambda;
+      float delta_magnitude;
 
       delta = src_pts[i+1].m_p - src_pts[i].m_p;
       delta_magnitude = delta.magnitude();
@@ -1065,7 +1067,6 @@ add_edge(unsigned int o, unsigned int e,
 
       if(i == R.m_begin)
         {
-          lambda = 0.0f;
           m_per_contour_data[o].m_edge_begin_normal[e] = normal;
           if(e == 0)
             {
@@ -1074,9 +1075,11 @@ add_edge(unsigned int o, unsigned int e,
         }
       else
         {
+          float lambda;
+
           /*! add a join from the last sub-edge to this sub-edge
            */
-          lambda = CommonJoinData::compute_lambda(src_pts[i-1].m_p_t, src_pts[i].m_p_t);
+          lambda = CommonJoinData::compute_lambda(last_normal, normal);
 
           indices[index_offset + 0] = vert_offset + 0;
           indices[index_offset + 1] = vert_offset + 1;
@@ -1100,12 +1103,6 @@ add_edge(unsigned int o, unsigned int e,
           pts[vert_offset + 2].m_closed_contour_length = src_pts[i].m_closed_contour_length;
           pts[vert_offset + 2].m_pre_offset = lambda * normal;
           pts[vert_offset + 2].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_start_sub_edge, depth);
-          /* for the point of the bevel that is on the edge to
-             connect to, we do not need the delta-vector, but
-             we do need the normal from the edge that the bevel
-             connects from.
-           */
-          pts[vert_offset + 2].m_auxilary_offset = lambda * pts[vert_offset + 1].m_pre_offset;
 
           for(unsigned int k = 0; k < 3; ++k)
             {
@@ -1167,31 +1164,7 @@ add_edge(unsigned int o, unsigned int e,
                                                              depth);
         }
 
-      if(i != R.m_begin)
-        {
-          /* modify and tag the start vertex on the inside so
-             that when we draw the sub-edge it won't intersect
-             in screen-space with the previous sub-edge. The
-             starting vertices do NOT need the delta vector,
-             the delta-vector is only needed for end-sub-edge
-             points (when pixel-width stroking). The point on
-             the inside is the opposite side for the bevel that
-             the next edge makes from this edge.
-           */
-          if(lambda < 0.0f)
-            {
-              assert(fastuidraw::dot(pts[vert_offset + 0].m_pre_offset, pts[last_edge_positive_normal].m_pre_offset) >= 0.0f);
-              //pts[vert_offset + 0].m_auxilary_offset = pts[last_edge_positive_normal].m_pre_offset;
-              //pts[vert_offset + 0].m_packed_data |= fastuidraw::StrokedPath::anti_bevel_edge_mask;
-            }
-          else
-            {
-              assert(fastuidraw::dot(pts[vert_offset + 1].m_pre_offset, pts[last_edge_negative_normal].m_pre_offset) >= 0.0f);
-              //pts[vert_offset + 1].m_auxilary_offset = pts[last_edge_negative_normal].m_pre_offset;
-              //pts[vert_offset + 1].m_packed_data |= fastuidraw::StrokedPath::anti_bevel_edge_mask;
-            }
-        }
-
+      last_normal = normal;
       last_edge_middle = vert_offset + 5;
       last_edge_positive_normal = vert_offset + 3;
       last_edge_negative_normal = vert_offset + 4;
@@ -1429,7 +1402,7 @@ PerJoinData(const fastuidraw::TessellatedPath::point &p0,
             const fastuidraw::TessellatedPath::point &p1,
             const fastuidraw::vec2 &n0_from_stroking,
             const fastuidraw::vec2 &n1_from_stroking,
-            float curve_tessellation):
+            float tess_curvature_thresh):
   CommonJoinData(p0.m_p, n0_from_stroking, p1.m_p, n1_from_stroking,
                  p0.m_distance_from_edge_start, p0.m_distance_from_contour_start,
                  p0.m_edge_length, p0.m_open_contour_length, p0.m_closed_contour_length)
@@ -1450,9 +1423,8 @@ PerJoinData(const fastuidraw::TessellatedPath::point &p0,
   m_arc_start = n0z;
   m_delta_theta = std::atan2(n1z_times_conj_n0z.imag(), n1z_times_conj_n0z.real());
 
-  m_num_arc_points = static_cast<unsigned int>(std::abs(m_delta_theta) / curve_tessellation);
+  m_num_arc_points = fastuidraw::t_abs(m_delta_theta) / tess_curvature_thresh;
   m_num_arc_points = std::max(m_num_arc_points, 3u);
-
   m_delta_theta /= static_cast<float>(m_num_arc_points - 1);
 }
 
@@ -1578,8 +1550,8 @@ add_join(unsigned int join_id,
     }
 
   PerJoinData J(src_pts[R0.m_end - 1], src_pts[R1.m_begin],
-        n0_from_stroking, n1_from_stroking,
-        path.tessellation_parameters().m_curve_tessellation);
+                n0_from_stroking, n1_from_stroking,
+                path.effective_curvature_threshhold());
 
   m_per_join_data.push_back(J);
 
@@ -1792,13 +1764,11 @@ PointIndexCapSize
 RoundedCapCreator::
 compute_size(const fastuidraw::TessellatedPath &P)
 {
-  float tc(P.tessellation_parameters().m_curve_tessellation);
   unsigned int num_caps;
   PointIndexCapSize return_value;
 
-  m_num_arc_points_per_cap = static_cast<unsigned int>(static_cast<float>(M_PI) / tc);
+  m_num_arc_points_per_cap = static_cast<float>(M_PI) / P.effective_curvature_threshhold();
   m_num_arc_points_per_cap = std::max(m_num_arc_points_per_cap, 3u);
-
   m_delta_theta = static_cast<float>(M_PI) / static_cast<float>(m_num_arc_points_per_cap - 1);
 
   /* each cap is a triangle fan centered at the cap point.

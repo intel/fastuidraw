@@ -171,6 +171,7 @@ private:
 
   command_line_argument_value<int> m_max_segments_per_edge;
   command_line_argument_value<int> m_points_per_circle;
+  command_line_argument_value<float> m_tessellation_bevel_area_threshhold;
   command_line_argument_value<float> m_change_miter_limit_rate;
   command_line_argument_value<float> m_change_stroke_width_rate;
   command_line_argument_value<float> m_window_change_rate;
@@ -268,7 +269,11 @@ painter_stroke_test::
 painter_stroke_test(void):
   sdl_painter_demo("painter-stroke-test"),
   m_max_segments_per_edge(32, "max_segs", "Max number of segments per edge", *this),
-  m_points_per_circle(60, "tess", "number of points per 2*PI curvature to attempt", *this),
+  m_points_per_circle(60, "tess_points_per_circle", "number of points per 2*PI curvature to attempt", *this),
+  m_tessellation_bevel_area_threshhold(0.001f, "tess_bevel_area",
+                                       "Bevel area tessellation theshhold, only active "
+                                       "if tess_points_per_circle is less than 1",
+                                       *this),
   m_change_miter_limit_rate(1.0f, "miter_limit_rate",
                             "rate of change in in stroke widths per second for "
                             "changing the miter limit when the when key is down",
@@ -975,7 +980,14 @@ create_stroked_path_attributes(void)
 {
   TessellatedPath::TessellationParams P;
   P.m_max_segments = m_max_segments_per_edge.m_value;
-  P.m_curve_tessellation = 2.0f * float(M_PI) / static_cast<float>(m_points_per_circle.m_value);
+  if(m_points_per_circle.m_value >= 1)
+    {
+      P.curvature_tessellate_num_points_in_circle(m_points_per_circle.m_value);
+    }
+  else
+    {
+      P.bevel_tessellate(m_tessellation_bevel_area_threshhold.m_value);
+    }
   m_path.tessellation_params(P);
 
   m_max_miter = 0.0f;
@@ -1006,7 +1018,8 @@ create_stroked_path_attributes(void)
             {
               fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> pts;
 
-              std::cout << "\t\tEdge #" << e << "\n";
+              std::cout << "\t\tEdge #" << e << " has "
+                        << tess->edge_point_data(c, e).size() << " pts\n";
               pts = tess->edge_point_data(c, e);
               for(unsigned int i = 0; i < pts.size(); ++i)
                 {

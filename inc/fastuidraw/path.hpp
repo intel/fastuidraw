@@ -96,11 +96,31 @@ public:
 
       \param tess_params tessellation parameters
       \param out_data location to which to write the edge tessellated
+      \param out_effective_curve_distance (output) location to which to write the
+                                                   largest distance between sub-edges
+                                                   and the actual curve.
+      \param out_effective_curvature (output) location to which to write the largest
+                                              cumalative curvature of a sub-edge of
+                                              the created tessellation.
      */
     virtual
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
-                         c_array<TessellatedPath::point> out_data) const = 0;
+                         c_array<TessellatedPath::point> out_data,
+                         float *out_effective_curve_distance,
+                         float *out_effective_curvature) const = 0;
+
+    /*!
+      To be implemented by a derived class to return a fast (and approximate)
+      bounding box for the interpolator.
+      \param out_min_bb (output) location to which to write the min-x and min-y
+                                 coordinates of the approximate bounding box.
+      \param out_max_bb (output) location to which to write the max-x and max-y
+                                 coordinates of the approximate bounding box.
+     */
+    virtual
+    void
+    approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const = 0;
 
     /*!
       To be implemented by a derived class to create and
@@ -135,7 +155,12 @@ public:
     virtual
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
-                         c_array<TessellatedPath::point> out_data) const;
+                         c_array<TessellatedPath::point> out_data,
+                         float *out_effective_curve_distance,
+                         float *out_effective_curvature) const;
+    virtual
+    void
+    approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
 
     virtual
     interpolator_base*
@@ -151,6 +176,16 @@ public:
   {
   public:
     /*!
+     */
+    class tessellated_region
+    {
+    public:
+      virtual
+      ~tessellated_region()
+      {}
+    };
+
+    /*!
       Ctor.
       \param prev interpolator to edge that ends at start of edge
                   of this interpolator
@@ -164,11 +199,14 @@ public:
     virtual
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
-                         c_array<TessellatedPath::point> out_data) const;
+                         c_array<TessellatedPath::point> out_data,
+                         float *out_effective_curve_distance,
+                         float *out_effective_curvature) const;
 
     /*!
       To be implemented by a derived class to compute datum of the curve
-      at a time t (0 <= t <= 1).
+      at a time t (0 <= t <= 1). This is used to tessellate according to
+      curvature.
       \param in_t (input) argument fed to parameterization of which this
                   interpolator_base represents with in_t = 0.0
                   indicating the start of the curve and in_t = 1.0
@@ -181,7 +219,25 @@ public:
     void
     compute(float in_t, vec2 *outp, vec2 *outp_t, vec2 *outp_tt) const = 0;
 
-  private:
+    /*!
+      To be implemented by a derived to assist in recursive tessellation.
+      \param in_region region to divide in half
+      \param out_regionA location to which to write the first half
+      \param out_regionB location to which to write the second half
+      \param out_p location to which to write the position of the point
+                   on the curve in the middle of in_region
+      \param out_effective_curve_distance location to which to write the distance
+                                          between the actual curve and the line segment
+                                          represented by in_region
+      \param out_effective_curvature location to which to write the the cumulative
+                                     curvature along the region represented by in_region
+     */
+    virtual
+    void
+    tessellate(tessellated_region *in_region,
+               tessellated_region **out_regionA, tessellated_region **out_regionB,
+               float *out_t, vec2 *out_p, vec2 *out_p_t, vec2 *out_p_tt,
+               float *out_effective_curve_distance) const = 0;
   };
 
   /*!
@@ -227,6 +283,17 @@ public:
     compute(float in_t, vec2 *outp, vec2 *outp_t, vec2 *outp_tt) const;
 
     virtual
+    void
+    tessellate(tessellated_region *in_region,
+               tessellated_region **out_regionA, tessellated_region **out_regionB,
+               float *out_t, vec2 *out_p, vec2 *out_p_t, vec2 *out_p_tt,
+               float *out_effective_curve_distance) const;
+
+    virtual
+    void
+    approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
+
+    virtual
     interpolator_base*
     deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const;
 
@@ -244,7 +311,6 @@ public:
   class arc:public interpolator_base
   {
   public:
-
     /*!
       Ctor.
       \param start start of curve
@@ -260,13 +326,20 @@ public:
 
     ~arc();
 
-    unsigned int
-    produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
-                         c_array<TessellatedPath::point> out_data) const;
+    virtual
+    void
+    approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
 
     virtual
     interpolator_base*
     deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const;
+
+    virtual
+    unsigned int
+    produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
+                         c_array<TessellatedPath::point> out_data,
+                         float *out_effective_curve_distance,
+                         float *out_effective_curvature) const;
 
   private:
     arc(const arc &q, const reference_counted_ptr<const interpolator_base> &prev);
@@ -384,6 +457,22 @@ public:
    */
   const reference_counted_ptr<const interpolator_base>&
   interpolator(unsigned int I) const;
+
+  /*!
+    Returns an approximation of the bounding box for
+    this PathContour WITHOUT relying on tessellating
+    the \ref interpolator_base objects of this \ref
+    PathContour IF this PathCountour is ended().
+    Returns true if this is ended() and writes the
+    values, otherwise returns false and does not write
+    any value.
+    \param out_min_bb (output) location to which to write the min-x and min-y
+                               coordinates of the approximate bounding box.
+    \param out_max_bb (output) location to which to write the max-x and max-y
+                               coordinates of the approximate bounding box.
+   */
+  bool
+  approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
 
   /*!
     Create a deep copy of this PathContour.
@@ -761,6 +850,23 @@ public:
   contour(unsigned int i) const;
 
   /*!
+    Returns an approximation of the bounding box for
+    the PathContour::ended() PathContour obejcts of
+    this Path WITHOUT relying on tessellating
+    (or for that matter creating a TessellatedPath)
+    this Path. Returns true if atleast one PathContour
+    of this Path is PathContour::ended() and writes the
+    values, otherwise returns false and does not write
+    any value.
+    \param out_min_bb (output) location to which to write the min-x and min-y
+                               coordinates of the approximate bounding box.
+    \param out_max_bb (output) location to which to write the max-x and max-y
+                               coordinates of the approximate bounding box.
+   */
+  bool
+  approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
+
+  /*!
     Returns the tessellation parameters used
     to construct the TessellatedPath
     returned by tessellation()
@@ -787,6 +893,19 @@ public:
    */
   const reference_counted_ptr<const TessellatedPath>&
   tessellation(void) const;
+
+  /*!
+    Return the tessellation of this Path at a specific
+    LOD. The TessellatedPath is constructed lazily.
+    Additionally, if this Path changes its geometry,
+    then a new TessellatedPath will be contructed on
+    the next call to tessellation_lod().
+    \param thresh the returned tessellated path will be so that
+                  TessellatedPath::effective_curve_distance_threshhold()
+                  is no more than thresh.
+   */
+  const reference_counted_ptr<const TessellatedPath>&
+  tessellation_lod(float thresh) const;
 
 private:
   void *m_d;

@@ -682,7 +682,7 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
   {
     shader_unpack_value_set<PainterStrokeParams::stroke_data_size> labels;
     labels
-      .set(PainterStrokeParams::stroke_width_offset, ".width")
+      .set(PainterStrokeParams::stroke_radius_offset, ".radius")
       .set(PainterStrokeParams::stroke_miter_limit_offset, ".miter_limit")
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_stroking_params",
@@ -693,7 +693,7 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
   {
     shader_unpack_value_set<PainterDashedStrokeParams::stroke_static_data_size> labels;
     labels
-      .set(PainterDashedStrokeParams::stroke_width_offset, ".width")
+      .set(PainterDashedStrokeParams::stroke_radius_offset, ".radius")
       .set(PainterDashedStrokeParams::stroke_miter_limit_offset, ".miter_limit")
       .set(PainterDashedStrokeParams::stroke_dash_offset_offset, ".dash_offset")
       .set(PainterDashedStrokeParams::stroke_total_length_offset, ".total_length")

@@ -42,7 +42,7 @@ namespace fastuidraw
      */
     enum stroke_data_offset_t
       {
-        stroke_width_offset, /*!< offset to dashed stroke width (packed as float) */
+        stroke_radius_offset, /*!< offset to dashed stroke radius (packed as float) */
         stroke_miter_limit_offset, /*!< offset to dashed stroke miter limit (packed as float) */
         stroke_dash_offset_offset, /*!< offset to dash offset value for dashed stroking (packed as float) */
         stroke_total_length_offset, /*!< offset to total legnth of dash pattern (packed as float) */
@@ -118,6 +118,24 @@ namespace fastuidraw
      */
     PainterDashedStrokeParams&
     width(float f);
+    /*!
+      The stroking radius, equivalent to
+      \code
+      width() * 0.5
+      \endcode
+     */
+    float
+    radius(void) const;
+
+    /*!
+      Set the value of radius(void) const,
+      equivalent to
+      \code
+      width(2.0 * f)
+      \endcode
+     */
+    PainterDashedStrokeParams&
+    radius(float f);
 
     /*!
       The dashed offset, i.e. the starting point of the
