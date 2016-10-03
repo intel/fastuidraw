@@ -76,13 +76,13 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
       /* let p0 be p moved by n0 the named number of pixels.
        */
       clip_offset = fastuidraw_item_matrix * vec3(n0, 0.0);
-      r0 = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+      r0 = fastuidraw_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
       p0 = position + r0 * n0;
 
       /* let p1 be p moved by n1 the named number of pixels.
        */
       clip_offset = fastuidraw_item_matrix * vec3(n1, 0.0);
-      r1 = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+      r1 = fastuidraw_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
       p1 = position + r1 * n1;
 
       /* now compute where the lines L0 and L1 intersect
@@ -155,7 +155,7 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
 
       offset = adjQ * (fastuidraw_viewport_recip_pixels * screen_n);
       clip_offset = fastuidraw_item_matrix * vec3(offset, 0.0);
-      stroke_radius = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+      stroke_radius = fastuidraw_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
     }
   else if(offset_type == fastuidraw_stroke_offset_square_cap)
     {
@@ -167,14 +167,14 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
        */
       clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
       clip_offset0 = fastuidraw_item_matrix * vec3(auxilary_offset, 0.0);
-      s0 = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset0);
+      s0 = fastuidraw_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset0);
 
       /* move along normal named number of pixels
        */
       clip_p = fastuidraw_item_matrix * vec3(position + s0 * auxilary_offset, 1.0);
       n = fastuidraw_align_normal_to_screen(clip_p, pre_offset);
       clip_offset1 = fastuidraw_item_matrix * vec3(n, 0.0);
-      s1 = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset1);
+      s1 = fastuidraw_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset1);
 
       stroke_radius = 1.0;
       offset = s0 * auxilary_offset + s1 * n;
@@ -189,10 +189,10 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
       n = fastuidraw_align_normal_to_screen(clip_p, n);
 
       clip_v = fastuidraw_item_matrix * vec3(v, 0.0);
-      tn.x = fastuidraw_painter_local_distance_from_pixel_distance(tn.x * stroke_radius, clip_p, clip_v);
+      tn.x = fastuidraw_local_distance_from_pixel_distance(tn.x * stroke_radius, clip_p, clip_v);
 
       clip_n = fastuidraw_item_matrix * vec3(n, 0.0);
-      tn.y = fastuidraw_painter_local_distance_from_pixel_distance(tn.y * stroke_radius, clip_p, clip_n);
+      tn.y = fastuidraw_local_distance_from_pixel_distance(tn.y * stroke_radius, clip_p, clip_n);
 
       stroke_radius = 1.0;
       offset = tn.x * v + tn.y * n;
@@ -211,7 +211,7 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
         }
       n = fastuidraw_align_normal_to_screen(clip_p, pre_offset);
       clip_offset = fastuidraw_item_matrix * vec3(n, 0.0);
-      stroke_radius = fastuidraw_painter_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
+      stroke_radius = fastuidraw_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_offset);
       offset = n;
     }
 }
@@ -508,7 +508,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
               clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
               clip_offset = fastuidraw_item_matrix * vec3(offset, 0);
-              r = fastuidraw_painter_local_distance_from_pixel_distance(anti_alias_thickness, clip_p, clip_offset, true);
+              r = fastuidraw_local_distance_from_pixel_distance(anti_alias_thickness, clip_p, clip_offset);
               stroke_radius = max(stroke_radius - r, 0.0);
             }
         }

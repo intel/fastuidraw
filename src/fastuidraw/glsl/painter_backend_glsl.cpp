@@ -249,9 +249,10 @@ PainterBackendGLSLPrivate(fastuidraw::glsl::PainterBackendGLSL *p,
     .add_source("fastuidraw_do_nothing.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_circular_interpolate.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_anisotropic.frag.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_compute_local_distance_from_pixel_distance.glsl.resource_string",
+    .add_source("fastuidraw_unpack_unit_vector.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_compute_local_distance_from_pixel_distance.glsl.resource_string",
                 ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_align.vert.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_align.vert.glsl.resource_string", ShaderSource::from_resource)
     .add_source(code::compute_interval("fastuidraw_compute_interval", m_p->configuration_base().alignment()));
 
   m_frag_shader_utils
