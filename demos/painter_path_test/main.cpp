@@ -171,7 +171,7 @@ private:
 
   command_line_argument_value<int> m_max_segments_per_edge;
   command_line_argument_value<int> m_points_per_circle;
-  command_line_argument_value<float> m_tessellation_bevel_area_threshhold;
+  command_line_argument_value<float> m_curve_distance_threshhold;
   command_line_argument_value<float> m_change_miter_limit_rate;
   command_line_argument_value<float> m_change_stroke_width_rate;
   command_line_argument_value<float> m_window_change_rate;
@@ -270,10 +270,10 @@ painter_stroke_test(void):
   sdl_painter_demo("painter-stroke-test"),
   m_max_segments_per_edge(32, "max_segs", "Max number of segments per edge", *this),
   m_points_per_circle(60, "tess_points_per_circle", "number of points per 2*PI curvature to attempt", *this),
-  m_tessellation_bevel_area_threshhold(0.001f, "tess_bevel_area",
-                                       "Bevel area tessellation theshhold, only active "
-                                       "if tess_points_per_circle is less than 1",
-                                       *this),
+  m_curve_distance_threshhold(0.001f, "tess_curve_distance",
+                              "Curve-distance tessellation threshhold used "
+                              "if tess_points_per_circle is less than 1",
+                              *this),
   m_change_miter_limit_rate(1.0f, "miter_limit_rate",
                             "rate of change in in stroke widths per second for "
                             "changing the miter limit when the when key is down",
@@ -872,11 +872,11 @@ handle_event(const SDL_Event &ev)
           std::cout << "Stroking contours as ";
           if(m_close_contour)
             {
-              std::cout << "open.\n";
+              std::cout << "closed.\n";
             }
           else
             {
-              std::cout << "closed.\n";
+              std::cout << "open.\n";
             }
           break;
 
@@ -986,7 +986,7 @@ create_stroked_path_attributes(void)
     }
   else
     {
-      P.bevel_tessellate(m_tessellation_bevel_area_threshhold.m_value);
+      P.curve_distance_tessellate(m_curve_distance_threshhold.m_value);
     }
   m_path.tessellation_params(P);
 
@@ -1461,9 +1461,9 @@ derived_init(int w, int h)
   p0 = m_path.tessellation()->bounding_box_min();
   p1 = m_path.tessellation()->bounding_box_max();
 
-  delta = p1 - p0;
+  delta = p1 - p0 + vec2(m_stroke_width, m_stroke_width);
   ratio = delta / dsp;
-  mm = fastuidraw::t_max(0.00001f, fastuidraw::t_max(ratio.x(), ratio.y()) );
+  mm = t_max(0.00001f, t_max(ratio.x(), ratio.y()) );
   mid = 0.5 * (p1 + p0);
 
   ScaleTranslate<float> sc, tr1, tr2;
