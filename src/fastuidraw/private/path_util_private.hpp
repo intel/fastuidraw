@@ -28,5 +28,8 @@ namespace fastuidraw
     unsigned int
     number_segments_for_tessellation(float radius, float arc_angle,
                                      const TessellatedPath::TessellationParams &P);
+
+    unsigned int
+    number_segments_for_tessellation(float arc_angle, float distance_thresh);
   }
 }

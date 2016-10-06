@@ -770,26 +770,48 @@ public:
 
   ~StrokedPath();
 
+  /*!
+    Returns the data to draw the edges of a stroked path.
+   */
   const Edges&
   edges(void) const;
 
+  /*!
+    Returns the data to draw the square caps of a stroked path.
+   */
   const Caps&
   square_caps(void) const;
 
-  const Caps&
-  rounded_caps(void) const;
-
+  /*!
+    Returns the data to draw the caps of a stroked path used
+    when stroking with a dash pattern.
+   */
   const Caps&
   adjustable_caps(void) const;
 
+  /*!
+    Returns the data to draw the bevel joins of a stroked path.
+   */
   const Joins&
   bevel_joins(void) const;
 
+  /*!
+    Returns the data to draw the miter joins of a stroked path.
+   */
   const Joins&
   miter_joins(void) const;
 
+  /*!
+    Returns the data to draw rounded joins of a stroked path.
+   */
   const Joins&
   rounded_joins(void) const;
+
+  /*!
+    Returns the data to draw rounded caps of a stroked path.
+   */
+  const Caps&
+  rounded_caps(void) const;
 
 private:
   void *m_d;
