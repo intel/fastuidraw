@@ -19,6 +19,7 @@
 #pragma once
 
 #include <fastuidraw/painter/painter_shader_data.hpp>
+#include <fastuidraw/painter/painter_stroke_shader.hpp>
 
 namespace fastuidraw
 {
@@ -92,6 +93,14 @@ namespace fastuidraw
      */
     PainterStrokeParams&
     radius(float f);
+
+    /*!
+      Returns a StrokingDataSelectorBase suitable for
+      PainterStrokeParams
+     */
+    static
+    reference_counted_ptr<const StrokingDataSelectorBase>
+    stroking_data_selector(bool pixel_width_stroking);
   };
 
 /*! @} */

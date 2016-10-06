@@ -802,6 +802,8 @@ namespace
 
     std::vector<ThreshWithJoins> m_rounded_joins_lod;
     std::vector<ThreshWithCaps> m_rounded_caps_lod;
+
+    float m_effective_curve_distance_threshhold;
   };
 
 }
@@ -2568,6 +2570,8 @@ StrokedPath(const fastuidraw::TessellatedPath &P)
 
   d->m_rounded_joins_lod.push_back(ThreshWithJoins(&d->m_rounded_joins, thresh));
   d->m_rounded_caps_lod.push_back(ThreshWithCaps(&d->m_rounded_caps, thresh));
+
+  d->m_effective_curve_distance_threshhold = P.effective_curve_distance_threshhold();
 }
 
 fastuidraw::StrokedPath::
@@ -2577,6 +2581,15 @@ fastuidraw::StrokedPath::
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
+}
+
+float
+fastuidraw::StrokedPath::
+effective_curve_distance_threshhold(void) const
+{
+  StrokedPathPrivate *d;
+  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  return d->m_effective_curve_distance_threshhold;
 }
 
 const fastuidraw::StrokedPath::Edges&

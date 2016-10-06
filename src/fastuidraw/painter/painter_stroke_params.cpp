@@ -18,6 +18,7 @@
 
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
+#include <fastuidraw/stroked_path.hpp>
 #include "../private/util_private.hpp"
 
 namespace
@@ -56,6 +57,53 @@ namespace
     float m_miter_limit;
     float m_radius;
   };
+
+  class StrokingDataSelector:public fastuidraw::StrokingDataSelectorBase
+  {
+  public:
+    explicit
+    StrokingDataSelector(bool pixel_width);
+
+    virtual
+    float
+    compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
+                           const fastuidraw::StrokedPath &path) const;
+  private:
+    bool m_pixel_width;
+  };
+
+}
+
+////////////////////////////////
+// StrokingDataSelector methods
+StrokingDataSelector::
+StrokingDataSelector(bool pixel_width):
+  m_pixel_width(pixel_width)
+{}
+
+float
+StrokingDataSelector::
+compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
+                       const fastuidraw::StrokedPath &path) const
+{
+  const PainterStrokeParamsData *d;
+  d = static_cast<const PainterStrokeParamsData*>(data);
+
+  if(d->m_radius <= 0.0f)
+    {
+      return path.effective_curve_distance_threshhold() * 2.0f;
+    }
+  else
+    {
+      float return_value;
+
+      return_value = 1.0f / d->m_radius;
+      if(!m_pixel_width)
+        {
+          return_value *= path.effective_curve_distance_threshhold();
+        }
+      return return_value;
+    }
 }
 
 ///////////////////////////////////
@@ -127,4 +175,11 @@ radius(float f)
   d = static_cast<PainterStrokeParamsData*>(m_data);
   d->m_radius = f;
   return *this;
+}
+
+fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>
+fastuidraw::PainterStrokeParams::
+stroking_data_selector(bool pixel_width_stroking)
+{
+  return FASTUIDRAWnew StrokingDataSelector(pixel_width_stroking);
 }

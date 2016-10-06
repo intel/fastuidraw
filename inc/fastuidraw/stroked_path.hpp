@@ -771,6 +771,13 @@ public:
   ~StrokedPath();
 
   /*!
+    Returns TessellatedPath::effective_curve_distance_threshhold()
+    of the TessellatedPath that generated this StrokedPath.
+   */
+  float
+  effective_curve_distance_threshhold(void) const;
+
+  /*!
     Returns the data to draw the edges of a stroked path.
    */
   const Edges&

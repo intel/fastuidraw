@@ -380,7 +380,11 @@ create_stroke_shader(enum PainterEnums::cap_style stroke_style,
 {
   using namespace fastuidraw::PainterEnums;
   PainterStrokeShader return_value;
+  reference_counted_ptr<const StrokingDataSelectorBase> stroke_data_selector;
+
+  stroke_data_selector = PainterStrokeParams::stroking_data_selector(pixel_width_stroking);
   return_value
+    .stroking_data_selector(stroke_data_selector)
     .aa_shader_pass1(create_stroke_item_shader(stroke_style, pixel_width_stroking, uber_stroke_opaque_pass))
     .aa_shader_pass2(create_stroke_item_shader(stroke_style, pixel_width_stroking, uber_stroke_aa_pass))
     .non_aa_shader(create_stroke_item_shader(stroke_style, pixel_width_stroking, uber_stroke_non_aa));

@@ -1275,6 +1275,16 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const St
   const PainterAttributeData *edge_data(NULL), *cap_data(NULL), *join_data(NULL);
   unsigned int edge_chunk(close_contours), cap_chunk(0);
   unsigned int join_chunk(close_contours), inc_join(0);
+  float thresh;
+
+  if(js == PainterEnums::rounded_joins
+     || (cp == PainterEnums::rounded_caps && !close_contours))
+    {
+      const PainterShaderData::DataBase *raw_data;
+
+      raw_data = draw.m_item_shader_data.data().data_base();
+      thresh = shader.stroking_data_selector()->compute_rounded_thresh(raw_data, path);
+    }
 
   edge_data = &path.edges().painter_data();
   if(!close_contours)
@@ -1282,7 +1292,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const St
       switch(cp)
         {
         case PainterEnums::rounded_caps:
-          cap_data = &path.rounded_caps().painter_data();
+          cap_data = &path.rounded_caps(thresh).painter_data();
           break;
 
         case PainterEnums::square_caps:
@@ -1305,7 +1315,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const St
       break;
 
     case PainterEnums::rounded_joins:
-      join_data = &path.rounded_joins().painter_data();
+      join_data = &path.rounded_joins(thresh).painter_data();
       break;
 
     default:
@@ -1453,7 +1463,14 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
       break;
 
     case PainterEnums::rounded_joins:
-      join_data = &path.rounded_joins().painter_data();
+      {
+        const PainterShaderData::DataBase *raw_data;
+        float thresh;
+
+        raw_data = draw.m_item_shader_data.data().data_base();
+        thresh = shader.shader(cp).stroking_data_selector()->compute_rounded_thresh(raw_data, path);
+        join_data = &path.rounded_joins(thresh).painter_data();
+      }
       break;
 
     default:

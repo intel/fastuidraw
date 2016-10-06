@@ -22,6 +22,7 @@
 
 #include <fastuidraw/painter/painter_item_shader.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/painter_shader_data.hpp>
 
 namespace fastuidraw
 {
@@ -32,7 +33,33 @@ namespace fastuidraw
 
   ///@cond
   class PainterAttributeData;
+  class StrokedPath;
   ///@endcond
+
+  /*!
+    A StrokingDataSelector is an interface to assist Painter
+    to select correct LOD for rounded joins and caps when
+    drawing rounded joins and caps.
+   */
+  class StrokingDataSelectorBase:
+    public reference_counted<StrokingDataSelectorBase>::default_base
+  {
+  public:
+    /*!
+      To be implemented by a derived class to compute the
+      the value for thresh to feed to StrokedPath::rounded_joins(float)
+      and StrokedPath::rounded_caps(float) to get a good
+      level of detail to draw rounded joins or caps.
+      \param data PainterItemShaderData::DataBase object holding
+                  the data to be sent to the shader
+      \param path StrokedPath from which to take rounded joins
+                  or rounded caps
+     */
+    virtual
+    float
+    compute_rounded_thresh(const PainterShaderData::DataBase *data,
+                           const StrokedPath &path) const = 0;
+  };
 
   /*!
     A PainterStrokeShader holds shaders for
@@ -150,6 +177,16 @@ namespace fastuidraw
      */
     PainterStrokeShader&
     non_aa_shader(const reference_counted_ptr<PainterItemShader> &sh);
+
+    const reference_counted_ptr<const StrokingDataSelectorBase>&
+    stroking_data_selector(void) const;
+
+    /*!
+      Set the value returned by stroking_data_selector(void) const.
+      \param sh value to use
+     */
+    PainterStrokeShader&
+    stroking_data_selector(const reference_counted_ptr<const StrokingDataSelectorBase> &sh);
 
   private:
     void *m_d;

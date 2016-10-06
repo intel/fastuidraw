@@ -32,6 +32,7 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_shader_pass2;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_non_aa_shader;
     enum fastuidraw::PainterStrokeShader::type_t m_aa_type;
+    fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase> m_stroking_data_selector;
   };
 }
 
@@ -98,5 +99,6 @@ setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItem
 setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_shader_pass2)
 setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, non_aa_shader)
 setget_implement(enum fastuidraw::PainterStrokeShader::type_t, aa_type);
+setget_implement(const fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>&, stroking_data_selector);
 
 #undef setget_implement
