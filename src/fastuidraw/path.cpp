@@ -342,6 +342,14 @@ namespace
     unsigned int m_start_check_bb;
     fastuidraw::vec2 m_max_bb, m_min_bb;
   };
+
+  inline
+  bool
+  reverse_compare_curve_distance_thresh(const PathPrivate::tessellated_path_ref &lhs,
+                                        float rhs)
+  {
+    return lhs->effective_curve_distance_threshhold() > rhs;
+  }
 }
 
 ////////////////////////////////////
@@ -1688,14 +1696,16 @@ tessellation_lod(float thresh) const
     {
       /* TODO: use binary search via std::lower_bound()
        */
-      for(unsigned int i = 0, endi = d->m_tessellation_lod.size(); i < endi; ++i)
-        {
-          if(d->m_tessellation_lod[i]->effective_curve_distance_threshhold() <= thresh)
-            {
-              return d->m_tessellation_lod[i];
-            }
-        }
-      assert(!"Should not reach here!");
+      std::vector<PathPrivate::tessellated_path_ref>::const_iterator iter;
+      iter = std::lower_bound(d->m_tessellation_lod.begin(),
+                              d->m_tessellation_lod.end(),
+                              thresh,
+                              reverse_compare_curve_distance_thresh);
+
+      assert(iter != d->m_tessellation_lod.end());
+      assert(*iter);
+      assert((*iter)->effective_curve_distance_threshhold() <= thresh);
+      return *iter;
     }
   else
     {
