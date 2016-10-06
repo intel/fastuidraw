@@ -1,6 +1,6 @@
 /*!
  * \file painter_attribute_data_filler_path_stroked.hpp
- * \brief file painter_attribute_data_filler_path_stroked.hpp
+ * \brief painter_attribute_data_filler_path_stroked.hpp
  *
  * Copyright 2016 by Intel.
  *
@@ -109,6 +109,154 @@ namespace fastuidraw
     static
     PainterAttribute
     pack_point(const StrokedPath::point &pt);
+
+  private:
+    void *m_d;
+  };
+
+  /*!
+    A PainterAttributeDataFillerPathEdges is an implementation for
+    PainterAttributeDataFiller to construct index and attribute
+    data to draw the edges of a stroked path. The data is so that
+    it provides all that is needed to stroke a path regardless of
+    stroking width or even dash pattern.
+   */
+  class PainterAttributeDataFillerPathEdges:public PainterAttributeDataFiller
+  {
+  public:
+    enum
+      {
+        without_closing_edge,
+        with_closing_edge
+      };
+
+    /*!
+      Ctor.
+      \param path StrokedPath from which to construct attribute and index data.
+     */
+    explicit
+    PainterAttributeDataFillerPathEdges(const StrokedPath::Edges&);
+
+    ~PainterAttributeDataFillerPathEdges();
+
+    virtual
+    void
+    compute_sizes(unsigned int &number_attributes,
+                  unsigned int &number_indices,
+                  unsigned int &number_attribute_chunks,
+                  unsigned int &number_index_chunks,
+                  unsigned int &number_z_increments) const;
+    virtual
+    void
+    fill_data(c_array<PainterAttribute> attributes,
+              c_array<PainterIndex> indices,
+              c_array<const_c_array<PainterAttribute> > attrib_chunks,
+              c_array<const_c_array<PainterIndex> > index_chunks,
+              c_array<unsigned int> zincrements) const;
+
+    /*!
+      Returns the StrokedPath::Edges from which this object fills
+      data (set at ctor).
+     */
+    const StrokedPath::Edges&
+    edges(void) const;
+
+  private:
+    void *m_d;
+  };
+
+  /*!
+    A PainterAttributeDataFillerPathCaps is an implementation for
+    PainterAttributeDataFiller to construct index and attribute
+    data to draw the edges of a stroked path. The data is so that
+    it provides all that is needed to stroke a path regardless of
+    stroking width or even dash pattern.
+   */
+  class PainterAttributeDataFillerPathCaps:public PainterAttributeDataFiller
+  {
+  public:
+    /*!
+      Ctor.
+      \param path StrokedPath from which to construct attribute and index data.
+     */
+    explicit
+    PainterAttributeDataFillerPathCaps(const StrokedPath::Caps &caps);
+
+    ~PainterAttributeDataFillerPathCaps();
+
+    virtual
+    void
+    compute_sizes(unsigned int &number_attributes,
+                  unsigned int &number_indices,
+                  unsigned int &number_attribute_chunks,
+                  unsigned int &number_index_chunks,
+                  unsigned int &number_z_increments) const;
+    virtual
+    void
+    fill_data(c_array<PainterAttribute> attributes,
+              c_array<PainterIndex> indices,
+              c_array<const_c_array<PainterAttribute> > attrib_chunks,
+              c_array<const_c_array<PainterIndex> > index_chunks,
+              c_array<unsigned int> zincrements) const;
+
+    /*!
+      Returns the StrokedPath::Caps from which this object fills
+      data (set at ctor).
+     */
+    const StrokedPath::Caps&
+    caps(void) const;
+
+  private:
+    void *m_d;
+  };
+
+  /*!
+    A PainterAttributeDataFillerPathJoins is an implementation for
+    PainterAttributeDataFiller to construct index and attribute
+    data to draw the edges of a stroked path. The data is so that
+    it provides all that is needed to stroke a path regardless of
+    stroking width or even dash pattern.
+   */
+  class PainterAttributeDataFillerPathJoins:public PainterAttributeDataFiller
+  {
+  public:
+    enum
+      {
+        without_closing_edge,
+        with_closing_edge,
+        specific_join0,
+      };
+
+    /*!
+      Ctor.
+      \param path StrokedPath from which to construct attribute and index data.
+     */
+    explicit
+    PainterAttributeDataFillerPathJoins(const StrokedPath::Joins &caps);
+
+    ~PainterAttributeDataFillerPathJoins();
+
+    virtual
+    void
+    compute_sizes(unsigned int &number_attributes,
+                  unsigned int &number_indices,
+                  unsigned int &number_attribute_chunks,
+                  unsigned int &number_index_chunks,
+                  unsigned int &number_z_increments) const;
+    virtual
+    void
+    fill_data(c_array<PainterAttribute> attributes,
+              c_array<PainterIndex> indices,
+              c_array<const_c_array<PainterAttribute> > attrib_chunks,
+              c_array<const_c_array<PainterIndex> > index_chunks,
+              c_array<unsigned int> zincrements) const;
+
+    /*!
+      Returns the StrokedPath::Joins from which this object fills
+      data (set at ctor).
+     */
+    const StrokedPath::Joins&
+    joins(void) const;
 
   private:
     void *m_d;

@@ -2319,6 +2319,20 @@ number_depth(bool including_closing_edge) const
   return d->m_return_values[including_closing_edge].m_number_depth;
 }
 
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedPath::Edges::
+painter_data(void) const
+{
+  GenericDataPrivate *d;
+  d = reinterpret_cast<GenericDataPrivate*>(m_d);
+  if(d->m_attribute_data == NULL)
+    {
+      d->m_attribute_data = FASTUIDRAWnew PainterAttributeData();
+      d->m_attribute_data->set_data(PainterAttributeDataFillerPathEdges(*this));
+    }
+  return *d->m_attribute_data;
+}
+
 /////////////////////////////////////
 // fastuidraw::StrokedPath::Joins methods
 fastuidraw::StrokedPath::Joins::
@@ -2401,6 +2415,20 @@ indices_range(unsigned int contour, unsigned int N) const
   return d->m_locations[contour][N].m_indices;
 }
 
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedPath::Joins::
+painter_data(void) const
+{
+  GenericDataPrivate *d;
+  d = reinterpret_cast<GenericDataPrivate*>(m_d);
+  if(d->m_attribute_data == NULL)
+    {
+      d->m_attribute_data = FASTUIDRAWnew PainterAttributeData();
+      d->m_attribute_data->set_data(PainterAttributeDataFillerPathJoins(*this));
+    }
+  return *d->m_attribute_data;
+}
+
 //////////////////////////////////
 // fastuidraw::StrokedPath::Caps methods
 fastuidraw::StrokedPath::Caps::
@@ -2442,6 +2470,20 @@ number_depth(void) const
   const CapsPrivate *d;
   d = reinterpret_cast<const CapsPrivate*>(m_d);
   return d->m_number_depth;
+}
+
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedPath::Caps::
+painter_data(void) const
+{
+  GenericDataPrivate *d;
+  d = reinterpret_cast<GenericDataPrivate*>(m_d);
+  if(d->m_attribute_data == NULL)
+    {
+      d->m_attribute_data = FASTUIDRAWnew PainterAttributeData();
+      d->m_attribute_data->set_data(PainterAttributeDataFillerPathCaps(*this));
+    }
+  return *d->m_attribute_data;
 }
 
 //////////////////////////////////////////////////////////////
