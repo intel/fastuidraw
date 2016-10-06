@@ -75,10 +75,10 @@ public:
     /*!
       Provided as a conveniance. Equivalent to
       \code
-       = true;
-       = p;
+      m_curvature_tessellation = true;
+      m_threshhold = p;
       \endcode
-      \param p value to which to assign to \ref m_tessellation_factor
+      \param p value to which to assign to \ref m_threshhold
      */
     TessellationParams&
     curvature_tessellate(float p)
@@ -91,8 +91,8 @@ public:
     /*!
       Provided as a conveniance. Equivalent to
       \code
-       = true;
-      m_tessellation_factor = 2.0f * static_cast<float>(M_PI) / static_cast<float>(N);
+      m_curvature_tessellation = true;
+      m_threshhold = 2.0f * static_cast<float>(M_PI) / static_cast<float>(N);
       \endcode
       \param N number of points for goal to tessellate a circle to.
      */
@@ -107,10 +107,10 @@ public:
     /*!
       Provided as a conveniance. Equivalent to
       \code
-       = false;
-      m_tessellation_factor = p;
+      m_curvature_tessellation = false;
+      m_threshhold = p;
       \endcode
-      \param p value to which to assign to \ref m_tessellation_factor
+      \param p value to which to assign to \ref m_threshhold
      */
     TessellationParams&
     curve_distance_tessellate(float p)

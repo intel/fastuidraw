@@ -419,7 +419,16 @@ namespace fastuidraw
       Stroke a path.
       \param shader shader with which to stroke the attribute data
       \param draw data for how to draw
-      \param data attribute and index data with which to stroke a path
+      \param edge_data attribute and index data for drawing the edges,
+                       NULL value indicates to not draw edges.
+      \param edge_chunk which chunk to take from edge_data
+      \param cap_data attribute and index data for drawing the caps,
+                      NULL value indicates to not draw caps.
+      \param cap_chunk which chunk to take from cap_data
+      \param join_data attribute and index data for drawing the joins,
+                       NULL value indicates to not draw joins.
+      \param join_chunks which chunks to take from join_data to draw the joins
+      \param inc_join amount by which to increment current_z() for the join drawing
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
@@ -508,15 +517,21 @@ namespace fastuidraw
                             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
-      Stroke a path using a custom PainterDashedStrokeShaderSet
+      Stroke a path dashed.
       \param shader shader with which to draw
       \param draw data for how to draw
-      \param path Path to stroke
-      \param close_contours if true, draw the closing edges (and joins) of each contour
-                            of the path
-      \param cp cap style of dashes, the value PainterEnums::close_contours is treated
-                the same as PainterEnums::no_caps
-      \param js join style
+      \param edge_data attribute and index data for drawing the edges,
+                       NULL value indicates to not draw edges.
+      \param edge_chunk which chunk to take from edge_data
+      \param cap_data attribute and index data for drawing the caps,
+                      NULL value indicates to not draw caps.
+      \param cap_chunk which chunk to take from cap_data
+      \param include_joins_from_closing_edge if false, disclude the joins formed
+                                             from the closing edges of each contour
+      \param dash_evaluator DashEvaluatorBase object to determine which joins
+                            are to be drawn
+      \param join_data attribute and index data for drawing the joins,
+                       NULL value indicates to not draw joins.
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
@@ -531,9 +546,10 @@ namespace fastuidraw
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
-      Stroke a path using PainterShaderSet::dashed_stroke_shader() of default_shaders().
+      Stroke a path dashed.
+      \param shader shader with which to draw
       \param draw data for how to draw
-      \param path Path to stroke
+      \param path StrokedPath to stroke
       \param close_contours if true, draw the closing edges (and joins) of each contour
                             of the path
       \param cp cap style of dashes, the value PainterEnums::close_contours is treated
@@ -550,7 +566,8 @@ namespace fastuidraw
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
-      Stroke a path using PainterShaderSet::dashed_stroke_shader() of default_shaders().
+      Stroke a path dashed.
+      \param shader shader with which to draw
       \param draw data for how to draw
       \param path Path to stroke
       \param close_contours if true, draw the closing edges (and joins) of each contour

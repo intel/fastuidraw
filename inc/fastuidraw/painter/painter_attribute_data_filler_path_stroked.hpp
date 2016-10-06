@@ -90,10 +90,10 @@ namespace fastuidraw
 
     /*!
       Ctor.
-      \param path StrokedPath from which to construct attribute and index data.
+      \param edges StrokedPath::Edges from which to construct attribute and index data.
      */
     explicit
-    PainterAttributeDataFillerPathEdges(const StrokedPath::Edges&);
+    PainterAttributeDataFillerPathEdges(const StrokedPath::Edges &edges);
 
     ~PainterAttributeDataFillerPathEdges();
 
@@ -135,7 +135,7 @@ namespace fastuidraw
   public:
     /*!
       Ctor.
-      \param path StrokedPath from which to construct attribute and index data.
+      \param caps StrokedPath::Caps from which to construct attribute and index data.
      */
     explicit
     PainterAttributeDataFillerPathCaps(const StrokedPath::Caps &caps);
@@ -187,10 +187,10 @@ namespace fastuidraw
 
     /*!
       Ctor.
-      \param path StrokedPath from which to construct attribute and index data.
+      \param joins StrokedPath::Joins from which to construct attribute and index data.
      */
     explicit
-    PainterAttributeDataFillerPathJoins(const StrokedPath::Joins &caps);
+    PainterAttributeDataFillerPathJoins(const StrokedPath::Joins &joins);
 
     ~PainterAttributeDataFillerPathJoins();
 
