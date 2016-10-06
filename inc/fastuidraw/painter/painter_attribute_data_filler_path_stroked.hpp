@@ -48,48 +48,9 @@ namespace fastuidraw
     - PainterAttribute::m_attrib2 .z -> StrokedPath::point::m_open_contour_length (float)
     - PainterAttribute::m_attrib2 .w -> StrokedPath::point::m_closed_contour_length (float)
    */
-  class PainterAttributeDataFillerPathStroked:public PainterAttributeDataFiller
+  class PainterAttributeDataFillerPathStroked
   {
   public:
-    /*!
-      Ctor.
-      \param path FilledPath from which to construct attribute and index data.
-     */
-    explicit
-    PainterAttributeDataFillerPathStroked(const reference_counted_ptr<const StrokedPath> &path);
-
-    ~PainterAttributeDataFillerPathStroked();
-
-    virtual
-    void
-    compute_sizes(unsigned int &number_attributes,
-                  unsigned int &number_indices,
-                  unsigned int &number_attribute_chunks,
-                  unsigned int &number_index_chunks,
-                  unsigned int &number_z_increments) const;
-    virtual
-    void
-    fill_data(c_array<PainterAttribute> attributes,
-              c_array<PainterIndex> indices,
-              c_array<const_c_array<PainterAttribute> > attrib_chunks,
-              c_array<const_c_array<PainterIndex> > index_chunks,
-              c_array<unsigned int> zincrements) const;
-
-    /*!
-      Returns the StrokedPath from which this object fills
-      data (set at ctor).
-     */
-    const reference_counted_ptr<const StrokedPath>&
-    path(void) const;
-
-    /*!
-      Create and return a StrokingChunkSelectorBase
-      compatible with PainterAttributeDataFillerPathStroked
-     */
-    static
-    reference_counted_ptr<StrokingChunkSelectorBase>
-    chunk_selector(void);
-
     /*!
       Unpack a StrokedPath::point from a PainterAttribute
       as packed by PainterAttributeDataFillerPathStroked.
@@ -109,9 +70,6 @@ namespace fastuidraw
     static
     PainterAttribute
     pack_point(const StrokedPath::point &pt);
-
-  private:
-    void *m_d;
   };
 
   /*!
@@ -257,6 +215,20 @@ namespace fastuidraw
      */
     const StrokedPath::Joins&
     joins(void) const;
+
+    /*!
+      Implementation for DashEvaluatorBase::number_joins().
+     */
+    static
+    unsigned int
+    number_joins(const PainterAttributeData &data, bool edge_closed);
+
+    /*!
+      Implementation for DashEvaluatorBase::named_join_chunk().
+     */
+    static
+    unsigned int
+    named_join_chunk(unsigned int J);
 
   private:
     void *m_d;

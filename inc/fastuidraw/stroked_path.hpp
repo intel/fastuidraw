@@ -791,9 +791,6 @@ public:
   const Joins&
   rounded_joins(void) const;
 
-  const PainterAttributeData&
-  painter_data(void) const;
-
 private:
   void *m_d;
 };

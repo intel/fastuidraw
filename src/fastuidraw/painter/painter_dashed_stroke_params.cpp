@@ -65,6 +65,21 @@ namespace
     covered_by_dash_pattern(const fastuidraw::PainterShaderData::DataBase *data,
                             const fastuidraw::PainterAttribute &attrib) const;
 
+
+    virtual
+    unsigned int
+    number_joins(const fastuidraw::PainterAttributeData &data, bool edge_closed) const
+    {
+      return fastuidraw::PainterAttributeDataFillerPathJoins::number_joins(data, edge_closed);
+    }
+
+    virtual
+    unsigned int
+    named_join_chunk(unsigned int J) const
+    {
+      return fastuidraw::PainterAttributeDataFillerPathJoins::named_join_chunk(J);
+    }
+
     static
     bool
     close_to_boundary(float dist,

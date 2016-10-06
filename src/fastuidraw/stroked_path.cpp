@@ -667,9 +667,17 @@ namespace
   class CapsPrivate
   {
   public:
-    std::vector<fastuidraw::StrokedPath::point> m_points;
-    std::vector<unsigned int> m_indices;
-    unsigned int m_number_depth;
+    CapsPrivate(void):
+      m_attribute_data(NULL)
+    {}
+
+    ~CapsPrivate()
+    {
+      if(m_attribute_data != NULL)
+        {
+          FASTUIDRAWdelete(m_attribute_data);
+        }
+    }
 
     void
     resize(fastuidraw::uvec2 szs)
@@ -677,6 +685,11 @@ namespace
       m_points.resize(szs[0]);
       m_indices.resize(szs[1]);
     }
+
+    std::vector<fastuidraw::StrokedPath::point> m_points;
+    std::vector<unsigned int> m_indices;
+    unsigned int m_number_depth;
+    fastuidraw::PainterAttributeData *m_attribute_data;
   };
 
   class GenericDataPrivate
@@ -726,8 +739,6 @@ namespace
 
     std::vector<fastuidraw::StrokedPath::Joins*> m_rounded_joins_lod;
     std::vector<fastuidraw::StrokedPath::Caps*> m_rounded_caps_lod;
-
-    fastuidraw::PainterAttributeData *m_attribute_data;
   };
 
 }
@@ -2124,19 +2135,13 @@ resize_locations(const fastuidraw::TessellatedPath &P)
 /////////////////////////////////////////////
 // StrokedPathPrivate methods
 StrokedPathPrivate::
-StrokedPathPrivate(void):
-  m_attribute_data(NULL)
+StrokedPathPrivate(void)
 {
 }
 
 StrokedPathPrivate::
 ~StrokedPathPrivate()
 {
-  if(m_attribute_data != NULL)
-    {
-      FASTUIDRAWdelete(m_attribute_data);
-    }
-
   for(unsigned int i = 0, endi = m_rounded_joins_lod.size(); i < endi; ++i)
     {
       FASTUIDRAWdelete(m_rounded_joins_lod[i]);
@@ -2476,8 +2481,8 @@ const fastuidraw::PainterAttributeData&
 fastuidraw::StrokedPath::Caps::
 painter_data(void) const
 {
-  GenericDataPrivate *d;
-  d = reinterpret_cast<GenericDataPrivate*>(m_d);
+  CapsPrivate *d;
+  d = reinterpret_cast<CapsPrivate*>(m_d);
   if(d->m_attribute_data == NULL)
     {
       d->m_attribute_data = FASTUIDRAWnew PainterAttributeData();
@@ -2515,28 +2520,6 @@ fastuidraw::StrokedPath::
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
-}
-
-const fastuidraw::PainterAttributeData&
-fastuidraw::StrokedPath::
-painter_data(void) const
-{
-  StrokedPathPrivate *d;
-  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
-
-  /* Painful note: the reference count is initialized as 0.
-     If a handle is made at ctor, the reference count is made
-     to be 1, and then when the handle goes out of scope
-     it is zero, triggering delete. In particular making a
-     handle at ctor time is very bad. This is one of the reasons
-     why it must be made lazily and not at ctor.
-   */
-  if(d->m_attribute_data == NULL)
-    {
-      d->m_attribute_data = FASTUIDRAWnew PainterAttributeData();
-      d->m_attribute_data->set_data(PainterAttributeDataFillerPathStroked(this));
-    }
-  return *d->m_attribute_data;
 }
 
 const fastuidraw::StrokedPath::Edges&
