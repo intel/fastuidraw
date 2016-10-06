@@ -805,6 +805,18 @@ public:
     Returns the data to draw rounded joins of a stroked path.
    */
   const Joins&
+  rounded_joins(float thresh) const;
+
+  /*!
+    Returns the data to draw rounded caps of a stroked path.
+   */
+  const Caps&
+  rounded_caps(float thresh) const;
+
+  /*!
+    Returns the data to draw rounded joins of a stroked path.
+   */
+  const Joins&
   rounded_joins(void) const;
 
   /*!

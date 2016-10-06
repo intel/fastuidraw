@@ -737,6 +737,33 @@ namespace
     std::vector<std::vector<Location> > m_locations;
   };
 
+  template<typename T>
+  class ThreshWith
+  {
+  public:
+    ThreshWith(void):
+      m_data(NULL),
+      m_thresh(-1)
+    {}
+
+    ThreshWith(T *d, float t):
+      m_data(d), m_thresh(t)
+    {}
+
+    static
+    bool
+    reverse_compare_against_thresh(const ThreshWith &lhs, float rhs)
+    {
+      return lhs.m_thresh > rhs;
+    }
+
+    T *m_data;
+    float m_thresh;
+  };
+
+  typedef ThreshWith<fastuidraw::StrokedPath::Joins> ThreshWithJoins;
+  typedef ThreshWith<fastuidraw::StrokedPath::Caps> ThreshWithCaps;
+
   class StrokedPathPrivate
   {
   public:
@@ -773,8 +800,8 @@ namespace
     fastuidraw::StrokedPath::Caps m_square_caps, m_adjustable_caps, m_rounded_caps;
     PathData m_path_data;
 
-    std::vector<fastuidraw::StrokedPath::Joins*> m_rounded_joins_lod;
-    std::vector<fastuidraw::StrokedPath::Caps*> m_rounded_caps_lod;
+    std::vector<ThreshWithJoins> m_rounded_joins_lod;
+    std::vector<ThreshWithCaps> m_rounded_caps_lod;
   };
 
 }
@@ -2129,14 +2156,18 @@ StrokedPathPrivate(void)
 StrokedPathPrivate::
 ~StrokedPathPrivate()
 {
-  for(unsigned int i = 0, endi = m_rounded_joins_lod.size(); i < endi; ++i)
+  /* Note that we start deleting at 1 not 0, this is because [0]
+     for for rounded cap LOD points to m_rounded_caps and
+     [0] for rounded join LOD points to m_rounded_joins
+   */
+  for(unsigned int i = 1, endi = m_rounded_joins_lod.size(); i < endi; ++i)
     {
-      FASTUIDRAWdelete(m_rounded_joins_lod[i]);
+      FASTUIDRAWdelete(m_rounded_joins_lod[i].m_data);
     }
 
-  for(unsigned int i = 0, endi = m_rounded_caps_lod.size(); i < endi; ++i)
+  for(unsigned int i = 1, endi = m_rounded_caps_lod.size(); i < endi; ++i)
     {
-      FASTUIDRAWdelete(m_rounded_caps_lod[i]);
+      FASTUIDRAWdelete(m_rounded_caps_lod[i].m_data);
     }
 }
 
@@ -2530,11 +2561,13 @@ StrokedPath(const fastuidraw::TessellatedPath &P)
 
   StrokedPathPrivate::create_joins<BevelJoinCreator>(d->m_path_data, d->m_bevel_joins.m_d);
   StrokedPathPrivate::create_joins<MiterJoinCreator>(d->m_path_data, d->m_miter_joins.m_d);
+  StrokedPathPrivate::create_joins<RoundedJoinCreator>(d->m_path_data, thresh, d->m_rounded_joins.m_d);
   StrokedPathPrivate::create_caps<SquareCapCreator>(d->m_path_data, d->m_square_caps.m_d);
   StrokedPathPrivate::create_caps<AdjustableCapCreator>(d->m_path_data, d->m_adjustable_caps.m_d);
-
   StrokedPathPrivate::create_caps<RoundedCapCreator>(d->m_path_data, thresh, d->m_rounded_caps.m_d);
-  StrokedPathPrivate::create_joins<RoundedJoinCreator>(d->m_path_data, thresh, d->m_rounded_joins.m_d);
+
+  d->m_rounded_joins_lod.push_back(ThreshWithJoins(&d->m_rounded_joins, thresh));
+  d->m_rounded_caps_lod.push_back(ThreshWithCaps(&d->m_rounded_caps, thresh));
 }
 
 fastuidraw::StrokedPath::
@@ -2607,4 +2640,76 @@ rounded_caps(void) const
   StrokedPathPrivate *d;
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
   return d->m_rounded_caps;
+}
+
+const fastuidraw::StrokedPath::Joins&
+fastuidraw::StrokedPath::
+rounded_joins(float thresh) const
+{
+  StrokedPathPrivate *d;
+  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+
+  if(d->m_rounded_joins_lod.back().m_thresh <= thresh)
+    {
+      std::vector<ThreshWithJoins>::const_iterator iter;
+      iter = std::lower_bound(d->m_rounded_joins_lod.begin(),
+                              d->m_rounded_joins_lod.end(),
+                              thresh,
+                              ThreshWithJoins::reverse_compare_against_thresh);
+      assert(iter != d->m_rounded_joins_lod.end());
+      assert(iter->m_thresh <= thresh);
+      assert(iter->m_data);
+      return *iter->m_data;
+    }
+  else
+    {
+      float t;
+      t = d->m_rounded_joins_lod.back().m_thresh;
+      while(t > thresh)
+        {
+          Joins *newJ;
+
+          t *= 0.5f;
+          newJ = FASTUIDRAWnew Joins();
+          StrokedPathPrivate::create_joins<RoundedJoinCreator>(d->m_path_data, t, newJ->m_d);
+          d->m_rounded_joins_lod.push_back(ThreshWithJoins(newJ, t));
+        }
+      return *d->m_rounded_joins_lod.back().m_data;
+    }
+}
+
+const fastuidraw::StrokedPath::Caps&
+fastuidraw::StrokedPath::
+rounded_caps(float thresh) const
+{
+  StrokedPathPrivate *d;
+  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+
+  if(d->m_rounded_caps_lod.back().m_thresh <= thresh)
+    {
+      std::vector<ThreshWithCaps>::const_iterator iter;
+      iter = std::lower_bound(d->m_rounded_caps_lod.begin(),
+                              d->m_rounded_caps_lod.end(),
+                              thresh,
+                              ThreshWithCaps::reverse_compare_against_thresh);
+      assert(iter != d->m_rounded_caps_lod.end());
+      assert(iter->m_thresh <= thresh);
+      assert(iter->m_data);
+      return *iter->m_data;
+    }
+  else
+    {
+      float t;
+      t = d->m_rounded_caps_lod.back().m_thresh;
+      while(t > thresh)
+        {
+          Caps *newC;
+
+          t *= 0.5f;
+          newC = FASTUIDRAWnew Caps();
+          StrokedPathPrivate::create_caps<RoundedCapCreator>(d->m_path_data, t, newC->m_d);
+          d->m_rounded_caps_lod.push_back(ThreshWithCaps(newC, t));
+        }
+      return *d->m_rounded_caps_lod.back().m_data;
+    }
 }
