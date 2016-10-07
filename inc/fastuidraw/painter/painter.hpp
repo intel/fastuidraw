@@ -872,13 +872,12 @@ namespace fastuidraw
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
-      Returns the statistics of how much traffic the Painter has
-      seen since the last time begin() was called, the enumerations
-      of \ref PainterPacker::stats_t name the meaning of each value
-      in the returned array.
+      Returns a stat on how much data the Packer has
+      handled since the last call to begin().
+      \param st stat to query
      */
-    const_c_array<unsigned int>
-    stats(void) const;
+    unsigned int
+    query_stat(enum PainterPacker::stats_t st) const;
 
     /*!
       Return the z-depth value that the next item will have.

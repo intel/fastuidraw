@@ -233,7 +233,6 @@ private:
   bool m_repeat_gradient;
   unsigned int m_image_filter;
   bool m_draw_stats;
-  std::string m_draw_stats_string;
 
   vec2 m_gradient_p0, m_gradient_p1;
   float m_gradient_r0, m_gradient_r1;
@@ -1435,33 +1434,20 @@ draw_frame(void)
   if(m_draw_stats)
     {
       std::ostringstream ostr;
-      const_c_array<unsigned int> stats;
+      ostr << "\nAttribs: "
+           << m_painter->query_stat(PainterPacker::num_attributes)
+           << "\nIndices: "
+           << m_painter->query_stat(PainterPacker::num_indices)
+           << "\nGenericData: "
+           << m_painter->query_stat(PainterPacker::num_generic_datas)
+           << "\n";
 
-      /* draw the stats from the LAST frame. NOTE: Painter::stats()
-         only reports stats for those elements that have been unmapped,
-         which means we collect the value -AFTER- calling end().
-       */
       PainterBrush brush;
       brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
-      draw_text(m_draw_stats_string, 32.0f, m_font, GlyphRender(curve_pair_glyph), PainterData(&brush));
+      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(curve_pair_glyph), PainterData(&brush));
     }
 
   m_painter->end();
-
-  if(m_draw_stats)
-    {
-      std::ostringstream ostr;
-      const_c_array<unsigned int> stats;
-      stats = m_painter->stats();
-      ostr << "\nAttribs: "
-           << stats[PainterPacker::num_attributes_offset]
-           << "\nIndices: "
-           << stats[PainterPacker::num_indices_offset]
-           << "\nGenericData: "
-           << stats[PainterPacker::num_generic_datas_offset]
-           << "\n";
-      m_draw_stats_string = ostr.str();
-    }
 
 }
 

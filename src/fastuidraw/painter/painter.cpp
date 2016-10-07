@@ -2240,13 +2240,13 @@ default_shaders(void) const
   return d->m_core->default_shaders();
 }
 
-fastuidraw::const_c_array<unsigned int>
+unsigned int
 fastuidraw::Painter::
-stats(void) const
+query_stat(enum PainterPacker::stats_t st) const
 {
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
-  return d->m_core->stats();
+  return d->m_core->query_stat(st);
 }
 
 unsigned int

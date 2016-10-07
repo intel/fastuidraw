@@ -701,10 +701,10 @@ start_new_command(void)
     {
       per_draw_command &c(m_accumulated_draws.back());
 
-      m_stats[fastuidraw::PainterPacker::num_attributes_offset] += c.m_attributes_written;
-      m_stats[fastuidraw::PainterPacker::num_indices_offset] += c.m_indices_written;
-      m_stats[fastuidraw::PainterPacker::num_generic_datas_offset] += c.store_written();
-      m_stats[fastuidraw::PainterPacker::num_draws_offset] += 1u;
+      m_stats[fastuidraw::PainterPacker::num_attributes] += c.m_attributes_written;
+      m_stats[fastuidraw::PainterPacker::num_indices] += c.m_indices_written;
+      m_stats[fastuidraw::PainterPacker::num_generic_datas] += c.store_written();
+      m_stats[fastuidraw::PainterPacker::num_draws] += 1u;
 
       c.unmap();
     }
@@ -811,13 +811,22 @@ begin(void)
   ++d->m_number_begins;
 }
 
-fastuidraw::const_c_array<unsigned int>
+unsigned int
 fastuidraw::PainterPacker::
-stats(void) const
+query_stat(enum stats_t st) const
 {
   PainterPackerPrivate *d;
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
-  return d->m_stats;
+
+  vecN<unsigned int, num_stats> tmp(0);
+  if(!d->m_accumulated_draws.empty())
+    {
+      per_draw_command &c(d->m_accumulated_draws.back());
+      tmp[num_attributes] = c.m_attributes_written;
+      tmp[num_indices] = c.m_indices_written;
+      tmp[num_generic_datas] = c.store_written();
+    }
+  return d->m_stats[st] + tmp[st];
 }
 
 void
@@ -830,10 +839,10 @@ flush(void)
     {
       per_draw_command &c(d->m_accumulated_draws.back());
 
-      d->m_stats[fastuidraw::PainterPacker::num_attributes_offset] += c.m_attributes_written;
-      d->m_stats[fastuidraw::PainterPacker::num_indices_offset] += c.m_indices_written;
-      d->m_stats[fastuidraw::PainterPacker::num_generic_datas_offset] += c.store_written();
-      d->m_stats[fastuidraw::PainterPacker::num_draws_offset] += 1u;
+      d->m_stats[fastuidraw::PainterPacker::num_attributes] += c.m_attributes_written;
+      d->m_stats[fastuidraw::PainterPacker::num_indices] += c.m_indices_written;
+      d->m_stats[fastuidraw::PainterPacker::num_generic_datas] += c.store_written();
+      d->m_stats[fastuidraw::PainterPacker::num_draws] += 1u;
 
       c.unmap();
     }
@@ -964,7 +973,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
       per_draw_command &cmd(d->m_accumulated_draws.back());
       if(allocate_header)
         {
-          ++d->m_stats[num_headers_offset];
+          ++d->m_stats[num_headers];
           allocate_header = false;
           header_loc = cmd.pack_header(d->m_header_size,
                                        fetch_value(draw.m_brush).shader(),
