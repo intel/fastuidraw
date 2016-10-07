@@ -828,7 +828,14 @@ flush(void)
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
   if(!d->m_accumulated_draws.empty())
     {
-      d->m_accumulated_draws.back().unmap();
+      per_draw_command &c(d->m_accumulated_draws.back());
+
+      d->m_stats[fastuidraw::PainterPacker::num_attributes_offset] += c.m_attributes_written;
+      d->m_stats[fastuidraw::PainterPacker::num_indices_offset] += c.m_indices_written;
+      d->m_stats[fastuidraw::PainterPacker::num_generic_datas_offset] += c.store_written();
+      d->m_stats[fastuidraw::PainterPacker::num_draws_offset] += 1u;
+
+      c.unmap();
     }
 
   d->m_backend->on_pre_draw();
