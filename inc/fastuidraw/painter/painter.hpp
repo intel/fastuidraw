@@ -366,6 +366,26 @@ namespace fastuidraw
     clipInPath(const Path &path, const CustomFillRuleBase &fill_rule);
 
     /*!
+      Set the cruve flatness requirement for TessellatedPath
+      and StrokedPath selection when stroking or filling paths
+      when passing to drawing methods a Path object. The value
+      represents the distance, in pixels, requested for between
+      the approximated curve (realized in TessellatedPath) and
+      the true curve (realized in Path). This value is combined
+      with a value derived from the current transformation matrix
+      to pass to Path::tessellation_lod() to fetch a
+      TessellatedPath.
+     */
+    void
+    curveFlatness(float thresh);
+
+    /*!
+      Returns the value set by curveFlatness(float).
+     */
+    float
+    curveFlatness(void);
+
+    /*!
       Save the current state of this Painter onto the save state stack.
       The state is restored (and the stack popped) by called restore().
       The state saved is:

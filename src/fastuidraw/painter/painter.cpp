@@ -306,6 +306,7 @@ namespace
     fastuidraw::BlendMode::packed_value m_blend_mode;
 
     clip_rect_state m_clip_rect_state;
+    float m_curve_flatness;
   };
 
   class ComplementFillRule:public fastuidraw::Painter::CustomFillRuleBase
@@ -434,6 +435,7 @@ namespace
 
     fastuidraw::vec2 m_resolution;
     fastuidraw::vec2 m_one_pixel_width;
+    float m_curve_flatness;
     unsigned int m_current_z;
     clip_rect_state m_clip_rect_state;
     std::vector<occluder_stack_entry> m_occluder_stack;
@@ -618,6 +620,7 @@ PainterPrivate::
 PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> backend):
   m_resolution(1.0f, 1.0f),
   m_one_pixel_width(1.0f, 1.0f),
+  m_curve_flatness(4.0f),
   m_pool(backend->configuration_base().alignment())
 {
   m_core = FASTUIDRAWnew fastuidraw::PainterPacker(backend);
@@ -635,7 +638,6 @@ select_path_tessellation_lod(const fastuidraw::Path &path)
 {
   /* easy case: no projection
    */
-  const float thresh = 2.0f;
   float return_value;
   bool no_perspective;
 
@@ -655,7 +657,7 @@ select_path_tessellation_lod(const fastuidraw::Path &path)
       d = fastuidraw::t_max(d0, d1);
       d *= 2.0 * fastuidraw::t_sqrt(2.0f);
 
-      return_value = thresh / d / m(2, 2);
+      return_value = m_curve_flatness / d / m(2, 2);
     }
   else
     {
@@ -1839,6 +1841,24 @@ rotate(float angle)
 
 void
 fastuidraw::Painter::
+curveFlatness(float thresh)
+{
+  PainterPrivate *d;
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d->m_curve_flatness = thresh;
+}
+
+float
+fastuidraw::Painter::
+curveFlatness(void)
+{
+  PainterPrivate *d;
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  return d->m_curve_flatness;
+}
+
+void
+fastuidraw::Painter::
 save(void)
 {
   PainterPrivate *d;
@@ -1851,6 +1871,7 @@ save(void)
   st.m_blend = d->m_core->blend_shader();
   st.m_blend_mode = d->m_core->blend_mode();
   st.m_clip_rect_state = d->m_clip_rect_state;
+  st.m_curve_flatness = d->m_curve_flatness;
 
   d->m_state_stack.push_back(st);
 }
@@ -1869,6 +1890,7 @@ restore(void)
   d->current_item_matrix_state(st.m_matrix);
   d->current_clip_state(st.m_clip);
   d->m_core->blend_shader(st.m_blend, st.m_blend_mode);
+  d->m_curve_flatness = st.m_curve_flatness;
   while(d->m_occluder_stack.size() > st.m_occluder_stack_position)
     {
       d->m_occluder_stack.back().on_pop(this);
