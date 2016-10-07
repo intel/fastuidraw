@@ -36,18 +36,16 @@ namespace fastuidraw
   public:
     /*!
       Holds both a PainterPackedValue and a pointer to a value.
-      If m_packed_value is valid, then its value is used. If
-      it is NULL and m_value is non-NULL, then the value
-      behind m_value is used. Otherwise a value made from
-      default ctor of T is used.
+      If \ref m_packed_value is valid, then its value is used. If
+      it is NULL then the value pointed to by \ref m_value is used.
      */
     template<typename T>
     class value
     {
     public:
       /*!
-        Ctor from a value value.
-        \param p value with which to initialize m_value
+        Ctor from a value.
+        \param p value with which to initialize \ref m_value
        */
       value(const T *p = NULL):
         m_value(p)
@@ -55,7 +53,7 @@ namespace fastuidraw
 
       /*!
         Ctor from a packed value.
-        \param p value with which to initialize m_packed_value
+        \param p value with which to initialize \ref m_packed_value
        */
       value(const PainterPackedValue<T> &p):
         m_value(NULL),
