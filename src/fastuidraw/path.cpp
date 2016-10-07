@@ -1694,8 +1694,6 @@ tessellation_lod(float thresh) const
 
   if(d->m_tessellation_lod.back()->effective_curve_distance_threshhold() <= thresh)
     {
-      /* TODO: use binary search via std::lower_bound()
-       */
       std::vector<PathPrivate::tessellated_path_ref>::const_iterator iter;
       iter = std::lower_bound(d->m_tessellation_lod.begin(),
                               d->m_tessellation_lod.end(),

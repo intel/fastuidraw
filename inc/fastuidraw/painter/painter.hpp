@@ -466,6 +466,7 @@ namespace fastuidraw
       \param shader shader with which to stroke the attribute data
       \param draw data for how to draw
       \param path StrokedPath to stroke
+      \param thresh threshold value to feed the StrokingDataSelectorBase of the shader
       \param close_contours if true, draw the closing edges (and joins) of each contour
                             of the path
       \param cp cap style
@@ -475,7 +476,8 @@ namespace fastuidraw
                        is added.
      */
     void
-    stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const StrokedPath &path,
+    stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
+                const StrokedPath &path, float thresh,
                 bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                 bool with_anti_aliasing,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
@@ -570,6 +572,7 @@ namespace fastuidraw
       \param shader shader with which to draw
       \param draw data for how to draw
       \param path StrokedPath to stroke
+      \param thresh threshold value to feed the StrokingDataSelectorBase of the shader
       \param close_contours if true, draw the closing edges (and joins) of each contour
                             of the path
       \param cp cap style of dashes, the value PainterEnums::close_contours is treated
@@ -580,7 +583,8 @@ namespace fastuidraw
                        is added.
      */
     void
-    stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const StrokedPath &path,
+    stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
+                       const StrokedPath &path, float thresh,
                        bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                        bool with_anti_aliasing,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());

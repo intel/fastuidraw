@@ -67,7 +67,7 @@ namespace
     virtual
     float
     compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
-                           const fastuidraw::StrokedPath &path) const;
+                           float thresh) const;
   private:
     bool m_pixel_width;
   };
@@ -84,14 +84,17 @@ StrokingDataSelector(bool pixel_width):
 float
 StrokingDataSelector::
 compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
-                       const fastuidraw::StrokedPath &path) const
+                       float thresh) const
 {
   const PainterStrokeParamsData *d;
   d = static_cast<const PainterStrokeParamsData*>(data);
 
   if(d->m_radius <= 0.0f)
     {
-      return path.effective_curve_distance_threshhold() * 2.0f;
+      /* Not really stroking, just select a LARGE value
+         to get a very low level of detail.
+       */
+      return 10000.0f;
     }
   else
     {
@@ -100,7 +103,7 @@ compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
       return_value = 1.0f / d->m_radius;
       if(!m_pixel_width)
         {
-          return_value *= path.effective_curve_distance_threshhold();
+          return_value *= thresh;
         }
       return return_value;
     }

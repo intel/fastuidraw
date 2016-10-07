@@ -1261,7 +1261,8 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
 
 void
 fastuidraw::Painter::
-stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const StrokedPath &path,
+stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
+            const StrokedPath &path, float thresh,
             bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
             bool with_anti_aliasing,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
@@ -1277,7 +1278,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const St
   const PainterAttributeData *edge_data(NULL), *cap_data(NULL), *join_data(NULL);
   unsigned int edge_chunk(close_contours), cap_chunk(0);
   unsigned int join_chunk(close_contours), inc_join(0);
-  float thresh;
+  float rounded_thresh;
 
   if(js == PainterEnums::rounded_joins
      || (cp == PainterEnums::rounded_caps && !close_contours))
@@ -1285,7 +1286,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const St
       const PainterShaderData::DataBase *raw_data;
 
       raw_data = draw.m_item_shader_data.data().data_base();
-      thresh = shader.stroking_data_selector()->compute_rounded_thresh(raw_data, path);
+      rounded_thresh = shader.stroking_data_selector()->compute_rounded_thresh(raw_data, thresh);
     }
 
   edge_data = &path.edges().painter_data();
@@ -1294,7 +1295,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const St
       switch(cp)
         {
         case PainterEnums::rounded_caps:
-          cap_data = &path.rounded_caps(thresh).painter_data();
+          cap_data = &path.rounded_caps(rounded_thresh).painter_data();
           break;
 
         case PainterEnums::square_caps:
@@ -1317,7 +1318,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const St
       break;
 
     case PainterEnums::rounded_joins:
-      join_data = &path.rounded_joins(thresh).painter_data();
+      join_data = &path.rounded_joins(rounded_thresh).painter_data();
       break;
 
     default:
@@ -1346,7 +1347,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Pa
 
   d = reinterpret_cast<PainterPrivate*>(m_d);
   lod = d->select_path_tessellation_lod(path);
-  stroke_path(shader, draw, *path.tessellation_lod(lod)->stroked(),
+  stroke_path(shader, draw, *path.tessellation_lod(lod)->stroked(), lod,
               close_contours, cp, js, with_anti_aliasing, call_back);
 }
 
@@ -1432,7 +1433,8 @@ stroke_dashed_path(const PainterStrokeShader &shader, const PainterData &draw,
 
 void
 fastuidraw::Painter::
-stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const StrokedPath &path,
+stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
+                   const StrokedPath &path, float thresh,
                    bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                    bool with_anti_aliasing,
                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
@@ -1467,11 +1469,11 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
     case PainterEnums::rounded_joins:
       {
         const PainterShaderData::DataBase *raw_data;
-        float thresh;
+        float rounded_thresh;
 
         raw_data = draw.m_item_shader_data.data().data_base();
-        thresh = shader.shader(cp).stroking_data_selector()->compute_rounded_thresh(raw_data, path);
-        join_data = &path.rounded_joins(thresh).painter_data();
+        rounded_thresh = shader.shader(cp).stroking_data_selector()->compute_rounded_thresh(raw_data, thresh);
+        join_data = &path.rounded_joins(rounded_thresh).painter_data();
       }
       break;
 
@@ -1499,7 +1501,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
 
   d = reinterpret_cast<PainterPrivate*>(m_d);
   lod = d->select_path_tessellation_lod(path);
-  stroke_dashed_path(shader, draw, *path.tessellation_lod(lod)->stroked(),
+  stroke_dashed_path(shader, draw, *path.tessellation_lod(lod)->stroked(), lod,
                      close_contours, cp, js, with_anti_aliasing, call_back);
 }
 

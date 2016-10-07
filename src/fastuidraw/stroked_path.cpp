@@ -796,8 +796,8 @@ namespace
     create_caps(const PathData &e, float thresh, void *out_data);
 
     fastuidraw::StrokedPath::Edges m_edges;
-    fastuidraw::StrokedPath::Joins m_bevel_joins, m_miter_joins, m_rounded_joins;
-    fastuidraw::StrokedPath::Caps m_square_caps, m_adjustable_caps, m_rounded_caps;
+    fastuidraw::StrokedPath::Joins m_bevel_joins, m_miter_joins;
+    fastuidraw::StrokedPath::Caps m_square_caps, m_adjustable_caps;
     PathData m_path_data;
 
     std::vector<ThreshWithJoins> m_rounded_joins_lod;
@@ -2158,16 +2158,12 @@ StrokedPathPrivate(void)
 StrokedPathPrivate::
 ~StrokedPathPrivate()
 {
-  /* Note that we start deleting at 1 not 0, this is because [0]
-     for for rounded cap LOD points to m_rounded_caps and
-     [0] for rounded join LOD points to m_rounded_joins
-   */
-  for(unsigned int i = 1, endi = m_rounded_joins_lod.size(); i < endi; ++i)
+  for(unsigned int i = 0, endi = m_rounded_joins_lod.size(); i < endi; ++i)
     {
       FASTUIDRAWdelete(m_rounded_joins_lod[i].m_data);
     }
 
-  for(unsigned int i = 1, endi = m_rounded_caps_lod.size(); i < endi; ++i)
+  for(unsigned int i = 0, endi = m_rounded_caps_lod.size(); i < endi; ++i)
     {
       FASTUIDRAWdelete(m_rounded_caps_lod[i].m_data);
     }
@@ -2556,20 +2552,12 @@ StrokedPath(const fastuidraw::TessellatedPath &P)
   assert(number_offset_types < FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(offset_type_num_bits));
   m_d = d = FASTUIDRAWnew StrokedPathPrivate();
 
-  float thresh;
-  thresh = P.effective_curve_distance_threshhold();
-
   StrokedPathPrivate::create_edges(d->m_path_data, P, d->m_edges.m_d);
 
   StrokedPathPrivate::create_joins<BevelJoinCreator>(d->m_path_data, d->m_bevel_joins.m_d);
   StrokedPathPrivate::create_joins<MiterJoinCreator>(d->m_path_data, d->m_miter_joins.m_d);
-  StrokedPathPrivate::create_joins<RoundedJoinCreator>(d->m_path_data, thresh, d->m_rounded_joins.m_d);
   StrokedPathPrivate::create_caps<SquareCapCreator>(d->m_path_data, d->m_square_caps.m_d);
   StrokedPathPrivate::create_caps<AdjustableCapCreator>(d->m_path_data, d->m_adjustable_caps.m_d);
-  StrokedPathPrivate::create_caps<RoundedCapCreator>(d->m_path_data, thresh, d->m_rounded_caps.m_d);
-
-  d->m_rounded_joins_lod.push_back(ThreshWithJoins(&d->m_rounded_joins, thresh));
-  d->m_rounded_caps_lod.push_back(ThreshWithCaps(&d->m_rounded_caps, thresh));
 
   d->m_effective_curve_distance_threshhold = P.effective_curve_distance_threshhold();
 }
@@ -2639,28 +2627,24 @@ miter_joins(void) const
 
 const fastuidraw::StrokedPath::Joins&
 fastuidraw::StrokedPath::
-rounded_joins(void) const
-{
-  StrokedPathPrivate *d;
-  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
-  return d->m_rounded_joins;
-}
-
-const fastuidraw::StrokedPath::Caps&
-fastuidraw::StrokedPath::
-rounded_caps(void) const
-{
-  StrokedPathPrivate *d;
-  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
-  return d->m_rounded_caps;
-}
-
-const fastuidraw::StrokedPath::Joins&
-fastuidraw::StrokedPath::
 rounded_joins(float thresh) const
 {
   StrokedPathPrivate *d;
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+
+  if(d->m_rounded_joins_lod.empty())
+    {
+      Joins *newJ;
+      newJ = FASTUIDRAWnew Joins();
+      StrokedPathPrivate::create_joins<RoundedJoinCreator>(d->m_path_data, 1.0f, newJ->m_d);
+      d->m_rounded_joins_lod.push_back(ThreshWithJoins(newJ, 1.0f));
+    }
+
+  /* we set a hard tolerance of 1e-6. Should we
+     set it as a ratio of the bounding box of
+     the underlying tessellated path?
+   */
+  thresh = t_max(thresh, float(1e-6));
 
   if(d->m_rounded_joins_lod.back().m_thresh <= thresh)
     {
@@ -2697,6 +2681,21 @@ rounded_caps(float thresh) const
 {
   StrokedPathPrivate *d;
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+
+  if(d->m_rounded_caps_lod.empty())
+    {
+      Caps *newC;
+
+      newC = FASTUIDRAWnew Caps();
+      StrokedPathPrivate::create_caps<RoundedCapCreator>(d->m_path_data, 1.0f, newC->m_d);
+      d->m_rounded_caps_lod.push_back(ThreshWithCaps(newC, 1.0f));
+    }
+
+  /* we set a hard tolerance of 1e-6. Should we
+     set it as a ratio of the bounding box of
+     the underlying tessellated path?
+   */
+  thresh = t_max(thresh, float(1e-6));
 
   if(d->m_rounded_caps_lod.back().m_thresh <= thresh)
     {

@@ -33,7 +33,6 @@ namespace fastuidraw
 
   ///@cond
   class PainterAttributeData;
-  class StrokedPath;
   ///@endcond
 
   /*!
@@ -52,13 +51,12 @@ namespace fastuidraw
       level of detail to draw rounded joins or caps.
       \param data PainterItemShaderData::DataBase object holding
                   the data to be sent to the shader
-      \param path StrokedPath from which to take rounded joins
-                  or rounded caps
+      \param thresh threshhold used to select the StrokedPath
      */
     virtual
     float
     compute_rounded_thresh(const PainterShaderData::DataBase *data,
-                           const StrokedPath &path) const = 0;
+                           float thresh) const = 0;
   };
 
   /*!
