@@ -654,10 +654,10 @@ select_path_thresh(const fastuidraw::Path &path)
        */
       d0 = m_resolution.x() * fastuidraw::t_max(fastuidraw::t_abs(m(0, 0)), fastuidraw::t_abs(m(0, 1)));
       d1 = m_resolution.y() * fastuidraw::t_max(fastuidraw::t_abs(m(1, 0)), fastuidraw::t_abs(m(1, 1)));
-      d = fastuidraw::t_max(d0, d1);
-      d *= 2.0 * fastuidraw::t_sqrt(2.0f);
+      d = fastuidraw::t_max(d0, d1) * m(2, 2);
+      d *= 2.0f * static_cast<float>(M_SQRT2);
 
-      return_value = m_curve_flatness / d / m(2, 2);
+      return_value = m_curve_flatness / d;
     }
   else
     {
