@@ -2240,6 +2240,15 @@ default_shaders(void) const
   return d->m_core->default_shaders();
 }
 
+fastuidraw::const_c_array<unsigned int>
+fastuidraw::Painter::
+stats(void) const
+{
+  PainterPrivate *d;
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  return d->m_core->stats();
+}
+
 unsigned int
 fastuidraw::Painter::
 current_z(void) const

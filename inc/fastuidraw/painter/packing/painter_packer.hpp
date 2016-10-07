@@ -242,8 +242,10 @@ namespace fastuidraw
                  unsigned int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
     /*!
-      Returns the statistics of how much traffic the PainerPacker
-      has seen since the last time begin() was called.
+      Returns the statistics of how much traffic the PainterPacker
+      has seen since the last time begin() was called, the enumerations
+      of \ref stats_t name the meaning of each value in the returned
+      array.
      */
     const_c_array<unsigned int>
     stats(void) const;
