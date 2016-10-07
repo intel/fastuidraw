@@ -48,20 +48,12 @@ TODO.
  6. W3C blend modes are not yet implemented in GL backend, but Porter-Duff blend modes
     are.
 
- 7. Path tessellation is scale invariant because it is based upon curvature. However,
-    if a path (or rounded join) is dramtically zoomed in, we start to see the
-    line segments. A better tessellation paramater would be the required maximum
-    area of bevels induced by two neighboring sub-edges (this value scales as the
-    stroking width sqaured). From there, for non-perspective transformations, we
-    can select a good tessellation of the path having a pixel threshold for rendering
-    by just multiplying that value by the determinat of the transformation matrix.
-    In addition to changing the tessellation parameters, we should change Path so
-    that given a tessellation parameter to fetch (and possibly) construct a TessellatedPath
-    with atleast that level of tessellation and then change Painter so that what
-    TessellatedPath is taken from the passed path is determined by the transformation
-    matrix and stroking width (specifically, bevel area <= width * width * det(transformation).
-    Trickiness to decide best tessellation if transformation has clipping when
-    bounding box of Path transformed would pass through w > 0.
+ 7. When one zooms in a great deal into a path, the automatic tessellation
+    choosing picks higher and higher detailed realization of the paths BUT
+    many primitives of the path are not drawn. Should have a way to organize
+    the index data so that the CPU can do quick (and easy) vertex culling
+    on the path data to reduce (dramatically) the number of vertices processed
+    by the vertex shader.
 
  8. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
     together with a 3rd party library to create SPIR-V from GLSL.
