@@ -312,7 +312,7 @@ painter_stroke_test(void):
                 "sub-image height of sub-image rectange (negative value means no-subimage)",
                 *this),
   m_join_style(PainterEnums::rounded_joins),
-  m_cap_style(PainterEnums::no_caps),
+  m_cap_style(PainterEnums::flat_caps),
   m_close_contour(true),
   m_fill_rule(PainterEnums::odd_even_fill_rule),
   m_dash(0),
@@ -391,7 +391,7 @@ painter_stroke_test(void):
   m_join_labels[PainterEnums::bevel_joins] = "bevel_joins";
   m_join_labels[PainterEnums::miter_joins] = "miter_joins";
 
-  m_cap_labels[PainterEnums::no_caps] = "no_caps";
+  m_cap_labels[PainterEnums::flat_caps] = "flat_caps";
   m_cap_labels[PainterEnums::rounded_caps] = "rounded_caps";
   m_cap_labels[PainterEnums::square_caps] = "square_caps";
 
@@ -1158,7 +1158,7 @@ draw_frame(void)
 
       m_painter->stroke_path(PainterData(&stroke_pen, &st),
                              m_grid_path,
-                             false, PainterEnums::no_caps, PainterEnums::no_joins,
+                             false, PainterEnums::flat_caps, PainterEnums::no_joins,
                              false);
     }
 
@@ -1200,7 +1200,7 @@ draw_frame(void)
       m_painter->save();
       m_painter->clipOutPath(m_clip_window_path, PainterEnums::nonzero_fill_rule);
       m_painter->stroke_path(PainterData(&white, &st), m_clip_window_path,
-                             true, PainterEnums::no_caps, PainterEnums::miter_joins,
+                             true, PainterEnums::flat_caps, PainterEnums::miter_joins,
                              false);
       m_painter->restore();
       m_painter->clipInRect(m_clipping_xy, m_clipping_wh);

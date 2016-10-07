@@ -329,7 +329,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                 d + delta_mag:
                 d - delta_mag;
 
-              grow = (dash_style == fastuidraw_stroke_dashed_no_caps) ?
+              grow = (dash_style == fastuidraw_stroke_dashed_flat_caps) ?
                 0.0 :
                 stroke_radius;
 

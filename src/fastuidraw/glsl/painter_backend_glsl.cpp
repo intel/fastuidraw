@@ -512,7 +512,7 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
 
     /* dash shader modes.
      */
-    .add_macro("fastuidraw_stroke_dashed_no_caps", PainterEnums::no_caps)
+    .add_macro("fastuidraw_stroke_dashed_flat_caps", PainterEnums::flat_caps)
     .add_macro("fastuidraw_stroke_dashed_rounded_caps", PainterEnums::rounded_caps)
     .add_macro("fastuidraw_stroke_dashed_square_caps", PainterEnums::square_caps)
 

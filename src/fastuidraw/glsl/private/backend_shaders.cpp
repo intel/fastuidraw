@@ -402,7 +402,7 @@ create_dashed_stroke_shader_set(bool pixel_width_stroking)
   de = PainterDashedStrokeParams::dash_evaluator(pixel_width_stroking);
   return_value
     .dash_evaluator(de)
-    .shader(no_caps, create_stroke_shader(no_caps, pixel_width_stroking))
+    .shader(flat_caps, create_stroke_shader(flat_caps, pixel_width_stroking))
     .shader(rounded_caps, create_stroke_shader(rounded_caps, pixel_width_stroking))
     .shader(square_caps, create_stroke_shader(square_caps, pixel_width_stroking));
   return return_value;

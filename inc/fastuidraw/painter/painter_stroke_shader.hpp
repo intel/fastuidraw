@@ -176,6 +176,10 @@ namespace fastuidraw
     PainterStrokeShader&
     non_aa_shader(const reference_counted_ptr<PainterItemShader> &sh);
 
+    /*!
+      Returns the StrokingDataSelectorBase associated to this
+      PainterStrokeShader.
+     */
     const reference_counted_ptr<const StrokingDataSelectorBase>&
     stroking_data_selector(void) const;
 
