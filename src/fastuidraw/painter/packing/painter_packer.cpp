@@ -515,6 +515,7 @@ namespace
     fastuidraw::PainterPacker *m_p;
 
     PainterPackerPrivateWorkroom m_work_room;
+    fastuidraw::vecN<unsigned int, fastuidraw::PainterPacker::num_stats> m_stats;
   };
 }
 
@@ -698,7 +699,14 @@ start_new_command(void)
 {
   if(!m_accumulated_draws.empty())
     {
-      m_accumulated_draws.back().unmap();
+      per_draw_command &c(m_accumulated_draws.back());
+
+      m_stats[fastuidraw::PainterPacker::num_attributes_offset] += c.m_attributes_written;
+      m_stats[fastuidraw::PainterPacker::num_indices_offset] += c.m_indices_written;
+      m_stats[fastuidraw::PainterPacker::num_generic_datas_offset] += c.store_written();
+      m_stats[fastuidraw::PainterPacker::num_draws_offset] += 1u;
+
+      c.unmap();
     }
 
   fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> r;
@@ -798,10 +806,19 @@ begin(void)
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
 
   assert(d->m_accumulated_draws.empty());
+  std::fill(d->m_stats.begin(), d->m_stats.end(), 0u);
   d->start_new_command();
   ++d->m_number_begins;
 }
 
+fastuidraw::const_c_array<unsigned int>
+fastuidraw::PainterPacker::
+stats(void) const
+{
+  PainterPackerPrivate *d;
+  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  return d->m_stats;
+}
 
 void
 fastuidraw::PainterPacker::
@@ -940,6 +957,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
       per_draw_command &cmd(d->m_accumulated_draws.back());
       if(allocate_header)
         {
+          ++d->m_stats[num_headers_offset];
           allocate_header = false;
           header_loc = cmd.pack_header(d->m_header_size,
                                        fetch_value(draw.m_brush).shader(),

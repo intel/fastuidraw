@@ -80,6 +80,44 @@ namespace fastuidraw
     };
 
     /*!
+      Enumeratin into an array that gives the statistics of how
+      much data has been packed
+     */
+    enum stats_t
+      {
+        /*!
+          Offset to how many attributes processed
+        */
+        num_attributes_offset,
+
+        /*!
+          Offset to how many indices processed
+        */
+        num_indices_offset,
+
+        /*!
+          Offset to how many generic_data values placed
+          onto store buffer(s).
+        */
+        num_generic_datas_offset,
+
+        /*!
+          Offset to how many PainterDraw objects sent
+        */
+        num_draws_offset,
+
+        /*!
+          Offset to how many painter headers packed.
+        */
+        num_headers_offset,
+
+        /*!
+          Number of stats.
+         */
+        num_stats,
+      };
+
+    /*!
       Ctor.
       \param backend handle to PainterBackend for the constructed PainterPacker
      */
@@ -203,6 +241,12 @@ namespace fastuidraw
                  const_c_array<unsigned int> attrib_chunk_selector,
                  unsigned int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
+    /*!
+      Returns the statistics of how much traffic the PainerPacker
+      has seen since the last time begin() was called.
+     */
+    const_c_array<unsigned int>
+    stats(void) const;
 
     /*!
       Returns the PainterBackend::PerformanceHints of the underlying
