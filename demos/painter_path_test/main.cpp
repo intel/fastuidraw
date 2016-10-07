@@ -181,6 +181,7 @@ private:
   command_line_argument_value<unsigned int> m_image_slack;
   command_line_argument_value<int> m_sub_image_x, m_sub_image_y;
   command_line_argument_value<int> m_sub_image_w, m_sub_image_h;
+  command_line_argument_value<std::string> m_font_file;
 
   Path m_path;
   float m_max_miter;
@@ -188,6 +189,7 @@ private:
   uvec2 m_image_offset, m_image_size;
   std::vector<named_color_stop> m_color_stops;
   std::vector<std::vector<PainterDashedStrokeParams::DashPatternElement> > m_dash_patterns;
+  reference_counted_ptr<const FontBase> m_font;
 
   PanZoomTrackerSDLEvent m_zoomer;
   vecN<std::string, number_gradient_draw_modes> m_gradient_mode_labels;
@@ -230,6 +232,8 @@ private:
   unsigned int m_gradient_draw_mode;
   bool m_repeat_gradient;
   unsigned int m_image_filter;
+  bool m_draw_stats;
+  std::string m_draw_stats_string;
 
   vec2 m_gradient_p0, m_gradient_p1;
   float m_gradient_r0, m_gradient_r1;
@@ -302,6 +306,8 @@ painter_stroke_test(void):
   m_sub_image_h(-1, "sub_image_h",
                 "sub-image height of sub-image rectange (negative value means no-subimage)",
                 *this),
+  m_font_file("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "font",
+              "File from which to take font", *this),
   m_join_style(PainterEnums::rounded_joins),
   m_cap_style(PainterEnums::flat_caps),
   m_close_contour(true),
@@ -316,6 +322,7 @@ painter_stroke_test(void):
   m_gradient_draw_mode(draw_no_gradient),
   m_repeat_gradient(true),
   m_image_filter(image_nearest_filter),
+  m_draw_stats(false),
   m_translate_brush(false),
   m_matrix_brush(false),
   m_repeat_window(false),
@@ -369,6 +376,7 @@ painter_stroke_test(void):
             << "\tMiddle Mouse Draw: set p0(starting position top left) {drawn black with white inside} of gradient\n"
             << "\t1/2 : decrease/increase r0 of gradient(hold left-shift for slower rate and right shift for faster)\n"
             << "\t3/4 : decrease/increase r1 of gradient(hold left-shift for slower rate and right shift for faster)\n"
+            << "\tl: draw Painter stats\n"
             << "\tRight Mouse Draw: set p1(starting position bottom right) {drawn white with black inside} of gradient\n"
             << "\tLeft Mouse Drag: pan\n"
             << "\tHold Left Mouse, then drag up/down: zoom out/in\n";
@@ -921,6 +929,10 @@ handle_event(const SDL_Event &ev)
           m_wire_frame = !m_wire_frame;
           std::cout << "Wire Frame = " << m_wire_frame << "\n";
           break;
+
+        case SDLK_l:
+          m_draw_stats = !m_draw_stats;
+          break;
         }
       break;
     };
@@ -1104,6 +1116,8 @@ draw_frame(void)
       float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));
       m_painter->transformation(proj);
     }
+
+  m_painter->save();
 
   /* draw grid using painter.
    */
@@ -1415,7 +1429,40 @@ draw_frame(void)
       m_painter->draw_rect(PainterData(m_white_pen), p1 - vec2(r1) * 0.5, vec2(r1));
       m_painter->draw_rect(PainterData(m_black_pen), p1 - vec2(r0) * 0.5, vec2(r0));
     }
+
+  m_painter->restore();
+
+  if(m_draw_stats)
+    {
+      std::ostringstream ostr;
+      const_c_array<unsigned int> stats;
+
+      /* draw the stats from the LAST frame. NOTE: Painter::stats()
+         only reports stats for those elements that have been unmapped,
+         which means we collect the value -AFTER- calling end().
+       */
+      PainterBrush brush;
+      brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
+      draw_text(m_draw_stats_string, 32.0f, m_font, GlyphRender(curve_pair_glyph), PainterData(&brush));
+    }
+
   m_painter->end();
+
+  if(m_draw_stats)
+    {
+      std::ostringstream ostr;
+      const_c_array<unsigned int> stats;
+      stats = m_painter->stats();
+      ostr << "\nAttribs: "
+           << stats[PainterPacker::num_attributes_offset]
+           << "\nIndices: "
+           << stats[PainterPacker::num_indices_offset]
+           << "\nGenericData: "
+           << stats[PainterPacker::num_generic_datas_offset]
+           << "\n";
+      m_draw_stats_string = ostr.str();
+    }
+
 }
 
 void
@@ -1426,6 +1473,7 @@ derived_init(int w, int h)
   m_window_change_rate.m_value /= 1000.0f;
   m_change_stroke_width_rate.m_value /= 1000.0f;
   m_change_miter_limit_rate.m_value /= 1000.0f;
+  m_font = FontFreeType::create(m_font_file.m_value.c_str(), m_ft_lib, FontFreeType::RenderParams());
 
   construct_path();
   create_stroked_path_attributes();
