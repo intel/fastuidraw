@@ -800,8 +800,8 @@ namespace
     fastuidraw::StrokedPath::Caps m_square_caps, m_adjustable_caps;
     PathData m_path_data;
 
-    std::vector<ThreshWithJoins> m_rounded_joins_lod;
-    std::vector<ThreshWithCaps> m_rounded_caps_lod;
+    std::vector<ThreshWithJoins> m_rounded_joins;
+    std::vector<ThreshWithCaps> m_rounded_caps;
 
     float m_effective_curve_distance_threshhold;
   };
@@ -2158,14 +2158,14 @@ StrokedPathPrivate(void)
 StrokedPathPrivate::
 ~StrokedPathPrivate()
 {
-  for(unsigned int i = 0, endi = m_rounded_joins_lod.size(); i < endi; ++i)
+  for(unsigned int i = 0, endi = m_rounded_joins.size(); i < endi; ++i)
     {
-      FASTUIDRAWdelete(m_rounded_joins_lod[i].m_data);
+      FASTUIDRAWdelete(m_rounded_joins[i].m_data);
     }
 
-  for(unsigned int i = 0, endi = m_rounded_caps_lod.size(); i < endi; ++i)
+  for(unsigned int i = 0, endi = m_rounded_caps.size(); i < endi; ++i)
     {
-      FASTUIDRAWdelete(m_rounded_caps_lod[i].m_data);
+      FASTUIDRAWdelete(m_rounded_caps[i].m_data);
     }
 }
 
@@ -2632,12 +2632,12 @@ rounded_joins(float thresh) const
   StrokedPathPrivate *d;
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
 
-  if(d->m_rounded_joins_lod.empty())
+  if(d->m_rounded_joins.empty())
     {
       Joins *newJ;
       newJ = FASTUIDRAWnew Joins();
       StrokedPathPrivate::create_joins<RoundedJoinCreator>(d->m_path_data, 1.0f, newJ->m_d);
-      d->m_rounded_joins_lod.push_back(ThreshWithJoins(newJ, 1.0f));
+      d->m_rounded_joins.push_back(ThreshWithJoins(newJ, 1.0f));
     }
 
   /* we set a hard tolerance of 1e-6. Should we
@@ -2646,14 +2646,14 @@ rounded_joins(float thresh) const
    */
   thresh = t_max(thresh, float(1e-6));
 
-  if(d->m_rounded_joins_lod.back().m_thresh <= thresh)
+  if(d->m_rounded_joins.back().m_thresh <= thresh)
     {
       std::vector<ThreshWithJoins>::const_iterator iter;
-      iter = std::lower_bound(d->m_rounded_joins_lod.begin(),
-                              d->m_rounded_joins_lod.end(),
+      iter = std::lower_bound(d->m_rounded_joins.begin(),
+                              d->m_rounded_joins.end(),
                               thresh,
                               ThreshWithJoins::reverse_compare_against_thresh);
-      assert(iter != d->m_rounded_joins_lod.end());
+      assert(iter != d->m_rounded_joins.end());
       assert(iter->m_thresh <= thresh);
       assert(iter->m_data);
       return *iter->m_data;
@@ -2661,7 +2661,7 @@ rounded_joins(float thresh) const
   else
     {
       float t;
-      t = d->m_rounded_joins_lod.back().m_thresh;
+      t = d->m_rounded_joins.back().m_thresh;
       while(t > thresh)
         {
           Joins *newJ;
@@ -2669,9 +2669,9 @@ rounded_joins(float thresh) const
           t *= 0.5f;
           newJ = FASTUIDRAWnew Joins();
           StrokedPathPrivate::create_joins<RoundedJoinCreator>(d->m_path_data, t, newJ->m_d);
-          d->m_rounded_joins_lod.push_back(ThreshWithJoins(newJ, t));
+          d->m_rounded_joins.push_back(ThreshWithJoins(newJ, t));
         }
-      return *d->m_rounded_joins_lod.back().m_data;
+      return *d->m_rounded_joins.back().m_data;
     }
 }
 
@@ -2682,13 +2682,13 @@ rounded_caps(float thresh) const
   StrokedPathPrivate *d;
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
 
-  if(d->m_rounded_caps_lod.empty())
+  if(d->m_rounded_caps.empty())
     {
       Caps *newC;
 
       newC = FASTUIDRAWnew Caps();
       StrokedPathPrivate::create_caps<RoundedCapCreator>(d->m_path_data, 1.0f, newC->m_d);
-      d->m_rounded_caps_lod.push_back(ThreshWithCaps(newC, 1.0f));
+      d->m_rounded_caps.push_back(ThreshWithCaps(newC, 1.0f));
     }
 
   /* we set a hard tolerance of 1e-6. Should we
@@ -2697,14 +2697,14 @@ rounded_caps(float thresh) const
    */
   thresh = t_max(thresh, float(1e-6));
 
-  if(d->m_rounded_caps_lod.back().m_thresh <= thresh)
+  if(d->m_rounded_caps.back().m_thresh <= thresh)
     {
       std::vector<ThreshWithCaps>::const_iterator iter;
-      iter = std::lower_bound(d->m_rounded_caps_lod.begin(),
-                              d->m_rounded_caps_lod.end(),
+      iter = std::lower_bound(d->m_rounded_caps.begin(),
+                              d->m_rounded_caps.end(),
                               thresh,
                               ThreshWithCaps::reverse_compare_against_thresh);
-      assert(iter != d->m_rounded_caps_lod.end());
+      assert(iter != d->m_rounded_caps.end());
       assert(iter->m_thresh <= thresh);
       assert(iter->m_data);
       return *iter->m_data;
@@ -2712,7 +2712,7 @@ rounded_caps(float thresh) const
   else
     {
       float t;
-      t = d->m_rounded_caps_lod.back().m_thresh;
+      t = d->m_rounded_caps.back().m_thresh;
       while(t > thresh)
         {
           Caps *newC;
@@ -2720,8 +2720,8 @@ rounded_caps(float thresh) const
           t *= 0.5f;
           newC = FASTUIDRAWnew Caps();
           StrokedPathPrivate::create_caps<RoundedCapCreator>(d->m_path_data, t, newC->m_d);
-          d->m_rounded_caps_lod.push_back(ThreshWithCaps(newC, t));
+          d->m_rounded_caps.push_back(ThreshWithCaps(newC, t));
         }
-      return *d->m_rounded_caps_lod.back().m_data;
+      return *d->m_rounded_caps.back().m_data;
     }
 }

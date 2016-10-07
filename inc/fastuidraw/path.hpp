@@ -589,26 +589,15 @@ public:
 
   /*!
     Ctor.
-    \param tess_params the tessellation parameters for when the Path
-                       is tessellated into a TessellatedPath,
-                       see tessellation().
    */
   explicit
-  Path(const TessellatedPath::TessellationParams &tess_params = TessellatedPath::TessellationParams());
+  Path(void);
 
   /*!
     Copy ctor.
     \param obj Path from which to copy path data
    */
   Path(const Path &obj);
-
-  /*!
-    Ctor.
-    \param obj Path from which to copy path data
-    \param tess_param tessellation parameters to use for new
-                      Path.
-   */
-  Path(const Path &obj, const TessellatedPath::TessellationParams &tess_param);
 
   ~Path();
 
@@ -873,45 +862,30 @@ public:
   approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
 
   /*!
-    Returns the tessellation parameters used
-    to construct the TessellatedPath
-    returned by tessellation()
+    Return the tessellation of this Path at a specific
+    level of detail. The TessellatedPath is constructed
+    lazily. Additionally, if this Path changes its geometry,
+    then a new TessellatedPath will be contructed on the
+    next call to tessellation().
+    \param thresh the returned tessellated path will be so that
+                  TessellatedPath::effective_curve_distance_threshhold()
+                  is no more than thresh. A non-positive value
+                  will return the starting point tessellation that
+                  is created with default values of
+                  TessellatedPath::TessellationParams.
    */
-  const TessellatedPath::TessellationParams&
-  tessellation_params(void) const;
+  const reference_counted_ptr<const TessellatedPath>&
+  tessellation(float thresh) const;
 
   /*!
-    Set the tessellation parameters used
-    to construct the TessellatedPath
-    returned by tessellation().
-    \param p new tessellation parameters
-   */
-  void
-  tessellation_params(const TessellatedPath::TessellationParams &p);
-
-  /*!
-    Return the tessellation of this Path. The
-    TessellatedPath is constructed lazily. Additionally,
-    if this Path changes its geometry or
-    tessellation parameters, then a new TessellatedPath
-    will be contructed on the next call to
-    tessellation().
+    Return the tessellation of this Path tessellated with the
+    default values of TessellatedPath::TessellationParams.
+    The TessellatedPath is constructed lazily. Additionally,
+    If this Path changes its geometry, then a new TessellatedPath
+    will be contructed on the next call to tessellation().
    */
   const reference_counted_ptr<const TessellatedPath>&
   tessellation(void) const;
-
-  /*!
-    Return the tessellation of this Path at a specific
-    LOD. The TessellatedPath is constructed lazily.
-    Additionally, if this Path changes its geometry,
-    then a new TessellatedPath will be contructed on
-    the next call to tessellation_lod().
-    \param thresh the returned tessellated path will be so that
-                  TessellatedPath::effective_curve_distance_threshhold()
-                  is no more than thresh.
-   */
-  const reference_counted_ptr<const TessellatedPath>&
-  tessellation_lod(float thresh) const;
 
 private:
   void *m_d;

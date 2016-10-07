@@ -169,9 +169,6 @@ private:
   void
   update_cts_params(void);
 
-  command_line_argument_value<int> m_max_segments_per_edge;
-  command_line_argument_value<int> m_points_per_circle;
-  command_line_argument_value<float> m_curve_distance_threshhold;
   command_line_argument_value<float> m_change_miter_limit_rate;
   command_line_argument_value<float> m_change_stroke_width_rate;
   command_line_argument_value<float> m_window_change_rate;
@@ -268,12 +265,6 @@ private:
 painter_stroke_test::
 painter_stroke_test(void):
   sdl_painter_demo("painter-stroke-test"),
-  m_max_segments_per_edge(32, "max_segs", "Max number of segments per edge", *this),
-  m_points_per_circle(60, "tess_points_per_circle", "number of points per 2*PI curvature to attempt", *this),
-  m_curve_distance_threshhold(0.001f, "tess_curve_distance",
-                              "Curve-distance tessellation threshhold used "
-                              "if tess_points_per_circle is less than 1",
-                              *this),
   m_change_miter_limit_rate(1.0f, "miter_limit_rate",
                             "rate of change in in stroke widths per second for "
                             "changing the miter limit when the when key is down",
@@ -978,21 +969,9 @@ void
 painter_stroke_test::
 create_stroked_path_attributes(void)
 {
-  TessellatedPath::TessellationParams P;
-  P.m_max_segments = m_max_segments_per_edge.m_value;
-  if(m_points_per_circle.m_value >= 1)
-    {
-      P.curvature_tessellate_num_points_in_circle(m_points_per_circle.m_value);
-    }
-  else
-    {
-      P.curve_distance_tessellate(m_curve_distance_threshhold.m_value);
-    }
-  m_path.tessellation_params(P);
-
   m_max_miter = 0.0f;
   const_c_array<StrokedPath::point> miter_points;
-  miter_points = m_path.tessellation()->stroked()->miter_joins().points(true);
+  miter_points = m_path.tessellation(-1.0f)->stroked()->miter_joins().points(true);
   for(unsigned p = 0, endp = miter_points.size(); p < endp; ++p)
     {
       float v;

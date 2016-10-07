@@ -431,7 +431,7 @@ namespace
     }
 
     float
-    select_path_tessellation_lod(const fastuidraw::Path &path);
+    select_path_thresh(const fastuidraw::Path &path);
 
     fastuidraw::vec2 m_resolution;
     fastuidraw::vec2 m_one_pixel_width;
@@ -634,7 +634,7 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
 
 float
 PainterPrivate::
-select_path_tessellation_lod(const fastuidraw::Path &path)
+select_path_thresh(const fastuidraw::Path &path)
 {
   /* easy case: no projection
    */
@@ -1343,11 +1343,11 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Pa
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
-  float lod;
+  float thresh;
 
   d = reinterpret_cast<PainterPrivate*>(m_d);
-  lod = d->select_path_tessellation_lod(path);
-  stroke_path(shader, draw, *path.tessellation_lod(lod)->stroked(), lod,
+  thresh = d->select_path_thresh(path);
+  stroke_path(shader, draw, *path.tessellation(thresh)->stroked(), thresh,
               close_contours, cp, js, with_anti_aliasing, call_back);
 }
 
@@ -1497,11 +1497,11 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
-  float lod;
+  float thresh;
 
   d = reinterpret_cast<PainterPrivate*>(m_d);
-  lod = d->select_path_tessellation_lod(path);
-  stroke_dashed_path(shader, draw, *path.tessellation_lod(lod)->stroked(), lod,
+  thresh = d->select_path_thresh(path);
+  stroke_dashed_path(shader, draw, *path.tessellation(thresh)->stroked(), thresh,
                      close_contours, cp, js, with_anti_aliasing, call_back);
 }
 
@@ -1550,11 +1550,11 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
-  float lod;
+  float thresh;
 
   d = reinterpret_cast<PainterPrivate*>(m_d);
-  lod = d->select_path_tessellation_lod(path);
-  fill_path(shader, draw, path.tessellation_lod(lod)->filled()->painter_data(), fill_rule, call_back);
+  thresh = d->select_path_thresh(path);
+  fill_path(shader, draw, path.tessellation(thresh)->filled()->painter_data(), fill_rule, call_back);
 }
 
 void
@@ -1643,11 +1643,11 @@ fill_path(const PainterFillShader &shader,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
-  float lod;
+  float thresh;
 
   d = reinterpret_cast<PainterPrivate*>(m_d);
-  lod = d->select_path_tessellation_lod(path);
-  fill_path(shader, draw, path.tessellation_lod(lod)->filled()->painter_data(), fill_rule, call_back);
+  thresh = d->select_path_thresh(path);
+  fill_path(shader, draw, path.tessellation(thresh)->filled()->painter_data(), fill_rule, call_back);
 }
 
 void

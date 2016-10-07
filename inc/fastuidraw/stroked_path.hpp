@@ -810,12 +810,18 @@ public:
 
   /*!
     Returns the data to draw rounded joins of a stroked path.
+    \param thresh will return rounded joins so that the distance
+                  between the approximation of the round and the
+                  actual round is no more than thresh.
    */
   const Joins&
   rounded_joins(float thresh) const;
 
   /*!
     Returns the data to draw rounded caps of a stroked path.
+    \param thresh will return rounded caps so that the distance
+                  between the approximation of the round and the
+                  actual round is no more than thresh.
    */
   const Caps&
   rounded_caps(float thresh) const;
