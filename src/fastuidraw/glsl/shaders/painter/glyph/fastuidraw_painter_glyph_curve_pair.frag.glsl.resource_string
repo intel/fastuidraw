@@ -51,7 +51,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
   dx = dFdx(tex_coord);
   dy = dFdy(tex_coord);
-  scale_inverse = max(1.0, inversesqrt( (dot(dx,dx) + dot(dy,dy))/2.0) );
+  scale_inverse = max(1.0, inversesqrt(0.5 * (dot(dx,dx) + dot(dy,dy))));
   coverage = clamp(0.5 + d * scale_inverse, 0.0, 1.0);
 
   return vec4(1.0, 1.0, 1.0, coverage);
