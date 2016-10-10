@@ -6,6 +6,7 @@ precision highp int;
 
 in vec2 coord;
 
+uniform vec3 fg_color;
 uniform int layer;
 
 #ifdef USE_UINT_TEXEL_FETCH
@@ -23,7 +24,7 @@ main(void)
   {
     uint v;
     v = texelFetch(glyph_texel_store, ivec3(ivec2(coord), layer), 0).r;
-    color = vec4(1.0, 1.0, 1.0, float(v)/255.0);
+    color = vec4(fg_color, float(v)/255.0);
   }
   #else
   {
@@ -32,7 +33,7 @@ main(void)
 
     tex = coord.xy / vec2(textureSize(glyph_texel_store, 0).xy);
     v = texture(glyph_texel_store, vec3(tex, float(layer)) ).r;
-    color = vec4(1.0, 1.0, 1.0, v);
+    color = vec4(fg_color, v);
   }
   #endif
 }

@@ -102,6 +102,7 @@ private:
     GLint m_pvm_loc, m_scale_loc, m_translate_loc;
     GLint m_layer_loc;
     GLint m_aa_mode_loc;
+    GLint m_fg_color_loc;
   };
 
   class per_draw:boost::noncopyable
@@ -122,7 +123,7 @@ private:
                    float scale_factor);
 
     void
-    draw(int which_program, const float4x4 &pvm, int layer, unsigned int aa_mode);
+    draw(glyph_test *q, int which_program, const float4x4 &pvm, int layer, unsigned int aa_mode);
 
     std::string m_label;
     GLuint m_vao;
@@ -169,6 +170,8 @@ private:
   enumerated_command_line_argument_value<enum geometry_backing_store_t> m_geometry_backing_store_type;
   command_line_argument_value<int> m_geometry_backing_texture_log2_w, m_geometry_backing_texture_log2_h;
   command_line_argument_value<float> m_render_pixel_size;
+  command_line_argument_value<float> m_bg_red, m_bg_green, m_bg_blue;
+  command_line_argument_value<float> m_fg_red, m_fg_green, m_fg_blue;
 
   reference_counted_ptr<gl::GlyphAtlasGL> m_glyph_atlas;
   reference_counted_ptr<GlyphCache> m_glyph_cache;
@@ -208,6 +211,7 @@ set(reference_counted_ptr<gl::Program> pr)
 
   m_layer_loc = m_program->uniform_location("layer");
   m_aa_mode_loc = m_program->uniform_location("aa_mode");
+  m_fg_color_loc = m_program->uniform_location("fg_color");
 }
 
 
@@ -337,7 +341,7 @@ init_draw_text(const_c_array<Glyph> glyphs, const_c_array<vec2> glyph_positions,
 
 void
 glyph_test::per_draw::
-draw(int which_program, const float4x4 &pvm, int layer, unsigned int aa_mode)
+draw(glyph_test *q, int which_program, const float4x4 &pvm, int layer, unsigned int aa_mode)
 {
   m_programs[which_program].m_program->use_program();
   glBindVertexArray(m_vao);
@@ -353,6 +357,12 @@ draw(int which_program, const float4x4 &pvm, int layer, unsigned int aa_mode)
   if(m_programs[which_program].m_aa_mode_loc != -1)
     {
       gl::Uniform(m_programs[which_program].m_aa_mode_loc, aa_mode);
+    }
+
+  if(m_programs[which_program].m_fg_color_loc != -1)
+    {
+      gl::Uniform(m_programs[which_program].m_fg_color_loc,
+                  vec3(q->m_fg_red.m_value, q->m_fg_green.m_value, q->m_fg_blue.m_value));
     }
 
   glDrawElements(GL_TRIANGLES, m_index_count, GL_UNSIGNED_INT, NULL);
@@ -481,11 +491,17 @@ glyph_test(void):
                                     "If geometry_backing_store_type is set to texture_array, then "
                                     "this gives the log2 of the height of the texture array", *this),
   m_render_pixel_size(24.0f, "render_pixel_size", "pixel size at which to display glyphs", *this),
+  m_bg_red(1.0f, "bg_red", "Background Red", *this),
+  m_bg_green(1.0f, "bg_green", "Background Green", *this),
+  m_bg_blue(1.0f, "bg_blue", "Background Blue", *this),
+  m_fg_red(0.0f, "fg_red", "Foreground Red", *this),
+  m_fg_green(0.0f, "fg_green", "Foreground Green", *this),
+  m_fg_blue(0.0f, "fg_blue", "Foreground Blue", *this),
   m_library(NULL),
   m_face(NULL),
   m_current_drawer(draw_glyph_curvepair),
   m_texel_access_mode(texel_store_uint),
-  m_aa_mode(2),
+  m_aa_mode(0),
   m_current_layer(0)
 {
   std::cout << "Controls:\n"
@@ -997,6 +1013,7 @@ void
 glyph_test::
 draw_frame(void)
 {
+  glClearColor(m_bg_red.m_value, m_bg_green.m_value, m_bg_blue.m_value, 0.0f);
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1008,7 +1025,7 @@ draw_frame(void)
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(m_glyph_atlas->geometry_texture_binding_point(), m_glyph_atlas->geometry_texture());
 
-  m_drawers[m_current_drawer].draw(m_texel_access_mode, m_pvm, m_current_layer, m_aa_mode);
+  m_drawers[m_current_drawer].draw(this, m_texel_access_mode, m_pvm, m_current_layer, m_aa_mode);
 
 }
 

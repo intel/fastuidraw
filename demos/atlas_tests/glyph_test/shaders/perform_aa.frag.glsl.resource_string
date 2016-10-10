@@ -3,66 +3,35 @@ perform_aa(uint aa_mode, float f, float dfdx, float dfdy, vec2 tex_coord)
 {
   float a;
 
-  if(aa_mode == uint(0)) //default distance
+  if(aa_mode == uint(0)) //default AA of fastuidraw_anisotropic
     {
-      vec2 dd;
-      float qw, tw;
-
-      dd = fwidth(tex_coord);
-      tw = max(dd.x, dd.y);
-      if(tw < 1.0)
-        {
-          a = clamp( f / tw, 0.0, 1.0);
-        }
-      else
-        {
-          a = f;
-        }
+      float mag_sq;
+      mag_sq = dfdx * dfdx + dfdy * dfdy;
+      a = clamp(0.5 + f * inversesqrt(mag_sq), 0.0, 1.0);
     }
 
-  if(aa_mode == uint(1))
-    {
-      /* Pretend that:
-           f(x,y) = f0 + A * (x - 0.5)
-         and we want to compute what portion of [0,1]x[0,1]
-         for which f > 0.
-         For A > 0, f > 0 on x > 0.5 - f0 / A = 0.5 - f0 / abs(A)
-         For A < 0, f > 0 on x < 0.5 - f0 / A = 0.5 + f0 / abs(A)
-         Let B = abs(A).
-
-         I = [0, 1] intersect (0.5 - f0 / B, infinitity) = [max(0, 0.5 - f0 / B, 1), 1]
-         J = [0, 1] intersect (-infinity, 0.5 + f0 / B) = [0, min(1, 0.5 + f0 / B) ]
-
-         length(I) = 1 - max(0, 0.5 - f0/B) = min(1, 0.5 + f0 / B)
-         length(J) = min(1, 0.5 + f0 / B)
-
-       so if we pretend everything is rotation invariant, we can replace
-       abs(A) with magnitude(dfdx, dfdy)
-       */
-      vec2 dd = vec2(dfdx, dfdy);
-      float mag = length(dd);
-      if(mag > 0.0)
-        {
-          a = clamp(0.5 + f / mag, 0.0, 1.0);
-        }
-      else
-        {
-          a = (f > 0.0) ? 1.0 : 0.0;
-        }
-    }
-
-  if(aa_mode == uint(2)) //default curve_pair
+  if(aa_mode == uint(1)) //isotropic AA
     {
       vec2 dx, dy;
-      float ss;
+      float mag_sq, imag;
 
       dx = dFdx(tex_coord);
       dy = dFdy(tex_coord);
-      ss = max(1.0, inversesqrt( (dot(dx,dx) + dot(dy,dy))/2.0) );
-      a = clamp(0.5 + f * ss, 0.0, 1.0);
+      mag_sq = (dot(dx, dx) + dot(dy, dy)) * 0.5;
+      imag = inversesqrt(mag_sq);
+      a = clamp(0.5 + f * max(1.0, imag), 0.0, 1.0);
     }
 
-  if(aa_mode == uint(3))
+  if(aa_mode == uint(2)) //AA as in stroke shading.
+    {
+      float fw, d;
+
+      fw = abs(dfdx) + abs(dfdy);
+      d = max(abs(f), fw);
+      a = step(0.0, f) * max(0.0, abs(f) / d);
+    }
+
+  if(aa_mode == uint(3)) //AA via smoothstep
     {
       vec2 dx, dy;
       float ss;

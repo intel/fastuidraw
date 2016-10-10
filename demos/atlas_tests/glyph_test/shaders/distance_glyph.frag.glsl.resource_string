@@ -7,6 +7,7 @@ in vec3 tex_coord_layer;
 #endif
 
 uniform uint aa_mode;
+uniform vec3 fg_color;
 
 out vec4 color;
 
@@ -65,5 +66,5 @@ main(void)
   f = (raw - 0.5) * 2.0;
   a = perform_aa(aa_mode, f, tex_coord_layer.xy);
 
-  color = vec4(1.0, 1.0, 1.0, a);
+  color = vec4(fg_color, a);
 }

@@ -33,7 +33,7 @@ flat in uint geometry_data_location;
 #endif
 
 uniform uint aa_mode;
-
+uniform vec3 fg_color;
 
 
 out vec4 color;
@@ -100,5 +100,5 @@ main(void)
                  dot(df, dFdy(tex_coord_layer.xy)),
                  tex_coord_layer.xy);
 
-  color = vec4(1.0, 1.0, 1.0, a);
+  color = vec4(fg_color, a);
 }
