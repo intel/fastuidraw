@@ -31,53 +31,13 @@ namespace fastuidraw
  */
 
   /*!
-    A PainterAttributeDataFillerPathStroked is an implementation for
-    PainterAttributeDataFiller to construct index and attribute
-    data to stroke a path. The data is so that it provides all that
-    is needed to stroke a path regardless of join style, cap style,
-    stroking width, stroking miter limit or even dash pattern.
-
-    Data for stroking is packed as follows:
-    - PainterAttribute::m_attrib0 .xy -> StrokedPath::point::m_position (float)
-    - PainterAttribute::m_attrib0 .zw -> StrokedPath::point::m_pre_offset (float)
-    - PainterAttribute::m_attrib1 .x -> StrokedPath::point::m_distance_from_edge_start (float)
-    - PainterAttribute::m_attrib1 .y -> StrokedPath::point::m_distance_from_contour_start (float)
-    - PainterAttribute::m_attrib1 .zw -> StrokedPath::point::m_auxilary_offset (float)
-    - PainterAttribute::m_attrib2 .x -> StrokedPath::point::m_packed_data (uint)
-    - PainterAttribute::m_attrib2 .y -> StrokedPath::point::m_edge_length (float)
-    - PainterAttribute::m_attrib2 .z -> StrokedPath::point::m_open_contour_length (float)
-    - PainterAttribute::m_attrib2 .w -> StrokedPath::point::m_closed_contour_length (float)
-   */
-  class PainterAttributeDataFillerPathStroked
-  {
-  public:
-    /*!
-      Unpack a StrokedPath::point from a PainterAttribute
-      as packed by PainterAttributeDataFillerPathStroked.
-      \param attrib PainterAttribute from which to unpack
-             a StrokedPath::point
-     */
-    static
-    StrokedPath::point
-    unpack_point(const PainterAttribute &attrib);
-
-    /*!
-      Pack a StrokedPath::point into a PainterAttribute
-      as packed by PainterAttributeDataFillerPathStroked.
-      \param pt StrokedPath::point from which to pack a
-                PainterAttribute
-     */
-    static
-    PainterAttribute
-    pack_point(const StrokedPath::point &pt);
-  };
-
-  /*!
     A PainterAttributeDataFillerPathEdges is an implementation for
     PainterAttributeDataFiller to construct index and attribute
     data to draw the edges of a stroked path. The data is so that
     it provides all that is needed to stroke a path regardless of
-    stroking width or even dash pattern.
+    stroking width or even dash pattern. The StrokedPath::point
+    valus from the source StrokedPath::Edges are packed via
+    \ref point::pack_point().
    */
   class PainterAttributeDataFillerPathEdges:public PainterAttributeDataFiller
   {
@@ -128,7 +88,9 @@ namespace fastuidraw
     PainterAttributeDataFiller to construct index and attribute
     data to draw the edges of a stroked path. The data is so that
     it provides all that is needed to stroke a path regardless of
-    stroking width or even dash pattern.
+    stroking width or even dash pattern. The StrokedPath::point
+    valus from the source StrokedPath::Caps are packed via
+    \ref point::pack_point().
    */
   class PainterAttributeDataFillerPathCaps:public PainterAttributeDataFiller
   {
@@ -173,7 +135,9 @@ namespace fastuidraw
     PainterAttributeDataFiller to construct index and attribute
     data to draw the edges of a stroked path. The data is so that
     it provides all that is needed to stroke a path regardless of
-    stroking width or even dash pattern.
+    stroking width or even dash pattern. The StrokedPath::point
+    valus from the source StrokedPath::Joins are packed via
+    \ref point::pack_point().
    */
   class PainterAttributeDataFillerPathJoins:public PainterAttributeDataFiller
   {

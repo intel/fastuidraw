@@ -30,6 +30,7 @@ namespace fastuidraw  {
 class PainterAttributeData;
 class TessellatedPath;
 class Path;
+class PainterAttribute;
 ///@endcond
 
 /*!\addtogroup Core
@@ -543,6 +544,33 @@ public:
      */
     float
     miter_distance(void) const;
+
+    /*!
+      Pack the data of this \ref point into a \ref
+      PainterAttribute. The packing is as follows:
+      - PainterAttribute::m_attrib0 .xy -> StrokedPath::point::m_position (float)
+      - PainterAttribute::m_attrib0 .zw -> StrokedPath::point::m_pre_offset (float)
+      - PainterAttribute::m_attrib1 .x -> StrokedPath::point::m_distance_from_edge_start (float)
+      - PainterAttribute::m_attrib1 .y -> StrokedPath::point::m_distance_from_contour_start (float)
+      - PainterAttribute::m_attrib1 .zw -> StrokedPath::point::m_auxilary_offset (float)
+      - PainterAttribute::m_attrib2 .x -> StrokedPath::point::m_packed_data (uint)
+      - PainterAttribute::m_attrib2 .y -> StrokedPath::point::m_edge_length (float)
+      - PainterAttribute::m_attrib2 .z -> StrokedPath::point::m_open_contour_length (float)
+      - PainterAttribute::m_attrib2 .w -> StrokedPath::point::m_closed_contour_length (float)
+
+      \param dst PainterAttribute to which to pack
+     */
+    void
+    pack_point(PainterAttribute *dst) const;
+
+    /*!
+      Unpack a \ref point from a \ref PainterAttribute.
+      \param dst point to which to unpack data
+      \param src PainterAttribute from which to unpack data
+     */
+    static
+    void
+    unpack_point(point *dst, const PainterAttribute &src);
   };
 
   /*!

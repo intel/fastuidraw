@@ -38,6 +38,14 @@ namespace
   typedef PrivateWith<fastuidraw::StrokedPath::Joins> PrivateJoins;
   typedef PrivateWith<fastuidraw::StrokedPath::Edges> PrivateEdges;
 
+  fastuidraw::PainterAttribute
+  generate_attribute(const fastuidraw::StrokedPath::point &src)
+  {
+    fastuidraw::PainterAttribute dst;
+    src.pack_point(&dst);
+    return dst;
+  }
+
   void
   grab_attribute_index_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attrib_dst,
                             unsigned int &attr_loc,
@@ -55,7 +63,7 @@ namespace
 
     std::copy(idx_src.begin(), idx_src.end(), idx_dst.begin());
     std::transform(attr_src.begin(), attr_src.end(), attrib_dst.begin(),
-                   fastuidraw::PainterAttributeDataFillerPathStroked::pack_point);
+                   generate_attribute);
 
     attr_loc += attr_src.size();
     idx_loc += idx_src.size();
@@ -88,57 +96,6 @@ namespace
     idx_loc += srcI.size();
     ++gJ;
   }
-}
-
-//////////////////////////////////////////////////////////
-// fastuidraw::PainterAttributeDataFillerPathStroked methods
-fastuidraw::StrokedPath::point
-fastuidraw::PainterAttributeDataFillerPathStroked::
-unpack_point(const PainterAttribute &a)
-{
-  StrokedPath::point dst;
-
-  dst.m_position.x() = unpack_float(a.m_attrib0.x());
-  dst.m_position.y() = unpack_float(a.m_attrib0.y());
-
-  dst.m_pre_offset.x() = unpack_float(a.m_attrib0.z());
-  dst.m_pre_offset.y() = unpack_float(a.m_attrib0.w());
-
-  dst.m_distance_from_edge_start = unpack_float(a.m_attrib1.x());
-  dst.m_distance_from_contour_start = unpack_float(a.m_attrib1.y());
-  dst.m_auxilary_offset.x() = unpack_float(a.m_attrib1.z());
-  dst.m_auxilary_offset.y() = unpack_float(a.m_attrib1.w());
-
-  dst.m_packed_data = a.m_attrib2.x();
-  dst.m_edge_length = unpack_float(a.m_attrib2.y());
-  dst.m_open_contour_length = unpack_float(a.m_attrib2.z());
-  dst.m_closed_contour_length = unpack_float(a.m_attrib2.w());
-
-  return dst;
-}
-
-fastuidraw::PainterAttribute
-fastuidraw::PainterAttributeDataFillerPathStroked::
-pack_point(const StrokedPath::point &src)
-{
-  PainterAttribute dst;
-
-  dst.m_attrib0 = pack_vec4(src.m_position.x(),
-                            src.m_position.y(),
-                            src.m_pre_offset.x(),
-                            src.m_pre_offset.y());
-
-  dst.m_attrib1 = pack_vec4(src.m_distance_from_edge_start,
-                            src.m_distance_from_contour_start,
-                            src.m_auxilary_offset.x(),
-                            src.m_auxilary_offset.y());
-
-  dst.m_attrib2 = uvec4(src.m_packed_data,
-                        pack_float(src.m_edge_length),
-                        pack_float(src.m_open_contour_length),
-                        pack_float(src.m_closed_contour_length));
-
-  return dst;
 }
 
 //////////////////////////////////////////////

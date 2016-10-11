@@ -2255,6 +2255,47 @@ create_caps(const PathData &e, float thresh, void *d)
 
 //////////////////////////////////////
 // fastuidraw::StrokedPath::point methods
+void
+fastuidraw::StrokedPath::point::
+pack_point(PainterAttribute *dst) const
+{
+  dst->m_attrib0 = pack_vec4(m_position.x(),
+                             m_position.y(),
+                             m_pre_offset.x(),
+                             m_pre_offset.y());
+
+  dst->m_attrib1 = pack_vec4(m_distance_from_edge_start,
+                             m_distance_from_contour_start,
+                             m_auxilary_offset.x(),
+                             m_auxilary_offset.y());
+
+  dst->m_attrib2 = uvec4(m_packed_data,
+                         pack_float(m_edge_length),
+                         pack_float(m_open_contour_length),
+                         pack_float(m_closed_contour_length));
+}
+
+void
+fastuidraw::StrokedPath::point::
+unpack_point(point *dst, const PainterAttribute &a)
+{
+  dst->m_position.x() = unpack_float(a.m_attrib0.x());
+  dst->m_position.y() = unpack_float(a.m_attrib0.y());
+
+  dst->m_pre_offset.x() = unpack_float(a.m_attrib0.z());
+  dst->m_pre_offset.y() = unpack_float(a.m_attrib0.w());
+
+  dst->m_distance_from_edge_start = unpack_float(a.m_attrib1.x());
+  dst->m_distance_from_contour_start = unpack_float(a.m_attrib1.y());
+  dst->m_auxilary_offset.x() = unpack_float(a.m_attrib1.z());
+  dst->m_auxilary_offset.y() = unpack_float(a.m_attrib1.w());
+
+  dst->m_packed_data = a.m_attrib2.x();
+  dst->m_edge_length = unpack_float(a.m_attrib2.y());
+  dst->m_open_contour_length = unpack_float(a.m_attrib2.z());
+  dst->m_closed_contour_length = unpack_float(a.m_attrib2.w());
+}
+
 fastuidraw::vec2
 fastuidraw::StrokedPath::point::
 offset_vector(void)
@@ -2475,8 +2516,8 @@ const fastuidraw::PainterAttributeData&
 fastuidraw::StrokedPath::Joins::
 painter_data(void) const
 {
-  GenericDataPrivate *d;
-  d = reinterpret_cast<GenericDataPrivate*>(m_d);
+  JoinsPrivate *d;
+  d = reinterpret_cast<JoinsPrivate*>(m_d);
   if(d->m_attribute_data == NULL)
     {
       d->m_attribute_data = FASTUIDRAWnew PainterAttributeData();
