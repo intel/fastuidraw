@@ -1119,7 +1119,7 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
       c = d->m_radius * std::cos(a);
       out_data[i].m_p = d->m_center + vec2(c, s);
       out_data[i].m_p_t = sgn_radius * vec2(-s, c);
-      out_data[i].m_distance_from_edge_start = da * d->m_radius;
+      out_data[i].m_distance_from_edge_start = t_abs(da) * d->m_radius;
     }
   out_data[0].m_p = start_pt();
   out_data[needed_size].m_p = end_pt();
