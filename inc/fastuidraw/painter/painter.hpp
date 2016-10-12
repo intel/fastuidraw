@@ -447,7 +447,8 @@ namespace fastuidraw
       \param draw data for how to draw
       \param edge_data attribute and index data for drawing the edges,
                        NULL value indicates to not draw edges.
-      \param edge_chunk which chunk to take from edge_data
+      \param edge_chunks which chunks to take from edge_data
+      \param inc_edge amount by which to increment current_z() for the edge drawing
       \param cap_data attribute and index data for drawing the caps,
                       NULL value indicates to not draw caps.
       \param cap_chunk which chunk to take from cap_data
@@ -461,7 +462,8 @@ namespace fastuidraw
      */
     void
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
-                const PainterAttributeData *edge_data, unsigned int edge_chunk,
+                const PainterAttributeData *edge_data, const_c_array<unsigned int> edge_chunks,
+                unsigned int inc_edge,
                 const PainterAttributeData *cap_data, unsigned int cap_chunk,
                 const PainterAttributeData *join_data, const_c_array<unsigned int> join_chunks,
                 unsigned int inc_join, bool with_anti_aliasing,
@@ -550,7 +552,8 @@ namespace fastuidraw
       \param draw data for how to draw
       \param edge_data attribute and index data for drawing the edges,
                        NULL value indicates to not draw edges.
-      \param edge_chunk which chunk to take from edge_data
+      \param edge_chunks which chunk to take from edge_data
+      \param inc_edge amount by which to increment current_z() for the edge drawing
       \param cap_data attribute and index data for drawing the caps,
                       NULL value indicates to not draw caps.
       \param cap_chunk which chunk to take from cap_data
@@ -566,7 +569,8 @@ namespace fastuidraw
      */
     void
     stroke_dashed_path(const PainterStrokeShader &shader, const PainterData &draw,
-                       const PainterAttributeData *edge_data, unsigned int edge_chunk,
+                       const PainterAttributeData *edge_data, const_c_array<unsigned int> edge_chunks,
+                       unsigned int inc_edge,
                        const PainterAttributeData *cap_data, unsigned int cap_chunk,
                        bool include_joins_from_closing_edge,
                        const DashEvaluatorBase *dash_evaluator, const PainterAttributeData *join_data,

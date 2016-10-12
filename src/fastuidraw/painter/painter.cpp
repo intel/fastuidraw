@@ -1132,7 +1132,8 @@ draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
 void
 fastuidraw::Painter::
 stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
-            const PainterAttributeData *edge_data, unsigned int edge_chunk,
+            const PainterAttributeData *edge_data, const_c_array<unsigned int> edge_chunks,
+            unsigned int inc_edge,
             const PainterAttributeData *cap_data, unsigned int cap_chunk,
             const PainterAttributeData* join_data, const_c_array<unsigned int> join_chunks,
             unsigned int inc_join, bool with_anti_aliasing,
@@ -1145,49 +1146,60 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
       return;
     }
 
-  unsigned int startz, zinc_sum(0), inc_cap(0), inc_edge(0), num_joins(0);
+  unsigned int startz, zinc_sum(0), inc_cap(0), num_joins(0), num_edges(0);
   bool modify_z;
   const reference_counted_ptr<PainterItemShader> *sh;
   c_array<const_c_array<PainterAttribute> > attrib_chunks;
   c_array<const_c_array<PainterIndex> > index_chunks;
 
-  /* clear first to blank the values, std::vector::clear
-     does not call deallocation on its backing store,
-     thus there is no malloc/free noise
-   */
   if(join_data == NULL)
     {
       join_chunks = const_c_array<unsigned int>();
       inc_join = 0;
     }
 
+  if(edge_data == NULL)
+    {
+      edge_chunks = const_c_array<unsigned int>();
+      inc_edge = 0;
+    }
+
+  /* clear first to blank the values, std::vector::clear
+     does not call deallocation on its backing store,
+     thus there is no malloc/free noise
+   */
   d->m_work_room.m_stroke_attrib_chunks.clear();
   d->m_work_room.m_stroke_index_chunks.clear();
-  d->m_work_room.m_stroke_attrib_chunks.resize(2 + join_chunks.size());
-  d->m_work_room.m_stroke_index_chunks.resize(2 + join_chunks.size());
+  d->m_work_room.m_stroke_attrib_chunks.resize(1 + edge_chunks.size() + join_chunks.size());
+  d->m_work_room.m_stroke_index_chunks.resize(1 + edge_chunks.size() + join_chunks.size());
 
   attrib_chunks = make_c_array(d->m_work_room.m_stroke_attrib_chunks);
   index_chunks = make_c_array(d->m_work_room.m_stroke_index_chunks);
 
-  for(unsigned int J = 0; J < join_chunks.size(); ++J)
+  num_joins = join_chunks.size();
+  for(unsigned int J = 0; J < num_joins; ++J)
     {
       attrib_chunks[J] = join_data->attribute_data_chunk(join_chunks[J]);
       index_chunks[J] = join_data->index_data_chunk(join_chunks[J]);
     }
-  num_joins = join_chunks.size();
 
-  if(edge_data != NULL)
+  num_edges = edge_chunks.size();
+  for(unsigned int E = 0; E < num_edges; ++E)
     {
-      attrib_chunks[num_joins + 0] = edge_data->attribute_data_chunk(edge_chunk);
-      index_chunks[num_joins + 0] = edge_data->index_data_chunk(edge_chunk);
-      inc_edge = edge_data->increment_z_value(edge_chunk);
+      attrib_chunks[num_joins + E] = edge_data->attribute_data_chunk(edge_chunks[E]);
+      index_chunks[num_joins + E] = edge_data->index_data_chunk(edge_chunks[E]);
     }
 
   if(cap_data != NULL)
     {
-      attrib_chunks[num_joins + 1] = cap_data->attribute_data_chunk(cap_chunk);
-      index_chunks[num_joins + 1] = cap_data->index_data_chunk(cap_chunk);
+      attrib_chunks[num_joins + num_edges] = cap_data->attribute_data_chunk(cap_chunk);
+      index_chunks[num_joins + num_edges] = cap_data->index_data_chunk(cap_chunk);
       inc_cap = cap_data->increment_z_value(cap_chunk);
+    }
+  else
+    {
+      attrib_chunks = attrib_chunks.sub_array(0, num_joins + num_edges);
+      index_chunks = index_chunks.sub_array(0, num_joins + num_edges);
     }
 
   startz = d->m_current_z;
@@ -1219,8 +1231,8 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
         {
           incr_z -= inc_edge;
           d->draw_generic(*sh, draw,
-                          attrib_chunks.sub_array(num_joins, 1),
-                          index_chunks.sub_array(num_joins, 1),
+                          attrib_chunks.sub_array(num_joins, num_edges),
+                          index_chunks.sub_array(num_joins, num_edges),
                           fastuidraw::const_c_array<unsigned int>(),
                           startz + incr_z + 1, call_back);
         }
@@ -1229,8 +1241,8 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
         {
           incr_z -= inc_cap;
           d->draw_generic(*sh, draw,
-                          attrib_chunks.sub_array(num_joins + 1, 1),
-                          index_chunks.sub_array(num_joins + 1, 1),
+                          attrib_chunks.sub_array(num_joins + num_edges, 1),
+                          index_chunks.sub_array(num_joins + num_edges, 1),
                           fastuidraw::const_c_array<unsigned int>(),
                           startz + incr_z + 1, call_back);
         }
@@ -1276,7 +1288,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
     }
 
   const PainterAttributeData *edge_data(NULL), *cap_data(NULL), *join_data(NULL);
-  unsigned int edge_chunk(close_contours), cap_chunk(0);
+  unsigned int edge_chunk(close_contours), inc_edge, cap_chunk(0);
   unsigned int join_chunk(close_contours), inc_join(0);
   float rounded_thresh;
 
@@ -1290,6 +1302,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
     }
 
   edge_data = &path.edges().painter_data();
+  inc_edge = path.edges().painter_data().increment_z_value(edge_chunk);
   if(!close_contours)
     {
       switch(cp)
@@ -1330,7 +1343,9 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
       inc_join = join_data->increment_z_value(join_chunk);
     }
 
-  stroke_path(shader, draw, edge_data, edge_chunk, cap_data, cap_chunk,
+  stroke_path(shader, draw,
+              edge_data, const_c_array<unsigned int>(&edge_chunk, 1), inc_edge,
+              cap_data, cap_chunk,
               join_data, const_c_array<unsigned int>(&join_chunk, 1),
               inc_join, with_anti_aliasing, call_back);
 }
@@ -1376,7 +1391,8 @@ stroke_path_pixel_width(const PainterData &draw, const Path &path,
 void
 fastuidraw::Painter::
 stroke_dashed_path(const PainterStrokeShader &shader, const PainterData &draw,
-                   const PainterAttributeData *edge_data, unsigned int edge_chunk,
+                   const PainterAttributeData *edge_data, const_c_array<unsigned int> edge_chunks,
+                   unsigned int inc_edge,
                    const PainterAttributeData *cap_data, unsigned int cap_chunk,
                    bool include_joins_from_closing_edge,
                    const DashEvaluatorBase *dash_evaluator, const PainterAttributeData *join_data,
@@ -1425,7 +1441,7 @@ stroke_dashed_path(const PainterStrokeShader &shader, const PainterData &draw,
         }
     }
 
-  stroke_path(shader, draw, edge_data, edge_chunk,
+  stroke_path(shader, draw, edge_data, edge_chunks, inc_edge,
               cap_data, cap_chunk,
               join_data, make_c_array(d->m_work_room.m_stroke_dashed_join_chunks),
               inc_join, with_anti_aliasing, call_back);
@@ -1448,9 +1464,10 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
     }
 
   const PainterAttributeData *edge_data(NULL), *cap_data(NULL), *join_data(NULL);
-  unsigned int edge_chunk(close_contours), cap_chunk(0);
+  unsigned int edge_chunk(close_contours), inc_edge, cap_chunk(0);
 
   edge_data = &path.edges().painter_data();
+  inc_edge = edge_data->increment_z_value(edge_chunk);
   if(!close_contours)
     {
       cap_data = &path.adjustable_caps().painter_data();
@@ -1482,7 +1499,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
     }
 
   stroke_dashed_path(shader.shader(cp), draw,
-                     edge_data, edge_chunk,
+                     edge_data, const_c_array<unsigned int>(&edge_chunk, 1), inc_edge,
                      cap_data, cap_chunk,
                      close_contours,
                      shader.dash_evaluator().get(), join_data,
