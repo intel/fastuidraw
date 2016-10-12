@@ -8,7 +8,9 @@ d		:= $(dir)
 dir := $(d)/packing
 include $(dir)/Rules.mk
 
-LIBRARY_SOURCES += $(call filelist, painter_attribute_data.cpp \
+LIBRARY_SOURCES += $(call filelist, \
+	stroked_path.cpp filled_path.cpp \
+	painter_attribute_data.cpp \
 	painter_attribute_data_filler_path_fill.cpp \
 	painter_attribute_data_filler_path_stroked.cpp \
 	painter_attribute_data_filler_glyphs.cpp \

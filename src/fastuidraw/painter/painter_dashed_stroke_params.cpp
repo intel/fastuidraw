@@ -18,7 +18,7 @@
 
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
 #include <fastuidraw/painter/painter_attribute_data_filler_path_stroked.hpp>
-#include <fastuidraw/stroked_path.hpp>
+#include <fastuidraw/painter/stroked_path.hpp>
 #include <fastuidraw/util/pixel_distance_math.hpp>
 #include "../private/util_private.hpp"
 

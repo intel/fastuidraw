@@ -16,9 +16,9 @@
  *
  */
 
-#include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
-#include <fastuidraw/stroked_path.hpp>
+#include <fastuidraw/painter/painter_stroke_params.hpp>
+#include <fastuidraw/painter/stroked_path.hpp>
 #include "../private/util_private.hpp"
 
 namespace

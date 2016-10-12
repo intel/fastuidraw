@@ -22,7 +22,7 @@
 #include <fastuidraw/painter/painter_attribute_data_filler.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/painter_stroke_shader.hpp>
-#include <fastuidraw/stroked_path.hpp>
+#include <fastuidraw/painter/stroked_path.hpp>
 
 namespace fastuidraw
 {

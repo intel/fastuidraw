@@ -20,13 +20,13 @@
 #include <vector>
 #include <complex>
 
-#include <fastuidraw/stroked_path.hpp>
 #include <fastuidraw/tessellated_path.hpp>
 #include <fastuidraw/path.hpp>
+#include <fastuidraw/painter/stroked_path.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
 #include <fastuidraw/painter/painter_attribute_data_filler_path_stroked.hpp>
-#include "private/util_private.hpp"
-#include "private/path_util_private.hpp"
+#include "../private/util_private.hpp"
+#include "../private/path_util_private.hpp"
 
 namespace
 {

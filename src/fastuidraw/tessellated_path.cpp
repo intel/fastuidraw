@@ -21,8 +21,8 @@
 #include <vector>
 #include <fastuidraw/tessellated_path.hpp>
 #include <fastuidraw/path.hpp>
-#include <fastuidraw/stroked_path.hpp>
-#include <fastuidraw/filled_path.hpp>
+#include <fastuidraw/painter/stroked_path.hpp>
+#include <fastuidraw/painter/filled_path.hpp>
 #include "private/util_private.hpp"
 
 namespace
