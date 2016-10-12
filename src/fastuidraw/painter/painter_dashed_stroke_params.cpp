@@ -17,7 +17,6 @@
  */
 
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
-#include <fastuidraw/painter/painter_attribute_data_filler_path_stroked.hpp>
 #include <fastuidraw/painter/stroked_path.hpp>
 #include <fastuidraw/util/pixel_distance_math.hpp>
 #include "../private/util_private.hpp"
@@ -70,14 +69,14 @@ namespace
     unsigned int
     number_joins(const fastuidraw::PainterAttributeData &data, bool edge_closed) const
     {
-      return fastuidraw::PainterAttributeDataFillerPathJoins::number_joins(data, edge_closed);
+      return fastuidraw::StrokedPath::number_joins(data, edge_closed);
     }
 
     virtual
     unsigned int
     named_join_chunk(unsigned int J) const
     {
-      return fastuidraw::PainterAttributeDataFillerPathJoins::named_join_chunk(J);
+      return fastuidraw::StrokedPath::chunk_for_named_join(J);
     }
 
     static

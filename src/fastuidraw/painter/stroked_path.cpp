@@ -24,7 +24,7 @@
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/painter/stroked_path.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
-#include <fastuidraw/painter/painter_attribute_data_filler_path_stroked.hpp>
+#include <fastuidraw/painter/painter_attribute_data_filler.hpp>
 #include "../private/util_private.hpp"
 #include "../private/path_util_private.hpp"
 
@@ -621,7 +621,7 @@ namespace
     }
 
     fastuidraw::const_c_array<T>
-    data(bool including_closing_edge) const
+    operator()(bool including_closing_edge) const
     {
       return including_closing_edge ?
         m_with_closing_edge :
@@ -629,7 +629,7 @@ namespace
     }
 
     fastuidraw::c_array<T>
-    data(bool including_closing_edge)
+    operator()(bool including_closing_edge)
     {
       return including_closing_edge ?
         m_with_closing_edge :
@@ -642,21 +642,10 @@ namespace
     fastuidraw::c_array<T> m_without_closing_edge;
   };
 
-  class DataAsCArrays
+  class PointData
   {
   public:
-    fastuidraw::const_c_array<fastuidraw::StrokedPath::point> m_points;
-    fastuidraw::const_c_array<unsigned int> m_indices;
-    unsigned int m_number_depth;
-  };
-
-  typedef fastuidraw::vecN<DataAsCArrays, 2> DataAsCArraysPair;
-
-  template<typename T>
-  class Data
-  {
-  public:
-    PartitionedArray<T> m_points;
+    PartitionedArray<fastuidraw::StrokedPath::point> m_points;
     PartitionedArray<unsigned int> m_indices;
     fastuidraw::vecN<unsigned int, 2> m_number_depth;
 
@@ -674,36 +663,49 @@ namespace
       m_points.resize(szs[0], szs[1], true);
       m_indices.resize(szs[2], szs[3], false);
     }
-
-    void
-    compute_conveniance(DataAsCArraysPair &out_value)
-    {
-      out_value[false].m_points = m_points.data(false);
-      out_value[true].m_points  = m_points.data(true);
-
-      out_value[false].m_indices = m_indices.data(false);
-      out_value[true].m_indices  = m_indices.data(true);
-
-      out_value[false].m_number_depth = m_number_depth[false];
-      out_value[true].m_number_depth  = m_number_depth[true];
-    }
   };
 
-  class CapsPrivate
+  class JoinsPointData:public PointData
   {
   public:
-    CapsPrivate(void):
-      m_attribute_data(NULL)
-    {}
+    void
+    resize_locations(const PathData &P);
 
-    ~CapsPrivate()
+    unsigned int
+    number_contours(void) const
     {
-      if(m_attribute_data != NULL)
-        {
-          FASTUIDRAWdelete(m_attribute_data);
-        }
+      return m_locations.size();
     }
 
+    unsigned int
+    number_joins(unsigned int C) const
+    {
+      assert(C < m_locations.size());
+      return m_locations[C].size();
+    }
+
+    fastuidraw::range_type<unsigned int>
+    points_range(unsigned int C, unsigned int J) const
+    {
+      assert(C < m_locations.size());
+      assert(J < m_locations[C].size());
+      return m_locations[C][J].m_attribs;
+    }
+
+    fastuidraw::range_type<unsigned int>
+    indices_range(unsigned int C, unsigned int J) const
+    {
+      assert(C < m_locations.size());
+      assert(J < m_locations[C].size());
+      return m_locations[C][J].m_indices;
+    }
+
+    std::vector<std::vector<Location> > m_locations;
+  };
+
+  class CapsPointData
+  {
+  public:
     void
     resize(fastuidraw::uvec2 szs)
     {
@@ -714,55 +716,286 @@ namespace
     std::vector<fastuidraw::StrokedPath::point> m_points;
     std::vector<unsigned int> m_indices;
     unsigned int m_number_depth;
-    fastuidraw::PainterAttributeData *m_attribute_data;
   };
 
-  class GenericDataPrivate
+  class ThreshWithData
   {
   public:
-    GenericDataPrivate(void);
-    ~GenericDataPrivate();
-
-    Data<fastuidraw::StrokedPath::point> m_data;
-    DataAsCArraysPair m_return_values;
-    fastuidraw::PainterAttributeData *m_attribute_data;
-  };
-
-  class JoinsPrivate:public GenericDataPrivate
-  {
-  public:
-    void
-    resize_locations(const PathData &P);
-
-    std::vector<std::vector<Location> > m_locations;
-  };
-
-  template<typename T>
-  class ThreshWith
-  {
-  public:
-    ThreshWith(void):
+    ThreshWithData(void):
       m_data(NULL),
       m_thresh(-1)
     {}
 
-    ThreshWith(T *d, float t):
+    ThreshWithData(fastuidraw::PainterAttributeData *d, float t):
       m_data(d), m_thresh(t)
     {}
 
     static
     bool
-    reverse_compare_against_thresh(const ThreshWith &lhs, float rhs)
+    reverse_compare_against_thresh(const ThreshWithData &lhs, float rhs)
     {
       return lhs.m_thresh > rhs;
     }
 
-    T *m_data;
+    fastuidraw::PainterAttributeData *m_data;
     float m_thresh;
   };
 
-  typedef ThreshWith<fastuidraw::StrokedPath::Joins> ThreshWithJoins;
-  typedef ThreshWith<fastuidraw::StrokedPath::Caps> ThreshWithCaps;
+  fastuidraw::PainterAttribute
+  generate_attribute(const fastuidraw::StrokedPath::point &src)
+  {
+    fastuidraw::PainterAttribute dst;
+    src.pack_point(&dst);
+    return dst;
+  }
+
+  void
+  grab_attribute_index_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attrib_dst,
+                            unsigned int &attr_loc,
+                            fastuidraw::const_c_array<fastuidraw::StrokedPath::point> attr_src,
+                            fastuidraw::c_array<fastuidraw::PainterIndex> idx_dst, unsigned int &idx_loc,
+                            fastuidraw::const_c_array<unsigned int> idx_src,
+                            fastuidraw::const_c_array<fastuidraw::PainterAttribute> &attrib_chunks,
+                            fastuidraw::const_c_array<fastuidraw::PainterIndex> &index_chunks)
+  {
+    attrib_dst = attrib_dst.sub_array(attr_loc, attr_src.size());
+    idx_dst = idx_dst.sub_array(idx_loc, idx_src.size());
+
+    attrib_chunks = attrib_dst;
+    index_chunks = idx_dst;
+
+    std::copy(idx_src.begin(), idx_src.end(), idx_dst.begin());
+    std::transform(attr_src.begin(), attr_src.end(), attrib_dst.begin(),
+                   generate_attribute);
+
+    attr_loc += attr_src.size();
+    idx_loc += idx_src.size();
+  }
+
+  void
+  grab_specific_join(const JoinsPointData &src,
+                     unsigned int src_attrib_chunk,
+                     unsigned int C, unsigned int J,
+                     unsigned int &gJ, unsigned int Kc,
+                     fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+                     fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
+                     fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+                     unsigned int &idx_loc)
+  {
+    fastuidraw::range_type<unsigned int> Ri, Ra;
+    fastuidraw::const_c_array<fastuidraw::PainterIndex> srcI;
+    fastuidraw::c_array<fastuidraw::PainterIndex> dst;
+
+    Ra = src.points_range(C, J);
+    Ri = src.indices_range(C, J);
+    srcI = src.m_indices(true).sub_array(Ri);
+    attribute_chunks[Kc] = attribute_chunks[src_attrib_chunk].sub_array(Ra);
+    dst = index_data.sub_array(idx_loc, srcI.size());
+    index_chunks[Kc] =  dst;
+    for(unsigned int I = 0; I < srcI.size(); ++I)
+      {
+        dst[I] = srcI[I] - Ra.m_begin;
+      }
+    idx_loc += srcI.size();
+    ++gJ;
+  }
+
+  class EdgeFiller:public fastuidraw::PainterAttributeDataFiller
+  {
+  public:
+    explicit
+    EdgeFiller(const PointData *src):
+      m_src(src)
+    {}
+
+    virtual
+    void
+    compute_sizes(unsigned int &num_attributes,
+                  unsigned int &num_indices,
+                  unsigned int &num_attribute_chunks,
+                  unsigned int &num_index_chunks,
+                  unsigned int &number_z_increments) const
+    {
+      num_attributes = m_src->m_points(true).size();
+      num_indices =  m_src->m_indices(true).size();
+      number_z_increments = num_attribute_chunks = num_index_chunks = 2;
+    }
+
+    virtual
+    void
+    fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+              fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
+              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<unsigned int> zincrements) const
+    {
+      unsigned int attr_loc(0), idx_loc(0);
+      zincrements[fastuidraw::StrokedPath::chunk_without_closing_edge] = m_src->m_number_depth[false];
+      zincrements[fastuidraw::StrokedPath::chunk_with_closing_edge] = m_src->m_number_depth[true];
+
+      grab_attribute_index_data(attribute_data, attr_loc, m_src->m_points(true),
+                                index_data, idx_loc, m_src->m_indices(true),
+                                attribute_chunks[fastuidraw::StrokedPath::chunk_with_closing_edge],
+                                index_chunks[fastuidraw::StrokedPath::chunk_with_closing_edge]);
+
+      attribute_chunks[fastuidraw::StrokedPath::chunk_without_closing_edge] =
+        attribute_chunks[fastuidraw::StrokedPath::chunk_with_closing_edge].sub_array(0, m_src->m_points(false).size());
+
+      unsigned int with, without;
+
+      with = m_src->m_indices(true).size();
+      without = m_src->m_indices(false).size();
+      assert(with >= without);
+
+      index_chunks[fastuidraw::StrokedPath::chunk_without_closing_edge] =
+        index_chunks[fastuidraw::StrokedPath::chunk_with_closing_edge].sub_array(with - without);
+    }
+
+  private:
+    const PointData *m_src;
+  };
+
+  class CapFiller:public fastuidraw::PainterAttributeDataFiller
+  {
+  public:
+    explicit
+    CapFiller(const CapsPointData *src):
+      m_src(src)
+    {}
+
+    virtual
+    void
+    compute_sizes(unsigned int &num_attributes,
+                  unsigned int &num_indices,
+                  unsigned int &num_attribute_chunks,
+                  unsigned int &num_index_chunks,
+                  unsigned int &number_z_increments) const
+    {
+      num_attributes = m_src->m_points.size();
+      num_indices =  m_src->m_indices.size();
+      number_z_increments = num_attribute_chunks = num_index_chunks = 1;
+    }
+
+    virtual
+    void
+    fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+              fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
+              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<unsigned int> zincrements) const
+    {
+      unsigned int attr_loc(0), idx_loc(0);
+
+      zincrements[0] = m_src->m_number_depth;
+      grab_attribute_index_data(attribute_data, attr_loc, fastuidraw::make_c_array(m_src->m_points),
+                                index_data, idx_loc, fastuidraw::make_c_array(m_src->m_indices),
+                                attribute_chunks[0], index_chunks[0]);
+    }
+
+  private:
+    const CapsPointData *m_src;
+  };
+
+  class JoinFiller:public fastuidraw::PainterAttributeDataFiller
+  {
+  public:
+    explicit
+    JoinFiller(const JoinsPointData *src):
+      m_src(src)
+    {}
+
+    virtual
+    void
+    compute_sizes(unsigned int &num_attributes,
+                  unsigned int &num_indices,
+                  unsigned int &num_attribute_chunks,
+                  unsigned int &num_index_chunks,
+                  unsigned int &number_z_increments) const
+    {
+      unsigned int numJoins(0);
+
+      num_attributes = m_src->m_points(true).size();
+      num_indices = m_src->m_indices(true).size();
+      for(unsigned int C = 0, endC = m_src->number_contours(); C < endC; ++C)
+        {
+          unsigned int endJ;
+
+          endJ = m_src->number_joins(C);
+          numJoins += endJ;
+          for(unsigned int J = 0; J < endJ; ++J)
+            {
+              /* indices for joins appear twice, once all together
+                 and then again as seperate chunks.
+              */
+              num_indices += m_src->indices_range(C, J).difference();
+            }
+        }
+      num_attribute_chunks = num_index_chunks = number_z_increments =
+        fastuidraw::StrokedPath::chunk_number_choices + numJoins;
+    }
+
+    virtual
+    void
+    fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+              fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
+              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<unsigned int> zincrements) const
+    {
+      unsigned int attr_loc(0), idx_loc(0);
+
+      zincrements[fastuidraw::StrokedPath::chunk_without_closing_edge] = m_src->m_number_depth[false];
+      zincrements[fastuidraw::StrokedPath::chunk_with_closing_edge] = m_src->m_number_depth[true];
+
+      grab_attribute_index_data(attribute_data,  attr_loc, m_src->m_points(true),
+                                index_data, idx_loc, m_src->m_indices(true),
+                                attribute_chunks[fastuidraw::StrokedPath::chunk_with_closing_edge],
+                                index_chunks[fastuidraw::StrokedPath::chunk_with_closing_edge]);
+
+      attribute_chunks[fastuidraw::StrokedPath::chunk_without_closing_edge] =
+        attribute_chunks[fastuidraw::StrokedPath::chunk_with_closing_edge].sub_array(0, m_src->m_points(false).size());
+
+      unsigned int with, without;
+
+      with = m_src->m_indices(true).size();
+      without = m_src->m_indices(false).size();
+      assert(with >= without);
+
+      index_chunks[fastuidraw::StrokedPath::chunk_without_closing_edge] =
+        index_chunks[fastuidraw::StrokedPath::chunk_with_closing_edge].sub_array(with - without);
+
+      unsigned int gJ = 0;
+      for(unsigned int C = 0, endC = m_src->number_contours(); C < endC; ++C)
+        {
+          assert(m_src->number_joins(C) >= 2);
+          for(unsigned int J = 0, endJ = m_src->number_joins(C) - 2; J < endJ; ++J)
+            {
+              grab_specific_join(*m_src, fastuidraw::StrokedPath::chunk_with_closing_edge, C, J, gJ,
+                                 gJ + fastuidraw::StrokedPath::chunk_number_choices,
+                                 index_data, attribute_chunks,
+                                 index_chunks, idx_loc);
+            }
+        }
+
+      for(unsigned int C = 0, endC = m_src->number_contours(); C < endC; ++C)
+        {
+          unsigned int J;
+          J = m_src->number_joins(C) - 1;
+          grab_specific_join(*m_src, fastuidraw::StrokedPath::chunk_with_closing_edge, C, J, gJ,
+                             gJ + fastuidraw::StrokedPath::chunk_number_choices,
+                             index_data, attribute_chunks,
+                             index_chunks, idx_loc);
+          J = m_src->number_joins(C) - 2;
+          grab_specific_join(*m_src, fastuidraw::StrokedPath::chunk_with_closing_edge, C, J, gJ,
+                             gJ + fastuidraw::StrokedPath::chunk_number_choices,
+                             index_data, attribute_chunks,
+                             index_chunks, idx_loc);
+        }
+    }
+
+  private:
+    const JoinsPointData *m_src;
+  };
 
   class StrokedPathPrivate
   {
@@ -773,35 +1006,40 @@ namespace
 
     static
     void
-    create_edges(PathData &e, const fastuidraw::TessellatedPath &P, void *out_edges);
+    create_edges(PathData &e, const fastuidraw::TessellatedPath &P,
+                 fastuidraw::PainterAttributeData &out_edges);
 
     template<typename T>
     static
     void
-    create_joins(const PathData &e, void *out_data);
+    create_joins(const PathData &e,
+                 fastuidraw::PainterAttributeData &out_data);
 
     template<typename T>
     static
     void
-    create_joins(const PathData &e, float thresh, void *out_data);
+    create_joins(const PathData &e, float thresh,
+                 fastuidraw::PainterAttributeData &out_data);
 
     template<typename T>
     static
     void
-    create_caps(const PathData &e, void *out_data);
+    create_caps(const PathData &e,
+                 fastuidraw::PainterAttributeData &out_data);
 
     template<typename T>
     static
     void
-    create_caps(const PathData &e, float thresh, void *out_data);
+    create_caps(const PathData &e, float thresh,
+                fastuidraw::PainterAttributeData &out_data);
 
-    fastuidraw::StrokedPath::Edges m_edges;
-    fastuidraw::StrokedPath::Joins m_bevel_joins, m_miter_joins;
-    fastuidraw::StrokedPath::Caps m_square_caps, m_adjustable_caps;
+    fastuidraw::PainterAttributeData m_edges;
+    fastuidraw::PainterAttributeData m_bevel_joins, m_miter_joins;
+    fastuidraw::PainterAttributeData m_square_caps, m_adjustable_caps;
     PathData m_path_data;
 
-    std::vector<ThreshWithJoins> m_rounded_joins;
-    std::vector<ThreshWithCaps> m_rounded_caps;
+    std::vector<ThreshWithData> m_rounded_joins;
+    std::vector<ThreshWithData> m_rounded_caps;
 
     float m_effective_curve_distance_threshhold;
   };
@@ -2119,26 +2357,10 @@ fill_join_implement(unsigned int join_id,
   add_triangle_fan(first, vertex_offset, indices, index_offset);
 }
 
-/////////////////////////////////////
-// GenericDataPrivate methods
-GenericDataPrivate::
-GenericDataPrivate(void):
-  m_attribute_data(NULL)
-{}
-
-GenericDataPrivate::
-~GenericDataPrivate()
-{
-  if(m_attribute_data != NULL)
-    {
-      FASTUIDRAWdelete(m_attribute_data);
-    }
-}
-
 ///////////////////////////
-// JoinsPrivate methods
+// JoinsPointData methods
 void
-JoinsPrivate::
+JoinsPointData::
 resize_locations(const PathData &P)
 {
   m_locations.resize(P.number_contours());
@@ -2171,86 +2393,86 @@ StrokedPathPrivate::
 
 void
 StrokedPathPrivate::
-create_edges(PathData &path_data, const fastuidraw::TessellatedPath &P, void *d)
+create_edges(PathData &path_data, const fastuidraw::TessellatedPath &P,
+             fastuidraw::PainterAttributeData &out_edges)
 {
   EdgeDataCreator e(P, path_data);
-  GenericDataPrivate *edge_private;
+  PointData edge_data;
 
-  edge_private = reinterpret_cast<GenericDataPrivate*>(d);
-  edge_private->m_data.resize(e.sizes());
-  e.fill_data(edge_private->m_data.m_points.data(true),
-              edge_private->m_data.m_indices.data(true),
-              edge_private->m_data.m_number_depth[false],
-              edge_private->m_data.m_number_depth[true]);
-  edge_private->m_data.compute_conveniance(edge_private->m_return_values);
+  edge_data.resize(e.sizes());
+  e.fill_data(edge_data.m_points(true),
+              edge_data.m_indices(true),
+              edge_data.m_number_depth[false],
+              edge_data.m_number_depth[true]);
+  out_edges.set_data(EdgeFiller(&edge_data));
 }
 
 template<typename T>
 void
 StrokedPathPrivate::
-create_joins(const PathData &e, void *d)
+create_joins(const PathData &e,
+             fastuidraw::PainterAttributeData &out_joins)
 {
-  JoinsPrivate *out_data;
-
-  out_data = reinterpret_cast<JoinsPrivate*>(d);
-  out_data->resize_locations(e);
+  JoinsPointData join_data;
+  join_data.resize_locations(e);
 
   T creator(e);
-  out_data->m_data.resize(creator.sizes());
-  creator.fill_data(out_data->m_data.m_points.data(true),
-                    out_data->m_data.m_indices.data(true),
-                    out_data->m_data.m_number_depth[false],
-                    out_data->m_data.m_number_depth[true],
-                    out_data->m_locations);
-  out_data->m_data.compute_conveniance(out_data->m_return_values);
+  join_data.resize(creator.sizes());
+  creator.fill_data(join_data.m_points(true),
+                    join_data.m_indices(true),
+                    join_data.m_number_depth[false],
+                    join_data.m_number_depth[true],
+                    join_data.m_locations);
+  out_joins.set_data(JoinFiller(&join_data));
 }
 
 template<typename T>
 void
 StrokedPathPrivate::
-create_joins(const PathData &e, float thresh, void *d)
+create_joins(const PathData &e, float thresh,
+             fastuidraw::PainterAttributeData &out_joins)
 {
-  JoinsPrivate *out_data;
-
-  out_data = reinterpret_cast<JoinsPrivate*>(d);
-  out_data->resize_locations(e);
+  JoinsPointData join_data;
+  join_data.resize_locations(e);
 
   T creator(e, thresh);
-  out_data->m_data.resize(creator.sizes());
-  creator.fill_data(out_data->m_data.m_points.data(true),
-                    out_data->m_data.m_indices.data(true),
-                    out_data->m_data.m_number_depth[false],
-                    out_data->m_data.m_number_depth[true],
-                    out_data->m_locations);
-  out_data->m_data.compute_conveniance(out_data->m_return_values);
+  join_data.resize(creator.sizes());
+  creator.fill_data(join_data.m_points(true),
+                    join_data.m_indices(true),
+                    join_data.m_number_depth[false],
+                    join_data.m_number_depth[true],
+                    join_data.m_locations);
+  out_joins.set_data(JoinFiller(&join_data));
 }
 
 template<typename T>
 void
 StrokedPathPrivate::
-create_caps(const PathData &e, void *d)
+create_caps(const PathData &e,
+            fastuidraw::PainterAttributeData &out_caps)
 {
-  CapsPrivate *out_data;
-  out_data = reinterpret_cast<CapsPrivate*>(d);
+  CapsPointData cap_data;
 
   T creator(e);
-  out_data->resize(creator.sizes());
-  out_data->m_number_depth = creator.fill_data(fastuidraw::make_c_array(out_data->m_points),
-                                               fastuidraw::make_c_array(out_data->m_indices));
+  cap_data.resize(creator.sizes());
+  cap_data.m_number_depth = creator.fill_data(fastuidraw::make_c_array(cap_data.m_points),
+                                              fastuidraw::make_c_array(cap_data.m_indices));
+  out_caps.set_data(CapFiller(&cap_data));
 }
 
 template<typename T>
 void
 StrokedPathPrivate::
-create_caps(const PathData &e, float thresh, void *d)
+create_caps(const PathData &e, float thresh,
+            fastuidraw::PainterAttributeData &out_caps)
 {
-  CapsPrivate *out_data;
-  out_data = reinterpret_cast<CapsPrivate*>(d);
+  CapsPointData cap_data;
 
   T creator(e, thresh);
-  out_data->resize(creator.sizes());
-  out_data->m_number_depth = creator.fill_data(fastuidraw::make_c_array(out_data->m_points),
-                                               fastuidraw::make_c_array(out_data->m_indices));
+  cap_data.resize(creator.sizes());
+  cap_data.m_number_depth = creator.fill_data(fastuidraw::make_c_array(cap_data.m_points),
+                                              fastuidraw::make_c_array(cap_data.m_indices));
+  out_caps.set_data(CapFiller(&cap_data));
 }
 
 //////////////////////////////////////
@@ -2373,218 +2595,25 @@ miter_distance(void) const
     }
 }
 
-/////////////////////////////////////////////////////
-// fastuidraw::StrokedPath::Edges methods
-fastuidraw::StrokedPath::Edges::
-Edges(void)
-{
-  m_d = FASTUIDRAWnew GenericDataPrivate();
-}
-
-fastuidraw::StrokedPath::Edges::
-~Edges()
-{
-  GenericDataPrivate *d;
-  d = reinterpret_cast<GenericDataPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-}
-
-fastuidraw::const_c_array<fastuidraw::StrokedPath::point>
-fastuidraw::StrokedPath::Edges::
-points(bool including_closing_edge) const
-{
-  GenericDataPrivate *d;
-  d = reinterpret_cast<GenericDataPrivate*>(m_d);
-  return d->m_return_values[including_closing_edge].m_points;
-}
-
-fastuidraw::const_c_array<unsigned int>
-fastuidraw::StrokedPath::Edges::
-indices(bool including_closing_edge) const
-{
-  GenericDataPrivate *d;
-  d = reinterpret_cast<GenericDataPrivate*>(m_d);
-  return d->m_return_values[including_closing_edge].m_indices;
-}
-
-unsigned int
-fastuidraw::StrokedPath::Edges::
-number_depth(bool including_closing_edge) const
-{
-  GenericDataPrivate *d;
-  d = reinterpret_cast<GenericDataPrivate*>(m_d);
-  return d->m_return_values[including_closing_edge].m_number_depth;
-}
-
-const fastuidraw::PainterAttributeData&
-fastuidraw::StrokedPath::Edges::
-painter_data(void) const
-{
-  GenericDataPrivate *d;
-  d = reinterpret_cast<GenericDataPrivate*>(m_d);
-  if(d->m_attribute_data == NULL)
-    {
-      d->m_attribute_data = FASTUIDRAWnew PainterAttributeData();
-      d->m_attribute_data->set_data(PainterAttributeDataFillerPathEdges(*this));
-    }
-  return *d->m_attribute_data;
-}
-
-/////////////////////////////////////
-// fastuidraw::StrokedPath::Joins methods
-fastuidraw::StrokedPath::Joins::
-Joins(void)
-{
-  m_d = FASTUIDRAWnew JoinsPrivate();
-}
-
-fastuidraw::StrokedPath::Joins::
-~Joins()
-{
-  JoinsPrivate *d;
-  d = reinterpret_cast<JoinsPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-}
-
-fastuidraw::const_c_array<fastuidraw::StrokedPath::point>
-fastuidraw::StrokedPath::Joins::
-points(bool including_closing_edge) const
-{
-  JoinsPrivate *d;
-  d = reinterpret_cast<JoinsPrivate*>(m_d);
-  return d->m_return_values[including_closing_edge].m_points;
-}
-
-fastuidraw::const_c_array<unsigned int>
-fastuidraw::StrokedPath::Joins::
-indices(bool including_closing_edge) const
-{
-  JoinsPrivate *d;
-  d = reinterpret_cast<JoinsPrivate*>(m_d);
-  return d->m_return_values[including_closing_edge].m_indices;
-}
-
-unsigned int
-fastuidraw::StrokedPath::Joins::
-number_depth(bool including_closing_edge) const
-{
-  JoinsPrivate *d;
-  d = reinterpret_cast<JoinsPrivate*>(m_d);
-  return d->m_return_values[including_closing_edge].m_number_depth;
-}
-
-unsigned int
-fastuidraw::StrokedPath::Joins::
-number_contours(void) const
-{
-  JoinsPrivate *d;
-  d = reinterpret_cast<JoinsPrivate*>(m_d);
-  return d->m_locations.size();
-}
-
-unsigned int
-fastuidraw::StrokedPath::Joins::
-number_joins(unsigned int contour) const
-{
-  JoinsPrivate *d;
-  d = reinterpret_cast<JoinsPrivate*>(m_d);
-  assert(contour < d->m_locations.size());
-  return d->m_locations[contour].size();
-}
-
-fastuidraw::range_type<unsigned int>
-fastuidraw::StrokedPath::Joins::
-points_range(unsigned int contour, unsigned int N) const
-{
-  JoinsPrivate *d;
-  d = reinterpret_cast<JoinsPrivate*>(m_d);
-  assert(contour < d->m_locations.size() && N < d->m_locations[contour].size());
-  return d->m_locations[contour][N].m_attribs;
-}
-
-fastuidraw::range_type<unsigned int>
-fastuidraw::StrokedPath::Joins::
-indices_range(unsigned int contour, unsigned int N) const
-{
-  JoinsPrivate *d;
-  d = reinterpret_cast<JoinsPrivate*>(m_d);
-  assert(contour < d->m_locations.size() && N < d->m_locations[contour].size());
-  return d->m_locations[contour][N].m_indices;
-}
-
-const fastuidraw::PainterAttributeData&
-fastuidraw::StrokedPath::Joins::
-painter_data(void) const
-{
-  JoinsPrivate *d;
-  d = reinterpret_cast<JoinsPrivate*>(m_d);
-  if(d->m_attribute_data == NULL)
-    {
-      d->m_attribute_data = FASTUIDRAWnew PainterAttributeData();
-      d->m_attribute_data->set_data(PainterAttributeDataFillerPathJoins(*this));
-    }
-  return *d->m_attribute_data;
-}
-
-//////////////////////////////////
-// fastuidraw::StrokedPath::Caps methods
-fastuidraw::StrokedPath::Caps::
-Caps(void)
-{
-  m_d = FASTUIDRAWnew CapsPrivate();
-}
-
-fastuidraw::StrokedPath::Caps::
-~Caps()
-{
-  CapsPrivate *d;
-  d = reinterpret_cast<CapsPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-}
-
-fastuidraw::const_c_array<fastuidraw::StrokedPath::point>
-fastuidraw::StrokedPath::Caps::
-points(void) const
-{
-  const CapsPrivate *d;
-  d = reinterpret_cast<const CapsPrivate*>(m_d);
-  return make_c_array(d->m_points);
-}
-
-fastuidraw::const_c_array<unsigned int>
-fastuidraw::StrokedPath::Caps::
-indices(void) const
-{
-  const CapsPrivate *d;
-  d = reinterpret_cast<const CapsPrivate*>(m_d);
-  return make_c_array(d->m_indices);
-}
-
-unsigned int
-fastuidraw::StrokedPath::Caps::
-number_depth(void) const
-{
-  const CapsPrivate *d;
-  d = reinterpret_cast<const CapsPrivate*>(m_d);
-  return d->m_number_depth;
-}
-
-const fastuidraw::PainterAttributeData&
-fastuidraw::StrokedPath::Caps::
-painter_data(void) const
-{
-  CapsPrivate *d;
-  d = reinterpret_cast<CapsPrivate*>(m_d);
-  if(d->m_attribute_data == NULL)
-    {
-      d->m_attribute_data = FASTUIDRAWnew PainterAttributeData();
-      d->m_attribute_data->set_data(PainterAttributeDataFillerPathCaps(*this));
-    }
-  return *d->m_attribute_data;
-}
-
 //////////////////////////////////////////////////////////////
-// fastuidraw::StrokedPath methods
+// fastuidraw::StrokedPath methodsunsigned int
+unsigned int
+fastuidraw::StrokedPath::
+number_joins(const PainterAttributeData &join_data, bool with_closing_edges)
+{
+  unsigned int K;
+  K = with_closing_edges ? chunk_with_closing_edge : chunk_without_closing_edge;
+  return join_data.increment_z_value(K);
+
+}
+
+unsigned int
+fastuidraw::StrokedPath::
+chunk_for_named_join(unsigned int J)
+{
+  return chunk_number_choices + J;
+}
+
 fastuidraw::StrokedPath::
 StrokedPath(const fastuidraw::TessellatedPath &P)
 {
@@ -2593,12 +2622,12 @@ StrokedPath(const fastuidraw::TessellatedPath &P)
   assert(number_offset_types < FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(offset_type_num_bits));
   m_d = d = FASTUIDRAWnew StrokedPathPrivate();
 
-  StrokedPathPrivate::create_edges(d->m_path_data, P, d->m_edges.m_d);
+  StrokedPathPrivate::create_edges(d->m_path_data, P, d->m_edges);
 
-  StrokedPathPrivate::create_joins<BevelJoinCreator>(d->m_path_data, d->m_bevel_joins.m_d);
-  StrokedPathPrivate::create_joins<MiterJoinCreator>(d->m_path_data, d->m_miter_joins.m_d);
-  StrokedPathPrivate::create_caps<SquareCapCreator>(d->m_path_data, d->m_square_caps.m_d);
-  StrokedPathPrivate::create_caps<AdjustableCapCreator>(d->m_path_data, d->m_adjustable_caps.m_d);
+  StrokedPathPrivate::create_joins<BevelJoinCreator>(d->m_path_data, d->m_bevel_joins);
+  StrokedPathPrivate::create_joins<MiterJoinCreator>(d->m_path_data, d->m_miter_joins);
+  StrokedPathPrivate::create_caps<SquareCapCreator>(d->m_path_data, d->m_square_caps);
+  StrokedPathPrivate::create_caps<AdjustableCapCreator>(d->m_path_data, d->m_adjustable_caps);
 
   d->m_effective_curve_distance_threshhold = P.effective_curve_distance_threshhold();
 }
@@ -2621,7 +2650,7 @@ effective_curve_distance_threshhold(void) const
   return d->m_effective_curve_distance_threshhold;
 }
 
-const fastuidraw::StrokedPath::Edges&
+const fastuidraw::PainterAttributeData&
 fastuidraw::StrokedPath::
 edges(void) const
 {
@@ -2630,7 +2659,7 @@ edges(void) const
   return d->m_edges;
 }
 
-const fastuidraw::StrokedPath::Caps&
+const fastuidraw::PainterAttributeData&
 fastuidraw::StrokedPath::
 square_caps(void) const
 {
@@ -2639,7 +2668,7 @@ square_caps(void) const
   return d->m_square_caps;
 }
 
-const fastuidraw::StrokedPath::Caps&
+const fastuidraw::PainterAttributeData&
 fastuidraw::StrokedPath::
 adjustable_caps(void) const
 {
@@ -2648,7 +2677,7 @@ adjustable_caps(void) const
   return d->m_adjustable_caps;
 }
 
-const fastuidraw::StrokedPath::Joins&
+const fastuidraw::PainterAttributeData&
 fastuidraw::StrokedPath::
 bevel_joins(void) const
 {
@@ -2657,7 +2686,7 @@ bevel_joins(void) const
   return d->m_bevel_joins;
 }
 
-const fastuidraw::StrokedPath::Joins&
+const fastuidraw::PainterAttributeData&
 fastuidraw::StrokedPath::
 miter_joins(void) const
 {
@@ -2666,7 +2695,7 @@ miter_joins(void) const
   return d->m_miter_joins;
 }
 
-const fastuidraw::StrokedPath::Joins&
+const fastuidraw::PainterAttributeData&
 fastuidraw::StrokedPath::
 rounded_joins(float thresh) const
 {
@@ -2675,10 +2704,10 @@ rounded_joins(float thresh) const
 
   if(d->m_rounded_joins.empty())
     {
-      Joins *newJ;
-      newJ = FASTUIDRAWnew Joins();
-      StrokedPathPrivate::create_joins<RoundedJoinCreator>(d->m_path_data, 1.0f, newJ->m_d);
-      d->m_rounded_joins.push_back(ThreshWithJoins(newJ, 1.0f));
+      PainterAttributeData *newJ;
+      newJ = FASTUIDRAWnew PainterAttributeData();
+      StrokedPathPrivate::create_joins<RoundedJoinCreator>(d->m_path_data, 1.0f, *newJ);
+      d->m_rounded_joins.push_back(ThreshWithData(newJ, 1.0f));
     }
 
   /* we set a hard tolerance of 1e-6. Should we
@@ -2689,11 +2718,11 @@ rounded_joins(float thresh) const
 
   if(d->m_rounded_joins.back().m_thresh <= thresh)
     {
-      std::vector<ThreshWithJoins>::const_iterator iter;
+      std::vector<ThreshWithData>::const_iterator iter;
       iter = std::lower_bound(d->m_rounded_joins.begin(),
                               d->m_rounded_joins.end(),
                               thresh,
-                              ThreshWithJoins::reverse_compare_against_thresh);
+                              ThreshWithData::reverse_compare_against_thresh);
       assert(iter != d->m_rounded_joins.end());
       assert(iter->m_thresh <= thresh);
       assert(iter->m_data);
@@ -2705,18 +2734,18 @@ rounded_joins(float thresh) const
       t = d->m_rounded_joins.back().m_thresh;
       while(t > thresh)
         {
-          Joins *newJ;
+          PainterAttributeData *newJ;
 
           t *= 0.5f;
-          newJ = FASTUIDRAWnew Joins();
-          StrokedPathPrivate::create_joins<RoundedJoinCreator>(d->m_path_data, t, newJ->m_d);
-          d->m_rounded_joins.push_back(ThreshWithJoins(newJ, t));
+          newJ = FASTUIDRAWnew PainterAttributeData();
+          StrokedPathPrivate::create_joins<RoundedJoinCreator>(d->m_path_data, t, *newJ);
+          d->m_rounded_joins.push_back(ThreshWithData(newJ, t));
         }
       return *d->m_rounded_joins.back().m_data;
     }
 }
 
-const fastuidraw::StrokedPath::Caps&
+const fastuidraw::PainterAttributeData&
 fastuidraw::StrokedPath::
 rounded_caps(float thresh) const
 {
@@ -2725,11 +2754,11 @@ rounded_caps(float thresh) const
 
   if(d->m_rounded_caps.empty())
     {
-      Caps *newC;
+      PainterAttributeData *newC;
 
-      newC = FASTUIDRAWnew Caps();
-      StrokedPathPrivate::create_caps<RoundedCapCreator>(d->m_path_data, 1.0f, newC->m_d);
-      d->m_rounded_caps.push_back(ThreshWithCaps(newC, 1.0f));
+      newC = FASTUIDRAWnew PainterAttributeData();
+      StrokedPathPrivate::create_caps<RoundedCapCreator>(d->m_path_data, 1.0f, *newC);
+      d->m_rounded_caps.push_back(ThreshWithData(newC, 1.0f));
     }
 
   /* we set a hard tolerance of 1e-6. Should we
@@ -2740,11 +2769,11 @@ rounded_caps(float thresh) const
 
   if(d->m_rounded_caps.back().m_thresh <= thresh)
     {
-      std::vector<ThreshWithCaps>::const_iterator iter;
+      std::vector<ThreshWithData>::const_iterator iter;
       iter = std::lower_bound(d->m_rounded_caps.begin(),
                               d->m_rounded_caps.end(),
                               thresh,
-                              ThreshWithCaps::reverse_compare_against_thresh);
+                              ThreshWithData::reverse_compare_against_thresh);
       assert(iter != d->m_rounded_caps.end());
       assert(iter->m_thresh <= thresh);
       assert(iter->m_data);
@@ -2756,12 +2785,12 @@ rounded_caps(float thresh) const
       t = d->m_rounded_caps.back().m_thresh;
       while(t > thresh)
         {
-          Caps *newC;
+          PainterAttributeData *newC;
 
           t *= 0.5f;
-          newC = FASTUIDRAWnew Caps();
-          StrokedPathPrivate::create_caps<RoundedCapCreator>(d->m_path_data, t, newC->m_d);
-          d->m_rounded_caps.push_back(ThreshWithCaps(newC, t));
+          newC = FASTUIDRAWnew PainterAttributeData();
+          StrokedPathPrivate::create_caps<RoundedCapCreator>(d->m_path_data, t, *newC);
+          d->m_rounded_caps.push_back(ThreshWithData(newC, t));
         }
       return *d->m_rounded_caps.back().m_data;
     }

@@ -18,7 +18,6 @@
 
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
-#include <fastuidraw/painter/painter_attribute_data_filler_path_stroked.hpp>
 #include <fastuidraw/painter/painter_attribute_data_filler_path_fill.hpp>
 #include "backend_shaders.hpp"
 

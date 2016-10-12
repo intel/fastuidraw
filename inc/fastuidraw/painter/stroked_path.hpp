@@ -23,11 +23,11 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/painter/painter_attribute_data.hpp>
 
 namespace fastuidraw  {
 
 ///@cond
-class PainterAttributeData;
 class TessellatedPath;
 class Path;
 class PainterAttribute;
@@ -573,220 +573,40 @@ public:
     unpack_point(point *dst, const PainterAttribute &src);
   };
 
-  /*!
-    The class Edge represents the data to draw the
-    edges when stroking a path.
-   */
-  class Edges:fastuidraw::noncopyable
-  {
-  public:
-    Edges(void);
-    ~Edges();
+  enum chunk_choice_t
+    {
+      /*!
+        For both edges and joins, chunk to use for data without
+        closing edge
+       */
+      chunk_without_closing_edge,
 
-    /*!
-      Returns the geometric data for stroking the path. The backing data
-      store for with and without closing edge data is shared so that
-      \code
-      points(false) == points(true).sub_array(0, points(false).size())
-      \endcode
-      i.e., the geometric data for the closing edge comes at the end.
-      \param including_closing_edge if true, include the geometric data for of the
-                                    closing edge. Asking for caps ignores the value
-                                    for closing edge.
-     */
-    const_c_array<point>
-    points(bool including_closing_edge) const;
+      /*!
+        For both edges and joins, chunk to use for data with
+        closing edge
+       */
+      chunk_with_closing_edge,
 
-    /*!
-      Return the index data into as returned by points() for stroking
-      the path. The backing data store for with and without closing edge
-      data is shared so that
-      \code
-      unsigned int size_with, size_without;
-      size_with = indices(true);
-      size_without  = indices(false);
-      assert(size_with >= size_without);
-      assert(indices(true).sub_array(size_with - size_without) == indices(false))
-      \endcode
-      i.e., the index data for the closing edge is at the start of the
-      index array.
-      \param including_closing_edge if true, include the index data for of the
-                                    closing edge. Asking for caps ignores the value
-                                    for closing edge.
-     */
-    const_c_array<unsigned int>
-    indices(bool including_closing_edge) const;
-
-    /*!
-      Points returned by points(including_closing_edge) have that
-      their value for point::m_depth are in the half-open range
-      [0, number_depth(including_closing_edge))
-      \param including_closing_edge if true, include the index data for
-                                    the closing edge.
-     */
-    unsigned int
-    number_depth(bool including_closing_edge) const;
-
-    /*!
-      Returns the PainterAttributeData using "" to realize
-      the attribute data.
-     */
-    const PainterAttributeData&
-    painter_data(void) const;
-
-  private:
-    friend class StrokedPath;
-    void *m_d;
-  };
+      /*!
+       */
+      chunk_number_choices
+    };
 
   /*!
-    The class Caps represents the data needed to draw caps
-    when stroking with caps.
+    Returns the number of seperate joins held in a PainterAttributeData
+    that is holds data for joins.
    */
-  class Caps:fastuidraw::noncopyable
-  {
-  public:
-    Caps(void);
-    ~Caps();
-
-    /*!
-      Returns the geometric data for stroking the path.
-     */
-    const_c_array<point>
-    points(void) const;
-
-    /*!
-      Return the index data into as returned by points() for stroking
-      the path.
-     */
-    const_c_array<unsigned int>
-    indices(void) const;
-
-    /*!
-      Points returned by points() have that their value for point::m_depth
-      are in the half-open range [0, number_depth()).
-     */
-    unsigned int
-    number_depth(void) const;
-
-    /*!
-      Returns the PainterAttributeData using "" to realize
-      the attribute data.
-     */
-    const PainterAttributeData&
-    painter_data(void) const;
-
-  private:
-    friend class StrokedPath;
-    void *m_d;
-  };
+  static
+  unsigned int
+  number_joins(const PainterAttributeData &join_data, bool with_closing_edges);
 
   /*!
-    The class Joins represents the data needed to
-    draw the joins when stroking a path.
+    Returns what chunk of a PainterAttributeData that holds data for
+    joins for a named join.
    */
-  class Joins:fastuidraw::noncopyable
-  {
-  public:
-    Joins(void);
-    ~Joins();
-
-    /*!
-      Returns the geometric data for stroking the path. The backing data
-      store for with and without closing edge data is shared so that
-      \code
-      points(false) == points(true).sub_array(0, points(false).size())
-      \endcode
-      i.e., the geometric data for the closing edge comes at the end.
-      \param including_closing_edge if true, include the geometric data for of the
-                                    closing edge. Asking for caps ignores the value
-                                    for closing edge.
-     */
-    const_c_array<point>
-    points(bool including_closing_edge) const;
-
-    /*!
-      Return the index data into as returned by points() for stroking
-      the path. The backing data store for with and without closing edge
-      data is shared so that
-      \code
-      unsigned int size_with, size_without;
-      size_with = indices(true);
-      size_without  = indices(false);
-      assert(size_with >= size_without);
-      assert(indices(true).sub_array(size_with - size_without) == indices(false))
-      \endcode
-      i.e., the index data for the closing edge is at the start of the
-      index array.
-      \param including_closing_edge if true, include the index data for of the
-                                    closing edge. Asking for caps ignores the value
-                                    for closing edge.
-     */
-    const_c_array<unsigned int>
-    indices(bool including_closing_edge) const;
-
-    /*!
-      Points returned by points(including_closing_edge) have that
-      their value for point::m_depth are in the half-open range
-      [0, number_depth(including_closing_edge))
-      \param including_closing_edge if true, include the index data for
-                                    the closing edge.
-     */
-    unsigned int
-    number_depth(bool including_closing_edge) const;
-
-    /*!
-      Returns the number of contours of the generating path.
-     */
-    unsigned int
-    number_contours(void) const;
-
-    /*!
-      Returns the number of joins for the named contour
-      of the generating path. Join numbering is so that
-      join A is the join that connects edge A to A + 1.
-      In particular the joins of a closing edge of contour
-      C are then at number_joins(C) - 2 and number_joins(C) - 1.
-      \param contour which contour, with contour < number_contours().
-     */
-    unsigned int
-    number_joins(unsigned int contour) const;
-
-    /*!
-      Returns the range into points(tp, true) for the
-      indices of the named join or cap of the named contour.
-      \param contour which contour, with contour < number_contours().
-      \param J if tp is a join type, gives which join with J < number_joins(contour).
-               if tp is a cap type, gives which cap with J = 0 meaning the
-               cap at the start of the contour and J = 1 the cap at the
-               end of the contour
-     */
-    range_type<unsigned int>
-    points_range(unsigned int contour, unsigned int J) const;
-
-    /*!
-      Returns the range into indices(tp, true) for the
-      indices of the named join or cap of the named contour.
-      \param contour which contour, with contour < number_contours().
-      \param J if tp is a join type, gives which join with J < number_joins(contour).
-               if tp is a cap type, gives which cap with J = 0 meaning the
-               cap at the start of the contour and J = 1 the cap at the
-               end of the contour
-     */
-    range_type<unsigned int>
-    indices_range(unsigned int contour, unsigned int J) const;
-
-    /*!
-      Returns the PainterAttributeData using "" to realize
-      the attribute data.
-     */
-    const PainterAttributeData&
-    painter_data(void) const;
-
-  private:
-    friend class StrokedPath;
-    void *m_d;
-  };
+  static
+  unsigned int
+  chunk_for_named_join(unsigned int J);
 
   /*!
     Ctor. Construct a StrokedPath from the data
@@ -808,32 +628,32 @@ public:
   /*!
     Returns the data to draw the edges of a stroked path.
    */
-  const Edges&
+  const PainterAttributeData&
   edges(void) const;
 
   /*!
     Returns the data to draw the square caps of a stroked path.
    */
-  const Caps&
+  const PainterAttributeData&
   square_caps(void) const;
 
   /*!
     Returns the data to draw the caps of a stroked path used
     when stroking with a dash pattern.
    */
-  const Caps&
+  const PainterAttributeData&
   adjustable_caps(void) const;
 
   /*!
     Returns the data to draw the bevel joins of a stroked path.
    */
-  const Joins&
+  const PainterAttributeData&
   bevel_joins(void) const;
 
   /*!
     Returns the data to draw the miter joins of a stroked path.
    */
-  const Joins&
+  const PainterAttributeData&
   miter_joins(void) const;
 
   /*!
@@ -842,7 +662,7 @@ public:
                   between the approximation of the round and the
                   actual round is no more than thresh.
    */
-  const Joins&
+  const PainterAttributeData&
   rounded_joins(float thresh) const;
 
   /*!
@@ -851,7 +671,7 @@ public:
                   between the approximation of the round and the
                   actual round is no more than thresh.
    */
-  const Caps&
+  const PainterAttributeData&
   rounded_caps(float thresh) const;
 
 private:

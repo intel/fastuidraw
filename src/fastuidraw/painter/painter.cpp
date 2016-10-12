@@ -22,8 +22,6 @@
 
 #include <fastuidraw/util/math.hpp>
 #include <fastuidraw/painter/painter_header.hpp>
-#include <fastuidraw/painter/painter_attribute_data_filler_path_stroked.hpp>
-#include <fastuidraw/painter/painter_attribute_data_filler_path_fill.hpp>
 #include <fastuidraw/painter/painter.hpp>
 
 #include "../private/util_private.hpp"
@@ -452,6 +450,14 @@ namespace
     PainterWorkRoom m_work_room;
   };
 
+  inline
+  unsigned int
+  chunk_for_stroking(bool close_contours)
+  {
+    return close_contours ?
+      fastuidraw::StrokedPath::chunk_with_closing_edge:
+      fastuidraw::StrokedPath::chunk_without_closing_edge;
+  }
 }
 
 //////////////////////////////////////////
@@ -1288,8 +1294,10 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
     }
 
   const PainterAttributeData *edge_data(NULL), *cap_data(NULL), *join_data(NULL);
-  unsigned int edge_chunk(close_contours), inc_edge, cap_chunk(0);
-  unsigned int join_chunk(close_contours), inc_join(0);
+  unsigned int edge_chunk(chunk_for_stroking(close_contours));
+  unsigned int inc_edge, cap_chunk(0);
+  unsigned int join_chunk(chunk_for_stroking(close_contours));
+  unsigned int inc_join(0);
   float rounded_thresh;
 
   if(js == PainterEnums::rounded_joins
@@ -1301,18 +1309,18 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
       rounded_thresh = shader.stroking_data_selector()->compute_rounded_thresh(raw_data, thresh);
     }
 
-  edge_data = &path.edges().painter_data();
-  inc_edge = path.edges().painter_data().increment_z_value(edge_chunk);
+  edge_data = &path.edges();
+  inc_edge = edge_data->increment_z_value(edge_chunk);
   if(!close_contours)
     {
       switch(cp)
         {
         case PainterEnums::rounded_caps:
-          cap_data = &path.rounded_caps(rounded_thresh).painter_data();
+          cap_data = &path.rounded_caps(rounded_thresh);
           break;
 
         case PainterEnums::square_caps:
-          cap_data = &path.square_caps().painter_data();
+          cap_data = &path.square_caps();
           break;
 
         default:
@@ -1323,15 +1331,15 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
   switch(js)
     {
     case PainterEnums::bevel_joins:
-      join_data = &path.bevel_joins().painter_data();
+      join_data = &path.bevel_joins();
       break;
 
     case PainterEnums::miter_joins:
-      join_data = &path.miter_joins().painter_data();
+      join_data = &path.miter_joins();
       break;
 
     case PainterEnums::rounded_joins:
-      join_data = &path.rounded_joins(rounded_thresh).painter_data();
+      join_data = &path.rounded_joins(rounded_thresh);
       break;
 
     default:
@@ -1464,23 +1472,23 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
     }
 
   const PainterAttributeData *edge_data(NULL), *cap_data(NULL), *join_data(NULL);
-  unsigned int edge_chunk(close_contours), inc_edge, cap_chunk(0);
+  unsigned int edge_chunk(chunk_for_stroking(close_contours)), inc_edge, cap_chunk(0);
 
-  edge_data = &path.edges().painter_data();
+  edge_data = &path.edges();
   inc_edge = edge_data->increment_z_value(edge_chunk);
   if(!close_contours)
     {
-      cap_data = &path.adjustable_caps().painter_data();
+      cap_data = &path.adjustable_caps();
     }
 
   switch(js)
     {
     case PainterEnums::bevel_joins:
-      join_data = &path.bevel_joins().painter_data();
+      join_data = &path.bevel_joins();
       break;
 
     case PainterEnums::miter_joins:
-      join_data = &path.miter_joins().painter_data();
+      join_data = &path.miter_joins();
       break;
 
     case PainterEnums::rounded_joins:
@@ -1490,7 +1498,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
 
         raw_data = draw.m_item_shader_data.data().data_base();
         rounded_thresh = shader.shader(cp).stroking_data_selector()->compute_rounded_thresh(raw_data, thresh);
-        join_data = &path.rounded_joins(rounded_thresh).painter_data();
+        join_data = &path.rounded_joins(rounded_thresh);
       }
       break;
 

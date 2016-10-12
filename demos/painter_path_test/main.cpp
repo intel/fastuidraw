@@ -980,17 +980,27 @@ void
 painter_stroke_test::
 create_stroked_path_attributes(void)
 {
+  reference_counted_ptr<const TessellatedPath> tessellated;
+  reference_counted_ptr<const StrokedPath> stroked;
+  const PainterAttributeData *data;
+  const_c_array<PainterAttribute> miter_points;
+
   m_max_miter = 0.0f;
-  const_c_array<StrokedPath::point> miter_points;
-  miter_points = m_path.tessellation(-1.0f)->stroked()->miter_joins().points(true);
+  tessellated = m_path.tessellation(-1.0f);
+  stroked = tessellated->stroked();
+  data = &stroked->miter_joins();
+
+  miter_points = data->attribute_data_chunk(StrokedPath::chunk_with_closing_edge);
   for(unsigned p = 0, endp = miter_points.size(); p < endp; ++p)
     {
       float v;
+      StrokedPath::point pt;
 
-      v = miter_points[p].miter_distance();
+      StrokedPath::point::unpack_point(&pt, miter_points[p]);
+      v = pt.miter_distance();
       if(isfinite(v))
         {
-          m_max_miter = fastuidraw::t_max(m_max_miter, fastuidraw::t_abs(v) );
+          m_max_miter = fastuidraw::t_max(m_max_miter, fastuidraw::t_abs(v));
         }
     }
   m_miter_limit = fastuidraw::t_min(100.0f, m_max_miter); //100 is an insane miter limit.
