@@ -26,9 +26,11 @@
 
 namespace fastuidraw  {
 
+///@cond
 class PainterAttributeData;
 class TessellatedPath;
 class Path;
+///@endcond
 
 /*!\addtogroup Core
   @{

@@ -20,11 +20,14 @@
 #pragma once
 
 #include <fastuidraw/path.hpp>
-
-#include <fastuidraw/painter/packing/painter_packer.hpp>
+#include <fastuidraw/tessellated_path.hpp>
+#include <fastuidraw/stroked_path.hpp>
+#include <fastuidraw/filled_path.hpp>
+#include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
 #include <fastuidraw/painter/painter_data.hpp>
+#include <fastuidraw/painter/packing/painter_packer.hpp>
 
 namespace fastuidraw
 {

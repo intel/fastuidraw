@@ -21,6 +21,7 @@
 #include <cmath>
 #include <vector>
 #include <fastuidraw/path.hpp>
+#include <fastuidraw/tessellated_path.hpp>
 #include "private/util_private.hpp"
 #include "private/path_util_private.hpp"
 

@@ -24,13 +24,13 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
-#include <fastuidraw/stroked_path.hpp>
-#include <fastuidraw/filled_path.hpp>
 
 namespace fastuidraw  {
 
 ///@cond
 class Path;
+class StrokedPath;
+class FilledPath;
 ///@endcond
 
 /*!\addtogroup Core

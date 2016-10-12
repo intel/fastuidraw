@@ -20,6 +20,7 @@
 #include <vector>
 
 #include <fastuidraw/glsl/painter_backend_glsl.hpp>
+#include <fastuidraw/stroked_path.hpp>
 #include <fastuidraw/painter/painter_header.hpp>
 #include <fastuidraw/painter/painter_item_matrix.hpp>
 #include <fastuidraw/painter/painter_clip_equations.hpp>
