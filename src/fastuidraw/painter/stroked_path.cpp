@@ -1068,6 +1068,11 @@ namespace
     create_caps(const PathData &e, float thresh,
                 fastuidraw::PainterAttributeData &out_data);
 
+    const fastuidraw::PainterAttributeData&
+    rounded_fetch_create(float thresh,
+                         void (*create)(const PathData&, float, fastuidraw::PainterAttributeData&),
+                         std::vector<ThreshWithData> &values);
+
     fastuidraw::PainterAttributeData m_edges;
     fastuidraw::PainterAttributeData m_bevel_joins, m_miter_joins;
     fastuidraw::PainterAttributeData m_square_caps, m_adjustable_caps;
@@ -2523,6 +2528,52 @@ create_caps(const PathData &e, float thresh,
   out_caps.set_data(CapFiller(&cap_data));
 }
 
+const fastuidraw::PainterAttributeData&
+StrokedPathPrivate::
+rounded_fetch_create(float thresh,
+                     void (*create)(const PathData&, float, fastuidraw::PainterAttributeData&),
+                     std::vector<ThreshWithData> &values)
+{
+  if(values.empty())
+    {
+      fastuidraw::PainterAttributeData *newD;
+      newD = FASTUIDRAWnew fastuidraw::PainterAttributeData();
+      create(m_path_data, 1.0f, *newD);
+      values.push_back(ThreshWithData(newD, 1.0f));
+    }
+
+  /* we set a hard tolerance of 1e-6. Should we
+     set it as a ratio of the bounding box of
+     the underlying tessellated path?
+   */
+  thresh = fastuidraw::t_max(thresh, float(1e-6));
+  if(values.back().m_thresh <= thresh)
+    {
+      std::vector<ThreshWithData>::const_iterator iter;
+      iter = std::lower_bound(values.begin(), values.end(), thresh,
+                              ThreshWithData::reverse_compare_against_thresh);
+      assert(iter != values.end());
+      assert(iter->m_thresh <= thresh);
+      assert(iter->m_data != NULL);
+      return *iter->m_data;
+    }
+  else
+    {
+      float t;
+      t = values.back().m_thresh;
+      while(t > thresh)
+        {
+          fastuidraw::PainterAttributeData *newD;
+
+          t *= 0.5f;
+          newD = FASTUIDRAWnew fastuidraw::PainterAttributeData();
+          create(m_path_data, t, *newD);
+          values.push_back(ThreshWithData(newD, t));
+        }
+      return *values.back().m_data;
+    }
+}
+
 //////////////////////////////////////
 // fastuidraw::StrokedPath::point methods
 void
@@ -2787,47 +2838,9 @@ rounded_joins(float thresh) const
   StrokedPathPrivate *d;
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
 
-  if(d->m_rounded_joins.empty())
-    {
-      PainterAttributeData *newJ;
-      newJ = FASTUIDRAWnew PainterAttributeData();
-      StrokedPathPrivate::create_joins<RoundedJoinCreator>(d->m_path_data, 1.0f, *newJ);
-      d->m_rounded_joins.push_back(ThreshWithData(newJ, 1.0f));
-    }
-
-  /* we set a hard tolerance of 1e-6. Should we
-     set it as a ratio of the bounding box of
-     the underlying tessellated path?
-   */
-  thresh = t_max(thresh, float(1e-6));
-
-  if(d->m_rounded_joins.back().m_thresh <= thresh)
-    {
-      std::vector<ThreshWithData>::const_iterator iter;
-      iter = std::lower_bound(d->m_rounded_joins.begin(),
-                              d->m_rounded_joins.end(),
-                              thresh,
-                              ThreshWithData::reverse_compare_against_thresh);
-      assert(iter != d->m_rounded_joins.end());
-      assert(iter->m_thresh <= thresh);
-      assert(iter->m_data);
-      return *iter->m_data;
-    }
-  else
-    {
-      float t;
-      t = d->m_rounded_joins.back().m_thresh;
-      while(t > thresh)
-        {
-          PainterAttributeData *newJ;
-
-          t *= 0.5f;
-          newJ = FASTUIDRAWnew PainterAttributeData();
-          StrokedPathPrivate::create_joins<RoundedJoinCreator>(d->m_path_data, t, *newJ);
-          d->m_rounded_joins.push_back(ThreshWithData(newJ, t));
-        }
-      return *d->m_rounded_joins.back().m_data;
-    }
+  return d->rounded_fetch_create(thresh,
+                                 StrokedPathPrivate::create_joins<RoundedJoinCreator>,
+                                 d->m_rounded_joins);
 }
 
 const fastuidraw::PainterAttributeData&
@@ -2836,47 +2849,7 @@ rounded_caps(float thresh) const
 {
   StrokedPathPrivate *d;
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
-
-  if(d->m_rounded_caps.empty())
-    {
-      PainterAttributeData *newC;
-
-      newC = FASTUIDRAWnew PainterAttributeData();
-      StrokedPathPrivate::create_caps<RoundedCapCreator>(d->m_path_data, 1.0f, *newC);
-      d->m_rounded_caps.push_back(ThreshWithData(newC, 1.0f));
-    }
-
-  /* we set a hard tolerance of 1e-6. Should we
-     set it as a ratio of the bounding box of
-     the underlying tessellated path?
-   */
-  thresh = t_max(thresh, float(1e-6));
-
-  if(d->m_rounded_caps.back().m_thresh <= thresh)
-    {
-      std::vector<ThreshWithData>::const_iterator iter;
-      iter = std::lower_bound(d->m_rounded_caps.begin(),
-                              d->m_rounded_caps.end(),
-                              thresh,
-                              ThreshWithData::reverse_compare_against_thresh);
-      assert(iter != d->m_rounded_caps.end());
-      assert(iter->m_thresh <= thresh);
-      assert(iter->m_data);
-      return *iter->m_data;
-    }
-  else
-    {
-      float t;
-      t = d->m_rounded_caps.back().m_thresh;
-      while(t > thresh)
-        {
-          PainterAttributeData *newC;
-
-          t *= 0.5f;
-          newC = FASTUIDRAWnew PainterAttributeData();
-          StrokedPathPrivate::create_caps<RoundedCapCreator>(d->m_path_data, t, *newC);
-          d->m_rounded_caps.push_back(ThreshWithData(newC, t));
-        }
-      return *d->m_rounded_caps.back().m_data;
-    }
+  return d->rounded_fetch_create(thresh,
+                                 StrokedPathPrivate::create_caps<RoundedCapCreator>,
+                                 d->m_rounded_caps);
 }
