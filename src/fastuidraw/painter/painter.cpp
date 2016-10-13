@@ -1512,7 +1512,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
       rounded_thresh = shader.stroking_data_selector()->compute_rounded_thresh(raw_data, thresh);
     }
 
-  edge_data = &path.edges();
+  edge_data = &path.edges(close_contours);
   inc_edge = path.z_increment_edge(close_contours);
   d->compute_edge_chunks(path,
                          draw.m_item_shader_data.data().data_base(),
@@ -1682,7 +1682,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
   const PainterAttributeData *edge_data(NULL), *cap_data(NULL), *join_data(NULL);
   unsigned int inc_edge, cap_chunk(0);
 
-  edge_data = &path.edges();
+  edge_data = &path.edges(close_contours);
   inc_edge = path.z_increment_edge(close_contours);
   d->compute_edge_chunks(path,
                          draw.m_item_shader_data.data().data_base(),

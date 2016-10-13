@@ -630,7 +630,7 @@ public:
     Returns the data to draw the edges of a stroked path.
    */
   const PainterAttributeData&
-  edges(void) const;
+  edges(bool include_closing_edges) const;
 
   /*!
     Given a set of clip equations in clip coordinates
