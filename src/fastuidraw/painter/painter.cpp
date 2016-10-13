@@ -302,6 +302,7 @@ namespace
     fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> m_clip;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_blend;
     fastuidraw::BlendMode::packed_value m_blend_mode;
+    fastuidraw::range_type<unsigned int> m_clip_equation_series;
 
     clip_rect_state m_clip_rect_state;
     float m_curve_flatness;
@@ -326,6 +327,75 @@ namespace
     const fastuidraw::Painter::CustomFillRuleBase *m_p;
   };
 
+  /* To avoid allocating memory all the time, we store the
+     clip polygon data within the same std::vector<vec3>.
+     The usage pattern is that the last element allocated
+     is the first element to be freed.
+   */
+  class ClipEquationStore
+  {
+  public:
+    ClipEquationStore(void)
+    {}
+
+    void
+    push(void)
+    {
+      m_sz.push_back(m_store.size());
+      m_store.resize(m_store.size() + m_current.size());
+      std::copy(m_current.begin(), m_current.end(), m_store.begin() + m_sz.back());
+    }
+
+    void
+    pop(void)
+    {
+      assert(!m_sz.empty());
+      assert(m_sz.back() <= m_store.size());
+
+      set_current(fastuidraw::make_c_array(m_store).sub_array(m_sz.back()));
+      m_store.resize(m_sz.back());
+      m_sz.pop_back();
+    }
+
+    void
+    set_current(fastuidraw::const_c_array<fastuidraw::vec3> new_equations)
+    {
+      m_current.resize(new_equations.size());
+      std::copy(new_equations.begin(), new_equations.end(), m_current.begin());
+    }
+
+    void
+    add_to_current(const fastuidraw::vec3 &c)
+    {
+      m_current.push_back(c);
+    }
+
+    void
+    clear_current(void)
+    {
+      m_current.clear();
+    }
+
+    void
+    clear(void)
+    {
+      m_current.clear();
+      m_store.clear();
+      m_sz.clear();
+    }
+
+    fastuidraw::const_c_array<fastuidraw::vec3>
+    current(void)
+    {
+      return fastuidraw::make_c_array(m_current);
+    }
+
+  private:
+    std::vector<fastuidraw::vec3> m_store;
+    std::vector<unsigned int> m_sz;
+    std::vector<fastuidraw::vec3> m_current;
+  };
+
   class PainterWorkRoom
   {
   public:
@@ -334,6 +404,8 @@ namespace
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_attrib_chunks;
     std::vector<fastuidraw::vec2> m_pts_clip_against_planes;
     std::vector<fastuidraw::vec2> m_pts_draw_convex_polygon;
+    fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_pts_update_clip_series;
+    std::vector<fastuidraw::vec3> m_update_clip_series_eqs;
     std::vector<float> m_clipper_floats;
     std::vector<fastuidraw::PainterIndex> m_indices;
     std::vector<fastuidraw::PainterAttribute> m_attribs;
@@ -428,6 +500,10 @@ namespace
       m_current_clip = v.value();
     }
 
+    bool
+    update_clip_equation_series(const fastuidraw::vec2 &pmin,
+                                const fastuidraw::vec2 &pmax);
+
     float
     select_path_thresh(const fastuidraw::Path &path);
 
@@ -447,6 +523,7 @@ namespace
     fastuidraw::PainterClipEquations m_current_clip;
     fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> m_current_clip_state;
     clip_rect m_clip_rect_in_item_coordinates;
+    ClipEquationStore m_clip_store;
     PainterWorkRoom m_work_room;
   };
 
@@ -637,6 +714,97 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
   m_current_z = 1;
 }
 
+bool
+PainterPrivate::
+update_clip_equation_series(const fastuidraw::vec2 &pmin,
+                            const fastuidraw::vec2 &pmax)
+{
+  const fastuidraw::PainterItemMatrix &m(m_current_item_matrix);
+  fastuidraw::const_c_array<fastuidraw::vec3> clips(m_clip_store.current());
+  unsigned int src, dst, i;
+  fastuidraw::vec2 center(0.0f, 0.0f);
+
+  m_work_room.m_pts_update_clip_series[0].resize(4);
+  m_work_room.m_pts_update_clip_series[0][0] = pmin;
+  m_work_room.m_pts_update_clip_series[0][1] = fastuidraw::vec2(pmin.x(), pmax.y());
+  m_work_room.m_pts_update_clip_series[0][2] = pmax;
+  m_work_room.m_pts_update_clip_series[0][3] = fastuidraw::vec2(pmax.x(), pmin.y());
+
+  for(i = 0, src = 0, dst = 1; i < clips.size(); ++i, std::swap(src, dst))
+    {
+      fastuidraw::vec3 nc;
+      nc = clips[i] * m.m_item_matrix;
+
+      clip_against_plane(nc,
+                         fastuidraw::make_c_array(m_work_room.m_pts_update_clip_series[src]),
+                         m_work_room.m_pts_update_clip_series[dst],
+                         m_work_room.m_clipper_floats);
+    }
+
+  /* the input rectangle clipped to the previous clipping equation
+     array is now stored in m_work_room.m_pts_update_clip_series[src]
+   */
+  fastuidraw::const_c_array<fastuidraw::vec2> poly;
+  poly = fastuidraw::make_c_array(m_work_room.m_pts_update_clip_series[src]);
+
+  m_clip_store.clear_current();
+
+  /* if the rectangle clipped is empty, then we are completely clipped.
+   */
+  if(poly.empty())
+    {
+      return true;
+    }
+
+  /* compute center of polygon so that we can correctly
+     orient the normal vectors of the sides.
+   */
+  for(i = 0; i < poly.size(); ++i)
+    {
+      center += poly[i];
+    }
+  center /= static_cast<float>(poly.size());
+
+  if(m_clip_rect_state.m_inverse_transpose_not_ready)
+    {
+      m_clip_rect_state.m_inverse_transpose_not_ready = false;
+      m_current_item_matrix.m_item_matrix.inverse_transpose(m_clip_rect_state.m_item_matrix_inverse_transpose);
+    }
+
+  /* extract the normal vectors of the polygon sides with
+     correct orientation.
+   */
+  for(unsigned int i = 0; i < poly.size(); ++i)
+    {
+      fastuidraw::vec2 v, n;
+      unsigned int next_i;
+
+      next_i = i + 1;
+      next_i = (next_i == poly.size()) ? 0 : next_i;
+      v = poly[next_i] - poly[i];
+      n = fastuidraw::vec2(v.y(), -v.x());
+      if(fastuidraw::dot(center - poly[i], n) < 0.0f)
+        {
+          n = -n;
+        }
+
+      /* The clip equation we have in local coordinates
+         is dot(n, p - poly[i]) >= 0. Algebra time:
+           dot(n, p - poly[i]) = n.x * p.x + n.y * p.y + (-poly[i].x * n.x - poly[i].y * n.y)
+                              = dot( (n, R), (p, 1))
+         where
+           R = -poly[i].x * n.x - poly[i].y * n.y = -dot(n, poly[i])
+         We want the clip equations in clip coordinates though:
+           dot( (n, R), (p, 1) ) = dot( (n, R), inverseM(M(p, 1)) )
+                                 = dot( inverse_transpose_M(R,1), M(p, 1))
+         thus the vector to use is inverse_transpose_M(R,1)
+       */
+      fastuidraw::vec3 nn(n.x(), n.y(), -fastuidraw::dot(n, poly[i]));
+      m_clip_store.add_to_current(m_clip_rect_state.m_item_matrix_inverse_transpose * nn);
+    }
+
+  return false;
+}
 
 float
 PainterPrivate::
@@ -986,6 +1154,7 @@ begin(bool reset_z)
     clip_eq.m_clip_equations[2] = fastuidraw::vec3( 0.0f,  1.0f, 1.0f);
     clip_eq.m_clip_equations[3] = fastuidraw::vec3( 0.0f, -1.0f, 1.0f);
     d->set_current_clip(clip_eq);
+    d->m_clip_store.set_current(clip_eq.m_clip_equations);
   }
   blend_shader(PainterEnums::blend_porter_duff_src_over);
 }
@@ -1006,6 +1175,7 @@ end(void)
     }
   /* clear state stack as well.
    */
+  d->m_clip_store.clear();
   d->m_state_stack.clear();
   d->m_core->end();
 }
@@ -1069,7 +1239,7 @@ draw_convex_polygon(const reference_counted_ptr<PainterItemShader> &shader,
     {
       d->m_work_room.m_attribs[i].m_attrib0 = fastuidraw::pack_vec4(pts[i].x(), pts[i].y(), 0.0f, 0.0f);
       d->m_work_room.m_attribs[i].m_attrib1 = uvec4(0u, 0u, 0u, 0u);
-      d->m_work_room.m_attribs[i].m_attrib2 = uvec4(0, 0, 0, 0);
+      d->m_work_room.m_attribs[i].m_attrib2 = uvec4(0u, 0u, 0u, 0u);
     }
 
   d->m_work_room.m_indices.clear();
@@ -1901,6 +2071,7 @@ save(void)
   st.m_curve_flatness = d->m_curve_flatness;
 
   d->m_state_stack.push_back(st);
+  d->m_clip_store.push();
 }
 
 void
@@ -1924,6 +2095,7 @@ restore(void)
       d->m_occluder_stack.pop_back();
     }
   d->m_state_stack.pop_back();
+  d->m_clip_store.pop();
 }
 
 /* How we handle clipping.
@@ -2068,10 +2240,13 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
 
+  vec2 pmax(pmin + wh);
+
   d->m_clip_rect_state.m_all_content_culled =
     d->m_clip_rect_state.m_all_content_culled ||
     wh.x() <= 0.0f || wh.y() <= 0.0f ||
-    d->rect_is_culled(pmin, wh);
+    d->rect_is_culled(pmin, wh) ||
+    d->update_clip_equation_series(pmin, pmax);
 
   if(d->m_clip_rect_state.m_all_content_culled)
     {
@@ -2079,8 +2254,6 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
        */
       return;
     }
-
-  vec2 pmax(pmin + wh);
 
   if(!d->m_clip_rect_state.m_clip_rect.m_enabled)
     {
