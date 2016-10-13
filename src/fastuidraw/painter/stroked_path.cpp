@@ -220,6 +220,72 @@ namespace
     std::vector<SingleSubEdge> m_sub_edges_of_closing_edges;
   };
 
+  class BoundingBox
+  {
+  public:
+    BoundingBox(void):
+      m_empty(true)
+    {}
+
+    void
+    union_point(const fastuidraw::vec2 &pt)
+    {
+      if(m_empty)
+        {
+          m_empty = false;
+          m_min = m_max = pt;
+        }
+      else
+        {
+          m_min.x() = fastuidraw::t_min(m_min.x(), pt.x());
+          m_min.y() = fastuidraw::t_min(m_min.y(), pt.y());
+
+          m_max.x() = fastuidraw::t_max(m_max.x(), pt.x());
+          m_max.y() = fastuidraw::t_max(m_max.y(), pt.y());
+        }
+    }
+
+    void
+    union_box(const BoundingBox &b)
+    {
+      if(!b.m_empty)
+        {
+          union_point(b.m_min);
+          union_point(b.m_max);
+        }
+    }
+
+    fastuidraw::vec2 m_min, m_max;
+    bool m_empty;
+  };
+
+  class SubEdgeCullingHierarchy:fastuidraw::noncopyable
+  {
+  public:
+    enum
+      {
+        splitting_threshhold = 100
+      };
+
+    explicit
+    SubEdgeCullingHierarchy(const BoundingBox &start_box,
+                            int splitting_coordinate,
+                            fastuidraw::const_c_array<SingleSubEdge> data,
+                            fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts);
+
+    ~SubEdgeCullingHierarchy();
+
+    SubEdgeCullingHierarchy*
+    create(const BoundingBox &start_box,
+           int splitting_coordinate,
+           const std::vector<SingleSubEdge> &data,
+           fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts);
+
+    fastuidraw::vecN<SubEdgeCullingHierarchy*, 2> m_children;
+    std::vector<SingleSubEdge> m_sub_edges;
+    BoundingBox m_sub_edges_bb, m_entire_bb;
+  };
+
   class EdgeDataCreator:public EdgeStore
   {
   public:
@@ -1336,6 +1402,104 @@ process_edge(const fastuidraw::TessellatedPath &P, PathData &path_data,
   if(edge + 2 == P.number_edges(contour))
     {
       path_data.m_per_contour_data[contour].m_end_cap_normal = normal;
+    }
+}
+
+//////////////////////////////////////////////////
+// SubEdgeCullingHierarchy methods
+SubEdgeCullingHierarchy::
+SubEdgeCullingHierarchy(const BoundingBox &start_box,
+                        int c,
+                        fastuidraw::const_c_array<SingleSubEdge> data,
+                        fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts)
+{
+  assert(c == 0 || c == 1);
+  assert(!start_box.m_empty);
+
+  if(data.size() >= splitting_threshhold)
+    {
+      fastuidraw::vecN<BoundingBox, 2> child_boxes;
+      fastuidraw::vecN<std::vector<SingleSubEdge>, 2> child_sub_edges;
+      float mid_point;
+
+      mid_point = 0.5f * (start_box.m_min[c] + start_box.m_max[c]);
+      for(unsigned int i = 0; i < data.size(); ++i)
+        {
+          const SingleSubEdge &sub_edge(data[i]);
+          bool sA, sB;
+
+          sA = (src_pts[sub_edge.m_pt0].m_p[c] < mid_point);
+          sB = (src_pts[sub_edge.m_pt1].m_p[c] < mid_point);
+          if(sA == sB)
+            {
+              child_boxes[sA].union_point(src_pts[sub_edge.m_pt0].m_p);
+              child_boxes[sA].union_point(src_pts[sub_edge.m_pt1].m_p);
+              child_sub_edges[sA].push_back(sub_edge);
+            }
+          else
+            {
+              m_sub_edges_bb.union_point(src_pts[sub_edge.m_pt0].m_p);
+              m_sub_edges_bb.union_point(src_pts[sub_edge.m_pt1].m_p);
+              m_sub_edges.push_back(sub_edge);
+            }
+        }
+      m_children[0] = create(child_boxes[0], 1 - c, child_sub_edges[0], src_pts);
+      m_children[1] = create(child_boxes[1], 1 - c, child_sub_edges[1], src_pts);
+    }
+  else
+    {
+      m_children[0] = m_children[1] = NULL;
+      for(unsigned int i = 0; i < data.size(); ++i)
+        {
+          const SingleSubEdge &sub_edge(data[i]);
+          m_sub_edges_bb.union_point(src_pts[sub_edge.m_pt0].m_p);
+          m_sub_edges_bb.union_point(src_pts[sub_edge.m_pt1].m_p);
+          m_sub_edges.push_back(sub_edge);
+        }
+    }
+
+  if(m_children[0] != NULL)
+    {
+      m_entire_bb.union_box(m_children[0]->m_entire_bb);
+    }
+
+  if(m_children[1] != NULL)
+    {
+      m_entire_bb.union_box(m_children[1]->m_entire_bb);
+    }
+
+  m_entire_bb.union_box(m_sub_edges_bb);
+}
+
+SubEdgeCullingHierarchy::
+~SubEdgeCullingHierarchy(void)
+{
+  if(m_children[0] != NULL)
+    {
+      FASTUIDRAWdelete(m_children[0]);
+    }
+
+  if(m_children[1] != NULL)
+    {
+      FASTUIDRAWdelete(m_children[1]);
+    }
+}
+
+SubEdgeCullingHierarchy*
+SubEdgeCullingHierarchy::
+create(const BoundingBox &start_box, int c,
+       const std::vector<SingleSubEdge> &data,
+       fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts)
+{
+  if(!data.empty())
+    {
+      fastuidraw::const_c_array<SingleSubEdge> d;
+      d = fastuidraw::make_c_array(data);
+      return FASTUIDRAWnew SubEdgeCullingHierarchy(start_box, c, d, src_pts);
+    }
+  else
+    {
+      return NULL;
     }
 }
 
