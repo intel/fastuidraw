@@ -189,6 +189,7 @@ namespace
 
     bool m_has_bevel;
     float m_bevel_lambda;
+    fastuidraw::vec2 m_bevel_normal;
   };
 
   class EdgeStore
@@ -1294,6 +1295,7 @@ process_edge(const fastuidraw::TessellatedPath &P, PathData &path_data,
         {
           sub_edge.m_bevel_lambda = CommonJoinData::compute_lambda(last_normal, normal);
           sub_edge.m_has_bevel = true;
+          sub_edge.m_bevel_normal = last_normal;
         }
 
       sub_edge.m_pt0 = i;
@@ -1380,8 +1382,6 @@ process_sub_edges(fastuidraw::const_c_array<SingleSubEdge> sub_edges,
   fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts(m_P.point_data());
   const int boundary_values[3] = { 1, 1, 0 };
   const float normal_sign[3] = { 1.0f, -1.0f, 0.0f };
-  unsigned int last_edge_middle(~0u), last_edge_negative_normal(~0u);
-  unsigned int last_edge_positive_normal(~0u);
 
   for(unsigned int s = 0; s < sub_edges.size(); ++s, ++depth)
     {
@@ -1389,37 +1389,34 @@ process_sub_edges(fastuidraw::const_c_array<SingleSubEdge> sub_edges,
 
       if(sub_edge.m_has_bevel)
         {
-          assert(last_edge_middle != ~0u);
-          assert(last_edge_negative_normal != ~0u);
-          assert(last_edge_positive_normal != ~0u);
-
           indices[index_offset + 0] = vert_offset + 0;
           indices[index_offset + 1] = vert_offset + 1;
           indices[index_offset + 2] = vert_offset + 2;
           index_offset += 3;
 
-          pts[vert_offset + 0] = pts[last_edge_middle];
-          if(sub_edge.m_bevel_lambda < 0.0f)
-            {
-              pts[vert_offset + 1] = pts[last_edge_negative_normal];
-            }
-          else
-            {
-              pts[vert_offset + 1] = pts[last_edge_positive_normal];
-            }
-          pts[vert_offset + 2].m_position = src_pts[sub_edge.m_pt0].m_p;
-          pts[vert_offset + 2].m_distance_from_edge_start = src_pts[sub_edge.m_pt0].m_distance_from_edge_start;
-          pts[vert_offset + 2].m_distance_from_contour_start = src_pts[sub_edge.m_pt0].m_distance_from_contour_start;
-          pts[vert_offset + 2].m_edge_length = src_pts[sub_edge.m_pt0].m_edge_length;
-          pts[vert_offset + 2].m_open_contour_length = src_pts[sub_edge.m_pt0].m_open_contour_length;
-          pts[vert_offset + 2].m_closed_contour_length = src_pts[sub_edge.m_pt0].m_closed_contour_length;
-          pts[vert_offset + 2].m_pre_offset = sub_edge.m_bevel_lambda * sub_edge.m_normal;
-          pts[vert_offset + 2].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_start_sub_edge, depth);
-
           for(unsigned int k = 0; k < 3; ++k)
             {
-              pts[vert_offset + k].m_packed_data |= fastuidraw::StrokedPath::bevel_edge_mask;
+              pts[vert_offset + k].m_position = src_pts[sub_edge.m_pt0].m_p;
+              pts[vert_offset + k].m_distance_from_edge_start = src_pts[sub_edge.m_pt0].m_distance_from_edge_start;
+              pts[vert_offset + k].m_distance_from_contour_start = src_pts[sub_edge.m_pt0].m_distance_from_contour_start;
+              pts[vert_offset + k].m_edge_length = src_pts[sub_edge.m_pt0].m_edge_length;
+              pts[vert_offset + k].m_open_contour_length = src_pts[sub_edge.m_pt0].m_open_contour_length;
+              pts[vert_offset + k].m_closed_contour_length = src_pts[sub_edge.m_pt0].m_closed_contour_length;
+              pts[vert_offset + k].m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
             }
+
+          pts[vert_offset + 0].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
+          pts[vert_offset + 0].m_packed_data = pack_data(0, fastuidraw::StrokedPath::offset_start_sub_edge, depth)
+            | fastuidraw::StrokedPath::bevel_edge_mask;
+
+          pts[vert_offset + 1].m_pre_offset = sub_edge.m_bevel_lambda * sub_edge.m_bevel_normal;
+          pts[vert_offset + 1].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_start_sub_edge, depth)
+            | fastuidraw::StrokedPath::bevel_edge_mask;
+
+          pts[vert_offset + 2].m_pre_offset = sub_edge.m_bevel_lambda * sub_edge.m_normal;
+          pts[vert_offset + 2].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_start_sub_edge, depth)
+            | fastuidraw::StrokedPath::bevel_edge_mask;
+
           vert_offset += 3;
         }
 
@@ -1461,10 +1458,6 @@ process_sub_edges(fastuidraw::const_c_array<SingleSubEdge> sub_edges,
                                                              fastuidraw::StrokedPath::offset_end_sub_edge,
                                                              depth);
         }
-
-      last_edge_middle = vert_offset + 5;
-      last_edge_positive_normal = vert_offset + 3;
-      last_edge_negative_normal = vert_offset + 4;
 
       indices[index_offset + 0] = vert_offset + 0;
       indices[index_offset + 1] = vert_offset + 2;
