@@ -86,7 +86,83 @@ namespace
 
     bool m_pixel_width_stroking;
   };
+
+  class StrokingDataSelector:public fastuidraw::StrokingDataSelectorBase
+  {
+  public:
+    explicit
+    StrokingDataSelector(bool pixel_width);
+
+    virtual
+    float
+    compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
+                           float thresh) const;
+    void
+    stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
+                       float *out_clip_space_distance,
+                       float *out_item_space_distance) const;
+
+  private:
+    bool m_pixel_width;
+  };
 }
+
+////////////////////////////////
+// StrokingDataSelector methods
+StrokingDataSelector::
+StrokingDataSelector(bool pixel_width):
+  m_pixel_width(pixel_width)
+{}
+
+float
+StrokingDataSelector::
+compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
+                       float thresh) const
+{
+  const PainterDashedStrokeParamsData *d;
+  d = static_cast<const PainterDashedStrokeParamsData*>(data);
+
+  if(d->m_radius <= 0.0f)
+    {
+      /* Not really stroking, just select a LARGE value
+         to get a very low level of detail.
+       */
+      return 10000.0f;
+    }
+  else
+    {
+      float return_value;
+
+      return_value = 1.0f / d->m_radius;
+      if(!m_pixel_width)
+        {
+          return_value *= thresh;
+        }
+      return return_value;
+    }
+}
+
+void
+StrokingDataSelector::
+stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
+                   float *out_clip_space_distance,
+                   float *out_item_space_distance) const
+{
+  const PainterDashedStrokeParamsData *d;
+  d = static_cast<const PainterDashedStrokeParamsData*>(data);
+
+  if(m_pixel_width)
+    {
+      *out_clip_space_distance = d->m_radius;
+      *out_item_space_distance = 0.0f;
+    }
+  else
+    {
+      *out_clip_space_distance = 0.0f;
+      *out_item_space_distance = d->m_radius;
+    }
+}
+
 //////////////////////////////////////
 // PainterDashedStrokeParamsData methods
 PainterDashedStrokeParamsData::
@@ -391,4 +467,11 @@ fastuidraw::PainterDashedStrokeParams::
 dash_evaluator(bool pixel_width_stroking)
 {
   return FASTUIDRAWnew DashEvaluator(pixel_width_stroking);
+}
+
+fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>
+fastuidraw::PainterDashedStrokeParams::
+stroking_data_selector(bool pixel_width_stroking)
+{
+  return FASTUIDRAWnew StrokingDataSelector(pixel_width_stroking);
 }

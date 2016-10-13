@@ -68,6 +68,11 @@ namespace
     float
     compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
                            float thresh) const;
+    void
+    stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
+                       float *out_clip_space_distance,
+                       float *out_item_space_distance) const;
+
   private:
     bool m_pixel_width;
   };
@@ -106,6 +111,27 @@ compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
           return_value *= thresh;
         }
       return return_value;
+    }
+}
+
+void
+StrokingDataSelector::
+stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
+                   float *out_clip_space_distance,
+                   float *out_item_space_distance) const
+{
+  const PainterStrokeParamsData *d;
+  d = static_cast<const PainterStrokeParamsData*>(data);
+
+  if(m_pixel_width)
+    {
+      *out_clip_space_distance = d->m_radius;
+      *out_item_space_distance = 0.0f;
+    }
+  else
+    {
+      *out_clip_space_distance = 0.0f;
+      *out_item_space_distance = d->m_radius;
     }
 }
 

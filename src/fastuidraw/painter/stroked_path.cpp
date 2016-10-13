@@ -2659,6 +2659,43 @@ edges(void) const
   return d->m_edges;
 }
 
+unsigned int
+fastuidraw::StrokedPath::
+edge_chunks(const_c_array<vec3> clip_equations,
+            const float3x3 &clip_matrix_local,
+            float clip_space_additional_room,
+            float item_space_additional_room,
+            bool include_closing_edges, c_array<unsigned int> dst) const
+{
+  FASTUIDRAWunused(clip_equations);
+  FASTUIDRAWunused(clip_matrix_local);
+  FASTUIDRAWunused(clip_space_additional_room);
+  FASTUIDRAWunused(item_space_additional_room);
+  if(!dst.empty())
+    {
+      dst[0] = include_closing_edges ?
+        chunk_with_closing_edge :
+        chunk_without_closing_edge;
+    }
+  return 1;
+}
+
+unsigned int
+fastuidraw::StrokedPath::
+maximum_edge_chunks(void) const
+{
+  return 1;
+}
+
+unsigned int
+fastuidraw::StrokedPath::
+z_increment_edge(bool include_closing_edges) const
+{
+  return include_closing_edges ?
+    edges().increment_z_value(chunk_with_closing_edge) :
+    edges().increment_z_value(chunk_without_closing_edge);
+}
+
 const fastuidraw::PainterAttributeData&
 fastuidraw::StrokedPath::
 square_caps(void) const

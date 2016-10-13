@@ -21,6 +21,7 @@
 
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/util/vecN.hpp>
+#include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
@@ -630,6 +631,43 @@ public:
    */
   const PainterAttributeData&
   edges(void) const;
+
+  /*!
+    Given a set of clip equations in clip coordinates
+    and a tranformation from local coordiante to clip
+    coordinates, compute what chunks are not completely
+    culled by the clip equations.
+    \param clip_equations array of clip equations
+    \param clip_matrix_local 3x3 transformation from local (x, y, 1)
+                             coordinates to clip coordinates.
+    \param include_closing_edges if true include the chunks needed to
+                                 draw the closing edges of each contour
+    \param dst[output] location to which to write the what chunks
+    \returns the number of chunks that intersect the bounding box,
+             that number is guarnanteed to be no more than maximum_edge_chunks().
+   */
+  unsigned int
+  edge_chunks(const_c_array<vec3> clip_equations,
+              const float3x3 &clip_matrix_local,
+              float clip_space_additional_room,
+              float item_space_additional_room,
+              bool include_closing_edges, c_array<unsigned int> dst) const;
+
+  /*!
+    Gives the maximum return value to edge_chunks(), i.e. the
+    maximum number of chunks that edge_chunks() will return.
+   */
+  unsigned int
+  maximum_edge_chunks(void) const;
+
+  /*!
+    Gives the maximum value for point::m_depth for all
+    edges of a stroked path.
+    \param include_closing_edges if false, disclude the closing
+                                 edges from the maximum value.
+   */
+  unsigned int
+  z_increment_edge(bool include_closing_edges) const;
 
   /*!
     Returns the data to draw the square caps of a stroked path.

@@ -93,7 +93,8 @@ public:
     */
   PainterStrokeShader
   create_stroke_shader(enum PainterEnums::cap_style stroke_dash_style,
-                       bool pixel_width_stroking);
+                       bool pixel_width_stroking,
+                       const reference_counted_ptr<const StrokingDataSelectorBase> &stroke_data_selector);
 
   PainterDashedStrokeShaderSet
   create_dashed_stroke_shader_set(bool pixel_width_stroking);

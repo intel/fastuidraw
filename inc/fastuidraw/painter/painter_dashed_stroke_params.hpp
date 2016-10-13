@@ -176,6 +176,14 @@ namespace fastuidraw
     static
     reference_counted_ptr<const DashEvaluatorBase>
     dash_evaluator(bool pixel_width_stroking);
+
+    /*!
+      Returns a StrokingDataSelectorBase suitable for
+      PainterDashedStrokeParams.
+     */
+    static
+    reference_counted_ptr<const StrokingDataSelectorBase>
+    stroking_data_selector(bool pixel_width_stroking);
   };
 /*! @} */
 
