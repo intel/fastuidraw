@@ -192,34 +192,6 @@ namespace
     fastuidraw::vec2 m_bevel_normal;
   };
 
-  class EdgeStore
-  {
-  public:
-    EdgeStore(const fastuidraw::TessellatedPath &P, PathData &path_data);
-
-    fastuidraw::const_c_array<SingleSubEdge>
-    sub_edges(void)
-    {
-      return fastuidraw::make_c_array(m_sub_edges);
-    }
-
-    fastuidraw::const_c_array<SingleSubEdge>
-    sub_edges_of_closing_edges(void)
-    {
-      return fastuidraw::make_c_array(m_sub_edges_of_closing_edges);
-    }
-
-  private:
-    void
-    process_edge(const fastuidraw::TessellatedPath &P, PathData &path_data,
-                 unsigned int contour, unsigned int edge);
-
-    static const float sm_mag_tol;
-
-    std::vector<SingleSubEdge> m_sub_edges;
-    std::vector<SingleSubEdge> m_sub_edges_of_closing_edges;
-  };
-
   class BoundingBox
   {
   public:
@@ -257,6 +229,44 @@ namespace
 
     fastuidraw::vec2 m_min, m_max;
     bool m_empty;
+  };
+
+  class EdgeStore
+  {
+  public:
+    EdgeStore(const fastuidraw::TessellatedPath &P, PathData &path_data);
+
+    fastuidraw::const_c_array<SingleSubEdge>
+    sub_edges(bool with_closing_edges)
+    {
+      return m_sub_edges[with_closing_edges];
+    }
+
+    fastuidraw::const_c_array<SingleSubEdge>
+    sub_edges_of_closing_edges(void)
+    {
+      return m_sub_edges_of_closing_edges;
+    }
+
+    const BoundingBox&
+    bounding_box(bool with_closing_edges)
+    {
+      return m_sub_edges_bb[with_closing_edges];
+    }
+
+  private:
+
+    void
+    process_edge(const fastuidraw::TessellatedPath &P, PathData &path_data,
+                 unsigned int contour, unsigned int edge,
+                 std::vector<SingleSubEdge> &dst, BoundingBox &bx);
+
+    static const float sm_mag_tol;
+
+    std::vector<SingleSubEdge> m_all_edges;
+    fastuidraw::vecN<fastuidraw::const_c_array<SingleSubEdge>, 2> m_sub_edges;
+    fastuidraw::const_c_array<SingleSubEdge> m_sub_edges_of_closing_edges;
+    fastuidraw::vecN<BoundingBox, 2> m_sub_edges_bb;
   };
 
   class SubEdgeCullingHierarchy:fastuidraw::noncopyable
@@ -1301,6 +1311,9 @@ const float EdgeStore::sm_mag_tol = 0.000001f;
 EdgeStore::
 EdgeStore(const fastuidraw::TessellatedPath &P, PathData &path_data)
 {
+  std::vector<SingleSubEdge> closing_edges, non_closing_edges;
+  BoundingBox closing_edges_bb, non_closing_edges_bb;
+
   path_data.m_per_contour_data.resize(P.number_contours());
   for(unsigned int o = 0; o < P.number_contours(); ++o)
     {
@@ -1309,15 +1322,40 @@ EdgeStore(const fastuidraw::TessellatedPath &P, PathData &path_data)
       path_data.m_per_contour_data[o].m_end_contour_pt = P.unclosed_contour_point_data(o).back();
       for(unsigned int e = 0; e < P.number_edges(o); ++e)
         {
-          process_edge(P, path_data, o, e);
+          if(e + 1 == P.number_edges(o))
+            {
+              process_edge(P, path_data, o, e, closing_edges, closing_edges_bb);
+            }
+          else
+            {
+              process_edge(P, path_data, o, e, non_closing_edges, non_closing_edges_bb);
+            }
         }
     }
+  unsigned int num_closing, num_non_closing;
+
+  num_non_closing = non_closing_edges.size();
+  num_closing = closing_edges.size();
+  m_all_edges.resize(num_non_closing + num_closing);
+  std::copy(non_closing_edges.begin(), non_closing_edges.end(), m_all_edges.begin());
+  std::copy(closing_edges.begin(), closing_edges.end(), m_all_edges.begin() + num_non_closing);
+
+  fastuidraw::const_c_array<SingleSubEdge> tmp;
+  tmp = fastuidraw::make_c_array(m_all_edges);
+  m_sub_edges[false] = tmp.sub_array(0, num_non_closing);
+  m_sub_edges[true] = tmp;
+  m_sub_edges_of_closing_edges = tmp.sub_array(num_non_closing);
+  assert(m_sub_edges_of_closing_edges.size() == num_closing);
+
+  m_sub_edges_bb[false] = m_sub_edges_bb[true] = non_closing_edges_bb;
+  m_sub_edges_bb[true].union_box(closing_edges_bb);
 }
 
 void
 EdgeStore::
 process_edge(const fastuidraw::TessellatedPath &P, PathData &path_data,
-             unsigned int contour, unsigned int edge)
+             unsigned int contour, unsigned int edge,
+             std::vector<SingleSubEdge> &dst, BoundingBox &bx)
 {
   fastuidraw::range_type<unsigned int> R;
   fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts(P.point_data());
@@ -1334,7 +1372,7 @@ process_edge(const fastuidraw::TessellatedPath &P, PathData &path_data,
       float delta_magnitude;
       SingleSubEdge sub_edge;
 
-      delta = src_pts[i+1].m_p - src_pts[i].m_p;
+      delta = src_pts[i + 1].m_p - src_pts[i].m_p;
       delta_magnitude = delta.magnitude();
 
       if(delta.magnitude() >= sm_mag_tol)
@@ -1374,14 +1412,10 @@ process_edge(const fastuidraw::TessellatedPath &P, PathData &path_data,
       sub_edge.m_normal = normal;
       sub_edge.m_delta = delta;
 
-      if(edge + 1 == P.number_edges(contour))
-        {
-          m_sub_edges_of_closing_edges.push_back(sub_edge);
-        }
-      else
-        {
-          m_sub_edges.push_back(sub_edge);
-        }
+      dst.push_back(sub_edge);
+      bx.union_point(src_pts[i].m_p);
+      bx.union_point(src_pts[i + 1].m_p);
+
       last_normal = normal;
     }
 
@@ -1536,7 +1570,7 @@ void
 EdgeDataCreator::
 compute_size(void)
 {
-  compute_size_contribution(sub_edges(), m_size.pre_close_verts(), m_size.pre_close_indices());
+  compute_size_contribution(sub_edges(false), m_size.pre_close_verts(), m_size.pre_close_indices());
   compute_size_contribution(sub_edges_of_closing_edges(), m_size.close_verts(), m_size.close_indices());
 }
 
@@ -1661,7 +1695,7 @@ fill_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
   pre_close_depth = 0;
   close_depth = 0;
 
-  process_sub_edges(sub_edges(), pts, pre_close_depth,
+  process_sub_edges(sub_edges(false), pts, pre_close_depth,
                     indices, pre_close_vertex, pre_close_index);
 
   process_sub_edges(sub_edges_of_closing_edges(), pts,
