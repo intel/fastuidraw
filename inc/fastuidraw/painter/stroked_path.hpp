@@ -655,6 +655,7 @@ public:
     \param clip_equations array of clip equations
     \param clip_matrix_local 3x3 transformation from local (x, y, 1)
                              coordinates to clip coordinates.
+    \param recip_dimensions holds the reciprocal of the dimensions of the viewport
     \param include_closing_edges if true include the chunks needed to
                                  draw the closing edges of each contour
     \param dst[output] location to which to write the what chunks
@@ -665,7 +666,8 @@ public:
   edge_chunks(ScratchSpace &scratch_space,
               const_c_array<vec3> clip_equations,
               const float3x3 &clip_matrix_local,
-              float clip_space_additional_room,
+              const vec2 &recip_dimensions,
+              float pixels_additional_room,
               float item_space_additional_room,
               bool include_closing_edges,
               c_array<unsigned int> dst) const;

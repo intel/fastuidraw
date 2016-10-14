@@ -66,14 +66,14 @@ namespace fastuidraw
       bounding boxes in local coordinates by the output
       *out_item_space_distance, then to convert the box
       to clip-coordinates and then push each clip-equation
-      by *out_item_space_distance.
-      \param out_clip_space_distance[output] how much geometry inflates in clip coordinates
+      by *out_pixel_space_distance
+      \param out_clip_space_distance[output] how much geometry inflates in pixels
       \param out_item_space_distance[output] how much geometry inflates in local coordinates
      */
     virtual
     void
     stroking_distances(const PainterShaderData::DataBase *data,
-                       float *out_clip_space_distance,
+                       float *out_pixel_space_distance,
                        float *out_item_space_distance) const = 0;
   };
 

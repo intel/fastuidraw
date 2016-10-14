@@ -861,18 +861,19 @@ compute_edge_chunks(const fastuidraw::StrokedPath &stroked_path,
                     bool close_countours,
                     std::vector<unsigned int> &out_chunks)
 {
-  float clip_space_additional_room(0.0f), item_space_additional_room(0.0f);
+  float pixels_additional_room(0.0f), item_space_additional_room(0.0f);
   unsigned int sz;
 
   out_chunks.resize(stroked_path.maximum_edge_chunks());
   selector.stroking_distances(raw_data,
-                              &clip_space_additional_room,
+                              &pixels_additional_room,
                               &item_space_additional_room);
 
   sz = stroked_path.edge_chunks(m_work_room.m_path_scratch,
                                 m_clip_store.current(),
                                 m_current_item_matrix.m_item_matrix,
-                                clip_space_additional_room,
+                                m_one_pixel_width,
+                                pixels_additional_room,
                                 item_space_additional_room,
                                 close_countours,
                                 fastuidraw::make_c_array(out_chunks));

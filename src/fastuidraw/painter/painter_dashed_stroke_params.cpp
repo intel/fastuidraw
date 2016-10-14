@@ -99,7 +99,7 @@ namespace
                            float thresh) const;
     void
     stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
-                       float *out_clip_space_distance,
+                       float *out_pixel_distance,
                        float *out_item_space_distance) const;
 
   private:
@@ -145,7 +145,7 @@ compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
 void
 StrokingDataSelector::
 stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
-                   float *out_clip_space_distance,
+                   float *out_pixel_distance,
                    float *out_item_space_distance) const
 {
   const PainterDashedStrokeParamsData *d;
@@ -153,12 +153,12 @@ stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
 
   if(m_pixel_width)
     {
-      *out_clip_space_distance = d->m_radius;
+      *out_pixel_distance = d->m_radius;
       *out_item_space_distance = 0.0f;
     }
   else
     {
-      *out_clip_space_distance = 0.0f;
+      *out_pixel_distance = 0.0f;
       *out_item_space_distance = d->m_radius;
     }
 }

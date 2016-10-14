@@ -239,6 +239,7 @@ namespace
   class ScratchSpacePrivate
   {
   public:
+    std::vector<fastuidraw::vec3> m_adjusted_clip_eqs;
     std::vector<fastuidraw::vec2> m_clipped_rect;
     BoundingBox m_inflated_box;
   };
@@ -264,10 +265,11 @@ namespace
     ~EdgesElement();
 
     unsigned int
-    edge_chunks(ScratchSpacePrivate *work_room,
+    edge_chunks(ScratchSpacePrivate &work_room,
                 fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
                 const fastuidraw::float3x3 &clip_matrix_local,
-                float clip_space_additional_room,
+                const fastuidraw::vec2 &recip_dimensions,
+                float pixels_additional_room,
                 float item_space_additional_room,
                 fastuidraw::c_array<unsigned int> dst);
 
@@ -306,9 +308,7 @@ namespace
 
     void
     edge_chunks_implement(ScratchSpacePrivate &work_room,
-                          fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
                           const fastuidraw::float3x3 &clip_matrix_local,
-                          float clip_space_additional_room,
                           float item_space_additional_room,
                           fastuidraw::c_array<unsigned int> dst,
                           unsigned int &current);
@@ -1225,17 +1225,34 @@ EdgesElement::
 
 unsigned int
 EdgesElement::
-edge_chunks(ScratchSpacePrivate *work_room,
+edge_chunks(ScratchSpacePrivate &scratch,
             fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
             const fastuidraw::float3x3 &clip_matrix_local,
-            float clip_space_additional_room,
+            const fastuidraw::vec2 &recip_dimensions,
+            float pixels_additional_room,
             float item_space_additional_room,
             fastuidraw::c_array<unsigned int> dst)
 {
   unsigned int return_value(0u);
-  edge_chunks_implement(*work_room,
-                        clip_equations, clip_matrix_local,
-                        clip_space_additional_room,
+
+  scratch.m_adjusted_clip_eqs.resize(clip_equations.size());
+  for(unsigned int i = 0; i < clip_equations.size(); ++i)
+    {
+      fastuidraw::vec3 c(clip_equations[i]);
+      float f;
+
+      /* make "w" larger by the named number of pixels.
+       */
+      f = fastuidraw::dot(fastuidraw::vec2(c.x(), c.y()), recip_dimensions);
+      c.z() += pixels_additional_room * f;
+
+      /* transform clip equations from clip coordinates to
+         local coordinates.
+       */
+      scratch.m_adjusted_clip_eqs[i] = c * clip_matrix_local;
+    }
+
+  edge_chunks_implement(scratch, clip_matrix_local,
                         item_space_additional_room,
                         dst, return_value);
   return return_value;
@@ -1244,17 +1261,13 @@ edge_chunks(ScratchSpacePrivate *work_room,
 void
 EdgesElement::
 edge_chunks_implement(ScratchSpacePrivate &scratch,
-                      fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
                       const fastuidraw::float3x3 &clip_matrix_local,
-                      float clip_space_additional_room,
                       float item_space_additional_room,
                       fastuidraw::c_array<unsigned int> dst,
                       unsigned int &current)
 {
   FASTUIDRAWunused(scratch);
-  FASTUIDRAWunused(clip_equations);
   FASTUIDRAWunused(clip_matrix_local);
-  FASTUIDRAWunused(clip_space_additional_room);
   FASTUIDRAWunused(item_space_additional_room);
   dst[current] = m_data_chunk_with_children;
   ++current;
@@ -2735,7 +2748,8 @@ fastuidraw::StrokedPath::
 edge_chunks(ScratchSpace &work_room,
             const_c_array<vec3> clip_equations,
             const float3x3 &clip_matrix_local,
-            float clip_space_additional_room,
+            const vec2 &recip_dimensions,
+            float pixels_additional_room,
             float item_space_additional_room,
             bool include_closing_edges, c_array<unsigned int> dst) const
 {
@@ -2743,9 +2757,9 @@ edge_chunks(ScratchSpace &work_room,
   EdgesElement *e;
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
   e = d->m_edge_culler[include_closing_edges];
-  return e->edge_chunks(reinterpret_cast<ScratchSpacePrivate*>(work_room.m_d),
+  return e->edge_chunks(*reinterpret_cast<ScratchSpacePrivate*>(work_room.m_d),
                         clip_equations, clip_matrix_local,
-                        clip_space_additional_room,
+                        recip_dimensions, pixels_additional_room,
                         item_space_additional_room,
                         dst);
 }
