@@ -250,6 +250,19 @@ namespace
 
     ~EdgesElement();
 
+    unsigned int
+    edge_chunks(fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
+                const fastuidraw::float3x3 &clip_matrix_local,
+                float clip_space_additional_room,
+                float item_space_additional_room,
+                fastuidraw::c_array<unsigned int> dst);
+
+    unsigned int
+    maximum_edge_chunks(void)
+    {
+      return 1 + m_data_chunk_with_children;
+    }
+
     static
     void
     count_vertices_indices(SubEdgeCullingHierarchy *src,
@@ -734,8 +747,8 @@ namespace
     const fastuidraw::PainterAttributeData&
     fetch_create(float thresh, std::vector<ThreshWithData> &values);
 
+    fastuidraw::vecN<EdgesElement*, 2> m_edge_culler;
     fastuidraw::vecN<fastuidraw::PainterAttributeData, 2> m_edges;
-    fastuidraw::vecN<unsigned int, 2> m_edges_chunk;
 
     fastuidraw::PainterAttributeData m_bevel_joins, m_miter_joins;
     fastuidraw::PainterAttributeData m_square_caps, m_adjustable_caps;
@@ -1184,6 +1197,22 @@ EdgesElement::
     {
       FASTUIDRAWdelete(m_children[1]);
     }
+}
+
+unsigned int
+EdgesElement::
+edge_chunks(fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
+            const fastuidraw::float3x3 &clip_matrix_local,
+            float clip_space_additional_room,
+            float item_space_additional_room,
+            fastuidraw::c_array<unsigned int> dst)
+{
+  FASTUIDRAWunused(clip_equations);
+  FASTUIDRAWunused(clip_matrix_local);
+  FASTUIDRAWunused(clip_space_additional_room);
+  FASTUIDRAWunused(item_space_additional_room);
+  dst[0] = m_data_chunk_with_children;
+  return 1;
 }
 
 void
@@ -2399,6 +2428,8 @@ StrokedPathPrivate::
     {
       FASTUIDRAWdelete(m_rounded_caps[i].m_data);
     }
+  FASTUIDRAWdelete(m_edge_culler[0]);
+  FASTUIDRAWdelete(m_edge_culler[1]);
 }
 
 void
@@ -2410,17 +2441,11 @@ create_edges(const fastuidraw::TessellatedPath &P)
   for(unsigned int i = 0; i < 2; ++i)
     {
       SubEdgeCullingHierarchy *s;
-      EdgesElement *e;
       s = FASTUIDRAWnew SubEdgeCullingHierarchy(edge_store.bounding_box(i != 0),
                                                 0, edge_store.sub_edges(i != 0),
                                                 P.point_data());
-      e = EdgesElement::create(s);
-
-      EdgesElementFiller filler(e, P);
-      m_edges[i].set_data(filler);
-      m_edges_chunk[i] = e->m_data_chunk_with_children;
-
-      FASTUIDRAWdelete(e);
+      m_edge_culler[i] = EdgesElement::create(s);
+      m_edges[i].set_data(EdgesElementFiller(m_edge_culler[i], P));
       FASTUIDRAWdelete(s);
     }
 }
@@ -2652,25 +2677,23 @@ edge_chunks(const_c_array<vec3> clip_equations,
             bool include_closing_edges, c_array<unsigned int> dst) const
 {
   StrokedPathPrivate *d;
+  EdgesElement *e;
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
-
-  FASTUIDRAWunused(clip_equations);
-  FASTUIDRAWunused(clip_matrix_local);
-  FASTUIDRAWunused(clip_space_additional_room);
-  FASTUIDRAWunused(item_space_additional_room);
-
-  if(!dst.empty())
-    {
-      dst[0] = d->m_edges_chunk[include_closing_edges];
-    }
-  return 1;
+  e = d->m_edge_culler[include_closing_edges];
+  return e->edge_chunks(clip_equations, clip_matrix_local,
+                        clip_space_additional_room,
+                        item_space_additional_room,
+                        dst);
 }
 
 unsigned int
 fastuidraw::StrokedPath::
 maximum_edge_chunks(void) const
 {
-  return 1;
+  StrokedPathPrivate *d;
+  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  return t_max(d->m_edge_culler[0]->maximum_edge_chunks(),
+               d->m_edge_culler[1]->maximum_edge_chunks());
 }
 
 unsigned int
