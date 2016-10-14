@@ -724,40 +724,15 @@ namespace
   {
   public:
     explicit
-    StrokedPathPrivate(void);
+    StrokedPathPrivate(const fastuidraw::TessellatedPath &P);
     ~StrokedPathPrivate();
 
     void
     create_edges(const fastuidraw::TessellatedPath &P);
 
     template<typename T>
-    static
-    void
-    create_joins(const PathData &e,
-                 fastuidraw::PainterAttributeData &out_data);
-
-    template<typename T>
-    static
-    void
-    create_joins(const PathData &e, float thresh,
-                 fastuidraw::PainterAttributeData &out_data);
-
-    template<typename T>
-    static
-    void
-    create_caps(const PathData &e,
-                 fastuidraw::PainterAttributeData &out_data);
-
-    template<typename T>
-    static
-    void
-    create_caps(const PathData &e, float thresh,
-                fastuidraw::PainterAttributeData &out_data);
-
     const fastuidraw::PainterAttributeData&
-    rounded_fetch_create(float thresh,
-                         void (*create)(const PathData&, float, fastuidraw::PainterAttributeData&),
-                         std::vector<ThreshWithData> &values);
+    fetch_create(float thresh, std::vector<ThreshWithData> &values);
 
     fastuidraw::vecN<fastuidraw::PainterAttributeData, 2> m_edges;
     fastuidraw::vecN<unsigned int, 2> m_edges_chunk;
@@ -2402,8 +2377,14 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
 /////////////////////////////////////////////
 // StrokedPathPrivate methods
 StrokedPathPrivate::
-StrokedPathPrivate(void)
+StrokedPathPrivate(const fastuidraw::TessellatedPath &P)
 {
+  create_edges(P);
+  m_bevel_joins.set_data(BevelJoinCreator(m_path_data));
+  m_miter_joins.set_data(MiterJoinCreator(m_path_data));
+  m_square_caps.set_data(SquareCapCreator(m_path_data));
+  m_adjustable_caps.set_data(AdjustableCapCreator(m_path_data));
+  m_effective_curve_distance_threshhold = P.effective_curve_distance_threshhold();
 }
 
 StrokedPathPrivate::
@@ -2445,56 +2426,15 @@ create_edges(const fastuidraw::TessellatedPath &P)
 }
 
 template<typename T>
-void
-StrokedPathPrivate::
-create_joins(const PathData &e,
-             fastuidraw::PainterAttributeData &out_joins)
-{
-  T creator(e);
-  out_joins.set_data(creator);
-}
-
-template<typename T>
-void
-StrokedPathPrivate::
-create_joins(const PathData &e, float thresh,
-             fastuidraw::PainterAttributeData &out_joins)
-{
-  T creator(e, thresh);
-  out_joins.set_data(creator);
-}
-
-template<typename T>
-void
-StrokedPathPrivate::
-create_caps(const PathData &e,
-            fastuidraw::PainterAttributeData &out_caps)
-{
-  T creator(e);
-  out_caps.set_data(creator);
-}
-
-template<typename T>
-void
-StrokedPathPrivate::
-create_caps(const PathData &e, float thresh,
-            fastuidraw::PainterAttributeData &out_caps)
-{
-  T creator(e, thresh);
-  out_caps.set_data(creator);
-}
-
 const fastuidraw::PainterAttributeData&
 StrokedPathPrivate::
-rounded_fetch_create(float thresh,
-                     void (*create)(const PathData&, float, fastuidraw::PainterAttributeData&),
-                     std::vector<ThreshWithData> &values)
+fetch_create(float thresh, std::vector<ThreshWithData> &values)
 {
   if(values.empty())
     {
       fastuidraw::PainterAttributeData *newD;
       newD = FASTUIDRAWnew fastuidraw::PainterAttributeData();
-      create(m_path_data, 1.0f, *newD);
+      newD->set_data(T(m_path_data, 1.0f));
       values.push_back(ThreshWithData(newD, 1.0f));
     }
 
@@ -2523,7 +2463,7 @@ rounded_fetch_create(float thresh,
 
           t *= 0.5f;
           newD = FASTUIDRAWnew fastuidraw::PainterAttributeData();
-          create(m_path_data, t, *newD);
+          newD->set_data(T(m_path_data, t));
           values.push_back(ThreshWithData(newD, t));
         }
       return *values.back().m_data;
@@ -2672,18 +2612,8 @@ chunk_for_named_join(unsigned int J)
 fastuidraw::StrokedPath::
 StrokedPath(const fastuidraw::TessellatedPath &P)
 {
-  StrokedPathPrivate *d;
-
   assert(number_offset_types < FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(offset_type_num_bits));
-  m_d = d = FASTUIDRAWnew StrokedPathPrivate();
-
-  d->create_edges(P);
-  StrokedPathPrivate::create_joins<BevelJoinCreator>(d->m_path_data, d->m_bevel_joins);
-  StrokedPathPrivate::create_joins<MiterJoinCreator>(d->m_path_data, d->m_miter_joins);
-  StrokedPathPrivate::create_caps<SquareCapCreator>(d->m_path_data, d->m_square_caps);
-  StrokedPathPrivate::create_caps<AdjustableCapCreator>(d->m_path_data, d->m_adjustable_caps);
-
-  d->m_effective_curve_distance_threshhold = P.effective_curve_distance_threshhold();
+  m_d = FASTUIDRAWnew StrokedPathPrivate(P);
 }
 
 fastuidraw::StrokedPath::
@@ -2793,9 +2723,7 @@ rounded_joins(float thresh) const
   StrokedPathPrivate *d;
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
 
-  return d->rounded_fetch_create(thresh,
-                                 StrokedPathPrivate::create_joins<RoundedJoinCreator>,
-                                 d->m_rounded_joins);
+  return d->fetch_create<RoundedJoinCreator>(thresh, d->m_rounded_joins);
 }
 
 const fastuidraw::PainterAttributeData&
@@ -2804,7 +2732,5 @@ rounded_caps(float thresh) const
 {
   StrokedPathPrivate *d;
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
-  return d->rounded_fetch_create(thresh,
-                                 StrokedPathPrivate::create_caps<RoundedCapCreator>,
-                                 d->m_rounded_caps);
+  return d->fetch_create<RoundedCapCreator>(thresh, d->m_rounded_caps);
 }
