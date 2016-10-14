@@ -1295,7 +1295,7 @@ edge_chunks_implement(ScratchSpacePrivate &scratch,
                                   scratch.m_clip_scratch_floats,
                                   scratch.m_clip_scratch_vec2s);
   //completely unclipped.
-  if(unclipped or true)
+  if(unclipped)
     {
       dst[current] = m_data_chunk_with_children;
       ++current;
