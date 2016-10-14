@@ -990,7 +990,7 @@ create_stroked_path_attributes(void)
   stroked = tessellated->stroked();
   data = &stroked->miter_joins();
 
-  miter_points = data->attribute_data_chunk(StrokedPath::chunk_with_closing_edge);
+  miter_points = data->attribute_data_chunk(StrokedPath::join_chunk_with_closing_edge);
   for(unsigned p = 0, endp = miter_points.size(); p < endp; ++p)
     {
       float v;

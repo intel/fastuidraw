@@ -33,7 +33,7 @@ namespace
   uint32_t
   pack_data(int on_boundary,
             enum fastuidraw::StrokedPath::offset_type_t pt,
-            uint32_t depth = 0u)
+            uint32_t depth = 0)
   {
     assert(on_boundary == 0 || on_boundary == 1);
 
@@ -41,6 +41,14 @@ namespace
     return fastuidraw::pack_bits(fastuidraw::StrokedPath::offset_type_bit0, fastuidraw::StrokedPath::offset_type_num_bits, pp)
       | fastuidraw::pack_bits(fastuidraw::StrokedPath::boundary_bit, 1u, bb)
       | fastuidraw::pack_bits(fastuidraw::StrokedPath::depth_bit0, fastuidraw::StrokedPath::depth_num_bits, depth);
+  }
+
+  uint32_t
+  pack_data_join(int on_boundary,
+                 enum fastuidraw::StrokedPath::offset_type_t pt,
+                 uint32_t depth)
+  {
+    return pack_data(on_boundary, pt, depth) | fastuidraw::StrokedPath::join_mask;
   }
 
   void
@@ -64,51 +72,6 @@ namespace
         indices[index_offset + 2] = i + 1;
       }
   }
-
-  class Location
-  {
-  public:
-    Location(void):
-      m_attribs(0, 0),
-      m_indices(0, 0)
-    {}
-    fastuidraw::range_type<unsigned int> m_attribs, m_indices;
-  };
-
-  class PointIndexSize
-  {
-  public:
-    PointIndexSize(void):
-      m_data(0, 0, 0, 0)
-    {}
-
-    unsigned int
-    pre_close_verts(void) const { return m_data[0]; }
-
-    unsigned int&
-    pre_close_verts(void) { return m_data[0]; }
-
-    unsigned int
-    close_verts(void) const { return m_data[1]; }
-
-    unsigned int&
-    close_verts(void) { return m_data[1]; }
-
-    unsigned int
-    pre_close_indices(void) const { return m_data[2]; }
-
-    unsigned int&
-    pre_close_indices(void) { return m_data[2]; }
-
-    unsigned int
-    close_indices(void) const { return m_data[3]; }
-
-    unsigned int&
-    close_indices(void) { return m_data[3]; }
-
-
-    fastuidraw::uvec4 m_data;
-  };
 
   class PointIndexCapSize
   {
@@ -422,37 +385,32 @@ namespace
     compute_lambda(const fastuidraw::vec2 &n0, const fastuidraw::vec2 &n1);
   };
 
-  class JoinCreatorBase
+  class JoinCreatorBase:public fastuidraw::PainterAttributeDataFiller
   {
   public:
     explicit
-    JoinCreatorBase(const PathData &P):
-      m_P(P),
-      m_size_ready(false)
-    {}
+    JoinCreatorBase(const PathData &P);
 
     virtual
     ~JoinCreatorBase() {}
 
-    fastuidraw::uvec4
-    sizes(void)
-    {
-      compute_size();
-      return m_size.m_data;
-    }
-
+    virtual
     void
-    fill_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
-              fastuidraw::c_array<unsigned int> indices,
-              unsigned int &pre_close_depth, unsigned int &close_depth,
-              std::vector<std::vector<Location> > &locations);
-
-  private:
+    compute_sizes(unsigned int &num_attributes,
+                  unsigned int &num_indices,
+                  unsigned int &num_attribute_chunks,
+                  unsigned int &num_index_chunks,
+                  unsigned int &number_z_increments) const;
 
     virtual
     void
-    post_assign_depth(unsigned int &depth,
-                      fastuidraw::c_array<fastuidraw::StrokedPath::point> pts);
+    fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+              fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
+              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<unsigned int> zincrements) const;
+
+  private:
 
     virtual
     void
@@ -461,33 +419,33 @@ namespace
              const fastuidraw::vec2 &n0_from_stroking,
              const fastuidraw::vec2 &n1_from_stroking,
              unsigned int contour, unsigned int edge,
-             unsigned int &vert_count, unsigned int &index_count) = 0;
+             unsigned int &vert_count, unsigned int &index_count) const = 0;
 
 
     void
     fill_join(unsigned int join_id,
               unsigned int contour, unsigned int edge,
-              fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
-              unsigned int &depth,
+              fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
               fastuidraw::c_array<unsigned int> indices,
               unsigned int &vertex_offset, unsigned int &index_offset,
-              Location &loc);
+              unsigned int &vertex_offset2, unsigned int &index_offset2,
+              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
+              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks) const;
 
     virtual
     void
     fill_join_implement(unsigned int join_id,
                         const PathData &path,
                         unsigned int contour, unsigned int edge,
-                        fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
+                        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                        unsigned int depth,
                         fastuidraw::c_array<unsigned int> indices,
-                        unsigned int &vertex_offset, unsigned int &index_offset) = 0;
-
-    void
-    compute_size(void);
+                        unsigned int &vertex_offset, unsigned int &index_offset) const = 0;
 
     const PathData &m_P;
-    PointIndexSize m_size;
-    bool m_size_ready;
+    mutable unsigned int m_num_non_closed_verts, m_num_non_closed_indices;
+    mutable unsigned int m_num_closed_verts, m_num_closed_indices;
+    mutable unsigned int m_num_joins;
   };
 
 
@@ -508,7 +466,8 @@ namespace
                   float thresh);
 
       void
-      add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
+      add_data(unsigned int depth,
+               fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
                unsigned int &vertex_offset,
                fastuidraw::c_array<unsigned int> indices,
                unsigned int &index_offset) const;
@@ -525,19 +484,20 @@ namespace
              const fastuidraw::vec2 &n0_from_stroking,
              const fastuidraw::vec2 &n1_from_stroking,
              unsigned int contour, unsigned int edge,
-             unsigned int &vert_count, unsigned int &index_count);
+             unsigned int &vert_count, unsigned int &index_count) const;
 
     virtual
     void
     fill_join_implement(unsigned int join_id,
                         const PathData &path,
                         unsigned int contour, unsigned int edge,
-                        fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
+                        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                        unsigned int depth,
                         fastuidraw::c_array<unsigned int> indices,
-                        unsigned int &vertex_offset, unsigned int &index_offset);
+                        unsigned int &vertex_offset, unsigned int &index_offset) const;
 
     float m_thresh;
-    std::vector<PerJoinData> m_per_join_data;
+    mutable std::vector<PerJoinData> m_per_join_data;
   };
 
   class BevelJoinCreator:public JoinCreatorBase
@@ -555,18 +515,48 @@ namespace
              const fastuidraw::vec2 &n0_from_stroking,
              const fastuidraw::vec2 &n1_from_stroking,
              unsigned int contour, unsigned int edge,
-             unsigned int &vert_count, unsigned int &index_count);
+             unsigned int &vert_count, unsigned int &index_count) const;
 
     virtual
     void
     fill_join_implement(unsigned int join_id,
                         const PathData &path,
                         unsigned int contour, unsigned int edge,
-                        fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
+                        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                        unsigned int depth,
                         fastuidraw::c_array<unsigned int> indices,
-                        unsigned int &vertex_offset, unsigned int &index_offset);
+                        unsigned int &vertex_offset, unsigned int &index_offset) const;
 
-    std::vector<fastuidraw::vec2> m_n0, m_n1;
+    mutable std::vector<fastuidraw::vec2> m_n0, m_n1;
+  };
+
+  class MiterJoinCreator:public JoinCreatorBase
+  {
+  public:
+    explicit
+    MiterJoinCreator(const PathData &P);
+
+  private:
+    virtual
+    void
+    add_join(unsigned int join_id,
+             const PathData &path,
+             const fastuidraw::vec2 &n0_from_stroking,
+             const fastuidraw::vec2 &n1_from_stroking,
+             unsigned int contour, unsigned int edge,
+             unsigned int &vert_count, unsigned int &index_count) const;
+
+    virtual
+    void
+    fill_join_implement(unsigned int join_id,
+                        const PathData &path,
+                        unsigned int contour, unsigned int edge,
+                        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                        unsigned int depth,
+                        fastuidraw::c_array<unsigned int> indices,
+                        unsigned int &vertex_offset, unsigned int &index_offset) const;
+
+    mutable std::vector<fastuidraw::vec2> m_n0, m_n1;
   };
 
   class CommonCapData
@@ -720,136 +710,6 @@ namespace
             unsigned int &index_offset) const;
   };
 
-  class MiterJoinCreator:public JoinCreatorBase
-  {
-  public:
-    explicit
-    MiterJoinCreator(const PathData &P);
-
-  private:
-    virtual
-    void
-    add_join(unsigned int join_id,
-             const PathData &path,
-             const fastuidraw::vec2 &n0_from_stroking,
-             const fastuidraw::vec2 &n1_from_stroking,
-             unsigned int contour, unsigned int edge,
-             unsigned int &vert_count, unsigned int &index_count);
-
-    virtual
-    void
-    fill_join_implement(unsigned int join_id,
-                        const PathData &path,
-                        unsigned int contour, unsigned int edge,
-                        fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
-                        fastuidraw::c_array<unsigned int> indices,
-                        unsigned int &vertex_offset, unsigned int &index_offset);
-
-    std::vector<fastuidraw::vec2> m_n0, m_n1;
-  };
-
-  template<typename T>
-  class PartitionedArray
-  {
-  public:
-    typedef typename std::vector<T>::size_type size_type;
-
-    void
-    resize(size_type number_elements_not_including_closing_edge,
-           size_type number_elements_closing_edge,
-           bool closing_edge_data_at_end)
-    {
-      m_data.resize(number_elements_not_including_closing_edge + number_elements_closing_edge);
-      m_with_closing_edge = fastuidraw::make_c_array(m_data);
-      if(closing_edge_data_at_end)
-        {
-          m_without_closing_edge = m_with_closing_edge.sub_array(0, number_elements_not_including_closing_edge);
-        }
-      else
-        {
-          m_without_closing_edge = m_with_closing_edge.sub_array(number_elements_closing_edge);
-        }
-    }
-
-    fastuidraw::const_c_array<T>
-    operator()(bool including_closing_edge) const
-    {
-      return including_closing_edge ?
-        m_with_closing_edge :
-        m_without_closing_edge;
-    }
-
-    fastuidraw::c_array<T>
-    operator()(bool including_closing_edge)
-    {
-      return including_closing_edge ?
-        m_with_closing_edge :
-        m_without_closing_edge;
-    }
-
-  private:
-    std::vector<T> m_data;
-    fastuidraw::c_array<T> m_with_closing_edge;
-    fastuidraw::c_array<T> m_without_closing_edge;
-  };
-
-  class JoinsPointData
-  {
-  public:
-    PartitionedArray<fastuidraw::StrokedPath::point> m_points;
-    PartitionedArray<unsigned int> m_indices;
-    fastuidraw::vecN<unsigned int, 2> m_number_depth;
-
-    /* szs[0] --> number of geometry points not including closing
-       szs[1] --> number of geometry points for closing
-       szs[0] --> number of indices not including closing
-       szs[1] --> number of indices for closing
-
-       Note that the points come at the end, but the
-       indices come at the front.
-     */
-    void
-    resize(fastuidraw::uvec4 szs)
-    {
-      m_points.resize(szs[0], szs[1], true);
-      m_indices.resize(szs[2], szs[3], false);
-    }
-
-    void
-    resize_locations(const PathData &P);
-
-    unsigned int
-    number_contours(void) const
-    {
-      return m_locations.size();
-    }
-
-    unsigned int
-    number_joins(unsigned int C) const
-    {
-      assert(C < m_locations.size());
-      return m_locations[C].size();
-    }
-
-    fastuidraw::range_type<unsigned int>
-    points_range(unsigned int C, unsigned int J) const
-    {
-      assert(C < m_locations.size());
-      assert(J < m_locations[C].size());
-      return m_locations[C][J].m_attribs;
-    }
-
-    fastuidraw::range_type<unsigned int>
-    indices_range(unsigned int C, unsigned int J) const
-    {
-      assert(C < m_locations.size());
-      assert(J < m_locations[C].size());
-      return m_locations[C][J].m_indices;
-    }
-
-    std::vector<std::vector<Location> > m_locations;
-  };
-
   class CapsPointData
   {
   public:
@@ -919,34 +779,6 @@ namespace
     idx_loc += idx_src.size();
   }
 
-  void
-  grab_specific_join(const JoinsPointData &src,
-                     unsigned int src_attrib_chunk,
-                     unsigned int C, unsigned int J,
-                     unsigned int &gJ, unsigned int Kc,
-                     fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
-                     fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-                     fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
-                     unsigned int &idx_loc)
-  {
-    fastuidraw::range_type<unsigned int> Ri, Ra;
-    fastuidraw::const_c_array<fastuidraw::PainterIndex> srcI;
-    fastuidraw::c_array<fastuidraw::PainterIndex> dst;
-
-    Ra = src.points_range(C, J);
-    Ri = src.indices_range(C, J);
-    srcI = src.m_indices(true).sub_array(Ri);
-    attribute_chunks[Kc] = attribute_chunks[src_attrib_chunk].sub_array(Ra);
-    dst = index_data.sub_array(idx_loc, srcI.size());
-    index_chunks[Kc] =  dst;
-    for(unsigned int I = 0; I < srcI.size(); ++I)
-      {
-        dst[I] = srcI[I] - Ra.m_begin;
-      }
-    idx_loc += srcI.size();
-    ++gJ;
-  }
-
   class CapFiller:public fastuidraw::PainterAttributeDataFiller
   {
   public:
@@ -986,107 +818,6 @@ namespace
 
   private:
     const CapsPointData *m_src;
-  };
-
-  class JoinFiller:public fastuidraw::PainterAttributeDataFiller
-  {
-  public:
-    explicit
-    JoinFiller(const JoinsPointData *src):
-      m_src(src)
-    {}
-
-    virtual
-    void
-    compute_sizes(unsigned int &num_attributes,
-                  unsigned int &num_indices,
-                  unsigned int &num_attribute_chunks,
-                  unsigned int &num_index_chunks,
-                  unsigned int &number_z_increments) const
-    {
-      unsigned int numJoins(0);
-
-      num_attributes = m_src->m_points(true).size();
-      num_indices = m_src->m_indices(true).size();
-      for(unsigned int C = 0, endC = m_src->number_contours(); C < endC; ++C)
-        {
-          unsigned int endJ;
-
-          endJ = m_src->number_joins(C);
-          numJoins += endJ;
-          for(unsigned int J = 0; J < endJ; ++J)
-            {
-              /* indices for joins appear twice, once all together
-                 and then again as seperate chunks.
-              */
-              num_indices += m_src->indices_range(C, J).difference();
-            }
-        }
-      num_attribute_chunks = num_index_chunks = number_z_increments =
-        fastuidraw::StrokedPath::chunk_number_choices + numJoins;
-    }
-
-    virtual
-    void
-    fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
-              fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
-              fastuidraw::c_array<unsigned int> zincrements) const
-    {
-      unsigned int attr_loc(0), idx_loc(0);
-
-      zincrements[fastuidraw::StrokedPath::chunk_without_closing_edge] = m_src->m_number_depth[false];
-      zincrements[fastuidraw::StrokedPath::chunk_with_closing_edge] = m_src->m_number_depth[true];
-
-      grab_attribute_index_data(attribute_data,  attr_loc, m_src->m_points(true),
-                                index_data, idx_loc, m_src->m_indices(true),
-                                attribute_chunks[fastuidraw::StrokedPath::chunk_with_closing_edge],
-                                index_chunks[fastuidraw::StrokedPath::chunk_with_closing_edge]);
-
-      attribute_chunks[fastuidraw::StrokedPath::chunk_without_closing_edge] =
-        attribute_chunks[fastuidraw::StrokedPath::chunk_with_closing_edge].sub_array(0, m_src->m_points(false).size());
-
-      unsigned int with, without;
-
-      with = m_src->m_indices(true).size();
-      without = m_src->m_indices(false).size();
-      assert(with >= without);
-
-      index_chunks[fastuidraw::StrokedPath::chunk_without_closing_edge] =
-        index_chunks[fastuidraw::StrokedPath::chunk_with_closing_edge].sub_array(with - without);
-
-      unsigned int gJ = 0;
-      for(unsigned int C = 0, endC = m_src->number_contours(); C < endC; ++C)
-        {
-          assert(m_src->number_joins(C) >= 2);
-          for(unsigned int J = 0, endJ = m_src->number_joins(C) - 2; J < endJ; ++J)
-            {
-              grab_specific_join(*m_src, fastuidraw::StrokedPath::chunk_with_closing_edge, C, J, gJ,
-                                 gJ + fastuidraw::StrokedPath::chunk_number_choices,
-                                 index_data, attribute_chunks,
-                                 index_chunks, idx_loc);
-            }
-        }
-
-      for(unsigned int C = 0, endC = m_src->number_contours(); C < endC; ++C)
-        {
-          unsigned int J;
-          J = m_src->number_joins(C) - 1;
-          grab_specific_join(*m_src, fastuidraw::StrokedPath::chunk_with_closing_edge, C, J, gJ,
-                             gJ + fastuidraw::StrokedPath::chunk_number_choices,
-                             index_data, attribute_chunks,
-                             index_chunks, idx_loc);
-          J = m_src->number_joins(C) - 2;
-          grab_specific_join(*m_src, fastuidraw::StrokedPath::chunk_with_closing_edge, C, J, gJ,
-                             gJ + fastuidraw::StrokedPath::chunk_number_choices,
-                             index_data, attribute_chunks,
-                             index_chunks, idx_loc);
-        }
-    }
-
-  private:
-    const JoinsPointData *m_src;
   };
 
   class StrokedPathPrivate
@@ -1697,6 +1428,10 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int raw_depth,
   fastuidraw::vecN<fastuidraw::StrokedPath::point, 6> pts;
   unsigned int depth;
 
+  /* we want the elements first in the index list
+     to be infront of the element at the end; thus
+     we reverse the depth.
+   */
   assert(raw_depth < m_src->m_depth_with_children.m_end);
   depth = m_src->m_depth_with_children.m_end - 1 - raw_depth;
 
@@ -1773,8 +1508,8 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int raw_depth,
       pts[k + 3].m_pre_offset = normal_sign[k] * sub_edge.m_normal;
       pts[k + 3].m_auxilary_offset = -sub_edge.m_delta;
       pts[k + 3].m_packed_data = pack_data(boundary_values[k],
-                                                         fastuidraw::StrokedPath::offset_end_sub_edge,
-                                                         depth);
+                                           fastuidraw::StrokedPath::offset_end_sub_edge,
+                                           depth);
     }
 
   for(unsigned int i = 0; i < 6; ++i)
@@ -1802,136 +1537,152 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int raw_depth,
 
 /////////////////////////////////////////////////
 // JoinCreatorBase methods
+JoinCreatorBase::
+JoinCreatorBase(const PathData &P):
+  m_P(P),
+  m_num_non_closed_verts(0u),
+  m_num_non_closed_indices(0u),
+  m_num_closed_verts(0u),
+  m_num_closed_indices(0u),
+  m_num_joins(0u)
+{}
+
 void
 JoinCreatorBase::
-compute_size(void)
+compute_sizes(unsigned int &num_attributes,
+              unsigned int &num_indices,
+              unsigned int &num_attribute_chunks,
+              unsigned int &num_index_chunks,
+              unsigned int &number_z_increments) const
 {
-  if(!m_size_ready)
+
+  for(unsigned int o = 0; o < m_P.number_contours(); ++o)
     {
-      m_size_ready = true;
-      for(unsigned int o = 0, join_id = 0; o < m_P.number_contours(); ++o)
+      for(unsigned int e = 1; e + 1 < m_P.number_edges(o); ++e, ++m_num_joins)
         {
-          for(unsigned int e = 1; e + 1 < m_P.number_edges(o); ++e, ++join_id)
-            {
-              add_join(join_id, m_P,
-                       m_P.m_per_contour_data[o].edge_data(e - 1).m_end_normal,
-                       m_P.m_per_contour_data[o].edge_data(e).m_begin_normal,
-                       o, e, m_size.pre_close_verts(), m_size.pre_close_indices());
-            }
-
-          if(m_P.number_edges(o) >= 2)
-            {
-              add_join(join_id, m_P,
-                       m_P.m_per_contour_data[o].edge_data(m_P.number_edges(o) - 2).m_end_normal,
-                       m_P.m_per_contour_data[o].edge_data(m_P.number_edges(o) - 1).m_begin_normal,
-                       o, m_P.number_edges(o) - 1,
-                       m_size.close_verts(), m_size.close_indices());
-
-              add_join(join_id + 1, m_P,
-                       m_P.m_per_contour_data[o].m_edge_data_store.back().m_end_normal,
-                       m_P.m_per_contour_data[o].m_edge_data_store.front().m_begin_normal,
-                       o, m_P.number_edges(o),
-                       m_size.close_verts(), m_size.close_indices());
-
-              join_id += 2;
-            }
+          add_join(m_num_joins, m_P,
+                   m_P.m_per_contour_data[o].edge_data(e - 1).m_end_normal,
+                   m_P.m_per_contour_data[o].edge_data(e).m_begin_normal,
+                   o, e, m_num_non_closed_verts, m_num_non_closed_indices);
         }
     }
+
+  for(unsigned int o = 0; o < m_P.number_contours(); ++o)
+    {
+      if(m_P.number_edges(o) >= 2)
+        {
+          add_join(m_num_joins, m_P,
+                   m_P.m_per_contour_data[o].edge_data(m_P.number_edges(o) - 2).m_end_normal,
+                   m_P.m_per_contour_data[o].edge_data(m_P.number_edges(o) - 1).m_begin_normal,
+                   o, m_P.number_edges(o) - 1,
+                   m_num_closed_verts, m_num_closed_indices);
+
+          add_join(m_num_joins + 1, m_P,
+                   m_P.m_per_contour_data[o].m_edge_data_store.back().m_end_normal,
+                   m_P.m_per_contour_data[o].m_edge_data_store.front().m_begin_normal,
+                   o, m_P.number_edges(o),
+                   m_num_closed_verts, m_num_closed_indices);
+
+          m_num_joins += 2;
+        }
+    }
+
+  num_attributes = 2 * (m_num_non_closed_verts + m_num_closed_verts);
+  num_indices = 2 * (m_num_non_closed_indices + m_num_closed_indices);
+  num_attribute_chunks = num_index_chunks = m_num_joins + 2;
+  number_z_increments = 2;
 }
 
 void
 JoinCreatorBase::
 fill_join(unsigned int join_id,
           unsigned int contour, unsigned int edge,
-          fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
-          unsigned int &depth,
+          fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
           fastuidraw::c_array<unsigned int> indices,
           unsigned int &vertex_offset, unsigned int &index_offset,
-          Location &loc)
+          unsigned int &vertex_offset2, unsigned int &index_offset2,
+          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
+          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks) const
 {
-  unsigned int v(vertex_offset);
+  unsigned int v(vertex_offset2), i(index_offset2);
+  unsigned int depth, K;
+  fastuidraw::c_array<unsigned int> idx_chunk;
 
-  loc.m_attribs.m_begin = vertex_offset;
-  loc.m_indices.m_begin = index_offset;
-  fill_join_implement(join_id, m_P, contour, edge, pts, indices, vertex_offset, index_offset);
-  loc.m_attribs.m_end = vertex_offset;
-  loc.m_indices.m_end = index_offset;
+  assert(join_id < m_num_joins);
+  depth = m_num_joins - 1 - join_id;
+  fill_join_implement(join_id, m_P, contour, edge, pts, depth, indices, vertex_offset, index_offset);
+  fill_join_implement(join_id, m_P, contour, edge, pts, depth, indices, vertex_offset2, index_offset2);
 
-  post_assign_depth(depth, pts.sub_array(v, vertex_offset - v));
-}
-
-void
-JoinCreatorBase::
-post_assign_depth(unsigned int &depth,
-                  fastuidraw::c_array<fastuidraw::StrokedPath::point> pts)
-{
-  for(unsigned int v = 0; v < pts.size(); ++v)
+  K = join_id + fastuidraw::StrokedPath::join_chunk_start_individual_joins;
+  attribute_chunks[K] = pts.sub_array(v, vertex_offset2 - v);
+  idx_chunk = indices.sub_array(i, index_offset2 - i);
+  /* adjust index_chunks[K] to be relative to be relative to attribute_chunks[K]
+   */
+  for(unsigned int i = 0; i < idx_chunk.size(); ++i)
     {
-      assign_depth(pts[v], depth);
-      pts[v].m_packed_data |= fastuidraw::StrokedPath::join_mask;
+      idx_chunk[i] -= v;
     }
-  ++depth;
+  index_chunks[K] = idx_chunk;
 }
 
 void
 JoinCreatorBase::
-fill_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
-          fastuidraw::c_array<unsigned int> indices,
-          unsigned int &pre_close_depth, unsigned int &close_depth,
-          std::vector<std::vector<Location> > &locations)
+fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+          fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
+          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+          fastuidraw::c_array<unsigned int> zincrements) const
 {
-  unsigned int pre_close_vertex(0), pre_close_index(m_size.close_indices());
-  unsigned int close_vertex(m_size.pre_close_verts()), close_index(0);
-  unsigned int total;
+  unsigned int vertex_offset(0), index_offset(0), join_id(0);
+  unsigned int vertex_offset2(m_num_non_closed_verts + m_num_closed_verts);
+  unsigned int index_offset2(m_num_non_closed_indices + m_num_closed_indices);
 
-  pre_close_depth = 0;
-  close_depth = 0;
+  assert(attribute_data.size() == 2 * (m_num_non_closed_verts + m_num_closed_verts));
+  assert(index_data.size() == 2 * (m_num_non_closed_indices + m_num_closed_indices));
 
-  for(unsigned int o = 0, join_id = 0; o < m_P.number_contours(); ++o)
+  zincrements[fastuidraw::StrokedPath::join_chunk_without_closing_edge] = m_num_joins;
+  attribute_chunks[fastuidraw::StrokedPath::join_chunk_without_closing_edge] = attribute_data.sub_array(0, m_num_non_closed_verts);
+  index_chunks[fastuidraw::StrokedPath::join_chunk_without_closing_edge] = index_data.sub_array(0, m_num_non_closed_indices);
+
+  zincrements[fastuidraw::StrokedPath::join_chunk_with_closing_edge] = m_num_joins;
+  attribute_chunks[fastuidraw::StrokedPath::join_chunk_with_closing_edge] = attribute_data.sub_array(0, m_num_non_closed_verts + m_num_closed_verts);
+  index_chunks[fastuidraw::StrokedPath::join_chunk_with_closing_edge] = index_data.sub_array(0, m_num_non_closed_indices + m_num_closed_indices);
+
+  for(unsigned int o = 0; o < m_P.number_contours(); ++o)
     {
       for(unsigned int e = 1; e + 1 < m_P.number_edges(o); ++e, ++join_id)
         {
-          fill_join(join_id, o, e, pts, pre_close_depth, indices,
-                    pre_close_vertex, pre_close_index,
-                    locations[o][e - 1]);
+          fill_join(join_id, o, e,
+                    attribute_data, index_data,
+                    vertex_offset, index_offset,
+                    vertex_offset2, index_offset2,
+                    attribute_chunks, index_chunks);
         }
+    }
+  assert(vertex_offset == m_num_non_closed_verts);
+  assert(index_offset == m_num_non_closed_indices);
 
+  for(unsigned int o = 0; o < m_P.number_contours(); ++o)
+    {
       if(m_P.number_edges(o) >= 2)
         {
-          fill_join(join_id, o, m_P.number_edges(o) - 1, pts, close_depth, indices,
-                    close_vertex, close_index,
-                    locations[o][m_P.number_edges(o) - 2]);
+          fill_join(join_id, o, m_P.number_edges(o) - 1,
+                    attribute_data, index_data,
+                    vertex_offset, index_offset,
+                    vertex_offset2, index_offset2,
+                    attribute_chunks, index_chunks);
 
-          fill_join(join_id + 1, o, m_P.number_edges(o), pts, close_depth, indices,
-                    close_vertex, close_index,
-                    locations[o][m_P.number_edges(o) - 1]);
+          fill_join(join_id + 1, o, m_P.number_edges(o),
+                    attribute_data, index_data,
+                    vertex_offset, index_offset,
+                    vertex_offset2, index_offset2,
+                    attribute_chunks, index_chunks);
 
           join_id += 2;
         }
     }
-
-  total = close_depth + pre_close_depth;
-
-  /* the vertices of the closing edge are drawn first,
-     so they should have the largest depth value
-   */
-  for(unsigned int i = m_size.pre_close_verts(); i < pts.size(); ++i)
-    {
-      assert(pts[i].depth() < close_depth);
-      assign_depth(pts[i], total - pts[i].depth() - 1);
-    }
-  for(unsigned int i = 0; i < m_size.pre_close_verts(); ++i)
-    {
-      assert(pts[i].depth() < pre_close_depth);
-      assign_depth(pts[i], total - (pts[i].depth() + close_depth) - 1);
-    }
-
-  assert(pre_close_vertex == m_size.pre_close_verts());
-  assert(pre_close_index == m_size.pre_close_indices() + m_size.close_indices());
-  assert(close_vertex == pre_close_vertex + m_size.close_verts());
-  assert(close_index == m_size.close_indices());
-
-  close_depth = total;
+  assert(vertex_offset == m_num_non_closed_verts + m_num_closed_verts);
+  assert(index_offset == m_num_non_closed_indices + m_num_closed_indices);
 }
 
 
@@ -1968,36 +1719,40 @@ PerJoinData(const fastuidraw::TessellatedPath::point &p0,
 
 void
 RoundedJoinCreator::PerJoinData::
-add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
+add_data(unsigned int depth,
+         fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
          unsigned int &vertex_offset,
          fastuidraw::c_array<unsigned int> indices,
          unsigned int &index_offset) const
 {
   unsigned int i, first;
   float theta;
+  fastuidraw::StrokedPath::point pt;
 
   first = vertex_offset;
 
-  pts[vertex_offset].m_position = m_p0;
-  pts[vertex_offset].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
-  pts[vertex_offset].m_distance_from_contour_start = m_distance_from_contour_start;
-  pts[vertex_offset].m_edge_length = m_edge_length;
-  pts[vertex_offset].m_open_contour_length = m_open_contour_length;
-  pts[vertex_offset].m_closed_contour_length = m_closed_contour_length;
-  pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pts[vertex_offset].m_packed_data = pack_data(0, fastuidraw::StrokedPath::offset_shared_with_edge);
+  pt.m_position = m_p0;
+  pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_distance_from_edge_start = m_distance_from_edge_start;
+  pt.m_distance_from_contour_start = m_distance_from_contour_start;
+  pt.m_edge_length = m_edge_length;
+  pt.m_open_contour_length = m_open_contour_length;
+  pt.m_closed_contour_length = m_closed_contour_length;
+  pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  pts[vertex_offset].m_position = m_p0;
-  pts[vertex_offset].m_pre_offset = m_lambda * m_n0;
-  pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
-  pts[vertex_offset].m_distance_from_contour_start = m_distance_from_contour_start;
-  pts[vertex_offset].m_edge_length = m_edge_length;
-  pts[vertex_offset].m_open_contour_length = m_open_contour_length;
-  pts[vertex_offset].m_closed_contour_length = m_closed_contour_length;
-  pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pts[vertex_offset].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_shared_with_edge);
+  pt.m_position = m_p0;
+  pt.m_pre_offset = m_lambda * m_n0;
+  pt.m_distance_from_edge_start = m_distance_from_edge_start;
+  pt.m_distance_from_contour_start = m_distance_from_contour_start;
+  pt.m_edge_length = m_edge_length;
+  pt.m_open_contour_length = m_open_contour_length;
+  pt.m_closed_contour_length = m_closed_contour_length;
+  pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
   for(i = 1, theta = m_delta_theta; i < m_num_arc_points - 1; ++i, theta += m_delta_theta, ++vertex_offset)
@@ -2010,41 +1765,43 @@ add_data(fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
       s = std::sin(theta);
       cs_as_complex = std::complex<float>(c, s) * m_arc_start;
 
-      pts[vertex_offset].m_position = m_p0;
-      pts[vertex_offset].m_pre_offset = m_lambda * fastuidraw::vec2(m_n0.x(), m_n1.x());
-      pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(t, cs_as_complex.real());
-      pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
-      pts[vertex_offset].m_distance_from_contour_start = m_distance_from_contour_start;
-      pts[vertex_offset].m_edge_length = m_edge_length;
-      pts[vertex_offset].m_open_contour_length = m_open_contour_length;
-      pts[vertex_offset].m_closed_contour_length = m_closed_contour_length;
-      pts[vertex_offset].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_rounded_join);
+      pt.m_position = m_p0;
+      pt.m_pre_offset = m_lambda * fastuidraw::vec2(m_n0.x(), m_n1.x());
+      pt.m_auxilary_offset = fastuidraw::vec2(t, cs_as_complex.real());
+      pt.m_distance_from_edge_start = m_distance_from_edge_start;
+      pt.m_distance_from_contour_start = m_distance_from_contour_start;
+      pt.m_edge_length = m_edge_length;
+      pt.m_open_contour_length = m_open_contour_length;
+      pt.m_closed_contour_length = m_closed_contour_length;
+      pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_rounded_join, depth);
 
       if(m_lambda * m_n0.y() < 0.0f)
         {
-          pts[vertex_offset].m_packed_data |= fastuidraw::StrokedPath::normal0_y_sign_mask;
+          pt.m_packed_data |= fastuidraw::StrokedPath::normal0_y_sign_mask;
         }
 
       if(m_lambda * m_n1.y() < 0.0f)
         {
-          pts[vertex_offset].m_packed_data |= fastuidraw::StrokedPath::normal1_y_sign_mask;
+          pt.m_packed_data |= fastuidraw::StrokedPath::normal1_y_sign_mask;
         }
 
       if(cs_as_complex.imag() < 0.0f)
         {
-          pts[vertex_offset].m_packed_data |= fastuidraw::StrokedPath::sin_sign_mask;
+          pt.m_packed_data |= fastuidraw::StrokedPath::sin_sign_mask;
         }
+      pt.pack_point(&pts[vertex_offset]);
     }
 
-  pts[vertex_offset].m_position = m_p1;
-  pts[vertex_offset].m_pre_offset = m_lambda * m_n1;
-  pts[vertex_offset].m_distance_from_edge_start = m_distance_from_edge_start;
-  pts[vertex_offset].m_distance_from_contour_start = m_distance_from_contour_start;
-  pts[vertex_offset].m_edge_length = m_edge_length;
-  pts[vertex_offset].m_open_contour_length = m_open_contour_length;
-  pts[vertex_offset].m_closed_contour_length = m_closed_contour_length;
-  pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pts[vertex_offset].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_shared_with_edge);
+  pt.m_position = m_p1;
+  pt.m_pre_offset = m_lambda * m_n1;
+  pt.m_distance_from_edge_start = m_distance_from_edge_start;
+  pt.m_distance_from_contour_start = m_distance_from_contour_start;
+  pt.m_edge_length = m_edge_length;
+  pt.m_open_contour_length = m_open_contour_length;
+  pt.m_closed_contour_length = m_closed_contour_length;
+  pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
   add_triangle_fan(first, vertex_offset, indices, index_offset);
@@ -2068,7 +1825,7 @@ add_join(unsigned int join_id,
          const fastuidraw::vec2 &n0_from_stroking,
          const fastuidraw::vec2 &n1_from_stroking,
          unsigned int contour, unsigned int edge,
-         unsigned int &vert_count, unsigned int &index_count)
+         unsigned int &vert_count, unsigned int &index_count) const
 {
   (void)join_id;
   PerJoinData J(path.m_per_contour_data[contour].edge_data(edge - 1).m_end_pt,
@@ -2090,16 +1847,17 @@ RoundedJoinCreator::
 fill_join_implement(unsigned int join_id,
                     const PathData &path,
                     unsigned int contour, unsigned int edge,
-                    fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
+                    fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                    unsigned int depth,
                     fastuidraw::c_array<unsigned int> indices,
-                    unsigned int &vertex_offset, unsigned int &index_offset)
+                    unsigned int &vertex_offset, unsigned int &index_offset) const
 {
   (void)contour;
   (void)edge;
   (void)path;
 
   assert(join_id < m_per_join_data.size());
-  m_per_join_data[join_id].add_data(pts, vertex_offset, indices, index_offset);
+  m_per_join_data[join_id].add_data(depth, pts, vertex_offset, indices, index_offset);
 }
 
 ///////////////////////////////////////////////////
@@ -2116,7 +1874,7 @@ add_join(unsigned int join_id,
          const fastuidraw::vec2 &n0_from_stroking,
          const fastuidraw::vec2 &n1_from_stroking,
          unsigned int contour, unsigned int edge,
-         unsigned int &vert_count, unsigned int &index_count)
+         unsigned int &vert_count, unsigned int &index_count) const
 {
   (void)join_id;
   (void)path;
@@ -2137,12 +1895,14 @@ BevelJoinCreator::
 fill_join_implement(unsigned int join_id,
                     const PathData &path,
                     unsigned int contour, unsigned int edge,
-                    fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
+                    fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                    unsigned int depth,
                     fastuidraw::c_array<unsigned int> indices,
-                    unsigned int &vertex_offset, unsigned int &index_offset)
+                    unsigned int &vertex_offset, unsigned int &index_offset) const
 {
   const fastuidraw::TessellatedPath::point &prev_pt(path.m_per_contour_data[contour].edge_data(edge - 1).m_end_pt);
   const fastuidraw::TessellatedPath::point &next_pt(path.m_per_contour_data[contour].edge_data(edge).m_start_pt);
+  fastuidraw::StrokedPath::point pt;
 
   CommonJoinData J(prev_pt.m_p, m_n0[join_id],
                    next_pt.m_p, m_n1[join_id],
@@ -2154,38 +1914,196 @@ fill_join_implement(unsigned int join_id,
                    prev_pt.m_open_contour_length,
                    prev_pt.m_closed_contour_length);
 
-  pts[vertex_offset + 0].m_position = J.m_p0;
-  pts[vertex_offset + 0].m_pre_offset = J.m_lambda * J.m_n0;
-  pts[vertex_offset + 0].m_distance_from_edge_start = J.m_distance_from_edge_start;
-  pts[vertex_offset + 0].m_distance_from_contour_start = J.m_distance_from_contour_start;
-  pts[vertex_offset + 0].m_edge_length = J.m_edge_length;
-  pts[vertex_offset + 0].m_open_contour_length = J.m_open_contour_length;
-  pts[vertex_offset + 0].m_closed_contour_length = J.m_closed_contour_length;
-  pts[vertex_offset + 0].m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pts[vertex_offset + 0].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_shared_with_edge);
+  pt.m_position = J.m_p0;
+  pt.m_pre_offset = J.m_lambda * J.m_n0;
+  pt.m_distance_from_edge_start = J.m_distance_from_edge_start;
+  pt.m_distance_from_contour_start = J.m_distance_from_contour_start;
+  pt.m_edge_length = J.m_edge_length;
+  pt.m_open_contour_length = J.m_open_contour_length;
+  pt.m_closed_contour_length = J.m_closed_contour_length;
+  pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset + 0]);
 
-  pts[vertex_offset + 1].m_position = J.m_p0;
-  pts[vertex_offset + 1].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pts[vertex_offset + 1].m_distance_from_edge_start = J.m_distance_from_edge_start;
-  pts[vertex_offset + 1].m_distance_from_contour_start = J.m_distance_from_contour_start;
-  pts[vertex_offset + 1].m_edge_length = J.m_edge_length;
-  pts[vertex_offset + 1].m_open_contour_length = J.m_open_contour_length;
-  pts[vertex_offset + 1].m_closed_contour_length = J.m_closed_contour_length;
-  pts[vertex_offset + 1].m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pts[vertex_offset + 1].m_packed_data = pack_data(0, fastuidraw::StrokedPath::offset_shared_with_edge);
+  pt.m_position = J.m_p0;
+  pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_distance_from_edge_start = J.m_distance_from_edge_start;
+  pt.m_distance_from_contour_start = J.m_distance_from_contour_start;
+  pt.m_edge_length = J.m_edge_length;
+  pt.m_open_contour_length = J.m_open_contour_length;
+  pt.m_closed_contour_length = J.m_closed_contour_length;
+  pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset + 1]);
 
-  pts[vertex_offset + 2].m_position = J.m_p1;
-  pts[vertex_offset + 2].m_pre_offset = J.m_lambda * J.m_n1;
-  pts[vertex_offset + 2].m_distance_from_edge_start = J.m_distance_from_edge_start;
-  pts[vertex_offset + 2].m_distance_from_contour_start = J.m_distance_from_contour_start;
-  pts[vertex_offset + 2].m_edge_length = J.m_edge_length;
-  pts[vertex_offset + 2].m_open_contour_length = J.m_open_contour_length;
-  pts[vertex_offset + 2].m_closed_contour_length = J.m_closed_contour_length;
-  pts[vertex_offset + 2].m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pts[vertex_offset + 2].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_shared_with_edge);
+  pt.m_position = J.m_p1;
+  pt.m_pre_offset = J.m_lambda * J.m_n1;
+  pt.m_distance_from_edge_start = J.m_distance_from_edge_start;
+  pt.m_distance_from_contour_start = J.m_distance_from_contour_start;
+  pt.m_edge_length = J.m_edge_length;
+  pt.m_open_contour_length = J.m_open_contour_length;
+  pt.m_closed_contour_length = J.m_closed_contour_length;
+  pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset + 2]);
 
   add_triangle_fan(vertex_offset, vertex_offset + 3, indices, index_offset);
+
   vertex_offset += 3;
+}
+
+///////////////////////////////////////////////////
+// MiterJoinCreator methods
+MiterJoinCreator::
+MiterJoinCreator(const PathData &P):
+  JoinCreatorBase(P)
+{
+}
+
+void
+MiterJoinCreator::
+add_join(unsigned int join_id,
+         const PathData &path,
+         const fastuidraw::vec2 &n0_from_stroking,
+         const fastuidraw::vec2 &n1_from_stroking,
+         unsigned int contour, unsigned int edge,
+         unsigned int &vert_count, unsigned int &index_count) const
+{
+  /* Each join is a triangle fan from 5 points
+     (thus 3 triangles, which is 9 indices)
+   */
+  (void)join_id;
+  (void)path;
+  (void)contour;
+  (void)edge;
+
+  vert_count += 5;
+  index_count += 9;
+
+  m_n0.push_back(n0_from_stroking);
+  m_n1.push_back(n1_from_stroking);
+}
+
+
+void
+MiterJoinCreator::
+fill_join_implement(unsigned int join_id,
+                    const PathData &path,
+                    unsigned int contour, unsigned int edge,
+                    fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                    unsigned int depth,
+                    fastuidraw::c_array<unsigned int> indices,
+                    unsigned int &vertex_offset, unsigned int &index_offset) const
+{
+  FASTUIDRAWunused(join_id);
+
+  const fastuidraw::TessellatedPath::point &prev_pt(path.m_per_contour_data[contour].edge_data(edge - 1).m_end_pt);
+  const fastuidraw::TessellatedPath::point &next_pt(path.m_per_contour_data[contour].edge_data(edge).m_start_pt);
+  fastuidraw::StrokedPath::point pt;
+  unsigned int first;
+
+  CommonJoinData J(prev_pt.m_p, m_n0[join_id],
+                   next_pt.m_p, m_n1[join_id],
+                   prev_pt.m_distance_from_edge_start,
+                   prev_pt.m_distance_from_contour_start,
+                   //using p0 to decide the edge length, as
+                   //we think of the join as ending an edge.
+                   prev_pt.m_edge_length,
+                   prev_pt.m_open_contour_length,
+                   prev_pt.m_closed_contour_length);
+
+  /* The miter point is given by where the two boundary
+     curves intersect. The two curves are given by:
+
+     a(t) = J.m_p0 + stroke_width * J.m_lamba * J.m_n0 + t * J.m_v0
+     b(s) = J.m_p1 + stroke_width * J.m_lamba * J.m_n1 - s * J.m_v1
+
+    With J.m_p0 is the same value as J.m_p1, the location
+    of the join.
+
+    We need to solve a(t) = b(s) and compute that location.
+    Linear algebra gives us that:
+
+    t = - stroke_width * J.m_lamba * r
+    s = - stroke_width * J.m_lamba * r
+     where
+    r = (<J.m_v1, J.m_v0> - 1) / <J.m_v0, J.m_n1>
+
+    thus
+
+    a(t) = J.m_p0 + stroke_width * ( J.m_lamba * J.m_n0 -  r * J.m_lamba * J.m_v0)
+         = b(s)
+         = J.m_p1 + stroke_width * ( J.m_lamba * J.m_n1 +  r * J.m_lamba * J.m_v1)
+   */
+
+  first = vertex_offset;
+
+  // join center point.
+  pt.m_position = J.m_p0;
+  pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_distance_from_edge_start = J.m_distance_from_edge_start;
+  pt.m_distance_from_contour_start = J.m_distance_from_contour_start;
+  pt.m_edge_length = J.m_edge_length;
+  pt.m_open_contour_length = J.m_open_contour_length;
+  pt.m_closed_contour_length = J.m_closed_contour_length;
+  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  // join point from curve into join
+  pt.m_position = J.m_p0;
+  pt.m_pre_offset = J.m_lambda * J.m_n0;
+  pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_distance_from_edge_start = J.m_distance_from_edge_start;
+  pt.m_distance_from_contour_start = J.m_distance_from_contour_start;
+  pt.m_edge_length = J.m_edge_length;
+  pt.m_open_contour_length = J.m_open_contour_length;
+  pt.m_closed_contour_length = J.m_closed_contour_length;
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  // miter point A
+  pt.m_position = J.m_p0;
+  pt.m_pre_offset = J.m_n0;
+  pt.m_auxilary_offset = J.m_n1;
+  pt.m_distance_from_edge_start = J.m_distance_from_edge_start;
+  pt.m_distance_from_contour_start = J.m_distance_from_contour_start;
+  pt.m_edge_length = J.m_edge_length;
+  pt.m_open_contour_length = J.m_open_contour_length;
+  pt.m_closed_contour_length = J.m_closed_contour_length;
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_miter_join, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  // miter point B
+  pt.m_position = J.m_p1;
+  pt.m_pre_offset = J.m_n0;
+  pt.m_auxilary_offset = J.m_n1;
+  pt.m_distance_from_edge_start = J.m_distance_from_edge_start;
+  pt.m_distance_from_contour_start = J.m_distance_from_contour_start;
+  pt.m_edge_length = J.m_edge_length;
+  pt.m_open_contour_length = J.m_open_contour_length;
+  pt.m_closed_contour_length = J.m_closed_contour_length;
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_miter_join, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  // join point from curve out from join
+  pt.m_position = J.m_p1;
+  pt.m_pre_offset = J.m_lambda * J.m_n1;
+  pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_distance_from_edge_start = J.m_distance_from_edge_start;
+  pt.m_distance_from_contour_start = J.m_distance_from_contour_start;
+  pt.m_edge_length = J.m_edge_length;
+  pt.m_open_contour_length = J.m_open_contour_length;
+  pt.m_closed_contour_length = J.m_closed_contour_length;
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  add_triangle_fan(first, vertex_offset, indices, index_offset);
 }
 
 ///////////////////////////////////////////////
@@ -2537,166 +2455,6 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
            pts, vertex_offset, indices, index_offset);
 }
 
-///////////////////////////////////////////////////
-// MiterJoinCreator methods
-MiterJoinCreator::
-MiterJoinCreator(const PathData &P):
-  JoinCreatorBase(P)
-{
-}
-
-void
-MiterJoinCreator::
-add_join(unsigned int join_id,
-         const PathData &path,
-         const fastuidraw::vec2 &n0_from_stroking,
-         const fastuidraw::vec2 &n1_from_stroking,
-         unsigned int contour, unsigned int edge,
-         unsigned int &vert_count, unsigned int &index_count)
-{
-  /* Each join is a triangle fan from 5 points
-     (thus 3 triangles, which is 9 indices)
-   */
-  (void)join_id;
-  (void)path;
-  (void)contour;
-  (void)edge;
-
-  vert_count += 5;
-  index_count += 9;
-
-  m_n0.push_back(n0_from_stroking);
-  m_n1.push_back(n1_from_stroking);
-}
-
-
-void
-MiterJoinCreator::
-fill_join_implement(unsigned int join_id,
-                    const PathData &path,
-                    unsigned int contour, unsigned int edge,
-                    fastuidraw::c_array<fastuidraw::StrokedPath::point> pts,
-                    fastuidraw::c_array<unsigned int> indices,
-                    unsigned int &vertex_offset, unsigned int &index_offset)
-{
-  FASTUIDRAWunused(join_id);
-
-  const fastuidraw::TessellatedPath::point &prev_pt(path.m_per_contour_data[contour].edge_data(edge - 1).m_end_pt);
-  const fastuidraw::TessellatedPath::point &next_pt(path.m_per_contour_data[contour].edge_data(edge).m_start_pt);
-  unsigned int first;
-
-  CommonJoinData J(prev_pt.m_p, m_n0[join_id],
-                   next_pt.m_p, m_n1[join_id],
-                   prev_pt.m_distance_from_edge_start,
-                   prev_pt.m_distance_from_contour_start,
-                   //using p0 to decide the edge length, as
-                   //we think of the join as ending an edge.
-                   prev_pt.m_edge_length,
-                   prev_pt.m_open_contour_length,
-                   prev_pt.m_closed_contour_length);
-
-  /* The miter point is given by where the two boundary
-     curves intersect. The two curves are given by:
-
-     a(t) = J.m_p0 + stroke_width * J.m_lamba * J.m_n0 + t * J.m_v0
-     b(s) = J.m_p1 + stroke_width * J.m_lamba * J.m_n1 - s * J.m_v1
-
-    With J.m_p0 is the same value as J.m_p1, the location
-    of the join.
-
-    We need to solve a(t) = b(s) and compute that location.
-    Linear algebra gives us that:
-
-    t = - stroke_width * J.m_lamba * r
-    s = - stroke_width * J.m_lamba * r
-     where
-    r = (<J.m_v1, J.m_v0> - 1) / <J.m_v0, J.m_n1>
-
-    thus
-
-    a(t) = J.m_p0 + stroke_width * ( J.m_lamba * J.m_n0 -  r * J.m_lamba * J.m_v0)
-         = b(s)
-         = J.m_p1 + stroke_width * ( J.m_lamba * J.m_n1 +  r * J.m_lamba * J.m_v1)
-   */
-
-  first = vertex_offset;
-
-  // join center point.
-  pts[vertex_offset].m_position = J.m_p0;
-  pts[vertex_offset].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
-  pts[vertex_offset].m_distance_from_contour_start = J.m_distance_from_contour_start;
-  pts[vertex_offset].m_edge_length = J.m_edge_length;
-  pts[vertex_offset].m_open_contour_length = J.m_open_contour_length;
-  pts[vertex_offset].m_closed_contour_length = J.m_closed_contour_length;
-  pts[vertex_offset].m_packed_data = pack_data(0, fastuidraw::StrokedPath::offset_shared_with_edge);
-  ++vertex_offset;
-
-  // join point from curve into join
-  pts[vertex_offset].m_position = J.m_p0;
-  pts[vertex_offset].m_pre_offset = J.m_lambda * J.m_n0;
-  pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
-  pts[vertex_offset].m_distance_from_contour_start = J.m_distance_from_contour_start;
-  pts[vertex_offset].m_edge_length = J.m_edge_length;
-  pts[vertex_offset].m_open_contour_length = J.m_open_contour_length;
-  pts[vertex_offset].m_closed_contour_length = J.m_closed_contour_length;
-  pts[vertex_offset].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_shared_with_edge);
-  ++vertex_offset;
-
-  // miter point A
-  pts[vertex_offset].m_position = J.m_p0;
-  pts[vertex_offset].m_pre_offset = J.m_n0;
-  pts[vertex_offset].m_auxilary_offset = J.m_n1;
-  pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
-  pts[vertex_offset].m_distance_from_contour_start = J.m_distance_from_contour_start;
-  pts[vertex_offset].m_edge_length = J.m_edge_length;
-  pts[vertex_offset].m_open_contour_length = J.m_open_contour_length;
-  pts[vertex_offset].m_closed_contour_length = J.m_closed_contour_length;
-  pts[vertex_offset].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_miter_join);
-  ++vertex_offset;
-
-  // miter point B
-  pts[vertex_offset].m_position = J.m_p1;
-  pts[vertex_offset].m_pre_offset = J.m_n0;
-  pts[vertex_offset].m_auxilary_offset = J.m_n1;
-  pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
-  pts[vertex_offset].m_distance_from_contour_start = J.m_distance_from_contour_start;
-  pts[vertex_offset].m_edge_length = J.m_edge_length;
-  pts[vertex_offset].m_open_contour_length = J.m_open_contour_length;
-  pts[vertex_offset].m_closed_contour_length = J.m_closed_contour_length;
-  pts[vertex_offset].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_miter_join);
-  ++vertex_offset;
-
-  // join point from curve out from join
-  pts[vertex_offset].m_position = J.m_p1;
-  pts[vertex_offset].m_pre_offset = J.m_lambda * J.m_n1;
-  pts[vertex_offset].m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pts[vertex_offset].m_distance_from_edge_start = J.m_distance_from_edge_start;
-  pts[vertex_offset].m_distance_from_contour_start = J.m_distance_from_contour_start;
-  pts[vertex_offset].m_edge_length = J.m_edge_length;
-  pts[vertex_offset].m_open_contour_length = J.m_open_contour_length;
-  pts[vertex_offset].m_closed_contour_length = J.m_closed_contour_length;
-  pts[vertex_offset].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_shared_with_edge);
-  ++vertex_offset;
-
-  add_triangle_fan(first, vertex_offset, indices, index_offset);
-}
-
-///////////////////////////
-// JoinsPointData methods
-void
-JoinsPointData::
-resize_locations(const PathData &P)
-{
-  m_locations.resize(P.number_contours());
-  for(unsigned int C = 0, endC = P.number_contours(); C < endC; ++C)
-    {
-      m_locations[C].resize(P.number_edges(C));
-    }
-}
-
 /////////////////////////////////////////////
 // StrokedPathPrivate methods
 StrokedPathPrivate::
@@ -2748,17 +2506,8 @@ StrokedPathPrivate::
 create_joins(const PathData &e,
              fastuidraw::PainterAttributeData &out_joins)
 {
-  JoinsPointData join_data;
-  join_data.resize_locations(e);
-
   T creator(e);
-  join_data.resize(creator.sizes());
-  creator.fill_data(join_data.m_points(true),
-                    join_data.m_indices(true),
-                    join_data.m_number_depth[false],
-                    join_data.m_number_depth[true],
-                    join_data.m_locations);
-  out_joins.set_data(JoinFiller(&join_data));
+  out_joins.set_data(creator);
 }
 
 template<typename T>
@@ -2767,17 +2516,8 @@ StrokedPathPrivate::
 create_joins(const PathData &e, float thresh,
              fastuidraw::PainterAttributeData &out_joins)
 {
-  JoinsPointData join_data;
-  join_data.resize_locations(e);
-
   T creator(e, thresh);
-  join_data.resize(creator.sizes());
-  creator.fill_data(join_data.m_points(true),
-                    join_data.m_indices(true),
-                    join_data.m_number_depth[false],
-                    join_data.m_number_depth[true],
-                    join_data.m_locations);
-  out_joins.set_data(JoinFiller(&join_data));
+  out_joins.set_data(creator);
 }
 
 template<typename T>
@@ -2983,7 +2723,7 @@ fastuidraw::StrokedPath::
 number_joins(const PainterAttributeData &join_data, bool with_closing_edges)
 {
   unsigned int K;
-  K = with_closing_edges ? chunk_with_closing_edge : chunk_without_closing_edge;
+  K = with_closing_edges ? join_chunk_with_closing_edge : join_chunk_without_closing_edge;
   return join_data.increment_z_value(K);
 
 }
@@ -2992,7 +2732,7 @@ unsigned int
 fastuidraw::StrokedPath::
 chunk_for_named_join(unsigned int J)
 {
-  return chunk_number_choices + J;
+  return join_chunk_start_individual_joins + J;
 }
 
 fastuidraw::StrokedPath::

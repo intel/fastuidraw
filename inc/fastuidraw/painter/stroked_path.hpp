@@ -574,23 +574,23 @@ public:
     unpack_point(point *dst, const PainterAttribute &src);
   };
 
-  enum chunk_choice_t
+  enum join_chunk_choice_t
     {
       /*!
         For both edges and joins, chunk to use for data without
         closing edge
        */
-      chunk_without_closing_edge,
+      join_chunk_without_closing_edge,
 
       /*!
         For both edges and joins, chunk to use for data with
         closing edge
        */
-      chunk_with_closing_edge,
+      join_chunk_with_closing_edge,
 
       /*!
        */
-      chunk_number_choices
+      join_chunk_start_individual_joins
     };
 
   /*!

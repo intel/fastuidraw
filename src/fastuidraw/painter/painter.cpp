@@ -540,8 +540,8 @@ namespace
   chunk_for_stroking(bool close_contours)
   {
     return close_contours ?
-      fastuidraw::StrokedPath::chunk_with_closing_edge:
-      fastuidraw::StrokedPath::chunk_without_closing_edge;
+      fastuidraw::StrokedPath::join_chunk_with_closing_edge:
+      fastuidraw::StrokedPath::join_chunk_without_closing_edge;
   }
 }
 
