@@ -410,6 +410,11 @@ namespace
               fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
               fastuidraw::c_array<unsigned int> zincrements) const;
 
+  protected:
+
+    void
+    post_ctor_initalize(void);
+
   private:
 
     virtual
@@ -443,9 +448,10 @@ namespace
                         unsigned int &vertex_offset, unsigned int &index_offset) const = 0;
 
     const PathData &m_P;
-    mutable unsigned int m_num_non_closed_verts, m_num_non_closed_indices;
-    mutable unsigned int m_num_closed_verts, m_num_closed_indices;
-    mutable unsigned int m_num_joins;
+    unsigned int m_num_non_closed_verts, m_num_non_closed_indices;
+    unsigned int m_num_closed_verts, m_num_closed_indices;
+    unsigned int m_num_joins;
+    bool m_post_ctor_initalized_called;
   };
 
 
@@ -1544,18 +1550,16 @@ JoinCreatorBase(const PathData &P):
   m_num_non_closed_indices(0u),
   m_num_closed_verts(0u),
   m_num_closed_indices(0u),
-  m_num_joins(0u)
+  m_num_joins(0u),
+  m_post_ctor_initalized_called(false)
 {}
 
 void
 JoinCreatorBase::
-compute_sizes(unsigned int &num_attributes,
-              unsigned int &num_indices,
-              unsigned int &num_attribute_chunks,
-              unsigned int &num_index_chunks,
-              unsigned int &number_z_increments) const
+post_ctor_initalize(void)
 {
-
+  assert(!m_post_ctor_initalized_called);
+  m_post_ctor_initalized_called = true;
   for(unsigned int o = 0; o < m_P.number_contours(); ++o)
     {
       for(unsigned int e = 1; e + 1 < m_P.number_edges(o); ++e, ++m_num_joins)
@@ -1586,7 +1590,17 @@ compute_sizes(unsigned int &num_attributes,
           m_num_joins += 2;
         }
     }
+}
 
+void
+JoinCreatorBase::
+compute_sizes(unsigned int &num_attributes,
+              unsigned int &num_indices,
+              unsigned int &num_attribute_chunks,
+              unsigned int &num_index_chunks,
+              unsigned int &number_z_increments) const
+{
+  assert(m_post_ctor_initalized_called);
   num_attributes = 2 * (m_num_non_closed_verts + m_num_closed_verts);
   num_indices = 2 * (m_num_non_closed_indices + m_num_closed_indices);
   num_attribute_chunks = num_index_chunks = m_num_joins + 2;
@@ -1816,6 +1830,7 @@ RoundedJoinCreator(const PathData &P, float thresh):
 {
   JoinCount J(P);
   m_per_join_data.reserve(J.m_number_close_joins + J.m_number_non_close_joins);
+  post_ctor_initalize();
 }
 
 void
@@ -1865,7 +1880,9 @@ fill_join_implement(unsigned int join_id,
 BevelJoinCreator::
 BevelJoinCreator(const PathData &P):
   JoinCreatorBase(P)
-{}
+{
+  post_ctor_initalize();
+}
 
 void
 BevelJoinCreator::
@@ -1958,6 +1975,7 @@ MiterJoinCreator::
 MiterJoinCreator(const PathData &P):
   JoinCreatorBase(P)
 {
+  post_ctor_initalize();
 }
 
 void
