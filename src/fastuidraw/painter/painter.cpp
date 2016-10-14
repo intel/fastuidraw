@@ -25,6 +25,7 @@
 #include <fastuidraw/painter/painter.hpp>
 
 #include "../private/util_private.hpp"
+#include "../private/clip.hpp"
 
 namespace
 {
@@ -413,6 +414,7 @@ namespace
     std::vector<unsigned int> m_stroke_dashed_join_chunks;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_stroke_attrib_chunks;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_stroke_index_chunks;
+    fastuidraw::StrokedPath::ScratchSpace m_path_scratch;
   };
 
   class PainterPrivate
@@ -445,13 +447,6 @@ namespace
     void
     clip_against_planes(fastuidraw::const_c_array<fastuidraw::vec2> pts,
                         std::vector<fastuidraw::vec2> &out_pts);
-
-    static
-    void
-    clip_against_plane(const fastuidraw::vec3 &clip_eq,
-                       fastuidraw::const_c_array<fastuidraw::vec2> pts,
-                       std::vector<fastuidraw::vec2> &out_pts,
-                       std::vector<float> &work_room);
 
     void
     set_current_item_matrix(const fastuidraw::PainterItemMatrix &v)
@@ -727,24 +722,26 @@ PainterPrivate::
 update_clip_equation_series(const fastuidraw::vec2 &pmin,
                             const fastuidraw::vec2 &pmax)
 {
-  const fastuidraw::PainterItemMatrix &m(m_current_item_matrix);
-  fastuidraw::const_c_array<fastuidraw::vec3> clips(m_clip_store.current());
+  using namespace fastuidraw;
+  using namespace fastuidraw::detail;
+
+  const PainterItemMatrix &m(m_current_item_matrix);
+  const_c_array<vec3> clips(m_clip_store.current());
   unsigned int src, dst, i;
-  fastuidraw::vec2 center(0.0f, 0.0f);
+  vec2 center(0.0f, 0.0f);
 
   m_work_room.m_pts_update_clip_series[0].resize(4);
   m_work_room.m_pts_update_clip_series[0][0] = pmin;
-  m_work_room.m_pts_update_clip_series[0][1] = fastuidraw::vec2(pmin.x(), pmax.y());
+  m_work_room.m_pts_update_clip_series[0][1] = vec2(pmin.x(), pmax.y());
   m_work_room.m_pts_update_clip_series[0][2] = pmax;
-  m_work_room.m_pts_update_clip_series[0][3] = fastuidraw::vec2(pmax.x(), pmin.y());
+  m_work_room.m_pts_update_clip_series[0][3] = vec2(pmax.x(), pmin.y());
 
   for(i = 0, src = 0, dst = 1; i < clips.size(); ++i, std::swap(src, dst))
     {
-      fastuidraw::vec3 nc;
+      vec3 nc;
       nc = clips[i] * m.m_item_matrix;
 
-      clip_against_plane(nc,
-                         fastuidraw::make_c_array(m_work_room.m_pts_update_clip_series[src]),
+      clip_against_plane(nc, make_c_array(m_work_room.m_pts_update_clip_series[src]),
                          m_work_room.m_pts_update_clip_series[dst],
                          m_work_room.m_clipper_floats);
     }
@@ -752,8 +749,8 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
   /* the input rectangle clipped to the previous clipping equation
      array is now stored in m_work_room.m_pts_update_clip_series[src]
    */
-  fastuidraw::const_c_array<fastuidraw::vec2> poly;
-  poly = fastuidraw::make_c_array(m_work_room.m_pts_update_clip_series[src]);
+  const_c_array<vec2> poly;
+  poly = make_c_array(m_work_room.m_pts_update_clip_series[src]);
 
   m_clip_store.clear_current();
 
@@ -784,14 +781,14 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
    */
   for(unsigned int i = 0; i < poly.size(); ++i)
     {
-      fastuidraw::vec2 v, n;
+      vec2 v, n;
       unsigned int next_i;
 
       next_i = i + 1;
       next_i = (next_i == poly.size()) ? 0 : next_i;
       v = poly[next_i] - poly[i];
-      n = fastuidraw::vec2(v.y(), -v.x());
-      if(fastuidraw::dot(center - poly[i], n) < 0.0f)
+      n = vec2(v.y(), -v.x());
+      if(dot(center - poly[i], n) < 0.0f)
         {
           n = -n;
         }
@@ -807,7 +804,7 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
                                  = dot( inverse_transpose_M(R,1), M(p, 1))
          thus the vector to use is inverse_transpose_M(R,1)
        */
-      fastuidraw::vec3 nn(n.x(), n.y(), -fastuidraw::dot(n, poly[i]));
+      vec3 nn(n.x(), n.y(), -dot(n, poly[i]));
       m_clip_store.add_to_current(m_clip_rect_state.m_item_matrix_inverse_transpose * nn);
     }
 
@@ -872,7 +869,8 @@ compute_edge_chunks(const fastuidraw::StrokedPath &stroked_path,
                               &clip_space_additional_room,
                               &item_space_additional_room);
 
-  sz = stroked_path.edge_chunks(m_clip_store.current(),
+  sz = stroked_path.edge_chunks(m_work_room.m_path_scratch,
+                                m_clip_store.current(),
                                 m_current_item_matrix.m_item_matrix,
                                 clip_space_additional_room,
                                 item_space_additional_room,
@@ -887,8 +885,10 @@ PainterPrivate::
 clip_against_planes(fastuidraw::const_c_array<fastuidraw::vec2> pts,
                     std::vector<fastuidraw::vec2> &out_pts)
 {
-  const fastuidraw::PainterClipEquations &eqs(m_current_clip);
-  const fastuidraw::PainterItemMatrix &m(m_current_item_matrix);
+  using namespace fastuidraw;
+  using namespace fastuidraw::detail;
+  const PainterClipEquations &eqs(m_current_clip);
+  const PainterItemMatrix &m(m_current_item_matrix);
 
   /* Clip planes are in clip coordinates, i.e.
        ClipDistance[i] = dot(M * p, clip_equation[i])
@@ -915,146 +915,6 @@ clip_against_planes(fastuidraw::const_c_array<fastuidraw::vec2> pts,
                      fastuidraw::make_c_array(m_work_room.m_pts_clip_against_planes),
                      out_pts,
                      m_work_room.m_clipper_floats);
-}
-
-void
-PainterPrivate::
-clip_against_plane(const fastuidraw::vec3 &clip_eq,
-                   fastuidraw::const_c_array<fastuidraw::vec2> pts,
-                   std::vector<fastuidraw::vec2> &out_pts,
-                   std::vector<float> &work_room)
-{
-  /* clip the convex polygon of pts, placing the results
-     into out_pts.
-   */
-  bool all_clipped, all_unclipped;
-  unsigned int first_unclipped;
-
-  if(pts.empty())
-    {
-      out_pts.resize(0);
-      return;
-    }
-
-  work_room.resize(pts.size());
-  all_clipped = true;
-  all_unclipped = true;
-  first_unclipped = pts.size();
-  for(unsigned int i = 0; i < pts.size(); ++i)
-    {
-      work_room[i] = clip_eq.x() * pts[i].x() + clip_eq.y() * pts[i].y() + clip_eq.z();
-      all_clipped = all_clipped && work_room[i] < 0.0f;
-      all_unclipped = all_unclipped && work_room[i] >= 0.0f;
-      if(first_unclipped == pts.size() && work_room[i] >= 0.0f)
-        {
-          first_unclipped = i;
-        }
-    }
-
-  if(all_clipped)
-    {
-      /* all clipped, nothing to do!
-       */
-      out_pts.resize(0);
-      return;
-    }
-
-  if(all_unclipped)
-    {
-      out_pts.resize(pts.size());
-      std::copy(pts.begin(), pts.end(), out_pts.begin());
-      return;
-    }
-
-  /* the polygon is convex, and atleast one point is clipped, thus
-     the clip line goes through 2 edges.
-   */
-  fastuidraw::vecN<std::pair<unsigned int, unsigned int>, 2> edges;
-  unsigned int num_edges(0);
-
-  for(unsigned int i = 0, k = first_unclipped; i < pts.size() && num_edges < 2; ++i, ++k)
-    {
-      bool b0, b1;
-
-      if(k == pts.size())
-        {
-          k = 0;
-        }
-      assert(k < pts.size());
-
-      unsigned int next_k(k+1);
-      if(next_k == pts.size())
-        {
-          next_k = 0;
-        }
-      assert(next_k < pts.size());
-
-      b0 = work_room[k] >= 0.0f;
-      b1 = work_room[next_k] >= 0.0f;
-      if(b0 != b1)
-        {
-          edges[num_edges] = std::pair<unsigned int, unsigned int>(k, next_k);
-          ++num_edges;
-        }
-    }
-
-  assert(num_edges == 2);
-
-  out_pts.reserve(pts.size() + 1);
-  out_pts.resize(0);
-
-  /* now add the points that are unclipped (in order)
-     and the 2 new points representing the new points
-     added by the clipping plane.
-   */
-
-  for(unsigned int i = first_unclipped; i <= edges[0].first; ++i)
-    {
-      out_pts.push_back(pts[i]);
-    }
-
-  /* now add the implicitely made vertex of the clip equation
-     intersecting against the edge between pts[edges[0].first] and
-     pts[edges[0].second]
-   */
-  {
-    fastuidraw::vec2 pp;
-    float t;
-
-    t = -work_room[edges[0].first] / (work_room[edges[0].second] - work_room[edges[0].first]);
-    pp = pts[edges[0].first] + t * (pts[edges[0].second] - pts[edges[0].first]);
-    out_pts.push_back(pp);
-  }
-
-  /* the vertices from pts[edges[0].second] to pts[edges[1].first]
-     are all on the clipped size of the plane, so they are skipped.
-   */
-
-  /* now add the implicitely made vertex of the clip equation
-     intersecting against the edge between pts[edges[1].first] and
-     pts[edges[1].second]
-   */
-  {
-    fastuidraw::vec2 pp;
-    float t;
-
-    t = -work_room[edges[1].first] / (work_room[edges[1].second] - work_room[edges[1].first]);
-    pp = pts[edges[1].first] + t * (pts[edges[1].second] - pts[edges[1].first]);
-    out_pts.push_back(pp);
-  }
-
-  /* add all vertices starting from pts[edges[1].second] wrapping
-     around until the points are clipped again.
-   */
-  for(unsigned int i = edges[1].second; i != first_unclipped && work_room[i] >= 0.0f;)
-    {
-      out_pts.push_back(pts[i]);
-      ++i;
-      if(i == pts.size())
-        {
-          i = 0;
-        }
-    }
 }
 
 bool

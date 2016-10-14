@@ -574,6 +574,20 @@ public:
     unpack_point(point *dst, const PainterAttribute &src);
   };
 
+  /*!
+    Opaque object to hold work room needed for functions
+    of StrokedPath that require scratch space.
+   */
+  class ScratchSpace:fastuidraw::noncopyable
+  {
+  public:
+    ScratchSpace(void);
+    ~ScratchSpace();
+  private:
+    friend class StrokedPath;
+    void *m_d;
+  };
+
   enum join_chunk_choice_t
     {
       /*!
@@ -637,6 +651,7 @@ public:
     and a tranformation from local coordiante to clip
     coordinates, compute what chunks are not completely
     culled by the clip equations.
+    \param scratch_space scratch space for computations.
     \param clip_equations array of clip equations
     \param clip_matrix_local 3x3 transformation from local (x, y, 1)
                              coordinates to clip coordinates.
@@ -647,11 +662,13 @@ public:
              that number is guarnanteed to be no more than maximum_edge_chunks().
    */
   unsigned int
-  edge_chunks(const_c_array<vec3> clip_equations,
+  edge_chunks(ScratchSpace &scratch_space,
+              const_c_array<vec3> clip_equations,
               const float3x3 &clip_matrix_local,
               float clip_space_additional_room,
               float item_space_additional_room,
-              bool include_closing_edges, c_array<unsigned int> dst) const;
+              bool include_closing_edges,
+              c_array<unsigned int> dst) const;
 
   /*!
     Gives the maximum return value to edge_chunks(), i.e. the

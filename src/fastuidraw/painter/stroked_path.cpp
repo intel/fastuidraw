@@ -131,6 +131,12 @@ namespace
       m_empty(true)
     {}
 
+    BoundingBox(const BoundingBox &box, float inflate):
+      m_min(box.m_min - fastuidraw::vec2(inflate, inflate)),
+      m_max(box.m_max + fastuidraw::vec2(inflate, inflate)),
+      m_empty(box.m_empty)
+    {}
+
     void
     union_point(const fastuidraw::vec2 &pt)
     {
@@ -230,6 +236,13 @@ namespace
            fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts);
   };
 
+  class ScratchSpacePrivate
+  {
+  public:
+    std::vector<fastuidraw::vec2> m_clipped_rect;
+    BoundingBox m_inflated_box;
+  };
+
   class EdgesElement
   {
   public:
@@ -251,7 +264,8 @@ namespace
     ~EdgesElement();
 
     unsigned int
-    edge_chunks(fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
+    edge_chunks(ScratchSpacePrivate *work_room,
+                fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
                 const fastuidraw::float3x3 &clip_matrix_local,
                 float clip_space_additional_room,
                 float item_space_additional_room,
@@ -260,7 +274,7 @@ namespace
     unsigned int
     maximum_edge_chunks(void)
     {
-      return 1 + m_data_chunk_with_children;
+      return m_data_chunk_with_children;
     }
 
     static
@@ -289,6 +303,16 @@ namespace
     EdgesElement(unsigned int vertex_st, unsigned int index_st,
                  SubEdgeCullingHierarchy *src, unsigned int &total_chunks,
                  unsigned int depth);
+
+    void
+    edge_chunks_implement(ScratchSpacePrivate &work_room,
+                          fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
+                          const fastuidraw::float3x3 &clip_matrix_local,
+                          float clip_space_additional_room,
+                          float item_space_additional_room,
+                          fastuidraw::c_array<unsigned int> dst,
+                          unsigned int &current);
+
   };
 
   class EdgesElementFiller:public fastuidraw::PainterAttributeDataFiller
@@ -1201,18 +1225,39 @@ EdgesElement::
 
 unsigned int
 EdgesElement::
-edge_chunks(fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
+edge_chunks(ScratchSpacePrivate *work_room,
+            fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
             const fastuidraw::float3x3 &clip_matrix_local,
             float clip_space_additional_room,
             float item_space_additional_room,
             fastuidraw::c_array<unsigned int> dst)
 {
+  unsigned int return_value(0u);
+  edge_chunks_implement(*work_room,
+                        clip_equations, clip_matrix_local,
+                        clip_space_additional_room,
+                        item_space_additional_room,
+                        dst, return_value);
+  return return_value;
+}
+
+void
+EdgesElement::
+edge_chunks_implement(ScratchSpacePrivate &scratch,
+                      fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
+                      const fastuidraw::float3x3 &clip_matrix_local,
+                      float clip_space_additional_room,
+                      float item_space_additional_room,
+                      fastuidraw::c_array<unsigned int> dst,
+                      unsigned int &current)
+{
+  FASTUIDRAWunused(scratch);
   FASTUIDRAWunused(clip_equations);
   FASTUIDRAWunused(clip_matrix_local);
   FASTUIDRAWunused(clip_space_additional_room);
   FASTUIDRAWunused(item_space_additional_room);
-  dst[0] = m_data_chunk_with_children;
-  return 1;
+  dst[current] = m_data_chunk_with_children;
+  ++current;
 }
 
 void
@@ -2615,6 +2660,23 @@ miter_distance(void) const
     }
 }
 
+//////////////////////////////////////////////
+// fastuidraw::StrokedPath::ScratchSpace methods
+fastuidraw::StrokedPath::ScratchSpace::
+ScratchSpace(void)
+{
+  m_d = FASTUIDRAWnew ScratchSpacePrivate();
+}
+
+fastuidraw::StrokedPath::ScratchSpace::
+~ScratchSpace(void)
+{
+  ScratchSpacePrivate *d;
+  d = reinterpret_cast<ScratchSpacePrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+  m_d = NULL;
+}
+
 //////////////////////////////////////////////////////////////
 // fastuidraw::StrokedPath methodsunsigned int
 unsigned int
@@ -2670,7 +2732,8 @@ edges(bool include_closing_edges) const
 
 unsigned int
 fastuidraw::StrokedPath::
-edge_chunks(const_c_array<vec3> clip_equations,
+edge_chunks(ScratchSpace &work_room,
+            const_c_array<vec3> clip_equations,
             const float3x3 &clip_matrix_local,
             float clip_space_additional_room,
             float item_space_additional_room,
@@ -2680,7 +2743,8 @@ edge_chunks(const_c_array<vec3> clip_equations,
   EdgesElement *e;
   d = reinterpret_cast<StrokedPathPrivate*>(m_d);
   e = d->m_edge_culler[include_closing_edges];
-  return e->edge_chunks(clip_equations, clip_matrix_local,
+  return e->edge_chunks(reinterpret_cast<ScratchSpacePrivate*>(work_room.m_d),
+                        clip_equations, clip_matrix_local,
                         clip_space_additional_room,
                         item_space_additional_room,
                         dst);
