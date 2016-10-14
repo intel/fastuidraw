@@ -871,11 +871,12 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
              const PainterPackerData &draw,
              const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
+             const_c_array<int> index_adjusts,
              unsigned int z,
              const reference_counted_ptr<DataCallBack> &call_back)
 {
   draw_generic(shader, draw, attrib_chunks, index_chunks,
-               const_c_array<unsigned int>(),
+               index_adjusts, const_c_array<unsigned int>(),
                z, call_back);
 }
 
@@ -885,6 +886,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
              const PainterPackerData &draw,
              const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
+             const_c_array<int> index_adjusts,
              const_c_array<unsigned int> attrib_chunk_selector,
              unsigned int z,
              const reference_counted_ptr<DataCallBack> &call_back)
@@ -898,6 +900,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
 
   assert((attrib_chunk_selector.empty() && attrib_chunks.size() == index_chunks.size())
          || (attrib_chunk_selector.size() == index_chunks.size()) );
+  assert(index_adjusts.size() == index_chunks.size());
 
   if(attrib_chunks.empty() || !shader)
     {
@@ -1026,7 +1029,9 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
       index_dst_ptr = cmd.m_draw_command->m_indices.sub_array(cmd.m_indices_written, index_src_ptr.size());
       for(unsigned int i = 0; i < index_dst_ptr.size(); ++i)
         {
-          index_dst_ptr[i] = index_src_ptr[i] + attrib_offset;
+          assert(int(index_src_ptr[i]) + index_adjusts[chunk] >= 0);
+          assert(int(index_src_ptr[i]) + index_adjusts[chunk] + int(attrib_offset) <= int(cmd.m_attributes_written));
+          index_dst_ptr[i] = int(index_src_ptr[i] + attrib_offset) + index_adjusts[chunk];
         }
       cmd.m_indices_written += index_dst_ptr.size();
     }

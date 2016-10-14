@@ -836,11 +836,13 @@ namespace fastuidraw
                  const PainterData &draw,
                  const_c_array<PainterAttribute> attrib_chunk,
                  const_c_array<PainterIndex> index_chunk,
+                 int index_adjust,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>())
     {
       vecN<const_c_array<PainterAttribute>, 1> aa(attrib_chunk);
       vecN<const_c_array<PainterIndex>, 1> ii(index_chunk);
-      draw_generic(shader, draw, aa, ii, call_back);
+      vecN<int, 1> ia(index_adjust);
+      draw_generic(shader, draw, aa, ii, ia, call_back);
     }
 
     /*!
@@ -856,6 +858,7 @@ namespace fastuidraw
                  const PainterData &draw,
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
+                 const_c_array<int> index_adjusts,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -875,6 +878,7 @@ namespace fastuidraw
                  const PainterData &draw,
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
+                 const_c_array<int> index_adjusts,
                  const_c_array<unsigned int> attrib_chunk_selector,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 

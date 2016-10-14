@@ -221,7 +221,8 @@ fill_data(c_array<PainterAttribute> attributes,
           c_array<PainterIndex> index_data,
           c_array<const_c_array<PainterAttribute> > attrib_chunks,
           c_array<const_c_array<PainterIndex> > index_chunks,
-          c_array<unsigned int> zincrements) const
+          c_array<unsigned int> zincrements,
+          c_array<int> index_adjusts) const
 {
   const FilledPath *p(path().get());
   if(p == NULL || p->winding_numbers().empty())
@@ -248,6 +249,7 @@ fill_data(c_array<PainterAttribute> attributes,
     std::copy(p->function_name().begin(),                           \
               p->function_name().end(), dst.begin());           \
     index_chunks[PainterEnums::enum_name] = dst;                \
+    index_adjusts[PainterEnums::enum_name] = 0;                 \
     current += dst.size();                                      \
   } while(0)
 
@@ -277,6 +279,7 @@ fill_data(c_array<PainterAttribute> attributes,
           std::copy(src.begin(), src.end(), dst.begin());
 
           index_chunks[idx] = dst;
+          index_adjusts[idx] = 0;
           current += dst.size();
         }
     }

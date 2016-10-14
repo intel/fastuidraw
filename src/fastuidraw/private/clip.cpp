@@ -19,7 +19,7 @@
 #include "clip.hpp"
 #include "util_private.hpp"
 
-void
+bool
 fastuidraw::detail::
 clip_against_plane(const vec3 &clip_eq, const_c_array<vec2> pts,
                    std::vector<vec2> &out_pts, std::vector<float> &work_room)
@@ -33,7 +33,7 @@ clip_against_plane(const vec3 &clip_eq, const_c_array<vec2> pts,
   if(pts.empty())
     {
       out_pts.resize(0);
-      return;
+      return false;
     }
 
   work_room.resize(pts.size());
@@ -56,14 +56,14 @@ clip_against_plane(const vec3 &clip_eq, const_c_array<vec2> pts,
       /* all clipped, nothing to do!
        */
       out_pts.resize(0);
-      return;
+      return false;
     }
 
   if(all_unclipped)
     {
       out_pts.resize(pts.size());
       std::copy(pts.begin(), pts.end(), out_pts.begin());
-      return;
+      return true;
     }
 
   /* the polygon is convex, and atleast one point is clipped, thus
@@ -155,9 +155,11 @@ clip_against_plane(const vec3 &clip_eq, const_c_array<vec2> pts,
           i = 0;
         }
     }
+
+  return false;
 }
 
-void
+bool
 fastuidraw::detail::
 clip_against_planes(const_c_array<vec3> clip_eq, const_c_array<vec2> in_pts,
                     std::vector<vec2> &out_pts,
@@ -165,15 +167,19 @@ clip_against_planes(const_c_array<vec3> clip_eq, const_c_array<vec2> in_pts,
                     vecN<std::vector<vec2>, 2> &scratch_space_vec2s)
 {
   unsigned int src(0), dst(1), i;
+  bool return_value(true);
 
   scratch_space_vec2s[src].resize(in_pts.size());
   std::copy(in_pts.begin(), in_pts.end(), scratch_space_vec2s[src].begin());
 
   for(i = 0; i < clip_eq.size(); ++i, std::swap(src, dst))
     {
-      clip_against_plane(clip_eq[i], make_c_array(scratch_space_vec2s[src]),
-                         scratch_space_vec2s[dst],
-                         scratch_space_floats);
+      bool r;
+      r = clip_against_plane(clip_eq[i], make_c_array(scratch_space_vec2s[src]),
+                             scratch_space_vec2s[dst],
+                             scratch_space_floats);
+      return_value = return_value && r;
     }
   std::swap(out_pts, scratch_space_vec2s[src]);
+  return return_value;
 }

@@ -78,6 +78,8 @@ namespace fastuidraw
                           each element is an empty array.
       \param zincrements location to which to fill the z-increment values
                          (PainterAttributeData::increment_z_values()).
+      \param index_adjusts location to which to fill the index adjust value
+                           (PainterAttributeData::index_adjust_chunks()).
      */
     virtual
     void
@@ -85,7 +87,8 @@ namespace fastuidraw
               c_array<PainterIndex> indices,
               c_array<const_c_array<PainterAttribute> > attrib_chunks,
               c_array<const_c_array<PainterIndex> > index_chunks,
-              c_array<unsigned int> zincrements) const = 0;
+              c_array<unsigned int> zincrements,
+              c_array<int> index_adjusts) const = 0;
   };
 /*! @} */
 }

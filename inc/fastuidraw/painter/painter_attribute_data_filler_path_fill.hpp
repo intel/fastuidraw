@@ -75,7 +75,8 @@ namespace fastuidraw
               c_array<PainterIndex> indices,
               c_array<const_c_array<PainterAttribute> > attrib_chunks,
               c_array<const_c_array<PainterIndex> > index_chunks,
-              c_array<unsigned int> zincrements) const;
+              c_array<unsigned int> zincrements,
+              c_array<int> index_adjusts) const;
 
     /*!
       Returns the FilledPath from which this object fills

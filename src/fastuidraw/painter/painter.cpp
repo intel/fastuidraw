@@ -403,6 +403,7 @@ namespace
     std::vector<unsigned int> m_selector;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_index_chunks;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_attrib_chunks;
+    std::vector<int> m_index_adjusts;
     std::vector<fastuidraw::vec2> m_pts_clip_against_planes;
     std::vector<fastuidraw::vec2> m_pts_draw_convex_polygon;
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_pts_update_clip_series;
@@ -414,6 +415,7 @@ namespace
     std::vector<unsigned int> m_stroke_dashed_join_chunks;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_stroke_attrib_chunks;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_stroke_index_chunks;
+    std::vector<int> m_stroke_index_adjusts;
     fastuidraw::StrokedPath::ScratchSpace m_path_scratch;
   };
 
@@ -431,6 +433,7 @@ namespace
                        const fastuidraw::PainterData &draw,
                        fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
                        fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+                       fastuidraw::const_c_array<int> index_adjusts,
                        fastuidraw::const_c_array<unsigned int> attrib_chunk_selector,
                        unsigned int z,
                        const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
@@ -440,6 +443,7 @@ namespace
                  const fastuidraw::PainterData &draw,
                  fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
                  fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+                 fastuidraw::const_c_array<int> index_adjusts,
                  fastuidraw::const_c_array<unsigned int> attrib_chunk_selector,
                  unsigned int z,
                  const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
@@ -954,17 +958,18 @@ rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh)
 void
 PainterPrivate::
 draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
-                   const fastuidraw::PainterData &draw,
-                   fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
-                   fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
-                   fastuidraw::const_c_array<unsigned int> attrib_chunk_selector,
-                   unsigned int z,
-                   const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+             const fastuidraw::PainterData &draw,
+             fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
+             fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+             fastuidraw::const_c_array<int> index_adjusts,
+             fastuidraw::const_c_array<unsigned int> attrib_chunk_selector,
+             unsigned int z,
+             const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
 {
   fastuidraw::PainterPackerData p(draw);
   p.m_clip = current_clip_state();
   p.m_matrix = current_item_marix_state();
-  m_core->draw_generic(shader, p, attrib_chunks, index_chunks, attrib_chunk_selector, z, call_back);
+  m_core->draw_generic(shader, p, attrib_chunks, index_chunks, index_adjusts, attrib_chunk_selector, z, call_back);
 }
 
 void
@@ -973,13 +978,14 @@ draw_generic_check(const fastuidraw::reference_counted_ptr<fastuidraw::PainterIt
                    const fastuidraw::PainterData &draw,
                    fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
                    fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+                   fastuidraw::const_c_array<int> index_adjusts,
                    fastuidraw::const_c_array<unsigned int> attrib_chunk_selector,
                    unsigned int z,
                    const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
 {
   if(!m_clip_rect_state.m_all_content_culled)
     {
-      draw_generic(shader, draw, attrib_chunks, index_chunks, attrib_chunk_selector, z, call_back);
+      draw_generic(shader, draw, attrib_chunks, index_chunks, index_adjusts, attrib_chunk_selector, z, call_back);
     }
 }
 
@@ -1080,12 +1086,13 @@ fastuidraw::Painter::
 draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
              const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
+             const_c_array<int> index_adjusts,
              const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
   d->draw_generic_check(shader, draw, attrib_chunks, index_chunks,
-                        const_c_array<unsigned int>(),
+                        index_adjusts, const_c_array<unsigned int>(),
                         current_z(), call_back);
 }
 
@@ -1094,12 +1101,14 @@ fastuidraw::Painter::
 draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
              const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
+             const_c_array<int> index_adjusts,
              const_c_array<unsigned int> attrib_chunk_selector,
              const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
   d = reinterpret_cast<PainterPrivate*>(m_d);
-  d->draw_generic_check(shader, draw, attrib_chunks, index_chunks, attrib_chunk_selector,
+  d->draw_generic_check(shader, draw, attrib_chunks, index_chunks,
+                        index_adjusts, attrib_chunk_selector,
                         current_z(), call_back);
 }
 
@@ -1148,6 +1157,7 @@ draw_convex_polygon(const reference_counted_ptr<PainterItemShader> &shader,
   draw_generic(shader, draw,
                make_c_array(d->m_work_room.m_attribs),
                make_c_array(d->m_work_room.m_indices),
+               0,
                call_back);
 }
 
@@ -1222,6 +1232,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
   const reference_counted_ptr<PainterItemShader> *sh;
   c_array<const_c_array<PainterAttribute> > attrib_chunks;
   c_array<const_c_array<PainterIndex> > index_chunks;
+  c_array<int> index_adjusts;
 
   if(join_data == NULL)
     {
@@ -1241,17 +1252,20 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
    */
   d->m_work_room.m_stroke_attrib_chunks.clear();
   d->m_work_room.m_stroke_index_chunks.clear();
+  d->m_work_room.m_stroke_index_adjusts.resize(1 + edge_chunks.size() + join_chunks.size());
   d->m_work_room.m_stroke_attrib_chunks.resize(1 + edge_chunks.size() + join_chunks.size());
   d->m_work_room.m_stroke_index_chunks.resize(1 + edge_chunks.size() + join_chunks.size());
 
   attrib_chunks = make_c_array(d->m_work_room.m_stroke_attrib_chunks);
   index_chunks = make_c_array(d->m_work_room.m_stroke_index_chunks);
+  index_adjusts = make_c_array(d->m_work_room.m_stroke_index_adjusts);
 
   num_joins = join_chunks.size();
   for(unsigned int J = 0; J < num_joins; ++J)
     {
       attrib_chunks[J] = join_data->attribute_data_chunk(join_chunks[J]);
       index_chunks[J] = join_data->index_data_chunk(join_chunks[J]);
+      index_adjusts[J] = join_data->index_adjust_chunk(join_chunks[J]);
     }
 
   num_edges = edge_chunks.size();
@@ -1259,18 +1273,21 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
     {
       attrib_chunks[num_joins + E] = edge_data->attribute_data_chunk(edge_chunks[E]);
       index_chunks[num_joins + E] = edge_data->index_data_chunk(edge_chunks[E]);
+      index_adjusts[num_joins + E] = edge_data->index_adjust_chunk(edge_chunks[E]);
     }
 
   if(cap_data != NULL)
     {
       attrib_chunks[num_joins + num_edges] = cap_data->attribute_data_chunk(cap_chunk);
       index_chunks[num_joins + num_edges] = cap_data->index_data_chunk(cap_chunk);
+      index_adjusts[num_joins + num_edges] = cap_data->index_adjust_chunk(cap_chunk);
       inc_cap = cap_data->increment_z_value(cap_chunk);
     }
   else
     {
       attrib_chunks = attrib_chunks.sub_array(0, num_joins + num_edges);
       index_chunks = index_chunks.sub_array(0, num_joins + num_edges);
+      index_adjusts = index_adjusts.sub_array(0, num_joins + num_edges);
     }
 
   startz = d->m_current_z;
@@ -1294,6 +1311,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
           d->draw_generic(*sh, draw,
                           attrib_chunks.sub_array(0, num_joins),
                           index_chunks.sub_array(0, num_joins),
+                          index_adjusts.sub_array(0, num_joins),
                           fastuidraw::const_c_array<unsigned int>(),
                           startz + incr_z + 1, call_back);
         }
@@ -1304,6 +1322,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
           d->draw_generic(*sh, draw,
                           attrib_chunks.sub_array(num_joins, num_edges),
                           index_chunks.sub_array(num_joins, num_edges),
+                          index_adjusts.sub_array(num_joins, num_edges),
                           fastuidraw::const_c_array<unsigned int>(),
                           startz + incr_z + 1, call_back);
         }
@@ -1314,13 +1333,15 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
           d->draw_generic(*sh, draw,
                           attrib_chunks.sub_array(num_joins + num_edges, 1),
                           index_chunks.sub_array(num_joins + num_edges, 1),
+                          index_adjusts.sub_array(num_joins + num_edges, 1),
                           fastuidraw::const_c_array<unsigned int>(),
                           startz + incr_z + 1, call_back);
         }
     }
   else
     {
-      d->draw_generic(*sh, draw, attrib_chunks, index_chunks,
+      d->draw_generic(*sh, draw, attrib_chunks,
+                      index_chunks, index_adjusts,
                       fastuidraw::const_c_array<unsigned int>(),
                       d->m_current_z, call_back);
     }
@@ -1331,7 +1352,8 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
          stroke attribute data, thus the written
          depth is always startz.
        */
-      d->draw_generic(shader.aa_shader_pass2(), draw, attrib_chunks, index_chunks,
+      d->draw_generic(shader.aa_shader_pass2(), draw, attrib_chunks,
+                      index_chunks, index_adjusts,
                       fastuidraw::const_c_array<unsigned int>(),
                       startz, call_back);
     }
@@ -1638,6 +1660,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
   draw_generic(shader.item_shader(), draw,
                data.attribute_data_chunk(atr_chunk),
                data.index_data_chunk(idx_chunk),
+               data.index_adjust_chunk(idx_chunk),
                call_back);
 }
 
@@ -1681,6 +1704,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
   common_attribs = shader.chunk_selector()->common_attribute_data();
 
   d->m_work_room.m_index_chunks.clear();
+  d->m_work_room.m_index_adjusts.clear();
   d->m_work_room.m_attrib_chunks.clear();
   d->m_work_room.m_selector.clear();
 
@@ -1701,6 +1725,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
               assert(!data.index_data_chunk(k).empty());
               chunk = data.index_data_chunk(k);
               d->m_work_room.m_index_chunks.push_back(chunk);
+              d->m_work_room.m_index_adjusts.push_back(data.index_adjust_chunk(k));
               if(common_attribs)
                 {
                   d->m_work_room.m_selector.push_back(0);
@@ -1719,15 +1744,19 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
     {
       if(common_attribs)
         {
-          draw_generic(shader.item_shader(), draw, data.attribute_data_chunks(),
+          draw_generic(shader.item_shader(), draw,
+                       data.attribute_data_chunks(),
                        make_c_array(d->m_work_room.m_index_chunks),
-                       make_c_array(d->m_work_room.m_selector), call_back);
+                       make_c_array(d->m_work_room.m_index_adjusts),
+                       make_c_array(d->m_work_room.m_selector),
+                       call_back);
         }
       else
         {
           draw_generic(shader.item_shader(), draw,
                        make_c_array(d->m_work_room.m_attrib_chunks),
                        make_c_array(d->m_work_room.m_index_chunks),
+                       make_c_array(d->m_work_room.m_index_adjusts),
                        call_back);
         }
     }
@@ -1777,7 +1806,9 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
 
       k = chks[i];
       draw_generic(shader.shader(static_cast<enum glyph_type>(k)), draw,
-                   data.attribute_data_chunk(k), data.index_data_chunk(k),
+                   data.attribute_data_chunk(k),
+                   data.index_data_chunk(k),
+                   data.index_adjust_chunk(k),
                    call_back);
       increment_z(data.increment_z_value(k));
     }
