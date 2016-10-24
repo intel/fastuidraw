@@ -80,6 +80,44 @@ namespace fastuidraw
     };
 
     /*!
+      Enumeration to query the statistics of how
+      much data has been packed
+    */
+    enum stats_t
+      {
+        /*!
+          Offset to how many attributes processed
+        */
+        num_attributes,
+
+        /*!
+          Offset to how many indices processed
+        */
+        num_indices,
+
+        /*!
+          Offset to how many generic_data values placed
+          onto store buffer(s).
+        */
+        num_generic_datas,
+
+        /*!
+          Offset to how many PainterDraw objects sent
+        */
+        num_draws,
+
+        /*!
+          Offset to how many painter headers packed.
+        */
+        num_headers,
+
+        /*!
+          Number of stats.
+         */
+        num_stats,
+      };
+
+    /*!
       Ctor.
       \param backend handle to PainterBackend for the constructed PainterPacker
      */
@@ -169,6 +207,7 @@ namespace fastuidraw
       \param data data for how to draw
       \param attrib_chunks attribute data to draw
       \param index_chunks the i'th element is index data into attrib_chunks[i]
+      \param index_adjusts the i'th element is the value by which to adjust all of index_chunks[i]
       \param shader shader with which to draw data
       \param z z-value z value placed into the header
       \param call_back if non-NULL handle, call back called when attribute data
@@ -179,6 +218,7 @@ namespace fastuidraw
                  const PainterPackerData &data,
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
+                 const_c_array<int> index_adjusts,
                  unsigned int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
 
@@ -188,6 +228,7 @@ namespace fastuidraw
       \param attrib_chunks attribute data to draw
       \param index_chunks the i'th element is index data into attrib_chunks[K]
                           where K = attrib_chunk_selector[i]
+      \param index_adjusts the i'th element is the value by which to adjust all of index_chunks[i]
       \param attrib_chunk_selector selects which attribute chunk to use for
              each index chunk
       \param shader shader with which to draw data
@@ -200,9 +241,17 @@ namespace fastuidraw
                  const PainterPackerData &data,
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
+                 const_c_array<int> index_adjusts,
                  const_c_array<unsigned int> attrib_chunk_selector,
                  unsigned int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
+    /*!
+      Returns a stat on how much data the PainterPacker has
+      handled since the last call to begin().
+      \param st stat to query
+     */
+    unsigned int
+    query_stat(enum stats_t st) const;
 
     /*!
       Returns the PainterBackend::PerformanceHints of the underlying

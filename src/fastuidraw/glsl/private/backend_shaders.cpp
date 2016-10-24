@@ -18,9 +18,10 @@
 
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
-#include <fastuidraw/painter/painter_attribute_data_filler_path_stroked.hpp>
 #include <fastuidraw/painter/painter_attribute_data_filler_path_fill.hpp>
 #include "backend_shaders.hpp"
+
+#include <string>
 
 namespace fastuidraw { namespace glsl { namespace detail {
 
@@ -271,9 +272,9 @@ ShaderSetCreator(enum PainterBlendShader::shader_type tp,
                                         varying_list()
                                         .add_float_varying("fastuidraw_stroking_on_boundary")
                                         .add_float_varying("fastuidraw_stroking_distance")
-                                        .add_float_varying("fastuidraw_stroking_distance_to_end_of_edge")
-                                        .add_float_varying("fastuidraw_stroking_distance_from_edge_start")
-                                        .add_uint_varying("fastuidraw_stroking_packed_data"),
+                                        .add_float_varying("fastuidraw_stroking_distance_sub_edge_start")
+                                        .add_float_varying("fastuidraw_stroking_distance_sub_edge_end")
+                                        .add_uint_varying("fastuidraw_stroking_dash_bits"),
                                         num_dashed_sub_shaders
                                         );
 }
@@ -374,15 +375,14 @@ create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
 PainterStrokeShader
 ShaderSetCreator::
 create_stroke_shader(enum PainterEnums::cap_style stroke_style,
-                     bool pixel_width_stroking)
+                     bool pixel_width_stroking,
+                     const reference_counted_ptr<const StrokingDataSelectorBase> &stroke_data_selector)
 {
   using namespace fastuidraw::PainterEnums;
   PainterStrokeShader return_value;
-  reference_counted_ptr<StrokingChunkSelectorBase> se;
 
-  se = PainterAttributeDataFillerPathStroked::chunk_selector();
   return_value
-    .chunk_selector(se)
+    .stroking_data_selector(stroke_data_selector)
     .aa_shader_pass1(create_stroke_item_shader(stroke_style, pixel_width_stroking, uber_stroke_opaque_pass))
     .aa_shader_pass2(create_stroke_item_shader(stroke_style, pixel_width_stroking, uber_stroke_aa_pass))
     .non_aa_shader(create_stroke_item_shader(stroke_style, pixel_width_stroking, uber_stroke_non_aa));
@@ -396,13 +396,15 @@ create_dashed_stroke_shader_set(bool pixel_width_stroking)
   using namespace fastuidraw::PainterEnums;
   PainterDashedStrokeShaderSet return_value;
   reference_counted_ptr<const DashEvaluatorBase> de;
+  reference_counted_ptr<const StrokingDataSelectorBase> se;
 
-  de = PainterDashedStrokeParams::dash_evaluator();
+  se = PainterDashedStrokeParams::stroking_data_selector(pixel_width_stroking);
+  de = PainterDashedStrokeParams::dash_evaluator(pixel_width_stroking);
   return_value
     .dash_evaluator(de)
-    .shader(no_caps, create_stroke_shader(no_caps, pixel_width_stroking))
-    .shader(rounded_caps, create_stroke_shader(rounded_caps, pixel_width_stroking))
-    .shader(square_caps, create_stroke_shader(square_caps, pixel_width_stroking));
+    .shader(flat_caps, create_stroke_shader(flat_caps, pixel_width_stroking, se))
+    .shader(rounded_caps, create_stroke_shader(rounded_caps, pixel_width_stroking, se))
+    .shader(square_caps, create_stroke_shader(square_caps, pixel_width_stroking, se));
   return return_value;
 }
 
@@ -433,12 +435,16 @@ create_shader_set(void)
 {
   using namespace fastuidraw::PainterEnums;
   PainterShaderSet return_value;
+  reference_counted_ptr<const StrokingDataSelectorBase> se, se_pixel;
+
+  se = PainterStrokeParams::stroking_data_selector(false);
+  se_pixel = PainterStrokeParams::stroking_data_selector(true);
 
   return_value
     .glyph_shader(create_glyph_shader(false))
     .glyph_shader_anisotropic(create_glyph_shader(true))
-    .stroke_shader(create_stroke_shader(number_cap_styles, false))
-    .pixel_width_stroke_shader(create_stroke_shader(number_cap_styles, true))
+    .stroke_shader(create_stroke_shader(number_cap_styles, false, se))
+    .pixel_width_stroke_shader(create_stroke_shader(number_cap_styles, true, se_pixel))
     .dashed_stroke_shader(create_dashed_stroke_shader_set(false))
     .pixel_width_dashed_stroke_shader(create_dashed_stroke_shader_set(true))
     .fill_shader(create_fill_shader())

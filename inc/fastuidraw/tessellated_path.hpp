@@ -24,13 +24,13 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
-#include <fastuidraw/stroked_path.hpp>
-#include <fastuidraw/filled_path.hpp>
 
 namespace fastuidraw  {
 
 ///@cond
 class Path;
+class StrokedPath;
+class FilledPath;
 ///@endcond
 
 /*!\addtogroup Core
@@ -55,7 +55,8 @@ public:
       Ctor, initializes values.
      */
     TessellationParams(void):
-      m_curve_tessellation(float(M_PI)/30.0f),
+      m_curvature_tessellation(true),
+      m_threshhold(float(M_PI)/30.0f),
       m_max_segments(32)
     {}
 
@@ -66,17 +67,89 @@ public:
     bool
     operator!=(const TessellationParams &rhs) const
     {
-      return m_curve_tessellation != rhs.m_curve_tessellation
+      return m_curvature_tessellation != rhs.m_curvature_tessellation
+        || m_threshhold != rhs.m_threshhold
         || m_max_segments != rhs.m_max_segments;
     }
 
     /*!
-      For each 2 PI units of curvature, goal is to have
-      atleast m_curve_tessellation points, initial
-      value is PI/30, i.e. 60 points per 2 PI curvature,
-      i.e. a circle would be tessellated to 60 points.
+      Provided as a conveniance. Equivalent to
+      \code
+      m_curvature_tessellation = true;
+      m_threshhold = p;
+      \endcode
+      \param p value to which to assign to \ref m_threshhold
      */
-    float m_curve_tessellation;
+    TessellationParams&
+    curvature_tessellate(float p)
+    {
+      m_curvature_tessellation = true;
+      m_threshhold = p;
+      return *this;
+    }
+
+    /*!
+      Provided as a conveniance. Equivalent to
+      \code
+      m_curvature_tessellation = true;
+      m_threshhold = 2.0f * static_cast<float>(M_PI) / static_cast<float>(N);
+      \endcode
+      \param N number of points for goal to tessellate a circle to.
+     */
+    TessellationParams&
+    curvature_tessellate_num_points_in_circle(unsigned int N)
+    {
+      m_curvature_tessellation = true;
+      m_threshhold = 2.0f * static_cast<float>(M_PI) / static_cast<float>(N);
+      return *this;
+    }
+
+    /*!
+      Provided as a conveniance. Equivalent to
+      \code
+      m_curvature_tessellation = false;
+      m_threshhold = p;
+      \endcode
+      \param p value to which to assign to \ref m_threshhold
+     */
+    TessellationParams&
+    curve_distance_tessellate(float p)
+    {
+      m_curvature_tessellation = false;
+      m_threshhold = p;
+      return *this;
+    }
+
+    /*!
+      Set the value of \ref m_max_segments.
+      \param v value to which to assign to \ref m_max_segments
+     */
+    TessellationParams&
+    max_segments(unsigned int v)
+    {
+      m_max_segments = v;
+      return *this;
+    }
+
+    /*!
+      Specifies the meaning of \ref m_threshhold.
+     */
+    bool m_curvature_tessellation;
+
+    /*!
+      Meaning depends on \ref m_curvature_tessellation.
+       - If m_curvature_tessellation is true, then represents the
+         goal of how much curvature is to be between successive
+         points of a tessellated edge. This value is crudely
+         estimated via Simpson's rule. A value of PI / N for a circle
+         represents tessellating the circle into N points.
+       - If m_curvature_tessellation is false, then represents the
+         goal of the maximum allowed distance between the
+         line segment between from successive points of a
+         tessellated edge and the sub-curve of the starting
+         curve between those two points.
+     */
+    float m_threshhold;
 
     /*!
       Maximum number of segments to tessellate each
@@ -151,6 +224,27 @@ public:
    */
   const TessellationParams&
   tessellation_parameters(void) const;
+
+  /*!
+    Returns the tessellation threshold achieved for
+    distance between curve and sub-edges.
+   */
+  float
+  effective_curve_distance_threshhold(void) const;
+
+  /*!
+    Returns the tessellation threshold achieved for
+    the (approximated) curvature between successive
+    points of the tessellation.
+   */
+  float
+  effective_curvature_threshhold(void) const;
+
+  /*!
+    Returns the maximum number of segments any edge needed
+   */
+  unsigned int
+  max_segments(void) const;
 
   /*!
     Returns all the point data

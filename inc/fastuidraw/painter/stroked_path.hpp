@@ -21,15 +21,17 @@
 
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/util/vecN.hpp>
+#include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/painter/painter_attribute_data.hpp>
 
 namespace fastuidraw  {
 
 ///@cond
-class PainterAttributeData;
 class TessellatedPath;
 class Path;
+class PainterAttribute;
 ///@endcond
 
 /*!\addtogroup Core
@@ -58,18 +60,19 @@ public:
         point signifies the start of a sub-edge
         (quad) of drawing an edge.
        */
-      offset_edge,
+      offset_start_sub_edge,
 
       /*!
         The point is for an edge of the path,
         point signifies the end of a sub-edge
         (quad) of drawing an edge.
        */
-      offset_next_edge,
+      offset_end_sub_edge,
 
       /*!
         The point is at a position that has the
-        same value as point on an edge
+        same value as point on an edge but the
+        point itself is part of a cap or join.
        */
       offset_shared_with_edge,
 
@@ -94,34 +97,18 @@ public:
       offset_square_cap,
 
       /*!
-        The point is from either from \ref cap_join_point_set or
-        \ref cap_adjustable_point_set point sets. In either case,
-        it is for a point for a cap entering the join (or equivalently,
-        at the end of a contour). These points are for dashed stroking
-        with caps when the point of the join is NOT covered by the
-        dash pattern or to correctly adjust a cap data at the start
-        or end of a contour. Unlike other offset_type_t values, the
-        data sent down the pipeline is to be modified from the starting
-        value so that the just enough of the cap is drawn to "catch"
-        all of a cap from a dash pattern and/or end or begining of
-        a contour.
+        The point is from \ref adjustable_cap_point_set point set.
+        It is for a point for a cap at the start of a contour. These
+        points are for dashed stroking with caps.
        */
-      offset_cap_entering_join,
+      offset_adjustable_cap_contour_start,
 
       /*!
-        The point is from either from \ref cap_join_point_set or
-        \ref cap_adjustable_point_set point sets. In either case,
-        it is for a point for a cap leacing the join (or equivalently,
-        at the start of a contour). These points are for dashed stroking
-        with caps when the point of the join is NOT covered by the
-        dash pattern or to correctly adjust a cap data at the start
-        or end of a contour. Unlike other offset_type_t values, the
-        data sent down the pipeline is to be modified from the starting
-        value so that the just enough of the cap is drawn to "catch"
-        all of a cap from a dash pattern and/or end or begining of
-        a contour.
+        The point is from \ref adjustable_cap_point_set point set.
+        It is for a point for a cap at the end of a contour. These
+        points are for dashed stroking with caps.
        */
-      offset_cap_leaving_join,
+      offset_adjustable_cap_contour_end,
 
       /*!
         Number different point types with respect to rendering
@@ -165,14 +152,10 @@ public:
       rounded_cap_point_set,
 
       /*!
-        Select the set of points for cap joins
-       */
-      cap_join_point_set,
-
-      /*!
-        Select the set of points for caps that are
-        tagged with \ref offset_cap_entering_join
-        and \ref offset_cap_leaving_join
+        Select the set of points for caps whose geometry
+        is to be adjustable. These caps are drawn for
+        the start and end of contours when doing dashed
+        stroking.
        */
       adjustable_cap_point_set,
 
@@ -183,9 +166,10 @@ public:
     };
 
   /*!
-    Enumeration encoding how bits of point::m_packed_data are used.
+    Enumeration encoding of bits of point::m_packed_data
+    common to all offset types.
    */
-  enum packed_data_bit_layout_t
+  enum packed_data_bit_layout_common_t
     {
       /*!
         Bit0 for holding the offset_type() value
@@ -200,12 +184,56 @@ public:
       offset_type_num_bits = 4,
 
       /*!
+        Bit for holding boundary() value
+        of the point
+       */
+      boundary_bit = offset_type_bit0 + offset_type_num_bits,
+
+      /*!
+        Bit0 for holding the depth() value
+        of the point
+       */
+      depth_bit0,
+
+      /*!
+        number of bits needed to hold the
+        depth() value of the point.
+       */
+      depth_num_bits = 20,
+
+      /*!
+        Bit to indicate point is from a join set,
+        but not from a cap-join set. For these
+        points, during dashed stroking, Painter
+        does the check if a join should be drawn,
+        as such when the bit is up encountered
+        in a shader, the computation to check
+        that it is drawn from dashing can be
+        skipped and assume that fragments from
+        such points are covered by the dash
+        pattern.
+       */
+      join_bit = depth_bit0 + depth_num_bits,
+
+      /*!
+        Number of bits used on common packed data
+       */
+      number_common_bits,
+    };
+
+  /*!
+    Enumeration encoding of bits of point::m_packed_data
+    for those with offset type \ref offset_rounded_join
+   */
+  enum packed_data_bit_layout_rounded_join_t
+    {
+      /*!
         Bit for holding the the sign of
         the y-coordinate of the normal 0
         for the offset_type() \ref
         offset_rounded_join.
        */
-      normal0_y_sign_bit = offset_type_bit0 + offset_type_num_bits,
+      normal0_y_sign_bit = number_common_bits,
 
       /*!
         Bit for holding the the sign of
@@ -213,50 +241,54 @@ public:
         for the offset_type() \ref
         offset_rounded_join.
        */
-      normal1_y_sign_bit = normal0_y_sign_bit + 1,
+      normal1_y_sign_bit,
 
       /*!
         Bit for holding the the sign of
         sin() value for the offset_type()
         \ref offset_rounded_join.
        */
-      sin_sign_bit = normal1_y_sign_bit + 1,
+      sin_sign_bit,
+    };
 
+  /*!
+    Enumeration encoding of bits of point::m_packed_data for
+    those with offset type \ref offset_adjustable_cap_contour_end
+    or \ref offset_adjustable_cap_contour_start.
+   */
+  enum packed_data_bit_adjustable_cap_t
+    {
       /*!
-        Bit for holding boundary() value
-        of the point
+        The bit is up if the point is for end of point
+        (i.e. the side to be extended to make sure the
+        entire cap near the end of edge is drawn).
        */
-      boundary_bit = sin_sign_bit + 1,
+      adjustable_cap_ending_bit = number_common_bits,
+    };
 
+  /*!
+    Enumeration encoding of bits of point::m_packed_data
+    for those with offset type \ref offset_start_sub_edge
+    or \ref offset_end_sub_edge.
+   */
+  enum packed_data_bit_sub_edge_t
+    {
       /*!
-        Bit to indicate point is from a join set,
-        but not from a cap-join set.
+        The bit is up if the point is for the
+        geometry of a bevel between two sub-edges.
        */
-      join_bit = boundary_bit + 1,
+      bevel_edge_bit = number_common_bits,
+    };
 
-      /*!
-        Bit is only up for those points coming from
-        those points with offset_type() either \ref
-        offset_cap_entering_join or \ref
-        offset_cap_leaving_join. The bit is up if the
-        point is for end of point (i.e. the side to
-        be extended to make sure the entire cap near
-        the end of edge is drawn).
-       */
-      cap_join_ending_bit = join_bit + 1,
-
-      /*!
-        Bit0 for holding the depth() value
-        of the point
-       */
-      depth_bit0 = cap_join_ending_bit + 1,
-
-      /*!
-        number of bits needed to hold the
-        depth() value of the point.
-       */
-      depth_num_bits = 32 - depth_bit0,
-
+  /*!
+    Enumeration holding bit masks generated from
+    values in \ref packed_data_bit_layout_common_t,
+    \ref packed_data_bit_layout_rounded_join_t,
+    \ref packed_data_bit_adjustable_cap_t and \ref
+    packed_data_bit_sub_edge_t.
+   */
+  enum packed_data_bit_masks_t
+    {
       /*!
         Mask generated for \ref offset_type_bit0 and
         \ref offset_type_num_bits
@@ -289,9 +321,14 @@ public:
       join_mask = FASTUIDRAW_MASK(join_bit, 1),
 
       /*!
-        Mask generated for \ref cap_join_ending_bit
+        Mask generated for \ref adjustable_cap_ending_bit
        */
-      cap_join_ending_mask = FASTUIDRAW_MASK(cap_join_ending_bit, 1),
+      adjustable_cap_ending_mask = FASTUIDRAW_MASK(adjustable_cap_ending_bit, 1),
+
+      /*!
+        Mask generated for \ref bevel_edge_bit
+       */
+      bevel_edge_mask = FASTUIDRAW_MASK(bevel_edge_bit, 1),
 
       /*!
         Mask generated for \ref depth_bit0 and \ref depth_num_bits
@@ -359,7 +396,13 @@ public:
     float m_closed_contour_length;
 
     /*!
-      Bit field with data packed as according to \ref packed_data_bit_layout_t.
+      Bit field with data packed as according to
+      \ref packed_data_bit_layout_common_t, \ref
+      packed_data_bit_layout_rounded_join_t, \ref
+      packed_data_bit_adjustable_cap_t and \ref
+      packed_data_bit_sub_edge_t. See also,
+      \ref packed_data_bit_masks_t for bit masks
+      generated.
      */
     uint32_t m_packed_data;
 
@@ -441,9 +484,8 @@ public:
         \endcode
         In addition, \ref m_auxilary_offset holds the vector leaving
         from the contour where the cap is located.
-      - For those with offset_type() being StrokedPath::offset_miter_join
-        or StrokedPath::cap_join_point, the value is given by the following
-        code
+      - For those with offset_type() being StrokedPath::offset_miter_join,
+        the value is given by the following code
         \code
         vec2 n = m_pre_offset, v = vec2(-n.y(), n.x());
         float r, lambda;
@@ -503,7 +545,83 @@ public:
      */
     float
     miter_distance(void) const;
+
+    /*!
+      Pack the data of this \ref point into a \ref
+      PainterAttribute. The packing is as follows:
+      - PainterAttribute::m_attrib0 .xy -> StrokedPath::point::m_position (float)
+      - PainterAttribute::m_attrib0 .zw -> StrokedPath::point::m_pre_offset (float)
+      - PainterAttribute::m_attrib1 .x -> StrokedPath::point::m_distance_from_edge_start (float)
+      - PainterAttribute::m_attrib1 .y -> StrokedPath::point::m_distance_from_contour_start (float)
+      - PainterAttribute::m_attrib1 .zw -> StrokedPath::point::m_auxilary_offset (float)
+      - PainterAttribute::m_attrib2 .x -> StrokedPath::point::m_packed_data (uint)
+      - PainterAttribute::m_attrib2 .y -> StrokedPath::point::m_edge_length (float)
+      - PainterAttribute::m_attrib2 .z -> StrokedPath::point::m_open_contour_length (float)
+      - PainterAttribute::m_attrib2 .w -> StrokedPath::point::m_closed_contour_length (float)
+
+      \param dst PainterAttribute to which to pack
+     */
+    void
+    pack_point(PainterAttribute *dst) const;
+
+    /*!
+      Unpack a \ref point from a \ref PainterAttribute.
+      \param dst point to which to unpack data
+      \param src PainterAttribute from which to unpack data
+     */
+    static
+    void
+    unpack_point(point *dst, const PainterAttribute &src);
   };
+
+  /*!
+    Opaque object to hold work room needed for functions
+    of StrokedPath that require scratch space.
+   */
+  class ScratchSpace:fastuidraw::noncopyable
+  {
+  public:
+    ScratchSpace(void);
+    ~ScratchSpace();
+  private:
+    friend class StrokedPath;
+    void *m_d;
+  };
+
+  enum join_chunk_choice_t
+    {
+      /*!
+        For both edges and joins, chunk to use for data without
+        closing edge
+       */
+      join_chunk_without_closing_edge,
+
+      /*!
+        For both edges and joins, chunk to use for data with
+        closing edge
+       */
+      join_chunk_with_closing_edge,
+
+      /*!
+       */
+      join_chunk_start_individual_joins
+    };
+
+  /*!
+    Returns the number of seperate joins held in a PainterAttributeData
+    that is holds data for joins.
+   */
+  static
+  unsigned int
+  number_joins(const PainterAttributeData &join_data, bool with_closing_edges);
+
+  /*!
+    Returns what chunk of a PainterAttributeData that holds data for
+    joins for a named join.
+   */
+  static
+  unsigned int
+  chunk_for_named_join(unsigned int J);
 
   /*!
     Ctor. Construct a StrokedPath from the data
@@ -516,104 +634,102 @@ public:
   ~StrokedPath();
 
   /*!
-    Returns the geomtric data for stroking the path. The backing data
-    store for with and without closing edge data is shared so that
-    \code
-    points(tp, false) == points(tp, true).sub_array(0, points(tp,false).size())
-    \endcode
-    i.e., the geometric data for the closing edge comes at the end.
-    \param tp what data to fetch, i.e. edge data, join data (which join data), etc.
-    \param including_closing_edge if true, include the geometric data for of the
-                                  closing edge. Asking for caps ignores the value
-                                  for closing edge.
+    Returns TessellatedPath::effective_curve_distance_threshhold()
+    of the TessellatedPath that generated this StrokedPath.
    */
-  const_c_array<point>
-  points(enum point_set_t tp, bool including_closing_edge) const;
+  float
+  effective_curve_distance_threshhold(void) const;
 
   /*!
-    Return the index data into as returned by points() for stroking
-    the path. The backing data store for with and without closing edge
-    data is shared so that
-    \code
-    unsigned int size_with, size_without;
-    size_with = indices(tp, true);
-    size_without  = indices(tp, false);
-    assert(size_with >= size_without);
-    assert(indices(tp, true).sub_array(size_with - size_without) == indices(tp, false))
-    \endcode
-    i.e., the index data for the closing edge is at the start of the
-    index array.
-    \param tp what data to fetch, i.e. edge data, join data (which join data), etc.
-    \param including_closing_edge if true, include the index data for of the
-                                  closing edge. Asking for caps ignores the value
-                                  for closing edge.
-   */
-  const_c_array<unsigned int>
-  indices(enum point_set_t tp, bool including_closing_edge) const;
-
-  /*!
-    Points returned by points(tp, including_closing_edge) have that
-    their value for point::m_depth are in the half-open range
-    [0, number_depth(tp, including_closing_edge))
-    \param tp what data to fetch, i.e. edge data, join data (which join
-              data), etc.
-    \param including_closing_edge if true, include the index data for
-                                  the closing edge.
-   */
-  unsigned int
-  number_depth(enum point_set_t tp, bool including_closing_edge) const;
-
-  /*!
-    Returns the number of contours of the generating path.
-   */
-  unsigned int
-  number_contours(void) const;
-
-  /*!
-    Returns the number of joins for the named contour
-    of the generating path. Join numbering is so that
-    join A is the join that connects edge A to A + 1.
-    In particular the joins of a closing edge of contour
-    C are then at number_joins(C) - 2 and number_joins(C) - 1.
-    \param contour which contour, with contour < number_contours().
-   */
-  unsigned int
-  number_joins(unsigned int contour) const;
-
-  /*!
-    Returns the range into points(tp, true) for the
-    indices of the named join or cap of the named contour.
-    \param tp what join type to query. If tp is not a type for a
-              join or cap, returns an empty range.
-    \param contour which contour, with contour < number_contours().
-    \param J if tp is a join type, gives which join with J < number_joins(contour).
-             if tp is a cap type, gives which cap with J = 0 meaning the
-             cap at the start of the contour and J = 1 the cap at the
-             end of the contour
-   */
-  range_type<unsigned int>
-  points_range(enum point_set_t tp, unsigned int contour, unsigned int J) const;
-
-  /*!
-    Returns the range into indices(tp, true) for the
-    indices of the named join or cap of the named contour.
-    \param tp what join type to query. If tp is not a type for a
-              join or cap, returns an empty range.
-    \param contour which contour, with contour < number_contours().
-    \param J if tp is a join type, gives which join with J < number_joins(contour).
-             if tp is a cap type, gives which cap with J = 0 meaning the
-             cap at the start of the contour and J = 1 the cap at the
-             end of the contour
-   */
-  range_type<unsigned int>
-  indices_range(enum point_set_t tp, unsigned int contour, unsigned int J) const;
-
-  /*!
-    Returns data that can be passed to a PainterPacker
-    to stroke a path.
+    Returns the data to draw the edges of a stroked path.
    */
   const PainterAttributeData&
-  painter_data(void) const;
+  edges(bool include_closing_edges) const;
+
+  /*!
+    Given a set of clip equations in clip coordinates
+    and a tranformation from local coordiante to clip
+    coordinates, compute what chunks are not completely
+    culled by the clip equations.
+    \param scratch_space scratch space for computations.
+    \param clip_equations array of clip equations
+    \param clip_matrix_local 3x3 transformation from local (x, y, 1)
+                             coordinates to clip coordinates.
+    \param recip_dimensions holds the reciprocal of the dimensions of the viewport
+    \param include_closing_edges if true include the chunks needed to
+                                 draw the closing edges of each contour
+    \param dst[output] location to which to write the what chunks
+    \returns the number of chunks that intersect the bounding box,
+             that number is guarnanteed to be no more than maximum_edge_chunks().
+   */
+  unsigned int
+  edge_chunks(ScratchSpace &scratch_space,
+              const_c_array<vec3> clip_equations,
+              const float3x3 &clip_matrix_local,
+              const vec2 &recip_dimensions,
+              float pixels_additional_room,
+              float item_space_additional_room,
+              bool include_closing_edges,
+              c_array<unsigned int> dst) const;
+
+  /*!
+    Gives the maximum return value to edge_chunks(), i.e. the
+    maximum number of chunks that edge_chunks() will return.
+   */
+  unsigned int
+  maximum_edge_chunks(void) const;
+
+  /*!
+    Gives the maximum value for point::m_depth for all
+    edges of a stroked path.
+    \param include_closing_edges if false, disclude the closing
+                                 edges from the maximum value.
+   */
+  unsigned int
+  z_increment_edge(bool include_closing_edges) const;
+
+  /*!
+    Returns the data to draw the square caps of a stroked path.
+   */
+  const PainterAttributeData&
+  square_caps(void) const;
+
+  /*!
+    Returns the data to draw the caps of a stroked path used
+    when stroking with a dash pattern.
+   */
+  const PainterAttributeData&
+  adjustable_caps(void) const;
+
+  /*!
+    Returns the data to draw the bevel joins of a stroked path.
+   */
+  const PainterAttributeData&
+  bevel_joins(void) const;
+
+  /*!
+    Returns the data to draw the miter joins of a stroked path.
+   */
+  const PainterAttributeData&
+  miter_joins(void) const;
+
+  /*!
+    Returns the data to draw rounded joins of a stroked path.
+    \param thresh will return rounded joins so that the distance
+                  between the approximation of the round and the
+                  actual round is no more than thresh.
+   */
+  const PainterAttributeData&
+  rounded_joins(float thresh) const;
+
+  /*!
+    Returns the data to draw rounded caps of a stroked path.
+    \param thresh will return rounded caps so that the distance
+                  between the approximation of the round and the
+                  actual round is no more than thresh.
+   */
+  const PainterAttributeData&
+  rounded_caps(float thresh) const;
 
 private:
   void *m_d;

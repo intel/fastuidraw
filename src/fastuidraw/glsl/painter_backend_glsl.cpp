@@ -20,6 +20,7 @@
 #include <vector>
 
 #include <fastuidraw/glsl/painter_backend_glsl.hpp>
+#include <fastuidraw/painter/stroked_path.hpp>
 #include <fastuidraw/painter/painter_header.hpp>
 #include <fastuidraw/painter/painter_item_matrix.hpp>
 #include <fastuidraw/painter/painter_clip_equations.hpp>
@@ -46,6 +47,15 @@ namespace
       uniform_ubo_recip_magnitude_offset,
 
       uniform_ubo_number_entries
+    };
+
+  enum stroke_shader_dash_bits_t
+    {
+      stroke_gauranteed_to_be_covered_bit,
+      stroke_skip_dash_interval_lookup_bit,
+
+      stroke_gauranteed_to_be_covered_mask = FASTUIDRAW_MASK(stroke_gauranteed_to_be_covered_bit, 1),
+      stroke_skip_dash_interval_lookup_mask = FASTUIDRAW_MASK(stroke_skip_dash_interval_lookup_bit, 1)
     };
 
   class BlendShaderGroup
@@ -240,16 +250,17 @@ PainterBackendGLSLPrivate(fastuidraw::glsl::PainterBackendGLSL *p,
     .add_source("fastuidraw_do_nothing.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_circular_interpolate.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_anisotropic.frag.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_compute_local_distance_from_pixel_distance.glsl.resource_string",
+    .add_source("fastuidraw_unpack_unit_vector.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_compute_local_distance_from_pixel_distance.glsl.resource_string",
                 ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_align.vert.glsl.resource_string", ShaderSource::from_resource);
+    .add_source("fastuidraw_align.vert.glsl.resource_string", ShaderSource::from_resource)
+    .add_source(code::compute_interval("fastuidraw_compute_interval", m_p->configuration_base().alignment()));
 
   m_frag_shader_utils
     .add_source("fastuidraw_do_nothing.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_circular_interpolate.glsl.resource_string",
-                ShaderSource::from_resource)
+    .add_source("fastuidraw_circular_interpolate.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_anisotropic.frag.glsl.resource_string", ShaderSource::from_resource)
-    .add_source(code::dashed_stroking_compute("fastuidraw_compute_dash_interval", m_p->configuration_base().alignment()))
+    .add_source(code::compute_interval("fastuidraw_compute_interval", m_p->configuration_base().alignment()))
     .add_source(code::image_atlas_compute_coord("fastuidraw_compute_image_atlas_coord",
                                                 "fastuidraw_imageIndexAtlas",
                                                 m_p->image_atlas()->index_tile_size(),
@@ -474,26 +485,40 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_blend_shader_bit0", PainterHeader::blend_shader_bit0)
     .add_macro("fastuidraw_blend_shader_num_bits", PainterHeader::blend_shader_num_bits)
 
-    .add_macro("fastuidraw_stroke_offset_edge", StrokedPath::offset_edge)
-    .add_macro("fastuidraw_stroke_offset_next_edge", StrokedPath::offset_next_edge)
+    /* offset types for stroking.
+     */
+    .add_macro("fastuidraw_stroke_offset_start_sub_edge", StrokedPath::offset_start_sub_edge)
+    .add_macro("fastuidraw_stroke_offset_end_sub_edge", StrokedPath::offset_end_sub_edge)
+    .add_macro("fastuidraw_stroke_offset_shared_with_edge", StrokedPath::offset_shared_with_edge)
     .add_macro("fastuidraw_stroke_offset_rounded_join", StrokedPath::offset_rounded_join)
     .add_macro("fastuidraw_stroke_offset_miter_join", StrokedPath::offset_miter_join)
     .add_macro("fastuidraw_stroke_offset_rounded_cap", StrokedPath::offset_rounded_cap)
     .add_macro("fastuidraw_stroke_offset_square_cap", StrokedPath::offset_square_cap)
+    .add_macro("fastuidraw_stroke_offset_adjustable_cap_contour_start", StrokedPath::offset_adjustable_cap_contour_start)
+    .add_macro("fastuidraw_stroke_offset_adjustable_cap_contour_end", StrokedPath::offset_adjustable_cap_contour_end)
     .add_macro("fastuidraw_stroke_offset_type_bit0", StrokedPath::offset_type_bit0)
     .add_macro("fastuidraw_stroke_offset_type_num_bits", StrokedPath::offset_type_num_bits)
+
+    /* bit masks for StrokedPath::point::m_packed_data
+     */
     .add_macro("fastuidraw_stroke_sin_sign_mask", StrokedPath::sin_sign_mask)
     .add_macro("fastuidraw_stroke_normal0_y_sign_mask", StrokedPath::normal0_y_sign_mask)
     .add_macro("fastuidraw_stroke_normal1_y_sign_mask", StrokedPath::normal1_y_sign_mask)
     .add_macro("fastuidraw_stroke_boundary_bit", StrokedPath::boundary_bit)
     .add_macro("fastuidraw_stroke_join_mask", StrokedPath::join_mask)
-    .add_macro("fastuidraw_stroke_cap_join_mask", StrokedPath::cap_join_ending_mask)
+    .add_macro("fastuidraw_stroke_bevel_edge_mask", StrokedPath::bevel_edge_mask)
+    .add_macro("fastuidraw_stroke_adjustable_cap_ending_mask", StrokedPath::adjustable_cap_ending_mask)
     .add_macro("fastuidraw_stroke_depth_bit0", StrokedPath::depth_bit0)
     .add_macro("fastuidraw_stroke_depth_num_bits", StrokedPath::depth_num_bits)
-    .add_macro("fastuidraw_stroke_undashed", PainterEnums::number_cap_styles)
-    .add_macro("fastuidraw_stroke_dashed_no_caps", PainterEnums::no_caps)
+
+    /* dash shader modes.
+     */
+    .add_macro("fastuidraw_stroke_dashed_flat_caps", PainterEnums::flat_caps)
     .add_macro("fastuidraw_stroke_dashed_rounded_caps", PainterEnums::rounded_caps)
     .add_macro("fastuidraw_stroke_dashed_square_caps", PainterEnums::square_caps)
+
+    .add_macro("fastuidraw_stroke_gauranteed_to_be_covered_mask", stroke_gauranteed_to_be_covered_mask)
+    .add_macro("fastuidraw_stroke_skip_dash_interval_lookup_mask", stroke_skip_dash_interval_lookup_mask)
 
     .add_macro("fastuidraw_data_store_alignment", alignment);
 }
@@ -658,7 +683,7 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
   {
     shader_unpack_value_set<PainterStrokeParams::stroke_data_size> labels;
     labels
-      .set(PainterStrokeParams::stroke_width_offset, ".width")
+      .set(PainterStrokeParams::stroke_radius_offset, ".radius")
       .set(PainterStrokeParams::stroke_miter_limit_offset, ".miter_limit")
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_stroking_params",
@@ -669,11 +694,12 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
   {
     shader_unpack_value_set<PainterDashedStrokeParams::stroke_static_data_size> labels;
     labels
-      .set(PainterDashedStrokeParams::stroke_width_offset, ".width")
+      .set(PainterDashedStrokeParams::stroke_radius_offset, ".radius")
       .set(PainterDashedStrokeParams::stroke_miter_limit_offset, ".miter_limit")
       .set(PainterDashedStrokeParams::stroke_dash_offset_offset, ".dash_offset")
       .set(PainterDashedStrokeParams::stroke_total_length_offset, ".total_length")
-      .set(PainterDashedStrokeParams::stroke_first_interval_start, ".first_interval_start")
+      .set(PainterDashedStrokeParams::stroke_first_interval_start_offset, ".first_interval_start")
+      .set(PainterDashedStrokeParams::stroke_number_intervals_offset, ".number_intervals", shader_unpack_value::uint_type)
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_dashed_stroking_params_header",
                               "fastuidraw_dashed_stroking_params_header",

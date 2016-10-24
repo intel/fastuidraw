@@ -42,11 +42,12 @@ namespace fastuidraw
      */
     enum stroke_data_offset_t
       {
-        stroke_width_offset, /*!< offset to dashed stroke width (packed as float) */
+        stroke_radius_offset, /*!< offset to dashed stroke radius (packed as float) */
         stroke_miter_limit_offset, /*!< offset to dashed stroke miter limit (packed as float) */
         stroke_dash_offset_offset, /*!< offset to dash offset value for dashed stroking (packed as float) */
         stroke_total_length_offset, /*!< offset to total legnth of dash pattern (packed as float) */
-        stroke_first_interval_start, /*!< offset to value recording where the start of the first draw interval is */
+        stroke_first_interval_start_offset, /*!< offset to value recording the start of the first interval (packed as float) */
+        stroke_number_intervals_offset, /*!< offset to value giving the number of intervals (packed as uint) */
 
         stroke_static_data_size /*!< size of static data for dashed stroking */
       };
@@ -117,6 +118,24 @@ namespace fastuidraw
      */
     PainterDashedStrokeParams&
     width(float f);
+    /*!
+      The stroking radius, equivalent to
+      \code
+      width() * 0.5
+      \endcode
+     */
+    float
+    radius(void) const;
+
+    /*!
+      Set the value of radius(void) const,
+      equivalent to
+      \code
+      width(2.0 * f)
+      \endcode
+     */
+    PainterDashedStrokeParams&
+    radius(float f);
 
     /*!
       The dashed offset, i.e. the starting point of the
@@ -147,10 +166,24 @@ namespace fastuidraw
     /*!
       Constructs and returns a DashEvaluator compatible
       with the data of PainterDashedStrokeParams.
+      \param pixel_width_stroking if true return an object to
+                                  be used when stroking width
+                                  is in pixels; if false return
+                                  an object to be used when
+                                  stroking width is in coordinates
+                                  of the path.
      */
     static
     reference_counted_ptr<const DashEvaluatorBase>
-    dash_evaluator(void);
+    dash_evaluator(bool pixel_width_stroking);
+
+    /*!
+      Returns a StrokingDataSelectorBase suitable for
+      PainterDashedStrokeParams.
+     */
+    static
+    reference_counted_ptr<const StrokingDataSelectorBase>
+    stroking_data_selector(bool pixel_width_stroking);
   };
 /*! @} */
 

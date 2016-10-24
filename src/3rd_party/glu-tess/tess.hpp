@@ -59,8 +59,8 @@ typedef struct CachedVertex {
   unsigned int  client_id;
 } CachedVertex;
 
-struct fastuidraw_GLUtesselator {
-
+class fastuidraw_GLUtesselator {
+public:
   /*** state needed for collecting the input data ***/
 
   enum TessState state;         /* what begin/end calls have we seen? */

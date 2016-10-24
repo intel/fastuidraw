@@ -420,7 +420,7 @@ draw_frame(void)
               m_painter->scale(sc);
               m_painter->stroke_path(PainterData(pst, pbr),
                                      m_glyphs[m_current_drawer][i].path(),
-                                     true, PainterEnums::no_caps, PainterEnums::miter_joins,
+                                     true, PainterEnums::flat_caps, PainterEnums::miter_joins,
                                      true);
               m_painter->restore();
             }

@@ -22,6 +22,7 @@
 
 #include <fastuidraw/painter/painter_item_shader.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/painter_shader_data.hpp>
 
 namespace fastuidraw
 {
@@ -30,89 +31,50 @@ namespace fastuidraw
   @{
  */
 
+  ///@cond
+  class PainterAttributeData;
+  ///@endcond
+
   /*!
-    A StrokingChunkSelector provides an interface to know
-    what chuck of a PainterAttributeData to grab
-    for different data to stroke.
-  */
-  class StrokingChunkSelectorBase:
-    public reference_counted<StrokingChunkSelectorBase>::default_base
+    A StrokingDataSelector is an interface to assist Painter
+    to select correct LOD for rounded joins and caps when
+    drawing rounded joins and caps.
+   */
+  class StrokingDataSelectorBase:
+    public reference_counted<StrokingDataSelectorBase>::default_base
   {
   public:
     /*!
-      To be implemented by a derived class to return
-      the chunk index, i.e. the value to feed
-      \ref PainterAttributeData::attribute_data_chunk()
-      and \ref PainterAttributeData::index_data_chunk(),
-      for the named cap style.
-      \param cp cap style
+      To be implemented by a derived class to compute the
+      the value for thresh to feed to StrokedPath::rounded_joins(float)
+      and StrokedPath::rounded_caps(float) to get a good
+      level of detail to draw rounded joins or caps.
+      \param data PainterItemShaderData::DataBase object holding
+                  the data to be sent to the shader
+      \param thresh threshhold used to select the StrokedPath
      */
     virtual
-    unsigned int
-    cap_chunk(enum PainterEnums::cap_style cp) const = 0;
+    float
+    compute_rounded_thresh(const PainterShaderData::DataBase *data,
+                           float thresh) const = 0;
 
     /*!
-      To be implemented by a derived class to return
-      the chunk index, i.e. the value to feed
-      \ref PainterAttributeData::attribute_data_chunk()
-      and \ref PainterAttributeData::index_data_chunk()
-      for the edges.
-      \param edge_closed if true, return the chunk that includes
-                         the closing edge
+      To be implemented by a derived class to give by how
+      much the stroking gives thickness to the stroked path.
+      These values are geometrically added together. The
+      intersection test performed is to first inflate the
+      bounding boxes in local coordinates by the output
+      *out_item_space_distance, then to convert the box
+      to clip-coordinates and then push each clip-equation
+      by *out_pixel_space_distance
+      \param out_clip_space_distance[output] how much geometry inflates in pixels
+      \param out_item_space_distance[output] how much geometry inflates in local coordinates
      */
     virtual
-    unsigned int
-    edge_chunk(bool edge_closed) const = 0;
-
-    /*!
-      To be implemented by a derived class to return
-      the chunk index, i.e. the value to feed
-      \ref PainterAttributeData::attribute_data_chunk()
-      and \ref PainterAttributeData::index_data_chunk(),
-      for the named join style.
-      \param js join style
-      \param edge_closed if true, return the chunk that includes
-                         the joins for the closing edge
-     */
-    virtual
-    unsigned int
-    join_chunk(enum PainterEnums::join_style js, bool edge_closed) const = 0;
-
-    /*!
-      To be implemented by a derived class to return
-      the chunk index, i.e. the value to feed
-      \ref PainterAttributeData::attribute_data_chunk()
-      and \ref PainterAttributeData::index_data_chunk(),
-      for the named join of a join style.
-      \param js join style
-      \param J (global) join index
-    */
-    virtual
-    unsigned int
-    named_join_chunk(enum PainterEnums::join_style js, unsigned int J) const = 0;
-
-    /*!
-      To be implemented by a derived class to return
-      the chunk index, i.e. the value to feed
-      \ref PainterAttributeData::attribute_data_chunk()
-      and \ref PainterAttributeData::index_data_chunk(),
-      for the cap joins
-      \param J (global) join index
-    */
-    virtual
-    unsigned int
-    chunk_from_cap_join(unsigned int J) const = 0;
-
-    /*!
-      To be implemented by a derived class to return
-      the chunk index, i.e. the value to feed
-      \ref PainterAttributeData::attribute_data_chunk()
-      and \ref PainterAttributeData::index_data_chunk(),
-      for adjustable caps.
-    */
-    virtual
-    unsigned int
-    adjustable_cap_chunk(void) const = 0;
+    void
+    stroking_distances(const PainterShaderData::DataBase *data,
+                       float *out_pixel_space_distance,
+                       float *out_item_space_distance) const = 0;
   };
 
   /*!
@@ -233,18 +195,18 @@ namespace fastuidraw
     non_aa_shader(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
-      Returns a reference to the StrokingChunkSelectorBase
-      to be used with the PainterStrokeShader
+      Returns the StrokingDataSelectorBase associated to this
+      PainterStrokeShader.
      */
-    const reference_counted_ptr<StrokingChunkSelectorBase>&
-    chunk_selector(void) const;
+    const reference_counted_ptr<const StrokingDataSelectorBase>&
+    stroking_data_selector(void) const;
 
     /*!
-      Set the value returned by chunk_selector(void) const.
-      \param ch value to use
+      Set the value returned by stroking_data_selector(void) const.
+      \param sh value to use
      */
     PainterStrokeShader&
-    chunk_selector(const reference_counted_ptr<StrokingChunkSelectorBase> &ch);
+    stroking_data_selector(const reference_counted_ptr<const StrokingDataSelectorBase> &sh);
 
   private:
     void *m_d;

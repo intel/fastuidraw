@@ -255,7 +255,7 @@ namespace fastuidraw
       \param p PainterFillShader hold shaders to register
      */
     void
-    register_shader(const PainterFillShader &sh);
+    register_shader(const PainterFillShader &p);
 
     /*!
       Provided as a conveniance, equivalent to calling

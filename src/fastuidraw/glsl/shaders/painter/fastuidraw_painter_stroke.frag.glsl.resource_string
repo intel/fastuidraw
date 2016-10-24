@@ -1,3 +1,39 @@
+#ifndef FASTUIDRAW_STROKE_COMPUTE_DASH_INTERVAL_DEFINED
+#define FASTUIDRAW_STROKE_COMPUTE_DASH_INTERVAL_DEFINED
+float
+fastuidraw_stroke_compute_dash_interval(in uint dashed_stroking_data_location,
+                                        in float total_distance,
+                                        in float first_interval_start,
+                                        in float in_distance,
+                                        in float start, in float end,
+                                        in uint number_intervals)
+{
+  if(in_distance <= start)
+    {
+      return in_distance - start;
+    }
+  else if(in_distance >= end)
+    {
+      return end - in_distance;
+    }
+  else
+    {
+      int interval_id;
+      float interval_begin, interval_end, s;
+
+      s = fastuidraw_compute_interval(dashed_stroking_data_location,
+                                      total_distance,
+                                      first_interval_start,
+                                      in_distance, number_intervals,
+                                      interval_id,
+                                      interval_begin,
+                                      interval_end);
+
+      return s * min(in_distance - interval_begin, interval_end - in_distance);
+    }
+}
+#endif
+
 vec4
 fastuidraw_gl_frag_main(in uint sub_shader,
                         in uint shader_data_offset)
@@ -12,7 +48,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   alpha = 1.0;
 
   #ifdef FASTUIDRAW_STROKE_DASHED
-  if((fastuidraw_stroking_packed_data & uint(fastuidraw_stroke_join_mask)) == 0u)
+  if((fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_gauranteed_to_be_covered_mask)) == 0u)
     {
       float d, q, fw;
       uint dash_pattern_at, dash_style;
@@ -31,19 +67,19 @@ fastuidraw_gl_frag_main(in uint sub_shader,
        */
       fastuidraw_read_dashed_stroking_params_header(shader_data_offset, stroke_params);
 
-      if((fastuidraw_stroking_packed_data & uint(fastuidraw_stroke_cap_join_mask)) != 0u)
+      if((fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u)
         {
-          q = fastuidraw_stroking_distance_from_edge_start;
+          q = fastuidraw_stroking_distance;
         }
       else
         {
-          q = fastuidraw_compute_dash_interval(dash_pattern_at,
-                                               stroke_params.total_length,
-                                               stroke_params.first_interval_start,
-                                               fastuidraw_stroking_distance,
-                                               fastuidraw_stroking_distance_from_edge_start,
-                                               fastuidraw_stroking_distance_to_end_of_edge,
-                                               stroke_params.width);
+          q = fastuidraw_stroke_compute_dash_interval(dash_pattern_at,
+                                                      stroke_params.total_length,
+                                                      stroke_params.first_interval_start,
+                                                      fastuidraw_stroking_distance,
+                                                      fastuidraw_stroking_distance_sub_edge_start,
+                                                      fastuidraw_stroking_distance_sub_edge_end,
+                                                      stroke_params.number_intervals);
         }
 
       fw = fwidth(fastuidraw_stroking_distance);
@@ -55,7 +91,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
          fwidth() from values that are not branchy-pixel-dependent.
        */
       float y, r, qq_yy, fwidth_qq_yy;
-      r = stroke_params.width * 0.5;
+      r = stroke_params.radius;
       y = r * fastuidraw_stroking_on_boundary;
       qq_yy = q * q + y * y;
       fwidth_qq_yy = 2.0 * abs(q) * fw + 2.0 * abs(y) * fwidth(y);
@@ -67,7 +103,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
              dash-pattern boundary. By relaxing the condition by
              (essentially) 1-pixel, we can avoid that rendering
              issue.
-           */
+          */
           if(q < fw && q > -fw - r)
             {
               float sq;
@@ -79,7 +115,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
         }
       else if(dash_style == uint(fastuidraw_stroke_dashed_square_caps))
         {
-          q += stroke_params.width * 0.5;
+          q += stroke_params.radius;
         }
 
       d = max(abs(q), fw);

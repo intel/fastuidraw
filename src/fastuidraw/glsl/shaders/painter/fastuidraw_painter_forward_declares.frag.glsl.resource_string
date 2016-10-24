@@ -41,14 +41,3 @@ fastuidraw_compute_image_atlas_coord(in vec2 image_shader_coord,
 
 uint
 fastuidraw_read_dashed_stroking_params_header(in uint location, out fastuidraw_dashed_stroking_params_header p);
-
-/* returns the signed distance to the boundary
- */
-float
-fastuidraw_compute_dash_interval(in uint dashed_stroking_data_location,
-                                 in float total_distance,
-                                 in float first_interval_start,
-                                 in float distance,
-                                 in float distance_from_edge_start,
-                                 in float distance_to_end_of_edge,
-                                 in float stroke_distance);

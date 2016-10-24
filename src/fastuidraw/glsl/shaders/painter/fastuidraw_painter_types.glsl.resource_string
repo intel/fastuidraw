@@ -24,15 +24,16 @@ struct fastuidraw_clipping_data
 
 struct fastuidraw_stroking_params
 {
-  float width;
+  float radius;
   float miter_limit;
 };
 
 struct fastuidraw_dashed_stroking_params_header
 {
-  float width;
+  float radius;
   float miter_limit;
   float dash_offset;
   float total_length;
   float first_interval_start;
+  uint number_intervals;
 };

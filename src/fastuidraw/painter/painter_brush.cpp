@@ -16,7 +16,7 @@
  *
  */
 
-
+#include <algorithm>
 #include <fastuidraw/painter/painter_brush.hpp>
 
 ////////////////////////////////////

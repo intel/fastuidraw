@@ -1108,6 +1108,18 @@ public:
   }
 
   /*!
+    Returns the vector that would be made
+    by calling normalize(T).
+   */
+  vecN
+  normal_vector(T tol) const
+  {
+    vecN retval(*this);
+    retval.normalize(tol);
+    return retval;
+  }
+
+  /*!
     STL compliand size function, note that it is static
     since the size of the array is determined by the template
     parameter N.
@@ -1460,6 +1472,23 @@ pack_vec4(float x, float y, float z, float w)
   return_value.w() = pack_float(w);
   return return_value;
 }
+
+  /*!
+    Compute the area of a triangle using Heron's rule.
+   */
+  template<typename T, size_t N>
+  T
+  triangle_area(const vecN<T,N> &p0,
+                const vecN<T,N> &p1,
+                const vecN<T,N> &p2)
+  {
+    T d, d0, d1, d2;
+    d0 = p0.magnitude();
+    d1 = p1.magnitude();
+    d2 = p2.magnitude();
+    d = (d0 + d1 + d2) / T(2);
+    return t_sqrt(d * (d - d0) * (d - d1) * (d - d2));
+  }
 
 /*! @} */
 

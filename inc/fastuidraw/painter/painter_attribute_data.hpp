@@ -82,6 +82,14 @@ namespace fastuidraw
     index_data_chunks(void) const;
 
     /*!
+      Returns the index adjust value for all chunks.
+      The index adjust value is by how much to adjust
+      the indices of an index chunk.
+     */
+    const_c_array<int>
+    index_adjust_chunks(void) const;
+
+    /*!
       Provided as an API conveniance to fetch
       the named chunk of index_data_chunks()
       or an empty chunk if the index is larger then
@@ -90,6 +98,14 @@ namespace fastuidraw
      */
     const_c_array<PainterIndex>
     index_data_chunk(unsigned int i) const;
+
+    /*!
+      Provided as an API conveniance to fetch
+      the index adjust for the named chunk.
+      \param i index of index_adjust_chunks() to fetch
+     */
+    int
+    index_adjust_chunk(unsigned int i) const;
 
     /*!
       Returns an array that holds those value i

@@ -231,24 +231,134 @@ image_atlas_compute_coord(const char *function_name,
 
 fastuidraw::glsl::ShaderSource
 fastuidraw::glsl::code::
-dashed_stroking_compute(const char *function_name,
-                        unsigned int data_alignment)
+compute_interval(const char *function_name, unsigned int data_alignment)
 {
   ShaderSource return_value;
-  const char *src[] =
+  std::ostringstream ostr;
+
+  const char *xyzw = "xyzw";
+  const char *itypes[] =
     {
-      "fastuidraw_compute_dash_stroke_alignment_1.glsl.resource_string",
-      "fastuidraw_compute_dash_stroke_alignment_2.glsl.resource_string",
-      "fastuidraw_compute_dash_stroke_alignment_3.glsl.resource_string",
-      "fastuidraw_compute_dash_stroke_alignment_4.glsl.resource_string"
+      "uint",
+      "uvec2",
+      "uvec3",
+      "uvec4"
     };
 
-  data_alignment = t_max(1u, t_min(data_alignment, 4u));
+  const char *ftypes[] =
+    {
+      "float",
+      "vec2",
+      "vec3",
+      "vec4",
+    };
+
+  const char *extract_swizzle[] =
+    {
+      "x",
+      "xy",
+      "xyz",
+      "xyzw",
+    };
+
+  const char *start_interval[] =
+    {
+      "lastd",
+      "fV.x",
+      "fV.y",
+      "fV.z",
+    };
+
+  const char *end_interval[] =
+    {
+      "fV.x",
+      "fV.y",
+      "fV.z",
+      "fV.w"
+    };
+
+  const char *return_signs[] =
+    {
+      "1.0",
+      "-1.0",
+      "1.0",
+      "-1.0"
+    };
+
+  assert(data_alignment >=1 && data_alignment <= 4);
+
+  /* This.. is awful.
+   */
+  ostr << "float\n" << function_name
+       << "(in uint intervals_location, in float total_distance,\n"
+       << "\tin float first_interval_start, in float in_distance,\n"
+       << "\tin uint number_intervals,\n"
+       << "\tout int interval_ID,\n"
+       << "\tout float interval_begin, out float interval_end)\n"
+       << "{\n"
+       << "\tint loc;\n"
+       << "\tfloat d, lastd, ff, fd;\n";
+
+  if(data_alignment == 1 || data_alignment == 3)
+    {
+      ostr << "\tfloat s = 1.0;\n";
+    }
+
+  ostr << "\n"
+       << "\tfd = floor(in_distance / total_distance);\n"
+       << "\tff = total_distance * fd;\n"
+       << "\td = in_distance - ff;\n"
+       << "\tlastd = first_interval_start;\n"
+       << "\tloc = 0;\n"
+       << "\tinterval_begin = 0.0;\n"
+       << "\tinterval_end = 0.0;\n"
+       << "\tinterval_ID = -1;\n"
+       << "\n\n"
+       << "\tdo\n"
+       << "\t{\n"
+       << "\t\t" << itypes[data_alignment - 1] << " V;\n"
+       << "\t\t" << ftypes[data_alignment - 1] << " fV;\n"
+       << "\t\tV = fastuidraw_fetch_data(loc + int(intervals_location))." << extract_swizzle[data_alignment - 1] << ";\n"
+       << "\t\tfV = uintBitsToFloat(V);\n";
+  for(unsigned int i = 0; i < data_alignment; ++i)
+    {
+      ostr << "\t\t";
+      if(i != 0)
+        {
+          ostr << "else ";
+        }
+      ostr << "if(d < fV." << xyzw[i] << ")\n"
+           << "\t\t{\n"
+           << "\t\t\tinterval_begin = ff + " << start_interval[i] << ";\n"
+           << "\t\t\tinterval_end = ff + " << end_interval[i] << ";\n"
+           << "\t\t\tinterval_ID = int(" << data_alignment << ") * loc "
+           << "+ int(" << i << ") + int(fd) * int(number_intervals);\n";
+      if(data_alignment == 1 || data_alignment == 3)
+        {
+          ostr << "\t\t\treturn s * " << return_signs[i] << ";\n";
+        }
+      else
+        {
+          ostr << "\t\t\treturn " << return_signs[i] << ";\n";
+        }
+      ostr << "\t\t\tlastd = 2.0 * total_distance + 1.0;\n"
+           << "\t\t}\n";
+    }
+  ostr << "\t\tlastd = fV." << xyzw[data_alignment - 1] << ";\n"
+       << "\t\t++loc;\n";
+
+  if(data_alignment == 1 || data_alignment == 3)
+    {
+      ostr << "\t\ts *= -1.0;\n";
+    }
+
+  ostr << "\t}\n"
+       << "\twhile(lastd < total_distance);\n"
+       << "\treturn -1.0;\n"
+       << "}";
 
   return_value
-    .add_macro("FASTUIDRAW_COMPUTE_DASH_STROKE", function_name)
-    .add_source("fastuidraw_compute_dash_stroke_helper.glsl.resource_string", glsl::ShaderSource::from_resource)
-    .add_source(src[data_alignment - 1], glsl::ShaderSource::from_resource)
-    .remove_macro("FASTUIDRAW_COMPUTE_DASH_STROKE");
+    .add_source(ostr.str().c_str(), glsl::ShaderSource::from_string);
+
   return return_value;
 }

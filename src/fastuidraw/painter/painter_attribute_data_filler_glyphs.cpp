@@ -276,7 +276,8 @@ fill_data(c_array<PainterAttribute> attribute_data,
           c_array<PainterIndex> index_data,
           c_array<const_c_array<PainterAttribute> > attrib_chunks,
           c_array<const_c_array<PainterIndex> > index_chunks,
-          c_array<unsigned int> zincrements) const
+          c_array<unsigned int> zincrements,
+          c_array<int> index_adjusts) const
 {
   FillGlyphsPrivate *d;
   d = reinterpret_cast<FillGlyphsPrivate*>(m_d);
@@ -284,6 +285,7 @@ fill_data(c_array<PainterAttribute> attribute_data,
     {
       attrib_chunks[i] = attribute_data.sub_array(4 * c, 4 * d->m_cnt_by_type[i]);
       index_chunks[i] = index_data.sub_array(6 * c, 6 * d->m_cnt_by_type[i]);
+      index_adjusts[i] = 0;
       c += d->m_cnt_by_type[i];
     }
 

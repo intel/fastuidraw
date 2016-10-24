@@ -515,6 +515,7 @@ namespace
     fastuidraw::PainterPacker *m_p;
 
     PainterPackerPrivateWorkroom m_work_room;
+    fastuidraw::vecN<unsigned int, fastuidraw::PainterPacker::num_stats> m_stats;
   };
 }
 
@@ -698,7 +699,14 @@ start_new_command(void)
 {
   if(!m_accumulated_draws.empty())
     {
-      m_accumulated_draws.back().unmap();
+      per_draw_command &c(m_accumulated_draws.back());
+
+      m_stats[fastuidraw::PainterPacker::num_attributes] += c.m_attributes_written;
+      m_stats[fastuidraw::PainterPacker::num_indices] += c.m_indices_written;
+      m_stats[fastuidraw::PainterPacker::num_generic_datas] += c.store_written();
+      m_stats[fastuidraw::PainterPacker::num_draws] += 1u;
+
+      c.unmap();
     }
 
   fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> r;
@@ -798,10 +806,28 @@ begin(void)
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
 
   assert(d->m_accumulated_draws.empty());
+  std::fill(d->m_stats.begin(), d->m_stats.end(), 0u);
   d->start_new_command();
   ++d->m_number_begins;
 }
 
+unsigned int
+fastuidraw::PainterPacker::
+query_stat(enum stats_t st) const
+{
+  PainterPackerPrivate *d;
+  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+
+  vecN<unsigned int, num_stats> tmp(0);
+  if(!d->m_accumulated_draws.empty())
+    {
+      per_draw_command &c(d->m_accumulated_draws.back());
+      tmp[num_attributes] = c.m_attributes_written;
+      tmp[num_indices] = c.m_indices_written;
+      tmp[num_generic_datas] = c.store_written();
+    }
+  return d->m_stats[st] + tmp[st];
+}
 
 void
 fastuidraw::PainterPacker::
@@ -811,7 +837,14 @@ flush(void)
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
   if(!d->m_accumulated_draws.empty())
     {
-      d->m_accumulated_draws.back().unmap();
+      per_draw_command &c(d->m_accumulated_draws.back());
+
+      d->m_stats[fastuidraw::PainterPacker::num_attributes] += c.m_attributes_written;
+      d->m_stats[fastuidraw::PainterPacker::num_indices] += c.m_indices_written;
+      d->m_stats[fastuidraw::PainterPacker::num_generic_datas] += c.store_written();
+      d->m_stats[fastuidraw::PainterPacker::num_draws] += 1u;
+
+      c.unmap();
     }
 
   d->m_backend->on_pre_draw();
@@ -838,11 +871,12 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
              const PainterPackerData &draw,
              const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
+             const_c_array<int> index_adjusts,
              unsigned int z,
              const reference_counted_ptr<DataCallBack> &call_back)
 {
   draw_generic(shader, draw, attrib_chunks, index_chunks,
-               const_c_array<unsigned int>(),
+               index_adjusts, const_c_array<unsigned int>(),
                z, call_back);
 }
 
@@ -852,6 +886,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
              const PainterPackerData &draw,
              const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
              const_c_array<const_c_array<PainterIndex> > index_chunks,
+             const_c_array<int> index_adjusts,
              const_c_array<unsigned int> attrib_chunk_selector,
              unsigned int z,
              const reference_counted_ptr<DataCallBack> &call_back)
@@ -865,6 +900,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
 
   assert((attrib_chunk_selector.empty() && attrib_chunks.size() == index_chunks.size())
          || (attrib_chunk_selector.size() == index_chunks.size()) );
+  assert(index_adjusts.size() == index_chunks.size());
 
   if(attrib_chunks.empty() || !shader)
     {
@@ -940,6 +976,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
       per_draw_command &cmd(d->m_accumulated_draws.back());
       if(allocate_header)
         {
+          ++d->m_stats[num_headers];
           allocate_header = false;
           header_loc = cmd.pack_header(d->m_header_size,
                                        fetch_value(draw.m_brush).shader(),
@@ -992,7 +1029,9 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
       index_dst_ptr = cmd.m_draw_command->m_indices.sub_array(cmd.m_indices_written, index_src_ptr.size());
       for(unsigned int i = 0; i < index_dst_ptr.size(); ++i)
         {
-          index_dst_ptr[i] = index_src_ptr[i] + attrib_offset;
+          assert(int(index_src_ptr[i]) + index_adjusts[chunk] >= 0);
+          assert(int(index_src_ptr[i]) + index_adjusts[chunk] + int(attrib_offset) <= int(cmd.m_attributes_written));
+          index_dst_ptr[i] = int(index_src_ptr[i] + attrib_offset) + index_adjusts[chunk];
         }
       cmd.m_indices_written += index_dst_ptr.size();
     }

@@ -22,7 +22,7 @@
 #include <fastuidraw/painter/painter_attribute_data_filler.hpp>
 #include <fastuidraw/painter/painter_fill_shader.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
-#include <fastuidraw/filled_path.hpp>
+#include <fastuidraw/painter/filled_path.hpp>
 
 namespace fastuidraw
 {
@@ -75,7 +75,8 @@ namespace fastuidraw
               c_array<PainterIndex> indices,
               c_array<const_c_array<PainterAttribute> > attrib_chunks,
               c_array<const_c_array<PainterIndex> > index_chunks,
-              c_array<unsigned int> zincrements) const;
+              c_array<unsigned int> zincrements,
+              c_array<int> index_adjusts) const;
 
     /*!
       Returns the FilledPath from which this object fills

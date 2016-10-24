@@ -169,8 +169,6 @@ private:
   void
   update_cts_params(void);
 
-  command_line_argument_value<int> m_max_segments_per_edge;
-  command_line_argument_value<int> m_points_per_circle;
   command_line_argument_value<float> m_change_miter_limit_rate;
   command_line_argument_value<float> m_change_stroke_width_rate;
   command_line_argument_value<float> m_window_change_rate;
@@ -183,6 +181,7 @@ private:
   command_line_argument_value<unsigned int> m_image_slack;
   command_line_argument_value<int> m_sub_image_x, m_sub_image_y;
   command_line_argument_value<int> m_sub_image_w, m_sub_image_h;
+  command_line_argument_value<std::string> m_font_file;
 
   Path m_path;
   float m_max_miter;
@@ -190,6 +189,7 @@ private:
   uvec2 m_image_offset, m_image_size;
   std::vector<named_color_stop> m_color_stops;
   std::vector<std::vector<PainterDashedStrokeParams::DashPatternElement> > m_dash_patterns;
+  reference_counted_ptr<const FontBase> m_font;
 
   PanZoomTrackerSDLEvent m_zoomer;
   vecN<std::string, number_gradient_draw_modes> m_gradient_mode_labels;
@@ -232,6 +232,7 @@ private:
   unsigned int m_gradient_draw_mode;
   bool m_repeat_gradient;
   unsigned int m_image_filter;
+  bool m_draw_stats;
 
   vec2 m_gradient_p0, m_gradient_p1;
   float m_gradient_r0, m_gradient_r1;
@@ -267,8 +268,6 @@ private:
 painter_stroke_test::
 painter_stroke_test(void):
   sdl_painter_demo("painter-stroke-test"),
-  m_max_segments_per_edge(32, "max_segs", "Max number of segments per edge", *this),
-  m_points_per_circle(60, "tess", "number of points per 2*PI curvature to attempt", *this),
   m_change_miter_limit_rate(1.0f, "miter_limit_rate",
                             "rate of change in in stroke widths per second for "
                             "changing the miter limit when the when key is down",
@@ -306,8 +305,10 @@ painter_stroke_test(void):
   m_sub_image_h(-1, "sub_image_h",
                 "sub-image height of sub-image rectange (negative value means no-subimage)",
                 *this),
+  m_font_file("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "font",
+              "File from which to take font", *this),
   m_join_style(PainterEnums::rounded_joins),
-  m_cap_style(PainterEnums::no_caps),
+  m_cap_style(PainterEnums::flat_caps),
   m_close_contour(true),
   m_fill_rule(PainterEnums::odd_even_fill_rule),
   m_dash(0),
@@ -320,6 +321,7 @@ painter_stroke_test(void):
   m_gradient_draw_mode(draw_no_gradient),
   m_repeat_gradient(true),
   m_image_filter(image_nearest_filter),
+  m_draw_stats(false),
   m_translate_brush(false),
   m_matrix_brush(false),
   m_repeat_window(false),
@@ -373,6 +375,7 @@ painter_stroke_test(void):
             << "\tMiddle Mouse Draw: set p0(starting position top left) {drawn black with white inside} of gradient\n"
             << "\t1/2 : decrease/increase r0 of gradient(hold left-shift for slower rate and right shift for faster)\n"
             << "\t3/4 : decrease/increase r1 of gradient(hold left-shift for slower rate and right shift for faster)\n"
+            << "\tl: draw Painter stats\n"
             << "\tRight Mouse Draw: set p1(starting position bottom right) {drawn white with black inside} of gradient\n"
             << "\tLeft Mouse Drag: pan\n"
             << "\tHold Left Mouse, then drag up/down: zoom out/in\n";
@@ -386,7 +389,7 @@ painter_stroke_test(void):
   m_join_labels[PainterEnums::bevel_joins] = "bevel_joins";
   m_join_labels[PainterEnums::miter_joins] = "miter_joins";
 
-  m_cap_labels[PainterEnums::no_caps] = "no_caps";
+  m_cap_labels[PainterEnums::flat_caps] = "flat_caps";
   m_cap_labels[PainterEnums::rounded_caps] = "rounded_caps";
   m_cap_labels[PainterEnums::square_caps] = "square_caps";
 
@@ -867,11 +870,11 @@ handle_event(const SDL_Event &ev)
           std::cout << "Stroking contours as ";
           if(m_close_contour)
             {
-              std::cout << "open.\n";
+              std::cout << "closed.\n";
             }
           else
             {
-              std::cout << "closed.\n";
+              std::cout << "open.\n";
             }
           break;
 
@@ -925,6 +928,10 @@ handle_event(const SDL_Event &ev)
           m_wire_frame = !m_wire_frame;
           std::cout << "Wire Frame = " << m_wire_frame << "\n";
           break;
+
+        case SDLK_l:
+          m_draw_stats = !m_draw_stats;
+          break;
         }
       break;
     };
@@ -973,22 +980,27 @@ void
 painter_stroke_test::
 create_stroked_path_attributes(void)
 {
-  TessellatedPath::TessellationParams P;
-  P.m_max_segments = m_max_segments_per_edge.m_value;
-  P.m_curve_tessellation = 2.0f * float(M_PI) / static_cast<float>(m_points_per_circle.m_value);
-  m_path.tessellation_params(P);
+  reference_counted_ptr<const TessellatedPath> tessellated;
+  reference_counted_ptr<const StrokedPath> stroked;
+  const PainterAttributeData *data;
+  const_c_array<PainterAttribute> miter_points;
 
   m_max_miter = 0.0f;
-  const_c_array<StrokedPath::point> miter_points;
-  miter_points = m_path.tessellation()->stroked()->points(StrokedPath::miter_join_point_set, true);
+  tessellated = m_path.tessellation(-1.0f);
+  stroked = tessellated->stroked();
+  data = &stroked->miter_joins();
+
+  miter_points = data->attribute_data_chunk(StrokedPath::join_chunk_with_closing_edge);
   for(unsigned p = 0, endp = miter_points.size(); p < endp; ++p)
     {
       float v;
+      StrokedPath::point pt;
 
-      v = miter_points[p].miter_distance();
+      StrokedPath::point::unpack_point(&pt, miter_points[p]);
+      v = pt.miter_distance();
       if(isfinite(v))
         {
-          m_max_miter = fastuidraw::t_max(m_max_miter, fastuidraw::t_abs(v) );
+          m_max_miter = fastuidraw::t_max(m_max_miter, fastuidraw::t_abs(v));
         }
     }
   m_miter_limit = fastuidraw::t_min(100.0f, m_max_miter); //100 is an insane miter limit.
@@ -1006,7 +1018,8 @@ create_stroked_path_attributes(void)
             {
               fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> pts;
 
-              std::cout << "\t\tEdge #" << e << "\n";
+              std::cout << "\t\tEdge #" << e << " has "
+                        << tess->edge_point_data(c, e).size() << " pts\n";
               pts = tess->edge_point_data(c, e);
               for(unsigned int i = 0; i < pts.size(); ++i)
                 {
@@ -1059,10 +1072,9 @@ construct_dash_patterns(void)
   for(unsigned int i = 0, endi = m_dash_pattern_files.m_files.size(); i < endi; ++i)
     {
       std::ifstream file(m_dash_pattern_files.m_files[i].c_str());
-      float length;
 
-      length = read_dash_pattern(tmp, file);
-      if(length > 0.0f)
+      read_dash_pattern(tmp, file);
+      if(!tmp.empty())
         {
           m_dash_patterns.push_back(std::vector<PainterDashedStrokeParams::DashPatternElement>());
           std::swap(tmp, m_dash_patterns.back());
@@ -1088,7 +1100,7 @@ draw_frame(void)
 
   update_cts_params();
 
-  glClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   enable_wire_frame(m_wire_frame);
@@ -1113,6 +1125,8 @@ draw_frame(void)
       float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));
       m_painter->transformation(proj);
     }
+
+  m_painter->save();
 
   /* draw grid using painter.
    */
@@ -1146,7 +1160,7 @@ draw_frame(void)
 
       m_painter->stroke_path(PainterData(&stroke_pen, &st),
                              m_grid_path,
-                             false, PainterEnums::no_caps, PainterEnums::no_joins,
+                             false, PainterEnums::flat_caps, PainterEnums::no_joins,
                              false);
     }
 
@@ -1188,7 +1202,7 @@ draw_frame(void)
       m_painter->save();
       m_painter->clipOutPath(m_clip_window_path, PainterEnums::nonzero_fill_rule);
       m_painter->stroke_path(PainterData(&white, &st), m_clip_window_path,
-                             true, PainterEnums::no_caps, PainterEnums::miter_joins,
+                             true, PainterEnums::flat_caps, PainterEnums::miter_joins,
                              false);
       m_painter->restore();
       m_painter->clipInRect(m_clipping_xy, m_clipping_wh);
@@ -1314,7 +1328,7 @@ draw_frame(void)
 
   if(!m_transparent_blue_pen)
     {
-      m_transparent_blue_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0f, 0.0f, 1.0f, 0.5f));
+      m_transparent_blue_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(1.0f, 1.0f, 1.0f, 0.5f));
     }
 
   if(m_stroke_width > 0.0f)
@@ -1424,7 +1438,27 @@ draw_frame(void)
       m_painter->draw_rect(PainterData(m_white_pen), p1 - vec2(r1) * 0.5, vec2(r1));
       m_painter->draw_rect(PainterData(m_black_pen), p1 - vec2(r0) * 0.5, vec2(r0));
     }
+
+  m_painter->restore();
+
+  if(m_draw_stats)
+    {
+      std::ostringstream ostr;
+      ostr << "\nAttribs: "
+           << m_painter->query_stat(PainterPacker::num_attributes)
+           << "\nIndices: "
+           << m_painter->query_stat(PainterPacker::num_indices)
+           << "\nGenericData: "
+           << m_painter->query_stat(PainterPacker::num_generic_datas)
+           << "\n";
+
+      PainterBrush brush;
+      brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
+      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(curve_pair_glyph), PainterData(&brush));
+    }
+
   m_painter->end();
+
 }
 
 void
@@ -1435,6 +1469,7 @@ derived_init(int w, int h)
   m_window_change_rate.m_value /= 1000.0f;
   m_change_stroke_width_rate.m_value /= 1000.0f;
   m_change_miter_limit_rate.m_value /= 1000.0f;
+  m_font = FontFreeType::create(m_font_file.m_value.c_str(), m_ft_lib, FontFreeType::RenderParams());
 
   construct_path();
   create_stroked_path_attributes();
@@ -1449,9 +1484,9 @@ derived_init(int w, int h)
   p0 = m_path.tessellation()->bounding_box_min();
   p1 = m_path.tessellation()->bounding_box_max();
 
-  delta = p1 - p0;
+  delta = p1 - p0 + vec2(m_stroke_width, m_stroke_width);
   ratio = delta / dsp;
-  mm = fastuidraw::t_max(0.00001f, fastuidraw::t_max(ratio.x(), ratio.y()) );
+  mm = t_max(0.00001f, t_max(ratio.x(), ratio.y()) );
   mid = 0.5 * (p1 + p0);
 
   ScaleTranslate<float> sc, tr1, tr2;

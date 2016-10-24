@@ -31,8 +31,8 @@ GL requirements
   The GLES backend requires GLES version 3.0. If the GLES version is 3.0 or 3.1,
   it is strongly recommended that one of the extension GL_OES_texture_buffer or
   GL_EXT_texture_buffer is present. For GLES 3.0, 3.1 and 3.2, the extensions
-  GL_EXT_blend_func_extended, GL_APPLE_clip_distance and GL_OES_texture_view
-  are not required but strongly recommended.
+  GL_EXT_blend_func_extended, GL_OES_texture_view and (GL_APPLE_clip_distance
+  or GL_EXT_clip_cull_distance) are not required but strongly recommended.
 
 Building requirements
 =====================
@@ -49,8 +49,9 @@ Building requirements
    - The expected place of those headers is hard-coded to be system
      headers in the typical location. For Linux this is /usr/include
      and for MinGW this is /mingw/include. If the headers are located
-     elsewhere on your system, edit src/fastuidraw/gl_backend/ngl/Rules.mk
-     and change GL_INCLUDEPATH as required by your system.
+     elsewhere on your system, edit Makefile.gl_backend.settings.mk
+     and change GL_INCLUDEPATH (and possibly GL_RAW_HEADER_FILES and/or
+     GLES_RAW_HEADER_FILES) as required by your system.
  - SDL2 (demos only)
  - doxygen (for documentation)
 

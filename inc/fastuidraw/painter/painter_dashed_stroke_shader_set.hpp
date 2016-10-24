@@ -42,62 +42,42 @@ namespace fastuidraw
   {
   public:
     /*!
-      To be implemented by a derived class to compute the interval
-      a point along dashing belongs. If the interval is part of the
-      solid part of drawing, then returns true, otherwise returns
-      false.
+      To be implemented by a derived class to return the number
+      of joins.
+      \param data source PainterAttributeData
+      \param edge_closed if true, include in the return value the
+                         number of joins including those joins
+                         from the closing edges of each contour.
+     */
+    virtual
+    unsigned int
+    number_joins(const PainterAttributeData &data, bool edge_closed) const = 0;
+
+    /*!
+      To be implemented by a derived class to return
+      the chunk index, i.e. the value to feed
+      \ref PainterAttributeData::attribute_data_chunk()
+      and \ref PainterAttributeData::index_data_chunk(),
+      for the named join.
+      \param J (global) join index
+    */
+    virtual
+    unsigned int
+    named_join_chunk(unsigned int J) const = 0;
+
+    /*!
+      To be implemented by a derived class to return true if and
+      only if a point from a join emobodied by a PainterAttribute
+      is covered by a dash pattern.
       \param data PainterItemShaderData::DataBase object holding the data to
                   be sent to the shader
       \param attrib PainterAttribute from which to extract the distance to
                     use to compute the return value
-      \param[out] out_interval interval to which input point belongs
-      \param[out] distance distance value within out_interval
      */
     virtual
     bool
-    compute_dash_interval(const PainterShaderData::DataBase *data,
-                          const PainterAttribute &attrib,
-                          range_type<float> &out_interval,
-                          float &distance) const = 0;
-
-    /*!
-      To be implemented by derived class to adjust cap-join
-      attribute values at join whose distance value is in a
-      skip interval.
-      \param data PainterItemShaderData::DataBase object holding the data to
-                  be sent to the shader
-      \param [inout] attribs attributes to adjust
-      \param out_interval out_interval value as returned by compute_dash_interval()
-      \param distance distance as returned by compute_dash_interval()
-      \param item_matrix transformation from local item coordinates
-                         to 3D API clip coordinates (i.e. the value of
-                         PainterItemMatrix::m_item_matrix of
-                         Painter::transformation(void) const.
-     */
-    virtual
-    void
-    adjust_cap_joins(const PainterShaderData::DataBase *data,
-                     c_array<PainterAttribute> attribs,
-                     range_type<float> out_interval,
-                     float distance,
-                     const float3x3 &item_matrix) const = 0;
-    /*!
-      To be implemented by derived class to adjust attributes
-      coming from adjustable caps of starts and endings of
-      contours.
-      \param data PainterItemShaderData::DataBase object holding the data to
-                  be sent to the shader
-      \param [inout] attribs attributes to adjust
-      \param item_matrix transformation from local item coordinates
-                         to 3D API clip coordinates (i.e. the value of
-                         PainterItemMatrix::m_item_matrix of
-                         Painter::transformation(void) const.
-     */
-    virtual
-    void
-    adjust_caps(const PainterShaderData::DataBase *data,
-                c_array<PainterAttribute> attribs,
-                const float3x3 &item_matrix) const = 0;
+    covered_by_dash_pattern(const PainterShaderData::DataBase *data,
+                            const PainterAttribute &attrib) const = 0;
   };
 
   /*!

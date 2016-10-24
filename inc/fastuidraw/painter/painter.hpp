@@ -20,11 +20,14 @@
 #pragma once
 
 #include <fastuidraw/path.hpp>
-
-#include <fastuidraw/painter/packing/painter_packer.hpp>
+#include <fastuidraw/tessellated_path.hpp>
+#include <fastuidraw/painter/stroked_path.hpp>
+#include <fastuidraw/painter/filled_path.hpp>
+#include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
 #include <fastuidraw/painter/painter_data.hpp>
+#include <fastuidraw/painter/packing/painter_packer.hpp>
 
 namespace fastuidraw
 {
@@ -366,11 +369,34 @@ namespace fastuidraw
     clipInPath(const Path &path, const CustomFillRuleBase &fill_rule);
 
     /*!
+      Set the curve flatness requirement for TessellatedPath
+      and StrokedPath selection when stroking or filling paths
+      when passing to drawing methods a Path object. The value
+      represents the distance, in pixels, requested for between
+      the approximated curve (realized in TessellatedPath) and
+      the true curve (realized in Path). This value is combined
+      with a value derived from the current transformation matrix
+      to pass to Path::tessellation_lod() to fetch a
+      TessellatedPath.
+     */
+    void
+    curveFlatness(float thresh);
+
+    /*!
+      Returns the value set by curveFlatness(float).
+     */
+    float
+    curveFlatness(void);
+
+    /*!
       Save the current state of this Painter onto the save state stack.
       The state is restored (and the stack popped) by called restore().
       The state saved is:
-      - transformation state
-      - clip state
+      - transformation state (see concat(), transformation(), translate(),
+        shear(), scale(), rotate()).
+      - clip state (see clipInRect(), clipOutPath(), clipInPath())
+      - curve flatness requirement (see curveFlatness(float))
+      - blend shader (see blend_shader()).
      */
     void
     save(void);
@@ -417,26 +443,78 @@ namespace fastuidraw
 
     /*!
       Stroke a path.
-      \param draw data for how to draw
-      \param data attribute and index data with which to stroke a path
-      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
-      \param cp cap style
-      \param js join style
       \param shader shader with which to stroke the attribute data
+      \param draw data for how to draw
+      \param edge_data attribute and index data for drawing the edges,
+                       NULL value indicates to not draw edges.
+      \param edge_chunks which chunks to take from edge_data
+      \param inc_edge amount by which to increment current_z() for the edge drawing
+      \param cap_data attribute and index data for drawing the caps,
+                      NULL value indicates to not draw caps.
+      \param cap_chunk which chunk to take from cap_data
+      \param join_data attribute and index data for drawing the joins,
+                       NULL value indicates to not draw joins.
+      \param join_chunks which chunks to take from join_data to draw the joins
+      \param inc_join amount by which to increment current_z() for the join drawing
+      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
-                const PainterAttributeData &data,
-                bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+                const PainterAttributeData *edge_data, const_c_array<unsigned int> edge_chunks,
+                unsigned int inc_edge,
+                const PainterAttributeData *cap_data, unsigned int cap_chunk,
+                const PainterAttributeData *join_data, const_c_array<unsigned int> join_chunks,
+                unsigned int inc_join, bool with_anti_aliasing,
+                const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
+
+    /*!
+      Stroke a path.
+      \param shader shader with which to stroke the attribute data
+      \param draw data for how to draw
+      \param path StrokedPath to stroke
+      \param thresh threshold value to feed the StrokingDataSelectorBase of the shader
+      \param close_contours if true, draw the closing edges (and joins) of each contour
+                            of the path
+      \param cp cap style
+      \param js join style
+      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
+     */
+    void
+    stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
+                const StrokedPath &path, float thresh,
+                bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+                bool with_anti_aliasing,
+                const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
+
+    /*!
+      Stroke a path.
+      \param shader shader with which to stroke the attribute data
+      \param draw data for how to draw
+      \param path Path to stroke
+      \param close_contours if true, draw the closing edges (and joins) of each contour
+                            of the path
+      \param cp cap style
+      \param js join style
+      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
+     */
+    void
+    stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Path &path,
+                bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                 bool with_anti_aliasing,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
       Stroke a path using PainterShaderSet::stroke_shader() of default_shaders().
       \param draw data for how to draw
-      \param path path to stroke
+      \param path Path to stroke
+      \param close_contours if true, draw the closing edges (and joins) of each contour
+                            of the path
       \param cp cap style
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
@@ -445,7 +523,7 @@ namespace fastuidraw
      */
     void
     stroke_path(const PainterData &draw, const Path &path,
-                bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+                bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                 bool with_anti_aliasing,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
@@ -453,7 +531,9 @@ namespace fastuidraw
       Stroke a path using PainterShaderSet::pixel_width_stroke_shader()
       of default_shaders().
       \param draw data for how to draw
-      \param path path to stroke
+      \param path Path to stroke
+      \param close_contours if true, draw the closing edges (and joins) of each contour
+                            of the path
       \param cp cap style
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
@@ -462,18 +542,50 @@ namespace fastuidraw
      */
     void
     stroke_path_pixel_width(const PainterData &draw, const Path &path,
-                            bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+                            bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                             bool with_anti_aliasing,
                             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
-      Stroke a path using a custom PainterDashedStrokeShaderSet
+      Stroke a path dashed.
       \param shader shader with which to draw
       \param draw data for how to draw
-      \param data attribute and index data with which to stroke a path
-      \param close_contour if true, stroke the path with each contour closed
-      \param cp cap style of dashes, the value PainterEnums::close_contours is treated
-                the same as PainterEnums::no_caps
+      \param edge_data attribute and index data for drawing the edges,
+                       NULL value indicates to not draw edges.
+      \param edge_chunks which chunk to take from edge_data
+      \param inc_edge amount by which to increment current_z() for the edge drawing
+      \param cap_data attribute and index data for drawing the caps,
+                      NULL value indicates to not draw caps.
+      \param cap_chunk which chunk to take from cap_data
+      \param include_joins_from_closing_edge if false, disclude the joins formed
+                                             from the closing edges of each contour
+      \param dash_evaluator DashEvaluatorBase object to determine which joins
+                            are to be drawn
+      \param join_data attribute and index data for drawing the joins,
+                       NULL value indicates to not draw joins.
+      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
+     */
+    void
+    stroke_dashed_path(const PainterStrokeShader &shader, const PainterData &draw,
+                       const PainterAttributeData *edge_data, const_c_array<unsigned int> edge_chunks,
+                       unsigned int inc_edge,
+                       const PainterAttributeData *cap_data, unsigned int cap_chunk,
+                       bool include_joins_from_closing_edge,
+                       const DashEvaluatorBase *dash_evaluator, const PainterAttributeData *join_data,
+                       bool with_anti_aliasing,
+                       const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
+
+    /*!
+      Stroke a path dashed.
+      \param shader shader with which to draw
+      \param draw data for how to draw
+      \param path StrokedPath to stroke
+      \param thresh threshold value to feed the StrokingDataSelectorBase of the shader
+      \param close_contours if true, draw the closing edges (and joins) of each contour
+                            of the path
+      \param cp cap style
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
@@ -481,18 +593,37 @@ namespace fastuidraw
      */
     void
     stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
-                       const PainterAttributeData &data,
-                       bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+                       const StrokedPath &path, float thresh,
+                       bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+                       bool with_anti_aliasing,
+                       const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
+
+    /*!
+      Stroke a path dashed.
+      \param shader shader with which to draw
+      \param draw data for how to draw
+      \param path Path to stroke
+      \param close_contours if true, draw the closing edges (and joins) of each contour
+                            of the path
+      \param cp cap style
+      \param js join style
+      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
+     */
+    void
+    stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
+                       bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                        bool with_anti_aliasing,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
       Stroke a path using PainterShaderSet::dashed_stroke_shader() of default_shaders().
       \param draw data for how to draw
-      \param path path to stroke
-      \param close_contour if true, stroke the path with each contour closed
-      \param cp cap style of dashes, the value PainterEnums::close_contours is treated
-                the same as PainterEnums::no_caps
+      \param path Path to stroke
+      \param close_contours if true, draw the closing edges (and joins) of each contour
+                            of the path
+      \param cp cap style
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
@@ -500,17 +631,17 @@ namespace fastuidraw
      */
     void
     stroke_dashed_path(const PainterData &draw, const Path &path,
-                       bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+                       bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                        bool with_anti_aliasing,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
       Stroke a path using PainterShaderSet::pixel_width_dashed_stroke_shader() of default_shaders().
       \param draw data for how to draw
-      \param path path to stroke
-      \param close_contour if true, stroke the path with each contour closed
-      \param cp cap style of dashes, the value PainterEnums::close_contours is treated
-                the same as PainterEnums::no_caps
+      \param path Path to stroke
+      \param close_contours if true, draw the closing edges (and joins) of each contour
+                            of the path
+      \param cp cap style
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
@@ -518,7 +649,7 @@ namespace fastuidraw
      */
     void
     stroke_dashed_path_pixel_width(const PainterData &draw, const Path &path,
-                                   bool close_contour, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
+                                   bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                                    bool with_anti_aliasing,
                                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
@@ -705,11 +836,13 @@ namespace fastuidraw
                  const PainterData &draw,
                  const_c_array<PainterAttribute> attrib_chunk,
                  const_c_array<PainterIndex> index_chunk,
+                 int index_adjust,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>())
     {
       vecN<const_c_array<PainterAttribute>, 1> aa(attrib_chunk);
       vecN<const_c_array<PainterIndex>, 1> ii(index_chunk);
-      draw_generic(shader, draw, aa, ii, call_back);
+      vecN<int, 1> ia(index_adjust);
+      draw_generic(shader, draw, aa, ii, ia, call_back);
     }
 
     /*!
@@ -725,6 +858,7 @@ namespace fastuidraw
                  const PainterData &draw,
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
+                 const_c_array<int> index_adjusts,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -744,8 +878,17 @@ namespace fastuidraw
                  const PainterData &draw,
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
+                 const_c_array<int> index_adjusts,
                  const_c_array<unsigned int> attrib_chunk_selector,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
+
+    /*!
+      Returns a stat on how much data the Packer has
+      handled since the last call to begin().
+      \param st stat to query
+     */
+    unsigned int
+    query_stat(enum PainterPacker::stats_t st) const;
 
     /*!
       Return the z-depth value that the next item will have.

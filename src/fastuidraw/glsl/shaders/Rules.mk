@@ -13,11 +13,9 @@ LIBRARY_RESOURCE_STRING += $(call filelist, fastuidraw_do_nothing.glsl.resource_
 	fastuidraw_curvepair_glyph_derivative.frag.glsl.resource_string \
 	fastuidraw_circular_interpolate.glsl.resource_string \
 	fastuidraw_anisotropic.frag.glsl.resource_string \
-	fastuidraw_compute_dash_stroke_helper.glsl.resource_string \
-	fastuidraw_compute_dash_stroke_alignment_1.glsl.resource_string \
-	fastuidraw_compute_dash_stroke_alignment_2.glsl.resource_string \
-	fastuidraw_compute_dash_stroke_alignment_3.glsl.resource_string \
-	fastuidraw_compute_dash_stroke_alignment_4.glsl.resource_string)
+	fastuidraw_unpack_unit_vector.glsl.resource_string \
+	fastuidraw_align.vert.glsl.resource_string \
+	fastuidraw_compute_local_distance_from_pixel_distance.glsl.resource_string)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))

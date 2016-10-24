@@ -534,7 +534,16 @@ draw_frame(void)
           ostr << "NAN";
         }
       ostr << "\nms = " << ms
-           << "\nDrew " << m_cell_shared_state.m_cells_drawn << " cells";
+           << "\nDrew " << m_cell_shared_state.m_cells_drawn << " cells"
+           << "\nAttribs: "
+           << m_painter->query_stat(PainterPacker::num_attributes)
+           << "\nIndices: "
+           << m_painter->query_stat(PainterPacker::num_indices)
+           << "\nGenericData: "
+           << m_painter->query_stat(PainterPacker::num_generic_datas)
+           << "\nHeaders: "
+           << m_painter->query_stat(PainterPacker::num_headers)
+           << "\n";
       if(!m_text_brush)
         {
           PainterBrush brush;

@@ -48,8 +48,8 @@ namespace
   void
   print_dashed_stroke_shader_ids(const fastuidraw::PainterDashedStrokeShaderSet &sh)
   {
-    std::cout << "\t\tno_caps:\n";
-    print_stroke_shader_ids(sh.shader(fastuidraw::PainterEnums::no_caps), "\t\t\t");
+    std::cout << "\t\tflat_caps:\n";
+    print_stroke_shader_ids(sh.shader(fastuidraw::PainterEnums::flat_caps), "\t\t\t");
 
     std::cout << "\t\trounded_caps:\n";
     print_stroke_shader_ids(sh.shader(fastuidraw::PainterEnums::rounded_caps), "\t\t\t");
