@@ -409,6 +409,7 @@ namespace
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_pts_update_clip_series;
     std::vector<fastuidraw::vec3> m_update_clip_series_eqs;
     std::vector<float> m_clipper_floats;
+    fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_clipper_vec2s;
     std::vector<fastuidraw::PainterIndex> m_indices;
     std::vector<fastuidraw::PainterAttribute> m_attribs;
     std::vector<unsigned int> m_edge_chunks;
@@ -506,6 +507,12 @@ namespace
 
     float
     select_path_thresh(const fastuidraw::Path &path);
+
+    float
+    select_path_thresh_non_perspective(void);
+
+    float
+    select_path_thresh_perspective(const fastuidraw::Path &path);
 
     void
     compute_edge_chunks(const fastuidraw::StrokedPath &stroked_path,
@@ -710,7 +717,7 @@ PainterPrivate::
 PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> backend):
   m_resolution(1.0f, 1.0f),
   m_one_pixel_width(1.0f, 1.0f),
-  m_curve_flatness(4.0f),
+  m_curve_flatness(1.0f),
   m_pool(backend->configuration_base().alignment())
 {
   m_core = FASTUIDRAWnew fastuidraw::PainterPacker(backend);
@@ -817,44 +824,139 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
 
 float
 PainterPrivate::
+select_path_thresh_non_perspective(void)
+{
+  float d;
+  const fastuidraw::float3x3 &m(m_current_item_matrix.m_item_matrix);
+
+  /* Use the sqrt of the area distortion to determine the dividing factor,
+     for matrices with a great deal of skew, this will choose a lower a
+     level of detail that taking the operator norm of the matrix. For
+     reference, the sqrt of the area distortion is the geometric mean
+     of the 2 singular values of a 2x2 matrix.
+  */
+  d = fastuidraw::t_abs(m(0, 0) * m(1, 1) - m(0, 1) * m(1, 0));
+  d *= m_resolution.x() * m_resolution.y() * fastuidraw::t_abs(m(2, 2));
+  d = fastuidraw::t_sqrt(d);
+
+  return m_curve_flatness / d;
+}
+
+float
+PainterPrivate::
+select_path_thresh_perspective(const fastuidraw::Path &path)
+{
+  /* Clip the path bounding box against all the clip
+     equations and compute the area of the polygon
+     clipped.
+  */
+  fastuidraw::vec2 bb_min, bb_max;
+  bool r;
+
+  r = path.approximate_bounding_box(&bb_min, &bb_max);
+  if(!r)
+    {
+      /* it does not matter, since the path is essentially
+         empty. By using a negative value, we get the
+         default tessellation of the path (which is based
+         off of curvature).
+      */
+      return -1.0f;
+    }
+  m_work_room.m_clipper_vec2s[0].resize(4);
+  m_work_room.m_clipper_vec2s[0][0] = bb_min;
+  m_work_room.m_clipper_vec2s[0][1] = fastuidraw::vec2(bb_min.x(), bb_max.y());
+  m_work_room.m_clipper_vec2s[0][2] = bb_max;
+  m_work_room.m_clipper_vec2s[0][3] = fastuidraw::vec2(bb_max.x(), bb_min.y());
+
+  /* TODO: for stroking, it might be that although the
+     original path is completely clipped, the stroke of
+     it is not. It might be wise to inflate the geometry
+     of the path by how much slack the stroking parameters
+     require.
+  */
+  unsigned int i, src, dst;
+  fastuidraw::const_c_array<fastuidraw::vec3> clips(m_clip_store.current());
+
+  for(i = 0, src = 0, dst = 1; i < clips.size(); ++i, std::swap(src, dst))
+    {
+      fastuidraw::vec3 nc;
+      nc = clips[i] * m_current_item_matrix.m_item_matrix;
+      fastuidraw::detail::clip_against_plane(nc,
+                                             make_c_array(m_work_room.m_clipper_vec2s[src]),
+                                             m_work_room.m_clipper_vec2s[dst],
+                                             m_work_room.m_clipper_floats);
+    }
+
+  fastuidraw::const_c_array<fastuidraw::vec2> poly;
+  poly = make_c_array(m_work_room.m_clipper_vec2s[src]);
+
+  if(poly.empty())
+    {
+      /* bounding box of path is clipped, just take default
+         tessellation and call it a day (!).
+      */
+      return -1.0f;
+    }
+
+  /* Get the area of the polygon in item coordinates
+     and in pixel coodinates. The square root of that
+     ratio of the area is what we are going to use as
+     our "d". Bad things happen if the clipped polygon
+     still has points where w == 0.0.
+
+     TODO: is using area wise? With perpsective, different
+     portions of the path will be zoomed in more than
+     others. The area represents a kind of average. Perhaps
+     we should take at each point the distortion of the
+     transformation at the point and take the worse of
+     the bunch.
+  */
+  float area_local_coords(0.0f), area_pixel_coords(0.0f), ratio;
+  for(unsigned int i = 0, endi = poly.size(); i < endi; ++i)
+    {
+      unsigned int next_i;
+      next_i = (i == endi - 1) ? 0 : i + 1u;
+
+      fastuidraw::vec2 p(poly[i]);
+      fastuidraw::vec2 q(poly[next_i]);
+      area_local_coords += p.x() * q.y() - q.x() * p.y();
+
+      fastuidraw::vec3 c_p, c_q;
+      c_p = m_current_item_matrix.m_item_matrix * fastuidraw::vec3(p.x(), p.y(), 1.0f);
+      c_q = m_current_item_matrix.m_item_matrix * fastuidraw::vec3(q.x(), q.y(), 1.0f);
+
+      p = m_resolution * fastuidraw::vec2(c_p.x(), c_p.y()) / c_p.z();
+      q = m_resolution * fastuidraw::vec2(c_q.x(), c_q.y()) / c_q.z();
+      area_pixel_coords += p.x() * q.y() - q.x() * p.y();
+    }
+
+  area_local_coords = fastuidraw::t_abs(area_local_coords);
+  area_pixel_coords = fastuidraw::t_abs(area_pixel_coords);
+  if(area_local_coords <= 0.0f || area_pixel_coords <= 0.0f)
+    {
+      return -1.0f;
+    }
+  ratio = area_local_coords / area_pixel_coords;
+  return m_curve_flatness * fastuidraw::t_sqrt(ratio);
+}
+
+float
+PainterPrivate::
 select_path_thresh(const fastuidraw::Path &path)
 {
-  /* easy case: no projection
-   */
-  float return_value;
   bool no_perspective;
-
   const fastuidraw::float3x3 &m(m_current_item_matrix.m_item_matrix);
 
   no_perspective = (m(2, 0) == 0.0f && m(2, 1) == 0.0f);
-  if(no_perspective || true)
+  if(no_perspective)
     {
-      float d0, d1, d;
-
-      /* Poor man's approximation to operator norm coming from
-         taking the supremum norm of matrix then multiplying
-         by n * sqrt(n) where n = #dimensions = 2
-       */
-      d0 = m_resolution.x() * fastuidraw::t_max(fastuidraw::t_abs(m(0, 0)), fastuidraw::t_abs(m(0, 1)));
-      d1 = m_resolution.y() * fastuidraw::t_max(fastuidraw::t_abs(m(1, 0)), fastuidraw::t_abs(m(1, 1)));
-      d = fastuidraw::t_max(d0, d1) * m(2, 2);
-      d *= 2.0f * static_cast<float>(M_SQRT2);
-
-      return_value = m_curve_flatness / d;
+      return select_path_thresh_non_perspective();
     }
   else
     {
-      /* TODO:
-         Use path bounding box to determine how small w might
-         be on the points of the path; if the bounding box
-         goes through the near plane, then clip it against
-         the view-port. If the bounding box still includes
-         w = 0, then clamp it anyways.
-       */
-      FASTUIDRAWunused(path);
+      return select_path_thresh_perspective(path);
     }
-
-  return return_value;
 }
 
 void
