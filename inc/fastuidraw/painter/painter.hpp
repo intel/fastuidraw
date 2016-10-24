@@ -376,7 +376,7 @@ namespace fastuidraw
       the approximated curve (realized in TessellatedPath) and
       the true curve (realized in Path). This value is combined
       with a value derived from the current transformation matrix
-      to pass to Path::tessellation_lod() to fetch a
+      to pass to Path::tessellation(float) to fetch a
       TessellatedPath.
      */
     void
