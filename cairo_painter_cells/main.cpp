@@ -93,7 +93,7 @@ private:
 
   static
   void
-  generate_random_colors(int count, std::vector<color_t> &out_values);
+  generate_random_colors(int count, std::vector<color_t> &out_values, bool force_opaque);
 
   static
   void
@@ -120,7 +120,9 @@ private:
   command_line_argument_value<int> m_num_random_images;
   command_line_argument_value<bool> m_draw_image_name;
   command_line_argument_value<int> m_num_background_colors;
+  command_line_argument_value<bool> m_background_colors_opaque;
   command_line_argument_value<int> m_num_text_colors;
+  command_line_argument_value<bool> m_text_colors_opaque;
   command_line_argument_value<double> m_min_x_velocity, m_max_x_velocity;
   command_line_argument_value<double> m_min_y_velocity, m_max_y_velocity;
   command_line_argument_value<int> m_min_degree_per_second;
@@ -169,7 +171,13 @@ painter_cells(void):
   m_num_random_images(0, "num_random_images", "Number of randomly generated images to use in cells", *this),
   m_draw_image_name(false, "draw_image_name", "If true draw the image name in each cell as part of the text", *this),
   m_num_background_colors(1, "num_background_colors", "Number of distinct background colors in cells", *this),
+  m_background_colors_opaque(false, "background_colors_opaque",
+                             "If true, all background colors for rects are forced to be opaque",
+                             *this),
   m_num_text_colors(1, "num_text_colors", "Number of distinct text colors in cells", *this),
+  m_text_colors_opaque(true, "text_colors_opaque",
+                       "If true, all text colors are forced to be opaque",
+                       *this),
   m_min_x_velocity(-10.0f, "min_x_velocity", "Minimum x-velocity for cell content in pixels/s", *this),
   m_max_x_velocity(+10.0f, "max_x_velocity", "Maximum x-velocity for cell content in pixels/s", *this),
   m_min_y_velocity(-10.0f, "min_y_velocity", "Minimum y-velocity for cell content in pixels/s", *this),
@@ -246,7 +254,7 @@ painter_cells::
 
 void
 painter_cells::
-generate_random_colors(int count, std::vector<color_t> &out_values)
+generate_random_colors(int count, std::vector<color_t> &out_values, bool force_opaque)
 {
   out_values.resize(count);
   for(int i = 0; i < count; ++i)
@@ -256,6 +264,10 @@ generate_random_colors(int count, std::vector<color_t> &out_values)
       g = random_value(0.0f, 1.0f);
       b = random_value(0.0f, 1.0f);
       a = random_value(0.2f, 0.8f);
+      if(force_opaque)
+        {
+          a = 1.0;
+        }
       out_values[i] = color_t(r, g, b, a);
     }
 }
@@ -349,8 +361,10 @@ derived_init(int w, int h)
       add_images(*iter, m_table_params.m_images);
     }
 
-  generate_random_colors(m_num_background_colors.m_value, m_table_params.m_background_colors);
-  generate_random_colors(m_num_text_colors.m_value, m_table_params.m_text_colors);
+  generate_random_colors(m_num_background_colors.m_value, m_table_params.m_background_colors,
+                         m_background_colors_opaque.m_value);
+  generate_random_colors(m_num_text_colors.m_value, m_table_params.m_text_colors,
+                         m_text_colors_opaque.m_value);
   m_table_params.m_min_speed = vec2(m_min_x_velocity.m_value, m_min_y_velocity.m_value);
   m_table_params.m_max_speed = vec2(m_max_x_velocity.m_value, m_max_y_velocity.m_value);
   m_table_params.m_min_degrees_per_s = m_min_degree_per_second.m_value;
