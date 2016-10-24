@@ -9,6 +9,7 @@
 #include "SkImage.h"
 #include "SkPath.h"
 #include "SkColor.h"
+#include "SkTypeface.h"
 
 #include "PainterWidget.hpp"
 #include "cell_group.hpp"
@@ -16,7 +17,7 @@
 #include "PanZoomTracker.hpp"
 
 
-typedef std::pair<SkImage*, std::string> named_image;
+typedef std::pair<sk_sp<SkImage>, std::string> named_image;
 class CellSharedState;
 
 class TableParams
@@ -31,7 +32,7 @@ public:
   bool m_timer_based_animation;
   SkColor m_line_color;
 
-  SkTypeface *m_font;
+  sk_sp<SkTypeface> m_font;
   std::vector<SkColor> m_text_colors;
   std::vector<SkColor> m_background_colors;
   std::vector<std::string> m_texts;

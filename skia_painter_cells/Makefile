@@ -1,8 +1,24 @@
-# Location of SKIA using insrtuctions at
-# https://sites.google.com/site/skiadocs/user-documentation/downloading
-# Tested against 07e2692da3971960f8ae8adcd78ccb4bae7ab446
+# Getting SKIA (instructions from https://skia.org/user/download)
+#
+# 1. Get Googles Depot tools:
+#    git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git'
+#    export PATH="${PWD}/depot_tools:${PATH}"
+#
+# 2. Clone SKIA
+#    mkdir $(LOCATION)
+#    cd $(LOCATION)
+#    gclient config --unmanaged https://skia.googlesource.com/skia.git
+#    gclient sync
+#
+# 3. Build Release and Debug libs
+#    make BUILDTYPE=Release
+#    make BUILDTYPE=Debug
+#
+# Then set SKIA_DIR = $(LOCATION)/skia
+#
+# Tested against 7a86423c42433ab8a7df2b06bd954b2427217bb9
 CXX = c++
-SKIA_DIR = /home/kevin/skia_depot
+SKIA_DIR = /home/kevin/skia_src/skia
 
 
 
@@ -36,8 +52,11 @@ SKIA_RELEASE_FLAGS = -DNDEBUG $(COMMON_FLAGS) $(INCLUDES) -O3
 SKIA_SHARED_LIBS = -lpthread -lz -ldl -lexpat -lfontconfig -lfreetype -lGL -lGLU -lX11 `sdl2-config --libs` -lSDL2_image
 
 
-SKIA_LIBS = libskia_core.a libskia_codec.a obj/gyp/libgiflib.a obj/gyp/libjpeg-turbo.a libpng_static.a obj/gyp/libpng_static_neon.a obj/gyp/libwebp_dec.a obj/gyp/libwebp_demux.a obj/gyp/libwebp_dsp.a obj/gyp/libwebp_enc.a obj/gyp/libwebp_dsp_enc.a obj/gyp/libwebp_utils.a libskia_effects.a libskia_images.a obj/gyp/libetc1.a obj/gyp/libSkKTX.a libskia_utils.a libskia_opts.a libskia_opts_ssse3.a libskia_opts_sse41.a libskia_opts_sse42.a libskia_opts_avx.a libskia_opts_avx2.a libskia_ports.a libskia_sfnt.a libskia_skgpu.a libskia_xml.a
+SKIA_LIBS_OLD = libskia_core.a libskia_codec.a obj/gyp/libgiflib.a obj/gyp/libjpeg-turbo.a libpng_static.a obj/gyp/libpng_static_neon.a obj/gyp/libwebp_dec.a obj/gyp/libwebp_demux.a obj/gyp/libwebp_dsp.a obj/gyp/libwebp_enc.a obj/gyp/libwebp_dsp_enc.a obj/gyp/libwebp_utils.a libskia_effects.a libskia_images.a obj/gyp/libetc1.a obj/gyp/libSkKTX.a libskia_utils.a libskia_opts.a libskia_opts_ssse3.a libskia_opts_sse41.a libskia_opts_sse42.a libskia_opts_avx.a libskia_opts_avx2.a libskia_ports.a libskia_sfnt.a libskia_skgpu.a libskia_xml.a
 # libskia_views.a
+
+SKIA_LIBS = obj/gyp/libetc1.a obj/gyp/libflags.a obj/gyp/libjsoncpp.a libskia_skgputest.a obj/gyp/libresources.a obj/gyp/libsk_tool_utils.a obj/gyp/libtimer.a obj/gyp/liburl_data_manager.a libskia_views.a obj/gyp/libexperimental.a obj/gyp/liblua.a libskia_pdf.a libsvgdom.a libskia_xml.a obj/gyp/libpicture_utils.a libskia_core.a libskia_codec.a obj/gyp/libgiflib.a obj/gyp/libjpeg-turbo.a libpng_static.a obj/gyp/libzlib.a obj/gyp/libwebp_dec.a obj/gyp/libwebp_demux.a obj/gyp/libwebp_dsp.a obj/gyp/libwebp_enc.a obj/gyp/libwebp_dsp_enc.a obj/gyp/libwebp_utils.a obj/gyp/libraw_codec.a obj/gyp/libdng_sdk.a obj/gyp/libpiex.a libskia_codec_android.a libskia_effects.a libskia_images.a obj/gyp/libSkKTX.a libskia_utils.a libskia_opts.a libskia_opts_ssse3.a libskia_opts_sse41.a libskia_opts_sse42.a libskia_opts_avx.a libskia_opts_hsw.a libskia_ports.a obj/gyp/libqcms.a obj/gyp/libexpat_static.a libskia_sfnt.a libskia_skgpu.a libsksl.a obj/gyp/libsfntly.a obj/gyp/libicuuc.a
+
 
 SKIA_DEBUG_LIBS = $(patsubst %.a, $(SKIA_DEBUG_BUILD_DIR)/%.a, $(SKIA_LIBS))
 SKIA_RELEASE_LIBS = $(patsubst %.a, $(SKIA_RELEASE_BUILD_DIR)/%.a, $(SKIA_LIBS))

@@ -12,7 +12,7 @@
 #include "SkCanvas.h"
 #include "SkMatrix.h"
 #include "SkBitmap.h"
-#include "SkImageDecoder.h"
+//#include "SkImageDecoder.h"
 #include "SkTypeface.h"
 
 #include "PainterWidget.hpp"
@@ -238,13 +238,6 @@ painter_cells::
     {
       delete m_table;
     }
-  for(unsigned int i = 0, endi = m_table_params.m_images.size(); i < endi; ++i)
-    {
-      if(m_table_params.m_images[i].first != NULL)
-        {
-          delete m_table_params.m_images[i].first;
-        }
-    }
 }
 
 void
@@ -330,8 +323,8 @@ add_single_image(const std::string &filename, std::vector<named_image> &dest)
         }
       bmp.unlockPixels();
 
-      SkImage *image;
-      image = SkImage::NewFromBitmap(bmp);
+      sk_sp<SkImage> image;
+      image = SkImage::MakeFromBitmap(bmp);
       std::cout << "\tImage \"" << filename << "\" loaded @" << image << ".\n";
       dest.push_back(named_image(image, filename));
     }
@@ -350,7 +343,7 @@ derived_init(int w, int h)
   m_table_params.m_table_rotate_degrees_per_s = m_table_rotate_degrees_per_s.m_value;
   m_table_params.m_timer_based_animation = (m_num_frames.m_value <= 0);
   m_table_params.m_pixel_size = m_pixel_size.m_value;
-  m_table_params.m_font = SkTypeface::CreateFromFile(m_font.m_value.c_str());
+  m_table_params.m_font = SkTypeface::MakeFromFile(m_font.m_value.c_str());
   m_table_params.m_texts.reserve(m_strings.size() + m_files.size());
   for(command_line_list::iterator iter = m_strings.begin(); iter != m_strings.end(); ++iter)
     {
@@ -416,7 +409,7 @@ derived_init(int w, int h)
   m_text_brush.setTextSize(m_fps_pixel_size.m_value);
   m_text_brush.setColor(SkColorSetARGB(255, 0, 255, 255));
   m_text_brush.setFlags(SkPaint::kAntiAlias_Flag | SkPaint::kSubpixelText_Flag);
-  if(m_table_params.m_font != NULL)
+  if(m_table_params.m_font.get() != NULL)
     {
       SkString familyName;
       m_text_brush.setTypeface(m_table_params.m_font);

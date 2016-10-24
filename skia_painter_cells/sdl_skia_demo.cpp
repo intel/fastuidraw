@@ -4,14 +4,13 @@ sdl_skia_demo::
 sdl_skia_demo(const std::string &about_text):
   sdl_demo(about_text),
   m_demo_options("Demo Options", *this),
-  m_skia_context(NULL),
-  m_skia_surface(NULL)
+  m_skia_context(NULL)
 {}
 
 sdl_skia_demo::
 ~sdl_skia_demo()
 {
-  delete m_skia_surface;
+  m_skia_surface.reset();
   delete m_skia_context;
 }
 
@@ -28,7 +27,7 @@ sdl_skia_demo::
 init_skia(int w, int h)
 {
   assert(m_skia_context == NULL);
-  assert(m_skia_surface == NULL);
+  assert(m_skia_surface.get() == NULL);
 
   m_skia_context = GrContext::Create(kOpenGL_GrBackend, 0);
 
@@ -40,16 +39,15 @@ init_skia(int w, int h)
   desc.fSampleCnt = sample_count();
   desc.fStencilBits = stencil_bits();
   desc.fRenderTargetHandle = 0;  // assume default framebuffer
-  m_skia_surface = SkSurface::NewFromBackendRenderTarget(m_skia_context, desc, NULL);
+  m_skia_surface = SkSurface::MakeFromBackendRenderTarget(m_skia_context, desc, NULL);
 }
 
 void
 sdl_skia_demo::
 on_resize(int w, int h)
 {
-  delete m_skia_surface;
+  m_skia_surface.reset();
   delete m_skia_context;
-  m_skia_surface = NULL;
   m_skia_context = NULL;
   init_skia(w, h);
 }

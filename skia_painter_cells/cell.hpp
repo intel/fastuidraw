@@ -43,7 +43,7 @@ class CellParams
 {
 public:
   SkPaint m_background_brush;
-  SkImage *m_image_brush;
+  sk_sp<SkImage> m_image_brush;
   SkPaint m_rect_brush;
   SkPaint m_text_brush;
   std::string m_text;
@@ -86,7 +86,7 @@ private:
   int m_degrees_per_s;
 
   SkPaint m_background_brush;
-  SkImage *m_image_brush;
+  sk_sp<SkImage> m_image_brush;
   SkPaint m_rect_brush;
   SkPaint m_text_brush;
 

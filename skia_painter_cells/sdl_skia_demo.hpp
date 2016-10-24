@@ -38,5 +38,5 @@ private:
   init_skia(int w, int h);
 
   GrContext *m_skia_context;
-  SkSurface *m_skia_surface;
+  sk_sp<SkSurface> m_skia_surface;
 };
