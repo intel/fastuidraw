@@ -34,6 +34,7 @@
 
 #include <fastuidraw/util/static_resource.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
+#include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
 
 namespace
@@ -196,7 +197,7 @@ namespace
     }
 
     void
-    assemble(void);
+    assemble(fastuidraw::gl::Program *program);
 
     void
     clear_shaders_and_save_shader_data(void);
@@ -725,7 +726,7 @@ location(void) const
 //ProgramPrivate methods
 void
 ProgramPrivate::
-assemble(void)
+assemble(fastuidraw::gl::Program *program)
 {
   if(m_assembled)
     {
@@ -760,11 +761,16 @@ assemble(void)
   //we no longer need the GL shaders.
   clear_shaders_and_save_shader_data();
 
-  //perform any pre-link actions.
+  //perform any pre-link actions and then clear them
   m_pre_link_actions.execute_actions(m_name);
+  m_pre_link_actions = fastuidraw::gl::PreLinkActionArray();
 
   //now finally link!
   glLinkProgram(m_name);
+
+  gettimeofday(&end_time, NULL);
+  m_assemble_time = float(end_time.tv_sec - start_time.tv_sec)
+    + float(end_time.tv_usec - start_time.tv_usec) / 1e6f;
 
   //retrieve the log fun
   std::vector<char> raw_log;
@@ -780,6 +786,7 @@ assemble(void)
 
   m_link_log = error_ostr.str();
   m_link_success = m_link_success and (linkOK == GL_TRUE);
+  generate_log();
 
   if(m_link_success)
     {
@@ -795,16 +802,14 @@ assemble(void)
                                 FASTUIDRAWglfunctionPointer(glGetActiveUniform),
                                 FASTUIDRAWglfunctionPointer(glGetUniformLocation));
 
+      int current_program;
+      current_program = fastuidraw::gl::context_get<int>(GL_CURRENT_PROGRAM);
+      glUseProgram(m_name);
+      m_initializers.perform_initializations(program);
+      glUseProgram(current_program);
     }
-
-  generate_log();
-
-  if(!m_link_success)
+  else
     {
-      //since the program cannot be used,
-      //clear it's initers..
-      m_initializers = fastuidraw::gl::ProgramInitializerArray();
-
       std::ostringstream oo;
       oo << "bad_program_" << m_name << ".glsl";
       std::ofstream eek(oo.str().c_str());
@@ -821,11 +826,7 @@ assemble(void)
         }
       eek << "\n\nLink Log: " << m_link_log;
     }
-  m_pre_link_actions = fastuidraw::gl::PreLinkActionArray();
-
-  gettimeofday(&end_time, NULL);
-  m_assemble_time = float(end_time.tv_sec - start_time.tv_sec)
-    + float(end_time.tv_usec - start_time.tv_usec) / 1e6f;
+  m_initializers.clear();
 }
 
 void
@@ -948,14 +949,12 @@ use_program(void)
 {
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
-  d->assemble();
+  d->assemble(this);
 
   assert(d->m_name != 0);
   assert(d->m_link_success);
 
   glUseProgram(d->m_name);
-  d->m_initializers.perform_initializations(this);
-  d->m_initializers.clear();
 }
 
 GLuint
@@ -964,7 +963,7 @@ name(void)
 {
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
-  d->assemble();
+  d->assemble(this);
   return d->m_name;
 }
 
@@ -974,7 +973,7 @@ link_log(void)
 {
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
-  d->assemble();
+  d->assemble(this);
   return d->m_link_log.c_str();
 }
 
@@ -984,7 +983,7 @@ program_build_time(void)
 {
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
-  d->assemble();
+  d->assemble(this);
   return d->m_assemble_time;
 }
 
@@ -994,7 +993,7 @@ link_success(void)
 {
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
-  d->assemble();
+  d->assemble(this);
   return d->m_link_success;
 }
 
@@ -1004,7 +1003,7 @@ log(void)
 {
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
-  d->assemble();
+  d->assemble(this);
   return d->m_log.c_str();
 }
 
@@ -1014,7 +1013,7 @@ number_active_uniforms(void)
 {
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
-  d->assemble();
+  d->assemble(this);
   return d->m_uniform_list.m_values.size();
 }
 
@@ -1024,7 +1023,7 @@ active_uniform(unsigned int I)
 {
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
-  d->assemble();
+  d->assemble(this);
   assert(I < d->m_uniform_list.m_values.size());
   return parameter_info(&d->m_uniform_list.m_values[I]);
 }
@@ -1037,7 +1036,7 @@ uniform_location(const char *pname)
   ProgramPrivate *d;
 
   d = reinterpret_cast<ProgramPrivate*>(m_d);
-  d->assemble();
+  d->assemble(this);
   R = d->m_uniform_list.find_parameter(pname);
   return R.first;
 }
@@ -1048,7 +1047,7 @@ number_active_attributes(void)
 {
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
-  d->assemble();
+  d->assemble(this);
   return d->m_attribute_list.m_values.size();
 }
 
@@ -1058,7 +1057,7 @@ active_attribute(unsigned int I)
 {
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
-  d->assemble();
+  d->assemble(this);
   assert(I < d->m_attribute_list.m_values.size());
   return parameter_info(&d->m_attribute_list.m_values[I]);
 }
@@ -1071,7 +1070,7 @@ attribute_location(const char *pname)
   ProgramPrivate *d;
 
   d = reinterpret_cast<ProgramPrivate*>(m_d);
-  d->assemble();
+  d->assemble(this);
   R = d->m_attribute_list.find_parameter(pname);
   return R.first;
 }
