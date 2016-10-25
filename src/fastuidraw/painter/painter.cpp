@@ -509,6 +509,16 @@ namespace
       return fastuidraw::make_c_array(m_current);
     }
 
+    /* @param (input) clip_matrix_local transformation from local to clip coordinates
+       @param (input) in_out_pts[0] convex polygon to clip
+       @param (scratch) work_floats scratch space needed
+       @return what index into in_out_pts that holds polygon clipped
+     */
+    unsigned int
+    clip_against_current(const fastuidraw::float3x3 &clip_matrix_local,
+                         fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> &in_out_pts,
+                         std::vector<float> &work_floats);
+
   private:
     std::vector<fastuidraw::vec3> m_store;
     std::vector<unsigned int> m_sz;
@@ -840,6 +850,27 @@ rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh)
     }
 }
 
+/////////////////////////////////
+//ClipEquationStore methods
+unsigned int
+ClipEquationStore::
+clip_against_current(const fastuidraw::float3x3 &clip_matrix_local,
+                    fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> &in_out_pts,
+                    std::vector<float> &work_floats)
+{
+  fastuidraw::const_c_array<fastuidraw::vec3> clips(current());
+  unsigned int src, dst, i;
+  for(i = 0, src = 0, dst = 1; i < clips.size(); ++i, std::swap(src, dst))
+    {
+      fastuidraw::vec3 nc;
+      fastuidraw::const_c_array<fastuidraw::vec2> in;
+
+      nc = clips[i] * clip_matrix_local;
+      in = fastuidraw::make_c_array(in_out_pts[src]);
+      fastuidraw::detail::clip_against_plane(nc, in, in_out_pts[dst], work_floats);
+    }
+  return src;
+}
 
 //////////////////////////////////
 // PainterPrivate methods
@@ -863,35 +894,23 @@ PainterPrivate::
 update_clip_equation_series(const fastuidraw::vec2 &pmin,
                             const fastuidraw::vec2 &pmax)
 {
-  using namespace fastuidraw;
-  using namespace fastuidraw::detail;
-
-  const float3x3 &m(m_clip_rect_state.item_matrix());
-  const_c_array<vec3> clips(m_clip_store.current());
-  unsigned int src, dst, i;
-  vec2 center(0.0f, 0.0f);
+  fastuidraw::vec2 center(0.0f, 0.0f);
+  unsigned int src;
 
   m_work_room.m_pts_update_clip_series[0].resize(4);
   m_work_room.m_pts_update_clip_series[0][0] = pmin;
-  m_work_room.m_pts_update_clip_series[0][1] = vec2(pmin.x(), pmax.y());
+  m_work_room.m_pts_update_clip_series[0][1] = fastuidraw::vec2(pmin.x(), pmax.y());
   m_work_room.m_pts_update_clip_series[0][2] = pmax;
-  m_work_room.m_pts_update_clip_series[0][3] = vec2(pmax.x(), pmin.y());
-
-  for(i = 0, src = 0, dst = 1; i < clips.size(); ++i, std::swap(src, dst))
-    {
-      vec3 nc;
-      nc = clips[i] * m;
-
-      clip_against_plane(nc, make_c_array(m_work_room.m_pts_update_clip_series[src]),
-                         m_work_room.m_pts_update_clip_series[dst],
-                         m_work_room.m_clipper_floats);
-    }
+  m_work_room.m_pts_update_clip_series[0][3] = fastuidraw::vec2(pmax.x(), pmin.y());
+  src = m_clip_store.clip_against_current(m_clip_rect_state.item_matrix(),
+                                          m_work_room.m_pts_update_clip_series,
+                                          m_work_room.m_clipper_floats);
 
   /* the input rectangle clipped to the previous clipping equation
      array is now stored in m_work_room.m_pts_update_clip_series[src]
    */
-  const_c_array<vec2> poly;
-  poly = make_c_array(m_work_room.m_pts_update_clip_series[src]);
+  fastuidraw::const_c_array<fastuidraw::vec2> poly;
+  poly = fastuidraw::make_c_array(m_work_room.m_pts_update_clip_series[src]);
 
   m_clip_store.clear_current();
 
@@ -905,7 +924,7 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
   /* compute center of polygon so that we can correctly
      orient the normal vectors of the sides.
    */
-  for(i = 0; i < poly.size(); ++i)
+  for(unsigned int i = 0; i < poly.size(); ++i)
     {
       center += poly[i];
     }
@@ -917,13 +936,13 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
    */
   for(unsigned int i = 0; i < poly.size(); ++i)
     {
-      vec2 v, n;
+      fastuidraw::vec2 v, n;
       unsigned int next_i;
 
       next_i = i + 1;
       next_i = (next_i == poly.size()) ? 0 : next_i;
       v = poly[next_i] - poly[i];
-      n = vec2(v.y(), -v.x());
+      n = fastuidraw::vec2(v.y(), -v.x());
       if(dot(center - poly[i], n) < 0.0f)
         {
           n = -n;
@@ -940,7 +959,7 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
                                  = dot( inverse_transpose_M(R,1), M(p, 1))
          thus the vector to use is inverse_transpose_M(R,1)
        */
-      vec3 nn(n.x(), n.y(), -dot(n, poly[i]));
+      fastuidraw::vec3 nn(n.x(), n.y(), -dot(n, poly[i]));
       m_clip_store.add_to_current(inverse_transpose * nn);
     }
 
@@ -977,6 +996,7 @@ select_path_thresh_perspective(const fastuidraw::Path &path)
   */
   fastuidraw::vec2 bb_min, bb_max;
   bool r;
+  unsigned int src;
 
   r = path.approximate_bounding_box(&bb_min, &bb_max);
   if(!r)
@@ -996,23 +1016,14 @@ select_path_thresh_perspective(const fastuidraw::Path &path)
 
   /* TODO: for stroking, it might be that although the
      original path is completely clipped, the stroke of
-     it is not. It might be wise to inflate the geometry
+     is not. It might be wise to inflate the geometry
      of the path by how much slack the stroking parameters
      require.
   */
   const fastuidraw::float3x3 &m(m_clip_rect_state.item_matrix());
-  unsigned int i, src, dst;
-  fastuidraw::const_c_array<fastuidraw::vec3> clips(m_clip_store.current());
-
-  for(i = 0, src = 0, dst = 1; i < clips.size(); ++i, std::swap(src, dst))
-    {
-      fastuidraw::vec3 nc;
-      nc = clips[i] * m;
-      fastuidraw::detail::clip_against_plane(nc,
-                                             make_c_array(m_work_room.m_clipper_vec2s[src]),
-                                             m_work_room.m_clipper_vec2s[dst],
-                                             m_work_room.m_clipper_floats);
-    }
+  src = m_clip_store.clip_against_current(m,
+                                          m_work_room.m_clipper_vec2s,
+                                          m_work_room.m_clipper_floats);
 
   fastuidraw::const_c_array<fastuidraw::vec2> poly;
   poly = make_c_array(m_work_room.m_clipper_vec2s[src]);
