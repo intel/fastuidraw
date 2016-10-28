@@ -328,6 +328,41 @@ namespace fastuidraw
     noncopyable&
     operator=(const noncopyable &rhs);
   };
+
+  /*!
+    Class for type traits to indicate true.
+    Functionally, a simplified version of
+    std::true_type.
+   */
+  class true_type
+  {
+  public:
+    /*!
+      implicit cast operator to bool to return true.
+     */
+    operator bool() const
+    {
+      return true;
+    }
+  };
+
+  /*!
+    Class for type traits to indicate true.
+    Functionally, a simplified version of
+    std::false_type.
+   */
+  class false_type
+  {
+  public:
+    /*!
+      implicit cast operator to bool to return false.
+     */
+    operator bool() const
+    {
+      return false;
+    }
+  };
+
 /*! @} */
 }
 
