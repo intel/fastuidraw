@@ -209,11 +209,36 @@ namespace
     bool
     resize_to_fit(int num_tiles);
 
+    void
+    delay_tile_freeing(void);
+
+    void
+    undelay_tile_freeing(void);
+
+    int
+    tile_size(void) const
+    {
+      return m_tile_size;
+    }
+
+    const fastuidraw::ivec3&
+    num_tiles(void) const
+    {
+      return m_num_tiles;
+    }
+
+  private:
+    void
+    delete_tile_implement(fastuidraw::ivec3 v);
+
     int m_tile_size;
     fastuidraw::ivec3 m_next_tile;
     fastuidraw::ivec3 m_num_tiles;
     std::vector<fastuidraw::ivec3> m_free_tiles;
     int m_tile_count;
+
+    int m_delay_tile_freeing_counter;
+    std::vector<fastuidraw::ivec3> m_delayed_free_tiles;
 
     #ifdef FASTUIDRAW_DEBUG
     boost::multi_array<inited_bool, 3> m_tile_allocated;
@@ -500,7 +525,8 @@ tile_allocator(int tile_size, fastuidraw::ivec3 store_dimensions):
   m_num_tiles(store_dimensions.x() / m_tile_size,
               store_dimensions.y() / m_tile_size,
               store_dimensions.z()),
-  m_tile_count(0)
+  m_tile_count(0),
+  m_delay_tile_freeing_counter(0)
 {
   assert(store_dimensions.x() % m_tile_size == 0);
   assert(store_dimensions.y() % m_tile_size == 0);
@@ -512,10 +538,10 @@ tile_allocator(int tile_size, fastuidraw::ivec3 store_dimensions):
   #endif
 }
 
-
 tile_allocator::
 ~tile_allocator()
 {
+  assert(m_delay_tile_freeing_counter == 0);
   assert(m_tile_count == 0);
 }
 
@@ -566,8 +592,46 @@ allocate_tile(void)
 
 void
 tile_allocator::
+delay_tile_freeing(void)
+{
+  ++m_delay_tile_freeing_counter;
+}
+
+void
+tile_allocator::
+undelay_tile_freeing(void)
+{
+  assert(m_delay_tile_freeing_counter >= 1);
+  --m_delay_tile_freeing_counter;
+  if(m_delay_tile_freeing_counter == 0)
+    {
+      for(unsigned int i = 0, endi = m_delayed_free_tiles.size(); i < endi; ++i)
+        {
+          delete_tile_implement(m_delayed_free_tiles[i]);
+        }
+      m_delayed_free_tiles.clear();
+    }
+}
+
+void
+tile_allocator::
 delete_tile(fastuidraw::ivec3 v)
 {
+  if(m_delay_tile_freeing_counter == 0)
+    {
+      delete_tile_implement(v);
+    }
+  else
+    {
+      m_delayed_free_tiles.push_back(v);
+    }
+}
+
+void
+tile_allocator::
+delete_tile_implement(fastuidraw::ivec3 v)
+{
+  assert(m_delay_tile_freeing_counter == 0);
   #ifdef FASTUIDRAW_DEBUG
     {
       assert(m_tile_allocated[v.x()][v.y()][v.z()].m_value);
@@ -754,13 +818,37 @@ fastuidraw::ImageAtlas::
   m_d = NULL;
 }
 
+void
+fastuidraw::ImageAtlas::
+delay_tile_freeing(void)
+{
+  ImageAtlasPrivate *d;
+  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+
+  autolock_mutex M(d->m_mutex);
+  d->m_color_tiles.delay_tile_freeing();
+  d->m_index_tiles.delay_tile_freeing();
+}
+
+void
+fastuidraw::ImageAtlas::
+undelay_tile_freeing(void)
+{
+  ImageAtlasPrivate *d;
+  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+
+  autolock_mutex M(d->m_mutex);
+  d->m_color_tiles.undelay_tile_freeing();
+  d->m_index_tiles.undelay_tile_freeing();
+}
+
 int
 fastuidraw::ImageAtlas::
 index_tile_size(void) const
 {
   ImageAtlasPrivate *d;
   d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
-  return d->m_index_tiles.m_tile_size;
+  return d->m_index_tiles.tile_size();
 }
 
 int
@@ -769,7 +857,7 @@ color_tile_size(void) const
 {
   ImageAtlasPrivate *d;
   d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
-  return d->m_color_tiles.m_tile_size;
+  return d->m_color_tiles.tile_size();
 }
 
 int
@@ -794,21 +882,21 @@ add_index_tile(fastuidraw::const_c_array<fastuidraw::ivec3> data, int slack)
 
   /* TODO:
        have the idea of sub-index tiles (which are squares)but size is
-       in each dimension, half of m_index_tiles.m_tile_size.
+       in each dimension, half of m_index_tiles.tile_size().
        The motivation is to reduce the overhead of small but
        non-tiny images. A single index tile would hold 4 such tiles
        and we could also recurse such.
    */
   return_value = d->m_index_tiles.allocate_tile();
-  d->m_index_store->set_data(return_value.x() * d->m_index_tiles.m_tile_size,
-                             return_value.y() * d->m_index_tiles.m_tile_size,
+  d->m_index_store->set_data(return_value.x() * d->m_index_tiles.tile_size(),
+                             return_value.y() * d->m_index_tiles.tile_size(),
                              return_value.z(),
-                             d->m_index_tiles.m_tile_size,
-                             d->m_index_tiles.m_tile_size,
+                             d->m_index_tiles.tile_size(),
+                             d->m_index_tiles.tile_size(),
                              data,
                              slack,
                              d->m_color_store.get(),
-                             d->m_color_tiles.m_tile_size);
+                             d->m_color_tiles.tile_size());
 
   return return_value;
 }
@@ -824,11 +912,11 @@ add_index_tile_index_data(fastuidraw::const_c_array<fastuidraw::ivec3> data)
   autolock_mutex M(d->m_mutex);
 
   return_value = d->m_index_tiles.allocate_tile();
-  d->m_index_store->set_data(return_value.x() * d->m_index_tiles.m_tile_size,
-                             return_value.y() * d->m_index_tiles.m_tile_size,
+  d->m_index_store->set_data(return_value.x() * d->m_index_tiles.tile_size(),
+                             return_value.y() * d->m_index_tiles.tile_size(),
                              return_value.z(),
-                             d->m_index_tiles.m_tile_size,
-                             d->m_index_tiles.m_tile_size,
+                             d->m_index_tiles.tile_size(),
+                             d->m_index_tiles.tile_size(),
                              data);
 
   return return_value;
@@ -866,11 +954,11 @@ add_color_tile(fastuidraw::const_c_array<u8vec4> data)
   autolock_mutex M(d->m_mutex);
 
   return_value = d->m_color_tiles.allocate_tile();
-  d->m_color_store->set_data(return_value.x() * d->m_color_tiles.m_tile_size,
-                             return_value.y() * d->m_color_tiles.m_tile_size,
+  d->m_color_store->set_data(return_value.x() * d->m_color_tiles.tile_size(),
+                             return_value.y() * d->m_color_tiles.tile_size(),
                              return_value.z(),
-                             d->m_color_tiles.m_tile_size,
-                             d->m_color_tiles.m_tile_size,
+                             d->m_color_tiles.tile_size(),
+                             d->m_color_tiles.tile_size(),
                              data);
   return return_value;
 }
@@ -932,11 +1020,11 @@ resize_to_fit(int num_color_tiles, int num_index_tiles)
   assert(d->m_resizeable);
   if(d->m_color_tiles.resize_to_fit(num_color_tiles))
     {
-      d->m_color_store->resize(d->m_color_tiles.m_num_tiles.z());
+      d->m_color_store->resize(d->m_color_tiles.num_tiles().z());
     }
   if(d->m_index_tiles.resize_to_fit(num_index_tiles))
     {
-      d->m_index_store->resize(d->m_index_tiles.m_num_tiles.z());
+      d->m_index_store->resize(d->m_index_tiles.num_tiles().z());
     }
 }
 

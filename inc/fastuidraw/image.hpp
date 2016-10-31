@@ -27,6 +27,11 @@
 
 namespace fastuidraw
 {
+
+///@cond
+class Image;
+///@endcond
+
 /*!\addtogroup Core
   @{
  */
@@ -292,6 +297,60 @@ namespace fastuidraw
     color_tile_size(void) const;
 
     /*!
+      Calls AtlasIndexBackingStoreBase::flush() on
+      the index backing store (see index_store())
+      and AtlasColorBackingStoreBase::flush() on
+      the color backing store (see color_store()).
+     */
+    void
+    flush(void) const;
+
+    /*!
+      Returns a handle to the backing store for the image data.
+     */
+    reference_counted_ptr<const AtlasColorBackingStoreBase>
+    color_store(void) const;
+
+    /*!
+      Returns a handle to the backing store for the index data.
+     */
+    reference_counted_ptr<const AtlasIndexBackingStoreBase>
+    index_store(void) const;
+
+    /*!
+      Returns true if and only if the backing stores of the atlas
+      can be increased in size.
+     */
+    bool
+    resizeable(void) const;
+
+    /*!
+      Increments an internal counter. If this internal
+      counter is greater than zero, then the reurning
+      of tiles to the free store for later use is
+      -delayed- until the counter reaches zero again
+      (see undelay_tile_freeing()). The use case is for
+      buffered painting where the GPU calls are delayed
+      for later (to batch commands) and an Image may go
+      out of scope before the GPU commands are sent to
+      the GPU. By delaying the return of an Image's
+      tiles to the freestore, the image data is valid
+      still for rendering.
+     */
+    void
+    delay_tile_freeing(void);
+
+    /*!
+      Decrements an internal counter. If this internal
+      counter reaches zero, those tiles from Image's
+      that were deleted while the counter was non-zero,
+      are then returned to the tile free store. See
+      delay_tile_freeing() for more details.
+     */
+    void
+    undelay_tile_freeing(void);
+
+    /*!
       Returns the number of index color tiles that are available
       in the atlas without resizing the AtlasIndexBackingStoreBase
       of the ImageAtlas.
@@ -351,34 +410,6 @@ namespace fastuidraw
      */
     int
     number_free_color_tiles(void) const;
-
-    /*!
-      Calls AtlasIndexBackingStoreBase::flush() on
-      the index backing store (see index_store())
-      and AtlasColorBackingStoreBase::flush() on
-      the color backing store (see color_store()).
-     */
-    void
-    flush(void) const;
-
-    /*!
-      Returns a handle to the backing store for the image data.
-     */
-    reference_counted_ptr<const AtlasColorBackingStoreBase>
-    color_store(void) const;
-
-    /*!
-      Returns a handle to the backing store for the index data.
-     */
-    reference_counted_ptr<const AtlasIndexBackingStoreBase>
-    index_store(void) const;
-
-    /*!
-      Returns true if and only if the backing stores of the atlas
-      can be increased in size.
-     */
-    bool
-    resizeable(void) const;
 
     /*!
       Resize the color and image backing stores so that
