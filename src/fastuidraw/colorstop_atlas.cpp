@@ -53,9 +53,12 @@ namespace
     fastuidraw::vec4 m_startColor, m_deltaColor;
   };
 
+  typedef std::pair<fastuidraw::ivec2, int> delayed_free_entry;
+
   class ColorStopAtlasPrivate
   {
   public:
+    explicit
     ColorStopAtlasPrivate(fastuidraw::reference_counted_ptr<fastuidraw::ColorStopBackingStore> pbacking_store);
 
     void
@@ -64,7 +67,12 @@ namespace
     void
     add_bookkeeping(int new_size);
 
+    void
+    deallocate_implement(fastuidraw::ivec2 location, int width);
+
     mutable boost::mutex m_mutex;
+    int m_delayed_interval_freeing_counter;
+    std::vector<delayed_free_entry> m_delayed_freed_intervals;
 
     fastuidraw::reference_counted_ptr<fastuidraw::ColorStopBackingStore> m_backing_store;
     int m_allocated;
@@ -109,6 +117,7 @@ namespace
 // ColorStopAtlasPrivate methods
 ColorStopAtlasPrivate::
 ColorStopAtlasPrivate(fastuidraw::reference_counted_ptr<fastuidraw::ColorStopBackingStore> pbacking_store):
+  m_delayed_interval_freeing_counter(0),
   m_backing_store(pbacking_store),
   m_allocated(0)
 {
@@ -144,6 +153,31 @@ add_bookkeeping(int new_size)
       m_layer_allocator[y] = FASTUIDRAWnew fastuidraw::interval_allocator(width);
       S.insert(y);
     }
+}
+
+void
+ColorStopAtlasPrivate::
+deallocate_implement(fastuidraw::ivec2 location, int width)
+{
+  int y(location.y());
+  assert(m_layer_allocator[y]);
+  assert(m_delayed_interval_freeing_counter == 0);
+
+  int old_max, new_max;
+
+  old_max = m_layer_allocator[y]->largest_free_interval();
+  m_layer_allocator[y]->free_interval(location.x(), width);
+  new_max = m_layer_allocator[y]->largest_free_interval();
+
+  if(old_max != new_max)
+    {
+      std::map<int, std::set<int> >::iterator iter;
+
+      iter = m_available_layers.find(old_max);
+      remove_entry_from_available_layers(iter, y);
+      m_available_layers[new_max].insert(y);
+    }
+  m_allocated -= width;
 }
 
 /////////////////////////////////////
@@ -223,6 +257,7 @@ fastuidraw::ColorStopAtlas::
   ColorStopAtlasPrivate *d;
   d = reinterpret_cast<ColorStopAtlasPrivate*>(m_d);
 
+  assert(d->m_delayed_interval_freeing_counter == 0);
   assert(d->m_allocated == 0);
   for(std::vector<interval_allocator*>::iterator
         iter = d->m_layer_allocator.begin(),
@@ -233,6 +268,56 @@ fastuidraw::ColorStopAtlas::
     }
   FASTUIDRAWdelete(d);
   m_d = NULL;
+}
+
+void
+fastuidraw::ColorStopAtlas::
+delay_interval_freeing(void)
+{
+  ColorStopAtlasPrivate *d;
+  d = reinterpret_cast<ColorStopAtlasPrivate*>(m_d);
+
+  autolock_mutex m(d->m_mutex);
+  ++d->m_delayed_interval_freeing_counter;
+}
+
+void
+fastuidraw::ColorStopAtlas::
+undelay_interval_freeing(void)
+{
+  ColorStopAtlasPrivate *d;
+  d = reinterpret_cast<ColorStopAtlasPrivate*>(m_d);
+
+  autolock_mutex m(d->m_mutex);
+  assert(d->m_delayed_interval_freeing_counter >= 1);
+  --d->m_delayed_interval_freeing_counter;
+  if(d->m_delayed_interval_freeing_counter == 0)
+    {
+      for(unsigned int i = 0, endi = d->m_delayed_freed_intervals.size(); i < endi; ++i)
+        {
+          d->deallocate_implement(d->m_delayed_freed_intervals[i].first,
+                                  d->m_delayed_freed_intervals[i].second);
+        }
+      d->m_delayed_freed_intervals.clear();
+    }
+}
+
+void
+fastuidraw::ColorStopAtlas::
+deallocate(ivec2 location, int width)
+{
+  ColorStopAtlasPrivate *d;
+  d = reinterpret_cast<ColorStopAtlasPrivate*>(m_d);
+
+  autolock_mutex m(d->m_mutex);
+  if(d->m_delayed_interval_freeing_counter == 0)
+    {
+      d->deallocate_implement(location, width);
+    }
+  else
+    {
+      d->m_delayed_freed_intervals.push_back(delayed_free_entry(location, width));
+    }
 }
 
 void
@@ -271,34 +356,6 @@ largest_allocation_possible(void) const
     }
 
   return d->m_available_layers.rbegin()->first;
-}
-
-void
-fastuidraw::ColorStopAtlas::
-deallocate(ivec2 location, int width)
-{
-  ColorStopAtlasPrivate *d;
-  d = reinterpret_cast<ColorStopAtlasPrivate*>(m_d);
-
-  autolock_mutex m(d->m_mutex);
-  int y(location.y());
-  assert(d->m_layer_allocator[y]);
-
-  int old_max, new_max;
-
-  old_max = d->m_layer_allocator[y]->largest_free_interval();
-  d->m_layer_allocator[y]->free_interval(location.x(), width);
-  new_max = d->m_layer_allocator[y]->largest_free_interval();
-
-  if(old_max != new_max)
-    {
-      std::map<int, std::set<int> >::iterator iter;
-
-      iter = d->m_available_layers.find(old_max);
-      d->remove_entry_from_available_layers(iter, y);
-      d->m_available_layers[new_max].insert(y);
-    }
-  d->m_allocated -= width;
 }
 
 fastuidraw::ivec2
