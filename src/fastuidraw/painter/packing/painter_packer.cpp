@@ -530,6 +530,7 @@ per_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::Paint
   m_prev_state.m_item_group = 0;
   m_prev_state.m_brush = 0;
   m_prev_state.m_blend_group = 0;
+  m_prev_state.m_blend_mode = 0;
 }
 
 
