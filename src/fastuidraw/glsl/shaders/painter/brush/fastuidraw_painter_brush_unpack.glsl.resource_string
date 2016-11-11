@@ -1,6 +1,5 @@
 void
-fastuidraw_process_image_data(in uint shader_brush,
-                              in fastuidraw_brush_image_data_raw raw,
+fastuidraw_process_image_data(in fastuidraw_brush_image_data_raw raw,
                               out fastuidraw_brush_image_data cooked)
 {
   uvec3 master_xyz;
@@ -35,12 +34,12 @@ fastuidraw_process_image_data(in uint shader_brush,
                                                 raw.image_start_xy);
 
   slack = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_slack_bit0,
-                                 fastuidraw_image_slack_num_bits,
-                                 shader_brush);
+                                  fastuidraw_image_slack_num_bits,
+                                  raw.image_slack_number_lookups);
 
   number_index_lookups = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_number_index_lookup_bit0,
                                                  fastuidraw_image_number_index_lookup_num_bits,
-                                                 shader_brush);
+                                                 raw.image_slack_number_lookups);
 
   master_xyz.xy *= uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_SIZE);
   cooked.master_index_tile_atlas_location_xyz = vec3(master_xyz);
@@ -90,13 +89,13 @@ fastuidraw_process_gradient_data(in fastuidraw_brush_gradient_raw raw,
 }
 
 uint
-fastuidraw_read_brush_image_data(in uint location, in uint shader, out fastuidraw_brush_image_data image)
+fastuidraw_read_brush_image_data(in uint location, out fastuidraw_brush_image_data image)
 {
   uint return_value;
   fastuidraw_brush_image_data_raw raw;
 
   return_value = fastuidraw_read_brush_image_raw_data(location, raw);
-  fastuidraw_process_image_data(shader, raw, image);
+  fastuidraw_process_image_data(raw, image);
   return return_value;
 }
 
@@ -146,7 +145,7 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
 
   if(fastuidraw_brush_shader_has_image(shader))
     {
-      data_ptr = fastuidraw_read_brush_image_data(data_ptr, shader, image);
+      data_ptr = fastuidraw_read_brush_image_data(data_ptr, image);
     }
   else
     {
@@ -206,6 +205,8 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
   fastuidraw_brush_image_factor = image_factor;
   fastuidraw_brush_image_size_x = float(image.image_size.x);
   fastuidraw_brush_image_size_y = float(image.image_size.y);
+  fastuidraw_brush_image_slack = image.slack;
+  fastuidraw_brush_image_number_index_lookups = image.number_index_lookups;
 
   float color_stop_recip;
 
