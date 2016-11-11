@@ -440,11 +440,6 @@ namespace
 
     unsigned int m_store_blocks_written;
     unsigned int m_alignment;
-    fastuidraw::reference_counted_ptr<const fastuidraw::Image> m_last_image;
-    fastuidraw::reference_counted_ptr<const fastuidraw::ColorStopSequenceOnAtlas> m_last_color_stop;
-    std::list<fastuidraw::reference_counted_ptr<const fastuidraw::Image> > m_images_active;
-    std::list<fastuidraw::reference_counted_ptr<const fastuidraw::ColorStopSequenceOnAtlas> > m_color_stops_active;
-
     uint32_t m_brush_shader_mask;
     PainterShaderGroupPrivate m_prev_state;
     fastuidraw::BlendMode m_prev_blend_mode;
@@ -588,24 +583,6 @@ pack_painter_state(const fastuidraw::PainterPackerData &state,
   pack_state_data(p, state.m_item_shader_data, out_data.m_item_shader_data_loc);
   pack_state_data(p, state.m_blend_shader_data, out_data.m_blend_shader_data_loc);
   pack_state_data(p, state.m_brush, out_data.m_brush_shader_data_loc);
-
-  /* We save a handle to the image and colorstop used by the brush,
-     to make sure the Image and ColorStopSequenceOnAtlas objects are
-     not deleted until the draw command built is sent down to the 3D
-     API.
-   */
-  const fastuidraw::PainterBrush &brush(fetch_value(state.m_brush));
-  if(brush.image() && m_last_image != brush.image())
-    {
-      m_last_image = brush.image();
-      m_images_active.push_back(m_last_image);
-    }
-
-  if(brush.color_stops() && m_last_color_stop != brush.color_stops())
-    {
-      m_last_color_stop = brush.color_stops();
-      m_color_stops_active.push_back(m_last_color_stop);
-    }
 }
 
 unsigned int
@@ -806,6 +783,8 @@ begin(void)
   d = reinterpret_cast<PainterPackerPrivate*>(m_d);
 
   assert(d->m_accumulated_draws.empty());
+  d->m_backend->image_atlas()->delay_tile_freeing();
+  d->m_backend->colorstop_atlas()->delay_interval_freeing();
   std::fill(d->m_stats.begin(), d->m_stats.end(), 0u);
   d->start_new_command();
   ++d->m_number_begins;
@@ -863,6 +842,8 @@ fastuidraw::PainterPacker::
 end(void)
 {
   flush();
+  image_atlas()->undelay_tile_freeing();
+  colorstop_atlas()->undelay_interval_freeing();
 }
 
 void
