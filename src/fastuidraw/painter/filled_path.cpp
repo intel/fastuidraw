@@ -212,7 +212,6 @@ namespace
 
     coordinate_converter m_converter, m_inverse_converter;
     double m_fudge, m_boundary_fudge, m_delta_fudge;
-    float m_min_area;
     unsigned int m_point_count, m_max_fudge_count;
     fastuidraw_GLUtesselator *m_tess;
     std::vector<fastuidraw::vec2> &m_points;
@@ -424,11 +423,6 @@ tesser(std::vector<fastuidraw::vec2> &points,
   m_delta_fudge = ::exp2(-49.0);
   m_fudge = m_boundary_fudge = m_delta_fudge;
   m_max_fudge_count = (1u << 24u);
-
-  /* The minimum area needed for a triangle to
-     be viewed as non-degenerate.
-   */
-  m_min_area = float(1e-6);
 }
 
 tesser::
@@ -543,8 +537,11 @@ temp_verts_non_degenerate_triangle(void)
   float area;
   bool return_value;
 
+  /* we only reject a triangle if its area to floating
+     point arithematic is zero.
+   */
   area = fastuidraw::t_abs(v.x() * w.y() - v.y() * w.x());
-  return_value = (area >= m_min_area);
+  return_value = (area > 0.0f);
   return return_value;
 }
 
