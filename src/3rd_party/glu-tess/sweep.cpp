@@ -412,7 +412,7 @@ static void AddRightEdges( fastuidraw_GLUtesselator *tess, ActiveRegion *regUp,
 
 
 static void CallCombine( fastuidraw_GLUtesselator *tess, GLUvertex *isect,
-                         unsigned int data[4], float weights[4], int needed )
+                         unsigned int data[4], double weights[4], int needed )
 {
   double x, y;
 
@@ -441,7 +441,7 @@ static void SpliceMergeVertices( fastuidraw_GLUtesselator *tess, GLUhalfEdge *e1
       FASTUIDRAW_GLU_NULL_CLIENT_ID
     };
 
-  float weights[4] = { 0.5, 0.5, 0.0, 0.0 };
+  double weights[4] = { 0.5, 0.5, 0.0, 0.0 };
 
   data[0] = e1->Org->client_id;
   data[1] = e2->Org->client_id;
@@ -450,7 +450,7 @@ static void SpliceMergeVertices( fastuidraw_GLUtesselator *tess, GLUhalfEdge *e1
 }
 
 static void VertexWeights( GLUvertex *isect, GLUvertex *org, GLUvertex *dst,
-                           float *weights )
+                           double *weights )
 /*
  * Find some weights which describe how the intersection vertex is
  * a linear combination of "org" and "dest".  Each of the two edges
@@ -477,7 +477,7 @@ static void GetIntersectData( fastuidraw_GLUtesselator *tess, GLUvertex *isect,
  */
 {
   unsigned int data[4];
-  float weights[4];
+  double weights[4];
 
   data[0] = orgUp->client_id;
   data[1] = dstUp->client_id;

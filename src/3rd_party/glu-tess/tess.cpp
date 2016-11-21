@@ -78,7 +78,7 @@
 }
 
 /*ARGSUSED*/ static void REGALFASTUIDRAW_GLU_CALL noCombine( double x, double y, unsigned int data[4],
-                                                            float weight[4], unsigned int *dataOut )
+                                                            double weight[4], unsigned int *dataOut )
 {
   IGNORE(x);
   IGNORE(y);
@@ -129,7 +129,7 @@
 
 /*ARGSUSED*/ void REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noCombineData( double x, double y,
                                                                           unsigned int data[4],
-                                                                          float weight[4],
+                                                                          double weight[4],
                                                                           unsigned int *outData,
                                                                           void *polygonData )
 {
@@ -289,7 +289,7 @@ fastuidraw_gluTessPropertyTolerance(fastuidraw_GLUtesselator *tess, double value
   tess->relTolerance = value;
 }
 
-float REGALFASTUIDRAW_GLU_CALL
+double REGALFASTUIDRAW_GLU_CALL
 fastuidraw_gluGetTessPropertyTolerance(fastuidraw_GLUtesselator *tess)
 {
   return tess->relTolerance;
@@ -371,14 +371,14 @@ fastuidraw_gluTessCallback( fastuidraw_GLUtesselator *tess, FASTUIDRAW_GLUenum w
     return;
   case FASTUIDRAW_GLU_TESS_COMBINE:
     tess->callCombine = (fn == NULL) ? &noCombine :
-    (void (REGALFASTUIDRAW_GLU_CALL *)(double , double, unsigned int[4], float [4], unsigned int* )) fn;
+    (void (REGALFASTUIDRAW_GLU_CALL *)(double , double, unsigned int[4], double [4], unsigned int* )) fn;
     return;
   case FASTUIDRAW_GLU_TESS_COMBINE_DATA:
     tess->callCombineData = (fn == NULL) ? &glu_fastuidraw_gl_noCombineData :
                                            (void (REGALFASTUIDRAW_GLU_CALL *)(double,
                                                                              double,
                                                                              unsigned int[4],
-                                                                             float [4],
+                                                                             double [4],
                                                                              unsigned int*,
                                                                              void *)) fn;
     return;

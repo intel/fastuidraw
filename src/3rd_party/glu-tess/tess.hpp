@@ -83,7 +83,7 @@ public:
   GLUvertex     *event;         /* current sweep event being processed */
 
   void          (REGALFASTUIDRAW_GLU_CALL *callCombine)( double x, double y, unsigned int data[4],
-                                                        float weight[4], unsigned int *outData );
+                                                        double weight[4], unsigned int *outData );
 
   /*** state needed for rendering callbacks (see render.c) ***/
 
@@ -111,7 +111,7 @@ public:
   void          (REGALFASTUIDRAW_GLU_CALL *callEndData)( void *polygonData );
   void          (REGALFASTUIDRAW_GLU_CALL *callErrorData)( FASTUIDRAW_GLUenum errnum, void *polygonData );
   void          (REGALFASTUIDRAW_GLU_CALL *callCombineData)( double x, double y, unsigned int data[4],
-                                                            float weight[4], unsigned int *outData,
+                                                            double weight[4], unsigned int *outData,
                                                             void *polygonData );
 
   FASTUIDRAW_GLUboolean    (REGALFASTUIDRAW_GLU_CALL *callWindingData)(int winding_number,
@@ -131,7 +131,7 @@ void REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noVertexData( unsigned int data,
 void REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noEndData( void *polygonData );
 void REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noErrorData( FASTUIDRAW_GLUenum errnum, void *polygonData );
 void REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noCombineData( double x, double y, unsigned int data[4],
-                                                             float weight[4], unsigned int *outData,
+                                                             double weight[4], unsigned int *outData,
                                                              void *polygonData );
 FASTUIDRAW_GLUboolean REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noWindingData(int winding_rule,
                                                                             void *polygonData);
