@@ -24,7 +24,7 @@
  */
 
 #include <cstdlib>
-#include <boost/checked_delete.hpp>
+#include <fastuidraw/util/checked_delete.hpp>
 #include <fastuidraw/util/fastuidraw_memory_private.hpp>
 
 /*!\def FASTUIDRAWnew
@@ -36,14 +36,14 @@
 
 /*!\def FASTUIDRAWdelete
   Use FASTUIDRAWdelete for objects allocated with FASTUIDRAWnew.
-  When FASTUIDRAW_DEBUG is not defined, maps to boost::checked_delete(p).
+  When FASTUIDRAW_DEBUG is not defined, maps to fastuidraw::checked_delete(p).
   \param ptr address of object to delete, value must be a return
              value of FASTUIDRAWnew
  */
 
 /*!\def FASTUIDRAWdelete_array
   Use FASTUIDRAWdelete_array for arrays of objects allocated with FASTUIDRAWnew.
-  When FASTUIDRAW_DEBUG is not defined, maps to boost::checked_array_delete().
+  When FASTUIDRAW_DEBUG is not defined, maps to fastuidraw::checked_array_delete().
   \param ptr address of array of objects to delete, value must be a return
              value of FASTUIDRAWnew
  */
@@ -85,11 +85,11 @@
 #define FASTUIDRAWdelete(ptr) \
   do {                                                                  \
     fastuidraw::memory::object_deletion_message(ptr, __FILE__, __LINE__); \
-    boost::checked_delete(ptr); } while(0)
+    fastuidraw::checked_delete(ptr); } while(0)
 #define FASTUIDRAWdelete_array(ptr) \
   do {                                                                  \
     fastuidraw::memory::object_deletion_message(ptr, __FILE__, __LINE__); \
-    boost::checked_array_delete(ptr); } while(0)
+    fastuidraw::checked_array_delete(ptr); } while(0)
 #define FASTUIDRAWmalloc(size) \
   fastuidraw::memory::malloc_implement(size, __FILE__, __LINE__)
 #define FASTUIDRAWcalloc(nmemb, size) \
@@ -104,9 +104,9 @@
 #define FASTUIDRAWnew \
   new
 #define FASTUIDRAWdelete(ptr) \
-  do { boost::checked_delete(ptr); } while(0)
+  do { fastuidraw::checked_delete(ptr); } while(0)
 #define FASTUIDRAWdelete_array(ptr) \
-  do { boost::checked_array_delete(ptr); } while(0)
+  do { fastuidraw::checked_array_delete(ptr); } while(0)
 #define FASTUIDRAWmalloc(size) \
   std::malloc(size)
 #define FASTUIDRAWcalloc(nmemb, size) \
