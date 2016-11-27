@@ -129,8 +129,10 @@ main(int argc, char **argv)
             << std::setw(40) << "transformation_translation_data_size = " << PainterBrush::transformation_translation_data_size << "\n"
             << "\n"
 
-            << std::setw(40) << "image_slack_max = " << PainterBrush::image_slack_max << "\n"
-            << std::setw(40) << "image_number_index_lookups_max = " << PainterBrush::image_number_index_lookups_max << "\n"
+            << std::setw(40) << "image_slack_bit0 = " << PainterBrush::image_slack_bit0 << "\n"
+            << std::setw(40) << "image_slack_num_bits = " << PainterBrush::image_slack_num_bits << "\n"
+            << std::setw(40) << "image_number_index_lookups_bit0 = " << PainterBrush::image_number_index_lookups_bit0 << "\n"
+            << std::setw(40) << "image_number_index_lookups_num_bits = " << PainterBrush::image_number_index_lookups_num_bits << "\n"
             << "\n"
 
             << std::setw(40) << "image_mask = " << bitset(PainterBrush::image_mask) << "\n"
@@ -140,8 +142,6 @@ main(int argc, char **argv)
             << std::setw(40) << "repeat_window_mask = " << bitset(PainterBrush::repeat_window_mask) << "\n"
             << std::setw(40) << "transformation_translation_mask = " << bitset(PainterBrush::transformation_translation_mask) << "\n"
             << std::setw(40) << "transformation_matrix_mask = " << bitset(PainterBrush::transformation_matrix_mask) << "\n"
-            << std::setw(40) << "image_number_index_lookups_mask = " << bitset(PainterBrush::image_number_index_lookups_mask) << "\n"
-            << std::setw(40) << "image_slack_mask = " << bitset(PainterBrush::image_slack_mask) << "\n"
 
             << std::setw(40) << "stroked_number_offset_types = " << StrokedPath::number_offset_types << "\n"
             << std::setw(40) << "stroked_number_point_set_types = " << StrokedPath::number_point_set_types << "\n"
