@@ -23,7 +23,6 @@
 
 #include <vector>
 #include <fastuidraw/util/c_array.hpp>
-#include <fastuidraw/util/vecN.hpp>
 
 namespace fastuidraw
 {
@@ -69,58 +68,6 @@ namespace fastuidraw
     }
   private:
     mutex &m_mutex;
-  };
-
-  /*!
-    Simple bounding box class
-   */
-  class BoundingBox
-  {
-  public:
-    BoundingBox(void):
-      m_empty(true)
-    {}
-
-    void
-    inflated_polygon(vecN<vec2, 4> &out_data, float rad)
-    {
-      assert(!m_empty);
-      out_data[0] = vec2(m_min.x() - rad, m_min.y() - rad);
-      out_data[1] = vec2(m_max.x() + rad, m_min.y() - rad);
-      out_data[2] = vec2(m_max.x() + rad, m_max.y() + rad);
-      out_data[3] = vec2(m_min.x() - rad, m_max.y() + rad);
-    }
-
-    void
-    union_point(const vec2 &pt)
-    {
-      if(m_empty)
-        {
-          m_empty = false;
-          m_min = m_max = pt;
-        }
-      else
-        {
-          m_min.x() = t_min(m_min.x(), pt.x());
-          m_min.y() = t_min(m_min.y(), pt.y());
-
-          m_max.x() = t_max(m_max.x(), pt.x());
-          m_max.y() = t_max(m_max.y(), pt.y());
-        }
-    }
-
-    void
-    union_box(const BoundingBox &b)
-    {
-      if(!b.m_empty)
-        {
-          union_point(b.m_min);
-          union_point(b.m_max);
-        }
-    }
-
-    vec2 m_min, m_max;
-    bool m_empty;
   };
 
   template<typename T>

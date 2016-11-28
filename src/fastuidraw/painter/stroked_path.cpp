@@ -26,6 +26,7 @@
 #include <fastuidraw/painter/painter_attribute_data.hpp>
 #include <fastuidraw/painter/painter_attribute_data_filler.hpp>
 #include "../private/util_private.hpp"
+#include "../private/bounding_box.hpp"
 #include "../private/path_util_private.hpp"
 #include "../private/clip.hpp"
 
@@ -1033,7 +1034,7 @@ SubEdgeCullingHierarchy(const fastuidraw::BoundingBox &start_box,
                         fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts)
 {
   assert(c == 0 || c == 1);
-  assert(!start_box.m_empty);
+  assert(!start_box.empty());
 
   if(data.size() >= splitting_threshhold)
     {
@@ -1041,7 +1042,7 @@ SubEdgeCullingHierarchy(const fastuidraw::BoundingBox &start_box,
       fastuidraw::vecN<std::vector<SingleSubEdge>, 2> child_sub_edges;
       float mid_point;
 
-      mid_point = 0.5f * (start_box.m_min[c] + start_box.m_max[c]);
+      mid_point = 0.5f * (start_box.min_point()[c] + start_box.max_point()[c]);
       for(unsigned int i = 0; i < data.size(); ++i)
         {
           const SingleSubEdge &sub_edge(data[i]);
@@ -1230,7 +1231,7 @@ edge_chunks_implement(ScratchSpacePrivate &scratch,
   using namespace fastuidraw;
   using namespace fastuidraw::detail;
 
-  if(m_data_with_children_bb.m_empty)
+  if(m_data_with_children_bb.empty())
     {
       return;
     }
@@ -1269,7 +1270,7 @@ edge_chunks_implement(ScratchSpacePrivate &scratch,
       m_children[1]->edge_chunks_implement(scratch, item_space_additional_room, dst, current);
     }
 
-  if(!m_data_bb.m_empty)
+  if(!m_data_bb.empty())
     {
       m_data_bb.inflated_polygon(bb, item_space_additional_room);
       clip_against_planes(make_c_array(scratch.m_adjusted_clip_eqs),
