@@ -125,55 +125,6 @@ namespace
     fastuidraw::vec2 m_bevel_normal;
   };
 
-  class BoundingBox
-  {
-  public:
-    BoundingBox(void):
-      m_empty(true)
-    {}
-
-    void
-    inflated_polygon(fastuidraw::vecN<fastuidraw::vec2, 4> &out_data, float rad)
-    {
-      assert(!m_empty);
-      out_data[0] = fastuidraw::vec2(m_min.x() - rad, m_min.y() - rad);
-      out_data[1] = fastuidraw::vec2(m_max.x() + rad, m_min.y() - rad);
-      out_data[2] = fastuidraw::vec2(m_max.x() + rad, m_max.y() + rad);
-      out_data[3] = fastuidraw::vec2(m_min.x() - rad, m_max.y() + rad);
-    }
-
-    void
-    union_point(const fastuidraw::vec2 &pt)
-    {
-      if(m_empty)
-        {
-          m_empty = false;
-          m_min = m_max = pt;
-        }
-      else
-        {
-          m_min.x() = fastuidraw::t_min(m_min.x(), pt.x());
-          m_min.y() = fastuidraw::t_min(m_min.y(), pt.y());
-
-          m_max.x() = fastuidraw::t_max(m_max.x(), pt.x());
-          m_max.y() = fastuidraw::t_max(m_max.y(), pt.y());
-        }
-    }
-
-    void
-    union_box(const BoundingBox &b)
-    {
-      if(!b.m_empty)
-        {
-          union_point(b.m_min);
-          union_point(b.m_max);
-        }
-    }
-
-    fastuidraw::vec2 m_min, m_max;
-    bool m_empty;
-  };
-
   class EdgeStore
   {
   public:
@@ -191,7 +142,7 @@ namespace
       return m_sub_edges_of_closing_edges;
     }
 
-    const BoundingBox&
+    const fastuidraw::BoundingBox&
     bounding_box(bool with_closing_edges)
     {
       return m_sub_edges_bb[with_closing_edges];
@@ -202,14 +153,14 @@ namespace
     void
     process_edge(const fastuidraw::TessellatedPath &P, PathData &path_data,
                  unsigned int contour, unsigned int edge,
-                 std::vector<SingleSubEdge> &dst, BoundingBox &bx);
+                 std::vector<SingleSubEdge> &dst, fastuidraw::BoundingBox &bx);
 
     static const float sm_mag_tol;
 
     std::vector<SingleSubEdge> m_all_edges;
     fastuidraw::vecN<fastuidraw::const_c_array<SingleSubEdge>, 2> m_sub_edges;
     fastuidraw::const_c_array<SingleSubEdge> m_sub_edges_of_closing_edges;
-    fastuidraw::vecN<BoundingBox, 2> m_sub_edges_bb;
+    fastuidraw::vecN<fastuidraw::BoundingBox, 2> m_sub_edges_bb;
   };
 
   class SubEdgeCullingHierarchy:fastuidraw::noncopyable
@@ -221,7 +172,7 @@ namespace
       };
 
     explicit
-    SubEdgeCullingHierarchy(const BoundingBox &start_box,
+    SubEdgeCullingHierarchy(const fastuidraw::BoundingBox &start_box,
                             int splitting_coordinate,
                             fastuidraw::const_c_array<SingleSubEdge> data,
                             fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts);
@@ -230,12 +181,12 @@ namespace
 
     fastuidraw::vecN<SubEdgeCullingHierarchy*, 2> m_children;
     std::vector<SingleSubEdge> m_sub_edges;
-    BoundingBox m_sub_edges_bb, m_entire_bb;
+    fastuidraw::BoundingBox m_sub_edges_bb, m_entire_bb;
 
   private:
 
     SubEdgeCullingHierarchy*
-    create(const BoundingBox &start_box,
+    create(const fastuidraw::BoundingBox &start_box,
            int splitting_coordinate,
            const std::vector<SingleSubEdge> &data,
            fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts);
@@ -299,14 +250,14 @@ namespace
     fastuidraw::range_type<unsigned int> m_index_data_range;
     fastuidraw::range_type<unsigned int> m_depth;
     unsigned int m_data_chunk;
-    BoundingBox m_data_bb;
+    fastuidraw::BoundingBox m_data_bb;
     fastuidraw::const_c_array<SingleSubEdge> m_data_src;
 
     fastuidraw::range_type<unsigned int> m_vertex_data_range_with_children;
     fastuidraw::range_type<unsigned int> m_index_data_range_with_children;
     fastuidraw::range_type<unsigned int> m_depth_with_children;
     unsigned int m_data_chunk_with_children;
-    BoundingBox m_data_with_children_bb;
+    fastuidraw::BoundingBox m_data_with_children_bb;
 
   private:
     EdgesElement(unsigned int vertex_st, unsigned int index_st,
@@ -946,7 +897,7 @@ EdgeStore::
 EdgeStore(const fastuidraw::TessellatedPath &P, PathData &path_data)
 {
   std::vector<SingleSubEdge> closing_edges, non_closing_edges;
-  BoundingBox closing_edges_bb, non_closing_edges_bb;
+  fastuidraw::BoundingBox closing_edges_bb, non_closing_edges_bb;
 
   path_data.m_per_contour_data.resize(P.number_contours());
   for(unsigned int o = 0; o < P.number_contours(); ++o)
@@ -989,7 +940,7 @@ void
 EdgeStore::
 process_edge(const fastuidraw::TessellatedPath &P, PathData &path_data,
              unsigned int contour, unsigned int edge,
-             std::vector<SingleSubEdge> &dst, BoundingBox &bx)
+             std::vector<SingleSubEdge> &dst, fastuidraw::BoundingBox &bx)
 {
   fastuidraw::range_type<unsigned int> R;
   fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts(P.point_data());
@@ -1076,7 +1027,7 @@ process_edge(const fastuidraw::TessellatedPath &P, PathData &path_data,
 //////////////////////////////////////////////////
 // SubEdgeCullingHierarchy methods
 SubEdgeCullingHierarchy::
-SubEdgeCullingHierarchy(const BoundingBox &start_box,
+SubEdgeCullingHierarchy(const fastuidraw::BoundingBox &start_box,
                         int c,
                         fastuidraw::const_c_array<SingleSubEdge> data,
                         fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts)
@@ -1086,7 +1037,7 @@ SubEdgeCullingHierarchy(const BoundingBox &start_box,
 
   if(data.size() >= splitting_threshhold)
     {
-      fastuidraw::vecN<BoundingBox, 2> child_boxes;
+      fastuidraw::vecN<fastuidraw::BoundingBox, 2> child_boxes;
       fastuidraw::vecN<std::vector<SingleSubEdge>, 2> child_sub_edges;
       float mid_point;
 
@@ -1155,7 +1106,7 @@ SubEdgeCullingHierarchy::
 
 SubEdgeCullingHierarchy*
 SubEdgeCullingHierarchy::
-create(const BoundingBox &start_box, int c,
+create(const fastuidraw::BoundingBox &start_box, int c,
        const std::vector<SingleSubEdge> &data,
        fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts)
 {
