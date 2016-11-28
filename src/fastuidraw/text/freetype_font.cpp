@@ -16,10 +16,6 @@
  *
  */
 
-
-
-#include <boost/thread.hpp>
-
 #include <fastuidraw/text/freetype_font.hpp>
 #include <fastuidraw/text/glyph_layout_data.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>

@@ -21,7 +21,6 @@
 
 #include <vector>
 #include <iostream>
-#include <boost/thread.hpp>
 #include <fastuidraw/util/c_array.hpp>
 
 namespace fastuidraw

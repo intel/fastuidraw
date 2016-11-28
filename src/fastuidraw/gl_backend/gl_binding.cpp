@@ -22,7 +22,6 @@
 #include <assert.h>
 #include <iostream>
 #include <sstream>
-#include <boost/utility.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_binding.hpp>
 
