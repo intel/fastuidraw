@@ -233,6 +233,7 @@ private:
   bool m_repeat_gradient;
   unsigned int m_image_filter;
   bool m_draw_stats;
+  float m_curve_flatness;
 
   vec2 m_gradient_p0, m_gradient_p1;
   float m_gradient_r0, m_gradient_r1;
@@ -367,6 +368,7 @@ painter_stroke_test(void):
             << "\tt: toggle translate brush\n"
             << "\ty: toggle matrix brush\n"
             << "\to: toggle clipping window\n"
+            << "\tz: increase/decrease curve flatness\n"
             << "\t4,6,2,8 (number pad): change location of clipping window\n"
             << "\tctrl-4,6,2,8 (number pad): change size of clipping window\n"
             << "\tw: toggle brush repeat window active\n"
@@ -932,6 +934,18 @@ handle_event(const SDL_Event &ev)
         case SDLK_l:
           m_draw_stats = !m_draw_stats;
           break;
+
+        case SDLK_z:
+          if(ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT))
+            {
+              m_curve_flatness *= 0.5f;
+            }
+          else
+            {
+              m_curve_flatness *= 2.0f;
+            }
+          std::cout << "Painter::curveFlatness set to " << m_curve_flatness << "\n";
+          break;
         }
       break;
     };
@@ -1105,6 +1119,7 @@ draw_frame(void)
 
   enable_wire_frame(m_wire_frame);
 
+  m_painter->curveFlatness(m_curve_flatness);
   m_painter->begin();
 
   if(m_force_square_viewport)
@@ -1535,6 +1550,7 @@ derived_init(int w, int h)
   m_clipping_xy = m_path.tessellation()->bounding_box_min();
   m_clipping_wh = m_repeat_wh;
 
+  m_curve_flatness = m_painter->curveFlatness();
   m_draw_timer.restart();
 }
 
