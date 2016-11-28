@@ -18,10 +18,10 @@
 
 
 #include <assert.h>
-#include <boost/thread.hpp>
-#include <boost/utility.hpp>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/util/reference_count_mutex.hpp>
+
+#include "../private/util_private.hpp"
 
 namespace
 {
@@ -32,7 +32,7 @@ namespace
       m_reference_count(0)
     {}
 
-    boost::mutex m_mutex;
+    fastuidraw::mutex m_mutex;
     int m_reference_count;
   };
 }

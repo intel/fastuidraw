@@ -19,20 +19,44 @@
 
 #pragma once
 
-#include <vector>
 #include <boost/thread.hpp>
+
+#include <vector>
 #include <fastuidraw/util/c_array.hpp>
 
 namespace fastuidraw
 {
-  /*!\class autolock_mutex
+  /*!
+    Wrapper over mutex type so that we can replace
+    mutex implementation easily.
+   */
+  class mutex:fastuidraw::noncopyable
+  {
+  public:
+    void
+    lock(void)
+    {
+      m_mutex.lock();
+    }
+
+    void
+    unlock(void)
+    {
+      m_mutex.unlock();
+    }
+
+  private:
+    boost::mutex m_mutex;
+  };
+
+  /*!
     Locks mutex on ctor and unlocks un dtor.
    */
   class autolock_mutex:fastuidraw::noncopyable
   {
   public:
     explicit
-    autolock_mutex(boost::mutex &m):
+    autolock_mutex(mutex &m):
       m_mutex(m)
     {
       m_mutex.lock();
@@ -43,7 +67,7 @@ namespace fastuidraw
       m_mutex.unlock();
     }
   private:
-    boost::mutex &m_mutex;
+    mutex &m_mutex;
   };
 
   template<typename T>

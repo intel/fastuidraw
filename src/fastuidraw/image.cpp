@@ -258,7 +258,7 @@ namespace
       m_resizeable(m_color_store->resizeable() && m_index_store->resizeable())
     {}
 
-    boost::mutex m_mutex;
+    fastuidraw::mutex m_mutex;
 
     fastuidraw::reference_counted_ptr<fastuidraw::AtlasColorBackingStoreBase> m_color_store;
     tile_allocator m_color_tiles;

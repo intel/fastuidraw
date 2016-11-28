@@ -108,7 +108,7 @@ namespace
         }
     }
 
-    boost::mutex m_mutex;
+    fastuidraw::mutex m_mutex;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasTexelBackingStoreBase> m_texel_store;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase> m_geometry_store;
     std::vector<fastuidraw::reference_counted_ptr<rect_atlas_layer> > m_private_data;

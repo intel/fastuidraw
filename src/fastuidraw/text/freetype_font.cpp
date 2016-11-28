@@ -155,7 +155,7 @@ namespace
                            fastuidraw::GlyphRenderDataCurvePair &output,
                            fastuidraw::Path &path);
 
-    boost::mutex m_mutex;
+    fastuidraw::mutex m_mutex;
     FT_Face m_face;
     fastuidraw::FontFreeType::RenderParams m_render_params;
     fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> m_lib;

@@ -70,7 +70,7 @@ namespace
     void
     deallocate_implement(fastuidraw::ivec2 location, int width);
 
-    mutable boost::mutex m_mutex;
+    mutable fastuidraw::mutex m_mutex;
     int m_delayed_interval_freeing_counter;
     std::vector<delayed_free_entry> m_delayed_freed_intervals;
 

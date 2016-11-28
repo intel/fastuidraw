@@ -20,9 +20,6 @@
 #include <set>
 #include <map>
 
-#include <boost/thread.hpp>
-#include <boost/tuple/tuple.hpp>
-#include <boost/tuple/tuple_comparison.hpp>
 #include <fastuidraw/text/glyph_selector.hpp>
 #include "../private/util_private.hpp"
 
@@ -165,7 +162,7 @@ namespace
                                    fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> h,
                                    uint32_t character_code);
 
-    boost::mutex m_mutex;
+    fastuidraw::mutex m_mutex;
     fastuidraw::reference_counted_ptr<font_group> m_master_group;
     font_group_map<bold_italic_key> m_bold_italic_groups;
     font_group_map<family_bold_italic_key> m_family_bold_italic_groups;
