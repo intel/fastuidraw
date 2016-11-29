@@ -115,13 +115,13 @@ namespace
     explicit
     coordinate_converter(const fastuidraw::TessellatedPath &P)
     {
-      fastuidraw::vec2 delta, pmin, pmax;
+      fastuidraw::vecN<double, 2> delta, pmin, pmax;
 
-      pmin = P.bounding_box_min();
-      pmax = P.bounding_box_max();
+      pmin = fastuidraw::vecN<double, 2>(P.bounding_box_min());
+      pmax = fastuidraw::vecN<double, 2>(P.bounding_box_max());
       delta = pmax - pmin;
-      m_scale = fastuidraw::vec2(1.0f, 1.0f) / delta;
-      m_scale *= float(box_dim);
+      m_scale = fastuidraw::vecN<double, 2>(1.0, 1.0) / delta;
+      m_scale *= static_cast<double>(box_dim);
       m_translate = pmin;
       m_delta_fudge = ::exp2(static_cast<double>(-negative_log2_fudge));
     }
@@ -130,13 +130,13 @@ namespace
     apply(const fastuidraw::vec2 &pt, unsigned int fudge_count) const
     {
       fastuidraw::vecN<double, 2> r;
-      fastuidraw::vec2 q;
+      fastuidraw::vecN<double, 2> qt(pt);
       double fudge;
 
-      q = m_scale * (pt - m_translate);
+      r = m_scale * (qt - m_translate);
       fudge = static_cast<double>(fudge_count) * m_delta_fudge;
-      r.x() = fudge + static_cast<double>(q.x());
-      r.y() = fudge + static_cast<double>(q.y());
+      r.x() += fudge;
+      r.y() += fudge;
       return r;
     }
 
@@ -148,7 +148,7 @@ namespace
 
   private:
     double m_delta_fudge;
-    fastuidraw::vec2 m_scale, m_translate;
+    fastuidraw::vecN<double, 2> m_scale, m_translate;
   };
 
   enum
@@ -206,8 +206,8 @@ namespace
     void
     add_edge(const fastuidraw::TessellatedPath &input,
              unsigned int o, unsigned int e,
-           Path &output,
-           BoundingBoxes &bounding_boxes);
+             Path &output,
+             BoundingBoxes &bounding_boxes);
 
     std::map<fastuidraw::vec2, unsigned int> m_map;
     std::vector<fastuidraw::vec2> &m_pts;
@@ -497,10 +497,6 @@ add_edge(const fastuidraw::TessellatedPath &input,
 
   pts = input.point_data();
 
-  /* every N points induces abounding box; every N bounding
-     box induces bounding box of boxes and so on all the way
-     up.
-   */
   for(unsigned int v = R.m_begin; v < R.m_end; ++v, ++cnt, ++total_cnt)
     {
       fastuidraw::vec2 p;
