@@ -1459,12 +1459,17 @@ draw_frame(void)
   if(m_draw_stats)
     {
       std::ostringstream ostr;
+      ivec2 mouse_position;
+
+      SDL_GetMouseState(&mouse_position.x(), &mouse_position.y());
       ostr << "\nAttribs: "
            << m_painter->query_stat(PainterPacker::num_attributes)
            << "\nIndices: "
            << m_painter->query_stat(PainterPacker::num_indices)
            << "\nGenericData: "
            << m_painter->query_stat(PainterPacker::num_generic_datas)
+           << "\nMouse position:"
+           << item_coordinates(mouse_position)
            << "\n";
 
       PainterBrush brush;
