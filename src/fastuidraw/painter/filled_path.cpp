@@ -102,7 +102,7 @@ namespace
      should only increment and apply fudge on overlapping
      and degenerate edges.
    */
-  class coordinate_converter
+  class CoordinateConverter
   {
   public:
     enum
@@ -113,7 +113,7 @@ namespace
       };
 
     explicit
-    coordinate_converter(const fastuidraw::TessellatedPath &P)
+    CoordinateConverter(const fastuidraw::TessellatedPath &P)
     {
       fastuidraw::vecN<double, 2> delta, pmin, pmax;
 
@@ -129,8 +129,7 @@ namespace
     fastuidraw::vecN<double, 2>
     apply(const fastuidraw::vec2 &pt, unsigned int fudge_count) const
     {
-      fastuidraw::vecN<double, 2> r;
-      fastuidraw::vecN<double, 2> qt(pt);
+      fastuidraw::vecN<double, 2> r, qt(pt);
       double fudge;
 
       r = m_scale * (qt - m_translate);
@@ -138,6 +137,18 @@ namespace
       r.x() += fudge;
       r.y() += fudge;
       return r;
+    }
+
+    fastuidraw::ivec2
+    iapply(const fastuidraw::vec2 &pt) const
+    {
+      fastuidraw::vecN<double, 2> r, qt(pt);
+      fastuidraw::ivec2 return_value;
+
+      r = m_scale * (qt - m_translate);
+      return_value.x() = static_cast<int>(r.x());
+      return_value.y() = static_cast<int>(r.y());
+      return return_value;
     }
 
     double
@@ -161,7 +172,20 @@ namespace
       box_max_x_min_y = box_max_x_flag,
     };
 
-  class point_hoard:fastuidraw::noncopyable
+  class EdgeHoard:fastuidraw::noncopyable
+  {
+  public:
+    /* returns true if the edge overlaps an existing
+       edge. Also adds the edge to the set of test
+       edges.
+     */
+    bool
+    add_edge(fastuidraw::ivec2 a, fastuidraw::ivec2 b);
+
+  private:
+  };
+
+  class PointHoard:fastuidraw::noncopyable
   {
   public:
     typedef std::pair<unsigned int, bool> ContourPoint;
@@ -176,7 +200,7 @@ namespace
       };
 
     explicit
-    point_hoard(const fastuidraw::TessellatedPath &P,
+    PointHoard(const fastuidraw::TessellatedPath &P,
                 std::vector<fastuidraw::vec2> &pts):
       m_converter(P),
       m_pts(pts)
@@ -197,7 +221,7 @@ namespace
       return m_pts[v];
     }
 
-    const coordinate_converter&
+    const CoordinateConverter&
     converter(void) const
     {
       return m_converter;
@@ -218,7 +242,8 @@ namespace
              Path &output,
              BoundingBoxes &bounding_boxes);
 
-    coordinate_converter m_converter;
+    CoordinateConverter m_converter;
+    EdgeHoard m_edge_list;
     std::map<fastuidraw::vec2, unsigned int> m_map;
     std::vector<fastuidraw::vec2> &m_pts;
   };
@@ -227,7 +252,7 @@ namespace
   {
   protected:
     explicit
-    tesser(point_hoard &points);
+    tesser(PointHoard &points);
 
     virtual
     ~tesser(void);
@@ -239,10 +264,10 @@ namespace
     stop(void);
 
     void
-    add_path(const point_hoard::Path &P);
+    add_path(const PointHoard::Path &P);
 
     void
-    add_bounding_box_path(const point_hoard::BoundingBoxes &P);
+    add_bounding_box_path(const PointHoard::BoundingBoxes &P);
 
     void
     add_path_boundary(const fastuidraw::TessellatedPath &P);
@@ -268,7 +293,7 @@ namespace
   private:
 
     void
-    add_contour(const point_hoard::Contour &C);
+    add_contour(const PointHoard::Contour &C);
 
     static
     void
@@ -296,7 +321,7 @@ namespace
 
     unsigned int m_point_count;
     fastuidraw_GLUtesselator *m_tess;
-    point_hoard &m_points;
+    PointHoard &m_points;
     fastuidraw::vecN<unsigned int, 3> m_temp_verts;
     unsigned int m_temp_vert_count;
     bool m_triangulation_failed;
@@ -307,9 +332,9 @@ namespace
   public:
     static
     bool
-    execute_path(point_hoard &points,
-                 point_hoard::Path &P,
-                 point_hoard::BoundingBoxes &bounding_box_P,
+    execute_path(PointHoard &points,
+                 PointHoard::Path &P,
+                 PointHoard::BoundingBoxes &bounding_box_P,
                  winding_index_hoard &hoard)
     {
       non_zero_tesser NZ(points, P, bounding_box_P, hoard);
@@ -317,9 +342,9 @@ namespace
     }
 
   private:
-    non_zero_tesser(point_hoard &points,
-                    point_hoard::Path &P,
-                    point_hoard::BoundingBoxes &bounding_box_P,
+    non_zero_tesser(PointHoard &points,
+                    PointHoard::Path &P,
+                    PointHoard::BoundingBoxes &bounding_box_P,
                     winding_index_hoard &hoard);
 
     virtual
@@ -344,9 +369,9 @@ namespace
   public:
     static
     bool
-    execute_path(point_hoard &points,
-                 point_hoard::Path &P,
-                 point_hoard::BoundingBoxes &bounding_box_P,
+    execute_path(PointHoard &points,
+                 PointHoard::Path &P,
+                 PointHoard::BoundingBoxes &bounding_box_P,
                  const fastuidraw::TessellatedPath &path,
                  winding_index_hoard &hoard)
     {
@@ -356,9 +381,9 @@ namespace
 
   private:
 
-    zero_tesser(point_hoard &points,
-                point_hoard::Path &P,
-                point_hoard::BoundingBoxes &bounding_box_P,
+    zero_tesser(PointHoard &points,
+                PointHoard::Path &P,
+                PointHoard::BoundingBoxes &bounding_box_P,
                 const fastuidraw::TessellatedPath &path,
                 winding_index_hoard &hoard);
 
@@ -400,7 +425,7 @@ namespace
 
   private:
     winding_index_hoard m_hoard;
-    point_hoard m_points;
+    PointHoard m_points;
     bool m_failed;
   };
 
@@ -443,10 +468,21 @@ namespace
   };
 }
 
+/////////////////////////////////////
+// EdgeHoard methods
+bool
+EdgeHoard::
+add_edge(fastuidraw::ivec2 a, fastuidraw::ivec2 b)
+{
+  FASTUIDRAWunused(a);
+  FASTUIDRAWunused(b);
+  return true;
+}
+
 //////////////////////////////////////
-// point_hoard methods
+// PointHoard methods
 unsigned int
-point_hoard::
+PointHoard::
 fetch(const fastuidraw::vec2 &pt)
 {
   std::map<fastuidraw::vec2, unsigned int>::iterator iter;
@@ -472,7 +508,7 @@ fetch(const fastuidraw::vec2 &pt)
 }
 
 void
-point_hoard::
+PointHoard::
 generate_path(const fastuidraw::TessellatedPath &input,
               Path &output, BoundingBoxes &bounding_box_path)
 {
@@ -488,7 +524,7 @@ generate_path(const fastuidraw::TessellatedPath &input,
 }
 
 void
-point_hoard::
+PointHoard::
 add_edge(const fastuidraw::TessellatedPath &input,
          unsigned int o, unsigned int e,
          Path &output,
@@ -503,12 +539,41 @@ add_edge(const fastuidraw::TessellatedPath &input,
 
   for(unsigned int v = R.m_begin; v < R.m_end; ++v, ++cnt, ++total_cnt)
     {
-      fastuidraw::vec2 p;
-      unsigned int I;
+      fastuidraw::vec2 p, prev_p;
+      unsigned int prev_v;
+      ContourPoint cp;
+
+      /* if the edge from the last point to the current point
+         overlaps an edge in m_edge_list, we then adjust the
+         position of this point to make it so that the new
+         edge we add does not overlap as far as GLU-tess is
+         concerned.
+       */
+      if(v == R.m_begin)
+        {
+          unsigned int last_edge;
+          if(e != 0)
+            {
+              last_edge = e - 1;
+            }
+          else
+            {
+              last_edge = input.number_edges(o) - 1;
+            }
+          prev_v = input.edge_range(o, last_edge).m_end - 1;
+        }
+      else
+        {
+          prev_v = v - 1;
+        }
 
       p = pts[v].m_p;
-      I = fetch(p);
-      output.back().push_back(ContourPoint(I, true));
+      prev_p = pts[prev_v].m_p;
+
+      cp.first = fetch(p);
+      cp.second = m_edge_list.add_edge(m_converter.iapply(prev_p), m_converter.iapply(p));
+
+      output.back().push_back(cp);
       boxes.back().union_point(p);
 
       if(cnt == pts_per_box)
@@ -526,7 +591,7 @@ add_edge(const fastuidraw::TessellatedPath &input,
 }
 
 void
-point_hoard::
+PointHoard::
 pre_process_boxes(std::vector<fastuidraw::BoundingBox> &boxes, unsigned int cnt)
 {
   if(cnt <= 4 && boxes.size() > 1)
@@ -543,7 +608,7 @@ pre_process_boxes(std::vector<fastuidraw::BoundingBox> &boxes, unsigned int cnt)
 }
 
 void
-point_hoard::
+PointHoard::
 process_bounding_boxes(const std::vector<fastuidraw::BoundingBox> &in_boxes,
                        BoundingBoxes &bounding_box_path)
 {
@@ -600,7 +665,7 @@ process_bounding_boxes(const std::vector<fastuidraw::BoundingBox> &in_boxes,
 ////////////////////////////////////////
 // tesser methods
 tesser::
-tesser(point_hoard &points):
+tesser(PointHoard &points):
   m_point_count(0),
   m_points(points),
   m_triangulation_failed(false)
@@ -636,13 +701,13 @@ stop(void)
 
 void
 tesser::
-add_contour(const point_hoard::Contour &C)
+add_contour(const PointHoard::Contour &C)
 {
   fastuidraw_gluTessBeginContour(m_tess);
   for(unsigned int v = 0, endv = C.size(); v < endv; ++v)
     {
       fastuidraw::vecN<double, 2> p;
-      point_hoard::ContourPoint I;
+      PointHoard::ContourPoint I;
 
       I = C[v];
       if(I.second)
@@ -661,9 +726,9 @@ add_contour(const point_hoard::Contour &C)
 
 void
 tesser::
-add_path(const point_hoard::Path &P)
+add_path(const PointHoard::Path &P)
 {
-  for(point_hoard::Path::const_iterator iter = P.begin(),
+  for(PointHoard::Path::const_iterator iter = P.begin(),
         end = P.end(); iter != end; ++iter)
     {
       add_contour(*iter);
@@ -672,7 +737,7 @@ add_path(const point_hoard::Path &P)
 
 void
 tesser::
-add_bounding_box_path(const point_hoard::BoundingBoxes &P)
+add_bounding_box_path(const PointHoard::BoundingBoxes &P)
 {
   const unsigned int indices[2][4] =
     {
@@ -691,7 +756,7 @@ add_bounding_box_path(const point_hoard::BoundingBoxes &P)
       }
     };
 
-  for(point_hoard::BoundingBoxes::const_iterator iter = P.begin(),
+  for(PointHoard::BoundingBoxes::const_iterator iter = P.begin(),
         end = P.end(); iter != end; ++iter)
     {
       const fastuidraw::uvec4 &box(*iter);
@@ -768,7 +833,7 @@ add_path_boundary(const fastuidraw::TessellatedPath &P)
       k = src[i];
       if(k & box_max_x_flag)
         {
-          x = slack + static_cast<double>(coordinate_converter::box_dim);
+          x = slack + static_cast<double>(CoordinateConverter::box_dim);
           p.x() = pmax.x();
         }
       else
@@ -779,7 +844,7 @@ add_path_boundary(const fastuidraw::TessellatedPath &P)
 
       if(k & box_max_y_flag)
         {
-          y = slack + static_cast<double>(coordinate_converter::box_dim);
+          y = slack + static_cast<double>(CoordinateConverter::box_dim);
           p.y() = pmax.y();
         }
       else
@@ -923,9 +988,9 @@ winding_callBack(int winding_number, void *tess)
 ///////////////////////////////////
 // non_zero_tesser methods
 non_zero_tesser::
-non_zero_tesser(point_hoard &points,
-                point_hoard::Path &P,
-                point_hoard::BoundingBoxes &bounding_box_P,
+non_zero_tesser(PointHoard &points,
+                PointHoard::Path &P,
+                PointHoard::BoundingBoxes &bounding_box_P,
                 winding_index_hoard &hoard):
   tesser(points),
   m_hoard(hoard),
@@ -973,9 +1038,9 @@ fill_region(int winding_number)
 ///////////////////////////////
 // zero_tesser methods
 zero_tesser::
-zero_tesser(point_hoard &points,
-            point_hoard::Path &P,
-            point_hoard::BoundingBoxes &bounding_box_P,
+zero_tesser(PointHoard &points,
+            PointHoard::Path &P,
+            PointHoard::BoundingBoxes &bounding_box_P,
             const fastuidraw::TessellatedPath &path,
             winding_index_hoard &hoard):
   tesser(points),
@@ -1024,8 +1089,8 @@ builder(const fastuidraw::TessellatedPath &P, std::vector<fastuidraw::vec2> &poi
   m_points(P, points)
 {
   bool failZ, failNZ;
-  point_hoard::Path path;
-  point_hoard::BoundingBoxes bounding_boxes;
+  PointHoard::Path path;
+  PointHoard::BoundingBoxes bounding_boxes;
 
   m_points.generate_path(P, path, bounding_boxes);
   failNZ = non_zero_tesser::execute_path(m_points, path, bounding_boxes, m_hoard);
