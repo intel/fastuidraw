@@ -164,7 +164,8 @@ namespace
   class point_hoard
   {
   public:
-    typedef std::vector<unsigned int> Contour;
+    typedef std::pair<unsigned int, bool> ContourPoint;
+    typedef std::vector<ContourPoint> Contour;
     typedef std::list<Contour> Path;
     typedef std::vector<fastuidraw::uvec4> BoundingBoxes;
 
@@ -197,7 +198,7 @@ namespace
   private:
     void
     pre_process_boxes(std::vector<fastuidraw::BoundingBox> &boxes,
-                    unsigned int cnt);
+                      unsigned int cnt);
 
     void
     process_bounding_boxes(const std::vector<fastuidraw::BoundingBox> &boxes,
@@ -504,7 +505,7 @@ add_edge(const fastuidraw::TessellatedPath &input,
 
       p = pts[v].m_p;
       I = fetch(p);
-      output.back().push_back(I);
+      output.back().push_back(ContourPoint(I, true));
       boxes.back().union_point(p);
 
       if(cnt == pts_per_box)
@@ -637,14 +638,22 @@ tesser::
 add_contour(const point_hoard::Contour &C)
 {
   fastuidraw_gluTessBeginContour(m_tess);
-  for(unsigned int v = 0, endv = C.size(); v < endv; ++v, ++m_point_count)
+  for(unsigned int v = 0, endv = C.size(); v < endv; ++v)
     {
       fastuidraw::vecN<double, 2> p;
-      unsigned int I;
+      point_hoard::ContourPoint I;
 
       I = C[v];
-      p = m_converter.apply(m_points[I], m_point_count);
-      fastuidraw_gluTessVertex(m_tess, p.x(), p.y(), I);
+      if(I.second)
+        {
+          p = m_converter.apply(m_points[I.first], m_point_count);
+          ++m_point_count;
+        }
+      else
+        {
+          p = m_converter.apply(m_points[I.first], 0u);
+        }
+      fastuidraw_gluTessVertex(m_tess, p.x(), p.y(), I.first);
     }
   fastuidraw_gluTessEndContour(m_tess);
 }
