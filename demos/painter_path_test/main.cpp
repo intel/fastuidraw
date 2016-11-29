@@ -638,10 +638,10 @@ update_cts_params(void)
 
 vec2
 painter_stroke_test::
-brush_item_coordinate(ivec2 c)
+brush_item_coordinate(ivec2 scr)
 {
   vec2 p;
-  p = item_coordinates(c);
+  p = item_coordinates(scr);
 
   if(m_matrix_brush)
     {
@@ -657,14 +657,38 @@ brush_item_coordinate(ivec2 c)
 
 vec2
 painter_stroke_test::
-item_coordinates(ivec2 c)
+item_coordinates(ivec2 scr)
 {
-  /* m_zoomer.transformation() gives the transformation
-     from item coordiantes to screen coordinates. We
-     Want the inverse.
+  vec2 p(scr);
+
+  /* unapply m_zoomer
    */
-  vec2 p(c);
-  return m_zoomer.transformation().apply_inverse_to_point(p);
+  p = m_zoomer.transformation().apply_inverse_to_point(p);
+
+  /* unapply m_shear
+   */
+  p /= m_shear;
+
+  /* unapply rotation by m_angle
+   */
+  float s, c, a;
+  float2x2 tr;
+  a = -m_angle * M_PI / 180.0f;
+  s = t_sin(a);
+  c = t_cos(a);
+
+  tr(0, 0) = c;
+  tr(1, 0) = s;
+  tr(0, 1) = -s;
+  tr(1, 1) = c;
+
+  p = tr * p;
+
+  /* unapply m_shear2
+   */
+  p /= m_shear2;
+
+  return p;
 }
 
 void
