@@ -195,8 +195,16 @@ namespace
 
     enum
       {
-        boxes_per_box = 4,
+        /* The cost of each bounding box is 4 edges.
+           The total number of boxes, B, from N points
+           satisfies:
+
+           N / pts_per_box <= B <= N * L / pts_per_box
+
+           where L = boxes_per_box / (boxes_per_box - 1)
+         */
         pts_per_box = 8,
+        boxes_per_box = 4,
       };
 
     explicit
@@ -703,7 +711,7 @@ void
 tesser::
 add_contour(const PointHoard::Contour &C)
 {
-  fastuidraw_gluTessBeginContour(m_tess);
+  fastuidraw_gluTessBeginContour(m_tess, FASTUIDRAW_GLU_TRUE);
   for(unsigned int v = 0, endv = C.size(); v < endv; ++v)
     {
       fastuidraw::vecN<double, 2> p;
@@ -739,70 +747,54 @@ void
 tesser::
 add_bounding_box_path(const PointHoard::BoundingBoxes &P)
 {
-  const unsigned int indices[2][4] =
+  const unsigned int indices[4] =
     {
-      {
-        box_min_x_min_y,
-        box_min_x_max_y,
-        box_max_x_max_y,
-        box_max_x_min_y,
-      },
-
-      {
-        box_max_x_min_y,
-        box_max_x_max_y,
-        box_min_x_max_y,
-        box_min_x_min_y,
-      }
+      box_min_x_min_y,
+      box_min_x_max_y,
+      box_max_x_max_y,
+      box_max_x_min_y,
     };
 
   for(PointHoard::BoundingBoxes::const_iterator iter = P.begin(),
-        end = P.end(); iter != end; ++iter)
+        end = P.end(); iter != end; ++iter, ++m_point_count)
     {
       const fastuidraw::uvec4 &box(*iter);
-      /* we add the box going forward and add the box going
-         backwards. We adjust the point as follows:
+      /* we add the box but tell GLU-tess that the edge does
+         not affect winding counts.
           - for each coordinate seperately, for max side: add m_fudge
           - for each coordinate seperately, for max side: subtract m_fudge
-          - first add in one direction
-          - increment m_fudge
-          - then add in other direction
        */
-      for(unsigned int pass = 0; pass < 2; ++pass,
-            ++m_point_count)
+      fastuidraw_gluTessBeginContour(m_tess, FASTUIDRAW_GLU_FALSE);
+      for(unsigned int i = 0; i < 4; ++i)
         {
-          fastuidraw_gluTessBeginContour(m_tess);
-          for(unsigned int i = 0; i < 4; ++i)
+          unsigned int k;
+          fastuidraw::vecN<double, 2> p;
+          double slack;
+
+          k = indices[i];
+          p = m_points.converter().apply(m_points[box[k]], 0u);
+          slack = static_cast<double>(m_point_count) * m_points.converter().fudge_delta();
+
+          if(k & box_max_x_flag)
             {
-              unsigned int k;
-              fastuidraw::vecN<double, 2> p;
-              double slack;
-
-              k = indices[pass][i];
-              p = m_points.converter().apply(m_points[box[k]], 0u);
-              slack = static_cast<double>(m_point_count) * m_points.converter().fudge_delta();
-
-              if(k & box_max_x_flag)
-                {
-                  p.x() += slack;
-                }
-              else
-                {
-                  p.x() -= slack;
-                }
-
-              if(k & box_max_y_flag)
-                {
-                  p.y() += slack;
-                }
-              else
-                {
-                  p.y() -= slack;
-                }
-              fastuidraw_gluTessVertex(m_tess, p.x(), p.y(), box[k]);
+              p.x() += slack;
             }
-          fastuidraw_gluTessEndContour(m_tess);
+          else
+            {
+              p.x() -= slack;
+            }
+
+          if(k & box_max_y_flag)
+            {
+              p.y() += slack;
+            }
+          else
+            {
+              p.y() -= slack;
+            }
+          fastuidraw_gluTessVertex(m_tess, p.x(), p.y(), box[k]);
         }
+      fastuidraw_gluTessEndContour(m_tess);
     }
 }
 
@@ -822,7 +814,7 @@ add_path_boundary(const fastuidraw::TessellatedPath &P)
   pmin = P.bounding_box_min();
   pmax = P.bounding_box_max();
 
-  fastuidraw_gluTessBeginContour(m_tess);
+  fastuidraw_gluTessBeginContour(m_tess, FASTUIDRAW_GLU_TRUE);
   for(unsigned int i = 0; i < 4; ++i)
     {
       double slack, x, y;
@@ -1252,7 +1244,18 @@ FilledPathPrivate::
 fastuidraw::FilledPath::
 FilledPath(const TessellatedPath &P)
 {
+  struct timeval t0, t1;
+  int64_t delta_us;
+
+  gettimeofday(&t0, NULL);
+
   m_d = FASTUIDRAWnew FilledPathPrivate(P);
+
+  gettimeofday(&t1, NULL);
+  delta_us = time_difference_us(t1, t0);
+  std::cout << "Triangulation time = " << delta_us
+            << " us ( " << delta_us / 1000
+            << " ms)\n";
 }
 
 fastuidraw::FilledPath::

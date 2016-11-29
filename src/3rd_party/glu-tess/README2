@@ -11,3 +11,6 @@ The GLU tessellator found in FASTUIDRAW has been modified from the original sour
    - points provided are 2D only (skip computation of plane and projection)
    - remove malloc.h include due to it being unnecessary
    - changed fastuidraw_GLUtesselator to class to remove warning
+   - a contour can be specied so that edges it adds does not affect winding
+     number computation; useful for stopping tessellator from creating long
+     skinny triangles by adding additional boxes

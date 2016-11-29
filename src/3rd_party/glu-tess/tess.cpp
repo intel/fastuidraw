@@ -243,7 +243,7 @@ static void GotoState( fastuidraw_GLUtesselator *tess, enum TessState newState )
         break;
       case T_IN_POLYGON:
         CALL_ERROR_OR_ERROR_DATA( FASTUIDRAW_GLU_TESS_MISSING_BEGIN_CONTOUR );
-        fastuidraw_gluTessBeginContour( tess );
+        fastuidraw_gluTessBeginContour( tess, FASTUIDRAW_GLU_TRUE );
         break;
       default:
          ;
@@ -429,8 +429,8 @@ static int AddVertex( fastuidraw_GLUtesselator *tess, double x, double y, unsign
    * vertices in such an order that a CCW contour will add +1 to
    * the winding number of the region inside the contour.
    */
-  e->winding = 1;
-  e->Sym->winding = -1;
+  e->winding = tess->edges_real;
+  e->Sym->winding = -tess->edges_real;
 
   tess->lastEdge = e;
 
@@ -445,6 +445,7 @@ static void CacheVertex( fastuidraw_GLUtesselator *tess, double x, double y, uns
   v->client_id = data;
   v->s = x;
   v->t = y;
+  v->real_edge = tess->edges_real;
   ++tess->cacheCount;
 }
 
@@ -453,12 +454,19 @@ static int EmptyCache( fastuidraw_GLUtesselator *tess )
 {
   CachedVertex *v = tess->cache;
   CachedVertex *vLast;
+  int add_return_value, edges_real;
 
   tess->mesh = glu_fastuidraw_gl_meshNewMesh();
   if (tess->mesh == NULL) return 0;
 
+  edges_real = tess->edges_real;
   for( vLast = v + tess->cacheCount; v < vLast; ++v ) {
-    if ( !AddVertex( tess, v->s, v->t, v->client_id ) ) return 0;
+
+    tess->edges_real = v->real_edge;
+    add_return_value = AddVertex( tess, v->s, v->t, v->client_id);
+    tess->edges_real = edges_real;
+
+    if ( !add_return_value ) return 0;
   }
   tess->cacheCount = 0;
   tess->emptyCache = FALSE;
@@ -533,7 +541,7 @@ fastuidraw_gluTessBeginPolygon( fastuidraw_GLUtesselator *tess, void *data )
 
 
 void REGALFASTUIDRAW_GLU_CALL
-fastuidraw_gluTessBeginContour( fastuidraw_GLUtesselator *tess )
+fastuidraw_gluTessBeginContour( fastuidraw_GLUtesselator *tess, FASTUIDRAW_GLUboolean contour_real )
 {
   RequireState( tess, T_IN_POLYGON );
 
@@ -545,6 +553,13 @@ fastuidraw_gluTessBeginContour( fastuidraw_GLUtesselator *tess )
      * NextContour() interface.
      */
     tess->emptyCache = TRUE;
+  }
+
+  if(contour_real) {
+    tess->edges_real = 1;
+  }
+  else {
+    tess->edges_real = 0;
   }
 }
 

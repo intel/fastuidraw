@@ -57,6 +57,7 @@ enum TessState { T_DORMANT, T_IN_POLYGON, T_IN_CONTOUR };
 typedef struct CachedVertex {
   double        s, t;
   unsigned int  client_id;
+  int real_edge;
 } CachedVertex;
 
 class fastuidraw_GLUtesselator {
@@ -124,6 +125,10 @@ public:
   /*for tracking tessellation creation, only active in debug
    */
   void *fastuidraw_alloc_tracker;
+
+  /*value is 1 if current contour getting added affects winding, 0 if it should not
+   */
+  int edges_real;
 };
 
 void REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noBeginData( FASTUIDRAW_GLUenum type, int winding_number, void *polygonData );

@@ -203,7 +203,7 @@ fastuidraw_gluNewTess_release(void);
 #endif
 
 
-void fastuidraw_gluTessBeginContour (fastuidraw_GLUtesselator* tess);
+void fastuidraw_gluTessBeginContour (fastuidraw_GLUtesselator* tess, FASTUIDRAW_GLUboolean contour_real);
 void fastuidraw_gluTessBeginPolygon (fastuidraw_GLUtesselator* tess, void* data);
 void fastuidraw_gluTessEndContour (fastuidraw_GLUtesselator* tess);
 void fastuidraw_gluTessEndPolygon (fastuidraw_GLUtesselator* tess);
