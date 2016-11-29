@@ -79,52 +79,66 @@ namespace
     return (v % 2) == 0;
   }
 
+  /* Coordinate converter's purpose is to remap
+     the bounding box of a fastuidraw::TessellatedPath
+     to [0, 2 ^ N] x [0,  2 ^ N]
+     and then apply a fudge offset to the point
+     that an fp64 sees but an fp32 does not.
+
+     We do this to allow for the input TessellatedPath
+     to have overlapping edges. The value for the
+     fudge offset is to be incremented on each point.
+
+     An fp32 has a 23-bit significand that allows it
+     to represent any integer in the range [-2^24, 2^24]
+     exactly. An fp64 has a 52 bit significand. The amount
+
+     We set N to be 24 and the fudginess to be 2^-24
+     (leaving 2-bits of slack).
+   */
   class coordinate_converter
   {
   public:
-    coordinate_converter(void):
-      m_scale(1.0f, 1.0f),
-      m_translate(0.0f, 0.0f)
-    {}
+    enum
+      {
+        log2_box_dim = 24,
+        negative_log2_fudge = 24,
+        box_dim = (1 << log2_box_dim),
+      };
 
     explicit
     coordinate_converter(const fastuidraw::TessellatedPath &P)
     {
-      set_from_path(P);
-    }
+      fastuidraw::vec2 delta, pmin, pmax;
 
-    /* Set to transform a bounding box M
-       to [1, 2] x [1, 2]
-     */
-    void
-    set_from_bounding_box(const fastuidraw::vec2 &pmin,
-                          const fastuidraw::vec2 &pmax)
-    {
-      fastuidraw::vec2 delta;
-      delta = pmax - pmin;
-      m_scale = fastuidraw::vec2(1.0f, 1.0f) / delta;
-
-      /* formulate: out = (in - pmin) / delta + 1.0
-                        = in / delta + (-pmin / delta + 1.0)
-       */
-      m_translate = fastuidraw::vec2(1.0f, 1.0f) - pmin / delta;
-    }
-
-    void
-    set_from_path(const fastuidraw::TessellatedPath &P)
-    {
-      fastuidraw::vec2 pmin, pmax;
       pmin = P.bounding_box_min();
       pmax = P.bounding_box_max();
-      set_from_bounding_box(pmin, pmax);
+      delta = pmax - pmin;
+      m_scale = fastuidraw::vec2(1.0f, 1.0f) / delta;
+      m_scale *= float(box_dim);
+      m_translate = pmin;
     }
 
-    fastuidraw::vec2
-    apply(const fastuidraw::vec2 &pt) const
+    fastuidraw::vecN<double, 2>
+    apply(const fastuidraw::vec2 &pt, double fudge) const
     {
-      return m_scale * pt + m_translate;
+      fastuidraw::vecN<double, 2> r;
+      fastuidraw::vec2 q;
+
+      q = m_scale * (pt - m_translate);
+      r.x() = fudge + static_cast<double>(q.x());
+      r.y() = fudge + static_cast<double>(q.y());
+      return r;
     }
 
+    static
+    double
+    compute_fudge_delta(void)
+    {
+      return ::exp2(static_cast<double>(-negative_log2_fudge));
+    }
+
+  private:
     fastuidraw::vec2 m_scale, m_translate;
   };
 
@@ -592,40 +606,9 @@ tesser(point_hoard &points,
   fastuidraw_gluTessCallbackFillRule(m_tess, &winding_callBack);
   fastuidraw_gluTessPropertyBoundaryOnly(m_tess, FASTUIDRAW_GLU_FALSE);
 
-  /* We add a fudge value to each points coordinate
-     when we add points from the path. That value
-     is incremented by m_delta_fudge on each point.
-     The reason for adding the fudge is so that if
-     the input path has overlapping edges, then the
-     data passed to the GLU-tessellator does NOT.
-     The GLU-tessellator uses doubles, we use floats.
-     Thus to make the fudge never show up, we just need
-     to make sure that the amount by which we add is
-     dropped off when we convert back to float. The
-     value of m_converter makes the points we feed
-     to the tessellator in the range [1, 2]. This
-     forces a value (1 + t) to be store as:
-       - 0 for exponent
-       - integer(t * 2^N)
-     where N is the number of significand bits. For
-     double, N is 52. For float, N is 23. Thus as long
-     as m_fudge is smaller than 2^-24, it is dropped
-     from floats. We set the value as 2^-49, which
-     gives 2^24 points before the fudge could show
-     up in a float. If we have that many points, we
-     then roll back to zero.
-
-     TODO: it might be possible to craft points in
-     very careful order to trigger overlapping edges.
-     However, such edges are NOT parallel the x-axis
-     or y-axis, which is the most common case to handle.
-     Might be better to use a noise function applied
-     to the points where the output value is in the
-     range of [2^-25, 2^-49].
-   */
-  m_delta_fudge = ::exp2(-49.0);
+  m_delta_fudge = coordinate_converter::compute_fudge_delta();
   m_fudge = m_boundary_fudge = m_delta_fudge;
-  m_max_fudge_count = (1u << 24u);
+  m_max_fudge_count = (1u << coordinate_converter::negative_log2_fudge);
 }
 
 tesser::
@@ -657,15 +640,12 @@ add_contour(const point_hoard::Contour &C)
   for(unsigned int v = 0, endv = C.size(); v < endv; ++v,
         m_boundary_fudge += m_delta_fudge, m_fudge += m_delta_fudge, ++m_point_count)
     {
-      fastuidraw::vec2 p;
-      double x, y;
+      fastuidraw::vecN<double, 2> p;
       unsigned int I;
 
       I = C[v];
-      p = m_converter.apply(m_points[I]);
-      x = p.x() + m_fudge;
-      y = p.y() + m_fudge;
-      fastuidraw_gluTessVertex(m_tess, x, y, I);
+      p = m_converter.apply(m_points[I], m_fudge);
+      fastuidraw_gluTessVertex(m_tess, p.x(), p.y(), I);
       if(m_point_count == m_max_fudge_count)
         {
           assert(false);
@@ -729,33 +709,30 @@ add_bounding_box_path(const point_hoard::BoundingBoxes &P)
           for(unsigned int i = 0; i < 4; ++i)
             {
               unsigned int k;
-              fastuidraw::vec2 p;
-              double x, y;
+              fastuidraw::vecN<double, 2> p;
               const double slack(m_fudge);
 
               k = indices[pass][i];
-              p = m_converter.apply(m_points[box[k]]);
-              x = p.x();
-              y = p.y();
+              p = m_converter.apply(m_points[box[k]], 0.0);
 
               if(k & box_max_x_flag)
                 {
-                  x += slack;
+                  p.x() += slack;
                 }
               else
                 {
-                  x -= slack;
+                  p.x() -= slack;
                 }
 
               if(k & box_max_y_flag)
                 {
-                  y += slack;
+                  p.y() += slack;
                 }
               else
                 {
-                  y -= slack;
+                  p.y() -= slack;
                 }
-              fastuidraw_gluTessVertex(m_tess, x, y, box[k]);
+              fastuidraw_gluTessVertex(m_tess, p.x(), p.y(), box[k]);
             }
           fastuidraw_gluTessEndContour(m_tess);
         }
@@ -788,23 +765,23 @@ add_path_boundary(const fastuidraw::TessellatedPath &P)
       k = src[i];
       if(k & box_max_x_flag)
         {
-          x = m_boundary_fudge + 2.0;
+          x = m_boundary_fudge + static_cast<double>(coordinate_converter::box_dim);
           p.x() = pmax.x();
         }
       else
         {
-          x = -m_boundary_fudge + 1.0;
+          x = -m_boundary_fudge;
           p.x() = pmin.x();
         }
 
       if(k & box_max_y_flag)
         {
-          y = m_boundary_fudge + 2.0;
+          y = m_boundary_fudge + static_cast<double>(coordinate_converter::box_dim);
           p.y() = pmax.y();
         }
       else
         {
-          y = -m_boundary_fudge + 1.0;
+          y = -m_boundary_fudge;
           p.y() = pmin.y();
         }
       fastuidraw_gluTessVertex(m_tess, x, y, m_points.fetch(p));
