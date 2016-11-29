@@ -29,6 +29,7 @@
 #include <fastuidraw/painter/painter_attribute_data.hpp>
 #include <fastuidraw/painter/painter_attribute_data_filler_path_fill.hpp>
 #include "../private/util_private.hpp"
+#include "../private/util_private_ostream.hpp"
 #include "../private/bounding_box.hpp"
 #include "../../3rd_party/glu-tess/glu-tess.hpp"
 
@@ -91,10 +92,15 @@ namespace
 
      An fp32 has a 23-bit significand that allows it
      to represent any integer in the range [-2^24, 2^24]
-     exactly. An fp64 has a 52 bit significand. The amount
+     exactly. An fp64 has a 52 bit significand.
 
-     We set N to be 24 and the fudginess to be 2^-24
-     (leaving 2-bits of slack).
+     We set N to be 24 and the fudginess to be 2^-20
+     (leaving 9-bits for GLU to use for intersections).
+
+     TODO: Incrementing the amount by which to apply
+     fudge is not the correct thing to do. Rather, we
+     should only increment and apply fudge on overlapping
+     and degenerate edges.
    */
   class coordinate_converter
   {
@@ -102,7 +108,7 @@ namespace
     enum
       {
         log2_box_dim = 24,
-        negative_log2_fudge = 24,
+        negative_log2_fudge = 20,
         box_dim = (1 << log2_box_dim),
       };
 
@@ -117,28 +123,31 @@ namespace
       m_scale = fastuidraw::vec2(1.0f, 1.0f) / delta;
       m_scale *= float(box_dim);
       m_translate = pmin;
+      m_delta_fudge = ::exp2(static_cast<double>(-negative_log2_fudge));
     }
 
     fastuidraw::vecN<double, 2>
-    apply(const fastuidraw::vec2 &pt, double fudge) const
+    apply(const fastuidraw::vec2 &pt, unsigned int fudge_count) const
     {
       fastuidraw::vecN<double, 2> r;
       fastuidraw::vec2 q;
+      double fudge;
 
       q = m_scale * (pt - m_translate);
+      fudge = static_cast<double>(fudge_count) * m_delta_fudge;
       r.x() = fudge + static_cast<double>(q.x());
       r.y() = fudge + static_cast<double>(q.y());
       return r;
     }
 
-    static
     double
-    compute_fudge_delta(void)
+    fudge_delta(void) const
     {
-      return ::exp2(static_cast<double>(-negative_log2_fudge));
+      return m_delta_fudge;
     }
 
   private:
+    double m_delta_fudge;
     fastuidraw::vec2 m_scale, m_translate;
   };
 
@@ -277,8 +286,7 @@ namespace
     temp_verts_non_degenerate_triangle(void);
 
     coordinate_converter m_converter;
-    double m_fudge, m_boundary_fudge, m_delta_fudge;
-    unsigned int m_point_count, m_max_fudge_count;
+    unsigned int m_point_count;
     fastuidraw_GLUtesselator *m_tess;
     point_hoard &m_points;
     fastuidraw::vecN<unsigned int, 3> m_temp_verts;
@@ -605,10 +613,6 @@ tesser(point_hoard &points,
   fastuidraw_gluTessCallbackCombine(m_tess, &combine_callback);
   fastuidraw_gluTessCallbackFillRule(m_tess, &winding_callBack);
   fastuidraw_gluTessPropertyBoundaryOnly(m_tess, FASTUIDRAW_GLU_FALSE);
-
-  m_delta_fudge = coordinate_converter::compute_fudge_delta();
-  m_fudge = m_boundary_fudge = m_delta_fudge;
-  m_max_fudge_count = (1u << coordinate_converter::negative_log2_fudge);
 }
 
 tesser::
@@ -637,21 +641,14 @@ tesser::
 add_contour(const point_hoard::Contour &C)
 {
   fastuidraw_gluTessBeginContour(m_tess);
-  for(unsigned int v = 0, endv = C.size(); v < endv; ++v,
-        m_boundary_fudge += m_delta_fudge, m_fudge += m_delta_fudge, ++m_point_count)
+  for(unsigned int v = 0, endv = C.size(); v < endv; ++v, ++m_point_count)
     {
       fastuidraw::vecN<double, 2> p;
       unsigned int I;
 
       I = C[v];
-      p = m_converter.apply(m_points[I], m_fudge);
+      p = m_converter.apply(m_points[I], m_point_count);
       fastuidraw_gluTessVertex(m_tess, p.x(), p.y(), I);
-      if(m_point_count == m_max_fudge_count)
-        {
-          assert(false);
-          m_fudge = 0.0;
-          m_max_fudge_count = 0;
-        }
     }
   fastuidraw_gluTessEndContour(m_tess);
 }
@@ -701,8 +698,6 @@ add_bounding_box_path(const point_hoard::BoundingBoxes &P)
           - then add in other direction
        */
       for(unsigned int pass = 0; pass < 2; ++pass,
-            m_boundary_fudge += m_delta_fudge,
-            m_fudge += m_delta_fudge,
             ++m_point_count)
         {
           fastuidraw_gluTessBeginContour(m_tess);
@@ -710,10 +705,11 @@ add_bounding_box_path(const point_hoard::BoundingBoxes &P)
             {
               unsigned int k;
               fastuidraw::vecN<double, 2> p;
-              const double slack(m_fudge);
+              double slack;
 
               k = indices[pass][i];
-              p = m_converter.apply(m_points[box[k]], 0.0);
+              p = m_converter.apply(m_points[box[k]], 0u);
+              slack = static_cast<double>(m_point_count) * m_converter.fudge_delta();
 
               if(k & box_max_x_flag)
                 {
@@ -758,30 +754,31 @@ add_path_boundary(const fastuidraw::TessellatedPath &P)
   fastuidraw_gluTessBeginContour(m_tess);
   for(unsigned int i = 0; i < 4; ++i)
     {
-      double x, y;
+      double slack, x, y;
       unsigned int k;
       fastuidraw::vec2 p;
 
+      slack = static_cast<double>(m_point_count) * m_converter.fudge_delta();
       k = src[i];
       if(k & box_max_x_flag)
         {
-          x = m_boundary_fudge + static_cast<double>(coordinate_converter::box_dim);
+          x = slack + static_cast<double>(coordinate_converter::box_dim);
           p.x() = pmax.x();
         }
       else
         {
-          x = -m_boundary_fudge;
+          x = -slack;
           p.x() = pmin.x();
         }
 
       if(k & box_max_y_flag)
         {
-          y = m_boundary_fudge + static_cast<double>(coordinate_converter::box_dim);
+          y = slack + static_cast<double>(coordinate_converter::box_dim);
           p.y() = pmax.y();
         }
       else
         {
-          y = -m_boundary_fudge;
+          y = -slack;
           p.y() = pmin.y();
         }
       fastuidraw_gluTessVertex(m_tess, x, y, m_points.fetch(p));
@@ -896,7 +893,6 @@ combine_callback(double x, double y, unsigned int data[4],
   p = static_cast<tesser*>(tess);
   for(unsigned int i = 0; i < 4; ++i)
     {
-      assert(data[i] != FASTUIDRAW_GLU_NULL_CLIENT_ID);
       if(data[i] != FASTUIDRAW_GLU_NULL_CLIENT_ID)
         {
           pt += float(weight[i]) * p->m_points[data[i]];
