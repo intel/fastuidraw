@@ -124,6 +124,8 @@ namespace
       m_scale *= static_cast<double>(box_dim);
       m_translate = pmin;
       m_delta_fudge = ::exp2(static_cast<double>(-negative_log2_fudge));
+      m_scale_f = fastuidraw::vec2(m_scale);
+      m_translate_f = fastuidraw::vec2(m_translate);
     }
 
     fastuidraw::vecN<double, 2>
@@ -142,10 +144,10 @@ namespace
     fastuidraw::ivec2
     iapply(const fastuidraw::vec2 &pt) const
     {
-      fastuidraw::vecN<double, 2> r, qt(pt);
+      fastuidraw::vec2 r;
       fastuidraw::ivec2 return_value;
 
-      r = m_scale * (qt - m_translate);
+      r = m_scale_f * (pt - m_translate_f);
       return_value.x() = static_cast<int>(r.x());
       return_value.y() = static_cast<int>(r.y());
       return return_value;
@@ -160,6 +162,7 @@ namespace
   private:
     double m_delta_fudge;
     fastuidraw::vecN<double, 2> m_scale, m_translate;
+    fastuidraw::vec2 m_scale_f, m_translate_f;
   };
 
   enum
@@ -252,7 +255,7 @@ namespace
 
     CoordinateConverter m_converter;
     EdgeHoard m_edge_list;
-    std::map<fastuidraw::vec2, unsigned int> m_map;
+    std::map<fastuidraw::ivec2, unsigned int> m_map;
     std::vector<fastuidraw::vec2> &m_pts;
   };
 
@@ -493,24 +496,21 @@ unsigned int
 PointHoard::
 fetch(const fastuidraw::vec2 &pt)
 {
-  std::map<fastuidraw::vec2, unsigned int>::iterator iter;
+  std::map<fastuidraw::ivec2, unsigned int>::iterator iter;
+  fastuidraw::ivec2 ipt;
   unsigned int return_value;
 
-  iter = m_map.find(pt);
+  ipt = m_converter.iapply(pt);
+  iter = m_map.find(ipt);
   if(iter != m_map.end())
     {
       return_value = iter->second;
     }
   else
     {
-      /* TODO: have an error allowance and use
-         lower_bound(pt - error) and upper_bound(pt + error)
-         which will give a range of iterators that one
-         could/should find pt.
-       */
       return_value = m_pts.size();
       m_pts.push_back(pt);
-      m_map[pt] = return_value;
+      m_map[ipt] = return_value;
     }
   return return_value;
 }
