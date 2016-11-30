@@ -591,13 +591,13 @@ public:
   enum join_chunk_choice_t
     {
       /*!
-        For both edges and joins, chunk to use for data without
+        For joins, chunk to use for data without
         closing edge
        */
       join_chunk_without_closing_edge,
 
       /*!
-        For both edges and joins, chunk to use for data with
+        For joins, chunk to use for data with
         closing edge
        */
       join_chunk_with_closing_edge,
@@ -656,10 +656,14 @@ public:
     \param clip_matrix_local 3x3 transformation from local (x, y, 1)
                              coordinates to clip coordinates.
     \param recip_dimensions holds the reciprocal of the dimensions of the viewport
+    \param pixels_additional_room amount in -pixels- to push clip equations by
+                                  to grab additional edges
+    \param item_space_additional_room amount in local coordinates to push clip
+                                 equations by to grab additional edges
     \param include_closing_edges if true include the chunks needed to
                                  draw the closing edges of each contour
     \param dst[output] location to which to write the what chunks
-    \returns the number of chunks that intersect the bounding box,
+    \returns the number of chunks that intersect the clipping region,
              that number is guarnanteed to be no more than maximum_edge_chunks().
    */
   unsigned int
@@ -680,7 +684,7 @@ public:
   maximum_edge_chunks(void) const;
 
   /*!
-    Gives the maximum value for point::m_depth for all
+    Gives the maximum value for point::depth() for all
     edges of a stroked path.
     \param include_closing_edges if false, disclude the closing
                                  edges from the maximum value.

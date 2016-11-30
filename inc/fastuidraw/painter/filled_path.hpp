@@ -22,7 +22,9 @@
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/painter/painter_enums.hpp>
 
 namespace fastuidraw  {
 
@@ -46,6 +48,56 @@ class FilledPath:
 {
 public:
   /*!
+    A Subset represents a handle to a portion of a FilledPath.
+    The handle is invalid once the FilledPath from which it
+    comes goes out of scope. Do not save these handle values.
+   */
+  class Subset
+  {
+  public:
+    const PainterAttributeData&
+    painter_data(void) const;
+
+    /*!
+      Returns an array listing what winding number values
+      there are triangle in this Subset. To get the indices
+      for those triangle with winding number N = winding_numbers()[k],
+      pass k to PainterAttributeData::index_chunks() called
+      on the PainterAttributeData returned by painter_data().
+      The same attribute chunk, 0, is used regardless of which
+      index chunk.
+    */
+    const_c_array<int>
+    winding_numbers(void) const;
+
+    /*!
+      Returns what chunk to pass PainterAttributeData::index_chunks()
+      called on the PainterAttributeData returned by painter_data()
+      to get the triangles of a specified winding number.
+     */
+    static
+    unsigned int
+    chunk_from_winding_number(int w);
+
+    /*!
+      Returns what chunk to pass PainterAttributeData::index_chunks()
+      called on the PainterAttributeData returned by painter_data()
+      to get the triangles of a specified fill rule.
+     */
+    static
+    unsigned int
+    chunk_from_fill_rule(enum PainterEnums::fill_rule_t fill_rule);
+
+  private:
+    friend class FilledPath;
+
+    explicit
+    Subset(void *d);
+
+    void *m_d;
+  };
+
+  /*!
     Ctor. Construct a FilledPath from the data
     of a TessellatedPath.
     \param P source TessellatedPath
@@ -56,70 +108,33 @@ public:
   ~FilledPath();
 
   /*!
-    Returns the points of the FilledPath
+    Returns the number of Subset objects of the FilledPath.
    */
-  const_c_array<vec2>
-  points(void) const;
+  unsigned int
+  number_subsets(void) const;
 
   /*!
-    Returns an array listing what winding number values
-    for which indices() will return a non-empty
-    array. The array is sorted in ascending order.
+    Return the named Subset object of the FilledPath.
    */
-  const_c_array<int>
-  winding_numbers(void) const;
+  Subset
+  subset(unsigned int I) const;
 
   /*!
-    Return indices into points() to draw
-    triangles of the FilledPath of a given
-    winding number.
-   */
-  const_c_array<unsigned int>
-  indices(int winding_number) const;
+    Fetch those Subset objects that have triangles that
+    intersect a region specified by clip equations.
+    \param scratch_space scratch space for computations.
+    \param clip_equations array of clip equations
+    \param clip_matrix_local 3x3 transformation from local (x, y, 1)
+                             coordinates to clip coordinates.
+    \param dst[output] location to which to write the what SubSets
+    \returns the number of chunks that intersect the clipping region,
+             that number is guarnanteed to be no more than number_subsets().
 
-  /*!
-    Returns indices into points() to draw
-    triangles of the FilledPath with non-zero
-    winding number.
    */
-  const_c_array<unsigned int>
-  nonzero_winding_indices(void) const;
-
-  /*!
-    Returns indices into points() to draw
-    triangles of the FilledPath with an
-    odd winding number.
-   */
-  const_c_array<unsigned int>
-  odd_winding_indices(void) const;
-
-  /*!
-    Returns indices into points() to draw
-    triangles of the FilledPath with zero
-    winding number. The unbounded portion is
-    realized as bounded by the bounding box of
-    the creating TessellatedPath.
-   */
-  const_c_array<unsigned int>
-  zero_winding_indices(void) const;
-
-  /*!
-    Returns indices into points() to draw
-    triangles of the FilledPath with even
-    winding number. The unbounded portion is
-    realized as bounded by the bounding box of
-    the creating TessellatedPath.
-   */
-  const_c_array<unsigned int>
-  even_winding_indices(void) const;
-
-  /*!
-    Returns data that can be passed to a PainterPacker
-    to fill a path.
-   */
-  const PainterAttributeData&
-  painter_data(void) const;
-
+  unsigned int
+  select_subsets(const_c_array<vec3> clip_equations,
+                 const float3x3 &clip_matrix_local,
+                 c_array<unsigned int> dst) const;
 private:
   void *m_d;
 };

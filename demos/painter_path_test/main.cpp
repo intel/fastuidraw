@@ -916,7 +916,7 @@ handle_event(const SDL_Event &ev)
                 {
                   const_c_array<int> wnd;
                   int value;
-                  wnd = m_path.tessellation()->filled()->winding_numbers();
+                  wnd = m_path.tessellation()->filled()->subset(0).winding_numbers();
                   value = wnd[m_fill_rule - PainterEnums::fill_rule_data_count];
                   std::cout << "Fill rule set to custom fill rule: winding_number == "
                             << value << "\n";
@@ -1347,7 +1347,7 @@ draw_frame(void)
           const_c_array<int> wnd;
           int value;
 
-          wnd = m_path.tessellation()->filled()->winding_numbers();
+          wnd = m_path.tessellation()->filled()->subset(0).winding_numbers();
           value = wnd[m_fill_rule - PainterEnums::fill_rule_data_count];
 
           if(m_fill_by_clipping)
@@ -1519,7 +1519,7 @@ derived_init(int w, int h)
   create_stroked_path_attributes();
   construct_color_stops();
   construct_dash_patterns();
-  m_end_fill_rule = m_path.tessellation()->filled()->winding_numbers().size() + PainterEnums::fill_rule_data_count;
+  m_end_fill_rule = m_path.tessellation()->filled()->subset(0).winding_numbers().size() + PainterEnums::fill_rule_data_count;
 
   /* set transformation to center and contain path.
    */

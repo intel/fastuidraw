@@ -664,7 +664,7 @@ namespace fastuidraw
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
-              const PainterAttributeData &data, enum PainterEnums::fill_rule_t fill_rule,
+              const FilledPath &data, enum PainterEnums::fill_rule_t fill_rule,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -704,7 +704,7 @@ namespace fastuidraw
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
-              const PainterAttributeData &data, const CustomFillRuleBase &fill_rule,
+              const FilledPath &data, const CustomFillRuleBase &fill_rule,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!

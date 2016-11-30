@@ -528,7 +528,7 @@ namespace
   class PainterWorkRoom
   {
   public:
-    std::vector<unsigned int> m_selector;
+    std::vector<unsigned int> m_selector, m_subset_selector;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_index_chunks;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_attrib_chunks;
     std::vector<int> m_index_adjusts;
@@ -1809,18 +1809,37 @@ stroke_dashed_path_pixel_width(const PainterData &draw, const Path &path,
 void
 fastuidraw::Painter::
 fill_path(const PainterFillShader &shader, const PainterData &draw,
-          const PainterAttributeData &data, enum PainterEnums::fill_rule_t fill_rule,
+          const FilledPath &filled_path, enum PainterEnums::fill_rule_t fill_rule,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  unsigned int idx_chunk, atr_chunk;
-  idx_chunk = shader.chunk_selector()->chunk_from_fill_rule(fill_rule);
-  atr_chunk = (shader.chunk_selector()->common_attribute_data()) ? 0 : idx_chunk;
+  PainterPrivate *d;
+  unsigned int idx_chunk, atr_chunk, num_subsets;
 
-  draw_generic(shader.item_shader(), draw,
-               data.attribute_data_chunk(atr_chunk),
-               data.index_data_chunk(idx_chunk),
-               data.index_adjust_chunk(idx_chunk),
-               call_back);
+  d = reinterpret_cast<PainterPrivate*>(m_d);
+  if(d->m_clip_rect_state.m_all_content_culled)
+    {
+      return;
+    }
+
+  idx_chunk = FilledPath::Subset::chunk_from_fill_rule(fill_rule);
+  atr_chunk = 0;
+
+  d->m_work_room.m_subset_selector.resize(filled_path.number_subsets());
+  num_subsets = filled_path.select_subsets(d->m_clip_store.current(),
+                                           d->m_clip_rect_state.item_matrix(),
+                                           make_c_array(d->m_work_room.m_subset_selector));
+  for(unsigned int i = 0; i < num_subsets; ++i)
+    {
+      unsigned int s(d->m_work_room.m_subset_selector[i]);
+      FilledPath::Subset subset(filled_path.subset(s));
+      const PainterAttributeData &data(subset.painter_data());
+
+      draw_generic(shader.item_shader(), draw,
+                   data.attribute_data_chunk(atr_chunk),
+                   data.index_data_chunk(idx_chunk),
+                   data.index_adjust_chunk(idx_chunk),
+                   call_back);
+    }
 }
 
 void
@@ -1834,7 +1853,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
 
   d = reinterpret_cast<PainterPrivate*>(m_d);
   thresh = d->select_path_thresh(path);
-  fill_path(shader, draw, path.tessellation(thresh)->filled()->painter_data(), fill_rule, call_back);
+  fill_path(shader, draw, *path.tessellation(thresh)->filled(), fill_rule, call_back);
 }
 
 void
@@ -1848,78 +1867,67 @@ fill_path(const PainterData &draw, const Path &path, enum PainterEnums::fill_rul
 void
 fastuidraw::Painter::
 fill_path(const PainterFillShader &shader, const PainterData &draw,
-          const PainterAttributeData &data, const CustomFillRuleBase &fill_rule,
+          const FilledPath &filled_path, const CustomFillRuleBase &fill_rule,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
+  unsigned int num_subsets;
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
 
+  d = reinterpret_cast<PainterPrivate*>(m_d);
   if(d->m_clip_rect_state.m_all_content_culled)
     {
       return;
     }
 
-  bool common_attribs;
-  common_attribs = shader.chunk_selector()->common_attribute_data();
+  d->m_work_room.m_subset_selector.resize(filled_path.number_subsets());
+  num_subsets = filled_path.select_subsets(d->m_clip_store.current(),
+                                           d->m_clip_rect_state.item_matrix(),
+                                           make_c_array(d->m_work_room.m_subset_selector));
 
+  d->m_work_room.m_attrib_chunks.clear();
   d->m_work_room.m_index_chunks.clear();
   d->m_work_room.m_index_adjusts.clear();
-  d->m_work_room.m_attrib_chunks.clear();
   d->m_work_room.m_selector.clear();
 
-  /* walk through what winding numbers are non-empty.
-   */
-  const_c_array<unsigned int> chks(data.non_empty_index_data_chunks());
-  for(unsigned int i = 0; i < chks.size(); ++i)
+  for(unsigned int i = 0; i < num_subsets; ++i)
     {
-      unsigned int k;
-      int winding_number;
+      unsigned int s(d->m_work_room.m_subset_selector[i]);
+      FilledPath::Subset subset(filled_path.subset(s));
+      const PainterAttributeData &data(subset.painter_data());
+      const_c_array<fastuidraw::PainterAttribute> attrib_chunk;
+      unsigned int attrib_selector_value;
 
-      k = chks[i];
-      if(shader.chunk_selector()->winding_number_from_chunk(k, winding_number))
+      attrib_selector_value = d->m_work_room.m_attrib_chunks.size();
+      attrib_chunk = data.attribute_data_chunk(0);
+      d->m_work_room.m_attrib_chunks.push_back(attrib_chunk);
+
+      for(const_c_array<int>::iterator iter = subset.winding_numbers().begin(),
+            end = subset.winding_numbers().end(); iter != end; ++iter)
         {
+          int winding_number(*iter);
           if(fill_rule(winding_number))
             {
-              const_c_array<PainterIndex> chunk;
-              assert(!data.index_data_chunk(k).empty());
-              chunk = data.index_data_chunk(k);
-              d->m_work_room.m_index_chunks.push_back(chunk);
-              d->m_work_room.m_index_adjusts.push_back(data.index_adjust_chunk(k));
-              if(common_attribs)
-                {
-                  d->m_work_room.m_selector.push_back(0);
-                }
-              else
-                {
-                  const_c_array<PainterAttribute> attr_chunk;
-                  attr_chunk = data.attribute_data_chunk(k);
-                  d->m_work_room.m_attrib_chunks.push_back(attr_chunk);
-                }
+              const_c_array<PainterIndex> index_chunk;
+              int chunk;
+
+              chunk = FilledPath::Subset::chunk_from_winding_number(winding_number);
+              index_chunk = data.index_data_chunk(chunk);
+              d->m_work_room.m_selector.push_back(attrib_selector_value);
+              d->m_work_room.m_index_chunks.push_back(index_chunk);
+              d->m_work_room.m_index_adjusts.push_back(data.index_adjust_chunk(chunk));
             }
         }
     }
 
   if(!d->m_work_room.m_index_chunks.empty())
     {
-      if(common_attribs)
-        {
-          draw_generic(shader.item_shader(), draw,
-                       data.attribute_data_chunks(),
-                       make_c_array(d->m_work_room.m_index_chunks),
-                       make_c_array(d->m_work_room.m_index_adjusts),
-                       make_c_array(d->m_work_room.m_selector),
-                       call_back);
-        }
-      else
-        {
-          draw_generic(shader.item_shader(), draw,
-                       make_c_array(d->m_work_room.m_attrib_chunks),
-                       make_c_array(d->m_work_room.m_index_chunks),
-                       make_c_array(d->m_work_room.m_index_adjusts),
-                       call_back);
-        }
+      draw_generic(shader.item_shader(), draw,
+                   make_c_array(d->m_work_room.m_attrib_chunks),
+                   make_c_array(d->m_work_room.m_index_chunks),
+                   make_c_array(d->m_work_room.m_index_adjusts),
+                   make_c_array(d->m_work_room.m_selector),
+                   call_back);
     }
-
 }
 
 void
@@ -1933,7 +1941,7 @@ fill_path(const PainterFillShader &shader,
 
   d = reinterpret_cast<PainterPrivate*>(m_d);
   thresh = d->select_path_thresh(path);
-  fill_path(shader, draw, path.tessellation(thresh)->filled()->painter_data(), fill_rule, call_back);
+  fill_path(shader, draw, *path.tessellation(thresh)->filled(), fill_rule, call_back);
 }
 
 void

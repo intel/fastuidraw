@@ -24,7 +24,6 @@ namespace
   {
   public:
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_item_shader;
-    fastuidraw::reference_counted_ptr<fastuidraw::WindingSelectorChunkBase> m_chunk_selector;
   };
 }
 
@@ -88,5 +87,4 @@ operator=(const PainterFillShader &rhs)
   }
 
 setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, item_shader)
-setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::WindingSelectorChunkBase>&, chunk_selector)
 #undef setget_implement

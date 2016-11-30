@@ -27,7 +27,6 @@
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/painter/filled_path.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
-#include <fastuidraw/painter/painter_attribute_data_filler_path_fill.hpp>
 #include "../private/util_private.hpp"
 #include "../private/util_private_ostream.hpp"
 #include "../private/bounding_box.hpp"
@@ -440,6 +439,72 @@ namespace
     bool m_failed;
   };
 
+  class AttributeDataFiller:public fastuidraw::PainterAttributeDataFiller
+  {
+  public:
+    std::vector<fastuidraw::vec2> m_points;
+
+    /* Carefully organize indices as follows:
+       - first all elements with odd winding number
+       - then all elements with even and non-zero winding number
+       - then all element with zero winding number.
+       By doing so, the following are continuous in the array:
+       - non-zero
+       - odd-even fill rule
+       - complement of odd-even fill
+       - complement of non-zero
+     */
+    std::vector<unsigned int> m_indices;
+    fastuidraw::const_c_array<unsigned int> m_nonzero_winding_indices;
+    fastuidraw::const_c_array<unsigned int> m_zero_winding_indices;
+    fastuidraw::const_c_array<unsigned int> m_odd_winding_indices;
+    fastuidraw::const_c_array<unsigned int> m_even_winding_indices;
+
+    /* m_per_fill[w] gives the indices to the triangles
+       with the winding number w. The value points into
+       indices
+    */
+    std::map<int, fastuidraw::const_c_array<unsigned int> > m_per_fill;
+
+    virtual
+    void
+    compute_sizes(unsigned int &number_attributes,
+                  unsigned int &number_indices,
+                  unsigned int &number_attribute_chunks,
+                  unsigned int &number_index_chunks,
+                  unsigned int &number_z_increments) const;
+    virtual
+    void
+    fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
+              fastuidraw::c_array<fastuidraw::PainterIndex> indices,
+              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
+              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<unsigned int> zincrements,
+              fastuidraw::c_array<int> index_adjusts) const;
+
+    static
+    fastuidraw::PainterAttribute
+    generate_attribute(const fastuidraw::vec2 &src)
+    {
+      fastuidraw::PainterAttribute dst;
+
+      dst.m_attrib0 = fastuidraw::pack_vec4(src.x(), src.y(), 0.0f, 0.0f);
+      dst.m_attrib1 = fastuidraw::uvec4(0u, 0u, 0u, 0u);
+      dst.m_attrib2 = fastuidraw::uvec4(0u, 0u, 0u, 0u);
+
+      return dst;
+    }
+  };
+
+  class SubsetPrivate
+  {
+  public:
+    SubsetPrivate(const fastuidraw::TessellatedPath &P);
+
+    std::vector<int> m_winding_numbers;
+    fastuidraw::PainterAttributeData m_painter_data;
+  };
+
   class FilledPathPrivate
   {
   public:
@@ -448,34 +513,7 @@ namespace
 
     ~FilledPathPrivate();
 
-    std::vector<fastuidraw::vec2> m_points;
-
-    /* Carefully organize indices as follows:
-       - first all elements with odd winding number
-       - then all elements with even and non-zero winding number
-       - then all element with zero winding number.
-     By doing so, the following are continuous in the array:
-       - non-zero
-       - odd-even fill rule
-       - complement of odd-even fill
-       - complement of non-zero
-    */
-    std::vector<unsigned int> m_indices;
-
-    /* m_per_fill[w] gives the indices to the triangles
-       with the winding number w. The value points into
-       m_indices
-    */
-    std::map<int, fastuidraw::const_c_array<unsigned int> > m_per_fill;
-
-    /* list of values V for which m_per_fill[V] entry exists
-     */
-    std::vector<int> m_winding_numbers;
-
-    fastuidraw::const_c_array<unsigned int> m_nonzero_winding, m_odd_winding;
-    fastuidraw::const_c_array<unsigned int> m_even_winding, m_zero_winding;
-
-    fastuidraw::PainterAttributeData *m_attribute_data;
+    std::vector<SubsetPrivate*> m_subsets;
   };
 }
 
@@ -1175,46 +1213,154 @@ fill_indices(std::vector<unsigned int> &indices,
 
 }
 
-/////////////////////////////////
-// FilledPathPrivate methods
-FilledPathPrivate::
-FilledPathPrivate(const fastuidraw::TessellatedPath &P):
-  m_attribute_data(NULL)
+////////////////////////////////////
+// AttributeDataFiller methods
+void
+AttributeDataFiller::
+compute_sizes(unsigned int &number_attributes,
+              unsigned int &number_indices,
+              unsigned int &number_attribute_chunks,
+              unsigned int &number_index_chunks,
+              unsigned int &number_z_increments) const
 {
-  builder B(P, m_points);
+  using namespace fastuidraw;
+
+  number_z_increments = 0;
+  if(m_per_fill.empty())
+    {
+      number_attributes = 0;
+      number_indices = 0;
+      number_attribute_chunks = 0;
+      number_index_chunks = 0;
+      return;
+    }
+  number_attributes = m_points.size();
+  number_attribute_chunks = 1;
+
+  number_indices = m_odd_winding_indices.size()
+    + m_nonzero_winding_indices.size()
+    + m_even_winding_indices.size()
+    + m_zero_winding_indices.size();
+
+  for(std::map<int, const_c_array<unsigned int> >::const_iterator
+        iter = m_per_fill.begin(), end = m_per_fill.end();
+      iter != end; ++iter)
+    {
+      if(iter->first != 0) //winding number 0 is by complement_nonzero_fill_rule
+        {
+          number_indices += iter->second.size();
+        }
+    }
+
+  /* now get how big the index_chunks really needs to be
+   */
+  int smallest_winding(m_per_fill.begin()->first);
+  int largest_winding(m_per_fill.rbegin()->first);
+  unsigned int largest_winding_idx(FilledPath::Subset::chunk_from_winding_number(largest_winding));
+  unsigned int smallest_winding_idx(FilledPath::Subset::chunk_from_winding_number(smallest_winding));
+  number_index_chunks = 1 + std::max(largest_winding_idx, smallest_winding_idx);
+}
+
+void
+AttributeDataFiller::
+fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
+          fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
+          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+          fastuidraw::c_array<unsigned int> zincrements,
+          fastuidraw::c_array<int> index_adjusts) const
+{
+  using namespace fastuidraw;
+
+  if(m_per_fill.empty())
+    {
+      return;
+    }
+  assert(attributes.size() == m_points.size());
+  assert(attrib_chunks.size() == 1);
+  assert(zincrements.empty());
+  FASTUIDRAWunused(zincrements);
+
+  /* generate attribute data
+   */
+  std::transform(m_points.begin(), m_points.end(), attributes.begin(),
+                 AttributeDataFiller::generate_attribute);
+  attrib_chunks[0] = attributes;
+
+  unsigned int current(0);
+
+#define GRAB_MACRO(enum_name, member_name) do {                     \
+    c_array<PainterIndex> dst;                                      \
+    dst = index_data.sub_array(current, member_name.size());        \
+    std::copy(member_name.begin(),                                  \
+              member_name.end(), dst.begin());                      \
+    index_chunks[PainterEnums::enum_name] = dst;                    \
+    index_adjusts[PainterEnums::enum_name] = 0;                     \
+    current += dst.size();                                          \
+  } while(0)
+
+  GRAB_MACRO(odd_even_fill_rule, m_odd_winding_indices);
+  GRAB_MACRO(nonzero_fill_rule, m_nonzero_winding_indices);
+  GRAB_MACRO(complement_odd_even_fill_rule, m_even_winding_indices);
+  GRAB_MACRO(complement_nonzero_fill_rule, m_zero_winding_indices);
+
+#undef GRAB_MACRO
+
+  for(std::map<int, const_c_array<unsigned int> >::const_iterator
+        iter = m_per_fill.begin(), end = m_per_fill.end();
+      iter != end; ++iter)
+    {
+      if(iter->first != 0) //winding number 0 is by complement_nonzero_fill_rule
+        {
+          c_array<PainterIndex> dst;
+          const_c_array<unsigned int> src;
+          unsigned int idx;
+
+          idx = FilledPath::Subset::chunk_from_winding_number(iter->first);
+
+          src = iter->second;
+          dst = index_data.sub_array(current, src.size());
+          assert(dst.size() == src.size());
+
+          std::copy(src.begin(), src.end(), dst.begin());
+
+          index_chunks[idx] = dst;
+          index_adjusts[idx] = 0;
+          current += dst.size();
+        }
+    }
+}
+
+/////////////////////////////////
+// SubsetPrivate methods
+SubsetPrivate::
+SubsetPrivate(const fastuidraw::TessellatedPath &P)
+{
+  AttributeDataFiller filler;
+  builder B(P, filler.m_points);
   unsigned int even_non_zero_start, zero_start;
 
-  B.fill_indices(m_indices, m_per_fill, even_non_zero_start, zero_start);
-
-  /* copy/swap into fresh std::vector to free extra storage
-   */
-  if(m_indices.empty())
-    {
-      std::vector<fastuidraw::vec2> temp;
-      temp.swap(m_points);
-    }
-  else
-    {
-      std::vector<fastuidraw::vec2> temp(m_points);
-      temp.swap(m_points);
-    }
-
+  B.fill_indices(filler.m_indices, filler.m_per_fill, even_non_zero_start, zero_start);
 
   fastuidraw::const_c_array<unsigned int> indices_ptr;
-  indices_ptr = fastuidraw::make_c_array(m_indices);
-  m_nonzero_winding = indices_ptr.sub_array(0, zero_start);
-  m_odd_winding = indices_ptr.sub_array(0, even_non_zero_start);
-  m_even_winding = indices_ptr.sub_array(even_non_zero_start);
-  m_zero_winding = indices_ptr.sub_array(zero_start);
+  indices_ptr = fastuidraw::make_c_array(filler.m_indices);
+  filler.m_nonzero_winding_indices = indices_ptr.sub_array(0, zero_start);
+  filler.m_odd_winding_indices = indices_ptr.sub_array(0, even_non_zero_start);
+  filler.m_even_winding_indices = indices_ptr.sub_array(even_non_zero_start);
+  filler.m_zero_winding_indices = indices_ptr.sub_array(zero_start);
 
-  m_winding_numbers.reserve(m_per_fill.size());
+  m_winding_numbers.reserve(filler.m_per_fill.size());
   for(std::map<int, fastuidraw::const_c_array<unsigned int> >::iterator
-        iter = m_per_fill.begin(), end = m_per_fill.end();
+        iter = filler.m_per_fill.begin(), end = filler.m_per_fill.end();
       iter != end; ++iter)
     {
       assert(!iter->second.empty());
       m_winding_numbers.push_back(iter->first);
     }
+
+  /* now fill m_painter_data.
+   */
+  m_painter_data.set_data(filler);
 
   #ifdef FASTUIDRAW_DEBUG
     {
@@ -1230,13 +1376,75 @@ FilledPathPrivate(const fastuidraw::TessellatedPath &P):
   #endif
 }
 
+/////////////////////////////////
+// FilledPathPrivate methods
+FilledPathPrivate::
+FilledPathPrivate(const fastuidraw::TessellatedPath &P)
+{
+  m_subsets.push_back(FASTUIDRAWnew SubsetPrivate(P));
+}
+
 FilledPathPrivate::
 ~FilledPathPrivate()
 {
-  if(m_attribute_data != NULL)
+  for(unsigned int i = 0; i < m_subsets.size(); ++i)
     {
-      FASTUIDRAWdelete(m_attribute_data);
+      FASTUIDRAWdelete(m_subsets[i]);
     }
+}
+
+/////////////////////////////////
+// fastuidraw::FilledPath::Subset methods
+fastuidraw::FilledPath::Subset::
+Subset(void *d):
+  m_d(d)
+{
+}
+
+const fastuidraw::PainterAttributeData&
+fastuidraw::FilledPath::Subset::
+painter_data(void) const
+{
+  SubsetPrivate *d;
+  d = static_cast<SubsetPrivate*>(m_d);
+  return d->m_painter_data;
+}
+
+fastuidraw::const_c_array<int>
+fastuidraw::FilledPath::Subset::
+winding_numbers(void) const
+{
+  SubsetPrivate *d;
+  d = static_cast<SubsetPrivate*>(m_d);
+  return make_c_array(d->m_winding_numbers);
+}
+
+unsigned int
+fastuidraw::FilledPath::Subset::
+chunk_from_winding_number(int winding_number)
+{
+  /* basic idea:
+     - start counting at fill_rule_data_count
+     - ordering is: 1, -1, 2, -2, ...
+  */
+  int value, sg;
+
+  if(winding_number == 0)
+    {
+      return fastuidraw::PainterEnums::complement_nonzero_fill_rule;
+    }
+
+  value = std::abs(winding_number);
+  sg = (winding_number < 0) ? 1 : 0;
+  return fastuidraw::PainterEnums::fill_rule_data_count + sg + 2 * (value - 1);
+}
+
+unsigned int
+fastuidraw::FilledPath::Subset::
+chunk_from_fill_rule(enum PainterEnums::fill_rule_t fill_rule)
+{
+  assert(fill_rule < fastuidraw::PainterEnums::fill_rule_data_count);
+  return fill_rule;
 }
 
 ///////////////////////////////////////
@@ -1267,93 +1475,46 @@ fastuidraw::FilledPath::
   m_d = NULL;
 }
 
-fastuidraw::const_c_array<unsigned int>
+unsigned int
 fastuidraw::FilledPath::
-indices(int winding_number) const
+number_subsets(void) const
 {
   FilledPathPrivate *d;
   d = reinterpret_cast<FilledPathPrivate*>(m_d);
-
-  std::map<int, const_c_array<unsigned int> >::const_iterator iter;
-
-  iter = d->m_per_fill.find(winding_number);
-  return (iter != d->m_per_fill.end()) ?
-    iter->second:
-    const_c_array<unsigned int>();
+  return d->m_subsets.size();
 }
 
-const fastuidraw::PainterAttributeData&
+
+fastuidraw::FilledPath::Subset
 fastuidraw::FilledPath::
-painter_data(void) const
+subset(unsigned int I) const
 {
   FilledPathPrivate *d;
-  d = reinterpret_cast<FilledPathPrivate*>(m_d);
+  SubsetPrivate *p;
 
-  /* Painful note: the reference count is initialized as 0.
-     If a handle is made at ctor, the reference count is made
-     to be 1, and then when the handle goes out of scope
-     it is zero, triggering delete. In particular making a
-     handle at ctor time is very bad. This is one of the reasons
-     why it must be made lazily and not at ctor.
-   */
-  if(d->m_attribute_data == NULL)
+  d = reinterpret_cast<FilledPathPrivate*>(m_d);
+  assert(I < d->m_subsets.size());
+  p = d->m_subsets[I];
+
+  return Subset(p);
+}
+
+unsigned int
+fastuidraw::FilledPath::
+select_subsets(const_c_array<vec3> clip_equations,
+               const float3x3 &clip_matrix_local,
+               c_array<unsigned int> dst) const
+{
+  FilledPathPrivate *d;
+
+  FASTUIDRAWunused(clip_equations);
+  FASTUIDRAWunused(clip_matrix_local);
+
+  d = reinterpret_cast<FilledPathPrivate*>(m_d);
+  assert(dst.size() >= d->m_subsets.size());
+  for(unsigned int i = 0, endi = d->m_subsets.size(); i < endi; ++i)
     {
-      d->m_attribute_data = FASTUIDRAWnew PainterAttributeData();
-      d->m_attribute_data->set_data(PainterAttributeDataFillerPathFill(this));
+      dst[i] = i;
     }
-  return *d->m_attribute_data;
-}
-
-fastuidraw::const_c_array<fastuidraw::vec2>
-fastuidraw::FilledPath::
-points(void) const
-{
-  FilledPathPrivate *d;
-  d = reinterpret_cast<FilledPathPrivate*>(m_d);
-  return make_c_array(d->m_points);
-}
-
-fastuidraw::const_c_array<int>
-fastuidraw::FilledPath::
-winding_numbers(void) const
-{
-  FilledPathPrivate *d;
-  d = reinterpret_cast<FilledPathPrivate*>(m_d);
-  return make_c_array(d->m_winding_numbers);
-}
-
-fastuidraw::const_c_array<unsigned int>
-fastuidraw::FilledPath::
-nonzero_winding_indices(void) const
-{
-  FilledPathPrivate *d;
-  d = reinterpret_cast<FilledPathPrivate*>(m_d);
-  return d->m_nonzero_winding;
-}
-
-fastuidraw::const_c_array<unsigned int>
-fastuidraw::FilledPath::
-odd_winding_indices(void) const
-{
-  FilledPathPrivate *d;
-  d = reinterpret_cast<FilledPathPrivate*>(m_d);
-  return d->m_odd_winding;
-}
-
-fastuidraw::const_c_array<unsigned int>
-fastuidraw::FilledPath::
-zero_winding_indices(void) const
-{
-  FilledPathPrivate *d;
-  d = reinterpret_cast<FilledPathPrivate*>(m_d);
-  return d->m_zero_winding;
-}
-
-fastuidraw::const_c_array<unsigned int>
-fastuidraw::FilledPath::
-even_winding_indices(void) const
-{
-  FilledPathPrivate *d;
-  d = reinterpret_cast<FilledPathPrivate*>(m_d);
-  return d->m_even_winding;
+  return d->m_subsets.size();
 }
