@@ -33,6 +33,15 @@ namespace fastuidraw
       m_empty(true)
     {}
 
+    BoundingBox(vec2 pmin, vec2 pmax):
+      m_min(pmin),
+      m_max(pmax),
+      m_empty(false)
+    {
+      assert(pmin.x() <= pmax.x());
+      assert(pmin.y() <= pmax.y());
+    }
+
     void
     inflated_polygon(vecN<vec2, 4> &out_data, float rad) const
     {

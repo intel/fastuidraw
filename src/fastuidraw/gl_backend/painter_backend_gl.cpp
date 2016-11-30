@@ -1493,6 +1493,20 @@ compute_blend_shader_group(PainterShader::Tag tag,
   return return_value;
 }
 
+unsigned int
+fastuidraw::gl::PainterBackendGL::
+attribs_per_mapping(void) const
+{
+  return configuration_gl().attributes_per_buffer();
+}
+
+unsigned int
+fastuidraw::gl::PainterBackendGL::
+indices_per_mapping(void) const
+{
+  return configuration_gl().indices_per_buffer();
+}
+
 void
 fastuidraw::gl::PainterBackendGL::
 on_pre_draw(void)

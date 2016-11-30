@@ -30,6 +30,7 @@
 #include "../private/util_private.hpp"
 #include "../private/util_private_ostream.hpp"
 #include "../private/bounding_box.hpp"
+#include "../private/clip.hpp"
 #include "../../3rd_party/glu-tess/glu-tess.hpp"
 
 namespace
@@ -112,12 +113,12 @@ namespace
       };
 
     explicit
-    CoordinateConverter(const fastuidraw::TessellatedPath &P)
+    CoordinateConverter(const fastuidraw::vec2 &fpmin, const fastuidraw::vec2 &fpmax)
     {
       fastuidraw::vecN<double, 2> delta, pmin, pmax;
 
-      pmin = fastuidraw::vecN<double, 2>(P.bounding_box_min());
-      pmax = fastuidraw::vecN<double, 2>(P.bounding_box_max());
+      pmin = fastuidraw::vecN<double, 2>(fpmin);
+      pmax = fastuidraw::vecN<double, 2>(fpmax);
       delta = pmax - pmin;
       m_scale = fastuidraw::vecN<double, 2>(1.0, 1.0) / delta;
       m_scale *= static_cast<double>(box_dim);
@@ -164,6 +165,64 @@ namespace
     fastuidraw::vec2 m_scale_f, m_translate_f;
   };
 
+  class SubPath
+  {
+  public:
+    typedef std::vector<fastuidraw::vec2> SubContour;
+
+    explicit
+    SubPath(const fastuidraw::TessellatedPath &P);
+
+    const std::vector<SubContour>&
+    contours(void) const
+    {
+      return m_contours;
+    }
+
+    const fastuidraw::BoundingBox&
+    bounds(void) const
+    {
+      return m_bounds;
+    }
+
+    unsigned int
+    total_points(void) const
+    {
+      return m_total_points;
+    }
+
+    fastuidraw::vecN<SubPath*, 2>
+    split(void) const;
+
+  private:
+    SubPath(const fastuidraw::BoundingBox &bb,
+            std::vector<SubContour> &contours);
+
+    int
+    choose_splitting_coordinate(fastuidraw::vec2 mid_pt) const;
+
+    static
+    void
+    copy_contour(SubContour &dst,
+                 const fastuidraw::TessellatedPath &src, unsigned int C);
+
+    static
+    void
+    split_contour(const SubContour &src,
+                  int splitting_coordinate, float spitting_value,
+                  SubContour &minC, SubContour &maxC);
+
+    static
+    fastuidraw::vec2
+    compute_spit_point(const fastuidraw::vec2 a,
+                       const fastuidraw::vec2 b,
+                       int splitting_coordinate, float spitting_value);
+
+    unsigned int m_total_points;
+    fastuidraw::BoundingBox m_bounds;
+    std::vector<SubContour> m_contours;
+  };
+
   enum
     {
       box_max_x_flag = 1,
@@ -174,54 +233,45 @@ namespace
       box_max_x_min_y = box_max_x_flag,
     };
 
-  class EdgeHoard:fastuidraw::noncopyable
-  {
-  public:
-    /* returns true if the edge overlaps an existing
-       edge. Also adds the edge to the set of test
-       edges.
-     */
-    bool
-    add_edge(fastuidraw::ivec2 a, fastuidraw::ivec2 b);
-
-  private:
-  };
-
   class PointHoard:fastuidraw::noncopyable
   {
   public:
-    typedef std::pair<unsigned int, bool> ContourPoint;
-    typedef std::vector<ContourPoint> Contour;
+    typedef std::vector<unsigned int> Contour;
     typedef std::list<Contour> Path;
     typedef std::vector<fastuidraw::uvec4> BoundingBoxes;
 
     enum
       {
-        /* The cost of each bounding box is 4 edges.
-           The total number of boxes, B, from N points
+        /* The total number of boxes, B, from N points
            satisfies:
 
            N / pts_per_box <= B <= N * L / pts_per_box
 
            where L = boxes_per_box / (boxes_per_box - 1)
+
+           The cost of each bounding box is 4 edges.
+           We need to make sure that we do not add too
+           many boxes where too many of the added edges
+           are from the bounding boxes.
          */
-        pts_per_box = 8,
-        boxes_per_box = 4,
+        pts_per_box = 12,
+        boxes_per_box = 8,
       };
 
     explicit
-    PointHoard(const fastuidraw::TessellatedPath &P,
-                std::vector<fastuidraw::vec2> &pts):
-      m_converter(P),
+    PointHoard(const fastuidraw::BoundingBox &bounds,
+               std::vector<fastuidraw::vec2> &pts):
+      m_converter(bounds.min_point(), bounds.max_point()),
       m_pts(pts)
-    {}
+    {
+      assert(!bounds.empty());
+    }
 
     unsigned int
     fetch(const fastuidraw::vec2 &pt);
 
     void
-    generate_path(const fastuidraw::TessellatedPath &input,
-                  Path &output,
+    generate_path(const SubPath &input, Path &output,
                   BoundingBoxes &bounding_boxes);
 
     const fastuidraw::vec2&
@@ -247,13 +297,11 @@ namespace
                            BoundingBoxes &bounding_boxes);
 
     void
-    add_edge(const fastuidraw::TessellatedPath &input,
-             unsigned int o, unsigned int e,
-             Path &output,
-             BoundingBoxes &bounding_boxes);
+    generate_contour(const SubPath::SubContour &input,
+                     Contour &output,
+                     BoundingBoxes &bounding_boxes);
 
     CoordinateConverter m_converter;
-    EdgeHoard m_edge_list;
     std::map<fastuidraw::ivec2, unsigned int> m_map;
     std::vector<fastuidraw::vec2> &m_pts;
   };
@@ -277,10 +325,10 @@ namespace
     add_path(const PointHoard::Path &P);
 
     void
-    add_bounding_box_path(const PointHoard::BoundingBoxes &P);
+    add_path_boundary(const SubPath &P);
 
     void
-    add_path_boundary(const fastuidraw::TessellatedPath &P);
+    add_bounding_box_path(const PointHoard::BoundingBoxes &P);
 
     bool
     triangulation_failed(void)
@@ -304,6 +352,9 @@ namespace
 
     void
     add_contour(const PointHoard::Contour &C);
+
+    void
+    add_bounding_box_path_element(const fastuidraw::uvec4 &box);
 
     static
     void
@@ -343,18 +394,18 @@ namespace
     static
     bool
     execute_path(PointHoard &points,
-                 PointHoard::Path &P,
-                 PointHoard::BoundingBoxes &bounding_box_P,
+                 const PointHoard::Path &P,
+                 const PointHoard::BoundingBoxes &boxes,
                  winding_index_hoard &hoard)
     {
-      non_zero_tesser NZ(points, P, bounding_box_P, hoard);
+      non_zero_tesser NZ(points, P, boxes, hoard);
       return NZ.triangulation_failed();
     }
 
   private:
     non_zero_tesser(PointHoard &points,
-                    PointHoard::Path &P,
-                    PointHoard::BoundingBoxes &bounding_box_P,
+                    const PointHoard::Path &P,
+                    const PointHoard::BoundingBoxes &boxes,
                     winding_index_hoard &hoard);
 
     virtual
@@ -380,21 +431,21 @@ namespace
     static
     bool
     execute_path(PointHoard &points,
-                 PointHoard::Path &P,
-                 PointHoard::BoundingBoxes &bounding_box_P,
-                 const fastuidraw::TessellatedPath &path,
+                 const PointHoard::Path &P,
+                 const PointHoard::BoundingBoxes &boxes,
+                 const SubPath &path,
                  winding_index_hoard &hoard)
     {
-      zero_tesser Z(points, P, bounding_box_P, path, hoard);
+      zero_tesser Z(points, P, boxes, path, hoard);
       return Z.triangulation_failed();
     }
 
   private:
 
     zero_tesser(PointHoard &points,
-                PointHoard::Path &P,
-                PointHoard::BoundingBoxes &bounding_box_P,
-                const fastuidraw::TessellatedPath &path,
+                const PointHoard::Path &P,
+                const PointHoard::BoundingBoxes &boxes,
+                const SubPath &path,
                 winding_index_hoard &hoard);
 
     virtual
@@ -416,8 +467,7 @@ namespace
   {
   public:
     explicit
-    builder(const fastuidraw::TessellatedPath &P,
-            std::vector<fastuidraw::vec2> &pts);
+    builder(const SubPath &P, std::vector<fastuidraw::vec2> &pts);
 
     ~builder();
 
@@ -437,6 +487,35 @@ namespace
     winding_index_hoard m_hoard;
     PointHoard m_points;
     bool m_failed;
+  };
+
+  class AttributeDataMerger:public fastuidraw::PainterAttributeDataFiller
+  {
+  public:
+    AttributeDataMerger(const fastuidraw::PainterAttributeData &a,
+                        const fastuidraw::PainterAttributeData &b):
+      m_a(a), m_b(b)
+    {
+    }
+
+    virtual
+    void
+    compute_sizes(unsigned int &number_attributes,
+                  unsigned int &number_indices,
+                  unsigned int &number_attribute_chunks,
+                  unsigned int &number_index_chunks,
+                  unsigned int &number_z_increments) const;
+
+    virtual
+    void
+    fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
+              fastuidraw::c_array<fastuidraw::PainterIndex> indices,
+              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
+              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<unsigned int> zincrements,
+              fastuidraw::c_array<int> index_adjusts) const;
+
+    const fastuidraw::PainterAttributeData &m_a, &m_b;
   };
 
   class AttributeDataFiller:public fastuidraw::PainterAttributeDataFiller
@@ -496,13 +575,108 @@ namespace
     }
   };
 
+  class ScratchSpacePrivate
+  {
+  public:
+    std::vector<fastuidraw::vec3> m_adjusted_clip_eqs;
+    std::vector<fastuidraw::vec2> m_clipped_rect;
+
+    fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_clip_scratch_vec2s;
+    std::vector<float> m_clip_scratch_floats;
+  };
+
   class SubsetPrivate
   {
   public:
-    SubsetPrivate(const fastuidraw::TessellatedPath &P);
+    enum
+      {
+        recursion_depth = 12,
+        points_per_subset = 64
+      };
 
+    ~SubsetPrivate(void);
+
+    SubsetPrivate(SubPath *P, int max_recursion,
+                  std::vector<SubsetPrivate*> &out_values);
+
+    unsigned int
+    select_subsets(ScratchSpacePrivate &scratch,
+                   fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
+                   const fastuidraw::float3x3 &clip_matrix_local,
+                   unsigned int max_attribute_cnt,
+                   unsigned int max_index_cnt,
+                   fastuidraw::c_array<unsigned int> dst);
+
+    void
+    make_ready(void);
+
+    fastuidraw::const_c_array<int>
+    winding_numbers(void)
+    {
+      assert(m_painter_data != NULL);
+      return fastuidraw::make_c_array(m_winding_numbers);
+    }
+
+    const fastuidraw::PainterAttributeData &
+    painter_data(void)
+    {
+      assert(m_painter_data != NULL);
+      return *m_painter_data;
+    }
+
+  private:
+    void
+    select_subsets_implement(ScratchSpacePrivate &scratch,
+                             fastuidraw::c_array<unsigned int> dst,
+                             unsigned int max_attribute_cnt,
+                             unsigned int max_index_cnt,
+                             unsigned int &current);
+
+    void
+    select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
+                                unsigned int max_attribute_cnt,
+                                unsigned int max_index_cnt,
+                                unsigned int &current);
+
+    void
+    make_ready_from_children(void);
+
+    void
+    make_ready_from_sub_path(void);
+
+    /* m_ID represents an index into the std::vector<>
+       passed into create_hierarchy() where this element
+       is found.
+     */
+    unsigned int m_ID;
+
+    /* The bounds of this SubsetPrivate used in
+       select_subsets().
+     */
+    fastuidraw::BoundingBox m_bounds;
+
+    /* if this SubsetPrivate has children then
+       m_painter_data is made by "merging" the
+       data of m_painter_data from m_children[0]
+       and m_children[1]. We do this merging so
+       that we can avoid recursing if the entirity
+       of the bounding box is contained in the
+       clipping region.
+     */
+    fastuidraw::PainterAttributeData *m_painter_data;
     std::vector<int> m_winding_numbers;
-    fastuidraw::PainterAttributeData m_painter_data;
+
+    bool m_sizes_ready;
+    unsigned int m_num_attributes;
+    unsigned int m_largest_index_block;
+
+    /* m_sub_path is non-NULL only if this SubsetPrivate
+       has no children. In addition, it is set to NULL
+       and deleted when m_painter_data is created from
+       it.
+     */
+    SubPath *m_sub_path;
+    fastuidraw::vecN<SubsetPrivate*, 2> m_children;
   };
 
   class FilledPathPrivate
@@ -513,19 +687,238 @@ namespace
 
     ~FilledPathPrivate();
 
+    SubsetPrivate *m_root;
     std::vector<SubsetPrivate*> m_subsets;
   };
 }
 
 /////////////////////////////////////
-// EdgeHoard methods
-bool
-EdgeHoard::
-add_edge(fastuidraw::ivec2 a, fastuidraw::ivec2 b)
+// SubPath methods
+SubPath::
+SubPath(const fastuidraw::BoundingBox &bb,
+        std::vector<SubContour> &contours):
+  m_total_points(0),
+  m_bounds(bb)
 {
-  FASTUIDRAWunused(a);
-  FASTUIDRAWunused(b);
-  return true;
+  m_contours.swap(contours);
+  for(std::vector<SubContour>::const_iterator c_iter = m_contours.begin(),
+        c_end = m_contours.end(); c_iter != c_end; ++c_iter)
+    {
+      m_total_points += c_iter->size();
+    }
+}
+
+SubPath::
+SubPath(const fastuidraw::TessellatedPath &P):
+  m_total_points(0),
+  m_bounds(P.bounding_box_min(),
+           P.bounding_box_max()),
+  m_contours(P.number_contours())
+{
+  for(unsigned int c = 0, endc = m_contours.size(); c < endc; ++c)
+    {
+      copy_contour(m_contours[c], P, c);
+      m_total_points += m_contours[c].size();
+    }
+}
+
+void
+SubPath::
+copy_contour(SubContour &dst,
+             const fastuidraw::TessellatedPath &src, unsigned int C)
+{
+  for(unsigned int e = 0, ende = src.number_edges(C); e < ende; ++e)
+    {
+      fastuidraw::range_type<unsigned int> R;
+
+      R = src.edge_range(C, e);
+      for(unsigned int v = R.m_begin; v + 1 < R.m_end; ++v)
+        {
+          dst.push_back(src.point_data()[v].m_p);
+        }
+    }
+}
+
+int
+SubPath::
+choose_splitting_coordinate(fastuidraw::vec2 mid_pt) const
+{
+  /* first find which of splitting in X or splitting in Y
+     is optimal.
+   */
+  fastuidraw::ivec2 number_points_before(0, 0);
+  fastuidraw::ivec2 number_points_after(0, 0);
+  fastuidraw::ivec2 number_points;
+
+  for(std::vector<SubContour>::const_iterator c_iter = m_contours.begin(),
+        c_end = m_contours.end(); c_iter != c_end; ++c_iter)
+    {
+      fastuidraw::vec2 prev_pt(c_iter->back());
+      for(SubContour::const_iterator iter = c_iter->begin(),
+            end = c_iter->end(); iter != end; ++iter)
+        {
+          fastuidraw::vec2 pt(*iter);
+          for(int i = 0; i < 2; ++i)
+            {
+              bool prev_b, b;
+
+              prev_b = prev_pt[i] < mid_pt[i];
+              b = pt[i] < mid_pt[i];
+
+              if(b || pt[i] == mid_pt[i])
+                {
+                  ++number_points_before[i];
+                }
+
+              if(!b || pt[i] == mid_pt[i])
+                {
+                  ++number_points_after[i];
+                }
+
+              if(prev_pt[i] != mid_pt[i] && prev_b != b)
+                {
+                  ++number_points_before[i];
+                  ++number_points_after[i];
+                }
+            }
+          prev_pt = pt;
+        }
+    }
+
+  /* choose a splitting that:
+      - minimizes number_points_before[i] + number_points_after[i]
+   */
+  number_points = number_points_before + number_points_after;
+  if(number_points.x() < number_points.y())
+    {
+      return 0;
+    }
+  else
+    {
+      return 1;
+    }
+}
+
+fastuidraw::vec2
+SubPath::
+compute_spit_point(const fastuidraw::vec2 a, const fastuidraw::vec2 b,
+                   int splitting_coordinate, float splitting_value)
+{
+  float t, n, d, aa, bb;
+  fastuidraw::vec2 return_value;
+
+  n = splitting_value - a[splitting_coordinate];
+  d = b[splitting_coordinate] - a[splitting_coordinate];
+  t = n / d;
+
+  return_value[splitting_coordinate] = splitting_value;
+
+  aa = a[1 - splitting_coordinate];
+  bb = b[1 - splitting_coordinate];
+  return_value[1 - splitting_coordinate] = (1.0f - t) * aa + t * bb;
+
+  return return_value;
+}
+
+void
+SubPath::
+split_contour(const SubContour &src,
+              int splitting_coordinate, float splitting_value,
+              SubContour &C0, SubContour &C1)
+{
+  fastuidraw::vec2 prev_pt(src.back());
+  for(SubContour::const_iterator iter = src.begin(),
+        end = src.end(); iter != end; ++iter)
+    {
+      bool b0, prev_b0;
+      bool b1, prev_b1;
+      fastuidraw::vec2 split_pt;
+      const fastuidraw::vec2 &pt(*iter);
+
+      prev_b0 = prev_pt[splitting_coordinate] <= splitting_value;
+      b0 = pt[splitting_coordinate] <= splitting_value;
+
+      prev_b1 = prev_pt[splitting_coordinate] >= splitting_value;
+      b1 = pt[splitting_coordinate] >= splitting_value;
+
+      if(prev_b0 != b0 || prev_b1 != b1)
+        {
+          split_pt = compute_spit_point(prev_pt, pt, splitting_coordinate, splitting_value);
+        }
+
+      if(prev_b0 != b0)
+        {
+          C0.push_back(split_pt);
+        }
+
+      if(b0)
+        {
+          C0.push_back(pt);
+        }
+
+      if(prev_b1 != b1)
+        {
+          C1.push_back(split_pt);
+        }
+
+      if(b1)
+        {
+          C1.push_back(pt);
+        }
+
+      prev_pt = pt;
+    }
+}
+
+fastuidraw::vecN<SubPath*, 2>
+SubPath::
+split(void) const
+{
+  fastuidraw::vecN<SubPath*, 2> return_value(NULL, NULL);
+  fastuidraw::vec2 mid_pt;
+  int splitting_coordinate;
+
+  mid_pt = 0.5f * (m_bounds.max_point() + m_bounds.min_point());
+  splitting_coordinate = choose_splitting_coordinate(mid_pt);
+
+  /* now split each contour.
+   */
+  fastuidraw::vec2 B0_max, B1_min;
+  B0_max[1 - splitting_coordinate] = m_bounds.max_point()[1 - splitting_coordinate];
+  B0_max[splitting_coordinate] = mid_pt[splitting_coordinate];
+
+  B1_min[1 - splitting_coordinate] = m_bounds.min_point()[1 - splitting_coordinate];
+  B1_min[splitting_coordinate] = mid_pt[splitting_coordinate];
+
+  fastuidraw::BoundingBox B0(m_bounds.min_point(), B0_max);
+  fastuidraw::BoundingBox B1(B1_min, m_bounds.max_point());
+  std::vector<SubContour> C0, C1;
+
+  C0.reserve(m_contours.size());
+  C1.reserve(m_contours.size());
+  for(std::vector<SubContour>::const_iterator c_iter = m_contours.begin(),
+        c_end = m_contours.end(); c_iter != c_end; ++c_iter)
+    {
+      C0.push_back(SubContour());
+      C1.push_back(SubContour());
+      split_contour(*c_iter, splitting_coordinate,
+                    mid_pt[splitting_coordinate],
+                    C0.back(), C1.back());
+
+      if(C0.back().empty())
+        {
+          C0.pop_back();
+        }
+
+      if(C1.back().empty())
+        {
+          C1.pop_back();
+        }
+    }
+
+  return_value[0] = FASTUIDRAWnew SubPath(B0, C0);
+  return_value[1] = FASTUIDRAWnew SubPath(B1, C1);
+  return return_value;
 }
 
 //////////////////////////////////////
@@ -555,80 +948,38 @@ fetch(const fastuidraw::vec2 &pt)
 
 void
 PointHoard::
-generate_path(const fastuidraw::TessellatedPath &input,
-              Path &output, BoundingBoxes &bounding_box_path)
+generate_path(const SubPath &input, Path &output,
+              BoundingBoxes &bounding_box_path)
 {
   output.clear();
-  for(unsigned int o = 0, endo = input.number_contours(); o < endo; ++o)
+  const std::vector<SubPath::SubContour> &contours(input.contours());
+  for(std::vector<SubPath::SubContour>::const_iterator iter = contours.begin(),
+        end = contours.end(); iter != end; ++iter)
     {
+      const SubPath::SubContour &C(*iter);
       output.push_back(Contour());
-      for(unsigned int e = 0, ende = input.number_edges(o); e < ende; ++e)
-        {
-          add_edge(input, o, e, output, bounding_box_path);
-        }
+      generate_contour(C, output.back(), bounding_box_path);
     }
 }
 
 void
 PointHoard::
-add_edge(const fastuidraw::TessellatedPath &input,
-         unsigned int o, unsigned int e,
-         Path &output,
-         BoundingBoxes &bounding_box_path)
+generate_contour(const SubPath::SubContour &C, Contour &output,
+                 BoundingBoxes &bounding_box_path)
 {
-  fastuidraw::range_type<unsigned int> R(input.edge_range(o, e));
-  fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> pts;
   std::vector<fastuidraw::BoundingBox> boxes(1);
   unsigned int total_cnt(0), cnt(0);
 
-  pts = input.point_data();
-
-  for(unsigned int v = R.m_begin; v < R.m_end; ++v, ++cnt, ++total_cnt)
+  for(unsigned int v = 0, endv = C.size(); v < endv; ++v,  ++cnt, ++total_cnt)
     {
-      fastuidraw::vec2 p, prev_p;
-      unsigned int prev_v;
-      ContourPoint cp;
-
-      /* if the edge from the last point to the current point
-         overlaps an edge in m_edge_list, we then adjust the
-         position of this point to make it so that the new
-         edge we add does not overlap as far as GLU-tess is
-         concerned.
-       */
-      if(v == R.m_begin)
-        {
-          unsigned int last_edge;
-          if(e != 0)
-            {
-              last_edge = e - 1;
-            }
-          else
-            {
-              last_edge = input.number_edges(o) - 1;
-            }
-          prev_v = input.edge_range(o, last_edge).m_end - 1;
-        }
-      else
-        {
-          prev_v = v - 1;
-        }
-
-      p = pts[v].m_p;
-      prev_p = pts[prev_v].m_p;
-
-      cp.first = fetch(p);
-      cp.second = m_edge_list.add_edge(m_converter.iapply(prev_p), m_converter.iapply(p));
-
-      output.back().push_back(cp);
-      boxes.back().union_point(p);
-
+      output.push_back(fetch(C[v]));
+      boxes.back().union_point(C[v]);
       if(cnt == pts_per_box)
         {
           cnt = 0;
           boxes.push_back(fastuidraw::BoundingBox());
         }
     }
-
   pre_process_boxes(boxes, cnt);
   if(total_cnt >= pts_per_box)
     {
@@ -664,7 +1015,6 @@ process_bounding_boxes(const std::vector<fastuidraw::BoundingBox> &in_boxes,
   for(unsigned int i = 0, endi = in_boxes.size(); i < endi; ++i, ++cnt, ++total_cnt)
     {
       fastuidraw::vec2 sz;
-
       assert(!in_boxes[i].empty());
 
       /* get/save the positions of the box*/
@@ -747,31 +1097,6 @@ stop(void)
 
 void
 tesser::
-add_contour(const PointHoard::Contour &C)
-{
-  fastuidraw_gluTessBeginContour(m_tess, FASTUIDRAW_GLU_TRUE);
-  for(unsigned int v = 0, endv = C.size(); v < endv; ++v)
-    {
-      fastuidraw::vecN<double, 2> p;
-      PointHoard::ContourPoint I;
-
-      I = C[v];
-      if(I.second)
-        {
-          p = m_points.converter().apply(m_points[I.first], m_point_count);
-          ++m_point_count;
-        }
-      else
-        {
-          p = m_points.converter().apply(m_points[I.first], 0u);
-        }
-      fastuidraw_gluTessVertex(m_tess, p.x(), p.y(), I.first);
-    }
-  fastuidraw_gluTessEndContour(m_tess);
-}
-
-void
-tesser::
 add_path(const PointHoard::Path &P)
 {
   for(PointHoard::Path::const_iterator iter = P.begin(),
@@ -783,62 +1108,26 @@ add_path(const PointHoard::Path &P)
 
 void
 tesser::
-add_bounding_box_path(const PointHoard::BoundingBoxes &P)
+add_contour(const PointHoard::Contour &C)
 {
-  const unsigned int indices[4] =
+  fastuidraw_gluTessBeginContour(m_tess, FASTUIDRAW_GLU_TRUE);
+  for(unsigned int v = 0, endv = C.size(); v < endv; ++v)
     {
-      box_min_x_min_y,
-      box_min_x_max_y,
-      box_max_x_max_y,
-      box_max_x_min_y,
-    };
+      fastuidraw::vecN<double, 2> p;
+      unsigned int I;
 
-  for(PointHoard::BoundingBoxes::const_iterator iter = P.begin(),
-        end = P.end(); iter != end; ++iter, ++m_point_count)
-    {
-      const fastuidraw::uvec4 &box(*iter);
-      /* we add the box but tell GLU-tess that the edge does
-         not affect winding counts.
-          - for each coordinate seperately, for max side: add m_fudge
-          - for each coordinate seperately, for max side: subtract m_fudge
-       */
-      fastuidraw_gluTessBeginContour(m_tess, FASTUIDRAW_GLU_FALSE);
-      for(unsigned int i = 0; i < 4; ++i)
-        {
-          unsigned int k;
-          fastuidraw::vecN<double, 2> p;
-          double slack;
+      I = C[v];
+      p = m_points.converter().apply(m_points[I], m_point_count);
+      ++m_point_count;
 
-          k = indices[i];
-          p = m_points.converter().apply(m_points[box[k]], 0u);
-          slack = static_cast<double>(m_point_count) * m_points.converter().fudge_delta();
-
-          if(k & box_max_x_flag)
-            {
-              p.x() += slack;
-            }
-          else
-            {
-              p.x() -= slack;
-            }
-
-          if(k & box_max_y_flag)
-            {
-              p.y() += slack;
-            }
-          else
-            {
-              p.y() -= slack;
-            }
-          fastuidraw_gluTessVertex(m_tess, p.x(), p.y(), box[k]);
-        }
-      fastuidraw_gluTessEndContour(m_tess);
+      fastuidraw_gluTessVertex(m_tess, p.x(), p.y(), I);
     }
+  fastuidraw_gluTessEndContour(m_tess);
 }
 
 void
 tesser::
-add_path_boundary(const fastuidraw::TessellatedPath &P)
+add_path_boundary(const SubPath &P)
 {
   fastuidraw::vec2 pmin, pmax;
   unsigned int src[4] =
@@ -849,8 +1138,8 @@ add_path_boundary(const fastuidraw::TessellatedPath &P)
       box_max_x_min_y,
     };
 
-  pmin = P.bounding_box_min();
-  pmax = P.bounding_box_max();
+  pmin = P.bounds().min_point();
+  pmax = P.bounds().max_point();
 
   fastuidraw_gluTessBeginContour(m_tess, FASTUIDRAW_GLU_TRUE);
   for(unsigned int i = 0; i < 4; ++i)
@@ -883,6 +1172,67 @@ add_path_boundary(const fastuidraw::TessellatedPath &P)
           p.y() = pmin.y();
         }
       fastuidraw_gluTessVertex(m_tess, x, y, m_points.fetch(p));
+    }
+  fastuidraw_gluTessEndContour(m_tess);
+}
+
+void
+tesser::
+add_bounding_box_path(const PointHoard::BoundingBoxes &P)
+{
+  for(PointHoard::BoundingBoxes::const_iterator iter = P.begin(),
+        end = P.end(); iter != end; ++iter, ++m_point_count)
+    {
+      add_bounding_box_path_element(*iter);
+    }
+}
+
+void
+tesser::
+add_bounding_box_path_element(const fastuidraw::uvec4 &box)
+{
+  const unsigned int indices[4] =
+    {
+      box_min_x_min_y,
+      box_min_x_max_y,
+      box_max_x_max_y,
+      box_max_x_min_y,
+    };
+
+  /* we add the box but tell GLU-tess that the edge does
+     not affect winding counts.
+     - for each coordinate seperately, for max side: add m_fudge
+     - for each coordinate seperately, for max side: subtract m_fudge
+  */
+  fastuidraw_gluTessBeginContour(m_tess, FASTUIDRAW_GLU_FALSE);
+  for(unsigned int i = 0; i < 4; ++i)
+    {
+      unsigned int k;
+      fastuidraw::vecN<double, 2> p;
+      double slack;
+
+      k = indices[i];
+      p = m_points.converter().apply(m_points[box[k]], 0u);
+      slack = static_cast<double>(m_point_count) * m_points.converter().fudge_delta();
+
+      if(k & box_max_x_flag)
+        {
+          p.x() += slack;
+        }
+      else
+        {
+          p.x() -= slack;
+        }
+
+      if(k & box_max_y_flag)
+        {
+          p.y() += slack;
+        }
+      else
+        {
+          p.y() -= slack;
+        }
+      fastuidraw_gluTessVertex(m_tess, p.x(), p.y(), box[k]);
     }
   fastuidraw_gluTessEndContour(m_tess);
 }
@@ -1019,8 +1369,8 @@ winding_callBack(int winding_number, void *tess)
 // non_zero_tesser methods
 non_zero_tesser::
 non_zero_tesser(PointHoard &points,
-                PointHoard::Path &P,
-                PointHoard::BoundingBoxes &bounding_box_P,
+                const PointHoard::Path &P,
+                const PointHoard::BoundingBoxes &boxes,
                 winding_index_hoard &hoard):
   tesser(points),
   m_hoard(hoard),
@@ -1028,7 +1378,7 @@ non_zero_tesser(PointHoard &points,
 {
   start();
   add_path(P);
-  add_bounding_box_path(bounding_box_P);
+  add_bounding_box_path(boxes);
   stop();
 }
 
@@ -1069,9 +1419,9 @@ fill_region(int winding_number)
 // zero_tesser methods
 zero_tesser::
 zero_tesser(PointHoard &points,
-            PointHoard::Path &P,
-            PointHoard::BoundingBoxes &bounding_box_P,
-            const fastuidraw::TessellatedPath &path,
+            const PointHoard::Path &P,
+            const PointHoard::BoundingBoxes &boxes,
+            const SubPath &path,
             winding_index_hoard &hoard):
   tesser(points),
   m_indices(hoard[0])
@@ -1083,7 +1433,7 @@ zero_tesser(PointHoard &points,
 
   start();
   add_path(P);
-  add_bounding_box_path(bounding_box_P);
+  add_bounding_box_path(boxes);
   add_path_boundary(path);
   stop();
 }
@@ -1115,16 +1465,16 @@ fill_region(int winding_number)
 /////////////////////////////////////////
 // builder methods
 builder::
-builder(const fastuidraw::TessellatedPath &P, std::vector<fastuidraw::vec2> &points):
-  m_points(P, points)
+builder(const SubPath &P, std::vector<fastuidraw::vec2> &points):
+  m_points(P.bounds(), points)
 {
   bool failZ, failNZ;
   PointHoard::Path path;
-  PointHoard::BoundingBoxes bounding_boxes;
+  PointHoard::BoundingBoxes path_bounding_boxes;
 
-  m_points.generate_path(P, path, bounding_boxes);
-  failNZ = non_zero_tesser::execute_path(m_points, path, bounding_boxes, m_hoard);
-  failZ = zero_tesser::execute_path(m_points, path, bounding_boxes, P, m_hoard);
+  m_points.generate_path(P, path, path_bounding_boxes);
+  failNZ = non_zero_tesser::execute_path(m_points, path, path_bounding_boxes, m_hoard);
+  failZ = zero_tesser::execute_path(m_points, path, path_bounding_boxes, P, m_hoard);
   m_failed= failNZ || failZ;
 }
 
@@ -1213,6 +1563,102 @@ fill_indices(std::vector<unsigned int> &indices,
 
 }
 
+////////////////////////////////
+// AttributeDataMerger methods
+void
+AttributeDataMerger::
+compute_sizes(unsigned int &number_attributes,
+              unsigned int &number_indices,
+              unsigned int &number_attribute_chunks,
+              unsigned int &number_index_chunks,
+              unsigned int &number_z_increments) const
+{
+  number_z_increments = 0;
+  number_attributes = m_a.attribute_data_chunk(0).size() + m_b.attribute_data_chunk(0).size();
+  number_attribute_chunks = 1;
+  number_index_chunks = fastuidraw::t_max(m_a.index_data_chunks().size(),
+                                          m_b.index_data_chunks().size());
+  number_indices = 0;
+  for(unsigned int c = 0; c < number_index_chunks; ++c)
+    {
+      unsigned int a_sz, b_sz;
+
+      a_sz = m_a.index_data_chunk(c).size();
+      b_sz = m_b.index_data_chunk(c).size();
+      number_indices += (a_sz + b_sz);
+    }
+}
+
+
+void
+AttributeDataMerger::
+fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
+          fastuidraw::c_array<fastuidraw::PainterIndex> indices,
+          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
+          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+          fastuidraw::c_array<unsigned int> zincrements,
+          fastuidraw::c_array<int> index_adjusts) const
+{
+  fastuidraw::c_array<fastuidraw::PainterAttribute> a_attribs, b_attribs;
+
+  FASTUIDRAWunused(zincrements);
+
+  a_attribs = attributes.sub_array(0, m_a.attribute_data_chunk(0).size());
+  b_attribs = attributes.sub_array(m_a.attribute_data_chunk(0).size());
+  assert(b_attribs.size() == m_b.attribute_data_chunk(0).size());
+
+  attrib_chunks[0] = attributes;
+  /* copy attributes with attributes of m_a first
+   */
+  std::copy(m_a.attribute_data_chunk(0).begin(),
+            m_a.attribute_data_chunk(0).end(),
+            a_attribs.begin());
+
+  std::copy(m_b.attribute_data_chunk(0).begin(),
+            m_b.attribute_data_chunk(0).end(),
+            b_attribs.begin());
+
+  /* copy indices is trickier; we need to copy with correct chunking
+     AND adjust the values for the indices coming from m_b (because
+     m_b attributes are placed after m_a attributes).
+   */
+  for(unsigned int chunk = 0, end_chunk = index_chunks.size(), current = 0; chunk < end_chunk; ++chunk)
+    {
+      fastuidraw::c_array<fastuidraw::PainterIndex> dst, dst_a, dst_b;
+      unsigned int dst_size, a_sz, b_sz;
+
+      index_adjusts[chunk] = 0;
+
+      a_sz = m_a.index_data_chunk(chunk).size();
+      b_sz = m_b.index_data_chunk(chunk).size();
+      dst_size = a_sz + b_sz;
+
+      dst = indices.sub_array(current, dst_size);
+      index_chunks[chunk] = dst;
+      dst_a = dst.sub_array(0, a_sz);
+      dst_b = dst.sub_array(a_sz);
+      current += dst_size;
+
+      if(a_sz > 0)
+        {
+          std::copy(m_a.index_data_chunk(chunk).begin(),
+                    m_a.index_data_chunk(chunk).end(),
+                    dst_a.begin());
+        }
+
+      if(b_sz > 0)
+        {
+          fastuidraw::const_c_array<fastuidraw::PainterIndex> src;
+
+          src = m_b.index_data_chunk(chunk);
+          for(unsigned int i = 0; i < b_sz; ++i)
+            {
+              dst_b[i] = src[i] + a_attribs.size();
+            }
+        }
+    }
+}
+
 ////////////////////////////////////
 // AttributeDataFiller methods
 void
@@ -1286,6 +1732,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
   std::transform(m_points.begin(), m_points.end(), attributes.begin(),
                  AttributeDataFiller::generate_attribute);
   attrib_chunks[0] = attributes;
+  std::fill(index_adjusts.begin(), index_adjusts.end(), 0);
 
   unsigned int current(0);
 
@@ -1295,7 +1742,6 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
     std::copy(member_name.begin(),                                  \
               member_name.end(), dst.begin());                      \
     index_chunks[PainterEnums::enum_name] = dst;                    \
-    index_adjusts[PainterEnums::enum_name] = 0;                     \
     current += dst.size();                                          \
   } while(0)
 
@@ -1325,7 +1771,6 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
           std::copy(src.begin(), src.end(), dst.begin());
 
           index_chunks[idx] = dst;
-          index_adjusts[idx] = 0;
           current += dst.size();
         }
     }
@@ -1334,11 +1779,234 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
 /////////////////////////////////
 // SubsetPrivate methods
 SubsetPrivate::
-SubsetPrivate(const fastuidraw::TessellatedPath &P)
+SubsetPrivate(SubPath *Q, int max_recursion,
+              std::vector<SubsetPrivate*> &out_values):
+  m_ID(out_values.size()),
+  m_bounds(Q->bounds()),
+  m_painter_data(NULL),
+  m_sizes_ready(false),
+  m_sub_path(Q),
+  m_children(NULL, NULL)
 {
+  out_values.push_back(this);
+  if(max_recursion > 0 && m_sub_path->total_points() > points_per_subset)
+    {
+      fastuidraw::vecN<SubPath*, 2> C;
+
+      C = Q->split();
+      if(C[0]->total_points() < m_sub_path->total_points() || C[1]->total_points() < m_sub_path->total_points())
+        {
+          m_children[0] = FASTUIDRAWnew SubsetPrivate(C[0], max_recursion - 1, out_values);
+          m_children[1] = FASTUIDRAWnew SubsetPrivate(C[1], max_recursion - 1, out_values);
+          FASTUIDRAWdelete(m_sub_path);
+          m_sub_path = NULL;
+        }
+      else
+        {
+          FASTUIDRAWdelete(C[0]);
+          FASTUIDRAWdelete(C[1]);
+        }
+    }
+}
+
+SubsetPrivate::
+~SubsetPrivate(void)
+{
+  if(m_sub_path != NULL)
+    {
+      assert(m_painter_data == NULL);
+      assert(m_children[0] == NULL);
+      assert(m_children[1] == NULL);
+      FASTUIDRAWdelete(m_sub_path);
+    }
+
+  if(m_painter_data != NULL)
+    {
+      assert(m_sub_path == NULL);
+      FASTUIDRAWdelete(m_painter_data);
+    }
+
+  if(m_children[0] != NULL)
+    {
+      assert(m_sub_path == NULL);
+      assert(m_children[1] != NULL);
+      FASTUIDRAWdelete(m_children[0]);
+      FASTUIDRAWdelete(m_children[1]);
+    }
+}
+
+unsigned int
+SubsetPrivate::
+select_subsets(ScratchSpacePrivate &scratch,
+               fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
+               const fastuidraw::float3x3 &clip_matrix_local,
+               unsigned int max_attribute_cnt,
+               unsigned int max_index_cnt,
+               fastuidraw::c_array<unsigned int> dst)
+{
+  unsigned int return_value(0u);
+
+  scratch.m_adjusted_clip_eqs.resize(clip_equations.size());
+  for(unsigned int i = 0; i < clip_equations.size(); ++i)
+    {
+      /* transform clip equations from clip coordinates to
+         local coordinates.
+       */
+      scratch.m_adjusted_clip_eqs[i] = clip_equations[i] * clip_matrix_local;
+    }
+
+  select_subsets_implement(scratch, dst, max_attribute_cnt, max_index_cnt, return_value);
+  return return_value;
+}
+
+void
+SubsetPrivate::
+select_subsets_implement(ScratchSpacePrivate &scratch,
+                         fastuidraw::c_array<unsigned int> dst,
+                         unsigned int max_attribute_cnt,
+                         unsigned int max_index_cnt,
+                         unsigned int &current)
+{
+  using namespace fastuidraw;
+  using namespace fastuidraw::detail;
+
+  vecN<vec2, 4> bb;
+  bool unclipped;
+
+  m_bounds.inflated_polygon(bb, 0.0f);
+  unclipped = clip_against_planes(make_c_array(scratch.m_adjusted_clip_eqs),
+                                  bb, scratch.m_clipped_rect,
+                                  scratch.m_clip_scratch_floats,
+                                  scratch.m_clip_scratch_vec2s);
+
+  //completely clipped
+  if(scratch.m_clipped_rect.empty())
+    {
+      return;
+    }
+
+  //completely unclipped or no children
+  assert((m_children[0] == NULL) == (m_children[1] == NULL));
+  if(unclipped || m_children[0] == NULL)
+    {
+      select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
+      return;
+    }
+
+  m_children[0]->select_subsets_implement(scratch, dst, max_attribute_cnt, max_index_cnt, current);
+  m_children[1]->select_subsets_implement(scratch, dst, max_attribute_cnt, max_index_cnt, current);
+}
+
+void
+SubsetPrivate::
+select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
+                            unsigned int max_attribute_cnt,
+                            unsigned int max_index_cnt,
+                            unsigned int &current)
+{
+  if(!m_sizes_ready && m_children[0] == NULL)
+    {
+      /* we are going to need the attributes because
+         the element will be selected.
+       */
+      make_ready_from_sub_path();
+      assert(m_painter_data != NULL);
+    }
+
+  if(m_sizes_ready && m_num_attributes <= max_attribute_cnt && m_largest_index_block <= max_index_cnt)
+    {
+      dst[current] = m_ID;
+      ++current;
+    }
+  else if(m_children[0] != NULL)
+    {
+      m_children[0]->select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
+      m_children[1]->select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
+      if(!m_sizes_ready)
+        {
+          m_sizes_ready = true;
+          assert(m_children[0]->m_sizes_ready);
+          assert(m_children[1]->m_sizes_ready);
+          m_num_attributes = m_children[0]->m_num_attributes + m_children[1]->m_num_attributes;
+          m_largest_index_block = m_children[0]->m_largest_index_block + m_children[1]->m_largest_index_block;
+        }
+    }
+  else
+    {
+      assert(m_sizes_ready);
+      assert(!"Childless FilledPath::Subset has too many attributes or indices");
+    }
+}
+
+void
+SubsetPrivate::
+make_ready(void)
+{
+  if(m_painter_data == NULL)
+    {
+      if(m_sub_path != NULL)
+        {
+          make_ready_from_sub_path();
+        }
+      else
+        {
+          make_ready_from_children();
+        }
+    }
+}
+
+void
+SubsetPrivate::
+make_ready_from_children(void)
+{
+  assert(m_children[0] != NULL);
+  assert(m_children[1] != NULL);
+  assert(m_sub_path == NULL);
+  assert(m_painter_data == NULL);
+
+  m_children[0]->make_ready();
+  m_children[1]->make_ready();
+
+  AttributeDataMerger merger(m_children[0]->painter_data(),
+                             m_children[1]->painter_data());
+  std::set<int> wnd;
+
+  m_painter_data = FASTUIDRAWnew fastuidraw::PainterAttributeData();
+  m_painter_data->set_data(merger);
+
+  std::copy(m_children[0]->winding_numbers().begin(),
+            m_children[0]->winding_numbers().end(),
+            std::inserter(wnd, wnd.begin()));
+  std::copy(m_children[1]->winding_numbers().begin(),
+            m_children[1]->winding_numbers().end(),
+            std::inserter(wnd, wnd.begin()));
+  m_winding_numbers.resize(wnd.size());
+  std::copy(wnd.begin(), wnd.end(), m_winding_numbers.begin());
+
+  if(!m_sizes_ready)
+    {
+      m_sizes_ready = true;
+      assert(m_children[0]->m_sizes_ready);
+      assert(m_children[1]->m_sizes_ready);
+      m_num_attributes = m_children[0]->m_num_attributes + m_children[1]->m_num_attributes;
+      m_largest_index_block = m_children[0]->m_largest_index_block + m_children[1]->m_largest_index_block;
+    }
+}
+
+void
+SubsetPrivate::
+make_ready_from_sub_path(void)
+{
+  assert(m_children[0] == NULL);
+  assert(m_children[1] == NULL);
+  assert(m_sub_path != NULL);
+  assert(m_painter_data == NULL);
+  assert(!m_sizes_ready);
+
   AttributeDataFiller filler;
-  builder B(P, filler.m_points);
+  builder B(*m_sub_path, filler.m_points);
   unsigned int even_non_zero_start, zero_start;
+  unsigned int m1, m2;
 
   B.fill_indices(filler.m_indices, filler.m_per_fill, even_non_zero_start, zero_start);
 
@@ -1348,6 +2016,14 @@ SubsetPrivate(const fastuidraw::TessellatedPath &P)
   filler.m_odd_winding_indices = indices_ptr.sub_array(0, even_non_zero_start);
   filler.m_even_winding_indices = indices_ptr.sub_array(even_non_zero_start);
   filler.m_zero_winding_indices = indices_ptr.sub_array(zero_start);
+
+  m_sizes_ready = true;
+  m1 = fastuidraw::t_max(filler.m_nonzero_winding_indices.size(),
+                         filler.m_zero_winding_indices.size());
+  m2 = fastuidraw::t_max(filler.m_odd_winding_indices.size(),
+                         filler.m_even_winding_indices.size());
+  m_largest_index_block = fastuidraw::t_max(m1, m2);
+  m_num_attributes = filler.m_points.size();
 
   m_winding_numbers.reserve(filler.m_per_fill.size());
   for(std::map<int, fastuidraw::const_c_array<unsigned int> >::iterator
@@ -1360,7 +2036,11 @@ SubsetPrivate(const fastuidraw::TessellatedPath &P)
 
   /* now fill m_painter_data.
    */
-  m_painter_data.set_data(filler);
+  m_painter_data = FASTUIDRAWnew fastuidraw::PainterAttributeData();
+  m_painter_data->set_data(filler);
+
+  FASTUIDRAWdelete(m_sub_path);
+  m_sub_path = NULL;
 
   #ifdef FASTUIDRAW_DEBUG
     {
@@ -1370,10 +2050,11 @@ SubsetPrivate(const fastuidraw::TessellatedPath &P)
            */
           std::cerr << "[" << __FILE__ << ", " << __LINE__
                     << "] Triangulation failed on tessellated path "
-                    << &P << "\n";
+                    << this << "\n";
         }
     }
   #endif
+
 }
 
 /////////////////////////////////
@@ -1381,16 +2062,32 @@ SubsetPrivate(const fastuidraw::TessellatedPath &P)
 FilledPathPrivate::
 FilledPathPrivate(const fastuidraw::TessellatedPath &P)
 {
-  m_subsets.push_back(FASTUIDRAWnew SubsetPrivate(P));
+  SubPath *q;
+  q = FASTUIDRAWnew SubPath(P);
+  m_root = FASTUIDRAWnew SubsetPrivate(q, SubsetPrivate::recursion_depth, m_subsets);
 }
 
 FilledPathPrivate::
 ~FilledPathPrivate()
 {
-  for(unsigned int i = 0; i < m_subsets.size(); ++i)
-    {
-      FASTUIDRAWdelete(m_subsets[i]);
-    }
+  FASTUIDRAWdelete(m_root);
+}
+
+///////////////////////////////
+//fastuidraw::FilledPath::ScratchSpace methods
+fastuidraw::FilledPath::ScratchSpace::
+ScratchSpace(void)
+{
+  m_d = FASTUIDRAWnew ScratchSpacePrivate();
+}
+
+fastuidraw::FilledPath::ScratchSpace::
+~ScratchSpace(void)
+{
+  ScratchSpacePrivate *d;
+  d = reinterpret_cast<ScratchSpacePrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+  m_d = NULL;
 }
 
 /////////////////////////////////
@@ -1407,7 +2104,7 @@ painter_data(void) const
 {
   SubsetPrivate *d;
   d = static_cast<SubsetPrivate*>(m_d);
-  return d->m_painter_data;
+  return d->painter_data();
 }
 
 fastuidraw::const_c_array<int>
@@ -1416,7 +2113,7 @@ winding_numbers(void) const
 {
   SubsetPrivate *d;
   d = static_cast<SubsetPrivate*>(m_d);
-  return make_c_array(d->m_winding_numbers);
+  return d->winding_numbers();
 }
 
 unsigned int
@@ -1452,18 +2149,7 @@ chunk_from_fill_rule(enum PainterEnums::fill_rule_t fill_rule)
 fastuidraw::FilledPath::
 FilledPath(const TessellatedPath &P)
 {
-  struct timeval t0, t1;
-  int64_t delta_us;
-
-  gettimeofday(&t0, NULL);
-
   m_d = FASTUIDRAWnew FilledPathPrivate(P);
-
-  gettimeofday(&t1, NULL);
-  delta_us = time_difference_us(t1, t0);
-  std::cout << "Triangulation time = " << delta_us
-            << " us ( " << delta_us / 1000
-            << " ms)\n";
 }
 
 fastuidraw::FilledPath::
@@ -1495,26 +2181,25 @@ subset(unsigned int I) const
   d = reinterpret_cast<FilledPathPrivate*>(m_d);
   assert(I < d->m_subsets.size());
   p = d->m_subsets[I];
+  p->make_ready();
 
   return Subset(p);
 }
 
 unsigned int
 fastuidraw::FilledPath::
-select_subsets(const_c_array<vec3> clip_equations,
+select_subsets(ScratchSpace &work_room,
+               const_c_array<vec3> clip_equations,
                const float3x3 &clip_matrix_local,
+               unsigned int max_attribute_cnt,
+               unsigned int max_index_cnt,
                c_array<unsigned int> dst) const
 {
   FilledPathPrivate *d;
 
-  FASTUIDRAWunused(clip_equations);
-  FASTUIDRAWunused(clip_matrix_local);
-
   d = reinterpret_cast<FilledPathPrivate*>(m_d);
   assert(dst.size() >= d->m_subsets.size());
-  for(unsigned int i = 0, endi = d->m_subsets.size(); i < endi; ++i)
-    {
-      dst[i] = i;
-    }
-  return d->m_subsets.size();
+  return d->m_root->select_subsets(*static_cast<ScratchSpacePrivate*>(work_room.m_d),
+                                   clip_equations, clip_matrix_local,
+                                   max_attribute_cnt, max_index_cnt, dst);
 }

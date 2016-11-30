@@ -422,6 +422,14 @@ namespace fastuidraw
       ~PainterBackendGL();
 
       virtual
+      unsigned int
+      attribs_per_mapping(void) const;
+
+      virtual
+      unsigned int
+      indices_per_mapping(void) const;
+
+      virtual
       void
       on_pre_draw(void);
 
