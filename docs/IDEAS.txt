@@ -25,25 +25,7 @@ NEW IDEA: for text rendering
            texel gets all the curves that go through it or any neighboring
            texels].
 
-NEW IDEA: for path tessellation instead of integrating K(p(t)) ||dp/dt||
-          integrate against K(p(t)) ||dp/dt||^2 and instead of using curvature
-          we use a value V which is derived as follows:
-             - no transformation applied to path p: then V is computed so that
-               there is no more than some decided upon distance factor D between
-               a circle of radius 1 and tesselated to lines.
-             - transformation applied to p. Scale V by the inverse of the
-               operator norm of the transformation. Then, if the path is not
-               tessellated so finely, retessellate.
-          Funny notes:
-            K(p(t)) = || d^2(p)/dt^2 X dp/dt || / || dp/dt ||^3
-          thus,
-            K(p(t)) ||dp/dt||^2  <= || d^2(p)/dt^2 ||
-          for circles this is a constant: the radius. For quadratic
-          beziers this is also a constant. Thus for those we can avoid
-          any real thinking and just tessellate to 1/V * S pieces where
-          S = || d^2(p)/dt^2 ||.
-
-NES IDEA: Better Color Stops. Instead of using linear sampling we can store
+NEW IDEA: Better Color Stops. Instead of using linear sampling we can store
           the actual color stops in values. We enforce that the color stops
           count is always a power of 2. Then the binary search as to where
           is a simple iterative loop from the recursive function
@@ -80,9 +62,3 @@ NES IDEA: Better Color Stops. Instead of using linear sampling we can store
             }
           This would allow for mean gradients which have very small distances
           between their color stop locations (even 0).
-
-NEW IDEA: for path rendering.
-    Currently paths are tessellated to line segments and from there we get the stroking
-    and filling. Instead, lets tessellate to arcs and line segments.
-      - For Stroking an arc, the gometry data of an arc is exactly that as of
-        miter join,
