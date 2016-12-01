@@ -660,8 +660,12 @@ public:
                                   to grab additional edges
     \param item_space_additional_room amount in local coordinates to push clip
                                  equations by to grab additional edges
-    \param include_closing_edges if true include the chunks needed to
                                  draw the closing edges of each contour
+    \param include_closing_edges if true include the chunks needed to
+    \param max_attribute_cnt only allow those chunks for which have no more
+                             than max_attribute_cnt attributes
+    \param max_index_cnt only allow those chunks for which have no more
+                         than max_index_cnt indices
     \param dst[output] location to which to write the what chunks
     \returns the number of chunks that intersect the clipping region,
              that number is guarnanteed to be no more than maximum_edge_chunks().
@@ -674,6 +678,8 @@ public:
               float pixels_additional_room,
               float item_space_additional_room,
               bool include_closing_edges,
+              unsigned int max_attribute_cnt,
+              unsigned int max_index_cnt,
               c_array<unsigned int> dst) const;
 
   /*!

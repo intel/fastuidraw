@@ -1123,6 +1123,8 @@ compute_edge_chunks(const fastuidraw::StrokedPath &stroked_path,
                                 pixels_additional_room,
                                 item_space_additional_room,
                                 close_countours,
+                                m_max_attribs_per_block,
+                                m_max_indices_per_block,
                                 fastuidraw::make_c_array(out_chunks));
   assert(sz <= out_chunks.size());
   out_chunks.resize(sz);
