@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <sys/time.h>
 #include <boost/thread.hpp>
 
 #include <vector>
@@ -70,25 +69,6 @@ namespace fastuidraw
   private:
     mutex &m_mutex;
   };
-
-  inline
-  int32_t
-  time_difference_ms(const struct timeval &end, const struct timeval &begin)
-  {
-    return (end.tv_sec - begin.tv_sec) * 1000 +
-      (end.tv_usec - begin.tv_usec) / 1000;
-  }
-
-  inline
-  int64_t
-  time_difference_us(const struct timeval &end, const struct timeval &begin)
-  {
-    int64_t delta_usec, delta_sec;
-
-    delta_usec = int64_t(end.tv_usec) - int64_t(begin.tv_usec);
-    delta_sec = int64_t(end.tv_sec) - int64_t(begin.tv_sec);
-    return delta_sec * int64_t(1000) * int64_t(1000) + delta_usec;
-  }
 
   template<typename T>
   c_array<T>

@@ -609,7 +609,7 @@ public:
 
   /*!
     Returns the number of seperate joins held in a PainterAttributeData
-    that is holds data for joins.
+    objects that hold data for joins.
    */
   static
   unsigned int
