@@ -21,6 +21,7 @@
 #include <list>
 #include <map>
 #include <algorithm>
+#include <ctime>
 #include <math.h>
 
 #include <fastuidraw/tessellated_path.hpp>
@@ -32,6 +33,78 @@
 #include "../private/bounding_box.hpp"
 #include "../private/clip.hpp"
 #include "../../3rd_party/glu-tess/glu-tess.hpp"
+
+
+
+/* Values to define how to create Subset objects
+ */
+namespace SubsetConstants
+{
+  enum
+    {
+      recursion_depth = 12,
+      points_per_subset = 64
+    };
+
+  const float size_max_ratio = 4.0f;
+}
+
+/* Values to decide how to creae bounding boxes around
+   contours within a Subset for the purpose of improving
+   triangulation, see PointHoard methods.
+
+   The total number of boxes, B, from N points
+   satisfies:
+
+   N / pts_per_box <= B <= N * L / pts_per_box
+
+   where L = boxes_per_box / (boxes_per_box - 1)
+
+   The cost of each bounding box is 4 edges.
+   We need to make sure that we do not add too
+   many boxes where too many of the added edges
+   are from the bounding boxes.
+ */
+namespace PointHoardConstants
+{
+  enum
+    {
+      points_per_guiding_box = 12,
+      min_points_per_guiding_box = 4,
+      guiding_boxes_per_guiding_box = 8
+    };
+}
+
+/* Constants for CoordinateConverter.
+   CoordinateConverter's purpose is to remap
+   the bounding box of a fastuidraw::TessellatedPath
+   to [0, 2 ^ N] x [0,  2 ^ N]
+   and then apply a fudge offset to the point
+   that an fp64 sees but an fp32 does not.
+
+   We do this to allow for the input TessellatedPath
+   to have overlapping edges. The value for the
+   fudge offset is to be incremented on each point.
+
+   An fp32 has a 23-bit significand that allows it
+   to represent any integer in the range [-2^24, 2^24]
+   exactly. An fp64 has a 52 bit significand.
+
+   We set N to be 24 and the fudginess to be 2^-20
+   (leaving 9-bits for GLU to use for intersections).
+ */
+namespace CoordinateConverterConstants
+{
+  enum
+    {
+      log2_box_dim = 24,
+      negative_log2_fudge = 20,
+      box_dim = (1 << log2_box_dim),
+    };
+}
+
+
+#define FASTUIDRAW_TIME_FILLED_PATH
 
 namespace
 {
@@ -80,38 +153,9 @@ namespace
     return (v % 2) == 0;
   }
 
-  /* Coordinate converter's purpose is to remap
-     the bounding box of a fastuidraw::TessellatedPath
-     to [0, 2 ^ N] x [0,  2 ^ N]
-     and then apply a fudge offset to the point
-     that an fp64 sees but an fp32 does not.
-
-     We do this to allow for the input TessellatedPath
-     to have overlapping edges. The value for the
-     fudge offset is to be incremented on each point.
-
-     An fp32 has a 23-bit significand that allows it
-     to represent any integer in the range [-2^24, 2^24]
-     exactly. An fp64 has a 52 bit significand.
-
-     We set N to be 24 and the fudginess to be 2^-20
-     (leaving 9-bits for GLU to use for intersections).
-
-     TODO: Incrementing the amount by which to apply
-     fudge is not the correct thing to do. Rather, we
-     should only increment and apply fudge on overlapping
-     and degenerate edges.
-   */
   class CoordinateConverter
   {
   public:
-    enum
-      {
-        log2_box_dim = 24,
-        negative_log2_fudge = 20,
-        box_dim = (1 << log2_box_dim),
-      };
-
     explicit
     CoordinateConverter(const fastuidraw::vec2 &fpmin, const fastuidraw::vec2 &fpmax)
     {
@@ -121,9 +165,9 @@ namespace
       pmax = fastuidraw::vecN<double, 2>(fpmax);
       delta = pmax - pmin;
       m_scale = fastuidraw::vecN<double, 2>(1.0, 1.0) / delta;
-      m_scale *= static_cast<double>(box_dim);
+      m_scale *= static_cast<double>(CoordinateConverterConstants::box_dim);
       m_translate = pmin;
-      m_delta_fudge = ::exp2(static_cast<double>(-negative_log2_fudge));
+      m_delta_fudge = ::exp2(static_cast<double>(-CoordinateConverterConstants::negative_log2_fudge));
       m_scale_f = fastuidraw::vec2(m_scale);
       m_translate_f = fastuidraw::vec2(m_translate);
     }
@@ -168,7 +212,18 @@ namespace
   class SubPath
   {
   public:
-    typedef std::vector<fastuidraw::vec2> SubContour;
+    class SubContourPoint:public fastuidraw::vec2
+    {
+    public:
+      SubContourPoint(const fastuidraw::vec2 &p = fastuidraw::vec2(),
+                      bool start = false):
+        fastuidraw::vec2(p),
+        m_start_tessellated_edge(start)
+      {}
+
+      bool m_start_tessellated_edge;
+    };
+    typedef std::vector<SubContourPoint> SubContour;
 
     explicit
     SubPath(const fastuidraw::TessellatedPath &P);
@@ -213,9 +268,9 @@ namespace
                   SubContour &minC, SubContour &maxC);
 
     static
-    fastuidraw::vec2
-    compute_spit_point(const fastuidraw::vec2 a,
-                       const fastuidraw::vec2 b,
+    SubContourPoint
+    compute_spit_point(const SubContourPoint a,
+                       const SubContourPoint b,
                        int splitting_coordinate, float spitting_value);
 
     unsigned int m_total_points;
@@ -239,24 +294,6 @@ namespace
     typedef std::vector<unsigned int> Contour;
     typedef std::list<Contour> Path;
     typedef std::vector<fastuidraw::uvec4> BoundingBoxes;
-
-    enum
-      {
-        /* The total number of boxes, B, from N points
-           satisfies:
-
-           N / pts_per_box <= B <= N * L / pts_per_box
-
-           where L = boxes_per_box / (boxes_per_box - 1)
-
-           The cost of each bounding box is 4 edges.
-           We need to make sure that we do not add too
-           many boxes where too many of the added edges
-           are from the bounding boxes.
-         */
-        pts_per_box = 12,
-        boxes_per_box = 8,
-      };
 
     explicit
     PointHoard(const fastuidraw::BoundingBox &bounds,
@@ -588,12 +625,6 @@ namespace
   class SubsetPrivate
   {
   public:
-    enum
-      {
-        recursion_depth = 12,
-        points_per_subset = 64
-      };
-
     ~SubsetPrivate(void);
 
     SubsetPrivate(SubPath *P, int max_recursion,
@@ -732,7 +763,8 @@ copy_contour(SubContour &dst,
       fastuidraw::range_type<unsigned int> R;
 
       R = src.edge_range(C, e);
-      for(unsigned int v = R.m_begin; v + 1 < R.m_end; ++v)
+      dst.push_back(SubContourPoint(src.point_data()[R.m_begin].m_p, true));
+      for(unsigned int v = R.m_begin + 1; v + 1 < R.m_end; ++v)
         {
           dst.push_back(src.point_data()[v].m_p);
         }
@@ -743,6 +775,19 @@ int
 SubPath::
 choose_splitting_coordinate(fastuidraw::vec2 mid_pt) const
 {
+  /* do not allow the box to be too far from being a square.
+   */
+  fastuidraw::vec2 wh;
+  wh = m_bounds.max_point() - m_bounds.min_point();
+  if(wh.x() >= SubsetConstants::size_max_ratio * wh.y())
+    {
+      return 0;
+    }
+  else if(wh.y() >= SubsetConstants::size_max_ratio * wh.x())
+    {
+      return 1;
+    }
+
   /* first find which of splitting in X or splitting in Y
      is optimal.
    */
@@ -799,9 +844,9 @@ choose_splitting_coordinate(fastuidraw::vec2 mid_pt) const
     }
 }
 
-fastuidraw::vec2
+SubPath::SubContourPoint
 SubPath::
-compute_spit_point(const fastuidraw::vec2 a, const fastuidraw::vec2 b,
+compute_spit_point(const SubContourPoint a, const SubContourPoint b,
                    int splitting_coordinate, float splitting_value)
 {
   float t, n, d, aa, bb;
@@ -817,7 +862,7 @@ compute_spit_point(const fastuidraw::vec2 a, const fastuidraw::vec2 b,
   bb = b[1 - splitting_coordinate];
   return_value[1 - splitting_coordinate] = (1.0f - t) * aa + t * bb;
 
-  return return_value;
+  return SubContourPoint(return_value, true);
 }
 
 void
@@ -832,8 +877,8 @@ split_contour(const SubContour &src,
     {
       bool b0, prev_b0;
       bool b1, prev_b1;
-      fastuidraw::vec2 split_pt;
-      const fastuidraw::vec2 &pt(*iter);
+      SubContourPoint split_pt;
+      const SubContourPoint &pt(*iter);
 
       prev_b0 = prev_pt[splitting_coordinate] <= splitting_value;
       b0 = pt[splitting_coordinate] <= splitting_value;
@@ -972,16 +1017,33 @@ generate_contour(const SubPath::SubContour &C, Contour &output,
 
   for(unsigned int v = 0, endv = C.size(); v < endv; ++v,  ++cnt, ++total_cnt)
     {
+      /* starting a tessellated edge means that we
+         restart our current building boxes.
+       */
+      if(v != 0 && C[v].m_start_tessellated_edge)
+        {
+          pre_process_boxes(boxes, cnt);
+          if(total_cnt >= PointHoardConstants::min_points_per_guiding_box)
+            {
+              process_bounding_boxes(boxes, bounding_box_path);
+            }
+          boxes.clear();
+          boxes.resize(1);
+          cnt = 0;
+          total_cnt = 0;
+        }
+
       output.push_back(fetch(C[v]));
       boxes.back().union_point(C[v]);
-      if(cnt == pts_per_box)
+      if(cnt == PointHoardConstants::points_per_guiding_box)
         {
           cnt = 0;
           boxes.push_back(fastuidraw::BoundingBox());
         }
     }
+
   pre_process_boxes(boxes, cnt);
-  if(total_cnt >= pts_per_box)
+  if(total_cnt >= PointHoardConstants::min_points_per_guiding_box)
     {
       process_bounding_boxes(boxes, bounding_box_path);
     }
@@ -1044,7 +1106,7 @@ process_bounding_boxes(const std::vector<fastuidraw::BoundingBox> &in_boxes,
         }
 
       boxes_of_boxes.back().union_box(in_boxes[i]);
-      if(cnt == boxes_per_box)
+      if(cnt == PointHoardConstants::guiding_boxes_per_guiding_box)
         {
           cnt = 0;
           boxes_of_boxes.push_back(fastuidraw::BoundingBox());
@@ -1052,7 +1114,7 @@ process_bounding_boxes(const std::vector<fastuidraw::BoundingBox> &in_boxes,
     }
 
   pre_process_boxes(boxes_of_boxes, cnt);
-  if(total_cnt >= boxes_per_box)
+  if(total_cnt >= PointHoardConstants::guiding_boxes_per_guiding_box)
     {
       process_bounding_boxes(boxes_of_boxes, bounding_box_path);
     }
@@ -1116,6 +1178,11 @@ add_contour(const PointHoard::Contour &C)
       fastuidraw::vecN<double, 2> p;
       unsigned int I;
 
+      /* TODO: Incrementing the amount by which to apply
+         fudge is not the correct thing to do. Rather, we
+         should only increment and apply fudge on overlapping
+         and degenerate edges.
+      */
       I = C[v];
       p = m_points.converter().apply(m_points[I], m_point_count);
       ++m_point_count;
@@ -1152,7 +1219,7 @@ add_path_boundary(const SubPath &P)
       k = src[i];
       if(k & box_max_x_flag)
         {
-          x = slack + static_cast<double>(CoordinateConverter::box_dim);
+          x = slack + static_cast<double>(CoordinateConverterConstants::box_dim);
           p.x() = pmax.x();
         }
       else
@@ -1163,7 +1230,7 @@ add_path_boundary(const SubPath &P)
 
       if(k & box_max_y_flag)
         {
-          y = slack + static_cast<double>(CoordinateConverter::box_dim);
+          y = slack + static_cast<double>(CoordinateConverterConstants::box_dim);
           p.y() = pmax.y();
         }
       else
@@ -1789,7 +1856,7 @@ SubsetPrivate(SubPath *Q, int max_recursion,
   m_children(NULL, NULL)
 {
   out_values.push_back(this);
-  if(max_recursion > 0 && m_sub_path->total_points() > points_per_subset)
+  if(max_recursion > 0 && m_sub_path->total_points() > SubsetConstants::points_per_subset)
     {
       fastuidraw::vecN<SubPath*, 2> C;
 
@@ -2064,7 +2131,7 @@ FilledPathPrivate(const fastuidraw::TessellatedPath &P)
 {
   SubPath *q;
   q = FASTUIDRAWnew SubPath(P);
-  m_root = FASTUIDRAWnew SubsetPrivate(q, SubsetPrivate::recursion_depth, m_subsets);
+  m_root = FASTUIDRAWnew SubsetPrivate(q, SubsetConstants::recursion_depth, m_subsets);
 }
 
 FilledPathPrivate::
@@ -2196,10 +2263,31 @@ select_subsets(ScratchSpace &work_room,
                c_array<unsigned int> dst) const
 {
   FilledPathPrivate *d;
+  unsigned int return_value;
+
+#ifdef FASTUIDRAW_TIME_FILLED_PATH
+  std::time_t t0(std::time(NULL));
+#endif
 
   d = reinterpret_cast<FilledPathPrivate*>(m_d);
   assert(dst.size() >= d->m_subsets.size());
-  return d->m_root->select_subsets(*static_cast<ScratchSpacePrivate*>(work_room.m_d),
-                                   clip_equations, clip_matrix_local,
-                                   max_attribute_cnt, max_index_cnt, dst);
+  return_value= d->m_root->select_subsets(*static_cast<ScratchSpacePrivate*>(work_room.m_d),
+                                          clip_equations, clip_matrix_local,
+                                          max_attribute_cnt, max_index_cnt, dst);
+
+#ifdef FASTUIDRAW_TIME_FILLED_PATH
+  for(unsigned int i = 0; i < return_value; ++i)
+    {
+      Subset S(subset(i));
+    }
+  double ms;
+  ms = std::difftime(std::time(NULL), t0) * 1000.0;
+  if(ms > 500.0)
+    {
+      std::cout << "WARNING: took " << ms << " ms to select and make "
+                << return_value << " subsets ready\n";
+    }
+#endif
+
+  return return_value;
 }
