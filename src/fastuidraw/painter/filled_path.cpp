@@ -34,9 +34,44 @@
 #include "../private/clip.hpp"
 #include "../../3rd_party/glu-tess/glu-tess.hpp"
 
+/* Actual triangulation is handled by GLU-tess.
+   The main complexity in creating a FilledPath
+   comes from two elements:
+    - handling overlapping edges
+    - creating a hierarchy for creating triangulations
+      and for culling.
 
+   The first is needed because GLU-tess will fail
+   if any two edges overlap (we say a pair of edges
+   overlap if they intersect at more than just a single
+   point). We handle this by observing that GLU-tess
+   takes doubles but TessellatedPath is floats. When
+   we feed the coordinates to GLU-tess, we offset the
+   values by an amount that is visible in fp64 but not
+   in fp32. In addition, we also want to merge points
+   that are close in fp32 as well. The details are
+   handled in CoordinateCoverter, PointHoard and
+   tesser.
 
-/* Values to define how to create Subset objects
+   The second is needed for primarily to speed up
+   tessellation. If a TessellatedPath has a large
+   number of vertices, then that is likely because
+   it is a high level of detail and likely zoomed in
+   a great deal. To handle that, we need only to
+   have the triangulation of a smaller portion of
+   it ready. Thus we break the original path into
+   a hierarchy of paths. The partitioning is done
+   a single half plane at a time. A contour from
+   the original path is computed by simply removing
+   any points on the wrong side of the half plane
+   and inserting the points where the path crossed
+   the half plane. The sub-path objects are computed
+   via the class SubPath. The class SubsetPrivate
+   is the one that represents an element in the
+   hierarchy that is triangulated on demand.
+ */
+
+/* Values to define how to create Subset objects.
  */
 namespace SubsetConstants
 {
@@ -46,10 +81,13 @@ namespace SubsetConstants
       points_per_subset = 64
     };
 
+  /* if negative, aspect ratio is not
+     enfored.
+   */
   const float size_max_ratio = 4.0f;
 }
 
-/* Values to decide how to creae bounding boxes around
+/* Values to decide how to create guiding boxes around
    contours within a Subset for the purpose of improving
    triangulation, see PointHoard methods.
 
@@ -60,19 +98,46 @@ namespace SubsetConstants
 
    where L = boxes_per_box / (boxes_per_box - 1)
 
-   The cost of each bounding box is 4 edges.
+   The cost of each guiding box is 4 edges.
    We need to make sure that we do not add too
    many boxes where too many of the added edges
-   are from the bounding boxes.
+   are from the guiding boxes.
+
+   TODO: the main purpose is to decrease (or
+   eliminate) long skinny triangles. Another
+   way to decrease such triangle is to add a
+   post-process step that identifies triangles
+   fans coming from a single point, decide if
+   the triangles are long and skinny and if so
+   to run GLU-tess on that fan with a collection
+   of guiding edges to improve the triangulation
+   quality.
  */
 namespace PointHoardConstants
 {
   enum
     {
-      points_per_guiding_box = 12,
+      points_per_guiding_box = 16,
       min_points_per_guiding_box = 4,
       guiding_boxes_per_guiding_box = 8
     };
+
+  /* set to false to disable using guiding boxes.
+     A guiding box adds a contour that does not
+     affect the winding values for the purpose
+     of localizing triangles made by GLU-tess
+     even more. The localizing usually makes
+     GLU-tess run SLOWER, but improves triangulation,
+     i.e. reduces the number and scope of long
+     skinny triangles.
+   */
+  const bool enable_guiding_boxes = false;
+
+  /* if true, guiding boxes are made per PathContour::interpolator_base
+     from the original Path. If false, guiding boxes are made from
+     the SubPath::SubContour fed to PointHoard::generate_path()
+   */
+  const bool guiding_boxes_per_interpolator = true;
 }
 
 /* Constants for CoordinateConverter.
@@ -102,9 +167,6 @@ namespace CoordinateConverterConstants
       box_dim = (1 << log2_box_dim),
     };
 }
-
-
-#define FASTUIDRAW_TIME_FILLED_PATH
 
 namespace
 {
@@ -776,16 +838,23 @@ SubPath::
 choose_splitting_coordinate(fastuidraw::vec2 mid_pt) const
 {
   /* do not allow the box to be too far from being a square.
+     TODO: if the balance of points heavily favors the other
+     side, we should ignore the size_max_ratio. Perhaps a
+     wieght factor between the different in # of points
+     of the sides and the ratio?
    */
-  fastuidraw::vec2 wh;
-  wh = m_bounds.max_point() - m_bounds.min_point();
-  if(wh.x() >= SubsetConstants::size_max_ratio * wh.y())
+  if(SubsetConstants::size_max_ratio > 0.0f)
     {
-      return 0;
-    }
-  else if(wh.y() >= SubsetConstants::size_max_ratio * wh.x())
-    {
-      return 1;
+      fastuidraw::vec2 wh;
+      wh = m_bounds.max_point() - m_bounds.min_point();
+      if(wh.x() >= SubsetConstants::size_max_ratio * wh.y())
+        {
+          return 0;
+        }
+      else if(wh.y() >= SubsetConstants::size_max_ratio * wh.x())
+        {
+          return 1;
+        }
     }
 
   /* first find which of splitting in X or splitting in Y
@@ -1020,7 +1089,9 @@ generate_contour(const SubPath::SubContour &C, Contour &output,
       /* starting a tessellated edge means that we
          restart our current building boxes.
        */
-      if(v != 0 && C[v].m_start_tessellated_edge)
+      if(PointHoardConstants::guiding_boxes_per_interpolator
+         && PointHoardConstants::enable_guiding_boxes
+         && v != 0 && C[v].m_start_tessellated_edge)
         {
           pre_process_boxes(boxes, cnt);
           if(total_cnt >= PointHoardConstants::min_points_per_guiding_box)
@@ -1042,10 +1113,13 @@ generate_contour(const SubPath::SubContour &C, Contour &output,
         }
     }
 
-  pre_process_boxes(boxes, cnt);
-  if(total_cnt >= PointHoardConstants::min_points_per_guiding_box)
+  if(PointHoardConstants::enable_guiding_boxes)
     {
-      process_bounding_boxes(boxes, bounding_box_path);
+      pre_process_boxes(boxes, cnt);
+      if(total_cnt >= PointHoardConstants::min_points_per_guiding_box)
+        {
+          process_bounding_boxes(boxes, bounding_box_path);
+        }
     }
 }
 
@@ -2265,29 +2339,31 @@ select_subsets(ScratchSpace &work_room,
   FilledPathPrivate *d;
   unsigned int return_value;
 
-#ifdef FASTUIDRAW_TIME_FILLED_PATH
-  std::time_t t0(std::time(NULL));
-#endif
-
   d = reinterpret_cast<FilledPathPrivate*>(m_d);
   assert(dst.size() >= d->m_subsets.size());
+  /* TODO:
+       - have another method in SubsetPrivate called
+         "fast_select_subsets" which ignores the requirements
+         coming from max_attribute_cnt and max_index_cnt.
+         By ignoring this requirement, we do NOT need
+         to do call make_ready() for any SubsetPrivate
+         object chosen.
+       - have the fast_select_subsets() also return
+         if paths needed require triangulation.
+       - if there such, spawn a thread and let the
+         caller decide if to wait for the thread to
+         finish before proceeding or to do something
+         else (like use a lower level of detail that
+         is ready). Another alternatic is to return
+         what Subset's need to have triangulation done
+         and spawn a set of threads to do the job (!)
+       - All this work means we need to make SubsetPrivate
+         thread safe (with regards to the SubsetPrivate
+         being made ready via make_ready()).
+   */
   return_value= d->m_root->select_subsets(*static_cast<ScratchSpacePrivate*>(work_room.m_d),
                                           clip_equations, clip_matrix_local,
                                           max_attribute_cnt, max_index_cnt, dst);
-
-#ifdef FASTUIDRAW_TIME_FILLED_PATH
-  for(unsigned int i = 0; i < return_value; ++i)
-    {
-      Subset S(subset(i));
-    }
-  double ms;
-  ms = std::difftime(std::time(NULL), t0) * 1000.0;
-  if(ms > 500.0)
-    {
-      std::cout << "WARNING: took " << ms << " ms to select and make "
-                << return_value << " subsets ready\n";
-    }
-#endif
 
   return return_value;
 }
