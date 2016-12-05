@@ -274,15 +274,17 @@ namespace
   class SubPath
   {
   public:
-    class SubContourPoint:public fastuidraw::vec2
+    class SubContourPoint
     {
     public:
+      explicit
       SubContourPoint(const fastuidraw::vec2 &p = fastuidraw::vec2(),
                       bool start = false):
-        fastuidraw::vec2(p),
+        m_pt(p),
         m_start_tessellated_edge(start)
       {}
 
+      fastuidraw::vec2 m_pt;
       bool m_start_tessellated_edge;
     };
     typedef std::vector<SubContourPoint> SubContour;
@@ -330,7 +332,7 @@ namespace
                   SubContour &minC, SubContour &maxC);
 
     static
-    SubContourPoint
+    fastuidraw::vec2
     compute_spit_point(const SubContourPoint a,
                        const SubContourPoint b,
                        int splitting_coordinate, float spitting_value);
@@ -828,7 +830,8 @@ copy_contour(SubContour &dst,
       dst.push_back(SubContourPoint(src.point_data()[R.m_begin].m_p, true));
       for(unsigned int v = R.m_begin + 1; v + 1 < R.m_end; ++v)
         {
-          dst.push_back(src.point_data()[v].m_p);
+          SubContourPoint pt(src.point_data()[v].m_p);
+          dst.push_back(pt);
         }
     }
 }
@@ -867,11 +870,11 @@ choose_splitting_coordinate(fastuidraw::vec2 mid_pt) const
   for(std::vector<SubContour>::const_iterator c_iter = m_contours.begin(),
         c_end = m_contours.end(); c_iter != c_end; ++c_iter)
     {
-      fastuidraw::vec2 prev_pt(c_iter->back());
+      fastuidraw::vec2 prev_pt(c_iter->back().m_pt);
       for(SubContour::const_iterator iter = c_iter->begin(),
             end = c_iter->end(); iter != end; ++iter)
         {
-          fastuidraw::vec2 pt(*iter);
+          fastuidraw::vec2 pt(iter->m_pt);
           for(int i = 0; i < 2; ++i)
             {
               bool prev_b, b;
@@ -913,7 +916,7 @@ choose_splitting_coordinate(fastuidraw::vec2 mid_pt) const
     }
 }
 
-SubPath::SubContourPoint
+fastuidraw::vec2
 SubPath::
 compute_spit_point(const SubContourPoint a, const SubContourPoint b,
                    int splitting_coordinate, float splitting_value)
@@ -921,17 +924,17 @@ compute_spit_point(const SubContourPoint a, const SubContourPoint b,
   float t, n, d, aa, bb;
   fastuidraw::vec2 return_value;
 
-  n = splitting_value - a[splitting_coordinate];
-  d = b[splitting_coordinate] - a[splitting_coordinate];
+  n = splitting_value - a.m_pt[splitting_coordinate];
+  d = b.m_pt[splitting_coordinate] - a.m_pt[splitting_coordinate];
   t = n / d;
 
   return_value[splitting_coordinate] = splitting_value;
 
-  aa = a[1 - splitting_coordinate];
-  bb = b[1 - splitting_coordinate];
+  aa = a.m_pt[1 - splitting_coordinate];
+  bb = b.m_pt[1 - splitting_coordinate];
   return_value[1 - splitting_coordinate] = (1.0f - t) * aa + t * bb;
 
-  return SubContourPoint(return_value, true);
+  return return_value;
 }
 
 void
@@ -940,7 +943,7 @@ split_contour(const SubContour &src,
               int splitting_coordinate, float splitting_value,
               SubContour &C0, SubContour &C1)
 {
-  fastuidraw::vec2 prev_pt(src.back());
+  SubContourPoint prev_pt(src.back());
   for(SubContour::const_iterator iter = src.begin(),
         end = src.end(); iter != end; ++iter)
     {
@@ -949,15 +952,17 @@ split_contour(const SubContour &src,
       SubContourPoint split_pt;
       const SubContourPoint &pt(*iter);
 
-      prev_b0 = prev_pt[splitting_coordinate] <= splitting_value;
-      b0 = pt[splitting_coordinate] <= splitting_value;
+      prev_b0 = prev_pt.m_pt[splitting_coordinate] <= splitting_value;
+      b0 = pt.m_pt[splitting_coordinate] <= splitting_value;
 
-      prev_b1 = prev_pt[splitting_coordinate] >= splitting_value;
-      b1 = pt[splitting_coordinate] >= splitting_value;
+      prev_b1 = prev_pt.m_pt[splitting_coordinate] >= splitting_value;
+      b1 = pt.m_pt[splitting_coordinate] >= splitting_value;
 
       if(prev_b0 != b0 || prev_b1 != b1)
         {
-          split_pt = compute_spit_point(prev_pt, pt, splitting_coordinate, splitting_value);
+          fastuidraw::vec2 s;
+          s = compute_spit_point(prev_pt, pt, splitting_coordinate, splitting_value);
+          split_pt = SubContourPoint(s, true);
         }
 
       if(prev_b0 != b0)
@@ -1104,8 +1109,8 @@ generate_contour(const SubPath::SubContour &C, Contour &output,
           total_cnt = 0;
         }
 
-      output.push_back(fetch(C[v]));
-      boxes.back().union_point(C[v]);
+      output.push_back(fetch(C[v].m_pt));
+      boxes.back().union_point(C[v].m_pt);
       if(cnt == PointHoardConstants::points_per_guiding_box)
         {
           cnt = 0;
