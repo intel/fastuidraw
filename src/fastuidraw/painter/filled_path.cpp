@@ -271,22 +271,92 @@ namespace
     fastuidraw::vec2 m_scale_f, m_translate_f;
   };
 
+  enum
+    {
+      box_max_x_flag = 1,
+      box_max_y_flag = 2,
+      box_min_x_min_y = 0 | 0,
+      box_min_x_max_y = 0 | box_max_y_flag,
+      box_max_x_max_y = box_max_x_flag | box_max_y_flag,
+      box_max_x_min_y = box_max_x_flag,
+    };
+
+  unsigned int
+  box_next_neighbor(unsigned int v)
+  {
+    const unsigned int values[4]=
+    {
+      /* 0 is box_min_x_min_y */ box_min_x_max_y,
+      /* 1 is box_max_x_min_y */ box_min_x_min_y,
+      /* 2 is box_min_x_max_y */ box_max_x_max_y,
+      /* 3 is box_max_x_max_y */ box_max_x_min_y,
+    };
+    assert(v <= 3);
+    return values[v];
+  }
+
   class SubPath
   {
   public:
     class SubContourPoint
     {
     public:
+      enum on_boundary_t
+        {
+          on_min_boundary,
+          on_max_boundary,
+          not_on_boundary
+        };
+
       explicit
       SubContourPoint(const fastuidraw::vec2 &p = fastuidraw::vec2(),
                       bool start = false):
         m_pt(p),
-        m_start_tessellated_edge(start)
+        m_start_tessellated_edge(start),
+        m_boundary_type(not_on_boundary, not_on_boundary),
+        m_corner_point_type(4)
       {}
 
+      SubContourPoint(const SubContourPoint &a,
+                      const SubContourPoint &b,
+                      const fastuidraw::vec2 &pt,
+                      int split_coordinate,
+                      enum on_boundary_t tp);
+
+      const fastuidraw::vec2&
+      pt(void) const
+      {
+        return m_pt;
+      }
+
+      bool
+      start_tessellated_edge(void) const
+      {
+        return m_start_tessellated_edge;
+      }
+
+      bool
+      is_corner_point(void) const
+      {
+        return m_boundary_type[0] != not_on_boundary
+          && m_boundary_type[1] != not_on_boundary;
+      }
+
+      uint32_t
+      corner_point_type(void) const
+      {
+        assert(is_corner_point());
+        assert(m_corner_point_type <= 3);
+        return m_corner_point_type;
+      }
+
+    private:
       fastuidraw::vec2 m_pt;
       bool m_start_tessellated_edge;
+      fastuidraw::vecN<enum on_boundary_t, 2> m_boundary_type;
+      int m_corner_point_type;
     };
+
     typedef std::vector<SubContourPoint> SubContour;
 
     explicit
@@ -310,12 +380,19 @@ namespace
       return m_total_points;
     }
 
+    int
+    winding_start(void) const
+    {
+      return m_winding_start;
+    }
+
     fastuidraw::vecN<SubPath*, 2>
     split(void) const;
 
   private:
     SubPath(const fastuidraw::BoundingBox &bb,
-            std::vector<SubContour> &contours);
+            std::vector<SubContour> &contours,
+            int winding_start);
 
     int
     choose_splitting_coordinate(fastuidraw::vec2 mid_pt) const;
@@ -329,28 +406,24 @@ namespace
     void
     split_contour(const SubContour &src,
                   int splitting_coordinate, float spitting_value,
-                  SubContour &minC, SubContour &maxC);
+                  SubContour &minC, SubContour &maxC,
+                  int &C0_winding_start, int &C1_winding_start);
+
+    static
+    int
+    post_process_sub_contour(SubContour &C);
 
     static
     fastuidraw::vec2
-    compute_spit_point(const SubContourPoint a,
-                       const SubContourPoint b,
+    compute_spit_point(fastuidraw::vec2 a,
+                       fastuidraw::vec2 b,
                        int splitting_coordinate, float spitting_value);
 
     unsigned int m_total_points;
     fastuidraw::BoundingBox m_bounds;
     std::vector<SubContour> m_contours;
+    int m_winding_start;
   };
-
-  enum
-    {
-      box_max_x_flag = 1,
-      box_max_y_flag = 2,
-      box_min_x_min_y = 0 | 0,
-      box_min_x_max_y = 0 | box_max_y_flag,
-      box_max_x_max_y = box_max_x_flag | box_max_y_flag,
-      box_max_x_min_y = box_max_x_flag,
-    };
 
   class PointHoard:fastuidraw::noncopyable
   {
@@ -497,9 +570,10 @@ namespace
     execute_path(PointHoard &points,
                  const PointHoard::Path &P,
                  const PointHoard::BoundingBoxes &boxes,
+                 const SubPath &path,
                  winding_index_hoard &hoard)
     {
-      non_zero_tesser NZ(points, P, boxes, hoard);
+      non_zero_tesser NZ(points, P, boxes, path, hoard);
       return NZ.triangulation_failed();
     }
 
@@ -507,6 +581,7 @@ namespace
     non_zero_tesser(PointHoard &points,
                     const PointHoard::Path &P,
                     const PointHoard::BoundingBoxes &boxes,
+                    const SubPath &path,
                     winding_index_hoard &hoard);
 
     virtual
@@ -521,6 +596,7 @@ namespace
     FASTUIDRAW_GLUboolean
     fill_region(int winding_number);
 
+    int m_winding_start;
     winding_index_hoard &m_hoard;
     int m_current_winding;
     fastuidraw::reference_counted_ptr<per_winding_data> m_current_indices;
@@ -787,13 +863,58 @@ namespace
   };
 }
 
+////////////////////////////////////////
+// SubPath::SubContourPoint methods
+SubPath::SubContourPoint::
+SubContourPoint(const SubContourPoint &a,
+                const SubContourPoint &b,
+                const fastuidraw::vec2 &pt,
+                int split_coordinate,
+                enum on_boundary_t tp):
+  m_pt(pt),
+  m_start_tessellated_edge(true)
+{
+  int unsplit_coordinate(1 - split_coordinate);
+  if(a.m_boundary_type[unsplit_coordinate] == b.m_boundary_type[unsplit_coordinate])
+    {
+      m_boundary_type[unsplit_coordinate] = a.m_boundary_type[unsplit_coordinate];
+    }
+  else
+    {
+      m_boundary_type[unsplit_coordinate] = not_on_boundary;
+    }
+  m_boundary_type[split_coordinate] = tp;
+
+  if(is_corner_point())
+    {
+      m_corner_point_type = 0;
+      if(m_boundary_type.x() == on_max_boundary)
+        {
+          m_corner_point_type |= box_max_x_flag;
+        }
+
+      if(m_boundary_type.y() == on_max_boundary)
+        {
+          m_corner_point_type |= box_max_y_flag;
+        }
+    }
+  else
+    {
+      m_corner_point_type = 4;
+    }
+}
+
+
+
 /////////////////////////////////////
 // SubPath methods
 SubPath::
 SubPath(const fastuidraw::BoundingBox &bb,
-        std::vector<SubContour> &contours):
+        std::vector<SubContour> &contours,
+        int winding_start):
   m_total_points(0),
-  m_bounds(bb)
+  m_bounds(bb),
+  m_winding_start(winding_start)
 {
   m_contours.swap(contours);
   for(std::vector<SubContour>::const_iterator c_iter = m_contours.begin(),
@@ -808,7 +929,8 @@ SubPath(const fastuidraw::TessellatedPath &P):
   m_total_points(0),
   m_bounds(P.bounding_box_min(),
            P.bounding_box_max()),
-  m_contours(P.number_contours())
+  m_contours(P.number_contours()),
+  m_winding_start(0)
 {
   for(unsigned int c = 0, endc = m_contours.size(); c < endc; ++c)
     {
@@ -870,11 +992,11 @@ choose_splitting_coordinate(fastuidraw::vec2 mid_pt) const
   for(std::vector<SubContour>::const_iterator c_iter = m_contours.begin(),
         c_end = m_contours.end(); c_iter != c_end; ++c_iter)
     {
-      fastuidraw::vec2 prev_pt(c_iter->back().m_pt);
+      fastuidraw::vec2 prev_pt(c_iter->back().pt());
       for(SubContour::const_iterator iter = c_iter->begin(),
             end = c_iter->end(); iter != end; ++iter)
         {
-          fastuidraw::vec2 pt(iter->m_pt);
+          fastuidraw::vec2 pt(iter->pt());
           for(int i = 0; i < 2; ++i)
             {
               bool prev_b, b;
@@ -918,20 +1040,20 @@ choose_splitting_coordinate(fastuidraw::vec2 mid_pt) const
 
 fastuidraw::vec2
 SubPath::
-compute_spit_point(const SubContourPoint a, const SubContourPoint b,
+compute_spit_point(fastuidraw::vec2 a, fastuidraw::vec2 b,
                    int splitting_coordinate, float splitting_value)
 {
   float t, n, d, aa, bb;
   fastuidraw::vec2 return_value;
 
-  n = splitting_value - a.m_pt[splitting_coordinate];
-  d = b.m_pt[splitting_coordinate] - a.m_pt[splitting_coordinate];
+  n = splitting_value - a[splitting_coordinate];
+  d = b[splitting_coordinate] - a[splitting_coordinate];
   t = n / d;
 
   return_value[splitting_coordinate] = splitting_value;
 
-  aa = a.m_pt[1 - splitting_coordinate];
-  bb = b.m_pt[1 - splitting_coordinate];
+  aa = a[1 - splitting_coordinate];
+  bb = b[1 - splitting_coordinate];
   return_value[1 - splitting_coordinate] = (1.0f - t) * aa + t * bb;
 
   return return_value;
@@ -941,7 +1063,8 @@ void
 SubPath::
 split_contour(const SubContour &src,
               int splitting_coordinate, float splitting_value,
-              SubContour &C0, SubContour &C1)
+              SubContour &C0, SubContour &C1,
+              int &C0_winding_start, int &C1_winding_start)
 {
   SubContourPoint prev_pt(src.back());
   for(SubContour::const_iterator iter = src.begin(),
@@ -949,25 +1072,25 @@ split_contour(const SubContour &src,
     {
       bool b0, prev_b0;
       bool b1, prev_b1;
-      SubContourPoint split_pt;
+      fastuidraw::vec2 split_pt;
       const SubContourPoint &pt(*iter);
 
-      prev_b0 = prev_pt.m_pt[splitting_coordinate] <= splitting_value;
-      b0 = pt.m_pt[splitting_coordinate] <= splitting_value;
+      prev_b0 = prev_pt.pt()[splitting_coordinate] <= splitting_value;
+      b0 = pt.pt()[splitting_coordinate] <= splitting_value;
 
-      prev_b1 = prev_pt.m_pt[splitting_coordinate] >= splitting_value;
-      b1 = pt.m_pt[splitting_coordinate] >= splitting_value;
+      prev_b1 = prev_pt.pt()[splitting_coordinate] >= splitting_value;
+      b1 = pt.pt()[splitting_coordinate] >= splitting_value;
 
       if(prev_b0 != b0 || prev_b1 != b1)
         {
-          fastuidraw::vec2 s;
-          s = compute_spit_point(prev_pt, pt, splitting_coordinate, splitting_value);
-          split_pt = SubContourPoint(s, true);
+          split_pt = compute_spit_point(prev_pt.pt(), pt.pt(),
+                                        splitting_coordinate, splitting_value);
         }
 
       if(prev_b0 != b0)
         {
-          C0.push_back(split_pt);
+          SubContourPoint s(prev_pt, pt, split_pt, splitting_coordinate, SubContourPoint::on_max_boundary);
+          C0.push_back(s);
         }
 
       if(b0)
@@ -977,7 +1100,8 @@ split_contour(const SubContour &src,
 
       if(prev_b1 != b1)
         {
-          C1.push_back(split_pt);
+          SubContourPoint s(prev_pt, pt, split_pt, splitting_coordinate, SubContourPoint::on_min_boundary);
+          C1.push_back(s);
         }
 
       if(b1)
@@ -987,7 +1111,72 @@ split_contour(const SubContour &src,
 
       prev_pt = pt;
     }
+
+  C0_winding_start += post_process_sub_contour(C0);
+  C1_winding_start += post_process_sub_contour(C1);
 }
+
+
+int
+SubPath::
+post_process_sub_contour(SubContour &C)
+{
+  /* if all edges of C are along the boundary,
+     collapse C to nothing and return the number
+     of times C wraps around the box.
+   */
+  unsigned int prev_corner_type;
+  int forwards_counter(0), backwards_counter(0);
+
+  if(C.empty() || !C.back().is_corner_point())
+    {
+      return 0;
+    }
+
+  /* IDEA: going to a next neighbor from prev_corner_type
+     increments counter, going to a previous neighbor
+     decrements the counter. The counter % 4 gives us
+     the number of times the contour went around the
+     box.
+   */
+  prev_corner_type = C.back().corner_point_type();
+  for(SubContour::const_iterator iter = C.begin(),
+        end = C.end(); iter != end; ++iter)
+    {
+      unsigned int corner_type;
+
+      if(!iter->is_corner_point())
+        {
+          return 0;
+        }
+
+      corner_type = iter->corner_point_type();
+      if(corner_type == box_next_neighbor(prev_corner_type))
+        {
+          ++forwards_counter;
+        }
+      else if(prev_corner_type == box_next_neighbor(corner_type))
+        {
+          ++backwards_counter;
+        }
+      else
+        {
+          return 0;
+        }
+      prev_corner_type = corner_type;
+    }
+
+  int counter;
+  counter = backwards_counter - forwards_counter;
+  if(counter % 4 == 0)
+    {
+      C.clear();
+      return counter / 4;
+    }
+
+  return 0;
+}
+
 
 fastuidraw::vecN<SubPath*, 2>
 SubPath::
@@ -1012,6 +1201,7 @@ split(void) const
   fastuidraw::BoundingBox B0(m_bounds.min_point(), B0_max);
   fastuidraw::BoundingBox B1(B1_min, m_bounds.max_point());
   std::vector<SubContour> C0, C1;
+  int C0_winding_start(0), C1_winding_start(0);
 
   C0.reserve(m_contours.size());
   C1.reserve(m_contours.size());
@@ -1022,7 +1212,8 @@ split(void) const
       C1.push_back(SubContour());
       split_contour(*c_iter, splitting_coordinate,
                     mid_pt[splitting_coordinate],
-                    C0.back(), C1.back());
+                    C0.back(), C1.back(),
+                    C0_winding_start, C1_winding_start);
 
       if(C0.back().empty())
         {
@@ -1035,8 +1226,9 @@ split(void) const
         }
     }
 
-  return_value[0] = FASTUIDRAWnew SubPath(B0, C0);
-  return_value[1] = FASTUIDRAWnew SubPath(B1, C1);
+  return_value[0] = FASTUIDRAWnew SubPath(B0, C0, C0_winding_start + m_winding_start);
+  return_value[1] = FASTUIDRAWnew SubPath(B1, C1, C1_winding_start + m_winding_start);
+
   return return_value;
 }
 
@@ -1096,7 +1288,7 @@ generate_contour(const SubPath::SubContour &C, Contour &output,
        */
       if(PointHoardConstants::guiding_boxes_per_interpolator
          && PointHoardConstants::enable_guiding_boxes
-         && v != 0 && C[v].m_start_tessellated_edge)
+         && v != 0 && C[v].start_tessellated_edge())
         {
           pre_process_boxes(boxes, cnt);
           if(total_cnt >= PointHoardConstants::min_points_per_guiding_box)
@@ -1109,8 +1301,8 @@ generate_contour(const SubPath::SubContour &C, Contour &output,
           total_cnt = 0;
         }
 
-      output.push_back(fetch(C[v].m_pt));
-      boxes.back().union_point(C[v].m_pt);
+      output.push_back(fetch(C[v].pt()));
+      boxes.back().union_point(C[v].pt());
       if(cnt == PointHoardConstants::points_per_guiding_box)
         {
           cnt = 0;
@@ -1517,8 +1709,10 @@ non_zero_tesser::
 non_zero_tesser(PointHoard &points,
                 const PointHoard::Path &P,
                 const PointHoard::BoundingBoxes &boxes,
+                const SubPath &path,
                 winding_index_hoard &hoard):
   tesser(points),
+  m_winding_start(path.winding_start()),
   m_hoard(hoard),
   m_current_winding(0)
 {
@@ -1532,6 +1726,7 @@ void
 non_zero_tesser::
 on_begin_polygon(int winding_number)
 {
+  winding_number += m_winding_start;
   if(!m_current_indices || m_current_winding != winding_number)
     {
       fastuidraw::reference_counted_ptr<per_winding_data> &h(m_hoard[winding_number]);
@@ -1570,7 +1765,7 @@ zero_tesser(PointHoard &points,
             const SubPath &path,
             winding_index_hoard &hoard):
   tesser(points),
-  m_indices(hoard[0])
+  m_indices(hoard[path.winding_start()])
 {
   if(!m_indices)
     {
@@ -1619,7 +1814,7 @@ builder(const SubPath &P, std::vector<fastuidraw::vec2> &points):
   PointHoard::BoundingBoxes path_bounding_boxes;
 
   m_points.generate_path(P, path, path_bounding_boxes);
-  failNZ = non_zero_tesser::execute_path(m_points, path, path_bounding_boxes, m_hoard);
+  failNZ = non_zero_tesser::execute_path(m_points, path, path_bounding_boxes, P, m_hoard);
   failZ = zero_tesser::execute_path(m_points, path, path_bounding_boxes, P, m_hoard);
   m_failed= failNZ || failZ;
 }
