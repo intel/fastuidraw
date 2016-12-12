@@ -1566,7 +1566,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
       const PainterShaderData::DataBase *raw_data;
 
       raw_data = draw.m_item_shader_data.data().data_base();
-      rounded_thresh = shader.stroking_data_selector()->compute_rounded_thresh(raw_data, thresh);
+      rounded_thresh = shader.stroking_data_selector()->compute_rounded_thresh(raw_data, thresh, d->m_curve_flatness);
     }
 
   edge_data = &path.edges(close_contours);
@@ -1766,7 +1766,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
         float rounded_thresh;
 
         raw_data = draw.m_item_shader_data.data().data_base();
-        rounded_thresh = shader.shader(cp).stroking_data_selector()->compute_rounded_thresh(raw_data, thresh);
+        rounded_thresh = shader.shader(cp).stroking_data_selector()->compute_rounded_thresh(raw_data, thresh, d->m_curve_flatness);
         join_data = &path.rounded_joins(rounded_thresh);
       }
       break;
