@@ -25,6 +25,7 @@
 #include <fastuidraw/painter/painter.hpp>
 
 #include "../private/util_private.hpp"
+#include "../private/util_private_ostream.hpp"
 #include "../private/clip.hpp"
 
 namespace
@@ -982,9 +983,17 @@ select_path_thresh_non_perspective(void)
      level of detail that taking the operator norm of the matrix. For
      reference, the sqrt of the area distortion is the geometric mean
      of the 2 singular values of a 2x2 matrix.
+
+     The multiplier 0.25 comes from that normalized device
+     coordinates are [-1, 1]x[-1, 1] and thus the scaling
+     factor to pixel coordinates is half of m_resolution
+     for each dimension.
+
+     QUESTION: should we instead take the maxiumum of the two
+     singular values instead?
   */
   d = fastuidraw::t_abs(m(0, 0) * m(1, 1) - m(0, 1) * m(1, 0));
-  d *= m_resolution.x() * m_resolution.y() * fastuidraw::t_abs(m(2, 2));
+  d *= 0.25f * m_resolution.x() * m_resolution.y() / fastuidraw::t_abs(m(2, 2));
   d = fastuidraw::t_sqrt(d);
 
   return m_curve_flatness / d;
