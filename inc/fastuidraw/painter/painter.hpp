@@ -1,4 +1,4 @@
- /*!
+/*!
  * \file painter.hpp
  * \brief file painter.hpp
  *
@@ -23,6 +23,7 @@
 #include <fastuidraw/tessellated_path.hpp>
 #include <fastuidraw/painter/stroked_path.hpp>
 #include <fastuidraw/painter/filled_path.hpp>
+#include <fastuidraw/painter/fill_rule.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
@@ -60,50 +61,6 @@ namespace fastuidraw
   class Painter:public reference_counted<Painter>::default_base
   {
   public:
-    /*!
-      Base class to specify a custom fill rule.
-     */
-    class CustomFillRuleBase
-    {
-    public:
-      /*!
-        To be implemented by a derived class to return
-        true if to draw those regions with the passed
-        winding number.
-        \param winding_number winding number value to test.
-       */
-      virtual
-      bool
-      operator()(int winding_number) const = 0;
-    };
-
-    /*!
-      Class to specify a custom fill rule from
-      a function.
-     */
-    class CustomFillRuleFunction:public CustomFillRuleBase
-    {
-    public:
-      /*!
-        Ctor.
-        \param fill_rule function to use to implement
-                         operator(int) const.
-       */
-      CustomFillRuleFunction(bool (*fill_rule)(int)):
-        m_fill_rule(fill_rule)
-      {}
-
-      virtual
-      bool
-      operator()(int winding_number) const
-      {
-        return m_fill_rule && m_fill_rule(winding_number);
-      }
-
-    private:
-      bool (*m_fill_rule)(int);
-    };
-
     /*!
       Ctor.
      */

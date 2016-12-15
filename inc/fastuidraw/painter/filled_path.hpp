@@ -25,6 +25,8 @@
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
+#include <fastuidraw/painter/fill_rule.hpp>
+#include <fastuidraw/painter/packing/painter_packer.hpp>
 
 namespace fastuidraw  {
 
@@ -55,17 +57,24 @@ public:
   class Subset
   {
   public:
+    /*!
+      Returns the PainterAttributeData for the portion of the
+      FilledPath the Subset represents. The attribute data is
+      packed as follows:
+      - PainterAttribute::m_attrib0 .xy -> position of point in local coordinate (float)
+      - PainterAttribute::m_attrib0 .zw -> 0 (free)
+      - PainterAttribute::m_attrib1 .xyzw -> 0 (free)
+      - PainterAttribute::m_attrib2 .xyzw -> 0 (free)
+     */
     const PainterAttributeData&
     painter_data(void) const;
 
     /*!
       Returns an array listing what winding number values
       there are triangle in this Subset. To get the indices
-      for those triangle with winding number N = winding_numbers()[k],
-      pass k to PainterAttributeData::index_chunks() called
-      on the PainterAttributeData returned by painter_data().
-      The same attribute chunk, 0, is used regardless of which
-      index chunk.
+      for those triangle with winding number N, use the chunk
+      computed from chunk_from_winding_number(N). The same attribute
+      chunk, 0, is used regardless of which index chunk.
     */
     const_c_array<int>
     winding_numbers(void) const;
@@ -112,6 +121,61 @@ public:
   };
 
   /*!
+    A DataWriter is used by FilledPath to fill attribute
+    and index data for the purpose of filling with
+    anti-aliasing. The attribute data filled by a
+    DataWriter is packed as follows:
+      - PainterAttribute::m_attrib0 .xy -> position of point in local coordinate (float)
+      - PainterAttribute::m_attrib0 .z -> 0 if vertex is on boundary of fill, 1 if it is on interior
+      - PainterAttribute::m_attrib0 .w -> 0 (free)
+      - PainterAttribute::m_attrib1 .xyzw -> 0 (free)
+      - PainterAttribute::m_attrib2 .xyzw -> 0 (free)
+   */
+  class DataWriter:public PainterPacker::DataWriter
+  {
+  public:
+    DataWriter(void);
+
+    virtual
+    ~DataWriter();
+
+    virtual
+    unsigned int
+    number_attribute_chunks(void) const;
+
+    virtual
+    unsigned int
+    number_attributes(unsigned int attribute_chunk) const;
+
+    virtual
+    unsigned int
+    number_index_chunks(void) const;
+
+    virtual
+    unsigned int
+    number_indices(unsigned int index_chunk) const;
+
+    virtual
+    unsigned int
+    attribute_chunk_selection(unsigned int index_chunk) const;
+
+    virtual
+    void
+    write_indices(c_array<PainterIndex> dst,
+                  unsigned int index_offset_value,
+                  unsigned int index_chunk) const;
+
+    virtual
+    void
+    write_attributes(c_array<PainterAttribute> dst,
+                     unsigned int attribute_chunk) const;
+
+  private:
+    friend class FilledPath;
+    void *m_d;
+  };
+
+  /*!
     Ctor. Construct a FilledPath from the data
     of a TessellatedPath.
     \param P source TessellatedPath
@@ -146,7 +210,7 @@ public:
     \param max_index_cnt only allow those SubSet objects for which
                          Subset::painter_data() have no more than
                          max_index_cnt attributes.
-    \param dst[output] location to which to write the what SubSets
+    \param dst[output] location to which to write what SubSets
     \returns the number of chunks that intersect the clipping region,
              that number is guarnanteed to be no more than number_subsets().
 
@@ -158,6 +222,33 @@ public:
                  unsigned int max_attribute_cnt,
                  unsigned int max_index_cnt,
                  c_array<unsigned int> dst) const;
+
+  /*!
+    Compute a DataWriter value for the purposes of filling
+    a path against a fill rule WITH anti-aliasing applied.
+    \param scratch_space scratch space for computations.
+    \param fill_rule custom fill rule to apply to path
+    \param clip_equations array of clip equations
+    \param clip_matrix_local 3x3 transformation from local (x, y, 1)
+                             coordinates to clip coordinates.
+    \param max_attribute_cnt make so that the returned DataWriter
+                             written to dst has that each attribute
+                             chunk has no more than max_attribute_cnt
+                             attributes.
+    \param max_index_cnt make so that the returned DataWriter
+                         written to dst has that each index
+                         chunk has no more than max_index_cnt
+                         indices.
+    \param dst[output] location to which to write the DataWriter value
+   */
+  void
+  compute_writer(ScratchSpace &scratch_space,
+                 const CustomFillRuleBase &fill_rule,
+                 const_c_array<vec3> clip_equations,
+                 const float3x3 &clip_matrix_local,
+                 unsigned int max_attribute_cnt,
+                 unsigned int max_index_cnt,
+                 DataWriter &dst) const;
 private:
   void *m_d;
 };
