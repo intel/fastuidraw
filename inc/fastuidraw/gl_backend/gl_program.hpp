@@ -556,12 +556,9 @@ public:
     count(void) const;
 
     /*!
-      GL API index for the parameter, NOT the
-      ID of the parameter as used in uniform_parameter
-      or attribute_parameter. The value of index()
-      is used in calls to GL to query about
-      the parameter, such as glGetActiveUniform
-      and glGetActiveUniformsiv.
+      GL API index for the parameter. The value of index()
+      is used in calls to GL to query about the parameter,
+      such as glGetActiveUniform and glGetActiveUniformsiv.
     */
     GLuint
     index(void) const;
@@ -569,16 +566,134 @@ public:
     /*!
       "Location" of the uniform or attribute
       as returned by glGetUniformLocation
-      or glGetAttriblocation
+      or glGetAttribLocation. For members of
+      a uniform block, returns -1.
      */
     GLint
     location(void) const;
 
+    /*!
+      Returns to what uniform block this belongs.
+      If thie value does not reside on a uniform
+      block, returns -1.
+     */
+    GLint
+    block_index(void) const;
+
+    /*!
+      Returns the offset into a backing buffer object
+      on which the this is sourced (or written to).
+      For uniforms of the default uniform block and
+      for attributes, returns -1.
+     */
+    GLint
+    buffer_offset(void) const;
+
+    /*!
+      If this is an array, not a uniform of the default
+      uniform block, then returns the stride, in bytes,
+      between elements of the array. Otherwise returns -1.
+     */
+    GLint
+    array_stride(void) const;
+
+    /*!
+      Returns -1 if this is not an array of matrices
+      from a uniform block that is not the default block.
+      If not, then returns the stride between columns
+      for column major matrixes and otherwise returns
+      the stride between row major matrices.
+     */
+    GLint
+    matrix_stride(void) const;
+
+    /*!
+      If this a matrix from not the default uniform block,
+      return true if the matrix is row major. Otherwise
+      returns false.
+     */
+    bool
+    is_row_major(void) const;
+
   private:
     explicit
-    parameter_info(void*);
+    parameter_info(const void*);
 
-    void *m_d;
+    const void *m_d;
+    friend class Program;
+  };
+
+  /*!
+    A uniform_block_info represents an object from which
+    one can query the members of a uniform block.
+   */
+  class uniform_block_info
+  {
+  public:
+    /*!
+      Ctor
+     */
+    uniform_block_info(void);
+
+    /*!
+      Name of the parameter within
+      the GL API.
+    */
+    const char*
+    name(void) const;
+
+    /*!
+      GL API index for the parameter. The value of
+      block_index() is used in calls to GL to query about
+      the parameter. The default uniform block will
+      have this value as -1.
+     */
+    GLint
+    block_index(void) const;
+
+    /*!
+      Returns the size in bytes of the uniform block (i.e.
+      the size needed for a buffer object to correctly back
+      the uniform block). The default uniform block will
+      have the size as 0.
+     */
+    GLint
+    buffer_size(void) const;
+
+    /*!
+      Returns the number of active uniforms of the uniform
+      block. Note that an array of is classified as a single
+      uniform.
+    */
+    unsigned int
+    number_uniforms(void) const;
+
+    /*!
+      Returns the indexed uniform. The values are sorted in
+      alphabetical order of parameter_info::name(). The uniform
+      list is for those uniforms of this uniform block.
+      \param I -array index- (not location) of uniform, if I is
+               not less than number_uniforms(), returns
+               a parameter_info indicating no uniform (i.e.
+               parameter_info::name() is an empty string and
+               parameter_info::index() is -1).
+     */
+    parameter_info
+    uniform(unsigned int I);
+
+    /*!
+      Returns the index value to feed to uniform() to
+      get the uniform of the given name. If the uniform
+      cannot be found, returns ~0u.
+     */
+    unsigned int
+    uniform_index(const char *name);
+
+  private:
+    explicit
+    uniform_block_info(const void*);
+
+    const void *m_d;
     friend class Program;
   };
 
@@ -694,12 +809,28 @@ public:
     Returns the indexed uniform. This function should only be
     called either after use_program() has been called or only
     when the GL context is current. The values are sorted in
-    alphabetical order of parameter_info::name().
-    \param I -array index- (not location) of uniform, I must be less
-           that number_active_uniforms()
+    alphabetical order of parameter_info::name(). The uniform
+    list includes both uniforms from the default block and the
+    uniforms of block sourced from buffer objects.
+    \param I -array index- (not location) of uniform, if I is
+             not less than number_active_uniforms(), returns
+             a parameter_info indicating no uniform (i.e.
+             parameter_info::name() is an empty string and
+             parameter_info::index() is -1).
    */
   parameter_info
   active_uniform(unsigned int I);
+
+  /*!
+    Returns the index value to feed to active_uniform() to
+    get the uniform of the given name. This function should
+    only be called either after use_program() has been called
+    or only when the GL context is current. If the uniform
+    cannot be found, returns ~0u.
+    \param name name of uniform to find.
+   */
+  unsigned int
+  active_uniform_id(const char *name);
 
   /*!
     Searches active_uniform() to find the named uniform, including
@@ -711,6 +842,43 @@ public:
    */
   GLint
   uniform_location(const char *uniform_name);
+
+  /*!
+    Returns a \ref uniform_block_info of the default uniform block.
+   */
+  uniform_block_info
+  default_uniform_block(void);
+
+  /*!
+    Returns the number of active uniform blocks (not
+    including the default uniform block). This function should
+    only be called either after use_program() has been called
+    or only when the GL context is current.
+   */
+  unsigned int
+  number_active_uniform_blocks(void);
+
+  /*!
+    Returns the indexed uniform block. The values are sorted in
+    alphabetical order of uniform_block_info::name(). This
+    function should only be called either after use_program()
+    has been called or only when the GL context is current.
+    \param I which one to fetch, I must be less than
+             number_active_uniform_blocks()
+   */
+  uniform_block_info
+  uniform_block(unsigned int I);
+
+  /*!
+    Searches uniform_block() to find the named uniform block.
+    Returns value -1 indicated that the uniform block could
+    not be found. This function should only be called either
+    after use_program() has been called or only when the GL
+    context is current.
+    \param uniform_block_name name of uniform to find
+   */
+  unsigned int
+  uniform_block_id(const char *uniform_block_name);
 
   /*!
     Returns the number of active attributes. Note that an array
@@ -726,11 +894,25 @@ public:
     called either after use_program() has been called or only
     when the GL context is current. The values are sorted in
     alphabetical order of parameter_info::name().
-    \param I -array index- (not location) of attribute, I must be less
-           that number_active_attributes()
+    \param I -array index- (not location) of attribute, if I is
+             not less than number_active_attributes(), returns
+             a parameter_info indicating no attribute (i.e.
+             parameter_info::name() is an empty string and
+             parameter_info::index() is -1).
    */
   parameter_info
   active_attribute(unsigned int I);
+
+  /*!
+    Returns the index value to feed to active_attribute() to
+    get the attribute of the given name. This function should
+    only be called either after use_program() has been called
+    or only when the GL context is current. If the attribute
+    cannot be found, returns ~0u.
+    \param name name of attribute to find.
+   */
+  unsigned int
+  active_attribute_id(const char *name);
 
   /*!
     Searches active_attribute() to find the named attribute, including

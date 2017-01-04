@@ -101,7 +101,12 @@ namespace
       m_type(GL_INVALID_ENUM),
       m_count(0),
       m_index(-1),
-      m_location(-1)
+      m_location(-1),
+      m_block_index(-1),
+      m_offset(-1),
+      m_array_stride(-1),
+      m_matrix_stride(-1),
+      m_is_row_major(0)
     {}
 
     bool
@@ -115,30 +120,146 @@ namespace
     GLint m_count;
     GLuint m_index;
     GLint m_location;
+
+    GLint m_block_index;
+    GLint m_offset;
+    GLint m_array_stride;
+    GLint m_matrix_stride;
+    GLint m_is_row_major;
   };
 
-  typedef std::pair<int, const ParameterInfoPrivate*> FindParameterResult;
+  class FindParameterResult
+  {
+  public:
+    FindParameterResult(void)
+    {}
+
+    FindParameterResult(int location, unsigned int idx):
+      m_location(location),
+      m_idx(idx)
+    {}
+
+    int m_location;
+    unsigned int m_idx;
+  };
 
   class ParameterInfoPrivateHoard
   {
   public:
+    ParameterInfoPrivateHoard(void):
+      m_finalized(false)
+    {}
 
-    FindParameterResult
-    find_parameter(const std::string &pname);
+    void
+    add_element(const ParameterInfoPrivate &value)
+    {
+      assert(!m_finalized);
+      m_values.push_back(value);
+    }
 
     template<typename F, typename G>
     void
     fill_hoard(GLuint program,
                GLenum count_enum, GLenum length_enum,
-               F fptr, G gptr);
+               F fptr, G gptr, bool fill_ubo_data);
 
+    void
+    finalize(void);
+
+    FindParameterResult
+    find_parameter(const std::string &pname) const;
+
+    const std::vector<ParameterInfoPrivate>&
+    values(void) const
+    {
+      return m_values;
+    }
+
+    const ParameterInfoPrivate&
+    value(unsigned int I) const
+    {
+      return I < m_values.size() ?
+        m_values[I] :
+        m_empty;
+    }
+
+  private:
     template<typename iterator>
     static
     std::string
     filter_name(iterator begin, iterator end, int &array_index);
 
+    bool m_finalized;
+    ParameterInfoPrivate m_empty;
     std::vector<ParameterInfoPrivate> m_values;
-    std::map<std::string, int> m_map;
+    std::map<std::string, unsigned int> m_map;
+  };
+
+  class UnformBlockInfoPrivate
+  {
+  public:
+    UnformBlockInfoPrivate(void):
+      m_block_index(-1),
+      m_size_bytes(0)
+    {}
+
+    std::string m_name;
+    GLint m_block_index;
+    GLint m_size_bytes;
+    ParameterInfoPrivateHoard m_members;
+  };
+
+  class UnformBlockInfoPrivateHoard
+  {
+  public:
+    void
+    fill_hoard(GLuint program,
+               const  std::vector<ParameterInfoPrivate> &all_uniforms);
+
+    const UnformBlockInfoPrivate*
+    default_block(void) const
+    {
+      return &m_default_block;
+    }
+
+    unsigned int
+    number_active_uniform_blocks(void) const
+    {
+      return m_blocks_sorted.size();
+    }
+
+    const UnformBlockInfoPrivate*
+    block(unsigned int I)
+    {
+      assert(I < m_blocks_sorted.size());
+      return m_blocks_sorted[I];
+    }
+
+    unsigned int
+    block_id(const std::string &name) const
+    {
+      std::map<std::string, unsigned int>::const_iterator iter;
+      iter = m_map.find(name);
+      return (iter != m_map.end()) ?
+        iter->second:
+        ~0u;
+    }
+
+  private:
+    static
+    bool
+    compare_function(const UnformBlockInfoPrivate *lhs,
+                     const UnformBlockInfoPrivate *rhs)
+    {
+      assert(lhs != NULL);
+      assert(rhs != NULL);
+      return lhs->m_name < rhs->m_name;
+    }
+
+    UnformBlockInfoPrivate m_default_block;
+    std::vector<UnformBlockInfoPrivate> m_blocks;
+    std::vector<UnformBlockInfoPrivate*> m_blocks_sorted;
+    std::map<std::string, unsigned int> m_map; //gives indice into m_blocks_sorted
   };
 
   class ShaderData
@@ -218,6 +339,7 @@ namespace
     std::set<std::string> m_binded_attributes;
     ParameterInfoPrivateHoard m_uniform_list;
     ParameterInfoPrivateHoard m_attribute_list;
+    UnformBlockInfoPrivateHoard m_uniform_block_list;
     fastuidraw::gl::ProgramInitializerArray m_initializers;
     fastuidraw::gl::PreLinkActionArray m_pre_link_actions;
     fastuidraw::gl::Program *m_p;
@@ -301,15 +423,17 @@ void
 ParameterInfoPrivateHoard::
 fill_hoard(GLuint program,
            GLenum count_enum, GLenum length_enum,
-           F fptr, G gptr)
+           F fptr, G gptr, bool fill_ubo_data)
 {
-  GLint count, largest_length;
-  std::vector<char> pname;
+  GLint count;
 
   glGetProgramiv(program, count_enum, &count);
 
   if(count > 0)
     {
+      GLint largest_length(0);
+      std::vector<char> pname;
+
       m_values.resize(count);
       glGetProgramiv(program, length_enum, &largest_length);
 
@@ -344,35 +468,78 @@ fill_hoard(GLuint program,
               m_values[i].m_name = std::string(pname.begin(),
                                                pname.begin() + name_length);
             }
-
           m_values[i].m_index = i;
           m_values[i].m_location = gptr(program, &pname[0]);
-
         }
 
-      /* sort m_values by name and then make our map
-       */
-      std::sort(m_values.begin(), m_values.end());
-      for(unsigned int i = 0, endi = m_values.size(); i < endi; ++i)
+      if(fill_ubo_data)
         {
-          m_map[m_values[i].m_name] = i;
+          std::vector<GLuint> indxs(m_values.size());
+          std::vector<GLint> block_idxs(m_values.size());
+          std::vector<GLint> offsets(m_values.size());
+          std::vector<GLint> array_strides(m_values.size());
+          std::vector<GLint> matrix_strides(m_values.size());
+          std::vector<GLint> is_row_major(m_values.size());
+
+          for(unsigned int i = 0, endi = indxs.size(); i < endi; ++i)
+            {
+              indxs[i] = m_values[i].m_index;
+            }
+
+          glGetActiveUniformsiv(program, indxs.size(), &indxs[0], GL_UNIFORM_BLOCK_INDEX, &block_idxs[0]);
+          glGetActiveUniformsiv(program, indxs.size(), &indxs[0], GL_UNIFORM_OFFSET, &offsets[0]);
+          glGetActiveUniformsiv(program, indxs.size(), &indxs[0], GL_UNIFORM_ARRAY_STRIDE, &array_strides[0]);
+          glGetActiveUniformsiv(program, indxs.size(), &indxs[0], GL_UNIFORM_MATRIX_STRIDE, &matrix_strides[0]);
+          glGetActiveUniformsiv(program, indxs.size(), &indxs[0], GL_UNIFORM_IS_ROW_MAJOR, &is_row_major[0]);
+
+          for(unsigned int i = 0, endi = indxs.size(); i < endi; ++i)
+            {
+              if(block_idxs[i] != -1)
+                {
+                  ParameterInfoPrivate &dst(m_values[i]);
+                  dst.m_block_index = block_idxs[i];
+                  dst.m_offset = offsets[i];
+                  dst.m_array_stride = array_strides[i];
+                  dst.m_matrix_stride = matrix_strides[i];
+                  dst.m_is_row_major = is_row_major[i];
+                }
+            }
         }
+
+      finalize();
+    }
+}
+
+void
+ParameterInfoPrivateHoard::
+finalize(void)
+{
+  assert(!m_finalized);
+  m_finalized = true;
+
+  /* sort m_values by name and then make our map
+   */
+  std::sort(m_values.begin(), m_values.end());
+  for(unsigned int i = 0, endi = m_values.size(); i < endi; ++i)
+    {
+      m_map[m_values[i].m_name] = i;
     }
 }
 
 
-std::pair<int, const ParameterInfoPrivate*>
+FindParameterResult
 ParameterInfoPrivateHoard::
-find_parameter(const std::string &pname)
+find_parameter(const std::string &pname) const
 {
-  std::map<std::string, int>::const_iterator iter;
+  std::map<std::string, unsigned int>::const_iterator iter;
 
+  assert(m_finalized);
   iter = m_map.find(pname);
   if(iter != m_map.end())
     {
       const ParameterInfoPrivate *q;
       q = &m_values[iter->second];
-      return FindParameterResult(q->m_location, q);
+      return FindParameterResult(q->m_location, iter->second);
     }
 
   std::string filtered_name;
@@ -385,11 +552,11 @@ find_parameter(const std::string &pname)
       q = &m_values[iter->second];
       if(array_index < q->m_count)
         {
-          return FindParameterResult(q->m_location + array_index, q);
+          return FindParameterResult(q->m_location + array_index, iter->second);
         }
     }
 
-  return FindParameterResult(-1, NULL);
+  return FindParameterResult(-1, ~0u);
 }
 
 
@@ -436,6 +603,74 @@ filter_name(iterator begin, iterator end, int &array_index)
       array_index = 0;
     }
   return return_value;
+}
+
+////////////////////////////////////////////////
+//UnformBlockInfoPrivateHoard methods
+void
+UnformBlockInfoPrivateHoard::
+fill_hoard(GLuint program,
+           const std::vector<ParameterInfoPrivate> &all_uniforms)
+{
+  /* get what we need...
+   */
+  GLint count(0);
+
+  glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &count);
+  if(count > 0)
+    {
+      GLint largest_length(0);
+
+      std::vector<char> pname;
+      m_blocks.resize(count);
+      m_blocks_sorted.resize(count);
+
+      glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, &largest_length);
+      ++largest_length;
+      pname.resize(largest_length, '\0');
+
+      for(int i = 0; i != count; ++i)
+        {
+          GLsizei name_length(0), psize(0);
+          std::memset(&pname[0], 0, largest_length);
+
+          glGetActiveUniformBlockName(program, i, largest_length, &name_length, &pname[0]);
+          glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_DATA_SIZE, &psize);
+
+          m_blocks[i].m_block_index = i;
+          m_blocks[i].m_name = std::string(pname.begin(), pname.begin() + name_length);
+          m_blocks[i].m_size_bytes = psize;
+          m_blocks_sorted[i] = &m_blocks[i];
+        }
+    }
+
+  /* extract uniform data from all_uniforms, note that
+     m_blocks[i] holds the uniform block with block_index
+     of value i currently.
+  */
+  for(std::vector<ParameterInfoPrivate>::const_iterator iter = all_uniforms.begin(),
+        end = all_uniforms.end(); iter != end; ++iter)
+    {
+      if(iter->m_block_index != -1)
+        {
+          m_blocks[iter->m_block_index].m_members.add_element(*iter);
+        }
+      else
+        {
+          m_default_block.m_members.add_element(*iter);
+        }
+    }
+
+  /* sort and finalize
+   */
+  std::sort(m_blocks_sorted.begin(), m_blocks_sorted.end(), compare_function);
+  for(unsigned int i = 0, endi = m_blocks_sorted.size(); i < endi; ++i)
+    {
+      m_blocks_sorted[i]->m_members.finalize();
+      m_map[m_blocks_sorted[i]->m_name] = i;
+    }
+  m_default_block.m_members.finalize();
+
 }
 
 ////////////////////////////////////////////////
@@ -668,7 +903,7 @@ execute_actions(GLuint pr) const
 ///////////////////////////////////////////////////
 // fastuidraw::gl::Program::parameter_info methods
 fastuidraw::gl::Program::parameter_info::
-parameter_info(void *d):
+parameter_info(const void *d):
   m_d(d)
 {}
 
@@ -681,8 +916,8 @@ const char*
 fastuidraw::gl::Program::parameter_info::
 name(void) const
 {
-  ParameterInfoPrivate *d;
-  d = reinterpret_cast<ParameterInfoPrivate*>(m_d);
+  const ParameterInfoPrivate *d;
+  d = reinterpret_cast<const ParameterInfoPrivate*>(m_d);
   return (d) ? d->m_name.c_str() : "";
 }
 
@@ -690,8 +925,8 @@ GLenum
 fastuidraw::gl::Program::parameter_info::
 type(void) const
 {
-  ParameterInfoPrivate *d;
-  d = reinterpret_cast<ParameterInfoPrivate*>(m_d);
+  const ParameterInfoPrivate *d;
+  d = reinterpret_cast<const ParameterInfoPrivate*>(m_d);
   return (d) ? d->m_type : GL_INVALID_ENUM;
 }
 
@@ -699,8 +934,8 @@ GLint
 fastuidraw::gl::Program::parameter_info::
 count(void) const
 {
-  ParameterInfoPrivate *d;
-  d = reinterpret_cast<ParameterInfoPrivate*>(m_d);
+  const ParameterInfoPrivate *d;
+  d = reinterpret_cast<const ParameterInfoPrivate*>(m_d);
   return (d) ? d->m_count : -1;
 }
 
@@ -708,8 +943,8 @@ GLuint
 fastuidraw::gl::Program::parameter_info::
 index(void) const
 {
-  ParameterInfoPrivate *d;
-  d = reinterpret_cast<ParameterInfoPrivate*>(m_d);
+  const ParameterInfoPrivate *d;
+  d = reinterpret_cast<const ParameterInfoPrivate*>(m_d);
   return (d) ? d->m_index : -1;
 }
 
@@ -717,9 +952,129 @@ GLint
 fastuidraw::gl::Program::parameter_info::
 location(void) const
 {
-  ParameterInfoPrivate *d;
-  d = reinterpret_cast<ParameterInfoPrivate*>(m_d);
+  const ParameterInfoPrivate *d;
+  d = reinterpret_cast<const ParameterInfoPrivate*>(m_d);
   return (d) ? d->m_location : -1;
+}
+
+GLint
+fastuidraw::gl::Program::parameter_info::
+block_index(void) const
+{
+  const ParameterInfoPrivate *d;
+  d = reinterpret_cast<const ParameterInfoPrivate*>(m_d);
+  return (d) ? d->m_block_index : -1;
+}
+
+GLint
+fastuidraw::gl::Program::parameter_info::
+buffer_offset(void) const
+{
+  const ParameterInfoPrivate *d;
+  d = reinterpret_cast<const ParameterInfoPrivate*>(m_d);
+  return (d) ? d->m_offset : -1;
+}
+
+GLint
+fastuidraw::gl::Program::parameter_info::
+array_stride(void) const
+{
+  const ParameterInfoPrivate *d;
+  d = reinterpret_cast<const ParameterInfoPrivate*>(m_d);
+  return (d) ? d->m_array_stride : -1;
+}
+
+GLint
+fastuidraw::gl::Program::parameter_info::
+matrix_stride(void) const
+{
+  const ParameterInfoPrivate *d;
+  d = reinterpret_cast<const ParameterInfoPrivate*>(m_d);
+  return (d) ? d->m_matrix_stride : -1;
+}
+
+bool
+fastuidraw::gl::Program::parameter_info::
+is_row_major(void) const
+{
+  const ParameterInfoPrivate *d;
+  d = reinterpret_cast<const ParameterInfoPrivate*>(m_d);
+  return (d) ? d->m_is_row_major : false;
+}
+
+///////////////////////////////////////////////////
+// fastuidraw::gl::Program::uniform_block_info methods
+fastuidraw::gl::Program::uniform_block_info::
+uniform_block_info(const void *d):
+  m_d(d)
+{}
+
+fastuidraw::gl::Program::uniform_block_info::
+uniform_block_info(void):
+  m_d(NULL)
+{}
+
+const char*
+fastuidraw::gl::Program::uniform_block_info::
+name(void) const
+{
+  const UnformBlockInfoPrivate *d;
+  d = reinterpret_cast<const UnformBlockInfoPrivate*>(m_d);
+  return (d) ? d->m_name.c_str() : "";
+}
+
+GLint
+fastuidraw::gl::Program::uniform_block_info::
+block_index(void) const
+{
+  const UnformBlockInfoPrivate *d;
+  d = reinterpret_cast<const UnformBlockInfoPrivate*>(m_d);
+  return (d) ? d->m_block_index : -1;
+}
+
+GLint
+fastuidraw::gl::Program::uniform_block_info::
+buffer_size(void) const
+{
+  const UnformBlockInfoPrivate *d;
+  d = reinterpret_cast<const UnformBlockInfoPrivate*>(m_d);
+  return (d) ? d->m_size_bytes : 0;
+}
+
+unsigned int
+fastuidraw::gl::Program::uniform_block_info::
+number_uniforms(void) const
+{
+  const UnformBlockInfoPrivate *d;
+  d = reinterpret_cast<const UnformBlockInfoPrivate*>(m_d);
+  return d ? d->m_members.values().size() : 0;
+}
+
+fastuidraw::gl::Program::parameter_info
+fastuidraw::gl::Program::uniform_block_info::
+uniform(unsigned int I)
+{
+  const UnformBlockInfoPrivate *d;
+  const void *q;
+
+  d = reinterpret_cast<const UnformBlockInfoPrivate*>(m_d);
+  q = d ? &d->m_members.value(I) : NULL;
+  return parameter_info(q);
+}
+
+unsigned int
+fastuidraw::gl::Program::uniform_block_info::
+uniform_index(const char *name)
+{
+  const UnformBlockInfoPrivate *d;
+  d = reinterpret_cast<const UnformBlockInfoPrivate*>(m_d);
+  if(d != NULL)
+    {
+      FindParameterResult R;
+      R = d->m_members.find_parameter(name);
+      return R.m_idx;
+    }
+  return ~0u;
 }
 
 /////////////////////////////////////////////////////////
@@ -786,7 +1141,6 @@ assemble(fastuidraw::gl::Program *program)
 
   m_link_log = error_ostr.str();
   m_link_success = m_link_success and (linkOK == GL_TRUE);
-  generate_log();
 
   if(m_link_success)
     {
@@ -794,13 +1148,17 @@ assemble(fastuidraw::gl::Program *program)
                                   GL_ACTIVE_ATTRIBUTES,
                                   GL_ACTIVE_ATTRIBUTE_MAX_LENGTH,
                                   FASTUIDRAWglfunctionPointer(glGetActiveAttrib),
-                                  FASTUIDRAWglfunctionPointer(glGetAttribLocation));
+                                  FASTUIDRAWglfunctionPointer(glGetAttribLocation),
+                                  false);
 
       m_uniform_list.fill_hoard(m_name,
                                 GL_ACTIVE_UNIFORMS,
                                 GL_ACTIVE_UNIFORM_MAX_LENGTH,
                                 FASTUIDRAWglfunctionPointer(glGetActiveUniform),
-                                FASTUIDRAWglfunctionPointer(glGetUniformLocation));
+                                FASTUIDRAWglfunctionPointer(glGetUniformLocation),
+                                true);
+
+      m_uniform_block_list.fill_hoard(m_name, m_uniform_list.values());
 
       int current_program;
       current_program = fastuidraw::gl::context_get<int>(GL_CURRENT_PROGRAM);
@@ -826,6 +1184,7 @@ assemble(fastuidraw::gl::Program *program)
         }
       eek << "\n\nLink Log: " << m_link_log;
     }
+  generate_log();
   m_initializers.clear();
 }
 
@@ -868,14 +1227,14 @@ generate_log(void)
 
   if(m_link_success)
     {
-      ostr << "\n\nUniforms:";
+      ostr << "\n\nUniforms of Default Block:";
       for(std::vector<ParameterInfoPrivate>::const_iterator
-            iter = m_uniform_list.m_values.begin(),
-            end = m_uniform_list.m_values.end();
+            iter = m_uniform_block_list.default_block()->m_members.values().begin(),
+            end = m_uniform_block_list.default_block()->m_members.values().end();
           iter != end; ++iter)
         {
-          ostr << "\n\t"
-               << iter->m_name
+          assert(iter->m_block_index == -1);
+          ostr << "\n\t" << iter->m_name
                << "\n\t\ttype=0x"
                << std::hex << iter->m_type
                << "\n\t\tcount=" << std::dec << iter->m_count
@@ -883,10 +1242,38 @@ generate_log(void)
                << "\n\t\tlocation=" << iter->m_location;
         }
 
+      for(unsigned int endi = m_uniform_block_list.number_active_uniform_blocks(),
+            i = 0; i < endi; ++i)
+        {
+          const UnformBlockInfoPrivate *ubo(m_uniform_block_list.block(i));
+          ostr << "\n\nUniformBlock:" << ubo->m_name
+               << "\n\tblock_index=" << ubo->m_block_index
+               << "\n\tblock_size=" << ubo->m_size_bytes
+               << "\n\tmembers:";
+
+          for(std::vector<ParameterInfoPrivate>::const_iterator
+                iter = ubo->m_members.values().begin(),
+                end = ubo->m_members.values().end();
+              iter != end; ++iter)
+            {
+              assert(iter->m_block_index == ubo->m_block_index);
+              ostr << "\n\t\t" << iter->m_name
+                   << "\n\t\t\ttype=0x"
+                   << std::hex << iter->m_type
+                   << "\n\t\t\tcount=" << std::dec << iter->m_count
+                   << "\n\t\t\tindex=" << std::dec << iter->m_index
+                   << "\n\t\t\tblock_index=" << iter->m_block_index
+                   << "\n\t\t\toffset=" << iter->m_offset
+                   << "\n\t\t\tarray_stride=" << iter->m_array_stride
+                   << "\n\t\t\tmatrix_stride=" << iter->m_matrix_stride
+                   << "\n\t\t\tis_row_major=" << bool(iter->m_is_row_major);
+            }
+        }
+
       ostr << "\n\nAttributes:";
       for(std::vector<ParameterInfoPrivate>::const_iterator
-            iter = m_attribute_list.m_values.begin(),
-            end = m_attribute_list.m_values.end();
+            iter = m_attribute_list.values().begin(),
+            end = m_attribute_list.values().end();
           iter != end; ++iter)
         {
           ostr << "\n\t"
@@ -1014,7 +1401,7 @@ number_active_uniforms(void)
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
-  return d->m_uniform_list.m_values.size();
+  return d->m_uniform_list.values().size();
 }
 
 fastuidraw::gl::Program::parameter_info
@@ -1024,8 +1411,20 @@ active_uniform(unsigned int I)
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
-  assert(I < d->m_uniform_list.m_values.size());
-  return parameter_info(&d->m_uniform_list.m_values[I]);
+  return parameter_info(&d->m_uniform_list.value(I));
+}
+
+unsigned int
+fastuidraw::gl::Program::
+active_uniform_id(const char *pname)
+{
+  FindParameterResult R;
+  ProgramPrivate *d;
+
+  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d->assemble(this);
+  R = d->m_uniform_list.find_parameter(pname);
+  return R.m_idx;
 }
 
 GLint
@@ -1038,7 +1437,47 @@ uniform_location(const char *pname)
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   R = d->m_uniform_list.find_parameter(pname);
-  return R.first;
+  return R.m_location;
+}
+
+fastuidraw::gl::Program::uniform_block_info
+fastuidraw::gl::Program::
+default_uniform_block(void)
+{
+  ProgramPrivate *d;
+  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d->assemble(this);
+  return uniform_block_info(d->m_uniform_block_list.default_block());
+}
+
+unsigned int
+fastuidraw::gl::Program::
+number_active_uniform_blocks(void)
+{
+  ProgramPrivate *d;
+  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d->assemble(this);
+  return d->m_uniform_block_list.number_active_uniform_blocks();
+}
+
+fastuidraw::gl::Program::uniform_block_info
+fastuidraw::gl::Program::
+uniform_block(unsigned int I)
+{
+  ProgramPrivate *d;
+  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d->assemble(this);
+  return uniform_block_info(d->m_uniform_block_list.block(I));
+}
+
+unsigned int
+fastuidraw::gl::Program::
+uniform_block_id(const char *uniform_block_name)
+{
+  ProgramPrivate *d;
+  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d->assemble(this);
+  return d->m_uniform_block_list.block_id(uniform_block_name);
 }
 
 unsigned int
@@ -1048,7 +1487,7 @@ number_active_attributes(void)
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
-  return d->m_attribute_list.m_values.size();
+  return d->m_attribute_list.values().size();
 }
 
 fastuidraw::gl::Program::parameter_info
@@ -1058,8 +1497,20 @@ active_attribute(unsigned int I)
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
-  assert(I < d->m_attribute_list.m_values.size());
-  return parameter_info(&d->m_attribute_list.m_values[I]);
+  return parameter_info(&d->m_attribute_list.value(I));
+}
+
+unsigned int
+fastuidraw::gl::Program::
+active_attribute_id(const char *pname)
+{
+  FindParameterResult R;
+  ProgramPrivate *d;
+
+  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d->assemble(this);
+  R = d->m_attribute_list.find_parameter(pname);
+  return R.m_idx;
 }
 
 GLint
@@ -1072,7 +1523,7 @@ attribute_location(const char *pname)
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   R = d->m_attribute_list.find_parameter(pname);
-  return R.first;
+  return R.m_location;
 }
 
 
