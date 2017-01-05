@@ -210,10 +210,10 @@ namespace
     ParameterInfoPrivateHoard m_members;
   };
 
-  class UnformBlockInfoPrivate
+  class UniformBlockInfoPrivate
   {
   public:
-    UnformBlockInfoPrivate(void):
+    UniformBlockInfoPrivate(void):
       m_block_index(-1),
       m_size_bytes(0)
     {}
@@ -224,14 +224,14 @@ namespace
     ParameterInfoPrivateHoard m_members;
   };
 
-  class UnformBlockInfoPrivateHoard
+  class UniformBlockInfoPrivateHoard
   {
   public:
     void
     fill_hoard(GLuint program,
                const std::vector<ParameterInfoPrivate> &all_uniforms);
 
-    const UnformBlockInfoPrivate*
+    const UniformBlockInfoPrivate*
     default_uniform_block(void) const
     {
       return &m_default_block;
@@ -243,7 +243,7 @@ namespace
       return m_blocks_sorted.size();
     }
 
-    const UnformBlockInfoPrivate*
+    const UniformBlockInfoPrivate*
     uniform_block(unsigned int I)
     {
       assert(I < m_blocks_sorted.size());
@@ -276,17 +276,17 @@ namespace
   private:
     static
     bool
-    compare_function(const UnformBlockInfoPrivate *lhs,
-                     const UnformBlockInfoPrivate *rhs)
+    compare_function(const UniformBlockInfoPrivate *lhs,
+                     const UniformBlockInfoPrivate *rhs)
     {
       assert(lhs != NULL);
       assert(rhs != NULL);
       return lhs->m_name < rhs->m_name;
     }
 
-    UnformBlockInfoPrivate m_default_block;
-    std::vector<UnformBlockInfoPrivate> m_blocks;
-    std::vector<UnformBlockInfoPrivate*> m_blocks_sorted;
+    UniformBlockInfoPrivate m_default_block;
+    std::vector<UniformBlockInfoPrivate> m_blocks;
+    std::vector<UniformBlockInfoPrivate*> m_blocks_sorted;
     std::vector<AtomicBufferInfoPrivate> m_abo_buffers;
     std::map<std::string, unsigned int> m_map; //gives indice into m_blocks_sorted
   };
@@ -368,7 +368,7 @@ namespace
     std::set<std::string> m_binded_attributes;
     ParameterInfoPrivateHoard m_uniform_list;
     ParameterInfoPrivateHoard m_attribute_list;
-    UnformBlockInfoPrivateHoard m_uniform_block_list;
+    UniformBlockInfoPrivateHoard m_uniform_block_list;
     std::vector<AtomicBufferInfoPrivate> m_abo_list;
     fastuidraw::gl::ProgramInitializerArray m_initializers;
     fastuidraw::gl::PreLinkActionArray m_pre_link_actions;
@@ -637,9 +637,9 @@ filter_name(iterator begin, iterator end, int &array_index)
 }
 
 ////////////////////////////////////////////////
-//UnformBlockInfoPrivateHoard methods
+//UniformBlockInfoPrivateHoard methods
 void
-UnformBlockInfoPrivateHoard::
+UniformBlockInfoPrivateHoard::
 fill_hoard(GLuint program,
            const std::vector<ParameterInfoPrivate> &all_uniforms)
 {
@@ -1094,8 +1094,8 @@ const char*
 fastuidraw::gl::Program::uniform_block_info::
 name(void) const
 {
-  const UnformBlockInfoPrivate *d;
-  d = reinterpret_cast<const UnformBlockInfoPrivate*>(m_d);
+  const UniformBlockInfoPrivate *d;
+  d = reinterpret_cast<const UniformBlockInfoPrivate*>(m_d);
   return (d) ? d->m_name.c_str() : "";
 }
 
@@ -1103,8 +1103,8 @@ GLint
 fastuidraw::gl::Program::uniform_block_info::
 block_index(void) const
 {
-  const UnformBlockInfoPrivate *d;
-  d = reinterpret_cast<const UnformBlockInfoPrivate*>(m_d);
+  const UniformBlockInfoPrivate *d;
+  d = reinterpret_cast<const UniformBlockInfoPrivate*>(m_d);
   return (d) ? d->m_block_index : -1;
 }
 
@@ -1112,8 +1112,8 @@ GLint
 fastuidraw::gl::Program::uniform_block_info::
 buffer_size(void) const
 {
-  const UnformBlockInfoPrivate *d;
-  d = reinterpret_cast<const UnformBlockInfoPrivate*>(m_d);
+  const UniformBlockInfoPrivate *d;
+  d = reinterpret_cast<const UniformBlockInfoPrivate*>(m_d);
   return (d) ? d->m_size_bytes : 0;
 }
 
@@ -1121,8 +1121,8 @@ unsigned int
 fastuidraw::gl::Program::uniform_block_info::
 number_uniforms(void) const
 {
-  const UnformBlockInfoPrivate *d;
-  d = reinterpret_cast<const UnformBlockInfoPrivate*>(m_d);
+  const UniformBlockInfoPrivate *d;
+  d = reinterpret_cast<const UniformBlockInfoPrivate*>(m_d);
   return d ? d->m_members.values().size() : 0;
 }
 
@@ -1130,10 +1130,10 @@ fastuidraw::gl::Program::parameter_info
 fastuidraw::gl::Program::uniform_block_info::
 uniform(unsigned int I)
 {
-  const UnformBlockInfoPrivate *d;
+  const UniformBlockInfoPrivate *d;
   const void *q;
 
-  d = reinterpret_cast<const UnformBlockInfoPrivate*>(m_d);
+  d = reinterpret_cast<const UniformBlockInfoPrivate*>(m_d);
   q = d ? &d->m_members.value(I) : NULL;
   return parameter_info(q);
 }
@@ -1142,8 +1142,8 @@ unsigned int
 fastuidraw::gl::Program::uniform_block_info::
 uniform_index(const char *name)
 {
-  const UnformBlockInfoPrivate *d;
-  d = reinterpret_cast<const UnformBlockInfoPrivate*>(m_d);
+  const UniformBlockInfoPrivate *d;
+  d = reinterpret_cast<const UniformBlockInfoPrivate*>(m_d);
   if(d != NULL)
     {
       FindParameterResult R;
@@ -1389,7 +1389,7 @@ generate_log(void)
       for(unsigned int endi = m_uniform_block_list.number_active_uniform_blocks(),
             i = 0; i < endi; ++i)
         {
-          const UnformBlockInfoPrivate *ubo(m_uniform_block_list.uniform_block(i));
+          const UniformBlockInfoPrivate *ubo(m_uniform_block_list.uniform_block(i));
           ostr << "\n\nUniformBlock:" << ubo->m_name
                << "\n\tblock_index=" << ubo->m_block_index
                << "\n\tblock_size=" << ubo->m_size_bytes
