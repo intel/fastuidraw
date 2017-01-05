@@ -106,7 +106,8 @@ namespace
       m_offset(-1),
       m_array_stride(-1),
       m_matrix_stride(-1),
-      m_is_row_major(0)
+      m_is_row_major(0),
+      m_abo_index(-1)
     {}
 
     bool
@@ -126,6 +127,7 @@ namespace
     GLint m_array_stride;
     GLint m_matrix_stride;
     GLint m_is_row_major;
+    GLint m_abo_index;
   };
 
   class FindParameterResult
@@ -480,6 +482,7 @@ fill_hoard(GLuint program,
           std::vector<GLint> array_strides(m_values.size());
           std::vector<GLint> matrix_strides(m_values.size());
           std::vector<GLint> is_row_major(m_values.size());
+          std::vector<GLint> abo_index(m_values.size());
 
           for(unsigned int i = 0, endi = indxs.size(); i < endi; ++i)
             {
@@ -491,18 +494,18 @@ fill_hoard(GLuint program,
           glGetActiveUniformsiv(program, indxs.size(), &indxs[0], GL_UNIFORM_ARRAY_STRIDE, &array_strides[0]);
           glGetActiveUniformsiv(program, indxs.size(), &indxs[0], GL_UNIFORM_MATRIX_STRIDE, &matrix_strides[0]);
           glGetActiveUniformsiv(program, indxs.size(), &indxs[0], GL_UNIFORM_IS_ROW_MAJOR, &is_row_major[0]);
+          glGetActiveUniformsiv(program, indxs.size(), &indxs[0], GL_UNIFORM_ATOMIC_COUNTER_BUFFER_INDEX, &abo_index[0]);
 
           for(unsigned int i = 0, endi = indxs.size(); i < endi; ++i)
             {
-              if(block_idxs[i] != -1)
-                {
-                  ParameterInfoPrivate &dst(m_values[i]);
-                  dst.m_block_index = block_idxs[i];
-                  dst.m_offset = offsets[i];
-                  dst.m_array_stride = array_strides[i];
-                  dst.m_matrix_stride = matrix_strides[i];
-                  dst.m_is_row_major = is_row_major[i];
-                }
+              ParameterInfoPrivate &dst(m_values[i]);
+
+              dst.m_block_index = block_idxs[i];
+              dst.m_offset = offsets[i];
+              dst.m_array_stride = array_strides[i];
+              dst.m_matrix_stride = matrix_strides[i];
+              dst.m_is_row_major = is_row_major[i];
+              dst.m_abo_index = abo_index[i];
             }
         }
 
@@ -1002,6 +1005,15 @@ is_row_major(void) const
   return (d) ? d->m_is_row_major : false;
 }
 
+GLint
+fastuidraw::gl::Program::parameter_info::
+abo_index(void) const
+{
+  const ParameterInfoPrivate *d;
+  d = reinterpret_cast<const ParameterInfoPrivate*>(m_d);
+  return (d) ? d->m_abo_index : -1;
+}
+
 ///////////////////////////////////////////////////
 // fastuidraw::gl::Program::uniform_block_info methods
 fastuidraw::gl::Program::uniform_block_info::
@@ -1239,7 +1251,8 @@ generate_log(void)
                << std::hex << iter->m_type
                << "\n\t\tcount=" << std::dec << iter->m_count
                << "\n\t\tindex=" << std::dec << iter->m_index
-               << "\n\t\tlocation=" << iter->m_location;
+               << "\n\t\tlocation=" << iter->m_location
+               << "\n\t\tabo_index=" << iter->m_abo_index;
         }
 
       for(unsigned int endi = m_uniform_block_list.number_active_uniform_blocks(),

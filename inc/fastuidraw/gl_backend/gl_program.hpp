@@ -573,9 +573,17 @@ public:
     location(void) const;
 
     /*!
-      Returns to what uniform block this belongs.
-      If thie value does not reside on a uniform
-      block, returns -1.
+      Returns the index to what uniform block this
+      belongs. If thie value does not reside on a
+      uniform block, returns -1. The index is the
+      value to feed as bufferIndex in the GL API
+      function's
+      \code
+      glGetActiveUniformBlockiv(program, bufferIndex, ..)
+      glGetActiveUniformBlockName(program, bufferIndex, ..)
+      glBindBufferBase(GL_UNIFORM_BUFFER, bufferIndex, ..)
+      glBindBufferRange(GL_UNIFORM_BUFFER, bufferIndex, ..)
+      \endcode
      */
     GLint
     block_index(void) const;
@@ -614,6 +622,20 @@ public:
      */
     bool
     is_row_major(void) const;
+
+    /*!
+      If this is an atomic counter, returns the index of atomic
+      buffer that the counter is associated with. If not, returns
+      -1. The index is the value to feed as bufferIndex in the
+      GL API function's
+      \code
+      glGetActiveAtomicCounterBufferiv(GLint program, GLuint bufferIndex, ..)
+      glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, bufferIndex, ...)
+      glBindBufferRange(GL_ATOMIC_COUNTER_BUFFER, bufferIndex, ..)
+      \endcode
+     */
+    GLint
+    abo_index(void) const;
 
   private:
     explicit
