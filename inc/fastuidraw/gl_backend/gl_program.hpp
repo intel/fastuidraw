@@ -574,7 +574,7 @@ public:
 
     /*!
       Returns the index to what uniform block this
-      belongs. If thie value does not reside on a
+      belongs. If this value does not reside on a
       uniform block, returns -1. The index is the
       value to feed as bufferIndex in the GL API
       function's
@@ -714,6 +714,73 @@ public:
   private:
     explicit
     uniform_block_info(const void*);
+
+    const void *m_d;
+    friend class Program;
+  };
+
+  /*!
+   */
+  class atomic_buffer_info
+  {
+  public:
+    /*!
+      Ctor
+     */
+    atomic_buffer_info(void);
+
+    /*!
+      GL API index for the parameter. The value of
+      buffer_index() is used in calls to GL to query about
+      the parameter, i.e. the value to feed as bufferIndex
+      to the GL API function
+      \code
+      glGetActiveAtomicCounterBufferiv(GLuint program, GLuint bufferIndex, ...)
+      \endcode
+     */
+    GLint
+    buffer_index(void) const;
+
+    /*!
+      Returns the size in bytes of the atomic buffer (i.e.
+      the size needed for a buffer object to correctly back
+      the atomic buffer block).
+     */
+    GLint
+    buffer_size(void) const;
+
+    /*!
+      Returns the number of atomic -variables- of the
+      atomic buffer. Note that an array is classified
+      as a single variable.
+    */
+    unsigned int
+    number_atomic_variables(void) const;
+
+    /*!
+      Returns the indexed atomic variable. The values are sorted in
+      alphabetical order of parameter_info::name(). The variable
+      list is for those atomic variables of this atomic buffer
+      \param I -array index- (not location) of atomic, if I is
+               not less than number_atomic_variables(), returns
+               a parameter_info indicating nothing (i.e.
+               parameter_info::name() is an empty string and
+               parameter_info::index() is -1).
+     */
+    parameter_info
+    atomic_variable(unsigned int I);
+
+    /*!
+      Returns the index value to feed to atomic_variable()
+      to get the atomic variable of the given name. If the
+      variable cannot be found, returns ~0u.
+     */
+    unsigned int
+    atomic_variable_index(const char *name);
+
+  private:
+    explicit
+    atomic_buffer_info(const void*);
 
     const void *m_d;
     friend class Program;
@@ -901,6 +968,24 @@ public:
    */
   unsigned int
   uniform_block_id(const char *uniform_block_name);
+
+  /*!
+    Returns the number of active atomic buffers. This function
+    should only be called either after use_program() has been
+    called or only when the GL context is current.
+   */
+  unsigned int
+  number_active_atomic_buffers(void);
+
+  /*!
+    Returns the indexed atomic buffer. This function should only
+    be called either after use_program() has been called or only
+    when the GL context is current.
+    \param I which one to fetch, I must be less than
+             number_active_atomic_buffers()
+   */
+  atomic_buffer_info
+  atomic_buffer(unsigned int I);
 
   /*!
     Returns the number of active attributes. Note that an array

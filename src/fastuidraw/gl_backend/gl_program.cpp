@@ -197,6 +197,19 @@ namespace
     std::map<std::string, unsigned int> m_map;
   };
 
+  class AtomicBufferInfoPrivate
+  {
+  public:
+    AtomicBufferInfoPrivate(void):
+      m_buffer_index(-1),
+      m_size_bytes(0)
+    {}
+
+    GLint m_buffer_index;
+    GLint m_size_bytes;
+    ParameterInfoPrivateHoard m_members;
+  };
+
   class UnformBlockInfoPrivate
   {
   public:
@@ -216,10 +229,10 @@ namespace
   public:
     void
     fill_hoard(GLuint program,
-               const  std::vector<ParameterInfoPrivate> &all_uniforms);
+               const std::vector<ParameterInfoPrivate> &all_uniforms);
 
     const UnformBlockInfoPrivate*
-    default_block(void) const
+    default_uniform_block(void) const
     {
       return &m_default_block;
     }
@@ -231,20 +244,33 @@ namespace
     }
 
     const UnformBlockInfoPrivate*
-    block(unsigned int I)
+    uniform_block(unsigned int I)
     {
       assert(I < m_blocks_sorted.size());
       return m_blocks_sorted[I];
     }
 
     unsigned int
-    block_id(const std::string &name) const
+    uniform_block_id(const std::string &name) const
     {
       std::map<std::string, unsigned int>::const_iterator iter;
       iter = m_map.find(name);
       return (iter != m_map.end()) ?
         iter->second:
         ~0u;
+    }
+
+    unsigned int
+    number_atomic_buffers(void) const
+    {
+      return m_abo_buffers.size();
+    }
+
+    const AtomicBufferInfoPrivate*
+    atomic_buffer(unsigned int I) const
+    {
+      assert(I < m_abo_buffers.size());
+      return &m_abo_buffers[I];
     }
 
   private:
@@ -261,6 +287,7 @@ namespace
     UnformBlockInfoPrivate m_default_block;
     std::vector<UnformBlockInfoPrivate> m_blocks;
     std::vector<UnformBlockInfoPrivate*> m_blocks_sorted;
+    std::vector<AtomicBufferInfoPrivate> m_abo_buffers;
     std::map<std::string, unsigned int> m_map; //gives indice into m_blocks_sorted
   };
 
@@ -342,6 +369,7 @@ namespace
     ParameterInfoPrivateHoard m_uniform_list;
     ParameterInfoPrivateHoard m_attribute_list;
     UnformBlockInfoPrivateHoard m_uniform_block_list;
+    std::vector<AtomicBufferInfoPrivate> m_abo_list;
     fastuidraw::gl::ProgramInitializerArray m_initializers;
     fastuidraw::gl::PreLinkActionArray m_pre_link_actions;
     fastuidraw::gl::Program *m_p;
@@ -617,7 +645,7 @@ fill_hoard(GLuint program,
 {
   /* get what we need...
    */
-  GLint count(0);
+  GLint count(0), abo_count(0);
 
   glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &count);
   if(count > 0)
@@ -647,6 +675,32 @@ fill_hoard(GLuint program,
         }
     }
 
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      fastuidraw::gl::ContextProperties ctx;
+      if(ctx.version() >= fastuidraw::ivec2(3, 1))
+        {
+          glGetProgramiv(program, GL_ACTIVE_ATOMIC_COUNTER_BUFFERS, &abo_count);
+        }
+    }
+  #else
+    {
+      glGetProgramiv(program, GL_ACTIVE_ATOMIC_COUNTER_BUFFERS, &abo_count);
+    }
+  #endif
+
+  if(abo_count > 0)
+    {
+      m_abo_buffers.resize(abo_count);
+      for(int i = 0; i != count; ++i)
+        {
+          GLint sz(0);
+          glGetActiveAtomicCounterBufferiv(program, i, GL_ATOMIC_COUNTER_BUFFER_DATA_SIZE, &sz);
+          m_abo_buffers[i].m_buffer_index = i;
+          m_abo_buffers[i].m_size_bytes = sz;
+        }
+    }
+
   /* extract uniform data from all_uniforms, note that
      m_blocks[i] holds the uniform block with block_index
      of value i currently.
@@ -662,10 +716,20 @@ fill_hoard(GLuint program,
         {
           m_default_block.m_members.add_element(*iter);
         }
+
+      if(iter->m_abo_index != -1)
+        {
+          m_abo_buffers[iter->m_abo_index].m_members.add_element(*iter);
+        }
     }
 
-  /* sort and finalize
+  /* sort and finalize each uniform block
    */
+  for(unsigned int i = 0, endi = m_abo_buffers.size(); i < endi; ++i)
+    {
+      m_abo_buffers[i].m_members.finalize();
+    }
+
   std::sort(m_blocks_sorted.begin(), m_blocks_sorted.end(), compare_function);
   for(unsigned int i = 0, endi = m_blocks_sorted.size(); i < endi; ++i)
     {
@@ -1089,6 +1153,73 @@ uniform_index(const char *name)
   return ~0u;
 }
 
+///////////////////////////////////////////////////
+// fastuidraw::gl::Program::atomic_buffer_info methods
+fastuidraw::gl::Program::atomic_buffer_info::
+atomic_buffer_info(const void *d):
+  m_d(d)
+{}
+
+fastuidraw::gl::Program::atomic_buffer_info::
+atomic_buffer_info(void):
+  m_d(NULL)
+{}
+
+GLint
+fastuidraw::gl::Program::atomic_buffer_info::
+buffer_index(void) const
+{
+  const AtomicBufferInfoPrivate *d;
+  d = reinterpret_cast<const AtomicBufferInfoPrivate*>(m_d);
+  return (d) ? d->m_buffer_index : -1;
+}
+
+GLint
+fastuidraw::gl::Program::atomic_buffer_info::
+buffer_size(void) const
+{
+  const AtomicBufferInfoPrivate *d;
+  d = reinterpret_cast<const AtomicBufferInfoPrivate*>(m_d);
+  return (d) ? d->m_size_bytes : 0;
+}
+
+unsigned int
+fastuidraw::gl::Program::atomic_buffer_info::
+number_atomic_variables(void) const
+{
+  const AtomicBufferInfoPrivate *d;
+  d = reinterpret_cast<const AtomicBufferInfoPrivate*>(m_d);
+  return d ? d->m_members.values().size() : 0;
+}
+
+fastuidraw::gl::Program::parameter_info
+fastuidraw::gl::Program::atomic_buffer_info::
+atomic_variable(unsigned int I)
+{
+  const AtomicBufferInfoPrivate *d;
+  const void *q;
+
+  d = reinterpret_cast<const AtomicBufferInfoPrivate*>(m_d);
+  q = d ? &d->m_members.value(I) : NULL;
+  return parameter_info(q);
+}
+
+unsigned int
+fastuidraw::gl::Program::atomic_buffer_info::
+atomic_variable_index(const char *name)
+{
+  const AtomicBufferInfoPrivate *d;
+  d = reinterpret_cast<const AtomicBufferInfoPrivate*>(m_d);
+  if(d != NULL)
+    {
+      FindParameterResult R;
+      R = d->m_members.find_parameter(name);
+      return R.m_idx;
+    }
+  return ~0u;
+}
+
+
 /////////////////////////////////////////////////////////
 //ProgramPrivate methods
 void
@@ -1241,8 +1372,8 @@ generate_log(void)
     {
       ostr << "\n\nUniforms of Default Block:";
       for(std::vector<ParameterInfoPrivate>::const_iterator
-            iter = m_uniform_block_list.default_block()->m_members.values().begin(),
-            end = m_uniform_block_list.default_block()->m_members.values().end();
+            iter = m_uniform_block_list.default_uniform_block()->m_members.values().begin(),
+            end = m_uniform_block_list.default_uniform_block()->m_members.values().end();
           iter != end; ++iter)
         {
           assert(iter->m_block_index == -1);
@@ -1258,7 +1389,7 @@ generate_log(void)
       for(unsigned int endi = m_uniform_block_list.number_active_uniform_blocks(),
             i = 0; i < endi; ++i)
         {
-          const UnformBlockInfoPrivate *ubo(m_uniform_block_list.block(i));
+          const UnformBlockInfoPrivate *ubo(m_uniform_block_list.uniform_block(i));
           ostr << "\n\nUniformBlock:" << ubo->m_name
                << "\n\tblock_index=" << ubo->m_block_index
                << "\n\tblock_size=" << ubo->m_size_bytes
@@ -1460,7 +1591,7 @@ default_uniform_block(void)
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
-  return uniform_block_info(d->m_uniform_block_list.default_block());
+  return uniform_block_info(d->m_uniform_block_list.default_uniform_block());
 }
 
 unsigned int
@@ -1480,7 +1611,7 @@ uniform_block(unsigned int I)
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
-  return uniform_block_info(d->m_uniform_block_list.block(I));
+  return uniform_block_info(d->m_uniform_block_list.uniform_block(I));
 }
 
 unsigned int
@@ -1490,7 +1621,27 @@ uniform_block_id(const char *uniform_block_name)
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
-  return d->m_uniform_block_list.block_id(uniform_block_name);
+  return d->m_uniform_block_list.uniform_block_id(uniform_block_name);
+}
+
+unsigned int
+fastuidraw::gl::Program::
+number_active_atomic_buffers(void)
+{
+  ProgramPrivate *d;
+  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d->assemble(this);
+  return d->m_uniform_block_list.number_atomic_buffers();
+}
+
+fastuidraw::gl::Program::atomic_buffer_info
+fastuidraw::gl::Program::
+atomic_buffer(unsigned int I)
+{
+  ProgramPrivate *d;
+  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d->assemble(this);
+  return atomic_buffer_info(d->m_uniform_block_list.atomic_buffer(I));
 }
 
 unsigned int
