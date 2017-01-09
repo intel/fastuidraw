@@ -514,7 +514,7 @@ class Program:
 {
 public:
   /*!
-    A parameter_info holds the type,
+    A shader_variable_info holds the type,
     size and name of a uniform or an attribute
     of a GL program. This data is fetched from GL
     via glGetActiveAttrib/glGetAttribLocation
@@ -525,13 +525,13 @@ public:
     that usually elements of an array are
     NOT listed individually.
   */
-  class parameter_info
+  class shader_variable_info
   {
   public:
     /*!
       Ctor
      */
-    parameter_info(void);
+    shader_variable_info(void);
 
     /*!
       Name of the parameter within
@@ -639,7 +639,7 @@ public:
 
   private:
     explicit
-    parameter_info(const void*);
+    shader_variable_info(const void*);
 
     const void *m_d;
     friend class Program;
@@ -692,15 +692,15 @@ public:
 
     /*!
       Returns the indexed uniform. The values are sorted in
-      alphabetical order of parameter_info::name(). The uniform
+      alphabetical order of shader_variable_info::name(). The uniform
       list is for those uniforms of this uniform block.
       \param I -array index- (not location) of uniform, if I is
                not less than number_uniforms(), returns
-               a parameter_info indicating no uniform (i.e.
-               parameter_info::name() is an empty string and
-               parameter_info::index() is -1).
+               a shader_variable_info indicating no uniform (i.e.
+               shader_variable_info::name() is an empty string and
+               shader_variable_info::index() is -1).
      */
-    parameter_info
+    shader_variable_info
     uniform(unsigned int I);
 
     /*!
@@ -759,15 +759,15 @@ public:
 
     /*!
       Returns the indexed atomic variable. The values are sorted in
-      alphabetical order of parameter_info::name(). The variable
+      alphabetical order of shader_variable_info::name(). The variable
       list is for those atomic variables of this atomic buffer
       \param I -array index- (not location) of atomic, if I is
                not less than number_atomic_variables(), returns
-               a parameter_info indicating nothing (i.e.
-               parameter_info::name() is an empty string and
-               parameter_info::index() is -1).
+               a shader_variable_info indicating nothing (i.e.
+               shader_variable_info::name() is an empty string and
+               shader_variable_info::index() is -1).
      */
-    parameter_info
+    shader_variable_info
     atomic_variable(unsigned int I);
 
     /*!
@@ -898,16 +898,16 @@ public:
     Returns the indexed uniform. This function should only be
     called either after use_program() has been called or only
     when the GL context is current. The values are sorted in
-    alphabetical order of parameter_info::name(). The uniform
+    alphabetical order of shader_variable_info::name(). The uniform
     list includes both uniforms from the default block and the
     uniforms of block sourced from buffer objects.
     \param I -array index- (not location) of uniform, if I is
              not less than number_active_uniforms(), returns
-             a parameter_info indicating no uniform (i.e.
-             parameter_info::name() is an empty string and
-             parameter_info::index() is -1).
+             a shader_variable_info indicating no uniform (i.e.
+             shader_variable_info::name() is an empty string and
+             shader_variable_info::index() is -1).
    */
-  parameter_info
+  shader_variable_info
   active_uniform(unsigned int I);
 
   /*!
@@ -1000,14 +1000,14 @@ public:
     Returns the indexed attribute. This function should only be
     called either after use_program() has been called or only
     when the GL context is current. The values are sorted in
-    alphabetical order of parameter_info::name().
+    alphabetical order of shader_variable_info::name().
     \param I -array index- (not location) of attribute, if I is
              not less than number_active_attributes(), returns
-             a parameter_info indicating no attribute (i.e.
-             parameter_info::name() is an empty string and
-             parameter_info::index() is -1).
+             a shader_variable_info indicating no attribute (i.e.
+             shader_variable_info::name() is an empty string and
+             shader_variable_info::index() is -1).
    */
-  parameter_info
+  shader_variable_info
   active_attribute(unsigned int I);
 
   /*!
