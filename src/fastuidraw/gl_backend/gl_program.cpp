@@ -93,27 +93,49 @@ namespace
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::gl::ProgramInitializer> > m_values;
   };
 
+  class ShaderVariableInterfaceQuery;
+
   class ShaderVariableInfoPrivate
   {
   public:
-    ShaderVariableInfoPrivate(void):
-      m_name(""),
-      m_type(GL_INVALID_ENUM),
-      m_count(0),
-      m_index(-1),
-      m_location(-1),
-      m_block_index(-1),
-      m_offset(-1),
-      m_array_stride(-1),
-      m_matrix_stride(-1),
-      m_is_row_major(0),
-      m_abo_index(-1)
-    {}
+    ShaderVariableInfoPrivate(void)
+    {
+      init();
+    }
+
+    /* fill the fields by using GL program interface query
+        - program: what GLSL program
+        - program_inteface: what GLSL interface from which to take the
+          variable information (for example GL_UNIFORM, GL_BUFFER_VARIABLE,
+          GL_PROGRAM_INPUT, GL_PROGRAM_OUTPUT)
+        - interface_index: GL index of variable from the interface
+        - queries: what GL enums and where to write to in ShaderVariableInfoPrivate
+     */
+    ShaderVariableInfoPrivate(GLuint program,
+                              GLenum variable_interface,
+                              GLuint variable_interface_index,
+                              fastuidraw::const_c_array<ShaderVariableInterfaceQuery> queries);
 
     bool
     operator<(const ShaderVariableInfoPrivate &rhs) const
     {
       return m_name < rhs.m_name;
+    }
+
+    void
+    init(void)
+    {
+      m_type = GL_INVALID_ENUM;
+      m_count = 0;
+      m_index = -1;
+      m_location = -1;
+      m_block_index = -1;
+      m_offset = -1;
+      m_array_stride = -1;
+      m_matrix_stride = -1;
+      m_is_row_major = 0;
+      m_abo_index = -1;
+      m_shader_buffer_index = -1;
     }
 
     std::string m_name;
@@ -128,6 +150,14 @@ namespace
     GLint m_matrix_stride;
     GLint m_is_row_major;
     GLint m_abo_index;
+    GLint m_shader_buffer_index;
+  };
+
+  class ShaderVariableInterfaceQuery
+  {
+  public:
+    GLenum m_gl_enum;
+    GLint ShaderVariableInfoPrivate::*m_dst;
   };
 
   class FindShaderVariableResult
@@ -154,7 +184,7 @@ namespace
     }
 
     unsigned int
-    hoard_index(void)
+    hoard_id(void)
     {
       return m_ptr != NULL ?
         m_v_index :
@@ -212,6 +242,13 @@ namespace
                GLenum count_enum, GLenum length_enum,
                F fptr, G gptr, bool fill_ubo_data);
 
+    void
+    fill_hoard(GLuint program,
+               GLenum program_interface,
+               GLuint interface_index,
+               GLenum variable_interface,
+               fastuidraw::const_c_array<ShaderVariableInterfaceQuery> queries);
+
   private:
     template<typename iterator>
     static
@@ -237,10 +274,10 @@ namespace
     ShaderVariableHoard m_members;
   };
 
-  class UniformBlockInfoPrivate
+  class BlockInfoPrivate
   {
   public:
-    UniformBlockInfoPrivate(void):
+    BlockInfoPrivate(void):
       m_block_index(-1),
       m_size_bytes(0)
     {}
@@ -251,40 +288,79 @@ namespace
     ShaderVariableHoard m_members;
   };
 
-  class UniformBlockInfoPrivateHoard
+  class BlockInfoHoardBase
   {
   public:
-    void
-    fill_hoard(GLuint program,
-               const std::vector<ShaderVariableInfoPrivate> &all_uniforms);
-
-    const UniformBlockInfoPrivate*
-    default_uniform_block(void) const
-    {
-      return &m_default_block;
-    }
+    BlockInfoHoardBase(void):
+      m_finalized(false)
+    {}
 
     unsigned int
-    number_active_uniform_blocks(void) const
+    number_active_blocks(void) const
     {
       return m_blocks_sorted.size();
     }
 
-    const UniformBlockInfoPrivate*
-    uniform_block(unsigned int I)
+    const BlockInfoPrivate*
+    block(unsigned int I)
     {
       assert(I < m_blocks_sorted.size());
       return m_blocks_sorted[I];
     }
 
     unsigned int
-    uniform_block_id(const std::string &name) const
+    block_id(const std::string &name) const
     {
       std::map<std::string, unsigned int>::const_iterator iter;
       iter = m_map.find(name);
       return (iter != m_map.end()) ?
         iter->second:
         ~0u;
+    }
+
+  protected:
+    void
+    finalize(void);
+
+    void
+    resize_number_blocks(unsigned int N);
+
+    BlockInfoPrivate&
+    block_ref(unsigned int I)
+    {
+      assert(!m_finalized);
+      assert(I < m_blocks.size());
+      return m_blocks[I];
+    }
+
+  private:
+    static
+    bool
+    compare_function(const BlockInfoPrivate *lhs,
+                     const BlockInfoPrivate *rhs)
+    {
+      assert(lhs != NULL);
+      assert(rhs != NULL);
+      return lhs->m_name < rhs->m_name;
+    }
+
+    bool m_finalized;
+    std::vector<BlockInfoPrivate> m_blocks;
+    std::vector<BlockInfoPrivate*> m_blocks_sorted;
+    std::map<std::string, unsigned int> m_map; //gives indice into m_blocks_sorted
+  };
+
+  class UniformBlockInfoPrivateHoard:public BlockInfoHoardBase
+  {
+  public:
+    void
+    fill_hoard(GLuint program,
+               const std::vector<ShaderVariableInfoPrivate> &all_uniforms);
+
+    const BlockInfoPrivate*
+    default_uniform_block(void) const
+    {
+      return &m_default_block;
     }
 
     unsigned int
@@ -301,21 +377,15 @@ namespace
     }
 
   private:
-    static
-    bool
-    compare_function(const UniformBlockInfoPrivate *lhs,
-                     const UniformBlockInfoPrivate *rhs)
-    {
-      assert(lhs != NULL);
-      assert(rhs != NULL);
-      return lhs->m_name < rhs->m_name;
-    }
-
-    UniformBlockInfoPrivate m_default_block;
-    std::vector<UniformBlockInfoPrivate> m_blocks;
-    std::vector<UniformBlockInfoPrivate*> m_blocks_sorted;
+    BlockInfoPrivate m_default_block;
     std::vector<AtomicBufferInfoPrivate> m_abo_buffers;
-    std::map<std::string, unsigned int> m_map; //gives indice into m_blocks_sorted
+  };
+
+  class ShaderStorageBlockInfoHoard:public BlockInfoHoardBase
+  {
+  public:
+    void
+    fill_hoard(GLuint program);
   };
 
   class ShaderData
@@ -475,6 +545,47 @@ compile(void)
 
 }
 
+//////////////////////////////////
+// ShaderVariableInfoPrivate methods
+ShaderVariableInfoPrivate::
+ShaderVariableInfoPrivate(GLuint program,
+                          GLenum variable_interface,
+                          GLuint variable_interface_index,
+                          fastuidraw::const_c_array<ShaderVariableInterfaceQuery> queries)
+{
+  init();
+
+  std::vector<GLenum> props(queries.size() + 1);
+  std::vector<GLint> prop_values(queries.size() + 1, 0);
+  GLsizei values_written(0);
+
+  for(unsigned int i = 0; i < queries.size(); ++i)
+    {
+      props[i] = queries[i].m_gl_enum;
+    }
+  props.back() = GL_NAME_LENGTH;
+  glGetProgramResourceiv(program, variable_interface, variable_interface_index,
+                         props.size(), &props[0],
+                         prop_values.size(),
+                         &values_written,
+                         &prop_values[0]);
+
+  assert(values_written == static_cast<int>(props.size()));
+  FASTUIDRAWunused(values_written);
+
+  std::vector<GLchar> dst_name(prop_values.back() + 1, '\0');
+  glGetProgramResourceName(program, variable_interface, variable_interface_index,
+                           dst_name.size(), NULL, &dst_name[0]);
+
+  m_index = variable_interface_index;
+  m_name = std::string(dst_name.begin(), dst_name.end());
+
+  for(unsigned int i = 0; i < queries.size(); ++i)
+    {
+      this->*queries[i].m_dst = prop_values[i];
+    }
+}
+
 ////////////////////////////////////
 // ShaderVariableHoard methods
 void
@@ -548,7 +659,6 @@ fill_hoard(GLuint program,
           ShaderVariableInfoPrivate dst;
           GLsizei name_length, psize;
           GLenum ptype;
-          int array_index;
 
           std::memset(&pname[0], 0, largest_length);
 
@@ -558,19 +668,7 @@ fill_hoard(GLuint program,
 
           dst.m_type = ptype;
           dst.m_count = psize;
-          dst.m_name = filter_name(pname.begin(),
-                                           pname.begin() + name_length,
-                                           array_index);
-          if(array_index != 0)
-            {
-              /*
-                crazy GL... it lists an element
-                from an array as a unique location,
-                chicken out and add it with the
-                array index:
-              */
-              dst.m_name = std::string(pname.begin(), pname.begin() + name_length);
-            }
+          dst.m_name = std::string(pname.begin(), pname.begin() + name_length);
           dst.m_index = i;
           dst.m_location = gptr(program, &pname[0]);
           add_element(dst);
@@ -609,6 +707,37 @@ fill_hoard(GLuint program,
               dst.m_is_row_major = is_row_major[i];
               dst.m_abo_index = abo_index[i];
             }
+        }
+    }
+  finalize();
+}
+
+void
+ShaderVariableHoard::
+fill_hoard(GLuint program,
+           GLenum program_interface,
+           GLuint interface_index,
+           GLenum variable_interface,
+           fastuidraw::const_c_array<ShaderVariableInterfaceQuery> queries)
+{
+  const GLenum prop_num_active(GL_NUM_ACTIVE_VARIABLES);
+  GLint num_variables(0);
+
+  glGetProgramResourceiv(program, program_interface, interface_index,
+                         1, &prop_num_active,
+                         1, NULL, &num_variables);
+  if(num_variables > 0)
+    {
+      const GLenum prop_active(GL_ACTIVE_VARIABLES);
+      std::vector<GLint> variable_index(num_variables, -1);
+
+      glGetProgramResourceiv(program, program_interface, interface_index,
+                             1, &prop_active,
+                             num_variables, NULL, &variable_index[0]);
+      for(int i = 0; i < num_variables; ++i)
+        {
+          ShaderVariableInfoPrivate p(program, variable_interface, variable_index[i], queries);
+          add_element(p);
         }
     }
   finalize();
@@ -659,6 +788,37 @@ filter_name(iterator begin, iterator end, int &array_index)
   return return_value;
 }
 
+///////////////////////////////////////
+//BlockInfoHoardBase methods
+void
+BlockInfoHoardBase::
+finalize(void)
+{
+  assert(!m_finalized);
+  m_finalized = true;
+  std::sort(m_blocks_sorted.begin(), m_blocks_sorted.end(), compare_function);
+  for(unsigned int i = 0, endi = m_blocks_sorted.size(); i < endi; ++i)
+    {
+      m_blocks_sorted[i]->m_members.finalize();
+      m_map[m_blocks_sorted[i]->m_name] = i;
+    }
+}
+
+void
+BlockInfoHoardBase::
+resize_number_blocks(unsigned int N)
+{
+  assert(!m_finalized);
+  assert(m_blocks.empty());
+  assert(m_blocks_sorted.empty());
+  m_blocks.resize(N);
+  m_blocks_sorted.resize(N);
+  for(unsigned int i = 0; i < N; ++i)
+    {
+      m_blocks_sorted[i] = &m_blocks[i];
+    }
+}
+
 ////////////////////////////////////////////////
 //UniformBlockInfoPrivateHoard methods
 void
@@ -671,13 +831,11 @@ fill_hoard(GLuint program,
   GLint count(0), abo_count(0);
 
   glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &count);
+  resize_number_blocks(count);
   if(count > 0)
     {
       GLint largest_length(0);
-
       std::vector<char> pname;
-      m_blocks.resize(count);
-      m_blocks_sorted.resize(count);
 
       glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, &largest_length);
       ++largest_length;
@@ -691,10 +849,9 @@ fill_hoard(GLuint program,
           glGetActiveUniformBlockName(program, i, largest_length, &name_length, &pname[0]);
           glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_DATA_SIZE, &psize);
 
-          m_blocks[i].m_block_index = i;
-          m_blocks[i].m_name = std::string(pname.begin(), pname.begin() + name_length);
-          m_blocks[i].m_size_bytes = psize;
-          m_blocks_sorted[i] = &m_blocks[i];
+          block_ref(i).m_block_index = i;
+          block_ref(i).m_name = std::string(pname.begin(), pname.begin() + name_length);
+          block_ref(i).m_size_bytes = psize;
         }
     }
 
@@ -733,7 +890,7 @@ fill_hoard(GLuint program,
     {
       if(iter->m_block_index != -1)
         {
-          m_blocks[iter->m_block_index].m_members.add_element(*iter);
+          block_ref(iter->m_block_index).m_members.add_element(*iter);
         }
       else
         {
@@ -746,21 +903,20 @@ fill_hoard(GLuint program,
         }
     }
 
-  /* sort and finalize each uniform block
+  /* finalize each atomic buffer block
    */
   for(unsigned int i = 0, endi = m_abo_buffers.size(); i < endi; ++i)
     {
       m_abo_buffers[i].m_members.finalize();
     }
 
-  std::sort(m_blocks_sorted.begin(), m_blocks_sorted.end(), compare_function);
-  for(unsigned int i = 0, endi = m_blocks_sorted.size(); i < endi; ++i)
-    {
-      m_blocks_sorted[i]->m_members.finalize();
-      m_map[m_blocks_sorted[i]->m_name] = i;
-    }
+  /* finalize default uniform block
+   */
   m_default_block.m_members.finalize();
 
+  /* finalize non-default uniform blocks
+   */
+  finalize();
 }
 
 ////////////////////////////////////////////////
@@ -1117,8 +1273,8 @@ const char*
 fastuidraw::gl::Program::uniform_block_info::
 name(void) const
 {
-  const UniformBlockInfoPrivate *d;
-  d = reinterpret_cast<const UniformBlockInfoPrivate*>(m_d);
+  const BlockInfoPrivate *d;
+  d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
   return (d) ? d->m_name.c_str() : "";
 }
 
@@ -1126,8 +1282,8 @@ GLint
 fastuidraw::gl::Program::uniform_block_info::
 block_index(void) const
 {
-  const UniformBlockInfoPrivate *d;
-  d = reinterpret_cast<const UniformBlockInfoPrivate*>(m_d);
+  const BlockInfoPrivate *d;
+  d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
   return (d) ? d->m_block_index : -1;
 }
 
@@ -1135,8 +1291,8 @@ GLint
 fastuidraw::gl::Program::uniform_block_info::
 buffer_size(void) const
 {
-  const UniformBlockInfoPrivate *d;
-  d = reinterpret_cast<const UniformBlockInfoPrivate*>(m_d);
+  const BlockInfoPrivate *d;
+  d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
   return (d) ? d->m_size_bytes : 0;
 }
 
@@ -1144,8 +1300,8 @@ unsigned int
 fastuidraw::gl::Program::uniform_block_info::
 number_uniforms(void) const
 {
-  const UniformBlockInfoPrivate *d;
-  d = reinterpret_cast<const UniformBlockInfoPrivate*>(m_d);
+  const BlockInfoPrivate *d;
+  d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
   return d ? d->m_members.values().size() : 0;
 }
 
@@ -1153,23 +1309,23 @@ fastuidraw::gl::Program::shader_variable_info
 fastuidraw::gl::Program::uniform_block_info::
 uniform(unsigned int I)
 {
-  const UniformBlockInfoPrivate *d;
+  const BlockInfoPrivate *d;
   const void *q;
 
-  d = reinterpret_cast<const UniformBlockInfoPrivate*>(m_d);
+  d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
   q = d ? &d->m_members.value(I) : NULL;
   return shader_variable_info(q);
 }
 
 unsigned int
 fastuidraw::gl::Program::uniform_block_info::
-uniform_index(const char *name)
+uniform_id(const char *name)
 {
-  const UniformBlockInfoPrivate *d;
-  d = reinterpret_cast<const UniformBlockInfoPrivate*>(m_d);
+  const BlockInfoPrivate *d;
+  d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
   if(d != NULL)
     {
-      return d->m_members.find_variable(name).hoard_index();
+      return d->m_members.find_variable(name).hoard_id();
     }
   return ~0u;
 }
@@ -1227,13 +1383,13 @@ atomic_variable(unsigned int I)
 
 unsigned int
 fastuidraw::gl::Program::atomic_buffer_info::
-atomic_variable_index(const char *name)
+atomic_variable_id(const char *name)
 {
   const AtomicBufferInfoPrivate *d;
   d = reinterpret_cast<const AtomicBufferInfoPrivate*>(m_d);
   if(d != NULL)
     {
-      return d->m_members.find_variable(name).hoard_index();
+      return d->m_members.find_variable(name).hoard_id();
     }
   return ~0u;
 }
@@ -1405,10 +1561,10 @@ generate_log(void)
                << "\n\t\tabo_index=" << iter->m_abo_index;
         }
 
-      for(unsigned int endi = m_uniform_block_list.number_active_uniform_blocks(),
+      for(unsigned int endi = m_uniform_block_list.number_active_blocks(),
             i = 0; i < endi; ++i)
         {
-          const UniformBlockInfoPrivate *ubo(m_uniform_block_list.uniform_block(i));
+          const BlockInfoPrivate *ubo(m_uniform_block_list.block(i));
           ostr << "\n\nUniformBlock:" << ubo->m_name
                << "\n\tblock_index=" << ubo->m_block_index
                << "\n\tblock_size=" << ubo->m_size_bytes
@@ -1585,7 +1741,7 @@ active_uniform_id(const char *pname)
 
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
-  return d->m_uniform_list.find_variable(pname).hoard_index();
+  return d->m_uniform_list.find_variable(pname).hoard_id();
 }
 
 GLint
@@ -1616,7 +1772,7 @@ number_active_uniform_blocks(void)
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
-  return d->m_uniform_block_list.number_active_uniform_blocks();
+  return d->m_uniform_block_list.number_active_blocks();
 }
 
 fastuidraw::gl::Program::uniform_block_info
@@ -1626,7 +1782,7 @@ uniform_block(unsigned int I)
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
-  return uniform_block_info(d->m_uniform_block_list.uniform_block(I));
+  return uniform_block_info(d->m_uniform_block_list.block(I));
 }
 
 unsigned int
@@ -1636,7 +1792,7 @@ uniform_block_id(const char *uniform_block_name)
   ProgramPrivate *d;
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
-  return d->m_uniform_block_list.uniform_block_id(uniform_block_name);
+  return d->m_uniform_block_list.block_id(uniform_block_name);
 }
 
 unsigned int
@@ -1687,7 +1843,7 @@ active_attribute_id(const char *pname)
 
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
-  return d->m_attribute_list.find_variable(pname).hoard_index();
+  return d->m_attribute_list.find_variable(pname).hoard_id();
 }
 
 GLint

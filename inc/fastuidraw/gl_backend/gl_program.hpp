@@ -709,7 +709,7 @@ public:
       cannot be found, returns ~0u.
      */
     unsigned int
-    uniform_index(const char *name);
+    uniform_id(const char *name);
 
   private:
     explicit
@@ -776,7 +776,7 @@ public:
       variable cannot be found, returns ~0u.
      */
     unsigned int
-    atomic_variable_index(const char *name);
+    atomic_variable_id(const char *name);
 
   private:
     explicit
