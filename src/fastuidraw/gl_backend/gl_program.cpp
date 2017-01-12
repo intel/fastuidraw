@@ -686,6 +686,11 @@ fill_variable(GLuint program,
   if(!m_enums.empty())
     {
       m_work_room.resize(m_enums.size());
+      for(unsigned int i = 0, endi = m_enums.size(); i < endi; ++i)
+        {
+          m_work_room[i] = dst.*m_dsts[i];
+        }
+
       glGetProgramResourceiv(program, variable_interface, variable_interface_index,
                              m_enums.size(), &m_enums[0],
                              m_work_room.size(), NULL, &m_work_room[0]);
@@ -712,6 +717,7 @@ fill_variables(GLuint program,
 
   std::vector<GLint> values(dst.size());
   std::vector<GLuint> indxs(dst.size());
+  ShaderVariableInfo default_value;
 
   for(unsigned int v = 0, endv = dst.size(); v < endv; ++v)
     {
@@ -720,6 +726,7 @@ fill_variables(GLuint program,
 
   for(unsigned int q = 0, endq = m_enums.size(); q < endq; ++q)
     {
+      std::fill(values.begin(), values.end(), default_value.*m_dsts[q]);
       glGetActiveUniformsiv(program, indxs.size(), &indxs[0], m_enums[q], &values[0]);
       for(unsigned int v = 0, endv = indxs.size(); v < endv; ++v)
         {
