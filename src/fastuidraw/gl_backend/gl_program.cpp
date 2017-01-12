@@ -125,44 +125,25 @@ namespace
   class ShaderVariableInfo
   {
   public:
-    ShaderVariableInfo(void)
+    ShaderVariableInfo(void):
+      m_type(GL_INVALID_ENUM),
+      m_count(0),
+      m_index(-1),
+      m_location(-1),
+      m_block_index(-1),
+      m_offset(-1),
+      m_array_stride(-1),
+      m_matrix_stride(-1),
+      m_is_row_major(0),
+      m_abo_index(-1),
+      m_shader_buffer_index(-1)
     {
-      init();
     }
-
-    /* fill the fields by using GL program interface query
-        - program: what GLSL program
-        - program_inteface: what GLSL interface from which to take the
-          variable information (for example GL_UNIFORM, GL_BUFFER_VARIABLE,
-          GL_PROGRAM_INPUT, GL_PROGRAM_OUTPUT)
-        - interface_index: GL index of variable from the interface
-        - queries: what GL enums and where to write to in ShaderVariableInfo
-     */
-    ShaderVariableInfo(GLuint program,
-                       GLenum variable_interface,
-                       GLuint variable_interface_index,
-                       const ShaderVariableInterfaceQueryList &queries);
 
     bool
     operator<(const ShaderVariableInfo &rhs) const
     {
       return m_name < rhs.m_name;
-    }
-
-    void
-    init(void)
-    {
-      m_type = GL_INVALID_ENUM;
-      m_count = 0;
-      m_index = -1;
-      m_location = -1;
-      m_block_index = -1;
-      m_offset = -1;
-      m_array_stride = -1;
-      m_matrix_stride = -1;
-      m_is_row_major = 0;
-      m_abo_index = -1;
-      m_shader_buffer_index = -1;
     }
 
     std::string m_name;
@@ -180,22 +161,13 @@ namespace
     GLint m_shader_buffer_index;
   };
 
+  /* class to use program interface query to fill
+     the fields of a ShaderVariableInfo
+   */
   class ShaderVariableInterfaceQueryList
   {
   public:
     typedef GLint ShaderVariableInfo::*dst_type;
-
-    const std::vector<dst_type>&
-    dsts(void) const
-    {
-      return m_dsts;
-    }
-
-    const std::vector<GLenum>&
-    enums(void) const
-    {
-      return m_enums;
-    }
 
     ShaderVariableInterfaceQueryList&
     add(GLenum e, dst_type d)
@@ -205,18 +177,45 @@ namespace
       return *this;
     }
 
-    bool
-    empty(void) const
-    {
-      assert(m_enums.empty() == m_dsts.empty());
-      return m_enums.empty();
-    }
+    /* fill the fields of a ShaderVariableInfo by using GL program interface query
+        - program: what GLSL program
+        - program_inteface: what GLSL interface from which to take the
+          variable information (for example GL_UNIFORM, GL_BUFFER_VARIABLE,
+          GL_PROGRAM_INPUT, GL_PROGRAM_OUTPUT)
+        - interface_index: GL index of variable from the interface
+        - queries: what GL enums and where to write to in ShaderVariableInfo
+     */
+    void
+    fill_variable(GLuint program,
+                  GLenum variable_interface,
+                  GLuint variable_interface_index,
+                  ShaderVariableInfo &dst) const;
 
-    unsigned int
-    size(void) const
+  private:
+    mutable std::vector<GLint> m_work_room;
+    std::vector<GLenum> m_enums;
+    std::vector<dst_type> m_dsts;
+  };
+
+  /* class to fill fields associated to uniforms of a ShaderVariableInfo
+     using glGetActiveUniformsiv (thus NOT using the program interface
+     query interface)
+   */
+  class ShaderUniformQueryList
+  {
+  public:
+    typedef GLint ShaderVariableInfo::*dst_type;
+
+    void
+    fill_variables(GLuint program,
+                   std::vector<ShaderVariableInfo> &dst) const;
+
+    ShaderUniformQueryList&
+    add(GLenum e, dst_type d)
     {
-      assert(m_enums.size() == m_dsts.size());
-      return m_enums.size();
+      m_enums.push_back(e);
+      m_dsts.push_back(d);
+      return *this;
     }
 
   private:
@@ -304,7 +303,8 @@ namespace
     void
     populate_non_program_interface_query(GLuint program,
                                          GLenum count_enum, GLenum length_enum,
-                                         F fptr, G gptr, bool fill_ubo_data);
+                                         F fptr, G gptr,
+                                         const ShaderUniformQueryList &query_list = ShaderUniformQueryList());
 
     /* Poplulate from a named interface block
        - program interface: what GLSL interface from which to take the
@@ -671,24 +671,60 @@ compile(void)
 
 }
 
-//////////////////////////////////
-// ShaderVariableInfo methods
-ShaderVariableInfo::
-ShaderVariableInfo(GLuint program,
-                   GLenum variable_interface,
-                   GLuint variable_interface_index,
-                   const ShaderVariableInterfaceQueryList &queries)
+//////////////////////////////////////
+// ShaderVariableInterfaceQueryList methods
+void
+ShaderVariableInterfaceQueryList::
+fill_variable(GLuint program,
+              GLenum variable_interface,
+              GLuint variable_interface_index,
+              ShaderVariableInfo &dst) const
 {
-  init();
+  dst.m_index = variable_interface_index;
+  dst.m_name = get_program_resource_name(program, variable_interface, dst.m_index);
 
-  m_index = variable_interface_index;
-  m_name = get_program_resource_name(program, variable_interface, m_index);
-
-  for(unsigned int i = 0, endi = queries.size(); i < endi; ++i)
+  if(!m_enums.empty())
     {
+      m_work_room.resize(m_enums.size());
       glGetProgramResourceiv(program, variable_interface, variable_interface_index,
-                             1, &queries.enums()[i],
-                             1, NULL, &(this->*queries.dsts()[i]));
+                             m_enums.size(), &m_enums[0],
+                             m_work_room.size(), NULL, &m_work_room[0]);
+
+      for(unsigned int i = 0, endi = m_enums.size(); i < endi; ++i)
+        {
+          dst.*m_dsts[i] = m_work_room[i];
+        }
+    }
+}
+
+////////////////////////////////////
+// ShaderUniformQueryList methods
+void
+ShaderUniformQueryList::
+fill_variables(GLuint program,
+               std::vector<ShaderVariableInfo> &dst) const
+{
+  assert(m_enums.size() == m_dsts.size());
+  if(m_enums.empty() || dst.empty())
+    {
+      return;
+    }
+
+  std::vector<GLint> values(dst.size());
+  std::vector<GLuint> indxs(dst.size());
+
+  for(unsigned int v = 0, endv = dst.size(); v < endv; ++v)
+    {
+      indxs[v] = dst[v].m_index;
+    }
+
+  for(unsigned int q = 0, endq = m_enums.size(); q < endq; ++q)
+    {
+      glGetActiveUniformsiv(program, indxs.size(), &indxs[0], m_enums[q], &values[0]);
+      for(unsigned int v = 0, endv = indxs.size(); v < endv; ++v)
+        {
+          dst[v].*m_dsts[q] = values[v];
+        }
     }
 }
 
@@ -744,7 +780,8 @@ void
 ShaderVariableSet::
 populate_non_program_interface_query(GLuint program,
                                      GLenum count_enum, GLenum length_enum,
-                                     F fptr, G gptr, bool fill_ubo_data)
+                                     F fptr, G gptr,
+                                     const ShaderUniformQueryList &query_list)
 {
   GLint count(0);
 
@@ -778,46 +815,7 @@ populate_non_program_interface_query(GLuint program,
           dst.m_location = gptr(program, &pname[0]);
           add_element(dst);
         }
-
-      if(fill_ubo_data)
-        {
-          std::vector<GLuint> indxs(count);
-          std::vector<GLint> block_idxs(count, -1);
-          std::vector<GLint> offsets(count, 0);
-          std::vector<GLint> array_strides(count, 0);
-          std::vector<GLint> matrix_strides(count, 0);
-          std::vector<GLint> is_row_major(count, 0);
-          std::vector<GLint> abo_index(count, -1);
-
-          for(unsigned int i = 0, endi = indxs.size(); i < endi; ++i)
-            {
-              indxs[i] = value(i).m_index;
-            }
-
-          glGetActiveUniformsiv(program, indxs.size(), &indxs[0], GL_UNIFORM_BLOCK_INDEX, &block_idxs[0]);
-          glGetActiveUniformsiv(program, indxs.size(), &indxs[0], GL_UNIFORM_OFFSET, &offsets[0]);
-          glGetActiveUniformsiv(program, indxs.size(), &indxs[0], GL_UNIFORM_ARRAY_STRIDE, &array_strides[0]);
-          glGetActiveUniformsiv(program, indxs.size(), &indxs[0], GL_UNIFORM_MATRIX_STRIDE, &matrix_strides[0]);
-          glGetActiveUniformsiv(program, indxs.size(), &indxs[0], GL_UNIFORM_IS_ROW_MAJOR, &is_row_major[0]);
-
-          #ifndef FASTUIDRAW_GL_USE_GLES
-            {
-              glGetActiveUniformsiv(program, indxs.size(), &indxs[0], GL_UNIFORM_ATOMIC_COUNTER_BUFFER_INDEX, &abo_index[0]);
-            }
-          #endif
-
-          for(unsigned int i = 0, endi = indxs.size(); i < endi; ++i)
-            {
-              ShaderVariableInfo &dst(m_values[i]);
-
-              dst.m_block_index = block_idxs[i];
-              dst.m_offset = offsets[i];
-              dst.m_array_stride = array_strides[i];
-              dst.m_matrix_stride = matrix_strides[i];
-              dst.m_is_row_major = is_row_major[i];
-              dst.m_abo_index = abo_index[i];
-            }
-        }
+      query_list.fill_variables(program, m_values);
     }
   finalize();
 }
@@ -832,7 +830,8 @@ populate_from_resource(GLuint program,
   glGetProgramInterfaceiv(program, resource_interface, GL_ACTIVE_RESOURCES, &num);
   for(GLint i = 0; i < num; ++i)
     {
-      ShaderVariableInfo p(program, resource_interface, i, queries);
+      ShaderVariableInfo p;
+      queries.fill_variable(program, resource_interface, i, p);
       add_element(p);
     }
   finalize();
@@ -862,7 +861,8 @@ populate_from_interface_block(GLuint program,
                              num_variables, NULL, &variable_index[0]);
       for(GLint i = 0; i < num_variables; ++i)
         {
-          ShaderVariableInfo p(program, variable_interface, variable_index[i], queries);
+          ShaderVariableInfo p;
+          queries.fill_variable(program, variable_interface, variable_index[i], p);
           add_element(p);
         }
     }
@@ -947,7 +947,7 @@ populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
 
   if(ctx_props.is_es())
     {
-      use_program_interface_query = (ctx_props.version() >= fastuidraw::ivec2(3, 2));
+      use_program_interface_query = (ctx_props.version() >= fastuidraw::ivec2(3, 1));
     }
   else
     {
@@ -971,8 +971,7 @@ populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
                                            GL_ACTIVE_ATTRIBUTES,
                                            GL_ACTIVE_ATTRIBUTE_MAX_LENGTH,
                                            FASTUIDRAWglfunctionPointer(glGetActiveAttrib),
-                                           FASTUIDRAWglfunctionPointer(glGetAttribLocation),
-                                           false);
+                                           FASTUIDRAWglfunctionPointer(glGetAttribLocation));
     }
 }
 
@@ -1037,7 +1036,7 @@ populate(GLuint program,
 
   if(ctx_props.is_es())
     {
-      use_program_interface_query = (ctx_props.version() >= fastuidraw::ivec2(3, 2));
+      use_program_interface_query = (ctx_props.version() >= fastuidraw::ivec2(3, 1));
     }
   else
     {
@@ -1060,8 +1059,6 @@ UniformBlockSetInfo::
 populate_private_program_interface_query(GLuint program,
                                          const fastuidraw::gl::ContextProperties &ctx_props)
 {
-  FASTUIDRAWunused(ctx_props);
-
   /* first populate our list of all uniforms
    */
   ShaderVariableInterfaceQueryList uniform_queries;
@@ -1073,8 +1070,7 @@ populate_private_program_interface_query(GLuint program,
     .add(GL_OFFSET, &ShaderVariableInfo::m_offset)
     .add(GL_ARRAY_STRIDE, &ShaderVariableInfo::m_array_stride)
     .add(GL_MATRIX_STRIDE, &ShaderVariableInfo::m_matrix_stride)
-    .add(GL_IS_ROW_MAJOR, &ShaderVariableInfo::m_is_row_major)
-    .add(GL_ATOMIC_COUNTER_BUFFER_INDEX, &ShaderVariableInfo::m_abo_index);
+    .add(GL_IS_ROW_MAJOR, &ShaderVariableInfo::m_is_row_major);
 
   m_all_uniforms.populate_from_resource(program, GL_UNIFORM, uniform_queries);
 
@@ -1128,6 +1124,8 @@ populate_private_program_interface_query(GLuint program,
   /* finalize non-default uniform blocks
    */
   finalize();
+
+  FASTUIDRAWunused(ctx_props);
 }
 
 void
@@ -1137,20 +1135,53 @@ populate_private_non_program_interface_query(GLuint program,
 {
   /* first populate our list of all uniforms
    */
+  ShaderUniformQueryList query_list;
+
+  query_list
+    .add(GL_UNIFORM_BLOCK_INDEX, &ShaderVariableInfo::m_block_index)
+    .add(GL_UNIFORM_OFFSET, &ShaderVariableInfo::m_offset)
+    .add(GL_UNIFORM_ARRAY_STRIDE, &ShaderVariableInfo::m_array_stride)
+    .add(GL_UNIFORM_MATRIX_STRIDE, &ShaderVariableInfo::m_matrix_stride)
+    .add(GL_UNIFORM_IS_ROW_MAJOR, &ShaderVariableInfo::m_is_row_major);
+
+  #ifndef FASTUIDRAW_GL_USE_GLES
+    {
+      bool abo_supported;
+      GLint abo_count(0);
+
+      abo_supported = ctx_props.version() >= fastuidraw::ivec2(4, 2)
+        || ctx_props.has_extension("GL_ARB_shader_atomic_counters");
+
+      if(abo_supported)
+        {
+          query_list.add(GL_ATOMIC_COUNTER_BUFFER_INDEX, &ShaderVariableInfo::m_abo_index);
+          glGetProgramiv(program, GL_ACTIVE_ATOMIC_COUNTER_BUFFERS, &abo_count);
+
+          m_abo_buffers.resize(abo_count);
+          for(int i = 0; i != abo_count; ++i)
+            {
+              GLint sz(0);
+              glGetActiveAtomicCounterBufferiv(program, i, GL_ATOMIC_COUNTER_BUFFER_DATA_SIZE, &sz);
+              m_abo_buffers[i].m_size_bytes = sz;
+              m_abo_buffers[i].m_buffer_index = i;
+            }
+        }
+    }
+  #endif
+
   m_all_uniforms.populate_non_program_interface_query(program,
                                                       GL_ACTIVE_UNIFORMS,
                                                       GL_ACTIVE_UNIFORM_MAX_LENGTH,
                                                       FASTUIDRAWglfunctionPointer(glGetActiveUniform),
                                                       FASTUIDRAWglfunctionPointer(glGetUniformLocation),
-                                                      true);
+                                                      query_list);
 
-  /* get what we need...
+  /* get the UBO block information: name and size
    */
-  GLint count(0);
-
-  glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &count);
-  resize_number_blocks(count);
-  if(count > 0)
+  GLint ubo_count(0);
+  glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &ubo_count);
+  resize_number_blocks(ubo_count);
+  if(ubo_count > 0)
     {
       GLint largest_length(0);
       std::vector<char> pname;
@@ -1159,7 +1190,7 @@ populate_private_non_program_interface_query(GLuint program,
       ++largest_length;
       pname.resize(largest_length, '\0');
 
-      for(int i = 0; i != count; ++i)
+      for(int i = 0; i < ubo_count; ++i)
         {
           GLsizei name_length(0), psize(0);
           std::memset(&pname[0], 0, largest_length);
@@ -1172,31 +1203,6 @@ populate_private_non_program_interface_query(GLuint program,
           block_ref(i).m_size_bytes = psize;
         }
     }
-
-  #ifndef FASTUIDRAW_GL_USE_GLES
-    {
-      GLint abo_count(0);
-
-      if(ctx_props.version() >= fastuidraw::ivec2(4, 2)
-         || ctx_props.has_extension("GL_ARB_shader_atomic_counters"))
-        {
-          glGetProgramiv(program, GL_ACTIVE_ATOMIC_COUNTER_BUFFERS, &abo_count);
-        }
-
-      m_abo_buffers.resize(abo_count);
-      for(int i = 0; i != count; ++i)
-        {
-          GLint sz(0);
-          glGetActiveAtomicCounterBufferiv(program, i, GL_ATOMIC_COUNTER_BUFFER_DATA_SIZE, &sz);
-          m_abo_buffers[i].m_buffer_index = i;
-          m_abo_buffers[i].m_size_bytes = sz;
-        }
-    }
-  #else
-    {
-      FASTUIDRAWunused(ctx_props);
-    }
-  #endif
 
   /* extract uniform data from all_uniforms, note that
      m_blocks[i] holds the uniform block with block_index
@@ -1235,6 +1241,8 @@ populate_private_non_program_interface_query(GLuint program,
   /* finalize non-default uniform blocks
    */
   finalize();
+
+  FASTUIDRAWunused(ctx_props);
 }
 
 ////////////////////////////////////////////////
