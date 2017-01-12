@@ -127,7 +127,7 @@ namespace
   public:
     ShaderVariableInfo(void):
       m_type(GL_INVALID_ENUM),
-      m_count(0),
+      m_count(-1),
       m_index(-1),
       m_location(-1),
       m_block_index(-1),
@@ -136,7 +136,9 @@ namespace
       m_matrix_stride(-1),
       m_is_row_major(0),
       m_abo_index(-1),
-      m_shader_buffer_index(-1)
+      m_shader_buffer_index(-1),
+      m_shader_buffer_top_level_array_size(-1),
+      m_shader_buffer_top_level_array_stride(-1)
     {
     }
 
@@ -158,7 +160,10 @@ namespace
     GLint m_matrix_stride;
     GLint m_is_row_major;
     GLint m_abo_index;
+
     GLint m_shader_buffer_index;
+    GLint m_shader_buffer_top_level_array_size;
+    GLint m_shader_buffer_top_level_array_stride;
   };
 
   /* class to use program interface query to fill
@@ -239,15 +244,23 @@ namespace
     {}
 
     int
-    gl_location(void)
+    gl_location(void) const
     {
       return m_ptr != NULL && m_ptr->m_location != -1 ?
         m_ptr->m_location + m_array_element :
         -1;
     }
 
+    int
+    gl_offset(void) const
+    {
+      return m_ptr != NULL && m_ptr->m_offset != -1 ?
+        m_ptr->m_offset + m_array_element * m_ptr->m_array_stride :
+        -1;
+    }
+
     unsigned int
-    set_id(void)
+    set_id(void) const
     {
       return m_ptr != NULL ?
         m_v_index :
@@ -432,6 +445,16 @@ namespace
                            GLenum variable_interface,
                            const ShaderVariableInterfaceQueryList &queries);
 
+    void
+    populate_as_empty(void)
+    {
+      assert(!m_finalized);
+      assert(m_map.empty());
+      assert(m_blocks.empty());
+      assert(m_blocks_sorted.empty());
+      m_finalized = true;
+    }
+
   protected:
     void
     finalize(void);
@@ -595,6 +618,7 @@ namespace
     std::set<std::string> m_binded_attributes;
     AttributeInfo m_attribute_list;
     UniformBlockSetInfo m_uniform_list;
+    BlockSetInfoBase m_storage_buffer_list;
     std::vector<AtomicBufferInfo> m_abo_list;
     fastuidraw::gl::ProgramInitializerArray m_initializers;
     fastuidraw::gl::PreLinkActionArray m_pre_link_actions;
@@ -1001,6 +1025,7 @@ populate_from_resource(GLuint program,
       block_ref(i).m_members.populate_from_interface_block(program, resource_interface,
                                                            i, variable_interface, queries);
     }
+  finalize();
 }
 
 void
@@ -1077,7 +1102,8 @@ populate_private_program_interface_query(GLuint program,
     .add(GL_OFFSET, &ShaderVariableInfo::m_offset)
     .add(GL_ARRAY_STRIDE, &ShaderVariableInfo::m_array_stride)
     .add(GL_MATRIX_STRIDE, &ShaderVariableInfo::m_matrix_stride)
-    .add(GL_IS_ROW_MAJOR, &ShaderVariableInfo::m_is_row_major);
+    .add(GL_IS_ROW_MAJOR, &ShaderVariableInfo::m_is_row_major)
+    .add(GL_ATOMIC_COUNTER_BUFFER_INDEX, &ShaderVariableInfo::m_abo_index);
 
   m_all_uniforms.populate_from_resource(program, GL_UNIFORM, uniform_queries);
 
@@ -1590,20 +1616,47 @@ abo_index(void) const
   return (d) ? d->m_abo_index : -1;
 }
 
+GLint
+fastuidraw::gl::Program::shader_variable_info::
+shader_buffer_index(void) const
+{
+  const ShaderVariableInfo *d;
+  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  return (d) ? d->m_shader_buffer_index : -1;
+}
+
+GLint
+fastuidraw::gl::Program::shader_variable_info::
+shader_buffer_top_level_array_size(void) const
+{
+  const ShaderVariableInfo *d;
+  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  return (d) ? d->m_shader_buffer_top_level_array_size : -1;
+}
+
+GLint
+fastuidraw::gl::Program::shader_variable_info::
+shader_buffer_top_level_array_stride(void) const
+{
+  const ShaderVariableInfo *d;
+  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  return (d) ? d->m_shader_buffer_top_level_array_stride : -1;
+}
+
 ///////////////////////////////////////////////////
-// fastuidraw::gl::Program::uniform_block_info methods
-fastuidraw::gl::Program::uniform_block_info::
-uniform_block_info(const void *d):
+// fastuidraw::gl::Program::block_info methods
+fastuidraw::gl::Program::block_info::
+block_info(const void *d):
   m_d(d)
 {}
 
-fastuidraw::gl::Program::uniform_block_info::
-uniform_block_info(void):
+fastuidraw::gl::Program::block_info::
+block_info(void):
   m_d(NULL)
 {}
 
 const char*
-fastuidraw::gl::Program::uniform_block_info::
+fastuidraw::gl::Program::block_info::
 name(void) const
 {
   const BlockInfoPrivate *d;
@@ -1612,7 +1665,7 @@ name(void) const
 }
 
 GLint
-fastuidraw::gl::Program::uniform_block_info::
+fastuidraw::gl::Program::block_info::
 block_index(void) const
 {
   const BlockInfoPrivate *d;
@@ -1621,7 +1674,7 @@ block_index(void) const
 }
 
 GLint
-fastuidraw::gl::Program::uniform_block_info::
+fastuidraw::gl::Program::block_info::
 buffer_size(void) const
 {
   const BlockInfoPrivate *d;
@@ -1630,8 +1683,8 @@ buffer_size(void) const
 }
 
 unsigned int
-fastuidraw::gl::Program::uniform_block_info::
-number_uniforms(void) const
+fastuidraw::gl::Program::block_info::
+number_variables(void) const
 {
   const BlockInfoPrivate *d;
   d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
@@ -1639,8 +1692,8 @@ number_uniforms(void) const
 }
 
 fastuidraw::gl::Program::shader_variable_info
-fastuidraw::gl::Program::uniform_block_info::
-uniform(unsigned int I)
+fastuidraw::gl::Program::block_info::
+variable(unsigned int I)
 {
   const BlockInfoPrivate *d;
   const void *q;
@@ -1651,13 +1704,23 @@ uniform(unsigned int I)
 }
 
 unsigned int
-fastuidraw::gl::Program::uniform_block_info::
-uniform_id(const char *name)
+fastuidraw::gl::Program::block_info::
+variable_id(const char *name)
 {
   const BlockInfoPrivate *d;
 
   d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
   return d ? d->m_members.find_variable(name).set_id() : ~0u;
+}
+
+int
+fastuidraw::gl::Program::block_info::
+variable_offset(const char *name)
+{
+  const BlockInfoPrivate *d;
+
+  d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
+  return d ? d->m_members.find_variable(name).gl_offset() : ~0u;
 }
 
 ///////////////////////////////////////////////////
@@ -1793,8 +1856,43 @@ assemble(fastuidraw::gl::Program *program)
   if(m_link_success)
     {
       fastuidraw::gl::ContextProperties ctx_props;
+      bool ssbo_supported;
+
       m_uniform_list.populate(m_name, ctx_props);
       m_attribute_list.populate(m_name, ctx_props);
+
+      if(ctx_props.is_es())
+        {
+          ssbo_supported = ctx_props.version() >= fastuidraw::ivec2(3, 1);
+        }
+      else
+        {
+          ssbo_supported = ctx_props.version() >= fastuidraw::ivec2(4, 3)
+            || ctx_props.has_extension("GL_ARB_shader_storage_buffer_object");
+        }
+
+      if(ssbo_supported)
+        {
+          ShaderVariableInterfaceQueryList ssbo_query;
+
+          ssbo_query
+            .add(GL_TYPE, &ShaderVariableInfo::m_type)
+            .add(GL_ARRAY_SIZE, &ShaderVariableInfo::m_count)
+            .add(GL_OFFSET, &ShaderVariableInfo::m_offset)
+            .add(GL_ARRAY_STRIDE, &ShaderVariableInfo::m_array_stride)
+            .add(GL_MATRIX_STRIDE, &ShaderVariableInfo::m_matrix_stride)
+            .add(GL_IS_ROW_MAJOR, &ShaderVariableInfo::m_is_row_major)
+            .add(GL_BLOCK_INDEX, &ShaderVariableInfo::m_shader_buffer_index)
+            .add(GL_TOP_LEVEL_ARRAY_SIZE, &ShaderVariableInfo::m_shader_buffer_top_level_array_size)
+            .add(GL_TOP_LEVEL_ARRAY_STRIDE, &ShaderVariableInfo::m_shader_buffer_top_level_array_stride);
+
+          m_storage_buffer_list.populate_from_resource(m_name, GL_SHADER_STORAGE_BLOCK,
+                                                       GL_BUFFER_VARIABLE, ssbo_query);
+        }
+      else
+        {
+          m_storage_buffer_list.populate_as_empty();
+        }
 
       int current_program;
       current_program = fastuidraw::gl::context_get<int>(GL_CURRENT_PROGRAM);
@@ -1907,6 +2005,36 @@ generate_log(void)
             }
         }
 
+      for(unsigned int endi = m_storage_buffer_list.number_active_blocks(),
+            i = 0; i < endi; ++i)
+        {
+          const BlockInfoPrivate *ssbo(m_storage_buffer_list.block(i));
+          ostr << "\n\nUniformBlock:" << ssbo->m_name
+               << "\n\tblock_index=" << ssbo->m_block_index
+               << "\n\tblock_size=" << ssbo->m_size_bytes
+               << "\n\tmembers:";
+
+          for(std::vector<ShaderVariableInfo>::const_iterator
+                iter = ssbo->m_members.values().begin(),
+                end = ssbo->m_members.values().end();
+              iter != end; ++iter)
+            {
+              assert(iter->m_shader_buffer_index == ssbo->m_block_index);
+              ostr << "\n\t\t" << iter->m_name
+                   << "\n\t\t\ttype=0x"
+                   << std::hex << iter->m_type
+                   << "\n\t\t\tcount=" << std::dec << iter->m_count
+                   << "\n\t\t\tindex=" << std::dec << iter->m_index
+                   << "\n\t\t\tshader_buffer_index=" << iter->m_shader_buffer_index
+                   << "\n\t\t\toffset=" << iter->m_offset
+                   << "\n\t\t\tarray_stride=" << iter->m_array_stride
+                   << "\n\t\t\tmatrix_stride=" << iter->m_matrix_stride
+                   << "\n\t\t\tis_row_major=" << bool(iter->m_is_row_major)
+                   << "\n\t\t\tshader_buffer_top_level_array_size=" << iter->m_shader_buffer_top_level_array_size
+                   << "\n\t\t\tshader_buffer_top_level_array_stride=" << iter->m_shader_buffer_top_level_array_stride;
+            }
+        }
+
       ostr << "\n\nAttributes:";
       for(std::vector<ShaderVariableInfo>::const_iterator
             iter = m_attribute_list.values().begin(),
@@ -1921,6 +2049,7 @@ generate_log(void)
                << "\n\t\tindex=" << std::dec << iter->m_index
                << "\n\t\tlocation=" << iter->m_location;
         }
+      ostr << "\n";
     }
 
   m_log = ostr.str();
@@ -2081,7 +2210,7 @@ uniform_location(const char *pname)
     -1;
 }
 
-fastuidraw::gl::Program::uniform_block_info
+fastuidraw::gl::Program::block_info
 fastuidraw::gl::Program::
 default_uniform_block(void)
 {
@@ -2089,8 +2218,8 @@ default_uniform_block(void)
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
-    uniform_block_info(d->m_uniform_list.default_uniform_block()) :
-    uniform_block_info(NULL);
+    block_info(d->m_uniform_list.default_uniform_block()) :
+    block_info(NULL);
 }
 
 unsigned int
@@ -2105,7 +2234,7 @@ number_active_uniform_blocks(void)
     0;
 }
 
-fastuidraw::gl::Program::uniform_block_info
+fastuidraw::gl::Program::block_info
 fastuidraw::gl::Program::
 uniform_block(unsigned int I)
 {
@@ -2113,8 +2242,8 @@ uniform_block(unsigned int I)
   d = reinterpret_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
-    uniform_block_info(d->m_uniform_list.block(I)) :
-    uniform_block_info(NULL);
+    block_info(d->m_uniform_list.block(I)) :
+    block_info(NULL);
 }
 
 unsigned int
@@ -2126,6 +2255,42 @@ uniform_block_id(const char *uniform_block_name)
   d->assemble(this);
   return d->m_link_success ?
     d->m_uniform_list.block_id(uniform_block_name) :
+    ~0u;
+}
+
+unsigned int
+fastuidraw::gl::Program::
+number_active_shader_storage_blocks(void)
+{
+  ProgramPrivate *d;
+  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d->assemble(this);
+  return d->m_link_success ?
+    d->m_storage_buffer_list.number_active_blocks() :
+    0;
+}
+
+fastuidraw::gl::Program::block_info
+fastuidraw::gl::Program::
+shader_storage_block(unsigned int I)
+{
+  ProgramPrivate *d;
+  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d->assemble(this);
+  return d->m_link_success ?
+    block_info(d->m_storage_buffer_list.block(I)) :
+    block_info(NULL);
+}
+
+unsigned int
+fastuidraw::gl::Program::
+shader_storage_block_id(const char *shader_storage_block_name)
+{
+  ProgramPrivate *d;
+  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d->assemble(this);
+  return d->m_link_success ?
+    d->m_storage_buffer_list.block_id(shader_storage_block_name) :
     ~0u;
 }
 

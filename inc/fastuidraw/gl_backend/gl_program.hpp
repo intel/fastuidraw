@@ -567,7 +567,8 @@ public:
       "Location" of the uniform or attribute
       as returned by glGetUniformLocation
       or glGetAttribLocation. For members of
-      a uniform block, returns -1.
+      a uniform block or a shader storage
+      buffer, value is -1.
      */
     GLint
     location(void) const;
@@ -598,9 +599,10 @@ public:
     buffer_offset(void) const;
 
     /*!
-      If this is an array, not a uniform of the default
-      uniform block, then returns the stride, in bytes,
-      between elements of the array. Otherwise returns -1.
+      If this is an array, not an attribute or uniform
+      of the default uniform block, then returns the stride,
+      in bytes, between elements of the array. Otherwise
+      returns -1.
      */
     GLint
     array_stride(void) const;
@@ -637,6 +639,37 @@ public:
     GLint
     abo_index(void) const;
 
+    /*!
+      If this variable is a member of a shader buffer, returns to
+      what shader buffer block this belongs. If not a shader buffer
+      variable, returns -1. This value is used for bufferIndex in the
+      GL API routines
+      \code
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bufferIndex, ..)
+      glBindBufferRange(GL_SHADER_STORAGE_BUFFER, bufferIndex, ..)
+      \endcode
+     */
+    GLint
+    shader_buffer_index(void) const;
+
+    /*!
+      If this variable has shader_buffer_index() return -1, then
+      returns -1. Otherwise returns the size of the top level
+      array to which the variable belongs. If the top level
+      array is unsized returns 0.
+     */
+    GLint
+    shader_buffer_top_level_array_size(void) const;
+
+    /*!
+      If this variable has shader_buffer_index() return -1, then
+      returns -1. Otherwise returns the stride of the top level
+      array to which the variable belongs. If it does belong
+      to a top level array, returns 0.
+     */
+    GLint
+    shader_buffer_top_level_array_stride(void) const;
+
   private:
     explicit
     shader_variable_info(const void*);
@@ -646,16 +679,17 @@ public:
   };
 
   /*!
-    A uniform_block_info represents an object from which
-    one can query the members of a uniform block.
+    A block_info represents an object from which
+    one can query the members of a uniform or
+    shader storage block.
    */
-  class uniform_block_info
+  class block_info
   {
   public:
     /*!
       Ctor
      */
-    uniform_block_info(void);
+    block_info(void);
 
     /*!
       Name of the parameter within
@@ -683,43 +717,55 @@ public:
     buffer_size(void) const;
 
     /*!
-      Returns the number of active uniforms of the uniform
-      block. Note that an array of is classified as a single
-      uniform.
+      Returns the number of active variables of the block.
+      Note that an array of is classified as a single
+      variable.
     */
     unsigned int
-    number_uniforms(void) const;
+    number_variables(void) const;
 
     /*!
-      Returns the indexed uniform. The values are sorted in
-      alphabetical order of shader_variable_info::name(). The uniform
-      list is for those uniforms of this uniform block.
-      \param I -array index- (not location) of uniform, if I is
-               not less than number_uniforms(), returns
-               a shader_variable_info indicating no uniform (i.e.
+      Returns the indexed variable. The values are sorted in
+      alphabetical order of shader_variable_info::name(). The
+      variable list is for those variables of this block.
+      \param I -array index- (not location) of variable, if I is
+               not less than number_variables(), returns
+               a shader_variable_info indicating no value (i.e.
                shader_variable_info::name() is an empty string and
                shader_variable_info::index() is -1).
      */
     shader_variable_info
-    uniform(unsigned int I);
+    variable(unsigned int I);
 
     /*!
-      Returns the index value to feed to uniform() to
-      get the uniform of the given name. If the uniform
+      Returns the index value to feed to variable() to
+      get the variable of the given name. If the variable
       cannot be found, returns ~0u.
      */
     unsigned int
-    uniform_id(const char *name);
+    variable_id(const char *name);
+
+    /*!
+      Returns the offset into the buffer for the location
+      of the variable. The name can end in a non-zero array
+      index and the returned offset will give the location
+      of the named element of the array. If the element is
+      not in the block, returns -1.
+     */
+    int
+    variable_offset(const char *name);
 
   private:
     explicit
-    uniform_block_info(const void*);
+    block_info(const void*);
 
     const void *m_d;
     friend class Program;
   };
 
   /*!
+    A block_info represents an object from which
+    one can query teh data of an atomic buffer.
    */
   class atomic_buffer_info
   {
@@ -731,11 +777,12 @@ public:
 
     /*!
       GL API index for the parameter. The value of
-      buffer_index() is used in calls to GL to query about
-      the parameter, i.e. the value to feed as bufferIndex
-      to the GL API function
+      buffer_index() is used in calls to GL, i.e. the
+      value to feed as bufferIndex to the GL API functions:
       \code
       glGetActiveAtomicCounterBufferiv(GLuint program, GLuint bufferIndex, ...)
+      glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, bufferIndex, ...)
+      glBindBufferRange(GL_ATOMIC_COUNTER_BUFFER, bufferIndex, ..)
       \endcode
      */
     GLint
@@ -925,17 +972,17 @@ public:
     Searches active_uniform() to find the named uniform, including
     named elements of an array. This function should only be called
     either after use_program() has been called or only when the GL
-    context is current. Returns value -1 indicated that the uniform
-    could not be found.
+    context is current. Returns value -1 indicates that a uniform
+    with that could not be found on the default uniform block.
     \param uniform_name name of uniform to find
    */
   GLint
   uniform_location(const char *uniform_name);
 
   /*!
-    Returns a \ref uniform_block_info of the default uniform block.
+    Returns a \ref block_info of the default uniform block.
    */
-  uniform_block_info
+  block_info
   default_uniform_block(void);
 
   /*!
@@ -949,13 +996,13 @@ public:
 
   /*!
     Returns the indexed uniform block. The values are sorted in
-    alphabetical order of uniform_block_info::name(). This
+    alphabetical order of block_info::name(). This
     function should only be called either after use_program()
     has been called or only when the GL context is current.
     \param I which one to fetch, I must be less than
              number_active_uniform_blocks()
    */
-  uniform_block_info
+  block_info
   uniform_block(unsigned int I);
 
   /*!
@@ -968,6 +1015,37 @@ public:
    */
   unsigned int
   uniform_block_id(const char *uniform_block_name);
+
+  /*!
+    Returns the number of active shader storage blocks.
+    This function should only be called either after
+    use_program() has been called or only when the GL context
+    is current.
+   */
+  unsigned int
+  number_active_shader_storage_blocks(void);
+
+  /*!
+    Returns the indexed shader_storage block. The values are
+    sorted in alphabetical order of block_info::name(). This
+    function should only be called either after use_program()
+    has been called or only when the GL context is current.
+    \param I which one to fetch, I must be less than
+             number_active_shader_storage_blocks()
+   */
+  block_info
+  shader_storage_block(unsigned int I);
+
+  /*!
+    Searches shader_storage_block() to find the named shader_storage block.
+    Returns value -1 indicated that the shader_storage block could
+    not be found. This function should only be called either
+    after use_program() has been called or only when the GL
+    context is current.
+    \param shader_storage_block_name name of shader storage to find
+   */
+  unsigned int
+  shader_storage_block_id(const char *shader_storage_block_name);
 
   /*!
     Returns the number of active atomic buffers. This function
