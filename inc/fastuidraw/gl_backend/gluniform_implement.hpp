@@ -47,6 +47,15 @@ namespace gl
   inline void Uniform(int location, GLsizei count, const vecN<TYPE, COUNT> *v) \
   {                                                                     \
     Uniform##COUNT##v(location, count, reinterpret_cast<const TYPE*>(v)); \
+  }                                                                     \
+  void ProgramUniform##COUNT##v(GLuint program, int location, GLsizei count, const TYPE *v); \
+  inline void ProgramUniform(GLuint program, int location, const vecN<TYPE, COUNT> &v) \
+  {                                                                     \
+    ProgramUniform##COUNT##v(program, location, 1, &v[0]);              \
+  }                                                                     \
+  inline void ProgramUniform(GLuint program, int location, GLsizei count, const vecN<TYPE, COUNT> *v) \
+  {                                                                     \
+    ProgramUniform##COUNT##v(program, location, count, reinterpret_cast<const TYPE*>(v)); \
   }
 
 /*
@@ -66,6 +75,11 @@ namespace gl
   inline void Uniform(int location, GLsizei count, const TYPE *v)       \
   {                                                                     \
     Uniform1v(location, count, v);                                      \
+  }                                                                     \
+  void ProgramUniform(GLuint program, int location, TYPE v);            \
+  inline void Uniform(GLuint program, int location, GLsizei count, const TYPE *v) \
+  {                                                                     \
+    ProgramUniform1v(program, location, count, v);                      \
   }
 
 /*
@@ -79,6 +93,11 @@ namespace gl
   inline void Uniform(int location, const matrixNxM<A,A,TYPE> &matrix, bool transposed=false) \
   {                                                                     \
     Uniform(location, 1, &matrix, transposed);                          \
+  }                                                                     \
+  void ProgramUniform(GLuint program, int location, GLsizei count, const matrixNxM<A,A,TYPE> *matrices, bool transposed=false); \
+  inline void ProgramUniform(GLuint program, int location, const matrixNxM<A,A,TYPE> &matrix, bool transposed=false) \
+  {                                                                     \
+    ProgramUniform(program, location, 1, &matrix, transposed);          \
   }
 
 
@@ -94,6 +113,11 @@ namespace gl
   inline void Uniform(int location, const matrixNxM<A,B,TYPE> &matrix, bool transposed=false) \
   {                                                                     \
     Uniform(location, 1, &matrix, transposed);                          \
+  }                                                                     \
+  void ProgramUniform(GLuint program, int location, GLsizei count, const matrixNxM<A,B,TYPE> *matrices, bool transposed=false); \
+  inline void ProgramUniform(GLuint program, int location, const matrixNxM<A,B,TYPE> &matrix, bool transposed=false) \
+  {                                                                     \
+    ProgramUniform(program, location, 1, &matrix, transposed);          \
   }
 
 
