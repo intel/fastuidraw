@@ -396,7 +396,6 @@ private:
  */
 typedef UniformInitializer<int> SamplerInitializer;
 
-
 /*!
   A UniformBlockInitializer is used to initalize the binding point
   used by a bindable uniform (aka Uniform buffer object, see the
@@ -407,10 +406,10 @@ class UniformBlockInitializer:public ProgramInitializer
 public:
   /*!
     Ctor.
-    \param uniform_name name of uniform in GLSL to initialize
+    \param name name of uniform block in GLSL to initialize
     \param binding_point_index value with which to set the uniform
    */
-  UniformBlockInitializer(const char *uniform_name, int binding_point_index);
+  UniformBlockInitializer(const char *name, int binding_point_index);
 
   ~UniformBlockInitializer();
 
@@ -421,6 +420,35 @@ public:
 private:
   void *m_d;
 };
+
+#ifndef FASTUIDRAW_GL_USE_GLES
+/*!
+  A ShaderStorageBlockInitializer is used to initalize the binding point
+  used by a shader storage block (see the GL spec on
+  glShaderStorageBlockBinding). Initializer is not supported
+  in OpenGL ES.
+ */
+class ShaderStorageBlockInitializer:public ProgramInitializer
+{
+public:
+  /*!
+    Ctor.
+    \param name name of shader storage block in GLSL to initialize
+    \param binding_point_index value with which to set the uniform
+   */
+  ShaderStorageBlockInitializer(const char *name, int binding_point_index);
+
+  ~ShaderStorageBlockInitializer();
+
+  virtual
+  void
+  perform_initialization(Program *pr, bool program_bound) const;
+
+private:
+  void *m_d;
+};
+
+#endif
 
 /*!
   Conveniance class to hold an array of handles
@@ -604,10 +632,10 @@ public:
       function's
       \code
       glGetProgramResourceiv(program, GL_UNIFORM_BLOCK, bufferIndex, ...)
+      glGetProgramResourceName(program, GL_UNIFORM_BLOCK, bufferIndex, ...)
       glGetActiveUniformBlockiv(program, bufferIndex, ..)
-      glGetActiveUniformBlockName(program, bufferIndex, ..)
-      glBindBufferBase(GL_UNIFORM_BUFFER, bufferIndex, ..)
-      glBindBufferRange(GL_UNIFORM_BUFFER, bufferIndex, ..)
+      glGetActiveUniformBlockName(program, bufferIndex, ...)
+      glUniformBlockBinding(program, bufferIndex, ...)
       \endcode
      */
     GLint
@@ -669,8 +697,8 @@ public:
       bufferIndex in the GL API routines
       \code
       glGetProgramResourceiv(program, GL_SHADER_STORAGE_BUFFER, bufferIndex, ...)
-      glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bufferIndex, ..)
-      glBindBufferRange(GL_SHADER_STORAGE_BUFFER, bufferIndex, ..)
+      glGetProgramResourceName(program, GL_SHADER_STORAGE_BUFFER, bufferIndex, ...)
+      glShaderStorageBlockBinding(program, bufferIndex, ...)
       \endcode
      */
     GLint

@@ -76,10 +76,10 @@ namespace
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::gl::PreLinkAction> > m_values;
   };
 
-  class UniformBlockInitializerPrivate
+  class BlockInitializerPrivate
   {
   public:
-    UniformBlockInitializerPrivate(const char *n, int v):
+    BlockInitializerPrivate(const char *n, int v):
       m_block_name(n),
       m_binding_point(v)
     {}
@@ -2517,14 +2517,14 @@ clear(void)
 fastuidraw::gl::UniformBlockInitializer::
 UniformBlockInitializer(const char *uniform_name, int binding_point_index)
 {
-  m_d = FASTUIDRAWnew UniformBlockInitializerPrivate(uniform_name, binding_point_index);
+  m_d = FASTUIDRAWnew BlockInitializerPrivate(uniform_name, binding_point_index);
 }
 
 fastuidraw::gl::UniformBlockInitializer::
 ~UniformBlockInitializer()
 {
-  UniformBlockInitializerPrivate *d;
-  d = reinterpret_cast<UniformBlockInitializerPrivate*>(m_d);
+  BlockInitializerPrivate *d;
+  d = reinterpret_cast<BlockInitializerPrivate*>(m_d);
   assert(d != NULL);
   FASTUIDRAWdelete(d);
   m_d = NULL;
@@ -2534,8 +2534,8 @@ void
 fastuidraw::gl::UniformBlockInitializer::
 perform_initialization(Program *pr, bool program_bound) const
 {
-  UniformBlockInitializerPrivate *d;
-  d = reinterpret_cast<UniformBlockInitializerPrivate*>(m_d);
+  BlockInitializerPrivate *d;
+  d = reinterpret_cast<BlockInitializerPrivate*>(m_d);
   assert(d != NULL);
 
   int loc;
@@ -2553,6 +2553,52 @@ perform_initialization(Program *pr, bool program_bound) const
     }
   FASTUIDRAWunused(program_bound);
 }
+
+
+//////////////////////////////////////////////////
+// fastuidraw::gl::ShaderStorageBlockInitializer methods
+#ifndef FASTUIDRAW_GL_USE_GLES
+fastuidraw::gl::ShaderStorageBlockInitializer::
+ShaderStorageBlockInitializer(const char *uniform_name, int binding_point_index)
+{
+  m_d = FASTUIDRAWnew BlockInitializerPrivate(uniform_name, binding_point_index);
+}
+
+fastuidraw::gl::ShaderStorageBlockInitializer::
+~ShaderStorageBlockInitializer()
+{
+  BlockInitializerPrivate *d;
+  d = reinterpret_cast<BlockInitializerPrivate*>(m_d);
+  assert(d != NULL);
+  FASTUIDRAWdelete(d);
+  m_d = NULL;
+}
+
+void
+fastuidraw::gl::ShaderStorageBlockInitializer::
+perform_initialization(Program *pr, bool program_bound) const
+{
+  BlockInitializerPrivate *d;
+  d = reinterpret_cast<BlockInitializerPrivate*>(m_d);
+  assert(d != NULL);
+
+  int loc;
+  loc = glGetProgramResourceIndex(pr->name(), GL_SHADER_STORAGE_BLOCK, d->m_block_name.c_str());
+  if(loc != -1)
+    {
+      glShaderStorageBlockBinding(pr->name(), loc, d->m_binding_point);
+    }
+  else
+    {
+      std::cerr << "Failed to find shader storage block \""
+                << d->m_block_name
+                << "\" in program " << pr->name()
+                << " for initialization\n";
+    }
+  FASTUIDRAWunused(program_bound);
+}
+#endif
+
 
 /////////////////////////////////////////////////
 // fastuidraw::gl::UniformInitalizerBase methods
