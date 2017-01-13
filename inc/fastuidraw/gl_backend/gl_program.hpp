@@ -769,6 +769,19 @@ public:
     buffer_size(void) const;
 
     /*!
+      Returns the buffer binding point of the block when the GLSL
+      program was -FIRST- created. If that binding point has been
+      changed (for instance for UBO's by calling glUniformBlockBinding,
+      or for SSBO's by calling glShaderStorageBlockBinding), then the
+      return value is not suitable to be used to compute the binding
+      point. Note that GLES3 does not allow for the binding point
+      of an SSBO to change (because glShaderStorageBlockBinding is
+      not part of its API).
+     */
+    GLint
+    initial_buffer_binding(void) const;
+
+    /*!
       Returns the number of active variables of the block.
       Note that an array of is classified as a single
       variable.

@@ -384,6 +384,7 @@ namespace
   {
   public:
     BlockInfoPrivate(void):
+      m_initial_buffer_binding(-1),
       m_block_index(-1),
       m_size_bytes(0)
     {}
@@ -398,6 +399,7 @@ namespace
              const ShaderVariableInterfaceQueryList &queries);
 
     std::string m_name;
+    GLint m_initial_buffer_binding;
     GLint m_block_index;
     GLint m_size_bytes;
     ShaderVariableSet m_members;
@@ -967,6 +969,11 @@ populate(GLuint program, GLenum program_interface,
   glGetProgramResourceiv(program, program_interface, m_block_index,
                          1, &prop_data_size,
                          1, NULL, &m_size_bytes);
+
+  const GLenum prop_binding_point(GL_BUFFER_BINDING);
+  glGetProgramResourceiv(program, program_interface, m_block_index,
+                         1, &prop_binding_point,
+                         1, NULL, &m_initial_buffer_binding);
 }
 
 
@@ -1228,15 +1235,15 @@ populate_private_non_program_interface_query(GLuint program,
 
       for(int i = 0; i < ubo_count; ++i)
         {
-          GLsizei name_length(0), psize(0);
+          GLsizei name_length(0);
           std::memset(&pname[0], 0, largest_length);
 
           glGetActiveUniformBlockName(program, i, largest_length, &name_length, &pname[0]);
-          glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_DATA_SIZE, &psize);
+          glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_DATA_SIZE, &block_ref(i).m_size_bytes);
+          glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_BINDING, &block_ref(i).m_initial_buffer_binding);
 
           block_ref(i).m_block_index = i;
           block_ref(i).m_name = std::string(pname.begin(), pname.begin() + name_length);
-          block_ref(i).m_size_bytes = psize;
         }
     }
 
@@ -1694,6 +1701,15 @@ buffer_size(void) const
   return (d) ? d->m_size_bytes : 0;
 }
 
+GLint
+fastuidraw::gl::Program::block_info::
+initial_buffer_binding(void) const
+{
+  const BlockInfoPrivate *d;
+  d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
+  return (d) ? d->m_initial_buffer_binding : 0;
+}
+
 unsigned int
 fastuidraw::gl::Program::block_info::
 number_variables(void) const
@@ -2018,6 +2034,7 @@ generate_log(void)
           ostr << "\n\nUniformBlock:" << ubo->m_name
                << "\n\tblock_index = " << ubo->m_block_index
                << "\n\tblock_size = " << ubo->m_size_bytes
+               << "\n\tinitial_buffer_binding = " << ubo->m_initial_buffer_binding
                << "\n\tmembers:";
 
           for(std::vector<ShaderVariableInfo>::const_iterator
@@ -2046,6 +2063,7 @@ generate_log(void)
           ostr << "\n\nUniformBlock:" << ssbo->m_name
                << "\n\tblock_index = " << ssbo->m_block_index
                << "\n\tblock_size = " << ssbo->m_size_bytes
+               << "\n\tinitial_buffer_binding = " << ssbo->m_initial_buffer_binding
                << "\n\tmembers:";
 
           for(std::vector<ShaderVariableInfo>::const_iterator
