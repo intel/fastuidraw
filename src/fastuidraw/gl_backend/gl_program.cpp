@@ -2652,8 +2652,8 @@ perform_initialization(Program *pr, bool program_bound) const
       loc = glGetUniformLocation(pr->name(), d->c_str());
       if(loc != -1)
         {
-          std::cerr << "gl_program::uniform_location failed to find uniform, "
-                    << "but glGetUniformLocation succeeded\n";
+          std::cerr << "gl_program::uniform_location failed to find uniform, \""
+                    << *d << "\"but glGetUniformLocation succeeded\n";
         }
     }
 

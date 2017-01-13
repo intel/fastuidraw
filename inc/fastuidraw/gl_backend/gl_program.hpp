@@ -751,19 +751,17 @@ public:
     name(void) const;
 
     /*!
-      GL API index for the parameter. The value of
-      block_index() is used in calls to GL to query about
-      the parameter. The default uniform block will
-      have this value as -1.
+      GL API index for the parameter. The value of block_index() is used
+      in calls to GL to query and set properties of the block. The
+      default uniform block will have this value as -1.
      */
     GLint
     block_index(void) const;
 
     /*!
-      Returns the size in bytes of the uniform block (i.e.
-      the size needed for a buffer object to correctly back
-      the uniform block). The default uniform block will
-      have the size as 0.
+      Returns the size in bytes of the block (i.e.the size needed for a
+      buffer object to correctly back the block). The default uniform
+      block will have the size as 0.
      */
     GLint
     buffer_size(void) const;
@@ -815,7 +813,8 @@ public:
       of the variable. The name can end in a non-zero array
       index and the returned offset will give the location
       of the named element of the array. If the element is
-      not in the block, returns -1.
+      not in the blck of if this represent the default
+      uniform block, returns -1.
      */
     int
     variable_offset(const char *name);
