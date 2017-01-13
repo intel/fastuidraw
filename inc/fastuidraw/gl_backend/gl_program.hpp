@@ -580,6 +580,7 @@ public:
       value to feed as bufferIndex in the GL API
       function's
       \code
+      glGetProgramResourceiv(program, GL_UNIFORM_BLOCK, bufferIndex, ...)
       glGetActiveUniformBlockiv(program, bufferIndex, ..)
       glGetActiveUniformBlockName(program, bufferIndex, ..)
       glBindBufferBase(GL_UNIFORM_BUFFER, bufferIndex, ..)
@@ -587,7 +588,7 @@ public:
       \endcode
      */
     GLint
-    block_index(void) const;
+    ubo_index(void) const;
 
     /*!
       Returns the offset into a backing buffer object
@@ -631,44 +632,44 @@ public:
       -1. The index is the value to feed as bufferIndex in the
       GL API function's
       \code
+      glGetProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER, bufferIndex, ...)
       glGetActiveAtomicCounterBufferiv(GLint program, GLuint bufferIndex, ..)
-      glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, bufferIndex, ...)
-      glBindBufferRange(GL_ATOMIC_COUNTER_BUFFER, bufferIndex, ..)
       \endcode
      */
     GLint
     abo_index(void) const;
 
     /*!
-      If this variable is a member of a shader buffer, returns to
-      what shader buffer block this belongs. If not a shader buffer
-      variable, returns -1. This value is used for bufferIndex in the
-      GL API routines
+      If this variable is a member of a shader storage buffer, returns
+      to what shader storage buffer block this belongs. If not a shader
+      storage buffer variable, returns -1. This value is used for
+      bufferIndex in the GL API routines
       \code
+      glGetProgramResourceiv(program, GL_SHADER_STORAGE_BUFFER, bufferIndex, ...)
       glBindBufferBase(GL_SHADER_STORAGE_BUFFER, bufferIndex, ..)
       glBindBufferRange(GL_SHADER_STORAGE_BUFFER, bufferIndex, ..)
       \endcode
      */
     GLint
-    shader_buffer_index(void) const;
+    shader_storage_buffer_index(void) const;
 
     /*!
-      If this variable has shader_buffer_index() return -1, then
+      If this variable has shader_storage_buffer_index() return -1, then
       returns -1. Otherwise returns the size of the top level
       array to which the variable belongs. If the top level
       array is unsized returns 0.
      */
     GLint
-    shader_buffer_top_level_array_size(void) const;
+    shader_storage_buffer_top_level_array_size(void) const;
 
     /*!
-      If this variable has shader_buffer_index() return -1, then
+      If this variable has shader_storage_buffer_index() return -1, then
       returns -1. Otherwise returns the stride of the top level
       array to which the variable belongs. If it does belong
       to a top level array, returns 0.
      */
     GLint
-    shader_buffer_top_level_array_stride(void) const;
+    shader_storage_buffer_top_level_array_stride(void) const;
 
   private:
     explicit
@@ -725,10 +726,10 @@ public:
     number_variables(void) const;
 
     /*!
-      Returns the indexed variable. The values are sorted in
+      Returns the ID'd variable. The values are sorted in
       alphabetical order of shader_variable_info::name(). The
       variable list is for those variables of this block.
-      \param I -array index- (not location) of variable, if I is
+      \param I -ID- (not location) of variable, if I is
                not less than number_variables(), returns
                a shader_variable_info indicating no value (i.e.
                shader_variable_info::name() is an empty string and
@@ -738,7 +739,7 @@ public:
     variable(unsigned int I);
 
     /*!
-      Returns the index value to feed to variable() to
+      Returns the ID'd value to feed to variable() to
       get the variable of the given name. If the variable
       cannot be found, returns ~0u.
      */
@@ -776,17 +777,27 @@ public:
     atomic_buffer_info(void);
 
     /*!
-      GL API index for the parameter. The value of
+      GL API index for the atomic buffer. The value of
       buffer_index() is used in calls to GL, i.e. the
       value to feed as bufferIndex to the GL API functions:
       \code
       glGetActiveAtomicCounterBufferiv(GLuint program, GLuint bufferIndex, ...)
+      \endcode
+     */
+    GLint
+    buffer_index(void) const;
+
+    /*!
+      The GL API index for the binding point of the atomic
+      buffer, i.e. the value to feed as bufferIndex to the
+      GL API functions:
+      \code
       glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, bufferIndex, ...)
       glBindBufferRange(GL_ATOMIC_COUNTER_BUFFER, bufferIndex, ..)
       \endcode
      */
     GLint
-    buffer_index(void) const;
+    buffer_binding(void) const;
 
     /*!
       Returns the size in bytes of the atomic buffer (i.e.
@@ -805,7 +816,7 @@ public:
     number_atomic_variables(void) const;
 
     /*!
-      Returns the indexed atomic variable. The values are sorted in
+      Returns the ID'd atomic variable. The values are sorted in
       alphabetical order of shader_variable_info::name(). The variable
       list is for those atomic variables of this atomic buffer
       \param I -array index- (not location) of atomic, if I is
@@ -818,7 +829,7 @@ public:
     atomic_variable(unsigned int I);
 
     /*!
-      Returns the index value to feed to atomic_variable()
+      Returns the ID value to feed to atomic_variable()
       to get the atomic variable of the given name. If the
       variable cannot be found, returns ~0u.
      */
@@ -837,12 +848,12 @@ public:
     Ctor.
     \param pshaders shaders used to create the Program
     \param action specifies actions to perform before linking of the Program
-    \param initers one-time initialization actions to perform the first time the
-                   Program is used
+    \param initers one-time initialization actions to perform at GLSL
+                   program creation
    */
   Program(const_c_array<reference_counted_ptr<Shader> > pshaders,
-          const PreLinkActionArray &action=PreLinkActionArray(),
-          const ProgramInitializerArray &initers=ProgramInitializerArray());
+          const PreLinkActionArray &action = PreLinkActionArray(),
+          const ProgramInitializerArray &initers = ProgramInitializerArray());
 
   /*!
     Ctor.
@@ -850,13 +861,13 @@ public:
     \param frag_shader pointer to fragment shader to use for the Program
     \param action specifies actions to perform before and
                   after linking of the Program.
-    \param initers one-time initialization actions to perform the first time the
-                   Program is used
+    \param initers one-time initialization actions to perform at GLSL
+                   program creation
    */
   Program(reference_counted_ptr<Shader> vert_shader,
           reference_counted_ptr<Shader> frag_shader,
-          const PreLinkActionArray &action=PreLinkActionArray(),
-          const ProgramInitializerArray &initers=ProgramInitializerArray());
+          const PreLinkActionArray &action = PreLinkActionArray(),
+          const ProgramInitializerArray &initers = ProgramInitializerArray());
 
   /*!
     Ctor.
@@ -864,13 +875,13 @@ public:
     \param frag_shader pointer to fragment shader to use for the Program
     \param action specifies actions to perform before and
                   after linking of the Program.
-    \param initers one-time initialization actions to perform the first time the
-                   Program is used
+    \param initers one-time initialization actions to perform at GLSL
+                   program creation
    */
   Program(const glsl::ShaderSource &vert_shader,
           const glsl::ShaderSource &frag_shader,
-          const PreLinkActionArray &action=PreLinkActionArray(),
-          const ProgramInitializerArray &initers=ProgramInitializerArray());
+          const PreLinkActionArray &action = PreLinkActionArray(),
+          const ProgramInitializerArray &initers = ProgramInitializerArray());
 
 
   ~Program(void);
@@ -958,7 +969,7 @@ public:
   active_uniform(unsigned int I);
 
   /*!
-    Returns the index value to feed to active_uniform() to
+    Returns the ID value to feed to active_uniform() to
     get the uniform of the given name. This function should
     only be called either after use_program() has been called
     or only when the GL context is current. If the uniform
@@ -1079,7 +1090,7 @@ public:
     called either after use_program() has been called or only
     when the GL context is current. The values are sorted in
     alphabetical order of shader_variable_info::name().
-    \param I -array index- (not location) of attribute, if I is
+    \param I -ID- (not location) of attribute, if I is
              not less than number_active_attributes(), returns
              a shader_variable_info indicating no attribute (i.e.
              shader_variable_info::name() is an empty string and
@@ -1089,7 +1100,7 @@ public:
   active_attribute(unsigned int I);
 
   /*!
-    Returns the index value to feed to active_attribute() to
+    Returns the ID value to feed to active_attribute() to
     get the attribute of the given name. This function should
     only be called either after use_program() has been called
     or only when the GL context is current. If the attribute

@@ -130,15 +130,15 @@ namespace
       m_count(-1),
       m_index(-1),
       m_location(-1),
-      m_block_index(-1),
+      m_ubo_index(-1),
       m_offset(-1),
       m_array_stride(-1),
       m_matrix_stride(-1),
       m_is_row_major(0),
       m_abo_index(-1),
-      m_shader_buffer_index(-1),
-      m_shader_buffer_top_level_array_size(-1),
-      m_shader_buffer_top_level_array_stride(-1)
+      m_shader_storage_buffer_index(-1),
+      m_shader_storage_buffer_top_level_array_size(-1),
+      m_shader_storage_buffer_top_level_array_stride(-1)
     {
     }
 
@@ -154,16 +154,16 @@ namespace
     GLuint m_index;
     GLint m_location;
 
-    GLint m_block_index;
+    GLint m_ubo_index;
     GLint m_offset;
     GLint m_array_stride;
     GLint m_matrix_stride;
     GLint m_is_row_major;
     GLint m_abo_index;
 
-    GLint m_shader_buffer_index;
-    GLint m_shader_buffer_top_level_array_size;
-    GLint m_shader_buffer_top_level_array_stride;
+    GLint m_shader_storage_buffer_index;
+    GLint m_shader_storage_buffer_top_level_array_size;
+    GLint m_shader_storage_buffer_top_level_array_stride;
   };
 
   /* class to use program interface query to fill
@@ -369,10 +369,12 @@ namespace
   {
   public:
     AtomicBufferInfo(void):
+      m_buffer_binding(-1),
       m_buffer_index(-1),
       m_size_bytes(0)
     {}
 
+    GLint m_buffer_binding;
     GLint m_buffer_index;
     GLint m_size_bytes;
     ShaderVariableSet m_members;
@@ -956,7 +958,7 @@ populate(GLuint program, GLenum program_interface,
 {
   m_block_index = resource_index;
   m_members.populate_from_interface_block(program, program_interface,
-                                          resource_index, variable_interface,
+                                          m_block_index, variable_interface,
                                           queries);
   m_name = get_program_resource_name(program, program_interface,
                                      resource_index);
@@ -1098,7 +1100,7 @@ populate_private_program_interface_query(GLuint program,
     .add(GL_TYPE, &ShaderVariableInfo::m_type)
     .add(GL_ARRAY_SIZE, &ShaderVariableInfo::m_count)
     .add(GL_LOCATION, &ShaderVariableInfo::m_location)
-    .add(GL_BLOCK_INDEX, &ShaderVariableInfo::m_block_index)
+    .add(GL_BLOCK_INDEX, &ShaderVariableInfo::m_ubo_index)
     .add(GL_OFFSET, &ShaderVariableInfo::m_offset)
     .add(GL_ARRAY_STRIDE, &ShaderVariableInfo::m_array_stride)
     .add(GL_MATRIX_STRIDE, &ShaderVariableInfo::m_matrix_stride)
@@ -1118,7 +1120,7 @@ populate_private_program_interface_query(GLuint program,
   for(std::vector<ShaderVariableInfo>::const_iterator iter = m_all_uniforms.values().begin(),
         end = m_all_uniforms.values().end(); iter != end; ++iter)
     {
-      if(iter->m_block_index == -1)
+      if(iter->m_ubo_index == -1)
         {
           m_default_block.m_members.add_element(*iter);
         }
@@ -1171,7 +1173,7 @@ populate_private_non_program_interface_query(GLuint program,
   ShaderUniformQueryList query_list;
 
   query_list
-    .add(GL_UNIFORM_BLOCK_INDEX, &ShaderVariableInfo::m_block_index)
+    .add(GL_UNIFORM_BLOCK_INDEX, &ShaderVariableInfo::m_ubo_index)
     .add(GL_UNIFORM_OFFSET, &ShaderVariableInfo::m_offset)
     .add(GL_UNIFORM_ARRAY_STRIDE, &ShaderVariableInfo::m_array_stride)
     .add(GL_UNIFORM_MATRIX_STRIDE, &ShaderVariableInfo::m_matrix_stride)
@@ -1193,10 +1195,11 @@ populate_private_non_program_interface_query(GLuint program,
           m_abo_buffers.resize(abo_count);
           for(int i = 0; i != abo_count; ++i)
             {
-              GLint sz(0);
-              glGetActiveAtomicCounterBufferiv(program, i, GL_ATOMIC_COUNTER_BUFFER_DATA_SIZE, &sz);
-              m_abo_buffers[i].m_size_bytes = sz;
               m_abo_buffers[i].m_buffer_index = i;
+              glGetActiveAtomicCounterBufferiv(program, i, GL_ATOMIC_COUNTER_BUFFER_DATA_SIZE,
+                                               &m_abo_buffers[i].m_size_bytes);
+              glGetActiveAtomicCounterBufferiv(program, i, GL_ATOMIC_COUNTER_BUFFER_BINDING,
+                                               &m_abo_buffers[i].m_buffer_binding);
             }
         }
     }
@@ -1244,9 +1247,9 @@ populate_private_non_program_interface_query(GLuint program,
   for(std::vector<ShaderVariableInfo>::const_iterator iter = m_all_uniforms.values().begin(),
         end = m_all_uniforms.values().end(); iter != end; ++iter)
     {
-      if(iter->m_block_index != -1)
+      if(iter->m_ubo_index != -1)
         {
-          block_ref(iter->m_block_index).m_members.add_element(*iter);
+          block_ref(iter->m_ubo_index).m_members.add_element(*iter);
         }
       else
         {
@@ -1564,11 +1567,11 @@ location(void) const
 
 GLint
 fastuidraw::gl::Program::shader_variable_info::
-block_index(void) const
+ubo_index(void) const
 {
   const ShaderVariableInfo *d;
   d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
-  return (d) ? d->m_block_index : -1;
+  return (d) ? d->m_ubo_index : -1;
 }
 
 GLint
@@ -1618,29 +1621,29 @@ abo_index(void) const
 
 GLint
 fastuidraw::gl::Program::shader_variable_info::
-shader_buffer_index(void) const
+shader_storage_buffer_index(void) const
 {
   const ShaderVariableInfo *d;
   d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
-  return (d) ? d->m_shader_buffer_index : -1;
+  return (d) ? d->m_shader_storage_buffer_index : -1;
 }
 
 GLint
 fastuidraw::gl::Program::shader_variable_info::
-shader_buffer_top_level_array_size(void) const
+shader_storage_buffer_top_level_array_size(void) const
 {
   const ShaderVariableInfo *d;
   d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
-  return (d) ? d->m_shader_buffer_top_level_array_size : -1;
+  return (d) ? d->m_shader_storage_buffer_top_level_array_size : -1;
 }
 
 GLint
 fastuidraw::gl::Program::shader_variable_info::
-shader_buffer_top_level_array_stride(void) const
+shader_storage_buffer_top_level_array_stride(void) const
 {
   const ShaderVariableInfo *d;
   d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
-  return (d) ? d->m_shader_buffer_top_level_array_stride : -1;
+  return (d) ? d->m_shader_storage_buffer_top_level_array_stride : -1;
 }
 
 ///////////////////////////////////////////////////
@@ -1742,6 +1745,15 @@ buffer_index(void) const
   const AtomicBufferInfo *d;
   d = reinterpret_cast<const AtomicBufferInfo*>(m_d);
   return (d) ? d->m_buffer_index : -1;
+}
+
+GLint
+fastuidraw::gl::Program::atomic_buffer_info::
+buffer_binding(void) const
+{
+  const AtomicBufferInfo *d;
+  d = reinterpret_cast<const AtomicBufferInfo*>(m_d);
+  return (d) ? d->m_buffer_binding : -1;
 }
 
 GLint
@@ -1882,9 +1894,9 @@ assemble(fastuidraw::gl::Program *program)
             .add(GL_ARRAY_STRIDE, &ShaderVariableInfo::m_array_stride)
             .add(GL_MATRIX_STRIDE, &ShaderVariableInfo::m_matrix_stride)
             .add(GL_IS_ROW_MAJOR, &ShaderVariableInfo::m_is_row_major)
-            .add(GL_BLOCK_INDEX, &ShaderVariableInfo::m_shader_buffer_index)
-            .add(GL_TOP_LEVEL_ARRAY_SIZE, &ShaderVariableInfo::m_shader_buffer_top_level_array_size)
-            .add(GL_TOP_LEVEL_ARRAY_STRIDE, &ShaderVariableInfo::m_shader_buffer_top_level_array_stride);
+            .add(GL_BLOCK_INDEX, &ShaderVariableInfo::m_shader_storage_buffer_index)
+            .add(GL_TOP_LEVEL_ARRAY_SIZE, &ShaderVariableInfo::m_shader_storage_buffer_top_level_array_size)
+            .add(GL_TOP_LEVEL_ARRAY_STRIDE, &ShaderVariableInfo::m_shader_storage_buffer_top_level_array_stride);
 
           m_storage_buffer_list.populate_from_resource(m_name, GL_SHADER_STORAGE_BLOCK,
                                                        GL_BUFFER_VARIABLE, ssbo_query);
@@ -1951,8 +1963,8 @@ generate_log(void)
         iter = m_shader_data.begin(), end = m_shader_data.end();
       iter != end; ++iter)
     {
-      ostr << "\n\nGLSL name=" << iter->m_name
-           << ", type=" << fastuidraw::gl::Shader::gl_shader_type_label(iter->m_shader_type)
+      ostr << "\n\nGLSL name = " << iter->m_name
+           << ", type = " << fastuidraw::gl::Shader::gl_shader_type_label(iter->m_shader_type)
            << "\nSource:\n" << iter->m_source_code
            << "\nCompileLog:\n" << iter->m_compile_log;
     }
@@ -1967,14 +1979,14 @@ generate_log(void)
             end = m_uniform_list.default_uniform_block()->m_members.values().end();
           iter != end; ++iter)
         {
-          assert(iter->m_block_index == -1);
+          assert(iter->m_ubo_index == -1);
           ostr << "\n\t" << iter->m_name
-               << "\n\t\ttype=0x"
+               << "\n\t\ttype = 0x"
                << std::hex << iter->m_type
-               << "\n\t\tcount=" << std::dec << iter->m_count
-               << "\n\t\tindex=" << std::dec << iter->m_index
-               << "\n\t\tlocation=" << iter->m_location
-               << "\n\t\tabo_index=" << iter->m_abo_index;
+               << "\n\t\tcount = " << std::dec << iter->m_count
+               << "\n\t\tindex = " << std::dec << iter->m_index
+               << "\n\t\tlocation = " << iter->m_location
+               << "\n\t\tabo_index = " << iter->m_abo_index;
         }
 
       for(unsigned int endi = m_uniform_list.number_active_blocks(),
@@ -1982,8 +1994,8 @@ generate_log(void)
         {
           const BlockInfoPrivate *ubo(m_uniform_list.block(i));
           ostr << "\n\nUniformBlock:" << ubo->m_name
-               << "\n\tblock_index=" << ubo->m_block_index
-               << "\n\tblock_size=" << ubo->m_size_bytes
+               << "\n\tblock_index = " << ubo->m_block_index
+               << "\n\tblock_size = " << ubo->m_size_bytes
                << "\n\tmembers:";
 
           for(std::vector<ShaderVariableInfo>::const_iterator
@@ -1991,17 +2003,17 @@ generate_log(void)
                 end = ubo->m_members.values().end();
               iter != end; ++iter)
             {
-              assert(iter->m_block_index == ubo->m_block_index);
+              assert(iter->m_ubo_index == ubo->m_block_index);
               ostr << "\n\t\t" << iter->m_name
-                   << "\n\t\t\ttype=0x"
+                   << "\n\t\t\ttype = 0x"
                    << std::hex << iter->m_type
-                   << "\n\t\t\tcount=" << std::dec << iter->m_count
-                   << "\n\t\t\tindex=" << std::dec << iter->m_index
-                   << "\n\t\t\tblock_index=" << iter->m_block_index
-                   << "\n\t\t\toffset=" << iter->m_offset
-                   << "\n\t\t\tarray_stride=" << iter->m_array_stride
-                   << "\n\t\t\tmatrix_stride=" << iter->m_matrix_stride
-                   << "\n\t\t\tis_row_major=" << bool(iter->m_is_row_major);
+                   << "\n\t\t\tcount = " << std::dec << iter->m_count
+                   << "\n\t\t\tindex = " << std::dec << iter->m_index
+                   << "\n\t\t\tubo_index = " << iter->m_ubo_index
+                   << "\n\t\t\toffset = " << iter->m_offset
+                   << "\n\t\t\tarray_stride = " << iter->m_array_stride
+                   << "\n\t\t\tmatrix_stride = " << iter->m_matrix_stride
+                   << "\n\t\t\tis_row_major = " << bool(iter->m_is_row_major);
             }
         }
 
@@ -2010,8 +2022,8 @@ generate_log(void)
         {
           const BlockInfoPrivate *ssbo(m_storage_buffer_list.block(i));
           ostr << "\n\nUniformBlock:" << ssbo->m_name
-               << "\n\tblock_index=" << ssbo->m_block_index
-               << "\n\tblock_size=" << ssbo->m_size_bytes
+               << "\n\tblock_index = " << ssbo->m_block_index
+               << "\n\tblock_size = " << ssbo->m_size_bytes
                << "\n\tmembers:";
 
           for(std::vector<ShaderVariableInfo>::const_iterator
@@ -2019,19 +2031,21 @@ generate_log(void)
                 end = ssbo->m_members.values().end();
               iter != end; ++iter)
             {
-              assert(iter->m_shader_buffer_index == ssbo->m_block_index);
+              assert(iter->m_shader_storage_buffer_index == ssbo->m_block_index);
               ostr << "\n\t\t" << iter->m_name
-                   << "\n\t\t\ttype=0x"
+                   << "\n\t\t\ttype = 0x"
                    << std::hex << iter->m_type
-                   << "\n\t\t\tcount=" << std::dec << iter->m_count
-                   << "\n\t\t\tindex=" << std::dec << iter->m_index
-                   << "\n\t\t\tshader_buffer_index=" << iter->m_shader_buffer_index
-                   << "\n\t\t\toffset=" << iter->m_offset
-                   << "\n\t\t\tarray_stride=" << iter->m_array_stride
-                   << "\n\t\t\tmatrix_stride=" << iter->m_matrix_stride
-                   << "\n\t\t\tis_row_major=" << bool(iter->m_is_row_major)
-                   << "\n\t\t\tshader_buffer_top_level_array_size=" << iter->m_shader_buffer_top_level_array_size
-                   << "\n\t\t\tshader_buffer_top_level_array_stride=" << iter->m_shader_buffer_top_level_array_stride;
+                   << "\n\t\t\tcount = " << std::dec << iter->m_count
+                   << "\n\t\t\tindex = " << std::dec << iter->m_index
+                   << "\n\t\t\tshader_storage_buffer_index = " << iter->m_shader_storage_buffer_index
+                   << "\n\t\t\toffset = " << iter->m_offset
+                   << "\n\t\t\tarray_stride = " << iter->m_array_stride
+                   << "\n\t\t\tmatrix_stride = " << iter->m_matrix_stride
+                   << "\n\t\t\tis_row_major = " << bool(iter->m_is_row_major)
+                   << "\n\t\t\tshader_storage_buffer_top_level_array_size = "
+                   << iter->m_shader_storage_buffer_top_level_array_size
+                   << "\n\t\t\tshader_storage_buffer_top_level_array_stride = "
+                   << iter->m_shader_storage_buffer_top_level_array_stride;
             }
         }
 
@@ -2043,11 +2057,11 @@ generate_log(void)
         {
           ostr << "\n\t"
                << iter->m_name
-               << "\n\t\ttype=0x"
+               << "\n\t\ttype = 0x"
                << std::hex << iter->m_type
-               << "\n\t\tcount=" << std::dec << iter->m_count
-               << "\n\t\tindex=" << std::dec << iter->m_index
-               << "\n\t\tlocation=" << iter->m_location;
+               << "\n\t\tcount = " << std::dec << iter->m_count
+               << "\n\t\tindex = " << std::dec << iter->m_index
+               << "\n\t\tlocation = " << iter->m_location;
         }
       ostr << "\n";
     }
