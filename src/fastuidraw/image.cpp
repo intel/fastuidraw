@@ -706,7 +706,7 @@ fastuidraw::AtlasColorBackingStoreBase::
 ~AtlasColorBackingStoreBase()
 {
   BackingStorePrivate *d;
-  d = reinterpret_cast<BackingStorePrivate*>(m_d);
+  d = static_cast<BackingStorePrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -716,7 +716,7 @@ fastuidraw::AtlasColorBackingStoreBase::
 dimensions(void) const
 {
   BackingStorePrivate *d;
-  d = reinterpret_cast<BackingStorePrivate*>(m_d);
+  d = static_cast<BackingStorePrivate*>(m_d);
   return d->m_dimensions;
 }
 
@@ -725,7 +725,7 @@ fastuidraw::AtlasColorBackingStoreBase::
 resizeable(void) const
 {
   BackingStorePrivate *d;
-  d = reinterpret_cast<BackingStorePrivate*>(m_d);
+  d = static_cast<BackingStorePrivate*>(m_d);
   return d->m_resizeable;
 }
 
@@ -735,7 +735,7 @@ resize(int new_num_layers)
 {
   BackingStorePrivate *d;
 
-  d = reinterpret_cast<BackingStorePrivate*>(m_d);
+  d = static_cast<BackingStorePrivate*>(m_d);
   assert(d->m_resizeable);
   assert(new_num_layers > d->m_dimensions.z());
   resize_implement(new_num_layers);
@@ -760,7 +760,7 @@ fastuidraw::AtlasIndexBackingStoreBase::
 ~AtlasIndexBackingStoreBase()
 {
   BackingStorePrivate *d;
-  d = reinterpret_cast<BackingStorePrivate*>(m_d);
+  d = static_cast<BackingStorePrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -770,7 +770,7 @@ fastuidraw::AtlasIndexBackingStoreBase::
 dimensions(void) const
 {
   BackingStorePrivate *d;
-  d = reinterpret_cast<BackingStorePrivate*>(m_d);
+  d = static_cast<BackingStorePrivate*>(m_d);
   return d->m_dimensions;
 }
 
@@ -779,7 +779,7 @@ fastuidraw::AtlasIndexBackingStoreBase::
 resizeable(void) const
 {
   BackingStorePrivate *d;
-  d = reinterpret_cast<BackingStorePrivate*>(m_d);
+  d = static_cast<BackingStorePrivate*>(m_d);
   return d->m_resizeable;
 }
 
@@ -789,7 +789,7 @@ resize(int new_num_layers)
 {
   BackingStorePrivate *d;
 
-  d = reinterpret_cast<BackingStorePrivate*>(m_d);
+  d = static_cast<BackingStorePrivate*>(m_d);
   assert(d->m_resizeable);
   assert(new_num_layers > d->m_dimensions.z());
   resize_implement(new_num_layers);
@@ -813,7 +813,7 @@ fastuidraw::ImageAtlas::
 ~ImageAtlas()
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -823,7 +823,7 @@ fastuidraw::ImageAtlas::
 delay_tile_freeing(void)
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
 
   autolock_mutex M(d->m_mutex);
   d->m_color_tiles.delay_tile_freeing();
@@ -835,7 +835,7 @@ fastuidraw::ImageAtlas::
 undelay_tile_freeing(void)
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
 
   autolock_mutex M(d->m_mutex);
   d->m_color_tiles.undelay_tile_freeing();
@@ -847,7 +847,7 @@ fastuidraw::ImageAtlas::
 index_tile_size(void) const
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
   return d->m_index_tiles.tile_size();
 }
 
@@ -856,7 +856,7 @@ fastuidraw::ImageAtlas::
 color_tile_size(void) const
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
   return d->m_color_tiles.tile_size();
 }
 
@@ -865,7 +865,7 @@ fastuidraw::ImageAtlas::
 number_free_index_tiles(void) const
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
   autolock_mutex M(d->m_mutex);
   return d->m_index_tiles.number_free();
 }
@@ -875,7 +875,7 @@ fastuidraw::ImageAtlas::
 add_index_tile(fastuidraw::const_c_array<fastuidraw::ivec3> data, int slack)
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
 
   ivec3 return_value;
   autolock_mutex M(d->m_mutex);
@@ -906,7 +906,7 @@ fastuidraw::ImageAtlas::
 add_index_tile_index_data(fastuidraw::const_c_array<fastuidraw::ivec3> data)
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
 
   ivec3 return_value;
   autolock_mutex M(d->m_mutex);
@@ -927,7 +927,7 @@ fastuidraw::ImageAtlas::
 delete_index_tile(fastuidraw::ivec3 tile)
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
   autolock_mutex M(d->m_mutex);
   d->m_index_tiles.delete_tile(tile);
 }
@@ -938,7 +938,7 @@ fastuidraw::ImageAtlas::
 number_free_color_tiles(void) const
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
   autolock_mutex M(d->m_mutex);
   return d->m_color_tiles.number_free();
 }
@@ -949,7 +949,7 @@ fastuidraw::ImageAtlas::
 add_color_tile(fastuidraw::const_c_array<u8vec4> data)
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
   ivec3 return_value;
   autolock_mutex M(d->m_mutex);
 
@@ -968,7 +968,7 @@ fastuidraw::ImageAtlas::
 delete_color_tile(fastuidraw::ivec3 tile)
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
   autolock_mutex M(d->m_mutex);
   d->m_color_tiles.delete_tile(tile);
 }
@@ -978,7 +978,7 @@ fastuidraw::ImageAtlas::
 flush(void) const
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
   autolock_mutex M(d->m_mutex);
   d->m_index_store->flush();
   d->m_color_store->flush();
@@ -989,7 +989,7 @@ fastuidraw::ImageAtlas::
 color_store(void) const
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
   return d->m_color_store;
 }
 
@@ -998,7 +998,7 @@ fastuidraw::ImageAtlas::
 index_store(void) const
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
   return d->m_index_store;
 }
 
@@ -1007,7 +1007,7 @@ fastuidraw::ImageAtlas::
 resizeable(void) const
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
   return d->m_resizeable;
 }
 
@@ -1016,7 +1016,7 @@ fastuidraw::ImageAtlas::
 resize_to_fit(int num_color_tiles, int num_index_tiles)
 {
   ImageAtlasPrivate *d;
-  d = reinterpret_cast<ImageAtlasPrivate*>(m_d);
+  d = static_cast<ImageAtlasPrivate*>(m_d);
   assert(d->m_resizeable);
   if(d->m_color_tiles.resize_to_fit(num_color_tiles))
     {
@@ -1089,7 +1089,7 @@ fastuidraw::Image::
 ~Image()
 {
   ImagePrivate *d;
-  d = reinterpret_cast<ImagePrivate*>(m_d);
+  d = static_cast<ImagePrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -1100,7 +1100,7 @@ fastuidraw::Image::
 number_index_lookups(void) const
 {
   ImagePrivate *d;
-  d = reinterpret_cast<ImagePrivate*>(m_d);
+  d = static_cast<ImagePrivate*>(m_d);
   return d->m_number_index_lookups;
 }
 
@@ -1109,7 +1109,7 @@ fastuidraw::Image::
 dimensions(void) const
 {
   ImagePrivate *d;
-  d = reinterpret_cast<ImagePrivate*>(m_d);
+  d = static_cast<ImagePrivate*>(m_d);
   return d->m_dimensions;
 }
 
@@ -1118,7 +1118,7 @@ fastuidraw::Image::
 slack(void) const
 {
   ImagePrivate *d;
-  d = reinterpret_cast<ImagePrivate*>(m_d);
+  d = static_cast<ImagePrivate*>(m_d);
   return d->m_slack;
 }
 
@@ -1127,7 +1127,7 @@ fastuidraw::Image::
 master_index_tile(void) const
 {
   ImagePrivate *d;
-  d = reinterpret_cast<ImagePrivate*>(m_d);
+  d = static_cast<ImagePrivate*>(m_d);
   return d->m_master_index_tile;
 }
 
@@ -1136,7 +1136,7 @@ fastuidraw::Image::
 master_index_tile_dims(void) const
 {
   ImagePrivate *d;
-  d = reinterpret_cast<ImagePrivate*>(m_d);
+  d = static_cast<ImagePrivate*>(m_d);
   return d->m_master_index_tile_dims;
 }
 
@@ -1145,7 +1145,7 @@ fastuidraw::Image::
 dimensions_index_divisor(void) const
 {
   ImagePrivate *d;
-  d = reinterpret_cast<ImagePrivate*>(m_d);
+  d = static_cast<ImagePrivate*>(m_d);
   return d->m_dimensions_index_divisor;
 }
 
@@ -1154,6 +1154,6 @@ fastuidraw::Image::
 atlas(void) const
 {
   ImagePrivate *d;
-  d = reinterpret_cast<ImagePrivate*>(m_d);
+  d = static_cast<ImagePrivate*>(m_d);
   return d->m_atlas;
 }

@@ -1300,7 +1300,7 @@ fastuidraw::gl::Shader::
 ~Shader()
 {
   ShaderPrivate *d;
-  d = reinterpret_cast<ShaderPrivate*>(m_d);
+  d = static_cast<ShaderPrivate*>(m_d);
 
   /*
     TODO: deletion of a shader should not be
@@ -1321,7 +1321,7 @@ fastuidraw::gl::Shader::
 compile_success(void)
 {
   ShaderPrivate *d;
-  d = reinterpret_cast<ShaderPrivate*>(m_d);
+  d = static_cast<ShaderPrivate*>(m_d);
   d->compile();
   return d->m_compile_success;
 }
@@ -1331,7 +1331,7 @@ fastuidraw::gl::Shader::
 compile_log(void)
 {
   ShaderPrivate *d;
-  d = reinterpret_cast<ShaderPrivate*>(m_d);
+  d = static_cast<ShaderPrivate*>(m_d);
   d->compile();
   return d->m_compile_log.c_str();
 }
@@ -1341,7 +1341,7 @@ fastuidraw::gl::Shader::
 name(void)
 {
   ShaderPrivate *d;
-  d = reinterpret_cast<ShaderPrivate*>(m_d);
+  d = static_cast<ShaderPrivate*>(m_d);
   d->compile();
   return d->m_name;
 }
@@ -1351,7 +1351,7 @@ fastuidraw::gl::Shader::
 shader_ready(void)
 {
   ShaderPrivate *d;
-  d = reinterpret_cast<ShaderPrivate*>(m_d);
+  d = static_cast<ShaderPrivate*>(m_d);
   return d->m_shader_ready;
 }
 
@@ -1360,7 +1360,7 @@ fastuidraw::gl::Shader::
 source_code(void)
 {
   ShaderPrivate *d;
-  d = reinterpret_cast<ShaderPrivate*>(m_d);
+  d = static_cast<ShaderPrivate*>(m_d);
   return d->m_source_code.c_str();
 }
 
@@ -1369,7 +1369,7 @@ fastuidraw::gl::Shader::
 shader_type(void)
 {
   ShaderPrivate *d;
-  d = reinterpret_cast<ShaderPrivate*>(m_d);
+  d = static_cast<ShaderPrivate*>(m_d);
   return d->m_shader_type;
 }
 
@@ -1431,7 +1431,7 @@ fastuidraw::gl::BindAttribute::
 ~BindAttribute()
 {
   BindAttributePrivate *d;
-  d = reinterpret_cast<BindAttributePrivate*>(m_d);
+  d = static_cast<BindAttributePrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -1441,7 +1441,7 @@ fastuidraw::gl::BindAttribute::
 action(GLuint glsl_program) const
 {
   BindAttributePrivate *d;
-  d = reinterpret_cast<BindAttributePrivate*>(m_d);
+  d = static_cast<BindAttributePrivate*>(m_d);
   glBindAttribLocation(glsl_program, d->m_location, d->m_label.c_str());
 }
 
@@ -1467,7 +1467,7 @@ fastuidraw::gl::PreLinkActionArray::
 PreLinkActionArray(const PreLinkActionArray &obj)
 {
   PreLinkActionArrayPrivate *d;
-  d = reinterpret_cast<PreLinkActionArrayPrivate*>(obj.m_d);
+  d = static_cast<PreLinkActionArrayPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew PreLinkActionArrayPrivate(*d);
 }
 
@@ -1475,7 +1475,7 @@ fastuidraw::gl::PreLinkActionArray::
 ~PreLinkActionArray()
 {
   PreLinkActionArrayPrivate *d;
-  d = reinterpret_cast<PreLinkActionArrayPrivate*>(m_d);
+  d = static_cast<PreLinkActionArrayPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -1487,8 +1487,8 @@ operator=(const PreLinkActionArray &rhs)
   if(this != &rhs)
     {
       PreLinkActionArrayPrivate *d, *rhs_d;
-      d = reinterpret_cast<PreLinkActionArrayPrivate*>(m_d);
-      rhs_d = reinterpret_cast<PreLinkActionArrayPrivate*>(rhs.m_d);
+      d = static_cast<PreLinkActionArrayPrivate*>(m_d);
+      rhs_d = static_cast<PreLinkActionArrayPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -1499,7 +1499,7 @@ fastuidraw::gl::PreLinkActionArray::
 add(reference_counted_ptr<PreLinkAction> h)
 {
   PreLinkActionArrayPrivate *d;
-  d = reinterpret_cast<PreLinkActionArrayPrivate*>(m_d);
+  d = static_cast<PreLinkActionArrayPrivate*>(m_d);
 
   assert(h);
   d->m_values.push_back(h);
@@ -1511,7 +1511,7 @@ fastuidraw::gl::PreLinkActionArray::
 execute_actions(GLuint pr) const
 {
   PreLinkActionArrayPrivate *d;
-  d = reinterpret_cast<PreLinkActionArrayPrivate*>(m_d);
+  d = static_cast<PreLinkActionArrayPrivate*>(m_d);
   for(std::vector<reference_counted_ptr<PreLinkAction> >::const_iterator
         iter = d->m_values.begin(), end = d->m_values.end();
       iter != end; ++iter)
@@ -1541,7 +1541,7 @@ fastuidraw::gl::Program::shader_variable_info::
 name(void) const
 {
   const ShaderVariableInfo *d;
-  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  d = static_cast<const ShaderVariableInfo*>(m_d);
   return (d) ? d->m_name.c_str() : "";
 }
 
@@ -1550,7 +1550,7 @@ fastuidraw::gl::Program::shader_variable_info::
 type(void) const
 {
   const ShaderVariableInfo *d;
-  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  d = static_cast<const ShaderVariableInfo*>(m_d);
   return (d) ? d->m_type : GL_INVALID_ENUM;
 }
 
@@ -1559,7 +1559,7 @@ fastuidraw::gl::Program::shader_variable_info::
 count(void) const
 {
   const ShaderVariableInfo *d;
-  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  d = static_cast<const ShaderVariableInfo*>(m_d);
   return (d) ? d->m_count : -1;
 }
 
@@ -1568,7 +1568,7 @@ fastuidraw::gl::Program::shader_variable_info::
 index(void) const
 {
   const ShaderVariableInfo *d;
-  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  d = static_cast<const ShaderVariableInfo*>(m_d);
   return (d) ? d->m_index : -1;
 }
 
@@ -1577,7 +1577,7 @@ fastuidraw::gl::Program::shader_variable_info::
 location(void) const
 {
   const ShaderVariableInfo *d;
-  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  d = static_cast<const ShaderVariableInfo*>(m_d);
   return (d) ? d->m_location : -1;
 }
 
@@ -1586,7 +1586,7 @@ fastuidraw::gl::Program::shader_variable_info::
 ubo_index(void) const
 {
   const ShaderVariableInfo *d;
-  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  d = static_cast<const ShaderVariableInfo*>(m_d);
   return (d) ? d->m_ubo_index : -1;
 }
 
@@ -1595,7 +1595,7 @@ fastuidraw::gl::Program::shader_variable_info::
 buffer_offset(void) const
 {
   const ShaderVariableInfo *d;
-  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  d = static_cast<const ShaderVariableInfo*>(m_d);
   return (d) ? d->m_offset : -1;
 }
 
@@ -1604,7 +1604,7 @@ fastuidraw::gl::Program::shader_variable_info::
 array_stride(void) const
 {
   const ShaderVariableInfo *d;
-  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  d = static_cast<const ShaderVariableInfo*>(m_d);
   return (d) ? d->m_array_stride : -1;
 }
 
@@ -1613,7 +1613,7 @@ fastuidraw::gl::Program::shader_variable_info::
 matrix_stride(void) const
 {
   const ShaderVariableInfo *d;
-  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  d = static_cast<const ShaderVariableInfo*>(m_d);
   return (d) ? d->m_matrix_stride : -1;
 }
 
@@ -1622,7 +1622,7 @@ fastuidraw::gl::Program::shader_variable_info::
 is_row_major(void) const
 {
   const ShaderVariableInfo *d;
-  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  d = static_cast<const ShaderVariableInfo*>(m_d);
   return (d) ? d->m_is_row_major : false;
 }
 
@@ -1631,7 +1631,7 @@ fastuidraw::gl::Program::shader_variable_info::
 abo_index(void) const
 {
   const ShaderVariableInfo *d;
-  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  d = static_cast<const ShaderVariableInfo*>(m_d);
   return (d) ? d->m_abo_index : -1;
 }
 
@@ -1640,7 +1640,7 @@ fastuidraw::gl::Program::shader_variable_info::
 shader_storage_buffer_index(void) const
 {
   const ShaderVariableInfo *d;
-  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  d = static_cast<const ShaderVariableInfo*>(m_d);
   return (d) ? d->m_shader_storage_buffer_index : -1;
 }
 
@@ -1649,7 +1649,7 @@ fastuidraw::gl::Program::shader_variable_info::
 shader_storage_buffer_top_level_array_size(void) const
 {
   const ShaderVariableInfo *d;
-  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  d = static_cast<const ShaderVariableInfo*>(m_d);
   return (d) ? d->m_shader_storage_buffer_top_level_array_size : -1;
 }
 
@@ -1658,7 +1658,7 @@ fastuidraw::gl::Program::shader_variable_info::
 shader_storage_buffer_top_level_array_stride(void) const
 {
   const ShaderVariableInfo *d;
-  d = reinterpret_cast<const ShaderVariableInfo*>(m_d);
+  d = static_cast<const ShaderVariableInfo*>(m_d);
   return (d) ? d->m_shader_storage_buffer_top_level_array_stride : -1;
 }
 
@@ -1679,7 +1679,7 @@ fastuidraw::gl::Program::block_info::
 name(void) const
 {
   const BlockInfoPrivate *d;
-  d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
+  d = static_cast<const BlockInfoPrivate*>(m_d);
   return (d) ? d->m_name.c_str() : "";
 }
 
@@ -1688,7 +1688,7 @@ fastuidraw::gl::Program::block_info::
 block_index(void) const
 {
   const BlockInfoPrivate *d;
-  d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
+  d = static_cast<const BlockInfoPrivate*>(m_d);
   return (d) ? d->m_block_index : -1;
 }
 
@@ -1697,7 +1697,7 @@ fastuidraw::gl::Program::block_info::
 buffer_size(void) const
 {
   const BlockInfoPrivate *d;
-  d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
+  d = static_cast<const BlockInfoPrivate*>(m_d);
   return (d) ? d->m_size_bytes : 0;
 }
 
@@ -1706,7 +1706,7 @@ fastuidraw::gl::Program::block_info::
 initial_buffer_binding(void) const
 {
   const BlockInfoPrivate *d;
-  d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
+  d = static_cast<const BlockInfoPrivate*>(m_d);
   return (d) ? d->m_initial_buffer_binding : 0;
 }
 
@@ -1715,7 +1715,7 @@ fastuidraw::gl::Program::block_info::
 number_variables(void) const
 {
   const BlockInfoPrivate *d;
-  d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
+  d = static_cast<const BlockInfoPrivate*>(m_d);
   return d ? d->m_members.values().size() : 0;
 }
 
@@ -1726,7 +1726,7 @@ variable(unsigned int I)
   const BlockInfoPrivate *d;
   const void *q;
 
-  d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
+  d = static_cast<const BlockInfoPrivate*>(m_d);
   q = d ? &d->m_members.value(I) : NULL;
   return shader_variable_info(q);
 }
@@ -1737,7 +1737,7 @@ variable_id(const char *name)
 {
   const BlockInfoPrivate *d;
 
-  d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
+  d = static_cast<const BlockInfoPrivate*>(m_d);
   return d ? d->m_members.find_variable(name).set_id() : ~0u;
 }
 
@@ -1747,7 +1747,7 @@ variable_offset(const char *name)
 {
   const BlockInfoPrivate *d;
 
-  d = reinterpret_cast<const BlockInfoPrivate*>(m_d);
+  d = static_cast<const BlockInfoPrivate*>(m_d);
   return d ? d->m_members.find_variable(name).gl_offset() : ~0u;
 }
 
@@ -1768,7 +1768,7 @@ fastuidraw::gl::Program::atomic_buffer_info::
 buffer_index(void) const
 {
   const AtomicBufferInfo *d;
-  d = reinterpret_cast<const AtomicBufferInfo*>(m_d);
+  d = static_cast<const AtomicBufferInfo*>(m_d);
   return (d) ? d->m_buffer_index : -1;
 }
 
@@ -1777,7 +1777,7 @@ fastuidraw::gl::Program::atomic_buffer_info::
 buffer_binding(void) const
 {
   const AtomicBufferInfo *d;
-  d = reinterpret_cast<const AtomicBufferInfo*>(m_d);
+  d = static_cast<const AtomicBufferInfo*>(m_d);
   return (d) ? d->m_buffer_binding : -1;
 }
 
@@ -1786,7 +1786,7 @@ fastuidraw::gl::Program::atomic_buffer_info::
 buffer_size(void) const
 {
   const AtomicBufferInfo *d;
-  d = reinterpret_cast<const AtomicBufferInfo*>(m_d);
+  d = static_cast<const AtomicBufferInfo*>(m_d);
   return (d) ? d->m_size_bytes : 0;
 }
 
@@ -1795,7 +1795,7 @@ fastuidraw::gl::Program::atomic_buffer_info::
 number_atomic_variables(void) const
 {
   const AtomicBufferInfo *d;
-  d = reinterpret_cast<const AtomicBufferInfo*>(m_d);
+  d = static_cast<const AtomicBufferInfo*>(m_d);
   return d ? d->m_members.values().size() : 0;
 }
 
@@ -1806,7 +1806,7 @@ atomic_variable(unsigned int I)
   const AtomicBufferInfo *d;
   const void *q;
 
-  d = reinterpret_cast<const AtomicBufferInfo*>(m_d);
+  d = static_cast<const AtomicBufferInfo*>(m_d);
   q = d ? &d->m_members.value(I) : NULL;
   return shader_variable_info(q);
 }
@@ -1816,7 +1816,7 @@ fastuidraw::gl::Program::atomic_buffer_info::
 atomic_variable_id(const char *name)
 {
   const AtomicBufferInfo *d;
-  d = reinterpret_cast<const AtomicBufferInfo*>(m_d);
+  d = static_cast<const AtomicBufferInfo*>(m_d);
   if(d != NULL)
     {
       return d->m_members.find_variable(name).set_id();
@@ -2141,7 +2141,7 @@ fastuidraw::gl::Program::
 ~Program()
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   if(d->m_name)
     {
       glDeleteProgram(d->m_name);
@@ -2155,7 +2155,7 @@ fastuidraw::gl::Program::
 use_program(void)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
 
   assert(d->m_name != 0);
@@ -2169,7 +2169,7 @@ fastuidraw::gl::Program::
 name(void)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_name;
 }
@@ -2179,7 +2179,7 @@ fastuidraw::gl::Program::
 link_log(void)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_log.c_str();
 }
@@ -2189,7 +2189,7 @@ fastuidraw::gl::Program::
 program_build_time(void)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_assemble_time;
 }
@@ -2199,7 +2199,7 @@ fastuidraw::gl::Program::
 link_success(void)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success;
 }
@@ -2209,7 +2209,7 @@ fastuidraw::gl::Program::
 log(void)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_log.c_str();
 }
@@ -2219,7 +2219,7 @@ fastuidraw::gl::Program::
 number_active_uniforms(void)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     d->m_uniform_list.all_uniforms().values().size() :
@@ -2231,7 +2231,7 @@ fastuidraw::gl::Program::
 active_uniform(unsigned int I)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     shader_variable_info(&d->m_uniform_list.all_uniforms().value(I)) :
@@ -2244,7 +2244,7 @@ active_uniform_id(const char *pname)
 {
   ProgramPrivate *d;
 
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     d->m_uniform_list.all_uniforms().find_variable(pname).set_id() :
@@ -2257,7 +2257,7 @@ uniform_location(const char *pname)
 {
   ProgramPrivate *d;
 
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     d->m_uniform_list.all_uniforms().find_variable(pname).gl_location() :
@@ -2269,7 +2269,7 @@ fastuidraw::gl::Program::
 default_uniform_block(void)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     block_info(d->m_uniform_list.default_uniform_block()) :
@@ -2281,7 +2281,7 @@ fastuidraw::gl::Program::
 number_active_uniform_blocks(void)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     d->m_uniform_list.number_active_blocks() :
@@ -2293,7 +2293,7 @@ fastuidraw::gl::Program::
 uniform_block(unsigned int I)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     block_info(d->m_uniform_list.block(I)) :
@@ -2305,7 +2305,7 @@ fastuidraw::gl::Program::
 uniform_block_id(const char *uniform_block_name)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     d->m_uniform_list.block_id(uniform_block_name) :
@@ -2317,7 +2317,7 @@ fastuidraw::gl::Program::
 number_active_shader_storage_blocks(void)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     d->m_storage_buffer_list.number_active_blocks() :
@@ -2329,7 +2329,7 @@ fastuidraw::gl::Program::
 shader_storage_block(unsigned int I)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     block_info(d->m_storage_buffer_list.block(I)) :
@@ -2341,7 +2341,7 @@ fastuidraw::gl::Program::
 shader_storage_block_id(const char *shader_storage_block_name)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     d->m_storage_buffer_list.block_id(shader_storage_block_name) :
@@ -2353,7 +2353,7 @@ fastuidraw::gl::Program::
 number_active_atomic_buffers(void)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     d->m_uniform_list.number_atomic_buffers() :
@@ -2365,7 +2365,7 @@ fastuidraw::gl::Program::
 atomic_buffer(unsigned int I)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     atomic_buffer_info(d->m_uniform_list.atomic_buffer(I)) :
@@ -2377,7 +2377,7 @@ fastuidraw::gl::Program::
 number_active_attributes(void)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     d->m_attribute_list.values().size() :
@@ -2389,7 +2389,7 @@ fastuidraw::gl::Program::
 active_attribute(unsigned int I)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     shader_variable_info(&d->m_attribute_list.value(I)) :
@@ -2401,7 +2401,7 @@ fastuidraw::gl::Program::
 active_attribute_id(const char *pname)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     d->m_attribute_list.find_variable(pname).set_id() :
@@ -2413,7 +2413,7 @@ fastuidraw::gl::Program::
 attribute_location(const char *pname)
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
     d->m_attribute_list.find_variable(pname).gl_location() :
@@ -2426,7 +2426,7 @@ fastuidraw::gl::Program::
 num_shaders(GLenum tp) const
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
 
   std::map<GLenum, std::vector<int> >::const_iterator iter;
   iter = d->m_shader_data_sorted_by_type.find(tp);
@@ -2439,7 +2439,7 @@ fastuidraw::gl::Program::
 shader_src_code(GLenum tp, unsigned int i) const
 {
   ProgramPrivate *d;
-  d = reinterpret_cast<ProgramPrivate*>(m_d);
+  d = static_cast<ProgramPrivate*>(m_d);
 
   std::map<GLenum, std::vector<int> >::const_iterator iter;
   iter = d->m_shader_data_sorted_by_type.find(tp);
@@ -2466,7 +2466,7 @@ fastuidraw::gl::ProgramInitializerArray::
 ProgramInitializerArray(const ProgramInitializerArray &obj)
 {
   ProgramInitializerArrayPrivate *d;
-  d = reinterpret_cast<ProgramInitializerArrayPrivate*>(obj.m_d);
+  d = static_cast<ProgramInitializerArrayPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew ProgramInitializerArrayPrivate(*d);
 }
 
@@ -2475,7 +2475,7 @@ fastuidraw::gl::ProgramInitializerArray::
 ~ProgramInitializerArray()
 {
   ProgramInitializerArrayPrivate *d;
-  d = reinterpret_cast<ProgramInitializerArrayPrivate*>(m_d);
+  d = static_cast<ProgramInitializerArrayPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -2487,8 +2487,8 @@ operator=(const ProgramInitializerArray &rhs)
   if(this != &rhs)
     {
       ProgramInitializerArrayPrivate *d, *rhs_d;
-      d = reinterpret_cast<ProgramInitializerArrayPrivate*>(m_d);
-      rhs_d = reinterpret_cast<ProgramInitializerArrayPrivate*>(rhs.m_d);
+      d = static_cast<ProgramInitializerArrayPrivate*>(m_d);
+      rhs_d = static_cast<ProgramInitializerArrayPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -2499,7 +2499,7 @@ fastuidraw::gl::ProgramInitializerArray::
 add(reference_counted_ptr<ProgramInitializer> h)
 {
   ProgramInitializerArrayPrivate *d;
-  d = reinterpret_cast<ProgramInitializerArrayPrivate*>(m_d);
+  d = static_cast<ProgramInitializerArrayPrivate*>(m_d);
   d->m_values.push_back(h);
   return *this;
 }
@@ -2510,7 +2510,7 @@ fastuidraw::gl::ProgramInitializerArray::
 perform_initializations(Program *pr, bool program_bound) const
 {
   ProgramInitializerArrayPrivate *d;
-  d = reinterpret_cast<ProgramInitializerArrayPrivate*>(m_d);
+  d = static_cast<ProgramInitializerArrayPrivate*>(m_d);
   for(std::vector<reference_counted_ptr<ProgramInitializer> >::const_iterator
         iter = d->m_values.begin(), end = d->m_values.end();
       iter != end; ++iter)
@@ -2526,7 +2526,7 @@ fastuidraw::gl::ProgramInitializerArray::
 clear(void)
 {
   ProgramInitializerArrayPrivate *d;
-  d = reinterpret_cast<ProgramInitializerArrayPrivate*>(m_d);
+  d = static_cast<ProgramInitializerArrayPrivate*>(m_d);
   d->m_values.clear();
 }
 
@@ -2542,7 +2542,7 @@ fastuidraw::gl::UniformBlockInitializer::
 ~UniformBlockInitializer()
 {
   BlockInitializerPrivate *d;
-  d = reinterpret_cast<BlockInitializerPrivate*>(m_d);
+  d = static_cast<BlockInitializerPrivate*>(m_d);
   assert(d != NULL);
   FASTUIDRAWdelete(d);
   m_d = NULL;
@@ -2553,7 +2553,7 @@ fastuidraw::gl::UniformBlockInitializer::
 perform_initialization(Program *pr, bool program_bound) const
 {
   BlockInitializerPrivate *d;
-  d = reinterpret_cast<BlockInitializerPrivate*>(m_d);
+  d = static_cast<BlockInitializerPrivate*>(m_d);
   assert(d != NULL);
 
   int loc;
@@ -2586,7 +2586,7 @@ fastuidraw::gl::ShaderStorageBlockInitializer::
 ~ShaderStorageBlockInitializer()
 {
   BlockInitializerPrivate *d;
-  d = reinterpret_cast<BlockInitializerPrivate*>(m_d);
+  d = static_cast<BlockInitializerPrivate*>(m_d);
   assert(d != NULL);
   FASTUIDRAWdelete(d);
   m_d = NULL;
@@ -2597,7 +2597,7 @@ fastuidraw::gl::ShaderStorageBlockInitializer::
 perform_initialization(Program *pr, bool program_bound) const
 {
   BlockInitializerPrivate *d;
-  d = reinterpret_cast<BlockInitializerPrivate*>(m_d);
+  d = static_cast<BlockInitializerPrivate*>(m_d);
   assert(d != NULL);
 
   int loc;
@@ -2631,7 +2631,7 @@ fastuidraw::gl::UniformInitalizerBase::
 ~UniformInitalizerBase()
 {
   std::string *d;
-  d = reinterpret_cast<std::string*>(m_d);
+  d = static_cast<std::string*>(m_d);
   assert(d != NULL);
   FASTUIDRAWdelete(d);
   m_d = NULL;
@@ -2642,7 +2642,7 @@ fastuidraw::gl::UniformInitalizerBase::
 perform_initialization(Program *pr, bool program_bound) const
 {
   std::string *d;
-  d = reinterpret_cast<std::string*>(m_d);
+  d = static_cast<std::string*>(m_d);
   assert(d != NULL);
 
   int loc;

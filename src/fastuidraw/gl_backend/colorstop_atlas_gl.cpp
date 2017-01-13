@@ -187,7 +187,7 @@ fastuidraw::gl::ColorStopAtlasGL::params::
 params(const params &obj)
 {
   ColorStopAtlasGLParamsPrivate *d;
-  d = reinterpret_cast<ColorStopAtlasGLParamsPrivate*>(obj.m_d);
+  d = static_cast<ColorStopAtlasGLParamsPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew ColorStopAtlasGLParamsPrivate(*d);
 }
 
@@ -195,7 +195,7 @@ fastuidraw::gl::ColorStopAtlasGL::params::
 ~params()
 {
   ColorStopAtlasGLParamsPrivate *d;
-  d = reinterpret_cast<ColorStopAtlasGLParamsPrivate*>(m_d);
+  d = static_cast<ColorStopAtlasGLParamsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -207,8 +207,8 @@ operator=(const params &rhs)
   if(this != &rhs)
     {
       ColorStopAtlasGLParamsPrivate *d, *rhs_d;
-      d = reinterpret_cast<ColorStopAtlasGLParamsPrivate*>(m_d);
-      rhs_d = reinterpret_cast<ColorStopAtlasGLParamsPrivate*>(rhs.m_d);
+      d = static_cast<ColorStopAtlasGLParamsPrivate*>(m_d);
+      rhs_d = static_cast<ColorStopAtlasGLParamsPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -220,7 +220,7 @@ operator=(const params &rhs)
   name(type v)                                                      \
   {                                                                 \
     ColorStopAtlasGLParamsPrivate *d;                               \
-    d = reinterpret_cast<ColorStopAtlasGLParamsPrivate*>(m_d);      \
+    d = static_cast<ColorStopAtlasGLParamsPrivate*>(m_d);      \
     d->m_##name = v;                                                \
     return *this;                                                   \
   }                                                                 \
@@ -230,7 +230,7 @@ operator=(const params &rhs)
   name(void) const                                                  \
   {                                                                 \
     ColorStopAtlasGLParamsPrivate *d;                               \
-    d = reinterpret_cast<ColorStopAtlasGLParamsPrivate*>(m_d);      \
+    d = static_cast<ColorStopAtlasGLParamsPrivate*>(m_d);      \
     return d->m_##name;                                             \
   }
 
@@ -261,7 +261,7 @@ fastuidraw::gl::ColorStopAtlasGL::
 ~ColorStopAtlasGL()
 {
   ColorStopAtlasGLPrivate *d;
-  d = reinterpret_cast<ColorStopAtlasGLPrivate*>(m_d);
+  d = static_cast<ColorStopAtlasGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -271,7 +271,7 @@ fastuidraw::gl::ColorStopAtlasGL::
 param_values(void)
 {
   ColorStopAtlasGLPrivate *d;
-  d = reinterpret_cast<ColorStopAtlasGLPrivate*>(m_d);
+  d = static_cast<ColorStopAtlasGLPrivate*>(m_d);
   return d->m_params;
 }
 

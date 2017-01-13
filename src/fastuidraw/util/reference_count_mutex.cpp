@@ -51,7 +51,7 @@ fastuidraw::reference_count_mutex::
 {
   RefernceCounterPrivate *d;
 
-  d = reinterpret_cast<RefernceCounterPrivate*>(m_d);
+  d = static_cast<RefernceCounterPrivate*>(m_d);
   assert(d->m_reference_count == 0);
   FASTUIDRAWdelete(d);
   m_d = NULL;
@@ -63,7 +63,7 @@ add_reference(void)
 {
   RefernceCounterPrivate *d;
 
-  d = reinterpret_cast<RefernceCounterPrivate*>(m_d);
+  d = static_cast<RefernceCounterPrivate*>(m_d);
   d->m_mutex.lock();
   assert(d->m_reference_count >= 0);
   ++d->m_reference_count;
@@ -77,7 +77,7 @@ remove_reference(void)
   bool return_value;
   RefernceCounterPrivate *d;
 
-  d = reinterpret_cast<RefernceCounterPrivate*>(m_d);
+  d = static_cast<RefernceCounterPrivate*>(m_d);
   d->m_mutex.lock();
   --d->m_reference_count;
   assert(d->m_reference_count >= 0);

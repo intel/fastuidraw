@@ -118,7 +118,7 @@ fastuidraw::gl::ContextProperties::
 ~ContextProperties()
 {
   ContextPropertiesPrivate *d;
-  d = reinterpret_cast<ContextPropertiesPrivate*>(m_d);
+  d = static_cast<ContextPropertiesPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -128,7 +128,7 @@ fastuidraw::gl::ContextProperties::
 version(void) const
 {
   ContextPropertiesPrivate *d;
-  d = reinterpret_cast<ContextPropertiesPrivate*>(m_d);
+  d = static_cast<ContextPropertiesPrivate*>(m_d);
   d->make_version_ready();
   return d->m_version;
 }
@@ -138,7 +138,7 @@ fastuidraw::gl::ContextProperties::
 is_es(void) const
 {
   ContextPropertiesPrivate *d;
-  d = reinterpret_cast<ContextPropertiesPrivate*>(m_d);
+  d = static_cast<ContextPropertiesPrivate*>(m_d);
   return d->m_is_es;
 }
 
@@ -147,7 +147,7 @@ fastuidraw::gl::ContextProperties::
 has_extension(const char *ext) const
 {
   ContextPropertiesPrivate *d;
-  d = reinterpret_cast<ContextPropertiesPrivate*>(m_d);
+  d = static_cast<ContextPropertiesPrivate*>(m_d);
   d->make_extensions_ready();
   return ext && d->m_extensions.find(std::string(ext)) != d->m_extensions.end();
 }

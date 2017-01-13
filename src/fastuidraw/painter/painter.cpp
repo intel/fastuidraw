@@ -1185,7 +1185,7 @@ fastuidraw::Painter::
 ~Painter()
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -1195,7 +1195,7 @@ fastuidraw::Painter::
 packed_value_pool(void)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   return d->m_pool;
 }
 
@@ -1204,7 +1204,7 @@ fastuidraw::Painter::
 target_resolution(int w, int h)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   w = t_max(w, 1);
   h = t_max(h, 1);
@@ -1219,7 +1219,7 @@ fastuidraw::Painter::
 begin(bool reset_z)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   d->m_core->begin();
 
@@ -1237,7 +1237,7 @@ fastuidraw::Painter::
 end(void)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   /* pop m_clip_stack to perform necessary writes
    */
@@ -1262,7 +1262,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
              const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   d->draw_generic_check(shader, draw, attrib_chunks, index_chunks,
                         index_adjusts, const_c_array<unsigned int>(),
                         current_z(), call_back);
@@ -1278,7 +1278,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
              const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   d->draw_generic_check(shader, draw, attrib_chunks, index_chunks,
                         index_adjusts, attrib_chunk_selector,
                         current_z(), call_back);
@@ -1291,7 +1291,7 @@ draw_convex_polygon(const reference_counted_ptr<PainterItemShader> &shader,
                     const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   if(pts.size() < 3)
     {
@@ -1395,7 +1395,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   if(d->m_clip_rect_state.m_all_content_culled)
     {
       return;
@@ -1547,7 +1547,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   if(d->m_clip_rect_state.m_all_content_culled)
     {
@@ -1633,7 +1633,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Pa
   PainterPrivate *d;
   float thresh;
 
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   thresh = d->select_path_thresh(path);
   stroke_path(shader, draw, *path.tessellation(thresh)->stroked(), thresh,
               close_contours, cp, js, with_anti_aliasing, call_back);
@@ -1678,7 +1678,7 @@ stroke_dashed_path(const PainterStrokeShader &shader, const PainterData &draw,
        - all other joins and edges are sent forward freely.
    */
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   if(d->m_clip_rect_state.m_all_content_culled)
     {
       return;
@@ -1729,7 +1729,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   if(d->m_clip_rect_state.m_all_content_culled)
     {
@@ -1793,7 +1793,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
   PainterPrivate *d;
   float thresh;
 
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   thresh = d->select_path_thresh(path);
   stroke_dashed_path(shader, draw, *path.tessellation(thresh)->stroked(), thresh,
                      close_contours, cp, js, with_anti_aliasing, call_back);
@@ -1830,7 +1830,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
   PainterPrivate *d;
   unsigned int idx_chunk, atr_chunk, num_subsets;
 
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   if(d->m_clip_rect_state.m_all_content_culled)
     {
       return;
@@ -1869,7 +1869,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
   PainterPrivate *d;
   float thresh;
 
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   thresh = d->select_path_thresh(path);
   fill_path(shader, draw, *path.tessellation(thresh)->filled(), fill_rule, call_back);
 }
@@ -1891,7 +1891,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
   unsigned int num_subsets;
   PainterPrivate *d;
 
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   if(d->m_clip_rect_state.m_all_content_culled)
     {
       return;
@@ -1967,7 +1967,7 @@ fill_path(const PainterFillShader &shader,
   PainterPrivate *d;
   float thresh;
 
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   thresh = d->select_path_thresh(path);
   fill_path(shader, draw, *path.tessellation(thresh)->filled(), fill_rule, call_back);
 }
@@ -1987,7 +1987,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   if(d->m_clip_rect_state.m_all_content_culled)
     {
@@ -2030,7 +2030,7 @@ fastuidraw::Painter::
 transformation(void)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   return d->m_clip_rect_state.current_painter_item_matrix();
 }
 
@@ -2039,7 +2039,7 @@ fastuidraw::Painter::
 transformation(const float3x3 &m)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   d->m_clip_rect_state.item_matrix(m, true);
 }
 
@@ -2048,7 +2048,7 @@ fastuidraw::Painter::
 transformation_state(void)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   return d->m_clip_rect_state.current_item_marix_state(d->m_pool);
 }
 
@@ -2057,7 +2057,7 @@ fastuidraw::Painter::
 transformation_state(const PainterPackedValue<PainterItemMatrix> &h)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   d->m_clip_rect_state.item_matrix_state(h, true);
 }
 
@@ -2066,7 +2066,7 @@ fastuidraw::Painter::
 concat(const float3x3 &tr)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   float3x3 m;
   bool tricky;
@@ -2090,7 +2090,7 @@ fastuidraw::Painter::
 translate(const vec2 &p)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   float3x3 m(d->m_clip_rect_state.item_matrix());
   m.translate(p.x(), p.y());
@@ -2103,7 +2103,7 @@ fastuidraw::Painter::
 scale(float s)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   float3x3 m(d->m_clip_rect_state.item_matrix());
   m.scale(s);
@@ -2116,7 +2116,7 @@ fastuidraw::Painter::
 shear(float sx, float sy)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   float3x3 m(d->m_clip_rect_state.item_matrix());
   m.shear(sx, sy);
@@ -2129,7 +2129,7 @@ fastuidraw::Painter::
 rotate(float angle)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   float3x3 tr;
   float s, c;
@@ -2153,7 +2153,7 @@ fastuidraw::Painter::
 curveFlatness(float thresh)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   d->m_curve_flatness = thresh;
 }
 
@@ -2162,7 +2162,7 @@ fastuidraw::Painter::
 curveFlatness(void)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   return d->m_curve_flatness;
 }
 
@@ -2171,7 +2171,7 @@ fastuidraw::Painter::
 save(void)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   state_stack_entry st;
   st.m_occluder_stack_position = d->m_occluder_stack.size();
@@ -2189,7 +2189,7 @@ fastuidraw::Painter::
 restore(void)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   assert(!d->m_state_stack.empty());
   const state_stack_entry &st(d->m_state_stack.back());
@@ -2236,7 +2236,7 @@ fastuidraw::Painter::
 clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   if(d->m_clip_rect_state.m_all_content_culled)
     {
@@ -2270,7 +2270,7 @@ fastuidraw::Painter::
 clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   if(d->m_clip_rect_state.m_all_content_culled)
     {
@@ -2304,7 +2304,7 @@ fastuidraw::Painter::
 clipInPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   if(d->m_clip_rect_state.m_all_content_culled)
     {
@@ -2325,7 +2325,7 @@ fastuidraw::Painter::
 clipInPath(const Path &path, const CustomFillRuleBase &fill_rule)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   if(d->m_clip_rect_state.m_all_content_culled)
     {
@@ -2346,7 +2346,7 @@ fastuidraw::Painter::
 clipInRect(const vec2 &pmin, const vec2 &wh)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
 
   vec2 pmax(pmin + wh);
 
@@ -2487,7 +2487,7 @@ fastuidraw::Painter::
 glyph_atlas(void) const
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   return d->m_core->glyph_atlas();
 }
 
@@ -2496,7 +2496,7 @@ fastuidraw::Painter::
 image_atlas(void) const
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   return d->m_core->image_atlas();
 }
 
@@ -2505,7 +2505,7 @@ fastuidraw::Painter::
 colorstop_atlas(void) const
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   return d->m_core->colorstop_atlas();
 }
 
@@ -2514,7 +2514,7 @@ fastuidraw::Painter::
 blend_shader(void) const
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   return d->m_core->blend_shader();
 }
 
@@ -2523,7 +2523,7 @@ fastuidraw::Painter::
 blend_mode(void) const
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   return d->m_core->blend_mode();
 }
 
@@ -2533,7 +2533,7 @@ blend_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &h,
              fastuidraw::BlendMode::packed_value mode)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   d->m_core->blend_shader(h, mode);
 }
 
@@ -2542,7 +2542,7 @@ fastuidraw::Painter::
 default_shaders(void) const
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   return d->m_core->default_shaders();
 }
 
@@ -2551,7 +2551,7 @@ fastuidraw::Painter::
 query_stat(enum PainterPacker::stats_t st) const
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   return d->m_core->query_stat(st);
 }
 
@@ -2560,7 +2560,7 @@ fastuidraw::Painter::
 current_z(void) const
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   return d->m_current_z;
 }
 
@@ -2569,7 +2569,7 @@ fastuidraw::Painter::
 increment_z(int amount)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   d->m_current_z += amount;
 }
 
@@ -2578,7 +2578,7 @@ fastuidraw::Painter::
 register_shader(const fastuidraw::reference_counted_ptr<PainterItemShader> &shader)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   d->m_core->register_shader(shader);
 }
 
@@ -2587,7 +2587,7 @@ fastuidraw::Painter::
 register_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &shader)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   d->m_core->register_shader(shader);
 }
 
@@ -2596,7 +2596,7 @@ fastuidraw::Painter::
 register_shader(const PainterStrokeShader &p)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   d->m_core->register_shader(p);
 }
 
@@ -2605,7 +2605,7 @@ fastuidraw::Painter::
 register_shader(const PainterFillShader &p)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   d->m_core->register_shader(p);
 }
 
@@ -2614,7 +2614,7 @@ fastuidraw::Painter::
 register_shader(const PainterDashedStrokeShaderSet &p)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   d->m_core->register_shader(p);
 }
 
@@ -2623,7 +2623,7 @@ fastuidraw::Painter::
 register_shader(const PainterGlyphShader &p)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   d->m_core->register_shader(p);
 }
 
@@ -2632,6 +2632,6 @@ fastuidraw::Painter::
 register_shader(const PainterShaderSet &p)
 {
   PainterPrivate *d;
-  d = reinterpret_cast<PainterPrivate*>(m_d);
+  d = static_cast<PainterPrivate*>(m_d);
   d->m_core->register_shader(p);
 }

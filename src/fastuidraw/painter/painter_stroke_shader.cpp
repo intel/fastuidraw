@@ -48,7 +48,7 @@ fastuidraw::PainterStrokeShader::
 PainterStrokeShader(const PainterStrokeShader &obj)
 {
   PainterStrokeShaderPrivate *d;
-  d = reinterpret_cast<PainterStrokeShaderPrivate*>(obj.m_d);
+  d = static_cast<PainterStrokeShaderPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew PainterStrokeShaderPrivate(*d);
 }
 
@@ -56,7 +56,7 @@ fastuidraw::PainterStrokeShader::
 ~PainterStrokeShader()
 {
   PainterStrokeShaderPrivate *d;
-  d = reinterpret_cast<PainterStrokeShaderPrivate*>(m_d);
+  d = static_cast<PainterStrokeShaderPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -68,8 +68,8 @@ operator=(const PainterStrokeShader &rhs)
   if(this != &rhs)
     {
       PainterStrokeShaderPrivate *d, *rhs_d;
-      d = reinterpret_cast<PainterStrokeShaderPrivate*>(m_d);
-      rhs_d = reinterpret_cast<PainterStrokeShaderPrivate*>(rhs.m_d);
+      d = static_cast<PainterStrokeShaderPrivate*>(m_d);
+      rhs_d = static_cast<PainterStrokeShaderPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -81,7 +81,7 @@ operator=(const PainterStrokeShader &rhs)
   name(type v)                                                      \
   {                                                                 \
     PainterStrokeShaderPrivate *d;                                  \
-    d = reinterpret_cast<PainterStrokeShaderPrivate*>(m_d);         \
+    d = static_cast<PainterStrokeShaderPrivate*>(m_d);         \
     d->m_##name = v;                                                \
     return *this;                                                   \
   }                                                                 \
@@ -91,7 +91,7 @@ operator=(const PainterStrokeShader &rhs)
   name(void) const                                                  \
   {                                                                 \
     PainterStrokeShaderPrivate *d;                                  \
-    d = reinterpret_cast<PainterStrokeShaderPrivate*>(m_d);         \
+    d = static_cast<PainterStrokeShaderPrivate*>(m_d);         \
     return d->m_##name;                                             \
   }
 

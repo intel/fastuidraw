@@ -2785,7 +2785,7 @@ fastuidraw::StrokedPath::ScratchSpace::
 ~ScratchSpace(void)
 {
   ScratchSpacePrivate *d;
-  d = reinterpret_cast<ScratchSpacePrivate*>(m_d);
+  d = static_cast<ScratchSpacePrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -2820,7 +2820,7 @@ fastuidraw::StrokedPath::
 ~StrokedPath()
 {
   StrokedPathPrivate *d;
-  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  d = static_cast<StrokedPathPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -2830,7 +2830,7 @@ fastuidraw::StrokedPath::
 effective_curve_distance_threshhold(void) const
 {
   StrokedPathPrivate *d;
-  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  d = static_cast<StrokedPathPrivate*>(m_d);
   return d->m_effective_curve_distance_threshhold;
 }
 
@@ -2839,7 +2839,7 @@ fastuidraw::StrokedPath::
 edges(bool include_closing_edges) const
 {
   StrokedPathPrivate *d;
-  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  d = static_cast<StrokedPathPrivate*>(m_d);
   return d->m_edges[include_closing_edges];
 }
 
@@ -2858,9 +2858,9 @@ edge_chunks(ScratchSpace &work_room,
 {
   StrokedPathPrivate *d;
   EdgesElement *e;
-  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  d = static_cast<StrokedPathPrivate*>(m_d);
   e = d->m_edge_culler[include_closing_edges];
-  return e->edge_chunks(*reinterpret_cast<ScratchSpacePrivate*>(work_room.m_d),
+  return e->edge_chunks(*static_cast<ScratchSpacePrivate*>(work_room.m_d),
                         clip_equations, clip_matrix_local,
                         recip_dimensions, pixels_additional_room,
                         item_space_additional_room,
@@ -2873,7 +2873,7 @@ fastuidraw::StrokedPath::
 maximum_edge_chunks(void) const
 {
   StrokedPathPrivate *d;
-  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  d = static_cast<StrokedPathPrivate*>(m_d);
   return t_max(d->m_edge_culler[0]->maximum_edge_chunks(),
                d->m_edge_culler[1]->maximum_edge_chunks());
 }
@@ -2890,7 +2890,7 @@ fastuidraw::StrokedPath::
 square_caps(void) const
 {
   StrokedPathPrivate *d;
-  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  d = static_cast<StrokedPathPrivate*>(m_d);
   return d->m_square_caps;
 }
 
@@ -2899,7 +2899,7 @@ fastuidraw::StrokedPath::
 adjustable_caps(void) const
 {
   StrokedPathPrivate *d;
-  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  d = static_cast<StrokedPathPrivate*>(m_d);
   return d->m_adjustable_caps;
 }
 
@@ -2908,7 +2908,7 @@ fastuidraw::StrokedPath::
 bevel_joins(void) const
 {
   StrokedPathPrivate *d;
-  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  d = static_cast<StrokedPathPrivate*>(m_d);
   return d->m_bevel_joins;
 }
 
@@ -2917,7 +2917,7 @@ fastuidraw::StrokedPath::
 miter_joins(void) const
 {
   StrokedPathPrivate *d;
-  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  d = static_cast<StrokedPathPrivate*>(m_d);
   return d->m_miter_joins;
 }
 
@@ -2926,7 +2926,7 @@ fastuidraw::StrokedPath::
 rounded_joins(float thresh) const
 {
   StrokedPathPrivate *d;
-  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  d = static_cast<StrokedPathPrivate*>(m_d);
 
   return d->fetch_create<RoundedJoinCreator>(thresh, d->m_rounded_joins);
 }
@@ -2936,6 +2936,6 @@ fastuidraw::StrokedPath::
 rounded_caps(float thresh) const
 {
   StrokedPathPrivate *d;
-  d = reinterpret_cast<StrokedPathPrivate*>(m_d);
+  d = static_cast<StrokedPathPrivate*>(m_d);
   return d->fetch_create<RoundedCapCreator>(thresh, d->m_rounded_caps);
 }

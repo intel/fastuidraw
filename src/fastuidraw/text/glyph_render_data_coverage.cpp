@@ -56,7 +56,7 @@ fastuidraw::GlyphRenderDataCoverage::
 ~GlyphRenderDataCoverage(void)
 {
   GlyphDataPrivate *d;
-  d = reinterpret_cast<GlyphDataPrivate*>(m_d);
+  d = static_cast<GlyphDataPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -66,7 +66,7 @@ fastuidraw::GlyphRenderDataCoverage::
 resolution(void) const
 {
   GlyphDataPrivate *d;
-  d = reinterpret_cast<GlyphDataPrivate*>(m_d);
+  d = static_cast<GlyphDataPrivate*>(m_d);
   return d->m_resolution;
 }
 
@@ -75,7 +75,7 @@ fastuidraw::GlyphRenderDataCoverage::
 coverage_values(void) const
 {
   GlyphDataPrivate *d;
-  d = reinterpret_cast<GlyphDataPrivate*>(m_d);
+  d = static_cast<GlyphDataPrivate*>(m_d);
   return make_c_array(d->m_texels);
 }
 
@@ -84,7 +84,7 @@ fastuidraw::GlyphRenderDataCoverage::
 coverage_values(void)
 {
   GlyphDataPrivate *d;
-  d = reinterpret_cast<GlyphDataPrivate*>(m_d);
+  d = static_cast<GlyphDataPrivate*>(m_d);
   return make_c_array(d->m_texels);
 }
 
@@ -93,7 +93,7 @@ fastuidraw::GlyphRenderDataCoverage::
 resize(fastuidraw::ivec2 sz)
 {
   GlyphDataPrivate *d;
-  d = reinterpret_cast<GlyphDataPrivate*>(m_d);
+  d = static_cast<GlyphDataPrivate*>(m_d);
   d->resize(sz);
 }
 
@@ -106,7 +106,7 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
                 int &geometry_length) const
 {
   GlyphDataPrivate *d;
-  d = reinterpret_cast<GlyphDataPrivate*>(m_d);
+  d = static_cast<GlyphDataPrivate*>(m_d);
 
   GlyphAtlas::Padding padding;
   padding.m_right = 1;

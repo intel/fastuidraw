@@ -424,7 +424,7 @@ namespace
       if(obj.m_packed_value)
         {
           EntryBase *e;
-          e = reinterpret_cast<EntryBase*>(obj.m_packed_value.opaque_data());
+          e = static_cast<EntryBase*>(obj.m_packed_value.opaque_data());
           pack_state_data(p, e, location);
         }
       else if(obj.m_value != NULL)
@@ -474,7 +474,7 @@ namespace
       if(obj.m_packed_value)
         {
           EntryBase *d;
-          d = reinterpret_cast<EntryBase*>(obj.m_packed_value.opaque_data());
+          d = static_cast<EntryBase*>(obj.m_packed_value.opaque_data());
           if(d->m_painter == m_p && d->m_begin_id == m_number_begins
              && d->m_draw_command_id == m_accumulated_draws.size())
             {
@@ -771,7 +771,7 @@ fastuidraw::PainterPacker::
 ~PainterPacker()
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -781,7 +781,7 @@ fastuidraw::PainterPacker::
 begin(void)
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
 
   assert(d->m_accumulated_draws.empty());
   d->m_backend->image_atlas()->delay_tile_freeing();
@@ -796,7 +796,7 @@ fastuidraw::PainterPacker::
 query_stat(enum stats_t st) const
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
 
   vecN<unsigned int, num_stats> tmp(0);
   if(!d->m_accumulated_draws.empty())
@@ -814,7 +814,7 @@ fastuidraw::PainterPacker::
 flush(void)
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   if(!d->m_accumulated_draws.empty())
     {
       per_draw_command &c(d->m_accumulated_draws.back());
@@ -874,7 +874,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
              const reference_counted_ptr<DataCallBack> &call_back)
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
 
   bool allocate_header;
   unsigned int header_loc;
@@ -1024,7 +1024,7 @@ fastuidraw::PainterPacker::
 glyph_atlas(void) const
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   return d->m_backend->glyph_atlas();
 }
 
@@ -1033,7 +1033,7 @@ fastuidraw::PainterPacker::
 image_atlas(void) const
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   return d->m_backend->image_atlas();
 }
 
@@ -1042,7 +1042,7 @@ fastuidraw::PainterPacker::
 colorstop_atlas(void) const
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   return d->m_backend->colorstop_atlas();
 }
 
@@ -1051,7 +1051,7 @@ fastuidraw::PainterPacker::
 blend_shader(void) const
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   return d->m_blend_shader;
 }
 
@@ -1060,7 +1060,7 @@ fastuidraw::PainterPacker::
 blend_mode(void) const
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   return d->m_blend_mode;
 }
 
@@ -1070,7 +1070,7 @@ blend_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &h,
              BlendMode::packed_value pblend_mode)
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   assert(h);
   d->m_blend_shader = h;
   d->m_blend_mode = pblend_mode;
@@ -1081,7 +1081,7 @@ fastuidraw::PainterPacker::
 default_shaders(void) const
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   return d->m_default_shaders;
 }
 
@@ -1090,7 +1090,7 @@ fastuidraw::PainterPacker::
 hints(void)
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   return d->m_backend->hints();
 }
 
@@ -1099,7 +1099,7 @@ fastuidraw::PainterPacker::
 register_shader(const reference_counted_ptr<PainterItemShader> &shader)
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   d->m_backend->register_shader(shader);
 }
 
@@ -1108,7 +1108,7 @@ fastuidraw::PainterPacker::
 register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   d->m_backend->register_shader(shader);
 }
 
@@ -1117,7 +1117,7 @@ fastuidraw::PainterPacker::
 register_shader(const PainterStrokeShader &p)
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   d->m_backend->register_shader(p);
 }
 
@@ -1126,7 +1126,7 @@ fastuidraw::PainterPacker::
 register_shader(const PainterFillShader &p)
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   d->m_backend->register_shader(p);
 }
 
@@ -1135,7 +1135,7 @@ fastuidraw::PainterPacker::
 register_shader(const PainterDashedStrokeShaderSet &p)
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   d->m_backend->register_shader(p);
 }
 
@@ -1144,7 +1144,7 @@ fastuidraw::PainterPacker::
 register_shader(const PainterGlyphShader &p)
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   d->m_backend->register_shader(p);
 }
 
@@ -1153,7 +1153,7 @@ fastuidraw::PainterPacker::
 register_shader(const PainterShaderSet &p)
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   d->m_backend->register_shader(p);
 }
 
@@ -1162,7 +1162,7 @@ fastuidraw::PainterPacker::
 target_resolution(int w, int h)
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   d->m_backend->target_resolution(w, h);
 }
 
@@ -1179,7 +1179,7 @@ PainterPackedValueBase(void *p):
   m_d(p)
 {
   EntryBase *d;
-  d = reinterpret_cast<EntryBase*>(m_d);
+  d = static_cast<EntryBase*>(m_d);
   if(d)
     {
       d->aquire();
@@ -1194,7 +1194,7 @@ PainterPackedValueBase(const PainterPackedValueBase &obj)
   if(obj.m_d)
     {
       EntryBase *obj_d;
-      obj_d = reinterpret_cast<EntryBase*>(obj.m_d);
+      obj_d = static_cast<EntryBase*>(obj.m_d);
       obj_d->aquire();
     }
 }
@@ -1205,7 +1205,7 @@ fastuidraw::PainterPackedValueBase::
   if(m_d)
     {
       EntryBase *d;
-      d = reinterpret_cast<EntryBase*>(m_d);
+      d = static_cast<EntryBase*>(m_d);
       d->release();
       m_d = NULL;
     }
@@ -1220,7 +1220,7 @@ operator=(const PainterPackedValueBase &obj)
       if(m_d)
         {
           EntryBase *d;
-          d = reinterpret_cast<EntryBase*>(m_d);
+          d = static_cast<EntryBase*>(m_d);
           d->release();
         }
 
@@ -1229,7 +1229,7 @@ operator=(const PainterPackedValueBase &obj)
       if(obj.m_d)
         {
           EntryBase *obj_d;
-          obj_d = reinterpret_cast<EntryBase*>(obj.m_d);
+          obj_d = static_cast<EntryBase*>(obj.m_d);
           obj_d->aquire();
         }
     }
@@ -1240,7 +1240,7 @@ fastuidraw::PainterPackedValueBase::
 alignment_packing(void) const
 {
   EntryBase *d;
-  d = reinterpret_cast<EntryBase*>(m_d);
+  d = static_cast<EntryBase*>(m_d);
   return (d != NULL) ? d->m_alignment : 0;
 }
 
@@ -1249,7 +1249,7 @@ fastuidraw::PainterPackedValueBase::
 raw_value(void) const
 {
   EntryBase *d;
-  d = reinterpret_cast<EntryBase*>(m_d);
+  d = static_cast<EntryBase*>(m_d);
   assert(d);
   assert(d->raw_value());
   return d->raw_value();
@@ -1267,7 +1267,7 @@ fastuidraw::PainterPackedValuePool::
 ~PainterPackedValuePool()
 {
   PainterPackedValuePoolPrivate *d;
-  d = reinterpret_cast<PainterPackedValuePoolPrivate*>(m_d);
+  d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -1279,7 +1279,7 @@ create_packed_value(const PainterBrush &value)
   PainterPackedValuePoolPrivate *d;
   Entry<PainterBrush> *e;
 
-  d = reinterpret_cast<PainterPackedValuePoolPrivate*>(m_d);
+  d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
   e = d->m_brush_pool.allocate(value, d->m_alignment);
   return fastuidraw::PainterPackedValue<PainterBrush>(e);
 }
@@ -1291,7 +1291,7 @@ create_packed_value(const PainterClipEquations &value)
   PainterPackedValuePoolPrivate *d;
   Entry<PainterClipEquations> *e;
 
-  d = reinterpret_cast<PainterPackedValuePoolPrivate*>(m_d);
+  d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
   e = d->m_clip_equations_pool.allocate(value, d->m_alignment);
   return fastuidraw::PainterPackedValue<PainterClipEquations>(e);
 }
@@ -1303,7 +1303,7 @@ create_packed_value(const PainterItemMatrix &value)
   PainterPackedValuePoolPrivate *d;
   Entry<PainterItemMatrix> *e;
 
-  d = reinterpret_cast<PainterPackedValuePoolPrivate*>(m_d);
+  d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
   e = d->m_item_matrix_pool.allocate(value, d->m_alignment);
   return fastuidraw::PainterPackedValue<PainterItemMatrix>(e);
 }
@@ -1315,7 +1315,7 @@ create_packed_value(const PainterItemShaderData &value)
   PainterPackedValuePoolPrivate *d;
   Entry<PainterItemShaderData> *e;
 
-  d = reinterpret_cast<PainterPackedValuePoolPrivate*>(m_d);
+  d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
   e = d->m_item_shader_data_pool.allocate(value, d->m_alignment);
   return fastuidraw::PainterPackedValue<PainterItemShaderData>(e);
 }
@@ -1327,7 +1327,7 @@ create_packed_value(const PainterBlendShaderData &value)
   PainterPackedValuePoolPrivate *d;
   Entry<PainterBlendShaderData> *e;
 
-  d = reinterpret_cast<PainterPackedValuePoolPrivate*>(m_d);
+  d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
   e = d->m_blend_shader_data_pool.allocate(value, d->m_alignment);
   return fastuidraw::PainterPackedValue<PainterBlendShaderData>(e);
 }

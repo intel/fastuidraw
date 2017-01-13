@@ -300,7 +300,7 @@ fastuidraw::glsl::varying_list::
 varying_list(const varying_list &rhs)
 {
   VaryingListPrivate *d;
-  d = reinterpret_cast<VaryingListPrivate*>(rhs.m_d);
+  d = static_cast<VaryingListPrivate*>(rhs.m_d);
   m_d = FASTUIDRAWnew VaryingListPrivate(*d);
 }
 
@@ -308,7 +308,7 @@ fastuidraw::glsl::varying_list::
 ~varying_list()
 {
   VaryingListPrivate *d;
-  d = reinterpret_cast<VaryingListPrivate*>(m_d);
+  d = static_cast<VaryingListPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -320,8 +320,8 @@ operator=(const varying_list &rhs)
   if(this != &rhs)
     {
       VaryingListPrivate *d, *rhs_d;
-      d = reinterpret_cast<VaryingListPrivate*>(m_d);
-      rhs_d = reinterpret_cast<VaryingListPrivate*>(rhs.m_d);
+      d = static_cast<VaryingListPrivate*>(m_d);
+      rhs_d = static_cast<VaryingListPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -332,7 +332,7 @@ fastuidraw::glsl::varying_list::
 floats(enum interpolation_qualifier_t q) const
 {
   VaryingListPrivate *d;
-  d = reinterpret_cast<VaryingListPrivate*>(m_d);
+  d = static_cast<VaryingListPrivate*>(m_d);
   return d->m_floats[q].string_array();
 }
 
@@ -341,7 +341,7 @@ fastuidraw::glsl::varying_list::
 float_counts(void) const
 {
   VaryingListPrivate *d;
-  d = reinterpret_cast<VaryingListPrivate*>(m_d);
+  d = static_cast<VaryingListPrivate*>(m_d);
   return const_c_array<size_t>(&d->m_float_counts[0], d->m_float_counts.size());
 }
 
@@ -350,7 +350,7 @@ fastuidraw::glsl::varying_list::
 uints(void) const
 {
   VaryingListPrivate *d;
-  d = reinterpret_cast<VaryingListPrivate*>(m_d);
+  d = static_cast<VaryingListPrivate*>(m_d);
   return d->m_uints.string_array();
 }
 
@@ -359,7 +359,7 @@ fastuidraw::glsl::varying_list::
 ints(void) const
 {
   VaryingListPrivate *d;
-  d = reinterpret_cast<VaryingListPrivate*>(m_d);
+  d = static_cast<VaryingListPrivate*>(m_d);
   return d->m_ints.string_array();
 }
 
@@ -369,7 +369,7 @@ set_float_varying(unsigned int slot, const char *pname,
                   enum interpolation_qualifier_t q)
 {
   VaryingListPrivate *d;
-  d = reinterpret_cast<VaryingListPrivate*>(m_d);
+  d = static_cast<VaryingListPrivate*>(m_d);
   d->m_floats[q].implement_set(slot, pname);
   d->m_float_counts[q] = d->m_floats[q].string_array().size();
   return *this;
@@ -387,7 +387,7 @@ fastuidraw::glsl::varying_list::
 set_uint_varying(unsigned int slot, const char *pname)
 {
   VaryingListPrivate *d;
-  d = reinterpret_cast<VaryingListPrivate*>(m_d);
+  d = static_cast<VaryingListPrivate*>(m_d);
   d->m_uints.implement_set(slot, pname);
   return *this;
 }
@@ -404,7 +404,7 @@ fastuidraw::glsl::varying_list::
 set_int_varying(unsigned int slot, const char *pname)
 {
   VaryingListPrivate *d;
-  d = reinterpret_cast<VaryingListPrivate*>(m_d);
+  d = static_cast<VaryingListPrivate*>(m_d);
   d->m_ints.implement_set(slot, pname);
   return *this;
 }
@@ -429,7 +429,7 @@ fastuidraw::glsl::shader_unpack_value::
 shader_unpack_value(const shader_unpack_value &obj)
 {
   GLSLShaderUnpackValuePrivate *d;
-  d = reinterpret_cast<GLSLShaderUnpackValuePrivate*>(obj.m_d);
+  d = static_cast<GLSLShaderUnpackValuePrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew GLSLShaderUnpackValuePrivate(*d);
 }
 
@@ -437,7 +437,7 @@ fastuidraw::glsl::shader_unpack_value::
 ~shader_unpack_value()
 {
   GLSLShaderUnpackValuePrivate *d;
-  d = reinterpret_cast<GLSLShaderUnpackValuePrivate*>(m_d);
+  d = static_cast<GLSLShaderUnpackValuePrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -449,8 +449,8 @@ operator=(const shader_unpack_value &rhs)
   if(this != &rhs)
     {
       GLSLShaderUnpackValuePrivate *d, *rhs_d;
-      d = reinterpret_cast<GLSLShaderUnpackValuePrivate*>(m_d);
-      rhs_d = reinterpret_cast<GLSLShaderUnpackValuePrivate*>(rhs.m_d);
+      d = static_cast<GLSLShaderUnpackValuePrivate*>(m_d);
+      rhs_d = static_cast<GLSLShaderUnpackValuePrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -461,7 +461,7 @@ fastuidraw::glsl::shader_unpack_value::
 name(void) const
 {
   GLSLShaderUnpackValuePrivate *d;
-  d = reinterpret_cast<GLSLShaderUnpackValuePrivate*>(m_d);
+  d = static_cast<GLSLShaderUnpackValuePrivate*>(m_d);
   return d->m_name.c_str();
 }
 
@@ -470,7 +470,7 @@ fastuidraw::glsl::shader_unpack_value::
 type(void) const
 {
   GLSLShaderUnpackValuePrivate *d;
-  d = reinterpret_cast<GLSLShaderUnpackValuePrivate*>(m_d);
+  d = static_cast<GLSLShaderUnpackValuePrivate*>(m_d);
   return d->m_type;
 }
 
@@ -542,7 +542,7 @@ fastuidraw::glsl::PainterItemShaderGLSL::
 ~PainterItemShaderGLSL(void)
 {
   PainterShaderGLSLPrivate *d;
-  d = reinterpret_cast<PainterShaderGLSLPrivate*>(m_d);
+  d = static_cast<PainterShaderGLSLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -552,7 +552,7 @@ fastuidraw::glsl::PainterItemShaderGLSL::
 varyings(void) const
 {
   PainterShaderGLSLPrivate *d;
-  d = reinterpret_cast<PainterShaderGLSLPrivate*>(m_d);
+  d = static_cast<PainterShaderGLSLPrivate*>(m_d);
   return d->m_varyings;
 }
 
@@ -561,7 +561,7 @@ fastuidraw::glsl::PainterItemShaderGLSL::
 vertex_src(void) const
 {
   PainterShaderGLSLPrivate *d;
-  d = reinterpret_cast<PainterShaderGLSLPrivate*>(m_d);
+  d = static_cast<PainterShaderGLSLPrivate*>(m_d);
   return d->m_vertex_src;
 }
 
@@ -570,7 +570,7 @@ fastuidraw::glsl::PainterItemShaderGLSL::
 fragment_src(void) const
 {
   PainterShaderGLSLPrivate *d;
-  d = reinterpret_cast<PainterShaderGLSLPrivate*>(m_d);
+  d = static_cast<PainterShaderGLSLPrivate*>(m_d);
   return d->m_fragment_src;
 }
 
@@ -579,6 +579,6 @@ fastuidraw::glsl::PainterItemShaderGLSL::
 uses_discard(void) const
 {
   PainterShaderGLSLPrivate *d;
-  d = reinterpret_cast<PainterShaderGLSLPrivate*>(m_d);
+  d = static_cast<PainterShaderGLSLPrivate*>(m_d);
   return d->m_uses_discard;
 }

@@ -199,7 +199,7 @@ PathCreator::
 ft_outline_move_to(const FT_Vector *pt, void *user)
 {
   PathCreator *p;
-  p = reinterpret_cast<PathCreator*>(user);
+  p = static_cast<PathCreator*>(user);
 
   assert(!p->m_started);
   p->m_started = true;
@@ -213,7 +213,7 @@ PathCreator::
 ft_outline_line_to(const FT_Vector *pt, void *user)
 {
   PathCreator *p;
-  p = reinterpret_cast<PathCreator*>(user);
+  p = static_cast<PathCreator*>(user);
 
   assert(p->m_started);
   if(p->m_pt == *pt)
@@ -234,7 +234,7 @@ ft_outline_conic_to(const FT_Vector *ct,
                     const FT_Vector *pt, void *user)
 {
   PathCreator *p;
-  p = reinterpret_cast<PathCreator*>(user);
+  p = static_cast<PathCreator*>(user);
 
   assert(p->m_started);
   if(p->m_pt == *pt)
@@ -258,7 +258,7 @@ ft_outline_cubic_to(const FT_Vector *ct1,
                     const FT_Vector *pt, void *user)
 {
   PathCreator *p;
-  p = reinterpret_cast<PathCreator*>(user);
+  p = static_cast<PathCreator*>(user);
 
   assert(p->m_started);
   if(p->m_pt == *pt)
@@ -487,7 +487,7 @@ fastuidraw::FontFreeType::RenderParams::
 RenderParams(const RenderParams &obj)
 {
   RenderParamsPrivate *obj_d;
-  obj_d = reinterpret_cast<RenderParamsPrivate*>(obj.m_d);
+  obj_d = static_cast<RenderParamsPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew RenderParamsPrivate(*obj_d);
 }
 
@@ -495,7 +495,7 @@ fastuidraw::FontFreeType::RenderParams::
 ~RenderParams(void)
 {
   RenderParamsPrivate *d;
-  d = reinterpret_cast<RenderParamsPrivate*>(m_d);
+  d = static_cast<RenderParamsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -505,8 +505,8 @@ fastuidraw::FontFreeType::RenderParams::
 operator=(const RenderParams &rhs)
 {
   RenderParamsPrivate *d, *rhs_d;
-  d = reinterpret_cast<RenderParamsPrivate*>(m_d);
-  rhs_d = reinterpret_cast<RenderParamsPrivate*>(rhs.m_d);
+  d = static_cast<RenderParamsPrivate*>(m_d);
+  rhs_d = static_cast<RenderParamsPrivate*>(rhs.m_d);
   *d = *rhs_d;
   return *this;
 }
@@ -516,7 +516,7 @@ fastuidraw::FontFreeType::RenderParams::
 distance_field_pixel_size(unsigned int v)
 {
   RenderParamsPrivate *d;
-  d = reinterpret_cast<RenderParamsPrivate*>(m_d);
+  d = static_cast<RenderParamsPrivate*>(m_d);
   d->m_distance_field_pixel_size = v;
   return *this;
 }
@@ -526,7 +526,7 @@ fastuidraw::FontFreeType::RenderParams::
 distance_field_pixel_size(void) const
 {
   RenderParamsPrivate *d;
-  d = reinterpret_cast<RenderParamsPrivate*>(m_d);
+  d = static_cast<RenderParamsPrivate*>(m_d);
   return d->m_distance_field_pixel_size;
 }
 
@@ -535,7 +535,7 @@ fastuidraw::FontFreeType::RenderParams::
 distance_field_max_distance(float v)
 {
   RenderParamsPrivate *d;
-  d = reinterpret_cast<RenderParamsPrivate*>(m_d);
+  d = static_cast<RenderParamsPrivate*>(m_d);
   d->m_distance_field_max_distance = v;
   return *this;
 }
@@ -545,7 +545,7 @@ fastuidraw::FontFreeType::RenderParams::
 distance_field_max_distance(void) const
 {
   RenderParamsPrivate *d;
-  d = reinterpret_cast<RenderParamsPrivate*>(m_d);
+  d = static_cast<RenderParamsPrivate*>(m_d);
   return d->m_distance_field_max_distance;
 }
 
@@ -554,7 +554,7 @@ fastuidraw::FontFreeType::RenderParams::
 curve_pair_pixel_size(unsigned int v)
 {
   RenderParamsPrivate *d;
-  d = reinterpret_cast<RenderParamsPrivate*>(m_d);
+  d = static_cast<RenderParamsPrivate*>(m_d);
   d->m_curve_pair_pixel_size = v;
   return *this;
 }
@@ -564,7 +564,7 @@ fastuidraw::FontFreeType::RenderParams::
 curve_pair_pixel_size(void) const
 {
   RenderParamsPrivate *d;
-  d = reinterpret_cast<RenderParamsPrivate*>(m_d);
+  d = static_cast<RenderParamsPrivate*>(m_d);
   return d->m_curve_pair_pixel_size;
 }
 
@@ -606,7 +606,7 @@ fastuidraw::FontFreeType::
 ~FontFreeType()
 {
   FontFreeTypePrivate *d;
-  d = reinterpret_cast<FontFreeTypePrivate*>(m_d);
+  d = static_cast<FontFreeTypePrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -616,7 +616,7 @@ fastuidraw::FontFreeType::
 glyph_code(uint32_t pcharacter_code) const
 {
   FontFreeTypePrivate *d;
-  d = reinterpret_cast<FontFreeTypePrivate*>(m_d);
+  d = static_cast<FontFreeTypePrivate*>(m_d);
 
   FT_UInt glyphcode;
   glyphcode = FT_Get_Char_Index(d->m_face, FT_ULong(pcharacter_code));
@@ -638,7 +638,7 @@ compute_rendering_data(GlyphRender render, uint32_t glyph_code,
                        GlyphLayoutData &layout, Path &path) const
 {
   FontFreeTypePrivate *d;
-  d = reinterpret_cast<FontFreeTypePrivate*>(m_d);
+  d = static_cast<FontFreeTypePrivate*>(m_d);
 
   switch(render.m_type)
     {
@@ -681,7 +681,7 @@ fastuidraw::FontFreeType::
 render_params(void) const
 {
   FontFreeTypePrivate *d;
-  d = reinterpret_cast<FontFreeTypePrivate*>(m_d);
+  d = static_cast<FontFreeTypePrivate*>(m_d);
   return d->m_render_params;
 }
 
@@ -690,7 +690,7 @@ fastuidraw::FontFreeType::
 face(void) const
 {
   FontFreeTypePrivate *d;
-  d = reinterpret_cast<FontFreeTypePrivate*>(m_d);
+  d = static_cast<FontFreeTypePrivate*>(m_d);
   return d->m_face;
 }
 

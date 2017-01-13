@@ -59,7 +59,7 @@ fastuidraw::reference_count_atomic::
 {
   ReferenceCountAtomicPrivate *d;
 
-  d = reinterpret_cast<ReferenceCountAtomicPrivate*>(m_d);
+  d = static_cast<ReferenceCountAtomicPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -70,7 +70,7 @@ add_reference(void)
 {
   ReferenceCountAtomicPrivate *d;
 
-  d = reinterpret_cast<ReferenceCountAtomicPrivate*>(m_d);
+  d = static_cast<ReferenceCountAtomicPrivate*>(m_d);
   #ifndef FASTUIDRAW_USE_DETAIL_ATOMIC
     {
       d->m_reference_count.fetch_add(1, boost::memory_order_relaxed);
@@ -90,7 +90,7 @@ remove_reference(void)
   ReferenceCountAtomicPrivate *d;
   bool return_value;
 
-  d = reinterpret_cast<ReferenceCountAtomicPrivate*>(m_d);
+  d = static_cast<ReferenceCountAtomicPrivate*>(m_d);
   #ifndef FASTUIDRAW_USE_DETAIL_ATOMIC
     {
       if (d->m_reference_count.fetch_sub(1, boost::memory_order_release) == 1)

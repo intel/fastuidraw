@@ -730,14 +730,14 @@ DrawCommand(painter_vao_pool *hnd,
   data_bo = glMapBufferRange(GL_ARRAY_BUFFER, 0, hnd->data_buffer_size(), flags);
   assert(data_bo != NULL);
 
-  m_attributes = fastuidraw::c_array<fastuidraw::PainterAttribute>(reinterpret_cast<fastuidraw::PainterAttribute*>(attr_bo),
+  m_attributes = fastuidraw::c_array<fastuidraw::PainterAttribute>(static_cast<fastuidraw::PainterAttribute*>(attr_bo),
                                                                  params.attributes_per_buffer());
-  m_indices = fastuidraw::c_array<fastuidraw::PainterIndex>(reinterpret_cast<fastuidraw::PainterIndex*>(index_bo),
+  m_indices = fastuidraw::c_array<fastuidraw::PainterIndex>(static_cast<fastuidraw::PainterIndex*>(index_bo),
                                                           params.indices_per_buffer());
-  m_store = fastuidraw::c_array<fastuidraw::generic_data>(reinterpret_cast<fastuidraw::generic_data*>(data_bo),
+  m_store = fastuidraw::c_array<fastuidraw::generic_data>(static_cast<fastuidraw::generic_data*>(data_bo),
                                                           hnd->data_buffer_size() / sizeof(fastuidraw::generic_data));
 
-  m_header_attributes = fastuidraw::c_array<uint32_t>(reinterpret_cast<uint32_t*>(header_bo),
+  m_header_attributes = fastuidraw::c_array<uint32_t>(static_cast<uint32_t*>(header_bo),
                                                      params.attributes_per_buffer());
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -1344,7 +1344,7 @@ fastuidraw::gl::PainterBackendGL::ConfigurationGL::
 ConfigurationGL(const ConfigurationGL &obj)
 {
   ConfigurationGLPrivate *d;
-  d = reinterpret_cast<ConfigurationGLPrivate*>(obj.m_d);
+  d = static_cast<ConfigurationGLPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew ConfigurationGLPrivate(*d);
 }
 
@@ -1352,7 +1352,7 @@ fastuidraw::gl::PainterBackendGL::ConfigurationGL::
 ~ConfigurationGL()
 {
   ConfigurationGLPrivate *d;
-  d = reinterpret_cast<ConfigurationGLPrivate*>(m_d);
+  d = static_cast<ConfigurationGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -1364,8 +1364,8 @@ operator=(const ConfigurationGL &rhs)
   if(this != &rhs)
     {
       ConfigurationGLPrivate *d, *rhs_d;
-      d = reinterpret_cast<ConfigurationGLPrivate*>(m_d);
-      rhs_d = reinterpret_cast<ConfigurationGLPrivate*>(rhs.m_d);
+      d = static_cast<ConfigurationGLPrivate*>(m_d);
+      rhs_d = static_cast<ConfigurationGLPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -1377,7 +1377,7 @@ operator=(const ConfigurationGL &rhs)
   name(type v)                                                          \
   {                                                                     \
     ConfigurationGLPrivate *d;                                          \
-    d = reinterpret_cast<ConfigurationGLPrivate*>(m_d);                 \
+    d = static_cast<ConfigurationGLPrivate*>(m_d);                 \
     d->m_##name = v;                                                    \
     return *this;                                                       \
   }                                                                     \
@@ -1387,7 +1387,7 @@ operator=(const ConfigurationGL &rhs)
   name(void) const                                                      \
   {                                                                     \
     ConfigurationGLPrivate *d;                                          \
-    d = reinterpret_cast<ConfigurationGLPrivate*>(m_d);                 \
+    d = static_cast<ConfigurationGLPrivate*>(m_d);                 \
     return d->m_##name;                                                 \
   }
 
@@ -1432,7 +1432,7 @@ fastuidraw::gl::PainterBackendGL::
 ~PainterBackendGL()
 {
   PainterBackendGLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -1442,7 +1442,7 @@ fastuidraw::gl::PainterBackendGL::
 program(enum program_type_t tp)
 {
   PainterBackendGLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
   return d->programs(shader_code_added())[tp];
 }
 
@@ -1451,7 +1451,7 @@ fastuidraw::gl::PainterBackendGL::
 configuration_gl(void) const
 {
   PainterBackendGLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
   return d->m_params;
 }
 
@@ -1512,7 +1512,7 @@ fastuidraw::gl::PainterBackendGL::
 on_pre_draw(void)
 {
   PainterBackendGLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
 
   /* we delay setting up GL state until on_pre_draw() for several reasons:
        1. the atlases may have been resized, if so the underlying textures
@@ -1617,7 +1617,7 @@ on_pre_draw(void)
       ubo_mapped = glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
                                     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
 
-      fill_uniform_buffer(c_array<generic_data>(reinterpret_cast<generic_data*>(ubo_mapped), size_generics));
+      fill_uniform_buffer(c_array<generic_data>(static_cast<generic_data*>(ubo_mapped), size_generics));
       glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
       glUnmapBuffer(GL_UNIFORM_BUFFER);
 
@@ -1648,7 +1648,7 @@ fastuidraw::gl::PainterBackendGL::
 on_post_draw(void)
 {
   PainterBackendGLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
 
   /* this is somewhat paranoid to make sure that
      the GL objects do not leak...
@@ -1717,7 +1717,7 @@ fastuidraw::gl::PainterBackendGL::
 map_draw(void)
 {
   PainterBackendGLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
 
   return FASTUIDRAWnew DrawCommand(d->m_pool, d->m_params, d);
 }

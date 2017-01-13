@@ -46,7 +46,7 @@ fastuidraw::PainterDashedStrokeShaderSet::
 PainterDashedStrokeShaderSet(const PainterDashedStrokeShaderSet &obj)
 {
   PainterDashedStrokeShaderSetPrivate *d;
-  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(obj.m_d);
+  d = static_cast<PainterDashedStrokeShaderSetPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew PainterDashedStrokeShaderSetPrivate(*d);
 }
 
@@ -54,7 +54,7 @@ fastuidraw::PainterDashedStrokeShaderSet::
 ~PainterDashedStrokeShaderSet()
 {
   PainterDashedStrokeShaderSetPrivate *d;
-  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+  d = static_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -66,8 +66,8 @@ operator=(const PainterDashedStrokeShaderSet &rhs)
   if(this != &rhs)
     {
       PainterDashedStrokeShaderSetPrivate *d, *rhs_d;
-      d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
-      rhs_d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(rhs.m_d);
+      d = static_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+      rhs_d = static_cast<PainterDashedStrokeShaderSetPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -78,7 +78,7 @@ fastuidraw::PainterDashedStrokeShaderSet::
 shader(enum PainterEnums::cap_style st) const
 {
   PainterDashedStrokeShaderSetPrivate *d;
-  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+  d = static_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
   return d->m_shaders[st];
 }
 
@@ -88,7 +88,7 @@ shader(enum PainterEnums::cap_style st,
        const PainterStrokeShader &sh)
 {
   PainterDashedStrokeShaderSetPrivate *d;
-  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+  d = static_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
   d->m_shaders[st] = sh;
   return *this;
 }
@@ -98,7 +98,7 @@ fastuidraw::PainterDashedStrokeShaderSet::
 dash_evaluator(const reference_counted_ptr<const DashEvaluatorBase>& v)
 {
   PainterDashedStrokeShaderSetPrivate *d;
-  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+  d = static_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
   d->m_dash_evaluator = v;
   return *this;
 }
@@ -108,6 +108,6 @@ fastuidraw::PainterDashedStrokeShaderSet::
 dash_evaluator(void) const
 {
   PainterDashedStrokeShaderSetPrivate *d;
-  d = reinterpret_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
+  d = static_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
   return d->m_dash_evaluator;
 }

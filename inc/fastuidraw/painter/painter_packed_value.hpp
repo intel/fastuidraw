@@ -105,7 +105,7 @@ namespace fastuidraw
       const T *p;
 
       assert(this->m_d);
-      p = reinterpret_cast<const T*>(this->raw_value());
+      p = static_cast<const T*>(this->raw_value());
       return *p;
     }
 

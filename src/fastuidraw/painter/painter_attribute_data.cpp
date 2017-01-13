@@ -67,7 +67,7 @@ fastuidraw::PainterAttributeData::
 ~PainterAttributeData()
 {
   PainterAttributeDataPrivate *d;
-  d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
+  d = static_cast<PainterAttributeDataPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -77,7 +77,7 @@ fastuidraw::PainterAttributeData::
 set_data(const PainterAttributeDataFiller &filler)
 {
   PainterAttributeDataPrivate *d;
-  d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
+  d = static_cast<PainterAttributeDataPrivate*>(m_d);
 
   unsigned int number_attributes(0), number_indices(0);
   unsigned int number_attribute_chunks(0), number_index_chunks(0);
@@ -115,7 +115,7 @@ fastuidraw::PainterAttributeData::
 attribute_data_chunks(void) const
 {
   PainterAttributeDataPrivate *d;
-  d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
+  d = static_cast<PainterAttributeDataPrivate*>(m_d);
   return make_c_array(d->m_attribute_chunks);
 }
 
@@ -124,7 +124,7 @@ fastuidraw::PainterAttributeData::
 attribute_data_chunk(unsigned int i) const
 {
   PainterAttributeDataPrivate *d;
-  d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
+  d = static_cast<PainterAttributeDataPrivate*>(m_d);
   return (i < d->m_attribute_chunks.size()) ?
     d->m_attribute_chunks[i] :
     const_c_array<PainterAttribute>();
@@ -135,7 +135,7 @@ fastuidraw::PainterAttributeData::
 index_data_chunks(void) const
 {
   PainterAttributeDataPrivate *d;
-  d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
+  d = static_cast<PainterAttributeDataPrivate*>(m_d);
   return make_c_array(d->m_index_chunks);
 }
 
@@ -144,7 +144,7 @@ fastuidraw::PainterAttributeData::
 index_data_chunk(unsigned int i) const
 {
   PainterAttributeDataPrivate *d;
-  d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
+  d = static_cast<PainterAttributeDataPrivate*>(m_d);
   return (i < d->m_index_chunks.size()) ?
     d->m_index_chunks[i] :
     const_c_array<PainterIndex>();
@@ -155,7 +155,7 @@ fastuidraw::PainterAttributeData::
 index_adjust_chunks(void) const
 {
   PainterAttributeDataPrivate *d;
-  d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
+  d = static_cast<PainterAttributeDataPrivate*>(m_d);
   return make_c_array(d->m_index_adjust_chunks);
 }
 
@@ -164,7 +164,7 @@ fastuidraw::PainterAttributeData::
 index_adjust_chunk(unsigned int i) const
 {
   PainterAttributeDataPrivate *d;
-  d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
+  d = static_cast<PainterAttributeDataPrivate*>(m_d);
   return (i < d->m_index_adjust_chunks.size()) ?
     d->m_index_adjust_chunks[i] :
     0;
@@ -175,7 +175,7 @@ fastuidraw::PainterAttributeData::
 increment_z_values(void) const
 {
   PainterAttributeDataPrivate *d;
-  d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
+  d = static_cast<PainterAttributeDataPrivate*>(m_d);
   return make_c_array(d->m_increment_z);
 }
 
@@ -184,7 +184,7 @@ fastuidraw::PainterAttributeData::
 increment_z_value(unsigned int i) const
 {
   PainterAttributeDataPrivate *d;
-  d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
+  d = static_cast<PainterAttributeDataPrivate*>(m_d);
   return (i < d->m_increment_z.size()) ?
     d->m_increment_z[i] :
     0;
@@ -195,6 +195,6 @@ fastuidraw::PainterAttributeData::
 non_empty_index_data_chunks(void) const
 {
   PainterAttributeDataPrivate *d;
-  d = reinterpret_cast<PainterAttributeDataPrivate*>(m_d);
+  d = static_cast<PainterAttributeDataPrivate*>(m_d);
   return make_c_array(d->m_non_empty_index_data_chunks);
 }

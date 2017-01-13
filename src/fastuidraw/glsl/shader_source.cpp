@@ -275,7 +275,7 @@ fastuidraw::glsl::ShaderSource::
 ShaderSource(const ShaderSource &obj)
 {
   SourcePrivate *d;
-  d = reinterpret_cast<SourcePrivate*>(obj.m_d);
+  d = static_cast<SourcePrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew SourcePrivate(*d);
 }
 
@@ -283,7 +283,7 @@ fastuidraw::glsl::ShaderSource::
 ~ShaderSource()
 {
   SourcePrivate *d;
-  d = reinterpret_cast<SourcePrivate*>(m_d);
+  d = static_cast<SourcePrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -295,8 +295,8 @@ operator=(const ShaderSource &obj)
   if(this != &obj)
     {
       SourcePrivate *d, *obj_d;
-      d = reinterpret_cast<SourcePrivate*>(m_d);
-      obj_d = reinterpret_cast<SourcePrivate*>(obj.m_d);
+      d = static_cast<SourcePrivate*>(m_d);
+      obj_d = static_cast<SourcePrivate*>(obj.m_d);
       *d = *obj_d;
     }
   return *this;
@@ -307,7 +307,7 @@ fastuidraw::glsl::ShaderSource::
 specify_version(const char *v)
 {
   SourcePrivate *d;
-  d = reinterpret_cast<SourcePrivate*>(m_d);
+  d = static_cast<SourcePrivate*>(m_d);
   d->m_version = v ? std::string(v) : "";
   d->m_dirty = true;
   return *this;
@@ -318,7 +318,7 @@ fastuidraw::glsl::ShaderSource::
 version(void) const
 {
   SourcePrivate *d;
-  d = reinterpret_cast<SourcePrivate*>(m_d);
+  d = static_cast<SourcePrivate*>(m_d);
   return d->m_version.c_str();
 }
 
@@ -327,7 +327,7 @@ fastuidraw::glsl::ShaderSource::
 add_source(const char *str, enum source_t tp, enum add_location_t loc)
 {
   SourcePrivate *d;
-  d = reinterpret_cast<SourcePrivate*>(m_d);
+  d = static_cast<SourcePrivate*>(m_d);
 
   assert(str);
   SourcePrivate::source_code_t v(str, tp);
@@ -349,8 +349,8 @@ fastuidraw::glsl::ShaderSource::
 add_source(const ShaderSource &obj)
 {
   SourcePrivate *d, *obj_d;
-  d = reinterpret_cast<SourcePrivate*>(m_d);
-  obj_d = reinterpret_cast<SourcePrivate*>(obj.m_d);
+  d = static_cast<SourcePrivate*>(m_d);
+  obj_d = static_cast<SourcePrivate*>(obj.m_d);
 
   std::copy(obj_d->m_values.begin(), obj_d->m_values.end(),
             std::insert_iterator<std::list<SourcePrivate::source_code_t> >(d->m_values, d->m_values.end()));
@@ -403,7 +403,7 @@ fastuidraw::glsl::ShaderSource::
 specify_extension(const char *ext_name, enum extension_enable_t tp)
 {
   SourcePrivate *d;
-  d = reinterpret_cast<SourcePrivate*>(m_d);
+  d = static_cast<SourcePrivate*>(m_d);
   d->m_extensions[std::string(ext_name)] = tp;
   d->m_dirty = true;
   return *this;
@@ -415,8 +415,8 @@ specify_extensions(const ShaderSource &obj)
 {
   SourcePrivate *d;
   const SourcePrivate *obj_d;
-  d = reinterpret_cast<SourcePrivate*>(m_d);
-  obj_d = reinterpret_cast<const SourcePrivate*>(obj.m_d);
+  d = static_cast<SourcePrivate*>(m_d);
+  obj_d = static_cast<const SourcePrivate*>(obj.m_d);
   for(std::map<std::string, extension_enable_t>::const_iterator
         iter = obj_d->m_extensions.begin(), end = obj_d->m_extensions.end();
       iter != end; ++iter)
@@ -431,7 +431,7 @@ fastuidraw::glsl::ShaderSource::
 assembled_code(void) const
 {
   SourcePrivate *d;
-  d = reinterpret_cast<SourcePrivate*>(m_d);
+  d = static_cast<SourcePrivate*>(m_d);
 
   if(d->m_dirty)
     {

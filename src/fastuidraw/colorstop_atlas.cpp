@@ -198,7 +198,7 @@ fastuidraw::ColorStopBackingStore::
 ~ColorStopBackingStore()
 {
   ColorStopBackingStorePrivate *d;
-  d = reinterpret_cast<ColorStopBackingStorePrivate*>(m_d);
+  d = static_cast<ColorStopBackingStorePrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -208,7 +208,7 @@ fastuidraw::ColorStopBackingStore::
 dimensions(void) const
 {
   ColorStopBackingStorePrivate *d;
-  d = reinterpret_cast<ColorStopBackingStorePrivate*>(m_d);
+  d = static_cast<ColorStopBackingStorePrivate*>(m_d);
   return d->m_dimensions;
 }
 
@@ -217,7 +217,7 @@ fastuidraw::ColorStopBackingStore::
 width_times_height(void) const
 {
   ColorStopBackingStorePrivate *d;
-  d = reinterpret_cast<ColorStopBackingStorePrivate*>(m_d);
+  d = static_cast<ColorStopBackingStorePrivate*>(m_d);
   return d->m_width_times_height;
 }
 
@@ -226,7 +226,7 @@ fastuidraw::ColorStopBackingStore::
 resizeable(void) const
 {
   ColorStopBackingStorePrivate *d;
-  d = reinterpret_cast<ColorStopBackingStorePrivate*>(m_d);
+  d = static_cast<ColorStopBackingStorePrivate*>(m_d);
   return d->m_resizeable;
 }
 
@@ -235,7 +235,7 @@ fastuidraw::ColorStopBackingStore::
 resize(int new_num_layers)
 {
   ColorStopBackingStorePrivate *d;
-  d = reinterpret_cast<ColorStopBackingStorePrivate*>(m_d);
+  d = static_cast<ColorStopBackingStorePrivate*>(m_d);
   assert(d->m_resizeable);
   assert(new_num_layers > d->m_dimensions.y());
   resize_implement(new_num_layers);
@@ -255,7 +255,7 @@ fastuidraw::ColorStopAtlas::
 ~ColorStopAtlas()
 {
   ColorStopAtlasPrivate *d;
-  d = reinterpret_cast<ColorStopAtlasPrivate*>(m_d);
+  d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
   assert(d->m_delayed_interval_freeing_counter == 0);
   assert(d->m_allocated == 0);
@@ -275,7 +275,7 @@ fastuidraw::ColorStopAtlas::
 delay_interval_freeing(void)
 {
   ColorStopAtlasPrivate *d;
-  d = reinterpret_cast<ColorStopAtlasPrivate*>(m_d);
+  d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
   autolock_mutex m(d->m_mutex);
   ++d->m_delayed_interval_freeing_counter;
@@ -286,7 +286,7 @@ fastuidraw::ColorStopAtlas::
 undelay_interval_freeing(void)
 {
   ColorStopAtlasPrivate *d;
-  d = reinterpret_cast<ColorStopAtlasPrivate*>(m_d);
+  d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
   autolock_mutex m(d->m_mutex);
   assert(d->m_delayed_interval_freeing_counter >= 1);
@@ -307,7 +307,7 @@ fastuidraw::ColorStopAtlas::
 deallocate(ivec2 location, int width)
 {
   ColorStopAtlasPrivate *d;
-  d = reinterpret_cast<ColorStopAtlasPrivate*>(m_d);
+  d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
   autolock_mutex m(d->m_mutex);
   if(d->m_delayed_interval_freeing_counter == 0)
@@ -325,7 +325,7 @@ fastuidraw::ColorStopAtlas::
 flush(void) const
 {
   ColorStopAtlasPrivate *d;
-  d = reinterpret_cast<ColorStopAtlasPrivate*>(m_d);
+  d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
   autolock_mutex m(d->m_mutex);
   d->m_backing_store->flush();
@@ -336,7 +336,7 @@ fastuidraw::ColorStopAtlas::
 total_available(void) const
 {
   ColorStopAtlasPrivate *d;
-  d = reinterpret_cast<ColorStopAtlasPrivate*>(m_d);
+  d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
   autolock_mutex m(d->m_mutex);
   return d->m_backing_store->width_times_height() - d->m_allocated;
@@ -347,7 +347,7 @@ fastuidraw::ColorStopAtlas::
 largest_allocation_possible(void) const
 {
   ColorStopAtlasPrivate *d;
-  d = reinterpret_cast<ColorStopAtlasPrivate*>(m_d);
+  d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
   autolock_mutex m(d->m_mutex);
   if(d->m_available_layers.empty())
@@ -363,7 +363,7 @@ fastuidraw::ColorStopAtlas::
 allocate(const_c_array<u8vec4> data)
 {
   ColorStopAtlasPrivate *d;
-  d = reinterpret_cast<ColorStopAtlasPrivate*>(m_d);
+  d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
   autolock_mutex m(d->m_mutex);
 
@@ -428,7 +428,7 @@ fastuidraw::ColorStopAtlas::
 max_width(void) const
 {
   ColorStopAtlasPrivate *d;
-  d = reinterpret_cast<ColorStopAtlasPrivate*>(m_d);
+  d = static_cast<ColorStopAtlasPrivate*>(m_d);
   return d->m_backing_store->dimensions().x();
 }
 
@@ -437,7 +437,7 @@ fastuidraw::ColorStopAtlas::
 backing_store(void) const
 {
   ColorStopAtlasPrivate *d;
-  d = reinterpret_cast<ColorStopAtlasPrivate*>(m_d);
+  d = static_cast<ColorStopAtlasPrivate*>(m_d);
   return d->m_backing_store;
 }
 
@@ -551,7 +551,7 @@ fastuidraw::ColorStopSequenceOnAtlas::
 ~ColorStopSequenceOnAtlas(void)
 {
   ColorStopSequenceOnAtlasPrivate *d;
-  d = reinterpret_cast<ColorStopSequenceOnAtlasPrivate*>(m_d);
+  d = static_cast<ColorStopSequenceOnAtlasPrivate*>(m_d);
 
   ivec2 loc(d->m_texel_location);
 
@@ -566,7 +566,7 @@ fastuidraw::ColorStopSequenceOnAtlas::
 texel_location(void) const
 {
   ColorStopSequenceOnAtlasPrivate *d;
-  d = reinterpret_cast<ColorStopSequenceOnAtlasPrivate*>(m_d);
+  d = static_cast<ColorStopSequenceOnAtlasPrivate*>(m_d);
   return d->m_texel_location;
 }
 
@@ -575,7 +575,7 @@ fastuidraw::ColorStopSequenceOnAtlas::
 width(void) const
 {
   ColorStopSequenceOnAtlasPrivate *d;
-  d = reinterpret_cast<ColorStopSequenceOnAtlasPrivate*>(m_d);
+  d = static_cast<ColorStopSequenceOnAtlasPrivate*>(m_d);
   return d->m_width;
 }
 
@@ -584,6 +584,6 @@ fastuidraw::ColorStopSequenceOnAtlas::
 atlas(void) const
 {
   ColorStopSequenceOnAtlasPrivate *d;
-  d = reinterpret_cast<ColorStopSequenceOnAtlasPrivate*>(m_d);
+  d = static_cast<ColorStopSequenceOnAtlasPrivate*>(m_d);
   return d->m_atlas;
 }

@@ -599,7 +599,7 @@ fastuidraw::gl::GlyphAtlasGL::params::
 params(const params &obj)
 {
   GlyphAtlasGLParamsPrivate *d;
-  d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(obj.m_d);
+  d = static_cast<GlyphAtlasGLParamsPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew GlyphAtlasGLParamsPrivate(*d);
 }
 
@@ -607,7 +607,7 @@ fastuidraw::gl::GlyphAtlasGL::params::
 ~params()
 {
   GlyphAtlasGLParamsPrivate *d;
-  d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(m_d);
+  d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -619,8 +619,8 @@ operator=(const params &rhs)
   if(this != &rhs)
     {
       GlyphAtlasGLParamsPrivate *d, *rhs_d;
-      d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-      rhs_d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(rhs.m_d);
+      d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
+      rhs_d = static_cast<GlyphAtlasGLParamsPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -631,7 +631,7 @@ fastuidraw::gl::GlyphAtlasGL::params::
 glyph_geometry_backing_store_type(void) const
 {
   GlyphAtlasGLParamsPrivate *d;
-  d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(m_d);
+  d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
   return d->m_type;
 }
 
@@ -640,7 +640,7 @@ fastuidraw::gl::GlyphAtlasGL::params::
 use_texture_buffer_geometry_store(void)
 {
   GlyphAtlasGLParamsPrivate *d;
-  d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(m_d);
+  d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
   d->m_type = glsl::PainterBackendGLSL::glyph_geometry_tbo;
   d->m_log2_dims_geometry_store = ivec2(-1, -1);
   return *this;
@@ -651,7 +651,7 @@ fastuidraw::gl::GlyphAtlasGL::params::
 use_texture_2d_array_geometry_store(int log2_width, int log2_height)
 {
   GlyphAtlasGLParamsPrivate *d;
-  d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(m_d);
+  d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
   if(log2_width >= 0 && log2_height >= 0)
     {
       d->m_log2_dims_geometry_store = ivec2(log2_width, log2_height);
@@ -665,7 +665,7 @@ fastuidraw::gl::GlyphAtlasGL::params::
 texture_2d_array_geometry_store_log2_dims(void) const
 {
   GlyphAtlasGLParamsPrivate *d;
-  d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(m_d);
+  d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
   return d->m_log2_dims_geometry_store;
 }
 
@@ -674,7 +674,7 @@ fastuidraw::gl::GlyphAtlasGL::params::
 use_optimal_geometry_store_backing(void)
 {
   GlyphAtlasGLParamsPrivate *d;
-  d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(m_d);
+  d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
 
   const int32_t required_max_size(1u << 26u);
 
@@ -722,7 +722,7 @@ use_optimal_geometry_store_backing(void)
   name(type v)                                                   \
   {                                                              \
     GlyphAtlasGLParamsPrivate *d;                                \
-    d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(m_d);       \
+    d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);       \
     d->m_##name = v;                                             \
     return *this;                                                \
   }                                                              \
@@ -732,7 +732,7 @@ use_optimal_geometry_store_backing(void)
   name(void) const                                               \
   {                                                              \
     GlyphAtlasGLParamsPrivate *d;                                \
-    d = reinterpret_cast<GlyphAtlasGLParamsPrivate*>(m_d);       \
+    d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);       \
     return d->m_##name;                                          \
   }
 
@@ -758,7 +758,7 @@ fastuidraw::gl::GlyphAtlasGL::
 ~GlyphAtlasGL()
 {
   GlyphAtlasGLPrivate *d;
-  d = reinterpret_cast<GlyphAtlasGLPrivate*>(m_d);
+  d = static_cast<GlyphAtlasGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -768,7 +768,7 @@ fastuidraw::gl::GlyphAtlasGL::
 param_values(void) const
 {
   GlyphAtlasGLPrivate *d;
-  d = reinterpret_cast<GlyphAtlasGLPrivate*>(m_d);
+  d = static_cast<GlyphAtlasGLPrivate*>(m_d);
   return d->m_params;
 }
 

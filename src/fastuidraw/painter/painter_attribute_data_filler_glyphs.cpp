@@ -246,7 +246,7 @@ fastuidraw::PainterAttributeDataFillerGlyphs::
 ~PainterAttributeDataFillerGlyphs()
 {
   FillGlyphsPrivate *d;
-  d = reinterpret_cast<FillGlyphsPrivate*>(m_d);
+  d = static_cast<FillGlyphsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -260,7 +260,7 @@ compute_sizes(unsigned int &number_attributes,
               unsigned int &number_z_increments) const
 {
   FillGlyphsPrivate *d;
-  d = reinterpret_cast<FillGlyphsPrivate*>(m_d);
+  d = static_cast<FillGlyphsPrivate*>(m_d);
 
   d->compute_number_glyphs();
   number_attributes = 4 * d->m_number_glyphs;
@@ -280,7 +280,7 @@ fill_data(c_array<PainterAttribute> attribute_data,
           c_array<int> index_adjusts) const
 {
   FillGlyphsPrivate *d;
-  d = reinterpret_cast<FillGlyphsPrivate*>(m_d);
+  d = static_cast<FillGlyphsPrivate*>(m_d);
   for(unsigned int i = 0, c = 0, endi = d->m_cnt_by_type.size(); i < endi; ++i)
     {
       attrib_chunks[i] = attribute_data.sub_array(4 * c, 4 * d->m_cnt_by_type[i]);

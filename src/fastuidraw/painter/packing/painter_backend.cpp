@@ -117,7 +117,7 @@ fastuidraw::PainterBackend::ConfigurationBase::
 ConfigurationBase(const ConfigurationBase &obj)
 {
   ConfigurationPrivate *d;
-  d = reinterpret_cast<ConfigurationPrivate*>(obj.m_d);
+  d = static_cast<ConfigurationPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew ConfigurationPrivate(*d);
 }
 
@@ -125,7 +125,7 @@ fastuidraw::PainterBackend::ConfigurationBase::
 ~ConfigurationBase()
 {
   ConfigurationPrivate *d;
-  d = reinterpret_cast<ConfigurationPrivate*>(m_d);
+  d = static_cast<ConfigurationPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -135,8 +135,8 @@ fastuidraw::PainterBackend::ConfigurationBase::
 operator=(const ConfigurationBase &obj)
 {
   ConfigurationPrivate *d, *obj_d;
-  d = reinterpret_cast<ConfigurationPrivate*>(m_d);
-  obj_d = reinterpret_cast<ConfigurationPrivate*>(obj.m_d);
+  d = static_cast<ConfigurationPrivate*>(m_d);
+  obj_d = static_cast<ConfigurationPrivate*>(obj.m_d);
   *d = *obj_d;
   return *this;
 }
@@ -146,7 +146,7 @@ fastuidraw::PainterBackend::ConfigurationBase::
 brush_shader_mask(void) const
 {
   ConfigurationPrivate *d;
-  d = reinterpret_cast<ConfigurationPrivate*>(m_d);
+  d = static_cast<ConfigurationPrivate*>(m_d);
   return d->m_brush_shader_mask;
 }
 
@@ -155,7 +155,7 @@ fastuidraw::PainterBackend::ConfigurationBase::
 brush_shader_mask(uint32_t v)
 {
   ConfigurationPrivate *d;
-  d = reinterpret_cast<ConfigurationPrivate*>(m_d);
+  d = static_cast<ConfigurationPrivate*>(m_d);
   d->m_brush_shader_mask = v;
   return *this;
 }
@@ -165,7 +165,7 @@ fastuidraw::PainterBackend::ConfigurationBase::
 alignment(void) const
 {
   ConfigurationPrivate *d;
-  d = reinterpret_cast<ConfigurationPrivate*>(m_d);
+  d = static_cast<ConfigurationPrivate*>(m_d);
   return d->m_alignment;
 }
 
@@ -174,7 +174,7 @@ fastuidraw::PainterBackend::ConfigurationBase::
 alignment(int v)
 {
   ConfigurationPrivate *d;
-  d = reinterpret_cast<ConfigurationPrivate*>(m_d);
+  d = static_cast<ConfigurationPrivate*>(m_d);
   d->m_alignment = v;
   return *this;
 }
@@ -196,7 +196,7 @@ fastuidraw::PainterBackend::
 ~PainterBackend()
 {
   PainterBackendPrivate *d;
-  d = reinterpret_cast<PainterBackendPrivate*>(m_d);
+  d = static_cast<PainterBackendPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -206,7 +206,7 @@ fastuidraw::PainterBackend::
 set_hints(void)
 {
   PainterBackendPrivate *d;
-  d = reinterpret_cast<PainterBackendPrivate*>(m_d);
+  d = static_cast<PainterBackendPrivate*>(m_d);
   return d->m_hints;
 }
 
@@ -215,7 +215,7 @@ fastuidraw::PainterBackend::
 hints(void) const
 {
   PainterBackendPrivate *d;
-  d = reinterpret_cast<PainterBackendPrivate*>(m_d);
+  d = static_cast<PainterBackendPrivate*>(m_d);
   return d->m_hints;
 }
 
@@ -313,7 +313,7 @@ fastuidraw::PainterBackend::
 default_shaders(void)
 {
   PainterBackendPrivate *d;
-  d = reinterpret_cast<PainterBackendPrivate*>(m_d);
+  d = static_cast<PainterBackendPrivate*>(m_d);
   if(!d->m_default_shaders_registered)
     {
       register_shader(d->m_default_shaders);
@@ -355,7 +355,7 @@ fastuidraw::PainterBackend::
 glyph_atlas(void)
 {
   PainterBackendPrivate *d;
-  d = reinterpret_cast<PainterBackendPrivate*>(m_d);
+  d = static_cast<PainterBackendPrivate*>(m_d);
   return d->m_glyph_atlas;
 }
 
@@ -364,7 +364,7 @@ fastuidraw::PainterBackend::
 image_atlas(void)
 {
   PainterBackendPrivate *d;
-  d = reinterpret_cast<PainterBackendPrivate*>(m_d);
+  d = static_cast<PainterBackendPrivate*>(m_d);
   return d->m_image_atlas;
 }
 
@@ -373,7 +373,7 @@ fastuidraw::PainterBackend::
 colorstop_atlas(void)
 {
   PainterBackendPrivate *d;
-  d = reinterpret_cast<PainterBackendPrivate*>(m_d);
+  d = static_cast<PainterBackendPrivate*>(m_d);
   return d->m_colorstop_atlas;
 }
 
@@ -382,6 +382,6 @@ fastuidraw::PainterBackend::
 configuration_base(void) const
 {
   PainterBackendPrivate *d;
-  d = reinterpret_cast<PainterBackendPrivate*>(m_d);
+  d = static_cast<PainterBackendPrivate*>(m_d);
   return d->m_config;
 }

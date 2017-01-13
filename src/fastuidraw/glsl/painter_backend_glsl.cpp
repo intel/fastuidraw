@@ -1138,7 +1138,7 @@ fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
 ConfigurationGLSL(const ConfigurationGLSL &obj)
 {
   ConfigurationGLSLPrivate *d;
-  d = reinterpret_cast<ConfigurationGLSLPrivate*>(obj.m_d);
+  d = static_cast<ConfigurationGLSLPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew ConfigurationGLSLPrivate(*d);
 }
 
@@ -1146,7 +1146,7 @@ fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
 ~ConfigurationGLSL()
 {
   ConfigurationGLSLPrivate *d;
-  d = reinterpret_cast<ConfigurationGLSLPrivate*>(m_d);
+  d = static_cast<ConfigurationGLSLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -1158,8 +1158,8 @@ operator=(const ConfigurationGLSL &rhs)
   if(this != &rhs)
     {
       ConfigurationGLSLPrivate *d, *rhs_d;
-      d = reinterpret_cast<ConfigurationGLSLPrivate*>(m_d);
-      rhs_d = reinterpret_cast<ConfigurationGLSLPrivate*>(rhs.m_d);
+      d = static_cast<ConfigurationGLSLPrivate*>(m_d);
+      rhs_d = static_cast<ConfigurationGLSLPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -1171,7 +1171,7 @@ operator=(const ConfigurationGLSL &rhs)
   name(type v)                                                          \
   {                                                                     \
     ConfigurationGLSLPrivate *d;                                        \
-    d = reinterpret_cast<ConfigurationGLSLPrivate*>(m_d);               \
+    d = static_cast<ConfigurationGLSLPrivate*>(m_d);               \
     d->m_##name = v;                                                    \
     return *this;                                                       \
   }                                                                     \
@@ -1181,7 +1181,7 @@ operator=(const ConfigurationGLSL &rhs)
   name(void) const                                                      \
   {                                                                     \
     ConfigurationGLSLPrivate *d;                                        \
-    d = reinterpret_cast<ConfigurationGLSLPrivate*>(m_d);               \
+    d = static_cast<ConfigurationGLSLPrivate*>(m_d);               \
     return d->m_##name;                                                 \
   }
 
@@ -1203,7 +1203,7 @@ fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
 BindingPoints(const BindingPoints &obj)
 {
   BindingPointsPrivate *d;
-  d = reinterpret_cast<BindingPointsPrivate*>(obj.m_d);
+  d = static_cast<BindingPointsPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew BindingPointsPrivate(*d);
 }
 
@@ -1211,7 +1211,7 @@ fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
 ~BindingPoints()
 {
   BindingPointsPrivate *d;
-  d = reinterpret_cast<BindingPointsPrivate*>(m_d);
+  d = static_cast<BindingPointsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -1223,8 +1223,8 @@ operator=(const BindingPoints &rhs)
   if(this != &rhs)
     {
       BindingPointsPrivate *d, *rhs_d;
-      d = reinterpret_cast<BindingPointsPrivate*>(m_d);
-      rhs_d = reinterpret_cast<BindingPointsPrivate*>(rhs.m_d);
+      d = static_cast<BindingPointsPrivate*>(m_d);
+      rhs_d = static_cast<BindingPointsPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -1236,7 +1236,7 @@ operator=(const BindingPoints &rhs)
   name(type v)                                                          \
   {                                                                     \
     BindingPointsPrivate *d;                                            \
-    d = reinterpret_cast<BindingPointsPrivate*>(m_d);                   \
+    d = static_cast<BindingPointsPrivate*>(m_d);                   \
     d->m_##name = v;                                                    \
     return *this;                                                       \
   }                                                                     \
@@ -1246,7 +1246,7 @@ operator=(const BindingPoints &rhs)
   name(void) const                                                      \
   {                                                                     \
     BindingPointsPrivate *d;                                            \
-    d = reinterpret_cast<BindingPointsPrivate*>(m_d);                   \
+    d = static_cast<BindingPointsPrivate*>(m_d);                   \
     return d->m_##name;                                                 \
   }
 
@@ -1275,7 +1275,7 @@ fastuidraw::glsl::PainterBackendGLSL::UberShaderParams::
 UberShaderParams(const UberShaderParams &obj)
 {
   UberShaderParamsPrivate *d;
-  d = reinterpret_cast<UberShaderParamsPrivate*>(obj.m_d);
+  d = static_cast<UberShaderParamsPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew UberShaderParamsPrivate(*d);
 }
 
@@ -1283,7 +1283,7 @@ fastuidraw::glsl::PainterBackendGLSL::UberShaderParams::
 ~UberShaderParams()
 {
   UberShaderParamsPrivate *d;
-  d = reinterpret_cast<UberShaderParamsPrivate*>(m_d);
+  d = static_cast<UberShaderParamsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -1295,8 +1295,8 @@ operator=(const UberShaderParams &rhs)
   if(this != &rhs)
     {
       UberShaderParamsPrivate *d, *rhs_d;
-      d = reinterpret_cast<UberShaderParamsPrivate*>(m_d);
-      rhs_d = reinterpret_cast<UberShaderParamsPrivate*>(rhs.m_d);
+      d = static_cast<UberShaderParamsPrivate*>(m_d);
+      rhs_d = static_cast<UberShaderParamsPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -1308,7 +1308,7 @@ operator=(const UberShaderParams &rhs)
   name(type v)                                                          \
   {                                                                     \
     UberShaderParamsPrivate *d;                                         \
-    d = reinterpret_cast<UberShaderParamsPrivate*>(m_d);                \
+    d = static_cast<UberShaderParamsPrivate*>(m_d);                \
     d->m_##name = v;                                                    \
     return *this;                                                       \
   }                                                                     \
@@ -1318,7 +1318,7 @@ operator=(const UberShaderParams &rhs)
   name(void) const                                                      \
   {                                                                     \
     UberShaderParamsPrivate *d;                                         \
-    d = reinterpret_cast<UberShaderParamsPrivate*>(m_d);                \
+    d = static_cast<UberShaderParamsPrivate*>(m_d);                \
     return d->m_##name;                                                 \
   }
 
@@ -1363,7 +1363,7 @@ fastuidraw::glsl::PainterBackendGLSL::
 ~PainterBackendGLSL()
 {
   PainterBackendGLSLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLSLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -1373,7 +1373,7 @@ fastuidraw::glsl::PainterBackendGLSL::
 add_vertex_shader_util(const ShaderSource &src)
 {
   PainterBackendGLSLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLSLPrivate*>(m_d);
   d->m_vert_shader_utils.add_source(src);
 }
 
@@ -1382,7 +1382,7 @@ fastuidraw::glsl::PainterBackendGLSL::
 add_fragment_shader_util(const ShaderSource &src)
 {
   PainterBackendGLSLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLSLPrivate*>(m_d);
   d->m_frag_shader_utils.add_source(src);
 }
 
@@ -1411,7 +1411,7 @@ fastuidraw::glsl::PainterBackendGLSL::
 absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader)
 {
   PainterBackendGLSLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLSLPrivate*>(m_d);
 
   reference_counted_ptr<glsl::PainterItemShaderGLSL> h;
   PainterShader::Tag return_value;
@@ -1446,7 +1446,7 @@ fastuidraw::glsl::PainterBackendGLSL::
 absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader)
 {
   PainterBackendGLSLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLSLPrivate*>(m_d);
 
   reference_counted_ptr<PainterBlendShaderGLSL> h;
   fastuidraw::PainterShader::Tag return_value;
@@ -1480,7 +1480,7 @@ fastuidraw::glsl::PainterBackendGLSL::
 target_resolution(int w, int h)
 {
   PainterBackendGLSLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLSLPrivate*>(m_d);
 
   w = std::max(1, w);
   h = std::max(1, h);
@@ -1496,7 +1496,7 @@ shader_code_added(void)
 {
   bool return_value;
   PainterBackendGLSLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLSLPrivate*>(m_d);
   return_value = d->m_shader_code_added;
   d->m_shader_code_added = false;
   return return_value;
@@ -1507,7 +1507,7 @@ fastuidraw::glsl::PainterBackendGLSL::
 configuration_glsl(void) const
 {
   PainterBackendGLSLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLSLPrivate*>(m_d);
   return d->m_config;
 }
 
@@ -1520,7 +1520,7 @@ construct_shader(ShaderSource &out_vertex,
                  const char *discard_macro_value)
 {
   PainterBackendGLSLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLSLPrivate*>(m_d);
   d->construct_shader(out_vertex, out_fragment, construct_params,
                       item_shader_filter, discard_macro_value);
 }
@@ -1537,7 +1537,7 @@ fastuidraw::glsl::PainterBackendGLSL::
 fill_uniform_buffer(c_array<generic_data> p)
 {
   PainterBackendGLSLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLSLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLSLPrivate*>(m_d);
   p[uniform_ubo_resolution_x_offset].f = d->m_target_resolution.x();
   p[uniform_ubo_resolution_y_offset].f = d->m_target_resolution.y();
   p[uniform_ubo_recip_resolution_x_offset].f = d->m_target_resolution_recip.x();

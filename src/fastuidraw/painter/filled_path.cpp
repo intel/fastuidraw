@@ -2426,7 +2426,7 @@ fastuidraw::FilledPath::ScratchSpace::
 ~ScratchSpace(void)
 {
   ScratchSpacePrivate *d;
-  d = reinterpret_cast<ScratchSpacePrivate*>(m_d);
+  d = static_cast<ScratchSpacePrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -2497,7 +2497,7 @@ fastuidraw::FilledPath::
 ~FilledPath()
 {
   FilledPathPrivate *d;
-  d = reinterpret_cast<FilledPathPrivate*>(m_d);
+  d = static_cast<FilledPathPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -2507,7 +2507,7 @@ fastuidraw::FilledPath::
 number_subsets(void) const
 {
   FilledPathPrivate *d;
-  d = reinterpret_cast<FilledPathPrivate*>(m_d);
+  d = static_cast<FilledPathPrivate*>(m_d);
   return d->m_subsets.size();
 }
 
@@ -2519,7 +2519,7 @@ subset(unsigned int I) const
   FilledPathPrivate *d;
   SubsetPrivate *p;
 
-  d = reinterpret_cast<FilledPathPrivate*>(m_d);
+  d = static_cast<FilledPathPrivate*>(m_d);
   assert(I < d->m_subsets.size());
   p = d->m_subsets[I];
   p->make_ready();
@@ -2539,7 +2539,7 @@ select_subsets(ScratchSpace &work_room,
   FilledPathPrivate *d;
   unsigned int return_value;
 
-  d = reinterpret_cast<FilledPathPrivate*>(m_d);
+  d = static_cast<FilledPathPrivate*>(m_d);
   assert(dst.size() >= d->m_subsets.size());
   /* TODO:
        - have another method in SubsetPrivate called
