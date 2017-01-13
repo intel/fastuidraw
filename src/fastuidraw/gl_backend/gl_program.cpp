@@ -1438,6 +1438,15 @@ action(GLuint glsl_program) const
   glBindAttribLocation(glsl_program, d->m_location, d->m_label.c_str());
 }
 
+////////////////////////////////////
+// ProgramSeparable methods
+void
+fastuidraw::gl::ProgramSeparable::
+action(GLuint glsl_program) const
+{
+  glProgramParameteri(glsl_program, GL_PROGRAM_SEPARABLE, GL_TRUE);
+}
+
 
 ////////////////////////////////////////////
 // fastuidraw::gl::PreLinkActionArray methods
@@ -1906,6 +1915,15 @@ assemble(fastuidraw::gl::Program *program)
           m_storage_buffer_list.populate_as_empty();
         }
 
+      /* TODO: if the GLSL program is seperable, it might be *BAD*
+         to call glUseProgram if it does not have a vertex shader
+         or if it does not have a fragment shader. Would be better
+         if we could assume that each of the initializers did not
+         need the program to be current; This can be done via the
+         glProgramUniform calls, but glProgramUniform is available
+         in GL 4.1 or higher of via GL_ARB_seperate_shader_objects
+         and for ES, GLES3.1 is required.
+       */
       int current_program;
       current_program = fastuidraw::gl::context_get<int>(GL_CURRENT_PROGRAM);
       glUseProgram(m_name);

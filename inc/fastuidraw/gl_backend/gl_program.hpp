@@ -210,6 +210,21 @@ private:
   void *m_d;
 };
 
+/*!
+  A ProgramSeparable inherits from PreLinkAction,
+  its purpose is to set a GLSL program as separable,
+  so that it can be used by a GLSL pipeline.
+  Using a ProgramSeparable requires:
+  - for GLES: GLES3.0 or higher
+  - for GL: either GL version 4.1 or the extension GL_ARB_separate_shader_objects
+ */
+class ProgramSeparable:public PreLinkAction
+{
+public:
+  virtual
+  void
+  action(GLuint glsl_program) const;
+};
 
 /*!
   A PreLinkActionArray is a conveniance class
