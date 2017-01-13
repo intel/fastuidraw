@@ -1877,7 +1877,7 @@ assemble(fastuidraw::gl::Program *program)
   if(m_link_success)
     {
       fastuidraw::gl::ContextProperties ctx_props;
-      bool ssbo_supported;
+      bool ssbo_supported, sso_supported;
 
       m_uniform_list.populate(m_name, ctx_props);
       m_attribute_list.populate(m_name, ctx_props);
@@ -1885,11 +1885,15 @@ assemble(fastuidraw::gl::Program *program)
       if(ctx_props.is_es())
         {
           ssbo_supported = ctx_props.version() >= fastuidraw::ivec2(3, 1);
+          sso_supported = ctx_props.version() >= fastuidraw::ivec2(3, 1);
         }
       else
         {
           ssbo_supported = ctx_props.version() >= fastuidraw::ivec2(4, 3)
             || ctx_props.has_extension("GL_ARB_shader_storage_buffer_object");
+
+          sso_supported = ctx_props.version() >= fastuidraw::ivec2(4, 1)
+            || ctx_props.has_extension("GL_ARB_separate_shader_objects");
         }
 
       if(ssbo_supported)
@@ -1915,20 +1919,20 @@ assemble(fastuidraw::gl::Program *program)
           m_storage_buffer_list.populate_as_empty();
         }
 
-      /* TODO: if the GLSL program is seperable, it might be *BAD*
-         to call glUseProgram if it does not have a vertex shader
-         or if it does not have a fragment shader. Would be better
-         if we could assume that each of the initializers did not
-         need the program to be current; This can be done via the
-         glProgramUniform calls, but glProgramUniform is available
-         in GL 4.1 or higher of via GL_ARB_seperate_shader_objects
-         and for ES, GLES3.1 is required.
-       */
       int current_program;
-      current_program = fastuidraw::gl::context_get<int>(GL_CURRENT_PROGRAM);
-      glUseProgram(m_name);
-      m_initializers.perform_initializations(program);
-      glUseProgram(current_program);
+
+      if(!sso_supported)
+        {
+          current_program = fastuidraw::gl::context_get<int>(GL_CURRENT_PROGRAM);
+          glUseProgram(m_name);
+        }
+
+      m_initializers.perform_initializations(program, !sso_supported);
+
+      if(!sso_supported)
+        {
+          glUseProgram(current_program);
+        }
     }
   else
     {
@@ -2485,7 +2489,7 @@ add(reference_counted_ptr<ProgramInitializer> h)
 
 void
 fastuidraw::gl::ProgramInitializerArray::
-perform_initializations(Program *pr) const
+perform_initializations(Program *pr, bool program_bound) const
 {
   ProgramInitializerArrayPrivate *d;
   d = reinterpret_cast<ProgramInitializerArrayPrivate*>(m_d);
@@ -2495,7 +2499,7 @@ perform_initializations(Program *pr) const
     {
       const reference_counted_ptr<ProgramInitializer> &v(*iter);
       assert(v);
-      v->perform_initialization(pr);
+      v->perform_initialization(pr, program_bound);
     }
 }
 
@@ -2528,7 +2532,7 @@ fastuidraw::gl::UniformBlockInitializer::
 
 void
 fastuidraw::gl::UniformBlockInitializer::
-perform_initialization(Program *pr) const
+perform_initialization(Program *pr, bool program_bound) const
 {
   UniformBlockInitializerPrivate *d;
   d = reinterpret_cast<UniformBlockInitializerPrivate*>(m_d);
@@ -2547,6 +2551,7 @@ perform_initialization(Program *pr) const
                 << "\" in program " << pr->name()
                 << " for initialization\n";
     }
+  FASTUIDRAWunused(program_bound);
 }
 
 /////////////////////////////////////////////////
@@ -2570,7 +2575,7 @@ fastuidraw::gl::UniformInitalizerBase::
 
 void
 fastuidraw::gl::UniformInitalizerBase::
-perform_initialization(Program *pr) const
+perform_initialization(Program *pr, bool program_bound) const
 {
   std::string *d;
   d = reinterpret_cast<std::string*>(m_d);
@@ -2590,7 +2595,7 @@ perform_initialization(Program *pr) const
 
   if(loc != -1)
     {
-      init_uniform(loc);
+      init_uniform(pr->name(), loc, program_bound);
     }
   else
     {

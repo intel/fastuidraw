@@ -304,16 +304,17 @@ public:
   {}
 
   /*!
-    To be implemented by a derived class to
-    perform additional one-time actions.
-    Function is called the first time the
-    GLSL program of the Program is
-    bound.
+    To be implemented by a derived class to perform additional
+    one-time actions. Function is called after the GL program
+    object is successfully linked.
     \param pr Program to initialize
+    \param program_bound GLSL Program is already bound, the program is
+                         NOT bound if the GL/GLES API supports seperable
+                         program objects.
    */
   virtual
   void
-  perform_initialization(Program *pr) const = 0;
+  perform_initialization(Program *pr, bool program_bound) const = 0;
 };
 
 /*!
@@ -335,7 +336,7 @@ public:
 
   virtual
   void
-  perform_initialization(Program *pr) const;
+  perform_initialization(Program *pr, bool program_bound) const;
 
 protected:
 
@@ -346,7 +347,7 @@ protected:
    */
   virtual
   void
-  init_uniform(GLint location) const = 0;
+  init_uniform(GLuint program, GLint location, bool program_bound) const = 0;
 
 private:
   void *m_d;
@@ -374,9 +375,16 @@ protected:
 
   virtual
   void
-  init_uniform(GLint location) const
+  init_uniform(GLuint program, GLint location, bool program_bound) const
   {
-    Uniform(location, m_value);
+    if(program_bound)
+      {
+        Uniform(location, m_value);
+      }
+    else
+      {
+        ProgramUniform(program, location, m_value);
+      }
   }
 
 private:
@@ -408,7 +416,7 @@ public:
 
   virtual
   void
-  perform_initialization(Program *pr) const;
+  perform_initialization(Program *pr, bool program_bound) const;
 
 private:
   void *m_d;
@@ -496,7 +504,7 @@ public:
     \param pr Program to pass along
    */
   void
-  perform_initializations(Program *pr) const;
+  perform_initializations(Program *pr, bool program_bound) const;
 
   /*!
     Clear all elements that have been added via add().
