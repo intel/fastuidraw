@@ -698,8 +698,8 @@ public:
     /*!
       Returns the offset into a backing buffer object
       on which the this is sourced (or written to).
-      For uniforms of the default uniform block and
-      for attributes, returns -1.
+      For attributes and uniforms of the default uniform
+      block which are not atomic counters, returns -1.
      */
     GLint
     buffer_offset(void) const;
@@ -1135,7 +1135,7 @@ public:
 
   /*!
     Searches uniform_block() to find the named uniform block.
-    Returns value -1 indicated that the uniform block could
+    Return value ~0u indicates that the uniform block could
     not be found. This function should only be called either
     after use_program() has been called or only when the GL
     context is current.
@@ -1143,6 +1143,16 @@ public:
    */
   unsigned int
   uniform_block_id(const char *uniform_block_name);
+
+  /*!
+    Searches the members of all uniform blocks and shader storage blocks
+    for the named variable. This search also correctly handles searches
+    for variables whose leading dimension is not one and elements
+    that is an array. Returns the -offset- into the backing buffer
+    object for the element. If the element is not found, then returns -1.
+   */
+  int
+  variable_offset(const char *name, shader_variable_info &shader_variable);
 
   /*!
     Returns the number of active shader storage blocks.
@@ -1166,7 +1176,7 @@ public:
 
   /*!
     Searches shader_storage_block() to find the named shader_storage block.
-    Returns value -1 indicated that the shader_storage block could
+    Return value ~0u indicates that the shader_storage block could
     not be found. This function should only be called either
     after use_program() has been called or only when the GL
     context is current.
