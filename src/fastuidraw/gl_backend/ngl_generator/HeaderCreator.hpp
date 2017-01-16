@@ -96,7 +96,7 @@ private:
   static string sm_function_prefix, sm_LoadingFunctionName, sm_GLErrorFunctionName, sm_ErrorLoadingFunctionName;
   static string sm_laodAllFunctionsName,sm_insideBeginEndPairNameCounter, sm_insideBeginEndPairNameFunction;
   static string sm_argumentName,sm_genericCallBackType, sm_kglLoggingStream,sm_kglLoggingStreamNameOnly;
-  static string sm_GLPreErrorFunctionName, sm_macro_prefix, sm_namespace;
+  static string sm_CallUnloadableFunction, sm_GLPreErrorFunctionName, sm_macro_prefix, sm_namespace;
 
 
 public:
@@ -136,6 +136,7 @@ public:
     sm_insideBeginEndPairNameCounter=sm_function_prefix+"inSideBeginEndPairCounter";
     sm_insideBeginEndPairNameFunction=sm_function_prefix+"inSideBeginEndPair";
     sm_kglLoggingStreamNameOnly=sm_function_prefix+"LogStream";
+    sm_CallUnloadableFunction=sm_function_prefix+"call_unloadable_function";
     sm_kglLoggingStream=sm_kglLoggingStreamNameOnly+"()";
     sm_argumentName="argument_";
   }
@@ -155,6 +156,10 @@ public:
   static
   const string&
   function_error_loading(void) { return sm_ErrorLoadingFunctionName; }
+
+  static
+  const string&
+  function_call_unloadable_function(void) { return sm_CallUnloadableFunction; }
 
   static
   const string&

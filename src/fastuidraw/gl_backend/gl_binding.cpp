@@ -84,6 +84,12 @@ on_load_function_error(const char *fname)
   std::cerr << "Unable to load function: \"" << fname << "\"\n";
 }
 
+void
+fastuidraw::gl_binding::
+call_unloadable_function(const char *fname)
+{
+  std::cerr << "Call to unloadable function: \"" << fname << "\"\n";
+}
 
 void
 fastuidraw::gl_binding::
@@ -174,9 +180,13 @@ preErrorCheck(const char *call, const char *src_call,
 
 void
 fastuidraw::gl_binding::
-get_proc_function(void* (*get_proc)(const char*))
+get_proc_function(void* (*get_proc)(const char*), bool load_functions)
 {
   ngl().m_proc = get_proc;
+  if(load_functions && get_proc != NULL)
+    {
+      load_all_functions(false);
+    }
 }
 
 void*

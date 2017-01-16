@@ -49,9 +49,9 @@ string openGL_function_info::sm_function_prefix, openGL_function_info::sm_Loadin
 string openGL_function_info::sm_GLErrorFunctionName, openGL_function_info::sm_ErrorLoadingFunctionName;
 string openGL_function_info::sm_laodAllFunctionsName, openGL_function_info::sm_argumentName;;
 string openGL_function_info::sm_insideBeginEndPairNameCounter, openGL_function_info::sm_insideBeginEndPairNameFunction;
-string openGL_function_info::sm_genericCallBackType,openGL_function_info::sm_kglLoggingStream;
+string openGL_function_info::sm_genericCallBackType, openGL_function_info::sm_kglLoggingStream;
 string openGL_function_info::sm_kglLoggingStreamNameOnly, openGL_function_info::sm_GLPreErrorFunctionName;
-string openGL_function_info::sm_macro_prefix, openGL_function_info::sm_namespace;
+string openGL_function_info::sm_macro_prefix, openGL_function_info::sm_namespace, openGL_function_info::sm_CallUnloadableFunction;
 int openGL_function_info::sm_numberFunctions=0;
 
 bool openGL_function_info::sm_use_function_pointer_mode=true;
@@ -448,11 +448,14 @@ output_to_source(ostream &sourceFile)
       //thirdly the do nothing function:
       sourceFile << front_material() << " " << do_nothing_function_name() << "("
                  << full_arg_list_withoutnames() <<  ")\n{\n\t";
+
       if(returns_value())
         {
             sourceFile << return_type() << " retval = 0;\n\t";
         }
-      sourceFile << "return";
+      sourceFile << function_call_unloadable_function() << "(\""
+                 << function_name() << "\");\n\treturn";
+
       if(returns_value())
         {
           sourceFile << " retval";
@@ -659,12 +662,13 @@ HeaderStart(ostream &headerFile, const list<string> &fileNames)
 
   headerFile << "void* " << function_loader() << "(const char *name);\n"
              << "void " << function_error_loading() << "(const char *fname);\n"
+             << "void " << function_call_unloadable_function() << "(const char *fname);\n"
              << "void " << function_gl_error()
              << "(const char *call, const char *src_call, const char *function_name, const char *fileName, int line, void* fptr);\n"
              << "void " << function_pregl_error()
              << "(const char *call, const char *src_call, const char *function_name, const char *fileName, int line, void* fptr);\n"
              << "int  " << inside_begin_end_pair_function() << "(void);\n"
-             << "void " << function_load_all() << "(void);\n\n";
+             << "void " << function_load_all() << "(bool emit_load_warning);\n\n";
 
 
   headerFile << "#define " << macro_prefix() << "functionExists(name) "
@@ -682,7 +686,7 @@ void
 openGL_function_info::
 SourceEnd(ostream &sourceFile, const list<string> &fileNames)
 {
-  sourceFile << "\n\nvoid " << function_load_all() << "(void)\n{\n\t";
+  sourceFile << "\n\nvoid " << function_load_all() << "(bool emit_load_warning)\n{\n\t";
   for(map<string,openGL_function_info*>::iterator i=sm_lookUp.begin();
       i!=sm_lookUp.end(); ++i)
     {
@@ -695,9 +699,9 @@ SourceEnd(ostream &sourceFile, const list<string> &fileNames)
                      << "if(" << i->second->function_pointer_name()
                      << "==NULL)\n\t{\n\t\t" << i->second->function_pointer_name()
                      << "=" << i->second->do_nothing_function_name()
-                     << ";\n\t\t" << function_error_loading() << "(\""
+                     << ";\n\t\tif(emit_load_warning)\n\t\t\t" << function_error_loading() << "(\""
                      << i->second->function_name() << "\");\n\t"
-                     << " }\n\t";
+                     << "}\n\t";
         }
     }
   sourceFile << "\n}\n";
@@ -731,6 +735,7 @@ SourceStart(ostream &sourceFile, const list<string> &fileNames)
 
   sourceFile << "void* " << function_loader() << "(const char *name);\n"
              << "void " << function_error_loading() << "(const char *fname);\n"
+             << "void " << function_call_unloadable_function() << "(const char *fname);\n"
              << "void " << function_gl_error()
              << "(const char *call, const char *src, const char *function_name, const char *fileName, int line, void* fptr);\n"
              << "void " << function_pregl_error()

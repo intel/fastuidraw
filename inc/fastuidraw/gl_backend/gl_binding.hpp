@@ -193,9 +193,13 @@ log_gl_commands(bool v);
   Sets the function that the system uses
   to fetch the function pointers for GL or GLES.
   \param get_proc value to use, default is NULL.
+  \param load_functions if true, fetch all GL/GLES functions
+                        immediately instead of fetching on
+                        first call.
  */
 void
-get_proc_function(void* (*get_proc)(const char*));
+get_proc_function(void* (*get_proc)(const char*),
+                  bool fetch_functions = true);
 
 }
 /*! @} */
