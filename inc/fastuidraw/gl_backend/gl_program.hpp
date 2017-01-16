@@ -565,6 +565,55 @@ class Program:
 {
 public:
   /*!
+    Enumeration to describe the source of a shader
+    variable's value.
+   */
+  enum shader_variable_src_t
+    {
+      /*!
+        Indicates that the shader variable is from
+        the default uniform block; the variable's
+        value is not sourced from a backing buffer
+        object.
+       */
+      src_default_uniform_block,
+
+      /*!
+        Indicats that the shader variable is from
+        the a uniform block; the variable's value
+        is sourced from a backing buffer object.
+       */
+      src_uniform_block,
+
+      /*!
+        Indicats that the shader variable is from
+        the a shader storage block; the variable
+        is backed by a buffer object.
+       */
+      src_shader_storage_block,
+
+      /*!
+        Indicates that the shader variable is an
+        input (i.e an 'in' of GLSL).
+       */
+      src_shader_input,
+
+      /*!
+        Indicates that the shader variable is an
+        output (i.e an 'out' of GLSL).
+       */
+      src_shader_output,
+
+      /*!
+        Indicates that the shader variable is a NULL
+        value; such values are returned when a query
+        for a shader variable is made and there is
+        shader variable.
+       */
+      src_null,
+    };
+
+  /*!
     A shader_variable_info holds the type,
     size and name of a uniform or an attribute
     of a GL program. This data is fetched from GL
@@ -585,18 +634,23 @@ public:
     shader_variable_info(void);
 
     /*!
-      Name of the parameter within
-      the GL API.
+      Name of the parameter within the GL API.
     */
     const char*
     name(void) const;
 
     /*!
-      GL enumeration stating the
-      parameter's type.
+      GL enumeration stating the shader variable's
+      GLSL type.
     */
     GLenum
-    type(void) const;
+    glsl_type(void) const;
+
+    /*!
+      Returns the shader's backing source.
+     */
+    enum shader_variable_src_t
+    shader_variable_src(void) const;
 
     /*!
       If parameter is an array, holds

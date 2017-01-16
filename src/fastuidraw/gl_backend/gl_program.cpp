@@ -126,7 +126,8 @@ namespace
   {
   public:
     ShaderVariableInfo(void):
-      m_type(GL_INVALID_ENUM),
+      m_glsl_type(GL_INVALID_ENUM),
+      m_shader_variable_src(fastuidraw::gl::Program::src_null),
       m_count(-1),
       m_index(-1),
       m_location(-1),
@@ -149,7 +150,8 @@ namespace
     }
 
     std::string m_name;
-    GLint m_type;
+    GLint m_glsl_type;
+    enum fastuidraw::gl::Program::shader_variable_src_t m_shader_variable_src;
     GLint m_count;
     GLuint m_index;
     GLint m_location;
@@ -223,7 +225,13 @@ namespace
       return *this;
     }
 
+    static
+    void
+    set_shader_variable_src_type(bool shader_variables_are_attributes,
+                                 std::vector<ShaderVariableInfo> &dst);
+
   private:
+
     std::vector<GLenum> m_enums;
     std::vector<dst_type> m_dsts;
   };
@@ -728,6 +736,30 @@ fill_variable(GLuint program,
           dst.*m_dsts[i] = m_work_room[i];
         }
     }
+
+  switch(variable_interface)
+    {
+    case GL_UNIFORM:
+      dst.m_shader_variable_src = (dst.m_ubo_index != -1) ?
+        fastuidraw::gl::Program::src_uniform_block :
+        fastuidraw::gl::Program::src_default_uniform_block;
+      break;
+
+    case GL_PROGRAM_INPUT:
+      dst.m_shader_variable_src = fastuidraw::gl::Program::src_shader_input;
+      break;
+
+    case GL_BUFFER_VARIABLE:
+      dst.m_shader_variable_src = fastuidraw::gl::Program::src_shader_storage_block;
+      break;
+
+    case GL_PROGRAM_OUTPUT:
+      dst.m_shader_variable_src = fastuidraw::gl::Program::src_shader_output;
+      break;
+
+    default:
+      assert(!"Unhandled variable interface type to assign to m_shader_variable_src");
+    }
 }
 
 ////////////////////////////////////
@@ -738,8 +770,15 @@ fill_variables(GLuint program,
                std::vector<ShaderVariableInfo> &dst) const
 {
   assert(m_enums.size() == m_dsts.size());
-  if(m_enums.empty() || dst.empty())
+  if(dst.empty())
     {
+      return;
+    }
+
+  if(m_enums.empty())
+    {
+      // values for non-uniforms, thus must be attributes.
+      set_shader_variable_src_type(true, dst);
       return;
     }
 
@@ -759,6 +798,32 @@ fill_variables(GLuint program,
       for(unsigned int v = 0, endv = indxs.size(); v < endv; ++v)
         {
           dst[v].*m_dsts[q] = values[v];
+        }
+    }
+
+  // values of for uniforms, thus are not attributes.
+  set_shader_variable_src_type(false, dst);
+}
+
+void
+ShaderUniformQueryList::
+set_shader_variable_src_type(bool shader_variables_are_attributes,
+                             std::vector<ShaderVariableInfo> &dst)
+{
+  if(shader_variables_are_attributes)
+    {
+      for(unsigned int v = 0, endv = dst.size(); v < endv; ++v)
+        {
+          dst[v].m_shader_variable_src = fastuidraw::gl::Program::src_shader_input;
+        }
+    }
+  else
+    {
+      for(unsigned int v = 0, endv = dst.size(); v < endv; ++v)
+        {
+          dst[v].m_shader_variable_src = (dst[v].m_ubo_index != -1) ?
+            fastuidraw::gl::Program::src_uniform_block :
+            fastuidraw::gl::Program::src_default_uniform_block;
         }
     }
 }
@@ -843,7 +908,7 @@ populate_non_program_interface_query(GLuint program,
                &name_length, &psize,
                &ptype, &pname[0]);
 
-          dst.m_type = ptype;
+          dst.m_glsl_type = ptype;
           dst.m_count = psize;
           dst.m_name = std::string(pname.begin(), pname.begin() + name_length);
           dst.m_index = i;
@@ -1000,7 +1065,7 @@ populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
       ShaderVariableInterfaceQueryList attribute_queries;
 
       attribute_queries
-        .add(GL_TYPE, &ShaderVariableInfo::m_type)
+        .add(GL_TYPE, &ShaderVariableInfo::m_glsl_type)
         .add(GL_ARRAY_SIZE, &ShaderVariableInfo::m_count)
         .add(GL_LOCATION, &ShaderVariableInfo::m_location);
       populate_from_resource(program, GL_PROGRAM_INPUT, attribute_queries);
@@ -1104,7 +1169,7 @@ populate_private_program_interface_query(GLuint program,
    */
   ShaderVariableInterfaceQueryList uniform_queries;
   uniform_queries
-    .add(GL_TYPE, &ShaderVariableInfo::m_type)
+    .add(GL_TYPE, &ShaderVariableInfo::m_glsl_type)
     .add(GL_ARRAY_SIZE, &ShaderVariableInfo::m_count)
     .add(GL_LOCATION, &ShaderVariableInfo::m_location)
     .add(GL_BLOCK_INDEX, &ShaderVariableInfo::m_ubo_index)
@@ -1547,11 +1612,20 @@ name(void) const
 
 GLenum
 fastuidraw::gl::Program::shader_variable_info::
-type(void) const
+glsl_type(void) const
 {
   const ShaderVariableInfo *d;
   d = static_cast<const ShaderVariableInfo*>(m_d);
-  return (d) ? d->m_type : GL_INVALID_ENUM;
+  return (d) ? d->m_glsl_type : GL_INVALID_ENUM;
+}
+
+enum fastuidraw::gl::Program::shader_variable_src_t
+fastuidraw::gl::Program::shader_variable_info::
+shader_variable_src(void) const
+{
+  const ShaderVariableInfo *d;
+  d = static_cast<const ShaderVariableInfo*>(m_d);
+  return (d) ? d->m_shader_variable_src : src_null;
 }
 
 GLint
@@ -1917,7 +1991,7 @@ assemble(fastuidraw::gl::Program *program)
           ShaderVariableInterfaceQueryList ssbo_query;
 
           ssbo_query
-            .add(GL_TYPE, &ShaderVariableInfo::m_type)
+            .add(GL_TYPE, &ShaderVariableInfo::m_glsl_type)
             .add(GL_ARRAY_SIZE, &ShaderVariableInfo::m_count)
             .add(GL_OFFSET, &ShaderVariableInfo::m_offset)
             .add(GL_ARRAY_STRIDE, &ShaderVariableInfo::m_array_stride)
@@ -2020,7 +2094,7 @@ generate_log(void)
           assert(iter->m_ubo_index == -1);
           ostr << "\n\t" << iter->m_name
                << "\n\t\ttype = 0x"
-               << std::hex << iter->m_type
+               << std::hex << iter->m_glsl_type
                << "\n\t\tcount = " << std::dec << iter->m_count
                << "\n\t\tindex = " << std::dec << iter->m_index
                << "\n\t\tlocation = " << iter->m_location
@@ -2045,7 +2119,7 @@ generate_log(void)
               assert(iter->m_ubo_index == ubo->m_block_index);
               ostr << "\n\t\t" << iter->m_name
                    << "\n\t\t\ttype = 0x"
-                   << std::hex << iter->m_type
+                   << std::hex << iter->m_glsl_type
                    << "\n\t\t\tcount = " << std::dec << iter->m_count
                    << "\n\t\t\tindex = " << std::dec << iter->m_index
                    << "\n\t\t\tubo_index = " << iter->m_ubo_index
@@ -2074,7 +2148,7 @@ generate_log(void)
               assert(iter->m_shader_storage_buffer_index == ssbo->m_block_index);
               ostr << "\n\t\t" << iter->m_name
                    << "\n\t\t\ttype = 0x"
-                   << std::hex << iter->m_type
+                   << std::hex << iter->m_glsl_type
                    << "\n\t\t\tcount = " << std::dec << iter->m_count
                    << "\n\t\t\tindex = " << std::dec << iter->m_index
                    << "\n\t\t\tshader_storage_buffer_index = " << iter->m_shader_storage_buffer_index
@@ -2098,7 +2172,7 @@ generate_log(void)
           ostr << "\n\t"
                << iter->m_name
                << "\n\t\ttype = 0x"
-               << std::hex << iter->m_type
+               << std::hex << iter->m_glsl_type
                << "\n\t\tcount = " << std::dec << iter->m_count
                << "\n\t\tindex = " << std::dec << iter->m_index
                << "\n\t\tlocation = " << iter->m_location;
