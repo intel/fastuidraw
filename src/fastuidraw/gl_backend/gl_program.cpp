@@ -242,47 +242,37 @@ namespace
     FindShaderVariableResult(void):
       m_ptr(NULL),
       m_v_index(~0u),
-      m_array_element(0)
+      m_array_element(0),
+      m_leading_array_element(0)
     {}
 
-    FindShaderVariableResult(const ShaderVariableInfo *p, unsigned int vindex,
-                             int ele = 0, int leading_ele = 0):
+    FindShaderVariableResult(const ShaderVariableInfo *p,
+                             unsigned int vindex,
+                             unsigned int ele = 0,
+                             unsigned int leading_ele = 0):
       m_ptr(p),
       m_v_index(vindex),
       m_array_element(ele),
       m_leading_array_element(leading_ele)
     {}
 
-    int
-    gl_location(void) const
+    const FindShaderVariableResult&
+    get_indices(unsigned int *out_array_index,
+                unsigned int *out_leading_array_index) const
     {
-      return m_ptr != NULL && m_ptr->m_location != -1 ?
-        m_ptr->m_location + m_array_element :
-        -1;
-    }
+      unsigned int A;
+      out_array_index = (out_array_index != NULL) ? out_array_index : &A;
+      out_leading_array_index = (out_leading_array_index != NULL) ? out_array_index : &A;
 
-    int
-    gl_offset(void) const
-    {
-      return m_ptr != NULL && m_ptr->m_offset != -1 ?
-        m_ptr->m_offset
-        + m_array_element * m_ptr->m_array_stride
-        + m_leading_array_element * m_ptr->m_shader_storage_buffer_top_level_array_stride:
-        -1;
-    }
-
-    unsigned int
-    set_id(void) const
-    {
-      return m_ptr != NULL ?
-        m_v_index :
-        ~0u;
+      *out_array_index = m_array_element;
+      *out_leading_array_index = m_leading_array_element;
+      return *this;
     }
 
     const ShaderVariableInfo *m_ptr;
     int m_v_index;
-    int m_array_element;
-    int m_leading_array_element;
+    unsigned int m_array_element;
+    unsigned int m_leading_array_element;
   };
 
   class ShaderVariableSet
@@ -920,13 +910,14 @@ find_variable(const std::string &pname, bool check_leading_index) const
       if(iter != m_map.end())
         {
           const ShaderVariableInfo *q;
-          bool leading_index_ok;
+          bool leading_index_ok, array_index_ok;
 
           q = &m_values[iter->second];
+          array_index_ok = array_index < q->m_count || q->m_count == 0;
           leading_index_ok = q->m_shader_storage_buffer_top_level_array_size == 0
             || leading_index < q->m_shader_storage_buffer_top_level_array_size;
 
-          if(leading_index_ok && array_index < q->m_count)
+          if(leading_index_ok && array_index_ok)
             {
               return FindShaderVariableResult(q, iter->second, array_index, leading_index);
             }
@@ -1788,11 +1779,13 @@ index(void) const
 
 GLint
 fastuidraw::gl::Program::shader_variable_info::
-location(void) const
+location(unsigned int array_index) const
 {
   const ShaderVariableInfo *d;
   d = static_cast<const ShaderVariableInfo*>(m_d);
-  return (d) ? d->m_location : -1;
+  return (d && d->m_location != -1) ?
+    d->m_location + array_index:
+    -1;
 }
 
 GLint
@@ -1806,11 +1799,16 @@ ubo_index(void) const
 
 GLint
 fastuidraw::gl::Program::shader_variable_info::
-buffer_offset(void) const
+buffer_offset(unsigned int array_index,
+              unsigned int leading_array_index) const
 {
   const ShaderVariableInfo *d;
   d = static_cast<const ShaderVariableInfo*>(m_d);
-  return (d) ? d->m_offset : -1;
+  return (d && d->m_offset != -1) ?
+    d->m_offset
+    + array_index * d->m_array_stride
+    + leading_array_index * d->m_shader_storage_buffer_top_level_array_stride:
+    -1;
 }
 
 GLint
@@ -1947,22 +1945,16 @@ variable(unsigned int I)
 
 unsigned int
 fastuidraw::gl::Program::block_info::
-variable_id(const char *name)
+variable_id(const char *name,
+            unsigned int *out_array_index,
+            unsigned int *out_leading_array_index)
 {
   const BlockInfoPrivate *d;
 
   d = static_cast<const BlockInfoPrivate*>(m_d);
-  return d ? d->m_members.find_variable(name).set_id() : ~0u;
-}
-
-int
-fastuidraw::gl::Program::block_info::
-variable_offset(const char *name)
-{
-  const BlockInfoPrivate *d;
-
-  d = static_cast<const BlockInfoPrivate*>(m_d);
-  return d ? d->m_members.find_variable(name).gl_offset() : ~0u;
+  return (d) ?
+    d->m_members.find_variable(name).get_indices(out_array_index, out_leading_array_index).m_v_index:
+    FindShaderVariableResult().get_indices(out_array_index, out_leading_array_index).m_v_index;
 }
 
 ///////////////////////////////////////////////////
@@ -2033,7 +2025,7 @@ atomic_variable_id(const char *name)
   d = static_cast<const AtomicBufferInfo*>(m_d);
   if(d != NULL)
     {
-      return d->m_members.find_variable(name).set_id();
+      return d->m_members.find_variable(name).m_v_index;
     }
   return ~0u;
 }
@@ -2402,56 +2394,6 @@ log(void)
   return d->m_log.c_str();
 }
 
-unsigned int
-fastuidraw::gl::Program::
-number_active_uniforms(void)
-{
-  ProgramPrivate *d;
-  d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
-  return d->m_link_success ?
-    d->m_uniform_list.all_uniforms().values().size() :
-    0;
-}
-
-fastuidraw::gl::Program::shader_variable_info
-fastuidraw::gl::Program::
-active_uniform(unsigned int I)
-{
-  ProgramPrivate *d;
-  d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
-  return d->m_link_success ?
-    shader_variable_info(&d->m_uniform_list.all_uniforms().value(I)) :
-    shader_variable_info(NULL);
-}
-
-unsigned int
-fastuidraw::gl::Program::
-active_uniform_id(const char *pname)
-{
-  ProgramPrivate *d;
-
-  d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
-  return d->m_link_success ?
-    d->m_uniform_list.all_uniforms().find_variable(pname).set_id() :
-    ~0u;
-}
-
-GLint
-fastuidraw::gl::Program::
-uniform_location(const char *pname)
-{
-  ProgramPrivate *d;
-
-  d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
-  return d->m_link_success ?
-    d->m_uniform_list.all_uniforms().find_variable(pname).gl_location() :
-    -1;
-}
-
 fastuidraw::gl::Program::block_info
 fastuidraw::gl::Program::
 default_uniform_block(void)
@@ -2500,9 +2442,11 @@ uniform_block_id(const char *uniform_block_name)
     ~0u;
 }
 
-int
+fastuidraw::gl::Program::shader_variable_info
 fastuidraw::gl::Program::
-variable_offset(const char *pname, shader_variable_info &shader_variable)
+find_shader_variable(const char *pname,
+                     unsigned int *out_array_index,
+                     unsigned int *out_leading_array_index)
 {
   ProgramPrivate *d;
 
@@ -2511,8 +2455,7 @@ variable_offset(const char *pname, shader_variable_info &shader_variable)
 
   if(!d->m_link_success)
     {
-      shader_variable = shader_variable_info();
-      return -1;
+      return shader_variable_info();
     }
 
   /* check the UBO's and ABO's
@@ -2521,8 +2464,7 @@ variable_offset(const char *pname, shader_variable_info &shader_variable)
   F = d->m_uniform_list.all_uniforms().find_variable(pname);
   if(F.m_ptr != NULL)
     {
-      shader_variable = shader_variable_info(F.m_ptr);
-      return F.gl_offset();
+      return shader_variable_info(F.get_indices(out_array_index, out_leading_array_index).m_ptr);
     }
 
   /* check SSBO's
@@ -2530,11 +2472,10 @@ variable_offset(const char *pname, shader_variable_info &shader_variable)
   F = d->m_storage_buffer_list.all_shader_storage_variables().find_variable(pname, true);
   if(F.m_ptr != NULL)
     {
-      shader_variable = shader_variable_info(F.m_ptr);
-      return F.gl_offset();
+      return shader_variable_info(F.get_indices(out_array_index, out_leading_array_index).m_ptr);
     }
 
-  return -1;
+  return shader_variable_info();
 }
 
 unsigned int
@@ -2629,7 +2570,7 @@ active_attribute_id(const char *pname)
   d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_success ?
-    d->m_attribute_list.find_variable(pname).set_id() :
+    d->m_attribute_list.find_variable(pname).m_v_index:
     ~0u;
 }
 
@@ -2640,9 +2581,15 @@ attribute_location(const char *pname)
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
-  return d->m_link_success ?
-    d->m_attribute_list.find_variable(pname).gl_location() :
-    -1;
+  if(d->m_link_success)
+    {
+      FindShaderVariableResult q;
+      q = d->m_attribute_list.find_variable(pname);
+      return (q.m_ptr != NULL && q.m_ptr->m_location != -1) ?
+        q.m_ptr->m_location + q.m_array_element :
+        -1;
+    }
+  return -1;
 }
 
 
