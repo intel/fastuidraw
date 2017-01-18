@@ -37,8 +37,8 @@ namespace gl {
 
 /*!
   Simple Shader utility class, providing a simple interface to build
-  shader source code from mutliple files, resources and strings. In
-  addition the actual GL object creation is defferred to later, in
+  GL shader objects using a glsl::ShaderSouce as its source code.
+  The actual GL object creation is defferred to later, in
   doing so, one can create Shader objects from outside the main GL
   thread. Each of the following commands
     - compile_success()
@@ -46,15 +46,10 @@ namespace gl {
     - name()
 
   triggers the GL commands to compile the shader if the shader has
-  not been yet attmpeted to compile. Hence one may only call these from
-  outside the rendering thread if shader_ready() returns true. Moreover,
-  a Shader may only be delete from the GL rendering thread.
-
-  If the shader source is from a file (Shader::from_file),
-  the file will be taken from the current working directory. For
-  string sources (Shader::from_file) and resource sources
-  (Shader::from_resource), the shader source is taken from
-  a resource.
+  not been yet attempeted to be compiled. Hence one may only call
+  these from outside the rendering thread if shader_ready() returns
+  true. Moreover, a Shader may only be deleted from the GL rendering
+  thread.
 */
 class Shader:
   public reference_counted<Shader>::default_base
@@ -343,7 +338,19 @@ protected:
   /*!
     To be implemented by a derived class to make the GL call
     to initialize a uniform in a GLSL shader.
-    \param location lcoation of uniform
+    \param program GL program
+    \param location location of uniform
+    \param program_bound, true if and only if the program named
+                          by program is bound (via glUseProgram).
+                          If the program is not bound, then one
+                          SHOULD not bind the program and instead
+                          use the GL API points to set values of
+                          the uniform(s) that do not rely on having
+                          the program bound. One can also safely assume
+                          that those API points are supported in
+                          the case it is not bound (in particular
+                          the function family ProgramUniform() can
+                          be safely used).
    */
   virtual
   void
