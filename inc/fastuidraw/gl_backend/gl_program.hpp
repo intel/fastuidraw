@@ -565,7 +565,7 @@ class Program:
 {
 public:
   /*!
-    Enumeration to describe the source of a shader
+    Enumeration to describe the backing of a shader
     variable's value.
    */
   enum shader_variable_src_t
@@ -886,28 +886,26 @@ public:
     variable(unsigned int I);
 
     /*!
-      Returns the ID'd value to feed to variable() to
-      get the variable of the given name. If the variable
-      cannot be found, returns ~0u. The search also handles
-      the case where looking for an element of an array
-      returning the ID into variable() to feed. In addition,
-      it also handles, in the case of a shader storage block
-      variable where shader_variable_info::shader_storage_buffer_top_level_array_size()
-      being not negative one, giving the ID into variable()
-      to use for the leading index.
+      Find a shader variable in the block from the a name. The search
+      handles the case where looking for an element of an array
+      and also, in the case of a shader storage block variable where
+      shader_variable_info::shader_storage_buffer_top_level_array_size()
+      being not negative one, giving the leading index into the top
+      level array as well. The values can be used in the methods
+      shader_variable_info::location() and shader_variable_info::buffer_offset()
+      to get the location and buffer offset of the element of the shader
+      variable.
       \param name variable name to look for
-      \param *out_array_index location to which to write the
-                              array index value; if NULL, value
-                              is not written
+      \param *out_array_index location to which to write the array index
+                              value; if NULL, value is not written
       \param *out_leading_array_index location to which to write the
-                                      leading array index value; if
-                                      NULL, value
-                                      is not written
+                                      leading array index value; if NULL,
+                                      value is not written
      */
-    unsigned int
-    variable_id(const char *name,
-                unsigned int *out_array_index = NULL,
-                unsigned int *out_leading_array_index = NULL);
+    shader_variable_info
+    variable(const char *name,
+             unsigned int *out_array_index = NULL,
+             unsigned int *out_leading_array_index = NULL);
 
   private:
     explicit
@@ -993,12 +991,20 @@ public:
     atomic_variable(unsigned int I);
 
     /*!
-      Returns the ID value to feed to atomic_variable()
-      to get the atomic variable of the given name. If the
-      variable cannot be found, returns ~0u.
+      Find a shader variable in the block from the a name. The search
+      handles the case where looking for an element of an array
+      The value can be used in the method shader_variable_info::buffer_offset()
+      to get the buffer offset of the element of the shader variable.
+      \param name variable name to look for
+      \param *out_array_index location to which to write the array index
+                              value; if NULL, value is not written
+      \param *out_leading_array_index location to which to write the
+                                      leading array index value; if NULL,
+                                      value is not written
      */
-    unsigned int
-    atomic_variable_id(const char *name);
+    shader_variable_info
+    atomic_variable(const char *name,
+                    unsigned int *out_array_index = NULL);
 
   private:
     explicit
@@ -1155,9 +1161,8 @@ public:
   uniform_location(const char *name)
   {
     shader_variable_info S;
-    unsigned int array_index(0), I;
-    I = default_uniform_block().variable_id(name, &array_index);
-    S = default_uniform_block().variable(I);
+    unsigned int array_index(0);
+    S = default_uniform_block().variable(name, &array_index);
     return S.location(array_index);
   }
 
@@ -1245,21 +1250,10 @@ public:
   active_attribute(unsigned int I);
 
   /*!
-    Returns the ID value to feed to active_attribute() to
-    get the attribute of the given name. This function should
-    only be called either after use_program() has been called
-    or only when the GL context is current. If the attribute
-    cannot be found, returns ~0u.
-    \param name name of attribute to find.
-   */
-  unsigned int
-  active_attribute_id(const char *name);
-
-  /*!
     Searches active_attribute() to find the named attribute, including
     named elements of an array. This function should only be called
     either after use_program() has been called or only when the GL
-    context is current. Returns value -1 indicated that the uniform
+    context is current. Returns value -1 indicated that the attribute
     could not be found.
     \param attribute_name name of attribute to find
    */
