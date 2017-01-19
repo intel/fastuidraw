@@ -17,7 +17,7 @@
  */
 
 
-
+#include <atomic>
 #include <vector>
 #include <list>
 #include <cstring>
@@ -106,10 +106,10 @@ namespace
          thread safe by using atomic operation on m_free_slots_back.
          The following code would make it thread safe.
 
-         return_value = m_free_slots_back.fetch_sub(1, boost::memory_order_aquire)
+         return_value = m_free_slots_back.fetch_sub(1, std::memory_order_aquire)
          if(return_value < 0)
            {
-              m_free_slots_back.fetch_add(1, boost::memory_order_aquire);
+              m_free_slots_back.fetch_add(1, std::memory_order_aquire);
            }
          return return_value;
        */
@@ -131,8 +131,8 @@ namespace
          The following code would make it thread safe.
 
          int S;
-         S = m_free_slots_back.fetch_add(1, boost::memory_order_release);
-         boost::atomic_thread_fence(boost::memory_order_acquire);
+         S = m_free_slots_back.fetch_add(1, std::memory_order_release);
+         std::atomic_thread_fence(std::memory_order_acquire);
          assert(S < pool_size);
          m_free_slots[S] = v;
        */
