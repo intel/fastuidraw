@@ -33,6 +33,7 @@ LIBRARY_PRIVATE_$(1)_OBJS = $$(patsubst %.cpp, $(1)/private/%.o, $(LIBRARY_PRIVA
 LIBRARY_$(1)_RESOURCE_OBJS = $$(patsubst %.cpp, $(1)/%.o, $(LIBRARY_STRING_RESOURCES_SRCS))
 LIBRARY_$(1)_ALL_OBJS = $$(LIBRARY_$(1)_OBJS) $$(LIBRARY_PRIVATE_$(1)_OBJS) $$(LIBRARY_$(1)_RESOURCE_OBJS)
 CLEAN_FILES += $$(LIBRARY_$(1)_ALL_OBJS) $$(LIBRARY_$(1)_RESOURCE_OBJS)
+FASTUIDRAW_$(1)_LIBS = -lFastUIDraw_$(1) $(LIBRARY_LIBS)
 SUPER_CLEAN_FILES += $$(LIBRARY_$(1)_DEPS)
 $(1)/%.resource_string.o: string_resources_cpp/%.resource_string.cpp
 	@mkdir -p $$(dir $$@)

@@ -49,7 +49,7 @@ NGL_$(1)_$(2)_OBJ = $$(patsubst %.cpp, $(2)/$(1)/%.o, $$(NGL_$(1)_SRCS))
 LIBRARY_$(1)_$(2)_DEPS = $$(patsubst %.cpp, $(2)/$(1)/%.d, $$(LIBRARY_GL_SOURCES))
 LIBRARY_$(1)_$(2)_RESOURCE_OBJS = $$(patsubst %.cpp, $(2)/%.o, $$(LIBRARY_GL_STRING_RESOURCES_SRCS))
 LIBRARY_$(1)_$(2)_ALL_OBJS = $$(LIBRARY_$(1)_$(2)_OBJS) $$(LIBRARY_$(1)_$(2)_PRIVATE_OBJS) $$(LIBRARY_$(1)_$(2)_RESOURCE_OBJS)
-FASTUIDRAW_$(1)_$(2)_LIBS = -lFastUIDraw$(1)_$(2) -lN$(1)_$(2) $$(LIBRARY_$(1)_LIBS) -lFastUIDraw_$(2) $(LIBRARY_LIBS)
+FASTUIDRAW_$(1)_$(2)_LIBS = -lFastUIDraw$(1)_$(2) -lN$(1)_$(2) $$(FASTUIDRAW_$(2)_LIBS) $$(LIBRARY_$(1)_LIBS)
 CLEAN_FILES += $$(LIBRARY_$(1)_$(2)_ALL_OBJS) $$(LIBRARY_$(1)_$(2)_ALL_OBJS)
 SUPER_CLEAN_FILES += $$(LIBRARY_$(1)_$(2)_DEPS) $$(LIBRARY_$(1)_$(2)_DEPS) $$(NGL_$(1)_$(2)_OBJ)
 CLEAN_FILES += libFastUIDraw$(1)_$(2).dll libFastUIDraw$(1)_$(2).dll.a libN$(1)_$(2).dll libN$(1)_$(2).dll.a
@@ -68,7 +68,7 @@ ifeq ($(MINGW_BUILD),1)
 libFastUIDraw$(1)_$(2): libFastUIDraw$(1)_$(2).dll
 libFastUIDraw$(1)_$(2).dll.a: libFastUIDraw$(1)_$(2).dll
 libFastUIDraw$(1)_$(2).dll: libFastUIDraw_$(2).dll libN$(1)_$(2).dll $$(LIBRARY_$(1)_$(2)_ALL_OBJS)
-	$(CXX) -shared -Wl,--out-implib,libFastUIDraw$(1)_$(2).dll.a -o libFastUIDraw$(1)_$(2).dll $$(LIBRARY_$(1)_$(2)_ALL_OBJS) $$(LIBRARY_$(2)_LIBS) -L. -lFastUIDraw_$(2) -lN$(1)_$(2) $$(LIBRARY_LIBS)
+	$(CXX) -shared -Wl,--out-implib,libFastUIDraw$(1)_$(2).dll.a -o libFastUIDraw$(1)_$(2).dll $$(LIBRARY_$(1)_$(2)_ALL_OBJS) $$(FASTUIDRAW_$(2)_LIBS) -L. -lN$(1)_$(2) $$(LIBRARY_$(1)_LIBS)
 libN$(1)_$(2).dll.a: libN$(1)_$(2).dll
 libN$(1)_$(2).dll: $$(NGL_$(1)_$(2)_OBJ)
 	$(CXX) -shared -Wl,--out-implib,libN$(1)_$(2).dll.a -o libN$(1)_$(2).dll $$(NGL_$(1)_$(2)_OBJ)
@@ -77,7 +77,7 @@ INSTALL_EXES += libFastUIDraw$(1)_$(2).dll libN$(1)_$(2).dll
 else
 libFastUIDraw$(1)_$(2): libFastUIDraw$(1)_$(2).so
 libFastUIDraw$(1)_$(2).so: libFastUIDraw_$(2).so libN$(1)_$(2).so $$(LIBRARY_$(1)_$(2)_ALL_OBJS)
-	$(CXX) -shared -Wl,-soname,libFastUIDraw$(1)_$(2).so -o libFastUIDraw$(1)_$(2).so $$(LIBRARY_$(1)_$(2)_ALL_OBJS) $$(LIBRARY_$(1)_LIBS) -L. -lFastUIDraw_$(2) -lN$(1)_$(2) $$(LIBRARY_LIBS)
+	$(CXX) -shared -Wl,-soname,libFastUIDraw$(1)_$(2).so -o libFastUIDraw$(1)_$(2).so $$(LIBRARY_$(1)_$(2)_ALL_OBJS) $$(FASTUIDRAW_$(2)_LIBS) -L. -lN$(1)_$(2) $$(LIBRARY_$(1)_LIBS)
 libN$(1)_$(2).so: $$(NGL_$(1)_$(2)_OBJ)
 	$(CXX) -shared -Wl,-soname,libN$(1)_$(2).so -o libN$(1)_$(2).so $$(NGL_$(1)_$(2)_OBJ)
 LIBFASTUIDRAW_$(1)_$(2) = libFastUIDraw$(1)_$(2).so
