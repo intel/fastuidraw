@@ -920,19 +920,10 @@ find_variable(const std::string &pname,
       iter = m_map.find(filtered_name);
       if(iter == m_map.end())
         {
-          filtered_name += "[0]";
+          filtered_name = filter_name_leading_index(filtered_name2.begin(),
+                                                    filtered_name2.end(),
+                                                    leading_array_index);
           iter = m_map.find(filtered_name);
-        }
-
-      if(iter == m_map.end())
-        {
-          iter = m_map.find(filtered_name2);
-        }
-
-      if(iter == m_map.end())
-        {
-          filtered_name2 += "[0]";
-          iter = m_map.find(filtered_name2);
         }
 
       if(iter != m_map.end())
@@ -1121,7 +1112,7 @@ filter_name_leading_index(iterator begin, iterator end, unsigned int *leading_in
   istr >> *leading_index;
 
   ++close_bracket;
-  return std::string(begin, open_bracket) + std::string(close_bracket, end);
+  return std::string(begin, open_bracket) + "[0]" + std::string(close_bracket, end);
 }
 
 /////////////////////////////
