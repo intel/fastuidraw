@@ -31,10 +31,8 @@ install: $(INSTALL_LIBS) $(INSTALL_EXES)
 	-install -d $(INSTALL_LOCATION)/include
 	-install -t $(INSTALL_LOCATION)/lib $(INSTALL_LIBS)
 	-install -t $(INSTALL_LOCATION)/bin $(INSTALL_EXES)
-	-cp -r inc/fastuidraw $(INSTALL_LOCATION)/include
-	-find $(INSTALL_LOCATION)/include/fastuidraw -type f -exec chmod a+r {} \;
-	-find $(INSTALL_LOCATION)/include/fastuidraw -type d -exec chmod a+rx {} \;
-	-chown -R root $(INSTALL_LOCATION)/include/fastuidraw
+	-find inc/ -type d -printf '%P\n' | xargs -I '{}' install -d $(INSTALL_LOCATION)/include/'{}'
+	-find inc/ -type f -printf '%P\n' | xargs -I '{}' install -m 644 inc/'{}' $(INSTALL_LOCATION)/include/'{}'
 TARGETLIST+=install
 
 install-docs: docs
