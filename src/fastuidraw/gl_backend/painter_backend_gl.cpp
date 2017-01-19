@@ -1288,12 +1288,14 @@ build_programs(void)
       tp = static_cast<enum fastuidraw::gl::PainterBackendGL::program_type_t>(i);
       m_programs[tp] = build_program(tp);
       m_shader_uniforms_loc[tp] = m_programs[tp]->uniform_location("fastuidraw_shader_uniforms");
+      assert(m_shader_uniforms_loc[tp] != -1 || m_uber_shader_builder_params.use_ubo_for_uniforms());
     }
 
   if(!m_uber_shader_builder_params.use_ubo_for_uniforms())
     {
       m_uniform_values.resize(m_p->ubo_size());
-      m_uniform_values_ptr = fastuidraw::c_array<fastuidraw::generic_data>(&m_uniform_values[0], m_uniform_values.size());
+      m_uniform_values_ptr = fastuidraw::c_array<fastuidraw::generic_data>(&m_uniform_values[0],
+                                                                           m_uniform_values.size());
     }
 }
 
