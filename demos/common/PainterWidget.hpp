@@ -1,13 +1,13 @@
 #pragma once
 
 #include <list>
-#include <boost/utility.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/matrix.hpp>
+#include <fastuidraw/util/util.hpp>
 #include <fastuidraw/painter/painter.hpp>
 
-class PainterWidget:boost::noncopyable
+class PainterWidget:fastuidraw::noncopyable
 {
 public:
 
