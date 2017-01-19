@@ -39,7 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 #include <string>
 #include <sstream>
-#include <boost/utility.hpp>
+#include <fastuidraw/util/util.hpp>
 
 class command_line_register;
 class command_line_argument;
@@ -52,7 +52,7 @@ class command_line_argument;
   children's check_arg() method to get the values
   from a command line argument list.
  */
-class command_line_register:boost::noncopyable
+class command_line_register:fastuidraw::noncopyable
 {
 private:
   friend class command_line_argument;
@@ -88,7 +88,7 @@ public:
   A command_line_argument reads from an argument
   list to set a value.
  */
-class command_line_argument:boost::noncopyable
+class command_line_argument:fastuidraw::noncopyable
 {
 private:
 

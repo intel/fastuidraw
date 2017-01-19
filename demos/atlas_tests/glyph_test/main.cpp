@@ -11,6 +11,7 @@
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
+#include <fastuidraw/util/util.hpp>
 #include "sdl_demo.hpp"
 #include "ImageLoader.hpp"
 #include "PanZoomTracker.hpp"
@@ -92,7 +93,7 @@ private:
       geometry_backing_store_auto,
     };
 
-  class per_program:boost::noncopyable
+  class per_program:fastuidraw::noncopyable
   {
   public:
     void
@@ -105,7 +106,7 @@ private:
     GLint m_fg_color_loc;
   };
 
-  class per_draw:boost::noncopyable
+  class per_draw:fastuidraw::noncopyable
   {
   public:
     per_draw(void);

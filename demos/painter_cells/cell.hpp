@@ -4,6 +4,7 @@
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/font.hpp>
 #include <fastuidraw/painter/painter.hpp>
+#include <fastuidraw/util/util.hpp>
 
 #include "ostream_utility.hpp"
 #include "PainterWidget.hpp"
@@ -11,7 +12,7 @@
 
 using namespace fastuidraw;
 
-class CellSharedState:boost::noncopyable
+class CellSharedState:noncopyable
 {
 public:
   CellSharedState(void):
