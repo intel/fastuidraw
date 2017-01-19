@@ -42,10 +42,12 @@ uninstall:
 TARGETLIST+=uninstall
 
 install-docs: docs
-	-install -d $(INSTALL_LOCATION)/share/doc/fastuidraw/
-	-install -t $(INSTALL_LOCATION)/share/doc/fastuidraw docs/*.txt
-	-cp -r docs/doxy/html $(INSTALL_LOCATION)/share/doc/fastuidraw/
-	-find $(INSTALL_LOCATION)/share/doc/fastuidraw/html/ -type f -exec chmod a+r {} \;
-	-find $(INSTALL_LOCATION)/share/doc/fastuidraw/html/ -type d -exec chmod a+rx {} \;
-	-chown -R root $(INSTALL_LOCATION)/share/doc/fastuidraw/html/
+	-install -d $(INSTALL_LOCATION)/share/doc/fastuidraw/html/
+	-install -t $(INSTALL_LOCATION)/share/doc/fastuidraw TODO.txt README.md COPYING ISSUES.txt docs/*.txt
+	-find docs/doxy/html -type d -printf '%P\n' | xargs -I '{}' install -d $(INSTALL_LOCATION)/share/doc/fastuidraw/html/'{}'
+	-find docs/doxy/html -type f -printf '%P\n' | xargs -I '{}' install -m 644 docs/doxy/html/'{}' $(INSTALL_LOCATION)/share/doc/fastuidraw/html/'{}'
 TARGETLIST+=install-docs
+
+uninstall-docs:
+	-rm -r $(INSTALL_LOCATION)/share/doc/fastuidraw
+TARGETLIST+=uninstall-docs

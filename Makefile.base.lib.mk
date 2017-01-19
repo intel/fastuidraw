@@ -87,7 +87,13 @@ ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),clean-all)
 ifneq ($(MAKECMDGOALS),targets)
 ifneq ($(MAKECMDGOALS),docs)
+ifneq ($(MAKECMDGOALS),clean-docs)
+ifneq ($(MAKECMDGOALS),install-docs)
+ifneq ($(MAKECMDGOALS),uninstall-docs)
 -include $$(LIBRARY_$(1)_DEPS)
+endif
+endif
+endif
 endif
 endif
 endif

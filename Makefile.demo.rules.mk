@@ -42,7 +42,13 @@ ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),clean-all)
 ifneq ($(MAKECMDGOALS),targets)
 ifneq ($(MAKECMDGOALS),docs)
+ifneq ($(MAKECMDGOALS),clean-docs)
+ifneq ($(MAKECMDGOALS),install-docs)
+ifneq ($(MAKECMDGOALS),uninstall-docs)
 -include $$(THISDEMO_$(1)_$(2)_$(3)_DEPS)
+endif
+endif
+endif
 endif
 endif
 endif
