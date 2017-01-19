@@ -5,8 +5,8 @@ LIBRARY_release_CFLAGS = -DNDEBUG
 LIBRARY_BASE_debug_CFLAGS = $(LIBRARY_debug_CFLAGS) $(LIBRARY_BASE_CFLAGS)
 LIBRARY_BASE_release_CFLAGS = $(LIBRARY_release_CFLAGS) $(LIBRARY_BASE_CFLAGS)
 
-LIBRARY_BUILD_debug_FLAGS = -g
-LIBRARY_BUILD_release_FLAGS = -O3 -fstrict-aliasing
+LIBRARY_BUILD_debug_FLAGS = -g -std=c++11
+LIBRARY_BUILD_release_FLAGS = -O3 -fstrict-aliasing -std=c++11
 LIBRARY_BUILD_WARN_FLAGS = -Wall -Wextra -Wcast-qual -Wwrite-strings
 LIBRARY_BUILD_INCLUDES_CFLAGS = -Iinc $(LIBBARY_BOOST_INCLUDE)
 
