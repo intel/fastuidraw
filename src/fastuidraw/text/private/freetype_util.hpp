@@ -36,8 +36,6 @@
 #include <unistd.h>
 #include <mutex>
 #include <boost/signals2.hpp>
-#include <boost/multi_array.hpp>
-
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -45,6 +43,7 @@
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/path.hpp>
 
+#include "../../private/array2d.hpp"
 #include "../../private/util_private.hpp"
 
 #include <ft2build.h>
@@ -2323,7 +2322,7 @@ namespace detail
                                     as well for each texel.
      */
     void
-    compute_distance_values(boost::multi_array<distance_return_type, 2> &victim,
+    compute_distance_values(array2d<distance_return_type> &victim,
                             float max_dist,
                             bool compute_winding_number) const;
 
@@ -2341,7 +2340,7 @@ namespace detail
                                 coordinates of the curves
      */
     void
-    compute_winding_numbers(boost::multi_array<int, 2> &victim,
+    compute_winding_numbers(array2d<int> &victim,
                             ivec2 offset_from_center=ivec2(0,0)) const;
 
     /*!\fn void compute_analytic_values
@@ -2362,7 +2361,7 @@ namespace detail
                                       the boudnary include that too.
      */
     void
-    compute_analytic_values(boost::multi_array<analytic_return_type, 2> &victim,
+    compute_analytic_values(array2d<analytic_return_type> &victim,
                             std::vector<bool> &component_reversed,
                             bool include_pt_intersections=false) const;
 
@@ -2469,7 +2468,7 @@ namespace detail
                                 const ivec2 &bitmap_location,
                                 c_array<curve_segment> out_curves) const;
 
-    /*!\fn int compute_localized_affectors(const boost::multi_array<analytic_return_type, 2> &,
+    /*!\fn int compute_localized_affectors(const array2d<analytic_return_type> &,
                                            const ivec2&, c_array<curve_segment>) const
       Computes the curves intersecting a named texel.
       Returns the number of curves found. Provdied as
@@ -2485,11 +2484,11 @@ namespace detail
       \param out_curves pre-allocated array to store the output in
      */
     int
-    compute_localized_affectors(const boost::multi_array<analytic_return_type, 2> &R,
+    compute_localized_affectors(const array2d<analytic_return_type> &R,
                                 const ivec2 &bitmap_location,
                                 c_array<curve_segment> out_curves) const
     {
-      return compute_localized_affectors( R[bitmap_location.x()][bitmap_location.y()],
+      return compute_localized_affectors( R(bitmap_location.x(), bitmap_location.y()),
                                           bitmap_location, out_curves);
     }
 
@@ -2503,7 +2502,7 @@ namespace detail
      */
     int
     compute_localized_affectors_LOD(int LOD,
-                                    const boost::multi_array<analytic_return_type, 2> &dataLOD0,
+                                    const array2d<analytic_return_type> &dataLOD0,
                                     const ivec2 &LOD_bitmap_location,
                                     c_array<curve_segment> out_curves) const;
 
@@ -2532,29 +2531,29 @@ namespace detail
                                   std::vector<int> &cts) const;
 
     void
-    compute_fixed_line_values(boost::multi_array<distance_return_type, 2> &victim,
+    compute_fixed_line_values(array2d<distance_return_type> &victim,
                               bool compute_winding_number) const;
 
     void
     compute_fixed_line_values(enum coordinate_type coord_tp,
-                              boost::multi_array<distance_return_type, 2> &victim,
+                              array2d<distance_return_type> &victim,
                               std::vector< std::vector<solution_point> > &work_room,
                               bool compute_winding_number) const;
 
     void
-    compute_outline_point_values(boost::multi_array<distance_return_type, 2> &victim,
+    compute_outline_point_values(array2d<distance_return_type> &victim,
                                  int radius) const;
 
     void
-    compute_zero_derivative_values(boost::multi_array<distance_return_type, 2> &victim,
+    compute_zero_derivative_values(array2d<distance_return_type> &victim,
                                    int radius) const;
 
     void
-    init_distance_values(boost::multi_array<distance_return_type, 2> &victim,
+    init_distance_values(array2d<distance_return_type> &victim,
                          float max_dist_value) const;
     void
     compute_analytic_curve_values_fixed(enum coordinate_type coord,
-                                        boost::multi_array<analytic_return_type, 2> &victim,
+                                        array2d<analytic_return_type> &victim,
                                         std::vector<int> &reverse_curve_count,
                                         bool include_pt_intersections) const;
 
