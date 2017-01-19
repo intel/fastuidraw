@@ -34,7 +34,6 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <boost/signals2.hpp>
-#include <boost/bind.hpp>
 #include <boost/multi_array.hpp>
 #include <boost/tuple/tuple.hpp>
 

@@ -129,8 +129,9 @@ Other important tricks:
 
  **********************************************/
 
-#include "freetype_util.hpp"
+#include <functional>
 
+#include "freetype_util.hpp"
 
 namespace
 {
@@ -1849,10 +1850,10 @@ namespace detail
     boost::signals2::connection c0, c1;
 
     assert(emitter!=NULL);
-    c0=emitter->connect_emit_curve( boost::bind(&RawOutlineData::catch_curve,
-                                                this, _1));
+    c0=emitter->connect_emit_curve( std::bind(&RawOutlineData::catch_curve,
+                                                this, std::placeholders::_1));
 
-    c1=emitter->connect_emit_end_contour( boost::bind(&RawOutlineData::mark_contour_end,
+    c1=emitter->connect_emit_end_contour( std::bind(&RawOutlineData::mark_contour_end,
                                                       this));
 
     emitter->produce_contours(m_dbg);
