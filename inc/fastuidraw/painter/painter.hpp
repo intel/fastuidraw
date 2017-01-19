@@ -829,6 +829,7 @@ namespace fastuidraw
       \param attrib_chunk attribute data to draw
       \param index_chunk indx data into attrib_chunk
       \param shader shader with which to draw data
+      \param index_adjust amount by which to adjust the index values
       \param call_back handle to PainterPacker::DataCallBack for the draw
      */
     void
@@ -850,6 +851,8 @@ namespace fastuidraw
       \param draw data for how to draw
       \param attrib_chunks attribute data to draw
       \param index_chunks the i'th element is index data into attrib_chunks[i]
+      \param index_adjusts the i'th value is the amount by which to adjust the
+                           index values if index_chunks[i]
       \param shader shader with which to draw data
       \param call_back handle to PainterPacker::DataCallBack for the draw
      */
@@ -865,10 +868,12 @@ namespace fastuidraw
       Draw generic attribute data
       \param draw data for how to draw
       \param attrib_chunks attribute data to draw
-      \param index_chunks the i'th element is index data into attrib_chunks[K]
-                          where K = attrib_chunk_selector[i]
       \param attrib_chunk_selector selects which attribute chunk to use for
              each index chunk
+      \param index_chunks the i'th element is index data into attrib_chunks[K]
+                          where K = attrib_chunk_selector[i]
+      \param index_adjusts the i'th value is the amount by which to adjust the
+                           index values if index_chunks[i]
       \param shader shader with which to draw data
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.

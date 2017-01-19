@@ -55,17 +55,15 @@ public:
   class Subset
   {
   public:
+    /*!
+      Returns the PainterAttributeData for the Subset
+     */
     const PainterAttributeData&
     painter_data(void) const;
 
     /*!
       Returns an array listing what winding number values
-      there are triangle in this Subset. To get the indices
-      for those triangle with winding number N = winding_numbers()[k],
-      pass k to PainterAttributeData::index_chunks() called
-      on the PainterAttributeData returned by painter_data().
-      The same attribute chunk, 0, is used regardless of which
-      index chunk.
+      there are triangle in this Subset.
     */
     const_c_array<int>
     winding_numbers(void) const;
@@ -73,7 +71,8 @@ public:
     /*!
       Returns what chunk to pass PainterAttributeData::index_chunks()
       called on the PainterAttributeData returned by painter_data()
-      to get the triangles of a specified winding number.
+      to get the triangles of a specified winding number. The same
+      attribute chunk, 0, is used regardless of which winding number.
      */
     static
     unsigned int
@@ -146,7 +145,7 @@ public:
     \param max_index_cnt only allow those SubSet objects for which
                          Subset::painter_data() have no more than
                          max_index_cnt attributes.
-    \param dst[output] location to which to write the what SubSets
+    \param[out] dst location to which to write the what SubSets
     \returns the number of chunks that intersect the clipping region,
              that number is guarnanteed to be no more than number_subsets().
 

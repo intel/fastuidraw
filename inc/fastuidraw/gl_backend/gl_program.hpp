@@ -340,17 +340,17 @@ protected:
     to initialize a uniform in a GLSL shader.
     \param program GL program
     \param location location of uniform
-    \param program_bound, true if and only if the program named
-                          by program is bound (via glUseProgram).
-                          If the program is not bound, then one
-                          SHOULD not bind the program and instead
-                          use the GL API points to set values of
-                          the uniform(s) that do not rely on having
-                          the program bound. One can also safely assume
-                          that those API points are supported in
-                          the case it is not bound (in particular
-                          the function family ProgramUniform() can
-                          be safely used).
+    \param program_bound true if and only if the program named
+                         by program is bound (via glUseProgram).
+                         If the program is not bound, then one
+                         SHOULD not bind the program and instead
+                         use the GL API points to set values of
+                         the uniform(s) that do not rely on having
+                         the program bound. One can also safely assume
+                         that those API points are supported in
+                         the case it is not bound (in particular
+                         the function family ProgramUniform() can
+                         be safely used).
    */
   virtual
   void
@@ -537,6 +537,8 @@ public:
     For each objected added via add(), call
     ProgramInitializer::perform_initialization().
     \param pr Program to pass along
+    \param program_bound if the program is currently bound to
+                         the GL context
    */
   void
   perform_initializations(Program *pr, bool program_bound) const;
@@ -721,9 +723,9 @@ public:
       on which the this is sourced (or written to).
       For attributes and uniforms of the default uniform
       block which are not atomic counters, returns -1.
-      \param array_element index into array variable represents
-      \param leading_array_index index into leading array (for
-                                 case where shader_storage_buffer_top_level_array_size()
+      \param array_index index into array variable represents
+      \param leading_array_index index into leading array (for case where
+                                 shader_storage_buffer_top_level_array_size()
                                  is not negative one).
      */
     GLint
@@ -1003,11 +1005,8 @@ public:
       The value can be used in the method shader_variable_info::buffer_offset()
       to get the buffer offset of the element of the shader variable.
       \param name variable name to look for
-      \param *out_array_index location to which to write the array index
-                              value; if NULL, value is not written
-      \param *out_leading_array_index location to which to write the
-                                      leading array index value; if NULL,
-                                      value is not written
+      \param[out] *out_array_index location to which to write the array index
+                                   value; if NULL, value is not written
      */
     shader_variable_info
     atomic_variable(const char *name,

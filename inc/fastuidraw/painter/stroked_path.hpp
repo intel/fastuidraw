@@ -588,6 +588,14 @@ public:
     void *m_d;
   };
 
+  /*!
+    Enumeration of values to feed as the argument
+    for PainterAttributeData::attribute_data_chunk(),
+    PainterAttributeData::index_data_chunk() and
+    PainterAttributeData::index_adjust_chunk()
+    for those PainterAttributeData objects holding
+    the join data.
+   */
   enum join_chunk_choice_t
     {
       /*!
@@ -666,7 +674,7 @@ public:
                              than max_attribute_cnt attributes
     \param max_index_cnt only allow those chunks for which have no more
                          than max_index_cnt indices
-    \param dst[output] location to which to write the what chunks
+    \param[out] dst location to which to write the what chunks
     \returns the number of chunks that intersect the clipping region,
              that number is guarnanteed to be no more than maximum_edge_chunks().
    */

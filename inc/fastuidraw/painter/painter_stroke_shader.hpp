@@ -71,8 +71,10 @@ namespace fastuidraw
       *out_item_space_distance, then to convert the box
       to clip-coordinates and then push each clip-equation
       by *out_pixel_space_distance
-      \param out_clip_space_distance[output] how much geometry inflates in pixels
-      \param out_item_space_distance[output] how much geometry inflates in local coordinates
+      \param data PainterItemShaderData::DataBase object holding
+                  the data to be sent to the shader
+      \param[out] out_pixel_space_distance how much geometry inflates in pixels
+      \param[out] out_item_space_distance how much geometry inflates in local coordinates
      */
     virtual
     void
