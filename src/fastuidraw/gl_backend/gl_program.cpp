@@ -2447,6 +2447,16 @@ uniform_block_id(const char *uniform_block_name)
     ~0u;
 }
 
+GLint
+fastuidraw::gl::Program::
+uniform_location(const char *name)
+{
+  shader_variable_info S;
+  unsigned int array_index(0);
+  S = default_uniform_block().variable(name, &array_index);
+  return S.location(array_index);
+}
+
 fastuidraw::gl::Program::shader_variable_info
 fastuidraw::gl::Program::
 find_shader_variable(const char *pname,

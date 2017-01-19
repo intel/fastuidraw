@@ -1165,13 +1165,7 @@ public:
     block with that name.
    */
   GLint
-  uniform_location(const char *name)
-  {
-    shader_variable_info S;
-    unsigned int array_index(0);
-    S = default_uniform_block().variable(name, &array_index);
-    return S.location(array_index);
-  }
+  uniform_location(const char *name);
 
   /*!
     Returns the number of active shader storage blocks.
