@@ -35,6 +35,12 @@ install: $(INSTALL_LIBS) $(INSTALL_EXES)
 	-find inc/ -type f -printf '%P\n' | xargs -I '{}' install -m 644 inc/'{}' $(INSTALL_LOCATION)/include/'{}'
 TARGETLIST+=install
 
+uninstall:
+	-rm -r $(INSTALL_LOCATION)/include/fastuidraw
+	-rm $(addprefix $(INSTALL_LOCATION)/lib/,$(notdir $(INSTALL_LIBS)))
+	-rm $(addprefix $(INSTALL_LOCATION)/bin/,$(notdir $(INSTALL_EXES)))
+TARGETLIST+=uninstall
+
 install-docs: docs
 	-install -d $(INSTALL_LOCATION)/share/doc/fastuidraw/
 	-install -t $(INSTALL_LOCATION)/share/doc/fastuidraw docs/*.txt
