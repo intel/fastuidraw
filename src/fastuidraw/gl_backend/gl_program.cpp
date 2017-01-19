@@ -845,7 +845,11 @@ void
 ShaderVariableSet::
 finalize(void)
 {
-  assert(!m_finalized);
+  if(m_finalized)
+    {
+      return;
+    }
+
   m_finalized = true;
   std::sort(m_values.begin(), m_values.end());
   for(unsigned int i = 0, endi = m_values.size(); i < endi; ++i)
@@ -883,10 +887,16 @@ find_variable(const std::string &pname,
       return &m_values[iter->second];
     }
 
-  std::string filtered_name;
+  std::string filtered_name, filtered_name2;
 
   filtered_name = filter_name(pname.begin(), pname.end(), array_index);
   iter = m_map.find(filtered_name);
+  if(iter == m_map.end())
+    {
+      filtered_name2 = filtered_name + "[0]";
+      iter = m_map.find(filtered_name2);
+    }
+
   if(iter != m_map.end())
     {
       const ShaderVariableInfo *q;
@@ -907,6 +917,24 @@ find_variable(const std::string &pname,
       filtered_name = filter_name_leading_index(filtered_name.begin(),
                                                 filtered_name.end(),
                                                 leading_array_index);
+      iter = m_map.find(filtered_name);
+      if(iter == m_map.end())
+        {
+          filtered_name += "[0]";
+          iter = m_map.find(filtered_name);
+        }
+
+      if(iter == m_map.end())
+        {
+          iter = m_map.find(filtered_name2);
+        }
+
+      if(iter == m_map.end())
+        {
+          filtered_name2 += "[0]";
+          iter = m_map.find(filtered_name2);
+        }
+
       if(iter != m_map.end())
         {
           const ShaderVariableInfo *q;
@@ -1189,7 +1217,11 @@ void
 BlockSetInfoBase::
 finalize(void)
 {
-  assert(!m_finalized);
+  if(m_finalized)
+    {
+      return;
+    }
+
   m_finalized = true;
   std::sort(m_blocks_sorted.begin(), m_blocks_sorted.end(), compare_function);
   for(unsigned int i = 0, endi = m_blocks_sorted.size(); i < endi; ++i)
