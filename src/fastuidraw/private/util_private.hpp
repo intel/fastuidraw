@@ -19,8 +19,7 @@
 
 #pragma once
 
-#include <boost/thread.hpp>
-
+#include <mutex>
 #include <vector>
 #include <fastuidraw/util/c_array.hpp>
 
@@ -45,8 +44,27 @@ namespace fastuidraw
       m_mutex.unlock();
     }
 
+    bool
+    try_lock(void)
+    {
+      return m_mutex.try_lock();
+    }
+
   private:
-    boost::mutex m_mutex;
+    std::mutex m_mutex;
+  };
+
+  class dummy_mutex:fastuidraw::noncopyable
+  {
+  public:
+    void
+    lock(void) {}
+
+    void
+    unlock(void) {}
+
+    bool
+    try_lock(void) { return true; }
   };
 
   /*!

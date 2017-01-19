@@ -16,20 +16,7 @@
  *
  */
 
-#include <boost/version.hpp>
-
-#if (BOOST_VERSION < 105300)
-  #define FASTUIDRAW_USE_DETAIL_ATOMIC
-#endif
-
-#ifndef FASTUIDRAW_USE_DETAIL_ATOMIC
-  #include <boost/atomic.hpp>
-  typedef boost::atomic<int> atomic_int;
-#else
-  #include <boost/detail/atomic_count.hpp>
-  typedef boost::detail::atomic_count atomic_int;
-#endif
-
+#include <atomic>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/util/reference_count_atomic.hpp>
 
@@ -42,7 +29,7 @@ namespace
       m_reference_count(0)
     {}
 
-    atomic_int m_reference_count;
+    std::atomic<int> m_reference_count;
   };
 }
 
@@ -71,15 +58,7 @@ add_reference(void)
   ReferenceCountAtomicPrivate *d;
 
   d = static_cast<ReferenceCountAtomicPrivate*>(m_d);
-  #ifndef FASTUIDRAW_USE_DETAIL_ATOMIC
-    {
-      d->m_reference_count.fetch_add(1, boost::memory_order_relaxed);
-    }
-  #else
-    {
-      ++(d->m_reference_count);
-    }
-  #endif
+  d->m_reference_count.fetch_add(1, std::memory_order_relaxed);
 }
 
 
@@ -91,25 +70,15 @@ remove_reference(void)
   bool return_value;
 
   d = static_cast<ReferenceCountAtomicPrivate*>(m_d);
-  #ifndef FASTUIDRAW_USE_DETAIL_ATOMIC
+  if (d->m_reference_count.fetch_sub(1, std::memory_order_release) == 1)
     {
-      if (d->m_reference_count.fetch_sub(1, boost::memory_order_release) == 1)
-        {
-          boost::atomic_thread_fence(boost::memory_order_acquire);
-          return_value = true;
-        }
-      else
-        {
-          return_value = false;
-        }
+      std::atomic_thread_fence(std::memory_order_acquire);
+      return_value = true;
     }
-  #else
+  else
     {
-      long v;
-      v = --(d->m_reference_count);
-      return_value = (v == 0);
+      return_value = false;
     }
-  #endif
 
   return return_value;
 }

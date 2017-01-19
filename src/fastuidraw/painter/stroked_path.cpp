@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <complex>
+#include <algorithm>
 
 #include <fastuidraw/tessellated_path.hpp>
 #include <fastuidraw/path.hpp>

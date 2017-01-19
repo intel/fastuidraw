@@ -1710,11 +1710,13 @@ tessellation(float thresh) const
 
           if(d->m_tessellation_done)
             {
+              /*
               std::cout << "Tapped out at (max_segs = "
                         << ref->max_segments() << ", tess_factor = "
                         << ref->effective_curve_distance_threshhold()
                         << ", num_points = " << ref->point_data().size()
                         << ")\n";
+              */
             }
           d->m_tessellation.push_back(ref);
         }

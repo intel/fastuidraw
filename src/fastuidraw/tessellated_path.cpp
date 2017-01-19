@@ -168,13 +168,6 @@ TessellatedPath(const Path &input,
                 fastuidraw::TessellatedPath::TessellationParams TP)
 {
   m_d = FASTUIDRAWnew TessellatedPathPrivate(input, TP);
-  std::cout << "Created(max_segs = "
-            << max_segments()
-            << ", curve_distance = "
-            << effective_curve_distance_threshhold()
-            << ", curvature = "
-            << effective_curvature_threshhold()
-            << ", num_points = " << point_data().size() << ")\n";
 }
 
 fastuidraw::TessellatedPath::

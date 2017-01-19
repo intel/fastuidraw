@@ -34,17 +34,17 @@ endif
 # Setting for Boost dependency.
 ifeq ($(MINGW_BUILD),1)
   ifeq ($(MINGW_MODE),MINGW)
-    LIBRARY_BOOST_LIBS = -lboost_system -lboost_thread
+    LIBRARY_BOOST_LIBS =
     LIBBARY_BOOST_INCLUDE =
   else
-    LIBRARY_BOOST_LIBS = -lboost_system-mt -lboost_thread-mt
+    LIBRARY_BOOST_LIBS =
     LIBBARY_BOOST_INCLUDE =
   endif
 else ifeq ($(DARWIN_BUILD),1)
-  LIBRARY_BOOST_LIBS = -lboost_system-mt -lboost_thread-mt
+  LIBRARY_BOOST_LIBS =
   LIBBARY_BOOST_INCLUDE = /usr/local/include
 else
-  LIBRARY_BOOST_LIBS = -lboost_system -lboost_thread
+  LIBRARY_BOOST_LIBS =
   LIBBARY_BOOST_INCLUDE =
 endif
 

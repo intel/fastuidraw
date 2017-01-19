@@ -33,6 +33,7 @@
 #include <vector>
 #include <sys/time.h>
 #include <unistd.h>
+#include <mutex>
 #include <boost/signals2.hpp>
 #include <boost/bind.hpp>
 #include <boost/multi_array.hpp>
@@ -1540,13 +1541,25 @@ namespace detail
       conveniance typedef for the signal type
       when a curve is emitted.
      */
-    typedef boost::signals2::signal<void (BezierCurve*) > signal_emit_curve;
+    typedef boost::signals2::signal<void (BezierCurve*),
+                                    boost::signals2::optional_last_value<void>,
+                                    int,
+                                    std::less<int>,
+                                    boost::function<void (BezierCurve*)>,
+                                    boost::function<void (const boost::signals2::connection&, BezierCurve*)>,
+                                    dummy_mutex> signal_emit_curve;
 
     /*!\typedef signal_end_contour
       conveniance typedef for the signal type
       when a contour ends
      */
-    typedef boost::signals2::signal<void () > signal_end_contour;
+    typedef boost::signals2::signal<void (),
+                                    boost::signals2::optional_last_value<void>,
+                                    int,
+                                    std::less<int>,
+                                    boost::function<void ()>,
+                                    boost::function<void (const boost::signals2::connection&)>,
+                                    dummy_mutex> signal_end_contour;
 
     virtual
     ~ContourEmitterBase(void)

@@ -20,6 +20,8 @@
 #pragma once
 
 #include <assert.h>
+#include <list>
+#include <map>
 
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/util.hpp>

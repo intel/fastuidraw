@@ -17,6 +17,8 @@
  */
 
 
+#include <list>
+#include <map>
 #include <boost/multi_array.hpp>
 #include <fastuidraw/image.hpp>
 #include "private/util_private.hpp"
