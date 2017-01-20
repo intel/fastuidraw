@@ -30,13 +30,13 @@
 #include <iostream>
 #include <iomanip>
 #include <map>
+#include <tuple>
 #include <vector>
 #include <sys/time.h>
 #include <unistd.h>
 #include <mutex>
 #include <boost/signals2.hpp>
 #include <boost/multi_array.hpp>
-#include <boost/tuple/tuple.hpp>
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
@@ -123,11 +123,11 @@ namespace detail
     \n (0x00,0xFF,0x00,1) {green} off outline quadratic control point
     \n (0x00,0x00,0xFF,2) {blue} off outline  cubic control point
   */
-  class point_type:public boost::tuple<ivec2, u8vec4>
+  class point_type:public std::tuple<ivec2, u8vec4>
   {
   public:
 
-    typedef boost::tuple<ivec2, u8vec4> base_class;
+    typedef std::tuple<ivec2, u8vec4> base_class;
 
     enum
       {
@@ -209,7 +209,7 @@ namespace detail
     const ivec2&
     position(void) const
     {
-      return get<point_location>();
+      return std::get<point_location>(*this);
     }
 
     /*!\fn vecN<int,2>& position(void)
@@ -219,7 +219,7 @@ namespace detail
     ivec2&
     position(void)
     {
-      return get<point_location>();
+      return std::get<point_location>(*this);
     }
 
     /*!\fn const u8vec4& color(void) const
@@ -230,7 +230,7 @@ namespace detail
     const u8vec4&
     color(void) const
     {
-      return get<color_location>();
+      return std::get<color_location>(*this);
     }
 
     /*!\fn u8vec4& color(void)
@@ -241,7 +241,7 @@ namespace detail
     u8vec4&
     color(void)
     {
-      return get<color_location>();
+      return std::get<color_location>(*this);
     }
 
     /*!\fn  enum point_classification classification
