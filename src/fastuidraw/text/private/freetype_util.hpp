@@ -35,7 +35,6 @@
 #include <unistd.h>
 #include <mutex>
 #include <boost/signals2.hpp>
-#include <boost/bind.hpp>
 #include <boost/multi_array.hpp>
 #include <boost/tuple/tuple.hpp>
 

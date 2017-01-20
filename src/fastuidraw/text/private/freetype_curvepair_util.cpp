@@ -19,6 +19,7 @@
  */
 
 #include <map>
+#include <functional>
 
 #include <fastuidraw/text/glyph_render_data_curve_pair.hpp>
 #include "freetype_util.hpp"
@@ -347,9 +348,9 @@ consumer_state(CollapsingContourEmitter *master,
   m_master(master),
   m_data(data)
 {
-  signal_emit_curve::slot_type C(boost::bind(&CollapsingContourEmitter::consumer_state::consume_curve,
-                                             this, _1));
-  signal_end_contour::slot_type O(boost::bind(&CollapsingContourEmitter::consumer_state::consume_contour,
+  signal_emit_curve::slot_type C(std::bind(&CollapsingContourEmitter::consumer_state::consume_curve,
+                                             this, std::placeholders::_1));
+  signal_end_contour::slot_type O(std::bind(&CollapsingContourEmitter::consumer_state::consume_contour,
                                               this));
 
   m_consume_curves=m_master->m_real_worker.connect_emit_curve(C);
