@@ -35,7 +35,6 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <mutex>
-#include <boost/signals2.hpp>
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -44,6 +43,7 @@
 #include <fastuidraw/path.hpp>
 
 #include "../../private/array2d.hpp"
+#include "signal.hpp"
 #include "../../private/util_private.hpp"
 
 #include <ft2build.h>
@@ -1539,25 +1539,13 @@ namespace detail
       conveniance typedef for the signal type
       when a curve is emitted.
      */
-    typedef boost::signals2::signal<void (BezierCurve*),
-                                    boost::signals2::optional_last_value<void>,
-                                    int,
-                                    std::less<int>,
-                                    boost::function<void (BezierCurve*)>,
-                                    boost::function<void (const boost::signals2::connection&, BezierCurve*)>,
-                                    dummy_mutex> signal_emit_curve;
+    typedef Signal<std::function<void (BezierCurve*)>> signal_emit_curve;
 
     /*!\typedef signal_end_contour
       conveniance typedef for the signal type
       when a contour ends
      */
-    typedef boost::signals2::signal<void (),
-                                    boost::signals2::optional_last_value<void>,
-                                    int,
-                                    std::less<int>,
-                                    boost::function<void ()>,
-                                    boost::function<void (const boost::signals2::connection&)>,
-                                    dummy_mutex> signal_end_contour;
+    typedef Signal<std::function<void ()>> signal_end_contour;
 
     virtual
     ~ContourEmitterBase(void)
@@ -1597,24 +1585,24 @@ namespace detail
       m_o();
     }
 
-    /*!\fn boost::signals2::connection connect_emit_curve
+    /*!\fn signal_emit_curve::Connection connect_emit_curve
       Connect to the emit curve signal
       \param c slot to call on emit curve signal
      */
-    boost::signals2::connection
-    connect_emit_curve(signal_emit_curve::slot_type c)
+    signal_emit_curve::Connection
+    connect_emit_curve(signal_emit_curve::SlotType&& c)
     {
-      return m_c.connect(c);
+      return m_c.connect(std::move(c));
     }
 
-    /*!\fn boost::signals2::connection connect_emit_end_contour
+    /*!\fn signal_end_contour::Connection connect_emit_end_contour
       Connect to the emit end of outline signal
       \param o slot to call on emit end of contour signal
      */
-    boost::signals2::connection
-    connect_emit_end_contour(signal_end_contour::slot_type o)
+    signal_end_contour::Connection
+    connect_emit_end_contour(signal_end_contour::SlotType&& o)
     {
-      return m_o.connect(o);
+      return m_o.connect(std::move(o));
     }
 
   private:
