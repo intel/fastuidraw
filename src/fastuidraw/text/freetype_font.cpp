@@ -25,6 +25,7 @@
 
 #include "private/freetype_util.hpp"
 #include "private/freetype_curvepair_util.hpp"
+#include "../private/array2d.hpp"
 #include "../private/util_private.hpp"
 
 #include <ft2build.h>
@@ -424,7 +425,7 @@ compute_rendering_data(uint32_t glyph_code,
        */
       output.resize(bitmap_sz + fastuidraw::ivec2(1, 1));
       std::fill(output.distance_values().begin(), output.distance_values().end(), 0);
-      boost::multi_array<fastuidraw::detail::distance_return_type, 2> distance_values(boost::extents[bitmap_sz.x()][bitmap_sz.y()]);
+      fastuidraw::array2d<fastuidraw::detail::distance_return_type> distance_values(bitmap_sz.x(), bitmap_sz.y());
 
       outline_data.compute_distance_values(distance_values, max_distance, true);
       for(int y = 0; y < bitmap_sz.y(); ++y)
@@ -436,9 +437,9 @@ compute_rendering_data(uint32_t glyph_code,
               float v0;
 
               location = x + y * output.resolution().x();
-              outside = (distance_values[x][y].m_solution_count.winding_number() == 0);
+              outside = (distance_values(x, y).m_solution_count.winding_number() == 0);
 
-              v0 = distance_values[x][y].m_distance.value();
+              v0 = distance_values(x, y).m_distance.value();
               v0 = std::min(v0 / max_distance, 1.0f);
 
               output.distance_values()[location] = pixel_value_from_distance(v0, outside);

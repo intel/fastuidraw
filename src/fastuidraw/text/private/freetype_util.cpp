@@ -663,7 +663,7 @@ namespace
 
   void
   grab_simple_lines(grab_map &hits_found,
-                    const boost::multi_array<analytic_return_type, 2> &dataLOD0,
+                    const array2d<analytic_return_type> &dataLOD0,
                     int fixed_value, range_type<int> range,
                     enum coordinate_type coord,
                     enum boundary_type which_to_grab)
@@ -676,7 +676,7 @@ namespace
         pix[varying_coordinate(coord)]<range.m_end;
         ++pix[varying_coordinate(coord)])
       {
-        const analytic_return_type &R(dataLOD0[pix.x()][pix.y()]);
+        const analytic_return_type &R(dataLOD0(pix.x(), pix.y()));
         for(int j=0, end_j=R.m_intersecions[which_to_grab].size(); j<end_j; ++j)
           {
             const simple_line &L(R.m_intersecions[which_to_grab][j]);
@@ -2103,7 +2103,7 @@ namespace detail
 
   void
   OutlineData::
-  compute_distance_values(boost::multi_array<distance_return_type, 2> &victim,
+  compute_distance_values(array2d<distance_return_type> &victim,
                           float max_dist_value, bool compute_winding_number) const
   {
     int radius;
@@ -2118,7 +2118,7 @@ namespace detail
 
   void
   OutlineData::
-  init_distance_values(boost::multi_array<distance_return_type, 2> &victim,
+  init_distance_values(array2d<distance_return_type> &victim,
                        float max_dist_value) const
   {
     //init victim:
@@ -2126,14 +2126,14 @@ namespace detail
       {
         for(int y=0;y<bitmap_size().y();++y)
           {
-            victim[x][y].m_distance.init(max_dist_value);
+            victim(x, y).m_distance.init(max_dist_value);
           }
       }
   }
 
   void
   OutlineData::
-  compute_outline_point_values(boost::multi_array<distance_return_type, 2> &victim,
+  compute_outline_point_values(array2d<distance_return_type> &victim,
                                int radius) const
   {
     for(unsigned int i=0, end_i=number_curves(); i<end_i; ++i)
@@ -2166,7 +2166,7 @@ namespace detail
                 dc=candidate.L1norm();
                 dc*=distance_scale_factor();
 
-                victim[x][y].m_distance.update_value(dc);
+                victim(x, y).m_distance.update_value(dc);
               }
           }
 
@@ -2175,7 +2175,7 @@ namespace detail
 
   void
   OutlineData::
-  compute_zero_derivative_values(boost::multi_array<distance_return_type, 2> &victim,
+  compute_zero_derivative_values(array2d<distance_return_type> &victim,
                                  int radius) const
   {
     for(unsigned int i=0, end_i=number_curves(); i<end_i; ++i)
@@ -2210,7 +2210,7 @@ namespace detail
                     dc=candidate.L1norm();
                     dc*=distance_scale_factor();
 
-                    victim[x][y].m_distance.update_value(dc);
+                    victim(x, y).m_distance.update_value(dc);
 
                   }
               }
@@ -2221,7 +2221,7 @@ namespace detail
 
   void
   OutlineData::
-  compute_fixed_line_values(boost::multi_array<distance_return_type, 2> &victim,
+  compute_fixed_line_values(array2d<distance_return_type> &victim,
                             bool compute_winding_number) const
   {
     std::vector< std::vector<solution_point> > work_room;
@@ -2234,7 +2234,7 @@ namespace detail
   void
   OutlineData::
   compute_fixed_line_values(enum coordinate_type coord_tp,
-                            boost::multi_array<distance_return_type, 2> &victim,
+                            array2d<distance_return_type> &victim,
                             std::vector< std::vector<solution_point> > &work_room,
                             bool compute_winding_number) const
   {
@@ -2330,15 +2330,15 @@ namespace detail
 
                 dc= std::abs(p-L[cindex].m_value);
                 dc*=distance_scale_factor();
-                victim[pixel.x()][pixel.y()].m_distance.update_value(dc);
+                victim(pixel.x(), pixel.y()).m_distance.update_value(dc);
 
               }
 
 
-            victim[pixel.x()][pixel.y()].
+            victim(pixel.x(), pixel.y()).
               m_solution_count.increment(sol[coord][0], current_count);
 
-            victim[pixel.x()][pixel.y()].
+            victim(pixel.x(), pixel.y()).
               m_solution_count.increment(sol[coord][1], total_count - current_count);
           }
 
@@ -2368,7 +2368,7 @@ namespace detail
                 //that are falling
                 sum+=cts[x];
 
-                victim[pix.x()][pix.y()].
+                victim(pix.x(), pix.y()).
                   m_solution_count.increment_winding(sum);
               }
 
@@ -2462,12 +2462,10 @@ namespace detail
 
   void
   OutlineData::
-  compute_winding_numbers(boost::multi_array<int, 2> &victim,
+  compute_winding_numbers(array2d<int> &victim,
                           ivec2 offset_from_center) const
   {
-    std::fill(victim.data(),
-              victim.data()+victim.num_elements(), 0);
-
+    victim.fill(0);
     for(int y=0;y<bitmap_size().y(); ++y)
       {
         std::vector<solution_point> solves;
@@ -2493,7 +2491,7 @@ namespace detail
             //center that are rising minus the number of curves before the texel
             //that are falling
             sum+=cts[x];
-            victim[x][y]+=sum;
+            victim(x, y)+=sum;
           }
       }
   }
@@ -2501,7 +2499,7 @@ namespace detail
 
   void
   OutlineData::
-  compute_analytic_values(boost::multi_array<analytic_return_type, 2> &victim,
+  compute_analytic_values(array2d<analytic_return_type> &victim,
                           std::vector<bool> &component_reversed,
                           bool include_pt_intersections) const
   {
@@ -2554,7 +2552,7 @@ namespace detail
   void
   OutlineData::
   compute_analytic_curve_values_fixed(enum coordinate_type coord,
-                                      boost::multi_array<analytic_return_type, 2> &victim,
+                                      array2d<analytic_return_type> &victim,
                                       std::vector<int> &reverse_curve_count,
                                       bool include_pt_intersections) const
   {
@@ -2644,7 +2642,7 @@ namespace detail
             //prev_index gives the number of curves below texel_bottom:
             if(x>0)
               {
-                victim[prev_pixel.x()][prev_pixel.y()].m_parity_count[prev_bound]=prev_index;
+                victim(prev_pixel.x(), prev_pixel.y()).m_parity_count[prev_bound]=prev_index;
 
                 bool filled;
                 filled= ( (prev_index&1)!=0);
@@ -2693,7 +2691,7 @@ namespace detail
 
             if(x<bitmap_size()[coord])
               {
-                victim[pixel.x()][pixel.y()].m_parity_count[bound]=prev_index;
+                victim(pixel.x(), pixel.y()).m_parity_count[bound]=prev_index;
               }
 
             //at this point in time if prev_index and current index differ, then
@@ -2709,14 +2707,14 @@ namespace detail
                   {
                     if(x>0)
                       {
-                        victim[prev_pixel.x()][prev_pixel.y()].m_intersecions[prev_bound].push_back(L[k]);
-                        victim[prev_pixel.x()][prev_pixel.y()].m_empty=false;
+                        victim(prev_pixel.x(), prev_pixel.y()).m_intersecions[prev_bound].push_back(L[k]);
+                        victim(prev_pixel.x(), prev_pixel.y()).m_empty=false;
                       }
 
                     if(x<bitmap_size()[coord])
                       {
-                        victim[pixel.x()][pixel.y()].m_intersecions[bound].push_back(L[k]);
-                        victim[pixel.x()][pixel.y()].m_empty=false;
+                        victim(pixel.x(), pixel.y()).m_intersecions[bound].push_back(L[k]);
+                        victim(pixel.x(), pixel.y()).m_empty=false;
                       }
                   }
               }
@@ -2730,7 +2728,7 @@ namespace detail
   int
   OutlineData::
   compute_localized_affectors_LOD(int LOD,
-                                  const boost::multi_array<analytic_return_type, 2> &dataLOD0,
+                                  const array2d<analytic_return_type> &dataLOD0,
                                   const ivec2 &LOD_bitmap_location,
                                   c_array<curve_segment> out_curves) const
   {

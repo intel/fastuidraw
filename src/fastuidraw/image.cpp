@@ -19,8 +19,8 @@
 
 #include <list>
 #include <map>
-#include <boost/multi_array.hpp>
 #include <fastuidraw/image.hpp>
+#include "private/array3d.hpp"
 #include "private/util_private.hpp"
 
 
@@ -243,7 +243,7 @@ namespace
     std::vector<fastuidraw::ivec3> m_delayed_free_tiles;
 
     #ifdef FASTUIDRAW_DEBUG
-    boost::multi_array<inited_bool, 3> m_tile_allocated;
+    fastuidraw::array3d<inited_bool> m_tile_allocated;
     #endif
   };
 
@@ -529,15 +529,13 @@ tile_allocator(int tile_size, fastuidraw::ivec3 store_dimensions):
               store_dimensions.z()),
   m_tile_count(0),
   m_delay_tile_freeing_counter(0)
+#ifdef FASTUIDRAW_DEBUG
+  ,
+  m_tile_allocated(m_num_tiles.x(), m_num_tiles.y(), m_num_tiles.z())
+#endif
 {
   assert(store_dimensions.x() % m_tile_size == 0);
   assert(store_dimensions.y() % m_tile_size == 0);
-
-  #ifdef FASTUIDRAW_DEBUG
-    {
-      m_tile_allocated.resize(boost::extents[m_num_tiles.x()][m_num_tiles.y()][m_num_tiles.z()]);
-    }
-  #endif
 }
 
 tile_allocator::
@@ -583,8 +581,8 @@ allocate_tile(void)
 
   #ifdef FASTUIDRAW_DEBUG
     {
-      assert(!m_tile_allocated[return_value.x()][return_value.y()][return_value.z()].m_value);
-      m_tile_allocated[return_value.x()][return_value.y()][return_value.z()] = true;
+      assert(!m_tile_allocated(return_value.x(), return_value.y(), return_value.z()).m_value);
+      m_tile_allocated(return_value.x(), return_value.y(), return_value.z()) = true;
     }
   #endif
 
@@ -636,8 +634,8 @@ delete_tile_implement(fastuidraw::ivec3 v)
   assert(m_delay_tile_freeing_counter == 0);
   #ifdef FASTUIDRAW_DEBUG
     {
-      assert(m_tile_allocated[v.x()][v.y()][v.z()].m_value);
-      m_tile_allocated[v.x()][v.y()][v.z()] = false;
+      assert(m_tile_allocated(v.x(), v.y(), v.z()).m_value);
+      m_tile_allocated(v.x(), v.y(), v.z()) = false;
     }
   #endif
 
@@ -678,7 +676,7 @@ resize_to_fit(int num_tiles)
       m_num_tiles.z() += needed_layers;
       #ifdef FASTUIDRAW_DEBUG
         {
-          m_tile_allocated.resize(boost::extents[m_num_tiles.x()][m_num_tiles.y()][m_num_tiles.z()]);
+          m_tile_allocated.resize(m_num_tiles.x(), m_num_tiles.y(), m_num_tiles.z());
         }
       #endif
 
