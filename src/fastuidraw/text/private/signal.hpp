@@ -62,12 +62,12 @@ public:
     void
     disconnect()
     {
-        if(!m_slots)
-          {
-            return;
-          }
-        m_slots->erase(m_iterator);
-        m_slots = nullptr;
+      if(!m_slots)
+        {
+          return;
+        }
+      m_slots->erase(m_iterator);
+      m_slots = nullptr;
     }
 
   private:
@@ -94,10 +94,9 @@ public:
   Connection
   connect(SlotType&& slot)
   {
-      m_slots->push_back(slot);
-      typename Slots::iterator iterator = m_slots->end();
-      --iterator;
-      return Connection { m_slots, iterator };
+    typename Slots::iterator iterator;
+    iterator = m_slots->insert(m_slots->end(), slot);
+    return Connection { m_slots, iterator };
   }
 
 private:
