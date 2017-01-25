@@ -25,6 +25,7 @@
 #include "freetype_util.hpp"
 #include "freetype_curvepair_util.hpp"
 #include "../../private/array2d.hpp"
+#include "signal.hpp"
 
 
 /*
@@ -261,8 +262,8 @@ namespace
       std::vector< std::pair<fastuidraw::detail::BezierCurve*, int> > m_curves_to_emit;
 
       fastuidraw::detail::geometry_data m_data;
-      boost::signals2::connection m_consume_curves;
-      boost::signals2::connection m_consume_contours;
+      signal_emit_curve::Connection m_consume_curves;
+      signal_end_contour::Connection m_consume_contours;
     };
 
     static
@@ -347,15 +348,10 @@ CollapsingContourEmitter::consumer_state::
 consumer_state(CollapsingContourEmitter *master,
                fastuidraw::detail::geometry_data data):
   m_master(master),
-  m_data(data)
+  m_data(data),
+  m_consume_curves(m_master->m_real_worker.connect_emit_curve(std::bind(&CollapsingContourEmitter::consumer_state::consume_curve, this, std::placeholders::_1))),
+  m_consume_contours(m_master->m_real_worker.connect_emit_end_contour(std::bind(&CollapsingContourEmitter::consumer_state::consume_contour, this)))
 {
-  signal_emit_curve::slot_type C(std::bind(&CollapsingContourEmitter::consumer_state::consume_curve,
-                                             this, std::placeholders::_1));
-  signal_end_contour::slot_type O(std::bind(&CollapsingContourEmitter::consumer_state::consume_contour,
-                                              this));
-
-  m_consume_curves=m_master->m_real_worker.connect_emit_curve(C);
-  m_consume_contours=m_master->m_real_worker.connect_emit_end_contour(O);
 }
 
 
