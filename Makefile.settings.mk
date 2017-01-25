@@ -30,24 +30,6 @@ ifeq ($(MINGW_BUILD),1)
   LIBRARY_LIBS += -lmingw32
 endif
 
-#########################################
-# Setting for Boost dependency.
-ifeq ($(MINGW_BUILD),1)
-  ifeq ($(MINGW_MODE),MINGW)
-    LIBRARY_BOOST_LIBS =
-    LIBBARY_BOOST_INCLUDE =
-  else
-    LIBRARY_BOOST_LIBS =
-    LIBBARY_BOOST_INCLUDE =
-  endif
-else ifeq ($(DARWIN_BUILD),1)
-  LIBRARY_BOOST_LIBS =
-  LIBBARY_BOOST_INCLUDE = /usr/local/include
-else
-  LIBRARY_BOOST_LIBS =
-  LIBBARY_BOOST_INCLUDE =
-endif
-
 #############################################
 # Compile flags needed for hidden and shared
 ifeq ($(MINGW_BUILD),1)
@@ -64,9 +46,3 @@ endif
 ## for using clang-tidy
 CLANG_TIDY ?= clang-tidy
 CLANG_TIDY_ARGS = -header-filter=.* -checks=* -analyze-temporary-dtors
-
-
-######################################
-# All done figuring platform bits out
-# ust the values realized
-LIBRARY_LIBS += $(LIBRARY_BOOST_LIBS)

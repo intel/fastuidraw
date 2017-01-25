@@ -6,7 +6,7 @@ LIBRARY_release_CFLAGS = $(LIBRARY_CFLAGS) -DNDEBUG
 LIBRARY_BUILD_debug_FLAGS = -g -std=c++11
 LIBRARY_BUILD_release_FLAGS = -O3 -fstrict-aliasing -std=c++11
 LIBRARY_BUILD_WARN_FLAGS = -Wall -Wextra -Wcast-qual -Wwrite-strings
-LIBRARY_BUILD_INCLUDES_CFLAGS = -Iinc $(LIBBARY_BOOST_INCLUDE)
+LIBRARY_BUILD_INCLUDES_CFLAGS = -Iinc
 
 LIBRARY_STRING_RESOURCES_SRCS = $(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $(LIBRARY_RESOURCE_STRING) )
 CLEAN_FILES += $(LIBRARY_STRING_RESOURCES_SRCS)
