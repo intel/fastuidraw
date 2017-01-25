@@ -642,7 +642,6 @@ namespace
     AttributeInfo m_attribute_list;
     UniformBlockSetInfo m_uniform_list;
     ShaderStorageBlockSetInfo m_storage_buffer_list;
-    std::vector<AtomicBufferInfo> m_abo_list;
     fastuidraw::gl::ProgramInitializerArray m_initializers;
     fastuidraw::gl::PreLinkActionArray m_pre_link_actions;
     fastuidraw::gl::Program *m_p;
