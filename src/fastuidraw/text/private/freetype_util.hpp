@@ -43,7 +43,7 @@
 #include <fastuidraw/path.hpp>
 
 #include "../../private/array2d.hpp"
-#include "signal.hpp"
+#include "../../private/signal.hpp"
 #include "../../private/util_private.hpp"
 
 #include <ft2build.h>

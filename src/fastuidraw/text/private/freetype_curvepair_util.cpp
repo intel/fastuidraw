@@ -25,8 +25,6 @@
 #include "freetype_util.hpp"
 #include "freetype_curvepair_util.hpp"
 #include "../../private/array2d.hpp"
-#include "signal.hpp"
-
 
 /*
   Such a mess. Oh well. This entire code does two things:
