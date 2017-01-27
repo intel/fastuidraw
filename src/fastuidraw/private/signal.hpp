@@ -21,7 +21,7 @@
 #include <memory>
 
 #include <fastuidraw/util/fastuidraw_memory.hpp>
-#include <fastuidraw/util/reference_count_non_concurrent.hpp>
+#include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/util.hpp>
 
 #pragma once
