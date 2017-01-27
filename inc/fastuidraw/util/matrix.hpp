@@ -59,6 +59,24 @@ private:
   vecN<T,N*M> m_data;
 
 public:
+  /*!
+    Typedef to underlying vecN that holds
+    the matrix data.
+   */
+  typedef vecN<T, N * M> raw_data_type;
+
+  enum
+    {
+      /*!
+        Enumeration value for size of the matrix.
+       */
+      number_rows = N,
+
+      /*!
+        Enumeration value for size of the matrix.
+       */
+      number_cols = M,
+    };
 
   /*!
     Copy-constructor for a NxN matrix.
