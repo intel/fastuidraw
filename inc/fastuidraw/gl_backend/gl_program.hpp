@@ -588,6 +588,13 @@ public:
       src_default_uniform_block,
 
       /*!
+        Indicats that the shader variable is an
+        atomic buffer counter and sourced from
+        a backing buffer object.
+       */
+      src_abo,
+
+      /*!
         Indicats that the shader variable is from
         the a uniform block; the variable's value
         is sourced from a backing buffer object.

@@ -370,9 +370,23 @@ namespace
       m_size_bytes(0)
     {}
 
+    void
+    finalize(void);
+
+    void
+    add_element(ShaderVariableInfo v);
+
+    const ShaderVariableSet&
+    members(void) const
+    {
+      return m_members;
+    }
+
     GLint m_buffer_binding;
     GLint m_buffer_index;
     GLint m_size_bytes;
+
+  private:
     ShaderVariableSet m_members;
   };
 
@@ -1114,6 +1128,25 @@ filter_name_leading_index(iterator begin, iterator end, unsigned int *leading_in
   return std::string(begin, open_bracket) + "[0]" + std::string(close_bracket, end);
 }
 
+///////////////////////////////////
+// AtomicBufferInfo methods
+void
+AtomicBufferInfo::
+finalize(void)
+{
+  m_members.finalize();
+}
+
+void
+AtomicBufferInfo::
+add_element(ShaderVariableInfo v)
+{
+  v.m_shader_variable_src = fastuidraw::gl::Program::src_abo;
+  m_members.add_element(v);
+}
+
+
+
 /////////////////////////////
 // BlockInfoPrivate methods
 void
@@ -1359,14 +1392,16 @@ populate_private_program_interface_query(GLuint program,
   for(std::vector<ShaderVariableInfo>::const_iterator iter = m_all_uniforms.values().begin(),
         end = m_all_uniforms.values().end(); iter != end; ++iter)
     {
-      if(iter->m_ubo_index == -1)
-        {
-          m_default_block.m_members.add_element(*iter);
-        }
-
+      /*
+        DO NOT put ABO's in m_default_block
+       */
       if(iter->m_abo_index != -1)
         {
-          m_abo_buffers[iter->m_abo_index].m_members.add_element(*iter);
+          m_abo_buffers[iter->m_abo_index].add_element(*iter);
+        }
+      else if(iter->m_ubo_index == -1)
+        {
+          m_default_block.m_members.add_element(*iter);
         }
     }
 
@@ -1383,12 +1418,16 @@ populate_private_program_interface_query(GLuint program,
   for(GLint i = 0; i < abo_count; ++i)
     {
       const GLenum prop_data_size(GL_BUFFER_DATA_SIZE);
+      const GLenum prop_binding(GL_BUFFER_BINDING);
 
       m_abo_buffers[i].m_buffer_index = i;
       glGetProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER, i,
                              1, &prop_data_size,
                              1, NULL, &m_abo_buffers[i].m_size_bytes);
-      m_abo_buffers[i].m_members.finalize();
+      glGetProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER, i,
+                             1, &prop_binding,
+                             1, NULL, &m_abo_buffers[i].m_buffer_binding);
+      m_abo_buffers[i].finalize();
     }
 
   FASTUIDRAWunused(ctx_props);
@@ -1478,7 +1517,15 @@ populate_private_non_program_interface_query(GLuint program,
   for(std::vector<ShaderVariableInfo>::const_iterator iter = m_all_uniforms.values().begin(),
         end = m_all_uniforms.values().end(); iter != end; ++iter)
     {
-      if(iter->m_ubo_index != -1)
+      /*
+        DO NOT put ABO's in m_default_block
+       */
+      if(iter->m_abo_index != -1)
+        {
+          assert(iter->m_abo_index < static_cast<int>(m_abo_buffers.size()));
+          m_abo_buffers[iter->m_abo_index].add_element(*iter);
+        }
+      else if(iter->m_ubo_index != -1)
         {
           block_ref(iter->m_ubo_index).m_members.add_element(*iter);
         }
@@ -1486,19 +1533,13 @@ populate_private_non_program_interface_query(GLuint program,
         {
           m_default_block.m_members.add_element(*iter);
         }
-
-      if(iter->m_abo_index != -1)
-        {
-          assert(iter->m_abo_index < static_cast<int>(m_abo_buffers.size()));
-          m_abo_buffers[iter->m_abo_index].m_members.add_element(*iter);
-        }
     }
 
   /* finalize each atomic buffer block
    */
   for(unsigned int i = 0, endi = m_abo_buffers.size(); i < endi; ++i)
     {
-      m_abo_buffers[i].m_members.finalize();
+      m_abo_buffers[i].finalize();
     }
 
   FASTUIDRAWunused(ctx_props);
@@ -2027,7 +2068,7 @@ number_atomic_variables(void) const
 {
   const AtomicBufferInfo *d;
   d = static_cast<const AtomicBufferInfo*>(m_d);
-  return d ? d->m_members.values().size() : 0;
+  return d ? d->members().values().size() : 0;
 }
 
 fastuidraw::gl::Program::shader_variable_info
@@ -2038,7 +2079,7 @@ atomic_variable(unsigned int I)
   const void *q;
 
   d = static_cast<const AtomicBufferInfo*>(m_d);
-  q = d ? &d->m_members.value(I) : NULL;
+  q = d ? &d->members().value(I) : NULL;
   return shader_variable_info(q);
 }
 
@@ -2052,7 +2093,7 @@ atomic_variable(const char *name,
 
   d = static_cast<const AtomicBufferInfo*>(m_d);
   q = (d) ?
-    d->m_members.find_variable(name, out_array_index, NULL, false):
+    d->members().find_variable(name, out_array_index, NULL, false):
     NULL;
   return shader_variable_info(q);
 }
