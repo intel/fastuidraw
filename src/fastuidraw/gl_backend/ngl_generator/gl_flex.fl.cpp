@@ -72,47 +72,47 @@ CGLGLTYPE {CGLTYPE}|{GLTYPE}
 extern{space}+{CGLGLTYPE}{space}*+APIENTRY{space}+gl[^\n]*\n  {
   openGL_function_info *ptr;
   ptr=new openGL_function_info(yytext,"extern", "APIENTRY");
-  openGL_functionList.push_back(ptr);
+  openGL_function_info::openGL_functionList().push_back(ptr);
 }
 
 
 WINGDIAPI{space}+{CGLGLTYPE}{space}*+APIENTRY{space}+gl[^\n]*\n  {
   openGL_function_info *ptr;
   ptr=new openGL_function_info(yytext,"WINGDIAPI", "APIENTRY");
-  openGL_functionList.push_back(ptr);
+  openGL_function_info::openGL_functionList().push_back(ptr);
 }
 
 
 GLAPI{space}+{CGLGLTYPE}{space}*+APIENTRY{space}+gl[^\n]*\n  {
   openGL_function_info *ptr;
   ptr=new openGL_function_info(yytext, "GLAPI", "APIENTRY");
-  openGL_functionList.push_back(ptr);
+  openGL_function_info::openGL_functionList().push_back(ptr);
 }
 
 extern{space}+{CGLGLTYPE}{space}*+GLAPIENTRY{space}+gl[^\n]*\n  {
   openGL_function_info *ptr;
   ptr=new openGL_function_info(yytext,"extern", "GLAPIENTRY");
-  openGL_functionList.push_back(ptr);
+  openGL_function_info::openGL_functionList().push_back(ptr);
 }
 
 GLAPI{space}+{CGLGLTYPE}{space}*+GLAPIENTRY{space}+gl[^\n]*\n  {
   openGL_function_info *ptr;
   ptr=new openGL_function_info(yytext, "GLAPI", "GLAPIENTRY");
-  openGL_functionList.push_back(ptr);
+  openGL_function_info::openGL_functionList().push_back(ptr);
 }
 
 GL_APICALL{space}+{CGLGLTYPE}{space}*+GL_APIENTRY{space}+gl[^\n]*\n  {
   openGL_function_info *ptr;
   ptr=new openGL_function_info(yytext,"GL_APICALL", "GL_APIENTRY");
-  openGL_functionList.push_back(ptr);
+  openGL_function_info::openGL_functionList().push_back(ptr);
 }
 
 FUNCTIONPOINTERMODE {
-  openGL_function_info::sm_use_function_pointer_mode=true;
+  openGL_function_info::use_function_pointer_mode()=true;
 }
 
 NONFUNCTIONPOINTERMODE {
-  openGL_function_info::sm_use_function_pointer_mode=false;
+  openGL_function_info::use_function_pointer_mode()=false;
 }
 
 
@@ -207,7 +207,7 @@ int main(int argc, char **argv)
   openGL_function_info::HeaderStart(headerFile, fileNames);
   openGL_function_info::SourceStart(sourceFile, fileNames);
 
-  for(num=0,gg=openGL_function_info::sm_lookUp.begin(); gg!=openGL_function_info::sm_lookUp.end(); ++gg, ++num)
+  for(num=0,gg=openGL_function_info::lookUp().begin(); gg!=openGL_function_info::lookUp().end(); ++gg, ++num)
     {
 
       gg->second->output_to_header(headerFile);
@@ -221,7 +221,7 @@ int main(int argc, char **argv)
   openGL_function_info::HeaderEnd(headerFile, fileNames);
   openGL_function_info::SourceEnd(sourceFile, fileNames);
 
-  //  cout << "\nGL functions counted=" << openGL_function_info::sm_numberFunctions
+  //  cout << "\nGL functions counted=" << openGL_function_info::numberFunctions()
   //   << "\n";
 
 }

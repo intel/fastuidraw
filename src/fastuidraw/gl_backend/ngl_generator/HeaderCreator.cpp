@@ -42,20 +42,6 @@
 #include <sstream>
 #include "HeaderCreator.hpp"
 
-list<openGL_function_info*> openGL_functionList;
-
-map<string,openGL_function_info*> openGL_function_info::sm_lookUp;
-string openGL_function_info::sm_function_prefix, openGL_function_info::sm_LoadingFunctionName;
-string openGL_function_info::sm_GLErrorFunctionName, openGL_function_info::sm_ErrorLoadingFunctionName;
-string openGL_function_info::sm_laodAllFunctionsName, openGL_function_info::sm_argumentName;;
-string openGL_function_info::sm_insideBeginEndPairNameCounter, openGL_function_info::sm_insideBeginEndPairNameFunction;
-string openGL_function_info::sm_genericCallBackType, openGL_function_info::sm_kglLoggingStream;
-string openGL_function_info::sm_kglLoggingStreamNameOnly, openGL_function_info::sm_GLPreErrorFunctionName;
-string openGL_function_info::sm_macro_prefix, openGL_function_info::sm_namespace, openGL_function_info::sm_CallUnloadableFunction;
-int openGL_function_info::sm_numberFunctions=0;
-
-bool openGL_function_info::sm_use_function_pointer_mode=true;
-
 void begin_namespace(const string &pn, ostream &stream)
 {
   if(!pn.empty())
@@ -97,15 +83,157 @@ void end_namespace(const string &pn, ostream &stream)
     }
 }
 
+class GlobalElements
+{
+public:
+  GlobalElements(void):
+    m_numberFunctions(0),
+    m_use_function_pointer_mode(true)
+  {}
+
+  list<openGL_function_info*> m_openGL_functionList;
+  map<string,openGL_function_info*> m_lookUp;
+  string m_function_prefix, m_LoadingFunctionName;
+  string m_GLErrorFunctionName, m_ErrorLoadingFunctionName;
+  string m_laodAllFunctionsName, m_argumentName;;
+  string m_insideBeginEndPairNameCounter, m_insideBeginEndPairNameFunction;
+  string m_genericCallBackType, m_kglLoggingStream;
+  string m_kglLoggingStreamNameOnly, m_GLPreErrorFunctionName;
+  string m_macro_prefix, m_namespace, m_CallUnloadableFunction;
+  int m_numberFunctions;
+  bool m_use_function_pointer_mode;
+
+  static
+  GlobalElements&
+  get(void)
+  {
+    static GlobalElements R;
+    return R;
+  }
+};
+
+///////////////////////////////////////
+// openGL_function_info static methods
+list<openGL_function_info*>&
+openGL_function_info::
+openGL_functionList(void)
+{
+  return GlobalElements::get().m_openGL_functionList;
+}
+
+bool&
+openGL_function_info::
+use_function_pointer_mode(void)
+{
+  return GlobalElements::get().m_use_function_pointer_mode;
+}
+
+map<string,openGL_function_info*>&
+openGL_function_info::
+lookUp(void)
+{
+  return GlobalElements::get().m_lookUp;
+}
+
+void
+openGL_function_info::
+SetMacroPrefix(const std::string &pre)
+{
+  GlobalElements::get().m_macro_prefix=pre;
+}
+
+void
+openGL_function_info::
+SetNamespace(const std::string &pre)
+{
+  GlobalElements::get().m_namespace=pre;
+}
+
+void
+openGL_function_info::
+SetFunctionPrefix(const string &pre)
+{
+  GlobalElements::get().m_function_prefix=pre;
+  GlobalElements::get().m_LoadingFunctionName=GlobalElements::get().m_function_prefix+"loadFunction";
+  GlobalElements::get().m_GLErrorFunctionName=GlobalElements::get().m_function_prefix+"ErrorCheck";
+  GlobalElements::get().m_GLPreErrorFunctionName=GlobalElements::get().m_function_prefix+"preErrorCheck";
+  GlobalElements::get().m_ErrorLoadingFunctionName=GlobalElements::get().m_function_prefix+"on_load_function_error";
+  GlobalElements::get().m_laodAllFunctionsName=GlobalElements::get().m_function_prefix+"load_all_functions";
+  GlobalElements::get().m_insideBeginEndPairNameCounter=GlobalElements::get().m_function_prefix+"inSideBeginEndPairCounter";
+  GlobalElements::get().m_insideBeginEndPairNameFunction=GlobalElements::get().m_function_prefix+"inSideBeginEndPair";
+  GlobalElements::get().m_kglLoggingStreamNameOnly=GlobalElements::get().m_function_prefix+"LogStream";
+  GlobalElements::get().m_CallUnloadableFunction=GlobalElements::get().m_function_prefix+"call_unloadable_function";
+  GlobalElements::get().m_kglLoggingStream=GlobalElements::get().m_kglLoggingStreamNameOnly+"()";
+  GlobalElements::get().m_argumentName="argument_";
+}
+
+const string&
+openGL_function_info::
+function_prefix(void) { return GlobalElements::get().m_function_prefix; }
+
+const string&
+openGL_function_info::
+macro_prefix(void) { return GlobalElements::get().m_macro_prefix; }
+
+const string&
+openGL_function_info::
+function_loader(void) { return GlobalElements::get().m_LoadingFunctionName; }
+
+const string&
+openGL_function_info::
+function_error_loading(void) { return GlobalElements::get().m_ErrorLoadingFunctionName; }
+
+const string&
+openGL_function_info::
+function_call_unloadable_function(void) { return GlobalElements::get().m_CallUnloadableFunction; }
+
+const string&
+openGL_function_info::
+function_gl_error(void) { return GlobalElements::get().m_GLErrorFunctionName; }
+
+const string&
+openGL_function_info::
+function_pregl_error(void) { return GlobalElements::get().m_GLPreErrorFunctionName; }
+
+const string&
+openGL_function_info::
+function_load_all() { return GlobalElements::get().m_laodAllFunctionsName; }
+
+const string&
+openGL_function_info::
+inside_begin_end_pair_counter(void) { return GlobalElements::get().m_insideBeginEndPairNameCounter; }
+
+const string&
+openGL_function_info::
+inside_begin_end_pair_function(void) { return GlobalElements::get().m_insideBeginEndPairNameFunction; }
+
+const string&
+openGL_function_info::
+argument_name(void) { return GlobalElements::get().m_argumentName; }
+
+const string&
+openGL_function_info::
+call_back_type(void) { return GlobalElements::get().m_genericCallBackType; }
+
+const string&
+openGL_function_info::
+log_stream(void) { return GlobalElements::get().m_kglLoggingStream; }
+
+const string&
+openGL_function_info::
+log_stream_function_name(void)  { return GlobalElements::get().m_kglLoggingStreamNameOnly; }
+
+////////////////////////////////////
+// openGL_function_info non-static methods
 openGL_function_info::
 openGL_function_info(const string &line_from_gl_h_in,
                      const string &APIprefix_type,
                      const string &APIsuffix_type):
   m_returnsValue(false),
   m_createdFrom(line_from_gl_h_in),
-  m_use_function_pointer(sm_use_function_pointer_mode)
+  m_use_function_pointer(GlobalElements::get().m_use_function_pointer_mode)
 {
-  ++sm_numberFunctions;
+  ++GlobalElements::get().m_numberFunctions;
 
   //typical line: expectedAPItype  return-type APIENTRY function-name (argument-list);
   string::size_type firstParen, glStart, glEnd,lastParen, argStart, argEnd;
@@ -170,10 +298,10 @@ openGL_function_info(const string &line_from_gl_h_in,
 
   SetNames(name,retType,argList);
 
-  m_newDeclaration=(sm_lookUp.find(function_name())==sm_lookUp.end());
+  m_newDeclaration=(GlobalElements::get().m_lookUp.find(function_name())==GlobalElements::get().m_lookUp.end());
   if(m_newDeclaration)
     {
-      sm_lookUp.insert( pair<string,openGL_function_info*>(function_name(),this) );
+      GlobalElements::get().m_lookUp.insert( pair<string,openGL_function_info*>(function_name(),this) );
     }
   else
     {
@@ -288,12 +416,12 @@ SetNames(const string &functionName,
   m_argListWithoutNames=argListWithoutNames.str();
   m_argListOnly=argListOnly.str();
 
-  m_functionPointerName=sm_function_prefix+"function_ptr_"+m_functionName;
-  m_debugFunctionName=sm_function_prefix+"debug_function__"+m_functionName;
-  m_localFunctionName=sm_function_prefix+"local_function_"+m_functionName;
-  m_doNothingFunctionName=sm_function_prefix+"do_nothing_function_"+m_functionName;
-  m_existsFunctionName=sm_function_prefix+"exists_function_"+m_functionName;
-  m_getFunctionName=sm_function_prefix+"get_function_ptr_"+m_functionName;
+  m_functionPointerName=GlobalElements::get().m_function_prefix+"function_ptr_"+m_functionName;
+  m_debugFunctionName=GlobalElements::get().m_function_prefix+"debug_function__"+m_functionName;
+  m_localFunctionName=GlobalElements::get().m_function_prefix+"local_function_"+m_functionName;
+  m_doNothingFunctionName=GlobalElements::get().m_function_prefix+"do_nothing_function_"+m_functionName;
+  m_existsFunctionName=GlobalElements::get().m_function_prefix+"exists_function_"+m_functionName;
+  m_getFunctionName=GlobalElements::get().m_function_prefix+"get_function_ptr_"+m_functionName;
 }
 
 void
@@ -367,7 +495,7 @@ output_to_header(ostream &headerFile)
   headerFile << ");\n"
              << "#define "  << function_name()
              << "(" << argument_list_names_only()
-             << ") " << sm_namespace << "::" << debug_function_name()  << "(";
+             << ") " << GlobalElements::get().m_namespace << "::" << debug_function_name()  << "(";
 
   if(number_arguments()!=0)
     {
@@ -392,7 +520,7 @@ output_to_header(ostream &headerFile)
   headerFile << ")\n"
              << "#else\n" << "#define " << function_name() << "(" << argument_list_names_only()
              << ") "
-             << sm_namespace << "::" << function_pointer_name() <<  "(" << argument_list_names_only()
+             << GlobalElements::get().m_namespace << "::" << function_pointer_name() <<  "(" << argument_list_names_only()
              << ")\n#endif\n\n";
 
 
@@ -637,7 +765,7 @@ void
 openGL_function_info::
 HeaderEnd(ostream &headerFile, const list<string> &fileNames)
 {
-  end_namespace(sm_namespace, headerFile);
+  end_namespace(GlobalElements::get().m_namespace, headerFile);
 }
 
 void
@@ -658,7 +786,7 @@ HeaderStart(ostream &headerFile, const list<string> &fileNames)
              << "#ifndef APIENTRYP\n#define APIENTRYP APIENTRY*\n#endif\n";
 
 
-  begin_namespace(sm_namespace, headerFile);
+  begin_namespace(GlobalElements::get().m_namespace, headerFile);
 
   headerFile << "void* " << function_loader() << "(const char *name);\n"
              << "void " << function_error_loading() << "(const char *fname);\n"
@@ -672,10 +800,10 @@ HeaderStart(ostream &headerFile, const list<string> &fileNames)
 
 
   headerFile << "#define " << macro_prefix() << "functionExists(name) "
-             << sm_namespace << "::" << sm_function_prefix << "exists_function_##name()\n\n";
+             << GlobalElements::get().m_namespace << "::" << GlobalElements::get().m_function_prefix << "exists_function_##name()\n\n";
 
   headerFile << "#define " << macro_prefix() << "functionPointer(name) "
-             << sm_namespace << "::" << sm_function_prefix << "get_function_ptr_##name()\n\n";
+             << GlobalElements::get().m_namespace << "::" << GlobalElements::get().m_function_prefix << "get_function_ptr_##name()\n\n";
 
 
 
@@ -687,8 +815,8 @@ openGL_function_info::
 SourceEnd(ostream &sourceFile, const list<string> &fileNames)
 {
   sourceFile << "\n\nvoid " << function_load_all() << "(bool emit_load_warning)\n{\n\t";
-  for(map<string,openGL_function_info*>::iterator i=sm_lookUp.begin();
-      i!=sm_lookUp.end(); ++i)
+  for(map<string,openGL_function_info*>::iterator i=GlobalElements::get().m_lookUp.begin();
+      i!=GlobalElements::get().m_lookUp.end(); ++i)
     {
       if(i->second->m_use_function_pointer)
         {
@@ -706,7 +834,7 @@ SourceEnd(ostream &sourceFile, const list<string> &fileNames)
     }
   sourceFile << "\n}\n";
 
-  end_namespace(sm_namespace, sourceFile);
+  end_namespace(GlobalElements::get().m_namespace, sourceFile);
 }
 
 
@@ -730,7 +858,7 @@ SourceStart(ostream &sourceFile, const list<string> &fileNames)
 
 
 
-  begin_namespace(sm_namespace, sourceFile);
+  begin_namespace(GlobalElements::get().m_namespace, sourceFile);
 
 
   sourceFile << "void* " << function_loader() << "(const char *name);\n"

@@ -93,12 +93,6 @@ private:
   void
   GetTypeAndNameFromArgumentEntry(const string &inString, string &argumentType);
 
-  static string sm_function_prefix, sm_LoadingFunctionName, sm_GLErrorFunctionName, sm_ErrorLoadingFunctionName;
-  static string sm_laodAllFunctionsName,sm_insideBeginEndPairNameCounter, sm_insideBeginEndPairNameFunction;
-  static string sm_argumentName,sm_genericCallBackType, sm_kglLoggingStream,sm_kglLoggingStreamNameOnly;
-  static string sm_CallUnloadableFunction, sm_GLPreErrorFunctionName, sm_macro_prefix, sm_namespace;
-
-
 public:
 
   openGL_function_info(const string &createFrom,
@@ -111,93 +105,71 @@ public:
 
   static
   void
-  SetMacroPrefix(const std::string &pre)
-  {
-    sm_macro_prefix=pre;
-  }
+  SetMacroPrefix(const std::string &pre);
 
   static
   void
-  SetNamespace(const std::string &pre)
-  {
-    sm_namespace=pre;
-  }
+  SetNamespace(const std::string &pre);
 
   static
   void
-  SetFunctionPrefix(const string &pre)
-  {
-    sm_function_prefix=pre;
-    sm_LoadingFunctionName=sm_function_prefix+"loadFunction";
-    sm_GLErrorFunctionName=sm_function_prefix+"ErrorCheck";
-    sm_GLPreErrorFunctionName=sm_function_prefix+"preErrorCheck";
-    sm_ErrorLoadingFunctionName=sm_function_prefix+"on_load_function_error";
-    sm_laodAllFunctionsName=sm_function_prefix+"load_all_functions";
-    sm_insideBeginEndPairNameCounter=sm_function_prefix+"inSideBeginEndPairCounter";
-    sm_insideBeginEndPairNameFunction=sm_function_prefix+"inSideBeginEndPair";
-    sm_kglLoggingStreamNameOnly=sm_function_prefix+"LogStream";
-    sm_CallUnloadableFunction=sm_function_prefix+"call_unloadable_function";
-    sm_kglLoggingStream=sm_kglLoggingStreamNameOnly+"()";
-    sm_argumentName="argument_";
-  }
+  SetFunctionPrefix(const string &pre);
 
   static
   const string&
-  function_prefix(void) { return sm_function_prefix; }
+  function_prefix(void);
 
   static
   const string&
-  macro_prefix(void) { return sm_macro_prefix; }
+  macro_prefix(void);
 
   static
   const string&
-  function_loader(void) { return sm_LoadingFunctionName; }
+  function_loader(void);
 
   static
   const string&
-  function_error_loading(void) { return sm_ErrorLoadingFunctionName; }
+  function_error_loading(void);
 
   static
   const string&
-  function_call_unloadable_function(void) { return sm_CallUnloadableFunction; }
+  function_call_unloadable_function(void);
 
   static
   const string&
-  function_gl_error(void) { return sm_GLErrorFunctionName; }
+  function_gl_error(void);
 
   static
   const string&
-  function_pregl_error(void) { return sm_GLPreErrorFunctionName; }
+  function_pregl_error(void);
 
   static
   const string&
-  function_load_all() { return sm_laodAllFunctionsName; }
+  function_load_all();
 
   static
   const string&
-  inside_begin_end_pair_counter(void) { return sm_insideBeginEndPairNameCounter; }
+  inside_begin_end_pair_counter(void);
 
   static
   const string&
-  inside_begin_end_pair_function(void) { return sm_insideBeginEndPairNameFunction; }
+  inside_begin_end_pair_function(void);
 
   static
   const string&
-  argument_name(void) { return sm_argumentName; }
+  argument_name(void);
 
   static
   const string&
-  call_back_type(void) { return sm_genericCallBackType; }
+  call_back_type(void);
 
   static
   const string&
-  log_stream(void) { return sm_kglLoggingStream; }
+  log_stream(void);
 
   static
   const string&
-  log_stream_function_name(void)  { return sm_kglLoggingStreamNameOnly; }
-
-
+  log_stream_function_name(void);
 
   void
   SetNames(const string &functionName,const string &returnType,string &argList);
@@ -264,8 +236,6 @@ public:
   const string&
   created_from(void) { return m_createdFrom; }
 
-  static map<string,openGL_function_info*> sm_lookUp;
-
   static
   void
   HeaderEnd  (ostream &, const list<string> &fileNames);
@@ -283,17 +253,17 @@ public:
   SourceStart(ostream &, const list<string> &fileNames);
 
   static
-  bool
-  sm_use_function_pointer_mode;
-
+  list<openGL_function_info*>&
+  openGL_functionList(void);
 
   static
-  int
-  sm_numberFunctions;
+  bool&
+  use_function_pointer_mode(void);
 
+  static
+  map<string,openGL_function_info*>&
+  lookUp(void);
 };
-
-
 
 
 string
@@ -301,8 +271,6 @@ RemoveWhiteSpace(const string &input);
 
 string
 RemoveEndOfLines(const string &input);
-
-extern list<openGL_function_info*> openGL_functionList;
 
 
 #endif
