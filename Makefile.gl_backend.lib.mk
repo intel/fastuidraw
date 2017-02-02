@@ -75,15 +75,19 @@ libFastUIDraw$(1)_$(2): libFastUIDraw$(1)_$(2).dll
 libFastUIDraw$(1)_$(2).dll.a: libFastUIDraw$(1)_$(2).dll
 libFastUIDraw$(1)_$(2).dll: libFastUIDraw_$(2).dll libN$(1)_$(2).dll $$(LIBRARY_$(1)_$(2)_ALL_OBJS)
 	$(CXX) -shared -Wl,--out-implib,libFastUIDraw$(1)_$(2).dll.a -o libFastUIDraw$(1)_$(2).dll $$(LIBRARY_$(1)_$(2)_ALL_OBJS) $$(FASTUIDRAW_$(2)_LIBS) -L. -lN$(1)_$(2) $$(LIBRARY_$(1)_LIBS)
+libN$(1)_$(2): libN$(1)_$(2).dll.a
 libN$(1)_$(2).dll.a: libN$(1)_$(2).dll
 libN$(1)_$(2).dll: $$(NGL_$(1)_$(2)_OBJ)
 	$(CXX) -shared -Wl,--out-implib,libN$(1)_$(2).dll.a -o libN$(1)_$(2).dll $$(NGL_$(1)_$(2)_OBJ)
+LIBFASTUIDRAW_$(1)_$(2) = libFastUIDraw$(1)_$(2).dll.a
+LIBN$(1)_$(2) = libN$(1)_$(2).dll.a
 INSTALL_LIBS += libFastUIDraw$(1)_$(2).dll.a libN$(1)_$(2).dll.a
 INSTALL_EXES += libFastUIDraw$(1)_$(2).dll libN$(1)_$(2).dll
 else
 libFastUIDraw$(1)_$(2): libFastUIDraw$(1)_$(2).so
 libFastUIDraw$(1)_$(2).so: libFastUIDraw_$(2).so libN$(1)_$(2).so $$(LIBRARY_$(1)_$(2)_ALL_OBJS)
 	$(CXX) -shared -Wl,-soname,libFastUIDraw$(1)_$(2).so -o libFastUIDraw$(1)_$(2).so $$(LIBRARY_$(1)_$(2)_ALL_OBJS) $$(FASTUIDRAW_$(2)_LIBS) -L. -lN$(1)_$(2) $$(LIBRARY_$(1)_LIBS)
+libN$(1)_$(2): libN$(1)_$(2).so
 libN$(1)_$(2).so: $$(NGL_$(1)_$(2)_OBJ)
 	$(CXX) -shared -Wl,-soname,libN$(1)_$(2).so -o libN$(1)_$(2).so $$(NGL_$(1)_$(2)_OBJ)
 LIBFASTUIDRAW_$(1)_$(2) = libFastUIDraw$(1)_$(2).so
@@ -109,6 +113,11 @@ libFastUIDraw$(1): libFastUIDraw$(1)_debug libFastUIDraw$(1)_release
 .PHONY: libFastUIDraw$(1)
 .PHONY: libFastUIDraw$(1)_release
 .PHONY: libFastUIDraw$(1)_debug
+TARGETLIST += libN$(1) libN$(1)_debug libN$(1)_release
+libN$(1): libN$(1)_debug libN$(1)_release
+.PHONY: libN$(1)
+.PHONY: libN$(1)_debug
+.PHONY: libN$(1)_release
 endif
 )
 endef
