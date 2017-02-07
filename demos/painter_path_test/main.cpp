@@ -68,7 +68,7 @@ private:
   std::string m_desc;
 };
 
-class WindingValueFillRule:public Painter::CustomFillRuleBase
+class WindingValueFillRule:public CustomFillRuleBase
 {
 public:
   WindingValueFillRule(int v):
@@ -85,7 +85,7 @@ private:
   int m_winding_number;
 };
 
-class EverythingWindingValueFillRule:public Painter::CustomFillRuleBase
+class EverythingWindingValueFillRule:public CustomFillRuleBase
 {
 public:
   bool

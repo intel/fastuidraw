@@ -428,10 +428,10 @@ namespace
     float m_curve_flatness;
   };
 
-  class ComplementFillRule:public fastuidraw::Painter::CustomFillRuleBase
+  class ComplementFillRule:public fastuidraw::CustomFillRuleBase
   {
   public:
-    ComplementFillRule(const fastuidraw::Painter::CustomFillRuleBase *p):
+    ComplementFillRule(const fastuidraw::CustomFillRuleBase *p):
       m_p(p)
     {
       assert(m_p);
@@ -444,7 +444,7 @@ namespace
     }
 
   private:
-    const fastuidraw::Painter::CustomFillRuleBase *m_p;
+    const fastuidraw::CustomFillRuleBase *m_p;
   };
 
   /* To avoid allocating memory all the time, we store the

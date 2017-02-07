@@ -80,6 +80,87 @@ namespace fastuidraw
     };
 
     /*!
+      A provides an interface to write attribute and index data into a PainterDraw
+      for the cases where a simple copy is not sufficient.
+     */
+    class DataWriter
+    {
+    public:
+      virtual
+      ~DataWriter()
+      {}
+
+      /*!
+        To be implemented by a derived class to return
+        the number of attribute chunks of the DataWriter.
+       */
+      virtual
+      unsigned int
+      number_attribute_chunks(void) const = 0;
+
+      /*!
+        To be implemented by a derived class to return
+        the number of attribute of an attribute chunk
+        of the DataWriter.
+        \param which attribute_chunk chunk of attributes
+       */
+      virtual
+      unsigned int
+      number_attributes(unsigned int attribute_chunk) const = 0;
+
+      /*!
+        To be implemented by a derived class to return
+        the number of index chunks of the DataWriter.
+       */
+      virtual
+      unsigned int
+      number_index_chunks(void) const = 0;
+
+      /*!
+        To be implemented by a derived class to return
+        the number of indices of an index chunk
+        of the DataWriter.
+        \param which index_chunk chunk of attributes
+       */
+      virtual
+      unsigned int
+      number_indices(unsigned int index_chunk) const = 0;
+
+      /*!
+        To be implemented by a derived class to return
+        what attribute chunk to use for a given index
+        chunk.
+        \param index_chunk index chunk with 0 <= index_chunk <= number_index_chunks()
+       */
+      virtual
+      unsigned int
+      attribute_chunk_selection(unsigned int index_chunk) const = 0;
+
+      /*!
+        To be implemented by a derived class to write indices.
+        \param dst location to which to write indices
+        \param index_offset_value value by which to increment the index
+                                  values written
+        \param index_chunk which chunk of indices to write
+       */
+      virtual
+      void
+      write_indices(c_array<PainterIndex> dst,
+                    unsigned int index_offset_value,
+                    unsigned int index_chunk) const = 0;
+
+      /*!
+        To be implemented by a derived class to write attributes.
+        \param dst location to which to write indices
+        \param attribute_chunk which chunk of attributes to write
+       */
+      virtual
+      void
+      write_attributes(c_array<PainterAttribute> dst,
+                       unsigned int attribute_chunk) const = 0;
+    };
+
+    /*!
       Enumeration to query the statistics of how
       much data has been packed
     */
@@ -204,11 +285,11 @@ namespace fastuidraw
 
     /*!
       Draw generic attribute data
+      \param shader shader with which to draw data
       \param data data for how to draw
       \param attrib_chunks attribute data to draw
       \param index_chunks the i'th element is index data into attrib_chunks[i]
       \param index_adjusts the i'th element is the value by which to adjust all of index_chunks[i]
-      \param shader shader with which to draw data
       \param z z-value z value placed into the header
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
@@ -224,6 +305,7 @@ namespace fastuidraw
 
     /*!
       Draw generic attribute data
+      \param shader shader with which to draw data
       \param data data for how to draw
       \param attrib_chunks attribute data to draw
       \param index_chunks the i'th element is index data into attrib_chunks[K]
@@ -231,7 +313,6 @@ namespace fastuidraw
       \param index_adjusts the i'th element is the value by which to adjust all of index_chunks[i]
       \param attrib_chunk_selector selects which attribute chunk to use for
              each index chunk
-      \param shader shader with which to draw data
       \param z z-value z value placed into the header
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
@@ -243,6 +324,21 @@ namespace fastuidraw
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
                  const_c_array<int> index_adjusts,
                  const_c_array<unsigned int> attrib_chunk_selector,
+                 unsigned int z,
+                 const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
+    /*!
+      Draw generic attribute data
+      \param shader shader with which to draw data
+      \param data data for how to draw
+      \param src DrawWriter to use to write attribute and index data
+      \param z z-value z value placed into the header
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
+     */
+    void
+    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+                 const PainterPackerData &data,
+                 const DataWriter &src,
                  unsigned int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
     /*!
