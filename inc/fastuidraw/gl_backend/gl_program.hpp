@@ -632,14 +632,7 @@ public:
   /*!
     A shader_variable_info holds the type,
     size and name of a uniform or an attribute
-    of a GL program. This data is fetched from GL
-    via glGetActiveAttrib/glGetAttribLocation
-    for attributes and glGetActiveUniform/glGetUniformLocation
-    for uniforms. Note that, depending on the GL
-    implementation, arrays may or may
-    not be listed with an appended '[0]' and
-    that usually elements of an array are
-    NOT listed individually.
+    of a GL program.
   */
   class shader_variable_info
   {
