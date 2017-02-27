@@ -398,6 +398,107 @@ private:
   T m_value;
 };
 
+template<typename T>
+class UniformInitializer<const_c_array<T> >:public UniformInitalizerBase
+{
+public:
+  /*!
+    Ctor.
+    \param uniform_name name of uniform in GLSL to initialize
+    \param value value with which to set the uniform
+   */
+  UniformInitializer(const char *uniform_name, const const_c_array<T> &value):
+    UniformInitalizerBase(uniform_name),
+    m_data(NULL)
+  {
+    if(!value.empty())
+      {
+        m_data = FASTUIDRAWnew T[value.size()];
+        m_value = const_c_array<T>(m_data, value.size());
+        std::copy(value.begin(), value.end(), m_data);
+      }
+  }
+
+  ~UniformInitializer()
+  {
+    if(m_data != NULL)
+      {
+        FASTUIDRAWdelete_array(m_data);
+      }
+  }
+
+protected:
+
+  virtual
+  void
+  init_uniform(GLuint program, GLint location, bool program_bound) const
+  {
+    if(program_bound)
+      {
+        Uniform(location, m_value);
+      }
+    else
+      {
+        ProgramUniform(program, location, m_value);
+      }
+  }
+
+private:
+  T *m_data;
+  const_c_array<T> m_value;
+};
+
+template<typename T>
+class UniformInitializer<c_array<T> >:public UniformInitalizerBase
+{
+public:
+  /*!
+    Ctor.
+    \param uniform_name name of uniform in GLSL to initialize
+    \param value value with which to set the uniform
+   */
+  UniformInitializer(const char *uniform_name, const const_c_array<T> &value):
+    UniformInitalizerBase(uniform_name),
+    m_data(NULL)
+  {
+    if(!value.empty())
+      {
+        m_data = FASTUIDRAWnew T[value.size()];
+        m_value = const_c_array<T>(m_data, value.size());
+        std::copy(value.begin(), value.end(), m_data);
+      }
+  }
+
+  ~UniformInitializer()
+  {
+    if(m_data != NULL)
+      {
+        FASTUIDRAWdelete_array(m_data);
+      }
+  }
+
+protected:
+
+  virtual
+  void
+  init_uniform(GLuint program, GLint location, bool program_bound) const
+  {
+    if(program_bound)
+      {
+        Uniform(location, m_value);
+      }
+    else
+      {
+        ProgramUniform(program, location, m_value);
+      }
+  }
+
+private:
+  T *m_data;
+  const_c_array<T> m_value;
+};
+
+
 /*!
   Conveniance typedef to initialize samplers.
  */
