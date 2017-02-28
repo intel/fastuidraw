@@ -2,11 +2,12 @@ DEMO_COMMON_RESOURCE_STRING_SRCS = $(patsubst %.resource_string, string_resource
 
 # This is awful. Makes me wish I used cmake.
 DEMO_COMMON_LIBS := $(shell sdl2-config --libs) -lSDL2_image $(LIBRARY_LIBS)
-
 ifeq ($(MINGW_BUILD),1)
   TEMP := $(DEMO_COMMON_LIBS)
   DEMO_COMMON_LIBS := $(subst -mwindows, ,$(TEMP))
 endif
+DEMO_GL_LIBS := $(DEMO_COMMON_LIBS)
+DEMO_GLES_LIBS := $(DEMO_COMMON_LIBS) -lEGL
 
 DEMO_release_CFLAGS_GL = $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GL_release_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
 DEMO_debug_CFLAGS_GL = -g $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GL_debug_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
@@ -56,7 +57,7 @@ endif
 demos-$(2)-$(3)-exes += $$(THISDEMO_$(1)_$(2)_$(3)_EXE)
 DEMO_TARGETLIST += $$(THISDEMO_$(1)_$(2)_$(3)_EXE)
 $$(THISDEMO_$(1)_$(2)_$(3)_EXE): libFastUIDraw$(2)_$(3) $$(THISDEMO_$(1)_$(2)_$(3)_OBJS) $$(THISDEMO_$(1)_$(2)_$(3)_DEPS)
-	$$(CXX) -o $$@ $$(THISDEMO_$(1)_$(2)_$(3)_OBJS) $$(DEMO_COMMON_LIBS) -L. $$(FASTUIDRAW_$(2)_$(3)_LIBS)
+	$$(CXX) -o $$@ $$(THISDEMO_$(1)_$(2)_$(3)_OBJS) $$(DEMO_$(2)_LIBS) -L. $$(FASTUIDRAW_$(2)_$(3)_LIBS)
 endif
 )
 endef

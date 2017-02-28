@@ -12,7 +12,7 @@ LIBRARY_GL_LIBS =
 ifeq ($(MINGW_BUILD),1)
 LIBRARY_GLES_LIBS =
 else
-LIBRARY_GLES_LIBS =  -lEGL -lGLESv2
+LIBRARY_GLES_LIBS = -lGLESv2
 endif
 
 LIBRARY_GL_STRING_RESOURCES_SRCS = $(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $(LIBRARY_GL_RESOURCE_STRING) )
