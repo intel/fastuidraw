@@ -1,13 +1,5 @@
-# current glcorearb.h and gl2ext.h has a function pointer typedef:
-# typedef VULKANPROCNV (GL_APIENTRYP PFNGLGETVKPROCADDRNVPROC) (const GLchar *name);
-# which generates an error; it appears that the return type (VULKANPROCNV)
-# of the function definition is not defined; we can hack around this by
-# defining GL_NV_draw_vulkan_image so that the offending typedef is pre-processed out.
-# The current preliminary spec for GL_NV_draw_vulkan_image has in the text what
-# VULKANPROCNV should be typedef'ed as: typedef void (APIENTRY *VULKANPROCNV)(void);
-# but the official headers lack the typedef. Sighs.
-LIBRARY_GL_COMMON_CFLAGS = -DGL_NV_draw_vulkan_image=0
-LIBRARY_GLES_COMMON_CFLAGS = -DFASTUIDRAW_GL_USE_GLES -DGL_NV_draw_vulkan_image=0
+LIBRARY_GL_COMMON_CFLAGS =
+LIBRARY_GLES_COMMON_CFLAGS = -DFASTUIDRAW_GL_USE_GLES
 
 LIBRARY_GL_debug_CFLAGS = -DGL_DEBUG $(LIBRARY_GL_COMMON_CFLAGS) $(LIBRARY_debug_CFLAGS)
 LIBRARY_GLES_debug_CFLAGS = -DGL_DEBUG $(LIBRARY_GLES_COMMON_CFLAGS) $(LIBRARY_debug_CFLAGS)
