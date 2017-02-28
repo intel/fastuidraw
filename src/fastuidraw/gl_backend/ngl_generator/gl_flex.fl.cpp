@@ -50,7 +50,7 @@ allSpace [ \t\n]
 anychar .|{allSpace}
 const "const"{allSpace}+
 GLTYPEARB GLchar|GLcharARB|GLintptr|GLintpreARB|GLsizeiptr|GLsizeiptrARB|GLhandleARB|GLhalfARB|GLhalfNV
-GLTYPESIMPLE GLenum|GLbitfield|GLboolean|GLsizei|GLvoid|GLuint64EXT|GLuint64
+GLTYPESIMPLE GLenum|GLbitfield|GLboolean|GLsizei|GLvoid|GLuint64EXT|GLuint64|GLint64|GLint64EXT
 GLTYPEBYTE GLbyte|GLubyte
 GLTYPESHORT GLshort|GLushort
 GLTYPEINT GLint|GLuint|int
@@ -59,7 +59,7 @@ GLTYE {GLTYPEARB}|{GLTYPESIMPLE}|{GLTYPEBYTE}|{GLTYPESHORT}|{GLTYPEINT}|{GLTYPEF
 GLPTR {GLTYE}{allSpace}*"*"
 GLTYPE {GLTYE}|{GLPTR}
 CGLTYPE {const}{GLTYPE}
-CGLGLTYPE {CGLTYPE}|{GLTYPE}
+CGLGLTYPE {CGLTYPE}|{GLTYPE}|GLDEBUGPROC|GLDEBUGPROCARB|GLVULKANPROCNV
 
 %%
 
