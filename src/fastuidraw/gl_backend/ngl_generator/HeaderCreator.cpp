@@ -319,49 +319,50 @@ SetNames(const string &functionName,
   string::size_type comma_place,last_comma_place;
   string::size_type start,end;
   ostringstream argListWithNames,argListWithoutNames,argListOnly;
-  string tempString,arg;
+  string arg;
+  ArgumentType argType;
   int j;
 
-  m_functionName=RemoveWhiteSpace(functionName);
+  m_functionName = RemoveWhiteSpace(functionName);
 
 
   if(returnType.length()!=0)
     {
-      start=returnType.find_first_not_of(' ');
-      end=returnType.find_last_not_of(' ');
-      m_returnType=returnType.substr(start,end-start+1);
+      start = returnType.find_first_not_of(' ');
+      end = returnType.find_last_not_of(' ');
+      m_returnType = returnType.substr(start, end - start + 1);
     }
   else
     {
-      m_returnType="";
+      m_returnType = "";
     }
 
-  m_returnsValue=(m_returnType!="void") && (m_returnType!="GLvoid");
+  m_returnsValue = (m_returnType != "void") && (m_returnType != "GLvoid");
 
-  m_pointerToFunctionTypeName="PFN"+m_functionName+"PROC";
-  for(j=0;j<(int)m_pointerToFunctionTypeName.length();++j)
+  m_pointerToFunctionTypeName = "PFN" + m_functionName + "PROC";
+  for(j = 0; j< (int)m_pointerToFunctionTypeName.length(); ++j)
     {
-      m_pointerToFunctionTypeName[j]=toupper(m_pointerToFunctionTypeName[j]);
+      m_pointerToFunctionTypeName[j] = toupper(m_pointerToFunctionTypeName[j]);
     }
 
 
-  if(argList!="void" && argList!="GLvoid")
+  if(argList != "void" && argList != "GLvoid")
     {
-      argList=argList;
+      argList = argList;
     }
   else
     {
-      argList="";
+      argList = "";
     }
 
   //if argList is non-empy it may have one or more argument lists.
-  last_comma_place=argList.find_first_of(',');
-  if(last_comma_place!=string::npos)
+  last_comma_place = argList.find_first_of(',');
+  if(last_comma_place != string::npos)
     {
 
-      arg=argList.substr(0,last_comma_place);
-      GetTypeAndNameFromArgumentEntry(arg,tempString);
-      m_argTypes.push_back(pair<string,string>(tempString,arg));
+      arg = argList.substr(0, last_comma_place);
+      GetTypeFromArgumentEntry(arg, argType);
+      m_argTypes.push_back(pair<ArgumentType, string>(argType, arg));
 
       //argList has atleast 2 arguments
       last_comma_place++;
@@ -374,24 +375,20 @@ SetNames(const string &functionName,
           //add to the end all that was between
           //last_comma_place and comma_place.
           arg=argList.substr(last_comma_place,comma_place-last_comma_place);
-          GetTypeAndNameFromArgumentEntry(arg, tempString);
-          m_argTypes.push_back(pair<string,string>(tempString,arg));
+          GetTypeFromArgumentEntry(arg, argType);
+          m_argTypes.push_back(pair<ArgumentType,string>(argType,arg));
 
           last_comma_place=comma_place+1;
         }
       //now there is also the last argument...
       arg=argList.substr(last_comma_place);
-      GetTypeAndNameFromArgumentEntry(arg,tempString);
-      m_argTypes.push_back(pair<string,string>(tempString,arg));
-
-
-
-
+      GetTypeFromArgumentEntry(arg,argType);
+      m_argTypes.push_back(pair<ArgumentType,string>(argType,arg));
     }
   else if(argList.size()!=0)
     {
-      GetTypeAndNameFromArgumentEntry(argList,tempString);
-      m_argTypes.push_back(pair<string,string>(tempString,argList));
+      GetTypeFromArgumentEntry(argList,argType);
+      m_argTypes.push_back(pair<ArgumentType,string>(argType,argList));
     }
 
 
@@ -407,8 +404,8 @@ SetNames(const string &functionName,
           argListOnly<<",";
         }
 
-      argListWithNames << i->first << " " << argument_name() << j;
-      argListWithoutNames << i->first;
+      argListWithNames << i->first.m_front << " " << argument_name() << j << i->first.m_back;
+      argListWithoutNames << i->first.m_front << i->first.m_back;
       argListOnly << " " << argument_name() << j;
     }
 
@@ -440,7 +437,8 @@ GetInfo(ostream &ostr)
        << "\"\n\tnumArguments=" << m_argTypes.size() << "\"";
   for(j=0, i=m_argTypes.begin();i!=m_argTypes.end();++i, ++j)
     {
-      ostr << "\n\t\tArgumentType(" << j << ")=\"" << i->first
+      ostr << "\n\t\tArgumentType(" << j << ")=\"" << i->first.m_front
+           << " " << i->first.m_back
            << "\" from \""  << i->second << "\"";
     }
 
@@ -461,9 +459,6 @@ output_to_header(ostream &headerFile)
       //      cerr << "Warning: " << function_name() << " in list twice not putting into header file!\n";
       return;
     }
-
-  headerFile << "\ntypedef  " << return_type() << "( APIENTRY* " << function_pointer_type()
-             << " )("   << full_arg_list_withoutnames() << ");\n";
 
   headerFile << "extern " << function_pointer_type() << " "
              << function_pointer_name() << ";\n";
@@ -538,10 +533,6 @@ output_to_source(ostream &sourceFile)
       //      cerr << "Warning: " << function_name() << " in list twice not putting into source file!\n";
       return;
     }
-
-  //typedef for function pointer type
-  sourceFile << "\ntypedef  " << return_type() << "( APIENTRY* " << function_pointer_type()
-             << " )("   << full_arg_list_withoutnames() << ");\n";
 
   if(m_use_function_pointer)
     {
@@ -708,12 +699,9 @@ output_to_source(ostream &sourceFile)
 // this routine returnes what is the type of the argument
 void
 openGL_function_info::
-GetTypeAndNameFromArgumentEntry(const string &inString, string &argumentType)
+GetTypeFromArgumentEntry(const string &inString, ArgumentType &argumentType)
 {
   string::size_type startPlace,placeA,placeB;
-
-
-
 
   //hunt for characters that are not allowed in a name
   //namely, * and ' ' after the leading whitespace
@@ -738,6 +726,7 @@ GetTypeAndNameFromArgumentEntry(const string &inString, string &argumentType)
 
   placeA=inString.find_first_of(" *",startPlace);
 
+  std::string tempStr;
   if(placeA!=string::npos)
     {
       //we found a space or *, now we get
@@ -745,19 +734,25 @@ GetTypeAndNameFromArgumentEntry(const string &inString, string &argumentType)
       placeB=inString.find_first_not_of(" *",placeA);
       if(placeB!=string::npos)
         {
-          argumentType=inString.substr(0,placeB);
+          std::string str;
+
+          argumentType.m_front = inString.substr(0, placeB);
+          str = inString.substr(placeB);
+          placeB = str.find_first_of('[');
+          if(placeB != string::npos)
+            {
+              argumentType.m_back = str.substr(placeB);
+            }
         }
       else
         {
-          argumentType=inString;
+          argumentType.m_front = inString;
         }
     }
   else
     {
-      argumentType=inString;
+      argumentType.m_front = inString;
     }
-
-
 }
 
 

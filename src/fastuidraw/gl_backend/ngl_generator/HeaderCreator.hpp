@@ -68,9 +68,16 @@ using namespace std;
 
 class openGL_function_info
 {
+public:
+  class ArgumentType
+  {
+  public:
+    std::string m_front, m_back;
+  };
+
 private:
-  vector<pair<string,string> > m_argTypes; //first is the argumentType, second is the source!
-  typedef vector<pair<string,string> >::iterator argIterType;
+  vector<pair<ArgumentType,string> > m_argTypes; //first is the argumentType, second is the source!
+  typedef vector<pair<ArgumentType, string> >::iterator argIterType;
   string m_functionName, m_returnType;
   string m_pointerToFunctionTypeName;
 
@@ -91,7 +98,7 @@ private:
 
   static
   void
-  GetTypeAndNameFromArgumentEntry(const string &inString, string &argumentType);
+  GetTypeFromArgumentEntry(const string &inString, ArgumentType &argumentType);
 
 public:
 
@@ -221,11 +228,15 @@ public:
   const string&
   argument_list_names_only(void) { return m_argListOnly; }
 
-  const string&
+  const ArgumentType&
   arg_type(int i) { return m_argTypes[i].first; }
 
   bool
-  arg_type_is_pointer(int i) { return m_argTypes[i].first.find('*') != string::npos; }
+  arg_type_is_pointer(int i)
+  {
+    return m_argTypes[i].first.m_front.find('*') != string::npos
+      || !m_argTypes[i].first.m_back.empty();
+  }
 
   int
   number_arguments(void) { return m_argTypes.size(); }
