@@ -242,6 +242,28 @@ sdl_painter_demo(const std::string &about_text,
                          "painter_use_ubo_for_uniforms",
                          "If true, use a UBO instead of uniforms to hold uniform values common to all items",
                          *this),
+  m_blend_type(m_painter_params.blend_type(),
+	       enumerated_string_type<enum fastuidraw::PainterBlendShader::shader_type>()
+	       .add_entry("framebuffer_fetch",
+			  fastuidraw::PainterBlendShader::framebuffer_fetch,
+			  "use a framebuffer fetch (if available) to perform blending, "
+			  "thus all blending operations are part of uber-shader giving "
+			  "more flexibility for blend types (namely W3C support) and "
+			  "blend mode changes do not induce pipeline state changes")
+	       .add_entry("dual_src",
+			  fastuidraw::PainterBlendShader::dual_src,
+			  "use a dual source blending (if available) to perform blending, "
+			  "which has far less flexibility for blending than framebuffer-fetch "
+			  "but has far few pipeline states (there are 3 blend mode pipeline states "
+			  "and hald of the Porter-Duff blend modes are in one blend mode pipeline state")
+	       .add_entry("single_src",
+			  fastuidraw::PainterBlendShader::single_src,
+			  "use single source blending to perform blending, "
+			  "which is even less flexible than dual_src blending and "
+			  "every Porter-Duff blend mode is a different pipeline state"),
+	       "painter_blend_type",
+	       "specifies how the painter will perform blending",
+	       *this),
   m_demo_options("Demo Options", *this),
   m_print_painter_config(default_value_for_print_painter_config, "print_painter_config", "Print PainterBackendGL config", *this)
 {}
@@ -341,7 +363,8 @@ init_gl(int w, int h)
     .assign_binding_points(m_assign_binding_points.m_value)
     .use_ubo_for_uniforms(m_use_ubo_for_uniforms.m_value)
     .separate_program_for_discard(m_separate_program_for_discard.m_value)
-    .non_dashed_stroke_shader_uses_discard(m_non_dashed_stroke_shader_uses_discard.m_value);
+    .non_dashed_stroke_shader_uses_discard(m_non_dashed_stroke_shader_uses_discard.m_value)
+    .blend_type(m_blend_type.m_value.m_value);
 
   m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params, m_painter_base_params);
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
