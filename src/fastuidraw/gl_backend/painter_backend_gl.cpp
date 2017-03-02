@@ -321,7 +321,8 @@ namespace
       m_assign_binding_points(true),
       m_use_ubo_for_uniforms(false),
       m_separate_program_for_discard(true),
-      m_non_dashed_stroke_shader_uses_discard(false)
+      m_non_dashed_stroke_shader_uses_discard(false),
+      m_blend_type(fastuidraw::PainterBlendShader::dual_src)
     {}
 
     unsigned int m_attributes_per_buffer;
@@ -344,6 +345,7 @@ namespace
     bool m_use_ubo_for_uniforms;
     bool m_separate_program_for_discard;
     bool m_non_dashed_stroke_shader_uses_discard;
+    enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
   };
 
 }
@@ -945,38 +947,9 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
     }
   #endif
 
-  return_value.non_dashed_stroke_shader_uses_discard(params.non_dashed_stroke_shader_uses_discard());
-
-  bool have_dual_src_blending, have_framebuffer_fetch;
-
-  #ifdef FASTUIDRAW_GL_USE_GLES
-    {
-      have_dual_src_blending = ctx.has_extension("GL_EXT_blend_func_extended");
-      have_framebuffer_fetch = ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
-    }
-  #else
-    {
-      have_dual_src_blending = true;
-      have_framebuffer_fetch = ctx.has_extension("GL_EXT_shader_framebuffer_fetch")
-	|| ctx.has_extension("GL_MESA_shader_framebuffer_fetch");
-    }
-  #endif
-
-  if(have_framebuffer_fetch)
-    {
-      return_value
-        .default_blend_shader_type(PainterBlendShader::framebuffer_fetch);
-    }
-  else if(have_dual_src_blending)
-    {
-      return_value
-        .default_blend_shader_type(PainterBlendShader::dual_src);
-    }
-  else
-    {
-      return_value
-        .default_blend_shader_type(PainterBlendShader::single_src);
-    }
+  return_value
+    .non_dashed_stroke_shader_uses_discard(params.non_dashed_stroke_shader_uses_discard())
+    .default_blend_shader_type(params.blend_type());
 
   return return_value;
 }
@@ -995,6 +968,32 @@ configure_backend(void)
     {
       // TBO's not supported, fall back to using UBO's.
       m_params.data_store_backing(fastuidraw::gl::PainterBackendGL::data_store_ubo);
+    }
+
+  bool have_dual_src_blending, have_framebuffer_fetch;
+
+  if(m_ctx_properties.is_es())
+    {
+      have_dual_src_blending = m_ctx_properties.has_extension("GL_EXT_blend_func_extended");
+      have_framebuffer_fetch = m_ctx_properties.has_extension("GL_EXT_shader_framebuffer_fetch");
+    }
+  else
+    {
+      have_dual_src_blending = true;
+      have_framebuffer_fetch = m_ctx_properties.has_extension("GL_EXT_shader_framebuffer_fetch")
+	|| m_ctx_properties.has_extension("GL_MESA_shader_framebuffer_fetch");
+    }
+
+  if(m_params.blend_type() == fastuidraw::PainterBlendShader::framebuffer_fetch
+     && !have_framebuffer_fetch)
+    {
+      m_params.blend_type(fastuidraw::PainterBlendShader::dual_src);
+    }
+  
+  if(m_params.blend_type() == fastuidraw::PainterBlendShader::dual_src
+     && !have_dual_src_blending)
+    {
+      m_params.blend_type(fastuidraw::PainterBlendShader::single_src);
     }
 
   /* Query GL what is good size for data store buffer. Size is dependent
@@ -1420,6 +1419,7 @@ setget_implement(bool, assign_binding_points)
 setget_implement(bool, use_ubo_for_uniforms)
 setget_implement(bool, separate_program_for_discard)
 setget_implement(bool, non_dashed_stroke_shader_uses_discard)
+setget_implement(enum fastuidraw::PainterBlendShader::shader_type, blend_type)
 
 #undef setget_implement
 

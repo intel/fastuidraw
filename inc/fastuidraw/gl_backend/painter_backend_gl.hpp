@@ -399,6 +399,21 @@ namespace fastuidraw
         ConfigurationGL&
         non_dashed_stroke_shader_uses_discard(bool);
 
+        /*!
+          Returns the blend_type() to be used by the PainterBackendGL,
+	  if the spcified blend type is not supported, falls back to
+	  first to PainterBlendShader::dual_src and if that is
+	  not supported falls back to PainterBlendShader::single_src.
+         */
+        enum PainterBlendShader::shader_type
+        blend_type(void) const;
+
+        /*!
+          Set the value for (void) const
+        */
+        ConfigurationGL&
+        blend_type(enum PainterBlendShader::shader_type v);
+
       private:
         void *m_d;
       };
