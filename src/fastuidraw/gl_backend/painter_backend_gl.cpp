@@ -961,7 +961,7 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
     }
   #endif
 
-  if(have_framebuffer_fetch && false)
+  if(have_framebuffer_fetch)
     {
       return_value
         .default_blend_shader_type(PainterBlendShader::framebuffer_fetch);
@@ -1198,6 +1198,7 @@ configure_source_front_matter(void)
             .specify_version("320 es");
           m_front_matter_frag
             .specify_version("320 es")
+            .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension)
             .specify_extension("GL_EXT_blend_func_extended", ShaderSource::enable_extension);
         }
       else
@@ -1225,6 +1226,7 @@ configure_source_front_matter(void)
 
           m_front_matter_frag
             .specify_version(version.c_str())
+            .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension)
             .specify_extension("GL_EXT_blend_func_extended", ShaderSource::enable_extension)
             .specify_extension("GL_EXT_texture_buffer", ShaderSource::enable_extension)
             .specify_extension("GL_OES_texture_buffer", ShaderSource::enable_extension);

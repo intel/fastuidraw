@@ -170,7 +170,7 @@ create_blend_shaders(void)
   add_blend_shader(shaders, blend_porter_duff_xor,
                    BlendMode().func(BlendMode::ONE_MINUS_DST_ALPHA, BlendMode::ONE_MINUS_SRC_ALPHA),
                    "fastuidraw_porter_duff_xor.glsl.resource_string", one_minus_dst_alpha_src1,
-                   "fastuidraw_fbf_porter_duff_dst_atop.glsl.resource_string");
+                   "fastuidraw_fbf_porter_duff_xor.glsl.resource_string");
 
   return shaders;
 }
