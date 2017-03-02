@@ -957,7 +957,8 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
   #else
     {
       have_dual_src_blending = true;
-      have_framebuffer_fetch = ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
+      have_framebuffer_fetch = ctx.has_extension("GL_EXT_shader_framebuffer_fetch")
+	|| ctx.has_extension("GL_MESA_shader_framebuffer_fetch");
     }
   #endif
 
@@ -1241,6 +1242,10 @@ configure_source_front_matter(void)
       using_glsl42 = m_ctx_properties.version() >= fastuidraw::ivec2(4, 2)
         && (m_uber_shader_builder_params.assign_layout_to_varyings()
             || m_uber_shader_builder_params.assign_binding_points());
+
+      m_front_matter_frag
+	.specify_extension("GL_MESA_shader_framebuffer_fetch", ShaderSource::enable_extension)
+	.specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension);
 
       if(using_glsl42)
         {
