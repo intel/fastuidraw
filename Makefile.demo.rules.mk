@@ -54,7 +54,7 @@ endif
 endif
 endif
 endif
-demos-$(2)-$(3)-exes += $$(THISDEMO_$(1)_$(2)_$(3)_EXE)
+demos-$(2)-$(3): $$(THISDEMO_$(1)_$(2)_$(3)_EXE)
 DEMO_TARGETLIST += $$(THISDEMO_$(1)_$(2)_$(3)_EXE)
 $$(THISDEMO_$(1)_$(2)_$(3)_EXE): libFastUIDraw$(2)_$(3) $$(THISDEMO_$(1)_$(2)_$(3)_OBJS) $$(THISDEMO_$(1)_$(2)_$(3)_DEPS)
 	$$(CXX) -o $$@ $$(THISDEMO_$(1)_$(2)_$(3)_OBJS) $$(DEMO_$(2)_LIBS) -L. $$(FASTUIDRAW_$(2)_$(3)_LIBS)
@@ -68,7 +68,6 @@ endef
 define demoset
 $(eval $(foreach demoname,$(DEMOS),$(call demorule,$(demoname),$(1),$(2),$(3)))
 ifeq ($(3),1)
-demos-$(1)-$(2): $$(demos-$(1)-$(2)-exes)
 .PHONY: demos-$(1)-$(2)
 TARGETLIST += demos-$(1)-$(2)
 endif
@@ -82,6 +81,8 @@ $(eval $(call demoset,$(1),release,$(2))
 $(call demoset,$(1),debug,$(2))
 ifeq ($(2),1)
 demos-$(1): demos-$(1)-release demos-$(1)-debug
+demos-release: demos-$(1)-release
+demos-debug: demos-$(1)-debug
 .PHONY: demos-$(1)
 TARGETLIST += demos-$(1)
 endif
@@ -91,3 +92,5 @@ endef
 
 $(call demosapi,GL,$(BUILD_GL))
 $(call demosapi,GLES,$(BUILD_GLES))
+demos: demos-debug demos-release
+TARGETLIST+=demos demos-debug demos-release
