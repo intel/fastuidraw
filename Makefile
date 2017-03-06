@@ -17,6 +17,9 @@ BUILD_GLES ?= 0
 #install location
 INSTALL_LOCATION ?= /usr/local
 
+#Init TARGETLIST
+TARGETLIST :=
+
 default: $(INSTALL_LIBS)
 targets:
 	@echo

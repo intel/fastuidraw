@@ -1,4 +1,4 @@
- /*!
+/*!
  * \file painter.hpp
  * \brief file painter.hpp
  *
@@ -23,6 +23,7 @@
 #include <fastuidraw/tessellated_path.hpp>
 #include <fastuidraw/painter/stroked_path.hpp>
 #include <fastuidraw/painter/filled_path.hpp>
+#include <fastuidraw/painter/fill_rule.hpp>
 #include <fastuidraw/painter/painter_brush.hpp>
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
@@ -60,50 +61,6 @@ namespace fastuidraw
   class Painter:public reference_counted<Painter>::default_base
   {
   public:
-    /*!
-      Base class to specify a custom fill rule.
-     */
-    class CustomFillRuleBase
-    {
-    public:
-      /*!
-        To be implemented by a derived class to return
-        true if to draw those regions with the passed
-        winding number.
-        \param winding_number winding number value to test.
-       */
-      virtual
-      bool
-      operator()(int winding_number) const = 0;
-    };
-
-    /*!
-      Class to specify a custom fill rule from
-      a function.
-     */
-    class CustomFillRuleFunction:public CustomFillRuleBase
-    {
-    public:
-      /*!
-        Ctor.
-        \param fill_rule function to use to implement
-                         operator(int) const.
-       */
-      CustomFillRuleFunction(bool (*fill_rule)(int)):
-        m_fill_rule(fill_rule)
-      {}
-
-      virtual
-      bool
-      operator()(int winding_number) const
-      {
-        return m_fill_rule && m_fill_rule(winding_number);
-      }
-
-    private:
-      bool (*m_fill_rule)(int);
-    };
-
     /*!
       Ctor.
      */
@@ -376,7 +333,7 @@ namespace fastuidraw
       the approximated curve (realized in TessellatedPath) and
       the true curve (realized in Path). This value is combined
       with a value derived from the current transformation matrix
-      to pass to Path::tessellation_lod() to fetch a
+      to pass to Path::tessellation(float) to fetch a
       TessellatedPath.
      */
     void
@@ -664,7 +621,7 @@ namespace fastuidraw
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
-              const PainterAttributeData &data, enum PainterEnums::fill_rule_t fill_rule,
+              const FilledPath &data, enum PainterEnums::fill_rule_t fill_rule,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -704,7 +661,7 @@ namespace fastuidraw
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
-              const PainterAttributeData &data, const CustomFillRuleBase &fill_rule,
+              const FilledPath &data, const CustomFillRuleBase &fill_rule,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -829,6 +786,7 @@ namespace fastuidraw
       \param attrib_chunk attribute data to draw
       \param index_chunk indx data into attrib_chunk
       \param shader shader with which to draw data
+      \param index_adjust amount by which to adjust the index values
       \param call_back handle to PainterPacker::DataCallBack for the draw
      */
     void
@@ -850,6 +808,8 @@ namespace fastuidraw
       \param draw data for how to draw
       \param attrib_chunks attribute data to draw
       \param index_chunks the i'th element is index data into attrib_chunks[i]
+      \param index_adjusts the i'th value is the amount by which to adjust the
+                           index values if index_chunks[i]
       \param shader shader with which to draw data
       \param call_back handle to PainterPacker::DataCallBack for the draw
      */
@@ -865,10 +825,12 @@ namespace fastuidraw
       Draw generic attribute data
       \param draw data for how to draw
       \param attrib_chunks attribute data to draw
-      \param index_chunks the i'th element is index data into attrib_chunks[K]
-                          where K = attrib_chunk_selector[i]
       \param attrib_chunk_selector selects which attribute chunk to use for
              each index chunk
+      \param index_chunks the i'th element is index data into attrib_chunks[K]
+                          where K = attrib_chunk_selector[i]
+      \param index_adjusts the i'th value is the amount by which to adjust the
+                           index values if index_chunks[i]
       \param shader shader with which to draw data
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.

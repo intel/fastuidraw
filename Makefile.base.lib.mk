@@ -1,14 +1,12 @@
 
-LIBRARY_BASE_CFLAGS = $(shell freetype-config --cflags)
-LIBRARY_debug_CFLAGS = -DFASTUIDRAW_VECTOR_BOUND_CHECK -DFASTUIDRAW_DEBUG
-LIBRARY_release_CFLAGS = -DNDEBUG
-LIBRARY_BASE_debug_CFLAGS = $(LIBRARY_debug_CFLAGS) $(LIBRARY_BASE_CFLAGS)
-LIBRARY_BASE_release_CFLAGS = $(LIBRARY_release_CFLAGS) $(LIBRARY_BASE_CFLAGS)
+LIBRARY_CFLAGS = $(shell freetype-config --cflags) -D_USE_MATH_DEFINES
+LIBRARY_debug_CFLAGS =  $(LIBRARY_CFLAGS) -DFASTUIDRAW_VECTOR_BOUND_CHECK -DFASTUIDRAW_DEBUG
+LIBRARY_release_CFLAGS = $(LIBRARY_CFLAGS) -DNDEBUG
 
-LIBRARY_BUILD_debug_FLAGS = -g
-LIBRARY_BUILD_release_FLAGS = -O3 -fstrict-aliasing
+LIBRARY_BUILD_debug_FLAGS = -g -std=c++11
+LIBRARY_BUILD_release_FLAGS = -O3 -fstrict-aliasing -std=c++11
 LIBRARY_BUILD_WARN_FLAGS = -Wall -Wextra -Wcast-qual -Wwrite-strings
-LIBRARY_BUILD_INCLUDES_CFLAGS = -Iinc $(LIBBARY_BOOST_INCLUDE)
+LIBRARY_BUILD_INCLUDES_CFLAGS = -Iinc
 
 LIBRARY_STRING_RESOURCES_SRCS = $(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $(LIBRARY_RESOURCE_STRING) )
 CLEAN_FILES += $(LIBRARY_STRING_RESOURCES_SRCS)
@@ -33,28 +31,29 @@ LIBRARY_PRIVATE_$(1)_OBJS = $$(patsubst %.cpp, $(1)/private/%.o, $(LIBRARY_PRIVA
 LIBRARY_$(1)_RESOURCE_OBJS = $$(patsubst %.cpp, $(1)/%.o, $(LIBRARY_STRING_RESOURCES_SRCS))
 LIBRARY_$(1)_ALL_OBJS = $$(LIBRARY_$(1)_OBJS) $$(LIBRARY_PRIVATE_$(1)_OBJS) $$(LIBRARY_$(1)_RESOURCE_OBJS)
 CLEAN_FILES += $$(LIBRARY_$(1)_ALL_OBJS) $$(LIBRARY_$(1)_RESOURCE_OBJS)
+FASTUIDRAW_$(1)_LIBS = -lFastUIDraw_$(1) $(LIBRARY_LIBS)
 SUPER_CLEAN_FILES += $$(LIBRARY_$(1)_DEPS)
 $(1)/%.resource_string.o: string_resources_cpp/%.resource_string.cpp
 	@mkdir -p $$(dir $$@)
-	$(CXX) $$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_BASE_$(1)_CFLAGS) $(fPIC) -c $$< -o $$@
+	$(CXX) $$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(1)_CFLAGS) $(fPIC) -c $$< -o $$@
 
 $(1)/%.o: %.cpp $(1)/%.d
 	@mkdir -p $$(dir $$@)
-	$(CXX) $$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_BASE_$(1)_CFLAGS) $(fPIC) -c $$< -o $$@
+	$(CXX) $$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(1)_CFLAGS) $(fPIC) -c $$< -o $$@
 
 $(1)/private/%.o: %.cpp $(1)/private/%.d
 	@mkdir -p $$(dir $$@)
-	$(CXX) $$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_BASE_$(1)_CFLAGS) $(fPIC) $(fHIDDEN) -c $$< -o $$@
+	$(CXX) $$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(1)_CFLAGS) $(fPIC) $(fHIDDEN) -c $$< -o $$@
 
 $(1)/%.d: %.cpp
 	@mkdir -p $$(dir $$@)
 	@echo Generating $$@
-	@./makedepend.sh "$(CXX)" "$$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_BASE_$(1)_CFLAGS)" $(1) "$$*" "$$<" "$$@"
+	@./makedepend.sh "$(CXX)" "$$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(1)_CFLAGS)" $(1) "$$*" "$$<" "$$@"
 
 $(1)/private/%.d: %.cpp
 	@mkdir -p $$(dir $$@)
 	@echo Generating $$@
-	@./makedepend.sh "$(CXX)" "$$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_BASE_$(1)_CFLAGS)" $(1) "$$*" "$$<" "$$@"
+	@./makedepend.sh "$(CXX)" "$$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(1)_CFLAGS)" $(1) "$$*" "$$<" "$$@"
 .SECONDARY: $(1)/%.d
 .PRECIOUS: $(1)/%.d
 
@@ -78,7 +77,7 @@ endif
 
 
 libFastUIDraw_$(1).clang_tidy: $$(LIBRARY_$(1)_ALL_OBJS)
-	$(CLANG_TIDY) $(CLANG_TIDY_ARGS) $(LIBRARY_SOURCES) $(LIBRARY_PRIVATE_SOURCES) -- $$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_BASE_$(1)_CFLAGS) $(fPIC) > $$@
+	$(CLANG_TIDY) $(CLANG_TIDY_ARGS) $(LIBRARY_SOURCES) $(LIBRARY_PRIVATE_SOURCES) -- $$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(1)_CFLAGS) $(fPIC) > $$@
 CLEAN_FILES += libFastUIDraw_$(1).clang_tidy
 TARGETLIST += libFastUIDraw_$(1).clang_tidy
 
@@ -86,7 +85,13 @@ ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),clean-all)
 ifneq ($(MAKECMDGOALS),targets)
 ifneq ($(MAKECMDGOALS),docs)
+ifneq ($(MAKECMDGOALS),clean-docs)
+ifneq ($(MAKECMDGOALS),install-docs)
+ifneq ($(MAKECMDGOALS),uninstall-docs)
 -include $$(LIBRARY_$(1)_DEPS)
+endif
+endif
+endif
 endif
 endif
 endif

@@ -52,11 +52,15 @@ namespace fastuidraw
       \param data PainterItemShaderData::DataBase object holding
                   the data to be sent to the shader
       \param thresh threshhold used to select the StrokedPath
+      \param curve_flatness curve flatness theshhold for rendering
+                            the rounded joins. Note that thresh is
+                            partially derived from curve_flatness.
      */
     virtual
     float
     compute_rounded_thresh(const PainterShaderData::DataBase *data,
-                           float thresh) const = 0;
+                           float thresh,
+                           float curve_flatness) const = 0;
 
     /*!
       To be implemented by a derived class to give by how
@@ -67,8 +71,10 @@ namespace fastuidraw
       *out_item_space_distance, then to convert the box
       to clip-coordinates and then push each clip-equation
       by *out_pixel_space_distance
-      \param out_clip_space_distance[output] how much geometry inflates in pixels
-      \param out_item_space_distance[output] how much geometry inflates in local coordinates
+      \param data PainterItemShaderData::DataBase object holding
+                  the data to be sent to the shader
+      \param[out] out_pixel_space_distance how much geometry inflates in pixels
+      \param[out] out_item_space_distance how much geometry inflates in local coordinates
      */
     virtual
     void

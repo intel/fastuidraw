@@ -38,7 +38,6 @@ Building requirements
 =====================
  - GNU Make
  - g++ (clang should be fine too)
- - boost
  - freetype
  - flex
  - perl

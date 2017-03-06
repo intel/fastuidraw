@@ -169,6 +169,137 @@ Uniform(int location, const_c_array<T> v)
       Uniform(location, v.size(), &v[0]);
     }
 }
+
+/*!
+  Template version for setting array of uniforms,
+  equivalent to
+  \code
+  ProgramUniform(program, location, count, v.c_ptr());
+  \endcode
+  \param program GL name of program to which uniform(s) belong
+  \param location location of uniform, i.e. return value
+                  of glGetUniformLocation
+  \param v array of values
+  \param count number of elements from the array v to use.
+ */
+template<typename T, size_t N>
+void
+ProgramUniform(GLuint program, int location, GLsizei count, const vecN<T,N> &v)
+{
+  ProgramUniform(program, location, count, v.c_ptr());
+}
+
+/*!
+  Template version for setting array of uniform matrices,
+  equivalent to
+  \code
+  ProgramUniform(program, location, count, v.c_ptr(), transposed);
+  \endcode
+  This call is for when v is an array of matrices.
+  \param program GL name of program to which uniform(s) belong
+  \param location location of uniform, i.e. return value
+                  of glGetUniformLocation
+  \param v array of values
+  \param count number of elements from the array v to use
+  \param transposed flag to indicate if the matrices are to be transposed
+ */
+template<typename T, size_t N>
+void
+ProgramUniform(GLuint program, int location, GLsizei count, const vecN<T,N> &v, bool transposed)
+{
+  ProgramUniform(program, location, count, v.c_ptr(), transposed);
+}
+
+
+/*!
+  Template version for setting array of uniforms,
+  equivalent to
+  \code
+  ProgramUniform(program, location, count, &v[0]);
+  \endcode
+  \param program GL name of program to which uniform(s) belong
+  \param location location of uniform, i.e. return value
+                  of glGetUniformLocation
+  \param v array of values
+  \param count number of elements from the array v to use.
+ */
+template<typename T>
+void
+ProgramUniform(GLuint program, int location, GLsizei count, const_c_array<T> v)
+{
+  if(!v.empty())
+    {
+      ProgramUniform(program, location, count, &v[0]);
+    }
+}
+
+/*!
+  Template version for setting array of uniforms,
+  equivalent to
+  \code
+  ProgramUniform(program, location, count, &v[0]);
+  \endcode
+  \param program GL name of program to which uniform(s) belong
+  \param location location of uniform, i.e. return value
+                  of glGetUniformLocation
+  \param v array of values
+  \param count number of elements from the array v to use.
+ */
+template<typename T>
+void
+ProgramUniform(GLuint program, int location, GLsizei count, c_array<T> v)
+{
+  if(!v.empty())
+    {
+      ProgramUniform(program, location, count, &v[0]);
+    }
+}
+
+/*!
+  Template version for setting array of uniform of matices,
+  equivalent to
+  \code
+  ProgramUniform(program, location, count, &v[0], transposed);
+  \endcode
+  This call is for when v is an array of matrices.
+  \param program GL name of program to which uniform(s) belong
+  \param location location of uniform, i.e. return value
+                  of glGetUniformLocation
+  \param v array of values
+  \param count number of elements from the array v to use
+  \param transposed flag to indicate if the matrices are to be transposed
+ */
+template<typename T>
+void
+ProgramUniform(GLuint program, int location, GLsizei count, const_c_array<T> v, bool transposed)
+{
+  if(!v.empty())
+    {
+      ProgramUniform(program, location, count, &v[0], transposed);
+    }
+}
+
+/*!
+  Template version for setting array of uniforms,
+  equivalent to
+  \code
+  ProgramUniform(program, location, v.size(), &v[0]);
+  \endcode
+  \param program GL name of program to which uniform(s) belong
+  \param location location of uniform, i.e. return value
+                  of glGetUniformLocation
+  \param v array of values
+ */
+template<typename T>
+void
+ProgramUniform(GLuint program, int location, const_c_array<T> v)
+{
+  if(!v.empty())
+    {
+      ProgramUniform(program, location, v.size(), &v[0]);
+    }
+}
+
 /*! @} */
 
 

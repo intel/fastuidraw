@@ -83,18 +83,6 @@ namespace fastuidraw
     enum shader_bits
       {
         /*!
-          Number bits used to store the value of
-          Image::slack().
-         */
-        image_slack_num_bits = 2,
-
-        /*!
-          Number bits used to store the value of
-          Image::number_index_lookups()
-         */
-        image_number_index_lookups_num_bits = 5,
-
-        /*!
           Number of bits needed to encode filter for image,
           the value packed into the shader ID encodes both
           what filter to use and whether or not an image
@@ -139,31 +127,6 @@ namespace fastuidraw
           Bit up is translation is present
          */
         transformation_matrix_bit,
-
-        /*!
-          first bit used to store Image::number_index_lookups()
-         */
-        image_number_index_lookups_bit0,
-
-        /*!
-          first bit used to store Image::slack()
-         */
-        image_slack_bit0 = image_number_index_lookups_bit0 + image_number_index_lookups_num_bits,
-      };
-
-    /*!
-      Max values generated from shader_bits that different
-      field can consume
-     */
-    enum shader_max
-      {
-        /*! max value storeable for Image::number_index_lookups()
-         */
-        image_number_index_lookups_max = FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(image_number_index_lookups_num_bits),
-
-        /*! max value storeable for Image::slack()
-         */
-        image_slack_max = FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(image_slack_num_bits),
       };
 
     /*!
@@ -214,16 +177,6 @@ namespace fastuidraw
           bit mask for if matrix is used in brush
          */
         transformation_matrix_mask = FASTUIDRAW_MASK(transformation_matrix_bit, 1),
-
-        /*!
-          bit mask for how many index lookups needed for image used in brush
-         */
-        image_number_index_lookups_mask = FASTUIDRAW_MASK(image_number_index_lookups_bit0, image_number_index_lookups_num_bits),
-
-        /*!
-          bit mask for how much slack for image used in brush
-         */
-        image_slack_mask = FASTUIDRAW_MASK(image_slack_bit0, image_slack_num_bits),
       };
 
     /*!
@@ -281,9 +234,9 @@ namespace fastuidraw
      */
     enum image_atlas_location_encoding
       {
-        image_atlas_location_x_num_bits = 10, /*!< number bits to encode Image::master_index_tile().x() */
-        image_atlas_location_y_num_bits = 10, /*!< number bits to encode Image::master_index_tile().y() */
-        image_atlas_location_z_num_bits = 10, /*!< number bits to encode Image::master_index_tile().z() */
+        image_atlas_location_x_num_bits = 8,  /*!< number bits to encode Image::master_index_tile().x() */
+        image_atlas_location_y_num_bits = 8,  /*!< number bits to encode Image::master_index_tile().y() */
+        image_atlas_location_z_num_bits = 16, /*!< number bits to encode Image::master_index_tile().z() */
 
         image_atlas_location_x_bit0 = 0, /*!< bit where Image::master_index_tile().x() is encoded */
 
@@ -296,6 +249,35 @@ namespace fastuidraw
           bit where Image::master_index_tile().z() is encoded
         */
         image_atlas_location_z_bit0 = image_atlas_location_y_bit0 + image_atlas_location_y_num_bits,
+      };
+
+    /*!
+      Encoding for bits to specify Image::number_index_lookups()
+      and Image::number_index_lookups().
+     */
+    enum image_slack_number_lookups_encoding
+      {
+        /*!
+          Number bits used to store the value of
+          Image::slack().
+         */
+        image_slack_num_bits = 16,
+
+        /*!
+          Number bits used to store the value of
+          Image::number_index_lookups()
+         */
+        image_number_index_lookups_num_bits = 16,
+
+        /*!
+          first bit used to store Image::number_index_lookups()
+         */
+        image_number_index_lookups_bit0,
+
+        /*!
+          first bit used to store Image::slack()
+         */
+        image_slack_bit0 = image_number_index_lookups_bit0 + image_number_index_lookups_num_bits,
       };
 
     /*!
@@ -354,11 +336,17 @@ namespace fastuidraw
         /*!
           top left corner of start of image to use (for example
           using the entire image would be (0,0)). Both x and y
-          start values are encoded into a simge uint32. Encoding
-          is the same as image_size_xy_offset, see
-          image_size_encoding
+          start values are encoded into a single uint32. Encoding
+          is the same as image_size_xy_offset, see image_size_encoding
          */
         image_start_xy_offset,
+
+        /*!
+          holds the amount of slack in the image (see Image::slack())
+          and the number of index looks ups (Image::number_index_lookups())
+          with bits packed as according to image_slack_number_lookups_encoding.
+         */
+        image_slack_number_lookups_offset,
 
         /*!
           Number of elements packed for image support
@@ -762,18 +750,6 @@ namespace fastuidraw
         translation is applied to the brush.
       - If shader() & \ref transformation_matrix_mask is non-zero, then a
         2x2 matrix is applied to the brush.
-      - The value given by
-        \code
-        unpack_bits(image_number_index_lookups_bit0, image_number_index_lookups_num_bits, shader())
-        \endcode
-        gives the value to Image::number_index_lookups() of the image
-        applied to the brush.
-      - The value given by
-        \code
-        unpack_bits(image_slack_bit0, image_slack_num_bits, shader())
-        \endcode
-        gives the value to Image::slack() of the image
-        applied to the brush.
      */
     uint32_t
     shader(void) const;

@@ -321,7 +321,8 @@ namespace
       m_assign_binding_points(true),
       m_use_ubo_for_uniforms(false),
       m_separate_program_for_discard(true),
-      m_non_dashed_stroke_shader_uses_discard(false)
+      m_non_dashed_stroke_shader_uses_discard(false),
+      m_blend_type(fastuidraw::PainterBlendShader::dual_src)
     {}
 
     unsigned int m_attributes_per_buffer;
@@ -344,6 +345,7 @@ namespace
     bool m_use_ubo_for_uniforms;
     bool m_separate_program_for_discard;
     bool m_non_dashed_stroke_shader_uses_discard;
+    enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
   };
 
 }
@@ -730,14 +732,14 @@ DrawCommand(painter_vao_pool *hnd,
   data_bo = glMapBufferRange(GL_ARRAY_BUFFER, 0, hnd->data_buffer_size(), flags);
   assert(data_bo != NULL);
 
-  m_attributes = fastuidraw::c_array<fastuidraw::PainterAttribute>(reinterpret_cast<fastuidraw::PainterAttribute*>(attr_bo),
+  m_attributes = fastuidraw::c_array<fastuidraw::PainterAttribute>(static_cast<fastuidraw::PainterAttribute*>(attr_bo),
                                                                  params.attributes_per_buffer());
-  m_indices = fastuidraw::c_array<fastuidraw::PainterIndex>(reinterpret_cast<fastuidraw::PainterIndex*>(index_bo),
+  m_indices = fastuidraw::c_array<fastuidraw::PainterIndex>(static_cast<fastuidraw::PainterIndex*>(index_bo),
                                                           params.indices_per_buffer());
-  m_store = fastuidraw::c_array<fastuidraw::generic_data>(reinterpret_cast<fastuidraw::generic_data*>(data_bo),
+  m_store = fastuidraw::c_array<fastuidraw::generic_data>(static_cast<fastuidraw::generic_data*>(data_bo),
                                                           hnd->data_buffer_size() / sizeof(fastuidraw::generic_data));
 
-  m_header_attributes = fastuidraw::c_array<uint32_t>(reinterpret_cast<uint32_t*>(header_bo),
+  m_header_attributes = fastuidraw::c_array<uint32_t>(static_cast<uint32_t*>(header_bo),
                                                      params.attributes_per_buffer());
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -945,37 +947,9 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
     }
   #endif
 
-  return_value.non_dashed_stroke_shader_uses_discard(params.non_dashed_stroke_shader_uses_discard());
-
-  bool have_dual_src_blending, have_framebuffer_fetch;
-
-  #ifdef FASTUIDRAW_GL_USE_GLES
-    {
-      have_dual_src_blending = ctx.has_extension("GL_EXT_blend_func_extended");
-      have_framebuffer_fetch = ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
-    }
-  #else
-    {
-      have_dual_src_blending = true;
-      have_framebuffer_fetch = ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
-    }
-  #endif
-
-  if(have_framebuffer_fetch && false)
-    {
-      return_value
-        .default_blend_shader_type(PainterBlendShader::framebuffer_fetch);
-    }
-  else if(have_dual_src_blending)
-    {
-      return_value
-        .default_blend_shader_type(PainterBlendShader::dual_src);
-    }
-  else
-    {
-      return_value
-        .default_blend_shader_type(PainterBlendShader::single_src);
-    }
+  return_value
+    .non_dashed_stroke_shader_uses_discard(params.non_dashed_stroke_shader_uses_discard())
+    .default_blend_shader_type(params.blend_type());
 
   return return_value;
 }
@@ -994,6 +968,32 @@ configure_backend(void)
     {
       // TBO's not supported, fall back to using UBO's.
       m_params.data_store_backing(fastuidraw::gl::PainterBackendGL::data_store_ubo);
+    }
+
+  bool have_dual_src_blending, have_framebuffer_fetch;
+
+  if(m_ctx_properties.is_es())
+    {
+      have_dual_src_blending = m_ctx_properties.has_extension("GL_EXT_blend_func_extended");
+      have_framebuffer_fetch = m_ctx_properties.has_extension("GL_EXT_shader_framebuffer_fetch");
+    }
+  else
+    {
+      have_dual_src_blending = true;
+      have_framebuffer_fetch = m_ctx_properties.has_extension("GL_EXT_shader_framebuffer_fetch")
+	|| m_ctx_properties.has_extension("GL_MESA_shader_framebuffer_fetch");
+    }
+
+  if(m_params.blend_type() == fastuidraw::PainterBlendShader::framebuffer_fetch
+     && !have_framebuffer_fetch)
+    {
+      m_params.blend_type(fastuidraw::PainterBlendShader::dual_src);
+    }
+  
+  if(m_params.blend_type() == fastuidraw::PainterBlendShader::dual_src
+     && !have_dual_src_blending)
+    {
+      m_params.blend_type(fastuidraw::PainterBlendShader::single_src);
     }
 
   /* Query GL what is good size for data store buffer. Size is dependent
@@ -1198,6 +1198,7 @@ configure_source_front_matter(void)
             .specify_version("320 es");
           m_front_matter_frag
             .specify_version("320 es")
+            .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension)
             .specify_extension("GL_EXT_blend_func_extended", ShaderSource::enable_extension);
         }
       else
@@ -1225,6 +1226,7 @@ configure_source_front_matter(void)
 
           m_front_matter_frag
             .specify_version(version.c_str())
+            .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension)
             .specify_extension("GL_EXT_blend_func_extended", ShaderSource::enable_extension)
             .specify_extension("GL_EXT_texture_buffer", ShaderSource::enable_extension)
             .specify_extension("GL_OES_texture_buffer", ShaderSource::enable_extension);
@@ -1239,6 +1241,10 @@ configure_source_front_matter(void)
       using_glsl42 = m_ctx_properties.version() >= fastuidraw::ivec2(4, 2)
         && (m_uber_shader_builder_params.assign_layout_to_varyings()
             || m_uber_shader_builder_params.assign_binding_points());
+
+      m_front_matter_frag
+	.specify_extension("GL_MESA_shader_framebuffer_fetch", ShaderSource::enable_extension)
+	.specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension);
 
       if(using_glsl42)
         {
@@ -1288,12 +1294,14 @@ build_programs(void)
       tp = static_cast<enum fastuidraw::gl::PainterBackendGL::program_type_t>(i);
       m_programs[tp] = build_program(tp);
       m_shader_uniforms_loc[tp] = m_programs[tp]->uniform_location("fastuidraw_shader_uniforms");
+      assert(m_shader_uniforms_loc[tp] != -1 || m_uber_shader_builder_params.use_ubo_for_uniforms());
     }
 
   if(!m_uber_shader_builder_params.use_ubo_for_uniforms())
     {
       m_uniform_values.resize(m_p->ubo_size());
-      m_uniform_values_ptr = fastuidraw::c_array<fastuidraw::generic_data>(&m_uniform_values[0], m_uniform_values.size());
+      m_uniform_values_ptr = fastuidraw::c_array<fastuidraw::generic_data>(&m_uniform_values[0],
+                                                                           m_uniform_values.size());
     }
 }
 
@@ -1344,7 +1352,7 @@ fastuidraw::gl::PainterBackendGL::ConfigurationGL::
 ConfigurationGL(const ConfigurationGL &obj)
 {
   ConfigurationGLPrivate *d;
-  d = reinterpret_cast<ConfigurationGLPrivate*>(obj.m_d);
+  d = static_cast<ConfigurationGLPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew ConfigurationGLPrivate(*d);
 }
 
@@ -1352,7 +1360,7 @@ fastuidraw::gl::PainterBackendGL::ConfigurationGL::
 ~ConfigurationGL()
 {
   ConfigurationGLPrivate *d;
-  d = reinterpret_cast<ConfigurationGLPrivate*>(m_d);
+  d = static_cast<ConfigurationGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -1364,8 +1372,8 @@ operator=(const ConfigurationGL &rhs)
   if(this != &rhs)
     {
       ConfigurationGLPrivate *d, *rhs_d;
-      d = reinterpret_cast<ConfigurationGLPrivate*>(m_d);
-      rhs_d = reinterpret_cast<ConfigurationGLPrivate*>(rhs.m_d);
+      d = static_cast<ConfigurationGLPrivate*>(m_d);
+      rhs_d = static_cast<ConfigurationGLPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -1377,7 +1385,7 @@ operator=(const ConfigurationGL &rhs)
   name(type v)                                                          \
   {                                                                     \
     ConfigurationGLPrivate *d;                                          \
-    d = reinterpret_cast<ConfigurationGLPrivate*>(m_d);                 \
+    d = static_cast<ConfigurationGLPrivate*>(m_d);                 \
     d->m_##name = v;                                                    \
     return *this;                                                       \
   }                                                                     \
@@ -1387,7 +1395,7 @@ operator=(const ConfigurationGL &rhs)
   name(void) const                                                      \
   {                                                                     \
     ConfigurationGLPrivate *d;                                          \
-    d = reinterpret_cast<ConfigurationGLPrivate*>(m_d);                 \
+    d = static_cast<ConfigurationGLPrivate*>(m_d);                 \
     return d->m_##name;                                                 \
   }
 
@@ -1411,6 +1419,7 @@ setget_implement(bool, assign_binding_points)
 setget_implement(bool, use_ubo_for_uniforms)
 setget_implement(bool, separate_program_for_discard)
 setget_implement(bool, non_dashed_stroke_shader_uses_discard)
+setget_implement(enum fastuidraw::PainterBlendShader::shader_type, blend_type)
 
 #undef setget_implement
 
@@ -1432,7 +1441,7 @@ fastuidraw::gl::PainterBackendGL::
 ~PainterBackendGL()
 {
   PainterBackendGLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -1442,7 +1451,7 @@ fastuidraw::gl::PainterBackendGL::
 program(enum program_type_t tp)
 {
   PainterBackendGLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
   return d->programs(shader_code_added())[tp];
 }
 
@@ -1451,7 +1460,7 @@ fastuidraw::gl::PainterBackendGL::
 configuration_gl(void) const
 {
   PainterBackendGLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
   return d->m_params;
 }
 
@@ -1493,12 +1502,26 @@ compute_blend_shader_group(PainterShader::Tag tag,
   return return_value;
 }
 
+unsigned int
+fastuidraw::gl::PainterBackendGL::
+attribs_per_mapping(void) const
+{
+  return configuration_gl().attributes_per_buffer();
+}
+
+unsigned int
+fastuidraw::gl::PainterBackendGL::
+indices_per_mapping(void) const
+{
+  return configuration_gl().indices_per_buffer();
+}
+
 void
 fastuidraw::gl::PainterBackendGL::
 on_pre_draw(void)
 {
   PainterBackendGLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
 
   /* we delay setting up GL state until on_pre_draw() for several reasons:
        1. the atlases may have been resized, if so the underlying textures
@@ -1603,7 +1626,7 @@ on_pre_draw(void)
       ubo_mapped = glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
                                     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
 
-      fill_uniform_buffer(c_array<generic_data>(reinterpret_cast<generic_data*>(ubo_mapped), size_generics));
+      fill_uniform_buffer(c_array<generic_data>(static_cast<generic_data*>(ubo_mapped), size_generics));
       glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
       glUnmapBuffer(GL_UNIFORM_BUFFER);
 
@@ -1634,7 +1657,7 @@ fastuidraw::gl::PainterBackendGL::
 on_post_draw(void)
 {
   PainterBackendGLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
 
   /* this is somewhat paranoid to make sure that
      the GL objects do not leak...
@@ -1703,7 +1726,7 @@ fastuidraw::gl::PainterBackendGL::
 map_draw(void)
 {
   PainterBackendGLPrivate *d;
-  d = reinterpret_cast<PainterBackendGLPrivate*>(m_d);
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
 
   return FASTUIDRAWnew DrawCommand(d->m_pool, d->m_params, d);
 }

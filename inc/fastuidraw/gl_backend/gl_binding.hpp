@@ -109,7 +109,13 @@ namespace fastuidraw {
   \endcode
 
   Calling a GL function through a function pointer
-  will bypass the GL error checking though.
+  will bypass the GL error checking though. One issue
+  with using FASTUIDRAWglfunctionExists is that a number
+  of GL implementations will return a function pointer,
+  even if the implementation does not support it. As
+  always, when fetching function pointers, one should
+  check the GL version and GL extension string(s) to
+  know if the GL implementation supports that function.
 
   The gl_binding system requires that an application provides
   a function which the binding system uses to fetch function
@@ -193,9 +199,13 @@ log_gl_commands(bool v);
   Sets the function that the system uses
   to fetch the function pointers for GL or GLES.
   \param get_proc value to use, default is NULL.
+  \param fetch_functions if true, fetch all GL/GLES functions
+                         immediately instead of fetching on
+                         first call.
  */
 void
-get_proc_function(void* (*get_proc)(const char*));
+get_proc_function(void* (*get_proc)(const char*),
+                  bool fetch_functions = true);
 
 }
 /*! @} */

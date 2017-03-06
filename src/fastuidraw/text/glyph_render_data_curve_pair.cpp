@@ -331,7 +331,7 @@ fastuidraw::GlyphRenderDataCurvePair::
 ~GlyphRenderDataCurvePair()
 {
   GlyphRenderDataCurvePairPrivate *d;
-  d = reinterpret_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
+  d = static_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -341,7 +341,7 @@ fastuidraw::GlyphRenderDataCurvePair::
 resolution(void) const
 {
   GlyphRenderDataCurvePairPrivate *d;
-  d = reinterpret_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
+  d = static_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
   return d->m_resolution;
 }
 
@@ -350,7 +350,7 @@ fastuidraw::GlyphRenderDataCurvePair::
 active_curve_pair(void) const
 {
   GlyphRenderDataCurvePairPrivate *d;
-  d = reinterpret_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
+  d = static_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
   return make_c_array(d->m_texels);
 }
 
@@ -359,7 +359,7 @@ fastuidraw::GlyphRenderDataCurvePair::
 active_curve_pair(void)
 {
   GlyphRenderDataCurvePairPrivate *d;
-  d = reinterpret_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
+  d = static_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
   return make_c_array(d->m_texels);
 }
 
@@ -368,7 +368,7 @@ fastuidraw::GlyphRenderDataCurvePair::
 geometry_data(void) const
 {
   GlyphRenderDataCurvePairPrivate *d;
-  d = reinterpret_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
+  d = static_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
   return make_c_array(d->m_geometry_data);
 }
 
@@ -377,7 +377,7 @@ fastuidraw::GlyphRenderDataCurvePair::
 geometry_data(void)
 {
   GlyphRenderDataCurvePairPrivate *d;
-  d = reinterpret_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
+  d = static_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
   return make_c_array(d->m_geometry_data);
 }
 
@@ -386,7 +386,7 @@ fastuidraw::GlyphRenderDataCurvePair::
 resize_active_curve_pair(ivec2 sz)
 {
   GlyphRenderDataCurvePairPrivate *d;
-  d = reinterpret_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
+  d = static_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
   d->resize(sz);
 }
 
@@ -395,7 +395,7 @@ fastuidraw::GlyphRenderDataCurvePair::
 resize_geometry_data(int sz)
 {
   GlyphRenderDataCurvePairPrivate *d;
-  d = reinterpret_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
+  d = static_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
   assert(sz >= 0);
   d->m_geometry_data.resize(sz, fastuidraw::GlyphRenderDataCurvePair::entry(false));
 }
@@ -409,7 +409,7 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
                 int &geometry_length) const
 {
   GlyphRenderDataCurvePairPrivate *d;
-  d = reinterpret_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
+  d = static_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
 
   GlyphAtlas::Padding padding;
   padding.m_right = 1;

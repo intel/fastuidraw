@@ -30,14 +30,11 @@
 #include <iostream>
 #include <iomanip>
 #include <map>
+#include <tuple>
 #include <vector>
 #include <sys/time.h>
 #include <unistd.h>
-#include <boost/signals2.hpp>
-#include <boost/bind.hpp>
-#include <boost/multi_array.hpp>
-#include <boost/tuple/tuple.hpp>
-
+#include <mutex>
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -45,6 +42,8 @@
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/path.hpp>
 
+#include "../../private/array2d.hpp"
+#include "../../private/signal.hpp"
 #include "../../private/util_private.hpp"
 
 #include <ft2build.h>
@@ -123,11 +122,11 @@ namespace detail
     \n (0x00,0xFF,0x00,1) {green} off outline quadratic control point
     \n (0x00,0x00,0xFF,2) {blue} off outline  cubic control point
   */
-  class point_type:public boost::tuple<ivec2, u8vec4>
+  class point_type:public std::tuple<ivec2, u8vec4>
   {
   public:
 
-    typedef boost::tuple<ivec2, u8vec4> base_class;
+    typedef std::tuple<ivec2, u8vec4> base_class;
 
     enum
       {
@@ -209,7 +208,7 @@ namespace detail
     const ivec2&
     position(void) const
     {
-      return get<point_location>();
+      return std::get<point_location>(*this);
     }
 
     /*!\fn vecN<int,2>& position(void)
@@ -219,7 +218,7 @@ namespace detail
     ivec2&
     position(void)
     {
-      return get<point_location>();
+      return std::get<point_location>(*this);
     }
 
     /*!\fn const u8vec4& color(void) const
@@ -230,7 +229,7 @@ namespace detail
     const u8vec4&
     color(void) const
     {
-      return get<color_location>();
+      return std::get<color_location>(*this);
     }
 
     /*!\fn u8vec4& color(void)
@@ -241,7 +240,7 @@ namespace detail
     u8vec4&
     color(void)
     {
-      return get<color_location>();
+      return std::get<color_location>(*this);
     }
 
     /*!\fn  enum point_classification classification
@@ -1540,13 +1539,13 @@ namespace detail
       conveniance typedef for the signal type
       when a curve is emitted.
      */
-    typedef boost::signals2::signal<void (BezierCurve*) > signal_emit_curve;
+    typedef Signal<std::function<void (BezierCurve*)>> signal_emit_curve;
 
     /*!\typedef signal_end_contour
       conveniance typedef for the signal type
       when a contour ends
      */
-    typedef boost::signals2::signal<void () > signal_end_contour;
+    typedef Signal<std::function<void ()>> signal_end_contour;
 
     virtual
     ~ContourEmitterBase(void)
@@ -1586,24 +1585,24 @@ namespace detail
       m_o();
     }
 
-    /*!\fn boost::signals2::connection connect_emit_curve
+    /*!\fn signal_emit_curve::Connection connect_emit_curve
       Connect to the emit curve signal
       \param c slot to call on emit curve signal
      */
-    boost::signals2::connection
-    connect_emit_curve(signal_emit_curve::slot_type c)
+    signal_emit_curve::Connection
+    connect_emit_curve(signal_emit_curve::SlotType&& c)
     {
-      return m_c.connect(c);
+      return m_c.connect(std::move(c));
     }
 
-    /*!\fn boost::signals2::connection connect_emit_end_contour
+    /*!\fn signal_end_contour::Connection connect_emit_end_contour
       Connect to the emit end of outline signal
       \param o slot to call on emit end of contour signal
      */
-    boost::signals2::connection
-    connect_emit_end_contour(signal_end_contour::slot_type o)
+    signal_end_contour::Connection
+    connect_emit_end_contour(signal_end_contour::SlotType&& o)
     {
-      return m_o.connect(o);
+      return m_o.connect(std::move(o));
     }
 
   private:
@@ -2311,7 +2310,7 @@ namespace detail
                                     as well for each texel.
      */
     void
-    compute_distance_values(boost::multi_array<distance_return_type, 2> &victim,
+    compute_distance_values(array2d<distance_return_type> &victim,
                             float max_dist,
                             bool compute_winding_number) const;
 
@@ -2329,7 +2328,7 @@ namespace detail
                                 coordinates of the curves
      */
     void
-    compute_winding_numbers(boost::multi_array<int, 2> &victim,
+    compute_winding_numbers(array2d<int> &victim,
                             ivec2 offset_from_center=ivec2(0,0)) const;
 
     /*!\fn void compute_analytic_values
@@ -2350,7 +2349,7 @@ namespace detail
                                       the boudnary include that too.
      */
     void
-    compute_analytic_values(boost::multi_array<analytic_return_type, 2> &victim,
+    compute_analytic_values(array2d<analytic_return_type> &victim,
                             std::vector<bool> &component_reversed,
                             bool include_pt_intersections=false) const;
 
@@ -2457,7 +2456,7 @@ namespace detail
                                 const ivec2 &bitmap_location,
                                 c_array<curve_segment> out_curves) const;
 
-    /*!\fn int compute_localized_affectors(const boost::multi_array<analytic_return_type, 2> &,
+    /*!\fn int compute_localized_affectors(const array2d<analytic_return_type> &,
                                            const ivec2&, c_array<curve_segment>) const
       Computes the curves intersecting a named texel.
       Returns the number of curves found. Provdied as
@@ -2473,11 +2472,11 @@ namespace detail
       \param out_curves pre-allocated array to store the output in
      */
     int
-    compute_localized_affectors(const boost::multi_array<analytic_return_type, 2> &R,
+    compute_localized_affectors(const array2d<analytic_return_type> &R,
                                 const ivec2 &bitmap_location,
                                 c_array<curve_segment> out_curves) const
     {
-      return compute_localized_affectors( R[bitmap_location.x()][bitmap_location.y()],
+      return compute_localized_affectors( R(bitmap_location.x(), bitmap_location.y()),
                                           bitmap_location, out_curves);
     }
 
@@ -2491,7 +2490,7 @@ namespace detail
      */
     int
     compute_localized_affectors_LOD(int LOD,
-                                    const boost::multi_array<analytic_return_type, 2> &dataLOD0,
+                                    const array2d<analytic_return_type> &dataLOD0,
                                     const ivec2 &LOD_bitmap_location,
                                     c_array<curve_segment> out_curves) const;
 
@@ -2520,29 +2519,29 @@ namespace detail
                                   std::vector<int> &cts) const;
 
     void
-    compute_fixed_line_values(boost::multi_array<distance_return_type, 2> &victim,
+    compute_fixed_line_values(array2d<distance_return_type> &victim,
                               bool compute_winding_number) const;
 
     void
     compute_fixed_line_values(enum coordinate_type coord_tp,
-                              boost::multi_array<distance_return_type, 2> &victim,
+                              array2d<distance_return_type> &victim,
                               std::vector< std::vector<solution_point> > &work_room,
                               bool compute_winding_number) const;
 
     void
-    compute_outline_point_values(boost::multi_array<distance_return_type, 2> &victim,
+    compute_outline_point_values(array2d<distance_return_type> &victim,
                                  int radius) const;
 
     void
-    compute_zero_derivative_values(boost::multi_array<distance_return_type, 2> &victim,
+    compute_zero_derivative_values(array2d<distance_return_type> &victim,
                                    int radius) const;
 
     void
-    init_distance_values(boost::multi_array<distance_return_type, 2> &victim,
+    init_distance_values(array2d<distance_return_type> &victim,
                          float max_dist_value) const;
     void
     compute_analytic_curve_values_fixed(enum coordinate_type coord,
-                                        boost::multi_array<analytic_return_type, 2> &victim,
+                                        array2d<analytic_return_type> &victim,
                                         std::vector<int> &reverse_curve_count,
                                         bool include_pt_intersections) const;
 

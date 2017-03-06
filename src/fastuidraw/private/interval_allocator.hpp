@@ -21,7 +21,6 @@
 
 #include <map>
 #include <set>
-#include <boost/utility.hpp>
 #include <fastuidraw/util/util.hpp>
 
 namespace fastuidraw

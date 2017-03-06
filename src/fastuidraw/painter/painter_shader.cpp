@@ -71,7 +71,7 @@ fastuidraw::PainterShader::
 ~PainterShader()
 {
   PainterShaderPrivate *d;
-  d = reinterpret_cast<PainterShaderPrivate*>(m_d);
+  d = static_cast<PainterShaderPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -81,7 +81,7 @@ fastuidraw::PainterShader::
 sub_shader(void) const
 {
   PainterShaderPrivate *d;
-  d = reinterpret_cast<PainterShaderPrivate*>(m_d);
+  d = static_cast<PainterShaderPrivate*>(m_d);
   return d->m_sub_shader_ID;
 }
 
@@ -90,7 +90,7 @@ fastuidraw::PainterShader::
 ID(void) const
 {
   PainterShaderPrivate *d;
-  d = reinterpret_cast<PainterShaderPrivate*>(m_d);
+  d = static_cast<PainterShaderPrivate*>(m_d);
   assert(d->m_registered_to != NULL);
   return d->m_tag.m_ID;
 }
@@ -100,7 +100,7 @@ fastuidraw::PainterShader::
 group(void) const
 {
   PainterShaderPrivate *d;
-  d = reinterpret_cast<PainterShaderPrivate*>(m_d);
+  d = static_cast<PainterShaderPrivate*>(m_d);
   assert(d->m_registered_to != NULL);
   return d->m_tag.m_group;
 }
@@ -110,7 +110,7 @@ fastuidraw::PainterShader::
 tag(void) const
 {
   PainterShaderPrivate *d;
-  d = reinterpret_cast<PainterShaderPrivate*>(m_d);
+  d = static_cast<PainterShaderPrivate*>(m_d);
   assert(d->m_registered_to != NULL);
   return d->m_tag;
 }
@@ -120,7 +120,7 @@ fastuidraw::PainterShader::
 number_sub_shaders(void) const
 {
   PainterShaderPrivate *d;
-  d = reinterpret_cast<PainterShaderPrivate*>(m_d);
+  d = static_cast<PainterShaderPrivate*>(m_d);
   return d->m_number_sub_shaders;
 }
 
@@ -129,7 +129,7 @@ fastuidraw::PainterShader::
 parent(void) const
 {
   PainterShaderPrivate *d;
-  d = reinterpret_cast<PainterShaderPrivate*>(m_d);
+  d = static_cast<PainterShaderPrivate*>(m_d);
   return d->m_parent;
 }
 
@@ -138,7 +138,7 @@ fastuidraw::PainterShader::
 register_shader(Tag tg, const PainterBackend *p)
 {
   PainterShaderPrivate *d;
-  d = reinterpret_cast<PainterShaderPrivate*>(m_d);
+  d = static_cast<PainterShaderPrivate*>(m_d);
   assert(d->m_registered_to == NULL);
   assert(!d->m_parent);
   d->m_tag = tg;
@@ -150,11 +150,11 @@ fastuidraw::PainterShader::
 set_group_of_sub_shader(uint32_t gr)
 {
   PainterShaderPrivate *d;
-  d = reinterpret_cast<PainterShaderPrivate*>(m_d);
+  d = static_cast<PainterShaderPrivate*>(m_d);
 
   assert(d->m_parent);
   PainterShaderPrivate *pd;
-  pd = reinterpret_cast<PainterShaderPrivate*>(d->m_parent->m_d);
+  pd = static_cast<PainterShaderPrivate*>(d->m_parent->m_d);
 
   /* the parent must all-ready be registered.
    */
@@ -173,6 +173,6 @@ fastuidraw::PainterShader::
 registered_to(void) const
 {
   PainterShaderPrivate *d;
-  d = reinterpret_cast<PainterShaderPrivate*>(m_d);
+  d = static_cast<PainterShaderPrivate*>(m_d);
   return d->m_registered_to;
 }

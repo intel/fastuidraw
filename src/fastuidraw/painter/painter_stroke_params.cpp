@@ -67,7 +67,8 @@ namespace
     virtual
     float
     compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
-                           float thresh) const;
+                           float thresh,
+                           float curve_flatness) const;
     void
     stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
                        float *out_pixel_distance,
@@ -89,7 +90,8 @@ StrokingDataSelector(bool pixel_width):
 float
 StrokingDataSelector::
 compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
-                       float thresh) const
+                       float thresh,
+                       float curve_flatness) const
 {
   const PainterStrokeParamsData *d;
   d = static_cast<const PainterStrokeParamsData*>(data);
@@ -106,7 +108,11 @@ compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
       float return_value;
 
       return_value = 1.0f / d->m_radius;
-      if(!m_pixel_width)
+      if(m_pixel_width)
+        {
+          return_value *= curve_flatness;
+        }
+      else
         {
           return_value *= thresh;
         }

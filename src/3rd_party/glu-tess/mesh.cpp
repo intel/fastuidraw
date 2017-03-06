@@ -627,6 +627,7 @@ GLUmesh *glu_fastuidraw_gl_meshNewMesh( void )
   f->trail = NULL;
   f->marked = FALSE;
   f->inside = FALSE;
+  f->winding_number = 0;
 
   e->next = e;
   e->Sym = eSym;

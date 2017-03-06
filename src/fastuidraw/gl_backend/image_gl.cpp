@@ -338,7 +338,7 @@ fastuidraw::gl::ImageAtlasGL::params::
 params(const params &obj)
 {
   ImageAtlasGLParamsPrivate *d;
-  d = reinterpret_cast<ImageAtlasGLParamsPrivate*>(obj.m_d);
+  d = static_cast<ImageAtlasGLParamsPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew ImageAtlasGLParamsPrivate(*d);
 }
 
@@ -346,7 +346,7 @@ fastuidraw::gl::ImageAtlasGL::params::
 ~params()
 {
   ImageAtlasGLParamsPrivate *d;
-  d = reinterpret_cast<ImageAtlasGLParamsPrivate*>(m_d);
+  d = static_cast<ImageAtlasGLParamsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -358,8 +358,8 @@ operator=(const params &rhs)
   if(this != &rhs)
     {
       ImageAtlasGLParamsPrivate *d, *rhs_d;
-      d = reinterpret_cast<ImageAtlasGLParamsPrivate*>(m_d);
-      rhs_d = reinterpret_cast<ImageAtlasGLParamsPrivate*>(rhs.m_d);
+      d = static_cast<ImageAtlasGLParamsPrivate*>(m_d);
+      rhs_d = static_cast<ImageAtlasGLParamsPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -382,7 +382,7 @@ optimal_color_sizes(int log2_color_tile_size)
   name(type v)                                                   \
   {                                                              \
     ImageAtlasGLParamsPrivate *d;                                \
-    d = reinterpret_cast<ImageAtlasGLParamsPrivate*>(m_d);       \
+    d = static_cast<ImageAtlasGLParamsPrivate*>(m_d);       \
     d->m_##name = v;                                             \
     return *this;                                                \
   }                                                              \
@@ -392,7 +392,7 @@ optimal_color_sizes(int log2_color_tile_size)
   name(void) const                                               \
   {                                                              \
     ImageAtlasGLParamsPrivate *d;                                \
-    d = reinterpret_cast<ImageAtlasGLParamsPrivate*>(m_d);       \
+    d = static_cast<ImageAtlasGLParamsPrivate*>(m_d);       \
     return d->m_##name;                                          \
   }
 
@@ -427,7 +427,7 @@ fastuidraw::gl::ImageAtlasGL::
 ~ImageAtlasGL()
 {
   ImageAtlasGLPrivate *d;
-  d = reinterpret_cast<ImageAtlasGLPrivate*>(m_d);
+  d = static_cast<ImageAtlasGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -437,7 +437,7 @@ fastuidraw::gl::ImageAtlasGL::
 param_values(void) const
 {
   ImageAtlasGLPrivate *d;
-  d = reinterpret_cast<ImageAtlasGLPrivate*>(m_d);
+  d = static_cast<ImageAtlasGLPrivate*>(m_d);
   return d->m_params;
 }
 

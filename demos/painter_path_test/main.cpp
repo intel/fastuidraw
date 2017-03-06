@@ -68,7 +68,7 @@ private:
   std::string m_desc;
 };
 
-class WindingValueFillRule:public Painter::CustomFillRuleBase
+class WindingValueFillRule:public CustomFillRuleBase
 {
 public:
   WindingValueFillRule(int v):
@@ -83,6 +83,16 @@ public:
 
 private:
   int m_winding_number;
+};
+
+class EverythingWindingValueFillRule:public CustomFillRuleBase
+{
+public:
+  bool
+  operator()(int) const
+  {
+    return true;
+  }
 };
 
 void
@@ -233,6 +243,8 @@ private:
   bool m_repeat_gradient;
   unsigned int m_image_filter;
   bool m_draw_stats;
+  float m_curve_flatness;
+  bool m_print_submit_stroke_time, m_print_submit_fill_time;
 
   vec2 m_gradient_p0, m_gradient_p1;
   float m_gradient_r0, m_gradient_r1;
@@ -255,7 +267,7 @@ private:
 
   float m_angle;
 
-  simple_time m_draw_timer;
+  simple_time m_draw_timer, m_fps_timer;
   Path m_grid_path;
   bool m_grid_path_dirty;
 
@@ -367,6 +379,7 @@ painter_stroke_test(void):
             << "\tt: toggle translate brush\n"
             << "\ty: toggle matrix brush\n"
             << "\to: toggle clipping window\n"
+            << "\tz: increase/decrease curve flatness\n"
             << "\t4,6,2,8 (number pad): change location of clipping window\n"
             << "\tctrl-4,6,2,8 (number pad): change size of clipping window\n"
             << "\tw: toggle brush repeat window active\n"
@@ -636,10 +649,10 @@ update_cts_params(void)
 
 vec2
 painter_stroke_test::
-brush_item_coordinate(ivec2 c)
+brush_item_coordinate(ivec2 scr)
 {
   vec2 p;
-  p = item_coordinates(c);
+  p = item_coordinates(scr);
 
   if(m_matrix_brush)
     {
@@ -655,14 +668,38 @@ brush_item_coordinate(ivec2 c)
 
 vec2
 painter_stroke_test::
-item_coordinates(ivec2 c)
+item_coordinates(ivec2 scr)
 {
-  /* m_zoomer.transformation() gives the transformation
-     from item coordiantes to screen coordinates. We
-     Want the inverse.
+  vec2 p(scr);
+
+  /* unapply m_zoomer
    */
-  vec2 p(c);
-  return m_zoomer.transformation().apply_inverse_to_point(p);
+  p = m_zoomer.transformation().apply_inverse_to_point(p);
+
+  /* unapply m_shear
+   */
+  p /= m_shear;
+
+  /* unapply rotation by m_angle
+   */
+  float s, c, a;
+  float2x2 tr;
+  a = -m_angle * M_PI / 180.0f;
+  s = t_sin(a);
+  c = t_cos(a);
+
+  tr(0, 0) = c;
+  tr(1, 0) = s;
+  tr(0, 1) = -s;
+  tr(1, 1) = c;
+
+  p = tr * p;
+
+  /* unapply m_shear2
+   */
+  p /= m_shear2;
+
+  return p;
 }
 
 void
@@ -881,16 +918,20 @@ handle_event(const SDL_Event &ev)
         case SDLK_r:
           if(m_draw_fill)
             {
-              cycle_value(m_fill_rule, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_end_fill_rule);
+              cycle_value(m_fill_rule, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_end_fill_rule + 1);
               if(m_fill_rule < PainterEnums::fill_rule_data_count)
                 {
                   std::cout << "Fill rule set to: " << m_fill_labels[m_fill_rule] << "\n";
+                }
+              else if(m_fill_rule == m_end_fill_rule)
+                {
+                  std::cout << "Fill rule set to custom fill rule: all winding numbers filled\n";
                 }
               else
                 {
                   const_c_array<int> wnd;
                   int value;
-                  wnd = m_path.tessellation()->filled()->winding_numbers();
+                  wnd = m_path.tessellation()->filled()->subset(0).winding_numbers();
                   value = wnd[m_fill_rule - PainterEnums::fill_rule_data_count];
                   std::cout << "Fill rule set to custom fill rule: winding_number == "
                             << value << "\n";
@@ -931,6 +972,20 @@ handle_event(const SDL_Event &ev)
 
         case SDLK_l:
           m_draw_stats = !m_draw_stats;
+          break;
+
+        case SDLK_z:
+          if(ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT))
+            {
+              m_curve_flatness *= 0.5f;
+            }
+          else
+            {
+              m_curve_flatness *= 2.0f;
+            }
+          m_print_submit_stroke_time = true;
+          m_print_submit_fill_time = true;
+          std::cout << "Painter::curveFlatness set to " << m_curve_flatness << "\n";
           break;
         }
       break;
@@ -1097,6 +1152,10 @@ painter_stroke_test::
 draw_frame(void)
 {
   ivec2 wh(dimensions());
+  int64_t submit_stroke_time, submit_fill_time;
+  float us;
+
+  us = static_cast<float>(m_fps_timer.restart_us());
 
   update_cts_params();
 
@@ -1105,6 +1164,7 @@ draw_frame(void)
 
   enable_wire_frame(m_wire_frame);
 
+  m_painter->curveFlatness(m_curve_flatness);
   m_painter->begin();
 
   if(m_force_square_viewport)
@@ -1211,6 +1271,7 @@ draw_frame(void)
 
   if(m_draw_fill)
     {
+      simple_time measure;
       PainterBrush fill_brush;
 
       fill_brush.pen(1.0f, 1.0f, 1.0f, 1.0f);
@@ -1303,12 +1364,27 @@ draw_frame(void)
               m_painter->fill_path(PainterData(&fill_brush), m_path, v);
             }
         }
+      else if(m_fill_rule == m_end_fill_rule)
+        {
+          if(m_fill_by_clipping)
+            {
+              m_painter->save();
+              m_painter->clipInPath(m_path, EverythingWindingValueFillRule());
+              m_painter->transformation(float3x3());
+              m_painter->draw_rect(PainterData(&fill_brush), vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
+              m_painter->restore();
+            }
+          else
+            {
+              m_painter->fill_path(PainterData(&fill_brush), m_path, EverythingWindingValueFillRule());
+            }
+        }
       else
         {
           const_c_array<int> wnd;
           int value;
 
-          wnd = m_path.tessellation()->filled()->winding_numbers();
+          wnd = m_path.tessellation()->filled()->subset(0).winding_numbers();
           value = wnd[m_fill_rule - PainterEnums::fill_rule_data_count];
 
           if(m_fill_by_clipping)
@@ -1324,6 +1400,7 @@ draw_frame(void)
               m_painter->fill_path(PainterData(&fill_brush), m_path, WindingValueFillRule(value));
             }
         }
+      submit_fill_time = measure.elapsed_us();
     }
 
   if(!m_transparent_blue_pen)
@@ -1333,6 +1410,7 @@ draw_frame(void)
 
   if(m_stroke_width > 0.0f)
     {
+      simple_time measure;
       if(is_dashed_stroking())
         {
           PainterDashedStrokeParams st;
@@ -1397,6 +1475,7 @@ draw_frame(void)
                                      m_stroke_aa);
             }
         }
+      submit_stroke_time = measure.elapsed_us();
     }
 
   if(m_draw_fill && m_gradient_draw_mode != draw_no_gradient)
@@ -1411,7 +1490,6 @@ draw_frame(void)
 
       p0 = m_gradient_p0;
       p1 = m_gradient_p1;
-
 
       if(m_translate_brush)
         {
@@ -1444,17 +1522,49 @@ draw_frame(void)
   if(m_draw_stats)
     {
       std::ostringstream ostr;
-      ostr << "\nAttribs: "
+      ivec2 mouse_position;
+
+      SDL_GetMouseState(&mouse_position.x(), &mouse_position.y());
+      ostr << "FPS = ";
+      if(us > 0.0f)
+        {
+          ostr << 1000.0f * 1000.0f / us;
+        }
+      else
+        {
+          ostr << "NAN";
+        }
+
+      ostr << "\nms = " << us / 1000.0f
+           << "\nAttribs: "
            << m_painter->query_stat(PainterPacker::num_attributes)
            << "\nIndices: "
            << m_painter->query_stat(PainterPacker::num_indices)
            << "\nGenericData: "
            << m_painter->query_stat(PainterPacker::num_generic_datas)
+           << "\nMouse position:"
+           << item_coordinates(mouse_position)
            << "\n";
 
       PainterBrush brush;
       brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
       draw_text(ostr.str(), 32.0f, m_font, GlyphRender(curve_pair_glyph), PainterData(&brush));
+    }
+
+  if(m_print_submit_stroke_time && m_stroke_width > 0.0f)
+    {
+      m_print_submit_stroke_time = false;
+      std::cout << "stroke_path took " << submit_stroke_time
+                << " us (= " << submit_stroke_time / 1000
+                << "ms)\n";
+    }
+
+  if(m_print_submit_fill_time && m_draw_fill)
+    {
+      m_print_submit_fill_time = false;
+      std::cout << "fill_path took " << submit_fill_time
+                << " us (= " << submit_fill_time / 1000
+                << "ms)\n";
     }
 
   m_painter->end();
@@ -1475,7 +1585,7 @@ derived_init(int w, int h)
   create_stroked_path_attributes();
   construct_color_stops();
   construct_dash_patterns();
-  m_end_fill_rule = m_path.tessellation()->filled()->winding_numbers().size() + PainterEnums::fill_rule_data_count;
+  m_end_fill_rule = m_path.tessellation()->filled()->subset(0).winding_numbers().size() + PainterEnums::fill_rule_data_count;
 
   /* set transformation to center and contain path.
    */
@@ -1535,7 +1645,11 @@ derived_init(int w, int h)
   m_clipping_xy = m_path.tessellation()->bounding_box_min();
   m_clipping_wh = m_repeat_wh;
 
+  m_curve_flatness = m_painter->curveFlatness();
+  m_print_submit_stroke_time = true;
+  m_print_submit_fill_time = true;
   m_draw_timer.restart();
+  m_fps_timer.restart();
 }
 
 int

@@ -66,6 +66,12 @@ Issues:
    rounded rects. The easiest way is additional shaders to draw a
    rounded rect and another to draw its complement.
 
+  PainterBlendShaderGL and PainterBackendGL
+  -----------------------------------------------------------
+   We need to provide magic so that if user passed a PainterBlendShaderGL
+   whose type does not match the blend type of the PainterBackendGL to
+   either make it work or to return an error.
+
 
   Clipping and Webkit/Blink
   ------------------------------

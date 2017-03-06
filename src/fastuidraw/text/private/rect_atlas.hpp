@@ -20,14 +20,15 @@
 #pragma once
 
 #include <assert.h>
-
-#include <boost/utility.hpp>
-#include <boost/thread.hpp>
+#include <list>
+#include <map>
 
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
+
+#include "../../private/util_private.hpp"
 
 
 namespace fastuidraw {
@@ -388,7 +389,7 @@ private:
   }
 
   freesize_tracker m_tracker;
-  boost::mutex m_mutex;
+  fastuidraw::mutex m_mutex;
   tree_base *m_root;
   rectangle m_empty_rect;
 };

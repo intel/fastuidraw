@@ -75,22 +75,23 @@ static void RenderTriangles( fastuidraw_GLUtesselator *tess, GLUface *f )
    */
   GLUhalfEdge *e;
   int prevWindingNumber;
-  int justStarted = 1, firstFace = 1;
+  int justStarted = 1, prevWindingReady = 0;
   GLUface *startFace;
 
   startFace = f;
 
   for( ; f != startFace || justStarted; f = f->next ) {
-    if(f->inside)
+    if(f->winding_number != 0 && CALL_TESS_WINDING_OR_WINDING_DATA(f->winding_number))
       {
+        assert(f->inside);
         e = f->anEdge;
 
         /* Loop once for each edge (there will always be 3 edges) */
-        if( firstFace || prevWindingNumber != f->winding_number ) {
+        if( !prevWindingReady || prevWindingNumber != f->winding_number ) {
           prevWindingNumber = f->winding_number;
+          prevWindingReady = 1;
           CALL_BEGIN_OR_BEGIN_DATA( FASTUIDRAW_GLU_TRIANGLES, f->winding_number );
         }
-        firstFace = 0;
 
         do {
           CALL_VERTEX_OR_VERTEX_DATA( e->Org->client_id );

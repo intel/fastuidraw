@@ -202,6 +202,34 @@ namespace fastuidraw
     backing_store(void) const;
 
     /*!
+      Increments an internal counter. If this internal
+      counter is greater than zero, then the reurning
+      of interval to the free store for later use is
+      -delayed- until the counter reaches zero again
+      (see undelay_interval_freeing()). The use case is
+      for buffered painting where the GPU calls are delayed
+      for later (to batch commands) and an Image may go
+      out of scope before the GPU commands are sent to
+      the GPU. By delaying the return of intervals to the
+      freestore, the color stop data is valid still for
+      rendering even if the owning ColorStopSequenceOnAtlas
+      has been deleted.
+     */
+    void
+    delay_interval_freeing(void);
+
+    /*!
+      Decrements an internal counter. If this internal
+      counter reaches zero, those intervals from those
+      ColorStopSequenceOnAtlas objects that were deleted
+      while the counter was non-zero, are then returned
+      to the interval free store. See delay_interval_freeing()
+      for more details.
+     */
+    void
+    undelay_interval_freeing(void);
+
+    /*!
       Calls ColorStopBackingStore::flush() on
       the backing store (see backing_store()).
      */

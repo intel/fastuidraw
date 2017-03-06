@@ -46,7 +46,7 @@ fastuidraw::PainterShaderSet::
 PainterShaderSet(const PainterShaderSet &obj)
 {
   PainterShaderSetPrivate *d;
-  d = reinterpret_cast<PainterShaderSetPrivate*>(obj.m_d);
+  d = static_cast<PainterShaderSetPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew PainterShaderSetPrivate(*d);
 }
 
@@ -54,7 +54,7 @@ fastuidraw::PainterShaderSet::
 ~PainterShaderSet()
 {
   PainterShaderSetPrivate *d;
-  d = reinterpret_cast<PainterShaderSetPrivate*>(m_d);
+  d = static_cast<PainterShaderSetPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -66,8 +66,8 @@ operator=(const PainterShaderSet &rhs)
   if(this != &rhs)
     {
       PainterShaderSetPrivate *d, *rhs_d;
-      d = reinterpret_cast<PainterShaderSetPrivate*>(m_d);
-      rhs_d = reinterpret_cast<PainterShaderSetPrivate*>(rhs.m_d);
+      d = static_cast<PainterShaderSetPrivate*>(m_d);
+      rhs_d = static_cast<PainterShaderSetPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -79,7 +79,7 @@ operator=(const PainterShaderSet &rhs)
   name(const type &v)                                            \
   {                                                              \
     PainterShaderSetPrivate *d;                                  \
-    d = reinterpret_cast<PainterShaderSetPrivate*>(m_d);         \
+    d = static_cast<PainterShaderSetPrivate*>(m_d);         \
     d->m_##name = v;                                             \
     return *this;                                                \
   }                                                              \
@@ -89,7 +89,7 @@ operator=(const PainterShaderSet &rhs)
   name(void) const                                               \
   {                                                              \
     PainterShaderSetPrivate *d;                                  \
-    d = reinterpret_cast<PainterShaderSetPrivate*>(m_d);         \
+    d = static_cast<PainterShaderSetPrivate*>(m_d);         \
     return d->m_##name;                                          \
   }
 

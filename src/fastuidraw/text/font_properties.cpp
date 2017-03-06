@@ -52,7 +52,7 @@ fastuidraw::FontProperties::
 FontProperties(const fastuidraw::FontProperties &obj)
 {
   FontPropertiesPrivate *obj_d;
-  obj_d = reinterpret_cast<FontPropertiesPrivate*>(obj.m_d);
+  obj_d = static_cast<FontPropertiesPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew FontPropertiesPrivate(*obj_d);
 }
 
@@ -60,7 +60,7 @@ fastuidraw::FontProperties::
 ~FontProperties()
 {
   FontPropertiesPrivate *d;
-  d = reinterpret_cast<FontPropertiesPrivate*>(m_d);
+  d = static_cast<FontPropertiesPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -70,8 +70,8 @@ fastuidraw::FontProperties::
 operator=(const FontProperties &obj)
 {
   FontPropertiesPrivate *obj_d, *d;
-  d = reinterpret_cast<FontPropertiesPrivate*>(m_d);
-  obj_d = reinterpret_cast<FontPropertiesPrivate*>(obj.m_d);
+  d = static_cast<FontPropertiesPrivate*>(m_d);
+  obj_d = static_cast<FontPropertiesPrivate*>(obj.m_d);
   *d = *obj_d;
   return *this;
 }
@@ -81,7 +81,7 @@ fastuidraw::FontProperties::
 bold(void) const
 {
   FontPropertiesPrivate *d;
-  d = reinterpret_cast<FontPropertiesPrivate*>(m_d);
+  d = static_cast<FontPropertiesPrivate*>(m_d);
   return d->m_bold;
 }
 
@@ -90,7 +90,7 @@ fastuidraw::FontProperties::
 bold(bool b)
 {
   FontPropertiesPrivate *d;
-  d = reinterpret_cast<FontPropertiesPrivate*>(m_d);
+  d = static_cast<FontPropertiesPrivate*>(m_d);
   d->m_bold = b;
   return *this;
 }
@@ -100,7 +100,7 @@ fastuidraw::FontProperties::
 italic(void) const
 {
   FontPropertiesPrivate *d;
-  d = reinterpret_cast<FontPropertiesPrivate*>(m_d);
+  d = static_cast<FontPropertiesPrivate*>(m_d);
   return d->m_italic;
 }
 
@@ -109,7 +109,7 @@ fastuidraw::FontProperties::
 italic(bool b)
 {
   FontPropertiesPrivate *d;
-  d = reinterpret_cast<FontPropertiesPrivate*>(m_d);
+  d = static_cast<FontPropertiesPrivate*>(m_d);
   d->m_italic = b;
   return *this;
 }
@@ -119,7 +119,7 @@ fastuidraw::FontProperties::
 style(void) const
 {
   FontPropertiesPrivate *d;
-  d = reinterpret_cast<FontPropertiesPrivate*>(m_d);
+  d = static_cast<FontPropertiesPrivate*>(m_d);
   return d->m_style.c_str();
 }
 
@@ -128,7 +128,7 @@ fastuidraw::FontProperties::
 style(const char* b)
 {
   FontPropertiesPrivate *d;
-  d = reinterpret_cast<FontPropertiesPrivate*>(m_d);
+  d = static_cast<FontPropertiesPrivate*>(m_d);
   d->m_style = b ? b : "";
   return *this;
 }
@@ -138,7 +138,7 @@ fastuidraw::FontProperties::
 family(void) const
 {
   FontPropertiesPrivate *d;
-  d = reinterpret_cast<FontPropertiesPrivate*>(m_d);
+  d = static_cast<FontPropertiesPrivate*>(m_d);
   return d->m_family.c_str();
 }
 
@@ -147,7 +147,7 @@ fastuidraw::FontProperties::
 family(const char* b)
 {
   FontPropertiesPrivate *d;
-  d = reinterpret_cast<FontPropertiesPrivate*>(m_d);
+  d = static_cast<FontPropertiesPrivate*>(m_d);
   d->m_family = b ? b : "";
   return *this;
 }
@@ -157,7 +157,7 @@ fastuidraw::FontProperties::
 foundry(void) const
 {
   FontPropertiesPrivate *d;
-  d = reinterpret_cast<FontPropertiesPrivate*>(m_d);
+  d = static_cast<FontPropertiesPrivate*>(m_d);
   return d->m_foundry.c_str();
 }
 
@@ -166,7 +166,7 @@ fastuidraw::FontProperties::
 foundry(const char* b)
 {
   FontPropertiesPrivate *d;
-  d = reinterpret_cast<FontPropertiesPrivate*>(m_d);
+  d = static_cast<FontPropertiesPrivate*>(m_d);
   d->m_foundry = b ? b : "";
   return *this;
 }
@@ -176,7 +176,7 @@ fastuidraw::FontProperties::
 source_label(void) const
 {
   FontPropertiesPrivate *d;
-  d = reinterpret_cast<FontPropertiesPrivate*>(m_d);
+  d = static_cast<FontPropertiesPrivate*>(m_d);
   return d->m_source_label.c_str();
 }
 
@@ -185,7 +185,7 @@ fastuidraw::FontProperties::
 source_label(const char* b)
 {
   FontPropertiesPrivate *d;
-  d = reinterpret_cast<FontPropertiesPrivate*>(m_d);
+  d = static_cast<FontPropertiesPrivate*>(m_d);
   d->m_source_label = b ? b : "";
   return *this;
 }

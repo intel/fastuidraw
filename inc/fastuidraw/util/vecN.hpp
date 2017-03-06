@@ -1286,6 +1286,23 @@ magnitude_compare(const vecN<T,N> &a,
   /*!
     Conveniance typedef
    */
+  typedef vecN<double, 1> dvec1;
+  /*!
+    Conveniance typedef
+   */
+  typedef vecN<double, 2> dvec2;
+  /*!
+    Conveniance typedef
+   */
+  typedef vecN<double, 3> dvec3;
+  /*!
+    Conveniance typedef
+   */
+  typedef vecN<double, 4> dvec4;
+
+  /*!
+    Conveniance typedef
+   */
   typedef vecN<int32_t, 1> ivec1;
   /*!
     Conveniance typedef

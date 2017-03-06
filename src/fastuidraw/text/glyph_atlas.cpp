@@ -108,7 +108,7 @@ namespace
         }
     }
 
-    boost::mutex m_mutex;
+    fastuidraw::mutex m_mutex;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasTexelBackingStoreBase> m_texel_store;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase> m_geometry_store;
     std::vector<fastuidraw::reference_counted_ptr<rect_atlas_layer> > m_private_data;
@@ -134,7 +134,7 @@ fastuidraw::GlyphAtlasTexelBackingStoreBase::
 ~GlyphAtlasTexelBackingStoreBase()
 {
   GlyphAtlasTexelBackingStoreBasePrivate *d;
-  d = reinterpret_cast<GlyphAtlasTexelBackingStoreBasePrivate*>(m_d);
+  d = static_cast<GlyphAtlasTexelBackingStoreBasePrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -144,7 +144,7 @@ fastuidraw::GlyphAtlasTexelBackingStoreBase::
 dimensions(void) const
 {
   GlyphAtlasTexelBackingStoreBasePrivate *d;
-  d = reinterpret_cast<GlyphAtlasTexelBackingStoreBasePrivate*>(m_d);
+  d = static_cast<GlyphAtlasTexelBackingStoreBasePrivate*>(m_d);
   return d->m_dimensions;
 }
 
@@ -153,7 +153,7 @@ fastuidraw::GlyphAtlasTexelBackingStoreBase::
 resizeable(void) const
 {
   GlyphAtlasTexelBackingStoreBasePrivate *d;
-  d = reinterpret_cast<GlyphAtlasTexelBackingStoreBasePrivate*>(m_d);
+  d = static_cast<GlyphAtlasTexelBackingStoreBasePrivate*>(m_d);
   return d->m_resizeable;
 }
 
@@ -162,7 +162,7 @@ fastuidraw::GlyphAtlasTexelBackingStoreBase::
 resize(int new_num_layers)
 {
   GlyphAtlasTexelBackingStoreBasePrivate *d;
-  d = reinterpret_cast<GlyphAtlasTexelBackingStoreBasePrivate*>(m_d);
+  d = static_cast<GlyphAtlasTexelBackingStoreBasePrivate*>(m_d);
 
   assert(d->m_resizeable);
   assert(new_num_layers > d->m_dimensions.z());
@@ -184,7 +184,7 @@ fastuidraw::GlyphAtlasGeometryBackingStoreBase::
 ~GlyphAtlasGeometryBackingStoreBase()
 {
   GlyphAtlasGeometryBackingStoreBasePrivate *d;
-  d = reinterpret_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
+  d = static_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -194,7 +194,7 @@ fastuidraw::GlyphAtlasGeometryBackingStoreBase::
 size(void)
 {
   GlyphAtlasGeometryBackingStoreBasePrivate *d;
-  d = reinterpret_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
+  d = static_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
   return d->m_size;
 }
 
@@ -203,7 +203,7 @@ fastuidraw::GlyphAtlasGeometryBackingStoreBase::
 alignment(void) const
 {
   GlyphAtlasGeometryBackingStoreBasePrivate *d;
-  d = reinterpret_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
+  d = static_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
   return d->m_alignment;
 }
 
@@ -212,7 +212,7 @@ fastuidraw::GlyphAtlasGeometryBackingStoreBase::
 resizeable(void) const
 {
   GlyphAtlasGeometryBackingStoreBasePrivate *d;
-  d = reinterpret_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
+  d = static_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
   return d->m_resizeable;
 }
 
@@ -221,7 +221,7 @@ fastuidraw::GlyphAtlasGeometryBackingStoreBase::
 resize(unsigned int new_size)
 {
   GlyphAtlasGeometryBackingStoreBasePrivate *d;
-  d = reinterpret_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
+  d = static_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
   assert(d->m_resizeable);
   assert(new_size > d->m_size);
   resize_implement(new_size);
@@ -236,7 +236,7 @@ location(void) const
 {
   const detail::RectAtlas::rectangle *p;
 
-  p = reinterpret_cast<const detail::RectAtlas::rectangle*>(m_opaque);
+  p = static_cast<const detail::RectAtlas::rectangle*>(m_opaque);
   return (p != NULL) ?
     p->unpadded_minX_minY() :
     ivec2(-1, -1);
@@ -249,7 +249,7 @@ layer(void) const
   const detail::RectAtlas::rectangle *p;
   const rect_atlas_layer *a;
 
-  p = reinterpret_cast<const detail::RectAtlas::rectangle*>(m_opaque);
+  p = static_cast<const detail::RectAtlas::rectangle*>(m_opaque);
   if(p == NULL)
     {
       return -1;
@@ -266,7 +266,7 @@ fastuidraw::GlyphLocation::
 size(void) const
 {
   const detail::RectAtlas::rectangle *p;
-  p = reinterpret_cast<const detail::RectAtlas::rectangle*>(m_opaque);
+  p = static_cast<const detail::RectAtlas::rectangle*>(m_opaque);
   return (p != NULL) ?
     p->unpadded_size() :
     ivec2(-1, -1);
@@ -285,7 +285,7 @@ fastuidraw::GlyphAtlas::
 ~GlyphAtlas()
 {
   GlyphAtlasPrivate *d;
-  d = reinterpret_cast<GlyphAtlasPrivate*>(m_d);
+  d = static_cast<GlyphAtlasPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -297,7 +297,7 @@ allocate(fastuidraw::ivec2 size, const_c_array<uint8_t> pdata,
          const GlyphAtlas::Padding &padding)
 {
   GlyphAtlasPrivate *d;
-  d = reinterpret_cast<GlyphAtlasPrivate*>(m_d);
+  d = static_cast<GlyphAtlasPrivate*>(m_d);
 
   GlyphLocation return_value;
   const detail::RectAtlas::rectangle *r(NULL);
@@ -356,7 +356,7 @@ deallocate(fastuidraw::GlyphLocation G)
   assert(G.valid());
   const detail::RectAtlas::rectangle *r;
 
-  r = reinterpret_cast<const detail::RectAtlas::rectangle*>(G.m_opaque);
+  r = static_cast<const detail::RectAtlas::rectangle*>(G.m_opaque);
   if(r != NULL)
     {
       detail::RectAtlas::delete_rectangle(r);
@@ -368,7 +368,7 @@ fastuidraw::GlyphAtlas::
 allocate_geometry_data(const_c_array<generic_data> pdata)
 {
   GlyphAtlasPrivate *d;
-  d = reinterpret_cast<GlyphAtlasPrivate*>(m_d);
+  d = static_cast<GlyphAtlasPrivate*>(m_d);
 
   autolock_mutex m(d->m_mutex);
   unsigned int count, alignment;
@@ -407,7 +407,7 @@ fastuidraw::GlyphAtlas::
 deallocate_geometry_data(int location, int count)
 {
   GlyphAtlasPrivate *d;
-  d = reinterpret_cast<GlyphAtlasPrivate*>(m_d);
+  d = static_cast<GlyphAtlasPrivate*>(m_d);
 
   if(location < 0)
     {
@@ -427,7 +427,7 @@ fastuidraw::GlyphAtlas::
 clear(void)
 {
   GlyphAtlasPrivate *d;
-  d = reinterpret_cast<GlyphAtlasPrivate*>(m_d);
+  d = static_cast<GlyphAtlasPrivate*>(m_d);
 
   autolock_mutex m(d->m_mutex);
 
@@ -443,7 +443,7 @@ fastuidraw::GlyphAtlas::
 flush(void) const
 {
   GlyphAtlasPrivate *d;
-  d = reinterpret_cast<GlyphAtlasPrivate*>(m_d);
+  d = static_cast<GlyphAtlasPrivate*>(m_d);
 
   autolock_mutex m(d->m_mutex);
   d->m_texel_store->flush();
@@ -455,7 +455,7 @@ fastuidraw::GlyphAtlas::
 texel_store(void) const
 {
   GlyphAtlasPrivate *d;
-  d = reinterpret_cast<GlyphAtlasPrivate*>(m_d);
+  d = static_cast<GlyphAtlasPrivate*>(m_d);
   return d->m_texel_store;
 }
 
@@ -465,6 +465,6 @@ fastuidraw::GlyphAtlas::
 geometry_store(void) const
 {
   GlyphAtlasPrivate *d;
-  d = reinterpret_cast<GlyphAtlasPrivate*>(m_d);
+  d = static_cast<GlyphAtlasPrivate*>(m_d);
   return d->m_geometry_store;
 }

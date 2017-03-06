@@ -48,7 +48,7 @@ fastuidraw::glsl::PainterBlendShaderGLSL::
 ~PainterBlendShaderGLSL(void)
 {
   PainterBlendShaderGLSLPrivate *d;
-  d = reinterpret_cast<PainterBlendShaderGLSLPrivate*>(m_d);
+  d = static_cast<PainterBlendShaderGLSLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -58,6 +58,6 @@ fastuidraw::glsl::PainterBlendShaderGLSL::
 blend_src(void) const
 {
   PainterBlendShaderGLSLPrivate *d;
-  d = reinterpret_cast<PainterBlendShaderGLSLPrivate*>(m_d);
+  d = static_cast<PainterBlendShaderGLSLPrivate*>(m_d);
   return d->m_src;
 }

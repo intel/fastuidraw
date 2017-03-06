@@ -84,6 +84,10 @@ struct fastuidraw_brush_image_data_raw
     offset of start rectangle for sub-image.
    */
   uint image_start_xy;
+
+  /* image slack and number of index lookups needed
+   */
+  uint image_slack_number_lookups;
 };
 
 struct fastuidraw_brush_gradient_raw

@@ -2,12 +2,16 @@
 fastuidraw-config: fastuidraw-config.in
 	@echo Generating $@
 	@cp $< $@
+	@sed -i 's!@FASTUIDRAW_release_LIBS@!$(FASTUIDRAW_release_LIBS)!' $@
 	@sed -i 's!@FASTUIDRAW_GLES_release_LIBS@!$(FASTUIDRAW_GLES_release_LIBS)!' $@
 	@sed -i 's!@FASTUIDRAW_GL_release_LIBS@!$(FASTUIDRAW_GL_release_LIBS)!' $@
+	@sed -i 's!@FASTUIDRAW_debug_LIBS@!$(FASTUIDRAW_debug_LIBS)!' $@
 	@sed -i 's!@FASTUIDRAW_GLES_debug_LIBS@!$(FASTUIDRAW_GLES_debug_LIBS)!' $@
 	@sed -i 's!@FASTUIDRAW_GL_debug_LIBS@!$(FASTUIDRAW_GL_debug_LIBS)!' $@
+	@sed -i 's!@LIBRARY_release_CFLAGS@!$(LIBRARY_release_CFLAGS)!' $@
 	@sed -i 's!@LIBRARY_GLES_release_CFLAGS@!$(LIBRARY_GLES_release_CFLAGS)!' $@
 	@sed -i 's!@LIBRARY_GL_release_CFLAGS@!$(LIBRARY_GL_release_CFLAGS)!' $@
+	@sed -i 's!@LIBRARY_debug_CFLAGS@!$(LIBRARY_debug_CFLAGS)!' $@
 	@sed -i 's!@LIBRARY_GLES_debug_CFLAGS@!$(LIBRARY_GLES_debug_CFLAGS)!' $@
 	@sed -i 's!@LIBRARY_GL_debug_CFLAGS@!$(LIBRARY_GL_debug_CFLAGS)!' $@
 	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION)!' $@
@@ -27,17 +31,23 @@ install: $(INSTALL_LIBS) $(INSTALL_EXES)
 	-install -d $(INSTALL_LOCATION)/include
 	-install -t $(INSTALL_LOCATION)/lib $(INSTALL_LIBS)
 	-install -t $(INSTALL_LOCATION)/bin $(INSTALL_EXES)
-	-cp -r inc/fastuidraw $(INSTALL_LOCATION)/include
-	-find $(INSTALL_LOCATION)/include/fastuidraw -type f -exec chmod a+r {} \;
-	-find $(INSTALL_LOCATION)/include/fastuidraw -type d -exec chmod a+rx {} \;
-	-chown -R root $(INSTALL_LOCATION)/include/fastuidraw
+	-find inc/ -type d -printf '%P\n' | xargs -I '{}' install -d $(INSTALL_LOCATION)/include/'{}'
+	-find inc/ -type f -printf '%P\n' | xargs -I '{}' install -m 644 inc/'{}' $(INSTALL_LOCATION)/include/'{}'
 TARGETLIST+=install
 
+uninstall:
+	-rm -r $(INSTALL_LOCATION)/include/fastuidraw
+	-rm $(addprefix $(INSTALL_LOCATION)/lib/,$(notdir $(INSTALL_LIBS)))
+	-rm $(addprefix $(INSTALL_LOCATION)/bin/,$(notdir $(INSTALL_EXES)))
+TARGETLIST+=uninstall
+
 install-docs: docs
-	-install -d $(INSTALL_LOCATION)/share/doc/fastuidraw/
-	-install -t $(INSTALL_LOCATION)/share/doc/fastuidraw docs/*.txt
-	-cp -r docs/doxy/html $(INSTALL_LOCATION)/share/doc/fastuidraw/
-	-find $(INSTALL_LOCATION)/share/doc/fastuidraw/html/ -type f -exec chmod a+r {} \;
-	-find $(INSTALL_LOCATION)/share/doc/fastuidraw/html/ -type d -exec chmod a+rx {} \;
-	-chown -R root $(INSTALL_LOCATION)/share/doc/fastuidraw/html/
+	-install -d $(INSTALL_LOCATION)/share/doc/fastuidraw/html/
+	-install -t $(INSTALL_LOCATION)/share/doc/fastuidraw TODO.txt README.md COPYING ISSUES.txt docs/*.txt
+	-find docs/doxy/html -type d -printf '%P\n' | xargs -I '{}' install -d $(INSTALL_LOCATION)/share/doc/fastuidraw/html/'{}'
+	-find docs/doxy/html -type f -printf '%P\n' | xargs -I '{}' install -m 644 docs/doxy/html/'{}' $(INSTALL_LOCATION)/share/doc/fastuidraw/html/'{}'
 TARGETLIST+=install-docs
+
+uninstall-docs:
+	-rm -r $(INSTALL_LOCATION)/share/doc/fastuidraw
+TARGETLIST+=uninstall-docs

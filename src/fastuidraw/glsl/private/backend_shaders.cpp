@@ -18,7 +18,6 @@
 
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
-#include <fastuidraw/painter/painter_attribute_data_filler_path_fill.hpp>
 #include "backend_shaders.hpp"
 
 #include <string>
@@ -171,7 +170,7 @@ create_blend_shaders(void)
   add_blend_shader(shaders, blend_porter_duff_xor,
                    BlendMode().func(BlendMode::ONE_MINUS_DST_ALPHA, BlendMode::ONE_MINUS_SRC_ALPHA),
                    "fastuidraw_porter_duff_xor.glsl.resource_string", one_minus_dst_alpha_src1,
-                   "fastuidraw_fbf_porter_duff_dst_atop.glsl.resource_string");
+                   "fastuidraw_fbf_porter_duff_xor.glsl.resource_string");
 
   return shaders;
 }
@@ -417,7 +416,6 @@ create_fill_shader(void)
 
   varyings.add_float_varying("fastuidraw_stroking_on_boundary");
   fill_shader
-    .chunk_selector(PainterAttributeDataFillerPathFill::chunk_selector())
     .item_shader(FASTUIDRAWnew PainterItemShaderGLSL(false,
                                                      ShaderSource()
                                                      .add_source("fastuidraw_painter_fill.vert.glsl.resource_string",

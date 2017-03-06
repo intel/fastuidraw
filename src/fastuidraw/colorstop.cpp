@@ -61,7 +61,7 @@ fastuidraw::ColorStopSequence::
 ~ColorStopSequence()
 {
   ColorStopSequencePrivate *d;
-  d = reinterpret_cast<ColorStopSequencePrivate*>(m_d);
+  d = static_cast<ColorStopSequencePrivate*>(m_d);
   FASTUIDRAWdelete(d);
 }
 
@@ -70,7 +70,7 @@ fastuidraw::ColorStopSequence::
 add(const ColorStop &c)
 {
   ColorStopSequencePrivate *d;
-  d = reinterpret_cast<ColorStopSequencePrivate*>(m_d);
+  d = static_cast<ColorStopSequencePrivate*>(m_d);
   d->m_dirty = true;
   d->m_values.push_back(c);
 }
@@ -80,7 +80,7 @@ fastuidraw::ColorStopSequence::
 clear(void)
 {
   ColorStopSequencePrivate *d;
-  d = reinterpret_cast<ColorStopSequencePrivate*>(m_d);
+  d = static_cast<ColorStopSequencePrivate*>(m_d);
   d->m_dirty = true;
   d->m_values.clear();
 }
@@ -90,7 +90,7 @@ fastuidraw::ColorStopSequence::
 values(void) const
 {
   ColorStopSequencePrivate *d;
-  d = reinterpret_cast<ColorStopSequencePrivate*>(m_d);
+  d = static_cast<ColorStopSequencePrivate*>(m_d);
   if(d->m_dirty)
     {
       d->m_dirty = false;

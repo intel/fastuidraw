@@ -22,10 +22,10 @@ $(NGL_EXTRACTOR): $(call filelist, gl_flex.o HeaderCreator.o)
 $(call filelist, gl_flex.cpp): $(call filelist, gl_flex.fl.cpp)
 	$(NGL_LL) -o $@ $^
 
-$(call filelist, gl_flex.o): $(call filelist, gl_flex.cpp)
+$(call filelist, gl_flex.o): $(call filelist, gl_flex.cpp, HeaderCreator.hpp)
 	$(CXX) -o $@ -c $^
 
-$(call filelist, HeaderCreator.o): $(call filelist, HeaderCreator.cpp)
+$(call filelist, HeaderCreator.o): $(call filelist, HeaderCreator.cpp, HeaderCreator.hpp)
 	$(CXX) -o $@ -c $^
 
 SUPER_CLEAN_FILES += $(call filelist, extractor filter gl_flex.cpp lex.yy.c)

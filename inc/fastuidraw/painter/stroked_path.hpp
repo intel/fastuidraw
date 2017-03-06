@@ -588,16 +588,24 @@ public:
     void *m_d;
   };
 
+  /*!
+    Enumeration of values to feed as the argument
+    for PainterAttributeData::attribute_data_chunk(),
+    PainterAttributeData::index_data_chunk() and
+    PainterAttributeData::index_adjust_chunk()
+    for those PainterAttributeData objects holding
+    the join data.
+   */
   enum join_chunk_choice_t
     {
       /*!
-        For both edges and joins, chunk to use for data without
+        For joins, chunk to use for data without
         closing edge
        */
       join_chunk_without_closing_edge,
 
       /*!
-        For both edges and joins, chunk to use for data with
+        For joins, chunk to use for data with
         closing edge
        */
       join_chunk_with_closing_edge,
@@ -609,7 +617,7 @@ public:
 
   /*!
     Returns the number of seperate joins held in a PainterAttributeData
-    that is holds data for joins.
+    objects that hold data for joins.
    */
   static
   unsigned int
@@ -656,10 +664,18 @@ public:
     \param clip_matrix_local 3x3 transformation from local (x, y, 1)
                              coordinates to clip coordinates.
     \param recip_dimensions holds the reciprocal of the dimensions of the viewport
-    \param include_closing_edges if true include the chunks needed to
+    \param pixels_additional_room amount in -pixels- to push clip equations by
+                                  to grab additional edges
+    \param item_space_additional_room amount in local coordinates to push clip
+                                 equations by to grab additional edges
                                  draw the closing edges of each contour
-    \param dst[output] location to which to write the what chunks
-    \returns the number of chunks that intersect the bounding box,
+    \param include_closing_edges if true include the chunks needed to
+    \param max_attribute_cnt only allow those chunks for which have no more
+                             than max_attribute_cnt attributes
+    \param max_index_cnt only allow those chunks for which have no more
+                         than max_index_cnt indices
+    \param[out] dst location to which to write the what chunks
+    \returns the number of chunks that intersect the clipping region,
              that number is guarnanteed to be no more than maximum_edge_chunks().
    */
   unsigned int
@@ -670,6 +686,8 @@ public:
               float pixels_additional_room,
               float item_space_additional_room,
               bool include_closing_edges,
+              unsigned int max_attribute_cnt,
+              unsigned int max_index_cnt,
               c_array<unsigned int> dst) const;
 
   /*!
@@ -680,7 +698,7 @@ public:
   maximum_edge_chunks(void) const;
 
   /*!
-    Gives the maximum value for point::m_depth for all
+    Gives the maximum value for point::depth() for all
     edges of a stroked path.
     \param include_closing_edges if false, disclude the closing
                                  edges from the maximum value.

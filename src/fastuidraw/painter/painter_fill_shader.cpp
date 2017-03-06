@@ -24,7 +24,6 @@ namespace
   {
   public:
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_item_shader;
-    fastuidraw::reference_counted_ptr<fastuidraw::WindingSelectorChunkBase> m_chunk_selector;
   };
 }
 
@@ -40,7 +39,7 @@ fastuidraw::PainterFillShader::
 PainterFillShader(const PainterFillShader &obj)
 {
   PainterFillShaderPrivate *d;
-  d = reinterpret_cast<PainterFillShaderPrivate*>(obj.m_d);
+  d = static_cast<PainterFillShaderPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew PainterFillShaderPrivate(*d);
 }
 
@@ -48,7 +47,7 @@ fastuidraw::PainterFillShader::
 ~PainterFillShader()
 {
   PainterFillShaderPrivate *d;
-  d = reinterpret_cast<PainterFillShaderPrivate*>(m_d);
+  d = static_cast<PainterFillShaderPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -60,8 +59,8 @@ operator=(const PainterFillShader &rhs)
   if(this != &rhs)
     {
       PainterFillShaderPrivate *d, *rhs_d;
-      d = reinterpret_cast<PainterFillShaderPrivate*>(m_d);
-      rhs_d = reinterpret_cast<PainterFillShaderPrivate*>(rhs.m_d);
+      d = static_cast<PainterFillShaderPrivate*>(m_d);
+      rhs_d = static_cast<PainterFillShaderPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -73,7 +72,7 @@ operator=(const PainterFillShader &rhs)
   name(type v)                                                      \
   {                                                                 \
     PainterFillShaderPrivate *d;                                    \
-    d = reinterpret_cast<PainterFillShaderPrivate*>(m_d);           \
+    d = static_cast<PainterFillShaderPrivate*>(m_d);           \
     d->m_##name = v;                                                \
     return *this;                                                   \
   }                                                                 \
@@ -83,10 +82,9 @@ operator=(const PainterFillShader &rhs)
   name(void) const                                                  \
   {                                                                 \
     PainterFillShaderPrivate *d;                                    \
-    d = reinterpret_cast<PainterFillShaderPrivate*>(m_d);           \
+    d = static_cast<PainterFillShaderPrivate*>(m_d);           \
     return d->m_##name;                                             \
   }
 
 setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, item_shader)
-setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::WindingSelectorChunkBase>&, chunk_selector)
 #undef setget_implement

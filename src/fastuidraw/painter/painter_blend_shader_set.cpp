@@ -44,7 +44,7 @@ fastuidraw::PainterBlendShaderSet::
 PainterBlendShaderSet(const PainterBlendShaderSet &obj)
 {
   PainterBlendShaderSetPrivate *d;
-  d = reinterpret_cast<PainterBlendShaderSetPrivate*>(obj.m_d);
+  d = static_cast<PainterBlendShaderSetPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew PainterBlendShaderSetPrivate(*d);
 }
 
@@ -52,7 +52,7 @@ fastuidraw::PainterBlendShaderSet::
 ~PainterBlendShaderSet()
 {
   PainterBlendShaderSetPrivate *d;
-  d = reinterpret_cast<PainterBlendShaderSetPrivate*>(m_d);
+  d = static_cast<PainterBlendShaderSetPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -64,8 +64,8 @@ operator=(const PainterBlendShaderSet &rhs)
   if(this != &rhs)
     {
       PainterBlendShaderSetPrivate *d, *rhs_d;
-      d = reinterpret_cast<PainterBlendShaderSetPrivate*>(m_d);
-      rhs_d = reinterpret_cast<PainterBlendShaderSetPrivate*>(rhs.m_d);
+      d = static_cast<PainterBlendShaderSetPrivate*>(m_d);
+      rhs_d = static_cast<PainterBlendShaderSetPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -76,7 +76,7 @@ fastuidraw::PainterBlendShaderSet::
 shader(enum PainterEnums::blend_mode_t tp) const
 {
   PainterBlendShaderSetPrivate *d;
-  d = reinterpret_cast<PainterBlendShaderSetPrivate*>(m_d);
+  d = static_cast<PainterBlendShaderSetPrivate*>(m_d);
   return (tp < d->m_shaders.size()) ? d->m_shaders[tp].first : d->m_null.first;
 }
 
@@ -85,7 +85,7 @@ fastuidraw::PainterBlendShaderSet::
 blend_mode(enum PainterEnums::blend_mode_t tp) const
 {
   PainterBlendShaderSetPrivate *d;
-  d = reinterpret_cast<PainterBlendShaderSetPrivate*>(m_d);
+  d = static_cast<PainterBlendShaderSetPrivate*>(m_d);
   return (tp < d->m_shaders.size()) ? d->m_shaders[tp].second : d->m_null.second;
 }
 
@@ -96,7 +96,7 @@ shader(enum PainterEnums::blend_mode_t tp,
        const reference_counted_ptr<PainterBlendShader> &sh)
 {
   PainterBlendShaderSetPrivate *d;
-  d = reinterpret_cast<PainterBlendShaderSetPrivate*>(m_d);
+  d = static_cast<PainterBlendShaderSetPrivate*>(m_d);
   if(tp >= d->m_shaders.size())
     {
       d->m_shaders.resize(tp + 1);
@@ -110,6 +110,6 @@ fastuidraw::PainterBlendShaderSet::
 shader_count(void) const
 {
   PainterBlendShaderSetPrivate *d;
-  d = reinterpret_cast<PainterBlendShaderSetPrivate*>(m_d);
+  d = static_cast<PainterBlendShaderSetPrivate*>(m_d);
   return d->m_shaders.size();
 }

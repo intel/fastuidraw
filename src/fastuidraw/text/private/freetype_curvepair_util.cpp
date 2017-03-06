@@ -19,11 +19,12 @@
  */
 
 #include <map>
+#include <functional>
 
 #include <fastuidraw/text/glyph_render_data_curve_pair.hpp>
 #include "freetype_util.hpp"
 #include "freetype_curvepair_util.hpp"
-
+#include "../../private/array2d.hpp"
 
 /*
   Such a mess. Oh well. This entire code does two things:
@@ -204,8 +205,8 @@ namespace
     const TaggedOutlineData &m_outline_data;
     c_array<uint16_t> m_index_pixels;
     std::vector<bool> m_reverse_components;
-    boost::multi_array<fastuidraw::detail::analytic_return_type, 2> m_intersection_data;
-    boost::multi_array<int, 2> m_winding_values;
+    array2d<fastuidraw::detail::analytic_return_type> m_intersection_data;
+    array2d<int> m_winding_values;
   };
 
 
@@ -259,8 +260,8 @@ namespace
       std::vector< std::pair<fastuidraw::detail::BezierCurve*, int> > m_curves_to_emit;
 
       fastuidraw::detail::geometry_data m_data;
-      boost::signals2::connection m_consume_curves;
-      boost::signals2::connection m_consume_contours;
+      signal_emit_curve::Connection m_consume_curves;
+      signal_end_contour::Connection m_consume_contours;
     };
 
     static
@@ -345,15 +346,10 @@ CollapsingContourEmitter::consumer_state::
 consumer_state(CollapsingContourEmitter *master,
                fastuidraw::detail::geometry_data data):
   m_master(master),
-  m_data(data)
+  m_data(data),
+  m_consume_curves(m_master->m_real_worker.connect_emit_curve(std::bind(&CollapsingContourEmitter::consumer_state::consume_curve, this, std::placeholders::_1))),
+  m_consume_contours(m_master->m_real_worker.connect_emit_end_contour(std::bind(&CollapsingContourEmitter::consumer_state::consume_contour, this)))
 {
-  signal_emit_curve::slot_type C(boost::bind(&CollapsingContourEmitter::consumer_state::consume_curve,
-                                             this, _1));
-  signal_end_contour::slot_type O(boost::bind(&CollapsingContourEmitter::consumer_state::consume_contour,
-                                              this));
-
-  m_consume_curves=m_master->m_real_worker.connect_emit_curve(C);
-  m_consume_contours=m_master->m_real_worker.connect_emit_end_contour(O);
 }
 
 
@@ -642,8 +638,8 @@ IndexTextureData(TaggedOutlineData &outline_data,
   m_bitmap_sz(bitmap_size),
   m_outline_data(outline_data),
   m_index_pixels(pixel_data_out),
-  m_intersection_data(boost::extents[m_bitmap_sz.x()][m_bitmap_sz.y()]),
-  m_winding_values(boost::extents[m_bitmap_sz.x()][m_bitmap_sz.y()])
+  m_intersection_data(m_bitmap_sz.x(), m_bitmap_sz.y()),
+  m_winding_values(m_bitmap_sz.x(), m_bitmap_sz.y())
 {
   std::fill(m_index_pixels.begin(), m_index_pixels.end(), fastuidraw::GlyphRenderDataCurvePair::completely_empty_texel);
   assert(m_index_pixels.size() == static_cast<unsigned int>(m_bitmap_sz.x() * m_bitmap_sz.y()));
@@ -667,7 +663,7 @@ IndexTextureData(TaggedOutlineData &outline_data,
     {
       for(int y=0;y<m_bitmap_sz.y() - 1; ++y)
         {
-          fastuidraw::detail::analytic_return_type &current(m_intersection_data[x][y]);
+          fastuidraw::detail::analytic_return_type &current(m_intersection_data(x, y));
           for(int side=0; side<4; ++side)
             {
               for(std::vector<fastuidraw::detail::simple_line>::iterator
@@ -1151,8 +1147,8 @@ select_index(int x, int y)
   uint16_t pixel(0);
   curve_cache curves;
   fastuidraw::ivec2 texel_bl, texel_tr;
-  fastuidraw::detail::analytic_return_type &current(m_intersection_data[x][y]);
-  int winding_value(m_winding_values[x][y]);
+  fastuidraw::detail::analytic_return_type &current(m_intersection_data(x, y));
+  int winding_value(m_winding_values(x, y));
 
   texel_bl=m_outline_data.point_from_bitmap(fastuidraw::ivec2(x,y),
                                             fastuidraw::detail::bitmap_begin);

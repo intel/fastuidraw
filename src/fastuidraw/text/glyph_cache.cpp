@@ -261,7 +261,7 @@ fastuidraw::Glyph::
 type(void) const
 {
   GlyphDataPrivate *p;
-  p = reinterpret_cast<GlyphDataPrivate*>(m_opaque);
+  p = static_cast<GlyphDataPrivate*>(m_opaque);
   assert(p != NULL);
   return p->m_render.m_type;
 }
@@ -271,7 +271,7 @@ fastuidraw::Glyph::
 layout(void) const
 {
   GlyphDataPrivate *p;
-  p = reinterpret_cast<GlyphDataPrivate*>(m_opaque);
+  p = static_cast<GlyphDataPrivate*>(m_opaque);
   assert(p != NULL && p->m_render.valid());
   return p->m_layout;
 }
@@ -281,7 +281,7 @@ fastuidraw::Glyph::
 cache(void) const
 {
   GlyphDataPrivate *p;
-  p = reinterpret_cast<GlyphDataPrivate*>(m_opaque);
+  p = static_cast<GlyphDataPrivate*>(m_opaque);
   assert(p != NULL && p->m_render.valid());
   return p->m_cache->m_p;
 }
@@ -291,7 +291,7 @@ fastuidraw::Glyph::
 cache_location(void) const
 {
   GlyphDataPrivate *p;
-  p = reinterpret_cast<GlyphDataPrivate*>(m_opaque);
+  p = static_cast<GlyphDataPrivate*>(m_opaque);
   assert(p != NULL && p->m_render.valid());
   return p->m_cache_location;
 }
@@ -301,7 +301,7 @@ fastuidraw::Glyph::
 atlas_location(void) const
 {
   GlyphDataPrivate *p;
-  p = reinterpret_cast<GlyphDataPrivate*>(m_opaque);
+  p = static_cast<GlyphDataPrivate*>(m_opaque);
   assert(p != NULL && p->m_render.valid());
   return p->m_atlas_location[0];
 }
@@ -311,7 +311,7 @@ fastuidraw::Glyph::
 secondary_atlas_location(void) const
 {
   GlyphDataPrivate *p;
-  p = reinterpret_cast<GlyphDataPrivate*>(m_opaque);
+  p = static_cast<GlyphDataPrivate*>(m_opaque);
   assert(p != NULL && p->m_render.valid());
   return p->m_atlas_location[1];
 }
@@ -321,7 +321,7 @@ fastuidraw::Glyph::
 geometry_offset(void) const
 {
   GlyphDataPrivate *p;
-  p = reinterpret_cast<GlyphDataPrivate*>(m_opaque);
+  p = static_cast<GlyphDataPrivate*>(m_opaque);
   assert(p != NULL && p->m_render.valid());
   return p->m_geometry_offset;
 }
@@ -331,7 +331,7 @@ fastuidraw::Glyph::
 upload_to_atlas(void) const
 {
   GlyphDataPrivate *p;
-  p = reinterpret_cast<GlyphDataPrivate*>(m_opaque);
+  p = static_cast<GlyphDataPrivate*>(m_opaque);
   assert(p != NULL && p->m_render.valid());
   return p->upload_to_atlas();
 }
@@ -341,7 +341,7 @@ fastuidraw::Glyph::
 path(void) const
 {
   GlyphDataPrivate *p;
-  p = reinterpret_cast<GlyphDataPrivate*>(m_opaque);
+  p = static_cast<GlyphDataPrivate*>(m_opaque);
   assert(p != NULL && p->m_render.valid());
   return p->m_path;
 }
@@ -359,7 +359,7 @@ fastuidraw::GlyphCache::
 ~GlyphCache()
 {
   GlyphCachePrivate *d;
-  d = reinterpret_cast<GlyphCachePrivate*>(m_d);
+  d = static_cast<GlyphCachePrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -377,7 +377,7 @@ fetch_glyph(GlyphRender render,
     }
 
   GlyphCachePrivate *d;
-  d = reinterpret_cast<GlyphCachePrivate*>(m_d);
+  d = static_cast<GlyphCachePrivate*>(m_d);
 
   GlyphDataPrivate *q;
   GlyphSource src(font, glyph_code, render);
@@ -400,10 +400,10 @@ fastuidraw::GlyphCache::
 delete_glyph(Glyph G)
 {
   GlyphCachePrivate *d;
-  d = reinterpret_cast<GlyphCachePrivate*>(m_d);
+  d = static_cast<GlyphCachePrivate*>(m_d);
 
   GlyphDataPrivate *p;
-  p = reinterpret_cast<GlyphDataPrivate*>(G.m_opaque);
+  p = static_cast<GlyphDataPrivate*>(G.m_opaque);
   assert(p != NULL);
   assert(p->m_cache == d);
   assert(p->m_render.valid());
@@ -419,7 +419,7 @@ fastuidraw::GlyphCache::
 clear_atlas(void)
 {
   GlyphCachePrivate *d;
-  d = reinterpret_cast<GlyphCachePrivate*>(m_d);
+  d = static_cast<GlyphCachePrivate*>(m_d);
 
   d->m_atlas->clear();
   for(unsigned int i = 0, endi = d->m_glyphs.size(); i < endi; ++i)
@@ -438,7 +438,7 @@ fastuidraw::GlyphCache::
 clear_cache(void)
 {
   GlyphCachePrivate *d;
-  d = reinterpret_cast<GlyphCachePrivate*>(m_d);
+  d = static_cast<GlyphCachePrivate*>(m_d);
 
   d->m_atlas->clear();
   d->m_glyph_map.clear();

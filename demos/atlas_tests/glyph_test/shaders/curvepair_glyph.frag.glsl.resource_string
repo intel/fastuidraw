@@ -11,12 +11,12 @@ flat in uint geometry_data_location;
 #endif
 
 #ifdef GLYPH_GEOMETRY_USE_TEXTURE_BUFFER
-  uniform samplerBuffer glyph_geometry_data_store;
-  #define fetch_glyph_geometry_data(block) texelFetch(glyph_geometry_data_store, int(block))
-
   #ifdef GL_ES
     precision highp samplerBuffer;
   #endif
+
+uniform samplerBuffer glyph_geometry_data_store;
+  #define fetch_glyph_geometry_data(block) texelFetch(glyph_geometry_data_store, int(block))
 
 #else
   #ifdef GL_ES

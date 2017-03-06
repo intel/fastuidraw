@@ -99,8 +99,8 @@ if [ "$mode" = "release" ]; then
          libs=$base_libs" @FASTUIDRAW_GL_release_LIBS@"
          cflags=$base_cflags" @LIBRARY_GL_release_CFLAGS@"
      else
-         libs=$base_libs
-         cflags=$base_cflags
+         libs=$base_libs" @FASTUIDRAW_release_LIBS@"
+         cflags=$base_cflags" @LIBRARY_release_CFLAGS@"
      fi
 else
      if [ "$api" = "gles" ]; then
@@ -110,8 +110,8 @@ else
          libs=$base_libs" @FASTUIDRAW_GL_debug_LIBS@"
          cflags=$base_cflags" @LIBRARY_GL_debug_CFLAGS@"
      else
-         libs=$base_libs
-         cflags=$base_cflags
+         libs=$base_libs" @FASTUIDRAW_debug_LIBS@"
+         cflags=$base_cflags" @LIBRARY_debug_CFLAGS@"
      fi
 fi
 

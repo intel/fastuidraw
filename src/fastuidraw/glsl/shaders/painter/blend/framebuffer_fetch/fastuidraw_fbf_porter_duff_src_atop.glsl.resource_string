@@ -1,0 +1,6 @@
+void
+fastuidraw_gl_compute_post_blended_value(in uint sub_shader, in uint blend_shader_data_location,
+					 in vec4 in_src, in vec4 in_fb, out vec4 out_src)
+{
+  out_src = FASTUIDRAW_PORTER_DUFF_MACRO(in_fb.a, 1.0 - in_src.a);
+}

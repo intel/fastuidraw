@@ -158,6 +158,24 @@ namespace fastuidraw
     ~PainterBackend();
 
     /*!
+      To be implemented by a derived class to return
+      the number of attributes a PainterDraw retuned
+      by map_draw() is guaranteed to hold.
+     */
+    virtual
+    unsigned int
+    attribs_per_mapping(void) const = 0;
+
+    /*!
+      To be implemented by a derived class to return
+      the number of indices a PainterDraw retuned
+      by map_draw() is guaranteed to hold.
+     */
+    virtual
+    unsigned int
+    indices_per_mapping(void) const = 0;
+
+    /*!
       Informs the PainterBackend what the resolution of
       the target surface is.
       \param w width of target resolution

@@ -99,7 +99,7 @@ typedef void (*fastuidraw_glu_tess_function_error)(FASTUIDRAW_GLUenum errnum);
 
 #define FASTUIDRAW_GLU_TESS_COMBINE                   100105
 typedef void (*fastuidraw_glu_tess_function_combine)(double x, double y, unsigned int data[4],
-                                                    float weight[4], unsigned int *outData);
+                                                     double weight[4], unsigned int *outData);
 
 #define FASTUIDRAW_GLU_TESS_BEGIN_DATA                100106
 typedef void (*fastuidraw_glu_tess_function_begin_data)(FASTUIDRAW_GLUenum type, int winding_number, void *polygon_data);
@@ -115,8 +115,8 @@ typedef void (*fastuidraw_glu_tess_function_error_data)(FASTUIDRAW_GLUenum errnu
 
 #define FASTUIDRAW_GLU_TESS_COMBINE_DATA              100111
 typedef void (*fastuidraw_glu_tess_function_combine_data)(double x, double y, unsigned int data[4],
-                                                         float weight[4], unsigned int *outData,
-                                                         void *polygon_data);
+                                                          double weight[4], unsigned int *outData,
+                                                          void *polygon_data);
 
   /*
     additions from FASTUIDRAW, use a call back for the winding rule
@@ -203,7 +203,7 @@ fastuidraw_gluNewTess_release(void);
 #endif
 
 
-void fastuidraw_gluTessBeginContour (fastuidraw_GLUtesselator* tess);
+void fastuidraw_gluTessBeginContour (fastuidraw_GLUtesselator* tess, FASTUIDRAW_GLUboolean contour_real);
 void fastuidraw_gluTessBeginPolygon (fastuidraw_GLUtesselator* tess, void* data);
 void fastuidraw_gluTessEndContour (fastuidraw_GLUtesselator* tess);
 void fastuidraw_gluTessEndPolygon (fastuidraw_GLUtesselator* tess);
@@ -215,7 +215,7 @@ void fastuidraw_gluTessCallback (fastuidraw_GLUtesselator* tess, FASTUIDRAW_GLUe
 /*
   set and fetch the merging tolerance
  */
-float fastuidraw_gluTessPropertyTolerance(fastuidraw_GLUtesselator* tess);
+double fastuidraw_gluTessPropertyTolerance(fastuidraw_GLUtesselator* tess);
 void fastuidraw_gluTessPropertyTolerance(fastuidraw_GLUtesselator *tess, double value);
 
 /*

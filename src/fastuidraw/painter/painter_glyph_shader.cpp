@@ -42,7 +42,7 @@ fastuidraw::PainterGlyphShader::
 PainterGlyphShader(const PainterGlyphShader &obj)
 {
   PainterGlyphShaderPrivate *d;
-  d = reinterpret_cast<PainterGlyphShaderPrivate*>(obj.m_d);
+  d = static_cast<PainterGlyphShaderPrivate*>(obj.m_d);
   m_d = FASTUIDRAWnew PainterGlyphShaderPrivate(*d);
 }
 
@@ -50,7 +50,7 @@ fastuidraw::PainterGlyphShader::
 ~PainterGlyphShader()
 {
   PainterGlyphShaderPrivate *d;
-  d = reinterpret_cast<PainterGlyphShaderPrivate*>(m_d);
+  d = static_cast<PainterGlyphShaderPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = NULL;
 }
@@ -62,8 +62,8 @@ operator=(const PainterGlyphShader &rhs)
   if(this != &rhs)
     {
       PainterGlyphShaderPrivate *d, *rhs_d;
-      d = reinterpret_cast<PainterGlyphShaderPrivate*>(m_d);
-      rhs_d = reinterpret_cast<PainterGlyphShaderPrivate*>(rhs.m_d);
+      d = static_cast<PainterGlyphShaderPrivate*>(m_d);
+      rhs_d = static_cast<PainterGlyphShaderPrivate*>(rhs.m_d);
       *d = *rhs_d;
     }
   return *this;
@@ -74,7 +74,7 @@ fastuidraw::PainterGlyphShader::
 shader(enum glyph_type tp) const
 {
   PainterGlyphShaderPrivate *d;
-  d = reinterpret_cast<PainterGlyphShaderPrivate*>(m_d);
+  d = static_cast<PainterGlyphShaderPrivate*>(m_d);
   return (tp < d->m_shaders.size()) ? d->m_shaders[tp] : d->m_null;
 }
 
@@ -85,7 +85,7 @@ shader(enum glyph_type tp,
        const fastuidraw::reference_counted_ptr<PainterItemShader> &sh)
 {
   PainterGlyphShaderPrivate *d;
-  d = reinterpret_cast<PainterGlyphShaderPrivate*>(m_d);
+  d = static_cast<PainterGlyphShaderPrivate*>(m_d);
   if(tp >= d->m_shaders.size())
     {
       d->m_shaders.resize(tp + 1);
@@ -99,6 +99,6 @@ fastuidraw::PainterGlyphShader::
 shader_count(void) const
 {
   PainterGlyphShaderPrivate *d;
-  d = reinterpret_cast<PainterGlyphShaderPrivate*>(m_d);
+  d = static_cast<PainterGlyphShaderPrivate*>(m_d);
   return d->m_shaders.size();
 }

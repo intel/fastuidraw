@@ -30,6 +30,10 @@ namespace gl
   void Uniform##COUNT##v(int location, GLsizei count, const TYPE *v)    \
   {                                                                     \
     glUniform##COUNT##GLFN##v(location, count, v);                      \
+  }                                                                     \
+  void ProgramUniform##COUNT##v(GLuint program, int location, GLsizei count, const TYPE *v) \
+  {                                                                     \
+    glProgramUniform##COUNT##GLFN##v(program, location, count, v);      \
   }
 
 #define MACRO_IMPLEMENT_GL_UNIFORM_IMPL(GLFN, TYPE)                     \
@@ -40,18 +44,30 @@ namespace gl
   void Uniform(int location, TYPE v)                                    \
   {                                                                     \
     glUniform1##GLFN(location, v);                                      \
+  }                                                                     \
+  void ProgramUniform(GLuint program, int location, TYPE v)             \
+  {                                                                     \
+    glProgramUniform1##GLFN(program, location, v);                      \
   }
 
 #define MACRO_IMPLEMENT_GL_UNIFORM_SQUARE_MATRIX_IMPL_DIM(GLFN, TYPE, A) \
   void Uniform(int location, GLsizei count, const matrixNxM<A,A,TYPE> *matrices, bool transposed) \
   {                                                                     \
     glUniformMatrix##A##GLFN##v(location, count, transposed?GL_TRUE:GL_FALSE, reinterpret_cast<const TYPE*>(matrices)); \
+  }                                                                     \
+  void ProgramUniform(GLuint program, int location, GLsizei count, const matrixNxM<A,A,TYPE> *matrices, bool transposed) \
+  {                                                                     \
+    glProgramUniformMatrix##A##GLFN##v(program, location, count, transposed?GL_TRUE:GL_FALSE, reinterpret_cast<const TYPE*>(matrices)); \
   }
 
 #define MACRO_IMPLEMENT_GL_UNIFORM_NON_SQUARE_MATRIX_IMPL_DIM(GLFN, TYPE, A, B) \
   void Uniform(int location, GLsizei count, const matrixNxM<A,B,TYPE> *matrices, bool transposed) \
   {                                                                     \
     glUniformMatrix##A##x##B##GLFN##v(location, count, transposed?GL_TRUE:GL_FALSE, reinterpret_cast<const TYPE*>(matrices)); \
+  }                                                                     \
+  void ProgramUniform(GLuint program, int location, GLsizei count, const matrixNxM<A,B,TYPE> *matrices, bool transposed) \
+  {                                                                     \
+    glProgramUniformMatrix##A##x##B##GLFN##v(program, location, count, transposed?GL_TRUE:GL_FALSE, reinterpret_cast<const TYPE*>(matrices)); \
   }
 
 
