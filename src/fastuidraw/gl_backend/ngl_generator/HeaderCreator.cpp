@@ -537,8 +537,6 @@ output_to_source(ostream &sourceFile)
   if(m_use_function_pointer)
     {
       //declare prototypes:
-      sourceFile << front_material() << " " << do_nothing_function_name() << "("
-                 << full_arg_list_withoutnames() <<  ");\n";
       sourceFile << "int " << m_existsFunctionName << "(void);\n";
       sourceFile << front_material() << " " << local_function_name() << "("
                  << full_arg_list_with_names() <<  ");\n";
@@ -847,11 +845,10 @@ SourceStart(ostream &sourceFile, const list<string> &fileNames)
 
   sourceFile << "#include <sstream>\n"
              << "#include <iomanip>\n"
-             << "\n\n#ifndef GLAPI\n#define GLAPI extern\n#endif\n"
-             << "#ifndef APIENTRY\n#define APIENTRY\n#endif\n"
-             << "#ifndef APIENTRYP\n#define APIENTRYP APIENTRY*\n#endif\n";
-
-
+	     << "#if defined(__WIN32__)\n"
+	     << "#undef GL_APICALL\n#define GL_APICALL\n"
+	     << "#undef GL_APIENTRY\n#define GL_APIENTRY\n"
+	     << "#endif\n";
 
   begin_namespace(GlobalElements::get().m_namespace, sourceFile);
 
