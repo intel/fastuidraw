@@ -335,7 +335,7 @@ namespace
     }
 
     fastuidraw::vecN<SubPath*, 2>
-    split(void) const;
+    split(int &splitting_coordinate) const;
 
   private:
     SubPath(const fastuidraw::BoundingBox &bb,
@@ -693,9 +693,6 @@ namespace
   public:
     ~SubsetPrivate(void);
 
-    SubsetPrivate(SubPath *P, int max_recursion,
-                  std::vector<SubsetPrivate*> &out_values);
-
     unsigned int
     select_subsets(ScratchSpacePrivate &scratch,
                    fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
@@ -721,7 +718,15 @@ namespace
       return *m_painter_data;
     }
 
+    static
+    SubsetPrivate*
+    create_root_subset(SubPath *P, std::vector<SubsetPrivate*> &out_values);
+
   private:
+
+    SubsetPrivate(SubPath *P, int max_recursion,
+                  std::vector<SubsetPrivate*> &out_values);
+
     void
     select_subsets_implement(ScratchSpacePrivate &scratch,
                              fastuidraw::c_array<unsigned int> dst,
@@ -740,6 +745,9 @@ namespace
 
     void
     make_ready_from_sub_path(void);
+
+    void
+    assign_neighbor_values(SubsetPrivate *parent, int child_id);
 
     /* m_ID represents an index into the std::vector<>
        passed into create_hierarchy() where this element
@@ -774,6 +782,11 @@ namespace
      */
     SubPath *m_sub_path;
     fastuidraw::vecN<SubsetPrivate*, 2> m_children;
+    int m_splitting_coordinate;
+
+    /* neighbors
+     */
+    fastuidraw::vecN<SubsetPrivate*, 2> m_neighbor_prev, m_neighbor_next;
   };
 
   class FilledPathPrivate
@@ -1106,11 +1119,10 @@ post_process_sub_contour(SubContour &C)
 
 fastuidraw::vecN<SubPath*, 2>
 SubPath::
-split(void) const
+split(int &splitting_coordinate) const
 {
   fastuidraw::vecN<SubPath*, 2> return_value(NULL, NULL);
   fastuidraw::vec2 mid_pt;
-  int splitting_coordinate;
 
   mid_pt = 0.5f * (m_bounds.max_point() + m_bounds.min_point());
   splitting_coordinate = choose_splitting_coordinate(mid_pt);
@@ -1881,14 +1893,17 @@ SubsetPrivate(SubPath *Q, int max_recursion,
   m_painter_data(NULL),
   m_sizes_ready(false),
   m_sub_path(Q),
-  m_children(NULL, NULL)
+  m_children(NULL, NULL),
+  m_splitting_coordinate(-1),
+  m_neighbor_prev(NULL, NULL),
+  m_neighbor_next(NULL, NULL)
 {
   out_values.push_back(this);
   if(max_recursion > 0 && m_sub_path->total_points() > SubsetConstants::points_per_subset)
     {
       fastuidraw::vecN<SubPath*, 2> C;
 
-      C = Q->split();
+      C = Q->split(m_splitting_coordinate);
       if(C[0]->total_points() < m_sub_path->total_points() || C[1]->total_points() < m_sub_path->total_points())
         {
           m_children[0] = FASTUIDRAWnew SubsetPrivate(C[0], max_recursion - 1, out_values);
@@ -1927,6 +1942,47 @@ SubsetPrivate::
       assert(m_children[1] != NULL);
       FASTUIDRAWdelete(m_children[0]);
       FASTUIDRAWdelete(m_children[1]);
+    }
+}
+
+SubsetPrivate*
+SubsetPrivate::
+create_root_subset(SubPath *P, std::vector<SubsetPrivate*> &out_values)
+{
+  SubsetPrivate *root;
+  root = FASTUIDRAWnew SubsetPrivate(P, SubsetConstants::recursion_depth, out_values);
+
+  /* assign m_neighbor_prev and m_neighbor_next
+   */
+  if(root->m_splitting_coordinate != -1)
+    {
+      assert(root->m_children[0] != NULL);
+      assert(root->m_children[1] != NULL);
+      root->m_children[0]->assign_neighbor_values(root, 0);
+      root->m_children[1]->assign_neighbor_values(root, 1);
+    }
+
+  return root;
+}
+
+void
+SubsetPrivate::
+assign_neighbor_values(SubsetPrivate *parent, int child_id)
+{
+  assert(parent != NULL);
+  assert(parent->m_splitting_coordinate == 0 || parent->m_splitting_coordinate == 1);
+  assert(child_id == 0 || child_id == 1);
+  assert(parent->m_children[child_id] == this);
+
+  m_neighbor_prev = parent->m_neighbor_prev;
+  m_neighbor_next = parent->m_neighbor_next;
+  if(child_id == 0)
+    {
+      m_neighbor_next[parent->m_splitting_coordinate] = parent->m_children[1];
+    }
+  else
+    {
+      m_neighbor_prev[parent->m_splitting_coordinate] = parent->m_children[0];
     }
 }
 
@@ -2159,7 +2215,7 @@ FilledPathPrivate(const fastuidraw::TessellatedPath &P)
 {
   SubPath *q;
   q = FASTUIDRAWnew SubPath(P);
-  m_root = FASTUIDRAWnew SubsetPrivate(q, SubsetConstants::recursion_depth, m_subsets);
+  m_root = SubsetPrivate::create_root_subset(q, m_subsets);
 }
 
 FilledPathPrivate::
