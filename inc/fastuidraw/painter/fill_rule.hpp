@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <fastuidraw/painter/painter_enums.hpp>
 
 namespace fastuidraw
 {
@@ -49,12 +50,27 @@ namespace fastuidraw
   {
   public:
     /*!
+      Typedef to fill rule function pointer type
+     */
+    typedef bool (*fill_rule_fcn)(int);
+
+    /*!
       Ctor.
       \param fill_rule function to use to implement
                        operator(int) const.
      */
-    CustomFillRuleFunction(bool (*fill_rule)(int)):
+    explicit
+    CustomFillRuleFunction(fill_rule_fcn fill_rule):
       m_fill_rule(fill_rule)
+    {}
+
+    /*!
+      Ctor from a PainterEnums::fill_rule_t enumeration
+      \param fill_rule enumeration for fill rule.
+     */
+    explicit
+    CustomFillRuleFunction(enum PainterEnums::fill_rule_t fill_rule):
+      m_fill_rule(function_from_enum(fill_rule))
     {}
 
     virtual
@@ -64,8 +80,17 @@ namespace fastuidraw
       return m_fill_rule && m_fill_rule(winding_number);
     }
 
+    /*!
+      Returns a \ref fill_rule_fcn implementing
+      a fill rule from a \ref PainterEnums::fill_rule_t.
+      \param fill_rule enumerated fill rule.
+     */
+    static
+    fill_rule_fcn
+    function_from_enum(enum PainterEnums::fill_rule_t fill_rule);
+
   private:
-    bool (*m_fill_rule)(int);
+    fill_rule_fcn m_fill_rule;
   };
-/*! @} */
+  /*! @} */
 }
