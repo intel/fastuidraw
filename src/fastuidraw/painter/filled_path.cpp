@@ -308,19 +308,11 @@ namespace
       return m_total_points;
     }
 
-    int
-    winding_start(void) const
-    {
-      return m_winding_start;
-    }
-
     fastuidraw::vecN<SubPath*, 2>
     split(int &splitting_coordinate) const;
 
   private:
-    SubPath(const fastuidraw::BoundingBox &bb,
-            std::vector<SubContour> &contours,
-            int winding_start);
+    SubPath(const fastuidraw::BoundingBox &bb, std::vector<SubContour> &contours);
 
     int
     choose_splitting_coordinate(fastuidraw::vec2 mid_pt) const;
@@ -345,7 +337,6 @@ namespace
     unsigned int m_total_points;
     fastuidraw::BoundingBox m_bounds;
     std::vector<SubContour> m_contours;
-    int m_winding_start;
   };
 
   class PointHoard:fastuidraw::noncopyable
@@ -499,7 +490,6 @@ namespace
     FASTUIDRAW_GLUboolean
     fill_region(int winding_number);
 
-    int m_winding_start;
     winding_index_hoard &m_hoard;
     int m_current_winding;
     fastuidraw::reference_counted_ptr<per_winding_data> m_current_indices;
@@ -781,11 +771,9 @@ namespace
 // SubPath methods
 SubPath::
 SubPath(const fastuidraw::BoundingBox &bb,
-        std::vector<SubContour> &contours,
-        int winding_start):
+        std::vector<SubContour> &contours):
   m_total_points(0),
-  m_bounds(bb),
-  m_winding_start(winding_start)
+  m_bounds(bb)
 {
   m_contours.swap(contours);
   for(std::vector<SubContour>::const_iterator c_iter = m_contours.begin(),
@@ -800,8 +788,7 @@ SubPath(const fastuidraw::TessellatedPath &P):
   m_total_points(0),
   m_bounds(P.bounding_box_min(),
            P.bounding_box_max()),
-  m_contours(P.number_contours()),
-  m_winding_start(0)
+  m_contours(P.number_contours())
 {
   for(unsigned int c = 0, endc = m_contours.size(); c < endc; ++c)
     {
@@ -1030,8 +1017,8 @@ split(int &splitting_coordinate) const
         }
     }
 
-  return_value[0] = FASTUIDRAWnew SubPath(B0, C0, m_winding_start);
-  return_value[1] = FASTUIDRAWnew SubPath(B1, C1, m_winding_start);
+  return_value[0] = FASTUIDRAWnew SubPath(B0, C0);
+  return_value[1] = FASTUIDRAWnew SubPath(B1, C1);
 
   return return_value;
 }
@@ -1348,20 +1335,19 @@ non_zero_tesser(PointHoard &points,
                 const SubPath &path,
                 winding_index_hoard &hoard):
   tesser(points),
-  m_winding_start(path.winding_start()),
   m_hoard(hoard),
   m_current_winding(0)
 {
   start();
   add_path(P);
   stop();
+  FASTUIDRAWunused(path);
 }
 
 void
 non_zero_tesser::
 on_begin_polygon(int winding_number)
 {
-  winding_number += m_winding_start;
   if(!m_current_indices || m_current_winding != winding_number)
     {
       fastuidraw::reference_counted_ptr<per_winding_data> &h(m_hoard[winding_number]);
@@ -1399,7 +1385,7 @@ zero_tesser(PointHoard &points,
             const SubPath &path,
             winding_index_hoard &hoard):
   tesser(points),
-  m_indices(hoard[path.winding_start()])
+  m_indices(hoard[0])
 {
   if(!m_indices)
     {
