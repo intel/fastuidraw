@@ -415,7 +415,7 @@ namespace
 
     virtual
     void
-    add_vertex_to_polygon(unsigned int vertex) = 0;
+    add_triangle(unsigned int v0, unsigned int v1, unsigned int v2) = 0;
 
     virtual
     FASTUIDRAW_GLUboolean
@@ -484,7 +484,7 @@ namespace
 
     virtual
     void
-    add_vertex_to_polygon(unsigned int vertex);
+    add_triangle(unsigned int v0, unsigned int v1, unsigned int v2);
 
     virtual
     FASTUIDRAW_GLUboolean
@@ -522,7 +522,7 @@ namespace
 
     virtual
     void
-    add_vertex_to_polygon(unsigned int vertex);
+    add_triangle(unsigned int v0, unsigned int v1, unsigned int v2);
 
     virtual
     FASTUIDRAW_GLUboolean
@@ -1283,9 +1283,9 @@ vertex_callBack(unsigned int vertex_id, void *tess)
          && p->m_temp_verts[2] != FASTUIDRAW_GLU_NULL_CLIENT_ID
          && p->temp_verts_non_degenerate_triangle())
         {
-          p->add_vertex_to_polygon(p->m_temp_verts[0]);
-          p->add_vertex_to_polygon(p->m_temp_verts[1]);
-          p->add_vertex_to_polygon(p->m_temp_verts[2]);
+          p->add_triangle(p->m_temp_verts[0],
+                          p->m_temp_verts[1],
+                          p->m_temp_verts[2]);
         }
     }
 }
@@ -1362,9 +1362,11 @@ on_begin_polygon(int winding_number)
 
 void
 non_zero_tesser::
-add_vertex_to_polygon(unsigned int vertex)
+add_triangle(unsigned int v0, unsigned int v1, unsigned int v2)
 {
-  m_current_indices->add_index(vertex);
+  m_current_indices->add_index(v0);
+  m_current_indices->add_index(v1);
+  m_current_indices->add_index(v2);
 }
 
 
@@ -1408,9 +1410,11 @@ on_begin_polygon(int winding_number)
 
 void
 zero_tesser::
-add_vertex_to_polygon(unsigned int vertex)
+add_triangle(unsigned int v0, unsigned int v1, unsigned int v2)
 {
-  m_indices->add_index(vertex);
+  m_indices->add_index(v0);
+  m_indices->add_index(v1);
+  m_indices->add_index(v2);
 }
 
 FASTUIDRAW_GLUboolean
