@@ -118,22 +118,82 @@ namespace CoordinateConverterConstants
 
 namespace
 {
-  class BoundaryEdgeTracker
+  class Edge:public fastuidraw::uvec2
   {
   public:
-    static
-    unsigned int
-    boundary_edge_pt_mask(void)
-    {
-      return 1u << 31u;
-    }
+    Edge(unsigned int a, unsigned int b):
+      fastuidraw::uvec2(fastuidraw::t_min(a, b), fastuidraw::t_max(a, b))
+    {}
+  };
 
-    static
-    unsigned int
-    strip_mask(unsigned int v)
+  class EdgeData
+  {
+  public:
+    EdgeData(void):
+      m_sorted(false)
+    {}
+
+    void
+    add_winding(uint64_t area, int w, unsigned int v);
+
+    /* Giving a vertex v, return the winding
+       number of the triangle that shares the
+       edge. If there are multiple choices
+       for what vertex to choose that is not v,
+       choose the vertex that:
+       a) is on the opposite side of the edge
+       b) maximizes area
+    */
+    int
+    opposite_winding(int w, unsigned int v);
+
+    class per_entry
     {
-      return v & ~boundary_edge_pt_mask();
-    }
+    public:
+      uint64_t m_area;
+      int m_winding;
+      unsigned int m_vertex;
+
+      /* NOTE: reverse sorted by AREA
+       */
+      bool
+      operator<(const per_entry &rhs) const
+      {
+        return m_area > rhs.m_area;
+      }
+
+      bool
+      canidate(int w, unsigned int v) const
+      {
+        return v != m_vertex || w != m_winding;
+      }
+    };
+
+    std::vector<per_entry> m_entries;
+    bool m_sorted;
+  };
+
+  class BoundaryEdgeTracker:fastuidraw::noncopyable
+  {
+  public:
+    void
+    record_contour_edge(unsigned int v0, unsigned int v1);
+
+    void
+    record_triangle(int w, uint64_t area,
+                    unsigned int v0, unsigned int v1, unsigned int v2);
+
+    void
+    print_aa_data(const fastuidraw::BoundingBox &bounds,
+                  const std::vector<fastuidraw::vec2> &pts);
+
+  private:
+    void
+    record_triangle_edge(int w, uint64_t area,
+                         unsigned int e0, unsigned int e1,
+                         unsigned int opposite);
+
+    std::map<Edge, EdgeData> m_data;
   };
 
   class per_winding_data:
@@ -163,8 +223,7 @@ namespace
             fastuidraw::const_c_array<unsigned int> &sub_range)
     {
       assert(count() + offset <= dest.size());
-      std::transform(m_indices.begin(), m_indices.end(),
-                     &dest[offset], BoundaryEdgeTracker::strip_mask);
+      std::copy(m_indices.begin(), m_indices.end(), &dest[offset]);
       sub_range = dest.sub_array(offset, count());
       offset += count();
     }
@@ -361,7 +420,8 @@ namespace
   class PointHoard:fastuidraw::noncopyable
   {
   public:
-    typedef std::vector<unsigned int> Contour;
+    typedef std::pair<unsigned int, bool> ContourPoint;
+    typedef std::vector<ContourPoint> Contour;
     typedef std::list<Contour> Path;
 
     explicit
@@ -382,9 +442,15 @@ namespace
     const fastuidraw::vec2&
     operator[](unsigned int v) const
     {
-      v = BoundaryEdgeTracker::strip_mask(v);
       assert(v < m_pts.size());
       return m_pts[v];
+    }
+
+    const fastuidraw::ivec2&
+    ipt(unsigned int v) const
+    {
+      assert(v < m_ipts.size());
+      return m_ipts[v];
     }
 
     const CoordinateConverter&
@@ -399,6 +465,7 @@ namespace
 
     CoordinateConverter m_converter;
     std::map<fastuidraw::ivec2, unsigned int> m_map;
+    std::vector<fastuidraw::ivec2> m_ipts;
     std::vector<fastuidraw::vec2> &m_pts;
   };
 
@@ -406,7 +473,9 @@ namespace
   {
   protected:
     explicit
-    tesser(PointHoard &points);
+    tesser(PointHoard &points,
+           BoundaryEdgeTracker &tr,
+           int winding_offset);
 
     virtual
     ~tesser(void);
@@ -422,7 +491,8 @@ namespace
 
     void
     add_path_boundary(const SubPath &P,
-                      const fastuidraw::vecN<bool, 4> &corner_is_external);
+                      fastuidraw::vecN<bool, 2> have_prev_neighbor,
+                      fastuidraw::vecN<bool, 2> have_next_neighbor);
 
     bool
     triangulation_failed(void)
@@ -432,18 +502,23 @@ namespace
 
     virtual
     void
-    on_begin_polygon(int winding_number) = 0;
+    on_begin_polygon(void) = 0;
 
     virtual
     void
-    add_triangle(unsigned int v0, unsigned int v1, unsigned int v2) = 0;
+    on_add_triangle(unsigned int v0, unsigned int v1, unsigned int v2) = 0;
 
     virtual
     FASTUIDRAW_GLUboolean
     fill_region(int winding_number) = 0;
 
-  private:
+    int
+    current_winding(void)
+    {
+      return m_current_winding;
+    }
 
+  private:
     void
     add_contour(const PointHoard::Contour &C);
 
@@ -469,14 +544,17 @@ namespace
     add_point_to_store(const fastuidraw::vec2 &p);
 
     bool
-    temp_verts_non_degenerate_triangle(void);
+    temp_verts_non_degenerate_triangle(uint64_t &area);
 
+    BoundaryEdgeTracker &m_boundary_edge_tracker;
     unsigned int m_point_count;
     fastuidraw_GLUtesselator *m_tess;
     PointHoard &m_points;
     fastuidraw::vecN<unsigned int, 3> m_temp_verts;
     unsigned int m_temp_vert_count;
     bool m_triangulation_failed;
+    int m_current_winding, m_winding_offset;
+    bool m_current_winding_inited;
   };
 
   class non_zero_tesser:private tesser
@@ -487,9 +565,10 @@ namespace
     execute_path(PointHoard &points,
                  const PointHoard::Path &P,
                  const SubPath &path,
-                 winding_index_hoard &hoard)
+                 winding_index_hoard &hoard,
+                 BoundaryEdgeTracker &tr)
     {
-      non_zero_tesser NZ(points, P, path, hoard);
+      non_zero_tesser NZ(points, P, path, hoard, tr);
       return NZ.triangulation_failed();
     }
 
@@ -497,22 +576,22 @@ namespace
     non_zero_tesser(PointHoard &points,
                     const PointHoard::Path &P,
                     const SubPath &path,
-                    winding_index_hoard &hoard);
+                    winding_index_hoard &hoard,
+                    BoundaryEdgeTracker &tr);
 
     virtual
     void
-    on_begin_polygon(int winding_number);
+    on_begin_polygon(void);
 
     virtual
     void
-    add_triangle(unsigned int v0, unsigned int v1, unsigned int v2);
+    on_add_triangle(unsigned int v0, unsigned int v1, unsigned int v2);
 
     virtual
     FASTUIDRAW_GLUboolean
     fill_region(int winding_number);
 
     winding_index_hoard &m_hoard;
-    int m_current_winding;
     fastuidraw::reference_counted_ptr<per_winding_data> m_current_indices;
   };
 
@@ -525,9 +604,13 @@ namespace
                  const PointHoard::Path &P,
                  const SubPath &path,
                  winding_index_hoard &hoard,
-                 const fastuidraw::vecN<bool, 4> &corner_is_external)
+                 fastuidraw::vecN<bool, 2> have_prev_neighbor,
+                 fastuidraw::vecN<bool, 2> have_next_neighbor,
+                 BoundaryEdgeTracker &tr)
     {
-      zero_tesser Z(points, P, path, hoard, corner_is_external);
+      zero_tesser Z(points, P, path, hoard,
+                    have_prev_neighbor, have_next_neighbor,
+                    tr);
       return Z.triangulation_failed();
     }
 
@@ -537,15 +620,17 @@ namespace
                 const PointHoard::Path &P,
                 const SubPath &path,
                 winding_index_hoard &hoard,
-                const fastuidraw::vecN<bool, 4> &corner_is_external);
+                fastuidraw::vecN<bool, 2> have_prev_neighbor,
+                fastuidraw::vecN<bool, 2> have_next_neighbor,
+                BoundaryEdgeTracker &tr);
 
     virtual
     void
-    on_begin_polygon(int winding_number);
+    on_begin_polygon(void);
 
     virtual
     void
-    add_triangle(unsigned int v0, unsigned int v1, unsigned int v2);
+    on_add_triangle(unsigned int v0, unsigned int v1, unsigned int v2);
 
     virtual
     FASTUIDRAW_GLUboolean
@@ -559,7 +644,9 @@ namespace
   public:
     explicit
     builder(const SubPath &P, std::vector<fastuidraw::vec2> &pts,
-            const fastuidraw::vecN<bool, 4> &corner_is_external);
+            fastuidraw::vecN<bool, 2> have_prev_neighbor,
+            fastuidraw::vecN<bool, 2> have_next_neighbor,
+            BoundaryEdgeTracker &tr);
 
     ~builder();
 
@@ -773,10 +860,9 @@ namespace
     fastuidraw::vecN<SubsetPrivate*, 2> m_children;
     int m_splitting_coordinate;
 
-    /* neighbors
+    /* having neighbors
      */
-    fastuidraw::vecN<SubsetPrivate*, 2> m_neighbor_prev, m_neighbor_next;
-    fastuidraw::vecN<bool, 4> m_corner_is_external;
+    fastuidraw::vecN<bool, 2> m_have_prev_neighbor, m_have_next_neighbor;
   };
 
   class FilledPathPrivate
@@ -790,6 +876,134 @@ namespace
     SubsetPrivate *m_root;
     std::vector<SubsetPrivate*> m_subsets;
   };
+}
+
+/////////////////////////////////
+// EdgeData methods
+void
+EdgeData::
+add_winding(uint64_t area, int w, unsigned int v)
+{
+  per_entry p;
+
+  assert(area > 0);
+  p.m_area = area;
+  p.m_winding = w;
+  p.m_vertex = v;
+  m_entries.push_back(p);
+}
+
+int
+EdgeData::
+opposite_winding(int w, unsigned int v)
+{
+  if(m_entries.size() < 2)
+    {
+      /*
+        edge with only one triangle, this edge is then
+        made either from
+          a) an external edge to the entire path (i.e. winding 0)
+          b) a created edge from SubPath localization.
+        In either case, we will return the same winding value w,
+        to indicate that it is an internal edge.
+      */
+      return w;
+    }
+
+  if(m_entries.size() == 2)
+    {
+      return m_entries[0].canidate(w, v) ?
+        m_entries[0].m_winding :
+        m_entries[1].m_winding;
+    }
+
+  if(!m_sorted)
+    {
+      m_sorted = true;
+      std::sort(m_entries.begin(), m_entries.end());
+    }
+
+  /* The entries are sorted in descending order by area,
+     so the best canindate is then the first vertex that
+     is different.
+   */
+  for(unsigned int i = 0, endi = m_entries.size(); i < endi; ++i)
+    {
+      if(m_entries[i].m_vertex != v)
+        {
+          return m_entries[i].m_winding;
+        }
+    }
+  /* all vertices are same, this can happen from the discretization
+     of the data. We punt and assume an internal edge.
+   */
+  return w;
+}
+
+///////////////////////////////
+// BoundaryEdgeTracker methods
+void
+BoundaryEdgeTracker::
+record_contour_edge(unsigned int v0, unsigned int v1)
+{
+  m_data[Edge(v0, v1)];
+}
+
+void
+BoundaryEdgeTracker::
+record_triangle_edge(int w, uint64_t area,
+                     unsigned int a, unsigned int b,
+                     unsigned int opposite)
+{
+  Edge E(a, b);
+  std::map<Edge, EdgeData>::iterator iter;
+
+  iter = m_data.find(E);
+  if(iter != m_data.end())
+    {
+      iter->second.add_winding(area, w, opposite);
+    }
+}
+
+void
+BoundaryEdgeTracker::
+record_triangle(int w, uint64_t area,
+                unsigned int v0, unsigned int v1, unsigned int v2)
+{
+  assert(area > 0);
+  record_triangle_edge(w, area, v0, v1, v2);
+  record_triangle_edge(w, area, v1, v2, v0);
+  record_triangle_edge(w, area, v2, v0, v1);
+}
+
+void
+BoundaryEdgeTracker::
+print_aa_data(const fastuidraw::BoundingBox &bounds,
+              const std::vector<fastuidraw::vec2> &pts)
+{
+  std::cout << "Bounds = { min_pt=" << bounds.min_point()
+            << ", max_pt=" << bounds.max_point() << "}\n";
+  for(std::map<Edge, EdgeData>::const_iterator iter = m_data.begin(),
+        end = m_data.end(); iter != end; ++iter)
+    {
+      Edge edge(iter->first);
+      const EdgeData &data(iter->second);
+
+      assert(edge[0] < pts.size());
+      assert(edge[1] < pts.size());
+
+      std::cout << "\tEdge,ids=" << edge << " @ ["
+                << pts[edge[0]]  << pts[edge[1]] << "] has\n";
+
+      for(std::vector<EdgeData::per_entry>::const_iterator i = data.m_entries.begin(),
+            e = data.m_entries.end(); i != e; ++i)
+        {
+          assert(i->m_vertex < pts.size());
+          std::cout << "\t\tarea=" << i->m_area << ", winding=" << i->m_winding
+                    << ", vertex_id=" << i->m_vertex
+                    << " @ " << pts[i->m_vertex] << "\n";
+        }
+    }
 }
 
 /////////////////////////////////////
@@ -1058,6 +1272,8 @@ fetch(const fastuidraw::vec2 &pt)
   fastuidraw::ivec2 ipt;
   unsigned int return_value;
 
+  assert(m_pts.size() == m_ipts.size());
+
   ipt = m_converter.iapply(pt);
   iter = m_map.find(ipt);
   if(iter != m_map.end())
@@ -1068,6 +1284,7 @@ fetch(const fastuidraw::vec2 &pt)
     {
       return_value = m_pts.size();
       m_pts.push_back(pt);
+      m_ipts.push_back(ipt);
       m_map[ipt] = return_value;
     }
   return return_value;
@@ -1097,23 +1314,27 @@ generate_contour(const SubPath::SubContour &C, Contour &output)
 
   for(unsigned int v = 0, endv = C.size(); v < endv; ++v,  ++cnt, ++total_cnt)
     {
-      uint32_t mask(0);
+      bool no_boundary_bits;
+      unsigned int I;
 
-      if(0u == C[v].boundary_bits())
-        {
-          mask = BoundaryEdgeTracker::boundary_edge_pt_mask();
-        }
-      output.push_back(fetch(C[v].pt()) | mask);
+      no_boundary_bits = (0u == C[v].boundary_bits());
+      I = fetch(C[v].pt());
+      output.push_back(ContourPoint(I, no_boundary_bits));
     }
 }
 
 ////////////////////////////////////////
 // tesser methods
 tesser::
-tesser(PointHoard &points):
+tesser(PointHoard &points, BoundaryEdgeTracker &tr,
+       int winding_offset):
+  m_boundary_edge_tracker(tr),
   m_point_count(0),
   m_points(points),
-  m_triangulation_failed(false)
+  m_triangulation_failed(false),
+  m_current_winding(0),
+  m_winding_offset(winding_offset),
+  m_current_winding_inited(false)
 {
   m_tess = fastuidraw_gluNewTess;
   fastuidraw_gluTessCallbackBegin(m_tess, &begin_callBack);
@@ -1159,11 +1380,15 @@ void
 tesser::
 add_contour(const PointHoard::Contour &C)
 {
+  assert(!C.empty());
+
+  PointHoard::ContourPoint lastI(C.back());
+
   fastuidraw_gluTessBeginContour(m_tess, FASTUIDRAW_GLU_TRUE);
   for(unsigned int v = 0, endv = C.size(); v < endv; ++v)
     {
       fastuidraw::vecN<double, 2> p;
-      unsigned int I;
+      PointHoard::ContourPoint I;
 
       /* TODO: Incrementing the amount by which to apply
          fudge is not the correct thing to do. Rather, we
@@ -1171,10 +1396,15 @@ add_contour(const PointHoard::Contour &C)
          and degenerate edges.
       */
       I = C[v];
-      p = m_points.converter().apply(m_points[I], m_point_count);
+      p = m_points.converter().apply(m_points[I.first], m_point_count);
       ++m_point_count;
+      if(I.second || lastI.second)
+        {
+          m_boundary_edge_tracker.record_contour_edge(lastI.first, I.first);
+        }
 
-      fastuidraw_gluTessVertex(m_tess, p.x(), p.y(), I);
+      fastuidraw_gluTessVertex(m_tess, p.x(), p.y(), I.first);
+      lastI = I;
     }
   fastuidraw_gluTessEndContour(m_tess);
 }
@@ -1182,10 +1412,12 @@ add_contour(const PointHoard::Contour &C)
 void
 tesser::
 add_path_boundary(const SubPath &P,
-                  const fastuidraw::vecN<bool, 4> &corner_is_external)
+                  fastuidraw::vecN<bool, 2> have_prev_neighbor,
+                  fastuidraw::vecN<bool, 2> have_next_neighbor)
 {
   fastuidraw::vec2 pmin, pmax;
-  unsigned int src[4] =
+  unsigned int vertex_ids[4];
+  const unsigned int src[4] =
     {
       box_min_x_min_y,
       box_min_x_max_y,
@@ -1200,14 +1432,11 @@ add_path_boundary(const SubPath &P,
   for(unsigned int i = 0; i < 4; ++i)
     {
       double slack, x, y;
-      unsigned int k, mask;
+      unsigned int k;
       fastuidraw::vec2 p;
 
       k = src[i];
       slack = static_cast<double>(m_point_count) * m_points.converter().fudge_delta();
-      mask = corner_is_external[k] ?
-        BoundaryEdgeTracker::boundary_edge_pt_mask() :
-        0u;
 
       if(k & box_max_x_flag)
         {
@@ -1230,8 +1459,34 @@ add_path_boundary(const SubPath &P,
           y = -slack;
           p.y() = pmin.y();
         }
-      fastuidraw_gluTessVertex(m_tess, x, y, m_points.fetch(p) | mask);
+      vertex_ids[k] = m_points.fetch(p);
+      fastuidraw_gluTessVertex(m_tess, x, y, vertex_ids[k]);
     }
+
+  if(!have_prev_neighbor.x())
+    {
+      m_boundary_edge_tracker.record_contour_edge(vertex_ids[box_min_x_min_y],
+                                                  vertex_ids[box_min_x_max_y]);
+    }
+
+  if(!have_next_neighbor.x())
+    {
+      m_boundary_edge_tracker.record_contour_edge(vertex_ids[box_max_x_min_y],
+                                                  vertex_ids[box_max_x_max_y]);
+    }
+
+  if(!have_prev_neighbor.y())
+    {
+      m_boundary_edge_tracker.record_contour_edge(vertex_ids[box_min_x_min_y],
+                                                  vertex_ids[box_max_x_min_y]);
+    }
+
+  if(!have_next_neighbor.y())
+    {
+      m_boundary_edge_tracker.record_contour_edge(vertex_ids[box_min_x_max_y],
+                                                  vertex_ids[box_max_x_max_y]);
+    }
+
   fastuidraw_gluTessEndContour(m_tess);
 }
 
@@ -1246,7 +1501,7 @@ add_point_to_store(const fastuidraw::vec2 &p)
 
 bool
 tesser::
-temp_verts_non_degenerate_triangle(void)
+temp_verts_non_degenerate_triangle(uint64_t &area)
 {
   if(m_temp_verts[0] == m_temp_verts[1]
      || m_temp_verts[0] == m_temp_verts[2]
@@ -1255,24 +1510,16 @@ temp_verts_non_degenerate_triangle(void)
       return false;
     }
 
-  fastuidraw::vec2 p0(m_points[m_temp_verts[0]]);
-  fastuidraw::vec2 p1(m_points[m_temp_verts[1]]);
-  fastuidraw::vec2 p2(m_points[m_temp_verts[2]]);
-
-  if(p0 == p1 || p0 == p2 || p1 == p2)
-    {
-      return false;
-    }
-
-  fastuidraw::vec2 v(p1 - p0), w(p2 - p0);
-  float area;
+  fastuidraw::i64vec2 p0(m_points.ipt(m_temp_verts[0]));
+  fastuidraw::i64vec2 p1(m_points.ipt(m_temp_verts[1]));
+  fastuidraw::i64vec2 p2(m_points.ipt(m_temp_verts[2]));
+  fastuidraw::i64vec2 v(p1 - p0), w(p2 - p0);
   bool return_value;
 
-  /* we only reject a triangle if its area to floating
-     point arithematic is zero.
+  /* we only reject a triangle if its area is zero.
    */
   area = fastuidraw::t_abs(v.x() * w.y() - v.y() * w.x());
-  return_value = (area > 0.0f);
+  return_value = (area > 0);
   return return_value;
 }
 
@@ -1286,7 +1533,12 @@ begin_callBack(FASTUIDRAW_GLUenum type, int winding_number, void *tess)
   FASTUIDRAWunused(type);
 
   p->m_temp_vert_count = 0;
-  p->on_begin_polygon(winding_number);
+  if(!p->m_current_winding_inited || p->m_current_winding != winding_number)
+    {
+      p->m_current_winding_inited = true;
+      p->m_current_winding = winding_number;
+      p->on_begin_polygon();
+    }
 }
 
 void
@@ -1309,6 +1561,7 @@ vertex_callBack(unsigned int vertex_id, void *tess)
   p->m_temp_vert_count++;
   if(p->m_temp_vert_count == 3)
     {
+      uint64_t area(0u);
       p->m_temp_vert_count = 0;
       /*
         if vertex_id is FASTUIDRAW_GLU_NULL_CLIENT_ID, that means
@@ -1317,11 +1570,17 @@ vertex_callBack(unsigned int vertex_id, void *tess)
       if(p->m_temp_verts[0] != FASTUIDRAW_GLU_NULL_CLIENT_ID
          && p->m_temp_verts[1] != FASTUIDRAW_GLU_NULL_CLIENT_ID
          && p->m_temp_verts[2] != FASTUIDRAW_GLU_NULL_CLIENT_ID
-         && p->temp_verts_non_degenerate_triangle())
+         && p->temp_verts_non_degenerate_triangle(area))
         {
-          p->add_triangle(p->m_temp_verts[0],
-                          p->m_temp_verts[1],
-                          p->m_temp_verts[2]);
+          assert(area > 0);
+          p->m_boundary_edge_tracker.record_triangle(p->current_winding() + p->m_winding_offset,
+                                                     area,
+                                                     p->m_temp_verts[0],
+                                                     p->m_temp_verts[1],
+                                                     p->m_temp_verts[2]);
+          p->on_add_triangle(p->m_temp_verts[0],
+                             p->m_temp_verts[1],
+                             p->m_temp_verts[2]);
         }
     }
 }
@@ -1369,10 +1628,10 @@ non_zero_tesser::
 non_zero_tesser(PointHoard &points,
                 const PointHoard::Path &P,
                 const SubPath &path,
-                winding_index_hoard &hoard):
-  tesser(points),
-  m_hoard(hoard),
-  m_current_winding(0)
+                winding_index_hoard &hoard,
+                BoundaryEdgeTracker &tr):
+  tesser(points, tr, 0),
+  m_hoard(hoard)
 {
   start();
   add_path(P);
@@ -1382,23 +1641,21 @@ non_zero_tesser(PointHoard &points,
 
 void
 non_zero_tesser::
-on_begin_polygon(int winding_number)
+on_begin_polygon(void)
 {
-  if(!m_current_indices || m_current_winding != winding_number)
+  int w(current_winding());
+
+  fastuidraw::reference_counted_ptr<per_winding_data> &h(m_hoard[w]);
+  if(!h)
     {
-      fastuidraw::reference_counted_ptr<per_winding_data> &h(m_hoard[winding_number]);
-      m_current_winding = winding_number;
-      if(!h)
-        {
-          h = FASTUIDRAWnew per_winding_data();
-        }
-      m_current_indices = h;
+      h = FASTUIDRAWnew per_winding_data();
     }
+  m_current_indices = h;
 }
 
 void
 non_zero_tesser::
-add_triangle(unsigned int v0, unsigned int v1, unsigned int v2)
+on_add_triangle(unsigned int v0, unsigned int v1, unsigned int v2)
 {
   m_current_indices->add_index(v0);
   m_current_indices->add_index(v1);
@@ -1422,8 +1679,10 @@ zero_tesser(PointHoard &points,
             const PointHoard::Path &P,
             const SubPath &path,
             winding_index_hoard &hoard,
-            const fastuidraw::vecN<bool, 4> &corner_is_external):
-  tesser(points),
+            fastuidraw::vecN<bool, 2> have_prev_neighbor,
+            fastuidraw::vecN<bool, 2> have_next_neighbor,
+            BoundaryEdgeTracker &tr):
+  tesser(points, tr, 1),
   m_indices(hoard[0])
 {
   if(!m_indices)
@@ -1433,21 +1692,20 @@ zero_tesser(PointHoard &points,
 
   start();
   add_path(P);
-  add_path_boundary(path, corner_is_external);
+  add_path_boundary(path, have_prev_neighbor, have_next_neighbor);
   stop();
 }
 
 void
 zero_tesser::
-on_begin_polygon(int winding_number)
+on_begin_polygon(void)
 {
-  assert(winding_number == -1);
-  FASTUIDRAWunused(winding_number);
+  assert(current_winding() == -1);
 }
 
 void
 zero_tesser::
-add_triangle(unsigned int v0, unsigned int v1, unsigned int v2)
+on_add_triangle(unsigned int v0, unsigned int v1, unsigned int v2)
 {
   m_indices->add_index(v0);
   m_indices->add_index(v1);
@@ -1467,16 +1725,21 @@ fill_region(int winding_number)
 // builder methods
 builder::
 builder(const SubPath &P, std::vector<fastuidraw::vec2> &points,
-        const fastuidraw::vecN<bool, 4> &corner_is_external):
+        fastuidraw::vecN<bool, 2> have_prev_neighbor,
+        fastuidraw::vecN<bool, 2> have_next_neighbor,
+        BoundaryEdgeTracker &tr):
   m_points(P.bounds(), points)
 {
   bool failZ, failNZ;
   PointHoard::Path path;
 
   m_points.generate_path(P, path);
-  failNZ = non_zero_tesser::execute_path(m_points, path, P, m_hoard);
-  failZ = zero_tesser::execute_path(m_points, path, P, m_hoard, corner_is_external);
-  m_failed= failNZ || failZ;
+  failNZ = non_zero_tesser::execute_path(m_points, path, P, m_hoard, tr);
+  failZ = zero_tesser::execute_path(m_points, path, P, m_hoard,
+                                    have_prev_neighbor, have_next_neighbor,
+                                    tr);
+  tr.print_aa_data(P.bounds(), points);
+  m_failed = failNZ || failZ;
 }
 
 builder::
@@ -1789,16 +2052,18 @@ SubsetPrivate(SubPath *Q, int max_recursion,
   m_sub_path(Q),
   m_children(NULL, NULL),
   m_splitting_coordinate(-1),
-  m_neighbor_prev(NULL, NULL),
-  m_neighbor_next(NULL, NULL)
+  m_have_prev_neighbor(false, false),
+  m_have_next_neighbor(false, false)
 {
   out_values.push_back(this);
-  if(max_recursion > 0 && m_sub_path->total_points() > SubsetConstants::points_per_subset)
+  if((max_recursion > 0 && m_sub_path->total_points() > SubsetConstants::points_per_subset)
+     || max_recursion == SubsetConstants::recursion_depth)
     {
       fastuidraw::vecN<SubPath*, 2> C;
 
       C = Q->split(m_splitting_coordinate);
-      if(C[0]->total_points() < m_sub_path->total_points() || C[1]->total_points() < m_sub_path->total_points())
+      if(max_recursion == SubsetConstants::recursion_depth ||
+         C[0]->total_points() < m_sub_path->total_points() || C[1]->total_points() < m_sub_path->total_points())
         {
           m_children[0] = FASTUIDRAWnew SubsetPrivate(C[0], max_recursion - 1, out_values);
           m_children[1] = FASTUIDRAWnew SubsetPrivate(C[1], max_recursion - 1, out_values);
@@ -1846,7 +2111,7 @@ create_root_subset(SubPath *P, std::vector<SubsetPrivate*> &out_values)
   SubsetPrivate *root;
   root = FASTUIDRAWnew SubsetPrivate(P, SubsetConstants::recursion_depth, out_values);
 
-  /* assign m_neighbor_prev and m_neighbor_next
+  /* assign m_have_neighbor_prev and m_have_neighbor_next
    */
   if(root->m_splitting_coordinate != -1)
     {
@@ -1868,28 +2133,16 @@ assign_neighbor_values(SubsetPrivate *parent, int child_id)
   assert(child_id == 0 || child_id == 1);
   assert(parent->m_children[child_id] == this);
 
-  m_neighbor_prev = parent->m_neighbor_prev;
-  m_neighbor_next = parent->m_neighbor_next;
+  m_have_prev_neighbor = parent->m_have_prev_neighbor;
+  m_have_next_neighbor = parent->m_have_next_neighbor;
   if(child_id == 0)
     {
-      m_neighbor_next[parent->m_splitting_coordinate] = parent->m_children[1];
+      m_have_next_neighbor[parent->m_splitting_coordinate] = true;
     }
   else
     {
-      m_neighbor_prev[parent->m_splitting_coordinate] = parent->m_children[0];
+      m_have_prev_neighbor[parent->m_splitting_coordinate] = true;
     }
-
-  m_corner_is_external[box_min_x_min_y] =
-    (m_neighbor_prev.x() == NULL) && (m_neighbor_prev.y() == NULL);
-
-  m_corner_is_external[box_min_x_max_y] =
-    (m_neighbor_prev.x() == NULL) && (m_neighbor_next.y() == NULL);
-
-  m_corner_is_external[box_max_x_max_y] =
-    (m_neighbor_next.x() == NULL) && (m_neighbor_next.y() == NULL);
-
-  m_corner_is_external[box_max_x_min_y] =
-    (m_neighbor_next.x() == NULL) && (m_neighbor_prev.y() == NULL);
 }
 
 unsigned int
@@ -2061,7 +2314,10 @@ make_ready_from_sub_path(void)
   assert(!m_sizes_ready);
 
   AttributeDataFiller filler;
-  builder B(*m_sub_path, filler.m_points, m_corner_is_external);
+  BoundaryEdgeTracker tr;
+  builder B(*m_sub_path, filler.m_points,
+            m_have_prev_neighbor, m_have_next_neighbor,
+            tr);
   unsigned int even_non_zero_start, zero_start;
   unsigned int m1, m2;
 
