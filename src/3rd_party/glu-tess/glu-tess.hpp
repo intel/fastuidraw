@@ -97,6 +97,13 @@ typedef void (*fastuidraw_glu_tess_function_end)(void);
 typedef void (*fastuidraw_glu_tess_function_error)(FASTUIDRAW_GLUenum errnum);
 
 
+/* Combine is guaranteed to combine 4 vertices coming
+   from two edges:
+     data[0] : vertex A for edge E
+     data[1] : vertex B for edge E
+     data[2] : vertex A for edge F
+     data[3] : vertex B for edge F
+ */
 #define FASTUIDRAW_GLU_TESS_COMBINE                   100105
 typedef void (*fastuidraw_glu_tess_function_combine)(double x, double y, unsigned int data[4],
                                                      double weight[4], unsigned int *outData);
