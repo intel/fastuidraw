@@ -99,6 +99,18 @@ public:
     unsigned int
     chunk_from_fill_rule(enum PainterEnums::fill_rule_t fill_rule);
 
+    /*!
+      Returns the chunk to use for drawing the anti-alias fuzz
+      around the filled path caused by edges shared between
+      winding number components. If one gives the value
+      as the same winding number, then these are aa-edges
+      of the winding number component that are NOT shared
+      with any others.
+     */
+    static
+    unsigned int
+    chunk_for_aa_fuzz(int winding0, int winding1);
+
   private:
     friend class FilledPath;
 
