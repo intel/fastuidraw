@@ -71,7 +71,7 @@ private:
 class WindingValueFillRule:public CustomFillRuleBase
 {
 public:
-  WindingValueFillRule(int v):
+  WindingValueFillRule(int v = 0):
     m_winding_number(v)
   {}
 
@@ -85,15 +85,11 @@ private:
   int m_winding_number;
 };
 
-class EverythingWindingValueFillRule:public CustomFillRuleBase
+bool
+everything_filled(int)
 {
-public:
-  bool
-  operator()(int) const
-  {
-    return true;
-  }
-};
+  return true;
+}
 
 void
 enable_wire_frame(bool b)
@@ -1360,91 +1356,47 @@ draw_frame(void)
           fill_brush.sub_image(m_image, m_image_offset, m_image_size, f);
         }
 
+      CustomFillRuleFunction fill_rule_function(everything_filled);
+      WindingValueFillRule value_fill_rule;
+      CustomFillRuleBase *fill_rule(&fill_rule_function);
+
       if(m_fill_rule < PainterEnums::fill_rule_data_count)
         {
-          enum PainterEnums::fill_rule_t v;
-          v = static_cast<enum PainterEnums::fill_rule_t>(m_fill_rule);
-          if(m_fill_by_clipping)
-            {
-              m_painter->save();
-              m_painter->clipInPath(m_path, v);
-              m_painter->transformation(float3x3());
-              m_painter->draw_rect(PainterData(&fill_brush), vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f), false);
-              m_painter->restore();
-            }
-          else
-            {
-              m_painter->fill_path(PainterData(&fill_brush), m_path, v, m_with_aa && !m_aa_fill_by_stroking);
-            }
-
-          if(m_aa_fill_by_stroking && m_with_aa)
-            {
-              PainterStrokeParams st;
-              st.miter_limit(-1.0f);
-              st.width(2.0f);
-              m_painter->stroke_path_pixel_width(PainterData(&fill_brush, &st), m_path, true,
-                                                 PainterEnums::flat_caps,
-                                                 PainterEnums::bevel_joins,
-                                                 true);
-            }
+          fill_rule_function = CustomFillRuleFunction(static_cast<PainterEnums::fill_rule_t>(m_fill_rule));
         }
-      else if(m_fill_rule == m_end_fill_rule)
+      else if(m_fill_rule != m_end_fill_rule)
         {
-          if(m_fill_by_clipping)
-            {
-              m_painter->save();
-              m_painter->clipInPath(m_path, EverythingWindingValueFillRule());
-              m_painter->transformation(float3x3());
-              m_painter->draw_rect(PainterData(&fill_brush), vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f), false);
-              m_painter->restore();
-            }
-          else
-            {
-              m_painter->fill_path(PainterData(&fill_brush), m_path, EverythingWindingValueFillRule(), m_with_aa && !m_aa_fill_by_stroking);
-            }
-
-          if(m_aa_fill_by_stroking && m_with_aa)
-            {
-              PainterStrokeParams st;
-              st.miter_limit(-1.0f);
-              st.width(2.0f);
-              m_painter->stroke_path_pixel_width(PainterData(&fill_brush, &st), m_path, true,
-                                                 PainterEnums::flat_caps,
-                                                 PainterEnums::bevel_joins,
-                                                 true);
-            }
-        }
-      else
-        {
-          const_c_array<int> wnd;
           int value;
+          const_c_array<int> wnd;
 
           wnd = m_path.tessellation()->filled()->subset(0).winding_numbers();
           value = wnd[m_fill_rule - PainterEnums::fill_rule_data_count];
+          value_fill_rule = WindingValueFillRule(value);
+          fill_rule = &value_fill_rule;
+        }
 
-          if(m_fill_by_clipping)
-            {
-              m_painter->save();
-              m_painter->clipInPath(m_path, WindingValueFillRule(value));
-              m_painter->transformation(float3x3());
-              m_painter->draw_rect(PainterData(&fill_brush), vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f), false);
-              m_painter->restore();
-            }
-          else
-            {
-              m_painter->fill_path(PainterData(&fill_brush), m_path, WindingValueFillRule(value), m_with_aa && !m_aa_fill_by_stroking);
-            }
+      if(m_fill_by_clipping)
+        {
+          m_painter->save();
+          m_painter->clipInPath(m_path, *fill_rule);
+          m_painter->transformation(float3x3());
+          m_painter->draw_rect(PainterData(&fill_brush), vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f), false);
+          m_painter->restore();
+        }
+      else
+        {
+          m_painter->fill_path(PainterData(&fill_brush), m_path, *fill_rule, m_with_aa && !m_aa_fill_by_stroking);
+        }
 
-          if(m_aa_fill_by_stroking && m_with_aa)
-            {
-              PainterStrokeParams st;
-              st.miter_limit(-1.0f);
-              st.width(2.0f);
-              m_painter->stroke_path_pixel_width(PainterData(&fill_brush, &st), m_path, true,
-                                                 PainterEnums::flat_caps,
-                                                 PainterEnums::bevel_joins,
-                                                 true);
-            }
+      if(m_aa_fill_by_stroking && m_with_aa)
+        {
+          PainterStrokeParams st;
+          st.miter_limit(-1.0f);
+          st.width(2.0f);
+          m_painter->stroke_path_pixel_width(PainterData(&fill_brush, &st), m_path, true,
+                                             PainterEnums::flat_caps,
+                                             PainterEnums::bevel_joins,
+                                             true);
         }
       submit_fill_time = measure.elapsed_us();
     }
