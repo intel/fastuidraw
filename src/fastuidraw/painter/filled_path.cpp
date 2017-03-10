@@ -264,6 +264,7 @@ namespace
       assert(m_count < 2);
       m_winding[m_count] = entry.m_winding;
       m_opposite[m_count] = entry.m_vertex;
+      ++m_count;
     }
 
     const Edge&
@@ -1327,7 +1328,7 @@ create_aa_edges(AAEdgeList &out_aa_edges)
       const EdgeData &data(iter->second);
       fastuidraw::const_c_array<EdgeData::per_entry> entries(data.filtered_entries());
 
-      if(data.is_split() && !entries.empty())
+      if(!data.is_split() && !entries.empty())
         {
           /* we take the two largest, which means the
              first two elements from entries()
@@ -2332,6 +2333,10 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
       ch = fastuidraw::FilledPath::Subset::chunk_for_aa_fuzz(w0, w1);
       assert(ch < tmp.size());
       tmp[ch]++;
+      std::cout << m_pts[iter->edge()[0]] << ":"
+                << m_pts[iter->edge()[1]] << " windings=("
+                << w0 << "," << w1 << ") cnt=" << iter->count()
+                << "\n";
     }
 
   for(unsigned int ch = 0, dst_offset = 0; ch < attrib_chunks.size(); ++ch)
@@ -2392,15 +2397,15 @@ pack_attribute(const Edge &edge,
       fastuidraw::vec2 position, pre_offset;
 
       position = m_pts[edge[k]];
-      dst[k + 0].m_attrib0 = fastuidraw::pack_vec4(position.x(), position.y(),
+      dst[2 * k + 0].m_attrib0 = fastuidraw::pack_vec4(position.x(), position.y(),
                                                    normal.x(), normal.y());
-      dst[k + 0].m_attrib1 = fastuidraw::pack_vec4(1.0f, 0.0f, 0.0f, 0.0f);
-      dst[k + 0].m_attrib2 = fastuidraw::uvec4(0, 0, 0, 0);
+      dst[2 * k + 0].m_attrib1 = fastuidraw::pack_vec4(1.0f, 0.0f, 0.0f, 0.0f);
+      dst[2 * k + 0].m_attrib2 = fastuidraw::uvec4(0, 0, 0, 0);
 
-      dst[k + 1].m_attrib0 = fastuidraw::pack_vec4(position.x(), position.y(),
+      dst[2 * k + 1].m_attrib0 = fastuidraw::pack_vec4(position.x(), position.y(),
                                                    -normal.x(), -normal.y());
-      dst[k + 1].m_attrib1 = fastuidraw::pack_vec4(-1.0f, 0.0f, 0.0f, 0.0f);
-      dst[k + 1].m_attrib2 = fastuidraw::uvec4(0, 0, 0, 0);
+      dst[2 * k + 1].m_attrib1 = fastuidraw::pack_vec4(-1.0f, 0.0f, 0.0f, 0.0f);
+      dst[2 * k + 1].m_attrib2 = fastuidraw::uvec4(0, 0, 0, 0);
     }
 }
 
