@@ -58,8 +58,8 @@ namespace
     }
 
     void
-    fill(int min_value, int max_value,
-         const fastuidraw::CustomFillRuleBase &fill_rule)
+    set(int min_value, int max_value,
+        const fastuidraw::CustomFillRuleBase &fill_rule)
     {
       m_values.clear();
       m_min_value = min_value;
@@ -69,6 +69,34 @@ namespace
         {
           m_values[compute_index(w)] = fill_rule(w) ? 1u : 0u;
         }
+    }
+
+    void
+    set(const fastuidraw::FilledPath &filled_path,
+        fastuidraw::const_c_array<unsigned int> subsets,
+        const fastuidraw::CustomFillRuleBase &fill_rule)
+    {
+      int max_winding, min_winding;
+      for(unsigned int i = 0; i < subsets.size(); ++i)
+        {
+          unsigned int s(subsets[i]);
+          fastuidraw::FilledPath::Subset subset(filled_path.subset(s));
+          int m, M;
+
+          m = subset.winding_numbers().front();
+          M = subset.winding_numbers().back();
+          if(i == 0)
+            {
+              min_winding = m;
+              max_winding = M;
+            }
+          else
+            {
+              min_winding = fastuidraw::t_min(min_winding, m);
+              max_winding = fastuidraw::t_max(max_winding, M);
+            }
+        }
+      set(min_winding, max_winding, fill_rule);
     }
 
   private:
@@ -2004,12 +2032,21 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
                                            d->m_max_attribs_per_block,
                                            d->m_max_indices_per_block,
                                            make_c_array(d->m_work_room.m_fill_subset_selector));
+
+  if(num_subsets == 0)
+    {
+      return;
+    }
+
+  fastuidraw::const_c_array<unsigned int> subset_list;
+  subset_list = make_c_array(d->m_work_room.m_fill_subset_selector).sub_array(0, num_subsets);
+
   d->m_work_room.m_fill_attrib_chunks.clear();
   d->m_work_room.m_fill_index_chunks.clear();
   d->m_work_room.m_fill_index_adjusts.clear();
   for(unsigned int i = 0; i < num_subsets; ++i)
     {
-      unsigned int s(d->m_work_room.m_fill_subset_selector[i]);
+      unsigned int s(subset_list[i]);
       FilledPath::Subset subset(filled_path.subset(s));
       const PainterAttributeData &data(subset.painter_data());
 
@@ -2018,15 +2055,26 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       d->m_work_room.m_fill_index_adjusts.push_back(data.index_adjust_chunk(idx_chunk));
     }
 
+  if(with_anti_aliasing)
+    {
+      ++d->m_current_z;
+    }
   draw_generic(shader.item_shader(), draw,
                fastuidraw::make_c_array(d->m_work_room.m_fill_attrib_chunks),
                fastuidraw::make_c_array(d->m_work_room.m_fill_index_chunks),
                fastuidraw::make_c_array(d->m_work_room.m_fill_index_adjusts),
                call_back);
 
-  /* TODO: draw aa-fuzz if with_anti_aliasing is true.
-   */
-  FASTUIDRAWunused(with_anti_aliasing);
+  if(with_anti_aliasing)
+    {
+      d->m_work_room.m_fill_ws.set(filled_path, subset_list,
+                                   CustomFillRuleFunction(fill_rule));
+      --d->m_current_z;
+      d->draw_anti_alias_fuzz(shader, draw, filled_path,
+                              subset_list, d->m_work_room.m_fill_ws,
+                              call_back);
+      ++d->m_current_z;
+    }
 }
 
 void
@@ -2084,29 +2132,10 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       return;
     }
 
-  int max_winding, min_winding;
-  for(unsigned int i = 0; i < num_subsets; ++i)
-    {
-      unsigned int s(d->m_work_room.m_fill_subset_selector[i]);
-      FilledPath::Subset subset(filled_path.subset(s));
-      int m, M;
+  fastuidraw::const_c_array<unsigned int> subset_list;
+  subset_list = make_c_array(d->m_work_room.m_fill_subset_selector).sub_array(0, num_subsets);
 
-      m = subset.winding_numbers().front();
-      M = subset.winding_numbers().back();
-      if(i == 0)
-        {
-          min_winding = m;
-          max_winding = M;
-        }
-      else
-        {
-          min_winding = fastuidraw::t_min(min_winding, m);
-          max_winding = fastuidraw::t_max(max_winding, M);
-        }
-    }
-
-  d->m_work_room.m_fill_ws.clear();
-  d->m_work_room.m_fill_ws.fill(min_winding, max_winding, fill_rule);
+  d->m_work_room.m_fill_ws.set(filled_path, subset_list, fill_rule);
 
   d->m_work_room.m_fill_attrib_chunks.clear();
   d->m_work_room.m_fill_index_chunks.clear();
@@ -2115,7 +2144,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
 
   for(unsigned int i = 0; i < num_subsets; ++i)
     {
-      unsigned int s(d->m_work_room.m_fill_subset_selector[i]);
+      unsigned int s(subset_list[i]);
       FilledPath::Subset subset(filled_path.subset(s));
       const PainterAttributeData &data(subset.painter_data());
       const_c_array<fastuidraw::PainterAttribute> attrib_chunk;
@@ -2168,8 +2197,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
         {
           --d->m_current_z;
           d->draw_anti_alias_fuzz(shader, draw, filled_path,
-                                  make_c_array(d->m_work_room.m_fill_subset_selector).sub_array(0, num_subsets),
-                                  d->m_work_room.m_fill_ws,
+                                  subset_list, d->m_work_room.m_fill_ws,
                                   call_back);
           ++d->m_current_z;
         }
