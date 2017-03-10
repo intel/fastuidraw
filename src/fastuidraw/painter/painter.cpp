@@ -547,6 +547,9 @@ namespace
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_stroke_attrib_chunks;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_stroke_index_chunks;
     std::vector<int> m_stroke_index_adjusts;
+    std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_fill_attrib_chunks;
+    std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_fill_index_chunks;
+    std::vector<int> m_fill_index_adjusts;
     fastuidraw::StrokedPath::ScratchSpace m_stroked_path_scratch;
     fastuidraw::FilledPath::ScratchSpace m_filled_path_scratch;
   };
@@ -1877,18 +1880,25 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
                                            d->m_max_attribs_per_block,
                                            d->m_max_indices_per_block,
                                            make_c_array(d->m_work_room.m_subset_selector));
+  d->m_work_room.m_fill_attrib_chunks.clear();
+  d->m_work_room.m_fill_index_chunks.clear();
+  d->m_work_room.m_fill_index_adjusts.clear();
   for(unsigned int i = 0; i < num_subsets; ++i)
     {
       unsigned int s(d->m_work_room.m_subset_selector[i]);
       FilledPath::Subset subset(filled_path.subset(s));
       const PainterAttributeData &data(subset.painter_data());
 
-      draw_generic(shader.item_shader(), draw,
-                   data.attribute_data_chunk(atr_chunk),
-                   data.index_data_chunk(idx_chunk),
-                   data.index_adjust_chunk(idx_chunk),
-                   call_back);
+      d->m_work_room.m_fill_attrib_chunks.push_back(data.attribute_data_chunk(atr_chunk));
+      d->m_work_room.m_fill_index_chunks.push_back(data.index_data_chunk(idx_chunk));
+      d->m_work_room.m_fill_index_adjusts.push_back(data.index_adjust_chunk(idx_chunk));
     }
+
+  draw_generic(shader.item_shader(), draw,
+               fastuidraw::make_c_array(d->m_work_room.m_fill_attrib_chunks),
+               fastuidraw::make_c_array(d->m_work_room.m_fill_index_chunks),
+               fastuidraw::make_c_array(d->m_work_room.m_fill_index_adjusts),
+               call_back);
 
   /* TODO: draw aa-fuzz if with_anti_aliasing is true.
    */
