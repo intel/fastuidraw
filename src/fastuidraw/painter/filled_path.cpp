@@ -254,10 +254,11 @@ namespace
     winding(int v) const
     {
       assert(v == 0 || v == 1);
-      assert(m_count > 0);
-      return (v == 1 && m_count == 0) ?
-        m_winding[0]:
-        m_winding[v];
+      assert(0 <= m_count && m_count <= 2);
+      v = fastuidraw::t_min(m_count - 1, v);
+      return (v >= 0) ?
+        m_winding[v] :
+        0;
     }
 
     int
@@ -271,6 +272,85 @@ namespace
     fastuidraw::vecN<int, 2> m_winding;
     fastuidraw::vecN<unsigned int, 2> m_opposite;
     int m_count;
+  };
+
+  class AAEdgeListCounter:fastuidraw::noncopyable
+  {
+  public:
+    AAEdgeListCounter(void):
+      m_largest_edge_count(0)
+    {}
+
+    void
+    add_edge(const AAEdge &edge)
+    {
+      int w0, w1;
+      unsigned int K;
+
+      w0 = edge.winding(0);
+      w1 = edge.winding(1);
+      K = fastuidraw::FilledPath::Subset::chunk_for_aa_fuzz(w0, w1);
+      if(K >= m_edge_count.size())
+        {
+          m_edge_count.resize(K + 1, 0);
+        }
+      ++m_edge_count[K];
+      m_largest_edge_count = fastuidraw::t_max(m_largest_edge_count, m_edge_count[K]);
+    }
+
+    void
+    add_counts(const AAEdgeListCounter &obj)
+    {
+      if(obj.m_edge_count.size() > m_edge_count.size())
+        {
+          m_edge_count.resize(obj.m_edge_count.size(), 0);
+        }
+
+      for(unsigned int i = 0, endi = obj.m_edge_count.size(); i < endi; ++i)
+        {
+          m_edge_count[i] += obj.m_edge_count[i];
+          m_largest_edge_count = fastuidraw::t_max(m_largest_edge_count, m_edge_count[i]);
+        }
+    }
+
+    unsigned int
+    edge_count(unsigned int chunk) const
+    {
+      return (chunk < m_edge_count.size()) ?
+        m_edge_count[chunk] :
+        0;
+    }
+
+    unsigned int
+    largest_edge_count(void) const
+    {
+      return m_largest_edge_count;
+    }
+
+  private:
+    unsigned int m_largest_edge_count;
+    std::vector<unsigned int> m_edge_count;
+  };
+
+  class AAEdgeList
+  {
+  public:
+    explicit
+    AAEdgeList(AAEdgeListCounter *counter,
+               std::vector<AAEdge> *list):
+      m_counter(*counter),
+      m_list(*list)
+    {}
+
+    void
+    add_edge(const AAEdge &edge)
+    {
+      m_list.push_back(edge);
+      m_counter.add_edge(edge);
+    }
+  private:
+    AAEdgeListCounter &m_counter;
+    std::vector<AAEdge> &m_list;
   };
 
   class BoundaryEdgeTracker:fastuidraw::noncopyable
@@ -298,7 +378,7 @@ namespace
                     unsigned int v0, unsigned int v1, unsigned int v2);
 
     void
-    create_aa_edges(std::vector<AAEdge> &out_aa_edges);
+    create_aa_edges(AAEdgeList &out_aa_edges);
 
   private:
     void
@@ -1045,6 +1125,7 @@ namespace
     /*
      */
     fastuidraw::PainterAttributeData *m_fuzz_painter_data;
+    AAEdgeListCounter m_aa_edge_list_counter;
 
     bool m_sizes_ready;
     unsigned int m_num_attributes;
@@ -1191,7 +1272,7 @@ record_triangle(int w, uint64_t area,
 
 void
 BoundaryEdgeTracker::
-create_aa_edges(std::vector<AAEdge> &out_aa_edges)
+create_aa_edges(AAEdgeList &out_aa_edges)
 {
   /* basic idea: take the first two elements
      with the biggest area.
@@ -1215,14 +1296,14 @@ create_aa_edges(std::vector<AAEdge> &out_aa_edges)
             {
               aa_edge.add_entry(entries[1]);
             }
-          out_aa_edges.push_back(aa_edge);
+          out_aa_edges.add_edge(aa_edge);
         }
     }
 
   for(unsigned int i = 0, endi = m_path_bb_edges.size(); i < endi; ++i)
     {
       AAEdge aa_edge(m_path_bb_edges[i]);
-      out_aa_edges.push_back(aa_edge);
+      out_aa_edges.add_edge(aa_edge);
     }
 }
 
@@ -2567,7 +2648,7 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
                             unsigned int max_index_cnt,
                             unsigned int &current)
 {
-  if(!m_sizes_ready && m_children[0] == NULL)
+  if(!m_sizes_ready && m_children[0] == NULL && m_sub_path != NULL)
     {
       /* we are going to need the attributes because
          the element will be selected.
@@ -2576,7 +2657,11 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
       assert(m_painter_data != NULL);
     }
 
-  if(m_sizes_ready && m_num_attributes <= max_attribute_cnt && m_largest_index_block <= max_index_cnt)
+  if(m_sizes_ready
+     && m_num_attributes <= max_attribute_cnt
+     && m_largest_index_block <= max_index_cnt
+     && 4 * m_aa_edge_list_counter.largest_edge_count() <= max_attribute_cnt
+     && 6 * m_aa_edge_list_counter.largest_edge_count() <= max_index_cnt)
     {
       dst[current] = m_ID;
       ++current;
@@ -2591,7 +2676,13 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
           assert(m_children[0]->m_sizes_ready);
           assert(m_children[1]->m_sizes_ready);
           m_num_attributes = m_children[0]->m_num_attributes + m_children[1]->m_num_attributes;
+          /* TODO: the actual value for m_largest_index_block might be smaller;
+             this happens if the largest index block of m_children[0] and m_children[1]
+             come from different index sets.
+          */
           m_largest_index_block = m_children[0]->m_largest_index_block + m_children[1]->m_largest_index_block;
+          m_aa_edge_list_counter.add_counts(m_children[0]->m_aa_edge_list_counter);
+          m_aa_edge_list_counter.add_counts(m_children[1]->m_aa_edge_list_counter);
         }
     }
   else
@@ -2653,7 +2744,13 @@ make_ready_from_children(void)
       assert(m_children[0]->m_sizes_ready);
       assert(m_children[1]->m_sizes_ready);
       m_num_attributes = m_children[0]->m_num_attributes + m_children[1]->m_num_attributes;
+      /* TODO: the actual value for m_largest_index_block might be smaller;
+         this happens if the largest index block of m_children[0] and m_children[1]
+         come from different index sets.
+       */
       m_largest_index_block = m_children[0]->m_largest_index_block + m_children[1]->m_largest_index_block;
+      m_aa_edge_list_counter.add_counts(m_children[0]->m_aa_edge_list_counter);
+      m_aa_edge_list_counter.add_counts(m_children[1]->m_aa_edge_list_counter);
     }
 
   m_fuzz_painter_data = FASTUIDRAWnew fastuidraw::PainterAttributeData();
@@ -2675,6 +2772,7 @@ make_ready_from_sub_path(void)
 
   AttributeDataFiller filler;
   std::vector<AAEdge> aa_edges;
+  AAEdgeList edge_list(&m_aa_edge_list_counter, &aa_edges);
   BoundaryEdgeTracker tr(&filler.m_points);
   builder B(*m_sub_path, filler.m_points,
             m_have_prev_neighbor, m_have_next_neighbor,
@@ -2683,7 +2781,7 @@ make_ready_from_sub_path(void)
   unsigned int m1, m2;
 
   B.fill_indices(filler.m_indices, filler.m_per_fill, even_non_zero_start, zero_start);
-  tr.create_aa_edges(aa_edges);
+  tr.create_aa_edges(edge_list);
 
   fastuidraw::const_c_array<unsigned int> indices_ptr;
   indices_ptr = fastuidraw::make_c_array(filler.m_indices);
@@ -2714,6 +2812,8 @@ make_ready_from_sub_path(void)
   m_painter_data = FASTUIDRAWnew fastuidraw::PainterAttributeData();
   m_painter_data->set_data(filler);
 
+  /* fill m_fuzz_painter_data
+   */
   EdgeAttributeDataFiller edge_filler(m_winding_numbers.front(),
                                       m_winding_numbers.back(),
                                       &filler.m_points,
