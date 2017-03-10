@@ -58,10 +58,9 @@ public:
   {
   public:
     /*!
-      Returns the PainterAttributeData for the Subset
-      Returns the PainterAttributeData for the portion of the
-      FilledPath the Subset represents. The attribute data is
-      packed as follows:
+      Returns the PainterAttributeData to draw the triangles
+      for the portion of the FilledPath the Subset represents.
+      The attribute data is packed as follows:
       - PainterAttribute::m_attrib0 .xy -> position of point in local coordinate (float)
       - PainterAttribute::m_attrib0 .zw -> 0 (free)
       - PainterAttribute::m_attrib1 .xyzw -> 0 (free)
@@ -69,6 +68,21 @@ public:
      */
     const PainterAttributeData&
     painter_data(void) const;
+
+    /*!
+      Returns the PainterAttributeData to draw the anti-alias fuzz
+      for the portion of the FilledPath the Subset represents.
+      The aa-fuzz is drawn as a quad (of two triangles) per edge
+      of the boudnary of a filled component.
+      The attribute data is packed as follows:
+      - PainterAttribute::m_attrib0 .xy -> position of point in local coordinate (float)
+      - PainterAttribute::m_attrib0 .zw -> normal vector to edge
+      - PainterAttribute::m_attrib1 .x  -> boundary value, either -1 or 1
+      - PainterAttribute::m_attrib1 .yzw  -> 0 (free)
+      - PainterAttribute::m_attrib2 .xyzw -> 0 (free)
+     */
+    const PainterAttributeData&
+    aa_fuzz_painter_data(void) const;
 
     /*!
       Returns an array listing what winding number values
@@ -79,6 +93,18 @@ public:
     */
     const_c_array<int>
     winding_numbers(void) const;
+
+    /*!
+      For each entry is winding_numbers(), returns a list
+      of winding numbers (sorted) of those filled components
+      that have edges in common with a given filled
+      component, i.e. if one wishes to know what filled
+      components share an edge with winding number
+      w, that is given by the list winding_neighbors(w).
+      \param w winding number to query
+     */
+    const_c_array<int>
+    winding_neighbors(int w) const;
 
     /*!
       Returns what chunk to pass PainterAttributeData::index_chunks()

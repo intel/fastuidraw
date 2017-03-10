@@ -118,6 +118,28 @@ namespace CoordinateConverterConstants
 
 namespace
 {
+  unsigned int
+  signed_to_unsigned(int w)
+  {
+    int v, s, r;
+
+    v = fastuidraw::t_abs(w);
+    s = (w < 0) ? -1 : 0;
+    r = 2 * v + s;
+
+    assert(r >= 0);
+    return r;
+  }
+
+  unsigned int
+  unique_combine(unsigned int a0, unsigned int a1)
+  {
+    int64_t w0, w1;
+    w0 = fastuidraw::t_min(a0, a1);
+    w1 = fastuidraw::t_max(a0, a1);
+    return w0 + (w1 * (w1 + 1)) / 2;
+  }
+
   class Edge:public fastuidraw::uvec2
   {
   public:
@@ -347,10 +369,38 @@ namespace
     {
       m_list.push_back(edge);
       m_counter.add_edge(edge);
+
+      int w0, w1;
+      w0 = edge.winding(0);
+      w1 = edge.winding(1);
+      m_neighbor_map[w0].insert(w1);
+      m_neighbor_map[w1].insert(w0);
     }
+
+    void
+    fill_neighbor_list(std::vector<std::vector<int> > *out) const
+    {
+      for(std::map<int, std::set<int> >::const_iterator iter = m_neighbor_map.begin(),
+            end = m_neighbor_map.end(); iter != end; ++iter)
+        {
+          int w(iter->first);
+          unsigned int c;
+
+          c = signed_to_unsigned(w);
+          if(out->size() <= c)
+            {
+              out->resize(c + 1);
+            }
+
+          (*out)[c].resize(iter->second.size());
+          std::copy(iter->second.begin(), iter->second.end(), (*out)[c].begin());
+        }
+    }
+
   private:
     AAEdgeListCounter &m_counter;
     std::vector<AAEdge> &m_list;
+    std::map<int, std::set<int> > m_neighbor_map;
   };
 
   class BoundaryEdgeTracker:fastuidraw::noncopyable
@@ -1031,6 +1081,18 @@ namespace
       return fastuidraw::make_c_array(m_winding_numbers);
     }
 
+    fastuidraw::const_c_array<int>
+    winding_neighbors(int w) const
+    {
+      unsigned int i;
+
+      assert(m_fuzz_painter_data != NULL);
+      i = signed_to_unsigned(w);
+      return (i < m_winding_neighbors.size()) ?
+        fastuidraw::make_c_array(m_winding_neighbors[i]) :
+        fastuidraw::const_c_array<int>();
+    }
+
     const fastuidraw::PainterAttributeData&
     painter_data(void)
     {
@@ -1048,30 +1110,6 @@ namespace
     static
     SubsetPrivate*
     create_root_subset(SubPath *P, std::vector<SubsetPrivate*> &out_values);
-
-    static
-    unsigned int
-    signed_to_unsigned(int w)
-    {
-      int v, s, r;
-
-      v = fastuidraw::t_abs(w);
-      s = (w < 0) ? -1 : 0;
-      r = 2 * v + s;
-
-      assert(r >= 0);
-      return r;
-    }
-
-    static
-    unsigned int
-    unique_combine(unsigned int a0, unsigned int a1)
-    {
-      int64_t w0, w1;
-      w0 = fastuidraw::t_min(a0, a1);
-      w1 = fastuidraw::t_max(a0, a1);
-      return w0 + (w1 * (w1 + 1)) / 2;
-    }
 
   private:
 
@@ -1100,6 +1138,12 @@ namespace
     void
     assign_neighbor_values(SubsetPrivate *parent, int child_id);
 
+    static
+    void
+    merge_winding_lists(fastuidraw::const_c_array<int> inA,
+                        fastuidraw::const_c_array<int> inB,
+                        std::vector<int> *out);
+
     /* m_ID represents an index into the std::vector<>
        passed into create_hierarchy() where this element
        is found.
@@ -1122,10 +1166,9 @@ namespace
     fastuidraw::PainterAttributeData *m_painter_data;
     std::vector<int> m_winding_numbers;
 
-    /*
-     */
     fastuidraw::PainterAttributeData *m_fuzz_painter_data;
     AAEdgeListCounter m_aa_edge_list_counter;
+    std::vector<std::vector<int> > m_winding_neighbors;
 
     bool m_sizes_ready;
     unsigned int m_num_attributes;
@@ -2252,9 +2295,8 @@ compute_sizes(unsigned int &number_attributes,
 {
   unsigned int a;
 
-  a = fastuidraw::t_max(SubsetPrivate::signed_to_unsigned(m_min_winding),
-                        SubsetPrivate::signed_to_unsigned(m_max_winding));
-  number_attribute_chunks = number_index_chunks = 1 + SubsetPrivate::unique_combine(a, a);
+  a = fastuidraw::t_max(signed_to_unsigned(m_min_winding), signed_to_unsigned(m_max_winding));
+  number_attribute_chunks = number_index_chunks = 1 + unique_combine(a, a);
 
   /* each edge is 4 attributes and 6 indices
    */
@@ -2285,15 +2327,8 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
       int w0, w1;
       unsigned int ch;
 
-      if(iter->count() > 0)
-        {
-          w0 = iter->winding(0);
-          w1 = iter->winding(1);
-        }
-      else
-        {
-          w0 = w1 = 0;
-        }
+      w0 = iter->winding(0);
+      w1 = iter->winding(1);
       ch = fastuidraw::FilledPath::Subset::chunk_for_aa_fuzz(w0, w1);
       assert(ch < tmp.size());
       tmp[ch]++;
@@ -2318,15 +2353,8 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
       fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attrib;
       fastuidraw::c_array<fastuidraw::PainterIndex> dst_index;
 
-      if(iter->count() > 0)
-        {
-          w0 = iter->winding(0);
-          w1 = iter->winding(1);
-        }
-      else
-        {
-          w0 = w1 = 0;
-        }
+      w0 = iter->winding(0);
+      w1 = iter->winding(1);
       ch = fastuidraw::FilledPath::Subset::chunk_for_aa_fuzz(w0, w1);
 
       dst_attrib = attrib_chunks[ch].sub_array(4 * tmp[ch], 4).const_cast_pointer();
@@ -2338,8 +2366,8 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
       dst_index[1] = 4 * tmp[ch] + 1;
       dst_index[2] = 4 * tmp[ch] + 2;
       dst_index[3] = 4 * tmp[ch] + 1;
-      dst_index[4] = 4 * tmp[ch] + 2;
-      dst_index[5] = 4 * tmp[ch] + 3;
+      dst_index[4] = 4 * tmp[ch] + 3;
+      dst_index[5] = 4 * tmp[ch] + 2;
       ++tmp[ch];
     }
 }
@@ -2350,9 +2378,30 @@ EdgeAttributeDataFiller::
 pack_attribute(const Edge &edge,
                fastuidraw::c_array<fastuidraw::PainterAttribute> dst) const
 {
+  fastuidraw::vec2 tangent, normal;
+
   assert(dst.size() == 4);
   assert(edge[0] < m_pts.size());
   assert(edge[1] < m_pts.size());
+
+  tangent = m_pts[edge[1]] - m_pts[edge[0]];
+  normal = fastuidraw::vec2(-tangent.y(), tangent.x());
+
+  for(unsigned int k = 0; k < 2; ++k)
+    {
+      fastuidraw::vec2 position, pre_offset;
+
+      position = m_pts[edge[k]];
+      dst[k + 0].m_attrib0 = fastuidraw::pack_vec4(position.x(), position.y(),
+                                                   normal.x(), normal.y());
+      dst[k + 0].m_attrib1 = fastuidraw::pack_vec4(1.0f, 0.0f, 0.0f, 0.0f);
+      dst[k + 0].m_attrib2 = fastuidraw::uvec4(0, 0, 0, 0);
+
+      dst[k + 1].m_attrib0 = fastuidraw::pack_vec4(position.x(), position.y(),
+                                                   -normal.x(), -normal.y());
+      dst[k + 1].m_attrib1 = fastuidraw::pack_vec4(-1.0f, 0.0f, 0.0f, 0.0f);
+      dst[k + 1].m_attrib2 = fastuidraw::uvec4(0, 0, 0, 0);
+    }
 }
 
 ////////////////////////////////////
@@ -2709,6 +2758,20 @@ make_ready(void)
     }
 }
 
+
+void
+SubsetPrivate::
+merge_winding_lists(fastuidraw::const_c_array<int> inA,
+                    fastuidraw::const_c_array<int> inB,
+                    std::vector<int> *out)
+{
+  std::set<int> wnd;
+  std::copy(inA.begin(), inA.end(), std::inserter(wnd, wnd.begin()));
+  std::copy(inB.begin(), inB.end(), std::inserter(wnd, wnd.begin()));
+  out->resize(wnd.size());
+  std::copy(wnd.begin(), wnd.end(), out->begin());
+}
+
 void
 SubsetPrivate::
 make_ready_from_children(void)
@@ -2724,19 +2787,31 @@ make_ready_from_children(void)
   AttributeDataMerger merger(m_children[0]->painter_data(),
                              m_children[1]->painter_data(),
                              true);
-  std::set<int> wnd;
 
   m_painter_data = FASTUIDRAWnew fastuidraw::PainterAttributeData();
   m_painter_data->set_data(merger);
 
-  std::copy(m_children[0]->winding_numbers().begin(),
-            m_children[0]->winding_numbers().end(),
-            std::inserter(wnd, wnd.begin()));
-  std::copy(m_children[1]->winding_numbers().begin(),
-            m_children[1]->winding_numbers().end(),
-            std::inserter(wnd, wnd.begin()));
-  m_winding_numbers.resize(wnd.size());
-  std::copy(wnd.begin(), wnd.end(), m_winding_numbers.begin());
+  merge_winding_lists(m_children[0]->winding_numbers(),
+                      m_children[1]->winding_numbers(),
+                      &m_winding_numbers);
+
+  m_winding_neighbors.resize(fastuidraw::t_max(m_children[0]->m_winding_neighbors.size(),
+                                               m_children[1]->m_winding_neighbors.size()));
+
+  for(unsigned int i = 0, endi = m_winding_neighbors.size(); i < endi; ++i)
+    {
+      fastuidraw::const_c_array<int> a, b;
+
+      if(i < m_children[0]->m_winding_neighbors.size())
+        {
+          a = fastuidraw::make_c_array(m_children[0]->m_winding_neighbors[i]);
+        }
+      if(i < m_children[1]->m_winding_neighbors.size())
+        {
+          b = fastuidraw::make_c_array(m_children[1]->m_winding_neighbors[i]);
+        }
+      merge_winding_lists(a, b, &m_winding_neighbors[i]);
+    }
 
   if(!m_sizes_ready)
     {
@@ -2782,6 +2857,7 @@ make_ready_from_sub_path(void)
 
   B.fill_indices(filler.m_indices, filler.m_per_fill, even_non_zero_start, zero_start);
   tr.create_aa_edges(edge_list);
+  edge_list.fill_neighbor_list(&m_winding_neighbors);
 
   fastuidraw::const_c_array<unsigned int> indices_ptr;
   indices_ptr = fastuidraw::make_c_array(filler.m_indices);
@@ -2889,6 +2965,15 @@ painter_data(void) const
   return d->painter_data();
 }
 
+const fastuidraw::PainterAttributeData&
+fastuidraw::FilledPath::Subset::
+aa_fuzz_painter_data(void) const
+{
+  SubsetPrivate *d;
+  d = static_cast<SubsetPrivate*>(m_d);
+  return d->fuzz_painter_data();
+}
+
 fastuidraw::const_c_array<int>
 fastuidraw::FilledPath::Subset::
 winding_numbers(void) const
@@ -2896,6 +2981,15 @@ winding_numbers(void) const
   SubsetPrivate *d;
   d = static_cast<SubsetPrivate*>(m_d);
   return d->winding_numbers();
+}
+
+fastuidraw::const_c_array<int>
+fastuidraw::FilledPath::Subset::
+winding_neighbors(int w) const
+{
+  SubsetPrivate *d;
+  d = static_cast<SubsetPrivate*>(m_d);
+  return d->winding_neighbors(w);
 }
 
 unsigned int
@@ -2931,9 +3025,9 @@ fastuidraw::FilledPath::Subset::
 chunk_for_aa_fuzz(int winding0, int winding1)
 {
   unsigned int w0, w1;
-  w0 = SubsetPrivate::signed_to_unsigned(winding0);
-  w1 = SubsetPrivate::signed_to_unsigned(winding1);
-  return SubsetPrivate::unique_combine(w0, w1);
+  w0 = signed_to_unsigned(winding0);
+  w1 = signed_to_unsigned(winding1);
+  return unique_combine(w0, w1);
 }
 
 ///////////////////////////////////////
