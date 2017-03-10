@@ -34,6 +34,62 @@ namespace
   class ZDataCallBack;
   class PainterPrivate;
 
+  /* A WindingSet is way to cache values from a
+     fastuidraw::CustomFillRuleBase.
+   */
+  class WindingSet:fastuidraw::noncopyable
+  {
+  public:
+    WindingSet(void):
+      m_min_value(1),
+      m_max_value(0)
+    {}
+
+    bool
+    operator()(int V) const
+    {
+      return m_values[compute_index(V)] != 0;
+    }
+
+    void
+    clear(void)
+    {
+      m_values.clear();
+    }
+
+    void
+    fill(int min_value, int max_value,
+         const fastuidraw::CustomFillRuleBase &fill_rule)
+    {
+      m_values.clear();
+      m_min_value = min_value;
+      m_max_value = max_value;
+      m_values.resize(fastuidraw::t_max(1 + m_max_value - m_min_value, 0), 0);
+      for(int w = min_value; w <= max_value; ++w)
+        {
+          m_values[compute_index(w)] = fill_rule(w) ? 1u : 0u;
+        }
+    }
+
+  private:
+    unsigned int
+    compute_index(int v) const
+    {
+      assert(v >= m_min_value && v <= m_max_value);
+      return v - m_min_value;
+    }
+
+    /* NOTE:
+        we use an array of uint32_t's that although takes
+        more storage, has faster element access (because
+        to access an element does not require any bit-logic)
+        and a winding_set is used as a cache for output to
+        a custom fill rule.
+     */
+    int m_min_value, m_max_value;
+    std::vector<uint32_t> m_values;
+  };
+
   class change_header_z
   {
   public:
@@ -532,16 +588,12 @@ namespace
   class PainterWorkRoom
   {
   public:
-    std::vector<unsigned int> m_selector, m_subset_selector;
-    std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_index_chunks;
-    std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_attrib_chunks;
-    std::vector<int> m_index_adjusts;
     std::vector<fastuidraw::vec2> m_pts_draw_convex_polygon;
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_pts_update_clip_series;
     std::vector<float> m_clipper_floats;
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_clipper_vec2s;
-    std::vector<fastuidraw::PainterIndex> m_indices;
-    std::vector<fastuidraw::PainterAttribute> m_attribs;
+    std::vector<fastuidraw::PainterIndex> m_polygon_indices;
+    std::vector<fastuidraw::PainterAttribute> m_polygon_attribs;
     std::vector<unsigned int> m_edge_chunks;
     std::vector<unsigned int> m_stroke_dashed_join_chunks;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_stroke_attrib_chunks;
@@ -550,6 +602,8 @@ namespace
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_fill_attrib_chunks;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_fill_index_chunks;
     std::vector<int> m_fill_index_adjusts;
+    std::vector<unsigned int> m_fill_selector, m_fill_subset_selector;
+    WindingSet m_fill_ws;
     fastuidraw::StrokedPath::ScratchSpace m_stroked_path_scratch;
     fastuidraw::FilledPath::ScratchSpace m_filled_path_scratch;
   };
@@ -1332,25 +1386,25 @@ draw_convex_polygon(const PainterFillShader &shader,
         }
     }
 
-  d->m_work_room.m_attribs.resize(pts.size());
+  d->m_work_room.m_polygon_attribs.resize(pts.size());
   for(unsigned int i = 0; i < pts.size(); ++i)
     {
-      d->m_work_room.m_attribs[i].m_attrib0 = fastuidraw::pack_vec4(pts[i].x(), pts[i].y(), 0.0f, 0.0f);
-      d->m_work_room.m_attribs[i].m_attrib1 = uvec4(0u, 0u, 0u, 0u);
-      d->m_work_room.m_attribs[i].m_attrib2 = uvec4(0u, 0u, 0u, 0u);
+      d->m_work_room.m_polygon_attribs[i].m_attrib0 = fastuidraw::pack_vec4(pts[i].x(), pts[i].y(), 0.0f, 0.0f);
+      d->m_work_room.m_polygon_attribs[i].m_attrib1 = uvec4(0u, 0u, 0u, 0u);
+      d->m_work_room.m_polygon_attribs[i].m_attrib2 = uvec4(0u, 0u, 0u, 0u);
     }
 
-  d->m_work_room.m_indices.clear();
-  d->m_work_room.m_indices.reserve((pts.size() - 2) * 3);
+  d->m_work_room.m_polygon_indices.clear();
+  d->m_work_room.m_polygon_indices.reserve((pts.size() - 2) * 3);
   for(unsigned int i = 2; i < pts.size(); ++i)
     {
-      d->m_work_room.m_indices.push_back(0);
-      d->m_work_room.m_indices.push_back(i - 1);
-      d->m_work_room.m_indices.push_back(i);
+      d->m_work_room.m_polygon_indices.push_back(0);
+      d->m_work_room.m_polygon_indices.push_back(i - 1);
+      d->m_work_room.m_polygon_indices.push_back(i);
     }
   draw_generic(shader.item_shader(), draw,
-               make_c_array(d->m_work_room.m_attribs),
-               make_c_array(d->m_work_room.m_indices),
+               make_c_array(d->m_work_room.m_polygon_attribs),
+               make_c_array(d->m_work_room.m_polygon_indices),
                0,
                call_back);
 
@@ -1873,19 +1927,19 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
   idx_chunk = FilledPath::Subset::chunk_from_fill_rule(fill_rule);
   atr_chunk = 0;
 
-  d->m_work_room.m_subset_selector.resize(filled_path.number_subsets());
+  d->m_work_room.m_fill_subset_selector.resize(filled_path.number_subsets());
   num_subsets = filled_path.select_subsets(d->m_work_room.m_filled_path_scratch,
                                            d->m_clip_store.current(),
                                            d->m_clip_rect_state.item_matrix(),
                                            d->m_max_attribs_per_block,
                                            d->m_max_indices_per_block,
-                                           make_c_array(d->m_work_room.m_subset_selector));
+                                           make_c_array(d->m_work_room.m_fill_subset_selector));
   d->m_work_room.m_fill_attrib_chunks.clear();
   d->m_work_room.m_fill_index_chunks.clear();
   d->m_work_room.m_fill_index_adjusts.clear();
   for(unsigned int i = 0; i < num_subsets; ++i)
     {
-      unsigned int s(d->m_work_room.m_subset_selector[i]);
+      unsigned int s(d->m_work_room.m_fill_subset_selector[i]);
       FilledPath::Subset subset(filled_path.subset(s));
       const PainterAttributeData &data(subset.painter_data());
 
@@ -1947,22 +2001,51 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       return;
     }
 
-  d->m_work_room.m_subset_selector.resize(filled_path.number_subsets());
+  d->m_work_room.m_fill_subset_selector.resize(filled_path.number_subsets());
   num_subsets = filled_path.select_subsets(d->m_work_room.m_filled_path_scratch,
                                            d->m_clip_store.current(),
                                            d->m_clip_rect_state.item_matrix(),
                                            d->m_max_attribs_per_block,
                                            d->m_max_indices_per_block,
-                                           make_c_array(d->m_work_room.m_subset_selector));
+                                           make_c_array(d->m_work_room.m_fill_subset_selector));
 
-  d->m_work_room.m_attrib_chunks.clear();
-  d->m_work_room.m_index_chunks.clear();
-  d->m_work_room.m_index_adjusts.clear();
-  d->m_work_room.m_selector.clear();
+  if(num_subsets == 0)
+    {
+      return;
+    }
+
+  int max_winding, min_winding;
+  for(unsigned int i = 0; i < num_subsets; ++i)
+    {
+      unsigned int s(d->m_work_room.m_fill_subset_selector[i]);
+      FilledPath::Subset subset(filled_path.subset(s));
+      int m, M;
+
+      m = subset.winding_numbers().front();
+      M = subset.winding_numbers().back();
+      if(i == 0)
+        {
+          min_winding = m;
+          max_winding = M;
+        }
+      else
+        {
+          min_winding = fastuidraw::t_min(min_winding, m);
+          max_winding = fastuidraw::t_max(max_winding, M);
+        }
+    }
+
+  d->m_work_room.m_fill_ws.clear();
+  d->m_work_room.m_fill_ws.fill(min_winding, max_winding, fill_rule);
+
+  d->m_work_room.m_fill_attrib_chunks.clear();
+  d->m_work_room.m_fill_index_chunks.clear();
+  d->m_work_room.m_fill_index_adjusts.clear();
+  d->m_work_room.m_fill_selector.clear();
 
   for(unsigned int i = 0; i < num_subsets; ++i)
     {
-      unsigned int s(d->m_work_room.m_subset_selector[i]);
+      unsigned int s(d->m_work_room.m_fill_subset_selector[i]);
       FilledPath::Subset subset(filled_path.subset(s));
       const PainterAttributeData &data(subset.painter_data());
       const_c_array<fastuidraw::PainterAttribute> attrib_chunk;
@@ -1970,7 +2053,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       bool added_chunk;
 
       added_chunk = false;
-      attrib_selector_value = d->m_work_room.m_attrib_chunks.size();
+      attrib_selector_value = d->m_work_room.m_fill_attrib_chunks.size();
 
       for(const_c_array<int>::iterator iter = subset.winding_numbers().begin(),
             end = subset.winding_numbers().end(); iter != end; ++iter)
@@ -1981,11 +2064,11 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
 
           chunk = FilledPath::Subset::chunk_from_winding_number(winding_number);
           index_chunk = data.index_data_chunk(chunk);
-          if(!index_chunk.empty() && fill_rule(winding_number))
+          if(!index_chunk.empty() && d->m_work_room.m_fill_ws(winding_number))
             {
-              d->m_work_room.m_selector.push_back(attrib_selector_value);
-              d->m_work_room.m_index_chunks.push_back(index_chunk);
-              d->m_work_room.m_index_adjusts.push_back(data.index_adjust_chunk(chunk));
+              d->m_work_room.m_fill_selector.push_back(attrib_selector_value);
+              d->m_work_room.m_fill_index_chunks.push_back(index_chunk);
+              d->m_work_room.m_fill_index_adjusts.push_back(data.index_adjust_chunk(chunk));
               added_chunk = true;
             }
         }
@@ -1993,17 +2076,17 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       if(added_chunk)
         {
           attrib_chunk = data.attribute_data_chunk(0);
-          d->m_work_room.m_attrib_chunks.push_back(attrib_chunk);
+          d->m_work_room.m_fill_attrib_chunks.push_back(attrib_chunk);
         }
     }
 
-  if(!d->m_work_room.m_index_chunks.empty())
+  if(!d->m_work_room.m_fill_index_chunks.empty())
     {
       draw_generic(shader.item_shader(), draw,
-                   make_c_array(d->m_work_room.m_attrib_chunks),
-                   make_c_array(d->m_work_room.m_index_chunks),
-                   make_c_array(d->m_work_room.m_index_adjusts),
-                   make_c_array(d->m_work_room.m_selector),
+                   make_c_array(d->m_work_room.m_fill_attrib_chunks),
+                   make_c_array(d->m_work_room.m_fill_index_chunks),
+                   make_c_array(d->m_work_room.m_fill_index_adjusts),
+                   make_c_array(d->m_work_room.m_fill_selector),
                    call_back);
     }
 
