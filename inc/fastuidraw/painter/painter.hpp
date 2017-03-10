@@ -616,12 +616,14 @@ namespace fastuidraw
       \param draw data for how to draw
       \param data attribute and index data with which to fill a path
       \param fill_rule fill rule with which to fill the path
+      \param with_anti_aliasing if true, fill the path with anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const FilledPath &data, enum PainterEnums::fill_rule_t fill_rule,
+              bool with_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -630,12 +632,14 @@ namespace fastuidraw
       \param draw data for how to draw
       \param path to fill
       \param fill_rule fill rule with which to fill the path
+      \param with_anti_aliasing if true, fill the path with anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const Path &path, enum PainterEnums::fill_rule_t fill_rule,
+              bool with_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -643,11 +647,13 @@ namespace fastuidraw
       \param draw data for how to draw
       \param path path to fill
       \param fill_rule fill rule with which to fill the path
+      \param with_anti_aliasing if true, fill the path with anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
     fill_path(const PainterData &draw, const Path &path, enum PainterEnums::fill_rule_t fill_rule,
+              bool with_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -656,12 +662,14 @@ namespace fastuidraw
       \param draw data for how to draw
       \param data attribute and index data with which to fill a path
       \param fill_rule custom fill rule with which to fill the path
+      \param with_anti_aliasing if true, fill the path with anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const FilledPath &data, const CustomFillRuleBase &fill_rule,
+              bool with_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -670,12 +678,14 @@ namespace fastuidraw
       \param draw data for how to draw
       \param path to fill
       \param fill_rule custom fill rule with which to fill the path
+      \param with_anti_aliasing if true, fill the path with anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const Path &path, const CustomFillRuleBase &fill_rule,
+              bool with_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -683,27 +693,28 @@ namespace fastuidraw
       \param draw data for how to draw
       \param path path to fill
       \param fill_rule custom fill rule with which to fill the path
+      \param with_anti_aliasing if true, fill the path with anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
     fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
+              bool with_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
       Draw a convex polygon using a custom shader.
+      \param shader shader with which to draw the convex polygon
       \param draw data for how to draw
       \param pts points of the polygon so that neighboring points (modulo pts.size())
                  are the edges of the polygon.
-      \param shader shader with which to draw the convex polygon. The shader must
-                    accept the exact same format as packed by
-                    PainterAttributeDataFillerPathFill
+      \param with_anti_aliasing if true, fill the path with anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
-    draw_convex_polygon(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
-                        const_c_array<vec2> pts,
+    draw_convex_polygon(const PainterFillShader &shader, const PainterData &draw,
+                        const_c_array<vec2> pts, bool with_anti_aliasing,
                         const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -711,29 +722,30 @@ namespace fastuidraw
       \param draw data for how to draw
       \param pts points of the polygon so that neighboring points (modulo pts.size())
                  are the edges of the polygon.
+      \param with_anti_aliasing if true, fill the path with anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
-    draw_convex_polygon(const PainterData &draw, const_c_array<vec2> pts,
+    draw_convex_polygon(const PainterData &draw, const_c_array<vec2> pts, bool with_anti_aliasing,
                         const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
-      Draw a quad using a custom shader.
+      Draw a convex quad using a custom shader.
+      \param shader shader with which to draw the quad
       \param draw data for how to draw
       \param p0 first point of quad, shares an edge with p3
       \param p1 point after p0, shares an edge with p0
       \param p2 point after p1, shares an edge with p1
       \param p3 point after p2, shares an edge with p2
-      \param shader shader with which to draw the convex polygon. The shader must
-                    accept the exact same format as packed by
-                    PainterAttributeDataFillerPathFill
+      \param with_anti_aliasing if true, fill the path with anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
-    draw_quad(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
+    draw_quad(const PainterFillShader &shader, const PainterData &draw,
               const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
+              bool with_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -743,29 +755,29 @@ namespace fastuidraw
       \param p1 point after p0, shares an edge with p0
       \param p2 point after p1, shares an edge with p1
       \param p3 point after p2, shares an edge with p2
-      \param call_back handle to PainterPacker::DataCallBack for the draw
+      \param with_anti_aliasing if true, fill the path with anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
     draw_quad(const PainterData &draw,
               const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
+              bool with_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
       Draw a rect using a custom shader.
+      \param shader shader with which to draw the quad
       \param draw data for how to draw
       \param p min-corner of rect
       \param wh width and height of rect
-      \param shader shader with which to draw the convex polygon. The shader must
-                    accept the exact same format as packed by
-                    PainterAttributeDataFillerPathFill
+      \param with_anti_aliasing if true, fill the path with anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
-    draw_rect(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
-              const vec2 &p, const vec2 &wh,
+    draw_rect(const PainterFillShader &shader, const PainterData &draw,
+              const vec2 &p, const vec2 &wh, bool with_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -773,20 +785,20 @@ namespace fastuidraw
       \param draw data for how to draw
       \param p min-corner of rect
       \param wh width and height of rect
+      \param with_anti_aliasing if true, fill the path with anti-aliasing
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
     void
-    draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
+    draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh, bool with_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
       Draw generic attribute data.
+      \param shader shader with which to draw data
       \param draw data for how to draw
       \param attrib_chunk attribute data to draw
       \param index_chunk indx data into attrib_chunk
-      \param shader shader with which to draw data
-      \param index_adjust amount by which to adjust the index values
       \param call_back handle to PainterPacker::DataCallBack for the draw
      */
     void
@@ -808,8 +820,6 @@ namespace fastuidraw
       \param draw data for how to draw
       \param attrib_chunks attribute data to draw
       \param index_chunks the i'th element is index data into attrib_chunks[i]
-      \param index_adjusts the i'th value is the amount by which to adjust the
-                           index values if index_chunks[i]
       \param shader shader with which to draw data
       \param call_back handle to PainterPacker::DataCallBack for the draw
      */
@@ -823,15 +833,13 @@ namespace fastuidraw
 
     /*!
       Draw generic attribute data
+      \param shader shader with which to draw data
       \param draw data for how to draw
       \param attrib_chunks attribute data to draw
-      \param attrib_chunk_selector selects which attribute chunk to use for
-             each index chunk
       \param index_chunks the i'th element is index data into attrib_chunks[K]
                           where K = attrib_chunk_selector[i]
-      \param index_adjusts the i'th value is the amount by which to adjust the
-                           index values if index_chunks[i]
-      \param shader shader with which to draw data
+      \param attrib_chunk_selector selects which attribute chunk to use for
+             each index chunk
       \param call_back if non-NULL handle, call back called when attribute data
                        is added.
      */
@@ -842,6 +850,20 @@ namespace fastuidraw
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
                  const_c_array<int> index_adjusts,
                  const_c_array<unsigned int> attrib_chunk_selector,
+                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
+
+    /*!
+      Draw generic attribute data
+      \param shader shader with which to draw data
+      \param draw data for how to draw
+      \param src DrawWriter to use to write attribute and index data
+      \param call_back if non-NULL handle, call back called when attribute data
+                       is added.
+     */
+    void
+    draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
+                 const PainterData &draw,
+                 const PainterPacker::DataWriter &src,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!

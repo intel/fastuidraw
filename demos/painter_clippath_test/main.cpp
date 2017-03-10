@@ -233,7 +233,7 @@ draw_element(const Path &path, unsigned int clip_mode, const vec4 &pen_color,
   p1 = path.tessellation()->bounding_box_max();
   sz = p1 - p0;
 
-  m_painter->draw_rect(PainterData(&brush), p0 - 0.5f * sz, 2.0f * sz);
+  m_painter->draw_rect(PainterData(&brush), p0 - 0.5f * sz, 2.0f * sz, false);
 
   m_painter->restore();
 }

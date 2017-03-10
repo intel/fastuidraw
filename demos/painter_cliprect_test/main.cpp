@@ -66,7 +66,7 @@ draw_scene(bool with_clipping)
    */
   PainterBrush brush;
   brush.pen(0.0f, 1.0f, 0.0f, 0.5f);
-  m_painter->draw_rect(PainterData(&brush), vec2(0.0f, 0.0f), vec2(wh.x(), wh.y()));
+  m_painter->draw_rect(PainterData(&brush), vec2(0.0f, 0.0f), vec2(wh.x(), wh.y()), false);
 
   /* draw half size.
    */
@@ -102,7 +102,7 @@ draw_scene(bool with_clipping)
   /* draw a blue quad
    */
   brush.pen(0.0f, 0.0f, 1.0f, 0.5f);
-  m_painter->draw_rect(PainterData(&brush), vec2(wh) * 0.0f, vec2(wh) * 0.5f);
+  m_painter->draw_rect(PainterData(&brush), vec2(wh) * 0.0f, vec2(wh) * 0.5f, false);
 
   /* rotate by 30 degrees
    */
@@ -111,7 +111,7 @@ draw_scene(bool with_clipping)
   m_painter->translate(vec2(wh) * r);
   m_painter->rotate(30.0f * float(M_PI) / 180.0f);
   brush.pen(1.0f, 1.0f, 1.0f, 0.5f);
-  m_painter->draw_rect(PainterData(&brush), vec2(wh) * r * 0.25f, vec2(wh));
+  m_painter->draw_rect(PainterData(&brush), vec2(wh) * r * 0.25f, vec2(wh), false);
 }
 
 void
