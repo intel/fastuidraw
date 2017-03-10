@@ -413,12 +413,6 @@ namespace
     {}
 
     void
-    record_path_bb_edge(unsigned int v0, unsigned int v1)
-    {
-      m_path_bb_edges.push_back(Edge(v0, v1));
-    }
-
-    void
     record_contour_edge(unsigned int v0, unsigned int v1);
 
     void
@@ -438,7 +432,6 @@ namespace
                          unsigned int opposite);
 
     std::map<Edge, EdgeData> m_data;
-    std::vector<Edge> m_path_bb_edges;
     const std::vector<fastuidraw::vec2> &m_pts;
   };
 
@@ -675,7 +668,7 @@ namespace
   class PointHoard:fastuidraw::noncopyable
   {
   public:
-    typedef std::pair<unsigned int, bool> ContourPoint;
+    typedef std::pair<unsigned int, uint32_t> ContourPoint;
     typedef std::vector<ContourPoint> Contour;
     typedef std::list<Contour> Path;
 
@@ -745,9 +738,7 @@ namespace
     add_path(const PointHoard::Path &P);
 
     void
-    add_path_boundary(const SubPath &P,
-                      fastuidraw::vecN<bool, 2> have_prev_neighbor,
-                      fastuidraw::vecN<bool, 2> have_next_neighbor);
+    add_path_boundary(const SubPath &P);
 
     bool
     triangulation_failed(void)
@@ -856,12 +847,9 @@ namespace
                  const PointHoard::Path &P,
                  const SubPath &path,
                  winding_index_hoard &hoard,
-                 fastuidraw::vecN<bool, 2> have_prev_neighbor,
-                 fastuidraw::vecN<bool, 2> have_next_neighbor,
                  BoundaryEdgeTracker &tr)
     {
       zero_tesser Z(points, P, path, hoard,
-                    have_prev_neighbor, have_next_neighbor,
                     tr);
       return Z.triangulation_failed();
     }
@@ -872,8 +860,6 @@ namespace
                 const PointHoard::Path &P,
                 const SubPath &path,
                 winding_index_hoard &hoard,
-                fastuidraw::vecN<bool, 2> have_prev_neighbor,
-                fastuidraw::vecN<bool, 2> have_next_neighbor,
                 BoundaryEdgeTracker &tr);
 
     virtual
@@ -896,8 +882,6 @@ namespace
   public:
     explicit
     builder(const SubPath &P, std::vector<fastuidraw::vec2> &pts,
-            fastuidraw::vecN<bool, 2> have_prev_neighbor,
-            fastuidraw::vecN<bool, 2> have_next_neighbor,
             BoundaryEdgeTracker &tr);
 
     ~builder();
@@ -1183,10 +1167,6 @@ namespace
     SubPath *m_sub_path;
     fastuidraw::vecN<SubsetPrivate*, 2> m_children;
     int m_splitting_coordinate;
-
-    /* having neighbors
-     */
-    fastuidraw::vecN<bool, 2> m_have_prev_neighbor, m_have_next_neighbor;
   };
 
   class FilledPathPrivate
@@ -1344,11 +1324,6 @@ create_aa_edges(AAEdgeList &out_aa_edges)
         }
     }
 
-  for(unsigned int i = 0, endi = m_path_bb_edges.size(); i < endi; ++i)
-    {
-      AAEdge aa_edge(m_path_bb_edges[i]);
-      out_aa_edges.add_edge(aa_edge);
-    }
 }
 
 /////////////////////////////////////
@@ -1659,12 +1634,10 @@ generate_contour(const SubPath::SubContour &C, Contour &output)
 
   for(unsigned int v = 0, endv = C.size(); v < endv; ++v,  ++cnt, ++total_cnt)
     {
-      bool no_boundary_bits;
       unsigned int I;
 
-      no_boundary_bits = (0u == C[v].boundary_bits());
       I = fetch(C[v].pt());
-      output.push_back(ContourPoint(I, no_boundary_bits));
+      output.push_back(ContourPoint(I, C[v].boundary_bits()));
     }
 }
 
@@ -1743,7 +1716,7 @@ add_contour(const PointHoard::Contour &C)
       I = C[v];
       p = m_points.converter().apply(m_points[I.first], m_point_count);
       ++m_point_count;
-      if(I.second || lastI.second)
+      if(0u != (I.second ^ lastI.second) || I.second == 0 || I.first == 0)
         {
           m_boundary_edge_tracker.record_contour_edge(lastI.first, I.first);
         }
@@ -1756,9 +1729,7 @@ add_contour(const PointHoard::Contour &C)
 
 void
 tesser::
-add_path_boundary(const SubPath &P,
-                  fastuidraw::vecN<bool, 2> have_prev_neighbor,
-                  fastuidraw::vecN<bool, 2> have_next_neighbor)
+add_path_boundary(const SubPath &P)
 {
   fastuidraw::vec2 pmin, pmax;
   unsigned int vertex_ids[4];
@@ -1806,30 +1777,6 @@ add_path_boundary(const SubPath &P,
         }
       vertex_ids[k] = m_points.fetch(p);
       fastuidraw_gluTessVertex(m_tess, x, y, vertex_ids[k]);
-    }
-
-  if(!have_prev_neighbor.x())
-    {
-      m_boundary_edge_tracker.record_path_bb_edge(vertex_ids[box_min_x_min_y],
-                                                  vertex_ids[box_min_x_max_y]);
-    }
-
-  if(!have_next_neighbor.x())
-    {
-      m_boundary_edge_tracker.record_path_bb_edge(vertex_ids[box_max_x_min_y],
-                                                  vertex_ids[box_max_x_max_y]);
-    }
-
-  if(!have_prev_neighbor.y())
-    {
-      m_boundary_edge_tracker.record_path_bb_edge(vertex_ids[box_min_x_min_y],
-                                                  vertex_ids[box_max_x_min_y]);
-    }
-
-  if(!have_next_neighbor.y())
-    {
-      m_boundary_edge_tracker.record_path_bb_edge(vertex_ids[box_min_x_max_y],
-                                                  vertex_ids[box_max_x_max_y]);
     }
 
   fastuidraw_gluTessEndContour(m_tess);
@@ -2021,8 +1968,6 @@ zero_tesser(PointHoard &points,
             const PointHoard::Path &P,
             const SubPath &path,
             winding_index_hoard &hoard,
-            fastuidraw::vecN<bool, 2> have_prev_neighbor,
-            fastuidraw::vecN<bool, 2> have_next_neighbor,
             BoundaryEdgeTracker &tr):
   tesser(points, tr, 1),
   m_indices(hoard[0])
@@ -2034,7 +1979,7 @@ zero_tesser(PointHoard &points,
 
   start();
   add_path(P);
-  add_path_boundary(path, have_prev_neighbor, have_next_neighbor);
+  add_path_boundary(path);
   stop();
 }
 
@@ -2067,8 +2012,6 @@ fill_region(int winding_number)
 // builder methods
 builder::
 builder(const SubPath &P, std::vector<fastuidraw::vec2> &points,
-        fastuidraw::vecN<bool, 2> have_prev_neighbor,
-        fastuidraw::vecN<bool, 2> have_next_neighbor,
         BoundaryEdgeTracker &tr):
   m_points(P.bounds(), points)
 {
@@ -2078,7 +2021,6 @@ builder(const SubPath &P, std::vector<fastuidraw::vec2> &points,
   m_points.generate_path(P, path);
   failNZ = non_zero_tesser::execute_path(m_points, path, P, m_hoard, tr);
   failZ = zero_tesser::execute_path(m_points, path, P, m_hoard,
-                                    have_prev_neighbor, have_next_neighbor,
                                     tr);
   m_failed = failNZ || failZ;
 }
@@ -2538,9 +2480,7 @@ SubsetPrivate(SubPath *Q, int max_recursion,
   m_sizes_ready(false),
   m_sub_path(Q),
   m_children(NULL, NULL),
-  m_splitting_coordinate(-1),
-  m_have_prev_neighbor(false, false),
-  m_have_next_neighbor(false, false)
+  m_splitting_coordinate(-1)
 {
   out_values.push_back(this);
   if(max_recursion > 0 && m_sub_path->total_points() > SubsetConstants::points_per_subset)
@@ -2598,39 +2538,7 @@ create_root_subset(SubPath *P, std::vector<SubsetPrivate*> &out_values)
 {
   SubsetPrivate *root;
   root = FASTUIDRAWnew SubsetPrivate(P, SubsetConstants::recursion_depth, out_values);
-
-  /* assign m_have_neighbor_prev and m_have_neighbor_next
-   */
-  if(root->m_splitting_coordinate != -1)
-    {
-      assert(root->m_children[0] != NULL);
-      assert(root->m_children[1] != NULL);
-      root->m_children[0]->assign_neighbor_values(root, 0);
-      root->m_children[1]->assign_neighbor_values(root, 1);
-    }
-
   return root;
-}
-
-void
-SubsetPrivate::
-assign_neighbor_values(SubsetPrivate *parent, int child_id)
-{
-  assert(parent != NULL);
-  assert(parent->m_splitting_coordinate == 0 || parent->m_splitting_coordinate == 1);
-  assert(child_id == 0 || child_id == 1);
-  assert(parent->m_children[child_id] == this);
-
-  m_have_prev_neighbor = parent->m_have_prev_neighbor;
-  m_have_next_neighbor = parent->m_have_next_neighbor;
-  if(child_id == 0)
-    {
-      m_have_next_neighbor[parent->m_splitting_coordinate] = true;
-    }
-  else
-    {
-      m_have_prev_neighbor[parent->m_splitting_coordinate] = true;
-    }
 }
 
 unsigned int
@@ -2854,9 +2762,7 @@ make_ready_from_sub_path(void)
   std::vector<AAEdge> aa_edges;
   AAEdgeList edge_list(&m_aa_edge_list_counter, &aa_edges);
   BoundaryEdgeTracker tr(&filler.m_points);
-  builder B(*m_sub_path, filler.m_points,
-            m_have_prev_neighbor, m_have_next_neighbor,
-            tr);
+  builder B(*m_sub_path, filler.m_points, tr);
   unsigned int even_non_zero_start, zero_start;
   unsigned int m1, m2;
 
