@@ -412,9 +412,7 @@ ShaderSetCreator::
 create_fill_shader(void)
 {
   PainterFillShader fill_shader;
-  varying_list varyings;
 
-  varyings.add_float_varying("fastuidraw_stroking_on_boundary");
   fill_shader
     .item_shader(FASTUIDRAWnew PainterItemShaderGLSL(false,
                                                      ShaderSource()
@@ -423,7 +421,16 @@ create_fill_shader(void)
                                                      ShaderSource()
                                                      .add_source("fastuidraw_painter_fill.frag.glsl.resource_string",
                                                                  ShaderSource::from_resource),
-                                                     varyings));;
+                                                     varying_list()))
+    .aa_fuzz_shader(FASTUIDRAWnew PainterItemShaderGLSL(false,
+                                                        ShaderSource()
+                                                        .add_source("fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string",
+                                                                    ShaderSource::from_resource),
+                                                        ShaderSource()
+                                                        .add_source("fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string",
+                                                                    ShaderSource::from_resource),
+                                                        varying_list().add_float_varying("fastuidraw_aa_fuzz")));
+
   return fill_shader;
 }
 
