@@ -24,6 +24,7 @@ namespace
   {
   public:
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_item_shader;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_aa_fuzz_shader;
   };
 }
 
@@ -72,7 +73,7 @@ operator=(const PainterFillShader &rhs)
   name(type v)                                                      \
   {                                                                 \
     PainterFillShaderPrivate *d;                                    \
-    d = static_cast<PainterFillShaderPrivate*>(m_d);           \
+    d = static_cast<PainterFillShaderPrivate*>(m_d);                \
     d->m_##name = v;                                                \
     return *this;                                                   \
   }                                                                 \
@@ -82,9 +83,10 @@ operator=(const PainterFillShader &rhs)
   name(void) const                                                  \
   {                                                                 \
     PainterFillShaderPrivate *d;                                    \
-    d = static_cast<PainterFillShaderPrivate*>(m_d);           \
+    d = static_cast<PainterFillShaderPrivate*>(m_d);                \
     return d->m_##name;                                             \
   }
 
 setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, item_shader)
+setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_fuzz_shader)
 #undef setget_implement
