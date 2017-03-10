@@ -575,13 +575,23 @@ namespace
         m_boundary_bits(0)
       {}
 
-      SubContourPoint(const SubContourPoint &a,
+      SubContourPoint(int splitting_coordinate,
+                      const SubContourPoint &a,
                       const SubContourPoint &b,
                       const fastuidraw::vec2 &pt,
                       uint32_t boundary_bits_from_split):
-        m_pt(pt),
-        m_boundary_bits(a.boundary_bits() | b.boundary_bits() | boundary_bits_from_split)
+        m_pt(pt)
       {
+        uint32_t abits, bbits;
+        const uint32_t kill_masks[2] =
+          {
+            from_split_on_min_x_boundary | from_split_on_max_x_boundary,
+            from_split_on_min_y_boundary | from_split_on_max_y_boundary,
+          };
+
+        abits = a.boundary_bits() & ~kill_masks[splitting_coordinate];
+        bbits = b.boundary_bits() & ~kill_masks[splitting_coordinate];
+        m_boundary_bits = abits | bbits | boundary_bits_from_split;
       }
 
       const fastuidraw::vec2&
@@ -680,7 +690,10 @@ namespace
     SubPath(const fastuidraw::BoundingBox &bb, std::vector<SubContour> &contours);
 
     int
-    choose_splitting_coordinate(fastuidraw::vec2 mid_pt) const;
+    choose_splitting_coordinate(fastuidraw::vec2 &mid_pt) const;
+
+    float
+    nudge_splitting_coordinate(float v, int coordinate) const;
 
     static
     void
@@ -1416,7 +1429,7 @@ copy_contour(SubContour &dst,
 
 int
 SubPath::
-choose_splitting_coordinate(fastuidraw::vec2 mid_pt) const
+choose_splitting_coordinate(fastuidraw::vec2 &mid_pt) const
 {
   /* do not allow the box to be too far from being a square.
      TODO: if the balance of points heavily favors the other
@@ -1486,12 +1499,62 @@ choose_splitting_coordinate(fastuidraw::vec2 mid_pt) const
   number_points = number_points_before + number_points_after;
   if(number_points.x() < number_points.y())
     {
+      mid_pt[0] = nudge_splitting_coordinate(mid_pt[0], 0);
       return 0;
     }
   else
     {
+      mid_pt[1] = nudge_splitting_coordinate(mid_pt[1], 1);
       return 1;
     }
+}
+
+float
+SubPath::
+nudge_splitting_coordinate(float v, int coordinate) const
+{
+  std::vector<float> values;
+  for(unsigned int i = 0, endi = m_contours.size(); i < endi; ++i)
+    {
+      for(SubContour::const_iterator iter = m_contours[i].begin(),
+            end = m_contours[i].end(); iter != end; ++iter)
+        {
+          values.push_back(iter->pt()[coordinate]);
+        }
+    }
+  std::sort(values.begin(), values.end());
+
+  std::vector<float>::const_iterator iter, prev;
+
+  /* find the first element, *iter, so that
+   * *iter >= v
+   */
+  iter = std::lower_bound(values.begin(), values.end(), v);
+  if(iter == values.end())
+    {
+      //all element smaller than v;
+      //won't hit the point any where
+      //near.
+      return v;
+    }
+
+  if(iter == values.begin())
+    {
+      //the first element is v, i.e. all
+      //elements are atleast v, nudge v back
+      //a little to make sure it does not
+      //hit.
+      return v;
+    }
+
+  prev = iter;
+  --prev;
+
+  float r;
+  r = 0.5f * (*prev + *iter);
+  std::cout << "v --> (" << *prev << ", " << *iter
+            << ") : " << r << "\n";
+  return r;
 }
 
 fastuidraw::vec2
@@ -1544,7 +1607,7 @@ split_contour(const SubContour &src,
 
       if(prev_b0 != b0)
         {
-          SubContourPoint s(prev_pt, pt, split_pt,
+          SubContourPoint s(splitting_coordinate, prev_pt, pt, split_pt,
                             SubContourPoint::boundary_bit_flag(splitting_coordinate, true));
           C0.push_back(s);
         }
@@ -1556,7 +1619,7 @@ split_contour(const SubContour &src,
 
       if(prev_b1 != b1)
         {
-          SubContourPoint s(prev_pt, pt, split_pt,
+          SubContourPoint s(splitting_coordinate, prev_pt, pt, split_pt,
                             SubContourPoint::boundary_bit_flag(splitting_coordinate, false));
           C1.push_back(s);
         }
@@ -1671,9 +1734,11 @@ generate_contour(const SubPath::SubContour &C, Contour &output)
   for(unsigned int v = 0, endv = C.size(); v < endv; ++v)
     {
       unsigned int I;
+      uint32_t boundary_bits;
 
       I = fetch(C[v].pt());
-      output.push_back(ContourPoint(I, C[v].boundary_bits()));
+      boundary_bits = C[v].boundary_bits();
+      output.push_back(ContourPoint(I, boundary_bits));
     }
 }
 
