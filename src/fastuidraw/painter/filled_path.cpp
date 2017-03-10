@@ -581,7 +581,8 @@ namespace
                       uint32_t boundary_bits_from_split):
         m_pt(pt),
         m_boundary_bits(a.boundary_bits() | b.boundary_bits() | boundary_bits_from_split)
-      {}
+      {
+      }
 
       const fastuidraw::vec2&
       pt(void) const
@@ -604,6 +605,44 @@ namespace
         assert(coordinate == 0 || coordinate == 1);
         bit = coordinate * 2 + int(is_max);
         return 1u << bit;
+      }
+
+      static
+      bool
+      is_boundary_min_x(uint32_t b)
+      {
+        return b & from_split_on_min_x_boundary;
+      }
+
+      static
+      bool
+      is_boundary_max_x(uint32_t b)
+      {
+        return b & from_split_on_max_x_boundary;
+      }
+
+      static
+      bool
+      is_boundary_min_y(uint32_t b)
+      {
+        return b & from_split_on_min_y_boundary;
+      }
+
+      static
+      bool
+      is_boundary_max_y(uint32_t b)
+      {
+        return b & from_split_on_max_y_boundary;
+      }
+
+      static
+      bool
+      boundary_edge(uint32_t b0, uint32_t b1)
+      {
+        return (is_boundary_min_x(b0) && is_boundary_min_x(b1))
+          || (is_boundary_max_x(b0) && is_boundary_max_x(b1))
+          || (is_boundary_min_y(b0) && is_boundary_min_y(b1))
+          || (is_boundary_max_y(b0) && is_boundary_max_y(b1));
       }
 
     private:
@@ -1629,10 +1668,7 @@ void
 PointHoard::
 generate_contour(const SubPath::SubContour &C, Contour &output)
 {
-  std::vector<fastuidraw::BoundingBox> boxes(1);
-  unsigned int total_cnt(0), cnt(0);
-
-  for(unsigned int v = 0, endv = C.size(); v < endv; ++v,  ++cnt, ++total_cnt)
+  for(unsigned int v = 0, endv = C.size(); v < endv; ++v)
     {
       unsigned int I;
 
@@ -1716,7 +1752,7 @@ add_contour(const PointHoard::Contour &C)
       I = C[v];
       p = m_points.converter().apply(m_points[I.first], m_point_count);
       ++m_point_count;
-      if(0u != (I.second ^ lastI.second) || I.second == 0 || I.first == 0)
+      if(!SubPath::SubContourPoint::boundary_edge(I.second, lastI.second))
         {
           m_boundary_edge_tracker.record_contour_edge(lastI.first, I.first);
         }
