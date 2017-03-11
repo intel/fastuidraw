@@ -499,19 +499,6 @@ namespace
       m_translate_f = fastuidraw::vec2(m_translate);
     }
 
-    fastuidraw::vecN<double, 2>
-    apply(const fastuidraw::vec2 &pt, unsigned int fudge_count) const
-    {
-      fastuidraw::vecN<double, 2> r, qt(pt);
-      double fudge;
-
-      r = m_scale * (qt - m_translate);
-      fudge = static_cast<double>(fudge_count) * m_delta_fudge;
-      r.x() += fudge;
-      r.y() += fudge;
-      return r;
-    }
-
     fastuidraw::ivec2
     iapply(const fastuidraw::vec2 &pt) const
     {
@@ -519,8 +506,8 @@ namespace
       fastuidraw::ivec2 return_value;
 
       r = m_scale_f * (pt - m_translate_f);
-      return_value.x() = static_cast<int>(r.x());
-      return_value.y() = static_cast<int>(r.y());
+      return_value.x() = clamp_int(r.x());
+      return_value.y() = clamp_int(r.y());
       return return_value;
     }
 
@@ -540,6 +527,15 @@ namespace
     }
 
   private:
+    static
+    int
+    clamp_int(int v)
+    {
+      v = fastuidraw::t_max(v, 1);
+      v = fastuidraw::t_min(v, CoordinateConverterConstants::box_dim - 1);
+      return v;
+    }
+
     double m_delta_fudge;
     fastuidraw::vecN<double, 2> m_scale, m_translate;
     fastuidraw::vec2 m_scale_f, m_translate_f;
@@ -735,6 +731,18 @@ namespace
 
     unsigned int
     fetch(const fastuidraw::vec2 &pt);
+
+    fastuidraw::vecN<double, 2>
+    apply(unsigned int I, unsigned int fudge_count) const
+    {
+      fastuidraw::vecN<double, 2> r(m_ipts[I]);
+      double fudge;
+
+      fudge = static_cast<double>(fudge_count) * converter().fudge_delta();
+      r.x() += fudge;
+      r.y() += fudge;
+      return r;
+    }
 
     void
     generate_path(const SubPath &input, Path &output);
@@ -1705,7 +1713,7 @@ fetch(const fastuidraw::vec2 &pt)
   else
     {
       return_value = m_pts.size();
-      m_pts.push_back(m_converter.unapply(ipt));
+      m_pts.push_back(pt);
       m_ipts.push_back(ipt);
       m_map[ipt] = return_value;
     }
@@ -1727,6 +1735,35 @@ generate_path(const SubPath &input, Path &output)
     }
 }
 
+static
+uint32_t
+compute_boundary_bits(const fastuidraw::ivec2 &pt)
+{
+  uint32_t R(0u);
+
+  if(pt.x() <= 1)
+    {
+      R |= SubPath::SubContourPoint::from_split_on_min_x_boundary;
+    }
+
+  if(pt.x() >= CoordinateConverterConstants::box_dim - 1)
+    {
+      R |= SubPath::SubContourPoint::from_split_on_max_x_boundary;
+    }
+
+  if(pt.y() <= 1)
+    {
+      R |= SubPath::SubContourPoint::from_split_on_min_y_boundary;
+    }
+
+  if(pt.y() >= CoordinateConverterConstants::box_dim - 1)
+    {
+      R |= SubPath::SubContourPoint::from_split_on_max_y_boundary;
+    }
+
+  return R;
+}
+
 void
 PointHoard::
 generate_contour(const SubPath::SubContour &C, Contour &output)
@@ -1737,7 +1774,7 @@ generate_contour(const SubPath::SubContour &C, Contour &output)
       uint32_t boundary_bits;
 
       I = fetch(C[v].pt());
-      boundary_bits = C[v].boundary_bits();
+      boundary_bits = compute_boundary_bits(m_ipts[I]);
       output.push_back(ContourPoint(I, boundary_bits));
     }
 }
@@ -1815,7 +1852,7 @@ add_contour(const PointHoard::Contour &C)
          and degenerate edges.
       */
       I = C[v];
-      p = m_points.converter().apply(m_points[I.first], m_point_count);
+      p = m_points.apply(I.first, m_point_count);
       ++m_point_count;
       if(!SubPath::SubContourPoint::boundary_edge(I.second, lastI.second))
         {
@@ -1848,32 +1885,30 @@ add_path_boundary(const SubPath &P)
   fastuidraw_gluTessBeginContour(m_tess, FASTUIDRAW_GLU_TRUE);
   for(unsigned int i = 0; i < 4; ++i)
     {
-      double slack, x, y;
+      double x, y;
       unsigned int k;
       fastuidraw::vec2 p;
 
       k = src[i];
-      slack = static_cast<double>(m_point_count) * m_points.converter().fudge_delta();
-
       if(k & box_max_x_flag)
         {
-          x = slack + static_cast<double>(CoordinateConverterConstants::box_dim);
+          x = static_cast<double>(CoordinateConverterConstants::box_dim);
           p.x() = pmax.x();
         }
       else
         {
-          x = -slack;
+          x = 0.0;
           p.x() = pmin.x();
         }
 
       if(k & box_max_y_flag)
         {
-          y = slack + static_cast<double>(CoordinateConverterConstants::box_dim);
+          y = static_cast<double>(CoordinateConverterConstants::box_dim);
           p.y() = pmax.y();
         }
       else
         {
-          y = -slack;
+          y = 0.0;
           p.y() = pmin.y();
         }
       vertex_ids[k] = m_points.fetch(p);
