@@ -85,7 +85,7 @@ namespace SubsetConstants
   /* if negative, aspect ratio is not
      enfored.
    */
-  const float size_max_ratio = 4.0f;
+  const double size_max_ratio = 4.0;
 }
 
 /* Constants for CoordinateConverter.
@@ -110,7 +110,7 @@ namespace CoordinateConverterConstants
 {
   enum
     {
-      log2_box_dim = 16,
+      log2_box_dim = 24,
       negative_log2_fudge = 20,
       box_dim = (1 << log2_box_dim),
     };
@@ -152,18 +152,6 @@ namespace
   class EdgeData
   {
   public:
-    class edge_split
-    {
-    public:
-      edge_split(unsigned int v, const Edge &e):
-        m_split_pt(v),
-        m_with_edge(e)
-      {}
-
-      unsigned int m_split_pt;
-      Edge m_with_edge;
-    };
-
     class per_entry
     {
     public:
@@ -194,25 +182,8 @@ namespace
     void
     add_winding(uint64_t area, int w, unsigned int v);
 
-    /* Giving a vertex v, return the winding
-       number of the triangle that shares the
-       edge. If there are multiple choices
-       for what vertex to choose that is not v,
-       choose the vertex that:
-       a) is on the opposite side of the edge
-       b) maximizes area
-    */
-    int
-    opposite_winding(int w, unsigned int v);
-
     fastuidraw::const_c_array<per_entry>
-    filtered_entries(void) const;
-
-    fastuidraw::const_c_array<per_entry>
-    unfiltered_entries(void) const
-    {
-      return fastuidraw::make_c_array(m_entries);
-    }
+    sorted_entries(void) const;
 
     void
     split_edge(void)
@@ -244,7 +215,7 @@ namespace
       return lhs.m_vertex < rhs.m_vertex;
     }
 
-    mutable std::vector<per_entry> m_entries, m_filtered_entries;
+    mutable std::vector<per_entry> m_entries;
     mutable bool m_sorted;
     bool m_is_split;
   };
@@ -408,7 +379,7 @@ namespace
   {
   public:
     explicit
-    BoundaryEdgeTracker(const std::vector<fastuidraw::vec2> *pts):
+    BoundaryEdgeTracker(const std::vector<fastuidraw::dvec2> *pts):
       m_pts(*pts)
     {}
 
@@ -432,7 +403,7 @@ namespace
                          unsigned int opposite);
 
     std::map<Edge, EdgeData> m_data;
-    const std::vector<fastuidraw::vec2> &m_pts;
+    const std::vector<fastuidraw::dvec2> &m_pts;
   };
 
   class per_winding_data:
@@ -492,39 +463,35 @@ namespace
       };
 
     explicit
-    CoordinateConverter(const fastuidraw::vec2 &fpmin, const fastuidraw::vec2 &fpmax)
+    CoordinateConverter(const fastuidraw::dvec2 &pmin, const fastuidraw::dvec2 &pmax)
     {
-      fastuidraw::vecN<double, 2> delta, pmin, pmax;
+      fastuidraw::dvec2 delta;
 
-      pmin = fastuidraw::vecN<double, 2>(fpmin);
-      pmax = fastuidraw::vecN<double, 2>(fpmax);
       delta = pmax - pmin;
       m_scale = fastuidraw::vecN<double, 2>(1.0, 1.0) / delta;
       m_scale *= static_cast<double>(CoordinateConverterConstants::box_dim);
       m_translate = pmin;
       m_delta_fudge = ::exp2(static_cast<double>(-CoordinateConverterConstants::negative_log2_fudge));
-      m_scale_f = fastuidraw::vec2(m_scale);
-      m_translate_f = fastuidraw::vec2(m_translate);
     }
 
     fastuidraw::ivec2
-    iapply(const fastuidraw::vec2 &pt) const
+    iapply(const fastuidraw::dvec2 &pt) const
     {
-      fastuidraw::vec2 r;
+      fastuidraw::dvec2 r;
       fastuidraw::ivec2 return_value;
 
-      r = m_scale_f * (pt - m_translate_f);
+      r = m_scale * (pt - m_translate);
       return_value.x() = clamp_int(r.x());
       return_value.y() = clamp_int(r.y());
       return return_value;
     }
 
-    fastuidraw::vec2
+    fastuidraw::dvec2
     unapply(const fastuidraw::ivec2 &ipt) const
     {
-      fastuidraw::vec2 p(ipt.x(), ipt.y());
-      p /= m_scale_f;
-      p += m_translate_f;
+      fastuidraw::dvec2 p(ipt.x(), ipt.y());
+      p /= m_scale;
+      p += m_translate;
       return p;
     }
 
@@ -612,8 +579,7 @@ namespace
     }
 
     double m_delta_fudge;
-    fastuidraw::vecN<double, 2> m_scale, m_translate;
-    fastuidraw::vec2 m_scale_f, m_translate_f;
+    fastuidraw::dvec2 m_scale, m_translate;
   };
 
   enum
@@ -629,7 +595,7 @@ namespace
   class SubPath
   {
   public:
-    typedef fastuidraw::vec2 SubContourPoint;
+    typedef fastuidraw::dvec2 SubContourPoint;
     typedef std::vector<SubContourPoint> SubContour;
 
     explicit
@@ -641,7 +607,7 @@ namespace
       return m_contours;
     }
 
-    const fastuidraw::BoundingBox&
+    const fastuidraw::BoundingBox<double>&
     bounds(void) const
     {
       return m_bounds;
@@ -657,13 +623,13 @@ namespace
     split(int &splitting_coordinate) const;
 
   private:
-    SubPath(const fastuidraw::BoundingBox &bb, std::vector<SubContour> &contours);
+    SubPath(const fastuidraw::BoundingBox<double> &bb, std::vector<SubContour> &contours);
 
     int
-    choose_splitting_coordinate(fastuidraw::vec2 &mid_pt) const;
+    choose_splitting_coordinate(fastuidraw::dvec2 &mid_pt) const;
 
-    float
-    nudge_splitting_coordinate(float v, int coordinate) const;
+    double
+    nudge_splitting_coordinate(double v, int coordinate) const;
 
     static
     void
@@ -673,17 +639,16 @@ namespace
     static
     void
     split_contour(const SubContour &src,
-                  int splitting_coordinate, float spitting_value,
+                  int splitting_coordinate, double spitting_value,
                   SubContour &minC, SubContour &maxC);
 
     static
-    fastuidraw::vec2
-    compute_spit_point(fastuidraw::vec2 a,
-                       fastuidraw::vec2 b,
-                       int splitting_coordinate, float spitting_value);
+    fastuidraw::dvec2
+    compute_spit_point(fastuidraw::dvec2 a, fastuidraw::dvec2 b,
+                       int splitting_coordinate, double spitting_value);
 
     unsigned int m_total_points;
-    fastuidraw::BoundingBox m_bounds;
+    fastuidraw::BoundingBox<double> m_bounds;
     std::vector<SubContour> m_contours;
   };
 
@@ -695,8 +660,8 @@ namespace
     typedef std::list<Contour> Path;
 
     explicit
-    PointHoard(const fastuidraw::BoundingBox &bounds,
-               std::vector<fastuidraw::vec2> &pts):
+    PointHoard(const fastuidraw::BoundingBox<double> &bounds,
+               std::vector<fastuidraw::dvec2> &pts):
       m_converter(bounds.min_point(), bounds.max_point()),
       m_pts(pts)
     {
@@ -704,12 +669,12 @@ namespace
     }
 
     unsigned int
-    fetch(const fastuidraw::vec2 &pt);
+    fetch(const fastuidraw::dvec2 &pt);
 
-    fastuidraw::vecN<double, 2>
+    fastuidraw::dvec2
     apply(unsigned int I, unsigned int fudge_count) const
     {
-      fastuidraw::vecN<double, 2> r(m_ipts[I]);
+      fastuidraw::dvec2 r(m_ipts[I]);
       double fudge;
 
       fudge = static_cast<double>(fudge_count) * converter().fudge_delta();
@@ -721,7 +686,7 @@ namespace
     void
     generate_path(const SubPath &input, Path &output);
 
-    const fastuidraw::vec2&
+    const fastuidraw::dvec2&
     operator[](unsigned int v) const
     {
       assert(v < m_pts.size());
@@ -748,7 +713,7 @@ namespace
     CoordinateConverter m_converter;
     std::map<fastuidraw::ivec2, unsigned int> m_map;
     std::vector<fastuidraw::ivec2> m_ipts;
-    std::vector<fastuidraw::vec2> &m_pts;
+    std::vector<fastuidraw::dvec2> &m_pts;
   };
 
   class tesser:fastuidraw::noncopyable
@@ -883,8 +848,7 @@ namespace
                  winding_index_hoard &hoard,
                  BoundaryEdgeTracker &tr)
     {
-      zero_tesser Z(points, P, path, hoard,
-                    tr);
+      zero_tesser Z(points, P, path, hoard, tr);
       return Z.triangulation_failed();
     }
 
@@ -915,7 +879,7 @@ namespace
   {
   public:
     explicit
-    builder(const SubPath &P, std::vector<fastuidraw::vec2> &pts,
+    builder(const SubPath &P, std::vector<fastuidraw::dvec2> &pts,
             BoundaryEdgeTracker &tr);
 
     ~builder();
@@ -976,7 +940,7 @@ namespace
   public:
     explicit
     EdgeAttributeDataFiller(int min_winding, int max_winding,
-                            const std::vector<fastuidraw::vec2> *pts,
+                            const std::vector<fastuidraw::dvec2> *pts,
                             const std::vector<AAEdge> *edges):
       m_min_winding(min_winding),
       m_max_winding(max_winding),
@@ -1006,14 +970,14 @@ namespace
                    fastuidraw::c_array<fastuidraw::PainterAttribute> dst) const;
 
     int m_min_winding, m_max_winding;
-    const std::vector<fastuidraw::vec2> &m_pts;
+    const std::vector<fastuidraw::dvec2> &m_pts;
     const std::vector<AAEdge> &m_edges;
   };
 
   class AttributeDataFiller:public fastuidraw::PainterAttributeDataFiller
   {
   public:
-    std::vector<fastuidraw::vec2> m_points;
+    std::vector<fastuidraw::dvec2> m_points;
 
     /* Carefully organize indices as follows:
        - first all elements with odd winding number
@@ -1055,7 +1019,7 @@ namespace
 
     static
     fastuidraw::PainterAttribute
-    generate_attribute(const fastuidraw::vec2 &src)
+    generate_attribute(const fastuidraw::dvec2 &src)
     {
       fastuidraw::PainterAttribute dst;
 
@@ -1172,7 +1136,8 @@ namespace
     /* The bounds of this SubsetPrivate used in
        select_subsets().
      */
-    fastuidraw::BoundingBox m_bounds;
+    fastuidraw::BoundingBox<double> m_bounds;
+    fastuidraw::BoundingBox<float> m_bounds_f;
 
     /* if this SubsetPrivate has children then
        m_painter_data is made by "merging" the
@@ -1220,13 +1185,14 @@ namespace
 // EdgeData methods
 fastuidraw::const_c_array<EdgeData::per_entry>
 EdgeData::
-filtered_entries(void) const
+sorted_entries(void) const
 {
   if(!m_sorted)
     {
-      sort_entries();
+      m_sorted = true;
+      std::sort(m_entries.begin(), m_entries.end(), compare_entry_reverse_area);
     }
-  return fastuidraw::make_c_array(m_filtered_entries);
+  return fastuidraw::make_c_array(m_entries);
 }
 
 void
@@ -1241,33 +1207,6 @@ add_winding(uint64_t area, int w, unsigned int v)
   p.m_winding = w;
   p.m_vertex = v;
   m_entries.push_back(p);
-}
-
-void
-EdgeData::
-sort_entries(void) const
-{
-  assert(!m_sorted);
-  m_sorted = true;
-
-  /* first we remove any entries that share vertices.
-   */
-  std::sort(m_entries.begin(), m_entries.end(), compare_entry_vertex);
-  for(unsigned int i = 0, endi = m_entries.size(); i < endi;)
-    {
-      unsigned int ct, start;
-      for(ct = 0, start = i; i < endi && m_entries[i].m_vertex == m_entries[start].m_vertex; ++ct, ++i)
-        {}
-
-      assert(ct >= 1);
-      if(ct == 1)
-        {
-          m_filtered_entries.push_back(m_entries[start]);
-        }
-    }
-
-  std::sort(m_filtered_entries.begin(), m_filtered_entries.end(), compare_entry_reverse_area);
-  std::sort(m_entries.begin(), m_entries.end(), compare_entry_reverse_area);
 }
 
 ///////////////////////////////
@@ -1340,7 +1279,7 @@ create_aa_edges(AAEdgeList &out_aa_edges)
     {
       Edge edge(iter->first);
       const EdgeData &data(iter->second);
-      fastuidraw::const_c_array<EdgeData::per_entry> entries(data.filtered_entries());
+      fastuidraw::const_c_array<EdgeData::per_entry> entries(data.sorted_entries());
 
       if(!data.is_split() && !entries.empty())
         {
@@ -1363,7 +1302,7 @@ create_aa_edges(AAEdgeList &out_aa_edges)
 /////////////////////////////////////
 // SubPath methods
 SubPath::
-SubPath(const fastuidraw::BoundingBox &bb,
+SubPath(const fastuidraw::BoundingBox<double> &bb,
         std::vector<SubContour> &contours):
   m_total_points(0),
   m_bounds(bb)
@@ -1379,8 +1318,8 @@ SubPath(const fastuidraw::BoundingBox &bb,
 SubPath::
 SubPath(const fastuidraw::TessellatedPath &P):
   m_total_points(0),
-  m_bounds(P.bounding_box_min(),
-           P.bounding_box_max()),
+  m_bounds(fastuidraw::dvec2(P.bounding_box_min()),
+           fastuidraw::dvec2(P.bounding_box_max())),
   m_contours(P.number_contours())
 {
   for(unsigned int c = 0, endc = m_contours.size(); c < endc; ++c)
@@ -1411,7 +1350,7 @@ copy_contour(SubContour &dst,
 
 int
 SubPath::
-choose_splitting_coordinate(fastuidraw::vec2 &mid_pt) const
+choose_splitting_coordinate(fastuidraw::dvec2 &mid_pt) const
 {
   /* do not allow the box to be too far from being a square.
      TODO: if the balance of points heavily favors the other
@@ -1421,7 +1360,7 @@ choose_splitting_coordinate(fastuidraw::vec2 &mid_pt) const
    */
   if(SubsetConstants::size_max_ratio > 0.0f)
     {
-      fastuidraw::vec2 wh;
+      fastuidraw::dvec2 wh;
       wh = m_bounds.max_point() - m_bounds.min_point();
       if(wh.x() >= SubsetConstants::size_max_ratio * wh.y())
         {
@@ -1491,11 +1430,11 @@ choose_splitting_coordinate(fastuidraw::vec2 &mid_pt) const
     }
 }
 
-float
+double
 SubPath::
-nudge_splitting_coordinate(float v, int coordinate) const
+nudge_splitting_coordinate(double v, int coordinate) const
 {
-  std::vector<float> values;
+  std::vector<double> values;
   for(unsigned int i = 0, endi = m_contours.size(); i < endi; ++i)
     {
       for(SubContour::const_iterator iter = m_contours[i].begin(),
@@ -1506,7 +1445,7 @@ nudge_splitting_coordinate(float v, int coordinate) const
     }
   std::sort(values.begin(), values.end());
 
-  std::vector<float>::const_iterator iter, prev;
+  std::vector<double>::const_iterator iter, prev;
 
   /* find the first element, *iter, so that
    * *iter >= v
@@ -1533,18 +1472,18 @@ nudge_splitting_coordinate(float v, int coordinate) const
   --prev;
 
   float r;
-  r = 0.5f * (*prev + *iter);
+  r = 0.5 * (*prev + *iter);
 
   return r;
 }
 
-fastuidraw::vec2
+fastuidraw::dvec2
 SubPath::
-compute_spit_point(fastuidraw::vec2 a, fastuidraw::vec2 b,
-                   int splitting_coordinate, float splitting_value)
+compute_spit_point(fastuidraw::dvec2 a, fastuidraw::dvec2 b,
+                   int splitting_coordinate, double splitting_value)
 {
-  float t, n, d, aa, bb;
-  fastuidraw::vec2 return_value;
+  double t, n, d, aa, bb;
+  fastuidraw::dvec2 return_value;
 
   n = splitting_value - a[splitting_coordinate];
   d = b[splitting_coordinate] - a[splitting_coordinate];
@@ -1554,7 +1493,7 @@ compute_spit_point(fastuidraw::vec2 a, fastuidraw::vec2 b,
 
   aa = a[1 - splitting_coordinate];
   bb = b[1 - splitting_coordinate];
-  return_value[1 - splitting_coordinate] = (1.0f - t) * aa + t * bb;
+  return_value[1 - splitting_coordinate] = (1.0 - t) * aa + t * bb;
 
   return return_value;
 }
@@ -1562,7 +1501,7 @@ compute_spit_point(fastuidraw::vec2 a, fastuidraw::vec2 b,
 void
 SubPath::
 split_contour(const SubContour &src,
-              int splitting_coordinate, float splitting_value,
+              int splitting_coordinate, double splitting_value,
               SubContour &C0, SubContour &C1)
 {
   SubContourPoint prev_pt(src.back());
@@ -1571,7 +1510,7 @@ split_contour(const SubContour &src,
     {
       bool b0, prev_b0;
       bool b1, prev_b1;
-      fastuidraw::vec2 split_pt;
+      fastuidraw::dvec2 split_pt;
       const SubContourPoint &pt(*iter);
 
       prev_b0 = prev_pt[splitting_coordinate] <= splitting_value;
@@ -1617,22 +1556,22 @@ SubPath::
 split(int &splitting_coordinate) const
 {
   fastuidraw::vecN<SubPath*, 2> return_value(NULL, NULL);
-  fastuidraw::vec2 mid_pt;
+  fastuidraw::dvec2 mid_pt;
 
-  mid_pt = 0.5f * (m_bounds.max_point() + m_bounds.min_point());
+  mid_pt = 0.5 * (m_bounds.max_point() + m_bounds.min_point());
   splitting_coordinate = choose_splitting_coordinate(mid_pt);
 
   /* now split each contour.
    */
-  fastuidraw::vec2 B0_max, B1_min;
+  fastuidraw::dvec2 B0_max, B1_min;
   B0_max[1 - splitting_coordinate] = m_bounds.max_point()[1 - splitting_coordinate];
   B0_max[splitting_coordinate] = mid_pt[splitting_coordinate];
 
   B1_min[1 - splitting_coordinate] = m_bounds.min_point()[1 - splitting_coordinate];
   B1_min[splitting_coordinate] = mid_pt[splitting_coordinate];
 
-  fastuidraw::BoundingBox B0(m_bounds.min_point(), B0_max);
-  fastuidraw::BoundingBox B1(B1_min, m_bounds.max_point());
+  fastuidraw::BoundingBox<double> B0(m_bounds.min_point(), B0_max);
+  fastuidraw::BoundingBox<double> B1(B1_min, m_bounds.max_point());
   std::vector<SubContour> C0, C1;
 
   C0.reserve(m_contours.size());
@@ -1667,7 +1606,7 @@ split(int &splitting_coordinate) const
 // PointHoard methods
 unsigned int
 PointHoard::
-fetch(const fastuidraw::vec2 &pt)
+fetch(const fastuidraw::dvec2 &pt)
 {
   std::map<fastuidraw::ivec2, unsigned int>::iterator iter;
   fastuidraw::ivec2 ipt;
@@ -1813,7 +1752,7 @@ void
 tesser::
 add_path_boundary(const SubPath &P)
 {
-  fastuidraw::vec2 pmin, pmax;
+  fastuidraw::dvec2 pmin, pmax;
   unsigned int vertex_ids[4];
   const unsigned int src[4] =
     {
@@ -1831,7 +1770,7 @@ add_path_boundary(const SubPath &P)
     {
       double x, y;
       unsigned int k;
-      fastuidraw::vec2 p;
+      fastuidraw::dvec2 p;
 
       k = src[i];
       if(k & box_max_x_flag)
@@ -1961,14 +1900,14 @@ combine_callback(double x, double y, unsigned int data[4],
   unsigned int v;
   Edge e0(data[0], data[1]);
   Edge e1(data[2], data[3]);
-  fastuidraw::vec2 pt(0.0f, 0.0f);
+  fastuidraw::dvec2 pt(0.0, 0.0);
 
   p = static_cast<tesser*>(tess);
   for(unsigned int i = 0; i < 4; ++i)
     {
       if(data[i] != FASTUIDRAW_GLU_NULL_CLIENT_ID)
         {
-          pt += float(weight[i]) * p->m_points[data[i]];
+          pt += weight[i] * p->m_points[data[i]];
         }
     }
   v = p->m_points.fetch(pt);
@@ -2091,7 +2030,7 @@ fill_region(int winding_number)
 /////////////////////////////////////////
 // builder methods
 builder::
-builder(const SubPath &P, std::vector<fastuidraw::vec2> &points,
+builder(const SubPath &P, std::vector<fastuidraw::dvec2> &points,
         BoundaryEdgeTracker &tr):
   m_points(P.bounds(), points)
 {
@@ -2401,27 +2340,27 @@ EdgeAttributeDataFiller::
 pack_attribute(const Edge &edge,
                fastuidraw::c_array<fastuidraw::PainterAttribute> dst) const
 {
-  fastuidraw::vec2 tangent, normal;
+  fastuidraw::dvec2 tangent, normal;
 
   assert(dst.size() == 4);
   assert(edge[0] < m_pts.size());
   assert(edge[1] < m_pts.size());
 
   tangent = m_pts[edge[1]] - m_pts[edge[0]];
-  normal = fastuidraw::vec2(-tangent.y(), tangent.x());
+  normal = fastuidraw::dvec2(-tangent.y(), tangent.x());
 
   for(unsigned int k = 0; k < 2; ++k)
     {
-      fastuidraw::vec2 position, pre_offset;
+      fastuidraw::dvec2 position;
 
       position = m_pts[edge[k]];
       dst[2 * k + 0].m_attrib0 = fastuidraw::pack_vec4(position.x(), position.y(),
-                                                   normal.x(), normal.y());
+                                                       normal.x(), normal.y());
       dst[2 * k + 0].m_attrib1 = fastuidraw::pack_vec4(1.0f, 0.0f, 0.0f, 0.0f);
       dst[2 * k + 0].m_attrib2 = fastuidraw::uvec4(0, 0, 0, 0);
 
       dst[2 * k + 1].m_attrib0 = fastuidraw::pack_vec4(position.x(), position.y(),
-                                                   -normal.x(), -normal.y());
+                                                       -normal.x(), -normal.y());
       dst[2 * k + 1].m_attrib1 = fastuidraw::pack_vec4(-1.0f, 0.0f, 0.0f, 0.0f);
       dst[2 * k + 1].m_attrib2 = fastuidraw::uvec4(0, 0, 0, 0);
     }
@@ -2551,6 +2490,8 @@ SubsetPrivate(SubPath *Q, int max_recursion,
               std::vector<SubsetPrivate*> &out_values):
   m_ID(out_values.size()),
   m_bounds(Q->bounds()),
+  m_bounds_f(fastuidraw::vec2(m_bounds.min_point()),
+             fastuidraw::vec2(m_bounds.max_point())),
   m_painter_data(NULL),
   m_fuzz_painter_data(NULL),
   m_sizes_ready(false),
@@ -2655,7 +2596,7 @@ select_subsets_implement(ScratchSpacePrivate &scratch,
   vecN<vec2, 4> bb;
   bool unclipped;
 
-  m_bounds.inflated_polygon(bb, 0.0f);
+  m_bounds_f.inflated_polygon(bb, 0.0f);
   unclipped = clip_against_planes(make_c_array(scratch.m_adjusted_clip_eqs),
                                   bb, scratch.m_clipped_rect,
                                   scratch.m_clip_scratch_floats,

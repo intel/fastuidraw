@@ -27,16 +27,16 @@ namespace fastuidraw
     Simple bounding box class
    */
   template<typename T>
-  class BoundingBoxT
+  class BoundingBox
   {
   public:
     typedef vecN<T, 2> pt_type;
 
-    BoundingBoxT(void):
+    BoundingBox(void):
       m_empty(true)
     {}
 
-    BoundingBoxT(pt_type pmin, pt_type pmax):
+    BoundingBox(pt_type pmin, pt_type pmax):
       m_min(pmin),
       m_max(pmax),
       m_empty(false)
@@ -74,7 +74,7 @@ namespace fastuidraw
     }
 
     void
-    union_box(const BoundingBoxT &b)
+    union_box(const BoundingBox &b)
     {
       if(!b.m_empty)
         {
@@ -112,6 +112,4 @@ namespace fastuidraw
     pt_type m_min, m_max;
     bool m_empty;
   };
-
-  typedef BoundingBoxT<float> BoundingBox;
 }
