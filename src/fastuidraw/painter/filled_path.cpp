@@ -483,6 +483,14 @@ namespace
   class CoordinateConverter
   {
   public:
+    enum
+      {
+        on_min_x_boundary = 1,
+        on_max_x_boundary = 2,
+        on_min_y_boundary = 4,
+        on_max_y_boundary = 8
+      };
+
     explicit
     CoordinateConverter(const fastuidraw::vec2 &fpmin, const fastuidraw::vec2 &fpmax)
     {
@@ -526,6 +534,73 @@ namespace
       return m_delta_fudge;
     }
 
+    static
+    uint32_t
+    compute_boundary_bits(const fastuidraw::ivec2 &pt)
+    {
+      uint32_t R(0u);
+
+      if(pt.x() <= 1)
+        {
+          R |= on_min_x_boundary;
+        }
+
+      if(pt.x() >= CoordinateConverterConstants::box_dim - 1)
+        {
+          R |= on_max_x_boundary;
+        }
+
+      if(pt.y() <= 1)
+        {
+          R |= on_min_y_boundary;
+        }
+
+      if(pt.y() >= CoordinateConverterConstants::box_dim - 1)
+        {
+          R |= on_max_y_boundary;
+        }
+
+      return R;
+    }
+
+    static
+    bool
+    is_boundary_min_x(uint32_t b)
+    {
+      return b & on_min_x_boundary;
+    }
+
+    static
+    bool
+    is_boundary_max_x(uint32_t b)
+    {
+      return b & on_max_x_boundary;
+    }
+
+    static
+    bool
+    is_boundary_min_y(uint32_t b)
+    {
+      return b & on_min_y_boundary;
+    }
+
+    static
+    bool
+    is_boundary_max_y(uint32_t b)
+    {
+      return b & on_max_y_boundary;
+    }
+
+    static
+    bool
+    is_boundary_edge(uint32_t b0, uint32_t b1)
+    {
+      return (is_boundary_min_x(b0) && is_boundary_min_x(b1))
+        || (is_boundary_max_x(b0) && is_boundary_max_x(b1))
+        || (is_boundary_min_y(b0) && is_boundary_min_y(b1))
+        || (is_boundary_max_y(b0) && is_boundary_max_y(b1));
+    }
+
   private:
     static
     int
@@ -554,108 +629,7 @@ namespace
   class SubPath
   {
   public:
-    class SubContourPoint
-    {
-    public:
-      enum from_split_bits
-        {
-          from_split_on_min_x_boundary = 1,
-          from_split_on_max_x_boundary = 2,
-          from_split_on_min_y_boundary = 4,
-          from_split_on_max_y_boundary = 8
-        };
-
-      explicit
-      SubContourPoint(const fastuidraw::vec2 &p = fastuidraw::vec2()):
-        m_pt(p),
-        m_boundary_bits(0)
-      {}
-
-      SubContourPoint(int splitting_coordinate,
-                      const SubContourPoint &a,
-                      const SubContourPoint &b,
-                      const fastuidraw::vec2 &pt,
-                      uint32_t boundary_bits_from_split):
-        m_pt(pt)
-      {
-        uint32_t abits, bbits;
-        const uint32_t kill_masks[2] =
-          {
-            from_split_on_min_x_boundary | from_split_on_max_x_boundary,
-            from_split_on_min_y_boundary | from_split_on_max_y_boundary,
-          };
-
-        abits = a.boundary_bits() & ~kill_masks[splitting_coordinate];
-        bbits = b.boundary_bits() & ~kill_masks[splitting_coordinate];
-        m_boundary_bits = abits | bbits | boundary_bits_from_split;
-      }
-
-      const fastuidraw::vec2&
-      pt(void) const
-      {
-        return m_pt;
-      }
-
-      uint32_t
-      boundary_bits(void) const
-      {
-        return m_boundary_bits;
-      }
-
-      static
-      uint32_t
-      boundary_bit_flag(int coordinate, bool is_max)
-      {
-        uint32_t bit;
-
-        assert(coordinate == 0 || coordinate == 1);
-        bit = coordinate * 2 + int(is_max);
-        return 1u << bit;
-      }
-
-      static
-      bool
-      is_boundary_min_x(uint32_t b)
-      {
-        return b & from_split_on_min_x_boundary;
-      }
-
-      static
-      bool
-      is_boundary_max_x(uint32_t b)
-      {
-        return b & from_split_on_max_x_boundary;
-      }
-
-      static
-      bool
-      is_boundary_min_y(uint32_t b)
-      {
-        return b & from_split_on_min_y_boundary;
-      }
-
-      static
-      bool
-      is_boundary_max_y(uint32_t b)
-      {
-        return b & from_split_on_max_y_boundary;
-      }
-
-      static
-      bool
-      boundary_edge(uint32_t b0, uint32_t b1)
-      {
-        return (is_boundary_min_x(b0) && is_boundary_min_x(b1))
-          || (is_boundary_max_x(b0) && is_boundary_max_x(b1))
-          || (is_boundary_min_y(b0) && is_boundary_min_y(b1))
-          || (is_boundary_max_y(b0) && is_boundary_max_y(b1));
-      }
-
-    private:
-      fastuidraw::vec2 m_pt;
-      uint32_t m_boundary_bits;
-    };
-
+    typedef fastuidraw::vec2 SubContourPoint;
     typedef std::vector<SubContourPoint> SubContour;
 
     explicit
@@ -1469,11 +1443,11 @@ choose_splitting_coordinate(fastuidraw::vec2 &mid_pt) const
   for(std::vector<SubContour>::const_iterator c_iter = m_contours.begin(),
         c_end = m_contours.end(); c_iter != c_end; ++c_iter)
     {
-      fastuidraw::vec2 prev_pt(c_iter->back().pt());
+      fastuidraw::vec2 prev_pt(c_iter->back());
       for(SubContour::const_iterator iter = c_iter->begin(),
             end = c_iter->end(); iter != end; ++iter)
         {
-          fastuidraw::vec2 pt(iter->pt());
+          fastuidraw::vec2 pt(*iter);
           for(int i = 0; i < 2; ++i)
             {
               bool prev_b, b;
@@ -1527,7 +1501,7 @@ nudge_splitting_coordinate(float v, int coordinate) const
       for(SubContour::const_iterator iter = m_contours[i].begin(),
             end = m_contours[i].end(); iter != end; ++iter)
         {
-          values.push_back(iter->pt()[coordinate]);
+          values.push_back((*iter)[coordinate]);
         }
     }
   std::sort(values.begin(), values.end());
@@ -1560,8 +1534,7 @@ nudge_splitting_coordinate(float v, int coordinate) const
 
   float r;
   r = 0.5f * (*prev + *iter);
-  std::cout << "v --> (" << *prev << ", " << *iter
-            << ") : " << r << "\n";
+
   return r;
 }
 
@@ -1601,22 +1574,21 @@ split_contour(const SubContour &src,
       fastuidraw::vec2 split_pt;
       const SubContourPoint &pt(*iter);
 
-      prev_b0 = prev_pt.pt()[splitting_coordinate] <= splitting_value;
-      b0 = pt.pt()[splitting_coordinate] <= splitting_value;
+      prev_b0 = prev_pt[splitting_coordinate] <= splitting_value;
+      b0 = pt[splitting_coordinate] <= splitting_value;
 
-      prev_b1 = prev_pt.pt()[splitting_coordinate] >= splitting_value;
-      b1 = pt.pt()[splitting_coordinate] >= splitting_value;
+      prev_b1 = prev_pt[splitting_coordinate] >= splitting_value;
+      b1 = pt[splitting_coordinate] >= splitting_value;
 
       if(prev_b0 != b0 || prev_b1 != b1)
         {
-          split_pt = compute_spit_point(prev_pt.pt(), pt.pt(),
+          split_pt = compute_spit_point(prev_pt, pt,
                                         splitting_coordinate, splitting_value);
         }
 
       if(prev_b0 != b0)
         {
-          SubContourPoint s(splitting_coordinate, prev_pt, pt, split_pt,
-                            SubContourPoint::boundary_bit_flag(splitting_coordinate, true));
+          SubContourPoint s(split_pt);
           C0.push_back(s);
         }
 
@@ -1627,8 +1599,7 @@ split_contour(const SubContour &src,
 
       if(prev_b1 != b1)
         {
-          SubContourPoint s(splitting_coordinate, prev_pt, pt, split_pt,
-                            SubContourPoint::boundary_bit_flag(splitting_coordinate, false));
+          SubContourPoint s(split_pt);
           C1.push_back(s);
         }
 
@@ -1735,34 +1706,7 @@ generate_path(const SubPath &input, Path &output)
     }
 }
 
-static
-uint32_t
-compute_boundary_bits(const fastuidraw::ivec2 &pt)
-{
-  uint32_t R(0u);
 
-  if(pt.x() <= 1)
-    {
-      R |= SubPath::SubContourPoint::from_split_on_min_x_boundary;
-    }
-
-  if(pt.x() >= CoordinateConverterConstants::box_dim - 1)
-    {
-      R |= SubPath::SubContourPoint::from_split_on_max_x_boundary;
-    }
-
-  if(pt.y() <= 1)
-    {
-      R |= SubPath::SubContourPoint::from_split_on_min_y_boundary;
-    }
-
-  if(pt.y() >= CoordinateConverterConstants::box_dim - 1)
-    {
-      R |= SubPath::SubContourPoint::from_split_on_max_y_boundary;
-    }
-
-  return R;
-}
 
 void
 PointHoard::
@@ -1773,8 +1717,8 @@ generate_contour(const SubPath::SubContour &C, Contour &output)
       unsigned int I;
       uint32_t boundary_bits;
 
-      I = fetch(C[v].pt());
-      boundary_bits = compute_boundary_bits(m_ipts[I]);
+      I = fetch(C[v]);
+      boundary_bits = CoordinateConverter::compute_boundary_bits(m_ipts[I]);
       output.push_back(ContourPoint(I, boundary_bits));
     }
 }
@@ -1854,7 +1798,7 @@ add_contour(const PointHoard::Contour &C)
       I = C[v];
       p = m_points.apply(I.first, m_point_count);
       ++m_point_count;
-      if(!SubPath::SubContourPoint::boundary_edge(I.second, lastI.second))
+      if(!CoordinateConverter::is_boundary_edge(I.second, lastI.second))
         {
           m_boundary_edge_tracker.record_contour_edge(lastI.first, I.first);
         }
@@ -2411,10 +2355,6 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
       ch = fastuidraw::FilledPath::Subset::chunk_for_aa_fuzz(w0, w1);
       assert(ch < tmp.size());
       tmp[ch]++;
-      std::cout << m_pts[iter->edge()[0]] << ":"
-                << m_pts[iter->edge()[1]] << " windings=("
-                << w0 << "," << w1 << ") cnt=" << iter->count()
-                << "\n";
     }
 
   for(unsigned int ch = 0, dst_offset = 0; ch < attrib_chunks.size(); ++ch)
