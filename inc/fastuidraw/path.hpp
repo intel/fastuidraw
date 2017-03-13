@@ -85,6 +85,15 @@ public:
     end_pt(void) const;
 
     /*!
+      To be implemented by a derived class to return true if
+      the interpolator is flat, i.e. is just a line segment
+      connecting start_pt() to end_pt().
+     */
+    virtual
+    bool
+    is_flat(void) const = 0;
+
+    /*!
       To be implemented by a derived class to produce the tessellation
       from start_pt() to end_pt(). The routine must include BOTH start_pt()
       and end_pt() in the result. Only the fields TessellatedPath::point::m_p,
@@ -151,6 +160,10 @@ public:
          const vec2 &end):
       interpolator_base(prev, end)
     {}
+
+    virtual
+    bool
+    is_flat(void) const;
 
     virtual
     unsigned int
@@ -285,6 +298,10 @@ public:
     ~bezier();
 
     virtual
+    bool
+    is_flat(void) const;
+
+    virtual
     void
     compute(float in_t, vec2 *outp, vec2 *outp_t, vec2 *outp_tt) const;
 
@@ -331,6 +348,10 @@ public:
         float angle, const vec2 &end);
 
     ~arc();
+
+    virtual
+    bool
+    is_flat(void) const;
 
     virtual
     void
@@ -479,6 +500,13 @@ public:
    */
   bool
   approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
+
+  /*!
+    Returns true if each interpolator of the PathContour is
+    flat.
+   */
+  bool
+  is_flat(void) const;
 
   /*!
     Create a deep copy of this PathContour.
@@ -843,6 +871,12 @@ public:
    */
   reference_counted_ptr<const PathContour>
   contour(unsigned int i) const;
+
+  /*!
+    Returns true if each PathContour of the Path is flat.
+   */
+  bool
+  is_flat(void) const;
 
   /*!
     Returns an approximation of the bounding box for
