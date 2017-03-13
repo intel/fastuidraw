@@ -371,8 +371,9 @@ namespace
   {
   public:
     explicit
-    BoundaryEdgeTracker(const PointHoard *pts):
-      m_pts(*pts)
+    BoundaryEdgeTracker(uint32_t bd_mask, const PointHoard *pts):
+      m_pts(*pts),
+      m_bd_mask(bd_mask)
     {}
 
     void
@@ -391,6 +392,7 @@ namespace
 
     std::map<Edge, EdgeData> m_data;
     const PointHoard &m_pts;
+    uint32_t m_bd_mask;
   };
 
   class per_winding_data:
@@ -866,7 +868,8 @@ namespace
   {
   public:
     explicit
-    builder(const SubPath &P, std::vector<fastuidraw::dvec2> &pts);
+    builder(uint32_t bd_mask, const SubPath &P,
+            std::vector<fastuidraw::dvec2> &pts);
 
     ~builder();
 
@@ -1089,8 +1092,9 @@ namespace
 
   private:
 
-    SubsetPrivate(SubPath *P, int max_recursion,
-                  std::vector<SubsetPrivate*> &out_values);
+    SubsetPrivate(SubsetPrivate *parent, SubPath *P, int max_recursion,
+                  std::vector<SubsetPrivate*> &out_values,
+                  int child_id);
 
     void
     select_subsets_implement(ScratchSpacePrivate &scratch,
@@ -1119,6 +1123,9 @@ namespace
     merge_winding_lists(fastuidraw::const_c_array<int> inA,
                         fastuidraw::const_c_array<int> inB,
                         std::vector<int> *out);
+
+    uint32_t
+    compute_bd_mask_value(SubsetPrivate *parent, int child_id);
 
     /* m_ID represents an index into the std::vector<>
        passed into create_hierarchy() where this element
@@ -1159,6 +1166,14 @@ namespace
     SubPath *m_sub_path;
     fastuidraw::vecN<SubsetPrivate*, 2> m_children;
     int m_splitting_coordinate;
+
+    /* mask to bitwise-and with teh return value to
+       CoordinateConverter::compute_boundary_bits().
+       This is for the purpose of picking up AA-edges
+       for the sides of a Subset (if any) that do
+       not have nighbors.
+     */
+    uint32_t m_bd_mask;
   };
 
   class FilledPathPrivate
@@ -1251,9 +1266,9 @@ record_triangle(int w, uint64_t area,
 {
   uint32_t v0bits, v1bits, v2bits;
 
-  v0bits = CoordinateConverter::compute_boundary_bits(m_pts.ipt(v0));
-  v1bits = CoordinateConverter::compute_boundary_bits(m_pts.ipt(v1));
-  v2bits = CoordinateConverter::compute_boundary_bits(m_pts.ipt(v2));
+  v0bits = m_bd_mask & CoordinateConverter::compute_boundary_bits(m_pts.ipt(v0));
+  v1bits = m_bd_mask & CoordinateConverter::compute_boundary_bits(m_pts.ipt(v1));
+  v2bits = m_bd_mask & CoordinateConverter::compute_boundary_bits(m_pts.ipt(v2));
 
   record_triangle_edge(w, area, v0, v1, v2, v0bits, v1bits);
   record_triangle_edge(w, area, v1, v2, v0, v1bits, v2bits);
@@ -2016,9 +2031,10 @@ fill_region(int winding_number)
 /////////////////////////////////////////
 // builder methods
 builder::
-builder(const SubPath &P, std::vector<fastuidraw::dvec2> &points):
+builder(uint32_t bd_mask, const SubPath &P,
+        std::vector<fastuidraw::dvec2> &points):
   m_points(P.bounds(), points),
-  m_boundary_edge_tracker(&m_points)
+  m_boundary_edge_tracker(bd_mask, &m_points)
 {
   bool failZ, failNZ;
   PointHoard::Path path;
@@ -2472,8 +2488,9 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
 /////////////////////////////////
 // SubsetPrivate methods
 SubsetPrivate::
-SubsetPrivate(SubPath *Q, int max_recursion,
-              std::vector<SubsetPrivate*> &out_values):
+SubsetPrivate(SubsetPrivate *parent, SubPath *Q, int max_recursion,
+              std::vector<SubsetPrivate*> &out_values,
+              int child_id):
   m_ID(out_values.size()),
   m_bounds(Q->bounds()),
   m_bounds_f(fastuidraw::vec2(m_bounds.min_point()),
@@ -2483,7 +2500,8 @@ SubsetPrivate(SubPath *Q, int max_recursion,
   m_sizes_ready(false),
   m_sub_path(Q),
   m_children(NULL, NULL),
-  m_splitting_coordinate(-1)
+  m_splitting_coordinate(-1),
+  m_bd_mask(compute_bd_mask_value(parent, child_id))
 {
   out_values.push_back(this);
   if(max_recursion > 0 && m_sub_path->total_points() > SubsetConstants::points_per_subset)
@@ -2493,8 +2511,8 @@ SubsetPrivate(SubPath *Q, int max_recursion,
       C = Q->split(m_splitting_coordinate);
       if(C[0]->total_points() < m_sub_path->total_points() || C[1]->total_points() < m_sub_path->total_points())
         {
-          m_children[0] = FASTUIDRAWnew SubsetPrivate(C[0], max_recursion - 1, out_values);
-          m_children[1] = FASTUIDRAWnew SubsetPrivate(C[1], max_recursion - 1, out_values);
+          m_children[0] = FASTUIDRAWnew SubsetPrivate(this, C[0], max_recursion - 1, out_values, 0);
+          m_children[1] = FASTUIDRAWnew SubsetPrivate(this, C[1], max_recursion - 1, out_values, 1);
           FASTUIDRAWdelete(m_sub_path);
           m_sub_path = NULL;
         }
@@ -2540,8 +2558,33 @@ SubsetPrivate::
 create_root_subset(SubPath *P, std::vector<SubsetPrivate*> &out_values)
 {
   SubsetPrivate *root;
-  root = FASTUIDRAWnew SubsetPrivate(P, SubsetConstants::recursion_depth, out_values);
+  root = FASTUIDRAWnew SubsetPrivate(NULL, P, SubsetConstants::recursion_depth, out_values, -1);
   return root;
+}
+
+uint32_t
+SubsetPrivate::
+compute_bd_mask_value(SubsetPrivate *parent, int child_id)
+{
+  if(parent == NULL)
+    {
+      assert(child_id == -1);
+      return 0u;
+    }
+  else
+    {
+      int s(parent->m_splitting_coordinate);
+      uint32_t masks[2][2] =
+        {
+          {CoordinateConverter::on_max_x_boundary, CoordinateConverter::on_min_x_boundary},
+          {CoordinateConverter::on_max_y_boundary, CoordinateConverter::on_min_y_boundary},
+        };
+
+      assert(s == 0 || s == 1);
+      assert(child_id == 0 || child_id == 1);
+
+      return parent->m_bd_mask | masks[s][child_id];
+    }
 }
 
 unsigned int
@@ -2764,7 +2807,7 @@ make_ready_from_sub_path(void)
   AttributeDataFiller filler;
   std::vector<AAEdge> aa_edges;
   AAEdgeList edge_list(&m_aa_edge_list_counter, &aa_edges);
-  builder B(*m_sub_path, filler.m_points);
+  builder B(m_bd_mask, *m_sub_path, filler.m_points);
   unsigned int even_non_zero_start, zero_start;
   unsigned int m1, m2;
 
