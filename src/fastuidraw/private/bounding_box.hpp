@@ -26,14 +26,17 @@ namespace fastuidraw
   /*!
     Simple bounding box class
    */
+  template<typename T>
   class BoundingBox
   {
   public:
+    typedef vecN<T, 2> pt_type;
+
     BoundingBox(void):
       m_empty(true)
     {}
 
-    BoundingBox(vec2 pmin, vec2 pmax):
+    BoundingBox(pt_type pmin, pt_type pmax):
       m_min(pmin),
       m_max(pmax),
       m_empty(false)
@@ -43,17 +46,17 @@ namespace fastuidraw
     }
 
     void
-    inflated_polygon(vecN<vec2, 4> &out_data, float rad) const
+    inflated_polygon(vecN<pt_type, 4> &out_data, T rad) const
     {
       assert(!m_empty);
-      out_data[0] = vec2(m_min.x() - rad, m_min.y() - rad);
-      out_data[1] = vec2(m_max.x() + rad, m_min.y() - rad);
-      out_data[2] = vec2(m_max.x() + rad, m_max.y() + rad);
-      out_data[3] = vec2(m_min.x() - rad, m_max.y() + rad);
+      out_data[0] = pt_type(m_min.x() - rad, m_min.y() - rad);
+      out_data[1] = pt_type(m_max.x() + rad, m_min.y() - rad);
+      out_data[2] = pt_type(m_max.x() + rad, m_max.y() + rad);
+      out_data[3] = pt_type(m_min.x() - rad, m_max.y() + rad);
     }
 
     void
-    union_point(const vec2 &pt)
+    union_point(const pt_type &pt)
     {
       if(m_empty)
         {
@@ -80,11 +83,11 @@ namespace fastuidraw
         }
     }
 
-    fastuidraw::vec2
+    pt_type
     size(void) const
     {
       return m_empty ?
-        fastuidraw::vec2(0.0f, 0.0f) :
+        pt_type(T(0), T(0)) :
         m_max - m_min;
     }
 
@@ -94,19 +97,19 @@ namespace fastuidraw
       return m_empty;
     }
 
-    const vec2&
+    const pt_type&
     min_point(void) const
     {
       return m_min;
     }
 
-    const vec2&
+    const pt_type&
     max_point(void) const
     {
       return m_max;
     }
   private:
-    vec2 m_min, m_max;
+    pt_type m_min, m_max;
     bool m_empty;
   };
 }
