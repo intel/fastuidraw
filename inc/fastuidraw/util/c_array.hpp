@@ -518,6 +518,14 @@ public:
     return const_c_array<S>(ptr, num_bytes / sizeof(S));
   }
 
+  c_array<T>
+  const_cast_pointer(void) const
+  {
+    T *q;
+    q = const_cast<T*>(c_ptr());
+    return c_array<T>(q, size());
+  }
+
   /*!
     Pointer of the const_c_array.
    */
