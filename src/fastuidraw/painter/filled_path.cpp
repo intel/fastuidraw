@@ -114,6 +114,16 @@ namespace CoordinateConverterConstants
       negative_log2_fudge = 20,
       box_dim = (1 << log2_box_dim),
     };
+
+  /* essentially the hieght of one pixel
+     from coordinate conversions. We are
+     targetting a resolution of no more
+     thant 2^13. We also can have that
+     a subset is zoomed in by upto a factor
+     of 2^3. This leaves us with
+     8 = 24 - 13 - 3 bits.
+   */
+  const double min_height = double(1u << 8u);
 }
 
 namespace
@@ -1817,13 +1827,33 @@ temp_verts_non_degenerate_triangle(uint64_t &area)
   fastuidraw::i64vec2 p1(m_points.ipt(m_temp_verts[1]));
   fastuidraw::i64vec2 p2(m_points.ipt(m_temp_verts[2]));
   fastuidraw::i64vec2 v(p1 - p0), w(p2 - p0);
-  bool return_value;
 
-  /* we only reject a triangle if its area is zero.
-   */
   area = fastuidraw::t_abs(v.x() * w.y() - v.y() * w.x());
-  return_value = (area > 0);
-  return return_value;
+  if(area == 0)
+    {
+      return false;
+    }
+
+  fastuidraw::i64vec2 u(p2 - p1);
+  double vmag, wmag, umag, two_area(area * uint64_t(2u));
+  const double min_height(CoordinateConverterConstants::min_height);
+
+  vmag = fastuidraw::t_sqrt(static_cast<double>(dot(v, v)));
+  wmag = fastuidraw::t_sqrt(static_cast<double>(dot(w, w)));
+  umag = fastuidraw::t_sqrt(static_cast<double>(dot(u, u)));
+
+  /* the distance from an edge to the 3rd
+     point is given as twice the area divided
+     by the length of the edge. We ask that
+     the distance is atleast 1.
+   */
+  if(two_area / vmag < min_height || two_area / wmag < min_height || two_area / umag < min_height)
+    {
+      area = 0u;
+      return false;
+    }
+
+  return true;
 }
 
 void
@@ -2846,12 +2876,15 @@ make_ready_from_sub_path(void)
 
   /* fill m_fuzz_painter_data
    */
-  EdgeAttributeDataFiller edge_filler(m_winding_numbers.front(),
-                                      m_winding_numbers.back(),
-                                      &filler.m_points,
-                                      &aa_edges);
   m_fuzz_painter_data = FASTUIDRAWnew fastuidraw::PainterAttributeData();
-  m_fuzz_painter_data->set_data(edge_filler);
+  if(!m_winding_numbers.empty())
+    {
+      EdgeAttributeDataFiller edge_filler(m_winding_numbers.front(),
+					  m_winding_numbers.back(),
+					  &filler.m_points,
+					  &aa_edges);
+      m_fuzz_painter_data->set_data(edge_filler);
+    }
 
   FASTUIDRAWdelete(m_sub_path);
   m_sub_path = NULL;
