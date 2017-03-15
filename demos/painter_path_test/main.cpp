@@ -1508,11 +1508,11 @@ draw_frame(void)
           m_black_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0, 0.0, 0.0, 1.0));
         }
 
-      m_painter->draw_rect(PainterData(m_black_pen), p0 - vec2(r1) * 0.5, vec2(r1), false);
-      m_painter->draw_rect(PainterData(m_white_pen), p0 - vec2(r0) * 0.5, vec2(r0), false);
+      m_painter->draw_rect(PainterData(m_black_pen), p0 - vec2(r1) * 0.5, vec2(r1), true);
+      m_painter->draw_rect(PainterData(m_white_pen), p0 - vec2(r0) * 0.5, vec2(r0), true);
 
-      m_painter->draw_rect(PainterData(m_white_pen), p1 - vec2(r1) * 0.5, vec2(r1), false);
-      m_painter->draw_rect(PainterData(m_black_pen), p1 - vec2(r0) * 0.5, vec2(r0), false);
+      m_painter->draw_rect(PainterData(m_white_pen), p1 - vec2(r1) * 0.5, vec2(r1), true);
+      m_painter->draw_rect(PainterData(m_black_pen), p1 - vec2(r0) * 0.5, vec2(r0), true);
     }
 
   m_painter->restore();
