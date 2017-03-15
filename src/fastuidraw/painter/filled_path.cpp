@@ -119,11 +119,11 @@ namespace CoordinateConverterConstants
      from coordinate conversions. We are
      targetting a resolution of no more
      thant 2^13. We also can have that
-     a subset is zoomed in by upto a factor
-     of 2^3. This leaves us with
-     8 = 24 - 13 - 3 bits.
+     a subset is zoomed in by up to a
+     factor of 2^4. This leaves us with
+     7 = 24 - 13 - 4 bits.
    */
-  const double min_height = double(1u << 8u);
+  const double min_height = double(1u << 7u);
 }
 
 namespace
@@ -167,17 +167,9 @@ namespace
     class per_entry
     {
     public:
-      uint64_t m_area;
+      uint64_t m_twice_area;
       int m_winding;
       unsigned int m_vertex;
-
-      /* NOTE: reverse sorted by AREA
-       */
-      bool
-      operator<(const per_entry &rhs) const
-      {
-        return m_area > rhs.m_area;
-      }
 
       bool
       canidate(int w, unsigned int v) const
@@ -191,7 +183,7 @@ namespace
     {}
 
     void
-    add_winding(uint64_t area, int w, unsigned int v);
+    add_winding(uint64_t twice_area, int w, unsigned int v);
 
     fastuidraw::const_c_array<per_entry>
     filtered_entries(void) const;
@@ -201,7 +193,7 @@ namespace
     bool
     compare_entry_reverse_area(const per_entry &lhs, const per_entry &rhs)
     {
-      return lhs.m_area > rhs.m_area;
+      return lhs.m_twice_area > rhs.m_twice_area;
     }
 
     static
@@ -387,7 +379,7 @@ namespace
     {}
 
     void
-    record_triangle(int w, uint64_t area,
+    record_triangle(int w, uint64_t twice_area,
                     unsigned int v0, unsigned int v1, unsigned int v2);
 
     void
@@ -395,7 +387,7 @@ namespace
 
   private:
     void
-    record_triangle_edge(int w, uint64_t area,
+    record_triangle_edge(int w, uint64_t twice_area,
                          unsigned int e0, unsigned int e1,
                          unsigned int opposite,
                          uint32_t abits, uint32_t bbits);
@@ -785,7 +777,7 @@ namespace
     winding_callBack(int winding_number, void *tess);
 
     bool
-    temp_verts_non_degenerate_triangle(uint64_t &area);
+    temp_verts_non_degenerate_triangle(uint64_t &twice_area);
 
     BoundaryEdgeTracker &m_boundary_edge_tracker;
     unsigned int m_point_count;
@@ -1241,13 +1233,13 @@ filtered_entries(void) const
 
 void
 EdgeData::
-add_winding(uint64_t area, int w, unsigned int v)
+add_winding(uint64_t twice_area, int w, unsigned int v)
 {
   per_entry p;
 
-  assert(area > 0);
+  assert(twice_area > 0);
   assert(!m_filtered);
-  p.m_area = area;
+  p.m_twice_area = twice_area;
   p.m_winding = w;
   p.m_vertex = v;
   m_entries.push_back(p);
@@ -1257,7 +1249,7 @@ add_winding(uint64_t area, int w, unsigned int v)
 // BoundaryEdgeTracker methods
 void
 BoundaryEdgeTracker::
-record_triangle_edge(int w, uint64_t area,
+record_triangle_edge(int w, uint64_t twice_area,
                      unsigned int a, unsigned int b,
                      unsigned int opposite,
                      uint32_t abits, uint32_t bbits)
@@ -1265,13 +1257,13 @@ record_triangle_edge(int w, uint64_t area,
   if(a != b && !CoordinateConverter::is_boundary_edge(abits, bbits))
     {
       Edge E(a, b);
-      m_data[E].add_winding(area, w, opposite);
+      m_data[E].add_winding(twice_area, w, opposite);
     }
 }
 
 void
 BoundaryEdgeTracker::
-record_triangle(int w, uint64_t area,
+record_triangle(int w, uint64_t twice_area,
                 unsigned int v0, unsigned int v1, unsigned int v2)
 {
   uint32_t v0bits, v1bits, v2bits;
@@ -1280,9 +1272,9 @@ record_triangle(int w, uint64_t area,
   v1bits = m_bd_mask & CoordinateConverter::compute_boundary_bits(m_pts.ipt(v1));
   v2bits = m_bd_mask & CoordinateConverter::compute_boundary_bits(m_pts.ipt(v2));
 
-  record_triangle_edge(w, area, v0, v1, v2, v0bits, v1bits);
-  record_triangle_edge(w, area, v1, v2, v0, v1bits, v2bits);
-  record_triangle_edge(w, area, v2, v0, v1, v2bits, v0bits);
+  record_triangle_edge(w, twice_area, v0, v1, v2, v0bits, v1bits);
+  record_triangle_edge(w, twice_area, v1, v2, v0, v1bits, v2bits);
+  record_triangle_edge(w, twice_area, v2, v0, v1, v2bits, v0bits);
 }
 
 void
@@ -1290,7 +1282,7 @@ BoundaryEdgeTracker::
 create_aa_edges(AAEdgeList &out_aa_edges) const
 {
   /* basic idea: take the first two elements
-     with the biggest area.
+     with the biggest twice_area.
    */
   for(std::map<Edge, EdgeData>::const_iterator iter = m_data.begin(),
         end = m_data.end(); iter != end; ++iter)
@@ -1814,7 +1806,7 @@ add_path_boundary(const SubPath &P)
 
 bool
 tesser::
-temp_verts_non_degenerate_triangle(uint64_t &area)
+temp_verts_non_degenerate_triangle(uint64_t &twice_area)
 {
   if(m_temp_verts[0] == m_temp_verts[1]
      || m_temp_verts[0] == m_temp_verts[2]
@@ -1828,14 +1820,14 @@ temp_verts_non_degenerate_triangle(uint64_t &area)
   fastuidraw::i64vec2 p2(m_points.ipt(m_temp_verts[2]));
   fastuidraw::i64vec2 v(p1 - p0), w(p2 - p0);
 
-  area = fastuidraw::t_abs(v.x() * w.y() - v.y() * w.x());
-  if(area == 0)
+  twice_area = fastuidraw::t_abs(v.x() * w.y() - v.y() * w.x());
+  if(twice_area == 0)
     {
       return false;
     }
 
   fastuidraw::i64vec2 u(p2 - p1);
-  double vmag, wmag, umag, two_area(area * uint64_t(2u));
+  double vmag, wmag, umag, two_area(twice_area);
   const double min_height(CoordinateConverterConstants::min_height);
 
   vmag = fastuidraw::t_sqrt(static_cast<double>(dot(v, v)));
@@ -1847,9 +1839,11 @@ temp_verts_non_degenerate_triangle(uint64_t &area)
      by the length of the edge. We ask that
      the distance is atleast 1.
    */
-  if(two_area / vmag < min_height || two_area / wmag < min_height || two_area / umag < min_height)
+  if(two_area < min_height * vmag
+     || two_area < min_height * wmag
+     || two_area < min_height * umag)
     {
-      area = 0u;
+      twice_area = 0u;
       return false;
     }
 
@@ -1894,7 +1888,7 @@ vertex_callBack(unsigned int vertex_id, void *tess)
   p->m_temp_vert_count++;
   if(p->m_temp_vert_count == 3)
     {
-      uint64_t area(0u);
+      uint64_t twice_area(0u);
       p->m_temp_vert_count = 0;
       /*
         if vertex_id is FASTUIDRAW_GLU_NULL_CLIENT_ID, that means
@@ -1903,11 +1897,11 @@ vertex_callBack(unsigned int vertex_id, void *tess)
       if(p->m_temp_verts[0] != FASTUIDRAW_GLU_NULL_CLIENT_ID
          && p->m_temp_verts[1] != FASTUIDRAW_GLU_NULL_CLIENT_ID
          && p->m_temp_verts[2] != FASTUIDRAW_GLU_NULL_CLIENT_ID
-         && p->temp_verts_non_degenerate_triangle(area))
+         && p->temp_verts_non_degenerate_triangle(twice_area))
         {
-          assert(area > 0);
+          assert(twice_area > 0);
           p->m_boundary_edge_tracker.record_triangle(p->current_winding() + p->m_winding_offset,
-                                                     area,
+                                                     twice_area,
                                                      p->m_temp_verts[0],
                                                      p->m_temp_verts[1],
                                                      p->m_temp_verts[2]);
