@@ -1467,7 +1467,7 @@ draw_convex_polygon(const PainterFillShader &shader,
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  if(pts.size() < 3)
+  if(pts.size() < 3 || d->m_clip_rect_state.m_all_content_culled)
     {
       return;
     }
@@ -1500,15 +1500,67 @@ draw_convex_polygon(const PainterFillShader &shader,
       d->m_work_room.m_polygon_indices.push_back(i - 1);
       d->m_work_room.m_polygon_indices.push_back(i);
     }
+  
+  if(with_anti_aliasing)
+    {
+      ++d->m_current_z;
+    }
   draw_generic(shader.item_shader(), draw,
                make_c_array(d->m_work_room.m_polygon_attribs),
                make_c_array(d->m_work_room.m_polygon_indices),
                0,
                call_back);
 
-  /* TODO: draw aa-fuzz if with_anti_aliasing is true.
+  /* each point spawns an edge, each edge is 4 attributes and 6 indices
    */
-  FASTUIDRAWunused(with_anti_aliasing);
+  if(with_anti_aliasing)
+    {
+      d->m_work_room.m_polygon_attribs.resize(4 * pts.size());
+      d->m_work_room.m_polygon_indices.resize(6 * pts.size());
+
+      c_array<PainterAttribute> attrs(make_c_array(d->m_work_room.m_polygon_attribs));
+      c_array<PainterIndex> indices(make_c_array(d->m_work_room.m_polygon_indices));
+  
+      for(unsigned int src = 0, prev_src = pts.size() - 1; src < pts.size(); prev_src = src, ++src)
+	{
+	  c_array<PainterAttribute> dst_attrib(attrs.sub_array(src * 4, 4));
+	  c_array<PainterIndex> dst_index(indices.sub_array(src * 6, 6));
+	  vec2 t(pts[src] - pts[prev_src]);
+	  vec2 n(-t.y(), t.x());
+	
+	  dst_index[0] = 4 * src + 0;
+	  dst_index[1] = 4 * src + 1;
+	  dst_index[2] = 4 * src + 2;
+	  dst_index[3] = 4 * src + 1;
+	  dst_index[4] = 4 * src + 3;
+	  dst_index[5] = 4 * src + 2;
+
+	  for(unsigned int k = 0; k < 2; ++k)
+	    {
+	      unsigned int which_pt;
+
+	      which_pt = (k == 0) ? prev_src : src; 
+	      dst_attrib[2 * k + 0].m_attrib0 = pack_vec4(pts[which_pt].x(), pts[which_pt].y(), n.x(), n.y());
+	      dst_attrib[2 * k + 0].m_attrib1 = pack_vec4(1.0f, 0.0f, 0.0f, 0.0f);
+	      dst_attrib[2 * k + 0].m_attrib2 = uvec4(0, 0, 0, 0);
+
+	      dst_attrib[2 * k + 1].m_attrib0 = pack_vec4(pts[which_pt].x(), pts[which_pt].y(), -n.x(), -n.y());
+	      dst_attrib[2 * k + 1].m_attrib1 = pack_vec4(-1.0f, 0.0f, 0.0f, 0.0f);
+	      dst_attrib[2 * k + 1].m_attrib2 = uvec4(0, 0, 0, 0);
+	    }
+	}
+
+      --d->m_current_z;
+      d->draw_generic(shader.aa_fuzz_shader(), draw,
+		      vecN<const_c_array<PainterAttribute>, 1>(attrs),
+		      vecN<const_c_array<PainterIndex>, 1>(indices),
+		      vecN<int, 1>(0),
+		      const_c_array<unsigned int>(),
+		      d->m_current_z,
+		      call_back);
+      ++d->m_current_z;
+		      
+    }
 }
 
 void
