@@ -421,8 +421,9 @@ update_cts_params(void)
   const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
   assert(keyboard_state != NULL);
 
-  float speed = static_cast<float>(m_draw_timer.restart()), speed_stroke, speed_shear;
-
+  float speed = static_cast<float>(m_draw_timer.restart_us()), speed_stroke, speed_shear;
+  speed /= 1000.0f;
+  
   if(keyboard_state[SDL_SCANCODE_LSHIFT])
     {
       speed *= 0.1f;
