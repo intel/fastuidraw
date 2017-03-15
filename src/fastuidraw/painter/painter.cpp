@@ -76,25 +76,31 @@ namespace
         fastuidraw::const_c_array<unsigned int> subsets,
         const fastuidraw::CustomFillRuleBase &fill_rule)
     {
-      int max_winding, min_winding;
+      int max_winding(0), min_winding(0);
+      bool first_entry(true);
+      
       for(unsigned int i = 0; i < subsets.size(); ++i)
         {
           unsigned int s(subsets[i]);
           fastuidraw::FilledPath::Subset subset(filled_path.subset(s));
           int m, M;
 
-          m = subset.winding_numbers().front();
-          M = subset.winding_numbers().back();
-          if(i == 0)
-            {
-              min_winding = m;
-              max_winding = M;
-            }
-          else
-            {
-              min_winding = fastuidraw::t_min(min_winding, m);
-              max_winding = fastuidraw::t_max(max_winding, M);
-            }
+	  if(!subset.winding_numbers().empty())
+	    {
+	      m = subset.winding_numbers().front();
+	      M = subset.winding_numbers().back();
+	      if(first_entry)
+		{
+		  min_winding = m;
+		  max_winding = M;
+		  first_entry = false;
+		}
+	      else
+		{
+		  min_winding = fastuidraw::t_min(min_winding, m);
+		  max_winding = fastuidraw::t_max(max_winding, M);
+		}
+	    }
         }
       set(min_winding, max_winding, fill_rule);
     }
