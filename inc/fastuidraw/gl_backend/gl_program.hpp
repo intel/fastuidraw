@@ -398,6 +398,11 @@ private:
   T m_value;
 };
 
+/*!
+  Specialization for type const_c_array<T> for
+  \ref UniformInitializer so that data behind
+  the const_c_array is copied.
+ */
 template<typename T>
 class UniformInitializer<const_c_array<T> >:public UniformInitalizerBase
 {
@@ -448,6 +453,11 @@ private:
   const_c_array<T> m_value;
 };
 
+/*!
+  Specialization for type c_array<T> for
+  \ref UniformInitializer so that data behind
+  the c_array is copied.
+ */
 template<typename T>
 class UniformInitializer<c_array<T> >:public UniformInitalizerBase
 {

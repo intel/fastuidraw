@@ -58,7 +58,7 @@ namespace fastuidraw
       the filled path triangles. The expected format
       of the attributes is as found in the \ref
       PainterAttributeData returned by \ref
-      FilledPath::Subset::painer_data().
+      FilledPath::Subset::painter_data().
      */
     const reference_counted_ptr<PainterItemShader>&
     item_shader(void) const;
@@ -76,7 +76,7 @@ namespace fastuidraw
       a filled path. The expected format of the
       attributes is as found in the \ref
       PainterAttributeData returned by \ref
-      FilledPath::Subset::aa_fuzz_painer_data().
+      FilledPath::Subset::aa_fuzz_painter_data().
      */
     const reference_counted_ptr<PainterItemShader>&
     aa_fuzz_shader(void) const;

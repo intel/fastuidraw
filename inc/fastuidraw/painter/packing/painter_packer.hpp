@@ -102,7 +102,7 @@ namespace fastuidraw
         To be implemented by a derived class to return
         the number of attribute of an attribute chunk
         of the DataWriter.
-        \param which attribute_chunk chunk of attributes
+        \param attribute_chunk which chunk of attributes
        */
       virtual
       unsigned int
@@ -120,7 +120,7 @@ namespace fastuidraw
         To be implemented by a derived class to return
         the number of indices of an index chunk
         of the DataWriter.
-        \param which index_chunk chunk of attributes
+        \param index_chunk which chunk of attributes
        */
       virtual
       unsigned int
