@@ -2597,8 +2597,12 @@ StrokedPathPrivate::
     {
       FASTUIDRAWdelete(m_rounded_caps[i].m_data);
     }
-  FASTUIDRAWdelete(m_edge_culler[0]);
-  FASTUIDRAWdelete(m_edge_culler[1]);
+
+  if(!m_empty_path)
+    {
+      FASTUIDRAWdelete(m_edge_culler[0]);
+      FASTUIDRAWdelete(m_edge_culler[1]);
+    }
 }
 
 void
@@ -2607,6 +2611,7 @@ create_edges(const fastuidraw::TessellatedPath &P)
 {
   EdgeStore edge_store(P, m_path_data);
 
+  assert(!m_empty_path);
   for(unsigned int i = 0; i < 2; ++i)
     {
       SubEdgeCullingHierarchy *s;
