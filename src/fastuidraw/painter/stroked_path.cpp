@@ -16,7 +16,6 @@
  *
  */
 
-
 #include <vector>
 #include <complex>
 #include <algorithm>
@@ -429,7 +428,7 @@ namespace
     const PathData &m_P;
     unsigned int m_num_non_closed_verts, m_num_non_closed_indices;
     unsigned int m_num_closed_verts, m_num_closed_indices;
-    unsigned int m_num_joins;
+    unsigned int m_num_joins, m_num_joins_without_closing_edge;
     bool m_post_ctor_initalized_called;
   };
 
@@ -1614,6 +1613,7 @@ JoinCreatorBase(const PathData &P):
   m_num_closed_verts(0u),
   m_num_closed_indices(0u),
   m_num_joins(0u),
+  m_num_joins_without_closing_edge(0u),
   m_post_ctor_initalized_called(false)
 {}
 
@@ -1633,6 +1633,8 @@ post_ctor_initalize(void)
                    o, e, m_num_non_closed_verts, m_num_non_closed_indices);
         }
     }
+
+  m_num_joins_without_closing_edge = m_num_joins;
 
   for(unsigned int o = 0; o < m_P.number_contours(); ++o)
     {
@@ -1709,7 +1711,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
   assert(index_data.size() == m_num_non_closed_indices + m_num_closed_indices);
 
   index_adjusts[fastuidraw::StrokedPath::join_chunk_without_closing_edge] = 0;
-  zincrements[fastuidraw::StrokedPath::join_chunk_without_closing_edge] = m_num_joins;
+  zincrements[fastuidraw::StrokedPath::join_chunk_without_closing_edge] = m_num_joins_without_closing_edge;
   attribute_chunks[fastuidraw::StrokedPath::join_chunk_without_closing_edge] = attribute_data.sub_array(0, m_num_non_closed_verts);
   index_chunks[fastuidraw::StrokedPath::join_chunk_without_closing_edge] = index_data.sub_array(0, m_num_non_closed_indices);
 
@@ -2815,7 +2817,6 @@ number_joins(const PainterAttributeData &join_data, bool with_closing_edges)
   unsigned int K;
   K = with_closing_edges ? join_chunk_with_closing_edge : join_chunk_without_closing_edge;
   return join_data.increment_z_value(K);
-
 }
 
 unsigned int
