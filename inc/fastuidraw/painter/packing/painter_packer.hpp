@@ -247,7 +247,7 @@ namespace fastuidraw
 
     /*!
       Sets the active blend shader. It is a crashing error for
-      h to be NULL.
+      h to be nullptr.
       \param h blend shader to use for blending.
       \param packed_blend_mode 3D API blend mode packed via BlendMode::packed().
      */
@@ -291,7 +291,7 @@ namespace fastuidraw
       \param index_chunks the i'th element is index data into attrib_chunks[i]
       \param index_adjusts the i'th element is the value by which to adjust all of index_chunks[i]
       \param z z-value z value placed into the header
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -314,7 +314,7 @@ namespace fastuidraw
       \param attrib_chunk_selector selects which attribute chunk to use for
              each index chunk
       \param z z-value z value placed into the header
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -332,7 +332,7 @@ namespace fastuidraw
       \param data data for how to draw
       \param src DrawWriter to use to write attribute and index data
       \param z z-value z value placed into the header
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void

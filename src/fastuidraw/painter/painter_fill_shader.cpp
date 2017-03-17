@@ -49,7 +49,7 @@ fastuidraw::PainterFillShader::
   PainterFillShaderPrivate *d;
   d = static_cast<PainterFillShaderPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::PainterFillShader&

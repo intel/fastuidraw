@@ -7,7 +7,7 @@ PainterWidget(PainterWidget *parent):
   m_skip_drawing(false),
   m_parent(parent)
 {
-  if(m_parent != NULL)
+  if(m_parent != nullptr)
     {
       m_iterator_loc = m_parent->m_children.insert(m_parent->m_children.end(), this);
     }
@@ -16,7 +16,7 @@ PainterWidget(PainterWidget *parent):
 PainterWidget::
 ~PainterWidget(void)
 {
-  if(m_parent != NULL)
+  if(m_parent != nullptr)
     {
       m_parent->m_children.erase(m_iterator_loc);
     }
@@ -27,7 +27,7 @@ PainterWidget::
       PainterWidget *c(*iter);
 
       assert(c->m_parent == this);
-      c->m_parent = NULL;
+      c->m_parent = nullptr;
       FASTUIDRAWdelete(c);
     }
 }
@@ -42,7 +42,7 @@ parent(PainterWidget *p)
       return;
     }
 
-  if(m_parent != NULL)
+  if(m_parent != nullptr)
     {
       m_parent->m_children.erase(m_iterator_loc);
     }
@@ -56,7 +56,7 @@ bool
 PainterWidget::
 is_ancestor_of(PainterWidget *q)
 {
-  for(PainterWidget *p = q; p != NULL; p = p->parent())
+  for(PainterWidget *p = q; p != nullptr; p = p->parent())
     {
       if(this == p)
         return true;

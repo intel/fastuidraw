@@ -64,7 +64,7 @@ namespace fastuidraw
     bool
     valid(void)
     {
-      return m_lib != NULL;
+      return m_lib != nullptr;
     }
 
   private:

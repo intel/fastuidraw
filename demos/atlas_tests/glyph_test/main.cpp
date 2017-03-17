@@ -224,7 +224,7 @@ per_draw(void):
   m_vbo(0),
   m_ibo(0),
   m_index_count(0),
-  m_zoomer(NULL)
+  m_zoomer(nullptr)
 {}
 
 glyph_test::per_draw::
@@ -366,7 +366,7 @@ draw(glyph_test *q, int which_program, const float4x4 &pvm, int layer, unsigned 
                   vec3(q->m_fg_red.m_value, q->m_fg_green.m_value, q->m_fg_blue.m_value));
     }
 
-  glDrawElements(GL_TRIANGLES, m_index_count, GL_UNSIGNED_INT, NULL);
+  glDrawElements(GL_TRIANGLES, m_index_count, GL_UNSIGNED_INT, nullptr);
 }
 
 //////////////////////////////////////////
@@ -498,8 +498,8 @@ glyph_test(void):
   m_fg_red(0.0f, "fg_red", "Foreground Red", *this),
   m_fg_green(0.0f, "fg_green", "Foreground Green", *this),
   m_fg_blue(0.0f, "fg_blue", "Foreground Blue", *this),
-  m_library(NULL),
-  m_face(NULL),
+  m_library(nullptr),
+  m_face(nullptr),
   m_current_drawer(draw_glyph_curvepair),
   m_texel_access_mode(texel_store_uint),
   m_aa_mode(0),
@@ -519,12 +519,12 @@ glyph_test(void):
 glyph_test::
 ~glyph_test()
 {
-  if(m_face != NULL)
+  if(m_face != nullptr)
     {
       FT_Done_Face(m_face);
     }
 
-  if(m_library != NULL)
+  if(m_library != nullptr)
     {
       FT_Done_FreeType(m_library);
     }
@@ -540,7 +540,7 @@ create_and_add_font(void)
   error_code = FT_Init_FreeType(&m_library);
   if(error_code != 0)
     {
-      m_library = NULL;
+      m_library = nullptr;
       std::cerr << "Failed to init FreeType library\n";
       return routine_fail;
     }
@@ -548,15 +548,15 @@ create_and_add_font(void)
   error_code = FT_New_Face(m_library, m_font_file.m_value.c_str(),
                            m_font_index.m_value, &m_face);
 
-  if(error_code != 0 || m_face == NULL || (m_face->face_flags & FT_FACE_FLAG_SCALABLE) == 0)
+  if(error_code != 0 || m_face == nullptr || (m_face->face_flags & FT_FACE_FLAG_SCALABLE) == 0)
     {
-      if(m_face != NULL)
+      if(m_face != nullptr)
         {
           FT_Done_Face(m_face);
-          m_face = NULL;
+          m_face = nullptr;
         }
       FT_Done_FreeType(m_library);
-      m_library = NULL;
+      m_library = nullptr;
       std::cerr << "Failed to load scalable font at index " << m_font_index.m_value
                 << "from file \"" << m_font_file.m_value << "\"\n";
       return routine_fail;

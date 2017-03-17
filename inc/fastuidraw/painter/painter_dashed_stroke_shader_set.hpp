@@ -121,7 +121,7 @@ namespace fastuidraw
 
     /*!
       Set the value returned by dash_evaluator(void) const.
-      Initial value is NULL.
+      Initial value is nullptr.
      */
     PainterDashedStrokeShaderSet&
     dash_evaluator(const reference_counted_ptr<const DashEvaluatorBase>&);

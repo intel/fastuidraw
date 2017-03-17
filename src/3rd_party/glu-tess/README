@@ -80,7 +80,7 @@ The interface
 
      void gluTessCallback( GLUtesselator *tess, GLenum which, void (*fn)());
 
-  If "fn" is NULL, any previously defined callback is discarded.
+  If "fn" is nullptr, any previously defined callback is discarded.
 
   The callbacks used to provide output are:     /* which == */
 
@@ -187,7 +187,7 @@ The interface
      }
 
      If the algorithm detects an intersection, then the "combine" callback
-     must be defined, and must write a non-NULL pointer into "dataOut".
+     must be defined, and must write a non-nullptr pointer into "dataOut".
      Otherwise the GLU_TESS_NEED_COMBINE_CALLBACK error occurs, and no
      output is generated.  This is the only error that can occur during
      tesselation and rendering.

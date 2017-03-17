@@ -479,11 +479,11 @@ consume_contour(void)
 
       for(int k=m_curves_to_emit[C].second+1; k<m_curves_to_emit[C+1].second; ++k, ++number_skipped)
         {
-          assert(m_curves[k].first!=NULL);
+          assert(m_curves[k].first!=nullptr);
           pt+=m_curves[k].first->pt1();
 
           FASTUIDRAWdelete(m_curves[k].first);
-          m_curves[k].first=NULL;
+          m_curves[k].first=nullptr;
         }
 
       if(number_skipped>0)
@@ -511,20 +511,20 @@ consume_contour(void)
 
       for(int k=m_curves_to_emit.back().second+1, end_k=m_curves.size(); k<end_k; ++k, ++number_skipped)
         {
-          assert(m_curves[k].first!=NULL);
+          assert(m_curves[k].first!=nullptr);
           pt+=m_curves[k].first->pt1();
 
           FASTUIDRAWdelete(m_curves[k].first);
-          m_curves[k].first=NULL;
+          m_curves[k].first=nullptr;
         }
 
       for(int k=0; k<m_curves_to_emit.front().second; ++k, ++number_skipped)
         {
-          assert(m_curves[k].first!=NULL);
+          assert(m_curves[k].first!=nullptr);
           pt+=m_curves[k].first->pt1();
 
           FASTUIDRAWdelete(m_curves[k].first);
-          m_curves[k].first=NULL;
+          m_curves[k].first=nullptr;
         }
 
       if(number_skipped>0)
@@ -746,7 +746,7 @@ compute_feature_importance(curve_cache &curves,
                            const fastuidraw::ivec2 &texel_bl, const fastuidraw::ivec2 &texel_tr,
                            float texel_area)
 {
-  const fastuidraw::detail::BezierCurve *a(iter->first), *b(NULL);
+  const fastuidraw::detail::BezierCurve *a(iter->first), *b(nullptr);
 
   if(iter->second.size()>=2)
     {
@@ -1031,7 +1031,7 @@ sub_select_index_hard_case(curve_cache &curves,
   FASTUIDRAWunused(x);
   FASTUIDRAWunused(y);
 
-  const fastuidraw::detail::BezierCurve *best_canidate(NULL);
+  const fastuidraw::detail::BezierCurve *best_canidate(nullptr);
   float current_distance(0.0f);
   float texel_area;
 
@@ -1046,9 +1046,9 @@ sub_select_index_hard_case(curve_cache &curves,
                                    texel_bl, texel_tr,
                                    texel_area);
 
-      if(v.second!=NULL)
+      if(v.second!=nullptr)
         {
-          if(best_canidate==NULL or v.first<current_distance)
+          if(best_canidate==nullptr or v.first<current_distance)
             {
               best_canidate=v.second;
               current_distance=v.first;
@@ -1056,7 +1056,7 @@ sub_select_index_hard_case(curve_cache &curves,
         }
 
     }
-  assert(best_canidate!=NULL);
+  assert(best_canidate!=nullptr);
   return best_canidate->curveID();
 }
 
@@ -1207,7 +1207,7 @@ CurvePairGenerator(FT_Outline outline, ivec2 bitmap_sz, ivec2 bitmap_offset,
   fastuidraw::reference_counted_ptr<geometry_data_filter> filter;
 
   filter = FASTUIDRAWnew MakeEvenFilter();
-  geometry_data gmt(NULL, m_pts, filter);
+  geometry_data gmt(nullptr, m_pts, filter);
 
   /*
     usually we set the inflate factor to be 4,

@@ -89,7 +89,7 @@ namespace fastuidraw
 
   public:
     /*!
-      Ctor, initializes handle to NULL, i.e.
+      Ctor, initializes handle to nullptr, i.e.
       no underlying value object.
      */
     PainterPackedValue(void)
@@ -112,7 +112,7 @@ namespace fastuidraw
     /*!
       Returns the alignment packing for PainterPackedValue
       object (see PainterPacker::Configuration::alignment());
-      If the PainterPackedValue represents a NULL handle then
+      If the PainterPackedValue represents a nullptr handle then
       returns 0.
      */
     unsigned int

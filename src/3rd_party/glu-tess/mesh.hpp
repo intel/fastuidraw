@@ -86,12 +86,12 @@ typedef struct ActiveRegion ActiveRegion;       /* Internal data */
  *
  * Each vertex has a pointer to next and previous vertices in the
  * circular list, and a pointer to a half-edge with this vertex as
- * the origin (NULL if this is the dummy header).  There is also a
+ * the origin (nullptr if this is the dummy header).  There is also a
  * field "data" for client data.
  *
  * Each face has a pointer to the next and previous faces in the
  * circular list, and a pointer to a half-edge with this face as
- * the left face (NULL if this is the dummy header).  There is also
+ * the left face (nullptr if this is the dummy header).  There is also
  * a field "data" for client data.
  *
  * Note that what we call a "face" is really a loop; faces may consist
@@ -104,15 +104,15 @@ typedef struct ActiveRegion ActiveRegion;       /* Internal data */
  * The mesh does NOT support isolated vertices; a vertex is deleted along
  * with its last edge.  Similarly when two faces are merged, one of the
  * faces is deleted (see glu_fastuidraw_gl_meshDelete below).  For mesh operations,
- * all face (loop) and vertex pointers must not be NULL.  However, once
+ * all face (loop) and vertex pointers must not be nullptr.  However, once
  * mesh manipulation is finished, glu_fastuidraw_gl_MeshZapFace can be used to delete
  * faces of the mesh, one at a time.  All external faces can be "zapped"
- * before the mesh is returned to the client; then a NULL face indicates
+ * before the mesh is returned to the client; then a nullptr face indicates
  * a region which is not part of the output polygon.
  */
 struct GLUvertex {
-  GLUvertex     *next;          /* next vertex (never NULL) */
-  GLUvertex     *prev;          /* previous vertex (never NULL) */
+  GLUvertex     *next;          /* next vertex (never nullptr) */
+  GLUvertex     *prev;          /* previous vertex (never nullptr) */
   GLUhalfEdge   *anEdge;        /* a half-edge with this origin */
   unsigned int  client_id;      /* client's data */
 
@@ -123,8 +123,8 @@ struct GLUvertex {
 
 
 struct GLUface {
-  GLUface       *next;          /* next face (never NULL) */
-  GLUface       *prev;          /* previous face (never NULL) */
+  GLUface       *next;          /* next face (never nullptr) */
+  GLUface       *prev;          /* previous face (never nullptr) */
   GLUhalfEdge   *anEdge;        /* a half edge with this left face */
   void          *data;          /* room for client's data */
 
@@ -236,8 +236,8 @@ struct GLUmesh {
  * glu_fastuidraw_gl_meshDeleteMesh( mesh ) will free all storage for any valid mesh.
  *
  * glu_fastuidraw_gl_meshZapFace( fZap ) destroys a face and removes it from the
- * global face list.  All edges of fZap will have a NULL pointer as their
- * left face.  Any edges which also have a NULL pointer as their right face
+ * global face list.  All edges of fZap will have a nullptr pointer as their
+ * left face.  Any edges which also have a nullptr pointer as their right face
  * are deleted entirely (along with any isolated vertices this produces).
  * An entire mesh can be deleted by zapping its faces, one at a time,
  * in any order.  Zapped faces cannot be used in further mesh operations!

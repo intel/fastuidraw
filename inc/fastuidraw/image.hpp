@@ -436,7 +436,7 @@ class Image;
   public:
     /*!
       Construct an image. If there is insufficient room on the atlas,
-      returns a NULL handle.
+      returns a nullptr handle.
       \param atlas ImageAtlas atlas onto which to place the image
       \param w width of the image
       \param h height of the image

@@ -329,7 +329,7 @@ namespace fastuidraw
       the PainterShader::Tag to be used by the backend
       to identify the shader.  An implementation will never
       be passed an object for which PainterShader::parent()
-      is non-NULL.
+      is non-nullptr.
       \param shader shader whose Tag is to be computed
      */
     virtual
@@ -355,7 +355,7 @@ namespace fastuidraw
       the PainterShader::Tag to be used by the backend
       to identify the shader. An implementation will never
       be passed an object for which PainterShader::parent()
-      is non-NULL.
+      is non-nullptr.
       \param shader shader whose Tag is to be computed
      */
     virtual

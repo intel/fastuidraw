@@ -1149,7 +1149,7 @@ fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
   ConfigurationGLSLPrivate *d;
   d = static_cast<ConfigurationGLSLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL&
@@ -1214,7 +1214,7 @@ fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
   BindingPointsPrivate *d;
   d = static_cast<BindingPointsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::glsl::PainterBackendGLSL::BindingPoints&
@@ -1286,7 +1286,7 @@ fastuidraw::glsl::PainterBackendGLSL::UberShaderParams::
   UberShaderParamsPrivate *d;
   d = static_cast<UberShaderParamsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::glsl::PainterBackendGLSL::UberShaderParams&
@@ -1366,7 +1366,7 @@ fastuidraw::glsl::PainterBackendGLSL::
   PainterBackendGLSLPrivate *d;
   d = static_cast<PainterBackendGLSLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void

@@ -58,7 +58,7 @@ fastuidraw::PainterStrokeShader::
   PainterStrokeShaderPrivate *d;
   d = static_cast<PainterStrokeShaderPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::PainterStrokeShader&

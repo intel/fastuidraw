@@ -114,7 +114,7 @@ namespace fastuidraw
 
     /*!
       Sets the blend shader. It is a crashing error for
-      h to be NULL.
+      h to be nullptr.
       \param h blend shader to use for blending.
       \param packed_blend_mode 3D API blend mode packed by BlendMode::packed()
      */
@@ -376,7 +376,7 @@ namespace fastuidraw
       \param draw data for how to draw
       \param data attribute and index data with which to draw the glyphs.
       \param shader with which to draw the glyphs
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -390,7 +390,7 @@ namespace fastuidraw
       \param data attribute and index data with which to draw the glyphs
       \param use_anistopic_antialias if true, use default_shaders().glyph_shader_anisotropic()
                                      otherwise use default_shaders().glyph_shader()
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -403,18 +403,18 @@ namespace fastuidraw
       \param shader shader with which to stroke the attribute data
       \param draw data for how to draw
       \param edge_data attribute and index data for drawing the edges,
-                       NULL value indicates to not draw edges.
+                       nullptr value indicates to not draw edges.
       \param edge_chunks which chunks to take from edge_data
       \param inc_edge amount by which to increment current_z() for the edge drawing
       \param cap_data attribute and index data for drawing the caps,
-                      NULL value indicates to not draw caps.
+                      nullptr value indicates to not draw caps.
       \param cap_chunk which chunk to take from cap_data
       \param join_data attribute and index data for drawing the joins,
-                       NULL value indicates to not draw joins.
+                       nullptr value indicates to not draw joins.
       \param join_chunks which chunks to take from join_data to draw the joins
       \param inc_join amount by which to increment current_z() for the join drawing
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -437,7 +437,7 @@ namespace fastuidraw
       \param cp cap style
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -457,7 +457,7 @@ namespace fastuidraw
       \param cp cap style
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -475,7 +475,7 @@ namespace fastuidraw
       \param cp cap style
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -494,7 +494,7 @@ namespace fastuidraw
       \param cp cap style
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -508,20 +508,20 @@ namespace fastuidraw
       \param shader shader with which to draw
       \param draw data for how to draw
       \param edge_data attribute and index data for drawing the edges,
-                       NULL value indicates to not draw edges.
+                       nullptr value indicates to not draw edges.
       \param edge_chunks which chunk to take from edge_data
       \param inc_edge amount by which to increment current_z() for the edge drawing
       \param cap_data attribute and index data for drawing the caps,
-                      NULL value indicates to not draw caps.
+                      nullptr value indicates to not draw caps.
       \param cap_chunk which chunk to take from cap_data
       \param include_joins_from_closing_edge if false, disclude the joins formed
                                              from the closing edges of each contour
       \param dash_evaluator DashEvaluatorBase object to determine which joins
                             are to be drawn
       \param join_data attribute and index data for drawing the joins,
-                       NULL value indicates to not draw joins.
+                       nullptr value indicates to not draw joins.
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -545,7 +545,7 @@ namespace fastuidraw
       \param cp cap style
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -565,7 +565,7 @@ namespace fastuidraw
       \param cp cap style
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -583,7 +583,7 @@ namespace fastuidraw
       \param cp cap style
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -601,7 +601,7 @@ namespace fastuidraw
       \param cp cap style
       \param js join style
       \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -616,7 +616,7 @@ namespace fastuidraw
       \param draw data for how to draw
       \param data attribute and index data with which to fill a path
       \param fill_rule fill rule with which to fill the path
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -630,7 +630,7 @@ namespace fastuidraw
       \param draw data for how to draw
       \param path to fill
       \param fill_rule fill rule with which to fill the path
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -643,7 +643,7 @@ namespace fastuidraw
       \param draw data for how to draw
       \param path path to fill
       \param fill_rule fill rule with which to fill the path
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -656,7 +656,7 @@ namespace fastuidraw
       \param draw data for how to draw
       \param data attribute and index data with which to fill a path
       \param fill_rule custom fill rule with which to fill the path
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -670,7 +670,7 @@ namespace fastuidraw
       \param draw data for how to draw
       \param path to fill
       \param fill_rule custom fill rule with which to fill the path
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -683,7 +683,7 @@ namespace fastuidraw
       \param draw data for how to draw
       \param path path to fill
       \param fill_rule custom fill rule with which to fill the path
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -698,7 +698,7 @@ namespace fastuidraw
       \param shader shader with which to draw the convex polygon. The shader must
                     accept the exact same format as packed by
                     PainterAttributeDataFillerPathFill
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -711,7 +711,7 @@ namespace fastuidraw
       \param draw data for how to draw
       \param pts points of the polygon so that neighboring points (modulo pts.size())
                  are the edges of the polygon.
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -728,7 +728,7 @@ namespace fastuidraw
       \param shader shader with which to draw the convex polygon. The shader must
                     accept the exact same format as packed by
                     PainterAttributeDataFillerPathFill
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -744,7 +744,7 @@ namespace fastuidraw
       \param p2 point after p1, shares an edge with p1
       \param p3 point after p2, shares an edge with p2
       \param call_back handle to PainterPacker::DataCallBack for the draw
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -760,7 +760,7 @@ namespace fastuidraw
       \param shader shader with which to draw the convex polygon. The shader must
                     accept the exact same format as packed by
                     PainterAttributeDataFillerPathFill
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -773,7 +773,7 @@ namespace fastuidraw
       \param draw data for how to draw
       \param p min-corner of rect
       \param wh width and height of rect
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -832,7 +832,7 @@ namespace fastuidraw
       \param index_adjusts the i'th value is the amount by which to adjust the
                            index values if index_chunks[i]
       \param shader shader with which to draw data
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void

@@ -226,9 +226,9 @@ public:
                   interpolator_base represents with in_t = 0.0
                   indicating the start of the curve and in_t = 1.0
                   the end of the curve
-      \param outp (output) if non-NULL, location to which to write the position value
-      \param outp_t (output) if non-NULL, location to which to write the first derivative value
-      \param outp_tt (output) if non-NULL, location to which to write the second derivative value
+      \param outp (output) if non-nullptr, location to which to write the position value
+      \param outp_t (output) if non-nullptr, location to which to write the first derivative value
+      \param outp_tt (output) if non-nullptr, location to which to write the second derivative value
      */
     virtual
     void

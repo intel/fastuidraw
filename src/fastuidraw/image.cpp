@@ -708,7 +708,7 @@ fastuidraw::AtlasColorBackingStoreBase::
   BackingStorePrivate *d;
   d = static_cast<BackingStorePrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::ivec3
@@ -762,7 +762,7 @@ fastuidraw::AtlasIndexBackingStoreBase::
   BackingStorePrivate *d;
   d = static_cast<BackingStorePrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::ivec3
@@ -815,7 +815,7 @@ fastuidraw::ImageAtlas::
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void
@@ -1091,7 +1091,7 @@ fastuidraw::Image::
   ImagePrivate *d;
   d = static_cast<ImagePrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 

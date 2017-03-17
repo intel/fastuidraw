@@ -285,7 +285,7 @@ fastuidraw::glsl::ShaderSource::
   SourcePrivate *d;
   d = static_cast<SourcePrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::glsl::ShaderSource&

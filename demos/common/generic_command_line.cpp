@@ -44,9 +44,9 @@ command_line_register::
     {
       command_line_argument *p(*iter);
 
-      if(p!=NULL)
+      if(p!=nullptr)
         {
-          p->m_parent=NULL;
+          p->m_parent=nullptr;
           p->m_location=-1;
         }
     }
@@ -85,7 +85,7 @@ parse_command_line(const std::vector<std::string> &argv)
         {
            command_line_argument *p(m_children[i]);
 
-           if(p!=NULL)
+           if(p!=nullptr)
              {
                int incr;
 
@@ -116,7 +116,7 @@ print_help(std::ostream &ostr) const
     {
        command_line_argument *p(*iter);
 
-       if(p!=NULL)
+       if(p!=nullptr)
          {
            ostr << " ";
            p->print_command_line_description(ostr);
@@ -137,7 +137,7 @@ print_detailed_help(std::ostream &ostr) const
     {
        command_line_argument *p(*iter);
 
-       if(p!=NULL)
+       if(p!=nullptr)
          {
            p->print_detailed_description(ostr);
          }
@@ -150,9 +150,9 @@ print_detailed_help(std::ostream &ostr) const
 command_line_argument::
 ~command_line_argument()
 {
-  if(m_parent!=NULL and m_location>=0)
+  if(m_parent!=nullptr and m_location>=0)
     {
-      m_parent->m_children[m_location]=NULL;
+      m_parent->m_children[m_location]=nullptr;
     }
 }
 

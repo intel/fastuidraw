@@ -58,7 +58,7 @@ fastuidraw::GlyphRenderDataCoverage::
   GlyphDataPrivate *d;
   d = static_cast<GlyphDataPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::ivec2

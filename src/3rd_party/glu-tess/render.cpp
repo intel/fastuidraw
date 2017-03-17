@@ -64,7 +64,7 @@ static void RenderTriangles( fastuidraw_GLUtesselator *tess, GLUface *head );
 void glu_fastuidraw_gl_renderMesh( fastuidraw_GLUtesselator *tess, GLUmesh *mesh )
 {
   /* Make a list of separate triangles so we can render them all at once */
-  tess->lonelyTriList = NULL;
+  tess->lonelyTriList = nullptr;
   RenderTriangles(tess, mesh->fHead.next);
 }
 

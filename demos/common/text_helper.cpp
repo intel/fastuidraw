@@ -156,7 +156,7 @@ add_fonts_from_path(const std::string &filename,
       return;
     }
 
-  for(entry = readdir(dir); entry != NULL; entry = readdir(dir))
+  for(entry = readdir(dir); entry != nullptr; entry = readdir(dir))
     {
       std::string file;
       file = entry->d_name;

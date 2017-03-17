@@ -40,7 +40,7 @@ namespace fastuidraw
   public:
     /*!
       Ctor, inits as all return value from shader(enum glyph_type)
-      as a NULL PainterItemShader
+      as a nullptr PainterItemShader
      */
     PainterGlyphShader(void);
 

@@ -30,7 +30,7 @@ public:
 
   simple_time(void)
   {
-    gettimeofday(&m_start_time, NULL);
+    gettimeofday(&m_start_time, nullptr);
   }
 
   int32_t
@@ -38,7 +38,7 @@ public:
   {
     struct timeval current_time;
 
-    gettimeofday(&current_time, NULL);
+    gettimeofday(&current_time, nullptr);
     return time_difference_ms(current_time, m_start_time);
   }
 
@@ -48,7 +48,7 @@ public:
     int32_t return_value;
     struct timeval current_time;
 
-    gettimeofday(&current_time, NULL);
+    gettimeofday(&current_time, nullptr);
     return_value = time_difference_ms(current_time, m_start_time);
     m_start_time = current_time;
 
@@ -62,7 +62,7 @@ public:
   {
     struct timeval current_time;
 
-    gettimeofday(&current_time, NULL);
+    gettimeofday(&current_time, nullptr);
     return time_difference_us(current_time, m_start_time);
   }
 
@@ -72,7 +72,7 @@ public:
     int64_t return_value;
     struct timeval current_time;
 
-    gettimeofday(&current_time, NULL);
+    gettimeofday(&current_time, nullptr);
     return_value = time_difference_us(current_time, m_start_time);
     m_start_time = current_time;
 

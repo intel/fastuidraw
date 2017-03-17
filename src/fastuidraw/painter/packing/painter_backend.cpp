@@ -83,7 +83,7 @@ fastuidraw::PainterBackend::PerformanceHints::
   PerformanceHintsPrivate *d;
   d = static_cast<PerformanceHintsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 bool
@@ -127,7 +127,7 @@ fastuidraw::PainterBackend::ConfigurationBase::
   ConfigurationPrivate *d;
   d = static_cast<ConfigurationPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::PainterBackend::ConfigurationBase&
@@ -198,7 +198,7 @@ fastuidraw::PainterBackend::
   PainterBackendPrivate *d;
   d = static_cast<PainterBackendPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::PainterBackend::PerformanceHints&
@@ -227,8 +227,8 @@ register_shader(const reference_counted_ptr<PainterItemShader> &shader)
     {
       return;
     }
-  assert(shader->registered_to() == NULL);
-  if(shader->registered_to() == NULL)
+  assert(shader->registered_to() == nullptr);
+  if(shader->registered_to() == nullptr)
     {
       if(shader->parent())
         {
@@ -252,8 +252,8 @@ register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
     {
       return;
     }
-  assert(shader->registered_to() == NULL);
-  if(shader->registered_to() == NULL)
+  assert(shader->registered_to() == nullptr);
+  if(shader->registered_to() == nullptr)
     {
       if(shader->parent())
         {

@@ -686,7 +686,7 @@ on_pop(fastuidraw::Painter *p)
   for(unsigned int i = 0, endi = m_set_occluder_z.size(); i < endi; ++i)
     {
       ZDelayedAction *ptr;
-      assert(dynamic_cast<ZDelayedAction*>(m_set_occluder_z[i].get()) != NULL);
+      assert(dynamic_cast<ZDelayedAction*>(m_set_occluder_z[i].get()) != nullptr);
       ptr = static_cast<ZDelayedAction*>(m_set_occluder_z[i].get());
       ptr->finalize_z(p->current_z());
     }
@@ -1187,7 +1187,7 @@ fastuidraw::Painter::
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::PainterPackedValuePool&
@@ -1408,13 +1408,13 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
   c_array<const_c_array<PainterIndex> > index_chunks;
   c_array<int> index_adjusts;
 
-  if(join_data == NULL)
+  if(join_data == nullptr)
     {
       join_chunks = const_c_array<unsigned int>();
       inc_join = 0;
     }
 
-  if(edge_data == NULL)
+  if(edge_data == nullptr)
     {
       edge_chunks = const_c_array<unsigned int>();
       inc_edge = 0;
@@ -1450,7 +1450,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
       index_adjusts[num_joins + E] = edge_data->index_adjust_chunk(edge_chunks[E]);
     }
 
-  if(cap_data != NULL)
+  if(cap_data != nullptr)
     {
       attrib_chunks[num_joins + num_edges] = cap_data->attribute_data_chunk(cap_chunk);
       index_chunks[num_joins + num_edges] = cap_data->index_data_chunk(cap_chunk);
@@ -1479,7 +1479,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
         - We draw so that the X'th set is drawn with the set before it occluding it.
           (recall that larger z's occlude smaller z's).
        */
-      if(join_data != NULL)
+      if(join_data != nullptr)
         {
           incr_z -= inc_join;
           d->draw_generic(*sh, draw,
@@ -1490,7 +1490,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
                           startz + incr_z + 1, call_back);
         }
 
-      if(edge_data != NULL)
+      if(edge_data != nullptr)
         {
           incr_z -= inc_edge;
           d->draw_generic(*sh, draw,
@@ -1501,7 +1501,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
                           startz + incr_z + 1, call_back);
         }
 
-      if(cap_data != NULL)
+      if(cap_data != nullptr)
         {
           incr_z -= inc_cap;
           d->draw_generic(*sh, draw,
@@ -1554,7 +1554,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
       return;
     }
 
-  const PainterAttributeData *edge_data(NULL), *cap_data(NULL), *join_data(NULL);
+  const PainterAttributeData *edge_data(nullptr), *cap_data(nullptr), *join_data(nullptr);
   unsigned int inc_edge, cap_chunk(0);
   unsigned int join_chunk(chunk_for_stroking(close_contours));
   unsigned int inc_join(0);
@@ -1589,7 +1589,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
           break;
 
         default:
-          cap_data = NULL;
+          cap_data = nullptr;
         }
     }
 
@@ -1608,10 +1608,10 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
       break;
 
     default:
-      join_data = NULL;
+      join_data = nullptr;
     }
 
-  if(join_data != NULL)
+  if(join_data != nullptr)
     {
       inc_join = join_data->increment_z_value(join_chunk);
     }
@@ -1687,7 +1687,7 @@ stroke_dashed_path(const PainterStrokeShader &shader, const PainterData &draw,
   unsigned int inc_join(0);
 
   d->m_work_room.m_stroke_dashed_join_chunks.clear();
-  if(dash_evaluator != NULL && join_data != NULL)
+  if(dash_evaluator != nullptr && join_data != nullptr)
     {
       unsigned int num_joins;
       const PainterShaderData::DataBase *raw_data;
@@ -1736,7 +1736,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
       return;
     }
 
-  const PainterAttributeData *edge_data(NULL), *cap_data(NULL), *join_data(NULL);
+  const PainterAttributeData *edge_data(nullptr), *cap_data(nullptr), *join_data(nullptr);
   unsigned int inc_edge, cap_chunk(0);
 
   edge_data = &path.edges(close_contours);
@@ -1772,7 +1772,7 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
       break;
 
     default:
-      join_data = NULL;
+      join_data = nullptr;
     }
 
   stroke_dashed_path(shader.shader(cp), draw,

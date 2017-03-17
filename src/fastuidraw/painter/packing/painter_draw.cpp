@@ -54,7 +54,7 @@ namespace
   {
   public:
     DelayedActionPrivate(void):
-      m_cmd(NULL),
+      m_cmd(nullptr),
       m_slot(0)
     {}
 
@@ -77,7 +77,7 @@ fastuidraw::PainterDraw::DelayedAction::
   DelayedActionPrivate *d;
   d = static_cast<DelayedActionPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void
@@ -87,7 +87,7 @@ perform_action(void)
   DelayedActionPrivate *d;
   d = static_cast<DelayedActionPrivate*>(m_d);
 
-  assert(d->m_cmd != NULL);
+  assert(d->m_cmd != nullptr);
   assert(d->m_slot < d->m_cmd->m_actions.size());
   assert(d->m_cmd->m_actions[d->m_slot] == this);
 
@@ -100,7 +100,7 @@ perform_action(void)
       d->m_cmd->m_p->complete_unmapping();
     }
 
-  d->m_cmd = NULL;
+  d->m_cmd = nullptr;
   d->m_slot = 0;
 }
 
@@ -119,7 +119,7 @@ fastuidraw::PainterDraw::
   PainterDrawPrivate *d;
   d = static_cast<PainterDrawPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void
@@ -134,7 +134,7 @@ add_action(const reference_counted_ptr<DelayedAction> &h) const
   d = static_cast<PainterDrawPrivate*>(m_d);
   hd = static_cast<DelayedActionPrivate*>(h->m_d);
 
-  assert(hd->m_cmd == NULL);
+  assert(hd->m_cmd == nullptr);
   assert(d->m_map_status != status_unmapped);
 
   hd->m_cmd = d;

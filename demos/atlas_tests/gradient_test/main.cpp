@@ -311,7 +311,7 @@ private:
                           gl::opengl_trait<float>::type,
                           GL_FALSE,
                           gl::opengl_trait<float>::stride,
-                          NULL);
+                          nullptr);
 
 
     glGenVertexArrays(1, &m_vao);
@@ -350,7 +350,7 @@ private:
                           gl::opengl_trait<vec2>::type,
                           GL_FALSE,
                           gl::opengl_trait<vec2>::stride,
-                          NULL);
+                          nullptr);
   }
 
   void

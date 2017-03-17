@@ -106,7 +106,7 @@ public:
       m_atlas(p),
       m_minX_minY(0, 0),
       m_size(psize),
-      m_tree(NULL)
+      m_tree(nullptr)
     {}
 
     void
@@ -138,7 +138,7 @@ public:
 
   /*!\fn const rectangle* add_rectangle
     Returns a pointer to the a newly created rectangle
-    of the requested size. Returns NULL on failure.
+    of the requested size. Returns nullptr on failure.
     The rectangle is owned by this RectAtlas.
     An implementation may not change the location
     (or size) of a rectangle once it has been
@@ -297,7 +297,7 @@ private:
     tree_node_without_children(const tree_base *pparent,
                                freesize_tracker *tr,
                                const ivec2 &bl, const ivec2 &sz,
-                               rectangle *rect=NULL);
+                               rectangle *rect=nullptr);
     ~tree_node_without_children();
 
     virtual

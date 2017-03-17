@@ -69,7 +69,7 @@ namespace fastuidraw
         are needed either to improve performance (to
         prevent divergent branching in shaders) or to
         insert API state changes. The value 0 is used
-        to indicate "default" shader group. The NULL
+        to indicate "default" shader group. The nullptr
         shader belongs to group 0.
        */
       uint32_t m_group;
@@ -111,7 +111,7 @@ namespace fastuidraw
 
     /*!
       If the PainterShader is a sub-shader returns the parent
-      shader, otherwise returns NULL.
+      shader, otherwise returns nullptr.
      */
     const reference_counted_ptr<PainterShader>&
     parent(void) const;
@@ -152,7 +152,7 @@ namespace fastuidraw
 
     /*!
       Returns the PainterBackend to which the shader
-      is registed. If not yet registered, returns NULL.
+      is registed. If not yet registered, returns nullptr.
      */
     const PainterBackend*
     registered_to(void) const;

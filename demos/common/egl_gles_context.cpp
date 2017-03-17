@@ -92,7 +92,7 @@ egl_gles_context(const params &P, SDL_Window *sdl)
     assert(num_configs != 0);
     FASTUIDRAWunused(ret);
   }
-  m_surface = eglCreateWindowSurface(m_dpy, config, wm.info.x11.window, NULL);
+  m_surface = eglCreateWindowSurface(m_dpy, config, wm.info.x11.window, nullptr);
   assert_and_check_errors(m_surface != EGL_NO_SURFACE);
 
   {
@@ -154,6 +154,6 @@ egl_get_proc(const char *name)
   return (void*)eglGetProcAddress(name);
 #else
   FASTUIDRAWunused(name);
-  return NULL;
+  return nullptr;
 #endif
 }

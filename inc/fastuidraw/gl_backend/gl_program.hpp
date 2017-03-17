@@ -409,7 +409,7 @@ public:
    */
   UniformInitializer(const char *uniform_name, const const_c_array<T> &value):
     UniformInitalizerBase(uniform_name),
-    m_data(NULL)
+    m_data(nullptr)
   {
     if(!value.empty())
       {
@@ -421,7 +421,7 @@ public:
 
   ~UniformInitializer()
   {
-    if(m_data != NULL)
+    if(m_data != nullptr)
       {
         FASTUIDRAWdelete_array(m_data);
       }
@@ -459,7 +459,7 @@ public:
    */
   UniformInitializer(const char *uniform_name, const const_c_array<T> &value):
     UniformInitalizerBase(uniform_name),
-    m_data(NULL)
+    m_data(nullptr)
   {
     if(!value.empty())
       {
@@ -471,7 +471,7 @@ public:
 
   ~UniformInitializer()
   {
-    if(m_data != NULL)
+    if(m_data != nullptr)
       {
         FASTUIDRAWdelete_array(m_data);
       }
@@ -722,7 +722,7 @@ public:
       src_shader_output,
 
       /*!
-        Indicates that the shader variable is a NULL
+        Indicates that the shader variable is a nullptr
         value; such values are returned when a query
         for a shader variable is made and there is
         shader variable.
@@ -753,7 +753,7 @@ public:
      */
     operator bool() const
     {
-      return m_d != NULL;
+      return m_d != nullptr;
     }
 
     /*!
@@ -1007,15 +1007,15 @@ public:
       variable.
       \param name variable name to look for
       \param *out_array_index location to which to write the array index
-                              value; if NULL, value is not written
+                              value; if nullptr, value is not written
       \param *out_leading_array_index location to which to write the
-                                      leading array index value; if NULL,
+                                      leading array index value; if nullptr,
                                       value is not written
      */
     shader_variable_info
     variable(const char *name,
-             unsigned int *out_array_index = NULL,
-             unsigned int *out_leading_array_index = NULL);
+             unsigned int *out_array_index = nullptr,
+             unsigned int *out_leading_array_index = nullptr);
 
   private:
     explicit
@@ -1107,11 +1107,11 @@ public:
       to get the buffer offset of the element of the shader variable.
       \param name variable name to look for
       \param[out] *out_array_index location to which to write the array index
-                                   value; if NULL, value is not written
+                                   value; if nullptr, value is not written
      */
     shader_variable_info
     atomic_variable(const char *name,
-                    unsigned int *out_array_index = NULL);
+                    unsigned int *out_array_index = nullptr);
 
   private:
     explicit
@@ -1242,7 +1242,7 @@ public:
     has been called or only when the GL context is current.
     \param I which one to fetch, if I is not less than
              number_active_uniform_blocks(), then returns
-             a NULL block_info object.
+             a nullptr block_info object.
    */
   block_info
   uniform_block(unsigned int I);
@@ -1283,7 +1283,7 @@ public:
     has been called or only when the GL context is current.
     \param I which one to fetch, if I is not less than
              number_active_shader_storage_blocks(), then returns
-             a NULL block_info
+             a nullptr block_info
    */
   block_info
   shader_storage_block(unsigned int I);
@@ -1324,8 +1324,8 @@ public:
    */
   shader_variable_info
   find_shader_variable(const char *name,
-                       unsigned int *out_array_index = NULL,
-                       unsigned int *out_leading_array_index = NULL);
+                       unsigned int *out_array_index = nullptr,
+                       unsigned int *out_leading_array_index = nullptr);
 
   /*!
     Returns the number of active attributes. Note that an array

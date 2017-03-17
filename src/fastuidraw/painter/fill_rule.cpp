@@ -51,6 +51,6 @@ function_from_enum(enum PainterEnums::fill_rule_t fill_rule)
 
     default:
       assert(!"Passed invald enumeration to fastuidraw::CustomFillRuleFunction::function_from_enum()\n");
-      return NULL;
+      return nullptr;
     }
 }

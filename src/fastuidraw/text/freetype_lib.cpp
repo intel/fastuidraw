@@ -27,14 +27,14 @@ FreetypeLib(void)
   error_code = FT_Init_FreeType(&m_lib);
   if(error_code != 0)
     {
-      m_lib = NULL;
+      m_lib = nullptr;
     }
 }
 
 fastuidraw::FreetypeLib::
 ~FreetypeLib()
 {
-  if(m_lib != NULL)
+  if(m_lib != nullptr)
     {
       FT_Done_FreeType(m_lib);
     }

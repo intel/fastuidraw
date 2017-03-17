@@ -288,7 +288,7 @@ namespace detail
     /*!\fn geometry_data(std::ostream*, std::vector<point_type>&, reference_counted_ptr<geometry_data_filter>)
       Ctor.
       \param ostr std::ostream to which to log debug
-                  messages. if NULL, no debug messages
+                  messages. if nullptr, no debug messages
                   are logged.
       \param pts std::vector to hold the point data
                  of the outline of a glyph.
@@ -303,7 +303,7 @@ namespace detail
     {}
 
     /*!\fn geometry_data(std::vector<point_type>&, geometry_data_filter>)
-      Ctor, set the debug stream to NULL, thus
+      Ctor, set the debug stream to nullptr, thus
       does not emit debug log messages.
       \param pts std::vector to hold the point data
                  of the outline of a glyph.
@@ -312,7 +312,7 @@ namespace detail
     explicit
     geometry_data(std::vector<point_type> &pts,
                   reference_counted_ptr<geometry_data_filter> h=reference_counted_ptr<geometry_data_filter>()):
-      m_debug_stream(NULL),
+      m_debug_stream(nullptr),
       m_pt_array(pts),
       m_filter(h)
     {}
@@ -321,12 +321,12 @@ namespace detail
       Returns the debug stream used by this
       geometry_data(). If this geometry_data
       was constucted to not have a debug stream,
-      then the reference is NULL.
+      then the reference is nullptr.
      */
     std::ostream&
     debug_stream(void) const
     {
-      assert(m_debug_stream!=NULL);
+      assert(m_debug_stream!=nullptr);
       return *m_debug_stream;
     }
 
@@ -338,7 +338,7 @@ namespace detail
     bool
     debug_stream_valid(void) const
     {
-      return m_debug_stream!=NULL;
+      return m_debug_stream!=nullptr;
     }
 
     /*!\fn std::vector<point_type>& pts
@@ -737,7 +737,7 @@ namespace detail
       Ctor to initialize as no intersection.
      */
     simple_line(void):
-      m_source(0.0f, 0.0f, NULL, -1.0f),
+      m_source(0.0f, 0.0f, nullptr, -1.0f),
       m_index_of_intersection(-1)
     {}
 
@@ -1096,7 +1096,7 @@ namespace detail
       If this BezierCurve is a cubic, then approximate
       the cubic to 4 quardratic curves. If the curve
       is not a cubic, return routine_fail and sets
-      out_curves as an array of NULL-pointers.
+      out_curves as an array of nullptr-pointers.
       Note: approximation of a cubic by 4 quadratics
       usually gives a very good approximation, see
       the demo: http://timotheegroleau.com/Flash/articles/cubic_bezier_in_flash.htm,
@@ -1115,7 +1115,7 @@ namespace detail
       If this BezierCurve is a cubic, then approximate
       the cubic to 2 quardratic curves. If the curve
       is not a cubic, return routine_fail and sets
-      out_curves as an array of NULL-pointers.
+      out_curves as an array of nullptr-pointers.
       Note: approximation of a cubic by 2 quadratics
       can be poor (but still is better than by a single)
       you have been warned.
@@ -1131,7 +1131,7 @@ namespace detail
     /*!\fn BezierCurve* approximate_cubic(geometry_data) const
       If this BezierCurve is a cubic, then approximate
       the cubic to a single quardratic curve. If the curve
-      is not a cubic, returns NULL. Note: the approximation
+      is not a cubic, returns nullptr. Note: the approximation
       is quite poor, you have been warned.
 
       \param dbg source for point data for the curve
@@ -1145,7 +1145,7 @@ namespace detail
       If this BezierCurve is a cubic, then approximate
       the cubic to 1 quardratic curve. If the curve
       is not a cubic, return routine_fail and sets
-      out_curves as an array of NULL-pointers.
+      out_curves as an array of nullptr-pointers.
       Note: approximation of a cubic by 1 quadratics
       can be quite poor, you have been warned.
 
@@ -1158,7 +1158,7 @@ namespace detail
                       vecN<BezierCurve*, 1> &out_curves) const
     {
       out_curves[0]=approximate_cubic(dbg);
-      return out_curves[0]!=NULL?
+      return out_curves[0]!=nullptr?
         routine_success:
         routine_fail;
     }

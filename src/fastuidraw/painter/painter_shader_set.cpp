@@ -56,7 +56,7 @@ fastuidraw::PainterShaderSet::
   PainterShaderSetPrivate *d;
   d = static_cast<PainterShaderSetPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::PainterShaderSet&

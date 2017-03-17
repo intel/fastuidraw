@@ -711,7 +711,7 @@ namespace
   {
   public:
     ThreshWithData(void):
-      m_data(NULL),
+      m_data(nullptr),
       m_thresh(-1)
     {}
 
@@ -1081,7 +1081,7 @@ SubEdgeCullingHierarchy(const fastuidraw::BoundingBox<float> &start_box,
     }
   else
     {
-      m_children[0] = m_children[1] = NULL;
+      m_children[0] = m_children[1] = nullptr;
       for(unsigned int i = 0; i < data.size(); ++i)
         {
           const SingleSubEdge &sub_edge(data[i]);
@@ -1091,12 +1091,12 @@ SubEdgeCullingHierarchy(const fastuidraw::BoundingBox<float> &start_box,
         }
     }
 
-  if(m_children[0] != NULL)
+  if(m_children[0] != nullptr)
     {
       m_entire_bb.union_box(m_children[0]->m_entire_bb);
     }
 
-  if(m_children[1] != NULL)
+  if(m_children[1] != nullptr)
     {
       m_entire_bb.union_box(m_children[1]->m_entire_bb);
     }
@@ -1107,12 +1107,12 @@ SubEdgeCullingHierarchy(const fastuidraw::BoundingBox<float> &start_box,
 SubEdgeCullingHierarchy::
 ~SubEdgeCullingHierarchy(void)
 {
-  if(m_children[0] != NULL)
+  if(m_children[0] != nullptr)
     {
       FASTUIDRAWdelete(m_children[0]);
     }
 
-  if(m_children[1] != NULL)
+  if(m_children[1] != nullptr)
     {
       FASTUIDRAWdelete(m_children[1]);
     }
@@ -1159,7 +1159,7 @@ create(const fastuidraw::BoundingBox<float> &start_box,
     }
   else
     {
-      return NULL;
+      return nullptr;
     }
 }
 
@@ -1169,13 +1169,13 @@ EdgesElement::
 EdgesElement(unsigned int vertex_st, unsigned int index_st,
              SubEdgeCullingHierarchy *src, unsigned int &total_chunks,
              unsigned int depth):
-  m_children(NULL, NULL)
+  m_children(nullptr, nullptr)
 {
   m_vertex_data_range_with_children.m_begin = vertex_st;
   m_index_data_range_with_children.m_begin = index_st;
   m_depth_with_children.m_begin = depth;
 
-  if(src->m_children[0] != NULL)
+  if(src->m_children[0] != nullptr)
     {
       m_children[0] = FASTUIDRAWnew EdgesElement(vertex_st, index_st, src->m_children[0], total_chunks, depth);
       vertex_st = m_children[0]->m_vertex_data_range_with_children.m_end;
@@ -1183,7 +1183,7 @@ EdgesElement(unsigned int vertex_st, unsigned int index_st,
       depth = m_children[0]->m_depth_with_children.m_end;
     }
 
-  if(src->m_children[1] != NULL)
+  if(src->m_children[1] != nullptr)
     {
       m_children[1] = FASTUIDRAWnew EdgesElement(vertex_st, index_st, src->m_children[1], total_chunks, depth);
       vertex_st = m_children[1]->m_vertex_data_range_with_children.m_end;
@@ -1215,11 +1215,11 @@ EdgesElement(unsigned int vertex_st, unsigned int index_st,
 EdgesElement::
 ~EdgesElement()
 {
-  if(m_children[0] != NULL)
+  if(m_children[0] != nullptr)
     {
       FASTUIDRAWdelete(m_children[0]);
     }
-  if(m_children[1] != NULL)
+  if(m_children[1] != nullptr)
     {
       FASTUIDRAWdelete(m_children[1]);
     }
@@ -1290,13 +1290,13 @@ edge_chunks_take_all(unsigned int max_attribute_cnt,
           assert(!"StrokedPath: Edge chunk has too many attribute and indices");
         }
 
-      if(m_children[0] != NULL)
+      if(m_children[0] != nullptr)
         {
           m_children[0]->edge_chunks_take_all(max_attribute_cnt, max_index_cnt,
                                               dst, current);
         }
 
-      if(m_children[1] != NULL)
+      if(m_children[1] != nullptr)
         {
           m_children[1]->edge_chunks_take_all(max_attribute_cnt, max_index_cnt,
                                               dst, current);
@@ -1344,14 +1344,14 @@ edge_chunks_implement(ScratchSpacePrivate &scratch,
       return;
     }
 
-  if(m_children[0] != NULL)
+  if(m_children[0] != nullptr)
     {
       m_children[0]->edge_chunks_implement(scratch, item_space_additional_room,
                                            max_attribute_cnt, max_index_cnt,
                                            dst, current);
     }
 
-  if(m_children[1] != NULL)
+  if(m_children[1] != nullptr)
     {
       m_children[1]->edge_chunks_implement(scratch, item_space_additional_room,
                                            max_attribute_cnt, max_index_cnt,
@@ -1444,13 +1444,13 @@ fill_data_worker(EdgesElement *e,
                  fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
                  fastuidraw::c_array<int> index_adjusts) const
 {
-  if(e->m_children[0] != NULL)
+  if(e->m_children[0] != nullptr)
     {
       fill_data_worker(e->m_children[0], attribute_data, index_data,
                        attribute_chunks, index_chunks, index_adjusts);
     }
 
-  if(e->m_children[1] != NULL)
+  if(e->m_children[1] != nullptr)
     {
       fill_data_worker(e->m_children[1], attribute_data, index_data,
                        attribute_chunks, index_chunks, index_adjusts);
@@ -2651,7 +2651,7 @@ fetch_create(float thresh, std::vector<ThreshWithData> &values)
                               ThreshWithData::reverse_compare_against_thresh);
       assert(iter != values.end());
       assert(iter->m_thresh <= thresh);
-      assert(iter->m_data != NULL);
+      assert(iter->m_data != nullptr);
       return *iter->m_data;
     }
   else
@@ -2805,7 +2805,7 @@ fastuidraw::StrokedPath::ScratchSpace::
   ScratchSpacePrivate *d;
   d = static_cast<ScratchSpacePrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 //////////////////////////////////////////////////////////////
@@ -2839,7 +2839,7 @@ fastuidraw::StrokedPath::
   StrokedPathPrivate *d;
   d = static_cast<StrokedPathPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 float

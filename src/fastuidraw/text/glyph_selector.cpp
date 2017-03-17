@@ -385,7 +385,7 @@ fastuidraw::GlyphSelector::
   GlyphSelectorPrivate *d;
   d = static_cast<GlyphSelectorPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void

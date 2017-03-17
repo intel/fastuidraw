@@ -786,7 +786,7 @@ namespace fastuidraw
         \param contruct_params specifies how to construct the uber-shaders.
         \param item_shader_filter pointer to ItemShaderFilter to use to filter
                                   which shader to place into the uber-shader.
-                                  A value of NULL indicates to add all item
+                                  A value of nullptr indicates to add all item
                                   shaders to the uber-shader.
         \param discard_macro_value macro-value definintion for the macro
                                    FASTUIDRAW_DISCARD. PainterItemShaderGLSL
@@ -797,7 +797,7 @@ namespace fastuidraw
       construct_shader(ShaderSource &out_vertex,
                        ShaderSource &out_fragment,
                        const UberShaderParams &contruct_params,
-                       const ItemShaderFilter *item_shader_filter = NULL,
+                       const ItemShaderFilter *item_shader_filter = nullptr,
                        const char *discard_macro_value = "discard");
 
       /*!

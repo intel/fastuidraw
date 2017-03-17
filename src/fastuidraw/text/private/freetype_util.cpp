@@ -962,7 +962,7 @@ namespace detail
   {
     if(degree()!=3)
       {
-        out_curves=vecN<BezierCurve*, 4>(NULL);
+        out_curves=vecN<BezierCurve*, 4>(nullptr);
         return routine_fail;
       }
 
@@ -1029,7 +1029,7 @@ namespace detail
   {
     if(degree()!=3)
       {
-        out_curves=vecN<BezierCurve*, 2>(NULL);
+        out_curves=vecN<BezierCurve*, 2>(nullptr);
         return routine_fail;
       }
 
@@ -1052,7 +1052,7 @@ namespace detail
   {
     if(degree()!=3)
       {
-        return NULL;
+        return nullptr;
       }
 
     ivec2 c;
@@ -1069,7 +1069,7 @@ namespace detail
   BezierCurve::
   split_curve(geometry_data dbg) const
   {
-    vecN<BezierCurve*,2> R(NULL, NULL);
+    vecN<BezierCurve*,2> R(nullptr, nullptr);
 
     /*
       we need to handle each of the degree's separately
@@ -1847,7 +1847,7 @@ namespace detail
   RawOutlineData::
   build_outline(ContourEmitterBase *emitter)
   {
-    assert(emitter!=NULL);
+    assert(emitter!=nullptr);
     auto c0=emitter->connect_emit_curve(std::bind(&RawOutlineData::catch_curve, this, std::placeholders::_1));
     auto c1=emitter->connect_emit_end_contour(std::bind(&RawOutlineData::mark_contour_end, this));
 
@@ -1896,9 +1896,9 @@ namespace detail
   RawOutlineData::
   prev_neighbor(const BezierCurve *c) const
   {
-    if(c==NULL)
+    if(c==nullptr)
       {
-        return NULL;
+        return nullptr;
       }
 
     int contourID(c->contourID());
@@ -1906,14 +1906,14 @@ namespace detail
 
     if(contourID<0 or contourID>=static_cast<int>(m_curve_sets.size()))
       {
-        return NULL;
+        return nullptr;
       }
 
     const range_type<int> &R(m_curve_sets[contourID]);
 
     if(curveID>=R.m_end or curveID<R.m_begin)
       {
-        return NULL;
+        return nullptr;
       }
 
     int I;
@@ -1930,9 +1930,9 @@ namespace detail
   RawOutlineData::
   next_neighbor(const BezierCurve *c) const
   {
-    if(c==NULL)
+    if(c==nullptr)
       {
-        return NULL;
+        return nullptr;
       }
 
     int contourID(c->contourID());
@@ -1940,14 +1940,14 @@ namespace detail
 
     if(contourID<0 or contourID>=static_cast<int>(m_curve_sets.size()))
       {
-        return NULL;
+        return nullptr;
       }
 
     const range_type<int> &R(m_curve_sets[contourID]);
 
     if(curveID>=R.m_end or curveID<R.m_begin)
       {
-        return NULL;
+        return nullptr;
       }
 
     int I;
@@ -2591,7 +2591,7 @@ namespace detail
         for(int i=0; i<total_count; ++i)
           {
             L[i].m_index_of_intersection=i;
-            assert(L[i].m_source.m_bezier!=NULL);
+            assert(L[i].m_source.m_bezier!=nullptr);
           }
 
         if(total_count==0)

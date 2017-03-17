@@ -43,11 +43,11 @@ Dict *dictNewDict( void *frame,
   Dict *dict = (Dict *) memAlloc( sizeof( Dict ));
   DictNode *head;
 
-  if (dict == NULL) return NULL;
+  if (dict == nullptr) return nullptr;
 
   head = &dict->head;
 
-  head->key = NULL;
+  head->key = nullptr;
   head->next = head;
   head->prev = head;
 
@@ -76,10 +76,10 @@ DictNode *dictInsertBefore( Dict *dict, DictNode *node, DictKey key )
 
   do {
     node = node->prev;
-  } while( node->key != NULL && ! (*dict->leq)(dict->frame, node->key, key));
+  } while( node->key != nullptr && ! (*dict->leq)(dict->frame, node->key, key));
 
   newNode = (DictNode *) memAlloc( sizeof( DictNode ));
-  if (newNode == NULL) return NULL;
+  if (newNode == nullptr) return nullptr;
 
   newNode->key = key;
   newNode->next = node->next;
@@ -106,7 +106,7 @@ DictNode *dictSearch( Dict *dict, DictKey key )
 
   do {
     node = node->next;
-  } while( node->key != NULL && ! (*dict->leq)(dict->frame, key, node->key));
+  } while( node->key != nullptr && ! (*dict->leq)(dict->frame, key, node->key));
 
   return node;
 }

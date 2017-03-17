@@ -348,7 +348,7 @@ fastuidraw::gl::ImageAtlasGL::params::
   ImageAtlasGLParamsPrivate *d;
   d = static_cast<ImageAtlasGLParamsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::gl::ImageAtlasGL::params&
@@ -429,7 +429,7 @@ fastuidraw::gl::ImageAtlasGL::
   ImageAtlasGLPrivate *d;
   d = static_cast<ImageAtlasGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 const fastuidraw::gl::ImageAtlasGL::params&

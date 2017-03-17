@@ -48,9 +48,9 @@
  * the mesh which is marked "inside" the polygon.  Each such region
  * must be monotone.
  *
- * glu_fastuidraw_gl_meshDiscardExterior( mesh ) zaps (ie. sets to NULL) all faces
+ * glu_fastuidraw_gl_meshDiscardExterior( mesh ) zaps (ie. sets to nullptr) all faces
  * which are not marked "inside" the polygon.  Since further mesh operations
- * on NULL faces are not allowed, the main purpose is to clean up the
+ * on nullptr faces are not allowed, the main purpose is to clean up the
  * mesh so that exterior loops are not represented in the data structure.
  *
  * glu_fastuidraw_gl_meshSetWindingNumber( mesh, value, keepOnlyBoundary ) resets the
