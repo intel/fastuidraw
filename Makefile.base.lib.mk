@@ -1,10 +1,10 @@
 
-LIBRARY_CFLAGS = $(shell freetype-config --cflags) -D_USE_MATH_DEFINES
+LIBRARY_CFLAGS =  -std=c++11 $(shell freetype-config --cflags) -D_USE_MATH_DEFINES
 LIBRARY_debug_CFLAGS =  $(LIBRARY_CFLAGS) -DFASTUIDRAW_VECTOR_BOUND_CHECK -DFASTUIDRAW_DEBUG
 LIBRARY_release_CFLAGS = $(LIBRARY_CFLAGS) -DNDEBUG
 
-LIBRARY_BUILD_debug_FLAGS = -g -std=c++11
-LIBRARY_BUILD_release_FLAGS = -O3 -fstrict-aliasing -std=c++11
+LIBRARY_BUILD_debug_FLAGS = -g
+LIBRARY_BUILD_release_FLAGS = -O3 -fstrict-aliasing
 LIBRARY_BUILD_WARN_FLAGS = -Wall -Wextra -Wcast-qual -Wwrite-strings
 LIBRARY_BUILD_INCLUDES_CFLAGS = -Iinc
 
