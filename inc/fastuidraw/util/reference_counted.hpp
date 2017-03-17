@@ -63,14 +63,14 @@ namespace fastuidraw
   public:
     /*!
       Ctor, inits the reference_counted_ptr as
-      equivalent to NULL.
+      equivalent to nullptr.
      */
     reference_counted_ptr(void):
-      m_p(NULL)
+      m_p(nullptr)
     {}
 
     /*!
-      Ctor, initialize from a T*. If passed non-NULL,
+      Ctor, initialize from a T*. If passed non-nullptr,
       then the reference counter is incremented
       (via T::add_reference()).
       \param p pointer value from which to initialize
@@ -114,7 +114,7 @@ namespace fastuidraw
     }
 
     /*!
-      Dtor, if pointer is non-NULL, then reference is decremented
+      Dtor, if pointer is non-nullptr, then reference is decremented
       (via T::remove_reference()).
      */
     ~reference_counted_ptr()
@@ -175,7 +175,7 @@ namespace fastuidraw
 
     /*!
       Overload of dererefence operator. Under debug build,
-      assers if pointer is NULL.
+      assers if pointer is nullptr.
      */
     T&
     operator*(void) const
@@ -186,7 +186,7 @@ namespace fastuidraw
 
     /*!
       Overload of operator. Under debug build,
-      assers if pointer is NULL.
+      assers if pointer is nullptr.
      */
     T*
     operator->(void) const
@@ -300,7 +300,7 @@ namespace fastuidraw
       if(m_p)
         {
           T::remove_reference(m_p);
-          m_p = NULL;
+          m_p = nullptr;
         }
     }
     /*!

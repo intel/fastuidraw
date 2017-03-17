@@ -169,7 +169,7 @@ protected:
       return;
     }
 
-    for(entry = readdir(dir); entry != NULL; entry = readdir(dir))
+    for(entry = readdir(dir); entry != nullptr; entry = readdir(dir))
       {
         std::string file;
         file = entry->d_name;
@@ -577,7 +577,7 @@ private:
                             gl::opengl_trait<vec2>::type,
                             GL_FALSE,
                             gl::opengl_trait<vec2>::stride,
-                            NULL);
+                            nullptr);
       glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
     }
 

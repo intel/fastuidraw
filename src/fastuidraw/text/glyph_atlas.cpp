@@ -136,7 +136,7 @@ fastuidraw::GlyphAtlasTexelBackingStoreBase::
   GlyphAtlasTexelBackingStoreBasePrivate *d;
   d = static_cast<GlyphAtlasTexelBackingStoreBasePrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::ivec3
@@ -186,7 +186,7 @@ fastuidraw::GlyphAtlasGeometryBackingStoreBase::
   GlyphAtlasGeometryBackingStoreBasePrivate *d;
   d = static_cast<GlyphAtlasGeometryBackingStoreBasePrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 unsigned int
@@ -237,7 +237,7 @@ location(void) const
   const detail::RectAtlas::rectangle *p;
 
   p = static_cast<const detail::RectAtlas::rectangle*>(m_opaque);
-  return (p != NULL) ?
+  return (p != nullptr) ?
     p->unpadded_minX_minY() :
     ivec2(-1, -1);
 }
@@ -250,7 +250,7 @@ layer(void) const
   const rect_atlas_layer *a;
 
   p = static_cast<const detail::RectAtlas::rectangle*>(m_opaque);
-  if(p == NULL)
+  if(p == nullptr)
     {
       return -1;
     }
@@ -267,7 +267,7 @@ size(void) const
 {
   const detail::RectAtlas::rectangle *p;
   p = static_cast<const detail::RectAtlas::rectangle*>(m_opaque);
-  return (p != NULL) ?
+  return (p != nullptr) ?
     p->unpadded_size() :
     ivec2(-1, -1);
 }
@@ -287,7 +287,7 @@ fastuidraw::GlyphAtlas::
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 
@@ -300,7 +300,7 @@ allocate(fastuidraw::ivec2 size, const_c_array<uint8_t> pdata,
   d = static_cast<GlyphAtlasPrivate*>(m_d);
 
   GlyphLocation return_value;
-  const detail::RectAtlas::rectangle *r(NULL);
+  const detail::RectAtlas::rectangle *r(nullptr);
   unsigned int layer;
 
   if(size.x() > d->m_texel_store->dimensions().x()
@@ -311,7 +311,7 @@ allocate(fastuidraw::ivec2 size, const_c_array<uint8_t> pdata,
 
   autolock_mutex m(d->m_mutex);
 
-  for(unsigned int i = 0, endi = d->m_private_data.size(); i < endi && r == NULL; ++i)
+  for(unsigned int i = 0, endi = d->m_private_data.size(); i < endi && r == nullptr; ++i)
     {
       r = d->m_private_data[i]->add_rectangle(size,
                                               padding.m_left, padding.m_right,
@@ -319,7 +319,7 @@ allocate(fastuidraw::ivec2 size, const_c_array<uint8_t> pdata,
       layer = i;
     }
 
-  if(r == NULL && d->m_texel_store->resizeable())
+  if(r == nullptr && d->m_texel_store->resizeable())
     {
       int old_size;
 
@@ -336,10 +336,10 @@ allocate(fastuidraw::ivec2 size, const_c_array<uint8_t> pdata,
                                                      padding.m_left, padding.m_right,
                                                      padding.m_top, padding.m_bottom);
       layer = old_size;
-      assert(r != NULL);
+      assert(r != nullptr);
     }
 
-  if(r != NULL)
+  if(r != nullptr)
     {
       return_value.m_opaque = r;
       d->m_texel_store->set_data(r->minX_minY().x(), r->minX_minY().y(), layer,
@@ -357,7 +357,7 @@ deallocate(fastuidraw::GlyphLocation G)
   const detail::RectAtlas::rectangle *r;
 
   r = static_cast<const detail::RectAtlas::rectangle*>(G.m_opaque);
-  if(r != NULL)
+  if(r != nullptr)
     {
       detail::RectAtlas::delete_rectangle(r);
     }

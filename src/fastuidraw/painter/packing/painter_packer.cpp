@@ -46,7 +46,7 @@ namespace
         return obj.m_packed_value.value();
       }
 
-    if(obj.m_value != NULL)
+    if(obj.m_value != nullptr)
       {
         return *obj.m_value;
       }
@@ -155,7 +155,7 @@ namespace
   public:
 
     EntryBase(void):
-      m_raw_value(NULL),
+      m_raw_value(nullptr),
       m_pool_slot(-1)
     {}
 
@@ -176,7 +176,7 @@ namespace
         {
           m_pool->release_slot(m_pool_slot);
           m_pool_slot = -1;
-          m_pool = NULL;
+          m_pool = nullptr;
         }
     }
 
@@ -238,7 +238,7 @@ namespace
       this->m_begin_id = -1;
       this->m_draw_command_id = 0;
       this->m_offset = 0;
-      this->m_painter = NULL;
+      this->m_painter = nullptr;
       this->m_alignment = alignment;
       this->m_data.resize(m_state.data_size(alignment));
       m_state.pack_data(alignment, fastuidraw::make_c_array(this->m_data));
@@ -251,12 +251,12 @@ namespace
   class Pool:public PoolBase
   {
   public:
-    /* Returning NULL indicates no free entries left in the pool
+    /* Returning nullptr indicates no free entries left in the pool
      */
     Entry<T>*
     allocate(const T &st, int alignment)
     {
-      Entry<T> *return_value(NULL);
+      Entry<T> *return_value(nullptr);
       int slot;
 
       slot = this->aquire_slot();
@@ -427,7 +427,7 @@ namespace
           e = static_cast<EntryBase*>(obj.m_packed_value.opaque_data());
           pack_state_data(p, e, location);
         }
-      else if(obj.m_value != NULL)
+      else if(obj.m_value != nullptr)
         {
           pack_state_data_from_value(*obj.m_value, location);
         }
@@ -574,7 +574,7 @@ namespace
               return d->m_data.size();
             }
         }
-      else if(obj.m_value != NULL)
+      else if(obj.m_value != nullptr)
         {
           return obj.m_value->data_size(m_alignment);
         }
@@ -1002,7 +1002,7 @@ fastuidraw::PainterPacker::
   PainterPackerPrivate *d;
   d = static_cast<PainterPackerPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void
@@ -1274,7 +1274,7 @@ target_resolution(int w, int h)
 fastuidraw::PainterPackedValueBase::
 PainterPackedValueBase(void)
 {
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::PainterPackedValueBase::
@@ -1310,7 +1310,7 @@ fastuidraw::PainterPackedValueBase::
       EntryBase *d;
       d = static_cast<EntryBase*>(m_d);
       d->release();
-      m_d = NULL;
+      m_d = nullptr;
     }
 }
 
@@ -1344,7 +1344,7 @@ alignment_packing(void) const
 {
   EntryBase *d;
   d = static_cast<EntryBase*>(m_d);
-  return (d != NULL) ? d->m_alignment : 0;
+  return (d != nullptr) ? d->m_alignment : 0;
 }
 
 const void*
@@ -1372,7 +1372,7 @@ fastuidraw::PainterPackedValuePool::
   PainterPackedValuePoolPrivate *d;
   d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::PainterPackedValue<fastuidraw::PainterBrush>

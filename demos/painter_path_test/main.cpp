@@ -418,8 +418,8 @@ void
 painter_stroke_test::
 update_cts_params(void)
 {
-  const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
-  assert(keyboard_state != NULL);
+  const Uint8 *keyboard_state = SDL_GetKeyboardState(nullptr);
+  assert(keyboard_state != nullptr);
 
   float speed = static_cast<float>(m_draw_timer.restart_us()), speed_stroke, speed_shear;
   speed /= 1000.0f;
@@ -1063,7 +1063,7 @@ create_stroked_path_attributes(void)
 
       StrokedPath::point::unpack_point(&pt, miter_points[p]);
       v = pt.miter_distance();
-      if(isfinite(v))
+      if(std::isfinite(v))
         {
           m_max_miter = fastuidraw::t_max(m_max_miter, fastuidraw::t_abs(v));
         }

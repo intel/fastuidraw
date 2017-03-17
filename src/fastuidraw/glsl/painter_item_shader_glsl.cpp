@@ -310,7 +310,7 @@ fastuidraw::glsl::varying_list::
   VaryingListPrivate *d;
   d = static_cast<VaryingListPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::glsl::varying_list&
@@ -439,7 +439,7 @@ fastuidraw::glsl::shader_unpack_value::
   GLSLShaderUnpackValuePrivate *d;
   d = static_cast<GLSLShaderUnpackValuePrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::glsl::shader_unpack_value&
@@ -544,7 +544,7 @@ fastuidraw::glsl::PainterItemShaderGLSL::
   PainterShaderGLSLPrivate *d;
   d = static_cast<PainterShaderGLSLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 const fastuidraw::glsl::varying_list&

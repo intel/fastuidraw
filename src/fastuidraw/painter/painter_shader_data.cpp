@@ -25,7 +25,7 @@
 fastuidraw::PainterShaderData::
 PainterShaderData(void)
 {
-  m_data = NULL;
+  m_data = nullptr;
 }
 
 fastuidraw::PainterShaderData::
@@ -37,7 +37,7 @@ PainterShaderData(const PainterShaderData &obj)
     }
   else
     {
-      m_data = NULL;
+      m_data = nullptr;
     }
 }
 
@@ -48,7 +48,7 @@ fastuidraw::PainterShaderData::
     {
       FASTUIDRAWdelete(m_data);
     }
-  m_data = NULL;
+  m_data = nullptr;
 }
 
 fastuidraw::PainterShaderData&

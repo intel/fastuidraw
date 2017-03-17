@@ -37,7 +37,7 @@ namespace fastuidraw
     /*!
       Holds both a PainterPackedValue and a pointer to a value.
       If \ref m_packed_value is valid, then its value is used. If
-      it is NULL then the value pointed to by \ref m_value is used.
+      it is nullptr then the value pointed to by \ref m_value is used.
      */
     template<typename T>
     class value
@@ -47,7 +47,7 @@ namespace fastuidraw
         Ctor from a value.
         \param p value with which to initialize \ref m_value
        */
-      value(const T *p = NULL):
+      value(const T *p = nullptr):
         m_value(p)
       {}
 
@@ -56,7 +56,7 @@ namespace fastuidraw
         \param p value with which to initialize \ref m_packed_value
        */
       value(const PainterPackedValue<T> &p):
-        m_value(NULL),
+        m_value(nullptr),
         m_packed_value(p)
       {}
 
@@ -71,14 +71,14 @@ namespace fastuidraw
       PainterPackedValue<T> m_packed_value;
 
       /*!
-        If m_packed_value is non-NULL, returns the value behind it
+        If m_packed_value is non-nullptr, returns the value behind it
         (i.e. PainterPackedValue<T>::value()), otherwise returns
         the dereference of \ref m_value.
        */
       const T&
       data(void) const
       {
-        assert(m_packed_value || m_value != NULL);
+        assert(m_packed_value || m_value != nullptr);
         return m_packed_value ?
           m_packed_value.value() :
           *m_value;

@@ -558,7 +558,7 @@ GeometryStoreGL::
 create(const fastuidraw::gl::GlyphAtlasGL::params &P)
 {
   unsigned int number_vecNs, N;
-  GeometryStoreGL *p(NULL);
+  GeometryStoreGL *p(nullptr);
   bool delayed;
 
   N = P.alignment();
@@ -609,7 +609,7 @@ fastuidraw::gl::GlyphAtlasGL::params::
   GlyphAtlasGLParamsPrivate *d;
   d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::gl::GlyphAtlasGL::params&
@@ -760,7 +760,7 @@ fastuidraw::gl::GlyphAtlasGL::
   GlyphAtlasGLPrivate *d;
   d = static_cast<GlyphAtlasGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 const fastuidraw::gl::GlyphAtlasGL::params&

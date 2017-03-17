@@ -180,7 +180,7 @@ fastuidraw_gluNewTess_release( void )
      return 0;                  /* out of memory */
   }
   tess = (fastuidraw_GLUtesselator *)memAlloc( sizeof( fastuidraw_GLUtesselator ));
-  if (tess == NULL) {
+  if (tess == nullptr) {
      return 0;                  /* out of memory */
   }
 
@@ -208,9 +208,9 @@ fastuidraw_gluNewTess_release( void )
 
   tess->callWindingData= &glu_fastuidraw_gl_noWindingData;
 
-  tess->polygonData= NULL;
+  tess->polygonData= nullptr;
 
-  tess->fastuidraw_alloc_tracker = NULL;
+  tess->fastuidraw_alloc_tracker = nullptr;
 
   return tess;
 }
@@ -219,12 +219,12 @@ static void MakeDormant( fastuidraw_GLUtesselator *tess )
 {
   /* Return the tessellator to its original dormant state. */
 
-  if( tess->mesh != NULL ) {
+  if( tess->mesh != nullptr ) {
     glu_fastuidraw_gl_meshDeleteMesh( tess->mesh );
   }
   tess->state = T_DORMANT;
-  tess->lastEdge = NULL;
-  tess->mesh = NULL;
+  tess->lastEdge = nullptr;
+  tess->mesh = nullptr;
 }
 
 #define RequireState( tess, s )   if( tess->state != s ) GotoState(tess,s)
@@ -239,7 +239,7 @@ static void GotoState( fastuidraw_GLUtesselator *tess, enum TessState newState )
       switch( tess->state ) {
       case T_DORMANT:
         CALL_ERROR_OR_ERROR_DATA( FASTUIDRAW_GLU_TESS_MISSING_BEGIN_POLYGON );
-        fastuidraw_gluTessBeginPolygon( tess, NULL );
+        fastuidraw_gluTessBeginPolygon( tess, nullptr );
         break;
       case T_IN_POLYGON:
         CALL_ERROR_OR_ERROR_DATA( FASTUIDRAW_GLU_TESS_MISSING_BEGIN_CONTOUR );
@@ -341,40 +341,40 @@ fastuidraw_gluTessCallback( fastuidraw_GLUtesselator *tess, FASTUIDRAW_GLUenum w
 {
   switch( which ) {
   case FASTUIDRAW_GLU_TESS_BEGIN:
-    tess->callBegin = (fn == NULL) ? &noBegin : (void (REGALFASTUIDRAW_GLU_CALL *)(FASTUIDRAW_GLUenum, int)) fn;
+    tess->callBegin = (fn == nullptr) ? &noBegin : (void (REGALFASTUIDRAW_GLU_CALL *)(FASTUIDRAW_GLUenum, int)) fn;
     return;
   case FASTUIDRAW_GLU_TESS_BEGIN_DATA:
-    tess->callBeginData = (fn == NULL) ?
+    tess->callBeginData = (fn == nullptr) ?
         &glu_fastuidraw_gl_noBeginData : (void (REGALFASTUIDRAW_GLU_CALL *)(FASTUIDRAW_GLUenum, int, void *)) fn;
     return;
   case FASTUIDRAW_GLU_TESS_VERTEX:
-    tess->callVertex = (fn == NULL) ? &noVertex :
+    tess->callVertex = (fn == nullptr) ? &noVertex :
                                       (void (REGALFASTUIDRAW_GLU_CALL *)(unsigned int)) fn;
     return;
   case FASTUIDRAW_GLU_TESS_VERTEX_DATA:
-    tess->callVertexData = (fn == NULL) ?
+    tess->callVertexData = (fn == nullptr) ?
         &glu_fastuidraw_gl_noVertexData : (void (REGALFASTUIDRAW_GLU_CALL *)(unsigned int, void *)) fn;
     return;
   case FASTUIDRAW_GLU_TESS_END:
-    tess->callEnd = (fn == NULL) ? &noEnd : (void (REGALFASTUIDRAW_GLU_CALL *)(void)) fn;
+    tess->callEnd = (fn == nullptr) ? &noEnd : (void (REGALFASTUIDRAW_GLU_CALL *)(void)) fn;
     return;
   case FASTUIDRAW_GLU_TESS_END_DATA:
-    tess->callEndData = (fn == NULL) ? &glu_fastuidraw_gl_noEndData :
+    tess->callEndData = (fn == nullptr) ? &glu_fastuidraw_gl_noEndData :
                                        (void (REGALFASTUIDRAW_GLU_CALL *)(void *)) fn;
     return;
   case FASTUIDRAW_GLU_TESS_ERROR:
-    tess->callError = (fn == NULL) ? &noError : (void (REGALFASTUIDRAW_GLU_CALL *)(FASTUIDRAW_GLUenum)) fn;
+    tess->callError = (fn == nullptr) ? &noError : (void (REGALFASTUIDRAW_GLU_CALL *)(FASTUIDRAW_GLUenum)) fn;
     return;
   case FASTUIDRAW_GLU_TESS_ERROR_DATA:
-    tess->callErrorData = (fn == NULL) ?
+    tess->callErrorData = (fn == nullptr) ?
         &glu_fastuidraw_gl_noErrorData : (void (REGALFASTUIDRAW_GLU_CALL *)(FASTUIDRAW_GLUenum, void *)) fn;
     return;
   case FASTUIDRAW_GLU_TESS_COMBINE:
-    tess->callCombine = (fn == NULL) ? &noCombine :
+    tess->callCombine = (fn == nullptr) ? &noCombine :
     (void (REGALFASTUIDRAW_GLU_CALL *)(double , double, unsigned int[4], double [4], unsigned int* )) fn;
     return;
   case FASTUIDRAW_GLU_TESS_COMBINE_DATA:
-    tess->callCombineData = (fn == NULL) ? &glu_fastuidraw_gl_noCombineData :
+    tess->callCombineData = (fn == nullptr) ? &glu_fastuidraw_gl_noCombineData :
                                            (void (REGALFASTUIDRAW_GLU_CALL *)(double,
                                                                              double,
                                                                              unsigned int[4],
@@ -383,15 +383,15 @@ fastuidraw_gluTessCallback( fastuidraw_GLUtesselator *tess, FASTUIDRAW_GLUenum w
                                                                              void *)) fn;
     return;
   case FASTUIDRAW_GLU_TESS_MESH:
-    tess->callMesh = (fn == NULL) ? &noMesh : (void (REGALFASTUIDRAW_GLU_CALL *)(GLUmesh *)) fn;
+    tess->callMesh = (fn == nullptr) ? &noMesh : (void (REGALFASTUIDRAW_GLU_CALL *)(GLUmesh *)) fn;
     return;
 
   case FASTUIDRAW_GLU_TESS_WINDING_CALLBACK:
-    tess->callWinding=(fn==NULL)? &noWinding: (FASTUIDRAW_GLUboolean (REGALFASTUIDRAW_GLU_CALL *)(int)) fn;
+    tess->callWinding=(fn==nullptr)? &noWinding: (FASTUIDRAW_GLUboolean (REGALFASTUIDRAW_GLU_CALL *)(int)) fn;
     return;
 
   case FASTUIDRAW_GLU_TESS_WINDING_CALLBACK_DATA:
-    tess->callWindingData=(fn==NULL)? &glu_fastuidraw_gl_noWindingData: (FASTUIDRAW_GLUboolean (REGALFASTUIDRAW_GLU_CALL *)(int, void*)) fn;
+    tess->callWindingData=(fn==nullptr)? &glu_fastuidraw_gl_noWindingData: (FASTUIDRAW_GLUboolean (REGALFASTUIDRAW_GLU_CALL *)(int, void*)) fn;
     return;
 
   default:
@@ -405,17 +405,17 @@ static int AddVertex( fastuidraw_GLUtesselator *tess, double x, double y, unsign
   GLUhalfEdge *e;
 
   e = tess->lastEdge;
-  if( e == NULL ) {
+  if( e == nullptr ) {
     /* Make a self-loop (one vertex, one edge). */
 
     e = glu_fastuidraw_gl_meshMakeEdge( tess->mesh );
-    if (e == NULL) return 0;
+    if (e == nullptr) return 0;
     if ( !glu_fastuidraw_gl_meshSplice( e, e->Sym ) ) return 0;
   } else {
     /* Create a new vertex and edge which immediately follow e
      * in the ordering around the left face.
      */
-    if (glu_fastuidraw_gl_meshSplitEdge( e ) == NULL) return 0;
+    if (glu_fastuidraw_gl_meshSplitEdge( e ) == nullptr) return 0;
     e = e->Lnext;
   }
 
@@ -457,7 +457,7 @@ static int EmptyCache( fastuidraw_GLUtesselator *tess )
   int add_return_value, edges_real;
 
   tess->mesh = glu_fastuidraw_gl_meshNewMesh();
-  if (tess->mesh == NULL) return 0;
+  if (tess->mesh == nullptr) return 0;
 
   edges_real = tess->edges_real;
   for( vLast = v + tess->cacheCount; v < vLast; ++v ) {
@@ -499,7 +499,7 @@ fastuidraw_gluTessVertex( fastuidraw_GLUtesselator *tess, double x, double y, un
        CALL_ERROR_OR_ERROR_DATA( FASTUIDRAW_GLU_OUT_OF_MEMORY );
        return;
     }
-    tess->lastEdge = NULL;
+    tess->lastEdge = nullptr;
   }
 
   checkTooLarge(&x, &tooLarge);
@@ -510,7 +510,7 @@ fastuidraw_gluTessVertex( fastuidraw_GLUtesselator *tess, double x, double y, un
     CALL_ERROR_OR_ERROR_DATA( FASTUIDRAW_GLU_TESS_COORD_TOO_LARGE );
   }
 
-  if( tess->mesh == NULL ) {
+  if( tess->mesh == nullptr ) {
     if( tess->cacheCount < TESS_MAX_CACHE ) {
       CacheVertex( tess, x, y, data );
       return;
@@ -534,7 +534,7 @@ fastuidraw_gluTessBeginPolygon( fastuidraw_GLUtesselator *tess, void *data )
   tess->state = T_IN_POLYGON;
   tess->cacheCount = 0;
   tess->emptyCache = FALSE;
-  tess->mesh = NULL;
+  tess->mesh = nullptr;
 
   tess->polygonData= data;
 }
@@ -546,7 +546,7 @@ fastuidraw_gluTessBeginContour( fastuidraw_GLUtesselator *tess, FASTUIDRAW_GLUbo
   RequireState( tess, T_IN_POLYGON );
 
   tess->state = T_IN_CONTOUR;
-  tess->lastEdge = NULL;
+  tess->lastEdge = nullptr;
   if( tess->cacheCount > 0 ) {
     /* Just set a flag so we don't get confused by empty contours
      * -- these can be generated accidentally with the obsolete
@@ -585,7 +585,7 @@ fastuidraw_gluTessEndPolygon( fastuidraw_GLUtesselator *tess )
   RequireState( tess, T_IN_POLYGON );
   tess->state = T_DORMANT;
 
-  if( tess->mesh == NULL ) {
+  if( tess->mesh == nullptr ) {
     if( tess->callMesh == &noMesh ) {
 
       /* Try some special code to make the easy cases go quickly
@@ -594,7 +594,7 @@ fastuidraw_gluTessEndPolygon( fastuidraw_GLUtesselator *tess )
        * an explicit mesh either.
        */
       if( glu_fastuidraw_gl_renderCache( tess )) {
-        tess->polygonData= NULL;
+        tess->polygonData= nullptr;
         return;
       }
     }
@@ -650,14 +650,14 @@ fastuidraw_gluTessEndPolygon( fastuidraw_GLUtesselator *tess )
        */
       glu_fastuidraw_gl_meshDiscardExterior( mesh );
       (*tess->callMesh)( mesh );                /* user wants the mesh itself */
-      tess->mesh = NULL;
-      tess->polygonData= NULL;
+      tess->mesh = nullptr;
+      tess->polygonData= nullptr;
       return;
     }
   }
   glu_fastuidraw_gl_meshDeleteMesh( mesh );
-  tess->polygonData= NULL;
-  tess->mesh = NULL;
+  tess->polygonData= nullptr;
+  tess->mesh = nullptr;
 }
 
 

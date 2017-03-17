@@ -176,7 +176,7 @@ fastuidraw::TessellatedPath::
   TessellatedPathPrivate *d;
   d = static_cast<TessellatedPathPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 const fastuidraw::reference_counted_ptr<const fastuidraw::StrokedPath>&

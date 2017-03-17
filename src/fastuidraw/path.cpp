@@ -591,7 +591,7 @@ fill_data(fastuidraw::c_array<fastuidraw::TessellatedPath::point> out_data,
 
   /* tessellate
    */
-  tessellation_worker(0, 1, 0, NULL,
+  tessellation_worker(0, 1, 0, nullptr,
                       out_effective_curve_distance,
                       out_effective_curvature);
 
@@ -766,7 +766,7 @@ fastuidraw::PathContour::interpolator_base::
   InterpolatorBasePrivate *d;
   d = static_cast<InterpolatorBasePrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::PathContour::interpolator_base>
@@ -883,7 +883,7 @@ fastuidraw::PathContour::bezier::
   BezierPrivate *d;
   d = static_cast<BezierPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 bool
@@ -927,13 +927,13 @@ tessellate(tessellated_region *in_region,
   BezierPrivate *d;
   d = static_cast<BezierPrivate*>(m_d);
 
-  if(in_region == NULL)
+  if(in_region == nullptr)
     {
       in_region = &d->m_start_region;
     }
 
   BezierTessRegion *in_region_casted;
-  assert(dynamic_cast<BezierTessRegion*>(in_region) != NULL);
+  assert(dynamic_cast<BezierTessRegion*>(in_region) != nullptr);
   in_region_casted = static_cast<BezierTessRegion*>(in_region);
 
   BezierTessRegion *newA, *newB;
@@ -1119,7 +1119,7 @@ fastuidraw::PathContour::arc::
   ArcPrivate *d;
   d = static_cast<ArcPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 bool
@@ -1198,7 +1198,7 @@ fastuidraw::PathContour::
   PathContourPrivate *d;
   d = static_cast<PathContourPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void
@@ -1561,7 +1561,7 @@ fastuidraw::Path::
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 bool

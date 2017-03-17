@@ -231,7 +231,7 @@ painter_cells(void):
   m_init_anti_alias_stroking(true, "init_antialias_stroking",
                              "Initial value for anti-aliasing for stroking",
                              *this),
-  m_table(NULL)
+  m_table(nullptr)
 {
   std::cout << "Controls:\n"
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
@@ -252,7 +252,7 @@ painter_cells(void):
 painter_cells::
 ~painter_cells()
 {
-  if(m_table != NULL)
+  if(m_table != nullptr)
     {
       FASTUIDRAWdelete(m_table);
     }
@@ -301,7 +301,7 @@ add_images(const std::string &filename, std::vector<named_image> &dest)
       return;
     }
 
-  for(entry = readdir(dir); entry != NULL; entry = readdir(dir))
+  for(entry = readdir(dir); entry != nullptr; entry = readdir(dir))
     {
       std::string file;
       file = entry->d_name;
@@ -430,7 +430,7 @@ derived_init(int w, int h)
     }
   else
     {
-      std::cout << "Font: NULL\n";
+      std::cout << "Font: nullptr\n";
     }
 
   std::cout << "Window resolution = " << dimensions() << "\n";
@@ -446,8 +446,8 @@ void
 painter_cells::
 update_cts_params(void)
 {
-  const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
-  assert(keyboard_state != NULL);
+  const Uint8 *keyboard_state = SDL_GetKeyboardState(nullptr);
+  assert(keyboard_state != nullptr);
 
   float speed = static_cast<float>(m_draw_timer.restart()) * 0.001f;
 

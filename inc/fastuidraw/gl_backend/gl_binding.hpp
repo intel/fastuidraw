@@ -82,7 +82,7 @@ namespace fastuidraw {
   use the macro <B>FASTUIDRAWglfunctionPointer</B> together
   with <B>FASTUIDRAWglfunctionExists</B>. The macro
   <B>FASTUIDRAWglfunctionPointer</B> will NEVER return
-  a NULL pointer. For the cases where the GL implementation
+  a nullptr pointer. For the cases where the GL implementation
   does not have tha function, the function pointer
   returned will then point to a do-nothing function.
   To check if a GL implementation has a given function
@@ -93,17 +93,17 @@ namespace fastuidraw {
   \code
   //get a function pointer for a GL function
   //which takes no arguments and returns nothing.
-  void (*functionPointer)(void) = NULL;
+  void (*functionPointer)(void) = nullptr;
   if(FASTUIDRAWglfunctionExists(glSomething)
     {
       functionPointer = FASTUIDRAWglfunctionPointer(glSomeFunction);
     }
   else
     {
-      //FASTUIDRAWglfunctionPointer(glSomeFunction) is NOT NULL,
+      //FASTUIDRAWglfunctionPointer(glSomeFunction) is NOT nullptr,
       //rather it maps to a no-op function.
       //in this example we leave the value of
-      //functionPointer as NULL to indicate the function
+      //functionPointer as nullptr to indicate the function
       //is not supported by the GL implementation.
     }
   \endcode
@@ -154,9 +154,9 @@ public:
 /*!
   Set the LoggerBase object to which
   to send GL command logs. Initial value is
-  NULL. Logging is only possbile to
+  nullptr. Logging is only possbile to
   be active if GL_DEBUG is defined.
-  \param l object to use, a NULL value indicates
+  \param l object to use, a nullptr value indicates
            to not send logging commands anywhere
  */
 void
@@ -164,7 +164,7 @@ logger(LoggerBase *l);
 
 /*!
   Returns the LoggerBase object used
-  to log GL commands, initial value is NULL.
+  to log GL commands, initial value is nullptr.
  */
 LoggerBase*
 logger(void);
@@ -198,7 +198,7 @@ log_gl_commands(bool v);
 /*!
   Sets the function that the system uses
   to fetch the function pointers for GL or GLES.
-  \param get_proc value to use, default is NULL.
+  \param get_proc value to use, default is nullptr.
   \param fetch_functions if true, fetch all GL/GLES functions
                          immediately instead of fetching on
                          first call.

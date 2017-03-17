@@ -54,7 +54,7 @@ fastuidraw::PainterBlendShaderSet::
   PainterBlendShaderSetPrivate *d;
   d = static_cast<PainterBlendShaderSetPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::PainterBlendShaderSet&

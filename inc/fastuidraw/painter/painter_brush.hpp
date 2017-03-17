@@ -521,7 +521,7 @@ namespace fastuidraw
       \param im handle to image to use. If handle is invalid,
                 then sets brush to not have an image.
       \param f filter to apply to image, only has effect if im
-               is non-NULL
+               is non-nullptr
      */
     PainterBrush&
     image(const reference_counted_ptr<const Image> &im, enum image_filter f = image_filter_nearest);
@@ -532,7 +532,7 @@ namespace fastuidraw
       \param xy top-left corner of sub-rectangle of image to use
       \param wh width and height of sub-rectangle of image to use
       \param f filter to apply to image, only has effect if im
-               is non-NULL
+               is non-nullptr
      */
     PainterBrush&
     sub_image(const reference_counted_ptr<const Image> &im, uvec2 xy, uvec2 wh,

@@ -69,7 +69,7 @@ fastuidraw::PainterAttributeData::
   PainterAttributeDataPrivate *d;
   d = static_cast<PainterAttributeDataPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void

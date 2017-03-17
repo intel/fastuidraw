@@ -50,7 +50,7 @@ fastuidraw::glsl::PainterBlendShaderGLSL::
   PainterBlendShaderGLSLPrivate *d;
   d = static_cast<PainterBlendShaderGLSLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 const fastuidraw::glsl::ShaderSource&

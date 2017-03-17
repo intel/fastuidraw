@@ -62,7 +62,7 @@ fastuidraw::FontProperties::
   FontPropertiesPrivate *d;
   d = static_cast<FontPropertiesPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::FontProperties&

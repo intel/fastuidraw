@@ -52,7 +52,7 @@ fastuidraw::PainterGlyphShader::
   PainterGlyphShaderPrivate *d;
   d = static_cast<PainterGlyphShaderPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::PainterGlyphShader&

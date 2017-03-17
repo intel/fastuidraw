@@ -248,7 +248,7 @@ fastuidraw::PainterAttributeDataFillerGlyphs::
   FillGlyphsPrivate *d;
   d = static_cast<FillGlyphsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void

@@ -546,7 +546,7 @@ generate_bo(GLenum bind_target, GLsizei psize)
   glGenBuffers(1, &return_value);
   assert(return_value != 0);
   glBindBuffer(bind_target, return_value);
-  glBufferData(bind_target, psize, NULL, GL_STREAM_DRAW);
+  glBufferData(bind_target, psize, nullptr, GL_STREAM_DRAW);
   return return_value;
 }
 
@@ -565,7 +565,7 @@ DrawEntry(const fastuidraw::BlendMode &mode,
 DrawEntry::
 DrawEntry(const fastuidraw::BlendMode &mode):
   m_blend_mode(mode),
-  m_private(NULL),
+  m_private(nullptr),
   m_choice(fastuidraw::gl::PainterBackendGL::number_program_types)
 {}
 
@@ -718,19 +718,19 @@ DrawCommand(painter_vao_pool *hnd,
 
   glBindBuffer(GL_ARRAY_BUFFER, m_vao.m_attribute_bo);
   attr_bo = glMapBufferRange(GL_ARRAY_BUFFER, 0, hnd->attribute_buffer_size(), flags);
-  assert(attr_bo != NULL);
+  assert(attr_bo != nullptr);
 
   glBindBuffer(GL_ARRAY_BUFFER, m_vao.m_header_bo);
   header_bo = glMapBufferRange(GL_ARRAY_BUFFER, 0, hnd->header_buffer_size(), flags);
-  assert(header_bo != NULL);
+  assert(header_bo != nullptr);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vao.m_index_bo);
   index_bo = glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, hnd->index_buffer_size(), flags);
-  assert(index_bo != NULL);
+  assert(index_bo != nullptr);
 
   glBindBuffer(GL_ARRAY_BUFFER, m_vao.m_data_bo);
   data_bo = glMapBufferRange(GL_ARRAY_BUFFER, 0, hnd->data_buffer_size(), flags);
-  assert(data_bo != NULL);
+  assert(data_bo != nullptr);
 
   m_attributes = fastuidraw::c_array<fastuidraw::PainterAttribute>(static_cast<fastuidraw::PainterAttribute*>(attr_bo),
                                                                  params.attributes_per_buffer());
@@ -864,7 +864,7 @@ DrawCommand::
 add_entry(unsigned int indices_written) const
 {
   unsigned int count;
-  const fastuidraw::PainterIndex *offset(NULL);
+  const fastuidraw::PainterIndex *offset(nullptr);
 
   if(m_draws.empty())
     {
@@ -888,7 +888,7 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL 
   m_number_clip_planes(0),
   m_clip_plane0(GL_INVALID_ENUM),
   m_linear_filter_sampler(0),
-  m_pool(NULL),
+  m_pool(nullptr),
   m_p(p)
 {
   configure_backend();
@@ -902,7 +902,7 @@ PainterBackendGLPrivate::
       glDeleteSamplers(1, &m_linear_filter_sampler);
     }
 
-  if(m_pool != NULL)
+  if(m_pool != nullptr)
     {
       FASTUIDRAWdelete(m_pool);
     }
@@ -1362,7 +1362,7 @@ fastuidraw::gl::PainterBackendGL::ConfigurationGL::
   ConfigurationGLPrivate *d;
   d = static_cast<ConfigurationGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::gl::PainterBackendGL::ConfigurationGL&
@@ -1443,7 +1443,7 @@ fastuidraw::gl::PainterBackendGL::
   PainterBackendGLPrivate *d;
   d = static_cast<PainterBackendGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::gl::Program>

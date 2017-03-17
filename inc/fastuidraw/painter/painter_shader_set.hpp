@@ -167,7 +167,7 @@ namespace fastuidraw
     fill_shader(const PainterFillShader &sh);
 
     /*!
-      Blend shaders. If an element is a NULL shader, then that
+      Blend shaders. If an element is a nullptr shader, then that
       blend mode is not supported.
      */
     const PainterBlendShaderSet&

@@ -198,7 +198,7 @@ private:
     glGenBuffers(1, &m_buffer);
     assert(m_buffer != 0);
     glBindBuffer(binding_point, m_buffer);
-    glBufferData(binding_point, m_size, NULL, usage);
+    glBufferData(binding_point, m_size, nullptr, usage);
   }
 
   GLsizei m_size;

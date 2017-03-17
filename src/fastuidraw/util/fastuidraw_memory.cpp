@@ -169,7 +169,7 @@ malloc_implement(size_t size, const char *file, int line)
 
   if(size == 0)
     {
-      return NULL;
+      return nullptr;
     }
 
   return_value = std::malloc(size);
@@ -192,7 +192,7 @@ calloc_implement(size_t nmemb, size_t size, const char *file, int line)
 
   if(nmemb == 0 || size == 0)
     {
-      return NULL;
+      return nullptr;
     }
 
   return_value = std::calloc(nmemb, size);
@@ -221,7 +221,7 @@ realloc_implement(void *ptr, size_t size, const char *file, int line)
   if(size == 0)
     {
       free_implement(ptr, file, line);
-      return NULL;
+      return nullptr;
     }
 
   if(!address_set().present(ptr))

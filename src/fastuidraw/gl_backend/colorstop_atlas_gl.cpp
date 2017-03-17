@@ -197,7 +197,7 @@ fastuidraw::gl::ColorStopAtlasGL::params::
   ColorStopAtlasGLParamsPrivate *d;
   d = static_cast<ColorStopAtlasGLParamsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::gl::ColorStopAtlasGL::params&
@@ -263,7 +263,7 @@ fastuidraw::gl::ColorStopAtlasGL::
   ColorStopAtlasGLPrivate *d;
   d = static_cast<ColorStopAtlasGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 const fastuidraw::gl::ColorStopAtlasGL::params&

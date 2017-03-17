@@ -49,7 +49,7 @@ namespace fastuidraw
     {
     public:
       FontGroup(void):
-        m_d(NULL)
+        m_d(nullptr)
       {}
 
     private:

@@ -5,7 +5,7 @@
 
 Table::
 Table(const TableParams &params):
-  CellGroup(NULL),
+  CellGroup(nullptr),
   m_rotating(false),
   m_params(params),
   m_first_draw(true)
@@ -33,7 +33,7 @@ Table(const TableParams &params):
   if(m_params.m_images.empty())
     {
       m_params.m_images.push_back(named_image(reference_counted_ptr<const Image>(),
-                                              "NULL"));
+                                              "nullptr"));
     }
 
 }

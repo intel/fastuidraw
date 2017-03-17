@@ -45,10 +45,10 @@ namespace fastuidraw
   public:
     /*!
       Ctor. Initializes the Glyph to be invalid,
-      i.e. essentially a NULL pointer
+      i.e. essentially a nullptr pointer
      */
     Glyph(void):
-      m_opaque(NULL)
+      m_opaque(nullptr)
     {}
 
     /*!
@@ -58,7 +58,7 @@ namespace fastuidraw
     bool
     valid(void) const
     {
-      return m_opaque != NULL;
+      return m_opaque != nullptr;
     }
 
     /*!

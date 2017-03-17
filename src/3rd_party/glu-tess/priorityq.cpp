@@ -50,19 +50,19 @@
 PriorityQ *pqNewPriorityQ( int (*leq)(PQkey key1, PQkey key2) )
 {
   PriorityQ *pq = (PriorityQ *)memAlloc( sizeof( PriorityQ ));
-  if (pq == NULL) return NULL;
+  if (pq == nullptr) return nullptr;
 
   pq->heap = glu_fastuidraw_gl_pqHeapNewPriorityQ( leq );
-  if (pq->heap == NULL) {
+  if (pq->heap == nullptr) {
      memFree(pq);
-     return NULL;
+     return nullptr;
   }
 
   pq->keys = (PQHeapKey *)memAlloc( INIT_SIZE * sizeof(pq->keys[0]) );
-  if (pq->keys == NULL) {
+  if (pq->keys == nullptr) {
      glu_fastuidraw_gl_pqHeapDeletePriorityQ(pq->heap);
      memFree(pq);
-     return NULL;
+     return nullptr;
   }
 
   pq->size = 0;
@@ -75,10 +75,10 @@ PriorityQ *pqNewPriorityQ( int (*leq)(PQkey key1, PQkey key2) )
 /* really glu_fastuidraw_gl_pqSortDeletePriorityQ */
 void pqDeletePriorityQ( PriorityQ *pq )
 {
-  assert(pq != NULL);
-  if (pq->heap != NULL) glu_fastuidraw_gl_pqHeapDeletePriorityQ( pq->heap );
-  if (pq->order != NULL) memFree( pq->order );
-  if (pq->keys != NULL) memFree( pq->keys );
+  assert(pq != nullptr);
+  if (pq->heap != nullptr) glu_fastuidraw_gl_pqHeapDeletePriorityQ( pq->heap );
+  if (pq->order != nullptr) memFree( pq->order );
+  if (pq->keys != nullptr) memFree( pq->keys );
   memFree( pq );
 }
 
@@ -107,7 +107,7 @@ int pqInit( PriorityQ *pq )
 /* machines return a null on a malloc of zero bytes (unlike SGI),   */
 /* so we have to put in this defense to guard against a memory      */
 /* fault four lines down. from fossum@austin.ibm.com.               */
-  if (pq->order == NULL) return 0;
+  if (pq->order == nullptr) return 0;
 
   p = pq->order;
   r = p + pq->size - 1;
@@ -186,7 +186,7 @@ PQhandle pqInsert( PriorityQ *pq, PQkey keyNew )
     pq->keys = (PQHeapKey *)memRealloc( pq->keys,
                                         (size_t)
                                          (pq->max * sizeof( pq->keys[0] )));
-    if (pq->keys == NULL) {
+    if (pq->keys == nullptr) {
        pq->keys = saveKey;      /* restore ptr to free upon return */
        return LONG_MAX;
     }
@@ -215,7 +215,7 @@ PQkey pqExtractMin( PriorityQ *pq )
   }
   do {
     -- pq->size;
-  } while( pq->size > 0 && *(pq->order[pq->size-1]) == NULL );
+  } while( pq->size > 0 && *(pq->order[pq->size-1]) == nullptr );
   return sortMin;
 }
 
@@ -251,10 +251,10 @@ void pqDelete( PriorityQ *pq, PQhandle curr )
     return;
   }
   curr = -(curr+1);
-  assert( curr < pq->max && pq->keys[curr] != NULL );
+  assert( curr < pq->max && pq->keys[curr] != nullptr );
 
-  pq->keys[curr] = NULL;
-  while( pq->size > 0 && *(pq->order[pq->size-1]) == NULL ) {
+  pq->keys[curr] = nullptr;
+  while( pq->size > 0 && *(pq->order[pq->size-1]) == nullptr ) {
     -- pq->size;
   }
 }

@@ -51,11 +51,11 @@
 
 #include <climits>
 
-/* the ID FASTUIDRAW_GLU_NULL_CLIENT_ID is reserved for use
-   by FASTUIDRAW_GLU to represent a "NULL" vertex, do not
+/* the ID FASTUIDRAW_GLU_nullptr_CLIENT_ID is reserved for use
+   by FASTUIDRAW_GLU to represent a "nullptr" vertex, do not
    use this ID (which is set to max unsigned int).
  */
-#define FASTUIDRAW_GLU_NULL_CLIENT_ID (UINT_MAX)
+#define FASTUIDRAW_GLU_nullptr_CLIENT_ID (UINT_MAX)
 
 
 /*************************************************************/

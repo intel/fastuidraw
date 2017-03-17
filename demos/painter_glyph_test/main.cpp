@@ -434,8 +434,8 @@ void
 painter_glyph_test::
 update_cts_params(void)
 {
-  const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
-  assert(keyboard_state != NULL);
+  const Uint8 *keyboard_state = SDL_GetKeyboardState(nullptr);
+  assert(keyboard_state != nullptr);
 
   float speed;
   speed = static_cast<float>(m_draw_timer.restart());

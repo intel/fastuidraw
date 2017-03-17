@@ -147,7 +147,7 @@ add_bookkeeping(int new_size)
   std::set<int> &S(m_available_layers[width]);
 
   assert(new_size > old_size);
-  m_layer_allocator.resize(new_size, NULL);
+  m_layer_allocator.resize(new_size, nullptr);
   for(int y = old_size; y < new_size; ++y)
     {
       m_layer_allocator[y] = FASTUIDRAWnew fastuidraw::interval_allocator(width);
@@ -200,7 +200,7 @@ fastuidraw::ColorStopBackingStore::
   ColorStopBackingStorePrivate *d;
   d = static_cast<ColorStopBackingStorePrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::ivec2
@@ -267,7 +267,7 @@ fastuidraw::ColorStopAtlas::
       FASTUIDRAWdelete(*iter);
     }
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void
@@ -558,7 +558,7 @@ fastuidraw::ColorStopSequenceOnAtlas::
   loc.x() -= d->m_start_slack;
   d->m_atlas->deallocate(loc, d->m_width + d->m_start_slack + d->m_end_slack);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::ivec2

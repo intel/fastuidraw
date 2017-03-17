@@ -102,7 +102,7 @@ create_and_bind_fbo(void)
                m_fbo_width.m_value, m_fbo_height.m_value, 0,
                GL_RGBA,
                GL_UNSIGNED_BYTE,
-               NULL);
+               nullptr);
 
 
   glGenTextures(1, &m_depth_stencil);
@@ -116,7 +116,7 @@ create_and_bind_fbo(void)
                m_fbo_width.m_value, m_fbo_height.m_value, 0,
                GL_DEPTH_STENCIL,
                GL_UNSIGNED_INT_24_8,
-               NULL);
+               nullptr);
 
   glBindTexture(GL_TEXTURE_2D, 0);
 

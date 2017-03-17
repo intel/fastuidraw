@@ -316,9 +316,9 @@ void
 FontFreeTypePrivate::
 common_init(void)
 {
-  assert(m_face != NULL);
+  assert(m_face != nullptr);
   assert(m_face->face_flags & FT_FACE_FLAG_SCALABLE);
-  FT_Set_Transform(m_face, NULL, NULL);
+  FT_Set_Transform(m_face, nullptr, nullptr);
 }
 
 void
@@ -401,7 +401,7 @@ compute_rendering_data(uint32_t glyph_code,
   fastuidraw::ivec2 bitmap_sz, bitmap_offset;
 
   std::vector<fastuidraw::detail::point_type> pts;
-  std::ostream *stream_ptr(NULL);
+  std::ostream *stream_ptr(nullptr);
   fastuidraw::detail::geometry_data dbg(stream_ptr, pts);
 
   m_mutex.lock();
@@ -498,7 +498,7 @@ fastuidraw::FontFreeType::RenderParams::
   RenderParamsPrivate *d;
   d = static_cast<RenderParamsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::FontFreeType::RenderParams&
@@ -609,7 +609,7 @@ fastuidraw::FontFreeType::
   FontFreeTypePrivate *d;
   d = static_cast<FontFreeTypePrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 uint32_t
@@ -672,7 +672,7 @@ compute_rendering_data(GlyphRender render, uint32_t glyph_code,
 
     default:
       assert(!"Invalid glyph type");
-      return NULL;
+      return nullptr;
     }
 }
 
@@ -706,12 +706,12 @@ create(c_array<reference_counted_ptr<FontFreeType> > fonts, const char *filename
       return 0;
     }
 
-  FT_Face face(NULL);
+  FT_Face face(nullptr);
   int error_code;
   unsigned int num(0);
 
   error_code = FT_New_Face(lib->lib(), filename, -1, &face);
-  if(error_code == 0 && face != NULL && (face->face_flags & FT_FACE_FLAG_SCALABLE) == 0)
+  if(error_code == 0 && face != nullptr && (face->face_flags & FT_FACE_FLAG_SCALABLE) == 0)
     {
       reference_counted_ptr<fastuidraw::FontFreeType> f;
 
@@ -722,7 +722,7 @@ create(c_array<reference_counted_ptr<FontFreeType> > fonts, const char *filename
         }
     }
 
-  if(face != NULL)
+  if(face != nullptr)
     {
       FT_Done_Face(face);
     }
@@ -741,11 +741,11 @@ create(const char *filename, reference_counted_ptr<FreetypeLib> lib,
     }
 
   int error_code;
-  FT_Face face(NULL);
+  FT_Face face(nullptr);
   error_code = FT_New_Face(lib->lib(), filename, face_index, &face);
-  if(error_code != 0 || face == NULL || (face->face_flags & FT_FACE_FLAG_SCALABLE) == 0)
+  if(error_code != 0 || face == nullptr || (face->face_flags & FT_FACE_FLAG_SCALABLE) == 0)
     {
-      if(face != NULL)
+      if(face != nullptr)
         {
           FT_Done_Face(face);
         }

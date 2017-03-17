@@ -54,7 +54,7 @@
  * repeatedly, then calling pqInit.  In any case pqInit must be called
  * before any operations other than pqInsert are used.
  *
- * If the heap is empty, pqMinimum/pqExtractMin will return a NULL key.
+ * If the heap is empty, pqMinimum/pqExtractMin will return a nullptr key.
  * This may also be tested with pqIsEmpty.
  */
 #define pqInit(pq)              glu_fastuidraw_gl_pqHeapInit(pq)

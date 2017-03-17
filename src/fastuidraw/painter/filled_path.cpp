@@ -1058,7 +1058,7 @@ namespace
     fastuidraw::const_c_array<int>
     winding_numbers(void)
     {
-      assert(m_painter_data != NULL);
+      assert(m_painter_data != nullptr);
       return fastuidraw::make_c_array(m_winding_numbers);
     }
 
@@ -1067,7 +1067,7 @@ namespace
     {
       unsigned int i;
 
-      assert(m_fuzz_painter_data != NULL);
+      assert(m_fuzz_painter_data != nullptr);
       i = signed_to_unsigned(w);
       return (i < m_winding_neighbors.size()) ?
         fastuidraw::make_c_array(m_winding_neighbors[i]) :
@@ -1077,14 +1077,14 @@ namespace
     const fastuidraw::PainterAttributeData&
     painter_data(void)
     {
-      assert(m_painter_data != NULL);
+      assert(m_painter_data != nullptr);
       return *m_painter_data;
     }
 
     const fastuidraw::PainterAttributeData&
     fuzz_painter_data(void)
     {
-      assert(m_fuzz_painter_data != NULL);
+      assert(m_fuzz_painter_data != nullptr);
       return *m_fuzz_painter_data;
     }
 
@@ -1160,8 +1160,8 @@ namespace
     unsigned int m_num_attributes;
     unsigned int m_largest_index_block;
 
-    /* m_sub_path is non-NULL only if this SubsetPrivate
-       has no children. In addition, it is set to NULL
+    /* m_sub_path is non-nullptr only if this SubsetPrivate
+       has no children. In addition, it is set to nullptr
        and deleted when m_painter_data is created from
        it.
      */
@@ -1567,7 +1567,7 @@ fastuidraw::vecN<SubPath*, 2>
 SubPath::
 split(int &splitting_coordinate) const
 {
-  fastuidraw::vecN<SubPath*, 2> return_value(NULL, NULL);
+  fastuidraw::vecN<SubPath*, 2> return_value(nullptr, nullptr);
   fastuidraw::dvec2 mid_pt;
 
   mid_pt = 0.5 * (m_bounds.max_point() + m_bounds.min_point());
@@ -1875,13 +1875,13 @@ vertex_callBack(unsigned int vertex_id, void *tess)
   tesser *p;
   p = static_cast<tesser*>(tess);
 
-  if(vertex_id == FASTUIDRAW_GLU_NULL_CLIENT_ID)
+  if(vertex_id == FASTUIDRAW_GLU_nullptr_CLIENT_ID)
     {
       p->m_triangulation_failed = true;
     }
 
   /* Cache adds vertices in groups of 3 (triangles),
-     then if all vertices are NOT FASTUIDRAW_GLU_NULL_CLIENT_ID,
+     then if all vertices are NOT FASTUIDRAW_GLU_nullptr_CLIENT_ID,
      then add them.
    */
   p->m_temp_verts[p->m_temp_vert_count] = vertex_id;
@@ -1891,12 +1891,12 @@ vertex_callBack(unsigned int vertex_id, void *tess)
       uint64_t twice_area(0u);
       p->m_temp_vert_count = 0;
       /*
-        if vertex_id is FASTUIDRAW_GLU_NULL_CLIENT_ID, that means
+        if vertex_id is FASTUIDRAW_GLU_nullptr_CLIENT_ID, that means
         the triangle is junked.
       */
-      if(p->m_temp_verts[0] != FASTUIDRAW_GLU_NULL_CLIENT_ID
-         && p->m_temp_verts[1] != FASTUIDRAW_GLU_NULL_CLIENT_ID
-         && p->m_temp_verts[2] != FASTUIDRAW_GLU_NULL_CLIENT_ID
+      if(p->m_temp_verts[0] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
+         && p->m_temp_verts[1] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
+         && p->m_temp_verts[2] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
          && p->temp_verts_non_degenerate_triangle(twice_area))
         {
           assert(twice_area > 0);
@@ -1930,7 +1930,7 @@ combine_callback(double x, double y, unsigned int data[4],
   p = static_cast<tesser*>(tess);
   for(unsigned int i = 0; i < 4; ++i)
     {
-      if(data[i] != FASTUIDRAW_GLU_NULL_CLIENT_ID)
+      if(data[i] != FASTUIDRAW_GLU_nullptr_CLIENT_ID)
         {
           pt += weight[i] * p->m_points[data[i]];
         }
@@ -2519,11 +2519,11 @@ SubsetPrivate(SubsetPrivate *parent, SubPath *Q, int max_recursion,
   m_bounds(Q->bounds()),
   m_bounds_f(fastuidraw::vec2(m_bounds.min_point()),
              fastuidraw::vec2(m_bounds.max_point())),
-  m_painter_data(NULL),
-  m_fuzz_painter_data(NULL),
+  m_painter_data(nullptr),
+  m_fuzz_painter_data(nullptr),
   m_sizes_ready(false),
   m_sub_path(Q),
-  m_children(NULL, NULL),
+  m_children(nullptr, nullptr),
   m_splitting_coordinate(-1),
   m_bd_mask(compute_bd_mask_value(parent, child_id))
 {
@@ -2538,7 +2538,7 @@ SubsetPrivate(SubsetPrivate *parent, SubPath *Q, int max_recursion,
           m_children[0] = FASTUIDRAWnew SubsetPrivate(this, C[0], max_recursion - 1, out_values, 0);
           m_children[1] = FASTUIDRAWnew SubsetPrivate(this, C[1], max_recursion - 1, out_values, 1);
           FASTUIDRAWdelete(m_sub_path);
-          m_sub_path = NULL;
+          m_sub_path = nullptr;
         }
       else
         {
@@ -2551,27 +2551,27 @@ SubsetPrivate(SubsetPrivate *parent, SubPath *Q, int max_recursion,
 SubsetPrivate::
 ~SubsetPrivate(void)
 {
-  if(m_sub_path != NULL)
+  if(m_sub_path != nullptr)
     {
-      assert(m_painter_data == NULL);
-      assert(m_fuzz_painter_data == NULL);
-      assert(m_children[0] == NULL);
-      assert(m_children[1] == NULL);
+      assert(m_painter_data == nullptr);
+      assert(m_fuzz_painter_data == nullptr);
+      assert(m_children[0] == nullptr);
+      assert(m_children[1] == nullptr);
       FASTUIDRAWdelete(m_sub_path);
     }
 
-  if(m_painter_data != NULL)
+  if(m_painter_data != nullptr)
     {
-      assert(m_sub_path == NULL);
-      assert(m_fuzz_painter_data != NULL);
+      assert(m_sub_path == nullptr);
+      assert(m_fuzz_painter_data != nullptr);
       FASTUIDRAWdelete(m_painter_data);
       FASTUIDRAWdelete(m_fuzz_painter_data);
     }
 
-  if(m_children[0] != NULL)
+  if(m_children[0] != nullptr)
     {
-      assert(m_sub_path == NULL);
-      assert(m_children[1] != NULL);
+      assert(m_sub_path == nullptr);
+      assert(m_children[1] != nullptr);
       FASTUIDRAWdelete(m_children[0]);
       FASTUIDRAWdelete(m_children[1]);
     }
@@ -2582,7 +2582,7 @@ SubsetPrivate::
 create_root_subset(SubPath *P, std::vector<SubsetPrivate*> &out_values)
 {
   SubsetPrivate *root;
-  root = FASTUIDRAWnew SubsetPrivate(NULL, P, SubsetConstants::recursion_depth, out_values, -1);
+  root = FASTUIDRAWnew SubsetPrivate(nullptr, P, SubsetConstants::recursion_depth, out_values, -1);
   return root;
 }
 
@@ -2590,7 +2590,7 @@ uint32_t
 SubsetPrivate::
 compute_bd_mask_value(SubsetPrivate *parent, int child_id)
 {
-  if(parent == NULL)
+  if(parent == nullptr)
     {
       assert(child_id == -1);
       return 0u;
@@ -2662,8 +2662,8 @@ select_subsets_implement(ScratchSpacePrivate &scratch,
     }
 
   //completely unclipped or no children
-  assert((m_children[0] == NULL) == (m_children[1] == NULL));
-  if(unclipped || m_children[0] == NULL)
+  assert((m_children[0] == nullptr) == (m_children[1] == nullptr));
+  if(unclipped || m_children[0] == nullptr)
     {
       select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
       return;
@@ -2680,13 +2680,13 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
                             unsigned int max_index_cnt,
                             unsigned int &current)
 {
-  if(!m_sizes_ready && m_children[0] == NULL && m_sub_path != NULL)
+  if(!m_sizes_ready && m_children[0] == nullptr && m_sub_path != nullptr)
     {
       /* we are going to need the attributes because
          the element will be selected.
        */
       make_ready_from_sub_path();
-      assert(m_painter_data != NULL);
+      assert(m_painter_data != nullptr);
     }
 
   if(m_sizes_ready
@@ -2698,7 +2698,7 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
       dst[current] = m_ID;
       ++current;
     }
-  else if(m_children[0] != NULL)
+  else if(m_children[0] != nullptr)
     {
       m_children[0]->select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
       m_children[1]->select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
@@ -2728,9 +2728,9 @@ void
 SubsetPrivate::
 make_ready(void)
 {
-  if(m_painter_data == NULL)
+  if(m_painter_data == nullptr)
     {
-      if(m_sub_path != NULL)
+      if(m_sub_path != nullptr)
         {
           make_ready_from_sub_path();
         }
@@ -2759,10 +2759,10 @@ void
 SubsetPrivate::
 make_ready_from_children(void)
 {
-  assert(m_children[0] != NULL);
-  assert(m_children[1] != NULL);
-  assert(m_sub_path == NULL);
-  assert(m_painter_data == NULL);
+  assert(m_children[0] != nullptr);
+  assert(m_children[1] != nullptr);
+  assert(m_sub_path == nullptr);
+  assert(m_painter_data == nullptr);
 
   m_children[0]->make_ready();
   m_children[1]->make_ready();
@@ -2822,10 +2822,10 @@ void
 SubsetPrivate::
 make_ready_from_sub_path(void)
 {
-  assert(m_children[0] == NULL);
-  assert(m_children[1] == NULL);
-  assert(m_sub_path != NULL);
-  assert(m_painter_data == NULL);
+  assert(m_children[0] == nullptr);
+  assert(m_children[1] == nullptr);
+  assert(m_sub_path != nullptr);
+  assert(m_painter_data == nullptr);
   assert(!m_sizes_ready);
 
   AttributeDataFiller filler;
@@ -2881,7 +2881,7 @@ make_ready_from_sub_path(void)
     }
 
   FASTUIDRAWdelete(m_sub_path);
-  m_sub_path = NULL;
+  m_sub_path = nullptr;
 
   #ifdef FASTUIDRAW_DEBUG
     {
@@ -2928,7 +2928,7 @@ fastuidraw::FilledPath::ScratchSpace::
   ScratchSpacePrivate *d;
   d = static_cast<ScratchSpacePrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 /////////////////////////////////
@@ -3027,7 +3027,7 @@ fastuidraw::FilledPath::
   FilledPathPrivate *d;
   d = static_cast<FilledPathPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 unsigned int

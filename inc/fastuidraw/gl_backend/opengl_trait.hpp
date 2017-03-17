@@ -237,7 +237,7 @@ opengl_trait_values(void)
   R.m_type = opengl_trait<T>::type;
   R.m_count = opengl_trait<T>::count;
   R.m_stride = opengl_trait<T>::stride;
-  R.m_offset = NULL;
+  R.m_offset = nullptr;
   return R;
 }
 

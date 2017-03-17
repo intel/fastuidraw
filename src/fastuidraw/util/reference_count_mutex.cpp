@@ -54,7 +54,7 @@ fastuidraw::reference_count_mutex::
   d = static_cast<RefernceCounterPrivate*>(m_d);
   assert(d->m_reference_count == 0);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void

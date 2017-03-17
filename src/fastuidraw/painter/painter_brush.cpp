@@ -243,8 +243,8 @@ reset(void)
 {
   pen(1.0, 1.0, 1.0, 1.0);
   m_data.m_shader_raw = 0u;
-  m_data.m_image = NULL;
-  m_data.m_cs = NULL;
+  m_data.m_image = nullptr;
+  m_data.m_cs = nullptr;
 }
 
 fastuidraw::PainterBrush&

@@ -38,7 +38,7 @@ namespace fastuidraw
   {
   public:
     GlyphLocation(void):
-      m_opaque(NULL)
+      m_opaque(nullptr)
     {}
 
     /*!
@@ -48,7 +48,7 @@ namespace fastuidraw
     bool
     valid(void) const
     {
-      return m_opaque != NULL;
+      return m_opaque != nullptr;
     }
 
     /*!

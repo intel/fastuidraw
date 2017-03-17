@@ -108,12 +108,12 @@ public:
   typedef std::reverse_iterator<iterator>        reverse_iterator;
 
   /*!
-    Default ctor, initializing the pointer as NULL
+    Default ctor, initializing the pointer as nullptr
     with size 0.
    */
   c_array(void):
     m_size(0),
-    m_ptr(NULL)
+    m_ptr(nullptr)
   {}
 
   /*!
@@ -143,7 +143,7 @@ public:
    */
   c_array(range_type<iterator> R):
     m_size(R.m_end-R.m_begin),
-    m_ptr((m_size > 0) ? &*R.m_begin : NULL)
+    m_ptr((m_size > 0) ? &*R.m_begin : nullptr)
   {}
 
   /*!
@@ -189,7 +189,7 @@ public:
   T&
   operator[](size_type j) const
   {
-    assert(c_ptr() != NULL);
+    assert(c_ptr() != nullptr);
     #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
       assert(j < m_size);
     #endif
@@ -454,12 +454,12 @@ public:
   typedef std::reverse_iterator<iterator>        reverse_iterator;
 
   /*!
-    Default ctor, initializing the pointer as NULL
+    Default ctor, initializing the pointer as nullptr
     with size 0.
    */
   const_c_array(void):
     m_size(0),
-    m_ptr(NULL)
+    m_ptr(nullptr)
   {}
 
   /*!
@@ -498,7 +498,7 @@ public:
    */
   const_c_array(range_type<iterator> R):
     m_size(R.m_end - R.m_begin),
-    m_ptr((m_size > 0) ? &*R.m_begin : NULL)
+    m_ptr((m_size > 0) ? &*R.m_begin : nullptr)
   {}
 
 
@@ -557,7 +557,7 @@ public:
   const T&
   operator[](size_type j) const
   {
-    assert(c_ptr()!=NULL);
+    assert(c_ptr()!=nullptr);
     #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
       assert(j < m_size);
     #endif

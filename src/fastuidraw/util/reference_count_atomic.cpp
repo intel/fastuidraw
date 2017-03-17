@@ -48,7 +48,7 @@ fastuidraw::reference_count_atomic::
 
   d = static_cast<ReferenceCountAtomicPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void

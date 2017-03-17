@@ -139,7 +139,7 @@ namespace fastuidraw
 
   protected:
     /*!
-      Initialized as NULL by the ctor PainterShaderData(void).
+      Initialized as nullptr by the ctor PainterShaderData(void).
       A derived class of PainterShaderData should assign \ref
       m_data to point to an object derived from DataBase.
       That object is the object that is to determine the

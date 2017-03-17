@@ -27,7 +27,7 @@ namespace
   {
   public:
     PainterShaderPrivate(unsigned int num_sub_shaders):
-      m_registered_to(NULL),
+      m_registered_to(nullptr),
       m_number_sub_shaders(num_sub_shaders),
       m_sub_shader_ID(0)
     {
@@ -73,7 +73,7 @@ fastuidraw::PainterShader::
   PainterShaderPrivate *d;
   d = static_cast<PainterShaderPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 uint32_t
@@ -91,7 +91,7 @@ ID(void) const
 {
   PainterShaderPrivate *d;
   d = static_cast<PainterShaderPrivate*>(m_d);
-  assert(d->m_registered_to != NULL);
+  assert(d->m_registered_to != nullptr);
   return d->m_tag.m_ID;
 }
 
@@ -101,7 +101,7 @@ group(void) const
 {
   PainterShaderPrivate *d;
   d = static_cast<PainterShaderPrivate*>(m_d);
-  assert(d->m_registered_to != NULL);
+  assert(d->m_registered_to != nullptr);
   return d->m_tag.m_group;
 }
 
@@ -111,7 +111,7 @@ tag(void) const
 {
   PainterShaderPrivate *d;
   d = static_cast<PainterShaderPrivate*>(m_d);
-  assert(d->m_registered_to != NULL);
+  assert(d->m_registered_to != nullptr);
   return d->m_tag;
 }
 
@@ -139,7 +139,7 @@ register_shader(Tag tg, const PainterBackend *p)
 {
   PainterShaderPrivate *d;
   d = static_cast<PainterShaderPrivate*>(m_d);
-  assert(d->m_registered_to == NULL);
+  assert(d->m_registered_to == nullptr);
   assert(!d->m_parent);
   d->m_tag = tg;
   d->m_registered_to = p;
@@ -158,10 +158,10 @@ set_group_of_sub_shader(uint32_t gr)
 
   /* the parent must all-ready be registered.
    */
-  assert(pd->m_registered_to != NULL);
+  assert(pd->m_registered_to != nullptr);
 
   //but this shader is not yet registered!
-  assert(d->m_registered_to == NULL);
+  assert(d->m_registered_to == nullptr);
 
   d->m_registered_to = pd->m_registered_to;
   d->m_tag.m_ID = pd->m_tag.m_ID + d->m_sub_shader_ID;
