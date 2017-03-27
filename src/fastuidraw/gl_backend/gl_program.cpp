@@ -30,7 +30,13 @@
 #include <algorithm>
 #include <sstream>
 #include <stdint.h>
+#include <cctype>
+#ifdef _MSC_VER
+#include <Windows.h>
+#include <fastuidraw/util/time.hpp>
+#else
 #include <sys/time.h>
+#endif
 
 #include <fastuidraw/util/static_resource.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
