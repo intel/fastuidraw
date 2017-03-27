@@ -21,7 +21,14 @@
 
 #pragma once
 
+#ifdef _MSC_VER
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <WinSock2.h>
+#include <fastuidraw/util/time.hpp>
+#else
 #include <sys/time.h>
+#endif
 #include <stdint.h>
 
 class simple_time
