@@ -1,11 +1,8 @@
 LIBRARY_GL_COMMON_CFLAGS =
 LIBRARY_GLES_COMMON_CFLAGS = -DFASTUIDRAW_GL_USE_GLES
 
-LIBRARY_GL_debug_CFLAGS = -DGL_DEBUG $(LIBRARY_GL_COMMON_CFLAGS) $(LIBRARY_debug_CFLAGS)
-LIBRARY_GLES_debug_CFLAGS = -DGL_DEBUG $(LIBRARY_GLES_COMMON_CFLAGS) $(LIBRARY_debug_CFLAGS)
-
-LIBRARY_GL_release_CFLAGS = $(LIBRARY_GL_COMMON_CFLAGS) $(LIBRARY_release_CFLAGS)
-LIBRARY_GLES_release_CFLAGS = $(LIBRARY_GLES_COMMON_CFLAGS) $(LIBRARY_release_CFLAGS)
+LIBRARY_GL_GLES_debug_CFLAGS = -DGL_DEBUG
+LIBRARY_GL_GLES_release_CFLAGS =
 
 LIBRARY_GL_LIBS =
 
@@ -25,7 +22,8 @@ NGL_GLES_SRCS = $(NGL_COMMON_SRCS) $(NGL_GLES_CPP)
 # $2 --> debug or release
 # $3 --> (0: skip build target 1: add build target)
 define glrule
-$(eval $(2)/$(1)/%.o: %.cpp $(2)/$(1)/%.d $$(NGL_$(1)_HPP)
+$(eval LIBRARY_$(1)_$(2)_CFLAGS=$$(LIBRARY_$(1)_COMMON_CFLAGS) $$(LIBRARY_$(2)_CFLAGS) $$(LIBRARY_GL_GLES_$(2)_CFLAGS)
+$(2)/$(1)/%.o: %.cpp $(2)/$(1)/%.d $$(NGL_$(1)_HPP)
 	@mkdir -p $$(dir $$@)
 	$(CXX) $$(LIBRARY_BUILD_$(2)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(1)_$(2)_CFLAGS) $(fPIC) -c $$< -o $$@
 $(2)/$(1)/%.d: %.cpp $$(NGL_$(1)_HPP)

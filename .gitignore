@@ -8,6 +8,7 @@
 *.dll.a
 *.exe
 *.clang_tidy
+*.pc
 inc/fastuidraw/gl_backend/ngl_gl.hpp
 src/fastuidraw/gl_backend/ngl_gl.cpp
 inc/fastuidraw/gl_backend/ngl_gles3.hpp
