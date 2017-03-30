@@ -38,6 +38,7 @@ fastuidraw$(2)-$(1).pc: fastuidraw-backend.pc.in fastuidraw-$(1).pc
 	@sed -i 's!@API@!$(2)!g' $$@
 	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION)!g' $$@
 	@sed -i 's!@LIBRARY_CFLAGS@!$$(LIBRARY_$(2)_COMMON_CFLAGS) $$(LIBRARY_GL_GLES_$(1)_CFLAGS)!g' $$@
+	@sed -i 's!@LIBRARY_LIBS@!$$(LIBRARY_$(2)_LIBS)!g' $$@
 .PHONY:fastuidraw$(2)-$(1).pc
 pkg-config: fastuidraw$(2)-$(1).pc
 INSTALL_PKG_FILES+=fastuidraw$(2)-$(1).pc
