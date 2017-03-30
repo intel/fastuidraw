@@ -40,11 +40,11 @@ fastuidraw$(2)-$(1).pc: fastuidraw-backend.pc.in fastuidraw-$(1).pc
 	@sed -i 's!@LIBRARY_CFLAGS@!$$(LIBRARY_$(2)_COMMON_CFLAGS) $$(LIBRARY_GL_GLES_$(1)_CFLAGS)!g' $$@
 .PHONY:fastuidraw$(2)-$(1).pc
 pkg-config: fastuidraw$(2)-$(1).pc
-CLEAN_FILES+=fastuidraw$(2)-$(1).pc
 INSTALL_PKG_FILES+=fastuidraw$(2)-$(1).pc
 TARGETLIST+=fastuidraw$(2)-$(1).pc
 endif
 )
+CLEAN_FILES+=fastuidraw$(2)-$(1).pc
 endef
 
 # $1: release or debug
