@@ -69,8 +69,9 @@ $(call pkgconfrules,debug)
 TARGETLIST+=pkg-config
 .PHONY:pkg-config
 
-install: $(INSTALL_LIBS) $(INSTALL_EXES)
+install: $(INSTALL_LIBS) $(INSTALL_EXES) $(INSTALL_PKG_FILES)
 	-install -d $(INSTALL_LOCATION)/lib
+	-install -d $(INSTALL_LOCATION)/lib/pkgconfig
 	-install -d $(INSTALL_LOCATION)/bin
 	-install -d $(INSTALL_LOCATION)/include
 	-install -t $(INSTALL_LOCATION)/lib $(INSTALL_LIBS)
