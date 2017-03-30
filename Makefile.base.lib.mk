@@ -49,13 +49,13 @@ $(1)/%.d: %.cpp
 	@mkdir -p $$(dir $$@)
 	@echo Generating $$@
 	@./makedepend.sh "$(CXX)" "$$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(1)_CFLAGS)" $(1) "$$*" "$$<" "$$@"
+.SECONDARY: $(1)/%.d
 
 $(1)/private/%.d: %.cpp
 	@mkdir -p $$(dir $$@)
 	@echo Generating $$@
 	@./makedepend.sh "$(CXX)" "$$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(1)_CFLAGS)" $(1) "$$*" "$$<" "$$@"
-.SECONDARY: $(1)/%.d
-.PRECIOUS: $(1)/%.d
+.SECONDARY: $(1)/private/%.d
 
 ifeq ($(MINGW_BUILD),1)
 

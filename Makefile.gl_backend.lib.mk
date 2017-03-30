@@ -33,7 +33,6 @@ $(2)/$(1)/%.d: %.cpp $$(NGL_$(1)_HPP)
 	@echo Generating $$@
 	@./makedepend.sh "$(CXX)" "$$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(2)_$(1)_CFLAGS) " $(1)/gl "$$*" "$$<" "$$@"
 .SECONDARY: $(2)/$(1)/%.d
-.PRECIOUS: $(2)/$(1)/%.d
 $(2)/private/$(1)/%.o: %.cpp $(2)/private/$(1)/%.d $$(NGL_$(1)_HPP)
 	@mkdir -p $$(dir $$@)
 	$(CXX) $$(LIBRARY_BUILD_$(2)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(1)_$(2)_CFLAGS) $(fHIDDEN) $(fPIC) -c $$< -o $$@
@@ -42,7 +41,6 @@ $(2)/private/$(1)/%.d: %.cpp $$(NGL_$(1)_HPP)
 	@echo Generating $$@
 	@./makedepend.sh "$(CXX)" "$$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(2)_$(1)_CFLAGS) " $(1)/gl "$$*" "$$<" "$$@"
 .SECONDARY: $(2)/private/$(1)/%.d
-.PRECIOUS: $(2)/private/$(1)/%.d
 LIBRARY_$(1)_$(2)_OBJS = $$(patsubst %.cpp, $(2)/$(1)/%.o, $(LIBRARY_GL_SOURCES))
 LIBRARY_$(1)_$(2)_PRIVATE_OBJS = $$(patsubst %.cpp, $(2)/private/$(1)/%.o, $(LIBRARY_PRIVATE_GL_SOURCES))
 NGL_$(1)_$(2)_OBJ = $$(patsubst %.cpp, $(2)/$(1)/%.o, $$(NGL_$(1)_SRCS))

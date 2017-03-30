@@ -9,9 +9,9 @@ endif
 DEMO_GL_LIBS := $(DEMO_COMMON_LIBS)
 DEMO_GLES_LIBS := $(DEMO_COMMON_LIBS) -lEGL
 
-DEMO_release_CFLAGS_GL = $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GL_release_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
+DEMO_release_CFLAGS_GL = -O3 -fstrict-aliasing $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GL_release_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
 DEMO_debug_CFLAGS_GL = -g $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GL_debug_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
-DEMO_release_CFLAGS_GLES = $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GLES_release_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
+DEMO_release_CFLAGS_GLES = -O3 -fstrict-aliasing $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GLES_release_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
 DEMO_debug_CFLAGS_GLES = -g $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GLES_debug_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
 
 MAKEDEPEND = ./makedepend.sh
@@ -25,13 +25,14 @@ define demorule
 $(eval $(3)/$(2)/demos/%.o: demos/%.cpp
 	@mkdir -p $$(dir $$@)
 	$(CXX) $$(DEMO_$(3)_CFLAGS_$(2)) -c $$< -o $$@
-$(3)/$(2)/demos/%.dd: demos/%.cpp
+$(3)/$(2)/demos/%.d: demos/%.cpp
 	@mkdir -p $$(dir $$@)
 	@echo Generating $$@
 	@$(MAKEDEPEND) "$$(CXX)" "$$(DEMO_$(3)_CFLAGS_$(2))" $(3)/$(2)/demos "$$*" "$$<" "$$@"
+.SECONDARY: $(3)/$(2)/demos/%.d
 THISDEMO_$(1)_RESOURCE_STRING_SRCS = $$(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $$($(1)_RESOURCE_STRING))
 THISDEMO_$(1)_$(2)_$(3)_SOURCES = $$($(1)_SOURCES) $$(THISDEMO_$(1)_RESOURCE_STRING_SRCS) $$(COMMON_DEMO_SOURCES) $$(DEMO_COMMON_RESOURCE_STRING_SRCS)
-THISDEMO_$(1)_$(2)_$(3)_DEPS_RAW = $$(patsubst %.cpp, %.dd, $$($(1)_SOURCES) $$(COMMON_DEMO_SOURCES))
+THISDEMO_$(1)_$(2)_$(3)_DEPS_RAW = $$(patsubst %.cpp, %.d, $$($(1)_SOURCES) $$(COMMON_DEMO_SOURCES))
 THISDEMO_$(1)_$(2)_$(3)_OBJS_RAW = $$(patsubst %.cpp, %.o, $$(THISDEMO_$(1)_$(2)_$(3)_SOURCES))
 THISDEMO_$(1)_$(2)_$(3)_DEPS = $$(addprefix $(3)/$(2)/, $$(THISDEMO_$(1)_$(2)_$(3)_DEPS_RAW))
 THISDEMO_$(1)_$(2)_$(3)_OBJS = $$(addprefix $(3)/$(2)/, $$(THISDEMO_$(1)_$(2)_$(3)_OBJS_RAW))
