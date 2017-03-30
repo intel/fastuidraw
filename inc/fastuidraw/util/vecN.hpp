@@ -35,8 +35,7 @@ namespace fastuidraw
   vecN is a simple static array class with no virtual
   functions and no memory overhead. Supports runtim array
   index checking and STL style iterators via pointer iterators.
-  If FASTUIDRAW_VECTOR_BOUND_CHECK is defined, will perform bounds
-  checking.
+
   \param T typename with a constructor that takes no arguments.
   \param N unsigned integer size of array
  */
@@ -401,32 +400,23 @@ public:
 
   /*!
     Return a constant refernce to the j'th element.
-    If FASTUIDRAW_VECTOR_BOUND_CHECK is defined checks that
-    j is in range, i.e. 0<=j and j<N
-
     \param j index of element to return.
    */
   const T&
   operator[](size_type j) const
   {
-    #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
-      assert(j < N);
-    #endif
+    assert(j < N);
     return c_ptr()[j];
   }
 
   /*!
     Return a refernce to the j'th element.
-    If FASTUIDRAW_VECTOR_BOUND_CHECK is defined checks that
-    j is in range, i.e. 0<=j and j<N
     \param j index of element to return.
    */
   T&
   operator[](size_type j)
   {
-    #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
-      assert(j < N);
-    #endif
+    assert(j < N);
     return c_ptr()[j];
   }
 

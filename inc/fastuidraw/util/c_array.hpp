@@ -44,8 +44,6 @@ class const_c_array;
   to facilitate bounds checking
   and provide an STL-like iterator
   interface.
-  If FASTUIDRAW_VECTOR_BOUND_CHECK is defined,
-  will perform bounds checking.
  */
 template<typename T>
 class c_array
@@ -190,9 +188,7 @@ public:
   operator[](size_type j) const
   {
     assert(c_ptr() != nullptr);
-    #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
-      assert(j < m_size);
-    #endif
+    assert(j < m_size);
     return c_ptr()[j];
   }
 
@@ -390,8 +386,6 @@ private:
   to facilitate bounds checking
   and provide an STL-like iterator
   interface.
-  If FASTUIDRAW_VECTOR_BOUND_CHECK is defined,
-  will perform bounds checking.
  */
 template<typename T>
 class const_c_array
@@ -558,9 +552,7 @@ public:
   operator[](size_type j) const
   {
     assert(c_ptr()!=nullptr);
-    #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
-      assert(j < m_size);
-    #endif
+    assert(j < m_size);
     return c_ptr()[j];
   }
 

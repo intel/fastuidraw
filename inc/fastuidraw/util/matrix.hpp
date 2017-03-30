@@ -46,8 +46,6 @@ namespace fastuidraw {
  with 0<=row<N, 0<=col<M
  operator()(row,col) --> data[row+col*N] <--> matrix(row,col)
 
- If FASTUIDRAW_VECTOR_BOUND_CHECK is defined,
- will perform bounds checking.
  \tparam N hieght of matrix
  \tparam M width of matrix
  \tparam T matrix entry type
@@ -157,10 +155,8 @@ public:
   T&
   operator()(unsigned int row, unsigned int col)
   {
-    #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
-      assert(row<N);
-      assert(col<M);
-    #endif
+    assert(row<N);
+    assert(col<M);
     return m_data[N*col+row];
   }
 
@@ -172,10 +168,8 @@ public:
   const T&
   operator()(unsigned int row, unsigned int col) const
   {
-    #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
-      assert(row<N);
-      assert(col<M);
-    #endif
+    assert(row<N);
+    assert(col<M);
     return m_data[N*col+row];
   }
 
