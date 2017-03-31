@@ -9,10 +9,12 @@ endif
 DEMO_GL_LIBS := $(DEMO_COMMON_LIBS)
 DEMO_GLES_LIBS := $(DEMO_COMMON_LIBS) -lEGL
 
-DEMO_release_CFLAGS_GL = -O3 -fstrict-aliasing $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GL_release_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
-DEMO_debug_CFLAGS_GL = -g $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GL_debug_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
-DEMO_release_CFLAGS_GLES = -O3 -fstrict-aliasing $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GLES_release_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
-DEMO_debug_CFLAGS_GLES = -g $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(LIBRARY_GLES_debug_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
+DEMO_COMMON_CFLAGS = $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
+
+DEMO_release_CFLAGS_GL = -O3 -fstrict-aliasing $(DEMO_COMMON_CFLAGS) $(LIBRARY_GL_release_CFLAGS)
+DEMO_release_CFLAGS_GLES = -O3 -fstrict-aliasing $(DEMO_COMMON_CFLAGS) $(LIBRARY_GLES_release_CFLAGS)
+DEMO_debug_CFLAGS_GL = -g $(DEMO_COMMON_CFLAGS) $(LIBRARY_GL_debug_CFLAGS)
+DEMO_debug_CFLAGS_GLES = -g $(DEMO_COMMON_CFLAGS) $(LIBRARY_GLES_debug_CFLAGS)
 
 MAKEDEPEND = ./makedepend.sh
 
