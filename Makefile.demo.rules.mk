@@ -29,7 +29,7 @@ $(3)/$(2)/demos/%.d: demos/%.cpp
 	@mkdir -p $$(dir $$@)
 	@echo Generating $$@
 	@$(MAKEDEPEND) "$$(CXX)" "$$(DEMO_$(3)_CFLAGS_$(2))" $(3)/$(2)/demos "$$*" "$$<" "$$@"
-.SECONDARY: $(3)/$(2)/demos/%.d
+
 THISDEMO_$(1)_RESOURCE_STRING_SRCS = $$(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $$($(1)_RESOURCE_STRING))
 THISDEMO_$(1)_$(2)_$(3)_SOURCES = $$($(1)_SOURCES) $$(THISDEMO_$(1)_RESOURCE_STRING_SRCS) $$(COMMON_DEMO_SOURCES) $$(DEMO_COMMON_RESOURCE_STRING_SRCS)
 THISDEMO_$(1)_$(2)_$(3)_DEPS_RAW = $$(patsubst %.cpp, %.d, $$($(1)_SOURCES) $$(COMMON_DEMO_SOURCES))

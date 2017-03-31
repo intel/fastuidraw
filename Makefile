@@ -20,6 +20,10 @@ INSTALL_LOCATION ?= /usr/local
 #Init TARGETLIST
 TARGETLIST :=
 
+# Mark all intermediate files as secondary and precious
+.PRECIOUS:
+.SECONDARY:
+
 default: $(INSTALL_LIBS)
 targets:
 	@echo
