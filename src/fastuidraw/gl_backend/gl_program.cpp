@@ -70,6 +70,19 @@ namespace
     int m_location;
   };
 
+  class BindFragDataLocationPrivate
+  {
+  public:
+    BindFragDataLocationPrivate(const char *pname, int plocation, int pindex):
+      m_label(pname),
+      m_location(plocation),
+      m_index(pindex)
+    {}
+
+    std::string m_label;
+    int m_location, m_index;
+  };
+
   class PreLinkActionArrayPrivate
   {
   public:
@@ -1700,6 +1713,41 @@ action(GLuint glsl_program) const
   BindAttributePrivate *d;
   d = static_cast<BindAttributePrivate*>(m_d);
   glBindAttribLocation(glsl_program, d->m_location, d->m_label.c_str());
+}
+
+
+////////////////////////////////////////
+// fastuidraw::gl::BindFragDataLocation methods
+fastuidraw::gl::BindFragDataLocation::
+BindFragDataLocation(const char *pname, int plocation, int pindex)
+{
+  m_d = FASTUIDRAWnew BindFragDataLocationPrivate(pname, plocation, pindex);
+}
+
+fastuidraw::gl::BindFragDataLocation::
+~BindFragDataLocation()
+{
+  BindFragDataLocationPrivate *d;
+  d = static_cast<BindFragDataLocationPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+  m_d = nullptr;
+}
+
+void
+fastuidraw::gl::BindFragDataLocation::
+action(GLuint glsl_program) const
+{
+  BindFragDataLocationPrivate *d;
+  d = static_cast<BindFragDataLocationPrivate*>(m_d);
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      glBindFragDataLocationIndexedEXT(glsl_program, d->m_location, d->m_index, d->m_label.c_str());
+    }
+  #else
+    {
+      glBindFragDataLocationIndexed(glsl_program, d->m_location, d->m_index, d->m_label.c_str());
+    }
+  #endif
 }
 
 ////////////////////////////////////

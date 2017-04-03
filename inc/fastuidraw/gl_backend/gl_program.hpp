@@ -222,6 +222,36 @@ public:
 };
 
 /*!
+  A BindFragDataLocation inherits from PreLinkAction,
+  its purpose is to bind a fragment shader out to
+  a named location and index. Using a BindFragDataLocation
+  requires:
+  - for GLES: GLES3.0 (or higher) and the extension GL_EXT_blend_func_extended
+  - for GL: GL version 3.3 (or higher)
+ */
+class BindFragDataLocation:public PreLinkAction
+{
+public:
+  /*!
+    Ctor.
+    \param pname name of attribute in GLSL code
+    \param plocation location for fragment shader output to occupy
+    \param pindex index (used for dual source blending) for
+                  fragment shader output to occupy
+   */
+  BindFragDataLocation(const char *pname, int plocation, int pindex = 0);
+
+  ~BindFragDataLocation();
+
+  virtual
+  void
+  action(GLuint glsl_program) const;
+
+private:
+  void *m_d;
+};
+
+/*!
   A PreLinkActionArray is a conveniance class
   wrapper over an array of PreLinkAction handles.
  */
@@ -258,7 +288,7 @@ public:
   /*!
     Provided as a conveniance, equivalent to
     \code
-    add(new BindAttribute(pname, plocation))
+    add(FASTUIDRAWnew BindAttribute(pname, plocation))
     \endcode
     \param pname name of the attribute
     \param plocation location to which to bind the attribute.
@@ -266,7 +296,26 @@ public:
   PreLinkActionArray&
   add_binding(const char *pname, int plocation)
   {
-    reference_counted_ptr<PreLinkAction> h(FASTUIDRAWnew BindAttribute(pname, plocation));
+    reference_counted_ptr<PreLinkAction> h;
+    h = FASTUIDRAWnew BindAttribute(pname, plocation);
+    return add(h);
+  }
+
+  /*!
+    Provided as a conveniance, equivalent to
+    \code
+    add(FASTUIDRAWnew BindFragDataLocation(pname, plocation, pindex))
+    \endcode
+    \param pname name of the attribute
+    \param plocation location for fragment shader output to occupy
+    \param pindex index (used for dual source blending) for
+                  fragment shader output to occupy
+   */
+  PreLinkActionArray&
+  add_frag_binding(const char *pname, int plocation, int pindex = 0)
+  {
+    reference_counted_ptr<PreLinkAction> h;
+    h = FASTUIDRAWnew BindFragDataLocation(pname, plocation, pindex);
     return add(h);
   }
 
