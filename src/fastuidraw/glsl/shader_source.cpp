@@ -52,6 +52,7 @@ namespace
     std::list<source_code_t> m_values;
     std::map<std::string, extension_enable_t> m_extensions;
     std::string m_version;
+    bool m_disable_pre_added_source;
 
     std::string m_assembled_code;
 
@@ -84,7 +85,8 @@ namespace
 // SourcePrivate methods
 SourcePrivate::
 SourcePrivate(void):
-  m_dirty(false)
+  m_dirty(false),
+  m_disable_pre_added_source(false)
 {
 }
 
@@ -426,6 +428,17 @@ specify_extensions(const ShaderSource &obj)
   return *this;
 }
 
+fastuidraw::glsl::ShaderSource&
+fastuidraw::glsl::ShaderSource::
+disable_pre_added_source(void)
+{
+  SourcePrivate *d;
+  d = static_cast<SourcePrivate*>(m_d);
+  d->m_dirty = d->m_dirty || !d->m_disable_pre_added_source;
+  d->m_disable_pre_added_source = true;
+  return *this;
+}
+
 const char*
 fastuidraw::glsl::ShaderSource::
 assembled_code(void) const
@@ -449,11 +462,14 @@ assembled_code(void) const
                                   << ": " << SourcePrivate::string_from_extension_t(iter->second) << "\n";
         }
 
-      output_glsl_source_code << "uint fastuidraw_mask(uint num_bits) { return (uint(1) << num_bits) - uint(1); }\n"
-                              << "uint fastuidraw_extract_bits(uint bit0, uint num_bits, uint src) { return (src >> bit0) & fastuidraw_mask(num_bits); }\n"
-                              << "#define FASTUIDRAW_MASK(bit0, num_bits) (fastuidraw_mask(uint(num_bits)) << uint(bit0))\n"
-                              << "#define FASTUIDRAW_EXTRACT_BITS(bit0, num_bits, src) fastuidraw_extract_bits(uint(bit0), uint(num_bits), uint(src) )\n"
-                              << "void fastuidraw_do_nothing(void) {}\n";
+      if(!d->m_disable_pre_added_source)
+        {
+          output_glsl_source_code << "uint fastuidraw_mask(uint num_bits) { return (uint(1) << num_bits) - uint(1); }\n"
+                                  << "uint fastuidraw_extract_bits(uint bit0, uint num_bits, uint src) { return (src >> bit0) & fastuidraw_mask(num_bits); }\n"
+                                  << "#define FASTUIDRAW_MASK(bit0, num_bits) (fastuidraw_mask(uint(num_bits)) << uint(bit0))\n"
+                                  << "#define FASTUIDRAW_EXTRACT_BITS(bit0, num_bits, src) fastuidraw_extract_bits(uint(bit0), uint(num_bits), uint(src) )\n"
+                                  << "void fastuidraw_do_nothing(void) {}\n";
+        }
 
       for(std::list<SourcePrivate::source_code_t>::const_iterator
             iter= d->m_values.begin(), end = d->m_values.end(); iter != end; ++iter)

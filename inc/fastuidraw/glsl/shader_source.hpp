@@ -244,6 +244,22 @@ public:
   specify_extensions(const ShaderSource &obj);
 
   /*!
+    Set to disable adding pre-added FastUIDraw macros
+    and functions to GLSL source code. The pre-added
+    functions are:
+     - uint fastuidraw_mask(uint num_bits) : returns a uint where the last num_bits bits are up
+     - uint fastuidraw_extract_bits(uint bit0, uint num_bits, uint src) : extracts a value from the named bits of a uint
+     - void fastuidraw_do_nothing(void) : function that has empty body (i.e. does nothing).
+
+    The added macros are:
+
+     - FASTUIDRAW_MASK(bit0, num_bits) : wrapper over fastuidraw_mask that casts arguments into uint's
+     - FASTUIDRAW_EXTRACT_BITS(bit0, num_bits, src) : wrapper over fastuidraw_extract_bits that casts arguments into uint's
+   */
+  ShaderSource&
+  disable_pre_added_source(void);
+  
+  /*!
     Returns the GLSL code assembled. The returned string is only
     gauranteed to be valid up until the ShaderSource object
     is modified.
