@@ -58,10 +58,32 @@ namespace fastuidraw
      */
     enum join_style
       {
-        no_joins, /*!< indicates to stroke without joins */
-        rounded_joins, /*!< indicates to stroke with rounded joins */
-        bevel_joins, /*!< indicates to stroke with bevel joins */
-        miter_joins, /*!< indicates to stroke with miter joins */
+        /*!
+          indicates to stroke without joins
+         */
+        no_joins,
+
+        /*!
+          indicates to stroke with rounded joins
+         */
+        rounded_joins,
+
+        /*!
+          indicates to stroke with bevel joins
+         */
+        bevel_joins,
+
+        /*!
+          indicates to stroke with miter joins where if miter limit
+          is exceeded the miter join is clamped to the miter limit.
+         */
+        miter_joins,
+
+        /*!
+          indicates to stroke with miter joins where if miter limit
+          is exceeded the miter join is drawn as a bevel join
+         */
+        miter_bevel_joins,
 
         number_join_styles, /*!< number of join styles */
       };
