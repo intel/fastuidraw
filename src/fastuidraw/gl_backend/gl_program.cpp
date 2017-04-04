@@ -1657,18 +1657,10 @@ gl_shader_type_label(GLenum shader_type)
 
       CASE(GL_FRAGMENT_SHADER);
       CASE(GL_VERTEX_SHADER);
-
-      #ifdef GL_GEOMETRY_SHADER
-        CASE(GL_GEOMETRY_SHADER);
-      #endif
-
-      #ifdef GL_TESS_EVALUATION_SHADER
-        CASE(GL_TESS_EVALUATION_SHADER);
-      #endif
-
-      #ifdef GL_TESS_CONTROL_SHADER
-        CASE(GL_TESS_CONTROL_SHADER);
-      #endif
+      CASE(GL_GEOMETRY_SHADER);
+      CASE(GL_TESS_EVALUATION_SHADER);
+      CASE(GL_TESS_CONTROL_SHADER);
+      CASE(GL_COMPUTE_SHADER);
     }
 
   #undef CASE
