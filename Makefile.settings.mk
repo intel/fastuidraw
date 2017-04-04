@@ -21,7 +21,7 @@ DARWIN_BUILD = 0
 CXX ?= g++
 CC ?= gcc
 STRING_RESOURCE_CC = shell_scripts/fastuidraw-create-resource-cpp-file.sh
-LIBRARY_LIBS = `freetype-config --libs` -lm
+LIBRARY_LIBS =
 
 
 #######################################
