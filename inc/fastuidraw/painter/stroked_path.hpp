@@ -82,9 +82,18 @@ public:
       offset_rounded_join,
 
       /*!
-        The point is for a boundary point of a miter join of the path
+        The point is for a boundary point of a miter join of the path,
+        if the miter-limit is exceeded on stroking, the miter-join
+        is clamped to the miter-limit
        */
       offset_miter_join,
+
+      /*!
+        The point is for a boundary point of a miter join of the path,
+        if the miter-limit is exceeded on stroking, the miter-join
+        is to be drawn as a bevel join.
+       */
+      offset_miter_bevel_join,
 
       /*!
         The point is for a boundary point of a rounded cap of the path
@@ -114,55 +123,6 @@ public:
         Number different point types with respect to rendering
        */
       number_offset_types
-    };
-
-  /*!
-    Enumeration to select what points of stroking to select.
-   */
-  enum point_set_t
-    {
-      /*!
-        Select the set of points for edges
-       */
-      edge_point_set,
-
-      /*!
-        Select the set of points for bevel joins
-       */
-      bevel_join_point_set,
-
-      /*!
-        Select the set of points for rounded joins
-       */
-      rounded_join_point_set,
-
-      /*!
-        Select the set of points for miter joins
-       */
-      miter_join_point_set,
-
-      /*!
-        Select the set of points for square caps
-       */
-      square_cap_point_set,
-
-      /*!
-        Select the set of points for rouded caps
-       */
-      rounded_cap_point_set,
-
-      /*!
-        Select the set of points for caps whose geometry
-        is to be adjustable. These caps are drawn for
-        the start and end of contours when doing dashed
-        stroking.
-       */
-      adjustable_cap_point_set,
-
-      /*!
-        Number point set types
-       */
-      number_point_set_types
     };
 
   /*!
@@ -726,10 +686,20 @@ public:
   bevel_joins(void) const;
 
   /*!
-    Returns the data to draw the miter joins of a stroked path.
+    Returns the data to draw the miter joins of a stroked path,
+    if the miter-limit is exceeded on stroking, the miter-join
+    is clamped to the miter-limit.
    */
   const PainterAttributeData&
   miter_joins(void) const;
+
+  /*!
+    Returns the data to draw the miter joins of a stroked path,
+    if the miter-limit is exceeded on stroking, the miter-join
+    is to be drawn as a bevel join.
+   */
+  const PainterAttributeData&
+  miter_bevel_joins(void) const;
 
   /*!
     Returns the data to draw rounded joins of a stroked path.
