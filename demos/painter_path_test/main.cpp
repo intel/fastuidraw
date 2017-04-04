@@ -397,6 +397,7 @@ painter_stroke_test(void):
   m_join_labels[PainterEnums::rounded_joins] = "rounded_joins";
   m_join_labels[PainterEnums::bevel_joins] = "bevel_joins";
   m_join_labels[PainterEnums::miter_joins] = "miter_joins";
+  m_join_labels[PainterEnums::miter_bevel_joins] = "miter_bevel_joins";
 
   m_cap_labels[PainterEnums::flat_caps] = "flat_caps";
   m_cap_labels[PainterEnums::rounded_caps] = "rounded_caps";
