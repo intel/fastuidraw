@@ -144,7 +144,6 @@ main(int argc, char **argv)
             << std::setw(40) << "transformation_matrix_mask = " << bitset(PainterBrush::transformation_matrix_mask) << "\n"
 
             << std::setw(40) << "stroked_number_offset_types = " << StrokedPath::number_offset_types << "\n"
-            << std::setw(40) << "stroked_number_point_set_types = " << StrokedPath::number_point_set_types << "\n"
             << std::setw(40) << "stroked_offset_type_bit0 = " << StrokedPath::offset_type_bit0 << "\n"
             << std::setw(40) << "stroked_offset_type_num_bits = " << StrokedPath::offset_type_num_bits << "\n"
             << std::setw(40) << "stroked_boundary_bit = " << StrokedPath::boundary_bit << "\n"
