@@ -18,11 +18,10 @@ fastuidraw_stroke_compute_offset(in uint point_packed_data,
 
       det = dot(Jn1, n0);
       lambda = -sign(det);
-      r = (det != 0.0) ? (1.0 - dot(n0, n1)) / abs(det) : 0.0;
+      r = (det != 0.0) ? (1.0 - dot(n0, n1)) / det : 0.0;
 
       if(fastuidraw_stroke_offset_is_miter_end_join(offset_type))
         {
-          r = -r;
           lambda = -lambda;
         }
       
@@ -44,7 +43,7 @@ fastuidraw_stroke_compute_offset(in uint point_packed_data,
               r = (abs(r) > mm) ? 0.0 : r;
             }
         }
-      offset = lambda * n0 + r * Jn0;
+      offset = lambda * (n0 - r * Jn0);
     }
   else if(offset_type == fastuidraw_stroke_offset_rounded_join)
     {
