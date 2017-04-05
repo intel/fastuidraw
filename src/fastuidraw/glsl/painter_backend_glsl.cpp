@@ -500,15 +500,15 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
                "&& (X) <= fastuidraw_stroke_offset_miter_types_last)")
     .add_macro("fastuidraw_stroke_miter_bevel_join", StrokedPath::miter_bevel_join)
     .add_macro("fastuidraw_stroke_miter_clip_join", StrokedPath::miter_clip_join)
-    .add_macro("fastuidraw_stroke_miter_join_lambda_negate_bit", StrokedPath::miter_join_lambda_negate_bit)
+    .add_macro("fastuidraw_stroke_miter_join_negate_lambda_bit", StrokedPath::miter_join_negate_lambda_bit)
     .add_macro("fastuidraw_stroke_miter_join_number_type_bit0", StrokedPath::miter_join_number_type_bit0)
     .add_macro("fastuidraw_stroke_miter_join_number_type_num_bits", StrokedPath::miter_join_number_type_num_bits)
     .add_macro("fastuidraw_stroke_miter_type(X) ",
                "(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_miter_join_number_type_bit0, "
                "                         fastuidraw_stroke_miter_join_number_type_num_bits, "
                "                         X - fastuidraw_stroke_offset_miter_types_first))")
-    .add_macro("fastuidraw_stroke_miter_lambda_negate(X) ",
-               "(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_miter_join_lambda_negate_bit, 1u, "
+    .add_macro("fastuidraw_stroke_miter_negate_lambda(X) ",
+               "(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_miter_join_negate_lambda_bit, 1u, "
                "                         X - fastuidraw_stroke_offset_miter_types_first) != 0u)")
     
     .add_macro("fastuidraw_stroke_offset_rounded_cap", StrokedPath::offset_rounded_cap)

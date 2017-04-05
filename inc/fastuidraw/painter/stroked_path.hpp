@@ -84,7 +84,7 @@ public:
         that specifies if the the lambda in a miter-join
         is negative.
        */
-      miter_join_lambda_negate_bit = 0,
+      miter_join_negate_lambda_bit = 0,
 
       /*!
         Which bit to describe what kind of miter-join
@@ -139,15 +139,17 @@ public:
         to decode the miter-join information do
         \code
         uint32_t u, m;
-        bool lambda_negate;
+        bool negate_lambda;
         enum miter_joint_type_t m_type;
 
         u = point.offset_type() - offset_miter_types_first;
-        lambda_negate = u & miter_join_lambda_negate_bit;
+        negate_lambda = unpack_bits(miter_join_negate_lambda_bit, 1, tp - offset_miter_types_first);
         m = unpack_bits(miter_join_number_type_bit0, miter_join_number_type_num_bits, u);
         m_type = static_cast<enum miter_joint_type_t>(m);
 
         \endcode
+        See also point::is_miter_join_offset_type(), point::miter_joint_type()
+        and point::miter_join_negate_lambda().
        */
       offset_miter_types_first,
 
@@ -156,15 +158,17 @@ public:
         to decode the miter-join information do
         \code
         uint32_t u, m;
-        bool lambda_negate;
+        bool negate_lambda;
         enum miter_joint_type_t m_type;
 
         u = point.offset_type() - offset_miter_types_first;
-        lambda_negate = u & miter_join_lambda_negate_bit;
+        negate_lambda = unpack_bits(miter_join_negate_lambda_bit, 1, tp - offset_miter_types_first);
         m = unpack_bits(miter_join_number_type_bit0, miter_join_number_type_num_bits, u);
         m_type = static_cast<enum miter_joint_type_t>(m);
 
         \endcode
+        See also point::is_miter_join_offset_type(), point::miter_joint_type()
+        and point::miter_join_negate_lambda().
        */
       offset_miter_types_last = offset_miter_types_first + (1u << miter_joint_num_bits) - 1u,
 
@@ -440,6 +444,7 @@ public:
       Provides the point type from a value of \ref m_packed_data.
       The return value is one of the enumerations of
       StrokedPath::offset_type_t.
+      \param packed_data_value value suitable for \ref m_packed_data
      */
     static
     enum offset_type_t
@@ -451,6 +456,58 @@ public:
     }
 
     /*!
+      Returns true if the offset type is a miter-join offset
+      type.
+      \param packed_data_value value suitable for \ref m_packed_data
+     */
+    static
+    bool
+    is_miter_join_offset_type(uint32_t packed_data_value)
+    {
+      enum offset_type_t tp;
+      tp = offset_type(packed_data_value);
+      return tp >= offset_miter_types_first && tp <= offset_miter_types_last;
+    }
+
+    /*!
+      Returns the miter_join type if indicates a miter-join offset
+      type, otherwise returns \ref miter_join_number_types.
+      \param packed_data_value value suitable for \ref m_packed_data
+     */
+    static
+    enum miter_joint_type_t
+    miter_joint_type(uint32_t packed_data_value)
+    {
+      enum offset_type_t tp;
+      uint32_t m;
+
+      tp = offset_type(packed_data_value);
+      m = (tp >= offset_miter_types_first && tp <= offset_miter_types_last) ?
+        unpack_bits(miter_join_number_type_bit0, miter_join_number_type_num_bits, tp - offset_miter_types_first):
+        static_cast<uint32_t>(miter_join_number_types);
+      return static_cast<enum miter_joint_type_t>(m);
+    }
+
+    /*!
+      If indicates a miter-join offset type, returns true if lambda
+      should be negated when computing the offset vector.
+      \param packed_data_value value suitable for \ref m_packed_data
+     */
+    static
+    bool
+    miter_join_negate_lambda(uint32_t packed_data_value)
+    {
+      enum offset_type_t tp;
+      uint32_t m;
+
+      tp = offset_type(packed_data_value);
+      m = (tp >= offset_miter_types_first && tp <= offset_miter_types_last) ?
+        unpack_bits(miter_join_negate_lambda_bit, 1, tp - offset_miter_types_first):
+        0u;
+      return m != 0u;
+    }
+
+    /*!
       Provides the point type for the point. The return value
       is one of the enumerations of StrokedPath::offset_type_t.
      */
@@ -459,7 +516,37 @@ public:
     {
       return offset_type(m_packed_data);
     }
+    
+    /*!
+      Returns true if the offset type is a miter-join offset
+      type.
+     */
+    bool
+    is_miter_join_offset_type(void) const
+    {
+      return is_miter_join_offset_type(m_packed_data);
+    }
 
+    /*!
+      Returns the miter_join type if is a miter-join offset
+      type, otherwise returns \ref miter_join_number_types.
+     */
+    enum miter_joint_type_t
+    miter_joint_type(void) const
+    {
+      return miter_joint_type(m_packed_data);
+    }
+
+    /*!
+      If is a miter-join offset type, returns true if lambda
+      should be negated when computing the offset vector.
+     */
+    bool
+    miter_join_negate_lambda(void) const
+    {
+      return miter_join_negate_lambda(m_packed_data);
+    }
+    
     /*!
       When stroking the data, the depth test to only
       pass when the depth value is -strictly- larger
@@ -510,19 +597,25 @@ public:
       - For those with offset_type() being StrokedPath::offset_square_cap,
         the value is given by
         \code
-        m_pre_offset + 0.5 * m_auxilary_offset
+        m_pre_offset + m_auxilary_offset
         \endcode
         In addition, \ref m_auxilary_offset holds the vector leaving
         from the contour where the cap is located.
-      - For those with offset_type() being StrokedPath::offset_miter_join,
+      - For those with returning is_miter_join_offset_type() true,
         the value is given by the following code
         \code
-        vec2 n = m_pre_offset, v = vec2(-n.y(), n.x());
-        float r, lambda;
-        lambda = -sign(dot(v, m_auxilary_offset));
-        r = (dot(m_pre_offset, m_auxilary_offset) - 1.0) / dot(v, m_auxilary_offset);
+        vec2 n0(m_pre_offset), Jn0(n0.y(), -n0.x());
+        vec2 n1(m_auxilary_offset), Jn1(n1.y(), -n1.x());
+        float r, det, lambda;
+        det = dot(Jn1, n0);
+        lambda = -t_sign(det);
+        r = (det != 0.0) ? (dot(n0, n1) - 1.0) / det : 0.0;
+        if(miter_join_negate_lambda())
+          {
+            lambda = -lambda;
+          }
         //result:
-        offset = lambda * (n - r * v);
+        offset = lambda * (n + r * v);
         \endcode
         To enfore a miter limit M, clamp the value r to [-M,M].
       - For those with offset_type() being StrokedPath::offset_rounded_cap,

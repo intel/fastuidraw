@@ -65,7 +65,7 @@ namespace
     typebits = fastuidraw::pack_bits(fastuidraw::StrokedPath::miter_join_number_type_bit0,
                                      fastuidraw::StrokedPath::miter_join_number_type_num_bits,
                                      tp);
-    lambdabits = fastuidraw::pack_bits(fastuidraw::StrokedPath::miter_join_lambda_negate_bit,
+    lambdabits = fastuidraw::pack_bits(fastuidraw::StrokedPath::miter_join_negate_lambda_bit,
                                        1, lambda_negative);
 
     m = typebits | lambdabits;
@@ -2751,28 +2751,22 @@ offset_vector(void)
 
   tp = offset_type();
 
-  if(tp >= offset_miter_types_first && tp <= offset_miter_types_last)
+  if(is_miter_join_offset_type())
     {
-      uint32_t u;
-      bool lambda_negate;
-
-      u = tp - offset_miter_types_first;
-      lambda_negate = u & miter_join_lambda_negate_bit;
-      
       vec2 n0(m_pre_offset), Jn0(n0.y(), -n0.x());
       vec2 n1(m_auxilary_offset), Jn1(n1.y(), -n1.x());
       float r, det, lambda;
 
       det = dot(Jn1, n0);
       lambda = -t_sign(det);
-      r = (det != 0.0) ? (1.0 - dot(n0, n1)) / det : 0.0;
+      r = (det != 0.0) ? (dot(n0, n1) - 1.0) / det : 0.0;
       
-      if(lambda_negate)
+      if(miter_join_negate_lambda())
         {
           lambda = -lambda;
         }
 
-      return lambda * (n0 - r * Jn0);
+      return lambda * (n0 + r * Jn0);
     }
   else
     {
