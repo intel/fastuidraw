@@ -10,7 +10,8 @@ fastuidraw_stroke_compute_offset(in uint point_packed_data,
                                  in float miter_limit,
                                  out vec2 offset)
 {
-  if(fastuidraw_stroke_offset_is_miter(offset_type))
+  if(offset_type == fastuidraw_stroke_offset_miter_clip_join
+     || offset_type == fastuidraw_stroke_offset_miter_clip_join_lambda_negated)
     {
       vec2 n0 = pre_offset, Jn0 = vec2(n0.y, -n0.x);
       vec2 n1 = auxilary_offset, Jn1 = vec2(n1.y, -n1.x);
@@ -20,7 +21,7 @@ fastuidraw_stroke_compute_offset(in uint point_packed_data,
       lambda = -sign(det);
       r = (det != 0.0) ? (dot(n0, n1) - 1.0) / det : 0.0;
 
-      if(fastuidraw_stroke_miter_negate_lambda(offset_type))
+      if(offset_type == fastuidraw_stroke_offset_miter_clip_join_lambda_negated)
         {
           lambda = -lambda;
         }
@@ -30,21 +31,45 @@ fastuidraw_stroke_compute_offset(in uint point_packed_data,
       if(miter_limit >= 0.0)
         {
           float mm;
-          uint miter_type;
 
           mm = miter_limit * abs(r) / sqrt(1.0 + r * r);
-          miter_type = fastuidraw_stroke_miter_type(offset_type);
-          
-          if(miter_type == uint(fastuidraw_stroke_miter_clip_join))
-            {
-              r = clamp(r, -mm, mm);
-            }
-          else //if(miter_type == uint(fastuidraw_stroke_miter_bevel_join))
-            {
-              r = (abs(r) > mm) ? 0.0 : r;
-            }
+          r = clamp(r, -mm, mm);
         }
       offset = lambda * (n0 + r * Jn0);
+    }
+  else if(offset_type == fastuidraw_stroke_offset_miter_join
+          || offset_type == fastuidraw_stroke_offset_miter_bevel_join)
+    {
+      vec2 n0 = pre_offset, Jn0 = vec2(n0.y, -n0.x);
+      vec2 n1 = auxilary_offset, Jn1 = vec2(n1.y, -n1.x);
+      vec2 n0_plus_n1 = n0 + n1;
+      float r, lambda, den;
+
+      lambda = sign(dot(Jn0, n1));
+      den = 1.0 + dot(n0, n1);
+      r = (den != 0.0) ? 1.0 / den : 0.0;
+
+      /* enforce miter_limit
+       */
+      if(miter_limit >= 0.0)
+        {
+          float d, den_m;
+          d = dot(n0_plus_n1, n0_plus_n1);
+          den_m = miter_limit * den;
+          if(d >= den_m * den_m)
+            {
+              if(offset_type == fastuidraw_stroke_offset_miter_bevel_join)
+                {
+                  r = 0.5;
+                }
+              else //if(offset_type == fastuidraw_stroke_offset_miter_join)
+                {
+                  r = miter_limit / sqrt(d);
+                }
+            }
+        }
+      r = max(r, 0.5) * lambda;
+      offset = r * (n0_plus_n1);
     }
   else if(offset_type == fastuidraw_stroke_offset_rounded_join)
     {
@@ -78,7 +103,8 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
                                         out vec2 offset,
                                         inout float stroke_radius)
 {
-  if(fastuidraw_stroke_offset_is_miter(offset_type))
+  if(offset_type == fastuidraw_stroke_offset_miter_clip_join
+     || offset_type == fastuidraw_stroke_offset_miter_clip_join_lambda_negated)
     {
       vec2 n0 = pre_offset, v0 = vec2(n0.y, -n0.x);
       vec2 n1 = auxilary_offset, v1 = vec2(n1.y, -n1.x);
@@ -87,7 +113,7 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
       float det, r, r0, r1, lambda;
 
       lambda = -sign(dot(v1, n0));
-      if(fastuidraw_stroke_miter_negate_lambda(offset_type))
+      if(offset_type == fastuidraw_stroke_offset_miter_clip_join_lambda_negated)
         {
           lambda = -lambda;
         }
@@ -132,13 +158,11 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
       if(miter_limit >= 0.0)
         {
           float m, mm, ld0;
-          uint miter_type;
 
           /* miter distance, which is measure from the
              point of the path (given by position)
            */
           m = miter_limit * length(d0);
-          miter_type = fastuidraw_stroke_miter_type(offset_type);
 
           /* the value r is how much to offset in the
              direction v0; We have a right triangle
@@ -147,19 +171,38 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
              by r.
            */
           mm = m * abs(r) / length(d0 + r * v0);
-
-          if(miter_type == uint(fastuidraw_stroke_miter_clip_join))
-            {
-              r = clamp(r, -mm, mm);
-            }
-          else //if(miter_type == uint(fastuidraw_stroke_miter_bevel_join))
-            {
-              r = (abs(r) > mm) ? 0.0 : r;
-            }
+          r = clamp(r, -mm, mm);
         }
 
       offset = d0 + r * v0;
       stroke_radius = 1.0;
+    }
+  else if(offset_type == fastuidraw_stroke_offset_miter_join
+          || offset_type == fastuidraw_stroke_offset_miter_bevel_join)
+    {
+      vec2 n0 = pre_offset, v0 = vec2(n0.y, -n0.x);
+      vec2 n1 = auxilary_offset, v1 = vec2(n1.y, -n1.x);
+      vec2 n0_plus_n1;
+      float r, lambda, r0, det;
+      vec3 clip_p, clip_direction;
+
+      lambda = sign(dot(v0, n1));
+      clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+
+      n0 = normalize(fastuidraw_align_normal_to_screen(clip_p, lambda * n0));
+      n1 = normalize(fastuidraw_align_normal_to_screen(clip_p, lambda * n1));
+      n0_plus_n1 = n0 + n1;
+
+      clip_direction = fastuidraw_item_matrix * vec3(n0, 0.0);
+      r0 = fastuidraw_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_direction);
+
+      det = -n0_plus_n1.y * v0.x + n0_plus_n1.x * v0.y;
+      r = (det != 0.0) ?
+        -r0 * dot(n0, vec2(-v0.y, v0.x)) / det :
+        0.0;
+
+      stroke_radius = 1.0;
+      offset = r * n0_plus_n1;
     }
   else if(offset_type == fastuidraw_stroke_offset_rounded_join)
     {
@@ -453,7 +496,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
                       if(s < 0.0)
                         {
-                          clamp_interval_begin = max(clamp_interval_begin, d2);
+                          clamp_interval_begin = max(interval_begin, d2);
                           new_d = interval_begin + stroke_radius;
 
                           /* auxilary_offset is the direction from this point

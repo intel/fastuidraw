@@ -74,16 +74,24 @@ namespace fastuidraw
         bevel_joins,
 
         /*!
-          indicates to stroke with miter joins where if miter limit
-          is exceeded the miter join is clipped to the miter limit.
+          indicates to stroke with miter joins where if miter distance
+          is exceeded then the miter join is clipped to the miter
+          distance.
          */
         miter_clip_joins,
 
         /*!
-          indicates to stroke with miter joins where if miter limit
-          is exceeded the miter join is drawn as a bevel join
+          indicates to stroke with miter joins where if miter distance
+          is exceeded then the miter join is drawn as a bevel join.
          */
         miter_bevel_joins,
+
+        /*!
+          indicates to stroke with miter joins where if miter distance
+          is exceeded then the miter-tip is truncated to the miter
+          distance.
+         */
+        miter_joins,
 
         number_join_styles, /*!< number of join styles */
       };
