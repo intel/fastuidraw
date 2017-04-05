@@ -1842,8 +1842,8 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
       join_data = &path.bevel_joins();
       break;
 
-    case PainterEnums::miter_joins:
-      join_data = &path.miter_joins();
+    case PainterEnums::miter_clip_joins:
+      join_data = &path.miter_clip_joins();
       break;
 
     case PainterEnums::miter_bevel_joins:
@@ -2003,8 +2003,8 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
       join_data = &path.bevel_joins();
       break;
 
-    case PainterEnums::miter_joins:
-      join_data = &path.miter_joins();
+    case PainterEnums::miter_clip_joins:
+      join_data = &path.miter_clip_joins();
       break;
 
     case PainterEnums::miter_bevel_joins:

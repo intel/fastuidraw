@@ -851,10 +851,10 @@ public:
   /*!
     Returns the data to draw the miter joins of a stroked path,
     if the miter-limit is exceeded on stroking, the miter-join
-    is clamped to the miter-limit.
+    is clipped to the miter-limit.
    */
   const PainterAttributeData&
-  miter_joins(void) const;
+  miter_clip_joins(void) const;
 
   /*!
     Returns the data to draw the miter joins of a stroked path,

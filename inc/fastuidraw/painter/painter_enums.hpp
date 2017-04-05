@@ -75,9 +75,9 @@ namespace fastuidraw
 
         /*!
           indicates to stroke with miter joins where if miter limit
-          is exceeded the miter join is clamped to the miter limit.
+          is exceeded the miter join is clipped to the miter limit.
          */
-        miter_joins,
+        miter_clip_joins,
 
         /*!
           indicates to stroke with miter joins where if miter limit
