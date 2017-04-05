@@ -51,6 +51,17 @@ namespace fastuidraw
   }
 
   /*!
+    Return the sign of a value.
+   */
+  template<typename T>
+  inline
+  T
+  t_sign(const T &a)
+  {
+    return (a < T(0)) ? T(-1) : T(1);
+  }
+
+  /*!
     Conveniance overload avoiding to rely on std::
    */
   inline

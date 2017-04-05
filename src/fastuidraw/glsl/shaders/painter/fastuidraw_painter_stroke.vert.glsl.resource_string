@@ -20,7 +20,7 @@ fastuidraw_stroke_compute_offset(in uint point_packed_data,
       lambda = -sign(det);
       r = (det != 0.0) ? (1.0 - dot(n0, n1)) / det : 0.0;
 
-      if(fastuidraw_stroke_offset_is_miter_end_join(offset_type))
+      if(fastuidraw_stroke_miter_lambda_negate(offset_type))
         {
           lambda = -lambda;
         }
@@ -30,15 +30,16 @@ fastuidraw_stroke_compute_offset(in uint point_packed_data,
       if(miter_limit >= 0.0)
         {
           float mm;
-          mm = miter_limit * abs(r) / sqrt(1.0 + r * r);
+          uint miter_type;
 
-          if(offset_type == fastuidraw_stroke_offset_miter_start_join
-             || offset_type == fastuidraw_stroke_offset_miter_end_join)
+          mm = miter_limit * abs(r) / sqrt(1.0 + r * r);
+          miter_type = fastuidraw_stroke_miter_type(offset_type);
+          
+          if(miter_type == uint(fastuidraw_stroke_miter_clip_join))
             {
               r = clamp(r, -mm, mm);
             }
-          else if(offset_type == fastuidraw_stroke_offset_miter_bevel_start_join
-                  || offset_type == fastuidraw_stroke_offset_miter_bevel_end_join)
+          else //if(miter_type == uint(fastuidraw_stroke_miter_bevel_join))
             {
               r = (abs(r) > mm) ? 0.0 : r;
             }
@@ -86,7 +87,7 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
       float det, r, r0, r1, lambda;
 
       lambda = -sign(dot(v1, n0));
-      if(fastuidraw_stroke_offset_is_miter_end_join(offset_type))
+      if(fastuidraw_stroke_miter_lambda_negate(offset_type))
         {
           lambda = -lambda;
         }
@@ -131,12 +132,13 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
       if(miter_limit >= 0.0)
         {
           float m, mm, ld0;
+          uint miter_type;
 
           /* miter distance, which is measure from the
              point of the path (given by position)
            */
-          ld0 = length(d0);
-          m = miter_limit * ld0;
+          m = miter_limit * length(d0);
+          miter_type = fastuidraw_stroke_miter_type(offset_type);
 
           /* the value r is how much to offset in the
              direction v0; We have a right triangle
@@ -146,13 +148,11 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
            */
           mm = m * abs(r) / length(d0 + r * v0);
 
-          if(offset_type == fastuidraw_stroke_offset_miter_start_join
-             || offset_type == fastuidraw_stroke_offset_miter_end_join)
+          if(miter_type == uint(fastuidraw_stroke_miter_clip_join))
             {
               r = clamp(r, -mm, mm);
             }
-          else if(offset_type == fastuidraw_stroke_offset_miter_bevel_start_join
-                  || offset_type == fastuidraw_stroke_offset_miter_bevel_end_join)
+          else //if(miter_type == uint(fastuidraw_stroke_miter_bevel_join))
             {
               r = (abs(r) > mm) ? 0.0 : r;
             }

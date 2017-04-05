@@ -50,6 +50,59 @@ class StrokedPath:
 {
 public:
   /*!
+    Enumeration to specify miter-joint types
+   */
+  enum miter_joint_type_t
+    {
+      /*!
+        Specifies that miter join is a miter-bevel
+        join, where if the miter exceeds the miter-limit
+        on drawing, the miter-join is drawn as a bevel
+       */
+      miter_bevel_join,
+
+      /*!
+        Specifies that miter join is a miter-clip
+        join, where if the miter the miter is clipped
+        to the miter-limit.
+       */
+      miter_clip_join,
+
+      /*!
+        Number of miter-join types
+       */
+      miter_join_number_types,
+    };
+  
+  /*!
+    Bits to describe a miter-join
+   */
+  enum miter_join_bits_t
+    {
+      /*!
+        Which bit within the sub-type of miter-joins
+        that specifies if the the lambda in a miter-join
+        is negative.
+       */
+      miter_join_lambda_negate_bit = 0,
+
+      /*!
+        Which bit to describe what kind of miter-join
+       */
+      miter_join_number_type_bit0,
+      
+      /*!
+        Number of bits to specify what kind of miter-join
+       */
+      miter_join_number_type_num_bits = 1,
+
+      /*!
+        Total number of bits needed to descrine a miter-join
+       */
+      miter_joint_num_bits = miter_join_number_type_bit0 + miter_join_number_type_num_bits,
+    };
+
+  /*!
     Enumeration for specifing how to compute
     StrokedPath::point::offset_vector()).
    */
@@ -82,74 +135,38 @@ public:
       offset_rounded_join,
 
       /*!
-        First enumeration value for miter-join offset types
+        First enumeration value for miter-join offset types;
+        to decode the miter-join information do
+        \code
+        uint32_t u, m;
+        bool lambda_negate;
+        enum miter_joint_type_t m_type;
+
+        u = point.offset_type() - offset_miter_types_first;
+        lambda_negate = u & miter_join_lambda_negate_bit;
+        m = unpack_bits(miter_join_number_type_bit0, miter_join_number_type_num_bits, u);
+        m_type = static_cast<enum miter_joint_type_t>(m);
+
+        \endcode
        */
       offset_miter_types_first,
 
       /*!
-        First enumeration value for miter-join offset types
-        that are for start of join
-       */
-      offset_miter_start_join_types_first = offset_miter_types_first,
-      
-      /*!
-        The point is for a boundary point of a miter join of the path,
-        if the miter-limit is exceeded on stroking, the miter-join
-        is clamped to the miter-limit. This is for the point on the
-        miter-join that come out of the path coming from the curve
-        that goes into the join.
-       */
-      offset_miter_start_join = offset_miter_start_join_types_first,
+        Last enumeration value for miter-join offset types;
+        to decode the miter-join information do
+        \code
+        uint32_t u, m;
+        bool lambda_negate;
+        enum miter_joint_type_t m_type;
 
-      /*!
-        The point is for a boundary point of a miter join of the path,
-        if the miter-limit is exceeded on stroking, the miter-join
-        is to be drawn as a bevel join. This is for the point on the
-        miter-join that come out of the path coming from the curve
-        that goes into the join.
-       */
-      offset_miter_bevel_start_join,
+        u = point.offset_type() - offset_miter_types_first;
+        lambda_negate = u & miter_join_lambda_negate_bit;
+        m = unpack_bits(miter_join_number_type_bit0, miter_join_number_type_num_bits, u);
+        m_type = static_cast<enum miter_joint_type_t>(m);
 
-      /*!
-        Last enumeration value for miter-join offset types
-        that are for start of join
+        \endcode
        */
-      offset_miter_start_join_types_last = offset_miter_bevel_start_join,
-
-      /*!
-        First enumeration value for miter-join offset types
-        that are for end of join
-       */
-      offset_miter_end_join_types_first,
-
-      /*!
-        The point is for a boundary point of a miter join of the path,
-        if the miter-limit is exceeded on stroking, the miter-join
-        is clamped to the miter-limit. This is for the point on the
-        miter-join that come out of the path coming from the curve
-        that comes out of the join.
-       */
-      offset_miter_end_join = offset_miter_end_join_types_first,
-
-      /*!
-        The point is for a boundary point of a miter join of the path,
-        if the miter-limit is exceeded on stroking, the miter-join
-        is to be drawn as a bevel join. This is for the point on the
-        miter-join that come out of the path coming from the curve
-        that comes out of the join.
-       */
-      offset_miter_bevel_end_join,
-
-      /*!
-        Last enumeration value for miter-join offset types
-        that are for end of join
-       */
-      offset_miter_end_join_types_last = offset_miter_bevel_end_join,
-
-      /*!
-        Last enumeration value for miter-join offset types
-       */
-      offset_miter_types_last = offset_miter_bevel_end_join,
+      offset_miter_types_last = offset_miter_types_first + (1u << miter_joint_num_bits) - 1u,
 
       /*!
         The point is for a boundary point of a rounded cap of the path
@@ -218,16 +235,13 @@ public:
       depth_num_bits = 20,
 
       /*!
-        Bit to indicate point is from a join set,
-        but not from a cap-join set. For these
-        points, during dashed stroking, Painter
-        does the check if a join should be drawn,
-        as such when the bit is up encountered
-        in a shader, the computation to check
-        that it is drawn from dashing can be
-        skipped and assume that fragments from
-        such points are covered by the dash
-        pattern.
+        Bit to indicate point is from a join. For these
+        points, during dashed stroking, Painter does the
+        check if a join should be drawn, as such when the
+        bit is up encountered in a shader, the computation
+        to check that it is drawn from dashing can be
+        skipped and assume that fragments from such points
+        are covered by the dash pattern.
        */
       join_bit = depth_bit0 + depth_num_bits,
 

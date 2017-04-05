@@ -32,6 +32,7 @@
 
 namespace
 {
+  inline
   uint32_t
   pack_data(int on_boundary,
             enum fastuidraw::StrokedPath::offset_type_t pt,
@@ -45,12 +46,32 @@ namespace
       | fastuidraw::pack_bits(fastuidraw::StrokedPath::depth_bit0, fastuidraw::StrokedPath::depth_num_bits, depth);
   }
 
+  inline
   uint32_t
   pack_data_join(int on_boundary,
                  enum fastuidraw::StrokedPath::offset_type_t pt,
                  uint32_t depth)
   {
     return pack_data(on_boundary, pt, depth) | fastuidraw::StrokedPath::join_mask;
+  }
+
+  inline
+  uint32_t
+  pack_miter_join(enum fastuidraw::StrokedPath::miter_joint_type_t tp,
+                  bool lambda_negative, uint32_t depth)
+  {
+    uint32_t m, typebits, lambdabits;
+
+    typebits = fastuidraw::pack_bits(fastuidraw::StrokedPath::miter_join_number_type_bit0,
+                                     fastuidraw::StrokedPath::miter_join_number_type_num_bits,
+                                     tp);
+    lambdabits = fastuidraw::pack_bits(fastuidraw::StrokedPath::miter_join_lambda_negate_bit,
+                                       1, lambda_negative);
+
+    m = typebits | lambdabits;
+    m += fastuidraw::StrokedPath::offset_miter_types_first;
+
+    return pack_data_join(1, static_cast<enum fastuidraw::StrokedPath::offset_type_t>(m), depth);
   }
 
   void
@@ -2079,15 +2100,11 @@ fill_join_implement(unsigned int join_id,
   const fastuidraw::TessellatedPath::point &next_pt(path.m_per_contour_data[contour].edge_data(edge).m_start_pt);
   fastuidraw::StrokedPath::point pt;
   unsigned int first;
-  enum fastuidraw::StrokedPath::offset_type_t miter_type_start, miter_type_end;
+  enum fastuidraw::StrokedPath::miter_joint_type_t miter_type;
 
-  miter_type_start = (m_miter_bevel_joins) ?
-    fastuidraw::StrokedPath::offset_miter_bevel_start_join :
-    fastuidraw::StrokedPath::offset_miter_start_join;
-
-  miter_type_end = (m_miter_bevel_joins) ?
-    fastuidraw::StrokedPath::offset_miter_bevel_end_join :
-    fastuidraw::StrokedPath::offset_miter_end_join;
+  miter_type = (m_miter_bevel_joins) ?
+    fastuidraw::StrokedPath::miter_bevel_join :
+    fastuidraw::StrokedPath::miter_clip_join;
 
   CommonJoinData J(prev_pt.m_p, m_n0[join_id],
                    next_pt.m_p, m_n1[join_id],
@@ -2160,7 +2177,7 @@ fill_join_implement(unsigned int join_id,
   pt.m_edge_length = J.m_edge_length;
   pt.m_open_contour_length = J.m_open_contour_length;
   pt.m_closed_contour_length = J.m_closed_contour_length;
-  pt.m_packed_data = pack_data_join(1, miter_type_start, depth);
+  pt.m_packed_data = pack_miter_join(miter_type, false, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -2173,7 +2190,7 @@ fill_join_implement(unsigned int join_id,
   pt.m_edge_length = J.m_edge_length;
   pt.m_open_contour_length = J.m_open_contour_length;
   pt.m_closed_contour_length = J.m_closed_contour_length;
-  pt.m_packed_data = pack_data_join(1, miter_type_end, depth);
+  pt.m_packed_data = pack_miter_join(miter_type, true, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -2733,61 +2750,64 @@ offset_vector(void)
   enum offset_type_t tp;
 
   tp = offset_type();
-  switch(tp)
+
+  if(tp >= offset_miter_types_first && tp <= offset_miter_types_last)
     {
-    case offset_start_sub_edge:
-    case offset_end_sub_edge:
-    case offset_shared_with_edge:
-      return m_pre_offset;
+      uint32_t u;
+      bool lambda_negate;
 
-    case offset_square_cap:
-      return m_pre_offset + m_auxilary_offset;
-      break;
+      u = tp - offset_miter_types_first;
+      lambda_negate = u & miter_join_lambda_negate_bit;
+      
+      vec2 n0(m_pre_offset), Jn0(n0.y(), -n0.x());
+      vec2 n1(m_auxilary_offset), Jn1(n1.y(), -n1.x());
+      float r, det, lambda;
 
-    case offset_miter_start_join:
-    case offset_miter_end_join:
-    case offset_miter_bevel_start_join:
-    case offset_miter_bevel_end_join:
-      {
-        vec2 n(m_pre_offset), v(-n.y(), n.x());
-        float r, lambda;
-        if(dot(v, m_auxilary_offset) > 0.0f)
+      det = dot(Jn1, n0);
+      lambda = -t_sign(det);
+      r = (det != 0.0) ? (1.0 - dot(n0, n1)) / det : 0.0;
+      
+      if(lambda_negate)
+        {
+          lambda = -lambda;
+        }
+
+      return lambda * (n0 - r * Jn0);
+    }
+  else
+    {
+      switch(tp)
+        {
+        case offset_start_sub_edge:
+        case offset_end_sub_edge:
+        case offset_shared_with_edge:
+          return m_pre_offset;
+          
+        case offset_square_cap:
+          return m_pre_offset + m_auxilary_offset;
+          
+        case offset_rounded_cap:
           {
-            lambda = -1.0f;
+            vec2 n(m_pre_offset), v(n.y(), -n.x());
+            return m_auxilary_offset.x() * v + m_auxilary_offset.y() * n;
           }
-        else
+          
+        case offset_rounded_join:
           {
-            lambda = 1.0f;
+            vec2 cs;
+            
+            cs.x() = m_auxilary_offset.y();
+            cs.y() = sqrt(1.0 - cs.x() * cs.x());
+            if(m_packed_data & sin_sign_mask)
+              {
+                cs.y() = -cs.y();
+              }
+            return cs;
           }
-        r = (dot(m_pre_offset, m_auxilary_offset) - 1.0) / dot(v, m_auxilary_offset);
-        if(tp >= offset_miter_end_join_types_first && tp <= offset_miter_end_join_types_last)
-          {
-            r = -r;
-          }
-        return lambda * (n - r * v);
-      }
-
-    case offset_rounded_cap:
-      {
-        vec2 n(m_pre_offset), v(n.y(), -n.x());
-        return m_auxilary_offset.x() * v + m_auxilary_offset.y() * n;
-      }
-
-    case offset_rounded_join:
-      {
-        vec2 cs;
-
-        cs.x() = m_auxilary_offset.y();
-        cs.y() = sqrt(1.0 - cs.x() * cs.x());
-        if(m_packed_data & sin_sign_mask)
-          {
-            cs.y() = -cs.y();
-          }
-        return cs;
-      }
-
-    default:
-      return vec2(0.0f, 0.0f);
+          
+        default:
+          return vec2(0.0f, 0.0f);
+        }
     }
 }
 
