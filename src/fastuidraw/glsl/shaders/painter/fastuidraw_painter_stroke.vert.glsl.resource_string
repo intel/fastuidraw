@@ -10,22 +10,29 @@ fastuidraw_stroke_compute_offset(in uint point_packed_data,
                                  in float miter_limit,
                                  out vec2 offset)
 {
-  if(offset_type == fastuidraw_stroke_offset_miter_join)
+  if(fastuidraw_stroke_offset_is_miter(offset_type))
     {
-      vec2 n = pre_offset, v = vec2(-n.y, n.x);
-      float r, numer, denom, lambda;
-      lambda = -sign(dot(v, auxilary_offset));
-      numer = dot(pre_offset, auxilary_offset) - 1.0;
-      denom = dot(v, auxilary_offset);
-      r = (denom != 0.0) ? numer/denom : 0.0;
+      vec2 n0 = pre_offset, Jn0 = vec2(n0.y, -n0.x);
+      vec2 n1 = auxilary_offset, Jn1 = vec2(n1.y, -n1.x);
+      float r, det, lambda;
 
+      det = dot(Jn1, n0);
+      lambda = -sign(det);
+      r = (det != 0.0) ? (1.0 - dot(n0, n1)) / abs(det) : 0.0;
+
+      if(fastuidraw_stroke_offset_is_miter_end_join(offset_type))
+        {
+          r = -r;
+          lambda = -lambda;
+        }
+      
       /* enforce miter-limit
        */
       if(miter_limit >= 0.0)
         {
           r = clamp(r, -miter_limit, miter_limit);
         }
-      offset = lambda * (n - r * v);
+      offset = lambda * n0 + r * Jn0;
     }
   else if(offset_type == fastuidraw_stroke_offset_rounded_join)
     {
@@ -59,15 +66,20 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
                                         out vec2 offset,
                                         inout float stroke_radius)
 {
-  if(offset_type == fastuidraw_stroke_offset_miter_join)
+  if(fastuidraw_stroke_offset_is_miter(offset_type))
     {
       vec2 n0 = pre_offset, v0 = vec2(n0.y, -n0.x);
       vec2 n1 = auxilary_offset, v1 = vec2(n1.y, -n1.x);
-      vec2 p0, p1, delta_p;
+      vec2 p0, p1, delta_d, d0, d1;
       vec3 clip_p, clip_direction;
       float det, r, r0, r1, m, lambda;
 
       lambda = -sign(dot(v1, n0));
+      if(fastuidraw_stroke_offset_is_miter_end_join(offset_type))
+        {
+          lambda = -lambda;
+        }
+
       clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
 
       n0 = lambda * fastuidraw_align_normal_to_screen(clip_p, n0);
@@ -77,24 +89,24 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
        */
       clip_direction = fastuidraw_item_matrix * vec3(n0, 0.0);
       r0 = fastuidraw_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_direction);
-      p0 = position + r0 * n0;
+      d0 = r0 * n0;
 
       /* let p1 be p moved by n1 the named number of pixels.
        */
       clip_direction = fastuidraw_item_matrix * vec3(n1, 0.0);
       r1 = fastuidraw_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_direction);
-      p1 = position + r1 * n1;
+      d1 = r1 * n1;
 
       /* now compute where the lines L0 and L1 intersect
-         where L0 = { p0 + s*v0 | s > 0}
-         and L1 = { p1 - s*v1 | s > 0}
+         where L0 = { p0 + s * v0 | s > 0}
+         and L1 = { p1 - s * v1 | s > 0}
       */
-      delta_p = p1 - p0;
+      delta_d = d1 - d0;
       det = v0.x * v1.y - v0.y * v1.x;
 
       if(det != 0.0)
         {
-          m = (v1.y * delta_p.x - v1.x * delta_p.y) / det;
+          m = (v1.y * delta_d.x - v1.x * delta_d.y) / det;
         }
       else
         {
@@ -108,11 +120,11 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
       */
       if(miter_limit >= 0.0)
         {
-          r = max(r0, r1) * miter_limit;
+          r = sqrt(max(dot(d1, d1), dot(d0, d0))) * miter_limit;
           m = clamp(m, -r, r);
         }
 
-      offset = p0 + m * v0 - position;
+      offset = d0 + m * v0;
       stroke_radius = 1.0;
     }
   else if(offset_type == fastuidraw_stroke_offset_rounded_join)

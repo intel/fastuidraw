@@ -82,18 +82,74 @@ public:
       offset_rounded_join,
 
       /*!
+        First enumeration value for miter-join offset types
+       */
+      offset_miter_types_first,
+
+      /*!
+        First enumeration value for miter-join offset types
+        that are for start of join
+       */
+      offset_miter_start_join_types_first = offset_miter_types_first,
+      
+      /*!
         The point is for a boundary point of a miter join of the path,
         if the miter-limit is exceeded on stroking, the miter-join
-        is clamped to the miter-limit
+        is clamped to the miter-limit. This is for the point on the
+        miter-join that come out of the path coming from the curve
+        that goes into the join.
        */
-      offset_miter_join,
+      offset_miter_start_join = offset_miter_start_join_types_first,
 
       /*!
         The point is for a boundary point of a miter join of the path,
         if the miter-limit is exceeded on stroking, the miter-join
-        is to be drawn as a bevel join.
+        is to be drawn as a bevel join. This is for the point on the
+        miter-join that come out of the path coming from the curve
+        that goes into the join.
        */
-      offset_miter_bevel_join,
+      offset_miter_bevel_start_join,
+
+      /*!
+        Last enumeration value for miter-join offset types
+        that are for start of join
+       */
+      offset_miter_start_join_types_last = offset_miter_bevel_start_join,
+
+      /*!
+        First enumeration value for miter-join offset types
+        that are for end of join
+       */
+      offset_miter_end_join_types_first,
+
+      /*!
+        The point is for a boundary point of a miter join of the path,
+        if the miter-limit is exceeded on stroking, the miter-join
+        is clamped to the miter-limit. This is for the point on the
+        miter-join that come out of the path coming from the curve
+        that comes out of the join.
+       */
+      offset_miter_end_join = offset_miter_end_join_types_first,
+
+      /*!
+        The point is for a boundary point of a miter join of the path,
+        if the miter-limit is exceeded on stroking, the miter-join
+        is to be drawn as a bevel join. This is for the point on the
+        miter-join that come out of the path coming from the curve
+        that comes out of the join.
+       */
+      offset_miter_bevel_end_join,
+
+      /*!
+        Last enumeration value for miter-join offset types
+        that are for end of join
+       */
+      offset_miter_end_join_types_last = offset_miter_bevel_end_join,
+
+      /*!
+        Last enumeration value for miter-join offset types
+       */
+      offset_miter_types_last = offset_miter_bevel_end_join,
 
       /*!
         The point is for a boundary point of a rounded cap of the path

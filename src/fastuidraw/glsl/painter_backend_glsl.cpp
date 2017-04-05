@@ -492,7 +492,25 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_stroke_offset_end_sub_edge", StrokedPath::offset_end_sub_edge)
     .add_macro("fastuidraw_stroke_offset_shared_with_edge", StrokedPath::offset_shared_with_edge)
     .add_macro("fastuidraw_stroke_offset_rounded_join", StrokedPath::offset_rounded_join)
-    .add_macro("fastuidraw_stroke_offset_miter_join", StrokedPath::offset_miter_join)
+    .add_macro("fastuidraw_stroke_offset_miter_types_first", StrokedPath::offset_miter_types_first)
+    .add_macro("fastuidraw_stroke_offset_miter_types_last", StrokedPath::offset_miter_types_last)
+    .add_macro("fastuidraw_stroke_offset_is_miter(X)",
+               "( (X) >= fastuidraw_stroke_offset_miter_types_first "
+               "&& (X) <= fastuidraw_stroke_offset_miter_types_last)")
+    .add_macro("fastuidraw_stroke_offset_miter_start_join_types_first", StrokedPath::offset_miter_start_join_types_first)
+    .add_macro("fastuidraw_stroke_offset_miter_start_join_types_last", StrokedPath::offset_miter_start_join_types_last)
+    .add_macro("fastuidraw_stroke_offset_is_miter_start_join(X)",
+               "( (X) >= fastuidraw_stroke_offset_miter_start_join_types_first "
+               "&& (X) <= fastuidraw_stroke_offset_miter_start_join_types_last)")
+    .add_macro("fastuidraw_stroke_offset_miter_end_join_types_first", StrokedPath::offset_miter_end_join_types_first)
+    .add_macro("fastuidraw_stroke_offset_miter_end_join_types_last", StrokedPath::offset_miter_end_join_types_last)
+    .add_macro("fastuidraw_stroke_offset_is_miter_end_join(X)",
+               "( (X) >= fastuidraw_stroke_offset_miter_end_join_types_first "
+               "&& (X) <= fastuidraw_stroke_offset_miter_end_join_types_last)")
+    .add_macro("fastuidraw_stroke_offset_miter_start_join", StrokedPath::offset_miter_start_join)
+    .add_macro("fastuidraw_stroke_offset_miter_bevel_start_join", StrokedPath::offset_miter_bevel_start_join)
+    .add_macro("fastuidraw_stroke_offset_miter_end_join", StrokedPath::offset_miter_end_join)
+    .add_macro("fastuidraw_stroke_offset_miter_bevel_end_join", StrokedPath::offset_miter_bevel_end_join)
     .add_macro("fastuidraw_stroke_offset_rounded_cap", StrokedPath::offset_rounded_cap)
     .add_macro("fastuidraw_stroke_offset_square_cap", StrokedPath::offset_square_cap)
     .add_macro("fastuidraw_stroke_offset_adjustable_cap_contour_start", StrokedPath::offset_adjustable_cap_contour_start)
