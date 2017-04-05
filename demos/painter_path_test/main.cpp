@@ -95,7 +95,8 @@ bool
 is_miter_join_style(unsigned int js)
 {
   return js == PainterEnums::miter_clip_joins
-    || js == PainterEnums::miter_bevel_joins;
+    || js == PainterEnums::miter_bevel_joins
+    || js == PainterEnums::miter_joins;
 }
 
 void
@@ -406,6 +407,7 @@ painter_stroke_test(void):
   m_join_labels[PainterEnums::bevel_joins] = "bevel_joins";
   m_join_labels[PainterEnums::miter_clip_joins] = "miter_clip_joins";
   m_join_labels[PainterEnums::miter_bevel_joins] = "miter_bevel_joins";
+  m_join_labels[PainterEnums::miter_joins] = "miter_joins";
 
   m_cap_labels[PainterEnums::flat_caps] = "flat_caps";
   m_cap_labels[PainterEnums::rounded_caps] = "rounded_caps";
