@@ -2799,15 +2799,13 @@ miter_distance(void) const
   tp = offset_type();
   if(tp >= offset_miter_types_first && tp <= offset_miter_types_last)
     {
-      vec2 n0(m_pre_offset), v0(-n0.y(), n0.x());
-      vec2 n1(m_auxilary_offset), v1(-n1.y(), n1.x());
-      float numer, denom;
+      vec2 n0(m_pre_offset), Jn0(n0.y(), -n0.x());
+      vec2 n1(m_auxilary_offset), Jn1(n1.y(), -n1.x());
+      float det, r;
 
-      numer = dot(v1, v0) - 1.0f;
-      denom = dot(v0, n1);
-      return denom != 0.0f ?
-        numer / denom :
-        0.0f;
+      det = dot(Jn1, n0);
+      r = (det != 0.0f) ? (1.0f - dot(n0, n1)) / det : 0.0f; 
+      return t_sqrt(1.0f + r * r);
     }
   else
     {
