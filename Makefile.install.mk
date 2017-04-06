@@ -22,6 +22,7 @@ fastuidraw-config: fastuidraw-config.in
 # variable (BUILD_GL, BUILD_GLES, INSTALL_LOCATION) changes, we can
 # guarantee that fastuidraw-config reflects it correctly.
 .PHONY: fastuidraw-config
+.SECONDARY: fastuidraw-config
 CLEAN_FILES+=fastuidraw-config
 INSTALL_EXES+=fastuidraw-config shell_scripts/fastuidraw-create-resource-cpp-file.sh
 TARGETLIST+=fastuidraw-config
@@ -40,6 +41,7 @@ fastuidraw$(2)-$(1).pc: fastuidraw-backend.pc.in fastuidraw-$(1).pc
 	@sed -i 's!@LIBRARY_CFLAGS@!$$(LIBRARY_$(2)_COMMON_CFLAGS) $$(LIBRARY_GL_GLES_$(1)_CFLAGS)!g' $$@
 	@sed -i 's!@LIBRARY_LIBS@!$$(LIBRARY_$(2)_LIBS)!g' $$@
 .PHONY:fastuidraw$(2)-$(1).pc
+.SECONDARY: fastuidraw$(2)-$(1).pc
 pkg-config: fastuidraw$(2)-$(1).pc
 INSTALL_PKG_FILES+=fastuidraw$(2)-$(1).pc
 TARGETLIST+=fastuidraw$(2)-$(1).pc
@@ -57,6 +59,7 @@ $(eval fastuidraw-$(1).pc: fastuidraw.pc.in
 	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION)!g' $$@
 	@sed -i 's!@LIBRARY_CFLAGS@!$$(LIBRARY_$(1)_BASE_CFLAGS)!g' $$@
 .PHONY:fastuidraw-$(1).pc
+.SECONDARY: fastuidraw-$(1).pc
 CLEAN_FILES+=fastuidraw-$(1).pc
 INSTALL_PKG_FILES+=fastuidraw-$(1).pc
 TARGETLIST+=fastuidraw-$(1).pc
@@ -76,7 +79,7 @@ install: $(INSTALL_LIBS) $(INSTALL_EXES) $(INSTALL_PKG_FILES)
 	-install -d $(INSTALL_LOCATION)/bin
 	-install -d $(INSTALL_LOCATION)/include
 	-install -t $(INSTALL_LOCATION)/lib $(INSTALL_LIBS)
-	-install -t $(INSTALL_LOCATION)/lib/pkgconfig $(INSTALL_PKG_FILES)
+	-install -m 644 -t $(INSTALL_LOCATION)/lib/pkgconfig $(INSTALL_PKG_FILES)
 	-install -t $(INSTALL_LOCATION)/bin $(INSTALL_EXES)
 	-find inc/ -type d -printf '%P\n' | xargs -I '{}' install -d $(INSTALL_LOCATION)/include/'{}'
 	-find inc/ -type f -printf '%P\n' | xargs -I '{}' install -m 644 inc/'{}' $(INSTALL_LOCATION)/include/'{}'
