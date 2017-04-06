@@ -4,30 +4,6 @@
  */
 
 /*!
-  \brief all classes and functions of FastUIDraw are in the
-         namespace fastuidraw.
- */
-namespace fastuidraw {
-
-  /*!
-    \brief Namesapce to encapsulate shader building to GLSL
-           shaders, part of the main library libFastUIDraw.
-   */
-  namespace glsl
-  {
-  }
-
-  /*!
-    \brief Namespace to encapsulate GL backend end implementation,
-           utility functions and utility classes. Part of the GL
-           backend libraries, libFastUIDrawGL and libFastUIDrawGLES.
-  */
-  namespace gl
-  {
-  }
-}
-
-/*!
 \defgroup Utility Utility
 @{
 \brief
@@ -112,6 +88,127 @@ Collection of utility interfaces used by \ref GLBackend that an application
 may wish to use as well.
 @}
 */
+
+/*!
+  \brief all classes and functions of FastUIDraw are in the
+         namespace fastuidraw.
+ */
+namespace fastuidraw {
+
+  /*!
+    \brief Namesapce to encapsulate shader building to GLSL
+           shaders, part of the main library libFastUIDraw.
+   */
+  namespace glsl
+  {
+  }
+
+  /*!
+    \brief Namespace to encapsulate GL backend end implementation,
+    utility functions and utility classes. Part of the GL
+    backend libraries, libFastUIDrawGL and libFastUIDrawGLES.
+  */
+  namespace gl
+  {
+
+/*!\addtogroup GLUtility
+  @{
+ */
+    /*!
+      \brief Template version for setting an of uniform values
+      \param location location of uniform, i.e. return value
+             of glGetUniformLocation
+      \param v array of values
+      \param count number of elements from the array v to use.
+    */
+    template<typename T>
+    void
+    Uniform(int location, GLsizei count, const T *v);
+
+    /*!
+      \brief Template version for setting an array of matrix uniform values.
+      \param location location of uniform, i.e. return value
+                      of glGetUniformLocation
+      \param v value
+      \param count number of elements from the array v to use.
+      \param transposed set to tue true if GL should interpret the matrices as transposed
+    */
+    template<typename T, size_t N, size_t M>
+    void
+    Uniform(int location, GLsizei count, const matrixNxM<T, N, M> *v, bool transposed = false);
+
+    /*!
+      \brief Template version for setting a single uniform value.
+      \param location location of uniform, i.e. return value
+                      of glGetUniformLocation
+                      \param v value
+    */
+    template<typename T, size_t N>
+    void
+    Uniform(int location, const vecN<T, N> &v);
+
+    /*!
+      \brief Template version for setting a single matrix uniform value.
+      \param location location of uniform, i.e. return value
+                      of glGetUniformLocation
+      \param v value
+      \param transposed set to tue true if GL should interpret the matrices as transposed
+    */
+    template<typename T, size_t N, size_t M>
+    void
+    Uniform(int location, const matrixNxM<T, N, M> &v, bool transposed = false);
+
+    /*!
+      \brief Template version for setting an of uniform values
+      \param program GL name of program to which uniform(s) belong
+      \param location location of uniform, i.e. return value
+                      of glGetUniformLocation
+      \param v array of values
+      \param count number of elements from the array v to use.
+    */
+    template<typename T>
+    void
+    ProgramUniform(GLuint program, int location, GLsizei count, const T *v);
+
+    /*!
+      \brief Template version for setting an array of matrix uniform values.
+      \param program GL name of program to which uniform(s) belong
+      \param location location of uniform, i.e. return value
+                      of glGetUniformLocation
+      \param v value
+      \param count number of elements from the array v to use.
+      \param transposed set to tue true if GL should interpret the matrices as transposed
+    */
+    template<typename T, size_t N, size_t M>
+    void
+    ProgramUniform(GLuint program, int location, GLsizei count, const matrixNxM<T, N, M> *v, bool transposed = false);
+
+    /*!
+      \brief Template version for setting a single uniform value.
+      \param program GL name of program to which uniform(s) belong
+      \param location location of uniform, i.e. return value
+                      of glGetUniformLocation
+      \param v value
+    */
+    template<typename T, size_t N>
+    void
+    ProgramUniform(GLuint program, int location, const vecN<T, N> &v);
+
+    /*!
+      \brief Template version for setting a single matrix uniform value.
+      \param program GL name of program to which uniform(s) belong
+      \param location location of uniform, i.e. return value
+                      of glGetUniformLocation
+      \param v value
+      \param transposed set to tue true if GL should interpret the matrices as transposed
+    */
+    template<typename T, size_t N, size_t M>
+    void
+    ProgramUniform(GLuint program, int location, const matrixNxM<T, N, M> &v, bool transposed = false);
+
+    /*! @} */
+  }
+}
 
 /*! \mainpage FastUIDraw
 
