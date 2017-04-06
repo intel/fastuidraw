@@ -30,6 +30,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterGlyphShader holds a shader pair
     for each glyph_type. The shaders are to
     handle attribute data as packed by

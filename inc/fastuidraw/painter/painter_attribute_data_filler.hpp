@@ -30,6 +30,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterAttributeDataFiller is the interfaceto fill the
     data held by a \ref PainterAttributeData
    */

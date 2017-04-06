@@ -26,6 +26,7 @@ namespace fastuidraw
   @{
  */
   /*!
+    \brief
     Base class to specify a custom fill rule.
    */
   class CustomFillRuleBase
@@ -43,6 +44,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     Class to specify a custom fill rule from
     a function.
   */

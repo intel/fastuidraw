@@ -26,6 +26,7 @@ namespace fastuidraw
 */
 
   /*!
+    \brief
     Represents defining properties of a font
     used by GlyphSelector to perform font
     merging.

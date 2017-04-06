@@ -31,6 +31,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterBlendShaderSet represents a set of shaders
     for the blend modes enumerated by PainterEnums::blend_mode_t
    */

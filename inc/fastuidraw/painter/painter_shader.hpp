@@ -29,17 +29,19 @@ namespace fastuidraw
  */
 
   /*!
-    A PainterShader encapsulates what a Painter needs to
-    use a painter to assemble data to send to a PainterBackend
-    to draw. The real meat of a PainterShader is dependent
-    on the backend. Typically it is a source code -fragment-
-    that is placed into a large uber-shader.
+    \brief
+    A PainterShader encapsulates how to draw or blend.
+    
+    The real meat of a PainterShader is dependent
+    on the backend. Typically it is a shader source
+    code -fragment- that is placed into a large uber-shader.
    */
   class PainterShader:
     public reference_counted<PainterShader>::default_base
   {
   public:
     /*!
+      \brief
       A Tag is how a PainterShader is described for
       and by a PainterBackend.
      */

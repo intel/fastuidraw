@@ -39,7 +39,9 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A wrapper over a pointer to implement reference counting.
+    
     The class T must implement the static methods
      - T::add_reference(const T*)
      - T::remove_reference(const T*)
@@ -386,8 +388,10 @@ namespace fastuidraw
   }
 
   /*!
+    \brief
     Base class to use for reference counted objects,
-    for using reference_counted_ptr. See also reference_counted.
+    for using reference_counted_ptr. See also \ref reference_counted.
+ 
     \tparam T object type that is reference counted
     \tparam Counter object type to perform reference counting.
 
@@ -442,6 +446,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     Defines default reference counting base classes.
 
     See also reference_counted_base and reference_counted_ptr.
@@ -451,23 +456,27 @@ namespace fastuidraw
   {
   public:
     /*!
+      \brief
       Typedef to reference counting which is NOT thread safe
      */
     typedef reference_counted_base<T, reference_count_non_concurrent> non_concurrent;
 
     /*!
+      \brief
       Typedef to reference counting which is thread safe by locking
       a mutex on adding and removing reference
      */
     typedef reference_counted_base<T, reference_count_mutex> mutex;
 
     /*!
+      \brief
       Typedef to reference counting which is thread safe by atomically
       adding and removing reference
      */
     typedef reference_counted_base<T, reference_count_atomic> atomic;
 
     /*!
+      \brief
       Typedef for "default" way to reference count.
      */
     typedef atomic default_base;

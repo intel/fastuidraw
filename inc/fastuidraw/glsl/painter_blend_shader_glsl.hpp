@@ -32,10 +32,12 @@ namespace fastuidraw
   @{
  */
     /*!
+      \brief
       A PainterBlendShaderGLSL is a PainterBlendShader whose
-      shader code fragment is via GLSL. The code to implement
-      is dependent on the PainterBlendShader::type() of the
-      created PainterBlendShaderGLSL.
+      shader code fragment is via GLSL.
+
+      The code to implement is dependent on the PainterBlendShader::type()
+      of the created PainterBlendShaderGLSL.
       - PainterBlendShader::type() == PainterBlendShader::single_src
         The shader code fragment must provide the function
         \code

@@ -28,6 +28,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     Reference counter that is thread safe by
     having increment and decrement operations
     by atomic operations, this is usually faster

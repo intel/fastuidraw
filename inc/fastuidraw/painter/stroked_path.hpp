@@ -39,9 +39,10 @@ class PainterAttribute;
  */
 
 /*!
+  \brief
   A StrokedPath represents the data needed to draw a path stroked.
   It contains -all- the data needed to stroke a path regardless of
-  stroking style. in particular, for a given TessellatedPath,
+  stroking style. In particular, for a given TessellatedPath,
   one only needs to construct a StrokedPath <i>once</i> regardless
   of how one strokes the original path for drawing.
  */
@@ -50,6 +51,7 @@ class StrokedPath:
 {
 public:
   /*!
+    \brief
     Enumeration for specifing how to compute
     \ref point::offset_vector()).
    */
@@ -143,6 +145,7 @@ public:
     };
 
   /*!
+    \brief
     Enumeration encoding of bits of point::m_packed_data
     common to all offset types.
    */
@@ -196,6 +199,7 @@ public:
     };
 
   /*!
+    \brief
     Enumeration encoding of bits of point::m_packed_data
     for those with offset type \ref offset_rounded_join
    */
@@ -226,6 +230,7 @@ public:
     };
 
   /*!
+    \brief
     Enumeration encoding of bits of point::m_packed_data for
     those with offset type \ref offset_adjustable_cap_contour_end
     or \ref offset_adjustable_cap_contour_start.
@@ -241,6 +246,7 @@ public:
     };
 
   /*!
+    \brief
     Enumeration encoding of bits of point::m_packed_data
     for those with offset type \ref offset_start_sub_edge
     or \ref offset_end_sub_edge.
@@ -255,6 +261,7 @@ public:
     };
 
   /*!
+    \brief
     Enumeration holding bit masks generated from
     values in \ref packed_data_bit_layout_common_t,
     \ref packed_data_bit_layout_rounded_join_t,
@@ -311,6 +318,7 @@ public:
     };
 
   /*!
+    \brief
     A point holds the data for a point of stroking.
     The data is so that changing the stroking width
     or miter limit does not change the stroking data.
@@ -573,6 +581,7 @@ public:
   };
 
   /*!
+    \brief
     Opaque object to hold work room needed for functions
     of StrokedPath that require scratch space.
    */

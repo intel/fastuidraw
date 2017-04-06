@@ -23,11 +23,12 @@
 
 namespace fastuidraw
 {
-/*!\addtogroup Painter
+/*!\addtogroup PainterPacking
   @{
  */
 
   /*!
+    \brief
     A PainterHeader represents the values of the header for
     the shaders to read to draw data. The header holds data
     that is common for all vertices and fragments for an

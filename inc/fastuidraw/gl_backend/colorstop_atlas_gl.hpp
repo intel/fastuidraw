@@ -31,6 +31,10 @@ namespace gl
  */
 
   /*!
+    \brief
+    An ColorStopAtlasGL is the GL(and GLES) backend implementation
+    for \ref ColorStopAtlas.
+
     A ColorStopAtlasGL uses a GL texture for the underlying
     store. In GL, the texture type is GL_TEXTURE_1D_ARRAY,
     in GLES it is GL_TEXTURE_2D_ARRAY (because GLES does not support
@@ -46,6 +50,7 @@ namespace gl
   {
   public:
     /*!
+      \brief
       Class to hold the construction parameters for creating
       a ColorStopAtlasGL.
      */

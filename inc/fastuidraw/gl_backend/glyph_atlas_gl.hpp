@@ -32,6 +32,10 @@ namespace gl
  */
 
   /*!
+    \brief
+    A GlyphAtlasGL is the GL(and GLES) backend implementation
+    for \ref GlyphAtlas.
+
     A GlyphAtlasGL on creation, creates a GlyphAtlasTexelBackingStoreBase
     (backed by a GL_TEXTURE_2D_ARRAY) and a GlyphAtlasGeometryBackingStoreBase
     (backed by a buffer object linked to a textuer via GL_TEXTURE_BUFFER).
@@ -47,6 +51,7 @@ namespace gl
   {
   public:
     /*!
+      \brief
       Class to hold the construction parameters for creating
       a GlyphAtlasGL.
      */

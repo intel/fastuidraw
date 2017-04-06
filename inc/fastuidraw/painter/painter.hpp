@@ -37,8 +37,11 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     Painter wraps around PainterPacker to implement a classic
-    2D rendering interface:
+    2D rendering interface.
+
+    Painter implements:
      - stroking
      - filling
      - applying a brush (see PainterBrush)

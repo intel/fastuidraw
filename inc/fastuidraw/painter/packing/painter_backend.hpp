@@ -35,6 +35,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterBackend is an interface that defines the API-specific
     elements to implement Painter:
    */
@@ -43,6 +44,7 @@ namespace fastuidraw
   public:
 
     /*!
+      \brief
       A ConfigurationBase holds how data should be set to a
       PainterBackend
      */
@@ -104,6 +106,7 @@ namespace fastuidraw
     };
 
     /*!
+      \brief
       PerformanceHints provides miscellaneous data about
       an implementation of a PainterBackend.
      */

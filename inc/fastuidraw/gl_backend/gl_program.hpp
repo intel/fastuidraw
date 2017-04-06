@@ -36,8 +36,10 @@ namespace gl {
 
 
 /*!
-  Simple Shader utility class, providing a simple interface to build
+  \brief
+  Simple Shader utility class providing a simple interface to build
   GL shader objects using a glsl::ShaderSouce as its source code.
+  
   The actual GL object creation is defferred to later, in
   doing so, one can create Shader objects from outside the main GL
   thread. Each of the following commands
@@ -158,7 +160,8 @@ private:
 
 
 /*!
-  A PreLinkAction is an action to apply to a Program
+  \brief
+  A PreLinkAction is an action to apply to a \ref Program
   after attaching shaders but before linking.
  */
 class PreLinkAction:
@@ -181,7 +184,8 @@ public:
 
 
 /*!
-  A BindAttribute inherits from PreLinkAction,
+  \brief
+  A BindAttribute inherits from \ref PreLinkAction,
   it's purpose is to bind named attributes to named
   locations, i.e. it calls glBindAttributeLocation().
  */
@@ -206,7 +210,8 @@ private:
 };
 
 /*!
-  A ProgramSeparable inherits from PreLinkAction,
+  \brief
+  A ProgramSeparable inherits from \ref PreLinkAction,
   its purpose is to set a GLSL program as separable,
   so that it can be used by a GLSL pipeline.
   Using a ProgramSeparable requires:
@@ -222,7 +227,8 @@ public:
 };
 
 /*!
-  A BindFragDataLocation inherits from PreLinkAction,
+  \brief
+  A BindFragDataLocation inherits from \ref PreLinkAction,
   its purpose is to bind a fragment shader out to
   a named location and index. Using a BindFragDataLocation
   requires:
@@ -252,8 +258,9 @@ private:
 };
 
 /*!
+  \brief
   A PreLinkActionArray is a conveniance class
-  wrapper over an array of PreLinkAction handles.
+  wrapper over an array of \ref PreLinkAction handles.
  */
 class PreLinkActionArray
 {
@@ -333,6 +340,7 @@ private:
 class Program;
 
 /*!
+  \brief
   A ProgramInitializer is a functor object called the first time
   a Program is bound (i.e. the first
   time Program::use_program() is called).
@@ -362,6 +370,7 @@ public:
 };
 
 /*!
+  \brief
   A UniformInitalizerBase is a base class for
   initializing a uniform, the actual GL call to
   set the uniform value is to be implemented by
@@ -410,6 +419,7 @@ private:
 };
 
 /*!
+  \brief
   Initialize a uniform via the templated
   overloaded function fastuidraw::gl::Uniform().
  */
@@ -448,6 +458,7 @@ private:
 };
 
 /*!
+  \brief
   Specialization for type const_c_array<T> for
   \ref UniformInitializer so that data behind
   the const_c_array is copied.
@@ -503,6 +514,7 @@ private:
 };
 
 /*!
+  \brief
   Specialization for type c_array<T> for
   \ref UniformInitializer so that data behind
   the c_array is copied.
@@ -559,11 +571,13 @@ private:
 
 
 /*!
+  \brief
   Conveniance typedef to initialize samplers.
  */
 typedef UniformInitializer<int> SamplerInitializer;
 
 /*!
+  \brief
   A UniformBlockInitializer is used to initalize the binding point
   used by a bindable uniform (aka Uniform buffer object, see the
   GL spec on glGetUniformBlockIndex and glUniformBlockBinding.
@@ -590,6 +604,7 @@ private:
 
 #ifndef FASTUIDRAW_GL_USE_GLES
 /*!
+  \brief
   A ShaderStorageBlockInitializer is used to initalize the binding point
   used by a shader storage block (see the GL spec on
   glShaderStorageBlockBinding). Initializer is not supported
@@ -618,6 +633,7 @@ private:
 #endif
 
 /*!
+  \brief
   Conveniance class to hold an array of handles
   of ProgramInitializer objects
  */
@@ -714,7 +730,9 @@ private:
 };
 
 /*!
+  \brief
   Class for creating and using GLSL programs.
+
   A Program delays the GL commands to
   create the actual GL program until the first time
   it is bound with use_program(). In addition to
@@ -734,6 +752,7 @@ class Program:
 {
 public:
   /*!
+    \brief
     Enumeration to describe the backing of a shader
     variable's value.
    */
@@ -790,6 +809,7 @@ public:
     };
 
   /*!
+    \brief
     A shader_variable_info holds the type,
     size and name of a uniform or an attribute
     of a GL program.
@@ -973,6 +993,7 @@ public:
   };
 
   /*!
+    \brief
     A block_info represents an object from which
     one can query the members of a uniform or
     shader storage block.
@@ -1085,8 +1106,9 @@ public:
   };
 
   /*!
-    A block_info represents an object from which
-    one can query teh data of an atomic buffer.
+    \brief
+    An aomit_block_info represents an object from which
+    one can query the data of an atomic buffer.
    */
   class atomic_buffer_info
   {

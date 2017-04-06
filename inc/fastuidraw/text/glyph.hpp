@@ -36,6 +36,7 @@ namespace fastuidraw
   class GlyphCache;
 
   /*!
+    \brief
     A Glyph is essentially an opaque pointer to
     data for rendering and performing layout of a
     glyph.

@@ -43,7 +43,8 @@ offset_as_void_pointer(unsigned int offset)
   return return_value;
 }
 
-/*!\struct opengl_trait
+/*!
+  \brief
   Type trait struct that provides type information to feed GL commands.
   \tparam T type from which to extract values. The struct is specicialized for
             each of the GL types: GLubyte, GLbyte, GLuint, GLint, GLushort, GLshort, GLfloat
@@ -53,11 +54,13 @@ template<typename T>
 struct opengl_trait
 {
   /*!
+    \brief
     Typedef to template parameter
    */
   typedef T data_type;
 
   /*!
+    \brief
     For an array type, such as vecN,
     element type of the array, otherwise
     is same as data_type. Note,
@@ -194,6 +197,7 @@ struct opengl_trait< vecN<T,N> >
 
 
 /*!
+  \brief
   Class the bundles up count, size and type parameters
   for the GL API function glVertexAttribPointer
 */

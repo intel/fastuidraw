@@ -30,6 +30,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     PainterAttributeData represents the attribute and index
     data ready to be consumed by a Painter. Data is organized
     into individual chuncks that can be drawn seperately.

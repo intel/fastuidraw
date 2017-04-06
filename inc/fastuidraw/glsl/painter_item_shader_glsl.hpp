@@ -30,16 +30,18 @@ namespace fastuidraw
   @{
  */
     /*!
+      \brief
       A varying_list lists all the in's of a frag
       shader (and their names) or all the out's of vertex
-      shader. A varying for a PainterShaderGL is a
-      SCALAR. For a vertex and fragment shader pair,
-      the name of the varying does NOT matter for the
-      sending of a vertex shader out to a fragment shader
-      in. Instead, the slot matters. The virtual slots for
-      each varying type are seperate, i.e. slot 0 for uint
-      is a different slot than slot 0 for int. In addition
-      the interpolation type is part of the type for floats,
+      shader.
+
+      A varying for a PainterShaderGL is a SCALAR. For a vertex
+      and fragment shader pair, the name of the varying does NOT
+      matter for the sending of a vertex shader out to a fragment
+      shader in. Instead, the slot matters. The virtual slots for
+      each varying type are seperate, i.e. slot 0 for uint is a
+      different slot than slot 0 for int. In addition the
+      interpolation type is part of the type for floats,
       thus slot 0 for flat float is a different slot than
       slot 0 for smooth float.
     */
@@ -47,6 +49,7 @@ namespace fastuidraw
     {
     public:
       /*!
+        \brief
         Enumeration to define the interpolation of a varying
       */
       enum interpolation_qualifier_t
@@ -163,6 +166,7 @@ namespace fastuidraw
     };
 
     /*!
+      \brief
       A shader_unpack_value represents a value to unpack
       from the data store.
      */
@@ -264,6 +268,7 @@ namespace fastuidraw
     };
 
     /*!
+      \brief
       A shader_unpack_value_set is a convenience class wrapping
       an array of shader_unpack_value objects.
      */
@@ -335,6 +340,7 @@ namespace fastuidraw
 
 
     /*!
+      \brief
       A PainterItemShaderGL is a collection of GLSL source code
       fragments for a PainterBackendGL.
 

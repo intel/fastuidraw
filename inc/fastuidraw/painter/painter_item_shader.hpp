@@ -28,6 +28,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterItemShader represents a shader to
     draw an item (typically a vertex and fragment
     shader pair).

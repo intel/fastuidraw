@@ -29,7 +29,8 @@ namespace fastuidraw
   @{
  */
 
-  /*!\union generic_data
+  /*!
+    \brief
     Union to store 32-bit data.
    */
   union generic_data
@@ -51,6 +52,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     Enumeration for simple return codes for functions
     for success or failure.
   */
@@ -266,6 +268,7 @@ namespace fastuidraw
   }
 
   /*!
+    \brief
     A class reprenting the STL range
     [m_begin, m_end).
   */
@@ -313,6 +316,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     Class for which copy ctor and assignment operator
     are private functions.
    */
@@ -330,6 +334,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     Class for type traits to indicate true.
     Functionally, a simplified version of
     std::true_type.
@@ -347,6 +352,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     Class for type traits to indicate true.
     Functionally, a simplified version of
     std::false_type.

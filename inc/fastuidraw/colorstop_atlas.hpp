@@ -29,6 +29,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     Represents the interface for the backing store for the texels
     of a sequence of color stops. The expectation is that linear
     filtering acting on the underlying backing store is all that
@@ -132,6 +133,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     A ColorStopAtlas is a common location to all color stop data of an
     application. Ideally, all color stop sequences are placed into a single
     ColorStopAtlas (changes of ColorStopAtlas force draw-call breaks).
@@ -241,6 +243,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     A ColorStopSequenceOnAtlas is a ColorStopSequence on a ColorStopAtlas.
     A ColorStopAtlas is backed by a 1D texture array with linear filtering.
     The values of ColorStop::m_place are discretized. Values in between the

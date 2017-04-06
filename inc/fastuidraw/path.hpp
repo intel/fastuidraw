@@ -33,9 +33,12 @@ namespace fastuidraw  {
  */
 
 /*!
+  \brief
   An PathContour represents a single contour within
-  a Path. Ending a contour, see \ref end(), \ref
-  end_generic() and end_arc(), means to specify
+  a Path.
+
+  Ending a contour (see \ref end(), \ref
+  end_generic() and end_arc()) means to specify
   the edge from the last point of the PathContour
   to the first point.
  */
@@ -45,6 +48,7 @@ class PathContour:
 public:
 
   /*!
+    \brief
     Base class to describe how to interpolate from one
     point of a PathContour to the next, i.e. describes
     the shape of an edge.
@@ -145,6 +149,7 @@ public:
   };
 
   /*!
+    \brief
     A flat interpolator represents a flat edge.
    */
   class flat:public interpolator_base
@@ -181,6 +186,7 @@ public:
   };
 
   /*!
+    \brief
     Interpolator generic implements tessellation by recursion
     and relying on analytic derivative provided by derived
     class.
@@ -260,6 +266,7 @@ public:
   };
 
   /*!
+    \brief
     Derived class of interpolator_base to indicate a Bezier curve.
     Supports Bezier curves of _any_ degree.
    */
@@ -328,6 +335,7 @@ public:
   };
 
   /*!
+    \brief
     An arc is for connecting one point to the next via an
     arc of a circle.
    */
@@ -519,12 +527,15 @@ private:
 };
 
 /*!
+  \brief
   A Path represents a collection of PathContour
-  objects. To end a contour in a Path, see
+  objects.
+
+  To end a contour in a Path (see
   \ref end_contour_quadratic(), \ref
   end_contour_arc(), \ref end_contour_cubic(),
   \ref end_contour_custom(), \ref contour_end_arc
-  and \ref contour_end, means to specify
+  and \ref contour_end) means to specify
   the edge from the last point of the current
   contour to the first point of it.
  */
@@ -532,6 +543,7 @@ class Path
 {
 public:
   /*!
+    \brief
     Class that wraps a vec2 to mark a point
     as a control point for a Bezier curve
    */
@@ -563,6 +575,7 @@ public:
   };
 
   /*!
+    \brief
     Wraps the data to specify an arc
    */
   class arc
@@ -589,12 +602,14 @@ public:
   };
 
   /*!
+    \brief
     Tag class to mark the end of an contour
    */
   class contour_end
   {};
 
   /*!
+    \brief
     Tag class to mark the end of an contour with an arc
    */
   class contour_end_arc

@@ -39,6 +39,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     (Private) base classe used for PainterPackedValue
    */
   class PainterPackedValueBase
@@ -68,11 +69,13 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     A PainterPackedValue represents a handle to an object that stores
     packed state data and tracks if that underlying data is already is
-    already copied to PainterDraw::m_store. If already
-    on a store, then rather than copying the data again, the data is
-    reused. The object behind the handle is NOT thread safe. In addition
+    already copied to PainterDraw::m_store.
+
+    If already on a store, then rather than copying the data again, the data
+    is reused. The object behind the handle is NOT thread safe. In addition
     the underlying reference count is not either. Hence any access
     (even dtor, copy ctor and equality operator) on a fixed object cannot
     be done from multiple threads simutaneously. A fixed
@@ -186,8 +189,11 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     A PainterPackedValuePool can be used to create PainterPackedValue
-    objects. Just like PainterPackedValue, PainterPackedValuePool is
+    objects.
+
+    Just like PainterPackedValue, PainterPackedValuePool is
     NOT thread safe, as such it is not a safe operation to use the
     same PainterPackedValuePool object from multiple threads at the
     same time. A fixed PainterPackedValuePool can create PainterPackedValue

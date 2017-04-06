@@ -32,6 +32,7 @@ namespace fastuidraw
  */
 
 /*!
+  \brief
   vecN is a simple static array class with no virtual
   functions and no memory overhead. Supports runtim array
   index checking and STL style iterators via pointer iterators.
@@ -53,56 +54,67 @@ public:
     };
 
   /*!
+    \brief
     STL compliant typedef
    */
   typedef T* pointer;
 
   /*!
+    \brief
     STL compliant typedef
    */
   typedef const T* const_pointer;
 
   /*!
+    \brief
     STL compliant typedef
    */
   typedef T& reference;
 
   /*!
+    \brief
     STL compliant typedef
    */
   typedef const T& const_reference;
 
   /*!
+    \brief
     STL compliant typedef
    */
   typedef T value_type;
 
   /*!
+    \brief
     STL compliant typedef
    */
   typedef size_t size_type;
 
   /*!
+    \brief
     STL compliant typedef
    */
   typedef ptrdiff_t difference_type;
 
   /*!
+    \brief
     iterator typedef to pointer
    */
   typedef pointer iterator;
 
   /*!
+    \brief
     iterator typedef to const_pointer
    */
   typedef const_pointer const_iterator;
 
   /*!
+    \brief
     iterator typedef using std::reverse_iterator.
    */
   typedef std::reverse_iterator<const_iterator>  const_reverse_iterator;
 
   /*!
+    \brief
     iterator typedef using std::reverse_iterator
    */
   typedef std::reverse_iterator<iterator>        reverse_iterator;

@@ -34,11 +34,10 @@ namespace fastuidraw
  */
 
   /*!
-    A PainterShaderSet provides shaders for drawing
-    each of the item types:
-     - glyphs
-     - stroking paths
-     - filling paths
+    \brief
+    A PainterShaderSet provides shaders for blending
+    and drawing each of the item types glyphs, stroking
+    paths and filling paths.
    */
   class PainterShaderSet
   {

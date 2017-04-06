@@ -37,7 +37,9 @@ class Image;
  */
 
   /*!
+    \brief
     Represents the interface for a backing store for color data of images.
+    
     For example in GL, this can be a GL_TEXTURE_2D_ARRAY. An implementation
     of the class does NOT need to be thread safe because the user of the
     backing store (ImageAtlas) performs calls to the backing store behind
@@ -131,7 +133,9 @@ class Image;
   };
 
   /*!
+    \brief
     Represents the interface for the backing store for index data of images.
+    
     For example in GL, this can be a GL_TEXTURE_2D_ARRAY. An implementation
     of the class does NOT need to be thread safe because the user of the
     backing store (ImageAtlas) performs calls to the backing store behind
@@ -257,7 +261,9 @@ class Image;
 
 
   /*!
+    \brief
     An ImageAtlas is a common location to place images of an application.
+
     Ideally, all images are placed into a single ImageAtlas (changes of
     ImageAtlas force draw-call breaks). Methods of ImageAtlas are
     thread safe, locked behind a mutex of the ImageAtlas.
@@ -427,6 +433,7 @@ class Image;
   };
 
   /*!
+    \brief
     An Image represents an image comprising of RGBA8 values.
     The texel values themselves are stored in a ImageAtlas.
    */

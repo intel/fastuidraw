@@ -28,6 +28,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     Class to specify dashed stroking parameters, data is packed
     as according to PainterDashedStrokeParams::stroke_data_offset_t.
     Data for dashing is packed [TODO describe].
@@ -36,6 +37,7 @@ namespace fastuidraw
   {
   public:
     /*!
+      \brief
       Enumeration that provides offsets for the stroking
       parameters. The dashed pattern is packed in the next
       block of the data store.
@@ -53,6 +55,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       A DashPatternElement is an element of a dash pattern.
       It specifies how long to draw then how much space to
       emit before the next DashPatternElement.

@@ -35,6 +35,7 @@ namespace fastuidraw
   class GlyphLayoutData;
 
   /*!
+    \brief
     FontBase provides an interface for a font
     to generate glyph rendering data.
    */

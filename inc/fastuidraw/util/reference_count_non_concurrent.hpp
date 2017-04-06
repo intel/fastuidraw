@@ -29,6 +29,7 @@ namespace fastuidraw
   @{
  */
   /*!
+    \brief
     Reference counter that is NOT thread safe
    */
   class reference_count_non_concurrent:noncopyable

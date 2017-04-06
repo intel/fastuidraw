@@ -30,6 +30,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A ColorStop is a pair consisting of an RGBA value and a place. The
     value of the place is a floating point value in the range [0, 1].
    */
@@ -77,13 +78,16 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     A ColorStopSequence is a sequence of ColorStop values used to
-    define the color stops of a gradient. The values are sorted by
-    ColorStop::m_place and each ColorStop value of a ColorStopSequence
-    must have a unique value for ColorStop::m_place. A color is computed
-    (in drawing) from a ColorStopSequence at a point q as follows. First
-    the color stops S and T are found so that q is in the range
-    [S.m_place, T.m_place]. The color value is then given by the value
+    define the color stops of a gradient.
+
+    The values are sorted by ColorStop::m_place and each ColorStop
+    value of a ColorStopSequence must have a unique value for
+    ColorStop::m_place. A color is computed (in drawing) from a
+    ColorStopSequence at a point q as follows. First the color stops
+    S and T are found so that q is in the range [S.m_place, T.m_place].
+    The color value is then given by the value
     (1-t) * S.m_color + t * S.m_color where t is given by
     (q-S.m_place) / (T.m_place - S.m_place).
    */

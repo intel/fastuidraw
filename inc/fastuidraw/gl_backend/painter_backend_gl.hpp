@@ -34,6 +34,7 @@ namespace fastuidraw
   @{
  */
     /*!
+      \brief
       A PainterBackendGL implements PainterBackend
       using the GL (or GLES) API.
      */
@@ -41,6 +42,7 @@ namespace fastuidraw
     {
     public:
       /*!
+        \brief
         Enumeration to specify which GLSL program
         to fetch from program(enum program_type_t).
       */
@@ -69,6 +71,7 @@ namespace fastuidraw
         };
 
       /*!
+        \brief
         A ConfigurationGL gives parameters how to contruct
         a PainterBackendGL.
        */

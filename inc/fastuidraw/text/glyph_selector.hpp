@@ -30,6 +30,7 @@ namespace fastuidraw
 */
 
   /*!
+    \brief
     A GlyphSelector performs the act of selecting a glyph
     from a font preference and a character code.
    */

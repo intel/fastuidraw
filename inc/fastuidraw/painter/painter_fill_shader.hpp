@@ -30,6 +30,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterFillShader holds the shaders for drawing filled paths.
    */
   class PainterFillShader

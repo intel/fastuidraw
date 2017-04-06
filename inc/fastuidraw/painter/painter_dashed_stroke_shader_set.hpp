@@ -33,6 +33,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A DashEvaluatorBase is the interface used by Painter
     to realize the data to send to a PainterPacker for
     the purpose of dashed stroking.
@@ -81,6 +82,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     A PainterDashedStrokeShaderSet holds a collection of
     PainterStrokeShaderSet objects for the purpose of
     dashed stroking. The shaders within a

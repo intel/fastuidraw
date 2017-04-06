@@ -44,6 +44,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterPacker packs data created by a Painter
     to be fed to a PainterBackend to draw.
    */
@@ -51,6 +52,7 @@ namespace fastuidraw
   {
   public:
     /*!
+      \brief
       A DataCallBack represents a functor call back
       from PainterPacker called whenever a header is
       added or when a new PainterDraw is
@@ -80,6 +82,7 @@ namespace fastuidraw
     };
 
     /*!
+      \brief
       A provides an interface to write attribute and index data into a PainterDraw
       for the cases where a simple copy is not sufficient.
      */
@@ -161,6 +164,7 @@ namespace fastuidraw
     };
 
     /*!
+      \brief
       Enumeration to query the statistics of how
       much data has been packed
     */

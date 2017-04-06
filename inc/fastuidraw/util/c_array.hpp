@@ -39,6 +39,7 @@ class const_c_array;
 
 
 /*!
+  \brief
   A c_array is a wrapper over a
   C pointer with a size parameter
   to facilitate bounds checking
@@ -51,56 +52,67 @@ class c_array
 public:
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef T* pointer;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef const T* const_pointer;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef T& reference;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef const T& const_reference;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef T value_type;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef size_t size_type;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef ptrdiff_t difference_type;
 
   /*!
+    \brief
     iterator typedef to pointer
    */
   typedef pointer iterator;
 
   /*!
+    \brief
     iterator typedef to const_pointer
    */
   typedef const_pointer const_iterator;
 
   /*!
+    \brief
     iterator typedef using std::reverse_iterator.
    */
   typedef std::reverse_iterator<const_iterator>  const_reverse_iterator;
 
   /*!
+    \brief
     iterator typedef using std::reverse_iterator.
    */
   typedef std::reverse_iterator<iterator>        reverse_iterator;
@@ -381,6 +393,7 @@ private:
 
 
 /*!
+  \brief
   A const_c_array is a wrapper over a
   const C pointer with a size parameter
   to facilitate bounds checking
@@ -393,46 +406,55 @@ class const_c_array
 public:
 
   /*!
+    \brief
     STL compliant typedef
   */
-  typedef T* pointer;
+  typedef const T* pointer;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef const T* const_pointer;
 
   /*!
+    \brief
     STL compliant typedef
   */
-  typedef T& reference;
+  typedef const T& reference;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef const T& const_reference;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef T value_type;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef size_t size_type;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef ptrdiff_t difference_type;
 
   /*!
+    \brief
     iterator typedef
    */
   typedef const_pointer iterator;
 
   /*!
+    \brief
     iterator typedef
    */
   typedef const_pointer const_iterator;

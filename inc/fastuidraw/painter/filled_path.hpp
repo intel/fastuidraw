@@ -41,6 +41,7 @@ class Path;
  */
 
 /*!
+  \brief
   A FilledPath represents the data needed to draw a path filled.
   It contains -all- the data needed to fill a path regardless of
   the fill rule.
@@ -50,6 +51,7 @@ class FilledPath:
 {
 public:
   /*!
+    \brief
     A Subset represents a handle to a portion of a FilledPath.
     The handle is invalid once the FilledPath from which it
     comes goes out of scope. Do not save these handle values.
@@ -150,6 +152,7 @@ public:
   };
 
   /*!
+    \brief
     Opaque object to hold work room needed for functions
     of FilledPath that require scratch space.
    */

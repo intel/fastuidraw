@@ -28,11 +28,13 @@ namespace fastuidraw
 */
 
   /*!
+    \brief
     A GlyphRenderDataCurvePair represents the data needed
     to build a scalable glyph that uses a curve-pair
-    analytic algorithm for rendering. A texel can have
-    up to two curves intersecting it. If there are two
-    curves, then they must be neighbor curves of a contour
+    analytic algorithm for rendering.
+
+    A texel can have up to two curves intersecting it. If there
+    are two curves, then they must be neighbor curves of a contour
     of the generating glyph.The glyphs must be rendered at
     a sufficient resolution so that when rendering glyphs,
     hinting does not play any significant role AND if for
@@ -63,6 +65,7 @@ namespace fastuidraw
   {
   public:
     /*!
+      \brief
       A per_curve represents the "raw" data for
       a single curve (linear or quadratic).
      */
@@ -90,6 +93,7 @@ namespace fastuidraw
     };
 
     /*!
+      \brief
       Enumeration to describe if a texel has curves
       or if not if the texel is completely inside or
       outside.
@@ -116,6 +120,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Represents the data of two neighboring curves in the outline of a glyph.
       TODO: document how to compute pseudo-distance from value in entry class
      */
@@ -196,6 +201,7 @@ namespace fastuidraw
     };
 
     /*!
+      \brief
       Sequence of enumerations describing how each entry of
       geometry_data() is packed into geometry data of
       Glyph.

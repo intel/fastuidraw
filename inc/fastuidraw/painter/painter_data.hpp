@@ -28,6 +28,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterData provides the data for how for a
     Painter to draw content.
    */

@@ -31,6 +31,7 @@ namespace fastuidraw
 */
 
   /*!
+    \brief
     A GlyphLocation represents the location of a glyph
     within a GlyphAtlas.
   */

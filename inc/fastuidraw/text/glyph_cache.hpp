@@ -32,6 +32,7 @@ namespace fastuidraw
 */
 
   /*!
+    \brief
     A GlyphCache represents a cache of glyphs and manages the uploading
     of the data to a GlyphAtlas. Methods are NOT thread safe.
    */

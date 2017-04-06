@@ -33,6 +33,7 @@ namespace fastuidraw
   @{
 */
   /*!
+    \brief
     A GlyphLayoutData provides information on how to
     layout text using a glyph.
    */

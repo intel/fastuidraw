@@ -125,6 +125,7 @@ namespace fastuidraw {
 namespace gl_binding {
 
 /*!
+  \brief
   A LoggerBase defines the interface for logging
   GL commands
  */

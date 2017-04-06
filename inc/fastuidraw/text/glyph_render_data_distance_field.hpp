@@ -28,6 +28,7 @@ namespace fastuidraw
 */
 
   /*!
+    \brief
     Represents a signed distance field of a glyph.
     This data can be rendered scaled, but the rendering
     distorts the corners of the glyph making them

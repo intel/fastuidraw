@@ -31,6 +31,7 @@ namespace fastuidraw
   @{
  */
     /*!
+      \brief
       A PainterBackendGLSL is a partial implementation of PainterBackend.
       It handles the building of the GLSL source code of an Uber-Shader.
      */
@@ -38,6 +39,7 @@ namespace fastuidraw
     {
     public:
       /*!
+        \brief
         Enumeration to specify how the data store filled by
         \ref PainterDraw::m_store is realized.
        */
@@ -59,6 +61,7 @@ namespace fastuidraw
         };
 
       /*!
+        \brief
         Enumeration to specify how to access the backing store
         of the glyph geometry stored in GlyphAtlas::geometry_store()
        */
@@ -76,6 +79,7 @@ namespace fastuidraw
         };
 
       /*!
+        \brief
         Enumeration to specify how to access the backing store
         of a color stop atlas store in ColorStopAtlas::backing_store().
        */
@@ -95,6 +99,7 @@ namespace fastuidraw
         };
 
       /*!
+        \brief
         Enumeration to specify the convention for a 3D API
         for its normalized device coordinate in z.
        */
@@ -114,6 +119,7 @@ namespace fastuidraw
         };
 
       /*!
+        \brief
         Enumeration to describe vertex shader input
         slot layout.
        */
@@ -144,11 +150,13 @@ namespace fastuidraw
         };
 
       /*!
+        \brief
         A params gives parameters how to contruct
-        a PainterBackendGLSL. These values influence
-        the behavior of both the PainterBackendGLSL
-        and the shaders it constructs via
-        PainterBackendGLSL::construct_shader().
+        a PainterBackendGLSL.
+
+        These values influence the behavior of both
+        the PainterBackendGLSL and the shaders it
+        constructs via PainterBackendGLSL::construct_shader().
        */
       class ConfigurationGLSL
       {
@@ -226,6 +234,7 @@ namespace fastuidraw
       };
 
       /*!
+        \brief
         Specifies the binding points (given in GLSL by layout(binding = ))
         for the textures and buffers used by the uber-shader.
        */
@@ -411,6 +420,7 @@ namespace fastuidraw
       };
 
       /*!
+        \brief
         An UberShaderParams specifies how to construct an uber-shader.
         Note that the usage of HW clip-planes is specified by by
         ConfigurationGLSL, NOT UberShaderParams.
@@ -721,6 +731,7 @@ namespace fastuidraw
       };
 
       /*!
+        \brief
         An ItemShaderFilter is used to specify whether or not
         to include a named shader when creating an uber-shader.
        */

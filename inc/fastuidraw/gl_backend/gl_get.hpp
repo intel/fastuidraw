@@ -91,7 +91,7 @@ context_get(GLenum v, vecN<T,N> *p)
 /*!
   Overloaded C++ version of glGet* family
   of functions in GL. The template parameter
-  determines what glGet functions is called.
+  determines what glGet function is called.
   \param value GL enumeration to fetch
  */
 template<typename T>

@@ -31,8 +31,12 @@ namespace gl
  */
 
   /*!
+    \brief
+    An ImageAtlasGL is the GL(and GLES) backend implementation
+    for \ref ImageAtlas.
+
     An ImageAtlasGL on creation, creates an
-    AtlasColorBackingStoreBase and an AtlasIndexBackingStoreBase
+    \ref AtlasColorBackingStoreBase and an \ref AtlasIndexBackingStoreBase
     itself that are backed by GL textures. Both of the backing
     stores use GL_TEXTURE_2D_ARRAY textures. On deletion,
     deletes the backing color and index stores.
@@ -47,6 +51,7 @@ namespace gl
   {
   public:
     /*!
+      \brief
       Class to hold the construction parameters for creating
       a ImageAtlasGL.
      */

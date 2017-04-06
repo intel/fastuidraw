@@ -33,6 +33,7 @@ namespace fastuidraw
 */
 
   /*!
+    \brief
     A FreetypeLib wraps an FT_Library object of libFreeType
     in a reference counted object.
    */

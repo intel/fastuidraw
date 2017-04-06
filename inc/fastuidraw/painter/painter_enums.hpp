@@ -32,6 +32,7 @@ namespace fastuidraw
   namespace PainterEnums
   {
     /*!
+      \brief
       Enumeration for text drawing to indicating in what
       direction the y-coordinate increases
      */
@@ -42,6 +43,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Enumeration specifying if and how to draw caps when stroking.
      */
     enum cap_style
@@ -54,6 +56,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Enumeration specifying if and how to draw joins when stroking
      */
     enum join_style
@@ -97,6 +100,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Enumerations specifying common fill rules.
      */
     enum fill_rule_t
@@ -110,6 +114,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Enumeration specifying blend modes
      */
     enum blend_mode_t

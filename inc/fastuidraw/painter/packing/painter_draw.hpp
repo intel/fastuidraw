@@ -34,6 +34,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     Store for attributes, indices of items and shared data of
     items for items to draw. Indices (stored in \ref m_indices)
     are -ALWAYS- in groups of three where each group is a single
@@ -44,6 +45,7 @@ namespace fastuidraw
   {
   public:
     /*!
+      \brief
       A delayed action is an action that is to be called just
       before the buffers of a PainterDraw are to
       be unmapped. Typically, this is to allow for later writes

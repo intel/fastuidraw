@@ -46,6 +46,7 @@ namespace fastuidraw
   fetch_static_resource(const char *resource_label);
 
   /*!
+    \brief
     Provided as a conveniance. The ctor calls
     generate_static_resource().
    */

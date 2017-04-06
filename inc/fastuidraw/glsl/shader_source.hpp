@@ -30,6 +30,7 @@ namespace glsl {
  */
 
 /*!
+  \brief
   A ShaderSource represents the source code
   to a GLSL shader, specifying blocks of source
   code and macros to use.
@@ -38,8 +39,8 @@ class ShaderSource
 {
 public:
   /*!
-    Enumeration to indiciate
-    the source for a shader.
+    \brief
+    Enumeration to indiciate the source for a shader.
    */
   enum source_t
     {
@@ -65,6 +66,7 @@ public:
     };
 
   /*!
+    \brief
     Enumeration to determine if source
     code or a macro
    */
@@ -84,6 +86,7 @@ public:
     };
 
   /*!
+    \brief
     Enumeration to indicate extension
     enable flags.
    */
