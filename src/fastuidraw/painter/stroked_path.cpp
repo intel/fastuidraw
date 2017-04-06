@@ -709,8 +709,6 @@ namespace
         number_points_per_fan = 6,
         number_triangles_per_fan = number_points_per_fan - 2,
         number_indices_per_fan = 3 * number_triangles_per_fan,
-        number_points_per_join = 2 * number_points_per_fan,
-        number_indices_per_join = 2 * number_indices_per_fan
       };
 
     static
