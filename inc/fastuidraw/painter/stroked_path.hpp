@@ -34,7 +34,7 @@ class Path;
 class PainterAttribute;
 ///@endcond
 
-/*!\addtogroup Core
+/*!\addtogroup Paths
   @{
  */
 
@@ -51,7 +51,7 @@ class StrokedPath:
 public:
   /*!
     Enumeration for specifing how to compute
-    StrokedPath::point::offset_vector()).
+    \ref point::offset_vector()).
    */
   enum offset_type_t
     {
@@ -117,16 +117,22 @@ public:
       offset_square_cap,
 
       /*!
-        The point is from \ref adjustable_cap_point_set point set.
-        It is for a point for a cap at the start of a contour. These
-        points are for dashed stroking with caps.
+        The point is from \ref adjustable_caps() point set.
+        It is for a point for a cap at the start of a contour.
+        These points are for dashed stroking with caps; they
+        contain data to allow one from a vertex shader to extend
+        or shrink the cap area correctly to implement dashed
+        stroking.
        */
       offset_adjustable_cap_contour_start,
 
       /*!
-        The point is from \ref adjustable_cap_point_set point set.
-        It is for a point for a cap at the end of a contour. These
-        points are for dashed stroking with caps.
+        The point is from \ref adjustable_caps() point set.
+        It is for a point for a cap at the end of a contour.
+        These points are for dashed stroking with caps; they
+        contain data to allow one from a vertex shader to extend
+        or shrink the cap area correctly to implement dashed
+        stroking.
        */
       offset_adjustable_cap_contour_end,
 
@@ -228,8 +234,8 @@ public:
     {
       /*!
         The bit is up if the point is for end of point
-        (i.e. the side to be extended to make sure the
-        entire cap near the end of edge is drawn).
+        of a cap (i.e. the side to be extended to make
+        sure the entire cap near the end of edge is drawn).
        */
       adjustable_cap_ending_bit = number_common_bits,
     };
@@ -377,7 +383,7 @@ public:
     /*!
       Provides the point type from a value of \ref m_packed_data.
       The return value is one of the enumerations of
-      StrokedPath::offset_type_t.
+      \ref offset_type_t.
       \param packed_data_value value suitable for \ref m_packed_data
      */
     static
@@ -391,7 +397,7 @@ public:
 
     /*!
       Provides the point type for the point. The return value
-      is one of the enumerations of StrokedPath::offset_type_t.
+      is one of the enumerations of \ref offset_type_t.
      */
     enum offset_type_t
     offset_type(void) const
@@ -436,67 +442,16 @@ public:
       m_position + 0.5f * W * offset_vector().
       \endcode
       The computation for offset_vector() is as follows.
-      - For those with offset_type() being StrokedPath::offset_edge,
-        StrokedPath::offset_next_edge and StrokedPath::offset_shared_with_edge,
+      - For those with offset_type() being \ref offset_start_sub_edge,
+        \ref offset_end_sub_edge and \ref offset_shared_with_edge,
         the offset is given by
         \code
         m_pre_offset
         \endcode
-        In addition, for types StrokedPath::offset_edge and
-        StrokedPath::offset_next_edge, \ref m_auxilary_offset
+        In addition, for these offset types, \ref m_auxilary_offset
         holds the the delta vector to the point on edge with
         which the point makes a quad.
-      - For those with offset_type() being StrokedPath::offset_square_cap,
-        the value is given by
-        \code
-        m_pre_offset + m_auxilary_offset
-        \endcode
-        In addition, \ref m_auxilary_offset holds the vector leaving
-        from the contour where the cap is located.
-      - For those with offset_type() being StrokedPath::offset_miter_clip_join
-        or StrokedPath::offset_miter_clip_join_lambda_negated
-        the value is given by the following code
-        \code
-        vec2 n0(m_pre_offset), Jn0(n0.y(), -n0.x());
-        vec2 n1(m_auxilary_offset), Jn1(n1.y(), -n1.x());
-        float r, det, lambda;
-        det = dot(Jn1, n0);
-        lambda = -t_sign(det);
-        r = (det != 0.0) ? (dot(n0, n1) - 1.0) / det : 0.0;
-        if(offset_type() == offset_miter_clip_join_lambda_negated)
-          {
-            lambda = -lambda;
-          }
-        //result:
-        offset = lambda * (n + r * v);
-        \endcode
-      - For those with offset_type() being StrokedPath::offset_miter_bevel_join,
-        the value is given by the following code
-        \code
-        vec2 n0(m_pre_offset), Jn0(n0.y(), -n0.x());
-        vec2 n1(m_auxilary_offset), Jn1(n1.y(), -n1.x());
-        float lambda, r, d;
-        lambda = t_sign(dot(Jn0, n1));
-        r = lambda / (1.0 + dot(n0, n1));
-        offset = r * (n0 + n1);
-        \endcode
-      - For those with offset_type() being StrokedPath::offset_miter_join,
-        the value is given by the following code
-        \code
-        vec2 n0(m_pre_offset), Jn0(n0.y(), -n0.x());
-        vec2 n1(m_auxilary_offset), Jn1(n1.y(), -n1.x());
-        float lambda, r, d;
-        lambda = t_sign(dot(Jn0, n1));
-        r = lambda / (1.0 + dot(n0, n1));
-        offset = r * (n0 + n1);
-        \endcode
-      - For those with offset_type() being StrokedPath::offset_rounded_cap,
-        the value is given by the following code
-        \code
-        vec2 n(m_pre_offset), v(n.y(), -n.x());
-        offset = m_auxilary_offset.x() * v + m_auxilary_offset.y() * n;
-        \endcode
-      - For those with offset_type() being StrokedPath::offset_rounded_join,
+      - For those with offset_type() being \ref offset_rounded_join,
         the value is given by the following code
         \code
         vec2 cs;
@@ -530,6 +485,51 @@ public:
         The vector n0 represents the normal of the path going into the join,
         the vector n1 represents the normal of the path going out of the join
         and t represents how much to interpolate from n0 to n1.
+      - For those with offset_type() being \ref offset_miter_clip_join
+        or \ref offset_miter_clip_join_lambda_negated
+        the value is given by the following code
+        \code
+        vec2 n0(m_pre_offset), Jn0(n0.y(), -n0.x());
+        vec2 n1(m_auxilary_offset), Jn1(n1.y(), -n1.x());
+        float r, det, lambda;
+        det = dot(Jn1, n0);
+        lambda = -t_sign(det);
+        r = (det != 0.0) ? (dot(n0, n1) - 1.0) / det : 0.0;
+        if(offset_type() == offset_miter_clip_join_lambda_negated)
+          {
+            lambda = -lambda;
+          }
+        //result:
+        offset = lambda * (n + r * v);
+        \endcode
+      - For those with offset_type() being \ref offset_miter_join,
+        or \ref offset_miter_bevel_join the value is given by the
+        following code:
+        \code
+        vec2 n0(m_pre_offset), Jn0(n0.y(), -n0.x());
+        vec2 n1(m_auxilary_offset), Jn1(n1.y(), -n1.x());
+        float lambda, r, d;
+        lambda = t_sign(dot(Jn0, n1));
+        r = lambda / (1.0 + dot(n0, n1));
+        offset = r * (n0 + n1);
+        \endcode
+      - For those with offset_type() being \ref offset_rounded_cap,
+        the value is given by the following code
+        \code
+        vec2 n(m_pre_offset), v(n.y(), -n.x());
+        offset = m_auxilary_offset.x() * v + m_auxilary_offset.y() * n;
+        \endcode
+      - For those with offset_type() being \ref offset_square_cap,
+        \ref offset_adjustable_cap_contour_start or
+        \ref offset_adjustable_cap_contour_end the value the value
+        is given by
+        \code
+        m_pre_offset + m_auxilary_offset
+        \endcode
+        In addition, \ref m_auxilary_offset the tangent vector along
+        the path in the direction of the path and \ref m_pre_offset
+        holds a vector perpindicular to the path or a zero vector
+        (indicating it is not on boundary of cap).
      */
     vec2
     offset_vector(void);
@@ -547,15 +547,15 @@ public:
     /*!
       Pack the data of this \ref point into a \ref
       PainterAttribute. The packing is as follows:
-      - PainterAttribute::m_attrib0 .xy -> StrokedPath::point::m_position (float)
-      - PainterAttribute::m_attrib0 .zw -> StrokedPath::point::m_pre_offset (float)
-      - PainterAttribute::m_attrib1 .x -> StrokedPath::point::m_distance_from_edge_start (float)
-      - PainterAttribute::m_attrib1 .y -> StrokedPath::point::m_distance_from_contour_start (float)
-      - PainterAttribute::m_attrib1 .zw -> StrokedPath::point::m_auxilary_offset (float)
-      - PainterAttribute::m_attrib2 .x -> StrokedPath::point::m_packed_data (uint)
-      - PainterAttribute::m_attrib2 .y -> StrokedPath::point::m_edge_length (float)
-      - PainterAttribute::m_attrib2 .z -> StrokedPath::point::m_open_contour_length (float)
-      - PainterAttribute::m_attrib2 .w -> StrokedPath::point::m_closed_contour_length (float)
+      - PainterAttribute::m_attrib0 .xy -> point::m_position (float)
+      - PainterAttribute::m_attrib0 .zw -> point::m_pre_offset (float)
+      - PainterAttribute::m_attrib1 .x  -> point::m_distance_from_edge_start (float)
+      - PainterAttribute::m_attrib1 .y  -> point::m_distance_from_contour_start (float)
+      - PainterAttribute::m_attrib1 .zw -> point::m_auxilary_offset (float)
+      - PainterAttribute::m_attrib2 .x  -> point::m_packed_data (uint)
+      - PainterAttribute::m_attrib2 .y  -> point::m_edge_length (float)
+      - PainterAttribute::m_attrib2 .z  -> point::m_open_contour_length (float)
+      - PainterAttribute::m_attrib2 .w  -> point::m_closed_contour_length (float)
 
       \param dst PainterAttribute to which to pack
      */

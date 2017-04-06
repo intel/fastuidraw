@@ -32,7 +32,7 @@ namespace fastuidraw
 class Image;
 ///@endcond
 
-/*!\addtogroup Core
+/*!\addtogroup Imaging
   @{
  */
 

@@ -28,7 +28,7 @@
 
 namespace fastuidraw  {
 
-/*!\addtogroup Core
+/*!\addtogroup Paths
   @{
  */
 

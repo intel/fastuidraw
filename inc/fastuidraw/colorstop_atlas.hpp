@@ -24,7 +24,7 @@
 
 namespace fastuidraw
 {
-/*!\addtogroup Core
+/*!\addtogroup Imaging
   @{
  */
 

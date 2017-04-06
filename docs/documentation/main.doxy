@@ -44,12 +44,17 @@ glyphs. The big classes being Glyph, GlyphCache, GlyphAtlas and FontBase.
 Part of the main library libFastUIDraw.
 @}
 
-\defgroup Core Core
+\defgroup Paths Paths
 @{
 \brief
-Core provides in interfaces to realizing paths (see Path), images (see Image
-and ImageAtlas) and color stop sequences (see ColorStopSequenceOnAtlas
-and ColorStopAtlas). Part of the main library libFastUIDraw.
+Paths provides the interface to realize paths.
+@}
+
+\defgroup Imaging Imaging
+@{
+\brief
+Imaging provides the interface to realize images
+and color gradients.
 @}
 
 \defgroup GLSLShaderBuilder GLSL Shader Build

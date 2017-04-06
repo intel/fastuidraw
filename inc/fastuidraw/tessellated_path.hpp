@@ -33,7 +33,7 @@ class StrokedPath;
 class FilledPath;
 ///@endcond
 
-/*!\addtogroup Core
+/*!\addtogroup Paths
   @{
  */
 

@@ -36,7 +36,7 @@ class TessellatedPath;
 class Path;
 ///@endcond
 
-/*!\addtogroup Core
+/*!\addtogroup Paths
   @{
  */
 
