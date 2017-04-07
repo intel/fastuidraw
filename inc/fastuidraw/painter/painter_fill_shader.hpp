@@ -55,6 +55,13 @@ namespace fastuidraw
     operator=(const PainterFillShader &rhs);
 
     /*!
+      Swap operation
+      \param obj object with which to swap
+    */
+    void
+    swap(PainterFillShader &obj);
+
+    /*!
       Returns the PainterItemShader to use to draw
       the filled path triangles. The expected format
       of the attributes is as found in the \ref

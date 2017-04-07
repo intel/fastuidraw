@@ -70,6 +70,13 @@ namespace fastuidraw
       operator=(const ConfigurationBase &obj);
 
       /*!
+        Swap operation
+        \param obj object with which to swap
+      */
+      void
+      swap(ConfigurationBase &obj);
+
+      /*!
         Bits that are up in brush_shader_mask(void) that change
         in PainterBrush::shader() trigger a call to
         PainterDraw::draw_break().

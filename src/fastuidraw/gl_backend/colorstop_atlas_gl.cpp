@@ -200,16 +200,21 @@ fastuidraw::gl::ColorStopAtlasGL::params::
   m_d = nullptr;
 }
 
+void
+fastuidraw::gl::ColorStopAtlasGL::params::
+swap(params &obj)
+{
+  std::swap(m_d, obj.m_d);
+}
+
 fastuidraw::gl::ColorStopAtlasGL::params&
 fastuidraw::gl::ColorStopAtlasGL::params::
 operator=(const params &rhs)
 {
   if(this != &rhs)
     {
-      ColorStopAtlasGLParamsPrivate *d, *rhs_d;
-      d = static_cast<ColorStopAtlasGLParamsPrivate*>(m_d);
-      rhs_d = static_cast<ColorStopAtlasGLParamsPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      params v(rhs);
+      swap(v);
     }
   return *this;
 }

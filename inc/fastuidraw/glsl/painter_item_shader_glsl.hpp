@@ -82,6 +82,13 @@ namespace fastuidraw
       operator=(const varying_list &rhs);
 
       /*!
+        Swap operation
+        \param obj object with which to swap
+       */
+      void
+      swap(varying_list &obj);
+
+      /*!
         Returns the names for the slots of the float
         varyings of the specified interpolation type.
         \param q interpolation type

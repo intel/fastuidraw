@@ -182,6 +182,13 @@ namespace fastuidraw
         operator=(const ConfigurationGLSL &rhs);
 
         /*!
+          Swap operation
+          \param obj object with which to swap
+        */
+        void
+        swap(ConfigurationGLSL &obj);
+
+        /*!
           If true, use HW clip planes (embodied by gl_ClipDistance).
          */
         bool

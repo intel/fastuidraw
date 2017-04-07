@@ -79,6 +79,13 @@ namespace gl
       operator=(const params &obj);
 
       /*!
+        Swap operation
+        \param obj object with which to swap
+      */
+      void
+      swap(params &obj);
+
+      /*!
         Initial dimension for the texel backing store,
         initial value is (1024, 1024, 16)
        */

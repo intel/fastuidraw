@@ -773,12 +773,6 @@ namespace fastuidraw
     shader(void) const;
 
     /*!
-      Specialize assignment operator.
-     */
-    PainterBrush&
-    operator=(const PainterBrush &rhs);
-
-    /*!
       Returns the value of the handle to the
       Image that the brush is set to use.
      */

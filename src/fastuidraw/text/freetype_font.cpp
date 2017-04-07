@@ -501,14 +501,22 @@ fastuidraw::FontFreeType::RenderParams::
   m_d = nullptr;
 }
 
+void
+fastuidraw::FontFreeType::RenderParams::
+swap(RenderParams &obj)
+{
+  std::swap(obj.m_d, m_d);
+}
+
 fastuidraw::FontFreeType::RenderParams&
 fastuidraw::FontFreeType::RenderParams::
 operator=(const RenderParams &rhs)
 {
-  RenderParamsPrivate *d, *rhs_d;
-  d = static_cast<RenderParamsPrivate*>(m_d);
-  rhs_d = static_cast<RenderParamsPrivate*>(rhs.m_d);
-  *d = *rhs_d;
+  if(&rhs != this)
+    {
+      RenderParams v(rhs);
+      swap(v);
+    }
   return *this;
 }
 

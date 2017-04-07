@@ -1777,16 +1777,21 @@ fastuidraw::gl::PreLinkActionArray::
   m_d = nullptr;
 }
 
+void
+fastuidraw::gl::PreLinkActionArray::
+swap(PreLinkActionArray &obj)
+{
+  std::swap(m_d, obj.m_d);
+}
+
 fastuidraw::gl::PreLinkActionArray&
 fastuidraw::gl::PreLinkActionArray::
 operator=(const PreLinkActionArray &rhs)
 {
   if(this != &rhs)
     {
-      PreLinkActionArrayPrivate *d, *rhs_d;
-      d = static_cast<PreLinkActionArrayPrivate*>(m_d);
-      rhs_d = static_cast<PreLinkActionArrayPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      PreLinkActionArray v(rhs);
+      swap(v);
     }
   return *this;
 }
@@ -2794,16 +2799,21 @@ fastuidraw::gl::ProgramInitializerArray::
   m_d = nullptr;
 }
 
+void
+fastuidraw::gl::ProgramInitializerArray::
+swap(ProgramInitializerArray &obj)
+{
+  std::swap(m_d, obj.m_d);
+}
+
 fastuidraw::gl::ProgramInitializerArray&
 fastuidraw::gl::ProgramInitializerArray::
 operator=(const ProgramInitializerArray &rhs)
 {
   if(this != &rhs)
     {
-      ProgramInitializerArrayPrivate *d, *rhs_d;
-      d = static_cast<ProgramInitializerArrayPrivate*>(m_d);
-      rhs_d = static_cast<ProgramInitializerArrayPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      ProgramInitializerArray v(rhs);
+      swap(v);
     }
   return *this;
 }

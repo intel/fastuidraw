@@ -113,6 +113,13 @@ namespace fastuidraw
     operator=(const PainterShaderData &rhs);
 
     /*!
+      Swap operation
+      \param obj object with which to swap
+    */
+    void
+    swap(PainterShaderData &obj);
+
+    /*!
       Returns the length of the data needed to encode the data.
       Data is padded to be multiple of alignment.
       \param alignment alignment of the data store

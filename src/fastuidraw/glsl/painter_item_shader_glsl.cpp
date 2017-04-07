@@ -313,16 +313,21 @@ fastuidraw::glsl::varying_list::
   m_d = nullptr;
 }
 
+void
+fastuidraw::glsl::varying_list::
+swap(varying_list &obj)
+{
+  std::swap(m_d, obj.m_d);
+}
+
 fastuidraw::glsl::varying_list&
 fastuidraw::glsl::varying_list::
 operator=(const varying_list &rhs)
 {
   if(this != &rhs)
     {
-      VaryingListPrivate *d, *rhs_d;
-      d = static_cast<VaryingListPrivate*>(m_d);
-      rhs_d = static_cast<VaryingListPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      varying_list v(rhs);
+      swap(v);
     }
   return *this;
 }

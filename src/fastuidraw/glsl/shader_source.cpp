@@ -290,16 +290,21 @@ fastuidraw::glsl::ShaderSource::
   m_d = nullptr;
 }
 
+void
+fastuidraw::glsl::ShaderSource::
+swap(ShaderSource &obj)
+{
+  std::swap(obj.m_d, m_d);
+}
+
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
 operator=(const ShaderSource &obj)
 {
   if(this != &obj)
     {
-      SourcePrivate *d, *obj_d;
-      d = static_cast<SourcePrivate*>(m_d);
-      obj_d = static_cast<SourcePrivate*>(obj.m_d);
-      *d = *obj_d;
+      ShaderSource v(obj);
+      swap(v);
     }
   return *this;
 }

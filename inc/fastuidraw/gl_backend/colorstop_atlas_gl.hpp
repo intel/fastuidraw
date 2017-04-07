@@ -78,6 +78,13 @@ namespace gl
       operator=(const params &rhs);
 
       /*!
+        Swap operation
+        \param obj object with which to swap
+      */
+      void
+      swap(params &obj);
+
+      /*!
         width of underlying 1D-texture array, initial
         value is 1024
        */

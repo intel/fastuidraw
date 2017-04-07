@@ -612,16 +612,21 @@ fastuidraw::gl::GlyphAtlasGL::params::
   m_d = nullptr;
 }
 
+void
+fastuidraw::gl::GlyphAtlasGL::params::
+swap(params &obj)
+{
+  std::swap(m_d, obj.m_d);
+}
+
 fastuidraw::gl::GlyphAtlasGL::params&
 fastuidraw::gl::GlyphAtlasGL::params::
 operator=(const params &rhs)
 {
   if(this != &rhs)
     {
-      GlyphAtlasGLParamsPrivate *d, *rhs_d;
-      d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-      rhs_d = static_cast<GlyphAtlasGLParamsPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      params v(rhs);
+      swap(v);
     }
   return *this;
 }

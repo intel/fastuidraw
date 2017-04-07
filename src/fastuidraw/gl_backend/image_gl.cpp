@@ -351,16 +351,21 @@ fastuidraw::gl::ImageAtlasGL::params::
   m_d = nullptr;
 }
 
+void
+fastuidraw::gl::ImageAtlasGL::params::
+swap(params &obj)
+{
+  std::swap(m_d, obj.m_d);
+}
+
 fastuidraw::gl::ImageAtlasGL::params&
 fastuidraw::gl::ImageAtlasGL::params::
 operator=(const params &rhs)
 {
   if(this != &rhs)
     {
-      ImageAtlasGLParamsPrivate *d, *rhs_d;
-      d = static_cast<ImageAtlasGLParamsPrivate*>(m_d);
-      rhs_d = static_cast<ImageAtlasGLParamsPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      params v(rhs);
+      swap(v);
     }
   return *this;
 }

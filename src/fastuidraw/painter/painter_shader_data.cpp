@@ -51,21 +51,21 @@ fastuidraw::PainterShaderData::
   m_data = nullptr;
 }
 
+void
+fastuidraw::PainterShaderData::
+swap(PainterShaderData &obj)
+{
+  std::swap(m_data, obj.m_data);
+}
+
 fastuidraw::PainterShaderData&
 fastuidraw::PainterShaderData::
 operator=(const PainterShaderData &rhs)
 {
   if(this != &rhs)
     {
-      if(m_data)
-        {
-          FASTUIDRAWdelete(m_data);
-        }
-
-      if(rhs.m_data)
-        {
-          m_data = rhs.m_data->copy();
-        }
+      PainterShaderData v(rhs);
+      swap(v);
     }
   return *this;
 }

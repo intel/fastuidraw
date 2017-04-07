@@ -16,6 +16,7 @@
  *
  */
 
+#include <utility>
 #include <fastuidraw/painter/painter_fill_shader.hpp>
 
 namespace
@@ -53,16 +54,21 @@ fastuidraw::PainterFillShader::
   m_d = nullptr;
 }
 
+void
+fastuidraw::PainterFillShader::
+swap(PainterFillShader &obj)
+{
+  std::swap(obj.m_d, m_d);
+}
+
 fastuidraw::PainterFillShader&
 fastuidraw::PainterFillShader::
 operator=(const PainterFillShader &rhs)
 {
   if(this != &rhs)
     {
-      PainterFillShaderPrivate *d, *rhs_d;
-      d = static_cast<PainterFillShaderPrivate*>(m_d);
-      rhs_d = static_cast<PainterFillShaderPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      PainterFillShader v(rhs);
+      swap(v);
     }
   return *this;
 }

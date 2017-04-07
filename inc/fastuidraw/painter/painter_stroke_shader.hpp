@@ -141,6 +141,13 @@ namespace fastuidraw
     operator=(const PainterStrokeShader &rhs);
 
     /*!
+      Swap operation
+      \param obj object with which to swap
+    */
+    void
+    swap(PainterStrokeShader &obj);
+
+    /*!
       Specifies how the stroke shader performs
       anti-aliased stroking.
      */

@@ -65,14 +65,22 @@ fastuidraw::FontProperties::
   m_d = nullptr;
 }
 
+void
+fastuidraw::FontProperties::
+swap(FontProperties &obj)
+{
+  std::swap(obj.m_d, m_d);
+}
+
 fastuidraw::FontProperties&
 fastuidraw::FontProperties::
 operator=(const FontProperties &obj)
 {
-  FontPropertiesPrivate *obj_d, *d;
-  d = static_cast<FontPropertiesPrivate*>(m_d);
-  obj_d = static_cast<FontPropertiesPrivate*>(obj.m_d);
-  *d = *obj_d;
+  if(&obj != this)
+    {
+      FontProperties v(obj);
+      swap(v);
+    }
   return *this;
 }
 

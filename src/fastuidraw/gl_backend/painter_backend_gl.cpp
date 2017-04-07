@@ -1365,16 +1365,21 @@ fastuidraw::gl::PainterBackendGL::ConfigurationGL::
   m_d = nullptr;
 }
 
+void
+fastuidraw::gl::PainterBackendGL::ConfigurationGL::
+swap(ConfigurationGL &obj)
+{
+  std::swap(m_d, obj.m_d);
+}
+
 fastuidraw::gl::PainterBackendGL::ConfigurationGL&
 fastuidraw::gl::PainterBackendGL::ConfigurationGL::
 operator=(const ConfigurationGL &rhs)
 {
   if(this != &rhs)
     {
-      ConfigurationGLPrivate *d, *rhs_d;
-      d = static_cast<ConfigurationGLPrivate*>(m_d);
-      rhs_d = static_cast<ConfigurationGLPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      ConfigurationGL v(rhs);
+      swap(v);
     }
   return *this;
 }

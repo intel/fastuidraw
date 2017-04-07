@@ -56,8 +56,11 @@ namespace fastuidraw
     explicit
     PainterPackedValueBase(void*);
 
-    void
+    const PainterPackedValueBase&
     operator=(const PainterPackedValueBase&);
+
+    void
+    swap(PainterPackedValueBase &obj);
 
     const void*
     raw_value(void) const;
@@ -97,6 +100,16 @@ namespace fastuidraw
      */
     PainterPackedValue(void)
     {}
+
+    /*!
+      Swap operation
+      \param obj object with which to swap
+    */
+    void
+    swap(PainterPackedValue &obj)
+    {
+      PainterPackedValueBase::swap(obj);
+    }
 
     /*!
       Returns the value to which the handle points.

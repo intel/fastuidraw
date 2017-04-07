@@ -59,6 +59,13 @@ namespace fastuidraw
     operator=(const PainterGlyphShader &rhs);
 
     /*!
+      Swap operation
+      \param obj object with which to swap
+    */
+    void
+    swap(PainterGlyphShader &obj);
+
+    /*!
       Return the PainterItemShader for a given
       glyph_type.
       \param tp glyph type to render

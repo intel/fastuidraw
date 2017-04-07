@@ -247,14 +247,6 @@ reset(void)
   m_data.m_cs = nullptr;
 }
 
-fastuidraw::PainterBrush&
-fastuidraw::PainterBrush::
-operator=(const PainterBrush &rhs)
-{
-  m_data = rhs.m_data;
-  return *this;
-}
-
 enum fastuidraw::PainterBrush::image_filter
 fastuidraw::PainterBrush::
 best_filter_for_image(const reference_counted_ptr<const Image> &im)

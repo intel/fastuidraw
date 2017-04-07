@@ -58,6 +58,13 @@ namespace fastuidraw
     operator=(const PainterBlendShaderSet &rhs);
 
     /*!
+      Swap operation
+      \param obj object with which to swap
+    */
+    void
+    swap(PainterBlendShaderSet &obj);
+
+    /*!
       Return the PainterShader for a given
       PainterEnums::blend_mode_t.
       \param tp blend mode

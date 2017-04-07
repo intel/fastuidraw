@@ -1316,26 +1316,21 @@ fastuidraw::PainterPackedValueBase::
 
 void
 fastuidraw::PainterPackedValueBase::
+swap(PainterPackedValueBase &obj)
+{
+  std::swap(m_d, obj.m_d);
+}
+
+const fastuidraw::PainterPackedValueBase&
+fastuidraw::PainterPackedValueBase::
 operator=(const PainterPackedValueBase &obj)
 {
   if(m_d != obj.m_d)
     {
-      if(m_d)
-        {
-          EntryBase *d;
-          d = static_cast<EntryBase*>(m_d);
-          d->release();
-        }
-
-      m_d = obj.m_d;
-
-      if(obj.m_d)
-        {
-          EntryBase *obj_d;
-          obj_d = static_cast<EntryBase*>(obj.m_d);
-          obj_d->aquire();
-        }
+      PainterPackedValueBase v(obj);
+      swap(v);
     }
+  return *this;
 }
 
 unsigned int

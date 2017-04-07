@@ -145,6 +145,13 @@ public:
   operator=(const ShaderSource &obj);
 
   /*!
+    Swap operation
+    \param obj object with which to swap
+  */
+  void
+  swap(ShaderSource &obj);
+
+  /*!
     Specifies the version of GLSL to which to
     declare the shader. An empty string indicates
     to not have a "#version" directive in the shader.

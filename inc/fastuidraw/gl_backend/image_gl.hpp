@@ -79,6 +79,13 @@ namespace gl
       operator=(const params &obj);
 
       /*!
+        Swap operation
+        \param obj object with which to swap
+      */
+      void
+      swap(params &obj);
+
+      /*!
         The log2 of the width and height of the color tile
         size, initial value is 5
        */

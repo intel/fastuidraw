@@ -61,16 +61,21 @@ fastuidraw::PainterStrokeShader::
   m_d = nullptr;
 }
 
+void
+fastuidraw::PainterStrokeShader::
+swap(PainterStrokeShader &obj)
+{
+  std::swap(m_d, obj.m_d);
+}
+
 fastuidraw::PainterStrokeShader&
 fastuidraw::PainterStrokeShader::
 operator=(const PainterStrokeShader &rhs)
 {
   if(this != &rhs)
     {
-      PainterStrokeShaderPrivate *d, *rhs_d;
-      d = static_cast<PainterStrokeShaderPrivate*>(m_d);
-      rhs_d = static_cast<PainterStrokeShaderPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      PainterStrokeShader v(rhs);
+      swap(v);
     }
   return *this;
 }

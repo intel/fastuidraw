@@ -58,6 +58,13 @@ namespace fastuidraw
     operator=(const FontProperties &obj);
 
     /*!
+      Swap operation
+      \param obj object with which to swap
+     */
+    void
+    swap(FontProperties &obj);
+    
+    /*!
       Specifies if the font is to be bold or not.
      */
     bool

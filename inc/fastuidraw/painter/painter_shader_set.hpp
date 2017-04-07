@@ -62,6 +62,13 @@ namespace fastuidraw
     PainterShaderSet&
     operator=(const PainterShaderSet &rhs);
 
+    /*!
+      Swap operation
+      \param obj object with which to swap
+    */
+    void
+    swap(PainterShaderSet &obj);
+
     /*!fn glyph_shader(void) const
       Shader set for rendering of glyphs with isotropic
       anti-aliasing.

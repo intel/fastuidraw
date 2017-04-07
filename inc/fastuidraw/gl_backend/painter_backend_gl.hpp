@@ -99,6 +99,13 @@ namespace fastuidraw
         operator=(const ConfigurationGL &rhs);
 
         /*!
+          Swap operation
+          \param obj object with which to swap
+        */
+        void
+        swap(ConfigurationGL &obj);
+
+        /*!
           The ImageAtlasGL to be used by the painter
          */
         const reference_counted_ptr<ImageAtlasGL>&

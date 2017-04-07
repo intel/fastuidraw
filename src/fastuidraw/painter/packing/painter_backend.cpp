@@ -130,14 +130,22 @@ fastuidraw::PainterBackend::ConfigurationBase::
   m_d = nullptr;
 }
 
+void
+fastuidraw::PainterBackend::ConfigurationBase::
+swap(ConfigurationBase &obj)
+{
+  std::swap(m_d, obj.m_d);
+}
+
 fastuidraw::PainterBackend::ConfigurationBase&
 fastuidraw::PainterBackend::ConfigurationBase::
 operator=(const ConfigurationBase &obj)
 {
-  ConfigurationPrivate *d, *obj_d;
-  d = static_cast<ConfigurationPrivate*>(m_d);
-  obj_d = static_cast<ConfigurationPrivate*>(obj.m_d);
-  *d = *obj_d;
+  if(&obj != this)
+    {
+      ConfigurationBase v(obj);
+      swap(v);
+    }
   return *this;
 }
 

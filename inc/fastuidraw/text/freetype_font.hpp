@@ -74,6 +74,13 @@ namespace fastuidraw
       operator=(const RenderParams &rhs);
 
       /*!
+        Swap operation
+        \param obj object with which to swap
+      */
+      void
+      swap(RenderParams &obj);
+
+      /*!
         Pixel size at which to render distance field scalable glyphs.
        */
       unsigned int

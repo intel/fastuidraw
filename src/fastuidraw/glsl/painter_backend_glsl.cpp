@@ -1159,16 +1159,21 @@ fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
 
 fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL&
 fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
-operator=(const ConfigurationGLSL &rhs)
+operator=(const ConfigurationGLSL &obj)
 {
-  if(this != &rhs)
+  if(this != &obj)
     {
-      ConfigurationGLSLPrivate *d, *rhs_d;
-      d = static_cast<ConfigurationGLSLPrivate*>(m_d);
-      rhs_d = static_cast<ConfigurationGLSLPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      ConfigurationGLSL v(obj);
+      swap(v);
     }
   return *this;
+}
+
+void
+fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
+swap(ConfigurationGLSL &rhs)
+{
+  std::swap(m_d, rhs.m_d);
 }
 
 #define setget_implement(type, name)                                    \

@@ -113,6 +113,13 @@ namespace fastuidraw
     operator=(const PainterDashedStrokeShaderSet &rhs);
 
     /*!
+      Swap operation
+      \param obj object with which to swap
+    */
+    void
+    swap(PainterDashedStrokeShaderSet &obj);
+
+    /*!
       Returns the DashEvaluator object to be used with
       the expected PainterItemShaderData passed to the
       PainterStrokeShader objects of this

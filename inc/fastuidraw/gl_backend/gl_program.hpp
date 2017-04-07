@@ -286,6 +286,13 @@ public:
   operator=(const PreLinkActionArray &rhs);
 
   /*!
+    Swap operation
+    \param obj object with which to swap
+  */
+  void
+  swap(PreLinkActionArray &obj);
+
+  /*!
     Add a prelink action to execute.
     \param h handle to action to add
    */
@@ -659,6 +666,13 @@ public:
    */
   ProgramInitializerArray&
   operator=(const ProgramInitializerArray &rhs);
+
+  /*!
+    Swap operation
+    \param obj object with which to swap
+  */
+  void
+  swap(ProgramInitializerArray &obj);
 
   /*!
     Add an initializer
