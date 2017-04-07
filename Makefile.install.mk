@@ -86,9 +86,10 @@ install: $(INSTALL_LIBS) $(INSTALL_EXES) $(INSTALL_PKG_FILES)
 TARGETLIST+=install
 
 uninstall:
-	-rm -r $(INSTALL_LOCATION)/include/fastuidraw
-	-rm $(addprefix $(INSTALL_LOCATION)/lib/,$(notdir $(INSTALL_LIBS)))
-	-rm $(addprefix $(INSTALL_LOCATION)/bin/,$(notdir $(INSTALL_EXES)))
+	-rm -rf $(INSTALL_LOCATION)/include/fastuidraw
+	-rm -f $(addprefix $(INSTALL_LOCATION)/lib/,$(notdir $(INSTALL_LIBS)))
+	-rm -f $(addprefix $(INSTALL_LOCATION)/lib/pkgconfig/,$(notdir $(INSTALL_PKG_FILES)))
+	-rm -f $(addprefix $(INSTALL_LOCATION)/bin/,$(notdir $(INSTALL_EXES)))
 TARGETLIST+=uninstall
 
 install-docs: docs
