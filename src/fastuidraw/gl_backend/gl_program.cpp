@@ -2283,7 +2283,7 @@ generate_log(void)
   std::ostringstream ostr;
 
   ostr << "gl::Program: "
-       << "[GLname: " << m_name << "]:\tShaders:";
+       << "[GLname: " << m_name << "]:\tShader Source Codes:";
 
   for(std::vector<ShaderData>::const_iterator
         iter = m_shader_data.begin(), end = m_shader_data.end();
@@ -2292,10 +2292,8 @@ generate_log(void)
       ostr << "\n\nGLSL name = " << iter->m_name
            << ", type = " << fastuidraw::gl::Shader::gl_shader_type_label(iter->m_shader_type)
            << "\nSource:\n" << iter->m_source_code
-           << "\nCompileLog:\n" << iter->m_compile_log;
+           << "\n\n";
     }
-
-  ostr << "\nLink Log:\n" << m_link_log << "\n";
 
   if(m_link_success)
     {
@@ -2391,8 +2389,19 @@ generate_log(void)
                << "\n\t\tindex = " << std::dec << iter->m_index
                << "\n\t\tlocation = " << iter->m_location;
         }
-      ostr << "\n";
     }
+
+  ostr << "\nShader Logs:";
+  for(std::vector<ShaderData>::const_iterator
+        iter = m_shader_data.begin(), end = m_shader_data.end();
+      iter != end; ++iter)
+    {
+      ostr << "\n\nGLSL name = " << iter->m_name
+           << ", type = " << fastuidraw::gl::Shader::gl_shader_type_label(iter->m_shader_type)
+           << "\nSource:\n" << iter->m_compile_log
+           << "\n\n";
+    }
+  ostr << "\nLink Log:\n" << m_link_log << "\n";
 
   m_log = ostr.str();
 }
@@ -2732,6 +2741,25 @@ shader_src_code(GLenum tp, unsigned int i) const
   if(iter != d->m_shader_data_sorted_by_type.end() && i < iter->second.size())
     {
       return d->m_shader_data[iter->second[i]].m_source_code.c_str();
+    }
+  else
+    {
+      return "";
+    }
+}
+
+const char*
+fastuidraw::gl::Program::
+shader_compile_log(GLenum tp, unsigned int i) const
+{
+  ProgramPrivate *d;
+  d = static_cast<ProgramPrivate*>(m_d);
+
+  std::map<GLenum, std::vector<int> >::const_iterator iter;
+  iter = d->m_shader_data_sorted_by_type.find(tp);
+  if(iter != d->m_shader_data_sorted_by_type.end() && i < iter->second.size())
+    {
+      return d->m_shader_data[iter->second[i]].m_compile_log.c_str();
     }
   else
     {
