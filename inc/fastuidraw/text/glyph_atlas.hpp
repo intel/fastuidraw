@@ -234,8 +234,8 @@ namespace fastuidraw
     public reference_counted<GlyphAtlas>::default_base
   {
   public:
-
     /*!
+      \brief
       A Padding object holds how much of the data allocated
       by \ref GlyphAtlas::allocate() is for padding.
      */

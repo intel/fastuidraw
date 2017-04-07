@@ -428,14 +428,14 @@ public:
     }
 
     /*!
-      Has value 0 or +1. If the value is 0, then
+      Has value 0 or 1. If the value is 0, then
       the point is on the path. If the value has
       absolute value 1, then indicates a point that
       is on the boundary of the stroked path. The triangles
       produced from stroking are so that when
-      m_on_boundary is interpolated across the triangle
+      on_boundary() is interpolated across the triangle
       the center of stroking the value is 0 and the
-      value has absolute value +1 on the boundary.
+      value has value 1 on the boundary.
      */
     int
     on_boundary(void) const

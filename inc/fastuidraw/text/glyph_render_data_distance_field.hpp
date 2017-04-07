@@ -56,8 +56,10 @@ namespace fastuidraw
     /*!
       Returns the distance values for rendering.
       The texel (x,y) is located at I where I is
-      given by I = x + y * resolution().x(). Value
-      is an 8-bit coverage value.
+      given by I = x + y * resolution().x(). The
+      -normalized- distance is given by:
+      static_cast<float>(V) / 255.0 - 0.5, where
+      V = distance_values()[I].
      */
     const_c_array<uint8_t>
     distance_values(void) const;
@@ -65,8 +67,10 @@ namespace fastuidraw
     /*!
       Returns the distance values for rendering.
       The texel (x,y) is located at I where I is
-      given by I = x + y * resolution().x(). Value
-      is an 8-bit coverage value.
+      given by I = x + y * resolution().x(). The
+      -normalized- distance is given by:
+      static_cast<float>(V) / 255.0 - 0.5, where
+      V = distance_values()[I].
      */
     c_array<uint8_t>
     distance_values(void);
