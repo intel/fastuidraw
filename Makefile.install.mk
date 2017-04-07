@@ -42,7 +42,7 @@ fastuidraw$(2)-$(1).pc: fastuidraw-backend.pc.in fastuidraw-$(1).pc
 	@sed -i 's!@LIBRARY_LIBS@!$$(LIBRARY_$(2)_LIBS)!g' $$@
 .PHONY:fastuidraw$(2)-$(1).pc
 .SECONDARY: fastuidraw$(2)-$(1).pc
-pkg-config: fastuidraw$(2)-$(1).pc
+pkg-config-files: fastuidraw$(2)-$(1).pc
 INSTALL_PKG_FILES+=fastuidraw$(2)-$(1).pc
 TARGETLIST+=fastuidraw$(2)-$(1).pc
 endif
@@ -70,8 +70,8 @@ endef
 
 $(call pkgconfrules,release)
 $(call pkgconfrules,debug)
-TARGETLIST+=pkg-config
-.PHONY:pkg-config
+TARGETLIST+=pkg-config-files
+.PHONY:pkg-config-files
 
 install: $(INSTALL_LIBS) $(INSTALL_EXES) $(INSTALL_PKG_FILES)
 	-install -d $(INSTALL_LOCATION)/lib
@@ -85,19 +85,19 @@ install: $(INSTALL_LIBS) $(INSTALL_EXES) $(INSTALL_PKG_FILES)
 	-find inc/ -type f -printf '%P\n' | xargs -I '{}' install -m 644 inc/'{}' $(INSTALL_LOCATION)/include/'{}'
 TARGETLIST+=install
 
-uninstall:
-	-rm -rf $(INSTALL_LOCATION)/include/fastuidraw
-	-rm -f $(addprefix $(INSTALL_LOCATION)/lib/,$(notdir $(INSTALL_LIBS)))
-	-rm -f $(addprefix $(INSTALL_LOCATION)/lib/pkgconfig/,$(notdir $(INSTALL_PKG_FILES)))
-	-rm -f $(addprefix $(INSTALL_LOCATION)/bin/,$(notdir $(INSTALL_EXES)))
-TARGETLIST+=uninstall
-
 install-docs: docs
 	-install -d $(INSTALL_LOCATION)/share/doc/fastuidraw/html/
 	-install -t $(INSTALL_LOCATION)/share/doc/fastuidraw TODO.txt README.md COPYING ISSUES.txt docs/*.txt
 	-find docs/doxy/html -type d -printf '%P\n' | xargs -I '{}' install -d $(INSTALL_LOCATION)/share/doc/fastuidraw/html/'{}'
 	-find docs/doxy/html -type f -printf '%P\n' | xargs -I '{}' install -m 644 docs/doxy/html/'{}' $(INSTALL_LOCATION)/share/doc/fastuidraw/html/'{}'
 TARGETLIST+=install-docs
+
+uninstall:
+	-rm -rf $(INSTALL_LOCATION)/include/fastuidraw
+	-rm -f $(addprefix $(INSTALL_LOCATION)/lib/,$(notdir $(INSTALL_LIBS)))
+	-rm -f $(addprefix $(INSTALL_LOCATION)/lib/pkgconfig/,$(notdir $(INSTALL_PKG_FILES)))
+	-rm -f $(addprefix $(INSTALL_LOCATION)/bin/,$(notdir $(INSTALL_EXES)))
+TARGETLIST+=uninstall
 
 uninstall-docs:
 	-rm -r $(INSTALL_LOCATION)/share/doc/fastuidraw

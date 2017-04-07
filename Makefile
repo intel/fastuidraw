@@ -55,10 +55,10 @@ include Makefile.sources.mk
 include Makefile.base.lib.mk
 include Makefile.gl_backend.lib.mk
 
-include Makefile.clean.mk
-
 include Makefile.demo.sources.mk
 include Makefile.demo.rules.mk
 
 include Makefile.docs.mk
 include Makefile.install.mk
+
+include Makefile.clean.mk
