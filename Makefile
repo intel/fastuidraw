@@ -24,7 +24,7 @@ TARGETLIST :=
 .PRECIOUS:
 .SECONDARY:
 
-default: $(INSTALL_LIBS)
+default: targets
 targets:
 	@echo
 	@echo "Individual Demos available:"
@@ -34,6 +34,14 @@ targets:
 	@echo "Targets available:"
 	@echo "=============================="
 	@printf "%s\n" $(TARGETLIST)
+	@echo
+	@echo "=============================="
+	@echo
+	@echo "environmental variable BUILD_GL controls if GL backend is a target (1=yes, 0=no)"
+	@echo "environmental variable BUILD_GLES controls if GLES backend is a target (1=yes, 0=no)"
+	@echo "environmental variable INSTALL_LOCATION provides the install location"
+	@echo
+.PHONY: targets
 
 include Makefile.settings.mk
 include Makefile.gl_backend.settings.mk
