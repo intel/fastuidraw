@@ -79,12 +79,6 @@ CLEAN_FILES += libFastUIDraw_$(1).so
 INSTALL_LIBS += libFastUIDraw_$(1).so
 endif
 
-
-libFastUIDraw_$(1).clang_tidy: $$(LIBRARY_$(1)_ALL_OBJS)
-	$(CLANG_TIDY) $(CLANG_TIDY_ARGS) $(LIBRARY_SOURCES) $(LIBRARY_PRIVATE_SOURCES) -- $$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(1)_CFLAGS) $(fPIC) > $$@
-CLEAN_FILES += libFastUIDraw_$(1).clang_tidy
-TARGETLIST += libFastUIDraw_$(1).clang_tidy
-
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),clean-all)
 ifneq ($(MAKECMDGOALS),targets)
