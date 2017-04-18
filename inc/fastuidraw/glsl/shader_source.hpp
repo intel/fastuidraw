@@ -25,7 +25,7 @@
 
 namespace fastuidraw {
 namespace glsl {
-/*!\addtogroup GLSLShaderBuilder
+/*!\addtogroup GLSL
   @{
  */
 

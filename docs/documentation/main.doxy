@@ -33,7 +33,7 @@ Imaging provides the interface to realize images
 and color gradients.
 @}
 
-\defgroup GLSLShaderBuilder GLSL Shader Build
+\defgroup GLSL GLSL
 @{
 \brief
 Utility module to assist in creating GLSL shaders and also provides
@@ -95,6 +95,9 @@ may wish to use as well.
  */
 namespace fastuidraw {
 
+/*!\addtogroup GLSL
+  @{
+ */
   /*!
     \brief Namesapce to encapsulate shader building to GLSL
            shaders, part of the main library libFastUIDraw.
@@ -102,6 +105,7 @@ namespace fastuidraw {
   namespace glsl
   {
   }
+/*! @} */
 
   /*!
     \brief Namespace to encapsulate GL backend end implementation,
