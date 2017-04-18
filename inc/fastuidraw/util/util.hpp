@@ -418,7 +418,7 @@ namespace fastuidraw
  */
 #define FASTUIDRAWunused(X) do { (void)(X); } while(0)
 
-/*!\def FASTUIDRAWFASTUIDRAWassert
+/*!\def FASTUIDRAWassert
   If FASTUIDRAW_DEBUG is defined, checks if the statement
   is true and if it is not true prints to std::cerr and
   then aborts. If FastUIDRAW_DEBUG is not defined, then
