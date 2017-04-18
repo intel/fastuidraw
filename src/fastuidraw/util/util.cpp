@@ -20,6 +20,7 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/util/util.hpp>
@@ -44,7 +45,7 @@ round_up_to_multiple(unsigned int v, unsigned int alignment)
 unsigned int
 fastuidraw::
 number_blocks(unsigned int alignment, unsigned int sz)
-{
+{  
   unsigned int return_value;
   return_value = sz / alignment;
   if(return_value * alignment < sz)
@@ -108,6 +109,14 @@ uint64_number_bits_required(uint64_t v)
     {}
 
   return return_value;
+}
+
+void
+fastuidraw::
+assert_fail(const char *str, const char *file, int line)
+{
+  std::cerr << file << ":" << line << ": Assertion '" << str << "' failed\n";
+  std::abort();
 }
 
 //////////////////////////////////////

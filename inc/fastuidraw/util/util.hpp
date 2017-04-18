@@ -418,4 +418,27 @@ namespace fastuidraw
  */
 #define FASTUIDRAWunused(X) do { (void)(X); } while(0)
 
+/*!\def FASTUIDRAWassert
+  If FASTUIDRAW_DEBUG is defined, checks if the statement
+  is true and if it is not true prints to std::cerr and
+  then aborts. If FastUIDRAW_DEBUG is not defined, then
+  macro is empty (and thus the condition is not evaluated).
+*/
+#ifdef FASTUIDRAW_DEBUG
+#define FASTUIDRAWassert(X) do {                                \
+    if(!(X)) {                                                  \
+      fastuidraw::assert_fail(#X, __FILE__, __LINE__);    \
+    } } while(0)
+#else
+#define FASTUIDRAWassert(X)
+#endif
+
+namespace fastuidraw
+{
+  /*!
+    Private function used by macro FASTUIDRAWassert, do NOT call.
+   */
+  void
+  assert_fail(const char *str, const char *file, int line);
+}
 /*! @} */
