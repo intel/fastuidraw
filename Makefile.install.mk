@@ -92,6 +92,11 @@ install-docs: docs
 	-find docs/doxy/html -type f -printf '%P\n' | xargs -I '{}' install -m 644 docs/doxy/html/'{}' $(INSTALL_LOCATION)/share/doc/fastuidraw/html/'{}'
 TARGETLIST+=install-docs
 
+install-demos: $(DEMO_TARGETLIST)
+	-install -d $(INSTALL_LOCATION)/bin
+	-install -t $(INSTALL_LOCATION)/bin $(DEMO_TARGETLIST)
+TARGETLIST+=install-demos
+
 uninstall:
 	-rm -rf $(INSTALL_LOCATION)/include/fastuidraw
 	-rm -f $(addprefix $(INSTALL_LOCATION)/lib/,$(notdir $(INSTALL_LIBS)))
@@ -102,3 +107,7 @@ TARGETLIST+=uninstall
 uninstall-docs:
 	-rm -r $(INSTALL_LOCATION)/share/doc/fastuidraw
 TARGETLIST+=uninstall-docs
+
+uninstall-demos:
+	-rm -f $(addprefix $(INSTALL_LOCATION)/bin/,$(notdir $(DEMO_TARGETLIST)))
+TARGETLIST+=uninstall-demos
