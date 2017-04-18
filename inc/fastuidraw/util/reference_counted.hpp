@@ -46,7 +46,7 @@ namespace fastuidraw
 
     where T::add_reference() increment the reference count and
     T::remove_reference() decrements the reference count and will
-    delete the object if the reference count is decremented to 0.
+    delete the object.
 
     See also reference_counted_base and reference_counted.
    */
@@ -389,6 +389,9 @@ namespace fastuidraw
     \brief
     Base class to use for reference counted objects,
     for using reference_counted_ptr. See also \ref reference_counted.
+    Object deletion (when the reference count goes to zero) is performed
+    via \ref FASTUIDRAWdelete. As a consequence of using \ref
+    FASTUIDRAWdelete, objects must be created with \ref FASTUIDRAWnew.
  
     \tparam T object type that is reference counted
     \tparam Counter object type to perform reference counting.
@@ -426,7 +429,7 @@ namespace fastuidraw
 
     /*!
       Removes a reference count to an object, if the reference
-      count is 0, then deletes the object
+      count is 0, then deletes the object with \ref FASTUIDRAWdelete.
       \param p pointer to object from which to remove reference count.
      */
     static
