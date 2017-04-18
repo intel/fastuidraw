@@ -88,11 +88,11 @@ create_and_bind_fbo(void)
     }
 
   glGenFramebuffers(1, &m_fbo);
-  assert(m_fbo!=0);
+  FASTUIDRAWassert(m_fbo!=0);
   glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 
   glGenTextures(1, &m_color);
-  assert(m_color!=0);
+  FASTUIDRAWassert(m_color!=0);
   glBindTexture(GL_TEXTURE_2D, m_color);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -106,7 +106,7 @@ create_and_bind_fbo(void)
 
 
   glGenTextures(1, &m_depth_stencil);
-  assert(m_depth_stencil!=0);
+  FASTUIDRAWassert(m_depth_stencil!=0);
   glBindTexture(GL_TEXTURE_2D, m_depth_stencil);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

@@ -416,7 +416,7 @@ private:
   build_images(void)
   {
     glGenSamplers(1, &m_sampler);
-    assert(m_sampler != 0);
+    FASTUIDRAWassert(m_sampler != 0);
 
     glSamplerParameteri(m_sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glSamplerParameteri(m_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -547,7 +547,7 @@ private:
 
 
     glGenBuffers(1, &m_ibo);
-    assert(m_ibo != 0);
+    FASTUIDRAWassert(m_ibo != 0);
 
     GLushort indices[]=
       {
@@ -650,7 +650,7 @@ private:
     void
     set(const std::string &label, reference_counted_ptr<gl::Program> pr)
     {
-      assert(pr);
+      FASTUIDRAWassert(pr);
       m_pr = pr;
       m_label = label;
       m_pvm = m_pr->uniform_location("pvm");
@@ -663,10 +663,10 @@ private:
       m_uniform_image_num_lookups = m_pr->uniform_location("uniform_image_num_lookups");
 
       glGenVertexArrays(1, &m_vao);
-      assert(m_vao != 0);
+      FASTUIDRAWassert(m_vao != 0);
 
       glGenBuffers(1, &m_vbo);
-      assert(m_vbo != 0);
+      FASTUIDRAWassert(m_vbo != 0);
     }
 
     reference_counted_ptr<gl::Program> m_pr;

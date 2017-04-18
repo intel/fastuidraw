@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <sstream>
 #include <algorithm>
 #include <list>
@@ -121,7 +120,7 @@ read_path(fastuidraw::Path &path, const std::string &source)
                         }
                       else
                         {
-                          assert(current_slot == 0);
+                          FASTUIDRAWassert(current_slot == 0);
                           current_slot = 1;
                         }
                     }

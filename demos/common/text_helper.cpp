@@ -39,7 +39,7 @@ namespace
     h.resize(cnt);
     cnt = fastuidraw::FontFreeType::create(cast_c_array(h), filename.c_str(), lib, render_params);
 
-    assert(cnt == h.size());
+    FASTUIDRAWassert(cnt == h.size());
 
     for(unsigned int i = 0, endi = h.size(); i < endi; ++i)
       {

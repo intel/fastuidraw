@@ -245,8 +245,8 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer,
           Glyph g;
           g = m_glyph_selector->fetch_glyph_no_merging(renderer, m_font, character_code);
 
-          assert(g.valid());
-          assert(g.layout().m_glyph_code == uint32_t(glyph_index));
+          FASTUIDRAWassert(g.valid());
+          FASTUIDRAWassert(g.layout().m_glyph_code == uint32_t(glyph_index));
           max_height = std::max(max_height, g.layout().m_size.x());
           out_glyphs.push_back(g);
           character_codes.push_back(character_code);
@@ -299,7 +299,7 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer,
                                 m_font, m_glyph_selector, temp_glyphs,
                                 temp_positions, temp_character_codes);
 
-          assert(temp_glyphs.size() == temp_positions.size());
+          FASTUIDRAWassert(temp_glyphs.size() == temp_positions.size());
           for(unsigned int c = 0; c < temp_glyphs.size(); ++c)
             {
               out_glyphs.push_back(temp_glyphs[c]);
@@ -435,7 +435,7 @@ painter_glyph_test::
 update_cts_params(void)
 {
   const Uint8 *keyboard_state = SDL_GetKeyboardState(nullptr);
-  assert(keyboard_state != nullptr);
+  FASTUIDRAWassert(keyboard_state != nullptr);
 
   float speed;
   speed = static_cast<float>(m_draw_timer.restart());

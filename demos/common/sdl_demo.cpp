@@ -559,7 +559,7 @@ dimensions(void)
 {
   fastuidraw::ivec2 return_value;
 
-  assert(m_window);
+  FASTUIDRAWassert(m_window);
   SDL_GetWindowSize(m_window, &return_value.x(), &return_value.y());
   return return_value;
 }

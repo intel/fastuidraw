@@ -32,7 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /** \file generic_command_line.hpp */
 #pragma once
 
-#include <assert.h>
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -118,7 +117,7 @@ public:
   void
   attach(command_line_register &p)
   {
-    assert(m_parent==nullptr);
+    FASTUIDRAWassert(m_parent==nullptr);
 
     m_parent=&p;
     m_location=m_parent->m_children.size();

@@ -26,7 +26,7 @@ PainterWidget::
     {
       PainterWidget *c(*iter);
 
-      assert(c->m_parent == this);
+      FASTUIDRAWassert(c->m_parent == this);
       c->m_parent = nullptr;
       FASTUIDRAWdelete(c);
     }
@@ -47,7 +47,7 @@ parent(PainterWidget *p)
       m_parent->m_children.erase(m_iterator_loc);
     }
 
-  assert(!is_ancestor_of(p));
+  FASTUIDRAWassert(!is_ancestor_of(p));
   m_parent = p;
   m_iterator_loc = m_parent->m_children.insert(m_parent->m_children.end(), this);
 }
@@ -91,7 +91,7 @@ paint(const fastuidraw::reference_counted_ptr<fastuidraw::Painter> &painter)
         end = m_children.end(); iter!=end; ++iter)
     {
       PainterWidget *c(*iter);
-      assert(c->m_parent == this);
+      FASTUIDRAWassert(c->m_parent == this);
       c->paint(painter);
     }
 

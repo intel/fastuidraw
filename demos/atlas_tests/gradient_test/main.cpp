@@ -297,7 +297,7 @@ private:
   set_attributes_indices(void)
   {
     glGenVertexArrays(1, &m_pts_vao);
-    assert(m_pts_vao != 0);
+    FASTUIDRAWassert(m_pts_vao != 0);
     glBindVertexArray(m_pts_vao);
 
     float value[] = { 1.0f };
@@ -315,11 +315,11 @@ private:
 
 
     glGenVertexArrays(1, &m_vao);
-    assert(m_vao != 0);
+    FASTUIDRAWassert(m_vao != 0);
     glBindVertexArray(m_vao);
 
     glGenBuffers(1, &m_ibo);
-    assert(m_ibo != 0);
+    FASTUIDRAWassert(m_ibo != 0);
 
     GLushort indices[]=
       {
@@ -331,7 +331,7 @@ private:
 
 
     glGenBuffers(1, &m_bo);
-    assert(m_bo !=0);
+    FASTUIDRAWassert(m_bo !=0);
 
     vec2 positions[]=
       {
@@ -392,7 +392,7 @@ private:
                                          );
 #define GETLOC(x) do { \
       m_##x##_loc = m_program->uniform_location(#x);    \
-      assert( m_##x##_loc != -1);                       \
+      FASTUIDRAWassert( m_##x##_loc != -1);                       \
     } while(0)
 
     GETLOC(p0);

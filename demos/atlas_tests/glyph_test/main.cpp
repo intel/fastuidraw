@@ -199,16 +199,16 @@ glyph_test::per_program::
 set(reference_counted_ptr<gl::Program> pr)
 {
   m_program = pr;
-  assert(m_program->link_success());
+  FASTUIDRAWassert(m_program->link_success());
 
   m_pvm_loc = m_program->uniform_location("pvm");
-  assert(m_pvm_loc != -1);
+  FASTUIDRAWassert(m_pvm_loc != -1);
 
   m_scale_loc = m_program->uniform_location("scale");
-  assert(m_scale_loc != -1);
+  FASTUIDRAWassert(m_scale_loc != -1);
 
   m_translate_loc = m_program->uniform_location("translate");
-  assert(m_translate_loc != -1);
+  FASTUIDRAWassert(m_translate_loc != -1);
 
   m_layer_loc = m_program->uniform_location("layer");
   m_aa_mode_loc = m_program->uniform_location("aa_mode");
@@ -262,15 +262,15 @@ glyph_test::per_draw::
 init_and_bind_vao_vbo_ibo(void)
 {
   glGenVertexArrays(1, &m_vao);
-  assert(m_vao != 0);
+  FASTUIDRAWassert(m_vao != 0);
   glBindVertexArray(m_vao);
 
   glGenBuffers(1, &m_vbo);
-  assert(m_vbo != 0);
+  FASTUIDRAWassert(m_vbo != 0);
   glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 
   glGenBuffers(1, &m_ibo);
-  assert(m_ibo != 0);
+  FASTUIDRAWassert(m_ibo != 0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
 }
 
@@ -283,7 +283,7 @@ init_draw_text(const_c_array<Glyph> glyphs, const_c_array<vec2> glyph_positions,
   std::vector<vecN<GLuint, 6> > indices;
   unsigned int i, endi, glyph_count;
 
-  assert(glyphs.size() == glyph_positions.size());
+  FASTUIDRAWassert(glyphs.size() == glyph_positions.size());
 
   /* generate attribute data from glyphs and glyph_posisions.
    */
@@ -385,7 +385,7 @@ pack_data(float SCALE, unsigned int i, Glyph G, vec2 p, vecN<GLuint, 6> &indices
 
   enum return_code R;
   R = G.upload_to_atlas();
-  assert(R == routine_success);
+  FASTUIDRAWassert(R == routine_success);
   FASTUIDRAWunused(R);
 
   GlyphLocation atlas_location(G.atlas_location());
@@ -857,8 +857,8 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
           Glyph g;
           g = m_glyph_selector->fetch_glyph_no_merging(renderer, m_font, character_code);
 
-          assert(g.valid());
-          assert(g.layout().m_glyph_code == uint32_t(glyph_index));
+          FASTUIDRAWassert(g.valid());
+          FASTUIDRAWassert(g.layout().m_glyph_code == uint32_t(glyph_index));
           max_height = std::max(max_height, g.layout().m_size.y());
           glyphs.push_back(g);
           character_codes.push_back(character_code);
@@ -910,7 +910,7 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
                                 m_font, m_glyph_selector, temp_glyphs,
                                 temp_positions, temp_character_codes);
 
-          assert(temp_glyphs.size() == temp_positions.size());
+          FASTUIDRAWassert(temp_glyphs.size() == temp_positions.size());
           for(unsigned int c = 0; c < temp_glyphs.size(); ++c)
             {
               glyphs.push_back(temp_glyphs[c]);

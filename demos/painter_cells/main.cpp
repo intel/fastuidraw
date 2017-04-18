@@ -447,7 +447,7 @@ painter_cells::
 update_cts_params(void)
 {
   const Uint8 *keyboard_state = SDL_GetKeyboardState(nullptr);
-  assert(keyboard_state != nullptr);
+  FASTUIDRAWassert(keyboard_state != nullptr);
 
   float speed = static_cast<float>(m_draw_timer.restart()) * 0.001f;
 

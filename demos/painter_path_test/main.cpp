@@ -430,7 +430,7 @@ painter_stroke_test::
 update_cts_params(void)
 {
   const Uint8 *keyboard_state = SDL_GetKeyboardState(nullptr);
-  assert(keyboard_state != nullptr);
+  FASTUIDRAWassert(keyboard_state != nullptr);
 
   float speed = static_cast<float>(m_draw_timer.restart_us()), speed_stroke, speed_shear;
   speed /= 1000.0f;
@@ -1379,7 +1379,7 @@ draw_frame(void)
               f = PainterBrush::image_filter_cubic;
               break;
             default:
-              assert(!"Incorrect value for m_image_filter!");
+              FASTUIDRAWassert(!"Incorrect value for m_image_filter!");
               f = PainterBrush::image_filter_nearest;
             }
           fill_brush.sub_image(m_image, m_image_offset, m_image_size, f);
@@ -1536,7 +1536,7 @@ draw_frame(void)
 
       if(!m_black_pen)
         {
-          assert(!m_white_pen);
+          FASTUIDRAWassert(!m_white_pen);
           m_white_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(1.0, 1.0, 1.0, 1.0));
           m_black_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0, 0.0, 0.0, 1.0));
         }
