@@ -33,7 +33,7 @@
 */
 #include "gluos.hpp"
 #include <stddef.h>
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include <map>
 #include <setjmp.h>
 #include "memalloc.hpp"

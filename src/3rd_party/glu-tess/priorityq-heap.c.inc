@@ -33,7 +33,7 @@
 */
 
 #include <stddef.h>
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include "priorityq-heap.hpp"
 #include "memalloc.hpp"
 
@@ -108,7 +108,7 @@ static void FloatDown( PriorityQ *pq, long curr )
       ++child;
     }
 
-    assert(child <= pq->max);
+    FASTUIDRAWassert(child <= pq->max);
 
     hChild = n[child].handle;
     if( child > pq->size || LEQ( h[hCurr].key, h[hChild].key )) {
@@ -203,7 +203,7 @@ PQhandle pqInsert( PriorityQ *pq, PQkey keyNew )
   if( pq->initialized ) {
     FloatUp( pq, curr );
   }
-  assert(free_handle != LONG_MAX);
+  FASTUIDRAWassert(free_handle != LONG_MAX);
   return free_handle;
 }
 
@@ -237,7 +237,7 @@ void pqDelete( PriorityQ *pq, PQhandle hCurr )
   PQhandleElem *h = pq->handles;
   long curr;
 
-  assert( hCurr >= 1 && hCurr <= pq->max && h[hCurr].key != nullptr );
+  FASTUIDRAWassert( hCurr >= 1 && hCurr <= pq->max && h[hCurr].key != nullptr );
 
   curr = h[hCurr].node;
   n[curr].handle = n[pq->size].handle;

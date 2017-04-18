@@ -96,7 +96,7 @@ namespace
 
     ~PoolBase()
     {
-      assert(m_free_slots_back == pool_size - 1);
+      FASTUIDRAWassert(m_free_slots_back == pool_size - 1);
     }
 
     int
@@ -133,15 +133,15 @@ namespace
          int S;
          S = m_free_slots_back.fetch_add(1, std::memory_order_release);
          std::atomic_thread_fence(std::memory_order_acquire);
-         assert(S < pool_size);
+         FASTUIDRAWassert(S < pool_size);
          m_free_slots[S] = v;
        */
-      assert(v >= 0);
-      assert(v < pool_size);
+      FASTUIDRAWassert(v >= 0);
+      FASTUIDRAWassert(v < pool_size);
 
       ++m_free_slots_back;
 
-      assert(m_free_slots_back < pool_size);
+      FASTUIDRAWassert(m_free_slots_back < pool_size);
       m_free_slots[m_free_slots_back] = v;
     }
 
@@ -162,16 +162,16 @@ namespace
     void
     aquire(void)
     {
-      assert(m_pool);
-      assert(m_pool_slot >= 0);
+      FASTUIDRAWassert(m_pool);
+      FASTUIDRAWassert(m_pool_slot >= 0);
       m_count.add_reference();
     }
 
     void
     release(void)
     {
-      assert(m_pool);
-      assert(m_pool_slot >= 0);
+      FASTUIDRAWassert(m_pool);
+      FASTUIDRAWassert(m_pool_slot >= 0);
       if(m_count.remove_reference())
         {
           m_pool->release_slot(m_pool_slot);
@@ -228,8 +228,8 @@ namespace
     void
     set(const T &st, int alignment, PoolBase *p, int slot)
     {
-      assert(p);
-      assert(slot >= 0);
+      FASTUIDRAWassert(p);
+      FASTUIDRAWassert(slot >= 0);
 
       m_pool = p;
       m_state = st;
@@ -294,7 +294,7 @@ namespace
           return_value = m_pools.back()->allocate(st, alignment);
         }
 
-      assert(return_value);
+      FASTUIDRAWassert(return_value);
       return return_value;
     }
 
@@ -340,14 +340,14 @@ namespace
     unsigned int
     attribute_room(void)
     {
-      assert(m_attributes_written <= m_draw_command->m_attributes.size());
+      FASTUIDRAWassert(m_attributes_written <= m_draw_command->m_attributes.size());
       return m_draw_command->m_attributes.size() - m_attributes_written;
     }
 
     unsigned int
     index_room(void)
     {
-      assert(m_indices_written <= m_draw_command->m_indices.size());
+      FASTUIDRAWassert(m_indices_written <= m_draw_command->m_indices.size());
       return m_draw_command->m_indices.size() - m_indices_written;
     }
 
@@ -356,7 +356,7 @@ namespace
     {
       unsigned int s;
       s = store_written();
-      assert(s <= m_draw_command->m_store.size());
+      FASTUIDRAWassert(s <= m_draw_command->m_store.size());
       return m_draw_command->m_store.size() - s;
     }
 
@@ -463,9 +463,9 @@ namespace
       m_index_adjusts(index_adjusts),
       m_attrib_chunk_selector(attrib_chunk_selector)
     {
-      assert((m_attrib_chunk_selector.empty() && m_attrib_chunks.size() == m_index_chunks.size())
+      FASTUIDRAWassert((m_attrib_chunk_selector.empty() && m_attrib_chunks.size() == m_index_chunks.size())
              || (m_attrib_chunk_selector.size() == m_index_chunks.size()) );
-      assert(m_index_adjusts.size() == m_index_chunks.size());
+      FASTUIDRAWassert(m_index_adjusts.size() == m_index_chunks.size());
     }
 
     unsigned int
@@ -477,7 +477,7 @@ namespace
     unsigned int
     number_attributes(unsigned int attribute_chunk) const
     {
-      assert(attribute_chunk < m_attrib_chunks.size());
+      FASTUIDRAWassert(attribute_chunk < m_attrib_chunks.size());
       return m_attrib_chunks[attribute_chunk].size();
     }
 
@@ -490,14 +490,14 @@ namespace
     unsigned int
     number_indices(unsigned int index_chunk) const
     {
-      assert(index_chunk < m_index_chunks.size());
+      FASTUIDRAWassert(index_chunk < m_index_chunks.size());
       return m_index_chunks[index_chunk].size();
     }
 
     unsigned int
     attribute_chunk_selection(unsigned int index_chunk) const
     {
-      assert(m_attrib_chunk_selector.empty() || index_chunk < m_attrib_chunk_selector.size());
+      FASTUIDRAWassert(m_attrib_chunk_selector.empty() || index_chunk < m_attrib_chunk_selector.size());
       return m_attrib_chunk_selector.empty() ?
         index_chunk :
         m_attrib_chunk_selector[index_chunk];
@@ -510,13 +510,13 @@ namespace
     {
       fastuidraw::const_c_array<fastuidraw::PainterIndex> src;
 
-      assert(index_chunk < m_index_chunks.size());
+      FASTUIDRAWassert(index_chunk < m_index_chunks.size());
       src = m_index_chunks[index_chunk];
 
-      assert(dst.size() == src.size());
+      FASTUIDRAWassert(dst.size() == src.size());
       for(unsigned int i = 0; i < dst.size(); ++i)
         {
-          assert(int(src[i]) + m_index_adjusts[index_chunk] >= 0);
+          FASTUIDRAWassert(int(src[i]) + m_index_adjusts[index_chunk] >= 0);
           dst[i] = int(src[i] + index_offset_value) + m_index_adjusts[index_chunk];
         }
     }
@@ -527,10 +527,10 @@ namespace
     {
       fastuidraw::const_c_array<fastuidraw::PainterAttribute> src;
 
-      assert(attribute_chunk < m_attrib_chunks.size());
+      FASTUIDRAWassert(attribute_chunk < m_attrib_chunks.size());
       src = m_attrib_chunks[attribute_chunk];
 
-      assert(dst.size() == src.size());
+      FASTUIDRAWassert(dst.size() == src.size());
       std::memcpy(dst.c_ptr(), src.c_ptr(), sizeof(fastuidraw::PainterAttribute) * dst.size());
     }
 
@@ -636,7 +636,7 @@ per_draw_command::
 allocate_store(unsigned int num_elements)
 {
   fastuidraw::c_array<fastuidraw::generic_data> return_value;
-  assert(num_elements % m_alignment == 0);
+  FASTUIDRAWassert(num_elements % m_alignment == 0);
   return_value = m_draw_command->m_store.sub_array(store_written(), num_elements);
   m_store_blocks_written += num_elements / m_alignment;
   return return_value;
@@ -808,7 +808,7 @@ upload_draw_state(const fastuidraw::PainterPackerData &draw_state)
 {
   unsigned int needed_room;
 
-  assert(!m_accumulated_draws.empty());
+  FASTUIDRAWassert(!m_accumulated_draws.empty());
   needed_room = compute_room_needed_for_packing(draw_state);
   if(needed_room > m_accumulated_draws.back().store_room())
     {
@@ -844,7 +844,7 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
   m_work_room.m_attribs_loaded.clear();
   m_work_room.m_attribs_loaded.resize(number_attribute_chunks, NOT_LOADED);
 
-  assert(shader);
+  FASTUIDRAWassert(shader);
 
   upload_draw_state(draw);
   allocate_header = true;
@@ -860,7 +860,7 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
       data_room = m_accumulated_draws.back().store_room();
 
       attrib_src = src.attribute_chunk_selection(chunk);
-      assert(attrib_src < number_attribute_chunks);
+      FASTUIDRAWassert(attrib_src < number_attribute_chunks);
 
       num_attribs = src.number_attributes(attrib_src);
       num_indices = src.number_indices(chunk);
@@ -890,11 +890,11 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
 
           if(attrib_room < needed_attrib_room || index_room < num_indices)
             {
-              assert(!"Unable to fit chunk into freshly allocated draw command, not good!");
+              FASTUIDRAWassert(!"Unable to fit chunk into freshly allocated draw command, not good!");
               continue;
             }
 
-          assert(data_room >= m_header_size);
+          FASTUIDRAWassert(data_room >= m_header_size);
         }
 
       per_draw_command &cmd(m_accumulated_draws.back());
@@ -927,7 +927,7 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
           src.write_attributes(attrib_dst_ptr, attrib_src);
           std::fill(header_dst_ptr.begin(), header_dst_ptr.end(), header_loc);
 
-          assert(m_work_room.m_attribs_loaded[attrib_src] == NOT_LOADED);
+          FASTUIDRAWassert(m_work_room.m_attribs_loaded[attrib_src] == NOT_LOADED);
           m_work_room.m_attribs_loaded[attrib_src] = cmd.m_attributes_written;
 
           attrib_offset = cmd.m_attributes_written;
@@ -935,7 +935,7 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
         }
       else
         {
-          assert(m_work_room.m_attribs_loaded[attrib_src] != NOT_LOADED);
+          FASTUIDRAWassert(m_work_room.m_attribs_loaded[attrib_src] != NOT_LOADED);
           attrib_offset = m_work_room.m_attribs_loaded[attrib_src];
         }
 
@@ -992,7 +992,7 @@ packed_blend_mode(void) const
 fastuidraw::PainterPacker::
 PainterPacker(reference_counted_ptr<PainterBackend> backend)
 {
-  assert(backend);
+  FASTUIDRAWassert(backend);
   m_d = FASTUIDRAWnew PainterPackerPrivate(backend, this);
 }
 
@@ -1012,7 +1012,7 @@ begin(void)
   PainterPackerPrivate *d;
   d = static_cast<PainterPackerPrivate*>(m_d);
 
-  assert(d->m_accumulated_draws.empty());
+  FASTUIDRAWassert(d->m_accumulated_draws.empty());
   d->m_backend->image_atlas()->delay_tile_freeing();
   d->m_backend->colorstop_atlas()->delay_interval_freeing();
   std::fill(d->m_stats.begin(), d->m_stats.end(), 0u);
@@ -1060,7 +1060,7 @@ flush(void)
   for(std::vector<per_draw_command>::iterator iter = d->m_accumulated_draws.begin(),
         end = d->m_accumulated_draws.end(); iter != end; ++iter)
     {
-      assert(iter->m_draw_command->unmapped());
+      FASTUIDRAWassert(iter->m_draw_command->unmapped());
       iter->m_draw_command->draw();
     }
   d->m_backend->on_post_draw();
@@ -1174,7 +1174,7 @@ blend_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &h,
 {
   PainterPackerPrivate *d;
   d = static_cast<PainterPackerPrivate*>(m_d);
-  assert(h);
+  FASTUIDRAWassert(h);
   d->m_blend_shader = h;
   d->m_blend_mode = pblend_mode;
 }
@@ -1348,8 +1348,8 @@ raw_value(void) const
 {
   EntryBase *d;
   d = static_cast<EntryBase*>(m_d);
-  assert(d);
-  assert(d->raw_value());
+  FASTUIDRAWassert(d);
+  FASTUIDRAWassert(d->raw_value());
   return d->raw_value();
 }
 

@@ -16,7 +16,7 @@
  * \author Kevin Rogovin <kevin.rogovin@intel.com>
  *
  */
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 
 #include <vector>
 #include <string>
@@ -45,7 +45,7 @@ round_up_to_multiple(unsigned int v, unsigned int alignment)
 unsigned int
 fastuidraw::
 number_blocks(unsigned int alignment, unsigned int sz)
-{  
+{
   unsigned int return_value;
   return_value = sz / alignment;
   if(return_value * alignment < sz)
@@ -124,13 +124,13 @@ assert_fail(const char *str, const char *file, int line)
 fastuidraw::noncopyable::
 noncopyable(const noncopyable &)
 {
-  assert(!"noncopyable copy ctor called!");
+  FASTUIDRAWassert(!"noncopyable copy ctor called!");
 }
 
 fastuidraw::noncopyable&
 fastuidraw::noncopyable::
 operator=(const noncopyable &)
 {
-  assert(!"noncopyable assignment operator called!");
+  FASTUIDRAWassert(!"noncopyable assignment operator called!");
   return *this;
 }

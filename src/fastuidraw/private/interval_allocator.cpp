@@ -17,7 +17,7 @@
  */
 
 
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include "interval_allocator.hpp"
 
 
@@ -31,7 +31,7 @@ void
 fastuidraw::interval_allocator::
 reset(int size)
 {
-  assert(size >= 0);
+  FASTUIDRAWassert(size >= 0);
 
   m_size = std::max(0, size);
   m_sorted.clear();
@@ -46,7 +46,7 @@ void
 fastuidraw::interval_allocator::
 resize(int size)
 {
-  assert(size >= m_size);
+  FASTUIDRAWassert(size >= m_size);
   if(size > m_size)
     {
       int old_size(m_size);
@@ -60,11 +60,11 @@ fastuidraw::interval_allocator::interval_status_t
 fastuidraw::interval_allocator::
 interval_status(int begin, int size) const
 {
-  assert(begin >= 0);
-  assert(size > 0);
+  FASTUIDRAWassert(begin >= 0);
+  FASTUIDRAWassert(size > 0);
 
   int end(begin + size);
-  assert(end <= m_size);
+  FASTUIDRAWassert(end <= m_size);
 
   std::map<int, interval>::const_iterator begin_iter;
 
@@ -82,7 +82,7 @@ interval_status(int begin, int size) const
     }
 
   interval I(begin_iter->second);
-  assert(I.m_end > begin);
+  FASTUIDRAWassert(I.m_end > begin);
 
   if(I.m_end >= end && I.m_begin <= begin)
     {
@@ -114,7 +114,7 @@ interval_status(int begin, int size) const
         }
     }
 
-  assert(I.m_end < end);
+  FASTUIDRAWassert(I.m_end < end);
   return partially_allocated;
 
 }
@@ -140,8 +140,8 @@ allocate_interval(int size)
   interval I(interval_reference->second);
   interval return_value(I.m_begin, I.m_begin + size);
 
-  assert(interval_reference->second.m_end == interval_reference->first);
-  assert(I.m_end - I.m_begin == iter->first);
+  FASTUIDRAWassert(interval_reference->second.m_end == interval_reference->first);
+  FASTUIDRAWassert(I.m_end - I.m_begin == iter->first);
 
   iter->second.erase(iter->second.begin());
   if(iter->second.empty())
@@ -157,7 +157,7 @@ allocate_interval(int size)
    */
   interval_reference->second.m_begin += size;
 
-  assert(interval_reference->second.m_begin <= interval_reference->second.m_end);
+  FASTUIDRAWassert(interval_reference->second.m_begin <= interval_reference->second.m_end);
   if(interval_reference->second.m_begin == interval_reference->second.m_end)
     {
       /* if the new interval is empty, then we delete it
@@ -180,8 +180,8 @@ void
 fastuidraw::interval_allocator::
 free_interval(int location, int size)
 {
-  assert(size > 0);
-  assert(interval_status(location, size) == completely_allocated);
+  FASTUIDRAWassert(size > 0);
+  FASTUIDRAWassert(interval_status(location, size) == completely_allocated);
 
   int end(location + size);
 
@@ -228,7 +228,7 @@ free_interval(int location, int size)
   std::pair<interval_ref, bool> R;
 
   R = m_free_intervals.insert( std::pair<int, interval>(end, I));
-  assert(R.second);
+  FASTUIDRAWassert(R.second);
   m_sorted[size].insert(R.first);
 }
 
@@ -240,7 +240,7 @@ remove_free_interval(interval_ref iter)
   std::map<int, interval_ref_set>::iterator sorted_iter;
 
   sorted_iter = m_sorted.find(sz);
-  assert(sorted_iter != m_sorted.end());
+  FASTUIDRAWassert(sorted_iter != m_sorted.end());
 
   remove_free_interval(sorted_iter, iter);
 }
@@ -262,10 +262,10 @@ fastuidraw::interval_allocator::
 remove_free_interval_from_sorted_only(std::map<int, interval_ref_set>::iterator sorted_iter,
                                       interval_ref iter)
 {
-  assert(iter->second.m_end == iter->first);
-  assert(iter->second.m_end - iter->second.m_begin == sorted_iter->first);
-  assert(sorted_iter != m_sorted.end());
-  assert(sorted_iter->second.find(iter) != sorted_iter->second.end());
+  FASTUIDRAWassert(iter->second.m_end == iter->first);
+  FASTUIDRAWassert(iter->second.m_end - iter->second.m_begin == sorted_iter->first);
+  FASTUIDRAWassert(sorted_iter != m_sorted.end());
+  FASTUIDRAWassert(sorted_iter->second.find(iter) != sorted_iter->second.end());
 
   sorted_iter->second.erase(iter);
   if(sorted_iter->second.empty())

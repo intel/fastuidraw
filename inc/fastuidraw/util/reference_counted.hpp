@@ -20,8 +20,6 @@
 #pragma once
 
 
-#include <assert.h>
-
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 
@@ -182,7 +180,7 @@ namespace fastuidraw
     T&
     operator*(void) const
     {
-      assert(m_p);
+      FASTUIDRAWassert(m_p);
       return *m_p;
     }
 
@@ -193,7 +191,7 @@ namespace fastuidraw
     T*
     operator->(void) const
     {
-      assert(m_p);
+      FASTUIDRAWassert(m_p);
       return m_p;
     }
 
@@ -422,7 +420,7 @@ namespace fastuidraw
     void
     add_reference(const reference_counted_base<T, Counter> *p)
     {
-      assert(p);
+      FASTUIDRAWassert(p);
       p->m_counter.add_reference();
     }
 
@@ -435,7 +433,7 @@ namespace fastuidraw
     void
     remove_reference(const reference_counted_base<T, Counter> *p)
     {
-      assert(p);
+      FASTUIDRAWassert(p);
       if(p->m_counter.remove_reference())
         {
           FASTUIDRAWdelete(p);

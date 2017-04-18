@@ -198,7 +198,7 @@ namespace detail
       position().x()=pos.x();
       position().y()=pos.y();
 
-      assert(cl<3);
+      FASTUIDRAWassert(cl<3);
       color()=cols[cl];
     }
 
@@ -326,7 +326,7 @@ namespace detail
     std::ostream&
     debug_stream(void) const
     {
-      assert(m_debug_stream!=nullptr);
+      FASTUIDRAWassert(m_debug_stream!=nullptr);
       return *m_debug_stream;
     }
 
@@ -1180,7 +1180,7 @@ namespace detail
     const ivec2&
     control_point(int I) const
     {
-      assert(I>=0 and I<=degree());
+      FASTUIDRAWassert(I>=0 and I<=degree());
       return m_raw_curve[I];
     }
 
@@ -1734,8 +1734,8 @@ namespace detail
     const BezierCurve*
     bezier_curve(int ID) const
     {
-      assert(ID>=0);
-      assert(ID<static_cast<int>(m_bezier_curves.size()));
+      FASTUIDRAWassert(ID>=0);
+      FASTUIDRAWassert(ID<static_cast<int>(m_bezier_curves.size()));
       return m_bezier_curves[ID];
     }
 
@@ -1770,7 +1770,7 @@ namespace detail
     const range_type<int>&
     component(int C) const
     {
-      assert(C>=0 and static_cast<unsigned int>(C)<m_curve_sets.size());
+      FASTUIDRAWassert(C>=0 and static_cast<unsigned int>(C)<m_curve_sets.size());
       return m_curve_sets[C];
     }
 

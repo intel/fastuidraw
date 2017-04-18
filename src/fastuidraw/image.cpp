@@ -69,9 +69,9 @@ namespace
     bool return_value(true);
     T first_value;
 
-    assert(dest_dim > 0);
-    assert(src_dims.x() > 0);
-    assert(src_dims.y() > 0);
+    FASTUIDRAWassert(dest_dim > 0);
+    FASTUIDRAWassert(src_dims.x() > 0);
+    FASTUIDRAWassert(src_dims.y() > 0);
 
     first_value = src[std::max(source_x, 0) + std::max(source_y, 0) * src_dims.x()];
 
@@ -336,9 +336,9 @@ ImagePrivate(fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> patlas,
   m_dimensions(w,h),
   m_slack(pslack)
 {
-  assert(m_dimensions.x() > 0);
-  assert(m_dimensions.y() > 0);
-  assert(m_atlas);
+  FASTUIDRAWassert(m_dimensions.x() > 0);
+  FASTUIDRAWassert(m_dimensions.y() > 0);
+  FASTUIDRAWassert(m_atlas);
 
   create_color_tiles(image_data);
   create_index_tiles();
@@ -513,7 +513,7 @@ create_index_tiles(void)
       m_master_index_tile_dims /= findex_tile_size;
     }
 
-  assert(m_index_tiles.back().size() == 1);
+  FASTUIDRAWassert(m_index_tiles.back().size() == 1);
   m_master_index_tile = m_index_tiles.back()[0];
   m_number_index_lookups = m_index_tiles.size();
 }
@@ -534,15 +534,15 @@ tile_allocator(int tile_size, fastuidraw::ivec3 store_dimensions):
   m_tile_allocated(m_num_tiles.x(), m_num_tiles.y(), m_num_tiles.z())
 #endif
 {
-  assert(store_dimensions.x() % m_tile_size == 0);
-  assert(store_dimensions.y() % m_tile_size == 0);
+  FASTUIDRAWassert(store_dimensions.x() % m_tile_size == 0);
+  FASTUIDRAWassert(store_dimensions.y() % m_tile_size == 0);
 }
 
 tile_allocator::
 ~tile_allocator()
 {
-  assert(m_delay_tile_freeing_counter == 0);
-  assert(m_tile_count == 0);
+  FASTUIDRAWassert(m_delay_tile_freeing_counter == 0);
+  FASTUIDRAWassert(m_tile_count == 0);
 }
 
 fastuidraw::ivec3
@@ -569,7 +569,7 @@ allocate_tile(void)
         }
       else
         {
-          assert(!"Color tile room exhausted");
+          FASTUIDRAWassert(!"Color tile room exhausted");
           return fastuidraw::ivec3(-1, -1,-1);
         }
     }
@@ -581,7 +581,7 @@ allocate_tile(void)
 
   #ifdef FASTUIDRAW_DEBUG
     {
-      assert(!m_tile_allocated(return_value.x(), return_value.y(), return_value.z()).m_value);
+      FASTUIDRAWassert(!m_tile_allocated(return_value.x(), return_value.y(), return_value.z()).m_value);
       m_tile_allocated(return_value.x(), return_value.y(), return_value.z()) = true;
     }
   #endif
@@ -601,7 +601,7 @@ void
 tile_allocator::
 undelay_tile_freeing(void)
 {
-  assert(m_delay_tile_freeing_counter >= 1);
+  FASTUIDRAWassert(m_delay_tile_freeing_counter >= 1);
   --m_delay_tile_freeing_counter;
   if(m_delay_tile_freeing_counter == 0)
     {
@@ -631,10 +631,10 @@ void
 tile_allocator::
 delete_tile_implement(fastuidraw::ivec3 v)
 {
-  assert(m_delay_tile_freeing_counter == 0);
+  FASTUIDRAWassert(m_delay_tile_freeing_counter == 0);
   #ifdef FASTUIDRAW_DEBUG
     {
-      assert(m_tile_allocated(v.x(), v.y(), v.z()).m_value);
+      FASTUIDRAWassert(m_tile_allocated(v.x(), v.y(), v.z()).m_value);
       m_tile_allocated(v.x(), v.y(), v.z()) = false;
     }
   #endif
@@ -736,8 +736,8 @@ resize(int new_num_layers)
   BackingStorePrivate *d;
 
   d = static_cast<BackingStorePrivate*>(m_d);
-  assert(d->m_resizeable);
-  assert(new_num_layers > d->m_dimensions.z());
+  FASTUIDRAWassert(d->m_resizeable);
+  FASTUIDRAWassert(new_num_layers > d->m_dimensions.z());
   resize_implement(new_num_layers);
   d->m_dimensions.z() = new_num_layers;
 }
@@ -790,8 +790,8 @@ resize(int new_num_layers)
   BackingStorePrivate *d;
 
   d = static_cast<BackingStorePrivate*>(m_d);
-  assert(d->m_resizeable);
-  assert(new_num_layers > d->m_dimensions.z());
+  FASTUIDRAWassert(d->m_resizeable);
+  FASTUIDRAWassert(new_num_layers > d->m_dimensions.z());
   resize_implement(new_num_layers);
   d->m_dimensions.z() = new_num_layers;
 }
@@ -1017,7 +1017,7 @@ resize_to_fit(int num_color_tiles, int num_index_tiles)
 {
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
-  assert(d->m_resizeable);
+  FASTUIDRAWassert(d->m_resizeable);
   if(d->m_color_tiles.resize_to_fit(num_color_tiles))
     {
       d->m_color_store->resize(d->m_color_tiles.num_tiles().z());

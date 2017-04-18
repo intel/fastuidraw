@@ -55,11 +55,11 @@ fastuidraw::detail::RectAtlas::tree_base::
 api_remove(const rectangle *p)
 {
   std::list<const tree_base*> parentage;
-  assert(p != nullptr);
+  FASTUIDRAWassert(p != nullptr);
 
   p->build_parent_list(parentage);
-  assert(!parentage.empty());
-  assert(this == parentage.front());
+  FASTUIDRAWassert(!parentage.empty());
+  FASTUIDRAWassert(this == parentage.front());
   return remove(p, parentage);
 }
 
@@ -86,7 +86,7 @@ fastuidraw::detail::RectAtlas::tree_node_without_children::
 {
   if(m_rectangle!=nullptr)
     {
-      assert(m_rectangle->m_tree == this);
+      FASTUIDRAWassert(m_rectangle->m_tree == this);
       FASTUIDRAWdelete(m_rectangle);
     }
   clear_from_tracking();
@@ -222,7 +222,7 @@ add(rectangle *im)
 
   //add the new rectangle im to new_node:
   R=new_node->add(im);
-  assert(R.second == routine_success);
+  FASTUIDRAWassert(R.second == routine_success);
 
   if(R.first!=new_node)
     {
@@ -238,14 +238,14 @@ fastuidraw::detail::RectAtlas::tree_node_without_children::
 remove(const fastuidraw::detail::RectAtlas::rectangle *im,
        std::list<const tree_base*> &parent_list)
 {
-  assert(!parent_list.empty());
+  FASTUIDRAWassert(!parent_list.empty());
   if(parent_list.front() != this)
     {
       return add_remove_return_value(this, routine_fail);
     }
 
-  assert(m_rectangle == im);
-  assert(im->m_tree == this);
+  FASTUIDRAWassert(m_rectangle == im);
+  FASTUIDRAWassert(im->m_tree == this);
   FASTUIDRAWunused(im);
   FASTUIDRAWdelete(m_rectangle);
   m_rectangle = nullptr;
@@ -271,7 +271,7 @@ tree_node_with_children(fastuidraw::detail::RectAtlas::tree_node_without_childre
   m_children(nullptr, nullptr, nullptr)
 {
   rectangle *R(src->data());
-  assert(R != nullptr);
+  FASTUIDRAWassert(R != nullptr);
 
   m_children[2] = FASTUIDRAWnew tree_node_without_children(this, src->tracker(),
                                                           R->minX_minY(), R->size(), R);
@@ -289,7 +289,7 @@ tree_node_with_children(fastuidraw::detail::RectAtlas::tree_node_without_childre
     }
   else
     {
-      assert(split_y);
+      FASTUIDRAWassert(split_y);
       FASTUIDRAWunused(split_y);
 
       m_children[0]
@@ -311,7 +311,7 @@ fastuidraw::detail::RectAtlas::tree_node_with_children::
 {
   for(int i=0;i<3;++i)
     {
-      assert(m_children[i] != nullptr);
+      FASTUIDRAWassert(m_children[i] != nullptr);
       FASTUIDRAWdelete(m_children[i]);
     }
 }
@@ -345,7 +345,7 @@ fastuidraw::detail::RectAtlas::tree_node_with_children::
 remove(const rectangle *im,
        std::list<const tree_base*> &parent_list)
 {
-  assert(!parent_list.empty());
+  FASTUIDRAWassert(!parent_list.empty());
   if(parent_list.front() != this)
     {
       return add_remove_return_value(this, routine_fail);
@@ -358,7 +358,7 @@ remove(const rectangle *im,
 
   for(int i = 0; i < 3 and R.second == routine_fail; ++i)
     {
-      assert(m_children[i] != nullptr);
+      FASTUIDRAWassert(m_children[i] != nullptr);
 
       R = m_children[i]->remove(im, parent_list);
       if(R.second == routine_success)
@@ -367,8 +367,8 @@ remove(const rectangle *im,
         }
     }
 
-  assert(R.second == routine_success);
-  assert(delete_index < 3);
+  FASTUIDRAWassert(R.second == routine_success);
+  FASTUIDRAWassert(delete_index < 3);
   if(R.first != m_children[delete_index])
     {
       FASTUIDRAWdelete(m_children[delete_index]);
@@ -448,7 +448,7 @@ RectAtlas(const ivec2 &dimensions):
 fastuidraw::detail::RectAtlas::
 ~RectAtlas()
 {
-  assert(m_root != nullptr);
+  FASTUIDRAWassert(m_root != nullptr);
   FASTUIDRAWdelete(m_root);
 }
 
@@ -456,7 +456,7 @@ fastuidraw::ivec2
 fastuidraw::detail::RectAtlas::
 size(void) const
 {
-  assert(m_root != nullptr);
+  FASTUIDRAWassert(m_root != nullptr);
   return m_root->size();
 }
 
@@ -525,11 +525,11 @@ remove_rectangle_implement(const rectangle *im)
 {
   add_remove_return_value R;
 
-  assert(im->atlas() == this);
+  FASTUIDRAWassert(im->atlas() == this);
 
   if(im->size().x() <= 0 or im->size().y() <= 0)
     {
-      assert(im == &im->atlas()->m_empty_rect);
+      FASTUIDRAWassert(im == &im->atlas()->m_empty_rect);
       return routine_success;
     }
   else
@@ -552,7 +552,7 @@ enum fastuidraw::return_code
 fastuidraw::detail::RectAtlas::
 delete_rectangle(const RectAtlas::rectangle *im)
 {
-  assert(im);
-  assert(im->m_atlas != nullptr);
+  FASTUIDRAWassert(im);
+  FASTUIDRAWassert(im->m_atlas != nullptr);
   return im->m_atlas->remove_rectangle_implement(im);
 }

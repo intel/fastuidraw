@@ -28,7 +28,7 @@ namespace
   uint32_t
   filter_atlas_layer(int layer)
   {
-    assert(layer >= -1);
+    FASTUIDRAWassert(layer >= -1);
     return (layer != -1) ? static_cast<uint32_t>(layer) : ~0u;
   }
 
@@ -36,7 +36,7 @@ namespace
   void
   pack_glyph_indices(fastuidraw::c_array<fastuidraw::PainterIndex> dst, unsigned int aa)
   {
-    assert(dst.size() == 6);
+    FASTUIDRAWassert(dst.size() == 6);
     dst[0] = aa;
     dst[1] = aa + 1;
     dst[2] = aa + 2;
@@ -51,7 +51,7 @@ namespace
                         fastuidraw::vec2 p, fastuidraw::Glyph glyph, float SCALE,
                         fastuidraw::c_array<fastuidraw::PainterAttribute> dst)
   {
-    assert(glyph.valid());
+    FASTUIDRAWassert(glyph.valid());
 
     fastuidraw::GlyphLocation atlas(glyph.atlas_location());
     fastuidraw::GlyphLocation secondary_atlas(glyph.secondary_atlas_location());
@@ -156,8 +156,8 @@ FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
   m_render_pixel_size(false, 1.0f),
   m_number_glyphs(0)
 {
-  assert(glyph_positions.size() == glyphs.size());
-  assert(scale_factors.empty() || scale_factors.size() == glyphs.size());
+  FASTUIDRAWassert(glyph_positions.size() == glyphs.size());
+  FASTUIDRAWassert(scale_factors.empty() || scale_factors.size() == glyphs.size());
 }
 
 FillGlyphsPrivate::
@@ -171,7 +171,7 @@ FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
   m_render_pixel_size(true, render_pixel_size),
   m_number_glyphs(0)
 {
-  assert(glyph_positions.size() == glyphs.size());
+  FASTUIDRAWassert(glyph_positions.size() == glyphs.size());
 }
 
 FillGlyphsPrivate::
@@ -184,7 +184,7 @@ FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
   m_render_pixel_size(false, 1.0f),
   m_number_glyphs(0)
 {
-  assert(glyph_positions.size() == glyphs.size());
+  FASTUIDRAWassert(glyph_positions.size() == glyphs.size());
 }
 
 void
@@ -289,7 +289,7 @@ fill_data(c_array<PainterAttribute> attribute_data,
       c += d->m_cnt_by_type[i];
     }
 
-  assert(zincrements.empty());
+  FASTUIDRAWassert(zincrements.empty());
   FASTUIDRAWunused(zincrements);
 
   std::vector<unsigned int> current(attrib_chunks.size(), 0);

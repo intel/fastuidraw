@@ -34,7 +34,7 @@
 
 #include "gluos.hpp"
 #include <stddef.h>
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include <limits.h>             /* LONG_MAX */
 #include "memalloc.hpp"
 
@@ -75,7 +75,7 @@ PriorityQ *pqNewPriorityQ( int (*leq)(PQkey key1, PQkey key2) )
 /* really glu_fastuidraw_gl_pqSortDeletePriorityQ */
 void pqDeletePriorityQ( PriorityQ *pq )
 {
-  assert(pq != nullptr);
+  FASTUIDRAWassert(pq != nullptr);
   if (pq->heap != nullptr) glu_fastuidraw_gl_pqHeapDeletePriorityQ( pq->heap );
   if (pq->order != nullptr) memFree( pq->order );
   if (pq->keys != nullptr) memFree( pq->keys );
@@ -161,7 +161,7 @@ int pqInit( PriorityQ *pq )
   p = pq->order;
   r = p + pq->size - 1;
   for( i = p; i < r; ++i ) {
-    assert( LEQ( **(i+1), **i ));
+    FASTUIDRAWassert( LEQ( **(i+1), **i ));
   }
 #endif
 
@@ -191,7 +191,7 @@ PQhandle pqInsert( PriorityQ *pq, PQkey keyNew )
        return LONG_MAX;
     }
   }
-  assert(curr != LONG_MAX);
+  FASTUIDRAWassert(curr != LONG_MAX);
   pq->keys[curr] = keyNew;
 
   /* Negative handles index the sorted array. */
@@ -251,7 +251,7 @@ void pqDelete( PriorityQ *pq, PQhandle curr )
     return;
   }
   curr = -(curr+1);
-  assert( curr < pq->max && pq->keys[curr] != nullptr );
+  FASTUIDRAWassert( curr < pq->max && pq->keys[curr] != nullptr );
 
   pq->keys[curr] = nullptr;
   while( pq->size > 0 && *(pq->order[pq->size-1]) == nullptr ) {

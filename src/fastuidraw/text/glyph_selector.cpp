@@ -80,7 +80,7 @@ namespace
       else
         {
           return_value = iter->second;
-          assert(return_value->parent() == parent);
+          FASTUIDRAWassert(return_value->parent() == parent);
         }
       return return_value;
     }
@@ -359,7 +359,7 @@ fetch_glyph_no_lock(fastuidraw::GlyphRender tp,
 {
   glyph_source src;
 
-  assert(group);
+  FASTUIDRAWassert(group);
   src = group->fetch_glyph(character_code, tp.m_type);
   if(src.first)
     {

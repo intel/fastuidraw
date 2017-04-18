@@ -412,22 +412,22 @@ namespace fastuidraw
 /*!\def FASTUIDRAWunused
   Macro to stop the compiler from reporting
   an argument as unused. Typically used on
-  those arguments used in assert invocation
+  those arguments used in FASTUIDRAWassert invocation
   but otherwise unused.
   \param X expression of which to ignore the value
  */
 #define FASTUIDRAWunused(X) do { (void)(X); } while(0)
 
-/*!\def FASTUIDRAWassert
+/*!\def FASTUIDRAWFASTUIDRAWassert
   If FASTUIDRAW_DEBUG is defined, checks if the statement
   is true and if it is not true prints to std::cerr and
   then aborts. If FastUIDRAW_DEBUG is not defined, then
   macro is empty (and thus the condition is not evaluated).
 */
 #ifdef FASTUIDRAW_DEBUG
-#define FASTUIDRAWassert(X) do {                                \
-    if(!(X)) {                                                  \
-      fastuidraw::assert_fail(#X, __FILE__, __LINE__);    \
+#define FASTUIDRAWassert(X) do {                              \
+    if(!(X)) {                                                          \
+      fastuidraw::assert_fail(#X, __FILE__, __LINE__);                  \
     } } while(0)
 #else
 #define FASTUIDRAWassert(X)

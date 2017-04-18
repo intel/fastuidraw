@@ -452,7 +452,7 @@ color_texture(void) const
 {
   flush();
   const ColorBackingStoreGL *p;
-  assert(dynamic_cast<const ColorBackingStoreGL*>(color_store().get()));
+  FASTUIDRAWassert(dynamic_cast<const ColorBackingStoreGL*>(color_store().get()));
   p = static_cast<const ColorBackingStoreGL*>(color_store().get());
   return p->texture();
 }
@@ -463,7 +463,7 @@ index_texture(void) const
 {
   flush();
   const IndexBackingStoreGL *p;
-  assert(dynamic_cast<const IndexBackingStoreGL*>(index_store().get()));
+  FASTUIDRAWassert(dynamic_cast<const IndexBackingStoreGL*>(index_store().get()));
   p = static_cast<const IndexBackingStoreGL*>(index_store().get());
   return p->texture();
 }
@@ -474,7 +474,7 @@ shader_coords(reference_counted_ptr<Image> image)
 {
   ivec2 master_index_tile(image->master_index_tile());
 
-  assert(image->number_index_lookups() > 0);
+  FASTUIDRAWassert(image->number_index_lookups() > 0);
 
   vec2 wh(image->master_index_tile_dims());
   float f(image->atlas()->index_tile_size());

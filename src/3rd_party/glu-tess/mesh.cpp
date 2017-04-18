@@ -34,7 +34,7 @@
 
 #include "gluos.hpp"
 #include <stddef.h>
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include "mesh.hpp"
 #include "memalloc.hpp"
 
@@ -138,7 +138,7 @@ static void MakeVertex( GLUvertex *newVertex,
   GLUvertex *vPrev;
   GLUvertex *vNew = newVertex;
 
-  assert(vNew != nullptr);
+  FASTUIDRAWassert(vNew != nullptr);
 
   /* insert in circular doubly-linked list before vNext */
   vPrev = vNext->prev;
@@ -171,7 +171,7 @@ static void MakeFace( GLUface *newFace, GLUhalfEdge *eOrig, GLUface *fNext )
   GLUface *fPrev;
   GLUface *fNew = newFace;
 
-  assert(fNew != nullptr);
+  FASTUIDRAWassert(fNew != nullptr);
 
   /* insert in circular doubly-linked list before fNext */
   fPrev = fNext->prev;
@@ -701,7 +701,7 @@ void glu_fastuidraw_gl_meshDeleteMesh( GLUmesh *mesh )
   while( fHead->next != fHead ) {
     glu_fastuidraw_gl_meshZapFace( fHead->next );
   }
-  assert( mesh->vHead.next == &mesh->vHead );
+  FASTUIDRAWassert( mesh->vHead.next == &mesh->vHead );
 
   memFree( mesh );
 }
@@ -752,45 +752,45 @@ void glu_fastuidraw_gl_meshCheckMesh( GLUmesh *mesh )
 
   fPrev = fHead;
   for( fPrev = fHead ; (f = fPrev->next) != fHead; fPrev = f) {
-    assert( f->prev == fPrev );
+    FASTUIDRAWassert( f->prev == fPrev );
     e = f->anEdge;
     do {
-      assert( e->Sym != e );
-      assert( e->Sym->Sym == e );
-      assert( e->Lnext->Onext->Sym == e );
-      assert( e->Onext->Sym->Lnext == e );
-      assert( e->Lface == f );
+      FASTUIDRAWassert( e->Sym != e );
+      FASTUIDRAWassert( e->Sym->Sym == e );
+      FASTUIDRAWassert( e->Lnext->Onext->Sym == e );
+      FASTUIDRAWassert( e->Onext->Sym->Lnext == e );
+      FASTUIDRAWassert( e->Lface == f );
       e = e->Lnext;
     } while( e != f->anEdge );
   }
-  assert( f->prev == fPrev && f->anEdge == nullptr && f->data == nullptr );
+  FASTUIDRAWassert( f->prev == fPrev && f->anEdge == nullptr && f->data == nullptr );
 
   vPrev = vHead;
   for( vPrev = vHead ; (v = vPrev->next) != vHead; vPrev = v) {
-    assert( v->prev == vPrev );
+    FASTUIDRAWassert( v->prev == vPrev );
     e = v->anEdge;
     do {
-      assert( e->Sym != e );
-      assert( e->Sym->Sym == e );
-      assert( e->Lnext->Onext->Sym == e );
-      assert( e->Onext->Sym->Lnext == e );
-      assert( e->Org == v );
+      FASTUIDRAWassert( e->Sym != e );
+      FASTUIDRAWassert( e->Sym->Sym == e );
+      FASTUIDRAWassert( e->Lnext->Onext->Sym == e );
+      FASTUIDRAWassert( e->Onext->Sym->Lnext == e );
+      FASTUIDRAWassert( e->Org == v );
       e = e->Onext;
     } while( e != v->anEdge );
   }
-  assert( v->prev == vPrev && v->anEdge == nullptr && v->client_id == FASTUIDRAW_GLU_nullptr_CLIENT_ID );
+  FASTUIDRAWassert( v->prev == vPrev && v->anEdge == nullptr && v->client_id == FASTUIDRAW_GLU_nullptr_CLIENT_ID );
 
   ePrev = eHead;
   for( ePrev = eHead ; (e = ePrev->next) != eHead; ePrev = e) {
-    assert( e->Sym->next == ePrev->Sym );
-    assert( e->Sym != e );
-    assert( e->Sym->Sym == e );
-    assert( e->Org != nullptr );
-    assert( e->Dst != nullptr );
-    assert( e->Lnext->Onext->Sym == e );
-    assert( e->Onext->Sym->Lnext == e );
+    FASTUIDRAWassert( e->Sym->next == ePrev->Sym );
+    FASTUIDRAWassert( e->Sym != e );
+    FASTUIDRAWassert( e->Sym->Sym == e );
+    FASTUIDRAWassert( e->Org != nullptr );
+    FASTUIDRAWassert( e->Dst != nullptr );
+    FASTUIDRAWassert( e->Lnext->Onext->Sym == e );
+    FASTUIDRAWassert( e->Onext->Sym->Lnext == e );
   }
-  assert( e->Sym->next == ePrev->Sym
+  FASTUIDRAWassert( e->Sym->next == ePrev->Sym
        && e->Sym == &mesh->eHeadSym
        && e->Sym->Sym == e
        && e->Org == nullptr && e->Dst == nullptr

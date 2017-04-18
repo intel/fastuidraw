@@ -942,7 +942,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     break;
 
     default:
-      assert(!"Invalid colorstop_atlas_backing() value");
+      FASTUIDRAWassert(!"Invalid colorstop_atlas_backing() value");
     }
 
   switch(params.data_store_backing())
@@ -950,7 +950,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     case PainterBackendGLSL::data_store_ubo:
       {
         unsigned int alignment(m_p->configuration_base().alignment());
-        assert(alignment == 4);
+        FASTUIDRAWassert(alignment == 4);
         FASTUIDRAWunused(alignment);
 
         vert
@@ -971,7 +971,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       break;
 
     default:
-      assert(!"Invalid data_store_backing() value");
+      FASTUIDRAWassert(!"Invalid data_store_backing() value");
     }
 
   if(!params.have_float_glyph_texture_atlas())
@@ -1069,7 +1069,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
 
     default:
       shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_INVALID_BLEND";
-      assert(!"Invalid blend_type");
+      FASTUIDRAWassert(!"Invalid blend_type");
     }
 
   frag
@@ -1427,8 +1427,8 @@ absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader)
   reference_counted_ptr<glsl::PainterItemShaderGLSL> h;
   PainterShader::Tag return_value;
 
-  assert(!shader->parent());
-  assert(shader.dynamic_cast_ptr<PainterItemShaderGLSL>());
+  FASTUIDRAWassert(!shader->parent());
+  FASTUIDRAWassert(shader.dynamic_cast_ptr<PainterItemShaderGLSL>());
   h = shader.static_cast_ptr<PainterItemShaderGLSL>();
 
   d->m_shader_code_added = true;
@@ -1462,8 +1462,8 @@ absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader)
   reference_counted_ptr<PainterBlendShaderGLSL> h;
   fastuidraw::PainterShader::Tag return_value;
 
-  assert(!shader->parent());
-  assert(shader.dynamic_cast_ptr<PainterBlendShaderGLSL>());
+  FASTUIDRAWassert(!shader->parent());
+  FASTUIDRAWassert(shader.dynamic_cast_ptr<PainterBlendShaderGLSL>());
   h = shader.static_cast_ptr<PainterBlendShaderGLSL>();
 
   d->m_shader_code_added = true;

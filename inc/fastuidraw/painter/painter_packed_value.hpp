@@ -113,14 +113,14 @@ namespace fastuidraw
 
     /*!
       Returns the value to which the handle points.
-      If the handle is not-value, then asserts.
+      If the handle is not-value, then FASTUIDRAWasserts.
      */
     const T&
     value(void) const
     {
       const T *p;
 
-      assert(this->m_d);
+      FASTUIDRAWassert(this->m_d);
       p = static_cast<const T*>(this->raw_value());
       return *p;
     }

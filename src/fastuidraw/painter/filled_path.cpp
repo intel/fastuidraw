@@ -137,7 +137,7 @@ namespace
     s = (w < 0) ? -1 : 0;
     r = 2 * v + s;
 
-    assert(r >= 0);
+    FASTUIDRAWassert(r >= 0);
     return r;
   }
 
@@ -219,7 +219,7 @@ namespace
     void
     add_entry(const EdgeData::per_entry &entry)
     {
-      assert(m_count < 2);
+      FASTUIDRAWassert(m_count < 2);
       m_winding[m_count] = entry.m_winding;
       m_opposite[m_count] = entry.m_vertex;
       ++m_count;
@@ -234,8 +234,8 @@ namespace
     int
     winding(int v) const
     {
-      assert(v == 0 || v == 1);
-      assert(0 <= m_count && m_count <= 2);
+      FASTUIDRAWassert(v == 0 || v == 1);
+      FASTUIDRAWassert(0 <= m_count && m_count <= 2);
       v = fastuidraw::t_min(m_count - 1, v);
       return (v >= 0) ?
         m_winding[v] :
@@ -423,7 +423,7 @@ namespace
             fastuidraw::c_array<unsigned int> dest,
             fastuidraw::const_c_array<unsigned int> &sub_range)
     {
-      assert(count() + offset <= dest.size());
+      FASTUIDRAWassert(count() + offset <= dest.size());
       std::copy(m_indices.begin(), m_indices.end(), &dest[offset]);
       sub_range = dest.sub_array(offset, count());
       offset += count();
@@ -656,7 +656,7 @@ namespace
       m_converter(bounds.min_point(), bounds.max_point()),
       m_pts(pts)
     {
-      assert(!bounds.empty());
+      FASTUIDRAWassert(!bounds.empty());
     }
 
     unsigned int
@@ -680,14 +680,14 @@ namespace
     const fastuidraw::dvec2&
     operator[](unsigned int v) const
     {
-      assert(v < m_pts.size());
+      FASTUIDRAWassert(v < m_pts.size());
       return m_pts[v];
     }
 
     const fastuidraw::ivec2&
     ipt(unsigned int v) const
     {
-      assert(v < m_ipts.size());
+      FASTUIDRAWassert(v < m_ipts.size());
       return m_ipts[v];
     }
 
@@ -1058,7 +1058,7 @@ namespace
     fastuidraw::const_c_array<int>
     winding_numbers(void)
     {
-      assert(m_painter_data != nullptr);
+      FASTUIDRAWassert(m_painter_data != nullptr);
       return fastuidraw::make_c_array(m_winding_numbers);
     }
 
@@ -1067,7 +1067,7 @@ namespace
     {
       unsigned int i;
 
-      assert(m_fuzz_painter_data != nullptr);
+      FASTUIDRAWassert(m_fuzz_painter_data != nullptr);
       i = signed_to_unsigned(w);
       return (i < m_winding_neighbors.size()) ?
         fastuidraw::make_c_array(m_winding_neighbors[i]) :
@@ -1077,14 +1077,14 @@ namespace
     const fastuidraw::PainterAttributeData&
     painter_data(void)
     {
-      assert(m_painter_data != nullptr);
+      FASTUIDRAWassert(m_painter_data != nullptr);
       return *m_painter_data;
     }
 
     const fastuidraw::PainterAttributeData&
     fuzz_painter_data(void)
     {
-      assert(m_fuzz_painter_data != nullptr);
+      FASTUIDRAWassert(m_fuzz_painter_data != nullptr);
       return *m_fuzz_painter_data;
     }
 
@@ -1214,7 +1214,7 @@ filtered_entries(void) const
           for(ct = 0, start = i; i < endi && m_entries[i].m_winding == m_entries[start].m_winding; ++ct, ++i)
             {}
 
-          assert(ct >= 1);
+          FASTUIDRAWassert(ct >= 1);
           if(ct == 1)
             {
               tmp.push_back(m_entries[start]);
@@ -1237,8 +1237,8 @@ add_winding(uint64_t twice_area, int w, unsigned int v)
 {
   per_entry p;
 
-  assert(twice_area > 0);
-  assert(!m_filtered);
+  FASTUIDRAWassert(twice_area > 0);
+  FASTUIDRAWassert(!m_filtered);
   p.m_twice_area = twice_area;
   p.m_winding = w;
   p.m_vertex = v;
@@ -1624,7 +1624,7 @@ fetch(const fastuidraw::dvec2 &pt)
   fastuidraw::ivec2 ipt;
   unsigned int return_value;
 
-  assert(m_pts.size() == m_ipts.size());
+  FASTUIDRAWassert(m_pts.size() == m_ipts.size());
 
   ipt = m_converter.iapply(pt);
   iter = m_map.find(ipt);
@@ -1729,7 +1729,7 @@ void
 tesser::
 add_contour(const PointHoard::Contour &C)
 {
-  assert(!C.empty());
+  FASTUIDRAWassert(!C.empty());
 
   fastuidraw_gluTessBeginContour(m_tess, FASTUIDRAW_GLU_TRUE);
   for(unsigned int v = 0, endv = C.size(); v < endv; ++v)
@@ -1856,7 +1856,7 @@ begin_callBack(FASTUIDRAW_GLUenum type, int winding_number, void *tess)
 {
   tesser *p;
   p = static_cast<tesser*>(tess);
-  assert(FASTUIDRAW_GLU_TRIANGLES == type);
+  FASTUIDRAWassert(FASTUIDRAW_GLU_TRIANGLES == type);
   FASTUIDRAWunused(type);
 
   p->m_temp_vert_count = 0;
@@ -1899,7 +1899,7 @@ vertex_callBack(unsigned int vertex_id, void *tess)
          && p->m_temp_verts[2] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
          && p->temp_verts_non_degenerate_triangle(twice_area))
         {
-          assert(twice_area > 0);
+          FASTUIDRAWassert(twice_area > 0);
           p->m_boundary_edge_tracker.record_triangle(p->current_winding() + p->m_winding_offset,
                                                      twice_area,
                                                      p->m_temp_verts[0],
@@ -2031,7 +2031,7 @@ void
 zero_tesser::
 on_begin_polygon(void)
 {
-  assert(current_winding() == -1);
+  FASTUIDRAWassert(current_winding() == -1);
 }
 
 void
@@ -2146,9 +2146,9 @@ fill_indices(std::vector<unsigned int> &indices,
         }
     }
 
-  assert(current_zero == total);
-  assert(current_odd == num_odd);
-  assert(current_even_non_zero == current_odd + num_even_non_zero);
+  FASTUIDRAWassert(current_zero == total);
+  FASTUIDRAWassert(current_odd == num_odd);
+  FASTUIDRAWassert(current_even_non_zero == current_odd + num_even_non_zero);
 
   even_non_zero_start = num_odd;
   zero_start = current_odd + num_even_non_zero;
@@ -2302,9 +2302,9 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
           fastuidraw::c_array<unsigned int> zincrements,
           fastuidraw::c_array<int> index_adjusts) const
 {
-  assert(attributes.size() == 4 * m_edges.size());
-  assert(indices.size() == 6 * m_edges.size());
-  assert(attrib_chunks.size() == index_chunks.size());
+  FASTUIDRAWassert(attributes.size() == 4 * m_edges.size());
+  FASTUIDRAWassert(indices.size() == 6 * m_edges.size());
+  FASTUIDRAWassert(attrib_chunks.size() == index_chunks.size());
   FASTUIDRAWunused(zincrements);
 
   std::vector<unsigned int> tmp(attrib_chunks.size(), 0);
@@ -2318,7 +2318,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
       w0 = iter->winding(0);
       w1 = iter->winding(1);
       ch = fastuidraw::FilledPath::Subset::chunk_for_aa_fuzz(w0, w1);
-      assert(ch < tmp.size());
+      FASTUIDRAWassert(ch < tmp.size());
       tmp[ch]++;
     }
 
@@ -2368,9 +2368,9 @@ pack_attribute(const Edge &edge,
 {
   fastuidraw::dvec2 tangent, normal;
 
-  assert(dst.size() == 4);
-  assert(edge[0] < m_pts.size());
-  assert(edge[1] < m_pts.size());
+  FASTUIDRAWassert(dst.size() == 4);
+  FASTUIDRAWassert(edge[0] < m_pts.size());
+  FASTUIDRAWassert(edge[1] < m_pts.size());
 
   tangent = m_pts[edge[1]] - m_pts[edge[0]];
   normal = fastuidraw::dvec2(-tangent.y(), tangent.x());
@@ -2455,9 +2455,9 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
     {
       return;
     }
-  assert(attributes.size() == m_points.size());
-  assert(attrib_chunks.size() == 1);
-  assert(zincrements.empty());
+  FASTUIDRAWassert(attributes.size() == m_points.size());
+  FASTUIDRAWassert(attrib_chunks.size() == 1);
+  FASTUIDRAWassert(zincrements.empty());
   FASTUIDRAWunused(zincrements);
 
   /* generate attribute data
@@ -2499,7 +2499,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
 
           src = iter->second;
           dst = index_data.sub_array(current, src.size());
-          assert(dst.size() == src.size());
+          FASTUIDRAWassert(dst.size() == src.size());
 
           std::copy(src.begin(), src.end(), dst.begin());
 
@@ -2553,25 +2553,25 @@ SubsetPrivate::
 {
   if(m_sub_path != nullptr)
     {
-      assert(m_painter_data == nullptr);
-      assert(m_fuzz_painter_data == nullptr);
-      assert(m_children[0] == nullptr);
-      assert(m_children[1] == nullptr);
+      FASTUIDRAWassert(m_painter_data == nullptr);
+      FASTUIDRAWassert(m_fuzz_painter_data == nullptr);
+      FASTUIDRAWassert(m_children[0] == nullptr);
+      FASTUIDRAWassert(m_children[1] == nullptr);
       FASTUIDRAWdelete(m_sub_path);
     }
 
   if(m_painter_data != nullptr)
     {
-      assert(m_sub_path == nullptr);
-      assert(m_fuzz_painter_data != nullptr);
+      FASTUIDRAWassert(m_sub_path == nullptr);
+      FASTUIDRAWassert(m_fuzz_painter_data != nullptr);
       FASTUIDRAWdelete(m_painter_data);
       FASTUIDRAWdelete(m_fuzz_painter_data);
     }
 
   if(m_children[0] != nullptr)
     {
-      assert(m_sub_path == nullptr);
-      assert(m_children[1] != nullptr);
+      FASTUIDRAWassert(m_sub_path == nullptr);
+      FASTUIDRAWassert(m_children[1] != nullptr);
       FASTUIDRAWdelete(m_children[0]);
       FASTUIDRAWdelete(m_children[1]);
     }
@@ -2592,7 +2592,7 @@ compute_bd_mask_value(SubsetPrivate *parent, int child_id)
 {
   if(parent == nullptr)
     {
-      assert(child_id == -1);
+      FASTUIDRAWassert(child_id == -1);
       return 0u;
     }
   else
@@ -2604,8 +2604,8 @@ compute_bd_mask_value(SubsetPrivate *parent, int child_id)
           {CoordinateConverter::on_max_y_boundary, CoordinateConverter::on_min_y_boundary},
         };
 
-      assert(s == 0 || s == 1);
-      assert(child_id == 0 || child_id == 1);
+      FASTUIDRAWassert(s == 0 || s == 1);
+      FASTUIDRAWassert(child_id == 0 || child_id == 1);
 
       return parent->m_bd_mask | masks[s][child_id];
     }
@@ -2662,7 +2662,7 @@ select_subsets_implement(ScratchSpacePrivate &scratch,
     }
 
   //completely unclipped or no children
-  assert((m_children[0] == nullptr) == (m_children[1] == nullptr));
+  FASTUIDRAWassert((m_children[0] == nullptr) == (m_children[1] == nullptr));
   if(unclipped || m_children[0] == nullptr)
     {
       select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
@@ -2686,7 +2686,7 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
          the element will be selected.
        */
       make_ready_from_sub_path();
-      assert(m_painter_data != nullptr);
+      FASTUIDRAWassert(m_painter_data != nullptr);
     }
 
   if(m_sizes_ready
@@ -2705,8 +2705,8 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
       if(!m_sizes_ready)
         {
           m_sizes_ready = true;
-          assert(m_children[0]->m_sizes_ready);
-          assert(m_children[1]->m_sizes_ready);
+          FASTUIDRAWassert(m_children[0]->m_sizes_ready);
+          FASTUIDRAWassert(m_children[1]->m_sizes_ready);
           m_num_attributes = m_children[0]->m_num_attributes + m_children[1]->m_num_attributes;
           /* TODO: the actual value for m_largest_index_block might be smaller;
              this happens if the largest index block of m_children[0] and m_children[1]
@@ -2719,8 +2719,8 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
     }
   else
     {
-      assert(m_sizes_ready);
-      assert(!"Childless FilledPath::Subset has too many attributes or indices");
+      FASTUIDRAWassert(m_sizes_ready);
+      FASTUIDRAWassert(!"Childless FilledPath::Subset has too many attributes or indices");
     }
 }
 
@@ -2759,10 +2759,10 @@ void
 SubsetPrivate::
 make_ready_from_children(void)
 {
-  assert(m_children[0] != nullptr);
-  assert(m_children[1] != nullptr);
-  assert(m_sub_path == nullptr);
-  assert(m_painter_data == nullptr);
+  FASTUIDRAWassert(m_children[0] != nullptr);
+  FASTUIDRAWassert(m_children[1] != nullptr);
+  FASTUIDRAWassert(m_sub_path == nullptr);
+  FASTUIDRAWassert(m_painter_data == nullptr);
 
   m_children[0]->make_ready();
   m_children[1]->make_ready();
@@ -2799,8 +2799,8 @@ make_ready_from_children(void)
   if(!m_sizes_ready)
     {
       m_sizes_ready = true;
-      assert(m_children[0]->m_sizes_ready);
-      assert(m_children[1]->m_sizes_ready);
+      FASTUIDRAWassert(m_children[0]->m_sizes_ready);
+      FASTUIDRAWassert(m_children[1]->m_sizes_ready);
       m_num_attributes = m_children[0]->m_num_attributes + m_children[1]->m_num_attributes;
       /* TODO: the actual value for m_largest_index_block might be smaller;
          this happens if the largest index block of m_children[0] and m_children[1]
@@ -2822,11 +2822,11 @@ void
 SubsetPrivate::
 make_ready_from_sub_path(void)
 {
-  assert(m_children[0] == nullptr);
-  assert(m_children[1] == nullptr);
-  assert(m_sub_path != nullptr);
-  assert(m_painter_data == nullptr);
-  assert(!m_sizes_ready);
+  FASTUIDRAWassert(m_children[0] == nullptr);
+  FASTUIDRAWassert(m_children[1] == nullptr);
+  FASTUIDRAWassert(m_sub_path != nullptr);
+  FASTUIDRAWassert(m_painter_data == nullptr);
+  FASTUIDRAWassert(!m_sizes_ready);
 
   AttributeDataFiller filler;
   std::vector<AAEdge> aa_edges;
@@ -2859,7 +2859,7 @@ make_ready_from_sub_path(void)
         iter = filler.m_per_fill.begin(), end = filler.m_per_fill.end();
       iter != end; ++iter)
     {
-      assert(!iter->second.empty());
+      FASTUIDRAWassert(!iter->second.empty());
       m_winding_numbers.push_back(iter->first);
     }
 
@@ -2999,7 +2999,7 @@ unsigned int
 fastuidraw::FilledPath::Subset::
 chunk_from_fill_rule(enum PainterEnums::fill_rule_t fill_rule)
 {
-  assert(fill_rule < fastuidraw::PainterEnums::fill_rule_data_count);
+  FASTUIDRAWassert(fill_rule < fastuidraw::PainterEnums::fill_rule_data_count);
   return fill_rule;
 }
 
@@ -3048,7 +3048,7 @@ subset(unsigned int I) const
   SubsetPrivate *p;
 
   d = static_cast<FilledPathPrivate*>(m_d);
-  assert(I < d->m_subsets.size());
+  FASTUIDRAWassert(I < d->m_subsets.size());
   p = d->m_subsets[I];
   p->make_ready();
 
@@ -3068,7 +3068,7 @@ select_subsets(ScratchSpace &work_room,
   unsigned int return_value;
 
   d = static_cast<FilledPathPrivate*>(m_d);
-  assert(dst.size() >= d->m_subsets.size());
+  FASTUIDRAWassert(dst.size() >= d->m_subsets.size());
   /* TODO:
        - have another method in SubsetPrivate called
          "fast_select_subsets" which ignores the requirements

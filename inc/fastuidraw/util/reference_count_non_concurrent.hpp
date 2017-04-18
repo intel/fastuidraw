@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <assert.h>
 #include <fastuidraw/util/util.hpp>
 
 namespace fastuidraw
@@ -44,7 +43,7 @@ namespace fastuidraw
 
     ~reference_count_non_concurrent()
     {
-      assert(m_reference_count == 0);
+      FASTUIDRAWassert(m_reference_count == 0);
     }
 
     /*!

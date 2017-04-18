@@ -235,7 +235,7 @@ register_shader(const reference_counted_ptr<PainterItemShader> &shader)
     {
       return;
     }
-  assert(shader->registered_to() == nullptr);
+  FASTUIDRAWassert(shader->registered_to() == nullptr);
   if(shader->registered_to() == nullptr)
     {
       if(shader->parent())
@@ -260,7 +260,7 @@ register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
     {
       return;
     }
-  assert(shader->registered_to() == nullptr);
+  FASTUIDRAWassert(shader->registered_to() == nullptr);
   if(shader->registered_to() == nullptr)
     {
       if(shader->parent())

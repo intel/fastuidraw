@@ -33,8 +33,8 @@ namespace
     void
     resize(fastuidraw::ivec2 sz)
     {
-      assert(sz.x() >= 0);
-      assert(sz.y() >= 0);
+      FASTUIDRAWassert(sz.x() >= 0);
+      FASTUIDRAWassert(sz.y() >= 0);
       m_texels.resize(sz.x() * sz.y());
       m_resolution = sz;
     }

@@ -87,9 +87,9 @@ perform_action(void)
   DelayedActionPrivate *d;
   d = static_cast<DelayedActionPrivate*>(m_d);
 
-  assert(d->m_cmd != nullptr);
-  assert(d->m_slot < d->m_cmd->m_actions.size());
-  assert(d->m_cmd->m_actions[d->m_slot] == this);
+  FASTUIDRAWassert(d->m_cmd != nullptr);
+  FASTUIDRAWassert(d->m_slot < d->m_cmd->m_actions.size());
+  FASTUIDRAWassert(d->m_cmd->m_actions[d->m_slot] == this);
 
   action(d->m_cmd->m_p);
 
@@ -129,13 +129,13 @@ add_action(const reference_counted_ptr<DelayedAction> &h) const
   PainterDrawPrivate *d;
   DelayedActionPrivate *hd;
 
-  assert(h);
+  FASTUIDRAWassert(h);
 
   d = static_cast<PainterDrawPrivate*>(m_d);
   hd = static_cast<DelayedActionPrivate*>(h->m_d);
 
-  assert(hd->m_cmd == nullptr);
-  assert(d->m_map_status != status_unmapped);
+  FASTUIDRAWassert(hd->m_cmd == nullptr);
+  FASTUIDRAWassert(d->m_map_status != status_unmapped);
 
   hd->m_cmd = d;
   hd->m_slot = d->m_actions.size();
@@ -152,7 +152,7 @@ unmap(unsigned int attributes_written,
   PainterDrawPrivate *d;
   d = static_cast<PainterDrawPrivate*>(m_d);
 
-  assert(d->m_map_status == status_mapped);
+  FASTUIDRAWassert(d->m_map_status == status_mapped);
 
   d->m_attribs_written = attributes_written;
   d->m_indices_written = indices_written;
@@ -171,8 +171,8 @@ complete_unmapping(void) const
   PainterDrawPrivate *d;
   d = static_cast<PainterDrawPrivate*>(m_d);
 
-  assert(d->m_map_status == status_waiting_for_actions_to_complete);
-  assert(d->m_action_count == 0);
+  FASTUIDRAWassert(d->m_map_status == status_waiting_for_actions_to_complete);
+  FASTUIDRAWassert(d->m_action_count == 0);
   unmap_implement(d->m_attribs_written, d->m_indices_written, d->m_data_store_written);
   d->m_map_status = status_unmapped;
 }

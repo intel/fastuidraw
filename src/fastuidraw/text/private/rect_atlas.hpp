@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include <list>
 #include <map>
 
@@ -376,7 +376,7 @@ private:
   void
   move_rectangle(rectangle *rect, const ivec2 &moveby)
   {
-    assert(rect);
+    FASTUIDRAWassert(rect);
     rect->m_minX_minY += moveby;
   }
 
@@ -384,7 +384,7 @@ private:
   void
   set_minX_minY(rectangle *rect, const ivec2 &bl)
   {
-    assert(rect);
+    FASTUIDRAWassert(rect);
     rect->m_minX_minY = bl;
   }
 

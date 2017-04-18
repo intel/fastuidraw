@@ -105,7 +105,7 @@ namespace fastuidraw
     /*!
       Resize the object by increasing the number of layers.
       The routine resizeable() must return true, if not
-      the function asserts.
+      the function FASTUIDRAWasserts.
      */
     void
     resize(int new_num_layers);
@@ -201,7 +201,7 @@ namespace fastuidraw
 
     /*!
       Resize the object to a larger size. The routine resizeable()
-      must return true, if not the function asserts.
+      must return true, if not the function FASTUIDRAWasserts.
       \param new_size new size of object in number of blocks.
      */
     void

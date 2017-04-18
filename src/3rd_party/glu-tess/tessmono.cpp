@@ -37,7 +37,7 @@
 #include "geom.hpp"
 #include "mesh.hpp"
 #include "tessmono.hpp"
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 
 #define AddWinding(eDst,eSrc)   (eDst->winding += eSrc->winding, \
                                  eDst->Sym->winding += eSrc->Sym->winding)
@@ -79,7 +79,7 @@ int glu_fastuidraw_gl_meshTessellateMonoRegion( GLUface *face )
    * be close to the edge we want.
    */
   up = face->anEdge;
-  assert( up->Lnext != up && up->Lnext->Lnext != up );
+  FASTUIDRAWassert( up->Lnext != up && up->Lnext->Lnext != up );
 
   for( ; VertLeq( up->Dst, up->Org ); up = up->Lprev )
     ;
@@ -115,7 +115,7 @@ int glu_fastuidraw_gl_meshTessellateMonoRegion( GLUface *face )
   /* Now lo->Org == up->Dst == the leftmost vertex.  The remaining region
    * can be tessellated in a fan from this leftmost vertex.
    */
-  assert( lo->Lnext != up );
+  FASTUIDRAWassert( lo->Lnext != up );
   while( lo->Lnext->Lnext != up ) {
     GLUhalfEdge *tempHalfEdge= glu_fastuidraw_gl_meshConnect( lo->Lnext, lo );
     if (tempHalfEdge == nullptr) return 0;

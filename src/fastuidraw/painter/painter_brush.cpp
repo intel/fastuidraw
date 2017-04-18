@@ -37,7 +37,7 @@ data_size(unsigned int alignment) const
 
   if(pshader & radial_gradient_mask)
     {
-      assert(pshader & gradient_mask);
+      FASTUIDRAWassert(pshader & gradient_mask);
       return_value += round_up_to_multiple(radial_gradient_data_size, alignment);
     }
   else if(pshader & gradient_mask)
@@ -89,7 +89,7 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
       sub_dest = dst.sub_array(current, sz);
       current += sz;
 
-      assert(m_data.m_image);
+      FASTUIDRAWassert(m_data.m_image);
       uvec3 loc(m_data.m_image->master_index_tile());
       uint32_t slack(m_data.m_image->slack());
       uint32_t lookups(m_data.m_image->number_index_lookups());
@@ -126,9 +126,9 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
       sub_dest = dst.sub_array(current, sz);
       current += sz;
 
-      assert(m_data.m_cs);
-      assert(m_data.m_cs->texel_location().x() >= 0);
-      assert(m_data.m_cs->texel_location().y() >= 0);
+      FASTUIDRAWassert(m_data.m_cs);
+      FASTUIDRAWassert(m_data.m_cs->texel_location().x() >= 0);
+      FASTUIDRAWassert(m_data.m_cs->texel_location().y() >= 0);
 
       uint32_t x, y;
       x = static_cast<uint32_t>(m_data.m_cs->texel_location().x());
@@ -186,7 +186,7 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
       sub_dest[transformation_translation_y_offset].f = m_data.m_transformation_p.y();
     }
 
-  assert(current == dst.size());
+  FASTUIDRAWassert(current == dst.size());
 }
 
 fastuidraw::PainterBrush&
@@ -262,8 +262,8 @@ fastuidraw::PainterBrush::
 filter_suitable_for_image(const reference_counted_ptr<const Image> &im,
                           enum image_filter f)
 {
-  assert(f >= image_filter_nearest);
-  assert(f <= image_filter_cubic);
+  FASTUIDRAWassert(f >= image_filter_nearest);
+  FASTUIDRAWassert(f <= image_filter_cubic);
   return im && im->slack() >= static_cast<unsigned int>(f) - 1;
 }
 
@@ -271,7 +271,7 @@ int
 fastuidraw::PainterBrush::
 slack_requirement(enum image_filter f)
 {
-  assert(f >= image_filter_nearest);
-  assert(f <= image_filter_cubic);
+  FASTUIDRAWassert(f >= image_filter_nearest);
+  FASTUIDRAWassert(f <= image_filter_cubic);
   return f - 1;
 }

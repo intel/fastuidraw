@@ -193,7 +193,7 @@ implement_set(unsigned int slot, const std::string &pname)
       add_string("");
     }
 
-  assert(slot < m_strings.size());
+  FASTUIDRAWassert(slot < m_strings.size());
   *m_strings[slot] = pname;
   m_strings_array[slot] = m_strings[slot]->c_str();
 }
@@ -257,7 +257,7 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
 
       li = labels.size() - i;
       cmp = std::min(alignment, li);
-      assert(cmp >= 1 && cmp <= 4);
+      FASTUIDRAWassert(cmp >= 1 && cmp <= 4);
 
       temp_comp = (alignment == 1) ? "" : temp_components[cmp - 1];
       str << "utemp" << temp_comp << " = fastuidraw_fetch_data(int("

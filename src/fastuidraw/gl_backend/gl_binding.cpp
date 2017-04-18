@@ -19,7 +19,7 @@
 
 
 
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include <iostream>
 #include <sstream>
 #include <fastuidraw/gl_backend/ngl_header.hpp>

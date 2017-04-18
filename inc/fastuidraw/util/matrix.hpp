@@ -158,8 +158,8 @@ public:
   T&
   operator()(unsigned int row, unsigned int col)
   {
-    assert(row<N);
-    assert(col<M);
+    FASTUIDRAWassert(row<N);
+    FASTUIDRAWassert(col<M);
     return m_data[N*col+row];
   }
 
@@ -171,8 +171,8 @@ public:
   const T&
   operator()(unsigned int row, unsigned int col) const
   {
-    assert(row<N);
-    assert(col<M);
+    FASTUIDRAWassert(row<N);
+    FASTUIDRAWassert(col<M);
     return m_data[N*col+row];
   }
 

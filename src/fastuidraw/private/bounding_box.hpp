@@ -41,14 +41,14 @@ namespace fastuidraw
       m_max(pmax),
       m_empty(false)
     {
-      assert(pmin.x() <= pmax.x());
-      assert(pmin.y() <= pmax.y());
+      FASTUIDRAWassert(pmin.x() <= pmax.x());
+      FASTUIDRAWassert(pmin.y() <= pmax.y());
     }
 
     void
     inflated_polygon(vecN<pt_type, 4> &out_data, T rad) const
     {
-      assert(!m_empty);
+      FASTUIDRAWassert(!m_empty);
       out_data[0] = pt_type(m_min.x() - rad, m_min.y() - rad);
       out_data[1] = pt_type(m_max.x() + rad, m_min.y() - rad);
       out_data[2] = pt_type(m_max.x() + rad, m_max.y() + rad);

@@ -109,7 +109,7 @@ namespace
     unsigned int
     compute_index(int v) const
     {
-      assert(v >= m_min_value && v <= m_max_value);
+      FASTUIDRAWassert(v >= m_min_value && v <= m_max_value);
       return v - m_min_value;
     }
 
@@ -527,7 +527,7 @@ namespace
     ComplementFillRule(const fastuidraw::CustomFillRuleBase *p):
       m_p(p)
     {
-      assert(m_p);
+      FASTUIDRAWassert(m_p);
     }
 
     bool
@@ -562,8 +562,8 @@ namespace
     void
     pop(void)
     {
-      assert(!m_sz.empty());
-      assert(m_sz.back() <= m_store.size());
+      FASTUIDRAWassert(!m_sz.empty());
+      FASTUIDRAWassert(m_sz.back() <= m_store.size());
 
       set_current(fastuidraw::make_c_array(m_store).sub_array(m_sz.back()));
       m_store.resize(m_sz.back());
@@ -786,7 +786,7 @@ on_pop(fastuidraw::Painter *p)
   for(unsigned int i = 0, endi = m_set_occluder_z.size(); i < endi; ++i)
     {
       ZDelayedAction *ptr;
-      assert(dynamic_cast<ZDelayedAction*>(m_set_occluder_z[i].get()) != nullptr);
+      FASTUIDRAWassert(dynamic_cast<ZDelayedAction*>(m_set_occluder_z[i].get()) != nullptr);
       ptr = static_cast<ZDelayedAction*>(m_set_occluder_z[i].get());
       ptr->finalize_z(p->current_z());
     }
@@ -1235,7 +1235,7 @@ compute_edge_chunks(const fastuidraw::StrokedPath &stroked_path,
                                 m_max_attribs_per_block,
                                 m_max_indices_per_block,
                                 fastuidraw::make_c_array(out_chunks));
-  assert(sz <= out_chunks.size());
+  FASTUIDRAWassert(sz <= out_chunks.size());
   out_chunks.resize(sz);
 }
 
@@ -1956,7 +1956,7 @@ stroke_dashed_path(const PainterStrokeShader &shader, const PainterData &draw,
           if(!idx.empty())
             {
               const_c_array<PainterAttribute> atr(join_data->attribute_data_chunk(chunk));
-              assert(!atr.empty());
+              FASTUIDRAWassert(!atr.empty());
               if(dash_evaluator->covered_by_dash_pattern(raw_data, atr[0]))
                 {
                   d->m_work_room.m_stroke_dashed_join_chunks.push_back(chunk);
@@ -2515,7 +2515,7 @@ restore(void)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  assert(!d->m_state_stack.empty());
+  FASTUIDRAWassert(!d->m_state_stack.empty());
   const state_stack_entry &st(d->m_state_stack.back());
 
   d->m_clip_rect_state = st.m_clip_rect_state;
@@ -2723,7 +2723,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   PainterPackedValue<PainterClipEquations> prev_clip, current_clip;
 
   prev_clip = d->m_clip_rect_state.clip_equations_state(d->m_pool);
-  assert(prev_clip);
+  FASTUIDRAWassert(prev_clip);
 
   d->m_clip_rect_state.m_clip_rect = clip_rect(pmin, pmax);
 
@@ -2757,7 +2757,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
    */
   PainterPackedValue<PainterItemMatrix> matrix_state;
   matrix_state = d->m_clip_rect_state.current_item_marix_state(d->m_pool);
-  assert(matrix_state);
+  FASTUIDRAWassert(matrix_state);
   d->m_clip_rect_state.item_matrix_state(d->m_identiy_matrix, false);
 
   reference_counted_ptr<ZDataCallBack> zdatacallback;

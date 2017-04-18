@@ -80,14 +80,14 @@ clip_against_plane(const vec3 &clip_eq, const_c_array<vec2> pts,
         {
           k = 0;
         }
-      assert(k < pts.size());
+      FASTUIDRAWassert(k < pts.size());
 
       unsigned int next_k(k+1);
       if(next_k == pts.size())
         {
           next_k = 0;
         }
-      assert(next_k < pts.size());
+      FASTUIDRAWassert(next_k < pts.size());
 
       b0 = work_room[k] >= 0.0f;
       b1 = work_room[next_k] >= 0.0f;
@@ -98,7 +98,7 @@ clip_against_plane(const vec3 &clip_eq, const_c_array<vec2> pts,
         }
     }
 
-  assert(num_edges == 2);
+  FASTUIDRAWassert(num_edges == 2);
 
   out_pts.reserve(pts.size() + 1);
   out_pts.resize(0);

@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <assert.h>
 #include <iterator>
 
 #include <fastuidraw/util/util.hpp>
@@ -227,7 +226,7 @@ public:
    */
   vecN(const T &px, const T &py)
   {
-    assert(N==2);
+    FASTUIDRAWassert(N==2);
     operator[](0) = px;
     operator[](1) = py;
   }
@@ -240,7 +239,7 @@ public:
    */
   vecN(const T &px, const T &py, const T &pz)
   {
-    assert(N==3);
+    FASTUIDRAWassert(N==3);
     operator[](0) = px;
     operator[](1) = py;
     operator[](2) = pz;
@@ -255,7 +254,7 @@ public:
    */
   vecN(const T &px, const T &py, const T &pz, const T &pw)
   {
-    assert(N==4);
+    FASTUIDRAWassert(N==4);
     operator[](0) = px;
     operator[](1) = py;
     operator[](2) = pz;
@@ -273,7 +272,7 @@ public:
   vecN(const T &p0, const T &p1, const T &p2,
        const T &p3, const T &p4)
   {
-    assert(N==5);
+    FASTUIDRAWassert(N==5);
     operator[](0) = p0;
     operator[](1) = p1;
     operator[](2) = p2;
@@ -293,7 +292,7 @@ public:
   vecN(const T &p0, const T &p1, const T &p2,
        const T &p3, const T &p4, const T &p5)
   {
-    assert(N==6);
+    FASTUIDRAWassert(N==6);
     operator[](0) = p0;
     operator[](1) = p1;
     operator[](2) = p2;
@@ -316,7 +315,7 @@ public:
        const T &p3, const T &p4, const T &p5,
        const T &p6)
   {
-    assert(N==7);
+    FASTUIDRAWassert(N==7);
     operator[](0) = p0;
     operator[](1) = p1;
     operator[](2) = p2;
@@ -342,7 +341,7 @@ public:
        const T &p3, const T &p4, const T &p5,
        const T &p6, const T &p7)
   {
-    assert(N==8);
+    FASTUIDRAWassert(N==8);
     operator[](0) = p0;
     operator[](1) = p1;
     operator[](2) = p2;
@@ -371,7 +370,7 @@ public:
        const T &p3, const T &p4, const T &p5,
        const T &p6, const T &p7, const T &p8)
   {
-    assert(N==9);
+    FASTUIDRAWassert(N==9);
     operator[](0) = p0;
     operator[](1) = p1;
     operator[](2) = p2;
@@ -390,7 +389,7 @@ public:
    */
   vecN(const vecN<T, N-1> &p, const T &d)
   {
-    assert(N>1);
+    FASTUIDRAWassert(N>1);
     for(size_type i=0;i<N-1;++i)
       {
         operator[](i) = p[i];
@@ -417,7 +416,7 @@ public:
   const T&
   operator[](size_type j) const
   {
-    assert(j < N);
+    FASTUIDRAWassert(j < N);
     return c_ptr()[j];
   }
 
@@ -428,7 +427,7 @@ public:
   T&
   operator[](size_type j)
   {
-    assert(j < N);
+    FASTUIDRAWassert(j < N);
     return c_ptr()[j];
   }
 
@@ -437,7 +436,7 @@ public:
     equivalent to operator[](0).
    */
   T&
-  x(void) { assert(N>=1); return c_ptr()[0]; }
+  x(void) { FASTUIDRAWassert(N>=1); return c_ptr()[0]; }
 
   /*!
     Conveniance readability member function,
@@ -445,7 +444,7 @@ public:
     if N is not atleast 2.
    */
   T&
-  y(void) { assert(N>=2); return c_ptr()[1]; }
+  y(void) { FASTUIDRAWassert(N>=2); return c_ptr()[1]; }
 
   /*!
     Conveniance readability member function,
@@ -453,7 +452,7 @@ public:
     if N is not atleast 3.
    */
   T&
-  z(void) { assert(N>=3); return c_ptr()[2]; }
+  z(void) { FASTUIDRAWassert(N>=3); return c_ptr()[2]; }
 
   /*!
     Conveniance readability member function,
@@ -461,14 +460,14 @@ public:
     if N is not atleast 4.
    */
   T&
-  w(void) { assert(N>=4); return c_ptr()[3]; }
+  w(void) { FASTUIDRAWassert(N>=4); return c_ptr()[3]; }
 
   /*!
     Conveniance readability member function,
     equivalent to operator[](0).
    */
   const T&
-  x(void) const { assert(N>=1); return c_ptr()[0]; }
+  x(void) const { FASTUIDRAWassert(N>=1); return c_ptr()[0]; }
 
   /*!
     Conveniance readability member function,
@@ -476,7 +475,7 @@ public:
     if N is not atleast 2.
    */
   const T&
-  y(void) const { assert(N>=2); return c_ptr()[1]; }
+  y(void) const { FASTUIDRAWassert(N>=2); return c_ptr()[1]; }
 
   /*!
     Conveniance readability member function,
@@ -484,7 +483,7 @@ public:
     if N is not atleast 3.
    */
   const T&
-  z(void) const { assert(N>=3); return c_ptr()[2]; }
+  z(void) const { FASTUIDRAWassert(N>=3); return c_ptr()[2]; }
 
   /*!
     Conveniance readability member function,
@@ -492,7 +491,7 @@ public:
     if N is not atleast 4.
    */
   const T&
-  w(void) const { assert(N>=4); return c_ptr()[3]; }
+  w(void) const { FASTUIDRAWassert(N>=4); return c_ptr()[3]; }
 
   /*!
     Assignment operator, performs T::operator= on each element.

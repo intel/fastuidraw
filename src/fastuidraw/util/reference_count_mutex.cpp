@@ -17,7 +17,7 @@
  */
 
 
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/util/reference_count_mutex.hpp>
 
@@ -52,7 +52,7 @@ fastuidraw::reference_count_mutex::
   RefernceCounterPrivate *d;
 
   d = static_cast<RefernceCounterPrivate*>(m_d);
-  assert(d->m_reference_count == 0);
+  FASTUIDRAWassert(d->m_reference_count == 0);
   FASTUIDRAWdelete(d);
   m_d = nullptr;
 }
@@ -65,7 +65,7 @@ add_reference(void)
 
   d = static_cast<RefernceCounterPrivate*>(m_d);
   d->m_mutex.lock();
-  assert(d->m_reference_count >= 0);
+  FASTUIDRAWassert(d->m_reference_count >= 0);
   ++d->m_reference_count;
   d->m_mutex.unlock();
 }
@@ -80,7 +80,7 @@ remove_reference(void)
   d = static_cast<RefernceCounterPrivate*>(m_d);
   d->m_mutex.lock();
   --d->m_reference_count;
-  assert(d->m_reference_count >= 0);
+  FASTUIDRAWassert(d->m_reference_count >= 0);
   if(d->m_reference_count == 0)
     {
       return_value = true;

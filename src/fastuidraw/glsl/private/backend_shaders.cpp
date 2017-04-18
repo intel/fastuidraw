@@ -78,7 +78,7 @@ add_blend_shader(PainterBlendShaderSet &out,
       break;
 
     default:
-      assert(!"Bad m_type");
+      FASTUIDRAWassert(!"Bad m_type");
     }
 }
 
@@ -184,9 +184,9 @@ ShaderSetCreatorConstants(void)
 
   m_stroke_render_pass_num_bits = number_bits_required(uber_number_passes);
   m_stroke_dash_style_num_bits = number_bits_required(number_cap_styles);
-  assert(FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(m_stroke_render_pass_num_bits) >= uber_number_passes);
-  assert(FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(m_stroke_dash_style_num_bits) >= number_cap_styles);
-  assert(m_stroke_render_pass_num_bits + m_stroke_dash_style_num_bits + 1u <= 32u);
+  FASTUIDRAWassert(FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(m_stroke_render_pass_num_bits) >= uber_number_passes);
+  FASTUIDRAWassert(FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(m_stroke_dash_style_num_bits) >= number_cap_styles);
+  FASTUIDRAWassert(m_stroke_render_pass_num_bits + m_stroke_dash_style_num_bits + 1u <= 32u);
 
   m_stroke_render_pass_bit0 = 0;
   m_stroke_width_pixels_bit0 = m_stroke_render_pass_bit0 + m_stroke_render_pass_num_bits;

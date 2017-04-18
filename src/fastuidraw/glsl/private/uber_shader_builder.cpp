@@ -36,7 +36,7 @@ namespace
       case varying_list::interpolation_noperspective:
         return "fastuidraw_varying_float_noperspective";
       }
-    assert(!"Invalid varying_list::interpolation_qualifier_t");
+    FASTUIDRAWassert(!"Invalid varying_list::interpolation_qualifier_t");
     return "";
   }
 
@@ -519,7 +519,7 @@ stream_uber_blend_shader(bool use_switch,
   switch(tp)
     {
     default:
-      assert("Unknown blend_code_type!");
+      FASTUIDRAWassert("Unknown blend_code_type!");
       //fall through
     case PainterBlendShader::single_src:
       func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 in_src, out vec4 out_src)";

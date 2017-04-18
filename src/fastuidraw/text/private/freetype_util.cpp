@@ -146,7 +146,7 @@ namespace
   generate_polynomial_from_bezier(const_c_array<ivec2> pts,
                                   vecN<std::vector<int>, 2> &curve)
   {
-    assert(pts.size() == 2 || pts.size() == 3 || pts.size() == 4);
+    FASTUIDRAWassert(pts.size() == 2 || pts.size() == 3 || pts.size() == 4);
 
     curve.x().resize(pts.size());
     curve.y().resize(pts.size());
@@ -240,7 +240,7 @@ namespace
                bool record_all)
   {
 
-    assert(poly.size()==2);
+    FASTUIDRAWassert(poly.size()==2);
     int mult;
 
     if(poly[1]<T(0))
@@ -268,7 +268,7 @@ namespace
                   bool record_all)
   {
     T desc;
-    assert(poly.size()==3);
+    FASTUIDRAWassert(poly.size()==3);
 
     if(poly[2]==0)
       {
@@ -423,7 +423,7 @@ namespace
               std::vector<polynomial_solution_solve> &return_value,
               bool record_all)
   {
-    assert(poly.size()==4);
+    FASTUIDRAWassert(poly.size()==4);
 
     if(poly[3]==T(0))
       {
@@ -556,7 +556,7 @@ namespace
         return;
       }
 
-    assert(poly.size()==2 or poly.size()==3 or poly.size()==4);
+    FASTUIDRAWassert(poly.size()==2 or poly.size()==3 or poly.size()==4);
 
     switch(poly.size())
       {
@@ -573,7 +573,7 @@ namespace
         break;
 
       default:
-        assert("!Invalid Degree!");
+        FASTUIDRAWassert("!Invalid Degree!");
       }
   }
 
@@ -710,7 +710,7 @@ namespace
         x_extremal_flag, //x_fixed=0
         y_extremal_flag, //y_fixed=1
       };
-    assert(tp==x_fixed or tp==y_fixed);
+    FASTUIDRAWassert(tp==x_fixed or tp==y_fixed);
 
     return 0!=(flag&masks[tp]);
   }
@@ -764,7 +764,7 @@ namespace detail
         /*[above_boundary]=*/ below_boundary,
         /*[no_boundary]=*/ no_boundary,
       };
-    assert(v<5);
+    FASTUIDRAWassert(v<5);
     return Rs[v];
   }
 
@@ -780,7 +780,7 @@ namespace detail
         /*[above_boundary]=*/ right_boundary,
         /*[no_boundary]=*/ no_boundary,
       };
-    assert(v<5);
+    FASTUIDRAWassert(v<5);
     return Rs[v];
   }
 
@@ -794,7 +794,7 @@ namespace detail
         /*[below_boundary]=*/ y_fixed,
         /*[above_boundary]=*/ y_fixed,
       };
-    assert(v<4);
+    FASTUIDRAWassert(v<4);
     return Rs[v];
   }
 
@@ -1193,7 +1193,7 @@ namespace detail
   init_pt_tags(const BezierCurve *prev_curve,
                const BezierCurve *next_curve)
   {
-    assert(m_tag_pt0==-1 and m_tag_pt1==-1);
+    FASTUIDRAWassert(m_tag_pt0==-1 and m_tag_pt1==-1);
 
     vec2 d0, d1, p1, n0;
 
@@ -1219,8 +1219,8 @@ namespace detail
 
 
 
-    assert(m_curve.x().size()==m_curve.y().size());
-    assert(m_curve.x().size()==m_raw_curve.size());
+    FASTUIDRAWassert(m_curve.x().size()==m_curve.y().size());
+    FASTUIDRAWassert(m_curve.x().size()==m_raw_curve.size());
     sz=m_curve.x().size();
 
     if(sz==2
@@ -1230,12 +1230,12 @@ namespace detail
         //this is a vertial or horizontal line parrallel to line.
         //out_pts.push_back( solution_point(1, pt0()[varying_coordinate(tp)], this, 0.0f));
         //out_pts.push_back( solution_point(1, pt1()[varying_coordinate(tp)], this, 1.0f));
-        //assert(false);
+        //FASTUIDRAWassert(false);
         return;
       }
 
-    assert(m_tag_pt0!=-1);
-    assert(m_tag_pt1!=-1);
+    FASTUIDRAWassert(m_tag_pt0!=-1);
+    FASTUIDRAWassert(m_tag_pt1!=-1);
 
     if(in_pt==pt0()[fixed_coordinate(tp)] and !count_as_multiplicity2(tp, m_tag_pt0))
       {
@@ -1256,7 +1256,7 @@ namespace detail
       }
 
 
-    assert(sz==2 or sz==3 or sz==4);
+    FASTUIDRAWassert(sz==2 or sz==3 or sz==4);
 
     std::copy(m_curve[fixed_coordinate(tp)].begin(),
               m_curve[fixed_coordinate(tp)].end(), work_array.begin());
@@ -1267,8 +1267,8 @@ namespace detail
 
     if(!feed.empty())
       {
-        assert(0!=feed[0]);
-        assert(0!=sum_array(feed.begin(), feed.end()));
+        FASTUIDRAWassert(0!=feed[0]);
+        FASTUIDRAWassert(0!=sum_array(feed.begin(), feed.end()));
         solve_polynomial(feed, ts, false);
 
         for(unsigned int i=0, end_i=ts.size(); i<end_i; ++i)
@@ -1298,11 +1298,11 @@ namespace detail
     vecN<int, 4> work_array;
     std::vector<polynomial_solution_solve> ts;
 
-    assert(m_curve.x().size()==m_curve.y().size());
-    assert(m_curve.x().size()==m_raw_curve.size());
+    FASTUIDRAWassert(m_curve.x().size()==m_curve.y().size());
+    FASTUIDRAWassert(m_curve.x().size()==m_raw_curve.size());
     sz=m_curve.x().size();
 
-    assert(sz==2 or sz==3 or sz==4);
+    FASTUIDRAWassert(sz==2 or sz==3 or sz==4);
 
     if(in_pt==pt0()[fixed_coordinate(tp)] and include_pt_intersections)
       {
@@ -1344,8 +1344,8 @@ namespace detail
 
     if(!feed.empty())
       {
-        assert(0!=feed[0]);
-        assert(0!=sum_array(feed.begin(), feed.end()));
+        FASTUIDRAWassert(0!=feed[0]);
+        FASTUIDRAWassert(0!=sum_array(feed.begin(), feed.end()));
         solve_polynomial(feed, ts, false);
 
         for(unsigned int i=0, end_i=ts.size(); i<end_i; ++i)
@@ -1394,7 +1394,7 @@ namespace detail
     // it is O(N^3) but for now, I don't want to bother or care..
     vec2 q0, q1;
 
-    assert(p0.size()>0);
+    FASTUIDRAWassert(p0.size()>0);
     if(p0.size()==1)
       {
         q0=vec2(p0[0].x(), p0[0].y());
@@ -1406,7 +1406,7 @@ namespace detail
                                   const_c_array<ivec2>(p0.c_ptr()+1, p0.size()-1));
       }
 
-    assert(p1.size()>0);
+    FASTUIDRAWassert(p1.size()>0);
     if(p1.size()==1)
       {
         q1=vec2(p1[0].x(), p1[0].y());
@@ -1519,8 +1519,8 @@ namespace detail
     vecN<int, 4> work_arrayDelta, work_arraySum;
     std::vector<polynomial_solution_solve> ts;
 
-    assert(m_curve.x().size()==m_curve.y().size());
-    assert(m_curve.x().size()==m_raw_curve.size());
+    FASTUIDRAWassert(m_curve.x().size()==m_curve.y().size());
+    FASTUIDRAWassert(m_curve.x().size()==m_raw_curve.size());
     sz=m_curve.x().size();
 
     if(sz>1)
@@ -1828,7 +1828,7 @@ namespace detail
   RawOutlineData::
   reverse_component(int ID)
   {
-    assert(ID>=0 and ID<static_cast<int>(m_curve_sets.size()) );
+    FASTUIDRAWassert(ID>=0 and ID<static_cast<int>(m_curve_sets.size()) );
 
     c_array<BezierCurve*> all_curves(make_c_array(m_bezier_curves));
     c_array<BezierCurve*> component(all_curves.sub_array(m_curve_sets[ID]));
@@ -1847,7 +1847,7 @@ namespace detail
   RawOutlineData::
   build_outline(ContourEmitterBase *emitter)
   {
-    assert(emitter!=nullptr);
+    FASTUIDRAWassert(emitter!=nullptr);
     auto c0=emitter->connect_emit_curve(std::bind(&RawOutlineData::catch_curve, this, std::placeholders::_1));
     auto c1=emitter->connect_emit_end_contour(std::bind(&RawOutlineData::mark_contour_end, this));
 
@@ -1973,7 +1973,7 @@ namespace detail
             vec2 p;
 
             q = bezier_curve(k);
-            assert(q);
+            FASTUIDRAWassert(q);
             p = bitmap_offset + conv->bitmap_from_point(q->pt0(), bitmap_begin);
             path << vec2(p.x(), -p.y());
             for(unsigned int d = 1, endd = q->control_points().size(); d + 1 < endd; ++d)
@@ -2194,7 +2194,7 @@ namespace detail
                       end_y=std::min(ipt.y()+radius+1, bitmap_size().y());
                     y<end_y;++y)
                   {
-                    assert(iter->m_multiplicity>0);
+                    FASTUIDRAWassert(iter->m_multiplicity>0);
 
                     vec2 candidate;
                     float dc;
@@ -2286,7 +2286,7 @@ namespace detail
 
         for(int i=0, end_i=L.size(); i<end_i; ++i)
           {
-            assert(L[i].m_multiplicity>0);
+            FASTUIDRAWassert(L[i].m_multiplicity>0);
             total_count+=std::max(0, L[i].m_multiplicity);
           }
 
@@ -2436,7 +2436,7 @@ namespace detail
             xx=static_cast<int>(fxx);
             intersection_after_center=(pxx>point_from_bitmap_coord(xx, other_coord_tp));
 
-            assert(xx>=0 and xx<bitmap_size()[1-coord]);
+            FASTUIDRAWassert(xx>=0 and xx<bitmap_size()[1-coord]);
 
             dy=L[i].m_derivative[coord];
             v=(dy>0.0)?1:-1;
@@ -2591,7 +2591,7 @@ namespace detail
         for(int i=0; i<total_count; ++i)
           {
             L[i].m_index_of_intersection=i;
-            assert(L[i].m_source.m_bezier!=nullptr);
+            FASTUIDRAWassert(L[i].m_source.m_bezier!=nullptr);
           }
 
         if(total_count==0)
@@ -2828,7 +2828,7 @@ namespace detail
               }
           }
 
-        assert(found>0);
+        FASTUIDRAWassert(found>0);
 
         if(found<2)
           {

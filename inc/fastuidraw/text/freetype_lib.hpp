@@ -55,7 +55,7 @@ namespace fastuidraw
     FT_Library
     lib(void)
     {
-      assert(valid());
+      FASTUIDRAWassert(valid());
       return m_lib;
     }
 

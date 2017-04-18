@@ -51,7 +51,7 @@ namespace
                    fastuidraw::GlyphLocation L,
                    unsigned int entry_size, std::vector<fastuidraw::generic_data> &dst)
   {
-    assert(entry_size >= fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack);
+    FASTUIDRAWassert(entry_size >= fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack);
     fastuidraw::generic_data init_value;
     fastuidraw::vec2 delta(L.location());
 
@@ -103,8 +103,8 @@ namespace
     void
     resize(fastuidraw::ivec2 sz)
     {
-      assert(sz.x() >= 0);
-      assert(sz.y() >= 0);
+      FASTUIDRAWassert(sz.x() >= 0);
+      FASTUIDRAWassert(sz.y() >= 0);
       m_texels.resize(sz.x() * sz.y());
       m_resolution = sz;
     }
@@ -124,7 +124,7 @@ entry_ctor_helper(fastuidraw::const_c_array<fastuidraw::vec2> pts, bool reverse)
   fastuidraw::vecN<fastuidraw::vec2, 3> work_room, poly_room;
   fastuidraw::c_array<fastuidraw::vec2> work(work_room), poly(poly_room);
 
-  assert(pts.size() == 2 || pts.size() == 3);
+  FASTUIDRAWassert(pts.size() == 2 || pts.size() == 3);
   work = work.sub_array(0, pts.size());
   poly = poly.sub_array(0, pts.size());
 
@@ -226,7 +226,7 @@ entry(const_c_array<vec2> pts, int curve0_count):
 {
   const_c_array<vec2> curve0_pts, curve1_pts;
 
-  assert(curve0_count > 0);
+  FASTUIDRAWassert(curve0_count > 0);
   curve0_pts = pts.sub_array(0, curve0_count);
   curve1_pts = pts.sub_array(curve0_count - 1);
 
@@ -396,7 +396,7 @@ resize_geometry_data(int sz)
 {
   GlyphRenderDataCurvePairPrivate *d;
   d = static_cast<GlyphRenderDataCurvePairPrivate*>(m_d);
-  assert(sz >= 0);
+  FASTUIDRAWassert(sz >= 0);
   d->m_geometry_data.resize(sz, fastuidraw::GlyphRenderDataCurvePair::entry(false));
 }
 

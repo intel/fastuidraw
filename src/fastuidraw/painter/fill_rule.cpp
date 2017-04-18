@@ -1,4 +1,4 @@
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include <stddef.h>
 #include <fastuidraw/painter/fill_rule.hpp>
 
@@ -50,7 +50,7 @@ function_from_enum(enum PainterEnums::fill_rule_t fill_rule)
       return complement_nonzero;
 
     default:
-      assert(!"Passed invald enumeration to fastuidraw::CustomFillRuleFunction::function_from_enum()\n");
+      FASTUIDRAWassert(!"Passed invald enumeration to fastuidraw::CustomFillRuleFunction::function_from_enum()\n");
       return nullptr;
     }
 }

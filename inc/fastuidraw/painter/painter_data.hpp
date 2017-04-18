@@ -79,7 +79,7 @@ namespace fastuidraw
       const T&
       data(void) const
       {
-        assert(m_packed_value || m_value != nullptr);
+        FASTUIDRAWassert(m_packed_value || m_value != nullptr);
         return m_packed_value ?
           m_packed_value.value() :
           *m_value;

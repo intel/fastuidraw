@@ -23,7 +23,7 @@ fastuidraw::PainterHeader::
 pack_data(unsigned int alignment, c_array<generic_data> dst) const
 {
   FASTUIDRAWunused(alignment);
-  assert(dst.size() == data_size(alignment));
+  FASTUIDRAWassert(dst.size() == data_size(alignment));
 
   dst[clip_equations_location_offset].u    = m_clip_equations_location;
   dst[item_matrix_location_offset].u       = m_item_matrix_location;

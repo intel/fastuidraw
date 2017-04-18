@@ -202,7 +202,7 @@ ft_outline_move_to(const FT_Vector *pt, void *user)
   PathCreator *p;
   p = static_cast<PathCreator*>(user);
 
-  assert(!p->m_started);
+  FASTUIDRAWassert(!p->m_started);
   p->m_started = true;
   p->m_pt = *pt;
   p->m_path << make_vec2(*pt);
@@ -216,7 +216,7 @@ ft_outline_line_to(const FT_Vector *pt, void *user)
   PathCreator *p;
   p = static_cast<PathCreator*>(user);
 
-  assert(p->m_started);
+  FASTUIDRAWassert(p->m_started);
   if(p->m_pt == *pt)
     {
       p->m_path << fastuidraw::Path::contour_end();
@@ -237,7 +237,7 @@ ft_outline_conic_to(const FT_Vector *ct,
   PathCreator *p;
   p = static_cast<PathCreator*>(user);
 
-  assert(p->m_started);
+  FASTUIDRAWassert(p->m_started);
   if(p->m_pt == *pt)
     {
       p->m_path << fastuidraw::Path::control_point(make_vec2(*ct))
@@ -261,7 +261,7 @@ ft_outline_cubic_to(const FT_Vector *ct1,
   PathCreator *p;
   p = static_cast<PathCreator*>(user);
 
-  assert(p->m_started);
+  FASTUIDRAWassert(p->m_started);
   if(p->m_pt == *pt)
     {
       p->m_path << fastuidraw::Path::control_point(make_vec2(*ct1))
@@ -316,8 +316,8 @@ void
 FontFreeTypePrivate::
 common_init(void)
 {
-  assert(m_face != nullptr);
-  assert(m_face->face_flags & FT_FACE_FLAG_SCALABLE);
+  FASTUIDRAWassert(m_face != nullptr);
+  FASTUIDRAWassert(m_face->face_flags & FT_FACE_FLAG_SCALABLE);
   FT_Set_Transform(m_face, nullptr, nullptr);
 }
 
@@ -679,7 +679,7 @@ compute_rendering_data(GlyphRender render, uint32_t glyph_code,
       break;
 
     default:
-      assert(!"Invalid glyph type");
+      FASTUIDRAWassert(!"Invalid glyph type");
       return nullptr;
     }
 }

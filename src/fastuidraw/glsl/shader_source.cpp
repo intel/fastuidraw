@@ -116,7 +116,7 @@ string_from_extension_t(extension_enable_t tp)
       break;
 
     default:
-      assert(!"Unknown value for extension_enable_t");
+      FASTUIDRAWassert(!"Unknown value for extension_enable_t");
       return "";
     }
 
@@ -336,7 +336,7 @@ add_source(const char *str, enum source_t tp, enum add_location_t loc)
   SourcePrivate *d;
   d = static_cast<SourcePrivate*>(m_d);
 
-  assert(str);
+  FASTUIDRAWassert(str);
   SourcePrivate::source_code_t v(str, tp);
 
   if(loc == push_front)

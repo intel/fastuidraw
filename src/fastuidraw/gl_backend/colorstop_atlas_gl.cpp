@@ -165,7 +165,7 @@ set_data(int x, int l,
          int w,
          fastuidraw::const_c_array<fastuidraw::u8vec4> data)
 {
-  assert(data.size() == static_cast<unsigned int>(w) );
+  FASTUIDRAWassert(data.size() == static_cast<unsigned int>(w) );
   TextureGL::EntryLocation V;
 
   V.m_location = location_for_store(x, l);
@@ -286,7 +286,7 @@ texture(void) const
 {
   flush();
   const BackingStore *p;
-  assert(dynamic_cast<const BackingStore*>(backing_store().get()));
+  FASTUIDRAWassert(dynamic_cast<const BackingStore*>(backing_store().get()));
   p = static_cast<const BackingStore*>(backing_store().get());
   return p->texture();
 }

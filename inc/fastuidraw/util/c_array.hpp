@@ -167,7 +167,7 @@ public:
   {
     S *ptr;
     size_type num_bytes(size() * sizeof(T));
-    assert(num_bytes % sizeof(S) == 0);
+    FASTUIDRAWassert(num_bytes % sizeof(S) == 0);
     ptr = reinterpret_cast<S*>(c_ptr());
     return c_array<S>(ptr, num_bytes / sizeof(S));
   }
@@ -199,8 +199,8 @@ public:
   T&
   operator[](size_type j) const
   {
-    assert(c_ptr() != nullptr);
-    assert(j < m_size);
+    FASTUIDRAWassert(c_ptr() != nullptr);
+    FASTUIDRAWassert(j < m_size);
     return c_ptr()[j];
   }
 
@@ -289,7 +289,7 @@ public:
   T&
   back(size_type I) const
   {
-    assert(I<size());
+    FASTUIDRAWassert(I<size());
     return (*this)[size() - 1 - I];
   }
 
@@ -324,7 +324,7 @@ public:
   c_array
   sub_array(size_type pos, size_type length) const
   {
-    assert(pos + length <= m_size);
+    FASTUIDRAWassert(pos + length <= m_size);
     return c_array(m_ptr + pos, length);
   }
 
@@ -341,7 +341,7 @@ public:
   c_array
   sub_array(size_type pos) const
   {
-    assert(pos <= m_size);
+    FASTUIDRAWassert(pos <= m_size);
     return c_array(m_ptr + pos, m_size - pos);
   }
 
@@ -529,7 +529,7 @@ public:
   {
     const S *ptr;
     size_type num_bytes(size() * sizeof(T));
-    assert(num_bytes % sizeof(S) == 0);
+    FASTUIDRAWassert(num_bytes % sizeof(S) == 0);
     ptr = reinterpret_cast<const S*>(c_ptr());
     return const_c_array<S>(ptr, num_bytes / sizeof(S));
   }
@@ -573,8 +573,8 @@ public:
   const T&
   operator[](size_type j) const
   {
-    assert(c_ptr()!=nullptr);
-    assert(j < m_size);
+    FASTUIDRAWassert(c_ptr()!=nullptr);
+    FASTUIDRAWassert(j < m_size);
     return c_ptr()[j];
   }
 
@@ -663,7 +663,7 @@ public:
   const T&
   back(size_type I) const
   {
-    assert(I < size());
+    FASTUIDRAWassert(I < size());
     return (*this)[size() - 1 - I];
   }
 
@@ -698,7 +698,7 @@ public:
   const_c_array
   sub_array(size_type pos, size_type length) const
   {
-    assert(pos + length <= m_size);
+    FASTUIDRAWassert(pos + length <= m_size);
     return const_c_array(m_ptr + pos, length);
   }
 
@@ -715,7 +715,7 @@ public:
   const_c_array
   sub_array(size_type pos) const
   {
-    assert(pos <= m_size);
+    FASTUIDRAWassert(pos <= m_size);
     return const_c_array(m_ptr + pos, m_size - pos);
   }
 

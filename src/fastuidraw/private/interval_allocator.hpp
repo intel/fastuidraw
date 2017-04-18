@@ -139,8 +139,8 @@ namespace fastuidraw
       bool
       operator()(interval_ref lhs, interval_ref rhs)
       {
-        assert(lhs->first == lhs->second.m_end);
-        assert(rhs->first == rhs->second.m_end);
+        FASTUIDRAWassert(lhs->first == lhs->second.m_end);
+        FASTUIDRAWassert(rhs->first == rhs->second.m_end);
         return lhs->second.m_end < rhs->second.m_end;
       }
     };
