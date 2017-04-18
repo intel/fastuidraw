@@ -355,20 +355,30 @@ namespace fastuidraw
       \code
         vec4
         fastuidraw_gl_vert_main(in uint sub_shader,
-                                in vec4 primary_attrib,
-                                in vec4 secondary_attrib,
-                                in uvec4 uint_attrib,
+                                in uvec4 attrib0,
+                                in uvec4 attrib1,
+                                in uvec4 attrib2,
                                 in uint shader_data_offset,
                                 out uint z_add)
       \endcode
-
-      which given the attribute data and the offset to the shader
-      location produces the position of the vertex in item coordinates
-      and the position to feed the brush. The position of the item
-      is in the return value' .xy and the position to feed the brush
-      in .zw. The out z_add, must be written to and represent the
-      value by which to add to the unnormalized z-value from the
-      item header (the z-value from the item header is a uint).
+      where
+       - sub_shader corresponds to PainterItemShader::sub_shader()
+       - attrib0 corresponds to PainterAttribute::m_attrib0,
+       - attrib1 corresponds to PainterAttribute::m_attrib1,
+       - attrib2 corresponds to PainterAttribute::m_attrib2 and
+       - shader_data_offset is what block in the data store for
+         the data packed by PainterItemShaderData::pack_data()
+         of the PainterItemShaderData in the \ref Painter (or
+         \ref PainterPacker) call; use the macro fastuidraw_fetch_data()
+         to read the data.
+      
+      The function's return value's .xy gives the position of
+      the vertex in item coordinates and the .zw give the
+      position to feed the brush. The out z_add must be written
+      to as well and it is how much to add to the value in \ref
+      PainterHeader::m_z (the value is the value of
+      Painter::current_z()) for the purpose of intra-item
+      z-occluding.
 
       The fragment shader code needs to implement the function:
       \code
@@ -391,12 +401,12 @@ namespace fastuidraw
        - usampler2DArray fastuidraw_imageIndexAtlas the texels of the index atlas (AtlasIndexBackingStoreBase) for images
        - usampler2DArray fastuidraw_glyphTexelStoreUINT the glyph texels (GlyphAtlasTexelBackingStoreBase), only available
          if FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT is NOT defined
-       - samplerBuffer fastuidraw_glyphGeometryDataStore the geometry data of glyphs (GlyphAtlasGeometryBackingStoreBase)
+       - the macro fastuidraw_fetch_data(B) to fetch the B'th block from the data store buffer (PainterDraw::m_store)
+       - teh macro fastuidraw_fetch_glyph_data(B) to read the B'th block from the glyph geometry data (GlyphAtlasGeometryBackingStoreBase)
        - the macro fastuidraw_colorStopFetch(x, L) to retrieve the color stop value at location x of layer L
        - vec2 fastuidraw_viewport_pixels the viewport dimensions in pixels
        - vec2 fastuidraw_viewport_recip_pixels reciprocal of fastuidraw_viewport_pixels
        - vec2 fastuidraw_viewport_recip_pixels_magnitude euclidean length of fastuidraw_viewport_recip_pixels
-       - the macro fastuidraw_fetch_data(x) to fetch the x'th block from the data store buffer (PainterDraw::m_store)
 
       For both stages, the value of the argument of shader_data_offset is which block into the data
       store (PainterDraw::m_store) of the custom shader data. Do
@@ -412,8 +422,8 @@ namespace fastuidraw
       Use the GLSL built-in uintBitsToFloat() to covert the uint bit-value to float
       and just cast int() to get the value as an integer.
 
-      Lastly, one can use the classes shader_unpack_value
-      and shader_unpack_value_set to generate shader code
+      Lastly, one can use the classes \ref shader_unpack_value
+      and \ref shader_unpack_value_set to generate shader code
       to unpack values from the data in the data store buffer.
       That machine generated code uses the macro fastuidraw_fetch_data().
      */

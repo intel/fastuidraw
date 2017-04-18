@@ -71,10 +71,14 @@ namespace fastuidraw
         fragment, in_fb is the value of the framebuffer at the location
         and out_src is the value for the fragment shader to emit.
 
-
-      For each of the blend shader type, the  same globals available to a
-      fragment shader in PainterItemShaderGL are also avalailable to the
-      blend shader.
+      For each of the blend shader type:
+      - sub_shader corresponds to PainterBlendShader::sub_shader(),
+      - the  same globals available to a fragment shader in \ref
+        PainterItemShaderGLSL are also avalailable to the blend shader and
+      - blend_shader_data_location is the block from which to fetch the
+        data packed into the data store by PainterBlendShaderData::pack_data();
+        use the macro fastuidraw_fetch_data() (see the description of PainterItemShaderGLSL)
+        to fetch the data.
      */
     class PainterBlendShaderGLSL:public PainterBlendShader
     {
