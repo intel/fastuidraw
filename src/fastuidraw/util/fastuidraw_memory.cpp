@@ -157,19 +157,19 @@ fastuidraw::memory::
 object_deletion_message(const void *ptr, const char *file, int line)
 {
   #ifdef FASTUIDRAW_DEBUG
-  {
-    if(!ptr)
-      {
-        return;
-      }
-    address_set().untrack(ptr, file, line);
-  }
+    {
+      if(!ptr)
+        {
+          return;
+        }
+      address_set().untrack(ptr, file, line);
+    }
   #else
-  {
-    FASTUIDRAWunused(file);
-    FASTUIDRAWunused(line);
-    FASTUIDRAWunused(ptr);
-  }
+    {
+      FASTUIDRAWunused(file);
+      FASTUIDRAWunused(line);
+      FASTUIDRAWunused(ptr);
+    }
   #endif
 }
 
@@ -187,21 +187,21 @@ malloc_implement(size_t size, const char *file, int line)
   return_value = std::malloc(size);
 
   #ifdef FASTUIDRAW_DEBUG
-  {
-    if(!return_value)
-      {
-        bad_malloc_message(size, file, line);
-      }
-    else
-      {
-        address_set().track(return_value, file, line);
-      }
-  }
+    {
+      if(!return_value)
+        {
+          bad_malloc_message(size, file, line);
+        }
+      else
+        {
+          address_set().track(return_value, file, line);
+        }
+    }
   #else
-  {
-    FASTUIDRAWunused(file);
-    FASTUIDRAWunused(line);
-  }
+    {
+      FASTUIDRAWunused(file);
+      FASTUIDRAWunused(line);
+    }
   #endif
 
   return return_value;
@@ -221,21 +221,21 @@ calloc_implement(size_t nmemb, size_t size, const char *file, int line)
   return_value = std::calloc(nmemb, size);
 
   #ifdef FASTUIDRAW_DEBUG
-  {
-    if(!return_value)
-      {
-        bad_malloc_message(size * nmemb, file, line);
-      }
-    else
-      {
-        address_set().track(return_value, file, line);
-      }
-  }
+    {
+      if(!return_value)
+        {
+          bad_malloc_message(size * nmemb, file, line);
+        }
+      else
+        {
+          address_set().track(return_value, file, line);
+        }
+    }
   #else
-  {
-    FASTUIDRAWunused(file);
-    FASTUIDRAWunused(line);
-  }
+    {
+      FASTUIDRAWunused(file);
+      FASTUIDRAWunused(line);
+    }
   #endif
 
   return return_value;
@@ -259,31 +259,31 @@ realloc_implement(void *ptr, size_t size, const char *file, int line)
     }
 
   #ifdef FASTUIDRAW_DEBUG
-  {
-    if(!address_set().present(ptr))
-      {
-        std::cerr << "Realloc from [" << file << ", "  << line
-                  << "] of untracked @" << ptr << "\n"
-                  << std::flush;
-      }
-  }
+    {
+      if(!address_set().present(ptr))
+        {
+          std::cerr << "Realloc from [" << file << ", "  << line
+                    << "] of untracked @" << ptr << "\n"
+                    << std::flush;
+        }
+    }
   #else
-  {
-    FASTUIDRAWunused(file);
-    FASTUIDRAWunused(line);
-  }
+    {
+      FASTUIDRAWunused(file);
+      FASTUIDRAWunused(line);
+    }
   #endif
 
   return_value = std::realloc(ptr, size);
 
   #ifdef FASTUIDRAW_DEBUG
-  {
-    if(return_value != ptr)
-      {
-        address_set().untrack(ptr, file, line);
-        address_set().track(return_value, file, line);
-      }
-  }
+    {
+      if(return_value != ptr)
+        {
+          address_set().untrack(ptr, file, line);
+          address_set().track(return_value, file, line);
+        }
+    }
   #endif
 
   return return_value;
@@ -294,17 +294,17 @@ fastuidraw::memory::
 free_implement(void *ptr, const char *file, int line)
 {
   #ifdef FASTUIDRAW_DEBUG
-  {
-    if(ptr)
-      {
-        address_set().untrack(ptr, file, line);
-      }
-  }
+    {
+      if(ptr)
+        {
+          address_set().untrack(ptr, file, line);
+        }
+    }
   #else
-  {
-    FASTUIDRAWunused(file);
-    FASTUIDRAWunused(line);
-  }
+    {
+      FASTUIDRAWunused(file);
+      FASTUIDRAWunused(line);
+    }
   #endif
 
   std::free(ptr);
