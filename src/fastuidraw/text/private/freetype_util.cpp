@@ -1958,34 +1958,6 @@ namespace detail
     return m_bezier_curves[I];
   }
 
-  void
-  RawOutlineData::
-  extract_path(const CoordinateConverter *conv, Path &path) const
-  {
-    vec2 bitmap_offset(conv->bitmap_offset());
-    for(unsigned int C = 0, endC = number_components(); C < endC; ++C)
-      {
-        range_type<int> R;
-        R = component(C);
-        for(int k = R.m_begin; k < R.m_end; ++k)
-          {
-            const BezierCurve *q;
-            vec2 p;
-
-            q = bezier_curve(k);
-            FASTUIDRAWassert(q);
-            p = bitmap_offset + conv->bitmap_from_point(q->pt0(), bitmap_begin);
-            path << vec2(p.x(), -p.y());
-            for(unsigned int d = 1, endd = q->control_points().size(); d + 1 < endd; ++d)
-              {
-                p = bitmap_offset + conv->bitmap_from_point(q->control_point(d), bitmap_begin);
-                path << Path::control_point(p.x(), -p.y());
-              }
-          }
-        path << Path::contour_end();
-      }
-  }
-
   /////////////////////////////////////////////
   // CoordinateConverter methods
   CoordinateConverter::

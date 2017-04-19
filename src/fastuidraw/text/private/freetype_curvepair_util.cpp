@@ -1261,15 +1261,6 @@ fastuidraw::detail::CurvePairGenerator::
 
 void
 fastuidraw::detail::CurvePairGenerator::
-extract_path(Path &path) const
-{
-  TaggedOutlineData *outline_data;
-  outline_data = static_cast<TaggedOutlineData*>(m_outline_data);
-  outline_data->extract_path(path);
-}
-
-void
-fastuidraw::detail::CurvePairGenerator::
 extract_data(GlyphRenderDataCurvePair &output)
 {
   TaggedOutlineData *outline_data;

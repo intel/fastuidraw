@@ -33,11 +33,27 @@
 
 namespace
 {
-  float
-  to_pixel_sizes(FT_Pos p)
+  /* covert TO FontCoordinates from Freetype values that
+     are stored in scaled pixel size values.
+   */
+  class font_coordinate_converter
   {
-    return static_cast<float>(p) / static_cast<float>(1<<6);
-  }
+  public:
+    font_coordinate_converter(FT_Face face, unsigned int pixel_size)
+    {
+      m_factor = static_cast<float>(face->units_per_EM);
+      m_factor /= 64.0f * static_cast<float>(pixel_size);
+    }
+
+    float
+    operator()(FT_Pos p) const
+    {
+      return static_cast<float>(p) * m_factor;
+    }
+    
+  private:
+    float m_factor;
+  };
 
   inline
   uint8_t
@@ -75,10 +91,10 @@ namespace
 
     static
     void
-    decompose_to_path(FT_Outline *outline, fastuidraw::Path &p);
+    decompose_to_path(FT_Outline *outline, fastuidraw::Path &p, font_coordinate_converter C);
 
   private:
-    PathCreator(fastuidraw::Path &p);
+    PathCreator(fastuidraw::Path &p, font_coordinate_converter C);
 
     static
     int
@@ -99,13 +115,13 @@ namespace
                         const FT_Vector *control_pt2,
                         const FT_Vector *pt, void *user);
 
-    static
     fastuidraw::vec2
     make_vec2(const FT_Vector &pt);
 
     fastuidraw::Path &m_path;
-    FT_Vector m_pt;
-    bool m_started;
+    FT_Vector m_contour_start_pt;
+    bool m_contour_started;
+    font_coordinate_converter m_C;
   };
 
   bool
@@ -130,7 +146,7 @@ namespace
     common_init(void);
 
     void
-    common_compute_rendering_data(int pixel_size, FT_Int32 load_flags,
+    common_compute_rendering_data(font_coordinate_converter C, FT_Int32 load_flags,
                                   fastuidraw::GlyphLayoutData &layout,
                                   uint32_t glyph_code);
 
@@ -163,16 +179,17 @@ namespace
 //////////////////////////////////////////
 // PathCreator methods
 PathCreator::
-PathCreator(fastuidraw::Path &p):
+PathCreator(fastuidraw::Path &p, font_coordinate_converter C):
   m_path(p),
-  m_started(false)
+  m_contour_started(false),
+  m_C(C)
 {}
 
 void
 PathCreator::
-decompose_to_path(FT_Outline *outline, fastuidraw::Path &p)
+decompose_to_path(FT_Outline *outline, fastuidraw::Path &p, font_coordinate_converter C)
 {
-  PathCreator datum(p);
+  PathCreator datum(p, C);
   FT_Outline_Funcs funcs;
 
   funcs.move_to = &ft_outline_move_to;
@@ -189,9 +206,8 @@ PathCreator::
 make_vec2(const FT_Vector &pt)
 {
   fastuidraw::vec2 r;
-  // pt should be 26.6 format
-  r.x() = static_cast<float>(pt.x) / 64.0f;
-  r.y() = -static_cast<float>(pt.y) / 64.0f;
+  r.x() = m_C(pt.x);
+  r.y() = -m_C(pt.y);
   return r;
 }
 
@@ -202,10 +218,10 @@ ft_outline_move_to(const FT_Vector *pt, void *user)
   PathCreator *p;
   p = static_cast<PathCreator*>(user);
 
-  FASTUIDRAWassert(!p->m_started);
-  p->m_started = true;
-  p->m_pt = *pt;
-  p->m_path << make_vec2(*pt);
+  FASTUIDRAWassert(!p->m_contour_started);
+  p->m_contour_started = true;
+  p->m_contour_start_pt = *pt;
+  p->m_path << p->make_vec2(*pt);
   return 0;
 }
 
@@ -216,64 +232,62 @@ ft_outline_line_to(const FT_Vector *pt, void *user)
   PathCreator *p;
   p = static_cast<PathCreator*>(user);
 
-  FASTUIDRAWassert(p->m_started);
-  if(p->m_pt == *pt)
+  FASTUIDRAWassert(p->m_contour_started);
+  if(p->m_contour_start_pt == *pt)
     {
       p->m_path << fastuidraw::Path::contour_end();
-      p->m_started = false;
+      p->m_contour_started = false;
     }
   else
     {
-      p->m_path << make_vec2(*pt);
+      p->m_path << p->make_vec2(*pt);
     }
   return 0;
 }
 
 int
 PathCreator::
-ft_outline_conic_to(const FT_Vector *ct,
-                    const FT_Vector *pt, void *user)
+ft_outline_conic_to(const FT_Vector *ct, const FT_Vector *pt, void *user)
 {
   PathCreator *p;
   p = static_cast<PathCreator*>(user);
 
-  FASTUIDRAWassert(p->m_started);
-  if(p->m_pt == *pt)
+  FASTUIDRAWassert(p->m_contour_started);
+  if(p->m_contour_start_pt == *pt)
     {
-      p->m_path << fastuidraw::Path::control_point(make_vec2(*ct))
+      p->m_path << fastuidraw::Path::control_point(p->make_vec2(*ct))
                 << fastuidraw::Path::contour_end();
-      p->m_started = false;
+      p->m_contour_started = false;
     }
   else
     {
-      p->m_path << fastuidraw::Path::control_point(make_vec2(*ct))
-                << make_vec2(*pt);
+      p->m_path << fastuidraw::Path::control_point(p->make_vec2(*ct))
+                << p->make_vec2(*pt);
     }
   return 0;
 }
 
 int
 PathCreator::
-ft_outline_cubic_to(const FT_Vector *ct1,
-                    const FT_Vector *ct2,
+ft_outline_cubic_to(const FT_Vector *ct1, const FT_Vector *ct2,
                     const FT_Vector *pt, void *user)
 {
   PathCreator *p;
   p = static_cast<PathCreator*>(user);
 
-  FASTUIDRAWassert(p->m_started);
-  if(p->m_pt == *pt)
+  FASTUIDRAWassert(p->m_contour_started);
+  if(p->m_contour_start_pt == *pt)
     {
-      p->m_path << fastuidraw::Path::control_point(make_vec2(*ct1))
-                << fastuidraw::Path::control_point(make_vec2(*ct2))
+      p->m_path << fastuidraw::Path::control_point(p->make_vec2(*ct1))
+                << fastuidraw::Path::control_point(p->make_vec2(*ct2))
                 << fastuidraw::Path::contour_end();
-      p->m_started = false;
+      p->m_contour_started = false;
     }
   else
     {
-      p->m_path << fastuidraw::Path::control_point(make_vec2(*ct1))
-                << fastuidraw::Path::control_point(make_vec2(*ct2))
-                << make_vec2(*pt);
+      p->m_path << fastuidraw::Path::control_point(p->make_vec2(*ct1))
+                << fastuidraw::Path::control_point(p->make_vec2(*ct2))
+                << p->make_vec2(*pt);
     }
   return 0;
 }
@@ -323,25 +337,24 @@ common_init(void)
 
 void
 FontFreeTypePrivate::
-common_compute_rendering_data(int pixel_size, FT_Int32 load_flags,
+common_compute_rendering_data(font_coordinate_converter C, FT_Int32 load_flags,
                               fastuidraw::GlyphLayoutData &output,
                               uint32_t glyph_code)
 {
   fastuidraw::ivec2 bitmap_sz, bitmap_offset, iadvance;
 
-  FT_Set_Pixel_Sizes(m_face, pixel_size, pixel_size);
   FT_Load_Glyph(m_face, glyph_code, load_flags);
 
-  output.m_size.x() = to_pixel_sizes(m_face->glyph->metrics.width);
-  output.m_size.y() = to_pixel_sizes(m_face->glyph->metrics.height);
-  output.m_horizontal_layout_offset.x() = to_pixel_sizes(m_face->glyph->metrics.horiBearingX);
-  output.m_horizontal_layout_offset.y() = to_pixel_sizes(m_face->glyph->metrics.horiBearingY) - output.m_size.y();
-  output.m_vertical_layout_offset.x() = to_pixel_sizes(m_face->glyph->metrics.vertBearingX);
-  output.m_vertical_layout_offset.y() = to_pixel_sizes(m_face->glyph->metrics.vertBearingY) - output.m_size.y();
-  output.m_advance.x() = to_pixel_sizes(m_face->glyph->metrics.horiAdvance);
-  output.m_advance.y() = to_pixel_sizes(m_face->glyph->metrics.vertAdvance);
+  output.m_size.x() = C(m_face->glyph->metrics.width);
+  output.m_size.y() = C(m_face->glyph->metrics.height);
+  output.m_horizontal_layout_offset.x() = C(m_face->glyph->metrics.horiBearingX);
+  output.m_horizontal_layout_offset.y() = C(m_face->glyph->metrics.horiBearingY) - output.m_size.y();
+  output.m_vertical_layout_offset.x() = C(m_face->glyph->metrics.vertBearingX);
+  output.m_vertical_layout_offset.y() = C(m_face->glyph->metrics.vertBearingY) - output.m_size.y();
+  output.m_advance.x() = C(m_face->glyph->metrics.horiAdvance);
+  output.m_advance.y() = C(m_face->glyph->metrics.vertAdvance);
   output.m_glyph_code = glyph_code;
-  output.m_pixel_size = pixel_size;
+  output.m_units_per_EM = m_face->units_per_EM;
   output.m_font = m_p;
 }
 
@@ -353,10 +366,12 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
                        fastuidraw::Path &path)
 {
   fastuidraw::ivec2 bitmap_sz;
+  font_coordinate_converter C(m_face, pixel_size);
   fastuidraw::autolock_mutex m(m_mutex);
 
-  common_compute_rendering_data(pixel_size, FT_LOAD_DEFAULT, layout, glyph_code);
-  PathCreator::decompose_to_path(&m_face->glyph->outline, path);
+  FT_Set_Pixel_Sizes(m_face, pixel_size, pixel_size);
+  common_compute_rendering_data(C, FT_LOAD_DEFAULT, layout, glyph_code);
+  PathCreator::decompose_to_path(&m_face->glyph->outline, path, C);
   FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
 
   bitmap_sz.x() = m_face->glyph->bitmap.width;
@@ -396,7 +411,8 @@ compute_rendering_data(uint32_t glyph_code,
                        fastuidraw::GlyphRenderDataDistanceField &output,
                        fastuidraw::Path &path)
 {
-  int pixel_size(m_render_params.distance_field_pixel_size());
+  unsigned int pixel_size(m_render_params.distance_field_pixel_size());
+  font_coordinate_converter C(m_face, pixel_size);
   float max_distance(m_render_params.distance_field_max_distance());
   fastuidraw::ivec2 bitmap_sz, bitmap_offset;
 
@@ -406,7 +422,9 @@ compute_rendering_data(uint32_t glyph_code,
 
   m_mutex.lock();
 
-    common_compute_rendering_data(pixel_size, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING, layout, glyph_code);
+    FT_Set_Pixel_Sizes(m_face, pixel_size, pixel_size);
+    common_compute_rendering_data(C, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING, layout, glyph_code);
+    PathCreator::decompose_to_path(&m_face->glyph->outline, path, C);
     FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
 
     bitmap_sz.x() = m_face->glyph->bitmap.width;
@@ -418,7 +436,6 @@ compute_rendering_data(uint32_t glyph_code,
 
   m_mutex.unlock();
 
-  outline_data.extract_path(path);
   if(bitmap_sz.x() != 0 && bitmap_sz.y() != 0)
     {
       /* add one pixel slack on glyph
@@ -459,11 +476,14 @@ compute_rendering_data(uint32_t glyph_code,
                        fastuidraw::GlyphRenderDataCurvePair &output,
                        fastuidraw::Path &path)
 {
-  int pixel_size(m_render_params.curve_pair_pixel_size());
+  unsigned int pixel_size(m_render_params.curve_pair_pixel_size());
+  font_coordinate_converter C(m_face, pixel_size);
   fastuidraw::ivec2 bitmap_offset, bitmap_sz;
 
   m_mutex.lock();
-    common_compute_rendering_data(pixel_size, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING, layout, glyph_code);
+    FT_Set_Pixel_Sizes(m_face, pixel_size, pixel_size);
+    common_compute_rendering_data(C, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING, layout, glyph_code);
+    PathCreator::decompose_to_path(&m_face->glyph->outline, path, C);
     FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
     bitmap_sz.x() = m_face->glyph->bitmap.width;
     bitmap_sz.y() = m_face->glyph->bitmap.rows;
@@ -473,7 +493,6 @@ compute_rendering_data(uint32_t glyph_code,
   m_mutex.unlock();
 
   gen.extract_data(output);
-  gen.extract_path(path);
 }
 
 /////////////////////////////////////////////

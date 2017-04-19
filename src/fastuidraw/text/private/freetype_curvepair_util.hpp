@@ -53,9 +53,6 @@ namespace detail
     void
     extract_data(GlyphRenderDataCurvePair &output);
 
-    void
-    extract_path(Path &path) const;
-
   private:
     void *m_contour_emitter;
     void *m_outline_data;

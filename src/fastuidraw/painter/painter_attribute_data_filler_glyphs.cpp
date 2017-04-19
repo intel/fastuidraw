@@ -301,7 +301,7 @@ fill_data(c_array<PainterAttribute> attribute_data,
           unsigned int t;
 
           scale = (d->m_render_pixel_size.first) ?
-            d->m_render_pixel_size.second / d->m_glyphs[g].layout().m_pixel_size :
+            d->m_render_pixel_size.second / d->m_glyphs[g].layout().m_units_per_EM :
             (d->m_scale_factors.empty()) ? 1.0f : d->m_scale_factors[g];
 
           t = d->m_glyphs[g].type();

@@ -35,7 +35,12 @@ namespace fastuidraw
   /*!
     \brief
     A GlyphLayoutData provides information on how to
-    layout text using a glyph.
+    layout text using a glyph, all the values are in
+    units of the font glyph. The field \ref m_units_per_EM
+    gives the conversion factor to pixel coordinates via
+    \f$PixelCoordinates = FontCoordinates * PixelSize / m_units_per_EM\f$
+    where PixelSize is the pixel size in which one is
+    to render the text.
    */
   class GlyphLayoutData
   {
@@ -47,7 +52,7 @@ namespace fastuidraw
       m_vertical_layout_offset(0.0f, 0.0f),
       m_size(0.0f, 0.0f),
       m_advance(0.0f, 0.0f),
-      m_pixel_size(0)
+      m_units_per_EM(0u)
     {}
 
     /*!
@@ -89,11 +94,9 @@ namespace fastuidraw
     vec2 m_advance;
 
     /*!
-      Pixel size of glyph, all the data
-      of GlyphLayoutData is relative to
-      \ref m_pixel_size .
+      The number of font units per EM for the glyph.
      */
-    int m_pixel_size;
+    float m_units_per_EM;
   };
 /*! @} */
 }

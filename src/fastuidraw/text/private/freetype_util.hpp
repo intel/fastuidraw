@@ -40,7 +40,6 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
-#include <fastuidraw/path.hpp>
 
 #include "../../private/array2d.hpp"
 #include "../../private/signal.hpp"
@@ -1803,12 +1802,6 @@ namespace detail
     void
     reverse_component(int ID);
 
-    /*!
-      Extract a Path from the outline data.
-     */
-    void
-    extract_path(const CoordinateConverter *conv, Path &path) const;
-
   private:
 
     void
@@ -2505,13 +2498,6 @@ namespace detail
     compute_bounding_box(const BezierCurve *c,
                          ivec2 &out_min, ivec2 &out_max) const;
 
-    /*! extract path
-     */
-    void
-    extract_path(Path &path) const
-    {
-      RawOutlineData::extract_path(this, path);
-    }
   private:
     void
     increment_sub_winding_numbers(const std::vector<solution_point> &L,
