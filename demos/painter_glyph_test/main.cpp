@@ -64,6 +64,60 @@ private:
       number_draw_modes
     };
 
+  class GlyphDraws:fastuidraw::noncopyable
+  {
+  public:
+    ~GlyphDraws()
+    {
+      for(unsigned int i = 0, endi = m_data.size(); i < endi; ++i)
+        {
+          FASTUIDRAWdelete(m_data[i]);
+        }
+    }
+
+    void
+    set_data(float pixel_size,
+             const_c_array<vec2> in_glyph_positions,
+             const_c_array<Glyph> in_glyphs,
+             size_t glyphs_per_painter_draw)
+    {
+      while(!in_glyphs.empty())
+        {
+          const_c_array<Glyph> glyphs;
+          const_c_array<vec2> glyph_positions;
+          unsigned int cnt;
+          PainterAttributeData *data;
+          
+          cnt = t_min(in_glyphs.size(), glyphs_per_painter_draw);
+          glyphs = in_glyphs.sub_array(0, cnt);
+          glyph_positions = in_glyph_positions.sub_array(0, cnt);
+
+          in_glyphs = in_glyphs.sub_array(cnt);
+          in_glyph_positions = in_glyph_positions.sub_array(cnt);
+
+          data = FASTUIDRAWnew PainterAttributeData();
+          data->set_data(PainterAttributeDataFillerGlyphs(glyph_positions, glyphs, pixel_size));
+          m_data.push_back(data);
+        }
+    }
+
+    unsigned int
+    size(void) const
+    {
+      return m_data.size();
+    }
+    
+    const PainterAttributeData&
+    data(unsigned int I) const
+    {
+      FASTUIDRAWassert(I < data.size());
+      return *m_data[I];
+    }
+    
+  private:
+    std::vector<PainterAttributeData*> m_data;
+  };
+  
   command_line_argument_value<std::string> m_font_path;
   command_line_argument_value<std::string> m_font_style, m_font_family;
   command_line_argument_value<bool> m_font_bold, m_font_italic;
@@ -76,10 +130,11 @@ private:
   command_line_argument_value<bool> m_draw_glyph_set;
   command_line_argument_value<float> m_render_pixel_size;
   command_line_argument_value<float> m_change_stroke_width_rate;
+  command_line_argument_value<int> m_glyphs_per_painter_draw;
 
   reference_counted_ptr<const FontFreeType> m_font;
 
-  vecN<PainterAttributeData, number_draw_modes> m_draws;
+  vecN<GlyphDraws, number_draw_modes> m_draws;
   vecN<std::string, number_draw_modes> m_draw_labels;
   vecN<std::vector<Glyph>, number_draw_modes> m_glyphs;
   std::vector<vec2> m_glyph_positions;
@@ -117,6 +172,9 @@ painter_glyph_test(void):
                              "rate of change in pixels/sec for changing stroke width "
                              "when changing stroke when key is down",
                              *this),
+  m_glyphs_per_painter_draw(10000, "glyphs_per_painter_draw",
+                            "Number of glyphs to draw per Painter::draw_text call",
+                            *this),
   m_use_anisotropic_anti_alias(false),
   m_stroke_glyphs(false),
   m_stroke_width(1.0f),
@@ -224,19 +282,7 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer,
       FT_ULong character_code;
       FT_UInt  glyph_index;
 
-      switch(renderer.m_type)
-        {
-        case distance_field_glyph:
-          div_scale_factor = m_font->render_params().distance_field_pixel_size();
-          break;
-        case curve_pair_glyph:
-          div_scale_factor = m_font->render_params().curve_pair_pixel_size();
-          break;
-
-        default:
-          div_scale_factor = renderer.m_pixel_size;
-        }
-
+      div_scale_factor = static_cast<float>(m_font->face()->units_per_EM);
       scale_factor = pixel_size_formatting / div_scale_factor;
 
       for(character_code = FT_Get_First_Char(m_font->face(), &glyph_index); glyph_index != 0;
@@ -341,9 +387,10 @@ ready_glyph_attribute_data(void)
     GlyphRender renderer(m_coverage_pixel_size.m_value);
     compute_glyphs_and_positions(renderer, m_render_pixel_size.m_value,
                                  m_glyphs[draw_glyph_coverage], character_codes);
-    m_draws[draw_glyph_coverage].set_data(PainterAttributeDataFillerGlyphs(cast_c_array(m_glyph_positions),
-                                                                           cast_c_array(m_glyphs[draw_glyph_coverage]),
-                                                                           m_render_pixel_size.m_value));
+    m_draws[draw_glyph_coverage].set_data(m_render_pixel_size.m_value,
+                                          cast_c_array(m_glyph_positions),
+                                          cast_c_array(m_glyphs[draw_glyph_coverage]),
+                                          m_glyphs_per_painter_draw.m_value);
     m_draw_labels[draw_glyph_coverage] = "draw_glyph_coverage";
   }
 
@@ -353,9 +400,10 @@ ready_glyph_attribute_data(void)
                           cast_c_array(m_glyphs[draw_glyph_coverage]),
                           m_glyphs[draw_glyph_distance],
                           cast_c_array(character_codes));
-    m_draws[draw_glyph_distance].set_data(PainterAttributeDataFillerGlyphs(cast_c_array(m_glyph_positions),
-                                                                           cast_c_array(m_glyphs[draw_glyph_distance]),
-                                                                           m_render_pixel_size.m_value));
+    m_draws[draw_glyph_distance].set_data(m_render_pixel_size.m_value,
+                                          cast_c_array(m_glyph_positions),
+                                          cast_c_array(m_glyphs[draw_glyph_distance]),
+                                          m_glyphs_per_painter_draw.m_value);
     m_draw_labels[draw_glyph_distance] = "draw_glyph_distance";
   }
 
@@ -365,9 +413,10 @@ ready_glyph_attribute_data(void)
                           cast_c_array(m_glyphs[draw_glyph_coverage]),
                           m_glyphs[draw_glyph_curvepair],
                           cast_c_array(character_codes));
-    m_draws[draw_glyph_curvepair].set_data(PainterAttributeDataFillerGlyphs(cast_c_array(m_glyph_positions),
-                                                                            cast_c_array(m_glyphs[draw_glyph_curvepair]),
-                                                                            m_render_pixel_size.m_value));
+    m_draws[draw_glyph_curvepair].set_data(m_render_pixel_size.m_value,
+                                           cast_c_array(m_glyph_positions),
+                                           cast_c_array(m_glyphs[draw_glyph_curvepair]),
+                                           m_glyphs_per_painter_draw.m_value);
     m_draw_labels[draw_glyph_curvepair] = "draw_glyph_curvepair";
   }
 }
@@ -387,9 +436,13 @@ draw_frame(void)
 
   PainterBrush brush;
   brush.pen(1.0, 1.0, 1.0, 1.0);
-  m_painter->draw_glyphs(PainterData(&brush),
-                         m_draws[m_current_drawer],
-                         m_use_anisotropic_anti_alias);
+
+  for(unsigned int S = 0, endS = m_draws[m_current_drawer].size(); S < endS; ++S)
+    {
+      m_painter->draw_glyphs(PainterData(&brush),
+                             m_draws[m_current_drawer].data(S),
+                             m_use_anisotropic_anti_alias);
+    }
 
   if(m_stroke_glyphs)
     {
