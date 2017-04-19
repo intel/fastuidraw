@@ -122,12 +122,6 @@ namespace
     font_coordinate_converter m_C;
   };
 
-  bool
-  operator==(const FT_Vector &lhs, const FT_Vector &rhs)
-  {
-    return lhs.x == rhs.x && lhs.y == rhs.y;
-  }
-
   class FontFreeTypePrivate
   {
   public:
