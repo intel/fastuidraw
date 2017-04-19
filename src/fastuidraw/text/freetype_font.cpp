@@ -96,6 +96,24 @@ namespace
   private:
     PathCreator(fastuidraw::Path &p, font_coordinate_converter C);
 
+    void
+    move_to(const FT_Vector *pt);
+
+    void
+    line_to(const FT_Vector *pt);
+
+    void
+    conic_to(const FT_Vector *control_pt,
+             const FT_Vector *pt);
+
+    void
+    cubic_to(const FT_Vector *control_pt1,
+             const FT_Vector *control_pt2,
+             const FT_Vector *pt);
+
+    void
+    send_waiting_commands(bool end_contour);
+    
     static
     int
     ft_outline_move_to(const FT_Vector *pt, void *user);
@@ -120,6 +138,7 @@ namespace
 
     fastuidraw::Path &m_path;
     font_coordinate_converter m_C;
+    std::vector<fastuidraw::vec2> m_waiting_command;
   };
 
   class FontFreeTypePrivate
@@ -178,6 +197,70 @@ PathCreator(fastuidraw::Path &p, font_coordinate_converter C):
 
 void
 PathCreator::
+move_to(const FT_Vector *pt)
+{
+  send_waiting_commands(true);
+  m_waiting_command.push_back(make_vec2(*pt));
+}
+
+void
+PathCreator::
+line_to(const FT_Vector *pt)
+{
+  send_waiting_commands(false);
+  m_waiting_command.push_back(make_vec2(*pt));
+}
+
+void
+PathCreator::
+conic_to(const FT_Vector *control_pt,
+         const FT_Vector *pt)
+{
+  send_waiting_commands(false);
+  m_waiting_command.push_back(make_vec2(*control_pt));
+  m_waiting_command.push_back(make_vec2(*pt));
+}
+
+void
+PathCreator::
+cubic_to(const FT_Vector *control_pt1,
+         const FT_Vector *control_pt2,
+         const FT_Vector *pt)
+{
+  send_waiting_commands(false);
+  m_waiting_command.push_back(make_vec2(*control_pt1));
+  m_waiting_command.push_back(make_vec2(*control_pt2));
+  m_waiting_command.push_back(make_vec2(*pt));
+}
+
+void
+PathCreator::
+send_waiting_commands(bool end_contour)
+{
+  if(m_waiting_command.empty())
+    {
+      return;
+    }
+  
+  for(unsigned int s = 0, ends = m_waiting_command.size() - 1; s < ends; ++s)
+    {
+      m_path << fastuidraw::Path::control_point(m_waiting_command[s]);
+    }
+  
+  if(end_contour)
+    {
+      m_path << fastuidraw::Path::contour_end();
+    }
+  else
+    {
+      m_path << m_waiting_command.back();
+    }
+  m_waiting_command.clear();
+}
+
+
+void
+PathCreator::
 decompose_to_path(FT_Outline *outline, fastuidraw::Path &p, font_coordinate_converter C)
 {
   PathCreator datum(p, C);
@@ -190,11 +273,7 @@ decompose_to_path(FT_Outline *outline, fastuidraw::Path &p, font_coordinate_conv
   funcs.shift = 0;
   funcs.delta = 0;
   FT_Outline_Decompose(outline, &funcs, &datum);
-
-  if(p.number_contours() > 0)
-    {
-      p << fastuidraw::Path::contour_end();
-    }
+  datum.send_waiting_commands(true);
 }
 
 fastuidraw::vec2
@@ -213,7 +292,7 @@ ft_outline_move_to(const FT_Vector *pt, void *user)
 {
   PathCreator *p;
   p = static_cast<PathCreator*>(user);
-  p->m_path.move(p->make_vec2(*pt));
+  p->move_to(pt);
   return 0;
 }
 
@@ -223,7 +302,7 @@ ft_outline_line_to(const FT_Vector *pt, void *user)
 {
   PathCreator *p;
   p = static_cast<PathCreator*>(user);
-  p->m_path.line_to(p->make_vec2(*pt));
+  p->line_to(pt);
   return 0;
 }
 
@@ -233,7 +312,7 @@ ft_outline_conic_to(const FT_Vector *ct, const FT_Vector *pt, void *user)
 {
   PathCreator *p;
   p = static_cast<PathCreator*>(user);
-  p->m_path.quadratic_to(p->make_vec2(*ct), p->make_vec2(*pt));
+  p->conic_to(ct, pt);
   return 0;
 }
 
@@ -244,7 +323,7 @@ ft_outline_cubic_to(const FT_Vector *ct1, const FT_Vector *ct2,
 {
   PathCreator *p;
   p = static_cast<PathCreator*>(user);
-  p->m_path.cubic_to(p->make_vec2(*ct1), p->make_vec2(*ct2), p->make_vec2(*pt));
+  p->cubic_to(ct1, ct2, pt);
   return 0;
 }
 
