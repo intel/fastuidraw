@@ -119,8 +119,6 @@ namespace
     make_vec2(const FT_Vector &pt);
 
     fastuidraw::Path &m_path;
-    FT_Vector m_contour_start_pt;
-    bool m_contour_started;
     font_coordinate_converter m_C;
   };
 
@@ -181,7 +179,6 @@ namespace
 PathCreator::
 PathCreator(fastuidraw::Path &p, font_coordinate_converter C):
   m_path(p),
-  m_contour_started(false),
   m_C(C)
 {}
 
@@ -199,6 +196,11 @@ decompose_to_path(FT_Outline *outline, fastuidraw::Path &p, font_coordinate_conv
   funcs.shift = 0;
   funcs.delta = 0;
   FT_Outline_Decompose(outline, &funcs, &datum);
+
+  if(p.number_contours() > 0)
+    {
+      p << fastuidraw::Path::contour_end();
+    }
 }
 
 fastuidraw::vec2
@@ -217,11 +219,7 @@ ft_outline_move_to(const FT_Vector *pt, void *user)
 {
   PathCreator *p;
   p = static_cast<PathCreator*>(user);
-
-  FASTUIDRAWassert(!p->m_contour_started);
-  p->m_contour_started = true;
-  p->m_contour_start_pt = *pt;
-  p->m_path << p->make_vec2(*pt);
+  p->m_path.move(p->make_vec2(*pt));
   return 0;
 }
 
@@ -231,17 +229,7 @@ ft_outline_line_to(const FT_Vector *pt, void *user)
 {
   PathCreator *p;
   p = static_cast<PathCreator*>(user);
-
-  FASTUIDRAWassert(p->m_contour_started);
-  if(p->m_contour_start_pt == *pt)
-    {
-      p->m_path << fastuidraw::Path::contour_end();
-      p->m_contour_started = false;
-    }
-  else
-    {
-      p->m_path << p->make_vec2(*pt);
-    }
+  p->m_path.line_to(p->make_vec2(*pt));
   return 0;
 }
 
@@ -251,19 +239,7 @@ ft_outline_conic_to(const FT_Vector *ct, const FT_Vector *pt, void *user)
 {
   PathCreator *p;
   p = static_cast<PathCreator*>(user);
-
-  FASTUIDRAWassert(p->m_contour_started);
-  if(p->m_contour_start_pt == *pt)
-    {
-      p->m_path << fastuidraw::Path::control_point(p->make_vec2(*ct))
-                << fastuidraw::Path::contour_end();
-      p->m_contour_started = false;
-    }
-  else
-    {
-      p->m_path << fastuidraw::Path::control_point(p->make_vec2(*ct))
-                << p->make_vec2(*pt);
-    }
+  p->m_path.quadratic_to(p->make_vec2(*ct), p->make_vec2(*pt));
   return 0;
 }
 
@@ -274,21 +250,7 @@ ft_outline_cubic_to(const FT_Vector *ct1, const FT_Vector *ct2,
 {
   PathCreator *p;
   p = static_cast<PathCreator*>(user);
-
-  FASTUIDRAWassert(p->m_contour_started);
-  if(p->m_contour_start_pt == *pt)
-    {
-      p->m_path << fastuidraw::Path::control_point(p->make_vec2(*ct1))
-                << fastuidraw::Path::control_point(p->make_vec2(*ct2))
-                << fastuidraw::Path::contour_end();
-      p->m_contour_started = false;
-    }
-  else
-    {
-      p->m_path << fastuidraw::Path::control_point(p->make_vec2(*ct1))
-                << fastuidraw::Path::control_point(p->make_vec2(*ct2))
-                << p->make_vec2(*pt);
-    }
+  p->m_path.cubic_to(p->make_vec2(*ct1), p->make_vec2(*ct2), p->make_vec2(*pt));
   return 0;
 }
 
