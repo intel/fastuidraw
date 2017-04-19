@@ -513,8 +513,12 @@ add_rectangle(const ivec2 &dimensions,
     }
   m_mutex.unlock();
 
-  return_value->finalize(left_padding, right_padding,
-                         top_padding, bottom_padding);
+  if(return_value != nullptr && return_value != &m_empty_rect)
+    {
+      return_value->finalize(left_padding, right_padding,
+                             top_padding, bottom_padding);
+    }
+
   return return_value;
 }
 
