@@ -330,7 +330,7 @@ namespace fastuidraw {
             glyph_positions.push_back(pen_positions);
 
             float ratio;
-            ratio = layout_pixel_size / g.layout().m_pixel_size;
+            ratio = layout_pixel_size / g.layout().m_units_per_EM;
             pen_positions.x() += ratio * g.layout().m_advance.x();
           }
       }
