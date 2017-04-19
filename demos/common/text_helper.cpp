@@ -107,7 +107,7 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
           if(g.valid())
             {
               float ratio;
-              ratio = pixel_size / static_cast<float>(g.layout().m_pixel_size);
+              ratio = pixel_size / g.layout().m_units_per_EM;
 
               empty_line = false;
               pen.x() += ratio * g.layout().m_advance.x();

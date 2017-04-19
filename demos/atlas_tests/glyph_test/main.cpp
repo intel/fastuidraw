@@ -836,19 +836,7 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
       FT_ULong character_code;
       FT_UInt  glyph_index;
 
-      switch(renderer.m_type)
-        {
-        case distance_field_glyph:
-          div_scale_factor = m_font->render_params().distance_field_pixel_size();
-          break;
-        case curve_pair_glyph:
-          div_scale_factor = m_font->render_params().curve_pair_pixel_size();
-          break;
-
-        default:
-          div_scale_factor = renderer.m_pixel_size;
-        }
-
+      div_scale_factor = static_cast<float>(m_face->units_per_EM);
       scale_factor = pixel_size_formatting / div_scale_factor;
 
       for(character_code = FT_Get_First_Char(m_face, &glyph_index); glyph_index != 0;
@@ -953,7 +941,7 @@ ready_attributes_indices(void)
     float format_pixel_size, scale_factor;
 
     format_pixel_size = m_render_pixel_size.m_value;
-    scale_factor = format_pixel_size / static_cast<float>(m_coverage_pixel_size.m_value);
+    scale_factor = format_pixel_size / static_cast<float>(m_face->units_per_EM);
 
     compute_glyphs_and_positions(renderer, format_pixel_size, glyphs, glyph_positions, character_codes);
     m_drawers[draw_glyph_coverage].init_draw_text(cast_c_array(glyphs), cast_c_array(glyph_positions), scale_factor);
@@ -964,7 +952,7 @@ ready_attributes_indices(void)
     float format_pixel_size, scale_factor;
 
     format_pixel_size = m_render_pixel_size.m_value;
-    scale_factor = format_pixel_size / static_cast<float>(m_font->render_params().distance_field_pixel_size());
+    scale_factor = format_pixel_size / static_cast<float>(m_face->units_per_EM);
     change_glyph_renderer(renderer, cast_c_array(glyphs), cast_c_array(character_codes));
     m_drawers[draw_glyph_distance].init_draw_text(cast_c_array(glyphs), cast_c_array(glyph_positions), scale_factor);
   }
@@ -974,7 +962,7 @@ ready_attributes_indices(void)
     float format_pixel_size, scale_factor;
 
     format_pixel_size = m_render_pixel_size.m_value;
-    scale_factor = format_pixel_size / static_cast<float>(m_font->render_params().curve_pair_pixel_size());
+    scale_factor = format_pixel_size / static_cast<float>(m_face->units_per_EM);
     change_glyph_renderer(renderer, cast_c_array(glyphs), cast_c_array(character_codes));
     m_drawers[draw_glyph_curvepair].init_draw_text(cast_c_array(glyphs), cast_c_array(glyph_positions), scale_factor);
   }

@@ -416,12 +416,12 @@ draw_frame(void)
 
               //make the scale of the path match how we scaled the text.
               float sc;
-              sc = static_cast<float>(m_render_pixel_size.m_value) / static_cast<float>(m_glyphs[m_current_drawer][i].layout().m_pixel_size);
+              sc = m_render_pixel_size.m_value / m_glyphs[m_current_drawer][i].layout().m_units_per_EM;
               m_painter->scale(sc);
-              m_painter->stroke_path(PainterData(pst, pbr),
-                                     m_glyphs[m_current_drawer][i].path(),
-                                     true, PainterEnums::flat_caps, PainterEnums::miter_clip_joins,
-                                     true);
+              m_painter->stroke_path_pixel_width(PainterData(pst, pbr),
+                                                 m_glyphs[m_current_drawer][i].path(),
+                                                 true, PainterEnums::flat_caps, PainterEnums::miter_clip_joins,
+                                                 true);
               m_painter->restore();
             }
         }
@@ -440,7 +440,6 @@ update_cts_params(void)
   float speed;
   speed = static_cast<float>(m_draw_timer.restart());
   speed *= m_change_stroke_width_rate.m_value;
-  speed /= m_zoomer.transformation().scale();
 
   if(keyboard_state[SDL_SCANCODE_LSHIFT])
     {
@@ -460,6 +459,11 @@ update_cts_params(void)
     {
       m_stroke_width -= speed;
       m_stroke_width = fastuidraw::t_max(m_stroke_width, 0.0f);
+    }
+
+  if(keyboard_state[SDL_SCANCODE_RIGHTBRACKET] || keyboard_state[SDL_SCANCODE_LEFTBRACKET])
+    {
+      std::cout << "Stroke width set to: " << m_stroke_width << "\n";
     }
 }
 
