@@ -40,6 +40,7 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
+#include <fastuidraw/path.hpp>
 
 #include "../../private/array2d.hpp"
 #include "../../private/signal.hpp"
@@ -736,8 +737,7 @@ namespace detail
       Ctor to initialize as no intersection.
      */
     simple_line(void):
-      m_source(0.0f, 0.0f, nullptr, -1.0f),
-      m_index_of_intersection(-1)
+      m_source(0.0f, 0.0f, nullptr, -1.0f)
     {}
 
     /*!\fn simple_line(const solution_point&, float, const vec2&)
@@ -749,7 +749,6 @@ namespace detail
     simple_line(const solution_point &S, float v, const vec2 &deriv):
       m_source(S),
       m_value(v),
-      m_index_of_intersection(-1),
       m_intersection_type(intersect_interior)
     {
       m_source.m_derivative=deriv;
@@ -795,16 +794,6 @@ namespace detail
       point of intersection (is a x or y coordinate)
     */
     float m_value;
-
-    /*!\var m_index_of_intersection
-      index of intersection, which gives
-      which curve intersect starting from counting below,
-      i.e. returns the number of intersections
-      below (or to the left) of the intersection
-      recored by this simple_line.
-      if is -1 then no choice was found.
-    */
-    int m_index_of_intersection;
 
     /*!\var m_intersection_type
       Indicates if the intersection is with the
@@ -1802,6 +1791,12 @@ namespace detail
     void
     reverse_component(int ID);
 
+    /*!
+      Extract a Path from the outline data.
+     */
+    void
+    extract_path(const CoordinateConverter *conv, Path &path) const;
+
   private:
 
     void
@@ -2498,6 +2493,13 @@ namespace detail
     compute_bounding_box(const BezierCurve *c,
                          ivec2 &out_min, ivec2 &out_max) const;
 
+    /*! extract path
+     */
+    void
+    extract_path(Path &path) const
+    {
+      RawOutlineData::extract_path(this, path);
+    }
   private:
     void
     increment_sub_winding_numbers(const std::vector<solution_point> &L,

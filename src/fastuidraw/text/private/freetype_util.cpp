@@ -1239,6 +1239,7 @@ namespace detail
 
     if(in_pt==pt0()[fixed_coordinate(tp)] and !count_as_multiplicity2(tp, m_tag_pt0))
       {
+        std::cout << "!!1!!\n";
         out_pts.push_back( solution_point(1, pt0()[varying_coordinate(tp)], this, 0.0f));
         if(compute_derivatives)
           {
@@ -1248,7 +1249,8 @@ namespace detail
 
     if(in_pt==pt1()[fixed_coordinate(tp)] and !count_as_multiplicity2(tp, m_tag_pt1))
       {
-        out_pts.push_back( solution_point(1, pt0()[varying_coordinate(tp)], this, 1.0f));
+        std::cout << "!!2!!\n";
+        out_pts.push_back( solution_point(1, pt1()[varying_coordinate(tp)], this, 1.0f));
         if(compute_derivatives)
           {
             out_pts.back().m_derivative=deriv_fpt1();
@@ -2560,12 +2562,6 @@ namespace detail
         std::sort(L.begin(), L.end());
 
         total_count=L.size();
-        for(int i=0; i<total_count; ++i)
-          {
-            L[i].m_index_of_intersection=i;
-            FASTUIDRAWassert(L[i].m_source.m_bezier!=nullptr);
-          }
-
         if(total_count==0)
           continue;
 
