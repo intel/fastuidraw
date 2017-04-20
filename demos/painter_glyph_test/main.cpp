@@ -12,6 +12,28 @@
 
 using namespace fastuidraw;
 
+
+class GlyphDraws:fastuidraw::noncopyable
+{
+public:
+  ~GlyphDraws();
+
+  void
+  set_data(float pixel_size,
+           const_c_array<vec2> in_glyph_positions,
+           const_c_array<Glyph> in_glyphs,
+           size_t glyphs_per_painter_draw);
+
+  unsigned int
+  size(void) const;
+    
+  const PainterAttributeData&
+  data(unsigned int I) const;
+    
+private:
+  std::vector<PainterAttributeData*> m_data;
+};
+
 class painter_glyph_test:public sdl_painter_demo
 {
 public:
@@ -34,27 +56,6 @@ protected:
 
 private:
 
-  enum return_code
-  create_and_add_font(void);
-
-  void
-  ready_glyph_attribute_data(void);
-
-  void
-  compute_glyphs_and_positions(GlyphRender renderer,
-                               float pixel_size_formatting,
-                               std::vector<Glyph> &out_glyphs,
-                               std::vector<uint32_t> &character_codes);
-
-  void
-  change_glyph_renderer(GlyphRender renderer,
-                        const_c_array<Glyph> in_glyphs,
-                        std::vector<Glyph> &out_glyphs,
-                        const_c_array<uint32_t> character_codes);
-
-  void
-  update_cts_params(void);
-
   enum
     {
       draw_glyph_coverage,
@@ -64,59 +65,37 @@ private:
       number_draw_modes
     };
 
-  class GlyphDraws:fastuidraw::noncopyable
+  class PerLine
   {
   public:
-    ~GlyphDraws()
-    {
-      for(unsigned int i = 0, endi = m_data.size(); i < endi; ++i)
-        {
-          FASTUIDRAWdelete(m_data[i]);
-        }
-    }
-
-    void
-    set_data(float pixel_size,
-             const_c_array<vec2> in_glyph_positions,
-             const_c_array<Glyph> in_glyphs,
-             size_t glyphs_per_painter_draw)
-    {
-      while(!in_glyphs.empty())
-        {
-          const_c_array<Glyph> glyphs;
-          const_c_array<vec2> glyph_positions;
-          unsigned int cnt;
-          PainterAttributeData *data;
-          
-          cnt = t_min(in_glyphs.size(), glyphs_per_painter_draw);
-          glyphs = in_glyphs.sub_array(0, cnt);
-          glyph_positions = in_glyph_positions.sub_array(0, cnt);
-
-          in_glyphs = in_glyphs.sub_array(cnt);
-          in_glyph_positions = in_glyph_positions.sub_array(cnt);
-
-          data = FASTUIDRAWnew PainterAttributeData();
-          data->set_data(PainterAttributeDataFillerGlyphs(glyph_positions, glyphs, pixel_size));
-          m_data.push_back(data);
-        }
-    }
-
-    unsigned int
-    size(void) const
-    {
-      return m_data.size();
-    }
-    
-    const PainterAttributeData&
-    data(unsigned int I) const
-    {
-      FASTUIDRAWassert(I < data.size());
-      return *m_data[I];
-    }
-    
-  private:
-    std::vector<PainterAttributeData*> m_data;
+    std::map<float, unsigned int> m_glyph_map;
+    LineData m_L;
   };
+
+  enum return_code
+  create_and_add_font(void);
+
+  void
+  ready_glyph_attribute_data(void);
+
+  void
+  compute_glyphs_and_positions(GlyphRender renderer,
+                               float pixel_size_formatting,
+                               std::vector<Glyph> &out_glyphs);
+
+  void
+  change_glyph_renderer(GlyphRender renderer,
+                        const_c_array<Glyph> in_glyphs,
+                        std::vector<Glyph> &out_glyphs);
+
+  float
+  update_cts_params(void);
+
+  void
+  generate_glyph_at_data(std::vector<LineData> &in_data);
+  
+  unsigned int
+  glyph_source_index(vec2 p);
   
   command_line_argument_value<std::string> m_font_path;
   command_line_argument_value<std::string> m_font_style, m_font_family;
@@ -135,18 +114,74 @@ private:
   reference_counted_ptr<const FontFreeType> m_font;
 
   vecN<GlyphDraws, number_draw_modes> m_draws;
-  vecN<std::string, number_draw_modes> m_draw_labels;
+  vecN<std::string, number_draw_modes + 1> m_draw_labels;
   vecN<std::vector<Glyph>, number_draw_modes> m_glyphs;
   std::vector<vec2> m_glyph_positions;
+  std::vector<uint32_t> m_character_codes;
+  std::map<float, PerLine> m_glyph_at;
 
   bool m_use_anisotropic_anti_alias;
   bool m_stroke_glyphs;
+  bool m_draw_stats;
   float m_stroke_width;
   unsigned int m_current_drawer;
   PanZoomTrackerSDLEvent m_zoomer;
   simple_time m_draw_timer;
 };
 
+
+////////////////////////////////////
+// GlyphDraws methods
+GlyphDraws::
+~GlyphDraws()
+{
+  for(unsigned int i = 0, endi = m_data.size(); i < endi; ++i)
+    {
+      FASTUIDRAWdelete(m_data[i]);
+    }
+}
+
+void
+GlyphDraws::
+set_data(float pixel_size,
+         const_c_array<vec2> in_glyph_positions,
+         const_c_array<Glyph> in_glyphs,
+         size_t glyphs_per_painter_draw)
+{
+  while(!in_glyphs.empty())
+    {
+      const_c_array<Glyph> glyphs;
+      const_c_array<vec2> glyph_positions;
+      unsigned int cnt;
+      PainterAttributeData *data;
+          
+      cnt = t_min(in_glyphs.size(), glyphs_per_painter_draw);
+      glyphs = in_glyphs.sub_array(0, cnt);
+      glyph_positions = in_glyph_positions.sub_array(0, cnt);
+
+      in_glyphs = in_glyphs.sub_array(cnt);
+      in_glyph_positions = in_glyph_positions.sub_array(cnt);
+
+      data = FASTUIDRAWnew PainterAttributeData();
+      data->set_data(PainterAttributeDataFillerGlyphs(glyph_positions, glyphs, pixel_size));
+      m_data.push_back(data);
+    }
+}
+
+unsigned int
+GlyphDraws::
+size(void) const
+{
+  return m_data.size();
+}
+    
+const PainterAttributeData&
+GlyphDraws::
+data(unsigned int I) const
+{
+  FASTUIDRAWassert(I < data.size());
+  return *m_data[I];
+}
 
 
 /////////////////////////////////////
@@ -177,6 +212,7 @@ painter_glyph_test(void):
                             *this),
   m_use_anisotropic_anti_alias(false),
   m_stroke_glyphs(false),
+  m_draw_stats(false),
   m_stroke_width(1.0f),
   m_current_drawer(draw_glyph_curvepair)
 {
@@ -187,6 +223,7 @@ painter_glyph_test(void):
             << "\td:Cycle though text renderer\n"
             << "\tz:reset zoom factor to 1.0\n"
             << "\ts: toggle stroking glyph path\n"
+            << "\tl: draw Painter stats\n"
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\t]: increase stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\tMouse Drag (left button): pan\n"
@@ -198,6 +235,54 @@ painter_glyph_test::
 {
 }
 
+void
+painter_glyph_test::
+generate_glyph_at_data(std::vector<LineData> &in_data)
+{
+  for(unsigned int i = 0, endi = in_data.size(); i < endi; ++i)
+    {
+      const LineData &L(in_data[i]);
+      PerLine &entry(m_glyph_at[L.m_vertical_spread.m_end]);
+
+      entry.m_L = L;
+      for(unsigned int g = L.m_range.m_begin; g < L.m_range.m_end; ++g)
+        {
+          float x_pos(m_glyph_positions[g].x());
+          entry.m_glyph_map[x_pos] = g;
+        }
+    }
+}
+
+unsigned int
+painter_glyph_test::
+glyph_source_index(vec2 p)
+{
+  std::map<float, PerLine>::const_iterator iter;
+
+
+  iter = m_glyph_at.lower_bound(p.y());
+  if(iter != m_glyph_at.end()
+     && iter->second.m_L.m_vertical_spread.m_begin <= p.y()
+     && iter->second.m_L.m_horizontal_spread.m_begin <= p.x()
+     && iter->second.m_L.m_horizontal_spread.m_end >= p.x()
+     && !iter->second.m_glyph_map.empty())
+    {
+      const PerLine &L(iter->second);
+      std::map<float, unsigned int>::const_iterator g_iter;
+
+      g_iter = L.m_glyph_map.lower_bound(p.x());
+      if(g_iter != L.m_glyph_map.end() && g_iter != L.m_glyph_map.begin())
+        {
+          --g_iter;
+          return g_iter->second;
+        }
+      else
+        {
+          return L.m_glyph_map.rbegin()->second;
+        }
+    }
+  return ~0u;
+}
 
 enum return_code
 painter_glyph_test::
@@ -239,8 +324,8 @@ derived_init(int w, int h)
       return;
     }
 
-  //put into unit of per ms
-  m_change_stroke_width_rate.m_value /= 1000.0f;
+  //put into unit of per us
+  m_change_stroke_width_rate.m_value /= (1000.0f * 1000.0f);
 
   ready_glyph_attribute_data();
   m_draw_timer.restart();
@@ -251,15 +336,14 @@ void
 painter_glyph_test::
 change_glyph_renderer(GlyphRender renderer,
                       const_c_array<Glyph> in_glyphs,
-                      std::vector<Glyph> &out_glyphs,
-                      const_c_array<uint32_t> character_codes)
+                      std::vector<Glyph> &out_glyphs)
 {
   out_glyphs.resize(in_glyphs.size());
   for(unsigned int i = 0; i < in_glyphs.size(); ++i)
     {
       if(in_glyphs[i].valid())
         {
-          out_glyphs[i] = m_glyph_selector->fetch_glyph_no_merging(renderer, in_glyphs[i].layout().m_font, character_codes[i]);
+          out_glyphs[i] = m_glyph_selector->fetch_glyph_no_merging(renderer, in_glyphs[i].layout().m_font, m_character_codes[i]);
         }
     }
 }
@@ -268,12 +352,11 @@ void
 painter_glyph_test::
 compute_glyphs_and_positions(fastuidraw::GlyphRender renderer,
                              float pixel_size_formatting,
-                             std::vector<Glyph> &out_glyphs,
-                             std::vector<uint32_t> &character_codes)
+                             std::vector<Glyph> &out_glyphs)
 {
   if(m_draw_glyph_set.m_value)
     {
-      float max_height(0.0f);
+      float tallest(0.0f), negative_tallest(0.0f), offset;
       unsigned int i, endi, glyph_at_start, navigator_chars;
       float scale_factor, div_scale_factor;
       std::list< std::pair<float, std::string> > navigator;
@@ -284,8 +367,9 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer,
 
       div_scale_factor = static_cast<float>(m_font->face()->units_per_EM);
       scale_factor = pixel_size_formatting / div_scale_factor;
-
-      for(character_code = FT_Get_First_Char(m_font->face(), &glyph_index); glyph_index != 0;
+      
+      for(character_code = FT_Get_First_Char(m_font->face(), &glyph_index);
+          glyph_index != 0;
           character_code = FT_Get_Next_Char(m_font->face(), character_code, &glyph_index))
         {
           Glyph g;
@@ -293,41 +377,64 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer,
 
           FASTUIDRAWassert(g.valid());
           FASTUIDRAWassert(g.layout().m_glyph_code == uint32_t(glyph_index));
-          max_height = std::max(max_height, g.layout().m_size.x());
+          tallest = std::max(tallest, g.layout().m_horizontal_layout_offset.y() + g.layout().m_size.y());
+          negative_tallest = std::min(negative_tallest, g.layout().m_horizontal_layout_offset.y());
           out_glyphs.push_back(g);
-          character_codes.push_back(character_code);
+          m_character_codes.push_back(character_code);
         }
+
+      tallest *= scale_factor;
+      negative_tallest *= scale_factor;
+      offset = tallest - negative_tallest;
 
       m_glyph_positions.resize(out_glyphs.size());
 
-      vec2 pen(0.0f, scale_factor * max_height);
+      std::vector<LineData> lines;
+      vec2 pen(0.0f, 0.0f);
+      
       for(navigator_chars = 0, i = 0, endi = out_glyphs.size(), glyph_at_start = 0; i < endi; ++i)
         {
           Glyph g;
-          float advance;
+          float advance, nxt;
 
           g = out_glyphs[i];
           advance = scale_factor * std::max(g.layout().m_advance.x(), g.layout().m_size.x());
 
-          m_glyph_positions[i] = pen;
+          m_glyph_positions[i].x() = pen.x();
+          m_glyph_positions[i].y() = pen.y() + offset;
           pen.x() += advance;
-          if(pen.x() >= line_length)
-            {
+
+          nxt = (i + 1 < endi) ?
+            pen.x() + scale_factor * std::max(out_glyphs[i + 1].layout().m_advance.x(),
+                                              out_glyphs[i + 1].layout().m_size.x()) :
+            pen.x();
+          
+          if(nxt >= line_length || i + 1 == endi)
+            {              
               std::ostringstream desc;
-              desc << "[" << std::setw(5) << glyph_at_start << " - "
-                   << std::setw(5) << i << "]";
+              desc << "[" << std::setw(5) << out_glyphs[glyph_at_start].layout().m_glyph_code
+                   << " - " << std::setw(5) << out_glyphs[i].layout().m_glyph_code << "]";
               navigator.push_back(std::make_pair(pen.y(), desc.str()));
               navigator_chars += navigator.back().second.length();
 
-              pen.y() += scale_factor * max_height;
-              pen.x() = 0.0f;
-              m_glyph_positions[i] = pen;
-              pen.x() += advance;
+              LineData L;
+              L.m_range.m_begin = glyph_at_start;
+              L.m_range.m_end = i + 1;
+              L.m_vertical_spread.m_begin = pen.y() + offset - tallest;
+              L.m_vertical_spread.m_end = pen.y() + offset - negative_tallest;
+              L.m_horizontal_spread.m_begin = 0.0f;
+              L.m_horizontal_spread.m_end = pen.x();
+              lines.push_back(L);
               glyph_at_start = i + 1;
+
+              pen.x() = 0.0f;
+              pen.y() += offset + 1.0f;
             }
         }
 
-      character_codes.reserve(out_glyphs.size() + navigator_chars);
+      generate_glyph_at_data(lines);
+
+      m_character_codes.reserve(out_glyphs.size() + navigator_chars);
       m_glyph_positions.reserve(out_glyphs.size() + navigator_chars);
       out_glyphs.reserve(out_glyphs.size() + navigator_chars);
 
@@ -349,7 +456,7 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer,
           for(unsigned int c = 0; c < temp_glyphs.size(); ++c)
             {
               out_glyphs.push_back(temp_glyphs[c]);
-              character_codes.push_back(temp_character_codes[c]);
+              m_character_codes.push_back(temp_character_codes[c]);
               m_glyph_positions.push_back(vec2(line_length + temp_positions[c].x(), nav_iter->first) );
             }
         }
@@ -359,19 +466,23 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer,
       std::ifstream istr(m_text.m_value.c_str(), std::ios::binary);
       if(istr)
         {
+          std::vector<LineData> lines;
           create_formatted_text(istr, renderer, pixel_size_formatting,
                                 m_font, m_glyph_selector,
                                 out_glyphs, m_glyph_positions,
-                                character_codes);
+                                m_character_codes, &lines);
+          generate_glyph_at_data(lines);
         }
     }
   else
     {
+      std::vector<LineData> lines;
       std::istringstream istr(m_text.m_value);
       create_formatted_text(istr, renderer, pixel_size_formatting,
                             m_font, m_glyph_selector,
                             out_glyphs, m_glyph_positions,
-                            character_codes);
+                            m_character_codes, &lines);
+      generate_glyph_at_data(lines);
     }
 }
 
@@ -381,12 +492,10 @@ void
 painter_glyph_test::
 ready_glyph_attribute_data(void)
 {
-  std::vector<uint32_t> character_codes;
-
   {
     GlyphRender renderer(m_coverage_pixel_size.m_value);
     compute_glyphs_and_positions(renderer, m_render_pixel_size.m_value,
-                                 m_glyphs[draw_glyph_coverage], character_codes);
+                                 m_glyphs[draw_glyph_coverage]);
     m_draws[draw_glyph_coverage].set_data(m_render_pixel_size.m_value,
                                           cast_c_array(m_glyph_positions),
                                           cast_c_array(m_glyphs[draw_glyph_coverage]),
@@ -398,8 +507,7 @@ ready_glyph_attribute_data(void)
     GlyphRender renderer(distance_field_glyph);
     change_glyph_renderer(renderer,
                           cast_c_array(m_glyphs[draw_glyph_coverage]),
-                          m_glyphs[draw_glyph_distance],
-                          cast_c_array(character_codes));
+                          m_glyphs[draw_glyph_distance]);
     m_draws[draw_glyph_distance].set_data(m_render_pixel_size.m_value,
                                           cast_c_array(m_glyph_positions),
                                           cast_c_array(m_glyphs[draw_glyph_distance]),
@@ -411,21 +519,24 @@ ready_glyph_attribute_data(void)
     GlyphRender renderer(curve_pair_glyph);
     change_glyph_renderer(renderer,
                           cast_c_array(m_glyphs[draw_glyph_coverage]),
-                          m_glyphs[draw_glyph_curvepair],
-                          cast_c_array(character_codes));
+                          m_glyphs[draw_glyph_curvepair]);
     m_draws[draw_glyph_curvepair].set_data(m_render_pixel_size.m_value,
                                            cast_c_array(m_glyph_positions),
                                            cast_c_array(m_glyphs[draw_glyph_curvepair]),
                                            m_glyphs_per_painter_draw.m_value);
     m_draw_labels[draw_glyph_curvepair] = "draw_glyph_curvepair";
   }
+
+  m_draw_labels[number_draw_modes] = "draw_glyph_as_filled_paths";
 }
 
 void
 painter_glyph_test::
 draw_frame(void)
 {
-  update_cts_params();
+  float us;
+
+  us = update_cts_params();
 
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
   m_painter->begin();
@@ -437,22 +548,58 @@ draw_frame(void)
   PainterBrush brush;
   brush.pen(1.0, 1.0, 1.0, 1.0);
 
-  for(unsigned int S = 0, endS = m_draws[m_current_drawer].size(); S < endS; ++S)
+  if(m_current_drawer != number_draw_modes)
     {
-      m_painter->draw_glyphs(PainterData(&brush),
-                             m_draws[m_current_drawer].data(S),
-                             m_use_anisotropic_anti_alias);
+      for(unsigned int S = 0, endS = m_draws[m_current_drawer].size(); S < endS; ++S)
+        {
+          m_painter->draw_glyphs(PainterData(&brush),
+                                 m_draws[m_current_drawer].data(S),
+                                 m_use_anisotropic_anti_alias);
+        }
+    }
+  else
+    {
+      unsigned int src(draw_glyph_curvepair);
+      PainterBrush fill_brush;
+      fill_brush.pen(1.0, 1.0, 1.0, 1.0);
+
+      // reuse brush parameters across all glyphs
+      PainterPackedValue<PainterBrush> pbr;
+      pbr = m_painter->packed_value_pool().create_packed_value(fill_brush);
+      for(unsigned int i = 0; i < m_glyphs[src].size(); ++i)
+        {
+          if(m_glyphs[src][i].valid())
+            {
+              m_painter->save();
+              m_painter->translate(m_glyph_positions[i]);
+
+              //make the scale of the path match how we scaled the text.
+              float sc;
+              sc = m_render_pixel_size.m_value / m_glyphs[src][i].layout().m_units_per_EM;
+              m_painter->scale(sc);
+              m_painter->fill_path(PainterData(pbr),
+                                   m_glyphs[src][i].path(),
+                                   PainterEnums::nonzero_fill_rule,
+                                   true);
+              m_painter->restore();
+            }
+        }
     }
 
   if(m_stroke_glyphs)
     {
+      unsigned int src;
       PainterBrush stroke_brush;
       stroke_brush.pen(0.0, 1.0, 1.0, 0.8);
 
       PainterStrokeParams st;
-      st.miter_limit(1.0f);
+      st.miter_limit(5.0f);
       st.width(m_stroke_width);
 
+      src = (m_current_drawer == number_draw_modes) ?
+        static_cast<unsigned int>(draw_glyph_curvepair) :
+        m_current_drawer;
+      
       // reuse stroke and brush parameters across all glyphs
       PainterPackedValue<PainterBrush> pbr;
       pbr = m_painter->packed_value_pool().create_packed_value(stroke_brush);
@@ -460,39 +607,123 @@ draw_frame(void)
       PainterPackedValue<PainterItemShaderData> pst;
       pst = m_painter->packed_value_pool().create_packed_value(st);
 
-      for(unsigned int i = 0; i < m_glyphs[m_current_drawer].size(); ++i)
+      for(unsigned int i = 0; i < m_glyphs[src].size(); ++i)
         {
-          if(m_glyphs[m_current_drawer][i].valid())
+          if(m_glyphs[src][i].valid())
             {
               m_painter->save();
               m_painter->translate(m_glyph_positions[i]);
 
               //make the scale of the path match how we scaled the text.
               float sc;
-              sc = m_render_pixel_size.m_value / m_glyphs[m_current_drawer][i].layout().m_units_per_EM;
+              sc = m_render_pixel_size.m_value / m_glyphs[src][i].layout().m_units_per_EM;
               m_painter->scale(sc);
               m_painter->stroke_path_pixel_width(PainterData(pst, pbr),
-                                                 m_glyphs[m_current_drawer][i].path(),
-                                                 true, PainterEnums::flat_caps, PainterEnums::miter_clip_joins,
+                                                 m_glyphs[src][i].path(),
+                                                 true, PainterEnums::flat_caps, PainterEnums::miter_bevel_joins,
                                                  true);
               m_painter->restore();
             }
         }
     }
 
+  if(m_draw_stats)
+    {
+      std::ostringstream ostr;
+      
+      ostr << "FPS = ";
+      if(us > 0.0f)
+        {
+          ostr << 1000.0f * 1000.0f / us;
+        }
+      else
+        {
+          ostr << "NAN";
+        }
+
+      ostr << "\nms = " << us / 1000.0f
+           << "\nAttribs: "
+           << m_painter->query_stat(PainterPacker::num_attributes)
+           << "\nIndices: "
+           << m_painter->query_stat(PainterPacker::num_indices)
+           << "\nGenericData: "
+           << m_painter->query_stat(PainterPacker::num_generic_datas)
+           << "\n";
+
+      m_painter->transformation(proj);
+      PainterBrush brush;
+      brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
+      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(curve_pair_glyph), PainterData(&brush));
+    }
+  else
+    {
+      vec2 p;
+      unsigned int G;
+      ivec2 mouse_position;
+      std::ostringstream ostr;
+
+      SDL_GetMouseState(&mouse_position.x(), &mouse_position.y());
+      p = m_zoomer.transformation().apply_inverse_to_point(vec2(mouse_position));
+      G = glyph_source_index(p);
+      if(G != ~0u)
+        {
+          unsigned int src;
+          Glyph glyph;
+          GlyphLayoutData layout;
+          float ratio;
+
+          src = (m_current_drawer == number_draw_modes) ?
+            static_cast<unsigned int>(draw_glyph_curvepair) :
+            m_current_drawer;
+
+          glyph = m_glyphs[src][G];
+          layout = glyph.layout();
+          ratio = m_render_pixel_size.m_value / layout.m_units_per_EM;
+          
+          ostr << "Glyph at " << p << " is:"
+               << "\n\tcharacter_code: " << m_character_codes[G]
+               << "\n\tglyph_code: " << layout.m_glyph_code
+               << "\n\tunits_per_EM: " << layout.m_units_per_EM
+               << "\n\tsize in EM: " << layout.m_size
+               << "\n\tsize normalized: " << layout.m_size * ratio
+               << "\n";
+          /* draw a box around the glyph(!).
+           */
+          PainterBrush brush;
+          vec2 wh;
+
+          brush.pen(1.0f, 0.0f, 0.0f, 0.3f);
+          p.x() = m_glyph_positions[G].x() + ratio * layout.m_horizontal_layout_offset.x();
+          p.y() = m_glyph_positions[G].y() - ratio * layout.m_horizontal_layout_offset.y();
+          wh.x() = ratio * layout.m_size.x();
+          wh.y() = -ratio * layout.m_size.y();
+          m_painter->draw_rect(PainterData(&brush), p, wh, false);
+        }
+      else
+        {
+          ostr << "No glyph at " << p << "\n";
+        }
+
+      m_painter->transformation(proj);
+      PainterBrush brush;
+      brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
+      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(curve_pair_glyph), PainterData(&brush));
+    }
+
   m_painter->end();
 }
 
-void
+float
 painter_glyph_test::
 update_cts_params(void)
 {
+  float return_value;
   const Uint8 *keyboard_state = SDL_GetKeyboardState(nullptr);
   FASTUIDRAWassert(keyboard_state != nullptr);
 
   float speed;
-  speed = static_cast<float>(m_draw_timer.restart());
-  speed *= m_change_stroke_width_rate.m_value;
+  return_value = static_cast<float>(m_draw_timer.restart_us());
+  speed = return_value * m_change_stroke_width_rate.m_value;
 
   if(keyboard_state[SDL_SCANCODE_LSHIFT])
     {
@@ -518,6 +749,7 @@ update_cts_params(void)
     {
       std::cout << "Stroke width set to: " << m_stroke_width << "\n";
     }
+  return return_value;
 }
 
 void
@@ -558,7 +790,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_d:
-          cycle_value(m_current_drawer, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_draw_modes);
+          cycle_value(m_current_drawer, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_draw_modes + 1);
           std::cout << "Drawing " << m_draw_labels[m_current_drawer] << " glyphs\n";
           break;
 
@@ -582,6 +814,10 @@ handle_event(const SDL_Event &ev)
               }
             std::cout << " stroke glyph paths\n";
           }
+          break;
+
+        case SDLK_l:
+          m_draw_stats = !m_draw_stats;
           break;
         }
       break;
