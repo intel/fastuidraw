@@ -46,7 +46,8 @@ create_formatted_text(std::istream &stream, fastuidraw::GlyphRender renderer,
                       std::vector<fastuidraw::Glyph> &glyphs,
                       std::vector<fastuidraw::vec2> &positions,
                       std::vector<uint32_t> &character_codes,
-                      std::vector<LineData> *line_data = nullptr);
+                      std::vector<LineData> *line_data = nullptr,
+                      std::vector<fastuidraw::range_type<float> > *glyph_extents = nullptr);
 
 void
 add_fonts_from_path(const std::string &path,

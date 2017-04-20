@@ -57,7 +57,8 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
                       std::vector<fastuidraw::Glyph> &glyphs,
                       std::vector<fastuidraw::vec2> &positions,
                       std::vector<uint32_t> &character_codes,
-                      std::vector<LineData> *line_data)
+                      std::vector<LineData> *line_data,
+                      std::vector<fastuidraw::range_type<float> > *glyph_extents)
 {
   std::streampos current_position, end_position;
   unsigned int loc(0);
@@ -74,6 +75,11 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
   positions.resize(end_position - current_position);
   character_codes.resize(end_position - current_position);
 
+  if(glyph_extents)
+    {
+      glyph_extents->resize(end_position - current_position);
+    }
+
   if(line_data)
     {
       line_data->clear();
@@ -82,12 +88,19 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
   fastuidraw::c_array<fastuidraw::Glyph> glyphs_ptr(cast_c_array(glyphs));
   fastuidraw::c_array<fastuidraw::vec2> pos_ptr(cast_c_array(positions));
   fastuidraw::c_array<uint32_t> char_codes_ptr(cast_c_array(character_codes));
+  fastuidraw::c_array<fastuidraw::range_type<float> > extents_ptr;
 
+  if(glyph_extents)
+    {
+      extents_ptr = cast_c_array(*glyph_extents);
+    }
+    
   while(getline(istr, line))
     {
       fastuidraw::c_array<fastuidraw::Glyph> sub_g;
       fastuidraw::c_array<fastuidraw::vec2> sub_p;
       fastuidraw::c_array<uint32_t> sub_ch;
+      fastuidraw::c_array<fastuidraw::range_type<float> > sub_extents;
       float tallest, negative_tallest, offset;
       bool empty_line;
       LineData L;
@@ -102,6 +115,10 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
       sub_g = glyphs_ptr.sub_array(loc, line.length());
       sub_p = pos_ptr.sub_array(loc, line.length());
       sub_ch = char_codes_ptr.sub_array(loc, line.length());
+      if(glyph_extents)
+        {
+          sub_extents = extents_ptr.sub_array(loc, line.length());
+        }
 
       glyph_selector->create_glyph_sequence(renderer, font, line.begin(), line.end(), sub_g.begin());
       for(unsigned int i = 0, endi = sub_g.size(); i < endi; ++i)
@@ -115,6 +132,12 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
             {
               float ratio;
               ratio = pixel_size / g.layout().m_units_per_EM;
+
+              if(glyph_extents)
+                {
+                  sub_extents[i].m_begin = pen.x() + ratio * g.layout().m_horizontal_layout_offset.x();
+                  sub_extents[i].m_end = sub_extents[i].m_begin + ratio * g.layout().m_size.x();
+                }
 
               empty_line = false;
               pen.x() += ratio * g.layout().m_advance.x();
@@ -159,6 +182,10 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
   glyphs.resize(loc);
   positions.resize(loc);
   character_codes.resize(loc);
+  if(glyph_extents)
+    {
+      glyph_extents->resize(loc);
+    }
 }
 
 void
