@@ -56,7 +56,8 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
                       fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
                       std::vector<fastuidraw::Glyph> &glyphs,
                       std::vector<fastuidraw::vec2> &positions,
-                      std::vector<uint32_t> &character_codes)
+                      std::vector<uint32_t> &character_codes,
+                      std::vector<LineData> *line_data)
 {
   std::streampos current_position, end_position;
   unsigned int loc(0);
@@ -73,6 +74,11 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
   positions.resize(end_position - current_position);
   character_codes.resize(end_position - current_position);
 
+  if(line_data)
+    {
+      line_data->clear();
+    }
+  
   fastuidraw::c_array<fastuidraw::Glyph> glyphs_ptr(cast_c_array(glyphs));
   fastuidraw::c_array<fastuidraw::vec2> pos_ptr(cast_c_array(positions));
   fastuidraw::c_array<uint32_t> char_codes_ptr(cast_c_array(character_codes));
@@ -84,6 +90,7 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
       fastuidraw::c_array<uint32_t> sub_ch;
       float tallest, negative_tallest, offset;
       bool empty_line;
+      LineData L;
 
       empty_line = true;
       tallest = 0.0f;
@@ -91,7 +98,7 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
 
       original_line = line;
       preprocess_text(line);
-
+      
       sub_g = glyphs_ptr.sub_array(loc, line.length());
       sub_p = pos_ptr.sub_array(loc, line.length());
       sub_ch = char_codes_ptr.sub_array(loc, line.length());
@@ -125,14 +132,28 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
         {
           offset = (tallest - last_negative_tallest);
         }
+
       for(unsigned int i = 0; i < sub_p.size(); ++i)
         {
           sub_p[i].y() += offset;
         }
+
+      L.m_range.m_begin = loc;
+      L.m_range.m_end = loc + line.length();
+      L.m_horizontal_spread.m_begin = 0.0f;
+      L.m_horizontal_spread.m_end = pen.x();
+      L.m_vertical_spread.m_begin = pen.y() + offset - tallest;
+      L.m_vertical_spread.m_end = pen.y() + offset - negative_tallest;
+      
       pen.x() = 0.0f;
       pen.y() += offset + 1.0f;
       loc += line.length();
       last_negative_tallest = negative_tallest;
+
+      if(line_data && !empty_line)
+        {
+          line_data->push_back(L);
+        }
     }
 
   glyphs.resize(loc);
