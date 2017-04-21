@@ -24,6 +24,7 @@
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/painter/painter_shader_data.hpp>
 
 namespace fastuidraw  {
 
@@ -697,6 +698,7 @@ public:
   void
   compute_chunks(ScratchSpace &scratch_space,
                  const DashEvaluatorBase *dash_evaluator,
+                 const PainterShaderData::DataBase *dash_data,
                  const_c_array<vec3> clip_equations,
                  const float3x3 &clip_matrix_local,
                  const vec2 &recip_dimensions,

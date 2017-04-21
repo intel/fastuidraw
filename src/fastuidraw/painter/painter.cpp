@@ -1820,7 +1820,7 @@ stroke_path_common(const PainterStrokeShader &shader, const PainterData &draw,
   float pixels_additional_room(0.0f), item_space_additional_room(0.0f);
   shader.stroking_data_selector()->stroking_distances(raw_data, &pixels_additional_room, &item_space_additional_room);
   path.compute_chunks(d->m_work_room.m_stroked_path_scratch,
-                      dash_evaluator,
+                      dash_evaluator, draw.m_item_shader_data.data().data_base(),
                       d->m_clip_store.current(),
                       d->m_clip_rect_state.item_matrix(),
                       d->m_one_pixel_width,
