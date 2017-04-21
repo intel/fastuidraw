@@ -26,7 +26,6 @@
 #include <fastuidraw/painter/painter_attribute_data.hpp>
 #include <fastuidraw/painter/painter_attribute_data_filler.hpp>
 #include "../private/util_private.hpp"
-#include "../private/util_private_ostream.hpp"
 #include "../private/bounding_box.hpp"
 #include "../private/path_util_private.hpp"
 #include "../private/clip.hpp"
@@ -278,16 +277,9 @@ namespace
 
     static
     StrokedPathSubset*
-    create(SubEdgeCullingHierarchy *src)
-    {
-      unsigned int total_chunks(0);
-      return FASTUIDRAWnew StrokedPathSubset(0, 0, src, total_chunks, 0, 0, 0);
-    }
+    create(SubEdgeCullingHierarchy *src);
 
     ~StrokedPathSubset();
-
-    void
-    dump(std::ostream &str, int depth = 0) const;
     
     void
     compute_chunks(ScratchSpacePrivate &work_room,
@@ -366,8 +358,7 @@ namespace
     
   private:
     StrokedPathSubset(unsigned int vertex_st, unsigned int index_st,
-                      SubEdgeCullingHierarchy *src, unsigned int &total_chunks,
-                      unsigned int depth, unsigned int join_depth, unsigned int cap_depth);
+                      SubEdgeCullingHierarchy *src, unsigned int &total_chunks);
 
     void
     compute_chunks_implement(ScratchSpacePrivate &work_room,
@@ -388,8 +379,13 @@ namespace
                            unsigned int &depth_cnt,
                            unsigned int &join_depth,
                            unsigned int &cap_depth);
-
+    void
+    compute_depth_ranges(unsigned int edge_depth,
+                         unsigned int join_depth,
+                         unsigned int cap_depth);
+    
     fastuidraw::vecN<StrokedPathSubset*, 2> m_children;
+    unsigned int m_depth_count, m_join_depth_count, m_cap_depth_count;
 
     /* book keeping for edges.
      */
@@ -410,11 +406,13 @@ namespace
      */
     std::vector<Flopper> m_joins;
     fastuidraw::range_type<unsigned int> m_joins_depth;
+    fastuidraw::range_type<unsigned int> m_joins_depth_with_children;
 
     /* book keeping for caps.
      */
     std::vector<Flopper> m_caps;
     fastuidraw::range_type<unsigned int> m_caps_depth;
+    fastuidraw::range_type<unsigned int> m_caps_depth_with_children;
   };
 
   class EdgeAttributeFiller:public fastuidraw::PainterAttributeDataFiller
@@ -1381,97 +1379,108 @@ StrokedPathSubset::
     }
 }
 
+StrokedPathSubset*
 StrokedPathSubset::
-StrokedPathSubset(unsigned int vertex_st, unsigned int index_st,
-                  SubEdgeCullingHierarchy *src, unsigned int &total_chunks,
-                  unsigned int depth, unsigned int join_depth, unsigned int cap_depth):
-  m_children(nullptr, nullptr)
+create(SubEdgeCullingHierarchy *src)
 {
-  unsigned int index_cnt, vertex_cnt, depth_cnt;
+  StrokedPathSubset *return_value;
 
-  count_vertices_indices(src, vertex_cnt, index_cnt, depth_cnt, join_depth, cap_depth);
-
-  /* we want the depth values of this to come after the children (so
-     it is drawn below), but we want it to be drawn before, thus
-     we set the index and vertex buffers locations to before adding
-     the children, but set the depths after adding the children.
-   */
-  m_vertex_data_range_with_children.m_begin = vertex_st;
-  m_index_data_range_with_children.m_begin = index_st;
-  m_vertex_data_range.m_begin = vertex_st;
-  m_vertex_data_range.m_end = vertex_st + vertex_cnt;
-  m_index_data_range.m_begin = index_st;
-  m_index_data_range.m_end = index_st + index_cnt;
-
-  m_depth_with_children.m_begin = depth;
-  m_joins_depth.m_begin = join_depth;
-  m_caps_depth.m_begin = cap_depth;
-
-  vertex_st += vertex_cnt;
-  index_st += index_cnt;
-  
-  if(src->m_children[0] != nullptr)
-    {
-      m_children[0] = FASTUIDRAWnew StrokedPathSubset(vertex_st, index_st, src->m_children[0],
-                                                      total_chunks, depth, join_depth, cap_depth);
-      vertex_st = m_children[0]->m_vertex_data_range_with_children.m_end;
-      index_st = m_children[0]->m_index_data_range_with_children.m_end;
-      depth = m_children[0]->m_depth_with_children.m_end;
-      join_depth = m_children[0]->m_joins_depth.m_end;
-      cap_depth = m_children[0]->m_caps_depth.m_end;
-    }
-
-  if(src->m_children[1] != nullptr)
-    {
-      m_children[1] = FASTUIDRAWnew StrokedPathSubset(vertex_st, index_st, src->m_children[1],
-                                                      total_chunks, depth, join_depth, cap_depth);
-      vertex_st = m_children[1]->m_vertex_data_range_with_children.m_end;
-      index_st = m_children[1]->m_index_data_range_with_children.m_end;
-      depth = m_children[1]->m_depth_with_children.m_end;
-      join_depth = m_children[1]->m_joins_depth.m_end;
-      cap_depth = m_children[1]->m_caps_depth.m_end;
-    }
-  
-  m_data_chunk = total_chunks;
-  m_data_bb = src->m_sub_edges_bb;
-  m_data_src = fastuidraw::make_c_array(src->m_sub_edges);
-  m_depth.m_begin = depth;
-  m_depth.m_end = depth + depth_cnt;
-
-  m_joins_depth.m_begin = join_depth;
-  m_joins_depth.m_end = join_depth + join_depth;
-  m_caps_depth.m_begin = cap_depth;
-  m_caps_depth.m_end = cap_depth + cap_depth;
-
-  m_data_chunk_with_children = total_chunks + 1;
-  m_data_with_children_bb = src->m_entire_bb;
-  m_vertex_data_range_with_children.m_end = vertex_st;
-  m_index_data_range_with_children.m_end = index_st;
-  m_depth_with_children.m_end = m_depth.m_end;
-
-  total_chunks += 2u;
+  unsigned int total_chunks(0);
+  return_value = FASTUIDRAWnew StrokedPathSubset(0, 0, src, total_chunks);
+  return_value->compute_depth_ranges(0, 0, 0);
+  return return_value;
 }
 
 void
 StrokedPathSubset::
-dump(std::ostream &str, int depth) const
+compute_depth_ranges(unsigned int edge_depth, unsigned int join_depth, unsigned int cap_depth)
 {
-  std::string tabs(depth, '\t');
-  str << tabs << this << ":\n"
-      << tabs << "\tdepth = " << m_depth << "\n"
-      << tabs << "\tdepth_children = " << m_depth_with_children << "\n"
-      << tabs << "\tvertex_range = " << m_vertex_data_range << "\n"
-      << tabs << "\tvertex_range_children = " << m_vertex_data_range_with_children << "\n"
-      << tabs << "\tindex_range = " << m_index_data_range << "\n"
-      << tabs << "\tindex_range_children = " << m_index_data_range_with_children << "\n";
-  if(m_children[0])
-    {
-      m_children[0]->dump(str, depth + 1);
-    }
+  /* We want the depth to go in the reverse order as the
+     draw order. The Draw order is child(0), child(1) 
+     and last this. Thus, we first handle depth of this
+     first, then child(1) and lastly child(0).
+   */
+  m_depth_with_children.m_begin = edge_depth;
+  m_depth.m_begin = edge_depth;
+  m_depth.m_end = edge_depth + m_depth_count;
+  edge_depth = m_depth.m_end;
+  
+  m_joins_depth.m_begin = join_depth;
+  m_joins_depth.m_end = join_depth + m_join_depth_count;
+  join_depth = m_joins_depth.m_end;
+
+  m_caps_depth.m_begin = cap_depth;
+  m_caps_depth.m_end = cap_depth + m_cap_depth_count;
+  cap_depth = m_caps_depth.m_end;
+  
   if(m_children[1])
     {
-      m_children[1]->dump(str, depth + 1);
+      m_children[1]->compute_depth_ranges(edge_depth, join_depth, cap_depth);
+      edge_depth = m_children[1]->m_depth_with_children.m_end;
+      join_depth = m_children[1]->m_joins_depth_with_children.m_end;
+      cap_depth = m_children[1]->m_caps_depth_with_children.m_end;
     }
+
+  if(m_children[0])
+    {
+      m_children[0]->compute_depth_ranges(edge_depth, join_depth, cap_depth);
+      edge_depth = m_children[0]->m_depth_with_children.m_end;
+      join_depth = m_children[0]->m_joins_depth_with_children.m_end;
+      cap_depth = m_children[0]->m_caps_depth_with_children.m_end;
+    }
+
+  m_depth_with_children.m_end = edge_depth;
+  m_joins_depth_with_children.m_end = join_depth;
+  m_caps_depth_with_children.m_end = cap_depth;
+}
+
+StrokedPathSubset::
+StrokedPathSubset(unsigned int vertex_st, unsigned int index_st,
+                  SubEdgeCullingHierarchy *src, unsigned int &total_chunks):
+  m_children(nullptr, nullptr)
+{
+  /* Draw order is:
+       child(0)
+       child(1)
+       Element of This
+   */
+  m_vertex_data_range_with_children.m_begin = vertex_st;
+  m_index_data_range_with_children.m_begin = index_st;
+  
+  if(src->m_children[0] != nullptr)
+    {
+      m_children[0] = FASTUIDRAWnew StrokedPathSubset(vertex_st, index_st, src->m_children[0], total_chunks);
+      vertex_st = m_children[0]->m_vertex_data_range_with_children.m_end;
+      index_st = m_children[0]->m_index_data_range_with_children.m_end;
+    }
+
+  if(src->m_children[1] != nullptr)
+    {
+      m_children[1] = FASTUIDRAWnew StrokedPathSubset(vertex_st, index_st, src->m_children[1], total_chunks);
+      vertex_st = m_children[1]->m_vertex_data_range_with_children.m_end;
+      index_st = m_children[1]->m_index_data_range_with_children.m_end;
+    }
+
+  unsigned int index_cnt, vertex_cnt;
+  count_vertices_indices(src, vertex_cnt, index_cnt,
+                         m_depth_count, m_join_depth_count, m_cap_depth_count);
+  
+  
+  m_data_chunk = total_chunks;
+  m_data_bb = src->m_sub_edges_bb;
+  m_data_src = fastuidraw::make_c_array(src->m_sub_edges);
+
+  m_vertex_data_range.m_begin = vertex_st;
+  m_vertex_data_range.m_end = vertex_st + vertex_cnt;
+  m_index_data_range.m_begin = index_st;
+  m_index_data_range.m_end = index_st + index_cnt;
+ 
+  m_data_chunk_with_children = total_chunks + 1;
+  m_data_with_children_bb = src->m_entire_bb;
+  m_vertex_data_range_with_children.m_end = vertex_st + vertex_cnt;
+  m_index_data_range_with_children.m_end = index_st + index_cnt;
+
+  total_chunks += 2u;
 }
 
 void
@@ -1665,7 +1674,6 @@ EdgeAttributeFiller(const StrokedPathSubset *src,
   m_src(src),
   m_P(P)
 {
-  m_src->dump(std::cout);
 }
 
 void
