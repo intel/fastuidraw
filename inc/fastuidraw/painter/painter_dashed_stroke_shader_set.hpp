@@ -43,30 +43,6 @@ namespace fastuidraw
   {
   public:
     /*!
-      To be implemented by a derived class to return the number
-      of joins.
-      \param data source PainterAttributeData
-      \param edge_closed if true, include in the return value the
-                         number of joins including those joins
-                         from the closing edges of each contour.
-     */
-    virtual
-    unsigned int
-    number_joins(const PainterAttributeData &data, bool edge_closed) const = 0;
-
-    /*!
-      To be implemented by a derived class to return
-      the chunk index, i.e. the value to feed
-      \ref PainterAttributeData::attribute_data_chunk()
-      and \ref PainterAttributeData::index_data_chunk(),
-      for the named join.
-      \param J (global) join index
-    */
-    virtual
-    unsigned int
-    named_join_chunk(unsigned int J) const = 0;
-
-    /*!
       To be implemented by a derived class to return true if and
       only if a point from a join emobodied by a PainterAttribute
       is covered by a dash pattern.

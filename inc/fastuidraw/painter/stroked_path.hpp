@@ -24,7 +24,9 @@
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/util/opaque_reference_counted.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
+#include <fastuidraw/painter/painter_enums.hpp>
 
 namespace fastuidraw  {
 
@@ -582,6 +584,66 @@ public:
 
   /*!
     \brief
+    A Subset represents a handle to a portion of a StrokedPath
+    for the purpose of drawing.
+   */
+  class Subset
+  {
+  public:
+    /*!
+      Ctor.
+     */
+    Subset(void);
+
+    /*!
+      Same usage as PainterAttributeData::attribute_data_chunks()
+     */
+    const_c_array<const_c_array<PainterAttribute> >
+    attribute_data_chunks(void) const;
+
+    /*!
+      Same usage as PainterAttributeData::index_data_chunks()
+     */
+    const_c_array<const_c_array<PainterIndex> >
+    index_data_chunks(void) const;
+
+    /*!
+      Same usage as PainterAttributeData::index_adjust_chunks()
+     */
+    const_c_array<int>
+    index_adjust_chunks(void) const;
+
+    /*!
+      Same usage as PainterAttributeData::increment_z_values()
+
+      Notes:
+        - increment_z_value for Edge chunks is how many edges in the chunk
+        - increment_z_value for Join chunks is how many joins in the chunk
+        - increment_z_value for Cap chunks is how many caps in the chunk
+
+      To make join culling effective:
+        - on dashed stroking, each chunk is a join
+        - on non-dashed stroking, a chunk can have multiple joins
+
+      We will always make sure that chunking is:
+        - edges, joins then caps
+      to reduce vertex shader changes.
+
+      When drawing, it is imperative to have the stuff in the PainterData
+      realized as packed values (i.e. m_packed_value is valid and m_value
+      is nullptr). Doing this prevents lots of reupload of PainterData
+      values.
+     */
+    const_c_array<unsigned int>
+    increment_z_values(void) const;
+    
+  private:
+    friend class StrokedPath;
+    reference_counter_ptr<opaque_reference_counted::base> m_d;
+  };
+  
+  /*!
+    \brief
     Opaque object to hold work room needed for functions
     of StrokedPath that require scratch space.
    */
@@ -594,49 +656,6 @@ public:
     friend class StrokedPath;
     void *m_d;
   };
-
-  /*!
-    Enumeration of values to feed as the argument
-    for PainterAttributeData::attribute_data_chunk(),
-    PainterAttributeData::index_data_chunk() and
-    PainterAttributeData::index_adjust_chunk()
-    for those PainterAttributeData objects holding
-    the join data.
-   */
-  enum join_chunk_choice_t
-    {
-      /*!
-        For joins, chunk to use for data without
-        closing edge
-       */
-      join_chunk_without_closing_edge,
-
-      /*!
-        For joins, chunk to use for data with
-        closing edge
-       */
-      join_chunk_with_closing_edge,
-
-      /*!
-       */
-      join_chunk_start_individual_joins
-    };
-
-  /*!
-    Returns the number of seperate joins held in a PainterAttributeData
-    objects that hold data for joins.
-   */
-  static
-  unsigned int
-  number_joins(const PainterAttributeData &join_data, bool with_closing_edges);
-
-  /*!
-    Returns what chunk of a PainterAttributeData that holds data for
-    joins for a named join.
-   */
-  static
-  unsigned int
-  chunk_for_named_join(unsigned int J);
 
   /*!
     Ctor. Construct a StrokedPath from the data
@@ -656,17 +675,20 @@ public:
   effective_curve_distance_threshhold(void) const;
 
   /*!
-    Returns the data to draw the edges of a stroked path.
-   */
-  const PainterAttributeData&
-  edges(bool include_closing_edges) const;
-
-  /*!
     Given a set of clip equations in clip coordinates
     and a tranformation from local coordiante to clip
     coordinates, compute what chunks are not completely
     culled by the clip equations.
-    \param scratch_space scratch space for computations.
+    \param scratch_space scratch space for computations
+    \param rounded_thresh rounded threshhold value to determine which caps and joins if
+                          cap or join style is rounded
+    \param js join style
+    \param miter_limit indicates miter limit (to allow to cull miter joins), a negative
+                       value indicates no miter limit
+    \param cp cap style
+    \param dash_evaluator if doing dashed stroking, the dash evalulator will cull
+                          joins not to be drawn, if nullptr only those joins not in the
+                          visible area defined by clip_equations are culled.
     \param clip_equations array of clip equations
     \param clip_matrix_local 3x3 transformation from local (x, y, 1)
                              coordinates to clip coordinates.
@@ -681,98 +703,24 @@ public:
                              than max_attribute_cnt attributes
     \param max_index_cnt only allow those chunks for which have no more
                          than max_index_cnt indices
-    \param[out] dst location to which to write the what chunks
-    \returns the number of chunks that intersect the clipping region,
-             that number is guarnanteed to be no more than maximum_edge_chunks().
+    \param[out] out_subset DataWriter to which to write the results
    */
-  unsigned int
-  edge_chunks(ScratchSpace &scratch_space,
-              const_c_array<vec3> clip_equations,
-              const float3x3 &clip_matrix_local,
-              const vec2 &recip_dimensions,
-              float pixels_additional_room,
-              float item_space_additional_room,
-              bool include_closing_edges,
-              unsigned int max_attribute_cnt,
-              unsigned int max_index_cnt,
-              c_array<unsigned int> dst) const;
-
-  /*!
-    Gives the maximum return value to edge_chunks(), i.e. the
-    maximum number of chunks that edge_chunks() will return.
-   */
-  unsigned int
-  maximum_edge_chunks(void) const;
-
-  /*!
-    Gives the maximum value for point::depth() for all
-    edges of a stroked path.
-    \param include_closing_edges if false, disclude the closing
-                                 edges from the maximum value.
-   */
-  unsigned int
-  z_increment_edge(bool include_closing_edges) const;
-
-  /*!
-    Returns the data to draw the square caps of a stroked path.
-   */
-  const PainterAttributeData&
-  square_caps(void) const;
-
-  /*!
-    Returns the data to draw the caps of a stroked path used
-    when stroking with a dash pattern.
-   */
-  const PainterAttributeData&
-  adjustable_caps(void) const;
-
-  /*!
-    Returns the data to draw the bevel joins of a stroked path.
-   */
-  const PainterAttributeData&
-  bevel_joins(void) const;
-
-  /*!
-    Returns the data to draw the miter joins of a stroked path,
-    if the miter-limit is exceeded on stroking, the miter-join
-    is clipped to the miter-limit.
-   */
-  const PainterAttributeData&
-  miter_clip_joins(void) const;
-
-  /*!
-    Returns the data to draw the miter joins of a stroked path,
-    if the miter-limit is exceeded on stroking, the miter-join
-    is to be drawn as a bevel join.
-   */
-  const PainterAttributeData&
-  miter_bevel_joins(void) const;
-
-  /*!
-    Returns the data to draw the miter joins of a stroked path,
-    if the miter-limit is exceeded on stroking, the miter-join
-    end point is clamped to the miter-distance.
-   */
-  const PainterAttributeData&
-  miter_joins(void) const;
-
-  /*!
-    Returns the data to draw rounded joins of a stroked path.
-    \param thresh will return rounded joins so that the distance
-                  between the approximation of the round and the
-                  actual round is no more than thresh.
-   */
-  const PainterAttributeData&
-  rounded_joins(float thresh) const;
-
-  /*!
-    Returns the data to draw rounded caps of a stroked path.
-    \param thresh will return rounded caps so that the distance
-                  between the approximation of the round and the
-                  actual round is no more than thresh.
-   */
-  const PainterAttributeData&
-  rounded_caps(float thresh) const;
+  void
+  compute_subset(ScratchSpace &scratch_space,
+                 float rounded_thresh,
+                 enum PainterEnums::join_style js,
+                 float miter_limit,
+                 enum PainterEnums::cap_style cp,
+                 DashEvaluatorBase *dash_evaluator,
+                 const_c_array<vec3> clip_equations,
+                 const float3x3 &clip_matrix_local,
+                 const vec2 &recip_dimensions,
+                 float pixels_additional_room,
+                 float item_space_additional_room,
+                 bool include_closing_edges,
+                 unsigned int max_attribute_cnt,
+                 unsigned int max_index_cnt,
+                 Subset &out_subset) const;
 
 private:
   void *m_d;
