@@ -304,7 +304,7 @@ namespace fastuidraw
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
                  const_c_array<int> index_adjusts,
-                 unsigned int z,
+                 int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
 
     /*!
@@ -328,7 +328,7 @@ namespace fastuidraw
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
                  const_c_array<int> index_adjusts,
                  const_c_array<unsigned int> attrib_chunk_selector,
-                 unsigned int z,
+                 int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
     /*!
       Draw generic attribute data
@@ -343,7 +343,7 @@ namespace fastuidraw
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterPackerData &data,
                  const DataWriter &src,
-                 unsigned int z,
+                 int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
     /*!
       Returns a stat on how much data the PainterPacker has

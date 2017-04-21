@@ -357,7 +357,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                         in uvec4 usecondary_attrib,
                         in uvec4 uint_attrib,
                         in uint shader_data_offset,
-                        out uint z_add)
+                        out int z_add)
 {
   vec4 primary_attrib, secondary_attrib;
 
@@ -659,13 +659,13 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   fastuidraw_stroking_on_boundary = float(on_boundary);
   if(stroking_pass == fastuidraw_stroke_aa_pass)
     {
-      z_add = 0u;
+      z_add = 0;
     }
   else
     {
-      z_add = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_depth_bit0,
-                                      fastuidraw_stroke_depth_num_bits,
-                                      point_packed_data);
+      z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_depth_bit0,
+                                          fastuidraw_stroke_depth_num_bits,
+                                          point_packed_data));
     }
 
   return vec4(p, p);

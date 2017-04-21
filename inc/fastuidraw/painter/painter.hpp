@@ -849,7 +849,7 @@ namespace fastuidraw
     /*!
       Return the z-depth value that the next item will have.
      */
-    unsigned int
+    int
     current_z(void) const;
 
     /*!

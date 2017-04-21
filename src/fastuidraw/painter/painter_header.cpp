@@ -31,7 +31,7 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
   dst[item_shader_data_location_offset].u  = m_item_shader_data_location;
   dst[blend_shader_data_location_offset].u = m_blend_shader_data_location;
   dst[brush_shader_offset].u               = m_brush_shader;
-  dst[z_offset].u                          = m_z;
+  dst[z_offset].i                          = m_z;
 
   dst[item_blend_shader_offset].u
     = pack_bits(item_shader_bit0, item_shader_num_bits, m_item_shader)

@@ -597,6 +597,33 @@ public:
   };
 
   /*!
+    Enumeration of values to feed as the argument
+    for PainterAttributeData::attribute_data_chunk(),
+    PainterAttributeData::index_data_chunk() and
+    PainterAttributeData::index_adjust_chunk()
+    for those PainterAttributeData objects holding
+    the join data.
+   */
+  enum join_chunk_choice_t
+    {
+      /*!
+        For joins, chunk to use for data without
+        closing edge
+       */
+      join_chunk_without_closing_edge,
+
+      /*!
+        For joins, chunk to use for data with
+        closing edge
+       */
+      join_chunk_with_closing_edge,
+
+      /*!
+       */
+      join_chunk_start_individual_joins
+    };
+
+  /*!
     \brief
     Object to hold the output of a chunk query via compute_chunks().
    */
@@ -618,10 +645,6 @@ public:
     
   private:
     friend class StrokedPath;
-
-    explicit
-    ChunkSet(void *p);
-
     void *m_d;
   };
   
@@ -687,9 +710,11 @@ public:
 
   /*!
     Returns the data to draw the edges of a stroked path.
+    \param with_closing_edge if true, return the attribute data that
+                             includes the closing edges of the path.
    */
   const PainterAttributeData&
-  edges(void) const;
+  edges(bool with_closing_edge) const;
 
   /*!
     Returns the data to draw the square caps of a stroked path.

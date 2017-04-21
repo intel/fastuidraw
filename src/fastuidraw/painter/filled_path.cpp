@@ -917,7 +917,7 @@ namespace
                   unsigned int &number_indices,
                   unsigned int &number_attribute_chunks,
                   unsigned int &number_index_chunks,
-                  unsigned int &number_z_increments) const;
+                  unsigned int &number_z_ranges) const;
 
     virtual
     void
@@ -925,7 +925,7 @@ namespace
               fastuidraw::c_array<fastuidraw::PainterIndex> indices,
               fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
               fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
-              fastuidraw::c_array<unsigned int> zincrements,
+              fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
               fastuidraw::c_array<int> index_adjusts) const;
 
   private:
@@ -952,14 +952,14 @@ namespace
                   unsigned int &number_indices,
                   unsigned int &number_attribute_chunks,
                   unsigned int &number_index_chunks,
-                  unsigned int &number_z_increments) const;
+                  unsigned int &number_z_ranges) const;
     virtual
     void
     fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
               fastuidraw::c_array<fastuidraw::PainterIndex> indices,
               fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
               fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
-              fastuidraw::c_array<unsigned int> zincrements,
+              fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
               fastuidraw::c_array<int> index_adjusts) const;
 
   private:
@@ -1005,14 +1005,14 @@ namespace
                   unsigned int &number_indices,
                   unsigned int &number_attribute_chunks,
                   unsigned int &number_index_chunks,
-                  unsigned int &number_z_increments) const;
+                  unsigned int &number_z_ranges) const;
     virtual
     void
     fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
               fastuidraw::c_array<fastuidraw::PainterIndex> indices,
               fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
               fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
-              fastuidraw::c_array<unsigned int> zincrements,
+              fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
               fastuidraw::c_array<int> index_adjusts) const;
 
     static
@@ -2163,9 +2163,9 @@ compute_sizes(unsigned int &number_attributes,
               unsigned int &number_indices,
               unsigned int &number_attribute_chunks,
               unsigned int &number_index_chunks,
-              unsigned int &number_z_increments) const
+              unsigned int &number_z_ranges) const
 {
-  number_z_increments = 0;
+  number_z_ranges = 0;
 
   number_attribute_chunks = fastuidraw::t_max(m_a.attribute_data_chunks().size(),
                                               m_b.attribute_data_chunks().size());
@@ -2199,10 +2199,10 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
           fastuidraw::c_array<fastuidraw::PainterIndex> indices,
           fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
           fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
-          fastuidraw::c_array<unsigned int> zincrements,
+          fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
           fastuidraw::c_array<int> index_adjusts) const
 {
-  FASTUIDRAWunused(zincrements);
+  FASTUIDRAWunused(zranges);
 
   for(unsigned int i = 0, dst_offset = 0; i < attrib_chunks.size(); ++i)
     {
@@ -2279,7 +2279,7 @@ compute_sizes(unsigned int &number_attributes,
               unsigned int &number_indices,
               unsigned int &number_attribute_chunks,
               unsigned int &number_index_chunks,
-              unsigned int &number_z_increments) const
+              unsigned int &number_z_ranges) const
 {
   unsigned int a;
 
@@ -2290,7 +2290,7 @@ compute_sizes(unsigned int &number_attributes,
    */
   number_attributes = 4 * m_edges.size();
   number_indices = 6 * m_edges.size();
-  number_z_increments = 0;
+  number_z_ranges = 0;
 }
 
 void
@@ -2299,13 +2299,13 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
           fastuidraw::c_array<fastuidraw::PainterIndex> indices,
           fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
           fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
-          fastuidraw::c_array<unsigned int> zincrements,
+          fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
           fastuidraw::c_array<int> index_adjusts) const
 {
   FASTUIDRAWassert(attributes.size() == 4 * m_edges.size());
   FASTUIDRAWassert(indices.size() == 6 * m_edges.size());
   FASTUIDRAWassert(attrib_chunks.size() == index_chunks.size());
-  FASTUIDRAWunused(zincrements);
+  FASTUIDRAWunused(zranges);
 
   std::vector<unsigned int> tmp(attrib_chunks.size(), 0);
 
@@ -2400,11 +2400,11 @@ compute_sizes(unsigned int &number_attributes,
               unsigned int &number_indices,
               unsigned int &number_attribute_chunks,
               unsigned int &number_index_chunks,
-              unsigned int &number_z_increments) const
+              unsigned int &number_z_ranges) const
 {
   using namespace fastuidraw;
 
-  number_z_increments = 0;
+  number_z_ranges = 0;
   if(m_per_fill.empty())
     {
       number_attributes = 0;
@@ -2446,7 +2446,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
           fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
           fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
           fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
-          fastuidraw::c_array<unsigned int> zincrements,
+          fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
           fastuidraw::c_array<int> index_adjusts) const
 {
   using namespace fastuidraw;
@@ -2457,8 +2457,8 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
     }
   FASTUIDRAWassert(attributes.size() == m_points.size());
   FASTUIDRAWassert(attrib_chunks.size() == 1);
-  FASTUIDRAWassert(zincrements.empty());
-  FASTUIDRAWunused(zincrements);
+  FASTUIDRAWassert(zranges.empty());
+  FASTUIDRAWunused(zranges);
 
   /* generate attribute data
    */
