@@ -1714,7 +1714,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
 
 void
 fastuidraw::Painter::
-stroke_path_common(const PainterStrokeShader &shader, const PainterData &draw,
+stroke_path_common(const PainterStrokeShader &shader, const PainterData &pdraw,
                    const DashEvaluatorBase *dash_evaluator,
                    const StrokedPath &path, float thresh,
                    bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
@@ -1733,7 +1733,15 @@ stroke_path_common(const PainterStrokeShader &shader, const PainterData &draw,
   bool is_miter_join;
   float rounded_thresh(1.0f);
   const PainterShaderData::DataBase *raw_data;
+  PainterData draw(pdraw);
 
+  /* if any of the data elements of draw are NOT packed state,
+     make them as packed state so that they are reused
+     to prevent filling up the data buffer with repeated
+     state data.
+   */
+  draw.make_packed(d->m_pool);
+  
   raw_data = draw.m_item_shader_data.data().data_base();
   
   if(js == PainterEnums::rounded_joins
