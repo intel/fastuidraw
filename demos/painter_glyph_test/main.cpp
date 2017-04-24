@@ -188,10 +188,12 @@ private:
   reference_counted_ptr<const FontFreeType> m_font;
 
   vecN<GlyphDraws, number_draw_modes> m_draws;
-  vecN<std::string, number_draw_modes + 1> m_draw_labels;
+  vecN<std::string, number_draw_modes> m_draw_labels;
 
   bool m_use_anisotropic_anti_alias;
-  bool m_stroke_glyphs;
+  bool m_stroke_glyphs, m_fill_glyphs;
+  bool m_anti_alias_path_stroking, m_anti_alias_path_filling;
+  bool m_pixel_width_stroking;
   bool m_draw_stats;
   float m_stroke_width;
   unsigned int m_current_drawer;
@@ -516,6 +518,10 @@ painter_glyph_test(void):
                             *this),
   m_use_anisotropic_anti_alias(false),
   m_stroke_glyphs(false),
+  m_fill_glyphs(false),
+  m_anti_alias_path_stroking(false),
+  m_anti_alias_path_filling(false),
+  m_pixel_width_stroking(false),
   m_draw_stats(false),
   m_stroke_width(1.0f),
   m_current_drawer(draw_glyph_curvepair)
@@ -525,6 +531,10 @@ painter_glyph_test(void):
             << "[hold shift, control or mode to reverse cycle]\n"
             << "\ta:Toggle using anistropic anti-alias glyph rendering\n"
             << "\td:Cycle though text renderer\n"
+            << "\tf:Toggle rendering text as filled path\n"
+            << "\tq:Toggle anti-aliasing filled path rendering\n"
+            << "\tw:Toggle anti-aliasing stroked path rendering\n"
+            << "\tp:Toggle pixel width stroking\n"
             << "\tz:reset zoom factor to 1.0\n"
             << "\ts: toggle stroking glyph path\n"
             << "\tl: draw Painter stats\n"
@@ -638,8 +648,6 @@ ready_glyph_attribute_data(void)
     init_glyph_draw(draw_glyph_coverage, renderer);
     m_draw_labels[draw_glyph_coverage] = "draw_glyph_coverage";
   }
-
-  m_draw_labels[number_draw_modes] = "draw_glyph_as_filled_paths";
 }
 
 void
@@ -660,7 +668,7 @@ draw_frame(void)
   PainterBrush brush;
   brush.pen(1.0, 1.0, 1.0, 1.0);
 
-  if(m_current_drawer != number_draw_modes)
+  if(!m_fill_glyphs)
     {
       for(unsigned int S = 0, endS = m_draws[m_current_drawer].size(); S < endS; ++S)
         {
@@ -696,7 +704,7 @@ draw_frame(void)
               m_painter->fill_path(PainterData(pbr),
                                    glyphs[i].path(),
                                    PainterEnums::nonzero_fill_rule,
-                                   true);
+                                   m_anti_alias_path_filling);
               m_painter->restore();
             }
         }
@@ -737,10 +745,22 @@ draw_frame(void)
               float sc;
               sc = m_render_pixel_size.m_value / glyphs[i].layout().m_units_per_EM;
               m_painter->scale(sc);
-              m_painter->stroke_path_pixel_width(PainterData(pst, pbr),
-                                                 glyphs[i].path(),
-                                                 true, PainterEnums::flat_caps, PainterEnums::miter_bevel_joins,
-                                                 true);
+              if(m_pixel_width_stroking)
+                {
+                  m_painter->stroke_path_pixel_width(PainterData(pst, pbr),
+                                                     glyphs[i].path(),
+                                                     true, PainterEnums::flat_caps,
+                                                     PainterEnums::miter_bevel_joins,
+                                                     m_anti_alias_path_stroking);
+                }
+              else
+                {
+                  m_painter->stroke_path(PainterData(pst, pbr),
+                                         glyphs[i].path(),
+                                         true, PainterEnums::flat_caps,
+                                         PainterEnums::miter_bevel_joins,
+                                         m_anti_alias_path_stroking);
+                }
               m_painter->restore();
             }
         }
@@ -907,20 +927,26 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_a:
-          m_use_anisotropic_anti_alias = !m_use_anisotropic_anti_alias;
-          if(m_use_anisotropic_anti_alias)
+          if(!m_fill_glyphs)
             {
-              std::cout << "Using Anistropic anti-alias filtering\n";
-            }
-          else
-            {
-              std::cout << "Using Istropic anti-alias filtering\n";
+              m_use_anisotropic_anti_alias = !m_use_anisotropic_anti_alias;
+              if(m_use_anisotropic_anti_alias)
+                {
+                  std::cout << "Using Anistropic anti-alias filtering\n";
+                }
+              else
+                {
+                  std::cout << "Using Istropic anti-alias filtering\n";
+                }
             }
           break;
 
         case SDLK_d:
-          cycle_value(m_current_drawer, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_draw_modes + 1);
-          std::cout << "Drawing " << m_draw_labels[m_current_drawer] << " glyphs\n";
+          if(!m_fill_glyphs)
+            {
+              cycle_value(m_current_drawer, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_draw_modes);
+              std::cout << "Drawing " << m_draw_labels[m_current_drawer] << " glyphs\n";
+            }
           break;
 
         case SDLK_z:
@@ -945,8 +971,67 @@ handle_event(const SDL_Event &ev)
           }
           break;
 
+        case SDLK_w:
+          if(m_stroke_glyphs)
+            {
+              m_anti_alias_path_stroking = !m_anti_alias_path_stroking;
+              std::cout << "Anti-aliasing of path stroking set to ";
+              if(m_anti_alias_path_stroking)
+                {
+                  std::cout << "ON\n";
+                }
+              else
+                {
+                  std::cout << "OFF\n";
+                }
+            }
+          break;
+
+        case SDLK_p:
+          if(m_stroke_glyphs)
+            {
+              m_pixel_width_stroking = !m_pixel_width_stroking;
+              if(m_pixel_width_stroking)
+                {
+                  std::cout << "Set to stroke with pixel width stroking\n";
+                }
+              else
+                {
+                  std::cout << "Set to stroke with local coordinate width stroking\n";
+                }
+            }
+          break;
+
         case SDLK_l:
           m_draw_stats = !m_draw_stats;
+          break;
+
+        case SDLK_f:
+          m_fill_glyphs = !m_fill_glyphs;
+          if(m_fill_glyphs)
+            {
+              std::cout << "Draw glyphs via path filling\n";
+            }
+          else
+            {
+              std::cout << "Draw glyphs with glyph renderer\n";
+            }
+          break;
+
+        case SDLK_q:
+          if(m_fill_glyphs)
+            {
+              m_anti_alias_path_filling = !m_anti_alias_path_filling;
+              std::cout << "Anti-aliasing of path fill set to ";
+              if(m_anti_alias_path_filling)
+                {
+                  std::cout << "ON\n";
+                }
+              else
+                {
+                  std::cout << "OFF\n";
+                }
+            }
           break;
         }
       break;
