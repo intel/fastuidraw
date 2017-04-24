@@ -196,7 +196,7 @@ namespace
   public:
     enum
       {
-        splitting_threshhold = 100
+        splitting_threshhold = 50
       };
 
     explicit
