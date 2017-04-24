@@ -24,7 +24,7 @@
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
-#include <fastuidraw/painter/painter_attribute_data.hpp>
+#include <fastuidraw/painter/painter_shader_data.hpp>
 
 namespace fastuidraw  {
 
@@ -32,6 +32,8 @@ namespace fastuidraw  {
 class TessellatedPath;
 class Path;
 class PainterAttribute;
+class PainterAttributeData;
+class DashEvaluatorBase;
 ///@endcond
 
 /*!\addtogroup Paths
@@ -579,7 +581,7 @@ public:
     void
     unpack_point(point *dst, const PainterAttribute &src);
   };
-
+ 
   /*!
     \brief
     Opaque object to hold work room needed for functions
@@ -623,21 +625,30 @@ public:
     };
 
   /*!
-    Returns the number of seperate joins held in a PainterAttributeData
-    objects that hold data for joins.
+    \brief
+    Object to hold the output of a chunk query via compute_chunks().
    */
-  static
-  unsigned int
-  number_joins(const PainterAttributeData &join_data, bool with_closing_edges);
+  class ChunkSet:fastuidraw::noncopyable
+  {
+  public:
+    ChunkSet(void);
 
-  /*!
-    Returns what chunk of a PainterAttributeData that holds data for
-    joins for a named join.
-   */
-  static
-  unsigned int
-  chunk_for_named_join(unsigned int J);
+    ~ChunkSet();
+    
+    const_c_array<unsigned int>
+    edge_chunks(void) const;
 
+    const_c_array<unsigned int>
+    join_chunks(void) const;
+
+    const_c_array<unsigned int>
+    cap_chunks(void) const;
+    
+  private:
+    friend class StrokedPath;
+    void *m_d;
+  };
+  
   /*!
     Ctor. Construct a StrokedPath from the data
     of a TessellatedPath.
@@ -656,17 +667,14 @@ public:
   effective_curve_distance_threshhold(void) const;
 
   /*!
-    Returns the data to draw the edges of a stroked path.
-   */
-  const PainterAttributeData&
-  edges(bool include_closing_edges) const;
-
-  /*!
     Given a set of clip equations in clip coordinates
     and a tranformation from local coordiante to clip
     coordinates, compute what chunks are not completely
     culled by the clip equations.
-    \param scratch_space scratch space for computations.
+    \param scratch_space scratch space for computations
+    \param dash_evaluator if doing dashed stroking, the dash evalulator will cull
+                          joins not to be drawn, if nullptr only those joins not in the
+                          visible area defined by clip_equations are culled.
     \param clip_equations array of clip equations
     \param clip_matrix_local 3x3 transformation from local (x, y, 1)
                              coordinates to clip coordinates.
@@ -681,37 +689,34 @@ public:
                              than max_attribute_cnt attributes
     \param max_index_cnt only allow those chunks for which have no more
                          than max_index_cnt indices
-    \param[out] dst location to which to write the what chunks
-    \returns the number of chunks that intersect the clipping region,
-             that number is guarnanteed to be no more than maximum_edge_chunks().
+    \param take_joins_outside_of_region if true, take even those joins outside of the region
+                                        (this is for handling miter-joins where the weather
+                                        or not a miter-join is included is also a function of
+                                        the miter-limit when stroking).
+    \param[out] dst location to which to write output
    */
-  unsigned int
-  edge_chunks(ScratchSpace &scratch_space,
-              const_c_array<vec3> clip_equations,
-              const float3x3 &clip_matrix_local,
-              const vec2 &recip_dimensions,
-              float pixels_additional_room,
-              float item_space_additional_room,
-              bool include_closing_edges,
-              unsigned int max_attribute_cnt,
-              unsigned int max_index_cnt,
-              c_array<unsigned int> dst) const;
+  void
+  compute_chunks(ScratchSpace &scratch_space,
+                 const DashEvaluatorBase *dash_evaluator,
+                 const PainterShaderData::DataBase *dash_data,
+                 const_c_array<vec3> clip_equations,
+                 const float3x3 &clip_matrix_local,
+                 const vec2 &recip_dimensions,
+                 float pixels_additional_room,
+                 float item_space_additional_room,
+                 bool include_closing_edges,
+                 unsigned int max_attribute_cnt,
+                 unsigned int max_index_cnt,
+                 bool take_joins_outside_of_region,
+                 ChunkSet &dst) const;
 
   /*!
-    Gives the maximum return value to edge_chunks(), i.e. the
-    maximum number of chunks that edge_chunks() will return.
+    Returns the data to draw the edges of a stroked path.
+    \param with_closing_edge if true, return the attribute data that
+                             includes the closing edges of the path.
    */
-  unsigned int
-  maximum_edge_chunks(void) const;
-
-  /*!
-    Gives the maximum value for point::depth() for all
-    edges of a stroked path.
-    \param include_closing_edges if false, disclude the closing
-                                 edges from the maximum value.
-   */
-  unsigned int
-  z_increment_edge(bool include_closing_edges) const;
+  const PainterAttributeData&
+  edges(bool with_closing_edge) const;
 
   /*!
     Returns the data to draw the square caps of a stroked path.

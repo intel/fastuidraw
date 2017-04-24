@@ -637,7 +637,7 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
       .set(PainterHeader::item_shader_data_location_offset, ".item_shader_data_location", shader_unpack_value::uint_type)
       .set(PainterHeader::blend_shader_data_location_offset, ".blend_shader_data_location", shader_unpack_value::uint_type)
       .set(PainterHeader::brush_shader_offset, ".brush_shader", shader_unpack_value::uint_type)
-      .set(PainterHeader::z_offset, ".z", shader_unpack_value::uint_type)
+      .set(PainterHeader::z_offset, ".z", shader_unpack_value::int_type)
       .set(PainterHeader::item_blend_shader_offset, ".item_blend_shader_packed", shader_unpack_value::uint_type)
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_header",

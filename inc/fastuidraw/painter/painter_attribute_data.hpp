@@ -116,22 +116,25 @@ namespace fastuidraw
     non_empty_index_data_chunks(void) const;
 
     /*!
-      Returns by how much to increment a z-value
-      (see Painter::increment_z()) when using
-      an attribute/index pair.
+      Returns the z-range of the data in an attribute/index
+      pair. After drawing a chunk, Painter will call on
+      itself Painter::increment_z(range_type::differnce())
+      and will set the header set to PainterPacker so
+      that while drawing so that range_type::m_begin maps
+      to Painter::current_z(). 
      */
-    const_c_array<unsigned int>
-    increment_z_values(void) const;
+    const_c_array<range_type<int> >
+    z_ranges(void) const;
 
     /*!
       Provided as an API conveniance to fetch
-      the named increment-z value of
-      increment_z_values() or 0 if the index is
-      larger then increment_z_values().size().
-      \param i index of increment_z_values() to fetch
+      the named z-range value of z_ranges() or
+      range_type(0, 0) if the index is
+      larger then z_ranges().size().
+      \param i index into z_ranges() to fetch
      */
-    unsigned int
-    increment_z_value(unsigned int i) const;
+    range_type<int>
+    z_range(unsigned int i) const;
 
   private:
     void *m_d;

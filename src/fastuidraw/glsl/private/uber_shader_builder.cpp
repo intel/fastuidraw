@@ -485,7 +485,7 @@ stream_uber_vert_shader(bool use_switch,
   UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, vert, item_shaders,
                                                          &PainterItemShaderGLSL::vertex_src,
                                                          &pre_stream_varyings, &post_stream_varyings, datum,
-                                                         "vec4", "fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out uint add_z)",
+                                                         "vec4", "fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out int add_z)",
                                                          "fastuidraw_gl_vert_main",
                                                          ", fastuidraw_primary_attribute, fastuidraw_secondary_attribute, "
                                                          "fastuidraw_uint_attribute, h.item_shader_data_location, add_z",

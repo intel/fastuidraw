@@ -16,7 +16,7 @@ void
 fastuidraw_read_item_matrix(in uint item_matrix_location, out mat3 m);
 
 vec4
-fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out uint add_z);
+fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out int add_z);
 
 ///////////////////////////////////////////////////////////////////////
 // routines implemented in .glsl.resource_string files

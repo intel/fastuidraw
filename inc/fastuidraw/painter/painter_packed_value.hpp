@@ -113,7 +113,7 @@ namespace fastuidraw
 
     /*!
       Returns the value to which the handle points.
-      If the handle is not-value, then FASTUIDRAWasserts.
+      If the handle is not-valid, then FASTUIDRAWasserts.
      */
     const T&
     value(void) const

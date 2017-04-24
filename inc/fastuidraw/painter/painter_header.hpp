@@ -160,7 +160,7 @@ namespace fastuidraw
       The z-value to use for the item. The z-value is used
       by Painter to implement clipping.
      */
-    uint32_t m_z;
+    int32_t m_z;
 
     /*!
       Pack the values of this PainterHeader

@@ -84,6 +84,24 @@ namespace fastuidraw
           m_packed_value.value() :
           *m_value;
       }
+
+      /*!
+        If \ref m_packed_value is null, then sets it
+        to a packed value created by the passed \ref
+        PainterPackedValuePool. In addition, sets
+        \ref m_value to nullptr.
+        \param pool \ref PainterPackedValuePool from 
+                    which to create the packed value
+       */
+      void
+      make_packed(PainterPackedValuePool &pool)
+      {
+        if(!m_packed_value && m_value != nullptr)
+          {
+            m_packed_value = pool.create_packed_value(*m_value);
+            m_value = nullptr;
+          }
+      }
     };
 
     /*!
@@ -183,6 +201,14 @@ namespace fastuidraw
     {
       m_blend_shader_data = value;
       return *this;
+    }
+
+    void
+    make_packed(PainterPackedValuePool &pool)
+    {
+      m_brush.make_packed(pool);
+      m_item_shader_data.make_packed(pool);
+      m_blend_shader_data.make_packed(pool);
     }
   };
 

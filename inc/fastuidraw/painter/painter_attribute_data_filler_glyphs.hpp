@@ -133,7 +133,7 @@ namespace fastuidraw
               c_array<PainterIndex> indices,
               c_array<const_c_array<PainterAttribute> > attrib_chunks,
               c_array<const_c_array<PainterIndex> > index_chunks,
-              c_array<unsigned int> zincrements,
+              c_array<range_type<int> > zranges,
               c_array<int> index_adjusts) const;
 
   private:

@@ -257,7 +257,7 @@ compute_sizes(unsigned int &number_attributes,
               unsigned int &number_indices,
               unsigned int &number_attribute_chunks,
               unsigned int &number_index_chunks,
-              unsigned int &number_z_increments) const
+              unsigned int &number_z_ranges) const
 {
   FillGlyphsPrivate *d;
   d = static_cast<FillGlyphsPrivate*>(m_d);
@@ -267,7 +267,7 @@ compute_sizes(unsigned int &number_attributes,
   number_indices = 6 * d->m_number_glyphs;
   number_attribute_chunks = d->m_cnt_by_type.size();
   number_index_chunks = d->m_cnt_by_type.size();
-  number_z_increments = 0;
+  number_z_ranges = 0;
 }
 
 void
@@ -276,7 +276,7 @@ fill_data(c_array<PainterAttribute> attribute_data,
           c_array<PainterIndex> index_data,
           c_array<const_c_array<PainterAttribute> > attrib_chunks,
           c_array<const_c_array<PainterIndex> > index_chunks,
-          c_array<unsigned int> zincrements,
+          c_array<range_type<int> > zranges,
           c_array<int> index_adjusts) const
 {
   FillGlyphsPrivate *d;
@@ -289,8 +289,8 @@ fill_data(c_array<PainterAttribute> attribute_data,
       c += d->m_cnt_by_type[i];
     }
 
-  FASTUIDRAWassert(zincrements.empty());
-  FASTUIDRAWunused(zincrements);
+  FASTUIDRAWassert(zranges.empty());
+  FASTUIDRAWunused(zranges);
 
   std::vector<unsigned int> current(attrib_chunks.size(), 0);
   for(unsigned int g = 0; g < d->m_number_glyphs; ++g)
