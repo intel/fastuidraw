@@ -20,6 +20,7 @@
 #include <fastuidraw/util/util.hpp>
 #include <map>
 #include <vector>
+#include <string>
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
