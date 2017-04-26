@@ -243,7 +243,7 @@ namespace
            fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts);
   };
 
-  class ScratchSpacePrivate
+  class ScratchSpacePrivate:fastuidraw::noncopyable
   {
   public:
     std::vector<fastuidraw::vec3> m_adjusted_clip_eqs;
@@ -253,7 +253,7 @@ namespace
     std::vector<float> m_clip_scratch_floats;
   };
 
-  class ChunkSetPrivate
+  class ChunkSetPrivate:fastuidraw::noncopyable
   {
   public:
     std::vector<unsigned int> m_edge_chunks, m_join_chunks, m_cap_chunks;
@@ -919,7 +919,7 @@ namespace
     bool m_ready;
   };
 
-  class StrokedPathPrivate
+  class StrokedPathPrivate:fastuidraw::noncopyable
   {
   public:
     explicit
@@ -3032,7 +3032,8 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
 /////////////////////////////////////////////
 // StrokedPathPrivate methods
 StrokedPathPrivate::
-StrokedPathPrivate(const fastuidraw::TessellatedPath &P)
+StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
+  m_subset(nullptr, nullptr)
 {
   if(!P.point_data().empty())
     {
@@ -3413,6 +3414,14 @@ compute_chunks(ScratchSpace &scratch_space,
   d = static_cast<StrokedPathPrivate*>(m_d);
   scratch_space_ptr = static_cast<ScratchSpacePrivate*>(scratch_space.m_d);
   chunk_set_ptr = static_cast<ChunkSetPrivate*>(dst.m_d);
+
+  if(d->m_empty_path)
+    {
+      chunk_set_ptr->m_edge_chunks.clear();
+      chunk_set_ptr->m_join_chunks.clear();
+      chunk_set_ptr->m_cap_chunks.clear();
+      return;
+    }
 
   d->m_subset[include_closing_edges]->compute_chunks(*scratch_space_ptr,
                                                      dash_evaluator,
