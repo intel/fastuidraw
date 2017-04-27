@@ -1762,7 +1762,7 @@ stroke_path_common(const PainterStrokeShader &shader, const PainterData &draw,
       rounded_thresh = shader.stroking_data_selector()->compute_rounded_thresh(raw_data, thresh, d->m_curve_flatness);
     }
 
-  edge_data = &path.edges(close_contours);
+  edge_data = &path.edges();
   if(!close_contours)
     {
       switch(cp)

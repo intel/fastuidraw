@@ -712,11 +712,9 @@ public:
 
   /*!
     Returns the data to draw the edges of a stroked path.
-    \param with_closing_edge if true, return the attribute data that
-                             includes the closing edges of the path.
    */
   const PainterAttributeData&
-  edges(bool with_closing_edge) const;
+  edges(void) const;
 
   /*!
     Returns the data to draw the square caps of a stroked path.
