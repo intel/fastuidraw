@@ -172,7 +172,7 @@ clip_against_planes(const_c_array<vec3> clip_eq, const_c_array<vec2> in_pts,
   scratch_space_vec2s[src].resize(in_pts.size());
   std::copy(in_pts.begin(), in_pts.end(), scratch_space_vec2s[src].begin());
 
-  for(i = 0; i < clip_eq.size(); ++i, std::swap(src, dst))
+  for(i = 0; i < clip_eq.size() && !scratch_space_vec2s[src].empty(); ++i, std::swap(src, dst))
     {
       bool r;
       r = clip_against_plane(clip_eq[i], make_c_array(scratch_space_vec2s[src]),
