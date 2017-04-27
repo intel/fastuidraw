@@ -269,7 +269,7 @@ namespace fastuidraw
 
     /*!
       Indicate to end drawing. Commands are buffered and not
-      set to the backend until end() or flush() is called.
+      sent to the backend until end() or flush() is called.
       All draw commands must be between a begin() / end() pair.
      */
     void
