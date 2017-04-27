@@ -1607,14 +1607,6 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
   c_array<int> index_adjusts;
   c_array<int> z_increments;
   c_array<int> start_zs;
-  PainterData draw(pdraw);
-
-  /* if any of the data elements of draw are NOT packed state,
-     make them as packed state so that they are reused
-     to prevent filling up the data buffer with repeated
-     state data.
-   */
-  draw.make_packed(d->m_pool);
 
   if(join_data == nullptr)
     {
@@ -1636,6 +1628,11 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
      thus there is no malloc/free noise
    */
   total_chunks = cap_chunks.size() + edge_chunks.size() + join_chunks.size();
+  if(total_chunks == 0)
+    {
+      return;
+    }
+
   d->m_work_room.m_stroke_attrib_chunks.resize(total_chunks);
   d->m_work_room.m_stroke_index_chunks.resize(total_chunks);
   d->m_work_room.m_stroke_increment_zs.resize(total_chunks);
@@ -1678,6 +1675,15 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
       start_zs[current] = cap_data->z_range(cap_chunks[C]).m_begin;
       zinc_sum += z_increments[current];
     }
+
+  PainterData draw(pdraw);
+
+  /* if any of the data elements of draw are NOT packed state,
+     make them as packed state so that they are reused
+     to prevent filling up the data buffer with repeated
+     state data.
+   */
+  draw.make_packed(d->m_pool);
 
   startz = d->m_current_z;
   modify_z = !with_anti_aliasing || shader.aa_type() == PainterStrokeShader::draws_solid_then_fuzz;
