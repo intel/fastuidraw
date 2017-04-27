@@ -1034,6 +1034,7 @@ query_stat(enum stats_t st) const
       tmp[num_attributes] = c.m_attributes_written;
       tmp[num_indices] = c.m_indices_written;
       tmp[num_generic_datas] = c.store_written();
+      tmp[num_draws] = 1u;
     }
   return d->m_stats[st] + tmp[st];
 }
