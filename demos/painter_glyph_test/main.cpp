@@ -189,6 +189,7 @@ private:
 
   vecN<GlyphDraws, number_draw_modes> m_draws;
   vecN<std::string, number_draw_modes> m_draw_labels;
+  vecN<std::string, PainterEnums::number_join_styles> m_join_labels;
 
   bool m_use_anisotropic_anti_alias;
   bool m_stroke_glyphs, m_fill_glyphs;
@@ -197,6 +198,7 @@ private:
   bool m_draw_stats;
   float m_stroke_width;
   unsigned int m_current_drawer;
+  unsigned int m_join_style;
   PanZoomTrackerSDLEvent m_zoomer;
   simple_time m_draw_timer;
 };
@@ -524,24 +526,33 @@ painter_glyph_test(void):
   m_pixel_width_stroking(false),
   m_draw_stats(false),
   m_stroke_width(1.0f),
-  m_current_drawer(draw_glyph_curvepair)
+  m_current_drawer(draw_glyph_curvepair),
+  m_join_style(PainterEnums::miter_joins)
 {
   std::cout << "Controls:\n"
-            << "\td:cycle drawing mode: draw coverage glyph, draw distance glyphs "
+            << "\td: cycle drawing mode: draw coverage glyph, draw distance glyphs "
             << "[hold shift, control or mode to reverse cycle]\n"
-            << "\ta:Toggle using anistropic anti-alias glyph rendering\n"
-            << "\td:Cycle though text renderer\n"
-            << "\tf:Toggle rendering text as filled path\n"
-            << "\tq:Toggle anti-aliasing filled path rendering\n"
-            << "\tw:Toggle anti-aliasing stroked path rendering\n"
-            << "\tp:Toggle pixel width stroking\n"
-            << "\tz:reset zoom factor to 1.0\n"
+            << "\ta: Toggle using anistropic anti-alias glyph rendering\n"
+            << "\td: Cycle though text renderer\n"
+            << "\tf: Toggle rendering text as filled path\n"
+            << "\tq: Toggle anti-aliasing filled path rendering\n"
+            << "\tw: Toggle anti-aliasing stroked path rendering\n"
+            << "\tp: Toggle pixel width stroking\n"
+            << "\tz: reset zoom factor to 1.0\n"
             << "\ts: toggle stroking glyph path\n"
+            << "\tj: cycle through join styles for stroking\n"
             << "\tl: draw Painter stats\n"
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\t]: increase stroke width(hold left-shift for slower rate and right shift for faster)\n"
             << "\tMouse Drag (left button): pan\n"
             << "\tHold Mouse (left button), then drag up/down: zoom out/in\n";
+
+  m_join_labels[PainterEnums::no_joins] = "no_joins";
+  m_join_labels[PainterEnums::rounded_joins] = "rounded_joins";
+  m_join_labels[PainterEnums::bevel_joins] = "bevel_joins";
+  m_join_labels[PainterEnums::miter_clip_joins] = "miter_clip_joins";
+  m_join_labels[PainterEnums::miter_bevel_joins] = "miter_bevel_joins";
+  m_join_labels[PainterEnums::miter_joins] = "miter_joins";
 }
 
 painter_glyph_test::
@@ -750,7 +761,7 @@ draw_frame(void)
                   m_painter->stroke_path_pixel_width(PainterData(pst, pbr),
                                                      glyphs[i].path(),
                                                      true, PainterEnums::flat_caps,
-                                                     PainterEnums::miter_bevel_joins,
+                                                     static_cast<enum PainterEnums::join_style>(m_join_style),
                                                      m_anti_alias_path_stroking);
                 }
               else
@@ -758,7 +769,7 @@ draw_frame(void)
                   m_painter->stroke_path(PainterData(pst, pbr),
                                          glyphs[i].path(),
                                          true, PainterEnums::flat_caps,
-                                         PainterEnums::miter_bevel_joins,
+                                         static_cast<enum PainterEnums::join_style>(m_join_style),
                                          m_anti_alias_path_stroking);
                 }
               m_painter->restore();
@@ -971,6 +982,14 @@ handle_event(const SDL_Event &ev)
           }
           break;
 
+        case SDLK_j:
+          if(m_stroke_glyphs)
+            {
+              cycle_value(m_join_style, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), PainterEnums::number_join_styles);
+              std::cout << "Join drawing mode set to: " << m_join_labels[m_join_style] << "\n";
+            }
+          break;
+          
         case SDLK_w:
           if(m_stroke_glyphs)
             {
