@@ -798,6 +798,10 @@ draw_frame(void)
            << m_painter->query_stat(PainterPacker::num_indices)
            << "\nGenericData: "
            << m_painter->query_stat(PainterPacker::num_generic_datas)
+           << "\nNumber Headers: "
+           << m_painter->query_stat(PainterPacker::num_headers)
+           << "\nNumber Draws: "
+           << m_painter->query_stat(PainterPacker::num_draws)
            << "\n";
 
       m_painter->transformation(proj);
