@@ -339,12 +339,6 @@ namespace
     std::vector<float> m_clip_scratch_floats;
   };
 
-  class ChunkSetPrivate:fastuidraw::noncopyable
-  {
-  public:
-    std::vector<unsigned int> m_edge_chunks, m_join_chunks, m_cap_chunks;
-  };
-
   class EdgeRanges
   {
   public:
@@ -403,6 +397,55 @@ namespace
     {
       return m_depth_range.m_end > m_depth_range.m_begin;
     }
+  };
+
+  class ChunkSetPrivate:fastuidraw::noncopyable
+  {
+  public:
+    void
+    clear(void)
+    {
+      m_edge_chunks.clear();
+      m_join_chunks.clear();
+      m_join_ranges.clear();
+      m_cap_chunks.clear();
+    }
+
+    void
+    add_edge_chunk(const EdgeRanges &ed);
+
+    void
+    add_join_chunk(const RangeAndChunk &j);
+
+    void
+    add_cap_chunk(const RangeAndChunk &c);
+
+    fastuidraw::const_c_array<unsigned int>
+    edge_chunks(void) const
+    {
+      return fastuidraw::make_c_array(m_edge_chunks);
+    }
+
+    fastuidraw::const_c_array<unsigned int>
+    join_chunks(void) const
+    {
+      return fastuidraw::make_c_array(m_join_chunks);
+    }
+
+    fastuidraw::const_c_array<unsigned int>
+    cap_chunks(void) const
+    {
+      return fastuidraw::make_c_array(m_cap_chunks);
+    }
+
+    void
+    handle_dashed_evaluator(const fastuidraw::DashEvaluatorBase *dash_evaluator,
+                            const fastuidraw::PainterShaderData::DataBase *dash_data,
+                            const fastuidraw::StrokedPath &path);
+
+  private:
+    std::vector<unsigned int> m_edge_chunks, m_join_chunks, m_cap_chunks;
+    std::vector<fastuidraw::range_type<unsigned int> > m_join_ranges;
   };
 
   template<typename T>
@@ -570,7 +613,6 @@ namespace
     void
     compute_chunks(bool include_closing_edge,
                    ScratchSpacePrivate &work_room,
-                   const fastuidraw::DashEvaluatorBase *dash_evaluator,
                    fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
                    const fastuidraw::float3x3 &clip_matrix_local,
                    const fastuidraw::vec2 &recip_dimensions,
@@ -2183,7 +2225,6 @@ void
 StrokedPathSubset::
 compute_chunks(bool include_closing_edge,
                ScratchSpacePrivate &scratch,
-               const fastuidraw::DashEvaluatorBase *dash_evaluator,
                fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
                const fastuidraw::float3x3 &clip_matrix_local,
                const fastuidraw::vec2 &recip_dimensions,
@@ -2195,7 +2236,6 @@ compute_chunks(bool include_closing_edge,
                ChunkSetPrivate &dst)
 {
   FASTUIDRAWunused(take_joins_outside_of_region);
-  FASTUIDRAWunused(dash_evaluator);
 
   scratch.m_adjusted_clip_eqs.resize(clip_equations.size());
   for(unsigned int i = 0; i < clip_equations.size(); ++i)
@@ -2216,9 +2256,7 @@ compute_chunks(bool include_closing_edge,
       scratch.m_adjusted_clip_eqs[i] = c * clip_matrix_local;
     }
 
-  dst.m_edge_chunks.clear();
-  dst.m_join_chunks.clear();
-  dst.m_cap_chunks.clear();
+  dst.clear();
 
   compute_chunks_implement(include_closing_edge,
                            scratch, item_space_additional_room,
@@ -2240,31 +2278,17 @@ compute_chunks_take_all(bool include_closing_edge,
   if(m_non_closing_edges.chunk_fits(max_attribute_cnt, max_index_cnt)
      && (!include_closing_edge || m_closing_edges.chunk_fits(max_attribute_cnt, max_index_cnt)))
     {
-      if(m_non_closing_edges.non_empty())
-        {
-          dst.m_edge_chunks.push_back(m_non_closing_edges.m_chunk);
-        }
-
-      if(m_non_closing_joins.non_empty())
-        {
-          dst.m_join_chunks.push_back(m_non_closing_joins.m_chunk);
-        }
+      dst.add_edge_chunk(m_non_closing_edges);
+      dst.add_join_chunk(m_non_closing_joins);
 
       if(include_closing_edge)
         {
-          if(m_closing_edges.non_empty())
-            {
-              dst.m_edge_chunks.push_back(m_closing_edges.m_chunk);
-            }
-
-          if(m_closing_joins.non_empty())
-            {
-              dst.m_join_chunks.push_back(m_closing_joins.m_chunk);
-            }
+          dst.add_edge_chunk(m_closing_edges);
+          dst.add_join_chunk(m_closing_joins);
         }
-      else if(m_caps.non_empty())
+      else
         {
-          dst.m_cap_chunks.push_back(m_caps.m_chunk);
+          dst.add_cap_chunk(m_caps);
         }
     }
   else if(have_children())
@@ -2336,33 +2360,18 @@ compute_chunks_implement(bool include_closing_edge,
   else
     {
       FASTUIDRAWassert(m_non_closing_edges.chunk_fits(max_attribute_cnt, max_index_cnt));
-      if(m_non_closing_edges.non_empty())
-        {
-          dst.m_edge_chunks.push_back(m_non_closing_edges.m_chunk);
-        }
-
-      if(m_non_closing_joins.non_empty())
-        {
-          dst.m_join_chunks.push_back(m_non_closing_joins.m_chunk);
-        }
+      dst.add_edge_chunk(m_non_closing_edges);
+      dst.add_join_chunk(m_non_closing_joins);
 
       if(include_closing_edge)
         {
           FASTUIDRAWassert(m_closing_edges.chunk_fits(max_attribute_cnt, max_index_cnt));
-
-          if(m_closing_edges.non_empty())
-            {
-              dst.m_edge_chunks.push_back(m_closing_edges.m_chunk);
-            }
-
-          if(m_closing_joins.non_empty())
-            {
-              dst.m_join_chunks.push_back(m_closing_joins.m_chunk);
-            }
+          dst.add_edge_chunk(m_closing_edges);
+          dst.add_join_chunk(m_closing_joins);
         }
-      else if(m_caps.non_empty())
+      else
         {
-          dst.m_cap_chunks.push_back(m_caps.m_chunk);
+          dst.add_cap_chunk(m_caps);
         }
     }
 }
@@ -4147,6 +4156,71 @@ fastuidraw::StrokedPath::ScratchSpace::
   m_d = nullptr;
 }
 
+///////////////////////////////////////
+// ChunkSetPrivate methods
+void
+ChunkSetPrivate::
+add_edge_chunk(const EdgeRanges &ed)
+{
+  if(ed.non_empty())
+    {
+      m_edge_chunks.push_back(ed.m_chunk);
+    }
+}
+
+void
+ChunkSetPrivate::
+add_join_chunk(const RangeAndChunk &j)
+{
+  if(j.non_empty())
+    {
+      m_join_chunks.push_back(j.m_chunk);
+      m_join_ranges.push_back(j.m_elements);
+    }
+}
+
+void
+ChunkSetPrivate::
+add_cap_chunk(const RangeAndChunk &c)
+{
+  if(c.non_empty())
+    {
+      m_cap_chunks.push_back(c.m_chunk);
+    }
+}
+
+void
+ChunkSetPrivate::
+handle_dashed_evaluator(const fastuidraw::DashEvaluatorBase *dash_evaluator,
+                        const fastuidraw::PainterShaderData::DataBase *dash_data,
+                        const fastuidraw::StrokedPath &path)
+{
+  if(dash_evaluator != nullptr)
+    {
+      const fastuidraw::PainterAttributeData &joins(path.bevel_joins());
+      unsigned int cnt(0);
+
+      m_join_chunks.clear();
+      for(const fastuidraw::range_type<unsigned int> &R : m_join_ranges)
+        {
+          for(unsigned int J = R.m_begin; J < R.m_end; ++J, ++cnt)
+            {
+              unsigned int chunk;
+              fastuidraw::const_c_array<fastuidraw::PainterAttribute> attribs;
+
+              chunk = path.join_chunk(J);
+              attribs = joins.attribute_data_chunk(chunk);
+              FASTUIDRAWassert(!attribs.empty());
+              FASTUIDRAWassert(attribs.size() == 3);
+              if(dash_evaluator->covered_by_dash_pattern(dash_data, attribs[0]))
+                {
+                  m_join_chunks.push_back(chunk);
+                }
+            }
+        }
+    }
+}
+
 //////////////////////////////////////////
 // fastuidraw::StrokedPath::ChunkSet methods
 fastuidraw::StrokedPath::ChunkSet::
@@ -4169,7 +4243,7 @@ edge_chunks(void) const
 {
   ChunkSetPrivate *d;
   d = static_cast<ChunkSetPrivate*>(m_d);
-  return make_c_array(d->m_edge_chunks);
+  return d->edge_chunks();
 }
 
 fastuidraw::const_c_array<unsigned int>
@@ -4178,7 +4252,7 @@ join_chunks(void) const
 {
   ChunkSetPrivate *d;
   d = static_cast<ChunkSetPrivate*>(m_d);
-  return make_c_array(d->m_join_chunks);
+  return d->join_chunks();
 }
 
 fastuidraw::const_c_array<unsigned int>
@@ -4187,7 +4261,7 @@ cap_chunks(void) const
 {
   ChunkSetPrivate *d;
   d = static_cast<ChunkSetPrivate*>(m_d);
-  return make_c_array(d->m_cap_chunks);
+  return d->cap_chunks();
 }
 
 
@@ -4253,15 +4327,12 @@ compute_chunks(ScratchSpace &scratch_space,
 
   if(d->m_empty_path)
     {
-      chunk_set_ptr->m_edge_chunks.clear();
-      chunk_set_ptr->m_join_chunks.clear();
-      chunk_set_ptr->m_cap_chunks.clear();
+      chunk_set_ptr->clear();
       return;
     }
 
   d->m_subset->compute_chunks(include_closing_edges,
                               *scratch_space_ptr,
-                              dash_evaluator,
                               clip_equations,
                               clip_matrix_local,
                               recip_dimensions,
@@ -4271,27 +4342,7 @@ compute_chunks(ScratchSpace &scratch_space,
                               max_index_cnt,
                               take_joins_outside_of_region,
                               *chunk_set_ptr);
-  if(dash_evaluator)
-    {
-      const fastuidraw::PainterAttributeData &joins(bevel_joins());
-
-      chunk_set_ptr->m_join_chunks.clear();
-      for(unsigned int i = 0, endi = number_joins(include_closing_edges); i < endi; ++i)
-        {
-          unsigned int chunk;
-          const_c_array<PainterAttribute> attribs;
-
-          chunk = join_chunk(i);
-          attribs = joins.attribute_data_chunk(chunk);
-          FASTUIDRAWassert(!attribs.empty());
-          FASTUIDRAWassert(attribs.size() == 3);
-
-          if(dash_evaluator->covered_by_dash_pattern(dash_data, attribs[0]))
-            {
-              chunk_set_ptr->m_join_chunks.push_back(chunk);
-            }
-        }
-    }
+  chunk_set_ptr->handle_dashed_evaluator(dash_evaluator, dash_data, *this);
 }
 
 unsigned int
