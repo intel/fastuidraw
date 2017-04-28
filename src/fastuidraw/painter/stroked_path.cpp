@@ -508,6 +508,41 @@ namespace
     }
 
   private:
+    class PostProcessVariables
+    {
+    public:
+      PostProcessVariables(void):
+        m_edge_depth(0),
+        m_closing_edge_depth(0),
+        m_join_depth(0),
+        m_closing_join_depth(0),
+        m_cap_depth(0),
+        m_closing_cap_depth(0)
+      {}
+
+      unsigned int m_edge_depth, m_closing_edge_depth;
+      unsigned int m_join_depth, m_closing_join_depth;
+      unsigned int m_cap_depth, m_closing_cap_depth;
+    };
+
+    class PostProcesssContants
+    {
+    public:
+      PostProcesssContants(void):
+        m_non_closing_edge_vertex_cnt(0),
+        m_non_closing_edge_index_cnt(0),
+        m_non_closing_edge_chunk_count(0),
+        m_non_closing_join_count(0),
+        m_non_closing_join_chunk_count(0)
+      {}
+
+      unsigned int m_non_closing_edge_vertex_cnt;
+      unsigned int m_non_closing_edge_index_cnt;
+      unsigned int m_non_closing_edge_chunk_count;
+      unsigned int m_non_closing_join_count;
+      unsigned int m_non_closing_join_chunk_count;
+    };
+
     StrokedPathSubset(unsigned int &vertex_st, unsigned int &index_st, unsigned int &chunk_count,
                       unsigned int &closing_vertex_st, unsigned int &closing_index_st, unsigned int &closing_chunk_count,
                       std::vector<JoinSource> &joins,  unsigned int &join_chunk,
@@ -535,13 +570,8 @@ namespace
                                unsigned int &vertex_cnt,
                                unsigned int &index_cnt);
     void
-    post_process(unsigned int &edge_depth,
-                 unsigned int &closing_edge_depth,
-                 unsigned int vertex_cnt,
-                 unsigned int index_cnt,
-                 unsigned int chunk_count,
-                 unsigned int join_count,
-                 unsigned int join_chunk_count);
+    post_process(PostProcessVariables &variables,
+                 const PostProcesssContants &constants);
 
     fastuidraw::vecN<StrokedPathSubset*, 2> m_children;
 
@@ -1713,47 +1743,45 @@ create(const SubEdgeCullingHierarchy *src,
 {
   StrokedPathSubset *return_value;
 
-  unsigned int chunk_count(0), closing_chunk_count(0);
-  unsigned int vertex_cnt(0), index_cnt(0);
+  PostProcessVariables vars;
+  PostProcesssContants constants;
+
+  unsigned int closing_chunk_count(0);
   unsigned int closing_vertex_cnt(0), closing_index_cnt(0);
   unsigned int closing_join_chunk(0);
 
-  return_value = FASTUIDRAWnew StrokedPathSubset(vertex_cnt, index_cnt, chunk_count,
+  return_value = FASTUIDRAWnew StrokedPathSubset(constants.m_non_closing_edge_vertex_cnt,
+                                                 constants.m_non_closing_edge_index_cnt,
+                                                 constants.m_non_closing_edge_chunk_count,
                                                  closing_vertex_cnt, closing_index_cnt, closing_chunk_count,
                                                  join_ordering.m_non_closing_edge, join_ordering.m_closing_edge_chunk_begin,
                                                  join_ordering.m_closing_edge, closing_join_chunk,
                                                  cap_ordering.m_caps, cap_ordering.m_total_number_chunks,
                                                  src);
 
-  unsigned int edge_depth(0), closing_edge_depth(0);
-  return_value->post_process(edge_depth, closing_edge_depth,
-                             vertex_cnt, index_cnt, chunk_count,
-                             join_ordering.m_non_closing_edge.size(),
-                             join_ordering.m_closing_edge_chunk_begin);
+  constants.m_non_closing_join_count = join_ordering.m_non_closing_edge.size();
+  constants.m_non_closing_join_chunk_count = join_ordering.m_closing_edge_chunk_begin;
+  return_value->post_process(vars, constants);
 
-  total_vertex_cnt = vertex_cnt + closing_vertex_cnt;
-  total_index_cnt = index_cnt + closing_index_cnt;
-  total_chunk_count = chunk_count + closing_chunk_count;
+  total_vertex_cnt = constants.m_non_closing_edge_vertex_cnt + closing_vertex_cnt;
+  total_index_cnt = constants.m_non_closing_edge_index_cnt + closing_index_cnt;
+  total_chunk_count = constants.m_non_closing_edge_chunk_count + closing_chunk_count;
   join_ordering.m_total_number_chunks = closing_join_chunk + join_ordering.m_closing_edge_chunk_begin;
+
   return return_value;
 }
 
 void
 StrokedPathSubset::
-post_process(unsigned int &edge_depth,
-             unsigned int &closing_edge_depth,
-             unsigned int vertex_cnt,
-             unsigned int index_cnt,
-             unsigned int chunk_count,
-             unsigned int join_count,
-             unsigned int join_chunk_count)
+post_process(PostProcessVariables &variables,
+             const PostProcesssContants &constants)
 {
   /* We want the depth to go in the reverse order as the
      draw order. The Draw order is child(0), child(1)
      Thus, we first handle depth child(1) and then child(0).
    */
-  m_non_closing_edges.m_depth_range.m_begin = edge_depth;
-  m_closing_edges.m_depth_range.m_begin = closing_edge_depth;
+  m_non_closing_edges.m_depth_range.m_begin = variables.m_edge_depth;
+  m_closing_edges.m_depth_range.m_begin = variables.m_closing_edge_depth;
 
   if(m_children[0] != nullptr)
     {
@@ -1761,39 +1789,39 @@ post_process(unsigned int &edge_depth,
       FASTUIDRAWassert(m_non_closing_edges.m_src.empty());
       FASTUIDRAWassert(m_closing_edges.m_src.empty());
 
-      m_children[1]->post_process(edge_depth, closing_edge_depth, vertex_cnt, index_cnt, chunk_count, join_count, join_chunk_count);
-      m_children[0]->post_process(edge_depth, closing_edge_depth, vertex_cnt, index_cnt, chunk_count, join_count, join_chunk_count);
+      m_children[1]->post_process(variables, constants);
+      m_children[0]->post_process(variables, constants);
     }
   else
     {
       FASTUIDRAWassert(m_children[1] == nullptr);
 
-      edge_depth += m_non_closing_edges.m_src.size();
-      closing_edge_depth += m_closing_edges.m_src.size();
+      variables.m_edge_depth += m_non_closing_edges.m_src.size();
+      variables.m_closing_edge_depth += m_closing_edges.m_src.size();
     }
-  m_non_closing_edges.m_depth_range.m_end = edge_depth;
-  m_closing_edges.m_depth_range.m_end = closing_edge_depth;
+  m_non_closing_edges.m_depth_range.m_end = variables.m_edge_depth;
+  m_closing_edges.m_depth_range.m_end = variables.m_closing_edge_depth;
 
   /* make the closing edge chunks start after the
      non-closing edge chunks.
    */
-  m_closing_edges.m_chunk += chunk_count;
+  m_closing_edges.m_chunk += constants.m_non_closing_edge_chunk_count;
 
   /* make vertices and indices of closing edges appear
      after those of non-closing edges
    */
-  m_closing_edges.m_vertex_data_range.m_begin += vertex_cnt;
-  m_closing_edges.m_vertex_data_range.m_end += vertex_cnt;
+  m_closing_edges.m_vertex_data_range.m_begin += constants.m_non_closing_edge_vertex_cnt;
+  m_closing_edges.m_vertex_data_range.m_end += constants.m_non_closing_edge_vertex_cnt;
 
-  m_closing_edges.m_index_data_range.m_begin += index_cnt;
-  m_closing_edges.m_index_data_range.m_end += index_cnt;
+  m_closing_edges.m_index_data_range.m_begin += constants.m_non_closing_edge_index_cnt;
+  m_closing_edges.m_index_data_range.m_end += constants.m_non_closing_edge_index_cnt;
 
   /* make the chunks of closing edges come AFTER
      chunks of non-closing edge
    */
-  m_closing_edge_joins.m_elements.m_begin += join_count;
-  m_closing_edge_joins.m_elements.m_end += join_count;
-  m_closing_edge_joins.m_chunk += join_chunk_count;
+  m_closing_edge_joins.m_elements.m_begin += constants.m_non_closing_join_count;
+  m_closing_edge_joins.m_elements.m_end += constants.m_non_closing_join_count;
+  m_closing_edge_joins.m_chunk += constants.m_non_closing_join_chunk_count;
 }
 
 StrokedPathSubset::
