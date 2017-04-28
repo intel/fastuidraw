@@ -701,6 +701,8 @@ namespace
     RangeAndChunk m_caps;
 
     fastuidraw::BoundingBox<float> m_bb;
+
+    bool m_empty_subset;
   };
 
   class EdgeAttributeFiller:public fastuidraw::PainterAttributeDataFiller
@@ -2034,6 +2036,11 @@ post_process(PostProcessVariables &variables,
      chunks of non-closing edge
    */
   m_closing_joins.m_chunk += constants.m_non_closing_join_chunk_count;
+
+  m_empty_subset = !m_non_closing_edges.non_empty()
+    && !m_non_closing_joins.non_empty()
+    && !m_closing_edges.non_empty()
+    && !m_closing_joins.non_empty();
 }
 
 StrokedPathSubset::
@@ -2193,6 +2200,11 @@ compute_chunks_take_all(bool include_closing_edge,
                         unsigned int max_index_cnt,
                         ChunkSetPrivate &dst)
 {
+  if(m_empty_subset)
+    {
+      return;
+    }
+
   if(m_non_closing_edges.chunk_fits(max_attribute_cnt, max_index_cnt)
      && (!include_closing_edge || m_closing_edges.chunk_fits(max_attribute_cnt, max_index_cnt)))
     {
@@ -2244,7 +2256,7 @@ compute_chunks_implement(bool include_closing_edge,
   using namespace fastuidraw;
   using namespace fastuidraw::detail;
 
-  if(m_bb.empty())
+  if(m_bb.empty() || m_empty_subset)
     {
       return;
     }
