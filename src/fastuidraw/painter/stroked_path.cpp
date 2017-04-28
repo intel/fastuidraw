@@ -375,6 +375,12 @@ namespace
       return m_vertex_data_range.difference() <= max_attribute_cnt
         && m_index_data_range.difference() <= max_index_cnt;
     }
+
+    bool
+    non_empty(void) const
+    {
+      return m_vertex_data_range.m_end > m_vertex_data_range.m_begin;
+    }
   };
 
   class RangeAndChunk
@@ -391,6 +397,12 @@ namespace
     /* what the chunk is
      */
     unsigned int m_chunk;
+
+    bool
+    non_empty(void) const
+    {
+      return m_depth_range.m_end > m_depth_range.m_begin;
+    }
   };
 
   template<typename T>
@@ -2184,16 +2196,32 @@ compute_chunks_take_all(bool include_closing_edge,
   if(m_non_closing_edges.chunk_fits(max_attribute_cnt, max_index_cnt)
      && (!include_closing_edge || m_closing_edges.chunk_fits(max_attribute_cnt, max_index_cnt)))
     {
-      dst.m_edge_chunks.push_back(m_non_closing_edges.m_chunk);
-      dst.m_join_chunks.push_back(m_non_closing_joins.m_chunk);
+      if(m_non_closing_edges.non_empty())
+        {
+          dst.m_edge_chunks.push_back(m_non_closing_edges.m_chunk);
+        }
+
+      if(m_non_closing_joins.non_empty())
+        {
+          dst.m_join_chunks.push_back(m_non_closing_joins.m_chunk);
+        }
+
       if(include_closing_edge)
         {
-          dst.m_edge_chunks.push_back(m_closing_edges.m_chunk);
-          dst.m_join_chunks.push_back(m_closing_joins.m_chunk);
+          if(m_closing_edges.non_empty())
+            {
+              dst.m_edge_chunks.push_back(m_closing_edges.m_chunk);
+            }
+
+          if(m_closing_joins.non_empty())
+            {
+              dst.m_join_chunks.push_back(m_closing_joins.m_chunk);
+            }
         }
     }
-  else if(m_children[0] != nullptr)
+  else if(have_children())
     {
+      FASTUIDRAWassert(m_children[0] != nullptr);
       FASTUIDRAWassert(m_children[1] != nullptr);
       m_children[0]->compute_chunks_take_all(include_closing_edge, max_attribute_cnt, max_index_cnt, dst);
       m_children[1]->compute_chunks_take_all(include_closing_edge, max_attribute_cnt, max_index_cnt, dst);
@@ -2260,13 +2288,29 @@ compute_chunks_implement(bool include_closing_edge,
   else
     {
       FASTUIDRAWassert(m_non_closing_edges.chunk_fits(max_attribute_cnt, max_index_cnt));
-      dst.m_edge_chunks.push_back(m_non_closing_edges.m_chunk);
-      dst.m_join_chunks.push_back(m_non_closing_joins.m_chunk);
+      if(m_non_closing_edges.non_empty())
+        {
+          dst.m_edge_chunks.push_back(m_non_closing_edges.m_chunk);
+        }
+
+      if(m_non_closing_joins.non_empty())
+        {
+          dst.m_join_chunks.push_back(m_non_closing_joins.m_chunk);
+        }
+
       if(include_closing_edge)
         {
           FASTUIDRAWassert(m_closing_edges.chunk_fits(max_attribute_cnt, max_index_cnt));
-          dst.m_edge_chunks.push_back(m_closing_edges.m_chunk);
-          dst.m_join_chunks.push_back(m_closing_joins.m_chunk);
+
+          if(m_closing_edges.non_empty())
+            {
+              dst.m_edge_chunks.push_back(m_closing_edges.m_chunk);
+            }
+
+          if(m_closing_joins.non_empty())
+            {
+              dst.m_join_chunks.push_back(m_closing_joins.m_chunk);
+            }
         }
     }
 }
