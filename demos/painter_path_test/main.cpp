@@ -1082,17 +1082,23 @@ create_stroked_path_attributes(void)
   data = &stroked->miter_clip_joins();
 
   m_miter_limit = 0.0f;
-  miter_points = data->attribute_data_chunk(StrokedPath::join_chunk_with_closing_edge);
-  for(unsigned p = 0, endp = miter_points.size(); p < endp; ++p)
+  for(unsigned int J = 0, endJ = stroked->number_joins(true); J < endJ; ++J)
     {
-      float v;
-      StrokedPath::point pt;
+      unsigned int chunk;
 
-      StrokedPath::point::unpack_point(&pt, miter_points[p]);
-      v = pt.miter_distance();
-      if(std::isfinite(v))
+      chunk = stroked->join_chunk(J);
+      miter_points = data->attribute_data_chunk(chunk);
+      for(unsigned p = 0, endp = miter_points.size(); p < endp; ++p)
         {
-          m_miter_limit = fastuidraw::t_max(m_miter_limit, fastuidraw::t_abs(v));
+          float v;
+          StrokedPath::point pt;
+
+          StrokedPath::point::unpack_point(&pt, miter_points[p]);
+          v = pt.miter_distance();
+          if(std::isfinite(v))
+            {
+              m_miter_limit = fastuidraw::t_max(m_miter_limit, fastuidraw::t_abs(v));
+            }
         }
     }
   m_miter_limit = fastuidraw::t_min(100.0f, m_miter_limit); //100 is an insane miter limit.
