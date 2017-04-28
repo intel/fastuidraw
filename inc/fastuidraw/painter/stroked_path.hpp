@@ -598,33 +598,6 @@ public:
   };
 
   /*!
-    Enumeration of values to feed as the argument
-    for PainterAttributeData::attribute_data_chunk(),
-    PainterAttributeData::index_data_chunk() and
-    PainterAttributeData::index_adjust_chunk()
-    for those PainterAttributeData objects holding
-    the join data.
-   */
-  enum join_chunk_choice_t
-    {
-      /*!
-        For joins, chunk to use for data without
-        closing edge
-       */
-      join_chunk_without_closing_edge,
-
-      /*!
-        For joins, chunk to use for data with
-        closing edge
-       */
-      join_chunk_with_closing_edge,
-
-      /*!
-       */
-      join_chunk_start_individual_joins
-    };
-
-  /*!
     \brief
     Object to hold the output of a chunk query via compute_chunks().
    */
@@ -709,6 +682,25 @@ public:
                  unsigned int max_index_cnt,
                  bool take_joins_outside_of_region,
                  ChunkSet &dst) const;
+
+  /*!
+    Returns the number of joins of the StrokedPath
+    \param include_joins_of_closing_edge if false disclude from the count,
+                                         this joins of the closing edges
+   */
+  unsigned int
+  number_joins(bool include_joins_of_closing_edge) const;
+
+  /*!
+    Returns a chunk value for Painter::attribute_data_chunk()
+    and related calls to feed the return value to any of
+    bevel_joins(), miter_clip_joins(), miter_bevel_joins(),
+    miter_joins() or rounded_joins() to fetch the chunk
+    of the named join.
+    \param J join ID with 0 <= J < number_joins(true)
+   */
+  unsigned int
+  join_chunk(unsigned int J) const;
 
   /*!
     Returns the data to draw the edges of a stroked path.
