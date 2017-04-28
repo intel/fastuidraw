@@ -37,7 +37,7 @@ protected:
 
     label = gl::Shader::gl_shader_type_label(shader_type);
     std::cout << label << "'s written to:\n";
-    
+
     for(unsigned int i = 0; i < cnt; ++i)
       {
         std::ostringstream name, name_log;
@@ -57,7 +57,7 @@ protected:
         std::cout << "\tCompile Log #" << i << ":" << name_log.str() << "\n";
       }
   }
-  
+
   void
   log_program(const reference_counted_ptr<gl::Program> &pr,
               const std::string &prefix)

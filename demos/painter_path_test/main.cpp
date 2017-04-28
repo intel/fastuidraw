@@ -434,7 +434,7 @@ update_cts_params(void)
 
   float speed = static_cast<float>(m_draw_timer.restart_us()), speed_stroke, speed_shear;
   speed /= 1000.0f;
-  
+
   if(keyboard_state[SDL_SCANCODE_LSHIFT])
     {
       speed *= 0.1f;
@@ -766,7 +766,7 @@ handle_event(const SDL_Event &ev)
               std::cout << "\n";
             }
           break;
-          
+
         case SDLK_a:
           m_with_aa = !m_with_aa;
           std::cout << "Anti-aliasing stroking and filling = " << m_with_aa << "\n";

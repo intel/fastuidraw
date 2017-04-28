@@ -84,7 +84,7 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
     {
       line_data->clear();
     }
-  
+
   fastuidraw::c_array<fastuidraw::Glyph> glyphs_ptr(cast_c_array(glyphs));
   fastuidraw::c_array<fastuidraw::vec2> pos_ptr(cast_c_array(positions));
   fastuidraw::c_array<uint32_t> char_codes_ptr(cast_c_array(character_codes));
@@ -94,7 +94,7 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
     {
       extents_ptr = cast_c_array(*glyph_extents);
     }
-    
+
   while(getline(istr, line))
     {
       fastuidraw::c_array<fastuidraw::Glyph> sub_g;
@@ -111,7 +111,7 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
 
       original_line = line;
       preprocess_text(line);
-      
+
       sub_g = glyphs_ptr.sub_array(loc, line.length());
       sub_p = pos_ptr.sub_array(loc, line.length());
       sub_ch = char_codes_ptr.sub_array(loc, line.length());
@@ -167,7 +167,7 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
       L.m_horizontal_spread.m_end = pen.x();
       L.m_vertical_spread.m_begin = pen.y() + offset - tallest;
       L.m_vertical_spread.m_end = pen.y() + offset - negative_tallest;
-      
+
       pen.x() = 0.0f;
       pen.y() += offset + 1.0f;
       loc += line.length();

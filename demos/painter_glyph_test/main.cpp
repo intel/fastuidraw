@@ -31,10 +31,10 @@ public:
 
   unsigned int
   glyph_source(float x) const;
-  
+
 private:
   typedef std::pair<float, bool> key;
-  
+
   std::map<key, unsigned int> m_glyph_finder;
   LineData m_L;
 };
@@ -46,14 +46,14 @@ public:
     {
       glyph_not_found = ~0u
     };
-  
+
   void
   init(const std::vector<LineData> &in_data,
        const_c_array<range_type<float> > glyph_extents);
 
   unsigned int
   glyph_source(vec2 p) const;
-  
+
 private:
   const_c_array<range_type<float> > m_glyph_extents;
   std::vector<PerLine> m_lines;
@@ -67,7 +67,7 @@ public:
 
   unsigned int
   size(void) const;
-    
+
   const PainterAttributeData&
   data(unsigned int I) const;
 
@@ -170,7 +170,7 @@ private:
 
   float
   update_cts_params(void);
-  
+
   command_line_argument_value<std::string> m_font_path;
   command_line_argument_value<std::string> m_font_style, m_font_family;
   command_line_argument_value<bool> m_font_bold, m_font_italic;
@@ -234,7 +234,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
 
   div_scale_factor = static_cast<float>(font->face()->units_per_EM);
   scale_factor = pixel_size_formatting / div_scale_factor;
-      
+
   for(character_code = FT_Get_First_Char(font->face(), &glyph_index);
       glyph_index != 0;
       character_code = FT_Get_Next_Char(font->face(), character_code, &glyph_index))
@@ -257,7 +257,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
 
   std::vector<LineData> lines;
   vec2 pen(0.0f, 0.0f);
-      
+
   for(navigator_chars = 0, i = 0, endi = m_glyphs.size(), glyph_at_start = 0; i < endi; ++i)
     {
       Glyph g;
@@ -274,7 +274,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
 
       m_glyph_extents[i].m_begin = pen.x() + scale_factor * layout.m_horizontal_layout_offset.x();
       m_glyph_extents[i].m_end = m_glyph_extents[i].m_begin + scale_factor * layout.m_size.x();
-          
+
       pen.x() += advance;
 
       if(i + 1 < endi)
@@ -286,15 +286,15 @@ init(const reference_counted_ptr<const FontFreeType> &font,
           pen.x() += scale_factor * pre_layout;
           nxt_adv = t_max(nxtL.m_advance.x(),
                           t_max(0.0f, nxtL.m_horizontal_layout_offset.x()) + nxtL.m_size.x());
-          nxt = pen.x() + scale_factor * nxt_adv; 
+          nxt = pen.x() + scale_factor * nxt_adv;
         }
       else
         {
           nxt = pen.x();
         }
-          
+
       if(nxt >= line_length || i + 1 == endi)
-        {              
+        {
           std::ostringstream desc;
           desc << "[" << std::setw(5) << m_glyphs[glyph_at_start].layout().m_glyph_code
                << " - " << std::setw(5) << m_glyphs[i].layout().m_glyph_code << "]";
@@ -383,7 +383,7 @@ set_data(float pixel_size, size_t glyphs_per_painter_draw)
       const_c_array<vec2> glyph_positions;
       unsigned int cnt;
       PainterAttributeData *data;
-          
+
       cnt = t_min(in_glyphs.size(), glyphs_per_painter_draw);
       glyphs = in_glyphs.sub_array(0, cnt);
       glyph_positions = in_glyph_positions.sub_array(0, cnt);
@@ -403,7 +403,7 @@ size(void) const
 {
   return m_data.size();
 }
-    
+
 const PainterAttributeData&
 GlyphDraws::
 data(unsigned int I) const
@@ -737,7 +737,7 @@ draw_frame(void)
 
       const_c_array<Glyph> glyphs(m_draws[src].glyphs());
       const_c_array<vec2> glyph_positions(m_draws[src].glyph_positions());
-      
+
       // reuse stroke and brush parameters across all glyphs
       PainterPackedValue<PainterBrush> pbr;
       pbr = m_painter->packed_value_pool().create_packed_value(stroke_brush);
@@ -780,7 +780,7 @@ draw_frame(void)
   if(m_draw_stats)
     {
       std::ostringstream ostr;
-      
+
       ostr << "FPS = ";
       if(us > 0.0f)
         {
@@ -815,7 +815,6 @@ draw_frame(void)
       unsigned int G, src;
       ivec2 mouse_position;
       std::ostringstream ostr;
-      
 
       src = (m_current_drawer == number_draw_modes) ?
         static_cast<unsigned int>(draw_glyph_curvepair) :
@@ -830,7 +829,7 @@ draw_frame(void)
           GlyphLayoutData layout;
           float ratio;
           vec2 wh, q;
-          
+
           glyph = m_draws[src].glyphs()[G];
           layout = glyph.layout();
           ratio = m_render_pixel_size.m_value / layout.m_units_per_EM;
@@ -993,7 +992,7 @@ handle_event(const SDL_Event &ev)
               std::cout << "Join drawing mode set to: " << m_join_labels[m_join_style] << "\n";
             }
           break;
-          
+
         case SDLK_w:
           if(m_stroke_glyphs)
             {
