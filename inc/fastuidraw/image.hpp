@@ -39,7 +39,7 @@ class Image;
   /*!
     \brief
     Represents the interface for a backing store for color data of images.
-    
+
     For example in GL, this can be a GL_TEXTURE_2D_ARRAY. An implementation
     of the class does NOT need to be thread safe because the user of the
     backing store (ImageAtlas) performs calls to the backing store behind
@@ -135,7 +135,7 @@ class Image;
   /*!
     \brief
     Represents the interface for the backing store for index data of images.
-    
+
     For example in GL, this can be a GL_TEXTURE_2D_ARRAY. An implementation
     of the class does NOT need to be thread safe because the user of the
     backing store (ImageAtlas) performs calls to the backing store behind

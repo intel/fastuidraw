@@ -39,7 +39,7 @@ namespace fastuidraw
   /*!
     \brief
     A wrapper over a pointer to implement reference counting.
-    
+
     The class T must implement the static methods
      - T::add_reference(const T*)
      - T::remove_reference(const T*)
@@ -392,7 +392,7 @@ namespace fastuidraw
     Object deletion (when the reference count goes to zero) is performed
     via \ref FASTUIDRAWdelete. As a consequence of using \ref
     FASTUIDRAWdelete, objects must be created with \ref FASTUIDRAWnew.
- 
+
     \tparam T object type that is reference counted
     \tparam Counter object type to perform reference counting.
 

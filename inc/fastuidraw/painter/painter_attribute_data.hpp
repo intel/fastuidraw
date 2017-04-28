@@ -121,7 +121,7 @@ namespace fastuidraw
       itself Painter::increment_z(range_type::differnce())
       and will set the header set to PainterPacker so
       that while drawing so that range_type::m_begin maps
-      to Painter::current_z(). 
+      to Painter::current_z().
      */
     const_c_array<range_type<int> >
     z_ranges(void) const;

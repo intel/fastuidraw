@@ -989,7 +989,7 @@ configure_backend(void)
     {
       m_params.blend_type(fastuidraw::PainterBlendShader::dual_src);
     }
-  
+
   if(m_params.blend_type() == fastuidraw::PainterBlendShader::dual_src
      && !have_dual_src_blending)
     {

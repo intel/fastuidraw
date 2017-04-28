@@ -25,7 +25,7 @@ fastuidraw_stroke_compute_offset(in uint point_packed_data,
         {
           lambda = -lambda;
         }
-      
+
       /* enforce miter-limit
        */
       if(miter_limit >= 0.0)

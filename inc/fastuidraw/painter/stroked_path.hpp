@@ -414,7 +414,7 @@ public:
     {
       return offset_type(m_packed_data);
     }
-    
+
     /*!
       When stroking the data, the depth test to only
       pass when the depth value is -strictly- larger
@@ -581,7 +581,7 @@ public:
     void
     unpack_point(point *dst, const PainterAttribute &src);
   };
- 
+
   /*!
     \brief
     Opaque object to hold work room needed for functions
@@ -634,7 +634,7 @@ public:
     ChunkSet(void);
 
     ~ChunkSet();
-    
+
     const_c_array<unsigned int>
     edge_chunks(void) const;
 
@@ -643,12 +643,12 @@ public:
 
     const_c_array<unsigned int>
     cap_chunks(void) const;
-    
+
   private:
     friend class StrokedPath;
     void *m_d;
   };
-  
+
   /*!
     Ctor. Construct a StrokedPath from the data
     of a TessellatedPath.

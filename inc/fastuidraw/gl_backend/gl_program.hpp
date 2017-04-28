@@ -39,7 +39,7 @@ namespace gl {
   \brief
   Simple Shader utility class providing a simple interface to build
   GL shader objects using a glsl::ShaderSouce as its source code.
-  
+
   The actual GL object creation is defferred to later, in
   doing so, one can create Shader objects from outside the main GL
   thread. Each of the following commands

@@ -63,7 +63,7 @@ namespace fastuidraw
      */
     void
     swap(FontProperties &obj);
-    
+
     /*!
       Specifies if the font is to be bold or not.
      */

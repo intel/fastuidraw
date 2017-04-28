@@ -66,7 +66,7 @@ namespace fastuidraw
     typedef atomic default_base;
     typename reference_counted<base>::default_base default_base;
   };
-  
+
 /*! @} */
 
 } //namespace fastuidraw

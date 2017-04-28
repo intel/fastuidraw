@@ -47,7 +47,7 @@ namespace fastuidraw
     /*!
       \brief
       Class that holds the actual data and packs the data.
-      
+
       A class derived from PainterShaderData should set the
       field \ref m_data to point to an object derived from
       DataBase for the purpose of holding and packing data.

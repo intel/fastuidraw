@@ -69,7 +69,7 @@ Uniform(int location, GLsizei count, const vecN<T,N> &v)
 /*!
   \brief
   Template version for setting array of uniform matrices.
-  
+
   Equivalent to
   \code
   Uniform(location, count, v.c_ptr(), transposed);
@@ -115,7 +115,7 @@ Uniform(int location, GLsizei count, const_c_array<T> v)
 /*!
   \brief
   Template version for setting array of uniforms.
-  
+
   Equivalent to
   \code
   Uniform(location, count, &v[0]);
@@ -138,7 +138,7 @@ Uniform(int location, GLsizei count, c_array<T> v)
 /*!
   \brief
   Template version for setting array of uniforms.
-  
+
   Equivalent to
   \code
   Uniform(location, count, &v[0], transposed);
@@ -163,7 +163,7 @@ Uniform(int location, GLsizei count, const_c_array<T> v, bool transposed)
 /*!
   \brief
   Template version for setting array of uniforms,
-  
+
   Equivalent to
   \code
   Uniform(location, v.size(), &v[0]);
@@ -185,7 +185,7 @@ Uniform(int location, const_c_array<T> v)
 /*!
   \brief
   Template version for setting array of uniforms,
-  
+
   Equivalent to
   \code
   ProgramUniform(program, location, count, v.c_ptr());
@@ -228,7 +228,7 @@ ProgramUniform(GLuint program, int location, GLsizei count, const vecN<T,N> &v, 
 /*!
   \brief
   Template version for setting array of uniforms,
-  
+
   Equivalent to
   \code
   ProgramUniform(program, location, count, &v[0]);
@@ -252,7 +252,7 @@ ProgramUniform(GLuint program, int location, GLsizei count, const_c_array<T> v)
 /*!
   \brief
   Template version for setting array of uniforms,
-  
+
   Equivalent to
   \code
   ProgramUniform(program, location, count, &v[0]);
@@ -276,7 +276,7 @@ ProgramUniform(GLuint program, int location, GLsizei count, c_array<T> v)
 /*!
   \brief
   Template version for setting array of uniforms.
-  
+
   Equivalent to
   \code
   ProgramUniform(program, location, count, &v[0], transposed);
@@ -302,7 +302,7 @@ ProgramUniform(GLuint program, int location, GLsizei count, const_c_array<T> v, 
 /*!
   \brief
   Template version for setting array of uniforms,
-  
+
   Equivalent to
   \code
   ProgramUniform(program, location, v.size(), &v[0]);

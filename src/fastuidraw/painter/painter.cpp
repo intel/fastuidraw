@@ -78,7 +78,7 @@ namespace
     {
       int max_winding(0), min_winding(0);
       bool first_entry(true);
-      
+
       for(unsigned int i = 0; i < subsets.size(); ++i)
         {
           unsigned int s(subsets[i]);
@@ -1462,7 +1462,7 @@ draw_convex_polygon(const PainterFillShader &shader,
       d->m_work_room.m_polygon_indices.push_back(i - 1);
       d->m_work_room.m_polygon_indices.push_back(i);
     }
-  
+
   if(with_anti_aliasing)
     {
       ++d->m_current_z;
@@ -1482,14 +1482,14 @@ draw_convex_polygon(const PainterFillShader &shader,
 
       c_array<PainterAttribute> attrs(make_c_array(d->m_work_room.m_polygon_attribs));
       c_array<PainterIndex> indices(make_c_array(d->m_work_room.m_polygon_indices));
-  
+
       for(unsigned int src = 0, prev_src = pts.size() - 1; src < pts.size(); prev_src = src, ++src)
 	{
 	  c_array<PainterAttribute> dst_attrib(attrs.sub_array(src * 4, 4));
 	  c_array<PainterIndex> dst_index(indices.sub_array(src * 6, 6));
 	  vec2 t(pts[src] - pts[prev_src]);
 	  vec2 n(-t.y(), t.x());
-	
+
 	  dst_index[0] = 4 * src + 0;
 	  dst_index[1] = 4 * src + 1;
 	  dst_index[2] = 4 * src + 2;
@@ -1501,7 +1501,7 @@ draw_convex_polygon(const PainterFillShader &shader,
 	    {
 	      unsigned int which_pt;
 
-	      which_pt = (k == 0) ? prev_src : src; 
+	      which_pt = (k == 0) ? prev_src : src;
 	      dst_attrib[2 * k + 0].m_attrib0 = pack_vec4(pts[which_pt].x(), pts[which_pt].y(), n.x(), n.y());
 	      dst_attrib[2 * k + 0].m_attrib1 = pack_vec4(1.0f, 0.0f, 0.0f, 0.0f);
 	      dst_attrib[2 * k + 0].m_attrib2 = uvec4(0, 0, 0, 0);
@@ -1521,7 +1521,6 @@ draw_convex_polygon(const PainterFillShader &shader,
 		      d->m_current_z,
 		      call_back);
       ++d->m_current_z;
-		      
     }
 }
 
@@ -1622,7 +1621,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
     {
       cap_chunks = const_c_array<unsigned int>();
     }
-  
+
   /* clear first to blank the values, std::vector::clear
      does not call deallocation on its backing store,
      thus there is no malloc/free noise
@@ -1701,7 +1700,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
         {
           int z;
 
-          incr_z -= z_increments[i];          
+          incr_z -= z_increments[i];
           z = startz + incr_z + 1 - start_zs[i];
 
           d->draw_generic(*sh, draw,
@@ -1759,9 +1758,9 @@ stroke_path_common(const PainterStrokeShader &shader, const PainterData &draw,
   bool is_miter_join;
   float rounded_thresh(1.0f);
   const PainterShaderData::DataBase *raw_data;
-  
+
   raw_data = draw.m_item_shader_data.data().data_base();
-  
+
   if(js == PainterEnums::rounded_joins
      || (cp == PainterEnums::rounded_caps && !close_contours))
     {

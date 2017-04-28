@@ -50,7 +50,7 @@ namespace
     {
       return static_cast<float>(p) * m_factor;
     }
-    
+
   private:
     float m_factor;
   };
@@ -113,7 +113,7 @@ namespace
 
     void
     send_waiting_commands(bool end_contour);
-    
+
     static
     int
     ft_outline_move_to(const FT_Vector *pt, void *user);
@@ -241,12 +241,12 @@ send_waiting_commands(bool end_contour)
     {
       return;
     }
-  
+
   for(unsigned int s = 0, ends = m_waiting_command.size() - 1; s < ends; ++s)
     {
       m_path << fastuidraw::Path::control_point(m_waiting_command[s]);
     }
-  
+
   if(end_contour)
     {
       m_path << fastuidraw::Path::contour_end();

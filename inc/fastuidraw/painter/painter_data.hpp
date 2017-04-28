@@ -90,7 +90,7 @@ namespace fastuidraw
         to a packed value created by the passed \ref
         PainterPackedValuePool. In addition, sets
         \ref m_value to nullptr.
-        \param pool \ref PainterPackedValuePool from 
+        \param pool \ref PainterPackedValuePool from
                     which to create the packed value
        */
       void

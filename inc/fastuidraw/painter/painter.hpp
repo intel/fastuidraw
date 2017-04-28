@@ -919,7 +919,7 @@ namespace fastuidraw
                        bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                        bool with_anti_aliasing,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back);
-    
+
     void *m_d;
   };
 /*! @} */

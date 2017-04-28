@@ -33,7 +33,7 @@ namespace fastuidraw
     ostr << "[" << obj.m_begin << ", " << obj.m_end << ")";
     return ostr;
   }
-  
+
   template<typename T, size_t N>
   std::ostream&
   operator<<(std::ostream &ostr, const vecN<T, N> &obj)

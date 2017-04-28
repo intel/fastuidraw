@@ -36,7 +36,7 @@ namespace fastuidraw
   /*!
     \brief
     A PainterBrush defines a brush for painting via Painter.
-    
+
     It provided a color (see \ref pen()), optionally applying
     an image (see \ref image() and \ref sub_image()) and
     optionally applying a linear or radial gradient (see

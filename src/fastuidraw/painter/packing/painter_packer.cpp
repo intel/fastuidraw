@@ -830,7 +830,7 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
   unsigned int header_loc;
   const unsigned int NOT_LOADED = ~0u;
   unsigned int number_index_chunks, number_attribute_chunks;
-  
+
   number_index_chunks = src.number_index_chunks();
   number_attribute_chunks = src.number_attribute_chunks();
   if(!shader || number_index_chunks == 0 || number_attribute_chunks == 0)

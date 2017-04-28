@@ -268,7 +268,7 @@ public:
    */
   ShaderSource&
   disable_pre_added_source(void);
-  
+
   /*!
     Returns the GLSL code assembled. The returned string is only
     gauranteed to be valid up until the ShaderSource object

@@ -371,7 +371,7 @@ namespace fastuidraw
          of the PainterItemShaderData in the \ref Painter (or
          \ref PainterPacker) call; use the macro fastuidraw_fetch_data()
          to read the data.
-      
+
       The function's return value's .xy gives the position of
       the vertex in item coordinates and the .zw give the
       position to feed the brush. The out z_add must be written
