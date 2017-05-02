@@ -403,8 +403,9 @@ namespace
   {
   public:
     void
-    clear(void)
+    reset(void)
     {
+      m_ignore_join_adds = false;
       m_edge_chunks.clear();
       m_join_chunks.clear();
       m_join_ranges.clear();
@@ -439,6 +440,12 @@ namespace
     }
 
     void
+    ignore_join_adds(void)
+    {
+      m_ignore_join_adds = true;
+    }
+
+    void
     handle_dashed_evaluator(const fastuidraw::DashEvaluatorBase *dash_evaluator,
                             const fastuidraw::PainterShaderData::DataBase *dash_data,
                             const fastuidraw::StrokedPath &path);
@@ -446,6 +453,7 @@ namespace
   private:
     std::vector<unsigned int> m_edge_chunks, m_join_chunks, m_cap_chunks;
     std::vector<fastuidraw::range_type<unsigned int> > m_join_ranges;
+    bool m_ignore_join_adds;
   };
 
   template<typename T>
@@ -2256,8 +2264,16 @@ compute_chunks(bool include_closing_edge,
       scratch.m_adjusted_clip_eqs[i] = c * clip_matrix_local;
     }
 
-  dst.clear();
-
+  dst.reset();
+  if(take_joins_outside_of_region)
+    {
+      dst.add_join_chunk(m_non_closing_joins);
+      if(include_closing_edge)
+        {
+          dst.add_join_chunk(m_closing_joins);
+        }
+        dst.ignore_join_adds();
+    }
   compute_chunks_implement(include_closing_edge,
                            scratch, item_space_additional_room,
                            max_attribute_cnt, max_index_cnt, dst);
@@ -4172,7 +4188,7 @@ void
 ChunkSetPrivate::
 add_join_chunk(const RangeAndChunk &j)
 {
-  if(j.non_empty())
+  if(j.non_empty() && !m_ignore_join_adds)
     {
       m_join_chunks.push_back(j.m_chunk);
       m_join_ranges.push_back(j.m_elements);
@@ -4327,7 +4343,7 @@ compute_chunks(ScratchSpace &scratch_space,
 
   if(d->m_empty_path)
     {
-      chunk_set_ptr->clear();
+      chunk_set_ptr->reset();
       return;
     }
 
