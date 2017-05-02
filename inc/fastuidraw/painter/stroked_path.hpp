@@ -47,6 +47,13 @@ class DashEvaluatorBase;
   stroking style. In particular, for a given TessellatedPath,
   one only needs to construct a StrokedPath <i>once</i> regardless
   of how one strokes the original path for drawing.
+
+  The data is stored as \ref PainterAttributeData, a seperate
+  object for edges, each type of join and each type of caps.
+  What chunks to use from these objects is computed by
+  the member function compute_chunks(); the PainterAttributeData
+  chunking for joins and caps is the same regardless of
+  the cap and join type.
  */
 class StrokedPath:
     public reference_counted<StrokedPath>::non_concurrent
@@ -608,12 +615,27 @@ public:
 
     ~ChunkSet();
 
+    /*!
+      The list of chunks to take from StrokedPath::edges()
+      that have visible content.
+     */
     const_c_array<unsigned int>
     edge_chunks(void) const;
 
+    /*!
+      The list of chunks to take from any of StrokedPath::bevel_joins(),
+      StrokedPath::miter_clip_joins(), StrokedPath::miter_bevel_joins(),
+      StrokedPath::miter_joins() or StrokedPath::rounded_joins() that
+      have visible content.
+     */
     const_c_array<unsigned int>
     join_chunks(void) const;
 
+    /*!
+      The list of chunks to take from any of StrokedPath::square_caps(),
+      StrokedPath::adjustable_caps() or StrokedPath::rounded_caps()
+      that have visible content.
+     */
     const_c_array<unsigned int>
     cap_chunks(void) const;
 
@@ -648,6 +670,7 @@ public:
     \param dash_evaluator if doing dashed stroking, the dash evalulator will cull
                           joins not to be drawn, if nullptr only those joins not in the
                           visible area defined by clip_equations are culled.
+    \param dash_data data to pass to dast evaluator
     \param clip_equations array of clip equations
     \param clip_matrix_local 3x3 transformation from local (x, y, 1)
                              coordinates to clip coordinates.

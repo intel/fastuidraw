@@ -203,6 +203,13 @@ namespace fastuidraw
       return *this;
     }
 
+    /*!
+      Call value::make_packed() on \ref m_brush,
+      \ref m_item_shader_data and \ref
+      m_blend_shader_data.
+      \param pool \ref PainterPackedValuePool from
+                  which to create the packed value
+     */
     void
     make_packed(PainterPackedValuePool &pool)
     {

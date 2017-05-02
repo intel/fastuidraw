@@ -26,9 +26,11 @@ namespace fastuidraw
  */
 
   /*!
-    Inherit from a member class of opaque_reference_counted in
-    order to implement the PIMP pattern for reference counted
-    data and the reference as \ref reference_counter_ptr<base>.
+    \brief
+    Inherit from a member class of \ref opaque_reference_counted in
+    order to implement the PIMPL pattern for reference counted
+    data and the reference to be the type
+    reference_counted_ptr<opaque_reference_counted::base>.
    */
   class opaque_reference_counted
   {
@@ -63,7 +65,6 @@ namespace fastuidraw
       \brief
       Typedef for "default" way to reference count.
      */
-    typedef atomic default_base;
     typename reference_counted<base>::default_base default_base;
   };
 
