@@ -604,17 +604,41 @@ namespace
         indices_per_segment_without_bevel = 3 * triangles_per_segment,
       };
 
+    class CreationValues
+    {
+    public:
+      CreationValues(void):
+        m_non_closing_edge_vertex_cnt(0),
+        m_non_closing_edge_index_cnt(0),
+        m_non_closing_edge_chunk_cnt(0),
+        m_closing_edge_vertex_cnt(0),
+        m_closing_edge_index_cnt(0),
+        m_closing_edge_chunk_cnt(0),
+        m_non_closing_join_chunk_cnt(0),
+        m_closing_join_chunk_cnt(0),
+        m_cap_chunk_cnt(0)
+      {}
+
+      unsigned int m_non_closing_edge_vertex_cnt;
+      unsigned int m_non_closing_edge_index_cnt;
+      unsigned int m_non_closing_edge_chunk_cnt;
+
+      unsigned int m_closing_edge_vertex_cnt;
+      unsigned int m_closing_edge_index_cnt;
+      unsigned int m_closing_edge_chunk_cnt;
+
+      unsigned int m_non_closing_join_chunk_cnt;
+      unsigned int m_closing_join_chunk_cnt;
+
+      unsigned int m_cap_chunk_cnt;
+    };
+
     static
     StrokedPathSubset*
     create(const SubEdgeCullingHierarchy *src,
-           unsigned int &total_vertex_cnt,
-           unsigned int &total_index_cnt,
-           unsigned int &total_chunk_count,
+           CreationValues &out_values,
            JoinOrdering &join_ordering,
-           unsigned int &total_join_count,
-           CapOrdering &cap_ordering,
-           unsigned int &total_cap_count);
-
+           CapOrdering &cap_ordering);
 
     ~StrokedPathSubset();
 
@@ -698,29 +722,9 @@ namespace
       unsigned int m_cap_depth;
     };
 
-    class PostProcesssConstants
-    {
-    public:
-      PostProcesssConstants(void):
-        m_non_closing_edge_vertex_cnt(0),
-        m_non_closing_edge_index_cnt(0),
-        m_non_closing_edge_chunk_count(0),
-        m_non_closing_join_chunk_count(0),
-        m_cap_chunk_count(0)
-      {}
-
-      unsigned int m_non_closing_edge_vertex_cnt;
-      unsigned int m_non_closing_edge_index_cnt;
-      unsigned int m_non_closing_edge_chunk_count;
-
-      unsigned int m_non_closing_join_chunk_count;
-      unsigned int m_cap_chunk_count;
-    };
-
-    StrokedPathSubset(unsigned int &vertex_st, unsigned int &index_st, unsigned int &chunk_count,
-                      unsigned int &closing_vertex_st, unsigned int &closing_index_st, unsigned int &closing_chunk_count,
-                      JoinOrdering &join_ordering, unsigned int &join_chunk, unsigned int &closing_join_chunk,
-                      CapOrdering &cap_ordering, unsigned int &cap_chunk,
+    StrokedPathSubset(CreationValues &out_values,
+                      JoinOrdering &join_ordering,
+                      CapOrdering &cap_ordering,
                       const SubEdgeCullingHierarchy *src);
 
     void
@@ -744,7 +748,7 @@ namespace
                                unsigned int &index_cnt);
     void
     post_process(PostProcessVariables &variables,
-                 const PostProcesssConstants &constants,
+                 const CreationValues &constants,
                  JoinOrdering &join_ordering,
                  CapOrdering &cap_ordering);
 
@@ -773,9 +777,7 @@ namespace
     explicit
     EdgeAttributeFiller(const StrokedPathSubset *src,
                         const fastuidraw::TessellatedPath &P,
-                        unsigned int total_vertex_cnt,
-                        unsigned int total_index_cnt,
-                        unsigned int total_number_chunks);
+                        const StrokedPathSubset::CreationValues &cnts);
 
     virtual
     void
@@ -2001,38 +2003,15 @@ StrokedPathSubset::
 StrokedPathSubset*
 StrokedPathSubset::
 create(const SubEdgeCullingHierarchy *src,
-       unsigned int &total_vertex_cnt,
-       unsigned int &total_index_cnt,
-       unsigned int &total_chunk_count,
+       CreationValues &out_values,
        JoinOrdering &join_ordering,
-       unsigned int &chunk_join_count,
-       CapOrdering &cap_ordering,
-       unsigned int &chunk_cap_count)
+       CapOrdering &cap_ordering)
 {
   StrokedPathSubset *return_value;
-
   PostProcessVariables vars;
-  PostProcesssConstants constants;
 
-  unsigned int closing_chunk_count(0);
-  unsigned int closing_vertex_cnt(0), closing_index_cnt(0);
-  unsigned int closing_join_chunk(0);
-
-  return_value = FASTUIDRAWnew StrokedPathSubset(constants.m_non_closing_edge_vertex_cnt,
-                                                 constants.m_non_closing_edge_index_cnt,
-                                                 constants.m_non_closing_edge_chunk_count,
-                                                 closing_vertex_cnt, closing_index_cnt, closing_chunk_count,
-                                                 join_ordering, constants.m_non_closing_join_chunk_count, closing_join_chunk,
-                                                 cap_ordering, constants.m_cap_chunk_count,
-                                                 src);
-
-  return_value->post_process(vars, constants, join_ordering, cap_ordering);
-
-  total_vertex_cnt = constants.m_non_closing_edge_vertex_cnt + closing_vertex_cnt;
-  total_index_cnt = constants.m_non_closing_edge_index_cnt + closing_index_cnt;
-  total_chunk_count = constants.m_non_closing_edge_chunk_count + closing_chunk_count;
-  chunk_join_count = constants.m_non_closing_join_chunk_count + closing_join_chunk;
-  chunk_cap_count = constants.m_cap_chunk_count;
+  return_value = FASTUIDRAWnew StrokedPathSubset(out_values, join_ordering, cap_ordering, src);
+  return_value->post_process(vars, out_values, join_ordering, cap_ordering);
 
   return return_value;
 }
@@ -2040,7 +2019,7 @@ create(const SubEdgeCullingHierarchy *src,
 void
 StrokedPathSubset::
 post_process(PostProcessVariables &variables,
-             const PostProcesssConstants &constants,
+             const CreationValues &constants,
              JoinOrdering &join_ordering,
              CapOrdering &cap_ordering)
 {
@@ -2077,7 +2056,7 @@ post_process(PostProcessVariables &variables,
       join_ordering.post_process_non_closing(m_non_closing_joins.m_elements,
                                              variables.m_join_depth);
 
-      join_ordering.post_process_closing(constants.m_non_closing_join_chunk_count,
+      join_ordering.post_process_closing(constants.m_non_closing_join_chunk_cnt,
                                          m_closing_joins.m_elements,
                                          variables.m_closing_join_depth);
 
@@ -2097,7 +2076,7 @@ post_process(PostProcessVariables &variables,
   /* make the closing edge chunks start after the
      non-closing edge chunks.
    */
-  m_closing_edges.m_chunk += constants.m_non_closing_edge_chunk_count;
+  m_closing_edges.m_chunk += constants.m_non_closing_edge_chunk_cnt;
 
   /* make vertices and indices of closing edges appear
      after those of non-closing edges
@@ -2117,7 +2096,7 @@ post_process(PostProcessVariables &variables,
   /* make the chunks of closing edges come AFTER
      chunks of non-closing edge
    */
-  m_closing_joins.m_chunk += constants.m_non_closing_join_chunk_count;
+  m_closing_joins.m_chunk += constants.m_non_closing_join_chunk_cnt;
 
   m_empty_subset = !m_non_closing_edges.non_empty()
     && !m_non_closing_joins.non_empty()
@@ -2126,10 +2105,8 @@ post_process(PostProcessVariables &variables,
 }
 
 StrokedPathSubset::
-StrokedPathSubset(unsigned int &vertex_st, unsigned int &index_st, unsigned int &chunk_count,
-                  unsigned int &closing_vertex_st, unsigned int &closing_index_st, unsigned int &closing_chunk_count,
-                  JoinOrdering &join_ordering, unsigned int &join_chunk, unsigned int &closing_join_chunk,
-                  CapOrdering &cap_ordering, unsigned int &cap_chunk,
+StrokedPathSubset(CreationValues &out_values,
+                  JoinOrdering &join_ordering, CapOrdering &cap_ordering,
                   const SubEdgeCullingHierarchy *src):
   m_children(nullptr, nullptr),
   m_bb(src->bounding_box())
@@ -2138,11 +2115,11 @@ StrokedPathSubset(unsigned int &vertex_st, unsigned int &index_st, unsigned int 
        child(0)
        child(1)
    */
-  m_non_closing_edges.m_vertex_data_range.m_begin = vertex_st;
-  m_non_closing_edges.m_index_data_range.m_begin = index_st;
+  m_non_closing_edges.m_vertex_data_range.m_begin = out_values.m_non_closing_edge_vertex_cnt;
+  m_non_closing_edges.m_index_data_range.m_begin = out_values.m_non_closing_edge_index_cnt;
 
-  m_closing_edges.m_vertex_data_range.m_begin = closing_vertex_st;
-  m_closing_edges.m_index_data_range.m_begin = closing_index_st;
+  m_closing_edges.m_vertex_data_range.m_begin = out_values.m_closing_edge_vertex_cnt;
+  m_closing_edges.m_index_data_range.m_begin = out_values.m_closing_edge_index_cnt;
 
   m_non_closing_joins.m_elements.m_begin = join_ordering.non_closing_edge().size();
   m_closing_joins.m_elements.m_begin = join_ordering.closing_edge().size();
@@ -2156,11 +2133,7 @@ StrokedPathSubset(unsigned int &vertex_st, unsigned int &index_st, unsigned int 
       for(unsigned int i = 0; i < 2; ++i)
         {
           FASTUIDRAWassert(src->child(i) != nullptr);
-          m_children[i] = FASTUIDRAWnew StrokedPathSubset(vertex_st, index_st, chunk_count,
-                                                          closing_vertex_st, closing_index_st, closing_chunk_count,
-                                                          join_ordering, join_chunk, closing_join_chunk,
-                                                          cap_ordering, cap_chunk,
-                                                          src->child(i));
+          m_children[i] = FASTUIDRAWnew StrokedPathSubset(out_values, join_ordering, cap_ordering, src->child(i));
         }
     }
   else
@@ -2168,46 +2141,50 @@ StrokedPathSubset(unsigned int &vertex_st, unsigned int &index_st, unsigned int 
       m_non_closing_edges.m_src = src->non_closing_edges();
       m_closing_edges.m_src = src->closing_edges();
 
-      increment_vertices_indices(m_non_closing_edges.m_src, vertex_st, index_st);
-      increment_vertices_indices(m_closing_edges.m_src, closing_vertex_st, closing_index_st);
+      increment_vertices_indices(m_non_closing_edges.m_src,
+                                 out_values.m_non_closing_edge_vertex_cnt,
+                                 out_values.m_non_closing_edge_index_cnt);
+      increment_vertices_indices(m_closing_edges.m_src,
+                                 out_values.m_closing_edge_vertex_cnt,
+                                 out_values.m_closing_edge_index_cnt);
 
       for(const JoinSource &J : src->non_closing_joins())
         {
-          join_ordering.add_join(J, join_chunk);
+          join_ordering.add_join(J, out_values.m_non_closing_join_chunk_cnt);
         }
 
       for(const JoinSource &J : src->closing_joins())
         {
-          join_ordering.add_join(J, closing_join_chunk);
+          join_ordering.add_join(J, out_values.m_closing_join_chunk_cnt);
         }
 
       for(const CapSource &C : src->caps())
         {
-          cap_ordering.add_cap(C, cap_chunk);
+          cap_ordering.add_cap(C, out_values.m_cap_chunk_cnt);
         }
     }
 
-  m_non_closing_edges.m_vertex_data_range.m_end = vertex_st;
-  m_non_closing_edges.m_index_data_range.m_end = index_st;
-  m_closing_edges.m_vertex_data_range.m_end = closing_vertex_st;
-  m_closing_edges.m_index_data_range.m_end = closing_index_st;
+  m_non_closing_edges.m_vertex_data_range.m_end = out_values.m_non_closing_edge_vertex_cnt;
+  m_non_closing_edges.m_index_data_range.m_end = out_values.m_non_closing_edge_index_cnt;
+  m_closing_edges.m_vertex_data_range.m_end = out_values.m_closing_edge_vertex_cnt;
+  m_closing_edges.m_index_data_range.m_end = out_values.m_closing_edge_index_cnt;
 
-  m_non_closing_edges.m_chunk = chunk_count;
-  m_closing_edges.m_chunk = closing_chunk_count;
+  m_non_closing_edges.m_chunk = out_values.m_non_closing_edge_chunk_cnt;
+  m_closing_edges.m_chunk = out_values.m_closing_edge_chunk_cnt;
 
   m_non_closing_joins.m_elements.m_end = join_ordering.non_closing_edge().size();
   m_closing_joins.m_elements.m_end = join_ordering.closing_edge().size();
   m_caps.m_elements.m_end = cap_ordering.caps().size();
 
-  m_non_closing_joins.m_chunk = join_chunk;
-  m_closing_joins.m_chunk = closing_join_chunk;
-  m_caps.m_chunk = cap_chunk;
+  m_non_closing_joins.m_chunk = out_values.m_non_closing_join_chunk_cnt;
+  m_closing_joins.m_chunk = out_values.m_closing_join_chunk_cnt;
+  m_caps.m_chunk = out_values.m_cap_chunk_cnt;
 
-  ++chunk_count;
-  ++closing_chunk_count;
-  ++join_chunk;
-  ++closing_join_chunk;
-  ++cap_chunk;
+  ++out_values.m_non_closing_edge_chunk_cnt;
+  ++out_values.m_closing_edge_chunk_cnt;
+  ++out_values.m_non_closing_join_chunk_cnt;
+  ++out_values.m_closing_join_chunk_cnt;
+  ++out_values.m_cap_chunk_cnt;
 }
 
 void
@@ -2243,8 +2220,6 @@ compute_chunks(bool include_closing_edge,
                bool take_joins_outside_of_region,
                ChunkSetPrivate &dst)
 {
-  FASTUIDRAWunused(take_joins_outside_of_region);
-
   scratch.m_adjusted_clip_eqs.resize(clip_equations.size());
   for(unsigned int i = 0; i < clip_equations.size(); ++i)
     {
@@ -2397,14 +2372,12 @@ compute_chunks_implement(bool include_closing_edge,
 EdgeAttributeFiller::
 EdgeAttributeFiller(const StrokedPathSubset *src,
                     const fastuidraw::TessellatedPath &P,
-                    unsigned int total_vertex_cnt,
-                    unsigned int total_index_cnt,
-                    unsigned int total_number_chunks):
+                    const StrokedPathSubset::CreationValues &cnts):
   m_src(src),
   m_P(P),
-  m_total_vertex_cnt(total_vertex_cnt),
-  m_total_index_cnt(total_index_cnt),
-  m_total_number_chunks(total_number_chunks)
+  m_total_vertex_cnt(cnts.m_non_closing_edge_vertex_cnt + cnts.m_closing_edge_vertex_cnt),
+  m_total_index_cnt(cnts.m_non_closing_edge_index_cnt + cnts.m_closing_edge_index_cnt),
+  m_total_number_chunks(cnts.m_non_closing_edge_chunk_cnt + cnts.m_closing_edge_chunk_cnt)
 {
 }
 
@@ -3938,16 +3911,15 @@ StrokedPathPrivate::
 create_edges(const fastuidraw::TessellatedPath &P)
 {
   SubEdgeCullingHierarchy *s;
-  unsigned int vertex_cnt;
-  unsigned int index_cnt;
-  unsigned int chunk_count;
+  StrokedPathSubset::CreationValues cnts;
 
   FASTUIDRAWassert(!m_empty_path);
   s = SubEdgeCullingHierarchy::create(P, m_path_data);
-  m_subset = StrokedPathSubset::create(s, vertex_cnt, index_cnt, chunk_count,
-                                       m_join_ordering, m_number_join_chunks,
-                                       m_cap_ordering, m_number_cap_chunks);
-  m_edges.set_data(EdgeAttributeFiller(m_subset, P, vertex_cnt, index_cnt, chunk_count));
+  m_subset = StrokedPathSubset::create(s, cnts, m_join_ordering, m_cap_ordering);
+  m_edges.set_data(EdgeAttributeFiller(m_subset, P, cnts));
+
+  m_number_join_chunks = cnts.m_non_closing_join_chunk_cnt + cnts.m_closing_join_chunk_cnt;
+  m_number_cap_chunks = cnts.m_cap_chunk_cnt;
 
   FASTUIDRAWdelete(s);
 }
