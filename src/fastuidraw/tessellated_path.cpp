@@ -84,7 +84,7 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
               m_edge_ranges[o][e] = fastuidraw::range_type<unsigned int>(loc, loc + needed);
               loc += needed;
 
-              assert(needed > 0u);
+              FASTUIDRAWassert(needed > 0u);
               m_max_segments = fastuidraw::t_max(m_max_segments, needed - 1);
               m_effective_curve_distance_threshhold = fastuidraw::t_max(m_effective_curve_distance_threshhold, thresh_dist);
               m_effective_curvature_threshhold = fastuidraw::t_max(m_effective_curvature_threshhold, thresh_curvature);
@@ -153,7 +153,7 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
           std::copy(iter->begin(), iter->end(),
                     std::back_insert_iterator<std::vector<fastuidraw::TessellatedPath::point> >(m_point_data));
         }
-      assert(total_needed == m_point_data.size());
+      FASTUIDRAWassert(total_needed == m_point_data.size());
     }
   else
     {
@@ -176,7 +176,7 @@ fastuidraw::TessellatedPath::
   TessellatedPathPrivate *d;
   d = static_cast<TessellatedPathPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 const fastuidraw::reference_counted_ptr<const fastuidraw::StrokedPath>&

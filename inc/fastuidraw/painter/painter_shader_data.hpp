@@ -29,9 +29,12 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     Common base class to PainterItemShaderData and
     PainterBlendShaderData to hold shader data for
-    custom shaders. Derived classes CANNOT add any
+    custom shaders.
+
+    Derived classes CANNOT add any
     data or virtual functions. The class
     PainterShaderData is essentially a wrapper over
     a PainterShaderData::DataBase object that handles
@@ -42,7 +45,9 @@ namespace fastuidraw
   {
   public:
     /*!
+      \brief
       Class that holds the actual data and packs the data.
+
       A class derived from PainterShaderData should set the
       field \ref m_data to point to an object derived from
       DataBase for the purpose of holding and packing data.
@@ -108,6 +113,13 @@ namespace fastuidraw
     operator=(const PainterShaderData &rhs);
 
     /*!
+      Swap operation
+      \param obj object with which to swap
+    */
+    void
+    swap(PainterShaderData &obj);
+
+    /*!
       Returns the length of the data needed to encode the data.
       Data is padded to be multiple of alignment.
       \param alignment alignment of the data store
@@ -139,7 +151,7 @@ namespace fastuidraw
 
   protected:
     /*!
-      Initialized as NULL by the ctor PainterShaderData(void).
+      Initialized as nullptr by the ctor PainterShaderData(void).
       A derived class of PainterShaderData should assign \ref
       m_data to point to an object derived from DataBase.
       That object is the object that is to determine the
@@ -150,12 +162,14 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     PainterItemShaderData holds custom data for item shaders
    */
   class PainterItemShaderData:public PainterShaderData
   {};
 
   /*!
+    \brief
     PainterBlendShaderData holds custom data for blend shaders
    */
   class PainterBlendShaderData:public PainterShaderData

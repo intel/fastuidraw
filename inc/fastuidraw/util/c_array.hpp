@@ -39,13 +39,12 @@ class const_c_array;
 
 
 /*!
+  \brief
   A c_array is a wrapper over a
   C pointer with a size parameter
   to facilitate bounds checking
   and provide an STL-like iterator
   interface.
-  If FASTUIDRAW_VECTOR_BOUND_CHECK is defined,
-  will perform bounds checking.
  */
 template<typename T>
 class c_array
@@ -53,67 +52,78 @@ class c_array
 public:
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef T* pointer;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef const T* const_pointer;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef T& reference;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef const T& const_reference;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef T value_type;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef size_t size_type;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef ptrdiff_t difference_type;
 
   /*!
+    \brief
     iterator typedef to pointer
    */
   typedef pointer iterator;
 
   /*!
+    \brief
     iterator typedef to const_pointer
    */
   typedef const_pointer const_iterator;
 
   /*!
+    \brief
     iterator typedef using std::reverse_iterator.
    */
   typedef std::reverse_iterator<const_iterator>  const_reverse_iterator;
 
   /*!
+    \brief
     iterator typedef using std::reverse_iterator.
    */
   typedef std::reverse_iterator<iterator>        reverse_iterator;
 
   /*!
-    Default ctor, initializing the pointer as NULL
+    Default ctor, initializing the pointer as nullptr
     with size 0.
    */
   c_array(void):
     m_size(0),
-    m_ptr(NULL)
+    m_ptr(nullptr)
   {}
 
   /*!
@@ -143,7 +153,7 @@ public:
    */
   c_array(range_type<iterator> R):
     m_size(R.m_end-R.m_begin),
-    m_ptr((m_size > 0) ? &*R.m_begin : NULL)
+    m_ptr((m_size > 0) ? &*R.m_begin : nullptr)
   {}
 
   /*!
@@ -157,7 +167,7 @@ public:
   {
     S *ptr;
     size_type num_bytes(size() * sizeof(T));
-    assert(num_bytes % sizeof(S) == 0);
+    FASTUIDRAWassert(num_bytes % sizeof(S) == 0);
     ptr = reinterpret_cast<S*>(c_ptr());
     return c_array<S>(ptr, num_bytes / sizeof(S));
   }
@@ -189,10 +199,8 @@ public:
   T&
   operator[](size_type j) const
   {
-    assert(c_ptr() != NULL);
-    #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
-      assert(j < m_size);
-    #endif
+    FASTUIDRAWassert(c_ptr() != nullptr);
+    FASTUIDRAWassert(j < m_size);
     return c_ptr()[j];
   }
 
@@ -281,7 +289,7 @@ public:
   T&
   back(size_type I) const
   {
-    assert(I<size());
+    FASTUIDRAWassert(I<size());
     return (*this)[size() - 1 - I];
   }
 
@@ -316,7 +324,7 @@ public:
   c_array
   sub_array(size_type pos, size_type length) const
   {
-    assert(pos + length <= m_size);
+    FASTUIDRAWassert(pos + length <= m_size);
     return c_array(m_ptr + pos, length);
   }
 
@@ -333,7 +341,7 @@ public:
   c_array
   sub_array(size_type pos) const
   {
-    assert(pos <= m_size);
+    FASTUIDRAWassert(pos <= m_size);
     return c_array(m_ptr + pos, m_size - pos);
   }
 
@@ -385,13 +393,12 @@ private:
 
 
 /*!
+  \brief
   A const_c_array is a wrapper over a
   const C pointer with a size parameter
   to facilitate bounds checking
   and provide an STL-like iterator
   interface.
-  If FASTUIDRAW_VECTOR_BOUND_CHECK is defined,
-  will perform bounds checking.
  */
 template<typename T>
 class const_c_array
@@ -399,46 +406,55 @@ class const_c_array
 public:
 
   /*!
+    \brief
     STL compliant typedef
   */
-  typedef T* pointer;
+  typedef const T* pointer;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef const T* const_pointer;
 
   /*!
+    \brief
     STL compliant typedef
   */
-  typedef T& reference;
+  typedef const T& reference;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef const T& const_reference;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef T value_type;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef size_t size_type;
 
   /*!
+    \brief
     STL compliant typedef
   */
   typedef ptrdiff_t difference_type;
 
   /*!
+    \brief
     iterator typedef
    */
   typedef const_pointer iterator;
 
   /*!
+    \brief
     iterator typedef
    */
   typedef const_pointer const_iterator;
@@ -454,12 +470,12 @@ public:
   typedef std::reverse_iterator<iterator>        reverse_iterator;
 
   /*!
-    Default ctor, initializing the pointer as NULL
+    Default ctor, initializing the pointer as nullptr
     with size 0.
    */
   const_c_array(void):
     m_size(0),
-    m_ptr(NULL)
+    m_ptr(nullptr)
   {}
 
   /*!
@@ -498,7 +514,7 @@ public:
    */
   const_c_array(range_type<iterator> R):
     m_size(R.m_end - R.m_begin),
-    m_ptr((m_size > 0) ? &*R.m_begin : NULL)
+    m_ptr((m_size > 0) ? &*R.m_begin : nullptr)
   {}
 
 
@@ -513,9 +529,21 @@ public:
   {
     const S *ptr;
     size_type num_bytes(size() * sizeof(T));
-    assert(num_bytes % sizeof(S) == 0);
+    FASTUIDRAWassert(num_bytes % sizeof(S) == 0);
     ptr = reinterpret_cast<const S*>(c_ptr());
     return const_c_array<S>(ptr, num_bytes / sizeof(S));
+  }
+
+  /*!
+    Return a c_array from this const_c_array,
+    underneath performing const_cast.
+   */
+  c_array<T>
+  const_cast_pointer(void) const
+  {
+    T *q;
+    q = const_cast<T*>(c_ptr());
+    return c_array<T>(q, size());
   }
 
   /*!
@@ -545,10 +573,8 @@ public:
   const T&
   operator[](size_type j) const
   {
-    assert(c_ptr()!=NULL);
-    #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
-      assert(j < m_size);
-    #endif
+    FASTUIDRAWassert(c_ptr()!=nullptr);
+    FASTUIDRAWassert(j < m_size);
     return c_ptr()[j];
   }
 
@@ -637,7 +663,7 @@ public:
   const T&
   back(size_type I) const
   {
-    assert(I < size());
+    FASTUIDRAWassert(I < size());
     return (*this)[size() - 1 - I];
   }
 
@@ -672,7 +698,7 @@ public:
   const_c_array
   sub_array(size_type pos, size_type length) const
   {
-    assert(pos + length <= m_size);
+    FASTUIDRAWassert(pos + length <= m_size);
     return const_c_array(m_ptr + pos, length);
   }
 
@@ -689,7 +715,7 @@ public:
   const_c_array
   sub_array(size_type pos) const
   {
-    assert(pos <= m_size);
+    FASTUIDRAWassert(pos <= m_size);
     return const_c_array(m_ptr + pos, m_size - pos);
   }
 

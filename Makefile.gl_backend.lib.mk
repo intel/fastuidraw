@@ -1,11 +1,8 @@
 LIBRARY_GL_COMMON_CFLAGS =
 LIBRARY_GLES_COMMON_CFLAGS = -DFASTUIDRAW_GL_USE_GLES
 
-LIBRARY_GL_debug_CFLAGS = -DGL_DEBUG $(LIBRARY_GL_COMMON_CFLAGS) $(LIBRARY_debug_CFLAGS)
-LIBRARY_GLES_debug_CFLAGS = -DGL_DEBUG $(LIBRARY_GLES_COMMON_CFLAGS) $(LIBRARY_debug_CFLAGS)
-
-LIBRARY_GL_release_CFLAGS = $(LIBRARY_GL_COMMON_CFLAGS) $(LIBRARY_release_CFLAGS)
-LIBRARY_GLES_release_CFLAGS = $(LIBRARY_GLES_COMMON_CFLAGS) $(LIBRARY_release_CFLAGS)
+LIBRARY_GL_GLES_debug_CFLAGS = -DGL_DEBUG
+LIBRARY_GL_GLES_release_CFLAGS =
 
 LIBRARY_GL_LIBS =
 
@@ -25,24 +22,24 @@ NGL_GLES_SRCS = $(NGL_COMMON_SRCS) $(NGL_GLES_CPP)
 # $2 --> debug or release
 # $3 --> (0: skip build target 1: add build target)
 define glrule
-$(eval $(2)/$(1)/%.o: %.cpp $(2)/$(1)/%.d $$(NGL_$(1)_HPP)
+$(eval LIBRARY_$(1)_$(2)_CFLAGS=$$(LIBRARY_$(1)_COMMON_CFLAGS) $$(LIBRARY_$(2)_CFLAGS) $$(LIBRARY_GL_GLES_$(2)_CFLAGS)
+COMPILE_$(1)_$(2)_CFLAGS=$$(LIBRARY_BUILD_$(2)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(1)_$(2)_CFLAGS)
+$(2)/$(1)/%.o: %.cpp $(2)/$(1)/%.d $$(NGL_$(1)_HPP)
 	@mkdir -p $$(dir $$@)
-	$(CXX) $$(LIBRARY_BUILD_$(2)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(1)_$(2)_CFLAGS) $(fPIC) -c $$< -o $$@
+	$(CXX) $$(COMPILE_$(1)_$(2)_CFLAGS)  $(fPIC) -c $$< -o $$@
 $(2)/$(1)/%.d: %.cpp $$(NGL_$(1)_HPP)
 	@mkdir -p $$(dir $$@)
 	@echo Generating $$@
-	@./makedepend.sh "$(CXX)" "$$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(2)_$(1)_CFLAGS) " $(1)/gl "$$*" "$$<" "$$@"
-.SECONDARY: $(2)/$(1)/%.d
-.PRECIOUS: $(2)/$(1)/%.d
+	@./makedepend.sh "$(CXX)" "$$(COMPILE_$(1)_$(2)_CFLAGS)" $(2)/$(1) "$$*" "$$<" "$$@"
+
 $(2)/private/$(1)/%.o: %.cpp $(2)/private/$(1)/%.d $$(NGL_$(1)_HPP)
 	@mkdir -p $$(dir $$@)
-	$(CXX) $$(LIBRARY_BUILD_$(2)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(1)_$(2)_CFLAGS) $(fHIDDEN) $(fPIC) -c $$< -o $$@
+	$(CXX) $$(COMPILE_$(1)_$(2)_CFLAGS) $(fHIDDEN) $(fPIC) -c $$< -o $$@
 $(2)/private/$(1)/%.d: %.cpp $$(NGL_$(1)_HPP)
 	@mkdir -p $$(dir $$@)
 	@echo Generating $$@
-	@./makedepend.sh "$(CXX)" "$$(LIBRARY_BUILD_$(1)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(2)_$(1)_CFLAGS) " $(1)/gl "$$*" "$$<" "$$@"
-.SECONDARY: $(2)/private/$(1)/%.d
-.PRECIOUS: $(2)/private/$(1)/%.d
+	@./makedepend.sh "$(CXX)" "$$(COMPILE_$(1)_$(2)_CFLAGS)" $(2)/$(1) "$$*" "$$<" "$$@"
+
 LIBRARY_$(1)_$(2)_OBJS = $$(patsubst %.cpp, $(2)/$(1)/%.o, $(LIBRARY_GL_SOURCES))
 LIBRARY_$(1)_$(2)_PRIVATE_OBJS = $$(patsubst %.cpp, $(2)/private/$(1)/%.o, $(LIBRARY_PRIVATE_GL_SOURCES))
 NGL_$(1)_$(2)_OBJ = $$(patsubst %.cpp, $(2)/$(1)/%.o, $$(NGL_$(1)_SRCS))
@@ -94,10 +91,7 @@ LIBFASTUIDRAW_$(1)_$(2) = libFastUIDraw$(1)_$(2).so
 LIBN$(1)_$(2) = libN$(1)_$(2).so
 INSTALL_LIBS += libFastUIDraw$(1)_$(2).so libN$(1)_$(2).so
 endif
-libFastUIDraw$(1)_$(2).clang_tidy: $$(LIBRARY_$(1)_$(2)_ALL_OBJS)
-	$(CLANG_TIDY) $(CLANG_TIDY_ARGS) $(LIBRARY_GL_SOURCES) $(LIBRARY_PRIVATE_GL_SOURCES) -- $$(LIBRARY_BUILD_$(2)_FLAGS) $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $$(LIBRARY_$(1)_$(2)_CFLAGS) $(fPIC) -c > $$@
-CLEAN_FILES += libFastUIDraw$(1)_$(2).clang_tidy
-TARGETLIST += libFastUIDraw$(1)_$(2).clang_tidy
+
 endif
 )
 endef

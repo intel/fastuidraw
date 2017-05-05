@@ -78,7 +78,7 @@ add_blend_shader(PainterBlendShaderSet &out,
       break;
 
     default:
-      assert(!"Bad m_type");
+      FASTUIDRAWassert(!"Bad m_type");
     }
 }
 
@@ -184,9 +184,9 @@ ShaderSetCreatorConstants(void)
 
   m_stroke_render_pass_num_bits = number_bits_required(uber_number_passes);
   m_stroke_dash_style_num_bits = number_bits_required(number_cap_styles);
-  assert(FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(m_stroke_render_pass_num_bits) >= uber_number_passes);
-  assert(FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(m_stroke_dash_style_num_bits) >= number_cap_styles);
-  assert(m_stroke_render_pass_num_bits + m_stroke_dash_style_num_bits + 1u <= 32u);
+  FASTUIDRAWassert(FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(m_stroke_render_pass_num_bits) >= uber_number_passes);
+  FASTUIDRAWassert(FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(m_stroke_dash_style_num_bits) >= number_cap_styles);
+  FASTUIDRAWassert(m_stroke_render_pass_num_bits + m_stroke_dash_style_num_bits + 1u <= 32u);
 
   m_stroke_render_pass_bit0 = 0;
   m_stroke_width_pixels_bit0 = m_stroke_render_pass_bit0 + m_stroke_render_pass_num_bits;
@@ -412,9 +412,7 @@ ShaderSetCreator::
 create_fill_shader(void)
 {
   PainterFillShader fill_shader;
-  varying_list varyings;
 
-  varyings.add_float_varying("fastuidraw_stroking_on_boundary");
   fill_shader
     .item_shader(FASTUIDRAWnew PainterItemShaderGLSL(false,
                                                      ShaderSource()
@@ -423,7 +421,16 @@ create_fill_shader(void)
                                                      ShaderSource()
                                                      .add_source("fastuidraw_painter_fill.frag.glsl.resource_string",
                                                                  ShaderSource::from_resource),
-                                                     varyings));;
+                                                     varying_list()))
+    .aa_fuzz_shader(FASTUIDRAWnew PainterItemShaderGLSL(false,
+                                                        ShaderSource()
+                                                        .add_source("fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string",
+                                                                    ShaderSource::from_resource),
+                                                        ShaderSource()
+                                                        .add_source("fastuidraw_painter_fill_aa_fuzz.frag.glsl.resource_string",
+                                                                    ShaderSource::from_resource),
+                                                        varying_list().add_float_varying("fastuidraw_aa_fuzz")));
+
   return fill_shader;
 }
 

@@ -56,7 +56,13 @@ fastuidraw::PainterShaderSet::
   PainterShaderSetPrivate *d;
   d = static_cast<PainterShaderSetPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
+}
+void
+fastuidraw::PainterShaderSet::
+swap(PainterShaderSet &obj)
+{
+  std::swap(m_d, obj.m_d);
 }
 
 fastuidraw::PainterShaderSet&
@@ -65,10 +71,8 @@ operator=(const PainterShaderSet &rhs)
 {
   if(this != &rhs)
     {
-      PainterShaderSetPrivate *d, *rhs_d;
-      d = static_cast<PainterShaderSetPrivate*>(m_d);
-      rhs_d = static_cast<PainterShaderSetPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      PainterShaderSet v(rhs);
+      swap(v);
     }
   return *this;
 }

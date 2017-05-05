@@ -44,6 +44,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterPacker packs data created by a Painter
     to be fed to a PainterBackend to draw.
    */
@@ -51,6 +52,7 @@ namespace fastuidraw
   {
   public:
     /*!
+      \brief
       A DataCallBack represents a functor call back
       from PainterPacker called whenever a header is
       added or when a new PainterDraw is
@@ -80,6 +82,7 @@ namespace fastuidraw
     };
 
     /*!
+      \brief
       A provides an interface to write attribute and index data into a PainterDraw
       for the cases where a simple copy is not sufficient.
      */
@@ -102,7 +105,7 @@ namespace fastuidraw
         To be implemented by a derived class to return
         the number of attribute of an attribute chunk
         of the DataWriter.
-        \param which attribute_chunk chunk of attributes
+        \param attribute_chunk which chunk of attributes
        */
       virtual
       unsigned int
@@ -120,7 +123,7 @@ namespace fastuidraw
         To be implemented by a derived class to return
         the number of indices of an index chunk
         of the DataWriter.
-        \param which index_chunk chunk of attributes
+        \param index_chunk which chunk of attributes
        */
       virtual
       unsigned int
@@ -161,6 +164,7 @@ namespace fastuidraw
     };
 
     /*!
+      \brief
       Enumeration to query the statistics of how
       much data has been packed
     */
@@ -247,7 +251,7 @@ namespace fastuidraw
 
     /*!
       Sets the active blend shader. It is a crashing error for
-      h to be NULL.
+      h to be nullptr.
       \param h blend shader to use for blending.
       \param packed_blend_mode 3D API blend mode packed via BlendMode::packed().
      */
@@ -265,7 +269,7 @@ namespace fastuidraw
 
     /*!
       Indicate to end drawing. Commands are buffered and not
-      set to the backend until end() or flush() is called.
+      sent to the backend until end() or flush() is called.
       All draw commands must be between a begin() / end() pair.
      */
     void
@@ -291,7 +295,7 @@ namespace fastuidraw
       \param index_chunks the i'th element is index data into attrib_chunks[i]
       \param index_adjusts the i'th element is the value by which to adjust all of index_chunks[i]
       \param z z-value z value placed into the header
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -300,7 +304,7 @@ namespace fastuidraw
                  const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
                  const_c_array<int> index_adjusts,
-                 unsigned int z,
+                 int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
 
     /*!
@@ -314,7 +318,7 @@ namespace fastuidraw
       \param attrib_chunk_selector selects which attribute chunk to use for
              each index chunk
       \param z z-value z value placed into the header
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
@@ -324,7 +328,7 @@ namespace fastuidraw
                  const_c_array<const_c_array<PainterIndex> > index_chunks,
                  const_c_array<int> index_adjusts,
                  const_c_array<unsigned int> attrib_chunk_selector,
-                 unsigned int z,
+                 int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
     /*!
       Draw generic attribute data
@@ -332,14 +336,14 @@ namespace fastuidraw
       \param data data for how to draw
       \param src DrawWriter to use to write attribute and index data
       \param z z-value z value placed into the header
-      \param call_back if non-NULL handle, call back called when attribute data
+      \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterPackerData &data,
                  const DataWriter &src,
-                 unsigned int z,
+                 int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
     /*!
       Returns a stat on how much data the PainterPacker has

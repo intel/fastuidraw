@@ -39,6 +39,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     (Private) base classe used for PainterPackedValue
    */
   class PainterPackedValueBase
@@ -55,8 +56,11 @@ namespace fastuidraw
     explicit
     PainterPackedValueBase(void*);
 
-    void
+    const PainterPackedValueBase&
     operator=(const PainterPackedValueBase&);
+
+    void
+    swap(PainterPackedValueBase &obj);
 
     const void*
     raw_value(void) const;
@@ -68,11 +72,13 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     A PainterPackedValue represents a handle to an object that stores
     packed state data and tracks if that underlying data is already is
-    already copied to PainterDraw::m_store. If already
-    on a store, then rather than copying the data again, the data is
-    reused. The object behind the handle is NOT thread safe. In addition
+    already copied to PainterDraw::m_store.
+
+    If already on a store, then rather than copying the data again, the data
+    is reused. The object behind the handle is NOT thread safe. In addition
     the underlying reference count is not either. Hence any access
     (even dtor, copy ctor and equality operator) on a fixed object cannot
     be done from multiple threads simutaneously. A fixed
@@ -89,22 +95,32 @@ namespace fastuidraw
 
   public:
     /*!
-      Ctor, initializes handle to NULL, i.e.
+      Ctor, initializes handle to nullptr, i.e.
       no underlying value object.
      */
     PainterPackedValue(void)
     {}
 
     /*!
+      Swap operation
+      \param obj object with which to swap
+    */
+    void
+    swap(PainterPackedValue &obj)
+    {
+      PainterPackedValueBase::swap(obj);
+    }
+
+    /*!
       Returns the value to which the handle points.
-      If the handle is not-value, then asserts.
+      If the handle is not-valid, then FASTUIDRAWasserts.
      */
     const T&
     value(void) const
     {
       const T *p;
 
-      assert(this->m_d);
+      FASTUIDRAWassert(this->m_d);
       p = static_cast<const T*>(this->raw_value());
       return *p;
     }
@@ -112,7 +128,7 @@ namespace fastuidraw
     /*!
       Returns the alignment packing for PainterPackedValue
       object (see PainterPacker::Configuration::alignment());
-      If the PainterPackedValue represents a NULL handle then
+      If the PainterPackedValue represents a nullptr handle then
       returns 0.
      */
     unsigned int
@@ -186,8 +202,11 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     A PainterPackedValuePool can be used to create PainterPackedValue
-    objects. Just like PainterPackedValue, PainterPackedValuePool is
+    objects.
+
+    Just like PainterPackedValue, PainterPackedValuePool is
     NOT thread safe, as such it is not a safe operation to use the
     same PainterPackedValuePool object from multiple threads at the
     same time. A fixed PainterPackedValuePool can create PainterPackedValue

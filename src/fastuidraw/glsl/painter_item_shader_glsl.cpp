@@ -193,7 +193,7 @@ implement_set(unsigned int slot, const std::string &pname)
       add_string("");
     }
 
-  assert(slot < m_strings.size());
+  FASTUIDRAWassert(slot < m_strings.size());
   *m_strings[slot] = pname;
   m_strings_array[slot] = m_strings[slot]->c_str();
 }
@@ -257,7 +257,7 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
 
       li = labels.size() - i;
       cmp = std::min(alignment, li);
-      assert(cmp >= 1 && cmp <= 4);
+      FASTUIDRAWassert(cmp >= 1 && cmp <= 4);
 
       temp_comp = (alignment == 1) ? "" : temp_components[cmp - 1];
       str << "utemp" << temp_comp << " = fastuidraw_fetch_data(int("
@@ -310,7 +310,14 @@ fastuidraw::glsl::varying_list::
   VaryingListPrivate *d;
   d = static_cast<VaryingListPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
+}
+
+void
+fastuidraw::glsl::varying_list::
+swap(varying_list &obj)
+{
+  std::swap(m_d, obj.m_d);
 }
 
 fastuidraw::glsl::varying_list&
@@ -319,10 +326,8 @@ operator=(const varying_list &rhs)
 {
   if(this != &rhs)
     {
-      VaryingListPrivate *d, *rhs_d;
-      d = static_cast<VaryingListPrivate*>(m_d);
-      rhs_d = static_cast<VaryingListPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      varying_list v(rhs);
+      swap(v);
     }
   return *this;
 }
@@ -439,7 +444,7 @@ fastuidraw::glsl::shader_unpack_value::
   GLSLShaderUnpackValuePrivate *d;
   d = static_cast<GLSLShaderUnpackValuePrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::glsl::shader_unpack_value&
@@ -544,7 +549,7 @@ fastuidraw::glsl::PainterItemShaderGLSL::
   PainterShaderGLSLPrivate *d;
   d = static_cast<PainterShaderGLSLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 const fastuidraw::glsl::varying_list&

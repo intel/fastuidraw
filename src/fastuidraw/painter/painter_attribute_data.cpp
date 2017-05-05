@@ -35,7 +35,7 @@ namespace
 
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_attribute_chunks;
     std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_index_chunks;
-    std::vector<unsigned int> m_increment_z;
+    std::vector<fastuidraw::range_type<int> > m_z_ranges;
     std::vector<unsigned int> m_non_empty_index_data_chunks;
     std::vector<int> m_index_adjust_chunks;
   };
@@ -69,7 +69,7 @@ fastuidraw::PainterAttributeData::
   PainterAttributeDataPrivate *d;
   d = static_cast<PainterAttributeDataPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void
@@ -81,11 +81,11 @@ set_data(const PainterAttributeDataFiller &filler)
 
   unsigned int number_attributes(0), number_indices(0);
   unsigned int number_attribute_chunks(0), number_index_chunks(0);
-  unsigned int number_z_increments(0);
+  unsigned int number_z_ranges(0);
 
   filler.compute_sizes(number_attributes, number_indices,
                        number_attribute_chunks, number_index_chunks,
-                       number_z_increments);
+                       number_z_ranges);
 
   d->m_attribute_data.resize(number_attributes);
   d->m_index_data.resize(number_indices);
@@ -97,14 +97,14 @@ set_data(const PainterAttributeDataFiller &filler)
   d->m_index_chunks.resize(number_index_chunks);
   d->m_index_adjust_chunks.resize(number_index_chunks);
 
-  d->m_increment_z.clear();
-  d->m_increment_z.resize(number_z_increments, 0u);
+  d->m_z_ranges.clear();
+  d->m_z_ranges.resize(number_z_ranges, range_type<int>(0, 0));
 
   filler.fill_data(make_c_array(d->m_attribute_data),
                    make_c_array(d->m_index_data),
                    make_c_array(d->m_attribute_chunks),
                    make_c_array(d->m_index_chunks),
-                   make_c_array(d->m_increment_z),
+                   make_c_array(d->m_z_ranges),
                    make_c_array(d->m_index_adjust_chunks));
 
   d->ready_non_empty_index_data_chunks();
@@ -170,24 +170,24 @@ index_adjust_chunk(unsigned int i) const
     0;
 }
 
-fastuidraw::const_c_array<unsigned int>
+fastuidraw::const_c_array<fastuidraw::range_type<int> >
 fastuidraw::PainterAttributeData::
-increment_z_values(void) const
+z_ranges(void) const
 {
   PainterAttributeDataPrivate *d;
   d = static_cast<PainterAttributeDataPrivate*>(m_d);
-  return make_c_array(d->m_increment_z);
+  return make_c_array(d->m_z_ranges);
 }
 
-unsigned int
+fastuidraw::range_type<int>
 fastuidraw::PainterAttributeData::
-increment_z_value(unsigned int i) const
+z_range(unsigned int i) const
 {
   PainterAttributeDataPrivate *d;
   d = static_cast<PainterAttributeDataPrivate*>(m_d);
-  return (i < d->m_increment_z.size()) ?
-    d->m_increment_z[i] :
-    0;
+  return (i < d->m_z_ranges.size()) ?
+    d->m_z_ranges[i] :
+    range_type<int>(0, 0);
 }
 
 fastuidraw::const_c_array<unsigned int>

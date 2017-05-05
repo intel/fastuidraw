@@ -36,6 +36,7 @@ namespace fastuidraw
   ///@endcond
 
   /*!
+    \brief
     A StrokingDataSelector is an interface to assist Painter
     to select correct LOD for rounded joins and caps when
     drawing rounded joins and caps.
@@ -84,6 +85,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     A PainterStrokeShader holds shaders for
     stroking with and without anit-aliasing.
   */
@@ -137,6 +139,13 @@ namespace fastuidraw
      */
     PainterStrokeShader&
     operator=(const PainterStrokeShader &rhs);
+
+    /*!
+      Swap operation
+      \param obj object with which to swap
+    */
+    void
+    swap(PainterStrokeShader &obj);
 
     /*!
       Specifies how the stroke shader performs

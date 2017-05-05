@@ -52,7 +52,14 @@ fastuidraw::PainterGlyphShader::
   PainterGlyphShaderPrivate *d;
   d = static_cast<PainterGlyphShaderPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
+}
+
+void
+fastuidraw::PainterGlyphShader::
+swap(PainterGlyphShader &obj)
+{
+  std::swap(m_d, obj.m_d);
 }
 
 fastuidraw::PainterGlyphShader&
@@ -61,10 +68,8 @@ operator=(const PainterGlyphShader &rhs)
 {
   if(this != &rhs)
     {
-      PainterGlyphShaderPrivate *d, *rhs_d;
-      d = static_cast<PainterGlyphShaderPrivate*>(m_d);
-      rhs_d = static_cast<PainterGlyphShaderPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      PainterGlyphShader v(rhs);
+      swap(v);
     }
   return *this;
 }

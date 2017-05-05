@@ -32,9 +32,11 @@ namespace fastuidraw
 */
 
   /*!
+    \brief
     GlyphAtlasTexelBackingStoreBase represents an interface for a backing
-    store for one-channel 8-bit data (for glyphs essentially). The values
-    stored can be coverage values, distance values or index values.
+    store for one-channel 8-bit data (for glyphs essentially).
+
+    The values stored can be coverage values, distance values or index values.
     Index values are to be fetched unfiltered and other values filtered
     (but NO mipmap filtering). An implementation of the class does NOT
     need to be thread safe because the user of the backing store (GlyphAtlas)
@@ -103,7 +105,7 @@ namespace fastuidraw
     /*!
       Resize the object by increasing the number of layers.
       The routine resizeable() must return true, if not
-      the function asserts.
+      the function FASTUIDRAWasserts.
      */
     void
     resize(int new_num_layers);
@@ -128,13 +130,15 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     GlyphAtlasGeometryStoreBase represents an interface to an aray of
-    generic_data values. An example implementation in GL would
-    be a buffer object that used to back simultaneously a samplerBuffer,
-    usamplerBuffer and an isamplerBuffer. An implementation of the class
-    does NOT  need to be thread safe because the user of the backing
-    store (GlyphAtlas) performs calls to the backing store behind its
-    own mutex.
+    generic_data values.
+
+    An example implementation in GL would be a buffer object that used
+    to back simultaneously a samplerBuffer, usamplerBuffer and an
+    isamplerBuffer. An implementation of the class does NOT need to be
+    thread safe because the user of the backing store (GlyphAtlas)
+    performs calls to the backing store behind its own mutex.
    */
   class GlyphAtlasGeometryBackingStoreBase:
     public reference_counted<GlyphAtlasGeometryBackingStoreBase>::default_base
@@ -197,7 +201,7 @@ namespace fastuidraw
 
     /*!
       Resize the object to a larger size. The routine resizeable()
-      must return true, if not the function asserts.
+      must return true, if not the function FASTUIDRAWasserts.
       \param new_size new size of object in number of blocks.
      */
     void
@@ -220,6 +224,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     A GlyphAtlas is a common location to place glyph data of
     an application. Ideally, all glyph data is placed into a
     single GlyphAtlas. Methods of GlyphAtlas are thread
@@ -229,8 +234,8 @@ namespace fastuidraw
     public reference_counted<GlyphAtlas>::default_base
   {
   public:
-
     /*!
+      \brief
       A Padding object holds how much of the data allocated
       by \ref GlyphAtlas::allocate() is for padding.
      */

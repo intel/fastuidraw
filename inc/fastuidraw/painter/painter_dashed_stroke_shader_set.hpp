@@ -33,6 +33,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A DashEvaluatorBase is the interface used by Painter
     to realize the data to send to a PainterPacker for
     the purpose of dashed stroking.
@@ -41,30 +42,6 @@ namespace fastuidraw
     public reference_counted<DashEvaluatorBase>::default_base
   {
   public:
-    /*!
-      To be implemented by a derived class to return the number
-      of joins.
-      \param data source PainterAttributeData
-      \param edge_closed if true, include in the return value the
-                         number of joins including those joins
-                         from the closing edges of each contour.
-     */
-    virtual
-    unsigned int
-    number_joins(const PainterAttributeData &data, bool edge_closed) const = 0;
-
-    /*!
-      To be implemented by a derived class to return
-      the chunk index, i.e. the value to feed
-      \ref PainterAttributeData::attribute_data_chunk()
-      and \ref PainterAttributeData::index_data_chunk(),
-      for the named join.
-      \param J (global) join index
-    */
-    virtual
-    unsigned int
-    named_join_chunk(unsigned int J) const = 0;
-
     /*!
       To be implemented by a derived class to return true if and
       only if a point from a join emobodied by a PainterAttribute
@@ -81,6 +58,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     A PainterDashedStrokeShaderSet holds a collection of
     PainterStrokeShaderSet objects for the purpose of
     dashed stroking. The shaders within a
@@ -111,6 +89,13 @@ namespace fastuidraw
     operator=(const PainterDashedStrokeShaderSet &rhs);
 
     /*!
+      Swap operation
+      \param obj object with which to swap
+    */
+    void
+    swap(PainterDashedStrokeShaderSet &obj);
+
+    /*!
       Returns the DashEvaluator object to be used with
       the expected PainterItemShaderData passed to the
       PainterStrokeShader objects of this
@@ -121,7 +106,7 @@ namespace fastuidraw
 
     /*!
       Set the value returned by dash_evaluator(void) const.
-      Initial value is NULL.
+      Initial value is nullptr.
      */
     PainterDashedStrokeShaderSet&
     dash_evaluator(const reference_counted_ptr<const DashEvaluatorBase>&);

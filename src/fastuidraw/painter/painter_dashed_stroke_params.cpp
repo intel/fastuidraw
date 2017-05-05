@@ -65,21 +65,6 @@ namespace
     covered_by_dash_pattern(const fastuidraw::PainterShaderData::DataBase *data,
                             const fastuidraw::PainterAttribute &attrib) const;
 
-
-    virtual
-    unsigned int
-    number_joins(const fastuidraw::PainterAttributeData &data, bool edge_closed) const
-    {
-      return fastuidraw::StrokedPath::number_joins(data, edge_closed);
-    }
-
-    virtual
-    unsigned int
-    named_join_chunk(unsigned int J) const
-    {
-      return fastuidraw::StrokedPath::chunk_for_named_join(J);
-    }
-
     static
     bool
     close_to_boundary(float dist,
@@ -232,7 +217,7 @@ covered_by_dash_pattern(const fastuidraw::PainterShaderData::DataBase *data,
                         const fastuidraw::PainterAttribute &attrib) const
 {
   const PainterDashedStrokeParamsData *d;
-  assert(dynamic_cast<const PainterDashedStrokeParamsData*>(data) != NULL);
+  FASTUIDRAWassert(dynamic_cast<const PainterDashedStrokeParamsData*>(data) != nullptr);
   d = static_cast<const PainterDashedStrokeParamsData*>(data);
 
   if(d->m_total_length <= 0.0f)
@@ -297,7 +282,7 @@ fastuidraw::PainterDashedStrokeParams::
 miter_limit(void) const
 {
   PainterDashedStrokeParamsData *d;
-  assert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != NULL);
+  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
   return d->m_miter_limit;
 }
@@ -307,7 +292,7 @@ fastuidraw::PainterDashedStrokeParams::
 miter_limit(float f)
 {
   PainterDashedStrokeParamsData *d;
-  assert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != NULL);
+  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
   d->m_miter_limit = f;
   return *this;
@@ -318,7 +303,7 @@ fastuidraw::PainterDashedStrokeParams::
 width(void) const
 {
   PainterDashedStrokeParamsData *d;
-  assert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != NULL);
+  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
   return d->m_radius * 2.0f;
 }
@@ -328,7 +313,7 @@ fastuidraw::PainterDashedStrokeParams::
 width(float f)
 {
   PainterDashedStrokeParamsData *d;
-  assert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != NULL);
+  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
   d->m_radius = 0.5f * f;
   return *this;
@@ -339,7 +324,7 @@ fastuidraw::PainterDashedStrokeParams::
 radius(void) const
 {
   PainterDashedStrokeParamsData *d;
-  assert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != NULL);
+  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
   return d->m_radius;
 }
@@ -349,7 +334,7 @@ fastuidraw::PainterDashedStrokeParams::
 radius(float f)
 {
   PainterDashedStrokeParamsData *d;
-  assert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != NULL);
+  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
   d->m_radius = f;
   return *this;
@@ -360,7 +345,7 @@ fastuidraw::PainterDashedStrokeParams::
 dash_offset(void) const
 {
   PainterDashedStrokeParamsData *d;
-  assert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != NULL);
+  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
   return d->m_dash_offset;
 }
@@ -370,7 +355,7 @@ fastuidraw::PainterDashedStrokeParams::
 dash_offset(float f)
 {
   PainterDashedStrokeParamsData *d;
-  assert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != NULL);
+  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
   d->m_dash_offset = f;
   return *this;
@@ -381,7 +366,7 @@ fastuidraw::PainterDashedStrokeParams::
 dash_pattern(void) const
 {
   PainterDashedStrokeParamsData *d;
-  assert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != NULL);
+  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
   return make_c_array(d->m_dash_pattern);
 }
@@ -391,7 +376,7 @@ fastuidraw::PainterDashedStrokeParams::
 dash_pattern(const_c_array<DashPatternElement> f)
 {
   PainterDashedStrokeParamsData *d;
-  assert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != NULL);
+  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
 
   /* skip to first element on f[] that is non-zero.

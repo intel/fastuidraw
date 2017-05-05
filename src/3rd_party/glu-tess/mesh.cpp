@@ -34,7 +34,7 @@
 
 #include "gluos.hpp"
 #include <stddef.h>
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include "mesh.hpp"
 #include "memalloc.hpp"
 
@@ -72,7 +72,7 @@ static GLUhalfEdge *MakeEdge( GLUhalfEdge *eNext )
   GLUhalfEdge *eSym;
   GLUhalfEdge *ePrev;
   EdgePair *pair = (EdgePair *)memAlloc( sizeof( EdgePair ));
-  if (pair == NULL) return NULL;
+  if (pair == nullptr) return nullptr;
 
   e = &pair->e;
   eSym = &pair->eSym;
@@ -92,18 +92,18 @@ static GLUhalfEdge *MakeEdge( GLUhalfEdge *eNext )
   e->Sym = eSym;
   e->Onext = e;
   e->Lnext = eSym;
-  e->Org = NULL;
-  e->Lface = NULL;
+  e->Org = nullptr;
+  e->Lface = nullptr;
   e->winding = 0;
-  e->activeRegion = NULL;
+  e->activeRegion = nullptr;
 
   eSym->Sym = e;
   eSym->Onext = eSym;
   eSym->Lnext = e;
-  eSym->Org = NULL;
-  eSym->Lface = NULL;
+  eSym->Org = nullptr;
+  eSym->Lface = nullptr;
   eSym->winding = 0;
-  eSym->activeRegion = NULL;
+  eSym->activeRegion = nullptr;
 
   return e;
 }
@@ -138,7 +138,7 @@ static void MakeVertex( GLUvertex *newVertex,
   GLUvertex *vPrev;
   GLUvertex *vNew = newVertex;
 
-  assert(vNew != NULL);
+  FASTUIDRAWassert(vNew != nullptr);
 
   /* insert in circular doubly-linked list before vNext */
   vPrev = vNext->prev;
@@ -148,7 +148,7 @@ static void MakeVertex( GLUvertex *newVertex,
   vNext->prev = vNew;
 
   vNew->anEdge = eOrig;
-  vNew->client_id = FASTUIDRAW_GLU_NULL_CLIENT_ID;
+  vNew->client_id = FASTUIDRAW_GLU_nullptr_CLIENT_ID;
   /* leave coords, s, t undefined */
 
   /* fix other edges on this vertex loop */
@@ -171,7 +171,7 @@ static void MakeFace( GLUface *newFace, GLUhalfEdge *eOrig, GLUface *fNext )
   GLUface *fPrev;
   GLUface *fNew = newFace;
 
-  assert(fNew != NULL);
+  FASTUIDRAWassert(fNew != nullptr);
 
   /* insert in circular doubly-linked list before fNext */
   fPrev = fNext->prev;
@@ -181,8 +181,8 @@ static void MakeFace( GLUface *newFace, GLUhalfEdge *eOrig, GLUface *fNext )
   fNext->prev = fNew;
 
   fNew->anEdge = eOrig;
-  fNew->data = NULL;
-  fNew->trail = NULL;
+  fNew->data = nullptr;
+  fNew->trail = nullptr;
   fNew->marked = FALSE;
 
   /* The new face is marked "inside" if the old one was.  This is a
@@ -281,19 +281,19 @@ GLUhalfEdge *glu_fastuidraw_gl_meshMakeEdge( GLUmesh *mesh )
   GLUhalfEdge *e;
 
   /* if any one is null then all get freed */
-  if (newVertex1 == NULL || newVertex2 == NULL || newFace == NULL) {
-     if (newVertex1 != NULL) memFree(newVertex1);
-     if (newVertex2 != NULL) memFree(newVertex2);
-     if (newFace != NULL) memFree(newFace);
-     return NULL;
+  if (newVertex1 == nullptr || newVertex2 == nullptr || newFace == nullptr) {
+     if (newVertex1 != nullptr) memFree(newVertex1);
+     if (newVertex2 != nullptr) memFree(newVertex2);
+     if (newFace != nullptr) memFree(newFace);
+     return nullptr;
   }
 
   e = MakeEdge( &mesh->eHead );
-  if (e == NULL) {
+  if (e == nullptr) {
      memFree(newVertex1);
      memFree(newVertex2);
      memFree(newFace);
-     return NULL;
+     return nullptr;
   }
 
   MakeVertex( newVertex1, e, &mesh->vHead );
@@ -349,7 +349,7 @@ int glu_fastuidraw_gl_meshSplice( GLUhalfEdge *eOrg, GLUhalfEdge *eDst )
 
   if( ! joiningVertices ) {
     GLUvertex *newVertex= allocVertex();
-    if (newVertex == NULL) return 0;
+    if (newVertex == nullptr) return 0;
 
     /* We split one vertex into two -- the new vertex is eDst->Org.
      * Make sure the old vertex points to a valid half-edge.
@@ -359,7 +359,7 @@ int glu_fastuidraw_gl_meshSplice( GLUhalfEdge *eOrg, GLUhalfEdge *eDst )
   }
   if( ! joiningLoops ) {
     GLUface *newFace= allocFace();
-    if (newFace == NULL) return 0;
+    if (newFace == nullptr) return 0;
 
     /* We split one loop into two -- the new loop is eDst->Lface.
      * Make sure the old face points to a valid half-edge.
@@ -397,7 +397,7 @@ int glu_fastuidraw_gl_meshDelete( GLUhalfEdge *eDel )
   }
 
   if( eDel->Onext == eDel ) {
-    KillVertex( eDel->Org, NULL );
+    KillVertex( eDel->Org, nullptr );
   } else {
     /* Make sure that eDel->Org and eDel->Rface point to valid half-edges */
     eDel->Rface->anEdge = eDel->Oprev;
@@ -406,7 +406,7 @@ int glu_fastuidraw_gl_meshDelete( GLUhalfEdge *eDel )
     Splice( eDel, eDel->Oprev );
     if( ! joiningLoops ) {
       GLUface *newFace= allocFace();
-      if (newFace == NULL) return 0;
+      if (newFace == nullptr) return 0;
 
       /* We are splitting one loop into two -- create a new loop for eDel. */
       MakeFace( newFace, eDel, eDel->Lface );
@@ -417,8 +417,8 @@ int glu_fastuidraw_gl_meshDelete( GLUhalfEdge *eDel )
    * may have been deleted.  Now we disconnect eDel->Dst.
    */
   if( eDelSym->Onext == eDelSym ) {
-    KillVertex( eDelSym->Org, NULL );
-    KillFace( eDelSym->Lface, NULL );
+    KillVertex( eDelSym->Org, nullptr );
+    KillFace( eDelSym->Lface, nullptr );
   } else {
     /* Make sure that eDel->Dst and eDel->Lface point to valid half-edges */
     eDel->Lface->anEdge = eDelSym->Oprev;
@@ -448,7 +448,7 @@ GLUhalfEdge *glu_fastuidraw_gl_meshAddEdgeVertex( GLUhalfEdge *eOrg )
 {
   GLUhalfEdge *eNewSym;
   GLUhalfEdge *eNew = MakeEdge( eOrg );
-  if (eNew == NULL) return NULL;
+  if (eNew == nullptr) return nullptr;
 
   eNewSym = eNew->Sym;
 
@@ -459,7 +459,7 @@ GLUhalfEdge *glu_fastuidraw_gl_meshAddEdgeVertex( GLUhalfEdge *eOrg )
   eNew->Org = eOrg->Dst;
   {
     GLUvertex *newVertex= allocVertex();
-    if (newVertex == NULL) return NULL;
+    if (newVertex == nullptr) return nullptr;
 
     MakeVertex( newVertex, eNewSym, eNew->Org );
   }
@@ -477,7 +477,7 @@ GLUhalfEdge *glu_fastuidraw_gl_meshSplitEdge( GLUhalfEdge *eOrg )
 {
   GLUhalfEdge *eNew;
   GLUhalfEdge *tempHalfEdge= glu_fastuidraw_gl_meshAddEdgeVertex( eOrg );
-  if (tempHalfEdge == NULL) return NULL;
+  if (tempHalfEdge == nullptr) return nullptr;
 
   eNew = tempHalfEdge->Sym;
 
@@ -511,7 +511,7 @@ GLUhalfEdge *glu_fastuidraw_gl_meshConnect( GLUhalfEdge *eOrg, GLUhalfEdge *eDst
   GLUhalfEdge *eNewSym;
   int joiningLoops = FALSE;
   GLUhalfEdge *eNew = MakeEdge( eOrg );
-  if (eNew == NULL) return NULL;
+  if (eNew == nullptr) return nullptr;
 
   eNewSym = eNew->Sym;
 
@@ -535,7 +535,7 @@ GLUhalfEdge *glu_fastuidraw_gl_meshConnect( GLUhalfEdge *eOrg, GLUhalfEdge *eDst
 
   if( ! joiningLoops ) {
     GLUface *newFace= allocFace();
-    if (newFace == NULL) return NULL;
+    if (newFace == nullptr) return nullptr;
 
     /* We split one loop into two -- the new loop is eNew->Lface */
     MakeFace( newFace, eNew, eOrg->Lface );
@@ -547,8 +547,8 @@ GLUhalfEdge *glu_fastuidraw_gl_meshConnect( GLUhalfEdge *eOrg, GLUhalfEdge *eDst
 /******************** Other Operations **********************/
 
 /* glu_fastuidraw_gl_meshZapFace( fZap ) destroys a face and removes it from the
- * global face list.  All edges of fZap will have a NULL pointer as their
- * left face.  Any edges which also have a NULL pointer as their right face
+ * global face list.  All edges of fZap will have a nullptr pointer as their
+ * left face.  Any edges which also have a nullptr pointer as their right face
  * are deleted entirely (along with any isolated vertices this produces).
  * An entire mesh can be deleted by zapping its faces, one at a time,
  * in any order.  Zapped faces cannot be used in further mesh operations!
@@ -559,18 +559,18 @@ void glu_fastuidraw_gl_meshZapFace( GLUface *fZap )
   GLUhalfEdge *e, *eNext, *eSym;
   GLUface *fPrev, *fNext;
 
-  /* walk around face, deleting edges whose right face is also NULL */
+  /* walk around face, deleting edges whose right face is also nullptr */
   eNext = eStart->Lnext;
   do {
     e = eNext;
     eNext = e->Lnext;
 
-    e->Lface = NULL;
-    if( e->Rface == NULL ) {
+    e->Lface = nullptr;
+    if( e->Rface == nullptr ) {
       /* delete the edge -- see glu_fastuidraw_gl_MeshDelete above */
 
       if( e->Onext == e ) {
-        KillVertex( e->Org, NULL );
+        KillVertex( e->Org, nullptr );
       } else {
         /* Make sure that e->Org points to a valid half-edge */
         e->Org->anEdge = e->Onext;
@@ -578,7 +578,7 @@ void glu_fastuidraw_gl_meshZapFace( GLUface *fZap )
       }
       eSym = e->Sym;
       if( eSym->Onext == eSym ) {
-        KillVertex( eSym->Org, NULL );
+        KillVertex( eSym->Org, nullptr );
       } else {
         /* Make sure that eSym->Org points to a valid half-edge */
         eSym->Org->anEdge = eSym->Onext;
@@ -608,8 +608,8 @@ GLUmesh *glu_fastuidraw_gl_meshNewMesh( void )
   GLUhalfEdge *e;
   GLUhalfEdge *eSym;
   GLUmesh *mesh = (GLUmesh *)memAlloc( sizeof( GLUmesh ));
-  if (mesh == NULL) {
-     return NULL;
+  if (mesh == nullptr) {
+     return nullptr;
   }
 
   v = &mesh->vHead;
@@ -618,34 +618,34 @@ GLUmesh *glu_fastuidraw_gl_meshNewMesh( void )
   eSym = &mesh->eHeadSym;
 
   v->next = v->prev = v;
-  v->anEdge = NULL;
-  v->client_id = FASTUIDRAW_GLU_NULL_CLIENT_ID;
+  v->anEdge = nullptr;
+  v->client_id = FASTUIDRAW_GLU_nullptr_CLIENT_ID;
 
   f->next = f->prev = f;
-  f->anEdge = NULL;
-  f->data = NULL;
-  f->trail = NULL;
+  f->anEdge = nullptr;
+  f->data = nullptr;
+  f->trail = nullptr;
   f->marked = FALSE;
   f->inside = FALSE;
   f->winding_number = 0;
 
   e->next = e;
   e->Sym = eSym;
-  e->Onext = NULL;
-  e->Lnext = NULL;
-  e->Org = NULL;
-  e->Lface = NULL;
+  e->Onext = nullptr;
+  e->Lnext = nullptr;
+  e->Org = nullptr;
+  e->Lface = nullptr;
   e->winding = 0;
-  e->activeRegion = NULL;
+  e->activeRegion = nullptr;
 
   eSym->next = eSym;
   eSym->Sym = e;
-  eSym->Onext = NULL;
-  eSym->Lnext = NULL;
-  eSym->Org = NULL;
-  eSym->Lface = NULL;
+  eSym->Onext = nullptr;
+  eSym->Lnext = nullptr;
+  eSym->Org = nullptr;
+  eSym->Lface = nullptr;
   eSym->winding = 0;
-  eSym->activeRegion = NULL;
+  eSym->activeRegion = nullptr;
 
   return mesh;
 }
@@ -701,7 +701,7 @@ void glu_fastuidraw_gl_meshDeleteMesh( GLUmesh *mesh )
   while( fHead->next != fHead ) {
     glu_fastuidraw_gl_meshZapFace( fHead->next );
   }
-  assert( mesh->vHead.next == &mesh->vHead );
+  FASTUIDRAWassert( mesh->vHead.next == &mesh->vHead );
 
   memFree( mesh );
 }
@@ -752,49 +752,49 @@ void glu_fastuidraw_gl_meshCheckMesh( GLUmesh *mesh )
 
   fPrev = fHead;
   for( fPrev = fHead ; (f = fPrev->next) != fHead; fPrev = f) {
-    assert( f->prev == fPrev );
+    FASTUIDRAWassert( f->prev == fPrev );
     e = f->anEdge;
     do {
-      assert( e->Sym != e );
-      assert( e->Sym->Sym == e );
-      assert( e->Lnext->Onext->Sym == e );
-      assert( e->Onext->Sym->Lnext == e );
-      assert( e->Lface == f );
+      FASTUIDRAWassert( e->Sym != e );
+      FASTUIDRAWassert( e->Sym->Sym == e );
+      FASTUIDRAWassert( e->Lnext->Onext->Sym == e );
+      FASTUIDRAWassert( e->Onext->Sym->Lnext == e );
+      FASTUIDRAWassert( e->Lface == f );
       e = e->Lnext;
     } while( e != f->anEdge );
   }
-  assert( f->prev == fPrev && f->anEdge == NULL && f->data == NULL );
+  FASTUIDRAWassert( f->prev == fPrev && f->anEdge == nullptr && f->data == nullptr );
 
   vPrev = vHead;
   for( vPrev = vHead ; (v = vPrev->next) != vHead; vPrev = v) {
-    assert( v->prev == vPrev );
+    FASTUIDRAWassert( v->prev == vPrev );
     e = v->anEdge;
     do {
-      assert( e->Sym != e );
-      assert( e->Sym->Sym == e );
-      assert( e->Lnext->Onext->Sym == e );
-      assert( e->Onext->Sym->Lnext == e );
-      assert( e->Org == v );
+      FASTUIDRAWassert( e->Sym != e );
+      FASTUIDRAWassert( e->Sym->Sym == e );
+      FASTUIDRAWassert( e->Lnext->Onext->Sym == e );
+      FASTUIDRAWassert( e->Onext->Sym->Lnext == e );
+      FASTUIDRAWassert( e->Org == v );
       e = e->Onext;
     } while( e != v->anEdge );
   }
-  assert( v->prev == vPrev && v->anEdge == NULL && v->client_id == FASTUIDRAW_GLU_NULL_CLIENT_ID );
+  FASTUIDRAWassert( v->prev == vPrev && v->anEdge == nullptr && v->client_id == FASTUIDRAW_GLU_nullptr_CLIENT_ID );
 
   ePrev = eHead;
   for( ePrev = eHead ; (e = ePrev->next) != eHead; ePrev = e) {
-    assert( e->Sym->next == ePrev->Sym );
-    assert( e->Sym != e );
-    assert( e->Sym->Sym == e );
-    assert( e->Org != NULL );
-    assert( e->Dst != NULL );
-    assert( e->Lnext->Onext->Sym == e );
-    assert( e->Onext->Sym->Lnext == e );
+    FASTUIDRAWassert( e->Sym->next == ePrev->Sym );
+    FASTUIDRAWassert( e->Sym != e );
+    FASTUIDRAWassert( e->Sym->Sym == e );
+    FASTUIDRAWassert( e->Org != nullptr );
+    FASTUIDRAWassert( e->Dst != nullptr );
+    FASTUIDRAWassert( e->Lnext->Onext->Sym == e );
+    FASTUIDRAWassert( e->Onext->Sym->Lnext == e );
   }
-  assert( e->Sym->next == ePrev->Sym
+  FASTUIDRAWassert( e->Sym->next == ePrev->Sym
        && e->Sym == &mesh->eHeadSym
        && e->Sym->Sym == e
-       && e->Org == NULL && e->Dst == NULL
-       && e->Lface == NULL && e->Rface == NULL );
+       && e->Org == nullptr && e->Dst == nullptr
+       && e->Lface == nullptr && e->Rface == nullptr );
 }
 
 #endif

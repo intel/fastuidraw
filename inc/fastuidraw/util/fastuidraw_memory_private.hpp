@@ -17,7 +17,7 @@
  */
 
 
-/* Private functions needed for macros in vengenace_memory.hpp
+/* Private functions needed for macros in fastuidraw_memory.hpp
  */
 
 #pragma once

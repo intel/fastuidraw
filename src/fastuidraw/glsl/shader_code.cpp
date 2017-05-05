@@ -52,7 +52,7 @@ namespace
 
     tempIndex = obj.m_pk / obj.m_N;
     cc = obj.m_pk - obj.m_N * tempIndex;
-    assert(0<= cc && cc < 4);
+    FASTUIDRAWassert(0<= cc && cc < 4);
     if(obj.m_N > 1)
       {
         str << tempIndex << "." << component[cc];
@@ -285,7 +285,7 @@ compute_interval(const char *function_name, unsigned int data_alignment)
       "-1.0"
     };
 
-  assert(data_alignment >=1 && data_alignment <= 4);
+  FASTUIDRAWassert(data_alignment >=1 && data_alignment <= 4);
 
   /* This.. is awful.
    */

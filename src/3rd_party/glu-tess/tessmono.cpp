@@ -37,7 +37,7 @@
 #include "geom.hpp"
 #include "mesh.hpp"
 #include "tessmono.hpp"
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 
 #define AddWinding(eDst,eSrc)   (eDst->winding += eSrc->winding, \
                                  eDst->Sym->winding += eSrc->Sym->winding)
@@ -79,7 +79,7 @@ int glu_fastuidraw_gl_meshTessellateMonoRegion( GLUface *face )
    * be close to the edge we want.
    */
   up = face->anEdge;
-  assert( up->Lnext != up && up->Lnext->Lnext != up );
+  FASTUIDRAWassert( up->Lnext != up && up->Lnext->Lnext != up );
 
   for( ; VertLeq( up->Dst, up->Org ); up = up->Lprev )
     ;
@@ -96,7 +96,7 @@ int glu_fastuidraw_gl_meshTessellateMonoRegion( GLUface *face )
       while( lo->Lnext != up && (EdgeGoesLeft( lo->Lnext )
              || EdgeSign( lo->Org, lo->Dst, lo->Lnext->Dst ) <= 0 )) {
         GLUhalfEdge *tempHalfEdge= glu_fastuidraw_gl_meshConnect( lo->Lnext, lo );
-        if (tempHalfEdge == NULL) return 0;
+        if (tempHalfEdge == nullptr) return 0;
         lo = tempHalfEdge->Sym;
       }
       lo = lo->Lprev;
@@ -105,7 +105,7 @@ int glu_fastuidraw_gl_meshTessellateMonoRegion( GLUface *face )
       while( lo->Lnext != up && (EdgeGoesRight( up->Lprev )
              || EdgeSign( up->Dst, up->Org, up->Lprev->Org ) >= 0 )) {
         GLUhalfEdge *tempHalfEdge= glu_fastuidraw_gl_meshConnect( up, up->Lprev );
-        if (tempHalfEdge == NULL) return 0;
+        if (tempHalfEdge == nullptr) return 0;
         up = tempHalfEdge->Sym;
       }
       up = up->Lnext;
@@ -115,10 +115,10 @@ int glu_fastuidraw_gl_meshTessellateMonoRegion( GLUface *face )
   /* Now lo->Org == up->Dst == the leftmost vertex.  The remaining region
    * can be tessellated in a fan from this leftmost vertex.
    */
-  assert( lo->Lnext != up );
+  FASTUIDRAWassert( lo->Lnext != up );
   while( lo->Lnext->Lnext != up ) {
     GLUhalfEdge *tempHalfEdge= glu_fastuidraw_gl_meshConnect( lo->Lnext, lo );
-    if (tempHalfEdge == NULL) return 0;
+    if (tempHalfEdge == nullptr) return 0;
     lo = tempHalfEdge->Sym;
   }
 
@@ -147,9 +147,9 @@ int glu_fastuidraw_gl_meshTessellateInterior( GLUmesh *mesh )
 }
 
 
-/* glu_fastuidraw_gl_meshDiscardExterior( mesh ) zaps (ie. sets to NULL) all faces
+/* glu_fastuidraw_gl_meshDiscardExterior( mesh ) zaps (ie. sets to nullptr) all faces
  * which are not marked "inside" the polygon.  Since further mesh operations
- * on NULL faces are not allowed, the main purpose is to clean up the
+ * on nullptr faces are not allowed, the main purpose is to clean up the
  * mesh so that exterior loops are not represented in the data structure.
  */
 void glu_fastuidraw_gl_meshDiscardExterior( GLUmesh *mesh )

@@ -28,6 +28,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterData provides the data for how for a
     Painter to draw content.
    */
@@ -37,7 +38,7 @@ namespace fastuidraw
     /*!
       Holds both a PainterPackedValue and a pointer to a value.
       If \ref m_packed_value is valid, then its value is used. If
-      it is NULL then the value pointed to by \ref m_value is used.
+      it is nullptr then the value pointed to by \ref m_value is used.
      */
     template<typename T>
     class value
@@ -47,7 +48,7 @@ namespace fastuidraw
         Ctor from a value.
         \param p value with which to initialize \ref m_value
        */
-      value(const T *p = NULL):
+      value(const T *p = nullptr):
         m_value(p)
       {}
 
@@ -56,7 +57,7 @@ namespace fastuidraw
         \param p value with which to initialize \ref m_packed_value
        */
       value(const PainterPackedValue<T> &p):
-        m_value(NULL),
+        m_value(nullptr),
         m_packed_value(p)
       {}
 
@@ -71,17 +72,35 @@ namespace fastuidraw
       PainterPackedValue<T> m_packed_value;
 
       /*!
-        If m_packed_value is non-NULL, returns the value behind it
+        If m_packed_value is non-nullptr, returns the value behind it
         (i.e. PainterPackedValue<T>::value()), otherwise returns
         the dereference of \ref m_value.
        */
       const T&
       data(void) const
       {
-        assert(m_packed_value || m_value != NULL);
+        FASTUIDRAWassert(m_packed_value || m_value != nullptr);
         return m_packed_value ?
           m_packed_value.value() :
           *m_value;
+      }
+
+      /*!
+        If \ref m_packed_value is null, then sets it
+        to a packed value created by the passed \ref
+        PainterPackedValuePool. In addition, sets
+        \ref m_value to nullptr.
+        \param pool \ref PainterPackedValuePool from
+                    which to create the packed value
+       */
+      void
+      make_packed(PainterPackedValuePool &pool)
+      {
+        if(!m_packed_value && m_value != nullptr)
+          {
+            m_packed_value = pool.create_packed_value(*m_value);
+            m_value = nullptr;
+          }
       }
     };
 
@@ -182,6 +201,21 @@ namespace fastuidraw
     {
       m_blend_shader_data = value;
       return *this;
+    }
+
+    /*!
+      Call value::make_packed() on \ref m_brush,
+      \ref m_item_shader_data and \ref
+      m_blend_shader_data.
+      \param pool \ref PainterPackedValuePool from
+                  which to create the packed value
+     */
+    void
+    make_packed(PainterPackedValuePool &pool)
+    {
+      m_brush.make_packed(pool);
+      m_item_shader_data.make_packed(pool);
+      m_blend_shader_data.make_packed(pool);
     }
   };
 

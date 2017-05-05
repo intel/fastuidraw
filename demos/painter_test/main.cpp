@@ -21,45 +21,62 @@ public:
   {}
 
 protected:
+
+  void
+  log_helper(const reference_counted_ptr<gl::Program> &pr,
+             const std::string &prefix, GLenum shader_type)
+  {
+    unsigned int cnt;
+    const char *label;
+
+    cnt = pr->num_shaders(shader_type);
+    if(cnt == 0)
+      {
+        return;
+      }
+
+    label = gl::Shader::gl_shader_type_label(shader_type);
+    std::cout << label << "'s written to:\n";
+
+    for(unsigned int i = 0; i < cnt; ++i)
+      {
+        std::ostringstream name, name_log;
+        name << prefix << "."
+             << gl::Shader::gl_shader_type_label(shader_type)
+             << "." << i << ".glsl";
+        name_log << prefix << "."
+                 << gl::Shader::gl_shader_type_label(shader_type)
+                 << "." << i << ".log";
+
+        std::ofstream file(name.str().c_str());
+        file << pr->shader_src_code(shader_type, i);
+        std::cout << "\tSource #" << i << ":" << name.str() << "\n";
+
+        std::ofstream file_log(name_log.str().c_str());
+        file_log << pr->shader_compile_log(shader_type, i);
+        std::cout << "\tCompile Log #" << i << ":" << name_log.str() << "\n";
+      }
+  }
+
   void
   log_program(const reference_counted_ptr<gl::Program> &pr,
               const std::string &prefix)
   {
     {
       std::ostringstream name;
-      name << prefix << "program.glsl";
+      name << prefix << "program.log";
 
       std::ofstream file(name.str().c_str());
       file << pr->log();
 
-      std::cout << "Program Log and contents written to " << name.str() << "\n";
+      std::cout << "\n\nProgram Log and contents written to " << name.str() << "\n";
     }
 
-    std::cout << "Vertex shaders written to:\n";
-    for(unsigned int i = 0, endi = pr->num_shaders(GL_VERTEX_SHADER);
-        i < endi; ++i)
-      {
-        std::ostringstream name;
-        name << prefix << "vert." << i << ".glsl";
-
-        std::ofstream file(name.str().c_str());
-        file << pr->shader_src_code(GL_VERTEX_SHADER, i);
-
-        std::cout << "\t" << name.str() << "\n";
-      }
-
-    std::cout << "Fragment shaders written to:\n";
-    for(unsigned int i = 0, endi = pr->num_shaders(GL_FRAGMENT_SHADER);
-        i < endi; ++i)
-      {
-        std::ostringstream name;
-        name << prefix << "frag." << i << ".glsl";
-
-        std::ofstream file(name.str().c_str());
-        file << pr->shader_src_code(GL_FRAGMENT_SHADER, i);
-
-        std::cout << "\t" << name.str() << "\n";
-      }
+    log_helper(pr, prefix, GL_VERTEX_SHADER);
+    log_helper(pr, prefix, GL_FRAGMENT_SHADER);
+    log_helper(pr, prefix, GL_GEOMETRY_SHADER);
+    log_helper(pr, prefix, GL_TESS_EVALUATION_SHADER);
+    log_helper(pr, prefix, GL_TESS_CONTROL_SHADER);
 
     if(pr->link_success())
       {
@@ -75,9 +92,9 @@ protected:
   void
   derived_init(int, int)
   {
-    log_program(m_backend->program(gl::PainterBackendGL::program_all), "painter.all.");
-    log_program(m_backend->program(gl::PainterBackendGL::program_without_discard), "painter.without_discard.");
-    log_program(m_backend->program(gl::PainterBackendGL::program_with_discard), "painter.with_discard.");
+    log_program(m_backend->program(gl::PainterBackendGL::program_all), "painter.all");
+    log_program(m_backend->program(gl::PainterBackendGL::program_without_discard), "painter.without_discard");
+    log_program(m_backend->program(gl::PainterBackendGL::program_with_discard), "painter.with_discard");
 
     std::cout << "\nUseful command to see shader after pre-processor:\n"
               << "\tsed 's/#version/@version/g' file.glsl | sed 's/#extension/@extension/g'"
@@ -144,7 +161,6 @@ main(int argc, char **argv)
             << std::setw(40) << "transformation_matrix_mask = " << bitset(PainterBrush::transformation_matrix_mask) << "\n"
 
             << std::setw(40) << "stroked_number_offset_types = " << StrokedPath::number_offset_types << "\n"
-            << std::setw(40) << "stroked_number_point_set_types = " << StrokedPath::number_point_set_types << "\n"
             << std::setw(40) << "stroked_offset_type_bit0 = " << StrokedPath::offset_type_bit0 << "\n"
             << std::setw(40) << "stroked_offset_type_num_bits = " << StrokedPath::offset_type_num_bits << "\n"
             << std::setw(40) << "stroked_boundary_bit = " << StrokedPath::boundary_bit << "\n"

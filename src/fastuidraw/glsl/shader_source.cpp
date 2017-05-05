@@ -52,6 +52,7 @@ namespace
     std::list<source_code_t> m_values;
     std::map<std::string, extension_enable_t> m_extensions;
     std::string m_version;
+    bool m_disable_pre_added_source;
 
     std::string m_assembled_code;
 
@@ -84,7 +85,8 @@ namespace
 // SourcePrivate methods
 SourcePrivate::
 SourcePrivate(void):
-  m_dirty(false)
+  m_dirty(false),
+  m_disable_pre_added_source(false)
 {
 }
 
@@ -114,7 +116,7 @@ string_from_extension_t(extension_enable_t tp)
       break;
 
     default:
-      assert(!"Unknown value for extension_enable_t");
+      FASTUIDRAWassert(!"Unknown value for extension_enable_t");
       return "";
     }
 
@@ -285,7 +287,14 @@ fastuidraw::glsl::ShaderSource::
   SourcePrivate *d;
   d = static_cast<SourcePrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
+}
+
+void
+fastuidraw::glsl::ShaderSource::
+swap(ShaderSource &obj)
+{
+  std::swap(obj.m_d, m_d);
 }
 
 fastuidraw::glsl::ShaderSource&
@@ -294,10 +303,8 @@ operator=(const ShaderSource &obj)
 {
   if(this != &obj)
     {
-      SourcePrivate *d, *obj_d;
-      d = static_cast<SourcePrivate*>(m_d);
-      obj_d = static_cast<SourcePrivate*>(obj.m_d);
-      *d = *obj_d;
+      ShaderSource v(obj);
+      swap(v);
     }
   return *this;
 }
@@ -329,7 +336,7 @@ add_source(const char *str, enum source_t tp, enum add_location_t loc)
   SourcePrivate *d;
   d = static_cast<SourcePrivate*>(m_d);
 
-  assert(str);
+  FASTUIDRAWassert(str);
   SourcePrivate::source_code_t v(str, tp);
 
   if(loc == push_front)
@@ -426,6 +433,17 @@ specify_extensions(const ShaderSource &obj)
   return *this;
 }
 
+fastuidraw::glsl::ShaderSource&
+fastuidraw::glsl::ShaderSource::
+disable_pre_added_source(void)
+{
+  SourcePrivate *d;
+  d = static_cast<SourcePrivate*>(m_d);
+  d->m_dirty = d->m_dirty || !d->m_disable_pre_added_source;
+  d->m_disable_pre_added_source = true;
+  return *this;
+}
+
 const char*
 fastuidraw::glsl::ShaderSource::
 assembled_code(void) const
@@ -449,11 +467,14 @@ assembled_code(void) const
                                   << ": " << SourcePrivate::string_from_extension_t(iter->second) << "\n";
         }
 
-      output_glsl_source_code << "uint fastuidraw_mask(uint num_bits) { return (uint(1) << num_bits) - uint(1); }\n"
-                              << "uint fastuidraw_extract_bits(uint bit0, uint num_bits, uint src) { return (src >> bit0) & fastuidraw_mask(num_bits); }\n"
-                              << "#define FASTUIDRAW_MASK(bit0, num_bits) (fastuidraw_mask(uint(num_bits)) << uint(bit0))\n"
-                              << "#define FASTUIDRAW_EXTRACT_BITS(bit0, num_bits, src) fastuidraw_extract_bits(uint(bit0), uint(num_bits), uint(src) )\n"
-                              << "void fastuidraw_do_nothing(void) {}\n";
+      if(!d->m_disable_pre_added_source)
+        {
+          output_glsl_source_code << "uint fastuidraw_mask(uint num_bits) { return (uint(1) << num_bits) - uint(1); }\n"
+                                  << "uint fastuidraw_extract_bits(uint bit0, uint num_bits, uint src) { return (src >> bit0) & fastuidraw_mask(num_bits); }\n"
+                                  << "#define FASTUIDRAW_MASK(bit0, num_bits) (fastuidraw_mask(uint(num_bits)) << uint(bit0))\n"
+                                  << "#define FASTUIDRAW_EXTRACT_BITS(bit0, num_bits, src) fastuidraw_extract_bits(uint(bit0), uint(num_bits), uint(src) )\n"
+                                  << "void fastuidraw_do_nothing(void) {}\n";
+        }
 
       for(std::list<SourcePrivate::source_code_t>::const_iterator
             iter= d->m_values.begin(), end = d->m_values.end(); iter != end; ++iter)

@@ -28,6 +28,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     The attribute data generated/filled by PainterPacker.
     Attribute data is sent to 3D API as raw bits with
     the expectation that shaders will cast the bits
@@ -53,6 +54,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     Typedef for the index type used by PainterPacker
    */
   typedef uint32_t PainterIndex;

@@ -34,7 +34,7 @@
 #include <iostream>
 
 #include "gluos.hpp"
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include <stddef.h>
 #include "mesh.hpp"
 #include "tess.hpp"
@@ -64,7 +64,7 @@ static void RenderTriangles( fastuidraw_GLUtesselator *tess, GLUface *head );
 void glu_fastuidraw_gl_renderMesh( fastuidraw_GLUtesselator *tess, GLUmesh *mesh )
 {
   /* Make a list of separate triangles so we can render them all at once */
-  tess->lonelyTriList = NULL;
+  tess->lonelyTriList = nullptr;
   RenderTriangles(tess, mesh->fHead.next);
 }
 
@@ -83,7 +83,7 @@ static void RenderTriangles( fastuidraw_GLUtesselator *tess, GLUface *f )
   for( ; f != startFace || justStarted; f = f->next ) {
     if(f->winding_number != 0 && CALL_TESS_WINDING_OR_WINDING_DATA(f->winding_number))
       {
-        assert(f->inside);
+        FASTUIDRAWassert(f->inside);
         e = f->anEdge;
 
         /* Loop once for each edge (there will always be 3 edges) */

@@ -51,11 +51,11 @@
 
 #include <climits>
 
-/* the ID FASTUIDRAW_GLU_NULL_CLIENT_ID is reserved for use
-   by FASTUIDRAW_GLU to represent a "NULL" vertex, do not
+/* the ID FASTUIDRAW_GLU_nullptr_CLIENT_ID is reserved for use
+   by FASTUIDRAW_GLU to represent a "nullptr" vertex, do not
    use this ID (which is set to max unsigned int).
  */
-#define FASTUIDRAW_GLU_NULL_CLIENT_ID (UINT_MAX)
+#define FASTUIDRAW_GLU_nullptr_CLIENT_ID (UINT_MAX)
 
 
 /*************************************************************/
@@ -97,6 +97,13 @@ typedef void (*fastuidraw_glu_tess_function_end)(void);
 typedef void (*fastuidraw_glu_tess_function_error)(FASTUIDRAW_GLUenum errnum);
 
 
+/* Combine is guaranteed to combine 4 vertices coming
+   from two edges:
+     data[0] : vertex A for edge E
+     data[1] : vertex B for edge E
+     data[2] : vertex A for edge F
+     data[3] : vertex B for edge F
+ */
 #define FASTUIDRAW_GLU_TESS_COMBINE                   100105
 typedef void (*fastuidraw_glu_tess_function_combine)(double x, double y, unsigned int data[4],
                                                      double weight[4], unsigned int *outData);

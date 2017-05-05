@@ -29,17 +29,19 @@ namespace fastuidraw
  */
 
   /*!
-    A PainterShader encapsulates what a Painter needs to
-    use a painter to assemble data to send to a PainterBackend
-    to draw. The real meat of a PainterShader is dependent
-    on the backend. Typically it is a source code -fragment-
-    that is placed into a large uber-shader.
+    \brief
+    A PainterShader encapsulates how to draw or blend.
+
+    The real meat of a PainterShader is dependent
+    on the backend. Typically it is a shader source
+    code -fragment- that is placed into a large uber-shader.
    */
   class PainterShader:
     public reference_counted<PainterShader>::default_base
   {
   public:
     /*!
+      \brief
       A Tag is how a PainterShader is described for
       and by a PainterBackend.
      */
@@ -69,7 +71,7 @@ namespace fastuidraw
         are needed either to improve performance (to
         prevent divergent branching in shaders) or to
         insert API state changes. The value 0 is used
-        to indicate "default" shader group. The NULL
+        to indicate "default" shader group. The nullptr
         shader belongs to group 0.
        */
       uint32_t m_group;
@@ -111,7 +113,7 @@ namespace fastuidraw
 
     /*!
       If the PainterShader is a sub-shader returns the parent
-      shader, otherwise returns NULL.
+      shader, otherwise returns nullptr.
      */
     const reference_counted_ptr<PainterShader>&
     parent(void) const;
@@ -152,7 +154,7 @@ namespace fastuidraw
 
     /*!
       Returns the PainterBackend to which the shader
-      is registed. If not yet registered, returns NULL.
+      is registed. If not yet registered, returns nullptr.
      */
     const PainterBackend*
     registered_to(void) const;

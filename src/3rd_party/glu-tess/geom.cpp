@@ -33,7 +33,7 @@
 */
 
 #include "gluos.hpp"
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include "mesh.hpp"
 #include "geom.hpp"
 
@@ -58,8 +58,8 @@ double glu_fastuidraw_gl_edgeEval( GLUvertex *u, GLUvertex *v, GLUvertex *w )
    */
   double gapL, gapR;
 
-  assert( VertLeq( u, v ) );
-  assert( VertLeq( v, w ) );
+  FASTUIDRAWassert( VertLeq( u, v ) );
+  FASTUIDRAWassert( VertLeq( v, w ) );
 
   gapL = v->s - u->s;
   gapR = w->s - v->s;
@@ -83,8 +83,8 @@ double glu_fastuidraw_gl_edgeSign( GLUvertex *u, GLUvertex *v, GLUvertex *w )
    */
   double gapL, gapR;
 
-  assert( VertLeq( u, v ) );
-  assert( VertLeq( v, w ));
+  FASTUIDRAWassert( VertLeq( u, v ) );
+  FASTUIDRAWassert( VertLeq( v, w ));
 
   gapL = v->s - u->s;
   gapR = w->s - v->s;
@@ -115,7 +115,7 @@ double glu_fastuidraw_gl_transEval( GLUvertex *u, GLUvertex *v, GLUvertex *w )
    */
   double gapL, gapR;
 
-  assert( TransLeq( u, v ) && TransLeq( v, w ));
+  FASTUIDRAWassert( TransLeq( u, v ) && TransLeq( v, w ));
 
   gapL = v->t - u->t;
   gapR = w->t - v->t;
@@ -139,7 +139,7 @@ double glu_fastuidraw_gl_transSign( GLUvertex *u, GLUvertex *v, GLUvertex *w )
    */
   double gapL, gapR;
 
-  assert( TransLeq( u, v ) && TransLeq( v, w ));
+  FASTUIDRAWassert( TransLeq( u, v ) && TransLeq( v, w ));
 
   gapL = v->t - u->t;
   gapR = w->t - v->t;

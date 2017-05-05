@@ -134,8 +134,8 @@ namespace
           v0 is either left or right
           and v1 is either below or above.
         */
-        assert(v0==fastuidraw::detail::left_boundary or v0==fastuidraw::detail::right_boundary);
-        assert(v1==fastuidraw::detail::below_boundary or v1==fastuidraw::detail::above_boundary);
+        FASTUIDRAWassert(v0==fastuidraw::detail::left_boundary or v0==fastuidraw::detail::right_boundary);
+        FASTUIDRAWassert(v1==fastuidraw::detail::below_boundary or v1==fastuidraw::detail::above_boundary);
 
         R[0].x()= (v0==fastuidraw::detail::left_boundary)?
           texel_bl.x():
@@ -317,7 +317,7 @@ fill_geometry_data(fastuidraw::c_array<fastuidraw::GlyphRenderDataCurvePair::ent
           fastuidraw::vec2 p;
 
           p = bitmap_from_point(c->control_point(k), fastuidraw::detail::bitmap_begin);
-          assert(k < 3);
+          FASTUIDRAWassert(k < 3);
           pts.push_back(p);
         }
       for(unsigned int k = 1; k < n->control_points().size(); ++k)
@@ -325,7 +325,7 @@ fill_geometry_data(fastuidraw::c_array<fastuidraw::GlyphRenderDataCurvePair::ent
           fastuidraw::vec2 p;
 
           p = bitmap_from_point(n->control_point(k), fastuidraw::detail::bitmap_begin);
-          assert(k < 3);
+          FASTUIDRAWassert(k < 3);
           pts.push_back(p);
         }
 
@@ -401,21 +401,21 @@ consume_curve(fastuidraw::detail::BezierCurve *curve)
           R=curve->approximate_cubic(m_data, quads_4);
           quads=quads_4;
 
-          assert(R==routine_success);
+          FASTUIDRAWassert(R==routine_success);
         }
       else if(split_as_2)
         {
           R=curve->approximate_cubic(m_data, quads_2);
           quads=quads_2;
 
-          assert(R==routine_success);
+          FASTUIDRAWassert(R==routine_success);
         }
       else
         {
           R=curve->approximate_cubic(m_data, quads_1);
           quads=quads_1;
 
-          assert(R==routine_success);
+          FASTUIDRAWassert(R==routine_success);
         }
 
       for(unsigned int i=0; i<quads.size(); ++i)
@@ -479,11 +479,11 @@ consume_contour(void)
 
       for(int k=m_curves_to_emit[C].second+1; k<m_curves_to_emit[C+1].second; ++k, ++number_skipped)
         {
-          assert(m_curves[k].first!=NULL);
+          FASTUIDRAWassert(m_curves[k].first!=nullptr);
           pt+=m_curves[k].first->pt1();
 
           FASTUIDRAWdelete(m_curves[k].first);
-          m_curves[k].first=NULL;
+          m_curves[k].first=nullptr;
         }
 
       if(number_skipped>0)
@@ -511,20 +511,20 @@ consume_contour(void)
 
       for(int k=m_curves_to_emit.back().second+1, end_k=m_curves.size(); k<end_k; ++k, ++number_skipped)
         {
-          assert(m_curves[k].first!=NULL);
+          FASTUIDRAWassert(m_curves[k].first!=nullptr);
           pt+=m_curves[k].first->pt1();
 
           FASTUIDRAWdelete(m_curves[k].first);
-          m_curves[k].first=NULL;
+          m_curves[k].first=nullptr;
         }
 
       for(int k=0; k<m_curves_to_emit.front().second; ++k, ++number_skipped)
         {
-          assert(m_curves[k].first!=NULL);
+          FASTUIDRAWassert(m_curves[k].first!=nullptr);
           pt+=m_curves[k].first->pt1();
 
           FASTUIDRAWdelete(m_curves[k].first);
-          m_curves[k].first=NULL;
+          m_curves[k].first=nullptr;
         }
 
       if(number_skipped>0)
@@ -642,7 +642,7 @@ IndexTextureData(TaggedOutlineData &outline_data,
   m_winding_values(m_bitmap_sz.x(), m_bitmap_sz.y())
 {
   std::fill(m_index_pixels.begin(), m_index_pixels.end(), fastuidraw::GlyphRenderDataCurvePair::completely_empty_texel);
-  assert(m_index_pixels.size() == static_cast<unsigned int>(m_bitmap_sz.x() * m_bitmap_sz.y()));
+  FASTUIDRAWassert(m_index_pixels.size() == static_cast<unsigned int>(m_bitmap_sz.x() * m_bitmap_sz.y()));
 
   m_outline_data.compute_analytic_values(m_intersection_data, m_reverse_components, true);
   m_outline_data.compute_winding_numbers(m_winding_values, fastuidraw::ivec2(0, 0));
@@ -687,8 +687,8 @@ void
 IndexTextureData::
 fill_index_data(void)
 {
-  assert(m_bitmap_sz.x()>0);
-  assert(m_bitmap_sz.y()>0);
+  FASTUIDRAWassert(m_bitmap_sz.x()>0);
+  FASTUIDRAWassert(m_bitmap_sz.y()>0);
 
   /*
     should we add slack to the image?
@@ -746,7 +746,7 @@ compute_feature_importance(curve_cache &curves,
                            const fastuidraw::ivec2 &texel_bl, const fastuidraw::ivec2 &texel_tr,
                            float texel_area)
 {
-  const fastuidraw::detail::BezierCurve *a(iter->first), *b(NULL);
+  const fastuidraw::detail::BezierCurve *a(iter->first), *b(nullptr);
 
   if(iter->second.size()>=2)
     {
@@ -787,7 +787,7 @@ compute_feature_importance(curve_cache &curves,
     }
   else
     {
-      assert(iter->second.size()==1);
+      FASTUIDRAWassert(iter->second.size()==1);
 
       /*
         An end point ends inside the texel, thus we
@@ -976,7 +976,7 @@ sub_select_index(uint16_t &pixel,
         a=curves.begin()->first;
         b=m_outline_data.prev_neighbor(a);
 
-        assert(b->pt1() == a->pt0());
+        FASTUIDRAWassert(b->pt1() == a->pt0());
 
         texel_center=m_outline_data.point_from_bitmap(fastuidraw::ivec2(x, y));
         ta=texel_center - a->pt1();
@@ -1003,7 +1003,7 @@ sub_select_index(uint16_t &pixel,
         a=curves.begin()->first;
         b=curves.rbegin()->first;
 
-        assert(a!=b);
+        FASTUIDRAWassert(a!=b);
         if(m_outline_data.next_neighbor(a)==b)
           {
             pixel=static_cast<uint16_t>(a->curveID());
@@ -1031,7 +1031,7 @@ sub_select_index_hard_case(curve_cache &curves,
   FASTUIDRAWunused(x);
   FASTUIDRAWunused(y);
 
-  const fastuidraw::detail::BezierCurve *best_canidate(NULL);
+  const fastuidraw::detail::BezierCurve *best_canidate(nullptr);
   float current_distance(0.0f);
   float texel_area;
 
@@ -1046,9 +1046,9 @@ sub_select_index_hard_case(curve_cache &curves,
                                    texel_bl, texel_tr,
                                    texel_area);
 
-      if(v.second!=NULL)
+      if(v.second!=nullptr)
         {
-          if(best_canidate==NULL or v.first<current_distance)
+          if(best_canidate==nullptr or v.first<current_distance)
             {
               best_canidate=v.second;
               current_distance=v.first;
@@ -1056,7 +1056,7 @@ sub_select_index_hard_case(curve_cache &curves,
         }
 
     }
-  assert(best_canidate!=NULL);
+  FASTUIDRAWassert(best_canidate!=nullptr);
   return best_canidate->curveID();
 }
 
@@ -1207,7 +1207,7 @@ CurvePairGenerator(FT_Outline outline, ivec2 bitmap_sz, ivec2 bitmap_offset,
   fastuidraw::reference_counted_ptr<geometry_data_filter> filter;
 
   filter = FASTUIDRAWnew MakeEvenFilter();
-  geometry_data gmt(NULL, m_pts, filter);
+  geometry_data gmt(nullptr, m_pts, filter);
 
   /*
     usually we set the inflate factor to be 4,
@@ -1257,15 +1257,6 @@ fastuidraw::detail::CurvePairGenerator::
 
   FASTUIDRAWdelete(outline_data);
   FASTUIDRAWdelete(contour_emitter);
-}
-
-void
-fastuidraw::detail::CurvePairGenerator::
-extract_path(Path &path) const
-{
-  TaggedOutlineData *outline_data;
-  outline_data = static_cast<TaggedOutlineData*>(m_outline_data);
-  outline_data->extract_path(path);
 }
 
 void

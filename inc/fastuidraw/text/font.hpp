@@ -35,6 +35,7 @@ namespace fastuidraw
   class GlyphLayoutData;
 
   /*!
+    \brief
     FontBase provides an interface for a font
     to generate glyph rendering data.
    */
@@ -76,7 +77,7 @@ namespace fastuidraw
 
     /*!
       To be implemented by a derived class to indicate
-      that it will return non-NULL in
+      that it will return non-nullptr in
       compute_rendering_data() when passed a
       GlyphRender whose GlyphRender::m_type
       is a specified value.

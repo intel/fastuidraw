@@ -43,7 +43,7 @@ main(void)
   vec3 clip_p;
   fastuidraw_clipping_data clipping;
   float normalized_depth, raw_depth;
-  uint add_z;
+  int add_z;
 
   fastuidraw_read_header(fastuidraw_header_attribute, h);
   fastuidraw_read_clipping(h.clipping_location, clipping);

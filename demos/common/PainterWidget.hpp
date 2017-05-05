@@ -12,7 +12,7 @@ class PainterWidget:fastuidraw::noncopyable
 public:
 
   explicit
-  PainterWidget(PainterWidget *parent = NULL);
+  PainterWidget(PainterWidget *parent = nullptr);
 
   virtual
   ~PainterWidget(void);

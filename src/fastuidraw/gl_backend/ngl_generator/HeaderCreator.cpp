@@ -585,7 +585,7 @@ output_to_source(ostream &sourceFile)
                  << ")\n\t{\n\t\t" << function_pointer_name() << "=("
                  << function_pointer_type() << ")" << function_loader() << "(\""
                  << function_name() << "\");\n\t\tif(" << function_pointer_name()
-                 << "==NULL)\n\t\t{\n\t\t\t"<< function_error_loading() << "(\""
+                 << "==nullptr)\n\t\t{\n\t\t\t"<< function_error_loading() << "(\""
                  << function_name() << "\");\n\t\t\t" << function_pointer_name()
                  << "=" << do_nothing_function_name() << ";\n\t\t}\n\t}\n\t"
                  << "return " << function_pointer_name() << ";\n}\n\n";
@@ -818,7 +818,7 @@ SourceEnd(ostream &sourceFile, const list<string> &fileNames)
                      << function_loader() << "(\""
                      << i->second->function_name() << "\");\n\t"
                      << "if(" << i->second->function_pointer_name()
-                     << "==NULL)\n\t{\n\t\t" << i->second->function_pointer_name()
+                     << "==nullptr)\n\t{\n\t\t" << i->second->function_pointer_name()
                      << "=" << i->second->do_nothing_function_name()
                      << ";\n\t\tif(emit_load_warning)\n\t\t\t" << function_error_loading() << "(\""
                      << i->second->function_name() << "\");\n\t"

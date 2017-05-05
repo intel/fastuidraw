@@ -21,10 +21,18 @@
 
 #include <vector>
 #include <iostream>
+#include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
 
 namespace fastuidraw
 {
+  template<typename T>
+  std::ostream&
+  operator<<(std::ostream &ostr, const range_type<T> &obj)
+  {
+    ostr << "[" << obj.m_begin << ", " << obj.m_end << ")";
+    return ostr;
+  }
 
   template<typename T, size_t N>
   std::ostream&

@@ -53,7 +53,7 @@ namespace
       }
     else
       {
-        assert(layer == 0);
+        FASTUIDRAWassert(layer == 0);
         switch(texTarget)
           {
 #ifdef GL_TEXTURE_1D
@@ -228,14 +228,14 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
 
     default:
       {
-        assert(m_type == emulate_function);
+        FASTUIDRAWassert(m_type == emulate_function);
         /* Use FBO's and glBlitFramebuffer to grab each layer. Ick.
          */
         enum { fbo_draw, fbo_read };
 
         GLuint new_fbos[2] = { 0 }, old_fbos[2] = { 0 };
         glGenFramebuffers(2, new_fbos);
-        assert(new_fbos[fbo_draw] != 0 && new_fbos[fbo_read] != 0);
+        FASTUIDRAWassert(new_fbos[fbo_draw] != 0 && new_fbos[fbo_read] != 0);
 
         old_fbos[fbo_draw] = context_get<GLint>(GL_DRAW_FRAMEBUFFER_BINDING);
         old_fbos[fbo_read] = context_get<GLint>(GL_READ_FRAMEBUFFER_BINDING);
@@ -247,8 +247,8 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
             /* TODO: handle depth, stencil and depth/stencil textures
                correctly.
             */
-            assert(src_layer == 0 || texture_is_layered(srcTarget));
-            assert(dst_layer == 0 || texture_is_layered(dstTarget));
+            FASTUIDRAWassert(src_layer == 0 || texture_is_layered(srcTarget));
+            FASTUIDRAWassert(dst_layer == 0 || texture_is_layered(dstTarget));
             set_color_attachment(GL_DRAW_FRAMEBUFFER, dstTarget, dstName, dst_layer, dstLevel);
             set_color_attachment(GL_READ_FRAMEBUFFER, srcTarget, srcName, src_layer, srcLevel);
             glBlitFramebuffer(srcX, srcY, srcX + width, srcY + height,

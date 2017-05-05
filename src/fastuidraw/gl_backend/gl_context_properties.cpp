@@ -120,7 +120,7 @@ fastuidraw::gl::ContextProperties::
   ContextPropertiesPrivate *d;
   d = static_cast<ContextPropertiesPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::vecN<int, 2>

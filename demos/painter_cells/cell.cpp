@@ -139,7 +139,7 @@ Cell::
 paint_pre_children(const reference_counted_ptr<Painter> &painter)
 {
   painter->save();
-  painter->draw_rect(PainterData(m_background_brush), vec2(0.0f, 0.0f), m_dimensions);
+  painter->draw_rect(PainterData(m_background_brush), vec2(0.0f, 0.0f), m_dimensions, false);
 
   painter->translate(m_item_location);
   painter->rotate(m_item_rotation);
@@ -156,7 +156,7 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
           wh = vec2(m_dimensions) * 0.25f;
         }
       painter->translate(-wh * 0.5f);
-      painter->draw_rect(PainterData(m_image_brush), vec2(0.0, 0.0), wh);
+      painter->draw_rect(PainterData(m_image_brush), vec2(0.0, 0.0), wh, true);
       painter->translate(wh * 0.5f);
     }
 
@@ -176,7 +176,7 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
       painter->stroke_path(PainterData(m_line_brush, &st),
                            m_shared_state->m_path,
                            true, PainterEnums::flat_caps,
-                           PainterEnums::miter_joins, m_shared_state->m_anti_alias_stroking);
+                           PainterEnums::miter_clip_joins, m_shared_state->m_anti_alias_stroking);
     }
   m_shared_state->m_cells_drawn++;
 }

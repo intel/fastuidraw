@@ -31,6 +31,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterItemMatrix holds the value for the
     transformation from item coordinates to the coordinates
     in which the clipping rectangle applies.
@@ -40,6 +41,7 @@ namespace fastuidraw
   public:
 
     /*!
+      \brief
       Enumeration that provides offsets for the
       item matrix from the location of that data
       (item_matrix_offset)

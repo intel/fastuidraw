@@ -16,7 +16,7 @@
  *
  */
 
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 
 #include <fastuidraw/util/blend_mode.hpp>
 #include <fastuidraw/util/util.hpp>
@@ -80,7 +80,7 @@ namespace
 fastuidraw::BlendMode::
 BlendMode(packed_value v)
 {
-  assert(total_blending_bits <= 8 * sizeof(packed_value));
+  FASTUIDRAWassert(total_blending_bits <= 8 * sizeof(packed_value));
   set_value(blending_on_bit0, blending_on_num_bits, v, m_blending_on);
   set_value(op_rgb_bit0, op_rgb_num_bits, v, m_blend_equation[Kequation_rgb]);
   set_value(op_alpha_bit0, op_alpha_num_bits, v, m_blend_equation[Kequation_alpha]);

@@ -26,6 +26,7 @@ namespace fastuidraw
 */
 
   /*!
+    \brief
     Represents defining properties of a font
     used by GlyphSelector to perform font
     merging.
@@ -55,6 +56,13 @@ namespace fastuidraw
      */
     FontProperties&
     operator=(const FontProperties &obj);
+
+    /*!
+      Swap operation
+      \param obj object with which to swap
+     */
+    void
+    swap(FontProperties &obj);
 
     /*!
       Specifies if the font is to be bold or not.

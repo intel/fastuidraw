@@ -28,6 +28,7 @@ namespace fastuidraw
   @{
  */
   /*!
+    \brief
     Class to hold the blend mode as exposed by typical
     3D APIs
   */
@@ -35,6 +36,7 @@ namespace fastuidraw
   {
   public:
     /*!
+      \brief
       Enumeration to specify blend equation, i.e. glBlendEquation.
      */
     enum op_t
@@ -49,6 +51,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Enumeration to specify the blend coefficient factor,
       i.e. glBlendFunc.
      */
@@ -78,6 +81,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Represents a BlendMode packed as a single
       32-bit integer value, see also packed().
      */

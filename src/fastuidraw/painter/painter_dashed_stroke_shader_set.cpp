@@ -56,7 +56,14 @@ fastuidraw::PainterDashedStrokeShaderSet::
   PainterDashedStrokeShaderSetPrivate *d;
   d = static_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
+}
+
+void
+fastuidraw::PainterDashedStrokeShaderSet::
+swap(PainterDashedStrokeShaderSet &obj)
+{
+  std::swap(obj.m_d, m_d);
 }
 
 fastuidraw::PainterDashedStrokeShaderSet&
@@ -65,10 +72,8 @@ operator=(const PainterDashedStrokeShaderSet &rhs)
 {
   if(this != &rhs)
     {
-      PainterDashedStrokeShaderSetPrivate *d, *rhs_d;
-      d = static_cast<PainterDashedStrokeShaderSetPrivate*>(m_d);
-      rhs_d = static_cast<PainterDashedStrokeShaderSetPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      PainterDashedStrokeShaderSet v(rhs);
+      swap(v);
     }
   return *this;
 }

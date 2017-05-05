@@ -36,6 +36,7 @@ namespace fastuidraw
   class GlyphCache;
 
   /*!
+    \brief
     A Glyph is essentially an opaque pointer to
     data for rendering and performing layout of a
     glyph.
@@ -45,10 +46,10 @@ namespace fastuidraw
   public:
     /*!
       Ctor. Initializes the Glyph to be invalid,
-      i.e. essentially a NULL pointer
+      i.e. essentially a nullptr pointer
      */
     Glyph(void):
-      m_opaque(NULL)
+      m_opaque(nullptr)
     {}
 
     /*!
@@ -58,12 +59,12 @@ namespace fastuidraw
     bool
     valid(void) const
     {
-      return m_opaque != NULL;
+      return m_opaque != nullptr;
     }
 
     /*!
       Returns the glyph's rendering type, valid()
-      must return true. If not, debug builds assert
+      must return true. If not, debug builds FASTUIDRAWassert
       and release builds crash.
      */
     enum glyph_type
@@ -71,7 +72,7 @@ namespace fastuidraw
 
     /*!
       Returns the glyph's layout data, valid()
-      must return true. If not, debug builds assert
+      must return true. If not, debug builds FASTUIDRAWassert
       and release builds crash.
      */
     const GlyphLayoutData&
@@ -83,7 +84,7 @@ namespace fastuidraw
       larger than the actual glyph rendering size,
       for example to pad for texture filtering.
       The return value of valid() must be true.
-      If not, debug builds assert and release builds
+      If not, debug builds FASTUIDRAWassert and release builds
       crash.
      */
     GlyphLocation
@@ -102,7 +103,7 @@ namespace fastuidraw
       GlyphAtlas, a negative value indicates that
       the glyph has no gometry data. The return value
       of valid() must be true. If not, debug builds
-      assert and release builds crash.
+      FASTUIDRAWassert and release builds crash.
     */
     int
     geometry_offset(void) const;
@@ -110,7 +111,7 @@ namespace fastuidraw
     /*!
       Returns the GlyphCache on which the glyph
       resides. The return value of valid() must be
-      true. If not, debug builds assert and release
+      true. If not, debug builds FASTUIDRAWassert and release
       builds crash.
      */
     reference_counted_ptr<GlyphCache>
@@ -119,7 +120,7 @@ namespace fastuidraw
     /*!
       Returns the index location into the GlyphCache
       of the glyph. The return value of valid() must be
-      true. If not, debug builds assert and release
+      true. If not, debug builds FASTUIDRAWassert and release
       builds crash.
     */
     unsigned int
@@ -150,7 +151,7 @@ namespace fastuidraw
                  send_render_commands_to_graphics_api();
                  G.cache()->clear_atlas();
                  R = G.upload();
-                 assert(R == routine_success);
+                 FASTUIDRAWassert(R == routine_success);
               }
             append_render_command(G);
           }

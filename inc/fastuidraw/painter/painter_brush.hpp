@@ -34,8 +34,10 @@ namespace fastuidraw
  */
 
   /*!
-    A PainterBrush defines a brush for painting via Painter
-    providng a color (see \ref pen()), optionally applying
+    \brief
+    A PainterBrush defines a brush for painting via Painter.
+
+    It provided a color (see \ref pen()), optionally applying
     an image (see \ref image() and \ref sub_image()) and
     optionally applying a linear or radial gradient (see
     \ref linear_gradient() and \ref radial_gradient()).
@@ -49,6 +51,7 @@ namespace fastuidraw
   {
   public:
     /*!
+      \brief
       Enumeration specifying what filter to apply to an image
      */
     enum image_filter
@@ -77,6 +80,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Enumeration describing the roles of the bits for
       PainterBrush::shader().
      */
@@ -130,6 +134,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Masks generated from shader_bits, use these masks on the
       return value of PainterBrush::shader() to get what features
       are active on the brush.
@@ -180,6 +185,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Enumeration giving the packing order for data of a brush.
       Each enumeration is an entry and when data is packed each
       entry starts on a multiple of the alignment (see
@@ -230,6 +236,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Bit packing for the master index tile of a Image
      */
     enum image_atlas_location_encoding
@@ -252,6 +259,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Encoding for bits to specify Image::number_index_lookups()
       and Image::number_index_lookups().
      */
@@ -281,6 +289,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Bit packing for size of the image, Image::dimensions()
      */
     enum image_size_encoding
@@ -293,6 +302,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       enumerations for offsets to pen color values
      */
     enum pen_offset_t
@@ -306,11 +316,14 @@ namespace fastuidraw
       };
 
     /*!
-      Offsets for image data packing; the number of index
-      look ups is recorded in PainterBrush::shader().
-      The ratio of the size of the image to the size of the
-      master index is given by pow(I, Image::number_index_lookups).
-      where I is given by ImageAtlas::index_tile_size().
+      \brief
+      Offsets for image data packing.
+
+      The number of index look ups is recorded in
+      PainterBrush::shader(). The ratio of the size of the
+      image to the size of the master index is given by
+      pow(I, Image::number_index_lookups). where I is given
+      by ImageAtlas::index_tile_size().
       NOTE:
       - packing it into 2 elements is likely overkill since
         alignment is likely to be 4. We could split the
@@ -356,6 +369,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Bit encoding for packing ColorStopSequenceOnAtlas::texel_location()
      */
     enum gradient_color_stop_xy_encoding
@@ -368,6 +382,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Enumeration that provides offset from the start of
       gradient packing to data for linear or radial gradients.
      */
@@ -434,6 +449,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Enumeration that provides offset from the start of
       repeat window packing to data for repeat window data
      */
@@ -447,6 +463,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Enumeration that provides offset from the start of
       repeat transformation matrix to data for the transformation
       matrix data
@@ -461,6 +478,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Enumeration that provides offset from the start of
       repeat transformation translation to data for the
       transformation translation data
@@ -521,7 +539,7 @@ namespace fastuidraw
       \param im handle to image to use. If handle is invalid,
                 then sets brush to not have an image.
       \param f filter to apply to image, only has effect if im
-               is non-NULL
+               is non-nullptr
      */
     PainterBrush&
     image(const reference_counted_ptr<const Image> &im, enum image_filter f = image_filter_nearest);
@@ -532,7 +550,7 @@ namespace fastuidraw
       \param xy top-left corner of sub-rectangle of image to use
       \param wh width and height of sub-rectangle of image to use
       \param f filter to apply to image, only has effect if im
-               is non-NULL
+               is non-nullptr
      */
     PainterBrush&
     sub_image(const reference_counted_ptr<const Image> &im, uvec2 xy, uvec2 wh,
@@ -753,12 +771,6 @@ namespace fastuidraw
      */
     uint32_t
     shader(void) const;
-
-    /*!
-      Specialize assignment operator.
-     */
-    PainterBrush&
-    operator=(const PainterBrush &rhs);
 
     /*!
       Returns the value of the handle to the

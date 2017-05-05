@@ -28,7 +28,7 @@ namespace
   uint32_t
   filter_atlas_layer(int layer)
   {
-    assert(layer >= -1);
+    FASTUIDRAWassert(layer >= -1);
     return (layer != -1) ? static_cast<uint32_t>(layer) : ~0u;
   }
 
@@ -36,7 +36,7 @@ namespace
   void
   pack_glyph_indices(fastuidraw::c_array<fastuidraw::PainterIndex> dst, unsigned int aa)
   {
-    assert(dst.size() == 6);
+    FASTUIDRAWassert(dst.size() == 6);
     dst[0] = aa;
     dst[1] = aa + 1;
     dst[2] = aa + 2;
@@ -51,7 +51,7 @@ namespace
                         fastuidraw::vec2 p, fastuidraw::Glyph glyph, float SCALE,
                         fastuidraw::c_array<fastuidraw::PainterAttribute> dst)
   {
-    assert(glyph.valid());
+    FASTUIDRAWassert(glyph.valid());
 
     fastuidraw::GlyphLocation atlas(glyph.atlas_location());
     fastuidraw::GlyphLocation secondary_atlas(glyph.secondary_atlas_location());
@@ -156,8 +156,8 @@ FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
   m_render_pixel_size(false, 1.0f),
   m_number_glyphs(0)
 {
-  assert(glyph_positions.size() == glyphs.size());
-  assert(scale_factors.empty() || scale_factors.size() == glyphs.size());
+  FASTUIDRAWassert(glyph_positions.size() == glyphs.size());
+  FASTUIDRAWassert(scale_factors.empty() || scale_factors.size() == glyphs.size());
 }
 
 FillGlyphsPrivate::
@@ -171,7 +171,7 @@ FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
   m_render_pixel_size(true, render_pixel_size),
   m_number_glyphs(0)
 {
-  assert(glyph_positions.size() == glyphs.size());
+  FASTUIDRAWassert(glyph_positions.size() == glyphs.size());
 }
 
 FillGlyphsPrivate::
@@ -184,7 +184,7 @@ FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
   m_render_pixel_size(false, 1.0f),
   m_number_glyphs(0)
 {
-  assert(glyph_positions.size() == glyphs.size());
+  FASTUIDRAWassert(glyph_positions.size() == glyphs.size());
 }
 
 void
@@ -248,7 +248,7 @@ fastuidraw::PainterAttributeDataFillerGlyphs::
   FillGlyphsPrivate *d;
   d = static_cast<FillGlyphsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void
@@ -257,7 +257,7 @@ compute_sizes(unsigned int &number_attributes,
               unsigned int &number_indices,
               unsigned int &number_attribute_chunks,
               unsigned int &number_index_chunks,
-              unsigned int &number_z_increments) const
+              unsigned int &number_z_ranges) const
 {
   FillGlyphsPrivate *d;
   d = static_cast<FillGlyphsPrivate*>(m_d);
@@ -267,7 +267,7 @@ compute_sizes(unsigned int &number_attributes,
   number_indices = 6 * d->m_number_glyphs;
   number_attribute_chunks = d->m_cnt_by_type.size();
   number_index_chunks = d->m_cnt_by_type.size();
-  number_z_increments = 0;
+  number_z_ranges = 0;
 }
 
 void
@@ -276,7 +276,7 @@ fill_data(c_array<PainterAttribute> attribute_data,
           c_array<PainterIndex> index_data,
           c_array<const_c_array<PainterAttribute> > attrib_chunks,
           c_array<const_c_array<PainterIndex> > index_chunks,
-          c_array<unsigned int> zincrements,
+          c_array<range_type<int> > zranges,
           c_array<int> index_adjusts) const
 {
   FillGlyphsPrivate *d;
@@ -289,8 +289,8 @@ fill_data(c_array<PainterAttribute> attribute_data,
       c += d->m_cnt_by_type[i];
     }
 
-  assert(zincrements.empty());
-  FASTUIDRAWunused(zincrements);
+  FASTUIDRAWassert(zranges.empty());
+  FASTUIDRAWunused(zranges);
 
   std::vector<unsigned int> current(attrib_chunks.size(), 0);
   for(unsigned int g = 0; g < d->m_number_glyphs; ++g)
@@ -301,7 +301,7 @@ fill_data(c_array<PainterAttribute> attribute_data,
           unsigned int t;
 
           scale = (d->m_render_pixel_size.first) ?
-            d->m_render_pixel_size.second / d->m_glyphs[g].layout().m_pixel_size :
+            d->m_render_pixel_size.second / d->m_glyphs[g].layout().m_units_per_EM :
             (d->m_scale_factors.empty()) ? 1.0f : d->m_scale_factors[g];
 
           t = d->m_glyphs[g].type();

@@ -110,7 +110,7 @@ tex_storage(bool use_tex_storage,
                    size.x(), size.y(), size.z(), 0,
                    format_from_internal_format(internalformat),
                    GL_UNSIGNED_BYTE,
-                   NULL);
+                   nullptr);
     }
 }
 
@@ -171,7 +171,7 @@ tex_storage(bool use_tex_storage,
                    size.x(), size.y(), 0,
                    format_from_internal_format(internalformat),
                    GL_UNSIGNED_BYTE,
-                   NULL);
+                   nullptr);
     }
 }
 
@@ -219,7 +219,7 @@ tex_storage(bool use_tex_storage,
                    size.x(), 0,
                    format_from_internal_format(internalformat),
                    GL_UNSIGNED_BYTE,
-                   NULL);
+                   nullptr);
     }
 }
 
@@ -419,7 +419,7 @@ void
 TextureGLGeneric<texture_target>::
 delete_texture(void)
 {
-  assert(m_texture != 0);
+  FASTUIDRAWassert(m_texture != 0);
   glDeleteTextures(1, &m_texture);
   m_texture = 0;
 }
@@ -430,7 +430,7 @@ GLuint
 TextureGLGeneric<texture_target>::
 texture(void) const
 {
-  assert(m_texture != 0);
+  FASTUIDRAWassert(m_texture != 0);
   return m_texture;
 }
 
@@ -440,9 +440,9 @@ void
 TextureGLGeneric<texture_target>::
 create_texture(void) const
 {
-  assert(m_texture == 0);
+  FASTUIDRAWassert(m_texture == 0);
   glGenTextures(1, &m_texture);
-  assert(m_texture!=0);
+  FASTUIDRAWassert(m_texture!=0);
   glBindTexture(texture_target, m_texture);
   if(m_number_times_create_texture_called == 0)
     {
@@ -475,7 +475,7 @@ flush(void)
       for(typename list_type::iterator iter = m_unflushed_commands.begin(),
             end = m_unflushed_commands.end(); iter != end; ++iter)
         {
-          assert(!iter->second.empty());
+          FASTUIDRAWassert(!iter->second.empty());
           tex_sub_image(texture_target,
                         iter->first.m_location,
                         iter->first.m_size,

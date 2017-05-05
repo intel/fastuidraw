@@ -30,10 +30,12 @@ namespace fastuidraw {
  */
 
 /*!
+  \brief
   A generic matrix class whose
   entries are packed in a form
-  suitable for OpenGL:
+  suitable for OpenGL.
 
+  The packing of data is
   \verbatim
   data[ 0 ] data[ N  ] data[2N  ]  .. data[ N(M-1)  ]
   data[ 1 ] data[ N+1] data[2N+1]  .. data[ N(M-1)+1]
@@ -42,12 +44,10 @@ namespace fastuidraw {
   data[N-1] data[2N-1] data[3N-1]  .. data[  N*M - 1]
   \endverbatim
 
- i.e. data[ row + col*N] --> matrix(row,col),
- with 0<=row<N, 0<=col<M
- operator()(row,col) --> data[row+col*N] <--> matrix(row,col)
+  i.e. data[ row + col*N] --> matrix(row,col),
+  with 0 <= row < N, 0 <= col < M
+  operator()(row,col) --> data[row + col * N]
 
- If FASTUIDRAW_VECTOR_BOUND_CHECK is defined,
- will perform bounds checking.
  \tparam N hieght of matrix
  \tparam M width of matrix
  \tparam T matrix entry type
@@ -60,6 +60,7 @@ private:
 
 public:
   /*!
+    \brief
     Typedef to underlying vecN that holds
     the matrix data.
    */
@@ -157,10 +158,8 @@ public:
   T&
   operator()(unsigned int row, unsigned int col)
   {
-    #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
-      assert(row<N);
-      assert(col<M);
-    #endif
+    FASTUIDRAWassert(row<N);
+    FASTUIDRAWassert(col<M);
     return m_data[N*col+row];
   }
 
@@ -172,10 +171,8 @@ public:
   const T&
   operator()(unsigned int row, unsigned int col) const
   {
-    #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
-      assert(row<N);
-      assert(col<M);
-    #endif
+    FASTUIDRAWassert(row<N);
+    FASTUIDRAWassert(col<M);
     return m_data[N*col+row];
   }
 
@@ -331,12 +328,14 @@ public:
 
 
 /*!
+  \brief
   Convenience typedef to matrixNxM\<2, float\>
  */
 typedef matrixNxM<2, 2, float> float2x2;
 
 
 /*!
+  \brief
   A projection_params holds the
   data to describe a projection
   matrix with and without perspective.
@@ -395,6 +394,7 @@ public:
 };
 
 /*!
+  \brief
   An extension to projection parameters to provide projection parameters
   better suited for orthogonal projection.
   */
@@ -431,6 +431,7 @@ public:
 };
 
 /*!
+  \brief
   A representation of a 3x3 matrix, that in addition to the NxN
   matrix functionality provides function for calculating the
   determinant.
@@ -440,6 +441,7 @@ class matrix3x3:public matrixNxM<3,3,T>
 {
 public:
   /*!
+    \brief
     Conveniance typedef to base class, matrixNxM<3,3,T>
    */
   typedef matrixNxM<3,3,T> base_class;
@@ -745,25 +747,28 @@ public:
 
 
 /*!
+  \brief
   Convenience typedef to matrix3x3\<float\>
  */
 typedef matrix3x3<float> float3x3;
 
 /*!
+  \brief
   Convenience typedef for projection_params\<float\>
  */
 typedef projection_params<float> float_projection_params;
 
 /*!
+  \brief
   Convenience typedef for orthogonal_projection_params\<float\>
  */
 typedef orthogonal_projection_params<float> float_orthogonal_projection_params;
 
 
 /*!
-  4x4 matrix class that provides functions for matrix math,
+  \brief
+  4x4 matrix class that provides functions for 3D vector math,
   such as scaling, translating and creating projection matrices.
-  Special case of NxM matrix.
  */
 template<typename T>
 class matrix4x4:public matrixNxM<4, 4, T>
@@ -1220,6 +1225,7 @@ public:
 
 
 /*!
+  \brief
   A convenience typedef to matrix4x4\<float\>
  */
 typedef matrix4x4<float> float4x4;

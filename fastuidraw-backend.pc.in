@@ -1,0 +1,13 @@
+prefix=@INSTALL_LOCATION@
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: FastUIDraw@API@-@TYPE@
+Description: FastUIDraw@API@-@TYPE@ is the @TYPE@ version of the @API@ backend for FastUIDraw which is a high performance 2D rendering library.
+Version:
+Requires: fastuidraw-@TYPE@
+Conflicts:
+Cflags: @LIBRARY_CFLAGS@
+Libs: -L${libdir} -lFastUIDraw@API@_@TYPE@ -lN@API@_@TYPE@ @LIBRARY_LIBS@
+Libs.private:

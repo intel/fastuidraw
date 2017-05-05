@@ -20,7 +20,11 @@ INSTALL_LOCATION ?= /usr/local
 #Init TARGETLIST
 TARGETLIST :=
 
-default: $(INSTALL_LIBS)
+# Mark all intermediate files as secondary and precious
+.PRECIOUS:
+.SECONDARY:
+
+default: targets
 targets:
 	@echo
 	@echo "Individual Demos available:"
@@ -30,6 +34,14 @@ targets:
 	@echo "Targets available:"
 	@echo "=============================="
 	@printf "%s\n" $(TARGETLIST)
+	@echo
+	@echo "=============================="
+	@echo
+	@echo "environmental variable BUILD_GL controls if GL backend is a target (1=yes, 0=no)"
+	@echo "environmental variable BUILD_GLES controls if GLES backend is a target (1=yes, 0=no)"
+	@echo "environmental variable INSTALL_LOCATION provides the install location"
+	@echo
+.PHONY: targets
 
 include Makefile.settings.mk
 include Makefile.gl_backend.settings.mk
@@ -43,10 +55,10 @@ include Makefile.sources.mk
 include Makefile.base.lib.mk
 include Makefile.gl_backend.lib.mk
 
-include Makefile.clean.mk
-
 include Makefile.demo.sources.mk
 include Makefile.demo.rules.mk
 
 include Makefile.docs.mk
 include Makefile.install.mk
+
+include Makefile.clean.mk

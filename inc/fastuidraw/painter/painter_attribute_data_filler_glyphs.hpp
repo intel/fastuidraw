@@ -31,8 +31,10 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterAttributeDataFillerGlyphs is for filling the data of a
     PainterAttributeDataFiller for the purpose of drawing glyphs.
+
     The enumeration glyph_type provide the indices into
     PainterAttributeData::attribute_data_chunks() and
     PainterAttributeData::index_data_chunks() for the different
@@ -131,7 +133,7 @@ namespace fastuidraw
               c_array<PainterIndex> indices,
               c_array<const_c_array<PainterAttribute> > attrib_chunks,
               c_array<const_c_array<PainterIndex> > index_chunks,
-              c_array<unsigned int> zincrements,
+              c_array<range_type<int> > zranges,
               c_array<int> index_adjusts) const;
 
   private:

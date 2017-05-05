@@ -83,7 +83,7 @@ fastuidraw::PainterBackend::PerformanceHints::
   PerformanceHintsPrivate *d;
   d = static_cast<PerformanceHintsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 bool
@@ -127,17 +127,25 @@ fastuidraw::PainterBackend::ConfigurationBase::
   ConfigurationPrivate *d;
   d = static_cast<ConfigurationPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
+}
+
+void
+fastuidraw::PainterBackend::ConfigurationBase::
+swap(ConfigurationBase &obj)
+{
+  std::swap(m_d, obj.m_d);
 }
 
 fastuidraw::PainterBackend::ConfigurationBase&
 fastuidraw::PainterBackend::ConfigurationBase::
 operator=(const ConfigurationBase &obj)
 {
-  ConfigurationPrivate *d, *obj_d;
-  d = static_cast<ConfigurationPrivate*>(m_d);
-  obj_d = static_cast<ConfigurationPrivate*>(obj.m_d);
-  *d = *obj_d;
+  if(&obj != this)
+    {
+      ConfigurationBase v(obj);
+      swap(v);
+    }
   return *this;
 }
 
@@ -198,7 +206,7 @@ fastuidraw::PainterBackend::
   PainterBackendPrivate *d;
   d = static_cast<PainterBackendPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::PainterBackend::PerformanceHints&
@@ -227,8 +235,8 @@ register_shader(const reference_counted_ptr<PainterItemShader> &shader)
     {
       return;
     }
-  assert(shader->registered_to() == NULL);
-  if(shader->registered_to() == NULL)
+  FASTUIDRAWassert(shader->registered_to() == nullptr);
+  if(shader->registered_to() == nullptr)
     {
       if(shader->parent())
         {
@@ -252,8 +260,8 @@ register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
     {
       return;
     }
-  assert(shader->registered_to() == NULL);
-  if(shader->registered_to() == NULL)
+  FASTUIDRAWassert(shader->registered_to() == nullptr);
+  if(shader->registered_to() == nullptr)
     {
       if(shader->parent())
         {
@@ -336,6 +344,7 @@ fastuidraw::PainterBackend::
 register_shader(const PainterFillShader &p)
 {
   register_shader(p.item_shader());
+  register_shader(p.aa_fuzz_shader());
 }
 
 void

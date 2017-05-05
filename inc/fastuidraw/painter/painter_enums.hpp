@@ -32,6 +32,7 @@ namespace fastuidraw
   namespace PainterEnums
   {
     /*!
+      \brief
       Enumeration for text drawing to indicating in what
       direction the y-coordinate increases
      */
@@ -42,6 +43,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Enumeration specifying if and how to draw caps when stroking.
      */
     enum cap_style
@@ -54,19 +56,51 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Enumeration specifying if and how to draw joins when stroking
      */
     enum join_style
       {
-        no_joins, /*!< indicates to stroke without joins */
-        rounded_joins, /*!< indicates to stroke with rounded joins */
-        bevel_joins, /*!< indicates to stroke with bevel joins */
-        miter_joins, /*!< indicates to stroke with miter joins */
+        /*!
+          indicates to stroke without joins
+         */
+        no_joins,
+
+        /*!
+          indicates to stroke with rounded joins
+         */
+        rounded_joins,
+
+        /*!
+          indicates to stroke with bevel joins
+         */
+        bevel_joins,
+
+        /*!
+          indicates to stroke with miter joins where if miter distance
+          is exceeded then the miter join is clipped to the miter
+          distance.
+         */
+        miter_clip_joins,
+
+        /*!
+          indicates to stroke with miter joins where if miter distance
+          is exceeded then the miter join is drawn as a bevel join.
+         */
+        miter_bevel_joins,
+
+        /*!
+          indicates to stroke with miter joins where if miter distance
+          is exceeded then the miter-tip is truncated to the miter
+          distance.
+         */
+        miter_joins,
 
         number_join_styles, /*!< number of join styles */
       };
 
     /*!
+      \brief
       Enumerations specifying common fill rules.
      */
     enum fill_rule_t
@@ -80,6 +114,7 @@ namespace fastuidraw
       };
 
     /*!
+      \brief
       Enumeration specifying blend modes
      */
     enum blend_mode_t

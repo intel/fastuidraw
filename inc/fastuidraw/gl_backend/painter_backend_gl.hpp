@@ -34,6 +34,7 @@ namespace fastuidraw
   @{
  */
     /*!
+      \brief
       A PainterBackendGL implements PainterBackend
       using the GL (or GLES) API.
      */
@@ -41,6 +42,7 @@ namespace fastuidraw
     {
     public:
       /*!
+        \brief
         Enumeration to specify which GLSL program
         to fetch from program(enum program_type_t).
       */
@@ -69,6 +71,7 @@ namespace fastuidraw
         };
 
       /*!
+        \brief
         A ConfigurationGL gives parameters how to contruct
         a PainterBackendGL.
        */
@@ -94,6 +97,13 @@ namespace fastuidraw
          */
         ConfigurationGL&
         operator=(const ConfigurationGL &rhs);
+
+        /*!
+          Swap operation
+          \param obj object with which to swap
+        */
+        void
+        swap(ConfigurationGL &obj);
 
         /*!
           The ImageAtlasGL to be used by the painter
@@ -187,7 +197,7 @@ namespace fastuidraw
           may impose size limits that will force that the size of the
           data store might be smaller than that specified by
           data_blocks_per_store_buffer(). The initial value
-          is data_store_tbo.
+          is \ref data_store_tbo.
          */
         enum data_store_backing_t
         data_store_backing(void) const;
@@ -213,7 +223,7 @@ namespace fastuidraw
 
         /*!
           If true, use switch() statements in uber vertex shader,
-          if false use a chain of if-else. Default value is true.
+          if false use a chain of if-else. Default value is false.
          */
         bool
         vert_shader_use_switch(void) const;
@@ -226,7 +236,7 @@ namespace fastuidraw
 
         /*!
           If true, use switch() statements in uber frag shader,
-          if false use a chain of if-else. Default value is true.
+          if false use a chain of if-else. Default value is false.
          */
         bool
         frag_shader_use_switch(void) const;
@@ -239,7 +249,7 @@ namespace fastuidraw
 
         /*!
           If true, use switch() statements in uber blend shader,
-          if false use a chain of if-else. Default value is true.
+          if false use a chain of if-else. Default value is false.
          */
         bool
         blend_shader_use_switch(void) const;
@@ -375,19 +385,15 @@ namespace fastuidraw
         separate_program_for_discard(bool v);
 
         /*!
-          If framebuffer fetch is available, this value is ignored.
-          When framebuffer fetch is not availabe, for non-dashed
-          anti-aliased stroking, the opaque pass draws the stroking
-          at about 1-pixel less and the anti-alias pass draws after
-          and underneath the entire stroke width with an alpha
-          value. Under severe transformation distrotion, the opaque
+          For non-dashed anti-aliased stroking, the opaque pass draws
+          the stroking at about 1-pixel less and the anti-alias pass
+          draws after and underneath the entire stroke width with an
+          alpha value. Under severe transformation distrotion, the opaque
           pass is unable to leave enough uncovered for the anti-alias
           pass (but only under severe skew/perspective does this
           occur). When discard is used, both passes cover the entire
           stroking width, but the opaque pass discards when coverage
-          is less than 100%. Again, this option is ignored if
-          framebuffer fetch is available because when that is available
-          the coverage is handled by a secondary buffer.
+          is less than 100%.
          */
         bool
         non_dashed_stroke_shader_uses_discard(void) const;
@@ -409,7 +415,7 @@ namespace fastuidraw
         blend_type(void) const;
 
         /*!
-          Set the value for (void) const
+          Set the value for blend_type(void) const
         */
         ConfigurationGL&
         blend_type(enum PainterBlendShader::shader_type v);

@@ -19,7 +19,7 @@
 
 
 
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include <iostream>
 #include <sstream>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
@@ -31,7 +31,7 @@ namespace
   {
   public:
     ngl_data(void):
-      m_log(NULL),
+      m_log(nullptr),
       m_log_all(false),
       m_proc(0)
     {}
@@ -103,7 +103,7 @@ ErrorCheck(const char *call, const char *src_call,
 
   (void)src_call;
 
-  if(logger() == NULL)
+  if(logger() == nullptr)
     {
       return;
     }
@@ -183,7 +183,7 @@ fastuidraw::gl_binding::
 get_proc_function(void* (*get_proc)(const char*), bool load_functions)
 {
   ngl().m_proc = get_proc;
-  if(load_functions && get_proc != NULL)
+  if(load_functions && get_proc != nullptr)
     {
       load_all_functions(false);
     }
@@ -200,7 +200,7 @@ loadFunction(const char *name)
     }
   else
     {
-      return_value = NULL;
+      return_value = nullptr;
     }
   return return_value;
 }

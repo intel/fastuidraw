@@ -8,7 +8,7 @@ struct fastuidraw_shader_header
   uint item_shader_data_location;
   uint blend_shader_data_location;
   uint brush_shader;
-  uint z;
+  int z;
   uint item_blend_shader_packed;
 
   /* derived values

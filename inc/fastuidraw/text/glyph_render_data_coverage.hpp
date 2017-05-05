@@ -28,6 +28,7 @@ namespace fastuidraw
 */
 
   /*!
+    \brief
     A GlyphRenderDataCoverage represents the data needed
     to build a coverage (non-scalable) glyph. Such
     glyphs are for rendering glyphs small where

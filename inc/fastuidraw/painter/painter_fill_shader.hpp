@@ -30,8 +30,8 @@ namespace fastuidraw
  */
 
   /*!
-    A PainterFillShader holds the shader for
-    drawing filled paths.
+    \brief
+    A PainterFillShader holds the shaders for drawing filled paths.
    */
   class PainterFillShader
   {
@@ -55,7 +55,18 @@ namespace fastuidraw
     operator=(const PainterFillShader &rhs);
 
     /*!
-      Returns the PainterItemShader to use.
+      Swap operation
+      \param obj object with which to swap
+    */
+    void
+    swap(PainterFillShader &obj);
+
+    /*!
+      Returns the PainterItemShader to use to draw
+      the filled path triangles. The expected format
+      of the attributes is as found in the \ref
+      PainterAttributeData returned by \ref
+      FilledPath::Subset::painter_data().
      */
     const reference_counted_ptr<PainterItemShader>&
     item_shader(void) const;
@@ -66,6 +77,24 @@ namespace fastuidraw
      */
     PainterFillShader&
     item_shader(const reference_counted_ptr<PainterItemShader> &sh);
+
+    /*!
+      Returns the PainterItemShader to use to draw
+      the anti-alias fuzz around the boundary of
+      a filled path. The expected format of the
+      attributes is as found in the \ref
+      PainterAttributeData returned by \ref
+      FilledPath::Subset::aa_fuzz_painter_data().
+     */
+    const reference_counted_ptr<PainterItemShader>&
+    aa_fuzz_shader(void) const;
+
+    /*!
+      Set the value returned by aa_fuzz_shader(void) const.
+      \param sh value to use
+     */
+    PainterFillShader&
+    aa_fuzz_shader(const reference_counted_ptr<PainterItemShader> &sh);
 
   private:
     void *m_d;

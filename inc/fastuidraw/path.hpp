@@ -28,14 +28,17 @@
 
 namespace fastuidraw  {
 
-/*!\addtogroup Core
+/*!\addtogroup Paths
   @{
  */
 
 /*!
+  \brief
   An PathContour represents a single contour within
-  a Path. Ending a contour, see \ref end(), \ref
-  end_generic() and end_arc(), means to specify
+  a Path.
+
+  Ending a contour (see \ref end(), \ref
+  end_generic() and end_arc()) means to specify
   the edge from the last point of the PathContour
   to the first point.
  */
@@ -45,6 +48,7 @@ class PathContour:
 public:
 
   /*!
+    \brief
     Base class to describe how to interpolate from one
     point of a PathContour to the next, i.e. describes
     the shape of an edge.
@@ -83,6 +87,15 @@ public:
      */
     const vec2&
     end_pt(void) const;
+
+    /*!
+      To be implemented by a derived class to return true if
+      the interpolator is flat, i.e. is just a line segment
+      connecting start_pt() to end_pt().
+     */
+    virtual
+    bool
+    is_flat(void) const = 0;
 
     /*!
       To be implemented by a derived class to produce the tessellation
@@ -136,6 +149,7 @@ public:
   };
 
   /*!
+    \brief
     A flat interpolator represents a flat edge.
    */
   class flat:public interpolator_base
@@ -153,6 +167,10 @@ public:
     {}
 
     virtual
+    bool
+    is_flat(void) const;
+
+    virtual
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          c_array<TessellatedPath::point> out_data,
@@ -168,6 +186,7 @@ public:
   };
 
   /*!
+    \brief
     Interpolator generic implements tessellation by recursion
     and relying on analytic derivative provided by derived
     class.
@@ -213,9 +232,9 @@ public:
                   interpolator_base represents with in_t = 0.0
                   indicating the start of the curve and in_t = 1.0
                   the end of the curve
-      \param outp (output) if non-NULL, location to which to write the position value
-      \param outp_t (output) if non-NULL, location to which to write the first derivative value
-      \param outp_tt (output) if non-NULL, location to which to write the second derivative value
+      \param outp (output) if non-nullptr, location to which to write the position value
+      \param outp_t (output) if non-nullptr, location to which to write the first derivative value
+      \param outp_tt (output) if non-nullptr, location to which to write the second derivative value
      */
     virtual
     void
@@ -247,6 +266,7 @@ public:
   };
 
   /*!
+    \brief
     Derived class of interpolator_base to indicate a Bezier curve.
     Supports Bezier curves of _any_ degree.
    */
@@ -285,6 +305,10 @@ public:
     ~bezier();
 
     virtual
+    bool
+    is_flat(void) const;
+
+    virtual
     void
     compute(float in_t, vec2 *outp, vec2 *outp_t, vec2 *outp_tt) const;
 
@@ -311,6 +335,7 @@ public:
   };
 
   /*!
+    \brief
     An arc is for connecting one point to the next via an
     arc of a circle.
    */
@@ -331,6 +356,10 @@ public:
         float angle, const vec2 &end);
 
     ~arc();
+
+    virtual
+    bool
+    is_flat(void) const;
 
     virtual
     void
@@ -481,6 +510,13 @@ public:
   approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
 
   /*!
+    Returns true if each interpolator of the PathContour is
+    flat.
+   */
+  bool
+  is_flat(void) const;
+
+  /*!
     Create a deep copy of this PathContour.
    */
   PathContour*
@@ -491,12 +527,15 @@ private:
 };
 
 /*!
+  \brief
   A Path represents a collection of PathContour
-  objects. To end a contour in a Path, see
+  objects.
+
+  To end a contour in a Path (see
   \ref end_contour_quadratic(), \ref
   end_contour_arc(), \ref end_contour_cubic(),
   \ref end_contour_custom(), \ref contour_end_arc
-  and \ref contour_end, means to specify
+  and \ref contour_end) means to specify
   the edge from the last point of the current
   contour to the first point of it.
  */
@@ -504,6 +543,7 @@ class Path
 {
 public:
   /*!
+    \brief
     Class that wraps a vec2 to mark a point
     as a control point for a Bezier curve
    */
@@ -535,6 +575,7 @@ public:
   };
 
   /*!
+    \brief
     Wraps the data to specify an arc
    */
   class arc
@@ -561,12 +602,14 @@ public:
   };
 
   /*!
+    \brief
     Tag class to mark the end of an contour
    */
   class contour_end
   {};
 
   /*!
+    \brief
     Tag class to mark the end of an contour with an arc
    */
   class contour_end_arc
@@ -843,6 +886,12 @@ public:
    */
   reference_counted_ptr<const PathContour>
   contour(unsigned int i) const;
+
+  /*!
+    Returns true if each PathContour of the Path is flat.
+   */
+  bool
+  is_flat(void) const;
 
   /*!
     Returns an approximation of the bounding box for

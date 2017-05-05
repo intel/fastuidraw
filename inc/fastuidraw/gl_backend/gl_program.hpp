@@ -36,8 +36,10 @@ namespace gl {
 
 
 /*!
-  Simple Shader utility class, providing a simple interface to build
+  \brief
+  Simple Shader utility class providing a simple interface to build
   GL shader objects using a glsl::ShaderSouce as its source code.
+
   The actual GL object creation is defferred to later, in
   doing so, one can create Shader objects from outside the main GL
   thread. Each of the following commands
@@ -158,7 +160,8 @@ private:
 
 
 /*!
-  A PreLinkAction is an action to apply to a Program
+  \brief
+  A PreLinkAction is an action to apply to a \ref Program
   after attaching shaders but before linking.
  */
 class PreLinkAction:
@@ -181,7 +184,8 @@ public:
 
 
 /*!
-  A BindAttribute inherits from PreLinkAction,
+  \brief
+  A BindAttribute inherits from \ref PreLinkAction,
   it's purpose is to bind named attributes to named
   locations, i.e. it calls glBindAttributeLocation().
  */
@@ -206,7 +210,8 @@ private:
 };
 
 /*!
-  A ProgramSeparable inherits from PreLinkAction,
+  \brief
+  A ProgramSeparable inherits from \ref PreLinkAction,
   its purpose is to set a GLSL program as separable,
   so that it can be used by a GLSL pipeline.
   Using a ProgramSeparable requires:
@@ -222,8 +227,40 @@ public:
 };
 
 /*!
+  \brief
+  A BindFragDataLocation inherits from \ref PreLinkAction,
+  its purpose is to bind a fragment shader out to
+  a named location and index. Using a BindFragDataLocation
+  requires:
+  - for GLES: GLES3.0 (or higher) and the extension GL_EXT_blend_func_extended
+  - for GL: GL version 3.3 (or higher)
+ */
+class BindFragDataLocation:public PreLinkAction
+{
+public:
+  /*!
+    Ctor.
+    \param pname name of attribute in GLSL code
+    \param plocation location for fragment shader output to occupy
+    \param pindex index (used for dual source blending) for
+                  fragment shader output to occupy
+   */
+  BindFragDataLocation(const char *pname, int plocation, int pindex = 0);
+
+  ~BindFragDataLocation();
+
+  virtual
+  void
+  action(GLuint glsl_program) const;
+
+private:
+  void *m_d;
+};
+
+/*!
+  \brief
   A PreLinkActionArray is a conveniance class
-  wrapper over an array of PreLinkAction handles.
+  wrapper over an array of \ref PreLinkAction handles.
  */
 class PreLinkActionArray
 {
@@ -249,6 +286,13 @@ public:
   operator=(const PreLinkActionArray &rhs);
 
   /*!
+    Swap operation
+    \param obj object with which to swap
+  */
+  void
+  swap(PreLinkActionArray &obj);
+
+  /*!
     Add a prelink action to execute.
     \param h handle to action to add
    */
@@ -258,7 +302,7 @@ public:
   /*!
     Provided as a conveniance, equivalent to
     \code
-    add(new BindAttribute(pname, plocation))
+    add(FASTUIDRAWnew BindAttribute(pname, plocation))
     \endcode
     \param pname name of the attribute
     \param plocation location to which to bind the attribute.
@@ -266,7 +310,26 @@ public:
   PreLinkActionArray&
   add_binding(const char *pname, int plocation)
   {
-    reference_counted_ptr<PreLinkAction> h(FASTUIDRAWnew BindAttribute(pname, plocation));
+    reference_counted_ptr<PreLinkAction> h;
+    h = FASTUIDRAWnew BindAttribute(pname, plocation);
+    return add(h);
+  }
+
+  /*!
+    Provided as a conveniance, equivalent to
+    \code
+    add(FASTUIDRAWnew BindFragDataLocation(pname, plocation, pindex))
+    \endcode
+    \param pname name of the attribute
+    \param plocation location for fragment shader output to occupy
+    \param pindex index (used for dual source blending) for
+                  fragment shader output to occupy
+   */
+  PreLinkActionArray&
+  add_frag_binding(const char *pname, int plocation, int pindex = 0)
+  {
+    reference_counted_ptr<PreLinkAction> h;
+    h = FASTUIDRAWnew BindFragDataLocation(pname, plocation, pindex);
     return add(h);
   }
 
@@ -284,6 +347,7 @@ private:
 class Program;
 
 /*!
+  \brief
   A ProgramInitializer is a functor object called the first time
   a Program is bound (i.e. the first
   time Program::use_program() is called).
@@ -313,6 +377,7 @@ public:
 };
 
 /*!
+  \brief
   A UniformInitalizerBase is a base class for
   initializing a uniform, the actual GL call to
   set the uniform value is to be implemented by
@@ -361,6 +426,7 @@ private:
 };
 
 /*!
+  \brief
   Initialize a uniform via the templated
   overloaded function fastuidraw::gl::Uniform().
  */
@@ -398,6 +464,12 @@ private:
   T m_value;
 };
 
+/*!
+  \brief
+  Specialization for type const_c_array<T> for
+  \ref UniformInitializer so that data behind
+  the const_c_array is copied.
+ */
 template<typename T>
 class UniformInitializer<const_c_array<T> >:public UniformInitalizerBase
 {
@@ -409,7 +481,7 @@ public:
    */
   UniformInitializer(const char *uniform_name, const const_c_array<T> &value):
     UniformInitalizerBase(uniform_name),
-    m_data(NULL)
+    m_data(nullptr)
   {
     if(!value.empty())
       {
@@ -421,7 +493,7 @@ public:
 
   ~UniformInitializer()
   {
-    if(m_data != NULL)
+    if(m_data != nullptr)
       {
         FASTUIDRAWdelete_array(m_data);
       }
@@ -448,6 +520,12 @@ private:
   const_c_array<T> m_value;
 };
 
+/*!
+  \brief
+  Specialization for type c_array<T> for
+  \ref UniformInitializer so that data behind
+  the c_array is copied.
+ */
 template<typename T>
 class UniformInitializer<c_array<T> >:public UniformInitalizerBase
 {
@@ -459,7 +537,7 @@ public:
    */
   UniformInitializer(const char *uniform_name, const const_c_array<T> &value):
     UniformInitalizerBase(uniform_name),
-    m_data(NULL)
+    m_data(nullptr)
   {
     if(!value.empty())
       {
@@ -471,7 +549,7 @@ public:
 
   ~UniformInitializer()
   {
-    if(m_data != NULL)
+    if(m_data != nullptr)
       {
         FASTUIDRAWdelete_array(m_data);
       }
@@ -500,11 +578,13 @@ private:
 
 
 /*!
+  \brief
   Conveniance typedef to initialize samplers.
  */
 typedef UniformInitializer<int> SamplerInitializer;
 
 /*!
+  \brief
   A UniformBlockInitializer is used to initalize the binding point
   used by a bindable uniform (aka Uniform buffer object, see the
   GL spec on glGetUniformBlockIndex and glUniformBlockBinding.
@@ -531,6 +611,7 @@ private:
 
 #ifndef FASTUIDRAW_GL_USE_GLES
 /*!
+  \brief
   A ShaderStorageBlockInitializer is used to initalize the binding point
   used by a shader storage block (see the GL spec on
   glShaderStorageBlockBinding). Initializer is not supported
@@ -559,6 +640,7 @@ private:
 #endif
 
 /*!
+  \brief
   Conveniance class to hold an array of handles
   of ProgramInitializer objects
  */
@@ -584,6 +666,13 @@ public:
    */
   ProgramInitializerArray&
   operator=(const ProgramInitializerArray &rhs);
+
+  /*!
+    Swap operation
+    \param obj object with which to swap
+  */
+  void
+  swap(ProgramInitializerArray &obj);
 
   /*!
     Add an initializer
@@ -655,7 +744,9 @@ private:
 };
 
 /*!
+  \brief
   Class for creating and using GLSL programs.
+
   A Program delays the GL commands to
   create the actual GL program until the first time
   it is bound with use_program(). In addition to
@@ -675,6 +766,7 @@ class Program:
 {
 public:
   /*!
+    \brief
     Enumeration to describe the backing of a shader
     variable's value.
    */
@@ -722,7 +814,7 @@ public:
       src_shader_output,
 
       /*!
-        Indicates that the shader variable is a NULL
+        Indicates that the shader variable is a nullptr
         value; such values are returned when a query
         for a shader variable is made and there is
         shader variable.
@@ -731,6 +823,7 @@ public:
     };
 
   /*!
+    \brief
     A shader_variable_info holds the type,
     size and name of a uniform or an attribute
     of a GL program.
@@ -753,7 +846,7 @@ public:
      */
     operator bool() const
     {
-      return m_d != NULL;
+      return m_d != nullptr;
     }
 
     /*!
@@ -914,6 +1007,7 @@ public:
   };
 
   /*!
+    \brief
     A block_info represents an object from which
     one can query the members of a uniform or
     shader storage block.
@@ -1007,15 +1101,15 @@ public:
       variable.
       \param name variable name to look for
       \param *out_array_index location to which to write the array index
-                              value; if NULL, value is not written
+                              value; if nullptr, value is not written
       \param *out_leading_array_index location to which to write the
-                                      leading array index value; if NULL,
+                                      leading array index value; if nullptr,
                                       value is not written
      */
     shader_variable_info
     variable(const char *name,
-             unsigned int *out_array_index = NULL,
-             unsigned int *out_leading_array_index = NULL);
+             unsigned int *out_array_index = nullptr,
+             unsigned int *out_leading_array_index = nullptr);
 
   private:
     explicit
@@ -1026,8 +1120,9 @@ public:
   };
 
   /*!
-    A block_info represents an object from which
-    one can query teh data of an atomic buffer.
+    \brief
+    An aomit_block_info represents an object from which
+    one can query the data of an atomic buffer.
    */
   class atomic_buffer_info
   {
@@ -1107,11 +1202,11 @@ public:
       to get the buffer offset of the element of the shader variable.
       \param name variable name to look for
       \param[out] *out_array_index location to which to write the array index
-                                   value; if NULL, value is not written
+                                   value; if nullptr, value is not written
      */
     shader_variable_info
     atomic_variable(const char *name,
-                    unsigned int *out_array_index = NULL);
+                    unsigned int *out_array_index = nullptr);
 
   private:
     explicit
@@ -1242,7 +1337,7 @@ public:
     has been called or only when the GL context is current.
     \param I which one to fetch, if I is not less than
              number_active_uniform_blocks(), then returns
-             a NULL block_info object.
+             a nullptr block_info object.
    */
   block_info
   uniform_block(unsigned int I);
@@ -1283,7 +1378,7 @@ public:
     has been called or only when the GL context is current.
     \param I which one to fetch, if I is not less than
              number_active_shader_storage_blocks(), then returns
-             a NULL block_info
+             a nullptr block_info
    */
   block_info
   shader_storage_block(unsigned int I);
@@ -1324,8 +1419,8 @@ public:
    */
   shader_variable_info
   find_shader_variable(const char *name,
-                       unsigned int *out_array_index = NULL,
-                       unsigned int *out_leading_array_index = NULL);
+                       unsigned int *out_array_index = nullptr,
+                       unsigned int *out_leading_array_index = nullptr);
 
   /*!
     Returns the number of active attributes. Note that an array
@@ -1377,6 +1472,15 @@ public:
    */
   const char*
   shader_src_code(GLenum tp, unsigned int i) const;
+
+  /*!
+    Returns the compile log for a shader attached to
+    the Program.
+    \param tp GL enumeration of the shader type, see Shader::shader_type()
+    \param i which shader with 0 <= i < num_shaders(tp)
+   */
+  const char*
+  shader_compile_log(GLenum tp, unsigned int i) const;
 
 private:
   void *m_d;

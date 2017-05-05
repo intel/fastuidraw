@@ -70,6 +70,19 @@ namespace
     int m_location;
   };
 
+  class BindFragDataLocationPrivate
+  {
+  public:
+    BindFragDataLocationPrivate(const char *pname, int plocation, int pindex):
+      m_label(pname),
+      m_location(plocation),
+      m_index(pindex)
+    {}
+
+    std::string m_label;
+    int m_location, m_index;
+  };
+
   class PreLinkActionArrayPrivate
   {
   public:
@@ -104,7 +117,7 @@ namespace
 
     glGetProgramResourceiv(program, program_interface, index,
                            1, &prop_name_length,
-                           1, NULL, &name_length);
+                           1, nullptr, &name_length);
     if(name_length <= 0)
       {
         return std::string();
@@ -112,7 +125,7 @@ namespace
 
     std::vector<GLchar> dst_name(name_length, '\0');
     glGetProgramResourceName(program, program_interface, index,
-                             dst_name.size(), NULL, &dst_name[0]);
+                             dst_name.size(), nullptr, &dst_name[0]);
 
     return std::string(&dst_name[0]);
   }
@@ -260,7 +273,7 @@ namespace
     add_element(const ShaderVariableInfo &value)
     {
       unsigned int return_value(m_values.size());
-      assert(!m_finalized);
+      FASTUIDRAWassert(!m_finalized);
       m_values.push_back(value);
       return return_value;
     }
@@ -430,17 +443,17 @@ namespace
     unsigned int
     number_active_blocks(void) const
     {
-      assert(m_finalized);
+      FASTUIDRAWassert(m_finalized);
       return m_blocks_sorted.size();
     }
 
     const BlockInfoPrivate*
     block(unsigned int I)
     {
-      assert(m_finalized);
+      FASTUIDRAWassert(m_finalized);
       return (I < m_blocks_sorted.size()) ?
         m_blocks_sorted[I] :
-        NULL;
+        nullptr;
     }
 
     unsigned int
@@ -448,7 +461,7 @@ namespace
     {
       std::map<std::string, unsigned int>::const_iterator iter;
 
-      assert(m_finalized);
+      FASTUIDRAWassert(m_finalized);
       iter = m_map.find(name);
       return (iter != m_map.end()) ?
         iter->second:
@@ -465,10 +478,10 @@ namespace
     void
     populate_as_empty(void)
     {
-      assert(!m_finalized);
-      assert(m_map.empty());
-      assert(m_blocks.empty());
-      assert(m_blocks_sorted.empty());
+      FASTUIDRAWassert(!m_finalized);
+      FASTUIDRAWassert(m_map.empty());
+      FASTUIDRAWassert(m_blocks.empty());
+      FASTUIDRAWassert(m_blocks_sorted.empty());
       m_finalized = true;
     }
 
@@ -483,8 +496,8 @@ namespace
     BlockInfoPrivate&
     block_ref(unsigned int I)
     {
-      assert(!m_finalized);
-      assert(I < m_blocks.size());
+      FASTUIDRAWassert(!m_finalized);
+      FASTUIDRAWassert(I < m_blocks.size());
       return m_blocks[I];
     }
 
@@ -494,8 +507,8 @@ namespace
     compare_function(const BlockInfoPrivate *lhs,
                      const BlockInfoPrivate *rhs)
     {
-      assert(lhs != NULL);
-      assert(rhs != NULL);
+      FASTUIDRAWassert(lhs != nullptr);
+      FASTUIDRAWassert(rhs != nullptr);
       return lhs->m_name < rhs->m_name;
     }
 
@@ -558,7 +571,7 @@ namespace
     {
       return (I < m_abo_buffers.size()) ?
         &m_abo_buffers[I] :
-        NULL;
+        nullptr;
     }
 
   private:
@@ -685,7 +698,7 @@ compile(void)
     }
 
   //now do the GL work, create a name and compile the source code:
-  assert(m_name == 0);
+  FASTUIDRAWassert(m_name == 0);
 
   m_shader_ready = true;
   m_name = glCreateShader(m_shader_type);
@@ -696,7 +709,7 @@ compile(void)
   glShaderSource(m_name, //shader handle
                  1, //number strings
                  sourceString, //array of strings
-                 NULL); //lengths of each string or NULL implies each is 0-terminated
+                 nullptr); //lengths of each string or nullptr implies each is 0-terminated
 
   glCompileShader(m_name);
 
@@ -711,7 +724,7 @@ compile(void)
   raw_log.resize(logSize+2,'\0');
   glGetShaderInfoLog(m_name, //shader handle
                      logSize+1, //maximum size of string
-                     NULL, //GLint* return length of string
+                     nullptr, //GLint* return length of string
                      &raw_log[0]); //char* to write log to.
 
   m_compile_log = &raw_log[0];
@@ -753,7 +766,7 @@ fill_variable(GLuint program,
 
       glGetProgramResourceiv(program, variable_interface, variable_interface_index,
                              m_enums.size(), &m_enums[0],
-                             m_work_room.size(), NULL, &m_work_room[0]);
+                             m_work_room.size(), nullptr, &m_work_room[0]);
 
       for(unsigned int i = 0, endi = m_enums.size(); i < endi; ++i)
         {
@@ -782,7 +795,7 @@ fill_variable(GLuint program,
       break;
 
     default:
-      assert(!"Unhandled variable interface type to assign to m_shader_variable_src");
+      FASTUIDRAWassert(!"Unhandled variable interface type to assign to m_shader_variable_src");
     }
 }
 
@@ -793,7 +806,7 @@ ShaderUniformQueryList::
 fill_variables(GLuint program,
                std::vector<ShaderVariableInfo> &dst) const
 {
-  assert(m_enums.size() == m_dsts.size());
+  FASTUIDRAWassert(m_enums.size() == m_dsts.size());
   if(dst.empty())
     {
       return;
@@ -881,11 +894,11 @@ find_variable(const std::string &pname,
   std::map<std::string, unsigned int>::const_iterator iter;
   unsigned int A;
 
-  if(array_index == NULL)
+  if(array_index == nullptr)
     {
       array_index = &A;
     }
-  if(leading_array_index == NULL)
+  if(leading_array_index == nullptr)
     {
       leading_array_index = &A;
     }
@@ -893,7 +906,7 @@ find_variable(const std::string &pname,
   *array_index = 0;
   *leading_array_index = 0;
 
-  assert(m_finalized);
+  FASTUIDRAWassert(m_finalized);
   iter = m_map.find(pname);
   if(iter != m_map.end())
     {
@@ -921,7 +934,7 @@ find_variable(const std::string &pname,
         }
       else
         {
-          return NULL;
+          return nullptr;
         }
     }
 
@@ -950,12 +963,12 @@ find_variable(const std::string &pname,
             }
           else
             {
-              return NULL;
+              return nullptr;
             }
         }
     }
 
-  return NULL;
+  return nullptr;
 }
 
 template<typename F, typename G>
@@ -1033,7 +1046,7 @@ populate_from_interface_block(GLuint program,
 
   glGetProgramResourceiv(program, program_interface, interface_index,
                          1, &prop_num_active,
-                         1, NULL, &num_variables);
+                         1, nullptr, &num_variables);
   if(num_variables > 0)
     {
       const GLenum prop_active(GL_ACTIVE_VARIABLES);
@@ -1041,7 +1054,7 @@ populate_from_interface_block(GLuint program,
 
       glGetProgramResourceiv(program, program_interface, interface_index,
                              1, &prop_active,
-                             num_variables, NULL, &variable_index[0]);
+                             num_variables, nullptr, &variable_index[0]);
       for(GLint i = 0; i < num_variables; ++i)
         {
           ShaderVariableInfo p;
@@ -1081,7 +1094,7 @@ filter_name(iterator begin, iterator end, unsigned int *array_index)
       std::string::size_type loc;
 
       loc = return_value.find_last_of('[');
-      assert(loc != std::string::npos);
+      FASTUIDRAWassert(loc != std::string::npos);
 
       std::istringstream array_value(return_value.substr(loc+1, return_value.size()-1));
       array_value >> *array_index;
@@ -1166,12 +1179,12 @@ populate(GLuint program, GLenum program_interface,
   const GLenum prop_data_size(GL_BUFFER_DATA_SIZE);
   glGetProgramResourceiv(program, program_interface, m_block_index,
                          1, &prop_data_size,
-                         1, NULL, &m_size_bytes);
+                         1, nullptr, &m_size_bytes);
 
   const GLenum prop_binding_point(GL_BUFFER_BINDING);
   glGetProgramResourceiv(program, program_interface, m_block_index,
                          1, &prop_binding_point,
-                         1, NULL, &m_initial_buffer_binding);
+                         1, nullptr, &m_initial_buffer_binding);
 }
 
 
@@ -1259,9 +1272,9 @@ BlockSetInfoBase::
 resize_number_blocks(unsigned int N,
                      enum fastuidraw::gl::Program::shader_variable_src_t tp)
 {
-  assert(!m_finalized);
-  assert(m_blocks.empty());
-  assert(m_blocks_sorted.empty());
+  FASTUIDRAWassert(!m_finalized);
+  FASTUIDRAWassert(m_blocks.empty());
+  FASTUIDRAWassert(m_blocks_sorted.empty());
   m_blocks.resize(N);
   m_blocks_sorted.resize(N);
   for(unsigned int i = 0; i < N; ++i)
@@ -1423,10 +1436,10 @@ populate_private_program_interface_query(GLuint program,
       m_abo_buffers[i].m_buffer_index = i;
       glGetProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER, i,
                              1, &prop_data_size,
-                             1, NULL, &m_abo_buffers[i].m_size_bytes);
+                             1, nullptr, &m_abo_buffers[i].m_size_bytes);
       glGetProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER, i,
                              1, &prop_binding,
-                             1, NULL, &m_abo_buffers[i].m_buffer_binding);
+                             1, nullptr, &m_abo_buffers[i].m_buffer_binding);
       m_abo_buffers[i].finalize();
     }
 
@@ -1522,7 +1535,7 @@ populate_private_non_program_interface_query(GLuint program,
        */
       if(iter->m_abo_index != -1)
         {
-          assert(iter->m_abo_index < static_cast<int>(m_abo_buffers.size()));
+          FASTUIDRAWassert(iter->m_abo_index < static_cast<int>(m_abo_buffers.size()));
           m_abo_buffers[iter->m_abo_index].add_element(*iter);
         }
       else if(iter->m_ubo_index != -1)
@@ -1569,7 +1582,7 @@ fastuidraw::gl::Shader::
       glDeleteShader(d->m_name);
     }
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 
@@ -1644,18 +1657,10 @@ gl_shader_type_label(GLenum shader_type)
 
       CASE(GL_FRAGMENT_SHADER);
       CASE(GL_VERTEX_SHADER);
-
-      #ifdef GL_GEOMETRY_SHADER
-        CASE(GL_GEOMETRY_SHADER);
-      #endif
-
-      #ifdef GL_TESS_EVALUATION_SHADER
-        CASE(GL_TESS_EVALUATION_SHADER);
-      #endif
-
-      #ifdef GL_TESS_CONTROL_SHADER
-        CASE(GL_TESS_CONTROL_SHADER);
-      #endif
+      CASE(GL_GEOMETRY_SHADER);
+      CASE(GL_TESS_EVALUATION_SHADER);
+      CASE(GL_TESS_CONTROL_SHADER);
+      CASE(GL_COMPUTE_SHADER);
     }
 
   #undef CASE
@@ -1690,7 +1695,7 @@ fastuidraw::gl::BindAttribute::
   BindAttributePrivate *d;
   d = static_cast<BindAttributePrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void
@@ -1700,6 +1705,41 @@ action(GLuint glsl_program) const
   BindAttributePrivate *d;
   d = static_cast<BindAttributePrivate*>(m_d);
   glBindAttribLocation(glsl_program, d->m_location, d->m_label.c_str());
+}
+
+
+////////////////////////////////////////
+// fastuidraw::gl::BindFragDataLocation methods
+fastuidraw::gl::BindFragDataLocation::
+BindFragDataLocation(const char *pname, int plocation, int pindex)
+{
+  m_d = FASTUIDRAWnew BindFragDataLocationPrivate(pname, plocation, pindex);
+}
+
+fastuidraw::gl::BindFragDataLocation::
+~BindFragDataLocation()
+{
+  BindFragDataLocationPrivate *d;
+  d = static_cast<BindFragDataLocationPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+  m_d = nullptr;
+}
+
+void
+fastuidraw::gl::BindFragDataLocation::
+action(GLuint glsl_program) const
+{
+  BindFragDataLocationPrivate *d;
+  d = static_cast<BindFragDataLocationPrivate*>(m_d);
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      glBindFragDataLocationIndexedEXT(glsl_program, d->m_location, d->m_index, d->m_label.c_str());
+    }
+  #else
+    {
+      glBindFragDataLocationIndexed(glsl_program, d->m_location, d->m_index, d->m_label.c_str());
+    }
+  #endif
 }
 
 ////////////////////////////////////
@@ -1734,7 +1774,14 @@ fastuidraw::gl::PreLinkActionArray::
   PreLinkActionArrayPrivate *d;
   d = static_cast<PreLinkActionArrayPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
+}
+
+void
+fastuidraw::gl::PreLinkActionArray::
+swap(PreLinkActionArray &obj)
+{
+  std::swap(m_d, obj.m_d);
 }
 
 fastuidraw::gl::PreLinkActionArray&
@@ -1743,10 +1790,8 @@ operator=(const PreLinkActionArray &rhs)
 {
   if(this != &rhs)
     {
-      PreLinkActionArrayPrivate *d, *rhs_d;
-      d = static_cast<PreLinkActionArrayPrivate*>(m_d);
-      rhs_d = static_cast<PreLinkActionArrayPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      PreLinkActionArray v(rhs);
+      swap(v);
     }
   return *this;
 }
@@ -1758,7 +1803,7 @@ add(reference_counted_ptr<PreLinkAction> h)
   PreLinkActionArrayPrivate *d;
   d = static_cast<PreLinkActionArrayPrivate*>(m_d);
 
-  assert(h);
+  FASTUIDRAWassert(h);
   d->m_values.push_back(h);
   return *this;
 }
@@ -1790,7 +1835,7 @@ shader_variable_info(const void *d):
 
 fastuidraw::gl::Program::shader_variable_info::
 shader_variable_info(void):
-  m_d(NULL)
+  m_d(nullptr)
 {}
 
 const char*
@@ -1944,7 +1989,7 @@ block_info(const void *d):
 
 fastuidraw::gl::Program::block_info::
 block_info(void):
-  m_d(NULL)
+  m_d(nullptr)
 {}
 
 const char*
@@ -2000,7 +2045,7 @@ variable(unsigned int I)
   const void *q;
 
   d = static_cast<const BlockInfoPrivate*>(m_d);
-  q = d ? &d->m_members.value(I) : NULL;
+  q = d ? &d->m_members.value(I) : nullptr;
   return shader_variable_info(q);
 }
 
@@ -2018,7 +2063,7 @@ variable(const char *name,
     d->m_members.find_variable(name, out_array_index,
                                out_leading_array_index,
                                d->m_backing_type == fastuidraw::gl::Program::src_shader_storage_block):
-    NULL;
+    nullptr;
 
   return shader_variable_info(q);
 }
@@ -2032,7 +2077,7 @@ atomic_buffer_info(const void *d):
 
 fastuidraw::gl::Program::atomic_buffer_info::
 atomic_buffer_info(void):
-  m_d(NULL)
+  m_d(nullptr)
 {}
 
 GLint
@@ -2079,7 +2124,7 @@ atomic_variable(unsigned int I)
   const void *q;
 
   d = static_cast<const AtomicBufferInfo*>(m_d);
-  q = d ? &d->members().value(I) : NULL;
+  q = d ? &d->members().value(I) : nullptr;
   return shader_variable_info(q);
 }
 
@@ -2093,8 +2138,8 @@ atomic_variable(const char *name,
 
   d = static_cast<const AtomicBufferInfo*>(m_d);
   q = (d) ?
-    d->members().find_variable(name, out_array_index, NULL, false):
-    NULL;
+    d->members().find_variable(name, out_array_index, nullptr, false):
+    nullptr;
   return shader_variable_info(q);
 }
 
@@ -2111,12 +2156,12 @@ assemble(fastuidraw::gl::Program *program)
     }
 
   struct timeval start_time, end_time;
-  gettimeofday(&start_time, NULL);
+  gettimeofday(&start_time, nullptr);
 
   std::ostringstream error_ostr;
 
   m_assembled = true;
-  assert(m_name == 0);
+  FASTUIDRAWassert(m_name == 0);
   m_name = glCreateProgram();
   m_link_success = true;
 
@@ -2145,7 +2190,7 @@ assemble(fastuidraw::gl::Program *program)
   //now finally link!
   glLinkProgram(m_name);
 
-  gettimeofday(&end_time, NULL);
+  gettimeofday(&end_time, nullptr);
   m_assemble_time = float(end_time.tv_sec - start_time.tv_sec)
     + float(end_time.tv_usec - start_time.tv_usec) / 1e6f;
 
@@ -2157,7 +2202,7 @@ assemble(fastuidraw::gl::Program *program)
   glGetProgramiv(m_name, GL_INFO_LOG_LENGTH, &logSize);
 
   raw_log.resize(logSize+2);
-  glGetProgramInfoLog(m_name, logSize+1, NULL , &raw_log[0]);
+  glGetProgramInfoLog(m_name, logSize+1, nullptr , &raw_log[0]);
 
   error_ostr << "\n-----------------------\n" << &raw_log[0];
 
@@ -2243,7 +2288,7 @@ generate_log(void)
   std::ostringstream ostr;
 
   ostr << "gl::Program: "
-       << "[GLname: " << m_name << "]:\tShaders:";
+       << "[GLname: " << m_name << "]:\tShader Source Codes:";
 
   for(std::vector<ShaderData>::const_iterator
         iter = m_shader_data.begin(), end = m_shader_data.end();
@@ -2252,10 +2297,8 @@ generate_log(void)
       ostr << "\n\nGLSL name = " << iter->m_name
            << ", type = " << fastuidraw::gl::Shader::gl_shader_type_label(iter->m_shader_type)
            << "\nSource:\n" << iter->m_source_code
-           << "\nCompileLog:\n" << iter->m_compile_log;
+           << "\n\n";
     }
-
-  ostr << "\nLink Log:\n" << m_link_log << "\n";
 
   if(m_link_success)
     {
@@ -2265,7 +2308,7 @@ generate_log(void)
             end = m_uniform_list.default_uniform_block()->m_members.values().end();
           iter != end; ++iter)
         {
-          assert(iter->m_ubo_index == -1);
+          FASTUIDRAWassert(iter->m_ubo_index == -1);
           ostr << "\n\t" << iter->m_name
                << "\n\t\ttype = 0x"
                << std::hex << iter->m_glsl_type
@@ -2290,7 +2333,7 @@ generate_log(void)
                 end = ubo->m_members.values().end();
               iter != end; ++iter)
             {
-              assert(iter->m_ubo_index == ubo->m_block_index);
+              FASTUIDRAWassert(iter->m_ubo_index == ubo->m_block_index);
               ostr << "\n\t\t" << iter->m_name
                    << "\n\t\t\ttype = 0x"
                    << std::hex << iter->m_glsl_type
@@ -2319,7 +2362,7 @@ generate_log(void)
                 end = ssbo->m_members.values().end();
               iter != end; ++iter)
             {
-              assert(iter->m_shader_storage_buffer_index == ssbo->m_block_index);
+              FASTUIDRAWassert(iter->m_shader_storage_buffer_index == ssbo->m_block_index);
               ostr << "\n\t\t" << iter->m_name
                    << "\n\t\t\ttype = 0x"
                    << std::hex << iter->m_glsl_type
@@ -2351,8 +2394,19 @@ generate_log(void)
                << "\n\t\tindex = " << std::dec << iter->m_index
                << "\n\t\tlocation = " << iter->m_location;
         }
-      ostr << "\n";
     }
+
+  ostr << "\nShader Logs:";
+  for(std::vector<ShaderData>::const_iterator
+        iter = m_shader_data.begin(), end = m_shader_data.end();
+      iter != end; ++iter)
+    {
+      ostr << "\n\nGLSL name = " << iter->m_name
+           << ", type = " << fastuidraw::gl::Shader::gl_shader_type_label(iter->m_shader_type)
+           << "\nSource:\n" << iter->m_compile_log
+           << "\n\n";
+    }
+  ostr << "\nLink Log:\n" << m_link_log << "\n";
 
   m_log = ostr.str();
 }
@@ -2395,7 +2449,7 @@ fastuidraw::gl::Program::
       glDeleteProgram(d->m_name);
     }
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void
@@ -2406,8 +2460,8 @@ use_program(void)
   d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
 
-  assert(d->m_name != 0);
-  assert(d->m_link_success);
+  FASTUIDRAWassert(d->m_name != 0);
+  FASTUIDRAWassert(d->m_link_success);
 
   glUseProgram(d->m_name);
 }
@@ -2471,7 +2525,7 @@ default_uniform_block(void)
   d->assemble(this);
   return d->m_link_success ?
     block_info(d->m_uniform_list.default_uniform_block()) :
-    block_info(NULL);
+    block_info(nullptr);
 }
 
 unsigned int
@@ -2495,7 +2549,7 @@ uniform_block(unsigned int I)
   d->assemble(this);
   return d->m_link_success ?
     block_info(d->m_uniform_list.block(I)) :
-    block_info(NULL);
+    block_info(nullptr);
 }
 
 unsigned int
@@ -2543,7 +2597,7 @@ find_shader_variable(const char *pname,
                                                      out_array_index,
                                                      out_leading_array_index,
                                                      false);
-  if(q != NULL)
+  if(q != nullptr)
     {
       return shader_variable_info(q);
     }
@@ -2554,7 +2608,7 @@ find_shader_variable(const char *pname,
                                                                             out_array_index,
                                                                             out_leading_array_index,
                                                                             true);
-  if(q != NULL)
+  if(q != nullptr)
     {
       return shader_variable_info(q);
     }
@@ -2583,7 +2637,7 @@ shader_storage_block(unsigned int I)
   d->assemble(this);
   return d->m_link_success ?
     block_info(d->m_storage_buffer_list.block(I)) :
-    block_info(NULL);
+    block_info(nullptr);
 }
 
 unsigned int
@@ -2619,7 +2673,7 @@ atomic_buffer(unsigned int I)
   d->assemble(this);
   return d->m_link_success ?
     atomic_buffer_info(d->m_uniform_list.atomic_buffer(I)) :
-    atomic_buffer_info(NULL);
+    atomic_buffer_info(nullptr);
 }
 
 unsigned int
@@ -2643,7 +2697,7 @@ active_attribute(unsigned int I)
   d->assemble(this);
   return d->m_link_success ?
     shader_variable_info(&d->m_attribute_list.value(I)) :
-    shader_variable_info(NULL);
+    shader_variable_info(nullptr);
 }
 
 GLint
@@ -2658,8 +2712,8 @@ attribute_location(const char *pname)
       const ShaderVariableInfo *q;
       unsigned int array_index(0);
 
-      q = d->m_attribute_list.find_variable(pname, &array_index, NULL, false);
-      return (q != NULL && q->m_location != -1) ?
+      q = d->m_attribute_list.find_variable(pname, &array_index, nullptr, false);
+      return (q != nullptr && q->m_location != -1) ?
         q->m_location + array_index :
         -1;
     }
@@ -2699,6 +2753,25 @@ shader_src_code(GLenum tp, unsigned int i) const
     }
 }
 
+const char*
+fastuidraw::gl::Program::
+shader_compile_log(GLenum tp, unsigned int i) const
+{
+  ProgramPrivate *d;
+  d = static_cast<ProgramPrivate*>(m_d);
+
+  std::map<GLenum, std::vector<int> >::const_iterator iter;
+  iter = d->m_shader_data_sorted_by_type.find(tp);
+  if(iter != d->m_shader_data_sorted_by_type.end() && i < iter->second.size())
+    {
+      return d->m_shader_data[iter->second[i]].m_compile_log.c_str();
+    }
+  else
+    {
+      return "";
+    }
+}
+
 
 //////////////////////////////////////
 // fastuidraw::gl::ProgramInitializerArray methods
@@ -2723,7 +2796,14 @@ fastuidraw::gl::ProgramInitializerArray::
   ProgramInitializerArrayPrivate *d;
   d = static_cast<ProgramInitializerArrayPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
+}
+
+void
+fastuidraw::gl::ProgramInitializerArray::
+swap(ProgramInitializerArray &obj)
+{
+  std::swap(m_d, obj.m_d);
 }
 
 fastuidraw::gl::ProgramInitializerArray&
@@ -2732,10 +2812,8 @@ operator=(const ProgramInitializerArray &rhs)
 {
   if(this != &rhs)
     {
-      ProgramInitializerArrayPrivate *d, *rhs_d;
-      d = static_cast<ProgramInitializerArrayPrivate*>(m_d);
-      rhs_d = static_cast<ProgramInitializerArrayPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      ProgramInitializerArray v(rhs);
+      swap(v);
     }
   return *this;
 }
@@ -2762,7 +2840,7 @@ perform_initializations(Program *pr, bool program_bound) const
       iter != end; ++iter)
     {
       const reference_counted_ptr<ProgramInitializer> &v(*iter);
-      assert(v);
+      FASTUIDRAWassert(v);
       v->perform_initialization(pr, program_bound);
     }
 }
@@ -2789,9 +2867,9 @@ fastuidraw::gl::UniformBlockInitializer::
 {
   BlockInitializerPrivate *d;
   d = static_cast<BlockInitializerPrivate*>(m_d);
-  assert(d != NULL);
+  FASTUIDRAWassert(d != nullptr);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void
@@ -2800,7 +2878,7 @@ perform_initialization(Program *pr, bool program_bound) const
 {
   BlockInitializerPrivate *d;
   d = static_cast<BlockInitializerPrivate*>(m_d);
-  assert(d != NULL);
+  FASTUIDRAWassert(d != nullptr);
 
   int loc;
   loc = glGetUniformBlockIndex(pr->name(), d->m_block_name.c_str());
@@ -2833,9 +2911,9 @@ fastuidraw::gl::ShaderStorageBlockInitializer::
 {
   BlockInitializerPrivate *d;
   d = static_cast<BlockInitializerPrivate*>(m_d);
-  assert(d != NULL);
+  FASTUIDRAWassert(d != nullptr);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void
@@ -2844,7 +2922,7 @@ perform_initialization(Program *pr, bool program_bound) const
 {
   BlockInitializerPrivate *d;
   d = static_cast<BlockInitializerPrivate*>(m_d);
-  assert(d != NULL);
+  FASTUIDRAWassert(d != nullptr);
 
   int loc;
   loc = glGetProgramResourceIndex(pr->name(), GL_SHADER_STORAGE_BLOCK, d->m_block_name.c_str());
@@ -2869,7 +2947,7 @@ perform_initialization(Program *pr, bool program_bound) const
 fastuidraw::gl::UniformInitalizerBase::
 UniformInitalizerBase(const char *uniform_name)
 {
-  assert(uniform_name);
+  FASTUIDRAWassert(uniform_name);
   m_d = FASTUIDRAWnew std::string(uniform_name);
 }
 
@@ -2878,9 +2956,9 @@ fastuidraw::gl::UniformInitalizerBase::
 {
   std::string *d;
   d = static_cast<std::string*>(m_d);
-  assert(d != NULL);
+  FASTUIDRAWassert(d != nullptr);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void
@@ -2889,7 +2967,7 @@ perform_initialization(Program *pr, bool program_bound) const
 {
   std::string *d;
   d = static_cast<std::string*>(m_d);
-  assert(d != NULL);
+  FASTUIDRAWassert(d != nullptr);
 
   int loc;
   loc = pr->uniform_location(d->c_str());

@@ -30,6 +30,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterAttributeDataFiller is the interfaceto fill the
     data held by a \ref PainterAttributeData
    */
@@ -51,10 +52,10 @@ namespace fastuidraw
       \param[out] number_indices number of total indices to be set
       \param[out] number_attribute_chunks number of attribute chunks to be set
       \param[out] number_index_chunks number of index chunks to be set
-      \param[out] number_z_increments the number of z-increments to be set;
-                                      z-increments of PainterAttribtueData are
-                                      accessed by PainterAttributeData::increment_z_values()
-                                      and PainterAttributeData::increment_z_value().
+      \param[out] number_z_ranges the number of z-ranges to be set;
+                                  z-ranges of PainterAttribtueData are
+                                  accessed by PainterAttributeData::z_ranges()
+                                  and PainterAttributeData::z_range().
      */
     virtual
     void
@@ -62,7 +63,7 @@ namespace fastuidraw
                   unsigned int &number_indices,
                   unsigned int &number_attribute_chunks,
                   unsigned int &number_index_chunks,
-                  unsigned int &number_z_increments) const = 0;
+                  unsigned int &number_z_ranges) const = 0;
 
     /*!
       To be implemented by a derived class to fill data.
@@ -76,8 +77,8 @@ namespace fastuidraw
                           each element of attrib_chunks must be a
                           sub-array of indices. Initialized so that
                           each element is an empty array.
-      \param zincrements location to which to fill the z-increment values
-                         (PainterAttributeData::increment_z_values()).
+      \param zranges location to which to fill the z-range values
+                     (PainterAttributeData::z_ranges()).
       \param index_adjusts location to which to fill the index adjust value
                            (PainterAttributeData::index_adjust_chunks()).
      */
@@ -87,7 +88,7 @@ namespace fastuidraw
               c_array<PainterIndex> indices,
               c_array<const_c_array<PainterAttribute> > attrib_chunks,
               c_array<const_c_array<PainterIndex> > index_chunks,
-              c_array<unsigned int> zincrements,
+              c_array<range_type<int> > zranges,
               c_array<int> index_adjusts) const = 0;
   };
 /*! @} */

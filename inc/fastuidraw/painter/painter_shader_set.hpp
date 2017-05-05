@@ -34,11 +34,10 @@ namespace fastuidraw
  */
 
   /*!
-    A PainterShaderSet provides shaders for drawing
-    each of the item types:
-     - glyphs
-     - stroking paths
-     - filling paths
+    \brief
+    A PainterShaderSet provides shaders for blending
+    and drawing each of the item types glyphs, stroking
+    paths and filling paths.
    */
   class PainterShaderSet
   {
@@ -62,6 +61,13 @@ namespace fastuidraw
      */
     PainterShaderSet&
     operator=(const PainterShaderSet &rhs);
+
+    /*!
+      Swap operation
+      \param obj object with which to swap
+    */
+    void
+    swap(PainterShaderSet &obj);
 
     /*!fn glyph_shader(void) const
       Shader set for rendering of glyphs with isotropic
@@ -167,7 +173,7 @@ namespace fastuidraw
     fill_shader(const PainterFillShader &sh);
 
     /*!
-      Blend shaders. If an element is a NULL shader, then that
+      Blend shaders. If an element is a nullptr shader, then that
       blend mode is not supported.
      */
     const PainterBlendShaderSet&

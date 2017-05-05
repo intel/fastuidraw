@@ -33,7 +33,7 @@
 */
 
 #include <stddef.h>
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include "priorityq-heap.hpp"
 #include "memalloc.hpp"
 
@@ -58,29 +58,29 @@
 PriorityQ *pqNewPriorityQ( int (*leq)(PQkey key1, PQkey key2) )
 {
   PriorityQ *pq = (PriorityQ *)memAlloc( sizeof( PriorityQ ));
-  if (pq == NULL) return NULL;
+  if (pq == nullptr) return nullptr;
 
   pq->size = 0;
   pq->max = INIT_SIZE;
   pq->nodes = (PQnode *)memAlloc( (INIT_SIZE + 1) * sizeof(pq->nodes[0]) );
-  if (pq->nodes == NULL) {
+  if (pq->nodes == nullptr) {
      memFree(pq);
-     return NULL;
+     return nullptr;
   }
 
   pq->handles = (PQhandleElem *)memAlloc( (INIT_SIZE + 1) * sizeof(pq->handles[0]) );
-  if (pq->handles == NULL) {
+  if (pq->handles == nullptr) {
      memFree(pq->nodes);
      memFree(pq);
-     return NULL;
+     return nullptr;
   }
 
   pq->initialized = FALSE;
   pq->freeList = 0;
   pq->leq = leq;
 
-  pq->nodes[1].handle = 1;      /* so that Minimum() returns NULL */
-  pq->handles[1].key = NULL;
+  pq->nodes[1].handle = 1;      /* so that Minimum() returns nullptr */
+  pq->handles[1].key = nullptr;
   return pq;
 }
 
@@ -108,7 +108,7 @@ static void FloatDown( PriorityQ *pq, long curr )
       ++child;
     }
 
-    assert(child <= pq->max);
+    FASTUIDRAWassert(child <= pq->max);
 
     hChild = n[child].handle;
     if( child > pq->size || LEQ( h[hCurr].key, h[hChild].key )) {
@@ -175,7 +175,7 @@ PQhandle pqInsert( PriorityQ *pq, PQkey keyNew )
     pq->nodes = (PQnode *)memRealloc( pq->nodes,
                                      (size_t)
                                      ((pq->max + 1) * sizeof( pq->nodes[0] )));
-    if (pq->nodes == NULL) {
+    if (pq->nodes == nullptr) {
        pq->nodes = saveNodes;   /* restore ptr to free upon return */
        return LONG_MAX;
     }
@@ -183,7 +183,7 @@ PQhandle pqInsert( PriorityQ *pq, PQkey keyNew )
                                              (size_t)
                                               ((pq->max + 1) *
                                                sizeof( pq->handles[0] )));
-    if (pq->handles == NULL) {
+    if (pq->handles == nullptr) {
        pq->handles = saveHandles; /* restore ptr to free upon return */
        return LONG_MAX;
     }
@@ -203,7 +203,7 @@ PQhandle pqInsert( PriorityQ *pq, PQkey keyNew )
   if( pq->initialized ) {
     FloatUp( pq, curr );
   }
-  assert(free_handle != LONG_MAX);
+  FASTUIDRAWassert(free_handle != LONG_MAX);
   return free_handle;
 }
 
@@ -219,7 +219,7 @@ PQkey pqExtractMin( PriorityQ *pq )
     n[1].handle = n[pq->size].handle;
     h[n[1].handle].node = 1;
 
-    h[hMin].key = NULL;
+    h[hMin].key = nullptr;
     h[hMin].node = pq->freeList;
     pq->freeList = hMin;
 
@@ -237,7 +237,7 @@ void pqDelete( PriorityQ *pq, PQhandle hCurr )
   PQhandleElem *h = pq->handles;
   long curr;
 
-  assert( hCurr >= 1 && hCurr <= pq->max && h[hCurr].key != NULL );
+  FASTUIDRAWassert( hCurr >= 1 && hCurr <= pq->max && h[hCurr].key != nullptr );
 
   curr = h[hCurr].node;
   n[curr].handle = n[pq->size].handle;
@@ -250,7 +250,7 @@ void pqDelete( PriorityQ *pq, PQhandle hCurr )
       FloatUp( pq, curr );
     }
   }
-  h[hCurr].key = NULL;
+  h[hCurr].key = nullptr;
   h[hCurr].node = pq->freeList;
   pq->freeList = hCurr;
 }

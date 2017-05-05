@@ -50,7 +50,7 @@ public:
     m_delayed(delayed),
     m_buffer(0)
   {
-    assert(m_size > 0);
+    FASTUIDRAWassert(m_size > 0);
     if(!m_delayed)
       {
         create_buffer();
@@ -68,7 +68,7 @@ public:
   void
   delete_buffer(void)
   {
-    assert(m_buffer != 0);
+    FASTUIDRAWassert(m_buffer != 0);
     glBindBuffer(binding_point, 0);
     glDeleteBuffers(1, &m_buffer);
     m_buffer = 0;
@@ -77,7 +77,7 @@ public:
   void
   set_data(int offset, const_c_array<uint8_t> data)
   {
-    assert(!data.empty());
+    FASTUIDRAWassert(!data.empty());
     if(m_delayed)
       {
         m_unflushed_commands.push_back(BufferGLEntryLocation());
@@ -96,7 +96,7 @@ public:
   void
   set_data_vector(int offset, std::vector<uint8_t> &data)
   {
-    assert(!data.empty());
+    FASTUIDRAWassert(!data.empty());
     if(m_delayed)
       {
         m_unflushed_commands.push_back(BufferGLEntryLocation());
@@ -124,7 +124,7 @@ public:
         for(typename std::list<BufferGLEntryLocation>::iterator iter = m_unflushed_commands.begin(),
               end = m_unflushed_commands.end(); iter != end; ++iter)
           {
-            assert(!iter->m_data.empty());
+            FASTUIDRAWassert(!iter->m_data.empty());
             glBufferSubData(binding_point, iter->m_location, iter->m_data.size(), &iter->m_data[0]);
           }
         m_unflushed_commands.clear();
@@ -134,7 +134,7 @@ public:
   GLuint
   buffer(void) const
   {
-    assert(m_buffer != 0);
+    FASTUIDRAWassert(m_buffer != 0);
     return m_buffer;
   }
 
@@ -194,11 +194,11 @@ private:
   void
   create_buffer(void)
   {
-    assert(m_buffer == 0);
+    FASTUIDRAWassert(m_buffer == 0);
     glGenBuffers(1, &m_buffer);
-    assert(m_buffer != 0);
+    FASTUIDRAWassert(m_buffer != 0);
     glBindBuffer(binding_point, m_buffer);
-    glBufferData(binding_point, m_size, NULL, usage);
+    glBufferData(binding_point, m_size, nullptr, usage);
   }
 
   GLsizei m_size;

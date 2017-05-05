@@ -30,7 +30,6 @@
 #include <map>
 #include <set>
 #include <utility>
-#include <assert.h>
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>

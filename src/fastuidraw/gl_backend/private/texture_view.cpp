@@ -16,7 +16,7 @@
  *
  */
 
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 #include "texture_view.hpp"
@@ -64,7 +64,7 @@ texture_view(enum texture_view_support_t md,
         }
       else
         {
-          assert(!"glTextureView not supported by GL context!\n");
+          FASTUIDRAWassert(!"glTextureView not supported by GL context!\n");
         }
     }
   #else
@@ -82,7 +82,7 @@ texture_view(enum texture_view_support_t md,
           break;
 
         default:
-          assert(!"glTextureView not supported by GL context!\n");
+          FASTUIDRAWassert(!"glTextureView not supported by GL context!\n");
         }
     }
   #endif

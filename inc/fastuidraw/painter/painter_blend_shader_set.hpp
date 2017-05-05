@@ -31,6 +31,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterBlendShaderSet represents a set of shaders
     for the blend modes enumerated by PainterEnums::blend_mode_t
    */
@@ -55,6 +56,13 @@ namespace fastuidraw
      */
     PainterBlendShaderSet&
     operator=(const PainterBlendShaderSet &rhs);
+
+    /*!
+      Swap operation
+      \param obj object with which to swap
+    */
+    void
+    swap(PainterBlendShaderSet &obj);
 
     /*!
       Return the PainterShader for a given

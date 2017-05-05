@@ -28,6 +28,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterShaderGroup gives to what groups the active shaders
     of a PainterPacker belong.
    */

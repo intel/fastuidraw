@@ -96,9 +96,9 @@ public:
   operator()(unsigned int a, unsigned int b, unsigned int c)
   {
     #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
-      assert(a<m_A);
-      assert(b<m_B);
-      assert(c<m_C);
+      FASTUIDRAWassert(a<m_A);
+      FASTUIDRAWassert(b<m_B);
+      FASTUIDRAWassert(c<m_C);
     #endif
     return m_data[(m_B * m_C)*a+m_C*b+c];
   }
@@ -113,9 +113,9 @@ public:
   operator()(unsigned int a, unsigned int b, unsigned int c) const
   {
     #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
-      assert(a<m_A);
-      assert(b<m_B);
-      assert(c<m_C);
+      FASTUIDRAWassert(a<m_A);
+      FASTUIDRAWassert(b<m_B);
+      FASTUIDRAWassert(c<m_C);
     #endif
     return m_data[(m_B * m_C)*a+m_C*b+c];
   }

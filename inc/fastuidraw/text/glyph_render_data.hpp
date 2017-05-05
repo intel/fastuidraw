@@ -34,6 +34,7 @@ namespace fastuidraw
 */
 
   /*!
+    \brief
     Provides an enumeration of the rendering data for
     a glyph.
    */
@@ -69,6 +70,7 @@ namespace fastuidraw
     };
 
   /*!
+    \brief
     Specifies how to render a glyph
    */
   class GlyphRender
@@ -134,6 +136,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     GlyphRenderData provides an interface to specify
     data used for rendering glyphs and to pack that data
     onto a GlyphAtlas.

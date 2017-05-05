@@ -20,8 +20,6 @@
 #pragma once
 
 
-#include <assert.h>
-
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 
@@ -39,14 +37,16 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A wrapper over a pointer to implement reference counting.
+
     The class T must implement the static methods
      - T::add_reference(const T*)
      - T::remove_reference(const T*)
 
     where T::add_reference() increment the reference count and
     T::remove_reference() decrements the reference count and will
-    delete the object if the reference count is decremented to 0.
+    delete the object.
 
     See also reference_counted_base and reference_counted.
    */
@@ -63,14 +63,14 @@ namespace fastuidraw
   public:
     /*!
       Ctor, inits the reference_counted_ptr as
-      equivalent to NULL.
+      equivalent to nullptr.
      */
     reference_counted_ptr(void):
-      m_p(NULL)
+      m_p(nullptr)
     {}
 
     /*!
-      Ctor, initialize from a T*. If passed non-NULL,
+      Ctor, initialize from a T*. If passed non-nullptr,
       then the reference counter is incremented
       (via T::add_reference()).
       \param p pointer value from which to initialize
@@ -114,7 +114,7 @@ namespace fastuidraw
     }
 
     /*!
-      Dtor, if pointer is non-NULL, then reference is decremented
+      Dtor, if pointer is non-nullptr, then reference is decremented
       (via T::remove_reference()).
      */
     ~reference_counted_ptr()
@@ -175,23 +175,23 @@ namespace fastuidraw
 
     /*!
       Overload of dererefence operator. Under debug build,
-      assers if pointer is NULL.
+      assers if pointer is nullptr.
      */
     T&
     operator*(void) const
     {
-      assert(m_p);
+      FASTUIDRAWassert(m_p);
       return *m_p;
     }
 
     /*!
       Overload of operator. Under debug build,
-      assers if pointer is NULL.
+      assers if pointer is nullptr.
      */
     T*
     operator->(void) const
     {
-      assert(m_p);
+      FASTUIDRAWassert(m_p);
       return m_p;
     }
 
@@ -300,7 +300,7 @@ namespace fastuidraw
       if(m_p)
         {
           T::remove_reference(m_p);
-          m_p = NULL;
+          m_p = nullptr;
         }
     }
     /*!
@@ -386,8 +386,13 @@ namespace fastuidraw
   }
 
   /*!
+    \brief
     Base class to use for reference counted objects,
-    for using reference_counted_ptr. See also reference_counted.
+    for using reference_counted_ptr. See also \ref reference_counted.
+    Object deletion (when the reference count goes to zero) is performed
+    via \ref FASTUIDRAWdelete. As a consequence of using \ref
+    FASTUIDRAWdelete, objects must be created with \ref FASTUIDRAWnew.
+
     \tparam T object type that is reference counted
     \tparam Counter object type to perform reference counting.
 
@@ -418,20 +423,20 @@ namespace fastuidraw
     void
     add_reference(const reference_counted_base<T, Counter> *p)
     {
-      assert(p);
+      FASTUIDRAWassert(p);
       p->m_counter.add_reference();
     }
 
     /*!
       Removes a reference count to an object, if the reference
-      count is 0, then deletes the object
+      count is 0, then deletes the object with \ref FASTUIDRAWdelete.
       \param p pointer to object from which to remove reference count.
      */
     static
     void
     remove_reference(const reference_counted_base<T, Counter> *p)
     {
-      assert(p);
+      FASTUIDRAWassert(p);
       if(p->m_counter.remove_reference())
         {
           FASTUIDRAWdelete(p);
@@ -442,6 +447,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     Defines default reference counting base classes.
 
     See also reference_counted_base and reference_counted_ptr.
@@ -451,23 +457,27 @@ namespace fastuidraw
   {
   public:
     /*!
+      \brief
       Typedef to reference counting which is NOT thread safe
      */
     typedef reference_counted_base<T, reference_count_non_concurrent> non_concurrent;
 
     /*!
+      \brief
       Typedef to reference counting which is thread safe by locking
       a mutex on adding and removing reference
      */
     typedef reference_counted_base<T, reference_count_mutex> mutex;
 
     /*!
+      \brief
       Typedef to reference counting which is thread safe by atomically
       adding and removing reference
      */
     typedef reference_counted_base<T, reference_count_atomic> atomic;
 
     /*!
+      \brief
       Typedef for "default" way to reference count.
      */
     typedef atomic default_base;

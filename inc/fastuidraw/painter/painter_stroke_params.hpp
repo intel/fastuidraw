@@ -28,6 +28,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     Class to specify stroking parameters, data is packed
     as according to PainterStrokeParams::stroke_data_offset_t.
    */
@@ -35,6 +36,7 @@ namespace fastuidraw
   {
   public:
     /*!
+      \brief
       Enumeration that provides offsets for the stroking
       parameters.
      */

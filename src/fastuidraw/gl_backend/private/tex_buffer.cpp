@@ -66,7 +66,7 @@ tex_buffer(enum tex_buffer_support_t md, GLenum target, GLenum format, GLuint bo
 {
   #ifndef FASTUIDRAW_GL_USE_GLES
     {
-      assert(md == tex_buffer_no_extension);
+      FASTUIDRAWassert(md == tex_buffer_no_extension);
       FASTUIDRAWunused(md);
       glTexBuffer(target, format, bo);
     }
@@ -85,7 +85,7 @@ tex_buffer(enum tex_buffer_support_t md, GLenum target, GLenum format, GLuint bo
           break;
 
         default:
-          assert(!"glTexBuffer not supported!" || true);
+          FASTUIDRAWassert(!"glTexBuffer not supported!" || true);
         }
     }
   #endif

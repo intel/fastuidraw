@@ -375,7 +375,7 @@ painter_vao_pool(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params
 painter_vao_pool::
 ~painter_vao_pool()
 {
-  assert(m_ubos.size() == m_vaos.size());
+  FASTUIDRAWassert(m_ubos.size() == m_vaos.size());
   for(unsigned int p = 0, endp = m_vaos.size(); p < endp; ++p)
     {
       for(unsigned int i = 0, endi = m_vaos[p].size(); i < endi; ++i)
@@ -415,7 +415,7 @@ request_uniform_ubo(unsigned int sz, GLenum target)
     {
       GLint psize(0);
       glGetBufferParameteriv(target, GL_BUFFER_SIZE, &psize);
-      assert(psize >= static_cast<int>(sz));
+      FASTUIDRAWassert(psize >= static_cast<int>(sz));
     }
   #endif
 
@@ -435,7 +435,7 @@ request_vao(void)
       m_vaos[m_pool].resize(m_current + 1);
       glGenVertexArrays(1, &m_vaos[m_pool][m_current].m_vao);
 
-      assert(m_vaos[m_pool][m_current].m_vao != 0);
+      FASTUIDRAWassert(m_vaos[m_pool][m_current].m_vao != 0);
       glBindVertexArray(m_vaos[m_pool][m_current].m_vao);
 
       m_vaos[m_pool][m_current].m_data_store_backing = m_data_store_backing;
@@ -529,7 +529,7 @@ generate_tbo(GLuint src_buffer, GLenum fmt, unsigned int unit)
   GLuint return_value(0);
 
   glGenTextures(1, &return_value);
-  assert(return_value != 0);
+  FASTUIDRAWassert(return_value != 0);
 
   glActiveTexture(GL_TEXTURE0 + unit);
   glBindTexture(GL_TEXTURE_BUFFER, return_value);
@@ -544,9 +544,9 @@ generate_bo(GLenum bind_target, GLsizei psize)
 {
   GLuint return_value(0);
   glGenBuffers(1, &return_value);
-  assert(return_value != 0);
+  FASTUIDRAWassert(return_value != 0);
   glBindBuffer(bind_target, return_value);
-  glBufferData(bind_target, psize, NULL, GL_STREAM_DRAW);
+  glBufferData(bind_target, psize, nullptr, GL_STREAM_DRAW);
   return return_value;
 }
 
@@ -565,7 +565,7 @@ DrawEntry(const fastuidraw::BlendMode &mode,
 DrawEntry::
 DrawEntry(const fastuidraw::BlendMode &mode):
   m_blend_mode(mode),
-  m_private(NULL),
+  m_private(nullptr),
   m_choice(fastuidraw::gl::PainterBackendGL::number_program_types)
 {}
 
@@ -600,8 +600,8 @@ draw(void) const
     {
       glDisable(GL_BLEND);
     }
-  assert(!m_counts.empty());
-  assert(m_counts.size() == m_indices.size());
+  FASTUIDRAWassert(!m_counts.empty());
+  FASTUIDRAWassert(m_counts.size() == m_indices.size());
 
   /* TODO:
      Get rid of this unholy mess of #ifdef's here and move
@@ -652,12 +652,12 @@ convert_blend_op(enum fastuidraw::BlendMode::op_t v)
 
     case fastuidraw::BlendMode::NUMBER_OPS:
     default:
-      assert(!"Bad fastuidraw::BlendMode::op_t v");
+      FASTUIDRAWassert(!"Bad fastuidraw::BlendMode::op_t v");
     }
 #undef C
 #undef D
 
-  assert("Invalid blend_op_t");
+  FASTUIDRAWassert("Invalid blend_op_t");
   return GL_INVALID_ENUM;
 }
 
@@ -690,10 +690,10 @@ convert_blend_func(enum fastuidraw::BlendMode::func_t v)
 
     case fastuidraw::BlendMode::NUMBER_FUNCS:
     default:
-      assert(!"Bad fastuidraw::BlendMode::func_t v");
+      FASTUIDRAWassert(!"Bad fastuidraw::BlendMode::func_t v");
     }
 #undef C
-  assert("Invalid blend_t");
+  FASTUIDRAWassert("Invalid blend_t");
   return GL_INVALID_ENUM;
 }
 
@@ -718,19 +718,19 @@ DrawCommand(painter_vao_pool *hnd,
 
   glBindBuffer(GL_ARRAY_BUFFER, m_vao.m_attribute_bo);
   attr_bo = glMapBufferRange(GL_ARRAY_BUFFER, 0, hnd->attribute_buffer_size(), flags);
-  assert(attr_bo != NULL);
+  FASTUIDRAWassert(attr_bo != nullptr);
 
   glBindBuffer(GL_ARRAY_BUFFER, m_vao.m_header_bo);
   header_bo = glMapBufferRange(GL_ARRAY_BUFFER, 0, hnd->header_buffer_size(), flags);
-  assert(header_bo != NULL);
+  FASTUIDRAWassert(header_bo != nullptr);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_vao.m_index_bo);
   index_bo = glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, hnd->index_buffer_size(), flags);
-  assert(index_bo != NULL);
+  FASTUIDRAWassert(index_bo != nullptr);
 
   glBindBuffer(GL_ARRAY_BUFFER, m_vao.m_data_bo);
   data_bo = glMapBufferRange(GL_ARRAY_BUFFER, 0, hnd->data_buffer_size(), flags);
-  assert(data_bo != NULL);
+  FASTUIDRAWassert(data_bo != nullptr);
 
   m_attributes = fastuidraw::c_array<fastuidraw::PainterAttribute>(static_cast<fastuidraw::PainterAttribute*>(attr_bo),
                                                                  params.attributes_per_buffer());
@@ -816,7 +816,7 @@ draw(void) const
       break;
 
     default:
-      assert(!"Bad value for m_vao.m_data_store_backing");
+      FASTUIDRAWassert(!"Bad value for m_vao.m_data_store_backing");
     }
 
   if(m_pr->m_params.separate_program_for_discard())
@@ -840,7 +840,7 @@ unmap_implement(unsigned int attributes_written,
 {
   m_attributes_written = attributes_written;
   add_entry(indices_written);
-  assert(m_indices_written == indices_written);
+  FASTUIDRAWassert(m_indices_written == indices_written);
 
   glBindBuffer(GL_ARRAY_BUFFER, m_vao.m_attribute_bo);
   glFlushMappedBufferRange(GL_ARRAY_BUFFER, 0, attributes_written * sizeof(fastuidraw::PainterAttribute));
@@ -864,13 +864,13 @@ DrawCommand::
 add_entry(unsigned int indices_written) const
 {
   unsigned int count;
-  const fastuidraw::PainterIndex *offset(NULL);
+  const fastuidraw::PainterIndex *offset(nullptr);
 
   if(m_draws.empty())
     {
       m_draws.push_back(fastuidraw::BlendMode());
     }
-  assert(indices_written >= m_indices_written);
+  FASTUIDRAWassert(indices_written >= m_indices_written);
   count = indices_written - m_indices_written;
   offset += m_indices_written;
   m_draws.back().add_entry(count, offset);
@@ -888,7 +888,7 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL 
   m_number_clip_planes(0),
   m_clip_plane0(GL_INVALID_ENUM),
   m_linear_filter_sampler(0),
-  m_pool(NULL),
+  m_pool(nullptr),
   m_p(p)
 {
   configure_backend();
@@ -902,7 +902,7 @@ PainterBackendGLPrivate::
       glDeleteSamplers(1, &m_linear_filter_sampler);
     }
 
-  if(m_pool != NULL)
+  if(m_pool != nullptr)
     {
       FASTUIDRAWdelete(m_pool);
     }
@@ -958,7 +958,7 @@ void
 PainterBackendGLPrivate::
 configure_backend(void)
 {
-  assert(!m_backend_configured);
+  FASTUIDRAWassert(!m_backend_configured);
 
   m_backend_configured = true;
   m_tex_buffer_support = fastuidraw::gl::detail::compute_tex_buffer_support();
@@ -989,7 +989,7 @@ configure_backend(void)
     {
       m_params.blend_type(fastuidraw::PainterBlendShader::dual_src);
     }
-  
+
   if(m_params.blend_type() == fastuidraw::PainterBlendShader::dual_src
      && !have_dual_src_blending)
     {
@@ -1056,7 +1056,7 @@ configure_backend(void)
         }
       #endif
     }
-  assert(m_params.use_hw_clip_planes() == m_p->configuration_glsl().use_hw_clip_planes());
+  FASTUIDRAWassert(m_params.use_hw_clip_planes() == m_p->configuration_glsl().use_hw_clip_planes());
 
   /* if have to use discard for clipping, then there is zero point to
      separate the discarding and non-discarding item shaders.
@@ -1064,7 +1064,7 @@ configure_backend(void)
   m_params.separate_program_for_discard(m_params.separate_program_for_discard() && m_params.use_hw_clip_planes());
 
   fastuidraw::gl::ColorStopAtlasGL *color;
-  assert(dynamic_cast<fastuidraw::gl::ColorStopAtlasGL*>(m_params.colorstop_atlas().get()));
+  FASTUIDRAWassert(dynamic_cast<fastuidraw::gl::ColorStopAtlasGL*>(m_params.colorstop_atlas().get()));
   color = static_cast<fastuidraw::gl::ColorStopAtlasGL*>(m_params.colorstop_atlas().get());
   enum fastuidraw::glsl::PainterBackendGLSL::colorstop_backing_t colorstop_tp;
   if(color->texture_bind_target() == GL_TEXTURE_2D_ARRAY)
@@ -1294,7 +1294,7 @@ build_programs(void)
       tp = static_cast<enum fastuidraw::gl::PainterBackendGL::program_type_t>(i);
       m_programs[tp] = build_program(tp);
       m_shader_uniforms_loc[tp] = m_programs[tp]->uniform_location("fastuidraw_shader_uniforms");
-      assert(m_shader_uniforms_loc[tp] != -1 || m_uber_shader_builder_params.use_ubo_for_uniforms());
+      FASTUIDRAWassert(m_shader_uniforms_loc[tp] != -1 || m_uber_shader_builder_params.use_ubo_for_uniforms());
     }
 
   if(!m_uber_shader_builder_params.use_ubo_for_uniforms())
@@ -1362,7 +1362,14 @@ fastuidraw::gl::PainterBackendGL::ConfigurationGL::
   ConfigurationGLPrivate *d;
   d = static_cast<ConfigurationGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
+}
+
+void
+fastuidraw::gl::PainterBackendGL::ConfigurationGL::
+swap(ConfigurationGL &obj)
+{
+  std::swap(m_d, obj.m_d);
 }
 
 fastuidraw::gl::PainterBackendGL::ConfigurationGL&
@@ -1371,10 +1378,8 @@ operator=(const ConfigurationGL &rhs)
 {
   if(this != &rhs)
     {
-      ConfigurationGLPrivate *d, *rhs_d;
-      d = static_cast<ConfigurationGLPrivate*>(m_d);
-      rhs_d = static_cast<ConfigurationGLPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      ConfigurationGL v(rhs);
+      swap(v);
     }
   return *this;
 }
@@ -1443,7 +1448,7 @@ fastuidraw::gl::PainterBackendGL::
   PainterBackendGLPrivate *d;
   d = static_cast<PainterBackendGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::gl::Program>
@@ -1535,7 +1540,7 @@ on_pre_draw(void)
   if(d->m_linear_filter_sampler == 0)
     {
       glGenSamplers(1, &d->m_linear_filter_sampler);
-      assert(d->m_linear_filter_sampler != 0);
+      FASTUIDRAWassert(d->m_linear_filter_sampler != 0);
       glSamplerParameteri(d->m_linear_filter_sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glSamplerParameteri(d->m_linear_filter_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
@@ -1559,15 +1564,15 @@ on_pre_draw(void)
   /* all of our texture units, oh my.
    */
   GlyphAtlasGL *glyphs;
-  assert(dynamic_cast<GlyphAtlasGL*>(glyph_atlas().get()));
+  FASTUIDRAWassert(dynamic_cast<GlyphAtlasGL*>(glyph_atlas().get()));
   glyphs = static_cast<GlyphAtlasGL*>(glyph_atlas().get());
 
   ImageAtlasGL *image;
-  assert(dynamic_cast<ImageAtlasGL*>(image_atlas().get()));
+  FASTUIDRAWassert(dynamic_cast<ImageAtlasGL*>(image_atlas().get()));
   image = static_cast<ImageAtlasGL*>(image_atlas().get());
 
   ColorStopAtlasGL *color;
-  assert(dynamic_cast<ColorStopAtlasGL*>(colorstop_atlas().get()));
+  FASTUIDRAWassert(dynamic_cast<ColorStopAtlasGL*>(colorstop_atlas().get()));
   color = static_cast<ColorStopAtlasGL*>(colorstop_atlas().get());
 
   const glsl::PainterBackendGLSL::UberShaderParams &uber_params(d->m_uber_shader_builder_params);
@@ -1604,7 +1609,7 @@ on_pre_draw(void)
   //grabbing the programs via programs() makes sure they
   //are built.
   const PainterBackendGLPrivate::program_set &prs(d->programs(shader_code_added()));
-  assert(!shader_code_added());
+  FASTUIDRAWassert(!shader_code_added());
 
   if(!d->m_params.separate_program_for_discard())
     {
@@ -1621,7 +1626,7 @@ on_pre_draw(void)
       void *ubo_mapped;
 
       ubo = d->m_pool->request_uniform_ubo(size_bytes, GL_UNIFORM_BUFFER);
-      assert(ubo != 0);
+      FASTUIDRAWassert(ubo != 0);
       // request_uniform_ubo also binds the buffer for us
       ubo_mapped = glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
                                     GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
@@ -1690,7 +1695,7 @@ on_post_draw(void)
   glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
   fastuidraw::gl::GlyphAtlasGL *glyphs;
-  assert(dynamic_cast<fastuidraw::gl::GlyphAtlasGL*>(glyph_atlas().get()));
+  FASTUIDRAWassert(dynamic_cast<fastuidraw::gl::GlyphAtlasGL*>(glyph_atlas().get()));
   glyphs = static_cast<fastuidraw::gl::GlyphAtlasGL*>(glyph_atlas().get());
 
   glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_geometry_store());
@@ -1715,7 +1720,7 @@ on_post_draw(void)
       break;
 
     default:
-      assert(!"Bad value for m_params.data_store_backing()");
+      FASTUIDRAWassert(!"Bad value for m_params.data_store_backing()");
     }
   glBindBufferBase(GL_UNIFORM_BUFFER, binding_points.uniforms_ubo(), 0);
   d->m_pool->next_pool();

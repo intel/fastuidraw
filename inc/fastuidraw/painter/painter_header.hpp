@@ -23,11 +23,12 @@
 
 namespace fastuidraw
 {
-/*!\addtogroup Painter
+/*!\addtogroup PainterPacking
   @{
  */
 
   /*!
+    \brief
     A PainterHeader represents the values of the header for
     the shaders to read to draw data. The header holds data
     that is common for all vertices and fragments for an
@@ -159,7 +160,7 @@ namespace fastuidraw
       The z-value to use for the item. The z-value is used
       by Painter to implement clipping.
      */
-    uint32_t m_z;
+    int32_t m_z;
 
     /*!
       Pack the values of this PainterHeader

@@ -33,7 +33,7 @@
 */
 
 #include "gluos.hpp"
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include <stddef.h>
 #include <setjmp.h>             /* longjmp */
 #include <limits.h>             /* LONG_MAX */
@@ -155,9 +155,9 @@ static void DeleteRegion( fastuidraw_GLUtesselator *tess, ActiveRegion *reg )
      * deleted with zero winding number (ie. it better not get merged
      * with a real edge).
      */
-    assert( reg->eUp->winding == 0 );
+    FASTUIDRAWassert( reg->eUp->winding == 0 );
   }
-  reg->eUp->activeRegion = NULL;
+  reg->eUp->activeRegion = nullptr;
   dictDelete( tess->dict, reg->nodeUp ); /* glu_fastuidraw_gl_dictListDelete */
   memFree( reg );
 }
@@ -168,7 +168,7 @@ static int FixUpperEdge( ActiveRegion *reg, GLUhalfEdge *newEdge )
  * Replace an upper edge which needs fixing (see ConnectRightVertex).
  */
 {
-  assert( reg->fixUpperEdge );
+  FASTUIDRAWassert( reg->fixUpperEdge );
   if ( !glu_fastuidraw_gl_meshDelete( reg->eUp ) ) return 0;
   reg->fixUpperEdge = FALSE;
   reg->eUp = newEdge;
@@ -192,8 +192,8 @@ static ActiveRegion *TopLeftRegion( ActiveRegion *reg )
    */
   if( reg->fixUpperEdge ) {
     e = glu_fastuidraw_gl_meshConnect( RegionBelow(reg)->eUp->Sym, reg->eUp->Lnext );
-    if (e == NULL) return NULL;
-    if ( !FixUpperEdge( reg, e ) ) return NULL;
+    if (e == nullptr) return nullptr;
+    if ( !FixUpperEdge( reg, e ) ) return nullptr;
     reg = RegionAbove( reg );
   }
   return reg;
@@ -221,12 +221,12 @@ static ActiveRegion *AddRegionBelow( fastuidraw_GLUtesselator *tess,
  */
 {
   ActiveRegion *regNew = (ActiveRegion *)memAlloc( sizeof( ActiveRegion ));
-  if (regNew == NULL) longjmp(tess->env,1);
+  if (regNew == nullptr) longjmp(tess->env,1);
 
   regNew->eUp = eNewUp;
   /* glu_fastuidraw_gl_dictListInsertBefore */
   regNew->nodeUp = dictInsertBefore( tess->dict, regAbove->nodeUp, regNew );
-  if (regNew->nodeUp == NULL) longjmp(tess->env,1);
+  if (regNew->nodeUp == nullptr) longjmp(tess->env,1);
   regNew->fixUpperEdge = FALSE;
   regNew->sentinel = FALSE;
   regNew->dirty = FALSE;
@@ -293,7 +293,7 @@ static GLUhalfEdge *FinishLeftRegions( fastuidraw_GLUtesselator *tess,
  * active region to the face, since at this point each face will belong
  * to at most one region (this was not necessarily true until this point
  * in the sweep).  The walk stops at the region above regLast; if regLast
- * is NULL we walk as far as possible.  At the same time we relink the
+ * is nullptr we walk as far as possible.  At the same time we relink the
  * mesh if necessary, so that the ordering of edges around vOrg is the
  * same as in the dictionary.
  */
@@ -322,7 +322,7 @@ static GLUhalfEdge *FinishLeftRegions( fastuidraw_GLUtesselator *tess,
        * ConnectRightVertex, now is the time to fix it.
        */
       e = glu_fastuidraw_gl_meshConnect( ePrev->Lprev, e->Sym );
-      if (e == NULL) longjmp(tess->env,1);
+      if (e == nullptr) longjmp(tess->env,1);
       if ( !FixUpperEdge( reg, e ) ) longjmp(tess->env,1);
     }
 
@@ -350,7 +350,7 @@ static void AddRightEdges( fastuidraw_GLUtesselator *tess, ActiveRegion *regUp,
  * left-going edges already processed, then eTopLeft must be the edge
  * such that an imaginary upward vertical segment from vOrg would be
  * contained between eTopLeft->Oprev and eTopLeft; otherwise eTopLeft
- * should be NULL.
+ * should be nullptr.
  */
 {
   ActiveRegion *reg, *regPrev;
@@ -360,7 +360,7 @@ static void AddRightEdges( fastuidraw_GLUtesselator *tess, ActiveRegion *regUp,
   /* Insert the new right-going edges in the dictionary */
   e = eFirst;
   do {
-    assert( VertLeq( e->Org, e->Dst ));
+    FASTUIDRAWassert( VertLeq( e->Org, e->Dst ));
     AddRegionBelow( tess, regUp, e->Sym );
     e = e->Onext;
   } while ( e != eLast );
@@ -369,7 +369,7 @@ static void AddRightEdges( fastuidraw_GLUtesselator *tess, ActiveRegion *regUp,
    * updating the winding numbers of each region, and re-linking the mesh
    * edges to match the dictionary ordering (if necessary).
    */
-  if( eTopLeft == NULL ) {
+  if( eTopLeft == nullptr ) {
     eTopLeft = RegionBelow( regUp )->eUp->Rprev;
   }
   regPrev = regUp;
@@ -402,7 +402,7 @@ static void AddRightEdges( fastuidraw_GLUtesselator *tess, ActiveRegion *regUp,
     ePrev = e;
   }
   regPrev->dirty = TRUE;
-  assert( regPrev->windingNumber - e->winding == reg->windingNumber );
+  FASTUIDRAWassert( regPrev->windingNumber - e->winding == reg->windingNumber );
 
   if( cleanUp ) {
     /* Check for intersections between newly adjacent edges. */
@@ -419,7 +419,7 @@ static void CallCombine( fastuidraw_GLUtesselator *tess, GLUvertex *isect,
   /* Copy coord data in case the callback changes it. */
   x = isect->s;
   y = isect->t;
-  isect->client_id = FASTUIDRAW_GLU_NULL_CLIENT_ID;
+  isect->client_id = FASTUIDRAW_GLU_nullptr_CLIENT_ID;
 
   if( needed ) {
     CALL_COMBINE_OR_COMBINE_DATA( x, y, data, weights, &isect->client_id );
@@ -435,10 +435,10 @@ static void SpliceMergeVertices( fastuidraw_GLUtesselator *tess, GLUhalfEdge *e1
 {
   unsigned int data[4] =
     {
-      FASTUIDRAW_GLU_NULL_CLIENT_ID,
-      FASTUIDRAW_GLU_NULL_CLIENT_ID,
-      FASTUIDRAW_GLU_NULL_CLIENT_ID,
-      FASTUIDRAW_GLU_NULL_CLIENT_ID
+      FASTUIDRAW_GLU_nullptr_CLIENT_ID,
+      FASTUIDRAW_GLU_nullptr_CLIENT_ID,
+      FASTUIDRAW_GLU_nullptr_CLIENT_ID,
+      FASTUIDRAW_GLU_nullptr_CLIENT_ID
     };
 
   double weights[4] = { 0.5, 0.5, 0.0, 0.0 };
@@ -527,7 +527,7 @@ static int CheckForRightSplice( fastuidraw_GLUtesselator *tess, ActiveRegion *re
     /* eUp->Org appears to be below eLo */
     if( ! VertEq( eUp->Org, eLo->Org )) {
       /* Splice eUp->Org into eLo */
-      if ( glu_fastuidraw_gl_meshSplitEdge( eLo->Sym ) == NULL) longjmp(tess->env,1);
+      if ( glu_fastuidraw_gl_meshSplitEdge( eLo->Sym ) == nullptr) longjmp(tess->env,1);
       if ( !glu_fastuidraw_gl_meshSplice( eUp, eLo->Oprev ) ) longjmp(tess->env,1);
       regUp->dirty = regLo->dirty = TRUE;
 
@@ -541,7 +541,7 @@ static int CheckForRightSplice( fastuidraw_GLUtesselator *tess, ActiveRegion *re
 
     /* eLo->Org appears to be above eUp, so splice eLo->Org into eUp */
     RegionAbove(regUp)->dirty = regUp->dirty = TRUE;
-    if (glu_fastuidraw_gl_meshSplitEdge( eUp->Sym ) == NULL) longjmp(tess->env,1);
+    if (glu_fastuidraw_gl_meshSplitEdge( eUp->Sym ) == nullptr) longjmp(tess->env,1);
     if ( !glu_fastuidraw_gl_meshSplice( eLo->Oprev, eUp ) ) longjmp(tess->env,1);
   }
   return TRUE;
@@ -572,7 +572,7 @@ static int CheckForLeftSplice( fastuidraw_GLUtesselator *tess, ActiveRegion *reg
   GLUhalfEdge *eLo = regLo->eUp;
   GLUhalfEdge *e;
 
-  assert( ! VertEq( eUp->Dst, eLo->Dst ));
+  FASTUIDRAWassert( ! VertEq( eUp->Dst, eLo->Dst ));
 
   if( VertLeq( eUp->Dst, eLo->Dst )) {
     if( EdgeSign( eUp->Dst, eLo->Dst, eUp->Org ) < 0 ) return FALSE;
@@ -580,7 +580,7 @@ static int CheckForLeftSplice( fastuidraw_GLUtesselator *tess, ActiveRegion *reg
     /* eLo->Dst is above eUp, so splice eLo->Dst into eUp */
     RegionAbove(regUp)->dirty = regUp->dirty = TRUE;
     e = glu_fastuidraw_gl_meshSplitEdge( eUp );
-    if (e == NULL) longjmp(tess->env,1);
+    if (e == nullptr) longjmp(tess->env,1);
     if ( !glu_fastuidraw_gl_meshSplice( eLo->Sym, e ) ) longjmp(tess->env,1);
     e->Lface->inside = regUp->inside;
   } else {
@@ -589,7 +589,7 @@ static int CheckForLeftSplice( fastuidraw_GLUtesselator *tess, ActiveRegion *reg
     /* eUp->Dst is below eLo, so splice eUp->Dst into eLo */
     regUp->dirty = regLo->dirty = TRUE;
     e = glu_fastuidraw_gl_meshSplitEdge( eLo );
-    if (e == NULL) longjmp(tess->env,1);
+    if (e == nullptr) longjmp(tess->env,1);
     if ( !glu_fastuidraw_gl_meshSplice( eUp->Lnext, eLo->Sym ) ) longjmp(tess->env,1);
     e->Rface->inside = regUp->inside;
   }
@@ -619,11 +619,11 @@ static int CheckForIntersect( fastuidraw_GLUtesselator *tess, ActiveRegion *regU
   GLUvertex isect, *orgMin;
   GLUhalfEdge *e;
 
-  assert( ! VertEq( dstLo, dstUp ));
-  assert( EdgeSign( dstUp, tess->event, orgUp ) <= 0 );
-  assert( EdgeSign( dstLo, tess->event, orgLo ) >= 0 );
-  assert( orgUp != tess->event && orgLo != tess->event );
-  assert( ! regUp->fixUpperEdge && ! regLo->fixUpperEdge );
+  FASTUIDRAWassert( ! VertEq( dstLo, dstUp ));
+  FASTUIDRAWassert( EdgeSign( dstUp, tess->event, orgUp ) <= 0 );
+  FASTUIDRAWassert( EdgeSign( dstLo, tess->event, orgLo ) >= 0 );
+  FASTUIDRAWassert( orgUp != tess->event && orgLo != tess->event );
+  FASTUIDRAWassert( ! regUp->fixUpperEdge && ! regLo->fixUpperEdge );
 
   if( orgUp == orgLo ) return FALSE;    /* right endpoints are the same */
 
@@ -642,10 +642,10 @@ static int CheckForIntersect( fastuidraw_GLUtesselator *tess, ActiveRegion *regU
 
   glu_fastuidraw_gl_edgeIntersect( dstUp, orgUp, dstLo, orgLo, &isect );
   /* The following properties are guaranteed: */
-  assert( MIN( orgUp->t, dstUp->t ) <= isect.t );
-  assert( isect.t <= MAX( orgLo->t, dstLo->t ));
-  assert( MIN( dstLo->s, dstUp->s ) <= isect.s );
-  assert( isect.s <= MAX( orgLo->s, orgUp->s ));
+  FASTUIDRAWassert( MIN( orgUp->t, dstUp->t ) <= isect.t );
+  FASTUIDRAWassert( isect.t <= MAX( orgLo->t, dstLo->t ));
+  FASTUIDRAWassert( MIN( dstLo->s, dstUp->s ) <= isect.s );
+  FASTUIDRAWassert( isect.s <= MAX( orgLo->s, orgUp->s ));
 
   if( VertLeq( &isect, tess->event )) {
     /* The intersection point lies slightly to the left of the sweep line,
@@ -686,10 +686,10 @@ static int CheckForIntersect( fastuidraw_GLUtesselator *tess, ActiveRegion *regU
      */
     if( dstLo == tess->event ) {
       /* Splice dstLo into eUp, and process the new region(s) */
-      if (glu_fastuidraw_gl_meshSplitEdge( eUp->Sym ) == NULL) longjmp(tess->env,1);
+      if (glu_fastuidraw_gl_meshSplitEdge( eUp->Sym ) == nullptr) longjmp(tess->env,1);
       if ( !glu_fastuidraw_gl_meshSplice( eLo->Sym, eUp ) ) longjmp(tess->env,1);
       regUp = TopLeftRegion( regUp );
-      if (regUp == NULL) longjmp(tess->env,1);
+      if (regUp == nullptr) longjmp(tess->env,1);
       eUp = RegionBelow(regUp)->eUp;
       FinishLeftRegions( tess, RegionBelow(regUp), regLo );
       AddRightEdges( tess, regUp, eUp->Oprev, eUp, eUp, TRUE );
@@ -697,13 +697,13 @@ static int CheckForIntersect( fastuidraw_GLUtesselator *tess, ActiveRegion *regU
     }
     if( dstUp == tess->event ) {
       /* Splice dstUp into eLo, and process the new region(s) */
-      if (glu_fastuidraw_gl_meshSplitEdge( eLo->Sym ) == NULL) longjmp(tess->env,1);
+      if (glu_fastuidraw_gl_meshSplitEdge( eLo->Sym ) == nullptr) longjmp(tess->env,1);
       if ( !glu_fastuidraw_gl_meshSplice( eUp->Lnext, eLo->Oprev ) ) longjmp(tess->env,1);
       regLo = regUp;
       regUp = TopRightRegion( regUp );
       e = RegionBelow(regUp)->eUp->Rprev;
       regLo->eUp = eLo->Oprev;
-      eLo = FinishLeftRegions( tess, regLo, NULL );
+      eLo = FinishLeftRegions( tess, regLo, nullptr );
       AddRightEdges( tess, regUp, eLo->Onext, eUp->Rprev, e, TRUE );
       return TRUE;
     }
@@ -713,13 +713,13 @@ static int CheckForIntersect( fastuidraw_GLUtesselator *tess, ActiveRegion *regU
      */
     if( EdgeSign( dstUp, tess->event, &isect ) >= 0 ) {
       RegionAbove(regUp)->dirty = regUp->dirty = TRUE;
-      if (glu_fastuidraw_gl_meshSplitEdge( eUp->Sym ) == NULL) longjmp(tess->env,1);
+      if (glu_fastuidraw_gl_meshSplitEdge( eUp->Sym ) == nullptr) longjmp(tess->env,1);
       eUp->Org->s = tess->event->s;
       eUp->Org->t = tess->event->t;
     }
     if( EdgeSign( dstLo, tess->event, &isect ) <= 0 ) {
       regUp->dirty = regLo->dirty = TRUE;
-      if (glu_fastuidraw_gl_meshSplitEdge( eLo->Sym ) == NULL) longjmp(tess->env,1);
+      if (glu_fastuidraw_gl_meshSplitEdge( eLo->Sym ) == nullptr) longjmp(tess->env,1);
       eLo->Org->s = tess->event->s;
       eLo->Org->t = tess->event->t;
     }
@@ -735,15 +735,15 @@ static int CheckForIntersect( fastuidraw_GLUtesselator *tess, ActiveRegion *regU
    * the mesh (ie. eUp->Lface) to be smaller than the faces in the
    * unprocessed original contours (which will be eLo->Oprev->Lface).
    */
-  if (glu_fastuidraw_gl_meshSplitEdge( eUp->Sym ) == NULL) longjmp(tess->env,1);
-  if (glu_fastuidraw_gl_meshSplitEdge( eLo->Sym ) == NULL) longjmp(tess->env,1);
+  if (glu_fastuidraw_gl_meshSplitEdge( eUp->Sym ) == nullptr) longjmp(tess->env,1);
+  if (glu_fastuidraw_gl_meshSplitEdge( eLo->Sym ) == nullptr) longjmp(tess->env,1);
   if ( !glu_fastuidraw_gl_meshSplice( eLo->Oprev, eUp ) ) longjmp(tess->env,1);
   eUp->Org->s = isect.s;
   eUp->Org->t = isect.t;
   eUp->Org->pqHandle = pqInsert( tess->pq, eUp->Org ); /* glu_fastuidraw_gl_pqSortInsert */
   if (eUp->Org->pqHandle == LONG_MAX) {
      pqDeletePriorityQ(tess->pq);       /* glu_fastuidraw_gl_pqSortDeletePriorityQ */
-     tess->pq = NULL;
+     tess->pq = nullptr;
      longjmp(tess->env,1);
   }
   GetIntersectData( tess, eUp->Org, orgUp, dstUp, orgLo, dstLo );
@@ -773,7 +773,7 @@ static void WalkDirtyRegions( fastuidraw_GLUtesselator *tess, ActiveRegion *regU
     if( ! regUp->dirty ) {
       regLo = regUp;
       regUp = RegionAbove( regUp );
-      if( regUp == NULL || ! regUp->dirty ) {
+      if( regUp == nullptr || ! regUp->dirty ) {
         /* We've walked all the dirty regions */
         return;
       }
@@ -889,14 +889,14 @@ static void ConnectRightVertex( fastuidraw_GLUtesselator *tess, ActiveRegion *re
   if( VertEq( eUp->Org, tess->event )) {
     if ( !glu_fastuidraw_gl_meshSplice( eTopLeft->Oprev, eUp ) ) longjmp(tess->env,1);
     regUp = TopLeftRegion( regUp );
-    if (regUp == NULL) longjmp(tess->env,1);
+    if (regUp == nullptr) longjmp(tess->env,1);
     eTopLeft = RegionBelow( regUp )->eUp;
     FinishLeftRegions( tess, RegionBelow(regUp), regLo );
     degenerate = TRUE;
   }
   if( VertEq( eLo->Org, tess->event )) {
     if ( !glu_fastuidraw_gl_meshSplice( eBottomLeft, eLo->Oprev ) ) longjmp(tess->env,1);
-    eBottomLeft = FinishLeftRegions( tess, regLo, NULL );
+    eBottomLeft = FinishLeftRegions( tess, regLo, nullptr );
     degenerate = TRUE;
   }
   if( degenerate ) {
@@ -913,7 +913,7 @@ static void ConnectRightVertex( fastuidraw_GLUtesselator *tess, ActiveRegion *re
     eNew = eUp;
   }
   eNew = glu_fastuidraw_gl_meshConnect( eBottomLeft->Lprev, eNew );
-  if (eNew == NULL) longjmp(tess->env,1);
+  if (eNew == nullptr) longjmp(tess->env,1);
 
   /* Prevent cleanup, otherwise eNew might disappear before we've even
    * had a chance to mark it as a temporary edge.
@@ -948,14 +948,14 @@ static void ConnectLeftDegenerate( fastuidraw_GLUtesselator *tess,
     /* e->Org is an unprocessed vertex - just combine them, and wait
      * for e->Org to be pulled from the queue
      */
-    assert( TOLERANCE_NONZERO );
+    FASTUIDRAWassert( TOLERANCE_NONZERO );
     SpliceMergeVertices( tess, e, vEvent->anEdge );
     return;
   }
 
   if( ! VertEq( e->Dst, vEvent )) {
     /* General case -- splice vEvent into edge e which passes through it */
-    if (glu_fastuidraw_gl_meshSplitEdge( e->Sym ) == NULL) longjmp(tess->env,1);
+    if (glu_fastuidraw_gl_meshSplitEdge( e->Sym ) == nullptr) longjmp(tess->env,1);
     if( regUp->fixUpperEdge ) {
       /* This edge was fixable -- delete unused portion of original edge */
       if ( !glu_fastuidraw_gl_meshDelete( e->Onext ) ) longjmp(tess->env,1);
@@ -969,7 +969,7 @@ static void ConnectLeftDegenerate( fastuidraw_GLUtesselator *tess,
   /* vEvent coincides with e->Dst, which has already been processed.
    * Splice in the additional right-going edges.
    */
-  assert( TOLERANCE_NONZERO );
+  FASTUIDRAWassert( TOLERANCE_NONZERO );
   regUp = TopRightRegion( regUp );
   reg = RegionBelow( regUp );
   eTopRight = reg->eUp->Sym;
@@ -978,7 +978,7 @@ static void ConnectLeftDegenerate( fastuidraw_GLUtesselator *tess,
     /* Here e->Dst has only a single fixable edge going right.
      * We can delete it since now we have some real right-going edges.
      */
-    assert( eTopLeft != eTopRight );   /* there are some left edges too */
+    FASTUIDRAWassert( eTopLeft != eTopRight );   /* there are some left edges too */
     DeleteRegion( tess, reg );
     if ( !glu_fastuidraw_gl_meshDelete( eTopRight ) ) longjmp(tess->env,1);
     eTopRight = eTopLeft->Oprev;
@@ -986,7 +986,7 @@ static void ConnectLeftDegenerate( fastuidraw_GLUtesselator *tess,
   if ( !glu_fastuidraw_gl_meshSplice( vEvent->anEdge, eTopRight ) ) longjmp(tess->env,1);
   if( ! EdgeGoesLeft( eTopLeft )) {
     /* e->Dst had no left-going edges -- indicate this to AddRightEdges() */
-    eTopLeft = NULL;
+    eTopLeft = nullptr;
   }
   AddRightEdges( tess, regUp, eTopRight->Onext, eLast, eTopLeft, TRUE );
 }
@@ -1013,7 +1013,7 @@ static void ConnectLeftVertex( fastuidraw_GLUtesselator *tess, GLUvertex *vEvent
   GLUhalfEdge *eUp, *eLo, *eNew;
   ActiveRegion tmp;
 
-  /* assert( vEvent->anEdge->Onext->Onext == vEvent->anEdge ); */
+  /* FASTUIDRAWassert( vEvent->anEdge->Onext->Onext == vEvent->anEdge ); */
 
   /* Get a pointer to the active region containing vEvent */
   tmp.eUp = vEvent->anEdge->Sym;
@@ -1037,10 +1037,10 @@ static void ConnectLeftVertex( fastuidraw_GLUtesselator *tess, GLUvertex *vEvent
   if( regUp->inside || reg->fixUpperEdge) {
     if( reg == regUp ) {
       eNew = glu_fastuidraw_gl_meshConnect( vEvent->anEdge->Sym, eUp->Lnext );
-      if (eNew == NULL) longjmp(tess->env,1);
+      if (eNew == nullptr) longjmp(tess->env,1);
     } else {
       GLUhalfEdge *tempHalfEdge= glu_fastuidraw_gl_meshConnect( eLo->Dnext, vEvent->anEdge);
-      if (tempHalfEdge == NULL) longjmp(tess->env,1);
+      if (tempHalfEdge == nullptr) longjmp(tess->env,1);
 
       eNew = tempHalfEdge->Sym;
     }
@@ -1054,7 +1054,7 @@ static void ConnectLeftVertex( fastuidraw_GLUtesselator *tess, GLUvertex *vEvent
     /* The new vertex is in a region which does not belong to the polygon.
      * We don''t need to connect this vertex to the rest of the mesh.
      */
-    AddRightEdges( tess, regUp, vEvent->anEdge, vEvent->anEdge, NULL, TRUE );
+    AddRightEdges( tess, regUp, vEvent->anEdge, vEvent->anEdge, nullptr, TRUE );
   }
 }
 
@@ -1076,7 +1076,7 @@ static void SweepEvent( fastuidraw_GLUtesselator *tess, GLUvertex *vEvent )
    * time searching for the location to insert new edges.
    */
   e = vEvent->anEdge;
-  while( e->activeRegion == NULL ) {
+  while( e->activeRegion == nullptr ) {
     e = e->Onext;
     if( e == vEvent->anEdge ) {
       /* All edges go right -- not incident to any processed edges */
@@ -1093,10 +1093,10 @@ static void SweepEvent( fastuidraw_GLUtesselator *tess, GLUvertex *vEvent )
    * This takes care of all the left-going edges from vEvent.
    */
   regUp = TopLeftRegion( e->activeRegion );
-  if (regUp == NULL) longjmp(tess->env,1);
+  if (regUp == nullptr) longjmp(tess->env,1);
   reg = RegionBelow( regUp );
   eTopLeft = reg->eUp;
-  eBottomLeft = FinishLeftRegions( tess, reg, NULL );
+  eBottomLeft = FinishLeftRegions( tess, reg, nullptr );
 
   /* Next we process all the right-going edges from vEvent.  This
    * involves adding the edges to the dictionary, and creating the
@@ -1127,10 +1127,10 @@ static void AddSentinel( fastuidraw_GLUtesselator *tess, double t )
 {
   GLUhalfEdge *e;
   ActiveRegion *reg = (ActiveRegion *)memAlloc( sizeof( ActiveRegion ));
-  if (reg == NULL) longjmp(tess->env,1);
+  if (reg == nullptr) longjmp(tess->env,1);
 
   e = glu_fastuidraw_gl_meshMakeEdge( tess->mesh );
-  if (e == NULL) longjmp(tess->env,1);
+  if (e == nullptr) longjmp(tess->env,1);
 
   e->Org->s = SENTINEL_COORD;
   e->Org->t = t;
@@ -1145,7 +1145,7 @@ static void AddSentinel( fastuidraw_GLUtesselator *tess, double t )
   reg->sentinel = TRUE;
   reg->dirty = FALSE;
   reg->nodeUp = dictInsert( tess->dict, reg ); /* glu_fastuidraw_gl_dictListInsertBefore */
-  if (reg->nodeUp == NULL) longjmp(tess->env,1);
+  if (reg->nodeUp == nullptr) longjmp(tess->env,1);
 }
 
 
@@ -1157,7 +1157,7 @@ static void InitEdgeDict( fastuidraw_GLUtesselator *tess )
 {
   /* glu_fastuidraw_gl_dictListNewDict */
   tess->dict = dictNewDict( tess, (int (*)(void *, DictKey, DictKey)) EdgeLeq );
-  if (tess->dict == NULL) longjmp(tess->env,1);
+  if (tess->dict == nullptr) longjmp(tess->env,1);
 
   AddSentinel( tess, -SENTINEL_COORD );
   AddSentinel( tess, SENTINEL_COORD );
@@ -1172,17 +1172,17 @@ static void DoneEdgeDict( fastuidraw_GLUtesselator *tess )
 #endif
 
   /* __GL_DICTLISTKEY */ /* __GL_DICTLISTMIN */
-  while( (reg = (ActiveRegion *)dictKey( dictMin( tess->dict ))) != NULL ) {
+  while( (reg = (ActiveRegion *)dictKey( dictMin( tess->dict ))) != nullptr ) {
     /*
      * At the end of all processing, the dictionary should contain
      * only the two sentinel edges, plus at most one "fixable" edge
      * created by ConnectRightVertex().
      */
     if( ! reg->sentinel ) {
-      assert( reg->fixUpperEdge );
-      assert( ++fixedEdges == 1 );
+      FASTUIDRAWassert( reg->fixUpperEdge );
+      FASTUIDRAWassert( ++fixedEdges == 1 );
     }
-    assert( reg->windingNumber == 0 );
+    FASTUIDRAWassert( reg->windingNumber == 0 );
     DeleteRegion( tess, reg );
 /*    glu_fastuidraw_gl_meshDelete( reg->eUp );*/
   }
@@ -1235,7 +1235,7 @@ static int InitPriorityQ( fastuidraw_GLUtesselator *tess )
 
   /* glu_fastuidraw_gl_pqSortNewPriorityQ */
   pq = tess->pq = pqNewPriorityQ( (int (*)(PQkey, PQkey)) glu_fastuidraw_gl_vertLeq );
-  if (pq == NULL) return 0;
+  if (pq == nullptr) return 0;
 
   vHead = &tess->mesh->vHead;
   for( v = vHead->next; v != vHead; v = v->next ) {
@@ -1244,7 +1244,7 @@ static int InitPriorityQ( fastuidraw_GLUtesselator *tess )
   }
   if (v != vHead || !pqInit( pq ) ) { /* glu_fastuidraw_gl_pqSortInit */
     pqDeletePriorityQ(tess->pq);        /* glu_fastuidraw_gl_pqSortDeletePriorityQ */
-    tess->pq = NULL;
+    tess->pq = nullptr;
     return 0;
   }
 
@@ -1281,7 +1281,7 @@ static int RemoveDegenerateFaces( GLUmesh *mesh )
   for( f = mesh->fHead.next; f != &mesh->fHead; f = fNext ) {
     fNext = f->next;
     e = f->anEdge;
-    assert( e->Lnext != e );
+    FASTUIDRAWassert( e->Lnext != e );
 
     if( e->Lnext->Lnext == e ) {
       /* A face with only two edges */
@@ -1316,10 +1316,10 @@ int glu_fastuidraw_gl_computeInterior( fastuidraw_GLUtesselator *tess )
   InitEdgeDict( tess );
 
   /* glu_fastuidraw_gl_pqSortExtractMin */
-  while( (v = (GLUvertex *)pqExtractMin( tess->pq )) != NULL ) {
+  while( (v = (GLUvertex *)pqExtractMin( tess->pq )) != nullptr ) {
     for( ;; ) {
       vNext = (GLUvertex *)pqMinimum( tess->pq ); /* glu_fastuidraw_gl_pqSortMinimum */
-      if( vNext == NULL || ! VertEq( vNext, v )) break;
+      if( vNext == nullptr || ! VertEq( vNext, v )) break;
 
       /* Merge together all vertices at exactly the same location.
        * This is more efficient than processing them one at a time,

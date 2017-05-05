@@ -187,9 +187,9 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
   #endif
 
   m_show_framerate(false, "show_framerate", "if true show the cumulative framerate at end", *this),
-  m_gl_logger(NULL),
-  m_window(NULL),
-  m_ctx(NULL)
+  m_gl_logger(nullptr),
+  m_window(nullptr),
+  m_ctx(nullptr)
 {
 
 }
@@ -203,7 +203,7 @@ sdl_demo::
         {
           if(m_gl_logger == fastuidraw::gl_binding::logger())
             {
-              fastuidraw::gl_binding::logger(NULL);
+              fastuidraw::gl_binding::logger(nullptr);
             }
           FASTUIDRAWdelete(m_gl_logger);
         }
@@ -211,7 +211,7 @@ sdl_demo::
       m_ctx_egl = fastuidraw::reference_counted_ptr<egl_gles_context>();
       if(m_ctx)
         {
-          SDL_GL_MakeCurrent(m_window, NULL);
+          SDL_GL_MakeCurrent(m_window, nullptr);
           SDL_GL_DeleteContext(m_ctx);
         }
 
@@ -319,7 +319,7 @@ init_sdl(void)
                               video_flags);
 
 
-  if(m_window == NULL)
+  if(m_window == nullptr)
     {
       /*
         abort
@@ -368,7 +368,7 @@ init_sdl(void)
   if(!m_ctx_egl)
     {
       m_ctx = SDL_GL_CreateContext(m_window);
-      if(m_ctx == NULL)
+      if(m_ctx == nullptr)
         {
           std::cerr << "Unable to create GL context: " << SDL_GetError() << "\n";
           return fastuidraw::routine_fail;
@@ -559,7 +559,7 @@ dimensions(void)
 {
   fastuidraw::ivec2 return_value;
 
-  assert(m_window);
+  FASTUIDRAWassert(m_window);
   SDL_GetWindowSize(m_window, &return_value.x(), &return_value.y());
   return return_value;
 }

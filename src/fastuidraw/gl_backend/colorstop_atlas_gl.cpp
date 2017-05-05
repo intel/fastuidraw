@@ -165,7 +165,7 @@ set_data(int x, int l,
          int w,
          fastuidraw::const_c_array<fastuidraw::u8vec4> data)
 {
-  assert(data.size() == static_cast<unsigned int>(w) );
+  FASTUIDRAWassert(data.size() == static_cast<unsigned int>(w) );
   TextureGL::EntryLocation V;
 
   V.m_location = location_for_store(x, l);
@@ -197,7 +197,14 @@ fastuidraw::gl::ColorStopAtlasGL::params::
   ColorStopAtlasGLParamsPrivate *d;
   d = static_cast<ColorStopAtlasGLParamsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
+}
+
+void
+fastuidraw::gl::ColorStopAtlasGL::params::
+swap(params &obj)
+{
+  std::swap(m_d, obj.m_d);
 }
 
 fastuidraw::gl::ColorStopAtlasGL::params&
@@ -206,10 +213,8 @@ operator=(const params &rhs)
 {
   if(this != &rhs)
     {
-      ColorStopAtlasGLParamsPrivate *d, *rhs_d;
-      d = static_cast<ColorStopAtlasGLParamsPrivate*>(m_d);
-      rhs_d = static_cast<ColorStopAtlasGLParamsPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      params v(rhs);
+      swap(v);
     }
   return *this;
 }
@@ -263,7 +268,7 @@ fastuidraw::gl::ColorStopAtlasGL::
   ColorStopAtlasGLPrivate *d;
   d = static_cast<ColorStopAtlasGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 const fastuidraw::gl::ColorStopAtlasGL::params&
@@ -281,7 +286,7 @@ texture(void) const
 {
   flush();
   const BackingStore *p;
-  assert(dynamic_cast<const BackingStore*>(backing_store().get()));
+  FASTUIDRAWassert(dynamic_cast<const BackingStore*>(backing_store().get()));
   p = static_cast<const BackingStore*>(backing_store().get());
   return p->texture();
 }

@@ -33,6 +33,7 @@ namespace fastuidraw
 */
 
   /*!
+    \brief
     A FreetypeLib wraps an FT_Library object of libFreeType
     in a reference counted object.
    */
@@ -54,7 +55,7 @@ namespace fastuidraw
     FT_Library
     lib(void)
     {
-      assert(valid());
+      FASTUIDRAWassert(valid());
       return m_lib;
     }
 
@@ -64,7 +65,7 @@ namespace fastuidraw
     bool
     valid(void)
     {
-      return m_lib != NULL;
+      return m_lib != nullptr;
     }
 
   private:

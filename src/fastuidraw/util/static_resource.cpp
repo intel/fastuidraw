@@ -17,9 +17,10 @@
  */
 
 
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 #include <map>
 #include <vector>
+#include <string>
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
@@ -52,7 +53,7 @@ generate_static_resource(const char *presource_label, const_c_array<uint8_t> pva
   std::string sresource_label(presource_label);
   std::vector<uint8_t> svalue(pvalue.begin(), pvalue.end());
   hoard().m_mutex.lock();
-  assert(hoard().m_data.find(sresource_label) == hoard().m_data.end());
+  FASTUIDRAWassert(hoard().m_data.find(sresource_label) == hoard().m_data.end());
   hoard().m_data[sresource_label] = svalue;
   hoard().m_mutex.unlock();
 }

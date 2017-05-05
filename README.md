@@ -84,6 +84,15 @@ Notes
   - FastUIDraw has the main meat in libFastUIDraw.
   - The GL backend is libFastUIDrawGL
   - The GLES backend is libFastUIDrawGLES
+  - The debug and release versions of the libraries should not be mixed;
+    if you are building for release, then use the release versions and
+    the release flags. If you are building for debug use the debug
+    libraries and the debug flags. These values are outputted by
+    fastuidraw-config.
+       -- The release flags include -DNDEBUG to turn off assert.
+          A number of the template classes defined in fastuidraw/util
+          have calls to assert(). These calls perform bounds checking,
+          checking for nullptr and significantly drop performance.
   - All demos when given -help as command line display all options
   - The demos require that the libraries are in the library path
 

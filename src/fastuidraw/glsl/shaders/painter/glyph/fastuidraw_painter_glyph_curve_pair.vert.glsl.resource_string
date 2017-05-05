@@ -4,7 +4,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                         in uvec4 usecondary_attrib,
                         in uvec4 uint_attrib,
                         in uint shader_data_offset,
-                        out uint z_add)
+                        out int z_add)
 {
   vec4 primary_attrib, secondary_attrib;
 
@@ -38,6 +38,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   fastuidraw_glyph_tex_coord_layer = uint_attrib.z;
   fastuidraw_glyph_secondary_tex_coord_layer = uint_attrib.w;
   fastuidraw_glyph_geometry_data_location = uint_attrib.y;
-  z_add = 0u;
+  z_add = 0;
   return secondary_attrib.xyxy;
 }

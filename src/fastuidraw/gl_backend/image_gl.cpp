@@ -348,7 +348,14 @@ fastuidraw::gl::ImageAtlasGL::params::
   ImageAtlasGLParamsPrivate *d;
   d = static_cast<ImageAtlasGLParamsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
+}
+
+void
+fastuidraw::gl::ImageAtlasGL::params::
+swap(params &obj)
+{
+  std::swap(m_d, obj.m_d);
 }
 
 fastuidraw::gl::ImageAtlasGL::params&
@@ -357,10 +364,8 @@ operator=(const params &rhs)
 {
   if(this != &rhs)
     {
-      ImageAtlasGLParamsPrivate *d, *rhs_d;
-      d = static_cast<ImageAtlasGLParamsPrivate*>(m_d);
-      rhs_d = static_cast<ImageAtlasGLParamsPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      params v(rhs);
+      swap(v);
     }
   return *this;
 }
@@ -429,7 +434,7 @@ fastuidraw::gl::ImageAtlasGL::
   ImageAtlasGLPrivate *d;
   d = static_cast<ImageAtlasGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 const fastuidraw::gl::ImageAtlasGL::params&
@@ -447,7 +452,7 @@ color_texture(void) const
 {
   flush();
   const ColorBackingStoreGL *p;
-  assert(dynamic_cast<const ColorBackingStoreGL*>(color_store().get()));
+  FASTUIDRAWassert(dynamic_cast<const ColorBackingStoreGL*>(color_store().get()));
   p = static_cast<const ColorBackingStoreGL*>(color_store().get());
   return p->texture();
 }
@@ -458,7 +463,7 @@ index_texture(void) const
 {
   flush();
   const IndexBackingStoreGL *p;
-  assert(dynamic_cast<const IndexBackingStoreGL*>(index_store().get()));
+  FASTUIDRAWassert(dynamic_cast<const IndexBackingStoreGL*>(index_store().get()));
   p = static_cast<const IndexBackingStoreGL*>(index_store().get());
   return p->texture();
 }
@@ -469,7 +474,7 @@ shader_coords(reference_counted_ptr<Image> image)
 {
   ivec2 master_index_tile(image->master_index_tile());
 
-  assert(image->number_index_lookups() > 0);
+  FASTUIDRAWassert(image->number_index_lookups() > 0);
 
   vec2 wh(image->master_index_tile_dims());
   float f(image->atlas()->index_tile_size());

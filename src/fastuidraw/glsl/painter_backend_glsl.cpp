@@ -488,29 +488,34 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
 
     /* offset types for stroking.
      */
-    .add_macro("fastuidraw_stroke_offset_start_sub_edge", StrokedPath::offset_start_sub_edge)
-    .add_macro("fastuidraw_stroke_offset_end_sub_edge", StrokedPath::offset_end_sub_edge)
-    .add_macro("fastuidraw_stroke_offset_shared_with_edge", StrokedPath::offset_shared_with_edge)
-    .add_macro("fastuidraw_stroke_offset_rounded_join", StrokedPath::offset_rounded_join)
-    .add_macro("fastuidraw_stroke_offset_miter_join", StrokedPath::offset_miter_join)
-    .add_macro("fastuidraw_stroke_offset_rounded_cap", StrokedPath::offset_rounded_cap)
-    .add_macro("fastuidraw_stroke_offset_square_cap", StrokedPath::offset_square_cap)
-    .add_macro("fastuidraw_stroke_offset_adjustable_cap_contour_start", StrokedPath::offset_adjustable_cap_contour_start)
-    .add_macro("fastuidraw_stroke_offset_adjustable_cap_contour_end", StrokedPath::offset_adjustable_cap_contour_end)
-    .add_macro("fastuidraw_stroke_offset_type_bit0", StrokedPath::offset_type_bit0)
-    .add_macro("fastuidraw_stroke_offset_type_num_bits", StrokedPath::offset_type_num_bits)
+    .add_macro("fastuidraw_stroke_offset_start_sub_edge", StrokedPath::point::offset_start_sub_edge)
+    .add_macro("fastuidraw_stroke_offset_end_sub_edge", StrokedPath::point::offset_end_sub_edge)
+    .add_macro("fastuidraw_stroke_offset_shared_with_edge", StrokedPath::point::offset_shared_with_edge)
+    .add_macro("fastuidraw_stroke_offset_rounded_join", StrokedPath::point::offset_rounded_join)
+
+    .add_macro("fastuidraw_stroke_offset_miter_bevel_join", StrokedPath::point::offset_miter_bevel_join)
+    .add_macro("fastuidraw_stroke_offset_miter_join", StrokedPath::point::offset_miter_join)
+    .add_macro("fastuidraw_stroke_offset_miter_clip_join", StrokedPath::point::offset_miter_clip_join)
+    .add_macro("fastuidraw_stroke_offset_miter_clip_join_lambda_negated", StrokedPath::point::offset_miter_clip_join_lambda_negated)
+
+    .add_macro("fastuidraw_stroke_offset_rounded_cap", StrokedPath::point::offset_rounded_cap)
+    .add_macro("fastuidraw_stroke_offset_square_cap", StrokedPath::point::offset_square_cap)
+    .add_macro("fastuidraw_stroke_offset_adjustable_cap_contour_start", StrokedPath::point::offset_adjustable_cap_contour_start)
+    .add_macro("fastuidraw_stroke_offset_adjustable_cap_contour_end", StrokedPath::point::offset_adjustable_cap_contour_end)
+    .add_macro("fastuidraw_stroke_offset_type_bit0", StrokedPath::point::offset_type_bit0)
+    .add_macro("fastuidraw_stroke_offset_type_num_bits", StrokedPath::point::offset_type_num_bits)
 
     /* bit masks for StrokedPath::point::m_packed_data
      */
-    .add_macro("fastuidraw_stroke_sin_sign_mask", StrokedPath::sin_sign_mask)
-    .add_macro("fastuidraw_stroke_normal0_y_sign_mask", StrokedPath::normal0_y_sign_mask)
-    .add_macro("fastuidraw_stroke_normal1_y_sign_mask", StrokedPath::normal1_y_sign_mask)
-    .add_macro("fastuidraw_stroke_boundary_bit", StrokedPath::boundary_bit)
-    .add_macro("fastuidraw_stroke_join_mask", StrokedPath::join_mask)
-    .add_macro("fastuidraw_stroke_bevel_edge_mask", StrokedPath::bevel_edge_mask)
-    .add_macro("fastuidraw_stroke_adjustable_cap_ending_mask", StrokedPath::adjustable_cap_ending_mask)
-    .add_macro("fastuidraw_stroke_depth_bit0", StrokedPath::depth_bit0)
-    .add_macro("fastuidraw_stroke_depth_num_bits", StrokedPath::depth_num_bits)
+    .add_macro("fastuidraw_stroke_sin_sign_mask", StrokedPath::point::sin_sign_mask)
+    .add_macro("fastuidraw_stroke_normal0_y_sign_mask", StrokedPath::point::normal0_y_sign_mask)
+    .add_macro("fastuidraw_stroke_normal1_y_sign_mask", StrokedPath::point::normal1_y_sign_mask)
+    .add_macro("fastuidraw_stroke_boundary_bit", StrokedPath::point::boundary_bit)
+    .add_macro("fastuidraw_stroke_join_mask", StrokedPath::point::join_mask)
+    .add_macro("fastuidraw_stroke_bevel_edge_mask", StrokedPath::point::bevel_edge_mask)
+    .add_macro("fastuidraw_stroke_adjustable_cap_ending_mask", StrokedPath::point::adjustable_cap_ending_mask)
+    .add_macro("fastuidraw_stroke_depth_bit0", StrokedPath::point::depth_bit0)
+    .add_macro("fastuidraw_stroke_depth_num_bits", StrokedPath::point::depth_num_bits)
 
     /* dash shader modes.
      */
@@ -632,7 +637,7 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
       .set(PainterHeader::item_shader_data_location_offset, ".item_shader_data_location", shader_unpack_value::uint_type)
       .set(PainterHeader::blend_shader_data_location_offset, ".blend_shader_data_location", shader_unpack_value::uint_type)
       .set(PainterHeader::brush_shader_offset, ".brush_shader", shader_unpack_value::uint_type)
-      .set(PainterHeader::z_offset, ".z", shader_unpack_value::uint_type)
+      .set(PainterHeader::z_offset, ".z", shader_unpack_value::int_type)
       .set(PainterHeader::item_blend_shader_offset, ".item_blend_shader_packed", shader_unpack_value::uint_type)
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_header",
@@ -937,7 +942,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     break;
 
     default:
-      assert(!"Invalid colorstop_atlas_backing() value");
+      FASTUIDRAWassert(!"Invalid colorstop_atlas_backing() value");
     }
 
   switch(params.data_store_backing())
@@ -945,7 +950,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     case PainterBackendGLSL::data_store_ubo:
       {
         unsigned int alignment(m_p->configuration_base().alignment());
-        assert(alignment == 4);
+        FASTUIDRAWassert(alignment == 4);
         FASTUIDRAWunused(alignment);
 
         vert
@@ -966,7 +971,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       break;
 
     default:
-      assert(!"Invalid data_store_backing() value");
+      FASTUIDRAWassert(!"Invalid data_store_backing() value");
     }
 
   if(!params.have_float_glyph_texture_atlas())
@@ -1064,7 +1069,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
 
     default:
       shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_INVALID_BLEND";
-      assert(!"Invalid blend_type");
+      FASTUIDRAWassert(!"Invalid blend_type");
     }
 
   frag
@@ -1149,21 +1154,26 @@ fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
   ConfigurationGLSLPrivate *d;
   d = static_cast<ConfigurationGLSLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL&
 fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
-operator=(const ConfigurationGLSL &rhs)
+operator=(const ConfigurationGLSL &obj)
 {
-  if(this != &rhs)
+  if(this != &obj)
     {
-      ConfigurationGLSLPrivate *d, *rhs_d;
-      d = static_cast<ConfigurationGLSLPrivate*>(m_d);
-      rhs_d = static_cast<ConfigurationGLSLPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      ConfigurationGLSL v(obj);
+      swap(v);
     }
   return *this;
+}
+
+void
+fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
+swap(ConfigurationGLSL &rhs)
+{
+  std::swap(m_d, rhs.m_d);
 }
 
 #define setget_implement(type, name)                                    \
@@ -1214,7 +1224,7 @@ fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
   BindingPointsPrivate *d;
   d = static_cast<BindingPointsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::glsl::PainterBackendGLSL::BindingPoints&
@@ -1286,7 +1296,7 @@ fastuidraw::glsl::PainterBackendGLSL::UberShaderParams::
   UberShaderParamsPrivate *d;
   d = static_cast<UberShaderParamsPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::glsl::PainterBackendGLSL::UberShaderParams&
@@ -1366,7 +1376,7 @@ fastuidraw::glsl::PainterBackendGLSL::
   PainterBackendGLSLPrivate *d;
   d = static_cast<PainterBackendGLSLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void
@@ -1417,8 +1427,8 @@ absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader)
   reference_counted_ptr<glsl::PainterItemShaderGLSL> h;
   PainterShader::Tag return_value;
 
-  assert(!shader->parent());
-  assert(shader.dynamic_cast_ptr<PainterItemShaderGLSL>());
+  FASTUIDRAWassert(!shader->parent());
+  FASTUIDRAWassert(shader.dynamic_cast_ptr<PainterItemShaderGLSL>());
   h = shader.static_cast_ptr<PainterItemShaderGLSL>();
 
   d->m_shader_code_added = true;
@@ -1452,8 +1462,8 @@ absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader)
   reference_counted_ptr<PainterBlendShaderGLSL> h;
   fastuidraw::PainterShader::Tag return_value;
 
-  assert(!shader->parent());
-  assert(shader.dynamic_cast_ptr<PainterBlendShaderGLSL>());
+  FASTUIDRAWassert(!shader->parent());
+  FASTUIDRAWassert(shader.dynamic_cast_ptr<PainterBlendShaderGLSL>());
   h = shader.static_cast_ptr<PainterBlendShaderGLSL>();
 
   d->m_shader_code_added = true;

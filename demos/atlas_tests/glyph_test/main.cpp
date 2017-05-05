@@ -199,16 +199,16 @@ glyph_test::per_program::
 set(reference_counted_ptr<gl::Program> pr)
 {
   m_program = pr;
-  assert(m_program->link_success());
+  FASTUIDRAWassert(m_program->link_success());
 
   m_pvm_loc = m_program->uniform_location("pvm");
-  assert(m_pvm_loc != -1);
+  FASTUIDRAWassert(m_pvm_loc != -1);
 
   m_scale_loc = m_program->uniform_location("scale");
-  assert(m_scale_loc != -1);
+  FASTUIDRAWassert(m_scale_loc != -1);
 
   m_translate_loc = m_program->uniform_location("translate");
-  assert(m_translate_loc != -1);
+  FASTUIDRAWassert(m_translate_loc != -1);
 
   m_layer_loc = m_program->uniform_location("layer");
   m_aa_mode_loc = m_program->uniform_location("aa_mode");
@@ -224,7 +224,7 @@ per_draw(void):
   m_vbo(0),
   m_ibo(0),
   m_index_count(0),
-  m_zoomer(NULL)
+  m_zoomer(nullptr)
 {}
 
 glyph_test::per_draw::
@@ -262,15 +262,15 @@ glyph_test::per_draw::
 init_and_bind_vao_vbo_ibo(void)
 {
   glGenVertexArrays(1, &m_vao);
-  assert(m_vao != 0);
+  FASTUIDRAWassert(m_vao != 0);
   glBindVertexArray(m_vao);
 
   glGenBuffers(1, &m_vbo);
-  assert(m_vbo != 0);
+  FASTUIDRAWassert(m_vbo != 0);
   glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 
   glGenBuffers(1, &m_ibo);
-  assert(m_ibo != 0);
+  FASTUIDRAWassert(m_ibo != 0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
 }
 
@@ -283,7 +283,7 @@ init_draw_text(const_c_array<Glyph> glyphs, const_c_array<vec2> glyph_positions,
   std::vector<vecN<GLuint, 6> > indices;
   unsigned int i, endi, glyph_count;
 
-  assert(glyphs.size() == glyph_positions.size());
+  FASTUIDRAWassert(glyphs.size() == glyph_positions.size());
 
   /* generate attribute data from glyphs and glyph_posisions.
    */
@@ -366,7 +366,7 @@ draw(glyph_test *q, int which_program, const float4x4 &pvm, int layer, unsigned 
                   vec3(q->m_fg_red.m_value, q->m_fg_green.m_value, q->m_fg_blue.m_value));
     }
 
-  glDrawElements(GL_TRIANGLES, m_index_count, GL_UNSIGNED_INT, NULL);
+  glDrawElements(GL_TRIANGLES, m_index_count, GL_UNSIGNED_INT, nullptr);
 }
 
 //////////////////////////////////////////
@@ -385,7 +385,7 @@ pack_data(float SCALE, unsigned int i, Glyph G, vec2 p, vecN<GLuint, 6> &indices
 
   enum return_code R;
   R = G.upload_to_atlas();
-  assert(R == routine_success);
+  FASTUIDRAWassert(R == routine_success);
   FASTUIDRAWunused(R);
 
   GlyphLocation atlas_location(G.atlas_location());
@@ -498,8 +498,8 @@ glyph_test(void):
   m_fg_red(0.0f, "fg_red", "Foreground Red", *this),
   m_fg_green(0.0f, "fg_green", "Foreground Green", *this),
   m_fg_blue(0.0f, "fg_blue", "Foreground Blue", *this),
-  m_library(NULL),
-  m_face(NULL),
+  m_library(nullptr),
+  m_face(nullptr),
   m_current_drawer(draw_glyph_curvepair),
   m_texel_access_mode(texel_store_uint),
   m_aa_mode(0),
@@ -519,12 +519,12 @@ glyph_test(void):
 glyph_test::
 ~glyph_test()
 {
-  if(m_face != NULL)
+  if(m_face != nullptr)
     {
       FT_Done_Face(m_face);
     }
 
-  if(m_library != NULL)
+  if(m_library != nullptr)
     {
       FT_Done_FreeType(m_library);
     }
@@ -540,7 +540,7 @@ create_and_add_font(void)
   error_code = FT_Init_FreeType(&m_library);
   if(error_code != 0)
     {
-      m_library = NULL;
+      m_library = nullptr;
       std::cerr << "Failed to init FreeType library\n";
       return routine_fail;
     }
@@ -548,15 +548,15 @@ create_and_add_font(void)
   error_code = FT_New_Face(m_library, m_font_file.m_value.c_str(),
                            m_font_index.m_value, &m_face);
 
-  if(error_code != 0 || m_face == NULL || (m_face->face_flags & FT_FACE_FLAG_SCALABLE) == 0)
+  if(error_code != 0 || m_face == nullptr || (m_face->face_flags & FT_FACE_FLAG_SCALABLE) == 0)
     {
-      if(m_face != NULL)
+      if(m_face != nullptr)
         {
           FT_Done_Face(m_face);
-          m_face = NULL;
+          m_face = nullptr;
         }
       FT_Done_FreeType(m_library);
-      m_library = NULL;
+      m_library = nullptr;
       std::cerr << "Failed to load scalable font at index " << m_font_index.m_value
                 << "from file \"" << m_font_file.m_value << "\"\n";
       return routine_fail;
@@ -836,19 +836,7 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
       FT_ULong character_code;
       FT_UInt  glyph_index;
 
-      switch(renderer.m_type)
-        {
-        case distance_field_glyph:
-          div_scale_factor = m_font->render_params().distance_field_pixel_size();
-          break;
-        case curve_pair_glyph:
-          div_scale_factor = m_font->render_params().curve_pair_pixel_size();
-          break;
-
-        default:
-          div_scale_factor = renderer.m_pixel_size;
-        }
-
+      div_scale_factor = static_cast<float>(m_face->units_per_EM);
       scale_factor = pixel_size_formatting / div_scale_factor;
 
       for(character_code = FT_Get_First_Char(m_face, &glyph_index); glyph_index != 0;
@@ -857,8 +845,8 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
           Glyph g;
           g = m_glyph_selector->fetch_glyph_no_merging(renderer, m_font, character_code);
 
-          assert(g.valid());
-          assert(g.layout().m_glyph_code == uint32_t(glyph_index));
+          FASTUIDRAWassert(g.valid());
+          FASTUIDRAWassert(g.layout().m_glyph_code == uint32_t(glyph_index));
           max_height = std::max(max_height, g.layout().m_size.y());
           glyphs.push_back(g);
           character_codes.push_back(character_code);
@@ -910,7 +898,7 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
                                 m_font, m_glyph_selector, temp_glyphs,
                                 temp_positions, temp_character_codes);
 
-          assert(temp_glyphs.size() == temp_positions.size());
+          FASTUIDRAWassert(temp_glyphs.size() == temp_positions.size());
           for(unsigned int c = 0; c < temp_glyphs.size(); ++c)
             {
               glyphs.push_back(temp_glyphs[c]);
@@ -953,7 +941,7 @@ ready_attributes_indices(void)
     float format_pixel_size, scale_factor;
 
     format_pixel_size = m_render_pixel_size.m_value;
-    scale_factor = format_pixel_size / static_cast<float>(m_coverage_pixel_size.m_value);
+    scale_factor = format_pixel_size / static_cast<float>(m_face->units_per_EM);
 
     compute_glyphs_and_positions(renderer, format_pixel_size, glyphs, glyph_positions, character_codes);
     m_drawers[draw_glyph_coverage].init_draw_text(cast_c_array(glyphs), cast_c_array(glyph_positions), scale_factor);
@@ -964,7 +952,7 @@ ready_attributes_indices(void)
     float format_pixel_size, scale_factor;
 
     format_pixel_size = m_render_pixel_size.m_value;
-    scale_factor = format_pixel_size / static_cast<float>(m_font->render_params().distance_field_pixel_size());
+    scale_factor = format_pixel_size / static_cast<float>(m_face->units_per_EM);
     change_glyph_renderer(renderer, cast_c_array(glyphs), cast_c_array(character_codes));
     m_drawers[draw_glyph_distance].init_draw_text(cast_c_array(glyphs), cast_c_array(glyph_positions), scale_factor);
   }
@@ -974,7 +962,7 @@ ready_attributes_indices(void)
     float format_pixel_size, scale_factor;
 
     format_pixel_size = m_render_pixel_size.m_value;
-    scale_factor = format_pixel_size / static_cast<float>(m_font->render_params().curve_pair_pixel_size());
+    scale_factor = format_pixel_size / static_cast<float>(m_face->units_per_EM);
     change_glyph_renderer(renderer, cast_c_array(glyphs), cast_c_array(character_codes));
     m_drawers[draw_glyph_curvepair].init_draw_text(cast_c_array(glyphs), cast_c_array(glyph_positions), scale_factor);
   }

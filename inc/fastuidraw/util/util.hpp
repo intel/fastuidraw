@@ -23,13 +23,86 @@
 #include <stdint.h>
 #include <stddef.h>
 
+
+/*!\addtogroup Utility
+  @{
+ */
+
+/*!\def FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS
+  Macro that gives the maximum value that can be
+  held with a given number of bits. Caveat:
+  if X is 32 (or higher), bad things may happen
+  from overflow.
+  \param X number bits
+ */
+#define FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(X) ( (uint32_t(1) << uint32_t(X)) - uint32_t(1) )
+
+/*!\def FASTUIDRAW_MASK
+  Macro that generates a 32-bit mask from number
+  bits and location of bit0 to use
+  \param BIT0 first bit of mask
+  \param NUMBITS nuber bits of mask
+ */
+#define FASTUIDRAW_MASK(BIT0, NUMBITS) (FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(NUMBITS) << uint32_t(BIT0))
+
+/*!\def FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS_U64
+  Macro that gives the maximum value that can be
+  held with a given number of bits, returning an
+  unsigned 64-bit integer.
+  \param X number bits
+ */
+#define FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS_U64(X) ( (uint64_t(1) << uint64_t(X)) - uint64_t(1) )
+
+/*!\def FASTUIDRAW_MASK_U64
+  Macro that generates a 64-bit mask from number
+  bits and location of bit0 to use
+  \param BIT0 first bit of mask
+  \param NUMBITS nuber bits of mask
+ */
+#define FASTUIDRAW_MASK_U64(BIT0, NUMBITS) (FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS_U64(NUMBITS) << uint64_t(BIT0))
+
+/*!\def FASTUIDRAWunused
+  Macro to stop the compiler from reporting
+  an argument as unused. Typically used on
+  those arguments used in FASTUIDRAWassert invocation
+  but otherwise unused.
+  \param X expression of which to ignore the value
+ */
+#define FASTUIDRAWunused(X) do { (void)(X); } while(0)
+
+/*!\def FASTUIDRAWassert
+  If FASTUIDRAW_DEBUG is defined, checks if the statement
+  is true and if it is not true prints to std::cerr and
+  then aborts. If FastUIDRAW_DEBUG is not defined, then
+  macro is empty (and thus the condition is not evaluated).
+*/
+#ifdef FASTUIDRAW_DEBUG
+#define FASTUIDRAWassert(X) do {                              \
+    if(!(X)) {                                                          \
+      fastuidraw::assert_fail(#X, __FILE__, __LINE__);                  \
+    } } while(0)
+#else
+#define FASTUIDRAWassert(X)
+#endif
+
+namespace fastuidraw
+{
+  /*!
+    Private function used by macro FASTUIDRAWassert, do NOT call.
+   */
+  void
+  assert_fail(const char *str, const char *file, int line);
+}
+/*! @} */
+
 namespace fastuidraw
 {
 /*!\addtogroup Utility
   @{
  */
 
-  /*!\union generic_data
+  /*!
+    \brief
     Union to store 32-bit data.
    */
   union generic_data
@@ -51,6 +124,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     Enumeration for simple return codes for functions
     for success or failure.
   */
@@ -266,6 +340,7 @@ namespace fastuidraw
   }
 
   /*!
+    \brief
     A class reprenting the STL range
     [m_begin, m_end).
   */
@@ -310,9 +385,48 @@ namespace fastuidraw
     {
       return m_end - m_begin;
     }
+
+    /*!
+      Increment both \ref m_begin and \ref m_end.
+      \param v value by which to increment
+     */
+    void
+    operator+=(const T &v)
+    {
+      m_begin += v;
+      m_end += v;
+    }
+
+    /*!
+      Decrement both \ref m_begin and \ref m_end.
+      \param v value by which to decrement
+     */
+    void
+    operator-=(const T &v)
+    {
+      m_begin -= v;
+      m_end -= v;
+    }
   };
 
   /*!
+    Create a range_type<> object by merging two such objects
+    together.
+    \param a first part of range, a.m_end must be the same
+             value as b.m_begin
+    \param b second part of range, a.m_end must be the same
+             value as b.m_begin
+   */
+  template<typename T>
+  range_type<T>
+  merge_range(const range_type<T> &a, const range_type<T> &b)
+  {
+    FASTUIDRAWassert(a.m_end == b.m_begin);
+    return range_type<T>(a.m_begin, b.m_end);
+  }
+
+  /*!
+    \brief
     Class for which copy ctor and assignment operator
     are private functions.
    */
@@ -330,6 +444,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     Class for type traits to indicate true.
     Functionally, a simplified version of
     std::true_type.
@@ -347,6 +462,7 @@ namespace fastuidraw
   };
 
   /*!
+    \brief
     Class for type traits to indicate true.
     Functionally, a simplified version of
     std::false_type.
@@ -365,51 +481,3 @@ namespace fastuidraw
 
 /*! @} */
 }
-
-/*!\addtogroup Utility
-  @{
- */
-
-/*!\def FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS
-  Macro that gives the maximum value that can be
-  held with a given number of bits. Caveat:
-  if X is 32 (or higher), bad things may happen
-  from overflow.
-  \param X number bits
- */
-#define FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(X) ( (uint32_t(1) << uint32_t(X)) - uint32_t(1) )
-
-/*!\def FASTUIDRAW_MASK
-  Macro that generates a 32-bit mask from number
-  bits and location of bit0 to use
-  \param BIT0 first bit of mask
-  \param NUMBITS nuber bits of mask
- */
-#define FASTUIDRAW_MASK(BIT0, NUMBITS) (FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(NUMBITS) << uint32_t(BIT0))
-
-/*!\def FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS_U64
-  Macro that gives the maximum value that can be
-  held with a given number of bits, returning an
-  unsigned 64-bit integer.
-  \param X number bits
- */
-#define FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS_U64(X) ( (uint64_t(1) << uint64_t(X)) - uint64_t(1) )
-
-/*!\def FASTUIDRAW_MASK_U64
-  Macro that generates a 64-bit mask from number
-  bits and location of bit0 to use
-  \param BIT0 first bit of mask
-  \param NUMBITS nuber bits of mask
- */
-#define FASTUIDRAW_MASK_U64(BIT0, NUMBITS) (FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS_U64(NUMBITS) << uint64_t(BIT0))
-
-/*!\def FASTUIDRAWunused
-  Macro to stop the compiler from reporting
-  an argument as unused. Typically used on
-  those arguments used in assert invocation
-  but otherwise unused.
-  \param X expression of which to ignore the value
- */
-#define FASTUIDRAWunused(X) do { (void)(X); } while(0)
-
-/*! @} */

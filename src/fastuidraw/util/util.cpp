@@ -16,10 +16,11 @@
  * \author Kevin Rogovin <kevin.rogovin@intel.com>
  *
  */
-#include <assert.h>
+#include <fastuidraw/util/util.hpp>
 
 #include <vector>
 #include <string>
+#include <iostream>
 
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/util/util.hpp>
@@ -110,18 +111,26 @@ uint64_number_bits_required(uint64_t v)
   return return_value;
 }
 
+void
+fastuidraw::
+assert_fail(const char *str, const char *file, int line)
+{
+  std::cerr << file << ":" << line << ": Assertion '" << str << "' failed\n";
+  std::abort();
+}
+
 //////////////////////////////////////
 // fastuidraw::noncopyable methods
 fastuidraw::noncopyable::
 noncopyable(const noncopyable &)
 {
-  assert(!"noncopyable copy ctor called!");
+  FASTUIDRAWassert(!"noncopyable copy ctor called!");
 }
 
 fastuidraw::noncopyable&
 fastuidraw::noncopyable::
 operator=(const noncopyable &)
 {
-  assert(!"noncopyable assignment operator called!");
+  FASTUIDRAWassert(!"noncopyable assignment operator called!");
   return *this;
 }

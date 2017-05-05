@@ -121,7 +121,7 @@ ColorStopAtlasPrivate(fastuidraw::reference_counted_ptr<fastuidraw::ColorStopBac
   m_backing_store(pbacking_store),
   m_allocated(0)
 {
-  assert(m_backing_store);
+  FASTUIDRAWassert(m_backing_store);
   add_bookkeeping(m_backing_store->dimensions().y());
 }
 
@@ -129,8 +129,8 @@ void
 ColorStopAtlasPrivate::
 remove_entry_from_available_layers(std::map<int, std::set<int> >::iterator iter, int y)
 {
-  assert(iter != m_available_layers.end());
-  assert(iter->second.find(y) != iter->second.end());
+  FASTUIDRAWassert(iter != m_available_layers.end());
+  FASTUIDRAWassert(iter->second.find(y) != iter->second.end());
   iter->second.erase(y);
   if(iter->second.empty())
     {
@@ -146,8 +146,8 @@ add_bookkeeping(int new_size)
   int old_size(m_layer_allocator.size());
   std::set<int> &S(m_available_layers[width]);
 
-  assert(new_size > old_size);
-  m_layer_allocator.resize(new_size, NULL);
+  FASTUIDRAWassert(new_size > old_size);
+  m_layer_allocator.resize(new_size, nullptr);
   for(int y = old_size; y < new_size; ++y)
     {
       m_layer_allocator[y] = FASTUIDRAWnew fastuidraw::interval_allocator(width);
@@ -160,8 +160,8 @@ ColorStopAtlasPrivate::
 deallocate_implement(fastuidraw::ivec2 location, int width)
 {
   int y(location.y());
-  assert(m_layer_allocator[y]);
-  assert(m_delayed_interval_freeing_counter == 0);
+  FASTUIDRAWassert(m_layer_allocator[y]);
+  FASTUIDRAWassert(m_delayed_interval_freeing_counter == 0);
 
   int old_max, new_max;
 
@@ -200,7 +200,7 @@ fastuidraw::ColorStopBackingStore::
   ColorStopBackingStorePrivate *d;
   d = static_cast<ColorStopBackingStorePrivate*>(m_d);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::ivec2
@@ -236,8 +236,8 @@ resize(int new_num_layers)
 {
   ColorStopBackingStorePrivate *d;
   d = static_cast<ColorStopBackingStorePrivate*>(m_d);
-  assert(d->m_resizeable);
-  assert(new_num_layers > d->m_dimensions.y());
+  FASTUIDRAWassert(d->m_resizeable);
+  FASTUIDRAWassert(new_num_layers > d->m_dimensions.y());
   resize_implement(new_num_layers);
   d->m_dimensions.y() = new_num_layers;
   d->m_width_times_height = d->m_dimensions.x() * d->m_dimensions.y();
@@ -257,8 +257,8 @@ fastuidraw::ColorStopAtlas::
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
-  assert(d->m_delayed_interval_freeing_counter == 0);
-  assert(d->m_allocated == 0);
+  FASTUIDRAWassert(d->m_delayed_interval_freeing_counter == 0);
+  FASTUIDRAWassert(d->m_allocated == 0);
   for(std::vector<interval_allocator*>::iterator
         iter = d->m_layer_allocator.begin(),
         end = d->m_layer_allocator.end();
@@ -267,7 +267,7 @@ fastuidraw::ColorStopAtlas::
       FASTUIDRAWdelete(*iter);
     }
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 void
@@ -289,7 +289,7 @@ undelay_interval_freeing(void)
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
   autolock_mutex m(d->m_mutex);
-  assert(d->m_delayed_interval_freeing_counter >= 1);
+  FASTUIDRAWassert(d->m_delayed_interval_freeing_counter >= 1);
   --d->m_delayed_interval_freeing_counter;
   if(d->m_delayed_interval_freeing_counter == 0)
     {
@@ -371,8 +371,8 @@ allocate(const_c_array<u8vec4> data)
   ivec2 return_value;
   int width(data.size());
 
-  assert(width > 0);
-  assert(width <= max_width());
+  FASTUIDRAWassert(width > 0);
+  FASTUIDRAWassert(width <= max_width());
 
   iter = d->m_available_layers.lower_bound(width);
   if(iter == d->m_available_layers.end())
@@ -390,23 +390,23 @@ allocate(const_c_array<u8vec4> data)
           d->add_bookkeeping(new_size);
 
           iter = d->m_available_layers.lower_bound(width);
-          assert(iter != d->m_available_layers.end());
+          FASTUIDRAWassert(iter != d->m_available_layers.end());
         }
       else
         {
-          assert(!"ColorStop atlas exhausted");
+          FASTUIDRAWassert(!"ColorStop atlas exhausted");
           return ivec2(-1, -1);
         }
     }
 
-  assert(!iter->second.empty());
+  FASTUIDRAWassert(!iter->second.empty());
 
   int y(*iter->second.begin());
   int old_max, new_max;
 
   old_max = d->m_layer_allocator[y]->largest_free_interval();
   return_value.x() = d->m_layer_allocator[y]->allocate_interval(width);
-  assert(return_value.x() >= 0);
+  FASTUIDRAWassert(return_value.x() >= 0);
   new_max = d->m_layer_allocator[y]->largest_free_interval();
 
   if(old_max != new_max)
@@ -456,8 +456,8 @@ ColorStopSequenceOnAtlas(const ColorStopSequence &pcolor_stops,
   d->m_width = pwidth;
 
   const_c_array<ColorStop> color_stops(pcolor_stops.values());
-  assert(d->m_atlas);
-  assert(pwidth>0);
+  FASTUIDRAWassert(d->m_atlas);
+  FASTUIDRAWassert(pwidth>0);
 
   if(pwidth >= d->m_atlas->max_width())
     {
@@ -558,7 +558,7 @@ fastuidraw::ColorStopSequenceOnAtlas::
   loc.x() -= d->m_start_slack;
   d->m_atlas->deallocate(loc, d->m_width + d->m_start_slack + d->m_end_slack);
   FASTUIDRAWdelete(d);
-  m_d = NULL;
+  m_d = nullptr;
 }
 
 fastuidraw::ivec2

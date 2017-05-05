@@ -39,7 +39,7 @@ namespace
     h.resize(cnt);
     cnt = fastuidraw::FontFreeType::create(cast_c_array(h), filename.c_str(), lib, render_params);
 
-    assert(cnt == h.size());
+    FASTUIDRAWassert(cnt == h.size());
 
     for(unsigned int i = 0, endi = h.size(); i < endi; ++i)
       {
@@ -56,7 +56,9 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
                       fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
                       std::vector<fastuidraw::Glyph> &glyphs,
                       std::vector<fastuidraw::vec2> &positions,
-                      std::vector<uint32_t> &character_codes)
+                      std::vector<uint32_t> &character_codes,
+                      std::vector<LineData> *line_data,
+                      std::vector<fastuidraw::range_type<float> > *glyph_extents)
 {
   std::streampos current_position, end_position;
   unsigned int loc(0);
@@ -73,17 +75,35 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
   positions.resize(end_position - current_position);
   character_codes.resize(end_position - current_position);
 
+  if(glyph_extents)
+    {
+      glyph_extents->resize(end_position - current_position);
+    }
+
+  if(line_data)
+    {
+      line_data->clear();
+    }
+
   fastuidraw::c_array<fastuidraw::Glyph> glyphs_ptr(cast_c_array(glyphs));
   fastuidraw::c_array<fastuidraw::vec2> pos_ptr(cast_c_array(positions));
   fastuidraw::c_array<uint32_t> char_codes_ptr(cast_c_array(character_codes));
+  fastuidraw::c_array<fastuidraw::range_type<float> > extents_ptr;
+
+  if(glyph_extents)
+    {
+      extents_ptr = cast_c_array(*glyph_extents);
+    }
 
   while(getline(istr, line))
     {
       fastuidraw::c_array<fastuidraw::Glyph> sub_g;
       fastuidraw::c_array<fastuidraw::vec2> sub_p;
       fastuidraw::c_array<uint32_t> sub_ch;
+      fastuidraw::c_array<fastuidraw::range_type<float> > sub_extents;
       float tallest, negative_tallest, offset;
       bool empty_line;
+      LineData L;
 
       empty_line = true;
       tallest = 0.0f;
@@ -95,6 +115,10 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
       sub_g = glyphs_ptr.sub_array(loc, line.length());
       sub_p = pos_ptr.sub_array(loc, line.length());
       sub_ch = char_codes_ptr.sub_array(loc, line.length());
+      if(glyph_extents)
+        {
+          sub_extents = extents_ptr.sub_array(loc, line.length());
+        }
 
       glyph_selector->create_glyph_sequence(renderer, font, line.begin(), line.end(), sub_g.begin());
       for(unsigned int i = 0, endi = sub_g.size(); i < endi; ++i)
@@ -107,7 +131,13 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
           if(g.valid())
             {
               float ratio;
-              ratio = pixel_size / static_cast<float>(g.layout().m_pixel_size);
+              ratio = pixel_size / g.layout().m_units_per_EM;
+
+              if(glyph_extents)
+                {
+                  sub_extents[i].m_begin = pen.x() + ratio * g.layout().m_horizontal_layout_offset.x();
+                  sub_extents[i].m_end = sub_extents[i].m_begin + ratio * g.layout().m_size.x();
+                }
 
               empty_line = false;
               pen.x() += ratio * g.layout().m_advance.x();
@@ -125,19 +155,37 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
         {
           offset = (tallest - last_negative_tallest);
         }
+
       for(unsigned int i = 0; i < sub_p.size(); ++i)
         {
           sub_p[i].y() += offset;
         }
+
+      L.m_range.m_begin = loc;
+      L.m_range.m_end = loc + line.length();
+      L.m_horizontal_spread.m_begin = 0.0f;
+      L.m_horizontal_spread.m_end = pen.x();
+      L.m_vertical_spread.m_begin = pen.y() + offset - tallest;
+      L.m_vertical_spread.m_end = pen.y() + offset - negative_tallest;
+
       pen.x() = 0.0f;
       pen.y() += offset + 1.0f;
       loc += line.length();
       last_negative_tallest = negative_tallest;
+
+      if(line_data && !empty_line)
+        {
+          line_data->push_back(L);
+        }
     }
 
   glyphs.resize(loc);
   positions.resize(loc);
   character_codes.resize(loc);
+  if(glyph_extents)
+    {
+      glyph_extents->resize(loc);
+    }
 }
 
 void
@@ -156,7 +204,7 @@ add_fonts_from_path(const std::string &filename,
       return;
     }
 
-  for(entry = readdir(dir); entry != NULL; entry = readdir(dir))
+  for(entry = readdir(dir); entry != nullptr; entry = readdir(dir))
     {
       std::string file;
       file = entry->d_name;

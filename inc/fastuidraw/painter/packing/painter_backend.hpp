@@ -35,6 +35,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterBackend is an interface that defines the API-specific
     elements to implement Painter:
    */
@@ -43,6 +44,7 @@ namespace fastuidraw
   public:
 
     /*!
+      \brief
       A ConfigurationBase holds how data should be set to a
       PainterBackend
      */
@@ -66,6 +68,13 @@ namespace fastuidraw
        */
       ConfigurationBase&
       operator=(const ConfigurationBase &obj);
+
+      /*!
+        Swap operation
+        \param obj object with which to swap
+      */
+      void
+      swap(ConfigurationBase &obj);
 
       /*!
         Bits that are up in brush_shader_mask(void) that change
@@ -104,6 +113,7 @@ namespace fastuidraw
     };
 
     /*!
+      \brief
       PerformanceHints provides miscellaneous data about
       an implementation of a PainterBackend.
      */
@@ -329,7 +339,7 @@ namespace fastuidraw
       the PainterShader::Tag to be used by the backend
       to identify the shader.  An implementation will never
       be passed an object for which PainterShader::parent()
-      is non-NULL.
+      is non-nullptr.
       \param shader shader whose Tag is to be computed
      */
     virtual
@@ -355,7 +365,7 @@ namespace fastuidraw
       the PainterShader::Tag to be used by the backend
       to identify the shader. An implementation will never
       be passed an object for which PainterShader::parent()
-      is non-NULL.
+      is non-nullptr.
       \param shader shader whose Tag is to be computed
      */
     virtual

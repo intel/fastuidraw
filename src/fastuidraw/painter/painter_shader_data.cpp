@@ -25,7 +25,7 @@
 fastuidraw::PainterShaderData::
 PainterShaderData(void)
 {
-  m_data = NULL;
+  m_data = nullptr;
 }
 
 fastuidraw::PainterShaderData::
@@ -37,7 +37,7 @@ PainterShaderData(const PainterShaderData &obj)
     }
   else
     {
-      m_data = NULL;
+      m_data = nullptr;
     }
 }
 
@@ -48,7 +48,14 @@ fastuidraw::PainterShaderData::
     {
       FASTUIDRAWdelete(m_data);
     }
-  m_data = NULL;
+  m_data = nullptr;
+}
+
+void
+fastuidraw::PainterShaderData::
+swap(PainterShaderData &obj)
+{
+  std::swap(m_data, obj.m_data);
 }
 
 fastuidraw::PainterShaderData&
@@ -57,15 +64,8 @@ operator=(const PainterShaderData &rhs)
 {
   if(this != &rhs)
     {
-      if(m_data)
-        {
-          FASTUIDRAWdelete(m_data);
-        }
-
-      if(rhs.m_data)
-        {
-          m_data = rhs.m_data->copy();
-        }
+      PainterShaderData v(rhs);
+      swap(v);
     }
   return *this;
 }

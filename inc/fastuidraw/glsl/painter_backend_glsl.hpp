@@ -27,10 +27,11 @@ namespace fastuidraw
 {
   namespace glsl
   {
-/*!\addtogroup GLSLShaderBuilder
+/*!\addtogroup GLSL
   @{
  */
     /*!
+      \brief
       A PainterBackendGLSL is a partial implementation of PainterBackend.
       It handles the building of the GLSL source code of an Uber-Shader.
      */
@@ -38,6 +39,7 @@ namespace fastuidraw
     {
     public:
       /*!
+        \brief
         Enumeration to specify how the data store filled by
         \ref PainterDraw::m_store is realized.
        */
@@ -59,6 +61,7 @@ namespace fastuidraw
         };
 
       /*!
+        \brief
         Enumeration to specify how to access the backing store
         of the glyph geometry stored in GlyphAtlas::geometry_store()
        */
@@ -76,6 +79,7 @@ namespace fastuidraw
         };
 
       /*!
+        \brief
         Enumeration to specify how to access the backing store
         of a color stop atlas store in ColorStopAtlas::backing_store().
        */
@@ -95,6 +99,7 @@ namespace fastuidraw
         };
 
       /*!
+        \brief
         Enumeration to specify the convention for a 3D API
         for its normalized device coordinate in z.
        */
@@ -114,6 +119,7 @@ namespace fastuidraw
         };
 
       /*!
+        \brief
         Enumeration to describe vertex shader input
         slot layout.
        */
@@ -144,11 +150,13 @@ namespace fastuidraw
         };
 
       /*!
+        \brief
         A params gives parameters how to contruct
-        a PainterBackendGLSL. These values influence
-        the behavior of both the PainterBackendGLSL
-        and the shaders it constructs via
-        PainterBackendGLSL::construct_shader().
+        a PainterBackendGLSL.
+
+        These values influence the behavior of both
+        the PainterBackendGLSL and the shaders it
+        constructs via PainterBackendGLSL::construct_shader().
        */
       class ConfigurationGLSL
       {
@@ -172,6 +180,13 @@ namespace fastuidraw
          */
         ConfigurationGLSL&
         operator=(const ConfigurationGLSL &rhs);
+
+        /*!
+          Swap operation
+          \param obj object with which to swap
+        */
+        void
+        swap(ConfigurationGLSL &obj);
 
         /*!
           If true, use HW clip planes (embodied by gl_ClipDistance).
@@ -226,6 +241,7 @@ namespace fastuidraw
       };
 
       /*!
+        \brief
         Specifies the binding points (given in GLSL by layout(binding = ))
         for the textures and buffers used by the uber-shader.
        */
@@ -411,6 +427,7 @@ namespace fastuidraw
       };
 
       /*!
+        \brief
         An UberShaderParams specifies how to construct an uber-shader.
         Note that the usage of HW clip-planes is specified by by
         ConfigurationGLSL, NOT UberShaderParams.
@@ -721,6 +738,7 @@ namespace fastuidraw
       };
 
       /*!
+        \brief
         An ItemShaderFilter is used to specify whether or not
         to include a named shader when creating an uber-shader.
        */
@@ -786,7 +804,7 @@ namespace fastuidraw
         \param contruct_params specifies how to construct the uber-shaders.
         \param item_shader_filter pointer to ItemShaderFilter to use to filter
                                   which shader to place into the uber-shader.
-                                  A value of NULL indicates to add all item
+                                  A value of nullptr indicates to add all item
                                   shaders to the uber-shader.
         \param discard_macro_value macro-value definintion for the macro
                                    FASTUIDRAW_DISCARD. PainterItemShaderGLSL
@@ -797,7 +815,7 @@ namespace fastuidraw
       construct_shader(ShaderSource &out_vertex,
                        ShaderSource &out_fragment,
                        const UberShaderParams &contruct_params,
-                       const ItemShaderFilter *item_shader_filter = NULL,
+                       const ItemShaderFilter *item_shader_filter = nullptr,
                        const char *discard_macro_value = "discard");
 
       /*!

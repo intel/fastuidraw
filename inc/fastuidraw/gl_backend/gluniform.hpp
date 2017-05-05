@@ -47,8 +47,10 @@ namespace gl {
    */
 
 /*!
-  Template version for setting array of uniforms,
-  equivalent to
+  \brief
+  Template version for setting array of uniforms.
+
+  Equivalent to
   \code
   Uniform(location, count, v.c_ptr());
   \endcode
@@ -65,8 +67,10 @@ Uniform(int location, GLsizei count, const vecN<T,N> &v)
 }
 
 /*!
-  Template version for setting array of uniform matrices,
-  equivalent to
+  \brief
+  Template version for setting array of uniform matrices.
+
+  Equivalent to
   \code
   Uniform(location, count, v.c_ptr(), transposed);
   \endcode
@@ -86,8 +90,10 @@ Uniform(int location, GLsizei count, const vecN<T,N> &v, bool transposed)
 
 
 /*!
-  Template version for setting array of uniforms,
-  equivalent to
+  \brief
+  Template version for setting array of uniforms.
+
+  Equivalent to
   \code
   Uniform(location, count, &v[0]);
   \endcode
@@ -107,8 +113,10 @@ Uniform(int location, GLsizei count, const_c_array<T> v)
 }
 
 /*!
-  Template version for setting array of uniforms,
-  equivalent to
+  \brief
+  Template version for setting array of uniforms.
+
+  Equivalent to
   \code
   Uniform(location, count, &v[0]);
   \endcode
@@ -128,8 +136,10 @@ Uniform(int location, GLsizei count, c_array<T> v)
 }
 
 /*!
-  Template version for setting array of uniform of matices,
-  equivalent to
+  \brief
+  Template version for setting array of uniforms.
+
+  Equivalent to
   \code
   Uniform(location, count, &v[0], transposed);
   \endcode
@@ -151,8 +161,10 @@ Uniform(int location, GLsizei count, const_c_array<T> v, bool transposed)
 }
 
 /*!
+  \brief
   Template version for setting array of uniforms,
-  equivalent to
+
+  Equivalent to
   \code
   Uniform(location, v.size(), &v[0]);
   \endcode
@@ -171,8 +183,10 @@ Uniform(int location, const_c_array<T> v)
 }
 
 /*!
+  \brief
   Template version for setting array of uniforms,
-  equivalent to
+
+  Equivalent to
   \code
   ProgramUniform(program, location, count, v.c_ptr());
   \endcode
@@ -212,8 +226,10 @@ ProgramUniform(GLuint program, int location, GLsizei count, const vecN<T,N> &v, 
 
 
 /*!
+  \brief
   Template version for setting array of uniforms,
-  equivalent to
+
+  Equivalent to
   \code
   ProgramUniform(program, location, count, &v[0]);
   \endcode
@@ -234,8 +250,10 @@ ProgramUniform(GLuint program, int location, GLsizei count, const_c_array<T> v)
 }
 
 /*!
+  \brief
   Template version for setting array of uniforms,
-  equivalent to
+
+  Equivalent to
   \code
   ProgramUniform(program, location, count, &v[0]);
   \endcode
@@ -256,8 +274,10 @@ ProgramUniform(GLuint program, int location, GLsizei count, c_array<T> v)
 }
 
 /*!
-  Template version for setting array of uniform of matices,
-  equivalent to
+  \brief
+  Template version for setting array of uniforms.
+
+  Equivalent to
   \code
   ProgramUniform(program, location, count, &v[0], transposed);
   \endcode
@@ -280,8 +300,10 @@ ProgramUniform(GLuint program, int location, GLsizei count, const_c_array<T> v, 
 }
 
 /*!
+  \brief
   Template version for setting array of uniforms,
-  equivalent to
+
+  Equivalent to
   \code
   ProgramUniform(program, location, v.size(), &v[0]);
   \endcode

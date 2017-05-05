@@ -28,6 +28,7 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterBlendShader represents a shader
     for performing blending operations.
    */
@@ -35,6 +36,7 @@ namespace fastuidraw
   {
   public:
     /*!
+      \brief
       Enumeration to specify how blend shader operates
      */
     enum shader_type

@@ -35,9 +35,9 @@ print_egl_errors(void)
         }
     }
 }
-#define assert_and_check_errors(X) do {         \
+#define FASTUIDRAWassert_and_check_errors(X) do {         \
     print_egl_errors();                         \
-    assert(X); } while(0)
+    FASTUIDRAWassert(X); } while(0)
 
 #endif
 
@@ -53,11 +53,11 @@ egl_gles_context(const params &P, SDL_Window *sdl)
 
   SDL_VERSION(&wm.version);
   SDL_GetWindowWMInfo(sdl, &wm);
-  //assert(wm.subsystem == SDL_SYSWM_X11);
+  //FASTUIDRAWassert(wm.subsystem == SDL_SYSWM_X11);
 
   m_dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
   eglInitialize(m_dpy, &egl_major, &egl_minor);
-  assert_and_check_errors(true);
+  FASTUIDRAWassert_and_check_errors(true);
 
   /* find a config.
    */
@@ -88,12 +88,12 @@ egl_gles_context(const params &P, SDL_Window *sdl)
 
     config_attribs[n] = EGL_NONE;
     ret = eglChooseConfig(m_dpy, config_attribs, &config, 1, &num_configs);
-    assert_and_check_errors(ret);
-    assert(num_configs != 0);
+    FASTUIDRAWassert_and_check_errors(ret);
+    FASTUIDRAWassert(num_configs != 0);
     FASTUIDRAWunused(ret);
   }
-  m_surface = eglCreateWindowSurface(m_dpy, config, wm.info.x11.window, NULL);
-  assert_and_check_errors(m_surface != EGL_NO_SURFACE);
+  m_surface = eglCreateWindowSurface(m_dpy, config, wm.info.x11.window, nullptr);
+  FASTUIDRAWassert_and_check_errors(m_surface != EGL_NO_SURFACE);
 
   {
     EGLint context_attribs[32];
@@ -110,7 +110,7 @@ egl_gles_context(const params &P, SDL_Window *sdl)
 
     eglBindAPI(EGL_OPENGL_ES_API);
     m_ctx = eglCreateContext(m_dpy, config, EGL_NO_CONTEXT, context_attribs);
-    assert_and_check_errors(m_ctx != EGL_NO_CONTEXT);
+    FASTUIDRAWassert_and_check_errors(m_ctx != EGL_NO_CONTEXT);
     eglMakeCurrent(m_dpy, m_surface, m_surface, m_ctx);
   }
 #endif
@@ -154,6 +154,6 @@ egl_get_proc(const char *name)
   return (void*)eglGetProcAddress(name);
 #else
   FASTUIDRAWunused(name);
-  return NULL;
+  return nullptr;
 #endif
 }

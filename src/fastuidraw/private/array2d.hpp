@@ -93,8 +93,8 @@ public:
   operator()(unsigned int row, unsigned int col)
   {
     #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
-      assert(row<m_M);
-      assert(col<m_N);
+      FASTUIDRAWassert(row<m_M);
+      FASTUIDRAWassert(col<m_N);
     #endif
     return m_data[m_N*row+col];
   }
@@ -108,8 +108,8 @@ public:
   operator()(unsigned int row, unsigned int col) const
   {
     #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
-      assert(row<m_M);
-      assert(col<m_N);
+      FASTUIDRAWassert(row<m_M);
+      FASTUIDRAWassert(col<m_N);
     #endif
     return m_data[m_N*row+col];
   }

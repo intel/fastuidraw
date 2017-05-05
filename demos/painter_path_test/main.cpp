@@ -71,7 +71,7 @@ private:
 class WindingValueFillRule:public CustomFillRuleBase
 {
 public:
-  WindingValueFillRule(int v):
+  WindingValueFillRule(int v = 0):
     m_winding_number(v)
   {}
 
@@ -85,15 +85,19 @@ private:
   int m_winding_number;
 };
 
-class EverythingWindingValueFillRule:public CustomFillRuleBase
+bool
+everything_filled(int)
 {
-public:
-  bool
-  operator()(int) const
-  {
-    return true;
-  }
-};
+  return true;
+}
+
+bool
+is_miter_join_style(unsigned int js)
+{
+  return js == PainterEnums::miter_clip_joins
+    || js == PainterEnums::miter_bevel_joins
+    || js == PainterEnums::miter_joins;
+}
 
 void
 enable_wire_frame(bool b)
@@ -194,7 +198,6 @@ private:
   command_line_argument_value<std::string> m_font_file;
 
   Path m_path;
-  float m_max_miter;
   reference_counted_ptr<Image> m_image;
   uvec2 m_image_offset, m_image_size;
   std::vector<named_color_stop> m_color_stops;
@@ -210,7 +213,7 @@ private:
 
   PainterPackedValue<PainterBrush> m_black_pen;
   PainterPackedValue<PainterBrush> m_white_pen;
-  PainterPackedValue<PainterBrush> m_transparent_blue_pen;
+  PainterPackedValue<PainterBrush> m_stroke_pen;
 
   unsigned int m_join_style;
   unsigned int m_cap_style;
@@ -237,7 +240,7 @@ private:
   unsigned int m_end_fill_rule;
   bool m_have_miter_limit;
   float m_miter_limit, m_stroke_width;
-  bool m_draw_fill;
+  bool m_draw_fill, m_aa_fill_by_stroking;
   unsigned int m_active_color_stop;
   unsigned int m_gradient_draw_mode;
   bool m_repeat_gradient;
@@ -256,9 +259,10 @@ private:
   bool m_clipping_window;
   vec2 m_clipping_xy, m_clipping_wh;
 
-  bool m_stroke_aa;
+  bool m_with_aa;
   bool m_wire_frame;
   bool m_stroke_width_in_pixels;
+  bool m_stroke_width_pixels_scaled_by_zoom;
   bool m_force_square_viewport;
 
   bool m_fill_by_clipping;
@@ -319,16 +323,16 @@ painter_stroke_test(void):
                 *this),
   m_font_file("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "font",
               "File from which to take font", *this),
-  m_join_style(PainterEnums::rounded_joins),
-  m_cap_style(PainterEnums::flat_caps),
+  m_join_style(PainterEnums::miter_clip_joins),
+  m_cap_style(PainterEnums::square_caps),
   m_close_contour(true),
   m_fill_rule(PainterEnums::odd_even_fill_rule),
   m_dash(0),
   m_end_fill_rule(PainterEnums::fill_rule_data_count),
   m_have_miter_limit(true),
   m_miter_limit(5.0f),
-  m_stroke_width(1.0f),
-  m_draw_fill(false),
+  m_stroke_width(10.0f),
+  m_draw_fill(false), m_aa_fill_by_stroking(false),
   m_active_color_stop(0),
   m_gradient_draw_mode(draw_no_gradient),
   m_repeat_gradient(true),
@@ -338,9 +342,10 @@ painter_stroke_test(void):
   m_matrix_brush(false),
   m_repeat_window(false),
   m_clipping_window(false),
-  m_stroke_aa(true),
+  m_with_aa(true),
   m_wire_frame(false),
   m_stroke_width_in_pixels(false),
+  m_stroke_width_pixels_scaled_by_zoom(false),
   m_force_square_viewport(false),
   m_fill_by_clipping(false),
   m_shear(1.0f, 1.0f),
@@ -400,6 +405,8 @@ painter_stroke_test(void):
   m_join_labels[PainterEnums::no_joins] = "no_joins";
   m_join_labels[PainterEnums::rounded_joins] = "rounded_joins";
   m_join_labels[PainterEnums::bevel_joins] = "bevel_joins";
+  m_join_labels[PainterEnums::miter_clip_joins] = "miter_clip_joins";
+  m_join_labels[PainterEnums::miter_bevel_joins] = "miter_bevel_joins";
   m_join_labels[PainterEnums::miter_joins] = "miter_joins";
 
   m_cap_labels[PainterEnums::flat_caps] = "flat_caps";
@@ -422,10 +429,11 @@ void
 painter_stroke_test::
 update_cts_params(void)
 {
-  const Uint8 *keyboard_state = SDL_GetKeyboardState(NULL);
-  assert(keyboard_state != NULL);
+  const Uint8 *keyboard_state = SDL_GetKeyboardState(nullptr);
+  FASTUIDRAWassert(keyboard_state != nullptr);
 
-  float speed = static_cast<float>(m_draw_timer.restart()), speed_stroke, speed_shear;
+  float speed = static_cast<float>(m_draw_timer.restart_us()), speed_stroke, speed_shear;
+  speed /= 1000.0f;
 
   if(keyboard_state[SDL_SCANCODE_LSHIFT])
     {
@@ -579,12 +587,11 @@ update_cts_params(void)
     }
 
 
-  if(m_join_style == PainterEnums::miter_joins && m_have_miter_limit)
+  if(is_miter_join_style(m_join_style) && m_have_miter_limit)
     {
       if(keyboard_state[SDL_SCANCODE_N])
         {
           m_miter_limit += m_change_miter_limit_rate.m_value * speed;
-          m_miter_limit = fastuidraw::t_min(m_max_miter, m_miter_limit);
         }
 
       if(keyboard_state[SDL_SCANCODE_B])
@@ -743,9 +750,26 @@ handle_event(const SDL_Event &ev)
           end_demo(0);
           break;
 
+        case SDLK_k:
+          if(m_stroke_width_in_pixels)
+            {
+              m_stroke_width_pixels_scaled_by_zoom = !m_stroke_width_pixels_scaled_by_zoom;
+              std::cout << "Stroke width pixels scale by zoom factor: ";
+              if(m_stroke_width_pixels_scaled_by_zoom)
+                {
+                  std::cout << "ON";
+                }
+              else
+                {
+                  std::cout << "OFF";
+                }
+              std::cout << "\n";
+            }
+          break;
+
         case SDLK_a:
-          m_stroke_aa = !m_stroke_aa;
-          std::cout << "Anti-aliasing stroking = " << m_stroke_aa << "\n";
+          m_with_aa = !m_with_aa;
+          std::cout << "Anti-aliasing stroking and filling = " << m_with_aa << "\n";
           break;
 
         case SDLK_5:
@@ -821,7 +845,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_m:
-          if(m_join_style == PainterEnums::miter_joins)
+          if(is_miter_join_style(m_join_style))
             {
               m_have_miter_limit = !m_have_miter_limit;
               std::cout << "Miter limit ";
@@ -965,6 +989,19 @@ handle_event(const SDL_Event &ev)
           std::cout << "draw path fill\n";
           break;
 
+        case SDLK_u:
+          if(m_draw_fill & m_with_aa)
+            {
+              m_aa_fill_by_stroking = !m_aa_fill_by_stroking;
+              std::cout << "Set to ";
+              if(!m_aa_fill_by_stroking)
+                {
+                  std::cout << "NOT ";
+                }
+              std::cout << "AA fill by stroking\n";
+            }
+          break;
+
         case SDLK_SPACE:
           m_wire_frame = !m_wire_frame;
           std::cout << "Wire Frame = " << m_wire_frame << "\n";
@@ -1008,9 +1045,7 @@ construct_path(void)
         }
     }
 
-  m_path << vec2(300.0f, 300.0f)
-         << Path::contour_end()
-         << vec2(50.0f, 35.0f)
+  m_path << vec2(50.0f, 35.0f)
          << Path::control_point(60.0f, 50.0f)
          << vec2(70.0f, 35.0f)
          << Path::arc_degrees(180.0, vec2(70.0f, -100.0f))
@@ -1028,6 +1063,8 @@ construct_path(void)
          << vec2(100.0f, 300.0f)
          << vec2(150.0f, 325.0f)
          << vec2(150.0f, 100.0f)
+         << Path::contour_end()
+         << vec2(300.0f, 300.0f)
          << Path::contour_end();
 }
 
@@ -1040,25 +1077,31 @@ create_stroked_path_attributes(void)
   const PainterAttributeData *data;
   const_c_array<PainterAttribute> miter_points;
 
-  m_max_miter = 0.0f;
   tessellated = m_path.tessellation(-1.0f);
   stroked = tessellated->stroked();
-  data = &stroked->miter_joins();
+  data = &stroked->miter_clip_joins();
 
-  miter_points = data->attribute_data_chunk(StrokedPath::join_chunk_with_closing_edge);
-  for(unsigned p = 0, endp = miter_points.size(); p < endp; ++p)
+  m_miter_limit = 0.0f;
+  for(unsigned int J = 0, endJ = stroked->number_joins(true); J < endJ; ++J)
     {
-      float v;
-      StrokedPath::point pt;
+      unsigned int chunk;
 
-      StrokedPath::point::unpack_point(&pt, miter_points[p]);
-      v = pt.miter_distance();
-      if(isfinite(v))
+      chunk = stroked->join_chunk(J);
+      miter_points = data->attribute_data_chunk(chunk);
+      for(unsigned p = 0, endp = miter_points.size(); p < endp; ++p)
         {
-          m_max_miter = fastuidraw::t_max(m_max_miter, fastuidraw::t_abs(v));
+          float v;
+          StrokedPath::point pt;
+
+          StrokedPath::point::unpack_point(&pt, miter_points[p]);
+          v = pt.miter_distance();
+          if(std::isfinite(v))
+            {
+              m_miter_limit = fastuidraw::t_max(m_miter_limit, fastuidraw::t_abs(v));
+            }
         }
     }
-  m_miter_limit = fastuidraw::t_min(100.0f, m_max_miter); //100 is an insane miter limit.
+  m_miter_limit = fastuidraw::t_min(100.0f, m_miter_limit); //100 is an insane miter limit.
 
   if(m_print_path.m_value)
     {
@@ -1262,7 +1305,8 @@ draw_frame(void)
       m_painter->save();
       m_painter->clipOutPath(m_clip_window_path, PainterEnums::nonzero_fill_rule);
       m_painter->stroke_path(PainterData(&white, &st), m_clip_window_path,
-                             true, PainterEnums::flat_caps, PainterEnums::miter_joins,
+                             true, PainterEnums::flat_caps,
+                             PainterEnums::miter_clip_joins,
                              false);
       m_painter->restore();
       m_painter->clipInRect(m_clipping_xy, m_clipping_wh);
@@ -1341,71 +1385,60 @@ draw_frame(void)
               f = PainterBrush::image_filter_cubic;
               break;
             default:
-              assert(!"Incorrect value for m_image_filter!");
+              FASTUIDRAWassert(!"Incorrect value for m_image_filter!");
               f = PainterBrush::image_filter_nearest;
             }
           fill_brush.sub_image(m_image, m_image_offset, m_image_size, f);
         }
 
+      CustomFillRuleFunction fill_rule_function(everything_filled);
+      WindingValueFillRule value_fill_rule;
+      CustomFillRuleBase *fill_rule(&fill_rule_function);
+
       if(m_fill_rule < PainterEnums::fill_rule_data_count)
         {
-          enum PainterEnums::fill_rule_t v;
-          v = static_cast<enum PainterEnums::fill_rule_t>(m_fill_rule);
-          if(m_fill_by_clipping)
-            {
-              m_painter->save();
-              m_painter->clipInPath(m_path, v);
-              m_painter->transformation(float3x3());
-              m_painter->draw_rect(PainterData(&fill_brush), vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
-              m_painter->restore();
-            }
-          else
-            {
-              m_painter->fill_path(PainterData(&fill_brush), m_path, v);
-            }
+          fill_rule_function = CustomFillRuleFunction(static_cast<PainterEnums::fill_rule_t>(m_fill_rule));
         }
-      else if(m_fill_rule == m_end_fill_rule)
+      else if(m_fill_rule != m_end_fill_rule)
         {
-          if(m_fill_by_clipping)
-            {
-              m_painter->save();
-              m_painter->clipInPath(m_path, EverythingWindingValueFillRule());
-              m_painter->transformation(float3x3());
-              m_painter->draw_rect(PainterData(&fill_brush), vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
-              m_painter->restore();
-            }
-          else
-            {
-              m_painter->fill_path(PainterData(&fill_brush), m_path, EverythingWindingValueFillRule());
-            }
-        }
-      else
-        {
-          const_c_array<int> wnd;
           int value;
+          const_c_array<int> wnd;
 
           wnd = m_path.tessellation()->filled()->subset(0).winding_numbers();
           value = wnd[m_fill_rule - PainterEnums::fill_rule_data_count];
+          value_fill_rule = WindingValueFillRule(value);
+          fill_rule = &value_fill_rule;
+        }
 
-          if(m_fill_by_clipping)
-            {
-              m_painter->save();
-              m_painter->clipInPath(m_path, WindingValueFillRule(value));
-              m_painter->transformation(float3x3());
-              m_painter->draw_rect(PainterData(&fill_brush), vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
-              m_painter->restore();
-            }
-          else
-            {
-              m_painter->fill_path(PainterData(&fill_brush), m_path, WindingValueFillRule(value));
-            }
+      if(m_fill_by_clipping)
+        {
+          m_painter->save();
+          m_painter->clipInPath(m_path, *fill_rule);
+          m_painter->transformation(float3x3());
+          m_painter->draw_rect(PainterData(&fill_brush), vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f), false);
+          m_painter->restore();
+        }
+      else
+        {
+          m_painter->fill_path(PainterData(&fill_brush), m_path, *fill_rule, m_with_aa && !m_aa_fill_by_stroking);
+        }
+
+      if(m_aa_fill_by_stroking && m_with_aa)
+        {
+          PainterStrokeParams st;
+          st.miter_limit(-1.0f);
+          st.width(2.0f);
+          m_painter->stroke_path_pixel_width(PainterData(&fill_brush, &st), m_path, true,
+                                             PainterEnums::flat_caps,
+                                             PainterEnums::bevel_joins,
+                                             true);
         }
       submit_fill_time = measure.elapsed_us();
     }
 
-  if(!m_transparent_blue_pen)
+  if(!m_stroke_pen)
     {
-      m_transparent_blue_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(1.0f, 1.0f, 1.0f, 0.5f));
+      m_stroke_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(1.0f, 1.0f, 1.0f, 0.5f));
     }
 
   if(m_stroke_width > 0.0f)
@@ -1430,19 +1463,19 @@ draw_frame(void)
 
           if(m_stroke_width_in_pixels)
             {
-              m_painter->stroke_dashed_path_pixel_width(PainterData(m_transparent_blue_pen, &st),
+              m_painter->stroke_dashed_path_pixel_width(PainterData(m_stroke_pen, &st),
                                                         m_path, m_close_contour,
                                                         static_cast<enum PainterEnums::cap_style>(m_cap_style),
                                                         static_cast<enum PainterEnums::join_style>(m_join_style),
-                                                        m_stroke_aa);
+                                                        m_with_aa);
             }
           else
             {
-              m_painter->stroke_dashed_path(PainterData(m_transparent_blue_pen, &st),
+              m_painter->stroke_dashed_path(PainterData(m_stroke_pen, &st),
                                             m_path, m_close_contour,
                                             static_cast<enum PainterEnums::cap_style>(m_cap_style),
                                             static_cast<enum PainterEnums::join_style>(m_join_style),
-                                            m_stroke_aa);
+                                            m_with_aa);
             }
         }
       else
@@ -1460,19 +1493,23 @@ draw_frame(void)
 
           if(m_stroke_width_in_pixels)
             {
-              m_painter->stroke_path_pixel_width(PainterData(m_transparent_blue_pen, &st),
+              if(m_stroke_width_pixels_scaled_by_zoom)
+                {
+                  st.width(m_stroke_width * m_zoomer.transformation().scale());
+                }
+              m_painter->stroke_path_pixel_width(PainterData(m_stroke_pen, &st),
                                                  m_path, m_close_contour,
                                                  static_cast<enum PainterEnums::cap_style>(m_cap_style),
                                                  static_cast<enum PainterEnums::join_style>(m_join_style),
-                                                 m_stroke_aa);
+                                                 m_with_aa);
             }
           else
             {
-              m_painter->stroke_path(PainterData(m_transparent_blue_pen, &st),
+              m_painter->stroke_path(PainterData(m_stroke_pen, &st),
                                      m_path, m_close_contour,
                                      static_cast<enum PainterEnums::cap_style>(m_cap_style),
                                      static_cast<enum PainterEnums::join_style>(m_join_style),
-                                     m_stroke_aa);
+                                     m_with_aa);
             }
         }
       submit_stroke_time = measure.elapsed_us();
@@ -1505,16 +1542,16 @@ draw_frame(void)
 
       if(!m_black_pen)
         {
-          assert(!m_white_pen);
+          FASTUIDRAWassert(!m_white_pen);
           m_white_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(1.0, 1.0, 1.0, 1.0));
           m_black_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0, 0.0, 0.0, 1.0));
         }
 
-      m_painter->draw_rect(PainterData(m_black_pen), p0 - vec2(r1) * 0.5, vec2(r1));
-      m_painter->draw_rect(PainterData(m_white_pen), p0 - vec2(r0) * 0.5, vec2(r0));
+      m_painter->draw_rect(PainterData(m_black_pen), p0 - vec2(r1) * 0.5, vec2(r1), true);
+      m_painter->draw_rect(PainterData(m_white_pen), p0 - vec2(r0) * 0.5, vec2(r0), true);
 
-      m_painter->draw_rect(PainterData(m_white_pen), p1 - vec2(r1) * 0.5, vec2(r1));
-      m_painter->draw_rect(PainterData(m_black_pen), p1 - vec2(r0) * 0.5, vec2(r0));
+      m_painter->draw_rect(PainterData(m_white_pen), p1 - vec2(r1) * 0.5, vec2(r1), true);
+      m_painter->draw_rect(PainterData(m_black_pen), p1 - vec2(r0) * 0.5, vec2(r0), true);
     }
 
   m_painter->restore();
@@ -1544,6 +1581,7 @@ draw_frame(void)
            << m_painter->query_stat(PainterPacker::num_generic_datas)
            << "\nMouse position:"
            << item_coordinates(mouse_position)
+           << "\ncurveFlatness: " << m_curve_flatness
            << "\n";
 
       PainterBrush brush;

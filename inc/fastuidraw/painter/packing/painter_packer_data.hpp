@@ -27,8 +27,9 @@ namespace fastuidraw
  */
 
   /*!
+    \brief
     A PainterPackerData is the data parameters for drawing
-    commans of PainterPacker.
+    commands of PainterPacker.
    */
   class PainterPackerData:public PainterData
   {

@@ -21,6 +21,23 @@ operator<<(std::ostream &str, const fastuidraw::FontProperties &obj)
   return str;
 }
 
+class LineData
+{
+public:
+  /* range into glyphs/glyph_position where
+     line is located
+   */
+  fastuidraw::range_type<unsigned int> m_range;
+
+  /* line's vertical spread
+   */
+  fastuidraw::range_type<float> m_vertical_spread;
+
+  /* line's horizontal spread
+   */
+  fastuidraw::range_type<float> m_horizontal_spread;
+};
+
 void
 create_formatted_text(std::istream &stream, fastuidraw::GlyphRender renderer,
                       float pixel_size,
@@ -28,7 +45,9 @@ create_formatted_text(std::istream &stream, fastuidraw::GlyphRender renderer,
                       fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
                       std::vector<fastuidraw::Glyph> &glyphs,
                       std::vector<fastuidraw::vec2> &positions,
-                      std::vector<uint32_t> &character_codes);
+                      std::vector<uint32_t> &character_codes,
+                      std::vector<LineData> *line_data = nullptr,
+                      std::vector<fastuidraw::range_type<float> > *glyph_extents = nullptr);
 
 void
 add_fonts_from_path(const std::string &path,

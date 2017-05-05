@@ -32,6 +32,7 @@ namespace fastuidraw
  */
 
     /*!
+      \brief
       A ContextProperties provides an interface to
       query GL/GLES version and extensions.
      */

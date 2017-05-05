@@ -33,11 +33,12 @@ class StrokedPath;
 class FilledPath;
 ///@endcond
 
-/*!\addtogroup Core
+/*!\addtogroup Paths
   @{
  */
 
 /*!
+  \brief
   A TessellatedPath represents the tessellation of a Path.
  */
 class TessellatedPath:
@@ -45,6 +46,7 @@ class TessellatedPath:
 {
 public:
   /*!
+    \brief
     A TessellationParams stores how finely to tessellate
     the curves of a path.
    */
@@ -160,6 +162,7 @@ public:
   };
 
   /*!
+    \brief
     Represents point of a tessellated path.
    */
   class point
