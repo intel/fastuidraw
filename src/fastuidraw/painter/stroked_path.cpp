@@ -36,24 +36,24 @@ namespace
   inline
   uint32_t
   pack_data(int on_boundary,
-            enum fastuidraw::StrokedPath::offset_type_t pt,
+            enum fastuidraw::StrokedPath::point::offset_type_t pt,
             uint32_t depth)
   {
     FASTUIDRAWassert(on_boundary == 0 || on_boundary == 1);
 
     uint32_t bb(on_boundary), pp(pt);
-    return fastuidraw::pack_bits(fastuidraw::StrokedPath::offset_type_bit0, fastuidraw::StrokedPath::offset_type_num_bits, pp)
-      | fastuidraw::pack_bits(fastuidraw::StrokedPath::boundary_bit, 1u, bb)
-      | fastuidraw::pack_bits(fastuidraw::StrokedPath::depth_bit0, fastuidraw::StrokedPath::depth_num_bits, depth);
+    return fastuidraw::pack_bits(fastuidraw::StrokedPath::point::offset_type_bit0, fastuidraw::StrokedPath::point::offset_type_num_bits, pp)
+      | fastuidraw::pack_bits(fastuidraw::StrokedPath::point::boundary_bit, 1u, bb)
+      | fastuidraw::pack_bits(fastuidraw::StrokedPath::point::depth_bit0, fastuidraw::StrokedPath::point::depth_num_bits, depth);
   }
 
   inline
   uint32_t
   pack_data_join(int on_boundary,
-                 enum fastuidraw::StrokedPath::offset_type_t pt,
+                 enum fastuidraw::StrokedPath::point::offset_type_t pt,
                  uint32_t depth)
   {
-    return pack_data(on_boundary, pt, depth) | fastuidraw::StrokedPath::join_mask;
+    return pack_data(on_boundary, pt, depth) | fastuidraw::StrokedPath::point::join_mask;
   }
 
   void
@@ -1080,7 +1080,7 @@ namespace
     mutable std::vector<fastuidraw::vec2> m_n0, m_n1;
   };
 
-  template<enum fastuidraw::StrokedPath::offset_type_t tp>
+  template<enum fastuidraw::StrokedPath::point::offset_type_t tp>
   class MiterJoinCreator:public JoinCreatorBase
   {
   public:
@@ -1270,7 +1270,7 @@ namespace
     static
     void
     pack_fan(bool entering_contour,
-             enum fastuidraw::StrokedPath::offset_type_t type,
+             enum fastuidraw::StrokedPath::point::offset_type_t type,
              const fastuidraw::TessellatedPath::point &edge_pt,
              const fastuidraw::vec2 &stroking_normal,
              unsigned int depth,
@@ -1368,12 +1368,15 @@ namespace
 
     PreparedAttributeData<BevelJoinCreator> m_bevel_joins;
     PreparedAttributeData<MiterClipJoinCreator> m_miter_clip_joins;
-    PreparedAttributeData<MiterJoinCreator<fastuidraw::StrokedPath::offset_miter_join> > m_miter_joins;
-    PreparedAttributeData<MiterJoinCreator<fastuidraw::StrokedPath::offset_miter_bevel_join> > m_miter_bevel_joins;
+    PreparedAttributeData<MiterJoinCreator<fastuidraw::StrokedPath::point::offset_miter_join> > m_miter_joins;
+    PreparedAttributeData<MiterJoinCreator<fastuidraw::StrokedPath::point::offset_miter_bevel_join> > m_miter_bevel_joins;
     PreparedAttributeData<SquareCapCreator> m_square_caps;
     PreparedAttributeData<AdjustableCapCreator> m_adjustable_caps;
 
     PathData m_path_data;
+    fastuidraw::vecN<unsigned int, 2> m_chunk_of_joins;
+    fastuidraw::vecN<unsigned int, 2> m_chunk_of_edges;
+    unsigned int m_chunk_of_caps;
 
     std::vector<ThreshWithData> m_rounded_joins;
     std::vector<ThreshWithData> m_rounded_caps;
@@ -2351,16 +2354,16 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
         }
 
       pts[0].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
-      pts[0].m_packed_data = pack_data(0, fastuidraw::StrokedPath::offset_start_sub_edge, depth)
-        | fastuidraw::StrokedPath::bevel_edge_mask;
+      pts[0].m_packed_data = pack_data(0, fastuidraw::StrokedPath::point::offset_start_sub_edge, depth)
+        | fastuidraw::StrokedPath::point::bevel_edge_mask;
 
       pts[1].m_pre_offset = sub_edge.m_bevel_lambda * sub_edge.m_bevel_normal;
-      pts[1].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_start_sub_edge, depth)
-        | fastuidraw::StrokedPath::bevel_edge_mask;
+      pts[1].m_packed_data = pack_data(1, fastuidraw::StrokedPath::point::offset_start_sub_edge, depth)
+        | fastuidraw::StrokedPath::point::bevel_edge_mask;
 
       pts[2].m_pre_offset = sub_edge.m_bevel_lambda * sub_edge.m_normal;
-      pts[2].m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_start_sub_edge, depth)
-        | fastuidraw::StrokedPath::bevel_edge_mask;
+      pts[2].m_packed_data = pack_data(1, fastuidraw::StrokedPath::point::offset_start_sub_edge, depth)
+        | fastuidraw::StrokedPath::point::bevel_edge_mask;
 
       for(unsigned int i = 0; i < 3; ++i)
         {
@@ -2393,7 +2396,7 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
       pts[k].m_pre_offset = normal_sign[k] * sub_edge.m_normal;
       pts[k].m_auxilary_offset = sub_edge.m_delta;
       pts[k].m_packed_data = pack_data(boundary_values[k],
-                                       fastuidraw::StrokedPath::offset_start_sub_edge,
+                                       fastuidraw::StrokedPath::point::offset_start_sub_edge,
                                        depth);
 
       pts[k + 3].m_position = sub_edge.m_pt1.m_pt;
@@ -2405,7 +2408,7 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
       pts[k + 3].m_pre_offset = normal_sign[k] * sub_edge.m_normal;
       pts[k + 3].m_auxilary_offset = -sub_edge.m_delta;
       pts[k + 3].m_packed_data = pack_data(boundary_values[k],
-                                           fastuidraw::StrokedPath::offset_end_sub_edge,
+                                           fastuidraw::StrokedPath::point::offset_end_sub_edge,
                                            depth);
     }
 
@@ -2855,7 +2858,7 @@ add_data(unsigned int depth,
   pt.m_open_contour_length = m_open_contour_length;
   pt.m_closed_contour_length = m_closed_contour_length;
   pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -2867,7 +2870,7 @@ add_data(unsigned int depth,
   pt.m_open_contour_length = m_open_contour_length;
   pt.m_closed_contour_length = m_closed_contour_length;
   pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -2889,21 +2892,21 @@ add_data(unsigned int depth,
       pt.m_edge_length = m_edge_length;
       pt.m_open_contour_length = m_open_contour_length;
       pt.m_closed_contour_length = m_closed_contour_length;
-      pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_rounded_join, depth);
+      pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::point::offset_rounded_join, depth);
 
       if(m_lambda * m_n0.y() < 0.0f)
         {
-          pt.m_packed_data |= fastuidraw::StrokedPath::normal0_y_sign_mask;
+          pt.m_packed_data |= fastuidraw::StrokedPath::point::normal0_y_sign_mask;
         }
 
       if(m_lambda * m_n1.y() < 0.0f)
         {
-          pt.m_packed_data |= fastuidraw::StrokedPath::normal1_y_sign_mask;
+          pt.m_packed_data |= fastuidraw::StrokedPath::point::normal1_y_sign_mask;
         }
 
       if(cs_as_complex.imag() < 0.0f)
         {
-          pt.m_packed_data |= fastuidraw::StrokedPath::sin_sign_mask;
+          pt.m_packed_data |= fastuidraw::StrokedPath::point::sin_sign_mask;
         }
       pt.pack_point(&pts[vertex_offset]);
     }
@@ -2916,7 +2919,7 @@ add_data(unsigned int depth,
   pt.m_open_contour_length = m_open_contour_length;
   pt.m_closed_contour_length = m_closed_contour_length;
   pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3035,7 +3038,7 @@ fill_join_implement(unsigned int join_id,
   pt.m_open_contour_length = J.m_open_contour_length;
   pt.m_closed_contour_length = J.m_closed_contour_length;
   pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset + 0]);
 
   pt.m_position = J.m_p0;
@@ -3046,7 +3049,7 @@ fill_join_implement(unsigned int join_id,
   pt.m_open_contour_length = J.m_open_contour_length;
   pt.m_closed_contour_length = J.m_closed_contour_length;
   pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset + 1]);
 
   pt.m_position = J.m_p1;
@@ -3057,7 +3060,7 @@ fill_join_implement(unsigned int join_id,
   pt.m_open_contour_length = J.m_open_contour_length;
   pt.m_closed_contour_length = J.m_closed_contour_length;
   pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset + 2]);
 
   add_triangle_fan(vertex_offset, vertex_offset + 3, indices, index_offset);
@@ -3156,7 +3159,7 @@ fill_join_implement(unsigned int join_id,
   pt.m_edge_length = J.m_edge_length;
   pt.m_open_contour_length = J.m_open_contour_length;
   pt.m_closed_contour_length = J.m_closed_contour_length;
-  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3169,7 +3172,7 @@ fill_join_implement(unsigned int join_id,
   pt.m_edge_length = J.m_edge_length;
   pt.m_open_contour_length = J.m_open_contour_length;
   pt.m_closed_contour_length = J.m_closed_contour_length;
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3182,7 +3185,7 @@ fill_join_implement(unsigned int join_id,
   pt.m_edge_length = J.m_edge_length;
   pt.m_open_contour_length = J.m_open_contour_length;
   pt.m_closed_contour_length = J.m_closed_contour_length;
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_miter_clip_join, depth);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::point::offset_miter_clip_join, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3195,7 +3198,7 @@ fill_join_implement(unsigned int join_id,
   pt.m_edge_length = J.m_edge_length;
   pt.m_open_contour_length = J.m_open_contour_length;
   pt.m_closed_contour_length = J.m_closed_contour_length;
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_miter_clip_join_lambda_negated, depth);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::point::offset_miter_clip_join_lambda_negated, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3208,7 +3211,7 @@ fill_join_implement(unsigned int join_id,
   pt.m_edge_length = J.m_edge_length;
   pt.m_open_contour_length = J.m_open_contour_length;
   pt.m_closed_contour_length = J.m_closed_contour_length;
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3217,7 +3220,7 @@ fill_join_implement(unsigned int join_id,
 
 ////////////////////////////////////
 // MiterJoinCreator methods
-template<enum fastuidraw::StrokedPath::offset_type_t tp>
+template<enum fastuidraw::StrokedPath::point::offset_type_t tp>
 MiterJoinCreator<tp>::
 MiterJoinCreator(const PathData &P,
                  const StrokedPathSubset *st):
@@ -3226,7 +3229,7 @@ MiterJoinCreator(const PathData &P,
   post_ctor_initalize();
 }
 
-template<enum fastuidraw::StrokedPath::offset_type_t tp>
+template<enum fastuidraw::StrokedPath::point::offset_type_t tp>
 void
 MiterJoinCreator<tp>::
 add_join(unsigned int join_id,
@@ -3246,7 +3249,7 @@ add_join(unsigned int join_id,
   m_n1.push_back(leaving_join.m_begin_normal);
 }
 
-template<enum fastuidraw::StrokedPath::offset_type_t tp>
+template<enum fastuidraw::StrokedPath::point::offset_type_t tp>
 void
 MiterJoinCreator<tp>::
 fill_join_implement(unsigned int join_id,
@@ -3309,7 +3312,7 @@ fill_join_implement(unsigned int join_id,
   pt.m_edge_length = J.m_edge_length;
   pt.m_open_contour_length = J.m_open_contour_length;
   pt.m_closed_contour_length = J.m_closed_contour_length;
-  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data_join(0, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3322,7 +3325,7 @@ fill_join_implement(unsigned int join_id,
   pt.m_edge_length = J.m_edge_length;
   pt.m_open_contour_length = J.m_open_contour_length;
   pt.m_closed_contour_length = J.m_closed_contour_length;
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3348,7 +3351,7 @@ fill_join_implement(unsigned int join_id,
   pt.m_edge_length = J.m_edge_length;
   pt.m_open_contour_length = J.m_open_contour_length;
   pt.m_closed_contour_length = J.m_closed_contour_length;
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3546,7 +3549,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pt.m_closed_contour_length = p.m_closed_contour_length;
   pt.m_distance_from_contour_start = p.m_distance_from_contour_start;
   pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data(0, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data(0, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3558,7 +3561,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pt.m_open_contour_length = p.m_open_contour_length;
   pt.m_closed_contour_length = p.m_closed_contour_length;
   pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3576,7 +3579,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
       pt.m_edge_length = p.m_edge_length;
       pt.m_open_contour_length = p.m_open_contour_length;
       pt.m_closed_contour_length = p.m_closed_contour_length;
-      pt.m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_rounded_cap, depth);
+      pt.m_packed_data = pack_data(1, fastuidraw::StrokedPath::point::offset_rounded_cap, depth);
       pt.pack_point(&pts[vertex_offset]);
     }
 
@@ -3588,7 +3591,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pt.m_open_contour_length = p.m_open_contour_length;
   pt.m_closed_contour_length = p.m_closed_contour_length;
   pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3639,7 +3642,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pt.m_open_contour_length = p.m_open_contour_length;
   pt.m_closed_contour_length = p.m_closed_contour_length;
   pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data(0, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data(0, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3651,7 +3654,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pt.m_open_contour_length = p.m_open_contour_length;
   pt.m_closed_contour_length = p.m_closed_contour_length;
   pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3663,7 +3666,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pt.m_open_contour_length = p.m_open_contour_length;
   pt.m_closed_contour_length = p.m_closed_contour_length;
   pt.m_auxilary_offset = C.m_v;
-  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_square_cap, depth);
+  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPath::point::offset_square_cap, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3675,7 +3678,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pt.m_open_contour_length = p.m_open_contour_length;
   pt.m_closed_contour_length = p.m_closed_contour_length;
   pt.m_auxilary_offset = C.m_v;
-  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_square_cap, depth);
+  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPath::point::offset_square_cap, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3687,7 +3690,7 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
   pt.m_open_contour_length = p.m_open_contour_length;
   pt.m_closed_contour_length = p.m_closed_contour_length;
   pt.m_auxilary_offset = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPath::offset_shared_with_edge, depth);
+  pt.m_packed_data = pack_data(1, fastuidraw::StrokedPath::point::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3713,7 +3716,7 @@ compute_size(const ContourData &P)
 void
 AdjustableCapCreator::
 pack_fan(bool entering_contour,
-         enum fastuidraw::StrokedPath::offset_type_t type,
+         enum fastuidraw::StrokedPath::point::offset_type_t type,
          const fastuidraw::TessellatedPath::point &p,
          const fastuidraw::vec2 &stroking_normal,
          unsigned int depth,
@@ -3758,7 +3761,7 @@ pack_fan(bool entering_contour,
   pt.m_edge_length = p.m_edge_length;
   pt.m_open_contour_length = p.m_open_contour_length;
   pt.m_closed_contour_length = p.m_closed_contour_length;
-  pt.m_packed_data = pack_data(1, type, depth) | fastuidraw::StrokedPath::adjustable_cap_ending_mask;
+  pt.m_packed_data = pack_data(1, type, depth) | fastuidraw::StrokedPath::point::adjustable_cap_ending_mask;
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3770,7 +3773,7 @@ pack_fan(bool entering_contour,
   pt.m_edge_length = p.m_edge_length;
   pt.m_open_contour_length = p.m_open_contour_length;
   pt.m_closed_contour_length = p.m_closed_contour_length;
-  pt.m_packed_data = pack_data(0, type, depth) | fastuidraw::StrokedPath::adjustable_cap_ending_mask;
+  pt.m_packed_data = pack_data(0, type, depth) | fastuidraw::StrokedPath::point::adjustable_cap_ending_mask;
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3782,7 +3785,7 @@ pack_fan(bool entering_contour,
   pt.m_edge_length = p.m_edge_length;
   pt.m_open_contour_length = p.m_open_contour_length;
   pt.m_closed_contour_length = p.m_closed_contour_length;
-  pt.m_packed_data = pack_data(1, type, depth) | fastuidraw::StrokedPath::adjustable_cap_ending_mask;
+  pt.m_packed_data = pack_data(1, type, depth) | fastuidraw::StrokedPath::point::adjustable_cap_ending_mask;
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
@@ -3811,10 +3814,10 @@ add_cap(const fastuidraw::vec2 &normal_from_stroking,
         unsigned int &vertex_offset,
         unsigned int &index_offset) const
 {
-  enum fastuidraw::StrokedPath::offset_type_t tp;
+  enum fastuidraw::StrokedPath::point::offset_type_t tp;
   tp = (is_starting_cap) ?
-    fastuidraw::StrokedPath::offset_adjustable_cap_contour_start :
-    fastuidraw::StrokedPath::offset_adjustable_cap_contour_end;
+    fastuidraw::StrokedPath::point::offset_adjustable_cap_contour_start :
+    fastuidraw::StrokedPath::point::offset_adjustable_cap_contour_end;
 
   pack_fan(is_starting_cap, tp,
            p0, normal_from_stroking, depth,
@@ -3843,6 +3846,9 @@ StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
       m_square_caps.mark_as_empty();
       m_adjustable_caps.mark_as_empty();
       m_effective_curve_distance_threshhold = 0.0f;
+      std::fill(m_chunk_of_joins.begin(), m_chunk_of_joins.end(), 0);
+      std::fill(m_chunk_of_edges.begin(), m_chunk_of_edges.end(), 0);
+      m_chunk_of_caps = 0;
     }
 }
 
@@ -3879,6 +3885,16 @@ create_edges(const fastuidraw::TessellatedPath &P)
 
   m_path_data.m_number_join_chunks = cnts.m_non_closing_join_chunk_cnt + cnts.m_closing_join_chunk_cnt;
   m_path_data.m_number_cap_chunks = cnts.m_cap_chunk_cnt;
+
+  /* the chunks of the root element have the data for everything.
+   */
+  m_chunk_of_edges[fastuidraw::StrokedPath::all_non_closing] = m_subset->non_closing_edges().m_chunk;
+  m_chunk_of_joins[fastuidraw::StrokedPath::all_non_closing] = m_subset->non_closing_joins().m_chunk;
+
+  m_chunk_of_edges[fastuidraw::StrokedPath::all_closing] = m_subset->closing_edges().m_chunk;
+  m_chunk_of_joins[fastuidraw::StrokedPath::all_closing] = m_subset->closing_joins().m_chunk;
+
+  m_chunk_of_caps = m_subset->caps().m_chunk;
 
   FASTUIDRAWdelete(s);
 }
@@ -4215,7 +4231,7 @@ cap_chunks(void) const
 fastuidraw::StrokedPath::
 StrokedPath(const fastuidraw::TessellatedPath &P)
 {
-  FASTUIDRAWassert(number_offset_types < FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(offset_type_num_bits));
+  FASTUIDRAWassert(point::number_offset_types < FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(point::offset_type_num_bits));
   m_d = FASTUIDRAWnew StrokedPathPrivate(P);
 }
 
@@ -4235,15 +4251,6 @@ effective_curve_distance_threshhold(void) const
   StrokedPathPrivate *d;
   d = static_cast<StrokedPathPrivate*>(m_d);
   return d->m_effective_curve_distance_threshhold;
-}
-
-const fastuidraw::PainterAttributeData&
-fastuidraw::StrokedPath::
-edges(void) const
-{
-  StrokedPathPrivate *d;
-  d = static_cast<StrokedPathPrivate*>(m_d);
-  return d->m_edges;
 }
 
 void
@@ -4290,6 +4297,24 @@ compute_chunks(ScratchSpace &scratch_space,
   chunk_set_ptr->handle_dashed_evaluator(dash_evaluator, dash_data, *this);
 }
 
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedPath::
+edges(void) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return d->m_edges;
+}
+
+unsigned int
+fastuidraw::StrokedPath::
+chunk_of_edges(enum chunk_selection c) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return d->m_chunk_of_edges[c];
+}
+
 unsigned int
 fastuidraw::StrokedPath::
 number_joins(bool include_joins_of_closing_edge) const
@@ -4299,7 +4324,6 @@ number_joins(bool include_joins_of_closing_edge) const
   return d->m_path_data.m_join_ordering.number_joins(include_joins_of_closing_edge);
 }
 
-
 unsigned int
 fastuidraw::StrokedPath::
 join_chunk(unsigned int J) const
@@ -4307,6 +4331,24 @@ join_chunk(unsigned int J) const
   StrokedPathPrivate *d;
   d = static_cast<StrokedPathPrivate*>(m_d);
   return d->m_path_data.m_join_ordering.join_chunk(J);
+}
+
+unsigned int
+fastuidraw::StrokedPath::
+chunk_of_joins(enum chunk_selection c) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return d->m_chunk_of_joins[c];
+}
+
+unsigned int
+fastuidraw::StrokedPath::
+chunk_of_caps(void) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return d->m_chunk_of_caps;
 }
 
 const fastuidraw::PainterAttributeData&
