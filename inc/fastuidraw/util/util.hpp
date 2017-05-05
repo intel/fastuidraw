@@ -399,7 +399,7 @@ namespace fastuidraw
 
     /*!
       Decrement both \ref m_begin and \ref m_end.
-      \param v value by which to increment
+      \param v value by which to decrement
      */
     void
     operator-=(const T &v)
