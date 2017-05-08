@@ -131,7 +131,7 @@ namespace fastuidraw
         Returns true if an implementation of PainterBackend
         clips triangles (for example by a hardware clipper
         or geometry shading) instead of discard to implement
-        clipping as embodied by PainterState::ClipEquations.
+        clipping as embodied by \ref PainterClipEquations.
        */
       bool
       clipping_via_hw_clip_planes(void) const;
@@ -385,7 +385,7 @@ namespace fastuidraw
     compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader) = 0;
 
     /*!
-      To be accessed by a derived class in on_begin() (or before)
+      To be accessed by a derived class in its ctor
       to set the performance hint values for itself.
      */
     PerformanceHints&

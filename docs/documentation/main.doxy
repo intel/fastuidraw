@@ -52,7 +52,8 @@ being Painter. Part of the main library libFastUIDraw.
 @{
 \brief
 If one is making a painter backend, then this group provides the
-information, see particularly the enumerations in fastuidraw::PainterPacking
+information, see particularly the enumerations in fastuidraw::PainterHeader,
+fastuidraw::PainterItemMatrix, fastuidraw::PainterClipEquations
 for how data is packed by fastuidraw::PainterPacker. The more advanced
 user may wish to use fastuidraw::PainterPacker for a rawer, more powerful
 interface for drawing than that offered by fastuidraw::Painter.
@@ -66,9 +67,9 @@ into fastuidraw::PainterDrawCommand::m_store (for example the current transforma
 In implementing a backend, the shader fed to the GPU needs to correctly unpack
 this data. The location of the header of the data is stored in the attribute
 from the value fastuidraw::PainterDrawCommand::m_header_attributes. The header
-consists of fastuidraw::PainterPacking::header_size uint32_t whose location relative
-to the start of the header and meaning are enumerated by
-fastuidraw::PainterPacking::item_header_offset_t. The header contains shader ID's
+consists of fastuidraw::PainterHeader::header_size uint32_t whose location
+relative to the start of the header and meaning are enumerated by
+fastuidraw::PainterHeader::offset_t. The header contains shader ID's
 and additional offsets to more data packed for a shader to unpack.
 
 
