@@ -469,13 +469,6 @@ namespace
     }
 
     void
-    populate_from_resource(GLuint program,
-                           GLenum resource_interface,
-                           GLenum variable_interface,
-                           enum fastuidraw::gl::Program::shader_variable_src_t tp,
-                           const ShaderVariableInterfaceQueryList &queries);
-
-    void
     populate_as_empty(void)
     {
       FASTUIDRAWassert(!m_finalized);
@@ -1230,27 +1223,6 @@ populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
 //BlockSetInfoBase methods
 void
 BlockSetInfoBase::
-populate_from_resource(GLuint program,
-                       GLenum resource_interface,
-                       GLenum variable_interface,
-                       enum fastuidraw::gl::Program::shader_variable_src_t tp,
-                       const ShaderVariableInterfaceQueryList &queries)
-{
-  GLint num(0);
-
-  glGetProgramInterfaceiv(program, resource_interface, GL_ACTIVE_RESOURCES, &num);
-  resize_number_blocks(num, tp);
-
-  for(GLint i = 0; i < num; ++i)
-    {
-      block_ref(i).m_members.populate_from_interface_block(program, resource_interface,
-                                                           i, variable_interface, queries);
-    }
-  finalize();
-}
-
-void
-BlockSetInfoBase::
 finalize(void)
 {
   if(m_finalized)
@@ -1306,6 +1278,7 @@ populate(GLuint program,
   if(ssbo_supported)
     {
       ShaderVariableInterfaceQueryList ssbo_query;
+      GLint ssbo_count(0);
 
       ssbo_query
         .add(GL_TYPE, &ShaderVariableInfo::m_glsl_type)
@@ -1318,14 +1291,15 @@ populate(GLuint program,
         .add(GL_TOP_LEVEL_ARRAY_SIZE, &ShaderVariableInfo::m_shader_storage_buffer_top_level_array_size)
         .add(GL_TOP_LEVEL_ARRAY_STRIDE, &ShaderVariableInfo::m_shader_storage_buffer_top_level_array_stride);
 
-      populate_from_resource(program, GL_SHADER_STORAGE_BLOCK, GL_BUFFER_VARIABLE,
-                             fastuidraw::gl::Program::src_shader_storage_block,
-                             ssbo_query);
-      for(unsigned int i = 0, endi = number_active_blocks(); i < endi; ++i)
+      glGetProgramInterfaceiv(program, GL_UNIFORM_BLOCK, GL_ACTIVE_RESOURCES, &ssbo_count);
+      resize_number_blocks(ssbo_count, fastuidraw::gl::Program::src_shader_storage_block);
+      for(GLint i = 0; i < ssbo_count; ++i)
         {
-          m_all_shader_storage_variables.add_elements(block(i)->m_members.values().begin(),
-                                                      block(i)->m_members.values().end());
+          block_ref(i).populate(program, GL_SHADER_STORAGE_BLOCK, i, GL_BUFFER_VARIABLE, ssbo_query);
+          m_all_shader_storage_variables.add_elements(block_ref(i).m_members.values().begin(),
+                                                      block_ref(i).m_members.values().end());
         }
+      finalize();
       m_all_shader_storage_variables.finalize();
     }
   else
