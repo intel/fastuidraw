@@ -40,6 +40,18 @@ class FilledPath;
 /*!
   \brief
   A TessellatedPath represents the tessellation of a Path.
+
+  A single contour of a TessellatedPath is constructed from
+  a single \ref PathContour of the source \ref Path. Each
+  edge of a contour of a TessellatedPath is contructed from
+  a single \ref PathContour::interpolator_base of the source \ref
+  PathContour. The ordering of the contours of a
+  TessellatedPath is the same ordering as the source
+  \ref PathContour objects of the source \ref Path. Also,
+  the ordering of edges within a contour is the same ordering
+  as the \ref PathContour::interpolator_base objects of
+  the source \ref PathContour. In particular, for each contour
+  of a TessellatedPath, the closing edge is the last edge.
  */
 class TessellatedPath:
     public reference_counted<TessellatedPath>::non_concurrent
@@ -180,7 +192,8 @@ public:
 
     /*!
       Gives the distance of the point from the start
-      of the -edge- on which the point resides.
+      of the edge (i.e PathContour::interpolator_base)
+      on which the point resides.
      */
     float m_distance_from_edge_start;
 
@@ -191,7 +204,8 @@ public:
     float m_distance_from_contour_start;
 
     /*!
-      Gives the length of the edge on which the
+      Gives the length of the edge (i.e.
+      PathContour::interpolator_base) on which the
       point lies. This value is the same for all
       points along a fixed edge.
      */
@@ -264,9 +278,12 @@ public:
   /*!
     Returns the range into point_data()
     for the named contour. The contour data is a
-    sequence of lines. Points that are shared
-    between edges are replicated (because the
-    derivatives are different).
+    sequence of points specifing a line strip.
+    Points that are shared between edges (an edge
+    corresponds to a PathContour::interpolator_base) are
+    replicated (because the derivatives are different).
+    \param contour which path contour to query, must have
+                   that 0 <= contour < number_contours()
    */
   range_type<unsigned int>
   contour_range(unsigned int contour) const;
@@ -274,17 +291,30 @@ public:
   /*!
     Returns the range into point_data()
     for the named contour lacking the closing
-    edge. The contour data is a sequence of
-    lines. Points that are shared between
-    edges are replicated (because the
-    derivatives are different).
+    edge. The contour data is a
+    sequence of points specifing a line strip.
+    Points that are shared between edges (an edge
+    corresponds to a PathContour::interpolator_base) are
+    replicated (because the derivatives are different).
+    \param contour which path contour to query, must have
+                   that 0 <= contour < number_contours()
    */
   range_type<unsigned int>
   unclosed_contour_range(unsigned int contour) const;
 
   /*!
-    Returns the point data of the named contour.
-    The contour data is a sequence of lines.
+    Returns the point data of the named contour
+    including the closing edge. The contour data is a
+    sequence of points specifing a line strip.
+    Points that are shared between edges (an edge
+    corresponds to a PathContour::interpolator_base) are
+    replicated (because the derivatives are different).
+    Provided as a conveniance, equivalent to
+    \code
+    point_data().sub_array(contour_range(contour))
+    \endcode
+    \param contour which path contour to query, must have
+                   that 0 <= contour < number_contours()
    */
   const_c_array<point>
   contour_point_data(unsigned int contour) const;
@@ -292,13 +322,25 @@ public:
   /*!
     Returns the point data of the named contour
     lacking the point data of the closing edge.
-    The contour data is a sequence of lines.
+    The contour data is a sequence of points
+    specifing a line strip. Points that are
+    shared between edges (an edge corresponds to
+    a PathContour::interpolator_base) are replicated
+    (because the derivatives are different).
+    Provided as a conveniance, equivalent to
+    \code
+    point_data().sub_array(unclosed_contour_range(contour))
+    \endcode
+    \param contour which path contour to query, must have
+                   that 0 <= contour < number_contours()
    */
   const_c_array<point>
   unclosed_contour_point_data(unsigned int contour) const;
 
   /*!
     Returns the number of edges for the named contour
+    \param contour which path contour to query, must have
+                   that 0 <= contour < number_contours()
    */
   unsigned int
   number_edges(unsigned int contour) const;
@@ -307,14 +349,28 @@ public:
     Returns the range into point_data(void)
     for the named edge of the named contour.
     The returned range does include the end
-    point of the edge.
+    point of the edge. The edge corresponds
+    to the PathContour::interpolator_base
+    Path::contour(contour)->interpolator(edge).
+    \param contour which path contour to query, must have
+                   that 0 <= contour < number_contours()
+    \param edge which edge of the contour to query, must
+                have that 0 <= edge < number_edges(contour)
    */
   range_type<unsigned int>
   edge_range(unsigned int contour, unsigned int edge) const;
 
   /*!
     Returns the point data of the named edge of the
-    named contour.
+    named contour, provided as a conveniance, equivalent
+    to
+    \code
+    point_data().sub_array(edge_range(contour, edge))
+    \endcode
+    \param contour which path contour to query, must have
+                   that 0 <= contour < number_contours()
+    \param edge which edge of the contour to query, must
+                have that 0 <= edge < number_edges(contour)
    */
   const_c_array<point>
   edge_point_data(unsigned int contour, unsigned int edge) const;

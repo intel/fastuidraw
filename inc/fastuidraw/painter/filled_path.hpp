@@ -112,7 +112,7 @@ public:
     winding_neighbors(int w) const;
 
     /*!
-      Returns what chunk to pass PainterAttributeData::index_chunks()
+      Returns what chunk to pass PainterAttributeData::index_data_chunks()
       called on the PainterAttributeData returned by painter_data()
       to get the triangles of a specified winding number. The same
       attribute chunk, 0, is used regardless of which winding number.
@@ -122,7 +122,7 @@ public:
     chunk_from_winding_number(int w);
 
     /*!
-      Returns what chunk to pass PainterAttributeData::index_chunks()
+      Returns what chunk to pass PainterAttributeData::index_data_chunks()
       called on the PainterAttributeData returned by painter_data()
       to get the triangles of a specified fill rule.
      */
