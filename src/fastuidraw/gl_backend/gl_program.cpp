@@ -2296,7 +2296,7 @@ generate_log(void)
             i = 0; i < endi; ++i)
         {
           const BlockInfoPrivate *ubo(m_uniform_list.block(i));
-          ostr << "\n\nUniformBlock:" << ubo->m_name
+          ostr << "\n\nUniformBlock \"" << ubo->m_name << "\":"
                << "\n\tblock_index = " << ubo->m_block_index
                << "\n\tblock_size = " << ubo->m_size_bytes
                << "\n\tinitial_buffer_binding = " << ubo->m_initial_buffer_binding
@@ -2325,7 +2325,7 @@ generate_log(void)
             i = 0; i < endi; ++i)
         {
           const BlockInfoPrivate *ssbo(m_storage_buffer_list.block(i));
-          ostr << "\n\nUniformBlock:" << ssbo->m_name
+          ostr << "\n\nShaderStorageBlock \"" << ssbo->m_name << "\":"
                << "\n\tblock_index = " << ssbo->m_block_index
                << "\n\tblock_size = " << ssbo->m_size_bytes
                << "\n\tinitial_buffer_binding = " << ssbo->m_initial_buffer_binding
