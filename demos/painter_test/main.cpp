@@ -160,19 +160,19 @@ main(int argc, char **argv)
             << std::setw(40) << "transformation_translation_mask = " << bitset(PainterBrush::transformation_translation_mask) << "\n"
             << std::setw(40) << "transformation_matrix_mask = " << bitset(PainterBrush::transformation_matrix_mask) << "\n"
 
-            << std::setw(40) << "stroked_number_offset_types = " << StrokedPath::number_offset_types << "\n"
-            << std::setw(40) << "stroked_offset_type_bit0 = " << StrokedPath::offset_type_bit0 << "\n"
-            << std::setw(40) << "stroked_offset_type_num_bits = " << StrokedPath::offset_type_num_bits << "\n"
-            << std::setw(40) << "stroked_boundary_bit = " << StrokedPath::boundary_bit << "\n"
-            << std::setw(40) << "stroked_depth_bit0 = " << StrokedPath::depth_bit0 << "\n"
-            << std::setw(40) << "stroked_depth_num_bits = " << StrokedPath::depth_num_bits << "\n"
-            << std::setw(40) << "stroked_join_bit = " << StrokedPath::join_bit << "\n"
-            << std::setw(40) << "stroked_number_common_bits = " << StrokedPath::number_common_bits << "\n"
-            << std::setw(40) << "stroked_normal0_y_sign_bit = " << StrokedPath::normal0_y_sign_bit << "\n"
-            << std::setw(40) << "stroked_normal1_y_sign_bit = " << StrokedPath::normal1_y_sign_bit << "\n"
-            << std::setw(40) << "stroked_sin_sign_bit = " << StrokedPath::sin_sign_bit << "\n"
-            << std::setw(40) << "stroked_adjustable_cap_ending_bit = " << StrokedPath::adjustable_cap_ending_bit << "\n"
-            << std::setw(40) << "stroked_bevel_edge_bit = " << StrokedPath::bevel_edge_bit << "\n";
+            << std::setw(40) << "stroked_number_offset_types = " << StrokedPath::point::number_offset_types << "\n"
+            << std::setw(40) << "stroked_offset_type_bit0 = " << StrokedPath::point::offset_type_bit0 << "\n"
+            << std::setw(40) << "stroked_offset_type_num_bits = " << StrokedPath::point::offset_type_num_bits << "\n"
+            << std::setw(40) << "stroked_boundary_bit = " << StrokedPath::point::boundary_bit << "\n"
+            << std::setw(40) << "stroked_depth_bit0 = " << StrokedPath::point::depth_bit0 << "\n"
+            << std::setw(40) << "stroked_depth_num_bits = " << StrokedPath::point::depth_num_bits << "\n"
+            << std::setw(40) << "stroked_join_bit = " << StrokedPath::point::join_bit << "\n"
+            << std::setw(40) << "stroked_number_common_bits = " << StrokedPath::point::number_common_bits << "\n"
+            << std::setw(40) << "stroked_normal0_y_sign_bit = " << StrokedPath::point::normal0_y_sign_bit << "\n"
+            << std::setw(40) << "stroked_normal1_y_sign_bit = " << StrokedPath::point::normal1_y_sign_bit << "\n"
+            << std::setw(40) << "stroked_sin_sign_bit = " << StrokedPath::point::sin_sign_bit << "\n"
+            << std::setw(40) << "stroked_adjustable_cap_ending_bit = " << StrokedPath::point::adjustable_cap_ending_bit << "\n"
+            << std::setw(40) << "stroked_bevel_edge_bit = " << StrokedPath::point::bevel_edge_bit << "\n";
 
   painter_test P;
   return P.main(argc, argv);
