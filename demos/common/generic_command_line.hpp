@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 #include <string>
 #include <sstream>
+#include <assert.h>
 
 class command_line_register;
 class command_line_argument;
@@ -107,7 +108,7 @@ public:
 
   command_line_argument(void):
     m_location(-1),
-    m_parent(nullptr)
+    m_parent(NULL)
   {}
 
   virtual
@@ -116,7 +117,7 @@ public:
   void
   attach(command_line_register &p)
   {
-    FASTUIDRAWassert(m_parent==nullptr);
+    assert(m_parent==NULL);
 
     m_parent=&p;
     m_location=m_parent->m_children.size();
