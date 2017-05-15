@@ -1291,7 +1291,7 @@ populate(GLuint program,
         .add(GL_TOP_LEVEL_ARRAY_SIZE, &ShaderVariableInfo::m_shader_storage_buffer_top_level_array_size)
         .add(GL_TOP_LEVEL_ARRAY_STRIDE, &ShaderVariableInfo::m_shader_storage_buffer_top_level_array_stride);
 
-      glGetProgramInterfaceiv(program, GL_UNIFORM_BLOCK, GL_ACTIVE_RESOURCES, &ssbo_count);
+      glGetProgramInterfaceiv(program, GL_SHADER_STORAGE_BLOCK, GL_ACTIVE_RESOURCES, &ssbo_count);
       resize_number_blocks(ssbo_count, fastuidraw::gl::Program::src_shader_storage_block);
       for(GLint i = 0; i < ssbo_count; ++i)
         {
