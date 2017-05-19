@@ -64,7 +64,7 @@ protected:
   {
     {
       std::ostringstream name;
-      name << prefix << "program.log";
+      name << prefix << ".program.log";
 
       std::ofstream file(name.str().c_str());
       file << pr->log();
