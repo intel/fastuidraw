@@ -603,10 +603,17 @@ namespace
       m_shaders(pshaders.begin(), pshaders.end()),
       m_name(0),
       m_assembled(false),
+      m_is_compute(false),
       m_initializers(initers),
       m_pre_link_actions(action),
       m_p(p)
     {
+      for(fastuidraw::const_c_array<ShaderRef>::iterator iter = pshaders.begin(),
+            end = pshaders.end(); iter != end; ++iter)
+        {
+          FASTUIDRAWassert(*iter);
+          m_is_compute = m_is_compute || (*iter)->shader_type() == GL_COMPUTE_SHADER;
+        }
     }
 
     ProgramPrivate(fastuidraw::reference_counted_ptr<fastuidraw::gl::Shader> vert_shader,
@@ -616,10 +623,13 @@ namespace
                    fastuidraw::gl::Program *p):
       m_name(0),
       m_assembled(false),
+      m_is_compute(false),
       m_initializers(initers),
       m_pre_link_actions(action),
       m_p(p)
     {
+      FASTUIDRAWassert(vert_shader && vert_shader->shader_type() == GL_VERTEX_SHADER);
+      FASTUIDRAWassert(frag_shader && frag_shader->shader_type() == GL_FRAGMENT_SHADER);
       m_shaders.push_back(vert_shader);
       m_shaders.push_back(frag_shader);
     }
@@ -631,6 +641,7 @@ namespace
                    fastuidraw::gl::Program *p):
       m_name(0),
       m_assembled(false),
+      m_is_compute(false),
       m_initializers(initers),
       m_pre_link_actions(action),
       m_p(p)
@@ -657,6 +668,7 @@ namespace
     std::string m_link_log;
     std::string m_log;
     float m_assemble_time;
+    bool m_is_compute;
 
     std::set<std::string> m_binded_attributes;
     AttributeInfo m_attribute_list;
@@ -2175,20 +2187,29 @@ assemble(fastuidraw::gl::Program *program)
   glGetProgramiv(m_name, GL_LINK_STATUS, &linkOK);
   glGetProgramiv(m_name, GL_INFO_LOG_LENGTH, &logSize);
 
-  raw_log.resize(logSize+2);
-  glGetProgramInfoLog(m_name, logSize+1, nullptr , &raw_log[0]);
+  raw_log.resize(logSize + 2);
+  glGetProgramInfoLog(m_name, logSize + 1, nullptr , &raw_log[0]);
 
   error_ostr << "\n-----------------------\n" << &raw_log[0];
 
   m_link_log = error_ostr.str();
-  m_link_success = m_link_success and (linkOK == GL_TRUE);
+  m_link_success = m_link_success && (linkOK == GL_TRUE);
 
   if(m_link_success)
     {
       fastuidraw::gl::ContextProperties ctx_props;
 
+      if(m_is_compute)
+        {
+          // finalize as empty, since compute shaders
+          // do not have input attributes.
+          m_attribute_list.finalize();
+        }
+      else
+        {
+          m_attribute_list.populate(m_name, ctx_props);
+        }
       m_uniform_list.populate(m_name, ctx_props);
-      m_attribute_list.populate(m_name, ctx_props);
       m_storage_buffer_list.populate(m_name, ctx_props);
 
       int current_program;
@@ -2276,97 +2297,107 @@ generate_log(void)
 
   if(m_link_success)
     {
+      fastuidraw::gl::Program::block_info blk(m_p->default_uniform_block());
+      FASTUIDRAWassert(blk);
+
       ostr << "\n\nUniforms of Default Block:";
-      for(std::vector<ShaderVariableInfo>::const_iterator
-            iter = m_uniform_list.default_uniform_block()->m_members.values().begin(),
-            end = m_uniform_list.default_uniform_block()->m_members.values().end();
-          iter != end; ++iter)
+      for(unsigned int j = 0, endj = blk.number_variables(); j < endj; ++j)
         {
-          FASTUIDRAWassert(iter->m_ubo_index == -1);
-          ostr << "\n\t" << iter->m_name
+          fastuidraw::gl::Program::shader_variable_info v(blk.variable(j));
+
+          FASTUIDRAWassert(v);
+          FASTUIDRAWassert(v.ubo_index() == -1);
+          FASTUIDRAWassert(v.shader_storage_buffer_index() == -1);
+          ostr << "\n\t" << v.name()
                << "\n\t\ttype = 0x"
-               << std::hex << iter->m_glsl_type
-               << "\n\t\tcount = " << std::dec << iter->m_count
-               << "\n\t\tindex = " << std::dec << iter->m_index
-               << "\n\t\tlocation = " << iter->m_location
-               << "\n\t\tabo_index = " << iter->m_abo_index;
+               << std::hex << v.glsl_type()
+               << "\n\t\tcount = " << std::dec << v.count()
+               << "\n\t\tindex = " << std::dec << v.index()
+               << "\n\t\tlocation = " << v.location()
+               << "\n\t\tabo_index = " << v.abo_index();
         }
 
-      for(unsigned int endi = m_uniform_list.number_active_blocks(),
+      for(unsigned int endi = m_p->number_active_uniform_blocks(),
             i = 0; i < endi; ++i)
         {
-          const BlockInfoPrivate *ubo(m_uniform_list.block(i));
-          ostr << "\n\nUniformBlock \"" << ubo->m_name << "\":"
-               << "\n\tblock_index = " << ubo->m_block_index
-               << "\n\tblock_size = " << ubo->m_size_bytes
-               << "\n\tinitial_buffer_binding = " << ubo->m_initial_buffer_binding
+          fastuidraw::gl::Program::block_info ubo(m_p->uniform_block(i));
+          FASTUIDRAWassert(ubo);
+
+          ostr << "\n\nUniformBlock \"" << ubo.name() << "\":"
+               << "\n\tblock_index = " << ubo.block_index()
+               << "\n\tblock_size = " << ubo.buffer_size()
+               << "\n\tinitial_buffer_binding = " << ubo.initial_buffer_binding()
                << "\n\tmembers:";
 
-          for(std::vector<ShaderVariableInfo>::const_iterator
-                iter = ubo->m_members.values().begin(),
-                end = ubo->m_members.values().end();
-              iter != end; ++iter)
+          for(unsigned int j = 0, endj = ubo.number_variables(); j < endj; ++j)
             {
-              FASTUIDRAWassert(iter->m_ubo_index == ubo->m_block_index);
-              ostr << "\n\t\t" << iter->m_name
+              fastuidraw::gl::Program::shader_variable_info v(ubo.variable(j));
+
+              FASTUIDRAWassert(v);
+              FASTUIDRAWassert(v.ubo_index() == ubo.block_index());
+              FASTUIDRAWassert(v.location() == -1);
+              ostr << "\n\t\t" << v.name()
                    << "\n\t\t\ttype = 0x"
-                   << std::hex << iter->m_glsl_type
-                   << "\n\t\t\tcount = " << std::dec << iter->m_count
-                   << "\n\t\t\tindex = " << std::dec << iter->m_index
-                   << "\n\t\t\tubo_index = " << iter->m_ubo_index
-                   << "\n\t\t\toffset = " << iter->m_offset
-                   << "\n\t\t\tarray_stride = " << iter->m_array_stride
-                   << "\n\t\t\tmatrix_stride = " << iter->m_matrix_stride
-                   << "\n\t\t\tis_row_major = " << bool(iter->m_is_row_major);
+                   << std::hex << v.glsl_type()
+                   << "\n\t\t\tcount = " << std::dec << v.count()
+                   << "\n\t\t\tindex = " << std::dec << v.index()
+                   << "\n\t\t\tubo_index = " << v.ubo_index()
+                   << "\n\t\t\toffset = " << v.buffer_offset()
+                   << "\n\t\t\tarray_stride = " << v.array_stride()
+                   << "\n\t\t\tmatrix_stride = " << v.matrix_stride()
+                   << "\n\t\t\tis_row_major = " << v.is_row_major();
             }
         }
 
-      for(unsigned int endi = m_storage_buffer_list.number_active_blocks(),
+      for(unsigned int endi = m_p->number_active_shader_storage_blocks(),
             i = 0; i < endi; ++i)
         {
-          const BlockInfoPrivate *ssbo(m_storage_buffer_list.block(i));
-          ostr << "\n\nShaderStorageBlock \"" << ssbo->m_name << "\":"
-               << "\n\tblock_index = " << ssbo->m_block_index
-               << "\n\tblock_size = " << ssbo->m_size_bytes
-               << "\n\tinitial_buffer_binding = " << ssbo->m_initial_buffer_binding
+          fastuidraw::gl::Program::block_info ssbo(m_p->shader_storage_block(i));
+          FASTUIDRAWassert(ssbo);
+
+          ostr << "\n\nShaderStorageBlock \"" << ssbo.name() << "\":"
+               << "\n\tblock_index = " << ssbo.block_index()
+               << "\n\tblock_size = " << ssbo.buffer_size()
+               << "\n\tinitial_buffer_binding = " << ssbo.initial_buffer_binding()
                << "\n\tmembers:";
 
-          for(std::vector<ShaderVariableInfo>::const_iterator
-                iter = ssbo->m_members.values().begin(),
-                end = ssbo->m_members.values().end();
-              iter != end; ++iter)
+          for(unsigned int j = 0, endj = ssbo.number_variables(); j < endj; ++j)
             {
-              FASTUIDRAWassert(iter->m_shader_storage_buffer_index == ssbo->m_block_index);
-              ostr << "\n\t\t" << iter->m_name
+              fastuidraw::gl::Program::shader_variable_info v(ssbo.variable(j));
+
+              FASTUIDRAWassert(v);
+              FASTUIDRAWassert(v.shader_storage_buffer_index() == ssbo.block_index());
+              FASTUIDRAWassert(v.location() == -1);
+              ostr << "\n\t\t" << v.name()
                    << "\n\t\t\ttype = 0x"
-                   << std::hex << iter->m_glsl_type
-                   << "\n\t\t\tcount = " << std::dec << iter->m_count
-                   << "\n\t\t\tindex = " << std::dec << iter->m_index
-                   << "\n\t\t\tshader_storage_buffer_index = " << iter->m_shader_storage_buffer_index
-                   << "\n\t\t\toffset = " << iter->m_offset
-                   << "\n\t\t\tarray_stride = " << iter->m_array_stride
-                   << "\n\t\t\tmatrix_stride = " << iter->m_matrix_stride
-                   << "\n\t\t\tis_row_major = " << bool(iter->m_is_row_major)
+                   << std::hex << v.glsl_type()
+                   << "\n\t\t\tcount = " << std::dec << v.count()
+                   << "\n\t\t\tindex = " << std::dec << v.index()
+                   << "\n\t\t\tshader_storage_buffer_index = " << v.shader_storage_buffer_index()
+                   << "\n\t\t\toffset = " << v.buffer_offset()
+                   << "\n\t\t\tarray_stride = " << v.array_stride()
+                   << "\n\t\t\tmatrix_stride = " << v.matrix_stride()
+                   << "\n\t\t\tis_row_major = " << v.is_row_major()
                    << "\n\t\t\tshader_storage_buffer_top_level_array_size = "
-                   << iter->m_shader_storage_buffer_top_level_array_size
+                   << v.shader_storage_buffer_top_level_array_size()
                    << "\n\t\t\tshader_storage_buffer_top_level_array_stride = "
-                   << iter->m_shader_storage_buffer_top_level_array_stride;
+                   << v.shader_storage_buffer_top_level_array_stride();
             }
         }
 
       ostr << "\n\nAttributes:";
-      for(std::vector<ShaderVariableInfo>::const_iterator
-            iter = m_attribute_list.values().begin(),
-            end = m_attribute_list.values().end();
-          iter != end; ++iter)
+      for(unsigned int j = 0, endj = m_p->number_active_attributes(); j < endj; ++j)
         {
+          fastuidraw::gl::Program::shader_variable_info v(m_p->active_attribute(j));
+
+          FASTUIDRAWassert(v);
           ostr << "\n\t"
-               << iter->m_name
+               << v.name()
                << "\n\t\ttype = 0x"
-               << std::hex << iter->m_glsl_type
-               << "\n\t\tcount = " << std::dec << iter->m_count
-               << "\n\t\tindex = " << std::dec << iter->m_index
-               << "\n\t\tlocation = " << iter->m_location;
+               << std::hex << v.glsl_type()
+               << "\n\t\tcount = " << std::dec << v.count()
+               << "\n\t\tindex = " << std::dec << v.index()
+               << "\n\t\tlocation = " << v.location();
         }
     }
 
@@ -2458,6 +2489,15 @@ link_log(void)
   d = static_cast<ProgramPrivate*>(m_d);
   d->assemble(this);
   return d->m_link_log.c_str();
+}
+
+bool
+fastuidraw::gl::Program::
+is_compute(void)
+{
+  ProgramPrivate *d;
+  d = static_cast<ProgramPrivate*>(m_d);
+  return d->m_is_compute;
 }
 
 float

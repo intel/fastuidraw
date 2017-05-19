@@ -1289,6 +1289,14 @@ public:
   link_log(void);
 
   /*!
+    Returns true if the Program constains a Shader
+    which is for compute (i.e. Shader::shader_type())
+    is GL_COMPUTE_SHADER.
+   */
+  bool
+  is_compute(void);
+
+  /*!
     Returns how many seconds it took for the program
     to be assembled and linked.
    */
