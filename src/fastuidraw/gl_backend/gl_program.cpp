@@ -602,8 +602,8 @@ namespace
                    fastuidraw::gl::Program *p):
       m_shaders(pshaders.begin(), pshaders.end()),
       m_name(0),
+      m_delete_program(true),
       m_assembled(false),
-      m_is_compute(false),
       m_initializers(initers),
       m_pre_link_actions(action),
       m_p(p)
@@ -612,7 +612,6 @@ namespace
             end = pshaders.end(); iter != end; ++iter)
         {
           FASTUIDRAWassert(*iter);
-          m_is_compute = m_is_compute || (*iter)->shader_type() == GL_COMPUTE_SHADER;
         }
     }
 
@@ -622,8 +621,8 @@ namespace
                    const fastuidraw::gl::ProgramInitializerArray &initers,
                    fastuidraw::gl::Program *p):
       m_name(0),
+      m_delete_program(true),
       m_assembled(false),
-      m_is_compute(false),
       m_initializers(initers),
       m_pre_link_actions(action),
       m_p(p)
@@ -640,8 +639,8 @@ namespace
                    const fastuidraw::gl::ProgramInitializerArray &initers,
                    fastuidraw::gl::Program *p):
       m_name(0),
+      m_delete_program(true),
       m_assembled(false),
-      m_is_compute(false),
       m_initializers(initers),
       m_pre_link_actions(action),
       m_p(p)
@@ -650,8 +649,13 @@ namespace
       m_shaders.push_back(FASTUIDRAWnew fastuidraw::gl::Shader(frag_shader, GL_FRAGMENT_SHADER));
     }
 
+    ProgramPrivate(GLuint pname, bool take_ownership, fastuidraw::gl::Program *p);
+
     void
-    assemble(fastuidraw::gl::Program *program);
+    assemble(void);
+
+    void
+    populate_info(void);
 
     void
     clear_shaders_and_save_shader_data(void);
@@ -664,11 +668,11 @@ namespace
     std::map<GLenum, std::vector<int> > m_shader_data_sorted_by_type;
 
     GLuint m_name;
+    bool m_delete_program;
     bool m_link_success, m_assembled;
     std::string m_link_log;
     std::string m_log;
     float m_assemble_time;
-    bool m_is_compute;
 
     std::set<std::string> m_binded_attributes;
     AttributeInfo m_attribute_list;
@@ -2132,9 +2136,73 @@ atomic_variable(const char *name,
 
 /////////////////////////////////////////////////////////
 //ProgramPrivate methods
+ProgramPrivate::
+ProgramPrivate(GLuint pname, bool take_ownership, fastuidraw::gl::Program *p):
+  m_name(pname),
+  m_delete_program(take_ownership),
+  m_link_success(true),
+  m_assembled(true),
+  m_assemble_time(0.0f),
+  m_p(p)
+{
+  populate_info();
+}
+
 void
 ProgramPrivate::
-assemble(fastuidraw::gl::Program *program)
+populate_info(void)
+{
+  //retrieve the log
+  std::vector<char> raw_log;
+  GLint logSize, linkOK;
+
+  glGetProgramiv(m_name, GL_LINK_STATUS, &linkOK);
+  glGetProgramiv(m_name, GL_INFO_LOG_LENGTH, &logSize);
+
+  raw_log.resize(logSize + 2);
+  glGetProgramInfoLog(m_name, logSize + 1, nullptr , &raw_log[0]);
+
+  m_link_log = std::string(&raw_log[0]);
+  m_link_success = m_link_success && (linkOK == GL_TRUE);
+
+  if(m_link_success)
+    {
+      fastuidraw::gl::ContextProperties ctx_props;
+      m_attribute_list.populate(m_name, ctx_props);
+      m_uniform_list.populate(m_name, ctx_props);
+      m_storage_buffer_list.populate(m_name, ctx_props);
+
+      int current_program;
+      bool sso_supported;
+
+      if(ctx_props.is_es())
+        {
+          sso_supported = ctx_props.version() >= fastuidraw::ivec2(3, 1);
+        }
+      else
+        {
+          sso_supported = ctx_props.version() >= fastuidraw::ivec2(4, 1)
+            || ctx_props.has_extension("GL_ARB_separate_shader_objects");
+        }
+
+      if(!sso_supported)
+        {
+          current_program = fastuidraw::gl::context_get<int>(GL_CURRENT_PROGRAM);
+          glUseProgram(m_name);
+        }
+
+      m_initializers.perform_initializations(m_p, !sso_supported);
+
+      if(!sso_supported)
+        {
+          glUseProgram(current_program);
+        }
+    }
+}
+
+void
+ProgramPrivate::
+assemble(void)
 {
   if(m_assembled)
     {
@@ -2180,65 +2248,9 @@ assemble(fastuidraw::gl::Program *program)
   m_assemble_time = float(end_time.tv_sec - start_time.tv_sec)
     + float(end_time.tv_usec - start_time.tv_usec) / 1e6f;
 
-  //retrieve the log fun
-  std::vector<char> raw_log;
-  GLint logSize, linkOK;
+  populate_info();
 
-  glGetProgramiv(m_name, GL_LINK_STATUS, &linkOK);
-  glGetProgramiv(m_name, GL_INFO_LOG_LENGTH, &logSize);
-
-  raw_log.resize(logSize + 2);
-  glGetProgramInfoLog(m_name, logSize + 1, nullptr , &raw_log[0]);
-
-  error_ostr << "\n-----------------------\n" << &raw_log[0];
-
-  m_link_log = error_ostr.str();
-  m_link_success = m_link_success && (linkOK == GL_TRUE);
-
-  if(m_link_success)
-    {
-      fastuidraw::gl::ContextProperties ctx_props;
-
-      if(m_is_compute)
-        {
-          // finalize as empty, since compute shaders
-          // do not have input attributes.
-          m_attribute_list.finalize();
-        }
-      else
-        {
-          m_attribute_list.populate(m_name, ctx_props);
-        }
-      m_uniform_list.populate(m_name, ctx_props);
-      m_storage_buffer_list.populate(m_name, ctx_props);
-
-      int current_program;
-      bool sso_supported;
-
-      if(ctx_props.is_es())
-        {
-          sso_supported = ctx_props.version() >= fastuidraw::ivec2(3, 1);
-        }
-      else
-        {
-          sso_supported = ctx_props.version() >= fastuidraw::ivec2(4, 1)
-            || ctx_props.has_extension("GL_ARB_separate_shader_objects");
-        }
-
-      if(!sso_supported)
-        {
-          current_program = fastuidraw::gl::context_get<int>(GL_CURRENT_PROGRAM);
-          glUseProgram(m_name);
-        }
-
-      m_initializers.perform_initializations(program, !sso_supported);
-
-      if(!sso_supported)
-        {
-          glUseProgram(current_program);
-        }
-    }
-  else
+  if(!m_link_success)
     {
       std::ostringstream oo;
       oo << "bad_program_" << m_name << ".glsl";
@@ -2282,17 +2294,20 @@ generate_log(void)
 {
   std::ostringstream ostr;
 
-  ostr << "gl::Program: "
-       << "[GLname: " << m_name << "]:\tShader Source Codes:";
-
-  for(std::vector<ShaderData>::const_iterator
-        iter = m_shader_data.begin(), end = m_shader_data.end();
-      iter != end; ++iter)
+  ostr << "gl::Program [GLname: " << m_name << "]\n";
+  if(!m_shader_data.empty())
     {
-      ostr << "\n\nGLSL name = " << iter->m_name
-           << ", type = " << fastuidraw::gl::Shader::gl_shader_type_label(iter->m_shader_type)
-           << "\nSource:\n" << iter->m_source_code
-           << "\n\n";
+      ostr << "Shader Source Codes:";
+
+      for(std::vector<ShaderData>::const_iterator
+            iter = m_shader_data.begin(), end = m_shader_data.end();
+          iter != end; ++iter)
+        {
+          ostr << "\n\nGLSL name = " << iter->m_name
+               << ", type = " << fastuidraw::gl::Shader::gl_shader_type_label(iter->m_shader_type)
+               << "\nSource:\n" << iter->m_source_code
+               << "\n\n";
+        }
     }
 
   if(m_link_success)
@@ -2401,18 +2416,21 @@ generate_log(void)
         }
     }
 
-  ostr << "\nShader Logs:";
-  for(std::vector<ShaderData>::const_iterator
-        iter = m_shader_data.begin(), end = m_shader_data.end();
-      iter != end; ++iter)
+  if(!m_shader_data.empty())
     {
-      ostr << "\n\nGLSL name = " << iter->m_name
-           << ", type = " << fastuidraw::gl::Shader::gl_shader_type_label(iter->m_shader_type)
-           << "\nSource:\n" << iter->m_compile_log
-           << "\n\n";
+      ostr << "\nShader Logs:";
+      for(std::vector<ShaderData>::const_iterator
+            iter = m_shader_data.begin(), end = m_shader_data.end();
+          iter != end; ++iter)
+        {
+          ostr << "\n\nGLSL name = " << iter->m_name
+               << ", type = " << fastuidraw::gl::Shader::gl_shader_type_label(iter->m_shader_type)
+               << "\nSource:\n" << iter->m_compile_log
+               << "\n\n";
+        }
     }
-  ostr << "\nLink Log:\n" << m_link_log << "\n";
 
+  ostr << "\nLink Log:\n" << m_link_log << "\n";
   m_log = ostr.str();
 }
 
@@ -2445,11 +2463,17 @@ Program(const glsl::ShaderSource &vert_shader,
 }
 
 fastuidraw::gl::Program::
+Program(GLuint pname, bool take_ownership)
+{
+  m_d = FASTUIDRAWnew ProgramPrivate(pname, take_ownership, this);
+}
+
+fastuidraw::gl::Program::
 ~Program()
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  if(d->m_name)
+  if(d->m_name && d->m_delete_program)
     {
       glDeleteProgram(d->m_name);
     }
@@ -2463,7 +2487,7 @@ use_program(void)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
 
   FASTUIDRAWassert(d->m_name != 0);
   FASTUIDRAWassert(d->m_link_success);
@@ -2477,7 +2501,7 @@ name(void)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   return d->m_name;
 }
 
@@ -2487,17 +2511,8 @@ link_log(void)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   return d->m_link_log.c_str();
-}
-
-bool
-fastuidraw::gl::Program::
-is_compute(void)
-{
-  ProgramPrivate *d;
-  d = static_cast<ProgramPrivate*>(m_d);
-  return d->m_is_compute;
 }
 
 float
@@ -2506,7 +2521,7 @@ program_build_time(void)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   return d->m_assemble_time;
 }
 
@@ -2516,7 +2531,7 @@ link_success(void)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   return d->m_link_success;
 }
 
@@ -2526,7 +2541,7 @@ log(void)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   return d->m_log.c_str();
 }
 
@@ -2536,7 +2551,7 @@ default_uniform_block(void)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   return d->m_link_success ?
     block_info(d->m_uniform_list.default_uniform_block()) :
     block_info(nullptr);
@@ -2548,7 +2563,7 @@ number_active_uniform_blocks(void)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   return d->m_link_success ?
     d->m_uniform_list.number_active_blocks() :
     0;
@@ -2560,7 +2575,7 @@ uniform_block(unsigned int I)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   return d->m_link_success ?
     block_info(d->m_uniform_list.block(I)) :
     block_info(nullptr);
@@ -2572,7 +2587,7 @@ uniform_block_id(const char *uniform_block_name)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   return d->m_link_success ?
     d->m_uniform_list.block_id(uniform_block_name) :
     ~0u;
@@ -2598,7 +2613,7 @@ find_shader_variable(const char *pname,
   const ShaderVariableInfo *q;
 
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
 
   if(!d->m_link_success)
     {
@@ -2636,7 +2651,7 @@ number_active_shader_storage_blocks(void)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   return d->m_link_success ?
     d->m_storage_buffer_list.number_active_blocks() :
     0;
@@ -2648,7 +2663,7 @@ shader_storage_block(unsigned int I)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   return d->m_link_success ?
     block_info(d->m_storage_buffer_list.block(I)) :
     block_info(nullptr);
@@ -2660,7 +2675,7 @@ shader_storage_block_id(const char *shader_storage_block_name)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   return d->m_link_success ?
     d->m_storage_buffer_list.block_id(shader_storage_block_name) :
     ~0u;
@@ -2672,7 +2687,7 @@ number_active_atomic_buffers(void)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   return d->m_link_success ?
     d->m_uniform_list.number_atomic_buffers() :
     0;
@@ -2684,7 +2699,7 @@ atomic_buffer(unsigned int I)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   return d->m_link_success ?
     atomic_buffer_info(d->m_uniform_list.atomic_buffer(I)) :
     atomic_buffer_info(nullptr);
@@ -2696,7 +2711,7 @@ number_active_attributes(void)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   return d->m_link_success ?
     d->m_attribute_list.values().size() :
     0;
@@ -2708,7 +2723,7 @@ active_attribute(unsigned int I)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   return d->m_link_success ?
     shader_variable_info(&d->m_attribute_list.value(I)) :
     shader_variable_info(nullptr);
@@ -2720,7 +2735,7 @@ attribute_location(const char *pname)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble(this);
+  d->assemble();
   if(d->m_link_success)
     {
       const ShaderVariableInfo *q;

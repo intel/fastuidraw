@@ -1255,6 +1255,13 @@ public:
           const PreLinkActionArray &action = PreLinkActionArray(),
           const ProgramInitializerArray &initers = ProgramInitializerArray());
 
+  /*!
+    Ctor. Create a \ref Program from a previously linked GL shader.
+    \param pname GL ID of previously linked shader
+    \param take_ownership if true when dtor is called glDeleteProgram
+                          is called as well
+   */
+  Program(GLuint pname, bool take_ownership);
 
   ~Program(void);
 
@@ -1287,14 +1294,6 @@ public:
    */
   const char*
   link_log(void);
-
-  /*!
-    Returns true if the Program constains a Shader
-    which is for compute (i.e. Shader::shader_type())
-    is GL_COMPUTE_SHADER.
-   */
-  bool
-  is_compute(void);
 
   /*!
     Returns how many seconds it took for the program
