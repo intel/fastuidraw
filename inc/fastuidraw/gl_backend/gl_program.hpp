@@ -957,7 +957,7 @@ public:
       If this is an atomic counter, returns the index of atomic
       buffer that the counter is associated with. If not, returns
       -1. The index is the value to feed as bufferIndex in the
-      GL API function's
+      GL API to query the atomic buffer block, i.e the functions
       \code
       glGetProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER, bufferIndex, ...)
       glGetActiveAtomicCounterBufferiv(GLint program, GLuint bufferIndex, ..)
@@ -1144,11 +1144,13 @@ public:
     }
 
     /*!
-      GL API index for the atomic buffer. The value of
-      buffer_index() is used in calls to GL, i.e. the
-      value to feed as bufferIndex to the GL API functions:
+      GL API index for querying the atomic buffer. The value
+      of buffer_index() is used in calls to GL to query the
+      atomic buffer block, i.e. the value to feed as index to
+      the GL API functions:
       \code
-      glGetActiveAtomicCounterBufferiv(GLuint program, GLuint bufferIndex, ...)
+      glGetProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER, index, ...)
+      glGetActiveAtomicCounterBufferiv(GLuint program, GLuint index, ...)
       \endcode
      */
     GLint
@@ -1323,7 +1325,9 @@ public:
   log(void);
 
   /*!
-    Returns a \ref block_info of the default uniform block.
+    Returns a \ref block_info of the default uniform block,
+    the default uniform block does NOT include shader variables
+    coming from atomic buffer counters.
    */
   block_info
   default_uniform_block(void);
@@ -1350,11 +1354,19 @@ public:
   uniform_block(unsigned int I);
 
   /*!
+    Given the value returned by shader_variable_info::ubo_index(),
+    returns the \ref block_info object of the block.
+   */
+  block_info
+  block_from_ubo_index(GLint block_index);
+
+  /*!
     Searches uniform_block() to find the named uniform block.
     Return value ~0u indicates that the uniform block could
-    not be found. This function should only be called either
-    after use_program() has been called or only when the GL
-    context is current.
+    not be found, otherwise returns the value to feed to
+    uniform_block(unsigned int). This function should only
+    be called either after use_program() has been called or
+    only when the GL context is current.
     \param uniform_block_name name of uniform to find
    */
   unsigned int
@@ -1391,6 +1403,14 @@ public:
   shader_storage_block(unsigned int I);
 
   /*!
+    Given the value returned by
+    shader_variable_info::shader_storage_buffer_index(),
+    returns the \ref block_info object of the block.
+   */
+  block_info
+  block_from_shader_storage_buffer_index(GLint block_index);
+
+  /*!
     Searches shader_storage_block() to find the named shader_storage block.
     Return value ~0u indicates that the shader_storage block could
     not be found. This function should only be called either
@@ -1412,7 +1432,12 @@ public:
   /*!
     Returns the indexed atomic buffer. This function should only
     be called either after use_program() has been called or only
-    when the GL context is current.
+    when the GL context is current. Because atomic buffers are
+    unnamed in shaders, the atomic buffers are NOT sorted. instead,
+    the index to feed comes exactly from the index'ing of atomic
+    buffers of the GL API, in particular, the values coming from
+    shader_variable_info::abo_index() correspond to the returned
+    \ref atomic_buffer_info value.
     \param I which one to fetch, if I is not less than
              number_active_atomic_buffers(), then returns
              a null atomic_buffer_info
