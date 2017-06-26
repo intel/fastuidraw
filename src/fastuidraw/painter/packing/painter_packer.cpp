@@ -1119,7 +1119,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
              const reference_counted_ptr<DataCallBack> &call_back)
 {
   PainterPackerPrivate *d;
-  d = reinterpret_cast<PainterPackerPrivate*>(m_d);
+  d = static_cast<PainterPackerPrivate*>(m_d);
   d->draw_generic_implement(shader, data, src, z, call_back);
 }
 
