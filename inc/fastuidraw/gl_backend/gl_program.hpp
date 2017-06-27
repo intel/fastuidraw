@@ -817,7 +817,7 @@ public:
         Indicates that the shader variable is a nullptr
         value; such values are returned when a query
         for a shader variable is made and there is
-        shader variable.
+        no such shader variable.
        */
       src_null,
     };
@@ -1042,7 +1042,14 @@ public:
     /*!
       GL API index for the parameter. The value of block_index() is used
       in calls to GL to query and set properties of the block. The
-      default uniform block will have this value as -1.
+      default uniform block will have this value as -1. The value of
+      block_index() is the same value as shader_variable_info::ubo_index()
+      for shader variables on a uniform block, for shader variables
+      on a shader storage buffer block and it is the same value as
+      shader_variable_info::shader_storage_buffer_index(void).
+      Lastly, block_index() is the value to feed to Program::uniform_block()
+      for uniform blocks and the value to feed to Program::shader_storage_block()
+      for shader storage blocks.
      */
     GLint
     block_index(void) const;
@@ -1152,6 +1159,7 @@ public:
       glGetProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER, index, ...)
       glGetActiveAtomicCounterBufferiv(GLuint program, GLuint index, ...)
       \endcode
+      It is also the value to feed to Program::atomic_buffer().
      */
     GLint
     buffer_index(void) const;
@@ -1342,9 +1350,10 @@ public:
   number_active_uniform_blocks(void);
 
   /*!
-    Returns the indexed uniform block. The values are sorted in
-    alphabetical order of block_info::name(). This
-    function should only be called either after use_program()
+    Returns the indexed uniform block; the index passed
+    is the index as used by the GL API to query the uniform
+    block (and thus the same as shader_variable_info::ubo_index()).
+    This function should only be called either after use_program()
     has been called or only when the GL context is current.
     \param I which one to fetch, if I is not less than
              number_active_uniform_blocks(), then returns
@@ -1352,13 +1361,6 @@ public:
    */
   block_info
   uniform_block(unsigned int I);
-
-  /*!
-    Given the value returned by shader_variable_info::ubo_index(),
-    returns the \ref block_info object of the block.
-   */
-  block_info
-  block_from_ubo_index(GLint block_index);
 
   /*!
     Searches uniform_block() to find the named uniform block.
@@ -1391,24 +1393,17 @@ public:
   number_active_shader_storage_blocks(void);
 
   /*!
-    Returns the indexed shader_storage block. The values are
-    sorted in alphabetical order of block_info::name(). This
-    function should only be called either after use_program()
-    has been called or only when the GL context is current.
+    Returns the indexed shader_storage block; the index passed
+    is the index as used by the GL API to query the uniform
+    block (and thus the same as
+    shader_variable_info::shader_storage_buffer_index()).
+    This function should only be called either after use_program()
     \param I which one to fetch, if I is not less than
              number_active_shader_storage_blocks(), then returns
              a nullptr block_info
    */
   block_info
   shader_storage_block(unsigned int I);
-
-  /*!
-    Given the value returned by
-    shader_variable_info::shader_storage_buffer_index(),
-    returns the \ref block_info object of the block.
-   */
-  block_info
-  block_from_shader_storage_buffer_index(GLint block_index);
 
   /*!
     Searches shader_storage_block() to find the named shader_storage block.
@@ -1430,14 +1425,11 @@ public:
   number_active_atomic_buffers(void);
 
   /*!
-    Returns the indexed atomic buffer. This function should only
-    be called either after use_program() has been called or only
-    when the GL context is current. Because atomic buffers are
-    unnamed in shaders, the atomic buffers are NOT sorted. instead,
-    the index to feed comes exactly from the index'ing of atomic
-    buffers of the GL API, in particular, the values coming from
-    shader_variable_info::abo_index() correspond to the returned
-    \ref atomic_buffer_info value.
+    Returns the indexed atomic buffer. the index passed
+    is the index as used by the GL API to query the uniform
+    block (and thus the same as shader_variable_info::abo_index()).
+    This function should only be called either after use_program()
+    has been called or only when the GL context is current.
     \param I which one to fetch, if I is not less than
              number_active_atomic_buffers(), then returns
              a null atomic_buffer_info

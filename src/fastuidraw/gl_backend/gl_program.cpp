@@ -444,24 +444,15 @@ namespace
     number_active_blocks(void) const
     {
       FASTUIDRAWassert(m_finalized);
-      return m_blocks_sorted.size();
+      return m_blocks.size();
     }
 
     const BlockInfoPrivate*
     block(unsigned int I)
     {
       FASTUIDRAWassert(m_finalized);
-      return (I < m_blocks_sorted.size()) ?
-        m_blocks_sorted[I] :
-        nullptr;
-    }
-
-    const BlockInfoPrivate*
-    block_from_block_index(GLint I)
-    {
-      FASTUIDRAWassert(m_finalized);
-      return (I >= 0 && I < static_cast<int>(m_keyed_by_block_index.size())) ?
-        m_keyed_by_block_index[I] :
+      return (I < m_blocks.size()) ?
+        &m_blocks[I] :
         nullptr;
     }
 
@@ -483,7 +474,6 @@ namespace
       FASTUIDRAWassert(!m_finalized);
       FASTUIDRAWassert(m_map.empty());
       FASTUIDRAWassert(m_blocks.empty());
-      FASTUIDRAWassert(m_blocks_sorted.empty());
       m_finalized = true;
     }
 
@@ -504,21 +494,9 @@ namespace
     }
 
   private:
-    static
-    bool
-    compare_function(const BlockInfoPrivate *lhs,
-                     const BlockInfoPrivate *rhs)
-    {
-      FASTUIDRAWassert(lhs != nullptr);
-      FASTUIDRAWassert(rhs != nullptr);
-      return lhs->m_name < rhs->m_name;
-    }
-
     bool m_finalized;
     std::vector<BlockInfoPrivate> m_blocks;
-    std::vector<BlockInfoPrivate*> m_blocks_sorted;
-    std::vector<BlockInfoPrivate*> m_keyed_by_block_index;
-    std::map<std::string, unsigned int> m_map; //gives indice into m_blocks_sorted
+    std::map<std::string, unsigned int> m_map; //gives index into m_blocks
   };
 
   /* class to hold information for each shader storage
@@ -540,6 +518,7 @@ namespace
   private:
     ShaderVariableSet m_all_shader_storage_variables;
   };
+
   /* class to hold information for each uniform block,
      including the default uniform block of a GLSL
      program
@@ -1257,21 +1236,10 @@ finalize(void)
     }
 
   m_finalized = true;
-  std::sort(m_blocks_sorted.begin(), m_blocks_sorted.end(), compare_function);
-  for(unsigned int i = 0, endi = m_blocks_sorted.size(); i < endi; ++i)
+  for(int i = 0, endi = m_blocks.size(); i < endi; ++i)
     {
-      unsigned int block_index;
-
-      m_blocks_sorted[i]->m_members.finalize();
-      m_map[m_blocks_sorted[i]->m_name] = i;
-
-      FASTUIDRAWassert(m_blocks_sorted[i]->m_block_index >= 0);
-      block_index = static_cast<unsigned int>(m_blocks_sorted[i]->m_block_index);
-      if(block_index >= m_keyed_by_block_index.size())
-        {
-          m_keyed_by_block_index.resize(block_index + 1, nullptr);
-        }
-      m_keyed_by_block_index[block_index] = m_blocks_sorted[i];
+      m_blocks[i].m_members.finalize();
+      m_map[m_blocks[i].m_name] = i;
     }
 }
 
@@ -1282,13 +1250,10 @@ resize_number_blocks(unsigned int N,
 {
   FASTUIDRAWassert(!m_finalized);
   FASTUIDRAWassert(m_blocks.empty());
-  FASTUIDRAWassert(m_blocks_sorted.empty());
   m_blocks.resize(N);
-  m_blocks_sorted.resize(N);
   for(unsigned int i = 0; i < N; ++i)
     {
       m_blocks[i].m_backing_type = tp;
-      m_blocks_sorted[i] = &m_blocks[i];
     }
 }
 
@@ -2413,7 +2378,7 @@ generate_log(void)
 
               FASTUIDRAWassert(v);
               FASTUIDRAWassert(v.ubo_index() == ubo.block_index());
-              FASTUIDRAWassert(ubo == m_p->block_from_ubo_index(ubo.block_index()));
+              FASTUIDRAWassert(ubo == m_p->uniform_block(ubo.block_index()));
               FASTUIDRAWassert(v.location() == -1);
               FASTUIDRAWassert(v.abo_index() == -1);
               FASTUIDRAWassert(v.shader_storage_buffer_index() == -1);
@@ -2448,7 +2413,7 @@ generate_log(void)
 
               FASTUIDRAWassert(v);
               FASTUIDRAWassert(v.shader_storage_buffer_index() == ssbo.block_index());
-              FASTUIDRAWassert(ssbo == m_p->block_from_shader_storage_buffer_index(ssbo.block_index()));
+              FASTUIDRAWassert(ssbo == m_p->shader_storage_block(ssbo.block_index()));
               FASTUIDRAWassert(v.location() == -1);
               FASTUIDRAWassert(v.abo_index() == -1);
               FASTUIDRAWassert(v.ubo_index() == -1);
@@ -2650,18 +2615,6 @@ uniform_block(unsigned int I)
     block_info(nullptr);
 }
 
-fastuidraw::gl::Program::block_info
-fastuidraw::gl::Program::
-block_from_ubo_index(GLint I)
-{
-  ProgramPrivate *d;
-  d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble();
-  return d->m_link_success ?
-    block_info(d->m_uniform_list.block_from_block_index(I)) :
-    block_info(nullptr);
-}
-
 unsigned int
 fastuidraw::gl::Program::
 uniform_block_id(const char *uniform_block_name)
@@ -2762,18 +2715,6 @@ shader_storage_block_id(const char *shader_storage_block_name)
     ~0u;
 }
 
-fastuidraw::gl::Program::block_info
-fastuidraw::gl::Program::
-block_from_shader_storage_buffer_index(GLint I)
-{
-  ProgramPrivate *d;
-  d = static_cast<ProgramPrivate*>(m_d);
-  d->assemble();
-  return d->m_link_success ?
-    block_info(d->m_storage_buffer_list.block_from_block_index(I)) :
-    block_info(nullptr);
-}
-
 unsigned int
 fastuidraw::gl::Program::
 number_active_atomic_buffers(void)
@@ -2841,7 +2782,6 @@ attribute_location(const char *pname)
     }
   return -1;
 }
-
 
 unsigned int
 fastuidraw::gl::Program::
