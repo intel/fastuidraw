@@ -32,6 +32,7 @@
 #include <map>
 #include <tuple>
 #include <vector>
+#include <functional>
 #include <sys/time.h>
 #include <unistd.h>
 #include <mutex>
