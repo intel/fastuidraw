@@ -1118,6 +1118,18 @@ public:
              unsigned int *out_array_index = nullptr,
              unsigned int *out_leading_array_index = nullptr);
 
+    /*!
+      Comparison operation for sorting. Comparison is done
+      by internal pointer value of object not the values
+      of the object.
+      \param rhs block_info to which to compare.
+     */
+    bool
+    operator<(block_info rhs) const
+    {
+      return m_d < rhs.m_d;
+    }
+
   private:
     explicit
     block_info(const void*);
@@ -1217,6 +1229,18 @@ public:
     shader_variable_info
     atomic_variable(const char *name,
                     unsigned int *out_array_index = nullptr);
+
+    /*!
+      Comparison operation for sorting. Comparison is done
+      by internal pointer value of object not the values
+      of the object.
+      \param rhs atomic_buffer_info to which to compare.
+     */
+    bool
+    operator<(atomic_buffer_info rhs) const
+    {
+      return m_d < rhs.m_d;
+    }
 
   private:
     explicit
@@ -1357,22 +1381,41 @@ public:
     has been called or only when the GL context is current.
     \param I which one to fetch, if I is not less than
              number_active_uniform_blocks(), then returns
-             a nullptr block_info object.
+             a null block_info object.
    */
   block_info
   uniform_block(unsigned int I);
 
   /*!
-    Searches uniform_block() to find the named uniform block.
-    Return value ~0u indicates that the uniform block could
-    not be found, otherwise returns the value to feed to
-    uniform_block(unsigned int). This function should only
-    be called either after use_program() has been called or
-    only when the GL context is current.
-    \param uniform_block_name name of uniform to find
+    Searches uniform_block(unsigned int) to find the
+    named uniform block. Return value ~0u indicates that
+    the uniform block could not be found, otherwise returns
+    the value to feed to uniform_block(unsigned int). This
+    function should only be called either after use_program()
+    has been called or only when the GL context is current.
+    \param uniform_block_name name of uniform block to find
    */
   unsigned int
   uniform_block_id(const char *uniform_block_name);
+
+  /*!
+    Seaches uniform_block(unsigned int) to find the
+    named uniform block. If no such uniform block
+    has that name returns a null block_info object.
+    Provided as a conveniance, equivalent to
+    \code
+    uniform_block(uniform_block_id(uniform_block_name))
+    \endcode
+    This function should only be called either after
+    use_program() has been called or only when the GL
+    context is current.
+    \param uniform_block_name name of uniform block to find
+   */
+  block_info
+  uniform_block(const char *uniform_block_name)
+  {
+    return uniform_block(uniform_block_id(uniform_block_name));
+  }
 
   /*!
     Returns the location of a uniform and also correctly
@@ -1406,15 +1449,34 @@ public:
   shader_storage_block(unsigned int I);
 
   /*!
-    Searches shader_storage_block() to find the named shader_storage block.
-    Return value ~0u indicates that the shader_storage block could
-    not be found. This function should only be called either
-    after use_program() has been called or only when the GL
-    context is current.
+    Searches shader_storage_block(unsigned int) to find the named
+    shader_storage block. Return value ~0u indicates that the
+    shader_storage block could not be found. This function should
+    only be called either after use_program() has been called or
+    only when the GL context is current.
     \param shader_storage_block_name name of shader storage to find
    */
   unsigned int
   shader_storage_block_id(const char *shader_storage_block_name);
+
+  /*!
+    Seaches shader_storage_block(unsigned int) to find the
+    named uniform block. If no such uniform block
+    has that name returns a null block_info object.
+    Provided as a conveniance, equivalent to
+    \code
+    shader_storage_block(shader_storage_block_id(shader_storage_block_name))
+    \endcode
+    This function should only be called either after
+    use_program() has been called or only when the GL
+    context is current.
+    \param shader_storage_block_name name of shader storage to find
+   */
+  block_info
+  shader_storage_block(const char *shader_storage_block_name)
+  {
+    return shader_storage_block(shader_storage_block_id(shader_storage_block_name));
+  }
 
   /*!
     Returns the number of active atomic buffers. This function
