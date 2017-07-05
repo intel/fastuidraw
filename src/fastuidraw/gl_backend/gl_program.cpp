@@ -775,9 +775,18 @@ fill_variable(GLuint program,
   switch(variable_interface)
     {
     case GL_UNIFORM:
-      dst.m_shader_variable_src = (dst.m_ubo_index != -1) ?
-        fastuidraw::gl::Program::src_uniform_block :
-        fastuidraw::gl::Program::src_default_uniform_block;
+      if(dst.m_abo_index != -1)
+        {
+          dst.m_shader_variable_src = fastuidraw::gl::Program::src_abo;
+        }
+      else if(dst.m_ubo_index != -1)
+        {
+          dst.m_shader_variable_src = fastuidraw::gl::Program::src_uniform_block;
+        }
+      else
+        {
+          dst.m_shader_variable_src = fastuidraw::gl::Program::src_default_uniform_block;
+        }
       break;
 
     case GL_PROGRAM_INPUT:
