@@ -2093,7 +2093,7 @@ buffer_size(void) const
 
 unsigned int
 fastuidraw::gl::Program::atomic_buffer_info::
-number_atomic_variables(void) const
+number_variables(void) const
 {
   const AtomicBufferInfo *d;
   d = static_cast<const AtomicBufferInfo*>(m_d);
@@ -2102,7 +2102,7 @@ number_atomic_variables(void) const
 
 fastuidraw::gl::Program::shader_variable_info
 fastuidraw::gl::Program::atomic_buffer_info::
-atomic_variable(unsigned int I)
+variable(unsigned int I)
 {
   const AtomicBufferInfo *d;
   const void *q;
@@ -2114,8 +2114,8 @@ atomic_variable(unsigned int I)
 
 fastuidraw::gl::Program::shader_variable_info
 fastuidraw::gl::Program::atomic_buffer_info::
-atomic_variable(const char *name,
-                unsigned int *out_array_index)
+variable(const char *name,
+         unsigned int *out_array_index)
 {
   const AtomicBufferInfo *d;
   const ShaderVariableInfo *q;
@@ -2349,9 +2349,9 @@ generate_log(void)
                << "\n\tinitial_buffer_binding = " << abo.buffer_binding()
                << "\n\tmembers:";
 
-          for(unsigned int j = 0, endj = abo.number_atomic_variables(); j < endj; ++j)
+          for(unsigned int j = 0, endj = abo.number_variables(); j < endj; ++j)
             {
-              fastuidraw::gl::Program::shader_variable_info v(abo.atomic_variable(j));
+              fastuidraw::gl::Program::shader_variable_info v(abo.variable(j));
 
               FASTUIDRAWassert(v);
               FASTUIDRAWassert(v.abo_index() == abo.buffer_index());

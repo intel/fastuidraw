@@ -1140,7 +1140,7 @@ public:
 
   /*!
     \brief
-    An aomit_block_info represents an object from which
+    An atomic_buffer_info represents an object from which
     one can query the data of an atomic buffer.
    */
   class atomic_buffer_info
@@ -1153,8 +1153,8 @@ public:
 
     /*!
       Implicit cast operator to bool. If returns
-      false, indicates that the atomic_block_info
-      is null, and thus block_index() returns -1,
+      false, indicates that the atomic_buffer_info
+      is null, and thus buffer_index() returns -1,
       buffer_size() returns 0 and so on.
      */
     operator bool() const
@@ -1202,7 +1202,7 @@ public:
       as a single variable.
     */
     unsigned int
-    number_atomic_variables(void) const;
+    number_variables(void) const;
 
     /*!
       Returns the ID'd atomic variable. The values are sorted in
@@ -1215,7 +1215,7 @@ public:
                shader_variable_info::index() is -1).
      */
     shader_variable_info
-    atomic_variable(unsigned int I);
+    variable(unsigned int I);
 
     /*!
       Find a shader variable in the block from the a name. The search
@@ -1227,8 +1227,8 @@ public:
                                    value; if nullptr, value is not written
      */
     shader_variable_info
-    atomic_variable(const char *name,
-                    unsigned int *out_array_index = nullptr);
+    variable(const char *name,
+             unsigned int *out_array_index = nullptr);
 
     /*!
       Comparison operation for sorting. Comparison is done
