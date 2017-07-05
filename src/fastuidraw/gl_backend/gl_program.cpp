@@ -1985,6 +1985,15 @@ name(void) const
   return (d) ? d->m_name.c_str() : "";
 }
 
+enum fastuidraw::gl::Program::shader_variable_src_t
+fastuidraw::gl::Program::block_info::
+shader_variable_src(void) const
+{
+  const BlockInfoPrivate *d;
+  d = static_cast<const BlockInfoPrivate*>(m_d);
+  return (d) ? d->m_backing_type : src_null;
+}
+
 GLint
 fastuidraw::gl::Program::block_info::
 block_index(void) const

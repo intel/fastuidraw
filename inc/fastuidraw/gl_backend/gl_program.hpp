@@ -863,7 +863,8 @@ public:
     glsl_type(void) const;
 
     /*!
-      Returns the shader's backing source.
+      Returns the shader variables's backing source
+      type.
      */
     enum shader_variable_src_t
     shader_variable_src(void) const;
@@ -1038,6 +1039,12 @@ public:
     */
     const char*
     name(void) const;
+
+    /*!
+      Returns the backing type of the block.
+     */
+    enum shader_variable_src_t
+    shader_variable_src(void) const;
 
     /*!
       GL API index for the parameter. The value of block_index() is used
