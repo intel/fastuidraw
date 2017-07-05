@@ -1034,9 +1034,8 @@ public:
     }
 
     /*!
-      Name of the parameter within
-      the GL API.
-    */
+      Name of the block within the GL API.
+     */
     const char*
     name(void) const;
 
@@ -1168,6 +1167,14 @@ public:
     {
       return m_d ? true : false;
     }
+
+    /*!
+      Block label (to match better interface of \ref block_info);
+      name is given as "#X_atomic_buffer" where X is the value of
+      buffer_binding().
+     */
+    const char*
+    name(void) const;
 
     /*!
       GL API index for querying the atomic buffer. The value

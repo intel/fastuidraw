@@ -398,6 +398,7 @@ namespace
     GLint m_buffer_binding;
     GLint m_buffer_index;
     GLint m_size_bytes;
+    std::string m_name;
 
   private:
     ShaderVariableSet m_members;
@@ -1166,6 +1167,13 @@ AtomicBufferInfo::
 finalize(void)
 {
   m_members.finalize();
+
+  std::ostringstream str;
+
+  FASTUIDRAWassert(m_buffer_binding >= 0);
+  FASTUIDRAWassert(m_name.empty());
+  str << "#" << m_buffer_binding << "_atomic_buffer";
+  m_name = str.str();
 }
 
 void
@@ -1436,7 +1444,6 @@ populate_private_program_interface_query(GLuint program,
                              1, &prop_binding,
                              1, nullptr, &m_abo_buffers[i].m_buffer_binding);
       m_abo_buffers[i].finalize();
-      FASTUIDRAWassert(m_abo_buffers[i].m_buffer_binding >= 0);
       m_atomic_map[m_abo_buffers[i].m_buffer_binding] = i;
     }
 
@@ -1480,8 +1487,6 @@ populate_private_non_program_interface_query(GLuint program,
                                                &m_abo_buffers[i].m_size_bytes);
               glGetActiveAtomicCounterBufferiv(program, i, GL_ATOMIC_COUNTER_BUFFER_BINDING,
                                                &m_abo_buffers[i].m_buffer_binding);
-              FASTUIDRAWassert(m_abo_buffers[i].m_buffer_binding >= 0);
-              m_atomic_map[m_abo_buffers[i].m_buffer_binding] = i;
             }
         }
     }
@@ -1552,6 +1557,7 @@ populate_private_non_program_interface_query(GLuint program,
   for(unsigned int i = 0, endi = m_abo_buffers.size(); i < endi; ++i)
     {
       m_abo_buffers[i].finalize();
+      m_atomic_map[m_abo_buffers[i].m_buffer_binding] = i;
     }
 
   FASTUIDRAWunused(ctx_props);
@@ -2087,6 +2093,15 @@ fastuidraw::gl::Program::atomic_buffer_info::
 atomic_buffer_info(void):
   m_d(nullptr)
 {}
+
+const char*
+fastuidraw::gl::Program::atomic_buffer_info::
+name(void) const
+{
+  const AtomicBufferInfo *d;
+  d = static_cast<const AtomicBufferInfo*>(m_d);
+  return (d) ? d->m_name.c_str() : "";
+}
 
 GLint
 fastuidraw::gl::Program::atomic_buffer_info::
@@ -2770,6 +2785,18 @@ atomic_buffer(unsigned int I)
   return d->m_link_success ?
     atomic_buffer_info(d->m_uniform_list.atomic_buffer(I)) :
     atomic_buffer_info(nullptr);
+}
+
+unsigned int
+fastuidraw::gl::Program::
+atomic_buffer_id(unsigned int binding_point)
+{
+  ProgramPrivate *d;
+  d = static_cast<ProgramPrivate*>(m_d);
+  d->assemble();
+  return d->m_link_success ?
+    d->m_uniform_list.atomic_buffer_id(binding_point) :
+    ~0u;
 }
 
 unsigned int
