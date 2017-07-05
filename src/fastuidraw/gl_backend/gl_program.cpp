@@ -556,6 +556,16 @@ namespace
         nullptr;
     }
 
+    unsigned int
+    atomic_buffer_id(unsigned int binding_pt) const
+    {
+      std::map<unsigned int, unsigned int>::const_iterator iter;
+      iter = m_atomic_map.find(binding_pt);
+      return (iter != m_atomic_map.end()) ?
+        iter->second :
+        ~0u;
+    }
+
   private:
     void
     populate_private_non_program_interface_query(GLuint program,
@@ -567,6 +577,7 @@ namespace
 
     ShaderVariableSet m_all_uniforms;
     BlockInfoPrivate m_default_block;
+    std::map<unsigned int, unsigned int> m_atomic_map;
     std::vector<AtomicBufferInfo> m_abo_buffers;
   };
 
@@ -1425,6 +1436,8 @@ populate_private_program_interface_query(GLuint program,
                              1, &prop_binding,
                              1, nullptr, &m_abo_buffers[i].m_buffer_binding);
       m_abo_buffers[i].finalize();
+      FASTUIDRAWassert(m_abo_buffers[i].m_buffer_binding >= 0);
+      m_atomic_map[m_abo_buffers[i].m_buffer_binding] = i;
     }
 
   FASTUIDRAWunused(ctx_props);
@@ -1467,6 +1480,8 @@ populate_private_non_program_interface_query(GLuint program,
                                                &m_abo_buffers[i].m_size_bytes);
               glGetActiveAtomicCounterBufferiv(program, i, GL_ATOMIC_COUNTER_BUFFER_BINDING,
                                                &m_abo_buffers[i].m_buffer_binding);
+              FASTUIDRAWassert(m_abo_buffers[i].m_buffer_binding >= 0);
+              m_atomic_map[m_abo_buffers[i].m_buffer_binding] = i;
             }
         }
     }

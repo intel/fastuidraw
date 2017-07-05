@@ -1507,6 +1507,16 @@ public:
   atomic_buffer(unsigned int I);
 
   /*!
+    Returns the index to feed to atomic_buffer(unsigned int)
+    to fetch the atomic buffer with the value of
+    atomic_buffer_info::buffer_binding().
+    \param binding_point value for atomic_buffer_info::buffer_binding()
+                         to search for.
+   */
+  unsigned int
+  atomic_buffer_id(unsigned int binding_point);
+
+  /*!
     Searches the default uniform block, all uniform blocks
     and all shader storage blocks for a shader variable.
    */
