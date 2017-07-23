@@ -50,6 +50,8 @@ while test $# -gt 0; do
       --nodirs) print_dirs=0 ;;
       --gles) api=gles ;;
       --gl) api=gl ;;
+      --GLES) api=gles ;;
+      --GL) api=gl ;;
       --help) printhelp=1 ;;
       *)
         print_help
