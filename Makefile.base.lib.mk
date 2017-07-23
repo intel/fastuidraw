@@ -13,17 +13,19 @@ FASTUIDRAW_BUILD_release_FLAGS = -O3 -fstrict-aliasing
 FASTUIDRAW_BUILD_WARN_FLAGS = -Wall -Wextra -Wcast-qual -Wwrite-strings
 FASTUIDRAW_BUILD_INCLUDES_CFLAGS = -Iinc
 
-FASTUIDRAW_STRING_RESOURCES_SRCS = $(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $(FASTUIDRAW_RESOURCE_STRING) )
-CLEAN_FILES += $(FASTUIDRAW_STRING_RESOURCES_SRCS)
-
 #
 #  STRING_RESOURCE_CC inputfile resourcename outputpath
 #    inputfile has full path on it
 #    resourcename name to access string resource
 #    outputpath is path to place outputpath
-string_resources_cpp/%.resource_string.cpp: %.resource_string
+build/string_resources_cpp/%.resource_string.cpp: %.resource_string
 	@mkdir -p $(dir $@)
 	$(STRING_RESOURCE_CC) $< $(notdir $<) $(dir $@)
+
+FASTUIDRAW_STRING_RESOURCES_SRCS = $(patsubst %.resource_string, build/string_resources_cpp/%.resource_string.cpp, $(FASTUIDRAW_RESOURCE_STRING) )
+CLEAN_FILES += $(FASTUIDRAW_STRING_RESOURCES_SRCS)
+
+
 
 # $1 --> release or debug
 define librules
@@ -31,15 +33,13 @@ $(eval FASTUIDRAW_$(1)_OBJS = $$(patsubst %.cpp, build/$(1)/%.o, $(FASTUIDRAW_SO
 FASTUIDRAW_$(1)_DEPS = $$(patsubst %.cpp, build/$(1)/%.d, $(FASTUIDRAW_SOURCES))
 FASTUIDRAW_$(1)_DEPS += $$(patsubst %.cpp, build/$(1)/private/%.d, $(FASTUIDRAW_PRIVATE_SOURCES))
 FASTUIDRAW_PRIVATE_$(1)_OBJS = $$(patsubst %.cpp, build/$(1)/private/%.o, $(FASTUIDRAW_PRIVATE_SOURCES))
-FASTUIDRAW_$(1)_RESOURCE_DEPS = $$(patsubst %.cpp, build/$(1)/%.d, $(FASTUIDRAW_STRING_RESOURCES_SRCS))
-FASTUIDRAW_$(1)_DEPS += $$(FASTUIDRAW_$(1)_RESOURCE_DEPS)
-FASTUIDRAW_$(1)_RESOURCE_OBJS = $$(patsubst %.cpp, build/$(1)/%.o, $(FASTUIDRAW_STRING_RESOURCES_SRCS))
+FASTUIDRAW_$(1)_RESOURCE_OBJS = $$(patsubst %.resource_string, build/$(1)/%.resource_string.o, $(FASTUIDRAW_RESOURCE_STRING))
 FASTUIDRAW_$(1)_ALL_OBJS = $$(FASTUIDRAW_$(1)_OBJS) $$(FASTUIDRAW_PRIVATE_$(1)_OBJS) $$(FASTUIDRAW_$(1)_RESOURCE_OBJS)
 COMPILE_$(1)_CFLAGS=$$(FASTUIDRAW_BUILD_$(1)_FLAGS) $(FASTUIDRAW_BUILD_WARN_FLAGS) $(FASTUIDRAW_BUILD_INCLUDES_CFLAGS) $$(FASTUIDRAW_$(1)_CFLAGS)
 CLEAN_FILES += $$(FASTUIDRAW_$(1)_ALL_OBJS) $$(FASTUIDRAW_$(1)_RESOURCE_OBJS)
 FASTUIDRAW_$(1)_LIBS = -lFastUIDraw_$(1) $(FASTUIDRAW_LIBS)
 SUPER_CLEAN_FILES += $$(FASTUIDRAW_$(1)_DEPS)
-build/$(1)/%.resource_string.o: string_resources_cpp/%.resource_string.cpp
+build/$(1)/%.resource_string.o: build/string_resources_cpp/%.resource_string.cpp
 	@mkdir -p $$(dir $$@)
 	$(CXX) $$(COMPILE_$(1)_CFLAGS) $(fPIC) -c $$< -o $$@
 
@@ -73,7 +73,7 @@ INSTALL_EXES += libFastUIDraw_$(1).dll
 else
 
 libFastUIDraw_$(1): libFastUIDraw_$(1).so
-libFastUIDraw_$(1).so: $$(FASTUIDRAW_$(1)_ALL_OBJS)
+libFastUIDraw_$(1).so: $(FASTUIDRAW_STRING_RESOURCES_SRCS) $$(FASTUIDRAW_$(1)_ALL_OBJS)
 	$(CXX) -shared -Wl,-soname,libFastUIDraw_$(1).so -o libFastUIDraw_$(1).so $$(FASTUIDRAW_$(1)_ALL_OBJS) $(FASTUIDRAW_LIBS)
 CLEAN_FILES += libFastUIDraw_$(1).so
 INSTALL_LIBS += libFastUIDraw_$(1).so

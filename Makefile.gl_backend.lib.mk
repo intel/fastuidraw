@@ -12,7 +12,7 @@ else
 FASTUIDRAW_GLES_LIBS = -lGLESv2
 endif
 
-FASTUIDRAW_GL_STRING_RESOURCES_SRCS = $(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $(FASTUIDRAW_GL_RESOURCE_STRING) )
+FASTUIDRAW_GL_STRING_RESOURCES_SRCS = $(patsubst %.resource_string, build/string_resources_cpp/%.resource_string.cpp, $(FASTUIDRAW_GL_RESOURCE_STRING) )
 CLEAN_FILES += $(FASTUIDRAW_GL_STRING_RESOURCES_SRCS)
 
 NGL_GL_SRCS = $(NGL_COMMON_SRCS) $(NGL_GL_CPP)
@@ -24,9 +24,13 @@ NGL_GLES_SRCS = $(NGL_COMMON_SRCS) $(NGL_GLES_CPP)
 define glrule
 $(eval FASTUIDRAW_$(1)_$(2)_CFLAGS=$$(FASTUIDRAW_$(1)_COMMON_CFLAGS) $$(FASTUIDRAW_$(2)_CFLAGS) $$(FASTUIDRAW_GL_GLES_$(2)_CFLAGS)
 COMPILE_$(1)_$(2)_CFLAGS=$$(FASTUIDRAW_BUILD_$(2)_FLAGS) $(FASTUIDRAW_BUILD_WARN_FLAGS) $(FASTUIDRAW_BUILD_INCLUDES_CFLAGS) $$(FASTUIDRAW_$(1)_$(2)_CFLAGS)
+build/$(2)/$(1)/%.resource_string.o: build/string_resources_cpp/%.resource_string.cpp
+	@mkdir -p $$(dir $$@)
+	$(CXX) $$(COMPILE_$(1)_$(2)_CFLAGS) $(fPIC) -c $$< -o $$@
+
 build/$(2)/$(1)/%.o: %.cpp build/$(2)/$(1)/%.d $$(NGL_$(1)_HPP)
 	@mkdir -p $$(dir $$@)
-	$(CXX) $$(COMPILE_$(1)_$(2)_CFLAGS)  $(fPIC) -c $$< -o $$@
+	$(CXX) $$(COMPILE_$(1)_$(2)_CFLAGS) $(fPIC) -c $$< -o $$@
 build/$(2)/$(1)/%.d: %.cpp $$(NGL_$(1)_HPP)
 	@mkdir -p $$(dir $$@)
 	@echo Generating $$@
@@ -44,7 +48,7 @@ FASTUIDRAW_$(1)_$(2)_OBJS = $$(patsubst %.cpp, build/$(2)/$(1)/%.o, $(FASTUIDRAW
 FASTUIDRAW_$(1)_$(2)_PRIVATE_OBJS = $$(patsubst %.cpp, build/$(2)/private/$(1)/%.o, $(FASTUIDRAW_PRIVATE_GL_SOURCES))
 NGL_$(1)_$(2)_OBJ = $$(patsubst %.cpp, build/$(2)/$(1)/%.o, $$(NGL_$(1)_SRCS))
 FASTUIDRAW_$(1)_$(2)_DEPS = $$(patsubst %.cpp, build/$(2)/$(1)/%.d, $$(FASTUIDRAW_GL_SOURCES))
-FASTUIDRAW_$(1)_$(2)_RESOURCE_OBJS = $$(patsubst %.cpp, build/$(2)/%.o, $$(FASTUIDRAW_GL_STRING_RESOURCES_SRCS))
+FASTUIDRAW_$(1)_$(2)_RESOURCE_OBJS = $$(patsubst %.resource_string, build/$(2)/$(1)/%.resource_string.o, $$(FASTUIDRAW_GL_RESOURCE_STRING))
 FASTUIDRAW_$(1)_$(2)_ALL_OBJS = $$(FASTUIDRAW_$(1)_$(2)_OBJS) $$(FASTUIDRAW_$(1)_$(2)_PRIVATE_OBJS) $$(FASTUIDRAW_$(1)_$(2)_RESOURCE_OBJS)
 FASTUIDRAW_$(1)_$(2)_LIBS = -lFastUIDraw$(1)_$(2) -lN$(1)_$(2) $$(FASTUIDRAW_$(2)_LIBS) $$(FASTUIDRAW_$(1)_LIBS)
 CLEAN_FILES += $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJS) $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJS)
