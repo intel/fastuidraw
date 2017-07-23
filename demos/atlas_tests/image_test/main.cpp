@@ -5,6 +5,7 @@
 #include <fastuidraw/gl_backend/gluniform.hpp>
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
+#include <fastuidraw/gl_backend/gl_get.hpp>
 #include "sdl_demo.hpp"
 #include "ImageLoader.hpp"
 #include "PanZoomTracker.hpp"
@@ -422,6 +423,16 @@ private:
     glSamplerParameteri(m_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     gl::ImageAtlasGL::params params;
+    int max_layers(0);
+
+    max_layers = fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS);
+    if(max_layers < m_num_color_layers.m_value)
+      {
+	std::cout << "num_color_layers exceeds max number texture layers (" << max_layers
+		  << "), num_color_layers set to that value.\n";
+	m_num_color_layers.m_value = max_layers;
+      }
+
     params
       .log2_color_tile_size(m_log2_color_tile_size.m_value)
       .log2_num_color_tiles_per_row_per_col(m_log2_num_color_tiles_per_row_per_col.m_value)

@@ -1,5 +1,6 @@
 #include <fastuidraw/gl_backend/colorstop_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
+#include <fastuidraw/gl_backend/gl_get.hpp>
 #include <cstdlib>
 #include "sdl_demo.hpp"
 #include "colorstop_command_line.hpp"
@@ -230,6 +231,16 @@ private:
   create_colorstops_and_atlas(void)
   {
     gl::ColorStopAtlasGL::params params;
+    int max_layers(0);
+
+    max_layers = fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS);
+    if(max_layers < m_color_stop_atlas_layers.m_value)
+      {   
+	std::cout << "atlas_layers exceeds max number texture layers (" << max_layers
+		  << ") atlas_layers set to that value.\n";
+	m_color_stop_atlas_layers.m_value = max_layers;
+      }
+
     params
       .width(m_color_stop_atlas_width.m_value)
       .num_layers(m_color_stop_atlas_layers.m_value)

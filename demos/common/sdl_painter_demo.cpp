@@ -1,3 +1,4 @@
+#include <fastuidraw/gl_backend/gl_get.hpp>
 #include "sdl_painter_demo.hpp"
 #include "text_helper.hpp"
 
@@ -276,6 +277,23 @@ void
 sdl_painter_demo::
 init_gl(int w, int h)
 {
+  int max_layers(0);
+
+  max_layers = fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS);
+  if(max_layers < m_num_color_layers.m_value)
+    {
+      std::cout << "num_color_layers exceeds max number texture layers (" << max_layers
+		<< "), num_color_layers set to that value.\n";
+      m_num_color_layers.m_value = max_layers;
+    }
+
+  if(max_layers < m_color_stop_atlas_layers.m_value)
+    {   
+      std::cout << "atlas_layers exceeds max number texture layers (" << max_layers
+		<< "), atlas_layers set to that value.\n";
+      m_color_stop_atlas_layers.m_value = max_layers;
+    }
+
   m_image_atlas_params
     .log2_color_tile_size(m_log2_color_tile_size.m_value)
     .log2_num_color_tiles_per_row_per_col(m_log2_num_color_tiles_per_row_per_col.m_value)
