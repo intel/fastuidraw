@@ -6,6 +6,7 @@ print_help() {
     echo "  --debug: indicate to compile/link for debug"
     echo "  --cflags: print compile flags"
     echo "  --libs: print link flags"
+    echo "  --nodirs: exclude directory directives of FastUIDraw install location"
     echo "  --gl: use GL API"
     echo "  --gles: use GLES API"
     echo "  --prefix: print path to which fastuidraw was installed"
@@ -28,6 +29,7 @@ fi
 mode=unknown
 print_cflags=0
 print_libs=0
+print_dirs=1
 api=unknown
 printhelp=0
 location="@INSTALL_LOCATION@"
@@ -45,6 +47,7 @@ while test $# -gt 0; do
       --debug) mode=debug ;;
       --cflags) print_cflags=1 ;;
       --libs) print_libs=1 ;;
+      --nodirs) print_dirs=0 ;;
       --gles) api=gles ;;
       --gl) api=gl ;;
       --help) printhelp=1 ;;
@@ -62,10 +65,15 @@ lib_location=$location/lib
 include_location=$location/include
 
 cflags=
-base_cflags=-I$include_location
+base_cflags=
 
 libs=
-base_libs=-L$lib_location
+base_libs=
+
+if [ "$print_dirs" = "1" ]; then
+    base_cflags=-I$include_location
+    base_libs=-L$lib_location
+fi
 
 if [ "$printhelp" = "1" ]; then
     print_help
