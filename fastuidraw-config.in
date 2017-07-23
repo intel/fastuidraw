@@ -104,24 +104,24 @@ fi
 if [ "$mode" = "release" ]; then
      if [ "$api" = "gles" ]; then
          libs=$base_libs" @FASTUIDRAW_GLES_release_LIBS@"
-         cflags=$base_cflags" @LIBRARY_GLES_release_CFLAGS@"
+         cflags=$base_cflags" @FASTUIDRAW_GLES_release_CFLAGS@"
      elif [ "$api" = "gl" ]; then
          libs=$base_libs" @FASTUIDRAW_GL_release_LIBS@"
-         cflags=$base_cflags" @LIBRARY_GL_release_CFLAGS@"
+         cflags=$base_cflags" @FASTUIDRAW_GL_release_CFLAGS@"
      else
          libs=$base_libs" @FASTUIDRAW_release_LIBS@"
-         cflags=$base_cflags" @LIBRARY_release_CFLAGS@"
+         cflags=$base_cflags" @FASTUIDRAW_release_CFLAGS@"
      fi
 else
      if [ "$api" = "gles" ]; then
          libs=$base_libs" @FASTUIDRAW_GLES_debug_LIBS@"
-         cflags=$base_cflags" @LIBRARY_GLES_debug_CFLAGS@"
+         cflags=$base_cflags" @FASTUIDRAW_GLES_debug_CFLAGS@"
      elif [ "$api" = "gl" ]; then
          libs=$base_libs" @FASTUIDRAW_GL_debug_LIBS@"
-         cflags=$base_cflags" @LIBRARY_GL_debug_CFLAGS@"
+         cflags=$base_cflags" @FASTUIDRAW_GL_debug_CFLAGS@"
      else
          libs=$base_libs" @FASTUIDRAW_debug_LIBS@"
-         cflags=$base_cflags" @LIBRARY_debug_CFLAGS@"
+         cflags=$base_cflags" @FASTUIDRAW_debug_CFLAGS@"
      fi
 fi
 

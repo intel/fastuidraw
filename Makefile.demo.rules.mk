@@ -1,7 +1,7 @@
 DEMO_COMMON_RESOURCE_STRING_SRCS = $(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $(COMMON_DEMO_RESOURCE_STRINGS))
 
 # This is awful. Makes me wish I used cmake.
-DEMO_COMMON_LIBS := $(shell sdl2-config --libs) -lSDL2_image $(LIBRARY_LIBS)
+DEMO_COMMON_LIBS := $(shell sdl2-config --libs) -lSDL2_image $(FASTUIDRAW_LIBS)
 ifeq ($(MINGW_BUILD),1)
   TEMP := $(DEMO_COMMON_LIBS)
   DEMO_COMMON_LIBS := $(subst -mwindows, ,$(TEMP))
@@ -21,7 +21,7 @@ MAKEDEPEND = ./makedepend.sh
 # $2 --> debug or release
 define demobuildrules
 $(eval 
-DEMO_$(2)_CFLAGS_$(1) := $$(DEMO_$(2)_CFLAGS) -Iinc $$(LIBRARY_$(1)_$(2)_CFLAGS) $$(LIBRARY_$(2)_CFLAGS)
+DEMO_$(2)_CFLAGS_$(1) := $$(DEMO_$(2)_CFLAGS) -Iinc $$(FASTUIDRAW_$(1)_$(2)_CFLAGS) $$(FASTUIDRAW_$(2)_CFLAGS)
 DEMO_$(2)_LIBS_$(1) := $$(DEMO_COMMON_LIBS_$(1)) -L. $$(FASTUIDRAW_$(1)_$(2)_LIBS) $$(FASTUIDRAW_$(2)_LIBS)
 build/demo/$(2)/$(1)/%.o: %.cpp
 	@mkdir -p $$(dir $$@)

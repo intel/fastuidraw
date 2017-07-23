@@ -23,7 +23,7 @@ include $(dir)/Rules.mk
 dir := $(d)/gl_backend
 include $(dir)/Rules.mk
 
-LIBRARY_SOURCES += $(call filelist, image.cpp colorstop.cpp colorstop_atlas.cpp path.cpp tessellated_path.cpp)
+FASTUIDRAW_SOURCES += $(call filelist, image.cpp colorstop.cpp colorstop_atlas.cpp path.cpp tessellated_path.cpp)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))

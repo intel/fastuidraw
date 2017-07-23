@@ -8,6 +8,6 @@ Description: FastUIDraw-@TYPE@ is the @TYPE@ version of the base to FastUIDraw w
 Version:
 Requires: freetype2
 Conflicts:
-Cflags: -I${includedir} @LIBRARY_CFLAGS@
+Cflags: -I${includedir} @FASTUIDRAW_CFLAGS@
 Libs: -L${libdir} -lFastUIDraw_@TYPE@ -lm
 Libs.private:

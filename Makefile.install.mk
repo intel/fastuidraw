@@ -10,12 +10,12 @@ fastuidraw-config: fastuidraw-config.in
 	@sed -i 's!@FASTUIDRAW_debug_LIBS@!$(FASTUIDRAW_debug_LIBS)!g' $@
 	@sed -i 's!@FASTUIDRAW_GLES_debug_LIBS@!$(FASTUIDRAW_GLES_debug_LIBS)!g' $@
 	@sed -i 's!@FASTUIDRAW_GL_debug_LIBS@!$(FASTUIDRAW_GL_debug_LIBS)!g' $@
-	@sed -i 's!@LIBRARY_release_CFLAGS@!$(LIBRARY_release_CFLAGS)!g' $@
-	@sed -i 's!@LIBRARY_GLES_release_CFLAGS@!$(LIBRARY_GLES_release_CFLAGS)!g' $@
-	@sed -i 's!@LIBRARY_GL_release_CFLAGS@!$(LIBRARY_GL_release_CFLAGS)!g' $@
-	@sed -i 's!@LIBRARY_debug_CFLAGS@!$(LIBRARY_debug_CFLAGS)!g' $@
-	@sed -i 's!@LIBRARY_GLES_debug_CFLAGS@!$(LIBRARY_GLES_debug_CFLAGS)!g' $@
-	@sed -i 's!@LIBRARY_GL_debug_CFLAGS@!$(LIBRARY_GL_debug_CFLAGS)!g' $@
+	@sed -i 's!@FASTUIDRAW_release_CFLAGS@!$(FASTUIDRAW_release_CFLAGS)!g' $@
+	@sed -i 's!@FASTUIDRAW_GLES_release_CFLAGS@!$(FASTUIDRAW_GLES_release_CFLAGS)!g' $@
+	@sed -i 's!@FASTUIDRAW_GL_release_CFLAGS@!$(FASTUIDRAW_GL_release_CFLAGS)!g' $@
+	@sed -i 's!@FASTUIDRAW_debug_CFLAGS@!$(FASTUIDRAW_debug_CFLAGS)!g' $@
+	@sed -i 's!@FASTUIDRAW_GLES_debug_CFLAGS@!$(FASTUIDRAW_GLES_debug_CFLAGS)!g' $@
+	@sed -i 's!@FASTUIDRAW_GL_debug_CFLAGS@!$(FASTUIDRAW_GL_debug_CFLAGS)!g' $@
 	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $@
 	@sed -i 's!@BUILD_GLES!$(BUILD_GLES)!g' $@
 	@sed -i 's!@BUILD_GL!$(BUILD_GL)!g' $@
@@ -40,8 +40,8 @@ fastuidraw$(2)-$(1).pc: fastuidraw-backend.pc.in fastuidraw-$(1).pc
 	@sed -i 's!@TYPE@!$(1)!g' $$@
 	@sed -i 's!@API@!$(2)!g' $$@
 	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
-	@sed -i 's!@LIBRARY_CFLAGS@!$$(LIBRARY_$(2)_COMMON_CFLAGS) $$(LIBRARY_GL_GLES_$(1)_CFLAGS)!g' $$@
-	@sed -i 's!@LIBRARY_LIBS@!$$(LIBRARY_$(2)_LIBS)!g' $$@
+	@sed -i 's!@FASTUIDRAW_CFLAGS@!$$(FASTUIDRAW_$(2)_COMMON_CFLAGS) $$(FASTUIDRAW_GL_GLES_$(1)_CFLAGS)!g' $$@
+	@sed -i 's!@FASTUIDRAW_LIBS@!$$(FASTUIDRAW_$(2)_LIBS)!g' $$@
 .PHONY:fastuidraw$(2)-$(1).pc
 .SECONDARY: fastuidraw$(2)-$(1).pc
 pkg-config-files: fastuidraw$(2)-$(1).pc
@@ -59,7 +59,7 @@ $(eval fastuidraw-$(1).pc: fastuidraw.pc.in
 	@cp $$< $$@
 	@sed -i 's!@TYPE@!$(1)!g' $$@
 	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
-	@sed -i 's!@LIBRARY_CFLAGS@!$$(LIBRARY_$(1)_BASE_CFLAGS)!g' $$@
+	@sed -i 's!@FASTUIDRAW_CFLAGS@!$$(FASTUIDRAW_$(1)_BASE_CFLAGS)!g' $$@
 .PHONY:fastuidraw-$(1).pc
 .SECONDARY: fastuidraw-$(1).pc
 CLEAN_FILES+=fastuidraw-$(1).pc

@@ -8,6 +8,6 @@ Description: FastUIDraw@API@-@TYPE@ is the @TYPE@ version of the @API@ backend f
 Version:
 Requires: fastuidraw-@TYPE@
 Conflicts:
-Cflags: @LIBRARY_CFLAGS@
-Libs: -L${libdir} -lFastUIDraw@API@_@TYPE@ -lN@API@_@TYPE@ @LIBRARY_LIBS@
+Cflags: @FASTUIDRAW_CFLAGS@
+Libs: -L${libdir} -lFastUIDraw@API@_@TYPE@ -lN@API@_@TYPE@ @FASTUIDRAW_LIBS@
 Libs.private:

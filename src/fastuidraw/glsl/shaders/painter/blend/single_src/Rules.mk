@@ -5,7 +5,7 @@ d		:= $(dir)
 # End standard header
 
 
-LIBRARY_RESOURCE_STRING += $(call filelist, fastuidraw_fall_through.glsl.resource_string)
+FASTUIDRAW_RESOURCE_STRING += $(call filelist, fastuidraw_fall_through.glsl.resource_string)
 
 
 # Begin standard footer

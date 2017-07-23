@@ -5,7 +5,7 @@ d		:= $(dir)
 # End standard header
 
 
-LIBRARY_RESOURCE_STRING += $(call filelist, fastuidraw_fbf_porter_duff_clear.glsl.resource_string \
+FASTUIDRAW_RESOURCE_STRING += $(call filelist, fastuidraw_fbf_porter_duff_clear.glsl.resource_string \
 	fastuidraw_fbf_porter_duff_dst_out.glsl.resource_string \
 	fastuidraw_fbf_porter_duff_src_in.glsl.resource_string \
 	fastuidraw_fbf_porter_duff_dst_atop.glsl.resource_string \

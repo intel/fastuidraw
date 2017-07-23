@@ -7,7 +7,7 @@ d		:= $(dir)
 dir := $(d)/private
 include $(dir)/Rules.mk
 
-LIBRARY_SOURCES += $(call filelist, glyph_atlas.cpp \
+FASTUIDRAW_SOURCES += $(call filelist, glyph_atlas.cpp \
 	glyph_render_data.cpp \
 	glyph_render_data_curve_pair.cpp \
 	glyph_render_data_distance_field.cpp \
