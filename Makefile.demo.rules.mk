@@ -6,38 +6,45 @@ ifeq ($(MINGW_BUILD),1)
   TEMP := $(DEMO_COMMON_LIBS)
   DEMO_COMMON_LIBS := $(subst -mwindows, ,$(TEMP))
 endif
-DEMO_GL_LIBS := $(DEMO_COMMON_LIBS)
-DEMO_GLES_LIBS := $(DEMO_COMMON_LIBS) -lEGL
 
-DEMO_COMMON_CFLAGS = $(LIBRARY_BUILD_WARN_FLAGS) $(LIBRARY_BUILD_INCLUDES_CFLAGS) $(shell sdl2-config --cflags) -Idemos/common
+DEMO_COMMON_LIBS_GL := $(DEMO_COMMON_LIBS)
+DEMO_COMMON_LIBS_GLES := $(DEMO_COMMON_LIBS) -lEGL
 
-DEMO_release_CFLAGS_GL = -O3 -fstrict-aliasing $(DEMO_COMMON_CFLAGS) $(LIBRARY_GL_release_CFLAGS)
-DEMO_release_CFLAGS_GLES = -O3 -fstrict-aliasing $(DEMO_COMMON_CFLAGS) $(LIBRARY_GLES_release_CFLAGS)
-DEMO_debug_CFLAGS_GL = -g $(DEMO_COMMON_CFLAGS) $(LIBRARY_GL_debug_CFLAGS)
-DEMO_debug_CFLAGS_GLES = -g $(DEMO_COMMON_CFLAGS) $(LIBRARY_GLES_debug_CFLAGS)
+DEMO_COMMON_CFLAGS = $(shell sdl2-config --cflags) -Idemos/common
+DEMO_release_CFLAGS = -O3 -fstrict-aliasing $(DEMO_COMMON_CFLAGS)
+DEMO_debug_CFLAGS = -g $(DEMO_COMMON_CFLAGS)
+
 
 MAKEDEPEND = ./makedepend.sh
 
+# $1 --> gl or gles
+# $2 --> debug or release
+define demobuildrules
+$(eval 
+DEMO_$(2)_CFLAGS_$(1) := $$(DEMO_$(2)_CFLAGS) -Iinc $$(LIBRARY_$(1)_$(2)_CFLAGS) $$(LIBRARY_$(2)_CFLAGS)
+DEMO_$(2)_LIBS_$(1) := $$(DEMO_COMMON_LIBS_$(1)) -L. $$(FASTUIDRAW_$(1)_$(2)_LIBS) $$(FASTUIDRAW_$(2)_LIBS)
+build/demo/$(2)/$(1)/%.o: %.cpp
+	@mkdir -p $$(dir $$@)
+	$(CXX) $$(DEMO_$(2)_CFLAGS_$(1)) -c $$< -o $$@
+build/demo/$(2)/$(1)/%.d: %.cpp
+	@mkdir -p $$(dir $$@)
+	@echo Generating $$@
+	@$(MAKEDEPEND) "$(CXX)" "$$(DEMO_$(2)_CFLAGS_$(1))" build/demo/$(2)/$(1) "$$*" "$$<" "$$@"
+)
+endef
+
 # how to build each demo:
 # $1 --> Demo name
-# $2 --> GL or GLES
+# $2 --> gl or gles
 # $3 --> release or debug
 # $4 --> 0: skip targets, otherwise dont skip targets
 define demorule
-$(eval $(3)/$(2)/demos/%.o: demos/%.cpp
-	@mkdir -p $$(dir $$@)
-	$(CXX) $$(DEMO_$(3)_CFLAGS_$(2)) -c $$< -o $$@
-$(3)/$(2)/demos/%.d: demos/%.cpp
-	@mkdir -p $$(dir $$@)
-	@echo Generating $$@
-	@$(MAKEDEPEND) "$$(CXX)" "$$(DEMO_$(3)_CFLAGS_$(2))" $(3)/$(2)/demos "$$*" "$$<" "$$@"
-
-THISDEMO_$(1)_RESOURCE_STRING_SRCS = $$(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $$($(1)_RESOURCE_STRING))
+$(eval THISDEMO_$(1)_RESOURCE_STRING_SRCS = $$(patsubst %.resource_string, string_resources_cpp/%.resource_string.cpp, $$($(1)_RESOURCE_STRING))
 THISDEMO_$(1)_$(2)_$(3)_SOURCES = $$($(1)_SOURCES) $$(THISDEMO_$(1)_RESOURCE_STRING_SRCS) $$(COMMON_DEMO_SOURCES) $$(DEMO_COMMON_RESOURCE_STRING_SRCS)
 THISDEMO_$(1)_$(2)_$(3)_DEPS_RAW = $$(patsubst %.cpp, %.d, $$($(1)_SOURCES) $$(COMMON_DEMO_SOURCES))
 THISDEMO_$(1)_$(2)_$(3)_OBJS_RAW = $$(patsubst %.cpp, %.o, $$(THISDEMO_$(1)_$(2)_$(3)_SOURCES))
-THISDEMO_$(1)_$(2)_$(3)_DEPS = $$(addprefix $(3)/$(2)/, $$(THISDEMO_$(1)_$(2)_$(3)_DEPS_RAW))
-THISDEMO_$(1)_$(2)_$(3)_OBJS = $$(addprefix $(3)/$(2)/, $$(THISDEMO_$(1)_$(2)_$(3)_OBJS_RAW))
+THISDEMO_$(1)_$(2)_$(3)_DEPS = $$(addprefix build/demo/$(3)/$(2)/, $$(THISDEMO_$(1)_$(2)_$(3)_DEPS_RAW))
+THISDEMO_$(1)_$(2)_$(3)_OBJS = $$(addprefix build/demo/$(3)/$(2)/, $$(THISDEMO_$(1)_$(2)_$(3)_OBJS_RAW))
 THISDEMO_$(1)_$(2)_$(3)_EXE = $(1)-$(2)-$(3)
 CLEAN_FILES += $$(THISDEMO_$(1)_$(2)_$(3)_OBJS) $$(THISDEMO_$(1)_$(2)_$(3)_EXE) $$(THISDEMO_$(1)_$(2)_$(3)_EXE).exe
 SUPER_CLEAN_FILES += $$(THISDEMO_$(1)_$(2)_$(3)_DEPS)
@@ -60,16 +67,17 @@ endif
 demos-$(2)-$(3): $$(THISDEMO_$(1)_$(2)_$(3)_EXE)
 DEMO_TARGETLIST += $$(THISDEMO_$(1)_$(2)_$(3)_EXE)
 $$(THISDEMO_$(1)_$(2)_$(3)_EXE): libFastUIDraw$(2)_$(3) $$(THISDEMO_$(1)_$(2)_$(3)_OBJS) $$(THISDEMO_$(1)_$(2)_$(3)_DEPS)
-	$$(CXX) -o $$@ $$(THISDEMO_$(1)_$(2)_$(3)_OBJS) $$(DEMO_$(2)_LIBS) -L. $$(FASTUIDRAW_$(2)_$(3)_LIBS)
+	$$(CXX) -o $$@ $$(THISDEMO_$(1)_$(2)_$(3)_OBJS) $$(DEMO_$(3)_LIBS_$(2))
 endif
 )
 endef
 
-# $1 --> GL or GLES
+# $1 --> gl or gles
 # $2 --> release or debug
 # $3 --> (0: skip build targets, 1: ad build targets)
 define demoset
-$(eval $(foreach demoname,$(DEMOS),$(call demorule,$(demoname),$(1),$(2),$(3)))
+$(eval $(call demobuildrules,$(1),$(2))
+$(foreach demoname,$(DEMOS),$(call demorule,$(demoname),$(1),$(2),$(3)))
 ifeq ($(3),1)
 .PHONY: demos-$(1)-$(2)
 TARGETLIST += demos-$(1)-$(2)
@@ -77,8 +85,8 @@ endif
 )
 endef
 
-# $1 --> GL or GLES
-# $2 --> (0: skip build targets, 1: ad build targets)
+# $1 --> gl or gles
+# $2 --> (0: skip build targets, 1: add build targets)
 define demosapi
 $(eval $(call demoset,$(1),release,$(2))
 $(call demoset,$(1),debug,$(2))
