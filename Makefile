@@ -8,18 +8,15 @@
 # this file, You can obtain one at
 # http://mozilla.org/MPL/2.0/.
 
-# if 1, build/install GL libs on install
-BUILD_GL ?= 1
-
-# if 1, build/install GLES libs on install
-BUILD_GLES ?= 0
-
-#install location
-INSTALL_LOCATION ?= /usr/local
-
 #Init TARGETLIST
 TARGETLIST :=
 
+#Init ENVIRONMENTALDESCRIPTIONS
+ENVIRONMENTALDESCRIPTIONS :=
+
+#install location
+INSTALL_LOCATION ?= /usr/local
+ENVIRONMENTALDESCRIPTIONS += "INSTALL_LOCATION:  provides install location (default /usr/local)"
 # Mark all intermediate files as secondary and precious
 .PRECIOUS:
 .SECONDARY:
@@ -35,11 +32,9 @@ targets:
 	@echo "=============================="
 	@printf "%s\n" $(TARGETLIST)
 	@echo
+	@echo "Environmental variables:"
 	@echo "=============================="
-	@echo
-	@echo "environmental variable BUILD_GL controls if GL backend is a target (1=yes, 0=no)"
-	@echo "environmental variable BUILD_GLES controls if GLES backend is a target (1=yes, 0=no)"
-	@echo "environmental variable INSTALL_LOCATION provides the install location"
+	@printf "%s\n" $(ENVIRONMENTALDESCRIPTIONS)
 	@echo
 .PHONY: targets
 
