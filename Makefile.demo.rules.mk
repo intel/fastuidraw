@@ -53,7 +53,7 @@ THISDEMO_$(1)_$(2)_$(3)_DEPS = $$(addprefix build/demo/$(3)/$(2)/, $$(THISDEMO_$
 THISDEMO_$(1)_$(2)_$(3)_OBJS = $$(addprefix build/demo/$(3)/$(2)/, $$(THISDEMO_$(1)_$(2)_$(3)_OBJS_RAW))
 THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS = $$(THISDEMO_$(1)_$(2)_$(3)_OBJS) $$(THISDEMO_$(1)_$(2)_$(3)_RESOURCE_OBJS)
 THISDEMO_$(1)_$(2)_$(3)_EXE = $(1)-$(2)-$(3)
-CLEAN_FILES += $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS) $$(THISDEMO_$(1)_$(2)_$(3)_EXE) $$(THISDEMO_$(1)_$(2)_$(3)_EXE).exe
+CLEAN_FILES += $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS) $$(THISDEMO_$(1)_$(2)_$(3)_EXE) $$(THISDEMO_$(1)_$(2)_$(3)_EXE).exe $$(THISDEMO_$(1)_RESOURCE_STRING_SRCS)
 SUPER_CLEAN_FILES += $$(THISDEMO_$(1)_$(2)_$(3)_DEPS)
 ifeq ($(4),1)
 ifneq ($(MAKECMDGOALS),clean)
