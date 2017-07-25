@@ -103,3 +103,4 @@ $(call librules,debug)
 libFastUIDraw: libFastUIDraw_debug libFastUIDraw_release
 .PHONY: libFastUIDraw libFastUIDraw_debug libFastUIDraw_release
 TARGETLIST += libFastUIDraw libFastUIDraw_debug libFastUIDraw_release
+all: libFastUIDraw

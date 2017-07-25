@@ -112,3 +112,4 @@ $(call demosapi,GL,$(BUILD_GL))
 $(call demosapi,GLES,$(BUILD_GLES))
 demos: demos-debug demos-release
 TARGETLIST+=demos demos-debug demos-release
+all: demos

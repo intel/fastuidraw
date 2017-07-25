@@ -9,7 +9,7 @@
 # http://mozilla.org/MPL/2.0/.
 
 #Init TARGETLIST
-TARGETLIST :=
+TARGETLIST := all
 
 #Init ENVIRONMENTALDESCRIPTIONS
 ENVIRONMENTALDESCRIPTIONS :=
@@ -37,6 +37,9 @@ targets:
 	@printf "%s\n" $(ENVIRONMENTALDESCRIPTIONS)
 	@echo
 .PHONY: targets
+
+all:
+.PHONY: all
 
 include Makefile.settings.mk
 include Makefile.gl_backend.settings.mk

@@ -111,8 +111,9 @@ libFastUIDraw$(1): libFastUIDraw$(1)_debug libFastUIDraw$(1)_release
 .PHONY: libFastUIDraw$(1)
 .PHONY: libFastUIDraw$(1)_release
 .PHONY: libFastUIDraw$(1)_debug
-TARGETLIST += libN$(1) libN$(1)_debug libN$(1)_release
 libN$(1): libN$(1)_debug libN$(1)_release
+TARGETLIST += libN$(1) libN$(1)_debug libN$(1)_release
+all: libFastUIDraw$(1) libN$(1)
 .PHONY: libN$(1)
 .PHONY: libN$(1)_debug
 .PHONY: libN$(1)_release
