@@ -45,21 +45,19 @@ Building requirements
    - You need
       - for GL, from https://www.opengl.org/registry/: GL/glcorearb.h
       - for GLES, from https://www.khronos.org/registry/gles/: GLES2/gl2.h, GLES2/gl2ext.h, GLES3/gl3.h, GLES3/gl31.h, GLES3/gl32.h, KHR/khrplatform.h
-   - The expected place of those headers is hard-coded to be system
-     headers in the typical location. For Linux this is /usr/include
-     and for MinGW this is /mingw/include. If the headers are located
-     elsewhere on your system, edit Makefile.gl_backend.settings.mk
-     and change GL_INCLUDEPATH (and possibly GL_RAW_HEADER_FILES and/or
-     GLES_RAW_HEADER_FILES) as required by your system.
+   - The expected place of those headers is set by setting the
+     environmental variable GL_INCLUDEPATH; if the value is not set,
+     the build system will guess a value. The name of the header
+     files is controlled by the environmental variables
+     GL_RAW_HEADER_FILES for GL and GLES_RAW_HEADER_FILES for
+     GLES. If a value is not set, reasonable defaults are used. 
  - SDL2 (demos only)
  - doxygen (for documentation)
 
 Building
 ========
-  "make targets" to see all build targets.
-  The following variables control what is built:
-   - BUILD_GL (default value 1). If 1, build libFastUIDrawGL (and demos for GL)
-   - BUILD_GLES (default value 0). If 1, build libFastUIDrawGLES (and demos for GLES)
+  "make targets" to see all build targets and the list of environmental
+  variables that control what is built and how.
 
 Installing
 ==========
@@ -99,5 +97,4 @@ Notes
 Successfully builds under
 =========================
  - Linux
- - MinGW of MSYS (http://www.mingw.org)
  - MinGW64 and MinGW32 of MSYS2 (https://msys2.github.io/)
