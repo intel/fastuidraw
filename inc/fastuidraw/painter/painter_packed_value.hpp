@@ -134,7 +134,7 @@ namespace fastuidraw
     unsigned int
     alignment_packing(void) const
     {
-      return this->m_d->alignment_packing();
+      return this->alignment_packing();
     }
 
     /*!
