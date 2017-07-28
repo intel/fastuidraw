@@ -15,6 +15,7 @@
 #include "ImageLoader.hpp"
 #include "colorstop_command_line.hpp"
 #include "cycle_value.hpp"
+#include "text_helper.hpp"
 
 #include "cell.hpp"
 #include "table.hpp"
@@ -162,7 +163,7 @@ painter_cells(void):
   m_num_cells_x(10, "num_cells_x", "Number of cells across", *this),
   m_num_cells_y(10, "num_cells_y", "Number of cells down", *this),
   m_cell_group_size(1, "cell_group_size", "width and height in number of cells for cell group size", *this),
-  m_font("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "font", "File from which to take font", *this),
+  m_font(default_font(), "font", "File from which to take font", *this),
   m_text_renderer(fastuidraw::curve_pair_glyph,
                   enumerated_string_type<enum fastuidraw::glyph_type>()
                   .add_entry("coverage", fastuidraw::coverage_glyph, "coverage glyphs (i.e. alpha masks)")

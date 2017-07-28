@@ -16,6 +16,7 @@
 #include "colorstop_command_line.hpp"
 #include "cycle_value.hpp"
 #include "ostream_utility.hpp"
+#include "text_helper.hpp"
 
 using namespace fastuidraw;
 
@@ -321,8 +322,7 @@ painter_stroke_test(void):
   m_sub_image_h(-1, "sub_image_h",
                 "sub-image height of sub-image rectange (negative value means no-subimage)",
                 *this),
-  m_font_file("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "font",
-              "File from which to take font", *this),
+  m_font_file(default_font(), "font", "File from which to take font", *this),
   m_join_style(PainterEnums::miter_clip_joins),
   m_cap_style(PainterEnums::square_caps),
   m_close_contour(true),

@@ -447,7 +447,7 @@ pack_data(float SCALE, unsigned int i, Glyph G, vec2 p, vecN<GLuint, 6> &indices
 // glyph_test methods
 glyph_test::
 glyph_test(void):
-  m_font_file("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "font", "font to use", *this),
+  m_font_file(default_font(), "font", "font to use", *this),
   m_font_index(0, "font_index", "face index into font file to use if font file has multiple fonts", *this),
   m_coverage_pixel_size(24, "coverage_pixel_size", "Pixel size at which to create coverage glyphs", *this),
   m_distance_pixel_size(48, "distance_pixel_size", "Pixel size at which to create distance field glyphs", *this),

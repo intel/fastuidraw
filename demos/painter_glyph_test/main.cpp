@@ -496,7 +496,7 @@ glyph_source(vec2 p) const
 // painter_glyph_test methods
 painter_glyph_test::
 painter_glyph_test(void):
-  m_font_path("/usr/share/fonts/truetype", "font_path", "Specifies path in which to search for fonts", *this),
+  m_font_path(default_font_path(), "font_path", "Specifies path in which to search for fonts", *this),
   m_font_style("Book", "font_style", "Specifies the font style", *this),
   m_font_family("DejaVu Sans", "font_family", "Specifies the font family name", *this),
   m_font_bold(false, "font_bold", "if true select a bold font", *this),

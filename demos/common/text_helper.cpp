@@ -215,3 +215,31 @@ add_fonts_from_path(const std::string &filename,
     }
   closedir(dir);
 }
+
+const char*
+default_font(void)
+{
+  #ifdef __WIN32
+    {
+      return "C:/Windows/Fonts/arial.ttf";
+    }
+  #else
+    {
+      return "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
+    }
+  #endif
+}
+
+const char*
+default_font_path(void)
+{
+  #ifdef __WIN32
+    {
+      return "C:/Windows/Fonts";
+    }
+  #else
+    {
+      return "/usr/share/fonts/truetype";
+    }
+  #endif
+}
