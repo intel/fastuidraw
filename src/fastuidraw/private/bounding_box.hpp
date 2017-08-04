@@ -73,6 +73,16 @@ namespace fastuidraw
         }
     }
 
+    template<typename iterator>
+    void
+    union_points(iterator begin, iterator end)
+    {
+      for(; begin != end; ++begin)
+        {
+          union_point(*begin);
+        }
+    }
+
     void
     union_box(const BoundingBox &b)
     {
