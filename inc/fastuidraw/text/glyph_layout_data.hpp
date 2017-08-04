@@ -66,35 +66,38 @@ namespace fastuidraw
     reference_counted_ptr<const FontBase> m_font;
 
     /*!
-      The offset from the pen at which to
-      display the glyph when performing horizontal
-      text layout.
+      The offset (in font coordinates) from the pen
+      at which to display the glyph when performing
+      horizontal text layout.
      */
     vec2 m_horizontal_layout_offset;
 
     /*!
-      The offset from the pen at which to
-      display the glyph when performing horizontal
-      text layout.
+      The offset (in font coordinates) from the pen
+      at which to display the glyph when performing
+      horizontal text layout.
      */
     vec2 m_vertical_layout_offset;
 
     /*!
-      Size at which to draw the glyph
+      Size (in font coordinates) at which to draw
+      the glyph.
      */
     vec2 m_size;
 
     /*!
-      How much to advance the pen after
-      drawing the glyph. The x-coordinate
-      holds the advance when performing
-      layout horizontally and y-coordinate
-      when performing layout vertically.
+      How much (in font coordinates) to advance the pen
+      after drawing the glyph. The x-coordinate holds the
+      advance when performing layout horizontally and
+      the y-coordinate when performing layout vertically.
      */
     vec2 m_advance;
 
     /*!
       The number of font units per EM for the glyph.
+      The conversion from font coordinates to pixel
+      coordiantes is given by:
+      \f$PixelCoordinates = FontCoordinates * PixelSize / m_units_per_EM\f$
      */
     float m_units_per_EM;
   };
