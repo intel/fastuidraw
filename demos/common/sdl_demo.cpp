@@ -55,6 +55,23 @@ namespace
       or v==std::string("-h");
   }
 
+  void
+  reverse_y_of_sdl_event(int h, SDL_Event &ev)
+  {
+    switch(ev.type)
+      {
+	case SDL_MOUSEBUTTONUP:
+	case SDL_MOUSEBUTTONDOWN:
+	  ev.button.y = h - ev.button.y;
+	  break;
+
+      case SDL_MOUSEMOTION:
+	ev.motion.y = h - ev.motion.y;
+	ev.motion.yrel = -ev.motion.yrel;
+	break;
+      }
+  }
+
   void*
   get_proc(const char *proc_name)
   {
@@ -188,6 +205,7 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
 
   m_show_framerate(false, "show_framerate", "if true show the cumulative framerate at end", *this),
   m_gl_logger(nullptr),
+  m_reverse_event_y(false),
   m_window(nullptr),
   m_ctx(nullptr)
 {
@@ -245,8 +263,6 @@ init_sdl(void)
     {
       video_flags = video_flags | SDL_WINDOW_FULLSCREEN;
     }
-
-
 
   video_flags |= SDL_WINDOW_OPENGL;
 
@@ -404,7 +420,6 @@ init_sdl(void)
     }
   fastuidraw::gl_binding::logger(m_gl_logger);
 
-
   if(m_print_gl_info.m_value)
     {
       std::cout << "\nSwapInterval: " << SDL_GL_GetSwapInterval()
@@ -453,6 +468,13 @@ init_sdl(void)
     }
 
   return fastuidraw::routine_success;
+}
+
+void
+sdl_demo::
+reverse_event_y(bool v)
+{
+  m_reverse_event_y = v;
 }
 
 void
@@ -532,6 +554,13 @@ main(int argc, char **argv)
           SDL_Event ev;
           while(m_run_demo && m_handle_events && SDL_PollEvent(&ev))
             {
+	      if(m_reverse_event_y)
+		{
+		  int w, h;
+		  FASTUIDRAWassert(m_window);
+		  SDL_GetWindowSize(m_window, &w, &h);
+		  reverse_y_of_sdl_event(h, ev);
+		}
               handle_event(ev);
             }
         }
