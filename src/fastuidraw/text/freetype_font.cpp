@@ -282,7 +282,7 @@ make_vec2(const FT_Vector &pt)
 {
   fastuidraw::vec2 r;
   r.x() = m_C(pt.x);
-  r.y() = -m_C(pt.y);
+  r.y() = m_C(pt.y);
   return r;
 }
 
