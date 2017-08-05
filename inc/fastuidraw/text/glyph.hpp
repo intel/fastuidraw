@@ -136,7 +136,16 @@ namespace fastuidraw
     upload_to_atlas(void) const;
 
     /*!
-      Returns the path of the Glyph.
+      Returns the path of the Glyph; the path is in
+      coordinates of the glyph with the convention
+      that the y-coordinate increases upwards. If one
+      is rendering the path (for example stroking it),
+      together with drawing of glyphs via a \ref Painter,
+      then one needs to reverse the y-coordinate (for
+      example by Painter::shear(1.0, -1.0)) if the
+      glyphs are rendered with data packed by
+      \ref PainterAttributeDataFillerGlyphs with
+      \ref PainterEnums::y_increases_downwards.
      */
     const Path&
     path(void) const;
