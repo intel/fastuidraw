@@ -91,18 +91,20 @@ protected:
   {}
 
   void
+  reverse_event_y(bool v);
+  
+  void
   end_demo(int return_value)
   {
-    m_run_demo=false;
-    m_return_value=return_value;
+    m_run_demo = false;
+    m_return_value = return_value;
   }
 
   fastuidraw::ivec2
   dimensions(void);
 
-
   void
-  swap_buffers(unsigned int count=1);
+  swap_buffers(unsigned int count = 1);
 
 protected:
   bool m_handle_events;
@@ -145,6 +147,7 @@ private:
   fastuidraw::gl_binding::LoggerBase *m_gl_logger;
   bool m_run_demo;
   int m_return_value;
+  bool m_reverse_event_y;
 
   SDL_Window *m_window;
   SDL_GLContext m_ctx;

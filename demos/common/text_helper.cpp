@@ -58,7 +58,8 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
                       std::vector<fastuidraw::vec2> &positions,
                       std::vector<uint32_t> &character_codes,
                       std::vector<LineData> *line_data,
-                      std::vector<fastuidraw::range_type<float> > *glyph_extents)
+                      std::vector<fastuidraw::range_type<float> > *glyph_extents,
+		      enum fastuidraw::PainterEnums::glyph_orientation orientation)
 {
   std::streampos current_position, end_position;
   unsigned int loc(0);
@@ -104,6 +105,7 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
       float tallest, negative_tallest, offset;
       bool empty_line;
       LineData L;
+      float pen_y_advance;
 
       empty_line = true;
       tallest = 0.0f;
@@ -150,10 +152,20 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
       if(empty_line)
         {
           offset = pixel_size + 1.0f;
+	  pen_y_advance = offset;
         }
       else
         {
-          offset = (tallest - last_negative_tallest);
+	  if(orientation == fastuidraw::PainterEnums::y_increases_downwards)
+	    {
+	      offset = (tallest - last_negative_tallest);
+	      pen_y_advance = offset;
+	    }
+	  else
+	    {
+	      offset = -negative_tallest;
+	      pen_y_advance = tallest - negative_tallest;
+	    }
         }
 
       for(unsigned int i = 0; i < sub_p.size(); ++i)
@@ -169,7 +181,7 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
       L.m_vertical_spread.m_end = pen.y() + offset - negative_tallest;
 
       pen.x() = 0.0f;
-      pen.y() += offset + 1.0f;
+      pen.y() += pen_y_advance + 1.0f;
       loc += line.length();
       last_negative_tallest = negative_tallest;
 
