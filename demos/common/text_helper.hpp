@@ -8,6 +8,7 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/text/glyph_selector.hpp>
 #include <fastuidraw/text/freetype_font.hpp>
+#include <fastuidraw/painter/painter_enums.hpp>
 
 #include "cast_c_array.hpp"
 
@@ -47,7 +48,9 @@ create_formatted_text(std::istream &stream, fastuidraw::GlyphRender renderer,
                       std::vector<fastuidraw::vec2> &positions,
                       std::vector<uint32_t> &character_codes,
                       std::vector<LineData> *line_data = nullptr,
-                      std::vector<fastuidraw::range_type<float> > *glyph_extents = nullptr);
+                      std::vector<fastuidraw::range_type<float> > *glyph_extents = nullptr,
+		      enum fastuidraw::PainterEnums::glyph_orientation orientation
+		      = fastuidraw::PainterEnums::y_increases_downwards);
 
 void
 add_fonts_from_path(const std::string &path,

@@ -33,7 +33,9 @@ protected:
   draw_text(const std::string &text, float pixel_size,
             fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
             fastuidraw::GlyphRender renderer,
-            const fastuidraw::PainterData &draw);
+            const fastuidraw::PainterData &draw,
+	    enum fastuidraw::PainterEnums::glyph_orientation orientation
+	    = fastuidraw::PainterEnums::y_increases_downwards);
 
   fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL> m_image_atlas;
   fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> m_glyph_atlas;
