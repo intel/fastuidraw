@@ -72,6 +72,7 @@ namespace
   {
     uint8_t v;
 
+    dist = fastuidraw::t_min(1.0f, fastuidraw::t_max(0.0f, dist));
     if(outside)
       {
         dist = -dist;
@@ -377,28 +378,24 @@ compute_rendering_data(uint32_t glyph_code,
 
   if(image_sz.x() != 0 && image_sz.y() != 0)
     {
-      const int coeff(8);
-      const int ecms_per_pixel(8);
-      const int pixel_center(ecms_per_pixel / 2);
       const int radius(2);
+      const int coeff(2);
 
       fastuidraw::ivec2 start, step;
       fastuidraw::detail::IntPath int_pixel_path(int_path_ecm,
-                                                 -coeff * fastuidraw::ivec2(layout.m_horizontal_layout_offset * ecms_per_pixel),
-                                                 coeff * fastuidraw::ivec2(ecms_per_pixel, ecms_per_pixel));
+                                                 -coeff * pixel_size * fastuidraw::ivec2(layout.m_horizontal_layout_offset),
+                                                 coeff * fastuidraw::ivec2(pixel_size, pixel_size));
       float max_distance;
       max_distance = (m_render_params.distance_field_max_distance() / 64.0f)
         * static_cast<float>(coeff)
-        * static_cast<float>(ecms_per_pixel)
-        * static_cast<float>(units_per_EM)
-        / static_cast<float>(pixel_size);
+        * static_cast<float>(units_per_EM);
 
       output.resize(image_sz + fastuidraw::ivec2(1, 1));
       std::fill(output.distance_values().begin(), output.distance_values().end(), 0);
 
       fastuidraw::array2d<fastuidraw::detail::IntPath::distance_value> dst_values(image_sz.x(), image_sz.y());
-      start = coeff * fastuidraw::ivec2(pixel_center, pixel_center) + fastuidraw::ivec2(1, 1);
-      step = coeff * fastuidraw::ivec2(ecms_per_pixel * units_per_EM / pixel_size);
+      start = fastuidraw::ivec2(units_per_EM) + fastuidraw::ivec2(1, 1);
+      step = coeff * fastuidraw::ivec2(units_per_EM);
       int_pixel_path.compute_distance_values(start, step, image_sz, radius, dst_values);
 
       for(int y = 0; y < image_sz.y(); ++y)
@@ -414,15 +411,16 @@ compute_rendering_data(uint32_t glyph_code,
               w1 = dst_values(x, y).winding_number(fastuidraw::detail::IntBezierCurve::x_fixed);
               w2 = dst_values(x, y).winding_number(fastuidraw::detail::IntBezierCurve::y_fixed);
 
-              if(w1 != w2)
-                {
-                  std::cout << "glyph_code = " << glyph_code
-                            << ": bad winding at (" << x << ", " << y << "):"
-                            << w1 << " vs. " << w2 << "\n";
-                }
-
               outside = (w1 == 0);
               dst = dst_values(x, y).distance(max_distance) / max_distance;
+              if(w1 != w2)
+                {
+                  /* if the windings do not match, then a curve is going through
+                     the test point of the texel, thus make the distance 0
+                   */
+                  dst = 0.0f;
+                }
+
               v = pixel_value_from_distance(dst, outside);
               location = x + y * (1 + image_sz.x());
               output.distance_values()[location] = v;
