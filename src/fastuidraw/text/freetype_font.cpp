@@ -28,7 +28,6 @@
 #include "../private/array2d.hpp"
 #include "../private/util_private.hpp"
 #include "../private/int_path.hpp"
-#include "../private/util_private_ostream.hpp"
 
 #include <ft2build.h>
 #include FT_OUTLINE_H
@@ -102,9 +101,9 @@ namespace
   public:
     static
     void
-    decompose_to_path(FT_Outline *outline, fastuidraw::detail::IntPath &p, bool print_details = false)
+    decompose_to_path(FT_Outline *outline, fastuidraw::detail::IntPath &p)
     {
-      IntPathCreator datum(p, print_details);
+      IntPathCreator datum(p);
       FT_Outline_Funcs funcs;
 
       funcs.move_to = &ft_outline_move_to;
@@ -113,17 +112,7 @@ namespace
       funcs.cubic_to = &ft_outline_cubic_to;
       funcs.shift = 0;
       funcs.delta = 0;
-      if(print_details)
-        {
-          std::cout << "\n\t{";
-        }
-
       FT_Outline_Decompose(outline, &funcs, &datum);
-
-      if(print_details)
-        {
-          std::cout << "}\n";
-        }
     }
 
     static
@@ -141,9 +130,7 @@ namespace
 
   private:
     explicit
-    IntPathCreator(fastuidraw::detail::IntPath &P, bool print_details):
-      m_num_move_tos(0),
-      m_print_details(print_details),
+    IntPathCreator(fastuidraw::detail::IntPath &P):
       m_path(P)
     {}
 
@@ -154,17 +141,6 @@ namespace
       IntPathCreator *p;
       p = static_cast<IntPathCreator*>(user);
       p->m_path.move_to(fastuidraw::ivec2(pt->x, pt->y));
-
-      if(p->m_print_details)
-        {
-          if(p->m_num_move_tos > 0)
-            {
-          std::cout << "] ";
-            }
-          std::cout << "[" << fastuidraw::ivec2(pt->x, pt->y);
-          ++p->m_num_move_tos;
-        }
-
       return 0;
     }
 
@@ -175,10 +151,6 @@ namespace
       IntPathCreator *p;
       p = static_cast<IntPathCreator*>(user);
       p->m_path.line_to(fastuidraw::ivec2(pt->x, pt->y));
-      if(p->m_print_details)
-        {
-          std::cout << " " << fastuidraw::ivec2(pt->x, pt->y);
-        }
       return 0;
     }
 
@@ -191,11 +163,6 @@ namespace
       p = static_cast<IntPathCreator*>(user);
       p->m_path.conic_to(fastuidraw::ivec2(control_pt->x, control_pt->y),
                          fastuidraw::ivec2(pt->x, pt->y));
-      if(p->m_print_details)
-        {
-          std::cout << " C" << fastuidraw::ivec2(control_pt->x, control_pt->y)
-                    << " " << fastuidraw::ivec2(pt->x, pt->y);
-        }
       return 0;
     }
 
@@ -210,17 +177,9 @@ namespace
       p->m_path.cubic_to(fastuidraw::ivec2(control_pt0->x, control_pt0->y),
                          fastuidraw::ivec2(control_pt1->x, control_pt1->y),
                          fastuidraw::ivec2(pt->x, pt->y));
-      if(p->m_print_details)
-        {
-          std::cout << " C" << fastuidraw::ivec2(control_pt0->x, control_pt0->y)
-                    << " C" << fastuidraw::ivec2(control_pt1->x, control_pt1->y)
-                    << " " << fastuidraw::ivec2(pt->x, pt->y);
-        }
       return 0;
     }
 
-    int m_num_move_tos;
-    bool m_print_details;
     fastuidraw::detail::IntPath &m_path;
   };
 
@@ -387,8 +346,7 @@ compute_rendering_data(uint32_t glyph_code,
                        fastuidraw::Path &path)
 {
   fastuidraw::detail::IntPath int_path_ecm;
-
-  std::cout << "Glyph Code: " << glyph_code;
+  int units_per_EM;
 
   m_mutex.lock();
     common_compute_rendering_data(font_coordinate_converter(),
@@ -396,7 +354,8 @@ compute_rendering_data(uint32_t glyph_code,
                                   | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM
                                   | FT_LOAD_LINEAR_DESIGN,
                                   layout, glyph_code);
-    IntPathCreator::decompose_to_path(&m_face->glyph->outline, int_path_ecm, true);
+    units_per_EM = m_face->units_per_EM;
+    IntPathCreator::decompose_to_path(&m_face->glyph->outline, int_path_ecm);
   m_mutex.unlock();
 
 
@@ -408,63 +367,40 @@ compute_rendering_data(uint32_t glyph_code,
   int_path_ecm.add_to_path(fastuidraw::vec2(0.0f, 0.0f), fastuidraw::vec2(1.0f, 1.0f), &path);
 
   /* compute the step value needed to create the distance field value*/
-  float pixel_size(m_render_params.distance_field_pixel_size());
-  float scale_factor(pixel_size / static_cast<float>(m_face->units_per_EM));
+  int pixel_size(m_render_params.distance_field_pixel_size());
+  float scale_factor(static_cast<float>(pixel_size) / static_cast<float>(units_per_EM));
 
   /* compute how many pixels we need to store the glyph.
    */
   fastuidraw::vec2 image_sz_f(layout.m_size * scale_factor);
-  fastuidraw::ivec2 image_sz(image_sz_f);
-
-  if(floorf(image_sz_f.x()) != image_sz_f.x())
-    {
-      ++image_sz.x();
-    }
-
-  if(floorf(image_sz_f.y()) != image_sz_f.y())
-    {
-      ++image_sz.y();
-    }
-
-  std::cout << "\n\tmin = " << int_path_ecm.bounding_box().min_point()
-            << "\n\tmax = " << int_path_ecm.bounding_box().max_point()
-            << "\n\tscale_factor = " << scale_factor
-            << "\n\timage_size = " << image_sz
-            << "\n\timage_size_f = " << image_sz_f
-            << "\n\tunits_per_EM = " << m_face->units_per_EM
-            << "\n";
+  fastuidraw::ivec2 image_sz(ceilf(image_sz_f.x()), ceilf(image_sz_f.y()));
 
   if(image_sz.x() != 0 && image_sz.y() != 0)
     {
-      const int units_per_pixel(m_face->units_per_EM);
-      const int pixel_center(units_per_pixel / 2);
-      const float units_per_pixel_f(units_per_pixel);
-      const float glyph_scale_factor_f(units_per_pixel_f * scale_factor);
-      const int glyph_scale_factor(glyph_scale_factor_f);
+      const int coeff(8);
+      const int ecms_per_pixel(8);
+      const int pixel_center(ecms_per_pixel / 2);
       const int radius(2);
-
-      /* we want to move the glyph up so that the bounding box is at 0,
-         we do this by just passing glyph_scale_factor * int_path_ecm.bounding_box().min_point()
-         as the offset...
-       */
-      std::cout << "\tglyph_scale_factor_f = " << glyph_scale_factor_f
-                << "\n\tglyph_scale_factor = " << glyph_scale_factor
-                << "\n";
 
       fastuidraw::ivec2 start, step;
       fastuidraw::detail::IntPath int_pixel_path(int_path_ecm,
-                                                 -fastuidraw::ivec2(layout.m_horizontal_layout_offset * glyph_scale_factor_f),
-                                                 fastuidraw::ivec2(glyph_scale_factor, glyph_scale_factor));
+                                                 -coeff * fastuidraw::ivec2(layout.m_horizontal_layout_offset * ecms_per_pixel),
+                                                 coeff * fastuidraw::ivec2(ecms_per_pixel, ecms_per_pixel));
       float max_distance;
-      max_distance = m_render_params.distance_field_max_distance() * static_cast<float>(m_face->units_per_EM) / 64.0f;
+      max_distance = (m_render_params.distance_field_max_distance() / 64.0f)
+        * static_cast<float>(coeff)
+        * static_cast<float>(ecms_per_pixel)
+        * static_cast<float>(units_per_EM)
+        / static_cast<float>(pixel_size);
 
       output.resize(image_sz + fastuidraw::ivec2(1, 1));
       std::fill(output.distance_values().begin(), output.distance_values().end(), 0);
 
       fastuidraw::array2d<fastuidraw::detail::IntPath::distance_value> dst_values(image_sz.x(), image_sz.y());
-      start = fastuidraw::ivec2(pixel_center, pixel_center);
-      step = fastuidraw::ivec2(units_per_pixel, units_per_pixel);
+      start = coeff * fastuidraw::ivec2(pixel_center, pixel_center) + fastuidraw::ivec2(1, 1);
+      step = coeff * fastuidraw::ivec2(ecms_per_pixel * units_per_EM / pixel_size);
       int_pixel_path.compute_distance_values(start, step, image_sz, radius, dst_values);
+
       for(int y = 0; y < image_sz.y(); ++y)
         {
           for(int x = 0; x < image_sz.x(); ++x)
@@ -480,7 +416,8 @@ compute_rendering_data(uint32_t glyph_code,
 
               if(w1 != w2)
                 {
-                  std::cout << "\t\tBad winding at (" << x << ", " << y << "):"
+                  std::cout << "glyph_code = " << glyph_code
+                            << ": bad winding at (" << x << ", " << y << "):"
                             << w1 << " vs. " << w2 << "\n";
                 }
 
