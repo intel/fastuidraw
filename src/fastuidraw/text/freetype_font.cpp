@@ -27,6 +27,8 @@
 #include "private/freetype_curvepair_util.hpp"
 #include "../private/array2d.hpp"
 #include "../private/util_private.hpp"
+#include "../private/int_path.hpp"
+#include "../private/util_private_ostream.hpp"
 
 #include <ft2build.h>
 #include FT_OUTLINE_H
@@ -43,6 +45,16 @@ namespace
     {
       m_factor = static_cast<float>(face->units_per_EM);
       m_factor /= 64.0f * static_cast<float>(pixel_size);
+    }
+
+    font_coordinate_converter(void):
+      m_factor(1.0f)
+    {}
+
+    float
+    factor(void) const
+    {
+      return m_factor;
     }
 
     float
@@ -85,60 +97,131 @@ namespace
     unsigned int m_curve_pair_pixel_size;
   };
 
-  class PathCreator
+  class IntPathCreator
   {
   public:
+    static
+    void
+    decompose_to_path(FT_Outline *outline, fastuidraw::detail::IntPath &p, bool print_details = false)
+    {
+      IntPathCreator datum(p, print_details);
+      FT_Outline_Funcs funcs;
+
+      funcs.move_to = &ft_outline_move_to;
+      funcs.line_to = &ft_outline_line_to;
+      funcs.conic_to = &ft_outline_conic_to;
+      funcs.cubic_to = &ft_outline_cubic_to;
+      funcs.shift = 0;
+      funcs.delta = 0;
+      if(print_details)
+        {
+          std::cout << "\n\t{";
+        }
+
+      FT_Outline_Decompose(outline, &funcs, &datum);
+
+      if(print_details)
+        {
+          std::cout << "}\n";
+        }
+    }
 
     static
     void
-    decompose_to_path(FT_Outline *outline, fastuidraw::Path &p, font_coordinate_converter C);
+    decompose_to_path(FT_Outline *outline, fastuidraw::Path &p,
+                      font_coordinate_converter C)
+    {
+      fastuidraw::detail::IntPath ip;
+
+      decompose_to_path(outline, ip);
+      ip.add_to_path(fastuidraw::vec2(0.0f, 0.0f),
+                     fastuidraw::vec2(C.factor(), C.factor()),
+                     &p);
+    }
 
   private:
-    PathCreator(fastuidraw::Path &p, font_coordinate_converter C);
-
-    void
-    move_to(const FT_Vector *pt);
-
-    void
-    line_to(const FT_Vector *pt);
-
-    void
-    conic_to(const FT_Vector *control_pt,
-             const FT_Vector *pt);
-
-    void
-    cubic_to(const FT_Vector *control_pt1,
-             const FT_Vector *control_pt2,
-             const FT_Vector *pt);
-
-    void
-    send_waiting_commands(bool end_contour);
+    explicit
+    IntPathCreator(fastuidraw::detail::IntPath &P, bool print_details):
+      m_num_move_tos(0),
+      m_print_details(print_details),
+      m_path(P)
+    {}
 
     static
     int
-    ft_outline_move_to(const FT_Vector *pt, void *user);
+    ft_outline_move_to(const FT_Vector *pt, void *user)
+    {
+      IntPathCreator *p;
+      p = static_cast<IntPathCreator*>(user);
+      p->m_path.move_to(fastuidraw::ivec2(pt->x, pt->y));
+
+      if(p->m_print_details)
+        {
+          if(p->m_num_move_tos > 0)
+            {
+          std::cout << "] ";
+            }
+          std::cout << "[" << fastuidraw::ivec2(pt->x, pt->y);
+          ++p->m_num_move_tos;
+        }
+
+      return 0;
+    }
 
     static
     int
-    ft_outline_line_to(const FT_Vector *pt, void *user);
+    ft_outline_line_to(const FT_Vector *pt, void *user)
+    {
+      IntPathCreator *p;
+      p = static_cast<IntPathCreator*>(user);
+      p->m_path.line_to(fastuidraw::ivec2(pt->x, pt->y));
+      if(p->m_print_details)
+        {
+          std::cout << " " << fastuidraw::ivec2(pt->x, pt->y);
+        }
+      return 0;
+    }
 
     static
     int
     ft_outline_conic_to(const FT_Vector *control_pt,
-                        const FT_Vector *pt, void *user);
+                        const FT_Vector *pt, void *user)
+    {
+      IntPathCreator *p;
+      p = static_cast<IntPathCreator*>(user);
+      p->m_path.conic_to(fastuidraw::ivec2(control_pt->x, control_pt->y),
+                         fastuidraw::ivec2(pt->x, pt->y));
+      if(p->m_print_details)
+        {
+          std::cout << " C" << fastuidraw::ivec2(control_pt->x, control_pt->y)
+                    << " " << fastuidraw::ivec2(pt->x, pt->y);
+        }
+      return 0;
+    }
 
     static
     int
-    ft_outline_cubic_to(const FT_Vector *control_pt1,
-                        const FT_Vector *control_pt2,
-                        const FT_Vector *pt, void *user);
+    ft_outline_cubic_to(const FT_Vector *control_pt0,
+                        const FT_Vector *control_pt1,
+                        const FT_Vector *pt, void *user)
+    {
+      IntPathCreator *p;
+      p = static_cast<IntPathCreator*>(user);
+      p->m_path.cubic_to(fastuidraw::ivec2(control_pt0->x, control_pt0->y),
+                         fastuidraw::ivec2(control_pt1->x, control_pt1->y),
+                         fastuidraw::ivec2(pt->x, pt->y));
+      if(p->m_print_details)
+        {
+          std::cout << " C" << fastuidraw::ivec2(control_pt0->x, control_pt0->y)
+                    << " C" << fastuidraw::ivec2(control_pt1->x, control_pt1->y)
+                    << " " << fastuidraw::ivec2(pt->x, pt->y);
+        }
+      return 0;
+    }
 
-    fastuidraw::vec2
-    make_vec2(const FT_Vector &pt);
-
-    fastuidraw::Path &m_path;
-    font_coordinate_converter m_C;
-    std::vector<fastuidraw::vec2> m_waiting_command;
+    int m_num_move_tos;
+    bool m_print_details;
+    fastuidraw::detail::IntPath &m_path;
   };
 
   class FontFreeTypePrivate
@@ -185,146 +268,6 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> m_lib;
     fastuidraw::FontFreeType *m_p;
   };
-}
-
-//////////////////////////////////////////
-// PathCreator methods
-PathCreator::
-PathCreator(fastuidraw::Path &p, font_coordinate_converter C):
-  m_path(p),
-  m_C(C)
-{}
-
-void
-PathCreator::
-move_to(const FT_Vector *pt)
-{
-  send_waiting_commands(true);
-  m_waiting_command.push_back(make_vec2(*pt));
-}
-
-void
-PathCreator::
-line_to(const FT_Vector *pt)
-{
-  send_waiting_commands(false);
-  m_waiting_command.push_back(make_vec2(*pt));
-}
-
-void
-PathCreator::
-conic_to(const FT_Vector *control_pt,
-         const FT_Vector *pt)
-{
-  send_waiting_commands(false);
-  m_waiting_command.push_back(make_vec2(*control_pt));
-  m_waiting_command.push_back(make_vec2(*pt));
-}
-
-void
-PathCreator::
-cubic_to(const FT_Vector *control_pt1,
-         const FT_Vector *control_pt2,
-         const FT_Vector *pt)
-{
-  send_waiting_commands(false);
-  m_waiting_command.push_back(make_vec2(*control_pt1));
-  m_waiting_command.push_back(make_vec2(*control_pt2));
-  m_waiting_command.push_back(make_vec2(*pt));
-}
-
-void
-PathCreator::
-send_waiting_commands(bool end_contour)
-{
-  if(m_waiting_command.empty())
-    {
-      return;
-    }
-
-  for(unsigned int s = 0, ends = m_waiting_command.size() - 1; s < ends; ++s)
-    {
-      m_path << fastuidraw::Path::control_point(m_waiting_command[s]);
-    }
-
-  if(end_contour)
-    {
-      m_path << fastuidraw::Path::contour_end();
-    }
-  else
-    {
-      m_path << m_waiting_command.back();
-    }
-  m_waiting_command.clear();
-}
-
-
-void
-PathCreator::
-decompose_to_path(FT_Outline *outline, fastuidraw::Path &p, font_coordinate_converter C)
-{
-  PathCreator datum(p, C);
-  FT_Outline_Funcs funcs;
-
-  funcs.move_to = &ft_outline_move_to;
-  funcs.line_to = &ft_outline_line_to;
-  funcs.conic_to = &ft_outline_conic_to;
-  funcs.cubic_to = &ft_outline_cubic_to;
-  funcs.shift = 0;
-  funcs.delta = 0;
-  FT_Outline_Decompose(outline, &funcs, &datum);
-  datum.send_waiting_commands(true);
-}
-
-fastuidraw::vec2
-PathCreator::
-make_vec2(const FT_Vector &pt)
-{
-  fastuidraw::vec2 r;
-  r.x() = m_C(pt.x);
-  r.y() = m_C(pt.y);
-  return r;
-}
-
-int
-PathCreator::
-ft_outline_move_to(const FT_Vector *pt, void *user)
-{
-  PathCreator *p;
-  p = static_cast<PathCreator*>(user);
-  p->move_to(pt);
-  return 0;
-}
-
-int
-PathCreator::
-ft_outline_line_to(const FT_Vector *pt, void *user)
-{
-  PathCreator *p;
-  p = static_cast<PathCreator*>(user);
-  p->line_to(pt);
-  return 0;
-}
-
-int
-PathCreator::
-ft_outline_conic_to(const FT_Vector *ct, const FT_Vector *pt, void *user)
-{
-  PathCreator *p;
-  p = static_cast<PathCreator*>(user);
-  p->conic_to(ct, pt);
-  return 0;
-}
-
-int
-PathCreator::
-ft_outline_cubic_to(const FT_Vector *ct1, const FT_Vector *ct2,
-                    const FT_Vector *pt, void *user)
-{
-  PathCreator *p;
-  p = static_cast<PathCreator*>(user);
-  p->cubic_to(ct1, ct2, pt);
-  return 0;
 }
 
 
@@ -376,10 +319,7 @@ common_compute_rendering_data(font_coordinate_converter C, FT_Int32 load_flags,
                               fastuidraw::GlyphLayoutData &output,
                               uint32_t glyph_code)
 {
-  fastuidraw::ivec2 bitmap_sz, bitmap_offset, iadvance;
-
   FT_Load_Glyph(m_face, glyph_code, load_flags);
-
   output.m_size.x() = C(m_face->glyph->metrics.width);
   output.m_size.y() = C(m_face->glyph->metrics.height);
   output.m_horizontal_layout_offset.x() = C(m_face->glyph->metrics.horiBearingX);
@@ -406,7 +346,7 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
 
   FT_Set_Pixel_Sizes(m_face, pixel_size, pixel_size);
   common_compute_rendering_data(C, FT_LOAD_DEFAULT, layout, glyph_code);
-  PathCreator::decompose_to_path(&m_face->glyph->outline, path, C);
+  IntPathCreator::decompose_to_path(&m_face->glyph->outline, path, C);
   FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
 
   bitmap_sz.x() = m_face->glyph->bitmap.width;
@@ -446,55 +386,109 @@ compute_rendering_data(uint32_t glyph_code,
                        fastuidraw::GlyphRenderDataDistanceField &output,
                        fastuidraw::Path &path)
 {
-  unsigned int pixel_size(m_render_params.distance_field_pixel_size());
-  font_coordinate_converter C(m_face, pixel_size);
-  float max_distance(m_render_params.distance_field_max_distance());
-  fastuidraw::ivec2 bitmap_sz, bitmap_offset;
+  fastuidraw::detail::IntPath int_path_ecm;
 
-  std::vector<fastuidraw::detail::point_type> pts;
-  std::ostream *stream_ptr(nullptr);
-  fastuidraw::detail::geometry_data dbg(stream_ptr, pts);
+  std::cout << "Glyph Code: " << glyph_code;
 
   m_mutex.lock();
-
-    FT_Set_Pixel_Sizes(m_face, pixel_size, pixel_size);
-    common_compute_rendering_data(C, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING, layout, glyph_code);
-    PathCreator::decompose_to_path(&m_face->glyph->outline, path, C);
-    FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
-
-    bitmap_sz.x() = m_face->glyph->bitmap.width;
-    bitmap_sz.y() = m_face->glyph->bitmap.rows;
-    bitmap_offset.x() = m_face->glyph->bitmap_left;
-    bitmap_offset.y() = m_face->glyph->bitmap_top - m_face->glyph->bitmap.rows;
-
-    fastuidraw::detail::OutlineData outline_data(m_face->glyph->outline, bitmap_sz, bitmap_offset, dbg);
-
+    common_compute_rendering_data(font_coordinate_converter(),
+                                  FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING
+                                  | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM
+                                  | FT_LOAD_LINEAR_DESIGN,
+                                  layout, glyph_code);
+    IntPathCreator::decompose_to_path(&m_face->glyph->outline, int_path_ecm, true);
   m_mutex.unlock();
 
-  if(bitmap_sz.x() != 0 && bitmap_sz.y() != 0)
+
+  if(int_path_ecm.empty())
     {
-      /* add one pixel slack on glyph
+      return;
+    }
+
+  int_path_ecm.add_to_path(fastuidraw::vec2(0.0f, 0.0f), fastuidraw::vec2(1.0f, 1.0f), &path);
+
+  /* compute the step value needed to create the distance field value*/
+  float pixel_size(m_render_params.distance_field_pixel_size());
+  float scale_factor(pixel_size / static_cast<float>(m_face->units_per_EM));
+
+  /* compute how many pixels we need to store the glyph.
+   */
+  fastuidraw::vec2 image_sz_f(layout.m_size * scale_factor);
+  fastuidraw::ivec2 image_sz(image_sz_f);
+
+  if(floorf(image_sz_f.x()) != image_sz_f.x())
+    {
+      ++image_sz.x();
+    }
+
+  if(floorf(image_sz_f.y()) != image_sz_f.y())
+    {
+      ++image_sz.y();
+    }
+
+  std::cout << "\n\tmin = " << int_path_ecm.bounding_box().min_point()
+            << "\n\tmax = " << int_path_ecm.bounding_box().max_point()
+            << "\n\tscale_factor = " << scale_factor
+            << "\n\timage_size = " << image_sz
+            << "\n\timage_size_f = " << image_sz_f
+            << "\n\tunits_per_EM = " << m_face->units_per_EM
+            << "\n";
+
+  if(image_sz.x() != 0 && image_sz.y() != 0)
+    {
+      const int units_per_pixel(m_face->units_per_EM);
+      const int pixel_center(units_per_pixel / 2);
+      const float units_per_pixel_f(units_per_pixel);
+      const float glyph_scale_factor_f(units_per_pixel_f * scale_factor);
+      const int glyph_scale_factor(glyph_scale_factor_f);
+      const int radius(2);
+
+      /* we want to move the glyph up so that the bounding box is at 0,
+         we do this by just passing glyph_scale_factor * int_path_ecm.bounding_box().min_point()
+         as the offset...
        */
-      output.resize(bitmap_sz + fastuidraw::ivec2(1, 1));
+      std::cout << "\tglyph_scale_factor_f = " << glyph_scale_factor_f
+                << "\n\tglyph_scale_factor = " << glyph_scale_factor
+                << "\n";
+
+      fastuidraw::ivec2 start, step;
+      fastuidraw::detail::IntPath int_pixel_path(int_path_ecm,
+                                                 -fastuidraw::ivec2(layout.m_horizontal_layout_offset * glyph_scale_factor_f),
+                                                 fastuidraw::ivec2(glyph_scale_factor, glyph_scale_factor));
+      float max_distance;
+      max_distance = m_render_params.distance_field_max_distance() * static_cast<float>(m_face->units_per_EM) / 64.0f;
+
+      output.resize(image_sz + fastuidraw::ivec2(1, 1));
       std::fill(output.distance_values().begin(), output.distance_values().end(), 0);
-      fastuidraw::array2d<fastuidraw::detail::distance_return_type> distance_values(bitmap_sz.x(), bitmap_sz.y());
 
-      outline_data.compute_distance_values(distance_values, max_distance, true);
-      for(int y = 0; y < bitmap_sz.y(); ++y)
+      fastuidraw::array2d<fastuidraw::detail::IntPath::distance_value> dst_values(image_sz.x(), image_sz.y());
+      start = fastuidraw::ivec2(pixel_center, pixel_center);
+      step = fastuidraw::ivec2(units_per_pixel, units_per_pixel);
+      int_pixel_path.compute_distance_values(start, step, image_sz, radius, dst_values);
+      for(int y = 0; y < image_sz.y(); ++y)
         {
-          for(int x = 0; x < bitmap_sz.x(); ++x)
+          for(int x = 0; x < image_sz.x(); ++x)
             {
-              int location;
               bool outside;
-              float v0;
+              float dst;
+              uint8_t v;
+              int w1, w2;
+              unsigned int location;
 
-              location = x + y * output.resolution().x();
-              outside = (distance_values(x, y).m_solution_count.winding_number() == 0);
+              w1 = dst_values(x, y).winding_number(fastuidraw::detail::IntBezierCurve::x_fixed);
+              w2 = dst_values(x, y).winding_number(fastuidraw::detail::IntBezierCurve::y_fixed);
 
-              v0 = distance_values(x, y).m_distance.value();
-              v0 = std::min(v0 / max_distance, 1.0f);
+              if(w1 != w2)
+                {
+                  std::cout << "\t\tBad winding at (" << x << ", " << y << "):"
+                            << w1 << " vs. " << w2 << "\n";
+                }
 
-              output.distance_values()[location] = pixel_value_from_distance(v0, outside);
+              outside = (w1 == 0);
+              dst = dst_values(x, y).distance(max_distance) / max_distance;
+              v = pixel_value_from_distance(dst, outside);
+              location = x + y * (1 + image_sz.x());
+              output.distance_values()[location] = v;
             }
         }
     }
@@ -518,7 +512,7 @@ compute_rendering_data(uint32_t glyph_code,
   m_mutex.lock();
     FT_Set_Pixel_Sizes(m_face, pixel_size, pixel_size);
     common_compute_rendering_data(C, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING, layout, glyph_code);
-    PathCreator::decompose_to_path(&m_face->glyph->outline, path, C);
+    IntPathCreator::decompose_to_path(&m_face->glyph->outline, path, C);
     FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
     bitmap_sz.x() = m_face->glyph->bitmap.width;
     bitmap_sz.y() = m_face->glyph->bitmap.rows;

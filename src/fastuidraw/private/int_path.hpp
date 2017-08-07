@@ -65,6 +65,7 @@ namespace fastuidraw
       public:
         int m_multiplicity;
         enum solution_type m_type;
+        reference_counted_ptr<const IntBezierCurve> m_src;
       };
 
       /* returns what coordinate is fixed for a
@@ -114,6 +115,9 @@ namespace fastuidraw
         m_control_pts.push_back(pt1);
         process_control_pts();
       }
+
+      ~IntBezierCurve()
+      {}
 
       enum return_code
       approximate_cubic_with_quadratics(vecN<reference_counted_ptr<IntBezierCurve>, 4> &out_curves) const;
@@ -245,7 +249,7 @@ namespace fastuidraw
         record_distance_value(float v)
         {
           FASTUIDRAWassert(v >= 0.0f);
-          m_distance = (m_distance < 0.0f) ?
+          m_distance = (m_distance >= 0.0f) ?
             t_min(v, m_distance) :
             v;
         }
@@ -268,7 +272,13 @@ namespace fastuidraw
         {
           return (m_distance < 0.0f) ?
             max_distance :
-            m_distance;
+            t_min(max_distance, m_distance);
+        }
+
+        float
+        raw_distance(void) const
+        {
+          return m_distance;
         }
 
         int
@@ -278,7 +288,7 @@ namespace fastuidraw
         }
 
         int
-        winding_number(enum IntBezierCurve::coordinate_type tp) const
+        winding_number(enum IntBezierCurve::coordinate_type tp = IntBezierCurve::x_fixed) const
         {
           return m_winding_numbers[tp];
         }
@@ -323,6 +333,12 @@ namespace fastuidraw
       bounding_box(void) const
       {
         return m_bb;
+      }
+
+      bool
+      empty(void) const
+      {
+        return m_contours.empty();
       }
 
       void

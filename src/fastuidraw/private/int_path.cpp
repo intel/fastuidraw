@@ -1,4 +1,5 @@
 #include "int_path.hpp"
+#include "util_private_ostream.hpp"
 
 namespace
 {
@@ -99,6 +100,14 @@ namespace
     float m_t;
     enum fastuidraw::detail::IntBezierCurve::solution_type m_type;
     int m_multiplicity;
+
+    friend
+    std::ostream&
+    operator<<(std::ostream &str, const poly_solution &obj)
+    {
+      str << "{t = " << obj.m_t << ", # = " << obj.m_multiplicity << "}";
+      return str;
+    }
   };
 
   class poly_solutions
@@ -442,7 +451,8 @@ namespace
   }
 
   void
-  compute_solution_points(const fastuidraw::vecN<std::vector<int>, 2> &curve,
+  compute_solution_points(const fastuidraw::detail::IntBezierCurve *src,
+                          const fastuidraw::vecN<std::vector<int>, 2> &curve,
                           const poly_solutions &solutions,
                           std::vector<fastuidraw::detail::IntBezierCurve::solution_pt> *out_pts)
   {
@@ -457,6 +467,7 @@ namespace
         T.m_t = S.m_t;
         T.m_p = p;
         T.m_p_t = p_t;
+        T.m_src = src;
         out_pts->push_back(T);
       }
   }
@@ -564,7 +575,7 @@ compute_derivatives_cancel_pts(void)
   poly_solutions solutions;
   solve_polynomial(sum, within_0_1, &solutions);
   solve_polynomial(difference, within_0_1, &solutions);
-  compute_solution_points(m_as_polynomial, solutions, &m_derivatives_cancel);
+  compute_solution_points(nullptr, m_as_polynomial, solutions, &m_derivatives_cancel);
 }
 
 enum fastuidraw::return_code
@@ -657,17 +668,23 @@ compute_line_intersection(int pt, enum coordinate_type line_type,
   vecN<int, 4> work_room;
   c_array<int> tmp(work_room.c_ptr(), m_as_polynomial[line_type].size());
   poly_solutions solutions;
+  int coord(fixed_coordinate(line_type));
+
+  if(degree() == 1
+     && m_control_pts.front()[coord] == pt
+     && m_control_pts.back()[coord] == pt)
+    {
+      return;
+    }
 
   /* if x-fixed, means vertical line at x = pt,
      which means we want to know when curve has x = pt,
      thus we want the curve's x-polynomial
    */
-  int coord(fixed_coordinate(line_type));
   std::copy(m_as_polynomial[coord].begin(), m_as_polynomial[coord].end(), tmp.begin());
   tmp[0] -= pt;
-
   solve_polynomial(tmp, solution_types_accepted, &solutions);
-  compute_solution_points(m_as_polynomial, solutions, out_value);
+  compute_solution_points(this, m_as_polynomial, solutions, out_value);
 }
 
 ////////////////////////////////////
@@ -798,8 +815,8 @@ compute_distance_values(const ivec2 &start, const ivec2 &step, const ivec2 &coun
      then just count.x (for 1) plus count.y (for 2). The items
      from (3) and (4) are already stored in IntBezierCurve
    */
-  compute_outline_point_values(start, step, count, radius, dst);
-  compute_derivative_cancel_values(start, step, count, radius, dst);
+  //compute_outline_point_values(start, step, count, radius, dst);
+  //compute_derivative_cancel_values(start, step, count, radius, dst);
   compute_fixed_line_values(start, step, count, dst);
 }
 
@@ -974,7 +991,7 @@ compute_winding_values(enum IntBezierCurve::coordinate_type tp, int c,
       p = static_cast<float>(start + step * v);
 
       /* update the winding number to the last intersection before p */
-      for(;idx < end_idx && p < L[idx].m_p[varying_coord]; ++idx)
+      for(;idx < end_idx && L[idx].m_p[varying_coord] < p; ++idx)
         {
           /* should we disregard solutions with even multiplicity? */
           if(L[idx].m_p_t[fixed_coord] > 0)
