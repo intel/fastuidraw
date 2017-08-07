@@ -494,6 +494,21 @@ namespace
 
 /////////////////////////////////////
 // fastuidraw::detail::IntBezierCurve methods
+fastuidraw::detail::IntBezierCurve::
+IntBezierCurve(const IntBezierCurve &curve,
+               const ivec2 &offset,
+               const ivec2 &scale)
+{
+  m_control_pts.reserve(curve.m_control_pts.size());
+  for(const ivec2 &in_pt : curve.m_control_pts)
+    {
+      ivec2 p;
+      p = offset + scale * in_pt;
+      m_control_pts.push_back(p);
+    }
+  process_control_pts();
+}
+
 void
 fastuidraw::detail::IntBezierCurve::
 process_control_pts(void)
@@ -505,14 +520,15 @@ process_control_pts(void)
    */
   if(m_control_pts.size() == 3)
     {
-      ivec2 p1, p2;
+      ivec2 p1, p2, p2orig;
       p1 = m_control_pts[1] - m_control_pts[0];
       p2 = m_control_pts[2] - m_control_pts[0];
+      p2orig = m_control_pts[2];
 
       if(p1.x() * p2.y() == p2.x() * p1.y())
         {
           m_control_pts.pop_back();
-          m_control_pts[1] = m_control_pts[0] + p2;
+          m_control_pts[1] = p2orig;
         }
     }
 
@@ -654,8 +670,60 @@ compute_line_intersection(int pt, enum coordinate_type line_type,
   compute_solution_points(m_as_polynomial, solutions, out_value);
 }
 
+////////////////////////////////////
+// fastuidraw::detail::IntContour methods
+fastuidraw::detail::IntContour::
+IntContour(const IntContour &contour,
+           const ivec2 &offset,
+           const ivec2 &scale)
+{
+  m_curves.reserve(contour.m_curves.size());
+  for(const reference_counted_ptr<const IntBezierCurve> &curve : contour.m_curves)
+    {
+      reference_counted_ptr<const IntBezierCurve> p;
+      p = FASTUIDRAWnew IntBezierCurve(*curve, offset, scale);
+      m_curves.push_back(p);
+    }
+}
+
 //////////////////////////////////////
 // fastuidraw::detail::IntPath methods
+fastuidraw::detail::IntPath::
+IntPath(const IntPath &path, const ivec2 &offset, const ivec2 &scale):
+  m_bb(offset + path.m_bb.min_point() * scale,
+       offset + path.m_bb.max_point() * scale)
+{
+  m_contours.reserve(path.m_contours.size());
+  for(const IntContour &contour : path.m_contours)
+    {
+      m_contours.push_back(IntContour(contour, offset, scale));
+    }
+}
+
+void
+fastuidraw::detail::IntPath::
+add_to_path(const vec2 &offset, const vec2 &scale, Path *dst) const
+{
+  for(const IntContour &contour : m_contours)
+    {
+      const std::vector<reference_counted_ptr<const IntBezierCurve> > &curves(contour.curves());
+      for(const reference_counted_ptr<const IntBezierCurve> &curve : curves)
+        {
+          const_c_array<ivec2> pts;
+
+          pts = curve->control_pts().sub_array(0, curve->control_pts().size() - 1);
+          *dst << offset + scale * vec2(pts.front());
+          pts = pts.sub_array(1);
+          while(!pts.empty())
+            {
+              *dst << Path::control_point(offset + scale * vec2(pts.front()));
+              pts = pts.sub_array(1);
+            }
+        }
+      *dst << Path::contour_end();
+    }
+}
+
 void
 fastuidraw::detail::IntPath::
 move_to(const ivec2 &pt)

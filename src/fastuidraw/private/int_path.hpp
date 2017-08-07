@@ -87,6 +87,10 @@ namespace fastuidraw
         return 1 - fixed_coordinate(tp);
       }
 
+      IntBezierCurve(const IntBezierCurve &curve,
+                     const ivec2 &offset,
+                     const ivec2 &scale);
+
       IntBezierCurve(const ivec2 &pt0, const ivec2 &pt1)
       {
         m_control_pts.push_back(pt0);
@@ -184,6 +188,13 @@ namespace fastuidraw
     class IntContour
     {
     public:
+      IntContour(void)
+      {}
+
+      IntContour(const IntContour &contour,
+                 const ivec2 &offset,
+                 const ivec2 &scale);
+
       void
       add_curve(const reference_counted_ptr<const IntBezierCurve> &curve)
       {
@@ -289,6 +300,13 @@ namespace fastuidraw
         vecN<int, 2> m_winding_numbers;
       };
 
+      IntPath(void)
+      {}
+
+      IntPath(const IntPath &path,
+              const ivec2 &offset,
+              const ivec2 &scale);
+
       void
       move_to(const ivec2 &pt);
 
@@ -306,6 +324,9 @@ namespace fastuidraw
       {
         return m_bb;
       }
+
+      void
+      add_to_path(const vec2 &offset, const vec2 &scale, Path *dst) const;
 
       /*
         Compute distance_value for the domain
