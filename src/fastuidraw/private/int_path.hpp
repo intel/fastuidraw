@@ -87,13 +87,6 @@ namespace fastuidraw
         return 1 - fixed_coordinate(tp);
       }
 
-      explicit
-      IntBezierCurve(const_c_array<ivec2> pcontrol_pts):
-        m_control_pts(pcontrol_pts.begin(), pcontrol_pts.end())
-      {
-        process_control_pts();
-      }
-
       IntBezierCurve(const ivec2 &pt0, const ivec2 &pt1)
       {
         m_control_pts.push_back(pt0);
@@ -154,6 +147,12 @@ namespace fastuidraw
         return m_control_pts.size() - 1;
       }
 
+      const std::vector<solution_pt>&
+      derivatives_cancel(void) const
+      {
+        return m_derivatives_cancel;
+      }
+
       /*
         \param pt fixed value of line
         \param line_type if line if vertical (x-fixed) or horizontal (y-fixed)
@@ -173,15 +172,8 @@ namespace fastuidraw
       void
       compute_derivatives_cancel_pts(void);
 
-      void
-      compute_derivative_zero_pts(void);
-
       std::vector<ivec2> m_control_pts;
       vecN<std::vector<int>, 2> m_as_polynomial;
-
-      // [0] --> dx/dt is 0
-      // [1] --> dy/dt is 0
-      vecN<std::vector<solution_pt>, 2> m_derivative_zero;
 
       // where dx/dt +- dy/dt = 0
       std::vector<solution_pt> m_derivatives_cancel;
@@ -207,10 +199,10 @@ namespace fastuidraw
           && IntBezierCurve::are_ordered_neighbors(*m_curves.back(), *m_curves.front());
       }
 
-      const_c_array<reference_counted_ptr<const IntBezierCurve> >
+      const std::vector<reference_counted_ptr<const IntBezierCurve> >&
       curves(void) const
       {
-        return fastuidraw::make_c_array(m_curves);
+        return m_curves;
       }
 
     private:
@@ -224,7 +216,7 @@ namespace fastuidraw
       class distance_value
       {
       public:
-        enum
+        enum winding_ray_t
           {
             from_pt_to_x_negative_infinity,
             from_pt_to_x_positive_infinity,
@@ -234,17 +226,67 @@ namespace fastuidraw
 
         distance_value(void):
           m_distance(-1.0f),
-          m_winding_numbers(0, 0, 0, 0)
+          m_ray_intersection_counts(0, 0, 0, 0),
+          m_winding_numbers(0, 0)
         {}
 
+        void
+        record_distance_value(float v)
+        {
+          FASTUIDRAWassert(v >= 0.0f);
+          m_distance = (m_distance < 0.0f) ?
+            t_min(v, m_distance) :
+            v;
+        }
+
+        void
+        increment_ray_intersection_count(enum winding_ray_t tp, int mult)
+        {
+          FASTUIDRAWassert(mult >= 0);
+          m_ray_intersection_counts[tp] += mult;
+        }
+
+        void
+        set_winding_number(enum IntBezierCurve::coordinate_type tp, int w)
+        {
+          m_winding_numbers[tp] = w;
+        }
+
+        float
+        distance(float max_distance) const
+        {
+          return (m_distance < 0.0f) ?
+            max_distance :
+            m_distance;
+        }
+
+        int
+        ray_intersection_count(enum winding_ray_t tp) const
+        {
+          return m_ray_intersection_counts[tp];
+        }
+
+        int
+        winding_number(enum IntBezierCurve::coordinate_type tp) const
+        {
+          return m_winding_numbers[tp];
+        }
+
+      private:
         /* unsigned distance in IntPath coordinates,
            a negative value indicates value is not
            assigned
         */
         float m_distance;
 
-        // winding numbers computed from rays
-        vecN<int, 4> m_winding_numbers;
+        /* number of intersection (counted with multiplicity)
+           of a ray agains the path.
+         */
+        vecN<int, 4> m_ray_intersection_counts;
+
+        /* winding number computed from horizontal or vertical lines
+         */
+        vecN<int, 2> m_winding_numbers;
       };
 
       void
@@ -269,14 +311,34 @@ namespace fastuidraw
         Compute distance_value for the domain
              D = { (x(i), y(j)) : 0 <= i < count.x(), 0 <= j < count.y() }
         where
-             x(i) = bounding_box().min_point().x() + step.x() * i
-             y(j) = bounding_box().min_point().y() + step.y() * j
+             x(i) = start.x() + step.x() * i
+             y(j) = start.y() + step.y() * j
       */
       void
-      compute_distance_values(const ivec2 &step, const ivec2 &count,
-                              array2d<distance_value> &out_values);
+      compute_distance_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                              int radius, array2d<distance_value> &out_values) const;
 
     private:
+      void
+      compute_outline_point_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                                   int radius, array2d<distance_value> &dst) const;
+      void
+      compute_derivative_cancel_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                                       int radius, array2d<distance_value> &dst) const;
+      void
+      compute_fixed_line_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                                array2d<distance_value> &dst) const;
+      void
+      compute_fixed_line_values(enum IntBezierCurve::coordinate_type tp,
+                                std::vector<std::vector<IntBezierCurve::solution_pt> > &work_room,
+                                const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                                array2d<distance_value> &dst) const;
+      void
+      compute_winding_values(enum IntBezierCurve::coordinate_type tp, int c,
+                             const std::vector<IntBezierCurve::solution_pt> &L,
+                             int start, int step, int count,
+                             array2d<distance_value> &dst) const;
+
       fastuidraw::ivec2 m_last_pt;
       std::vector<IntContour> m_contours;
       BoundingBox<int> m_bb;

@@ -48,6 +48,51 @@ namespace
       }
   }
 
+  void
+  record_distance_value_from_canidate(const fastuidraw::ivec2 &p, int radius,
+                                      const fastuidraw::ivec2 &start,
+                                      const fastuidraw::ivec2 &step,
+                                      const fastuidraw::ivec2 &count,
+                                      fastuidraw::array2d<fastuidraw::detail::IntPath::distance_value> &dst)
+  {
+    for(int x = fastuidraw::t_max(0, p.x() - radius),
+          maxx = fastuidraw::t_min(count.x(), p.x() + radius);
+        x < maxx; ++x)
+      {
+        for(int y = fastuidraw::t_max(0, p.y() - radius),
+              maxy = fastuidraw::t_min(count.y(), p.y() + radius);
+            y < maxy; ++y)
+          {
+            int v;
+
+            v = fastuidraw::t_abs(start.x() + x * step.x() - p.x())
+              + fastuidraw::t_abs(start.y() + y * step.y() - p.y());
+            dst(x, y).record_distance_value(static_cast<float>(v));
+          }
+      }
+  }
+
+  class CompareSolutions
+  {
+  public:
+    explicit
+    CompareSolutions(int coord):
+      m_coord(coord)
+    {
+      FASTUIDRAWassert(m_coord == 0 || m_coord == 1);
+    }
+
+    bool
+    operator()(const fastuidraw::detail::IntBezierCurve::solution_pt &lhs,
+               const fastuidraw::detail::IntBezierCurve::solution_pt &rhs) const
+    {
+      return lhs.m_p[m_coord] < rhs.m_p[m_coord];
+    }
+
+  private:
+    int m_coord;
+  };
+
   class poly_solution
   {
   public:
@@ -474,7 +519,6 @@ process_control_pts(void)
   m_bb.union_points(m_control_pts.begin(), m_control_pts.end());
   generate_polynomial_from_bezier(make_c_array(m_control_pts), m_as_polynomial);
   compute_derivatives_cancel_pts();
-  compute_derivative_zero_pts();
 }
 
 void
@@ -505,34 +549,6 @@ compute_derivatives_cancel_pts(void)
   solve_polynomial(sum, within_0_1, &solutions);
   solve_polynomial(difference, within_0_1, &solutions);
   compute_solution_points(m_as_polynomial, solutions, &m_derivatives_cancel);
-}
-
-void
-fastuidraw::detail::IntBezierCurve::
-compute_derivative_zero_pts(void)
-{
-  if(degree() < 2)
-    {
-      return;
-    }
-
-  /* compute where dx/dt or dy/dt are zero;
-   */
-  for(int coord = 0; coord < 2; ++coord)
-    {
-      poly_solutions solutions;
-      vecN<int, 3> work_room;
-      c_array<int> poly_to_solve(work_room);
-
-      poly_to_solve = poly_to_solve.sub_array(0,  m_as_polynomial[coord].size() - 1);
-      for(int k = 1, end_k = m_as_polynomial[coord].size(); k < end_k; ++k)
-        {
-          poly_to_solve[k - 1] = k * m_as_polynomial[coord][k];
-        }
-
-      solve_polynomial(poly_to_solve, within_0_1, &solutions);
-      compute_solution_points(m_as_polynomial, solutions, &m_derivative_zero[coord]);
-    }
 }
 
 enum fastuidraw::return_code
@@ -691,8 +707,8 @@ cubic_to(const ivec2 &control_pt0, const ivec2 &control_pt1, const ivec2 &pt)
 
 void
 fastuidraw::detail::IntPath::
-compute_distance_values(const ivec2 &step, const ivec2 &count,
-                        array2d<distance_value> &out_values)
+compute_distance_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                        int radius, array2d<distance_value> &dst) const
 {
   /* We are computing the L1-distance from the path. For a given
      curve C, that value is given by
@@ -714,4 +730,195 @@ compute_distance_values(const ivec2 &step, const ivec2 &count,
      then just count.x (for 1) plus count.y (for 2). The items
      from (3) and (4) are already stored in IntBezierCurve
    */
+  compute_outline_point_values(start, step, count, radius, dst);
+  compute_derivative_cancel_values(start, step, count, radius, dst);
+  compute_fixed_line_values(start, step, count, dst);
+}
+
+void
+fastuidraw::detail::IntPath::
+compute_outline_point_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                             int radius, array2d<distance_value> &dst) const
+{
+  for(const IntContour &contour: m_contours)
+    {
+      const std::vector<reference_counted_ptr<const IntBezierCurve> > &curves(contour.curves());
+      for(const reference_counted_ptr<const IntBezierCurve> &curve : curves)
+        {
+          record_distance_value_from_canidate(curve->control_pts().front(),
+                                              radius, start, step, count, dst);
+        }
+    }
+}
+
+void
+fastuidraw::detail::IntPath::
+compute_derivative_cancel_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                                 int radius, array2d<distance_value> &dst) const
+{
+  for(const IntContour &contour: m_contours)
+    {
+      const std::vector<reference_counted_ptr<const IntBezierCurve> > &curves(contour.curves());
+      for(const reference_counted_ptr<const IntBezierCurve> &curve : curves)
+        {
+          const std::vector<IntBezierCurve::solution_pt> &derivatives_cancel(curve->derivatives_cancel());
+          for(const IntBezierCurve::solution_pt &S : derivatives_cancel)
+            {
+              ivec2 p(S.m_p.x(), S.m_p.y());
+              record_distance_value_from_canidate(p, radius, start, step, count, dst);
+            }
+        }
+    }
+}
+
+void
+fastuidraw::detail::IntPath::
+compute_fixed_line_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                          array2d<distance_value> &dst) const
+{
+  std::vector<std::vector<IntBezierCurve::solution_pt> > work_room;
+
+  work_room.resize(t_max(count.x(), count.y()));
+  compute_fixed_line_values(IntBezierCurve::x_fixed, work_room, start, step, count, dst);
+  compute_fixed_line_values(IntBezierCurve::y_fixed, work_room, start, step, count, dst);
+}
+
+
+void
+fastuidraw::detail::IntPath::
+compute_fixed_line_values(enum IntBezierCurve::coordinate_type tp,
+                          std::vector<std::vector<IntBezierCurve::solution_pt> > &work_room,
+                          const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                          array2d<distance_value> &dst) const
+{
+  enum distance_value::winding_ray_t ray_types[2][2] =
+    {
+      {distance_value::from_pt_to_y_negative_infinity, distance_value::from_pt_to_y_positive_infinity}, //fixed-coordinate 0
+      {distance_value::from_pt_to_x_negative_infinity, distance_value::from_pt_to_x_positive_infinity}, //fixed-coordinate 1
+    };
+
+  int fixed_coord(IntBezierCurve::fixed_coordinate(tp));
+  int varying_coord(IntBezierCurve::varying_coordinate(tp));
+  for(int i = 0; i < count[fixed_coord]; ++i)
+    {
+      work_room[i].clear();
+    }
+
+  /* record the solutions for each fixed line
+   */
+  for(const IntContour &contour: m_contours)
+    {
+      const std::vector<reference_counted_ptr<const IntBezierCurve> > &curves(contour.curves());
+      for(const reference_counted_ptr<const IntBezierCurve> &curve : curves)
+        {
+          BoundingBox<int> bb;
+          int cstart, cend;
+
+          bb = curve->bounding_box();
+          FASTUIDRAWassert(!bb.empty());
+
+          cstart = t_max(bb.min_point()[fixed_coord] / step[fixed_coord] - 1, 0);
+          cend = t_min(bb.max_point()[fixed_coord] / step[fixed_coord] + 1, count[fixed_coord]);
+          for(int c = cstart; c < cend; ++c)
+            {
+              int v;
+              v = start[fixed_coord] + c * step[fixed_coord];
+              curve->compute_line_intersection(v, tp, &work_room[c], IntBezierCurve::within_0_1);
+            }
+        }
+    }
+
+  /* now for each line, do the distance computation along the line.
+   */
+  for(int c = 0; c < count[fixed_coord]; ++c)
+    {
+      std::vector<IntBezierCurve::solution_pt> &L(work_room[c]);
+      int total_cnt(0);
+
+      /* sort by the value in the varying coordinate
+       */
+      std::sort(L.begin(), L.end(), CompareSolutions(varying_coord));
+      for(const IntBezierCurve::solution_pt &S : L)
+        {
+          FASTUIDRAWassert(S.m_multiplicity > 0);
+          total_cnt += S.m_multiplicity;
+        }
+
+      for(int v = 0, current_cnt = 0, current_idx = 0, sz = L.size();
+          v < count[varying_coord]; ++v)
+        {
+          ivec2 pixel;
+          float p;
+          int prev_idx;
+
+          p = static_cast<float>(start[varying_coord] + step[varying_coord] * v);
+          pixel[fixed_coord] = c;
+          pixel[varying_coord] = v;
+
+          prev_idx = current_idx;
+
+          /* advance to the next along the line L just after p
+           */
+          while(current_idx < sz && L[current_idx].m_p[varying_coord] < p)
+            {
+              FASTUIDRAWassert(L[current_idx].m_multiplicity > 0);
+              current_cnt += L[current_idx].m_multiplicity;
+              ++current_idx;
+            }
+
+          /* update the distance values for all those points between
+             the point on the line we were at before the loop start
+             and the point on the line we are at now
+           */
+          for(int idx = t_max(0, prev_idx - 1), end_idx = t_min(sz, current_idx + 2);
+              idx < end_idx; ++idx)
+            {
+              dst(pixel.x(), pixel.y()).record_distance_value(t_abs(p - L[idx].m_p[varying_coord]));
+            }
+
+          /* update the ray-intersection counts */
+          dst(pixel.x(), pixel.y()).increment_ray_intersection_count(ray_types[fixed_coord][0], current_cnt);
+          dst(pixel.x(), pixel.y()).increment_ray_intersection_count(ray_types[fixed_coord][1], total_cnt - current_cnt);
+        }
+
+      compute_winding_values(tp, c, L, start[varying_coord], step[varying_coord], count[varying_coord], dst);
+    }
+}
+
+void
+fastuidraw::detail::IntPath::
+compute_winding_values(enum IntBezierCurve::coordinate_type tp, int c,
+                       const std::vector<IntBezierCurve::solution_pt> &L,
+                       int start, int step, int count,
+                       array2d<distance_value> &dst) const
+{
+  int v, winding;
+  unsigned int idx, end_idx;
+  int varying_coord(IntBezierCurve::varying_coordinate(tp));
+  int fixed_coord(IntBezierCurve::fixed_coordinate(tp));
+  ivec2 pixel;
+
+  pixel[fixed_coord] = c;
+
+  for(winding = 0, v = 0, idx = 0, end_idx = L.size(); v < count; ++v)
+    {
+      float p;
+      p = static_cast<float>(start + step * v);
+
+      /* update the winding number to the last intersection before p */
+      for(;idx < end_idx && p < L[idx].m_p[varying_coord]; ++idx)
+        {
+          /* should we disregard solutions with even multiplicity? */
+          if(L[idx].m_p_t[fixed_coord] > 0)
+            {
+              winding += L[idx].m_multiplicity;
+            }
+          else
+            {
+              winding -= L[idx].m_multiplicity;
+            }
+        }
+      pixel[varying_coord] = v;
+      dst(pixel.x(), pixel.y()).set_winding_number(tp, winding);
+    }
 }
