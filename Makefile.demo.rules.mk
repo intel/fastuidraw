@@ -52,8 +52,7 @@ THISDEMO_$(1)_$(2)_$(3)_OBJS_RAW = $$(patsubst %.cpp, %.o, $$(THISDEMO_$(1)_$(2)
 THISDEMO_$(1)_$(2)_$(3)_DEPS = $$(addprefix build/demo/$(3)/$(2)/, $$(THISDEMO_$(1)_$(2)_$(3)_DEPS_RAW))
 THISDEMO_$(1)_$(2)_$(3)_OBJS = $$(addprefix build/demo/$(3)/$(2)/, $$(THISDEMO_$(1)_$(2)_$(3)_OBJS_RAW))
 THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS = $$(THISDEMO_$(1)_$(2)_$(3)_OBJS) $$(THISDEMO_$(1)_$(2)_$(3)_RESOURCE_OBJS)
-THISDEMO_$(1)_$(2)_$(3)_EXE = $(1)-$(2)-$(3)
-CLEAN_FILES += $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS) $$(THISDEMO_$(1)_$(2)_$(3)_EXE) $$(THISDEMO_$(1)_$(2)_$(3)_EXE).exe $$(THISDEMO_$(1)_RESOURCE_STRING_SRCS)
+CLEAN_FILES += $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS) $(1)-$(2)-$(3) $(1)-$(2)-$(3).exe $$(THISDEMO_$(1)_RESOURCE_STRING_SRCS)
 SUPER_CLEAN_FILES += $$(THISDEMO_$(1)_$(2)_$(3)_DEPS)
 ifeq ($(4),1)
 ifneq ($(MAKECMDGOALS),clean)
@@ -71,9 +70,14 @@ endif
 endif
 endif
 endif
-demos-$(2)-$(3): $$(THISDEMO_$(1)_$(2)_$(3)_EXE)
-DEMO_TARGETLIST += $$(THISDEMO_$(1)_$(2)_$(3)_EXE)
-$$(THISDEMO_$(1)_$(2)_$(3)_EXE): libFastUIDraw$(2)_$(3) $$(THISDEMO_$(1)_RESOURCE_STRING_SRCS) $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS) $$(THISDEMO_$(1)_$(2)_$(3)_DEPS)
+demos-$(2)-$(3): $(1)-$(2)-$(3)
+.PHONY: demos-$(2)-$(3)
+$(1)-$(2): $(1)-$(2)-$(3)
+.PHONY: $(1)_$(2)
+$(1): $(1)-$(2)
+.PHONY: $(1)
+DEMO_TARGETLIST += $(1)-$(2)-$(3)
+$(1)-$(2)-$(3): libFastUIDraw$(2)_$(3) $$(THISDEMO_$(1)_RESOURCE_STRING_SRCS) $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS) $$(THISDEMO_$(1)_$(2)_$(3)_DEPS)
 	$$(CXX) -o $$@ $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS) $$(DEMO_$(3)_LIBS_$(2))
 endif
 )
