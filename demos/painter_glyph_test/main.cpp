@@ -270,7 +270,7 @@ init(const reference_counted_ptr<const FontFreeType> &font,
                                      t_max(0.0f, layout.m_horizontal_layout_offset.x()) + layout.m_size.x());
 
       m_glyph_positions[i].x() = pen.x();
-      m_glyph_positions[i].y() = pen.y() + offset;
+      m_glyph_positions[i].y() = pen.y();
 
       m_glyph_extents[i].m_begin = pen.x() + scale_factor * layout.m_horizontal_layout_offset.x();
       m_glyph_extents[i].m_end = m_glyph_extents[i].m_begin + scale_factor * layout.m_size.x();
@@ -304,8 +304,8 @@ init(const reference_counted_ptr<const FontFreeType> &font,
           LineData L;
           L.m_range.m_begin = glyph_at_start;
           L.m_range.m_end = i + 1;
-          L.m_vertical_spread.m_begin = pen.y() + offset - tallest;
-          L.m_vertical_spread.m_end = pen.y() + offset - negative_tallest;
+          L.m_vertical_spread.m_begin = pen.y() - tallest;
+          L.m_vertical_spread.m_end = pen.y() - negative_tallest;
           L.m_horizontal_spread.m_begin = 0.0f;
           L.m_horizontal_spread.m_end = pen.x();
           lines.push_back(L);
@@ -526,7 +526,7 @@ painter_glyph_test(void):
   m_pixel_width_stroking(false),
   m_draw_stats(false),
   m_stroke_width(1.0f),
-  m_current_drawer(draw_glyph_curvepair),
+  m_current_drawer(draw_glyph_distance),
   m_join_style(PainterEnums::miter_joins)
 {
   std::cout << "Controls:\n"
