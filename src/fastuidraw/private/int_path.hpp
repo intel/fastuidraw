@@ -341,6 +341,12 @@ namespace fastuidraw
         return m_contours.empty();
       }
 
+      const std::vector<IntContour>&
+      contours(void) const
+      {
+        return m_contours;
+      }
+
       void
       add_to_path(const vec2 &offset, const vec2 &scale, Path *dst) const;
 

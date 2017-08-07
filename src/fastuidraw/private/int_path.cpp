@@ -815,8 +815,8 @@ compute_distance_values(const ivec2 &start, const ivec2 &step, const ivec2 &coun
      then just count.x (for 1) plus count.y (for 2). The items
      from (3) and (4) are already stored in IntBezierCurve
    */
-  //compute_outline_point_values(start, step, count, radius, dst);
-  //compute_derivative_cancel_values(start, step, count, radius, dst);
+  compute_outline_point_values(start, step, count, radius, dst);
+  compute_derivative_cancel_values(start, step, count, radius, dst);
   compute_fixed_line_values(start, step, count, dst);
 }
 
@@ -926,6 +926,8 @@ compute_fixed_line_values(enum IntBezierCurve::coordinate_type tp,
       for(const IntBezierCurve::solution_pt &S : L)
         {
           FASTUIDRAWassert(S.m_multiplicity > 0);
+          FASTUIDRAWassert(S.m_type != IntBezierCurve::on_1_boundary);
+          FASTUIDRAWassert(S.m_t < 1.0f && S.m_t >= 0.0f);
           total_cnt += S.m_multiplicity;
         }
 
@@ -977,12 +979,13 @@ compute_winding_values(enum IntBezierCurve::coordinate_type tp, int c,
                        int start, int step, int count,
                        array2d<distance_value> &dst) const
 {
-  int v, winding;
+  int v, winding, sgn;
   unsigned int idx, end_idx;
   int varying_coord(IntBezierCurve::varying_coordinate(tp));
   int fixed_coord(IntBezierCurve::fixed_coordinate(tp));
   ivec2 pixel;
 
+  sgn = (tp == IntBezierCurve::x_fixed) ? 1 : -1;
   pixel[fixed_coord] = c;
 
   for(winding = 0, v = 0, idx = 0, end_idx = L.size(); v < count; ++v)
@@ -994,16 +997,16 @@ compute_winding_values(enum IntBezierCurve::coordinate_type tp, int c,
       for(;idx < end_idx && L[idx].m_p[varying_coord] < p; ++idx)
         {
           /* should we disregard solutions with even multiplicity? */
-          if(L[idx].m_p_t[fixed_coord] > 0)
+          if(L[idx].m_p_t[fixed_coord] > 0.0f)
             {
               winding += L[idx].m_multiplicity;
             }
-          else
+          else if(L[idx].m_p_t[fixed_coord] < 0.0f)
             {
               winding -= L[idx].m_multiplicity;
             }
         }
       pixel[varying_coord] = v;
-      dst(pixel.x(), pixel.y()).set_winding_number(tp, winding);
+      dst(pixel.x(), pixel.y()).set_winding_number(tp, sgn * winding);
     }
 }
