@@ -184,30 +184,14 @@ namespace
     int m_1_solution_location;
   };
 
+  template<typename T>
   void
-  solve_linear(fastuidraw::c_array<int> poly,
+  solve_linear(fastuidraw::const_c_array<T> poly,
                uint32_t accepted_solutions,
                poly_solutions *solutions)
   {
     FASTUIDRAWassert(poly.size() == 2);
-
-    if(poly[1] == 0)
-      {
-        return;
-      }
-
-    /* solving: poly[1] * t + poly[0] = 0,
-       is same as solving with both coefficients
-       negative. The below makes sure that poly[1]
-       is positive
-     */
-    if(poly[1] < 0)
-      {
-        poly[1] = -poly[1];
-        poly[0] = -poly[0];
-      }
-
-    if(poly[0] == 0)
+    if(poly[0] == T(0))
       {
         solutions->add_0_solution(accepted_solutions);
       }
@@ -223,20 +207,16 @@ namespace
       }
   }
 
+  template<typename T>
   void
-  solve_quadratic(fastuidraw::c_array<int> poly,
+  solve_quadratic(fastuidraw::const_c_array<T> poly,
                   uint32_t accepted_solutions,
                   poly_solutions *solutions)
   {
     FASTUIDRAWassert(poly.size() == 3);
-    if(poly[2] == 0)
-      {
-        solve_linear(poly.sub_array(0, 2), accepted_solutions, solutions);
-        return;
-      }
 
     // check for t = 0 solution
-    if(poly[0] == 0)
+    if(poly[0] == T(0))
       {
         solutions->add_0_solution(accepted_solutions);
         solve_linear(poly.sub_array(1), accepted_solutions, solutions);
@@ -245,23 +225,23 @@ namespace
 
     int sum;
     sum = poly[0] + poly[1] + poly[2];
-    if(sum == 0)
+    if(sum == T(0))
       {
         /* thus p(t) = a * t^2 + b * t + -(a+b)
                      = (t - 1)(at + a + b)
          */
-        fastuidraw::vecN<int, 2> tmp;
+        fastuidraw::vecN<T, 2> tmp;
         tmp[0] = poly[1] + poly[2];
         tmp[1] = poly[0];
 
         solutions->add_1_solution(accepted_solutions);
-        solve_linear(tmp, accepted_solutions, solutions);
+        solve_linear(fastuidraw::const_c_array<T>(tmp), accepted_solutions, solutions);
         return;
       }
 
-    int desc;
-    desc = poly[1] * poly[1] - 4 * poly[0] * poly[2];
-    if(desc < 0)
+    T desc;
+    desc = poly[1] * poly[1] - T(4) * poly[0] * poly[2];
+    if(desc < T(0))
       {
         //both roots are imaginary
         return;
@@ -276,17 +256,7 @@ namespace
         return;
       }
 
-    //make leading coeffient positive
-    if(poly[2] < 0)
-      {
-        poly[2] = -poly[2];
-        poly[1] = -poly[1];
-        poly[0] = -poly[0];
-        sum = -sum;
-      }
-
     float a, b, radical;
-
     a = static_cast<float>(poly[2]);
     b = static_cast<float>(poly[1]);
     radical = sqrtf(static_cast<float>(desc));
@@ -294,36 +264,31 @@ namespace
     solutions->add_solution_if_acceptable(accepted_solutions, (-b + radical) / (2.0f * a));
   }
 
+  template<typename T>
   void
-  solve_cubic(fastuidraw::c_array<int> poly,
+  solve_cubic(fastuidraw::const_c_array<T> poly,
               uint32_t accepted_solutions,
               poly_solutions *solutions)
   {
-    if(poly[3] == 0)
-      {
-        solve_quadratic(poly.sub_array(0, 3), accepted_solutions, solutions);
-        return;
-      }
-
-    if(poly[0] == 0)
+    if(poly[0] == T(0))
       {
         solutions->add_0_solution(accepted_solutions);
         solve_quadratic(poly.sub_array(1), accepted_solutions, solutions);
         return;
       }
 
-    int sum;
+    T sum;
     sum = poly[3] + poly[2] + poly[1] + poly[0];
-    if(sum == 0)
+    if(sum == T(0))
       {
         //t = 1 is a solution.
-        fastuidraw::vecN<int, 3> tmp;
+        fastuidraw::vecN<T, 3> tmp;
         tmp[0] = poly[3] + poly[2] + poly[1];
         tmp[1] = poly[3] + poly[2];
         tmp[2] = poly[3];
 
         solutions->add_1_solution(accepted_solutions);
-        solve_quadratic(tmp, accepted_solutions, solutions);
+        solve_quadratic(fastuidraw::const_c_array<T>(tmp), accepted_solutions, solutions);
         return;
       }
 
@@ -339,7 +304,7 @@ namespace
     q = (9.0f * a[1] * a[2] - 27 * a[0]- 2 * a[2] * a[2] * a[2]) / 27.0f;
     dd = a[2] / 3.0f;
 
-    if(3 * poly[1] * poly[3] == poly[2] * poly[2])
+    if(T(3) * poly[1] * poly[3] == poly[2] * poly[2])
       {
         solutions->add_solution_if_acceptable(accepted_solutions, -dd + cbrtf(q));
         return;
@@ -399,11 +364,17 @@ namespace
       }
   }
 
+  template<typename T>
   void
-  solve_polynomial(fastuidraw::c_array<int> poly,
+  solve_polynomial(fastuidraw::const_c_array<T> poly,
                    uint32_t accepted_solutions,
                    poly_solutions *solutions)
   {
+    while(!poly.empty() && poly.back() == T(0))
+      {
+        poly = poly.sub_array(0, poly.size() - 1);
+      }
+
     if(poly.size() <= 1)
       {
         return;
@@ -426,8 +397,9 @@ namespace
       }
   }
 
+  template<typename T>
   void
-  increment_p_and_p_t(const fastuidraw::vecN<std::vector<int>, 2> &curve,
+  increment_p_and_p_t(const fastuidraw::vecN<std::vector<T>, 2> &curve,
                       float t, fastuidraw::vec2 &p, fastuidraw::vec2 &p_t)
   {
     for(int coord = 0; coord < 2; ++coord)
@@ -435,7 +407,7 @@ namespace
         float powt(1.0f), powt_deriv(1.0f);
         int K(0);
 
-        for(int coeff : curve[coord])
+        for(T coeff : curve[coord])
           {
             float fcoeff(coeff);
             p[coord] += fcoeff * powt;
@@ -450,25 +422,26 @@ namespace
       }
   }
 
+  template<typename T>
   void
   compute_solution_points(const fastuidraw::detail::IntBezierCurve *src,
-                          const fastuidraw::vecN<std::vector<int>, 2> &curve,
+                          const fastuidraw::vecN<std::vector<T>, 2> &curve,
                           const poly_solutions &solutions,
                           std::vector<fastuidraw::detail::IntBezierCurve::solution_pt> *out_pts)
   {
     for(const poly_solution &S : solutions.solutions())
       {
         fastuidraw::vec2 p(0.0f, 0.0f), p_t(0.0f, 0.0f);
-        fastuidraw::detail::IntBezierCurve::solution_pt T;
+        fastuidraw::detail::IntBezierCurve::solution_pt v;
 
-        increment_p_and_p_t(curve, S.m_t, p, p_t);
-        T.m_multiplicity = S.m_multiplicity;
-        T.m_type = S.m_type;
-        T.m_t = S.m_t;
-        T.m_p = p;
-        T.m_p_t = p_t;
-        T.m_src = src;
-        out_pts->push_back(T);
+        increment_p_and_p_t<T>(curve, S.m_t, p, p_t);
+        v.m_multiplicity = S.m_multiplicity;
+        v.m_type = S.m_type;
+        v.m_t = S.m_t;
+        v.m_p = p;
+        v.m_p_t = p_t;
+        v.m_src = src;
+        out_pts->push_back(v);
       }
   }
 
@@ -573,8 +546,8 @@ compute_derivatives_cancel_pts(void)
   difference = deriv[0] - deriv[1];
 
   poly_solutions solutions;
-  solve_polynomial(sum, within_0_1, &solutions);
-  solve_polynomial(difference, within_0_1, &solutions);
+  solve_polynomial(const_c_array<int>(sum), within_0_1, &solutions);
+  solve_polynomial(const_c_array<int>(difference), within_0_1, &solutions);
   compute_solution_points(nullptr, m_as_polynomial, solutions, &m_derivatives_cancel);
 }
 
@@ -665,17 +638,10 @@ compute_line_intersection(int pt, enum coordinate_type line_type,
                           std::vector<solution_pt> *out_value,
                           uint32_t solution_types_accepted) const
 {
-  vecN<int, 4> work_room;
-  c_array<int> tmp(work_room.c_ptr(), m_as_polynomial[line_type].size());
+  vecN<int64_t, 4> work_room;
+  c_array<int64_t> tmp(work_room.c_ptr(), m_as_polynomial[line_type].size());
   poly_solutions solutions;
   int coord(fixed_coordinate(line_type));
-
-  if(degree() == 1
-     && m_control_pts.front()[coord] == pt
-     && m_control_pts.back()[coord] == pt)
-    {
-      return;
-    }
 
   /* if x-fixed, means vertical line at x = pt,
      which means we want to know when curve has x = pt,
@@ -683,7 +649,7 @@ compute_line_intersection(int pt, enum coordinate_type line_type,
    */
   std::copy(m_as_polynomial[coord].begin(), m_as_polynomial[coord].end(), tmp.begin());
   tmp[0] -= pt;
-  solve_polynomial(tmp, solution_types_accepted, &solutions);
+  solve_polynomial(const_c_array<int64_t>(tmp), solution_types_accepted, &solutions);
   compute_solution_points(this, m_as_polynomial, solutions, out_value);
 }
 
@@ -861,11 +827,11 @@ fastuidraw::detail::IntPath::
 compute_fixed_line_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
                           array2d<distance_value> &dst) const
 {
-  std::vector<std::vector<IntBezierCurve::solution_pt> > work_room;
+  std::vector<std::vector<IntBezierCurve::solution_pt> > work_room0;
+  std::vector<std::vector<IntBezierCurve::solution_pt> > work_room1;
 
-  work_room.resize(t_max(count.x(), count.y()));
-  compute_fixed_line_values(IntBezierCurve::x_fixed, work_room, start, step, count, dst);
-  compute_fixed_line_values(IntBezierCurve::y_fixed, work_room, start, step, count, dst);
+  compute_fixed_line_values(IntBezierCurve::x_fixed, work_room0, start, step, count, dst);
+  compute_fixed_line_values(IntBezierCurve::y_fixed, work_room1, start, step, count, dst);
 }
 
 
@@ -884,13 +850,14 @@ compute_fixed_line_values(enum IntBezierCurve::coordinate_type tp,
 
   int fixed_coord(IntBezierCurve::fixed_coordinate(tp));
   int varying_coord(IntBezierCurve::varying_coordinate(tp));
+
+  work_room.resize(count[fixed_coord]);
   for(int i = 0; i < count[fixed_coord]; ++i)
     {
       work_room[i].clear();
     }
 
-  /* record the solutions for each fixed line
-   */
+  /* record the solutions for each fixed line */
   for(const IntContour &contour: m_contours)
     {
       const std::vector<reference_counted_ptr<const IntBezierCurve> > &curves(contour.curves());
