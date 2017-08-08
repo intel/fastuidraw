@@ -52,6 +52,45 @@ namespace fastuidraw
           outside_0_1   = 8,
         };
 
+      template<typename T>
+      class transformation
+      {
+      public:
+        transformation(T sc = T(1), vecN<T, 2> tr = vecN<T, 2>(T(0))):
+          m_scale(sc),
+          m_translate(tr)
+        {}
+
+        T
+        scale(void) const
+        {
+          return m_scale;
+        }
+
+        vecN<T, 2>
+        translate(void) const
+        {
+          return m_translate;
+        }
+
+        template<typename U>
+        transformation<U>
+        cast(void) const
+        {
+          return transformation<U>(U(m_scale), vecN<U, 2>(m_translate));
+        }
+
+        vecN<T, 2>
+        operator()(vecN<T, 2> p) const
+        {
+          return m_translate + m_scale * p;
+        }
+
+      private:
+        T m_scale;
+        vecN<T, 2> m_translate;
+      };
+
       class evaluated_pt
       {
       public:
@@ -87,10 +126,6 @@ namespace fastuidraw
       {
         return 1 - fixed_coordinate(tp);
       }
-
-      IntBezierCurve(const IntBezierCurve &curve,
-                     const ivec2 &offset,
-                     const ivec2 &scale);
 
       IntBezierCurve(const ivec2 &pt0, const ivec2 &pt1)
       {
@@ -140,6 +175,15 @@ namespace fastuidraw
         return m_bb;
       }
 
+      BoundingBox<int>
+      bounding_box(const transformation<int> &tr) const
+      {
+        BoundingBox<int> R;
+        R.union_point(tr(m_bb.min_point()));
+        R.union_point(tr(m_bb.max_point()));
+        return R;
+      }
+
       static
       bool
       are_ordered_neighbors(const IntBezierCurve &curve0,
@@ -167,11 +211,13 @@ namespace fastuidraw
         \param out_value location to which to put values
         \param solution_types_accepted bit mask using enums of solution_type
                                        of what solutions are accepted
+        \param tr transformation to apply to the IntPath
       */
       void
       compute_line_intersection(int pt, enum coordinate_type line_type,
                                 std::vector<solution_pt> *out_value,
-                                uint32_t solution_types_accepted) const;
+                                uint32_t solution_types_accepted,
+                                const transformation<int> &tr) const;
 
     private:
       void
@@ -194,10 +240,6 @@ namespace fastuidraw
     public:
       IntContour(void)
       {}
-
-      IntContour(const IntContour &contour,
-                 const ivec2 &offset,
-                 const ivec2 &scale);
 
       void
       add_curve(const reference_counted_ptr<const IntBezierCurve> &curve)
@@ -313,10 +355,6 @@ namespace fastuidraw
       IntPath(void)
       {}
 
-      IntPath(const IntPath &path,
-              const ivec2 &offset,
-              const ivec2 &scale);
-
       void
       move_to(const ivec2 &pt);
 
@@ -359,22 +397,27 @@ namespace fastuidraw
       */
       void
       compute_distance_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                              const IntBezierCurve::transformation<int> &tr,
                               int radius, array2d<distance_value> &out_values) const;
 
     private:
       void
       compute_outline_point_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                                   const IntBezierCurve::transformation<int> &tr,
                                    int radius, array2d<distance_value> &dst) const;
       void
       compute_derivative_cancel_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                                       const IntBezierCurve::transformation<int> &tr,
                                        int radius, array2d<distance_value> &dst) const;
       void
       compute_fixed_line_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                                const IntBezierCurve::transformation<int> &tr,
                                 array2d<distance_value> &dst) const;
       void
       compute_fixed_line_values(enum IntBezierCurve::coordinate_type tp,
                                 std::vector<std::vector<IntBezierCurve::solution_pt> > &work_room,
                                 const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                                const IntBezierCurve::transformation<int> &tr,
                                 array2d<distance_value> &dst) const;
       void
       compute_winding_values(enum IntBezierCurve::coordinate_type tp, int c,

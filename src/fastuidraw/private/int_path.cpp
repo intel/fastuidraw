@@ -73,6 +73,26 @@ namespace
       }
   }
 
+  template<typename T>
+  class MultiplierFunctor
+  {
+  public:
+    explicit
+    MultiplierFunctor(T v):
+      m_value(v)
+    {}
+
+    template<typename U>
+    U
+    operator()(const U &p) const
+    {
+      return m_value * p;
+    }
+
+  private:
+    T m_value;
+  };
+
   class CompareSolutions
   {
   public:
@@ -427,6 +447,7 @@ namespace
   compute_solution_points(const fastuidraw::detail::IntBezierCurve *src,
                           const fastuidraw::vecN<std::vector<T>, 2> &curve,
                           const poly_solutions &solutions,
+                          const fastuidraw::detail::IntBezierCurve::transformation<float> &tr,
                           std::vector<fastuidraw::detail::IntBezierCurve::solution_pt> *out_pts)
   {
     for(const poly_solution &S : solutions.solutions())
@@ -438,8 +459,8 @@ namespace
         v.m_multiplicity = S.m_multiplicity;
         v.m_type = S.m_type;
         v.m_t = S.m_t;
-        v.m_p = p;
-        v.m_p_t = p_t;
+        v.m_p = tr(p);
+        v.m_p_t = tr.scale() * p_t;
         v.m_src = src;
         out_pts->push_back(v);
       }
@@ -478,21 +499,6 @@ namespace
 
 /////////////////////////////////////
 // fastuidraw::detail::IntBezierCurve methods
-fastuidraw::detail::IntBezierCurve::
-IntBezierCurve(const IntBezierCurve &curve,
-               const ivec2 &offset,
-               const ivec2 &scale)
-{
-  m_control_pts.reserve(curve.m_control_pts.size());
-  for(const ivec2 &in_pt : curve.m_control_pts)
-    {
-      ivec2 p;
-      p = offset + scale * in_pt;
-      m_control_pts.push_back(p);
-    }
-  process_control_pts();
-}
-
 void
 fastuidraw::detail::IntBezierCurve::
 process_control_pts(void)
@@ -548,7 +554,7 @@ compute_derivatives_cancel_pts(void)
   poly_solutions solutions;
   solve_polynomial(const_c_array<int>(sum), within_0_1, &solutions);
   solve_polynomial(const_c_array<int>(difference), within_0_1, &solutions);
-  compute_solution_points(nullptr, m_as_polynomial, solutions, &m_derivatives_cancel);
+  compute_solution_points(nullptr, m_as_polynomial, solutions, transformation<float>(), &m_derivatives_cancel);
 }
 
 enum fastuidraw::return_code
@@ -636,53 +642,35 @@ void
 fastuidraw::detail::IntBezierCurve::
 compute_line_intersection(int pt, enum coordinate_type line_type,
                           std::vector<solution_pt> *out_value,
-                          uint32_t solution_types_accepted) const
+                          uint32_t solution_types_accepted,
+                          const transformation<int> &tr) const
 {
   vecN<int64_t, 4> work_room;
-  c_array<int64_t> tmp(work_room.c_ptr(), m_as_polynomial[line_type].size());
-  poly_solutions solutions;
   int coord(fixed_coordinate(line_type));
+  c_array<int64_t> tmp(work_room.c_ptr(), m_as_polynomial[coord].size());
+  poly_solutions solutions;
 
-  /* if x-fixed, means vertical line at x = pt,
-     which means we want to know when curve has x = pt,
-     thus we want the curve's x-polynomial
+  /* transform m_as_polynomial via transformation tr;
+     that transformation is tr(p) = tr.translate() + tr.scale() * p,
+     thus we multiply each coefficient of m_as_polynomial by
+     tr.scale(), but add tr.translate() only to the constant term.
    */
-  std::copy(m_as_polynomial[coord].begin(), m_as_polynomial[coord].end(), tmp.begin());
+  std::transform(m_as_polynomial[coord].begin(), m_as_polynomial[coord].end(),
+                 tmp.begin(), MultiplierFunctor<int>(tr.scale()));
+  tmp[0] += tr.translate()[coord];
+
+  /* solve for f(t) = pt, which is same as solving for
+     f(t) - pt = 0.
+   */
   tmp[0] -= pt;
   solve_polynomial(const_c_array<int64_t>(tmp), solution_types_accepted, &solutions);
-  compute_solution_points(this, m_as_polynomial, solutions, out_value);
-}
 
-////////////////////////////////////
-// fastuidraw::detail::IntContour methods
-fastuidraw::detail::IntContour::
-IntContour(const IntContour &contour,
-           const ivec2 &offset,
-           const ivec2 &scale)
-{
-  m_curves.reserve(contour.m_curves.size());
-  for(const reference_counted_ptr<const IntBezierCurve> &curve : contour.m_curves)
-    {
-      reference_counted_ptr<const IntBezierCurve> p;
-      p = FASTUIDRAWnew IntBezierCurve(*curve, offset, scale);
-      m_curves.push_back(p);
-    }
+  /* compute solution point values from polynomial solutions */
+  compute_solution_points(this, m_as_polynomial, solutions, tr.cast<float>(), out_value);
 }
 
 //////////////////////////////////////
 // fastuidraw::detail::IntPath methods
-fastuidraw::detail::IntPath::
-IntPath(const IntPath &path, const ivec2 &offset, const ivec2 &scale):
-  m_bb(offset + path.m_bb.min_point() * scale,
-       offset + path.m_bb.max_point() * scale)
-{
-  m_contours.reserve(path.m_contours.size());
-  for(const IntContour &contour : path.m_contours)
-    {
-      m_contours.push_back(IntContour(contour, offset, scale));
-    }
-}
-
 void
 fastuidraw::detail::IntPath::
 add_to_path(const vec2 &offset, const vec2 &scale, Path *dst) const
@@ -759,6 +747,7 @@ cubic_to(const ivec2 &control_pt0, const ivec2 &control_pt1, const ivec2 &pt)
 void
 fastuidraw::detail::IntPath::
 compute_distance_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                        const IntBezierCurve::transformation<int> &tr,
                         int radius, array2d<distance_value> &dst) const
 {
   /* We are computing the L1-distance from the path. For a given
@@ -781,14 +770,15 @@ compute_distance_values(const ivec2 &start, const ivec2 &step, const ivec2 &coun
      then just count.x (for 1) plus count.y (for 2). The items
      from (3) and (4) are already stored in IntBezierCurve
    */
-  compute_outline_point_values(start, step, count, radius, dst);
-  compute_derivative_cancel_values(start, step, count, radius, dst);
-  compute_fixed_line_values(start, step, count, dst);
+  compute_outline_point_values(start, step, count, tr, radius, dst);
+  compute_derivative_cancel_values(start, step, count, tr, radius, dst);
+  compute_fixed_line_values(start, step, count, tr, dst);
 }
 
 void
 fastuidraw::detail::IntPath::
 compute_outline_point_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                             const IntBezierCurve::transformation<int> &tr,
                              int radius, array2d<distance_value> &dst) const
 {
   for(const IntContour &contour: m_contours)
@@ -796,7 +786,7 @@ compute_outline_point_values(const ivec2 &start, const ivec2 &step, const ivec2 
       const std::vector<reference_counted_ptr<const IntBezierCurve> > &curves(contour.curves());
       for(const reference_counted_ptr<const IntBezierCurve> &curve : curves)
         {
-          record_distance_value_from_canidate(curve->control_pts().front(),
+          record_distance_value_from_canidate(tr(curve->control_pts().front()),
                                               radius, start, step, count, dst);
         }
     }
@@ -805,6 +795,7 @@ compute_outline_point_values(const ivec2 &start, const ivec2 &step, const ivec2 
 void
 fastuidraw::detail::IntPath::
 compute_derivative_cancel_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                                 const IntBezierCurve::transformation<int> &tr,
                                  int radius, array2d<distance_value> &dst) const
 {
   for(const IntContour &contour: m_contours)
@@ -816,7 +807,7 @@ compute_derivative_cancel_values(const ivec2 &start, const ivec2 &step, const iv
           for(const IntBezierCurve::solution_pt &S : derivatives_cancel)
             {
               ivec2 p(S.m_p.x(), S.m_p.y());
-              record_distance_value_from_canidate(p, radius, start, step, count, dst);
+              record_distance_value_from_canidate(tr(p), radius, start, step, count, dst);
             }
         }
     }
@@ -825,13 +816,14 @@ compute_derivative_cancel_values(const ivec2 &start, const ivec2 &step, const iv
 void
 fastuidraw::detail::IntPath::
 compute_fixed_line_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                          const IntBezierCurve::transformation<int> &tr,
                           array2d<distance_value> &dst) const
 {
   std::vector<std::vector<IntBezierCurve::solution_pt> > work_room0;
   std::vector<std::vector<IntBezierCurve::solution_pt> > work_room1;
 
-  compute_fixed_line_values(IntBezierCurve::x_fixed, work_room0, start, step, count, dst);
-  compute_fixed_line_values(IntBezierCurve::y_fixed, work_room1, start, step, count, dst);
+  compute_fixed_line_values(IntBezierCurve::x_fixed, work_room0, start, step, count, tr, dst);
+  compute_fixed_line_values(IntBezierCurve::y_fixed, work_room1, start, step, count, tr, dst);
 }
 
 
@@ -840,6 +832,7 @@ fastuidraw::detail::IntPath::
 compute_fixed_line_values(enum IntBezierCurve::coordinate_type tp,
                           std::vector<std::vector<IntBezierCurve::solution_pt> > &work_room,
                           const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                          const IntBezierCurve::transformation<int> &tr,
                           array2d<distance_value> &dst) const
 {
   enum distance_value::winding_ray_t ray_types[2][2] =
@@ -864,18 +857,29 @@ compute_fixed_line_values(enum IntBezierCurve::coordinate_type tp,
       for(const reference_counted_ptr<const IntBezierCurve> &curve : curves)
         {
           BoundingBox<int> bb;
-          int cstart, cend;
+          int cstart, cend, bbmin, bbmax;
 
-          bb = curve->bounding_box();
+          bb = curve->bounding_box(tr);
+
           FASTUIDRAWassert(!bb.empty());
+          bbmin = bb.min_point()[fixed_coord];
+          bbmax = bb.max_point()[fixed_coord];
 
-          cstart = t_max(bb.min_point()[fixed_coord] / step[fixed_coord] - 1, 0);
-          cend = t_min(bb.max_point()[fixed_coord] / step[fixed_coord] + 1, count[fixed_coord]);
+          /* we do not need to solve the polynomial over the entire field, only
+             the range of the bounding box of the curve, point at c:
+                 start + step * c
+             we want
+                 bbmin <= start + step * c <= bbmax
+             which becomes (assuming step > 0) to:
+                 (bbmin - start) / step <= c <= (bbmax - start) / step
+           */
+          cstart = t_max(0, -1 + (bbmin - start[fixed_coord]) / step[fixed_coord]);
+          cend = t_min(count[fixed_coord], 2 + (bbmax - start[fixed_coord]) / step[fixed_coord]);
           for(int c = cstart; c < cend; ++c)
             {
               int v;
               v = start[fixed_coord] + c * step[fixed_coord];
-              curve->compute_line_intersection(v, tp, &work_room[c], IntBezierCurve::within_0_1);
+              curve->compute_line_intersection(v, tp, &work_room[c], IntBezierCurve::within_0_1, tr);
             }
         }
     }

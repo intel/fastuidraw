@@ -391,9 +391,7 @@ compute_rendering_data(uint32_t glyph_code,
          is then just 2 * units_per_EM and the texel
          center is at (units_per_EM, units_per_EM).
        */
-      fastuidraw::detail::IntPath int_pixel_path(int_path_ecm,
-                                                 -2 * pixel_size * layout_offset,
-                                                 2 * fastuidraw::ivec2(pixel_size, pixel_size));
+      fastuidraw::detail::IntBezierCurve::transformation<int> tr(2 * pixel_size, -2 * pixel_size * layout_offset);
       float max_distance;
       max_distance = (m_render_params.distance_field_max_distance() / 64.0f)
         * static_cast<float>(2 * units_per_EM);
@@ -405,7 +403,7 @@ compute_rendering_data(uint32_t glyph_code,
       fastuidraw::ivec2 start, step;
       start = fastuidraw::ivec2(units_per_EM) + fastuidraw::ivec2(1, 1);
       step =  fastuidraw::ivec2(2 * units_per_EM);
-      int_pixel_path.compute_distance_values(start, step, image_sz, radius, dst_values);
+      int_path_ecm.compute_distance_values(start, step, image_sz, tr, radius, dst_values);
 
       for(int y = 0; y < image_sz.y(); ++y)
         {
