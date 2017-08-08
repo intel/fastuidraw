@@ -348,6 +348,7 @@ compute_rendering_data(uint32_t glyph_code,
 {
   fastuidraw::detail::IntPath int_path_ecm;
   int units_per_EM;
+  fastuidraw::ivec2 layout_offset;
 
   m_mutex.lock();
     common_compute_rendering_data(font_coordinate_converter(),
@@ -356,6 +357,9 @@ compute_rendering_data(uint32_t glyph_code,
                                   | FT_LOAD_LINEAR_DESIGN,
                                   layout, glyph_code);
     units_per_EM = m_face->units_per_EM;
+    layout_offset = fastuidraw::ivec2(m_face->glyph->metrics.horiBearingX,
+                                      m_face->glyph->metrics.horiBearingY);
+    layout_offset.y() -= m_face->glyph->metrics.height;
     IntPathCreator::decompose_to_path(&m_face->glyph->outline, int_path_ecm);
   m_mutex.unlock();
 
@@ -379,23 +383,28 @@ compute_rendering_data(uint32_t glyph_code,
   if(image_sz.x() != 0 && image_sz.y() != 0)
     {
       const int radius(2);
-      const int coeff(2);
-
-      fastuidraw::ivec2 start, step;
+      /* we translate by -layout_offset to make the points of
+         the IntPath match correctly with that of the texel
+         data (this also gaurantees that the box of the glyph
+         is (0, 0)). In addition, we scale by 2 * pixel_size;
+         By doing this, the distance between texel-centers
+         is then just 2 * units_per_EM and the texel
+         center is at (units_per_EM, units_per_EM).
+       */
       fastuidraw::detail::IntPath int_pixel_path(int_path_ecm,
-                                                 -coeff * pixel_size * fastuidraw::ivec2(layout.m_horizontal_layout_offset),
-                                                 coeff * fastuidraw::ivec2(pixel_size, pixel_size));
+                                                 -2 * pixel_size * layout_offset,
+                                                 2 * fastuidraw::ivec2(pixel_size, pixel_size));
       float max_distance;
       max_distance = (m_render_params.distance_field_max_distance() / 64.0f)
-        * static_cast<float>(coeff)
-        * static_cast<float>(units_per_EM);
+        * static_cast<float>(2 * units_per_EM);
 
       output.resize(image_sz + fastuidraw::ivec2(1, 1));
       std::fill(output.distance_values().begin(), output.distance_values().end(), 0);
 
       fastuidraw::array2d<fastuidraw::detail::IntPath::distance_value> dst_values(image_sz.x(), image_sz.y());
+      fastuidraw::ivec2 start, step;
       start = fastuidraw::ivec2(units_per_EM) + fastuidraw::ivec2(1, 1);
-      step = coeff * fastuidraw::ivec2(units_per_EM);
+      step =  fastuidraw::ivec2(2 * units_per_EM);
       int_pixel_path.compute_distance_values(start, step, image_sz, radius, dst_values);
 
       for(int y = 0; y < image_sz.y(); ++y)
