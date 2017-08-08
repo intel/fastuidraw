@@ -389,22 +389,20 @@ compute_rendering_data(uint32_t glyph_code,
          is (0, 0)). In addition, we scale by 2 * pixel_size;
          By doing this, the distance between texel-centers
          is then just 2 * units_per_EM and the texel
-         center is at (units_per_EM, units_per_EM).
+         center is at (units_per_EM, units_per_EM); thus
+         we translate the IntPath by -(units_per_EM, units_per_EM)
        */
-      fastuidraw::detail::IntBezierCurve::transformation<int> tr(2 * pixel_size, -2 * pixel_size * layout_offset);
+      fastuidraw::array2d<fastuidraw::detail::IntPath::distance_value> dst_values(image_sz.x(), image_sz.y());
+      fastuidraw::detail::IntBezierCurve::transformation<int> tr(2 * pixel_size,
+                                                                 -2 * pixel_size * layout_offset - fastuidraw::ivec2(units_per_EM + 1));
+      int_path_ecm.compute_distance_values(fastuidraw::ivec2(2 * units_per_EM), image_sz, tr, radius, dst_values);
+
       float max_distance;
       max_distance = (m_render_params.distance_field_max_distance() / 64.0f)
         * static_cast<float>(2 * units_per_EM);
 
       output.resize(image_sz + fastuidraw::ivec2(1, 1));
       std::fill(output.distance_values().begin(), output.distance_values().end(), 0);
-
-      fastuidraw::array2d<fastuidraw::detail::IntPath::distance_value> dst_values(image_sz.x(), image_sz.y());
-      fastuidraw::ivec2 start, step;
-      start = fastuidraw::ivec2(units_per_EM) + fastuidraw::ivec2(1, 1);
-      step =  fastuidraw::ivec2(2 * units_per_EM);
-      int_path_ecm.compute_distance_values(start, step, image_sz, tr, radius, dst_values);
-
       for(int y = 0; y < image_sz.y(); ++y)
         {
           for(int x = 0; x < image_sz.x(); ++x)

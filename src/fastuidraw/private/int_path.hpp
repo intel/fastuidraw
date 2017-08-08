@@ -392,37 +392,38 @@ namespace fastuidraw
         Compute distance_value for the domain
              D = { (x(i), y(j)) : 0 <= i < count.x(), 0 <= j < count.y() }
         where
-             x(i) = start.x() + step.x() * i
-             y(j) = start.y() + step.y() * j
+             x(i) = step.x() * i
+             y(j) = step.y() * j
+        One can get translation via using the transformation argument, tr.
       */
       void
-      compute_distance_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+      compute_distance_values(const ivec2 &step, const ivec2 &count,
                               const IntBezierCurve::transformation<int> &tr,
                               int radius, array2d<distance_value> &out_values) const;
 
     private:
       void
-      compute_outline_point_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+      compute_outline_point_values(const ivec2 &step, const ivec2 &count,
                                    const IntBezierCurve::transformation<int> &tr,
                                    int radius, array2d<distance_value> &dst) const;
       void
-      compute_derivative_cancel_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+      compute_derivative_cancel_values(const ivec2 &step, const ivec2 &count,
                                        const IntBezierCurve::transformation<int> &tr,
                                        int radius, array2d<distance_value> &dst) const;
       void
-      compute_fixed_line_values(const ivec2 &start, const ivec2 &step, const ivec2 &count,
+      compute_fixed_line_values(const ivec2 &step, const ivec2 &count,
                                 const IntBezierCurve::transformation<int> &tr,
                                 array2d<distance_value> &dst) const;
       void
       compute_fixed_line_values(enum IntBezierCurve::coordinate_type tp,
                                 std::vector<std::vector<IntBezierCurve::solution_pt> > &work_room,
-                                const ivec2 &start, const ivec2 &step, const ivec2 &count,
+                                const ivec2 &step, const ivec2 &count,
                                 const IntBezierCurve::transformation<int> &tr,
                                 array2d<distance_value> &dst) const;
       void
       compute_winding_values(enum IntBezierCurve::coordinate_type tp, int c,
                              const std::vector<IntBezierCurve::solution_pt> &L,
-                             int start, int step, int count,
+                             int step, int count,
                              array2d<distance_value> &dst) const;
 
       fastuidraw::ivec2 m_last_pt;
