@@ -392,10 +392,13 @@ compute_rendering_data(uint32_t glyph_code,
          center is at (units_per_EM, units_per_EM); thus
          we translate the IntPath by -(units_per_EM, units_per_EM)
        */
+      int tr_scale(2 * pixel_size);
+      fastuidraw::ivec2 tr_translate(-2 * pixel_size * layout_offset - fastuidraw::ivec2(units_per_EM + 1));
+      fastuidraw::detail::IntBezierCurve::transformation<int> tr(tr_scale, tr_translate);
+
       fastuidraw::array2d<fastuidraw::detail::IntPath::distance_value> dst_values(image_sz.x(), image_sz.y());
-      fastuidraw::detail::IntBezierCurve::transformation<int> tr(2 * pixel_size,
-                                                                 -2 * pixel_size * layout_offset - fastuidraw::ivec2(units_per_EM + 1));
-      int_path_ecm.compute_distance_values(fastuidraw::ivec2(2 * units_per_EM), image_sz, tr, radius, dst_values);
+      fastuidraw::ivec2 texel_distance(2 * units_per_EM);
+      int_path_ecm.compute_distance_values(texel_distance, image_sz, tr, radius, dst_values);
 
       float max_distance;
       max_distance = (m_render_params.distance_field_max_distance() / 64.0f)
