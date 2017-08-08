@@ -91,6 +91,18 @@ namespace fastuidraw
         vecN<T, 2> m_translate;
       };
 
+      class ID_t
+      {
+      public:
+        ID_t(void):
+          m_contourID(-1),
+          m_curveID(-1)
+        {}
+
+        unsigned int m_contourID;
+        unsigned int m_curveID;
+      };
+
       class evaluated_pt
       {
       public:
@@ -104,7 +116,7 @@ namespace fastuidraw
       public:
         int m_multiplicity;
         enum solution_type m_type;
-        reference_counted_ptr<const IntBezierCurve> m_src;
+        ID_t m_src;
       };
 
       /* returns what coordinate is fixed for a
@@ -127,14 +139,17 @@ namespace fastuidraw
         return 1 - fixed_coordinate(tp);
       }
 
-      IntBezierCurve(const ivec2 &pt0, const ivec2 &pt1)
+      IntBezierCurve(const ID_t &pID, const ivec2 &pt0, const ivec2 &pt1):
+        m_ID(pID)
       {
         m_control_pts.push_back(pt0);
         m_control_pts.push_back(pt1);
         process_control_pts();
       }
 
-      IntBezierCurve(const ivec2 &pt0, const ivec2 &ct, const ivec2 &pt1)
+      IntBezierCurve(const ID_t &pID, const ivec2 &pt0, const ivec2 &ct,
+                     const ivec2 &pt1):
+        m_ID(pID)
       {
         m_control_pts.push_back(pt0);
         m_control_pts.push_back(ct);
@@ -142,7 +157,9 @@ namespace fastuidraw
         process_control_pts();
       }
 
-      IntBezierCurve(const ivec2 &pt0, const ivec2 &ct0, const ivec2 &ct1, const ivec2 &pt1)
+      IntBezierCurve(const ID_t &pID, const ivec2 &pt0, const ivec2 &ct0,
+                     const ivec2 &ct1, const ivec2 &pt1):
+        m_ID(pID)
       {
         m_control_pts.push_back(pt0);
         m_control_pts.push_back(ct0);
@@ -153,6 +170,12 @@ namespace fastuidraw
 
       ~IntBezierCurve()
       {}
+
+      const ID_t&
+      ID(void) const
+      {
+        return m_ID;
+      }
 
       const_c_array<ivec2>
       control_pts(void) const
@@ -223,6 +246,7 @@ namespace fastuidraw
       // where dx/dt +- dy/dt = 0
       std::vector<solution_pt> m_derivatives_cancel;
 
+      ID_t m_ID;
       BoundingBox<int> m_bb;
     };
 
@@ -251,6 +275,13 @@ namespace fastuidraw
       curves(void) const
       {
         return m_curves;
+      }
+
+      const reference_counted_ptr<const IntBezierCurve>&
+      curve(unsigned int curveID) const
+      {
+        FASTUIDRAWassert(curveID < m_curves.size());
+        return m_curves[curveID];
       }
 
     private:
@@ -376,6 +407,41 @@ namespace fastuidraw
         return m_contours;
       }
 
+      const IntContour&
+      contour(unsigned int contourID) const
+      {
+        FASTUIDRAWassert(contourID < m_contours.size());
+        return m_contours[contourID];
+      }
+
+      const reference_counted_ptr<const IntBezierCurve>&
+      curve(IntBezierCurve::ID_t id) const
+      {
+        return contour(id.m_contourID).curve(id.m_curveID);
+      }
+
+      IntBezierCurve::ID_t
+      prev_neighbor(IntBezierCurve::ID_t id)
+      {
+        FASTUIDRAWassert(id.m_contourID < m_contours.size());
+        FASTUIDRAWassert(id.m_curveID < m_contours[id.m_contourID].curves().size());
+        id.m_curveID = (id.m_curveID == 0) ?
+          m_contours[id.m_contourID].curves().size() - 1 :
+          id.m_curveID - 1;
+        return id;
+      }
+
+      IntBezierCurve::ID_t
+      next_neighbor(IntBezierCurve::ID_t id)
+      {
+        FASTUIDRAWassert(id.m_contourID < m_contours.size());
+        FASTUIDRAWassert(id.m_curveID < m_contours[id.m_contourID].curves().size());
+        id.m_curveID = (id.m_curveID == m_contours[id.m_contourID].curves().size() - 1) ?
+          0:
+          id.m_curveID + 1;
+        return id;
+      }
+
       void
       add_to_path(const vec2 &offset, const vec2 &scale, Path *dst) const;
 
@@ -416,6 +482,8 @@ namespace fastuidraw
                              const std::vector<IntBezierCurve::solution_pt> &L,
                              int step, int count,
                              array2d<distance_value> &dst) const;
+      IntBezierCurve::ID_t
+      computeID(void);
 
       fastuidraw::ivec2 m_last_pt;
       std::vector<IntContour> m_contours;

@@ -493,7 +493,7 @@ namespace
 
   template<typename T>
   void
-  compute_solution_points(const fastuidraw::detail::IntBezierCurve *src,
+  compute_solution_points(fastuidraw::detail::IntBezierCurve::ID_t src,
                           const fastuidraw::vecN<std::vector<T>, 2> &curve,
                           const poly_solutions &solutions,
                           const fastuidraw::detail::IntBezierCurve::transformation<float> &tr,
@@ -636,7 +636,7 @@ compute_derivatives_cancel_pts(void)
   poly_solutions solutions;
   solve_polynomial(const_c_array<int>(sum), within_0_1, &solutions);
   solve_polynomial(const_c_array<int>(difference), within_0_1, &solutions);
-  compute_solution_points(nullptr, m_as_polynomial, solutions, transformation<float>(), &m_derivatives_cancel);
+  compute_solution_points(m_ID, m_as_polynomial, solutions, transformation<float>(), &m_derivatives_cancel);
 }
 
 void
@@ -667,7 +667,7 @@ compute_line_intersection(int pt, enum coordinate_type line_type,
   solve_polynomial(const_c_array<int64_t>(tmp), solution_types_accepted, &solutions);
 
   /* compute solution point values from polynomial solutions */
-  compute_solution_points(this, m_as_polynomial, solutions, tr.cast<float>(), out_value);
+  compute_solution_points(m_ID, m_as_polynomial, solutions, tr.cast<float>(), out_value);
 }
 
 //////////////////////////////////////
@@ -696,6 +696,18 @@ add_to_path(const vec2 &offset, const vec2 &scale, Path *dst) const
     }
 }
 
+fastuidraw::detail::IntBezierCurve::ID_t
+fastuidraw::detail::IntPath::
+computeID(void)
+{
+  IntBezierCurve::ID_t v;
+
+  FASTUIDRAWassert(!m_contours.empty());
+  v.m_contourID = m_contours.size() - 1;
+  v.m_curveID = m_contours.back().curves().size();
+  return v;
+}
+
 void
 fastuidraw::detail::IntPath::
 move_to(const ivec2 &pt)
@@ -710,7 +722,7 @@ fastuidraw::detail::IntPath::
 line_to(const ivec2 &pt)
 {
   reference_counted_ptr<const IntBezierCurve> curve;
-  curve = FASTUIDRAWnew IntBezierCurve(m_last_pt, pt);
+  curve = FASTUIDRAWnew IntBezierCurve(computeID(), m_last_pt, pt);
   m_bb.union_box(curve->bounding_box());
 
   FASTUIDRAWassert(!m_contours.empty());
@@ -723,7 +735,7 @@ fastuidraw::detail::IntPath::
 conic_to(const ivec2 &control_pt, const ivec2 &pt)
 {
   reference_counted_ptr<const IntBezierCurve> curve;
-  curve = FASTUIDRAWnew IntBezierCurve(m_last_pt, control_pt, pt);
+  curve = FASTUIDRAWnew IntBezierCurve(computeID(), m_last_pt, control_pt, pt);
   m_bb.union_box(curve->bounding_box());
 
   FASTUIDRAWassert(!m_contours.empty());
@@ -736,7 +748,7 @@ fastuidraw::detail::IntPath::
 cubic_to(const ivec2 &control_pt0, const ivec2 &control_pt1, const ivec2 &pt)
 {
   reference_counted_ptr<const IntBezierCurve> curve;
-  curve = FASTUIDRAWnew IntBezierCurve(m_last_pt, control_pt0, control_pt1, pt);
+  curve = FASTUIDRAWnew IntBezierCurve(computeID(), m_last_pt, control_pt0, control_pt1, pt);
   m_bb.union_box(curve->bounding_box());
 
   FASTUIDRAWassert(!m_contours.empty());
