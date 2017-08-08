@@ -92,6 +92,56 @@ namespace
     T m_value;
   };
 
+  template<typename T>
+  class CubicDecomposerHelper
+  {
+  public:
+    typedef fastuidraw::vecN<T, 2> point;
+
+    template<typename P>
+    CubicDecomposerHelper(const P &q0,
+                          const P &q1,
+                          const P &q2,
+                          const P &q3):
+      p(point(q0), point(q1), point(q2), point(q3))
+    {
+       p0_1 = compute_midpoint(p[0], p[1]);
+       p1_2 = compute_midpoint(p[1], p[2]);
+       p2_3 = compute_midpoint(p[2], p[3]);
+
+       p01_12 = compute_midpoint(p0_1, p1_2);
+       p12_23 = compute_midpoint(p1_2, p2_3);
+
+       pMid = compute_midpoint(p01_12, p12_23);
+    }
+
+    fastuidraw::vecN<point, 4> p;
+    point p0_1, p1_2, p2_3; // p_i_j --> midpoint of pi and pj
+    point p01_12, p12_23;   // p_ab_ij --> midpoint of p_a_b and p_i_j
+    point pMid; // midpoint of p01_12 and p12_23
+  };
+
+  typedef fastuidraw::vecN<fastuidraw::ivec2, 3> Quadratic;
+  class Cubic:public fastuidraw::vecN<fastuidraw::ivec2, 4>
+  {
+  public:
+    Cubic(const fastuidraw::ivec2 &p0,
+          const fastuidraw::ivec2 &c0,
+          const fastuidraw::ivec2 &c1,
+          const fastuidraw::ivec2 &p1):
+      fastuidraw::vecN<fastuidraw::ivec2, 4>(p0, c0, c1, p1)
+    {}
+
+    void
+    approximate_with_quadratics(fastuidraw::vecN<Quadratic, 4> *out_curves) const;
+
+    void
+    approximate_with_quadratics(fastuidraw::vecN<Quadratic, 2> *out_curves) const;
+
+    void
+    approximate_with_quadratics(fastuidraw::vecN<Quadratic, 1> *out_curves) const;
+  };
+
   class CompareSolutions
   {
   public:
@@ -464,37 +514,70 @@ namespace
         out_pts->push_back(v);
       }
   }
-
-  template<typename T>
-  class CubicDecomposerHelper
-  {
-  public:
-    typedef fastuidraw::vecN<T, 2> point;
-
-    template<typename P>
-    CubicDecomposerHelper(const P &q0,
-                          const P &q1,
-                          const P &q2,
-                          const P &q3):
-      p(point(q0), point(q1), point(q2), point(q3))
-    {
-       p0_1 = compute_midpoint(p[0], p[1]);
-       p1_2 = compute_midpoint(p[1], p[2]);
-       p2_3 = compute_midpoint(p[2], p[3]);
-
-       p01_12 = compute_midpoint(p0_1, p1_2);
-       p12_23 = compute_midpoint(p1_2, p2_3);
-
-       pMid = compute_midpoint(p01_12, p12_23);
-    }
-
-    fastuidraw::vecN<point, 4> p;
-    point p0_1, p1_2, p2_3; // p_i_j --> midpoint of pi and pj
-    point p01_12, p12_23;   // p_ab_ij --> midpoint of p_a_b and p_i_j
-    point pMid; // midpoint of p01_12 and p12_23
-  };
 }
 
+//////////////////////////////////////
+// Cubic methods
+void
+Cubic::
+approximate_with_quadratics(fastuidraw::vecN<Quadratic, 4> *out_curves) const
+{
+  /*
+    Should we do the arithmatic in 64bit ints
+    and scale the input before and after hand
+    to avoid successive rounding uglies?
+
+    To get perfect avoiding of such, requires multiplying
+    by _64_ since this_curve.pMid has an 8 in the denomitor
+    of the source m_raw_curve and each of alpha and beta
+    are from that, another factor of 8, together it is 64.
+  */
+  const Cubic &in_curve(*this);
+  CubicDecomposerHelper<int> this_curve(in_curve[0], in_curve[1], in_curve[2], in_curve[3]);
+  CubicDecomposerHelper<int> alpha(this_curve.p[0], this_curve.p0_1, this_curve.p01_12, this_curve.pMid);
+  CubicDecomposerHelper<int> beta(this_curve.pMid, this_curve.p12_23, this_curve.p2_3, this_curve.p[3]);
+
+  fastuidraw::ivec2 pA, pB, pC, pD;
+
+  pA = compute_midpoint(this_curve.p0_1, compute_midpoint(this_curve.p0_1, this_curve.p[0]));
+  pB = compute_midpoint(this_curve.p01_12, compute_midpoint(this_curve.p01_12, this_curve.pMid));
+  pC = compute_midpoint(this_curve.p12_23, compute_midpoint(this_curve.p12_23, this_curve.pMid));
+  pD = compute_midpoint(this_curve.p2_3, compute_midpoint(this_curve.p2_3, this_curve.p[3]));
+
+  /*
+    the curves are:
+      [p0, pA, alpha.pMid]
+      [alpha.pMid, pB, pMid]
+      [pMid, pC, beta.pMid]
+      [beta.pMid, pD, p3]
+  */
+  (*out_curves)[0] = Quadratic(this_curve.p[0], pA, alpha.pMid);
+  (*out_curves)[1] = Quadratic(alpha.pMid, pB, this_curve.pMid);
+  (*out_curves)[2] = Quadratic(this_curve.pMid, pC, beta.pMid);
+  (*out_curves)[3] = Quadratic(beta.pMid, pD, this_curve.p[3]);
+}
+
+void
+Cubic::
+approximate_with_quadratics(fastuidraw::vecN<Quadratic, 2> *out_curves) const
+{
+  const Cubic &in_curve(*this);
+  CubicDecomposerHelper<int> this_curve(in_curve[0], in_curve[1], in_curve[2], in_curve[3]);
+
+  (*out_curves)[0] = Quadratic(this_curve.p[0], this_curve.p[1], this_curve.pMid);
+  (*out_curves)[1] = Quadratic(this_curve.pMid, this_curve.p[2], this_curve.p[3]);
+}
+
+void
+Cubic::
+approximate_with_quadratics(fastuidraw::vecN<Quadratic, 1> *out_curves) const
+{
+  fastuidraw::ivec2 q;
+  const Cubic &in_curve(*this);
+
+  q = compute_midpoint(in_curve[1], in_curve[2]);
+  (*out_curves)[0] = Quadratic(in_curve[0], q, in_curve[3]);
+}
 
 /////////////////////////////////////
 // fastuidraw::detail::IntBezierCurve methods
@@ -555,87 +638,6 @@ compute_derivatives_cancel_pts(void)
   solve_polynomial(const_c_array<int>(difference), within_0_1, &solutions);
   compute_solution_points(nullptr, m_as_polynomial, solutions, transformation<float>(), &m_derivatives_cancel);
 }
-
-enum fastuidraw::return_code
-fastuidraw::detail::IntBezierCurve::
-approximate_cubic_with_quadratics(vecN<reference_counted_ptr<IntBezierCurve>, 4> &out_curves) const
-{
-  if(degree() != 3)
-    {
-      out_curves = vecN<reference_counted_ptr<IntBezierCurve>, 4>();
-      return routine_fail;
-    }
-
-  /*
-    should we do the arithmatic in integer or float?
-
-    Should we do the arithmatic in 64bit ints
-    and scale the imput before and after hand
-    to avoid successive rounding uglies?
-
-    To get perfect avoiding of such, requires multiplying
-    by _64_ since this_curve.pMid has an 8 in the denomitor
-    of the source m_raw_curve and each of alpha and beta
-    are from that, another factor of 8, together it is 64.
-  */
-  CubicDecomposerHelper<int> this_curve(m_control_pts[0], m_control_pts[1], m_control_pts[2], m_control_pts[3]);
-  CubicDecomposerHelper<int> alpha(this_curve.p[0], this_curve.p0_1, this_curve.p01_12, this_curve.pMid);
-  CubicDecomposerHelper<int> beta(this_curve.pMid, this_curve.p12_23, this_curve.p2_3, this_curve.p[3]);
-
-  ivec2 pA, pB, pC, pD;
-
-  pA = compute_midpoint(this_curve.p0_1, compute_midpoint(this_curve.p0_1, this_curve.p[0]));
-  pB = compute_midpoint(this_curve.p01_12, compute_midpoint(this_curve.p01_12, this_curve.pMid));
-  pC = compute_midpoint(this_curve.p12_23, compute_midpoint(this_curve.p12_23, this_curve.pMid));
-  pD = compute_midpoint(this_curve.p2_3, compute_midpoint(this_curve.p2_3, this_curve.p[3]));
-
-  /*
-    the curves are:
-      [p0, pA, alpha.pMid]
-      [alpha.pMid, pB, pMid]
-      [pMid, pC, beta.pMid]
-      [beta.pMid, pD, p3]
-  */
-
-  out_curves[0] = FASTUIDRAWnew IntBezierCurve(this_curve.p[0], pA, alpha.pMid);
-  out_curves[1] = FASTUIDRAWnew IntBezierCurve(alpha.pMid, pB, this_curve.pMid);
-  out_curves[2] = FASTUIDRAWnew IntBezierCurve(this_curve.pMid, pC, beta.pMid);
-  out_curves[3] = FASTUIDRAWnew IntBezierCurve(beta.pMid, pD, this_curve.p[3]);
-  return routine_success;
-}
-
-enum fastuidraw::return_code
-fastuidraw::detail::IntBezierCurve::
-approximate_cubic_with_quadratics(vecN<reference_counted_ptr<IntBezierCurve>, 2> &out_curves) const
-{
-  if(degree() != 3)
-    {
-      out_curves = vecN<reference_counted_ptr<IntBezierCurve>, 2>();
-      return routine_fail;
-    }
-
-  CubicDecomposerHelper<int> this_curve(m_control_pts[0], m_control_pts[1], m_control_pts[2], m_control_pts[3]);
-  out_curves[0] = FASTUIDRAWnew IntBezierCurve(this_curve.p[0], this_curve.p[1], this_curve.pMid);
-  out_curves[1] = FASTUIDRAWnew IntBezierCurve(this_curve.pMid, this_curve.p[2], this_curve.p[3]);
-  return routine_success;
-}
-
-enum fastuidraw::return_code
-fastuidraw::detail::IntBezierCurve::
-approximate_cubic_with_quadratics(vecN<reference_counted_ptr<IntBezierCurve>, 1> &out_curves) const
-{
-  if(degree() != 3)
-    {
-      out_curves = vecN<reference_counted_ptr<IntBezierCurve>, 1>();
-      return routine_fail;
-    }
-
-  ivec2 q;
-  q = compute_midpoint(m_control_pts[1], m_control_pts[2]);
-  out_curves[0] = FASTUIDRAWnew IntBezierCurve(m_control_pts[0], q, m_control_pts[3]);
-  return routine_success;
-}
-
 
 void
 fastuidraw::detail::IntBezierCurve::

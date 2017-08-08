@@ -154,15 +154,6 @@ namespace fastuidraw
       ~IntBezierCurve()
       {}
 
-      enum return_code
-      approximate_cubic_with_quadratics(vecN<reference_counted_ptr<IntBezierCurve>, 4> &out_curves) const;
-
-      enum return_code
-      approximate_cubic_with_quadratics(vecN<reference_counted_ptr<IntBezierCurve>, 2> &out_curves) const;
-
-      enum return_code
-      approximate_cubic_with_quadratics(vecN<reference_counted_ptr<IntBezierCurve>, 1> &out_curves) const;
-
       const_c_array<ivec2>
       control_pts(void) const
       {
