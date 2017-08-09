@@ -139,6 +139,16 @@ namespace fastuidraw
         return 1 - fixed_coordinate(tp);
       }
 
+      IntBezierCurve(const ID_t &pID, const IntBezierCurve &curve):
+        m_ID(pID),
+        m_control_pts(curve.m_control_pts),
+        m_num_control_pts(curve.m_num_control_pts),
+        m_as_polynomial_fcn(curve.m_as_polynomial_fcn),
+        m_derivatives_cancel(curve.m_derivatives_cancel),
+        m_bb(curve.m_bb)
+      {
+      }
+
       IntBezierCurve(const ID_t &pID, const ivec2 &pt0, const ivec2 &pt1):
         m_ID(pID),
         m_control_pts(pt0, pt1, ivec2(), ivec2()),
@@ -300,6 +310,23 @@ namespace fastuidraw
         return m_curves[curveID];
       }
 
+      /* Filter the Contour as follows:
+          1. Collapse any curves that are within a texel
+          2. Curves of tiny curvature are realized as a line
+          3. Cubics are broken into quadratics
+         The transformation tr is -NOT- applied to the contour,
+         it is used as the transformation from IntContour
+         coordinates to texel coordinates. The value of texel_size
+         gives the size of a texel with the texel at (0, 0)
+         starting at (0, 0) [in texel coordinates].
+       */
+      void
+      filter(float curvature_collapse,
+             const IntBezierCurve::transformation<int> &tr, ivec2 texel_size);
+
+      void
+      add_to_path(const IntBezierCurve::transformation<float> &tr, Path *dst) const;
+
     private:
       std::vector<IntBezierCurve> m_curves;
     };
@@ -459,7 +486,7 @@ namespace fastuidraw
       }
 
       void
-      add_to_path(const vec2 &offset, const vec2 &scale, Path *dst) const;
+      add_to_path(const IntBezierCurve::transformation<float> &tr, Path *dst) const;
 
       /*
         Compute distance_value for the domain
@@ -473,6 +500,20 @@ namespace fastuidraw
       compute_distance_values(const ivec2 &step, const ivec2 &count,
                               const IntBezierCurve::transformation<int> &tr,
                               int radius, array2d<distance_value> &out_values) const;
+
+      /* Filter the Path as follows:
+          1. Collapse any curves that are within a texel
+          2. Curves of tiny curvature are realized as a line
+          3. Cubics are broken into quadratics
+         The transformation tr is -NOT- applied to the contour,
+         it is used as the transformation from IntContour
+         coordinates to texel coordinates. The value of texel_size
+         gives the size of a texel with the texel at (0, 0)
+         starting at (0, 0) [in texel coordinates].
+       */
+      void
+      filter(float curvature_collapse,
+             const IntBezierCurve::transformation<int> &tr, ivec2 texel_size);
 
     private:
       void

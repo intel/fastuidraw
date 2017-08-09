@@ -1,3 +1,4 @@
+#include <iterator>
 #include "int_path.hpp"
 #include "util_private_ostream.hpp"
 
@@ -121,25 +122,129 @@ namespace
     point pMid; // midpoint of p01_12 and p12_23
   };
 
-  typedef fastuidraw::vecN<fastuidraw::ivec2, 3> Quadratic;
-  class Cubic:public fastuidraw::vecN<fastuidraw::ivec2, 4>
+  class QuadraticBezierCurve:public fastuidraw::vecN<fastuidraw::ivec2, 3>
   {
   public:
-    Cubic(const fastuidraw::ivec2 &p0,
-          const fastuidraw::ivec2 &c0,
-          const fastuidraw::ivec2 &c1,
-          const fastuidraw::ivec2 &p1):
+    QuadraticBezierCurve(void)
+    {}
+
+    QuadraticBezierCurve(const fastuidraw::ivec2 &p0,
+                         const fastuidraw::ivec2 &c,
+                         const fastuidraw::ivec2 &p1):
+      fastuidraw::vecN<fastuidraw::ivec2, 3>(p0, c, p1)
+    {}
+
+    float
+    compute_curvature(void) const
+    {
+      const QuadraticBezierCurve &pts(*this);
+      fastuidraw::vecN<fastuidraw::ivec2, 3> as_poly;
+
+      as_poly[0] = pts[0];
+      as_poly[1] = -2 * pts[0] + 2 * pts[1];
+      as_poly[2] = pts[0] - 2 * pts[1] + pts[2];
+
+      fastuidraw::vec2 a1(as_poly[1]), a2(as_poly[2]);
+      float a, b, c, R, desc, tt;
+
+      R = fastuidraw::t_abs(a1.x() * a2.y() - a1.y() * a2.x());
+      a = fastuidraw::dot(a1, a1);
+      b = 2.0f * fastuidraw::dot(a1, a2);
+      c = fastuidraw::dot(a2, a2);
+
+      const float epsilon(0.000001f), epsilon2(epsilon * epsilon);
+
+      desc = fastuidraw::t_sqrt(fastuidraw::t_max(epsilon2, 4.0f * a * c - b * b));
+      tt = desc / fastuidraw::t_max(epsilon, fastuidraw::t_abs(2.0f * a + b));
+      return 2.0 * R * atanf(tt) / desc;
+    }
+  };
+
+  class CubicBezierCurve:public fastuidraw::vecN<fastuidraw::ivec2, 4>
+  {
+  public:
+    CubicBezierCurve(const fastuidraw::ivec2 &p0,
+                     const fastuidraw::ivec2 &c0,
+                     const fastuidraw::ivec2 &c1,
+                     const fastuidraw::ivec2 &p1):
       fastuidraw::vecN<fastuidraw::ivec2, 4>(p0, c0, c1, p1)
     {}
 
     void
-    approximate_with_quadratics(fastuidraw::vecN<Quadratic, 4> *out_curves) const;
+    approximate_with_quadratics(fastuidraw::vecN<QuadraticBezierCurve, 4> *out_curves) const;
 
     void
-    approximate_with_quadratics(fastuidraw::vecN<Quadratic, 2> *out_curves) const;
+    approximate_with_quadratics(fastuidraw::vecN<QuadraticBezierCurve, 2> *out_curves) const;
 
     void
-    approximate_with_quadratics(fastuidraw::vecN<Quadratic, 1> *out_curves) const;
+    approximate_with_quadratics(fastuidraw::vecN<QuadraticBezierCurve, 1> *out_curves) const;
+  };
+
+  class BezierCurvePts
+  {
+  public:
+    typedef fastuidraw::ivec2 point;
+
+    BezierCurvePts(point p0, point p1):
+      m_pts(p0, p1, point()),
+      m_number_pts(2)
+    {}
+
+    BezierCurvePts(point p0, point c, point p1):
+      m_pts(p0, c, p1),
+      m_number_pts(3)
+    {}
+
+    BezierCurvePts(const QuadraticBezierCurve &Q):
+      m_pts(Q),
+      m_number_pts(3)
+    {}
+
+    BezierCurvePts(fastuidraw::const_c_array<point> pts):
+      m_number_pts(pts.size())
+    {
+      FASTUIDRAWassert(m_pts.size() <= 3);
+      std::copy(pts.begin(), pts.end(), m_pts.begin());
+    }
+
+    fastuidraw::c_array<point>
+    control_pts(void)
+    {
+      return fastuidraw::c_array<point>(&m_pts[0], m_number_pts);
+    }
+
+    fastuidraw::const_c_array<point>
+    control_pts(void) const
+    {
+      return fastuidraw::const_c_array<point>(&m_pts[0], m_number_pts);
+    }
+
+    /* Takes a list of fastuidraw::detail::IntContour::IntBezierCurve
+       and produces a sequence of BezierCurvePts so that:
+        1. Cubics are collapsed to quadratics
+        2. Curves of low curvature are collapsed to lines
+     */
+    static
+    void
+    simplify(float curvature_collapse,
+             const fastuidraw::detail::IntBezierCurve::transformation<int> &tr,
+             const std::vector<fastuidraw::detail::IntBezierCurve> &curves,
+             fastuidraw::ivec2 texel_size,
+             std::vector<BezierCurvePts> *dst);
+
+    /* Collapses those curves whose end points are within a texel
+       and creates a list of those curves that are not collapsed
+     */
+    static
+    void
+    collapse(std::vector<BezierCurvePts> &src,
+             const fastuidraw::detail::IntBezierCurve::transformation<int> &tr,
+             fastuidraw::ivec2 texel_size,
+             std::vector<unsigned int> *dst);
+
+  private:
+    fastuidraw::vecN<point, 3> m_pts;
+    unsigned int m_number_pts;
   };
 
   class CompareSolutions
@@ -537,10 +642,10 @@ namespace
 }
 
 //////////////////////////////////////
-// Cubic methods
+// CubicBezierCurve methods
 void
-Cubic::
-approximate_with_quadratics(fastuidraw::vecN<Quadratic, 4> *out_curves) const
+CubicBezierCurve::
+approximate_with_quadratics(fastuidraw::vecN<QuadraticBezierCurve, 4> *out_curves) const
 {
   /*
     Should we do the arithmatic in 64bit ints
@@ -552,7 +657,7 @@ approximate_with_quadratics(fastuidraw::vecN<Quadratic, 4> *out_curves) const
     of the source m_raw_curve and each of alpha and beta
     are from that, another factor of 8, together it is 64.
   */
-  const Cubic &in_curve(*this);
+  const CubicBezierCurve &in_curve(*this);
   CubicDecomposerHelper<int> this_curve(in_curve[0], in_curve[1], in_curve[2], in_curve[3]);
   CubicDecomposerHelper<int> alpha(this_curve.p[0], this_curve.p0_1, this_curve.p01_12, this_curve.pMid);
   CubicDecomposerHelper<int> beta(this_curve.pMid, this_curve.p12_23, this_curve.p2_3, this_curve.p[3]);
@@ -571,32 +676,176 @@ approximate_with_quadratics(fastuidraw::vecN<Quadratic, 4> *out_curves) const
       [pMid, pC, beta.pMid]
       [beta.pMid, pD, p3]
   */
-  (*out_curves)[0] = Quadratic(this_curve.p[0], pA, alpha.pMid);
-  (*out_curves)[1] = Quadratic(alpha.pMid, pB, this_curve.pMid);
-  (*out_curves)[2] = Quadratic(this_curve.pMid, pC, beta.pMid);
-  (*out_curves)[3] = Quadratic(beta.pMid, pD, this_curve.p[3]);
+  (*out_curves)[0] = QuadraticBezierCurve(this_curve.p[0], pA, alpha.pMid);
+  (*out_curves)[1] = QuadraticBezierCurve(alpha.pMid, pB, this_curve.pMid);
+  (*out_curves)[2] = QuadraticBezierCurve(this_curve.pMid, pC, beta.pMid);
+  (*out_curves)[3] = QuadraticBezierCurve(beta.pMid, pD, this_curve.p[3]);
 }
 
 void
-Cubic::
-approximate_with_quadratics(fastuidraw::vecN<Quadratic, 2> *out_curves) const
+CubicBezierCurve::
+approximate_with_quadratics(fastuidraw::vecN<QuadraticBezierCurve, 2> *out_curves) const
 {
-  const Cubic &in_curve(*this);
+  const CubicBezierCurve &in_curve(*this);
   CubicDecomposerHelper<int> this_curve(in_curve[0], in_curve[1], in_curve[2], in_curve[3]);
 
-  (*out_curves)[0] = Quadratic(this_curve.p[0], this_curve.p[1], this_curve.pMid);
-  (*out_curves)[1] = Quadratic(this_curve.pMid, this_curve.p[2], this_curve.p[3]);
+  (*out_curves)[0] = QuadraticBezierCurve(this_curve.p[0], this_curve.p[1], this_curve.pMid);
+  (*out_curves)[1] = QuadraticBezierCurve(this_curve.pMid, this_curve.p[2], this_curve.p[3]);
 }
 
 void
-Cubic::
-approximate_with_quadratics(fastuidraw::vecN<Quadratic, 1> *out_curves) const
+CubicBezierCurve::
+approximate_with_quadratics(fastuidraw::vecN<QuadraticBezierCurve, 1> *out_curves) const
 {
   fastuidraw::ivec2 q;
-  const Cubic &in_curve(*this);
+  const CubicBezierCurve &in_curve(*this);
 
   q = compute_midpoint(in_curve[1], in_curve[2]);
-  (*out_curves)[0] = Quadratic(in_curve[0], q, in_curve[3]);
+  (*out_curves)[0] = QuadraticBezierCurve(in_curve[0], q, in_curve[3]);
+}
+
+//////////////////////////////////
+// BezierCurvePts methods
+void
+BezierCurvePts::
+simplify(float curvature_collapse,
+         const fastuidraw::detail::IntBezierCurve::transformation<int> &tr,
+         const std::vector<fastuidraw::detail::IntBezierCurve> &curves,
+         fastuidraw::ivec2 texel_size,
+         std::vector<BezierCurvePts> *dst)
+{
+  for(const fastuidraw::detail::IntBezierCurve &in_curve : curves)
+    {
+      if(in_curve.degree() == 3)
+        {
+          fastuidraw::const_c_array<fastuidraw::ivec2> pts(in_curve.control_pts());
+          CubicBezierCurve cubic(pts[0], pts[1], pts[2], pts[3]);
+          fastuidraw::ivec2 t0, t1;
+          fastuidraw::vecN<QuadraticBezierCurve, 4> quads_4;
+          fastuidraw::vecN<QuadraticBezierCurve, 2> quads_2;
+          fastuidraw::vecN<QuadraticBezierCurve, 1> quads_1;
+          fastuidraw::c_array<QuadraticBezierCurve> quads;
+          int l1_dist;
+
+          t0 = tr(in_curve.control_pts().front()) / texel_size;
+          t1 = tr(in_curve.control_pts().back())  / texel_size;
+          l1_dist = (t0 - t1).L1norm();
+
+          if(l1_dist > 6)
+            {
+              quads = quads_4;
+              cubic.approximate_with_quadratics(&quads_4);
+            }
+          else if(l1_dist > 4)
+            {
+              quads = quads_2;
+              cubic.approximate_with_quadratics(&quads_2);
+            }
+          else
+            {
+              quads = quads_1;
+              cubic.approximate_with_quadratics(&quads_1);
+            }
+
+          for(const QuadraticBezierCurve q : quads)
+            {
+              dst->push_back(q);
+            }
+        }
+      else
+        {
+          bool collapse_to_line(false);
+          if(in_curve.degree() == 2)
+            {
+              fastuidraw::const_c_array<fastuidraw::ivec2> pts(in_curve.control_pts());
+
+              QuadraticBezierCurve Q(pts[0], pts[1], pts[2]);
+              collapse_to_line = Q.compute_curvature() < curvature_collapse;
+            }
+
+          if(!collapse_to_line)
+            {
+              dst->push_back(BezierCurvePts(in_curve.control_pts()));
+            }
+          else
+            {
+              dst->push_back(BezierCurvePts(in_curve.control_pts().front(),
+                                            in_curve.control_pts().back()));
+            }
+        }
+    }
+}
+
+void
+BezierCurvePts::
+collapse(std::vector<BezierCurvePts> &src,
+         const fastuidraw::detail::IntBezierCurve::transformation<int> &tr,
+         fastuidraw::ivec2 texel_size,
+         std::vector<unsigned int> *dst_ptr)
+{
+  std::vector<unsigned int> &non_collapsed_curves(*dst_ptr);
+
+  for(unsigned int i = 0, endi = src.size(); i < endi; ++i)
+    {
+      const BezierCurvePts &in_curve(src[i]);
+      fastuidraw::ivec2 p0, p1, t0, t1;
+
+      p0 = in_curve.control_pts().front();
+      p1 = in_curve.control_pts().back();
+      t0 = tr(p0) / texel_size;
+      t1 = tr(p1) / texel_size;
+      if(t0 != t1)
+        {
+          non_collapsed_curves.push_back(i);
+        }
+    }
+
+  if(non_collapsed_curves.size() < 2)
+    {
+      //entire contour collapsed!
+      non_collapsed_curves.clear();
+      return;
+    }
+
+  if(non_collapsed_curves.front() != 0
+     && non_collapsed_curves.back() != src.size() - 1)
+    {
+      /* collapse the sequence that rolls over */
+      fastuidraw::ivec2 pt(src[non_collapsed_curves.back()].control_pts().back());
+      int number_skipped(0);
+
+      for(unsigned int k = non_collapsed_curves.back() + 1, endk = src.size(); k < endk; ++k, ++number_skipped)
+        {
+          pt += src[k].control_pts().back();
+        }
+
+      for(unsigned int k = 0; k < non_collapsed_curves.front(); ++k, ++number_skipped)
+        {
+          pt += src[k].control_pts().back();
+        }
+
+      pt /= number_skipped;
+      src[non_collapsed_curves.back()].control_pts().back() = pt;
+      src[non_collapsed_curves.front()].control_pts().front() = pt;
+    }
+
+  for(unsigned int C = 0, endC = non_collapsed_curves.size(); C + 1 < endC; ++C)
+    {
+      unsigned int number_skipped(0);
+      fastuidraw::ivec2 pt(src[non_collapsed_curves[C]].control_pts().back());
+
+      for(unsigned int k = non_collapsed_curves[C] + 1; k < non_collapsed_curves[C + 1]; ++k, ++number_skipped)
+        {
+          pt += src[k].control_pts().back();
+        }
+
+      if(number_skipped > 0)
+        {
+          pt /= number_skipped;
+          src[non_collapsed_curves[C]].control_pts().back() = pt;
+          src[non_collapsed_curves[C + 1]].control_pts().front() = pt;
+        }
+    }
 }
 
 /////////////////////////////////////
@@ -709,32 +958,109 @@ compute_line_intersection(int pt, enum coordinate_type line_type,
                           std::back_inserter(*out_value));
 }
 
+/////////////////////////////////////
+// fastuidraw::detail::IntContour methods
+void
+fastuidraw::detail::IntContour::
+filter(float curvature_collapse,
+       const IntBezierCurve::transformation<int> &tr,
+       ivec2 texel_size)
+{
+  if(m_curves.empty())
+    {
+      return;
+    }
+
+  /* step 1: convert cubics to quadratics and
+             convert tiny curvature curves to
+             lines
+   */
+  std::vector<BezierCurvePts> tmp;
+  BezierCurvePts::simplify(curvature_collapse, tr, m_curves, texel_size, &tmp);
+
+  /* step 2, collapse curves within a texel.
+      - When a sequence of curves is collapsed, we collapse
+        that sequence of curves to a single point whose value
+        is the average of the end points of the curves
+        to remove; the tricky part if to correctly handle
+        the case where a curve collapse sequence starts
+        towards the end of the contour and ends at the
+        beginning (i.e. roll over).
+   */
+  std::vector<unsigned int> non_collapsed_curves;
+  BezierCurvePts::collapse(tmp, tr, texel_size, &non_collapsed_curves);
+
+  /* now finally overwrite m_curves with the curves in tmp
+     that are listed by non_collapsed_curves
+   */
+  IntBezierCurve::ID_t id;
+  id.m_curveID = 0;
+  id.m_contourID = m_curves.front().ID().m_contourID;
+
+  m_curves.clear();
+  for(unsigned int I : non_collapsed_curves)
+    {
+      const_c_array<ivec2> pts(tmp[I].control_pts());
+      if(pts.size() == 2)
+        {
+          m_curves.push_back(IntBezierCurve(id, pts[0], pts[1]));
+        }
+      else
+        {
+          FASTUIDRAWassert(pts.size() == 3);
+          m_curves.push_back(IntBezierCurve(id, pts[0], pts[1], pts[2]));
+        }
+      ++id.m_curveID;
+    }
+
+}
+
+void
+fastuidraw::detail::IntContour::
+add_to_path(const IntBezierCurve::transformation<float> &tr, Path *dst) const
+{
+  for(const IntBezierCurve &curve : m_curves)
+    {
+      const_c_array<ivec2> pts;
+
+      pts = curve.control_pts();
+      pts = pts.sub_array(0, pts.size() - 1);
+      *dst << tr(vec2(pts.front()));
+      pts = pts.sub_array(1);
+      while(!pts.empty())
+        {
+          vec2 pt(tr(vec2(pts.front())));
+          *dst << Path::control_point(pt);
+          pts = pts.sub_array(1);
+        }
+    }
+  *dst << Path::contour_end();
+}
+
 //////////////////////////////////////
 // fastuidraw::detail::IntPath methods
 void
 fastuidraw::detail::IntPath::
-add_to_path(const vec2 &offset, const vec2 &scale, Path *dst) const
+add_to_path(const IntBezierCurve::transformation<float> &tr, Path *dst) const
 {
   for(const IntContour &contour : m_contours)
     {
-      const std::vector<IntBezierCurve> &curves(contour.curves());
-      for(const IntBezierCurve &curve : curves)
-        {
-          const_c_array<ivec2> pts;
-
-          pts = curve.control_pts();
-          pts = pts.sub_array(0, pts.size() - 1);
-          *dst << offset + scale * vec2(pts.front());
-          pts = pts.sub_array(1);
-          while(!pts.empty())
-            {
-              *dst << Path::control_point(offset + scale * vec2(pts.front()));
-              pts = pts.sub_array(1);
-            }
-        }
-      *dst << Path::contour_end();
+      contour.add_to_path(tr, dst);
     }
 }
+
+void
+fastuidraw::detail::IntPath::
+filter(float curvature_collapse,
+       const IntBezierCurve::transformation<int> &tr,
+       ivec2 texel_size)
+{
+  for(IntContour &contour : m_contours)
+    {
+      contour.filter(curvature_collapse, tr, texel_size);
+    }
+}
+
 
 fastuidraw::detail::IntBezierCurve::ID_t
 fastuidraw::detail::IntPath::

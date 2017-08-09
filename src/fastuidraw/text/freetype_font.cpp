@@ -122,11 +122,10 @@ namespace
                       font_coordinate_converter C)
     {
       fastuidraw::detail::IntPath ip;
+      fastuidraw::detail::IntBezierCurve::transformation<float> tr(C.factor());
 
       decompose_to_path(outline, ip);
-      ip.add_to_path(fastuidraw::vec2(0.0f, 0.0f),
-                     fastuidraw::vec2(C.factor(), C.factor()),
-                     &p);
+      ip.add_to_path(tr, &p);
     }
 
   private:
@@ -229,7 +228,6 @@ namespace
     fastuidraw::FontFreeType *m_p;
   };
 }
-
 
 //////////////////////////////////////////////////
 // FontFreeTypePrivate methods
@@ -369,7 +367,8 @@ compute_rendering_data(uint32_t glyph_code,
       return;
     }
 
-  int_path_ecm.add_to_path(fastuidraw::vec2(0.0f, 0.0f), fastuidraw::vec2(1.0f, 1.0f), &path);
+  fastuidraw::detail::IntBezierCurve::transformation<float> identity_tr;
+  int_path_ecm.add_to_path(identity_tr, &path);
 
   /* compute the step value needed to create the distance field value*/
   int pixel_size(m_render_params.distance_field_pixel_size());
