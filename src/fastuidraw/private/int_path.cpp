@@ -73,6 +73,23 @@ namespace
       }
   }
 
+  inline
+  uint8_t
+  pixel_value_from_distance(float dist, bool outside)
+  {
+    uint8_t v;
+
+    dist = fastuidraw::t_min(1.0f, fastuidraw::t_max(0.0f, dist));
+    if(outside)
+      {
+        dist = -dist;
+      }
+
+    dist = (dist + 1.0f) * 0.5f;
+    v = static_cast<uint8_t>(255.0f * dist);
+    return v;
+  }
+
   template<typename T>
   class MultiplierFunctor
   {
@@ -1119,6 +1136,49 @@ cubic_to(const ivec2 &control_pt0, const ivec2 &control_pt1, const ivec2 &pt)
   m_last_pt = pt;
 }
 
+void
+fastuidraw::detail::IntPath::
+extract_render_data(const ivec2 &step, const ivec2 &image_sz,
+                    float max_distance,
+                    const IntBezierCurve::transformation<int> &tr,
+                    GlyphRenderDataDistanceField *dst) const
+{
+  array2d<distance_value> dist_values(image_sz.x(), image_sz.y());
+  int radius(2);
+
+  compute_distance_values(step, image_sz, tr, radius, dist_values);
+
+  dst->resize(image_sz + ivec2(1, 1));
+  std::fill(dst->distance_values().begin(), dst->distance_values().end(), 0);
+  for(int y = 0; y < image_sz.y(); ++y)
+    {
+      for(int x = 0; x < image_sz.x(); ++x)
+        {
+          bool outside;
+          float dist;
+          uint8_t v;
+          int w1, w2;
+          unsigned int location;
+
+          w1 = dist_values(x, y).winding_number(IntBezierCurve::x_fixed);
+          w2 = dist_values(x, y).winding_number(IntBezierCurve::y_fixed);
+
+          outside = (w1 == 0);
+          dist = dist_values(x, y).distance(max_distance) / max_distance;
+          if(w1 != w2)
+            {
+              /* if the windings do not match, then a curve is going through
+                 the test point of the texel, thus make the distance 0
+              */
+              dist = 0.0f;
+            }
+
+          v = pixel_value_from_distance(dist, outside);
+          location = x + y * (1 + image_sz.x());
+          dst->distance_values()[location] = v;
+        }
+    }
+}
 
 void
 fastuidraw::detail::IntPath::

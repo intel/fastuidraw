@@ -24,6 +24,8 @@
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/path.hpp>
+#include <fastuidraw/text/glyph_render_data_curve_pair.hpp>
+#include <fastuidraw/text/glyph_render_data_distance_field.hpp>
 
 #include "array2d.hpp"
 #include "bounding_box.hpp"
@@ -488,19 +490,6 @@ namespace fastuidraw
       void
       add_to_path(const IntBezierCurve::transformation<float> &tr, Path *dst) const;
 
-      /*
-        Compute distance_value for the domain
-             D = { (x(i), y(j)) : 0 <= i < count.x(), 0 <= j < count.y() }
-        where
-             x(i) = step.x() * i
-             y(j) = step.y() * j
-        One can get translation via using the transformation argument, tr.
-      */
-      void
-      compute_distance_values(const ivec2 &step, const ivec2 &count,
-                              const IntBezierCurve::transformation<int> &tr,
-                              int radius, array2d<distance_value> &out_values) const;
-
       /* Filter the Path as follows:
           1. Collapse any curves that are within a texel
           2. Curves of tiny curvature are realized as a line
@@ -515,7 +504,44 @@ namespace fastuidraw
       filter(float curvature_collapse,
              const IntBezierCurve::transformation<int> &tr, ivec2 texel_size);
 
+
+      /* extract render data the location of pixel(i, j) is at
+         (step.x() * i, step.y() * j). The resolution is (count.x(), count.y())
+         and the values extracted are those values from the IntPath
+         transformed by tr. The max-distance values is in units
+         of the IntPath with the transformation tr applied
+       */
+      void
+      extract_render_data(const ivec2 &step, const ivec2 &count,
+                          float max_distance,
+                          const IntBezierCurve::transformation<int> &tr,
+                          GlyphRenderDataDistanceField *dst) const;
+
+
+      /* extract render data the location of pixel(i, j) is at
+         (step.x() * i, step.y() * j). The resolution is (count.x(), count.y())
+         and the values extracted are those values from the IntPath
+         transformed by tr.
+       */
+      void
+      extract_render_data(const ivec2 &step, const ivec2 &count,
+                          const IntBezierCurve::transformation<int> &tr,
+                          GlyphRenderDataCurvePair *dst) const;
+
     private:
+
+      /*
+        Compute distance_value for the domain
+             D = { (x(i), y(j)) : 0 <= i < count.x(), 0 <= j < count.y() }
+        where
+             x(i) = step.x() * i
+             y(j) = step.y() * j
+        One can get translation via using the transformation argument, tr.
+      */
+      void
+      compute_distance_values(const ivec2 &step, const ivec2 &count,
+                              const IntBezierCurve::transformation<int> &tr,
+                              int radius, array2d<distance_value> &out_values) const;
       void
       compute_outline_point_values(const ivec2 &step, const ivec2 &count,
                                    const IntBezierCurve::transformation<int> &tr,

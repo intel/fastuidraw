@@ -66,23 +66,6 @@ namespace
     float m_factor;
   };
 
-  inline
-  uint8_t
-  pixel_value_from_distance(float dist, bool outside)
-  {
-    uint8_t v;
-
-    dist = fastuidraw::t_min(1.0f, fastuidraw::t_max(0.0f, dist));
-    if(outside)
-      {
-        dist = -dist;
-      }
-
-    dist = (dist + 1.0f) * 0.5f;
-    v = static_cast<uint8_t>(255.0f * dist);
-    return v;
-  }
-
   class RenderParamsPrivate
   {
   public:
@@ -381,7 +364,6 @@ compute_rendering_data(uint32_t glyph_code,
 
   if(image_sz.x() != 0 && image_sz.y() != 0)
     {
-      const int radius(2);
       /* we translate by -layout_offset to make the points of
          the IntPath match correctly with that of the texel
          data (this also gaurantees that the box of the glyph
@@ -394,45 +376,11 @@ compute_rendering_data(uint32_t glyph_code,
       int tr_scale(2 * pixel_size);
       fastuidraw::ivec2 tr_translate(-2 * pixel_size * layout_offset - fastuidraw::ivec2(units_per_EM + 1));
       fastuidraw::detail::IntBezierCurve::transformation<int> tr(tr_scale, tr_translate);
-
-      fastuidraw::array2d<fastuidraw::detail::IntPath::distance_value> dst_values(image_sz.x(), image_sz.y());
       fastuidraw::ivec2 texel_distance(2 * units_per_EM);
-      int_path_ecm.compute_distance_values(texel_distance, image_sz, tr, radius, dst_values);
-
-      float max_distance;
-      max_distance = (m_render_params.distance_field_max_distance() / 64.0f)
+      float max_distance = (m_render_params.distance_field_max_distance() / 64.0f)
         * static_cast<float>(2 * units_per_EM);
 
-      output.resize(image_sz + fastuidraw::ivec2(1, 1));
-      std::fill(output.distance_values().begin(), output.distance_values().end(), 0);
-      for(int y = 0; y < image_sz.y(); ++y)
-        {
-          for(int x = 0; x < image_sz.x(); ++x)
-            {
-              bool outside;
-              float dst;
-              uint8_t v;
-              int w1, w2;
-              unsigned int location;
-
-              w1 = dst_values(x, y).winding_number(fastuidraw::detail::IntBezierCurve::x_fixed);
-              w2 = dst_values(x, y).winding_number(fastuidraw::detail::IntBezierCurve::y_fixed);
-
-              outside = (w1 == 0);
-              dst = dst_values(x, y).distance(max_distance) / max_distance;
-              if(w1 != w2)
-                {
-                  /* if the windings do not match, then a curve is going through
-                     the test point of the texel, thus make the distance 0
-                   */
-                  dst = 0.0f;
-                }
-
-              v = pixel_value_from_distance(dst, outside);
-              location = x + y * (1 + image_sz.x());
-              output.distance_values()[location] = v;
-            }
-        }
+      int_path_ecm.extract_render_data(texel_distance, image_sz, max_distance, tr, &output);
     }
   else
     {
