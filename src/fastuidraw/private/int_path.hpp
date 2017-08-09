@@ -336,89 +336,6 @@ namespace fastuidraw
     class IntPath
     {
     public:
-
-      class distance_value
-      {
-      public:
-        enum winding_ray_t
-          {
-            from_pt_to_x_negative_infinity,
-            from_pt_to_x_positive_infinity,
-            from_pt_to_y_negative_infinity,
-            from_pt_to_y_positive_infinity,
-          };
-
-        distance_value(void):
-          m_distance(-1.0f),
-          m_ray_intersection_counts(0, 0, 0, 0),
-          m_winding_numbers(0, 0)
-        {}
-
-        void
-        record_distance_value(float v)
-        {
-          FASTUIDRAWassert(v >= 0.0f);
-          m_distance = (m_distance >= 0.0f) ?
-            t_min(v, m_distance) :
-            v;
-        }
-
-        void
-        increment_ray_intersection_count(enum winding_ray_t tp, int mult)
-        {
-          FASTUIDRAWassert(mult >= 0);
-          m_ray_intersection_counts[tp] += mult;
-        }
-
-        void
-        set_winding_number(enum IntBezierCurve::coordinate_type tp, int w)
-        {
-          m_winding_numbers[tp] = w;
-        }
-
-        float
-        distance(float max_distance) const
-        {
-          return (m_distance < 0.0f) ?
-            max_distance :
-            t_min(max_distance, m_distance);
-        }
-
-        float
-        raw_distance(void) const
-        {
-          return m_distance;
-        }
-
-        int
-        ray_intersection_count(enum winding_ray_t tp) const
-        {
-          return m_ray_intersection_counts[tp];
-        }
-
-        int
-        winding_number(enum IntBezierCurve::coordinate_type tp = IntBezierCurve::x_fixed) const
-        {
-          return m_winding_numbers[tp];
-        }
-
-      private:
-        /* unsigned distance in IntPath coordinates,
-           a negative value indicates value is not
-           assigned
-        */
-        float m_distance;
-
-        /* number of intersection (counted with multiplicity)
-           of a ray agains the path.
-         */
-        vecN<int, 4> m_ray_intersection_counts;
-
-        /* winding number computed from horizontal or vertical lines
-         */
-        vecN<int, 2> m_winding_numbers;
-      };
-
       IntPath(void)
       {}
 
@@ -532,42 +449,6 @@ namespace fastuidraw
                           GlyphRenderDataCurvePair *dst) const;
 
     private:
-
-      /*
-        Compute distance_value for the domain
-             D = { (x(i), y(j)) : 0 <= i < count.x(), 0 <= j < count.y() }
-        where
-             x(i) = step.x() * i
-             y(j) = step.y() * j
-        One can get translation via using the transformation argument, tr.
-      */
-      void
-      compute_distance_values(const ivec2 &step, const ivec2 &count,
-                              const IntBezierCurve::transformation<int> &tr,
-                              int radius, array2d<distance_value> &out_values) const;
-      void
-      compute_outline_point_values(const ivec2 &step, const ivec2 &count,
-                                   const IntBezierCurve::transformation<int> &tr,
-                                   int radius, array2d<distance_value> &dst) const;
-      void
-      compute_derivative_cancel_values(const ivec2 &step, const ivec2 &count,
-                                       const IntBezierCurve::transformation<int> &tr,
-                                       int radius, array2d<distance_value> &dst) const;
-      void
-      compute_fixed_line_values(const ivec2 &step, const ivec2 &count,
-                                const IntBezierCurve::transformation<int> &tr,
-                                array2d<distance_value> &dst) const;
-      void
-      compute_fixed_line_values(enum IntBezierCurve::coordinate_type tp,
-                                std::vector<std::vector<IntBezierCurve::solution_pt> > &work_room,
-                                const ivec2 &step, const ivec2 &count,
-                                const IntBezierCurve::transformation<int> &tr,
-                                array2d<distance_value> &dst) const;
-      void
-      compute_winding_values(enum IntBezierCurve::coordinate_type tp, int c,
-                             const std::vector<IntBezierCurve::solution_pt> &L,
-                             int step, int count,
-                             array2d<distance_value> &dst) const;
       IntBezierCurve::ID_t
       computeID(void);
 
