@@ -179,27 +179,33 @@ namespace
     }
   };
 
+  template<typename interator>
   class poly_solutions
   {
   public:
-    poly_solutions(void):
-      m_0_solution_location(-1),
-      m_1_solution_location(-1)
+    explicit
+    poly_solutions(interator iter):
+      m_iter(iter),
+      m_size(0),
+      m_multiplicity_0_solution(0),
+      m_multiplicity_1_solution(0)
     {}
 
     void
     add_solution_if_acceptable(uint32_t flags, float t, int mult = 1)
     {
-      poly_solution P;
-      P.m_t = t;
-      P.m_multiplicity = mult;
-      P.m_type = (P.m_t < 1.0f && P.m_t > 0.0f) ?
+      enum fastuidraw::detail::IntBezierCurve::solution_type tp;
+      tp = (t < 1.0f && t > 0.0f) ?
         fastuidraw::detail::IntBezierCurve::within_0_1 :
         fastuidraw::detail::IntBezierCurve::outside_0_1;
-
-      if(flags & P.m_type)
+      if(flags & tp)
         {
-          m_solutions.push_back(P);
+          poly_solution P;
+          P.m_t = t;
+          P.m_multiplicity = mult;
+          P.m_type = tp;
+          *m_iter++ = P;
+          ++m_size;
         }
     }
 
@@ -208,17 +214,7 @@ namespace
     {
       if(flags & fastuidraw::detail::IntBezierCurve::on_0_boundary)
         {
-          if(m_0_solution_location == -1)
-            {
-              poly_solution P;
-
-              P.m_t = 0.0f;
-              P.m_multiplicity = 0;
-              P.m_type = fastuidraw::detail::IntBezierCurve::on_0_boundary;
-              m_0_solution_location = m_solutions.size();
-              m_solutions.push_back(P);
-            }
-          ++m_solutions[m_0_solution_location].m_multiplicity;
+          ++m_multiplicity_0_solution;
         }
     }
 
@@ -227,37 +223,62 @@ namespace
     {
       if(flags & fastuidraw::detail::IntBezierCurve::on_1_boundary)
         {
-          if(m_1_solution_location == -1)
-            {
-              poly_solution P;
-
-              P.m_t = 1.0f;
-              P.m_multiplicity = 0;
-              P.m_type = fastuidraw::detail::IntBezierCurve::on_1_boundary;
-              m_1_solution_location = m_solutions.size();
-              m_solutions.push_back(P);
-            }
-          ++m_solutions[m_1_solution_location].m_multiplicity;
+          ++m_multiplicity_1_solution;
         }
     }
 
-    const std::vector<poly_solution>&
-    solutions(void) const
+    void
+    finalize(void)
     {
-      return m_solutions;
+      FASTUIDRAWassert(m_multiplicity_0_solution >= 0);
+      FASTUIDRAWassert(m_multiplicity_1_solution >= 0);
+      if(m_multiplicity_0_solution > 0)
+        {
+          poly_solution P;
+          P.m_t = 0.0f;
+          P.m_multiplicity = m_multiplicity_0_solution;
+          P.m_type = fastuidraw::detail::IntBezierCurve::on_0_boundary;
+          *m_iter++ = P;
+        }
+
+      if(m_multiplicity_1_solution > 1)
+        {
+          poly_solution P;
+          P.m_t = 1.0f;
+          P.m_multiplicity = m_multiplicity_1_solution;
+          P.m_type = fastuidraw::detail::IntBezierCurve::on_1_boundary;
+          *m_iter++ = P;
+        }
+      m_multiplicity_0_solution = -1;
+      m_multiplicity_1_solution = -1;
+    }
+
+    bool
+    finalized(void) const
+    {
+      FASTUIDRAWassert((m_multiplicity_0_solution == -1) == (m_multiplicity_1_solution == -1));
+      return m_multiplicity_0_solution == -1;
+    }
+
+    unsigned int
+    size(void) const
+    {
+      FASTUIDRAWassert(finalized());
+      return m_size;
     }
 
   private:
-    std::vector<poly_solution> m_solutions;
-    int m_0_solution_location;
-    int m_1_solution_location;
+    interator m_iter;
+    unsigned int m_size;
+    int m_multiplicity_0_solution;
+    int m_multiplicity_1_solution;
   };
 
-  template<typename T>
+  template<typename T, typename iterator>
   void
   solve_linear(fastuidraw::const_c_array<T> poly,
                uint32_t accepted_solutions,
-               poly_solutions *solutions)
+               poly_solutions<iterator> *solutions)
   {
     FASTUIDRAWassert(poly.size() == 2);
     if(poly[0] == T(0))
@@ -276,11 +297,11 @@ namespace
       }
   }
 
-  template<typename T>
+  template<typename T, typename iterator>
   void
   solve_quadratic(fastuidraw::const_c_array<T> poly,
                   uint32_t accepted_solutions,
-                  poly_solutions *solutions)
+                  poly_solutions<iterator> *solutions)
   {
     FASTUIDRAWassert(poly.size() == 3);
 
@@ -333,11 +354,11 @@ namespace
     solutions->add_solution_if_acceptable(accepted_solutions, (-b + radical) / (2.0f * a));
   }
 
-  template<typename T>
+  template<typename T, typename iterator>
   void
   solve_cubic(fastuidraw::const_c_array<T> poly,
               uint32_t accepted_solutions,
-              poly_solutions *solutions)
+              poly_solutions<iterator> *solutions)
   {
     if(poly[0] == T(0))
       {
@@ -433,23 +454,17 @@ namespace
       }
   }
 
-  template<typename T>
+  template<typename T, typename iterator>
   void
   solve_polynomial(fastuidraw::const_c_array<T> poly,
                    uint32_t accepted_solutions,
-                   poly_solutions *solutions)
+                   poly_solutions<iterator> *solutions)
   {
     while(!poly.empty() && poly.back() == T(0))
       {
         poly = poly.sub_array(0, poly.size() - 1);
       }
 
-    if(poly.size() <= 1)
-      {
-        return;
-      }
-
-    FASTUIDRAWassert(poly.size() >= 2 && poly.size() <= 4);
     switch(poly.size())
       {
       case 2:
@@ -491,17 +506,18 @@ namespace
       }
   }
 
-  template<typename T, typename iterator>
+  template<typename T, typename iterator, typename solutions_iterator>
   int
   compute_solution_points(fastuidraw::detail::IntBezierCurve::ID_t src,
                           const fastuidraw::vecN<fastuidraw::const_c_array<T>, 2> &curve,
-                          const poly_solutions &solutions,
+                          solutions_iterator solutions_begin, solutions_iterator solutions_end,
                           const fastuidraw::detail::IntBezierCurve::transformation<float> &tr,
                           iterator out_pts)
   {
     int R(0);
-    for(const poly_solution &S : solutions.solutions())
+    for(;solutions_begin != solutions_end; ++solutions_begin)
       {
+        const poly_solution &S(*solutions_begin);
         fastuidraw::vec2 p(0.0f, 0.0f), p_t(0.0f, 0.0f);
         fastuidraw::detail::IntBezierCurve::solution_pt v;
 
@@ -641,12 +657,16 @@ compute_derivatives_cancel_pts(void)
   sum = deriv[0] + deriv[1];
   difference = deriv[0] - deriv[1];
 
-  poly_solutions solutions;
+  vecN<poly_solution, 6> solution_holder;
+  poly_solutions<vecN<poly_solution, 6>::iterator> solutions(solution_holder.begin());
+
   solve_polynomial(const_c_array<int>(sum.c_ptr(), m_num_control_pts), within_0_1, &solutions);
   solve_polynomial(const_c_array<int>(difference.c_ptr(), m_num_control_pts), within_0_1, &solutions);
-  FASTUIDRAWassert(solutions.solutions().size() <= m_derivatives_cancel.size());
+  solutions.finalize();
+  FASTUIDRAWassert(solutions.size() <= m_derivatives_cancel.size());
   m_num_derivatives_cancel = compute_solution_points(m_ID, as_polynomial(),
-                                                     solutions, transformation<float>(),
+                                                     solution_holder.begin(), solution_holder.begin() + solutions.size(),
+                                                     transformation<float>(),
                                                      m_derivatives_cancel.begin());
 }
 
@@ -661,7 +681,10 @@ compute_line_intersection(int pt, enum coordinate_type line_type,
   int coord(fixed_coordinate(line_type));
   const_c_array<int> poly(as_polynomial(coord));
   c_array<int64_t> tmp(work_room.c_ptr(), poly.size());
-  poly_solutions solutions;
+
+  std::vector<poly_solution> solution_holder;
+  std::back_insert_iterator<std::vector<poly_solution> > solutions_iter(std::back_inserter(solution_holder));
+  poly_solutions<std::back_insert_iterator<std::vector<poly_solution> > > solutions(solutions_iter);
 
   /* transform m_as_polynomial via transformation tr;
      that transformation is tr(p) = tr.translate() + tr.scale() * p,
@@ -676,9 +699,13 @@ compute_line_intersection(int pt, enum coordinate_type line_type,
    */
   tmp[0] -= pt;
   solve_polynomial(const_c_array<int64_t>(tmp), solution_types_accepted, &solutions);
+  solutions.finalize();
+  FASTUIDRAWassert(solutions.size() == solution_holder.size());
 
   /* compute solution point values from polynomial solutions */
-  compute_solution_points(m_ID, as_polynomial(), solutions, tr.cast<float>(),
+  compute_solution_points(m_ID, as_polynomial(),
+                          solution_holder.begin(), solution_holder.end(),
+                          tr.cast<float>(),
                           std::back_inserter(*out_value));
 }
 
