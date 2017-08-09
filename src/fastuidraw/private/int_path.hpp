@@ -522,6 +522,9 @@ namespace fastuidraw
          (step.x() * i, step.y() * j). The resolution is (count.x(), count.y())
          and the values extracted are those values from the IntPath
          transformed by tr.
+
+         The path should have filter() applied to it so that there
+         are no cubic paths and that small paths are dropped
        */
       void
       extract_render_data(const ivec2 &step, const ivec2 &count,

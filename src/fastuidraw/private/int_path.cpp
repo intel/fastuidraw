@@ -1036,6 +1036,11 @@ void
 fastuidraw::detail::IntContour::
 add_to_path(const IntBezierCurve::transformation<float> &tr, Path *dst) const
 {
+  if(m_curves.empty())
+    {
+      return;
+    }
+
   for(const IntBezierCurve &curve : m_curves)
     {
       const_c_array<ivec2> pts;
@@ -1178,6 +1183,21 @@ extract_render_data(const ivec2 &step, const ivec2 &image_sz,
           dst->distance_values()[location] = v;
         }
     }
+}
+
+void
+fastuidraw::detail::IntPath::
+extract_render_data(const ivec2 &step, const ivec2 &count,
+                    const IntBezierCurve::transformation<int> &tr,
+                    GlyphRenderDataCurvePair *dst) const
+{
+  /* extract curves and create table to go from curve ID's
+     to global indices
+   */
+
+  /* figure out which curve-pair to use for each index
+     and send that to dst
+   */
 }
 
 void

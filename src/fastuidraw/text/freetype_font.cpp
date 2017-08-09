@@ -16,6 +16,7 @@
  *
  */
 
+#include <sstream>
 #include <fastuidraw/text/freetype_font.hpp>
 #include <fastuidraw/text/glyph_layout_data.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
@@ -23,8 +24,6 @@
 #include <fastuidraw/text/glyph_render_data_distance_field.hpp>
 #include <fastuidraw/text/glyph_render_data_coverage.hpp>
 
-#include "private/freetype_util.hpp"
-#include "private/freetype_curvepair_util.hpp"
 #include "../private/array2d.hpp"
 #include "../private/util_private.hpp"
 #include "../private/int_path.hpp"
@@ -344,7 +343,6 @@ compute_rendering_data(uint32_t glyph_code,
     IntPathCreator::decompose_to_path(&m_face->glyph->outline, int_path_ecm);
   m_mutex.unlock();
 
-
   if(int_path_ecm.empty())
     {
       return;
@@ -357,35 +355,33 @@ compute_rendering_data(uint32_t glyph_code,
   int pixel_size(m_render_params.distance_field_pixel_size());
   float scale_factor(static_cast<float>(pixel_size) / static_cast<float>(units_per_EM));
 
-  /* compute how many pixels we need to store the glyph.
-   */
+  /* compute how many pixels we need to store the glyph. */
   fastuidraw::vec2 image_sz_f(layout.m_size * scale_factor);
   fastuidraw::ivec2 image_sz(ceilf(image_sz_f.x()), ceilf(image_sz_f.y()));
 
-  if(image_sz.x() != 0 && image_sz.y() != 0)
-    {
-      /* we translate by -layout_offset to make the points of
-         the IntPath match correctly with that of the texel
-         data (this also gaurantees that the box of the glyph
-         is (0, 0)). In addition, we scale by 2 * pixel_size;
-         By doing this, the distance between texel-centers
-         is then just 2 * units_per_EM and the texel
-         center is at (units_per_EM, units_per_EM); thus
-         we translate the IntPath by -(units_per_EM, units_per_EM)
-       */
-      int tr_scale(2 * pixel_size);
-      fastuidraw::ivec2 tr_translate(-2 * pixel_size * layout_offset - fastuidraw::ivec2(units_per_EM + 1));
-      fastuidraw::detail::IntBezierCurve::transformation<int> tr(tr_scale, tr_translate);
-      fastuidraw::ivec2 texel_distance(2 * units_per_EM);
-      float max_distance = (m_render_params.distance_field_max_distance() / 64.0f)
-        * static_cast<float>(2 * units_per_EM);
-
-      int_path_ecm.extract_render_data(texel_distance, image_sz, max_distance, tr, &output);
-    }
-  else
+  if(image_sz.x() == 0 || image_sz.y() == 0)
     {
       output.resize(fastuidraw::ivec2(0, 0));
+      return;
     }
+
+  /* we translate by -layout_offset to make the points of
+     the IntPath match correctly with that of the texel
+     data (this also gaurantees that the box of the glyph
+     is (0, 0)). In addition, we scale by 2 * pixel_size;
+     By doing this, the distance between texel-centers
+     is then just 2 * units_per_EM and the texel
+     center is at (units_per_EM, units_per_EM); thus
+     we translate the IntPath by -(units_per_EM, units_per_EM)
+  */
+  int tr_scale(2 * pixel_size);
+  fastuidraw::ivec2 tr_translate(-2 * pixel_size * layout_offset - fastuidraw::ivec2(units_per_EM + 1));
+  fastuidraw::detail::IntBezierCurve::transformation<int> tr(tr_scale, tr_translate);
+  fastuidraw::ivec2 texel_distance(2 * units_per_EM);
+  float max_distance = (m_render_params.distance_field_max_distance() / 64.0f)
+    * static_cast<float>(2 * units_per_EM);
+
+  int_path_ecm.extract_render_data(texel_distance, image_sz, max_distance, tr, &output);
 }
 
 void
@@ -395,23 +391,50 @@ compute_rendering_data(uint32_t glyph_code,
                        fastuidraw::GlyphRenderDataCurvePair &output,
                        fastuidraw::Path &path)
 {
-  unsigned int pixel_size(m_render_params.curve_pair_pixel_size());
-  font_coordinate_converter C(m_face, pixel_size);
-  fastuidraw::ivec2 bitmap_offset, bitmap_sz;
+  fastuidraw::detail::IntPath int_path_ecm;
+  int units_per_EM;
+  fastuidraw::ivec2 layout_offset;
 
   m_mutex.lock();
-    FT_Set_Pixel_Sizes(m_face, pixel_size, pixel_size);
-    common_compute_rendering_data(C, FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING, layout, glyph_code);
-    IntPathCreator::decompose_to_path(&m_face->glyph->outline, path, C);
-    FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
-    bitmap_sz.x() = m_face->glyph->bitmap.width;
-    bitmap_sz.y() = m_face->glyph->bitmap.rows;
-    bitmap_offset.x() = m_face->glyph->bitmap_left;
-    bitmap_offset.y() = m_face->glyph->bitmap_top - m_face->glyph->bitmap.rows;
-    fastuidraw::detail::CurvePairGenerator gen(m_face->glyph->outline, bitmap_sz, bitmap_offset, output);
+    common_compute_rendering_data(font_coordinate_converter(),
+                                  FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING
+                                  | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM
+                                  | FT_LOAD_LINEAR_DESIGN,
+                                  layout, glyph_code);
+    units_per_EM = m_face->units_per_EM;
+    layout_offset = fastuidraw::ivec2(m_face->glyph->metrics.horiBearingX,
+                                      m_face->glyph->metrics.horiBearingY);
+    layout_offset.y() -= m_face->glyph->metrics.height;
+    IntPathCreator::decompose_to_path(&m_face->glyph->outline, int_path_ecm);
   m_mutex.unlock();
 
-  gen.extract_data(output);
+  int pixel_size(m_render_params.curve_pair_pixel_size());
+  float scale_factor(static_cast<float>(pixel_size) / static_cast<float>(units_per_EM));
+
+  /* compute how many pixels we need to store the glyph. */
+  fastuidraw::vec2 image_sz_f(layout.m_size * scale_factor);
+  fastuidraw::ivec2 image_sz(ceilf(image_sz_f.x()), ceilf(image_sz_f.y()));
+
+  /* Use the same transformation as the DistanceField case */
+  int tr_scale(2 * pixel_size);
+  fastuidraw::ivec2 tr_translate(-2 * pixel_size * layout_offset - fastuidraw::ivec2(units_per_EM + 1));
+  fastuidraw::detail::IntBezierCurve::transformation<int> tr(tr_scale, tr_translate);
+  fastuidraw::ivec2 texel_distance(2 * units_per_EM);
+  float curvature_collapse(0.05f);
+
+  int_path_ecm.filter(curvature_collapse, tr, texel_distance);
+  if(int_path_ecm.empty() || image_sz.x() == 0 || image_sz.y() == 0)
+    {
+      output.resize_active_curve_pair(fastuidraw::ivec2(0, 0));
+      return;
+    }
+
+  /* extract to a Path */
+  fastuidraw::detail::IntBezierCurve::transformation<float> identity_tr;
+  int_path_ecm.add_to_path(identity_tr, &path);
+
+  /* extract render data*/
+  int_path_ecm.extract_render_data(texel_distance, image_sz, tr, &output);
 }
 
 /////////////////////////////////////////////
