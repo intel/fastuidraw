@@ -1538,11 +1538,11 @@ compute_winding_values(enum Solver::coordinate_type tp, int c,
           /* should we disregard solutions with even multiplicity? */
           if(L[idx].m_p_t[fixed_coord] > 0.0f)
             {
-              winding += L[idx].m_multiplicity;
+              winding += 1;
             }
           else if(L[idx].m_p_t[fixed_coord] < 0.0f)
             {
-              winding -= L[idx].m_multiplicity;
+              winding -= 1;
             }
         }
       pixel[varying_coord] = v;
@@ -1928,7 +1928,11 @@ extract_render_data(const ivec2 &step, const ivec2 &image_sz,
   int radius(2);
 
   /* change tr to be offset by half a texel, so that the
-     distance value is sampled at the center of the texel.
+     distance value is sampled at the center of the texel;
+     we also push it off by 1 more texel to guarnantee that
+     the sample points' x and y coordinates are different
+     from the x and y coordinates of all end points of the
+     curves of the path after transformation.
    */
   int tr_scale(tr.scale());
   ivec2 tr_translate(tr.translate() - step / 2 - ivec2(1, 1));
