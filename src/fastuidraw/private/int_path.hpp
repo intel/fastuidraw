@@ -322,7 +322,7 @@ namespace fastuidraw
       void
       extract_render_data(const ivec2 &step, const ivec2 &count,
                           float max_distance,
-                          const IntBezierCurve::transformation<int> &tr,
+                          IntBezierCurve::transformation<int> tr,
                           GlyphRenderDataDistanceField *dst) const;
 
 
@@ -336,7 +336,7 @@ namespace fastuidraw
        */
       void
       extract_render_data(const ivec2 &step, const ivec2 &count,
-                          const IntBezierCurve::transformation<int> &tr,
+                          IntBezierCurve::transformation<int> tr,
                           GlyphRenderDataCurvePair *dst) const;
 
     private:

@@ -370,12 +370,10 @@ compute_rendering_data(uint32_t glyph_code,
      data (this also gaurantees that the box of the glyph
      is (0, 0)). In addition, we scale by 2 * pixel_size;
      By doing this, the distance between texel-centers
-     is then just 2 * units_per_EM and the texel
-     center is at (units_per_EM, units_per_EM); thus
-     we translate the IntPath by -(units_per_EM, units_per_EM)
+     is then just 2 * units_per_EM.
   */
   int tr_scale(2 * pixel_size);
-  fastuidraw::ivec2 tr_translate(-2 * pixel_size * layout_offset - fastuidraw::ivec2(units_per_EM + 1));
+  fastuidraw::ivec2 tr_translate(-2 * pixel_size * layout_offset);
   fastuidraw::detail::IntBezierCurve::transformation<int> tr(tr_scale, tr_translate);
   fastuidraw::ivec2 texel_distance(2 * units_per_EM);
   float max_distance = (m_render_params.distance_field_max_distance() / 64.0f)
@@ -417,7 +415,7 @@ compute_rendering_data(uint32_t glyph_code,
 
   /* Use the same transformation as the DistanceField case */
   int tr_scale(2 * pixel_size);
-  fastuidraw::ivec2 tr_translate(-2 * pixel_size * layout_offset - fastuidraw::ivec2(units_per_EM + 1));
+  fastuidraw::ivec2 tr_translate(-2 * pixel_size * layout_offset);
   fastuidraw::detail::IntBezierCurve::transformation<int> tr(tr_scale, tr_translate);
   fastuidraw::ivec2 texel_distance(2 * units_per_EM);
   float curvature_collapse(0.05f);

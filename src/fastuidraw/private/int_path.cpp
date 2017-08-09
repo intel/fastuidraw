@@ -568,37 +568,30 @@ namespace
     typedef fastuidraw::detail::IntContour IntContour;
     typedef fastuidraw::GlyphRenderDataCurvePair GlyphRenderDataCurvePair;
     typedef fastuidraw::ivec2 ivec2;
+    typedef fastuidraw::vec2 vec2;
 
     explicit
     CurvePairGenerator(const std::vector<IntContour> &contours);
 
-    unsigned int
-    global_index(IntBezierCurve::ID_t id) const
-    {
-      FASTUIDRAWassert(id.m_contourID < m_contours.size());
-      FASTUIDRAWassert(id.m_curveID < m_contours[id.m_contourID].curves().size());
-      FASTUIDRAWassert(m_contours.size() == m_cumulated_curve_counts.size());
-      return m_cumulated_curve_counts[id.m_contourID] + id.m_curveID;
-    }
-
-    unsigned int
-    curve_count(void) const
-    {
-      return m_curve_count;
-    }
-
     void
-    extract_entries(const fastuidraw::ivec2 &step,
+    extract_entries(const ivec2 &step,
                     const IntBezierCurve::transformation<int> &tr,
                     GlyphRenderDataCurvePair *dst) const;
+
+    void
+    extract_active_curve_pairs(const ivec2 &step,
+                               const ivec2 &count,
+                               const IntBezierCurve::transformation<int> &tr,
+                               GlyphRenderDataCurvePair *dst) const;
 
   private:
     static
     fastuidraw::GlyphRenderDataCurvePair::entry
-    extract_entry(const IntBezierCurve::transformation<int> &tr,
-                  const fastuidraw::ivec2 &step,
-                  fastuidraw::const_c_array<fastuidraw::ivec2> c0,
-                  fastuidraw::const_c_array<fastuidraw::ivec2> c1);
+    extract_entry(bool reverse,
+                  const IntBezierCurve::transformation<int> &tr,
+                  const ivec2 &step,
+                  fastuidraw::const_c_array<ivec2> c0,
+                  fastuidraw::const_c_array<ivec2> c1);
 
     IntBezierCurve::ID_t
     prev_neighbor(IntBezierCurve::ID_t id) const
@@ -629,9 +622,25 @@ namespace
       return m_contours[id.m_contourID].curve(id.m_curveID);
     }
 
+    unsigned int
+    global_index(IntBezierCurve::ID_t id) const
+    {
+      FASTUIDRAWassert(id.m_contourID < m_contours.size());
+      FASTUIDRAWassert(id.m_curveID < m_contours[id.m_contourID].curves().size());
+      FASTUIDRAWassert(m_contours.size() == m_cumulated_curve_counts.size());
+      return m_cumulated_curve_counts[id.m_contourID] + id.m_curveID;
+    }
+
+    unsigned int
+    curve_count(void) const
+    {
+      return m_curve_count;
+    }
+
     const std::vector<fastuidraw::detail::IntContour> &m_contours;
     unsigned int m_curve_count;
     std::vector<unsigned int> m_cumulated_curve_counts;
+    std::vector<bool> m_contour_reversed;
   };
 }
 
@@ -1546,7 +1555,8 @@ compute_winding_values(enum Solver::coordinate_type tp, int c,
 CurvePairGenerator::
 CurvePairGenerator(const std::vector<fastuidraw::detail::IntContour> &contours):
   m_contours(contours),
-  m_curve_count(0)
+  m_curve_count(0),
+  m_contour_reversed(contours.size(), false)
 {
   /* create table to go from curve ID's to global indices */
   m_cumulated_curve_counts.reserve(m_contours.size());
@@ -1555,6 +1565,29 @@ CurvePairGenerator(const std::vector<fastuidraw::detail::IntContour> &contours):
       m_cumulated_curve_counts.push_back(m_curve_count);
       m_curve_count += contour.curves().size();
     }
+}
+
+
+
+void
+CurvePairGenerator::
+extract_active_curve_pairs(const fastuidraw::ivec2 &step,
+                           const fastuidraw::ivec2 &count,
+                           const IntBezierCurve::transformation<int> &tr,
+                           GlyphRenderDataCurvePair *dst) const
+{
+  dst->resize_active_curve_pair(count + ivec2(1, 1));
+  std::fill(dst->active_curve_pair().begin(),
+            dst->active_curve_pair().end(),
+            GlyphRenderDataCurvePair::completely_empty_texel);
+
+  /* TODO:
+      - figure which curves go through each texel
+      - for each texel, select the "best" curve-pair
+      - for each contour decide if the contour should be reversed
+      - for each texel with no curve-pairs, compute if it is
+        covered or not.
+   */
 }
 
 void
@@ -1578,7 +1611,8 @@ extract_entries(const ivec2 &step, const IntBezierCurve::transformation<int> &tr
           next_ID = next_neighbor(ID);
           idx = global_index(ID);
 
-          dst_entries[idx] = extract_entry(tr, step, c.control_pts(),
+          dst_entries[idx] = extract_entry(m_contour_reversed[ID.m_contourID],
+                                           tr, step, c.control_pts(),
                                            curve(next_ID).control_pts());
         }
     }
@@ -1586,12 +1620,13 @@ extract_entries(const ivec2 &step, const IntBezierCurve::transformation<int> &tr
 
 fastuidraw::GlyphRenderDataCurvePair::entry
 CurvePairGenerator::
-extract_entry(const fastuidraw::detail::IntBezierCurve::transformation<int> &tr,
-              const fastuidraw::ivec2 &step,
-              fastuidraw::const_c_array<fastuidraw::ivec2> c0,
-              fastuidraw::const_c_array<fastuidraw::ivec2> c1)
+extract_entry(bool reverse,
+              const IntBezierCurve::transformation<int> &tr,
+              const ivec2 &step,
+              fastuidraw::const_c_array<ivec2> c0,
+              fastuidraw::const_c_array<ivec2> c1)
 {
-  unsigned int total_cnt(0);
+  unsigned int total_cnt(0), start_curve_size;
   fastuidraw::vecN<fastuidraw::vec2, 5> pts;
   fastuidraw::vec2 dividier;
 
@@ -1606,6 +1641,7 @@ extract_entry(const fastuidraw::detail::IntBezierCurve::transformation<int> &tr,
       pts[total_cnt] = dividier * fastuidraw::vec2(tr(pt));
       ++total_cnt;
     }
+  start_curve_size = total_cnt;
 
   c1 = c1.sub_array(1);
   for(const fastuidraw::ivec2 &pt : c1)
@@ -1614,7 +1650,14 @@ extract_entry(const fastuidraw::detail::IntBezierCurve::transformation<int> &tr,
       ++total_cnt;
     }
 
-  return fastuidraw::GlyphRenderDataCurvePair::entry(pts, c0.size());
+  fastuidraw::c_array<vec2> pts_ptr(&pts[0], total_cnt);
+  if(reverse)
+    {
+      std::reverse(pts_ptr.begin(), pts_ptr.end());
+      start_curve_size = pts_ptr.size() - start_curve_size;
+    }
+
+  return fastuidraw::GlyphRenderDataCurvePair::entry(pts_ptr, start_curve_size);
 }
 
 //////////////////////////////////////////////
@@ -1877,12 +1920,19 @@ void
 fastuidraw::detail::IntPath::
 extract_render_data(const ivec2 &step, const ivec2 &image_sz,
                     float max_distance,
-                    const IntBezierCurve::transformation<int> &tr,
+                    IntBezierCurve::transformation<int> tr,
                     GlyphRenderDataDistanceField *dst) const
 {
   DistanceFieldGenerator compute(m_contours);
   array2d<distance_value> dist_values(image_sz.x(), image_sz.y());
   int radius(2);
+
+  /* change tr to be offset by half a texel, so that the
+     distance value is sampled at the center of the texel.
+   */
+  int tr_scale(tr.scale());
+  ivec2 tr_translate(tr.translate() - step / 2 - ivec2(1, 1));
+  tr = IntBezierCurve::transformation<int>(tr_scale, tr_translate);
 
   compute.compute_distance_values(step, image_sz, tr, radius, dist_values);
 
@@ -1921,20 +1971,18 @@ extract_render_data(const ivec2 &step, const ivec2 &image_sz,
 void
 fastuidraw::detail::IntPath::
 extract_render_data(const ivec2 &step, const ivec2 &count,
-                    const IntBezierCurve::transformation<int> &tr,
+                    IntBezierCurve::transformation<int> tr,
                     GlyphRenderDataCurvePair *dst) const
 {
   /* create table to go from curve ID's to global indices */
   CurvePairGenerator generator(m_contours);
 
+  /* compute what curves should be used to each texel,
+     also figures out which contours should be reversed
+     as well
+   */
+  generator.extract_active_curve_pairs(step, count, tr, dst);
+
   /* extract curve data into the GlyphRenderDataCurvePair geometry data*/
   generator.extract_entries(step, tr, dst);
-
-  /* TODO: figure out which curve-pair to use for each index */
-  dst->resize_active_curve_pair(count + ivec2(1, 1));
-
-
-  std::fill(dst->active_curve_pair().begin(),
-            dst->active_curve_pair().end(),
-            GlyphRenderDataCurvePair::completely_empty_texel);
 }
