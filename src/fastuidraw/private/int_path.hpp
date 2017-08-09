@@ -38,21 +38,6 @@ namespace fastuidraw
     class IntBezierCurve
     {
     public:
-      enum coordinate_type
-        {
-          x_fixed = 0,
-          y_fixed = 1,
-          x_varying = y_fixed,
-          y_varying = x_fixed
-        };
-
-      enum solution_type
-        {
-          within_0_1    = 1,
-          on_0_boundary = 2,
-          on_1_boundary = 4,
-          outside_0_1   = 8,
-        };
 
       template<typename T>
       class transformation
@@ -104,42 +89,6 @@ namespace fastuidraw
         unsigned int m_contourID;
         unsigned int m_curveID;
       };
-
-      class evaluated_pt
-      {
-      public:
-        float m_t;
-        vec2 m_p;
-        vec2 m_p_t;
-      };
-
-      class solution_pt:public evaluated_pt
-      {
-      public:
-        int m_multiplicity;
-        enum solution_type m_type;
-        ID_t m_src;
-      };
-
-      /* returns what coordinate is fixed for a
-         given coordinate_type
-       */
-      static
-      int
-      fixed_coordinate(enum coordinate_type tp)
-      {
-        return tp;
-      }
-
-      /* returns what coordinate is varying for a
-         given coordinate_type
-       */
-      static
-      int
-      varying_coordinate(enum coordinate_type tp)
-      {
-        return 1 - fixed_coordinate(tp);
-      }
 
       IntBezierCurve(const ID_t &pID, const IntBezierCurve &curve):
         m_ID(pID),
@@ -222,38 +171,11 @@ namespace fastuidraw
         return m_num_control_pts - 1;
       }
 
-      const_c_array<solution_pt>
+      const_c_array<vec2>
       derivatives_cancel(void) const
       {
-        return const_c_array<solution_pt>(m_derivatives_cancel.c_ptr(),
-                                          m_num_derivatives_cancel);
-      }
-
-      /*
-        \param pt fixed value of line
-        \param line_type if line if vertical (x-fixed) or horizontal (y-fixed)
-        \param out_value location to which to put values
-        \param solution_types_accepted bit mask using enums of solution_type
-                                       of what solutions are accepted
-        \param tr transformation to apply to the IntPath
-      */
-      void
-      compute_line_intersection(int pt, enum coordinate_type line_type,
-                                std::vector<solution_pt> *out_value,
-                                uint32_t solution_types_accepted,
-                                const transformation<int> &tr) const;
-
-    private:
-      void
-      process_control_pts(void);
-
-      void
-      compute_derivatives_cancel_pts(void);
-
-      c_array<int>
-      as_polynomial(int coord)
-      {
-        return c_array<int>(m_as_polynomial_fcn[coord].c_ptr(), m_num_control_pts);
+        return const_c_array<vec2>(m_derivatives_cancel.c_ptr(),
+                                   m_num_derivatives_cancel);
       }
 
       const_c_array<int>
@@ -268,14 +190,30 @@ namespace fastuidraw
         return vecN<const_c_array<int>, 2>(as_polynomial(0), as_polynomial(1));
       }
 
+      vec2
+      eval(float t) const;
+
+    private:
+      void
+      process_control_pts(void);
+
+      void
+      compute_derivatives_cancel_pts(void);
+
+      c_array<int>
+      as_polynomial(int coord)
+      {
+        return c_array<int>(m_as_polynomial_fcn[coord].c_ptr(), m_num_control_pts);
+      }
+
       ID_t m_ID;
       vecN<ivec2, 4> m_control_pts;
-      int m_num_control_pts;
+      unsigned int m_num_control_pts;
       vecN<ivec4, 2> m_as_polynomial_fcn;
 
       // where dx/dt +- dy/dt = 0
-      vecN<solution_pt, 6> m_derivatives_cancel;
-      int m_num_derivatives_cancel;
+      vecN<vec2, 6> m_derivatives_cancel;
+      unsigned int m_num_derivatives_cancel;
       BoundingBox<int> m_bb;
     };
 
