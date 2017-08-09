@@ -466,7 +466,7 @@ namespace fastuidraw
       }
 
       IntBezierCurve::ID_t
-      prev_neighbor(IntBezierCurve::ID_t id)
+      prev_neighbor(IntBezierCurve::ID_t id) const
       {
         FASTUIDRAWassert(id.m_contourID < m_contours.size());
         FASTUIDRAWassert(id.m_curveID < m_contours[id.m_contourID].curves().size());
@@ -477,7 +477,7 @@ namespace fastuidraw
       }
 
       IntBezierCurve::ID_t
-      next_neighbor(IntBezierCurve::ID_t id)
+      next_neighbor(IntBezierCurve::ID_t id) const
       {
         FASTUIDRAWassert(id.m_contourID < m_contours.size());
         FASTUIDRAWassert(id.m_curveID < m_contours[id.m_contourID].curves().size());

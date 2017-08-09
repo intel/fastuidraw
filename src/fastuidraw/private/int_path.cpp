@@ -90,6 +90,38 @@ namespace
     return v;
   }
 
+  fastuidraw::GlyphRenderDataCurvePair::entry
+  extract_entry(const fastuidraw::detail::IntBezierCurve::transformation<int> &tr,
+                const fastuidraw::ivec2 &step,
+                fastuidraw::const_c_array<fastuidraw::ivec2> c0,
+                fastuidraw::const_c_array<fastuidraw::ivec2> c1)
+  {
+    unsigned int total_cnt(0);
+    fastuidraw::vecN<fastuidraw::vec2, 5> pts;
+    fastuidraw::vec2 dividier;
+
+    FASTUIDRAWassert(c0.back() == c1.front());
+    FASTUIDRAWassert(c0.size() == 2 || c0.size() == 3);
+    FASTUIDRAWassert(c1.size() == 2 || c1.size() == 3);
+
+    dividier = fastuidraw::vec2(1.0f) / fastuidraw::vec2(step);
+
+    for(const fastuidraw::ivec2 &pt : c0)
+      {
+        pts[total_cnt] = dividier * fastuidraw::vec2(tr(pt));
+        ++total_cnt;
+      }
+
+    c1 = c1.sub_array(1);
+    for(const fastuidraw::ivec2 &pt : c1)
+      {
+        pts[total_cnt] = dividier * fastuidraw::vec2(tr(pt));
+        ++total_cnt;
+      }
+
+    return fastuidraw::GlyphRenderDataCurvePair::entry(pts, c0.size());
+  }
+
   template<typename T>
   class MultiplierFunctor
   {
@@ -1191,13 +1223,46 @@ extract_render_data(const ivec2 &step, const ivec2 &count,
                     const IntBezierCurve::transformation<int> &tr,
                     GlyphRenderDataCurvePair *dst) const
 {
-  /* extract curves and create table to go from curve ID's
-     to global indices
-   */
+  /* create table to go from curve ID's to global indices */
+  unsigned int curve_count(0);
+  std::vector<unsigned int> cumulated_curve_counts;
 
-  /* figure out which curve-pair to use for each index
-     and send that to dst
-   */
+  cumulated_curve_counts.reserve(m_contours.size());
+  for(const IntContour &contour : m_contours)
+    {
+      cumulated_curve_counts.push_back(curve_count);
+      curve_count += contour.curves().size();
+    }
+
+  /* extract curve data into the GlyphRenderDataCurvePair geometry data*/
+  dst->resize_geometry_data(curve_count);
+  c_array<GlyphRenderDataCurvePair::entry> dst_entries(dst->geometry_data());
+
+  for(const IntContour &contour : m_contours)
+    {
+      const std::vector<IntBezierCurve> &curves(contour.curves());
+      for(const IntBezierCurve &c : curves)
+        {
+          IntBezierCurve::ID_t ID, next_ID;
+          unsigned int idx;
+          const_c_array<ivec2> src_pts;
+
+          ID = c.ID();
+          next_ID = next_neighbor(ID);
+          idx = cumulated_curve_counts[ID.m_contourID] + ID.m_curveID;
+
+          dst_entries[idx] = extract_entry(tr, step, c.control_pts(),
+                                           curve(next_ID).control_pts());
+        }
+    }
+
+  /* TODO: figure out which curve-pair to use for each index */
+  dst->resize_active_curve_pair(count + ivec2(1, 1));
+
+
+  std::fill(dst->active_curve_pair().begin(),
+            dst->active_curve_pair().end(),
+            GlyphRenderDataCurvePair::completely_empty_texel);
 }
 
 void
