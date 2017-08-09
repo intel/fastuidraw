@@ -295,6 +295,10 @@ namespace fastuidraw
         return m_contours.empty();
       }
 
+      /* Add this IntPath with a transforamtion tr applied to it to a
+         pre-exising (and possibly empty) Path.
+         \param tr transformation to apply to data of path
+       */
       void
       add_to_path(const IntBezierCurve::transformation<float> &tr, Path *dst) const;
 
@@ -302,7 +306,7 @@ namespace fastuidraw
           1. Collapse any curves that are within a texel
           2. Curves of tiny curvature are realized as a line
           3. Cubics are broken into quadratics
-         The transformation tr is -NOT- applied to the contour,
+         The transformation tr is -NOT- applied to the path,
          it is used as the transformation from IntContour
          coordinates to texel coordinates. The value of texel_size
          gives the size of a texel with the texel at (0, 0)
@@ -310,32 +314,39 @@ namespace fastuidraw
        */
       void
       filter(float curvature_collapse,
-             const IntBezierCurve::transformation<int> &tr, ivec2 texel_size);
+             const IntBezierCurve::transformation<int> &tr,
+             ivec2 texel_size);
 
 
-      /* extract render data the location of pixel(i, j) is at
-         (step.x() * i, step.y() * j). The resolution is (count.x(), count.y())
-         and the values extracted are those values from the IntPath
-         transformed by tr. The max-distance values is in units
-         of the IntPath with the transformation tr applied
+      /* Compute distance field data, where distance values are
+         sampled at the center of each texel; the caller needs to
+         make sure that the path with the transformation tr applied
+         is entirely within the region [0, W] x [0, H] where
+         (W, H) = texel_size * image_sz.
+         \param texel_size the size of each texel in coordinates
+                           AFTER tr is applied
+         \param image_sz size of the distance field to make
+         \param tr transformation to apply to data of path
        */
       void
-      extract_render_data(const ivec2 &step, const ivec2 &count,
+      extract_render_data(const ivec2 &texel_size, const ivec2 &image_sz,
                           float max_distance,
                           IntBezierCurve::transformation<int> tr,
                           GlyphRenderDataDistanceField *dst) const;
 
 
-      /* extract render data the location of pixel(i, j) is at
-         (step.x() * i, step.y() * j). The resolution is (count.x(), count.y())
-         and the values extracted are those values from the IntPath
-         transformed by tr.
-
-         The path should have filter() applied to it so that there
-         are no cubic paths and that small paths are dropped
+      /* Compute curve-pair render data. The caller should have applied
+         filter() before calling to reduce cubics and collapse tiny
+         curves; also, the caller needs to make sure that the path
+         with the transformation tr applied is entirely within the
+         region [0, W] x [0, H] where (W, H) = texel_size * image_sz.
+         \param texel_size the size of each texel in coordinates
+                           AFTER tr is applied
+         \param image_sz size of the distance field to make
+         \param tr transformation to apply to data of path
        */
       void
-      extract_render_data(const ivec2 &step, const ivec2 &count,
+      extract_render_data(const ivec2 &texel_size, const ivec2 &image_sz,
                           IntBezierCurve::transformation<int> tr,
                           GlyphRenderDataCurvePair *dst) const;
 
