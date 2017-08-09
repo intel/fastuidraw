@@ -33,7 +33,7 @@ namespace fastuidraw
 {
   namespace detail
   {
-    class IntBezierCurve:public reference_counted<IntBezierCurve>::non_concurrent
+    class IntBezierCurve
     {
     public:
       enum coordinate_type
@@ -140,31 +140,28 @@ namespace fastuidraw
       }
 
       IntBezierCurve(const ID_t &pID, const ivec2 &pt0, const ivec2 &pt1):
-        m_ID(pID)
+        m_ID(pID),
+        m_control_pts(pt0, pt1, ivec2(), ivec2()),
+        m_num_control_pts(2)
       {
-        m_control_pts.push_back(pt0);
-        m_control_pts.push_back(pt1);
         process_control_pts();
       }
 
       IntBezierCurve(const ID_t &pID, const ivec2 &pt0, const ivec2 &ct,
                      const ivec2 &pt1):
-        m_ID(pID)
+        m_ID(pID),
+        m_control_pts(pt0, ct, pt1, ivec2()),
+        m_num_control_pts(3)
       {
-        m_control_pts.push_back(pt0);
-        m_control_pts.push_back(ct);
-        m_control_pts.push_back(pt1);
         process_control_pts();
       }
 
       IntBezierCurve(const ID_t &pID, const ivec2 &pt0, const ivec2 &ct0,
                      const ivec2 &ct1, const ivec2 &pt1):
-        m_ID(pID)
+        m_ID(pID),
+        m_control_pts(pt0, ct0, ct1, pt1),
+        m_num_control_pts(4)
       {
-        m_control_pts.push_back(pt0);
-        m_control_pts.push_back(ct0);
-        m_control_pts.push_back(ct1);
-        m_control_pts.push_back(pt1);
         process_control_pts();
       }
 
@@ -180,7 +177,7 @@ namespace fastuidraw
       const_c_array<ivec2>
       control_pts(void) const
       {
-        return make_c_array(m_control_pts);
+        return const_c_array<ivec2>(m_control_pts.c_ptr(), m_num_control_pts);
       }
 
       const BoundingBox<int>&
@@ -203,20 +200,21 @@ namespace fastuidraw
       are_ordered_neighbors(const IntBezierCurve &curve0,
                             const IntBezierCurve &curve1)
       {
-        return curve0.m_control_pts.back() == curve1.m_control_pts.front();
+        return curve0.control_pts().back() == curve1.control_pts().front();
       }
 
       int
       degree(void) const
       {
-        FASTUIDRAWassert(!m_control_pts.empty());
-        return m_control_pts.size() - 1;
+        FASTUIDRAWassert(m_num_control_pts > 0);
+        return m_num_control_pts - 1;
       }
 
-      const std::vector<solution_pt>&
+      const_c_array<solution_pt>
       derivatives_cancel(void) const
       {
-        return m_derivatives_cancel;
+        return const_c_array<solution_pt>(m_derivatives_cancel.c_ptr(),
+                                          m_num_derivatives_cancel);
       }
 
       /*
@@ -240,13 +238,32 @@ namespace fastuidraw
       void
       compute_derivatives_cancel_pts(void);
 
-      std::vector<ivec2> m_control_pts;
-      vecN<std::vector<int>, 2> m_as_polynomial;
+      c_array<int>
+      as_polynomial(int coord)
+      {
+        return c_array<int>(m_as_polynomial_fcn[coord].c_ptr(), m_num_control_pts);
+      }
 
-      // where dx/dt +- dy/dt = 0
-      std::vector<solution_pt> m_derivatives_cancel;
+      const_c_array<int>
+      as_polynomial(int coord) const
+      {
+        return const_c_array<int>(m_as_polynomial_fcn[coord].c_ptr(), m_num_control_pts);
+      }
+
+      vecN<const_c_array<int>, 2>
+      as_polynomial(void) const
+      {
+        return vecN<const_c_array<int>, 2>(as_polynomial(0), as_polynomial(1));
+      }
 
       ID_t m_ID;
+      vecN<ivec2, 4> m_control_pts;
+      int m_num_control_pts;
+      vecN<ivec4, 2> m_as_polynomial_fcn;
+
+      // where dx/dt +- dy/dt = 0
+      vecN<solution_pt, 6> m_derivatives_cancel;
+      int m_num_derivatives_cancel;
       BoundingBox<int> m_bb;
     };
 
@@ -257,10 +274,9 @@ namespace fastuidraw
       {}
 
       void
-      add_curve(const reference_counted_ptr<const IntBezierCurve> &curve)
+      add_curve(const IntBezierCurve &curve)
       {
-        FASTUIDRAWassert(curve);
-        FASTUIDRAWassert(m_curves.empty() || IntBezierCurve::are_ordered_neighbors(*m_curves.back(), *curve));
+        FASTUIDRAWassert(m_curves.empty() || IntBezierCurve::are_ordered_neighbors(m_curves.back(), curve));
         m_curves.push_back(curve);
       }
 
@@ -268,16 +284,16 @@ namespace fastuidraw
       closed(void)
       {
         return !m_curves.empty()
-          && IntBezierCurve::are_ordered_neighbors(*m_curves.back(), *m_curves.front());
+          && IntBezierCurve::are_ordered_neighbors(m_curves.back(), m_curves.front());
       }
 
-      const std::vector<reference_counted_ptr<const IntBezierCurve> >&
+      const std::vector<IntBezierCurve>&
       curves(void) const
       {
         return m_curves;
       }
 
-      const reference_counted_ptr<const IntBezierCurve>&
+      const IntBezierCurve&
       curve(unsigned int curveID) const
       {
         FASTUIDRAWassert(curveID < m_curves.size());
@@ -285,7 +301,7 @@ namespace fastuidraw
       }
 
     private:
-      std::vector<reference_counted_ptr<const IntBezierCurve> > m_curves;
+      std::vector<IntBezierCurve> m_curves;
     };
 
     class IntPath
@@ -414,7 +430,7 @@ namespace fastuidraw
         return m_contours[contourID];
       }
 
-      const reference_counted_ptr<const IntBezierCurve>&
+      const IntBezierCurve&
       curve(IntBezierCurve::ID_t id) const
       {
         return contour(id.m_contourID).curve(id.m_curveID);
