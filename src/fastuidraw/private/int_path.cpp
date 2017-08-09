@@ -50,38 +50,6 @@ namespace
       }
   }
 
-  fastuidraw::GlyphRenderDataCurvePair::entry
-  extract_entry(const fastuidraw::detail::IntBezierCurve::transformation<int> &tr,
-                const fastuidraw::ivec2 &step,
-                fastuidraw::const_c_array<fastuidraw::ivec2> c0,
-                fastuidraw::const_c_array<fastuidraw::ivec2> c1)
-  {
-    unsigned int total_cnt(0);
-    fastuidraw::vecN<fastuidraw::vec2, 5> pts;
-    fastuidraw::vec2 dividier;
-
-    FASTUIDRAWassert(c0.back() == c1.front());
-    FASTUIDRAWassert(c0.size() == 2 || c0.size() == 3);
-    FASTUIDRAWassert(c1.size() == 2 || c1.size() == 3);
-
-    dividier = fastuidraw::vec2(1.0f) / fastuidraw::vec2(step);
-
-    for(const fastuidraw::ivec2 &pt : c0)
-      {
-        pts[total_cnt] = dividier * fastuidraw::vec2(tr(pt));
-        ++total_cnt;
-      }
-
-    c1 = c1.sub_array(1);
-    for(const fastuidraw::ivec2 &pt : c1)
-      {
-        pts[total_cnt] = dividier * fastuidraw::vec2(tr(pt));
-        ++total_cnt;
-      }
-
-    return fastuidraw::GlyphRenderDataCurvePair::entry(pts, c0.size());
-  }
-
   template<typename T>
   class CubicDecomposerHelper
   {
@@ -524,7 +492,7 @@ namespace
     fastuidraw::vecN<int, 2> m_winding_numbers;
   };
 
-  class DistanceValueCreator
+  class DistanceFieldGenerator
   {
   public:
     typedef fastuidraw::detail::IntContour IntContour;
@@ -533,7 +501,7 @@ namespace
     typedef fastuidraw::vec2 vec2;
 
     explicit
-    DistanceValueCreator(const std::vector<IntContour> &p):
+    DistanceFieldGenerator(const std::vector<IntContour> &p):
       m_contours(p)
     {}
 
@@ -591,6 +559,79 @@ namespace
                            fastuidraw::array2d<distance_value> &dst) const;
 
     const std::vector<fastuidraw::detail::IntContour> &m_contours;
+  };
+
+  class CurvePairGenerator
+  {
+  public:
+    typedef fastuidraw::detail::IntBezierCurve IntBezierCurve;
+    typedef fastuidraw::detail::IntContour IntContour;
+    typedef fastuidraw::GlyphRenderDataCurvePair GlyphRenderDataCurvePair;
+    typedef fastuidraw::ivec2 ivec2;
+
+    explicit
+    CurvePairGenerator(const std::vector<IntContour> &contours);
+
+    unsigned int
+    global_index(IntBezierCurve::ID_t id) const
+    {
+      FASTUIDRAWassert(id.m_contourID < m_contours.size());
+      FASTUIDRAWassert(id.m_curveID < m_contours[id.m_contourID].curves().size());
+      FASTUIDRAWassert(m_contours.size() == m_cumulated_curve_counts.size());
+      return m_cumulated_curve_counts[id.m_contourID] + id.m_curveID;
+    }
+
+    unsigned int
+    curve_count(void) const
+    {
+      return m_curve_count;
+    }
+
+    void
+    extract_entries(const fastuidraw::ivec2 &step,
+                    const IntBezierCurve::transformation<int> &tr,
+                    GlyphRenderDataCurvePair *dst) const;
+
+  private:
+    static
+    fastuidraw::GlyphRenderDataCurvePair::entry
+    extract_entry(const IntBezierCurve::transformation<int> &tr,
+                  const fastuidraw::ivec2 &step,
+                  fastuidraw::const_c_array<fastuidraw::ivec2> c0,
+                  fastuidraw::const_c_array<fastuidraw::ivec2> c1);
+
+    IntBezierCurve::ID_t
+    prev_neighbor(IntBezierCurve::ID_t id) const
+    {
+      FASTUIDRAWassert(id.m_contourID < m_contours.size());
+      FASTUIDRAWassert(id.m_curveID < m_contours[id.m_contourID].curves().size());
+      id.m_curveID = (id.m_curveID == 0) ?
+        m_contours[id.m_contourID].curves().size() - 1 :
+        id.m_curveID - 1;
+      return id;
+    }
+
+    IntBezierCurve::ID_t
+    next_neighbor(IntBezierCurve::ID_t id) const
+    {
+      FASTUIDRAWassert(id.m_contourID < m_contours.size());
+      FASTUIDRAWassert(id.m_curveID < m_contours[id.m_contourID].curves().size());
+      id.m_curveID = (id.m_curveID == m_contours[id.m_contourID].curves().size() - 1) ?
+        0:
+        id.m_curveID + 1;
+      return id;
+    }
+
+    const IntBezierCurve&
+    curve(IntBezierCurve::ID_t id) const
+    {
+      FASTUIDRAWassert(id.m_contourID < m_contours.size());
+      return m_contours[id.m_contourID].curve(id.m_curveID);
+    }
+
+    const std::vector<fastuidraw::detail::IntContour> &m_contours;
+    unsigned int m_curve_count;
+    std::vector<unsigned int> m_cumulated_curve_counts;
   };
 }
 
@@ -1212,10 +1253,10 @@ compute_line_intersection(int pt, enum coordinate_type line_type,
 }
 
 //////////////////////////////////////////////
-// DistanceValueCreator methods
+// DistanceFieldGenerator methods
 template<typename T>
 void
-DistanceValueCreator::
+DistanceFieldGenerator::
 record_distance_value_from_canidate(const fastuidraw::vecN<T, 2> &p, int radius,
                                     const ivec2 &step,
                                     const ivec2 &count,
@@ -1240,7 +1281,7 @@ record_distance_value_from_canidate(const fastuidraw::vecN<T, 2> &p, int radius,
 }
 
 uint8_t
-DistanceValueCreator::
+DistanceFieldGenerator::
 pixel_value_from_distance(float dist, bool outside)
 {
   uint8_t v;
@@ -1257,7 +1298,7 @@ pixel_value_from_distance(float dist, bool outside)
 }
 
 void
-DistanceValueCreator::
+DistanceFieldGenerator::
 compute_distance_values(const ivec2 &step, const ivec2 &count,
                         const IntBezierCurve::transformation<int> &tr,
                         int radius, fastuidraw::array2d<distance_value> &dst) const
@@ -1288,7 +1329,7 @@ compute_distance_values(const ivec2 &step, const ivec2 &count,
 }
 
 void
-DistanceValueCreator::
+DistanceFieldGenerator::
 compute_outline_point_values(const ivec2 &step, const ivec2 &count,
                              const IntBezierCurve::transformation<int> &tr,
                              int radius, fastuidraw::array2d<distance_value> &dst) const
@@ -1305,7 +1346,7 @@ compute_outline_point_values(const ivec2 &step, const ivec2 &count,
 }
 
 void
-DistanceValueCreator::
+DistanceFieldGenerator::
 compute_derivative_cancel_values(const ivec2 &step, const ivec2 &count,
                                  const IntBezierCurve::transformation<int> &tr,
                                  int radius,
@@ -1327,7 +1368,7 @@ compute_derivative_cancel_values(const ivec2 &step, const ivec2 &count,
 }
 
 void
-DistanceValueCreator::
+DistanceFieldGenerator::
 compute_fixed_line_values(const ivec2 &step, const ivec2 &count,
                           const IntBezierCurve::transformation<int> &tr,
                           fastuidraw::array2d<distance_value> &dst) const
@@ -1341,7 +1382,7 @@ compute_fixed_line_values(const ivec2 &step, const ivec2 &count,
 
 
 void
-DistanceValueCreator::
+DistanceFieldGenerator::
 compute_fixed_line_values(enum Solver::coordinate_type tp,
                           std::vector<std::vector<Solver::solution_pt> > &work_room,
                           const ivec2 &step, const ivec2 &count,
@@ -1462,7 +1503,7 @@ compute_fixed_line_values(enum Solver::coordinate_type tp,
 }
 
 void
-DistanceValueCreator::
+DistanceFieldGenerator::
 compute_winding_values(enum Solver::coordinate_type tp, int c,
                        const std::vector<Solver::solution_pt> &L,
                        int step, int count,
@@ -1498,6 +1539,82 @@ compute_winding_values(enum Solver::coordinate_type tp, int c,
       pixel[varying_coord] = v;
       dst(pixel.x(), pixel.y()).set_winding_number(tp, sgn * winding);
     }
+}
+
+///////////////////////////////
+// CurvePairGenerator methods
+CurvePairGenerator::
+CurvePairGenerator(const std::vector<fastuidraw::detail::IntContour> &contours):
+  m_contours(contours),
+  m_curve_count(0)
+{
+  /* create table to go from curve ID's to global indices */
+  m_cumulated_curve_counts.reserve(m_contours.size());
+  for(const IntContour &contour : m_contours)
+    {
+      m_cumulated_curve_counts.push_back(m_curve_count);
+      m_curve_count += contour.curves().size();
+    }
+}
+
+void
+CurvePairGenerator::
+extract_entries(const ivec2 &step, const IntBezierCurve::transformation<int> &tr,
+                GlyphRenderDataCurvePair *dst) const
+{
+  dst->resize_geometry_data(curve_count());
+  fastuidraw::c_array<GlyphRenderDataCurvePair::entry> dst_entries(dst->geometry_data());
+
+  for(const IntContour &contour : m_contours)
+    {
+      const std::vector<IntBezierCurve> &curves(contour.curves());
+      for(const IntBezierCurve &c : curves)
+        {
+          IntBezierCurve::ID_t ID, next_ID;
+          unsigned int idx;
+          fastuidraw::const_c_array<ivec2> src_pts;
+
+          ID = c.ID();
+          next_ID = next_neighbor(ID);
+          idx = global_index(ID);
+
+          dst_entries[idx] = extract_entry(tr, step, c.control_pts(),
+                                           curve(next_ID).control_pts());
+        }
+    }
+}
+
+fastuidraw::GlyphRenderDataCurvePair::entry
+CurvePairGenerator::
+extract_entry(const fastuidraw::detail::IntBezierCurve::transformation<int> &tr,
+              const fastuidraw::ivec2 &step,
+              fastuidraw::const_c_array<fastuidraw::ivec2> c0,
+              fastuidraw::const_c_array<fastuidraw::ivec2> c1)
+{
+  unsigned int total_cnt(0);
+  fastuidraw::vecN<fastuidraw::vec2, 5> pts;
+  fastuidraw::vec2 dividier;
+
+  FASTUIDRAWassert(c0.back() == c1.front());
+  FASTUIDRAWassert(c0.size() == 2 || c0.size() == 3);
+  FASTUIDRAWassert(c1.size() == 2 || c1.size() == 3);
+
+  dividier = fastuidraw::vec2(1.0f) / fastuidraw::vec2(step);
+
+  for(const fastuidraw::ivec2 &pt : c0)
+    {
+      pts[total_cnt] = dividier * fastuidraw::vec2(tr(pt));
+      ++total_cnt;
+    }
+
+  c1 = c1.sub_array(1);
+  for(const fastuidraw::ivec2 &pt : c1)
+    {
+      pts[total_cnt] = dividier * fastuidraw::vec2(tr(pt));
+      ++total_cnt;
+    }
+
+  return fastuidraw::GlyphRenderDataCurvePair::entry(pts, c0.size());
 }
 
 //////////////////////////////////////////////
@@ -1731,8 +1848,6 @@ fastuidraw::detail::IntPath::
 line_to(const ivec2 &pt)
 {
   IntBezierCurve curve(computeID(), m_last_pt, pt);
-  m_bb.union_box(curve.bounding_box());
-
   FASTUIDRAWassert(!m_contours.empty());
   m_contours.back().add_curve(curve);
   m_last_pt = pt;
@@ -1743,8 +1858,6 @@ fastuidraw::detail::IntPath::
 conic_to(const ivec2 &control_pt, const ivec2 &pt)
 {
   IntBezierCurve curve(computeID(), m_last_pt, control_pt, pt);
-  m_bb.union_box(curve.bounding_box());
-
   FASTUIDRAWassert(!m_contours.empty());
   m_contours.back().add_curve(curve);
   m_last_pt = pt;
@@ -1755,8 +1868,6 @@ fastuidraw::detail::IntPath::
 cubic_to(const ivec2 &control_pt0, const ivec2 &control_pt1, const ivec2 &pt)
 {
   IntBezierCurve curve(computeID(), m_last_pt, control_pt0, control_pt1, pt);
-  m_bb.union_box(curve.bounding_box());
-
   FASTUIDRAWassert(!m_contours.empty());
   m_contours.back().add_curve(curve);
   m_last_pt = pt;
@@ -1769,7 +1880,7 @@ extract_render_data(const ivec2 &step, const ivec2 &image_sz,
                     const IntBezierCurve::transformation<int> &tr,
                     GlyphRenderDataDistanceField *dst) const
 {
-  DistanceValueCreator compute(m_contours);
+  DistanceFieldGenerator compute(m_contours);
   array2d<distance_value> dist_values(image_sz.x(), image_sz.y());
   int radius(2);
 
@@ -1800,7 +1911,7 @@ extract_render_data(const ivec2 &step, const ivec2 &image_sz,
               dist = 0.0f;
             }
 
-          v = DistanceValueCreator::pixel_value_from_distance(dist, outside);
+          v = DistanceFieldGenerator::pixel_value_from_distance(dist, outside);
           location = x + y * (1 + image_sz.x());
           dst->distance_values()[location] = v;
         }
@@ -1814,37 +1925,10 @@ extract_render_data(const ivec2 &step, const ivec2 &count,
                     GlyphRenderDataCurvePair *dst) const
 {
   /* create table to go from curve ID's to global indices */
-  unsigned int curve_count(0);
-  std::vector<unsigned int> cumulated_curve_counts;
-
-  cumulated_curve_counts.reserve(m_contours.size());
-  for(const IntContour &contour : m_contours)
-    {
-      cumulated_curve_counts.push_back(curve_count);
-      curve_count += contour.curves().size();
-    }
+  CurvePairGenerator generator(m_contours);
 
   /* extract curve data into the GlyphRenderDataCurvePair geometry data*/
-  dst->resize_geometry_data(curve_count);
-  c_array<GlyphRenderDataCurvePair::entry> dst_entries(dst->geometry_data());
-
-  for(const IntContour &contour : m_contours)
-    {
-      const std::vector<IntBezierCurve> &curves(contour.curves());
-      for(const IntBezierCurve &c : curves)
-        {
-          IntBezierCurve::ID_t ID, next_ID;
-          unsigned int idx;
-          const_c_array<ivec2> src_pts;
-
-          ID = c.ID();
-          next_ID = next_neighbor(ID);
-          idx = cumulated_curve_counts[ID.m_contourID] + ID.m_curveID;
-
-          dst_entries[idx] = extract_entry(tr, step, c.control_pts(),
-                                           curve(next_ID).control_pts());
-        }
-    }
+  generator.extract_entries(step, tr, dst);
 
   /* TODO: figure out which curve-pair to use for each index */
   dst->resize_active_curve_pair(count + ivec2(1, 1));

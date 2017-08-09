@@ -289,57 +289,10 @@ namespace fastuidraw
       void
       cubic_to(const ivec2 &control_pt0, const ivec2 &control_pt1, const ivec2 &pt);
 
-      const BoundingBox<int>&
-      bounding_box(void) const
-      {
-        return m_bb;
-      }
-
       bool
       empty(void) const
       {
         return m_contours.empty();
-      }
-
-      const std::vector<IntContour>&
-      contours(void) const
-      {
-        return m_contours;
-      }
-
-      const IntContour&
-      contour(unsigned int contourID) const
-      {
-        FASTUIDRAWassert(contourID < m_contours.size());
-        return m_contours[contourID];
-      }
-
-      const IntBezierCurve&
-      curve(IntBezierCurve::ID_t id) const
-      {
-        return contour(id.m_contourID).curve(id.m_curveID);
-      }
-
-      IntBezierCurve::ID_t
-      prev_neighbor(IntBezierCurve::ID_t id) const
-      {
-        FASTUIDRAWassert(id.m_contourID < m_contours.size());
-        FASTUIDRAWassert(id.m_curveID < m_contours[id.m_contourID].curves().size());
-        id.m_curveID = (id.m_curveID == 0) ?
-          m_contours[id.m_contourID].curves().size() - 1 :
-          id.m_curveID - 1;
-        return id;
-      }
-
-      IntBezierCurve::ID_t
-      next_neighbor(IntBezierCurve::ID_t id) const
-      {
-        FASTUIDRAWassert(id.m_contourID < m_contours.size());
-        FASTUIDRAWassert(id.m_curveID < m_contours[id.m_contourID].curves().size());
-        id.m_curveID = (id.m_curveID == m_contours[id.m_contourID].curves().size() - 1) ?
-          0:
-          id.m_curveID + 1;
-        return id;
       }
 
       void
@@ -392,7 +345,6 @@ namespace fastuidraw
 
       fastuidraw::ivec2 m_last_pt;
       std::vector<IntContour> m_contours;
-      BoundingBox<int> m_bb;
     };
 
   } //namespace fastuidraw
