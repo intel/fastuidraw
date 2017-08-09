@@ -825,40 +825,40 @@ collapse(std::vector<BezierCurvePts> &src,
     }
 
   if(non_collapsed_curves.front() != 0
-     && non_collapsed_curves.back() != src.size() - 1)
+     || non_collapsed_curves.back() != src.size() - 1)
     {
       /* collapse the sequence that rolls over */
       fastuidraw::ivec2 pt(src[non_collapsed_curves.back()].control_pts().back());
-      int number_skipped(0);
+      int number(1);
 
-      for(unsigned int k = non_collapsed_curves.back() + 1, endk = src.size(); k < endk; ++k, ++number_skipped)
+      for(unsigned int k = non_collapsed_curves.back() + 1, endk = src.size(); k < endk; ++k, ++number)
         {
           pt += src[k].control_pts().back();
         }
 
-      for(unsigned int k = 0; k < non_collapsed_curves.front(); ++k, ++number_skipped)
+      for(unsigned int k = 0; k < non_collapsed_curves.front(); ++k, ++number)
         {
           pt += src[k].control_pts().back();
         }
 
-      pt /= number_skipped;
+      pt /= number;
       src[non_collapsed_curves.back()].control_pts().back() = pt;
       src[non_collapsed_curves.front()].control_pts().front() = pt;
     }
 
   for(unsigned int C = 0, endC = non_collapsed_curves.size(); C + 1 < endC; ++C)
     {
-      unsigned int number_skipped(0);
+      unsigned int number(1);
       fastuidraw::ivec2 pt(src[non_collapsed_curves[C]].control_pts().back());
 
-      for(unsigned int k = non_collapsed_curves[C] + 1; k < non_collapsed_curves[C + 1]; ++k, ++number_skipped)
+      for(unsigned int k = non_collapsed_curves[C] + 1; k < non_collapsed_curves[C + 1]; ++k, ++number)
         {
           pt += src[k].control_pts().back();
         }
 
-      if(number_skipped > 0)
+      if(number > 1)
         {
-          pt /= number_skipped;
+          pt /= number;
           src[non_collapsed_curves[C]].control_pts().back() = pt;
           src[non_collapsed_curves[C + 1]].control_pts().front() = pt;
         }
