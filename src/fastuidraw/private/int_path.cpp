@@ -1,4 +1,39 @@
+/*!
+ * \file int_path.cpp
+ * \brief file int_path.cpp
+ *
+ * Copyright 2017 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ * Much of the code is inspired and lifted from WRATHFreeTypeSupport.cpp,
+ * WRATHPolynomial.cpp, WRATHPolynomial.hpp and WRATHPolynonialImplement
+ * of WRATH, whose copyright and liscence is below:
+ *
+ * Copyright 2013 by Nomovok Ltd.
+ *
+ * Contact: info@nomovok.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@nomovok.com>
+ *
+ */
+
 #include <iterator>
+#include <set>
 #include "int_path.hpp"
 #include "util_private_ostream.hpp"
 
@@ -353,9 +388,16 @@ namespace
      */
     void
     compute_line_intersection(int pt, enum coordinate_type line_type,
-                              std::vector<solution_pt> *out_value,
                               uint32_t solution_types_accepted,
-                              const IntBezierCurve::transformation<int> &tr) const;
+                              const IntBezierCurve::transformation<int> &tr,
+                              std::vector<solution_pt> *out_value) const;
+
+    void
+    compute_lines_intersection(enum coordinate_type line_type,
+                               int step, int count,
+                               uint32_t solution_types_accepted,
+                               const IntBezierCurve::transformation<int> &tr,
+                               std::vector<std::vector<solution_pt> > *out_value) const;
 
   private:
     template<typename T>
@@ -579,12 +621,47 @@ namespace
                     GlyphRenderDataCurvePair *dst) const;
 
     void
-    extract_active_curve_pairs(const ivec2 &step,
-                               const ivec2 &count,
+    extract_active_curve_pairs(const ivec2 &step, const ivec2 &count,
                                const IntBezierCurve::transformation<int> &tr,
                                GlyphRenderDataCurvePair *dst) const;
 
   private:
+    class IntersectionRecorder
+    {
+    public:
+      explicit
+      IntersectionRecorder(ivec2 image_sz):
+        m_size(image_sz),
+        m_data(image_sz.x(), image_sz.y())
+      {}
+
+      /* Records a curve intersection with a texel edge boundary,
+         \param tp is the nature of the boundary
+         \param coordinate is the min-side of the texel
+         \param S the intersection
+       */
+      void
+      record_edge_intersection(ivec2 coordinate,
+                               enum Solver::coordinate_type tp,
+                               const Solver::solution_pt &S);
+
+      /* Records the winding number on the bottom-left corner
+         of a texel as computed by the intersections with a
+         line.
+       */
+      void
+      set_winding(ivec2 coordinate,
+                  enum Solver::coordinate_type tp,
+                  int winding);
+
+    private:
+      typedef std::set<IntBezierCurve::ID_t> CurveList;
+      typedef std::pair<ivec2, CurveList> PerTexel;
+
+      ivec2 m_size;
+      fastuidraw::array2d<PerTexel> m_data;
+    };
+
     static
     fastuidraw::GlyphRenderDataCurvePair::entry
     extract_entry(bool reverse,
@@ -637,7 +714,23 @@ namespace
       return m_curve_count;
     }
 
-    const std::vector<fastuidraw::detail::IntContour> &m_contours;
+    void
+    compute_curve_lists(const ivec2 &texel_size, const ivec2 &image_sz,
+                        const IntBezierCurve::transformation<int> &tr,
+                        IntersectionRecorder *dst) const;
+
+    void
+    curve_lists_edge_intersections(const ivec2 &texel_size, const ivec2 &image_sz,
+                                   const IntBezierCurve::transformation<int> &tr,
+                                   IntersectionRecorder *dst) const;
+
+    void
+    curve_lists_edge_intersections(enum Solver::coordinate_type tp,
+                                   const ivec2 &texel_size, const ivec2 &image_sz,
+                                   const IntBezierCurve::transformation<int> &tr,
+                                   IntersectionRecorder *dst) const;
+
+    const std::vector<IntContour> &m_contours;
     unsigned int m_curve_count;
     std::vector<unsigned int> m_cumulated_curve_counts;
     std::vector<bool> m_contour_reversed;
@@ -951,7 +1044,7 @@ size(void) const
 }
 
 ////////////////////////////////////////////////////
-// Solver::poly_solutions methods
+// Solver methods
 template<typename T, typename iterator>
 void
 Solver::
@@ -1131,7 +1224,7 @@ solve_cubic(fastuidraw::const_c_array<T> poly,
         {
           float v0, tau;
           tau = cbrtf(C + sqrtf(C * C - 1.0f));
-          v0 = temp * (tau + 1.0/tau) * 0.5f - dd;
+          v0 = temp * (tau + 1.0 / tau) * 0.5f - dd;
           //Question: which is faster on device: using cbrtf and sqrtf or using coshf and acoshf?
           //v0=temp*coshf( acoshf(C)/3.0f) - dd;
           solutions->add_solution_if_acceptable(accepted_solutions, v0);
@@ -1222,9 +1315,9 @@ compute_solution_points(fastuidraw::detail::IntBezierCurve::ID_t src,
 void
 Solver::
 compute_line_intersection(int pt, enum coordinate_type line_type,
-                          std::vector<solution_pt> *out_value,
                           uint32_t solution_types_accepted,
-                          const IntBezierCurve::transformation<int> &tr) const
+                          const IntBezierCurve::transformation<int> &tr,
+                          std::vector<solution_pt> *out_value) const
 {
   fastuidraw::vecN<int64_t, 4> work_room;
   int coord(fixed_coordinate(line_type));
@@ -1259,6 +1352,56 @@ compute_line_intersection(int pt, enum coordinate_type line_type,
                           solution_holder.begin(), solution_holder.end(),
                           tr.cast<float>(),
                           std::back_inserter(*out_value));
+}
+
+void
+Solver::
+compute_lines_intersection(enum coordinate_type tp, int step, int count,
+                           uint32_t solution_types_accepted,
+                           const IntBezierCurve::transformation<int> &tr,
+                           std::vector<std::vector<solution_pt> > *out_value) const
+{
+  int cstart, cend;
+  int fixed_coord(fixed_coordinate(tp));
+
+  FASTUIDRAWassert(out_value->size() == static_cast<unsigned int>(count));
+
+  if((solution_types_accepted & outside_0_1) == 0)
+    {
+      fastuidraw::BoundingBox<int> bb;
+      int bbmin, bbmax;
+
+      bb = m_curve.bounding_box(tr);
+
+      FASTUIDRAWassert(!bb.empty());
+      bbmin = bb.min_point()[fixed_coord];
+      bbmax = bb.max_point()[fixed_coord];
+
+      /* we do not need to solve the polynomial over the entire field, only
+         the range of the bounding box of the curve, point at c:
+            step * c
+         we want
+            bbmin <= step * c <= bbmax
+         which becomes (assuming step > 0) to:
+            bbmin / step <= c <= bbmax / step
+       */
+
+      cstart = fastuidraw::t_max(0, bbmin / step);
+      cend = fastuidraw::t_min(count, 2 + bbmax / step);
+    }
+  else
+    {
+      cstart = 0;
+      cend = count;
+    }
+
+  for(int c = cstart; c < cend; ++c)
+    {
+      int v;
+
+      v = c * step;
+      compute_line_intersection(v, tp, solution_types_accepted, tr, &(*out_value)[c]);
+    }
 }
 
 //////////////////////////////////////////////
@@ -1419,38 +1562,14 @@ compute_fixed_line_values(enum Solver::coordinate_type tp,
       const std::vector<IntBezierCurve> &curves(contour.curves());
       for(const IntBezierCurve &curve : curves)
         {
-          fastuidraw::BoundingBox<int> bb;
-          int cstart, cend, bbmin, bbmax;
-
-          bb = curve.bounding_box(tr);
-
-          FASTUIDRAWassert(!bb.empty());
-          bbmin = bb.min_point()[fixed_coord];
-          bbmax = bb.max_point()[fixed_coord];
-
-          /* we do not need to solve the polynomial over the entire field, only
-             the range of the bounding box of the curve, point at c:
-                 step * c
-             we want
-                 bbmin <= step * c <= bbmax
-             which becomes (assuming step > 0) to:
-                 bbmin / step <= c <= bbmax / step
-           */
-          cstart = fastuidraw::t_max(0, -1 + bbmin / step[fixed_coord]);
-          cend = fastuidraw::t_min(count[fixed_coord], 2 + bbmax / step[fixed_coord]);
-          for(int c = cstart; c < cend; ++c)
-            {
-              Solver cr(curve);
-              int v;
-
-              v = c * step[fixed_coord];
-              cr.compute_line_intersection(v, tp, &work_room[c], Solver::within_0_1, tr);
-            }
+          Solver(curve).compute_lines_intersection(tp, step[fixed_coord],
+                                                   count[fixed_coord],
+                                                   Solver::within_0_1,
+                                                   tr, &work_room);
         }
     }
 
-  /* now for each line, do the distance computation along the line.
-   */
+  /* now for each line, do the distance computation along the line. */
   for(int c = 0; c < count[fixed_coord]; ++c)
     {
       std::vector<Solver::solution_pt> &L(work_room[c]);
@@ -1550,6 +1669,47 @@ compute_winding_values(enum Solver::coordinate_type tp, int c,
     }
 }
 
+///////////////////////////////////////////////////
+// CurvePairGenerator::IntersectionRecorder methods
+void
+CurvePairGenerator::IntersectionRecorder::
+record_edge_intersection(ivec2 texel,
+                         enum Solver::coordinate_type tp,
+                         const Solver::solution_pt &S)
+{
+  const int fixed_coord(Solver::fixed_coordinate(tp));
+  const int c(texel[fixed_coord]);
+
+  /* add entry to texel as S intersect the min-side of the
+     texel
+  */
+  if(c < m_size[fixed_coord])
+    {
+      m_data(texel.x(), texel.y()).second.insert(S.m_src);
+    }
+
+  /* the intersection also intersects the max-side of the
+     previous texel
+   */
+  if(c > 0)
+    {
+      --texel[fixed_coord];
+      m_data(texel.x(), texel.y()).second.insert(S.m_src);
+    }
+}
+
+void
+CurvePairGenerator::IntersectionRecorder::
+set_winding(ivec2 texel,
+            enum Solver::coordinate_type tp,
+            int winding)
+{
+  if(texel.x() < m_size.x() && texel.y() < m_size.y())
+    {
+      m_data(texel.x(), texel.y()).first[tp] = winding;
+    }
+}
+
 ///////////////////////////////
 // CurvePairGenerator methods
 CurvePairGenerator::
@@ -1568,21 +1728,107 @@ CurvePairGenerator(const std::vector<fastuidraw::detail::IntContour> &contours):
 }
 
 
+void
+CurvePairGenerator::
+compute_curve_lists(const ivec2 &texel_size, const ivec2 &image_sz,
+                    const IntBezierCurve::transformation<int> &tr,
+                    IntersectionRecorder *dst) const
+{
+  /* record curves that go through texel edges */
+  curve_lists_edge_intersections(texel_size, image_sz, tr, dst);
+
+  /* record curves with the curve end-points */
+}
 
 void
 CurvePairGenerator::
-extract_active_curve_pairs(const fastuidraw::ivec2 &step,
-                           const fastuidraw::ivec2 &count,
+curve_lists_edge_intersections(const ivec2 &texel_size, const ivec2 &image_sz,
+                               const IntBezierCurve::transformation<int> &tr,
+                               IntersectionRecorder *dst) const
+{
+  curve_lists_edge_intersections(Solver::x_fixed, texel_size, image_sz, tr, dst);
+  curve_lists_edge_intersections(Solver::y_fixed, texel_size, image_sz, tr, dst);
+}
+
+void
+CurvePairGenerator::
+curve_lists_edge_intersections(enum Solver::coordinate_type tp,
+                               const ivec2 &texel_size, const ivec2 &image_sz,
+                               const IntBezierCurve::transformation<int> &tr,
+                               IntersectionRecorder *dst) const
+{
+  int fixed_coord(Solver::fixed_coordinate(tp));
+  int varying_coord(Solver::varying_coordinate(tp));
+  /* the size is one more than the image_sz because we are computing the
+     intersections with each border */
+  std::vector<std::vector<Solver::solution_pt> > intersections(image_sz[fixed_coord] + 1);
+
+  for(const IntContour &contour: m_contours)
+    {
+      const std::vector<IntBezierCurve> &curves(contour.curves());
+      for(const IntBezierCurve &curve : curves)
+        {
+          Solver cr(curve);
+          cr.compute_lines_intersection(tp,
+                                        texel_size[fixed_coord],
+                                        image_sz[fixed_coord] + 1,
+                                        Solver::within_0_1, tr,
+                                        &intersections);
+        }
+    }
+
+  /* walk intersections and update dst */
+  for(int c = 0; c <= image_sz[fixed_coord]; ++c)
+    {
+      std::vector<Solver::solution_pt> &L(intersections[c]);
+      unsigned int currentL(0), maxL(L.size()), winding(0);
+
+      std::sort(L.begin(), L.end(), Solver::CompareSolutions(varying_coord));
+      for(int v = 0; v < image_sz[varying_coord]; ++v)
+        {
+          float p;
+          ivec2 pixel;
+
+          pixel[fixed_coord] = c;
+          pixel[varying_coord] = v;
+
+          dst->set_winding(pixel, tp, winding);
+          p = static_cast<float>(v * texel_size[varying_coord]);
+
+          while(currentL < maxL && L[currentL].m_p[varying_coord] < p)
+            {
+              dst->record_edge_intersection(pixel, tp, L[currentL]);
+              if(L[currentL].m_p_t[fixed_coord] > 0.0f)
+                {
+                  winding += 1;
+                }
+              else if(L[currentL].m_p_t[fixed_coord] < 0.0f)
+                {
+                  winding -= 1;
+                }
+              ++currentL;
+            }
+        }
+    }
+}
+
+
+void
+CurvePairGenerator::
+extract_active_curve_pairs(const fastuidraw::ivec2 &texel_size,
+                           const fastuidraw::ivec2 &image_sz,
                            const IntBezierCurve::transformation<int> &tr,
                            GlyphRenderDataCurvePair *dst) const
 {
-  dst->resize_active_curve_pair(count + ivec2(1, 1));
+  IntersectionRecorder curve_lists(image_sz);
+  compute_curve_lists(texel_size, image_sz, tr, &curve_lists);
+
+  dst->resize_active_curve_pair(image_sz + ivec2(1, 1));
   std::fill(dst->active_curve_pair().begin(),
             dst->active_curve_pair().end(),
             GlyphRenderDataCurvePair::completely_empty_texel);
 
   /* TODO:
-      - figure which curves go through each texel
       - for each texel, select the "best" curve-pair
       - for each contour decide if the contour should be reversed
       - for each texel with no curve-pairs, compute if it is
