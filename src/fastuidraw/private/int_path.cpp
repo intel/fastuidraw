@@ -636,13 +636,16 @@ namespace
 
       /* Records a curve intersection with a texel edge boundary,
          \param tp is the nature of the boundary
-         \param coordinate is the min-side of the texel
+         \param texel is the min-side of the texel
          \param S the intersection
        */
       void
-      record_edge_intersection(ivec2 coordinate,
+      record_edge_intersection(ivec2 texel,
                                enum Solver::coordinate_type tp,
                                const Solver::solution_pt &S);
+
+      void
+      record_curve_inside_texel(ivec2 texel, IntBezierCurve::ID_t id);
 
       /* Records the winding number on the bottom-left corner
          of a texel as computed by the intersections with a
@@ -1679,6 +1682,17 @@ record_edge_intersection(ivec2 texel,
 
 void
 CurvePairGenerator::IntersectionRecorder::
+record_curve_inside_texel(ivec2 texel, IntBezierCurve::ID_t id)
+{
+  if(texel.x() >= 0 && texel.x() < m_size.x()
+     && texel.y() >= 0 && texel.y() < m_size.y())
+    {
+      m_data(texel.x(), texel.y()).second.insert(id);
+    }
+}
+
+void
+CurvePairGenerator::IntersectionRecorder::
 set_winding(ivec2 texel,
             enum Solver::coordinate_type tp,
             int winding)
@@ -1714,12 +1728,26 @@ compute_curve_lists(const ivec2 &texel_size, const ivec2 &image_sz,
                     const IntBezierCurve::transformation<int> &tr,
                     IntersectionRecorder *dst)
 {
-  /* record curves that go through texel edges; this is all
-     the curves because any curves that are contained within
-     a texel will have been collapsed to a point.
-   */
+  /* record curves that go through texel edges */
   curve_lists_edge_intersections(Solver::x_fixed, texel_size, image_sz, tr, dst);
   curve_lists_edge_intersections(Solver::y_fixed, texel_size, image_sz, tr, dst);
+
+  /* walk through all curves and where there end points are, add them*/
+  for(const IntContour &contour: m_contours)
+    {
+      const std::vector<IntBezierCurve> &curves(contour.curves());
+      for(const IntBezierCurve &curve : curves)
+        {
+          ivec2 pt0(curve.control_pts().front());
+          ivec2 pt1(curve.control_pts().back());
+          ivec2 t0, t1;
+
+          t0 = tr(pt0) / texel_size;
+          t1 = tr(pt1) / texel_size;
+          dst->record_curve_inside_texel(t0, curve.ID());
+          dst->record_curve_inside_texel(t1, curve.ID());
+        }
+    }
 }
 
 void
@@ -1772,7 +1800,7 @@ curve_lists_edge_intersections(enum Solver::coordinate_type tp,
              end of the texel (at 1 + v).
            */
           p = static_cast<float>((1 + v) * texel_size[varying_coord]);
-          while(currentL < maxL && L[currentL].m_p[varying_coord] < p)
+          while(currentL < maxL && L[currentL].m_p[varying_coord] <= p)
             {
               dst->record_edge_intersection(pixel, tp, L[currentL]);
               if(L[currentL].m_p_t[fixed_coord] > 0.0f)
