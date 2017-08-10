@@ -11,32 +11,13 @@ Issues:
     files without the _base suffix, for example FontBase is define in
     font.hpp.
 
-   Text
-   --------------------
-     The import of WRATHFreeTypeSupport.[ch]pp into freetype_util.[ch]pp
-     is a cesspool of ugliness and misery. It desperately needs a cleaning
-     up or just a total rewrite. The class geometry_data and point_type
-     are utterly unnecessary as are all the LOD methods hanging around.
-
-     We should FreeType to load the -raw- glyph instead via the flags to
-     FT_Load_Glyph:
-        FT_LOAD_NO_BITMAP | FT_LOAD_NO_HINTING |
-	FT_LOAD_NO_AUTOHINT | FT_LOAD_NO_SCALE |
-	FT_LOAD_LINEAR_DESIGN | FT_LOAD_IGNORE_TRANSFORM
-     and then fetch the scaling factors (face->units_per_EM). Additionally,
-     we can fetch the freetype data with likely lots less pain than we
-     are now doing if we make use of the function  FT_Outlint_Decompose.
-     We should support sub-glyphs. This requires tweaking to the interaces:
-     FontBase, Glyph, GlyphCache and GlyphDatabase. Supporting sub-glyphs
-     might let the curepair glyph rendering work on more glyphs.
-
   GlyphSelector
   --------------------
      GlyphSelector is of questionable value in FastUIDraw since
      glyph selection is closely tied with layout and FastUIDraw
      is supposed to do JUST drawing. However, taken to an extreme
      also means that all of the layout data in GlpyhLayout except
-     for m_pixel_size is not needed either.
+     for m_units_per_EM is not needed either.
 
 
   To Uber shader or not
