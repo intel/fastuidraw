@@ -93,7 +93,14 @@ namespace fastuidraw
         {
           return m_contourID == rhs.m_contourID
             || (m_contourID == rhs.m_contourID
-                && m_curveID << rhs.m_curveID);
+                && m_curveID < rhs.m_curveID);
+        }
+
+        bool
+        operator==(const ID_t &rhs) const
+        {
+          return m_contourID == rhs.m_contourID
+            && m_curveID == rhs.m_curveID;
         }
 
         unsigned int m_contourID;

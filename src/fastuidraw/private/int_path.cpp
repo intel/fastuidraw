@@ -629,6 +629,9 @@ namespace
     class IntersectionRecorder
     {
     public:
+      typedef std::set<IntBezierCurve::ID_t> CurveList;
+      typedef std::pair<ivec2, CurveList> PerTexel;
+
       explicit
       IntersectionRecorder(ivec2 image_sz):
         m_size(image_sz),
@@ -654,10 +657,13 @@ namespace
                   enum Solver::coordinate_type tp,
                   int winding);
 
-    private:
-      typedef std::set<IntBezierCurve::ID_t> CurveList;
-      typedef std::pair<ivec2, CurveList> PerTexel;
+      const PerTexel&
+      texel_data(int x, int y) const
+      {
+        return m_data(x, y);
+      }
 
+    private:
       ivec2 m_size;
       fastuidraw::array2d<PerTexel> m_data;
     };
@@ -666,7 +672,7 @@ namespace
     fastuidraw::GlyphRenderDataCurvePair::entry
     extract_entry(bool reverse,
                   const IntBezierCurve::transformation<int> &tr,
-                  const ivec2 &step,
+                  const vec2 &scale_factor,
                   fastuidraw::const_c_array<ivec2> c0,
                   fastuidraw::const_c_array<ivec2> c1);
 
@@ -714,15 +720,16 @@ namespace
       return m_curve_count;
     }
 
+    IntBezierCurve::ID_t
+    select_curve(const IntersectionRecorder::PerTexel &texel) const;
+
+    IntBezierCurve::ID_t
+    select_from_pair(IntBezierCurve::ID_t id0, IntBezierCurve::ID_t id1) const;
+
     void
     compute_curve_lists(const ivec2 &texel_size, const ivec2 &image_sz,
                         const IntBezierCurve::transformation<int> &tr,
                         IntersectionRecorder *dst) const;
-
-    void
-    curve_lists_edge_intersections(const ivec2 &texel_size, const ivec2 &image_sz,
-                                   const IntBezierCurve::transformation<int> &tr,
-                                   IntersectionRecorder *dst) const;
 
     void
     curve_lists_edge_intersections(enum Solver::coordinate_type tp,
@@ -1727,25 +1734,16 @@ CurvePairGenerator(const std::vector<fastuidraw::detail::IntContour> &contours):
     }
 }
 
-
 void
 CurvePairGenerator::
 compute_curve_lists(const ivec2 &texel_size, const ivec2 &image_sz,
                     const IntBezierCurve::transformation<int> &tr,
                     IntersectionRecorder *dst) const
 {
-  /* record curves that go through texel edges */
-  curve_lists_edge_intersections(texel_size, image_sz, tr, dst);
-
-  /* record curves with the curve end-points */
-}
-
-void
-CurvePairGenerator::
-curve_lists_edge_intersections(const ivec2 &texel_size, const ivec2 &image_sz,
-                               const IntBezierCurve::transformation<int> &tr,
-                               IntersectionRecorder *dst) const
-{
+  /* record curves that go through texel edges; this is all
+     the curves because any curves that are contained within
+     a texel will have been collapsed to a point.
+   */
   curve_lists_edge_intersections(Solver::x_fixed, texel_size, image_sz, tr, dst);
   curve_lists_edge_intersections(Solver::y_fixed, texel_size, image_sz, tr, dst);
 }
@@ -1793,8 +1791,13 @@ curve_lists_edge_intersections(enum Solver::coordinate_type tp,
           pixel[varying_coord] = v;
 
           dst->set_winding(pixel, tp, winding);
-          p = static_cast<float>(v * texel_size[varying_coord]);
 
+          /* Note that we are testing to (1 + v), which is the end
+             of the texel; this is because we want the intersections
+             on the edge from the start of the texel (at v) to the
+             end of the texel (at 1 + v).
+           */
+          p = static_cast<float>((1 + v) * texel_size[varying_coord]);
           while(currentL < maxL && L[currentL].m_p[varying_coord] < p)
             {
               dst->record_edge_intersection(pixel, tp, L[currentL]);
@@ -1812,6 +1815,40 @@ curve_lists_edge_intersections(enum Solver::coordinate_type tp,
     }
 }
 
+CurvePairGenerator::IntBezierCurve::ID_t
+CurvePairGenerator::
+select_from_pair(IntBezierCurve::ID_t id0, IntBezierCurve::ID_t id1) const
+{
+  if(id1 == next_neighbor(id0))
+    {
+      return id0;
+    }
+  else
+    {
+      return id1;
+    }
+}
+
+CurvePairGenerator::IntBezierCurve::ID_t
+CurvePairGenerator::
+select_curve(const IntersectionRecorder::PerTexel &texel) const
+{
+  FASTUIDRAWassert(!texel.second.empty());
+  switch(texel.second.size())
+    {
+    case 1:
+      return *texel.second.begin();
+
+    case 2:
+      return select_from_pair(*texel.second.begin(), *texel.second.rbegin());
+
+    default:
+      /* TODO:
+         - try to filter "extra" curves from the list and make a weighted choice
+      */
+      return select_from_pair(*texel.second.begin(), *texel.second.rbegin());
+    }
+}
 
 void
 CurvePairGenerator::
@@ -1824,16 +1861,42 @@ extract_active_curve_pairs(const fastuidraw::ivec2 &texel_size,
   compute_curve_lists(texel_size, image_sz, tr, &curve_lists);
 
   dst->resize_active_curve_pair(image_sz + ivec2(1, 1));
-  std::fill(dst->active_curve_pair().begin(),
-            dst->active_curve_pair().end(),
+  fastuidraw::c_array<uint16_t> dst_data(dst->active_curve_pair());
+
+  std::fill(dst_data.begin(), dst_data.end(),
             GlyphRenderDataCurvePair::completely_empty_texel);
 
-  /* TODO:
-      - for each texel, select the "best" curve-pair
-      - for each contour decide if the contour should be reversed
-      - for each texel with no curve-pairs, compute if it is
-        covered or not.
-   */
+  for(int y = 0; y < image_sz.y(); ++y)
+    {
+      for(int x = 0; x < image_sz.x(); ++x)
+        {
+          int L(x + y * (1 + image_sz.x()));
+          const IntersectionRecorder::PerTexel &texel(curve_lists.texel_data(x, y));
+          uint16_t v;
+
+          if(texel.second.empty())
+            {
+              int w0, w1;
+
+              /* hopefully they agree */
+              w0 = texel.first[Solver::x_fixed];
+              w1 = texel.first[Solver::y_fixed];
+              FASTUIDRAWunused(w1);
+
+              v = (w0 != 0) ?
+                GlyphRenderDataCurvePair::completely_full_texel :
+                GlyphRenderDataCurvePair::completely_empty_texel;
+            }
+          else
+            {
+              IntBezierCurve::ID_t c;
+
+              c = select_curve(texel);
+              v = global_index(c);
+            }
+          dst_data[L] = v;
+        }
+    }
 }
 
 void
@@ -1841,6 +1904,9 @@ CurvePairGenerator::
 extract_entries(const ivec2 &step, const IntBezierCurve::transformation<int> &tr,
                 GlyphRenderDataCurvePair *dst) const
 {
+  vec2 scale_factor(1.0f, 1.0f);
+  scale_factor /= vec2(step);
+
   dst->resize_geometry_data(curve_count());
   fastuidraw::c_array<GlyphRenderDataCurvePair::entry> dst_entries(dst->geometry_data());
 
@@ -1858,7 +1924,7 @@ extract_entries(const ivec2 &step, const IntBezierCurve::transformation<int> &tr
           idx = global_index(ID);
 
           dst_entries[idx] = extract_entry(m_contour_reversed[ID.m_contourID],
-                                           tr, step, c.control_pts(),
+                                           tr, scale_factor, c.control_pts(),
                                            curve(next_ID).control_pts());
         }
     }
@@ -1868,39 +1934,37 @@ fastuidraw::GlyphRenderDataCurvePair::entry
 CurvePairGenerator::
 extract_entry(bool reverse,
               const IntBezierCurve::transformation<int> &tr,
-              const ivec2 &step,
+              const vec2 &scale_factor,
               fastuidraw::const_c_array<ivec2> c0,
               fastuidraw::const_c_array<ivec2> c1)
 {
   unsigned int total_cnt(0), start_curve_size;
   fastuidraw::vecN<fastuidraw::vec2, 5> pts;
-  fastuidraw::vec2 dividier;
 
   FASTUIDRAWassert(c0.back() == c1.front());
   FASTUIDRAWassert(c0.size() == 2 || c0.size() == 3);
   FASTUIDRAWassert(c1.size() == 2 || c1.size() == 3);
 
-  dividier = fastuidraw::vec2(1.0f) / fastuidraw::vec2(step);
-
   for(const fastuidraw::ivec2 &pt : c0)
     {
-      pts[total_cnt] = dividier * fastuidraw::vec2(tr(pt));
+      pts[total_cnt] = scale_factor * fastuidraw::vec2(tr(pt));
       ++total_cnt;
     }
-  start_curve_size = total_cnt;
 
   c1 = c1.sub_array(1);
   for(const fastuidraw::ivec2 &pt : c1)
     {
-      pts[total_cnt] = dividier * fastuidraw::vec2(tr(pt));
+      pts[total_cnt] = scale_factor * fastuidraw::vec2(tr(pt));
       ++total_cnt;
     }
 
   fastuidraw::c_array<vec2> pts_ptr(&pts[0], total_cnt);
+  start_curve_size = c0.size();
+
   if(reverse)
     {
       std::reverse(pts_ptr.begin(), pts_ptr.end());
-      start_curve_size = pts_ptr.size() - start_curve_size;
+      start_curve_size = c1.size() + 1;
     }
 
   return fastuidraw::GlyphRenderDataCurvePair::entry(pts_ptr, start_curve_size);
