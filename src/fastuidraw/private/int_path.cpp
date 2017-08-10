@@ -855,7 +855,14 @@ simplify(float curvature_collapse,
 
           for(const QuadraticBezierCurve q : quads)
             {
-              dst->push_back(q);
+              if(q.compute_curvature() < curvature_collapse)
+                {
+                  dst->push_back(BezierCurvePts(q[0], q[2]));
+                }
+              else
+                {
+                  dst->push_back(q);
+                }
             }
         }
       else
