@@ -874,6 +874,8 @@ draw_frame(void)
                    << "\n\tsize normalized: " << layout.m_size * ratio
                    << "\n\tx-extents: [" << m_draws[src].glyph_extents()[G].m_begin
                    << ", " << m_draws[src].glyph_extents()[G].m_end << "]"
+                   << "\n\tGlyphCoords in SCM=" << vec2(p.x() - q.x(), q.y() - p.y()) / ratio
+                   << "\n\tGlyphCoords in pixel-size=" << vec2(p.x() - q.x(), q.y() - p.y())
                    << "\n";
 
               /* draw a box around the glyph(!).
