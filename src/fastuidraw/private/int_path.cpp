@@ -891,13 +891,12 @@ collapse(std::vector<BezierCurvePts> &src,
   for(unsigned int i = 0, endi = src.size(); i < endi; ++i)
     {
       const BezierCurvePts &in_curve(src[i]);
-      fastuidraw::ivec2 p0, p1, t0, t1;
+      fastuidraw::ivec2 p0, p1, delta_t;
 
       p0 = in_curve.control_pts().front();
       p1 = in_curve.control_pts().back();
-      t0 = tr(p0) / texel_size;
-      t1 = tr(p1) / texel_size;
-      if(t0 != t1)
+      delta_t = (tr(p0) - tr(p1)) / texel_size;
+      if(delta_t != fastuidraw::ivec2(0, 0))
         {
           non_collapsed_curves.push_back(i);
         }
@@ -2290,6 +2289,17 @@ extract_render_data(const ivec2 &step, const ivec2 &count,
 {
   /* create table to go from curve ID's to global indices */
   CurvePairGenerator generator(m_contours);
+
+  /* We nudge the output by 1-pixel in each direction
+     so that the horizontal and vertical lines that
+     we use to find intersections and compute the winding
+     number never go through any of the end points of
+     the bezier curves; if one does, its winding computation
+     might be incorrect.
+   */
+  int tr_scale(tr.scale());
+  ivec2 tr_translate(tr.translate() - ivec2(1, 1));
+  tr = IntBezierCurve::transformation<int>(tr_scale, tr_translate);
 
   /* compute what curves should be used to each texel,
      also figures out which contours should be reversed
