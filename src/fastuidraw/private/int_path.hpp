@@ -337,10 +337,7 @@ namespace fastuidraw
 
 
       /* Compute distance field data, where distance values are
-         sampled at the center of each texel; the caller needs to
-         make sure that the path with the transformation tr applied
-         is entirely within the region [0, W] x [0, H] where
-         (W, H) = texel_size * image_sz.
+         sampled at the center of each texel.
          \param texel_size the size of each texel in coordinates
                            AFTER tr is applied
          \param image_sz size of the distance field to make
@@ -356,9 +353,7 @@ namespace fastuidraw
 
       /* Compute curve-pair render data. The caller should have applied
          filter() before calling to reduce cubics and collapse tiny
-         curves; also, the caller needs to make sure that the path
-         with the transformation tr applied is entirely within the
-         region [0, W] x [0, H] where (W, H) = texel_size * image_sz.
+         curves.
          \param texel_size the size of each texel in coordinates
                            AFTER tr is applied
          \param image_sz size of the distance field to make
