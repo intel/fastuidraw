@@ -174,6 +174,7 @@ private:
   command_line_argument_value<std::string> m_font_path;
   command_line_argument_value<std::string> m_font_style, m_font_family;
   command_line_argument_value<bool> m_font_bold, m_font_italic;
+  command_line_argument_value<std::string> m_font_file;
   command_line_argument_value<int> m_coverage_pixel_size;
   command_line_argument_value<int> m_distance_pixel_size;
   command_line_argument_value<float> m_max_distance;
@@ -501,6 +502,10 @@ painter_glyph_test(void):
   m_font_family("DejaVu Sans", "font_family", "Specifies the font family name", *this),
   m_font_bold(false, "font_bold", "if true select a bold font", *this),
   m_font_italic(false, "font_italic", "if true select an italic font", *this),
+  m_font_file("", "font_file",
+              "If non-empty gives the name of a font by filename "
+              "thus bypassing the glyph selection process with glyph_selector",
+              *this),
   m_coverage_pixel_size(24, "coverage_pixel_size", "Pixel size at which to create coverage glyphs", *this),
   m_distance_pixel_size(48, "distance_pixel_size", "Pixel size at which to create distance field glyphs", *this),
   m_max_distance(96.0f, "max_distance",
@@ -523,10 +528,10 @@ painter_glyph_test(void):
   m_fill_glyphs(false),
   m_anti_alias_path_stroking(false),
   m_anti_alias_path_filling(false),
-  m_pixel_width_stroking(false),
+  m_pixel_width_stroking(true),
   m_draw_stats(false),
   m_stroke_width(1.0f),
-  m_current_drawer(draw_glyph_distance),
+  m_current_drawer(draw_glyph_curvepair),
   m_join_style(PainterEnums::miter_joins)
 {
   std::cout << "Controls:\n"
@@ -564,23 +569,35 @@ enum return_code
 painter_glyph_test::
 create_and_add_font(void)
 {
-  FontProperties props;
-  props.style(m_font_style.m_value.c_str());
-  props.family(m_font_family.m_value.c_str());
-  props.bold(m_font_bold.m_value);
-  props.italic(m_font_italic.m_value);
-
-  add_fonts_from_path(m_font_path.m_value, m_ft_lib, m_glyph_selector,
-                      FontFreeType::RenderParams()
-                      .distance_field_max_distance(m_max_distance.m_value)
-                      .distance_field_pixel_size(m_distance_pixel_size.m_value)
-                      .curve_pair_pixel_size(m_curve_pair_pixel_size.m_value));
-
   reference_counted_ptr<const FontBase> font;
 
-  font = m_glyph_selector->fetch_font(props);
-  std::cout << "Chose font:" << font->properties() << "\n";
+  if(!m_font_file.m_value.empty())
+    {
+      font = FontFreeType::create(m_font_file.m_value.c_str(),
+                                  FontFreeType::RenderParams()
+                                  .distance_field_max_distance(m_max_distance.m_value)
+                                  .distance_field_pixel_size(m_distance_pixel_size.m_value)
+                                  .curve_pair_pixel_size(m_curve_pair_pixel_size.m_value));
+    }
 
+  if(!font)
+    {
+      FontProperties props;
+      props.style(m_font_style.m_value.c_str());
+      props.family(m_font_family.m_value.c_str());
+      props.bold(m_font_bold.m_value);
+      props.italic(m_font_italic.m_value);
+
+      add_fonts_from_path(m_font_path.m_value, m_ft_lib, m_glyph_selector,
+                          FontFreeType::RenderParams()
+                          .distance_field_max_distance(m_max_distance.m_value)
+                          .distance_field_pixel_size(m_distance_pixel_size.m_value)
+                          .curve_pair_pixel_size(m_curve_pair_pixel_size.m_value));
+
+      font = m_glyph_selector->fetch_font(props);
+    }
+
+  std::cout << "Chose font:" << font->properties() << "\n";
   m_font = font.dynamic_cast_ptr<const FontFreeType>();
 
   return routine_success;
@@ -812,7 +829,7 @@ draw_frame(void)
       m_painter->transformation(proj);
       PainterBrush brush;
       brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
-      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(curve_pair_glyph), PainterData(&brush));
+      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(distance_field_glyph), PainterData(&brush));
     }
   else
     {
@@ -875,7 +892,7 @@ draw_frame(void)
       m_painter->transformation(proj);
       PainterBrush brush;
       brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
-      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(curve_pair_glyph), PainterData(&brush));
+      draw_text(ostr.str(), 32.0f, m_font, GlyphRender(distance_field_glyph), PainterData(&brush));
     }
 
   m_painter->end();
