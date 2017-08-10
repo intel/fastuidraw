@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -85,6 +87,14 @@ namespace fastuidraw
           m_contourID(-1),
           m_curveID(-1)
         {}
+
+        bool
+        operator<(const ID_t &rhs) const
+        {
+          return m_contourID == rhs.m_contourID
+            || (m_contourID == rhs.m_contourID
+                && m_curveID << rhs.m_curveID);
+        }
 
         unsigned int m_contourID;
         unsigned int m_curveID;
