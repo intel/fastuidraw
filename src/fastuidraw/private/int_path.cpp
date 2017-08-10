@@ -594,11 +594,6 @@ namespace
                               const ivec2 &step, const ivec2 &count,
                               const IntBezierCurve::transformation<int> &tr,
                               fastuidraw::array2d<distance_value> &dst) const;
-    void
-    compute_winding_values(enum Solver::coordinate_type tp, int c,
-                           const std::vector<Solver::solution_pt> &L,
-                           int step, int count,
-                           fastuidraw::array2d<distance_value> &dst) const;
 
     const std::vector<fastuidraw::detail::IntContour> &m_contours;
   };
@@ -1555,14 +1550,15 @@ compute_fixed_line_values(enum Solver::coordinate_type tp,
                           const IntBezierCurve::transformation<int> &tr,
                           fastuidraw::array2d<distance_value> &dst) const
 {
-  enum distance_value::winding_ray_t ray_types[2][2] =
+  const enum distance_value::winding_ray_t ray_types[2][2] =
     {
       {distance_value::from_pt_to_y_negative_infinity, distance_value::from_pt_to_y_positive_infinity}, //fixed-coordinate 0
       {distance_value::from_pt_to_x_negative_infinity, distance_value::from_pt_to_x_positive_infinity}, //fixed-coordinate 1
     };
 
-  int fixed_coord(Solver::fixed_coordinate(tp));
-  int varying_coord(Solver::varying_coordinate(tp));
+  const int fixed_coord(Solver::fixed_coordinate(tp));
+  const int varying_coord(Solver::varying_coordinate(tp));
+  const int winding_sgn((tp == Solver::x_fixed) ? 1 : -1);
 
   work_room.resize(count[fixed_coord]);
   for(int i = 0; i < count[fixed_coord]; ++i)
@@ -1587,7 +1583,7 @@ compute_fixed_line_values(enum Solver::coordinate_type tp,
   for(int c = 0; c < count[fixed_coord]; ++c)
     {
       std::vector<Solver::solution_pt> &L(work_room[c]);
-      int total_cnt(0);
+      int total_cnt(0), winding(0);
 
       /* sort by the value in the varying coordinate
        */
@@ -1619,6 +1615,15 @@ compute_fixed_line_values(enum Solver::coordinate_type tp,
             {
               FASTUIDRAWassert(L[current_idx].m_multiplicity > 0);
               current_cnt += L[current_idx].m_multiplicity;
+
+              if(L[current_idx].m_p_t[fixed_coord] > 0.0f)
+                {
+                  winding += 1;
+                }
+              else if(L[current_idx].m_p_t[fixed_coord] < 0.0f)
+                {
+                  winding -= 1;
+                }
               ++current_idx;
             }
 
@@ -1627,7 +1632,7 @@ compute_fixed_line_values(enum Solver::coordinate_type tp,
              and the point on the line we are at now
            */
           for(int idx = fastuidraw::t_max(0, prev_idx - 1),
-                end_idx = fastuidraw::t_min(sz, current_idx + 2);
+                end_idx = fastuidraw::t_min(sz, current_idx + 1);
               idx < end_idx; ++idx)
             {
               float f;
@@ -1638,48 +1643,11 @@ compute_fixed_line_values(enum Solver::coordinate_type tp,
           /* update the ray-intersection counts */
           dst(pixel.x(), pixel.y()).increment_ray_intersection_count(ray_types[fixed_coord][0], current_cnt);
           dst(pixel.x(), pixel.y()).increment_ray_intersection_count(ray_types[fixed_coord][1], total_cnt - current_cnt);
+
+          /* set winding number */
+          dst(pixel.x(), pixel.y()).set_winding_number(tp, winding_sgn * winding);
         }
 
-      compute_winding_values(tp, c, L, step[varying_coord], count[varying_coord], dst);
-    }
-}
-
-void
-DistanceFieldGenerator::
-compute_winding_values(enum Solver::coordinate_type tp, int c,
-                       const std::vector<Solver::solution_pt> &L,
-                       int step, int count,
-                       fastuidraw::array2d<distance_value> &dst) const
-{
-  int v, winding, sgn;
-  unsigned int idx, end_idx;
-  int varying_coord(Solver::varying_coordinate(tp));
-  int fixed_coord(Solver::fixed_coordinate(tp));
-  ivec2 pixel;
-
-  sgn = (tp == Solver::x_fixed) ? 1 : -1;
-  pixel[fixed_coord] = c;
-
-  for(winding = 0, v = 0, idx = 0, end_idx = L.size(); v < count; ++v)
-    {
-      float p;
-      p = static_cast<float>(step * v);
-
-      /* update the winding number to the last intersection before p */
-      for(;idx < end_idx && L[idx].m_p[varying_coord] < p; ++idx)
-        {
-          /* should we disregard solutions with even multiplicity? */
-          if(L[idx].m_p_t[fixed_coord] > 0.0f)
-            {
-              winding += 1;
-            }
-          else if(L[idx].m_p_t[fixed_coord] < 0.0f)
-            {
-              winding -= 1;
-            }
-        }
-      pixel[varying_coord] = v;
-      dst(pixel.x(), pixel.y()).set_winding_number(tp, sgn * winding);
     }
 }
 
