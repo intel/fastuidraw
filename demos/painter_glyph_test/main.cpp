@@ -728,7 +728,12 @@ draw_frame(void)
               //make the scale of the path match how we scaled the text.
               float sc;
               sc = m_render_pixel_size.m_value / glyphs[i].layout().m_units_per_EM;
-              m_painter->scale(sc);
+
+	      //we are drawing with y-coordinate increasing downwards
+	      //which is the opposite coordinate system as the glyph's
+	      //path, thus we also need to negate in the y-direction.
+              m_painter->shear(sc, -sc);
+
               m_painter->fill_path(PainterData(pbr),
                                    glyphs[i].path(),
                                    PainterEnums::nonzero_fill_rule,
