@@ -623,7 +623,7 @@ namespace
     void
     extract_active_curve_pairs(const ivec2 &step, const ivec2 &count,
                                const IntBezierCurve::transformation<int> &tr,
-                               GlyphRenderDataCurvePair *dst) const;
+                               GlyphRenderDataCurvePair *dst);
 
   private:
     class IntersectionRecorder
@@ -720,6 +720,14 @@ namespace
       return m_curve_count;
     }
 
+    bool
+    is_filled(int w) const
+    {
+      /* TODO: update with custom fill-rule.
+       */
+      return w != 0;
+    }
+
     IntBezierCurve::ID_t
     select_curve(const IntersectionRecorder::PerTexel &texel) const;
 
@@ -729,18 +737,18 @@ namespace
     void
     compute_curve_lists(const ivec2 &texel_size, const ivec2 &image_sz,
                         const IntBezierCurve::transformation<int> &tr,
-                        IntersectionRecorder *dst) const;
+                        IntersectionRecorder *dst);
 
     void
     curve_lists_edge_intersections(enum Solver::coordinate_type tp,
                                    const ivec2 &texel_size, const ivec2 &image_sz,
                                    const IntBezierCurve::transformation<int> &tr,
-                                   IntersectionRecorder *dst) const;
+                                   IntersectionRecorder *dst);
 
     const std::vector<IntContour> &m_contours;
     unsigned int m_curve_count;
     std::vector<unsigned int> m_cumulated_curve_counts;
-    std::vector<bool> m_contour_reversed;
+    std::vector<int> m_contour_reverse_counts;
   };
 }
 
@@ -1722,7 +1730,7 @@ CurvePairGenerator::
 CurvePairGenerator(const std::vector<fastuidraw::detail::IntContour> &contours):
   m_contours(contours),
   m_curve_count(0),
-  m_contour_reversed(contours.size(), false)
+  m_contour_reverse_counts(contours.size(), 0)
 {
   /* create table to go from curve ID's to global indices */
   m_cumulated_curve_counts.reserve(m_contours.size());
@@ -1737,7 +1745,7 @@ void
 CurvePairGenerator::
 compute_curve_lists(const ivec2 &texel_size, const ivec2 &image_sz,
                     const IntBezierCurve::transformation<int> &tr,
-                    IntersectionRecorder *dst) const
+                    IntersectionRecorder *dst)
 {
   /* record curves that go through texel edges; this is all
      the curves because any curves that are contained within
@@ -1752,7 +1760,7 @@ CurvePairGenerator::
 curve_lists_edge_intersections(enum Solver::coordinate_type tp,
                                const ivec2 &texel_size, const ivec2 &image_sz,
                                const IntBezierCurve::transformation<int> &tr,
-                               IntersectionRecorder *dst) const
+                               IntersectionRecorder *dst)
 {
   int fixed_coord(Solver::fixed_coordinate(tp));
   int varying_coord(Solver::varying_coordinate(tp));
@@ -1810,6 +1818,42 @@ curve_lists_edge_intersections(enum Solver::coordinate_type tp,
                 }
               ++currentL;
             }
+
+          /* winding represents the computation of the winding number
+             from 0 to v + 1. The last curve we had to worry about is
+             currentL - 1 (if currentL > 0). We test the fill rule
+             against the curves intersection point and if it does not
+             match, then we give a point for reversing.
+
+             We want to test the normal vector of the curve
+             intersection against the unit vector from the the
+             corner at v + 1 to the intersection. The normal vector
+             is given by J(x, y) = (-y, x) and the unit vector
+             is given by (0, 1) for Solver::x_fixed and (1, 0)
+             for Solver::y_fixed. Thus the dot is given by
+               +x --> x_fixed
+               -y --> y_fixed
+           */
+          if(currentL > 0)
+            {
+              int tL(currentL - 1);
+              const Solver::solution_pt &S(L[tL]);
+              float sgn, dot_value;
+              bool filled;
+
+              filled = is_filled(winding);
+              sgn = (Solver::x_fixed == tp) ? 1.0f : -1.0f;
+              sgn = (filled) ? sgn : -sgn;
+              dot_value = sgn * S.m_p_t[fixed_coord];
+              if(dot_value > 0.0f)
+                {
+                  ++m_contour_reverse_counts[S.m_src.m_contourID];
+                }
+              else
+                {
+                  --m_contour_reverse_counts[S.m_src.m_contourID];
+                }
+            }
         }
     }
 }
@@ -1854,7 +1898,7 @@ CurvePairGenerator::
 extract_active_curve_pairs(const fastuidraw::ivec2 &texel_size,
                            const fastuidraw::ivec2 &image_sz,
                            const IntBezierCurve::transformation<int> &tr,
-                           GlyphRenderDataCurvePair *dst) const
+                           GlyphRenderDataCurvePair *dst)
 {
   IntersectionRecorder curve_lists(image_sz);
   compute_curve_lists(texel_size, image_sz, tr, &curve_lists);
@@ -1876,13 +1920,17 @@ extract_active_curve_pairs(const fastuidraw::ivec2 &texel_size,
           if(texel.second.empty())
             {
               int w0, w1;
+              bool f0, f1;
 
-              /* hopefully they agree */
               w0 = texel.first[Solver::x_fixed];
               w1 = texel.first[Solver::y_fixed];
-              FASTUIDRAWunused(w1);
 
-              v = (w0 != 0) ?
+              /* hopefully they agree */
+              f0 = is_filled(w0);
+              f1 = is_filled(w1);
+              FASTUIDRAWunused(f1);
+
+              v = (f0) ?
                 GlyphRenderDataCurvePair::completely_full_texel :
                 GlyphRenderDataCurvePair::completely_empty_texel;
             }
@@ -1922,7 +1970,7 @@ extract_entries(const ivec2 &step, const IntBezierCurve::transformation<int> &tr
           next_ID = next_neighbor(ID);
           idx = global_index(ID);
 
-          dst_entries[idx] = extract_entry(m_contour_reversed[ID.m_contourID],
+          dst_entries[idx] = extract_entry(m_contour_reverse_counts[ID.m_contourID] > 0,
                                            tr, scale_factor, c.control_pts(),
                                            curve(next_ID).control_pts());
         }
