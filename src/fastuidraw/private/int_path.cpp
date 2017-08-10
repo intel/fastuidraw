@@ -725,9 +725,6 @@ namespace
     IntBezierCurve::ID_t
     select_curve(const IntersectionRecorder::PerTexel &texel) const;
 
-    IntBezierCurve::ID_t
-    select_from_pair(IntBezierCurve::ID_t id0, IntBezierCurve::ID_t id1) const;
-
     void
     compute_curve_lists(const ivec2 &texel_size, const ivec2 &image_sz,
                         const IntBezierCurve::transformation<int> &tr,
@@ -1830,20 +1827,6 @@ curve_lists_edge_intersections(enum Solver::coordinate_type tp,
 
 CurvePairGenerator::IntBezierCurve::ID_t
 CurvePairGenerator::
-select_from_pair(IntBezierCurve::ID_t id0, IntBezierCurve::ID_t id1) const
-{
-  if(id1 == next_neighbor(id0))
-    {
-      return id0;
-    }
-  else
-    {
-      return id1;
-    }
-}
-
-CurvePairGenerator::IntBezierCurve::ID_t
-CurvePairGenerator::
 select_curve(const IntersectionRecorder::PerTexel &texel) const
 {
   FASTUIDRAWassert(!texel.second.empty());
@@ -1853,13 +1836,27 @@ select_curve(const IntersectionRecorder::PerTexel &texel) const
       return *texel.second.begin();
 
     case 2:
-      return select_from_pair(*texel.second.begin(), *texel.second.rbegin());
+      {
+        IntBezierCurve::ID_t id0, id1;
+
+        id0 = *texel.second.begin();
+        id1 = *texel.second.rbegin();
+        if(id1 == next_neighbor(id0))
+          {
+            return id0;
+          }
+        else if(id0 == next_neighbor(id1))
+          {
+            return id1;
+          }
+      }
+      //fall through
 
     default:
       /* TODO:
          - try to filter "extra" curves from the list and make a weighted choice
       */
-      return select_from_pair(*texel.second.begin(), *texel.second.rbegin());
+      return *texel.second.begin();
     }
 }
 
