@@ -26,6 +26,7 @@
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/path.hpp>
+#include <fastuidraw/painter/fill_rule.hpp>
 #include <fastuidraw/text/glyph_render_data_curve_pair.hpp>
 #include <fastuidraw/text/glyph_render_data_distance_field.hpp>
 
@@ -349,6 +350,7 @@ namespace fastuidraw
       extract_render_data(const ivec2 &texel_size, const ivec2 &image_sz,
                           float max_distance,
                           IntBezierCurve::transformation<int> tr,
+                          const CustomFillRuleBase &fill_rule,
                           GlyphRenderDataDistanceField *dst) const;
 
 
@@ -365,6 +367,7 @@ namespace fastuidraw
       void
       extract_render_data(const ivec2 &texel_size, const ivec2 &image_sz,
                           IntBezierCurve::transformation<int> tr,
+                          const CustomFillRuleBase &fill_rule,
                           GlyphRenderDataCurvePair *dst) const;
 
     private:

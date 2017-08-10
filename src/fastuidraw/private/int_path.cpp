@@ -609,11 +609,12 @@ namespace
     typedef fastuidraw::detail::IntBezierCurve IntBezierCurve;
     typedef fastuidraw::detail::IntContour IntContour;
     typedef fastuidraw::GlyphRenderDataCurvePair GlyphRenderDataCurvePair;
+    typedef fastuidraw::CustomFillRuleBase CustomFillRuleBase;
     typedef fastuidraw::ivec2 ivec2;
     typedef fastuidraw::vec2 vec2;
 
-    explicit
-    CurvePairGenerator(const std::vector<IntContour> &contours);
+    CurvePairGenerator(const CustomFillRuleBase &fill_rule,
+                       const std::vector<IntContour> &contours);
 
     void
     extract_entries(const ivec2 &step,
@@ -723,9 +724,7 @@ namespace
     bool
     is_filled(int w) const
     {
-      /* TODO: update with custom fill-rule.
-       */
-      return w != 0;
+      return m_fill_rule(w);
     }
 
     IntBezierCurve::ID_t
@@ -745,6 +744,7 @@ namespace
                                    const IntBezierCurve::transformation<int> &tr,
                                    IntersectionRecorder *dst);
 
+    const CustomFillRuleBase &m_fill_rule;
     const std::vector<IntContour> &m_contours;
     unsigned int m_curve_count;
     std::vector<unsigned int> m_cumulated_curve_counts;
@@ -1727,7 +1727,9 @@ set_winding(ivec2 texel,
 ///////////////////////////////
 // CurvePairGenerator methods
 CurvePairGenerator::
-CurvePairGenerator(const std::vector<fastuidraw::detail::IntContour> &contours):
+CurvePairGenerator(const CustomFillRuleBase &fill_rule,
+                   const std::vector<fastuidraw::detail::IntContour> &contours):
+  m_fill_rule(fill_rule),
   m_contours(contours),
   m_curve_count(0),
   m_contour_reverse_counts(contours.size(), 0)
@@ -2278,6 +2280,7 @@ fastuidraw::detail::IntPath::
 extract_render_data(const ivec2 &step, const ivec2 &image_sz,
                     float max_distance,
                     IntBezierCurve::transformation<int> tr,
+                    const CustomFillRuleBase &fill_rule,
                     GlyphRenderDataDistanceField *dst) const
 {
   DistanceFieldGenerator compute(m_contours);
@@ -2303,7 +2306,7 @@ extract_render_data(const ivec2 &step, const ivec2 &image_sz,
     {
       for(int x = 0; x < image_sz.x(); ++x)
         {
-          bool outside;
+          bool outside1, outside2;
           float dist;
           uint8_t v;
           int w1, w2;
@@ -2312,17 +2315,18 @@ extract_render_data(const ivec2 &step, const ivec2 &image_sz,
           w1 = dist_values(x, y).winding_number(Solver::x_fixed);
           w2 = dist_values(x, y).winding_number(Solver::y_fixed);
 
-          outside = (w1 == 0);
+          outside1 = !fill_rule(w1);
+          outside2 = !fill_rule(w2);
+
           dist = dist_values(x, y).distance(max_distance) / max_distance;
-          if(w1 != w2)
+          if(outside1 != outside2)
             {
-              /* if the windings do not match, then a curve is going through
+              /* if the fills do not match, then a curve is going through
                  the test point of the texel, thus make the distance 0
               */
               dist = 0.0f;
             }
-
-          v = DistanceFieldGenerator::pixel_value_from_distance(dist, outside);
+          v = DistanceFieldGenerator::pixel_value_from_distance(dist, outside1);
           location = x + y * (1 + image_sz.x());
           dst->distance_values()[location] = v;
         }
@@ -2333,10 +2337,11 @@ void
 fastuidraw::detail::IntPath::
 extract_render_data(const ivec2 &step, const ivec2 &count,
                     IntBezierCurve::transformation<int> tr,
+                    const CustomFillRuleBase &fill_rule,
                     GlyphRenderDataCurvePair *dst) const
 {
   /* create table to go from curve ID's to global indices */
-  CurvePairGenerator generator(m_contours);
+  CurvePairGenerator generator(fill_rule, m_contours);
 
   /* We nudge the output by 1-pixel in each direction
      so that the horizontal and vertical lines that

@@ -329,6 +329,7 @@ compute_rendering_data(uint32_t glyph_code,
   fastuidraw::detail::IntPath int_path_ecm;
   int units_per_EM;
   fastuidraw::ivec2 layout_offset;
+  int outline_flags;
 
   m_mutex.lock();
     common_compute_rendering_data(font_coordinate_converter(),
@@ -337,6 +338,7 @@ compute_rendering_data(uint32_t glyph_code,
                                   | FT_LOAD_LINEAR_DESIGN,
                                   layout, glyph_code);
     units_per_EM = m_face->units_per_EM;
+    outline_flags = m_face->glyph->outline.flags;
     layout_offset = fastuidraw::ivec2(m_face->glyph->metrics.horiBearingX,
                                       m_face->glyph->metrics.horiBearingY);
     layout_offset.y() -= m_face->glyph->metrics.height;
@@ -350,6 +352,12 @@ compute_rendering_data(uint32_t glyph_code,
 
   fastuidraw::detail::IntBezierCurve::transformation<float> identity_tr;
   int_path_ecm.add_to_path(identity_tr, &path);
+
+  /* choose the correct fill rule as according to outline_flags */
+  enum fastuidraw::PainterEnums::fill_rule_t fill_rule;
+  fill_rule = (outline_flags & FT_OUTLINE_EVEN_ODD_FILL) ?
+    fastuidraw::PainterEnums::odd_even_fill_rule:
+    fastuidraw::PainterEnums::nonzero_fill_rule;
 
   /* compute the step value needed to create the distance field value*/
   int pixel_size(m_render_params.distance_field_pixel_size());
@@ -379,7 +387,9 @@ compute_rendering_data(uint32_t glyph_code,
   float max_distance = (m_render_params.distance_field_max_distance() / 64.0f)
     * static_cast<float>(2 * units_per_EM);
 
-  int_path_ecm.extract_render_data(texel_distance, image_sz, max_distance, tr, &output);
+  int_path_ecm.extract_render_data(texel_distance, image_sz, max_distance, tr,
+                                   fastuidraw::CustomFillRuleFunction(fill_rule),
+                                   &output);
 }
 
 void
@@ -392,6 +402,7 @@ compute_rendering_data(uint32_t glyph_code,
   fastuidraw::detail::IntPath int_path_ecm;
   int units_per_EM;
   fastuidraw::ivec2 layout_offset;
+  int outline_flags;
 
   m_mutex.lock();
     common_compute_rendering_data(font_coordinate_converter(),
@@ -400,11 +411,18 @@ compute_rendering_data(uint32_t glyph_code,
                                   | FT_LOAD_LINEAR_DESIGN,
                                   layout, glyph_code);
     units_per_EM = m_face->units_per_EM;
+    outline_flags = m_face->glyph->outline.flags;
     layout_offset = fastuidraw::ivec2(m_face->glyph->metrics.horiBearingX,
                                       m_face->glyph->metrics.horiBearingY);
     layout_offset.y() -= m_face->glyph->metrics.height;
     IntPathCreator::decompose_to_path(&m_face->glyph->outline, int_path_ecm);
   m_mutex.unlock();
+
+  /* choose the correct fill rule as according to outline_flags */
+  enum fastuidraw::PainterEnums::fill_rule_t fill_rule;
+  fill_rule = (outline_flags & FT_OUTLINE_EVEN_ODD_FILL) ?
+    fastuidraw::PainterEnums::odd_even_fill_rule:
+    fastuidraw::PainterEnums::nonzero_fill_rule;
 
   int pixel_size(m_render_params.curve_pair_pixel_size());
   float scale_factor(static_cast<float>(pixel_size) / static_cast<float>(units_per_EM));
@@ -432,7 +450,9 @@ compute_rendering_data(uint32_t glyph_code,
   int_path_ecm.add_to_path(identity_tr, &path);
 
   /* extract render data*/
-  int_path_ecm.extract_render_data(texel_distance, image_sz, tr, &output);
+  int_path_ecm.extract_render_data(texel_distance, image_sz, tr,
+                                   fastuidraw::CustomFillRuleFunction(fill_rule),
+                                    &output);
 }
 
 /////////////////////////////////////////////
