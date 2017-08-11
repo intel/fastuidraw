@@ -1,6 +1,8 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <SDL_thread.h>
+#include <SDL_atomic.h>
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
 #include <fastuidraw/text/glyph_selector.hpp>
@@ -12,6 +14,23 @@
 
 using namespace fastuidraw;
 
+std::ostream&
+operator<<(std::ostream &str, GlyphRender R)
+{
+  switch(R.m_type)
+    {
+    case coverage_glyph:
+      str << "Coverage(" << R.m_pixel_size << ")";
+      break;
+    case distance_field_glyph:
+      str << "Distance";
+      break;
+    case curve_pair_glyph:
+      str << "CurvePair";
+      break;
+    }
+  return str;
+}
 
 class PerLine
 {
@@ -37,6 +56,76 @@ private:
 
   std::map<key, unsigned int> m_glyph_finder;
   LineData m_L;
+};
+
+class GlyphSetGenerator
+{
+public:
+  static
+  void
+  generate(unsigned int num_threads,
+           GlyphRender r,
+           reference_counted_ptr<const FontFreeType> f,
+           std::vector<Glyph> &dst,
+           reference_counted_ptr<GlyphCache> glyph_cache,
+           std::vector<int> &cnts)
+  {
+    GlyphSetGenerator generator(r, f, dst);
+    std::vector<SDL_Thread*> threads;
+
+    cnts.clear();
+    cnts.resize(num_threads, 0);
+
+    for(int i = 0; i < num_threads; ++i)
+      {
+        threads.push_back(SDL_CreateThread(execute, "", &generator));
+      }
+
+    for(int i = 0; i < num_threads; ++i)
+      {
+        SDL_WaitThread(threads[i], &cnts[i]);
+      }
+
+    for(Glyph glyph : dst)
+      {
+        glyph_cache->add_glyph(glyph);
+      }
+  }
+
+private:
+  GlyphSetGenerator(GlyphRender r,
+                    reference_counted_ptr<const FontFreeType> f,
+                    std::vector<Glyph> &dst):
+    m_render(r),
+    m_font(f)
+  {
+    dst.resize(m_font->face()->num_glyphs);
+    m_dst = c_array<Glyph>(&dst[0], dst.size());
+    SDL_AtomicSet(&m_counter, 0);
+  }
+
+  static
+  int
+  execute(void *ptr)
+  {
+    unsigned int idx, K;
+    GlyphSetGenerator *p(static_cast<GlyphSetGenerator*>(ptr));
+
+    for(idx = SDL_AtomicAdd(&p->m_counter, 1), K = 0;
+        idx < p->m_dst.size();
+        idx = SDL_AtomicAdd(&p->m_counter, 1), ++K)
+      {
+        p->m_dst[idx] = Glyph::create_glyph(p->m_render, p->m_font, idx);
+      }
+    return K;
+  }
+
+  typedef std::pair<GlyphSetGenerator*, int*> Job;
+
+  GlyphRender m_render;
+  reference_counted_ptr<const FontFreeType> m_font;
+  c_array<Glyph> m_dst;
+  SDL_atomic_t m_counter;
 };
 
 class GlyphFinder
@@ -72,7 +161,8 @@ public:
   data(unsigned int I) const;
 
   void
-  init(const reference_counted_ptr<const FontFreeType> &font,
+  init(unsigned int num_threads,
+       const reference_counted_ptr<const FontFreeType> &font,
        const reference_counted_ptr<GlyphCache> &cache,
        const reference_counted_ptr<GlyphSelector> &selector,
        float pixel_size_formatting,
@@ -183,6 +273,7 @@ private:
   command_line_argument_value<std::string> m_text;
   command_line_argument_value<bool> m_use_file;
   command_line_argument_value<bool> m_draw_glyph_set;
+  command_line_argument_value<int> m_realize_glyphs_thread_count;
   command_line_argument_value<float> m_render_pixel_size;
   command_line_argument_value<float> m_change_stroke_width_rate;
   command_line_argument_value<int> m_glyphs_per_painter_draw;
@@ -219,7 +310,8 @@ GlyphDraws::
 
 void
 GlyphDraws::
-init(const reference_counted_ptr<const FontFreeType> &font,
+init(unsigned int num_threads,
+     const reference_counted_ptr<const FontFreeType> &font,
      const reference_counted_ptr<GlyphCache> &glyph_cache,
      const reference_counted_ptr<GlyphSelector> &glyph_selector,
      float pixel_size_formatting,
@@ -240,21 +332,39 @@ init(const reference_counted_ptr<const FontFreeType> &font,
   scale_factor = pixel_size_formatting / div_scale_factor;
 
   /* Get all the glyphs */
-  font->lock_face();
-  num_glyphs = font->face()->num_glyphs;
-  font->unlock_face();
-
-  /* Freetype decrees that the "notdef" glyph is at glyph_code 0 */
-  for(unsigned int glyph_index = 1; glyph_index < num_glyphs; ++glyph_index)
+  if(num_threads > 1)
     {
-      Glyph g;
+      simple_time timer;
+      std::vector<int> cnts;
+      GlyphSetGenerator::generate(num_threads, renderer, font, m_glyphs, glyph_cache, cnts);
+      std::cout << "Took " << timer.elapsed()
+                << " ms to generate glyphs of type "
+                << renderer << "\n";
+      for(int i = 0; i < num_threads; ++i)
+        {
+          std::cout << "\tThread #" << i << " generated " << cnts[i] << " glyphs.\n";
+        }
+    }
+  else
+    {
+      simple_time timer;
+      m_glyphs.resize(font->face()->num_glyphs);
+      for(uint32_t glyph_code = 0; glyph_code < m_glyphs.size(); ++glyph_code)
+        {
+          m_glyphs[glyph_code] = glyph_cache->fetch_glyph(renderer, font, glyph_code);
+        }
+      std::cout << "Took " << timer.elapsed()
+                << " ms to generate glyphs of type "
+                << renderer << "\n";
+    }
 
-      g = glyph_cache->fetch_glyph(renderer, font, glyph_index);
+  for(Glyph g : m_glyphs)
+    {
       FASTUIDRAWassert(g.valid());
+      FASTUIDRAWassert(g.cache() == glyph_cache);
 
       tallest = std::max(tallest, g.layout().m_horizontal_layout_offset.y() + g.layout().m_size.y());
       negative_tallest = std::min(negative_tallest, g.layout().m_horizontal_layout_offset.y());
-      m_glyphs.push_back(g);
     }
 
   /* Try to get the character codes for each glyph */
@@ -551,6 +661,10 @@ painter_glyph_test(void):
   m_text("Hello World!", "text", "text to draw to the screen", *this),
   m_use_file(false, "use_file", "if true the value for text gives a filename to display", *this),
   m_draw_glyph_set(false, "draw_glyph_set", "if true, display all glyphs of font instead of text", *this),
+  m_realize_glyphs_thread_count(1, "realize_glyphs_thread_count",
+                                "If draw_glyph_set is true, gives the number of threads to use "
+                                "to create the glyph data",
+                                *this),
   m_render_pixel_size(24.0f, "render_pixel_size", "pixel size at which to display glyphs", *this),
   m_change_stroke_width_rate(10.0f, "change_stroke_width_rate",
                              "rate of change in pixels/sec for changing stroke width "
@@ -666,7 +780,8 @@ init_glyph_draw(unsigned int I, GlyphRender renderer)
 {
   if(m_draw_glyph_set.m_value)
     {
-      m_draws[I].init(m_font, m_glyph_cache, m_glyph_selector,
+      m_draws[I].init(m_realize_glyphs_thread_count.m_value,
+                      m_font, m_glyph_cache, m_glyph_selector,
                       m_render_pixel_size.m_value, renderer,
                       m_glyphs_per_painter_draw.m_value);
     }
