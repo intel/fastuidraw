@@ -73,6 +73,7 @@ public:
 
   void
   init(const reference_counted_ptr<const FontFreeType> &font,
+       const reference_counted_ptr<GlyphCache> &cache,
        const reference_counted_ptr<GlyphSelector> &selector,
        float pixel_size_formatting,
        GlyphRender renderer,
@@ -219,6 +220,7 @@ GlyphDraws::
 void
 GlyphDraws::
 init(const reference_counted_ptr<const FontFreeType> &font,
+     const reference_counted_ptr<GlyphCache> &glyph_cache,
      const reference_counted_ptr<GlyphSelector> &glyph_selector,
      float pixel_size_formatting,
      GlyphRender renderer,
@@ -232,22 +234,54 @@ init(const reference_counted_ptr<const FontFreeType> &font,
   float line_length(800);
   FT_ULong character_code;
   FT_UInt  glyph_index;
+  unsigned int num_glyphs;
 
   div_scale_factor = static_cast<float>(font->face()->units_per_EM);
   scale_factor = pixel_size_formatting / div_scale_factor;
 
-  for(character_code = FT_Get_First_Char(font->face(), &glyph_index);
-      glyph_index != 0;
-      character_code = FT_Get_Next_Char(font->face(), character_code, &glyph_index))
+  /* Get all the glyphs */
+  font->lock_face();
+  num_glyphs = font->face()->num_glyphs;
+  font->unlock_face();
+
+  /* Freetype decrees that the "notdef" glyph is at glyph_code 0 */
+  for(unsigned int glyph_index = 1; glyph_index < num_glyphs; ++glyph_index)
     {
       Glyph g;
-      g = glyph_selector->fetch_glyph_no_merging(renderer, font, character_code);
-      FASTUIDRAWassert(g.layout().m_glyph_code == uint32_t(glyph_index));
+
+      g = glyph_cache->fetch_glyph(renderer, font, glyph_index);
+      FASTUIDRAWassert(g.valid());
+
       tallest = std::max(tallest, g.layout().m_horizontal_layout_offset.y() + g.layout().m_size.y());
       negative_tallest = std::min(negative_tallest, g.layout().m_horizontal_layout_offset.y());
       m_glyphs.push_back(g);
-      m_character_codes.push_back(character_code);
     }
+
+  /* Try to get the character codes for each glyph */
+  std::vector<bool> found_character_code(m_glyphs.size(), false);
+  m_character_codes.resize(m_glyphs.size(), 0);
+
+  font->lock_face();
+  FT_CharMap starting_char_map;
+  starting_char_map = font->face()->charmap;
+  for(int i = 0, endi = font->face()->num_charmaps; i < endi; ++i)
+    {
+      FT_Set_Charmap(font->face(), font->face()->charmaps[i]);
+      for(character_code = FT_Get_First_Char(font->face(), &glyph_index);
+          glyph_index != 0;
+          character_code = FT_Get_Next_Char(font->face(), character_code, &glyph_index))
+        {
+          --glyph_index;
+          FASTUIDRAWassert(glyph_index < static_cast<int>(m_glyphs.size()));
+          if(!found_character_code[glyph_index])
+            {
+              m_character_codes[glyph_index] = character_code;
+              found_character_code[glyph_index] = true;
+            }
+        }
+    }
+  FT_Set_Charmap(font->face(), starting_char_map);
+  font->unlock_face();
 
   tallest *= scale_factor;
   negative_tallest *= scale_factor;
@@ -266,6 +300,8 @@ init(const reference_counted_ptr<const FontFreeType> &font,
       float advance, nxt;
 
       g = m_glyphs[i];
+      FASTUIDRAWassert(g.valid());
+
       layout = g.layout();
       advance = scale_factor * t_max(layout.m_advance.x(),
                                      t_max(0.0f, layout.m_horizontal_layout_offset.x()) + layout.m_size.x());
@@ -630,7 +666,7 @@ init_glyph_draw(unsigned int I, GlyphRender renderer)
 {
   if(m_draw_glyph_set.m_value)
     {
-      m_draws[I].init(m_font, m_glyph_selector,
+      m_draws[I].init(m_font, m_glyph_cache, m_glyph_selector,
                       m_render_pixel_size.m_value, renderer,
                       m_glyphs_per_painter_draw.m_value);
     }
