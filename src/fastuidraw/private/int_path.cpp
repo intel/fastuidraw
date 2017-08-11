@@ -2088,7 +2088,7 @@ compute_derivatives_cancel_pts(void)
 
   for(int coord = 0; coord < 2; ++coord)
     {
-      for(int k = 0, end_k = m_num_control_pts; k < end_k; ++k)
+      for(int k = 0, end_k = m_num_control_pts - 1; k < end_k; ++k)
         {
           deriv[coord][k] = (k + 1) * m_as_polynomial_fcn[coord][k + 1];
         }
