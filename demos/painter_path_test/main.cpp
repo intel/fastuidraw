@@ -197,6 +197,8 @@ private:
   command_line_argument_value<int> m_sub_image_x, m_sub_image_y;
   command_line_argument_value<int> m_sub_image_w, m_sub_image_h;
   command_line_argument_value<std::string> m_font_file;
+  command_line_argument_value<bool> m_path_from_glyph;
+  command_line_argument_value<uint32_t> m_character_code;
 
   Path m_path;
   reference_counted_ptr<Image> m_image;
@@ -323,6 +325,10 @@ painter_stroke_test(void):
                 "sub-image height of sub-image rectange (negative value means no-subimage)",
                 *this),
   m_font_file(default_font(), "font", "File from which to take font", *this),
+  m_path_from_glyph(false, "path_from_glyph",
+                    "If true, draw a path from a glyph of the font", *this),
+  m_character_code('W', "path_character_code",
+                   "If path_from_glyph is true, selects which glyph via character code to use", *this),
   m_join_style(PainterEnums::miter_clip_joins),
   m_cap_style(PainterEnums::square_caps),
   m_close_contour(true),
@@ -1033,6 +1039,21 @@ void
 painter_stroke_test::
 construct_path(void)
 {
+  if(m_path_from_glyph.m_value)
+    {
+      uint32_t glyph_code;
+      GlyphRender renderer(distance_field_glyph);
+      Glyph g;
+
+      glyph_code = m_font->glyph_code(m_character_code.m_value);
+      g = m_glyph_cache->fetch_glyph(renderer, m_font, glyph_code);
+      if(g.valid())
+        {
+          m_path = g.path();
+          return;
+        }
+    }
+
   if(!m_path_file.m_value.empty())
     {
       std::ifstream path_file(m_path_file.m_value.c_str());
