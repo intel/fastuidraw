@@ -222,10 +222,29 @@ namespace fastuidraw
     render_params(void) const;
 
     /*!
-      Return the FT_Face of this FontFreeType object.
+      Return the FT_Face of this FontFreeType object; if one
+      if goinf to use the FT_Face, one should lock it with
+      lock_face() to prevent another thread using the face.
+      The generation of \ref GlyphRenderData by
+      compute_rendering_data() uses the face and it locks
+      the face when it accesses data from it.
      */
     FT_Face
     face(void) const;
+
+    /*!
+      Lock the FT_Face returned by face() to prevent
+      other threads from using/modifying the FT_Face.
+     */
+    void
+    lock_face(void) const;
+
+    /*!
+      Unlock the FT_Face returned by face() to allow
+      other threads to use/modify the FT_Face.
+     */
+    void
+    unlock_face(void) const;
 
     /*!
       Fill the field of a FontProperties from the values of an FT_Face.

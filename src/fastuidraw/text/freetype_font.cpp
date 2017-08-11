@@ -682,6 +682,24 @@ face(void) const
   return d->m_face;
 }
 
+void
+fastuidraw::FontFreeType::
+lock_face(void) const
+{
+  FontFreeTypePrivate *d;
+  d = static_cast<FontFreeTypePrivate*>(m_d);
+  d->m_mutex.lock();
+}
+
+void
+fastuidraw::FontFreeType::
+unlock_face(void) const
+{
+  FontFreeTypePrivate *d;
+  d = static_cast<FontFreeTypePrivate*>(m_d);
+  d->m_mutex.unlock();
+}
+
 int
 fastuidraw::FontFreeType::
 create(c_array<reference_counted_ptr<FontFreeType> > fonts, const char *filename,
