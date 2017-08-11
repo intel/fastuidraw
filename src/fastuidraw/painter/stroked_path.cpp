@@ -2690,12 +2690,17 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
   FASTUIDRAWassert(zranges.size() == m_num_chunks);
   FASTUIDRAWassert(index_adjusts.size() == m_num_chunks);
 
+  /* Note that we reverse the the depth value, we need to do this because
+     we want the joins draw first to obscure the joins drawn later.
+   */
   for(const OrderingEntry<JoinSource> &J : m_ordering.non_closing_edge())
     {
+      int depth;
+      depth = m_ordering.non_closing_edge().size() - 1 - J.m_depth;
       fill_join(join_id,
                 m_P.m_per_contour_data[J.m_contour].edge_data(J.m_edge_going_into_join),
                 m_P.m_per_contour_data[J.m_contour].edge_data(J.m_edge_going_into_join + 1),
-                J.m_chunk, J.m_depth,
+                J.m_chunk, depth,
                 attribute_data, index_data,
                 vertex_offset, index_offset,
                 attribute_chunks, index_chunks,
@@ -2707,10 +2712,12 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
 
   for(const OrderingEntry<JoinSource> &J : m_ordering.closing_edge())
     {
+      int depth;
+      depth = m_ordering.non_closing_edge().size() - 1 - J.m_depth;
       fill_join(join_id,
                 m_P.m_per_contour_data[J.m_contour].edge_data(J.m_edge_going_into_join),
                 m_P.m_per_contour_data[J.m_contour].edge_data(J.m_edge_going_into_join + 1),
-                J.m_chunk, J.m_depth,
+                J.m_chunk, depth,
                 attribute_data, index_data,
                 vertex_offset, index_offset,
                 attribute_chunks, index_chunks,
@@ -3402,6 +3409,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
       unsigned int v(vertex_offset), i(index_offset);
       const fastuidraw::vec2 *normal;
       const fastuidraw::TessellatedPath::point *pt;
+      int depth;
 
       normal = C.m_is_start_cap ?
         &m_P.m_per_contour_data[C.m_contour].m_begin_cap_normal:
@@ -3411,7 +3419,8 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
         &m_P.m_per_contour_data[C.m_contour].m_start_contour_pt:
         &m_P.m_per_contour_data[C.m_contour].m_end_contour_pt;
 
-      add_cap(*normal, C.m_is_start_cap, C.m_depth, *pt,
+      depth = m_ordering.caps().size() - 1 - C.m_depth;
+      add_cap(*normal, C.m_is_start_cap, depth, *pt,
               attribute_data, index_data, vertex_offset, index_offset);
 
       cvr[cap_id].m_begin = v;
