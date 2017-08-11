@@ -15,27 +15,91 @@
  * \author Kevin Rogovin <kevin.rogovin@intel.com>
  *
  */
-
-
 #include <fastuidraw/text/freetype_lib.hpp>
+#include <mutex>
 
-fastuidraw::FreetypeLib::
-FreetypeLib(void)
+namespace
+{
+  class FreetypeLibPrivate
+  {
+  public:
+    FreetypeLibPrivate(void);
+    ~FreetypeLibPrivate();
+
+    std::mutex m_mutex;
+    FT_Library m_lib;
+  };
+}
+
+////////////////////////////
+// FreetypeLibPrivate methods
+FreetypeLibPrivate::
+FreetypeLibPrivate(void):
+  m_lib(nullptr)
 {
   int error_code;
 
   error_code = FT_Init_FreeType(&m_lib);
-  if(error_code != 0)
-    {
-      m_lib = nullptr;
-    }
+  FASTUIDRAWassert(error_code != 0);
 }
 
-fastuidraw::FreetypeLib::
-~FreetypeLib()
+FreetypeLibPrivate::
+~FreetypeLibPrivate()
 {
   if(m_lib != nullptr)
     {
       FT_Done_FreeType(m_lib);
     }
+}
+
+/////////////////////////////
+// fastuidraw::FreetypeLib methods
+fastuidraw::FreetypeLib::
+FreetypeLib(void)
+{
+  m_d = FASTUIDRAWnew FreetypeLibPrivate();
+}
+
+fastuidraw::FreetypeLib::
+~FreetypeLib()
+{
+  FreetypeLibPrivate *d;
+  d = static_cast<FreetypeLibPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+}
+
+FT_Library
+fastuidraw::FreetypeLib::
+lib(void)
+{
+  FreetypeLibPrivate *d;
+  d = static_cast<FreetypeLibPrivate*>(m_d);
+  return d->m_lib;
+}
+
+void
+fastuidraw::FreetypeLib::
+lock_lib(void)
+{
+  FreetypeLibPrivate *d;
+  d = static_cast<FreetypeLibPrivate*>(m_d);
+  d->m_mutex.lock();
+}
+
+void
+fastuidraw::FreetypeLib::
+unlock_lib(void)
+{
+  FreetypeLibPrivate *d;
+  d = static_cast<FreetypeLibPrivate*>(m_d);
+  d->m_mutex.unlock();
+}
+
+bool
+fastuidraw::FreetypeLib::
+try_lock(void)
+{
+  FreetypeLibPrivate *d;
+  d = static_cast<FreetypeLibPrivate*>(m_d);
+  return d->m_mutex.try_lock();
 }

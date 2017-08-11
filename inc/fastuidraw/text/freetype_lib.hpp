@@ -35,7 +35,7 @@ namespace fastuidraw
   /*!
     \brief
     A FreetypeLib wraps an FT_Library object of libFreeType
-    in a reference counted object.
+    together with a mutex in a reference counted object.
    */
   class FreetypeLib:public reference_counted<FreetypeLib>::default_base
   {
@@ -49,27 +49,33 @@ namespace fastuidraw
 
     /*!
       Returns the FT_Library object about which
-      this object wraps. Asserts if valid()
-      return false.
+      this object wraps.
      */
     FT_Library
-    lib(void)
-    {
-      FASTUIDRAWassert(valid());
-      return m_lib;
-    }
+    lib(void);
 
     /*!
-      Returns true if this object wraps a valid FT_Library object.
+      Aquire the lock of the mutex used to access/use the FT_Library lib()
+      safely across multiple threads.
+     */
+    void
+    lock_lib(void);
+
+    /*!
+      Release the lock of the mutex used to access/use the FT_Library lib()
+      safely across multiple threads.
+     */
+    void
+    unlock_lib(void);
+
+    /*!
+      Try to aquire the lock of the mutex. Return true on success.
      */
     bool
-    valid(void)
-    {
-      return m_lib != nullptr;
-    }
+    try_lock(void);
 
   private:
-    FT_Library m_lib;
+    void *m_d;
   };
 /*! @} */
 };

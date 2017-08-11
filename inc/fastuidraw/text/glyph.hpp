@@ -71,6 +71,14 @@ namespace fastuidraw
     type(void) const;
 
     /*!
+      Returns the glyph's renderer, valid() must
+      return true. If not, debug builds FASTUIDRAWassert
+      and release builds crash.
+     */
+    GlyphRender
+    renderer(void) const;
+
+    /*!
       Returns the glyph's layout data, valid()
       must return true. If not, debug builds FASTUIDRAWassert
       and release builds crash.
@@ -149,6 +157,34 @@ namespace fastuidraw
      */
     const Path&
     path(void) const;
+
+    /*!
+      Create a Glyph WITHOUT placing it on a \ref GlyphCache.
+      Such a Glyph needs to be destroyed manually with
+      delete_glyph() or placed on a GlyphCache (via GlyphCache::add_glyph()).
+      Glyph values that are NOT on a GlyphCache will always fail
+      in their call to upload_to_atlas().
+      \param render the nature of the render data to give to the Glyph
+      \param font the font used to generate the Glyph
+      \param glyph_code the glyph code to generate the Glyph
+     */
+    static
+    Glyph
+    create_glyph(GlyphRender render,
+                 const reference_counted_ptr<const FontBase> &font,
+                 uint32_t glyph_code);
+
+    /*!
+      Destroy a Glyph that is NOT in a \ref GlyphCache,
+      i.e. cache() returns a nullptr. On success the underlying
+      data of the passed Glyph is no longer valid and the
+      Glyph value passed should be discarded (i.e. like a freed
+      pointer).
+      \param G Glyph to delete
+     */
+    static
+    enum return_code
+    delete_glyph(Glyph G);
 
     /* How to use: when printing a bunch of glyphs do this:
         for(each glyph G)

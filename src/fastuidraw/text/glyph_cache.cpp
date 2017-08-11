@@ -32,14 +32,10 @@ namespace
   class GlyphDataPrivate
   {
   public:
-    GlyphDataPrivate(GlyphCachePrivate *c, unsigned int I):
-      m_cache(c),
-      m_cache_location(I),
-      m_geometry_offset(-1),
-      m_geometry_length(0),
-      m_uploaded_to_atlas(false),
-      m_glyph_data(nullptr)
-    {}
+    GlyphDataPrivate(GlyphCachePrivate *c, unsigned int I);
+
+    explicit
+    GlyphDataPrivate(void);
 
     void
     clear(void);
@@ -130,6 +126,26 @@ namespace
 
 /////////////////////////////////////////////////////////
 // GlyphDataPrivate methods
+GlyphDataPrivate::
+GlyphDataPrivate(GlyphCachePrivate *c, unsigned int I):
+  m_cache(c),
+  m_cache_location(I),
+  m_geometry_offset(-1),
+  m_geometry_length(0),
+  m_uploaded_to_atlas(false),
+  m_glyph_data(nullptr)
+{}
+
+GlyphDataPrivate::
+GlyphDataPrivate(void):
+  m_cache(nullptr),
+  m_cache_location(~0u),
+  m_geometry_offset(-1),
+  m_geometry_length(0),
+  m_uploaded_to_atlas(false),
+  m_glyph_data(nullptr)
+{}
+
 void
 GlyphDataPrivate::
 clear(void)
@@ -137,23 +153,26 @@ clear(void)
   m_render = fastuidraw::GlyphRender();
   FASTUIDRAWassert(!m_render.valid());
 
-  if(m_atlas_location[0].valid())
+  if(m_cache)
     {
-      m_cache->m_atlas->deallocate(m_atlas_location[0]);
-      m_atlas_location[0] = fastuidraw::GlyphLocation();
-    }
+      if(m_atlas_location[0].valid())
+        {
+          m_cache->m_atlas->deallocate(m_atlas_location[0]);
+          m_atlas_location[0] = fastuidraw::GlyphLocation();
+        }
 
-  if(m_atlas_location[1].valid())
-    {
-      m_cache->m_atlas->deallocate(m_atlas_location[1]);
-      m_atlas_location[1] = fastuidraw::GlyphLocation();
-    }
+      if(m_atlas_location[1].valid())
+        {
+          m_cache->m_atlas->deallocate(m_atlas_location[1]);
+          m_atlas_location[1] = fastuidraw::GlyphLocation();
+        }
 
-  if(m_geometry_offset != -1)
-    {
-      m_cache->m_atlas->deallocate_geometry_data(m_geometry_offset, m_geometry_length);
-      m_geometry_offset = -1;
-      m_geometry_length = 0;
+      if(m_geometry_offset != -1)
+        {
+          m_cache->m_atlas->deallocate_geometry_data(m_geometry_offset, m_geometry_length);
+          m_geometry_offset = -1;
+          m_geometry_length = 0;
+        }
     }
 
   m_uploaded_to_atlas = false;
@@ -174,17 +193,17 @@ upload_to_atlas(void)
         attempt to access the same glyph (or if different
         threads call this routine and clear_atlas()
         at the same time).
-
-     2. this routine is hideous to read due to the handling
-        of allocation failures. Should likely bunch the
-        allocation behind objects whose ctors and dtors
-        do the right thing.
    */
   enum fastuidraw::return_code return_value;
 
   if(m_uploaded_to_atlas)
     {
       return fastuidraw::routine_success;
+    }
+
+  if(!m_cache)
+    {
+      return fastuidraw::routine_fail;
     }
 
   FASTUIDRAWassert(m_glyph_data);
@@ -264,6 +283,16 @@ type(void) const
   p = static_cast<GlyphDataPrivate*>(m_opaque);
   FASTUIDRAWassert(p != nullptr);
   return p->m_render.m_type;
+}
+
+fastuidraw::GlyphRender
+fastuidraw::Glyph::
+renderer(void) const
+{
+  GlyphDataPrivate *p;
+  p = static_cast<GlyphDataPrivate*>(m_opaque);
+  FASTUIDRAWassert(p != nullptr);
+  return p->m_render;
 }
 
 const fastuidraw::GlyphLayoutData&
@@ -346,6 +375,33 @@ path(void) const
   return p->m_path;
 }
 
+fastuidraw::Glyph
+fastuidraw::Glyph::
+create_glyph(GlyphRender render,
+             const reference_counted_ptr<const FontBase> &font,
+             uint32_t glyph_code)
+{
+  GlyphDataPrivate *d;
+  d = FASTUIDRAWnew GlyphDataPrivate();
+  d->m_render = render;
+  d->m_glyph_data = font->compute_rendering_data(d->m_render, glyph_code, d->m_layout, d->m_path);
+  return Glyph(d);
+}
+
+enum fastuidraw::return_code
+fastuidraw::Glyph::
+delete_glyph(Glyph G)
+{
+  GlyphDataPrivate *d;
+  d = static_cast<GlyphDataPrivate*>(G.m_opaque);
+  if(d->m_cache)
+    {
+      return routine_fail;
+    }
+  d->clear();
+  FASTUIDRAWdelete(d);
+  return routine_success;
+}
 
 //////////////////////////////////////////////////////////
 // fastuidraw::GlyphCache methods
@@ -394,6 +450,35 @@ fetch_glyph(GlyphRender render,
   return Glyph(q);
 }
 
+enum fastuidraw::return_code
+fastuidraw::GlyphCache::
+add_glyph(Glyph glyph)
+{
+  GlyphDataPrivate *g;
+  g = static_cast<GlyphDataPrivate*>(glyph.m_opaque);
+
+  if(!g || g->m_cache)
+    {
+      return routine_fail;
+    }
+
+  GlyphSource src(g->m_layout.m_font,
+                  g->m_layout.m_glyph_code,
+                  g->m_render);
+
+  GlyphCachePrivate *d;
+  d = static_cast<GlyphCachePrivate*>(m_d);
+  if(d->m_glyph_map.find(src) != d->m_glyph_map.end())
+    {
+      return routine_fail;
+    }
+
+  g->m_cache = d;
+  g->m_cache_location = d->m_glyphs.size();
+  d->m_glyphs.push_back(g);
+
+  return routine_success;
+}
 
 void
 fastuidraw::GlyphCache::

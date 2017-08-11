@@ -34,7 +34,8 @@ namespace fastuidraw
   /*!
     \brief
     A GlyphCache represents a cache of glyphs and manages the uploading
-    of the data to a GlyphAtlas. Methods are NOT thread safe.
+    of the data to a GlyphAtlas. Methods are reentrant but NOT thread
+    safe.
    */
   class GlyphCache:public reference_counted<GlyphCache>::default_base
   {
@@ -59,12 +60,27 @@ namespace fastuidraw
                 uint32_t glyph_code);
 
     /*!
-      Removes a glyph from the -CACHE-, i.e. the GlyphCache,
+      Add a Glyph created with Glyph::create_glyph() to
+      this GlyphCache. Will fail if a Glyph with the
+      same glyph_code (GlyphLayoutData::m_glyph_code),
+      font (GlyphLayoutData::m_font) and renderer
+      (Glyph::renderer()) is already present in the
+      GlyphCache.
+      \param glyph Glyph to add to cache
+     */
+    enum return_code
+    add_glyph(Glyph glyph);
+
+    /*!
+      Deletes and removes a glyph from the GlyphCache,
       thus to use that glyph again requires calling fetch_glyph()
-      (and thus fetching a new value for Glyph).
+      (and thus fetching a new value for Glyph). The underlying
+      memory of the Glyph will be reused by a later glyph,
+      thus the Glyph value passed should be discarded.
+      \param glyph Glyph to delete and remove from cache
      */
     void
-    delete_glyph(Glyph);
+    delete_glyph(Glyph glyph);
 
     /*!
       Call to clear the backing GlyphAtlas. In doing so, the glyphs

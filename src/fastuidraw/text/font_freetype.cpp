@@ -706,7 +706,7 @@ create(c_array<reference_counted_ptr<FontFreeType> > fonts, const char *filename
        reference_counted_ptr<FreetypeLib> lib,
        const RenderParams &render_params)
 {
-  if(!lib || !lib->valid())
+  if(!lib)
     {
       return 0;
     }
@@ -740,7 +740,7 @@ fastuidraw::FontFreeType::
 create(const char *filename, reference_counted_ptr<FreetypeLib> lib,
        const RenderParams &render_params, int face_index)
 {
-  if(!lib || !lib->valid())
+  if(!lib)
     {
       return reference_counted_ptr<FontFreeType>();
     }
