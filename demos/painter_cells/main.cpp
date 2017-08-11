@@ -3,7 +3,7 @@
 
 #include <fastuidraw/painter/painter.hpp>
 #include <fastuidraw/text/glyph_cache.hpp>
-#include <fastuidraw/text/freetype_font.hpp>
+#include <fastuidraw/text/font_freetype.hpp>
 #include <fastuidraw/text/glyph_selector.hpp>
 
 #include "sdl_painter_demo.hpp"

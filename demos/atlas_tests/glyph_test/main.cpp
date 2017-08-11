@@ -3,7 +3,7 @@
 #include <fstream>
 #include <fastuidraw/glsl/shader_code.hpp>
 #include <fastuidraw/text/glyph_cache.hpp>
-#include <fastuidraw/text/freetype_font.hpp>
+#include <fastuidraw/text/font_freetype.hpp>
 #include <fastuidraw/text/glyph_selector.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
 #include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>

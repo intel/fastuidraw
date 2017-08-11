@@ -1,6 +1,6 @@
 /*!
- * \file freetype_font.hpp
- * \brief file freetype_font.hpp
+ * \file font_freetype.hpp
+ * \brief file font_freetype.hpp
  *
  * Copyright 2016 by Intel.
  *

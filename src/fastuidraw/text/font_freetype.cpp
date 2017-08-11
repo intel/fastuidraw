@@ -1,6 +1,6 @@
 /*!
- * \file freetype_font.cpp
- * \brief file freetype_font.cpp
+ * \file font_freetype.cpp
+ * \brief file font_freetype.cpp
  *
  * Copyright 2016 by Intel.
  *
@@ -17,7 +17,7 @@
  */
 
 #include <sstream>
-#include <fastuidraw/text/freetype_font.hpp>
+#include <fastuidraw/text/font_freetype.hpp>
 #include <fastuidraw/text/glyph_layout_data.hpp>
 #include <fastuidraw/text/glyph_render_data.hpp>
 #include <fastuidraw/text/glyph_render_data_curve_pair.hpp>
