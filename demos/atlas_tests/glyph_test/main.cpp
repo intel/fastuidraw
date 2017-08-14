@@ -87,10 +87,6 @@ private:
                                          std::vector<vec2> &positions,
                                          std::vector<uint32_t> &character_codes);
 
-  void
-  change_glyph_renderer(GlyphRender renderer, c_array<Glyph> glyphs,
-                        const_c_array<uint32_t> character_codes);
-
   enum
     {
       draw_glyph_coverage,
@@ -298,8 +294,8 @@ init_and_bind_vao_vbo_ibo(void)
 
 void
 glyph_test::per_draw::
-init_draw_text(const_c_array<Glyph> glyphs, const_c_array<vec2> glyph_positions, float
-               scale_factor)
+init_draw_text(const_c_array<Glyph> glyphs, const_c_array<vec2> glyph_positions,
+               float scale_factor)
 {
   std::vector<attribs_per_glyph> attribs;
   std::vector<vecN<GLuint, 6> > indices;
@@ -792,21 +788,6 @@ ready_program(void)
   m_drawers[draw_glyph_atlas].set(pr, "Atlas", &m_zoomer_atlas);
 }
 
-
-
-void
-glyph_test::
-change_glyph_renderer(GlyphRender renderer, c_array<Glyph> glyphs, const_c_array<uint32_t> character_codes)
-{
-  for(unsigned int i = 0; i < glyphs.size(); ++i)
-    {
-      if(glyphs[i].valid())
-        {
-          glyphs[i] = m_glyph_selector->fetch_glyph_no_merging(renderer, glyphs[i].layout().m_font, character_codes[i]);
-        }
-    }
-}
-
 void
 glyph_test::
 compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float pixel_size_formatting,
@@ -1009,6 +990,10 @@ ready_attributes_indices(void)
     format_pixel_size = m_render_pixel_size.m_value;
     scale_factor = format_pixel_size / static_cast<float>(m_face->face()->units_per_EM);
 
+    glyph_positions.clear();
+    glyphs.clear();
+    character_codes.clear();
+
     compute_glyphs_and_positions(renderer, format_pixel_size, glyphs, glyph_positions, character_codes);
     m_drawers[draw_glyph_coverage].init_draw_text(cast_c_array(glyphs), cast_c_array(glyph_positions), scale_factor);
   }
@@ -1019,7 +1004,12 @@ ready_attributes_indices(void)
 
     format_pixel_size = m_render_pixel_size.m_value;
     scale_factor = format_pixel_size / static_cast<float>(m_face->face()->units_per_EM);
-    change_glyph_renderer(renderer, cast_c_array(glyphs), cast_c_array(character_codes));
+
+    glyph_positions.clear();
+    glyphs.clear();
+    character_codes.clear();
+
+    compute_glyphs_and_positions(renderer, format_pixel_size, glyphs, glyph_positions, character_codes);
     m_drawers[draw_glyph_distance].init_draw_text(cast_c_array(glyphs), cast_c_array(glyph_positions), scale_factor);
   }
 
@@ -1029,7 +1019,12 @@ ready_attributes_indices(void)
 
     format_pixel_size = m_render_pixel_size.m_value;
     scale_factor = format_pixel_size / static_cast<float>(m_face->face()->units_per_EM);
-    change_glyph_renderer(renderer, cast_c_array(glyphs), cast_c_array(character_codes));
+
+    glyph_positions.clear();
+    glyphs.clear();
+    character_codes.clear();
+
+    compute_glyphs_and_positions(renderer, format_pixel_size, glyphs, glyph_positions, character_codes);
     m_drawers[draw_glyph_curvepair].init_draw_text(cast_c_array(glyphs), cast_c_array(glyph_positions), scale_factor);
   }
 
