@@ -129,28 +129,29 @@ namespace fastuidraw
 
     /*!
       Ctor. Guess the FontProperties from the FT_Face
-      \param face_generator object used to generate the FreeTypeFace object(s)
-                            used by the FontFreeType object.
+      \param pface_generator object used to generate the FreeTypeFace object(s)
+                             used by the FontFreeType object.
       \param render_params specifies how to generate data for scalable glyph data
-      \param lib the FreeTypeLib of the FreeTypeFace created by the FontFreeType,
-                 a null values indicates to use a private FreeTypeLib object
+      \param plib the FreeTypeLib of the FreeTypeFace created by the FontFreeType,
+                  a null values indicates to use a private FreeTypeLib object
      */
     FontFreeType(const reference_counted_ptr<FreeTypeFace::GeneratorBase> &pface_generator,
                  const RenderParams &render_params = RenderParams(),
-                 const reference_counted_ptr<FreeTypeLib> &lib = reference_counted_ptr<FreeTypeLib>());
+                 const reference_counted_ptr<FreeTypeLib> &plib = reference_counted_ptr<FreeTypeLib>());
 
     /*!
       Ctor.
-      \param face_generator object used to generate the FreeTypeFace object(s)
-                            used by the FontFreeType object.
+      \param pface_generator object used to generate the FreeTypeFace object(s)
+                             used by the FontFreeType object.
+      \param props FontProperties with which to endow the created FontFreeType object
       \param render_params specifies how to generate data for scalable glyph data
-      \param lib the FreeTypeLib of the FreeTypeFace created by the FontFreeType,
-                 a null values indicates to use a private FreeTypeLib object
+      \param plib the FreeTypeLib of the FreeTypeFace created by the FontFreeType,
+                  a null values indicates to use a private FreeTypeLib object
      */
     FontFreeType(const reference_counted_ptr<FreeTypeFace::GeneratorBase> &pface_generator,
                  const FontProperties &props,
                  const RenderParams &render_params = RenderParams(),
-                 const reference_counted_ptr<FreeTypeLib> &lib = reference_counted_ptr<FreeTypeLib>());
+                 const reference_counted_ptr<FreeTypeLib> &plib = reference_counted_ptr<FreeTypeLib>());
 
     /*!
       Create fonts from all faces of a font file.

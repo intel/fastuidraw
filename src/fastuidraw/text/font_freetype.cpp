@@ -593,19 +593,19 @@ curve_pair_pixel_size(void) const
 fastuidraw::FontFreeType::
 FontFreeType(const reference_counted_ptr<FreeTypeFace::GeneratorBase> &pface_generator,
              const FontProperties &props, const RenderParams &render_params,
-             const reference_counted_ptr<FreeTypeLib> &lib):
+             const reference_counted_ptr<FreeTypeLib> &plib):
   FontBase(props)
 {
-  m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface_generator, lib, render_params);
+  m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface_generator, plib, render_params);
 }
 
 fastuidraw::FontFreeType::
 FontFreeType(const reference_counted_ptr<FreeTypeFace::GeneratorBase> &pface_generator,
              const RenderParams &render_params,
-             const reference_counted_ptr<FreeTypeLib> &lib):
-  FontBase(compute_font_properties_from_face(pface_generator->create_face(lib)->face()))
+             const reference_counted_ptr<FreeTypeLib> &plib):
+  FontBase(compute_font_properties_from_face(pface_generator->create_face(plib)->face()))
 {
-  m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface_generator, lib, render_params);
+  m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface_generator, plib, render_params);
 }
 
 fastuidraw::FontFreeType::

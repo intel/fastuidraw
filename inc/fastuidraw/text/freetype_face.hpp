@@ -107,7 +107,7 @@ namespace fastuidraw
       \param pFace the underlying FT_Face; the created FreeTypeFace
              takes ownership of pFace and pFace will be deleted when
              the created FreeTypeFace is deleted.
-      \param lib the FreeTypeLib that was used to create pFace
+      \param pLib the FreeTypeLib that was used to create pFace
      */
     FreeTypeFace(FT_Face pFace,
                  const reference_counted_ptr<FreeTypeLib> &pLib);
