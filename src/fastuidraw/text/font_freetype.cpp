@@ -752,6 +752,17 @@ create(c_array<reference_counted_ptr<FontFreeType> > fonts,
   return num;
 }
 
+fastuidraw::reference_counted_ptr<fastuidraw::FontFreeType>
+fastuidraw::FontFreeType::
+create(const char *filename, int face_index,
+       const RenderParams &render_params,
+       reference_counted_ptr<FreeTypeLib> plib)
+{
+  reference_counted_ptr<FreeTypeFace::GeneratorBase> gen;
+  gen = FASTUIDRAWnew FreeTypeFace::GeneratorFile(filename, face_index);
+  return FASTUIDRAWnew FontFreeType(gen, render_params, plib);
+}
+
 fastuidraw::FontProperties
 fastuidraw::FontFreeType::
 compute_font_properties_from_face(FT_Face in_face)
