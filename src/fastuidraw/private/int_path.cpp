@@ -900,13 +900,15 @@ collapse(std::vector<BezierCurvePts> &src,
 
   for(unsigned int i = 0, endi = src.size(); i < endi; ++i)
     {
-      const BezierCurvePts &in_curve(src[i]);
-      fastuidraw::ivec2 p0, p1, delta_t;
+      fastuidraw::c_array<BezierCurvePts::point> pts(src[i].control_pts());
+      fastuidraw::BoundingBox<int> bb;
+      fastuidraw::ivec2 p0, p1;
 
-      p0 = in_curve.control_pts().front();
-      p1 = in_curve.control_pts().back();
-      delta_t = (tr(p0) - tr(p1)) / texel_size;
-      if(delta_t != fastuidraw::ivec2(0, 0))
+      bb.union_points(pts.begin(), pts.end());
+      p0 = tr(bb.min_point()) / texel_size;
+      p1 = tr(bb.max_point()) / texel_size;
+
+      if(p0 != p1)
         {
           non_collapsed_curves.push_back(i);
         }
