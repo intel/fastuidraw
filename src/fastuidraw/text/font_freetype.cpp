@@ -165,23 +165,37 @@ namespace
     fastuidraw::detail::IntPath &m_path;
   };
 
+  class AutoLockFace
+  {
+  public:
+    AutoLockFace(const fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace> &p):
+      m_p(p.get())
+    {
+      m_p->lock();
+    }
+
+    ~AutoLockFace()
+    {
+      m_p->unlock();
+    }
+
+    fastuidraw::FreetypeFace *m_p;
+  };
+
   class FontFreeTypePrivate
   {
   public:
-    FontFreeTypePrivate(fastuidraw::FontFreeType *p, FT_Face pface,
-                        const fastuidraw::FontFreeType::RenderParams &render_params);
-
-    FontFreeTypePrivate(fastuidraw::FontFreeType *p, FT_Face pface,
+    FontFreeTypePrivate(fastuidraw::FontFreeType *p,
+                        const fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace::GeneratorBase> &pface_generator,
                         fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> lib,
                         const fastuidraw::FontFreeType::RenderParams &render_params);
 
     ~FontFreeTypePrivate();
 
+    static
     void
-    common_init(void);
-
-    void
-    common_compute_rendering_data(font_coordinate_converter C, FT_Int32 load_flags,
+    common_compute_rendering_data(FT_Face face, fastuidraw::FontFreeType *p,
+                                  font_coordinate_converter C, FT_Int32 load_flags,
                                   fastuidraw::GlyphLayoutData &layout,
                                   uint32_t glyph_code);
 
@@ -203,74 +217,64 @@ namespace
                            fastuidraw::GlyphRenderDataCurvePair &output,
                            fastuidraw::Path &path);
 
-    fastuidraw::mutex m_mutex;
-    FT_Face m_face;
+    fastuidraw::FreetypeFace*
+    face_get(void)
+    {
+      return m_freetype_face.get();
+    }
+
+    fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace::GeneratorBase> m_generator;
     fastuidraw::FontFreeType::RenderParams m_render_params;
     fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> m_lib;
     fastuidraw::FontFreeType *m_p;
+    fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace> m_freetype_face;
   };
 }
 
 //////////////////////////////////////////////////
 // FontFreeTypePrivate methods
 FontFreeTypePrivate::
-FontFreeTypePrivate(fastuidraw::FontFreeType *p, FT_Face pface,
-                    const fastuidraw::FontFreeType::RenderParams &render_params):
-  m_face(pface),
-  m_render_params(render_params),
-  m_p(p)
-{
-  common_init();
-}
-
-FontFreeTypePrivate::
-FontFreeTypePrivate(fastuidraw::FontFreeType *p, FT_Face pface,
+FontFreeTypePrivate(fastuidraw::FontFreeType *p,
+                    const fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace::GeneratorBase> &generator,
                     fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> lib,
                     const fastuidraw::FontFreeType::RenderParams &render_params):
-  m_face(pface),
+  m_generator(generator),
   m_render_params(render_params),
   m_lib(lib),
   m_p(p)
 {
-  common_init();
+  if(!m_lib)
+    {
+      m_lib = FASTUIDRAWnew fastuidraw::FreetypeLib();
+    }
+  m_freetype_face = m_generator->create_face(m_lib);
+  FT_Set_Transform(m_freetype_face->face(), nullptr, nullptr);
 }
 
 FontFreeTypePrivate::
 ~FontFreeTypePrivate()
 {
-  if(m_lib)
-    {
-      FT_Done_Face(m_face);
-    }
 }
 
 void
 FontFreeTypePrivate::
-common_init(void)
-{
-  FASTUIDRAWassert(m_face != nullptr);
-  FASTUIDRAWassert(m_face->face_flags & FT_FACE_FLAG_SCALABLE);
-  FT_Set_Transform(m_face, nullptr, nullptr);
-}
-
-void
-FontFreeTypePrivate::
-common_compute_rendering_data(font_coordinate_converter C, FT_Int32 load_flags,
+common_compute_rendering_data(FT_Face face, fastuidraw::FontFreeType *p,
+                              font_coordinate_converter C, FT_Int32 load_flags,
                               fastuidraw::GlyphLayoutData &output,
                               uint32_t glyph_code)
 {
-  FT_Load_Glyph(m_face, glyph_code, load_flags);
-  output.m_size.x() = C(m_face->glyph->metrics.width);
-  output.m_size.y() = C(m_face->glyph->metrics.height);
-  output.m_horizontal_layout_offset.x() = C(m_face->glyph->metrics.horiBearingX);
-  output.m_horizontal_layout_offset.y() = C(m_face->glyph->metrics.horiBearingY) - output.m_size.y();
-  output.m_vertical_layout_offset.x() = C(m_face->glyph->metrics.vertBearingX);
-  output.m_vertical_layout_offset.y() = C(m_face->glyph->metrics.vertBearingY) - output.m_size.y();
-  output.m_advance.x() = C(m_face->glyph->metrics.horiAdvance);
-  output.m_advance.y() = C(m_face->glyph->metrics.vertAdvance);
+  FT_Load_Glyph(face, glyph_code, load_flags);
+  output.m_size.x() = C(face->glyph->metrics.width);
+  output.m_size.y() = C(face->glyph->metrics.height);
+  output.m_horizontal_layout_offset.x() = C(face->glyph->metrics.horiBearingX);
+  output.m_horizontal_layout_offset.y() = C(face->glyph->metrics.horiBearingY) - output.m_size.y();
+  output.m_vertical_layout_offset.x() = C(face->glyph->metrics.vertBearingX);
+  output.m_vertical_layout_offset.y() = C(face->glyph->metrics.vertBearingY) - output.m_size.y();
+  output.m_advance.x() = C(face->glyph->metrics.horiAdvance);
+  output.m_advance.y() = C(face->glyph->metrics.vertAdvance);
   output.m_glyph_code = glyph_code;
-  output.m_units_per_EM = m_face->units_per_EM;
-  output.m_font = m_p;
+  output.m_units_per_EM = face->units_per_EM;
+  output.m_font = p;
 }
 
 void
@@ -280,17 +284,20 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
                        fastuidraw::GlyphRenderDataCoverage &output,
                        fastuidraw::Path &path)
 {
+  fastuidraw::FreetypeFace *p(face_get());
+  p->lock();
+
+  FT_Face face(p->face());
   fastuidraw::ivec2 bitmap_sz;
-  font_coordinate_converter C(m_face, pixel_size);
-  fastuidraw::autolock_mutex m(m_mutex);
+  font_coordinate_converter C(face, pixel_size);
 
-  FT_Set_Pixel_Sizes(m_face, pixel_size, pixel_size);
-  common_compute_rendering_data(C, FT_LOAD_DEFAULT, layout, glyph_code);
-  IntPathCreator::decompose_to_path(&m_face->glyph->outline, path, C);
-  FT_Render_Glyph(m_face->glyph, FT_RENDER_MODE_NORMAL);
+  FT_Set_Pixel_Sizes(face, pixel_size, pixel_size);
+  common_compute_rendering_data(face, m_p, C, FT_LOAD_DEFAULT, layout, glyph_code);
+  IntPathCreator::decompose_to_path(&face->glyph->outline, path, C);
+  FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
 
-  bitmap_sz.x() = m_face->glyph->bitmap.width;
-  bitmap_sz.y() = m_face->glyph->bitmap.rows;
+  bitmap_sz.x() = face->glyph->bitmap.width;
+  bitmap_sz.y() = face->glyph->bitmap.rows;
 
   /* add one pixel slack on glyph
    */
@@ -298,7 +305,7 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
     {
       int pitch;
 
-      pitch = m_face->glyph->bitmap.pitch;
+      pitch = face->glyph->bitmap.pitch;
       output.resize(bitmap_sz + fastuidraw::ivec2(1, 1));
       std::fill(output.coverage_values().begin(), output.coverage_values().end(), 0);
       for(int y = 0; y < bitmap_sz.y(); ++y)
@@ -309,7 +316,7 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
 
               write_location = x + y * output.resolution().x();
               read_location = x + (bitmap_sz.y() - 1 - y) * pitch;
-              output.coverage_values()[write_location] = m_face->glyph->bitmap.buffer[read_location];
+              output.coverage_values()[write_location] = face->glyph->bitmap.buffer[read_location];
             }
         }
     }
@@ -317,6 +324,8 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
     {
       output.resize(fastuidraw::ivec2(0, 0));
     }
+
+  p->unlock();
 }
 
 void
@@ -331,19 +340,22 @@ compute_rendering_data(uint32_t glyph_code,
   fastuidraw::ivec2 layout_offset;
   int outline_flags;
 
-  m_mutex.lock();
-    common_compute_rendering_data(font_coordinate_converter(),
-                                  FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING
-                                  | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM
-                                  | FT_LOAD_LINEAR_DESIGN,
-                                  layout, glyph_code);
-    units_per_EM = m_face->units_per_EM;
-    outline_flags = m_face->glyph->outline.flags;
-    layout_offset = fastuidraw::ivec2(m_face->glyph->metrics.horiBearingX,
-                                      m_face->glyph->metrics.horiBearingY);
-    layout_offset.y() -= m_face->glyph->metrics.height;
-    IntPathCreator::decompose_to_path(&m_face->glyph->outline, int_path_ecm);
-  m_mutex.unlock();
+  fastuidraw::FreetypeFace *p(face_get());
+  p->lock();
+
+  FT_Face face(p->face());
+  common_compute_rendering_data(face, m_p, font_coordinate_converter(),
+                                FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING
+                                | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM
+                                | FT_LOAD_LINEAR_DESIGN,
+                                layout, glyph_code);
+  units_per_EM = face->units_per_EM;
+  outline_flags = face->glyph->outline.flags;
+  layout_offset = fastuidraw::ivec2(face->glyph->metrics.horiBearingX,
+                                    face->glyph->metrics.horiBearingY);
+  layout_offset.y() -= face->glyph->metrics.height;
+  IntPathCreator::decompose_to_path(&face->glyph->outline, int_path_ecm);
+  p->unlock();
 
   if(int_path_ecm.empty())
     {
@@ -404,19 +416,23 @@ compute_rendering_data(uint32_t glyph_code,
   fastuidraw::ivec2 layout_offset;
   int outline_flags;
 
-  m_mutex.lock();
-    common_compute_rendering_data(font_coordinate_converter(),
-                                  FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING
-                                  | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM
-                                  | FT_LOAD_LINEAR_DESIGN,
-                                  layout, glyph_code);
-    units_per_EM = m_face->units_per_EM;
-    outline_flags = m_face->glyph->outline.flags;
-    layout_offset = fastuidraw::ivec2(m_face->glyph->metrics.horiBearingX,
-                                      m_face->glyph->metrics.horiBearingY);
-    layout_offset.y() -= m_face->glyph->metrics.height;
-    IntPathCreator::decompose_to_path(&m_face->glyph->outline, int_path_ecm);
-  m_mutex.unlock();
+  fastuidraw::FreetypeFace *p(face_get());
+  p->lock();
+
+  FT_Face face(p->face());
+  common_compute_rendering_data(face, m_p,
+                                font_coordinate_converter(),
+                                FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING
+                                | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM
+                                | FT_LOAD_LINEAR_DESIGN,
+                                layout, glyph_code);
+  units_per_EM = face->units_per_EM;
+  outline_flags = face->glyph->outline.flags;
+  layout_offset = fastuidraw::ivec2(face->glyph->metrics.horiBearingX,
+                                    face->glyph->metrics.horiBearingY);
+  layout_offset.y() -= face->glyph->metrics.height;
+  IntPathCreator::decompose_to_path(&face->glyph->outline, int_path_ecm);
+  p->unlock();
 
   /* choose the correct fill rule as according to outline_flags */
   enum fastuidraw::PainterEnums::fill_rule_t fill_rule;
@@ -559,35 +575,21 @@ curve_pair_pixel_size(void) const
 ///////////////////////////////////////////////////
 // fastuidraw::FontFreeType methods
 fastuidraw::FontFreeType::
-FontFreeType(FT_Face pface, const FontProperties &props,
-             const RenderParams &render_params):
+FontFreeType(const reference_counted_ptr<FreetypeFace::GeneratorBase> &pface_generator,
+             const FontProperties &props, const RenderParams &render_params,
+             const reference_counted_ptr<FreetypeLib> &lib):
   FontBase(props)
 {
-  m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface, render_params);
+  m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface_generator, lib, render_params);
 }
 
 fastuidraw::FontFreeType::
-FontFreeType(FT_Face pface, const RenderParams &render_params):
-  FontBase(compute_font_propertes_from_face(pface))
+FontFreeType(const reference_counted_ptr<FreetypeFace::GeneratorBase> &pface_generator,
+             const RenderParams &render_params,
+             const reference_counted_ptr<FreetypeLib> &lib):
+  FontBase(compute_font_properties_from_face(pface_generator->create_face(lib)->face()))
 {
-  m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface, render_params);
-}
-
-fastuidraw::FontFreeType::
-FontFreeType(FT_Face pface, reference_counted_ptr<FreetypeLib> lib,
-             const FontProperties &props,
-             const RenderParams &render_params):
-  FontBase(props)
-{
-  m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface, lib, render_params);
-}
-
-fastuidraw::FontFreeType::
-FontFreeType(FT_Face pface, reference_counted_ptr<FreetypeLib> lib,
-             const RenderParams &render_params):
-  FontBase(compute_font_propertes_from_face(pface))
-{
-  m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface, lib, render_params);
+  m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface_generator, lib, render_params);
 }
 
 fastuidraw::FontFreeType::
@@ -607,7 +609,12 @@ glyph_code(uint32_t pcharacter_code) const
   d = static_cast<FontFreeTypePrivate*>(m_d);
 
   FT_UInt glyphcode;
-  glyphcode = FT_Get_Char_Index(d->m_face, FT_ULong(pcharacter_code));
+  fastuidraw::FreetypeFace *p(d->face_get());
+
+  p->lock();
+  glyphcode = FT_Get_Char_Index(p->face(), FT_ULong(pcharacter_code));
+  p->unlock();
+
   return glyphcode;
 }
 
@@ -663,7 +670,6 @@ compute_rendering_data(GlyphRender render, uint32_t glyph_code,
     }
 }
 
-
 const fastuidraw::FontFreeType::RenderParams&
 fastuidraw::FontFreeType::
 render_params(void) const
@@ -673,49 +679,43 @@ render_params(void) const
   return d->m_render_params;
 }
 
-FT_Face
+const fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace::GeneratorBase>&
 fastuidraw::FontFreeType::
-face(void) const
+face_generator(void) const
 {
   FontFreeTypePrivate *d;
   d = static_cast<FontFreeTypePrivate*>(m_d);
-  return d->m_face;
+  return d->m_generator;
 }
 
-void
+const fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib>&
 fastuidraw::FontFreeType::
-lock_face(void) const
+lib(void) const
 {
   FontFreeTypePrivate *d;
   d = static_cast<FontFreeTypePrivate*>(m_d);
-  d->m_mutex.lock();
-}
-
-void
-fastuidraw::FontFreeType::
-unlock_face(void) const
-{
-  FontFreeTypePrivate *d;
-  d = static_cast<FontFreeTypePrivate*>(m_d);
-  d->m_mutex.unlock();
+  return d->m_lib;
 }
 
 int
 fastuidraw::FontFreeType::
-create(c_array<reference_counted_ptr<FontFreeType> > fonts, const char *filename,
-       reference_counted_ptr<FreetypeLib> lib,
-       const RenderParams &render_params)
+create(c_array<reference_counted_ptr<FontFreeType> > fonts,
+       const char *filename, const RenderParams &render_params,
+       reference_counted_ptr<FreetypeLib> lib)
 {
   if(!lib)
     {
-      return 0;
+      lib = FASTUIDRAWnew FreetypeLib();
     }
 
   FT_Face face(nullptr);
   int error_code;
   unsigned int num(0);
 
+  lib->lock();
   error_code = FT_New_Face(lib->lib(), filename, -1, &face);
+  lib->unlock();
+
   if(error_code == 0 && face != nullptr && (face->face_flags & FT_FACE_FLAG_SCALABLE) == 0)
     {
       reference_counted_ptr<fastuidraw::FontFreeType> f;
@@ -723,71 +723,34 @@ create(c_array<reference_counted_ptr<FontFreeType> > fonts, const char *filename
       num = face->num_faces;
       for(unsigned int i = 0, c = 0; i < num && c < fonts.size(); ++i, ++c)
         {
-          fonts[c] = create(filename, lib, render_params, i);
+          reference_counted_ptr<FreetypeFace::GeneratorBase> gen;
+          gen = FASTUIDRAWnew FreetypeFace::GeneratorFile(filename, i);
+          fonts[c] = FASTUIDRAWnew FontFreeType(gen, render_params, lib);
         }
     }
 
   if(face != nullptr)
     {
+      lib->lock();
       FT_Done_Face(face);
+      lib->unlock();
     }
 
   return num;
 }
 
-fastuidraw::reference_counted_ptr<fastuidraw::FontFreeType>
-fastuidraw::FontFreeType::
-create(const char *filename, reference_counted_ptr<FreetypeLib> lib,
-       const RenderParams &render_params, int face_index)
-{
-  if(!lib)
-    {
-      return reference_counted_ptr<FontFreeType>();
-    }
-
-  int error_code;
-  FT_Face face(nullptr);
-  error_code = FT_New_Face(lib->lib(), filename, face_index, &face);
-  if(error_code != 0 || face == nullptr || (face->face_flags & FT_FACE_FLAG_SCALABLE) == 0)
-    {
-      if(face != nullptr)
-        {
-          FT_Done_Face(face);
-        }
-      return reference_counted_ptr<FontFreeType>();
-    }
-
-  FontProperties p;
-  std::ostringstream str;
-
-  str << filename << ":" << face_index;
-  compute_font_propertes_from_face(face, p);
-  p.source_label(str.str().c_str());
-
-  return FASTUIDRAWnew FontFreeType(face, lib, p, render_params);
-}
-
-fastuidraw::reference_counted_ptr<fastuidraw::FontFreeType>
-fastuidraw::FontFreeType::
-create(const char *filename, const RenderParams &render_params, int face_index)
-{
-  reference_counted_ptr<FreetypeLib> lib;
-  lib = FASTUIDRAWnew FreetypeLib();
-  return create(filename, lib, render_params, face_index);
-}
-
 fastuidraw::FontProperties
 fastuidraw::FontFreeType::
-compute_font_propertes_from_face(FT_Face in_face)
+compute_font_properties_from_face(FT_Face in_face)
 {
   FontProperties return_value;
-  compute_font_propertes_from_face(in_face, return_value);
+  compute_font_properties_from_face(in_face, return_value);
   return return_value;
 }
 
 void
 fastuidraw::FontFreeType::
-compute_font_propertes_from_face(FT_Face in_face, FontProperties &out_properties)
+compute_font_properties_from_face(FT_Face in_face, FontProperties &out_properties)
 {
   out_properties.family(in_face->family_name);
   out_properties.style(in_face->style_name);
