@@ -165,26 +165,19 @@ namespace
     fastuidraw::detail::IntPath &m_path;
   };
 
-  class AutoLockFace
-  {
-  public:
-    AutoLockFace(const fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace> &p):
-      m_p(p.get())
-    {
-      m_p->lock();
-    }
-
-    ~AutoLockFace()
-    {
-      m_p->unlock();
-    }
-
-    fastuidraw::FreetypeFace *m_p;
-  };
-
   class FontFreeTypePrivate
   {
   public:
+
+    class FaceGrabber
+    {
+    public:
+      FaceGrabber(FontFreeTypePrivate *q);
+      ~FaceGrabber();
+
+      fastuidraw::FreetypeFace *m_p;
+    };
+
     FontFreeTypePrivate(fastuidraw::FontFreeType *p,
                         const fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace::GeneratorBase> &pface_generator,
                         fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> lib,
@@ -217,18 +210,41 @@ namespace
                            fastuidraw::GlyphRenderDataCurvePair &output,
                            fastuidraw::Path &path);
 
-    fastuidraw::FreetypeFace*
-    face_get(void)
-    {
-      return m_freetype_face.get();
-    }
-
     fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace::GeneratorBase> m_generator;
     fastuidraw::FontFreeType::RenderParams m_render_params;
     fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> m_lib;
     fastuidraw::FontFreeType *m_p;
-    fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace> m_freetype_face;
+
+    /* for now we have a static number of m_faces we use for parallel
+       glyph generation
+     */
+    fastuidraw::vecN<fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace>, 8> m_faces;
   };
+}
+
+///////////////////////////////////////////
+// FontFreeTypePrivate::FaceGrabber methods
+FontFreeTypePrivate::FaceGrabber::
+FaceGrabber(FontFreeTypePrivate *q):
+  m_p(nullptr)
+{
+  while(!m_p)
+    {
+      for(unsigned int i = 0; i < q->m_faces.size() && !m_p; ++i)
+        {
+          const fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace> &face(q->m_faces[i]);
+          if(face->try_lock())
+            {
+              m_p = face.get();
+            }
+        }
+    }
+}
+
+FontFreeTypePrivate::FaceGrabber::
+~FaceGrabber()
+{
+  m_p->unlock();
 }
 
 //////////////////////////////////////////////////
@@ -247,8 +263,11 @@ FontFreeTypePrivate(fastuidraw::FontFreeType *p,
     {
       m_lib = FASTUIDRAWnew fastuidraw::FreetypeLib();
     }
-  m_freetype_face = m_generator->create_face(m_lib);
-  FT_Set_Transform(m_freetype_face->face(), nullptr, nullptr);
+  for(unsigned int i = 0; i < m_faces.size(); ++i)
+    {
+      m_faces[i] = m_generator->create_face(m_lib);
+      FT_Set_Transform(m_faces[i]->face(), nullptr, nullptr);
+    }
 }
 
 FontFreeTypePrivate::
@@ -284,10 +303,9 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
                        fastuidraw::GlyphRenderDataCoverage &output,
                        fastuidraw::Path &path)
 {
-  fastuidraw::FreetypeFace *p(face_get());
-  p->lock();
+  FaceGrabber p(this);
 
-  FT_Face face(p->face());
+  FT_Face face(p.m_p->face());
   fastuidraw::ivec2 bitmap_sz;
   font_coordinate_converter C(face, pixel_size);
 
@@ -324,8 +342,6 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
     {
       output.resize(fastuidraw::ivec2(0, 0));
     }
-
-  p->unlock();
 }
 
 void
@@ -340,22 +356,23 @@ compute_rendering_data(uint32_t glyph_code,
   fastuidraw::ivec2 layout_offset;
   int outline_flags;
 
-  fastuidraw::FreetypeFace *p(face_get());
-  p->lock();
 
-  FT_Face face(p->face());
-  common_compute_rendering_data(face, m_p, font_coordinate_converter(),
-                                FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING
-                                | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM
-                                | FT_LOAD_LINEAR_DESIGN,
-                                layout, glyph_code);
-  units_per_EM = face->units_per_EM;
-  outline_flags = face->glyph->outline.flags;
-  layout_offset = fastuidraw::ivec2(face->glyph->metrics.horiBearingX,
-                                    face->glyph->metrics.horiBearingY);
-  layout_offset.y() -= face->glyph->metrics.height;
-  IntPathCreator::decompose_to_path(&face->glyph->outline, int_path_ecm);
-  p->unlock();
+  {
+    FaceGrabber p(this);
+    FT_Face face(p.m_p->face());
+
+    common_compute_rendering_data(face, m_p, font_coordinate_converter(),
+                                  FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING
+                                  | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM
+                                  | FT_LOAD_LINEAR_DESIGN,
+                                  layout, glyph_code);
+    units_per_EM = face->units_per_EM;
+    outline_flags = face->glyph->outline.flags;
+    layout_offset = fastuidraw::ivec2(face->glyph->metrics.horiBearingX,
+                                      face->glyph->metrics.horiBearingY);
+    layout_offset.y() -= face->glyph->metrics.height;
+    IntPathCreator::decompose_to_path(&face->glyph->outline, int_path_ecm);
+  }
 
   if(int_path_ecm.empty())
     {
@@ -416,23 +433,22 @@ compute_rendering_data(uint32_t glyph_code,
   fastuidraw::ivec2 layout_offset;
   int outline_flags;
 
-  fastuidraw::FreetypeFace *p(face_get());
-  p->lock();
-
-  FT_Face face(p->face());
-  common_compute_rendering_data(face, m_p,
-                                font_coordinate_converter(),
-                                FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING
-                                | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM
-                                | FT_LOAD_LINEAR_DESIGN,
-                                layout, glyph_code);
-  units_per_EM = face->units_per_EM;
-  outline_flags = face->glyph->outline.flags;
-  layout_offset = fastuidraw::ivec2(face->glyph->metrics.horiBearingX,
-                                    face->glyph->metrics.horiBearingY);
-  layout_offset.y() -= face->glyph->metrics.height;
-  IntPathCreator::decompose_to_path(&face->glyph->outline, int_path_ecm);
-  p->unlock();
+  {
+    FaceGrabber p(this);
+    FT_Face face(p.m_p->face());
+    common_compute_rendering_data(face, m_p,
+                                  font_coordinate_converter(),
+                                  FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING
+                                  | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM
+                                  | FT_LOAD_LINEAR_DESIGN,
+                                  layout, glyph_code);
+    units_per_EM = face->units_per_EM;
+    outline_flags = face->glyph->outline.flags;
+    layout_offset = fastuidraw::ivec2(face->glyph->metrics.horiBearingX,
+                                      face->glyph->metrics.horiBearingY);
+    layout_offset.y() -= face->glyph->metrics.height;
+    IntPathCreator::decompose_to_path(&face->glyph->outline, int_path_ecm);
+  }
 
   /* choose the correct fill rule as according to outline_flags */
   enum fastuidraw::PainterEnums::fill_rule_t fill_rule;
@@ -609,11 +625,8 @@ glyph_code(uint32_t pcharacter_code) const
   d = static_cast<FontFreeTypePrivate*>(m_d);
 
   FT_UInt glyphcode;
-  fastuidraw::FreetypeFace *p(d->face_get());
-
-  p->lock();
-  glyphcode = FT_Get_Char_Index(p->face(), FT_ULong(pcharacter_code));
-  p->unlock();
+  FontFreeTypePrivate::FaceGrabber p(d);
+  glyphcode = FT_Get_Char_Index(p.m_p->face(), FT_ULong(pcharacter_code));
 
   return glyphcode;
 }
