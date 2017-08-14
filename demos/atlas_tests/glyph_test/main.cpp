@@ -201,7 +201,7 @@ private:
   reference_counted_ptr<GlyphCache> m_glyph_cache;
   reference_counted_ptr<GlyphSelector> m_glyph_selector;
   reference_counted_ptr<const FontFreeType> m_font;
-  reference_counted_ptr<FreetypeFace> m_face;
+  reference_counted_ptr<FreeTypeFace> m_face;
 
   unsigned int m_current_drawer;
   unsigned int m_texel_access_mode;
@@ -546,9 +546,9 @@ enum return_code
 glyph_test::
 create_and_add_font(void)
 {
-  reference_counted_ptr<FreetypeFace::GeneratorFile> gen;
+  reference_counted_ptr<FreeTypeFace::GeneratorFile> gen;
 
-  gen = FASTUIDRAWnew FreetypeFace::GeneratorFile(m_font_file.m_value.c_str(), m_font_index.m_value);
+  gen = FASTUIDRAWnew FreeTypeFace::GeneratorFile(m_font_file.m_value.c_str(), m_font_index.m_value);
   m_font = FASTUIDRAWnew FontFreeType(gen,
                                       FontFreeType::RenderParams()
                                       .distance_field_max_distance(m_max_distance.m_value)

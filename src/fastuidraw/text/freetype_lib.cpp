@@ -20,11 +20,11 @@
 
 namespace
 {
-  class FreetypeLibPrivate
+  class FreeTypeLibPrivate
   {
   public:
-    FreetypeLibPrivate(void);
-    ~FreetypeLibPrivate();
+    FreeTypeLibPrivate(void);
+    ~FreeTypeLibPrivate();
 
     std::mutex m_mutex;
     FT_Library m_lib;
@@ -32,19 +32,20 @@ namespace
 }
 
 ////////////////////////////
-// FreetypeLibPrivate methods
-FreetypeLibPrivate::
-FreetypeLibPrivate(void):
+// FreeTypeLibPrivate methods
+FreeTypeLibPrivate::
+FreeTypeLibPrivate(void):
   m_lib(nullptr)
 {
   int error_code;
 
   error_code = FT_Init_FreeType(&m_lib);
   FASTUIDRAWassert(error_code == 0);
+  FASTUIDRAWunused(error_code);
 }
 
-FreetypeLibPrivate::
-~FreetypeLibPrivate()
+FreeTypeLibPrivate::
+~FreeTypeLibPrivate()
 {
   if(m_lib != nullptr)
     {
@@ -53,53 +54,53 @@ FreetypeLibPrivate::
 }
 
 /////////////////////////////
-// fastuidraw::FreetypeLib methods
-fastuidraw::FreetypeLib::
-FreetypeLib(void)
+// fastuidraw::FreeTypeLib methods
+fastuidraw::FreeTypeLib::
+FreeTypeLib(void)
 {
-  m_d = FASTUIDRAWnew FreetypeLibPrivate();
+  m_d = FASTUIDRAWnew FreeTypeLibPrivate();
 }
 
-fastuidraw::FreetypeLib::
-~FreetypeLib()
+fastuidraw::FreeTypeLib::
+~FreeTypeLib()
 {
-  FreetypeLibPrivate *d;
-  d = static_cast<FreetypeLibPrivate*>(m_d);
+  FreeTypeLibPrivate *d;
+  d = static_cast<FreeTypeLibPrivate*>(m_d);
   FASTUIDRAWdelete(d);
 }
 
 FT_Library
-fastuidraw::FreetypeLib::
+fastuidraw::FreeTypeLib::
 lib(void)
 {
-  FreetypeLibPrivate *d;
-  d = static_cast<FreetypeLibPrivate*>(m_d);
+  FreeTypeLibPrivate *d;
+  d = static_cast<FreeTypeLibPrivate*>(m_d);
   return d->m_lib;
 }
 
 void
-fastuidraw::FreetypeLib::
+fastuidraw::FreeTypeLib::
 lock(void)
 {
-  FreetypeLibPrivate *d;
-  d = static_cast<FreetypeLibPrivate*>(m_d);
+  FreeTypeLibPrivate *d;
+  d = static_cast<FreeTypeLibPrivate*>(m_d);
   d->m_mutex.lock();
 }
 
 void
-fastuidraw::FreetypeLib::
+fastuidraw::FreeTypeLib::
 unlock(void)
 {
-  FreetypeLibPrivate *d;
-  d = static_cast<FreetypeLibPrivate*>(m_d);
+  FreeTypeLibPrivate *d;
+  d = static_cast<FreeTypeLibPrivate*>(m_d);
   d->m_mutex.unlock();
 }
 
 bool
-fastuidraw::FreetypeLib::
+fastuidraw::FreeTypeLib::
 try_lock(void)
 {
-  FreetypeLibPrivate *d;
-  d = static_cast<FreetypeLibPrivate*>(m_d);
+  FreeTypeLibPrivate *d;
+  d = static_cast<FreeTypeLibPrivate*>(m_d);
   return d->m_mutex.try_lock();
 }

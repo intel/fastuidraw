@@ -31,7 +31,7 @@ namespace fastuidraw
   @{
 */
   /*!\brief
-    A FreetypeFace wraps an FT_Face object of the FreeType library
+    A FreeTypeFace wraps an FT_Face object of the FreeType library
     together with a mutex in a reference counted object.
 
     The threading model for the FreeType appears to be:
@@ -41,11 +41,11 @@ namespace fastuidraw
     - If an FT_Face is accessed from multiple threads, that
       access needs to be mutex locked.
    */
-  class FreetypeFace:public reference_counted<FreetypeFace>::default_base
+  class FreeTypeFace:public reference_counted<FreeTypeFace>::default_base
   {
   public:
     /*!\brief
-      A Generator provides an interface to create FreetypeFace
+      A Generator provides an interface to create FreeTypeFace
       objects.
      */
     class GeneratorBase:public reference_counted<GeneratorBase>::default_base
@@ -56,21 +56,21 @@ namespace fastuidraw
       {}
 
       /*!
-        Public interface to create a FreetypeFace object.
-        \param lib FreetypeLib with which to create the FT_Face;
+        Public interface to create a FreeTypeFace object.
+        \param lib FreeTypeLib with which to create the FT_Face;
                    if lib is nullptr, then lib will be sustituted
-                   with a newly created FreetypeLib object that
-                   only the returned FreetypeFace will use.
+                   with a newly created FreeTypeLib object that
+                   only the returned FreeTypeFace will use.
        */
       virtual
-      reference_counted_ptr<FreetypeFace>
-      create_face(reference_counted_ptr<FreetypeLib> lib
-                  = reference_counted_ptr<FreetypeLib>()) const;
+      reference_counted_ptr<FreeTypeFace>
+      create_face(reference_counted_ptr<FreeTypeLib> lib
+                  = reference_counted_ptr<FreeTypeLib>()) const;
 
     private:
       /*!
         To be implemented by a derived class to create a
-        FreetypeFace object.
+        FreeTypeFace object.
         \param lib FT_Libray with which to create the FT_Face
        */
       virtual
@@ -79,7 +79,7 @@ namespace fastuidraw
     };
 
     /*!
-      \brief Implementation of GeneratorBase to create a FreetypeFace
+      \brief Implementation of GeneratorBase to create a FreeTypeFace
              from a face index / file pair via lib FreeType's FT_New_Face
      */
     class GeneratorFile:public GeneratorBase
@@ -104,15 +104,15 @@ namespace fastuidraw
 
     /*!
       Ctor.
-      \param pFace the underlying FT_Face; the created FreetypeFace
+      \param pFace the underlying FT_Face; the created FreeTypeFace
              takes ownership of pFace and pFace will be deleted when
-             the created FreetypeFace is deleted.
-      \param lib the FreetypeLib that was used to create pFace
+             the created FreeTypeFace is deleted.
+      \param lib the FreeTypeLib that was used to create pFace
      */
-    FreetypeFace(FT_Face pFace,
-                 const reference_counted_ptr<FreetypeLib> &pLib);
+    FreeTypeFace(FT_Face pFace,
+                 const reference_counted_ptr<FreeTypeLib> &pLib);
 
-    ~FreetypeFace();
+    ~FreeTypeFace();
 
     /*!
       Returns the FT_Face object about which
@@ -122,10 +122,10 @@ namespace fastuidraw
     face(void);
 
     /*!
-      Returns the FreetypeLib that was used to
+      Returns the FreeTypeLib that was used to
       create the FT_Face face().
      */
-    const reference_counted_ptr<FreetypeLib>&
+    const reference_counted_ptr<FreeTypeLib>&
     lib(void) const;
 
     /*!

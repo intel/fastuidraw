@@ -129,36 +129,36 @@ namespace fastuidraw
 
     /*!
       Ctor. Guess the FontProperties from the FT_Face
-      \param face_generator object used to generate the FreetypeFace object(s)
+      \param face_generator object used to generate the FreeTypeFace object(s)
                             used by the FontFreeType object.
       \param render_params specifies how to generate data for scalable glyph data
-      \param lib the FreetypeLib of the FreetypeFace created by the FontFreeType,
-                 a null values indicates to use a private FreetypeLib object
+      \param lib the FreeTypeLib of the FreeTypeFace created by the FontFreeType,
+                 a null values indicates to use a private FreeTypeLib object
      */
-    FontFreeType(const reference_counted_ptr<FreetypeFace::GeneratorBase> &pface_generator,
+    FontFreeType(const reference_counted_ptr<FreeTypeFace::GeneratorBase> &pface_generator,
                  const RenderParams &render_params = RenderParams(),
-                 const reference_counted_ptr<FreetypeLib> &lib = reference_counted_ptr<FreetypeLib>());
+                 const reference_counted_ptr<FreeTypeLib> &lib = reference_counted_ptr<FreeTypeLib>());
 
     /*!
       Ctor.
-      \param face_generator object used to generate the FreetypeFace object(s)
+      \param face_generator object used to generate the FreeTypeFace object(s)
                             used by the FontFreeType object.
       \param render_params specifies how to generate data for scalable glyph data
-      \param lib the FreetypeLib of the FreetypeFace created by the FontFreeType,
-                 a null values indicates to use a private FreetypeLib object
+      \param lib the FreeTypeLib of the FreeTypeFace created by the FontFreeType,
+                 a null values indicates to use a private FreeTypeLib object
      */
-    FontFreeType(const reference_counted_ptr<FreetypeFace::GeneratorBase> &pface_generator,
+    FontFreeType(const reference_counted_ptr<FreeTypeFace::GeneratorBase> &pface_generator,
                  const FontProperties &props,
                  const RenderParams &render_params = RenderParams(),
-                 const reference_counted_ptr<FreetypeLib> &lib = reference_counted_ptr<FreetypeLib>());
+                 const reference_counted_ptr<FreeTypeLib> &lib = reference_counted_ptr<FreeTypeLib>());
 
     /*!
       Create fonts from all faces of a font file.
       Returns the number of faces that are in font file.
       \param fonts location to which to place handles to new fonts
       \param filename from which to load the fonts
-      \param lib FreetypeLib used to create FontFreeType objects, if lib is
-                 nullptr, a FreetypeLib will be created to be used by
+      \param lib FreeTypeLib used to create FontFreeType objects, if lib is
+                 nullptr, a FreeTypeLib will be created to be used by
                  each of the FontFreeType objects.
       \param render_params specifies how to generate data for scalable glyph data
      */
@@ -166,7 +166,7 @@ namespace fastuidraw
     int
     create(c_array<reference_counted_ptr<FontFreeType> > fonts, const char *filename,
            const RenderParams &render_params = RenderParams(),
-           reference_counted_ptr<FreetypeLib> lib = reference_counted_ptr<FreetypeLib>());
+           reference_counted_ptr<FreeTypeLib> lib = reference_counted_ptr<FreeTypeLib>());
 
     virtual
     ~FontFreeType();
@@ -178,16 +178,16 @@ namespace fastuidraw
     render_params(void) const;
 
     /*!
-      Returns the FreetypeFace::GeneratorBase object used
+      Returns the FreeTypeFace::GeneratorBase object used
       to generate the faces to generate the glyph data.
      */
-    const reference_counted_ptr<FreetypeFace::GeneratorBase>&
+    const reference_counted_ptr<FreeTypeFace::GeneratorBase>&
     face_generator(void) const;
 
     /*!
-      Returns the FreetypeLib used by this FontFreeType
+      Returns the FreeTypeLib used by this FontFreeType
      */
-    const reference_counted_ptr<FreetypeLib>&
+    const reference_counted_ptr<FreeTypeLib>&
     lib(void) const;
 
     /*!

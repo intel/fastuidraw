@@ -44,7 +44,7 @@ protected:
   fastuidraw::reference_counted_ptr<fastuidraw::Painter> m_painter;
   fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_glyph_cache;
   fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> m_glyph_selector;
-  fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> m_ft_lib;
+  fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> m_ft_lib;
 
 private:
   typedef enum fastuidraw::gl::PainterBackendGL::data_store_backing_t data_store_backing_t;

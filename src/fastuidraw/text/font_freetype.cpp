@@ -175,12 +175,12 @@ namespace
       FaceGrabber(FontFreeTypePrivate *q);
       ~FaceGrabber();
 
-      fastuidraw::FreetypeFace *m_p;
+      fastuidraw::FreeTypeFace *m_p;
     };
 
     FontFreeTypePrivate(fastuidraw::FontFreeType *p,
-                        const fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace::GeneratorBase> &pface_generator,
-                        fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> lib,
+                        const fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace::GeneratorBase> &pface_generator,
+                        fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
                         const fastuidraw::FontFreeType::RenderParams &render_params);
 
     ~FontFreeTypePrivate();
@@ -210,15 +210,15 @@ namespace
                            fastuidraw::GlyphRenderDataCurvePair &output,
                            fastuidraw::Path &path);
 
-    fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace::GeneratorBase> m_generator;
+    fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace::GeneratorBase> m_generator;
     fastuidraw::FontFreeType::RenderParams m_render_params;
-    fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> m_lib;
+    fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> m_lib;
     fastuidraw::FontFreeType *m_p;
 
     /* for now we have a static number of m_faces we use for parallel
        glyph generation
      */
-    fastuidraw::vecN<fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace>, 8> m_faces;
+    fastuidraw::vecN<fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace>, 8> m_faces;
   };
 }
 
@@ -232,7 +232,7 @@ FaceGrabber(FontFreeTypePrivate *q):
     {
       for(unsigned int i = 0; i < q->m_faces.size() && !m_p; ++i)
         {
-          const fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace> &face(q->m_faces[i]);
+          const fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace> &face(q->m_faces[i]);
           if(face->try_lock())
             {
               m_p = face.get();
@@ -251,8 +251,8 @@ FontFreeTypePrivate::FaceGrabber::
 // FontFreeTypePrivate methods
 FontFreeTypePrivate::
 FontFreeTypePrivate(fastuidraw::FontFreeType *p,
-                    const fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace::GeneratorBase> &generator,
-                    fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> lib,
+                    const fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace::GeneratorBase> &generator,
+                    fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
                     const fastuidraw::FontFreeType::RenderParams &render_params):
   m_generator(generator),
   m_render_params(render_params),
@@ -261,7 +261,7 @@ FontFreeTypePrivate(fastuidraw::FontFreeType *p,
 {
   if(!m_lib)
     {
-      m_lib = FASTUIDRAWnew fastuidraw::FreetypeLib();
+      m_lib = FASTUIDRAWnew fastuidraw::FreeTypeLib();
     }
   for(unsigned int i = 0; i < m_faces.size(); ++i)
     {
@@ -591,18 +591,18 @@ curve_pair_pixel_size(void) const
 ///////////////////////////////////////////////////
 // fastuidraw::FontFreeType methods
 fastuidraw::FontFreeType::
-FontFreeType(const reference_counted_ptr<FreetypeFace::GeneratorBase> &pface_generator,
+FontFreeType(const reference_counted_ptr<FreeTypeFace::GeneratorBase> &pface_generator,
              const FontProperties &props, const RenderParams &render_params,
-             const reference_counted_ptr<FreetypeLib> &lib):
+             const reference_counted_ptr<FreeTypeLib> &lib):
   FontBase(props)
 {
   m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface_generator, lib, render_params);
 }
 
 fastuidraw::FontFreeType::
-FontFreeType(const reference_counted_ptr<FreetypeFace::GeneratorBase> &pface_generator,
+FontFreeType(const reference_counted_ptr<FreeTypeFace::GeneratorBase> &pface_generator,
              const RenderParams &render_params,
-             const reference_counted_ptr<FreetypeLib> &lib):
+             const reference_counted_ptr<FreeTypeLib> &lib):
   FontBase(compute_font_properties_from_face(pface_generator->create_face(lib)->face()))
 {
   m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface_generator, lib, render_params);
@@ -692,7 +692,7 @@ render_params(void) const
   return d->m_render_params;
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace::GeneratorBase>&
+const fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace::GeneratorBase>&
 fastuidraw::FontFreeType::
 face_generator(void) const
 {
@@ -701,7 +701,7 @@ face_generator(void) const
   return d->m_generator;
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib>&
+const fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib>&
 fastuidraw::FontFreeType::
 lib(void) const
 {
@@ -714,11 +714,11 @@ int
 fastuidraw::FontFreeType::
 create(c_array<reference_counted_ptr<FontFreeType> > fonts,
        const char *filename, const RenderParams &render_params,
-       reference_counted_ptr<FreetypeLib> lib)
+       reference_counted_ptr<FreeTypeLib> lib)
 {
   if(!lib)
     {
-      lib = FASTUIDRAWnew FreetypeLib();
+      lib = FASTUIDRAWnew FreeTypeLib();
     }
 
   FT_Face face(nullptr);
@@ -736,8 +736,8 @@ create(c_array<reference_counted_ptr<FontFreeType> > fonts,
       num = face->num_faces;
       for(unsigned int i = 0, c = 0; i < num && c < fonts.size(); ++i, ++c)
         {
-          reference_counted_ptr<FreetypeFace::GeneratorBase> gen;
-          gen = FASTUIDRAWnew FreetypeFace::GeneratorFile(filename, i);
+          reference_counted_ptr<FreeTypeFace::GeneratorBase> gen;
+          gen = FASTUIDRAWnew FreeTypeFace::GeneratorFile(filename, i);
           fonts[c] = FASTUIDRAWnew FontFreeType(gen, render_params, lib);
         }
     }

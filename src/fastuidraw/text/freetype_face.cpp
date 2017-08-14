@@ -24,26 +24,26 @@
 
 namespace
 {
-  class FreetypeFacePrivate
+  class FreeTypeFacePrivate
   {
   public:
-    FreetypeFacePrivate(FT_Face pface,
-                        const fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> &lib);
-    ~FreetypeFacePrivate();
+    FreeTypeFacePrivate(FT_Face pface,
+                        const fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> &lib);
+    ~FreeTypeFacePrivate();
 
     std::mutex m_mutex;
     FT_Face m_face;
-    fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> m_lib;
+    fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> m_lib;
   };
 
   typedef std::pair<std::string, int> GeneratorFilePrivate;
 }
 
 /////////////////////////////
-// FreetypeFacePrivate methods
-FreetypeFacePrivate::
-FreetypeFacePrivate(FT_Face pface,
-                    const fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> &lib):
+// FreeTypeFacePrivate methods
+FreeTypeFacePrivate::
+FreeTypeFacePrivate(FT_Face pface,
+                    const fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> &lib):
   m_face(pface),
   m_lib(lib)
 {
@@ -51,8 +51,8 @@ FreetypeFacePrivate(FT_Face pface,
   FASTUIDRAWassert(m_lib);
 }
 
-FreetypeFacePrivate::
-~FreetypeFacePrivate()
+FreeTypeFacePrivate::
+~FreeTypeFacePrivate()
 {
   m_lib->lock();
   FT_Done_Face(m_face);
@@ -60,17 +60,17 @@ FreetypeFacePrivate::
 }
 
 //////////////////////////////////////////////////
-// fastuidraw::FreetypeFace::GeneratorBase methods
-fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace>
-fastuidraw::FreetypeFace::GeneratorBase::
-create_face(reference_counted_ptr<FreetypeLib> lib) const
+// fastuidraw::FreeTypeFace::GeneratorBase methods
+fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace>
+fastuidraw::FreeTypeFace::GeneratorBase::
+create_face(reference_counted_ptr<FreeTypeLib> lib) const
 {
   FT_Face face;
-  reference_counted_ptr<FreetypeFace> return_value;
+  reference_counted_ptr<FreeTypeFace> return_value;
 
   if(!lib)
     {
-      lib = FASTUIDRAWnew FreetypeLib();
+      lib = FASTUIDRAWnew FreeTypeLib();
     }
 
   lib->lock();
@@ -79,20 +79,20 @@ create_face(reference_counted_ptr<FreetypeLib> lib) const
 
   if(face != nullptr)
     {
-      return_value = FASTUIDRAWnew FreetypeFace(face, lib);
+      return_value = FASTUIDRAWnew FreeTypeFace(face, lib);
     }
   return return_value;
 }
 
 //////////////////////////////////////////////////
-// fastuidraw::FreetypeFace::GeneratorFile methods
-fastuidraw::FreetypeFace::GeneratorFile::
+// fastuidraw::FreeTypeFace::GeneratorFile methods
+fastuidraw::FreeTypeFace::GeneratorFile::
 GeneratorFile(const char *filename, int face_index)
 {
   m_d = FASTUIDRAWnew GeneratorFilePrivate(filename, face_index);
 }
 
-fastuidraw::FreetypeFace::GeneratorFile::
+fastuidraw::FreeTypeFace::GeneratorFile::
 ~GeneratorFile()
 {
   GeneratorFilePrivate *d;
@@ -101,7 +101,7 @@ fastuidraw::FreetypeFace::GeneratorFile::
 }
 
 FT_Face
-fastuidraw::FreetypeFace::GeneratorFile::
+fastuidraw::FreeTypeFace::GeneratorFile::
 create_face_implement(FT_Library lib) const
 {
   int error_code;
@@ -119,63 +119,63 @@ create_face_implement(FT_Library lib) const
 }
 
 /////////////////////////////
-// fastuidraw::FreetypeFace methods
-fastuidraw::FreetypeFace::
-FreetypeFace(FT_Face pFace,
-             const reference_counted_ptr<FreetypeLib> &pLib)
+// fastuidraw::FreeTypeFace methods
+fastuidraw::FreeTypeFace::
+FreeTypeFace(FT_Face pFace,
+             const reference_counted_ptr<FreeTypeLib> &pLib)
 {
-  m_d = FASTUIDRAWnew FreetypeFacePrivate(pFace, pLib);
+  m_d = FASTUIDRAWnew FreeTypeFacePrivate(pFace, pLib);
 }
 
-fastuidraw::FreetypeFace::
-~FreetypeFace()
+fastuidraw::FreeTypeFace::
+~FreeTypeFace()
 {
-  FreetypeFacePrivate *d;
-  d = static_cast<FreetypeFacePrivate*>(m_d);
+  FreeTypeFacePrivate *d;
+  d = static_cast<FreeTypeFacePrivate*>(m_d);
   FASTUIDRAWdelete(d);
 }
 
 void
-fastuidraw::FreetypeFace::
+fastuidraw::FreeTypeFace::
 lock(void)
 {
-  FreetypeFacePrivate *d;
-  d = static_cast<FreetypeFacePrivate*>(m_d);
+  FreeTypeFacePrivate *d;
+  d = static_cast<FreeTypeFacePrivate*>(m_d);
   d->m_mutex.lock();
 }
 
 void
-fastuidraw::FreetypeFace::
+fastuidraw::FreeTypeFace::
 unlock(void)
 {
-  FreetypeFacePrivate *d;
-  d = static_cast<FreetypeFacePrivate*>(m_d);
+  FreeTypeFacePrivate *d;
+  d = static_cast<FreeTypeFacePrivate*>(m_d);
   d->m_mutex.unlock();
 }
 
 bool
-fastuidraw::FreetypeFace::
+fastuidraw::FreeTypeFace::
 try_lock(void)
 {
-  FreetypeFacePrivate *d;
-  d = static_cast<FreetypeFacePrivate*>(m_d);
+  FreeTypeFacePrivate *d;
+  d = static_cast<FreeTypeFacePrivate*>(m_d);
   return d->m_mutex.try_lock();
 }
 
 FT_Face
-fastuidraw::FreetypeFace::
+fastuidraw::FreeTypeFace::
 face(void)
 {
-  FreetypeFacePrivate *d;
-  d = static_cast<FreetypeFacePrivate*>(m_d);
+  FreeTypeFacePrivate *d;
+  d = static_cast<FreeTypeFacePrivate*>(m_d);
   return d->m_face;
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib>&
-fastuidraw::FreetypeFace::
+const fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib>&
+fastuidraw::FreeTypeFace::
 lib(void) const
 {
-  FreetypeFacePrivate *d;
-  d = static_cast<FreetypeFacePrivate*>(m_d);
+  FreeTypeFacePrivate *d;
+  d = static_cast<FreeTypeFacePrivate*>(m_d);
   return d->m_lib;
 }

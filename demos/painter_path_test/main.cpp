@@ -1640,8 +1640,8 @@ derived_init(int w, int h)
   m_change_miter_limit_rate.m_value /= 1000.0f;
 
   // generate font
-  reference_counted_ptr<FreetypeFace::GeneratorFile> gen;
-  gen = FASTUIDRAWnew FreetypeFace::GeneratorFile(m_font_file.m_value.c_str(), 0);
+  reference_counted_ptr<FreeTypeFace::GeneratorFile> gen;
+  gen = FASTUIDRAWnew FreeTypeFace::GeneratorFile(m_font_file.m_value.c_str(), 0);
   m_font = FASTUIDRAWnew FontFreeType(gen, FontFreeType::RenderParams(), m_ft_lib);
 
   construct_path();

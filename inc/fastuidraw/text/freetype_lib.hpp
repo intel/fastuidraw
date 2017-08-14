@@ -34,7 +34,7 @@ namespace fastuidraw
 
   /*!
     \brief
-    A FreetypeLib wraps an FT_Library object of the FreeType
+    A FreeTypeLib wraps an FT_Library object of the FreeType
     library together with a mutex in a reference counted object.
 
     The threading model for the FreeType appears to be:
@@ -44,15 +44,15 @@ namespace fastuidraw
     - If an FT_Face is accessed from multiple threads, that
       access needs to be mutex locked.
    */
-  class FreetypeLib:public reference_counted<FreetypeLib>::default_base
+  class FreeTypeLib:public reference_counted<FreeTypeLib>::default_base
   {
   public:
     /*!
       Ctor.
      */
-    FreetypeLib(void);
+    FreeTypeLib(void);
 
-    ~FreetypeLib();
+    ~FreeTypeLib();
 
     /*!
       Returns the FT_Library object about which

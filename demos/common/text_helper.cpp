@@ -28,7 +28,7 @@ namespace
 
   void
   add_fonts_from_file(const std::string &filename,
-                      fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> lib,
+                      fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
                       fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
                       fastuidraw::FontFreeType::RenderParams render_params)
   {
@@ -52,7 +52,7 @@ namespace
 GlyphSetGenerator::
 GlyphSetGenerator(fastuidraw::GlyphRender r,
                   fastuidraw::reference_counted_ptr<const fastuidraw::FontFreeType> f,
-                  fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace> face,
+                  fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace> face,
                   std::vector<fastuidraw::Glyph> &dst):
   m_render(r),
   m_font(f)
@@ -83,7 +83,7 @@ GlyphSetGenerator::
 generate(unsigned int num_threads,
          fastuidraw::GlyphRender r,
          fastuidraw::reference_counted_ptr<const fastuidraw::FontFreeType> f,
-         fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace> face,
+         fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace> face,
          std::vector<fastuidraw::Glyph> &dst,
          fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> glyph_cache,
          std::vector<int> &cnts)
@@ -275,7 +275,7 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
 
 void
 add_fonts_from_path(const std::string &filename,
-                    fastuidraw::reference_counted_ptr<fastuidraw::FreetypeLib> lib,
+                    fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> lib,
                     fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
                     fastuidraw::FontFreeType::RenderParams render_params)
 {
