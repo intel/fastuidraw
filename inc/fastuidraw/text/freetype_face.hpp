@@ -67,10 +67,11 @@ namespace fastuidraw
       create_face(reference_counted_ptr<FreeTypeLib> lib
                   = reference_counted_ptr<FreeTypeLib>()) const;
 
-    private:
+    protected:
       /*!
         To be implemented by a derived class to create a
-        FreeTypeFace object.
+        FT_Face using a given (and locked by the caller)
+        FT_Library object.
         \param lib FT_Libray with which to create the FT_Face
        */
       virtual
@@ -94,11 +95,12 @@ namespace fastuidraw
       GeneratorFile(const char *filename, int face_index);
       ~GeneratorFile();
 
-    private:
+    protected:
       virtual
       FT_Face
       create_face_implement(FT_Library lib) const;
 
+    private:
       void *m_d;
     };
 
