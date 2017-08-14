@@ -40,7 +40,7 @@ FreetypeLibPrivate(void):
   int error_code;
 
   error_code = FT_Init_FreeType(&m_lib);
-  FASTUIDRAWassert(error_code != 0);
+  FASTUIDRAWassert(error_code == 0);
 }
 
 FreetypeLibPrivate::
@@ -79,7 +79,7 @@ lib(void)
 
 void
 fastuidraw::FreetypeLib::
-lock_lib(void)
+lock(void)
 {
   FreetypeLibPrivate *d;
   d = static_cast<FreetypeLibPrivate*>(m_d);
@@ -88,7 +88,7 @@ lock_lib(void)
 
 void
 fastuidraw::FreetypeLib::
-unlock_lib(void)
+unlock(void)
 {
   FreetypeLibPrivate *d;
   d = static_cast<FreetypeLibPrivate*>(m_d);

@@ -34,8 +34,15 @@ namespace fastuidraw
 
   /*!
     \brief
-    A FreetypeLib wraps an FT_Library object of libFreeType
-    together with a mutex in a reference counted object.
+    A FreetypeLib wraps an FT_Library object of the FreeType
+    library together with a mutex in a reference counted object.
+
+    The threading model for the FreeType appears to be:
+    - Create an FT_Library object
+    - When creating or releasing FT_Face objects, lock a mutex
+      around the FT_Library when doing so
+    - If an FT_Face is accessed from multiple threads, that
+      access needs to be mutex locked.
    */
   class FreetypeLib:public reference_counted<FreetypeLib>::default_base
   {
@@ -55,18 +62,18 @@ namespace fastuidraw
     lib(void);
 
     /*!
-      Aquire the lock of the mutex used to access/use the FT_Library lib()
-      safely across multiple threads.
+      Aquire the lock of the mutex used to access/use the FT_Library
+      return by lib() safely across multiple threads.
      */
     void
-    lock_lib(void);
+    lock(void);
 
     /*!
-      Release the lock of the mutex used to access/use the FT_Library lib()
-      safely across multiple threads.
+      Release the lock of the mutex used to access/use the FT_Library
+      return by lib() safely across multiple threads.
      */
     void
-    unlock_lib(void);
+    unlock(void);
 
     /*!
       Try to aquire the lock of the mutex. Return true on success.

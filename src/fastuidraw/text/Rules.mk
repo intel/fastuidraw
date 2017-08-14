@@ -13,8 +13,8 @@ FASTUIDRAW_SOURCES += $(call filelist, glyph_atlas.cpp \
 	glyph_render_data_distance_field.cpp \
 	glyph_render_data_coverage.cpp \
 	glyph_cache.cpp glyph_selector.cpp \
-	font_freetype.cpp freetype_lib.cpp \
-	font_properties.cpp)
+	freetype_face.cpp freetype_lib.cpp \
+	font_freetype.cpp font_properties.cpp)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))
