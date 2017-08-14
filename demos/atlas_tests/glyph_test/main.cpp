@@ -183,6 +183,7 @@ private:
   command_line_argument_value<std::string> m_text;
   command_line_argument_value<bool> m_use_file;
   command_line_argument_value<bool> m_draw_glyph_set;
+  command_line_argument_value<int> m_realize_glyphs_thread_count;
   command_line_argument_value<int> m_texel_store_width, m_texel_store_height;
   command_line_argument_value<int> m_texel_store_num_layers, m_geometry_store_size;
   command_line_argument_value<int> m_geometry_store_alignment;
@@ -476,6 +477,10 @@ glyph_test(void):
   m_text("Hello World!", "text", "text to draw to the screen", *this),
   m_use_file(false, "use_file", "if true the value for text gives a filename to display", *this),
   m_draw_glyph_set(false, "draw_glyph_set", "if true, display all glyphs of font instead of text", *this),
+  m_realize_glyphs_thread_count(1, "realize_glyphs_thread_count",
+                                "If draw_glyph_set is true, gives the number of threads to use "
+                                "to create the glyph data",
+                                *this),
   m_texel_store_width(1024, "texel_store_width", "width of texel store", *this),
   m_texel_store_height(1024, "texel_store_height", "height of texel store", *this),
   m_texel_store_num_layers(16, "texel_store_num_layers", "number of layers of texel store", *this),
@@ -803,7 +808,6 @@ compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float p
   FT_ULong character_code;
   FT_UInt  glyph_index;
   unsigned int num_glyphs;
-  int num_threads(1);
 
   div_scale_factor = static_cast<float>(m_face->face()->units_per_EM);
   scale_factor = pixel_size_formatting / div_scale_factor;
@@ -811,11 +815,12 @@ compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float p
   /* Get all the glyphs */
   simple_time timer;
   std::vector<int> cnts;
-  GlyphSetGenerator::generate(num_threads, renderer, m_font, m_face, glyphs, m_glyph_cache, cnts);
+  GlyphSetGenerator::generate(m_realize_glyphs_thread_count.m_value, renderer,
+                              m_font, m_face, glyphs, m_glyph_cache, cnts);
   std::cout << "Took " << timer.elapsed()
             << " ms to generate glyphs of type "
             << renderer << "\n";
-  for(int i = 0; i < num_threads; ++i)
+  for(int i = 0; i < m_realize_glyphs_thread_count.m_value; ++i)
     {
       std::cout << "\tThread #" << i << " generated " << cnts[i] << " glyphs.\n";
     }
