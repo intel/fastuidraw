@@ -348,7 +348,9 @@ derived_init(int w, int h)
   m_table_params.m_timer_based_animation = (m_num_frames.m_value <= 0);
 
   m_table_params.m_glyph_selector = m_glyph_selector;
-  m_table_params.m_font = FontFreeType::create(m_font.m_value.c_str(), m_ft_lib, FontFreeType::RenderParams());
+  m_table_params.m_font = FASTUIDRAWnew FontFreeType(FASTUIDRAWnew FreetypeFace::GeneratorFile(m_font.m_value.c_str(), 0),
+                                                     FontFreeType::RenderParams(),
+                                                     m_ft_lib);
   if(!fastuidraw::GlyphRender::scalable(m_text_renderer.m_value.m_value))
     {
       fastuidraw::GlyphRender r(m_text_renderer_realized_pixel_size.m_value);

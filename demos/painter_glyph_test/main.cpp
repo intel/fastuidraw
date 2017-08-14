@@ -1,8 +1,6 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <SDL_thread.h>
-#include <SDL_atomic.h>
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
 #include <fastuidraw/text/glyph_selector.hpp>
@@ -56,76 +54,6 @@ private:
 
   std::map<key, unsigned int> m_glyph_finder;
   LineData m_L;
-};
-
-class GlyphSetGenerator
-{
-public:
-  static
-  void
-  generate(unsigned int num_threads,
-           GlyphRender r,
-           reference_counted_ptr<const FontFreeType> f,
-           std::vector<Glyph> &dst,
-           reference_counted_ptr<GlyphCache> glyph_cache,
-           std::vector<int> &cnts)
-  {
-    GlyphSetGenerator generator(r, f, dst);
-    std::vector<SDL_Thread*> threads;
-
-    cnts.clear();
-    cnts.resize(num_threads, 0);
-
-    for(int i = 0; i < num_threads; ++i)
-      {
-        threads.push_back(SDL_CreateThread(execute, "", &generator));
-      }
-
-    for(int i = 0; i < num_threads; ++i)
-      {
-        SDL_WaitThread(threads[i], &cnts[i]);
-      }
-
-    for(Glyph glyph : dst)
-      {
-        glyph_cache->add_glyph(glyph);
-      }
-  }
-
-private:
-  GlyphSetGenerator(GlyphRender r,
-                    reference_counted_ptr<const FontFreeType> f,
-                    std::vector<Glyph> &dst):
-    m_render(r),
-    m_font(f)
-  {
-    dst.resize(m_font->face()->num_glyphs);
-    m_dst = c_array<Glyph>(&dst[0], dst.size());
-    SDL_AtomicSet(&m_counter, 0);
-  }
-
-  static
-  int
-  execute(void *ptr)
-  {
-    unsigned int idx, K;
-    GlyphSetGenerator *p(static_cast<GlyphSetGenerator*>(ptr));
-
-    for(idx = SDL_AtomicAdd(&p->m_counter, 1), K = 0;
-        idx < p->m_dst.size();
-        idx = SDL_AtomicAdd(&p->m_counter, 1), ++K)
-      {
-        p->m_dst[idx] = Glyph::create_glyph(p->m_render, p->m_font, idx);
-      }
-    return K;
-  }
-
-  typedef std::pair<GlyphSetGenerator*, int*> Job;
-
-  GlyphRender m_render;
-  reference_counted_ptr<const FontFreeType> m_font;
-  c_array<Glyph> m_dst;
-  SDL_atomic_t m_counter;
 };
 
 class GlyphFinder
@@ -327,35 +255,22 @@ init(unsigned int num_threads,
   FT_ULong character_code;
   FT_UInt  glyph_index;
   unsigned int num_glyphs;
+  reference_counted_ptr<FreetypeFace> face;
 
-  div_scale_factor = static_cast<float>(font->face()->units_per_EM);
+  face = font->face_generator()->create_face(font->lib());
+  div_scale_factor = static_cast<float>(face->face()->units_per_EM);
   scale_factor = pixel_size_formatting / div_scale_factor;
 
   /* Get all the glyphs */
-  if(num_threads > 1)
+  simple_time timer;
+  std::vector<int> cnts;
+  GlyphSetGenerator::generate(num_threads, renderer, font, face, m_glyphs, glyph_cache, cnts);
+  std::cout << "Took " << timer.elapsed()
+            << " ms to generate glyphs of type "
+            << renderer << "\n";
+  for(int i = 0; i < num_threads; ++i)
     {
-      simple_time timer;
-      std::vector<int> cnts;
-      GlyphSetGenerator::generate(num_threads, renderer, font, m_glyphs, glyph_cache, cnts);
-      std::cout << "Took " << timer.elapsed()
-                << " ms to generate glyphs of type "
-                << renderer << "\n";
-      for(int i = 0; i < num_threads; ++i)
-        {
-          std::cout << "\tThread #" << i << " generated " << cnts[i] << " glyphs.\n";
-        }
-    }
-  else
-    {
-      simple_time timer;
-      m_glyphs.resize(font->face()->num_glyphs);
-      for(uint32_t glyph_code = 0; glyph_code < m_glyphs.size(); ++glyph_code)
-        {
-          m_glyphs[glyph_code] = glyph_cache->fetch_glyph(renderer, font, glyph_code);
-        }
-      std::cout << "Took " << timer.elapsed()
-                << " ms to generate glyphs of type "
-                << renderer << "\n";
+      std::cout << "\tThread #" << i << " generated " << cnts[i] << " glyphs.\n";
     }
 
   for(Glyph g : m_glyphs)
@@ -371,15 +286,12 @@ init(unsigned int num_threads,
   std::vector<bool> found_character_code(m_glyphs.size(), false);
   m_character_codes.resize(m_glyphs.size(), 0);
 
-  font->lock_face();
-  FT_CharMap starting_char_map;
-  starting_char_map = font->face()->charmap;
-  for(int i = 0, endi = font->face()->num_charmaps; i < endi; ++i)
+  for(int i = 0, endi = face->face()->num_charmaps; i < endi; ++i)
     {
-      FT_Set_Charmap(font->face(), font->face()->charmaps[i]);
-      for(character_code = FT_Get_First_Char(font->face(), &glyph_index);
+      FT_Set_Charmap(face->face(), face->face()->charmaps[i]);
+      for(character_code = FT_Get_First_Char(face->face(), &glyph_index);
           glyph_index != 0;
-          character_code = FT_Get_Next_Char(font->face(), character_code, &glyph_index))
+          character_code = FT_Get_Next_Char(face->face(), character_code, &glyph_index))
         {
           --glyph_index;
           FASTUIDRAWassert(glyph_index < static_cast<int>(m_glyphs.size()));
@@ -390,8 +302,6 @@ init(unsigned int num_threads,
             }
         }
     }
-  FT_Set_Charmap(font->face(), starting_char_map);
-  font->unlock_face();
 
   tallest *= scale_factor;
   negative_tallest *= scale_factor;
@@ -723,11 +633,12 @@ create_and_add_font(void)
 
   if(!m_font_file.m_value.empty())
     {
-      font = FontFreeType::create(m_font_file.m_value.c_str(),
-                                  FontFreeType::RenderParams()
-                                  .distance_field_max_distance(m_max_distance.m_value)
-                                  .distance_field_pixel_size(m_distance_pixel_size.m_value)
-                                  .curve_pair_pixel_size(m_curve_pair_pixel_size.m_value));
+      font = FASTUIDRAWnew FontFreeType(FASTUIDRAWnew FreetypeFace::GeneratorFile(m_font_file.m_value.c_str(), 0),
+                                        FontFreeType::RenderParams()
+                                        .distance_field_max_distance(m_max_distance.m_value)
+                                        .distance_field_pixel_size(m_distance_pixel_size.m_value)
+                                        .curve_pair_pixel_size(m_curve_pair_pixel_size.m_value),
+                                        m_ft_lib);
     }
 
   if(!font)
@@ -747,7 +658,7 @@ create_and_add_font(void)
       font = m_glyph_selector->fetch_font(props);
     }
 
-  std::cout << "Chose font:" << font->properties() << "\n";
+  std::cout << "Chose font: \"" << font->properties() << "\"\n";
   m_font = font.dynamic_cast_ptr<const FontFreeType>();
 
   return routine_success;

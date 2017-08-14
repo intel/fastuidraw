@@ -35,11 +35,9 @@ namespace
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::FontFreeType> > h;
     unsigned int cnt;
 
-    cnt = fastuidraw::FontFreeType::create(cast_c_array(h), filename.c_str(), lib, render_params);
+    cnt = fastuidraw::FontFreeType::create(cast_c_array(h), filename.c_str(), render_params, lib);
     h.resize(cnt);
-    cnt = fastuidraw::FontFreeType::create(cast_c_array(h), filename.c_str(), lib, render_params);
-
-    FASTUIDRAWassert(cnt == h.size());
+    cnt = fastuidraw::FontFreeType::create(cast_c_array(h), filename.c_str(), render_params, lib);
 
     for(unsigned int i = 0, endi = h.size(); i < endi; ++i)
       {
@@ -49,6 +47,81 @@ namespace
 
 }
 
+/////////////////////////////
+// GlyphSetGenerator methods
+GlyphSetGenerator::
+GlyphSetGenerator(fastuidraw::GlyphRender r,
+                  fastuidraw::reference_counted_ptr<const fastuidraw::FontFreeType> f,
+                  fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace> face,
+                  std::vector<fastuidraw::Glyph> &dst):
+  m_render(r),
+  m_font(f)
+{
+  dst.resize(face->face()->num_glyphs);
+  m_dst = fastuidraw::c_array<fastuidraw::Glyph>(&dst[0], dst.size());
+  SDL_AtomicSet(&m_counter, 0);
+}
+
+int
+GlyphSetGenerator::
+execute(void *ptr)
+{
+  unsigned int idx, K;
+  GlyphSetGenerator *p(static_cast<GlyphSetGenerator*>(ptr));
+
+  for(idx = SDL_AtomicAdd(&p->m_counter, 1), K = 0;
+      idx < p->m_dst.size();
+      idx = SDL_AtomicAdd(&p->m_counter, 1), ++K)
+    {
+      p->m_dst[idx] = fastuidraw::Glyph::create_glyph(p->m_render, p->m_font, idx);
+    }
+  return K;
+}
+
+void
+GlyphSetGenerator::
+generate(unsigned int num_threads,
+         fastuidraw::GlyphRender r,
+         fastuidraw::reference_counted_ptr<const fastuidraw::FontFreeType> f,
+         fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace> face,
+         std::vector<fastuidraw::Glyph> &dst,
+         fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> glyph_cache,
+         std::vector<int> &cnts)
+{
+  GlyphSetGenerator generator(r, f, face, dst);
+  std::vector<SDL_Thread*> threads;
+
+  cnts.clear();
+  cnts.resize(fastuidraw::t_max(1u, num_threads), 0);
+
+  if(num_threads < 2)
+    {
+      cnts[0] = execute(&generator);
+    }
+  else
+    {
+      for(int i = 0; i < num_threads; ++i)
+        {
+          threads.push_back(SDL_CreateThread(execute, "", &generator));
+        }
+
+      for(int i = 0; i < num_threads; ++i)
+        {
+          SDL_WaitThread(threads[i], &cnts[i]);
+        }
+    }
+
+  if(glyph_cache)
+    {
+      for(fastuidraw::Glyph glyph : dst)
+        {
+          glyph_cache->add_glyph(glyph);
+        }
+    }
+}
+
+//////////////////////////////
+// global methods
 void
 create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
                       float pixel_size,

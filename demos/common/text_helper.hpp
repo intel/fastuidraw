@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <SDL_thread.h>
+#include <SDL_atomic.h>
 
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -16,7 +18,7 @@ inline
 std::ostream&
 operator<<(std::ostream &str, const fastuidraw::FontProperties &obj)
 {
-  str << obj.source_label() << ":(" << obj.foundry()
+  str << obj.source_label() << "(" << obj.foundry()
       << ", " << obj.family() << ", " << obj.style()
       << ", " << obj.italic() << ", " << obj.bold() << ")";
   return str;
@@ -37,6 +39,35 @@ public:
   /* line's horizontal spread
    */
   fastuidraw::range_type<float> m_horizontal_spread;
+};
+
+class GlyphSetGenerator
+{
+public:
+  static
+  void
+  generate(unsigned int num_threads,
+           fastuidraw::GlyphRender r,
+           fastuidraw::reference_counted_ptr<const fastuidraw::FontFreeType> f,
+           fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace> face,
+           std::vector<fastuidraw::Glyph> &dst,
+           fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> glyph_cache,
+           std::vector<int> &cnts);
+
+private:
+  GlyphSetGenerator(fastuidraw::GlyphRender r,
+                    fastuidraw::reference_counted_ptr<const fastuidraw::FontFreeType> f,
+                    fastuidraw::reference_counted_ptr<fastuidraw::FreetypeFace> face,
+                    std::vector<fastuidraw::Glyph> &dst);
+
+  static
+  int
+  execute(void *ptr);
+
+  fastuidraw::GlyphRender m_render;
+  fastuidraw::reference_counted_ptr<const fastuidraw::FontFreeType> m_font;
+  fastuidraw::c_array<fastuidraw::Glyph> m_dst;
+  SDL_atomic_t m_counter;
 };
 
 void

@@ -1638,7 +1638,11 @@ derived_init(int w, int h)
   m_window_change_rate.m_value /= 1000.0f;
   m_change_stroke_width_rate.m_value /= 1000.0f;
   m_change_miter_limit_rate.m_value /= 1000.0f;
-  m_font = FontFreeType::create(m_font_file.m_value.c_str(), m_ft_lib, FontFreeType::RenderParams());
+
+  // generate font
+  reference_counted_ptr<FreetypeFace::GeneratorFile> gen;
+  gen = FASTUIDRAWnew FreetypeFace::GeneratorFile(m_font_file.m_value.c_str(), 0);
+  m_font = FASTUIDRAWnew FontFreeType(gen, FontFreeType::RenderParams(), m_ft_lib);
 
   construct_path();
   create_stroked_path_attributes();
