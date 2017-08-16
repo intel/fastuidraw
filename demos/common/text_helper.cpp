@@ -32,16 +32,30 @@ namespace
                       fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
                       fastuidraw::FontFreeType::RenderParams render_params)
   {
-    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::FontFreeType> > h;
-    unsigned int cnt;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace::GeneratorBase> > h;
+    FT_Error error_code;
+    FT_Face face(nullptr);
 
-    cnt = fastuidraw::FontFreeType::create(cast_c_array(h), filename.c_str(), render_params, lib);
-    h.resize(cnt);
-    cnt = fastuidraw::FontFreeType::create(cast_c_array(h), filename.c_str(), render_params, lib);
+    lib->lock();
+    error_code = FT_New_Face(lib->lib(), filename.c_str(), 0, &face);
+    if(error_code == 0 && face != nullptr && (face->face_flags & FT_FACE_FLAG_SCALABLE) != 0)
+      {
+	for(unsigned int i = 0, endi = face->num_faces; i < endi; ++i)
+	  {
+	    h.push_back(FASTUIDRAWnew fastuidraw::FreeTypeFace::GeneratorFile(filename.c_str(), i));
+ 	  }
+      }
+    if(face != nullptr)
+      {
+	FT_Done_Face(face);
+      }
+    lib->unlock();
 
     for(unsigned int i = 0, endi = h.size(); i < endi; ++i)
       {
-        glyph_selector->add_font(h[i]);
+	fastuidraw::reference_counted_ptr<fastuidraw::FontFreeType> f;
+	f = FASTUIDRAWnew fastuidraw::FontFreeType(h[i], render_params, lib);
+        glyph_selector->add_font(f);
       }
   }
 

@@ -289,8 +289,8 @@ common_compute_rendering_data(FT_Face face, fastuidraw::FontFreeType *p,
   output.m_horizontal_layout_offset.y() = C(face->glyph->metrics.horiBearingY) - output.m_size.y();
   output.m_vertical_layout_offset.x() = C(face->glyph->metrics.vertBearingX);
   output.m_vertical_layout_offset.y() = C(face->glyph->metrics.vertBearingY) - output.m_size.y();
-  output.m_advance.x() = C(face->glyph->metrics.horiAdvance);
-  output.m_advance.y() = C(face->glyph->metrics.vertAdvance);
+  output.m_advance.x() = face->glyph->linearHoriAdvance;
+  output.m_advance.y() = face->glyph->linearVertAdvance;
   output.m_glyph_code = glyph_code;
   output.m_units_per_EM = face->units_per_EM;
   output.m_font = p;
@@ -310,10 +310,10 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
   font_coordinate_converter C(face, pixel_size);
 
   FT_Set_Pixel_Sizes(face, pixel_size, pixel_size);
-  common_compute_rendering_data(face, m_p, C, FT_LOAD_DEFAULT, layout, glyph_code);
+  common_compute_rendering_data(face, m_p, C,
+				FT_LOAD_RENDER | FT_LOAD_LINEAR_DESIGN,
+				layout, glyph_code);
   IntPathCreator::decompose_to_path(&face->glyph->outline, path, C);
-  FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
-
   bitmap_sz.x() = face->glyph->bitmap.width;
   bitmap_sz.y() = face->glyph->bitmap.rows;
 
@@ -708,48 +708,6 @@ lib(void) const
   FontFreeTypePrivate *d;
   d = static_cast<FontFreeTypePrivate*>(m_d);
   return d->m_lib;
-}
-
-int
-fastuidraw::FontFreeType::
-create(c_array<reference_counted_ptr<FontFreeType> > fonts,
-       const char *filename, const RenderParams &render_params,
-       reference_counted_ptr<FreeTypeLib> lib)
-{
-  if(!lib)
-    {
-      lib = FASTUIDRAWnew FreeTypeLib();
-    }
-
-  FT_Face face(nullptr);
-  int error_code;
-  unsigned int num(0);
-
-  lib->lock();
-  error_code = FT_New_Face(lib->lib(), filename, -1, &face);
-  lib->unlock();
-
-  if(error_code == 0 && face != nullptr && (face->face_flags & FT_FACE_FLAG_SCALABLE) == 0)
-    {
-      reference_counted_ptr<fastuidraw::FontFreeType> f;
-
-      num = face->num_faces;
-      for(unsigned int i = 0, c = 0; i < num && c < fonts.size(); ++i, ++c)
-        {
-          reference_counted_ptr<FreeTypeFace::GeneratorBase> gen;
-          gen = FASTUIDRAWnew FreeTypeFace::GeneratorFile(filename, i);
-          fonts[c] = FASTUIDRAWnew FontFreeType(gen, render_params, lib);
-        }
-    }
-
-  if(face != nullptr)
-    {
-      lib->lock();
-      FT_Done_Face(face);
-      lib->unlock();
-    }
-
-  return num;
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::FontFreeType>
