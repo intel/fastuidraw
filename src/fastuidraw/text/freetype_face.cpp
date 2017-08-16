@@ -37,6 +37,7 @@ namespace
   };
 
   typedef std::pair<std::string, int> GeneratorFilePrivate;
+  typedef std::pair<fastuidraw::reference_counted_ptr<const fastuidraw::DataBuffer>, int> GeneratorMemoryPrivate;
 }
 
 /////////////////////////////
@@ -104,12 +105,60 @@ FT_Face
 fastuidraw::FreeTypeFace::GeneratorFile::
 create_face_implement(FT_Library lib) const
 {
-  int error_code;
+  FT_Error error_code;
   FT_Face face(nullptr);
   GeneratorFilePrivate *d;
 
   d = static_cast<GeneratorFilePrivate*>(m_d);
   error_code = FT_New_Face(lib, d->first.c_str(), d->second, &face);
+  if(error_code != 0 && face != nullptr)
+    {
+      FT_Done_Face(face);
+      face = nullptr;
+    }
+  return face;
+}
+
+/////////////////////////////////////////////////
+// fastuidraw::FreeTypeFace::GeneratorMemory methods
+fastuidraw::FreeTypeFace::GeneratorMemory::
+GeneratorMemory(const reference_counted_ptr<const DataBuffer> &src,
+		int face_index)
+{
+  m_d = FASTUIDRAWnew GeneratorMemoryPrivate(src, face_index);
+}
+
+fastuidraw::FreeTypeFace::GeneratorMemory::
+GeneratorMemory(const char *filename, int face_index)
+{
+  DataBuffer *p;
+  p = FASTUIDRAWnew DataBuffer(filename);
+  m_d = FASTUIDRAWnew GeneratorMemoryPrivate(p, face_index);
+}
+
+fastuidraw::FreeTypeFace::GeneratorMemory::
+~GeneratorMemory()
+{
+  GeneratorMemoryPrivate *d;
+  d = static_cast<GeneratorMemoryPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+}
+
+FT_Face
+fastuidraw::FreeTypeFace::GeneratorMemory::
+create_face_implement(FT_Library lib) const
+{
+  GeneratorMemoryPrivate *d;
+  const_c_array<uint8_t> src;
+  FT_Error error_code;
+  FT_Face face(nullptr);
+
+  d = static_cast<GeneratorMemoryPrivate*>(m_d);
+  src = d->first->data();
+  error_code = FT_New_Memory_Face(lib,
+				  static_cast<const FT_Byte*>(src.c_ptr()),
+				  src.size(), d->second,
+				  &face);
   if(error_code != 0 && face != nullptr)
     {
       FT_Done_Face(face);
