@@ -308,8 +308,13 @@ namespace fastuidraw {
     myGlyphCache = FASTUIDRAWnew fastuidraw::GlyphCache(myGlyphAtlas);
     myGlyphSelector = FASTUIDRAWnew fastuidraw::GlyphSelector(myGlyphCache);
 
-    //create Font
-    myFont = fastuidraw::FontFreeType::create("myFont.ttf");
+    //create a generator object that the font uses to load the font data,
+    //in this example we load the file contents to memory.
+    fastuidraw::reference_counted_ptr<fastuidraw::FontFreeType::GeneratorBase> gen;
+    gen = FASTUIDRAWnew fastuidraw::FontFreeType::GeneratorBase("myFont.ttf", 0);
+
+    //create the font
+    myFont = FASTUIDRAWnew fastuidraw::FontFreeType(gen);
 
     //add font to GlyphSelector
     myGlyphSelector->add_font(font);
