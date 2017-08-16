@@ -633,7 +633,7 @@ create_and_add_font(void)
 
   if(!m_font_file.m_value.empty())
     {
-      font = FASTUIDRAWnew FontFreeType(FASTUIDRAWnew FreeTypeFace::GeneratorFile(m_font_file.m_value.c_str(), 0),
+      font = FASTUIDRAWnew FontFreeType(FASTUIDRAWnew FreeTypeFace::GeneratorMemory(m_font_file.m_value.c_str(), 0),
                                         FontFreeType::RenderParams()
                                         .distance_field_max_distance(m_max_distance.m_value)
                                         .distance_field_pixel_size(m_distance_pixel_size.m_value)
