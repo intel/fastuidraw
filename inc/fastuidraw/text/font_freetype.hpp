@@ -157,22 +157,6 @@ namespace fastuidraw
     ~FontFreeType();
 
     /*!
-      Provided as a convenience to construct a FontFreeType given a filename
-      and face_index.
-      \param filename file from which to source the font data
-      \param face_index face index into file (for case where file has multiple
-                        faces).
-      \param render_params specifies how to generate data for scalable glyph data
-      \param plib the FreeTypeLib of the FreeTypeFace created by the FontFreeType,
-                  a null values indicates to use a private FreeTypeLib object
-     */
-    static
-    reference_counted_ptr<FontFreeType>
-    create(const char *filename, int face_index = 0,
-           const RenderParams &render_params = RenderParams(),
-           reference_counted_ptr<FreeTypeLib> plib = reference_counted_ptr<FreeTypeLib>());
-
-    /*!
       Returns the rendering parameters of this font.
      */
     const RenderParams&
