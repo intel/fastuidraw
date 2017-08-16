@@ -188,7 +188,6 @@ namespace
     static
     void
     common_compute_rendering_data(FT_Face face, fastuidraw::FontFreeType *p,
-                                  font_coordinate_converter C, FT_Int32 load_flags,
                                   fastuidraw::GlyphLayoutData &layout,
                                   uint32_t glyph_code);
 
@@ -278,17 +277,22 @@ FontFreeTypePrivate::
 void
 FontFreeTypePrivate::
 common_compute_rendering_data(FT_Face face, fastuidraw::FontFreeType *p,
-                              font_coordinate_converter C, FT_Int32 load_flags,
                               fastuidraw::GlyphLayoutData &output,
                               uint32_t glyph_code)
 {
+  FT_Int32 load_flags;
+
+  load_flags = FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING
+    | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM
+    | FT_LOAD_LINEAR_DESIGN;
+
   FT_Load_Glyph(face, glyph_code, load_flags);
-  output.m_size.x() = C(face->glyph->metrics.width);
-  output.m_size.y() = C(face->glyph->metrics.height);
-  output.m_horizontal_layout_offset.x() = C(face->glyph->metrics.horiBearingX);
-  output.m_horizontal_layout_offset.y() = C(face->glyph->metrics.horiBearingY) - output.m_size.y();
-  output.m_vertical_layout_offset.x() = C(face->glyph->metrics.vertBearingX);
-  output.m_vertical_layout_offset.y() = C(face->glyph->metrics.vertBearingY) - output.m_size.y();
+  output.m_size.x() = face->glyph->metrics.width;
+  output.m_size.y() = face->glyph->metrics.height;
+  output.m_horizontal_layout_offset.x() = face->glyph->metrics.horiBearingX;
+  output.m_horizontal_layout_offset.y() = face->glyph->metrics.horiBearingY - output.m_size.y();
+  output.m_vertical_layout_offset.x() = face->glyph->metrics.vertBearingX;
+  output.m_vertical_layout_offset.y() = face->glyph->metrics.vertBearingY - output.m_size.y();
   output.m_advance.x() = face->glyph->linearHoriAdvance;
   output.m_advance.y() = face->glyph->linearVertAdvance;
   output.m_glyph_code = glyph_code;
@@ -310,9 +314,8 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
   font_coordinate_converter C(face, pixel_size);
 
   FT_Set_Pixel_Sizes(face, pixel_size, pixel_size);
-  common_compute_rendering_data(face, m_p, C,
-				FT_LOAD_RENDER | FT_LOAD_LINEAR_DESIGN,
-				layout, glyph_code);
+  common_compute_rendering_data(face, m_p, layout, glyph_code);
+  FT_Load_Glyph(face, glyph_code, FT_LOAD_RENDER | FT_LOAD_IGNORE_TRANSFORM);
   IntPathCreator::decompose_to_path(&face->glyph->outline, path, C);
   bitmap_sz.x() = face->glyph->bitmap.width;
   bitmap_sz.y() = face->glyph->bitmap.rows;
@@ -361,11 +364,7 @@ compute_rendering_data(uint32_t glyph_code,
     FaceGrabber p(this);
     FT_Face face(p.m_p->face());
 
-    common_compute_rendering_data(face, m_p, font_coordinate_converter(),
-                                  FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING
-                                  | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM
-                                  | FT_LOAD_LINEAR_DESIGN,
-                                  layout, glyph_code);
+    common_compute_rendering_data(face, m_p, layout, glyph_code);
     units_per_EM = face->units_per_EM;
     outline_flags = face->glyph->outline.flags;
     layout_offset = fastuidraw::ivec2(face->glyph->metrics.horiBearingX,
@@ -436,12 +435,7 @@ compute_rendering_data(uint32_t glyph_code,
   {
     FaceGrabber p(this);
     FT_Face face(p.m_p->face());
-    common_compute_rendering_data(face, m_p,
-                                  font_coordinate_converter(),
-                                  FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING
-                                  | FT_LOAD_NO_BITMAP | FT_LOAD_IGNORE_TRANSFORM
-                                  | FT_LOAD_LINEAR_DESIGN,
-                                  layout, glyph_code);
+    common_compute_rendering_data(face, m_p, layout, glyph_code);
     units_per_EM = face->units_per_EM;
     outline_flags = face->glyph->outline.flags;
     layout_offset = fastuidraw::ivec2(face->glyph->metrics.horiBearingX,
