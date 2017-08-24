@@ -65,6 +65,6 @@ namespace fastuidraw
   private:
     void *m_d;
   };
-  
-/*! @} */  
+
+/*! @} */
 } //namespace fastuidraw
