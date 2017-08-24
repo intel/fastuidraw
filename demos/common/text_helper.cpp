@@ -35,11 +35,11 @@ namespace
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace::GeneratorBase> > h;
     FT_Error error_code;
     FT_Face face(nullptr);
-    fastuidraw::reference_counted_ptr<fastuidraw::DataBuffer> buffer;
+    fastuidraw::reference_counted_ptr<fastuidraw::DataBufferBase> buffer;
     fastuidraw::const_c_array<uint8_t> data;
     
     buffer = FASTUIDRAWnew fastuidraw::DataBuffer(filename.c_str());
-    data = buffer->data();
+    data = buffer->data_ro();
 
     lib->lock();
     error_code = FT_New_Memory_Face(lib->lib(),

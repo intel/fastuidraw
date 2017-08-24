@@ -120,7 +120,7 @@ namespace fastuidraw
 		   crashing behavior.
         \param face_index face index of data
        */
-      GeneratorMemory(const reference_counted_ptr<const DataBuffer> &src,
+      GeneratorMemory(const reference_counted_ptr<const DataBufferBase> &src,
 		      int face_index);
 
       /*!

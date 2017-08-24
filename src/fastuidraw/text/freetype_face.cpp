@@ -37,7 +37,7 @@ namespace
   };
 
   typedef std::pair<std::string, int> GeneratorFilePrivate;
-  typedef std::pair<fastuidraw::reference_counted_ptr<const fastuidraw::DataBuffer>, int> GeneratorMemoryPrivate;
+  typedef std::pair<fastuidraw::reference_counted_ptr<const fastuidraw::DataBufferBase>, int> GeneratorMemoryPrivate;
 }
 
 /////////////////////////////
@@ -122,7 +122,7 @@ create_face_implement(FT_Library lib) const
 /////////////////////////////////////////////////
 // fastuidraw::FreeTypeFace::GeneratorMemory methods
 fastuidraw::FreeTypeFace::GeneratorMemory::
-GeneratorMemory(const reference_counted_ptr<const DataBuffer> &src,
+GeneratorMemory(const reference_counted_ptr<const DataBufferBase> &src,
 		int face_index)
 {
   m_d = FASTUIDRAWnew GeneratorMemoryPrivate(src, face_index);
@@ -131,7 +131,7 @@ GeneratorMemory(const reference_counted_ptr<const DataBuffer> &src,
 fastuidraw::FreeTypeFace::GeneratorMemory::
 GeneratorMemory(const char *filename, int face_index)
 {
-  DataBuffer *p;
+  DataBufferBase *p;
   p = FASTUIDRAWnew DataBuffer(filename);
   m_d = FASTUIDRAWnew GeneratorMemoryPrivate(p, face_index);
 }
@@ -154,7 +154,7 @@ create_face_implement(FT_Library lib) const
   FT_Face face(nullptr);
 
   d = static_cast<GeneratorMemoryPrivate*>(m_d);
-  src = d->first->data();
+  src = d->first->data_ro();
   error_code = FT_New_Memory_Face(lib,
 				  static_cast<const FT_Byte*>(src.c_ptr()),
 				  src.size(), d->second,

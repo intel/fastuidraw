@@ -5,21 +5,21 @@
 
 namespace
 {
-  typedef std::vector<uint8_t> DataBufferPrivate;
+  typedef std::vector<uint8_t> DataBufferBackingStorePrivate;
 }
 
-fastuidraw::DataBuffer::
-DataBuffer(unsigned int num_bytes)
+fastuidraw::DataBufferBackingStore::
+DataBufferBackingStore(unsigned int num_bytes, uint8_t v)
 {
-  m_d = FASTUIDRAWnew DataBufferPrivate(num_bytes);
+  m_d = FASTUIDRAWnew DataBufferBackingStorePrivate(num_bytes, v);
 }
 
-fastuidraw::DataBuffer::
-DataBuffer(const char *filename)
+fastuidraw::DataBufferBackingStore::
+DataBufferBackingStore(const char *filename)
 {
-  DataBufferPrivate *d;
+  DataBufferBackingStorePrivate *d;
 
-  d = FASTUIDRAWnew DataBufferPrivate();
+  d = FASTUIDRAWnew DataBufferBackingStorePrivate();
   m_d = d;
 
   std::ifstream file(filename, std::ios::binary);
@@ -39,28 +39,19 @@ DataBuffer(const char *filename)
     }
 }
 
-fastuidraw::DataBuffer::
-~DataBuffer()
+fastuidraw::DataBufferBackingStore::
+~DataBufferBackingStore()
 {
-  DataBufferPrivate *d;
-  d = static_cast<DataBufferPrivate*>(m_d);
+  DataBufferBackingStorePrivate *d;
+  d = static_cast<DataBufferBackingStorePrivate*>(m_d);
   FASTUIDRAWdelete(d);
 }
 
 fastuidraw::c_array<uint8_t>
-fastuidraw::DataBuffer::
+fastuidraw::DataBufferBackingStore::
 data(void)
 {
-  DataBufferPrivate *d;
-  d = static_cast<DataBufferPrivate*>(m_d);
-  return make_c_array(*d);
-}
-
-fastuidraw::const_c_array<uint8_t>
-fastuidraw::DataBuffer::
-data(void) const
-{
-  const DataBufferPrivate *d;
-  d = static_cast<DataBufferPrivate*>(m_d);
+  DataBufferBackingStorePrivate *d;
+  d = static_cast<DataBufferBackingStorePrivate*>(m_d);
   return make_c_array(*d);
 }

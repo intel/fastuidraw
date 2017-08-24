@@ -18,20 +18,54 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <fastuidraw/util/reference_counted.hpp>
-#include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/util/data_buffer_base.hpp>
 
-namespace fastuidraw
-{
+namespace fastuidraw {
 /*!\addtogroup Utility
   @{
  */
+  /*!
+    \brief
+    Represents a buffer directly stored in memory.
+   */
+  class DataBufferBackingStore
+  {
+  public:
+    /*!
+      Ctor.
+      Copies a file into memory.
+      \param filename name of file to open
+     */
+    DataBufferBackingStore(const char *filename);
+
+    /*!
+      Ctor. Allocate memory and fill the buffer
+      with a fixed value.
+      \param num_bytes number of bytes to give the backing store
+      \param init initial value to give each byte
+     */
+    DataBufferBackingStore(unsigned int num_bytes, uint8_t init = uint8_t(0));
+
+    ~DataBufferBackingStore();
+
+    /*!
+      Return a pointer to the backing store of the memory.
+     */
+    c_array<uint8_t>
+    data(void);
+
+  private:
+    void *m_d;
+  };
 
   /*!
     \brief
+    DataBuffer is an implementation of DataBufferBase where the
+    data is directly backed by memory
    */
-  class DataBuffer:public reference_counted<DataBuffer>::default_base
+  class DataBuffer:
+    private DataBufferBackingStore,
+    public DataBufferBase
   {
   public:
     /*!
@@ -39,31 +73,20 @@ namespace fastuidraw
       memory. Use the pointer returned by data() to set the data.
      */
     explicit
-    DataBuffer(unsigned int num_bytes);
+    DataBuffer(unsigned int num_bytes):
+      DataBufferBackingStore(num_bytes),
+      DataBufferBase(data(), data())
+    {}
 
     /*!
       Ctor. Initialize the DataBuffer to be backed by memory
       whose value is copied from a file.
      */
     explicit
-    DataBuffer(const char *filename);
-
-    ~DataBuffer();
-
-    /*!
-      Return the data that backs the Source
-    */
-    c_array<uint8_t>
-    data(void);
-
-    /*!
-      Return the data that backs the Source
-    */
-    const_c_array<uint8_t>
-    data(void) const;
-
-  private:
-    void *m_d;
+    DataBuffer(const char *filename):
+      DataBufferBackingStore(filename),
+      DataBufferBase(data(), data())
+    {}
   };
 
 /*! @} */
