@@ -437,10 +437,10 @@ namespace fastuidraw
     {}
 
   private:
-    noncopyable(const noncopyable &obj);
+    noncopyable(const noncopyable &obj) = delete;
 
     noncopyable&
-    operator=(const noncopyable &rhs);
+    operator=(const noncopyable &rhs) = delete;
   };
 
   /*!
