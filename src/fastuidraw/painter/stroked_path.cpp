@@ -2713,7 +2713,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
   for(const OrderingEntry<JoinSource> &J : m_ordering.closing_edge())
     {
       int depth;
-      depth = m_ordering.non_closing_edge().size() - 1 - J.m_depth;
+      depth = m_ordering.closing_edge().size() - 1 - J.m_depth;
       fill_join(join_id,
                 m_P.m_per_contour_data[J.m_contour].edge_data(J.m_edge_going_into_join),
                 m_P.m_per_contour_data[J.m_contour].edge_data(J.m_edge_going_into_join + 1),
