@@ -38,7 +38,7 @@ namespace
 
     fastuidraw::gl_binding::LoggerBase *m_log;
     bool m_log_all;
-    void* (*m_proc)(const char*);
+    void* (*m_proc)(fastuidraw::c_string);
   };
 
   ngl_data&
@@ -79,23 +79,23 @@ logger(LoggerBase *ptr)
 
 void
 fastuidraw::gl_binding::
-on_load_function_error(const char *fname)
+on_load_function_error(c_string fname)
 {
   std::cerr << "Unable to load function: \"" << fname << "\"\n";
 }
 
 void
 fastuidraw::gl_binding::
-call_unloadable_function(const char *fname)
+call_unloadable_function(c_string fname)
 {
   std::cerr << "Call to unloadable function: \"" << fname << "\"\n";
 }
 
 void
 fastuidraw::gl_binding::
-ErrorCheck(const char *call, const char *src_call,
-           const char *function_name,
-           const char *fileName, int line,
+ErrorCheck(c_string call, c_string src_call,
+           c_string function_name,
+           c_string fileName, int line,
            void* fptr)
 {
   int errorcode;
@@ -160,9 +160,9 @@ ErrorCheck(const char *call, const char *src_call,
 
 void
 fastuidraw::gl_binding::
-preErrorCheck(const char *call, const char *src_call,
-              const char *function_name,
-              const char *fileName, int line,
+preErrorCheck(c_string call, c_string src_call,
+              c_string function_name,
+              c_string fileName, int line,
               void* fptr)
 {
   (void)function_name;
@@ -180,7 +180,7 @@ preErrorCheck(const char *call, const char *src_call,
 
 void
 fastuidraw::gl_binding::
-get_proc_function(void* (*get_proc)(const char*), bool load_functions)
+get_proc_function(void* (*get_proc)(c_string), bool load_functions)
 {
   ngl().m_proc = get_proc;
   if(load_functions && get_proc != nullptr)
@@ -191,7 +191,7 @@ get_proc_function(void* (*get_proc)(const char*), bool load_functions)
 
 void*
 fastuidraw::gl_binding::
-loadFunction(const char *name)
+loadFunction(c_string name)
 {
   void *return_value;
   if(ngl().m_proc)

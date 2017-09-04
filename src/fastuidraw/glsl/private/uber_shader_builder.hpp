@@ -36,14 +36,14 @@ public:
 };
 
 std::string
-declare_varyings_string(const char *append_to_name,
+declare_varyings_string(c_string append_to_name,
                         size_t uint_count,
                         size_t int_count,
                         const_c_array<size_t> float_counts,
                         unsigned int *slot,
                         DeclareVaryingsStringDatum *datum);
 void
-stream_alias_varyings(const char *append_to_name,
+stream_alias_varyings(c_string append_to_name,
                       ShaderSource &shader,
                       const varying_list &p,
                       bool define,

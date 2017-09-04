@@ -40,7 +40,7 @@ namespace
   }
 
   class address_set_type:
-    private std::map<const void*, std::pair<const char*,int> >
+    private std::map<const void*, std::pair<const char*, int> >
   {
   public:
     address_set_type(void)
@@ -59,10 +59,10 @@ namespace
     present(const void *ptr);
 
     void
-    track(const void *ptr, const char* file, int line);
+    track(const void *ptr, const char *file, int line);
 
     void
-    untrack(const void *ptr, const char* file, int line);
+    untrack(const void *ptr, const char *file, int line);
 
     void
     print(std::ostream &ostr);
@@ -96,7 +96,7 @@ present(const void *ptr)
 
 void
 address_set_type::
-track(const void *ptr, const char* file, int line)
+track(const void *ptr, const char *file, int line)
 {
   m_mutex.lock();
   insert(value_type(ptr, mapped_type(file, line)));

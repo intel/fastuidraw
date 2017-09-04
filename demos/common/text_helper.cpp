@@ -322,7 +322,7 @@ add_fonts_from_path(const std::string &filename,
   closedir(dir);
 }
 
-const char*
+fastuidraw::c_string
 default_font(void)
 {
   #ifdef __WIN32
@@ -336,7 +336,7 @@ default_font(void)
   #endif
 }
 
-const char*
+fastuidraw::c_string
 default_font_path(void)
 {
   #ifdef __WIN32

@@ -88,7 +88,7 @@ create_face(reference_counted_ptr<FreeTypeLib> lib) const
 //////////////////////////////////////////////////
 // fastuidraw::FreeTypeFace::GeneratorFile methods
 fastuidraw::FreeTypeFace::GeneratorFile::
-GeneratorFile(const char *filename, int face_index)
+GeneratorFile(c_string filename, int face_index)
 {
   m_d = FASTUIDRAWnew GeneratorFilePrivate(filename, face_index);
 }
@@ -129,7 +129,7 @@ GeneratorMemory(const reference_counted_ptr<const DataBufferBase> &src,
 }
 
 fastuidraw::FreeTypeFace::GeneratorMemory::
-GeneratorMemory(const char *filename, int face_index)
+GeneratorMemory(c_string filename, int face_index)
 {
   DataBufferBase *p;
   p = FASTUIDRAWnew DataBuffer(filename);

@@ -38,7 +38,7 @@ inline
 const void*
 offset_as_void_pointer(unsigned int offset)
 {
-  const char *return_value(0);
+  c_string return_value(0);
   return_value += offset;
   return return_value;
 }

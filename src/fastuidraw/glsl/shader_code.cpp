@@ -42,7 +42,7 @@ namespace
   operator<<(std::ostream &str, Ending obj)
   {
     int tempIndex, cc;
-    const char *component[]=
+    fastuidraw::c_string component[]=
       {
         "r",
         "g",
@@ -67,9 +67,9 @@ namespace
   class LoaderMacro
   {
   public:
-    LoaderMacro(unsigned int alignment, const char *geometry_store_name);
+    LoaderMacro(unsigned int alignment, fastuidraw::c_string geometry_store_name);
 
-    const char*
+    fastuidraw::c_string
     value(void) const
     {
       return m_value.c_str();
@@ -82,20 +82,21 @@ namespace
 ////////////////////////////////////////////////////
 // LoaderMacro methods
 LoaderMacro::
-LoaderMacro(unsigned int alignment, const char *geometry_store_fetch)
+LoaderMacro(unsigned int alignment,
+            fastuidraw::c_string geometry_store_fetch)
 {
   /* we are defining a macro, so on end of lines
      in code we need to add \\
    */
   std::ostringstream str;
-  const char *texelFetchExt[4] =
+  fastuidraw::c_string texelFetchExt[4] =
     {
       "r",
       "rg",
       "rgb",
       "rgba"
     };
-  const char *tempType[4] =
+  fastuidraw::c_string tempType[4] =
     {
       "float",
       "vec2",
@@ -159,8 +160,8 @@ LoaderMacro(unsigned int alignment, const char *geometry_store_fetch)
 fastuidraw::glsl::ShaderSource
 fastuidraw::glsl::code::
 curvepair_compute_pseudo_distance(unsigned int alignment,
-                                  const char *function_name,
-                                  const char *geometry_store_fetch,
+                                  c_string function_name,
+                                  c_string geometry_store_fetch,
                                   bool derivative_function)
 {
   ShaderSource return_value;
@@ -207,8 +208,8 @@ curvepair_compute_pseudo_distance(unsigned int alignment,
 
 fastuidraw::glsl::ShaderSource
 fastuidraw::glsl::code::
-image_atlas_compute_coord(const char *function_name,
-                          const char *index_texture,
+image_atlas_compute_coord(c_string function_name,
+                          c_string index_texture,
                           unsigned int index_tile_size,
                           unsigned int color_tile_size)
 {
@@ -231,13 +232,13 @@ image_atlas_compute_coord(const char *function_name,
 
 fastuidraw::glsl::ShaderSource
 fastuidraw::glsl::code::
-compute_interval(const char *function_name, unsigned int data_alignment)
+compute_interval(c_string function_name, unsigned int data_alignment)
 {
   ShaderSource return_value;
   std::ostringstream ostr;
 
-  const char *xyzw = "xyzw";
-  const char *itypes[] =
+  c_string xyzw = "xyzw";
+  c_string itypes[] =
     {
       "uint",
       "uvec2",
@@ -245,7 +246,7 @@ compute_interval(const char *function_name, unsigned int data_alignment)
       "uvec4"
     };
 
-  const char *ftypes[] =
+  c_string ftypes[] =
     {
       "float",
       "vec2",
@@ -253,7 +254,7 @@ compute_interval(const char *function_name, unsigned int data_alignment)
       "vec4",
     };
 
-  const char *extract_swizzle[] =
+  c_string extract_swizzle[] =
     {
       "x",
       "xy",
@@ -261,7 +262,7 @@ compute_interval(const char *function_name, unsigned int data_alignment)
       "xyzw",
     };
 
-  const char *start_interval[] =
+  c_string start_interval[] =
     {
       "lastd",
       "fV.x",
@@ -269,7 +270,7 @@ compute_interval(const char *function_name, unsigned int data_alignment)
       "fV.z",
     };
 
-  const char *end_interval[] =
+  c_string end_interval[] =
     {
       "fV.x",
       "fV.y",
@@ -277,7 +278,7 @@ compute_interval(const char *function_name, unsigned int data_alignment)
       "fV.w"
     };
 
-  const char *return_signs[] =
+  c_string return_signs[] =
     {
       "1.0",
       "-1.0",

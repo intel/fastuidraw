@@ -77,9 +77,9 @@
   macro is empty (and thus the condition is not evaluated).
 */
 #ifdef FASTUIDRAW_DEBUG
-#define FASTUIDRAWassert(X) do {                              \
-    if(!(X)) {                                                          \
-      fastuidraw::assert_fail(#X, __FILE__, __LINE__);                  \
+#define FASTUIDRAWassert(X) do {                        \
+    if(!(X)) {                                          \
+      fastuidraw::assert_fail(#X, __FILE__, __LINE__);  \
     } } while(0)
 #else
 #define FASTUIDRAWassert(X)
@@ -93,13 +93,14 @@ namespace fastuidraw
   void
   assert_fail(const char *str, const char *file, int line);
 }
-/*! @} */
 
 namespace fastuidraw
 {
-/*!\addtogroup Utility
-  @{
- */
+  /*!
+    \brief
+    Conveniant typedef for C-style strings.
+   */
+  typedef const char *c_string;
 
   /*!
     \brief
@@ -315,11 +316,11 @@ namespace fastuidraw
   uint32_t
   pack_float(float f)
   {
-    // casting to const char* first
+    // casting to c_string first
     // prevents from breaking stricting
     // aliasing rules
-    const char *q;
-    q = reinterpret_cast<const char *>(&f);
+    c_string q;
+    q = reinterpret_cast<c_string >(&f);
     return *reinterpret_cast<const uint32_t*>(q);
   }
 
@@ -331,11 +332,11 @@ namespace fastuidraw
   float
   unpack_float(uint32_t v)
   {
-    // casting to const char* first
+    // casting to c_string first
     // prevents from breaking stricting
     // aliasing rules
-    const char *q;
-    q = reinterpret_cast<const char *>(&v);
+    c_string q;
+    q = reinterpret_cast<c_string >(&v);
     return *reinterpret_cast<const float*>(q);
   }
 

@@ -85,7 +85,7 @@ public:
     Returns the GLSL source string fed to GL
     to create the GLSL shader.
    */
-  const char*
+  c_string
   source_code(void);
 
   /*!
@@ -97,7 +97,7 @@ public:
     only be called from the GL rendering
     thread or if shader_ready() returns true.
    */
-  const char*
+  c_string
   compile_log(void);
 
   /*!
@@ -140,7 +140,7 @@ public:
     label "UNKNOWN_SHADER_STAGE".
    */
   static
-  const char*
+  c_string
   gl_shader_type_label(GLenum ptype);
 
   /*!
@@ -150,7 +150,7 @@ public:
     gives "330". If GLES backend, then gives "300 es".
    */
   static
-  const char*
+  c_string
   default_shader_version(void);
 
 private:
@@ -197,7 +197,7 @@ public:
     \param pname name of attribute in GLSL code
     \param plocation location to which to place the attribute
    */
-  BindAttribute(const char *pname, int plocation);
+  BindAttribute(c_string pname, int plocation);
 
   ~BindAttribute();
 
@@ -245,7 +245,7 @@ public:
     \param pindex index (used for dual source blending) for
                   fragment shader output to occupy
    */
-  BindFragDataLocation(const char *pname, int plocation, int pindex = 0);
+  BindFragDataLocation(c_string pname, int plocation, int pindex = 0);
 
   ~BindFragDataLocation();
 
@@ -308,7 +308,7 @@ public:
     \param plocation location to which to bind the attribute.
    */
   PreLinkActionArray&
-  add_binding(const char *pname, int plocation)
+  add_binding(c_string pname, int plocation)
   {
     reference_counted_ptr<PreLinkAction> h;
     h = FASTUIDRAWnew BindAttribute(pname, plocation);
@@ -326,7 +326,7 @@ public:
                   fragment shader output to occupy
    */
   PreLinkActionArray&
-  add_frag_binding(const char *pname, int plocation, int pindex = 0)
+  add_frag_binding(c_string pname, int plocation, int pindex = 0)
   {
     reference_counted_ptr<PreLinkAction> h;
     h = FASTUIDRAWnew BindFragDataLocation(pname, plocation, pindex);
@@ -390,7 +390,7 @@ public:
     Ctor.
     \param uniform_name name of uniform to initialize
    */
-  UniformInitalizerBase(const char *uniform_name);
+  UniformInitalizerBase(c_string uniform_name);
 
   ~UniformInitalizerBase();
 
@@ -439,7 +439,7 @@ public:
     \param uniform_name name of uniform in GLSL to initialize
     \param value value with which to set the uniform
    */
-  UniformInitializer(const char *uniform_name, const T &value):
+  UniformInitializer(c_string uniform_name, const T &value):
     UniformInitalizerBase(uniform_name),
     m_value(value)
   {}
@@ -479,7 +479,7 @@ public:
     \param uniform_name name of uniform in GLSL to initialize
     \param value value with which to set the uniform
    */
-  UniformInitializer(const char *uniform_name, const const_c_array<T> &value):
+  UniformInitializer(c_string uniform_name, const const_c_array<T> &value):
     UniformInitalizerBase(uniform_name),
     m_data(nullptr)
   {
@@ -535,7 +535,7 @@ public:
     \param uniform_name name of uniform in GLSL to initialize
     \param value value with which to set the uniform
    */
-  UniformInitializer(const char *uniform_name, const const_c_array<T> &value):
+  UniformInitializer(c_string uniform_name, const const_c_array<T> &value):
     UniformInitalizerBase(uniform_name),
     m_data(nullptr)
   {
@@ -597,7 +597,7 @@ public:
     \param name name of uniform block in GLSL to initialize
     \param binding_point_index value with which to set the uniform
    */
-  UniformBlockInitializer(const char *name, int binding_point_index);
+  UniformBlockInitializer(c_string name, int binding_point_index);
 
   ~UniformBlockInitializer();
 
@@ -625,7 +625,7 @@ public:
     \param name name of shader storage block in GLSL to initialize
     \param binding_point_index value with which to set the uniform
    */
-  ShaderStorageBlockInitializer(const char *name, int binding_point_index);
+  ShaderStorageBlockInitializer(c_string name, int binding_point_index);
 
   ~ShaderStorageBlockInitializer();
 
@@ -689,7 +689,7 @@ public:
    */
   template<typename T>
   ProgramInitializerArray&
-  add_uniform_initializer(const char *uniform_name, const T &value)
+  add_uniform_initializer(c_string uniform_name, const T &value)
   {
     return add(FASTUIDRAWnew UniformInitializer<T>(uniform_name, value));
   }
@@ -704,7 +704,7 @@ public:
                  unit.
   */
   ProgramInitializerArray&
-  add_sampler_initializer(const char *uniform_name, int value)
+  add_sampler_initializer(c_string uniform_name, int value)
   {
     return add(FASTUIDRAWnew SamplerInitializer(uniform_name, value));
   }
@@ -718,7 +718,7 @@ public:
                  pass to glBindBufferBase or glBindBufferRange.
   */
   ProgramInitializerArray&
-  add_uniform_block_binding(const char *uniform_name, int value)
+  add_uniform_block_binding(c_string uniform_name, int value)
   {
     return add(FASTUIDRAWnew UniformBlockInitializer(uniform_name, value));
   }
@@ -852,7 +852,7 @@ public:
     /*!
       Name of the parameter within the GL API.
     */
-    const char*
+    c_string
     name(void) const;
 
     /*!
@@ -1036,7 +1036,7 @@ public:
     /*!
       Name of the block within the GL API.
      */
-    const char*
+    c_string
     name(void) const;
 
     /*!
@@ -1120,7 +1120,7 @@ public:
                                       value is not written
      */
     shader_variable_info
-    variable(const char *name,
+    variable(c_string name,
              unsigned int *out_array_index = nullptr,
              unsigned int *out_leading_array_index = nullptr);
 
@@ -1173,7 +1173,7 @@ public:
       name is given as "#X_atomic_buffer" where X is the value of
       buffer_binding().
      */
-    const char*
+    c_string
     name(void) const;
 
     /*!
@@ -1241,7 +1241,7 @@ public:
                                    value; if nullptr, value is not written
      */
     shader_variable_info
-    variable(const char *name,
+    variable(c_string name,
              unsigned int *out_array_index = nullptr);
 
     /*!
@@ -1340,7 +1340,7 @@ public:
     been called or only when the GL context is
     current.
    */
-  const char*
+  c_string
   link_log(void);
 
   /*!
@@ -1367,7 +1367,7 @@ public:
     use_program() has been called or only when the GL
     context is current.
    */
-  const char*
+  c_string
   log(void);
 
   /*!
@@ -1410,7 +1410,7 @@ public:
     \param uniform_block_name name of uniform block to find
    */
   unsigned int
-  uniform_block_id(const char *uniform_block_name);
+  uniform_block_id(c_string uniform_block_name);
 
   /*!
     Seaches uniform_block(unsigned int) to find the
@@ -1426,7 +1426,7 @@ public:
     \param uniform_block_name name of uniform block to find
    */
   block_info
-  uniform_block(const char *uniform_block_name)
+  uniform_block(c_string uniform_block_name)
   {
     return uniform_block(uniform_block_id(uniform_block_name));
   }
@@ -1438,7 +1438,7 @@ public:
     block with that name.
    */
   GLint
-  uniform_location(const char *name);
+  uniform_location(c_string name);
 
   /*!
     Returns the number of active shader storage blocks.
@@ -1471,7 +1471,7 @@ public:
     \param shader_storage_block_name name of shader storage to find
    */
   unsigned int
-  shader_storage_block_id(const char *shader_storage_block_name);
+  shader_storage_block_id(c_string shader_storage_block_name);
 
   /*!
     Seaches shader_storage_block(unsigned int) to find the
@@ -1487,7 +1487,7 @@ public:
     \param shader_storage_block_name name of shader storage to find
    */
   block_info
-  shader_storage_block(const char *shader_storage_block_name)
+  shader_storage_block(c_string shader_storage_block_name)
   {
     return shader_storage_block(shader_storage_block_id(shader_storage_block_name));
   }
@@ -1528,7 +1528,7 @@ public:
     and all shader storage blocks for a shader variable.
    */
   shader_variable_info
-  find_shader_variable(const char *name,
+  find_shader_variable(c_string name,
                        unsigned int *out_array_index = nullptr,
                        unsigned int *out_leading_array_index = nullptr);
 
@@ -1564,7 +1564,7 @@ public:
     \param attribute_name name of attribute to find
    */
   GLint
-  attribute_location(const char *attribute_name);
+  attribute_location(c_string attribute_name);
 
   /*!
     Returns the number of shaders of a given type attached to
@@ -1580,7 +1580,7 @@ public:
     \param tp GL enumeration of the shader type, see Shader::shader_type()
     \param i which shader with 0 <= i < num_shaders(tp)
    */
-  const char*
+  c_string
   shader_src_code(GLenum tp, unsigned int i) const;
 
   /*!
@@ -1589,7 +1589,7 @@ public:
     \param tp GL enumeration of the shader type, see Shader::shader_type()
     \param i which shader with 0 <= i < num_shaders(tp)
    */
-  const char*
+  c_string
   shader_compile_log(GLenum tp, unsigned int i) const;
 
 private:

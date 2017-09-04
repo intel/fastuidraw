@@ -93,7 +93,7 @@ namespace fastuidraw
         extension.
        */
       bool
-      has_extension(const char *ext) const;
+      has_extension(c_string ext) const;
 
     private:
       void *m_d;

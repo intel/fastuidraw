@@ -23,7 +23,7 @@
 
 namespace
 {
-  const char*
+  fastuidraw::c_string
   float_varying_label(unsigned int t)
   {
     using namespace fastuidraw::glsl;
@@ -40,13 +40,13 @@ namespace
     return "";
   }
 
-  const char*
+  fastuidraw::c_string
   int_varying_label(void)
   {
     return "fastuidraw_varying_int";
   }
 
-  const char*
+  fastuidraw::c_string
   uint_varying_label(void)
   {
     return "fastuidraw_varying_uint";
@@ -54,8 +54,8 @@ namespace
 
   void
   stream_varyings_as_local_variables_array(fastuidraw::glsl::ShaderSource &vert,
-                                           fastuidraw::const_c_array<const char*> p,
-                                           const char *type)
+                                           fastuidraw::const_c_array<fastuidraw::c_string> p,
+                                           fastuidraw::c_string type)
   {
     std::ostringstream ostr;
     for(unsigned int i = 0, endi = p.size(); i < endi; ++i)
@@ -79,13 +79,13 @@ namespace
   }
 
   void
-  stream_alias_varyings_array(const char *append_to_name,
+  stream_alias_varyings_array(fastuidraw::c_string append_to_name,
                               fastuidraw::glsl::ShaderSource &vert,
-                              fastuidraw::const_c_array<const char*> p,
+                              fastuidraw::const_c_array<fastuidraw::c_string> p,
                               const std::string &s, bool define,
                               unsigned int special_index)
   {
-    const char *ext = "xyzw";
+    fastuidraw::c_string ext = "xyzw";
     for(unsigned int i = 0; i < p.size(); ++i)
       {
         if(define)
@@ -106,11 +106,11 @@ namespace
   }
 
   unsigned int
-  stream_declare_varyings_type(const char *append_to_name, unsigned int location,
+  stream_declare_varyings_type(fastuidraw::c_string append_to_name, unsigned int location,
                                std::ostream &str, unsigned int cnt,
-                               const char *qualifier,
-                               const char *types[],
-                               const char *name)
+                               fastuidraw::c_string qualifier,
+                               fastuidraw::c_string types[],
+                               fastuidraw::c_string name)
   {
     unsigned int extra_over_4;
     unsigned int return_value;
@@ -141,27 +141,27 @@ namespace
   }
 
   unsigned int
-  stream_declare_varyings(const char *append_to_name, std::ostream &str,
+  stream_declare_varyings(fastuidraw::c_string append_to_name, std::ostream &str,
                           size_t uint_count, size_t int_count,
                           fastuidraw::const_c_array<size_t> float_counts,
                           unsigned int start_slot)
   {
     unsigned int number_slots(0);
-    const char *uint_labels[]=
+    fastuidraw::c_string uint_labels[]=
       {
         "uint",
         "uvec2",
         "uvec3",
         "uvec4",
       };
-    const char *int_labels[]=
+    fastuidraw::c_string int_labels[]=
       {
         "int",
         "ivec2",
         "ivec3",
         "ivec4",
       };
-    const char *float_labels[]=
+    fastuidraw::c_string float_labels[]=
       {
         "float",
         "vec2",
@@ -421,7 +421,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
 namespace fastuidraw { namespace glsl { namespace detail {
 
 void
-stream_alias_varyings(const char *append_to_name,
+stream_alias_varyings(fastuidraw::c_string append_to_name,
                       ShaderSource &shader,
                       const varying_list &p,
                       bool define,
@@ -456,7 +456,7 @@ stream_varyings_as_local_variables(ShaderSource &shader, const varying_list &p)
 }
 
 std::string
-declare_varyings_string(const char *append_to_name,
+declare_varyings_string(fastuidraw::c_string append_to_name,
                         size_t uint_count, size_t int_count,
                         const_c_array<size_t> float_counts,
                         unsigned int *slot,

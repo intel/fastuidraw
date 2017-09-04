@@ -27,7 +27,7 @@ protected:
              const std::string &prefix, GLenum shader_type)
   {
     unsigned int cnt;
-    const char *label;
+    c_string label;
 
     cnt = pr->num_shaders(shader_type);
     if(cnt == 0)

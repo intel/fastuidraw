@@ -77,7 +77,7 @@ namespace
     add_source_entry(const source_code_t &v, std::ostream &output_stream);
 
     static
-    const char*
+    fastuidraw::c_string
     string_from_extension_t(extension_enable_t tp);
   };
 }
@@ -91,7 +91,7 @@ SourcePrivate(void):
 }
 
 
-const char*
+fastuidraw::c_string
 SourcePrivate::
 string_from_extension_t(extension_enable_t tp)
 {
@@ -250,8 +250,8 @@ add_source_entry(const source_code_t &v, std::ostream &output_stream)
           label=v.first;
           if(!resource_string.empty() && resource_string.back() == 0)
             {
-              const char *s;
-              s = reinterpret_cast<const char*>(resource_string.c_ptr());
+              fastuidraw::c_string s;
+              s = reinterpret_cast<fastuidraw::c_string>(resource_string.c_ptr());
               istr.str(std::string(s));
             }
           else
@@ -311,7 +311,7 @@ operator=(const ShaderSource &obj)
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
-specify_version(const char *v)
+specify_version(c_string v)
 {
   SourcePrivate *d;
   d = static_cast<SourcePrivate*>(m_d);
@@ -320,7 +320,7 @@ specify_version(const char *v)
   return *this;
 }
 
-const char*
+fastuidraw::c_string
 fastuidraw::glsl::ShaderSource::
 version(void) const
 {
@@ -331,7 +331,7 @@ version(void) const
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
-add_source(const char *str, enum source_t tp, enum add_location_t loc)
+add_source(c_string str, enum source_t tp, enum add_location_t loc)
 {
   SourcePrivate *d;
   d = static_cast<SourcePrivate*>(m_d);
@@ -367,7 +367,7 @@ add_source(const ShaderSource &obj)
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
-add_macro(const char *macro_name, const char *macro_value,
+add_macro(c_string macro_name, c_string macro_value,
           enum add_location_t loc)
 {
   std::ostringstream ostr;
@@ -377,7 +377,7 @@ add_macro(const char *macro_name, const char *macro_value,
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
-add_macro(const char *macro_name, uint32_t macro_value,
+add_macro(c_string macro_name, uint32_t macro_value,
           enum add_location_t loc)
 {
   std::ostringstream ostr;
@@ -387,7 +387,7 @@ add_macro(const char *macro_name, uint32_t macro_value,
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
-add_macro(const char *macro_name, int32_t macro_value,
+add_macro(c_string macro_name, int32_t macro_value,
           enum add_location_t loc)
 {
   std::ostringstream ostr;
@@ -397,7 +397,7 @@ add_macro(const char *macro_name, int32_t macro_value,
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
-remove_macro(const char *macro_name)
+remove_macro(c_string macro_name)
 {
   std::ostringstream ostr;
   ostr << "#undef " << macro_name;
@@ -407,7 +407,7 @@ remove_macro(const char *macro_name)
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
-specify_extension(const char *ext_name, enum extension_enable_t tp)
+specify_extension(c_string ext_name, enum extension_enable_t tp)
 {
   SourcePrivate *d;
   d = static_cast<SourcePrivate*>(m_d);
@@ -444,7 +444,7 @@ disable_pre_added_source(void)
   return *this;
 }
 
-const char*
+fastuidraw::c_string
 fastuidraw::glsl::ShaderSource::
 assembled_code(void) const
 {

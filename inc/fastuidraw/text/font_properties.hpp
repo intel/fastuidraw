@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include <fastuidraw/util/util.hpp>
+
 namespace fastuidraw
 {
 /*!\addtogroup Text
@@ -102,7 +104,7 @@ namespace fastuidraw
       and "Condensed" give different fonts for
       the family name "DejaVu Serif".
      */
-    const char*
+    c_string
     style(void) const;
 
     /*!
@@ -110,12 +112,12 @@ namespace fastuidraw
       \param s value to which to set style(void) const
      */
     FontProperties&
-    style(const char *s);
+    style(c_string s);
 
     /*!
       Specifies the family name of the font, for example "Sans"
      */
-    const char*
+    c_string
     family(void) const;
 
     /*!
@@ -123,7 +125,7 @@ namespace fastuidraw
       \param s value to which to set family(void) const
      */
     FontProperties&
-    family(const char *s);
+    family(c_string s);
 
     /*!
       Specifies the foundry name of the
@@ -131,7 +133,7 @@ namespace fastuidraw
       Some systems (for example those using
       fontconfig) this value is ignored.
      */
-    const char*
+    c_string
     foundry(void) const;
 
     /*!
@@ -139,14 +141,14 @@ namespace fastuidraw
       \param s value to which to set foundry(void) const
      */
     FontProperties&
-    foundry(const char *s);
+    foundry(c_string s);
 
     /*!
       Specifies the source of the font, for those
       fonts coming from file names should be a string
       giving the filename and face index.
      */
-    const char*
+    c_string
     source_label(void) const;
 
     /*!
@@ -154,7 +156,7 @@ namespace fastuidraw
       \param s value to which to set source_label(void) const
      */
     FontProperties&
-    source_label(const char *s);
+    source_label(c_string s);
 
   private:
     void *m_d;

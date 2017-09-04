@@ -148,7 +148,7 @@ swap_buffers(void)
 
 void*
 egl_gles_context::
-egl_get_proc(const char *name)
+egl_get_proc(fastuidraw::c_string name)
 {
 #ifdef FASTUIDRAW_GL_USE_GLES
   return (void*)eglGetProcAddress(name);

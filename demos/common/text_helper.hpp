@@ -89,9 +89,9 @@ add_fonts_from_path(const std::string &path,
                     fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> glyph_selector,
                     fastuidraw::FontFreeType::RenderParams render_params);
 
-const char*
+fastuidraw::c_string
 default_font(void);
 
-const char*
+fastuidraw::c_string
 default_font_path(void);
 

@@ -40,7 +40,7 @@ namespace
     StringArray&
     operator=(const StringArray &rhs);
 
-    fastuidraw::const_c_array<const char*>
+    fastuidraw::const_c_array<fastuidraw::c_string>
     string_array(void) const;
 
     void
@@ -59,7 +59,7 @@ namespace
     clear(void);
 
     std::vector<std::string*> m_strings;
-    std::vector<const char*> m_strings_array;
+    std::vector<fastuidraw::c_string> m_strings_array;
   };
 
   class VaryingListPrivate
@@ -79,7 +79,8 @@ namespace
   class GLSLShaderUnpackValuePrivate
   {
   public:
-    GLSLShaderUnpackValuePrivate(const char *p, enum fastuidraw::glsl::shader_unpack_value::type_t t):
+    GLSLShaderUnpackValuePrivate(fastuidraw::c_string p,
+                                 enum fastuidraw::glsl::shader_unpack_value::type_t t):
       m_name(p),
       m_type(t)
     {}
@@ -91,8 +92,8 @@ namespace
     unsigned int
     stream_unpack_code(unsigned int alignment, std::ostream &str,
                        fastuidraw::const_c_array<fastuidraw::glsl::shader_unpack_value> labels,
-                       const char *offset_name,
-                       const char *prefix);
+                       fastuidraw::c_string offset_name,
+                       fastuidraw::c_string prefix);
   };
 
   class PainterShaderGLSLPrivate
@@ -125,7 +126,7 @@ StringArray(void)
 StringArray::
 StringArray(const StringArray &rhs)
 {
-  fastuidraw::const_c_array<const char*> src(rhs.string_array());
+  fastuidraw::const_c_array<fastuidraw::c_string> src(rhs.string_array());
   add_strings(src.begin(), src.end());
 }
 
@@ -140,7 +141,7 @@ StringArray::
 operator=(const StringArray &rhs)
 {
   clear();
-  fastuidraw::const_c_array<const char*> src(rhs.string_array());
+  fastuidraw::const_c_array<fastuidraw::c_string> src(rhs.string_array());
   add_strings(src.begin(), src.end());
   return *this;
 }
@@ -177,7 +178,7 @@ clear(void)
   m_strings_array.clear();
 }
 
-fastuidraw::const_c_array<const char*>
+fastuidraw::const_c_array<fastuidraw::c_string>
 StringArray::
 string_array(void) const
 {
@@ -204,10 +205,10 @@ unsigned int
 GLSLShaderUnpackValuePrivate::
 stream_unpack_code(unsigned int alignment, std::ostream &str,
                    fastuidraw::const_c_array<fastuidraw::glsl::shader_unpack_value> labels,
-                   const char *offset_name,
-                   const char *prefix)
+                   fastuidraw::c_string offset_name,
+                   fastuidraw::c_string prefix)
 {
-  const char *uint_types[5] =
+  fastuidraw::c_string uint_types[5] =
     {
       "",
       "uint",
@@ -216,7 +217,7 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
       "uvec4"
     };
 
-  const char *temp_components[] =
+  fastuidraw::c_string temp_components[] =
     {
       ".x",
       ".xy",
@@ -224,7 +225,7 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
       ".xyzw"
     };
 
-  const char *read_components[] =
+  fastuidraw::c_string read_components[] =
     {
       ".x",
       ".xy",
@@ -232,7 +233,7 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
       ".xyzw"
     };
 
-  const char *ext_components[] =
+  fastuidraw::c_string ext_components[] =
     {
       ".x",
       ".y",
@@ -253,7 +254,7 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
   for(unsigned int b = 0, i = 0; b < number_blocks; ++b)
     {
       unsigned int cmp, li;
-      const char *temp_comp;
+      fastuidraw::c_string temp_comp;
 
       li = labels.size() - i;
       cmp = std::min(alignment, li);
@@ -267,7 +268,7 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
        */
       for(unsigned int k = 0; k < alignment && i < labels.size(); ++k, ++i)
         {
-          const char *ext;
+          fastuidraw::c_string ext;
           ext = (alignment == 1) ? "" : ext_components[k];
           switch(labels[i].type())
             {
@@ -332,7 +333,7 @@ operator=(const varying_list &rhs)
   return *this;
 }
 
-fastuidraw::const_c_array<const char*>
+fastuidraw::const_c_array<fastuidraw::c_string>
 fastuidraw::glsl::varying_list::
 floats(enum interpolation_qualifier_t q) const
 {
@@ -350,7 +351,7 @@ float_counts(void) const
   return const_c_array<size_t>(&d->m_float_counts[0], d->m_float_counts.size());
 }
 
-fastuidraw::const_c_array<const char*>
+fastuidraw::const_c_array<fastuidraw::c_string>
 fastuidraw::glsl::varying_list::
 uints(void) const
 {
@@ -359,7 +360,7 @@ uints(void) const
   return d->m_uints.string_array();
 }
 
-fastuidraw::const_c_array<const char*>
+fastuidraw::const_c_array<fastuidraw::c_string>
 fastuidraw::glsl::varying_list::
 ints(void) const
 {
@@ -370,7 +371,7 @@ ints(void) const
 
 fastuidraw::glsl::varying_list&
 fastuidraw::glsl::varying_list::
-set_float_varying(unsigned int slot, const char *pname,
+set_float_varying(unsigned int slot, c_string pname,
                   enum interpolation_qualifier_t q)
 {
   VaryingListPrivate *d;
@@ -382,14 +383,14 @@ set_float_varying(unsigned int slot, const char *pname,
 
 fastuidraw::glsl::varying_list&
 fastuidraw::glsl::varying_list::
-add_float_varying(const char *pname, enum interpolation_qualifier_t q)
+add_float_varying(c_string pname, enum interpolation_qualifier_t q)
 {
   return set_float_varying(floats(q).size(), pname, q);
 }
 
 fastuidraw::glsl::varying_list&
 fastuidraw::glsl::varying_list::
-set_uint_varying(unsigned int slot, const char *pname)
+set_uint_varying(unsigned int slot, c_string pname)
 {
   VaryingListPrivate *d;
   d = static_cast<VaryingListPrivate*>(m_d);
@@ -399,14 +400,14 @@ set_uint_varying(unsigned int slot, const char *pname)
 
 fastuidraw::glsl::varying_list&
 fastuidraw::glsl::varying_list::
-add_uint_varying(const char *pname)
+add_uint_varying(c_string pname)
 {
   return set_uint_varying(uints().size(), pname);
 }
 
 fastuidraw::glsl::varying_list&
 fastuidraw::glsl::varying_list::
-set_int_varying(unsigned int slot, const char *pname)
+set_int_varying(unsigned int slot, c_string pname)
 {
   VaryingListPrivate *d;
   d = static_cast<VaryingListPrivate*>(m_d);
@@ -416,7 +417,7 @@ set_int_varying(unsigned int slot, const char *pname)
 
 fastuidraw::glsl::varying_list&
 fastuidraw::glsl::varying_list::
-add_int_varying(const char *pname)
+add_int_varying(c_string pname)
 {
   return set_int_varying(ints().size(), pname);
 }
@@ -425,7 +426,7 @@ add_int_varying(const char *pname)
 ///////////////////////////////////////////////////
 // fastuidraw::glsl::shader_unpack_value methods
 fastuidraw::glsl::shader_unpack_value::
-shader_unpack_value(const char *pname, type_t ptype)
+shader_unpack_value(c_string pname, type_t ptype)
 {
   m_d = FASTUIDRAWnew GLSLShaderUnpackValuePrivate(pname, ptype);
 }
@@ -461,7 +462,7 @@ operator=(const shader_unpack_value &rhs)
   return *this;
 }
 
-const char*
+fastuidraw::c_string
 fastuidraw::glsl::shader_unpack_value::
 name(void) const
 {
@@ -483,8 +484,8 @@ unsigned int
 fastuidraw::glsl::shader_unpack_value::
 stream_unpack_code(unsigned int alignment, glsl::ShaderSource &src,
                    const_c_array<shader_unpack_value> labels,
-                   const char *offset_name,
-                   const char *prefix)
+                   c_string offset_name,
+                   c_string prefix)
 {
   std::ostringstream str;
   unsigned int return_value;
@@ -500,8 +501,8 @@ unsigned int
 fastuidraw::glsl::shader_unpack_value::
 stream_unpack_function(unsigned int alignment, glsl::ShaderSource &src,
                        const_c_array<shader_unpack_value> labels,
-                       const char *function_name,
-                       const char *out_type,
+                       c_string function_name,
+                       c_string out_type,
                        bool has_return_value)
 {
   unsigned int number_blocks;

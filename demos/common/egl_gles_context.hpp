@@ -5,6 +5,7 @@
 #endif
 
 #include <SDL.h>
+#include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
 
 class egl_gles_context:
@@ -40,7 +41,7 @@ public:
 
   static
   void*
-  egl_get_proc(const char *name);
+  egl_get_proc(fastuidraw::c_string name);
 
 private:
 

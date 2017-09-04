@@ -1312,7 +1312,7 @@ build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
   fastuidraw::glsl::ShaderSource vert, frag;
   program_ref return_value;
   DiscardItemShaderFilter item_filter(tp);
-  const char *discard_macro;
+  fastuidraw::c_string discard_macro;
 
   if(tp == fastuidraw::gl::PainterBackendGL::program_without_discard)
     {

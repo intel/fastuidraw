@@ -816,7 +816,7 @@ namespace fastuidraw
                        ShaderSource &out_fragment,
                        const UberShaderParams &contruct_params,
                        const ItemShaderFilter *item_shader_filter = nullptr,
-                       const char *discard_macro_value = "discard");
+                       c_string discard_macro_value = "discard");
 
       /*!
         Fill a buffer to hold the values for the uniforms

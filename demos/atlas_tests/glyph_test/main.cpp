@@ -1142,7 +1142,7 @@ handle_event(const SDL_Event &ev)
 
         case SDLK_t:
           {
-            const char *labels[number_texel_store_modes] =
+            c_string labels[number_texel_store_modes] =
               {
                 /*[texel_store_uint]=*/ "texel_store_uint",
                 /*[texel_store_float]=*/ "texel_store_float"

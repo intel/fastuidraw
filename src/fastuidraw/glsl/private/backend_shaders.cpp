@@ -217,7 +217,7 @@ ShaderSetCreator(enum PainterBlendShader::shader_type tp,
   BlendShaderSetCreator(tp)
 {
   unsigned int num_undashed_sub_shaders, num_dashed_sub_shaders;
-  const char *extra_macro;
+  c_string extra_macro;
 
   if(non_dashed_stroke_shader_uses_discard)
     {

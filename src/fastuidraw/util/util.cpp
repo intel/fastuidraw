@@ -113,7 +113,7 @@ uint64_number_bits_required(uint64_t v)
 
 void
 fastuidraw::
-assert_fail(const char *str, const char *file, int line)
+assert_fail(c_string str, c_string file, int line)
 {
   std::cerr << file << ":" << line << ": Assertion '" << str << "' failed\n";
   std::abort();

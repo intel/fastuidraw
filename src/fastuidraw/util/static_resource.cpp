@@ -48,7 +48,7 @@ namespace
 
 void
 fastuidraw::
-generate_static_resource(const char *presource_label, const_c_array<uint8_t> pvalue)
+generate_static_resource(c_string presource_label, const_c_array<uint8_t> pvalue)
 {
   std::string sresource_label(presource_label);
   std::vector<uint8_t> svalue(pvalue.begin(), pvalue.end());
@@ -60,7 +60,7 @@ generate_static_resource(const char *presource_label, const_c_array<uint8_t> pva
 
 fastuidraw::const_c_array<uint8_t>
 fastuidraw::
-fetch_static_resource(const char *presource_label)
+fetch_static_resource(c_string presource_label)
 {
   const_c_array<uint8_t> return_value;
   std::string sresource_label(presource_label);
@@ -79,7 +79,7 @@ fetch_static_resource(const char *presource_label)
 ///////////////////////////////////////
 // fastuidraw::static_resource methods
 fastuidraw::static_resource::
-static_resource(const char *resource_label, const_c_array<uint8_t> value)
+static_resource(c_string resource_label, const_c_array<uint8_t> value)
 {
   generate_static_resource(resource_label, value);
 }

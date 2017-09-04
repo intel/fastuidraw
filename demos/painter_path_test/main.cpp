@@ -20,7 +20,7 @@
 
 using namespace fastuidraw;
 
-const char*
+c_string
 on_off(bool v)
 {
   return v ? "ON" : "OFF";
@@ -457,7 +457,7 @@ update_cts_params(void)
     }
 
   vec2 *pshear(&m_shear);
-  const char *shear_txt = "";
+  c_string shear_txt = "";
   if(keyboard_state[SDL_SCANCODE_RETURN])
     {
       pshear = &m_shear2;

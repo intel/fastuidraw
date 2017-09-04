@@ -147,8 +147,8 @@ public:
    */
   virtual
   void
-  log(const char *msg, const char *function_name,
-      const char *file_name, int line,
+  log(c_string msg, c_string function_name,
+      c_string file_name, int line,
       void* fptr) = 0;
 };
 
@@ -205,7 +205,7 @@ log_gl_commands(bool v);
                          first call.
  */
 void
-get_proc_function(void* (*get_proc)(const char*),
+get_proc_function(void* (*get_proc)(c_string),
                   bool fetch_functions = true);
 
 }

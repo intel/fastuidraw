@@ -100,8 +100,8 @@ make_extensions_ready(void)
   cnt = fastuidraw::gl::context_get<GLint>(GL_NUM_EXTENSIONS);
   for(int i = 0; i < cnt; ++i)
     {
-      const char *ext;
-      ext = reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, i));
+      fastuidraw::c_string ext;
+      ext = reinterpret_cast<fastuidraw::c_string>(glGetStringi(GL_EXTENSIONS, i));
       m_extensions.insert(ext);
     }
 }
@@ -144,7 +144,7 @@ is_es(void) const
 
 bool
 fastuidraw::gl::ContextProperties::
-has_extension(const char *ext) const
+has_extension(fastuidraw::c_string ext) const
 {
   ContextPropertiesPrivate *d;
   d = static_cast<ContextPropertiesPrivate*>(m_d);

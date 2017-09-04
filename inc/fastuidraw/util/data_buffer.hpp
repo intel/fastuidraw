@@ -36,7 +36,7 @@ namespace fastuidraw {
       Copies a file into memory.
       \param filename name of file to open
      */
-    DataBufferBackingStore(const char *filename);
+    DataBufferBackingStore(c_string filename);
 
     /*!
       Ctor. Allocate memory and fill the buffer
@@ -83,7 +83,7 @@ namespace fastuidraw {
       whose value is copied from a file.
      */
     explicit
-    DataBuffer(const char *filename):
+    DataBuffer(c_string filename):
       DataBufferBackingStore(filename),
       DataBufferBase(data(), data())
     {}

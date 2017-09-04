@@ -73,7 +73,7 @@ namespace
   }
 
   void*
-  get_proc(const char *proc_name)
+  get_proc(fastuidraw::c_string proc_name)
   {
     return SDL_GL_GetProcAddress(proc_name);
   }
@@ -88,8 +88,9 @@ namespace
 
     virtual
     void
-    log(const char *msg, const char *function_name,
-        const char *file_name, int line,
+    log(fastuidraw::c_string msg,
+        fastuidraw::c_string function_name,
+        fastuidraw::c_string file_name, int line,
         void* fptr);
 
   private:
@@ -130,8 +131,9 @@ OstreamLogger::
 
 void
 OstreamLogger::
-log(const char *msg, const char *function_name,
-    const char *file_name, int line,
+log(fastuidraw::c_string msg,
+    fastuidraw::c_string function_name,
+    fastuidraw::c_string file_name, int line,
     void* fptr)
 {
   FASTUIDRAWunused(function_name);

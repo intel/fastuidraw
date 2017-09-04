@@ -61,7 +61,7 @@ namespace
   class BindAttributePrivate
   {
   public:
-    BindAttributePrivate(const char *pname, int plocation):
+    BindAttributePrivate(fastuidraw::c_string pname, int plocation):
       m_label(pname),
       m_location(plocation)
     {}
@@ -73,7 +73,7 @@ namespace
   class BindFragDataLocationPrivate
   {
   public:
-    BindFragDataLocationPrivate(const char *pname, int plocation, int pindex):
+    BindFragDataLocationPrivate(fastuidraw::c_string pname, int plocation, int pindex):
       m_label(pname),
       m_location(plocation),
       m_index(pindex)
@@ -92,7 +92,7 @@ namespace
   class BlockInitializerPrivate
   {
   public:
-    BlockInitializerPrivate(const char *n, int v):
+    BlockInitializerPrivate(fastuidraw::c_string n, int v):
       m_block_name(n),
       m_binding_point(v)
     {}
@@ -713,7 +713,7 @@ compile(void)
   m_shader_ready = true;
   m_name = glCreateShader(m_shader_type);
 
-  const char *sourceString[1];
+  fastuidraw::c_string sourceString[1];
   sourceString[0] = m_source_code.c_str();
 
   glShaderSource(m_name, //shader handle
@@ -1601,7 +1601,7 @@ compile_success(void)
   return d->m_compile_success;
 }
 
-const char*
+fastuidraw::c_string
 fastuidraw::gl::Shader::
 compile_log(void)
 {
@@ -1630,7 +1630,7 @@ shader_ready(void)
   return d->m_shader_ready;
 }
 
-const char*
+fastuidraw::c_string
 fastuidraw::gl::Shader::
 source_code(void)
 {
@@ -1649,7 +1649,7 @@ shader_type(void)
 }
 
 
-const char*
+fastuidraw::c_string
 fastuidraw::gl::Shader::
 gl_shader_type_label(GLenum shader_type)
 {
@@ -1671,7 +1671,7 @@ gl_shader_type_label(GLenum shader_type)
   #undef CASE
 }
 
-const char*
+fastuidraw::c_string
 fastuidraw::gl::Shader::
 default_shader_version(void)
 {
@@ -1689,7 +1689,7 @@ default_shader_version(void)
 ////////////////////////////////////////
 // fastuidraw::gl::BindAttribute methods
 fastuidraw::gl::BindAttribute::
-BindAttribute(const char *pname, int plocation)
+BindAttribute(c_string pname, int plocation)
 {
   m_d = FASTUIDRAWnew BindAttributePrivate(pname, plocation);
 }
@@ -1716,7 +1716,7 @@ action(GLuint glsl_program) const
 ////////////////////////////////////////
 // fastuidraw::gl::BindFragDataLocation methods
 fastuidraw::gl::BindFragDataLocation::
-BindFragDataLocation(const char *pname, int plocation, int pindex)
+BindFragDataLocation(c_string pname, int plocation, int pindex)
 {
   m_d = FASTUIDRAWnew BindFragDataLocationPrivate(pname, plocation, pindex);
 }
@@ -1843,7 +1843,7 @@ shader_variable_info(void):
   m_d(nullptr)
 {}
 
-const char*
+fastuidraw::c_string
 fastuidraw::gl::Program::shader_variable_info::
 name(void) const
 {
@@ -1997,7 +1997,7 @@ block_info(void):
   m_d(nullptr)
 {}
 
-const char*
+fastuidraw::c_string
 fastuidraw::gl::Program::block_info::
 name(void) const
 {
@@ -2065,7 +2065,7 @@ variable(unsigned int I)
 
 fastuidraw::gl::Program::shader_variable_info
 fastuidraw::gl::Program::block_info::
-variable(const char *name,
+variable(c_string name,
          unsigned int *out_array_index,
          unsigned int *out_leading_array_index)
 {
@@ -2094,7 +2094,7 @@ atomic_buffer_info(void):
   m_d(nullptr)
 {}
 
-const char*
+fastuidraw::c_string
 fastuidraw::gl::Program::atomic_buffer_info::
 name(void) const
 {
@@ -2153,7 +2153,7 @@ variable(unsigned int I)
 
 fastuidraw::gl::Program::shader_variable_info
 fastuidraw::gl::Program::atomic_buffer_info::
-variable(const char *name,
+variable(c_string name,
          unsigned int *out_array_index)
 {
   const AtomicBufferInfo *d;
@@ -2587,7 +2587,7 @@ name(void)
   return d->m_name;
 }
 
-const char*
+fastuidraw::c_string
 fastuidraw::gl::Program::
 link_log(void)
 {
@@ -2617,7 +2617,7 @@ link_success(void)
   return d->m_link_success;
 }
 
-const char*
+fastuidraw::c_string
 fastuidraw::gl::Program::
 log(void)
 {
@@ -2665,7 +2665,7 @@ uniform_block(unsigned int I)
 
 unsigned int
 fastuidraw::gl::Program::
-uniform_block_id(const char *uniform_block_name)
+uniform_block_id(c_string uniform_block_name)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
@@ -2677,7 +2677,7 @@ uniform_block_id(const char *uniform_block_name)
 
 GLint
 fastuidraw::gl::Program::
-uniform_location(const char *name)
+uniform_location(c_string name)
 {
   shader_variable_info S;
   unsigned int array_index(0);
@@ -2687,7 +2687,7 @@ uniform_location(const char *name)
 
 fastuidraw::gl::Program::shader_variable_info
 fastuidraw::gl::Program::
-find_shader_variable(const char *pname,
+find_shader_variable(c_string pname,
                      unsigned int *out_array_index,
                      unsigned int *out_leading_array_index)
 {
@@ -2753,7 +2753,7 @@ shader_storage_block(unsigned int I)
 
 unsigned int
 fastuidraw::gl::Program::
-shader_storage_block_id(const char *shader_storage_block_name)
+shader_storage_block_id(c_string shader_storage_block_name)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
@@ -2825,7 +2825,7 @@ active_attribute(unsigned int I)
 
 GLint
 fastuidraw::gl::Program::
-attribute_location(const char *pname)
+attribute_location(c_string pname)
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
@@ -2856,7 +2856,7 @@ num_shaders(GLenum tp) const
     iter->second.size() : 0;
 }
 
-const char*
+fastuidraw::c_string
 fastuidraw::gl::Program::
 shader_src_code(GLenum tp, unsigned int i) const
 {
@@ -2875,7 +2875,7 @@ shader_src_code(GLenum tp, unsigned int i) const
     }
 }
 
-const char*
+fastuidraw::c_string
 fastuidraw::gl::Program::
 shader_compile_log(GLenum tp, unsigned int i) const
 {
@@ -2979,7 +2979,7 @@ clear(void)
 //////////////////////////////////////////////////
 // fastuidraw::gl::UniformBlockInitializer methods
 fastuidraw::gl::UniformBlockInitializer::
-UniformBlockInitializer(const char *uniform_name, int binding_point_index)
+UniformBlockInitializer(c_string uniform_name, int binding_point_index)
 {
   m_d = FASTUIDRAWnew BlockInitializerPrivate(uniform_name, binding_point_index);
 }
@@ -3023,7 +3023,7 @@ perform_initialization(Program *pr, bool program_bound) const
 // fastuidraw::gl::ShaderStorageBlockInitializer methods
 #ifndef FASTUIDRAW_GL_USE_GLES
 fastuidraw::gl::ShaderStorageBlockInitializer::
-ShaderStorageBlockInitializer(const char *uniform_name, int binding_point_index)
+ShaderStorageBlockInitializer(c_string uniform_name, int binding_point_index)
 {
   m_d = FASTUIDRAWnew BlockInitializerPrivate(uniform_name, binding_point_index);
 }
@@ -3067,7 +3067,7 @@ perform_initialization(Program *pr, bool program_bound) const
 /////////////////////////////////////////////////
 // fastuidraw::gl::UniformInitalizerBase methods
 fastuidraw::gl::UniformInitalizerBase::
-UniformInitalizerBase(const char *uniform_name)
+UniformInitalizerBase(c_string uniform_name)
 {
   FASTUIDRAWassert(uniform_name);
   m_d = FASTUIDRAWnew std::string(uniform_name);

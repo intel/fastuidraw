@@ -122,7 +122,7 @@ italic(bool b)
   return *this;
 }
 
-const char*
+fastuidraw::c_string
 fastuidraw::FontProperties::
 style(void) const
 {
@@ -133,7 +133,7 @@ style(void) const
 
 fastuidraw::FontProperties&
 fastuidraw::FontProperties::
-style(const char* b)
+style(c_string b)
 {
   FontPropertiesPrivate *d;
   d = static_cast<FontPropertiesPrivate*>(m_d);
@@ -141,7 +141,7 @@ style(const char* b)
   return *this;
 }
 
-const char*
+fastuidraw::c_string
 fastuidraw::FontProperties::
 family(void) const
 {
@@ -152,7 +152,7 @@ family(void) const
 
 fastuidraw::FontProperties&
 fastuidraw::FontProperties::
-family(const char* b)
+family(c_string b)
 {
   FontPropertiesPrivate *d;
   d = static_cast<FontPropertiesPrivate*>(m_d);
@@ -160,7 +160,7 @@ family(const char* b)
   return *this;
 }
 
-const char*
+fastuidraw::c_string
 fastuidraw::FontProperties::
 foundry(void) const
 {
@@ -171,7 +171,7 @@ foundry(void) const
 
 fastuidraw::FontProperties&
 fastuidraw::FontProperties::
-foundry(const char* b)
+foundry(c_string b)
 {
   FontPropertiesPrivate *d;
   d = static_cast<FontPropertiesPrivate*>(m_d);
@@ -179,7 +179,7 @@ foundry(const char* b)
   return *this;
 }
 
-const char*
+fastuidraw::c_string
 fastuidraw::FontProperties::
 source_label(void) const
 {
@@ -190,7 +190,7 @@ source_label(void) const
 
 fastuidraw::FontProperties&
 fastuidraw::FontProperties::
-source_label(const char* b)
+source_label(c_string b)
 {
   FontPropertiesPrivate *d;
   d = static_cast<FontPropertiesPrivate*>(m_d);

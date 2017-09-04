@@ -15,7 +15,7 @@ DataBufferBackingStore(unsigned int num_bytes, uint8_t v)
 }
 
 fastuidraw::DataBufferBackingStore::
-DataBufferBackingStore(const char *filename)
+DataBufferBackingStore(c_string filename)
 {
   DataBufferBackingStorePrivate *d;
 

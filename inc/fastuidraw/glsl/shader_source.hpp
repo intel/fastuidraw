@@ -158,14 +158,14 @@ public:
     String is -copied-.
    */
   ShaderSource&
-  specify_version(const char *v);
+  specify_version(c_string v);
 
   /*!
     Returns the value set by specify_version().
     Returned pointer is only valid until the
     next time that specify_version() is called.
    */
-  const char*
+  c_string
   version(void) const;
 
   /*!
@@ -176,7 +176,7 @@ public:
     \param loc location to add source
    */
   ShaderSource&
-  add_source(const char *str, enum source_t tp = from_file,
+  add_source(c_string str, enum source_t tp = from_file,
              enum add_location_t loc = push_back);
 
   /*!
@@ -195,7 +195,7 @@ public:
     \param loc location to add macro within code
    */
   ShaderSource&
-  add_macro(const char *macro_name, const char *macro_value = "",
+  add_macro(c_string macro_name, c_string macro_value = "",
             enum add_location_t loc = push_back);
 
   /*!
@@ -207,7 +207,7 @@ public:
     \param loc location to add macro within code
    */
   ShaderSource&
-  add_macro(const char *macro_name, uint32_t macro_value,
+  add_macro(c_string macro_name, uint32_t macro_value,
             enum add_location_t loc = push_back);
 
   /*!
@@ -219,7 +219,7 @@ public:
     \param loc location to add macro within code
    */
   ShaderSource&
-  add_macro(const char *macro_name, int32_t macro_value,
+  add_macro(c_string macro_name, int32_t macro_value,
             enum add_location_t loc = push_back);
 
   /*!
@@ -231,7 +231,7 @@ public:
     \param macro_name name of macro
    */
   ShaderSource&
-  remove_macro(const char *macro_name);
+  remove_macro(c_string macro_name);
 
   /*!
     Specifiy an extension and usage.
@@ -239,7 +239,7 @@ public:
     \param tp usage of extension
    */
   ShaderSource&
-  specify_extension(const char *ext_name,
+  specify_extension(c_string ext_name,
                     enum extension_enable_t tp = enable_extension);
 
   /*!
@@ -274,7 +274,7 @@ public:
     gauranteed to be valid up until the ShaderSource object
     is modified.
    */
-  const char*
+  c_string
   assembled_code(void) const;
 
   private:

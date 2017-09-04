@@ -93,7 +93,7 @@ namespace fastuidraw
         varyings of the specified interpolation type.
         \param q interpolation type
        */
-      const_c_array<const char*>
+      const_c_array<c_string>
       floats(enum interpolation_qualifier_t q) const;
 
       /*!
@@ -106,13 +106,13 @@ namespace fastuidraw
       /*!
         Returns the names for the slots of the uint varyings
        */
-      const_c_array<const char*>
+      const_c_array<c_string>
       uints(void) const;
 
       /*!
         Returns the names for the slots of the int varyings
        */
-      const_c_array<const char*>
+      const_c_array<c_string>
       ints(void) const;
 
       /*!
@@ -122,7 +122,7 @@ namespace fastuidraw
         \param q interpolation qualifier
       */
       varying_list&
-      set_float_varying(unsigned int slot, const char *pname,
+      set_float_varying(unsigned int slot, c_string pname,
                         enum interpolation_qualifier_t q = interpolation_smooth);
 
       /*!
@@ -132,7 +132,7 @@ namespace fastuidraw
         \endcode
       */
       varying_list&
-      add_float_varying(const char *pname, enum interpolation_qualifier_t q = interpolation_smooth);
+      add_float_varying(c_string pname, enum interpolation_qualifier_t q = interpolation_smooth);
 
       /*!
         Set a uint of the named slot to a name.
@@ -140,7 +140,7 @@ namespace fastuidraw
         \param slot which uint
       */
       varying_list&
-      set_uint_varying(unsigned int slot, const char *pname);
+      set_uint_varying(unsigned int slot, c_string pname);
 
       /*!
         Add an uint varying, equivalent to
@@ -149,7 +149,7 @@ namespace fastuidraw
         \endcode
       */
       varying_list&
-      add_uint_varying(const char *pname);
+      add_uint_varying(c_string pname);
 
       /*!
         Set a int of the named slot to a name.
@@ -157,7 +157,7 @@ namespace fastuidraw
         \param slot which uint
       */
       varying_list&
-      set_int_varying(unsigned int slot, const char *pname);
+      set_int_varying(unsigned int slot, c_string pname);
 
       /*!
         Add an int varying, equivalent to
@@ -166,7 +166,7 @@ namespace fastuidraw
         \endcode
       */
       varying_list&
-      add_int_varying(const char *pname);
+      add_int_varying(c_string pname);
 
     private:
       void *m_d;
@@ -197,7 +197,7 @@ namespace fastuidraw
                      is copied
         \param ptype the value returned by type().
        */
-      shader_unpack_value(const char *pname = "", type_t ptype = float_type);
+      shader_unpack_value(c_string pname = "", type_t ptype = float_type);
 
       /*!
         Copy ctor
@@ -215,7 +215,7 @@ namespace fastuidraw
       /*!
         The name of the value to unpack as it appears in GLSL
        */
-      const char*
+      c_string
       name(void) const;
 
       /*!
@@ -241,8 +241,8 @@ namespace fastuidraw
       unsigned int
       stream_unpack_code(unsigned int alignment, ShaderSource &str,
                          const_c_array<shader_unpack_value> labels,
-                         const char *offset_name,
-                         const char *prefix = "");
+                         c_string offset_name,
+                         c_string prefix = "");
 
       /*!
         Adds to a ShaderSource the GLSL function:
@@ -267,8 +267,8 @@ namespace fastuidraw
       unsigned int
       stream_unpack_function(unsigned int alignment, ShaderSource &str,
                              const_c_array<shader_unpack_value> labels,
-                             const char *function_name,
-                             const char *out_type,
+                             c_string function_name,
+                             c_string out_type,
                              bool returns_new_offset = true);
     private:
       void *m_d;
@@ -291,7 +291,7 @@ namespace fastuidraw
         \param type type value
        */
       shader_unpack_value_set&
-      set(unsigned int i, const char *name,
+      set(unsigned int i, c_string name,
           shader_unpack_value::type_t type = shader_unpack_value::float_type)
       {
         this->operator[](i) = shader_unpack_value(name, type);
@@ -313,8 +313,8 @@ namespace fastuidraw
        */
       unsigned int
       stream_unpack_code(unsigned int alignment, ShaderSource &str,
-                         const char *offset_name,
-                         const char *prefix = "")
+                         c_string offset_name,
+                         c_string prefix = "")
       {
         return shader_unpack_value::stream_unpack_code(alignment, str, *this, offset_name, prefix);
       }
@@ -336,8 +336,8 @@ namespace fastuidraw
        */
       unsigned int
       stream_unpack_function(unsigned int alignment, ShaderSource &str,
-                             const char *function_name,
-                             const char *out_type,
+                             c_string function_name,
+                             c_string out_type,
                              bool returns_new_offset = true)
       {
         return shader_unpack_value::stream_unpack_function(alignment, str, *this, function_name,

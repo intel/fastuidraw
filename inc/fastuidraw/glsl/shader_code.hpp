@@ -66,8 +66,8 @@ namespace fastuidraw
        */
       ShaderSource
       curvepair_compute_pseudo_distance(unsigned int alignment,
-                                        const char *function_name,
-                                        const char *geometry_store_fetch,
+                                        c_string function_name,
+                                        c_string geometry_store_fetch,
                                         bool derivative_function = false);
       /*!
         Gives the shader source code for a function with
@@ -91,8 +91,8 @@ namespace fastuidraw
         \param color_tile_size the size of each color tile (see ImageAtlas::color_tile_size())
        */
       ShaderSource
-      image_atlas_compute_coord(const char *function_name,
-                                const char *index_texture,
+      image_atlas_compute_coord(c_string function_name,
+                                c_string index_texture,
                                 unsigned int index_tile_size,
                                 unsigned int color_tile_size);
 
@@ -126,7 +126,7 @@ namespace fastuidraw
         \param data_alignment the alignment of the data store (see PainterBackend::ConfigurationBase::alignemnt()).
        */
       ShaderSource
-      compute_interval(const char *function_name, unsigned int data_alignment);
+      compute_interval(c_string function_name, unsigned int data_alignment);
     }
 /*! @} */
   }

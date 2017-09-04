@@ -4,7 +4,7 @@
 
 namespace
 {
-  const char*
+  fastuidraw::c_string
   string_from_data_store_type(enum fastuidraw::gl::PainterBackendGL::data_store_backing_t v)
   {
     switch(v)

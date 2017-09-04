@@ -93,7 +93,7 @@ namespace fastuidraw
                         FT_Face objects
         \param face_index face index of file
        */
-      GeneratorFile(const char *filename, int face_index);
+      GeneratorFile(c_string filename, int face_index);
       ~GeneratorFile();
 
     protected:
@@ -130,7 +130,7 @@ namespace fastuidraw
                         FT_Face objects
         \param face_index face index of file
        */
-      GeneratorMemory(const char *filename, int face_index);
+      GeneratorMemory(c_string filename, int face_index);
 
       ~GeneratorMemory();
 

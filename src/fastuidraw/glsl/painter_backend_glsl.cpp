@@ -164,7 +164,7 @@ namespace
                      fastuidraw::glsl::ShaderSource &out_fragment,
                      const fastuidraw::glsl::PainterBackendGLSL::UberShaderParams &contruct_params,
                      const fastuidraw::glsl::PainterBackendGLSL::ItemShaderFilter *item_shader_filter,
-                     const char *discard_macro_value);
+                     fastuidraw::c_string discard_macro_value);
 
     void
     update_varying_size(const fastuidraw::glsl::varying_list &plist);
@@ -736,7 +736,7 @@ declare_shader_uniforms(const fastuidraw::glsl::PainterBackendGLSL::UberShaderPa
 
   if(params.use_ubo_for_uniforms())
     {
-      const char *ext="xyzw";
+      fastuidraw::c_string ext="xyzw";
       /* Mesa packs UBO data float[N] as really vec4[N],
          so instead realize the data directly as vec4[K]
        */
@@ -785,7 +785,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
                  fastuidraw::glsl::ShaderSource &frag,
                  const fastuidraw::glsl::PainterBackendGLSL::UberShaderParams &params,
                  const fastuidraw::glsl::PainterBackendGLSL::ItemShaderFilter *item_shader_filter,
-                 const char *discard_macro_value)
+                 fastuidraw::c_string discard_macro_value)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::glsl;
@@ -1052,7 +1052,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   stream_uber_vert_shader(params.vert_shader_use_switch(), vert, item_shaders,
                           shader_varying_datum);
 
-  const char *shader_blend_macro;
+  c_string shader_blend_macro;
   switch(params.blend_type())
     {
     case PainterBlendShader::framebuffer_fetch:
@@ -1528,7 +1528,7 @@ construct_shader(ShaderSource &out_vertex,
                  ShaderSource &out_fragment,
                  const UberShaderParams &construct_params,
                  const ItemShaderFilter *item_shader_filter,
-                 const char *discard_macro_value)
+                 c_string discard_macro_value)
 {
   PainterBackendGLSLPrivate *d;
   d = static_cast<PainterBackendGLSLPrivate*>(m_d);
