@@ -31,9 +31,6 @@ namespace fastuidraw
   @{
  */
 
-template<typename T>
-class c_array;
-
 /*!
   \brief
   A c_array is a wrapper over a
@@ -55,7 +52,12 @@ public:
 
   /*!
     \brief
-    STL compliant typedef
+    STL compliant typedef; notice that const_pointer
+    is type T* and not const T*. This is because
+    a c_array is just a HOLDER of a pointer and
+    a length and thus the contents of the value
+    behind the pointer are independent to the
+    value of a c_array.
   */
   typedef T* const_pointer;
 
@@ -67,7 +69,12 @@ public:
 
   /*!
     \brief
-    STL compliant typedef
+    STL compliant typedef; notice that const_pointer
+    is type T& and not const T&. This is because
+    a c_array is just a HOLDER of a pointer and
+    a length and thus the contents of the value
+    behind the pointer are independent to the
+    value of a c_array.
   */
   typedef T& const_reference;
 
@@ -148,6 +155,11 @@ public:
     FASTUIDRAWstatic_assert(sizeof(U) == sizeof(T));
   }
 
+  /*!
+    Ctor from a vecN, size is the size of the fixed size array
+    \param pptr fixed size array that c_array references, must be
+                in scope as until c_array is changed
+   */
   template<typename U, size_type N>
   c_array(const vecN<U, N> &pptr):
     m_size(N),
@@ -173,10 +185,10 @@ public:
 
   /*!
     Ctor from a range of pointers.
-    \param R R.m_begin will be the pointer and R.m_end-R.m_begin the size.
+    \param R R.m_begin will be the pointer and R.m_end - R.m_begin the size.
    */
   c_array(range_type<iterator> R):
-    m_size(R.m_end-R.m_begin),
+    m_size(R.m_end - R.m_begin),
     m_ptr((m_size > 0) ? &*R.m_begin : nullptr)
   {}
 
@@ -197,9 +209,9 @@ public:
   }
 
   /*!
-    Reinterpret style cast for c_array. It is required
-    that the sizeof(T)*size() evenly divides sizeof(S).
-    \tparam S type to which to be reinterpreted casted
+    Const style cast for c_array. It is required
+    that the sizeof(T) is the same as sizeof(S).
+    \tparam S type to which to be const casted
    */
   template<typename S>
   c_array<S>
@@ -227,7 +239,7 @@ public:
   T*
   end_c_ptr(void) const
   {
-    return m_ptr+m_size;
+    return m_ptr + m_size;
   }
 
   /*!
