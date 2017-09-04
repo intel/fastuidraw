@@ -60,7 +60,7 @@ namespace fastuidraw
       chunk. Usually, one uses index_data_chunks()[i]
       to draw the contents of attribute_data_chunks()[i].
      */
-    const_c_array<const_c_array<PainterAttribute> >
+    c_array<const c_array<const PainterAttribute> >
     attribute_data_chunks(void) const;
 
     /*!
@@ -70,7 +70,7 @@ namespace fastuidraw
       attribute_data_chunks().size().
       \param i index of attribute_data_chunks() to fetch
      */
-    const_c_array<PainterAttribute>
+    c_array<const PainterAttribute>
     attribute_data_chunk(unsigned int i) const;
 
     /*!
@@ -79,7 +79,7 @@ namespace fastuidraw
       chunk. Usually, one uses index_data_chunks()[i]
       to draw the contents of attribute_data_chunks()[i].
     */
-    const_c_array<const_c_array<PainterIndex> >
+    c_array<const c_array<const PainterIndex> >
     index_data_chunks(void) const;
 
     /*!
@@ -87,7 +87,7 @@ namespace fastuidraw
       The index adjust value is by how much to adjust
       the indices of an index chunk.
      */
-    const_c_array<int>
+    c_array<const int>
     index_adjust_chunks(void) const;
 
     /*!
@@ -97,7 +97,7 @@ namespace fastuidraw
       index_data_chunks().size().
       \param i index of index_data_chunks() to fetch
      */
-    const_c_array<PainterIndex>
+    c_array<const PainterIndex>
     index_data_chunk(unsigned int i) const;
 
     /*!
@@ -112,7 +112,7 @@ namespace fastuidraw
       Returns an array that holds those value i
       for which index_data_chunk(i) is non-empty.
      */
-    const_c_array<unsigned int>
+    c_array<const unsigned int>
     non_empty_index_data_chunks(void) const;
 
     /*!
@@ -123,7 +123,7 @@ namespace fastuidraw
       that while drawing so that range_type::m_begin maps
       to Painter::current_z().
      */
-    const_c_array<range_type<int> >
+    c_array<const range_type<int> >
     z_ranges(void) const;
 
     /*!

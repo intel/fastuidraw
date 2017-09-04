@@ -75,7 +75,7 @@ public:
   }
 
   void
-  set_data(int offset, const_c_array<uint8_t> data)
+  set_data(int offset, c_array<const uint8_t> data)
   {
     FASTUIDRAWassert(!data.empty());
     if(m_delayed)

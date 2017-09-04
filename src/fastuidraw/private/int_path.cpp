@@ -48,7 +48,7 @@ namespace
   }
 
   void
-  generate_polynomial_from_bezier(fastuidraw::const_c_array<fastuidraw::ivec2> pts,
+  generate_polynomial_from_bezier(fastuidraw::c_array<const fastuidraw::ivec2> pts,
                                   fastuidraw::vecN<fastuidraw::c_array<int>, 2> &curve)
   {
     fastuidraw::vecN<fastuidraw::ivec2, 4> q(fastuidraw::ivec2(0));
@@ -192,7 +192,7 @@ namespace
       m_number_pts(3)
     {}
 
-    BezierCurvePts(fastuidraw::const_c_array<point> pts):
+    BezierCurvePts(fastuidraw::c_array<const point> pts):
       m_number_pts(pts.size())
     {
       FASTUIDRAWassert(m_pts.size() <= 3);
@@ -205,10 +205,10 @@ namespace
       return fastuidraw::c_array<point>(&m_pts[0], m_number_pts);
     }
 
-    fastuidraw::const_c_array<point>
+    fastuidraw::c_array<const point>
     control_pts(void) const
     {
-      return fastuidraw::const_c_array<point>(&m_pts[0], m_number_pts);
+      return fastuidraw::c_array<const point>(&m_pts[0], m_number_pts);
     }
 
     /* Takes a list of fastuidraw::detail::IntContour::IntBezierCurve
@@ -366,7 +366,7 @@ namespace
     static
     int
     compute_solution_points(IntBezierCurve::ID_t src,
-                            const fastuidraw::vecN<fastuidraw::const_c_array<T>, 2> &curve,
+                            const fastuidraw::vecN<fastuidraw::c_array<const T>, 2> &curve,
                             solutions_iterator solutions_begin, solutions_iterator solutions_end,
                             const IntBezierCurve::transformation<float> &tr,
                             iterator out_pts);
@@ -374,7 +374,7 @@ namespace
     template<typename T, typename iterator>
     static
     void
-    solve_polynomial(fastuidraw::const_c_array<T> poly,
+    solve_polynomial(fastuidraw::c_array<const T> poly,
                      uint32_t accepted_solutions,
                      poly_solutions<iterator> *solutions);
 
@@ -423,28 +423,28 @@ namespace
     template<typename T, typename iterator>
     static
     void
-    solve_linear(fastuidraw::const_c_array<T> poly,
+    solve_linear(fastuidraw::c_array<const T> poly,
                  uint32_t accepted_solutions,
                  poly_solutions<iterator> *solutions);
 
     template<typename T, typename iterator>
     static
     void
-    solve_quadratic(fastuidraw::const_c_array<T> poly,
+    solve_quadratic(fastuidraw::c_array<const T> poly,
                     uint32_t accepted_solutions,
                     poly_solutions<iterator> *solutions);
 
     template<typename T, typename iterator>
     static
     void
-    solve_cubic(fastuidraw::const_c_array<T> poly,
+    solve_cubic(fastuidraw::c_array<const T> poly,
                 uint32_t accepted_solutions,
                 poly_solutions<iterator> *solutions);
 
     template<typename T>
     static
     void
-    increment_p_and_p_t(const fastuidraw::vecN<fastuidraw::const_c_array<T>, 2> &curve,
+    increment_p_and_p_t(const fastuidraw::vecN<fastuidraw::c_array<const T>, 2> &curve,
                         float t, fastuidraw::vec2 &p, fastuidraw::vec2 &p_t);
 
     const IntBezierCurve &m_curve;
@@ -672,8 +672,8 @@ namespace
     extract_entry(bool reverse,
                   const IntBezierCurve::transformation<int> &tr,
                   const vec2 &scale_factor,
-                  fastuidraw::const_c_array<ivec2> c0,
-                  fastuidraw::const_c_array<ivec2> c1);
+                  fastuidraw::c_array<const ivec2> c0,
+                  fastuidraw::c_array<const ivec2> c1);
 
     IntBezierCurve::ID_t
     prev_neighbor(IntBezierCurve::ID_t id) const
@@ -824,7 +824,7 @@ simplify(float curvature_collapse,
     {
       if(in_curve.degree() == 3)
         {
-          fastuidraw::const_c_array<fastuidraw::ivec2> pts(in_curve.control_pts());
+          fastuidraw::c_array<const fastuidraw::ivec2> pts(in_curve.control_pts());
           CubicBezierCurve cubic(pts[0], pts[1], pts[2], pts[3]);
           fastuidraw::ivec2 t0, t1;
           fastuidraw::vecN<QuadraticBezierCurve, 4> quads_4;
@@ -870,7 +870,7 @@ simplify(float curvature_collapse,
           bool collapse_to_line(false);
           if(in_curve.degree() == 2)
             {
-              fastuidraw::const_c_array<fastuidraw::ivec2> pts(in_curve.control_pts());
+              fastuidraw::c_array<const fastuidraw::ivec2> pts(in_curve.control_pts());
 
               QuadraticBezierCurve Q(pts[0], pts[1], pts[2]);
               collapse_to_line = Q.compute_curvature() < curvature_collapse;
@@ -1066,7 +1066,7 @@ size(void) const
 template<typename T, typename iterator>
 void
 Solver::
-solve_polynomial(fastuidraw::const_c_array<T> poly,
+solve_polynomial(fastuidraw::c_array<const T> poly,
                  uint32_t accepted_solutions,
                  poly_solutions<iterator> *solutions)
 {
@@ -1094,7 +1094,7 @@ solve_polynomial(fastuidraw::const_c_array<T> poly,
 template<typename T, typename iterator>
 void
 Solver::
-solve_linear(fastuidraw::const_c_array<T> poly,
+solve_linear(fastuidraw::c_array<const T> poly,
              uint32_t accepted_solutions,
              poly_solutions<iterator> *solutions)
 {
@@ -1118,7 +1118,7 @@ solve_linear(fastuidraw::const_c_array<T> poly,
 template<typename T, typename iterator>
 void
 Solver::
-solve_quadratic(fastuidraw::const_c_array<T> poly,
+solve_quadratic(fastuidraw::c_array<const T> poly,
                 uint32_t accepted_solutions,
                 poly_solutions<iterator> *solutions)
 {
@@ -1144,7 +1144,7 @@ solve_quadratic(fastuidraw::const_c_array<T> poly,
       tmp[1] = poly[0];
 
       solutions->add_1_solution(accepted_solutions);
-      solve_linear(fastuidraw::const_c_array<T>(tmp), accepted_solutions, solutions);
+      solve_linear(fastuidraw::c_array<const T>(tmp), accepted_solutions, solutions);
       return;
     }
 
@@ -1176,7 +1176,7 @@ solve_quadratic(fastuidraw::const_c_array<T> poly,
 template<typename T, typename iterator>
 void
 Solver::
-solve_cubic(fastuidraw::const_c_array<T> poly,
+solve_cubic(fastuidraw::c_array<const T> poly,
             uint32_t accepted_solutions,
             poly_solutions<iterator> *solutions)
 {
@@ -1198,7 +1198,7 @@ solve_cubic(fastuidraw::const_c_array<T> poly,
       tmp[2] = poly[3];
 
       solutions->add_1_solution(accepted_solutions);
-      solve_quadratic(fastuidraw::const_c_array<T>(tmp), accepted_solutions, solutions);
+      solve_quadratic(fastuidraw::c_array<const T>(tmp), accepted_solutions, solutions);
       return;
     }
 
@@ -1277,7 +1277,7 @@ solve_cubic(fastuidraw::const_c_array<T> poly,
 template<typename T>
 void
 Solver::
-increment_p_and_p_t(const fastuidraw::vecN<fastuidraw::const_c_array<T>, 2> &curve,
+increment_p_and_p_t(const fastuidraw::vecN<fastuidraw::c_array<const T>, 2> &curve,
                     float t, fastuidraw::vec2 &p, fastuidraw::vec2 &p_t)
 {
   for(int coord = 0; coord < 2; ++coord)
@@ -1304,7 +1304,7 @@ template<typename T, typename iterator, typename solutions_iterator>
 int
 Solver::
 compute_solution_points(fastuidraw::detail::IntBezierCurve::ID_t src,
-                        const fastuidraw::vecN<fastuidraw::const_c_array<T>, 2> &curve,
+                        const fastuidraw::vecN<fastuidraw::c_array<const T>, 2> &curve,
                         solutions_iterator solutions_begin, solutions_iterator solutions_end,
                         const IntBezierCurve::transformation<float> &tr,
                         iterator out_pts)
@@ -1339,7 +1339,7 @@ compute_line_intersection(int pt, enum coordinate_type line_type,
 {
   fastuidraw::vecN<int64_t, 4> work_room;
   int coord(fixed_coordinate(line_type));
-  fastuidraw::const_c_array<int> poly(m_curve.as_polynomial(coord));
+  fastuidraw::c_array<const int> poly(m_curve.as_polynomial(coord));
   fastuidraw::c_array<int64_t> tmp(work_room.c_ptr(), poly.size());
 
   typedef std::vector<poly_solution> solution_holder_t;
@@ -1361,7 +1361,7 @@ compute_line_intersection(int pt, enum coordinate_type line_type,
      f(t) - pt = 0.
    */
   tmp[0] -= pt;
-  solve_polynomial(fastuidraw::const_c_array<int64_t>(tmp), solution_types_accepted, &solutions);
+  solve_polynomial(fastuidraw::c_array<const int64_t>(tmp), solution_types_accepted, &solutions);
   solutions.finalize();
   FASTUIDRAWassert(solutions.size() == solution_holder.size());
 
@@ -1528,7 +1528,7 @@ compute_derivative_cancel_values(const ivec2 &step, const ivec2 &count,
       const std::vector<IntBezierCurve> &curves(contour.curves());
       for(const IntBezierCurve &curve : curves)
         {
-          fastuidraw::const_c_array<vec2> derivatives_cancel(curve.derivatives_cancel());
+          fastuidraw::c_array<const vec2> derivatives_cancel(curve.derivatives_cancel());
           for(const vec2 &p : derivatives_cancel)
             {
               record_distance_value_from_canidate(ftr(p), radius, step, count, dst);
@@ -1968,7 +1968,7 @@ extract_entries(const ivec2 &step, const IntBezierCurve::transformation<int> &tr
         {
           IntBezierCurve::ID_t ID, next_ID;
           unsigned int idx;
-          fastuidraw::const_c_array<ivec2> src_pts;
+          fastuidraw::c_array<const ivec2> src_pts;
 
           ID = c.ID();
           next_ID = next_neighbor(ID);
@@ -1986,8 +1986,8 @@ CurvePairGenerator::
 extract_entry(bool reverse,
               const IntBezierCurve::transformation<int> &tr,
               const vec2 &scale_factor,
-              fastuidraw::const_c_array<ivec2> c0,
-              fastuidraw::const_c_array<ivec2> c1)
+              fastuidraw::c_array<const ivec2> c0,
+              fastuidraw::c_array<const ivec2> c1)
 {
   unsigned int total_cnt(0), start_curve_size;
   fastuidraw::vecN<fastuidraw::vec2, 5> pts;
@@ -2028,7 +2028,7 @@ fastuidraw::detail::IntBezierCurve::
 eval(float t) const
 {
   vec2 R(0.0f, 0.0f);
-  vecN<const_c_array<int>, 2> poly(as_polynomial());
+  vecN<c_array<const int>, 2> poly(as_polynomial());
 
   for(int c = 0; c < 2; ++c)
     {
@@ -2065,7 +2065,7 @@ process_control_pts(void)
         }
     }
 
-  const_c_array<ivec2> ct_pts(control_pts());
+  c_array<const ivec2> ct_pts(control_pts());
   vecN<c_array<int>, 2> poly_ptr(as_polynomial(0), as_polynomial(1));
 
   m_bb.union_points(ct_pts.begin(), ct_pts.end());
@@ -2102,9 +2102,9 @@ compute_derivatives_cancel_pts(void)
   solution_holder_t solution_holder;
   Solver::poly_solutions<solution_holder_t::iterator> solutions(solution_holder.begin());
 
-  Solver::solve_polynomial(const_c_array<int>(sum.c_ptr(), m_num_control_pts),
+  Solver::solve_polynomial(c_array<const int>(sum.c_ptr(), m_num_control_pts),
                            Solver::within_0_1, &solutions);
-  Solver::solve_polynomial(const_c_array<int>(difference.c_ptr(), m_num_control_pts),
+  Solver::solve_polynomial(c_array<const int>(difference.c_ptr(), m_num_control_pts),
                            Solver::within_0_1, &solutions);
   solutions.finalize();
   FASTUIDRAWassert(solutions.size() <= m_derivatives_cancel.size());
@@ -2159,7 +2159,7 @@ filter(float curvature_collapse,
   m_curves.clear();
   for(unsigned int I : non_collapsed_curves)
     {
-      const_c_array<ivec2> pts(tmp[I].control_pts());
+      c_array<const ivec2> pts(tmp[I].control_pts());
       if(pts.size() == 2)
         {
           m_curves.push_back(IntBezierCurve(id, pts[0], pts[1]));
@@ -2185,7 +2185,7 @@ add_to_path(const IntBezierCurve::transformation<float> &tr, Path *dst) const
 
   for(const IntBezierCurve &curve : m_curves)
     {
-      const_c_array<ivec2> pts;
+      c_array<const ivec2> pts;
 
       pts = curve.control_pts();
       pts = pts.sub_array(0, pts.size() - 1);

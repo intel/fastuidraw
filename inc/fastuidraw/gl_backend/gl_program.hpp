@@ -466,12 +466,12 @@ private:
 
 /*!
   \brief
-  Specialization for type const_c_array<T> for
+  Specialization for type c_array<const T> for
   \ref UniformInitializer so that data behind
   the const_c_array is copied.
  */
 template<typename T>
-class UniformInitializer<const_c_array<T> >:public UniformInitalizerBase
+class UniformInitializer<c_array<const T> >:public UniformInitalizerBase
 {
 public:
   /*!
@@ -479,14 +479,14 @@ public:
     \param uniform_name name of uniform in GLSL to initialize
     \param value value with which to set the uniform
    */
-  UniformInitializer(c_string uniform_name, const const_c_array<T> &value):
+  UniformInitializer(c_string uniform_name, const c_array<const T> &value):
     UniformInitalizerBase(uniform_name),
     m_data(nullptr)
   {
     if(!value.empty())
       {
         m_data = FASTUIDRAWnew T[value.size()];
-        m_value = const_c_array<T>(m_data, value.size());
+        m_value = c_array<const T>(m_data, value.size());
         std::copy(value.begin(), value.end(), m_data);
       }
   }
@@ -517,7 +517,7 @@ protected:
 
 private:
   T *m_data;
-  const_c_array<T> m_value;
+  c_array<const T> m_value;
 };
 
 /*!
@@ -535,14 +535,14 @@ public:
     \param uniform_name name of uniform in GLSL to initialize
     \param value value with which to set the uniform
    */
-  UniformInitializer(c_string uniform_name, const const_c_array<T> &value):
+  UniformInitializer(c_string uniform_name, const c_array<const T> &value):
     UniformInitalizerBase(uniform_name),
     m_data(nullptr)
   {
     if(!value.empty())
       {
         m_data = FASTUIDRAWnew T[value.size()];
-        m_value = const_c_array<T>(m_data, value.size());
+        m_value = c_array<const T>(m_data, value.size());
         std::copy(value.begin(), value.end(), m_data);
       }
   }
@@ -573,7 +573,7 @@ protected:
 
 private:
   T *m_data;
-  const_c_array<T> m_value;
+  c_array<const T> m_value;
 };
 
 
@@ -1271,7 +1271,7 @@ public:
     \param initers one-time initialization actions to perform at GLSL
                    program creation
    */
-  Program(const_c_array<reference_counted_ptr<Shader> > pshaders,
+  Program(c_array<const reference_counted_ptr<Shader> > pshaders,
           const PreLinkActionArray &action = PreLinkActionArray(),
           const ProgramInitializerArray &initers = ProgramInitializerArray());
 

@@ -34,7 +34,7 @@ namespace fastuidraw
     \param value "value" of resource, the data behind value is copied
    */
   void
-  generate_static_resource(c_string resource_label, const_c_array<uint8_t> value);
+  generate_static_resource(c_string resource_label, c_array<const uint8_t> value);
 
   /*!
     Returns the data behind a resource. If no resource is found,
@@ -42,7 +42,7 @@ namespace fastuidraw
     \param resource_label label of resource as specified
                           by generate_static_resource().
    */
-  const_c_array<uint8_t>
+  c_array<const uint8_t>
   fetch_static_resource(c_string resource_label);
 
   /*!
@@ -59,7 +59,7 @@ namespace fastuidraw
       \param resource_label resource label to pass to generate_static_resource()
       \param value value of resource to pass to generate_static_resource()
      */
-    static_resource(c_string resource_label, const_c_array<uint8_t> value);
+    static_resource(c_string resource_label, c_array<const uint8_t> value);
   };
 /*! @} */
 }

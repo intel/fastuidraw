@@ -36,7 +36,7 @@ namespace
     FT_Error error_code;
     FT_Face face(nullptr);
     fastuidraw::reference_counted_ptr<fastuidraw::DataBufferBase> buffer;
-    fastuidraw::const_c_array<uint8_t> data;
+    fastuidraw::c_array<const uint8_t> data;
     
     buffer = FASTUIDRAWnew fastuidraw::DataBuffer(filename.c_str());
     data = buffer->data_ro();

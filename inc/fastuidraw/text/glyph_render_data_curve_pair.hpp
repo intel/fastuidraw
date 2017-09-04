@@ -137,7 +137,7 @@ namespace fastuidraw
                             by pts.sub_array(curve0_count - 1) (since its start point
                             is the end point of curve going in).
        */
-      entry(const_c_array<vec2> pts, int curve0_count);
+      entry(c_array<const vec2> pts, int curve0_count);
 
       /*!
         Construct an entry indicating that a point is always "inside"
@@ -264,7 +264,7 @@ namespace fastuidraw
        - completely_empty_texel indicates that texel
          has no curves through it and is outside the glyph
      */
-    const_c_array<uint16_t>
+    c_array<const uint16_t>
     active_curve_pair(void) const;
 
     /*!
@@ -288,7 +288,7 @@ namespace fastuidraw
       Represents all the geometry data of a
       CurvePairGlyphData needed to render it.
      */
-    const_c_array<entry>
+    c_array<const entry>
     geometry_data(void) const;
 
     /*!

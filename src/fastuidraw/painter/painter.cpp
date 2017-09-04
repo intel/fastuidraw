@@ -73,7 +73,7 @@ namespace
 
     void
     set(const fastuidraw::FilledPath &filled_path,
-        fastuidraw::const_c_array<unsigned int> subsets,
+        fastuidraw::c_array<const unsigned int> subsets,
         const fastuidraw::CustomFillRuleBase &fill_rule)
     {
       int max_winding(0), min_winding(0);
@@ -467,7 +467,7 @@ namespace
     }
 
     void
-    clip_polygon(fastuidraw::const_c_array<fastuidraw::vec2> pts,
+    clip_polygon(fastuidraw::c_array<const fastuidraw::vec2> pts,
                  std::vector<fastuidraw::vec2> &out_pts,
                  std::vector<fastuidraw::vec2> &work_vec2s,
                  std::vector<float> &work_floats);
@@ -571,7 +571,7 @@ namespace
     }
 
     void
-    set_current(fastuidraw::const_c_array<fastuidraw::vec3> new_equations)
+    set_current(fastuidraw::c_array<const fastuidraw::vec3> new_equations)
     {
       m_current.resize(new_equations.size());
       std::copy(new_equations.begin(), new_equations.end(), m_current.begin());
@@ -597,7 +597,7 @@ namespace
       m_sz.clear();
     }
 
-    fastuidraw::const_c_array<fastuidraw::vec3>
+    fastuidraw::c_array<const fastuidraw::vec3>
     current(void)
     {
       return fastuidraw::make_c_array(m_current);
@@ -628,19 +628,19 @@ namespace
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_clipper_vec2s;
     std::vector<fastuidraw::PainterIndex> m_polygon_indices;
     std::vector<fastuidraw::PainterAttribute> m_polygon_attribs;
-    std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_stroke_attrib_chunks;
-    std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_stroke_index_chunks;
+    std::vector<fastuidraw::c_array<const fastuidraw::PainterAttribute> > m_stroke_attrib_chunks;
+    std::vector<fastuidraw::c_array<const fastuidraw::PainterIndex> > m_stroke_index_chunks;
     std::vector<int> m_stroke_increment_zs;
     std::vector<int> m_stroke_start_zs;
     std::vector<int> m_stroke_index_adjusts;
     fastuidraw::StrokedPath::ChunkSet m_stroke_chunk_set;
-    std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_fill_attrib_chunks;
-    std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_fill_index_chunks;
+    std::vector<fastuidraw::c_array<const fastuidraw::PainterAttribute> > m_fill_attrib_chunks;
+    std::vector<fastuidraw::c_array<const fastuidraw::PainterIndex> > m_fill_index_chunks;
     std::vector<int> m_fill_index_adjusts;
     std::vector<unsigned int> m_fill_selector, m_fill_subset_selector;
     WindingSet m_fill_ws;
-    std::vector<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_fill_aa_fuzz_attrib_chunks;
-    std::vector<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_fill_aa_fuzz_index_chunks;
+    std::vector<fastuidraw::c_array<const fastuidraw::PainterAttribute> > m_fill_aa_fuzz_attrib_chunks;
+    std::vector<fastuidraw::c_array<const fastuidraw::PainterIndex> > m_fill_aa_fuzz_index_chunks;
     std::vector<int> m_fill_aa_fuzz_index_adjusts;
     fastuidraw::StrokedPath::ScratchSpace m_stroked_path_scratch;
     fastuidraw::FilledPath::ScratchSpace m_filled_path_scratch;
@@ -655,10 +655,10 @@ namespace
     void
     draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
                  const fastuidraw::PainterData &draw,
-                 fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
-                 fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
-                 fastuidraw::const_c_array<int> index_adjusts,
-                 fastuidraw::const_c_array<unsigned int> attrib_chunk_selector,
+                 fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
+                 fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+                 fastuidraw::c_array<const int> index_adjusts,
+                 fastuidraw::c_array<const unsigned int> attrib_chunk_selector,
                  int z,
                  const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
@@ -671,7 +671,7 @@ namespace
 
     void
     draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader, const fastuidraw::PainterData &draw,
-                         const fastuidraw::FilledPath &filled_path, fastuidraw::const_c_array<unsigned int> subsets,
+                         const fastuidraw::FilledPath &filled_path, fastuidraw::c_array<const unsigned int> subsets,
                          const WindingSet &wset,
                          const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
@@ -874,7 +874,7 @@ set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw:
 
 void
 clip_rect_state::
-clip_polygon(fastuidraw::const_c_array<fastuidraw::vec2> pts,
+clip_polygon(fastuidraw::c_array<const fastuidraw::vec2> pts,
              std::vector<fastuidraw::vec2> &out_pts,
              std::vector<fastuidraw::vec2> &work_vec2s,
              std::vector<float> &work_floats)
@@ -946,12 +946,12 @@ clip_against_current(const fastuidraw::float3x3 &clip_matrix_local,
                     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> &in_out_pts,
                     std::vector<float> &work_floats)
 {
-  fastuidraw::const_c_array<fastuidraw::vec3> clips(current());
+  fastuidraw::c_array<const fastuidraw::vec3> clips(current());
   unsigned int src, dst, i;
   for(i = 0, src = 0, dst = 1; i < clips.size(); ++i, std::swap(src, dst))
     {
       fastuidraw::vec3 nc;
-      fastuidraw::const_c_array<fastuidraw::vec2> in;
+      fastuidraw::c_array<const fastuidraw::vec2> in;
 
       nc = clips[i] * clip_matrix_local;
       in = fastuidraw::make_c_array(in_out_pts[src]);
@@ -999,7 +999,7 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
   /* the input rectangle clipped to the previous clipping equation
      array is now stored in m_work_room.m_pts_update_clip_series[src]
    */
-  fastuidraw::const_c_array<fastuidraw::vec2> poly;
+  fastuidraw::c_array<const fastuidraw::vec2> poly;
   poly = fastuidraw::make_c_array(m_work_room.m_pts_update_clip_series[src]);
 
   m_clip_store.clear_current();
@@ -1123,7 +1123,7 @@ select_path_thresh_perspective(const fastuidraw::Path &path)
                                           m_work_room.m_clipper_vec2s,
                                           m_work_room.m_clipper_floats);
 
-  fastuidraw::const_c_array<fastuidraw::vec2> poly;
+  fastuidraw::c_array<const fastuidraw::vec2> poly;
   poly = make_c_array(m_work_room.m_clipper_vec2s[src]);
 
   if(poly.empty())
@@ -1198,10 +1198,10 @@ void
 PainterPrivate::
 draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
              const fastuidraw::PainterData &draw,
-             fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
-             fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
-             fastuidraw::const_c_array<int> index_adjusts,
-             fastuidraw::const_c_array<unsigned int> attrib_chunk_selector,
+             fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
+             fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+             fastuidraw::c_array<const int> index_adjusts,
+             fastuidraw::c_array<const unsigned int> attrib_chunk_selector,
              int z,
              const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
 {
@@ -1230,7 +1230,7 @@ void
 PainterPrivate::
 draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader, const fastuidraw::PainterData &draw,
                      const fastuidraw::FilledPath &filled_path,
-                     fastuidraw::const_c_array<unsigned int> subsets,
+                     fastuidraw::c_array<const unsigned int> subsets,
                      const WindingSet &wset,
                      const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
 {
@@ -1243,7 +1243,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader, const fastuidr
       fastuidraw::FilledPath::Subset subset(filled_path.subset(s));
       const fastuidraw::PainterAttributeData &data(subset.aa_fuzz_painter_data());
 
-      for(fastuidraw::const_c_array<int>::iterator iter = subset.winding_numbers().begin(),
+      for(fastuidraw::c_array<const int>::iterator iter = subset.winding_numbers().begin(),
             end = subset.winding_numbers().end(); iter != end; ++iter)
         {
           int w0(*iter);
@@ -1259,7 +1259,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader, const fastuidr
                 }
             }
 
-          for(fastuidraw::const_c_array<int>::iterator i = subset.winding_neighbors(w0).begin(),
+          for(fastuidraw::c_array<const int>::iterator i = subset.winding_neighbors(w0).begin(),
                 e = subset.winding_neighbors(w0).end(); i != e; ++i)
             {
               int w1(*i);
@@ -1282,7 +1282,7 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader, const fastuidr
                fastuidraw::make_c_array(m_work_room.m_fill_aa_fuzz_attrib_chunks),
                fastuidraw::make_c_array(m_work_room.m_fill_aa_fuzz_index_chunks),
                fastuidraw::make_c_array(m_work_room.m_fill_aa_fuzz_index_adjusts),
-               fastuidraw::const_c_array<unsigned int>(),
+               fastuidraw::c_array<const unsigned int>(),
                m_current_z,
                call_back);
 }
@@ -1370,9 +1370,9 @@ end(void)
 void
 fastuidraw::Painter::
 draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
-             const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
-             const_c_array<const_c_array<PainterIndex> > index_chunks,
-             const_c_array<int> index_adjusts,
+             c_array<const c_array<const PainterAttribute> > attrib_chunks,
+             c_array<const c_array<const PainterIndex> > index_chunks,
+             c_array<const int> index_adjusts,
              const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
@@ -1380,7 +1380,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
   if(!d->m_clip_rect_state.m_all_content_culled)
     {
       d->draw_generic(shader, draw, attrib_chunks, index_chunks,
-                      index_adjusts, const_c_array<unsigned int>(),
+                      index_adjusts, c_array<const unsigned int>(),
                       current_z(), call_back);
     }
 }
@@ -1388,10 +1388,10 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
 void
 fastuidraw::Painter::
 draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const PainterData &draw,
-             const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
-             const_c_array<const_c_array<PainterIndex> > index_chunks,
-             const_c_array<int> index_adjusts,
-             const_c_array<unsigned int> attrib_chunk_selector,
+             c_array<const c_array<const PainterAttribute> > attrib_chunks,
+             c_array<const c_array<const PainterIndex> > index_chunks,
+             c_array<const int> index_adjusts,
+             c_array<const unsigned int> attrib_chunk_selector,
              const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
@@ -1422,7 +1422,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
 void
 fastuidraw::Painter::
 draw_convex_polygon(const PainterFillShader &shader,
-                    const PainterData &draw, const_c_array<vec2> pts,
+                    const PainterData &draw, c_array<const vec2> pts,
                     bool with_anti_aliasing,
                     const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
@@ -1514,10 +1514,10 @@ draw_convex_polygon(const PainterFillShader &shader,
 
       --d->m_current_z;
       d->draw_generic(shader.aa_fuzz_shader(), draw,
-		      vecN<const_c_array<PainterAttribute>, 1>(attrs),
-		      vecN<const_c_array<PainterIndex>, 1>(indices),
+		      vecN<c_array<const PainterAttribute>, 1>(attrs),
+		      vecN<c_array<const PainterIndex>, 1>(indices),
 		      vecN<int, 1>(0),
-		      const_c_array<unsigned int>(),
+		      c_array<const unsigned int>(),
 		      d->m_current_z,
 		      call_back);
       ++d->m_current_z;
@@ -1526,7 +1526,7 @@ draw_convex_polygon(const PainterFillShader &shader,
 
 void
 fastuidraw::Painter::
-draw_convex_polygon(const PainterData &draw, const_c_array<vec2> pts,
+draw_convex_polygon(const PainterData &draw, c_array<const vec2> pts,
                     bool with_anti_aliasing,
                     const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
@@ -1546,7 +1546,7 @@ draw_quad(const PainterFillShader &shader,
   pts[1] = p1;
   pts[2] = p2;
   pts[3] = p3;
-  draw_convex_polygon(shader, draw, const_c_array<vec2>(&pts[0], pts.size()),
+  draw_convex_polygon(shader, draw, c_array<const vec2>(&pts[0], pts.size()),
                       with_anti_aliasing, call_back);
 }
 
@@ -1585,9 +1585,9 @@ draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
 void
 fastuidraw::Painter::
 stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
-            const PainterAttributeData *edge_data, const_c_array<unsigned int> edge_chunks,
-            const PainterAttributeData *cap_data, const_c_array<unsigned int> cap_chunks,
-            const PainterAttributeData* join_data, const_c_array<unsigned int> join_chunks,
+            const PainterAttributeData *edge_data, c_array<const unsigned int> edge_chunks,
+            const PainterAttributeData *cap_data, c_array<const unsigned int> cap_chunks,
+            const PainterAttributeData* join_data, c_array<const unsigned int> join_chunks,
             bool with_anti_aliasing,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
@@ -1601,25 +1601,25 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
   unsigned int startz, zinc_sum(0), total_chunks(0), current(0);
   bool modify_z;
   const reference_counted_ptr<PainterItemShader> *sh;
-  c_array<const_c_array<PainterAttribute> > attrib_chunks;
-  c_array<const_c_array<PainterIndex> > index_chunks;
+  c_array<c_array<const PainterAttribute> > attrib_chunks;
+  c_array<c_array<const PainterIndex> > index_chunks;
   c_array<int> index_adjusts;
   c_array<int> z_increments;
   c_array<int> start_zs;
 
   if(join_data == nullptr)
     {
-      join_chunks = const_c_array<unsigned int>();
+      join_chunks = c_array<const unsigned int>();
     }
 
   if(edge_data == nullptr)
     {
-      edge_chunks = const_c_array<unsigned int>();
+      edge_chunks = c_array<const unsigned int>();
     }
 
   if(cap_data == nullptr)
     {
-      cap_chunks = const_c_array<unsigned int>();
+      cap_chunks = c_array<const unsigned int>();
     }
 
   /* clear first to blank the values, std::vector::clear
@@ -1707,7 +1707,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
                           attrib_chunks.sub_array(i, 1),
                           index_chunks.sub_array(i, 1),
                           index_adjusts.sub_array(i, 1),
-                          fastuidraw::const_c_array<unsigned int>(),
+                          fastuidraw::c_array<const unsigned int>(),
                           z, call_back);
         }
     }
@@ -1715,7 +1715,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
     {
       d->draw_generic(*sh, draw, attrib_chunks,
                       index_chunks, index_adjusts,
-                      fastuidraw::const_c_array<unsigned int>(),
+                      fastuidraw::c_array<const unsigned int>(),
                       d->m_current_z, call_back);
     }
 
@@ -1727,7 +1727,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
        */
       d->draw_generic(shader.aa_shader_pass2(), draw, attrib_chunks,
                       index_chunks, index_adjusts,
-                      fastuidraw::const_c_array<unsigned int>(),
+                      fastuidraw::c_array<const unsigned int>(),
                       startz, call_back);
     }
 
@@ -1984,7 +1984,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       return;
     }
 
-  fastuidraw::const_c_array<unsigned int> subset_list;
+  fastuidraw::c_array<const unsigned int> subset_list;
   subset_list = make_c_array(d->m_work_room.m_fill_subset_selector).sub_array(0, num_subsets);
 
   d->m_work_room.m_fill_attrib_chunks.clear();
@@ -2078,7 +2078,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       return;
     }
 
-  fastuidraw::const_c_array<unsigned int> subset_list;
+  fastuidraw::c_array<const unsigned int> subset_list;
   subset_list = make_c_array(d->m_work_room.m_fill_subset_selector).sub_array(0, num_subsets);
 
   d->m_work_room.m_fill_ws.set(filled_path, subset_list, fill_rule);
@@ -2093,19 +2093,19 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       unsigned int s(subset_list[i]);
       FilledPath::Subset subset(filled_path.subset(s));
       const PainterAttributeData &data(subset.painter_data());
-      const_c_array<fastuidraw::PainterAttribute> attrib_chunk;
+      c_array<const fastuidraw::PainterAttribute> attrib_chunk;
       unsigned int attrib_selector_value;
       bool added_chunk;
 
       added_chunk = false;
       attrib_selector_value = d->m_work_room.m_fill_attrib_chunks.size();
 
-      for(const_c_array<int>::iterator iter = subset.winding_numbers().begin(),
+      for(c_array<const int>::iterator iter = subset.winding_numbers().begin(),
             end = subset.winding_numbers().end(); iter != end; ++iter)
         {
           int winding_number(*iter);
           int chunk;
-          const_c_array<PainterIndex> index_chunk;
+          c_array<const PainterIndex> index_chunk;
 
           chunk = FilledPath::Subset::chunk_from_winding_number(winding_number);
           index_chunk = data.index_data_chunk(chunk);
@@ -2190,7 +2190,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
       return;
     }
 
-  const_c_array<unsigned int> chks(data.non_empty_index_data_chunks());
+  c_array<const unsigned int> chks(data.non_empty_index_data_chunks());
   for(unsigned int i = 0; i < chks.size(); ++i)
     {
       unsigned int k;

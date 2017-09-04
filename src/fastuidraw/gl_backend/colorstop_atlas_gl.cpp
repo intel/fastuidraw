@@ -35,7 +35,7 @@ namespace
     virtual
     void
     set_data(int x, int l, int w,
-             fastuidraw::const_c_array<fastuidraw::u8vec4> data);
+             fastuidraw::c_array<const fastuidraw::u8vec4> data);
 
     virtual
     void
@@ -163,16 +163,17 @@ void
 BackingStore::
 set_data(int x, int l,
          int w,
-         fastuidraw::const_c_array<fastuidraw::u8vec4> data)
+         fastuidraw::c_array<const fastuidraw::u8vec4> data)
 {
   FASTUIDRAWassert(data.size() == static_cast<unsigned int>(w) );
   TextureGL::EntryLocation V;
+  fastuidraw::c_array<const uint8_t> pdata;
 
   V.m_location = location_for_store(x, l);
   V.m_size = dimensions_for_store(w, 1);
+  pdata = data.reinterpret_pointer<const uint8_t>();
 
-  m_backing_store.set_data_c_array(V, data.reinterpret_pointer<uint8_t>());
-
+  m_backing_store.set_data_c_array(V, pdata);
 }
 
 ///////////////////////////////////////////////

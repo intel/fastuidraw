@@ -149,7 +149,7 @@ fastuidraw::FreeTypeFace::GeneratorMemory::
 create_face_implement(FT_Library lib) const
 {
   GeneratorMemoryPrivate *d;
-  const_c_array<uint8_t> src;
+  c_array<const uint8_t> src;
   FT_Error error_code;
   FT_Face face(nullptr);
 

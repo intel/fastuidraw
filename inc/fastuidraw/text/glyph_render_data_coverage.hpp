@@ -60,7 +60,7 @@ namespace fastuidraw
       given by I = x + y * resolution().x(). Value
       is an 8-bit coverage value.
      */
-    const_c_array<uint8_t>
+    c_array<const uint8_t>
     coverage_values(void) const;
 
     /*!

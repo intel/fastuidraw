@@ -41,7 +41,7 @@ namespace fastuidraw
       \param pdata_ro value which data_ro() will return
       \param pdata_rw value which data_rw() will return
      */
-    DataBufferBase(const_c_array<uint8_t> pdata_ro,
+    DataBufferBase(c_array<const uint8_t> pdata_ro,
                    c_array<uint8_t> pdata_rw):
       m_data_ro(pdata_ro),
       m_data_rw(pdata_rw)
@@ -50,7 +50,7 @@ namespace fastuidraw
     /*!
       Return the memory as read-only
      */
-    const_c_array<uint8_t>
+    c_array<const uint8_t>
     data_ro(void) const
     {
       return m_data_ro;
@@ -66,7 +66,7 @@ namespace fastuidraw
     }
 
   private:
-    const_c_array<uint8_t> m_data_ro;
+    c_array<const uint8_t> m_data_ro;
     c_array<uint8_t> m_data_rw;
   };
 

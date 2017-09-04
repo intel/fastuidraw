@@ -61,7 +61,7 @@ namespace fastuidraw
       static_cast<float>(V) / 255.0 - 0.5, where
       V = distance_values()[I].
      */
-    const_c_array<uint8_t>
+    c_array<const uint8_t>
     distance_values(void) const;
 
     /*!

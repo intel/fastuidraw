@@ -77,7 +77,7 @@ namespace fastuidraw
     virtual
     void
     set_data(int x, int y, int l, int w, int h,
-             const_c_array<uint8_t> data)=0;
+             c_array<const uint8_t> data)=0;
 
     /*!
       To be implemented by a derived class
@@ -182,7 +182,7 @@ namespace fastuidraw
      */
     virtual
     void
-    set_values(unsigned int location, const_c_array<generic_data> pdata) = 0;
+    set_values(unsigned int location, c_array<const generic_data> pdata) = 0;
 
     /*!
       To be implemented by a derived class to flush contents
@@ -290,7 +290,7 @@ namespace fastuidraw
       \param padding amount of padding the passed data has
      */
     GlyphLocation
-    allocate(ivec2 size, const_c_array<uint8_t> data, const Padding &padding);
+    allocate(ivec2 size, c_array<const uint8_t> data, const Padding &padding);
 
     /*!
       Free a region previously allocated by allocate().
@@ -304,7 +304,7 @@ namespace fastuidraw
       Size of pdata must be a multiple of geometry_store()->alignment().
      */
     int
-    allocate_geometry_data(const_c_array<generic_data> pdata);
+    allocate_geometry_data(c_array<const generic_data> pdata);
 
     /*!
       Location and count are in units of geometry_store()->alignment().

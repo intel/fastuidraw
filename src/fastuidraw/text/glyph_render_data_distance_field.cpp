@@ -70,7 +70,7 @@ resolution(void) const
   return d->m_resolution;
 }
 
-fastuidraw::const_c_array<uint8_t>
+fastuidraw::c_array<const uint8_t>
 fastuidraw::GlyphRenderDataDistanceField::
 distance_values(void) const
 {

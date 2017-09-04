@@ -143,7 +143,7 @@ namespace fastuidraw
       Returns the values added by add() sorted by ColorStop::m_place.
       Sorting is done lazily, i.e. on calling values().
      */
-    const_c_array<ColorStop>
+    c_array<const ColorStop>
     values(void) const;
 
   private:

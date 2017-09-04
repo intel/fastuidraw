@@ -39,7 +39,7 @@ std::string
 declare_varyings_string(c_string append_to_name,
                         size_t uint_count,
                         size_t int_count,
-                        const_c_array<size_t> float_counts,
+                        c_array<const size_t> float_counts,
                         unsigned int *slot,
                         DeclareVaryingsStringDatum *datum);
 void
@@ -54,18 +54,18 @@ stream_varyings_as_local_variables(ShaderSource &shader, const varying_list &p);
 
 void
 stream_uber_vert_shader(bool use_switch, ShaderSource &vert,
-                        const_c_array<reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
+                        c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
                         const DeclareVaryingsStringDatum &datum);
 
 void
 stream_uber_frag_shader(bool use_switch, ShaderSource &frag,
-                        const_c_array<reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
+                        c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
                         const DeclareVaryingsStringDatum &datum);
 
 
 void
 stream_uber_blend_shader(bool use_switch, ShaderSource &frag,
-                         const_c_array<reference_counted_ptr<PainterBlendShaderGLSL> > blend_shaders,
+                         c_array<const reference_counted_ptr<PainterBlendShaderGLSL> > blend_shaders,
                          enum PainterBlendShader::shader_type tp);
 
 

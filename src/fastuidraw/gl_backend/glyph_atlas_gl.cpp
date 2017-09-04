@@ -38,7 +38,7 @@ namespace
 
     void
     set_data(int x, int y, int l, int w, int h,
-             fastuidraw::const_c_array<uint8_t> data);
+             fastuidraw::c_array<const uint8_t> data);
 
     void
     flush(void)
@@ -102,7 +102,7 @@ namespace
     virtual
     void
     set_values(unsigned int location,
-               fastuidraw::const_c_array<fastuidraw::generic_data> pdata);
+               fastuidraw::c_array<const fastuidraw::generic_data> pdata);
 
     virtual
     void
@@ -135,7 +135,7 @@ namespace
     virtual
     void
     set_values(unsigned int location,
-               fastuidraw::const_c_array<fastuidraw::generic_data> pdata);
+               fastuidraw::c_array<const fastuidraw::generic_data> pdata);
 
     virtual
     void
@@ -276,7 +276,7 @@ resize_implement(int new_num_layers)
 void
 TexelStoreGL::
 set_data(int x, int y, int l, int w, int h,
-         fastuidraw::const_c_array<uint8_t> data)
+         fastuidraw::c_array<const uint8_t> data)
 {
   TextureGL::EntryLocation V;
 
@@ -429,7 +429,7 @@ texture(void) const
 void
 GeometryStoreGL_Texture::
 set_values(unsigned int location,
-           fastuidraw::const_c_array<fastuidraw::generic_data> pdata)
+           fastuidraw::c_array<const fastuidraw::generic_data> pdata)
 {
   FASTUIDRAWassert(pdata.size() % alignment() == 0);
   unsigned int num_texels;
@@ -443,11 +443,11 @@ set_values(unsigned int location,
   while(num_texels > 0)
     {
       unsigned int num_take;
-      fastuidraw::const_c_array<uint8_t> take_data;
+      fastuidraw::c_array<const uint8_t> take_data;
       TextureGL::EntryLocation loc;
 
       num_take = std::min(m_layer_dims.x() - p.x(), num_texels);
-      take_data = pdata.sub_array(0, num_take * alignment()).reinterpret_pointer<uint8_t>();
+      take_data = pdata.sub_array(0, num_take * alignment()).reinterpret_pointer<const uint8_t>();
 
       loc.m_location.x() = p.x();
       loc.m_location.y() = p.y();
@@ -496,11 +496,11 @@ GeometryStoreGL_Buffer(unsigned int number_vecNs, bool delayed, unsigned int N):
 void
 GeometryStoreGL_Buffer::
 set_values(unsigned int location,
-           fastuidraw::const_c_array<fastuidraw::generic_data> pdata)
+           fastuidraw::c_array<const fastuidraw::generic_data> pdata)
 {
   FASTUIDRAWassert(pdata.size() % alignment() == 0);
   m_backing_store.set_data(location * alignment() * sizeof(float),
-                           pdata.reinterpret_pointer<uint8_t>());
+                           pdata.reinterpret_pointer<const uint8_t>());
 }
 
 

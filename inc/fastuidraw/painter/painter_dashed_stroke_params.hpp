@@ -156,7 +156,7 @@ namespace fastuidraw
     /*!
       Returns the dash pattern for stroking.
      */
-    const_c_array<DashPatternElement>
+    c_array<const DashPatternElement>
     dash_pattern(void) const;
 
     /*!
@@ -164,7 +164,7 @@ namespace fastuidraw
       \param v dash pattern; the values are -copied-.
      */
     PainterDashedStrokeParams&
-    dash_pattern(const_c_array<DashPatternElement> v);
+    dash_pattern(c_array<const DashPatternElement> v);
 
     /*!
       Constructs and returns a DashEvaluator compatible

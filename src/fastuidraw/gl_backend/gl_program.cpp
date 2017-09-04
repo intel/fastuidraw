@@ -597,7 +597,7 @@ namespace
     typedef fastuidraw::gl::Shader Shader;
     typedef fastuidraw::reference_counted_ptr<Shader> ShaderRef;
 
-    ProgramPrivate(const fastuidraw::const_c_array<ShaderRef> pshaders,
+    ProgramPrivate(const fastuidraw::c_array<const ShaderRef> pshaders,
                    const fastuidraw::gl::PreLinkActionArray &action,
                    const fastuidraw::gl::ProgramInitializerArray &initers,
                    fastuidraw::gl::Program *p):
@@ -609,7 +609,7 @@ namespace
       m_pre_link_actions(action),
       m_p(p)
     {
-      for(fastuidraw::const_c_array<ShaderRef>::iterator iter = pshaders.begin(),
+      for(fastuidraw::c_array<const ShaderRef>::iterator iter = pshaders.begin(),
             end = pshaders.end(); iter != end; ++iter)
         {
           FASTUIDRAWassert(*iter);
@@ -2519,7 +2519,7 @@ generate_log(void)
 ////////////////////////////////////////////////////////
 //fastuidraw::gl::Program methods
 fastuidraw::gl::Program::
-Program(const_c_array<reference_counted_ptr<Shader> > pshaders,
+Program(c_array<const reference_counted_ptr<Shader> > pshaders,
         const PreLinkActionArray &action,
         const ProgramInitializerArray &initers)
 {

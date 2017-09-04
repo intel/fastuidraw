@@ -112,13 +112,13 @@ namespace
   class JoinOrdering
   {
   public:
-    fastuidraw::const_c_array<OrderingEntry<JoinSource> >
+    fastuidraw::c_array<const OrderingEntry<JoinSource> >
     non_closing_edge(void) const
     {
       return fastuidraw::make_c_array(m_non_closing_edge);
     }
 
-    fastuidraw::const_c_array<OrderingEntry<JoinSource> >
+    fastuidraw::c_array<const OrderingEntry<JoinSource> >
     closing_edge(void) const
     {
       return fastuidraw::make_c_array(m_closing_edge);
@@ -212,7 +212,7 @@ namespace
   class CapOrdering
   {
   public:
-    fastuidraw::const_c_array<OrderingEntry<CapSource> >
+    fastuidraw::c_array<const OrderingEntry<CapSource> >
     caps(void) const
     {
       return fastuidraw::make_c_array(m_caps);
@@ -366,31 +366,31 @@ namespace
       return m_children[i];
     }
 
-    fastuidraw::const_c_array<SingleSubEdge>
+    fastuidraw::c_array<const SingleSubEdge>
     non_closing_edges(void) const
     {
       return m_sub_edges.m_non_closing;
     }
 
-    fastuidraw::const_c_array<SingleSubEdge>
+    fastuidraw::c_array<const SingleSubEdge>
     closing_edges(void) const
     {
       return m_sub_edges.m_closing;
     }
 
-    fastuidraw::const_c_array<JoinSource>
+    fastuidraw::c_array<const JoinSource>
     non_closing_joins(void) const
     {
       return m_joins.m_non_closing;
     }
 
-    fastuidraw::const_c_array<JoinSource>
+    fastuidraw::c_array<const JoinSource>
     closing_joins(void) const
     {
       return m_joins.m_closing;
     }
 
-    fastuidraw::const_c_array<CapSource>
+    fastuidraw::c_array<const CapSource>
     caps(void) const
     {
       return fastuidraw::make_c_array(m_caps);
@@ -411,7 +411,7 @@ namespace
       void
       init(std::vector<T> &data, unsigned int num_non_closing)
       {
-        fastuidraw::const_c_array<T> all_data;
+        fastuidraw::c_array<const T> all_data;
 
         m_data.swap(data);
         all_data = fastuidraw::make_c_array(m_data);
@@ -427,11 +427,11 @@ namespace
 
       /* array into m_data of data of non-closing edges
        */
-      fastuidraw::const_c_array<T> m_non_closing;
+      fastuidraw::c_array<const T> m_non_closing;
 
       /* array into m_data of data of ONLY closing edges
        */
-      fastuidraw::const_c_array<T> m_closing;
+      fastuidraw::c_array<const T> m_closing;
     };
 
     enum
@@ -449,7 +449,7 @@ namespace
     static
     int
     choose_splitting_coordinate(const fastuidraw::BoundingBox<float> &start_box,
-                                fastuidraw::const_c_array<SingleSubEdge> data);
+                                fastuidraw::c_array<const SingleSubEdge> data);
 
     static
     void
@@ -527,7 +527,7 @@ namespace
        should create attribute/index data at the ranges
        above.
      */
-    fastuidraw::const_c_array<SingleSubEdge> m_src;
+    fastuidraw::c_array<const SingleSubEdge> m_src;
 
     bool
     chunk_fits(unsigned int max_attribute_cnt,
@@ -588,19 +588,19 @@ namespace
     void
     add_cap_chunk(const RangeAndChunk &c);
 
-    fastuidraw::const_c_array<unsigned int>
+    fastuidraw::c_array<const unsigned int>
     edge_chunks(void) const
     {
       return fastuidraw::make_c_array(m_edge_chunks);
     }
 
-    fastuidraw::const_c_array<unsigned int>
+    fastuidraw::c_array<const unsigned int>
     join_chunks(void) const
     {
       return fastuidraw::make_c_array(m_join_chunks);
     }
 
-    fastuidraw::const_c_array<unsigned int>
+    fastuidraw::c_array<const unsigned int>
     cap_chunks(void) const
     {
       return fastuidraw::make_c_array(m_cap_chunks);
@@ -682,7 +682,7 @@ namespace
     void
     compute_chunks(bool include_closing_edge,
                    ScratchSpacePrivate &work_room,
-                   fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
+                   fastuidraw::c_array<const fastuidraw::vec3> clip_equations,
                    const fastuidraw::float3x3 &clip_matrix_local,
                    const fastuidraw::vec2 &recip_dimensions,
                    float pixels_additional_room,
@@ -780,7 +780,7 @@ namespace
 
     static
     void
-    increment_vertices_indices(fastuidraw::const_c_array<SingleSubEdge> src,
+    increment_vertices_indices(fastuidraw::c_array<const SingleSubEdge> src,
                                unsigned int &vertex_cnt,
                                unsigned int &index_cnt);
     void
@@ -828,8 +828,8 @@ namespace
     void
     fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
               fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
               fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
               fastuidraw::c_array<int> index_adjusts) const;
   private:
@@ -837,8 +837,8 @@ namespace
     fill_data_worker(const StrokedPathSubset *e,
                      fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                      fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
-                     fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-                     fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+                     fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+                     fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
                      fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
                      fastuidraw::c_array<int> index_adjusts) const;
 
@@ -846,8 +846,8 @@ namespace
     build_chunk(const EdgeRanges &edge,
                 fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                 fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
-                fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-                fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+                fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+                fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
                 fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
                 fastuidraw::c_array<int> index_adjusts) const;
 
@@ -922,8 +922,8 @@ namespace
     void
     fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
               fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
               fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
               fastuidraw::c_array<int> index_adjusts) const;
 
@@ -942,8 +942,8 @@ namespace
               fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
               fastuidraw::c_array<unsigned int> indices,
               unsigned int &vertex_offset, unsigned int &index_offset,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
               fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
               fastuidraw::c_array<int> index_adjusts,
               fastuidraw::c_array<fastuidraw::range_type<int> > join_vertex_ranges,
@@ -952,24 +952,24 @@ namespace
     static
     void
     set_chunks(const StrokedPathSubset *st,
-               fastuidraw::const_c_array<fastuidraw::range_type<int> > join_vertex_ranges,
-               fastuidraw::const_c_array<fastuidraw::range_type<int> > join_index_ranges,
-               fastuidraw::const_c_array<fastuidraw::PainterAttribute> attribute_data,
-               fastuidraw::const_c_array<fastuidraw::PainterIndex> index_data,
-               fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-               fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+               fastuidraw::c_array<const fastuidraw::range_type<int> > join_vertex_ranges,
+               fastuidraw::c_array<const fastuidraw::range_type<int> > join_index_ranges,
+               fastuidraw::c_array<const fastuidraw::PainterAttribute> attribute_data,
+               fastuidraw::c_array<const fastuidraw::PainterIndex> index_data,
+               fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+               fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
                fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
                fastuidraw::c_array<int> index_adjusts);
 
     static
     void
     process_chunk(const RangeAndChunk &ch,
-                  fastuidraw::const_c_array<fastuidraw::range_type<int> > join_vertex_ranges,
-                  fastuidraw::const_c_array<fastuidraw::range_type<int> > join_index_ranges,
-                  fastuidraw::const_c_array<fastuidraw::PainterAttribute> attribute_data,
-                  fastuidraw::const_c_array<fastuidraw::PainterIndex> index_data,
-                  fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-                  fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+                  fastuidraw::c_array<const fastuidraw::range_type<int> > join_vertex_ranges,
+                  fastuidraw::c_array<const fastuidraw::range_type<int> > join_index_ranges,
+                  fastuidraw::c_array<const fastuidraw::PainterAttribute> attribute_data,
+                  fastuidraw::c_array<const fastuidraw::PainterIndex> index_data,
+                  fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+                  fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
                   fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
                   fastuidraw::c_array<int> index_adjusts);
 
@@ -1191,8 +1191,8 @@ namespace
     void
     fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
               fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
               fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
               fastuidraw::c_array<int> index_adjusts) const;
 
@@ -1210,12 +1210,12 @@ namespace
     static
     void
     set_chunks(const StrokedPathSubset *st,
-               fastuidraw::const_c_array<fastuidraw::range_type<int> > cap_vertex_ranges,
-               fastuidraw::const_c_array<fastuidraw::range_type<int> > cap_index_ranges,
-               fastuidraw::const_c_array<fastuidraw::PainterAttribute> attribute_data,
-               fastuidraw::const_c_array<fastuidraw::PainterIndex> index_data,
-               fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-               fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+               fastuidraw::c_array<const fastuidraw::range_type<int> > cap_vertex_ranges,
+               fastuidraw::c_array<const fastuidraw::range_type<int> > cap_index_ranges,
+               fastuidraw::c_array<const fastuidraw::PainterAttribute> attribute_data,
+               fastuidraw::c_array<const fastuidraw::PainterIndex> index_data,
+               fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+               fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
                fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
                fastuidraw::c_array<int> index_adjusts);
 
@@ -1578,7 +1578,7 @@ process_edge(const fastuidraw::TessellatedPath &P, ContourData &path_data,
              std::vector<SingleSubEdge> &dst, fastuidraw::BoundingBox<float> &bx)
 {
   fastuidraw::range_type<unsigned int> R;
-  fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> src_pts(P.point_data());
+  fastuidraw::c_array<const fastuidraw::TessellatedPath::point> src_pts(P.point_data());
   fastuidraw::vec2 normal(1.0f, 0.0f), last_normal(1.0f, 0.0f);
   bool is_closing_edge;
 
@@ -1802,7 +1802,7 @@ SubEdgeCullingHierarchy::
 int
 SubEdgeCullingHierarchy::
 choose_splitting_coordinate(const fastuidraw::BoundingBox<float> &start_box,
-                            fastuidraw::const_c_array<SingleSubEdge> data)
+                            fastuidraw::c_array<const SingleSubEdge> data)
 {
   if(data.size() < splitting_threshhold)
     {
@@ -2050,7 +2050,7 @@ StrokedPathSubset(CreationValues &out_values,
 
 void
 StrokedPathSubset::
-increment_vertices_indices(fastuidraw::const_c_array<SingleSubEdge> src,
+increment_vertices_indices(fastuidraw::c_array<const SingleSubEdge> src,
                            unsigned int &vertex_cnt,
                            unsigned int &index_cnt)
 {
@@ -2071,7 +2071,7 @@ void
 StrokedPathSubset::
 compute_chunks(bool include_closing_edge,
                ScratchSpacePrivate &scratch,
-               fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
+               fastuidraw::c_array<const fastuidraw::vec3> clip_equations,
                const fastuidraw::float3x3 &clip_matrix_local,
                const fastuidraw::vec2 &recip_dimensions,
                float pixels_additional_room,
@@ -2259,8 +2259,8 @@ void
 EdgeAttributeFiller::
 fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
           fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
-          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
           fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
           fastuidraw::c_array<int> index_adjusts) const
 {
@@ -2273,8 +2273,8 @@ EdgeAttributeFiller::
 fill_data_worker(const StrokedPathSubset *e,
                  fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                  fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
-                 fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-                 fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+                 fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+                 fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
                  fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
                  fastuidraw::c_array<int> index_adjusts) const
 {
@@ -2304,8 +2304,8 @@ EdgeAttributeFiller::
 build_chunk(const EdgeRanges &edge,
             fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
             fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
-            fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-            fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+            fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+            fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
             fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
             fastuidraw::c_array<int> index_adjusts) const
 {
@@ -2668,8 +2668,8 @@ fill_join(unsigned int join_id,
           fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
           fastuidraw::c_array<unsigned int> indices,
           unsigned int &vertex_offset, unsigned int &index_offset,
-          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
           fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
           fastuidraw::c_array<int> index_adjusts,
           fastuidraw::c_array<fastuidraw::range_type<int> > join_vertex_ranges,
@@ -2698,8 +2698,8 @@ void
 JoinCreatorBase::
 fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
           fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
-          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
           fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
           fastuidraw::c_array<int> index_adjusts) const
 {
@@ -2762,12 +2762,12 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
 void
 JoinCreatorBase::
 set_chunks(const StrokedPathSubset *st,
-           fastuidraw::const_c_array<fastuidraw::range_type<int> > join_vertex_ranges,
-           fastuidraw::const_c_array<fastuidraw::range_type<int> > join_index_ranges,
-           fastuidraw::const_c_array<fastuidraw::PainterAttribute> attribute_data,
-           fastuidraw::const_c_array<fastuidraw::PainterIndex> index_data,
-           fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-           fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+           fastuidraw::c_array<const fastuidraw::range_type<int> > join_vertex_ranges,
+           fastuidraw::c_array<const fastuidraw::range_type<int> > join_index_ranges,
+           fastuidraw::c_array<const fastuidraw::PainterAttribute> attribute_data,
+           fastuidraw::c_array<const fastuidraw::PainterIndex> index_data,
+           fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+           fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
            fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
            fastuidraw::c_array<int> index_adjusts)
 {
@@ -2802,12 +2802,12 @@ set_chunks(const StrokedPathSubset *st,
 void
 JoinCreatorBase::
 process_chunk(const RangeAndChunk &ch,
-              fastuidraw::const_c_array<fastuidraw::range_type<int> > join_vertex_ranges,
-              fastuidraw::const_c_array<fastuidraw::range_type<int> > join_index_ranges,
-              fastuidraw::const_c_array<fastuidraw::PainterAttribute> attribute_data,
-              fastuidraw::const_c_array<fastuidraw::PainterIndex> index_data,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<const fastuidraw::range_type<int> > join_vertex_ranges,
+              fastuidraw::c_array<const fastuidraw::range_type<int> > join_index_ranges,
+              fastuidraw::c_array<const fastuidraw::PainterAttribute> attribute_data,
+              fastuidraw::c_array<const fastuidraw::PainterIndex> index_data,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
               fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
               fastuidraw::c_array<int> index_adjusts)
 {
@@ -3419,8 +3419,8 @@ void
 CapCreatorBase::
 fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
           fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
-          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
           fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
           fastuidraw::c_array<int> index_adjusts) const
 {
@@ -3472,12 +3472,12 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
 void
 CapCreatorBase::
 set_chunks(const StrokedPathSubset *st,
-           fastuidraw::const_c_array<fastuidraw::range_type<int> > cap_vertex_ranges,
-           fastuidraw::const_c_array<fastuidraw::range_type<int> > cap_index_ranges,
-           fastuidraw::const_c_array<fastuidraw::PainterAttribute> attribute_data,
-           fastuidraw::const_c_array<fastuidraw::PainterIndex> index_data,
-           fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attribute_chunks,
-           fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+           fastuidraw::c_array<const fastuidraw::range_type<int> > cap_vertex_ranges,
+           fastuidraw::c_array<const fastuidraw::range_type<int> > cap_index_ranges,
+           fastuidraw::c_array<const fastuidraw::PainterAttribute> attribute_data,
+           fastuidraw::c_array<const fastuidraw::PainterIndex> index_data,
+           fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
+           fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
            fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
            fastuidraw::c_array<int> index_adjusts)
 {
@@ -4197,7 +4197,7 @@ handle_dashed_evaluator(const fastuidraw::DashEvaluatorBase *dash_evaluator,
           for(unsigned int J = R.m_begin; J < R.m_end; ++J, ++cnt)
             {
               unsigned int chunk;
-              fastuidraw::const_c_array<fastuidraw::PainterAttribute> attribs;
+              fastuidraw::c_array<const fastuidraw::PainterAttribute> attribs;
 
               chunk = path.join_chunk(J);
               attribs = joins.attribute_data_chunk(chunk);
@@ -4228,7 +4228,7 @@ fastuidraw::StrokedPath::ChunkSet::
   FASTUIDRAWdelete(d);
 }
 
-fastuidraw::const_c_array<unsigned int>
+fastuidraw::c_array<const unsigned int>
 fastuidraw::StrokedPath::ChunkSet::
 edge_chunks(void) const
 {
@@ -4237,7 +4237,7 @@ edge_chunks(void) const
   return d->edge_chunks();
 }
 
-fastuidraw::const_c_array<unsigned int>
+fastuidraw::c_array<const unsigned int>
 fastuidraw::StrokedPath::ChunkSet::
 join_chunks(void) const
 {
@@ -4246,7 +4246,7 @@ join_chunks(void) const
   return d->join_chunks();
 }
 
-fastuidraw::const_c_array<unsigned int>
+fastuidraw::c_array<const unsigned int>
 fastuidraw::StrokedPath::ChunkSet::
 cap_chunks(void) const
 {
@@ -4288,7 +4288,7 @@ fastuidraw::StrokedPath::
 compute_chunks(ScratchSpace &scratch_space,
                const DashEvaluatorBase *dash_evaluator,
                const PainterShaderData::DataBase *dash_data,
-               const_c_array<vec3> clip_equations,
+               c_array<const vec3> clip_equations,
                const float3x3 &clip_matrix_local,
                const vec2 &recip_dimensions,
                float pixels_additional_room,

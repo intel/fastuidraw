@@ -104,7 +104,7 @@ Uniform(int location, GLsizei count, const vecN<T,N> &v, bool transposed)
  */
 template<typename T>
 void
-Uniform(int location, GLsizei count, const_c_array<T> v)
+Uniform(int location, GLsizei count, c_array<const T> v)
 {
   if(!v.empty())
     {
@@ -152,7 +152,7 @@ Uniform(int location, GLsizei count, c_array<T> v)
  */
 template<typename T>
 void
-Uniform(int location, GLsizei count, const_c_array<T> v, bool transposed)
+Uniform(int location, GLsizei count, c_array<const T> v, bool transposed)
 {
   if(!v.empty())
     {
@@ -174,7 +174,7 @@ Uniform(int location, GLsizei count, const_c_array<T> v, bool transposed)
  */
 template<typename T>
 void
-Uniform(int location, const_c_array<T> v)
+Uniform(int location, c_array<const T> v)
 {
   if(!v.empty())
     {
@@ -241,7 +241,7 @@ ProgramUniform(GLuint program, int location, GLsizei count, const vecN<T,N> &v, 
  */
 template<typename T>
 void
-ProgramUniform(GLuint program, int location, GLsizei count, const_c_array<T> v)
+ProgramUniform(GLuint program, int location, GLsizei count, c_array<const T> v)
 {
   if(!v.empty())
     {
@@ -291,7 +291,7 @@ ProgramUniform(GLuint program, int location, GLsizei count, c_array<T> v)
  */
 template<typename T>
 void
-ProgramUniform(GLuint program, int location, GLsizei count, const_c_array<T> v, bool transposed)
+ProgramUniform(GLuint program, int location, GLsizei count, c_array<const T> v, bool transposed)
 {
   if(!v.empty())
     {
@@ -314,7 +314,7 @@ ProgramUniform(GLuint program, int location, GLsizei count, const_c_array<T> v, 
  */
 template<typename T>
 void
-ProgramUniform(GLuint program, int location, const_c_array<T> v)
+ProgramUniform(GLuint program, int location, c_array<const T> v)
 {
   if(!v.empty())
     {

@@ -47,7 +47,7 @@ namespace
   }
 
   void
-  pack_curve_pairs(fastuidraw::const_c_array<fastuidraw::GlyphRenderDataCurvePair::entry> src,
+  pack_curve_pairs(fastuidraw::c_array<const fastuidraw::GlyphRenderDataCurvePair::entry> src,
                    fastuidraw::GlyphLocation L,
                    unsigned int entry_size, std::vector<fastuidraw::generic_data> &dst)
   {
@@ -74,7 +74,7 @@ namespace
   class entry_ctor_helper
   {
   public:
-    entry_ctor_helper(fastuidraw::const_c_array<fastuidraw::vec2> pts, bool reverse);
+    entry_ctor_helper(fastuidraw::c_array<const fastuidraw::vec2> pts, bool reverse);
 
     bool
     tangled(const fastuidraw::vec2 &v) const;
@@ -119,7 +119,7 @@ namespace
 //////////////////////////////////
 //entry_ctor_helper methods
 entry_ctor_helper::
-entry_ctor_helper(fastuidraw::const_c_array<fastuidraw::vec2> pts, bool reverse)
+entry_ctor_helper(fastuidraw::c_array<const fastuidraw::vec2> pts, bool reverse)
 {
   fastuidraw::vecN<fastuidraw::vec2, 3> work_room, poly_room;
   fastuidraw::c_array<fastuidraw::vec2> work(work_room), poly(poly_room);
@@ -221,10 +221,10 @@ sub_tangled(const fastuidraw::vec2 &v) const
 //////////////////////////////////////////////
 // fastuidraw::GlyphRenderDataCurvePair::entry methods
 fastuidraw::GlyphRenderDataCurvePair::entry::
-entry(const_c_array<vec2> pts, int curve0_count):
+entry(c_array<const vec2> pts, int curve0_count):
   m_type(entry_has_curves)
 {
-  const_c_array<vec2> curve0_pts, curve1_pts;
+  c_array<const vec2> curve0_pts, curve1_pts;
 
   FASTUIDRAWassert(curve0_count > 0);
   curve0_pts = pts.sub_array(0, curve0_count);
@@ -345,7 +345,7 @@ resolution(void) const
   return d->m_resolution;
 }
 
-fastuidraw::const_c_array<uint16_t>
+fastuidraw::c_array<const uint16_t>
 fastuidraw::GlyphRenderDataCurvePair::
 active_curve_pair(void) const
 {
@@ -363,7 +363,7 @@ active_curve_pair(void)
   return make_c_array(d->m_texels);
 }
 
-fastuidraw::const_c_array<fastuidraw::GlyphRenderDataCurvePair::entry>
+fastuidraw::c_array<const fastuidraw::GlyphRenderDataCurvePair::entry>
 fastuidraw::GlyphRenderDataCurvePair::
 geometry_data(void) const
 {

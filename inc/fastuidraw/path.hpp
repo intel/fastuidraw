@@ -299,7 +299,7 @@ public:
       \param end end point of curve
      */
     bezier(const reference_counted_ptr<const interpolator_base> &start,
-           const_c_array<vec2> control_pts, const vec2 &end);
+           c_array<const vec2> control_pts, const vec2 &end);
 
     virtual
     ~bezier();

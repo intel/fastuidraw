@@ -293,7 +293,7 @@ fastuidraw::GlyphAtlas::
 
 fastuidraw::GlyphLocation
 fastuidraw::GlyphAtlas::
-allocate(fastuidraw::ivec2 size, const_c_array<uint8_t> pdata,
+allocate(fastuidraw::ivec2 size, c_array<const uint8_t> pdata,
          const GlyphAtlas::Padding &padding)
 {
   GlyphAtlasPrivate *d;
@@ -365,7 +365,7 @@ deallocate(fastuidraw::GlyphLocation G)
 
 int
 fastuidraw::GlyphAtlas::
-allocate_geometry_data(const_c_array<generic_data> pdata)
+allocate_geometry_data(c_array<const generic_data> pdata)
 {
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);

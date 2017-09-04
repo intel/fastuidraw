@@ -115,26 +115,26 @@ namespace
   class FillGlyphsPrivate
   {
   public:
-    FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
-                      fastuidraw::const_c_array<fastuidraw::Glyph> glyphs,
-                      fastuidraw::const_c_array<float> scale_factors,
+    FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
+                      fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
+                      fastuidraw::c_array<const float> scale_factors,
                       enum fastuidraw::PainterEnums::glyph_orientation orientation);
 
-    FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
-                      fastuidraw::const_c_array<fastuidraw::Glyph> glyphs,
+    FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
+                      fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
                       float render_pixel_size,
                       enum fastuidraw::PainterEnums::glyph_orientation orientation);
 
-    FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
-                      fastuidraw::const_c_array<fastuidraw::Glyph> glyphs,
+    FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
+                      fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
                       enum fastuidraw::PainterEnums::glyph_orientation orientation);
 
     void
     compute_number_glyphs(void);
 
-    fastuidraw::const_c_array<fastuidraw::vec2> m_glyph_positions;
-    fastuidraw::const_c_array<fastuidraw::Glyph> m_glyphs;
-    fastuidraw::const_c_array<float> m_scale_factors;
+    fastuidraw::c_array<const fastuidraw::vec2> m_glyph_positions;
+    fastuidraw::c_array<const fastuidraw::Glyph> m_glyphs;
+    fastuidraw::c_array<const float> m_scale_factors;
     enum fastuidraw::PainterEnums::glyph_orientation m_orientation;
     std::pair<bool, float> m_render_pixel_size;
     unsigned int m_number_glyphs;
@@ -145,9 +145,9 @@ namespace
 //////////////////////////////////
 // FillGlyphsPrivate methods
 FillGlyphsPrivate::
-FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
-                  fastuidraw::const_c_array<fastuidraw::Glyph> glyphs,
-                  fastuidraw::const_c_array<float> scale_factors,
+FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
+                  fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
+                  fastuidraw::c_array<const float> scale_factors,
                   enum fastuidraw::PainterEnums::glyph_orientation orientation):
   m_glyph_positions(glyph_positions),
   m_glyphs(glyphs),
@@ -161,8 +161,8 @@ FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
 }
 
 FillGlyphsPrivate::
-FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
-                  fastuidraw::const_c_array<fastuidraw::Glyph> glyphs,
+FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
+                  fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
                   float render_pixel_size,
                   enum fastuidraw::PainterEnums::glyph_orientation orientation):
   m_glyph_positions(glyph_positions),
@@ -175,8 +175,8 @@ FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
 }
 
 FillGlyphsPrivate::
-FillGlyphsPrivate(fastuidraw::const_c_array<fastuidraw::vec2> glyph_positions,
-                  fastuidraw::const_c_array<fastuidraw::Glyph> glyphs,
+FillGlyphsPrivate(fastuidraw::c_array<const fastuidraw::vec2> glyph_positions,
+                  fastuidraw::c_array<const fastuidraw::Glyph> glyphs,
                   enum fastuidraw::PainterEnums::glyph_orientation orientation):
   m_glyph_positions(glyph_positions),
   m_glyphs(glyphs),
@@ -217,17 +217,17 @@ compute_number_glyphs(void)
 //////////////////////////////////////////
 // PainterAttributeDataFillerGlyphs methods
 fastuidraw::PainterAttributeDataFillerGlyphs::
-PainterAttributeDataFillerGlyphs(const_c_array<vec2> glyph_positions,
-                                 const_c_array<Glyph> glyphs,
-                                 const_c_array<float> scale_factors,
+PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
+                                 c_array<const Glyph> glyphs,
+                                 c_array<const float> scale_factors,
                                  enum PainterEnums::glyph_orientation orientation)
 {
   m_d = FASTUIDRAWnew FillGlyphsPrivate(glyph_positions, glyphs, scale_factors, orientation);
 }
 
 fastuidraw::PainterAttributeDataFillerGlyphs::
-PainterAttributeDataFillerGlyphs(const_c_array<vec2> glyph_positions,
-                                 const_c_array<Glyph> glyphs,
+PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
+                                 c_array<const Glyph> glyphs,
                                  float render_pixel_size,
                                  enum PainterEnums::glyph_orientation orientation)
 {
@@ -235,8 +235,8 @@ PainterAttributeDataFillerGlyphs(const_c_array<vec2> glyph_positions,
 }
 
 fastuidraw::PainterAttributeDataFillerGlyphs::
-PainterAttributeDataFillerGlyphs(const_c_array<vec2> glyph_positions,
-                                 const_c_array<Glyph> glyphs,
+PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
+                                 c_array<const Glyph> glyphs,
                                  enum PainterEnums::glyph_orientation orientation)
 {
   m_d = FASTUIDRAWnew FillGlyphsPrivate(glyph_positions, glyphs, orientation);
@@ -274,8 +274,8 @@ void
 fastuidraw::PainterAttributeDataFillerGlyphs::
 fill_data(c_array<PainterAttribute> attribute_data,
           c_array<PainterIndex> index_data,
-          c_array<const_c_array<PainterAttribute> > attrib_chunks,
-          c_array<const_c_array<PainterIndex> > index_chunks,
+          c_array<c_array<const PainterAttribute> > attrib_chunks,
+          c_array<c_array<const PainterIndex> > index_chunks,
           c_array<range_type<int> > zranges,
           c_array<int> index_adjusts) const
 {

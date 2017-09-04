@@ -185,7 +185,7 @@ namespace
     void
     add_winding(uint64_t twice_area, int w, unsigned int v);
 
-    fastuidraw::const_c_array<per_entry>
+    fastuidraw::c_array<const per_entry>
     filtered_entries(void) const;
 
   private:
@@ -421,7 +421,7 @@ namespace
     void
     fill_at(unsigned int &offset,
             fastuidraw::c_array<unsigned int> dest,
-            fastuidraw::const_c_array<unsigned int> &sub_range)
+            fastuidraw::c_array<const unsigned int> &sub_range)
     {
       FASTUIDRAWassert(count() + offset <= dest.size());
       std::copy(m_indices.begin(), m_indices.end(), &dest[offset]);
@@ -877,7 +877,7 @@ namespace
 
     void
     fill_indices(std::vector<unsigned int> &indices,
-                 std::map<int, fastuidraw::const_c_array<unsigned int> > &winding_map,
+                 std::map<int, fastuidraw::c_array<const unsigned int> > &winding_map,
                  unsigned int &even_non_zero_start,
                  unsigned int &zero_start);
 
@@ -923,8 +923,8 @@ namespace
     void
     fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
               fastuidraw::c_array<fastuidraw::PainterIndex> indices,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
               fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
               fastuidraw::c_array<int> index_adjusts) const;
 
@@ -957,8 +957,8 @@ namespace
     void
     fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
               fastuidraw::c_array<fastuidraw::PainterIndex> indices,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
               fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
               fastuidraw::c_array<int> index_adjusts) const;
 
@@ -988,16 +988,16 @@ namespace
        - complement of non-zero
      */
     std::vector<unsigned int> m_indices;
-    fastuidraw::const_c_array<unsigned int> m_nonzero_winding_indices;
-    fastuidraw::const_c_array<unsigned int> m_zero_winding_indices;
-    fastuidraw::const_c_array<unsigned int> m_odd_winding_indices;
-    fastuidraw::const_c_array<unsigned int> m_even_winding_indices;
+    fastuidraw::c_array<const unsigned int> m_nonzero_winding_indices;
+    fastuidraw::c_array<const unsigned int> m_zero_winding_indices;
+    fastuidraw::c_array<const unsigned int> m_odd_winding_indices;
+    fastuidraw::c_array<const unsigned int> m_even_winding_indices;
 
     /* m_per_fill[w] gives the indices to the triangles
        with the winding number w. The value points into
        indices
     */
-    std::map<int, fastuidraw::const_c_array<unsigned int> > m_per_fill;
+    std::map<int, fastuidraw::c_array<const unsigned int> > m_per_fill;
 
     virtual
     void
@@ -1010,8 +1010,8 @@ namespace
     void
     fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
               fastuidraw::c_array<fastuidraw::PainterIndex> indices,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
-              fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
+              fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
               fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
               fastuidraw::c_array<int> index_adjusts) const;
 
@@ -1046,7 +1046,7 @@ namespace
 
     unsigned int
     select_subsets(ScratchSpacePrivate &scratch,
-                   fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
+                   fastuidraw::c_array<const fastuidraw::vec3> clip_equations,
                    const fastuidraw::float3x3 &clip_matrix_local,
                    unsigned int max_attribute_cnt,
                    unsigned int max_index_cnt,
@@ -1055,14 +1055,14 @@ namespace
     void
     make_ready(void);
 
-    fastuidraw::const_c_array<int>
+    fastuidraw::c_array<const int>
     winding_numbers(void)
     {
       FASTUIDRAWassert(m_painter_data != nullptr);
       return fastuidraw::make_c_array(m_winding_numbers);
     }
 
-    fastuidraw::const_c_array<int>
+    fastuidraw::c_array<const int>
     winding_neighbors(int w) const
     {
       unsigned int i;
@@ -1071,7 +1071,7 @@ namespace
       i = signed_to_unsigned(w);
       return (i < m_winding_neighbors.size()) ?
         fastuidraw::make_c_array(m_winding_neighbors[i]) :
-        fastuidraw::const_c_array<int>();
+        fastuidraw::c_array<const int>();
     }
 
     const fastuidraw::PainterAttributeData&
@@ -1122,8 +1122,8 @@ namespace
 
     static
     void
-    merge_winding_lists(fastuidraw::const_c_array<int> inA,
-                        fastuidraw::const_c_array<int> inB,
+    merge_winding_lists(fastuidraw::c_array<const int> inA,
+                        fastuidraw::c_array<const int> inB,
                         std::vector<int> *out);
 
     uint32_t
@@ -1193,7 +1193,7 @@ namespace
 
 /////////////////////////////////
 // EdgeData methods
-fastuidraw::const_c_array<EdgeData::per_entry>
+fastuidraw::c_array<const EdgeData::per_entry>
 EdgeData::
 filtered_entries(void) const
 {
@@ -1289,7 +1289,7 @@ create_aa_edges(AAEdgeList &out_aa_edges) const
     {
       Edge edge(iter->first);
       const EdgeData &data(iter->second);
-      fastuidraw::const_c_array<EdgeData::per_entry> entries(data.filtered_entries());
+      fastuidraw::c_array<const EdgeData::per_entry> entries(data.filtered_entries());
 
       if(!entries.empty())
         {
@@ -2078,7 +2078,7 @@ builder::
 void
 builder::
 fill_indices(std::vector<unsigned int> &indices,
-             std::map<int, fastuidraw::const_c_array<unsigned int> > &winding_map,
+             std::map<int, fastuidraw::c_array<const unsigned int> > &winding_map,
              unsigned int &even_non_zero_start,
              unsigned int &zero_start)
 {
@@ -2197,8 +2197,8 @@ void
 AttributeDataMerger::
 fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
           fastuidraw::c_array<fastuidraw::PainterIndex> indices,
-          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
-          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
           fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
           fastuidraw::c_array<int> index_adjusts) const
 {
@@ -2207,7 +2207,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
   for(unsigned int i = 0, dst_offset = 0; i < attrib_chunks.size(); ++i)
     {
       fastuidraw::c_array<fastuidraw::PainterAttribute> dst;
-      fastuidraw::const_c_array<fastuidraw::PainterAttribute> src;
+      fastuidraw::c_array<const fastuidraw::PainterAttribute> src;
       unsigned int start(dst_offset), size(0);
 
       src = m_a.attribute_data_chunk(i);
@@ -2237,7 +2237,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
   for(unsigned int i = 0, dst_offset = 0; i < index_chunks.size(); ++i)
     {
       fastuidraw::c_array<fastuidraw::PainterIndex> dst;
-      fastuidraw::const_c_array<fastuidraw::PainterIndex> src;
+      fastuidraw::c_array<const fastuidraw::PainterIndex> src;
       unsigned int start(dst_offset), size(0);
 
       index_adjusts[i] = 0;
@@ -2297,8 +2297,8 @@ void
 EdgeAttributeDataFiller::
 fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
           fastuidraw::c_array<fastuidraw::PainterIndex> indices,
-          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
-          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
           fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
           fastuidraw::c_array<int> index_adjusts) const
 {
@@ -2345,8 +2345,8 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
       w1 = iter->winding(1);
       ch = fastuidraw::FilledPath::Subset::chunk_for_aa_fuzz(w0, w1);
 
-      dst_attrib = attrib_chunks[ch].sub_array(4 * tmp[ch], 4).const_cast_pointer();
-      dst_index = index_chunks[ch].sub_array(6 * tmp[ch], 6).const_cast_pointer();
+      dst_attrib = attrib_chunks[ch].sub_array(4 * tmp[ch], 4).const_cast_pointer<fastuidraw::PainterAttribute>();
+      dst_index = index_chunks[ch].sub_array(6 * tmp[ch], 6).const_cast_pointer<fastuidraw::PainterIndex>();
 
       pack_attribute(iter->edge(), dst_attrib);
 
@@ -2421,7 +2421,7 @@ compute_sizes(unsigned int &number_attributes,
     + m_even_winding_indices.size()
     + m_zero_winding_indices.size();
 
-  for(std::map<int, const_c_array<unsigned int> >::const_iterator
+  for(std::map<int, c_array<const unsigned int> >::const_iterator
         iter = m_per_fill.begin(), end = m_per_fill.end();
       iter != end; ++iter)
     {
@@ -2444,8 +2444,8 @@ void
 AttributeDataFiller::
 fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
           fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
-          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
-          fastuidraw::c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
+          fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
           fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
           fastuidraw::c_array<int> index_adjusts) const
 {
@@ -2485,14 +2485,14 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
 
 #undef GRAB_MACRO
 
-  for(std::map<int, const_c_array<unsigned int> >::const_iterator
+  for(std::map<int, c_array<const unsigned int> >::const_iterator
         iter = m_per_fill.begin(), end = m_per_fill.end();
       iter != end; ++iter)
     {
       if(iter->first != 0) //winding number 0 is by complement_nonzero_fill_rule
         {
           c_array<PainterIndex> dst;
-          const_c_array<unsigned int> src;
+          c_array<const unsigned int> src;
           unsigned int idx;
 
           idx = FilledPath::Subset::chunk_from_winding_number(iter->first);
@@ -2614,7 +2614,7 @@ compute_bd_mask_value(SubsetPrivate *parent, int child_id)
 unsigned int
 SubsetPrivate::
 select_subsets(ScratchSpacePrivate &scratch,
-               fastuidraw::const_c_array<fastuidraw::vec3> clip_equations,
+               fastuidraw::c_array<const fastuidraw::vec3> clip_equations,
                const fastuidraw::float3x3 &clip_matrix_local,
                unsigned int max_attribute_cnt,
                unsigned int max_index_cnt,
@@ -2744,8 +2744,8 @@ make_ready(void)
 
 void
 SubsetPrivate::
-merge_winding_lists(fastuidraw::const_c_array<int> inA,
-                    fastuidraw::const_c_array<int> inB,
+merge_winding_lists(fastuidraw::c_array<const int> inA,
+                    fastuidraw::c_array<const int> inB,
                     std::vector<int> *out)
 {
   std::set<int> wnd;
@@ -2783,7 +2783,7 @@ make_ready_from_children(void)
 
   for(unsigned int i = 0, endi = m_winding_neighbors.size(); i < endi; ++i)
     {
-      fastuidraw::const_c_array<int> a, b;
+      fastuidraw::c_array<const int> a, b;
 
       if(i < m_children[0]->m_winding_neighbors.size())
         {
@@ -2839,7 +2839,7 @@ make_ready_from_sub_path(void)
   B.boundary_edge_tracker().create_aa_edges(edge_list);
   edge_list.fill_neighbor_list(&m_winding_neighbors);
 
-  fastuidraw::const_c_array<unsigned int> indices_ptr;
+  fastuidraw::c_array<const unsigned int> indices_ptr;
   indices_ptr = fastuidraw::make_c_array(filler.m_indices);
   filler.m_nonzero_winding_indices = indices_ptr.sub_array(0, zero_start);
   filler.m_odd_winding_indices = indices_ptr.sub_array(0, even_non_zero_start);
@@ -2855,7 +2855,7 @@ make_ready_from_sub_path(void)
   m_num_attributes = filler.m_points.size();
 
   m_winding_numbers.reserve(filler.m_per_fill.size());
-  for(std::map<int, fastuidraw::const_c_array<unsigned int> >::iterator
+  for(std::map<int, fastuidraw::c_array<const unsigned int> >::iterator
         iter = filler.m_per_fill.begin(), end = filler.m_per_fill.end();
       iter != end; ++iter)
     {
@@ -2957,7 +2957,7 @@ aa_fuzz_painter_data(void) const
   return d->fuzz_painter_data();
 }
 
-fastuidraw::const_c_array<int>
+fastuidraw::c_array<const int>
 fastuidraw::FilledPath::Subset::
 winding_numbers(void) const
 {
@@ -2966,7 +2966,7 @@ winding_numbers(void) const
   return d->winding_numbers();
 }
 
-fastuidraw::const_c_array<int>
+fastuidraw::c_array<const int>
 fastuidraw::FilledPath::Subset::
 winding_neighbors(int w) const
 {
@@ -3058,7 +3058,7 @@ subset(unsigned int I) const
 unsigned int
 fastuidraw::FilledPath::
 select_subsets(ScratchSpace &work_room,
-               const_c_array<vec3> clip_equations,
+               c_array<const vec3> clip_equations,
                const float3x3 &clip_matrix_local,
                unsigned int max_attribute_cnt,
                unsigned int max_index_cnt,

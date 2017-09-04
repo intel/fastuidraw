@@ -360,7 +360,7 @@ largest_allocation_possible(void) const
 
 fastuidraw::ivec2
 fastuidraw::ColorStopAtlas::
-allocate(const_c_array<u8vec4> data)
+allocate(c_array<const u8vec4> data)
 {
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
@@ -455,7 +455,7 @@ ColorStopSequenceOnAtlas(const ColorStopSequence &pcolor_stops,
   d->m_atlas = atlas;
   d->m_width = pwidth;
 
-  const_c_array<ColorStop> color_stops(pcolor_stops.values());
+  c_array<const ColorStop> color_stops(pcolor_stops.values());
   FASTUIDRAWassert(d->m_atlas);
   FASTUIDRAWassert(pwidth>0);
 

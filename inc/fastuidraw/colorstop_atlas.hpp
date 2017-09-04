@@ -74,7 +74,7 @@ namespace fastuidraw
     void
     set_data(int x, int l,
              int w,
-             const_c_array<u8vec4> data)=0;
+             c_array<const u8vec4> data)=0;
 
     /*!
       To be implemented by a derived class to flush set_data() to
@@ -161,7 +161,7 @@ namespace fastuidraw
       \param data data to place on atlas
      */
     ivec2
-    allocate(const_c_array<u8vec4> data);
+    allocate(c_array<const u8vec4> data);
 
     /*!
       Mark a region to be free on the atlas

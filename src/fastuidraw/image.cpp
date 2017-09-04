@@ -62,7 +62,7 @@ namespace
   bool
   copy_sub_data(fastuidraw::c_array<T> dest,
                 int dest_dim,
-                fastuidraw::const_c_array<S> src,
+                fastuidraw::c_array<const S> src,
                 int source_x, int source_y,
                 fastuidraw::ivec2 src_dims)
   {
@@ -77,7 +77,7 @@ namespace
 
     for(int src_y = source_y, dst_y = 0; dst_y < dest_dim; ++src_y, ++dst_y)
       {
-        fastuidraw::const_c_array<S> line_src;
+        fastuidraw::c_array<const S> line_src;
         fastuidraw::c_array<T> line_dest;
         int dst_x, src_x, src_start;
 
@@ -292,20 +292,20 @@ namespace
   public:
     ImagePrivate(fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> patlas,
                  int w, int h,
-                 fastuidraw::const_c_array<fastuidraw::u8vec4> image_data,
+                 fastuidraw::c_array<const fastuidraw::u8vec4> image_data,
                  unsigned int pslack);
 
     ~ImagePrivate();
 
     void
-    create_color_tiles(fastuidraw::const_c_array<fastuidraw::u8vec4> image_data);
+    create_color_tiles(fastuidraw::c_array<const fastuidraw::u8vec4> image_data);
 
     void
     create_index_tiles(void);
 
     template<typename T>
     fastuidraw::ivec2
-    create_index_layer(fastuidraw::const_c_array<T> src_tiles,
+    create_index_layer(fastuidraw::c_array<const T> src_tiles,
                        fastuidraw::ivec2 src_dims, int slack,
                        std::list<std::vector<fastuidraw::ivec3> > &destination);
 
@@ -330,7 +330,7 @@ namespace
 ImagePrivate::
 ImagePrivate(fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> patlas,
              int w, int h,
-             fastuidraw::const_c_array<fastuidraw::u8vec4> image_data,
+             fastuidraw::c_array<const fastuidraw::u8vec4> image_data,
              unsigned int pslack):
   m_atlas(patlas),
   m_dimensions(w,h),
@@ -375,7 +375,7 @@ ImagePrivate::
 
 void
 ImagePrivate::
-create_color_tiles(fastuidraw::const_c_array<fastuidraw::u8vec4> image_data)
+create_color_tiles(fastuidraw::c_array<const fastuidraw::u8vec4> image_data)
 {
   int tile_interior_size;
   int color_tile_size;
@@ -448,7 +448,7 @@ create_color_tiles(fastuidraw::const_c_array<fastuidraw::u8vec4> image_data)
 template<typename T>
 fastuidraw::ivec2
 ImagePrivate::
-create_index_layer(fastuidraw::const_c_array<T> src_tiles,
+create_index_layer(fastuidraw::c_array<const T> src_tiles,
                    fastuidraw::ivec2 src_dims, int slack,
                    std::list<std::vector<fastuidraw::ivec3> > &destination)
 {
@@ -872,7 +872,7 @@ number_free_index_tiles(void) const
 
 fastuidraw::ivec3
 fastuidraw::ImageAtlas::
-add_index_tile(fastuidraw::const_c_array<fastuidraw::ivec3> data, int slack)
+add_index_tile(fastuidraw::c_array<const fastuidraw::ivec3> data, int slack)
 {
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
@@ -903,7 +903,7 @@ add_index_tile(fastuidraw::const_c_array<fastuidraw::ivec3> data, int slack)
 
 fastuidraw::ivec3
 fastuidraw::ImageAtlas::
-add_index_tile_index_data(fastuidraw::const_c_array<fastuidraw::ivec3> data)
+add_index_tile_index_data(fastuidraw::c_array<const fastuidraw::ivec3> data)
 {
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
@@ -946,7 +946,7 @@ number_free_color_tiles(void) const
 
 fastuidraw::ivec3
 fastuidraw::ImageAtlas::
-add_color_tile(fastuidraw::const_c_array<u8vec4> data)
+add_color_tile(fastuidraw::c_array<const u8vec4> data)
 {
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
@@ -1034,7 +1034,7 @@ resize_to_fit(int num_color_tiles, int num_index_tiles)
 fastuidraw::reference_counted_ptr<fastuidraw::Image>
 fastuidraw::Image::
 create(fastuidraw::reference_counted_ptr<ImageAtlas> atlas, int w, int h,
-       const_c_array<u8vec4> image_data, unsigned int pslack)
+       c_array<const u8vec4> image_data, unsigned int pslack)
 {
   int tile_interior_size;
   int color_tile_size;
@@ -1079,7 +1079,7 @@ create(fastuidraw::reference_counted_ptr<ImageAtlas> atlas, int w, int h,
 fastuidraw::Image::
 Image(fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> patlas,
       int w, int h,
-      fastuidraw::const_c_array<fastuidraw::u8vec4> image_data,
+      fastuidraw::c_array<const fastuidraw::u8vec4> image_data,
       unsigned int pslack)
 {
   m_d = FASTUIDRAWnew ImagePrivate(patlas, w, h, image_data, pslack);

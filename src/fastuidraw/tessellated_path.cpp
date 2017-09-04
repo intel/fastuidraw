@@ -242,7 +242,7 @@ max_segments(void) const
   return d->m_max_segments;
 }
 
-fastuidraw::const_c_array<fastuidraw::TessellatedPath::point>
+fastuidraw::c_array<const fastuidraw::TessellatedPath::point>
 fastuidraw::TessellatedPath::
 point_data(void) const
 {
@@ -291,7 +291,7 @@ unclosed_contour_range(unsigned int contour) const
   return return_value;
 }
 
-fastuidraw::const_c_array<fastuidraw::TessellatedPath::point>
+fastuidraw::c_array<const fastuidraw::TessellatedPath::point>
 fastuidraw::TessellatedPath::
 contour_point_data(unsigned int contour) const
 {
@@ -301,7 +301,7 @@ contour_point_data(unsigned int contour) const
   return make_c_array(d->m_point_data).sub_array(contour_range(contour));
 }
 
-fastuidraw::const_c_array<fastuidraw::TessellatedPath::point>
+fastuidraw::c_array<const fastuidraw::TessellatedPath::point>
 fastuidraw::TessellatedPath::
 unclosed_contour_point_data(unsigned int contour) const
 {
@@ -331,7 +331,7 @@ edge_range(unsigned int contour, unsigned int edge) const
   return d->m_edge_ranges[contour][edge];
 }
 
-fastuidraw::const_c_array<fastuidraw::TessellatedPath::point>
+fastuidraw::c_array<const fastuidraw::TessellatedPath::point>
 fastuidraw::TessellatedPath::
 edge_point_data(unsigned int contour, unsigned int edge) const
 {

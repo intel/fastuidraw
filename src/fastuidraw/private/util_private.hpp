@@ -103,22 +103,22 @@ namespace fastuidraw
   }
 
   template<typename T>
-  const_c_array<T>
+  c_array<const T>
   make_c_array(const std::vector<T> &p)
   {
     if(p.empty())
       {
-        return const_c_array<T>();
+        return c_array<const T>();
       }
     else
       {
-        return const_c_array<T>(&p[0], p.size());
+        return c_array<const T>(&p[0], p.size());
       }
   }
 
   template<typename T>
   c_array<T>
-  const_cast_c_array(const_c_array<T> p)
+  const_cast_c_array(c_array<const T> p)
   {
     T *q;
     q = const_cast<T*>(p.c_ptr());

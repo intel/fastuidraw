@@ -93,26 +93,26 @@ namespace fastuidraw
         varyings of the specified interpolation type.
         \param q interpolation type
        */
-      const_c_array<c_string>
+      c_array<const c_string>
       floats(enum interpolation_qualifier_t q) const;
 
       /*!
         Returns an array R, so that R[i] is
         floats(i).size().
        */
-      const_c_array<size_t>
+      c_array<const size_t>
       float_counts(void) const;
 
       /*!
         Returns the names for the slots of the uint varyings
        */
-      const_c_array<c_string>
+      c_array<const c_string>
       uints(void) const;
 
       /*!
         Returns the names for the slots of the int varyings
        */
-      const_c_array<c_string>
+      c_array<const c_string>
       ints(void) const;
 
       /*!
@@ -240,7 +240,7 @@ namespace fastuidraw
       static
       unsigned int
       stream_unpack_code(unsigned int alignment, ShaderSource &str,
-                         const_c_array<shader_unpack_value> labels,
+                         c_array<const shader_unpack_value> labels,
                          c_string offset_name,
                          c_string prefix = "");
 
@@ -266,7 +266,7 @@ namespace fastuidraw
       static
       unsigned int
       stream_unpack_function(unsigned int alignment, ShaderSource &str,
-                             const_c_array<shader_unpack_value> labels,
+                             c_array<const shader_unpack_value> labels,
                              c_string function_name,
                              c_string out_type,
                              bool returns_new_offset = true);

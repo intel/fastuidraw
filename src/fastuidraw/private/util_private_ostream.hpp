@@ -70,7 +70,7 @@ namespace fastuidraw
 
   template<typename T>
   std::ostream&
-  operator<<(std::ostream &ostr, const_c_array<T> obj)
+  operator<<(std::ostream &ostr, c_array<const T> obj)
   {
     ostr << "(";
     for(size_t i = 0; i < obj.size(); ++i)

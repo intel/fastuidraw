@@ -139,7 +139,7 @@ private:
     init_and_bind_vao_vbo_ibo(void);
 
     void
-    init_draw_text(const_c_array<Glyph> glyphs, const_c_array<vec2> glyph_positions,
+    init_draw_text(c_array<const Glyph> glyphs, c_array<const vec2> glyph_positions,
                    float scale_factor);
 
     void
@@ -295,7 +295,7 @@ init_and_bind_vao_vbo_ibo(void)
 
 void
 glyph_test::per_draw::
-init_draw_text(const_c_array<Glyph> glyphs, const_c_array<vec2> glyph_positions,
+init_draw_text(c_array<const Glyph> glyphs, c_array<const vec2> glyph_positions,
                float scale_factor)
 {
   std::vector<attribs_per_glyph> attribs;

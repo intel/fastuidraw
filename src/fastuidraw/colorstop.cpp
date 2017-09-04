@@ -85,7 +85,7 @@ clear(void)
   d->m_values.clear();
 }
 
-fastuidraw::const_c_array<fastuidraw::ColorStop>
+fastuidraw::c_array<const fastuidraw::ColorStop>
 fastuidraw::ColorStopSequence::
 values(void) const
 {

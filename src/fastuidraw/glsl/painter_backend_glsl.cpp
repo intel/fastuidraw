@@ -799,7 +799,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   DeclareVaryingsStringDatum main_varying_datum, brush_varying_datum, shader_varying_datum;
   const PainterBackendGLSL::BindingPoints &binding_params(params.binding_points());
   std::vector<reference_counted_ptr<PainterItemShaderGLSL> > work_shaders;
-  const_c_array<reference_counted_ptr<PainterItemShaderGLSL> > item_shaders;
+  c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders;
 
   if(item_shader_filter)
     {

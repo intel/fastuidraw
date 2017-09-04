@@ -361,7 +361,7 @@ dash_offset(float f)
   return *this;
 }
 
-fastuidraw::const_c_array<fastuidraw::PainterDashedStrokeParams::DashPatternElement>
+fastuidraw::c_array<const fastuidraw::PainterDashedStrokeParams::DashPatternElement>
 fastuidraw::PainterDashedStrokeParams::
 dash_pattern(void) const
 {
@@ -373,7 +373,7 @@ dash_pattern(void) const
 
 fastuidraw::PainterDashedStrokeParams&
 fastuidraw::PainterDashedStrokeParams::
-dash_pattern(const_c_array<DashPatternElement> f)
+dash_pattern(c_array<const DashPatternElement> f)
 {
   PainterDashedStrokeParamsData *d;
   FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);

@@ -244,7 +244,7 @@ add_source_entry(const source_code_t &v, std::ostream &output_stream)
         }
       else
         {
-          const_c_array<uint8_t> resource_string;
+          c_array<const uint8_t> resource_string;
 
           resource_string = fetch_static_resource(v.first.c_str());
           label=v.first;

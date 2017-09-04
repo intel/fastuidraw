@@ -235,7 +235,7 @@ protected:
 
         if(m_program[m_current_program].m_index_boundary_mix != -1)
           {
-            const_c_array<float> index_boundary_mix_values;
+            c_array<const float> index_boundary_mix_values;
             index_boundary_mix_values = cast_c_array(m_index_boundary_mix_values);
             gl::Uniform(m_program[m_current_program].m_index_boundary_mix,
                         index_boundary_mix_values);

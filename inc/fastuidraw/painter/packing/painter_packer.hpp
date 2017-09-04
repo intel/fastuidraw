@@ -301,9 +301,9 @@ namespace fastuidraw
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterPackerData &data,
-                 const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
-                 const_c_array<const_c_array<PainterIndex> > index_chunks,
-                 const_c_array<int> index_adjusts,
+                 c_array<const c_array<const PainterAttribute> > attrib_chunks,
+                 c_array<const c_array<const PainterIndex> > index_chunks,
+                 c_array<const int> index_adjusts,
                  int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
 
@@ -324,10 +324,10 @@ namespace fastuidraw
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterPackerData &data,
-                 const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
-                 const_c_array<const_c_array<PainterIndex> > index_chunks,
-                 const_c_array<int> index_adjusts,
-                 const_c_array<unsigned int> attrib_chunk_selector,
+                 c_array<const c_array<const PainterAttribute> > attrib_chunks,
+                 c_array<const c_array<const PainterIndex> > index_chunks,
+                 c_array<const int> index_adjusts,
+                 c_array<const unsigned int> attrib_chunk_selector,
                  int z,
                  const reference_counted_ptr<DataCallBack> &call_back = reference_counted_ptr<DataCallBack>());
     /*!

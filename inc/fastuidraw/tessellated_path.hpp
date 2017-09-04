@@ -266,7 +266,7 @@ public:
   /*!
     Returns all the point data
    */
-  const_c_array<point>
+  c_array<const point>
   point_data(void) const;
 
   /*!
@@ -316,7 +316,7 @@ public:
     \param contour which path contour to query, must have
                    that 0 <= contour < number_contours()
    */
-  const_c_array<point>
+  c_array<const point>
   contour_point_data(unsigned int contour) const;
 
   /*!
@@ -334,7 +334,7 @@ public:
     \param contour which path contour to query, must have
                    that 0 <= contour < number_contours()
    */
-  const_c_array<point>
+  c_array<const point>
   unclosed_contour_point_data(unsigned int contour) const;
 
   /*!
@@ -372,7 +372,7 @@ public:
     \param edge which edge of the contour to query, must
                 have that 0 <= edge < number_edges(contour)
    */
-  const_c_array<point>
+  c_array<const point>
   edge_point_data(unsigned int contour, unsigned int edge) const;
 
   /*!

@@ -153,10 +153,10 @@ namespace fastuidraw
         return m_ID;
       }
 
-      const_c_array<ivec2>
+      c_array<const ivec2>
       control_pts(void) const
       {
-        return const_c_array<ivec2>(m_control_pts.c_ptr(), m_num_control_pts);
+        return c_array<const ivec2>(m_control_pts.c_ptr(), m_num_control_pts);
       }
 
       const BoundingBox<int>&
@@ -189,23 +189,23 @@ namespace fastuidraw
         return m_num_control_pts - 1;
       }
 
-      const_c_array<vec2>
+      c_array<const vec2>
       derivatives_cancel(void) const
       {
-        return const_c_array<vec2>(m_derivatives_cancel.c_ptr(),
+        return c_array<const vec2>(m_derivatives_cancel.c_ptr(),
                                    m_num_derivatives_cancel);
       }
 
-      const_c_array<int>
+      c_array<const int>
       as_polynomial(int coord) const
       {
-        return const_c_array<int>(m_as_polynomial_fcn[coord].c_ptr(), m_num_control_pts);
+        return c_array<const int>(m_as_polynomial_fcn[coord].c_ptr(), m_num_control_pts);
       }
 
-      vecN<const_c_array<int>, 2>
+      vecN<c_array<const int>, 2>
       as_polynomial(void) const
       {
-        return vecN<const_c_array<int>, 2>(as_polynomial(0), as_polynomial(1));
+        return vecN<c_array<const int>, 2>(as_polynomial(0), as_polynomial(1));
       }
 
       vec2

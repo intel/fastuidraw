@@ -96,7 +96,7 @@ public:
       computed from chunk_from_winding_number(N). The same attribute
       chunk, 0, is used regardless of which index chunk.
     */
-    const_c_array<int>
+    c_array<const int>
     winding_numbers(void) const;
 
     /*!
@@ -108,7 +108,7 @@ public:
       w, that is given by the list winding_neighbors(w).
       \param w winding number to query
      */
-    const_c_array<int>
+    c_array<const int>
     winding_neighbors(int w) const;
 
     /*!
@@ -208,7 +208,7 @@ public:
    */
   unsigned int
   select_subsets(ScratchSpace &scratch_space,
-                 const_c_array<vec3> clip_equations,
+                 c_array<const vec3> clip_equations,
                  const float3x3 &clip_matrix_local,
                  unsigned int max_attribute_cnt,
                  unsigned int max_index_cnt,

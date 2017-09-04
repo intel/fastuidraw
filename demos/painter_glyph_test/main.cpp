@@ -66,13 +66,13 @@ public:
 
   void
   init(const std::vector<LineData> &in_data,
-       const_c_array<range_type<float> > glyph_extents);
+       c_array<const range_type<float> > glyph_extents);
 
   unsigned int
   glyph_source(vec2 p) const;
 
 private:
-  const_c_array<range_type<float> > m_glyph_extents;
+  c_array<const range_type<float> > m_glyph_extents;
   std::vector<PerLine> m_lines;
   std::map<float, unsigned int> m_line_finder;
 };
@@ -111,25 +111,25 @@ public:
     return m_glyph_finder;
   }
 
-  const_c_array<vec2>
+  c_array<const vec2>
   glyph_positions(void) const
   {
     return cast_c_array(m_glyph_positions);
   }
 
-  const_c_array<Glyph>
+  c_array<const Glyph>
   glyphs(void) const
   {
     return cast_c_array(m_glyphs);
   }
 
-  const_c_array<range_type<float> >
+  c_array<const range_type<float> >
   glyph_extents(void) const
   {
     return cast_c_array(m_glyph_extents);
   }
 
-  const_c_array<uint32_t>
+  c_array<const uint32_t>
   character_codes(void) const
   {
     return cast_c_array(m_character_codes);
@@ -431,13 +431,13 @@ void
 GlyphDraws::
 set_data(float pixel_size, size_t glyphs_per_painter_draw)
 {
-  const_c_array<vec2> in_glyph_positions(cast_c_array(m_glyph_positions));
-  const_c_array<Glyph> in_glyphs(cast_c_array(m_glyphs));
+  c_array<const vec2> in_glyph_positions(cast_c_array(m_glyph_positions));
+  c_array<const Glyph> in_glyphs(cast_c_array(m_glyphs));
 
   while(!in_glyphs.empty())
     {
-      const_c_array<Glyph> glyphs;
-      const_c_array<vec2> glyph_positions;
+      c_array<const Glyph> glyphs;
+      c_array<const vec2> glyph_positions;
       unsigned int cnt;
       PainterAttributeData *data;
 
@@ -501,7 +501,7 @@ glyph_source(float x) const
 void
 GlyphFinder::
 init(const std::vector<LineData> &in_data,
-     const_c_array<range_type<float> > glyph_extents)
+     c_array<const range_type<float> > glyph_extents)
 {
   m_glyph_extents = glyph_extents;
   for(unsigned int i = 0, endi = in_data.size(); i < endi; ++i)
@@ -770,8 +770,8 @@ draw_frame(void)
   else
     {
       unsigned int src(draw_glyph_curvepair);
-      const_c_array<Glyph> glyphs(m_draws[src].glyphs());
-      const_c_array<vec2> glyph_positions(m_draws[src].glyph_positions());
+      c_array<const Glyph> glyphs(m_draws[src].glyphs());
+      c_array<const vec2> glyph_positions(m_draws[src].glyph_positions());
 
       PainterBrush fill_brush;
       fill_brush.pen(1.0, 1.0, 1.0, 1.0);
@@ -819,8 +819,8 @@ draw_frame(void)
         static_cast<unsigned int>(draw_glyph_curvepair) :
         m_current_drawer;
 
-      const_c_array<Glyph> glyphs(m_draws[src].glyphs());
-      const_c_array<vec2> glyph_positions(m_draws[src].glyph_positions());
+      c_array<const Glyph> glyphs(m_draws[src].glyphs());
+      c_array<const vec2> glyph_positions(m_draws[src].glyph_positions());
 
       // reuse stroke and brush parameters across all glyphs
       PainterPackedValue<PainterBrush> pbr;

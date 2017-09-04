@@ -959,7 +959,7 @@ handle_event(const SDL_Event &ev)
                 }
               else
                 {
-                  const_c_array<int> wnd;
+                  c_array<const int> wnd;
                   int value;
                   wnd = m_path.tessellation()->filled()->subset(0).winding_numbers();
                   value = wnd[m_fill_rule - PainterEnums::fill_rule_data_count];
@@ -1096,7 +1096,7 @@ create_stroked_path_attributes(void)
   reference_counted_ptr<const TessellatedPath> tessellated;
   reference_counted_ptr<const StrokedPath> stroked;
   const PainterAttributeData *data;
-  const_c_array<PainterAttribute> miter_points;
+  c_array<const PainterAttribute> miter_points;
 
   tessellated = m_path.tessellation(-1.0f);
   stroked = tessellated->stroked();
@@ -1135,7 +1135,7 @@ create_stroked_path_attributes(void)
           std::cout << "\tContour #" << c << "\n";
           for(unsigned int e = 0; e < tess->number_edges(c); ++e)
             {
-              fastuidraw::const_c_array<fastuidraw::TessellatedPath::point> pts;
+              fastuidraw::c_array<const fastuidraw::TessellatedPath::point> pts;
 
               std::cout << "\t\tEdge #" << e << " has "
                         << tess->edge_point_data(c, e).size() << " pts\n";
@@ -1423,7 +1423,7 @@ draw_frame(void)
       else if(m_fill_rule != m_end_fill_rule)
         {
           int value;
-          const_c_array<int> wnd;
+          c_array<const int> wnd;
 
           wnd = m_path.tessellation()->filled()->subset(0).winding_numbers();
           value = wnd[m_fill_rule - PainterEnums::fill_rule_data_count];
@@ -1479,7 +1479,7 @@ draw_frame(void)
           st.width(m_stroke_width);
 
           unsigned int D(dash_pattern());
-          const_c_array<PainterDashedStrokeParams::DashPatternElement> dash_ptr(&m_dash_patterns[D][0], m_dash_patterns[D].size());
+          c_array<const PainterDashedStrokeParams::DashPatternElement> dash_ptr(&m_dash_patterns[D][0], m_dash_patterns[D].size());
           st.dash_pattern(dash_ptr);
 
           if(m_stroke_width_in_pixels)

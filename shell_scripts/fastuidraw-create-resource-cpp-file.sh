@@ -54,5 +54,5 @@ echo -e "#include <fastuidraw/util/static_resource.hpp>\n" > "$source_file_name"
 echo -e "namespace { \n\tconst uint8_t values[]={ " >> "$source_file_name"
 perl -e "$perl_magick_program" "$1" >> "$source_file_name" || exit 1
 echo -e " 0 };\n" >> "$source_file_name"
-echo -e " fastuidraw::static_resource R(\"$2\", fastuidraw::const_c_array<uint8_t>(values, sizeof(values)));\n " >> "$source_file_name"
+echo -e " fastuidraw::static_resource R(\"$2\", fastuidraw::c_array<const uint8_t>(values, sizeof(values)));\n " >> "$source_file_name"
 echo -e "\n}\n" >> "$source_file_name"

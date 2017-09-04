@@ -250,7 +250,7 @@ private:
 
     if(m_color_stop_args.m_values.empty())
       {
-        const_c_array<ColorStop> src;
+        c_array<const ColorStop> src;
 
         m_color_stop_args.fetch("default-32px").m_stops.add(ColorStop(u8vec4(255, 255, 255, 255), 0.00f));
         m_color_stop_args.fetch("default-32px").m_stops.add(ColorStop(u8vec4(0,     0, 255, 255), 0.25f));

@@ -86,8 +86,8 @@ namespace fastuidraw
     void
     fill_data(c_array<PainterAttribute> attributes,
               c_array<PainterIndex> indices,
-              c_array<const_c_array<PainterAttribute> > attrib_chunks,
-              c_array<const_c_array<PainterIndex> > index_chunks,
+              c_array<c_array<const PainterAttribute> > attrib_chunks,
+              c_array<c_array<const PainterIndex> > index_chunks,
               c_array<range_type<int> > zranges,
               c_array<int> index_adjusts) const = 0;
   };

@@ -54,7 +54,7 @@ namespace
 
   void
   stream_varyings_as_local_variables_array(fastuidraw::glsl::ShaderSource &vert,
-                                           fastuidraw::const_c_array<fastuidraw::c_string> p,
+                                           fastuidraw::c_array<const fastuidraw::c_string> p,
                                            fastuidraw::c_string type)
   {
     std::ostringstream ostr;
@@ -81,7 +81,7 @@ namespace
   void
   stream_alias_varyings_array(fastuidraw::c_string append_to_name,
                               fastuidraw::glsl::ShaderSource &vert,
-                              fastuidraw::const_c_array<fastuidraw::c_string> p,
+                              fastuidraw::c_array<const fastuidraw::c_string> p,
                               const std::string &s, bool define,
                               unsigned int special_index)
   {
@@ -143,7 +143,7 @@ namespace
   unsigned int
   stream_declare_varyings(fastuidraw::c_string append_to_name, std::ostream &str,
                           size_t uint_count, size_t int_count,
-                          fastuidraw::const_c_array<size_t> float_counts,
+                          fastuidraw::c_array<const size_t> float_counts,
                           unsigned int start_slot)
   {
     unsigned int number_slots(0);
@@ -220,7 +220,7 @@ namespace
   public:
     typedef fastuidraw::glsl::ShaderSource ShaderSource;
     typedef fastuidraw::reference_counted_ptr<T> ref_type;
-    typedef fastuidraw::const_c_array<ref_type> array_type;
+    typedef fastuidraw::c_array<const ref_type> array_type;
     typedef const ShaderSource& (T::*get_src_type)(void) const;
     typedef fastuidraw::glsl::detail::DeclareVaryingsStringDatum Datum;
     typedef void (*pre_post_stream_type)(ShaderSource &dst, const ref_type &sh, const Datum &datum);
@@ -458,7 +458,7 @@ stream_varyings_as_local_variables(ShaderSource &shader, const varying_list &p)
 std::string
 declare_varyings_string(fastuidraw::c_string append_to_name,
                         size_t uint_count, size_t int_count,
-                        const_c_array<size_t> float_counts,
+                        c_array<const size_t> float_counts,
                         unsigned int *slot,
                         DeclareVaryingsStringDatum *datum)
 {
@@ -479,7 +479,7 @@ declare_varyings_string(fastuidraw::c_string append_to_name,
 void
 stream_uber_vert_shader(bool use_switch,
                         ShaderSource &vert,
-                        const_c_array<reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
+                        c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
                         const DeclareVaryingsStringDatum &datum)
 {
   UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, vert, item_shaders,
@@ -495,7 +495,7 @@ stream_uber_vert_shader(bool use_switch,
 void
 stream_uber_frag_shader(bool use_switch,
                         ShaderSource &frag,
-                        const_c_array<reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
+                        c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
                         const DeclareVaryingsStringDatum &datum)
 {
   UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, frag, item_shaders,
@@ -511,7 +511,7 @@ stream_uber_frag_shader(bool use_switch,
 void
 stream_uber_blend_shader(bool use_switch,
                          ShaderSource &frag,
-                         const_c_array<reference_counted_ptr<PainterBlendShaderGLSL> > shaders,
+                         c_array<const reference_counted_ptr<PainterBlendShaderGLSL> > shaders,
                          enum PainterBlendShader::shader_type tp)
 {
   std::string sub_func_name, func_name, sub_func_args;

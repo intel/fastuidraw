@@ -81,7 +81,7 @@ class Image;
     void
     set_data(int x, int y, int l,
              int w, int h,
-             const_c_array<u8vec4> data) = 0;
+             c_array<const u8vec4> data) = 0;
 
     /*!
       To be implemented by a derived class
@@ -189,7 +189,7 @@ class Image;
     void
     set_data(int x, int y, int l,
              int w, int h,
-             const_c_array<ivec3> data,
+             c_array<const ivec3> data,
              int slack,
              const AtlasColorBackingStoreBase *c,
              int color_tile_size) = 0;
@@ -208,7 +208,7 @@ class Image;
     virtual
     void
     set_data(int x, int y, int l, int w, int h,
-             const_c_array<ivec3> data) = 0;
+             c_array<const ivec3> data) = 0;
 
     /*!
       To be implemented by a derived class
@@ -375,7 +375,7 @@ class Image;
                    filtering (require slack of 2).
      */
     ivec3
-    add_index_tile(const_c_array<ivec3> data, int slack);
+    add_index_tile(c_array<const ivec3> data, int slack);
 
     /*!
       Adds an index tile that indexes into the index data. This is needed
@@ -384,7 +384,7 @@ class Image;
       \param data array of tiles as returned by add_index_tile()
      */
     ivec3
-    add_index_tile_index_data(const_c_array<ivec3> data);
+    add_index_tile_index_data(c_array<const ivec3> data);
 
     /*!
       Mark a tile as free in the atlas
@@ -400,7 +400,7 @@ class Image;
       \param data color/image data to which to set the tile
      */
     ivec3
-    add_color_tile(const_c_array<u8vec4> data);
+    add_color_tile(c_array<const u8vec4> data);
 
     /*!
       Mark a tile as free in the atlas
@@ -455,7 +455,7 @@ class Image;
     static
     reference_counted_ptr<Image>
     create(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
-           const_c_array<u8vec4> image_data, unsigned int pslack);
+           c_array<const u8vec4> image_data, unsigned int pslack);
 
     ~Image();
 
@@ -511,7 +511,7 @@ class Image;
 
   private:
     Image(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
-          const_c_array<u8vec4> image_data, unsigned int pslack);
+          c_array<const u8vec4> image_data, unsigned int pslack);
 
     void *m_d;
   };

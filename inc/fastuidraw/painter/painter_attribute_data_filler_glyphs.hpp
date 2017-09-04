@@ -69,9 +69,9 @@ namespace fastuidraw
                            same length as glyph_positions
       \param orientation orientation of drawing
      */
-    PainterAttributeDataFillerGlyphs(const_c_array<vec2> glyph_positions,
-                                     const_c_array<Glyph> glyphs,
-                                     const_c_array<float> scale_factors,
+    PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
+                                     c_array<const Glyph> glyphs,
+                                     c_array<const float> scale_factors,
                                      enum PainterEnums::glyph_orientation orientation
                                      = PainterEnums::y_increases_downwards);
 
@@ -84,8 +84,8 @@ namespace fastuidraw
       \param render_pixel_size pixel size to which to scale the glyphs
       \param orientation orientation of drawing
      */
-    PainterAttributeDataFillerGlyphs(const_c_array<vec2> glyph_positions,
-                                     const_c_array<Glyph> glyphs,
+    PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
+                                     c_array<const Glyph> glyphs,
                                      float render_pixel_size,
                                      enum PainterEnums::glyph_orientation orientation
                                      = PainterEnums::y_increases_downwards);
@@ -99,8 +99,8 @@ namespace fastuidraw
       \param glyphs glyphs to draw, array must be same size as glyph_positions
       \param orientation orientation of drawing
      */
-    PainterAttributeDataFillerGlyphs(const_c_array<vec2> glyph_positions,
-                                     const_c_array<Glyph> glyphs,
+    PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
+                                     c_array<const Glyph> glyphs,
                                      enum PainterEnums::glyph_orientation orientation
                                      = PainterEnums::y_increases_downwards);
 
@@ -131,8 +131,8 @@ namespace fastuidraw
     void
     fill_data(c_array<PainterAttribute> attributes,
               c_array<PainterIndex> indices,
-              c_array<const_c_array<PainterAttribute> > attrib_chunks,
-              c_array<const_c_array<PainterIndex> > index_chunks,
+              c_array<c_array<const PainterAttribute> > attrib_chunks,
+              c_array<c_array<const PainterIndex> > index_chunks,
               c_array<range_type<int> > zranges,
               c_array<int> index_adjusts) const;
 

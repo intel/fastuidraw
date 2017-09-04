@@ -620,7 +620,7 @@ public:
       The list of chunks to take from StrokedPath::edges()
       that have visible content.
      */
-    const_c_array<unsigned int>
+    c_array<const unsigned int>
     edge_chunks(void) const;
 
     /*!
@@ -629,7 +629,7 @@ public:
       StrokedPath::miter_joins() or StrokedPath::rounded_joins() that
       have visible content.
      */
-    const_c_array<unsigned int>
+    c_array<const unsigned int>
     join_chunks(void) const;
 
     /*!
@@ -637,7 +637,7 @@ public:
       StrokedPath::adjustable_caps() or StrokedPath::rounded_caps()
       that have visible content.
      */
-    const_c_array<unsigned int>
+    c_array<const unsigned int>
     cap_chunks(void) const;
 
   private:
@@ -716,7 +716,7 @@ public:
   compute_chunks(ScratchSpace &scratch_space,
                  const DashEvaluatorBase *dash_evaluator,
                  const PainterShaderData::DataBase *dash_data,
-                 const_c_array<vec3> clip_equations,
+                 c_array<const vec3> clip_equations,
                  const float3x3 &clip_matrix_local,
                  const vec2 &recip_dimensions,
                  float pixels_additional_room,

@@ -420,9 +420,9 @@ namespace fastuidraw
      */
     void
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
-                const PainterAttributeData *edge_data, const_c_array<unsigned int> edge_chunks,
-                const PainterAttributeData *cap_data, const_c_array<unsigned int> cap_chunks,
-                const PainterAttributeData *join_data, const_c_array<unsigned int> join_chunks,
+                const PainterAttributeData *edge_data, c_array<const unsigned int> edge_chunks,
+                const PainterAttributeData *cap_data, c_array<const unsigned int> cap_chunks,
+                const PainterAttributeData *join_data, c_array<const unsigned int> join_chunks,
                 bool with_anti_aliasing,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
@@ -683,7 +683,7 @@ namespace fastuidraw
      */
     void
     draw_convex_polygon(const PainterFillShader &shader, const PainterData &draw,
-                        const_c_array<vec2> pts, bool with_anti_aliasing,
+                        c_array<const vec2> pts, bool with_anti_aliasing,
                         const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -696,7 +696,7 @@ namespace fastuidraw
                        is added.
      */
     void
-    draw_convex_polygon(const PainterData &draw, const_c_array<vec2> pts, bool with_anti_aliasing,
+    draw_convex_polygon(const PainterData &draw, c_array<const vec2> pts, bool with_anti_aliasing,
                         const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -774,13 +774,13 @@ namespace fastuidraw
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterData &draw,
-                 const_c_array<PainterAttribute> attrib_chunk,
-                 const_c_array<PainterIndex> index_chunk,
+                 c_array<const PainterAttribute> attrib_chunk,
+                 c_array<const PainterIndex> index_chunk,
                  int index_adjust,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>())
     {
-      vecN<const_c_array<PainterAttribute>, 1> aa(attrib_chunk);
-      vecN<const_c_array<PainterIndex>, 1> ii(index_chunk);
+      vecN<c_array<const PainterAttribute>, 1> aa(attrib_chunk);
+      vecN<c_array<const PainterIndex>, 1> ii(index_chunk);
       vecN<int, 1> ia(index_adjust);
       draw_generic(shader, draw, aa, ii, ia, call_back);
     }
@@ -797,9 +797,9 @@ namespace fastuidraw
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterData &draw,
-                 const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
-                 const_c_array<const_c_array<PainterIndex> > index_chunks,
-                 const_c_array<int> index_adjusts,
+                 c_array<const c_array<const PainterAttribute> > attrib_chunks,
+                 c_array<const c_array<const PainterIndex> > index_chunks,
+                 c_array<const int> index_adjusts,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -818,10 +818,10 @@ namespace fastuidraw
     void
     draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
                  const PainterData &draw,
-                 const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
-                 const_c_array<const_c_array<PainterIndex> > index_chunks,
-                 const_c_array<int> index_adjusts,
-                 const_c_array<unsigned int> attrib_chunk_selector,
+                 c_array<const c_array<const PainterAttribute> > attrib_chunks,
+                 c_array<const c_array<const PainterIndex> > index_chunks,
+                 c_array<const int> index_adjusts,
+                 c_array<const unsigned int> attrib_chunk_selector,
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!

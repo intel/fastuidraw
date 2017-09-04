@@ -49,7 +49,7 @@ namespace
     void
     set_data(int x, int y, int l,
              int w, int h,
-             fastuidraw::const_c_array<fastuidraw::u8vec4> pdata);
+             fastuidraw::c_array<const fastuidraw::u8vec4> pdata);
 
     virtual
     void
@@ -108,7 +108,7 @@ namespace
     void
     set_data(int x, int y, int l,
              int w, int h,
-             fastuidraw::const_c_array<fastuidraw::ivec3> data,
+             fastuidraw::c_array<const fastuidraw::ivec3> data,
              int slack,
              const fastuidraw::AtlasColorBackingStoreBase *C,
              int pcolor_tile_size);
@@ -117,7 +117,7 @@ namespace
     void
     set_data(int x, int y, int l,
              int w, int h,
-             fastuidraw::const_c_array<fastuidraw::ivec3> data);
+             fastuidraw::c_array<const fastuidraw::ivec3> data);
 
     virtual
     void
@@ -228,10 +228,10 @@ void
 ColorBackingStoreGL::
 set_data(int x, int y, int l,
          int w, int h,
-         fastuidraw::const_c_array<fastuidraw::u8vec4> pdata)
+         fastuidraw::c_array<const fastuidraw::u8vec4> pdata)
 {
   TextureGL::EntryLocation V;
-  fastuidraw::const_c_array<uint8_t> data;
+  fastuidraw::c_array<const uint8_t> data;
 
   V.m_location.x() = x;
   V.m_location.y() = y;
@@ -239,7 +239,7 @@ set_data(int x, int y, int l,
   V.m_size.x() = w;
   V.m_size.y() = h;
   V.m_size.z() = 1;
-  data = pdata.reinterpret_pointer<uint8_t>();
+  data = pdata.reinterpret_pointer<const uint8_t>();
   m_backing_store.set_data_c_array(V, data);
 }
 
@@ -271,7 +271,7 @@ void
 IndexBackingStoreGL::
 set_data(int x, int y, int l,
          int w, int h,
-         fastuidraw::const_c_array<fastuidraw::ivec3> data,
+         fastuidraw::c_array<const fastuidraw::ivec3> data,
          int slack,
          const fastuidraw::AtlasColorBackingStoreBase *C,
          int pcolor_tile_size)
@@ -286,7 +286,7 @@ void
 IndexBackingStoreGL::
 set_data(int x, int y, int l,
          int w, int h,
-         fastuidraw::const_c_array<fastuidraw::ivec3> data)
+         fastuidraw::c_array<const fastuidraw::ivec3> data)
 {
   TextureGL::EntryLocation V;
   std::vector<uint8_t> data_store(4*w*h);

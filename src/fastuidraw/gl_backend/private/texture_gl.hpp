@@ -275,7 +275,7 @@ public:
 
   void
   set_data_c_array(const EntryLocation &loc,
-                   const_c_array<uint8_t> data);
+                   c_array<const uint8_t> data);
 
   void
   resize(vecN<int, N> new_num_layers)
@@ -290,7 +290,7 @@ private:
 
   void
   tex_subimage(const EntryLocation &loc,
-               const_c_array<uint8_t> data);
+               c_array<const uint8_t> data);
 
   void
   flush_size_change(void);
@@ -522,7 +522,7 @@ template<GLenum texture_target>
 void
 TextureGLGeneric<texture_target>::
 set_data_c_array(const EntryLocation &loc,
-                 fastuidraw::const_c_array<uint8_t> data)
+                 fastuidraw::c_array<const uint8_t> data)
 {
   if(data.empty())
     {

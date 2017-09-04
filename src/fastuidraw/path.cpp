@@ -39,7 +39,7 @@ namespace
 
     static
     fastuidraw::vec2
-    compute_poly(float t, fastuidraw::const_c_array<fastuidraw::vec2> poly);
+    compute_poly(float t, fastuidraw::c_array<const fastuidraw::vec2> poly);
   };
 
 
@@ -398,7 +398,7 @@ compute_bernstein_derivative(const std::vector<fastuidraw::vec2> &input,
 
 fastuidraw::vec2
 poly::
-compute_poly(float t, fastuidraw::const_c_array<fastuidraw::vec2> poly)
+compute_poly(float t, fastuidraw::c_array<const fastuidraw::vec2> poly)
 {
   float s(1.0f-t);
   float st(s*t);
@@ -854,7 +854,7 @@ bezier(const reference_counted_ptr<const interpolator_base> &start, const vec2 &
 
 fastuidraw::PathContour::bezier::
 bezier(const reference_counted_ptr<const interpolator_base> &start,
-       const_c_array<vec2> control_pts,
+       c_array<const vec2> control_pts,
        const vec2 &end):
   interpolator_generic(start, end)
 {

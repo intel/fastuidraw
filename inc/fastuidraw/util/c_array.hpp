@@ -34,10 +34,6 @@ namespace fastuidraw
 template<typename T>
 class c_array;
 
-template<typename T>
-class const_c_array;
-
-
 /*!
   \brief
   A c_array is a wrapper over a
@@ -61,7 +57,7 @@ public:
     \brief
     STL compliant typedef
   */
-  typedef const T* const_pointer;
+  typedef T* const_pointer;
 
   /*!
     \brief
@@ -73,7 +69,7 @@ public:
     \brief
     STL compliant typedef
   */
-  typedef const T& const_reference;
+  typedef T& const_reference;
 
   /*!
     \brief
@@ -131,21 +127,49 @@ public:
     \param pptr pointer value
     \param sz size, must be no more than the number of elements that pptr points to.
    */
-  c_array(T *pptr, size_type sz):
+  template<typename U>
+  c_array(U *pptr, size_type sz):
     m_size(sz),
     m_ptr(pptr)
-  {}
+  {
+    FASTUIDRAWassert(sizeof(U) == sizeof(T));
+  }
 
   /*!
     Ctor from a vecN, size is the size of the fixed size array
     \param pptr fixed size array that c_array references, must be
                 in scope as until c_array is changed
    */
-  template<size_type N>
-  c_array(vecN<T,N> &pptr):
+  template<typename U, size_type N>
+  c_array(vecN<U, N> &pptr):
     m_size(N),
     m_ptr(pptr.c_ptr())
-  {}
+  {
+    FASTUIDRAWassert(sizeof(U) == sizeof(T));
+  }
+
+  template<typename U, size_type N>
+  c_array(const vecN<U, N> &pptr):
+    m_size(N),
+    m_ptr(pptr.c_ptr())
+  {
+    FASTUIDRAWassert(sizeof(U) == sizeof(T));
+  }
+
+  /*
+    Ctor from another c_array object.
+    \tparam U type U* must be convertible to type T* AND
+              the size of U must be the same as the size
+              of T
+    \param obj value from which to copy
+   */
+  template<typename U>
+  c_array(const c_array<U> &obj):
+    m_size(obj.m_size),
+    m_ptr(obj.m_ptr)
+  {
+    FASTUIDRAWassert(sizeof(U) == sizeof(T));
+  }
 
   /*!
     Ctor from a range of pointers.
@@ -170,6 +194,21 @@ public:
     FASTUIDRAWassert(num_bytes % sizeof(S) == 0);
     ptr = reinterpret_cast<S*>(c_ptr());
     return c_array<S>(ptr, num_bytes / sizeof(S));
+  }
+
+  /*!
+    Reinterpret style cast for c_array. It is required
+    that the sizeof(T)*size() evenly divides sizeof(S).
+    \tparam S type to which to be reinterpreted casted
+   */
+  template<typename S>
+  c_array<S>
+  const_cast_pointer(void) const
+  {
+    S *ptr;
+    FASTUIDRAWassert(sizeof(S) == sizeof(T));
+    ptr = const_cast<S*>(c_ptr());
+    return c_array<S>(ptr, m_size);
   }
 
   /*!
@@ -366,398 +405,22 @@ public:
     data as this c_array.
     \param rhs c_array to which to compare
    */
+  template<typename U>
   bool
-  same_data(const c_array &rhs) const
+  same_data(const c_array<U> &rhs) const
   {
     return m_size == rhs.m_size
       and m_ptr == rhs.m_ptr;
   }
 
-  /*!
-    Returns true if and only if the passed
-    the c_array references exactly the same
-    data as this c_array.
-    \param rhs c_array to which to compare
-   */
-  bool
-  same_data(const const_c_array<T> &rhs) const;
-
 private:
+  template<typename>
+  friend class c_array;
+
   size_type m_size;
   T *m_ptr;
-
 };
 
-
-
-
-
-/*!
-  \brief
-  A const_c_array is a wrapper over a
-  const C pointer with a size parameter
-  to facilitate bounds checking
-  and provide an STL-like iterator
-  interface.
- */
-template<typename T>
-class const_c_array
-{
-public:
-
-  /*!
-    \brief
-    STL compliant typedef
-  */
-  typedef const T* pointer;
-
-  /*!
-    \brief
-    STL compliant typedef
-  */
-  typedef const T* const_pointer;
-
-  /*!
-    \brief
-    STL compliant typedef
-  */
-  typedef const T& reference;
-
-  /*!
-    \brief
-    STL compliant typedef
-  */
-  typedef const T& const_reference;
-
-  /*!
-    \brief
-    STL compliant typedef
-  */
-  typedef T value_type;
-
-  /*!
-    \brief
-    STL compliant typedef
-  */
-  typedef size_t size_type;
-
-  /*!
-    \brief
-    STL compliant typedef
-  */
-  typedef ptrdiff_t difference_type;
-
-  /*!
-    \brief
-    iterator typedef
-   */
-  typedef const_pointer iterator;
-
-  /*!
-    \brief
-    iterator typedef
-   */
-  typedef const_pointer const_iterator;
-
-  /*!
-    iterator typedef using std::reverse_iterator.
-   */
-  typedef std::reverse_iterator<const_iterator>  const_reverse_iterator;
-
-  /*!
-    iterator typedef using std::reverse_iterator.
-   */
-  typedef std::reverse_iterator<iterator>        reverse_iterator;
-
-  /*!
-    Default ctor, initializing the pointer as nullptr
-    with size 0.
-   */
-  const_c_array(void):
-    m_size(0),
-    m_ptr(nullptr)
-  {}
-
-  /*!
-    Ctor initializing the pointer and size
-    \param pptr pointer value
-    \param sz size, must be no more than the number of elements that pptr points to.
-   */
-  const_c_array(const T *pptr, size_type sz):
-    m_size(sz),
-    m_ptr(pptr)
-  {}
-
-  /*!
-    Contruct a const_c_array from a c_array
-    \param v c_array from which to copy size and pointer value
-   */
-  const_c_array(c_array<T> v):
-    m_size(v.size()),
-    m_ptr(v.c_ptr())
-  {}
-
-  /*!
-    Ctor from a vecN, size is the size of the fixed size array
-    \param v fixed size array that const_c_array references, must be
-             in scope as until c_array is changed
-   */
-  template<size_type N>
-  const_c_array(const vecN<T,N> &v):
-    m_size(v.size()),
-    m_ptr(v.c_ptr())
-  {}
-
-  /*!
-    Ctor from a range of pointers.
-    \param R R.m_begin will be the pointer and R.m_end-R.m_begin the size.
-   */
-  const_c_array(range_type<iterator> R):
-    m_size(R.m_end - R.m_begin),
-    m_ptr((m_size > 0) ? &*R.m_begin : nullptr)
-  {}
-
-
-  /*!
-    Reinterpret style cast for c_array. It is required
-    that the sizeof(T)*size() evenly divides sizeof(S).
-    \tparam S type to which to be reinterpreted casted
-   */
-  template<typename S>
-  const_c_array<S>
-  reinterpret_pointer(void) const
-  {
-    const S *ptr;
-    size_type num_bytes(size() * sizeof(T));
-    FASTUIDRAWassert(num_bytes % sizeof(S) == 0);
-    ptr = reinterpret_cast<const S*>(c_ptr());
-    return const_c_array<S>(ptr, num_bytes / sizeof(S));
-  }
-
-  /*!
-    Return a c_array from this const_c_array,
-    underneath performing const_cast.
-   */
-  c_array<T>
-  const_cast_pointer(void) const
-  {
-    T *q;
-    q = const_cast<T*>(c_ptr());
-    return c_array<T>(q, size());
-  }
-
-  /*!
-    Pointer of the const_c_array.
-   */
-  const T*
-  c_ptr(void) const
-  {
-    return m_ptr;
-  }
-
-  /*!
-    Pointer to the element one past
-    the last element of the const_c_array.
-   */
-  const T*
-  end_c_ptr(void) const
-  {
-    return m_ptr + m_size;
-  }
-
-  /*!
-    Access named element of const_c_array, under
-    debug build also performs bounds checking.
-    \param j index
-   */
-  const T&
-  operator[](size_type j) const
-  {
-    FASTUIDRAWassert(c_ptr()!=nullptr);
-    FASTUIDRAWassert(j < m_size);
-    return c_ptr()[j];
-  }
-
-  /*!
-     STL compliant function.
-   */
-  bool
-  empty(void) const
-  {
-    return m_size == 0;
-  }
-
-  /*!
-    STL compliant function.
-   */
-  size_type
-  size(void) const
-  {
-    return m_size;
-  }
-
-  /*!
-    STL compliant function.
-   */
-  const_iterator
-  begin(void) const
-  {
-    return const_iterator(c_ptr());
-  }
-
-  /*!
-    STL compliant function.
-   */
-  const_reverse_iterator
-  rbegin(void) const
-  {
-    return const_reverse_iterator(end());
-  }
-
-  /*!
-    STL compliant function.
-   */
-  const_iterator
-  end(void) const
-  {
-    return const_iterator(c_ptr() + static_cast<difference_type>(size()) );
-  }
-
-  /*!
-    STL compliant function.
-   */
-  const_reverse_iterator
-  rend(void) const
-  {
-    return const_reverse_iterator(begin());
-  }
-
-  /*!
-    Returns the range of the const_c_array as an
-    const_iterator range.
-   */
-  range_type<const_iterator>
-  range(void) const
-  {
-    return range_type<const_iterator>(begin(), end());
-  }
-
-  /*!
-    Returns the range of the const_c_array as a
-    const_reverse_iterator range
-   */
-  range_type<const_reverse_iterator>
-  reverse_range(void) const
-  {
-    return range_type<const_reverse_iterator>(rbegin(), rend());
-  }
-
-  /*!
-    Equivalent to
-    \code
-    operator[](size()-1-I)
-    \endcode
-    \param I index from the back to retrieve, I=0
-             corrseponds to the back of the array.
-   */
-  const T&
-  back(size_type I) const
-  {
-    FASTUIDRAWassert(I < size());
-    return (*this)[size() - 1 - I];
-  }
-
-  /*!
-    STL compliant function.
-   */
-  const T&
-  back(void) const
-  {
-    return (*this)[size() - 1];
-  }
-
-  /*!
-    STL compliant function.
-   */
-  const T&
-  front(void) const
-  {
-    return (*this)[0];
-  }
-
-  /*!
-    Returns a sub-array
-    \param pos position of returned sub-array to start,
-               i.e. returned c_array's c_ptr() will return
-               this->c_ptr()+pos. It is an error is pos
-               is negative.
-    \param length length of sub array to return, note
-                  that it is an error if length+pos>size()
-                  or if length is negative.
-   */
-  const_c_array
-  sub_array(size_type pos, size_type length) const
-  {
-    FASTUIDRAWassert(pos + length <= m_size);
-    return const_c_array(m_ptr + pos, length);
-  }
-
-  /*!
-    Returns a sub-array, equivalent to
-    \code
-    sub_array(pos, size()-pos)
-    \endcode
-    \param pos position of returned sub-array to start,
-               i.e. returned c_array's c_ptr() will return
-               this->c_ptr()+pos. It is an error is pos
-               is negative.
-   */
-  const_c_array
-  sub_array(size_type pos) const
-  {
-    FASTUIDRAWassert(pos <= m_size);
-    return const_c_array(m_ptr + pos, m_size - pos);
-  }
-
-  /*!
-    Returns a sub-array, equivalent to
-    \code
-    sub_array(R.m_begin, R.m_end-R.m_begin)
-    \endcode
-    \param R range of returned sub-array
-   */
-  template<typename I>
-  const_c_array
-  sub_array(range_type<I> R) const
-  {
-    return sub_array(R.m_begin, R.m_end - R.m_begin);
-  }
-
-  /*!
-    Returns true if and only if the passed
-    the const_c_array references exactly the same
-    data as this const_c_array.
-    \param rhs const_c_array to which to compare
-   */
-  bool
-  same_data(const const_c_array &rhs) const
-  {
-    return m_size == rhs.m_size
-      and m_ptr == rhs.m_ptr;
-  }
-
-private:
-  size_type m_size;
-  const T *m_ptr;
-};
-
-template<typename T>
-bool
-c_array<T>::
-same_data(const const_c_array<T> &rhs) const
-{
-  return rhs.same_data(*this);
-}
 
 /*! @} */
 

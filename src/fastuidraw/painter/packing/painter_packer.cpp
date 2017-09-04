@@ -454,10 +454,10 @@ namespace
   class AttributeIndexSrcFromArray
   {
   public:
-    AttributeIndexSrcFromArray(fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > attrib_chunks,
-                               fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > index_chunks,
-                               fastuidraw::const_c_array<int> index_adjusts,
-                               fastuidraw::const_c_array<unsigned int> attrib_chunk_selector):
+    AttributeIndexSrcFromArray(fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
+                               fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+                               fastuidraw::c_array<const int> index_adjusts,
+                               fastuidraw::c_array<const unsigned int> attrib_chunk_selector):
       m_attrib_chunks(attrib_chunks),
       m_index_chunks(index_chunks),
       m_index_adjusts(index_adjusts),
@@ -508,7 +508,7 @@ namespace
                   unsigned int index_offset_value,
                   unsigned int index_chunk) const
     {
-      fastuidraw::const_c_array<fastuidraw::PainterIndex> src;
+      fastuidraw::c_array<const fastuidraw::PainterIndex> src;
 
       FASTUIDRAWassert(index_chunk < m_index_chunks.size());
       src = m_index_chunks[index_chunk];
@@ -525,7 +525,7 @@ namespace
     write_attributes(fastuidraw::c_array<fastuidraw::PainterAttribute> dst,
                      unsigned int attribute_chunk) const
     {
-      fastuidraw::const_c_array<fastuidraw::PainterAttribute> src;
+      fastuidraw::c_array<const fastuidraw::PainterAttribute> src;
 
       FASTUIDRAWassert(attribute_chunk < m_attrib_chunks.size());
       src = m_attrib_chunks[attribute_chunk];
@@ -534,10 +534,10 @@ namespace
       std::memcpy(dst.c_ptr(), src.c_ptr(), sizeof(fastuidraw::PainterAttribute) * dst.size());
     }
 
-    fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterAttribute> > m_attrib_chunks;
-    fastuidraw::const_c_array<fastuidraw::const_c_array<fastuidraw::PainterIndex> > m_index_chunks;
-    fastuidraw::const_c_array<int> m_index_adjusts;
-    fastuidraw::const_c_array<unsigned int> m_attrib_chunk_selector;
+    fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > m_attrib_chunks;
+    fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > m_index_chunks;
+    fastuidraw::c_array<const int> m_index_adjusts;
+    fastuidraw::c_array<const unsigned int> m_attrib_chunk_selector;
   };
 
   class PainterPackerPrivate
@@ -657,7 +657,7 @@ pack_state_data(PainterPackerPrivate *p,
   /* data not in current data store add
      it to the current store.
    */
-  fastuidraw::const_c_array<fastuidraw::generic_data> src;
+  fastuidraw::c_array<const fastuidraw::generic_data> src;
   fastuidraw::c_array<fastuidraw::generic_data> dst;
 
   location = current_block();
@@ -1081,14 +1081,14 @@ void
 fastuidraw::PainterPacker::
 draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
              const PainterPackerData &draw,
-             const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
-             const_c_array<const_c_array<PainterIndex> > index_chunks,
-             const_c_array<int> index_adjusts,
+             c_array<const c_array<const PainterAttribute> > attrib_chunks,
+             c_array<const c_array<const PainterIndex> > index_chunks,
+             c_array<const int> index_adjusts,
              int z,
              const reference_counted_ptr<DataCallBack> &call_back)
 {
   draw_generic(shader, draw, attrib_chunks, index_chunks,
-               index_adjusts, const_c_array<unsigned int>(),
+               index_adjusts, c_array<const unsigned int>(),
                z, call_back);
 }
 
@@ -1096,10 +1096,10 @@ void
 fastuidraw::PainterPacker::
 draw_generic(const reference_counted_ptr<PainterItemShader> &shader,
              const PainterPackerData &draw,
-             const_c_array<const_c_array<PainterAttribute> > attrib_chunks,
-             const_c_array<const_c_array<PainterIndex> > index_chunks,
-             const_c_array<int> index_adjusts,
-             const_c_array<unsigned int> attrib_chunk_selector,
+             c_array<const c_array<const PainterAttribute> > attrib_chunks,
+             c_array<const c_array<const PainterIndex> > index_chunks,
+             c_array<const int> index_adjusts,
+             c_array<const unsigned int> attrib_chunk_selector,
              int z,
              const reference_counted_ptr<DataCallBack> &call_back)
 {

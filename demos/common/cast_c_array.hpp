@@ -4,12 +4,12 @@
 #include <fastuidraw/util/c_array.hpp>
 
 template<typename T>
-fastuidraw::const_c_array<T>
+fastuidraw::c_array<const T>
 cast_c_array(const std::vector<T> &p)
 {
   return (p.empty()) ?
-    fastuidraw::const_c_array<T>() :
-    fastuidraw::const_c_array<T>(&p[0], p.size());
+    fastuidraw::c_array<const T>() :
+    fastuidraw::c_array<const T>(&p[0], p.size());
 }
 
 template<typename T>
