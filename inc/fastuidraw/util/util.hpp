@@ -380,7 +380,7 @@ namespace fastuidraw
       m_end - m_begin
       \endcode
      */
-    T
+    decltype(m_end - m_begin)
     difference(void) const
     {
       return m_end - m_begin;
@@ -390,8 +390,9 @@ namespace fastuidraw
       Increment both \ref m_begin and \ref m_end.
       \param v value by which to increment
      */
+    template<typename W>
     void
-    operator+=(const T &v)
+    operator+=(const W &v)
     {
       m_begin += v;
       m_end += v;
@@ -401,8 +402,9 @@ namespace fastuidraw
       Decrement both \ref m_begin and \ref m_end.
       \param v value by which to decrement
      */
+    template<typename W>
     void
-    operator-=(const T &v)
+    operator-=(const W &v)
     {
       m_begin -= v;
       m_end -= v;
