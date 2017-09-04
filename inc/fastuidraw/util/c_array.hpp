@@ -132,7 +132,7 @@ public:
     m_size(sz),
     m_ptr(pptr)
   {
-    FASTUIDRAWassert(sizeof(U) == sizeof(T));
+    FASTUIDRAWstatic_assert(sizeof(U) == sizeof(T));
   }
 
   /*!
@@ -145,7 +145,7 @@ public:
     m_size(N),
     m_ptr(pptr.c_ptr())
   {
-    FASTUIDRAWassert(sizeof(U) == sizeof(T));
+    FASTUIDRAWstatic_assert(sizeof(U) == sizeof(T));
   }
 
   template<typename U, size_type N>
@@ -153,7 +153,7 @@ public:
     m_size(N),
     m_ptr(pptr.c_ptr())
   {
-    FASTUIDRAWassert(sizeof(U) == sizeof(T));
+    FASTUIDRAWstatic_assert(sizeof(U) == sizeof(T));
   }
 
   /*
@@ -168,7 +168,7 @@ public:
     m_size(obj.m_size),
     m_ptr(obj.m_ptr)
   {
-    FASTUIDRAWassert(sizeof(U) == sizeof(T));
+    FASTUIDRAWstatic_assert(sizeof(U) == sizeof(T));
   }
 
   /*!
@@ -206,7 +206,7 @@ public:
   const_cast_pointer(void) const
   {
     S *ptr;
-    FASTUIDRAWassert(sizeof(S) == sizeof(T));
+    FASTUIDRAWstatic_assert(sizeof(S) == sizeof(T));
     ptr = const_cast<S*>(c_ptr());
     return c_array<S>(ptr, m_size);
   }
@@ -328,7 +328,7 @@ public:
   T&
   back(size_type I) const
   {
-    FASTUIDRAWassert(I<size());
+    FASTUIDRAWassert(I < size());
     return (*this)[size() - 1 - I];
   }
 

@@ -226,7 +226,7 @@ public:
    */
   vecN(const T &px, const T &py)
   {
-    FASTUIDRAWassert(N==2);
+    FASTUIDRAWstatic_assert(N==2);
     operator[](0) = px;
     operator[](1) = py;
   }
@@ -239,7 +239,7 @@ public:
    */
   vecN(const T &px, const T &py, const T &pz)
   {
-    FASTUIDRAWassert(N==3);
+    FASTUIDRAWstatic_assert(N==3);
     operator[](0) = px;
     operator[](1) = py;
     operator[](2) = pz;
@@ -254,7 +254,7 @@ public:
    */
   vecN(const T &px, const T &py, const T &pz, const T &pw)
   {
-    FASTUIDRAWassert(N==4);
+    FASTUIDRAWstatic_assert(N==4);
     operator[](0) = px;
     operator[](1) = py;
     operator[](2) = pz;
@@ -272,7 +272,7 @@ public:
   vecN(const T &p0, const T &p1, const T &p2,
        const T &p3, const T &p4)
   {
-    FASTUIDRAWassert(N==5);
+    FASTUIDRAWstatic_assert(N==5);
     operator[](0) = p0;
     operator[](1) = p1;
     operator[](2) = p2;
@@ -292,7 +292,7 @@ public:
   vecN(const T &p0, const T &p1, const T &p2,
        const T &p3, const T &p4, const T &p5)
   {
-    FASTUIDRAWassert(N==6);
+    FASTUIDRAWstatic_assert(N==6);
     operator[](0) = p0;
     operator[](1) = p1;
     operator[](2) = p2;
@@ -315,7 +315,7 @@ public:
        const T &p3, const T &p4, const T &p5,
        const T &p6)
   {
-    FASTUIDRAWassert(N==7);
+    FASTUIDRAWstatic_assert(N==7);
     operator[](0) = p0;
     operator[](1) = p1;
     operator[](2) = p2;
@@ -341,7 +341,7 @@ public:
        const T &p3, const T &p4, const T &p5,
        const T &p6, const T &p7)
   {
-    FASTUIDRAWassert(N==8);
+    FASTUIDRAWstatic_assert(N==8);
     operator[](0) = p0;
     operator[](1) = p1;
     operator[](2) = p2;
@@ -370,7 +370,7 @@ public:
        const T &p3, const T &p4, const T &p5,
        const T &p6, const T &p7, const T &p8)
   {
-    FASTUIDRAWassert(N==9);
+    FASTUIDRAWstatic_assert(N==9);
     operator[](0) = p0;
     operator[](1) = p1;
     operator[](2) = p2;
@@ -389,7 +389,7 @@ public:
    */
   vecN(const vecN<T, N-1> &p, const T &d)
   {
-    FASTUIDRAWassert(N>1);
+    FASTUIDRAWstatic_assert(N>1);
     for(size_type i=0;i<N-1;++i)
       {
         operator[](i) = p[i];
@@ -436,7 +436,7 @@ public:
     equivalent to operator[](0).
    */
   T&
-  x(void) { FASTUIDRAWassert(N>=1); return c_ptr()[0]; }
+  x(void) { FASTUIDRAWstatic_assert(N>=1); return c_ptr()[0]; }
 
   /*!
     Conveniance readability member function,
@@ -444,7 +444,7 @@ public:
     if N is not atleast 2.
    */
   T&
-  y(void) { FASTUIDRAWassert(N>=2); return c_ptr()[1]; }
+  y(void) { FASTUIDRAWstatic_assert(N>=2); return c_ptr()[1]; }
 
   /*!
     Conveniance readability member function,
@@ -452,7 +452,7 @@ public:
     if N is not atleast 3.
    */
   T&
-  z(void) { FASTUIDRAWassert(N>=3); return c_ptr()[2]; }
+  z(void) { FASTUIDRAWstatic_assert(N>=3); return c_ptr()[2]; }
 
   /*!
     Conveniance readability member function,
@@ -460,14 +460,14 @@ public:
     if N is not atleast 4.
    */
   T&
-  w(void) { FASTUIDRAWassert(N>=4); return c_ptr()[3]; }
+  w(void) { FASTUIDRAWstatic_assert(N>=4); return c_ptr()[3]; }
 
   /*!
     Conveniance readability member function,
     equivalent to operator[](0).
    */
   const T&
-  x(void) const { FASTUIDRAWassert(N>=1); return c_ptr()[0]; }
+  x(void) const { FASTUIDRAWstatic_assert(N>=1); return c_ptr()[0]; }
 
   /*!
     Conveniance readability member function,
@@ -475,7 +475,7 @@ public:
     if N is not atleast 2.
    */
   const T&
-  y(void) const { FASTUIDRAWassert(N>=2); return c_ptr()[1]; }
+  y(void) const { FASTUIDRAWstatic_assert(N>=2); return c_ptr()[1]; }
 
   /*!
     Conveniance readability member function,
@@ -483,7 +483,7 @@ public:
     if N is not atleast 3.
    */
   const T&
-  z(void) const { FASTUIDRAWassert(N>=3); return c_ptr()[2]; }
+  z(void) const { FASTUIDRAWstatic_assert(N>=3); return c_ptr()[2]; }
 
   /*!
     Conveniance readability member function,
@@ -491,7 +491,7 @@ public:
     if N is not atleast 4.
    */
   const T&
-  w(void) const { FASTUIDRAWassert(N>=4); return c_ptr()[3]; }
+  w(void) const { FASTUIDRAWstatic_assert(N>=4); return c_ptr()[3]; }
 
   /*!
     Assignment operator, performs T::operator= on each element.

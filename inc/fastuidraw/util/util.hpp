@@ -85,6 +85,12 @@
 #define FASTUIDRAWassert(X)
 #endif
 
+/*!\def FASTUIDRAWstatic_assert
+  Conveniance for using static_assert where message
+  is the condition stringified.
+ */
+#define FASTUIDRAWstatic_assert(X) static_assert(X, #X)
+
 namespace fastuidraw
 {
   /*!
