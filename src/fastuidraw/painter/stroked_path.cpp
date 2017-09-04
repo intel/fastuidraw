@@ -143,11 +143,20 @@ namespace
     post_process_non_closing(fastuidraw::range_type<unsigned int> join_range,
                              unsigned int &depth)
     {
-      for(unsigned int i = join_range.m_begin; i < join_range.m_end; ++i, ++depth)
+      unsigned int R, d;
+
+      /* the depth values of the joins must come in reverse
+       * so that higher depth values occlude later elements
+       */
+      R = join_range.difference();
+      d = depth + R - 1;
+
+      for(unsigned int i = join_range.m_begin; i < join_range.m_end; ++i, --d)
         {
           FASTUIDRAWassert(i < m_non_closing_edge.size());
-          m_non_closing_edge[i].m_depth = depth;
+          m_non_closing_edge[i].m_depth = d;
         }
+      depth += R;
     }
 
     void
@@ -155,12 +164,21 @@ namespace
                          fastuidraw::range_type<unsigned int> join_range,
                          unsigned int &depth)
     {
-      for(unsigned int i = join_range.m_begin; i < join_range.m_end; ++i, ++depth)
+      unsigned int R, d;
+
+      /* the depth values of the joins must come in reverse
+       * so that higher depth values occlude later elements
+       */
+      R = join_range.difference();
+      d = depth + R - 1;
+
+      for(unsigned int i = join_range.m_begin; i < join_range.m_end; ++i, --d)
         {
           FASTUIDRAWassert(i < m_closing_edge.size());
-          m_closing_edge[i].m_depth = depth;
+          m_closing_edge[i].m_depth = d;
           m_closing_edge[i].m_chunk += non_closing_edge_chunk_count;
         }
+      depth += R;
     }
 
     unsigned int
@@ -212,11 +230,19 @@ namespace
     post_process(fastuidraw::range_type<unsigned int> range,
                  unsigned int &depth)
     {
-      for(unsigned int i = range.m_begin; i < range.m_end; ++i, ++depth)
+      unsigned int R, d;
+
+      /* the depth values of the caps must come in reverse
+       * so that higher depth values occlude later elements
+       */
+      R = range.difference();
+      d = depth + R - 1;
+      for(unsigned int i = range.m_begin; i < range.m_end; ++i, --d)
         {
           FASTUIDRAWassert(i < m_caps.size());
-          m_caps[i].m_depth = depth;
+          m_caps[i].m_depth = d;
         }
+      depth += R;
     }
 
   private:
@@ -1459,12 +1485,14 @@ create(const fastuidraw::TessellatedPath &P, ContourData &path_data)
   std::vector<CapSource> caps;
   fastuidraw::BoundingBox<float> bx;
   unsigned int num_non_closing_edges, num_non_closing_joins;
+  SubEdgeCullingHierarchy *return_value;
 
   create_lists(P, path_data,
                data, num_non_closing_edges, bx,
                joins, num_non_closing_joins, caps);
-  return FASTUIDRAWnew SubEdgeCullingHierarchy(bx, data, num_non_closing_edges,
-                                               joins, num_non_closing_joins, caps);
+  return_value =  FASTUIDRAWnew SubEdgeCullingHierarchy(bx, data, num_non_closing_edges,
+                                                        joins, num_non_closing_joins, caps);
+  return return_value;
 }
 
 void
@@ -1850,7 +1878,6 @@ create(const SubEdgeCullingHierarchy *src,
 
   return_value = FASTUIDRAWnew StrokedPathSubset(out_values, join_ordering, cap_ordering, src);
   return_value->post_process(vars, out_values, join_ordering, cap_ordering);
-
   return return_value;
 }
 
@@ -2081,7 +2108,7 @@ compute_chunks(bool include_closing_edge,
         {
           dst.add_join_chunk(m_closing_joins);
         }
-        dst.ignore_join_adds();
+      dst.ignore_join_adds();
     }
   compute_chunks_implement(include_closing_edge,
                            scratch, item_space_additional_room,
@@ -2695,12 +2722,10 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
    */
   for(const OrderingEntry<JoinSource> &J : m_ordering.non_closing_edge())
     {
-      int depth;
-      depth = m_ordering.non_closing_edge().size() - 1 - J.m_depth;
       fill_join(join_id,
                 m_P.m_per_contour_data[J.m_contour].edge_data(J.m_edge_going_into_join),
                 m_P.m_per_contour_data[J.m_contour].edge_data(J.m_edge_going_into_join + 1),
-                J.m_chunk, depth,
+                J.m_chunk, J.m_depth,
                 attribute_data, index_data,
                 vertex_offset, index_offset,
                 attribute_chunks, index_chunks,
@@ -2712,12 +2737,10 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
 
   for(const OrderingEntry<JoinSource> &J : m_ordering.closing_edge())
     {
-      int depth;
-      depth = m_ordering.closing_edge().size() - 1 - J.m_depth;
       fill_join(join_id,
                 m_P.m_per_contour_data[J.m_contour].edge_data(J.m_edge_going_into_join),
                 m_P.m_per_contour_data[J.m_contour].edge_data(J.m_edge_going_into_join + 1),
-                J.m_chunk, depth,
+                J.m_chunk, J.m_depth,
                 attribute_data, index_data,
                 vertex_offset, index_offset,
                 attribute_chunks, index_chunks,
@@ -3409,7 +3432,6 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
       unsigned int v(vertex_offset), i(index_offset);
       const fastuidraw::vec2 *normal;
       const fastuidraw::TessellatedPath::point *pt;
-      int depth;
 
       normal = C.m_is_start_cap ?
         &m_P.m_per_contour_data[C.m_contour].m_begin_cap_normal:
@@ -3419,8 +3441,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
         &m_P.m_per_contour_data[C.m_contour].m_start_contour_pt:
         &m_P.m_per_contour_data[C.m_contour].m_end_contour_pt;
 
-      depth = m_ordering.caps().size() - 1 - C.m_depth;
-      add_cap(*normal, C.m_is_start_cap, depth, *pt,
+      add_cap(*normal, C.m_is_start_cap, C.m_depth, *pt,
               attribute_data, index_data, vertex_offset, index_offset);
 
       cvr[cap_id].m_begin = v;
