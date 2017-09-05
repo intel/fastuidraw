@@ -149,11 +149,11 @@ public:
   */
   template<size_t M>
   explicit
-  vecN(const vecN<T,M> &obj, const T &value=T())
+  vecN(const vecN<T, M> &obj, const T &value = T())
   {
     size_type i;
 
-    for(i = 0; i < t_min(N,M); ++i)
+    for(i = 0; i < t_min(N, M); ++i)
       {
         operator[](i) = obj[i];
       }
@@ -175,11 +175,11 @@ public:
    */
   template<typename S, size_type M>
   explicit
-  vecN(const vecN<S,M> &obj, const T &value=T())
+  vecN(const vecN<S, M> &obj, const T &value = T())
   {
     size_type i;
 
-    for(i = 0; i < t_min(N,M); ++i)
+    for(i = 0; i < t_min(N, M); ++i)
       {
         operator[](i) = T(obj[i]);
       }
@@ -202,13 +202,13 @@ public:
     \param default_value
   */
   template<size_t M>
-  vecN(const vecN<T,M> &obj,
-       size_type start, size_type stride=1,
-       const T &default_value=T())
+  vecN(const vecN<T, M> &obj,
+       size_type start, size_type stride = 1,
+       const T &default_value = T())
   {
     size_type i,j;
 
-    for(i = 0, j = start; i < N && j < M; ++i, j+=stride)
+    for(i = 0, j = start; i < N && j < M; ++i, j += stride)
       {
         operator[](i) = obj[i];
       }
@@ -226,7 +226,7 @@ public:
    */
   vecN(const T &px, const T &py)
   {
-    FASTUIDRAWstatic_assert(N==2);
+    FASTUIDRAWstatic_assert(N == 2);
     operator[](0) = px;
     operator[](1) = py;
   }
@@ -239,7 +239,7 @@ public:
    */
   vecN(const T &px, const T &py, const T &pz)
   {
-    FASTUIDRAWstatic_assert(N==3);
+    FASTUIDRAWstatic_assert(N == 3);
     operator[](0) = px;
     operator[](1) = py;
     operator[](2) = pz;
@@ -254,7 +254,7 @@ public:
    */
   vecN(const T &px, const T &py, const T &pz, const T &pw)
   {
-    FASTUIDRAWstatic_assert(N==4);
+    FASTUIDRAWstatic_assert(N == 4);
     operator[](0) = px;
     operator[](1) = py;
     operator[](2) = pz;
@@ -272,7 +272,7 @@ public:
   vecN(const T &p0, const T &p1, const T &p2,
        const T &p3, const T &p4)
   {
-    FASTUIDRAWstatic_assert(N==5);
+    FASTUIDRAWstatic_assert(N == 5);
     operator[](0) = p0;
     operator[](1) = p1;
     operator[](2) = p2;
@@ -292,7 +292,7 @@ public:
   vecN(const T &p0, const T &p1, const T &p2,
        const T &p3, const T &p4, const T &p5)
   {
-    FASTUIDRAWstatic_assert(N==6);
+    FASTUIDRAWstatic_assert(N == 6);
     operator[](0) = p0;
     operator[](1) = p1;
     operator[](2) = p2;
@@ -315,7 +315,7 @@ public:
        const T &p3, const T &p4, const T &p5,
        const T &p6)
   {
-    FASTUIDRAWstatic_assert(N==7);
+    FASTUIDRAWstatic_assert(N == 7);
     operator[](0) = p0;
     operator[](1) = p1;
     operator[](2) = p2;
@@ -326,7 +326,6 @@ public:
   }
 
   /*!
-              const T&, const T&, const T&, const T&)
     Conveniance ctor, will fail to compile unless N=8
     \param p0 value to which to assing the return value of operator[](0)
     \param p1 value to which to assing the return value of operator[](1)
@@ -341,7 +340,7 @@ public:
        const T &p3, const T &p4, const T &p5,
        const T &p6, const T &p7)
   {
-    FASTUIDRAWstatic_assert(N==8);
+    FASTUIDRAWstatic_assert(N == 8);
     operator[](0) = p0;
     operator[](1) = p1;
     operator[](2) = p2;
@@ -353,8 +352,6 @@ public:
   }
 
   /*!
-              const T&, const T&, const T&,
-              const T&, const T&, const T&)
     Conveniance ctor, will fail to compile unless N=9
     \param p0 value to which to assing the return value of operator[](0)
     \param p1 value to which to assing the return value of operator[](1)
@@ -370,7 +367,7 @@ public:
        const T &p3, const T &p4, const T &p5,
        const T &p6, const T &p7, const T &p8)
   {
-    FASTUIDRAWstatic_assert(N==9);
+    FASTUIDRAWstatic_assert(N == 9);
     operator[](0) = p0;
     operator[](1) = p1;
     operator[](2) = p2;
@@ -413,7 +410,7 @@ public:
     Return a constant refernce to the j'th element.
     \param j index of element to return.
    */
-  const T&
+  const_reference
   operator[](size_type j) const
   {
     FASTUIDRAWassert(j < N);
@@ -424,7 +421,7 @@ public:
     Return a refernce to the j'th element.
     \param j index of element to return.
    */
-  T&
+  reference
   operator[](size_type j)
   {
     FASTUIDRAWassert(j < N);
@@ -435,67 +432,68 @@ public:
     Conveniance readability member function,
     equivalent to operator[](0).
    */
-  T&
-  x(void) { FASTUIDRAWstatic_assert(N>=1); return c_ptr()[0]; }
+  reference
+  x(void) { FASTUIDRAWstatic_assert(N >= 1); return c_ptr()[0]; }
 
   /*!
     Conveniance readability member function,
     equivalent to operator[](1). Fails to compile
     if N is not atleast 2.
    */
-  T&
-  y(void) { FASTUIDRAWstatic_assert(N>=2); return c_ptr()[1]; }
+  reference
+  y(void) { FASTUIDRAWstatic_assert(N >= 2); return c_ptr()[1]; }
 
   /*!
     Conveniance readability member function,
     equivalent to operator[](2). Fails to compile
     if N is not atleast 3.
    */
-  T&
-  z(void) { FASTUIDRAWstatic_assert(N>=3); return c_ptr()[2]; }
+  reference
+  z(void) { FASTUIDRAWstatic_assert(N >= 3); return c_ptr()[2]; }
 
   /*!
     Conveniance readability member function,
     equivalent to operator[](3). Fails to compile
     if N is not atleast 4.
    */
-  T&
-  w(void) { FASTUIDRAWstatic_assert(N>=4); return c_ptr()[3]; }
+  reference
+  w(void) { FASTUIDRAWstatic_assert(N >= 4); return c_ptr()[3]; }
 
   /*!
     Conveniance readability member function,
     equivalent to operator[](0).
    */
-  const T&
-  x(void) const { FASTUIDRAWstatic_assert(N>=1); return c_ptr()[0]; }
+  const_reference
+  x(void) const { FASTUIDRAWstatic_assert(N >= 1); return c_ptr()[0]; }
 
   /*!
     Conveniance readability member function,
     equivalent to operator[](1). Fails to compile
     if N is not atleast 2.
    */
-  const T&
-  y(void) const { FASTUIDRAWstatic_assert(N>=2); return c_ptr()[1]; }
+  const_reference
+  y(void) const { FASTUIDRAWstatic_assert(N >= 2); return c_ptr()[1]; }
 
   /*!
     Conveniance readability member function,
     equivalent to operator[](2). Fails to compile
     if N is not atleast 3.
    */
-  const T&
-  z(void) const { FASTUIDRAWstatic_assert(N>=3); return c_ptr()[2]; }
+  const_reference
+  z(void) const { FASTUIDRAWstatic_assert(N >= 3); return c_ptr()[2]; }
 
   /*!
     Conveniance readability member function,
     equivalent to operator[](3). Fails to compile
     if N is not atleast 4.
    */
-  const T&
-  w(void) const { FASTUIDRAWstatic_assert(N>=4); return c_ptr()[3]; }
+  const_reference
+  w(void) const { FASTUIDRAWstatic_assert(N >= 4); return c_ptr()[3]; }
 
   /*!
-    Assignment operator, performs T::operator= on each element.
-    \param obj: constant reference to a same sized array.
+    Assignment operator, performs operator=(T&, const T&)
+    on each element.
+    \param obj constant reference to a same sized array.
    */
   const vecN&
   operator=(const vecN &obj)
@@ -511,7 +509,7 @@ public:
   }
 
   /*!
-    Set all values of array, performs T::operator=
+    Set all values of array, performs operator=(T&, const T&)
     on each element of the array agains obj.
     \param obj Value to set all objects as.
    */
@@ -679,9 +677,9 @@ public:
   */
   template<size_t M>
   void
-  operator+=(const vecN<T,M> &obj)
+  operator+=(const vecN<T, M> &obj)
   {
-    for(size_type i=0;i<t_min(M,N);++i)
+    for(size_type i = 0;i < t_min(M, N); ++i)
       {
         operator[](i) += obj[i];
       }
@@ -695,9 +693,9 @@ public:
   */
   template<size_t M>
   void
-  operator-=(const vecN<T,M> &obj)
+  operator-=(const vecN<T, M> &obj)
   {
-    for(size_type i=0;i<t_min(M,N);++i)
+    for(size_type i = 0; i < t_min(M, N); ++i)
       {
         operator[](i) -= obj[i];
       }
@@ -711,9 +709,9 @@ public:
   */
   template<size_t M>
   void
-  operator*=(const vecN<T,M> &obj)
+  operator*=(const vecN<T, M> &obj)
   {
-    for(size_type i=0;i<t_min(N,M);++i)
+    for(size_type i = 0; i < t_min(N, M); ++i)
       {
         operator[](i) *= obj[i];
       }
@@ -727,25 +725,25 @@ public:
   */
   template<size_t M>
   void
-  operator/=(const vecN<T,M> &obj)
+  operator/=(const vecN<T, M> &obj)
   {
-    for(size_type i=0;i<t_min(M,N);++i)
+    for(size_type i = 0; i < t_min(M, N); ++i)
       {
         operator[](i) /= obj[i];
       }
   }
 
   /*!
-    Component-wise division increment operator against an
+    Component-wise modulas increment operator against an
     array of possibly different size, if M is smaller
     then only those indexes less than M are affected.
     \param obj right hand side of /= operator
   */
   template<size_t M>
   void
-  operator%=(const vecN<T,M> &obj)
+  operator%=(const vecN<T, M> &obj)
   {
-    for(size_type i = 0; i < t_min(M,N); ++i)
+    for(size_type i = 0; i < t_min(M, N); ++i)
       {
         operator[](i) %= obj[i];
       }
@@ -880,15 +878,15 @@ public:
 
   /*!
     Performs inner product against another vecN.
-    uses vecN::operator+=(const T&) and operator*(T,T)
+    uses operator+=(T&, const T&) and operator*(T, T)
     \param obj vecN to perform inner product against
    */
   T
   dot(const vecN &obj) const
   {
-    T retval( operator[](0)*obj[0]);
+    T retval(operator[](0) * obj[0]);
 
-    for(size_type i=1;i<N;++i)
+    for(size_type i = 1; i < N; ++i)
       {
         retval += operator[](i) * obj[i];
       }
@@ -943,7 +941,7 @@ public:
   {
     for(size_type i = 0; i < N; ++i)
       {
-        operator[](i)+=mult*dood[i];
+        operator[](i) += mult * dood[i];
       }
   }
 
@@ -957,12 +955,12 @@ public:
   {
     T val;
 
-    val=dot(*this,referencePt);
+    val = dot(*this, referencePt);
     if(val < T(0))
       {
         for(size_type i = 0; i < N; ++i)
           {
-            operator[](i)=-operator[](i);
+            operator[](i) = -operator[](i);
           }
       }
   }
@@ -1078,9 +1076,9 @@ public:
   normalize(T tol)
   {
     T denom;
-    denom=magnitudeSq();
-    denom=t_sqrt(t_max(denom, tol));
-    (*this)/=denom;
+    denom = magnitudeSq();
+    denom = t_sqrt(t_max(denom, tol));
+    (*this) /= denom;
   }
 
   /*!
@@ -1145,13 +1143,13 @@ public:
     STL compliant iterator function.
    */
   iterator
-  end(void) { return iterator( c_ptr()+static_cast<difference_type>(size()) ); }
+  end(void) { return iterator(c_ptr() + static_cast<difference_type>(size()) ); }
 
   /*!
     STL compliant iterator function.
    */
   const_iterator
-  end(void) const { return const_iterator( c_ptr()+static_cast<difference_type>(size()) ); }
+  end(void) const { return const_iterator(c_ptr() + static_cast<difference_type>(size()) ); }
 
   /*!
     STL compliant iterator function.
@@ -1180,25 +1178,25 @@ public:
   /*!
     STL compliant back() function.
    */
-  T&
-  back(void) { return (*this)[size()-1]; }
+  reference
+  back(void) { return (*this)[size() - 1]; }
 
   /*!
     STL compliant back() function.
    */
-  const T&
-  back(void) const { return (*this)[size()-1]; }
+  const_reference
+  back(void) const { return (*this)[size() - 1]; }
 
   /*!
     STL compliant front() function.
    */
-  T&
+  reference
   front(void) { return (*this)[0]; }
 
   /*!
     STL compliant front() function.
    */
-  const T&
+  const_reference
   front(void) const { return (*this)[0]; }
 
 private:
@@ -1216,7 +1214,7 @@ private:
  */
 template<typename T, size_t N>
 T
-dot(const vecN<T,N> &a, const vecN<T,N> &b)
+dot(const vecN<T, N> &a, const vecN<T, N> &b)
 {
   return a.dot(b);
 }
@@ -1231,7 +1229,7 @@ dot(const vecN<T,N> &a, const vecN<T,N> &b)
 template<typename T, size_t N>
 inline
 T
-magnitudeSq(const vecN<T,N> &in)
+magnitudeSq(const vecN<T, N> &in)
 {
   return in.magnitudeSq();
 }
@@ -1246,7 +1244,7 @@ magnitudeSq(const vecN<T,N> &in)
 template<typename T, size_t N>
 inline
 T
-magnitude(const vecN<T,N> &in)
+magnitude(const vecN<T, N> &in)
 {
   return in.magnitude();
 }
@@ -1261,8 +1259,8 @@ magnitude(const vecN<T,N> &in)
 */
 template<typename T, size_t N>
 bool
-magnitude_compare(const vecN<T,N> &a,
-                  const vecN<T,N> &b)
+magnitude_compare(const vecN<T, N> &a,
+                  const vecN<T, N> &b)
 {
   return a.magnitudeSq()<b.magnitudeSq();
 }
@@ -1496,9 +1494,9 @@ pack_vec4(float x, float y, float z, float w)
    */
   template<typename T, size_t N>
   T
-  triangle_area(const vecN<T,N> &p0,
-                const vecN<T,N> &p1,
-                const vecN<T,N> &p2)
+  triangle_area(const vecN<T, N> &p0,
+                const vecN<T, N> &p1,
+                const vecN<T, N> &p2)
   {
     T d, d0, d1, d2;
     d0 = p0.magnitude();
