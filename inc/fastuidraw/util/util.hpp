@@ -322,11 +322,11 @@ namespace fastuidraw
   uint32_t
   pack_float(float f)
   {
-    // casting to c_string first
+    // casting to const char* first
     // prevents from breaking stricting
     // aliasing rules
-    c_string q;
-    q = reinterpret_cast<c_string >(&f);
+    const char *q;
+    q = reinterpret_cast<const char*>(&f);
     return *reinterpret_cast<const uint32_t*>(q);
   }
 
@@ -338,11 +338,11 @@ namespace fastuidraw
   float
   unpack_float(uint32_t v)
   {
-    // casting to c_string first
+    // casting to const char* first
     // prevents from breaking stricting
     // aliasing rules
-    c_string q;
-    q = reinterpret_cast<c_string >(&v);
+    const char * q;
+    q = reinterpret_cast<const char*>(&v);
     return *reinterpret_cast<const float*>(q);
   }
 
