@@ -56,8 +56,8 @@ public:
     is type T* and not const T*. This is because
     a c_array is just a HOLDER of a pointer and
     a length and thus the contents of the value
-    behind the pointer are independent to the
-    value of a c_array.
+    behind the pointer are not part of the value
+    of a c_array.
   */
   typedef T* const_pointer;
 
@@ -73,8 +73,8 @@ public:
     is type T& and not const T&. This is because
     a c_array is just a HOLDER of a pointer and
     a length and thus the contents of the value
-    behind the pointer are independent to the
-    value of a c_array.
+    behind the pointer are not part of the value
+    of a c_array.
   */
   typedef T& const_reference;
 
@@ -247,7 +247,7 @@ public:
     debug build also performs bounds checking.
     \param j index
    */
-  T&
+  reference
   operator[](size_type j) const
   {
     FASTUIDRAWassert(c_ptr() != nullptr);
@@ -314,7 +314,7 @@ public:
     iterator range.
    */
   range_type<iterator>
-  range(void)
+  range(void) const
   {
     return range_type<iterator>(begin(), end());
   }
@@ -324,7 +324,7 @@ public:
     reverse_iterator range
    */
   range_type<reverse_iterator>
-  reverse_range(void)
+  reverse_range(void) const
   {
     return range_type<reverse_iterator>(rbegin(), rend());
   }
@@ -337,7 +337,7 @@ public:
     \param I index from the back to retrieve, I=0
              corrseponds to the back of the array.
    */
-  T&
+  reference
   back(size_type I) const
   {
     FASTUIDRAWassert(I < size());
@@ -347,7 +347,7 @@ public:
   /*!
     STL compliant function.
    */
-  T&
+  reference
   back(void) const
   {
     return (*this)[size() - 1];
@@ -356,7 +356,7 @@ public:
   /*!
     STL compliant function.
    */
-  T&
+  reference
   front(void) const
   {
     return (*this)[0];
@@ -421,8 +421,8 @@ public:
   bool
   same_data(const c_array<U> &rhs) const
   {
-    return m_size == rhs.m_size
-      and m_ptr == rhs.m_ptr;
+    return m_ptr == rhs.m_ptr
+      && m_size * sizeof(T) == rhs.m_size * sizeof(U);
   }
 
 private:
