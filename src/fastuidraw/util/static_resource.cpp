@@ -54,7 +54,7 @@ generate_static_resource(c_string presource_label, c_array<const uint8_t> pvalue
   std::vector<uint8_t> svalue(pvalue.begin(), pvalue.end());
   hoard().m_mutex.lock();
   FASTUIDRAWassert(hoard().m_data.find(sresource_label) == hoard().m_data.end());
-  hoard().m_data[sresource_label] = svalue;
+  hoard().m_data[sresource_label].swap(svalue);
   hoard().m_mutex.unlock();
 }
 
