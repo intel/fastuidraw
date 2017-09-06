@@ -1293,6 +1293,7 @@ build_programs(void)
       enum fastuidraw::gl::PainterBackendGL::program_type_t tp;
       tp = static_cast<enum fastuidraw::gl::PainterBackendGL::program_type_t>(i);
       m_programs[tp] = build_program(tp);
+      FASTUIDRAWassert(m_programs[tp]->link_success());
       m_shader_uniforms_loc[tp] = m_programs[tp]->uniform_location("fastuidraw_shader_uniforms");
       FASTUIDRAWassert(m_shader_uniforms_loc[tp] != -1 || m_uber_shader_builder_params.use_ubo_for_uniforms());
     }
