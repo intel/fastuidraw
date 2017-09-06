@@ -68,6 +68,19 @@ namespace fastuidraw
       create_face(reference_counted_ptr<FreeTypeLib> lib
                   = reference_counted_ptr<FreeTypeLib>()) const;
 
+      /*!
+        Checks if the GeneratorBase object can create a face
+        (by calling create_face_implement()). Returns routine_fail
+        if the object is unable to create a face.
+        \param lib FreeTypeLib with which to test face creation;
+                   if lib is nullptr, then lib will be sustituted
+                   with a newly created FreeTypeLib object that
+                   only the returned FreeTypeFace will use.
+       */
+      enum return_code
+      check_creation(reference_counted_ptr<FreeTypeLib> lib
+                  = reference_counted_ptr<FreeTypeLib>()) const;
+
     protected:
       /*!
         To be implemented by a derived class to create a

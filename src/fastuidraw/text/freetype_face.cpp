@@ -85,6 +85,27 @@ create_face(reference_counted_ptr<FreeTypeLib> lib) const
   return return_value;
 }
 
+enum fastuidraw::return_code
+fastuidraw::FreeTypeFace::GeneratorBase::
+check_creation(reference_counted_ptr<FreeTypeLib> lib) const
+{
+  enum return_code R;
+  FT_Face f;
+
+  if(!lib)
+    {
+      lib = FASTUIDRAWnew FreeTypeLib();
+    }
+
+  lib->lock();
+  f = create_face_implement(lib->lib());
+  R = (f) ? routine_success : routine_fail;
+  FT_Done_Face(f);
+  lib->unlock();
+
+  return R;
+}
+
 //////////////////////////////////////////////////
 // fastuidraw::FreeTypeFace::GeneratorFile methods
 fastuidraw::FreeTypeFace::GeneratorFile::
