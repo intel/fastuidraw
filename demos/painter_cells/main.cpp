@@ -347,10 +347,23 @@ derived_init(int w, int h)
   m_table_params.m_table_rotate_degrees_per_s = m_table_rotate_degrees_per_s.m_value;
   m_table_params.m_timer_based_animation = (m_num_frames.m_value <= 0);
 
+  reference_counted_ptr<FreeTypeFace::GeneratorBase> gen;
+  gen = FASTUIDRAWnew FreeTypeFace::GeneratorMemory(m_font.m_value.c_str(), 0);
   m_table_params.m_glyph_selector = m_glyph_selector;
-  m_table_params.m_font = FASTUIDRAWnew FontFreeType(FASTUIDRAWnew FreeTypeFace::GeneratorFile(m_font.m_value.c_str(), 0),
-                                                     FontFreeType::RenderParams(),
-                                                     m_ft_lib);
+  if(gen->check_creation() == routine_success)
+    {
+      m_table_params.m_font = FASTUIDRAWnew FontFreeType(gen,
+                                                         FontFreeType::RenderParams(),
+                                                         m_ft_lib);
+    }
+  else
+    {
+      std::cout << "\n-----------------------------------------------------"
+                << "\nWarning: unable to create font from file \""
+                << m_font.m_value << "\"\n"
+                << "-----------------------------------------------------\n";
+    }
+
   if(!fastuidraw::GlyphRender::scalable(m_text_renderer.m_value.m_value))
     {
       fastuidraw::GlyphRender r(m_text_renderer_realized_pixel_size.m_value);

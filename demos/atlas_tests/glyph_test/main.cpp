@@ -550,15 +550,25 @@ create_and_add_font(void)
   reference_counted_ptr<FreeTypeFace::GeneratorFile> gen;
 
   gen = FASTUIDRAWnew FreeTypeFace::GeneratorFile(m_font_file.m_value.c_str(), m_font_index.m_value);
-  m_font = FASTUIDRAWnew FontFreeType(gen,
-                                      FontFreeType::RenderParams()
-                                      .distance_field_max_distance(m_max_distance.m_value)
-                                      .distance_field_pixel_size(m_distance_pixel_size.m_value)
-                                      .curve_pair_pixel_size(m_curve_pair_pixel_size.m_value));
-  m_face = gen->create_face(m_font->lib());
-  m_glyph_selector->add_font(m_font);
-
-  return routine_success;
+  m_face = gen->create_face();
+  if(m_face)
+    {
+      m_font = FASTUIDRAWnew FontFreeType(gen,
+                                          FontFreeType::RenderParams()
+                                          .distance_field_max_distance(m_max_distance.m_value)
+                                          .distance_field_pixel_size(m_distance_pixel_size.m_value)
+                                          .curve_pair_pixel_size(m_curve_pair_pixel_size.m_value));
+      m_glyph_selector->add_font(m_font);
+      return routine_success;
+    }
+  else
+    {
+      std::cout << "\n-----------------------------------------------------"
+                << "\nWarning: unable to create font from file \""
+                << m_font_file.m_value << "\"\n"
+                << "-----------------------------------------------------\n";
+      return routine_fail;
+    }
 }
 
 void

@@ -633,12 +633,17 @@ create_and_add_font(void)
 
   if(!m_font_file.m_value.empty())
     {
-      font = FASTUIDRAWnew FontFreeType(FASTUIDRAWnew FreeTypeFace::GeneratorMemory(m_font_file.m_value.c_str(), 0),
-                                        FontFreeType::RenderParams()
-                                        .distance_field_max_distance(m_max_distance.m_value)
-                                        .distance_field_pixel_size(m_distance_pixel_size.m_value)
-                                        .curve_pair_pixel_size(m_curve_pair_pixel_size.m_value),
-                                        m_ft_lib);
+      reference_counted_ptr<FreeTypeFace::GeneratorBase> gen;
+      gen = FASTUIDRAWnew FreeTypeFace::GeneratorMemory(m_font_file.m_value.c_str(), 0);
+      if(gen->check_creation() == routine_success)
+        {
+          font = FASTUIDRAWnew FontFreeType(gen,
+                                            FontFreeType::RenderParams()
+                                            .distance_field_max_distance(m_max_distance.m_value)
+                                            .distance_field_pixel_size(m_distance_pixel_size.m_value)
+                                            .curve_pair_pixel_size(m_curve_pair_pixel_size.m_value),
+                                            m_ft_lib);
+        }
     }
 
   if(!font)
@@ -658,8 +663,17 @@ create_and_add_font(void)
       font = m_glyph_selector->fetch_font(props);
     }
 
-  std::cout << "Chose font: \"" << font->properties() << "\"\n";
   m_font = font.dynamic_cast_ptr<const FontFreeType>();
+  if(m_font)
+    {
+      std::cout << "Chose font: \"" << m_font->properties() << "\"\n";
+    }
+  else
+    {
+      std::cout << "\n-----------------------------------------------------"
+                << "\nWarning: unable to create font\n"
+                << "-----------------------------------------------------\n";
+    }
 
   return routine_success;
 }
