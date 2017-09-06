@@ -191,6 +191,14 @@ namespace fastuidraw
     FontProperties
     compute_font_properties_from_face(FT_Face in_face);
 
+    /*!
+      Return a FontProperties from the values of an FT_Face.
+      Beware that the foundary name is not assigned!
+     */
+    static
+    FontProperties
+    compute_font_properties_from_face(const reference_counted_ptr<FreeTypeFace> &in_face);
+
     virtual
     uint32_t
     glyph_code(uint32_t pcharacter_code) const;

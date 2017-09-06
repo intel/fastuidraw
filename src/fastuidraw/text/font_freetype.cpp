@@ -218,6 +218,7 @@ namespace
        glyph generation
      */
     fastuidraw::vecN<fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace>, 8> m_faces;
+    bool m_all_faces_null;
   };
 }
 
@@ -227,12 +228,12 @@ FontFreeTypePrivate::FaceGrabber::
 FaceGrabber(FontFreeTypePrivate *q):
   m_p(nullptr)
 {
-  while(!m_p)
+  while(!m_p && !q->m_all_faces_null)
     {
       for(unsigned int i = 0; i < q->m_faces.size() && !m_p; ++i)
         {
           const fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace> &face(q->m_faces[i]);
-          if(face->try_lock())
+          if(face && face->try_lock())
             {
               m_p = face.get();
             }
@@ -243,7 +244,10 @@ FaceGrabber(FontFreeTypePrivate *q):
 FontFreeTypePrivate::FaceGrabber::
 ~FaceGrabber()
 {
-  m_p->unlock();
+  if(m_p)
+    {
+      m_p->unlock();
+    }
 }
 
 //////////////////////////////////////////////////
@@ -256,16 +260,22 @@ FontFreeTypePrivate(fastuidraw::FontFreeType *p,
   m_generator(generator),
   m_render_params(render_params),
   m_lib(lib),
-  m_p(p)
+  m_p(p),
+  m_all_faces_null(true)
 {
   if(!m_lib)
     {
       m_lib = FASTUIDRAWnew fastuidraw::FreeTypeLib();
     }
+
   for(unsigned int i = 0; i < m_faces.size(); ++i)
     {
       m_faces[i] = m_generator->create_face(m_lib);
-      FT_Set_Transform(m_faces[i]->face(), nullptr, nullptr);
+      if(m_faces[i] && m_faces[i]->face())
+        {
+          m_all_faces_null = false;
+          FT_Set_Transform(m_faces[i]->face(), nullptr, nullptr);
+        }
     }
 }
 
@@ -308,6 +318,11 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
                        fastuidraw::Path &path)
 {
   FaceGrabber p(this);
+
+  if(!p.m_p || !p.m_p->face())
+    {
+      return;
+    }
 
   FT_Face face(p.m_p->face());
   fastuidraw::ivec2 bitmap_sz;
@@ -362,6 +377,11 @@ compute_rendering_data(uint32_t glyph_code,
 
   {
     FaceGrabber p(this);
+    if(!p.m_p || !p.m_p->face())
+      {
+        return;
+      }
+
     FT_Face face(p.m_p->face());
 
     common_compute_rendering_data(face, m_p, layout, glyph_code);
@@ -434,6 +454,11 @@ compute_rendering_data(uint32_t glyph_code,
 
   {
     FaceGrabber p(this);
+    if(!p.m_p || !p.m_p->face())
+      {
+        return;
+      }
+
     FT_Face face(p.m_p->face());
     common_compute_rendering_data(face, m_p, layout, glyph_code);
     units_per_EM = face->units_per_EM;
@@ -597,7 +622,7 @@ fastuidraw::FontFreeType::
 FontFreeType(const reference_counted_ptr<FreeTypeFace::GeneratorBase> &pface_generator,
              const RenderParams &render_params,
              const reference_counted_ptr<FreeTypeLib> &plib):
-  FontBase(compute_font_properties_from_face(pface_generator->create_face(plib)->face()))
+  FontBase(compute_font_properties_from_face(pface_generator->create_face(plib)))
 {
   m_d = FASTUIDRAWnew FontFreeTypePrivate(this, pface_generator, plib, render_params);
 }
@@ -620,7 +645,15 @@ glyph_code(uint32_t pcharacter_code) const
 
   FT_UInt glyphcode;
   FontFreeTypePrivate::FaceGrabber p(d);
-  glyphcode = FT_Get_Char_Index(p.m_p->face(), FT_ULong(pcharacter_code));
+
+  if(p.m_p && p.m_p->face())
+    {
+      glyphcode = FT_Get_Char_Index(p.m_p->face(), FT_ULong(pcharacter_code));
+    }
+  else
+    {
+      glyphcode = 0;
+    }
 
   return glyphcode;
 }
@@ -713,12 +746,27 @@ compute_font_properties_from_face(FT_Face in_face)
   return return_value;
 }
 
+fastuidraw::FontProperties
+fastuidraw::FontFreeType::
+compute_font_properties_from_face(const reference_counted_ptr<FreeTypeFace> &in_face)
+{
+  FontProperties return_value;
+  if(in_face && in_face->face())
+    {
+      compute_font_properties_from_face(in_face->face(), return_value);
+    }
+  return return_value;
+}
+
 void
 fastuidraw::FontFreeType::
 compute_font_properties_from_face(FT_Face in_face, FontProperties &out_properties)
 {
-  out_properties.family(in_face->family_name);
-  out_properties.style(in_face->style_name);
-  out_properties.bold(in_face->style_flags & FT_STYLE_FLAG_BOLD);
-  out_properties.italic(in_face->style_flags & FT_STYLE_FLAG_ITALIC);
+  if(in_face)
+    {
+      out_properties.family(in_face->family_name);
+      out_properties.style(in_face->style_name);
+      out_properties.bold(in_face->style_flags & FT_STYLE_FLAG_BOLD);
+      out_properties.italic(in_face->style_flags & FT_STYLE_FLAG_ITALIC);
+    }
 }
