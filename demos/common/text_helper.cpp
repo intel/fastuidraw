@@ -35,18 +35,13 @@ namespace
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace::GeneratorBase> > h;
     FT_Error error_code;
     FT_Face face(nullptr);
-    fastuidraw::reference_counted_ptr<fastuidraw::DataBufferBase> buffer;
-    fastuidraw::c_array<const uint8_t> data;
     
-    buffer = FASTUIDRAWnew fastuidraw::DataBuffer(filename.c_str());
-    data = buffer->data_ro();
-
     lib->lock();
-    error_code = FT_New_Memory_Face(lib->lib(),
-				    static_cast<const FT_Byte*>(data.c_ptr()),
-				    data.size(), 0, &face);
+    error_code = FT_New_Face(lib->lib(), filename.c_str(), 0, &face);
     if(error_code == 0 && face != nullptr && (face->face_flags & FT_FACE_FLAG_SCALABLE) != 0)
       {
+        fastuidraw::reference_counted_ptr<fastuidraw::DataBufferBase> buffer;
+        buffer = FASTUIDRAWnew fastuidraw::DataBuffer(filename.c_str());
 	for(unsigned int i = 0, endi = face->num_faces; i < endi; ++i)
 	  {
 	    h.push_back(FASTUIDRAWnew fastuidraw::FreeTypeFace::GeneratorMemory(buffer, i));
@@ -345,7 +340,7 @@ default_font_path(void)
     }
   #else
     {
-      return "/usr/share/fonts/truetype";
+      return "/usr/share/fonts/";
     }
   #endif
 }
