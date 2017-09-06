@@ -2231,6 +2231,7 @@ populate_info(void)
           glUseProgram(current_program);
         }
     }
+  m_initializers.clear();
 }
 
 void
@@ -2302,7 +2303,6 @@ assemble(void)
       eek << "\n\nLink Log: " << m_link_log;
     }
   generate_log();
-  m_initializers.clear();
 }
 
 void
