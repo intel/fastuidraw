@@ -18,7 +18,7 @@ FASTUIDRAW_BUILD_INCLUDES_CFLAGS = -Iinc
 #    inputfile has full path on it
 #    resourcename name to access string resource
 #    outputpath is path to place outputpath
-build/string_resources_cpp/%.resource_string.cpp: %.resource_string
+build/string_resources_cpp/%.resource_string.cpp: %.resource_string $(STRING_RESOURCE_CC)
 	@mkdir -p $(dir $@)
 	$(STRING_RESOURCE_CC) $< $(notdir $<) $(dir $@)
 
