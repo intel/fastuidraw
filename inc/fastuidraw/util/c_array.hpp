@@ -168,7 +168,7 @@ public:
     FASTUIDRAWstatic_assert(sizeof(U) == sizeof(T));
   }
 
-  /*
+  /*!
     Ctor from another c_array object.
     \tparam U type U* must be convertible to type T* AND
               the size of U must be the same as the size

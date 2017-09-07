@@ -356,6 +356,26 @@ namespace fastuidraw
   {
   public:
     /*!
+      Typedef to identify template argument type
+     */
+    typedef T type;
+
+    /*!
+      Iterator to first element
+    */
+    type m_begin;
+
+    /*!
+      iterator to one past the last element
+    */
+    type m_end;
+
+    /*!
+      Typedef for the different between \ref type values
+     */
+    typedef decltype(m_end - m_begin) difference_type;
+
+    /*!
       Ctor.
       \param b value with which to initialize m_begin
       \param e value with which to initialize m_end
@@ -372,22 +392,12 @@ namespace fastuidraw
     {}
 
     /*!
-      Iterator to first element
-    */
-    T m_begin;
-
-    /*!
-      iterator to one past the last element
-    */
-    T m_end;
-
-    /*!
       Provided as a conveniance, equivalent to
       \code
       m_end - m_begin
       \endcode
      */
-    decltype(m_end - m_begin)
+    difference_type
     difference(void) const
     {
       return m_end - m_begin;
@@ -488,5 +498,5 @@ namespace fastuidraw
     }
   };
 
-/*! @} */
 }
+/*! @} */
