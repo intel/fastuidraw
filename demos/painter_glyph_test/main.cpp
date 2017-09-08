@@ -646,6 +646,12 @@ create_and_add_font(void)
         }
     }
 
+  add_fonts_from_path(m_font_path.m_value, m_ft_lib, m_glyph_selector,
+                      FontFreeType::RenderParams()
+                      .distance_field_max_distance(m_max_distance.m_value)
+                      .distance_field_pixel_size(m_distance_pixel_size.m_value)
+                      .curve_pair_pixel_size(m_curve_pair_pixel_size.m_value));
+
   if(!font)
     {
       FontProperties props;
@@ -653,12 +659,6 @@ create_and_add_font(void)
       props.family(m_font_family.m_value.c_str());
       props.bold(m_font_bold.m_value);
       props.italic(m_font_italic.m_value);
-
-      add_fonts_from_path(m_font_path.m_value, m_ft_lib, m_glyph_selector,
-                          FontFreeType::RenderParams()
-                          .distance_field_max_distance(m_max_distance.m_value)
-                          .distance_field_pixel_size(m_distance_pixel_size.m_value)
-                          .curve_pair_pixel_size(m_curve_pair_pixel_size.m_value));
 
       font = m_glyph_selector->fetch_font(props);
     }
