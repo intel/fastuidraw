@@ -2291,7 +2291,7 @@ extract_render_data(const ivec2 &step, const ivec2 &image_sz,
 
   /* change tr to be offset by half a texel, so that the
      distance value is sampled at the center of the texel;
-     we also push it off by 1 more texel to guarnantee that
+     we also push it off by 1 more unit to guarnantee that
      the sample points' x and y coordinates are different
      from the x and y coordinates of all end points of the
      curves of the path after transformation.
@@ -2345,7 +2345,7 @@ extract_render_data(const ivec2 &step, const ivec2 &count,
   /* create table to go from curve ID's to global indices */
   CurvePairGenerator generator(fill_rule, m_contours);
 
-  /* We nudge the output by 1-pixel in each direction
+  /* We nudge the output by 1-unit in each direction
      so that the horizontal and vertical lines that
      we use to find intersections and compute the winding
      number never go through any of the end points of
