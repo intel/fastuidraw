@@ -41,8 +41,8 @@ namespace fastuidraw
     - Create an FT_Library object
     - When creating or releasing FT_Face objects, lock a mutex
       around the FT_Library when doing so
-    - If an FT_Face is accessed from multiple threads, that
-      access needs to be mutex locked.
+    - If an FT_Face is accessed from multiple threads, the FT_Face
+      (but not the FT_Library) needs to be mutex locked
    */
   class FreeTypeLib:public reference_counted<FreeTypeLib>::default_base
   {
