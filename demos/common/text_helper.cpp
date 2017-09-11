@@ -69,6 +69,13 @@ namespace
       return font;
     }
 
+    virtual
+    const fastuidraw::FontProperties&
+    font_properties(void) const
+    {
+      return m_props;
+    }
+
   private:
     fastuidraw::reference_counted_ptr<DataBufferLoader> m_buffer;
     fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeLib> m_lib;
@@ -133,7 +140,7 @@ namespace
             props.source_label(source_label.str().c_str());
 
             h = FASTUIDRAWnew FreeTypeFontGenerator(buffer_loader, lib, render_params, i, props);
-	    glyph_selector->add_font(props, h);
+	    glyph_selector->add_font_generator(h);
 
             //std::cout << "add font: " << props << "\n";
  	  }
