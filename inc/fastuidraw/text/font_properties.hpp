@@ -152,7 +152,10 @@ namespace fastuidraw
     /*!
       Specifies the source of the font, for those
       fonts coming from file names should be a string
-      giving the filename and face index.
+      giving the filename and face index with a
+      colon seperating them, for example "foo:0"
+      indicates from file foo and the face index
+      is 0.
      */
     c_string
     source_label(void) const;
