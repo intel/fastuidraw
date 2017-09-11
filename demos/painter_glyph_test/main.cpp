@@ -783,7 +783,7 @@ draw_frame(void)
     }
   else
     {
-      unsigned int src(draw_glyph_curvepair);
+      unsigned int src(m_current_drawer);
       c_array<const Glyph> glyphs(m_draws[src].glyphs());
       c_array<const vec2> glyph_positions(m_draws[src].glyph_positions());
 
@@ -829,9 +829,7 @@ draw_frame(void)
       st.miter_limit(5.0f);
       st.width(m_stroke_width);
 
-      src = (m_current_drawer == number_draw_modes) ?
-        static_cast<unsigned int>(draw_glyph_curvepair) :
-        m_current_drawer;
+      src = m_current_drawer;
 
       c_array<const Glyph> glyphs(m_draws[src].glyphs());
       c_array<const vec2> glyph_positions(m_draws[src].glyph_positions());
@@ -919,9 +917,7 @@ draw_frame(void)
       ivec2 mouse_position;
       std::ostringstream ostr;
 
-      src = (m_current_drawer == number_draw_modes) ?
-        static_cast<unsigned int>(draw_glyph_curvepair) :
-        m_current_drawer;
+      src = m_current_drawer;
 
       SDL_GetMouseState(&mouse_position.x(), &mouse_position.y());
       p = m_zoomer.transformation().apply_inverse_to_point(vec2(mouse_position));
@@ -1061,11 +1057,8 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_d:
-          if(!m_fill_glyphs)
-            {
-              cycle_value(m_current_drawer, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_draw_modes);
-              std::cout << "Drawing " << m_draw_labels[m_current_drawer] << " glyphs\n";
-            }
+          cycle_value(m_current_drawer, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_draw_modes);
+          std::cout << "Drawing " << m_draw_labels[m_current_drawer] << " glyphs\n";
           break;
 
         case SDLK_z:
