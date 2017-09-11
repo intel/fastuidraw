@@ -114,6 +114,7 @@ namespace fastuidraw
         m_num_control_pts(curve.m_num_control_pts),
         m_as_polynomial_fcn(curve.m_as_polynomial_fcn),
         m_derivatives_cancel(curve.m_derivatives_cancel),
+        m_num_derivatives_cancel(curve.m_num_derivatives_cancel),
         m_bb(curve.m_bb)
       {
       }
@@ -157,6 +158,29 @@ namespace fastuidraw
       control_pts(void) const
       {
         return c_array<const ivec2>(m_control_pts.c_ptr(), m_num_control_pts);
+      }
+
+      /* BEWARE! Changing point in a contour means one needs to make
+       * sure that the neighbor curve also changes a point.
+       */
+      void
+      set_pt(unsigned int i, const ivec2 &pvalue)
+      {
+        FASTUIDRAWassert(i < m_num_control_pts);
+        m_control_pts[i] = pvalue;
+        process_control_pts();
+      }
+
+      void
+      set_front_pt(const ivec2 &pvalue)
+      {
+        set_pt(0, pvalue);
+      }
+
+      void
+      set_back_pt(const ivec2 &pvalue)
+      {
+        set_pt(degree(), pvalue);
       }
 
       const BoundingBox<int>&
@@ -268,15 +292,39 @@ namespace fastuidraw
         return m_curves[curveID];
       }
 
-      /* Filter the Contour as follows:
-          1. Collapse any curves that are within a texel
-          2. Curves of tiny curvature are realized as a line
-          3. Cubics are broken into quadratics
-         The transformation tr is -NOT- applied to the contour,
-         it is used as the transformation from IntContour
-         coordinates to texel coordinates. The value of texel_size
-         gives the size of a texel with the texel at (0, 0)
-         starting at (0, 0) [in texel coordinates].
+      /* Convert cubic curves into quadratic curves; A given cubic
+         is converted into 1, 2, or 4 quadratic curves depending
+         on the distance between its end points. If the distance
+         is atleast thresh_4_quads, then if it borken into 4 quadratics,
+         if the distance is atleast thresh_2_quads (but less than
+         thresh_4_quads), then it is broken into 2 quadratic curves.
+         If the distance is less than thresh_2_quads, then it is realized
+         as a line quadratic. The distance values are the distances
+         of the points AFTER tr is applied.
+       */
+      void
+      replace_cubics_with_quadratics(const IntBezierCurve::transformation<int> &tr,
+                                     int thresh_4_quads, int thresh_2_quads,
+                                     ivec2 texel_size);
+
+      /* Convert those quadratic curves that have small curvature into
+         line segments.
+       */
+      void
+      convert_flat_quadratics_to_lines(float thresh);
+
+      /* Collapse any curve that after transformation is contained
+         within a texel (size of texel is given by texel_size) to
+         a point.
+       */
+      void
+      collapse_small_curves(const IntBezierCurve::transformation<int> &tr,
+                            ivec2 texel_size);
+
+      /* Call the sequence:
+          1. replace_cubics_with_quadratics(tr, 6, 4, texel_size)
+          2. convert_flat_quadratics_to_lines()
+          3. collapse_small_curves()
        */
       void
       filter(float curvature_collapse,
@@ -319,6 +367,34 @@ namespace fastuidraw
        */
       void
       add_to_path(const IntBezierCurve::transformation<float> &tr, Path *dst) const;
+
+      /* Convert cubic curves into quadratic curves; A given cubic
+         is converted into 1, 2, or 4 quadratic curves depending
+         on the distance between its end points. If the distance
+         is atleast thresh_4_quads, then if it borken into 4 quadratics,
+         if the distance is atleast thresh_2_quads (but less than
+         thresh_4_quads), then it is broken into 2 quadratic curves.
+         If the distance is less than thresh_2_quads, then it is realized
+         as a line quadratic.
+       */
+      void
+      replace_cubics_with_quadratics(const IntBezierCurve::transformation<int> &tr,
+                                     int thresh_4_quads, int thresh_2_quads,
+                                     ivec2 texel_size);
+
+      /* Convert those quadratic curves that have small curvature into
+         line segments.
+       */
+      void
+      convert_flat_quadratics_to_lines(float thresh);
+
+      /* Collapse any curve that after transformation is contained
+         within a texel (size of texel is given by texel_size) to
+         a point.
+       */
+      void
+      collapse_small_curves(const IntBezierCurve::transformation<int> &tr,
+                            ivec2 texel_size);
 
       /* Filter the Path as follows:
           1. Collapse any curves that are within a texel
