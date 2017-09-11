@@ -140,39 +140,47 @@ namespace
     }
   };
 
-  class bold_italic_key:
-    public std::pair<bool, bool>
+  class style_bold_italic_key
   {
   public:
-    bold_italic_key(const fastuidraw::FontProperties &prop):
-      std::pair<bool, bool>(prop.bold(), prop.italic())
+    style_bold_italic_key(const fastuidraw::FontProperties &prop):
+      m_style(prop.style()),
+      m_bold_italic(prop.bold(), prop.italic())
+    {
+    }
+
+    bool
+    operator<(const style_bold_italic_key &rhs) const
+    {
+      if(m_style.empty() || rhs.m_style.empty())
+        {
+          return m_bold_italic < rhs.m_bold_italic;
+        }
+      else
+        {
+          return m_style < rhs.m_style;
+        }
+    }
+
+    std::string m_style;
+    std::pair<bool, bool> m_bold_italic;
+  };
+
+  class family_style_bold_italic_key:
+    public std::pair<std::string, style_bold_italic_key>
+  {
+  public:
+    family_style_bold_italic_key(const fastuidraw::FontProperties &prop):
+      std::pair<std::string, style_bold_italic_key>(prop.family(), prop)
     {}
   };
 
-  class family_bold_italic_key:
-    public std::pair<std::string, bold_italic_key>
+  class foundry_family_style_bold_italic_key:
+    public std::pair<std::string, family_style_bold_italic_key>
   {
   public:
-    family_bold_italic_key(const fastuidraw::FontProperties &prop):
-      std::pair<std::string, bold_italic_key>(prop.family(), prop)
-    {}
-  };
-
-  class style_family_bold_italic_key:
-    public std::pair<std::string, family_bold_italic_key>
-  {
-  public:
-    style_family_bold_italic_key(const fastuidraw::FontProperties &prop):
-      std::pair<std::string, family_bold_italic_key>(prop.style(), prop)
-    {}
-  };
-
-  class foundry_style_family_bold_italic_key:
-    public std::pair<std::string, style_family_bold_italic_key>
-  {
-  public:
-    foundry_style_family_bold_italic_key(const fastuidraw::FontProperties &prop):
-      std::pair<std::string, style_family_bold_italic_key>(prop.foundry(), prop)
+    foundry_family_style_bold_italic_key(const fastuidraw::FontProperties &prop):
+      std::pair<std::string, family_style_bold_italic_key>(prop.foundry(), prop)
     {}
   };
 
@@ -209,10 +217,9 @@ namespace
 
     fastuidraw::mutex m_mutex;
     fastuidraw::reference_counted_ptr<font_group> m_master_group;
-    font_group_map<bold_italic_key> m_bold_italic_groups;
-    font_group_map<family_bold_italic_key> m_family_bold_italic_groups;
-    font_group_map<style_family_bold_italic_key> m_style_family_bold_italic_groups;
-    font_group_map<foundry_style_family_bold_italic_key> m_foundry_style_family_bold_italic_groups;
+    font_group_map<style_bold_italic_key> m_style_bold_italic_groups;
+    font_group_map<family_style_bold_italic_key> m_family_style_bold_italic_groups;
+    font_group_map<foundry_family_style_bold_italic_key> m_foundry_family_style_bold_italic_groups;
 
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_cache;
   };
@@ -327,25 +334,19 @@ fetch_font_group_no_lock(const fastuidraw::FontProperties &prop)
 {
   fastuidraw::reference_counted_ptr<font_group> return_value;
 
-  return_value = m_foundry_style_family_bold_italic_groups.fetch_group(prop);
+  return_value = m_foundry_family_style_bold_italic_groups.fetch_group(prop);
   if(return_value)
     {
       return return_value;
     }
 
-  return_value = m_style_family_bold_italic_groups.fetch_group(prop);
+  return_value = m_family_style_bold_italic_groups.fetch_group(prop);
   if(return_value)
     {
       return return_value;
     }
 
-  return_value = m_family_bold_italic_groups.fetch_group(prop);
-  if(return_value)
-    {
-      return return_value;
-    }
-
-  return_value = m_bold_italic_groups.fetch_group(prop);
+  return_value = m_style_bold_italic_groups.fetch_group(prop);
   if(return_value)
     {
       return return_value;
@@ -374,9 +375,9 @@ fetch_glyph_helper(fastuidraw::reference_counted_ptr<const fastuidraw::FontBase>
     }
   else
     {
-      font_group_map<foundry_style_family_bold_italic_key>::const_iterator iter;
-      iter = m_foundry_style_family_bold_italic_groups.find(h->properties());
-      if(iter != m_foundry_style_family_bold_italic_groups.end())
+      font_group_map<foundry_family_style_bold_italic_key>::const_iterator iter;
+      iter = m_foundry_family_style_bold_italic_groups.find(h->properties());
+      if(iter != m_foundry_family_style_bold_italic_groups.end())
         {
           return_value = iter->second->fetch_glyph(character_code, tp);
         }
@@ -468,16 +469,13 @@ add_font_no_lock(const fastuidraw::FontProperties &props, const T &h)
   R = parent->add_font(h);
   if(R == fastuidraw::routine_success)
     {
-      parent = m_bold_italic_groups.get_create(props, parent);
+      parent = m_style_bold_italic_groups.get_create(props, parent);
       parent->add_font(h);
 
-      parent = m_family_bold_italic_groups.get_create(props, parent);
+      parent = m_family_style_bold_italic_groups.get_create(props, parent);
       parent->add_font(h);
 
-      parent = m_style_family_bold_italic_groups.get_create(props, parent);
-      parent->add_font(h);
-
-      parent = m_foundry_style_family_bold_italic_groups.get_create(props, parent);
+      parent = m_foundry_family_style_bold_italic_groups.get_create(props, parent);
       parent->add_font(h);
     }
 }

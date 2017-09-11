@@ -67,27 +67,31 @@ namespace fastuidraw
     swap(FontProperties &obj);
 
     /*!
-      Specifies if the font is to be bold or not.
+      Specifies if the font is to be bold or not;
+      this value is overridden by the value of
+      style() if style() is a non-empty string.
      */
     bool
     bold(void) const;
 
     /*!
       Set if the font is to be bold or not.
-      \param b value to which to set bold(void) const value.
+      \param b value to which to set bold(void) const
      */
     FontProperties&
     bold(bool b);
 
     /*!
-      Specifies if the font is to be italic or not.
+      Specifies if the font is to be italic or not;
+      this value is overridden by the value of
+      style() if style() is a non-empty string.
      */
     bool
     italic(void) const;
 
     /*!
       Set if the font is to be italic or not.
-      \param b value to which to set italic(void) const value.
+      \param b value to which to set italic(void) const
      */
     FontProperties&
     italic(bool b);
@@ -102,7 +106,9 @@ namespace fastuidraw
       the style names "Condensed Bold Oblique",
       "Condensed Oblique", "Condensed Bold"
       and "Condensed" give different fonts for
-      the family name "DejaVu Serif".
+      the family name "DejaVu Serif". If style()
+      is a non-empty string, the then it overrides
+      both italic() and bold().
      */
     c_string
     style(void) const;
