@@ -126,16 +126,22 @@ namespace fastuidraw
       Fetch a font from a FontProperties description. The return
       value will be the closest matched font added with add_font().
       \param props FontProperties by which to search
+      \param exact_match if true, only consider those fonts which have, except
+                         forFontProperties::source_label(), the same values for
+                         each field of \ref FontProperties in FontBase::properties().
      */
     reference_counted_ptr<const FontBase>
-    fetch_font(const FontProperties &props);
+    fetch_font(const FontProperties &props, bool exact_match = false);
 
     /*!
       Fetch a FontGroup from a FontProperties value
       \param props font properties used to generate group.
+      \param exact_match if true, only consider those groups which have, except
+                         forFontProperties::source_label(), the same values for
+                         each field of \ref FontProperties in FontBase::properties().
      */
     FontGroup
-    fetch_group(const FontProperties &props);
+    fetch_group(const FontProperties &props, bool exact_match);
 
     /*!
       Fetch a Glyph (and if necessary generate it and place into GlyphCache)
@@ -143,9 +149,14 @@ namespace fastuidraw
       \param tp glyph rendering type.
       \param props font properties used to fetch font
       \param character_code character code of glyph to fetch
+      \param exact_match if true, only consider those glyphs from those
+                         fonts which has, except forFontProperties::source_label(),
+                         the same values for each field of \ref FontProperties in
+                         FontBase::properties().
      */
     Glyph
-    fetch_glyph(GlyphRender tp, const FontProperties &props, uint32_t character_code);
+    fetch_glyph(GlyphRender tp, const FontProperties &props, uint32_t character_code,
+                bool exact_match = false);
 
     /*!
       Fetch a Glyph (and if necessary generate it and place into GlyphCache)
@@ -153,9 +164,14 @@ namespace fastuidraw
       \param tp glyph rendering type.
       \param group FontGroup used to fetch font
       \param character_code character code of glyph to fetch
+      \param exact_match if true, only consider those glyphs from those
+                         fonts which has, except forFontProperties::source_label(),
+                         the same values for each field of \ref FontProperties in
+                         FontBase::properties().
      */
     Glyph
-    fetch_glyph(GlyphRender tp, FontGroup group, uint32_t character_code);
+    fetch_glyph(GlyphRender tp, FontGroup group, uint32_t character_code,
+                bool exact_match = false);
 
     /*!
       Fetch a Glyph (and if necessary generate it and place into GlyphCache)
@@ -165,11 +181,16 @@ namespace fastuidraw
                is not present in the font attempt to get the glyph from
                a font of similiar properties
       \param character_code character code of glyph to fetch
+      \param exact_match if true, only consider those glyphs from those
+                         fonts which has, except forFontProperties::source_label(),
+                         the same values for each field of \ref FontProperties in
+                         FontBase::properties().
      */
     Glyph
     fetch_glyph(GlyphRender tp,
                 reference_counted_ptr<const FontBase> h,
-                uint32_t character_code);
+                uint32_t character_code,
+                bool exact_match = false);
 
     /*!
       Fetch a Glyph (and if necessary generate it and place into GlyphCache)
@@ -192,6 +213,10 @@ namespace fastuidraw
       \param character_codes_begin iterator to 1st character code
       \param character_codes_end iterator to one past last character code
       \param output_begin begin iterator to output
+      \param exact_match if true, only consider those glyphs from those
+                         fonts which has, except forFontProperties::source_label(),
+                         the same values for each field of \ref FontProperties in
+                         FontBase::properties().
      */
     template<typename input_iterator,
              typename output_iterator>
@@ -199,7 +224,8 @@ namespace fastuidraw
     create_glyph_sequence(GlyphRender tp, FontGroup group,
                           input_iterator character_codes_begin,
                           input_iterator character_codes_end,
-                          output_iterator output_begin);
+                          output_iterator output_begin,
+                          bool exact_match = false);
 
     /*!
       Fill Glyph values from an iterator range of character code values.
@@ -212,6 +238,10 @@ namespace fastuidraw
       \param character_codes_begin iterator to 1st character code
       \param character_codes_end iterator to one past last character code
       \param output_begin begin iterator to output
+      \param exact_match if true, only consider those glyphs from those
+                         fonts which has, except forFontProperties::source_label(),
+                         the same values for each field of \ref FontProperties in
+                         FontBase::properties().
      */
     template<typename input_iterator,
              typename output_iterator>
@@ -220,7 +250,8 @@ namespace fastuidraw
                           reference_counted_ptr<const FontBase> h,
                           input_iterator character_codes_begin,
                           input_iterator character_codes_end,
-                          output_iterator output_begin);
+                          output_iterator output_begin,
+                          bool exact_match = false);
 
     /*!
       Fill an array of Glyph values from an array of character code values.
@@ -251,12 +282,14 @@ namespace fastuidraw
     unlock_mutex(void);
 
     Glyph
-    fetch_glyph_no_lock(GlyphRender tp, FontGroup group, uint32_t character_code);
+    fetch_glyph_no_lock(GlyphRender tp, FontGroup group, uint32_t character_code,
+                        bool exact_match);
 
     Glyph
     fetch_glyph_no_lock(GlyphRender tp,
                         reference_counted_ptr<const FontBase> h,
-                        uint32_t character_code);
+                        uint32_t character_code,
+                        bool exact_match);
 
     Glyph
     fetch_glyph_no_merging_no_lock(GlyphRender tp,
@@ -273,14 +306,15 @@ namespace fastuidraw
   create_glyph_sequence(GlyphRender tp, FontGroup group,
                         input_iterator character_codes_begin,
                         input_iterator character_codes_end,
-                        output_iterator output_begin)
+                        output_iterator output_begin,
+                        bool exact_match)
   {
     lock_mutex();
     for(;character_codes_begin != character_codes_end; ++character_codes_begin, ++output_begin)
       {
         uint32_t v;
         v = static_cast<uint32_t>(*character_codes_begin);
-        *output_begin = fetch_glyph_no_lock(tp, group, v);
+        *output_begin = fetch_glyph_no_lock(tp, group, v, exact_match);
       }
     unlock_mutex();
   }
@@ -293,14 +327,15 @@ namespace fastuidraw
                         reference_counted_ptr<const FontBase> h,
                         input_iterator character_codes_begin,
                         input_iterator character_codes_end,
-                        output_iterator output_begin)
+                        output_iterator output_begin,
+                        bool exact_match)
   {
     lock_mutex();
     for(;character_codes_begin != character_codes_end; ++character_codes_begin, ++output_begin)
       {
         uint32_t v;
         v = static_cast<uint32_t>(*character_codes_begin);
-        *output_begin = fetch_glyph_no_lock(tp, h, v);
+        *output_begin = fetch_glyph_no_lock(tp, h, v, exact_match);
       }
     unlock_mutex();
   }
