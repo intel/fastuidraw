@@ -371,11 +371,6 @@ namespace fastuidraw
     type m_end;
 
     /*!
-      Typedef for the different between \ref type values
-     */
-    typedef decltype(m_end - m_begin) difference_type;
-
-    /*!
       Ctor.
       \param b value with which to initialize m_begin
       \param e value with which to initialize m_end
@@ -397,7 +392,8 @@ namespace fastuidraw
       m_end - m_begin
       \endcode
      */
-    difference_type
+    template<typename W = T>
+    W
     difference(void) const
     {
       return m_end - m_begin;
