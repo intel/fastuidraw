@@ -391,6 +391,7 @@ compute_rendering_data(uint32_t glyph_code,
                                       face->glyph->metrics.horiBearingY);
     layout_offset.y() -= face->glyph->metrics.height;
     IntPathCreator::decompose_to_path(&face->glyph->outline, int_path_ecm);
+    int_path_ecm.replace_cubics_with_quadratics();
   }
 
   if(int_path_ecm.empty())

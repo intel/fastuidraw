@@ -1908,6 +1908,14 @@ compute_derivatives_cancel_pts(void)
 // fastuidraw::detail::IntContour methods
 void
 fastuidraw::detail::IntContour::
+replace_cubics_with_quadratics(void)
+{
+  IntBezierCurve::transformation<int> tr;
+  replace_cubics_with_quadratics(tr, -1, -1, ivec2(1, 1));
+}
+
+void
+fastuidraw::detail::IntContour::
 replace_cubics_with_quadratics(const IntBezierCurve::transformation<int> &tr,
                                int thresh_4_quads, int thresh_2_quads,
                                ivec2 texel_size)
@@ -2157,6 +2165,16 @@ replace_cubics_with_quadratics(const IntBezierCurve::transformation<int> &tr,
   for(IntContour &contour : m_contours)
     {
       contour.replace_cubics_with_quadratics(tr, thresh_4_quads, thresh_2_quads, texel_size);
+    }
+}
+
+void
+fastuidraw::detail::IntPath::
+replace_cubics_with_quadratics(void)
+{
+  for(IntContour &contour : m_contours)
+    {
+      contour.replace_cubics_with_quadratics();
     }
 }
 

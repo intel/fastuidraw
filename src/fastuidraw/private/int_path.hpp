@@ -292,6 +292,10 @@ namespace fastuidraw
         return m_curves[curveID];
       }
 
+      /* replace each cubic with 4 quadratics */
+      void
+      replace_cubics_with_quadratics(void);
+
       /* Convert cubic curves into quadratic curves; A given cubic
          is converted into 1, 2, or 4 quadratic curves depending
          on the distance between its end points. If the distance
@@ -367,6 +371,10 @@ namespace fastuidraw
        */
       void
       add_to_path(const IntBezierCurve::transformation<float> &tr, Path *dst) const;
+
+      /* replace each cubic with 4 quadratics */
+      void
+      replace_cubics_with_quadratics(void);
 
       /* Convert cubic curves into quadratic curves; A given cubic
          is converted into 1, 2, or 4 quadratic curves depending
