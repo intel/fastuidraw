@@ -422,22 +422,42 @@ namespace fastuidraw
       m_begin -= v;
       m_end -= v;
     }
+
+    /*!
+      Make sure that \ref m_begin is no more than \ref m_end,
+      requires that the type T supports comparison < operator
+      and assignment = operator.
+     */
+    void
+    sanitize(void)
+    {
+      if(m_end < m_begin)
+        {
+          T t;
+          t = m_end;
+          m_end = m_begin;
+          m_begin = m_end;
+        }
+    }
   };
 
   /*!
-    Create a range_type<> object by merging two such objects
-    together.
-    \param a first part of range, a.m_end must be the same
-             value as b.m_begin
-    \param b second part of range, a.m_end must be the same
-             value as b.m_begin
+    For type T's which support comparison swap, makes
+    sure that the returned \ref range_type has that
+    range_type::m_begin < range_type::m_end
    */
   template<typename T>
   range_type<T>
-  merge_range(const range_type<T> &a, const range_type<T> &b)
+  create_range(T a, T b)
   {
-    FASTUIDRAWassert(a.m_end == b.m_begin);
-    return range_type<T>(a.m_begin, b.m_end);
+    if(a < b)
+      {
+        return range_type<T>(a, b);
+      }
+    else
+      {
+        return range_type<T>(b, a);
+      }
   }
 
   /*!
