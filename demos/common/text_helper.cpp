@@ -369,6 +369,8 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
 
       if(line_data && !empty_line)
         {
+          L.m_horizontal_spread.sanitize();
+          L.m_vertical_spread.sanitize();
           line_data->push_back(L);
         }
     }
