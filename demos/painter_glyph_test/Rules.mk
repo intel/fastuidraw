@@ -5,7 +5,7 @@ d		:= $(dir)
 # End standard header
 
 DEMOS += painter-glyph-test
-painter-glyph-test_SOURCES := $(call filelist, main.cpp)
+painter-glyph-test_SOURCES := $(call filelist, main.cpp glyph_finder.cpp)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))

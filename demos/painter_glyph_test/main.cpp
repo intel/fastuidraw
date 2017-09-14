@@ -9,6 +9,7 @@
 #include "PanZoomTracker.hpp"
 #include "text_helper.hpp"
 #include "cycle_value.hpp"
+#include "glyph_finder.hpp"
 
 using namespace fastuidraw;
 
@@ -29,53 +30,6 @@ operator<<(std::ostream &str, GlyphRender R)
     }
   return str;
 }
-
-class PerLine
-{
-public:
-  PerLine(const LineData &L):
-    m_L(L)
-  {}
-
-  const LineData&
-  L(void) const
-  {
-    return m_L;
-  }
-
-  void
-  insert_glyph(uint32_t idx, range_type<float> R);
-
-  unsigned int
-  glyph_source(float x) const;
-
-private:
-  typedef std::pair<float, bool> key;
-
-  std::map<key, unsigned int> m_glyph_finder;
-  LineData m_L;
-};
-
-class GlyphFinder
-{
-public:
-  enum
-    {
-      glyph_not_found = ~0u
-    };
-
-  void
-  init(const std::vector<LineData> &in_data,
-       c_array<const range_type<float> > glyph_extents);
-
-  unsigned int
-  glyph_source(vec2 p) const;
-
-private:
-  c_array<const range_type<float> > m_glyph_extents;
-  std::vector<PerLine> m_lines;
-  std::map<float, unsigned int> m_line_finder;
-};
 
 class GlyphDraws:fastuidraw::noncopyable
 {
@@ -467,86 +421,6 @@ data(unsigned int I) const
 {
   FASTUIDRAWassert(I < m_data.size());
   return *m_data[I];
-}
-
-
-///////////////////////////
-// PerLine methods
-void
-PerLine::
-insert_glyph(uint32_t idx, range_type<float> R)
-{
-  float x0, x1;
-  x0 = t_min(R.m_begin, R.m_end);
-  x1 = t_max(R.m_begin, R.m_end);
-  m_glyph_finder[key(x0, true)] = idx;
-  m_glyph_finder[key(x1, false)] = idx;
-}
-
-unsigned int
-PerLine::
-glyph_source(float x) const
-{
-  std::map<key, unsigned int>::const_iterator iter;
-  iter = m_glyph_finder.upper_bound(key(x, false));
-  if(iter != m_glyph_finder.end())
-    {
-      return iter->second;
-    }
-  return GlyphFinder::glyph_not_found;
-}
-
-//////////////////////////////////
-// GlyphFinder methods
-void
-GlyphFinder::
-init(const std::vector<LineData> &in_data,
-     c_array<const range_type<float> > glyph_extents)
-{
-  m_glyph_extents = glyph_extents;
-  for(unsigned int i = 0, endi = in_data.size(); i < endi; ++i)
-    {
-      const LineData &L(in_data[i]);
-
-      FASTUIDRAWassert(m_lines.size() == i);
-      m_lines.push_back(L);
-      m_line_finder[L.m_vertical_spread.m_end] = i;
-      m_line_finder[L.m_vertical_spread.m_begin] = i;
-
-      for(unsigned int g = L.m_range.m_begin; g < L.m_range.m_end; ++g)
-        {
-          m_lines.back().insert_glyph(g, glyph_extents[g]);
-        }
-    }
-}
-
-unsigned int
-GlyphFinder::
-glyph_source(vec2 p) const
-{
-  std::map<float, unsigned int>::const_iterator iter;
-
-  iter = m_line_finder.upper_bound(p.y());
-  if(iter == m_line_finder.end())
-    {
-      return glyph_not_found;
-    }
-
-  const PerLine &L(m_lines[iter->second]);
-  if(L.L().m_vertical_spread.m_begin <= p.y() && L.L().m_vertical_spread.m_end >= p.y())
-    {
-      unsigned int G;
-
-      G = L.glyph_source(p.x());
-      if(G != glyph_not_found)
-        {
-          if(m_glyph_extents[G].m_begin <= p.x() && m_glyph_extents[G].m_end >= p.x())
-            {
-              return G;
-            }
-        }
-    }
-  return glyph_not_found;
 }
 
 /////////////////////////////////////
