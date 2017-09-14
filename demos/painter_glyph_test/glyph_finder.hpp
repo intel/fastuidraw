@@ -5,11 +5,14 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include "text_helper.hpp"
+#include "interval_finder.hpp"
 
 class PerLine
 {
 public:
   PerLine(const LineData &L):
+    m_interval_finder(L.m_horizontal_spread.m_begin,
+                      L.m_horizontal_spread.m_end),
     m_L(L)
   {}
 
@@ -20,25 +23,35 @@ public:
   }
 
   void
-  insert_glyph(uint32_t idx, fastuidraw::range_type<float> R);
+  insert_glyph(uint32_t idx, fastuidraw::range_type<float> R)
+  {
+    m_interval_finder.add_entry(R, idx);
+  }
 
-  unsigned int
-  glyph_source(float x) const;
+  void
+  glyph_source(float x, std::vector<unsigned int> *dst) const
+  {
+    m_interval_finder.find_entries(x, dst);
+  }
 
 private:
-  typedef std::pair<float, bool> key;
-
-  std::map<key, unsigned int> m_glyph_finder;
+  IntervalFinder<unsigned int> m_interval_finder;
   LineData m_L;
 };
 
-class GlyphFinder
+class GlyphFinder:fastuidraw::noncopyable
 {
 public:
   enum
     {
       glyph_not_found = ~0u
     };
+
+  GlyphFinder(void):
+    m_line_finder(nullptr)
+  {}
+
+  ~GlyphFinder();
 
   void
   init(const std::vector<LineData> &in_data,
@@ -49,6 +62,6 @@ public:
 
 private:
   fastuidraw::c_array<const fastuidraw::range_type<float> > m_glyph_extents;
-  std::vector<PerLine> m_lines;
-  std::map<float, unsigned int> m_line_finder;
+  std::vector<PerLine*> m_lines;
+  IntervalFinder<PerLine*> *m_line_finder;
 };

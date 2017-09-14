@@ -162,7 +162,7 @@ private:
 
   reference_counted_ptr<const FontFreeType> m_font;
 
-  vecN<GlyphDraws, number_draw_modes> m_draws;
+  GlyphDraws m_draws[number_draw_modes];
   vecN<std::string, number_draw_modes> m_draw_labels;
   vecN<std::string, PainterEnums::number_join_styles> m_join_labels;
 
