@@ -223,6 +223,18 @@ public:
             enum add_location_t loc = push_back);
 
   /*!
+    Add a macro to this ShaderSource.
+    Functionally, will insert \#define macro_name macro_value
+    in the GLSL source code.
+    \param macro_name name of macro
+    \param macro_value value to which macro is given
+    \param loc location to add macro within code
+   */
+  ShaderSource&
+  add_macro(c_string macro_name, float macro_value,
+            enum add_location_t loc = push_back);
+
+  /*!
     Adds the string
     \code
     #undef X

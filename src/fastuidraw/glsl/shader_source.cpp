@@ -397,6 +397,16 @@ add_macro(c_string macro_name, int32_t macro_value,
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
+add_macro(c_string macro_name, float macro_value,
+          enum add_location_t loc)
+{
+  std::ostringstream ostr;
+  ostr << "#define " << macro_name << " " << macro_value;
+  return add_source(ostr.str().c_str(), from_string, loc);
+}
+
+fastuidraw::glsl::ShaderSource&
+fastuidraw::glsl::ShaderSource::
 remove_macro(c_string macro_name)
 {
   std::ostringstream ostr;
