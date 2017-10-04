@@ -1,9 +1,7 @@
 #pragma once
 
-#ifdef FASTUIDRAW_GL_USE_GLES
 #include <EGL/egl.h>
-#endif
-
+#include <iostream>
 #include <SDL.h>
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
@@ -43,11 +41,12 @@ public:
   void*
   egl_get_proc(fastuidraw::c_string name);
 
+  void
+  print_info(std::ostream &dst);
+
 private:
 
-#ifdef FASTUIDRAW_GL_USE_GLES
   EGLContext m_ctx;
   EGLSurface m_surface;
   EGLDisplay m_dpy;
-#endif
 };

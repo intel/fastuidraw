@@ -46,6 +46,19 @@ namespace
     return R;
   }
 
+  void
+  print_gl_extensions(std::ostream &dst)
+  {
+    int cnt;
+
+    cnt = fastuidraw::gl::context_get<GLint>(GL_NUM_EXTENSIONS);
+    dst << "\nGL_EXTENSIONS(" << cnt << "):";
+    for(int i = 0; i < cnt; ++i)
+      {
+        dst << "\n\t" << glGetStringi(GL_EXTENSIONS, i);
+      }
+  }
+
 
   bool
   is_help_request(const std::string &v)
@@ -196,7 +209,6 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
   #ifdef FASTUIDRAW_GL_USE_GLES
   m_gl_major(3, "gles_major", "GLES major version", *this),
   m_gl_minor(0, "gles_minor", "GLES minor version", *this),
-  m_use_egl(true, "use_egl", "If true, use EGL API directly to create GLES context", *this),
   #else
   m_gl_major(3, "gl_major", "GL major version", *this),
   m_gl_minor(3, "gl_minor", "GL minor version", *this),
@@ -205,6 +217,7 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
   m_gl_core_profile(true, "core_context", "if true request a context which is core profile", *this),
   #endif
 
+  m_use_egl(true, "use_egl", "If true, use EGL API to create GLES context", *this),
   m_show_framerate(false, "show_framerate", "if true show the cumulative framerate at end", *this),
   m_gl_logger(nullptr),
   m_reverse_event_y(false),
@@ -359,29 +372,25 @@ init_sdl(void)
         }
     }
 
-  #ifdef FASTUIDRAW_GL_USE_GLES
-  {
-    if(m_use_egl.m_value)
-      {
-        egl_gles_context::params P;
-        P.m_red_bits = m_red_bits.m_value;
-        P.m_green_bits = m_green_bits.m_value;
-        P.m_blue_bits = m_blue_bits.m_value;
-        P.m_alpha_bits = m_alpha_bits.m_value;
-        P.m_depth_bits = m_depth_bits.m_value;
-        P.m_stencil_bits = m_stencil_bits.m_value;
-        P.m_gles_major_version = m_gl_major.m_value;
-        P.m_gles_minor_version = m_gl_minor.m_value;
-        if(m_use_msaa.m_value)
-          {
-            P.m_msaa = m_msaa.m_value;
-          }
-        m_ctx_egl = FASTUIDRAWnew egl_gles_context(P, m_window);
-        m_ctx_egl->make_current();
-        fastuidraw::gl_binding::get_proc_function(egl_gles_context::egl_get_proc);
-      }
-  }
-  #endif
+  if(m_use_egl.m_value)
+    {
+      egl_gles_context::params P;
+      P.m_red_bits = m_red_bits.m_value;
+      P.m_green_bits = m_green_bits.m_value;
+      P.m_blue_bits = m_blue_bits.m_value;
+      P.m_alpha_bits = m_alpha_bits.m_value;
+      P.m_depth_bits = m_depth_bits.m_value;
+      P.m_stencil_bits = m_stencil_bits.m_value;
+      P.m_gles_major_version = m_gl_major.m_value;
+      P.m_gles_minor_version = m_gl_minor.m_value;
+      if(m_use_msaa.m_value)
+        {
+          P.m_msaa = m_msaa.m_value;
+        }
+      m_ctx_egl = FASTUIDRAWnew egl_gles_context(P, m_window);
+      m_ctx_egl->make_current();
+      fastuidraw::gl_binding::get_proc_function(egl_gles_context::egl_get_proc);
+    }
 
   if(!m_ctx_egl)
     {
@@ -403,8 +412,6 @@ init_sdl(void)
         }
       fastuidraw::gl_binding::get_proc_function(get_proc);
     }
-
-
 
   if(m_hide_cursor.m_value)
     {
@@ -456,16 +463,13 @@ init_sdl(void)
                     << "\nGL_MAX_CLIP_DISTANCES:" << fastuidraw::gl::context_get<GLint>(GL_MAX_CLIP_DISTANCES);
         }
       #endif
-        {
-          int cnt;
 
-          cnt = fastuidraw::gl::context_get<GLint>(GL_NUM_EXTENSIONS);
-          std::cout << "\nGL_EXTENSIONS(" << cnt << "):";
-          for(int i = 0; i < cnt; ++i)
-            {
-                std::cout << "\n\t" << glGetStringi(GL_EXTENSIONS, i);
-            }
+      if(m_ctx_egl)
+        {
+          m_ctx_egl->print_info(std::cout);
         }
+
+      print_gl_extensions(std::cout);
       std::cout << "\n";
     }
 

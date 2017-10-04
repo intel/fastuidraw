@@ -138,10 +138,8 @@ private:
   command_line_argument_value<bool> m_gl_forward_compatible_context;
   command_line_argument_value<bool> m_gl_debug_context;
   command_line_argument_value<bool> m_gl_core_profile;
-#else
-  command_line_argument_value<bool> m_use_egl;
 #endif
-
+  command_line_argument_value<bool> m_use_egl;
   command_line_argument_value<bool> m_show_framerate;
 
   fastuidraw::gl_binding::LoggerBase *m_gl_logger;

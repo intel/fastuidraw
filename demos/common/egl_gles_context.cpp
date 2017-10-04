@@ -4,7 +4,6 @@
 #include <SDL_syswm.h>
 #include "egl_gles_context.hpp"
 
-#ifdef FASTUIDRAW_GL_USE_GLES
 static
 void
 print_egl_errors(void)
@@ -35,18 +34,17 @@ print_egl_errors(void)
         }
     }
 }
+
 #define FASTUIDRAWassert_and_check_errors(X) do {         \
-    print_egl_errors();                         \
+    print_egl_errors();                                   \
     FASTUIDRAWassert(X); } while(0)
 
-#endif
 
 egl_gles_context::
 egl_gles_context(const params &P, SDL_Window *sdl)
 {
   FASTUIDRAWunused(P);
   FASTUIDRAWunused(sdl);
-#ifdef FASTUIDRAW_GL_USE_GLES
 
   SDL_SysWMinfo wm;
   int egl_major(0), egl_minor(0);
@@ -108,23 +106,25 @@ egl_gles_context(const params &P, SDL_Window *sdl)
       }
     context_attribs[n++] = EGL_NONE;
 
+#ifdef FASTUIDRAW_GL_USE_GLES
     eglBindAPI(EGL_OPENGL_ES_API);
+#else
+    eglBindAPI(EGL_OPENGL_API);
+#endif
+
     m_ctx = eglCreateContext(m_dpy, config, EGL_NO_CONTEXT, context_attribs);
     FASTUIDRAWassert_and_check_errors(m_ctx != EGL_NO_CONTEXT);
     eglMakeCurrent(m_dpy, m_surface, m_surface, m_ctx);
   }
-#endif
 }
 
 egl_gles_context::
 ~egl_gles_context()
 {
-#ifdef FASTUIDRAW_GL_USE_GLES
   eglMakeCurrent(m_dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
   eglDestroyContext(m_dpy, m_ctx);
   eglDestroySurface(m_dpy, m_surface);
   eglTerminate(m_dpy);
-#endif
 }
 
 
@@ -132,28 +132,26 @@ void
 egl_gles_context::
 make_current(void)
 {
-#ifdef FASTUIDRAW_GL_USE_GLES
   eglMakeCurrent(m_dpy, m_surface, m_surface, m_ctx);
-#endif
 }
 
 void
 egl_gles_context::
 swap_buffers(void)
 {
-#ifdef FASTUIDRAW_GL_USE_GLES
   eglSwapBuffers(m_dpy, m_surface);
-#endif
 }
 
 void*
 egl_gles_context::
 egl_get_proc(fastuidraw::c_string name)
 {
-#ifdef FASTUIDRAW_GL_USE_GLES
   return (void*)eglGetProcAddress(name);
-#else
-  FASTUIDRAWunused(name);
-  return nullptr;
-#endif
+}
+
+void
+egl_gles_context::
+print_info(std::ostream &dst)
+{
+  dst << "\nEGL extensions: " << eglQueryString(m_dpy, EGL_EXTENSIONS);
 }
