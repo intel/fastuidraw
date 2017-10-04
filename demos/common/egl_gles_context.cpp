@@ -65,7 +65,15 @@ egl_gles_context(const params &P, SDL_Window *sdl)
     EGLint n(0), renderable_type(0), num_configs(0);
     EGLBoolean ret;
 
-    renderable_type |= EGL_OPENGL_ES2_BIT;
+    #ifdef FASTUIDRAW_GL_USE_GLES
+      {
+        renderable_type |= EGL_OPENGL_ES3_BIT;
+      }
+    #else
+      {
+        renderable_type |= EGL_OPENGL_BIT;
+      }
+    #endif
 
     config_attribs[n++] = EGL_RED_SIZE;
     config_attribs[n++] = P.m_red_bits;
