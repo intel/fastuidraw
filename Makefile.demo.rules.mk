@@ -8,8 +8,13 @@ ifeq ($(MINGW_BUILD),1)
   DEMO_COMMON_LIBS := $(subst -mwindows, ,$(TEMP))
 endif
 
-DEMO_COMMON_LIBS_GL := $(DEMO_COMMON_LIBS) -lEGL
-DEMO_COMMON_LIBS_GLES := $(DEMO_COMMON_LIBS) -lEGL
+DEMO_COMMON_LIBS_GL := $(DEMO_COMMON_LIBS)
+DEMO_COMMON_LIBS_GLES := $(DEMO_COMMON_LIBS)
+
+ifeq ($(MINGW_BUILD),0)
+DEMO_COMMON_LIBS_GL += -lEGL
+DEMO_COMMON_LIBS_GLES += -lEGL
+endif
 
 DEMO_COMMON_CFLAGS = $(shell sdl2-config --cflags) -Idemos/common
 DEMO_release_CFLAGS = -O3 -fstrict-aliasing $(DEMO_COMMON_CFLAGS)

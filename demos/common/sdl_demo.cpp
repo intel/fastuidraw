@@ -217,7 +217,7 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
   m_gl_core_profile(true, "core_context", "if true request a context which is core profile", *this),
   #endif
 
-  m_use_egl(true, "use_egl", "If true, use EGL API to create GLES context", *this),
+  m_use_egl(false, "use_egl", "If true, use EGL API to create GLES context", *this),
   m_show_framerate(false, "show_framerate", "if true show the cumulative framerate at end", *this),
   m_gl_logger(nullptr),
   m_reverse_event_y(false),
@@ -241,7 +241,7 @@ sdl_demo::
           FASTUIDRAWdelete(m_gl_logger);
         }
 
-      m_ctx_egl = fastuidraw::reference_counted_ptr<egl_gles_context>();
+      m_ctx_egl = fastuidraw::reference_counted_ptr<egl_helper>();
       if(m_ctx)
         {
           SDL_GL_MakeCurrent(m_window, nullptr);
@@ -374,7 +374,7 @@ init_sdl(void)
 
   if(m_use_egl.m_value)
     {
-      egl_gles_context::params P;
+      egl_helper::params P;
       P.m_red_bits = m_red_bits.m_value;
       P.m_green_bits = m_green_bits.m_value;
       P.m_blue_bits = m_blue_bits.m_value;
@@ -387,9 +387,9 @@ init_sdl(void)
         {
           P.m_msaa = m_msaa.m_value;
         }
-      m_ctx_egl = FASTUIDRAWnew egl_gles_context(P, m_window);
+      m_ctx_egl = FASTUIDRAWnew egl_helper(P, m_window);
       m_ctx_egl->make_current();
-      fastuidraw::gl_binding::get_proc_function(egl_gles_context::egl_get_proc);
+      fastuidraw::gl_binding::get_proc_function(egl_helper::egl_get_proc);
     }
 
   if(!m_ctx_egl)

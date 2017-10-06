@@ -2,7 +2,43 @@
 #include <iomanip>
 
 #include <SDL_syswm.h>
-#include "egl_gles_context.hpp"
+#include "egl_helper.hpp"
+
+#ifdef EGL_HELPER_DISABLED
+egl_helper::
+egl_helper(const params&, SDL_Window*)
+{
+  FASTUIDRAWassert(!"Platform does not support EGL");
+  std::abort();
+}
+
+egl_helper::
+~egl_helper()
+{}
+
+void
+egl_helper::
+make_current(void)
+{}
+
+void
+egl_helper::
+swap_buffers(void)
+{}
+
+void*
+egl_helper::
+egl_get_proc(fastuidraw::c_string)
+{
+  return nullptr;
+}
+
+void
+egl_helper::
+print_info(std::ostream&)
+{}
+
+#else
 
 static
 void
@@ -40,8 +76,8 @@ print_egl_errors(void)
     FASTUIDRAWassert(X); } while(0)
 
 
-egl_gles_context::
-egl_gles_context(const params &P, SDL_Window *sdl)
+egl_helper::
+egl_helper(const params &P, SDL_Window *sdl)
 {
   FASTUIDRAWunused(P);
   FASTUIDRAWunused(sdl);
@@ -101,33 +137,35 @@ egl_gles_context(const params &P, SDL_Window *sdl)
   m_surface = eglCreateWindowSurface(m_dpy, config, wm.info.x11.window, nullptr);
   FASTUIDRAWassert_and_check_errors(m_surface != EGL_NO_SURFACE);
 
-  {
-    EGLint context_attribs[32];
-    int n(0);
+  EGLint context_attribs[32];
+  int n(0);
 
-    context_attribs[n++] = EGL_CONTEXT_MAJOR_VERSION;
-    context_attribs[n++] = P.m_gles_major_version;
-    if(P.m_gles_minor_version != 0)
-      {
-	context_attribs[n++] = EGL_CONTEXT_MINOR_VERSION;
-	context_attribs[n++] = P.m_gles_minor_version;
-      }
-    context_attribs[n++] = EGL_NONE;
+  context_attribs[n++] = EGL_CONTEXT_MAJOR_VERSION;
+  context_attribs[n++] = P.m_gles_major_version;
+  if(P.m_gles_minor_version != 0)
+    {
+      context_attribs[n++] = EGL_CONTEXT_MINOR_VERSION;
+      context_attribs[n++] = P.m_gles_minor_version;
+    }
+  context_attribs[n++] = EGL_NONE;
 
-#ifdef FASTUIDRAW_GL_USE_GLES
-    eglBindAPI(EGL_OPENGL_ES_API);
-#else
-    eglBindAPI(EGL_OPENGL_API);
-#endif
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      eglBindAPI(EGL_OPENGL_ES_API);
+    }
+  #else
+    {
+      eglBindAPI(EGL_OPENGL_API);
+    }
+  #endif
 
-    m_ctx = eglCreateContext(m_dpy, config, EGL_NO_CONTEXT, context_attribs);
-    FASTUIDRAWassert_and_check_errors(m_ctx != EGL_NO_CONTEXT);
-    eglMakeCurrent(m_dpy, m_surface, m_surface, m_ctx);
-  }
+  m_ctx = eglCreateContext(m_dpy, config, EGL_NO_CONTEXT, context_attribs);
+  FASTUIDRAWassert_and_check_errors(m_ctx != EGL_NO_CONTEXT);
+  eglMakeCurrent(m_dpy, m_surface, m_surface, m_ctx);
 }
 
-egl_gles_context::
-~egl_gles_context()
+egl_helper::
+~egl_helper()
 {
   eglMakeCurrent(m_dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
   eglDestroyContext(m_dpy, m_ctx);
@@ -137,29 +175,31 @@ egl_gles_context::
 
 
 void
-egl_gles_context::
+egl_helper::
 make_current(void)
 {
   eglMakeCurrent(m_dpy, m_surface, m_surface, m_ctx);
 }
 
 void
-egl_gles_context::
+egl_helper::
 swap_buffers(void)
 {
   eglSwapBuffers(m_dpy, m_surface);
 }
 
 void*
-egl_gles_context::
+egl_helper::
 egl_get_proc(fastuidraw::c_string name)
 {
   return (void*)eglGetProcAddress(name);
 }
 
 void
-egl_gles_context::
+egl_helper::
 print_info(std::ostream &dst)
 {
   dst << "\nEGL extensions: " << eglQueryString(m_dpy, EGL_EXTENSIONS);
 }
+
+#endif

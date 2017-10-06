@@ -1,13 +1,20 @@
 #pragma once
 
-#include <EGL/egl.h>
+#ifdef __WIN32
+ #define EGL_HELPER_DISABLED
+#endif
+
 #include <iostream>
 #include <SDL.h>
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
 
-class egl_gles_context:
-  public fastuidraw::reference_counted<egl_gles_context>::non_concurrent
+#ifndef EGL_HELPER_DISABLED
+  #include <EGL/egl.h>
+#endif
+
+class egl_helper:
+  public fastuidraw::reference_counted<egl_helper>::non_concurrent
 {
 public:
 
@@ -28,8 +35,8 @@ public:
     int m_gles_minor_version;
   };
 
-  egl_gles_context(const params &P, SDL_Window *w);
-  ~egl_gles_context();
+  egl_helper(const params &P, SDL_Window *w);
+  ~egl_helper();
 
   void
   make_current(void);
@@ -45,8 +52,9 @@ public:
   print_info(std::ostream &dst);
 
 private:
-
+#ifndef EGL_HELPER_DISABLED
   EGLContext m_ctx;
   EGLSurface m_surface;
   EGLDisplay m_dpy;
+#endif
 };

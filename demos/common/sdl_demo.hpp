@@ -40,7 +40,7 @@
 #include "ostream_utility.hpp"
 #include "generic_command_line.hpp"
 #include "cast_c_array.hpp"
-#include "egl_gles_context.hpp"
+#include "egl_helper.hpp"
 
 /*
   Notes:
@@ -149,5 +149,5 @@ private:
 
   SDL_Window *m_window;
   SDL_GLContext m_ctx;
-  fastuidraw::reference_counted_ptr<egl_gles_context> m_ctx_egl;
+  fastuidraw::reference_counted_ptr<egl_helper> m_ctx_egl;
 };
