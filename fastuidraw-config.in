@@ -7,6 +7,8 @@ print_help() {
     echo "  --cflags: print compile flags"
     echo "  --libs: print link flags"
     echo "  --nodirs: exclude directory directives of FastUIDraw install location"
+    echo "  --libdir=/some/path: specify library directory"
+    echo "  --incdir=/some/path: specify include directory"
     echo "  --gl: use GL API"
     echo "  --gles: use GLES API"
     echo "  --prefix: print path to which fastuidraw was installed"
@@ -34,6 +36,9 @@ api=unknown
 printhelp=0
 location="@INSTALL_LOCATION@"
 
+lib_location=$location/lib
+include_location=$location/include
+
 while test $# -gt 0; do
   case "$1" in
   -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
@@ -41,7 +46,17 @@ while test $# -gt 0; do
   esac
 
   case "$1" in
-      --prefix=*) location=$optarg ;;
+      --prefix=*)
+	  location=$optarg
+	  lib_location=$location/lib
+	  include_location=$location/include
+	  ;;
+      --libdir=*)
+	  lib_location=$optarg
+	  ;;
+      --incdir=*)
+	  include_location=$optarg
+	  ;;
       --prefix) echo $location ;;
       --release) mode=release ;;
       --debug) mode=debug ;;
@@ -62,9 +77,6 @@ done
 
 gl_supported=@BUILD_GL
 gles_supported=@BUILD_GLES
-
-lib_location=$location/lib
-include_location=$location/include
 
 cflags=
 base_cflags=
