@@ -2,7 +2,7 @@ DEMO_COMMON_RESOURCE_STRING_SRCS = $(patsubst %.resource_string, string_resource
 CLEAN_FILES += $(DEMO_COMMON_RESOURCE_STRING_SRCS)
 
 # This is awful. Makes me wish I used cmake.
-DEMO_COMMON_LIBS := $(shell sdl2-config --libs) -lSDL2_image $(FASTUIDRAW_LIBS)
+DEMO_COMMON_LIBS := $(shell sdl2-config --libs) -lSDL2_image
 ifeq ($(MINGW_BUILD),1)
   TEMP := $(DEMO_COMMON_LIBS)
   DEMO_COMMON_LIBS := $(subst -mwindows, ,$(TEMP))
@@ -26,16 +26,18 @@ MAKEDEPEND = ./makedepend.sh
 # $1 --> gl or gles
 # $2 --> debug or release
 define demobuildrules
-$(eval DEMO_$(2)_CFLAGS_$(1) := $$(DEMO_$(2)_CFLAGS) -Iinc $$(FASTUIDRAW_$(1)_$(2)_CFLAGS) $$(FASTUIDRAW_$(2)_CFLAGS)
-DEMO_$(2)_LIBS_$(1) := $$(DEMO_COMMON_LIBS_$(1)) -L. $$(FASTUIDRAW_$(1)_$(2)_LIBS) $$(FASTUIDRAW_$(2)_LIBS)
-build/demo/$(2)/$(1)/%.resource_string.o: build/string_resources_cpp/%.resource_string.cpp
+$(eval
+DEMO_$(2)_CFLAGS_$(1) = $$(DEMO_$(2)_CFLAGS) $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --cflags --incdir=inc)
+DEMO_$(2)_LIBS_$(1) = $$(DEMO_COMMON_LIBS_$(1)) $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --libs --libdir=.)
+
+build/demo/$(2)/$(1)/%.resource_string.o: build/string_resources_cpp/%.resource_string.cpp fastuidraw-config.nodir
 	@mkdir -p $$(dir $$@)
 	$(CXX) $$(DEMO_$(2)_CFLAGS_$(1)) -c $$< -o $$@
 
-build/demo/$(2)/$(1)/%.o: %.cpp
+build/demo/$(2)/$(1)/%.o: %.cpp fastuidraw-config.nodir
 	@mkdir -p $$(dir $$@)
 	$(CXX) $$(DEMO_$(2)_CFLAGS_$(1)) -c $$< -o $$@
-build/demo/$(2)/$(1)/%.d: %.cpp
+build/demo/$(2)/$(1)/%.d: %.cpp fastuidraw-config.nodir
 	@mkdir -p $$(dir $$@)
 	@echo Generating $$@
 	@$(MAKEDEPEND) "$(CXX)" "$$(DEMO_$(2)_CFLAGS_$(1))" build/demo/$(2)/$(1) "$$*" "$$<" "$$@"

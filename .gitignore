@@ -15,4 +15,5 @@ src/fastuidraw/gl_backend/ngl_gles3.cpp
 *-GL-debug
 *-GLES-release
 *-GLES-debug
+fastuidraw-config.nodir
 fastuidraw-config

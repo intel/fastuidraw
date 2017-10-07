@@ -75,9 +75,6 @@ while test $# -gt 0; do
   shift
 done
 
-gl_supported=@BUILD_GL
-gles_supported=@BUILD_GLES
-
 cflags=
 base_cflags=
 
@@ -98,14 +95,6 @@ if [ "$print_cflags" = "1" ] || [ "$print_libs" = "1" ]; then
   bad=0
   if [ "$mode" = "unknown" ]; then
       echo "Must specify debug or release (with --debug or --release respectively)"
-      bad=1
-  fi
-  if [ "$api" = "gl" ] && [ "$gl_supported" = "0" ]; then
-      echo "GL backend not built!"
-      bad=1
-  fi
-  if [ "$api" = "gles" ] && [ "$gles_supported" = "0" ]; then
-      echo "GLES backend not built!"
       bad=1
   fi
   if [ "$bad" = 1 ]; then

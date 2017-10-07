@@ -1,7 +1,7 @@
 
 INSTALL_LOCATION_VALUE=$(shell echo $(INSTALL_LOCATION))
 
-fastuidraw-config: fastuidraw-config.in
+fastuidraw-config.nodir: fastuidraw-config.in
 	@echo Generating $@
 	@cp $< $@
 	@sed -i 's!@FASTUIDRAW_release_LIBS@!$(FASTUIDRAW_release_LIBS)!g' $@
@@ -16,9 +16,13 @@ fastuidraw-config: fastuidraw-config.in
 	@sed -i 's!@FASTUIDRAW_debug_CFLAGS@!$(FASTUIDRAW_debug_CFLAGS)!g' $@
 	@sed -i 's!@FASTUIDRAW_GLES_debug_CFLAGS@!$(FASTUIDRAW_GLES_debug_CFLAGS)!g' $@
 	@sed -i 's!@FASTUIDRAW_GL_debug_CFLAGS@!$(FASTUIDRAW_GL_debug_CFLAGS)!g' $@
+	@chmod a+x $@
+CLEAN_FILES+=fastuidraw-config.nodir
+
+fastuidraw-config: fastuidraw-config.nodir
+	@echo Generating $@
+	@cp $< $@
 	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $@
-	@sed -i 's!@BUILD_GLES!$(BUILD_GLES)!g' $@
-	@sed -i 's!@BUILD_GL!$(BUILD_GL)!g' $@
 	@chmod a+x $@
 # added to .PHONY to force regeneration so that if an environmental
 # variable (BUILD_GL, BUILD_GLES, INSTALL_LOCATION) changes, we can
