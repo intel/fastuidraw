@@ -204,3 +204,10 @@ loadFunction(c_string name)
     }
   return return_value;
 }
+
+void*
+fastuidraw::gl_binding::
+get_proc(c_string function)
+{
+  return loadFunction(function);
+}

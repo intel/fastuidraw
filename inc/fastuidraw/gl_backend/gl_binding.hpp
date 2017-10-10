@@ -208,6 +208,14 @@ void
 get_proc_function(void* (*get_proc)(c_string),
                   bool fetch_functions = true);
 
+/*!
+  Fetches a GL/GLES function using the function fetcher
+  passed to get_proc_function().
+  \param function name of function to fetch
+ */
+void*
+get_proc(c_string function);
+
 }
 /*! @} */
 }
