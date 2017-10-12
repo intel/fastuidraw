@@ -20,7 +20,7 @@
 #pragma once
 
 #include <fastuidraw/util/util.hpp>
-
+#include <fastuidraw/util/reference_counted.hpp>
 
 namespace fastuidraw {
 
@@ -57,16 +57,13 @@ namespace fastuidraw {
   can also use this functionality by including <fastuidraw/gl_backend/ngl_header.hpp>.
   The header <fastuidraw/gl_backend/ngl_header.hpp> will create a macro
   for each GL function. If GL_DEBUG is defined, each GL call will be preceded by
-  a callback and postceeded by another call back. If logging
-  is on (see log_gl_commands(bool)), the precede call back
-  will print (file, line and arguments) to the LoggerBase
-  object specified by gl_binding::logger(LoggerBase*). The post-process
-  call back will call glGetError until no errors are returned and
-  log the call and errors to the LoggerBase object specified with
-  gl_binding::logger(LoggerBase*). If logging is on (see
-  gl_binding::log_gl_commands(bool)) then regardless of any errors
-  a log message will be written indicating the GL call
-  succeeded.
+  a callback and postceeded by another call back. The preceed callback to the
+  GL call will call (if one is active) the implementation of GLCallBack::pre_call()
+  of the active GLCallBack object. The post-process callback will repeatedly
+  call glGetError (until it returns no error) to build an error-string.
+  If the error string is non-empty, it is printed to stderr. In addition,
+  regardless if the error-string is non-empty, the GLCallBack::post_call() is
+  called of the active GLCallBack.
 
   This is implemented by creating a macro for each
   GL call. If GL_DEBUG is not defined, none of these
@@ -126,75 +123,94 @@ namespace gl_binding {
 
 /*!
   \brief
-  A LoggerBase defines the interface for logging
-  GL commands
+  A GLCallBack defines the interface for callbacks
+  before and after each GL/GLES call.
  */
-class LoggerBase:noncopyable
+class GLCallBack:
+    public reference_counted<GLCallBack>::default_base
 {
 public:
-  virtual
-  ~LoggerBase()
-  {}
+  /*!
+    Ctor; on creation a GLCallBack is made active.
+   */
+  GLCallBack(void);
+
+  ~GLCallBack();
+
+  /*!
+    Set if the GLCallBack is active.
+   */
+  void
+  active(bool b);
+
+  /*!
+    Returns true if and only if the GLCallBack is active
+   */
+  bool
+  active(void) const;
 
   /*!
     To be implemented by a derived class to record
-    GL log.
-    \param msg C-string of log-message with error results
-    \param function_name GL function name
-    \param file_name file of orignating GL call
-    \param line line number of orignating GL call
-    \param fptr pointer to GL function originating the call
+    just before a GL call; if one calls GL functions
+    within a callback, then one must call them through
+    the function pointers \ref FASTUIDRAWglfunctionPointer()
+    to prevent infinite recursion.
+    \param call_string_value string showing call's values
+    \param call_string_src string showing function call as it appears in source
+    \param function_name name of function called
+    \param function_ptr pointer to GL function originating the call
+    \param src_file file of orignating GL call
+    \param src_line line number of orignating GL call
    */
   virtual
   void
-  log(c_string msg, c_string function_name,
-      c_string file_name, int line,
-      void* fptr) = 0;
+  pre_call(c_string call_string_values,
+           c_string call_string_src,
+           c_string function_name,
+           void *function_ptr,
+           c_string src_file, int src_line) = 0;
+
+  /*!
+    To be implemented by a derived class to record
+    just after a GL call; if one calls GL functions
+    within a callback, then one must call them through
+    the function pointers \ref FASTUIDRAWglfunctionPointer()
+    to prevent infinite recursion.
+    \param call_string_value string showing call's values
+    \param call_string_src string showing function call as it appears in source
+    \param function_name name of function called
+    \param error_string error string generated from calling glGetError
+                        after GL call returns
+    \param function_ptr pointer to GL function originating the call
+    \param src_file file of orignating GL call
+    \param src_line line number of orignating GL call
+   */
+  virtual
+  void
+  post_call(c_string call_string_values,
+            c_string call_string_src,
+            c_string function_name,
+            c_string error_string,
+            void *function_ptr,
+            c_string src_file, int src_line) = 0;
+
+  virtual
+  void
+  on_call_unloadable_function(c_string function_name)
+  {
+    FASTUIDRAWunused(function_name);
+  }
+
+  virtual
+  void
+  on_load_function_fail(c_string function_name)
+  {
+    FASTUIDRAWunused(function_name);
+  }
+
+private:
+  void *m_d;
 };
-
-/*!
-  Set the LoggerBase object to which
-  to send GL command logs. Initial value is
-  nullptr. Logging is only possbile to
-  be active if GL_DEBUG is defined.
-  \param l object to use, a nullptr value indicates
-           to not send logging commands anywhere
- */
-void
-logger(LoggerBase *l);
-
-/*!
-  Returns the LoggerBase object used
-  to log GL commands, initial value is nullptr.
- */
-LoggerBase*
-logger(void);
-
-
-/*!
-  Returns true if logs all
-  GL API calls. If returns false,
-  only log those GL API calls
-  that generated GL errors.
-  Default value is false.
-  Logging is only possbile to
-  be active if GL_DEBUG is defined.
- */
-bool
-log_gl_commands(void);
-
-/*!
-  Set if log all GL API calls.
-  If false, only log those
-  GL API calls that generated GL
-  errors. If true log ALL GL
-  API calls. Default value is false.
-  \param v value to set for logging.
-  Logging is only possbile to
-  be active if GL_DEBUG is defined.
- */
-void
-log_gl_commands(bool v);
 
 /*!
   Sets the function that the system uses

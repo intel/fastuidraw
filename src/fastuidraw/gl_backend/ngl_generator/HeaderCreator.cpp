@@ -94,11 +94,12 @@ public:
   list<openGL_function_info*> m_openGL_functionList;
   map<string,openGL_function_info*> m_lookUp;
   string m_function_prefix, m_LoadingFunctionName;
-  string m_GLErrorFunctionName, m_ErrorLoadingFunctionName;
+  string m_ErrorLoadingFunctionName;
+  std::string m_pre_gl_call_name, m_post_gl_call_name;
   string m_laodAllFunctionsName, m_argumentName;;
   string m_insideBeginEndPairNameCounter, m_insideBeginEndPairNameFunction;
   string m_genericCallBackType, m_kglLoggingStream;
-  string m_kglLoggingStreamNameOnly, m_GLPreErrorFunctionName;
+  string m_kglLoggingStreamNameOnly;
   string m_macro_prefix, m_namespace, m_CallUnloadableFunction;
   int m_numberFunctions;
   bool m_use_function_pointer_mode;
@@ -154,9 +155,9 @@ openGL_function_info::
 SetFunctionPrefix(const string &pre)
 {
   GlobalElements::get().m_function_prefix=pre;
-  GlobalElements::get().m_LoadingFunctionName=GlobalElements::get().m_function_prefix+"loadFunction";
-  GlobalElements::get().m_GLErrorFunctionName=GlobalElements::get().m_function_prefix+"ErrorCheck";
-  GlobalElements::get().m_GLPreErrorFunctionName=GlobalElements::get().m_function_prefix+"preErrorCheck";
+  GlobalElements::get().m_LoadingFunctionName=GlobalElements::get().m_function_prefix+"get_proc";
+  GlobalElements::get().m_post_gl_call_name=GlobalElements::get().m_function_prefix+"post_call";
+  GlobalElements::get().m_pre_gl_call_name=GlobalElements::get().m_function_prefix+"pre_call";
   GlobalElements::get().m_ErrorLoadingFunctionName=GlobalElements::get().m_function_prefix+"on_load_function_error";
   GlobalElements::get().m_laodAllFunctionsName=GlobalElements::get().m_function_prefix+"load_all_functions";
   GlobalElements::get().m_insideBeginEndPairNameCounter=GlobalElements::get().m_function_prefix+"inSideBeginEndPairCounter";
@@ -189,11 +190,11 @@ function_call_unloadable_function(void) { return GlobalElements::get().m_CallUnl
 
 const string&
 openGL_function_info::
-function_gl_error(void) { return GlobalElements::get().m_GLErrorFunctionName; }
+function_pre_gl_call(void) { return GlobalElements::get().m_pre_gl_call_name; }
 
 const string&
 openGL_function_info::
-function_pregl_error(void) { return GlobalElements::get().m_GLPreErrorFunctionName; }
+function_post_gl_call(void) { return GlobalElements::get().m_post_gl_call_name; }
 
 const string&
 openGL_function_info::
@@ -657,9 +658,9 @@ output_to_source(ostream &sourceFile)
   sourceFile << "<< \")\";\n\tcall_string=call_stream.str();\n\t";
 
 
-  sourceFile << function_pregl_error() << "(call_string.c_str(),call,\""
-             << function_name() << "\",file,line,(void*)"
-             << function_pointer_name() << ");\n\t";
+  sourceFile << function_pre_gl_call() << "(call_string.c_str(), call, \""
+             << function_name() << "\", (void*)"
+             << function_pointer_name() << ", file, line);\n\t";
 
   if(returns_value())
     {
@@ -669,9 +670,9 @@ output_to_source(ostream &sourceFile)
 
   sourceFile << function_pointer_name() << "(" << argument_list_names_only()
              << ");\n\t"
-             << function_gl_error() << "(call_string.c_str(),call,\""
-             << function_name() << "\",file,line,(void*)"
-             << function_pointer_name() << ");\n\t";
+             << function_post_gl_call() << "(call_string.c_str(), call, \""
+             << function_name() << "\", (void*)"
+             << function_pointer_name() << ", file, line);\n\t";
 
   if(function_name()=="glEnd")
     {
@@ -784,10 +785,10 @@ HeaderStart(ostream &headerFile, const list<string> &fileNames)
   headerFile << "void* " << function_loader() << "(const char *name);\n"
              << "void " << function_error_loading() << "(const char *fname);\n"
              << "void " << function_call_unloadable_function() << "(const char *fname);\n"
-             << "void " << function_gl_error()
-             << "(const char *call, const char *src_call, const char *function_name, const char *fileName, int line, void* fptr);\n"
-             << "void " << function_pregl_error()
-             << "(const char *call, const char *src_call, const char *function_name, const char *fileName, int line, void* fptr);\n"
+             << "void " << function_pre_gl_call()
+             << "(const char *call, const char *src_call, const char *function_name, void* fptr, const char *fileName, int line);\n"
+             << "void " << function_post_gl_call()
+             << "(const char *call, const char *src_call, const char *function_name, void* fptr, const char *fileName, int line);\n"
              << "int  " << inside_begin_end_pair_function() << "(void);\n"
              << "void " << function_load_all() << "(bool emit_load_warning);\n\n";
 
@@ -856,10 +857,10 @@ SourceStart(ostream &sourceFile, const list<string> &fileNames)
   sourceFile << "void* " << function_loader() << "(const char *name);\n"
              << "void " << function_error_loading() << "(const char *fname);\n"
              << "void " << function_call_unloadable_function() << "(const char *fname);\n"
-             << "void " << function_gl_error()
-             << "(const char *call, const char *src, const char *function_name, const char *fileName, int line, void* fptr);\n"
-             << "void " << function_pregl_error()
-             << "(const char *call, const char *src, const char *function_name, const char *fileName, int line, void* fptr);\n"
+             << "void " << function_post_gl_call()
+             << "(const char *call, const char *src, const char *function_name, void* fptr, const char *fileName, int line);\n"
+             << "void " << function_pre_gl_call()
+             << "(const char *call, const char *src, const char *function_name, void* fptr, const char *fileName, int line);\n"
              << "int  " << inside_begin_end_pair_function() << "(void);\n"
              << "void " << function_load_all() << "(void);\n\n";
 

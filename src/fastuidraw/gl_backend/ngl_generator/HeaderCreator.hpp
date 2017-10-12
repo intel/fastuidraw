@@ -144,11 +144,11 @@ public:
 
   static
   const string&
-  function_gl_error(void);
+  function_post_gl_call(void);
 
   static
   const string&
-  function_pregl_error(void);
+  function_pre_gl_call(void);
 
   static
   const string&
