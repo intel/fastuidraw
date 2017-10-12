@@ -142,7 +142,8 @@ private:
   command_line_argument_value<bool> m_use_egl;
   command_line_argument_value<bool> m_show_framerate;
 
-  fastuidraw::gl_binding::LoggerBase *m_gl_logger;
+  fastuidraw::reference_counted_ptr<fastuidraw::gl_binding::GLCallBack> m_gl_logger;
+
   bool m_run_demo;
   int m_return_value;
   bool m_reverse_event_y;
