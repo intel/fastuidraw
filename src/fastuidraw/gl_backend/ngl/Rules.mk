@@ -16,12 +16,16 @@ NGL_GLES_HPP = inc/fastuidraw/gl_backend/ngl_gles3.hpp
 $(NGL_GL_CPP): $(NGL_GL_HPP) $(NGL_FILTER) $(NGL_EXTRACTOR)
 $(NGL_GL_HPP): $(NGL_FILTER) $(NGL_EXTRACTOR)
 	$(NGL_FILTER) $(GL_HEADER_FILES) \
-	| $(NGL_EXTRACTOR) macro_prefix=FASTUIDRAWgl namespace="fastuidraw::gl_binding" path=$(GL_INCLUDEPATH) output_cpp=$(NGL_GL_CPP) output_hpp=$(NGL_GL_HPP) $(GL_RAW_HEADER_FILES)
+	| $(NGL_EXTRACTOR) macro_prefix=FASTUIDRAWgl \
+namespace="fastuidraw::gl_binding" path=$(GL_INCLUDEPATH) \
+output_cpp=$(NGL_GL_CPP) output_hpp=$(NGL_GL_HPP) $(GL_RAW_HEADER_FILES)
 
 $(NGL_GLES_CPP): $(NGL_GLES_HPP) $(NGL_FILTER) $(NGL_EXTRACTOR)
 $(NGL_GLES_HPP): $(NGL_FILTER) $(NGL_EXTRACTOR)
 	$(NGL_FILTER) $(GLES_HEADER_FILES) \
-	| $(NGL_EXTRACTOR) macro_prefix=FASTUIDRAWgl namespace="fastuidraw::gl_binding" path=$(GL_INCLUDEPATH) output_cpp=$(NGL_GLES_CPP) output_hpp=$(NGL_GLES_HPP) $(GLES_RAW_HEADER_FILES)
+	| $(NGL_EXTRACTOR) macro_prefix=FASTUIDRAWgl \
+namespace="fastuidraw::gl_binding" path=$(GL_INCLUDEPATH) \
+output_cpp=$(NGL_GLES_CPP) output_hpp=$(NGL_GLES_HPP) $(GLES_RAW_HEADER_FILES)
 
 SUPER_CLEAN_FILES += $(NGL_GL_CPP) $(NGL_GL_HPP) $(NGL_GLES_CPP) $(NGL_GLES_HPP)
 
