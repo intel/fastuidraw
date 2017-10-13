@@ -4,9 +4,6 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
-dir := $(d)/ngl_generator
-include $(dir)/Rules.mk
-
 dir := $(d)/ngl
 include $(dir)/Rules.mk
 

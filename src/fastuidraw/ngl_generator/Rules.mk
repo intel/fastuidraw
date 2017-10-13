@@ -4,6 +4,7 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
+NGL_DIRECTORY := $(d)
 NGL_BUILD := build/ngl_generator
 NGL_FILTER := $(NGL_BUILD)/filter
 NGL_EXTRACTOR := $(NGL_BUILD)/extractor
@@ -26,7 +27,7 @@ $(NGL_BUILD)/gl_flex.cpp: $(call filelist, gl_flex.fl.cpp)
 
 $(NGL_BUILD)/gl_flex.o: $(NGL_BUILD)/gl_flex.cpp $(call filelist, HeaderCreator.hpp)
 	mkdir -p $(dir $@)
-	$(CXX) -Isrc/fastuidraw/gl_backend/ngl_generator -o $@ -c $<
+	$(CXX) -I$(NGL_DIRECTORY) -o $@ -c $<
 
 $(NGL_BUILD)/HeaderCreator.o: $(call filelist, HeaderCreator.cpp HeaderCreator.hpp)
 	mkdir -p $(dir $@)
