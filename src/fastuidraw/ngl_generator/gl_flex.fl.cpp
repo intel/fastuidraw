@@ -61,9 +61,18 @@ GLTYPE {GLTYE}|{GLPTR}
 CGLTYPE {const}{GLTYPE}
 CGLGLTYPE {CGLTYPE}|{GLTYPE}|GLDEBUGPROC|GLDEBUGPROCARB|GLVULKANPROCNV
 
-EGLTYPE void|EGLBoolean|EGLDisplay|EGLConfig|EGLSurface|EGLContext|EGLenum|EGLClientBuffer|EGLSync|EGLAttrib|EGLTime|EGLImage|EGLSyncKHR|EGLAttribKHR|EGLLabelKHR|EGLObjectKHR|EGLTimeKHR|EGLImageKHR|EGLStreamKHR|EGLuint64KHR|EGLNativeFileDescriptorKHR|EGLsizeiANDROID|EGLSetBlobFuncANDROID|EGLsizeiANDROID|EGLnsecsANDROID|EGLDeviceEXT|EGLOutputLayerEXT|EGLOutputPortEXT|EGLSyncNV|EGLTimeNV|EGLuint64NV
+EGLPLATFORMTYPE EGLint|EGLNativeDisplayType|EGLNativePixmapType|EGLNativeWindowType
+EGLBASETYPE void|EGLBoolean|EGLDisplay|EGLConfig|EGLSurface|EGLContext|EGLenum|EGLClientBuffer|EGLSync|EGLAttrib|EGLTime|EGLImage
+EGLKHRTYPE EGLSyncKHR|EGLAttribKHR|EGLLabelKHR|EGLObjectKHR|EGLTimeKHR|EGLImageKHR|EGLStreamKHR|EGLuint64KHR|EGLNativeFileDescriptorKHR
+EGLANDTYPE EGLsizeiANDROID|EGLSetBlobFuncANDROID|EGLsizeiANDROID|EGLnsecsANDROID
+EGLEXTTYPE EGLDeviceEXT|EGLOutputLayerEXT|EGLOutputPortEXT|EGLSyncNV|EGLTimeNV|EGLuint64NV|struct{space}EGLClientPixmapHI
+EGLTYP {EGLPLATFORMTYPE}|{EGLBASETYPE}|{EGLKHRTYPE}|{EGLANDTYPE}|{EGLEXTTYPE}
+
+EGLPTR {EGLTYP}{allSpace}*"*"
+EGLTYPE {EGLTYP}|{EGLPTR}
 CEGLTYPE {const}{EGLTYPE}
-EGLEGLTYPE {EGLTYPE}|{CEGLTYPE}
+CEGLEGLTYPE {EGLTYPE}|{CEGLTYPE}
+
 %%
 
 %{
@@ -82,18 +91,22 @@ GL_APICALL{space}+{CGLGLTYPE}{space}*+GL_APIENTRY{space}+gl[^\n]*\n  {
   openGL_function_info::openGL_functionList().push_back(ptr);
 }
 
-EGLAPI{space}+{EGLEGLTYPE}{space}*+EGLAPIENTRY{space}+egl[^\n]*\n {
+EGLAPI{space}+{CEGLEGLTYPE}{space}*+EGLAPIENTRY{space}+egl[^\n]*\n {
   openGL_function_info *ptr;
   ptr=new openGL_function_info(yytext,"EGLAPI", "EGLAPIENTRY", "egl");
   openGL_function_info::openGL_functionList().push_back(ptr);
 }
 
 FUNCTIONPOINTERMODE {
-  openGL_function_info::use_function_pointer_mode()=true;
+  openGL_function_info::use_function_pointer_mode()=use_function_pointer;
 }
 
-NONFUNCTIONPOINTERMODE {
-  openGL_function_info::use_function_pointer_mode()=false;
+NOFUNCTIONPOINTERMODE_PTR_TYPE_DECLARED {
+  openGL_function_info::use_function_pointer_mode()=dont_use_function_pointer_type_declared;
+}
+
+NOFUNCTIONPOINTERMODE_PTR_TYPE_NOTDECLARED {
+  openGL_function_info::use_function_pointer_mode()=dont_use_function_pointer_type_undeclared;
 }
 
 
@@ -181,10 +194,6 @@ int main(int argc, char **argv)
   yyrestart(stdin);
   yylex();
 
-
-  //ofstream detailFile((baseName+"detailed_output.txt").c_str());
-  //ofstream functionList((baseName+"function_list_output.txt").c_str());
-
   openGL_function_info::HeaderStart(headerFile, fileNames);
   openGL_function_info::SourceStart(sourceFile, fileNames);
 
@@ -194,8 +203,8 @@ int main(int argc, char **argv)
       gg->second->output_to_header(headerFile);
       gg->second->output_to_source(sourceFile);
 
-      //gg->second->GetInfo(detailFile);
-      //functionList << gg->second->function_name() << "\n";
+      //gg->second->GetInfo(std::cout);
+      //std::cout << gg->second->function_name() << "\n";
 
     }
 

@@ -66,6 +66,13 @@
 
 using namespace std;
 
+enum use_function_pointer_mode_t
+  {
+    use_function_pointer,
+    dont_use_function_pointer_type_declared,
+    dont_use_function_pointer_type_undeclared,
+  };
+
 class openGL_function_info
 {
 public:
@@ -80,6 +87,7 @@ private:
   typedef vector<pair<ArgumentType, string> >::iterator argIterType;
   string m_functionName, m_returnType;
   string m_pointerToFunctionTypeName;
+  std::string m_APIprefix_type, m_APIsuffix_type;
 
   bool m_returnsValue;
   string m_frontMaterial; /*includes all the funky extras and the return type */
@@ -94,11 +102,11 @@ private:
 
   bool m_newDeclaration;
 
-  bool m_use_function_pointer;
+  enum use_function_pointer_mode_t m_use_function_pointer;
 
   static
   void
-  GetTypeFromArgumentEntry(const string &inString, ArgumentType &argumentType);
+  GetTypeFromArgumentEntry(string inString, ArgumentType &argumentType);
 
 public:
 
@@ -260,7 +268,7 @@ public:
   openGL_functionList(void);
 
   static
-  bool&
+  enum use_function_pointer_mode_t&
   use_function_pointer_mode(void);
 
   static

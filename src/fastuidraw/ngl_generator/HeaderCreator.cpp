@@ -88,7 +88,7 @@ class GlobalElements
 public:
   GlobalElements(void):
     m_numberFunctions(0),
-    m_use_function_pointer_mode(true)
+    m_use_function_pointer_mode(use_function_pointer)
   {}
 
   list<openGL_function_info*> m_openGL_functionList;
@@ -101,7 +101,7 @@ public:
   string m_kglLoggingStreamNameOnly;
   string m_macro_prefix, m_namespace, m_CallUnloadableFunction;
   int m_numberFunctions;
-  bool m_use_function_pointer_mode;
+  enum use_function_pointer_mode_t m_use_function_pointer_mode;
 
   static
   GlobalElements&
@@ -121,7 +121,7 @@ openGL_functionList(void)
   return GlobalElements::get().m_openGL_functionList;
 }
 
-bool&
+enum use_function_pointer_mode_t&
 openGL_function_info::
 use_function_pointer_mode(void)
 {
@@ -222,6 +222,8 @@ openGL_function_info(const string &line_from_gl_h_in,
                      const std::string &function_prefix):
   m_returnsValue(false),
   m_createdFrom(line_from_gl_h_in),
+  m_APIprefix_type(APIprefix_type),
+  m_APIsuffix_type(APIsuffix_type),
   m_use_function_pointer(GlobalElements::get().m_use_function_pointer_mode)
 {
   ++GlobalElements::get().m_numberFunctions;
@@ -451,10 +453,17 @@ output_to_header(ostream &headerFile)
       return;
     }
 
+  if(m_use_function_pointer == dont_use_function_pointer_type_undeclared)
+    {
+      headerFile << "typedef " << m_returnType << "("
+                 << m_APIsuffix_type << " *" << function_pointer_type()
+                 << ")(" << full_arg_list_with_names() << ");\n";
+    }
+
   headerFile << "extern " << function_pointer_type() << " "
              << function_pointer_name() << ";\n";
 
-  if(m_use_function_pointer)
+  if(m_use_function_pointer == use_function_pointer)
     {
       headerFile << "int " << m_existsFunctionName << "(void);\n"
                  << function_pointer_type() << " " << m_getFunctionName << "(void);\n";
@@ -525,7 +534,14 @@ output_to_source(ostream &sourceFile)
       return;
     }
 
-  if(m_use_function_pointer)
+  if(m_use_function_pointer == dont_use_function_pointer_type_undeclared)
+    {
+      sourceFile << "typedef " << m_returnType << "("
+                 << m_APIsuffix_type << " *" << function_pointer_type()
+                 << ")(" << full_arg_list_with_names() << ");\n";
+    }
+
+  if(m_use_function_pointer == use_function_pointer)
     {
       //declare prototypes:
       sourceFile << "int " << m_existsFunctionName << "(void);\n";
@@ -676,16 +692,31 @@ output_to_source(ostream &sourceFile)
 // this routine returnes what is the type of the argument
 void
 openGL_function_info::
-GetTypeFromArgumentEntry(const string &inString, ArgumentType &argumentType)
+GetTypeFromArgumentEntry(string inString, ArgumentType &argumentType)
 {
-  string::size_type startPlace,placeA,placeB;
+  string::size_type startPlace,placeA,placeB, structPlace;
+  bool has_struct(false);
 
   //hunt for characters that are not allowed in a name
   //namely, * and ' ' after the leading whitespace
 
-  //first eat up leading spaces and the possible const
-  startPlace=inString.rfind("const");
+  // remove leading white spaces
+  startPlace=inString.find_first_not_of(" ",0);
+  if(startPlace==string::npos)
+    {
+      inString=inString.substr(startPlace);
+    }
 
+  // check if there is a leading struct
+  structPlace = inString.find("struct");
+  if(structPlace != string::npos)
+    {
+      has_struct = true;
+      inString = inString.substr(structPlace + strlen("struct") + 1);
+    }
+
+  //first eat possible const
+  startPlace=inString.rfind("const");
   if(startPlace==string::npos)
     {
       startPlace=0;
@@ -729,6 +760,11 @@ GetTypeFromArgumentEntry(const string &inString, ArgumentType &argumentType)
   else
     {
       argumentType.m_front = inString;
+    }
+
+  if(has_struct)
+    {
+      argumentType.m_front = "struct " + argumentType.m_front;
     }
 }
 
@@ -780,7 +816,7 @@ SourceEnd(ostream &sourceFile, const list<string> &fileNames)
   for(map<string,openGL_function_info*>::iterator i=GlobalElements::get().m_lookUp.begin();
       i!=GlobalElements::get().m_lookUp.end(); ++i)
     {
-      if(i->second->m_use_function_pointer)
+      if(i->second->m_use_function_pointer == use_function_pointer)
         {
           sourceFile << i->second->function_pointer_name() << "=("
                      << i->second->function_pointer_type() << ")"

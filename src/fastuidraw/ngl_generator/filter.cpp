@@ -42,16 +42,25 @@
 #include <set>
 #include <string>
 
-bool
-use_function_pointer(const std::string &filename)
+std::string
+function_pointer_mode(const std::string &filename)
 {
-  return filename.find("gl2.h")==std::string::npos
-    || filename.find("egl.h")==std::string::npos;
+  if(filename.find("gl2.h") != std::string::npos)
+    {
+      return "NOFUNCTIONPOINTERMODE_PTR_TYPE_DECLARED";
+    }
+  else if(filename.find("egl.h") != std::string::npos)
+    {
+      return "NOFUNCTIONPOINTERMODE_PTR_TYPE_NOTDECLARED";
+    }
+  else
+    {
+      return "FUNCTIONPOINTERMODE";
+    }
 }
 
-
-
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
   /*read each file passed and output them to stdout after filtering */
 
@@ -72,14 +81,9 @@ int main(int argc, char **argv)
           int parenCount;
           bool last_char_is_white;
 
-          if(use_function_pointer(*i))
-            {
-              std::cout << "\nFUNCTIONPOINTERMODE\n";
-            }
-          else
-            {
-              std::cout << "\nNONFUNCTIONPOINTERMODE\n";
-            }
+          std:: cout << "\n"
+                     << function_pointer_mode(*i)
+                     << "\n\n";
 
           parenCount=0; last_char_is_white=false;
           while(inFile)
