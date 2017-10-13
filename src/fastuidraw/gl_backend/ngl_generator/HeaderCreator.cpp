@@ -465,7 +465,7 @@ output_to_header(ostream &headerFile)
                  << "inline " << function_pointer_type() << " " << m_getFunctionName
                  << "(void) { return " << m_functionName << "; }\n";
     }
-  headerFile << "#ifdef GL_DEBUG\n";
+  headerFile << "#ifdef FASTUIDRAW_DEBUG\n";
   headerFile << return_type() << " " << debug_function_name() << "(";
 
   if(number_arguments()!=0)
@@ -594,10 +594,8 @@ output_to_source(ostream &sourceFile)
                  << m_functionName << ";\n\n\n";
     }
 
-
-
   //second the debug function.
-  sourceFile << "#ifdef GL_DEBUG\n"
+  sourceFile << "#ifdef FASTUIDRAW_DEBUG\n"
              << return_type() << " " << debug_function_name()
              << "(";
   if(number_arguments()!=0)

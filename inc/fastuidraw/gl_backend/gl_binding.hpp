@@ -56,7 +56,7 @@ namespace fastuidraw {
   functionality of where to write/store GL error messages. An application
   can also use this functionality by including <fastuidraw/gl_backend/ngl_header.hpp>.
   The header <fastuidraw/gl_backend/ngl_header.hpp> will create a macro
-  for each GL function. If GL_DEBUG is defined, each GL call will be preceded by
+  for each GL function. If FASTUIDRAW_DEBUG is defined, each GL call will be preceded by
   a callback and postceeded by another call back. The preceed callback to the
   GL call will call (if one is active) the implementation of GLCallBack::pre_call()
   of the active GLCallBack object. The post-process callback will repeatedly
@@ -66,7 +66,7 @@ namespace fastuidraw {
   called of the active GLCallBack.
 
   This is implemented by creating a macro for each
-  GL call. If GL_DEBUG is not defined, none of these
+  GL call. If FASTUIDRAW_DEBUG is not defined, none of these
   logging and error calls backs are executed.
   The mechanism is implemented by defining a macro
   for each GL function, hence using a GL function
