@@ -104,8 +104,8 @@ public:
 
   openGL_function_info(const string &createFrom,
                        const string &APIprefix_type,
-                       const string &APIsuffix_type);
-  openGL_function_info(const string &createFrom);
+                       const string &APIsuffix_type,
+                       const std::string &function_prefix = "gl");
 
   virtual
   ~openGL_function_info() {}
@@ -153,14 +153,6 @@ public:
   static
   const string&
   function_load_all();
-
-  static
-  const string&
-  inside_begin_end_pair_counter(void);
-
-  static
-  const string&
-  inside_begin_end_pair_function(void);
 
   static
   const string&

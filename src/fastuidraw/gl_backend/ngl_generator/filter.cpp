@@ -45,7 +45,8 @@
 bool
 use_function_pointer(const std::string &filename)
 {
-  return filename.find("gl2.h")==std::string::npos;
+  return filename.find("gl2.h")==std::string::npos
+    || filename.find("egl.h")==std::string::npos;
 }
 
 

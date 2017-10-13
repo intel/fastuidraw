@@ -61,27 +61,14 @@ GLTYPE {GLTYE}|{GLPTR}
 CGLTYPE {const}{GLTYPE}
 CGLGLTYPE {CGLTYPE}|{GLTYPE}|GLDEBUGPROC|GLDEBUGPROCARB|GLVULKANPROCNV
 
+EGLTYPE void|EGLBoolean|EGLDisplay|EGLConfig|EGLSurface|EGLContext|EGLenum|EGLClientBuffer|EGLSync|EGLAttrib|EGLTime|EGLImage|EGLSyncKHR|EGLAttribKHR|EGLLabelKHR|EGLObjectKHR|EGLTimeKHR|EGLImageKHR|EGLStreamKHR|EGLuint64KHR|EGLNativeFileDescriptorKHR|EGLsizeiANDROID|EGLSetBlobFuncANDROID|EGLsizeiANDROID|EGLnsecsANDROID|EGLDeviceEXT|EGLOutputLayerEXT|EGLOutputPortEXT|EGLSyncNV|EGLTimeNV|EGLuint64NV
+CEGLTYPE {const}{EGLTYPE}
+EGLEGLTYPE {EGLTYPE}|{CEGLTYPE}
 %%
 
 %{
  /*rules*/
 %}
-
-
-
-extern{space}+{CGLGLTYPE}{space}*+APIENTRY{space}+gl[^\n]*\n  {
-  openGL_function_info *ptr;
-  ptr=new openGL_function_info(yytext,"extern", "APIENTRY");
-  openGL_function_info::openGL_functionList().push_back(ptr);
-}
-
-
-WINGDIAPI{space}+{CGLGLTYPE}{space}*+APIENTRY{space}+gl[^\n]*\n  {
-  openGL_function_info *ptr;
-  ptr=new openGL_function_info(yytext,"WINGDIAPI", "APIENTRY");
-  openGL_function_info::openGL_functionList().push_back(ptr);
-}
-
 
 GLAPI{space}+{CGLGLTYPE}{space}*+APIENTRY{space}+gl[^\n]*\n  {
   openGL_function_info *ptr;
@@ -89,21 +76,15 @@ GLAPI{space}+{CGLGLTYPE}{space}*+APIENTRY{space}+gl[^\n]*\n  {
   openGL_function_info::openGL_functionList().push_back(ptr);
 }
 
-extern{space}+{CGLGLTYPE}{space}*+GLAPIENTRY{space}+gl[^\n]*\n  {
-  openGL_function_info *ptr;
-  ptr=new openGL_function_info(yytext,"extern", "GLAPIENTRY");
-  openGL_function_info::openGL_functionList().push_back(ptr);
-}
-
-GLAPI{space}+{CGLGLTYPE}{space}*+GLAPIENTRY{space}+gl[^\n]*\n  {
-  openGL_function_info *ptr;
-  ptr=new openGL_function_info(yytext, "GLAPI", "GLAPIENTRY");
-  openGL_function_info::openGL_functionList().push_back(ptr);
-}
-
 GL_APICALL{space}+{CGLGLTYPE}{space}*+GL_APIENTRY{space}+gl[^\n]*\n  {
   openGL_function_info *ptr;
   ptr=new openGL_function_info(yytext,"GL_APICALL", "GL_APIENTRY");
+  openGL_function_info::openGL_functionList().push_back(ptr);
+}
+
+EGLAPI{space}+{EGLEGLTYPE}{space}*+EGLAPIENTRY{space}+egl[^\n]*\n {
+  openGL_function_info *ptr;
+  ptr=new openGL_function_info(yytext,"EGLAPI", "EGLAPIENTRY", "egl");
   openGL_function_info::openGL_functionList().push_back(ptr);
 }
 

@@ -96,8 +96,7 @@ public:
   string m_function_prefix, m_LoadingFunctionName;
   string m_ErrorLoadingFunctionName;
   std::string m_pre_gl_call_name, m_post_gl_call_name;
-  string m_laodAllFunctionsName, m_argumentName;;
-  string m_insideBeginEndPairNameCounter, m_insideBeginEndPairNameFunction;
+  string m_laodAllFunctionsName, m_argumentName;
   string m_genericCallBackType, m_kglLoggingStream;
   string m_kglLoggingStreamNameOnly;
   string m_macro_prefix, m_namespace, m_CallUnloadableFunction;
@@ -160,8 +159,6 @@ SetFunctionPrefix(const string &pre)
   GlobalElements::get().m_pre_gl_call_name=GlobalElements::get().m_function_prefix+"pre_call";
   GlobalElements::get().m_ErrorLoadingFunctionName=GlobalElements::get().m_function_prefix+"on_load_function_error";
   GlobalElements::get().m_laodAllFunctionsName=GlobalElements::get().m_function_prefix+"load_all_functions";
-  GlobalElements::get().m_insideBeginEndPairNameCounter=GlobalElements::get().m_function_prefix+"inSideBeginEndPairCounter";
-  GlobalElements::get().m_insideBeginEndPairNameFunction=GlobalElements::get().m_function_prefix+"inSideBeginEndPair";
   GlobalElements::get().m_kglLoggingStreamNameOnly=GlobalElements::get().m_function_prefix+"LogStream";
   GlobalElements::get().m_CallUnloadableFunction=GlobalElements::get().m_function_prefix+"call_unloadable_function";
   GlobalElements::get().m_kglLoggingStream=GlobalElements::get().m_kglLoggingStreamNameOnly+"()";
@@ -202,14 +199,6 @@ function_load_all() { return GlobalElements::get().m_laodAllFunctionsName; }
 
 const string&
 openGL_function_info::
-inside_begin_end_pair_counter(void) { return GlobalElements::get().m_insideBeginEndPairNameCounter; }
-
-const string&
-openGL_function_info::
-inside_begin_end_pair_function(void) { return GlobalElements::get().m_insideBeginEndPairNameFunction; }
-
-const string&
-openGL_function_info::
 argument_name(void) { return GlobalElements::get().m_argumentName; }
 
 const string&
@@ -229,7 +218,8 @@ log_stream_function_name(void)  { return GlobalElements::get().m_kglLoggingStrea
 openGL_function_info::
 openGL_function_info(const string &line_from_gl_h_in,
                      const string &APIprefix_type,
-                     const string &APIsuffix_type):
+                     const string &APIsuffix_type,
+                     const std::string &function_prefix):
   m_returnsValue(false),
   m_createdFrom(line_from_gl_h_in),
   m_use_function_pointer(GlobalElements::get().m_use_function_pointer_mode)
@@ -273,14 +263,14 @@ openGL_function_info(const string &line_from_gl_h_in,
       //unable to find GLAPIENTRY to mark
       //where the return type ends, so we
       //look for gl
-      retEnd=line_from_gl_h.find("gl",retBegin);
+      retEnd=line_from_gl_h.find(function_prefix,retBegin);
     }
 
   retType=line_from_gl_h.substr(retBegin,retEnd-retBegin);
 
 
   /* get the function name by looking at the string before the firstParen */
-  glStart=line_from_gl_h.find("gl",retEnd);
+  glStart=line_from_gl_h.find(function_prefix,retEnd);
   glEnd=line_from_gl_h.rfind(' ',firstParen);
   if(glEnd!=string::npos && glEnd>glStart)
     {
@@ -630,12 +620,6 @@ output_to_source(ostream &sourceFile)
       sourceFile << return_type() << " retval;\n\t";
     }
 
-
-  if(function_name()=="glBegin")
-    {
-      sourceFile << inside_begin_end_pair_counter() << "=1;\n\t";
-    }
-
   sourceFile << "call_stream << \"" << function_name() << "(\" ";
   for(i=0;i<number_arguments();++i)
     {
@@ -674,10 +658,6 @@ output_to_source(ostream &sourceFile)
              << function_name() << "\", (void*)"
              << function_pointer_name() << ", file, line);\n\t";
 
-  if(function_name()=="glEnd")
-    {
-      sourceFile << inside_begin_end_pair_counter() << "=0;\n\t";
-    }
   if(returns_value())
     {
       sourceFile << "return retval;";
@@ -766,19 +746,10 @@ void
 openGL_function_info::
 HeaderStart(ostream &headerFile, const list<string> &fileNames)
 {
-  headerFile << "#pragma once\n\n"
-             << "#if defined __WIN32__ && !defined(APIENTRY) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)\n"
-             << "#define WIN32_LEAN_AND_MEAN 1\n#include <windows.h>\n#endif\n";
-
   for(list<string>::const_iterator i=fileNames.begin(); i!=fileNames.end(); ++i)
     {
       headerFile  << "#include <" << *i << ">\n";
     }
-
-  headerFile << "\n\n#ifndef GLAPI\n#define GLAPI extern\n#endif\n"
-             << "#ifndef APIENTRY\n#define APIENTRY\n#endif\n"
-             << "#ifndef APIENTRYP\n#define APIENTRYP APIENTRY*\n#endif\n";
-
 
   begin_namespace(GlobalElements::get().m_namespace, headerFile);
 
@@ -789,7 +760,6 @@ HeaderStart(ostream &headerFile, const list<string> &fileNames)
              << "(const char *call, const char *src_call, const char *function_name, void* fptr, const char *fileName, int line);\n"
              << "void " << function_post_gl_call()
              << "(const char *call, const char *src_call, const char *function_name, void* fptr, const char *fileName, int line);\n"
-             << "int  " << inside_begin_end_pair_function() << "(void);\n"
              << "void " << function_load_all() << "(bool emit_load_warning);\n\n";
 
 
@@ -836,20 +806,13 @@ void
 openGL_function_info::
 SourceStart(ostream &sourceFile, const list<string> &fileNames)
 {
-  sourceFile << "#if defined __WIN32__ && !defined(APIENTRY) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)\n"
-             << "#define WIN32_LEAN_AND_MEAN 1\n#include <windows.h>\n#endif\n";
-
   for(list<string>::const_iterator i=fileNames.begin(); i!=fileNames.end(); ++i)
     {
        sourceFile << "#include <" << *i << ">\n";
     }
 
   sourceFile << "#include <sstream>\n"
-             << "#include <iomanip>\n"
-	     << "#if defined(__WIN32__)\n"
-	     << "#undef GL_APICALL\n#define GL_APICALL\n"
-	     << "#undef GL_APIENTRY\n#define GL_APIENTRY\n"
-	     << "#endif\n";
+             << "#include <iomanip>\n\n";
 
   begin_namespace(GlobalElements::get().m_namespace, sourceFile);
 
@@ -861,17 +824,7 @@ SourceStart(ostream &sourceFile, const list<string> &fileNames)
              << "(const char *call, const char *src, const char *function_name, void* fptr, const char *fileName, int line);\n"
              << "void " << function_pre_gl_call()
              << "(const char *call, const char *src, const char *function_name, void* fptr, const char *fileName, int line);\n"
-             << "int  " << inside_begin_end_pair_function() << "(void);\n"
              << "void " << function_load_all() << "(void);\n\n";
-
-
-  sourceFile << "static int " << inside_begin_end_pair_counter() << "=0;\n\n"
-             << "int  " << inside_begin_end_pair_function() << "(void)\n"
-             << "{\n\rreturn " << inside_begin_end_pair_counter() << "!=0; \n}\n\n";
-
-
-
-
 }
 
 
