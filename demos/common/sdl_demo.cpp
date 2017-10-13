@@ -91,7 +91,7 @@ namespace
     return SDL_GL_GetProcAddress(proc_name);
   }
 
-  class OstreamLogger:public fastuidraw::gl_binding::GLCallBack
+  class OstreamLogger:public fastuidraw::gl_binding::CallbackGL
   {
   public:
     explicit

@@ -31,39 +31,38 @@ namespace fastuidraw {
 
 /*!
   \brief
-  Provides interface for application to use GL and for application
-  to specify to FastUIDraw GL backend how to get GL function pointers.
-  Part of the GL backend libraries, libFastUIDrawGL and libFastUIDrawGLES.
+  Provides interface for application to use GL where function pointers
+  are auto-resolved transparently and under debug provides error checking.
+  Built as a part of a seperate library; for GL it is libNGL; for GLES
+  it is NGLES.
 
   Short version:
    - application should call fastuidraw::gl_binding::get_proc_function()
-     to set the function which the GL backend for FastUIDraw will use to
-     fetch GL function pointers.
-   - If an application wishes, it can include <fastuidraw/gl_backend/ngl_header.hpp>.
-     The header will replace GL (and GLES) functions with macros. Under release
+     to set the function which will be used to fetch GL function pointers.
+   - If an application wishes, it can include <fastuidraw/ngl_gl.hpp>.
+     The header will replace GL functions with macros. Under release
      the macros are to function pointers that automatically set themselves up
-     correcty. For debug, the macros preceed and postceed each GL (and GLES)
+     correcty. For debug, the macros preceed and postceed each GL
      function call with error checking call backs so an application writer
-     can quickly know what line/file triggered a GL error. If an application does
+     can quickly know what line/file triggered an GL error. If an application does
      not wish to use the macro system (and will also need to fetch function pointers
-     somehow) but remain GL/GLES agnostic, it can instead include <fastuidraw/gl_backend/gl_header.hpp>.
+     somehow) in can just include GL/gl.h (and optionally GL/glext.h).
 
   Long Version:
 
   The namespace gl_binding provides an interface for an application
-  to specify to the GL module of FastUIDraw how to fetch function
-  pointers (fastuidraw::gl_binding::get_proc_function()) and additional
+  to specify how to fetch GL function pointers (see
+  fastuidraw::gl_binding::get_proc_function()) and additional
   functionality of where to write/store GL error messages. An application
-  can also use this functionality by including <fastuidraw/gl_backend/ngl_header.hpp>.
-  The header <fastuidraw/gl_backend/ngl_header.hpp> will create a macro
-  for each GL function. If FASTUIDRAW_DEBUG is defined, each GL call will be preceded by
-  a callback and postceeded by another call back. The preceed callback to the
-  GL call will call (if one is active) the implementation of GLCallBack::pre_call()
-  of the active GLCallBack object. The post-process callback will repeatedly
-  call glGetError (until it returns no error) to build an error-string.
-  If the error string is non-empty, it is printed to stderr. In addition,
-  regardless if the error-string is non-empty, the GLCallBack::post_call() is
-  called of the active GLCallBack.
+  can also use this functionality by including <fastuidraw/ngl_gl.hpp>.
+  The header will create a macro for each GL function. If FASTUIDRAW_DEBUG
+  is defined, each GL call will be preceded by a callback and postceeded by
+  another call back. The preceed callback to the GL call will call the
+  implementation of CallbackGL::pre_call() of each active CallbackGL object.
+  The post-process callback will repeatedly call glGetError (until it returns
+  no error) to build an error-string. If the error string is non-empty, it
+  is printed to stderr. In addition, regardless if the error-string is non-empty,
+  CallbackGL::post_call() of each active CallbackGL is called.
 
   This is implemented by creating a macro for each
   GL call. If FASTUIDRAW_DEBUG is not defined, none of these
@@ -72,15 +71,14 @@ namespace fastuidraw {
   for each GL function, hence using a GL function
   name as a function pointer will fail to compile
   and likely give an almost impossible to read
-  error message. To use this, an application needs to
-  only include <fastuidraw/gl_backend/ngl_header.hpp>.
+  error message.
 
   To fetch the function pointer of a GL function,
   use the macro <B>FASTUIDRAWglfunctionPointer</B> together
   with <B>FASTUIDRAWglfunctionExists</B>. The macro
   <B>FASTUIDRAWglfunctionPointer</B> will NEVER return
   a nullptr pointer. For the cases where the GL implementation
-  does not have tha function, the function pointer
+  does not have that function, the function pointer
   returned will then point to a do-nothing function.
   To check if a GL implementation has a given function
   use the macro-function <B>FASTUIDRAWglfunctionExists</B>
@@ -106,13 +104,13 @@ namespace fastuidraw {
   \endcode
 
   Calling a GL function through a function pointer
-  will bypass the GL error checking though. One issue
-  with using FASTUIDRAWglfunctionExists is that a number
-  of GL implementations will return a function pointer,
-  even if the implementation does not support it. As
-  always, when fetching function pointers, one should
-  check the GL version and GL extension string(s) to
-  know if the GL implementation supports that function.
+  will bypass the GL error checking ad callbacks though.
+  One issue with using FASTUIDRAWglfunctionExists is that a
+  number of GL implementations will return a function pointer,
+  even if the implementation does not support it. As always,
+  when fetching function pointers, one should check the GL
+  version and GL extension string(s) to know if the GL
+  implementation supports that function.
 
   The gl_binding system requires that an application provides
   a function which the binding system uses to fetch function
@@ -123,20 +121,20 @@ namespace gl_binding {
 
 /*!
   \brief
-  A GLCallBack defines the interface (via its base class)
-  for callbacks before and after each GL/GLES call.
+  A CallbackGL defines the interface (via its base class)
+  for callbacks before and after each GL call.
  */
-class GLCallBack:public APICallbackSet::CallBack
+class CallbackGL:public APICallbackSet::CallBack
 {
 public:
-  GLCallBack(void);
+  CallbackGL(void);
 };
 
 /*!
   Sets the function that the system uses
   to fetch the function pointers for GL or GLES.
   \param get_proc value to use, default is nullptr.
-  \param fetch_functions if true, fetch all GL/GLES functions
+  \param fetch_functions if true, fetch all GL functions
                          immediately instead of fetching on
                          first call.
  */
@@ -145,7 +143,7 @@ get_proc_function(void* (*get_proc)(c_string),
                   bool fetch_functions = true);
 
 /*!
-  Fetches a GL/GLES function using the function fetcher
+  Fetches a GL function using the function fetcher
   passed to get_proc_function().
   \param function name of function to fetch
  */

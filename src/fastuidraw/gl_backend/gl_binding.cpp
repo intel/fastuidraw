@@ -68,9 +68,9 @@ namespace
 }
 
 /////////////////////////////////
-// fastuidraw::gl_binding::GLCallBack methods
-fastuidraw::gl_binding::GLCallBack::
-GLCallBack(void):
+// fastuidraw::gl_binding::CallbackGL methods
+fastuidraw::gl_binding::CallbackGL::
+CallbackGL(void):
   APICallbackSet::CallBack(&ngl())
 {}
 
