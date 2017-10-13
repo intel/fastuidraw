@@ -25,8 +25,6 @@ build/string_resources_cpp/%.resource_string.cpp: %.resource_string $(STRING_RES
 FASTUIDRAW_STRING_RESOURCES_SRCS = $(patsubst %.resource_string, build/string_resources_cpp/%.resource_string.cpp, $(FASTUIDRAW_RESOURCE_STRING) )
 CLEAN_FILES += $(FASTUIDRAW_STRING_RESOURCES_SRCS)
 
-
-
 # $1 --> release or debug
 define librules
 $(eval FASTUIDRAW_$(1)_OBJS = $$(patsubst %.cpp, build/$(1)/%.o, $(FASTUIDRAW_SOURCES))
@@ -70,6 +68,7 @@ libFastUIDraw_$(1).dll: $$(FASTUIDRAW_$(1)_ALL_OBJS)
 CLEAN_FILES += libFastUIDraw_$(1).dll libFastUIDraw_$(1).dll.a
 INSTALL_LIBS += libFastUIDraw_$(1).dll.a
 INSTALL_EXES += libFastUIDraw_$(1).dll
+
 else
 
 libFastUIDraw_$(1): libFastUIDraw_$(1).so
@@ -77,6 +76,20 @@ libFastUIDraw_$(1).so: $(FASTUIDRAW_STRING_RESOURCES_SRCS) $$(FASTUIDRAW_$(1)_AL
 	$(CXX) -shared -Wl,-soname,libFastUIDraw_$(1).so -o libFastUIDraw_$(1).so $$(FASTUIDRAW_$(1)_ALL_OBJS) $(FASTUIDRAW_LIBS)
 CLEAN_FILES += libFastUIDraw_$(1).so
 INSTALL_LIBS += libFastUIDraw_$(1).so
+libFastUIDraw: libFastUIDraw_$(1)
+.PHONY: libFastUIDraw_$(1) libFastUIDraw
+
+ifeq ($(BUILD_NEGL),1)
+NEGL_OBJS_$(1) = $$(patsubst %.cpp, build/$(1)/%.o, $(NEGL_SRCS))
+libNEGL_$(1): libNEGL_$(1).so
+libNEGL_$(1).so: $$(NEGL_OBJS_$(1)) libFastUIDraw_$(1).so
+	$(CXX) -shared -Wl,-soname,libNEGL_$(1).so -o libNEGL_$(1).so $$(NEGL_OBJS_$(1)) -lEGL -L. -lFastUIDraw_$(1) $(FASTUIDRAW_LIBS)
+CLEAN_FILES += libNEGL_$(1).so
+INSTALL_LIBS += libNEGL_$(1).so
+libNEGL: libNEGL_$(1)
+.PHONY: libNEGL_$(1) libNEGL
+endif
+
 endif
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -97,10 +110,14 @@ endif
 )
 endef
 
+TARGETLIST += libFastUIDraw
+TARGETLIST += libFastUIDraw_debug libFastUIDraw_release
 $(call librules,release)
 $(call librules,debug)
-
-libFastUIDraw: libFastUIDraw_debug libFastUIDraw_release
-.PHONY: libFastUIDraw libFastUIDraw_debug libFastUIDraw_release
-TARGETLIST += libFastUIDraw libFastUIDraw_debug libFastUIDraw_release
 all: libFastUIDraw
+
+ifeq ($(BUILD_NEGL),1)
+TARGETLIST += libNEGL
+TARGETLIST += libNEGL_debug libNEGL_release
+all: libNEGL
+endif
