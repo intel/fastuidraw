@@ -36,7 +36,7 @@ namespace fastuidraw
       A Callback is a functor to be called before
       and after each function.
      */
-    class CallBack:reference_counted<CallBack>::default_base
+    class CallBack:public reference_counted<CallBack>::default_base
     {
     public:
       /*!
@@ -137,7 +137,6 @@ namespace fastuidraw
     void*
     get_proc(c_string function);
 
-  protected:
     /*!
       To be called by an implementation before issuing a function
       call.
