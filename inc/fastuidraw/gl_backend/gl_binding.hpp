@@ -20,7 +20,7 @@
 #pragma once
 
 #include <fastuidraw/util/util.hpp>
-#include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/util/api_callback.hpp>
 
 namespace fastuidraw {
 
@@ -123,93 +123,13 @@ namespace gl_binding {
 
 /*!
   \brief
-  A GLCallBack defines the interface for callbacks
-  before and after each GL/GLES call.
+  A GLCallBack defines the interface (via its base class)
+  for callbacks before and after each GL/GLES call.
  */
-class GLCallBack:
-    public reference_counted<GLCallBack>::default_base
+class GLCallBack:public APICallbackSet::CallBack
 {
 public:
-  /*!
-    Ctor; on creation a GLCallBack is made active.
-   */
   GLCallBack(void);
-
-  ~GLCallBack();
-
-  /*!
-    Set if the GLCallBack is active.
-   */
-  void
-  active(bool b);
-
-  /*!
-    Returns true if and only if the GLCallBack is active
-   */
-  bool
-  active(void) const;
-
-  /*!
-    To be implemented by a derived class to record
-    just before a GL call; if one calls GL functions
-    within a callback, then one must call them through
-    the function pointers \ref FASTUIDRAWglfunctionPointer()
-    to prevent infinite recursion.
-    \param call_string_value string showing call's values
-    \param call_string_src string showing function call as it appears in source
-    \param function_name name of function called
-    \param function_ptr pointer to GL function originating the call
-    \param src_file file of orignating GL call
-    \param src_line line number of orignating GL call
-   */
-  virtual
-  void
-  pre_call(c_string call_string_values,
-           c_string call_string_src,
-           c_string function_name,
-           void *function_ptr,
-           c_string src_file, int src_line) = 0;
-
-  /*!
-    To be implemented by a derived class to record
-    just after a GL call; if one calls GL functions
-    within a callback, then one must call them through
-    the function pointers \ref FASTUIDRAWglfunctionPointer()
-    to prevent infinite recursion.
-    \param call_string_value string showing call's values
-    \param call_string_src string showing function call as it appears in source
-    \param function_name name of function called
-    \param error_string error string generated from calling glGetError
-                        after GL call returns
-    \param function_ptr pointer to GL function originating the call
-    \param src_file file of orignating GL call
-    \param src_line line number of orignating GL call
-   */
-  virtual
-  void
-  post_call(c_string call_string_values,
-            c_string call_string_src,
-            c_string function_name,
-            c_string error_string,
-            void *function_ptr,
-            c_string src_file, int src_line) = 0;
-
-  virtual
-  void
-  on_call_unloadable_function(c_string function_name)
-  {
-    FASTUIDRAWunused(function_name);
-  }
-
-  virtual
-  void
-  on_load_function_fail(c_string function_name)
-  {
-    FASTUIDRAWunused(function_name);
-  }
-
-private:
-  void *m_d;
 };
 
 /*!
