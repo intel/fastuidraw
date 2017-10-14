@@ -75,11 +75,11 @@ ifeq ($(MINGW_BUILD),1)
 libFastUIDraw$(1)_$(2): libFastUIDraw$(1)_$(2).dll
 libFastUIDraw$(1)_$(2).dll.a: libFastUIDraw$(1)_$(2).dll
 libFastUIDraw$(1)_$(2).dll: libFastUIDraw_$(2).dll libN$(1)_$(2).dll $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJS)
-	$(CXX) -shared -Wl,--out-implib,libFastUIDraw$(1)_$(2).dll.a -o libFastUIDraw$(1)_$(2).dll $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJS) $$(FASTUIDRAW_$(2)_LIBS) -L. -lN$(1)_$(2) $$(FASTUIDRAW_$(1)_LIBS)
+	$(CXX) -shared -Wl,--out-implib,libFastUIDraw$(1)_$(2).dll.a -o libFastUIDraw$(1)_$(2).dll $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJS) $$(FASTUIDRAW_$(2)_LIBS) -L. -lN$(1)_$(2)
 libN$(1)_$(2): libN$(1)_$(2).dll.a
 libN$(1)_$(2).dll.a: libN$(1)_$(2).dll
-libN$(1)_$(2).dll: $$(NGL_$(1)_$(2)_OBJ)
-	$(CXX) -shared -Wl,--out-implib,libN$(1)_$(2).dll.a -o libN$(1)_$(2).dll $$(NGL_$(1)_$(2)_OBJ)
+libN$(1)_$(2).dll: $$(NGL_$(1)_$(2)_OBJ) libFastUIDraw_$(2)
+	$(CXX) -shared -Wl,--out-implib,libN$(1)_$(2).dll.a -o libN$(1)_$(2).dll $$(NGL_$(1)_$(2)_OBJ) -L. $$(FASTUIDRAW_$(2)_LIBS)
 LIBFASTUIDRAW_$(1)_$(2) = libFastUIDraw$(1)_$(2).dll.a
 LIBN$(1)_$(2) = libN$(1)_$(2).dll.a
 INSTALL_LIBS += libFastUIDraw$(1)_$(2).dll.a libN$(1)_$(2).dll.a
@@ -87,10 +87,10 @@ INSTALL_EXES += libFastUIDraw$(1)_$(2).dll libN$(1)_$(2).dll
 else
 libFastUIDraw$(1)_$(2): libFastUIDraw$(1)_$(2).so
 libFastUIDraw$(1)_$(2).so: libFastUIDraw_$(2).so libN$(1)_$(2).so $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJS)
-	$(CXX) -shared -Wl,-soname,libFastUIDraw$(1)_$(2).so -o libFastUIDraw$(1)_$(2).so $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJS) $$(FASTUIDRAW_$(2)_LIBS) -L. -lN$(1)_$(2) $$(FASTUIDRAW_$(1)_LIBS)
+	$(CXX) -shared -Wl,-soname,libFastUIDraw$(1)_$(2).so -o libFastUIDraw$(1)_$(2).so $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJS) $$(FASTUIDRAW_$(2)_LIBS) -L. -lN$(1)_$(2)
 libN$(1)_$(2): libN$(1)_$(2).so
-libN$(1)_$(2).so: $$(NGL_$(1)_$(2)_OBJ)
-	$(CXX) -shared -Wl,-soname,libN$(1)_$(2).so -o libN$(1)_$(2).so $$(NGL_$(1)_$(2)_OBJ)
+libN$(1)_$(2).so: $$(NGL_$(1)_$(2)_OBJ) libFastUIDraw_$(2)
+	$(CXX) -shared -Wl,-soname,libN$(1)_$(2).so -o libN$(1)_$(2).so $$(NGL_$(1)_$(2)_OBJ) -L. $$(FASTUIDRAW_$(2)_LIBS)
 LIBFASTUIDRAW_$(1)_$(2) = libFastUIDraw$(1)_$(2).so
 LIBN$(1)_$(2) = libN$(1)_$(2).so
 INSTALL_LIBS += libFastUIDraw$(1)_$(2).so libN$(1)_$(2).so
