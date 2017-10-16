@@ -4,18 +4,11 @@ INSTALL_LOCATION_VALUE=$(shell echo $(INSTALL_LOCATION))
 fastuidraw-config.nodir: fastuidraw-config.in
 	@echo Generating $@
 	@cp $< $@
-	@sed -i 's!@FASTUIDRAW_release_LIBS@!$(FASTUIDRAW_release_LIBS)!g' $@
-	@sed -i 's!@FASTUIDRAW_GLES_release_LIBS@!$(FASTUIDRAW_GLES_release_LIBS)!g' $@
-	@sed -i 's!@FASTUIDRAW_GL_release_LIBS@!$(FASTUIDRAW_GL_release_LIBS)!g' $@
-	@sed -i 's!@FASTUIDRAW_debug_LIBS@!$(FASTUIDRAW_debug_LIBS)!g' $@
-	@sed -i 's!@FASTUIDRAW_GLES_debug_LIBS@!$(FASTUIDRAW_GLES_debug_LIBS)!g' $@
-	@sed -i 's!@FASTUIDRAW_GL_debug_LIBS@!$(FASTUIDRAW_GL_debug_LIBS)!g' $@
+	@sed -i 's!@FASTUIDRAW_LIBS@!$(FASTUIDRAW_LIBS)!g' $@
 	@sed -i 's!@FASTUIDRAW_release_CFLAGS@!$(FASTUIDRAW_release_CFLAGS)!g' $@
-	@sed -i 's!@FASTUIDRAW_GLES_release_CFLAGS@!$(FASTUIDRAW_GLES_release_CFLAGS)!g' $@
-	@sed -i 's!@FASTUIDRAW_GL_release_CFLAGS@!$(FASTUIDRAW_GL_release_CFLAGS)!g' $@
 	@sed -i 's!@FASTUIDRAW_debug_CFLAGS@!$(FASTUIDRAW_debug_CFLAGS)!g' $@
-	@sed -i 's!@FASTUIDRAW_GLES_debug_CFLAGS@!$(FASTUIDRAW_GLES_debug_CFLAGS)!g' $@
-	@sed -i 's!@FASTUIDRAW_GL_debug_CFLAGS@!$(FASTUIDRAW_GL_debug_CFLAGS)!g' $@
+	@sed -i 's!@FASTUIDRAW_GLES_CFLAGS@!$(FASTUIDRAW_GLES_CFLAGS)!g' $@
+	@sed -i 's!@FASTUIDRAW_GL_CFLAGS@!$(FASTUIDRAW_GL_CFLAGS)!g' $@
 	@chmod a+x $@
 CLEAN_FILES+=fastuidraw-config.nodir
 
@@ -38,22 +31,30 @@ TARGETLIST+=fastuidraw-config
 # $3: (0: skip build target 1: add build target)
 define pkgconfrulesapi
 $(eval ifeq ($(3),1)
-fastuidraw$(2)-$(1).pc: fastuidraw-backend.pc.in fastuidraw-$(1).pc
+n$(2)-$(1).pc: n.pc.in fastuidraw-$(1).pc
 	@echo Generating $$@
 	@cp $$< $$@
 	@sed -i 's!@TYPE@!$(1)!g' $$@
 	@sed -i 's!@API@!$(2)!g' $$@
 	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
-	@sed -i 's!@FASTUIDRAW_CFLAGS@!$$(FASTUIDRAW_$(2)_COMMON_CFLAGS) $$(FASTUIDRAW_GL_GLES_$(1)_CFLAGS)!g' $$@
-	@sed -i 's!@FASTUIDRAW_LIBS@!$$(FASTUIDRAW_$(2)_LIBS)!g' $$@
-.PHONY:fastuidraw$(2)-$(1).pc
-.SECONDARY: fastuidraw$(2)-$(1).pc
-pkg-config-files: fastuidraw$(2)-$(1).pc
-INSTALL_PKG_FILES+=fastuidraw$(2)-$(1).pc
-TARGETLIST+=fastuidraw$(2)-$(1).pc
+	@sed -i 's!@N_ADDITIONAL_LIBS@!!g' $$@
+
+fastuidraw$(2)-$(1).pc: fastuidraw-backend.pc.in n$(2)-$(1).pc
+	@echo Generating $$@
+	@cp $$< $$@
+	@sed -i 's!@TYPE@!$(1)!g' $$@
+	@sed -i 's!@API@!$(2)!g' $$@
+	@sed -i 's!@FASTUIDRAW_BACKEND_CFLAGS@!$$(FASTUIDRAW_$(2)_CFLAGS)!g' $$@
+	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
+
+.PHONY:fastuidraw$(2)-$(1).pc n$(2)-$(1).pc
+.SECONDARY: fastuidraw$(2)-$(1).pc n$(2)-$(1).pc
+pkg-config-files: fastuidraw$(2)-$(1).pc n$(2)-$(1).pc
+INSTALL_PKG_FILES+=fastuidraw$(2)-$(1).pc n$(2)-$(1).pc
+TARGETLIST+=fastuidraw$(2)-$(1).pc n$(2)-$(1).pc
 endif
 )
-CLEAN_FILES+=fastuidraw$(2)-$(1).pc
+CLEAN_FILES+=fastuidraw$(2)-$(1).pc n$(2)-$(1).pc
 endef
 
 # $1: release or debug
@@ -64,11 +65,24 @@ $(eval fastuidraw-$(1).pc: fastuidraw.pc.in
 	@sed -i 's!@TYPE@!$(1)!g' $$@
 	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
 	@sed -i 's!@FASTUIDRAW_CFLAGS@!$$(FASTUIDRAW_$(1)_BASE_CFLAGS)!g' $$@
-.PHONY:fastuidraw-$(1).pc
-.SECONDARY: fastuidraw-$(1).pc
-CLEAN_FILES+=fastuidraw-$(1).pc
+ifeq ($(BUILD_NEGL),1)
+nEGL-$(1).pc: n.pc.in fastuidraw-$(1).pc
+	@echo Generating $$@
+	@cp $$< $$@
+	@sed -i 's!@API@!EGL!g' $$@
+	@sed -i 's!@TYPE@!$(1)!g' $$@
+	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
+	@sed -i 's!@N_ADDITIONAL_LIBS@!-lEGL!g' $$@
+INSTALL_PKG_FILES+=nEGL-$(1).pc
+TARGETLIST+=nEGL-$(1).pc
+pkg-config-files: nEGL-$(1).pc
+endif
+.PHONY:fastuidraw-$(1).pc nEGL-$(1).pc
+.SECONDARY: fastuidraw-$(1).pc nEGL-$(1).pc
+CLEAN_FILES+=fastuidraw-$(1).pc nEGL-$(1).pc
 INSTALL_PKG_FILES+=fastuidraw-$(1).pc
 TARGETLIST+=fastuidraw-$(1).pc
+pkg-config-files: fastuidraw-$(1).pc
 $(call pkgconfrulesapi,$(1),GL,$(BUILD_GL))
 $(call pkgconfrulesapi,$(1),GLES,$(BUILD_GLES)))
 endef

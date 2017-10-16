@@ -6,8 +6,8 @@ includedir=${prefix}/include
 Name: FastUIDraw@API@-@TYPE@
 Description: FastUIDraw@API@-@TYPE@ is the @TYPE@ version of the @API@ backend for FastUIDraw which is a high performance 2D rendering library.
 Version:
-Requires: fastuidraw-@TYPE@
+Requires: fastuidraw-@TYPE@ n@API@-@TYPE@
 Conflicts:
-Cflags: @FASTUIDRAW_CFLAGS@
-Libs: -L${libdir} -lFastUIDraw@API@_@TYPE@ -lN@API@_@TYPE@ @FASTUIDRAW_LIBS@
+Cflags: @FASTUIDRAW_BACKEND_CFLAGS@
+Libs: -L${libdir} -lFastUIDraw@API@_@TYPE@
 Libs.private:
