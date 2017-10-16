@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include <EGL/eglplatform.h>
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/api_callback.hpp>
 
