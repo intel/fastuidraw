@@ -780,10 +780,12 @@ void
 openGL_function_info::
 HeaderStart(ostream &headerFile, const list<string> &fileNames)
 {
+  headerFile << "#pragma once\n\n";
   for(list<string>::const_iterator i=fileNames.begin(); i!=fileNames.end(); ++i)
     {
       headerFile  << "#include <" << *i << ">\n";
     }
+  headerFile << "\n\n";
 
   begin_namespace(GlobalElements::get().m_namespace, headerFile);
 
