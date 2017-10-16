@@ -123,7 +123,8 @@ post_call(c_string call_string_values,
    */
   if(!error.empty())
     {
-      std::cerr << "[" << src_file << "," << src_line << "] "
+      std::cerr << "[" << src_file << "," << std::dec
+                << src_line << "] "
                 << call_string_values << "{"
                 << error << "}\n";
     }
