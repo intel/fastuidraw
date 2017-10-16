@@ -56,6 +56,22 @@ namespace
 
         switch(error_code)
           {
+#define C(X) case X: str << #X; break
+            C(EGL_NOT_INITIALIZED);
+            C(EGL_BAD_ACCESS);
+            C(EGL_BAD_ALLOC);
+            C(EGL_BAD_ATTRIBUTE);
+            C(EGL_BAD_CONTEXT);
+            C(EGL_BAD_CONFIG);
+            C(EGL_BAD_CURRENT_SURFACE);
+            C(EGL_BAD_DISPLAY);
+            C(EGL_BAD_SURFACE);
+            C(EGL_BAD_MATCH);
+            C(EGL_BAD_PARAMETER);
+            C(EGL_BAD_NATIVE_PIXMAP);
+            C(EGL_BAD_NATIVE_WINDOW);
+            C(EGL_CONTEXT_LOST);
+#undef C
           default:
             str << "0x" << std::hex << error_code;
           }
