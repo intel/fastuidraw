@@ -28,6 +28,17 @@
 
 namespace
 {
+  fastuidraw::APICallbackSet&
+  ngl(void)
+  {
+    static fastuidraw::APICallbackSet R;
+    return R;
+  }
+
+  #ifdef FASTUIDRAW_DEBUG
+    thread_local EGLint egl_error_code = EGL_SUCCESS;
+  #endif
+
   std::string
   egl_error_check(void)
   {
@@ -37,20 +48,19 @@ namespace
 
     for(error_code = p(); error_code != EGL_SUCCESS; error_code = p())
       {
+        #ifdef FASTUIDRAW_DEBUG
+          {
+            egl_error_code = error_code;
+          }
+        #endif
+
         switch(error_code)
-        {
-        default:
-          str << "0x" << std::hex << error_code;
-        }
+          {
+          default:
+            str << "0x" << std::hex << error_code;
+          }
       }
     return str.str();
-  }
-
-  fastuidraw::APICallbackSet&
-  ngl(void)
-  {
-    static fastuidraw::APICallbackSet R;
-    return R;
   }
 }
 
@@ -110,7 +120,8 @@ post_call(c_string call_string_values,
    */
   if(!error.empty())
     {
-      std::cerr << "[" << src_file << "," << src_line << "] "
+      std::cerr << "[" << src_file << "," << std::dec
+                << src_line << "] "
                 << call_string_values << "{"
                 << error << "}\n";
     }
@@ -136,4 +147,22 @@ fastuidraw::egl_binding::
 get_proc(c_string function_name)
 {
   return ngl().get_proc(function_name);
+}
+
+EGLint
+fastuidraw::egl_binding::
+get_error(void)
+{
+  #ifdef FASTUIDRAW_DEBUG
+    {
+      EGLint return_value;
+      return_value = egl_error_code;
+      egl_error_code = EGL_SUCCESS;
+      return return_value;
+    }
+  #else
+    {
+      return eglGetError();
+    }
+  #endif
 }

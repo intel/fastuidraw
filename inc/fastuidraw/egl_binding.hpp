@@ -45,7 +45,12 @@ namespace fastuidraw {
      function call with error checking call backs so an application writer
      can quickly know what line/file triggered an EGL error. If an application does
      not wish to use the macro system (and will also need to fetch function pointers
-     somehow) in can just include EGL/egl.h (and optionally EGL/eglext.h).
+     somehow), it can just include EGL/egl.h (and optionally EGL/eglext.h).
+   - When using libNEGL, because NEGL automatically calls eglGetError() after each
+     EGL call, one cannot use eglGetError() calls to determine how to recover.
+     To get functionality of eglGetError() and application should call
+     egl_binding::get_error() which returns the most recent EGL error code
+     (and resets its internal value to EGL_SUCCESS).
 
   Long Version:
 
@@ -128,6 +133,15 @@ class CallbackEGL:public APICallbackSet::CallBack
 public:
   CallbackEGL(void);
 };
+
+/*!
+  Returns the most recent EGL error code; an application should call
+  get_error() instead of eglGetError() to understand EGL errors because
+  NEGL dispatch automatically calls eglGetError after each EGL API
+  call which resets the error.
+ */
+EGLint
+get_error(void);
 
 /*!
   Sets the function that the system uses
