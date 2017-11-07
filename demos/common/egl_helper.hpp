@@ -8,10 +8,10 @@
 #include <SDL.h>
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/util/api_callback.hpp>
+#include "stream_holder.hpp"
 
-#ifndef EGL_HELPER_DISABLED
-  #include <EGL/egl.h>
-#endif
+struct wl_egl_window;
 
 class egl_helper:
   public fastuidraw::reference_counted<egl_helper>::non_concurrent
@@ -35,7 +35,8 @@ public:
     int m_gles_minor_version;
   };
 
-  egl_helper(const params &P, SDL_Window *w);
+  egl_helper(const fastuidraw::reference_counted_ptr<StreamHolder> &str,
+             const params &P, SDL_Window *w);
   ~egl_helper();
 
   void
@@ -52,9 +53,9 @@ public:
   print_info(std::ostream &dst);
 
 private:
-#ifndef EGL_HELPER_DISABLED
-  EGLContext m_ctx;
-  EGLSurface m_surface;
-  EGLDisplay m_dpy;
-#endif
+  void *m_ctx;
+  void *m_surface;
+  void *m_dpy;
+  struct wl_egl_window *m_wl_window;
+  fastuidraw::reference_counted_ptr<fastuidraw::APICallbackSet::CallBack> m_logger;
 };

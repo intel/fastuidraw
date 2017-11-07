@@ -37,7 +37,6 @@
 
 namespace
 {
-
   int
   GetSDLGLValue(SDL_GLattr arg)
   {
@@ -95,9 +94,9 @@ namespace
   {
   public:
     explicit
-    OstreamLogger(const std::string &filename);
-
-    ~OstreamLogger();
+    OstreamLogger(const fastuidraw::reference_counted_ptr<StreamHolder> &str):
+      m_str(str)
+    {}
 
     virtual
     void
@@ -117,32 +116,12 @@ namespace
               fastuidraw::c_string src_file, int src_line);
 
   private:
-    std::ostream *m_stream;
-    bool m_delete_stream;
+    fastuidraw::reference_counted_ptr<StreamHolder> m_str;
   };
 }
 
 //////////////////////////
 // OstreamLogger methods
-OstreamLogger::
-OstreamLogger(const std::string &filename):
-  m_delete_stream(false)
-{
-  if(filename == "stderr")
-    {
-      m_stream = &std::cerr;
-    }
-  else if(filename == "stdout")
-    {
-      m_stream = &std::cout;
-    }
-  else
-    {
-      m_delete_stream = true;
-      m_stream = FASTUIDRAWnew std::ofstream(filename.c_str());
-    }
-}
-
 void
 OstreamLogger::
 pre_call(fastuidraw::c_string call_string_values,
@@ -154,8 +133,8 @@ pre_call(fastuidraw::c_string call_string_values,
   FASTUIDRAWunused(call_string_src);
   FASTUIDRAWunused(function_name);
   FASTUIDRAWunused(function_ptr);
-  *m_stream << "Pre: [" << src_file << "," << src_line << "] "
-            << call_string_values << "\n";
+  m_str->stream() << "Pre: [" << src_file << "," << src_line << "] "
+                  << call_string_values << "\n";
 }
 
 void
@@ -171,23 +150,14 @@ post_call(fastuidraw::c_string call_string_values,
   FASTUIDRAWunused(function_name);
   FASTUIDRAWunused(function_ptr);
   FASTUIDRAWunused(error_string);
-  *m_stream << "Post: [" << src_file << "," << src_line << "] "
-            << call_string_values;
+  m_str->stream() << "Post: [" << src_file << "," << src_line << "] "
+                  << call_string_values;
 
   if(error_string && *error_string)
     {
-      *m_stream << "{" << error_string << "}";
+      m_str->stream() << "{" << error_string << "}";
     }
-  *m_stream << "\n";
-}
-
-OstreamLogger::
-~OstreamLogger()
-{
-  if(m_delete_stream)
-    {
-      FASTUIDRAWdelete(m_stream);
-    }
+  m_str->stream() << "\n";
 }
 
 ////////////////////////////
@@ -396,6 +366,12 @@ init_sdl(void)
         }
     }
 
+  fastuidraw::reference_counted_ptr<StreamHolder> str;
+  if(!m_log_gl_commands.m_value.empty())
+    {
+      str = FASTUIDRAWnew StreamHolder(m_log_gl_commands.m_value);
+    }
+
   if(m_use_egl.m_value)
     {
       egl_helper::params P;
@@ -411,7 +387,7 @@ init_sdl(void)
         {
           P.m_msaa = m_msaa.m_value;
         }
-      m_ctx_egl = FASTUIDRAWnew egl_helper(P, m_window);
+      m_ctx_egl = FASTUIDRAWnew egl_helper(str, P, m_window);
       m_ctx_egl->make_current();
       fastuidraw::gl_binding::get_proc_function(egl_helper::egl_get_proc);
     }
@@ -442,9 +418,9 @@ init_sdl(void)
       SDL_ShowCursor(SDL_DISABLE);
     }
 
-  if(!m_log_gl_commands.m_value.empty())
+  if(str)
     {
-      m_gl_logger = FASTUIDRAWnew OstreamLogger(m_log_gl_commands.m_value);
+      m_gl_logger = FASTUIDRAWnew OstreamLogger(str);
     }
 
   if(m_print_gl_info.m_value)

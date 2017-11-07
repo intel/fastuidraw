@@ -6,7 +6,8 @@
 
 #ifdef EGL_HELPER_DISABLED
 egl_helper::
-egl_helper(const params&, SDL_Window*)
+egl_helper(const fastuidraw::reference_counted_ptr<StreamHolder> &str,
+           const params&, SDL_Window*)
 {
   FASTUIDRAWassert(!"Platform does not support EGL");
   std::abort();
@@ -40,58 +41,133 @@ print_info(std::ostream&)
 
 #else
 
-static
-void
-print_egl_errors(void)
+/* This is hideously delicate; We need the eglGetProc symbol from
+ * EGL/egl.h. The header fastuidraw/ngl_egl might make that symbol
+ * a macro, thus we first include <EGL/egl.h> and then include
+ * the macro magic.
+ */
+#include <EGL/egl.h>
+#include <fastuidraw/util/api_callback.hpp>
+
+namespace
 {
-  EGLint error;
-  while((error = eglGetError()) != EGL_SUCCESS)
-    {
-#define lazy(X) case X: std::cout << #X; break
-      switch(error)
-        {
-          lazy(EGL_NOT_INITIALIZED);
-          lazy(EGL_BAD_ACCESS);
-          lazy(EGL_BAD_ALLOC);
-          lazy(EGL_BAD_ATTRIBUTE);
-          lazy(EGL_BAD_CONTEXT);
-          lazy(EGL_BAD_CONFIG);
-          lazy(EGL_BAD_CURRENT_SURFACE);
-          lazy(EGL_BAD_DISPLAY);
-          lazy(EGL_BAD_SURFACE);
-          lazy(EGL_BAD_MATCH);
-          lazy(EGL_BAD_PARAMETER);
-          lazy(EGL_BAD_NATIVE_PIXMAP);
-          lazy(EGL_BAD_NATIVE_WINDOW);
-          lazy(EGL_CONTEXT_LOST);
-        default:
-          std::cout << "Unknown error code 0x" << std::hex
-                    << error << std::dec << "\n";
-        }
-    }
+  void*
+  get_proc(fastuidraw::c_string proc_name)
+  {
+    return (void*)eglGetProcAddress(proc_name);
+  }
 }
 
-#define FASTUIDRAWassert_and_check_errors(X) do {         \
-    print_egl_errors();                                   \
-    FASTUIDRAWassert(X); } while(0)
 
+/* Shudders. FastUIDraws's ngl_egl.hpp is/was built with the system
+ * defaults, which means the typedefs of EGL native types to X11
+ * types. The Wayland types are different, but have the exact same
+ * sizes. For C this is fine, but the header ngl_egl.hpp defines
+ * the debug function C++ style in a namespace, which means the
+ * symbols will be decorated with the argument types. We get around
+ * this entire heartache by simply including the Wayland header
+ * -AFTER- the EGL headers and we do C-style casts to do the deed.
+ */
+#include <fastuidraw/egl_binding.hpp>
+#include <fastuidraw/ngl_egl.hpp>
+#include <wayland-egl.h>
+
+namespace
+{
+  class Logger:public fastuidraw::egl_binding::CallbackEGL
+  {
+  public:
+    Logger(const fastuidraw::reference_counted_ptr<StreamHolder> &str):
+      m_str(str)
+    {}
+
+    void
+    pre_call(fastuidraw::c_string call_string_values,
+             fastuidraw::c_string call_string_src,
+             fastuidraw::c_string function_name,
+             void *function_ptr,
+             fastuidraw::c_string src_file, int src_line)
+    {
+      FASTUIDRAWunused(call_string_src);
+      FASTUIDRAWunused(function_name);
+      FASTUIDRAWunused(function_ptr);
+      m_str->stream() << "Pre: [" << src_file << "," << src_line << "] "
+                      << call_string_values << "\n";
+    }
+
+    void
+    post_call(fastuidraw::c_string call_string_values,
+              fastuidraw::c_string call_string_src,
+              fastuidraw::c_string function_name,
+              fastuidraw::c_string error_string,
+              void *function_ptr,
+              fastuidraw::c_string src_file, int src_line)
+    {
+      FASTUIDRAWunused(call_string_src);
+      FASTUIDRAWunused(function_name);
+      FASTUIDRAWunused(function_ptr);
+      FASTUIDRAWunused(error_string);
+      m_str->stream() << "Post: [" << src_file << "," << src_line << "] "
+                      << call_string_values;
+
+      if(error_string && *error_string)
+        {
+          m_str->stream() << "{" << error_string << "}";
+        }
+      m_str->stream() << "\n";
+    }
+
+  private:
+    fastuidraw::reference_counted_ptr<StreamHolder> m_str;
+  };
+}
 
 egl_helper::
-egl_helper(const params &P, SDL_Window *sdl)
+egl_helper(const fastuidraw::reference_counted_ptr<StreamHolder> &str,
+           const params &P, SDL_Window *sdl):
+  m_ctx(EGL_NO_CONTEXT),
+  m_surface(EGL_NO_SURFACE),
+  m_dpy(EGL_NO_DISPLAY),
+  m_wl_window(nullptr)
 {
   FASTUIDRAWunused(P);
   FASTUIDRAWunused(sdl);
 
   SDL_SysWMinfo wm;
   int egl_major(0), egl_minor(0);
+  EGLNativeWindowType egl_window;
+  EGLNativeDisplayType egl_display;
 
   SDL_VERSION(&wm.version);
   SDL_GetWindowWMInfo(sdl, &wm);
-  //FASTUIDRAWassert(wm.subsystem == SDL_SYSWM_X11);
 
-  m_dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+  switch (wm.subsystem)
+    {
+    case SDL_SYSWM_X11:
+      egl_window = (EGLNativeWindowType)wm.info.x11.window;
+      egl_display = (EGLNativeDisplayType)wm.info.x11.display;
+      break;
+
+    case SDL_SYSWM_WAYLAND:
+      int width, height;
+      SDL_GetWindowSize(sdl, &width, &height);
+      m_wl_window = wl_egl_window_create(wm.info.wl.surface, width, height);
+      egl_window = (EGLNativeWindowType)m_wl_window;
+      egl_display = (EGLNativeDisplayType)wm.info.wl.display;
+      break;
+
+    default:
+      FASTUIDRAWassert(!"Unsupported Platform for EGL\n");
+      std::abort();
+    }
+
+  if (str)
+    {
+      m_logger = FASTUIDRAWnew Logger(str);
+    }
+  fastuidraw::egl_binding::get_proc_function(get_proc);
+  m_dpy = eglGetDisplay(egl_display);
   eglInitialize(m_dpy, &egl_major, &egl_minor);
-  FASTUIDRAWassert_and_check_errors(true);
 
   /* find a config.
    */
@@ -130,12 +206,10 @@ egl_helper(const params &P, SDL_Window *sdl)
 
     config_attribs[n] = EGL_NONE;
     ret = eglChooseConfig(m_dpy, config_attribs, &config, 1, &num_configs);
-    FASTUIDRAWassert_and_check_errors(ret);
     FASTUIDRAWassert(num_configs != 0);
     FASTUIDRAWunused(ret);
   }
-  m_surface = eglCreateWindowSurface(m_dpy, config, wm.info.x11.window, nullptr);
-  FASTUIDRAWassert_and_check_errors(m_surface != EGL_NO_SURFACE);
+  m_surface = eglCreateWindowSurface(m_dpy, config, egl_window, nullptr);
 
   EGLint context_attribs[32];
   int n(0);
@@ -159,8 +233,9 @@ egl_helper(const params &P, SDL_Window *sdl)
     }
   #endif
 
+  std::cout << "\n\nUsing EGL!\n\n";
+
   m_ctx = eglCreateContext(m_dpy, config, EGL_NO_CONTEXT, context_attribs);
-  FASTUIDRAWassert_and_check_errors(m_ctx != EGL_NO_CONTEXT);
   eglMakeCurrent(m_dpy, m_surface, m_surface, m_ctx);
 }
 
@@ -171,6 +246,11 @@ egl_helper::
   eglDestroyContext(m_dpy, m_ctx);
   eglDestroySurface(m_dpy, m_surface);
   eglTerminate(m_dpy);
+
+  if (m_wl_window)
+    {
+      wl_egl_window_destroy(m_wl_window);
+    }
 }
 
 

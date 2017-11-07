@@ -8,14 +8,6 @@ ifeq ($(MINGW_BUILD),1)
   DEMO_COMMON_LIBS := $(subst -mwindows, ,$(TEMP))
 endif
 
-DEMO_COMMON_LIBS_GL := $(DEMO_COMMON_LIBS)
-DEMO_COMMON_LIBS_GLES := $(DEMO_COMMON_LIBS)
-
-ifeq ($(MINGW_BUILD),0)
-DEMO_COMMON_LIBS_GL += -lEGL
-DEMO_COMMON_LIBS_GLES += -lEGL
-endif
-
 DEMO_COMMON_CFLAGS = $(shell sdl2-config --cflags) -Idemos/common
 DEMO_release_CFLAGS = -O3 -fstrict-aliasing $(DEMO_COMMON_CFLAGS)
 DEMO_debug_CFLAGS = -g $(DEMO_COMMON_CFLAGS)
@@ -28,7 +20,10 @@ MAKEDEPEND = ./makedepend.sh
 define demobuildrules
 $(eval
 DEMO_$(2)_CFLAGS_$(1) = $$(DEMO_$(2)_CFLAGS) $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --cflags --incdir=inc)
-DEMO_$(2)_LIBS_$(1) = $$(DEMO_COMMON_LIBS_$(1)) $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --libs --libdir=.)
+DEMO_$(2)_LIBS_$(1) = $(DEMO_COMMON_LIBS) $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --libs --libdir=.)
+ifeq ($(MINGW_BUILD),0)
+DEMO_$(2)_LIBS_$(1) +=  -lEGL -lwayland-egl $$(shell ./fastuidraw-config.nodir --negl --$(2) --libs --libdir=.)
+endif
 
 build/demo/$(2)/$(1)/%.resource_string.o: build/string_resources_cpp/%.resource_string.cpp fastuidraw-config.nodir
 	@mkdir -p $$(dir $$@)
