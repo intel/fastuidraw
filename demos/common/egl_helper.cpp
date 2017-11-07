@@ -120,6 +120,59 @@ namespace
   private:
     fastuidraw::reference_counted_ptr<StreamHolder> m_str;
   };
+
+  EGLConfig
+  choose_config(void *dpy, const egl_helper::params &P)
+  {
+    EGLint config_attribs[32];
+    EGLint n(0), renderable_type(0), num_configs(0);
+    EGLConfig ret;
+
+    #ifdef FASTUIDRAW_GL_USE_GLES
+      {
+        renderable_type |= EGL_OPENGL_ES3_BIT;
+      }
+    #else
+      {
+        renderable_type |= EGL_OPENGL_BIT;
+      }
+    #endif
+
+    config_attribs[n++] = EGL_RED_SIZE;
+    config_attribs[n++] = P.m_red_bits;
+    config_attribs[n++] = EGL_GREEN_SIZE;
+    config_attribs[n++] = P.m_green_bits;
+    config_attribs[n++] = EGL_BLUE_SIZE;
+    config_attribs[n++] = P.m_blue_bits;
+    config_attribs[n++] = EGL_ALPHA_SIZE;
+    config_attribs[n++] = P.m_alpha_bits;
+    config_attribs[n++] = EGL_DEPTH_SIZE;
+    config_attribs[n++] = P.m_depth_bits;
+    config_attribs[n++] = EGL_STENCIL_SIZE;
+    config_attribs[n++] = P.m_stencil_bits;
+    config_attribs[n++] = EGL_SURFACE_TYPE;
+    config_attribs[n++] = EGL_WINDOW_BIT;
+    config_attribs[n++] = EGL_RENDERABLE_TYPE;
+    config_attribs[n++] = renderable_type;
+    if (P.m_msaa > 0)
+      {
+        config_attribs[n++] = EGL_SAMPLE_BUFFERS;
+        config_attribs[n++] = 1;
+        config_attribs[n++] = EGL_SAMPLES;
+        config_attribs[n++] = P.m_msaa;
+      }
+
+    config_attribs[n] = EGL_NONE;
+    /* TODO: rather than just getting one config, examine
+     * all the configs and choose one that matches tightest;
+     * eglChooseConfig's ordering of choices places those
+     * with deepest color-depths first, which means we actually
+     * should walk the list to get closest match.
+     */
+    eglChooseConfig(dpy, config_attribs, &ret, 1, &num_configs);
+    FASTUIDRAWassert(num_configs != 0);
+    return ret;
+  }
 }
 
 egl_helper::
@@ -172,43 +225,7 @@ egl_helper(const fastuidraw::reference_counted_ptr<StreamHolder> &str,
   /* find a config.
    */
   EGLConfig config;
-  {
-    EGLint config_attribs[32];
-    EGLint n(0), renderable_type(0), num_configs(0);
-    EGLBoolean ret;
-
-    #ifdef FASTUIDRAW_GL_USE_GLES
-      {
-        renderable_type |= EGL_OPENGL_ES3_BIT;
-      }
-    #else
-      {
-        renderable_type |= EGL_OPENGL_BIT;
-      }
-    #endif
-
-    config_attribs[n++] = EGL_RED_SIZE;
-    config_attribs[n++] = P.m_red_bits;
-    config_attribs[n++] = EGL_GREEN_SIZE;
-    config_attribs[n++] = P.m_green_bits;
-    config_attribs[n++] = EGL_BLUE_SIZE;
-    config_attribs[n++] = P.m_blue_bits;
-    config_attribs[n++] = EGL_ALPHA_SIZE;
-    config_attribs[n++] = P.m_alpha_bits;
-    config_attribs[n++] = EGL_DEPTH_SIZE;
-    config_attribs[n++] = P.m_depth_bits;
-    config_attribs[n++] = EGL_STENCIL_SIZE;
-    config_attribs[n++] = P.m_stencil_bits;
-    config_attribs[n++] = EGL_SURFACE_TYPE;
-    config_attribs[n++] = EGL_WINDOW_BIT;
-    config_attribs[n++] = EGL_RENDERABLE_TYPE;
-    config_attribs[n++] = renderable_type;
-
-    config_attribs[n] = EGL_NONE;
-    ret = eglChooseConfig(m_dpy, config_attribs, &config, 1, &num_configs);
-    FASTUIDRAWassert(num_configs != 0);
-    FASTUIDRAWunused(ret);
-  }
+  config = choose_config(m_dpy, P);
   m_surface = eglCreateWindowSurface(m_dpy, config, egl_window, nullptr);
 
   EGLint context_attribs[32];
