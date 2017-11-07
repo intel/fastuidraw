@@ -790,12 +790,6 @@ HeaderStart(ostream &headerFile, const list<string> &fileNames)
   begin_namespace(GlobalElements::get().m_namespace, headerFile);
 
   headerFile << "void* " << function_loader() << "(const char *name);\n"
-             << "void " << function_error_loading() << "(const char *fname);\n"
-             << "void " << function_call_unloadable_function() << "(const char *fname);\n"
-             << "void " << function_pre_gl_call()
-             << "(const char *call, const char *src_call, const char *function_name, void* fptr, const char *fileName, int line);\n"
-             << "void " << function_post_gl_call()
-             << "(const char *call, const char *src_call, const char *function_name, void* fptr, const char *fileName, int line);\n"
              << "void " << function_load_all() << "(bool emit_load_warning);\n\n";
 
 

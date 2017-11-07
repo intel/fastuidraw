@@ -76,6 +76,18 @@ CallbackGL(void):
 
 ///////////////////////////////
 // gl_binding methods
+namespace fastuidraw
+{
+  namespace gl_binding
+  {
+    void on_load_function_error(const char *fname);
+    void call_unloadable_function(const char *fname);
+    void post_call(const char *call, const char *src, const char *function_name, void* fptr, const char *fileName, int line);
+    void pre_call(const char *call, const char *src, const char *function_name, void* fptr, const char *fileName, int line);
+    void load_all_functions(void);
+  }
+}
+
 void
 fastuidraw::gl_binding::
 on_load_function_error(c_string fname)

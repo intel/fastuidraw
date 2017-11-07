@@ -87,6 +87,18 @@ CallbackEGL(void):
   APICallbackSet::CallBack(&ngl())
 {}
 
+namespace fastuidraw
+{
+  namespace egl_binding
+  {
+    void on_load_function_error(const char *fname);
+    void call_unloadable_function(const char *fname);
+    void post_call(const char *call, const char *src, const char *function_name, void* fptr, const char *fileName, int line);
+    void pre_call(const char *call, const char *src, const char *function_name, void* fptr, const char *fileName, int line);
+    void load_all_functions(void);
+  }
+}
+
 ///////////////////////////////
 // egl_binding methods
 void
