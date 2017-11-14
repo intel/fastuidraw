@@ -1,6 +1,11 @@
 
 INSTALL_LOCATION_VALUE=$(shell echo $(INSTALL_LOCATION))
 
+OTHER_API_GL = GLES
+OTHER_API_GLES = GL
+OTHER_TYPE_release = debug
+OTHER_TYPE_debug = release
+
 fastuidraw-config.nodir: fastuidraw-config.in
 	@echo Generating $@
 	@cp $< $@
@@ -36,6 +41,8 @@ n$(2)-$(1).pc: n.pc.in fastuidraw-$(1).pc
 	@cp $$< $$@
 	@sed -i 's!@TYPE@!$(1)!g' $$@
 	@sed -i 's!@API@!$(2)!g' $$@
+	@sed -i 's!@OTHER_API@!$$(OTHER_API_$(2))!g' $$@
+	@sed -i 's!@OTHER_TYPE@!$$(OTHER_TYPE_$(1))!g' $$@
 	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
 	@sed -i 's!@N_ADDITIONAL_LIBS@!!g' $$@
 
@@ -44,6 +51,8 @@ fastuidraw$(2)-$(1).pc: fastuidraw-backend.pc.in n$(2)-$(1).pc
 	@cp $$< $$@
 	@sed -i 's!@TYPE@!$(1)!g' $$@
 	@sed -i 's!@API@!$(2)!g' $$@
+	@sed -i 's!@OTHER_API@!$$(OTHER_API_$(2))!g' $$@
+	@sed -i 's!@OTHER_TYPE@!$$(OTHER_TYPE_$(1))!g' $$@
 	@sed -i 's!@FASTUIDRAW_BACKEND_CFLAGS@!$$(FASTUIDRAW_$(2)_CFLAGS)!g' $$@
 	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
 
@@ -63,6 +72,7 @@ $(eval fastuidraw-$(1).pc: fastuidraw.pc.in
 	@echo Generating $$@
 	@cp $$< $$@
 	@sed -i 's!@TYPE@!$(1)!g' $$@
+	@sed -i 's!@OTHER_TYPE@!$$(OTHER_TYPE_$(1))!g' $$@
 	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
 	@sed -i 's!@FASTUIDRAW_CFLAGS@!$$(FASTUIDRAW_$(1)_BASE_CFLAGS)!g' $$@
 ifeq ($(BUILD_NEGL),1)
@@ -70,7 +80,10 @@ nEGL-$(1).pc: n.pc.in fastuidraw-$(1).pc
 	@echo Generating $$@
 	@cp $$< $$@
 	@sed -i 's!@API@!EGL!g' $$@
+	@sed -i 's!n@OTHER_API@-@TYPE@!!g' $$@
+	@sed -i 's!n@OTHER_API@-@OTHER_TYPE@!!g' $$@
 	@sed -i 's!@TYPE@!$(1)!g' $$@
+	@sed -i 's!@OTHER_TYPE@!$$(OTHER_TYPE_$(1))!g' $$@
 	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
 	@sed -i 's!@N_ADDITIONAL_LIBS@!-lEGL!g' $$@
 INSTALL_PKG_FILES+=nEGL-$(1).pc

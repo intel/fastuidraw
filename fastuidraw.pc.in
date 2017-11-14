@@ -3,11 +3,11 @@ exec_prefix=${prefix}
 libdir=${prefix}/lib
 includedir=${prefix}/include
 
-Name: FastUIDraw-@TYPE@
+Name: fastuidraw-@TYPE@
 Description: FastUIDraw-@TYPE@ is the @TYPE@ version of the base to FastUIDraw which is a high performance 2D rendering library.
 Version:
 Requires: freetype2
-Conflicts:
+Conflicts: fastuidraw-@OTHER_TYPE@
 Cflags: -I${includedir} @FASTUIDRAW_CFLAGS@
 Libs: -L${libdir} -lFastUIDraw_@TYPE@ -lm
 Libs.private:
