@@ -43,21 +43,17 @@ build/$(1)/%.resource_string.o: build/string_resources_cpp/%.resource_string.cpp
 
 build/$(1)/%.o: %.cpp build/$(1)/%.d
 	@mkdir -p $$(dir $$@)
-	$(CXX) $$(COMPILE_$(1)_CFLAGS) $(fPIC) -c $$< -o $$@
+	$(CXX) $$(COMPILE_$(1)_CFLAGS) $(fPIC) -MT $$@ -MMD -MP -MF build/$(1)/$$*.d -c $$< -o $$@
+
+build/$(1)/%.d: ;
+.PRECIOUS: build/$(1)/%.d
 
 build/$(1)/private/%.o: %.cpp build/$(1)/private/%.d
 	@mkdir -p $$(dir $$@)
-	$(CXX) $$(COMPILE_$(1)_CFLAGS) $(fPIC) $(fHIDDEN) -c $$< -o $$@
+	$(CXX) $$(COMPILE_$(1)_CFLAGS) $(fPIC) $(fHIDDEN) -MT $$@ -MMD -MP -MF build/$(1)/private/$$*.d -c $$< -o $$@
 
-build/$(1)/%.d: %.cpp
-	@mkdir -p $$(dir $$@)
-	@echo Generating $$@
-	@./makedepend.sh "$(CXX)" "$$(COMPILE_$(1)_CFLAGS)" $(1) "$$*" "$$<" "$$@"
-
-build/$(1)/private/%.d: %.cpp
-	@mkdir -p $$(dir $$@)
-	@echo Generating $$@
-	@./makedepend.sh "$(CXX)" "$$(COMPILE_$(1)_CFLAGS)" $(1) "$$*" "$$<" "$$@"
+build/$(1)/private/%.d: ;
+.PRECIOUS: build/$(1)/%.d
 
 ifeq ($(MINGW_BUILD),1)
 
@@ -81,8 +77,9 @@ libFastUIDraw: libFastUIDraw_$(1)
 
 ifeq ($(BUILD_NEGL),1)
 NEGL_OBJS_$(1) = $$(patsubst %.cpp, build/$(1)/%.o, $(NEGL_SRCS))
+NEGL_OBJS_$(1): $(NGL_EGL_HPP)
 libNEGL_$(1): libNEGL_$(1).so
-libNEGL_$(1).so: $$(NEGL_OBJS_$(1)) libFastUIDraw_$(1).so
+libNEGL_$(1).so: $(NGL_EGL_HPP) $$(NEGL_OBJS_$(1)) libFastUIDraw_$(1).so
 	$(CXX) -shared -Wl,-soname,libNEGL_$(1).so -o libNEGL_$(1).so $$(NEGL_OBJS_$(1)) -lEGL -L. -lFastUIDraw_$(1) $(FASTUIDRAW_LIBS)
 CLEAN_FILES += libNEGL_$(1).so
 INSTALL_LIBS += libNEGL_$(1).so

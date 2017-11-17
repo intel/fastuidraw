@@ -21,19 +21,17 @@ build/$(2)/$(1)/%.resource_string.o: build/string_resources_cpp/%.resource_strin
 
 build/$(2)/$(1)/%.o: %.cpp build/$(2)/$(1)/%.d $$(NGL_$(1)_HPP)
 	@mkdir -p $$(dir $$@)
-	$(CXX) $$(COMPILE_$(1)_$(2)_CFLAGS) $(fPIC) -c $$< -o $$@
-build/$(2)/$(1)/%.d: %.cpp $$(NGL_$(1)_HPP)
-	@mkdir -p $$(dir $$@)
-	@echo Generating $$@
-	@./makedepend.sh "$(CXX)" "$$(COMPILE_$(1)_$(2)_CFLAGS)" build/$(2)/$(1) "$$*" "$$<" "$$@"
+	$(CXX) $$(COMPILE_$(1)_$(2)_CFLAGS) $(fPIC) -MT $$@ -MMD -MP -MF build/$(2)/$(1)/$$*.d -c $$< -o $$@
+
+build/$(2)/$(1)/%.d: ;
+.PRECIOUS: build/$(2)/$(1)/%.d
 
 build/$(2)/private/$(1)/%.o: %.cpp build/$(2)/private/$(1)/%.d $$(NGL_$(1)_HPP)
 	@mkdir -p $$(dir $$@)
-	$(CXX) $$(COMPILE_$(1)_$(2)_CFLAGS) $(fHIDDEN) $(fPIC) -c $$< -o $$@
-build/$(2)/private/$(1)/%.d: %.cpp $$(NGL_$(1)_HPP)
-	@mkdir -p $$(dir $$@)
-	@echo Generating $$@
-	@./makedepend.sh "$(CXX)" "$$(COMPILE_$(1)_$(2)_CFLAGS)" build/$(2)/$(1) "$$*" "$$<" "$$@"
+	$(CXX) $$(COMPILE_$(1)_$(2)_CFLAGS) $(fHIDDEN) $(fPIC) -MT $$@ -MMD -MP -MF build/$(2)/private/$(1)/$$*.d -c $$< -o $$@
+
+build/$(2)/private/$(1)/%.d: ;
+.PRECIOUS: build/$(2)/private/$(1)/%.d
 
 FASTUIDRAW_$(1)_$(2)_OBJS = $$(patsubst %.cpp, build/$(2)/$(1)/%.o, $(FASTUIDRAW_GL_SOURCES))
 FASTUIDRAW_$(1)_$(2)_PRIVATE_OBJS = $$(patsubst %.cpp, build/$(2)/private/$(1)/%.o, $(FASTUIDRAW_PRIVATE_GL_SOURCES))
