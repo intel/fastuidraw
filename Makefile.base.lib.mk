@@ -72,7 +72,6 @@ libFastUIDraw_$(1).so: $(FASTUIDRAW_STRING_RESOURCES_SRCS) $$(FASTUIDRAW_$(1)_AL
 	$(CXX) -shared -Wl,-soname,libFastUIDraw_$(1).so -o libFastUIDraw_$(1).so $$(FASTUIDRAW_$(1)_ALL_OBJS) $(FASTUIDRAW_LIBS)
 CLEAN_FILES += libFastUIDraw_$(1).so
 INSTALL_LIBS += libFastUIDraw_$(1).so
-libFastUIDraw: libFastUIDraw_$(1)
 .PHONY: libFastUIDraw_$(1) libFastUIDraw
 
 ifeq ($(BUILD_NEGL),1)
@@ -104,6 +103,8 @@ endif
 endif
 endif
 endif
+
+libFastUIDraw: libFastUIDraw_$(1)
 )
 endef
 
