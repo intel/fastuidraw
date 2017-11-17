@@ -41,22 +41,23 @@ targets:
 all:
 .PHONY: all
 
-include Makefile.settings.mk
-include Makefile.gl_backend.settings.mk
-include Makefile.functions.mk
+include make/Makefile.settings.mk
+include make/Makefile.gl_backend.settings.mk
+include make/Makefile.functions.mk
 
-include Makefile.base.pre.mk
-include Makefile.gl_backend.pre.mk
+include make/Makefile.base.pre.mk
+include make/Makefile.gl_backend.pre.mk
 
-include Makefile.sources.mk
+include make/Makefile.sources.mk
 
-include Makefile.base.lib.mk
-include Makefile.gl_backend.lib.mk
+include make/Makefile.base.lib.mk
+include make/Makefile.egl.lib.mk
+include make/Makefile.gl_backend.lib.mk
 
-include Makefile.demo.sources.mk
-include Makefile.demo.rules.mk
+include make/Makefile.demo.sources.mk
+include make/Makefile.demo.rules.mk
 
-include Makefile.docs.mk
-include Makefile.install.mk
+include make/Makefile.docs.mk
+include make/Makefile.install.mk
 
-include Makefile.clean.mk
+include make/Makefile.clean.mk

@@ -73,21 +73,6 @@ libFastUIDraw_$(1).so: $(FASTUIDRAW_STRING_RESOURCES_SRCS) $$(FASTUIDRAW_$(1)_AL
 CLEAN_FILES += libFastUIDraw_$(1).so
 INSTALL_LIBS += libFastUIDraw_$(1).so
 .PHONY: libFastUIDraw_$(1) libFastUIDraw
-
-ifeq ($(BUILD_NEGL),1)
-NEGL_OBJS_$(1) = $$(patsubst %.cpp, build/$(1)/%.o, $(NEGL_SRCS))
-NEGL_DEPS_$(1) = $$(patsubst %.cpp, build/$(1)/%.d, $(NEGL_SRCS))
-$$(NEGL_DEPS_$(1)): $(NGL_EGL_HPP)
--include $$(NEGL_DEPS_$(1))
-libNEGL_$(1): libNEGL_$(1).so
-libNEGL_$(1).so: $(NGL_EGL_HPP) $$(NEGL_OBJS_$(1)) libFastUIDraw_$(1).so
-	$(CXX) -shared -Wl,-soname,libNEGL_$(1).so -o libNEGL_$(1).so $$(NEGL_OBJS_$(1)) -lEGL -L. -lFastUIDraw_$(1) $(FASTUIDRAW_LIBS)
-CLEAN_FILES += libNEGL_$(1).so
-INSTALL_LIBS += libNEGL_$(1).so
-libNEGL: libNEGL_$(1)
-.PHONY: libNEGL_$(1) libNEGL
-endif
-
 endif
 
 -include $$(FASTUIDRAW_$(1)_DEPS)
