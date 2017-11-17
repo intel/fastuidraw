@@ -44,22 +44,10 @@ CLEAN_FILES += $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJS) $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJ
 SUPER_CLEAN_FILES += $$(FASTUIDRAW_$(1)_$(2)_DEPS) $$(FASTUIDRAW_$(1)_$(2)_DEPS) $$(NGL_$(1)_$(2)_OBJ)
 CLEAN_FILES += libFastUIDraw$(1)_$(2).dll libFastUIDraw$(1)_$(2).dll.a libN$(1)_$(2).dll libN$(1)_$(2).dll.a
 CLEAN_FILES += libFastUIDraw$(1)_$(2).so libN$(1)_$(2).so
+
 ifeq ($(3),1)
-ifneq ($$(MAKECMDGOALS),clean)
-ifneq ($$(MAKECMDGOALS),targets)
-ifneq ($$(MAKECMDGOALS),clean-all)
-ifneq ($$(MAKECMDGOALS),docs)
-ifneq ($$(MAKECMDGOALS),clean-docs)
-ifneq ($$(MAKECMDGOALS),install-docs)
-ifneq ($$(MAKECMDGOALS),uninstall-docs)
 -include $$(FASTUIDRAW_$(1)_$(2)_DEPS)
-endif
-endif
-endif
-endif
-endif
-endif
-endif
+
 ifeq ($(MINGW_BUILD),1)
 libFastUIDraw$(1)_$(2): libFastUIDraw$(1)_$(2).dll
 libFastUIDraw$(1)_$(2).dll.a: libFastUIDraw$(1)_$(2).dll

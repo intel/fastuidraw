@@ -76,7 +76,9 @@ INSTALL_LIBS += libFastUIDraw_$(1).so
 
 ifeq ($(BUILD_NEGL),1)
 NEGL_OBJS_$(1) = $$(patsubst %.cpp, build/$(1)/%.o, $(NEGL_SRCS))
-NEGL_OBJS_$(1): $(NGL_EGL_HPP)
+NEGL_DEPS_$(1) = $$(patsubst %.cpp, build/$(1)/%.d, $(NEGL_SRCS))
+$$(NEGL_DEPS_$(1)): $(NGL_EGL_HPP)
+-include $$(NEGL_DEPS_$(1))
 libNEGL_$(1): libNEGL_$(1).so
 libNEGL_$(1).so: $(NGL_EGL_HPP) $$(NEGL_OBJS_$(1)) libFastUIDraw_$(1).so
 	$(CXX) -shared -Wl,-soname,libNEGL_$(1).so -o libNEGL_$(1).so $$(NEGL_OBJS_$(1)) -lEGL -L. -lFastUIDraw_$(1) $(FASTUIDRAW_LIBS)
@@ -88,21 +90,7 @@ endif
 
 endif
 
-ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(MAKECMDGOALS),clean-all)
-ifneq ($(MAKECMDGOALS),targets)
-ifneq ($(MAKECMDGOALS),docs)
-ifneq ($(MAKECMDGOALS),clean-docs)
-ifneq ($(MAKECMDGOALS),install-docs)
-ifneq ($(MAKECMDGOALS),uninstall-docs)
 -include $$(FASTUIDRAW_$(1)_DEPS)
-endif
-endif
-endif
-endif
-endif
-endif
-endif
 
 libFastUIDraw: libFastUIDraw_$(1)
 )
