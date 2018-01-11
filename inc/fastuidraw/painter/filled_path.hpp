@@ -195,13 +195,13 @@ public:
     \param clip_equations array of clip equations
     \param clip_matrix_local 3x3 transformation from local (x, y, 1)
                              coordinates to clip coordinates.
-    \param max_attribute_cnt only allow those SubSet objects for which
+    \param max_attribute_cnt only allow those \ref Subset objects for which
                              Subset::painter_data() have no more than
                              max_attribute_cnt attributes.
-    \param max_index_cnt only allow those SubSet objects for which
+    \param max_index_cnt only allow those \ref Subset objects for which
                          Subset::painter_data() have no more than
                          max_index_cnt attributes.
-    \param[out] dst location to which to write the what SubSets
+    \param[out] dst location to which to write the \ref Subset object values
     \returns the number of chunks that intersect the clipping region,
              that number is guarnanteed to be no more than number_subsets().
 
