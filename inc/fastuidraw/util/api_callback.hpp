@@ -64,7 +64,7 @@ namespace fastuidraw
       /*!
         To be implemented by a derived class to record
         just before a call.
-        \param call_string_value string showing call's values
+        \param call_string_values string showing call's values
         \param call_string_src string showing function call as it appears in source
         \param function_name name of function called
         \param function_ptr pointer to GL function originating the call
@@ -82,7 +82,7 @@ namespace fastuidraw
       /*!
         To be implemented by a derived class to record
         just after a GL call.
-        \param call_string_value string showing call's values
+        \param call_string_values string showing call's values
         \param call_string_src string showing function call as it appears in source
         \param function_name name of function called
         \param error_string error string generated
@@ -99,6 +99,11 @@ namespace fastuidraw
                 void *function_ptr,
                 c_string src_file, int src_line) = 0;
 
+      /*!
+        To be optionally implemented by a derived class; called
+        when a function cannot be loaded/found.
+        \param function_name name of function that could not be loaded/found
+       */
       virtual
       void
       on_call_unloadable_function(c_string function_name)
@@ -122,9 +127,6 @@ namespace fastuidraw
       Sets the function that the system uses
       to fetch the function pointers for GL or GLES.
       \param get_proc value to use, default is nullptr.
-      \param fetch_functions if true, fetch all GL/GLES functions
-                             immediately instead of fetching on
-                             first call.
     */
     void
     get_proc_function(void* (*get_proc)(c_string));
