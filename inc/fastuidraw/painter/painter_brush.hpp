@@ -307,10 +307,10 @@ namespace fastuidraw
      */
     enum pen_offset_t
       {
-        pen_red_offset, /*!< offset for pen red value */
-        pen_green_offset, /*!< offset for pen green value */
-        pen_blue_offset, /*!< offset for pen blue value */
-        pen_alpha_offset, /*!< offset for pen alpha value */
+        pen_red_offset, /*!< offset for pen red value (packed as float) */
+        pen_green_offset, /*!< offset for pen green value (packed as float) */
+        pen_blue_offset, /*!< offset for pen blue value (packed as float) */
+        pen_alpha_offset, /*!< offset for pen alpha value (packed as float) */
 
         pen_data_size /*!< number of elements to pack pen color */
       };
@@ -335,14 +335,14 @@ namespace fastuidraw
         /*!
           Location of image (Image::master_index_tile()) in
           the image atlas is encoded in a single uint32. The bits
-          are packed as according to image_atlas_location_encoding
+          are packed as according to \ref image_atlas_location_encoding
          */
         image_atlas_location_xyz_offset,
 
         /*!
           Width and height of the image (Image::dimensions())
           encoded in a single uint32. The bits are packed as according
-          to image_size_encoding
+          to \ref image_size_encoding
          */
         image_size_xy_offset,
 
@@ -350,14 +350,15 @@ namespace fastuidraw
           top left corner of start of image to use (for example
           using the entire image would be (0,0)). Both x and y
           start values are encoded into a single uint32. Encoding
-          is the same as image_size_xy_offset, see image_size_encoding
+          is the same as \ref image_size_xy_offset, see \ref
+          image_size_encoding
          */
         image_start_xy_offset,
 
         /*!
           holds the amount of slack in the image (see Image::slack())
           and the number of index looks ups (Image::number_index_lookups())
-          with bits packed as according to image_slack_number_lookups_encoding.
+          with bits packed as according to \ref image_slack_number_lookups_encoding.
          */
         image_slack_number_lookups_offset,
 
@@ -415,7 +416,7 @@ namespace fastuidraw
         /*!
           Offset to the x and y-location of the color stops.
           The offset is stored as a uint32 packed as according
-          in the enumeration gradient_color_stop_xy_encoding
+          in the enumeration \ref gradient_color_stop_xy_encoding
          */
         gradient_color_stop_xy_offset,
 
