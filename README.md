@@ -51,7 +51,7 @@ Building requirements
      files is controlled by the environmental variables
      GL_RAW_HEADER_FILES for GL and GLES_RAW_HEADER_FILES for
      GLES. If a value is not set, reasonable defaults are used. 
- - SDL2 (demos only)
+ - SDL 2.0 and SDL Image 2.0 (demos only)
  - doxygen (for documentation)
 
 Building
