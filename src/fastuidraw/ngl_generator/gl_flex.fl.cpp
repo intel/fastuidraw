@@ -94,7 +94,15 @@ GL_APICALL{space}+{CGLGLTYPE}{space}*+GL_APIENTRY{space}+gl[^\n]*\n  {
 EGLAPI{space}+{CEGLEGLTYPE}{space}*+EGLAPIENTRY{space}+egl[^\n]*\n {
   openGL_function_info *ptr;
   ptr=new openGL_function_info(yytext,"EGLAPI", "EGLAPIENTRY", "egl");
-  openGL_function_info::openGL_functionList().push_back(ptr);
+  /* disclude if function name is eglGetProcAddress */
+  if (ptr->function_name() != "eglGetProcAddress")
+    {
+      openGL_function_info::openGL_functionList().push_back(ptr);
+    }
+  else
+    {
+      delete ptr;
+    }
 }
 
 FUNCTIONPOINTERMODE {
