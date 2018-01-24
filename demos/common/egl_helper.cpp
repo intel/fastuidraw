@@ -41,24 +41,6 @@ print_info(std::ostream&)
 
 #else
 
-/* This is hideously delicate; We need the eglGetProc symbol from
- * EGL/egl.h. The header fastuidraw/ngl_egl might make that symbol
- * a macro, thus we first include <EGL/egl.h> and then include
- * the macro magic.
- */
-#include <EGL/egl.h>
-#include <fastuidraw/util/api_callback.hpp>
-
-namespace
-{
-  void*
-  get_proc(fastuidraw::c_string proc_name)
-  {
-    return (void*)eglGetProcAddress(proc_name);
-  }
-}
-
-
 /* Shudders. FastUIDraws's ngl_egl.hpp is/was built with the system
  * defaults, which means the typedefs of EGL native types to X11
  * types. The Wayland types are different, but have the exact same
@@ -74,6 +56,12 @@ namespace
 
 namespace
 {
+  void*
+  get_proc(fastuidraw::c_string proc_name)
+  {
+    return (void*)eglGetProcAddress(proc_name);
+  }
+
   class Logger:public fastuidraw::egl_binding::CallbackEGL
   {
   public:
