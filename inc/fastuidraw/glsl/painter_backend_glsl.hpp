@@ -202,22 +202,6 @@ namespace fastuidraw
         use_hw_clip_planes(bool);
 
         /*!
-          Set the blend shader type used by the blend
-          shaders of the default shaders, as returned by
-          PainterShaderSet::blend_shaders() of
-          PainterBackend::default_shaders().
-         */
-        enum PainterBlendShader::shader_type
-        default_blend_shader_type(void) const;
-
-        /*!
-          Set the value returned by default_blend_shader_type(void) const.
-          Default value is PainterBlendShader::dual_src.
-         */
-        ConfigurationGLSL&
-        default_blend_shader_type(enum PainterBlendShader::shader_type);
-
-        /*!
           Sets the non-dashed stroke shader to use discard
           instead of on opaque pass stroking a small amount
           less in width to allow for the translusent
@@ -718,20 +702,6 @@ namespace fastuidraw
          */
         UberShaderParams&
         use_ubo_for_uniforms(bool);
-
-        /*!
-          Build the uber-shader with those blend shaders registered to
-          the PainterBackendGLSL of this type only.
-         */
-        enum PainterBlendShader::shader_type
-        blend_type(void) const;
-
-        /*!
-          Set the value returned by blend_type(void) const.
-          Default value is PainterBlendShader::dual_src.
-         */
-        UberShaderParams&
-        blend_type(enum PainterBlendShader::shader_type);
 
       private:
         void *m_d;

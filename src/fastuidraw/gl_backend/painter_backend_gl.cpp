@@ -922,6 +922,8 @@ compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
       //using UBO's requires that the data store alignment is 4.
       return_value.alignment(4);
     }
+
+  return_value.blend_type(params.blend_type());
   return return_value;
 }
 
@@ -948,8 +950,7 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
   #endif
 
   return_value
-    .non_dashed_stroke_shader_uses_discard(params.non_dashed_stroke_shader_uses_discard())
-    .default_blend_shader_type(params.blend_type());
+    .non_dashed_stroke_shader_uses_discard(params.non_dashed_stroke_shader_uses_discard());
 
   return return_value;
 }
@@ -1121,8 +1122,7 @@ configure_backend(void)
     .glyph_geometry_backing(m_params.glyph_atlas()->param_values().glyph_geometry_backing_store_type())
     .glyph_geometry_backing_log2_dims(m_params.glyph_atlas()->param_values().texture_2d_array_geometry_store_log2_dims())
     .have_float_glyph_texture_atlas(m_params.glyph_atlas()->texel_texture(false) != 0)
-    .colorstop_atlas_backing(colorstop_tp)
-    .blend_type(m_p->configuration_glsl().default_blend_shader_type());
+    .colorstop_atlas_backing(colorstop_tp);
 
   /* now allocate m_pool after adjusting m_params
    */

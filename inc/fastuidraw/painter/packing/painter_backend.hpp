@@ -108,6 +108,24 @@ namespace fastuidraw
       ConfigurationBase&
       alignment(int v);
 
+      /*!
+        Returns the PainterBlendShader::shader_type the \ref
+        PainterBackend accepts for \ref PainterBlendShader
+        objects.
+        \param tp blend shader type
+       */
+      enum PainterBlendShader::shader_type
+      blend_type(void) const;
+
+      /*!
+        Specify the return value to blend_type() const.
+        Default value is \ref PainterBlendShader::dual_src.
+        \param tp blend shader type
+        \param v value to return for named type
+       */
+      ConfigurationBase&
+      blend_type(enum PainterBlendShader::shader_type tp);
+
     private:
       void *m_d;
     };

@@ -71,12 +71,10 @@ namespace
   public:
     ConfigurationGLSLPrivate(void):
       m_use_hw_clip_planes(true),
-      m_default_blend_shader_type(fastuidraw::PainterBlendShader::dual_src),
       m_non_dashed_stroke_shader_uses_discard(false)
     {}
 
     bool m_use_hw_clip_planes;
-    enum fastuidraw::PainterBlendShader::shader_type m_default_blend_shader_type;
     bool m_non_dashed_stroke_shader_uses_discard;
   };
 
@@ -127,8 +125,7 @@ namespace
       m_glyph_geometry_backing_log2_dims(-1, -1),
       m_have_float_glyph_texture_atlas(true),
       m_colorstop_atlas_backing(fastuidraw::glsl::PainterBackendGLSL::colorstop_texture_1d_array),
-      m_use_ubo_for_uniforms(true),
-      m_blend_type(fastuidraw::PainterBlendShader::dual_src)
+      m_use_ubo_for_uniforms(true)
     {}
 
     enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t m_z_coordinate_convention;
@@ -147,7 +144,6 @@ namespace
     bool m_have_float_glyph_texture_atlas;
     enum fastuidraw::glsl::PainterBackendGLSL::colorstop_backing_t m_colorstop_atlas_backing;
     bool m_use_ubo_for_uniforms;
-    enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
     fastuidraw::glsl::PainterBackendGLSL::BindingPoints m_binding_points;
   };
 
@@ -156,7 +152,8 @@ namespace
   public:
     explicit
     PainterBackendGLSLPrivate(fastuidraw::glsl::PainterBackendGLSL *p,
-                              const fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL &config);
+                              const fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL &config,
+                              enum fastuidraw::PainterBlendShader::shader_type blend_type);
     ~PainterBackendGLSLPrivate();
 
     void
@@ -188,6 +185,7 @@ namespace
     stream_unpack_code(fastuidraw::glsl::ShaderSource &src);
 
     fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL m_config;
+    enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
     bool m_shader_code_added;
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> > m_item_shaders;
     unsigned int m_next_item_shader_ID;
@@ -217,8 +215,10 @@ namespace
 // PainterBackendGLSLPrivate methods
 PainterBackendGLSLPrivate::
 PainterBackendGLSLPrivate(fastuidraw::glsl::PainterBackendGLSL *p,
-                          const fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL &config):
+                          const fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL &config,
+                          enum fastuidraw::PainterBlendShader::shader_type blend_type):
   m_config(config),
+  m_blend_type(blend_type),
   m_shader_code_added(false),
   m_next_item_shader_ID(1),
   m_next_blend_shader_ID(1),
@@ -1053,7 +1053,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
                           shader_varying_datum);
 
   c_string shader_blend_macro;
-  switch(params.blend_type())
+  switch(m_blend_type)
     {
     case PainterBlendShader::framebuffer_fetch:
       shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH";
@@ -1128,8 +1128,8 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   stream_uber_frag_shader(params.frag_shader_use_switch(), frag, item_shaders,
                           shader_varying_datum);
   stream_uber_blend_shader(params.blend_shader_use_switch(), frag,
-                           make_c_array(m_blend_shaders[params.blend_type()].m_shaders),
-                           params.blend_type());
+                           make_c_array(m_blend_shaders[m_blend_type].m_shaders),
+                           m_blend_type);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -1182,7 +1182,7 @@ swap(ConfigurationGLSL &rhs)
   name(type v)                                                          \
   {                                                                     \
     ConfigurationGLSLPrivate *d;                                        \
-    d = static_cast<ConfigurationGLSLPrivate*>(m_d);               \
+    d = static_cast<ConfigurationGLSLPrivate*>(m_d);                    \
     d->m_##name = v;                                                    \
     return *this;                                                       \
   }                                                                     \
@@ -1192,12 +1192,11 @@ swap(ConfigurationGLSL &rhs)
   name(void) const                                                      \
   {                                                                     \
     ConfigurationGLSLPrivate *d;                                        \
-    d = static_cast<ConfigurationGLSLPrivate*>(m_d);               \
+    d = static_cast<ConfigurationGLSLPrivate*>(m_d);                    \
     return d->m_##name;                                                 \
   }
 
 setget_implement(bool, use_hw_clip_planes)
-setget_implement(enum fastuidraw::PainterBlendShader::shader_type, default_blend_shader_type)
 setget_implement(bool, non_dashed_stroke_shader_uses_discard)
 
 #undef setget_implement
@@ -1349,7 +1348,6 @@ setget_implement(fastuidraw::ivec2, glyph_geometry_backing_log2_dims)
 setget_implement(bool, have_float_glyph_texture_atlas)
 setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::colorstop_backing_t, colorstop_atlas_backing)
 setget_implement(bool, use_ubo_for_uniforms)
-setget_implement(enum fastuidraw::PainterBlendShader::shader_type, blend_type)
 setget_implement(const fastuidraw::glsl::PainterBackendGLSL::BindingPoints&, binding_points)
 #undef setget_implement
 
@@ -1362,11 +1360,12 @@ PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                    const ConfigurationGLSL &config_glsl,
                    const ConfigurationBase &config_base):
   PainterBackend(glyph_atlas, image_atlas, colorstop_atlas, config_base,
-                 detail::ShaderSetCreator(config_glsl.default_blend_shader_type(),
+                 detail::ShaderSetCreator(config_base.blend_type(),
                                           config_glsl.non_dashed_stroke_shader_uses_discard())
                  .create_shader_set())
 {
-  m_d = FASTUIDRAWnew PainterBackendGLSLPrivate(this, config_glsl);
+  m_d = FASTUIDRAWnew PainterBackendGLSLPrivate(this, config_glsl,
+                                                config_base.blend_type());
   set_hints().clipping_via_hw_clip_planes(config_glsl.use_hw_clip_planes());
 }
 

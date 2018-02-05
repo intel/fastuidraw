@@ -61,11 +61,13 @@ namespace
   public:
     ConfigurationPrivate(void):
       m_brush_shader_mask(0),
-      m_alignment(4)
+      m_alignment(4),
+      m_blend_type(fastuidraw::PainterBlendShader::dual_src)
     {}
 
     uint32_t m_brush_shader_mask;
     int m_alignment;
+    enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
   };
 }
 
@@ -187,6 +189,25 @@ alignment(int v)
   return *this;
 }
 
+enum fastuidraw::PainterBlendShader::shader_type
+fastuidraw::PainterBackend::ConfigurationBase::
+blend_type(void) const
+{
+  ConfigurationPrivate *d;
+  d = static_cast<ConfigurationPrivate*>(m_d);
+  return d->m_blend_type;
+}
+
+fastuidraw::PainterBackend::ConfigurationBase&
+fastuidraw::PainterBackend::ConfigurationBase::
+blend_type(enum PainterBlendShader::shader_type v)
+{
+  ConfigurationPrivate *d;
+  d = static_cast<ConfigurationPrivate*>(m_d);
+  d->m_blend_type = v;
+  return *this;
+}
+
 ////////////////////////////////////
 // fastuidraw::PainterBackend methods
 fastuidraw::PainterBackend::
@@ -256,7 +277,8 @@ void
 fastuidraw::PainterBackend::
 register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
 {
-  if(!shader || shader->registered_to() == this)
+  if(!shader || shader->registered_to() == this
+     || configuration_base().blend_type() != shader->type())
     {
       return;
     }
