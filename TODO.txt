@@ -48,14 +48,7 @@ TODO.
  6. W3C blend modes are not yet implemented in GL backend, but Porter-Duff blend modes
     are.
 
- 7. When one zooms in a great deal into a path, the automatic tessellation
-    choosing picks higher and higher detailed realization of the paths BUT
-    many primitives of the path are not drawn. Should have a way to organize
-    the index data so that the CPU can do quick (and easy) vertex culling
-    on the path data to reduce (dramatically) the number of vertices processed
-    by the vertex shader.
-
- 8. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
+ 7. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
     together with a 3rd party library to create SPIR-V from GLSL.
     Options for third part library so far are:
             a) libshaderc at https://github.com/google/shaderc.
