@@ -37,15 +37,27 @@ namespace fastuidraw
     \brief
     A PainterBrush defines a brush for painting via Painter.
 
-    It provided a color (see \ref pen()), optionally applying
-    an image (see \ref image() and \ref sub_image()) and
-    optionally applying a linear or radial gradient (see
-    \ref linear_gradient() and \ref radial_gradient()).
-    In addition, a tranformation can be optionally applied
-    to the brush (see \ref transformation_translate(),
-    transformation_matrix() and transformation()) and a
-    repeat window can also be optionally applied (see
-    \ref repeat_window()).
+    The brush applies, in the following order:
+     -# a constant color, specified by \ref pen()
+     -# optionally applies an image, specified by \ref image() or
+        \ref sub_image() also see \ref no_image()
+     -# optionally applies a linear or radial gradient, see \ref
+        linear_gradient() and \ref radial_gradient() also see
+        \ref no_gradient().
+
+     An item shader's vertex stage provides the coordinate
+     fed to the brush. That coordinate is procesed in the
+     following order before it is fed to the image and gradient:
+     -# an optional 2x2 matrix is applied specified by \ref
+        transformation_matrix(), also see \ref
+        no_transformation_matrix() and \ref
+        transformation().
+     -# an optional translation is applied specified by \ref
+        transformation_translate(), also see \ref
+        no_transformation_translation() and \ref
+        transformation().
+     -# an optional repeat window is applied specified by \ref
+        repeat_window(), also see no_repeat_window().
   */
   class PainterBrush
   {
