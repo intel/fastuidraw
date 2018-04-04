@@ -85,6 +85,23 @@ namespace fastuidraw
       void *m_d;
     };
 
+    /*!\brief
+      An \ref Action represents an action to be executed
+      between two indices to be fed the the GPU; an Action
+      will imply an draw break in the underlying 3D API.
+     */
+    class Action:public reference_counted<Action>::default_base
+    {
+    public:
+      /*!
+        To be implemented by a derived class to execute
+        the action.
+       */
+      virtual
+      void
+      execute(void) const = 0;
+    };
+
     /*!
       Location to which to place attribute data,
       the store is understood to be write only.
@@ -134,13 +151,21 @@ namespace fastuidraw
       \param old_groups PainterShaderGroup before state change
       \param new_groups PainterShaderGroup after state change
       \param indices_written total number of indices written to m_indices -before- the change
-      \param attributes_written total number of attributes written to m_attributes -before- the change
      */
     virtual
     void
     draw_break(const PainterShaderGroup &old_groups,
                const PainterShaderGroup &new_groups,
-               unsigned int attributes_written,
+               unsigned int indices_written) const = 0;
+
+    /*!
+      Called to execute an action (and thus also cause a draw-call break).
+      \param action action to execute
+      \param indices_written total number of indices written to m_indices -before- the change
+     */
+    virtual
+    void
+    draw_break(const reference_counted_ptr<const Action> &action,
                unsigned int indices_written) const = 0;
 
     /*!

@@ -386,6 +386,12 @@ namespace
                 const painter_state_location &loc,
                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
+    void
+    draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action)
+    {
+      m_draw_command->draw_break(action, m_indices_written);
+    }
+
     fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> m_draw_command;
     unsigned int m_attributes_written, m_indices_written;
 
@@ -735,7 +741,6 @@ pack_header(unsigned int header_size,
      || current.m_blend_mode != m_prev_state.m_blend_mode)
     {
       m_draw_command->draw_break(m_prev_state, current,
-                                 m_attributes_written,
                                  m_indices_written);
     }
 
@@ -1075,6 +1080,15 @@ end(void)
   flush();
   image_atlas()->undelay_tile_freeing();
   colorstop_atlas()->undelay_interval_freeing();
+}
+
+void
+fastuidraw::PainterPacker::
+draw_break(const reference_counted_ptr<const PainterDraw::Action> &action)
+{
+  PainterPackerPrivate *d;
+  d = static_cast<PainterPackerPrivate*>(m_d);
+  d->m_accumulated_draws.back().draw_break(action);
 }
 
 void

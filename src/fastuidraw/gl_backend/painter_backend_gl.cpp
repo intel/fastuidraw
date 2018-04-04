@@ -231,8 +231,8 @@ namespace
               PainterBackendGLPrivate *pr,
               unsigned int pz);
 
-
     DrawEntry(const fastuidraw::BlendMode &mode);
+    DrawEntry(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action);
 
     void
     add_entry(GLsizei count, const void *offset);
@@ -251,6 +251,8 @@ namespace
     convert_blend_func(enum fastuidraw::BlendMode::func_t v);
 
     fastuidraw::BlendMode m_blend_mode;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_action;
+
     std::vector<GLsizei> m_counts;
     std::vector<const GLvoid*> m_indices;
     PainterBackendGLPrivate *m_private;
@@ -273,7 +275,12 @@ namespace
     void
     draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
                const fastuidraw::PainterShaderGroup &new_shaders,
-               unsigned int attributes_written, unsigned int indices_written) const;
+               unsigned int indices_written) const;
+
+    virtual
+    void
+    draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action,
+               unsigned int indices_written) const;
 
     virtual
     void
@@ -569,6 +576,12 @@ DrawEntry(const fastuidraw::BlendMode &mode):
   m_choice(fastuidraw::gl::PainterBackendGL::number_program_types)
 {}
 
+DrawEntry::
+DrawEntry(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action):
+  m_action(action),
+  m_private(nullptr)
+{}
+
 void
 DrawEntry::
 add_entry(GLsizei count, const void *offset)
@@ -586,7 +599,11 @@ draw(void) const
       m_private->m_programs[m_choice]->use_program();
     }
 
-  if(m_blend_mode.blending_on())
+  if(m_action)
+    {
+      m_action->execute();
+    }
+  else if(m_blend_mode.blending_on())
     {
       glEnable(GL_BLEND);
       glBlendEquationSeparate(convert_blend_op(m_blend_mode.equation_rgb()),
@@ -600,7 +617,11 @@ draw(void) const
     {
       glDisable(GL_BLEND);
     }
-  FASTUIDRAWassert(!m_counts.empty());
+
+  if(m_counts.empty())
+    {
+      return;
+    }
   FASTUIDRAWassert(m_counts.size() == m_indices.size());
 
   /* TODO:
@@ -748,12 +769,26 @@ DrawCommand(painter_vao_pool *hnd,
 
 void
 DrawCommand::
+draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action,
+           unsigned int indices_written) const
+{
+  if(action)
+    {
+      if(!m_draws.empty())
+        {
+          add_entry(indices_written);
+        }
+      m_draws.push_back(action);
+    }
+}
+
+void
+DrawCommand::
 draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
            const fastuidraw::PainterShaderGroup &new_shaders,
-           unsigned int attributes_written, unsigned int indices_written) const
+           unsigned int indices_written) const
 {
-  /* if the blend mode changes, then we need to start a new DrawEntry
-   */
+  /* if the blend mode changes, then we need to start a new DrawEntry */
   fastuidraw::BlendMode::packed_value old_mode, new_mode;
   uint32_t new_disc, old_disc;
 
@@ -791,8 +826,6 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
       */
       add_entry(indices_written);
     }
-
-  FASTUIDRAWunused(attributes_written);
 }
 
 void

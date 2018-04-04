@@ -276,6 +276,13 @@ namespace fastuidraw
     end(void);
 
     /*!
+      Add a draw break to execute an action.
+      \param action action to execute on draw break
+     */
+    void
+    draw_break(const reference_counted_ptr<const PainterDraw::Action> &action);
+
+    /*!
       Flush all buffered rendering commands.
      */
     void
