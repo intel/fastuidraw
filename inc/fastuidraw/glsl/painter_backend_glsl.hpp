@@ -360,7 +360,7 @@ namespace fastuidraw
         glyph_atlas_geometry_store(unsigned int);
 
         /*!
-          Specifies the binding point og the UBO for uniforms.
+          Specifies the binding point of the UBO for uniforms.
           Only active if UberShaderParams::use_ubo_for_uniforms()
           is true.
          */
@@ -406,6 +406,22 @@ namespace fastuidraw
         BindingPoints&
         data_store_buffer_ubo(unsigned int);
 
+        /*!
+          Specifies the binding point for the image1D (r8)
+          image buffer; only active if
+          UberShaderParams::provide_auxilary_image_buffer()
+          is true. Default value is 0.
+         */
+        unsigned int
+        auxilary_image_buffer(void) const;
+
+        /*!
+          Set the value returned by auxilary_image_buffer(void) const.
+          Default value is 0.
+         */
+        BindingPoints&
+        auxilary_image_buffer(unsigned int);
+
       private:
         void *m_d;
       };
@@ -413,7 +429,7 @@ namespace fastuidraw
       /*!
         \brief
         An UberShaderParams specifies how to construct an uber-shader.
-        Note that the usage of HW clip-planes is specified by by
+        Note that the usage of HW clip-planes is specified by
         ConfigurationGLSL, NOT UberShaderParams.
        */
       class UberShaderParams
@@ -702,6 +718,23 @@ namespace fastuidraw
          */
         UberShaderParams&
         use_ubo_for_uniforms(bool);
+
+        /*!
+          If true, provide an image2D (of type r8) uniform to
+          which to write coverage value for multi-pass shaders
+          (in particular shader based ant-aliased stroking).
+          Default value is false.
+         */
+        bool
+        provide_auxilary_image_buffer(void) const;
+
+        /*!
+          Set the value returned by
+          provide_auxilary_image_buffer(void) const.
+          Default value is false.
+         */
+        UberShaderParams&
+        provide_auxilary_image_buffer(bool);
 
       private:
         void *m_d;

@@ -91,6 +91,7 @@ namespace
       m_glyph_atlas_geometry_store(6),
       m_data_store_buffer_tbo(7),
       m_data_store_buffer_ubo(0),
+      m_auxilary_image_buffer(0),
       m_uniforms_ubo(1)
     {}
 
@@ -103,6 +104,7 @@ namespace
     unsigned int m_glyph_atlas_geometry_store;
     unsigned int m_data_store_buffer_tbo;
     unsigned int m_data_store_buffer_ubo;
+    unsigned int m_auxilary_image_buffer;
     unsigned int m_uniforms_ubo;
   };
 
@@ -125,7 +127,8 @@ namespace
       m_glyph_geometry_backing_log2_dims(-1, -1),
       m_have_float_glyph_texture_atlas(true),
       m_colorstop_atlas_backing(fastuidraw::glsl::PainterBackendGLSL::colorstop_texture_1d_array),
-      m_use_ubo_for_uniforms(true)
+      m_use_ubo_for_uniforms(true),
+      m_provide_auxilary_image_buffer(false)
     {}
 
     enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t m_z_coordinate_convention;
@@ -144,6 +147,7 @@ namespace
     bool m_have_float_glyph_texture_atlas;
     enum fastuidraw::glsl::PainterBackendGLSL::colorstop_backing_t m_colorstop_atlas_backing;
     bool m_use_ubo_for_uniforms;
+    bool m_provide_auxilary_image_buffer;
     fastuidraw::glsl::PainterBackendGLSL::BindingPoints m_binding_points;
   };
 
@@ -1004,6 +1008,12 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       break;
     }
 
+  if(params.provide_auxilary_image_buffer())
+    {
+      vert.add_macro("FASTUIDRAW_PAINTER_HAVE_AUXILARY_BUFFER");
+      frag.add_macro("FASTUIDRAW_PAINTER_HAVE_AUXILARY_BUFFER");
+    }
+
   vert
     .add_source(m_constant_code)
     .add_source(varying_layout_macro.c_str(), ShaderSource::from_string)
@@ -1017,6 +1027,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING", binding_params.glyph_atlas_geometry_store())
     .add_macro("FASTUIDRAW_PAINTER_STORE_TBO_BINDING", binding_params.data_store_buffer_tbo())
     .add_macro("FASTUIDRAW_PAINTER_STORE_UBO_BINDING", binding_params.data_store_buffer_ubo())
+    .add_macro("FASTUIDRAW_PAINTER_AUXILARY_BUFFER_BINDING", binding_params.auxilary_image_buffer())
     .add_macro("fastuidraw_varying", "out")
     .add_source(declare_vertex_shader_ins.c_str(), ShaderSource::from_string)
     .add_source(declare_brush_varyings.c_str(), ShaderSource::from_string)
@@ -1087,6 +1098,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING", binding_params.glyph_atlas_geometry_store())
     .add_macro("FASTUIDRAW_PAINTER_STORE_TBO_BINDING", binding_params.data_store_buffer_tbo())
     .add_macro("FASTUIDRAW_PAINTER_STORE_UBO_BINDING", binding_params.data_store_buffer_ubo())
+    .add_macro("FASTUIDRAW_PAINTER_AUXILARY_BUFFER_BINDING", binding_params.auxilary_image_buffer())
     .add_macro("fastuidraw_varying", "in")
     .add_source(declare_brush_varyings.c_str(), ShaderSource::from_string)
     .add_source(declare_main_varyings.c_str(), ShaderSource::from_string)
@@ -1107,6 +1119,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   frag
     .add_source(declare_uniforms.c_str(), ShaderSource::from_string)
     .add_source("fastuidraw_painter_uniforms.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_frag_uniforms.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_brush_macros.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_types.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_brush_types.glsl.resource_string", ShaderSource::from_resource)
@@ -1246,7 +1259,7 @@ operator=(const BindingPoints &rhs)
   name(type v)                                                          \
   {                                                                     \
     BindingPointsPrivate *d;                                            \
-    d = static_cast<BindingPointsPrivate*>(m_d);                   \
+    d = static_cast<BindingPointsPrivate*>(m_d);                        \
     d->m_##name = v;                                                    \
     return *this;                                                       \
   }                                                                     \
@@ -1256,7 +1269,7 @@ operator=(const BindingPoints &rhs)
   name(void) const                                                      \
   {                                                                     \
     BindingPointsPrivate *d;                                            \
-    d = static_cast<BindingPointsPrivate*>(m_d);                   \
+    d = static_cast<BindingPointsPrivate*>(m_d);                        \
     return d->m_##name;                                                 \
   }
 
@@ -1269,6 +1282,7 @@ setget_implement(unsigned int, glyph_atlas_texel_store_float)
 setget_implement(unsigned int, glyph_atlas_geometry_store)
 setget_implement(unsigned int, data_store_buffer_tbo)
 setget_implement(unsigned int, data_store_buffer_ubo)
+setget_implement(unsigned int, auxilary_image_buffer)
 setget_implement(unsigned int, uniforms_ubo)
 
 #undef setget_implement
@@ -1348,6 +1362,7 @@ setget_implement(fastuidraw::ivec2, glyph_geometry_backing_log2_dims)
 setget_implement(bool, have_float_glyph_texture_atlas)
 setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::colorstop_backing_t, colorstop_atlas_backing)
 setget_implement(bool, use_ubo_for_uniforms)
+setget_implement(bool, provide_auxilary_image_buffer)
 setget_implement(const fastuidraw::glsl::PainterBackendGLSL::BindingPoints&, binding_points)
 #undef setget_implement
 

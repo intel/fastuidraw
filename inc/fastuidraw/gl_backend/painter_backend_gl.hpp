@@ -420,6 +420,23 @@ namespace fastuidraw
         ConfigurationGL&
         blend_type(enum PainterBlendShader::shader_type v);
 
+        /*!
+          If true, provide an image2D (of type r8) uniform to
+          which to write coverage value for multi-pass shaders
+          (in particular shader based ant-aliased stroking).
+          Default value is false.
+         */
+        bool
+        provide_auxilary_image_buffer(void) const;
+
+        /*!
+          Set the value returned by
+          provide_auxilary_image_buffer(void) const.
+          Default value is false.
+         */
+        ConfigurationGL&
+        provide_auxilary_image_buffer(bool);
+
       private:
         void *m_d;
       };
@@ -461,6 +478,10 @@ namespace fastuidraw
       virtual
       reference_counted_ptr<const PainterDraw>
       map_draw(void);
+
+      virtual
+      void
+      target_resolution(int w, int h);
 
       /*!
         Return the specified Program use to draw
