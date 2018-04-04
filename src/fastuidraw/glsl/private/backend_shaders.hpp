@@ -24,13 +24,11 @@
 
 namespace fastuidraw { namespace glsl { namespace detail {
 
-/*
-  Values for render pass for stroke shading
-*/
+/* Values for render pass for stroke shading */
 enum uber_stroke_render_pass_t
   {
-    uber_stroke_opaque_pass,
-    uber_stroke_aa_pass,
+    uber_stroke_aa_pass1,
+    uber_stroke_aa_pass2,
     uber_stroke_non_aa,
 
     uber_number_passes
@@ -79,6 +77,10 @@ public:
   ShaderSetCreator(enum PainterBlendShader::shader_type tp,
                    bool non_dashed_stroke_shader_uses_discard);
 
+  PainterShaderSet
+  create_shader_set(void);
+
+private:
   reference_counted_ptr<PainterItemShader>
   create_glyph_item_shader(const std::string &vert_src,
                            const std::string &frag_src,
@@ -106,9 +108,6 @@ public:
 
   PainterFillShader
   create_fill_shader(void);
-
-  PainterShaderSet
-  create_shader_set(void);
 
   reference_counted_ptr<PainterItemShader> m_uber_stroke_shader, m_uber_dashed_stroke_shader;
 };

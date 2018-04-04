@@ -58,13 +58,12 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                                            fastuidraw_stroke_sub_shader_dash_style_num_bits,
                                            sub_shader);
 
-      /* stroke_params takes 4 elements
-       */
+      /* stroke_params takes 4 elements */
       dash_pattern_at = shader_data_offset + uint(fastuidraw_stroke_dashed_stroking_params_header_num_blocks);
 
       /* read the header data (includes the stroking width and total length
          of the dash pattern).
-       */
+      */
       fastuidraw_read_dashed_stroking_params_header(shader_data_offset, stroke_params);
 
       if((fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u)
@@ -89,7 +88,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
          dependent on the value of q. To keep the anti-aliasing
          from going ugly at boundaries, we explicitely compute
          fwidth() from values that are not branchy-pixel-dependent.
-       */
+      */
       float y, r, qq_yy, fwidth_qq_yy;
       r = stroke_params.radius;
       y = r * fastuidraw_stroking_on_boundary;
@@ -149,19 +148,19 @@ fastuidraw_gl_frag_main(in uint sub_shader,
          that as alpha. This approach, however requires
          either framebuffer_fetch OR fragment_shader_interlock.
        */
-      if(render_pass == uint(fastuidraw_stroke_opaque_pass) && alpha < 1.0 - 1.0 / 255.0)
+      if(render_pass == uint(fastuidraw_stroke_aa_pass1) && alpha < 1.0 - 1.0 / 255.0)
         {
           FASTUIDRAW_DISCARD;
         }
 
-      if(render_pass != uint(fastuidraw_stroke_aa_pass))
+      if(render_pass != uint(fastuidraw_stroke_aa_pass2))
         {
           alpha = 1.0;
         }
     }
   #else
     {
-      if(render_pass == uint(fastuidraw_stroke_aa_pass))
+      if(render_pass == uint(fastuidraw_stroke_aa_pass2))
         {
           float dd, q;
 

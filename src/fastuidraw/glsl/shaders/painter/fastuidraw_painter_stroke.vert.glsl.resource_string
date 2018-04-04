@@ -609,7 +609,10 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   #ifndef FASTUIDRAW_STROKE_USE_DISCARD
     {
-      if(stroking_pass == fastuidraw_stroke_opaque_pass && stroke_width_pixels)
+      /* Reduce the stroking with by 1-pixel when doing 2-pass stroking
+         without auxilary buffer and not using discard
+       */
+      if(stroking_pass == fastuidraw_stroke_aa_pass1 && stroke_width_pixels)
         {
           stroke_radius = max(stroke_radius - anti_alias_thickness, 0.0);
         }
@@ -637,7 +640,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
      #ifndef FASTUIDRAW_STROKE_USE_DISCARD
         {
-          if(stroking_pass == fastuidraw_stroke_opaque_pass && !stroke_width_pixels)
+          if(stroking_pass == fastuidraw_stroke_aa_pass1 && !stroke_width_pixels)
             {
               vec3 clip_p, clip_direction;
               float r;
@@ -657,7 +660,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     }
 
   fastuidraw_stroking_on_boundary = float(on_boundary);
-  if(stroking_pass == fastuidraw_stroke_aa_pass)
+  if(stroking_pass == fastuidraw_stroke_aa_pass2)
     {
       z_add = 0;
     }
