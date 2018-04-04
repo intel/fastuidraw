@@ -1688,6 +1688,11 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
   modify_z = !with_anti_aliasing || shader.aa_type() == PainterStrokeShader::draws_solid_then_fuzz;
   sh = (with_anti_aliasing) ? &shader.aa_shader_pass1(): &shader.non_aa_shader();
 
+  if(with_anti_aliasing)
+    {
+      d->m_core->draw_break(shader.aa_action_pass1());
+    }
+
   if(modify_z)
     {
       /*
@@ -1725,6 +1730,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
          stroke attribute data, thus the written
          depth is always startz.
        */
+      d->m_core->draw_break(shader.aa_action_pass2());
       d->draw_generic(shader.aa_shader_pass2(), draw, attrib_chunks,
                       index_chunks, index_adjusts,
                       fastuidraw::c_array<const unsigned int>(),

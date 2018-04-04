@@ -33,6 +33,8 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> m_non_aa_shader;
     enum fastuidraw::PainterStrokeShader::type_t m_aa_type;
     fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase> m_stroking_data_selector;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_aa_action_pass1;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_aa_action_pass2;
   };
 }
 
@@ -86,7 +88,7 @@ operator=(const PainterStrokeShader &rhs)
   name(type v)                                                      \
   {                                                                 \
     PainterStrokeShaderPrivate *d;                                  \
-    d = static_cast<PainterStrokeShaderPrivate*>(m_d);         \
+    d = static_cast<PainterStrokeShaderPrivate*>(m_d);              \
     d->m_##name = v;                                                \
     return *this;                                                   \
   }                                                                 \
@@ -96,7 +98,7 @@ operator=(const PainterStrokeShader &rhs)
   name(void) const                                                  \
   {                                                                 \
     PainterStrokeShaderPrivate *d;                                  \
-    d = static_cast<PainterStrokeShaderPrivate*>(m_d);         \
+    d = static_cast<PainterStrokeShaderPrivate*>(m_d);              \
     return d->m_##name;                                             \
   }
 
@@ -105,5 +107,7 @@ setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItem
 setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, non_aa_shader)
 setget_implement(enum fastuidraw::PainterStrokeShader::type_t, aa_type);
 setget_implement(const fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>&, stroking_data_selector);
+setget_implement(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&, aa_action_pass1);
+setget_implement(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&, aa_action_pass2);
 
 #undef setget_implement

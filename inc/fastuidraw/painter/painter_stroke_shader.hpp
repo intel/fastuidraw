@@ -23,6 +23,7 @@
 #include <fastuidraw/painter/painter_item_shader.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 #include <fastuidraw/painter/painter_shader_data.hpp>
+#include <fastuidraw/painter/packing/painter_draw.hpp>
 
 namespace fastuidraw
 {
@@ -189,6 +190,36 @@ namespace fastuidraw
      */
     PainterStrokeShader&
     aa_shader_pass2(const reference_counted_ptr<PainterItemShader> &sh);
+
+    /*!
+      Returns the action to be called before the 1st pass,
+      a return value of NULL indicates to not have an action
+      (and thus no draw-call break).
+     */
+    const reference_counted_ptr<const PainterDraw::Action>&
+    aa_action_pass1(void) const;
+
+    /*!
+      Set the value returned by aa_action_pass1(void) const.
+      \param sh value to use
+     */
+    PainterStrokeShader&
+    aa_action_pass1(const reference_counted_ptr<const PainterDraw::Action> &v);
+
+    /*!
+      Returns the action to be called before the 1st pass,
+      a return value of NULL indicates to not have an action
+      (and thus no draw-call break).
+     */
+    const reference_counted_ptr<const PainterDraw::Action>&
+    aa_action_pass2(void) const;
+
+    /*!
+      Set the value returned by aa_action_pass2(void) const.
+      \param sh value to use
+     */
+    PainterStrokeShader&
+    aa_action_pass2(const reference_counted_ptr<const PainterDraw::Action> &v);
 
     /*!
       Shader for rendering a stroked path without
