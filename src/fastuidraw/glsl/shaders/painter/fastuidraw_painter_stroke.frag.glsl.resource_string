@@ -139,7 +139,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       d = max(abs(q), fw);
       alpha = max(0.0, q / d);
 
-      #ifndef FASTUIDRAW_STROKE_COVER_THEN_DRAW
+      #if !defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
         {
           if(render_pass == uint(fastuidraw_stroke_non_aa) && q <= 0.0)
             {

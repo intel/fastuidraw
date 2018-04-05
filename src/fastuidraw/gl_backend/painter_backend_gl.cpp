@@ -1341,7 +1341,16 @@ configure_source_front_matter(void)
           break;
         }
 
-      m_front_matter_frag.add_source("layout(early_fragment_tests) in;\n", ShaderSource::from_string);
+      /* Only have this front matter present if FASTUIDRAW_DISCARD is empty defined;
+         The issue is that when early_fragment_tests are enabled, then the depth
+         write happens even if the fragment shader hits discard.
+       */
+      std::ostringstream early_fragment_tests;
+      early_fragment_tests << "#ifdef FASTUIDRAW_ALLOW_EARLY_FRAGMENT_TESTS\n"
+                           << "layout(early_fragment_tests) in;\n"
+                           << "#endif\n";
+      m_front_matter_frag.add_source(early_fragment_tests.str().c_str(),
+                                     ShaderSource::from_string);
     }
 
   #ifdef FASTUIDRAW_GL_USE_GLES
@@ -1486,6 +1495,7 @@ build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
   if(tp == fastuidraw::gl::PainterBackendGL::program_without_discard)
     {
       discard_macro = "fastuidraw_do_nothing()";
+      frag.add_macro("FASTUIDRAW_ALLOW_EARLY_FRAGMENT_TESTS");
     }
   else
     {
