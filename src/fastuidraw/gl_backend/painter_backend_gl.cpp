@@ -49,6 +49,15 @@ namespace
       shader_group_discard_mask = (1u << 31u)
     };
 
+  enum interlock_type_t
+    {
+      intel_fragment_shader_ordering,
+      nv_fragment_shader_interlock,
+      arb_fragment_shader_interlock,
+
+      no_interlock
+    };
+
   class painter_vao
   {
   public:
@@ -162,6 +171,17 @@ namespace
     enum fastuidraw::gl::PainterBackendGL::program_type_t m_tp;
   };
 
+  class ImageBarrier:public fastuidraw::PainterDraw::Action
+  {
+  public:
+    virtual
+    void
+    execute(void) const
+    {
+      glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    }
+  };
+
   class PainterBackendGLPrivate
   {
   public:
@@ -202,6 +222,7 @@ namespace
     build_vao_tbos(void);
 
     fastuidraw::ivec2 m_target_resolution;
+    enum interlock_type_t m_interlock_type;
     fastuidraw::gl::PainterBackendGL::ConfigurationGL m_params;
     fastuidraw::glsl::PainterBackendGLSL::UberShaderParams m_uber_shader_builder_params;
 
@@ -333,7 +354,7 @@ namespace
       m_assign_binding_points(true),
       m_use_ubo_for_uniforms(false),
       m_separate_program_for_discard(true),
-      m_non_dashed_stroke_shader_uses_discard(false),
+      m_default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz),
       m_blend_type(fastuidraw::PainterBlendShader::dual_src),
       m_provide_auxilary_image_buffer(false)
     {}
@@ -357,7 +378,7 @@ namespace
     bool m_assign_binding_points;
     bool m_use_ubo_for_uniforms;
     bool m_separate_program_for_discard;
-    bool m_non_dashed_stroke_shader_uses_discard;
+    enum fastuidraw::PainterStrokeShader::type_t m_default_stroke_shader_aa_type;
     enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
     bool m_provide_auxilary_image_buffer;
   };
@@ -985,15 +1006,48 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
         && (ctx.has_extension("GL_APPLE_clip_distance") || ctx.has_extension("GL_EXT_clip_cull_distance"));
 
       return_value.use_hw_clip_planes(use_hw_clip_planes);
+
+      if (ctx.version() >= ivec2(3, 1))
+        {
+          return_value
+            .default_stroke_shader_aa_type(params.default_stroke_shader_aa_type());
+        }
+      else
+        {
+          return_value
+            .default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz);
+        }
     }
   #else
     {
       return_value.use_hw_clip_planes(params.use_hw_clip_planes());
+      if (ctx.version() >= ivec2(4, 2)
+          || ctx.has_extension("GL_ARB_shader_image_load_store"))
+        {
+          return_value
+            .default_stroke_shader_aa_type(params.default_stroke_shader_aa_type());
+        }
+      else
+        {
+          return_value
+            .default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz);
+        }
     }
   #endif
 
-  return_value
-    .non_dashed_stroke_shader_uses_discard(params.non_dashed_stroke_shader_uses_discard());
+  if (return_value.default_stroke_shader_aa_type() == fastuidraw::PainterStrokeShader::cover_then_draw)
+    {
+      if (!ctx.has_extension("GL_ARB_fragment_shader_interlock")
+          && !ctx.has_extension("GL_INTEL_fragment_shader_ordering")
+          && !ctx.has_extension("GL_NV_fragment_shader_interlock"))
+        {
+          fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> q;
+          q = FASTUIDRAWnew ImageBarrier();
+          return_value
+            .default_stroke_shader_aa_pass1_action(q)
+            .default_stroke_shader_aa_pass2_action(q);
+        }
+    }
 
   return return_value;
 }
@@ -1154,6 +1208,28 @@ configure_backend(void)
     }
   #endif
 
+  if(!m_params.provide_auxilary_image_buffer())
+    {
+      m_params.default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz);
+    }
+
+  if(m_ctx_properties.has_extension("GL_INTEL_fragment_shader_ordering"))
+    {
+      m_interlock_type = intel_fragment_shader_ordering;
+    }
+  else if(m_ctx_properties.has_extension("GL_ARB_fragment_shader_interlock"))
+    {
+      m_interlock_type = arb_fragment_shader_interlock;
+    }
+  else if(m_ctx_properties.has_extension("GL_NV_fragment_shader_interlock"))
+    {
+      m_interlock_type = nv_fragment_shader_interlock;
+    }
+  else
+    {
+      m_interlock_type = no_interlock;
+    }
+
   m_uber_shader_builder_params
     .assign_layout_to_vertex_shader_inputs(m_params.assign_layout_to_vertex_shader_inputs())
     .assign_layout_to_varyings(m_params.assign_layout_to_varyings())
@@ -1236,6 +1312,35 @@ configure_source_front_matter(void)
 
   if(m_uber_shader_builder_params.provide_auxilary_image_buffer())
     {
+      switch(m_interlock_type)
+        {
+        case no_interlock:
+          break;
+
+        case intel_fragment_shader_ordering:
+          m_front_matter_frag
+            .add_macro("fastuidraw_begin_interlock", "beginFragmentShaderOrderingINTEL")
+            .add_macro("fastuidraw_end_interlock", "fastuidraw_do_nothing")
+            .add_macro("FASTUIDRAW_PAINTER_INTERLOCK");
+          break;
+
+        case arb_fragment_shader_interlock:
+          m_front_matter_frag
+            .add_macro("fastuidraw_begin_interlock", "beginInvocationInterlockARB")
+            .add_macro("fastuidraw_end_interlock", "endInvocationInterlockARB")
+            .add_macro("FASTUIDRAW_PAINTER_INTERLOCK")
+            .add_macro("FASTUIDRAW_PAINTER_INTERLOCK_MAIN_ONLY");
+          break;
+
+        case nv_fragment_shader_interlock:
+          m_front_matter_frag
+            .add_macro("fastuidraw_begin_interlock", "beginInvocationInterlockNV")
+            .add_macro("fastuidraw_end_interlock", "endInvocationInterlockNV")
+            .add_macro("FASTUIDRAW_PAINTER_INTERLOCK")
+            .add_macro("FASTUIDRAW_PAINTER_INTERLOCK_MAIN_ONLY");
+          break;
+        }
+
       m_front_matter_frag.add_source("layout(early_fragment_tests) in;\n", ShaderSource::from_string);
     }
 
@@ -1325,8 +1430,11 @@ configure_source_front_matter(void)
 
           if(m_uber_shader_builder_params.provide_auxilary_image_buffer())
             {
-              m_front_matter_vert.specify_extension("GL_ARB_shader_image_load_store", ShaderSource::require_extension);
-              m_front_matter_frag.specify_extension("GL_ARB_shader_image_load_store", ShaderSource::require_extension);
+              m_front_matter_frag
+                .specify_extension("GL_ARB_shader_image_load_store", ShaderSource::require_extension)
+                .specify_extension("GL_ARB_fragment_shader_interlock", ShaderSource::enable_extension)
+                .specify_extension("GL_INTEL_fragment_shader_ordering", ShaderSource::enable_extension)
+                .specify_extension("GL_NV_fragment_shader_interlock", ShaderSource::enable_extension);
             }
         }
     }
@@ -1356,7 +1464,6 @@ build_programs(void)
       m_programs[tp] = build_program(tp);
       FASTUIDRAWassert(m_programs[tp]->link_success());
       m_shader_uniforms_loc[tp] = m_programs[tp]->uniform_location("fastuidraw_shader_uniforms");
-      FASTUIDRAWassert(m_shader_uniforms_loc[tp] != -1 || m_uber_shader_builder_params.use_ubo_for_uniforms());
     }
 
   if(!m_uber_shader_builder_params.use_ubo_for_uniforms())
@@ -1485,7 +1592,7 @@ setget_implement(bool, assign_layout_to_varyings)
 setget_implement(bool, assign_binding_points)
 setget_implement(bool, use_ubo_for_uniforms)
 setget_implement(bool, separate_program_for_discard)
-setget_implement(bool, non_dashed_stroke_shader_uses_discard)
+setget_implement(enum fastuidraw::PainterStrokeShader::type_t, default_stroke_shader_aa_type)
 setget_implement(enum fastuidraw::PainterBlendShader::shader_type, blend_type)
 setget_implement(bool, provide_auxilary_image_buffer)
 #undef setget_implement
@@ -1641,20 +1748,23 @@ on_pre_draw(void)
           d->m_auxilary_buffer = 0;
         }
 
+      GLenum internalFmt(d->m_interlock_type == no_interlock ? GL_R32UI : GL_R8UI);
       if(d->m_auxilary_buffer == 0)
         {
           d->m_auxilary_resolution = d->m_target_resolution;
 
           vecN<GLsizei, 2> sz(d->m_auxilary_resolution.x(), d->m_auxilary_resolution.y());
           vecN<GLint, 2> origin(0, 0);
-          std::vector<uint8_t> bytes(sz.x() * sz.y(), 0);
+          unsigned int bytes_per_pixel(d->m_interlock_type == no_interlock ? 4 : 1);
+          std::vector<uint8_t> bytes(sz.x() * sz.y() * bytes_per_pixel, 0);
+          GLenum bytesType(d->m_interlock_type == no_interlock ? GL_UNSIGNED_INT : GL_UNSIGNED_BYTE);
 
           glGenTextures(1, &d->m_auxilary_buffer);
           glActiveTexture(GL_TEXTURE0);
           glBindTexture(GL_TEXTURE_2D, d->m_auxilary_buffer);
 
-          detail::tex_storage(true, GL_TEXTURE_2D, GL_R8UI, sz);
-          detail::tex_sub_image(GL_TEXTURE_2D, origin, sz, GL_RED_INTEGER, GL_UNSIGNED_BYTE, &bytes[0]);
+          detail::tex_storage(true, GL_TEXTURE_2D, internalFmt, sz);
+          detail::tex_sub_image(GL_TEXTURE_2D, origin, sz, GL_RED_INTEGER, bytesType, &bytes[0]);
           glBindTexture(GL_TEXTURE_2D, 0);
         }
       glBindImageTexture(binding_points.auxilary_image_buffer(),
@@ -1663,7 +1773,7 @@ on_pre_draw(void)
                          GL_FALSE, //layered
                          0, //layer
                          GL_READ_WRITE, //access
-                         GL_R8UI);
+                         internalFmt);
     }
 
   /* all of our texture units, oh my. */
@@ -1743,13 +1853,19 @@ on_pre_draw(void)
       fill_uniform_buffer(d->m_uniform_values_ptr);
       if(d->m_params.separate_program_for_discard())
         {
-          prs[program_without_discard]->use_program();
-          Uniform(d->m_shader_uniforms_loc[program_without_discard], ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
+          if (d->m_shader_uniforms_loc[program_without_discard] != -1)
+            {
+              prs[program_without_discard]->use_program();
+              Uniform(d->m_shader_uniforms_loc[program_without_discard], ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
+            }
 
-          prs[program_with_discard]->use_program();
-          Uniform(d->m_shader_uniforms_loc[program_with_discard], ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
+          if (d->m_shader_uniforms_loc[program_with_discard] != -1)
+            {
+              prs[program_with_discard]->use_program();
+              Uniform(d->m_shader_uniforms_loc[program_with_discard], ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
+            }
         }
-      else
+      else if(d->m_shader_uniforms_loc[program_all] != -1)
         {
           Uniform(d->m_shader_uniforms_loc[program_all], ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
         }

@@ -100,7 +100,7 @@ private:
   command_line_argument_value<bool> m_uber_blend_use_switch;
   command_line_argument_value<bool> m_unpack_header_and_brush_in_frag_shader;
   command_line_argument_value<bool> m_separate_program_for_discard;
-  command_line_argument_value<bool> m_non_dashed_stroke_shader_uses_discard;
+  command_line_argument_value<bool> m_provide_auxilary_image_buffer;
 
   /* Painter params that can be overridden by properties of GL context
    */

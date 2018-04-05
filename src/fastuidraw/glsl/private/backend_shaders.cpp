@@ -212,25 +212,30 @@ add_constants(ShaderSource &src)
 //////////////////////////////////////////
 //  ShaderSetCreator methods
 ShaderSetCreator::
-ShaderSetCreator(enum PainterBlendShader::shader_type tp,
-                 bool non_dashed_stroke_shader_uses_discard):
-  BlendShaderSetCreator(tp)
+ShaderSetCreator(enum PainterBlendShader::shader_type blend_tp,
+                 enum PainterStrokeShader::type_t stroke_tp,
+                 const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass1,
+                 const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass2):
+  BlendShaderSetCreator(blend_tp),
+  m_stroke_tp(stroke_tp),
+  m_stroke_action_pass1(stroke_action_pass1),
+  m_stroke_action_pass2(stroke_action_pass2)
 {
   unsigned int num_undashed_sub_shaders, num_dashed_sub_shaders;
   c_string extra_macro;
 
-  if(non_dashed_stroke_shader_uses_discard)
+  if(m_stroke_tp == PainterStrokeShader::draws_solid_then_fuzz)
     {
-      extra_macro = "FASTUIDRAW_STROKE_USE_DISCARD";
+      extra_macro = "FASTUIDRAW_STROKE_SOLID_THEN_FUZZ";
     }
   else
     {
-      extra_macro = "FASTUIDRAW_STROKE_DOES_NOT_USE_DISCARD";
+      extra_macro = "FASTUIDRAW_STROKE_COVER_THEN_DRAW";
     }
 
   num_undashed_sub_shaders = 1u << (m_stroke_render_pass_num_bits + 1);
   m_uber_stroke_shader =
-    FASTUIDRAWnew PainterItemShaderGLSL(non_dashed_stroke_shader_uses_discard,
+    FASTUIDRAWnew PainterItemShaderGLSL(false,
                                         ShaderSource()
                                         .add_macro(extra_macro)
                                         .add_source("fastuidraw_painter_stroke.vert.glsl.resource_string",
@@ -251,21 +256,21 @@ ShaderSetCreator(enum PainterBlendShader::shader_type tp,
   num_dashed_sub_shaders = 1u << (m_stroke_render_pass_num_bits + m_stroke_dash_style_num_bits + 1u);
 
   m_uber_dashed_stroke_shader =
-    FASTUIDRAWnew PainterItemShaderGLSL(true,
+    FASTUIDRAWnew PainterItemShaderGLSL(stroke_tp == PainterStrokeShader::draws_solid_then_fuzz,
                                         ShaderSource()
                                         .add_macro("FASTUIDRAW_STROKE_DASHED")
-                                        .add_macro("FASTUIDRAW_STROKE_USE_DISCARD")
+                                        .add_macro(extra_macro)
                                         .add_source("fastuidraw_painter_stroke.vert.glsl.resource_string",
                                                     ShaderSource::from_resource)
-                                        .remove_macro("FASTUIDRAW_STROKE_USE_DISCARD")
+                                        .remove_macro(extra_macro)
                                         .remove_macro("FASTUIDRAW_STROKE_DASHED"),
 
                                         ShaderSource()
                                         .add_macro("FASTUIDRAW_STROKE_DASHED")
-                                        .add_macro("FASTUIDRAW_STROKE_USE_DISCARD")
+                                        .add_macro(extra_macro)
                                         .add_source("fastuidraw_painter_stroke.frag.glsl.resource_string",
                                                     ShaderSource::from_resource)
-                                        .remove_macro("FASTUIDRAW_STROKE_USE_DISCARD")
+                                        .remove_macro(extra_macro)
                                         .remove_macro("FASTUIDRAW_STROKE_DASHED"),
 
                                         varying_list()
@@ -381,8 +386,11 @@ create_stroke_shader(enum PainterEnums::cap_style stroke_style,
   PainterStrokeShader return_value;
 
   return_value
+    .aa_type(m_stroke_tp)
     .stroking_data_selector(stroke_data_selector)
+    .aa_action_pass1(m_stroke_action_pass1)
     .aa_shader_pass1(create_stroke_item_shader(stroke_style, pixel_width_stroking, uber_stroke_aa_pass1))
+    .aa_action_pass2(m_stroke_action_pass2)
     .aa_shader_pass2(create_stroke_item_shader(stroke_style, pixel_width_stroking, uber_stroke_aa_pass2))
     .non_aa_shader(create_stroke_item_shader(stroke_style, pixel_width_stroking, uber_stroke_non_aa));
   return return_value;

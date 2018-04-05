@@ -74,8 +74,10 @@ class ShaderSetCreator:
 {
 public:
   explicit
-  ShaderSetCreator(enum PainterBlendShader::shader_type tp,
-                   bool non_dashed_stroke_shader_uses_discard);
+  ShaderSetCreator(enum PainterBlendShader::shader_type blend_tp,
+                   enum PainterStrokeShader::type_t stroke_tp,
+                   const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass1,
+                   const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass2);
 
   PainterShaderSet
   create_shader_set(void);
@@ -109,7 +111,10 @@ private:
   PainterFillShader
   create_fill_shader(void);
 
+  enum PainterStrokeShader::type_t m_stroke_tp;
   reference_counted_ptr<PainterItemShader> m_uber_stroke_shader, m_uber_dashed_stroke_shader;
+  reference_counted_ptr<const PainterDraw::Action> m_stroke_action_pass1;
+  reference_counted_ptr<const PainterDraw::Action> m_stroke_action_pass2;
 };
 
 }}}

@@ -1,3 +1,0 @@
-#ifdef FASTUIDRAW_PAINTER_HAVE_AUXILARY_BUFFER
-layout(binding = FASTUIDRAW_PAINTER_AUXILARY_BUFFER_BINDING, r8ui) restrict uniform uimage2D fastuidraw_auxilary_buffer;
-#endif

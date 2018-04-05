@@ -607,10 +607,10 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     }
   #endif
 
-  #ifndef FASTUIDRAW_STROKE_USE_DISCARD
+  #if !defined(FASTUIDRAW_STROKE_DASHED) && !defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
     {
-      /* Reduce the stroking with by 1-pixel when doing 2-pass stroking
-         without auxilary buffer and not using discard
+      /* Reduce the stroking width by 1-pixel when doing 2-pass non-dashed stroking
+         without auxilary buffer
        */
       if(stroking_pass == fastuidraw_stroke_aa_pass1 && stroke_width_pixels)
         {
@@ -638,8 +638,11 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
      p = position + stroke_radius * offset;
 
-     #ifndef FASTUIDRAW_STROKE_USE_DISCARD
+     #if !defined(FASTUIDRAW_STROKE_DASHED) && !defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
         {
+          /* Reduce the stroking width by 1-pixel when doing 2-pass non-dashed stroking
+             without auxilary buffer
+          */
           if(stroking_pass == fastuidraw_stroke_aa_pass1 && !stroke_width_pixels)
             {
               vec3 clip_p, clip_direction;
@@ -660,16 +663,34 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     }
 
   fastuidraw_stroking_on_boundary = float(on_boundary);
-  if(stroking_pass == fastuidraw_stroke_aa_pass2)
+
+  #ifdef FASTUIDRAW_STROKE_COVER_THEN_DRAW
     {
-      z_add = 0;
+      if(stroking_pass != fastuidraw_stroke_non_aa)
+        {
+          z_add = 0;
+        }
+      else
+        {
+          z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_depth_bit0,
+                                              fastuidraw_stroke_depth_num_bits,
+                                              point_packed_data));
+        }
     }
-  else
+  #else
     {
-      z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_depth_bit0,
-                                          fastuidraw_stroke_depth_num_bits,
-                                          point_packed_data));
+      if(stroking_pass == fastuidraw_stroke_aa_pass2)
+        {
+          z_add = 0;
+        }
+      else
+        {
+          z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_depth_bit0,
+                                              fastuidraw_stroke_depth_num_bits,
+                                              point_packed_data));
+        }
     }
+  #endif
 
   return vec4(p, p);
 }

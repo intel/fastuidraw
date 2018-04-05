@@ -196,11 +196,12 @@ sdl_painter_demo(const std::string &about_text,
                                  "one for those item shaders that have discard and one for "
                                  "those that do not",
                                  *this),
-  m_non_dashed_stroke_shader_uses_discard(m_painter_params.non_dashed_stroke_shader_uses_discard(),
-                                          "non_dashed_stroke_shader_uses_discard",
-                                          "Use discard in instead of thinner widths when stroking "
-                                          "opaque pass for anti-aliased stroking of paths",
-                                          *this),
+  m_provide_auxilary_image_buffer(m_painter_params.provide_auxilary_image_buffer(),
+                                  "provide_auxilary_image_buffer",
+                                  "Provide an auxilary image buffer requires image-load-store; "
+                                  "will remove rendering artifacts on shader-based anti-aliased "
+                                  "path stroking",
+                                  *this),
 
   m_painter_options_affected_by_context("PainterBackendGL Options that can be overridden "
                                         "by version and extension supported by GL/GLES context",
@@ -381,7 +382,10 @@ init_gl(int w, int h)
     .assign_binding_points(m_assign_binding_points.m_value)
     .use_ubo_for_uniforms(m_use_ubo_for_uniforms.m_value)
     .separate_program_for_discard(m_separate_program_for_discard.m_value)
-    .non_dashed_stroke_shader_uses_discard(m_non_dashed_stroke_shader_uses_discard.m_value)
+    .provide_auxilary_image_buffer(m_provide_auxilary_image_buffer.m_value)
+    .default_stroke_shader_aa_type(m_provide_auxilary_image_buffer.m_value ?
+                                   fastuidraw::PainterStrokeShader::cover_then_draw :
+                                   fastuidraw::PainterStrokeShader::draws_solid_then_fuzz)
     .blend_type(m_blend_type.m_value.m_value);
 
   m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params, m_painter_base_params);

@@ -81,7 +81,11 @@ main(void)
   #endif
 
   fastuidraw_brush_position = vec2(fastuidraw_brush_p_x, fastuidraw_brush_p_y);
+
+  FASTUIDRAW_BEGIN_AUX_LOCK;
   c = fastuidraw_run_frag_shader(fastuidraw_frag_shader, fastuidraw_frag_shader_data_location);
+  FASTUIDRAW_END_AUX_LOCK;
+
   b = fastuidraw_compute_brush_color();
   v = b * c;
   v.rgb *= v.a;

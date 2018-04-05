@@ -71,11 +71,13 @@ namespace
   public:
     ConfigurationGLSLPrivate(void):
       m_use_hw_clip_planes(true),
-      m_non_dashed_stroke_shader_uses_discard(false)
+      m_default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz)
     {}
 
     bool m_use_hw_clip_planes;
-    bool m_non_dashed_stroke_shader_uses_discard;
+    enum fastuidraw::PainterStrokeShader::type_t m_default_stroke_shader_aa_type;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_default_stroke_shader_aa_pass1_action;
+    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_default_stroke_shader_aa_pass2_action;
   };
 
   class BindingPointsPrivate
@@ -1119,7 +1121,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   frag
     .add_source(declare_uniforms.c_str(), ShaderSource::from_string)
     .add_source("fastuidraw_painter_uniforms.glsl.resource_string", ShaderSource::from_resource)
-    .add_source("fastuidraw_painter_frag_uniforms.glsl.resource_string", ShaderSource::from_resource)
+    .add_source("fastuidraw_painter_auxilary_image_buffer.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_brush_macros.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_types.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_brush_types.glsl.resource_string", ShaderSource::from_resource)
@@ -1210,7 +1212,10 @@ swap(ConfigurationGLSL &rhs)
   }
 
 setget_implement(bool, use_hw_clip_planes)
-setget_implement(bool, non_dashed_stroke_shader_uses_discard)
+setget_implement(enum fastuidraw::PainterStrokeShader::type_t, default_stroke_shader_aa_type)
+setget_implement(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&, default_stroke_shader_aa_pass1_action)
+setget_implement(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&, default_stroke_shader_aa_pass2_action)
+
 
 #undef setget_implement
 
@@ -1241,16 +1246,21 @@ fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
 
 fastuidraw::glsl::PainterBackendGLSL::BindingPoints&
 fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
-operator=(const BindingPoints &rhs)
+operator=(const BindingPoints &obj)
 {
-  if(this != &rhs)
+  if(this != &obj)
     {
-      BindingPointsPrivate *d, *rhs_d;
-      d = static_cast<BindingPointsPrivate*>(m_d);
-      rhs_d = static_cast<BindingPointsPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      BindingPoints v(obj);
+      swap(v);
     }
   return *this;
+}
+
+void
+fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
+swap(BindingPoints &rhs)
+{
+  std::swap(m_d, rhs.m_d);
 }
 
 #define setget_implement(type, name)                                    \
@@ -1318,12 +1328,17 @@ operator=(const UberShaderParams &rhs)
 {
   if(this != &rhs)
     {
-      UberShaderParamsPrivate *d, *rhs_d;
-      d = static_cast<UberShaderParamsPrivate*>(m_d);
-      rhs_d = static_cast<UberShaderParamsPrivate*>(rhs.m_d);
-      *d = *rhs_d;
+      UberShaderParams v(rhs);
+      swap(v);
     }
   return *this;
+}
+
+void
+fastuidraw::glsl::PainterBackendGLSL::UberShaderParams::
+swap(UberShaderParams &obj)
+{
+  std::swap(m_d, obj.m_d);
 }
 
 #define setget_implement(type, name)                                    \
@@ -1332,7 +1347,7 @@ operator=(const UberShaderParams &rhs)
   name(type v)                                                          \
   {                                                                     \
     UberShaderParamsPrivate *d;                                         \
-    d = static_cast<UberShaderParamsPrivate*>(m_d);                \
+    d = static_cast<UberShaderParamsPrivate*>(m_d);                     \
     d->m_##name = v;                                                    \
     return *this;                                                       \
   }                                                                     \
@@ -1342,7 +1357,7 @@ operator=(const UberShaderParams &rhs)
   name(void) const                                                      \
   {                                                                     \
     UberShaderParamsPrivate *d;                                         \
-    d = static_cast<UberShaderParamsPrivate*>(m_d);                \
+    d = static_cast<UberShaderParamsPrivate*>(m_d);                     \
     return d->m_##name;                                                 \
   }
 
@@ -1376,7 +1391,9 @@ PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                    const ConfigurationBase &config_base):
   PainterBackend(glyph_atlas, image_atlas, colorstop_atlas, config_base,
                  detail::ShaderSetCreator(config_base.blend_type(),
-                                          config_glsl.non_dashed_stroke_shader_uses_discard())
+                                          config_glsl.default_stroke_shader_aa_type(),
+                                          config_glsl.default_stroke_shader_aa_pass1_action(),
+                                          config_glsl.default_stroke_shader_aa_pass2_action())
                  .create_shader_set())
 {
   m_d = FASTUIDRAWnew PainterBackendGLSLPrivate(this, config_glsl,

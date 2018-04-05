@@ -38,15 +38,25 @@ vec4
 fastuidraw_gl_frag_main(in uint sub_shader,
                         in uint shader_data_offset)
 {
-  float alpha;
+  float alpha = 1.0;
   uint render_pass, dash_style;
 
   render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
                                         fastuidraw_stroke_sub_shader_render_pass_num_bits,
                                         sub_shader);
 
-  alpha = 1.0;
+  #ifdef FASTUIDRAW_STROKE_COVER_THEN_DRAW
+    {
+      if (render_pass == uint(fastuidraw_stroke_aa_pass2))
+        {
+          return vec4(1.0, 1.0, 1.0, float(fastuidraw_clear_auxilary()) / 255.0);
+        }
+    }
+  #endif
 
+  /* NOTE: COVER_THEN_DRAW shader does NOT work in dashed stroking
+     for non-anti-aliased shading because it does not allow discard
+  */
   #ifdef FASTUIDRAW_STROKE_DASHED
   if((fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_gauranteed_to_be_covered_mask)) == 0u)
     {
@@ -81,8 +91,6 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                                                       stroke_params.number_intervals);
         }
 
-      fw = fwidth(fastuidraw_stroking_distance);
-
       /* the value of q is branchy-pixel-dependent, the
          code path if we are to hit rounded-cap code is
          dependent on the value of q. To keep the anti-aliasing
@@ -93,7 +101,10 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       r = stroke_params.radius;
       y = r * fastuidraw_stroking_on_boundary;
       qq_yy = q * q + y * y;
+
+      fw = fwidth(fastuidraw_stroking_distance);
       fwidth_qq_yy = 2.0 * abs(q) * fw + 2.0 * abs(y) * fwidth(y);
+
       if(dash_style == uint(fastuidraw_stroke_dashed_rounded_caps))
         {
           /* fw represents the tolerance of a pixel. The expected
@@ -120,42 +131,34 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       d = max(abs(q), fw);
       alpha = max(0.0, q / d);
 
-      if(render_pass == uint(fastuidraw_stroke_non_aa) && q < 0.0)
+      #ifndef FASTUIDRAW_STROKE_COVER_THEN_DRAW
         {
-          FASTUIDRAW_DISCARD;
+          if(render_pass == uint(fastuidraw_stroke_non_aa) && q <= 0.0)
+            {
+              FASTUIDRAW_DISCARD;
+            }
+
+          if(render_pass == uint(fastuidraw_stroke_aa_pass1) && alpha < 1.0 - 1.0 / 255.0)
+            {
+              FASTUIDRAW_DISCARD;
+            }
         }
+      #endif
     }
   #endif
 
-  #ifdef FASTUIDRAW_STROKE_USE_DISCARD
+  #ifdef FASTUIDRAW_STROKE_COVER_THEN_DRAW
     {
-      float dd, q;
-      q = 1.0 - fastuidraw_stroking_on_boundary;
-      dd = max(q, fwidth(q));
-      alpha *= q / dd;
-
-      /* Rather than discarding on opaque passes, we could
-         instead render in a single pass and be Ok with
-         having anti-alias smudge sometimes occlude
-         non-anti-aliased fragments. Doing this requires
-         that means that we for anti-aliased rendering
-         there is only a single rendering pass.
-
-         Another approach is to have two passes where
-         the 1st pass writes to a coverage buffer with
-         a "blend mode" of MAX and the 2nd pass reads
-         the coverage value, resets it to zero, and emits
-         that as alpha. This approach, however requires
-         either framebuffer_fetch OR fragment_shader_interlock.
-       */
-      if(render_pass == uint(fastuidraw_stroke_aa_pass1) && alpha < 1.0 - 1.0 / 255.0)
+      if (render_pass == uint(fastuidraw_stroke_aa_pass1))
         {
-          FASTUIDRAW_DISCARD;
-        }
+          float dd, q;
 
-      if(render_pass != uint(fastuidraw_stroke_aa_pass2))
-        {
-          alpha = 1.0;
+          // modulate by coverage to boundary
+          q = 1.0 - fastuidraw_stroking_on_boundary;
+          dd = max(q, fwidth(q));
+          alpha *= q / dd;
+          fastuidraw_max_auxilary(uint(255.0 * alpha));
+          alpha = 0.0;
         }
     }
   #else
@@ -164,6 +167,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
         {
           float dd, q;
 
+          // modulate by coverage to boundary
           q = 1.0 - fastuidraw_stroking_on_boundary;
           dd = max(q, fwidth(q));
           alpha *= q / dd;

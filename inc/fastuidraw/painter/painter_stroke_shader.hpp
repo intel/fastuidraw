@@ -172,6 +172,7 @@ namespace fastuidraw
 
     /*!
       Set the value returned by aa_shader_pass1(void) const.
+      Initial value is NULL.
       \param sh value to use
      */
     PainterStrokeShader&
@@ -186,6 +187,7 @@ namespace fastuidraw
 
     /*!
       Set the value returned by aa_shader_pass2(void) const.
+      Initial value is NULL.
       \param sh value to use
      */
     PainterStrokeShader&
@@ -201,13 +203,14 @@ namespace fastuidraw
 
     /*!
       Set the value returned by aa_action_pass1(void) const.
+      Initial value is NULL.
       \param sh value to use
      */
     PainterStrokeShader&
     aa_action_pass1(const reference_counted_ptr<const PainterDraw::Action> &v);
 
     /*!
-      Returns the action to be called before the 1st pass,
+      Returns the action to be called before the 2nd pass,
       a return value of NULL indicates to not have an action
       (and thus no draw-call break).
      */
@@ -216,6 +219,7 @@ namespace fastuidraw
 
     /*!
       Set the value returned by aa_action_pass2(void) const.
+      Initial value is NULL.
       \param sh value to use
      */
     PainterStrokeShader&

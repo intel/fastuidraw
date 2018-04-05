@@ -202,23 +202,47 @@ namespace fastuidraw
         use_hw_clip_planes(bool);
 
         /*!
-          Sets the non-dashed stroke shader to use discard
-          instead of on opaque pass stroking a small amount
-          less in width to allow for the translusent
-          anti-alias pass to cover that small amount.
-          Under severe transformation distortion of the
-          path, gives better anti-aliasing, but at cost
-          of shader using discard.
+          Sets how the default stroke shaders perform anti-aliasing.
+          If the value is \ref PainterStrokeShader::cover_then_draw, then
+          UberShaderParams::provide_auxilary_image_buffer() must be true.
          */
-        bool
-        non_dashed_stroke_shader_uses_discard(void) const;
+        enum PainterStrokeShader::type_t
+        default_stroke_shader_aa_type(void) const;
 
         /*!
-          Set the value returned by non_dashed_stroke_shader_uses_discard(void) const.
-          Default value is false.
+          Set the value returned by default_stroke_shader_aa_type(void) const.
+          Default value is \ref PainterStrokeShader::draws_solid_then_fuzz.
          */
         ConfigurationGLSL&
-        non_dashed_stroke_shader_uses_discard(bool);
+        default_stroke_shader_aa_type(enum PainterStrokeShader::type_t);
+
+        /*!
+          The value to use for the default stroke shaders
+          for \ref PainterStrokeShader::aa_action_pass1().
+         */
+        const reference_counted_ptr<const PainterDraw::Action>&
+        default_stroke_shader_aa_pass1_action(void) const;
+
+        /*!
+          Set the value returned by default_stroke_shader_aa_pass1_action(void) const.
+          Default value is NULL.
+         */
+        ConfigurationGLSL&
+        default_stroke_shader_aa_pass1_action(const reference_counted_ptr<const PainterDraw::Action> &action);
+
+        /*!
+          The value to use for the default stroke shaders
+          for \ref PainterStrokeShader::aa_action_pass2().
+         */
+        const reference_counted_ptr<const PainterDraw::Action>&
+        default_stroke_shader_aa_pass2_action(void) const;
+
+        /*!
+          Set the value returned by default_stroke_shader_aa_pass2_action(void) const.
+          Default value is NULL.
+         */
+        ConfigurationGLSL&
+        default_stroke_shader_aa_pass2_action(const reference_counted_ptr<const PainterDraw::Action> &action);
 
       private:
         void *m_d;
@@ -251,6 +275,13 @@ namespace fastuidraw
          */
         BindingPoints&
         operator=(const BindingPoints &rhs);
+
+        /*!
+          Swap operation
+          \param obj object with which to swap
+        */
+        void
+        swap(BindingPoints &obj);
 
         /*!
           Specifies the binding point for ColorStopAtlas::backing_store().
@@ -454,6 +485,13 @@ namespace fastuidraw
          */
         UberShaderParams&
         operator=(const UberShaderParams &rhs);
+
+        /*!
+          Swap operation
+          \param obj object with which to swap
+        */
+        void
+        swap(UberShaderParams &obj);
 
         /*!
           Specifies the normalized device z-coordinate convention
@@ -723,7 +761,20 @@ namespace fastuidraw
           If true, provide an image2D (of type r8) uniform to
           which to write coverage value for multi-pass shaders
           (in particular shader based ant-aliased stroking).
-          Default value is false.
+          Writing to the buffer should not be done, instead
+          one should use the functions:
+
+          - uint fastuidraw_clear_auxilary(void): clears the value to 0 and returns the old value
+          - void fastuidraw_max_auxilary(in uint v): maxes the value with the passed value
+
+          If the macro FASTUIDRAW_PAINTER_INTERLOCK() is defined
+          in the fragment shader source before the code provided
+          by construct_shader(), then access with the buffer
+          (to provide functions clearAuxilary() and maxAuxilary())
+          will use imageLoad and imageStore with a call to the
+          macro-function FASTUIDRAW_PAINTER_INTERLOCK()
+          to avoid race-read-writes to the image buffer; if the
+          is not defined then atomic ops are used instead.
          */
         bool
         provide_auxilary_image_buffer(void) const;

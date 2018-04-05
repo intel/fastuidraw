@@ -385,25 +385,26 @@ namespace fastuidraw
         separate_program_for_discard(bool v);
 
         /*!
-          For non-dashed anti-aliased stroking, the opaque pass draws
-          the stroking at about 1-pixel less and the anti-alias pass
-          draws after and underneath the entire stroke width with an
-          alpha value. Under severe transformation distrotion, the opaque
-          pass is unable to leave enough uncovered for the anti-alias
-          pass (but only under severe skew/perspective does this
-          occur). When discard is used, both passes cover the entire
-          stroking width, but the opaque pass discards when coverage
-          is less than 100%.
+          Sets how the default stroke shaders perform anti-aliasing.
+          For value \ref PainterStrokeShader::draws_solid_then_fuzz,
+          the first pass strokes 1-pixel less and views all such
+          such covered pixels as entirely covered. The 2nd pass draws
+          underneath the 1st pass (so that it is obscured by it)
+          the entire stroke width with a shader-computed coverage value.
+          However, the anti-alias pass for not obscure itself, thus
+          some pixels might be double covered on the anti-aliasing
+          which will result in rendering artifacts when stroking a
+          path transparently.
          */
-        bool
-        non_dashed_stroke_shader_uses_discard(void) const;
+        enum PainterStrokeShader::type_t
+        default_stroke_shader_aa_type(void) const;
 
         /*!
-          Set the value returned by non_dashed_stroke_shader_uses_discard(void) const.
-          Default value is false.
+          Set the value returned by default_stroke_shader_aa_type(void) const.
+          Default value is \ref PainterStrokeShader::draws_solid_then_fuzz.
          */
         ConfigurationGL&
-        non_dashed_stroke_shader_uses_discard(bool);
+        default_stroke_shader_aa_type(enum PainterStrokeShader::type_t);
 
         /*!
           Returns the blend_type() to be used by the PainterBackendGL,

@@ -1606,6 +1606,8 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
   c_array<int> index_adjusts;
   c_array<int> z_increments;
   c_array<int> start_zs;
+  reference_counted_ptr<PainterBlendShader> old_blend;
+  BlendMode::packed_value old_blend_mode;
 
   if(join_data == nullptr)
     {
@@ -1691,6 +1693,12 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
   if(with_anti_aliasing)
     {
       d->m_core->draw_break(shader.aa_action_pass1());
+      if (shader.aa_type() == PainterStrokeShader::cover_then_draw)
+        {
+          old_blend = blend_shader();
+          old_blend_mode = blend_mode();
+          blend_shader(PainterEnums::blend_porter_duff_dst);
+        }
     }
 
   if(modify_z)
@@ -1730,11 +1738,15 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
          stroke attribute data, thus the written
          depth is always startz.
        */
+      if (shader.aa_type() == PainterStrokeShader::cover_then_draw)
+        {
+          blend_shader(old_blend, old_blend_mode);
+        }
       d->m_core->draw_break(shader.aa_action_pass2());
       d->draw_generic(shader.aa_shader_pass2(), draw, attrib_chunks,
                       index_chunks, index_adjusts,
                       fastuidraw::c_array<const unsigned int>(),
-                      startz, call_back);
+                      d->m_current_z, call_back);
     }
 
   if(modify_z)
