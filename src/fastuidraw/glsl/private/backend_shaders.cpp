@@ -349,7 +349,6 @@ ShaderSetCreator(enum PainterBlendShader::shader_type blend_tp,
                                             .remove_macro("FASTUIDRAW_STROKE_DASHED"),
 
                                             ShaderSource()
-                                            .add_source("//HOLY SHIT BITCH", ShaderSource::from_string)
                                             .add_macro("FASTUIDRAW_STROKE_DASHED")
                                             .add_macro("FASTUIDRAW_STROKE_SOLID_THEN_FUZZ")
                                             .add_macro("FASTUIDRAW_STROKE_ONLY_SUPPORT_NON_AA")

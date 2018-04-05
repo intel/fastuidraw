@@ -281,7 +281,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
   for(unsigned int i = 0; i < shaders.size(); ++i)
     {
       std::ostringstream start_comment;
-      start_comment << "/////////////////////////////////////////\n"
+      start_comment << "\n/////////////////////////////////////////\n"
                     << "// Start Shader #" << shaders[i]->ID() << "\n";
       dst.add_source(start_comment.str().c_str(), ShaderSource::from_string);
       pre_stream(dst, shaders[i], datum);

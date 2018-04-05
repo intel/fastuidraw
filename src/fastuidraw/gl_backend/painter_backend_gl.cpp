@@ -157,18 +157,21 @@ namespace
   {
   public:
     explicit
-    DiscardItemShaderFilter(enum fastuidraw::gl::PainterBackendGL::program_type_t tp):
-      m_tp(tp)
+    DiscardItemShaderFilter(enum fastuidraw::gl::PainterBackendGL::program_type_t tp,
+                            bool use_hw_clip_planes):
+      m_tp(tp),
+      m_use_hw_clip_planes(use_hw_clip_planes)
     {}
 
     bool
     use_shader(const fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> &shader) const
     {
-      return use_shader_helper(m_tp, shader->uses_discard());
+      return use_shader_helper(m_tp, shader->uses_discard() || !m_use_hw_clip_planes);
     }
 
   private:
     enum fastuidraw::gl::PainterBackendGL::program_type_t m_tp;
+    bool m_use_hw_clip_planes;
   };
 
   class ImageBarrier:public fastuidraw::PainterDraw::Action
@@ -1489,7 +1492,7 @@ build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
 {
   fastuidraw::glsl::ShaderSource vert, frag;
   program_ref return_value;
-  DiscardItemShaderFilter item_filter(tp);
+  DiscardItemShaderFilter item_filter(tp, m_params.use_hw_clip_planes());
   fastuidraw::c_string discard_macro;
 
   if(tp == fastuidraw::gl::PainterBackendGL::program_without_discard)
@@ -1866,18 +1869,21 @@ on_pre_draw(void)
           if (d->m_shader_uniforms_loc[program_without_discard] != -1)
             {
               prs[program_without_discard]->use_program();
-              Uniform(d->m_shader_uniforms_loc[program_without_discard], ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
+              Uniform(d->m_shader_uniforms_loc[program_without_discard], ubo_size(),
+                      d->m_uniform_values_ptr.reinterpret_pointer<float>());
             }
 
           if (d->m_shader_uniforms_loc[program_with_discard] != -1)
             {
               prs[program_with_discard]->use_program();
-              Uniform(d->m_shader_uniforms_loc[program_with_discard], ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
+              Uniform(d->m_shader_uniforms_loc[program_with_discard], ubo_size(),
+                      d->m_uniform_values_ptr.reinterpret_pointer<float>());
             }
         }
       else if(d->m_shader_uniforms_loc[program_all] != -1)
         {
-          Uniform(d->m_shader_uniforms_loc[program_all], ubo_size(), d->m_uniform_values_ptr.reinterpret_pointer<float>());
+          Uniform(d->m_shader_uniforms_loc[program_all], ubo_size(),
+                  d->m_uniform_values_ptr.reinterpret_pointer<float>());
         }
     }
 }
