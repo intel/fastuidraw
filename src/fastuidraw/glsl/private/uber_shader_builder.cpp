@@ -280,6 +280,10 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
   /* first stream all of the item_shaders with predefined macros. */
   for(unsigned int i = 0; i < shaders.size(); ++i)
     {
+      std::ostringstream start_comment;
+      start_comment << "/////////////////////////////////////////\n"
+                    << "// Start Shader #" << shaders[i]->ID() << "\n";
+      dst.add_source(start_comment.str().c_str(), ShaderSource::from_string);
       pre_stream(dst, shaders[i], datum);
 
       std::ostringstream str;

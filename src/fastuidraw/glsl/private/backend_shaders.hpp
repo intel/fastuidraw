@@ -27,9 +27,15 @@ namespace fastuidraw { namespace glsl { namespace detail {
 /* Values for render pass for stroke shading */
 enum uber_stroke_render_pass_t
   {
+    /*
+      uber_stroke_non_aa must be 0 because when we make a special shader
+      with only supporting this render pass, that pass takes no bits,
+      which means bit-extract always returns 0
+    */
+    uber_stroke_non_aa,
+
     uber_stroke_aa_pass1,
     uber_stroke_aa_pass2,
-    uber_stroke_non_aa,
 
     uber_number_passes
   };
@@ -61,8 +67,12 @@ class ShaderSetCreatorConstants
 public:
   ShaderSetCreatorConstants(void);
 
-  void
-  add_constants(ShaderSource &src);
+protected:
+  ShaderSource&
+  add_constants(ShaderSource &src, bool render_pass_varies) const;
+
+  ShaderSource&
+  remove_constants(ShaderSource &src) const;
 
   uint32_t m_stroke_render_pass_num_bits, m_stroke_dash_style_num_bits;
   uint32_t m_stroke_width_pixels_bit0, m_stroke_render_pass_bit0, m_stroke_dash_style_bit0;
@@ -113,6 +123,7 @@ private:
 
   enum PainterStrokeShader::type_t m_stroke_tp;
   reference_counted_ptr<PainterItemShader> m_uber_stroke_shader, m_uber_dashed_stroke_shader;
+  reference_counted_ptr<PainterItemShader> m_dashed_discard_stroke_shader;
   reference_counted_ptr<const PainterDraw::Action> m_stroke_action_pass1;
   reference_counted_ptr<const PainterDraw::Action> m_stroke_action_pass2;
 };

@@ -370,9 +370,17 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   int stroking_pass;
   const float anti_alias_thickness = 1.5;
 
-  render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
-                                        fastuidraw_stroke_sub_shader_render_pass_num_bits,
-                                        sub_shader);
+  #ifndef FASTUIDRAW_STROKE_ONLY_SUPPORT_NON_AA
+    {
+      render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
+                                            fastuidraw_stroke_sub_shader_render_pass_num_bits,
+                                            sub_shader);
+    }
+  #else
+    {
+      render_pass = uint(fastuidraw_stroke_non_aa);
+    }
+  #endif
 
   width_pixels = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_width_pixels_bit0,
                                          fastuidraw_stroke_sub_shader_width_pixels_num_bits,
@@ -381,7 +389,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   stroke_width_pixels = (width_pixels == uint(1));
   stroking_pass = int(render_pass);
-
 
   vec2 p;
   vec2 position, pre_offset, auxilary_offset, offset;

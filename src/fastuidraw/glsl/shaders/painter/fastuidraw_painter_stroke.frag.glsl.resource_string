@@ -38,12 +38,20 @@ vec4
 fastuidraw_gl_frag_main(in uint sub_shader,
                         in uint shader_data_offset)
 {
-  float alpha = 1.0;
+  float alpha = 1.0, red = 1.0;
   uint render_pass, dash_style;
 
-  render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
-                                        fastuidraw_stroke_sub_shader_render_pass_num_bits,
-                                        sub_shader);
+  #ifndef FASTUIDRAW_STROKE_ONLY_SUPPORT_NON_AA
+    {
+      render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
+                                            fastuidraw_stroke_sub_shader_render_pass_num_bits,
+                                            sub_shader);
+    }
+  #else
+    {
+      render_pass = uint(fastuidraw_stroke_non_aa);
+    }
+  #endif
 
   #ifdef FASTUIDRAW_STROKE_COVER_THEN_DRAW
     {

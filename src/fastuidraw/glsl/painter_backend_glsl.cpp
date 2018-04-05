@@ -249,7 +249,6 @@ PainterBackendGLSLPrivate(fastuidraw::glsl::PainterBackendGLSL *p,
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE", uint32_log2(m_p->image_atlas()->index_tile_size()))
     .add_macro("FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE", m_p->image_atlas()->color_tile_size());
   add_enums(m_constant_code);
-  shader_constants.add_constants(m_constant_code);
   add_texture_size_constants(m_constant_code);
 
   m_vert_shader_utils
