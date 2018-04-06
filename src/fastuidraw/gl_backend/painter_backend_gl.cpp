@@ -361,8 +361,8 @@ namespace
       return q;
     }
 
-    void
-    make_auxilary_buffer_ready(GLenum internalFormat)
+    GLuint
+    auxilary_buffer(GLenum internalFormat)
     {
       if (m_auxilary_buffer
           && (m_auxilary_buffer_format != internalFormat
@@ -393,10 +393,13 @@ namespace
           m_auxilary_buffer_resolution = m_dimensions;
           m_auxilary_buffer_format = internalFormat;
         }
+
+      return m_auxilary_buffer;
     }
 
     fastuidraw::ivec2 m_dimensions;
     fastuidraw::PainterBackend::Surface::Viewport m_viewport;
+  private:
     GLuint m_auxilary_buffer;
     GLenum m_auxilary_buffer_format;
     fastuidraw::ivec2 m_auxilary_buffer_resolution;
@@ -1032,7 +1035,7 @@ PainterBackendGLPrivate::
       glDeleteSamplers(1, &m_linear_filter_sampler);
     }
 
-  if(m_pool != nullptr)
+  if(m_pool)
     {
       FASTUIDRAWdelete(m_pool);
     }
@@ -1315,8 +1318,7 @@ configure_backend(void)
     .colorstop_atlas_backing(colorstop_tp)
     .provide_auxilary_image_buffer(m_params.provide_auxilary_image_buffer());
 
-  /* now allocate m_pool after adjusting m_params
-   */
+  /* now allocate m_pool after adjusting m_params */
   m_pool = FASTUIDRAWnew painter_vao_pool(m_params, m_p->configuration_base(),
                                           m_tex_buffer_support,
                                           m_uber_shader_builder_params.binding_points());
@@ -1855,10 +1857,8 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface)
   if(uber_params.provide_auxilary_image_buffer())
     {
       GLenum internalFmt(d->m_interlock_type == no_interlock ? GL_R32UI : GL_R8UI);
-
-      surface_gl->make_auxilary_buffer_ready(internalFmt);
       glBindImageTexture(binding_points.auxilary_image_buffer(),
-                         surface_gl->m_auxilary_buffer, //texture
+                         surface_gl->auxilary_buffer(internalFmt), //texture
                          0, //level
                          GL_FALSE, //layered
                          0, //layer
@@ -1917,26 +1917,23 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface)
       prs[program_all]->use_program();
     }
 
-  if(d->m_uber_shader_builder_params.use_ubo_for_uniforms())
-    {
-      /* Grab the buffer, map it, fill it and leave it bound. */
-      GLuint ubo;
-      unsigned int size_generics(ubo_size());
-      unsigned int size_bytes(sizeof(generic_data) * size_generics);
-      void *ubo_mapped;
+  /* Grab the buffer, map it, fill it and leave it bound. */
+  GLuint ubo;
+  unsigned int size_generics(ubo_size());
+  unsigned int size_bytes(sizeof(generic_data) * size_generics);
+  void *ubo_mapped;
 
-      ubo = d->m_pool->request_uniform_ubo(size_bytes, GL_UNIFORM_BUFFER);
-      FASTUIDRAWassert(ubo != 0);
-      // request_uniform_ubo also binds the buffer for us
-      ubo_mapped = glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
-                                    GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
+  ubo = d->m_pool->request_uniform_ubo(size_bytes, GL_UNIFORM_BUFFER);
+  FASTUIDRAWassert(ubo != 0);
+  // request_uniform_ubo also binds the buffer for us
+  ubo_mapped = glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
+                                GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
 
-      fill_uniform_buffer(c_array<generic_data>(static_cast<generic_data*>(ubo_mapped), size_generics));
-      glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
-      glUnmapBuffer(GL_UNIFORM_BUFFER);
+  fill_uniform_buffer(c_array<generic_data>(static_cast<generic_data*>(ubo_mapped), size_generics));
+  glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
+  glUnmapBuffer(GL_UNIFORM_BUFFER);
 
-      glBindBufferBase(GL_UNIFORM_BUFFER, d->m_uber_shader_builder_params.binding_points().uniforms_ubo(), ubo);
-    }
+  glBindBufferBase(GL_UNIFORM_BUFFER, d->m_uber_shader_builder_params.binding_points().uniforms_ubo(), ubo);
 }
 
 void
@@ -1985,6 +1982,9 @@ on_post_draw(void)
 
   glActiveTexture(GL_TEXTURE0 + binding_points.colorstop_atlas());
   glBindTexture(ColorStopAtlasGL::texture_bind_target(), 0);
+
+  glBindImageTexture(binding_points.auxilary_image_buffer(), 0,
+                     0, GL_FALSE, 0, GL_READ_ONLY, GL_R8UI);
 
   switch(d->m_params.data_store_backing())
     {
