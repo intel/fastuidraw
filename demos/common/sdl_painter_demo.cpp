@@ -196,16 +196,16 @@ sdl_painter_demo(const std::string &about_text,
                                  "one for those item shaders that have discard and one for "
                                  "those that do not",
                                  *this),
+
+  m_painter_options_affected_by_context("PainterBackendGL Options that can be overridden "
+                                        "by version and extension supported by GL/GLES context",
+                                        *this),
   m_provide_auxilary_image_buffer(m_painter_params.provide_auxilary_image_buffer(),
                                   "provide_auxilary_image_buffer",
                                   "Provide an auxilary image buffer requires image-load-store; "
                                   "will remove rendering artifacts on shader-based anti-aliased "
                                   "path stroking",
                                   *this),
-
-  m_painter_options_affected_by_context("PainterBackendGL Options that can be overridden "
-                                        "by version and extension supported by GL/GLES context",
-                                        *this),
   m_use_hw_clip_planes(m_painter_params.use_hw_clip_planes(),
                        "painter_use_hw_clip_planes",
                        "If true, use HW clip planes (i.e. gl_ClipDistance) for clipping",
@@ -240,10 +240,6 @@ sdl_painter_demo(const std::string &about_text,
   m_assign_binding_points(m_painter_params.assign_binding_points(),
                           "painter_assign_binding_points",
                           "If true, use layout(binding=) in GLSL shader on samplers and buffers", *this),
-  m_use_ubo_for_uniforms(m_painter_params.use_ubo_for_uniforms(),
-                         "painter_use_ubo_for_uniforms",
-                         "If true, use a UBO instead of uniforms to hold uniform values common to all items",
-                         *this),
   m_blend_type(m_painter_params.blend_type(),
 	       enumerated_string_type<enum fastuidraw::PainterBlendShader::shader_type>()
 	       .add_entry("framebuffer_fetch",
@@ -380,7 +376,6 @@ init_gl(int w, int h)
     .assign_layout_to_vertex_shader_inputs(m_assign_layout_to_vertex_shader_inputs.m_value)
     .assign_layout_to_varyings(m_assign_layout_to_varyings.m_value)
     .assign_binding_points(m_assign_binding_points.m_value)
-    .use_ubo_for_uniforms(m_use_ubo_for_uniforms.m_value)
     .separate_program_for_discard(m_separate_program_for_discard.m_value)
     .provide_auxilary_image_buffer(m_provide_auxilary_image_buffer.m_value)
     .default_stroke_shader_aa_type(m_provide_auxilary_image_buffer.m_value ?
@@ -397,10 +392,12 @@ init_gl(int w, int h)
   if(m_print_painter_config.m_value)
     {
       std::cout << "\nPainterBackendGL configuration:\n";
-#define LAZY(X) do { \
-    std::cout << std::setw(40) << #X": " << std::setw(8) << m_backend->configuration_gl().X() \
-              << "  (requested " << m_painter_params.X() << ")\n";           \
-  } while(0)
+
+#define LAZY(X) do {                                                    \
+        std::cout << std::setw(40) << #X": " << std::setw(8)            \
+                  << m_backend->configuration_gl().X()                  \
+                  << "  (requested " << m_painter_params.X() << ")\n";  \
+      } while(0)
 
       LAZY(attributes_per_buffer);
       LAZY(indices_per_buffer);
@@ -416,7 +413,6 @@ init_gl(int w, int h)
       LAZY(data_blocks_per_store_buffer);
       LAZY(assign_layout_to_vertex_shader_inputs);
       LAZY(assign_layout_to_varyings);
-      LAZY(use_ubo_for_uniforms);
       std::cout << std::setw(40) << "alignment:" << std::setw(8) << m_backend->configuration_base().alignment()
                 << "  (requested " << m_painter_base_params.alignment()
                 << ")\n" << std::setw(40) << "data_store_backing:"

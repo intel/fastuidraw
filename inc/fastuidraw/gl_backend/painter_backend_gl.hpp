@@ -356,20 +356,6 @@ namespace fastuidraw
         assign_binding_points(bool v);
 
         /*!
-          If true, the uber-shader will use a UBO for uniform
-          values common to all painter calls. Default value
-          is false.
-         */
-        bool
-        use_ubo_for_uniforms(void) const;
-
-        /*!
-          Set the value for use_ubo_for_uniforms(void) const
-        */
-        ConfigurationGL&
-        use_ubo_for_uniforms(bool v);
-
-        /*!
           If true, item and blend shaders are broken into
           two classes: those that use discard and those that
           do not. Each class is then realized as a seperate

@@ -241,7 +241,6 @@ namespace
     fastuidraw::glsl::ShaderSource m_front_matter_vert;
     fastuidraw::glsl::ShaderSource m_front_matter_frag;
     program_set m_programs;
-    fastuidraw::vecN<GLint, fastuidraw::gl::PainterBackendGL::number_program_types> m_shader_uniforms_loc;
     std::vector<fastuidraw::generic_data> m_uniform_values;
     fastuidraw::c_array<fastuidraw::generic_data> m_uniform_values_ptr;
     painter_vao_pool *m_pool;
@@ -424,7 +423,6 @@ namespace
       m_assign_layout_to_vertex_shader_inputs(true),
       m_assign_layout_to_varyings(false),
       m_assign_binding_points(true),
-      m_use_ubo_for_uniforms(false),
       m_separate_program_for_discard(true),
       m_default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz),
       m_blend_type(fastuidraw::PainterBlendShader::dual_src),
@@ -448,7 +446,6 @@ namespace
     bool m_assign_layout_to_vertex_shader_inputs;
     bool m_assign_layout_to_varyings;
     bool m_assign_binding_points;
-    bool m_use_ubo_for_uniforms;
     bool m_separate_program_for_discard;
     enum fastuidraw::PainterStrokeShader::type_t m_default_stroke_shader_aa_type;
     enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
@@ -1303,7 +1300,7 @@ configure_backend(void)
     .assign_layout_to_vertex_shader_inputs(m_params.assign_layout_to_vertex_shader_inputs())
     .assign_layout_to_varyings(m_params.assign_layout_to_varyings())
     .assign_binding_points(m_params.assign_binding_points())
-    .use_ubo_for_uniforms(m_params.use_ubo_for_uniforms())
+    .use_ubo_for_uniforms(true)
     .z_coordinate_convention(fastuidraw::glsl::PainterBackendGLSL::z_minus_1_to_1)
     .negate_normalized_y_coordinate(false)
     .vert_shader_use_switch(m_params.vert_shader_use_switch())
@@ -1342,16 +1339,12 @@ configure_source_front_matter(void)
         .add_sampler_initializer("fastuidraw_imageIndexAtlas", binding_points.image_atlas_index_tiles())
         .add_sampler_initializer("fastuidraw_glyphTexelStoreUINT", binding_points.glyph_atlas_texel_store_uint())
         .add_sampler_initializer("fastuidraw_glyphGeometryDataStore", binding_points.glyph_atlas_geometry_store())
-        .add_sampler_initializer("fastuidraw_colorStopAtlas", binding_points.colorstop_atlas());
+        .add_sampler_initializer("fastuidraw_colorStopAtlas", binding_points.colorstop_atlas())
+        .add_uniform_block_binding("fastuidraw_uniform_block", binding_points.uniforms_ubo());
 
       if(m_uber_shader_builder_params.have_float_glyph_texture_atlas())
         {
           m_initializer.add_sampler_initializer("fastuidraw_glyphTexelStoreFLOAT", binding_points.glyph_atlas_texel_store_float());
-        }
-
-      if(m_uber_shader_builder_params.use_ubo_for_uniforms())
-        {
-          m_initializer.add_uniform_block_binding("fastuidraw_uniform_block", binding_points.uniforms_ubo());
         }
 
       switch(m_uber_shader_builder_params.data_store_backing())
@@ -1541,15 +1534,11 @@ build_programs(void)
       tp = static_cast<enum fastuidraw::gl::PainterBackendGL::program_type_t>(i);
       m_programs[tp] = build_program(tp);
       FASTUIDRAWassert(m_programs[tp]->link_success());
-      m_shader_uniforms_loc[tp] = m_programs[tp]->uniform_location("fastuidraw_shader_uniforms");
     }
 
-  if(!m_uber_shader_builder_params.use_ubo_for_uniforms())
-    {
-      m_uniform_values.resize(m_p->ubo_size());
-      m_uniform_values_ptr = fastuidraw::c_array<fastuidraw::generic_data>(&m_uniform_values[0],
-                                                                           m_uniform_values.size());
-    }
+  m_uniform_values.resize(m_p->ubo_size());
+  m_uniform_values_ptr = fastuidraw::c_array<fastuidraw::generic_data>(&m_uniform_values[0],
+                                                                       m_uniform_values.size());
 }
 
 PainterBackendGLPrivate::program_ref
@@ -1710,7 +1699,6 @@ setget_implement(enum fastuidraw::gl::PainterBackendGL::data_store_backing_t, da
 setget_implement(bool, assign_layout_to_vertex_shader_inputs)
 setget_implement(bool, assign_layout_to_varyings)
 setget_implement(bool, assign_binding_points)
-setget_implement(bool, use_ubo_for_uniforms)
 setget_implement(bool, separate_program_for_discard)
 setget_implement(enum fastuidraw::PainterStrokeShader::type_t, default_stroke_shader_aa_type)
 setget_implement(enum fastuidraw::PainterBlendShader::shader_type, blend_type)
@@ -1948,32 +1936,6 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface)
       glUnmapBuffer(GL_UNIFORM_BUFFER);
 
       glBindBufferBase(GL_UNIFORM_BUFFER, d->m_uber_shader_builder_params.binding_points().uniforms_ubo(), ubo);
-    }
-  else
-    {
-      /* the uniform is type float[] */
-      fill_uniform_buffer(d->m_uniform_values_ptr);
-      if(d->m_params.separate_program_for_discard())
-        {
-          if (d->m_shader_uniforms_loc[program_without_discard] != -1)
-            {
-              prs[program_without_discard]->use_program();
-              Uniform(d->m_shader_uniforms_loc[program_without_discard], ubo_size(),
-                      d->m_uniform_values_ptr.reinterpret_pointer<float>());
-            }
-
-          if (d->m_shader_uniforms_loc[program_with_discard] != -1)
-            {
-              prs[program_with_discard]->use_program();
-              Uniform(d->m_shader_uniforms_loc[program_with_discard], ubo_size(),
-                      d->m_uniform_values_ptr.reinterpret_pointer<float>());
-            }
-        }
-      else if(d->m_shader_uniforms_loc[program_all] != -1)
-        {
-          Uniform(d->m_shader_uniforms_loc[program_all], ubo_size(),
-                  d->m_uniform_values_ptr.reinterpret_pointer<float>());
-        }
     }
 }
 

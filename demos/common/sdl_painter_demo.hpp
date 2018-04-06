@@ -101,11 +101,11 @@ private:
   command_line_argument_value<bool> m_uber_blend_use_switch;
   command_line_argument_value<bool> m_unpack_header_and_brush_in_frag_shader;
   command_line_argument_value<bool> m_separate_program_for_discard;
-  command_line_argument_value<bool> m_provide_auxilary_image_buffer;
 
   /* Painter params that can be overridden by properties of GL context
    */
   command_separator m_painter_options_affected_by_context;
+  command_line_argument_value<bool> m_provide_auxilary_image_buffer;
   command_line_argument_value<bool> m_use_hw_clip_planes;
   command_line_argument_value<int> m_painter_alignment;
   command_line_argument_value<int> m_painter_data_blocks_per_buffer;
@@ -113,7 +113,6 @@ private:
   command_line_argument_value<bool> m_assign_layout_to_vertex_shader_inputs;
   command_line_argument_value<bool> m_assign_layout_to_varyings;
   command_line_argument_value<bool> m_assign_binding_points;
-  command_line_argument_value<bool> m_use_ubo_for_uniforms;
   enumerated_command_line_argument_value<enum fastuidraw::PainterBlendShader::shader_type> m_blend_type;
 
   command_separator m_demo_options;
