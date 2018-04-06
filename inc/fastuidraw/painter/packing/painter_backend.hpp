@@ -314,7 +314,8 @@ namespace fastuidraw
     on_post_draw(void) = 0;
 
     /*!
-      "Map" a PainterDraw for filling of data.
+      To be implemented by a derived class to return a PainterDraw
+      for filling of data.
      */
     virtual
     reference_counted_ptr<const PainterDraw>
