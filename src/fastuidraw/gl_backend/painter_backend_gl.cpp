@@ -246,9 +246,6 @@ namespace
     fastuidraw::c_array<fastuidraw::generic_data> m_uniform_values_ptr;
     painter_vao_pool *m_pool;
 
-    GLuint m_auxilary_buffer;
-    fastuidraw::ivec2 m_auxilary_resolution;
-
     fastuidraw::gl::PainterBackendGL *m_p;
   };
 
@@ -337,14 +334,73 @@ namespace
   {
   public:
     SurfaceGLPrivate(fastuidraw::ivec2 d):
-      m_dimensions(d)
+      m_dimensions(d),
+      m_auxilary_buffer(0),
+      m_auxilary_buffer_format(GL_INVALID_ENUM),
+      m_auxilary_buffer_resolution(0, 0)
     {
       m_viewport.m_dimensions = d;
       m_viewport.m_origin = fastuidraw::ivec2(0, 0);
     }
 
+    ~SurfaceGLPrivate()
+    {
+      if(m_auxilary_buffer)
+        {
+          glDeleteTextures(1, &m_auxilary_buffer);
+        }
+    }
+
+    static
+    fastuidraw::gl::PainterBackendGL::SurfaceGL*
+    surface_gl(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface> &surface)
+    {
+      fastuidraw::gl::PainterBackendGL::SurfaceGL *q;
+
+      FASTUIDRAWassert(dynamic_cast<fastuidraw::gl::PainterBackendGL::SurfaceGL*>(surface.get()));
+      q = static_cast<fastuidraw::gl::PainterBackendGL::SurfaceGL*>(surface.get());
+      return q;
+    }
+
+    void
+    make_auxilary_buffer_ready(GLenum internalFormat)
+    {
+      if (m_auxilary_buffer
+          && (m_auxilary_buffer_format != internalFormat
+              || m_auxilary_buffer_resolution.x() < m_dimensions.x()
+              || m_auxilary_buffer_resolution.y() < m_dimensions.y()))
+        {
+          glDeleteTextures(1, &m_auxilary_buffer);
+          m_auxilary_buffer = 0u;
+        }
+
+      if (!m_auxilary_buffer)
+        {
+          fastuidraw::gl::detail::ClearImageSubData clearer;
+
+          glGenTextures(1, &m_auxilary_buffer);
+          FASTUIDRAWassert(m_auxilary_buffer != 0u);
+
+          glActiveTexture(GL_TEXTURE0);
+          glBindTexture(GL_TEXTURE_2D, m_auxilary_buffer);
+          fastuidraw::gl::detail::tex_storage(true, GL_TEXTURE_2D,
+                                              internalFormat, m_dimensions);
+          clearer.clear<GL_TEXTURE_2D>(m_auxilary_buffer, 0,
+                                       0, 0, 0, //origin
+                                       m_dimensions.x(), m_dimensions.y(), 1, //dimensions
+                                       fastuidraw::gl::detail::format_from_internal_format(internalFormat),
+                                       fastuidraw::gl::detail::type_from_internal_format(internalFormat));
+
+          m_auxilary_buffer_resolution = m_dimensions;
+          m_auxilary_buffer_format = internalFormat;
+        }
+    }
+
     fastuidraw::ivec2 m_dimensions;
     fastuidraw::PainterBackend::Surface::Viewport m_viewport;
+    GLuint m_auxilary_buffer;
+    GLenum m_auxilary_buffer_format;
+    fastuidraw::ivec2 m_auxilary_buffer_resolution;
   };
 
   class ConfigurationGLPrivate
@@ -966,8 +1022,6 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL 
   m_clip_plane0(GL_INVALID_ENUM),
   m_linear_filter_sampler(0),
   m_pool(nullptr),
-  m_auxilary_buffer(0),
-  m_auxilary_resolution(0, 0),
   m_p(p)
 {
   configure_backend();
@@ -1761,7 +1815,10 @@ fastuidraw::gl::PainterBackendGL::
 on_pre_draw(const reference_counted_ptr<Surface> &surface)
 {
   PainterBackendGLPrivate *d;
+  SurfaceGLPrivate *surface_gl;
+
   d = static_cast<PainterBackendGLPrivate*>(m_d);
+  surface_gl = static_cast<SurfaceGLPrivate*>(SurfaceGLPrivate::surface_gl(surface)->m_d);
 
   /* we delay setting up GL state until on_pre_draw() for several reasons:
        1. the atlases may have been resized, if so the underlying textures
@@ -1779,7 +1836,7 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface)
       glSamplerParameteri(d->m_linear_filter_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
 
-  Surface::Viewport vwp(surface->viewport());
+  const Surface::Viewport &vwp(surface_gl->m_viewport);
   PainterBackendGLSL::viewport(vwp);
 
   glEnable(GL_DEPTH_TEST);
@@ -1809,38 +1866,11 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface)
    */
   if(uber_params.provide_auxilary_image_buffer())
     {
-      ivec2 target_resolution;
-      target_resolution = surface->dimensions();
-
-      if(d->m_auxilary_buffer != 0
-         && (d->m_auxilary_resolution.x() < target_resolution.x()
-             || d->m_auxilary_resolution.y() < target_resolution.y()))
-        {
-          glDeleteTextures(1, &d->m_auxilary_buffer);
-          d->m_auxilary_buffer = 0;
-        }
-
       GLenum internalFmt(d->m_interlock_type == no_interlock ? GL_R32UI : GL_R8UI);
-      if(d->m_auxilary_buffer == 0)
-        {
-          d->m_auxilary_resolution = target_resolution;
 
-          vecN<GLsizei, 2> sz(d->m_auxilary_resolution.x(), d->m_auxilary_resolution.y());
-          vecN<GLint, 2> origin(0, 0);
-          unsigned int bytes_per_pixel(d->m_interlock_type == no_interlock ? 4 : 1);
-          std::vector<uint8_t> bytes(sz.x() * sz.y() * bytes_per_pixel, 0);
-          GLenum bytesType(d->m_interlock_type == no_interlock ? GL_UNSIGNED_INT : GL_UNSIGNED_BYTE);
-
-          glGenTextures(1, &d->m_auxilary_buffer);
-          glActiveTexture(GL_TEXTURE0);
-          glBindTexture(GL_TEXTURE_2D, d->m_auxilary_buffer);
-
-          detail::tex_storage(true, GL_TEXTURE_2D, internalFmt, sz);
-          detail::tex_sub_image(GL_TEXTURE_2D, origin, sz, GL_RED_INTEGER, bytesType, &bytes[0]);
-          glBindTexture(GL_TEXTURE_2D, 0);
-        }
+      surface_gl->make_auxilary_buffer_ready(internalFmt);
       glBindImageTexture(binding_points.auxilary_image_buffer(),
-                         d->m_auxilary_buffer, //texture
+                         surface_gl->m_auxilary_buffer, //texture
                          0, //level
                          GL_FALSE, //layered
                          0, //layer

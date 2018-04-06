@@ -483,6 +483,7 @@ namespace fastuidraw
         dimensions(void) const;
 
       private:
+        friend class PainterBackendGL;
         void *m_d;
       };
 
