@@ -32,7 +32,8 @@ namespace fastuidraw { namespace gl { namespace detail {
 GLenum
 format_from_internal_format(GLenum fmt);
 
-
+GLenum
+type_from_internal_format(GLenum fmt);
 
 class CopyImageSubData
 {
@@ -66,6 +67,30 @@ private:
   mutable enum type_t m_type;
 };
 
+class ClearImageSubData
+{
+public:
+  ClearImageSubData(void);
+
+  template<GLenum texture_target>
+  void
+  clear(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
+        GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type);
+private:
+  enum type_t
+    {
+      use_clear_texture,
+      use_tex_sub_image,
+      uninited,
+    };
+
+  static
+  enum type_t
+  compute_type(void);
+
+  mutable enum type_t m_type;
+};
+
 
 
 template<GLenum texture_target>
@@ -74,11 +99,22 @@ class TextureTargetDimension
 
 ///////////////////////////////////
 // 3D
+#ifdef GL_TEXTURE_3D
+template<>
+class TextureTargetDimension<GL_TEXTURE_3D>
+{
+public:
+  enum { N = 3 };
+  enum { Binding = GL_TEXTURE_BINDING_3D };
+};
+#endif
+
 template<>
 class TextureTargetDimension<GL_TEXTURE_2D_ARRAY>
 {
 public:
   enum { N = 3 };
+  enum { Binding = GL_TEXTURE_BINDING_2D_ARRAY };
 };
 
 #ifdef GL_TEXTURE_CUBE_MAP_ARRAY
@@ -87,6 +123,7 @@ class TextureTargetDimension<GL_TEXTURE_CUBE_MAP_ARRAY>
 {
 public:
   enum { N = 3 };
+  enum { Binding = GL_TEXTURE_BINDING_CUBE_MAP_ARRAY };
 };
 #endif
 
@@ -134,6 +171,7 @@ class TextureTargetDimension<GL_TEXTURE_2D>
 {
 public:
   enum { N = 2 };
+  enum { Binding = GL_TEXTURE_BINDING_2D };
 };
 
 #ifdef GL_TEXTURE_1D_ARRAY
@@ -142,6 +180,7 @@ class TextureTargetDimension<GL_TEXTURE_1D_ARRAY>
 {
 public:
   enum { N = 2 };
+  enum { Binding = GL_TEXTURE_BINDING_1D_ARRAY };
 };
 #endif
 
@@ -151,6 +190,7 @@ class TextureTargetDimension<GL_TEXTURE_RECTANGLE>
 {
 public:
   enum { N = 2 };
+  enum { Binding = GL_TEXTURE_BINDING_RECTANGLE };
 };
 #endif
 
@@ -197,6 +237,7 @@ class TextureTargetDimension<GL_TEXTURE_1D>
 {
 public:
   enum { N = 1 };
+  enum { Binding = GL_TEXTURE_BINDING_1D };
 };
 #endif
 
@@ -565,7 +606,60 @@ public:
   {}
 };
 
+////////////////////////////////
+// ClearImageSubData methods
+template<GLenum texture_target>
+void
+ClearImageSubData::
+clear(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
+      GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type)
+{
+  if (m_type == uninited)
+    {
+      m_type = compute_type();
+    }
 
+  #ifndef FASTUIDRAW_GL_USE_GLES
+    {
+      if (m_type == use_clear_texture)
+        {
+          vecN<uint32_t, 4> zero(0, 0, 0, 0);
+          glClearTexSubImage(texture, level,
+                             xoffset, yoffset, zoffset,
+                             width, height, depth,
+                             format, type,
+                             &zero);
+          return;
+        }
+    }
+  #endif
+
+  vecN<uint32_t, 4> zero(0, 0, 0, 0);
+  unsigned int num_texels(width * height * depth);
+  std::vector<vecN<uint32_t, 4> > zeros(num_texels, zero);
+  GLint old_texture;
+  vecN<GLsizei, TextureTargetDimension<texture_target>::N> offset, sz;
+
+  sz[0] = width;
+  offset[0] = xoffset;
+
+  if(TextureTargetDimension<texture_target>::N >= 2)
+    {
+      sz[1] = height;
+      offset[1] = yoffset;
+    }
+
+  if(TextureTargetDimension<texture_target>::N >= 3)
+    {
+      sz[2] = depth;
+      offset[2] = zoffset;
+    }
+
+  glGetIntegerv(TextureTargetDimension<texture_target>::Binding, &old_texture);
+  glBindTexture(texture_target, texture);
+  tex_sub_image(texture_target, offset, sz, format, type, &zeros[0]);
+  glBindTexture(texture_target, old_texture);
+}
 
 } //namespace detail
 } //namespace gl

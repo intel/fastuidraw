@@ -142,6 +142,67 @@ format_from_internal_format(GLenum fmt)
     }
 }
 
+GLenum
+fastuidraw::gl::detail::
+type_from_internal_format(GLenum fmt)
+{
+  switch(fmt)
+    {
+    default:
+    case GL_R8:
+    case GL_R8UI:
+    case GL_RG8:
+    case GL_RG8UI:
+    case GL_RGB:
+    case GL_RGB8:
+    case GL_RGB8UI:
+    case GL_RGBA:
+    case GL_RGBA8:
+    case GL_RGBA8UI:
+      return GL_UNSIGNED_BYTE;
+
+    case GL_R8I:
+    case GL_RG8I:
+    case GL_RGB8I:
+    case GL_RGBA8I:
+      return GL_BYTE;
+
+    case GL_R16UI:
+    case GL_RG16UI:
+    case GL_RGB16UI:
+    case GL_RGBA16UI:
+      return GL_UNSIGNED_SHORT;
+
+    case GL_R16I:
+    case GL_RG16I:
+    case GL_RGB16I:
+    case GL_RGBA16I:
+      return GL_SHORT;
+
+    case GL_R32UI:
+    case GL_RG32UI:
+    case GL_RGB32UI:
+    case GL_RGBA32UI:
+      return GL_UNSIGNED_INT;
+
+    case GL_R32I:
+    case GL_RG32I:
+    case GL_RGB32I:
+    case GL_RGBA32I:
+      return GL_INT;
+
+    case GL_R16F:
+    case GL_RG16F:
+    case GL_RGB16F:
+    case GL_RGBA16F:
+    case GL_R32F:
+    case GL_RG32F:
+    case GL_RGB32F:
+    case GL_RGBA32F:
+      return GL_FLOAT;
+    }
+}
+
 ////////////////////////////////
 // CopyImageSubData methods
 fastuidraw::gl::detail::CopyImageSubData::
@@ -261,4 +322,32 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
       }
       break;
     }
+}
+
+///////////////////////////////////
+// ClearImageSubData methods
+fastuidraw::gl::detail::ClearImageSubData::
+ClearImageSubData(void):
+  m_type(uninited)
+{}
+
+enum fastuidraw::gl::detail::ClearImageSubData::type_t
+fastuidraw::gl::detail::ClearImageSubData::
+compute_type(void)
+{
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      return use_tex_sub_image;
+    }
+  #else
+    {
+      ContextProperties ctx;
+      if(ctx.version() >= ivec2(4, 4) || ctx.has_extension("GL_ARB_clear_texture"))
+        {
+          return use_clear_texture;
+        }
+
+      return use_tex_sub_image;
+    }
+  #endif
 }
