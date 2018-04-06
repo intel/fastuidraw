@@ -1315,27 +1315,17 @@ packed_value_pool(void)
 
 void
 fastuidraw::Painter::
-target_resolution(int w, int h)
+begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
+      bool reset_z)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  w = t_max(w, 1);
-  h = t_max(h, 1);
-  d->m_resolution.x() = static_cast<float>(w);
-  d->m_resolution.y() = static_cast<float>(h);
+  d->m_core->begin(surface);
+  d->m_resolution = vec2(surface->viewport().m_dimensions);
+  d->m_resolution.x() = std::max(1.0f, d->m_resolution.x());
+  d->m_resolution.y() = std::max(1.0f, d->m_resolution.y());
   d->m_one_pixel_width = 1.0f / d->m_resolution;
-  d->m_core->target_resolution(w, h);
-}
-
-void
-fastuidraw::Painter::
-begin(bool reset_z)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-
-  d->m_core->begin();
 
   if(reset_z)
     {

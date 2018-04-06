@@ -165,6 +165,70 @@ namespace fastuidraw
     };
 
     /*!
+      Surface represents an interface to specify a buffer to
+      which a PainterBackend renders content.
+     */
+    class Surface:public reference_counted<Surface>::default_base
+    {
+    public:
+      /*!
+        A Viewport specifies the sub-region within a Surface
+        to which one renders.
+       */
+      class Viewport
+      {
+      public:
+        Viewport(void):
+          m_origin(0, 0),
+          m_dimensions(1, 1)
+        {}
+
+        /*!
+          Ctor.
+          \param x value with which to initialize x-coordinate of \ref m_origin
+          \param y value with which to initialize y-coordinate of \ref m_origin
+          \param w value with which to initialize x-coordinate of \ref m_dimensions
+          \param h value with which to initialize y-coordinate of \ref m_dimensions
+         */
+        Viewport(int x, int y, int w, int h):
+          m_origin(x, y),
+          m_dimensions(w, h)
+        {}
+
+        /*!
+          The origin of the viewport
+         */
+        ivec2 m_origin;
+
+        /*!
+          The dimensions of the viewport
+         */
+        ivec2 m_dimensions;
+      };
+
+      virtual
+      ~Surface()
+      {}
+
+      /*!
+        To be implemented by a derived class to tell
+        the viewport into the Surface to render.
+       */
+      virtual
+      Viewport
+      viewport(void) const = 0;
+
+      /*!
+        To be implemented by a derived class to tell
+        the dimentions of the Surface to which to
+        render.
+       */
+      virtual
+      ivec2
+      dimensions(void) const = 0;
+    };
+
+    /*!
       Ctor.
       \param glyph_atlas GlyphAtlas for glyphs drawn by the PainterBackend
       \param image_atlas ImageAtlas for images drawn by the PainterBackend
@@ -185,7 +249,7 @@ namespace fastuidraw
 
     /*!
       To be implemented by a derived class to return
-      the number of attributes a PainterDraw retuned
+      the number of attributes a PainterDraw returned
       by map_draw() is guaranteed to hold.
      */
     virtual
@@ -194,22 +258,12 @@ namespace fastuidraw
 
     /*!
       To be implemented by a derived class to return
-      the number of indices a PainterDraw retuned
+      the number of indices a PainterDraw returned
       by map_draw() is guaranteed to hold.
      */
     virtual
     unsigned int
     indices_per_mapping(void) const = 0;
-
-    /*!
-      Informs the PainterBackend what the resolution of
-      the target surface is.
-      \param w width of target resolution
-      \param h height of target resolution
-     */
-    virtual
-    void
-    target_resolution(int w, int h) = 0;
 
     /*!
       Returns a handle to the GlyphAtlas of this
@@ -245,10 +299,11 @@ namespace fastuidraw
       Called just before calling PainterDraw::draw()
       on a sequence of PainterDraw objects who have
       had their PainterDraw::unmap() routine called.
+      \param surface the \ref Surface to which to render content
      */
     virtual
     void
-    on_pre_draw(void) = 0;
+    on_pre_draw(const reference_counted_ptr<Surface> &surface) = 0;
 
     /*!
       Called just after calling PainterDraw::draw()

@@ -40,6 +40,7 @@ protected:
   fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL> m_image_atlas;
   fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> m_glyph_atlas;
   fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL> m_colorstop_atlas;
+  fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendGL::SurfaceGL> m_surface;
   fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendGL> m_backend;
   fastuidraw::reference_counted_ptr<fastuidraw::Painter> m_painter;
   fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> m_glyph_cache;

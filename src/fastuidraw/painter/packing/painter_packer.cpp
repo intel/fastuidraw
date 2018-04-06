@@ -609,6 +609,7 @@ namespace
     painter_state_location m_painter_state_location;
     int m_number_begins;
 
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface> m_surface;
     std::vector<per_draw_command> m_accumulated_draws;
     fastuidraw::PainterPacker *m_p;
 
@@ -1012,7 +1013,7 @@ fastuidraw::PainterPacker::
 
 void
 fastuidraw::PainterPacker::
-begin(void)
+begin(const reference_counted_ptr<PainterBackend::Surface> &surface)
 {
   PainterPackerPrivate *d;
   d = static_cast<PainterPackerPrivate*>(m_d);
@@ -1021,6 +1022,7 @@ begin(void)
   d->m_backend->image_atlas()->delay_tile_freeing();
   d->m_backend->colorstop_atlas()->delay_interval_freeing();
   std::fill(d->m_stats.begin(), d->m_stats.end(), 0u);
+  d->m_surface = surface;
   d->start_new_command();
   ++d->m_number_begins;
 }
@@ -1062,7 +1064,7 @@ flush(void)
       c.unmap();
     }
 
-  d->m_backend->on_pre_draw();
+  d->m_backend->on_pre_draw(d->m_surface);
   for(std::vector<per_draw_command>::iterator iter = d->m_accumulated_draws.begin(),
         end = d->m_accumulated_draws.end(); iter != end; ++iter)
     {
@@ -1273,15 +1275,6 @@ register_shader(const PainterShaderSet &p)
   PainterPackerPrivate *d;
   d = static_cast<PainterPackerPrivate*>(m_d);
   d->m_backend->register_shader(p);
-}
-
-void
-fastuidraw::PainterPacker::
-target_resolution(int w, int h)
-{
-  PainterPackerPrivate *d;
-  d = static_cast<PainterPackerPrivate*>(m_d);
-  d->m_backend->target_resolution(w, h);
 }
 
 //////////////////////////////////////////

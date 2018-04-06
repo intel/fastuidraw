@@ -263,9 +263,10 @@ namespace fastuidraw
       Indicate to start drawing. Commands are buffered and not
       set to the backend until end() or flush() is called.
       All draw commands must be between a begin() / end() pair.
+      \param surface the \ref PainterBackend::Surface to which to render content
      */
     void
-    begin(void);
+    begin(const reference_counted_ptr<PainterBackend::Surface> &surface);
 
     /*!
       Indicate to end drawing. Commands are buffered and not
@@ -418,15 +419,6 @@ namespace fastuidraw
      */
     void
     register_shader(const PainterShaderSet &p);
-
-    /*!
-      Informs the PainterPacker what the resolution of
-      the target surface is.
-      \param w width of target resolution
-      \param h height of target resolution
-     */
-    void
-    target_resolution(int w, int h);
 
   private:
     void *m_d;

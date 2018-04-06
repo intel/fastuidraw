@@ -209,9 +209,9 @@ namespace
     fastuidraw::glsl::varying_list m_main_varyings_shaders_and_shader_datas;
     fastuidraw::glsl::varying_list m_brush_varyings;
 
-    fastuidraw::vec2 m_target_resolution;
-    fastuidraw::vec2 m_target_resolution_recip;
-    float m_target_resolution_recip_magnitude;
+    fastuidraw::vec2 m_viewport_resolution;
+    fastuidraw::vec2 m_viewport_resolution_recip;
+    float m_viewport_resolution_recip_magnitude;
 
     fastuidraw::glsl::PainterBackendGLSL *m_p;
   };
@@ -1518,17 +1518,18 @@ compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &
 
 void
 fastuidraw::glsl::PainterBackendGLSL::
-target_resolution(int w, int h)
+viewport(const Surface::Viewport &vw)
 {
+  int w, h;
   PainterBackendGLSLPrivate *d;
   d = static_cast<PainterBackendGLSLPrivate*>(m_d);
 
-  w = std::max(1, w);
-  h = std::max(1, h);
+  w = std::max(1, vw.m_dimensions.x());
+  h = std::max(1, vw.m_dimensions.y());
 
-  d->m_target_resolution = vec2(w, h);
-  d->m_target_resolution_recip = vec2(1.0f, 1.0f) / vec2(d->m_target_resolution);
-  d->m_target_resolution_recip_magnitude = d->m_target_resolution_recip.magnitude();
+  d->m_viewport_resolution = vec2(w, h);
+  d->m_viewport_resolution_recip = vec2(1.0f, 1.0f) / vec2(d->m_viewport_resolution);
+  d->m_viewport_resolution_recip_magnitude = d->m_viewport_resolution_recip.magnitude();
 }
 
 bool
@@ -1579,9 +1580,9 @@ fill_uniform_buffer(c_array<generic_data> p)
 {
   PainterBackendGLSLPrivate *d;
   d = static_cast<PainterBackendGLSLPrivate*>(m_d);
-  p[uniform_ubo_resolution_x_offset].f = d->m_target_resolution.x();
-  p[uniform_ubo_resolution_y_offset].f = d->m_target_resolution.y();
-  p[uniform_ubo_recip_resolution_x_offset].f = d->m_target_resolution_recip.x();
-  p[uniform_ubo_recip_resolution_y_offset].f = d->m_target_resolution_recip.y();
-  p[uniform_ubo_recip_magnitude_offset].f = d->m_target_resolution_recip_magnitude;
+  p[uniform_ubo_resolution_x_offset].f = d->m_viewport_resolution.x();
+  p[uniform_ubo_resolution_y_offset].f = d->m_viewport_resolution.y();
+  p[uniform_ubo_recip_resolution_x_offset].f = d->m_viewport_resolution_recip.x();
+  p[uniform_ubo_recip_resolution_y_offset].f = d->m_viewport_resolution_recip.y();
+  p[uniform_ubo_recip_magnitude_offset].f = d->m_viewport_resolution_recip_magnitude;
 }

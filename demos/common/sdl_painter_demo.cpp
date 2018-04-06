@@ -450,7 +450,7 @@ init_gl(int w, int h)
     }
 
   m_painter_params = m_backend->configuration_gl();
-  m_painter->target_resolution(w, h);
+  m_surface = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL::SurfaceGL(fastuidraw::ivec2(w, h));
   derived_init(w, h);
 
   #ifdef FASTUIDRAW_GL_USE_GLES
@@ -469,7 +469,8 @@ sdl_painter_demo::
 on_resize(int w, int h)
 {
   glViewport(0, 0, w, h);
-  m_painter->target_resolution(w, h);
+  m_surface->dimensions(fastuidraw::ivec2(w, h));
+  m_surface->viewport(fastuidraw::PainterBackend::Surface::Viewport(0, 0, w, h));
 }
 
 void

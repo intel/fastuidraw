@@ -224,7 +224,6 @@ namespace
     void
     build_vao_tbos(void);
 
-    fastuidraw::ivec2 m_target_resolution;
     enum interlock_type_t m_interlock_type;
     fastuidraw::gl::PainterBackendGL::ConfigurationGL m_params;
     fastuidraw::glsl::PainterBackendGLSL::UberShaderParams m_uber_shader_builder_params;
@@ -332,6 +331,20 @@ namespace
     painter_vao m_vao;
     mutable unsigned int m_attributes_written, m_indices_written;
     mutable std::list<DrawEntry> m_draws;
+  };
+
+  class SurfaceGLPrivate
+  {
+  public:
+    SurfaceGLPrivate(fastuidraw::ivec2 d):
+      m_dimensions(d)
+    {
+      m_viewport.m_dimensions = d;
+      m_viewport.m_origin = fastuidraw::ivec2(0, 0);
+    }
+
+    fastuidraw::ivec2 m_dimensions;
+    fastuidraw::PainterBackend::Surface::Viewport m_viewport;
   };
 
   class ConfigurationGLPrivate
@@ -946,7 +959,6 @@ add_entry(unsigned int indices_written) const
 PainterBackendGLPrivate::
 PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P,
                         fastuidraw::gl::PainterBackendGL *p):
-  m_target_resolution(1, 1),
   m_params(P),
   m_backend_configured(false),
   m_tex_buffer_support(fastuidraw::gl::detail::tex_buffer_not_computed),
@@ -1523,6 +1535,47 @@ build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
 }
 
 ///////////////////////////////////////////////
+// fastuidraw::gl::PainterBackendGL::SurfaceGL methods
+fastuidraw::gl::PainterBackendGL::SurfaceGL::
+SurfaceGL(ivec2 dims)
+{
+  m_d = FASTUIDRAWnew SurfaceGLPrivate(dims);
+}
+
+fastuidraw::gl::PainterBackendGL::SurfaceGL::
+~SurfaceGL()
+{
+  SurfaceGLPrivate *d;
+  d = static_cast<SurfaceGLPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+}
+
+#define setget_implement(type, name)                                    \
+  fastuidraw::gl::PainterBackendGL::SurfaceGL&                          \
+  fastuidraw::gl::PainterBackendGL::SurfaceGL::                         \
+  name(type v)                                                          \
+  {                                                                     \
+    SurfaceGLPrivate *d;                                                \
+    d = static_cast<SurfaceGLPrivate*>(m_d);                            \
+    d->m_##name = v;                                                    \
+    return *this;                                                       \
+  }                                                                     \
+                                                                        \
+  type                                                                  \
+  fastuidraw::gl::PainterBackendGL::SurfaceGL::                         \
+  name(void) const                                                      \
+  {                                                                     \
+    SurfaceGLPrivate *d;                                                \
+    d = static_cast<SurfaceGLPrivate*>(m_d);                            \
+    return d->m_##name;                                                 \
+  }
+
+setget_implement(fastuidraw::PainterBackend::Surface::Viewport, viewport);
+setget_implement(fastuidraw::ivec2, dimensions)
+
+#undef setget_implement
+
+///////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL::ConfigurationGL methods
 fastuidraw::gl::PainterBackendGL::ConfigurationGL::
 ConfigurationGL(void)
@@ -1705,7 +1758,7 @@ indices_per_mapping(void) const
 
 void
 fastuidraw::gl::PainterBackendGL::
-on_pre_draw(void)
+on_pre_draw(const reference_counted_ptr<Surface> &surface)
 {
   PainterBackendGLPrivate *d;
   d = static_cast<PainterBackendGLPrivate*>(m_d);
@@ -1718,7 +1771,6 @@ on_pre_draw(void)
           PainterPacker::end() and the on_pre_draw() call is immediately
           followed by PainterDraw::draw() calls.
    */
-
   if(d->m_linear_filter_sampler == 0)
     {
       glGenSamplers(1, &d->m_linear_filter_sampler);
@@ -1727,9 +1779,15 @@ on_pre_draw(void)
       glSamplerParameteri(d->m_linear_filter_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
 
+  Surface::Viewport vwp(surface->viewport());
+  PainterBackendGLSL::viewport(vwp);
+
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_GEQUAL);
   glDisable(GL_STENCIL_TEST);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glViewport(vwp.m_origin.x(), vwp.m_origin.y(),
+             vwp.m_dimensions.x(), vwp.m_dimensions.y());
 
   if(d->m_number_clip_planes > 0)
     {
@@ -1747,15 +1805,16 @@ on_pre_draw(void)
   const glsl::PainterBackendGLSL::BindingPoints &binding_points(uber_params.binding_points());
 
   /* if using an auxilary buffer, make the auxilary buffer match the resolution
-     of the currently bound FBO; we are going to assume to have the assumption
-     that the needed resolution of the auxilary buffer matches with the resolution
-     set via target_resolution()
+     of Surface (rather than its viewport size).
    */
   if(uber_params.provide_auxilary_image_buffer())
     {
+      ivec2 target_resolution;
+      target_resolution = surface->dimensions();
+
       if(d->m_auxilary_buffer != 0
-         && (d->m_auxilary_resolution.x() < d->m_target_resolution.x()
-             || d->m_auxilary_resolution.y() < d->m_target_resolution.y()))
+         && (d->m_auxilary_resolution.x() < target_resolution.x()
+             || d->m_auxilary_resolution.y() < target_resolution.y()))
         {
           glDeleteTextures(1, &d->m_auxilary_buffer);
           d->m_auxilary_buffer = 0;
@@ -1764,7 +1823,7 @@ on_pre_draw(void)
       GLenum internalFmt(d->m_interlock_type == no_interlock ? GL_R32UI : GL_R8UI);
       if(d->m_auxilary_buffer == 0)
         {
-          d->m_auxilary_resolution = d->m_target_resolution;
+          d->m_auxilary_resolution = target_resolution;
 
           vecN<GLsizei, 2> sz(d->m_auxilary_resolution.x(), d->m_auxilary_resolution.y());
           vecN<GLint, 2> origin(0, 0);
@@ -1886,16 +1945,6 @@ on_pre_draw(void)
                   d->m_uniform_values_ptr.reinterpret_pointer<float>());
         }
     }
-}
-
-void
-fastuidraw::gl::PainterBackendGL::
-target_resolution(int w, int h)
-{
-  PainterBackendGLPrivate *d;
-  d = static_cast<PainterBackendGLPrivate*>(m_d);
-  d->m_target_resolution = ivec2(w, h);
-  PainterBackendGLSL::target_resolution(w, h);
 }
 
 void

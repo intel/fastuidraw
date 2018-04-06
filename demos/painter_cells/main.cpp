@@ -530,7 +530,7 @@ draw_frame(void)
 
   m_cell_shared_state.m_cells_drawn = 0;
 
-  m_painter->begin();
+  m_painter->begin(m_surface);
 
   ivec2 wh(dimensions());
   float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));

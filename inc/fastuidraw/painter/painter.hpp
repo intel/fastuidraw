@@ -174,22 +174,15 @@ namespace fastuidraw
     }
 
     /*!
-      Informs the Painter what the resolution of
-      the target surface is.
-      \param w width of target resolution
-      \param h height of target resolution
-     */
-    void
-    target_resolution(int w, int h);
-
-    /*!
       Indicate to start drawing with methods of this Painter.
       Drawing commands sent to 3D hardware are buffered and not
       sent to hardware until end() is called.
       All draw commands must be between a begin()/end() pair.
+      \param surface the \ref PainterBackend::Surface to which to render content
      */
     void
-    begin(bool reset_z = true);
+    begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
+          bool reset_z = true);
 
     /*!
       Indicate to end drawing with methods of this Painter.

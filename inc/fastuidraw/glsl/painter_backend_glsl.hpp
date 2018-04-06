@@ -888,12 +888,6 @@ namespace fastuidraw
       uint32_t
       ubo_size(void);
 
-      //////////////////////////////////////////////////////////////
-      // virtual methods from PainterBackend, do NOT reimplement(!)
-      virtual
-      void
-      target_resolution(int w, int h);
-
     protected:
       /*!
         Returns true if any shader code has been added since
@@ -903,6 +897,13 @@ namespace fastuidraw
        */
       bool
       shader_code_added(void);
+
+      /*!
+        To be called by a derived class to tell the PainterBackendGLSL
+        the viewport of the target surface.
+       */
+      void
+      viewport(const Surface::Viewport&);
 
       /*!
         To be optionally implemented by a derived class to

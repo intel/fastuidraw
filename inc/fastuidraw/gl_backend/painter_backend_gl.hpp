@@ -443,6 +443,50 @@ namespace fastuidraw
       };
 
       /*!
+        A SurfaceGL is the implementatin of \ref PainterBackend::Surface
+        for the GL backend.
+       */
+      class SurfaceGL:public Surface
+      {
+      public:
+        /*!
+          Ctor. The surface is backed by the default framebuffer
+          of GL; that framebuffer must provide a depth and color
+          buffer.
+          \param dim dimensions of the default framebuffer
+         */
+        explicit
+        SurfaceGL(ivec2 dim);
+
+        ~SurfaceGL();
+
+        /*!
+          Set the Viewport of the SurfaceGL; the default
+          value is to use the entire backing surface.
+         */
+        SurfaceGL&
+        viewport(Viewport vw);
+
+        /*!
+          Set the dimensios of the backing surface;
+          default value is set at ctor.
+         */
+        SurfaceGL&
+        dimensions(ivec2 vw);
+
+        virtual
+        Viewport
+        viewport(void) const;
+
+        virtual
+        ivec2
+        dimensions(void) const;
+
+      private:
+        void *m_d;
+      };
+
+      /*!
         Ctor. When contructing a GL context must
         be current when contructing a PainterBackendGL object.
         Any GL context used with the constructed PainterBackendGL
@@ -470,7 +514,7 @@ namespace fastuidraw
 
       virtual
       void
-      on_pre_draw(void);
+      on_pre_draw(const reference_counted_ptr<Surface> &surface);
 
       virtual
       void
@@ -479,10 +523,6 @@ namespace fastuidraw
       virtual
       reference_counted_ptr<const PainterDraw>
       map_draw(void);
-
-      virtual
-      void
-      target_resolution(int w, int h);
 
       /*!
         Return the specified Program use to draw

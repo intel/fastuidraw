@@ -244,7 +244,7 @@ draw_frame(void)
 {
   glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  m_painter->begin();
+  m_painter->begin(m_surface);
 
   ivec2 wh(dimensions());
   float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0)), m;

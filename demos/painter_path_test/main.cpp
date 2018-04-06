@@ -1229,7 +1229,7 @@ draw_frame(void)
   enable_wire_frame(m_wire_frame);
 
   m_painter->curveFlatness(m_curve_flatness);
-  m_painter->begin();
+  m_painter->begin(m_surface);
 
   if(m_force_square_viewport)
     {
