@@ -25,7 +25,6 @@
 #include <SDL_render.h>
 #include <SDL_surface.h>
 
-
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/gl_backend/gl_binding.hpp>
@@ -57,7 +56,6 @@ namespace
         dst << "\n\t" << glGetStringi(GL_EXTENSIONS, i);
       }
   }
-
 
   bool
   is_help_request(const std::string &v)
@@ -221,7 +219,7 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
   m_gl_core_profile(true, "core_context", "if true request a context which is core profile", *this),
   #endif
 
-  m_use_egl(false, "use_egl", "If true, use EGL API to create GLES context", *this),
+  m_use_egl(false, "use_egl", "If true, use EGL API to create GL/GLES context", *this),
   m_show_framerate(false, "show_framerate", "if true show the cumulative framerate at end", *this),
   m_reverse_event_y(false),
   m_window(nullptr),
@@ -254,13 +252,8 @@ enum fastuidraw::return_code
 sdl_demo::
 init_sdl(void)
 {
-
-  // Init SDL
   if(SDL_Init(SDL_INIT_EVERYTHING)<0)
     {
-      /*
-        abort!
-       */
       std::cerr << "\nFailed on SDL_Init\n";
       return fastuidraw::routine_fail;
     }
@@ -275,68 +268,61 @@ init_sdl(void)
 
   video_flags |= SDL_WINDOW_OPENGL;
 
-  /*
-    set GL attributes:
-  */
-  SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-
-  SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, m_stencil_bits.m_value);
-  SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, m_depth_bits.m_value);
-  SDL_GL_SetAttribute( SDL_GL_RED_SIZE, m_red_bits.m_value);
-  SDL_GL_SetAttribute( SDL_GL_GREEN_SIZE, m_green_bits.m_value);
-  SDL_GL_SetAttribute( SDL_GL_BLUE_SIZE, m_blue_bits.m_value);
-  SDL_GL_SetAttribute( SDL_GL_ALPHA_SIZE, m_alpha_bits.m_value);
+  /* set GL attributes: */
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, m_stencil_bits.m_value);
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, m_depth_bits.m_value);
+  SDL_GL_SetAttribute(SDL_GL_RED_SIZE, m_red_bits.m_value);
+  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, m_green_bits.m_value);
+  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, m_blue_bits.m_value);
+  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, m_alpha_bits.m_value);
 
   if(m_use_msaa.m_value)
     {
-      SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1);
-      SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, m_msaa.m_value);
+      SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+      SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, m_msaa.m_value);
     }
 
   #ifdef FASTUIDRAW_GL_USE_GLES
-  {
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_gl_major.m_value);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_gl_minor.m_value);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-  }
+    {
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_gl_major.m_value);
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_gl_minor.m_value);
+      SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    }
   #else
-  {
-    if(m_gl_major.m_value >= 3)
-      {
-        int context_flags(0);
-        int profile_mask(0);
+    {
+      if(m_gl_major.m_value >= 3)
+	{
+	  int context_flags(0);
+	  int profile_mask(0);
 
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_gl_major.m_value);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_gl_minor.m_value);
+	  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_gl_major.m_value);
+	  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_gl_minor.m_value);
 
-        if(m_gl_forward_compatible_context.m_value)
-          {
-            context_flags |= SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
-          }
+	  if(m_gl_forward_compatible_context.m_value)
+	    {
+	      context_flags |= SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
+	    }
 
-        if(m_gl_debug_context.m_value)
-          {
-            context_flags |= SDL_GL_CONTEXT_DEBUG_FLAG;
-          }
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, context_flags);
+	  if(m_gl_debug_context.m_value)
+	    {
+	      context_flags |= SDL_GL_CONTEXT_DEBUG_FLAG;
+	    }
 
-        if(m_gl_core_profile.m_value)
-          {
-            profile_mask = SDL_GL_CONTEXT_PROFILE_CORE;
-          }
-        else
-          {
-            profile_mask = SDL_GL_CONTEXT_PROFILE_COMPATIBILITY;
-          }
-
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile_mask);
-      }
-  }
+	  if(m_gl_core_profile.m_value)
+	    {
+	      profile_mask = SDL_GL_CONTEXT_PROFILE_CORE;
+	    }
+	  else
+	    {
+	      profile_mask = SDL_GL_CONTEXT_PROFILE_COMPATIBILITY;
+	    }
+	  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, context_flags);
+	  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile_mask);
+	}
+    }
   #endif
 
-
-
-  // Create the SDL window
   m_window = SDL_CreateWindow("",
                               0, 0,
                               m_width.m_value,
@@ -346,9 +332,6 @@ init_sdl(void)
 
   if(m_window == nullptr)
     {
-      /*
-        abort
-      */
       std::cerr << "\nFailed on SDL_SetVideoMode\n";
       return fastuidraw::routine_fail;
     }
@@ -513,7 +496,6 @@ main(int argc, char **argv)
       return 0;
     }
 
-
   std::cout << "\n\nRunning: \"";
   for(int i = 0; i < argc; ++i)
     {
@@ -522,7 +504,6 @@ main(int argc, char **argv)
 
   parse_command_line(argc, argv);
   std::cout << "\n\n" << std::flush;
-
 
   enum fastuidraw::return_code R;
   R = init_sdl();
