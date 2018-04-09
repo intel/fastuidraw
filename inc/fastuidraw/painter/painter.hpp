@@ -179,10 +179,12 @@ namespace fastuidraw
       sent to hardware until end() is called.
       All draw commands must be between a begin()/end() pair.
       \param surface the \ref PainterBackend::Surface to which to render content
+      \param clear_color_buffer if true, clear the color buffer on the viewport
+                                of the surface.
      */
     void
     begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
-          bool reset_z = true);
+          bool clear_color_buffer = true);
 
     /*!
       Indicate to end drawing with methods of this Painter.

@@ -610,6 +610,7 @@ namespace
     int m_number_begins;
 
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface> m_surface;
+    bool m_clear_color_buffer;
     std::vector<per_draw_command> m_accumulated_draws;
     fastuidraw::PainterPacker *m_p;
 
@@ -761,6 +762,7 @@ PainterPackerPrivate::
 PainterPackerPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> backend,
                      fastuidraw::PainterPacker *p):
   m_backend(backend),
+  m_clear_color_buffer(false),
   m_p(p)
 {
   m_alignment = m_backend->configuration_base().alignment();
@@ -1013,7 +1015,8 @@ fastuidraw::PainterPacker::
 
 void
 fastuidraw::PainterPacker::
-begin(const reference_counted_ptr<PainterBackend::Surface> &surface)
+begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
+      bool clear_color_buffer)
 {
   PainterPackerPrivate *d;
   d = static_cast<PainterPackerPrivate*>(m_d);
@@ -1023,6 +1026,7 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface)
   d->m_backend->colorstop_atlas()->delay_interval_freeing();
   std::fill(d->m_stats.begin(), d->m_stats.end(), 0u);
   d->m_surface = surface;
+  d->m_clear_color_buffer = clear_color_buffer;
   d->start_new_command();
   ++d->m_number_begins;
 }
@@ -1048,7 +1052,7 @@ query_stat(enum stats_t st) const
 
 void
 fastuidraw::PainterPacker::
-flush(void)
+end(void)
 {
   PainterPackerPrivate *d;
   d = static_cast<PainterPackerPrivate*>(m_d);
@@ -1064,7 +1068,7 @@ flush(void)
       c.unmap();
     }
 
-  d->m_backend->on_pre_draw(d->m_surface);
+  d->m_backend->on_pre_draw(d->m_surface, d->m_clear_color_buffer);
   for(std::vector<per_draw_command>::iterator iter = d->m_accumulated_draws.begin(),
         end = d->m_accumulated_draws.end(); iter != end; ++iter)
     {
@@ -1073,13 +1077,7 @@ flush(void)
     }
   d->m_backend->on_post_draw();
   d->m_accumulated_draws.clear();
-}
-
-void
-fastuidraw::PainterPacker::
-end(void)
-{
-  flush();
+  d->m_surface.clear();
   image_atlas()->undelay_tile_freeing();
   colorstop_atlas()->undelay_interval_freeing();
 }

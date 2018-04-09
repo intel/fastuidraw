@@ -460,6 +460,19 @@ namespace fastuidraw
         SurfaceGL&
         dimensions(ivec2 vw);
 
+        /*!
+          Return the clear color of the color buffer
+          default value is (0.0, 0.0, 0.0, 0.0).
+         */
+        const vec4&
+        clear_color(void) const;
+
+        /*!
+          Set the clear color.
+         */
+        SurfaceGL&
+        clear_color(const vec4&);
+
         virtual
         Viewport
         viewport(void) const;
@@ -501,7 +514,8 @@ namespace fastuidraw
 
       virtual
       void
-      on_pre_draw(const reference_counted_ptr<Surface> &surface);
+      on_pre_draw(const reference_counted_ptr<Surface> &surface,
+                  bool clear_color_buffer);
 
       virtual
       void

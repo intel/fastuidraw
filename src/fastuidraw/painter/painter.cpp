@@ -1316,21 +1316,18 @@ packed_value_pool(void)
 void
 fastuidraw::Painter::
 begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
-      bool reset_z)
+      bool clear_color_buffer)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  d->m_core->begin(surface);
+  d->m_core->begin(surface, clear_color_buffer);
   d->m_resolution = vec2(surface->viewport().m_dimensions);
   d->m_resolution.x() = std::max(1.0f, d->m_resolution.x());
   d->m_resolution.y() = std::max(1.0f, d->m_resolution.y());
   d->m_one_pixel_width = 1.0f / d->m_resolution;
 
-  if(reset_z)
-    {
-      d->m_current_z = 1;
-    }
+  d->m_current_z = 1;
   d->m_clip_rect_state.reset();
   d->m_clip_store.set_current(d->m_clip_rect_state.clip_equations().m_clip_equations);
   blend_shader(PainterEnums::blend_porter_duff_src_over);
@@ -1343,15 +1340,13 @@ end(void)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  /* pop m_clip_stack to perform necessary writes
-   */
+  /* pop m_clip_stack to perform necessary writes */
   while(!d->m_occluder_stack.empty())
     {
       d->m_occluder_stack.back().on_pop(this);
       d->m_occluder_stack.pop_back();
     }
-  /* clear state stack as well.
-   */
+  /* clear state stack as well. */
   d->m_clip_store.clear();
   d->m_state_stack.clear();
   d->m_core->end();

@@ -263,14 +263,18 @@ namespace fastuidraw
       Indicate to start drawing. Commands are buffered and not
       set to the backend until end() or flush() is called.
       All draw commands must be between a begin() / end() pair.
-      \param surface the \ref PainterBackend::Surface to which to render content
+      \param surface the \ref PainterBackend::Surface to which
+                      to render content
+      \param clear_color_buffer if true, clear the color buffer
+                                on the viewport of the surface.
      */
     void
-    begin(const reference_counted_ptr<PainterBackend::Surface> &surface);
+    begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
+          bool clear_color_buffer);
 
     /*!
       Indicate to end drawing. Commands are buffered and not
-      sent to the backend until end() or flush() is called.
+      sent to the backend until end() is called.
       All draw commands must be between a begin() / end() pair.
      */
     void
@@ -282,12 +286,6 @@ namespace fastuidraw
      */
     void
     draw_break(const reference_counted_ptr<const PainterDraw::Action> &action);
-
-    /*!
-      Flush all buffered rendering commands.
-     */
-    void
-    flush(void);
 
     /*!
       Return the default shaders for common drawing types.

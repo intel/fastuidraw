@@ -211,17 +211,16 @@ namespace fastuidraw
       {}
 
       /*!
-        To be implemented by a derived class to tell
-        the viewport into the Surface to render.
+        To be implemented by a derived class to return
+        the viewport into the Surface.
        */
       virtual
       Viewport
       viewport(void) const = 0;
 
       /*!
-        To be implemented by a derived class to tell
-        the dimentions of the Surface to which to
-        render.
+        To be implemented by a derived class to return
+        the dimensions of the Surface backing store.
        */
       virtual
       ivec2
@@ -296,14 +295,19 @@ namespace fastuidraw
     configuration_base(void) const;
 
     /*!
-      Called just before calling PainterDraw::draw()
-      on a sequence of PainterDraw objects who have
-      had their PainterDraw::unmap() routine called.
+      Called just before calling PainterDraw::draw() on a sequence
+      of PainterDraw objects who have had their PainterDraw::unmap()
+      routine called. An implementation will  will clear the depth
+      (aka occlusion) buffer and optionally the color buffer in the
+      viewport of the \ref Surface.
       \param surface the \ref Surface to which to render content
+      \param clear_color_buffer if true, clear the color buffer
+                                on the viewport of the surface.
      */
     virtual
     void
-    on_pre_draw(const reference_counted_ptr<Surface> &surface) = 0;
+    on_pre_draw(const reference_counted_ptr<Surface> &surface,
+                bool clear_color_buffer) = 0;
 
     /*!
       Called just after calling PainterDraw::draw()
