@@ -441,10 +441,28 @@ namespace
     mutable std::list<DrawEntry> m_draws;
   };
 
-  class SurfaceGLPrivate
+  class SurfacePropertiesPrivate
   {
   public:
-    SurfaceGLPrivate(fastuidraw::ivec2 d);
+    SurfacePropertiesPrivate(void):
+      m_dimensions(1, 1),
+      m_msaa(0)
+    {}
+
+    fastuidraw::ivec2 m_dimensions;
+    unsigned int m_msaa;
+  };
+
+  class SurfaceGLPrivate:fastuidraw::noncopyable
+  {
+  public:
+    explicit
+    SurfaceGLPrivate(const fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties &props);
+
+    explicit
+    SurfaceGLPrivate(GLuint texture,
+                     const fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties &props);
+
     ~SurfaceGLPrivate();
 
     static
@@ -454,13 +472,25 @@ namespace
     GLuint
     auxilary_buffer(GLenum internalFormat);
 
-    fastuidraw::ivec2 m_dimensions;
+    GLuint
+    color_buffer(void);
+
+    GLuint
+    fbo(void);
+
     fastuidraw::PainterBackend::Surface::Viewport m_viewport;
     fastuidraw::vec4 m_clear_color;
+    fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties m_properties;
+
   private:
+    void
+    gl_init(void);
+
     GLuint m_auxilary_buffer;
     GLenum m_auxilary_buffer_format;
-    fastuidraw::ivec2 m_auxilary_buffer_resolution;
+    GLuint m_color_buffer, m_depth_buffer;
+    GLuint m_fbo;
+    bool m_own_texture;
   };
 
   class ConfigurationGLPrivate
@@ -1071,14 +1101,34 @@ add_entry(unsigned int indices_written) const
 /////////////////////////////
 //SurfaceGLPrivate methods
 SurfaceGLPrivate::
-SurfaceGLPrivate(fastuidraw::ivec2 d):
-  m_dimensions(d),
+SurfaceGLPrivate(const fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties &props):
   m_clear_color(0.0f, 0.0f, 0.0f, 0.0f),
+  m_properties(props),
   m_auxilary_buffer(0),
   m_auxilary_buffer_format(GL_INVALID_ENUM),
-  m_auxilary_buffer_resolution(0, 0)
+  m_color_buffer(0),
+  m_depth_buffer(0),
+  m_fbo(0),
+  m_own_texture(true)
 {
-  m_viewport.m_dimensions = d;
+  m_viewport.m_dimensions = props.dimensions();
+  m_viewport.m_origin = fastuidraw::ivec2(0, 0);
+}
+
+SurfaceGLPrivate::
+SurfaceGLPrivate(GLuint texture,
+                 const fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties &props):
+  m_clear_color(0.0f, 0.0f, 0.0f, 0.0f),
+  m_properties(props),
+  m_auxilary_buffer(0),
+  m_auxilary_buffer_format(GL_INVALID_ENUM),
+  m_color_buffer(texture),
+  m_depth_buffer(0),
+  m_fbo(0),
+  m_own_texture(false)
+{
+  FASTUIDRAWassert(m_color_buffer != 0);
+  m_viewport.m_dimensions = props.dimensions();
   m_viewport.m_origin = fastuidraw::ivec2(0, 0);
 }
 
@@ -1088,6 +1138,21 @@ SurfaceGLPrivate::
   if(m_auxilary_buffer)
     {
       glDeleteTextures(1, &m_auxilary_buffer);
+    }
+
+  if(m_fbo != 0)
+    {
+      glDeleteFramebuffers(1, &m_fbo);
+    }
+
+  if(m_color_buffer && m_own_texture)
+    {
+      glDeleteTextures(1, &m_color_buffer);
+    }
+
+  if(m_depth_buffer)
+    {
+      glDeleteTextures(1, &m_depth_buffer);
     }
 }
 
@@ -1106,10 +1171,7 @@ GLuint
 SurfaceGLPrivate::
 auxilary_buffer(GLenum internalFormat)
 {
-  if (m_auxilary_buffer
-      && (m_auxilary_buffer_format != internalFormat
-          || m_auxilary_buffer_resolution.x() < m_dimensions.x()
-          || m_auxilary_buffer_resolution.y() < m_dimensions.y()))
+  if (m_auxilary_buffer && m_auxilary_buffer_format != internalFormat)
     {
       glDeleteTextures(1, &m_auxilary_buffer);
       m_auxilary_buffer = 0u;
@@ -1125,19 +1187,115 @@ auxilary_buffer(GLenum internalFormat)
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, m_auxilary_buffer);
       fastuidraw::gl::detail::tex_storage(true, GL_TEXTURE_2D,
-                                          internalFormat, m_dimensions);
+                                          internalFormat,
+                                          m_properties.dimensions());
 
       clearer.clear<GL_TEXTURE_2D>(m_auxilary_buffer, 0,
                                    0, 0, 0, //origin
-                                   m_dimensions.x(), m_dimensions.y(), 1, //dimensions
+                                   m_properties.dimensions().x(), m_properties.dimensions().y(), 1, //dimensions
                                    fastuidraw::gl::detail::format_from_internal_format(internalFormat),
                                    fastuidraw::gl::detail::type_from_internal_format(internalFormat));
 
-      m_auxilary_buffer_resolution = m_dimensions;
       m_auxilary_buffer_format = internalFormat;
     }
 
   return m_auxilary_buffer;
+}
+
+GLuint
+SurfaceGLPrivate::
+color_buffer(void)
+{
+  if(m_color_buffer == 0)
+    {
+      gl_init();
+    }
+  return m_color_buffer;
+}
+
+GLuint
+SurfaceGLPrivate::
+fbo(void)
+{
+  if(m_fbo == 0)
+    {
+      gl_init();
+    }
+  return m_fbo;
+}
+
+void
+SurfaceGLPrivate::
+gl_init(void)
+{
+  GLint old_fbo, old_tex;
+  GLenum tex_target, tex_target_binding;
+
+  FASTUIDRAWassert(m_fbo == 0 && m_depth_buffer == 0);
+
+  tex_target = (m_properties.msaa() <= 1) ?
+    GL_TEXTURE_2D :
+    GL_TEXTURE_2D_MULTISAMPLE;
+
+  tex_target_binding = (tex_target == GL_TEXTURE_2D) ?
+    GL_TEXTURE_BINDING_2D :
+    GL_TEXTURE_BINDING_2D_MULTISAMPLE;
+
+  glGenFramebuffers(1, &m_fbo);
+  FASTUIDRAWassert(m_fbo != 0);
+
+  glGetIntegerv(tex_target_binding, &old_tex);
+  glGetIntegerv(GL_FRAMEBUFFER_BINDING, &old_fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+
+  glGenTextures(1, &m_depth_buffer);
+  FASTUIDRAWassert(m_depth_buffer != 0);
+  glBindTexture(tex_target, m_depth_buffer);
+
+  if (m_properties.msaa() <= 1)
+    {
+      fastuidraw::gl::detail::tex_storage(false, tex_target, GL_DEPTH24_STENCIL8,
+                                          m_properties.dimensions());
+      glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
+  else
+    {
+      glTexStorage2DMultisample(tex_target, m_properties.msaa(),
+                                GL_DEPTH24_STENCIL8,
+                                m_properties.dimensions().x(),
+                                m_properties.dimensions().y(),
+                                GL_TRUE);
+    }
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                         tex_target, m_depth_buffer, 0);
+
+  if(m_color_buffer == 0)
+    {
+      glGenTextures(1, &m_color_buffer);
+      FASTUIDRAWassert(m_color_buffer != 0);
+      glBindTexture(tex_target, m_color_buffer);
+
+      if (m_properties.msaa() <= 1)
+        {
+          fastuidraw::gl::detail::tex_storage(true, tex_target,
+                                              GL_RGBA8, m_properties.dimensions());
+          glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+          glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        }
+      else
+        {
+          glTexStorage2DMultisample(tex_target, m_properties.msaa(),
+                                    GL_RGBA8,
+                                    m_properties.dimensions().x(),
+                                    m_properties.dimensions().y(),
+                                    GL_TRUE);
+        }
+      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                             tex_target, m_color_buffer, 0);
+    }
+  glBindTexture(tex_target, old_tex);
+  glBindFramebuffer(GL_FRAMEBUFFER, old_fbo);
 }
 
 ///////////////////////////////////
@@ -1704,12 +1862,52 @@ build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
   return return_value;
 }
 
+/////////////////////////////////////////////////////////////////
+// fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties methods
+fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties::
+Properties(void)
+{
+  m_d = FASTUIDRAWnew SurfacePropertiesPrivate();
+}
+
+fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties::
+Properties(const Properties &obj)
+{
+  SurfacePropertiesPrivate *d;
+  d = static_cast<SurfacePropertiesPrivate*>(obj.m_d);
+  m_d = FASTUIDRAWnew SurfacePropertiesPrivate(*d);
+}
+
+fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties::
+~Properties()
+{
+  SurfacePropertiesPrivate *d;
+  d = static_cast<SurfacePropertiesPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+}
+
+assign_swap_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties)
+
+setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties,
+                 SurfacePropertiesPrivate,
+                 fastuidraw::ivec2, dimensions);
+
+setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties,
+                 SurfacePropertiesPrivate,
+                 unsigned int, msaa);
+
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL::SurfaceGL methods
 fastuidraw::gl::PainterBackendGL::SurfaceGL::
-SurfaceGL(ivec2 dims)
+SurfaceGL(const Properties &props)
 {
-  m_d = FASTUIDRAWnew SurfaceGLPrivate(dims);
+  m_d = FASTUIDRAWnew SurfaceGLPrivate(props);
+}
+
+fastuidraw::gl::PainterBackendGL::SurfaceGL::
+SurfaceGL(const Properties &prop, GLuint color_buffer_texture)
+{
+  m_d = FASTUIDRAWnew SurfaceGLPrivate(color_buffer_texture, prop);
 }
 
 fastuidraw::gl::PainterBackendGL::SurfaceGL::
@@ -1720,10 +1918,51 @@ fastuidraw::gl::PainterBackendGL::SurfaceGL::
   FASTUIDRAWdelete(d);
 }
 
+GLuint
+fastuidraw::gl::PainterBackendGL::SurfaceGL::
+texture(void) const
+{
+  SurfaceGLPrivate *d;
+  d = static_cast<SurfaceGLPrivate*>(m_d);
+  return d->color_buffer();
+}
+
+void
+fastuidraw::gl::PainterBackendGL::SurfaceGL::
+blit_surface(const Viewport &src,
+             const Viewport &dst,
+             GLenum filter) const
+{
+  SurfaceGLPrivate *d;
+  d = static_cast<SurfaceGLPrivate*>(m_d);
+  GLint old_fbo;
+
+  glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_fbo);
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, d->fbo());
+  glBlitFramebuffer(src.m_origin.x(),
+                    src.m_origin.y(),
+                    src.m_origin.x() + src.m_dimensions.x(),
+                    src.m_origin.y() + src.m_dimensions.y(),
+                    dst.m_origin.x(),
+                    dst.m_origin.y(),
+                    dst.m_origin.x() + dst.m_dimensions.x(),
+                    dst.m_origin.y() + dst.m_dimensions.y(),
+                    GL_COLOR_BUFFER_BIT, filter);
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, old_fbo);
+}
+
+fastuidraw::ivec2
+fastuidraw::gl::PainterBackendGL::SurfaceGL::
+dimensions(void) const
+{
+  return properties().dimensions();
+}
+
+get_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL, SurfaceGLPrivate,
+              const fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties&,
+              properties)
 setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL, SurfaceGLPrivate,
                  fastuidraw::PainterBackend::Surface::Viewport, viewport);
-setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL, SurfaceGLPrivate,
-                 fastuidraw::ivec2, dimensions)
 setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL, SurfaceGLPrivate,
                  const fastuidraw::vec4&, clear_color)
 
@@ -1917,18 +2156,43 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
       glSamplerParameteri(d->m_linear_filter_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
 
+  const glsl::PainterBackendGLSL::UberShaderParams &uber_params(d->m_uber_shader_builder_params);
+  const glsl::PainterBackendGLSL::BindingPoints &binding_points(uber_params.binding_points());
+
+  /* if using an auxilary buffer, make the auxilary buffer match the resolution
+     of Surface (rather than its viewport size).
+   */
+  enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t aux_type;
+  aux_type = uber_params.provide_auxilary_image_buffer();
+  if(aux_type != fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer)
+    {
+      GLenum internalFmt(aux_type == auxilary_buffer_atomic ? GL_R32UI : GL_R8UI);
+      glBindImageTexture(binding_points.auxilary_image_buffer(),
+                         surface_gl->auxilary_buffer(internalFmt), //texture
+                         0, //level
+                         GL_FALSE, //layered
+                         0, //layer
+                         GL_READ_WRITE, //access
+                         internalFmt);
+    }
+
+  GLuint fbo(surface_gl->fbo());
   const Surface::Viewport &vwp(surface_gl->m_viewport);
+  ivec2 dimensions(surface_gl->m_properties.dimensions());
   PainterBackendGLSL::viewport(vwp);
+
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
 
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_GEQUAL);
   glDisable(GL_STENCIL_TEST);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glViewport(vwp.m_origin.x(), vwp.m_origin.y(),
              vwp.m_dimensions.x(), vwp.m_dimensions.y());
 
-  if (surface_gl->m_dimensions.x() != vwp.m_dimensions.x()
-      || surface_gl->m_dimensions.y() != vwp.m_dimensions.y())
+  if (dimensions.x() > vwp.m_dimensions.x()
+      || dimensions.y() > vwp.m_dimensions.y()
+      || vwp.m_origin.x() != 0
+      || vwp.m_origin.y() != 0)
     {
       glEnable(GL_SCISSOR_TEST);
       glScissor(vwp.m_origin.x(), vwp.m_origin.y(),
@@ -1970,26 +2234,6 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
         {
           glDisable(d->m_clip_plane0 + i);
         }
-    }
-
-  const glsl::PainterBackendGLSL::UberShaderParams &uber_params(d->m_uber_shader_builder_params);
-  const glsl::PainterBackendGLSL::BindingPoints &binding_points(uber_params.binding_points());
-
-  /* if using an auxilary buffer, make the auxilary buffer match the resolution
-     of Surface (rather than its viewport size).
-   */
-  enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t aux_type;
-  aux_type = uber_params.provide_auxilary_image_buffer();
-  if(aux_type != fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer)
-    {
-      GLenum internalFmt(aux_type == auxilary_buffer_atomic ? GL_R32UI : GL_R8UI);
-      glBindImageTexture(binding_points.auxilary_image_buffer(),
-                         surface_gl->auxilary_buffer(internalFmt), //texture
-                         0, //level
-                         GL_FALSE, //layered
-                         0, //layer
-                         GL_READ_WRITE, //access
-                         internalFmt);
     }
 
   /* all of our texture units, oh my. */
@@ -2131,6 +2375,8 @@ on_post_draw(void)
       FASTUIDRAWassert(!"Bad value for m_params.data_store_backing()");
     }
   glBindBufferBase(GL_UNIFORM_BUFFER, binding_points.uniforms_ubo(), 0);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  glDisable(GL_SCISSOR_TEST);
   d->m_pool->next_pool();
 }
 

@@ -435,16 +435,115 @@ namespace fastuidraw
       class SurfaceGL:public Surface
       {
       public:
+
         /*!
-          Ctor. The surface is backed by the default framebuffer
-          of GL; that framebuffer must provide a depth and color
-          buffer.
-          \param dim dimensions of the default framebuffer
+          Properties class to define a backing color buffer
+          of a \ref SurfaceGL
+         */
+        class Properties
+        {
+        public:
+          /*!
+            Ctor.
+          */
+          Properties(void);
+
+          /*!
+            Copy ctor.
+            \param obj value from which to copy
+          */
+          Properties(const Properties &obj);
+
+          ~Properties();
+
+          /*!
+            Assignment operator
+            \param rhs value from which to copy
+          */
+          Properties&
+          operator=(const Properties &rhs);
+
+          /*!
+            Swap operation
+            \param obj object with which to swap
+          */
+          void
+          swap(Properties &obj);
+
+          /*!
+            Dimensions of the backing store
+           */
+          ivec2
+          dimensions(void) const;
+
+          /*!
+            Set the value returned by dimension(void) const.
+            Initial value is (1, 1).
+           */
+          Properties&
+          dimensions(ivec2);
+
+          /*!
+            Number of samplers per pixel for MSAA; If one
+            uses a multi-sampled backing surface, one should
+            NOT used shader based stroking or filling of paths
+            (but shader based glyph rendering is fine). A value
+            of 0 or 1 indicates no MSAA).
+           */
+          unsigned int
+          msaa(void) const;
+
+          /*!
+            Set the value returned by msaa(void) const.
+            Initial value is 0.
+           */
+          Properties&
+          msaa(unsigned int);
+
+        private:
+          void *m_d;
+        };
+
+        /*!
+          Ctor. Creates and uses a backing color texture
+          as specified by the passed \ref Properties
+          object.
          */
         explicit
-        SurfaceGL(ivec2 dim);
+        SurfaceGL(const Properties &prop);
+
+        /*!
+          Ctor. Use the passed GL texture to which to render
+          content; the gl_texture must have as its texture
+          target GL_TEXTURE_2D and must already have its
+          backing store allocated (i.e. glTexImage or
+          glTexStorage has been called on the texture).
+          The texture object's ownership is NOT passed
+          to the SurfaceGL, the called is still responible
+          to delete the texture (with GL texture) and
+          the texture must not be deleted (or have its
+          backing store changed) until the SurfaceGL is
+          deleted.
+          \param prop properties of the texture
+          \param gl_texture GL name of texture
+         */
+        explicit
+        SurfaceGL(const Properties &prop, GLuint gl_texture);
 
         ~SurfaceGL();
+
+        /*!
+          Return the \ref Properties of the \ref SurfaceGL.
+         */
+        const Properties&
+        properties(void) const;
+
+        /*!
+          Returns the GL name of the texture backing
+          the color buffer of teh SurfaceGL.
+         */
+        GLuint
+        texture(void) const;
 
         /*!
           Set the Viewport of the SurfaceGL; the default
@@ -452,13 +551,6 @@ namespace fastuidraw
          */
         SurfaceGL&
         viewport(Viewport vw);
-
-        /*!
-          Set the dimensios of the backing surface;
-          default value is set at ctor.
-         */
-        SurfaceGL&
-        dimensions(ivec2 vw);
 
         /*!
           Return the clear color of the color buffer
@@ -472,6 +564,15 @@ namespace fastuidraw
          */
         SurfaceGL&
         clear_color(const vec4&);
+
+        /*!
+          Blit the SurfaceGL color buffer to the FBO
+          currently bound to GL_DRAW_FRAMEBUFFER.
+         */
+        void
+        blit_surface(const Viewport &src,
+                     const Viewport &dst,
+                     GLenum filter) const;
 
         virtual
         Viewport
