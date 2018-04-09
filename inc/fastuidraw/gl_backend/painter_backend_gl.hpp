@@ -568,11 +568,25 @@ namespace fastuidraw
         /*!
           Blit the SurfaceGL color buffer to the FBO
           currently bound to GL_DRAW_FRAMEBUFFER.
+          \param src source from this SurfaceGL to which to bit
+          \param dst destination in FBO to which to blit
+          \param filter GL filter to apply to blit operation
          */
         void
         blit_surface(const Viewport &src,
                      const Viewport &dst,
                      GLenum filter) const;
+
+        /*!
+          Provided as a convenience, equivalent to
+          \code
+          PainterBackend::Viewport vw(0, 0, dimensions().x(), dimensions.y());
+          blit_surface(vw, vw, filter);
+          \endcode
+          \param filter GL filter to apply to blit operation
+         */
+        void
+        blit_surface(GLenum filter) const;
 
         virtual
         Viewport

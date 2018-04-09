@@ -1951,6 +1951,15 @@ blit_surface(const Viewport &src,
   glBindFramebuffer(GL_READ_FRAMEBUFFER, old_fbo);
 }
 
+void
+fastuidraw::gl::PainterBackendGL::SurfaceGL::
+blit_surface(GLenum filter) const
+{
+  ivec2 dims(dimensions());
+  Viewport vwp(0, 0, dims.x(), dims.y());
+  blit_surface(vwp, vwp, filter);
+}
+
 fastuidraw::ivec2
 fastuidraw::gl::PainterBackendGL::SurfaceGL::
 dimensions(void) const
