@@ -201,10 +201,41 @@ sdl_painter_demo(const std::string &about_text,
                                         "by version and extension supported by GL/GLES context",
                                         *this),
   m_provide_auxilary_image_buffer(m_painter_params.provide_auxilary_image_buffer(),
+                                  enumerated_string_type<auxilary_buffer_t>()
+                                  .add_entry("no_auxilary_buffer",
+                                             fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer,
+                                             "No auxilary buffer provided")
+                                  .add_entry("auxilary_buffer_atomic",
+                                             fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_atomic,
+                                             "Auxilary buffer through atomic ops; this can be quite poor "
+                                             "performing because atomics can be quite slow AND (worse) "
+                                             "a draw break appears to issue a memory barrier within each "
+                                             "path stroking and after each path stroking. Requires only "
+                                             "GL 4.2 (or GL_ARB_shader_image_load_store extension) for GL "
+                                             "and GLES 3.1 for GLES")
+                                  .add_entry("auxilary_buffer_interlock",
+                                             fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_interlock,
+                                             "Auxilary buffer with interlock; this is high performant option "
+                                             "as it does NOT use atomic ops and does not force any draw call "
+                                             "breaks to issue a memory barrier; requires GL_INTEL_fragment_shadering_ordering "
+                                             "and GL 4.2 (or GL_ARB_shader_image_load_store extension; if requirements "
+                                             "are not satisfied will try to fall back to auxilary_buffer_interlock_main_only "
+                                             "and if those are not satisfied will fall back to auxilary_buffer_atomic and "
+                                             "if those requirement are not satsified, then no_auxilary_buffer")
+                                  .add_entry("auxilary_buffer_interlock_main_only",
+                                             fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_interlock_main_only,
+                                             "Auxilary buffer with interlock; this is high performant option "
+                                             "as it does NOT use atomic ops and does not force any draw call "
+                                             "breaks to issue a memory barrier; requires GL_ARB_fragment_shader_interlock "
+                                             "OR GL_NV_fragment_shader_interlock together with GL 4.2 (or "
+                                             "GL_ARB_shader_image_load_store) for GL and GLES 3.1 for GLES; if requirements "
+                                             "are not satisfied will try to fall back to auxilary_buffer_interlock "
+                                             "and if those are not satisfied will fall back to auxilary_buffer_atomic and "
+                                             "if those requirement are not satsified, then no_auxilary_buffer"),
                                   "provide_auxilary_image_buffer",
-                                  "Provide an auxilary image buffer requires image-load-store; "
+                                  "Spcifies if and how to provide auxilary image buffer; "
                                   "will remove rendering artifacts on shader-based anti-aliased "
-                                  "path stroking",
+                                  "transparent path stroking",
                                   *this),
   m_use_hw_clip_planes(m_painter_params.use_hw_clip_planes(),
                        "painter_use_hw_clip_planes",
@@ -377,8 +408,8 @@ init_gl(int w, int h)
     .assign_layout_to_varyings(m_assign_layout_to_varyings.m_value)
     .assign_binding_points(m_assign_binding_points.m_value)
     .separate_program_for_discard(m_separate_program_for_discard.m_value)
-    .provide_auxilary_image_buffer(m_provide_auxilary_image_buffer.m_value)
-    .default_stroke_shader_aa_type(m_provide_auxilary_image_buffer.m_value ?
+    .provide_auxilary_image_buffer(m_provide_auxilary_image_buffer.m_value.m_value)
+    .default_stroke_shader_aa_type(m_provide_auxilary_image_buffer.m_value.m_value != fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer?
                                    fastuidraw::PainterStrokeShader::cover_then_draw :
                                    fastuidraw::PainterStrokeShader::draws_solid_then_fuzz)
     .blend_type(m_blend_type.m_value.m_value);
@@ -448,23 +479,12 @@ init_gl(int w, int h)
   m_painter_params = m_backend->configuration_gl();
   m_surface = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL::SurfaceGL(fastuidraw::ivec2(w, h));
   derived_init(w, h);
-
-  #ifdef FASTUIDRAW_GL_USE_GLES
-  {
-    glClearDepthf(0.0f);
-  }
-  #else
-  {
-    glClearDepth(0.0);
-  }
-  #endif
 }
 
 void
 sdl_painter_demo::
 on_resize(int w, int h)
 {
-  glViewport(0, 0, w, h);
   m_surface->dimensions(fastuidraw::ivec2(w, h));
   m_surface->viewport(fastuidraw::PainterBackend::Surface::Viewport(0, 0, w, h));
 }

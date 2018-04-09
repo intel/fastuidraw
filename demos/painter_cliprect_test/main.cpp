@@ -118,9 +118,6 @@ void
 painter_clip_test::
 draw_frame(void)
 {
-
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   m_painter->begin(m_surface);
 
   ivec2 wh(dimensions());

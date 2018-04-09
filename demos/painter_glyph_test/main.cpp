@@ -636,7 +636,6 @@ draw_frame(void)
 
   us = update_cts_params();
 
-  glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
   m_painter->begin(m_surface);
 
   ivec2 wh(dimensions());

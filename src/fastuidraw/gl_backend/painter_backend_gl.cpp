@@ -58,6 +58,117 @@ namespace
       no_interlock
     };
 
+  enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t
+  compute_provide_auxilary_buffer(enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t in_value,
+                                  const fastuidraw::gl::ContextProperties &ctx)
+  {
+    using namespace fastuidraw;
+    using namespace fastuidraw::glsl;
+
+    if(in_value == PainterBackendGLSL::no_auxilary_buffer)
+      {
+        return in_value;
+      }
+
+    #ifdef FASTUIDRAW_GL_USE_GLES
+      {
+        if(ctx.version() <= ivec2(3, 0))
+          {
+            return PainterBackendGLSL::no_auxilary_buffer;
+          }
+
+        if(in_value == PainterBackendGLSL::auxilary_buffer_atomic)
+          {
+            return in_value;
+          }
+
+        if(ctx.has_extension("GL_NV_fragment_shader_interlock"))
+          {
+            return PainterBackendGLSL::auxilary_buffer_interlock_main_only;
+          }
+        else
+          {
+            return PainterBackendGLSL::auxilary_buffer_atomic;
+          }
+      }
+    #else
+      {
+        bool have_interlock, have_interlock_main;
+
+        if(ctx.version() <= ivec2(4, 1) && !ctx.has_extension("GL_ARB_shader_image_load_store"))
+          {
+            return PainterBackendGLSL::no_auxilary_buffer;
+          }
+
+        if(in_value == PainterBackendGLSL::auxilary_buffer_atomic)
+          {
+            return in_value;
+          }
+
+        have_interlock = ctx.has_extension("GL_INTEL_fragment_shader_ordering");
+        have_interlock_main = ctx.has_extension("GL_ARB_fragment_shader_interlock")
+          || ctx.has_extension("GL_NV_fragment_shader_interlock");
+
+        if(!have_interlock && !have_interlock_main)
+          {
+            return PainterBackendGLSL::auxilary_buffer_atomic;
+          }
+
+        switch(in_value)
+          {
+          case PainterBackendGLSL::auxilary_buffer_interlock_main_only:
+            return (have_interlock_main) ?
+              PainterBackendGLSL::auxilary_buffer_interlock_main_only:
+              PainterBackendGLSL::auxilary_buffer_interlock;
+
+          case PainterBackendGLSL::auxilary_buffer_interlock:
+            return (have_interlock) ?
+              PainterBackendGLSL::auxilary_buffer_interlock:
+              PainterBackendGLSL::auxilary_buffer_interlock_main_only;
+
+          default:
+            return PainterBackendGLSL::auxilary_buffer_atomic;
+          }
+      }
+    #endif
+  }
+
+  enum interlock_type_t
+  compute_interlock_type(const fastuidraw::gl::ContextProperties &ctx)
+  {
+    #ifdef FASTUIDRAW_GL_USE_GLES
+      {
+        if(ctx.has_extension("GL_NV_fragment_shader_interlock"))
+          {
+            return nv_fragment_shader_interlock;
+          }
+        else
+          {
+            return no_interlock;
+          }
+      }
+    #else
+      {
+        if(ctx.has_extension("GL_INTEL_fragment_shader_ordering"))
+          {
+            return intel_fragment_shader_ordering;
+          }
+        else if(ctx.has_extension("GL_ARB_fragment_shader_interlock"))
+          {
+            return arb_fragment_shader_interlock;
+          }
+        else if(ctx.has_extension("GL_NV_fragment_shader_interlock"))
+          {
+            return nv_fragment_shader_interlock;
+          }
+        else
+          {
+            return no_interlock;
+          }
+      }
+    #endif
+  }
+
   class painter_vao
   {
   public:
@@ -375,7 +486,7 @@ namespace
       m_separate_program_for_discard(true),
       m_default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz),
       m_blend_type(fastuidraw::PainterBlendShader::dual_src),
-      m_provide_auxilary_image_buffer(false)
+      m_provide_auxilary_image_buffer(fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer)
     {}
 
     unsigned int m_attributes_per_buffer;
@@ -398,7 +509,7 @@ namespace
     bool m_separate_program_for_discard;
     enum fastuidraw::PainterStrokeShader::type_t m_default_stroke_shader_aa_type;
     enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
-    bool m_provide_auxilary_image_buffer;
+    enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t m_provide_auxilary_image_buffer;
   };
 
 }
@@ -1278,7 +1389,6 @@ configure_backend(void)
              does not support image-load-store either
            */
           m_params.assign_binding_points(false);
-          m_params.provide_auxilary_image_buffer(false);
         }
     }
   #else
@@ -1289,32 +1399,16 @@ configure_backend(void)
                                              && m_ctx_properties.has_extension("GL_ARB_separate_shader_objects"));
           m_params.assign_binding_points(m_params.assign_binding_points()
                                          && m_ctx_properties.has_extension("GL_ARB_shading_language_420pack"));
-          m_params.provide_auxilary_image_buffer(m_params.provide_auxilary_image_buffer()
-                                                 && m_ctx_properties.has_extension("GL_ARB_shader_image_load_store"));
         }
     }
   #endif
 
-  if(!m_params.provide_auxilary_image_buffer())
+  m_interlock_type = compute_interlock_type(m_ctx_properties);
+  m_params.provide_auxilary_image_buffer(compute_provide_auxilary_buffer(m_params.provide_auxilary_image_buffer(),
+                                                                         m_ctx_properties));
+  if(m_params.provide_auxilary_image_buffer() == fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer)
     {
       m_params.default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz);
-    }
-
-  if(m_ctx_properties.has_extension("GL_INTEL_fragment_shader_ordering"))
-    {
-      m_interlock_type = intel_fragment_shader_ordering;
-    }
-  else if(m_ctx_properties.has_extension("GL_ARB_fragment_shader_interlock"))
-    {
-      m_interlock_type = arb_fragment_shader_interlock;
-    }
-  else if(m_ctx_properties.has_extension("GL_NV_fragment_shader_interlock"))
-    {
-      m_interlock_type = nv_fragment_shader_interlock;
-    }
-  else
-    {
-      m_interlock_type = no_interlock;
     }
 
   m_uber_shader_builder_params
@@ -1402,24 +1496,19 @@ configure_source_front_matter(void)
         case intel_fragment_shader_ordering:
           m_front_matter_frag
             .add_macro("fastuidraw_begin_interlock", "beginFragmentShaderOrderingINTEL")
-            .add_macro("fastuidraw_end_interlock", "fastuidraw_do_nothing")
-            .add_macro("FASTUIDRAW_PAINTER_INTERLOCK");
+            .add_macro("fastuidraw_end_interlock", "fastuidraw_do_nothing");
           break;
 
         case arb_fragment_shader_interlock:
           m_front_matter_frag
             .add_macro("fastuidraw_begin_interlock", "beginInvocationInterlockARB")
-            .add_macro("fastuidraw_end_interlock", "endInvocationInterlockARB")
-            .add_macro("FASTUIDRAW_PAINTER_INTERLOCK")
-            .add_macro("FASTUIDRAW_PAINTER_INTERLOCK_MAIN_ONLY");
+            .add_macro("fastuidraw_end_interlock", "endInvocationInterlockARB");
           break;
 
         case nv_fragment_shader_interlock:
           m_front_matter_frag
             .add_macro("fastuidraw_begin_interlock", "beginInvocationInterlockNV")
-            .add_macro("fastuidraw_end_interlock", "endInvocationInterlockNV")
-            .add_macro("FASTUIDRAW_PAINTER_INTERLOCK")
-            .add_macro("FASTUIDRAW_PAINTER_INTERLOCK_MAIN_ONLY");
+            .add_macro("fastuidraw_end_interlock", "endInvocationInterlockNV");
           break;
         }
 
@@ -1491,7 +1580,7 @@ configure_source_front_matter(void)
       using_glsl42 = m_ctx_properties.version() >= fastuidraw::ivec2(4, 2)
         && (m_uber_shader_builder_params.assign_layout_to_varyings()
             || m_uber_shader_builder_params.assign_binding_points()
-            || m_uber_shader_builder_params.provide_auxilary_image_buffer());
+            || m_uber_shader_builder_params.provide_auxilary_image_buffer() != PainterBackendGLSL::no_auxilary_buffer);
 
       m_front_matter_frag
 	.specify_extension("GL_MESA_shader_framebuffer_fetch", ShaderSource::enable_extension)
@@ -1519,18 +1608,35 @@ configure_source_front_matter(void)
               m_front_matter_frag.specify_extension("GL_ARB_shading_language_420pack", ShaderSource::require_extension);
             }
 
-          if(m_uber_shader_builder_params.provide_auxilary_image_buffer())
+          if(m_uber_shader_builder_params.provide_auxilary_image_buffer() != PainterBackendGLSL::no_auxilary_buffer)
             {
               m_front_matter_frag
-                .specify_extension("GL_ARB_shader_image_load_store", ShaderSource::require_extension)
-                .specify_extension("GL_ARB_fragment_shader_interlock", ShaderSource::enable_extension)
-                .specify_extension("GL_INTEL_fragment_shader_ordering", ShaderSource::enable_extension)
-                .specify_extension("GL_NV_fragment_shader_interlock", ShaderSource::enable_extension);
+                .specify_extension("GL_ARB_shader_image_load_store", ShaderSource::require_extension);
             }
         }
     }
   #endif
 
+  switch(m_interlock_type)
+    {
+    case intel_fragment_shader_ordering:
+      m_front_matter_frag
+        .specify_extension("GL_INTEL_fragment_shader_ordering", ShaderSource::require_extension);
+      break;
+
+    case nv_fragment_shader_interlock:
+      m_front_matter_frag
+        .specify_extension("GL_NV_fragment_shader_interlock", ShaderSource::require_extension);
+      break;
+
+    case arb_fragment_shader_interlock:
+      m_front_matter_frag
+        .specify_extension("GL_ARB_fragment_shader_interlock", ShaderSource::require_extension);
+      break;
+
+    default:
+      break;
+    }
 }
 
 const PainterBackendGLPrivate::program_set&
@@ -1723,7 +1829,7 @@ setget_implement(bool, assign_binding_points)
 setget_implement(bool, separate_program_for_discard)
 setget_implement(enum fastuidraw::PainterStrokeShader::type_t, default_stroke_shader_aa_type)
 setget_implement(enum fastuidraw::PainterBlendShader::shader_type, blend_type)
-setget_implement(bool, provide_auxilary_image_buffer)
+setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t, provide_auxilary_image_buffer)
 #undef setget_implement
 
 ///////////////////////////////////////////////
@@ -1907,9 +2013,11 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
   /* if using an auxilary buffer, make the auxilary buffer match the resolution
      of Surface (rather than its viewport size).
    */
-  if(uber_params.provide_auxilary_image_buffer())
+  enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t aux_type;
+  aux_type = uber_params.provide_auxilary_image_buffer();
+  if(aux_type != fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer)
     {
-      GLenum internalFmt(d->m_interlock_type == no_interlock ? GL_R32UI : GL_R8UI);
+      GLenum internalFmt(aux_type == auxilary_buffer_atomic ? GL_R32UI : GL_R8UI);
       glBindImageTexture(binding_points.auxilary_image_buffer(),
                          surface_gl->auxilary_buffer(internalFmt), //texture
                          0, //level

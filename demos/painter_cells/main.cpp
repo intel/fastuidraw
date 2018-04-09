@@ -523,13 +523,9 @@ draw_frame(void)
     }
 
   update_cts_params();
-
-
-  glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   m_cell_shared_state.m_cells_drawn = 0;
 
+  m_surface->clear_color(vec4(0.5f, 0.5f, 0.5f, 1.0f));
   m_painter->begin(m_surface);
 
   ivec2 wh(dimensions());

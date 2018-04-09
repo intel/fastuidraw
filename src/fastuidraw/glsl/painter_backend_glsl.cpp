@@ -130,7 +130,7 @@ namespace
       m_have_float_glyph_texture_atlas(true),
       m_colorstop_atlas_backing(fastuidraw::glsl::PainterBackendGLSL::colorstop_texture_1d_array),
       m_use_ubo_for_uniforms(true),
-      m_provide_auxilary_image_buffer(false)
+      m_provide_auxilary_image_buffer(fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer)
     {}
 
     enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t m_z_coordinate_convention;
@@ -149,7 +149,7 @@ namespace
     bool m_have_float_glyph_texture_atlas;
     enum fastuidraw::glsl::PainterBackendGLSL::colorstop_backing_t m_colorstop_atlas_backing;
     bool m_use_ubo_for_uniforms;
-    bool m_provide_auxilary_image_buffer;
+    enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t m_provide_auxilary_image_buffer;
     fastuidraw::glsl::PainterBackendGLSL::BindingPoints m_binding_points;
   };
 
@@ -1009,10 +1009,26 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       break;
     }
 
-  if(params.provide_auxilary_image_buffer())
+  switch(params.provide_auxilary_image_buffer())
     {
-      vert.add_macro("FASTUIDRAW_PAINTER_HAVE_AUXILARY_BUFFER");
+    case PainterBackendGLSL::auxilary_buffer_atomic:
+      frag.add_macro("FASTUIDRAW_PAINTER_AUXILARY_BUFFER_ATOMIC");
       frag.add_macro("FASTUIDRAW_PAINTER_HAVE_AUXILARY_BUFFER");
+      break;
+
+    case PainterBackendGLSL::auxilary_buffer_interlock:
+      frag.add_macro("FASTUIDRAW_PAINTER_AUXILARY_BUFFER_INTERLOCK");
+      frag.add_macro("FASTUIDRAW_PAINTER_HAVE_AUXILARY_BUFFER");
+      break;
+      break;
+
+    case PainterBackendGLSL::auxilary_buffer_interlock_main_only:
+      frag.add_macro("FASTUIDRAW_PAINTER_AUXILARY_BUFFER_INTERLOCK_MAIN_ONLY");
+      frag.add_macro("FASTUIDRAW_PAINTER_HAVE_AUXILARY_BUFFER");
+      break;
+
+    default:
+      break;
     }
 
   vert
@@ -1376,7 +1392,7 @@ setget_implement(fastuidraw::ivec2, glyph_geometry_backing_log2_dims)
 setget_implement(bool, have_float_glyph_texture_atlas)
 setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::colorstop_backing_t, colorstop_atlas_backing)
 setget_implement(bool, use_ubo_for_uniforms)
-setget_implement(bool, provide_auxilary_image_buffer)
+setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t, provide_auxilary_image_buffer)
 setget_implement(const fastuidraw::glsl::PainterBackendGLSL::BindingPoints&, binding_points)
 #undef setget_implement
 

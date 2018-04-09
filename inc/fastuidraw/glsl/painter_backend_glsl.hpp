@@ -119,6 +119,50 @@ namespace fastuidraw
         };
 
       /*!
+        Enumeration to describe auxilary buffer support
+       */
+      enum auxilary_buffer_t
+        {
+          /*!
+            No auxilary buffer is present
+           */
+          no_auxilary_buffer,
+
+          /*!
+            Auxilary buffer is realized by atomic operations;
+            To guarantee ordering between computing coverage
+            and using coverage a backend must intert a memory
+            barrier at the API level between such passed
+            (for example in GL, glMemoryBarrier()).
+           */
+          auxilary_buffer_atomic,
+
+          /*!
+            Auxilary buffer is present and ordering guarantees
+            are implemented by an interlock that can be called
+            in GLSL from any function and/or control flow. This
+            allows for cover then draw methods to be performed
+            WITHOUT any draw-breaks. A backend will need to define
+            the the functions (or macros) in their GLSL preamble:
+             - fastuidraw_begin_interlock() which is called before access
+             - fastuidraw_end_interlock() which is called after access
+           */
+          auxilary_buffer_interlock,
+
+          /*!
+            Auxilary buffer is present and ordering guarantees
+            are implemented by an interlock that can only be
+            called in GLSL from main under NO conrol flow. This
+            allows for cover then draw methods to be performed
+            WITHOUT any draw-breaks. A backend will need to define
+            the the functions (or macros) in their GLSL preamble:
+             - fastuidraw_begin_interlock() which is called before access
+             - fastuidraw_end_interlock() which is called after access
+           */
+          auxilary_buffer_interlock_main_only,
+        };
+
+      /*!
         \brief
         Enumeration to describe vertex shader input
         slot layout.
@@ -763,29 +807,19 @@ namespace fastuidraw
           (in particular shader based ant-aliased stroking).
           Writing to the buffer should not be done, instead
           one should use the functions:
-
-          - uint fastuidraw_clear_auxilary(void): clears the value to 0 and returns the old value
-          - void fastuidraw_max_auxilary(in uint v): maxes the value with the passed value
-
-          If the macro FASTUIDRAW_PAINTER_INTERLOCK() is defined
-          in the fragment shader source before the code provided
-          by construct_shader(), then access with the buffer
-          (to provide functions clearAuxilary() and maxAuxilary())
-          will use imageLoad and imageStore with a call to the
-          macro-function FASTUIDRAW_PAINTER_INTERLOCK()
-          to avoid race-read-writes to the image buffer; if the
-          is not defined then atomic ops are used instead.
+          - float fastuidraw_clear_auxilary(void): clears the value to 0 and returns the old value
+          - void fastuidraw_max_auxilary(in float v): maxes the value with the passed value
          */
-        bool
+        enum auxilary_buffer_t
         provide_auxilary_image_buffer(void) const;
 
         /*!
           Set the value returned by
           provide_auxilary_image_buffer(void) const.
-          Default value is false.
+          Default value is \ref no_auxilary_buffer.
          */
         UberShaderParams&
-        provide_auxilary_image_buffer(bool);
+        provide_auxilary_image_buffer(enum auxilary_buffer_t);
 
       private:
         void *m_d;
