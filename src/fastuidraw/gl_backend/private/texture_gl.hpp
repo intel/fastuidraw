@@ -146,7 +146,7 @@ tex_storage(bool use_tex_storage,
                    internalformat,
                    size.x(), size.y(), size.z(), 0,
                    format_from_internal_format(internalformat),
-                   GL_UNSIGNED_BYTE,
+                   type_from_internal_format(internalformat),
                    nullptr);
     }
 }
@@ -210,7 +210,7 @@ tex_storage(bool use_tex_storage,
                    internalformat,
                    size.x(), size.y(), 0,
                    format_from_internal_format(internalformat),
-                   GL_UNSIGNED_BYTE,
+                   type_from_internal_format(internalformat),
                    nullptr);
     }
 }
@@ -259,7 +259,7 @@ tex_storage(bool use_tex_storage,
                    internalformat,
                    size.x(), 0,
                    format_from_internal_format(internalformat),
-                   GL_UNSIGNED_BYTE,
+                   type_from_internal_format(internalformat),
                    nullptr);
     }
 }

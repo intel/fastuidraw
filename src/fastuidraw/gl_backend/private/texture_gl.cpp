@@ -136,9 +136,17 @@ format_from_internal_format(GLenum fmt)
     case GL_R32UI:
       return GL_RED_INTEGER;
 
-    case GL_DEPTH_STENCIL:
     case GL_DEPTH24_STENCIL8:
       return GL_DEPTH_STENCIL;
+      return GL_DEPTH24_STENCIL8;
+
+    case GL_DEPTH32F_STENCIL8:
+      return GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+
+    case GL_DEPTH_COMPONENT16:
+    case GL_DEPTH_COMPONENT24:
+    case GL_DEPTH_COMPONENT32F:
+      return GL_DEPTH_COMPONENT;
     }
 }
 
@@ -200,6 +208,17 @@ type_from_internal_format(GLenum fmt)
     case GL_RGB32F:
     case GL_RGBA32F:
       return GL_FLOAT;
+
+    case GL_DEPTH24_STENCIL8:
+      return GL_UNSIGNED_INT_24_8;
+
+    case GL_DEPTH32F_STENCIL8:
+      return GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+
+    case GL_DEPTH_COMPONENT16:
+    case GL_DEPTH_COMPONENT24:
+    case GL_DEPTH_COMPONENT32F:
+      return GL_UNSIGNED_BYTE;
     }
 }
 
