@@ -532,81 +532,16 @@ fastuidraw::FontFreeType::RenderParams::
   m_d = nullptr;
 }
 
-void
-fastuidraw::FontFreeType::RenderParams::
-swap(RenderParams &obj)
-{
-  std::swap(obj.m_d, m_d);
-}
-
-fastuidraw::FontFreeType::RenderParams&
-fastuidraw::FontFreeType::RenderParams::
-operator=(const RenderParams &rhs)
-{
-  if(&rhs != this)
-    {
-      RenderParams v(rhs);
-      swap(v);
-    }
-  return *this;
-}
-
-fastuidraw::FontFreeType::RenderParams&
-fastuidraw::FontFreeType::RenderParams::
-distance_field_pixel_size(unsigned int v)
-{
-  RenderParamsPrivate *d;
-  d = static_cast<RenderParamsPrivate*>(m_d);
-  d->m_distance_field_pixel_size = v;
-  return *this;
-}
-
-unsigned int
-fastuidraw::FontFreeType::RenderParams::
-distance_field_pixel_size(void) const
-{
-  RenderParamsPrivate *d;
-  d = static_cast<RenderParamsPrivate*>(m_d);
-  return d->m_distance_field_pixel_size;
-}
-
-fastuidraw::FontFreeType::RenderParams&
-fastuidraw::FontFreeType::RenderParams::
-distance_field_max_distance(float v)
-{
-  RenderParamsPrivate *d;
-  d = static_cast<RenderParamsPrivate*>(m_d);
-  d->m_distance_field_max_distance = v;
-  return *this;
-}
-
-float
-fastuidraw::FontFreeType::RenderParams::
-distance_field_max_distance(void) const
-{
-  RenderParamsPrivate *d;
-  d = static_cast<RenderParamsPrivate*>(m_d);
-  return d->m_distance_field_max_distance;
-}
-
-fastuidraw::FontFreeType::RenderParams&
-fastuidraw::FontFreeType::RenderParams::
-curve_pair_pixel_size(unsigned int v)
-{
-  RenderParamsPrivate *d;
-  d = static_cast<RenderParamsPrivate*>(m_d);
-  d->m_curve_pair_pixel_size = v;
-  return *this;
-}
-
-unsigned int
-fastuidraw::FontFreeType::RenderParams::
-curve_pair_pixel_size(void) const
-{
-  RenderParamsPrivate *d;
-  d = static_cast<RenderParamsPrivate*>(m_d);
-  return d->m_curve_pair_pixel_size;
-}
+assign_swap_implement(fastuidraw::FontFreeType::RenderParams)
+setget_implement(fastuidraw::FontFreeType::RenderParams,
+                 RenderParamsPrivate,
+                 unsigned int, distance_field_pixel_size)
+setget_implement(fastuidraw::FontFreeType::RenderParams,
+                 RenderParamsPrivate,
+                 float, distance_field_max_distance)
+setget_implement(fastuidraw::FontFreeType::RenderParams,
+                 RenderParamsPrivate,
+                 unsigned int, curve_pair_pixel_size)
 
 ///////////////////////////////////////////////////
 // fastuidraw::FontFreeType methods

@@ -17,6 +17,7 @@
  */
 
 #include <fastuidraw/painter/painter_stroke_shader.hpp>
+#include "../private/util_private.hpp"
 
 namespace
 {
@@ -63,51 +64,24 @@ fastuidraw::PainterStrokeShader::
   m_d = nullptr;
 }
 
-void
-fastuidraw::PainterStrokeShader::
-swap(PainterStrokeShader &obj)
-{
-  std::swap(m_d, obj.m_d);
-}
-
-fastuidraw::PainterStrokeShader&
-fastuidraw::PainterStrokeShader::
-operator=(const PainterStrokeShader &rhs)
-{
-  if(this != &rhs)
-    {
-      PainterStrokeShader v(rhs);
-      swap(v);
-    }
-  return *this;
-}
-
-#define setget_implement(type, name)                                \
-  fastuidraw::PainterStrokeShader&                                  \
-  fastuidraw::PainterStrokeShader::                                 \
-  name(type v)                                                      \
-  {                                                                 \
-    PainterStrokeShaderPrivate *d;                                  \
-    d = static_cast<PainterStrokeShaderPrivate*>(m_d);              \
-    d->m_##name = v;                                                \
-    return *this;                                                   \
-  }                                                                 \
-                                                                    \
-  type                                                              \
-  fastuidraw::PainterStrokeShader::                                 \
-  name(void) const                                                  \
-  {                                                                 \
-    PainterStrokeShaderPrivate *d;                                  \
-    d = static_cast<PainterStrokeShaderPrivate*>(m_d);              \
-    return d->m_##name;                                             \
-  }
-
-setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_shader_pass1)
-setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_shader_pass2)
-setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, non_aa_shader)
-setget_implement(enum fastuidraw::PainterStrokeShader::type_t, aa_type);
-setget_implement(const fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>&, stroking_data_selector);
-setget_implement(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&, aa_action_pass1);
-setget_implement(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&, aa_action_pass2);
-
-#undef setget_implement
+assign_swap_implement(fastuidraw::PainterStrokeShader)
+setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&,
+                 aa_shader_pass1)
+setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&,
+                 aa_shader_pass2)
+setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&,
+                 non_aa_shader)
+setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
+                 enum fastuidraw::PainterStrokeShader::type_t, aa_type);
+setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>&,
+                 stroking_data_selector);
+setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
+                 aa_action_pass1);
+setget_implement(fastuidraw::PainterStrokeShader, PainterStrokeShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
+                 aa_action_pass2);

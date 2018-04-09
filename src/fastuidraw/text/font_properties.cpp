@@ -20,6 +20,7 @@
 #include <string>
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include <fastuidraw/text/font_properties.hpp>
+#include "../private/util_private.hpp"
 
 namespace
 {
@@ -65,135 +66,24 @@ fastuidraw::FontProperties::
   m_d = nullptr;
 }
 
-void
-fastuidraw::FontProperties::
-swap(FontProperties &obj)
-{
-  std::swap(obj.m_d, m_d);
-}
-
-fastuidraw::FontProperties&
-fastuidraw::FontProperties::
-operator=(const FontProperties &obj)
-{
-  if(&obj != this)
-    {
-      FontProperties v(obj);
-      swap(v);
-    }
-  return *this;
-}
-
-bool
-fastuidraw::FontProperties::
-bold(void) const
-{
-  FontPropertiesPrivate *d;
-  d = static_cast<FontPropertiesPrivate*>(m_d);
-  return d->m_bold;
-}
-
-fastuidraw::FontProperties&
-fastuidraw::FontProperties::
-bold(bool b)
-{
-  FontPropertiesPrivate *d;
-  d = static_cast<FontPropertiesPrivate*>(m_d);
-  d->m_bold = b;
-  return *this;
-}
-
-bool
-fastuidraw::FontProperties::
-italic(void) const
-{
-  FontPropertiesPrivate *d;
-  d = static_cast<FontPropertiesPrivate*>(m_d);
-  return d->m_italic;
-}
-
-fastuidraw::FontProperties&
-fastuidraw::FontProperties::
-italic(bool b)
-{
-  FontPropertiesPrivate *d;
-  d = static_cast<FontPropertiesPrivate*>(m_d);
-  d->m_italic = b;
-  return *this;
-}
-
-fastuidraw::c_string
-fastuidraw::FontProperties::
-style(void) const
-{
-  FontPropertiesPrivate *d;
-  d = static_cast<FontPropertiesPrivate*>(m_d);
-  return d->m_style.c_str();
-}
-
-fastuidraw::FontProperties&
-fastuidraw::FontProperties::
-style(c_string b)
-{
-  FontPropertiesPrivate *d;
-  d = static_cast<FontPropertiesPrivate*>(m_d);
-  d->m_style = b ? b : "";
-  return *this;
-}
-
-fastuidraw::c_string
-fastuidraw::FontProperties::
-family(void) const
-{
-  FontPropertiesPrivate *d;
-  d = static_cast<FontPropertiesPrivate*>(m_d);
-  return d->m_family.c_str();
-}
-
-fastuidraw::FontProperties&
-fastuidraw::FontProperties::
-family(c_string b)
-{
-  FontPropertiesPrivate *d;
-  d = static_cast<FontPropertiesPrivate*>(m_d);
-  d->m_family = b ? b : "";
-  return *this;
-}
-
-fastuidraw::c_string
-fastuidraw::FontProperties::
-foundry(void) const
-{
-  FontPropertiesPrivate *d;
-  d = static_cast<FontPropertiesPrivate*>(m_d);
-  return d->m_foundry.c_str();
-}
-
-fastuidraw::FontProperties&
-fastuidraw::FontProperties::
-foundry(c_string b)
-{
-  FontPropertiesPrivate *d;
-  d = static_cast<FontPropertiesPrivate*>(m_d);
-  d->m_foundry = b ? b : "";
-  return *this;
-}
-
-fastuidraw::c_string
-fastuidraw::FontProperties::
-source_label(void) const
-{
-  FontPropertiesPrivate *d;
-  d = static_cast<FontPropertiesPrivate*>(m_d);
-  return d->m_source_label.c_str();
-}
-
-fastuidraw::FontProperties&
-fastuidraw::FontProperties::
-source_label(c_string b)
-{
-  FontPropertiesPrivate *d;
-  d = static_cast<FontPropertiesPrivate*>(m_d);
-  d->m_source_label = b ? b : "";
-  return *this;
-}
+assign_swap_implement(fastuidraw::FontProperties)
+setget_implement(fastuidraw::FontProperties,
+                 FontPropertiesPrivate,
+                 bool,
+                 bold)
+setget_implement(fastuidraw::FontProperties,
+                 FontPropertiesPrivate,
+                 bool,
+                 italic)
+setget_implement_string(fastuidraw::FontProperties,
+                        FontPropertiesPrivate,
+                        style)
+setget_implement_string(fastuidraw::FontProperties,
+                        FontPropertiesPrivate,
+                        family)
+setget_implement_string(fastuidraw::FontProperties,
+                        FontPropertiesPrivate,
+                        foundry)
+setget_implement_string(fastuidraw::FontProperties,
+                        FontPropertiesPrivate,
+                        source_label)

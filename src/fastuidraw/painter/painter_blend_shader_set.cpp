@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <fastuidraw/painter/painter_blend_shader_set.hpp>
+#include "../private/util_private.hpp"
 
 namespace
 {
@@ -57,24 +58,7 @@ fastuidraw::PainterBlendShaderSet::
   m_d = nullptr;
 }
 
-void
-fastuidraw::PainterBlendShaderSet::
-swap(PainterBlendShaderSet &obj)
-{
-  std::swap(m_d, obj.m_d);
-}
-
-fastuidraw::PainterBlendShaderSet&
-fastuidraw::PainterBlendShaderSet::
-operator=(const PainterBlendShaderSet &rhs)
-{
-  if(this != &rhs)
-    {
-      PainterBlendShaderSet v(rhs);
-      swap(v);
-    }
-  return *this;
-}
+assign_swap_implement(fastuidraw::PainterBlendShaderSet)
 
 const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader>&
 fastuidraw::PainterBlendShaderSet::

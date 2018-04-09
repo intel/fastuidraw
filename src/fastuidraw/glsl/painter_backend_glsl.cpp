@@ -1187,52 +1187,18 @@ fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
   m_d = nullptr;
 }
 
-fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL&
-fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
-operator=(const ConfigurationGLSL &obj)
-{
-  if(this != &obj)
-    {
-      ConfigurationGLSL v(obj);
-      swap(v);
-    }
-  return *this;
-}
+assign_swap_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL)
 
-void
-fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
-swap(ConfigurationGLSL &rhs)
-{
-  std::swap(m_d, rhs.m_d);
-}
-
-#define setget_implement(type, name)                                    \
-  fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL&              \
-  fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::             \
-  name(type v)                                                          \
-  {                                                                     \
-    ConfigurationGLSLPrivate *d;                                        \
-    d = static_cast<ConfigurationGLSLPrivate*>(m_d);                    \
-    d->m_##name = v;                                                    \
-    return *this;                                                       \
-  }                                                                     \
-                                                                        \
-  type                                                                  \
-  fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::             \
-  name(void) const                                                      \
-  {                                                                     \
-    ConfigurationGLSLPrivate *d;                                        \
-    d = static_cast<ConfigurationGLSLPrivate*>(m_d);                    \
-    return d->m_##name;                                                 \
-  }
-
-setget_implement(bool, use_hw_clip_planes)
-setget_implement(enum fastuidraw::PainterStrokeShader::type_t, default_stroke_shader_aa_type)
-setget_implement(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&, default_stroke_shader_aa_pass1_action)
-setget_implement(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&, default_stroke_shader_aa_pass2_action)
-
-
-#undef setget_implement
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL, ConfigurationGLSLPrivate,
+                 bool, use_hw_clip_planes)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL, ConfigurationGLSLPrivate,
+                 enum fastuidraw::PainterStrokeShader::type_t, default_stroke_shader_aa_type)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL, ConfigurationGLSLPrivate,
+                 const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
+                 default_stroke_shader_aa_pass1_action)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL, ConfigurationGLSLPrivate,
+                 const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
+                 default_stroke_shader_aa_pass2_action)
 
 /////////////////////////////////////////////////////////////
 // fastuidraw::glsl::PainterBackendGLSL::BindingPoints methods
@@ -1259,58 +1225,30 @@ fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
   m_d = nullptr;
 }
 
-fastuidraw::glsl::PainterBackendGLSL::BindingPoints&
-fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
-operator=(const BindingPoints &obj)
-{
-  if(this != &obj)
-    {
-      BindingPoints v(obj);
-      swap(v);
-    }
-  return *this;
-}
+assign_swap_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints)
 
-void
-fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
-swap(BindingPoints &rhs)
-{
-  std::swap(m_d, rhs.m_d);
-}
-
-#define setget_implement(type, name)                                    \
-  fastuidraw::glsl::PainterBackendGLSL::BindingPoints&                  \
-  fastuidraw::glsl::PainterBackendGLSL::BindingPoints::                 \
-  name(type v)                                                          \
-  {                                                                     \
-    BindingPointsPrivate *d;                                            \
-    d = static_cast<BindingPointsPrivate*>(m_d);                        \
-    d->m_##name = v;                                                    \
-    return *this;                                                       \
-  }                                                                     \
-                                                                        \
-  type                                                                  \
-  fastuidraw::glsl::PainterBackendGLSL::BindingPoints::                 \
-  name(void) const                                                      \
-  {                                                                     \
-    BindingPointsPrivate *d;                                            \
-    d = static_cast<BindingPointsPrivate*>(m_d);                        \
-    return d->m_##name;                                                 \
-  }
-
-setget_implement(unsigned int, colorstop_atlas)
-setget_implement(unsigned int, image_atlas_color_tiles_unfiltered)
-setget_implement(unsigned int, image_atlas_color_tiles_filtered)
-setget_implement(unsigned int, image_atlas_index_tiles)
-setget_implement(unsigned int, glyph_atlas_texel_store_uint)
-setget_implement(unsigned int, glyph_atlas_texel_store_float)
-setget_implement(unsigned int, glyph_atlas_geometry_store)
-setget_implement(unsigned int, data_store_buffer_tbo)
-setget_implement(unsigned int, data_store_buffer_ubo)
-setget_implement(unsigned int, auxilary_image_buffer)
-setget_implement(unsigned int, uniforms_ubo)
-
-#undef setget_implement
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
+                 BindingPointsPrivate, unsigned int, colorstop_atlas)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
+                 BindingPointsPrivate, unsigned int, image_atlas_color_tiles_unfiltered)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
+                 BindingPointsPrivate, unsigned int, image_atlas_color_tiles_filtered)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
+                 BindingPointsPrivate, unsigned int, image_atlas_index_tiles)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
+                 BindingPointsPrivate, unsigned int, glyph_atlas_texel_store_uint)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
+                 BindingPointsPrivate, unsigned int, glyph_atlas_texel_store_float)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
+                 BindingPointsPrivate, unsigned int, glyph_atlas_geometry_store)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
+                 BindingPointsPrivate, unsigned int, data_store_buffer_tbo)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
+                 BindingPointsPrivate, unsigned int, data_store_buffer_ubo)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
+                 BindingPointsPrivate, unsigned int, auxilary_image_buffer)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
+                 BindingPointsPrivate, unsigned int, uniforms_ubo)
 
 ////////////////////////////////////////////////////////////////
 // fastuidraw::glsl::PainterBackendGLSL::UberShaderParams methods
@@ -1337,64 +1275,44 @@ fastuidraw::glsl::PainterBackendGLSL::UberShaderParams::
   m_d = nullptr;
 }
 
-fastuidraw::glsl::PainterBackendGLSL::UberShaderParams&
-fastuidraw::glsl::PainterBackendGLSL::UberShaderParams::
-operator=(const UberShaderParams &rhs)
-{
-  if(this != &rhs)
-    {
-      UberShaderParams v(rhs);
-      swap(v);
-    }
-  return *this;
-}
+assign_swap_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams)
 
-void
-fastuidraw::glsl::PainterBackendGLSL::UberShaderParams::
-swap(UberShaderParams &obj)
-{
-  std::swap(m_d, obj.m_d);
-}
-
-#define setget_implement(type, name)                                    \
-  fastuidraw::glsl::PainterBackendGLSL::UberShaderParams&               \
-  fastuidraw::glsl::PainterBackendGLSL::UberShaderParams::              \
-  name(type v)                                                          \
-  {                                                                     \
-    UberShaderParamsPrivate *d;                                         \
-    d = static_cast<UberShaderParamsPrivate*>(m_d);                     \
-    d->m_##name = v;                                                    \
-    return *this;                                                       \
-  }                                                                     \
-                                                                        \
-  type                                                                  \
-  fastuidraw::glsl::PainterBackendGLSL::UberShaderParams::              \
-  name(void) const                                                      \
-  {                                                                     \
-    UberShaderParamsPrivate *d;                                         \
-    d = static_cast<UberShaderParamsPrivate*>(m_d);                     \
-    return d->m_##name;                                                 \
-  }
-
-setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t, z_coordinate_convention)
-setget_implement(bool, negate_normalized_y_coordinate)
-setget_implement(bool, assign_layout_to_vertex_shader_inputs)
-setget_implement(bool, assign_layout_to_varyings)
-setget_implement(bool, assign_binding_points)
-setget_implement(bool, vert_shader_use_switch)
-setget_implement(bool, frag_shader_use_switch)
-setget_implement(bool, blend_shader_use_switch)
-setget_implement(bool, unpack_header_and_brush_in_frag_shader)
-setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::data_store_backing_t, data_store_backing)
-setget_implement(int, data_blocks_per_store_buffer)
-setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_backing_t, glyph_geometry_backing)
-setget_implement(fastuidraw::ivec2, glyph_geometry_backing_log2_dims)
-setget_implement(bool, have_float_glyph_texture_atlas)
-setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::colorstop_backing_t, colorstop_atlas_backing)
-setget_implement(bool, use_ubo_for_uniforms)
-setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t, provide_auxilary_image_buffer)
-setget_implement(const fastuidraw::glsl::PainterBackendGLSL::BindingPoints&, binding_points)
-#undef setget_implement
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t, z_coordinate_convention)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, bool, negate_normalized_y_coordinate)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, bool, assign_layout_to_vertex_shader_inputs)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, bool, assign_layout_to_varyings)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, bool, assign_binding_points)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, bool, vert_shader_use_switch)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, bool, frag_shader_use_switch)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, bool, blend_shader_use_switch)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, bool, unpack_header_and_brush_in_frag_shader)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, enum fastuidraw::glsl::PainterBackendGLSL::data_store_backing_t, data_store_backing)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, int, data_blocks_per_store_buffer)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, enum fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_backing_t, glyph_geometry_backing)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, fastuidraw::ivec2, glyph_geometry_backing_log2_dims)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, bool, have_float_glyph_texture_atlas)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, enum fastuidraw::glsl::PainterBackendGLSL::colorstop_backing_t, colorstop_atlas_backing)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, bool, use_ubo_for_uniforms)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t, provide_auxilary_image_buffer)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, const fastuidraw::glsl::PainterBackendGLSL::BindingPoints&, binding_points)
 
 //////////////////////////////////////////////
 // fastuidraw::glsl::PainterBackendGLSL methods

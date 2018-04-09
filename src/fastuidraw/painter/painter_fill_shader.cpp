@@ -18,6 +18,7 @@
 
 #include <utility>
 #include <fastuidraw/painter/painter_fill_shader.hpp>
+#include "../private/util_private.hpp"
 
 namespace
 {
@@ -54,45 +55,8 @@ fastuidraw::PainterFillShader::
   m_d = nullptr;
 }
 
-void
-fastuidraw::PainterFillShader::
-swap(PainterFillShader &obj)
-{
-  std::swap(obj.m_d, m_d);
-}
-
-fastuidraw::PainterFillShader&
-fastuidraw::PainterFillShader::
-operator=(const PainterFillShader &rhs)
-{
-  if(this != &rhs)
-    {
-      PainterFillShader v(rhs);
-      swap(v);
-    }
-  return *this;
-}
-
-#define setget_implement(type, name)                                \
-  fastuidraw::PainterFillShader&                                    \
-  fastuidraw::PainterFillShader::                                   \
-  name(type v)                                                      \
-  {                                                                 \
-    PainterFillShaderPrivate *d;                                    \
-    d = static_cast<PainterFillShaderPrivate*>(m_d);                \
-    d->m_##name = v;                                                \
-    return *this;                                                   \
-  }                                                                 \
-                                                                    \
-  type                                                              \
-  fastuidraw::PainterFillShader::                                   \
-  name(void) const                                                  \
-  {                                                                 \
-    PainterFillShaderPrivate *d;                                    \
-    d = static_cast<PainterFillShaderPrivate*>(m_d);                \
-    return d->m_##name;                                             \
-  }
-
-setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, item_shader)
-setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_fuzz_shader)
-#undef setget_implement
+assign_swap_implement(fastuidraw::PainterFillShader)
+setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, item_shader)
+setget_implement(fastuidraw::PainterFillShader, PainterFillShaderPrivate,
+                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&, aa_fuzz_shader)

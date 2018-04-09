@@ -213,6 +213,13 @@ namespace fastuidraw
       operator=(const shader_unpack_value &rhs);
 
       /*!
+        Swap operation
+        \param obj object with which to swap
+       */
+      void
+      swap(shader_unpack_value &obj);
+
+      /*!
         The name of the value to unpack as it appears in GLSL
        */
       c_string

@@ -23,6 +23,7 @@
 #include <fastuidraw/gl_backend/colorstop_atlas_gl.hpp>
 
 #include "private/texture_gl.hpp"
+#include "../private/util_private.hpp"
 
 namespace
 {
@@ -201,51 +202,16 @@ fastuidraw::gl::ColorStopAtlasGL::params::
   m_d = nullptr;
 }
 
-void
-fastuidraw::gl::ColorStopAtlasGL::params::
-swap(params &obj)
-{
-  std::swap(m_d, obj.m_d);
-}
-
-fastuidraw::gl::ColorStopAtlasGL::params&
-fastuidraw::gl::ColorStopAtlasGL::params::
-operator=(const params &rhs)
-{
-  if(this != &rhs)
-    {
-      params v(rhs);
-      swap(v);
-    }
-  return *this;
-}
-
-#define paramsSetGet(type, name)                                    \
-  fastuidraw::gl::ColorStopAtlasGL::params&                          \
-  fastuidraw::gl::ColorStopAtlasGL::params::                         \
-  name(type v)                                                      \
-  {                                                                 \
-    ColorStopAtlasGLParamsPrivate *d;                               \
-    d = static_cast<ColorStopAtlasGLParamsPrivate*>(m_d);      \
-    d->m_##name = v;                                                \
-    return *this;                                                   \
-  }                                                                 \
-                                                                    \
-  type                                                              \
-  fastuidraw::gl::ColorStopAtlasGL::params::                         \
-  name(void) const                                                  \
-  {                                                                 \
-    ColorStopAtlasGLParamsPrivate *d;                               \
-    d = static_cast<ColorStopAtlasGLParamsPrivate*>(m_d);      \
-    return d->m_##name;                                             \
-  }
-
-paramsSetGet(int, width)
-paramsSetGet(int, num_layers)
-paramsSetGet(bool, delayed)
-
-#undef paramsSetGet
-
+assign_swap_implement(fastuidraw::gl::ColorStopAtlasGL::params)
+setget_implement(fastuidraw::gl::ColorStopAtlasGL::params,
+                 ColorStopAtlasGLParamsPrivate,
+                 int, width)
+setget_implement(fastuidraw::gl::ColorStopAtlasGL::params,
+                 ColorStopAtlasGLParamsPrivate,
+                 int, num_layers)
+setget_implement(fastuidraw::gl::ColorStopAtlasGL::params,
+                 ColorStopAtlasGLParamsPrivate,
+                 bool, delayed)
 
 fastuidraw::gl::ColorStopAtlasGL::params&
 fastuidraw::gl::ColorStopAtlasGL::params::

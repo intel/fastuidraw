@@ -612,24 +612,7 @@ fastuidraw::gl::GlyphAtlasGL::params::
   m_d = nullptr;
 }
 
-void
-fastuidraw::gl::GlyphAtlasGL::params::
-swap(params &obj)
-{
-  std::swap(m_d, obj.m_d);
-}
-
-fastuidraw::gl::GlyphAtlasGL::params&
-fastuidraw::gl::GlyphAtlasGL::params::
-operator=(const params &rhs)
-{
-  if(this != &rhs)
-    {
-      params v(rhs);
-      swap(v);
-    }
-  return *this;
-}
+assign_swap_implement(fastuidraw::gl::GlyphAtlasGL::params);
 
 enum fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_backing_t
 fastuidraw::gl::GlyphAtlasGL::params::
@@ -721,33 +704,18 @@ use_optimal_geometry_store_backing(void)
   return *this;
 }
 
-#define paramsSetGet(type, name)                                 \
-  fastuidraw::gl::GlyphAtlasGL::params&                          \
-  fastuidraw::gl::GlyphAtlasGL::params::                         \
-  name(type v)                                                   \
-  {                                                              \
-    GlyphAtlasGLParamsPrivate *d;                                \
-    d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);       \
-    d->m_##name = v;                                             \
-    return *this;                                                \
-  }                                                              \
-                                                                 \
-  type                                                           \
-  fastuidraw::gl::GlyphAtlasGL::params::                         \
-  name(void) const                                               \
-  {                                                              \
-    GlyphAtlasGLParamsPrivate *d;                                \
-    d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);       \
-    return d->m_##name;                                          \
-  }
-
-paramsSetGet(fastuidraw::ivec3, texel_store_dimensions)
-paramsSetGet(unsigned int, number_floats)
-paramsSetGet(bool, delayed)
-paramsSetGet(unsigned int, alignment)
-
-
-#undef paramsSetGet
+setget_implement(fastuidraw::gl::GlyphAtlasGL::params,
+                 GlyphAtlasGLParamsPrivate,
+                 fastuidraw::ivec3, texel_store_dimensions);
+setget_implement(fastuidraw::gl::GlyphAtlasGL::params,
+                 GlyphAtlasGLParamsPrivate,
+                 unsigned int, number_floats);
+setget_implement(fastuidraw::gl::GlyphAtlasGL::params,
+                 GlyphAtlasGLParamsPrivate,
+                 bool, delayed);
+setget_implement(fastuidraw::gl::GlyphAtlasGL::params,
+                 GlyphAtlasGLParamsPrivate,
+                 unsigned int, alignment);
 
 //////////////////////////////////////////////////////////////////
 // fastuidraw::gl::GlyphAtlasGL methods

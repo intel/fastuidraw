@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <fastuidraw/painter/painter_glyph_shader.hpp>
+#include "../private/util_private.hpp"
 
 namespace
 {
@@ -55,24 +56,7 @@ fastuidraw::PainterGlyphShader::
   m_d = nullptr;
 }
 
-void
-fastuidraw::PainterGlyphShader::
-swap(PainterGlyphShader &obj)
-{
-  std::swap(m_d, obj.m_d);
-}
-
-fastuidraw::PainterGlyphShader&
-fastuidraw::PainterGlyphShader::
-operator=(const PainterGlyphShader &rhs)
-{
-  if(this != &rhs)
-    {
-      PainterGlyphShader v(rhs);
-      swap(v);
-    }
-  return *this;
-}
+assign_swap_implement(fastuidraw::PainterGlyphShader)
 
 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>&
 fastuidraw::PainterGlyphShader::

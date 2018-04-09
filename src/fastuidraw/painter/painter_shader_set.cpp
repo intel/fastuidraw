@@ -18,6 +18,7 @@
 
 
 #include <fastuidraw/painter/painter_shader_set.hpp>
+#include "../private/util_private.hpp"
 
 namespace
 {
@@ -58,52 +59,21 @@ fastuidraw::PainterShaderSet::
   FASTUIDRAWdelete(d);
   m_d = nullptr;
 }
-void
-fastuidraw::PainterShaderSet::
-swap(PainterShaderSet &obj)
-{
-  std::swap(m_d, obj.m_d);
-}
 
-fastuidraw::PainterShaderSet&
-fastuidraw::PainterShaderSet::
-operator=(const PainterShaderSet &rhs)
-{
-  if(this != &rhs)
-    {
-      PainterShaderSet v(rhs);
-      swap(v);
-    }
-  return *this;
-}
-
-#define setget_implement(type, name)                             \
-  fastuidraw::PainterShaderSet&                                  \
-  fastuidraw::PainterShaderSet::                                 \
-  name(const type &v)                                            \
-  {                                                              \
-    PainterShaderSetPrivate *d;                                  \
-    d = static_cast<PainterShaderSetPrivate*>(m_d);         \
-    d->m_##name = v;                                             \
-    return *this;                                                \
-  }                                                              \
-                                                                 \
-  const type&                                                    \
-  fastuidraw::PainterShaderSet::                                 \
-  name(void) const                                               \
-  {                                                              \
-    PainterShaderSetPrivate *d;                                  \
-    d = static_cast<PainterShaderSetPrivate*>(m_d);         \
-    return d->m_##name;                                          \
-  }
-
-setget_implement(fastuidraw::PainterGlyphShader, glyph_shader)
-setget_implement(fastuidraw::PainterGlyphShader, glyph_shader_anisotropic)
-setget_implement(fastuidraw::PainterStrokeShader, stroke_shader)
-setget_implement(fastuidraw::PainterStrokeShader, pixel_width_stroke_shader)
-setget_implement(fastuidraw::PainterDashedStrokeShaderSet, dashed_stroke_shader)
-setget_implement(fastuidraw::PainterDashedStrokeShaderSet, pixel_width_dashed_stroke_shader)
-setget_implement(fastuidraw::PainterFillShader, fill_shader)
-setget_implement(fastuidraw::PainterBlendShaderSet, blend_shaders)
-
-#undef setget_implement
+assign_swap_implement(fastuidraw::PainterShaderSet)
+setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
+                 const fastuidraw::PainterGlyphShader&, glyph_shader)
+setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
+                 const fastuidraw::PainterGlyphShader&, glyph_shader_anisotropic)
+setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
+                 const fastuidraw::PainterStrokeShader&, stroke_shader)
+setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
+                 const fastuidraw::PainterStrokeShader&, pixel_width_stroke_shader)
+setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
+                 const fastuidraw::PainterDashedStrokeShaderSet&, dashed_stroke_shader)
+setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
+                 const fastuidraw::PainterDashedStrokeShaderSet&, pixel_width_dashed_stroke_shader)
+setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
+                 const fastuidraw::PainterFillShader&, fill_shader)
+setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
+                 const fastuidraw::PainterBlendShaderSet&, blend_shaders)

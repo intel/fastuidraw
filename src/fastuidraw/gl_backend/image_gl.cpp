@@ -351,25 +351,6 @@ fastuidraw::gl::ImageAtlasGL::params::
   m_d = nullptr;
 }
 
-void
-fastuidraw::gl::ImageAtlasGL::params::
-swap(params &obj)
-{
-  std::swap(m_d, obj.m_d);
-}
-
-fastuidraw::gl::ImageAtlasGL::params&
-fastuidraw::gl::ImageAtlasGL::params::
-operator=(const params &rhs)
-{
-  if(this != &rhs)
-    {
-      params v(rhs);
-      swap(v);
-    }
-  return *this;
-}
-
 fastuidraw::gl::ImageAtlasGL::params&
 fastuidraw::gl::ImageAtlasGL::params::
 optimal_color_sizes(int log2_color_tile_size)
@@ -381,37 +362,28 @@ optimal_color_sizes(int log2_color_tile_size)
   return log2_num_color_tiles_per_row_per_col(c);
 }
 
-#define paramsSetGet(type, name)                                 \
-  fastuidraw::gl::ImageAtlasGL::params&                          \
-  fastuidraw::gl::ImageAtlasGL::params::                         \
-  name(type v)                                                   \
-  {                                                              \
-    ImageAtlasGLParamsPrivate *d;                                \
-    d = static_cast<ImageAtlasGLParamsPrivate*>(m_d);       \
-    d->m_##name = v;                                             \
-    return *this;                                                \
-  }                                                              \
-                                                                 \
-  type                                                           \
-  fastuidraw::gl::ImageAtlasGL::params::                         \
-  name(void) const                                               \
-  {                                                              \
-    ImageAtlasGLParamsPrivate *d;                                \
-    d = static_cast<ImageAtlasGLParamsPrivate*>(m_d);       \
-    return d->m_##name;                                          \
-  }
-
-paramsSetGet(int, log2_color_tile_size)
-paramsSetGet(int, log2_num_color_tiles_per_row_per_col)
-paramsSetGet(int, num_color_layers)
-paramsSetGet(int, log2_index_tile_size)
-paramsSetGet(int, log2_num_index_tiles_per_row_per_col)
-paramsSetGet(int, num_index_layers)
-paramsSetGet(bool, delayed)
-
-#undef paramsSetGet
-
-
+assign_swap_implement(fastuidraw::gl::ImageAtlasGL::params)
+setget_implement(fastuidraw::gl::ImageAtlasGL::params,
+                 ImageAtlasGLParamsPrivate,
+                 int, log2_color_tile_size)
+setget_implement(fastuidraw::gl::ImageAtlasGL::params,
+                 ImageAtlasGLParamsPrivate,
+                 int, log2_num_color_tiles_per_row_per_col)
+setget_implement(fastuidraw::gl::ImageAtlasGL::params,
+                 ImageAtlasGLParamsPrivate,
+                 int, num_color_layers)
+setget_implement(fastuidraw::gl::ImageAtlasGL::params,
+                 ImageAtlasGLParamsPrivate,
+                 int, log2_index_tile_size)
+setget_implement(fastuidraw::gl::ImageAtlasGL::params,
+                 ImageAtlasGLParamsPrivate,
+                 int, log2_num_index_tiles_per_row_per_col)
+setget_implement(fastuidraw::gl::ImageAtlasGL::params,
+                 ImageAtlasGLParamsPrivate,
+                 int, num_index_layers)
+setget_implement(fastuidraw::gl::ImageAtlasGL::params,
+                 ImageAtlasGLParamsPrivate,
+                 bool, delayed)
 
 //////////////////////////////////////////////
 // fastuidraw::gl::ImageAtlasGL methods

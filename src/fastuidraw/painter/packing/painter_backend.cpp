@@ -18,6 +18,7 @@
 
 
 #include <fastuidraw/painter/packing/painter_backend.hpp>
+#include "../../private/util_private.hpp"
 
 namespace
 {
@@ -80,6 +81,14 @@ PerformanceHints(void)
 }
 
 fastuidraw::PainterBackend::PerformanceHints::
+PerformanceHints(const PerformanceHints &obj)
+{
+  PerformanceHintsPrivate *d;
+  d = static_cast<PerformanceHintsPrivate*>(obj.m_d);
+  m_d = FASTUIDRAWnew PerformanceHintsPrivate(*d);
+}
+
+fastuidraw::PainterBackend::PerformanceHints::
 ~PerformanceHints(void)
 {
   PerformanceHintsPrivate *d;
@@ -88,24 +97,10 @@ fastuidraw::PainterBackend::PerformanceHints::
   m_d = nullptr;
 }
 
-bool
-fastuidraw::PainterBackend::PerformanceHints::
-clipping_via_hw_clip_planes(void) const
-{
-  PerformanceHintsPrivate *d;
-  d = static_cast<PerformanceHintsPrivate*>(m_d);
-  return d->m_clipping_via_hw_clip_planes;
-}
-
-fastuidraw::PainterBackend::PerformanceHints&
-fastuidraw::PainterBackend::PerformanceHints::
-clipping_via_hw_clip_planes(bool v)
-{
-  PerformanceHintsPrivate *d;
-  d = static_cast<PerformanceHintsPrivate*>(m_d);
-  d->m_clipping_via_hw_clip_planes = v;
-  return *this;
-}
+assign_swap_implement(fastuidraw::PainterBackend::PerformanceHints)
+setget_implement(fastuidraw::PainterBackend::PerformanceHints,
+                 PerformanceHintsPrivate,
+                 bool, clipping_via_hw_clip_planes)
 
 ///////////////////////////////////////////////////
 // fastuidraw::PainterBackend::ConfigurationBase methods
@@ -132,81 +127,16 @@ fastuidraw::PainterBackend::ConfigurationBase::
   m_d = nullptr;
 }
 
-void
-fastuidraw::PainterBackend::ConfigurationBase::
-swap(ConfigurationBase &obj)
-{
-  std::swap(m_d, obj.m_d);
-}
-
-fastuidraw::PainterBackend::ConfigurationBase&
-fastuidraw::PainterBackend::ConfigurationBase::
-operator=(const ConfigurationBase &obj)
-{
-  if(&obj != this)
-    {
-      ConfigurationBase v(obj);
-      swap(v);
-    }
-  return *this;
-}
-
-uint32_t
-fastuidraw::PainterBackend::ConfigurationBase::
-brush_shader_mask(void) const
-{
-  ConfigurationPrivate *d;
-  d = static_cast<ConfigurationPrivate*>(m_d);
-  return d->m_brush_shader_mask;
-}
-
-fastuidraw::PainterBackend::ConfigurationBase&
-fastuidraw::PainterBackend::ConfigurationBase::
-brush_shader_mask(uint32_t v)
-{
-  ConfigurationPrivate *d;
-  d = static_cast<ConfigurationPrivate*>(m_d);
-  d->m_brush_shader_mask = v;
-  return *this;
-}
-
-int
-fastuidraw::PainterBackend::ConfigurationBase::
-alignment(void) const
-{
-  ConfigurationPrivate *d;
-  d = static_cast<ConfigurationPrivate*>(m_d);
-  return d->m_alignment;
-}
-
-fastuidraw::PainterBackend::ConfigurationBase&
-fastuidraw::PainterBackend::ConfigurationBase::
-alignment(int v)
-{
-  ConfigurationPrivate *d;
-  d = static_cast<ConfigurationPrivate*>(m_d);
-  d->m_alignment = v;
-  return *this;
-}
-
-enum fastuidraw::PainterBlendShader::shader_type
-fastuidraw::PainterBackend::ConfigurationBase::
-blend_type(void) const
-{
-  ConfigurationPrivate *d;
-  d = static_cast<ConfigurationPrivate*>(m_d);
-  return d->m_blend_type;
-}
-
-fastuidraw::PainterBackend::ConfigurationBase&
-fastuidraw::PainterBackend::ConfigurationBase::
-blend_type(enum PainterBlendShader::shader_type v)
-{
-  ConfigurationPrivate *d;
-  d = static_cast<ConfigurationPrivate*>(m_d);
-  d->m_blend_type = v;
-  return *this;
-}
+assign_swap_implement(fastuidraw::PainterBackend::ConfigurationBase)
+setget_implement(fastuidraw::PainterBackend::ConfigurationBase,
+                 ConfigurationPrivate,
+                 uint32_t, brush_shader_mask)
+setget_implement(fastuidraw::PainterBackend::ConfigurationBase,
+                 ConfigurationPrivate,
+                 int, alignment)
+setget_implement(fastuidraw::PainterBackend::ConfigurationBase,
+                 ConfigurationPrivate,
+                 enum fastuidraw::PainterBlendShader::shader_type, blend_type)
 
 ////////////////////////////////////
 // fastuidraw::PainterBackend methods

@@ -31,6 +31,7 @@
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 #include <fastuidraw/gl_backend/gluniform.hpp>
 
+#include "../private/util_private.hpp"
 #include "private/tex_buffer.hpp"
 #include "private/texture_gl.hpp"
 
@@ -1719,31 +1720,12 @@ fastuidraw::gl::PainterBackendGL::SurfaceGL::
   FASTUIDRAWdelete(d);
 }
 
-#define setget_implement(type, name)                                    \
-  fastuidraw::gl::PainterBackendGL::SurfaceGL&                          \
-  fastuidraw::gl::PainterBackendGL::SurfaceGL::                         \
-  name(type v)                                                          \
-  {                                                                     \
-    SurfaceGLPrivate *d;                                                \
-    d = static_cast<SurfaceGLPrivate*>(m_d);                            \
-    d->m_##name = v;                                                    \
-    return *this;                                                       \
-  }                                                                     \
-                                                                        \
-  type                                                                  \
-  fastuidraw::gl::PainterBackendGL::SurfaceGL::                         \
-  name(void) const                                                      \
-  {                                                                     \
-    SurfaceGLPrivate *d;                                                \
-    d = static_cast<SurfaceGLPrivate*>(m_d);                            \
-    return d->m_##name;                                                 \
-  }
-
-setget_implement(fastuidraw::PainterBackend::Surface::Viewport, viewport);
-setget_implement(fastuidraw::ivec2, dimensions)
-setget_implement(const fastuidraw::vec4&, clear_color)
-
-#undef setget_implement
+setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL, SurfaceGLPrivate,
+                 fastuidraw::PainterBackend::Surface::Viewport, viewport);
+setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL, SurfaceGLPrivate,
+                 fastuidraw::ivec2, dimensions)
+setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL, SurfaceGLPrivate,
+                 const fastuidraw::vec4&, clear_color)
 
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL::ConfigurationGL methods
@@ -1770,67 +1752,50 @@ fastuidraw::gl::PainterBackendGL::ConfigurationGL::
   m_d = nullptr;
 }
 
-void
-fastuidraw::gl::PainterBackendGL::ConfigurationGL::
-swap(ConfigurationGL &obj)
-{
-  std::swap(m_d, obj.m_d);
-}
+assign_swap_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL)
 
-fastuidraw::gl::PainterBackendGL::ConfigurationGL&
-fastuidraw::gl::PainterBackendGL::ConfigurationGL::
-operator=(const ConfigurationGL &rhs)
-{
-  if(this != &rhs)
-    {
-      ConfigurationGL v(rhs);
-      swap(v);
-    }
-  return *this;
-}
-
-#define setget_implement(type, name)                                    \
-  fastuidraw::gl::PainterBackendGL::ConfigurationGL&                    \
-  fastuidraw::gl::PainterBackendGL::ConfigurationGL::                   \
-  name(type v)                                                          \
-  {                                                                     \
-    ConfigurationGLPrivate *d;                                          \
-    d = static_cast<ConfigurationGLPrivate*>(m_d);                      \
-    d->m_##name = v;                                                    \
-    return *this;                                                       \
-  }                                                                     \
-                                                                        \
-  type                                                                  \
-  fastuidraw::gl::PainterBackendGL::ConfigurationGL::                   \
-  name(void) const                                                      \
-  {                                                                     \
-    ConfigurationGLPrivate *d;                                          \
-    d = static_cast<ConfigurationGLPrivate*>(m_d);                      \
-    return d->m_##name;                                                 \
-  }
-
-setget_implement(unsigned int, attributes_per_buffer)
-setget_implement(unsigned int, indices_per_buffer)
-setget_implement(unsigned int, data_blocks_per_store_buffer)
-setget_implement(unsigned int, number_pools)
-setget_implement(bool, break_on_shader_change)
-setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL>&, image_atlas)
-setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL>&, colorstop_atlas)
-setget_implement(const fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL>&, glyph_atlas)
-setget_implement(bool, use_hw_clip_planes)
-setget_implement(bool, vert_shader_use_switch)
-setget_implement(bool, frag_shader_use_switch)
-setget_implement(bool, blend_shader_use_switch)
-setget_implement(bool, unpack_header_and_brush_in_frag_shader)
-setget_implement(enum fastuidraw::gl::PainterBackendGL::data_store_backing_t, data_store_backing)
-setget_implement(bool, assign_layout_to_vertex_shader_inputs)
-setget_implement(bool, assign_layout_to_varyings)
-setget_implement(bool, assign_binding_points)
-setget_implement(bool, separate_program_for_discard)
-setget_implement(enum fastuidraw::PainterStrokeShader::type_t, default_stroke_shader_aa_type)
-setget_implement(enum fastuidraw::PainterBlendShader::shader_type, blend_type)
-setget_implement(enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t, provide_auxilary_image_buffer)
-#undef setget_implement
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 unsigned int, attributes_per_buffer)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 unsigned int, indices_per_buffer)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 unsigned int, data_blocks_per_store_buffer)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 unsigned int, number_pools)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 bool, break_on_shader_change)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 const fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL>&, image_atlas)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 const fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL>&, colorstop_atlas)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 const fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL>&, glyph_atlas)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 bool, use_hw_clip_planes)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 bool, vert_shader_use_switch)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 bool, frag_shader_use_switch)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 bool, blend_shader_use_switch)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 bool, unpack_header_and_brush_in_frag_shader)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 enum fastuidraw::gl::PainterBackendGL::data_store_backing_t, data_store_backing)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 bool, assign_layout_to_vertex_shader_inputs)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 bool, assign_layout_to_varyings)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 bool, assign_binding_points)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 bool, separate_program_for_discard)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 enum fastuidraw::PainterStrokeShader::type_t, default_stroke_shader_aa_type)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 enum fastuidraw::PainterBlendShader::shader_type, blend_type)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t, provide_auxilary_image_buffer)
 
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL methods

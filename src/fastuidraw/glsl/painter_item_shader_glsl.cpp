@@ -314,24 +314,7 @@ fastuidraw::glsl::varying_list::
   m_d = nullptr;
 }
 
-void
-fastuidraw::glsl::varying_list::
-swap(varying_list &obj)
-{
-  std::swap(m_d, obj.m_d);
-}
-
-fastuidraw::glsl::varying_list&
-fastuidraw::glsl::varying_list::
-operator=(const varying_list &rhs)
-{
-  if(this != &rhs)
-    {
-      varying_list v(rhs);
-      swap(v);
-    }
-  return *this;
-}
+assign_swap_implement(fastuidraw::glsl::varying_list)
 
 fastuidraw::c_array<const fastuidraw::c_string>
 fastuidraw::glsl::varying_list::
@@ -448,19 +431,7 @@ fastuidraw::glsl::shader_unpack_value::
   m_d = nullptr;
 }
 
-fastuidraw::glsl::shader_unpack_value&
-fastuidraw::glsl::shader_unpack_value::
-operator=(const shader_unpack_value &rhs)
-{
-  if(this != &rhs)
-    {
-      GLSLShaderUnpackValuePrivate *d, *rhs_d;
-      d = static_cast<GLSLShaderUnpackValuePrivate*>(m_d);
-      rhs_d = static_cast<GLSLShaderUnpackValuePrivate*>(rhs.m_d);
-      *d = *rhs_d;
-    }
-  return *this;
-}
+assign_swap_implement(fastuidraw::glsl::shader_unpack_value)
 
 fastuidraw::c_string
 fastuidraw::glsl::shader_unpack_value::

@@ -133,7 +133,7 @@ namespace fastuidraw
       PerformanceHints provides miscellaneous data about
       an implementation of a PainterBackend.
      */
-    class PerformanceHints:fastuidraw::noncopyable
+    class PerformanceHints
     {
     public:
       /*!
@@ -141,7 +141,25 @@ namespace fastuidraw
        */
       PerformanceHints(void);
 
+      /*!
+        Copy ctor.
+       */
+      PerformanceHints(const PerformanceHints &obj);
+
       ~PerformanceHints();
+
+      /*!
+        assignment operator
+       */
+      PerformanceHints&
+      operator=(const PerformanceHints &obj);
+
+      /*!
+        Swap operation
+        \param obj object with which to swap
+      */
+      void
+      swap(PerformanceHints &obj);
 
       /*!
         Returns true if an implementation of PainterBackend
