@@ -196,6 +196,11 @@ sdl_painter_demo(const std::string &about_text,
                                  "one for those item shaders that have discard and one for "
                                  "those that do not",
                                  *this),
+  m_painter_msaa(1, "painter_msaa",
+                 "If greater than one, use MSAA for the backing store of the SurfaceGL "
+                 "to which the Painter will draw, the value indicates the number of samples "
+                 "to use for the backing store",
+                 *this),
 
   m_painter_options_affected_by_context("PainterBackendGL Options that can be overridden "
                                         "by version and extension supported by GL/GLES context",
@@ -477,7 +482,13 @@ init_gl(int w, int h)
     }
 
   m_painter_params = m_backend->configuration_gl();
-  m_surface = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL::SurfaceGL(fastuidraw::ivec2(w, h));
+
+  fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties props;
+  props
+    .dimensions(fastuidraw::ivec2(w, h))
+    .msaa(m_painter_msaa.m_value);
+
+  m_surface = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL::SurfaceGL(props);
   derived_init(w, h);
 }
 
@@ -485,8 +496,18 @@ void
 sdl_painter_demo::
 on_resize(int w, int h)
 {
-  m_surface->dimensions(fastuidraw::ivec2(w, h));
-  m_surface->viewport(fastuidraw::PainterBackend::Surface::Viewport(0, 0, w, h));
+  fastuidraw::ivec2 wh(w, h);
+  if (wh != m_surface->dimensions())
+    {
+      fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties props;
+      fastuidraw::PainterBackend::Surface::Viewport vwp(0, 0, w, h);
+
+      props
+        .dimensions(fastuidraw::ivec2(w, h))
+        .msaa(m_painter_msaa.m_value);
+      m_surface = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL::SurfaceGL(props);
+      m_surface->viewport(vwp);
+    }
 }
 
 void

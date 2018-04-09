@@ -730,6 +730,7 @@ handle_event(const SDL_Event &ev)
       if(ev.window.event == SDL_WINDOWEVENT_RESIZED)
         {
           m_grid_path_dirty = true;
+          on_resize(ev.window.data1, ev.window.data2);
         }
       break;
 
@@ -1218,21 +1219,35 @@ draw_frame(void)
   ivec2 wh(dimensions());
   int64_t submit_stroke_time, submit_fill_time;
   float us;
+  PainterBackend::Surface::Viewport vwp;
 
   us = static_cast<float>(m_fps_timer.restart_us());
 
   update_cts_params();
 
   enable_wire_frame(m_wire_frame);
+  if(m_force_square_viewport)
+    {
+      int d;
+      d = std::max(wh.x(), wh.y());
+      vwp.m_dimensions = ivec2(d, d);
+    }
+  else
+    {
+      vwp.m_dimensions = wh;
+    }
 
-  m_painter->curveFlatness(m_curve_flatness);
+  /* we must set the viewport of the surface
+     OUTSIDE of Painter::begin()/Painter::end().
+   */
+  m_surface->viewport(vwp);
+
   m_painter->begin(m_surface);
 
   if(m_force_square_viewport)
     {
       int d;
       d = std::max(wh.x(), wh.y());
-      on_resize(d, d);
       /* Make the viewport dimensions as a square.
          The projection matrix below is the matrix to use for
          orthogonal projection so that the top is 0
@@ -1242,11 +1257,11 @@ draw_frame(void)
     }
   else
     {
-      on_resize(wh.x(), wh.y());
       float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));
       m_painter->transformation(proj);
     }
 
+  m_painter->curveFlatness(m_curve_flatness);
   m_painter->save();
 
   /* draw grid using painter.
@@ -1624,7 +1639,9 @@ draw_frame(void)
     }
 
   m_painter->end();
-
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  m_surface->blit_surface(GL_NEAREST);
 }
 
 void
