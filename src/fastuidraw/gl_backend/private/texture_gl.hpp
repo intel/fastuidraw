@@ -163,6 +163,18 @@ tex_sub_image(GLenum texture_target, vecN<GLint, 3> offset,
                   format, type, pixels);
 }
 
+inline
+void
+tex_sub_image(GLenum texture_target, int level, vecN<GLint, 3> offset,
+              vecN<GLsizei, 3> size, GLenum format, GLenum type,
+              const void *pixels)
+{
+  glTexSubImage3D(texture_target, level,
+                  offset.x(), offset.y(), offset.z(),
+                  size.x(), size.y(), size.z(),
+                  format, type, pixels);
+}
+
 //////////////////////////////////////////////
 // 2D
 
@@ -228,6 +240,20 @@ tex_sub_image(GLenum texture_target,
                   format, type, pixels);
 }
 
+inline
+void
+tex_sub_image(GLenum texture_target,
+              int level,
+              vecN<GLint, 2> offset,
+              vecN<GLsizei, 2> size,
+              GLenum format, GLenum type, const void *pixels)
+{
+  glTexSubImage2D(texture_target, level,
+                  offset.x(), offset.y(),
+                  size.x(), size.y(),
+                  format, type, pixels);
+}
+
 
 //////////////////////////////////////////
 // 1D
@@ -271,6 +297,15 @@ tex_sub_image(GLenum texture_target, vecN<GLint, 1> offset,
               const void *pixels)
 {
   glTexSubImage1D(texture_target, 0, offset.x(), size.x(), format, type, pixels);
+}
+
+inline
+void
+tex_sub_image(GLenum texture_target, int level, vecN<GLint, 1> offset,
+              vecN<GLsizei, 1> size, GLenum format, GLenum type,
+              const void *pixels)
+{
+  glTexSubImage1D(texture_target, level, offset.x(), size.x(), format, type, pixels);
 }
 
 #endif
@@ -657,7 +692,7 @@ clear(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
 
   glGetIntegerv(TextureTargetDimension<texture_target>::Binding, &old_texture);
   glBindTexture(texture_target, texture);
-  tex_sub_image(texture_target, offset, sz, format, type, &zeros[0]);
+  tex_sub_image(texture_target, level, offset, sz, format, type, &zeros[0]);
   glBindTexture(texture_target, old_texture);
 }
 
