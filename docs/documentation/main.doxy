@@ -297,14 +297,15 @@ namespace fastuidraw {
   is an example of startup code and simple layout code.
   \code
   //startup
-    fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> myGlyphAtlas;
     //use GL backend atlas
+    fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas> myGlyphAtlas;
     myGlyphAtlas = FASTUIDRAWnew fastuidraw::gl::GlyphAtlasGL(fastuidraw::gl::GlyphAtlasGL::params());
 
-
+    //setup glyph cache and glyph selector; the glyph selector
+    //is a VERY simple class to enable finding glyphs from fonts
+    //and falling back to other fonts when a glyph cannot be found
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphCache> myGlyphCache;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector> myGlyphSelector;
-
     myGlyphCache = FASTUIDRAWnew fastuidraw::GlyphCache(myGlyphAtlas);
     myGlyphSelector = FASTUIDRAWnew fastuidraw::GlyphSelector(myGlyphCache);
 
@@ -393,8 +394,9 @@ namespace fastuidraw {
   Below is an example of how to use fastuidraw::Painter
   \code
   // startup code, create data that is repeatedly used
-  fastuidraw::Path myPath;
 
+  // create a path to render
+  fastuidraw::Path myPath;
   myPath
   .move(fastuidraw::vec2(0.0f, 0.0f))
   .line_to(fastuidraw::vec2(100.0f, 0.0f))
@@ -403,13 +405,13 @@ namespace fastuidraw {
 
   std::vector<fastuidraw::vec2> glyph_positions;
   std::vector<fastuidraw::Glyph> glyphs;
-   // fill glyph_positions and glyphs (see fastuidraw::GlyphCache and fastuidraw::GlyphSelector)
+  // fill glyph_positions and glyphs (see fastuidraw::GlyphCache and fastuidraw::GlyphSelector)
   fastuidraw::PainterAttributeData myStaticText;
   myStaticText.set_data(fastuidraw::const_c_array<fastuidraw::vec2>(&glyph_positions[0], glyph_positions.size(),
                         fastuidraw::const_c_array<fastuidraw::Glyph>(&glyphs[0], glyphs.size()),
                         glyph_render_pixel_size);
 
-   // create and save an image
+  // create and save an image
   fastuidraw::reference_counted_ptr<fastuidraw::Image>
   myImage = fastuidraw::Image::create(myImageAtlas, width, height, pixels,
                                      fastuidraw::PainterBrush::slack_requirement(fastuidraw::PainterBrush::image_filter_cubic));
@@ -419,7 +421,7 @@ namespace fastuidraw {
   fastuidraw::Painter *p;
   p = painter.get(); //Only using pointer instead of handle so that doxygen links to functions correctly.
 
-  p->begin();
+  p->begin(surface); //pass the surface one made at application initialization
 
   bool anti_alias_stroking(true), draw_closing_edges_of_contours(true);
   fastuidraw::PainterStrokeParams stroke_params;
@@ -448,7 +450,7 @@ namespace fastuidraw {
                  fastuidraw::PainterEnums::rounded_joins,
                  anti_alias_stroking);
 
-  p->end();
+  p->end(); //on end() contents of surface can be used
 
   \endcode
 
@@ -461,8 +463,9 @@ namespace fastuidraw {
    - fastuidraw::ColorStopAtlas (the GL backend class is given by fastuidraw::gl::ColorStopAtlasGL)
    - fastuidraw::GlyphAtlas (the GL backend class is given by fastuidraw::gl::GlyphAtlasGL)
    - fastuidraw::PainterBackend (the GL backend class is given by fastuidraw::gl::PainterBackendGL)
-   - fastuidraw::PainterShader (the GL backend has two classes, fastuidraw::gl::PainterShaderGL and
-     fastuidraw::gl::PainterBlendShaderGL).
+   - fastuidraw::PainterBlendShader (the GL backend class is given by fastuidraw::glsl::PainterBlendShaderGLSL)
+   - fastuidraw::PainterItemShader (the GL backend class is given by fastuidraw::glsl::PainterItemShaderGLSL)
+   - fastuidraw::PainterBackend::Surface (the GL backend class is given by fastuidraw::gl::PainterBackendGL::SurfaceGL)
 
   To create a GL backend, one does:
   \code
@@ -474,7 +477,18 @@ namespace fastuidraw {
   fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL> imageAtlas;
   fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL> colorStopAtlas;
   fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> glyphAtlas;
+  fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::SurfaceGL> surface;
 
+  //create a fastuidraw::gl::PainterBackendGL::SurfaceGL; the argument
+  //to its ctor determines its properties. Of important note is that
+  //a SurfaceGL can use as its backing store a GL texture passed FROM
+  //the caller.
+  props.dimensions(ivec2(resolution_width, resolution_height));
+  fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties props;
+  surface = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL::SurfaceGL(props);
+
+  //create the various atlases for the backend, the argument to their
+  //ctor's determines their properties.
   imageAtlas = FASTUIDRAWnew fastuidraw::gl::ImageAtlasGL(fastuidraw::gl::ImageAtlasGL::params());
   colorStopAtlas = FASTUIDRAWnew fastuidraw::gl::ColorStopAtlasGL(fastuidraw::gl::ColorStopAtlasGL::params());
   glyphAtlas = FASTUIDRAWnew fastuidraw::gl::GlyphAtlasGL(fastuidraw::gl::GlyphAtlasGL::params());
@@ -482,10 +496,11 @@ namespace fastuidraw {
   //create the backend mapping to GL, the GL backend object creates the necessary GLSL programs,
   //attribute and index pools.
   fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendGL> painterBackend;
-  painterBackend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(fastuidraw::gl::PainterBackendGL::params()
+  painterBackend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(fastuidraw::gl::PainterBackendGL::ConfigurationGL()
                                                                   .image_atlas(imageAtlas)
                                                                   .colorstop_atlas(colorStopAtlas)
-                                                                  .glyph_atlas(glyphAtlas));
+                                                                  .glyph_atlas(glyphAtlas),
+                                                                  fastuidraw::PainterBackend::ConfigurationBase());
 
   //NOTES:
   // 1. the atlases can be used by multiple PainterBackendGL simutaneously
@@ -500,5 +515,29 @@ namespace fastuidraw {
   //NOTES:
   // 3. it is fine to reuse a fastuidraw::Painter object or to create new ones,
   //    however, a single painter can not be used concurrently from multiple threads
+  \endcode
+
+  Using the GL backend is just:
+  \code
+  //have the painter render to the surface
+  painter->begin(surface);
+    //painter calls
+    //.
+    //.
+  painter->end(); //finish painting, contents of surface ready
+
+  //one /needs to get the contents of the SurfaceGL, there
+  //are two ways: via blit_surface() or by using the texture
+  //of the SurfaceGL
+  fastuidraw::gl::PainterBackendGL::SurfaceGL *surface_gl;
+  surface_gl = surface.get(); //Only using pointer instead of handle so that doxygen links to functions correctly.
+
+  //blitting is done by
+  surface_gl->blit_surface();
+
+  //or one can get the texture of the SurfaceGL
+  //directly and use that in one's own GL commands
+  GLuint gl_texture;
+  gl_texture = surface_gl->texture();
   \endcode
 */

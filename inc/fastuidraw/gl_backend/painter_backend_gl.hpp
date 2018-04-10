@@ -517,13 +517,12 @@ namespace fastuidraw
           content; the gl_texture must have as its texture
           target GL_TEXTURE_2D and must already have its
           backing store allocated (i.e. glTexImage or
-          glTexStorage has been called on the texture).
-          The texture object's ownership is NOT passed
-          to the SurfaceGL, the called is still responible
-          to delete the texture (with GL texture) and
-          the texture must not be deleted (or have its
-          backing store changed) until the SurfaceGL is
-          deleted.
+          glTexStorage has been called on the texture). The
+          texture object's ownership is NOT passed to the
+          SurfaceGL, the caller is still responible to delete
+          the texture (with GL) and the texture must not be
+          deleted (or have its backing store changed via
+          glTexImage) until the SurfaceGL is deleted.
           \param prop properties of the texture
           \param gl_texture GL name of texture
          */
@@ -540,7 +539,7 @@ namespace fastuidraw
 
         /*!
           Returns the GL name of the texture backing
-          the color buffer of teh SurfaceGL.
+          the color buffer of the SurfaceGL.
          */
         GLuint
         texture(void) const;
@@ -575,7 +574,7 @@ namespace fastuidraw
         void
         blit_surface(const Viewport &src,
                      const Viewport &dst,
-                     GLenum filter) const;
+                     GLenum filter = GL_NEAREST) const;
 
         /*!
           Provided as a convenience, equivalent to
@@ -586,7 +585,7 @@ namespace fastuidraw
           \param filter GL filter to apply to blit operation
          */
         void
-        blit_surface(GLenum filter) const;
+        blit_surface(GLenum filter = GL_NEAREST) const;
 
         virtual
         Viewport

@@ -317,8 +317,9 @@ namespace fastuidraw
       of PainterDraw objects who have had their PainterDraw::unmap()
       routine called. An implementation will  will clear the depth
       (aka occlusion) buffer and optionally the color buffer in the
-      viewport of the \ref Surface.
-      \param surface the \ref Surface to which to render content
+      viewport of the \ref PainterBackend::Surface.
+      \param surface the \ref PainterBackend::Surface to which to
+                     render content
       \param clear_color_buffer if true, clear the color buffer
                                 on the viewport of the surface.
      */

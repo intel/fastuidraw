@@ -269,7 +269,7 @@ namespace fastuidraw
 
         /*!
           Set the value returned by default_stroke_shader_aa_pass1_action(void) const.
-          Default value is NULL.
+          Default value is nullptr.
          */
         ConfigurationGLSL&
         default_stroke_shader_aa_pass1_action(const reference_counted_ptr<const PainterDraw::Action> &action);
@@ -283,7 +283,7 @@ namespace fastuidraw
 
         /*!
           Set the value returned by default_stroke_shader_aa_pass2_action(void) const.
-          Default value is NULL.
+          Default value is nullptr.
          */
         ConfigurationGLSL&
         default_stroke_shader_aa_pass2_action(const reference_counted_ptr<const PainterDraw::Action> &action);

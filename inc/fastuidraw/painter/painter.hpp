@@ -386,14 +386,14 @@ namespace fastuidraw
       Draw glyphs.
       \param draw data for how to draw
       \param data attribute and index data with which to draw the glyphs
-      \param use_anistopic_antialias if true, use default_shaders().glyph_shader_anisotropic()
-                                     otherwise use default_shaders().glyph_shader()
+      \param use_anisotropic if true, use default_shaders().glyph_shader_anisotropic()
+                             otherwise use default_shaders().glyph_shader()
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     draw_glyphs(const PainterData &draw,
-                const PainterAttributeData &data, bool use_anistopic_antialias = false,
+                const PainterAttributeData &data, bool use_anisotropic = false,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -409,7 +409,10 @@ namespace fastuidraw
       \param join_data attribute and index data for drawing the joins,
                        nullptr value indicates to not draw joins.
       \param join_chunks which chunks to take from join_data to draw the joins
-      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
@@ -418,7 +421,7 @@ namespace fastuidraw
                 const PainterAttributeData *edge_data, c_array<const unsigned int> edge_chunks,
                 const PainterAttributeData *cap_data, c_array<const unsigned int> cap_chunks,
                 const PainterAttributeData *join_data, c_array<const unsigned int> join_chunks,
-                bool with_anti_aliasing,
+                bool with_shader_based_anti_aliasing,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -431,7 +434,10 @@ namespace fastuidraw
                             of the path
       \param cp cap style
       \param js join style
-      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
@@ -439,7 +445,7 @@ namespace fastuidraw
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
                 const StrokedPath &path, float thresh,
                 bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                bool with_anti_aliasing,
+                bool with_shader_based_anti_aliasing,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -451,14 +457,17 @@ namespace fastuidraw
                             of the path
       \param cp cap style
       \param js join style
-      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Path &path,
                 bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                bool with_anti_aliasing,
+                bool with_shader_based_anti_aliasing,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -469,14 +478,17 @@ namespace fastuidraw
                             of the path
       \param cp cap style
       \param js join style
-      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     stroke_path(const PainterData &draw, const Path &path,
                 bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                bool with_anti_aliasing,
+                bool with_shader_based_anti_aliasing,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -488,14 +500,17 @@ namespace fastuidraw
                             of the path
       \param cp cap style
       \param js join style
-      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     stroke_path_pixel_width(const PainterData &draw, const Path &path,
                             bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                            bool with_anti_aliasing,
+                            bool with_shader_based_anti_aliasing,
                             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -508,7 +523,10 @@ namespace fastuidraw
                             of the path
       \param cp cap style
       \param js join style
-      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
@@ -516,7 +534,7 @@ namespace fastuidraw
     stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
                        const StrokedPath &path, float thresh,
                        bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                       bool with_anti_aliasing,
+                       bool with_shader_based_anti_aliasing,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -528,14 +546,17 @@ namespace fastuidraw
                             of the path
       \param cp cap style
       \param js join style
-      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw, const Path &path,
                        bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                       bool with_anti_aliasing,
+                       bool with_shader_based_anti_aliasing,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -546,14 +567,17 @@ namespace fastuidraw
                             of the path
       \param cp cap style
       \param js join style
-      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     stroke_dashed_path(const PainterData &draw, const Path &path,
                        bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                       bool with_anti_aliasing,
+                       bool with_shader_based_anti_aliasing,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -564,14 +588,17 @@ namespace fastuidraw
                             of the path
       \param cp cap style
       \param js join style
-      \param with_anti_aliasing if true, draw a second pass to give sub-pixel anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     stroke_dashed_path_pixel_width(const PainterData &draw, const Path &path,
                                    bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                                   bool with_anti_aliasing,
+                                   bool with_shader_based_anti_aliasing,
                                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -580,14 +607,17 @@ namespace fastuidraw
       \param draw data for how to draw
       \param data attribute and index data with which to fill a path
       \param fill_rule fill rule with which to fill the path
-      \param with_anti_aliasing if true, fill the path with anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const FilledPath &data, enum PainterEnums::fill_rule_t fill_rule,
-              bool with_anti_aliasing,
+              bool with_shader_based_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -596,14 +626,17 @@ namespace fastuidraw
       \param draw data for how to draw
       \param path to fill
       \param fill_rule fill rule with which to fill the path
-      \param with_anti_aliasing if true, fill the path with anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const Path &path, enum PainterEnums::fill_rule_t fill_rule,
-              bool with_anti_aliasing,
+              bool with_shader_based_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -611,13 +644,16 @@ namespace fastuidraw
       \param draw data for how to draw
       \param path path to fill
       \param fill_rule fill rule with which to fill the path
-      \param with_anti_aliasing if true, fill the path with anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     fill_path(const PainterData &draw, const Path &path, enum PainterEnums::fill_rule_t fill_rule,
-              bool with_anti_aliasing,
+              bool with_shader_based_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -626,14 +662,17 @@ namespace fastuidraw
       \param draw data for how to draw
       \param data attribute and index data with which to fill a path
       \param fill_rule custom fill rule with which to fill the path
-      \param with_anti_aliasing if true, fill the path with anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const FilledPath &data, const CustomFillRuleBase &fill_rule,
-              bool with_anti_aliasing,
+              bool with_shader_based_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -642,14 +681,17 @@ namespace fastuidraw
       \param draw data for how to draw
       \param path to fill
       \param fill_rule custom fill rule with which to fill the path
-      \param with_anti_aliasing if true, fill the path with anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     fill_path(const PainterFillShader &shader, const PainterData &draw,
               const Path &path, const CustomFillRuleBase &fill_rule,
-              bool with_anti_aliasing,
+              bool with_shader_based_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -657,13 +699,16 @@ namespace fastuidraw
       \param draw data for how to draw
       \param path path to fill
       \param fill_rule custom fill rule with which to fill the path
-      \param with_anti_aliasing if true, fill the path with anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     fill_path(const PainterData &draw, const Path &path, const CustomFillRuleBase &fill_rule,
-              bool with_anti_aliasing,
+              bool with_shader_based_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -672,13 +717,16 @@ namespace fastuidraw
       \param draw data for how to draw
       \param pts points of the polygon so that neighboring points (modulo pts.size())
                  are the edges of the polygon.
-      \param with_anti_aliasing if true, fill the path with anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     draw_convex_polygon(const PainterFillShader &shader, const PainterData &draw,
-                        c_array<const vec2> pts, bool with_anti_aliasing,
+                        c_array<const vec2> pts, bool with_shader_based_anti_aliasing,
                         const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -686,12 +734,15 @@ namespace fastuidraw
       \param draw data for how to draw
       \param pts points of the polygon so that neighboring points (modulo pts.size())
                  are the edges of the polygon.
-      \param with_anti_aliasing if true, fill the path with anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
-    draw_convex_polygon(const PainterData &draw, c_array<const vec2> pts, bool with_anti_aliasing,
+    draw_convex_polygon(const PainterData &draw, c_array<const vec2> pts, bool with_shader_based_anti_aliasing,
                         const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -702,14 +753,17 @@ namespace fastuidraw
       \param p1 point after p0, shares an edge with p0
       \param p2 point after p1, shares an edge with p1
       \param p3 point after p2, shares an edge with p2
-      \param with_anti_aliasing if true, fill the path with anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     draw_quad(const PainterFillShader &shader, const PainterData &draw,
               const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
-              bool with_anti_aliasing,
+              bool with_shader_based_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -719,14 +773,17 @@ namespace fastuidraw
       \param p1 point after p0, shares an edge with p0
       \param p2 point after p1, shares an edge with p1
       \param p3 point after p2, shares an edge with p2
-      \param with_anti_aliasing if true, fill the path with anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     draw_quad(const PainterData &draw,
               const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
-              bool with_anti_aliasing,
+              bool with_shader_based_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -735,13 +792,16 @@ namespace fastuidraw
       \param draw data for how to draw
       \param p min-corner of rect
       \param wh width and height of rect
-      \param with_anti_aliasing if true, fill the path with anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
     draw_rect(const PainterFillShader &shader, const PainterData &draw,
-              const vec2 &p, const vec2 &wh, bool with_anti_aliasing,
+              const vec2 &p, const vec2 &wh, bool with_shader_based_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -749,12 +809,15 @@ namespace fastuidraw
       \param draw data for how to draw
       \param p min-corner of rect
       \param wh width and height of rect
-      \param with_anti_aliasing if true, fill the path with anti-aliasing
+      \param with_shader_based_anti_aliasing draw the path in two passes using shader
+                                             based anti-aliasing; one should NEVER
+                                             have this as true if the surface passed
+                                             in begin() is a multi-sampled surface
       \param call_back if non-nullptr handle, call back called when attribute data
                        is added.
      */
     void
-    draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh, bool with_anti_aliasing,
+    draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh, bool with_shader_based_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!

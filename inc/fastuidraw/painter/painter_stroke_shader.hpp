@@ -172,7 +172,7 @@ namespace fastuidraw
 
     /*!
       Set the value returned by aa_shader_pass1(void) const.
-      Initial value is NULL.
+      Initial value is nullptr.
       \param sh value to use
      */
     PainterStrokeShader&
@@ -187,7 +187,7 @@ namespace fastuidraw
 
     /*!
       Set the value returned by aa_shader_pass2(void) const.
-      Initial value is NULL.
+      Initial value is nullptr.
       \param sh value to use
      */
     PainterStrokeShader&
@@ -195,7 +195,7 @@ namespace fastuidraw
 
     /*!
       Returns the action to be called before the 1st pass,
-      a return value of NULL indicates to not have an action
+      a return value of nullptr indicates to not have an action
       (and thus no draw-call break).
      */
     const reference_counted_ptr<const PainterDraw::Action>&
@@ -203,15 +203,15 @@ namespace fastuidraw
 
     /*!
       Set the value returned by aa_action_pass1(void) const.
-      Initial value is NULL.
-      \param sh value to use
+      Initial value is nullptr.
+      \param a value to use
      */
     PainterStrokeShader&
-    aa_action_pass1(const reference_counted_ptr<const PainterDraw::Action> &v);
+    aa_action_pass1(const reference_counted_ptr<const PainterDraw::Action> &a);
 
     /*!
       Returns the action to be called before the 2nd pass,
-      a return value of NULL indicates to not have an action
+      a return value of nullptr indicates to not have an action
       (and thus no draw-call break).
      */
     const reference_counted_ptr<const PainterDraw::Action>&
@@ -219,11 +219,11 @@ namespace fastuidraw
 
     /*!
       Set the value returned by aa_action_pass2(void) const.
-      Initial value is NULL.
-      \param sh value to use
+      Initial value is nullptr.
+      \param a value to use
      */
     PainterStrokeShader&
-    aa_action_pass2(const reference_counted_ptr<const PainterDraw::Action> &v);
+    aa_action_pass2(const reference_counted_ptr<const PainterDraw::Action> &a);
 
     /*!
       Shader for rendering a stroked path without
