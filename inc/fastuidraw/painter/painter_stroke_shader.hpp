@@ -113,7 +113,7 @@ namespace fastuidraw
         draws_solid_then_fuzz,
 
         /*!
-          In this anti-aliasing mode, the first pass draws to an auxilary
+          In this anti-aliasing mode, the first pass draws to an auxiliary
           buffer the coverage values and in the second pass draws to
           the color buffer using the coverage buffer value to set the
           alpha. The second pass should also clear the coverage buffer

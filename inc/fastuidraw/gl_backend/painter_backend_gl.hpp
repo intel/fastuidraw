@@ -413,16 +413,16 @@ namespace fastuidraw
           (in particular shader based ant-aliased stroking).
           Default value is false.
          */
-        enum auxilary_buffer_t
-        provide_auxilary_image_buffer(void) const;
+        enum auxiliary_buffer_t
+        provide_auxiliary_image_buffer(void) const;
 
         /*!
           Set the value returned by
-          provide_auxilary_image_buffer(void) const.
+          provide_auxiliary_image_buffer(void) const.
           Default value is .
          */
         ConfigurationGL&
-        provide_auxilary_image_buffer(enum auxilary_buffer_t);
+        provide_auxiliary_image_buffer(enum auxiliary_buffer_t);
 
       private:
         void *m_d;

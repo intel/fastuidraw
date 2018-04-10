@@ -119,27 +119,27 @@ namespace fastuidraw
         };
 
       /*!
-        Enumeration to describe auxilary buffer support
+        Enumeration to describe auxiliary buffer support
        */
-      enum auxilary_buffer_t
+      enum auxiliary_buffer_t
         {
           /*!
-            No auxilary buffer is present
+            No auxiliary buffer is present
            */
-          no_auxilary_buffer,
+          no_auxiliary_buffer,
 
           /*!
-            Auxilary buffer is realized by atomic operations;
+            Auxiliary buffer is realized by atomic operations;
             To guarantee ordering between computing coverage
             and using coverage a backend must intert a memory
             barrier at the API level between such passed
             (for example in GL, glMemoryBarrier()).The buffer
             is realized as an "r32ui" image2D in the shader source.
            */
-          auxilary_buffer_atomic,
+          auxiliary_buffer_atomic,
 
           /*!
-            Auxilary buffer is present and ordering guarantees
+            Auxiliary buffer is present and ordering guarantees
             are implemented by an interlock that can be called
             in GLSL from any function and/or control flow. This
             allows for cover then draw methods to be performed
@@ -150,10 +150,10 @@ namespace fastuidraw
              - fastuidraw_begin_interlock() which is called before access
              - fastuidraw_end_interlock() which is called after access
            */
-          auxilary_buffer_interlock,
+          auxiliary_buffer_interlock,
 
           /*!
-            Auxilary buffer is present and ordering guarantees
+            Auxiliary buffer is present and ordering guarantees
             are implemented by an interlock that can only be
             called in GLSL from main under NO conrol flow. This
             allows for cover then draw methods to be performed
@@ -164,15 +164,15 @@ namespace fastuidraw
              - fastuidraw_begin_interlock() which is called before access
              - fastuidraw_end_interlock() which is called after access
            */
-          auxilary_buffer_interlock_main_only,
+          auxiliary_buffer_interlock_main_only,
 
           /*!
-            Auxilary buffer is present and ordering guarantees
-            are implemented via framebuffer fetch, i.e. the auxilary
+            Auxiliary buffer is present and ordering guarantees
+            are implemented via framebuffer fetch, i.e. the auxiliary
             buffer is present as an inout global with type float
             and layout(location = 1).
            */
-          auxilary_buffer_framebuffer_fetch,
+          auxiliary_buffer_framebuffer_fetch,
         };
 
       /*!
@@ -261,7 +261,7 @@ namespace fastuidraw
         /*!
           Sets how the default stroke shaders perform anti-aliasing.
           If the value is \ref PainterStrokeShader::cover_then_draw, then
-          UberShaderParams::provide_auxilary_image_buffer() must be true.
+          UberShaderParams::provide_auxiliary_image_buffer() must be true.
          */
         enum PainterStrokeShader::type_t
         default_stroke_shader_aa_type(void) const;
@@ -497,18 +497,18 @@ namespace fastuidraw
         /*!
           Specifies the binding point for the image1D (r8)
           image buffer; only active if
-          UberShaderParams::provide_auxilary_image_buffer()
+          UberShaderParams::provide_auxiliary_image_buffer()
           is true. Default value is 0.
          */
         unsigned int
-        auxilary_image_buffer(void) const;
+        auxiliary_image_buffer(void) const;
 
         /*!
-          Set the value returned by auxilary_image_buffer(void) const.
+          Set the value returned by auxiliary_image_buffer(void) const.
           Default value is 0.
          */
         BindingPoints&
-        auxilary_image_buffer(unsigned int);
+        auxiliary_image_buffer(unsigned int);
 
       private:
         void *m_d;
@@ -820,19 +820,19 @@ namespace fastuidraw
           (in particular shader based ant-aliased stroking).
           Writing to the buffer should not be done, instead
           one should use the functions:
-          - float fastuidraw_clear_auxilary(void): clears the value to 0 and returns the old value
-          - void fastuidraw_max_auxilary(in float v): maxes the value with the passed value
+          - float fastuidraw_clear_auxiliary(void): clears the value to 0 and returns the old value
+          - void fastuidraw_max_auxiliary(in float v): maxes the value with the passed value
          */
-        enum auxilary_buffer_t
-        provide_auxilary_image_buffer(void) const;
+        enum auxiliary_buffer_t
+        provide_auxiliary_image_buffer(void) const;
 
         /*!
           Set the value returned by
-          provide_auxilary_image_buffer(void) const.
-          Default value is \ref no_auxilary_buffer.
+          provide_auxiliary_image_buffer(void) const.
+          Default value is \ref no_auxiliary_buffer.
          */
         UberShaderParams&
-        provide_auxilary_image_buffer(enum auxilary_buffer_t);
+        provide_auxiliary_image_buffer(enum auxiliary_buffer_t);
 
       private:
         void *m_d;

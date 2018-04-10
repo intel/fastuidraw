@@ -6,7 +6,7 @@ fastuidraw_stroke_compute_offset(in uint point_packed_data,
                                  in int offset_type,
                                  in vec2 position,
                                  in vec2 pre_offset,
-                                 in vec2 auxilary_offset,
+                                 in vec2 auxiliary_offset,
                                  in float miter_limit,
                                  out vec2 offset)
 {
@@ -14,7 +14,7 @@ fastuidraw_stroke_compute_offset(in uint point_packed_data,
      || offset_type == fastuidraw_stroke_offset_miter_clip_join_lambda_negated)
     {
       vec2 n0 = pre_offset, Jn0 = vec2(n0.y, -n0.x);
-      vec2 n1 = auxilary_offset, Jn1 = vec2(n1.y, -n1.x);
+      vec2 n1 = auxiliary_offset, Jn1 = vec2(n1.y, -n1.x);
       float r, det, lambda;
 
       det = dot(Jn1, n0);
@@ -41,7 +41,7 @@ fastuidraw_stroke_compute_offset(in uint point_packed_data,
           || offset_type == fastuidraw_stroke_offset_miter_bevel_join)
     {
       vec2 n0 = pre_offset, Jn0 = vec2(n0.y, -n0.x);
-      vec2 n1 = auxilary_offset, Jn1 = vec2(n1.y, -n1.x);
+      vec2 n1 = auxiliary_offset, Jn1 = vec2(n1.y, -n1.x);
       vec2 n0_plus_n1 = n0 + n1;
       float r, lambda, den;
 
@@ -74,18 +74,18 @@ fastuidraw_stroke_compute_offset(in uint point_packed_data,
   else if(offset_type == fastuidraw_stroke_offset_rounded_join)
     {
       vec2 cs;
-      cs = fastuidraw_unpack_unit_vector(auxilary_offset.y,
+      cs = fastuidraw_unpack_unit_vector(auxiliary_offset.y,
                                          uint(fastuidraw_stroke_sin_sign_mask) & point_packed_data);
       offset = cs;
     }
   else if(offset_type == fastuidraw_stroke_offset_square_cap)
     {
-      offset = pre_offset + auxilary_offset;
+      offset = pre_offset + auxiliary_offset;
     }
   else if(offset_type == fastuidraw_stroke_offset_rounded_cap)
     {
       vec2 n = pre_offset, v = vec2(n.y, -n.x);
-      offset = auxilary_offset.x * v + auxilary_offset.y * pre_offset;
+      offset = auxiliary_offset.x * v + auxiliary_offset.y * pre_offset;
     }
   else
     {
@@ -98,7 +98,7 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
                                         in int offset_type,
                                         in vec2 position,
                                         in vec2 pre_offset,
-                                        in vec2 auxilary_offset,
+                                        in vec2 auxiliary_offset,
                                         in float miter_limit,
                                         out vec2 offset,
                                         inout float stroke_radius)
@@ -107,7 +107,7 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
      || offset_type == fastuidraw_stroke_offset_miter_clip_join_lambda_negated)
     {
       vec2 n0 = pre_offset, v0 = vec2(n0.y, -n0.x);
-      vec2 n1 = auxilary_offset, v1 = vec2(n1.y, -n1.x);
+      vec2 n1 = auxiliary_offset, v1 = vec2(n1.y, -n1.x);
       vec2 p0, p1, delta_d, d0, d1;
       vec3 clip_p, clip_direction;
       float det, r, r0, r1, lambda;
@@ -181,7 +181,7 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
           || offset_type == fastuidraw_stroke_offset_miter_bevel_join)
     {
       vec2 n0 = pre_offset, v0 = vec2(n0.y, -n0.x);
-      vec2 n1 = auxilary_offset, v1 = vec2(n1.y, -n1.x);
+      vec2 n1 = auxiliary_offset, v1 = vec2(n1.y, -n1.x);
       vec2 p0, p1, delta_d, d0, d1;
       vec3 clip_p, clip_direction;
       float det, r, r0, r1, lambda;
@@ -262,7 +262,7 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
                                          uint(fastuidraw_stroke_normal0_y_sign_mask) & point_packed_data);
       n1 = fastuidraw_unpack_unit_vector(pre_offset.y,
                                          uint(fastuidraw_stroke_normal1_y_sign_mask) & point_packed_data);
-      interpolate = auxilary_offset.x;
+      interpolate = auxiliary_offset.x;
 
       clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
       fastuidraw_align_compute_Q_adjoint_Q(clip_p, Q, adjQ);
@@ -300,24 +300,24 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
       /* move along tangent named number of pixels
        */
       clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
-      clip_direction0 = fastuidraw_item_matrix * vec3(auxilary_offset, 0.0);
+      clip_direction0 = fastuidraw_item_matrix * vec3(auxiliary_offset, 0.0);
       s0 = fastuidraw_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_direction0);
 
       /* move along normal named number of pixels
        */
-      clip_p = fastuidraw_item_matrix * vec3(position + s0 * auxilary_offset, 1.0);
+      clip_p = fastuidraw_item_matrix * vec3(position + s0 * auxiliary_offset, 1.0);
       n = fastuidraw_align_normal_to_screen(clip_p, pre_offset);
       clip_direction1 = fastuidraw_item_matrix * vec3(n, 0.0);
       s1 = fastuidraw_local_distance_from_pixel_distance(stroke_radius, clip_p, clip_direction1);
 
       stroke_radius = 1.0;
-      offset = s0 * auxilary_offset + s1 * n;
+      offset = s0 * auxiliary_offset + s1 * n;
     }
   else if(offset_type == fastuidraw_stroke_offset_rounded_cap)
     {
       vec2 n = pre_offset, v = vec2(n.y, -n.x);
       vec3 clip_n, clip_v, clip_p;
-      vec2 tn = auxilary_offset;
+      vec2 tn = auxiliary_offset;
 
       clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
       n = fastuidraw_align_normal_to_screen(clip_p, n);
@@ -337,7 +337,7 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
       vec2 n;
       if(offset_type == fastuidraw_stroke_offset_end_sub_edge)
         {
-          clip_p = fastuidraw_item_matrix * vec3(position + auxilary_offset, 1.0);
+          clip_p = fastuidraw_item_matrix * vec3(position + auxiliary_offset, 1.0);
         }
       else
         {
@@ -391,7 +391,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   stroking_pass = int(render_pass);
 
   vec2 p;
-  vec2 position, pre_offset, auxilary_offset, offset;
+  vec2 position, pre_offset, auxiliary_offset, offset;
   float distance_from_edge_start, distance_from_contour_start;
   float total_edge_length, total_open_contour_length, total_closed_contour_length;
   float miter_distance, stroke_radius;
@@ -408,7 +408,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   position = primary_attrib.xy;
   pre_offset = primary_attrib.zw;
-  auxilary_offset = secondary_attrib.zw;
+  auxiliary_offset = secondary_attrib.zw;
   distance_from_edge_start = secondary_attrib.x;
   distance_from_contour_start = secondary_attrib.y;
   total_edge_length = uintBitsToFloat(uint_attrib.y);
@@ -465,7 +465,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                                                        fastuidraw_stroke_sub_shader_dash_style_num_bits,
                                                        sub_shader));
 
-              delta_mag = length(auxilary_offset);
+              delta_mag = length(auxiliary_offset);
               d2 = (offset_type == fastuidraw_stroke_offset_start_sub_edge) ?
                 d + delta_mag:
                 d - delta_mag;
@@ -526,7 +526,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                           clamp_interval_end = min(interval_end, d2);
                           new_d = clamp_interval_end - stroke_radius;
 
-                          position += (new_d - d) * auxilary_offset / delta_mag;
+                          position += (new_d - d) * auxiliary_offset / delta_mag;
                           fastuidraw_stroking_distance = new_d;
                         }
                       else
@@ -551,13 +551,13 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                           clamp_interval_begin = max(interval_begin, d2);
                           new_d = interval_begin + stroke_radius;
 
-                          /* auxilary_offset is the direction from this point
+                          /* auxiliary_offset is the direction from this point
                              (the end of the sub-edge) to the start of the
                              sub-edge. This is why we have the coefficient
-                             (d - new_d) because moving in auxilary_offset
+                             (d - new_d) because moving in auxiliary_offset
                              is moving towards the start.
                           */
-                          position += (d - new_d) * auxilary_offset / delta_mag;
+                          position += (d - new_d) * auxiliary_offset / delta_mag;
                           fastuidraw_stroking_distance = new_d;
                         }
                        else
@@ -580,7 +580,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                */
               if((point_packed_data & uint(fastuidraw_stroke_adjustable_cap_ending_mask)) != 0u)
                 {
-                  position += stroke_radius * auxilary_offset;
+                  position += stroke_radius * auxiliary_offset;
                   fastuidraw_stroking_distance = -stroke_radius;
                 }
               else
@@ -597,7 +597,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
               fastuidraw_stroking_distance = 0.0;
             }
 
-          auxilary_offset = vec2(0.0, 0.0);
+          auxiliary_offset = vec2(0.0, 0.0);
           fastuidraw_stroking_dash_bits = uint(fastuidraw_stroke_skip_dash_interval_lookup_mask);
 
           /* change offset_type to shared_with_edge since
@@ -617,7 +617,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   #if !defined(FASTUIDRAW_STROKE_DASHED) && !defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
     {
       /* Reduce the stroking width by 1-pixel when doing 2-pass non-dashed stroking
-         without auxilary buffer
+         without auxiliary buffer
        */
       if(stroking_pass == fastuidraw_stroke_aa_pass1 && stroke_width_pixels)
         {
@@ -631,14 +631,14 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       if(stroke_width_pixels)
         {
           fastuidraw_stroke_compute_offset_pixels(point_packed_data, offset_type, position,
-                                                  pre_offset, auxilary_offset,
+                                                  pre_offset, auxiliary_offset,
                                                   stroke_params.miter_limit,
                                                   offset, stroke_radius);
         }
       else
         {
           fastuidraw_stroke_compute_offset(point_packed_data, offset_type, position,
-                                           pre_offset, auxilary_offset,
+                                           pre_offset, auxiliary_offset,
                                            stroke_params.miter_limit,
                                            offset);
         }
@@ -648,7 +648,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
      #if !defined(FASTUIDRAW_STROKE_DASHED) && !defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
         {
           /* Reduce the stroking width by 1-pixel when doing 2-pass non-dashed stroking
-             without auxilary buffer
+             without auxiliary buffer
           */
           if(stroking_pass == fastuidraw_stroke_aa_pass1 && !stroke_width_pixels)
             {

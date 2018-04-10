@@ -59,14 +59,14 @@ namespace
       no_interlock
     };
 
-  enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t
-  compute_provide_auxilary_buffer(enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t in_value,
+  enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t
+  compute_provide_auxiliary_buffer(enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t in_value,
                                   const fastuidraw::gl::ContextProperties &ctx)
   {
     using namespace fastuidraw;
     using namespace fastuidraw::glsl;
 
-    if(in_value == PainterBackendGLSL::no_auxilary_buffer)
+    if(in_value == PainterBackendGLSL::no_auxiliary_buffer)
       {
         return in_value;
       }
@@ -75,27 +75,27 @@ namespace
       {
         if(ctx.version() <= ivec2(3, 0))
           {
-            return PainterBackendGLSL::no_auxilary_buffer;
+            return PainterBackendGLSL::no_auxiliary_buffer;
           }
 
-        if(in_value == PainterBackendGLSL::auxilary_buffer_atomic)
+        if(in_value == PainterBackendGLSL::auxiliary_buffer_atomic)
           {
             return in_value;
           }
 
         if(ctx.has_extension("GL_EXT_shader_framebuffer_fetch")
-           && in_value == PainterBackendGLSL::auxilary_buffer_framebuffer_fetch)
+           && in_value == PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch)
           {
-            return PainterBackendGLSL::auxilary_buffer_framebuffer_fetch;
+            return PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch;
           }
 
         if(ctx.has_extension("GL_NV_fragment_shader_interlock"))
           {
-            return PainterBackendGLSL::auxilary_buffer_interlock_main_only;
+            return PainterBackendGLSL::auxiliary_buffer_interlock_main_only;
           }
         else
           {
-            return PainterBackendGLSL::auxilary_buffer_atomic;
+            return PainterBackendGLSL::auxiliary_buffer_atomic;
           }
       }
     #else
@@ -104,29 +104,29 @@ namespace
 
         if(ctx.version() <= ivec2(4, 1) && !ctx.has_extension("GL_ARB_shader_image_load_store"))
           {
-            return PainterBackendGLSL::no_auxilary_buffer;
+            return PainterBackendGLSL::no_auxiliary_buffer;
           }
 
-        if(in_value == PainterBackendGLSL::auxilary_buffer_atomic)
+        if(in_value == PainterBackendGLSL::auxiliary_buffer_atomic)
           {
             return in_value;
           }
 
         /*
           if asking for framebuffer_fetch, but do not have it,
-          then fall back to auxilary_buffer_interlock; we only
+          then fall back to auxiliary_buffer_interlock; we only
           give framebuffer_fetch if it is asked for because it
           is not compatible with MSAA rendering.
         */
         if(ctx.has_extension("GL_EXT_shader_framebuffer_fetch"))
           {
-            if (in_value == PainterBackendGLSL::auxilary_buffer_framebuffer_fetch)
+            if (in_value == PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch)
               {
-                return PainterBackendGLSL::auxilary_buffer_framebuffer_fetch;
+                return PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch;
               }
             else
               {
-                in_value = PainterBackendGLSL::auxilary_buffer_interlock;
+                in_value = PainterBackendGLSL::auxiliary_buffer_interlock;
               }
           }
 
@@ -136,23 +136,23 @@ namespace
 
         if(!have_interlock && !have_interlock_main)
           {
-            return PainterBackendGLSL::auxilary_buffer_atomic;
+            return PainterBackendGLSL::auxiliary_buffer_atomic;
           }
 
         switch(in_value)
           {
-          case PainterBackendGLSL::auxilary_buffer_interlock_main_only:
+          case PainterBackendGLSL::auxiliary_buffer_interlock_main_only:
             return (have_interlock_main) ?
-              PainterBackendGLSL::auxilary_buffer_interlock_main_only:
-              PainterBackendGLSL::auxilary_buffer_interlock;
+              PainterBackendGLSL::auxiliary_buffer_interlock_main_only:
+              PainterBackendGLSL::auxiliary_buffer_interlock;
 
-          case PainterBackendGLSL::auxilary_buffer_interlock:
+          case PainterBackendGLSL::auxiliary_buffer_interlock:
             return (have_interlock) ?
-              PainterBackendGLSL::auxilary_buffer_interlock:
-              PainterBackendGLSL::auxilary_buffer_interlock_main_only;
+              PainterBackendGLSL::auxiliary_buffer_interlock:
+              PainterBackendGLSL::auxiliary_buffer_interlock_main_only;
 
           default:
-            return PainterBackendGLSL::auxilary_buffer_atomic;
+            return PainterBackendGLSL::auxiliary_buffer_atomic;
           }
       }
     #endif
@@ -196,13 +196,13 @@ namespace
   }
 
   fastuidraw::PainterBlendShader::shader_type
-  compute_blend_type(enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t aux_value,
+  compute_blend_type(enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t aux_value,
                      enum fastuidraw::PainterBlendShader::shader_type in_value,
                      const fastuidraw::gl::ContextProperties &ctx)
   {
-    if (aux_value == fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_framebuffer_fetch)
+    if (aux_value == fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch)
       {
-        /* auxilary framebuffer fetch may only be used with framebuffer fetch blending */
+        /* auxiliary framebuffer fetch may only be used with framebuffer fetch blending */
         return fastuidraw::PainterBlendShader::framebuffer_fetch;
       }
 
@@ -522,17 +522,17 @@ namespace
     enum fbo_t
       {
         fbo_just_color,
-        fbo_with_auxilary_buffer,
+        fbo_with_auxiliary_buffer,
 
         number_fbo_t
       };
 
-    enum auxilary_buffer_t
+    enum auxiliary_buffer_t
       {
-        auxilary_buffer_u8,
-        auxilary_buffer_u32,
+        auxiliary_buffer_u8,
+        auxiliary_buffer_u32,
 
-        number_auxilary_buffer_t
+        number_auxiliary_buffer_t
       };
 
     explicit
@@ -546,13 +546,13 @@ namespace
     surface_gl(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface> &surface);
 
     GLuint
-    auxilary_buffer(enum auxilary_buffer_t tp);
+    auxiliary_buffer(enum auxiliary_buffer_t tp);
 
     static
     GLenum
-    auxilaryBufferInternalFmt(enum auxilary_buffer_t tp)
+    auxiliaryBufferInternalFmt(enum auxiliary_buffer_t tp)
     {
-      return tp == auxilary_buffer_u8 ?
+      return tp == auxiliary_buffer_u8 ?
         GL_R8 :
         GL_R32UI;
     }
@@ -568,10 +568,10 @@ namespace
 
     static
     enum fbo_t
-    fbo_tp(enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t tp)
+    fbo_tp(enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t tp)
     {
-      return (tp == fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_framebuffer_fetch) ?
-        fbo_with_auxilary_buffer :
+      return (tp == fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch) ?
+        fbo_with_auxiliary_buffer :
         fbo_just_color;
     }
 
@@ -591,7 +591,7 @@ namespace
     GLuint
     buffer(enum buffer_t);
 
-    fastuidraw::vecN<GLuint, number_auxilary_buffer_t> m_auxilary_buffer;
+    fastuidraw::vecN<GLuint, number_auxiliary_buffer_t> m_auxiliary_buffer;
     fastuidraw::vecN<GLuint, number_buffer_t> m_buffers;
     fastuidraw::vecN<GLuint, number_fbo_t> m_fbo;
     bool m_own_texture;
@@ -621,7 +621,7 @@ namespace
       m_separate_program_for_discard(true),
       m_default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz),
       m_blend_type(fastuidraw::PainterBlendShader::dual_src),
-      m_provide_auxilary_image_buffer(fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer)
+      m_provide_auxiliary_image_buffer(fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer)
     {}
 
     unsigned int m_attributes_per_buffer;
@@ -644,7 +644,7 @@ namespace
     bool m_separate_program_for_discard;
     enum fastuidraw::PainterStrokeShader::type_t m_default_stroke_shader_aa_type;
     enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
-    enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t m_provide_auxilary_image_buffer;
+    enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t m_provide_auxiliary_image_buffer;
   };
 
 }
@@ -1209,7 +1209,7 @@ SurfaceGLPrivate(GLuint texture,
                  const fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties &props):
   m_clear_color(0.0f, 0.0f, 0.0f, 0.0f),
   m_properties(props),
-  m_auxilary_buffer(0),
+  m_auxiliary_buffer(0),
   m_buffers(0),
   m_fbo(0),
   m_own_texture(texture != 0)
@@ -1226,7 +1226,7 @@ SurfaceGLPrivate::
     {
       m_buffers[buffer_color] = 0;
     }
-  glDeleteTextures(m_auxilary_buffer.size(), m_auxilary_buffer.c_ptr());
+  glDeleteTextures(m_auxiliary_buffer.size(), m_auxiliary_buffer.c_ptr());
   glDeleteFramebuffers(m_fbo.size(), m_fbo.c_ptr());
   glDeleteTextures(m_buffers.size(), m_buffers.c_ptr());
 }
@@ -1244,31 +1244,31 @@ surface_gl(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::S
 
 GLuint
 SurfaceGLPrivate::
-auxilary_buffer(enum auxilary_buffer_t tp)
+auxiliary_buffer(enum auxiliary_buffer_t tp)
 {
-  if (!m_auxilary_buffer[tp])
+  if (!m_auxiliary_buffer[tp])
     {
       GLenum internalFormat;
       fastuidraw::gl::detail::ClearImageSubData clearer;
 
-      internalFormat = auxilaryBufferInternalFmt(tp);
-      glGenTextures(1, &m_auxilary_buffer[tp]);
-      FASTUIDRAWassert(m_auxilary_buffer[tp] != 0u);
+      internalFormat = auxiliaryBufferInternalFmt(tp);
+      glGenTextures(1, &m_auxiliary_buffer[tp]);
+      FASTUIDRAWassert(m_auxiliary_buffer[tp] != 0u);
 
       glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, m_auxilary_buffer[tp]);
+      glBindTexture(GL_TEXTURE_2D, m_auxiliary_buffer[tp]);
       fastuidraw::gl::detail::tex_storage(true, GL_TEXTURE_2D,
                                           internalFormat,
                                           m_properties.dimensions());
 
-      clearer.clear<GL_TEXTURE_2D>(m_auxilary_buffer[tp], 0,
+      clearer.clear<GL_TEXTURE_2D>(m_auxiliary_buffer[tp], 0,
                                    0, 0, 0, //origin
                                    m_properties.dimensions().x(), m_properties.dimensions().y(), 1, //dimensions
                                    fastuidraw::gl::detail::format_from_internal_format(internalFormat),
                                    fastuidraw::gl::detail::type_from_internal_format(internalFormat));
     }
 
-  return m_auxilary_buffer[tp];
+  return m_auxiliary_buffer[tp];
 }
 
 GLuint
@@ -1343,11 +1343,11 @@ fbo(enum fbo_t tp)
       glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                              tex_target, buffer(buffer_color), 0);
 
-      if(tp == fbo_with_auxilary_buffer)
+      if(tp == fbo_with_auxiliary_buffer)
         {
           FASTUIDRAWassert(m_properties.msaa() <= 1);
           glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
-                                 tex_target, auxilary_buffer(auxilary_buffer_u8), 0);
+                                 tex_target, auxiliary_buffer(auxiliary_buffer_u8), 0);
         }
       glBindFramebuffer(GL_READ_FRAMEBUFFER, old_fbo);
     }
@@ -1400,13 +1400,13 @@ compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
       return_value.alignment(4);
     }
 
-  /* bleck: framebuffer fetch on auxilary buffer is
+  /* bleck: framebuffer fetch on auxiliary buffer is
      not compatible with single_src and dual_src
      blending, need to override blend_type() for
      that case.
   */
   fastuidraw::gl::ContextProperties ctx;
-  return_value.blend_type(compute_blend_type(compute_provide_auxilary_buffer(params.provide_auxilary_image_buffer(), ctx),
+  return_value.blend_type(compute_blend_type(compute_provide_auxiliary_buffer(params.provide_auxiliary_image_buffer(), ctx),
                                              params.blend_type(),
                                              ctx));
   return return_value;
@@ -1601,13 +1601,13 @@ configure_backend(void)
   #endif
 
   m_interlock_type = compute_interlock_type(m_ctx_properties);
-  m_params.provide_auxilary_image_buffer(compute_provide_auxilary_buffer(m_params.provide_auxilary_image_buffer(),
+  m_params.provide_auxiliary_image_buffer(compute_provide_auxiliary_buffer(m_params.provide_auxiliary_image_buffer(),
                                                                          m_ctx_properties));
-  m_params.blend_type(compute_blend_type(m_params.provide_auxilary_image_buffer(),
+  m_params.blend_type(compute_blend_type(m_params.provide_auxiliary_image_buffer(),
                                          m_params.blend_type(),
                                          m_ctx_properties));
 
-  if(m_params.provide_auxilary_image_buffer() == fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer)
+  if(m_params.provide_auxiliary_image_buffer() == fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer)
     {
       m_params.default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz);
     }
@@ -1629,7 +1629,7 @@ configure_backend(void)
     .glyph_geometry_backing_log2_dims(m_params.glyph_atlas()->param_values().texture_2d_array_geometry_store_log2_dims())
     .have_float_glyph_texture_atlas(m_params.glyph_atlas()->texel_texture(false) != 0)
     .colorstop_atlas_backing(colorstop_tp)
-    .provide_auxilary_image_buffer(m_params.provide_auxilary_image_buffer());
+    .provide_auxiliary_image_buffer(m_params.provide_auxiliary_image_buffer());
 
   /* now allocate m_pool after adjusting m_params */
   m_pool = FASTUIDRAWnew painter_vao_pool(m_params, m_p->configuration_base(),
@@ -1687,7 +1687,7 @@ configure_source_front_matter(void)
         .add_binding("fastuidraw_header_attribute", PainterBackendGLSL::header_attrib_slot);
     }
 
-  if(m_uber_shader_builder_params.provide_auxilary_image_buffer())
+  if(m_uber_shader_builder_params.provide_auxiliary_image_buffer())
     {
       switch(m_interlock_type)
         {
@@ -1784,7 +1784,7 @@ configure_source_front_matter(void)
       using_glsl42 = m_ctx_properties.version() >= fastuidraw::ivec2(4, 2)
         && (m_uber_shader_builder_params.assign_layout_to_varyings()
             || m_uber_shader_builder_params.assign_binding_points()
-            || m_uber_shader_builder_params.provide_auxilary_image_buffer() != PainterBackendGLSL::no_auxilary_buffer);
+            || m_uber_shader_builder_params.provide_auxiliary_image_buffer() != PainterBackendGLSL::no_auxiliary_buffer);
 
       m_front_matter_frag
 	.specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension);
@@ -1811,7 +1811,7 @@ configure_source_front_matter(void)
               m_front_matter_frag.specify_extension("GL_ARB_shading_language_420pack", ShaderSource::require_extension);
             }
 
-          if(m_uber_shader_builder_params.provide_auxilary_image_buffer() != PainterBackendGLSL::no_auxilary_buffer)
+          if(m_uber_shader_builder_params.provide_auxiliary_image_buffer() != PainterBackendGLSL::no_auxiliary_buffer)
             {
               m_front_matter_frag
                 .specify_extension("GL_ARB_shader_image_load_store", ShaderSource::require_extension);
@@ -2087,7 +2087,7 @@ setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, Configuratio
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  enum fastuidraw::PainterBlendShader::shader_type, blend_type)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
-                 enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t, provide_auxilary_image_buffer)
+                 enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t, provide_auxiliary_image_buffer)
 
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL methods
@@ -2212,26 +2212,26 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
   const glsl::PainterBackendGLSL::UberShaderParams &uber_params(d->m_uber_shader_builder_params);
   const glsl::PainterBackendGLSL::BindingPoints &binding_points(uber_params.binding_points());
 
-  /* if using an auxilary buffer, make the auxilary buffer match the resolution
+  /* if using an auxiliary buffer, make the auxiliary buffer match the resolution
      of Surface (rather than its viewport size).
    */
-  enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t aux_type;
-  aux_type = uber_params.provide_auxilary_image_buffer();
-  if(aux_type != fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer)
+  enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t aux_type;
+  aux_type = uber_params.provide_auxiliary_image_buffer();
+  if(aux_type != fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer)
     {
-      SurfaceGLPrivate::auxilary_buffer_t tp;
+      SurfaceGLPrivate::auxiliary_buffer_t tp;
 
-      tp = (aux_type == auxilary_buffer_atomic) ?
-        SurfaceGLPrivate::auxilary_buffer_u32 :
-        SurfaceGLPrivate::auxilary_buffer_u8;
+      tp = (aux_type == auxiliary_buffer_atomic) ?
+        SurfaceGLPrivate::auxiliary_buffer_u32 :
+        SurfaceGLPrivate::auxiliary_buffer_u8;
 
-      glBindImageTexture(binding_points.auxilary_image_buffer(),
-                         surface_gl->auxilary_buffer(tp), //texture
+      glBindImageTexture(binding_points.auxiliary_image_buffer(),
+                         surface_gl->auxiliary_buffer(tp), //texture
                          0, //level
                          GL_FALSE, //layered
                          0, //layer
                          GL_READ_WRITE, //access
-                         SurfaceGLPrivate::auxilaryBufferInternalFmt(tp));
+                         SurfaceGLPrivate::auxiliaryBufferInternalFmt(tp));
     }
 
   enum SurfaceGLPrivate::fbo_t fbo_tp(SurfaceGLPrivate::fbo_tp(aux_type));
@@ -2285,7 +2285,7 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
   glDrawBuffers(1, draw_buffers.c_ptr());
   glClear(mask);
 
-  if(fbo_tp == SurfaceGLPrivate::fbo_with_auxilary_buffer)
+  if(fbo_tp == SurfaceGLPrivate::fbo_with_auxiliary_buffer)
     {
       glDrawBuffers(2, draw_buffers.c_ptr());
     }
@@ -2419,7 +2419,7 @@ on_post_draw(void)
   glActiveTexture(GL_TEXTURE0 + binding_points.colorstop_atlas());
   glBindTexture(ColorStopAtlasGL::texture_bind_target(), 0);
 
-  glBindImageTexture(binding_points.auxilary_image_buffer(), 0,
+  glBindImageTexture(binding_points.auxiliary_image_buffer(), 0,
                      0, GL_FALSE, 0, GL_READ_ONLY, GL_R8UI);
 
   switch(d->m_params.data_store_backing())

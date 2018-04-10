@@ -350,9 +350,9 @@ public:
     vec2 m_pre_offset;
 
     /*!
-      Provides an auxilary offset data
+      Provides an auxiliary offset data
      */
-    vec2 m_auxilary_offset;
+    vec2 m_auxiliary_offset;
 
     /*!
       Gives the distance of the point from the start
@@ -466,7 +466,7 @@ public:
         \code
         m_pre_offset
         \endcode
-        In addition, for these offset types, \ref m_auxilary_offset
+        In addition, for these offset types, \ref m_auxiliary_offset
         holds the the delta vector to the point on edge with
         which the point makes a quad.
       - For those with offset_type() being \ref offset_rounded_join,
@@ -474,7 +474,7 @@ public:
         \code
         vec2 cs;
 
-        cs.x() = m_auxilary_offset.y();
+        cs.x() = m_auxiliary_offset.y();
         cs.y() = sqrt(1.0 - cs.x() * cs.x());
 
         if(m_packed_data & sin_sign_mask)
@@ -487,7 +487,7 @@ public:
         float t;
         vec2 n0, n1;
 
-        t = m_auxilary_offset.x();
+        t = m_auxiliary_offset.x();
         n0.x() = m_pre_offset.x();
         n1.x() = m_pre_offset.y();
 
@@ -508,7 +508,7 @@ public:
         the value is given by the following code
         \code
         vec2 n0(m_pre_offset), Jn0(n0.y(), -n0.x());
-        vec2 n1(m_auxilary_offset), Jn1(n1.y(), -n1.x());
+        vec2 n1(m_auxiliary_offset), Jn1(n1.y(), -n1.x());
         float r, det, lambda;
         det = dot(Jn1, n0);
         lambda = -t_sign(det);
@@ -525,7 +525,7 @@ public:
         following code:
         \code
         vec2 n0(m_pre_offset), Jn0(n0.y(), -n0.x());
-        vec2 n1(m_auxilary_offset), Jn1(n1.y(), -n1.x());
+        vec2 n1(m_auxiliary_offset), Jn1(n1.y(), -n1.x());
         float lambda, r, d;
         lambda = t_sign(dot(Jn0, n1));
         r = lambda / (1.0 + dot(n0, n1));
@@ -535,16 +535,16 @@ public:
         the value is given by the following code
         \code
         vec2 n(m_pre_offset), v(n.y(), -n.x());
-        offset = m_auxilary_offset.x() * v + m_auxilary_offset.y() * n;
+        offset = m_auxiliary_offset.x() * v + m_auxiliary_offset.y() * n;
         \endcode
       - For those with offset_type() being \ref offset_square_cap,
         \ref offset_adjustable_cap_contour_start or
         \ref offset_adjustable_cap_contour_end the value the value
         is given by
         \code
-        m_pre_offset + m_auxilary_offset
+        m_pre_offset + m_auxiliary_offset
         \endcode
-        In addition, \ref m_auxilary_offset the tangent vector along
+        In addition, \ref m_auxiliary_offset the tangent vector along
         the path in the direction of the path and \ref m_pre_offset
         holds a vector perpindicular to the path or a zero vector
         (indicating it is not on boundary of cap).
@@ -569,7 +569,7 @@ public:
       - PainterAttribute::m_attrib0 .zw -> point::m_pre_offset (float)
       - PainterAttribute::m_attrib1 .x  -> point::m_distance_from_edge_start (float)
       - PainterAttribute::m_attrib1 .y  -> point::m_distance_from_contour_start (float)
-      - PainterAttribute::m_attrib1 .zw -> point::m_auxilary_offset (float)
+      - PainterAttribute::m_attrib1 .zw -> point::m_auxiliary_offset (float)
       - PainterAttribute::m_attrib2 .x  -> point::m_packed_data (uint)
       - PainterAttribute::m_attrib2 .y  -> point::m_edge_length (float)
       - PainterAttribute::m_attrib2 .z  -> point::m_open_contour_length (float)
