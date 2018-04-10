@@ -330,7 +330,7 @@ sdl_painter_demo(const std::string &about_text,
                                              "No auxiliary buffer provided")
                                   .add_entry("auxiliary_buffer_atomic",
                                              fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_atomic,
-                                             "Auxilary buffer through atomic ops; this can be quite poor "
+                                             "Auxiliary buffer through atomic ops; this can be quite poor "
                                              "performing because atomics can be quite slow AND (worse) "
                                              "a draw break appears to issue a memory barrier within each "
                                              "path stroking and after each path stroking. Requires only "
@@ -338,16 +338,16 @@ sdl_painter_demo(const std::string &about_text,
                                              "and GLES 3.1 for GLES")
                                   .add_entry("auxiliary_buffer_interlock",
                                              fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_interlock,
-                                             "Auxilary buffer with interlock; this is high performant option "
+                                             "Auxiliary buffer with interlock; this is high performant option "
                                              "as it does NOT use atomic ops and does not force any draw call "
-                                             "breaks to issue a memory barrier; requires GL_INTEL_fragment_shadering_ordering "
+                                             "breaks to issue a memory barrier; requires GL_INTEL_fragment_shader_ordering "
                                              "and GL 4.2 (or GL_ARB_shader_image_load_store extension; if requirements "
                                              "are not satisfied will try to fall back to auxiliary_buffer_interlock_main_only "
                                              "and if those are not satisfied will fall back to auxiliary_buffer_atomic and "
                                              "if those requirement are not satsified, then no_auxiliary_buffer")
                                   .add_entry("auxiliary_buffer_interlock_main_only",
                                              fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_interlock_main_only,
-                                             "Auxilary buffer with interlock; this is high performant option "
+                                             "Auxiliary buffer with interlock; this is high performant option "
                                              "as it does NOT use atomic ops and does not force any draw call "
                                              "breaks to issue a memory barrier; requires GL_ARB_fragment_shader_interlock "
                                              "OR GL_NV_fragment_shader_interlock together with GL 4.2 (or "
