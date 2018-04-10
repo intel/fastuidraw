@@ -4,19 +4,137 @@
 
 namespace
 {
-  fastuidraw::c_string
-  string_from_data_store_type(enum fastuidraw::gl::PainterBackendGL::data_store_backing_t v)
+  template<typename T>
+  class enum_wrapper
   {
-    switch(v)
+  public:
+    explicit
+    enum_wrapper(T v):
+      m_v(v)
+    {}
+
+    T m_v;
+  };
+
+  template<typename T>
+  enum_wrapper<T>
+  make_enum_wrapper(T v)
+  {
+    return enum_wrapper<T>(v);
+  }
+
+  std::ostream&
+  operator<<(std::ostream &str, enum_wrapper<bool> b)
+  {
+    if(b.m_v)
+      {
+        str << "true";
+      }
+    else
+      {
+        str << "false";
+      }
+    return str;
+  }
+
+  std::ostream&
+  operator<<(std::ostream &str,
+             enum_wrapper<enum fastuidraw::gl::PainterBackendGL::data_store_backing_t> v)
+  {
+    switch(v.m_v)
       {
       case fastuidraw::gl::PainterBackendGL::data_store_tbo:
-        return "tbo";
+        str << "tbo";
+        break;
 
       case fastuidraw::gl::PainterBackendGL::data_store_ubo:
-        return "ubo";
+        str << "ubo";
+        break;
+
+      default:
+        str << "invalid value";
       }
 
-    return "invalid value";
+    return str;
+  }
+
+  std::ostream&
+  operator<<(std::ostream &str,
+             enum_wrapper<enum fastuidraw::PainterStrokeShader::type_t> v)
+  {
+    switch(v.m_v)
+      {
+      case fastuidraw::PainterStrokeShader::draws_solid_then_fuzz:
+        str << "draws_solid_then_fuzz";
+        break;
+
+      case fastuidraw::PainterStrokeShader::cover_then_draw:
+        str << "cover_then_draw";
+        break;
+
+      default:
+        str << "invalid value";
+      }
+
+    return str;
+  }
+
+  std::ostream&
+  operator<<(std::ostream &str,
+             enum_wrapper<enum fastuidraw::PainterBlendShader::shader_type> v)
+  {
+    switch(v.m_v)
+      {
+      case fastuidraw::PainterBlendShader::single_src:
+        str << "single_src";
+        break;
+
+      case fastuidraw::PainterBlendShader::dual_src:
+        str << "dual_src";
+        break;
+
+      case fastuidraw::PainterBlendShader::framebuffer_fetch:
+        str << "framebuffer_fetch";
+        break;
+
+      default:
+        str << "invalid value";
+      }
+
+    return str;
+  }
+
+  std::ostream&
+  operator<<(std::ostream &str,
+             enum_wrapper<enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t> v)
+  {
+    switch(v.m_v)
+      {
+      case fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer:
+        str << "no_auxilary_buffer";
+        break;
+
+      case fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_atomic:
+        str << "auxilary_buffer_atomic";
+        break;
+
+      case fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_interlock:
+        str << "auxilary_buffer_interlock";
+        break;
+
+      case fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_interlock_main_only:
+        str << "auxilary_buffer_interlock_main_only";
+        break;
+
+      case fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_framebuffer_fetch:
+        str << "auxilary_buffer_framebuffer_fetch";
+        break;
+
+      default:
+        str << "invalid value";
+      }
+
+    return str;
   }
 
   std::ostream&
@@ -62,7 +180,7 @@ namespace
 
 sdl_painter_demo::
 sdl_painter_demo(const std::string &about_text,
-                 bool default_value_for_print_painter_config):
+                 bool default_value_for_print_painter):
   sdl_demo(about_text),
 
   m_image_atlas_options("Image Atlas Options", *this),
@@ -308,7 +426,12 @@ sdl_painter_demo(const std::string &about_text,
 	       "specifies how the painter will perform blending",
 	       *this),
   m_demo_options("Demo Options", *this),
-  m_print_painter_config(default_value_for_print_painter_config, "print_painter_config", "Print PainterBackendGL config", *this)
+  m_print_painter_config(default_value_for_print_painter,
+                         "print_painter_config",
+                         "Print PainterBackendGL config", *this),
+  m_print_painter_shader_ids(default_value_for_print_painter,
+                         "print_painter_shader_ids",
+                         "Print PainterBackendGL shader IDs", *this)
 {}
 
 sdl_painter_demo::
@@ -454,34 +577,47 @@ init_gl(int w, int h)
     {
       std::cout << "\nPainterBackendGL configuration:\n";
 
-#define LAZY(X) do {                                                    \
+      #define LAZY(X) do {                                              \
         std::cout << std::setw(40) << #X": " << std::setw(8)            \
                   << m_backend->configuration_gl().X()                  \
                   << "  (requested " << m_painter_params.X() << ")\n";  \
       } while(0)
 
+      #define LAZY_ENUM(X) do {                                               \
+        std::cout << std::setw(40) << #X": " << std::setw(8)            \
+                  << make_enum_wrapper(m_backend->configuration_gl().X()) \
+                  << "  (requested " << make_enum_wrapper(m_painter_params.X()) \
+                  << ")\n";                                             \
+      } while(0)
+
       LAZY(attributes_per_buffer);
       LAZY(indices_per_buffer);
       LAZY(number_pools);
-      LAZY(break_on_shader_change);
-      LAZY(vert_shader_use_switch);
-      LAZY(frag_shader_use_switch);
-      LAZY(blend_shader_use_switch);
-      LAZY(unpack_header_and_brush_in_frag_shader);
-      LAZY(separate_program_for_discard);
-      std::cout << "\n\nOptions affected by GL context\n";
-      LAZY(use_hw_clip_planes);
+      LAZY_ENUM(break_on_shader_change);
+      LAZY_ENUM(vert_shader_use_switch);
+      LAZY_ENUM(frag_shader_use_switch);
+      LAZY_ENUM(blend_shader_use_switch);
+      LAZY_ENUM(unpack_header_and_brush_in_frag_shader);
+      LAZY_ENUM(separate_program_for_discard);
       LAZY(data_blocks_per_store_buffer);
-      LAZY(assign_layout_to_vertex_shader_inputs);
-      LAZY(assign_layout_to_varyings);
-      std::cout << std::setw(40) << "alignment:" << std::setw(8) << m_backend->configuration_base().alignment()
+      LAZY_ENUM(data_store_backing);
+      LAZY_ENUM(use_hw_clip_planes);
+      LAZY_ENUM(assign_layout_to_vertex_shader_inputs);
+      LAZY_ENUM(assign_layout_to_varyings);
+      LAZY_ENUM(assign_binding_points);
+      LAZY_ENUM(default_stroke_shader_aa_type);
+      LAZY_ENUM(blend_type);
+      LAZY_ENUM(provide_auxilary_image_buffer);
+      std::cout << std::setw(40) << "alignment: " << std::setw(8) << m_backend->configuration_base().alignment()
                 << "  (requested " << m_painter_base_params.alignment()
-                << ")\n" << std::setw(40) << "data_store_backing:"
-                << std::setw(8) << string_from_data_store_type(m_backend->configuration_gl().data_store_backing())
-                << "  (requested " << string_from_data_store_type(m_painter_params.data_store_backing())
                 << ")\n\n\n";
 
       #undef LAZY
+      #undef LAZY_ENUM
+    }
+
+  if(m_print_painter_shader_ids.m_value)
+    {
       const fastuidraw::PainterShaderSet &sh(m_painter->default_shaders());
       std::cout << "Default shader IDs:\n";
 

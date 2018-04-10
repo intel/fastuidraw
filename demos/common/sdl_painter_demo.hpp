@@ -119,4 +119,5 @@ private:
 
   command_separator m_demo_options;
   command_line_argument_value<bool> m_print_painter_config;
+  command_line_argument_value<bool> m_print_painter_shader_ids;
 };
