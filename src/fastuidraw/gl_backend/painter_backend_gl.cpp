@@ -137,6 +137,7 @@ namespace
   enum interlock_type_t
   compute_interlock_type(const fastuidraw::gl::ContextProperties &ctx)
   {
+    return no_interlock;
     #ifdef FASTUIDRAW_GL_USE_GLES
       {
         if(ctx.has_extension("GL_NV_fragment_shader_interlock"))
@@ -1650,6 +1651,9 @@ configure_source_front_matter(void)
       switch(m_interlock_type)
         {
         case no_interlock:
+          m_front_matter_frag
+            .add_macro("fastuidraw_begin_interlock", "fastuidraw_do_nothing")
+            .add_macro("fastuidraw_end_interlock", "fastuidraw_do_nothing");
           break;
 
         case intel_fragment_shader_ordering:
@@ -2175,7 +2179,7 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
   aux_type = uber_params.provide_auxilary_image_buffer();
   if(aux_type != fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer)
     {
-      GLenum internalFmt(aux_type == auxilary_buffer_atomic ? GL_R32UI : GL_R8UI);
+      GLenum internalFmt(aux_type == auxilary_buffer_atomic ? GL_R32UI : GL_R8);
       glBindImageTexture(binding_points.auxilary_image_buffer(),
                          surface_gl->auxilary_buffer(internalFmt), //texture
                          0, //level
