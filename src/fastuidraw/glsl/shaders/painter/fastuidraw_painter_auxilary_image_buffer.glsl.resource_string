@@ -1,6 +1,6 @@
 #if defined(FASTUIDRAW_PAINTER_AUXILARY_BUFFER_INTERLOCK) || defined(FASTUIDRAW_PAINTER_AUXILARY_BUFFER_INTERLOCK_MAIN_ONLY)
 
-  layout(binding = FASTUIDRAW_PAINTER_AUXILARY_BUFFER_BINDING, r8) restrict uniform image2D fastuidraw_auxilary_buffer;
+  layout(binding = FASTUIDRAW_PAINTER_AUXILARY_BUFFER_BINDING, r8) restrict lowp uniform image2D fastuidraw_auxilary_buffer;
 
   #if !defined(FASTUIDRAW_PAINTER_AUXILARY_BUFFER_INTERLOCK_MAIN_ONLY)
     #define FASTUIDRAW_BEGIN_AUX_LOCK fastuidraw_begin_interlock()
@@ -48,7 +48,7 @@
 
 #elif defined(FASTUIDRAW_PAINTER_AUXILARY_BUFFER_ATOMIC)
 
-  layout(binding = FASTUIDRAW_PAINTER_AUXILARY_BUFFER_BINDING, r32ui) restrict uniform uimage2D fastuidraw_auxilary_buffer;
+  layout(binding = FASTUIDRAW_PAINTER_AUXILARY_BUFFER_BINDING, r32ui) highp restrict uniform uimage2D fastuidraw_auxilary_buffer;
 
   float
   fastuidraw_clear_auxilary(void)
