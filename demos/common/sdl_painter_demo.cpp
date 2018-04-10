@@ -341,7 +341,7 @@ sdl_painter_demo(const std::string &about_text,
                                              "Auxiliary buffer with interlock; this is high performant option "
                                              "as it does NOT use atomic ops and does not force any draw call "
                                              "breaks to issue a memory barrier; requires GL_INTEL_fragment_shader_ordering "
-                                             "and GL 4.2 (or GL_ARB_shader_image_load_store extension; if requirements "
+                                             "and GL 4.2 (or GL_ARB_shader_image_load_store extension); if requirements "
                                              "are not satisfied will try to fall back to auxiliary_buffer_interlock_main_only "
                                              "and if those are not satisfied will fall back to auxiliary_buffer_atomic and "
                                              "if those requirement are not satsified, then no_auxiliary_buffer")
