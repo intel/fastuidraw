@@ -6,16 +6,12 @@
 #endif
 
 #ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
-layout(location = 0, index = 0) out vec4 fastuidraw_final_color0;
-layout(location = 0, index = 1) out vec4 fastuidraw_final_color1;
-#endif
-
-#ifdef FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND
-layout(location = 0) out vec4 fastuidraw_final_color;
-#endif
-
-#ifdef FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH
-layout(location = 0) inout vec4 fastuidraw_final_color;
+  layout(location = 0, index = 0) out vec4 fastuidraw_final_color0;
+  layout(location = 0, index = 1) out vec4 fastuidraw_final_color1;
+#elif defined(FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND)
+  layout(location = 0) out vec4 fastuidraw_final_color;
+#elif defined(FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH)
+  layout(location = 0) inout vec4 fastuidraw_final_color;
 #endif
 
 #ifdef FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES
