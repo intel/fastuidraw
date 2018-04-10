@@ -536,7 +536,7 @@ init_gl(int w, int h)
 
       if (m_blend_type.m_value.m_value == fastuidraw::PainterBlendShader::framebuffer_fetch)
         {
-          std::cout << "WARNING: using framebuffer fetch with painter_msaa makes all fragment shading happen per fragment\n"
+          std::cout << "WARNING: using framebuffer fetch with painter_msaa makes all fragment shading happen per sample (which is terribly expensive)\n"
                     << std::flush;
         }
     }
