@@ -133,7 +133,8 @@ namespace fastuidraw
             To guarantee ordering between computing coverage
             and using coverage a backend must intert a memory
             barrier at the API level between such passed
-            (for example in GL, glMemoryBarrier()).
+            (for example in GL, glMemoryBarrier()).The buffer
+            is realized as an "r32ui" image2D in the shader source.
            */
           auxilary_buffer_atomic,
 
@@ -142,8 +143,10 @@ namespace fastuidraw
             are implemented by an interlock that can be called
             in GLSL from any function and/or control flow. This
             allows for cover then draw methods to be performed
-            WITHOUT any draw-breaks. A backend will need to define
-            the the functions (or macros) in their GLSL preamble:
+            WITHOUT any draw-breaks. The buffer is realized as
+            an "r8" image2D in the shader source. A backend will
+            need to define the the functions (or macros) in their
+            GLSL preamble:
              - fastuidraw_begin_interlock() which is called before access
              - fastuidraw_end_interlock() which is called after access
            */
@@ -154,8 +157,10 @@ namespace fastuidraw
             are implemented by an interlock that can only be
             called in GLSL from main under NO conrol flow. This
             allows for cover then draw methods to be performed
-            WITHOUT any draw-breaks. A backend will need to define
-            the the functions (or macros) in their GLSL preamble:
+            WITHOUT any draw-breaks. The buffer is realized as
+            an "r8" image2D in the shader source. A backend will
+            need to define the the functions (or macros) in their
+            GLSL preamble:
              - fastuidraw_begin_interlock() which is called before access
              - fastuidraw_end_interlock() which is called after access
            */
