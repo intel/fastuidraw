@@ -96,7 +96,7 @@ namespace fastuidraw
       void
       make_packed(PainterPackedValuePool &pool)
       {
-        if(!m_packed_value && m_value != nullptr)
+        if (!m_packed_value && m_value != nullptr)
           {
             m_packed_value = pool.create_packed_value(*m_value);
             m_value = nullptr;

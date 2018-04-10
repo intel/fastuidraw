@@ -250,7 +250,7 @@ layer(void) const
   const rect_atlas_layer *a;
 
   p = static_cast<const detail::RectAtlas::rectangle*>(m_opaque);
-  if(p == nullptr)
+  if (p == nullptr)
     {
       return -1;
     }
@@ -303,7 +303,7 @@ allocate(fastuidraw::ivec2 size, c_array<const uint8_t> pdata,
   const detail::RectAtlas::rectangle *r(nullptr);
   unsigned int layer;
 
-  if(size.x() > d->m_texel_store->dimensions().x()
+  if (size.x() > d->m_texel_store->dimensions().x()
      || size.y() > d->m_texel_store->dimensions().y())
     {
       return return_value;
@@ -319,7 +319,7 @@ allocate(fastuidraw::ivec2 size, c_array<const uint8_t> pdata,
       layer = i;
     }
 
-  if(r == nullptr && d->m_texel_store->resizeable())
+  if (r == nullptr && d->m_texel_store->resizeable())
     {
       int old_size;
 
@@ -339,7 +339,7 @@ allocate(fastuidraw::ivec2 size, c_array<const uint8_t> pdata,
       FASTUIDRAWassert(r != nullptr);
     }
 
-  if(r != nullptr)
+  if (r != nullptr)
     {
       return_value.m_opaque = r;
       d->m_texel_store->set_data(r->minX_minY().x(), r->minX_minY().y(), layer,
@@ -357,7 +357,7 @@ deallocate(fastuidraw::GlyphLocation G)
   const detail::RectAtlas::rectangle *r;
 
   r = static_cast<const detail::RectAtlas::rectangle*>(G.m_opaque);
-  if(r != nullptr)
+  if (r != nullptr)
     {
       detail::RectAtlas::delete_rectangle(r);
     }
@@ -383,9 +383,9 @@ allocate_geometry_data(c_array<const generic_data> pdata)
 
   block_count = count / alignment;
   return_value = d->m_geometry_data_allocator.allocate_interval(block_count);
-  if(return_value == -1)
+  if (return_value == -1)
     {
-      if(d->m_geometry_store->resizeable())
+      if (d->m_geometry_store->resizeable())
         {
           d->m_geometry_store->resize(block_count + 2 * d->m_geometry_store->size());
           d->m_geometry_data_allocator.resize(d->m_geometry_store->size());
@@ -409,7 +409,7 @@ deallocate_geometry_data(int location, int count)
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
 
-  if(location < 0)
+  if (location < 0)
     {
       FASTUIDRAWassert(count == 0);
       return;

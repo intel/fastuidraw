@@ -48,7 +48,7 @@ ready_non_empty_index_data_chunks(void)
   m_non_empty_index_data_chunks.clear();
   for(unsigned int i = 0; i < m_index_chunks.size(); ++i)
     {
-      if(!m_index_chunks[i].empty())
+      if (!m_index_chunks[i].empty())
         {
           m_non_empty_index_data_chunks.push_back(i);
         }

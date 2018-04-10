@@ -81,7 +81,7 @@ remove_reference(void)
   d->m_mutex.lock();
   --d->m_reference_count;
   FASTUIDRAWassert(d->m_reference_count >= 0);
-  if(d->m_reference_count == 0)
+  if (d->m_reference_count == 0)
     {
       return_value = true;
     }

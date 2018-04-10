@@ -106,7 +106,7 @@ template<typename T>
 void
 Uniform(int location, GLsizei count, c_array<const T> v)
 {
-  if(!v.empty())
+  if (!v.empty())
     {
       Uniform(location, count, &v[0]);
     }
@@ -129,7 +129,7 @@ template<typename T>
 void
 Uniform(int location, GLsizei count, c_array<T> v)
 {
-  if(!v.empty())
+  if (!v.empty())
     {
       Uniform(location, count, &v[0]);
     }
@@ -154,7 +154,7 @@ template<typename T>
 void
 Uniform(int location, GLsizei count, c_array<const T> v, bool transposed)
 {
-  if(!v.empty())
+  if (!v.empty())
     {
       Uniform(location, count, &v[0], transposed);
     }
@@ -176,7 +176,7 @@ template<typename T>
 void
 Uniform(int location, c_array<const T> v)
 {
-  if(!v.empty())
+  if (!v.empty())
     {
       Uniform(location, v.size(), &v[0]);
     }
@@ -243,7 +243,7 @@ template<typename T>
 void
 ProgramUniform(GLuint program, int location, GLsizei count, c_array<const T> v)
 {
-  if(!v.empty())
+  if (!v.empty())
     {
       ProgramUniform(program, location, count, &v[0]);
     }
@@ -267,7 +267,7 @@ template<typename T>
 void
 ProgramUniform(GLuint program, int location, GLsizei count, c_array<T> v)
 {
-  if(!v.empty())
+  if (!v.empty())
     {
       ProgramUniform(program, location, count, &v[0]);
     }
@@ -293,7 +293,7 @@ template<typename T>
 void
 ProgramUniform(GLuint program, int location, GLsizei count, c_array<const T> v, bool transposed)
 {
-  if(!v.empty())
+  if (!v.empty())
     {
       ProgramUniform(program, location, count, &v[0], transposed);
     }
@@ -316,7 +316,7 @@ template<typename T>
 void
 ProgramUniform(GLuint program, int location, c_array<const T> v)
 {
-  if(!v.empty())
+  if (!v.empty())
     {
       ProgramUniform(program, location, v.size(), &v[0]);
     }

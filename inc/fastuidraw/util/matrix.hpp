@@ -941,7 +941,7 @@ public:
     base_class::operator()(1,3)=T(0);
     base_class::operator()(3,3)=T(0);
 
-    if(!P.m_farAtinfinity)
+    if (!P.m_farAtinfinity)
       {
         base_class::operator()(2,2)=(P.m_near+P.m_far)/(P.m_near-P.m_far);
         base_class::operator()(2,3)=T(2)*P.m_near*P.m_far/(P.m_near-P.m_far);
@@ -980,7 +980,7 @@ public:
     base_class::operator()(1,3)=(P.m_top+P.m_bottom)/( T(2)*P.m_near);
     base_class::operator()(2,3)=T(-1);
 
-    if(!P.m_farAtinfinity)
+    if (!P.m_farAtinfinity)
       {
         base_class::operator()(3,2)=(P.m_near-P.m_far)/(P.m_far*P.m_near*T(2));
         base_class::operator()(3,3)=(P.m_near+P.m_far)/(P.m_far*P.m_near*T(-2));

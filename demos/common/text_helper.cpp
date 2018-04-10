@@ -25,7 +25,7 @@ namespace
       fastuidraw::reference_counted_ptr<fastuidraw::DataBufferBase> R;
 
       m_mutex.lock();
-      if(!m_buffer)
+      if (!m_buffer)
         {
           m_buffer = FASTUIDRAWnew fastuidraw::DataBuffer(m_filename.c_str());
         }
@@ -93,7 +93,7 @@ namespace
     v.reserve(text.size() + 4 * std::count(text.begin(), text.end(), '\t'));
     for(std::string::const_iterator iter = text.begin(); iter != text.end(); ++iter)
       {
-        if(*iter != '\t')
+        if (*iter != '\t')
           {
             v.push_back(*iter);
           }
@@ -118,7 +118,7 @@ namespace
     error_code = FT_New_Face(lib->lib(), filename.c_str(), 0, &face);
     lib->unlock();
 
-    if(error_code == 0 && face != nullptr && (face->face_flags & FT_FACE_FLAG_SCALABLE) != 0)
+    if (error_code == 0 && face != nullptr && (face->face_flags & FT_FACE_FLAG_SCALABLE) != 0)
       {
         fastuidraw::reference_counted_ptr<DataBufferLoader> buffer_loader;
 
@@ -128,7 +128,7 @@ namespace
             fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector::FontGeneratorBase> h;
             std::ostringstream source_label;
             fastuidraw::FontProperties props;
-            if(i != 0)
+            if (i != 0)
               {
                 lib->lock();
                 FT_Done_Face(face);
@@ -147,7 +147,7 @@ namespace
       }
 
     lib->lock();
-    if(face != nullptr)
+    if (face != nullptr)
       {
 	FT_Done_Face(face);
       }
@@ -203,7 +203,7 @@ generate(unsigned int num_threads,
   cnts.clear();
   cnts.resize(fastuidraw::t_max(1u, num_threads), 0);
 
-  if(num_threads < 2)
+  if (num_threads < 2)
     {
       cnts[0] = execute(&generator);
     }
@@ -220,7 +220,7 @@ generate(unsigned int num_threads,
         }
     }
 
-  if(glyph_cache)
+  if (glyph_cache)
     {
       for(fastuidraw::Glyph glyph : dst)
         {
@@ -258,12 +258,12 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
   positions.resize(end_position - current_position);
   character_codes.resize(end_position - current_position);
 
-  if(glyph_extents)
+  if (glyph_extents)
     {
       glyph_extents->resize(end_position - current_position);
     }
 
-  if(line_data)
+  if (line_data)
     {
       line_data->clear();
     }
@@ -273,7 +273,7 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
   fastuidraw::c_array<uint32_t> char_codes_ptr(cast_c_array(character_codes));
   fastuidraw::c_array<fastuidraw::range_type<float> > extents_ptr;
 
-  if(glyph_extents)
+  if (glyph_extents)
     {
       extents_ptr = cast_c_array(*glyph_extents);
     }
@@ -299,7 +299,7 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
       sub_g = glyphs_ptr.sub_array(loc, line.length());
       sub_p = pos_ptr.sub_array(loc, line.length());
       sub_ch = char_codes_ptr.sub_array(loc, line.length());
-      if(glyph_extents)
+      if (glyph_extents)
         {
           sub_extents = extents_ptr.sub_array(loc, line.length());
         }
@@ -312,12 +312,12 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
           g = sub_g[i];
           sub_p[i] = pen;
           sub_ch[i] = static_cast<uint32_t>(line[i]);
-          if(g.valid())
+          if (g.valid())
             {
               float ratio;
               ratio = pixel_size / g.layout().m_units_per_EM;
 
-              if(glyph_extents)
+              if (glyph_extents)
                 {
                   sub_extents[i].m_begin = pen.x() + ratio * g.layout().m_horizontal_layout_offset.x();
                   sub_extents[i].m_end = sub_extents[i].m_begin + ratio * g.layout().m_size.x();
@@ -331,14 +331,14 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
             }
         }
 
-      if(empty_line)
+      if (empty_line)
         {
           offset = pixel_size + 1.0f;
 	  pen_y_advance = offset;
         }
       else
         {
-	  if(orientation == fastuidraw::PainterEnums::y_increases_downwards)
+	  if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
 	    {
 	      offset = (tallest - last_negative_tallest);
 	      pen_y_advance = offset;
@@ -367,7 +367,7 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
       loc += line.length();
       last_negative_tallest = negative_tallest;
 
-      if(line_data && !empty_line)
+      if (line_data && !empty_line)
         {
           L.m_horizontal_spread.sanitize();
           L.m_vertical_spread.sanitize();
@@ -378,7 +378,7 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
   glyphs.resize(loc);
   positions.resize(loc);
   character_codes.resize(loc);
-  if(glyph_extents)
+  if (glyph_extents)
     {
       glyph_extents->resize(loc);
     }
@@ -394,7 +394,7 @@ add_fonts_from_path(const std::string &filename,
   struct dirent *entry;
 
   dir = opendir(filename.c_str());
-  if(!dir)
+  if (!dir)
     {
       add_fonts_from_file(filename, lib, glyph_selector, render_params);
       return;
@@ -404,7 +404,7 @@ add_fonts_from_path(const std::string &filename,
     {
       std::string file;
       file = entry->d_name;
-      if(file != ".." && file != ".")
+      if (file != ".." && file != ".")
         {
           add_fonts_from_path(filename + "/" + file, lib, glyph_selector, render_params);
         }

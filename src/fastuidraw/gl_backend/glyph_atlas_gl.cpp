@@ -232,7 +232,7 @@ TexelStoreGL(fastuidraw::ivec3 dims, bool delayed):
 TexelStoreGL::
 ~TexelStoreGL(void)
 {
-  if(m_texture_as_r8 != 0)
+  if (m_texture_as_r8 != 0)
     {
       glDeleteTextures(1, &m_texture_as_r8);
     }
@@ -245,7 +245,7 @@ resize_implement(int new_num_layers)
   fastuidraw::ivec3 dims(dimensions());
   int old_num_layers(dims.z());
 
-  if(m_texture_as_r8 != 0)
+  if (m_texture_as_r8 != 0)
     {
       /* a resize generates a new texture which then has
          a new backing store. The texture view would then
@@ -298,17 +298,17 @@ texture(bool as_integer) const
 
   FASTUIDRAWassert(tex_as_r8ui != 0);
 
-  if(as_integer)
+  if (as_integer)
     {
       return tex_as_r8ui;
     }
 
-  if(m_texture_as_r8 == 0)
+  if (m_texture_as_r8 == 0)
     {
       enum fastuidraw::gl::detail::texture_view_support_t md;
 
       md = fastuidraw::gl::detail::compute_texture_view_support();
-      if(md != fastuidraw::gl::detail::texture_view_not_supported)
+      if (md != fastuidraw::gl::detail::texture_view_not_supported)
         {
           glGenTextures(1, &m_texture_as_r8);
           FASTUIDRAWassert(m_texture_as_r8 != 0);
@@ -368,7 +368,7 @@ texture_size(fastuidraw::uvec2 wh, unsigned int number_texels)
 
   A = wh.x() * wh.y();
   L = number_texels / A;
-  if(number_texels % A != 0)
+  if (number_texels % A != 0)
     {
       ++L;
     }
@@ -466,12 +466,12 @@ set_values(unsigned int location,
 
       p.x() += num_take;
       FASTUIDRAWassert(p.x() <= m_layer_dims.x());
-      if(p.x() == m_layer_dims.x())
+      if (p.x() == m_layer_dims.x())
         {
           p.x() = 0;
           ++p.y();
           FASTUIDRAWassert(p.y() <= m_layer_dims.y());
-          if(p.y() == m_layer_dims.y())
+          if (p.y() == m_layer_dims.y())
             {
               p.y() = 0;
               ++p.z();
@@ -523,13 +523,13 @@ GLuint
 GeometryStoreGL_Buffer::
 texture(void) const
 {
-  if(m_texture == 0)
+  if (m_texture == 0)
     {
       glGenTextures(1, &m_texture);
       FASTUIDRAWassert(m_texture != 0);
     }
 
-  if(m_tbo_dirty)
+  if (m_tbo_dirty)
     {
       GLenum formats[4]=
         {
@@ -565,7 +565,7 @@ create(const fastuidraw::gl::GlyphAtlasGL::params &P)
   number_vecNs = P.number_floats() / N;
   delayed = P.delayed();
 
-  if(number_vecNs * N < P.number_floats())
+  if (number_vecNs * N < P.number_floats())
     {
       ++number_vecNs;
     }
@@ -640,7 +640,7 @@ use_texture_2d_array_geometry_store(int log2_width, int log2_height)
 {
   GlyphAtlasGLParamsPrivate *d;
   d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-  if(log2_width >= 0 && log2_height >= 0)
+  if (log2_width >= 0 && log2_height >= 0)
     {
       d->m_log2_dims_geometry_store = ivec2(log2_width, log2_height);
       d->m_type = glsl::PainterBackendGLSL::glyph_geometry_texture_array;
@@ -669,7 +669,7 @@ use_optimal_geometry_store_backing(void)
   /* if texture_buffer_object is supported prefer that if it is
      big enough.
    */
-  if(detail::compute_tex_buffer_support() != detail::tex_buffer_not_supported
+  if (detail::compute_tex_buffer_support() != detail::tex_buffer_not_supported
      && context_get<int>(GL_MAX_TEXTURE_BUFFER_SIZE) >= required_max_size)
     {
       d->m_type = glsl::PainterBackendGLSL::glyph_geometry_tbo;
@@ -691,7 +691,7 @@ use_optimal_geometry_store_backing(void)
       width = 1u << uint32_log2(max_wh);
       required_area_per_layer = required_max_size / max_layers;
       required_height = std::min(max_wh, required_area_per_layer / width);
-      if(required_height * width < required_area_per_layer)
+      if (required_height * width < required_area_per_layer)
         {
           ++required_height;
         }

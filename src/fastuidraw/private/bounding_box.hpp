@@ -58,7 +58,7 @@ namespace fastuidraw
     void
     union_point(const pt_type &pt)
     {
-      if(m_empty)
+      if (m_empty)
         {
           m_empty = false;
           m_min = m_max = pt;
@@ -86,7 +86,7 @@ namespace fastuidraw
     void
     union_box(const BoundingBox &b)
     {
-      if(!b.m_empty)
+      if (!b.m_empty)
         {
           union_point(b.m_min);
           union_point(b.m_max);

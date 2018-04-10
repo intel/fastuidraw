@@ -78,7 +78,7 @@
 */
 #ifdef FASTUIDRAW_DEBUG
 #define FASTUIDRAWassert(X) do {                        \
-    if(!(X)) {                                          \
+    if (!(X)) {                                          \
       fastuidraw::assert_fail(#X, __FILE__, __LINE__);  \
     } } while(0)
 #else
@@ -431,7 +431,7 @@ namespace fastuidraw
     void
     sanitize(void)
     {
-      if(m_end < m_begin)
+      if (m_end < m_begin)
         {
           T t;
           t = m_end;
@@ -450,7 +450,7 @@ namespace fastuidraw
   range_type<T>
   create_range(T a, T b)
   {
-    if(a < b)
+    if (a < b)
       {
         return range_type<T>(a, b);
       }

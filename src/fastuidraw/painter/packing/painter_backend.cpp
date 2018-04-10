@@ -182,14 +182,14 @@ void
 fastuidraw::PainterBackend::
 register_shader(const reference_counted_ptr<PainterItemShader> &shader)
 {
-  if(!shader || shader->registered_to() == this)
+  if (!shader || shader->registered_to() == this)
     {
       return;
     }
   FASTUIDRAWassert(shader->registered_to() == nullptr);
-  if(shader->registered_to() == nullptr)
+  if (shader->registered_to() == nullptr)
     {
-      if(shader->parent())
+      if (shader->parent())
         {
           register_shader(shader->parent().static_cast_ptr<PainterItemShader>());
           shader->set_group_of_sub_shader(compute_item_sub_shader_group(shader));
@@ -207,15 +207,15 @@ void
 fastuidraw::PainterBackend::
 register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
 {
-  if(!shader || shader->registered_to() == this
+  if (!shader || shader->registered_to() == this
      || configuration_base().blend_type() != shader->type())
     {
       return;
     }
   FASTUIDRAWassert(shader->registered_to() == nullptr);
-  if(shader->registered_to() == nullptr)
+  if (shader->registered_to() == nullptr)
     {
-      if(shader->parent())
+      if (shader->parent())
         {
           register_shader(shader->parent().static_cast_ptr<PainterBlendShader>());
           shader->set_group_of_sub_shader(compute_blend_sub_shader_group(shader));
@@ -274,7 +274,7 @@ default_shaders(void)
 {
   PainterBackendPrivate *d;
   d = static_cast<PainterBackendPrivate*>(m_d);
-  if(!d->m_default_shaders_registered)
+  if (!d->m_default_shaders_registered)
     {
       register_shader(d->m_default_shaders);
       d->m_default_shaders_registered = true;

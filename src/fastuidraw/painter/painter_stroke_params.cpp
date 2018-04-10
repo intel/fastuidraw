@@ -96,7 +96,7 @@ compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
   const PainterStrokeParamsData *d;
   d = static_cast<const PainterStrokeParamsData*>(data);
 
-  if(d->m_radius <= 0.0f)
+  if (d->m_radius <= 0.0f)
     {
       /* Not really stroking, just select a LARGE value
          to get a very low level of detail.
@@ -108,7 +108,7 @@ compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
       float return_value;
 
       return_value = 1.0f / d->m_radius;
-      if(m_pixel_width)
+      if (m_pixel_width)
         {
           return_value *= curve_flatness;
         }
@@ -129,7 +129,7 @@ stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
   const PainterStrokeParamsData *d;
   d = static_cast<const PainterStrokeParamsData*>(data);
 
-  if(m_pixel_width)
+  if (m_pixel_width)
     {
       *out_pixel_distance = d->m_radius;
       *out_item_space_distance = 0.0f;

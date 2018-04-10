@@ -243,7 +243,7 @@ stream_unpack_code(unsigned int alignment, std::ostream &str,
 
   unsigned int number_blocks;
   number_blocks = labels.size() / alignment;
-  if(number_blocks * alignment < labels.size())
+  if (number_blocks * alignment < labels.size())
     {
       ++number_blocks;
     }
@@ -479,7 +479,7 @@ stream_unpack_function(unsigned int alignment, glsl::ShaderSource &src,
   unsigned int number_blocks;
   std::ostringstream str;
 
-  if(has_return_value)
+  if (has_return_value)
       {
         str << "uint\n";
       }
@@ -492,7 +492,7 @@ stream_unpack_function(unsigned int alignment, glsl::ShaderSource &src,
 
   number_blocks = GLSLShaderUnpackValuePrivate::stream_unpack_code(alignment, str, labels, "location", "out_value");
 
-  if(has_return_value)
+  if (has_return_value)
     {
       str << "return uint(" << number_blocks << ") + location;\n";
     }

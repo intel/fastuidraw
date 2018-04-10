@@ -30,7 +30,7 @@ clip_against_plane(const vec3 &clip_eq, c_array<const vec2> pts,
   bool all_clipped, all_unclipped;
   unsigned int first_unclipped;
 
-  if(pts.empty())
+  if (pts.empty())
     {
       out_pts.resize(0);
       return false;
@@ -45,13 +45,13 @@ clip_against_plane(const vec3 &clip_eq, c_array<const vec2> pts,
       work_room[i] = clip_eq.x() * pts[i].x() + clip_eq.y() * pts[i].y() + clip_eq.z();
       all_clipped = all_clipped && work_room[i] < 0.0f;
       all_unclipped = all_unclipped && work_room[i] >= 0.0f;
-      if(first_unclipped == pts.size() && work_room[i] >= 0.0f)
+      if (first_unclipped == pts.size() && work_room[i] >= 0.0f)
         {
           first_unclipped = i;
         }
     }
 
-  if(all_clipped)
+  if (all_clipped)
     {
       /* all clipped, nothing to do!
        */
@@ -59,7 +59,7 @@ clip_against_plane(const vec3 &clip_eq, c_array<const vec2> pts,
       return false;
     }
 
-  if(all_unclipped)
+  if (all_unclipped)
     {
       out_pts.resize(pts.size());
       std::copy(pts.begin(), pts.end(), out_pts.begin());
@@ -76,14 +76,14 @@ clip_against_plane(const vec3 &clip_eq, c_array<const vec2> pts,
     {
       bool b0, b1;
 
-      if(k == pts.size())
+      if (k == pts.size())
         {
           k = 0;
         }
       FASTUIDRAWassert(k < pts.size());
 
       unsigned int next_k(k+1);
-      if(next_k == pts.size())
+      if (next_k == pts.size())
         {
           next_k = 0;
         }
@@ -91,7 +91,7 @@ clip_against_plane(const vec3 &clip_eq, c_array<const vec2> pts,
 
       b0 = work_room[k] >= 0.0f;
       b1 = work_room[next_k] >= 0.0f;
-      if(b0 != b1)
+      if (b0 != b1)
         {
           edges[num_edges] = std::pair<unsigned int, unsigned int>(k, next_k);
           ++num_edges;
@@ -150,7 +150,7 @@ clip_against_plane(const vec3 &clip_eq, c_array<const vec2> pts,
     {
       out_pts.push_back(pts[i]);
       ++i;
-      if(i == pts.size())
+      if (i == pts.size())
         {
           i = 0;
         }

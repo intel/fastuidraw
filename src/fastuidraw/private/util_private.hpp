@@ -92,7 +92,7 @@ namespace fastuidraw
   c_array<T>
   make_c_array(std::vector<T> &p)
   {
-    if(p.empty())
+    if (p.empty())
       {
         return c_array<T>();
       }
@@ -106,7 +106,7 @@ namespace fastuidraw
   c_array<const T>
   make_c_array(const std::vector<T> &p)
   {
-    if(p.empty())
+    if (p.empty())
       {
         return c_array<const T>();
       }
@@ -187,7 +187,7 @@ namespace fastuidraw
   class_name::                            \
   operator=(const class_name &rhs)        \
   {                                       \
-    if(this != &rhs)                      \
+    if (this != &rhs)                      \
       {                                   \
         class_name v(rhs);                \
         swap(v);                          \

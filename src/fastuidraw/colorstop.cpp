@@ -91,7 +91,7 @@ values(void) const
 {
   ColorStopSequencePrivate *d;
   d = static_cast<ColorStopSequencePrivate*>(m_d);
-  if(d->m_dirty)
+  if (d->m_dirty)
     {
       d->m_dirty = false;
       std::stable_sort(d->m_values.begin(), d->m_values.end());

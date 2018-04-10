@@ -5,9 +5,9 @@ cycle_value(unsigned int &value,
             bool decrement,
             unsigned int limit_value)
 {
-  if(decrement)
+  if (decrement)
     {
-      if(value == 0)
+      if (value == 0)
         {
           value = limit_value;
         }
@@ -16,7 +16,7 @@ cycle_value(unsigned int &value,
   else
     {
       ++value;
-      if(value == limit_value)
+      if (value == limit_value)
         {
           value = 0;
         }

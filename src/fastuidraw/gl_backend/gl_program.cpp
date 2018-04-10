@@ -118,7 +118,7 @@ namespace
     glGetProgramResourceiv(program, program_interface, index,
                            1, &prop_name_length,
                            1, nullptr, &name_length);
-    if(name_length <= 0)
+    if (name_length <= 0)
       {
         return std::string();
       }
@@ -702,7 +702,7 @@ void
 ShaderPrivate::
 compile(void)
 {
-  if(m_shader_ready)
+  if (m_shader_ready)
     {
       return;
     }
@@ -740,7 +740,7 @@ compile(void)
   m_compile_log = &raw_log[0];
   m_compile_success = (shaderOK == GL_TRUE);
 
-  if(!m_compile_success)
+  if (!m_compile_success)
     {
       std::ostringstream oo;
 
@@ -766,7 +766,7 @@ fill_variable(GLuint program,
   dst.m_index = variable_interface_index;
   dst.m_name = get_program_resource_name(program, variable_interface, dst.m_index);
 
-  if(!m_enums.empty())
+  if (!m_enums.empty())
     {
       m_work_room.resize(m_enums.size());
       for(unsigned int i = 0, endi = m_enums.size(); i < endi; ++i)
@@ -787,11 +787,11 @@ fill_variable(GLuint program,
   switch(variable_interface)
     {
     case GL_UNIFORM:
-      if(dst.m_abo_index != -1)
+      if (dst.m_abo_index != -1)
         {
           dst.m_shader_variable_src = fastuidraw::gl::Program::src_abo;
         }
-      else if(dst.m_ubo_index != -1)
+      else if (dst.m_ubo_index != -1)
         {
           dst.m_shader_variable_src = fastuidraw::gl::Program::src_uniform_block;
         }
@@ -826,12 +826,12 @@ fill_variables(GLuint program,
                std::vector<ShaderVariableInfo> &dst) const
 {
   FASTUIDRAWassert(m_enums.size() == m_dsts.size());
-  if(dst.empty())
+  if (dst.empty())
     {
       return;
     }
 
-  if(m_enums.empty())
+  if (m_enums.empty())
     {
       // values for non-uniforms, thus must be attributes.
       set_shader_variable_src_type(true, dst);
@@ -866,7 +866,7 @@ ShaderUniformQueryList::
 set_shader_variable_src_type(bool shader_variables_are_attributes,
                              std::vector<ShaderVariableInfo> &dst)
 {
-  if(shader_variables_are_attributes)
+  if (shader_variables_are_attributes)
     {
       for(unsigned int v = 0, endv = dst.size(); v < endv; ++v)
         {
@@ -890,7 +890,7 @@ void
 ShaderVariableSet::
 finalize(void)
 {
-  if(m_finalized)
+  if (m_finalized)
     {
       return;
     }
@@ -913,11 +913,11 @@ find_variable(const std::string &pname,
   std::map<std::string, unsigned int>::const_iterator iter;
   unsigned int A;
 
-  if(array_index == nullptr)
+  if (array_index == nullptr)
     {
       array_index = &A;
     }
-  if(leading_array_index == nullptr)
+  if (leading_array_index == nullptr)
     {
       leading_array_index = &A;
     }
@@ -927,7 +927,7 @@ find_variable(const std::string &pname,
 
   FASTUIDRAWassert(m_finalized);
   iter = m_map.find(pname);
-  if(iter != m_map.end())
+  if (iter != m_map.end())
     {
       return &m_values[iter->second];
     }
@@ -936,18 +936,18 @@ find_variable(const std::string &pname,
 
   filtered_name = filter_name(pname.begin(), pname.end(), array_index);
   iter = m_map.find(filtered_name);
-  if(iter == m_map.end())
+  if (iter == m_map.end())
     {
       filtered_name2 = filtered_name + "[0]";
       iter = m_map.find(filtered_name2);
     }
 
-  if(iter != m_map.end())
+  if (iter != m_map.end())
     {
       const ShaderVariableInfo *q;
 
       q = &m_values[iter->second];
-      if(q->array_index_ok(*array_index))
+      if (q->array_index_ok(*array_index))
         {
           return q;
         }
@@ -957,13 +957,13 @@ find_variable(const std::string &pname,
         }
     }
 
-  if(check_leading_index)
+  if (check_leading_index)
     {
       filtered_name = filter_name_leading_index(filtered_name.begin(),
                                                 filtered_name.end(),
                                                 leading_array_index);
       iter = m_map.find(filtered_name);
-      if(iter == m_map.end())
+      if (iter == m_map.end())
         {
           filtered_name = filter_name_leading_index(filtered_name2.begin(),
                                                     filtered_name2.end(),
@@ -971,12 +971,12 @@ find_variable(const std::string &pname,
           iter = m_map.find(filtered_name);
         }
 
-      if(iter != m_map.end())
+      if (iter != m_map.end())
         {
           const ShaderVariableInfo *q;
 
           q = &m_values[iter->second];
-          if(q->array_index_ok(*array_index) && q->leading_index_ok(*leading_array_index))
+          if (q->array_index_ok(*array_index) && q->leading_index_ok(*leading_array_index))
             {
               return q;
             }
@@ -1001,7 +1001,7 @@ populate_non_program_interface_query(GLuint program,
   GLint count(0);
 
   glGetProgramiv(program, count_enum, &count);
-  if(count > 0)
+  if (count > 0)
     {
       GLint largest_length(0);
       std::vector<char> pname;
@@ -1066,7 +1066,7 @@ populate_from_interface_block(GLuint program,
   glGetProgramResourceiv(program, program_interface, interface_index,
                          1, &prop_num_active,
                          1, nullptr, &num_variables);
-  if(num_variables > 0)
+  if (num_variables > 0)
     {
       const GLenum prop_active(GL_ACTIVE_VARIABLES);
       std::vector<GLint> variable_index(num_variables, -1);
@@ -1097,7 +1097,7 @@ filter_name(iterator begin, iterator end, unsigned int *array_index)
   return_value.reserve(std::distance(begin,end));
   for(iterator iter = begin; iter != end; ++iter)
     {
-      if(!std::isspace(*iter))
+      if (!std::isspace(*iter))
         {
           return_value.append(1, *iter);
         }
@@ -1108,7 +1108,7 @@ filter_name(iterator begin, iterator end, unsigned int *array_index)
     and if it is remove characters until
     a '[' is encountered.
   */
-  if(!return_value.empty() and *return_value.rbegin() == ']')
+  if (!return_value.empty() and *return_value.rbegin() == ']')
     {
       std::string::size_type loc;
 
@@ -1137,7 +1137,7 @@ filter_name_leading_index(iterator begin, iterator end, unsigned int *leading_in
   iterator open_bracket, open_bracket_plus_one, close_bracket;
 
   open_bracket = std::find(begin, end, '[');
-  if(open_bracket == end)
+  if (open_bracket == end)
     {
       *leading_index = ~0u;
       return std::string();
@@ -1147,7 +1147,7 @@ filter_name_leading_index(iterator begin, iterator end, unsigned int *leading_in
   ++open_bracket_plus_one;
 
   close_bracket = std::find(open_bracket_plus_one, end, ']');
-  if(close_bracket == end)
+  if (close_bracket == end)
     {
       *leading_index = ~0u;
       return std::string();
@@ -1222,7 +1222,7 @@ populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
 {
   bool use_program_interface_query;
 
-  if(ctx_props.is_es())
+  if (ctx_props.is_es())
     {
       use_program_interface_query = (ctx_props.version() >= fastuidraw::ivec2(3, 1));
     }
@@ -1232,7 +1232,7 @@ populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
         || ctx_props.has_extension("GL_ARB_program_interface_query");
     }
 
-  if(use_program_interface_query)
+  if (use_program_interface_query)
     {
       ShaderVariableInterfaceQueryList attribute_queries;
 
@@ -1258,7 +1258,7 @@ void
 BlockSetInfoBase::
 finalize(void)
 {
-  if(m_finalized)
+  if (m_finalized)
     {
       return;
     }
@@ -1294,7 +1294,7 @@ populate(GLuint program,
 {
   bool ssbo_supported;
 
-  if(ctx_props.is_es())
+  if (ctx_props.is_es())
     {
       ssbo_supported = ctx_props.version() >= fastuidraw::ivec2(3, 1);
     }
@@ -1304,7 +1304,7 @@ populate(GLuint program,
         || ctx_props.has_extension("GL_ARB_shader_storage_buffer_object");
     }
 
-  if(ssbo_supported)
+  if (ssbo_supported)
     {
       ShaderVariableInterfaceQueryList ssbo_query;
       GLint ssbo_count(0);
@@ -1346,7 +1346,7 @@ populate(GLuint program,
 {
   bool use_program_interface_query;
 
-  if(ctx_props.is_es())
+  if (ctx_props.is_es())
     {
       use_program_interface_query = (ctx_props.version() >= fastuidraw::ivec2(3, 1));
     }
@@ -1356,7 +1356,7 @@ populate(GLuint program,
         || ctx_props.has_extension("GL_ARB_program_interface_query");
     }
 
-  if(use_program_interface_query)
+  if (use_program_interface_query)
     {
       populate_private_program_interface_query(program, ctx_props);
     }
@@ -1411,11 +1411,11 @@ populate_private_program_interface_query(GLuint program,
       /*
         DO NOT put ABO's in m_default_block
        */
-      if(iter->m_abo_index != -1)
+      if (iter->m_abo_index != -1)
         {
           m_abo_buffers[iter->m_abo_index].add_element(*iter);
         }
-      else if(iter->m_ubo_index == -1)
+      else if (iter->m_ubo_index == -1)
         {
           m_default_block.m_members.add_element(*iter);
         }
@@ -1474,7 +1474,7 @@ populate_private_non_program_interface_query(GLuint program,
       abo_supported = ctx_props.version() >= fastuidraw::ivec2(4, 2)
         || ctx_props.has_extension("GL_ARB_shader_atomic_counters");
 
-      if(abo_supported)
+      if (abo_supported)
         {
           query_list.add(GL_ATOMIC_COUNTER_BUFFER_INDEX, &ShaderVariableInfo::m_abo_index);
           glGetProgramiv(program, GL_ACTIVE_ATOMIC_COUNTER_BUFFERS, &abo_count);
@@ -1504,7 +1504,7 @@ populate_private_non_program_interface_query(GLuint program,
   GLint ubo_count(0);
   glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &ubo_count);
   resize_number_blocks(ubo_count, fastuidraw::gl::Program::src_uniform_block);
-  if(ubo_count > 0)
+  if (ubo_count > 0)
     {
       GLint largest_length(0);
       std::vector<char> pname;
@@ -1537,12 +1537,12 @@ populate_private_non_program_interface_query(GLuint program,
       /*
         DO NOT put ABO's in m_default_block
        */
-      if(iter->m_abo_index != -1)
+      if (iter->m_abo_index != -1)
         {
           FASTUIDRAWassert(iter->m_abo_index < static_cast<int>(m_abo_buffers.size()));
           m_abo_buffers[iter->m_abo_index].add_element(*iter);
         }
-      else if(iter->m_ubo_index != -1)
+      else if (iter->m_ubo_index != -1)
         {
           block_ref(iter->m_ubo_index).m_members.add_element(*iter);
         }
@@ -1582,7 +1582,7 @@ fastuidraw::gl::Shader::
     required to be done with a GL context
     current.
    */
-  if(d->m_name)
+  if (d->m_name)
     {
       glDeleteShader(d->m_name);
     }
@@ -1793,7 +1793,7 @@ fastuidraw::gl::PreLinkActionArray&
 fastuidraw::gl::PreLinkActionArray::
 operator=(const PreLinkActionArray &rhs)
 {
-  if(this != &rhs)
+  if (this != &rhs)
     {
       PreLinkActionArray v(rhs);
       swap(v);
@@ -1823,7 +1823,7 @@ execute_actions(GLuint pr) const
         iter = d->m_values.begin(), end = d->m_values.end();
       iter != end; ++iter)
     {
-      if(*iter)
+      if (*iter)
         {
           (*iter)->action(pr);
         }
@@ -2198,7 +2198,7 @@ populate_info(void)
   m_link_log = std::string(&raw_log[0]);
   m_link_success = m_link_success && (linkOK == GL_TRUE);
 
-  if(m_link_success)
+  if (m_link_success)
     {
       fastuidraw::gl::ContextProperties ctx_props;
       m_attribute_list.populate(m_name, ctx_props);
@@ -2208,7 +2208,7 @@ populate_info(void)
       int current_program;
       bool sso_supported;
 
-      if(ctx_props.is_es())
+      if (ctx_props.is_es())
         {
           sso_supported = ctx_props.version() >= fastuidraw::ivec2(3, 1);
         }
@@ -2218,7 +2218,7 @@ populate_info(void)
             || ctx_props.has_extension("GL_ARB_separate_shader_objects");
         }
 
-      if(!sso_supported)
+      if (!sso_supported)
         {
           current_program = fastuidraw::gl::context_get<int>(GL_CURRENT_PROGRAM);
           glUseProgram(m_name);
@@ -2226,7 +2226,7 @@ populate_info(void)
 
       m_initializers.perform_initializations(m_p, !sso_supported);
 
-      if(!sso_supported)
+      if (!sso_supported)
         {
           glUseProgram(current_program);
         }
@@ -2238,7 +2238,7 @@ void
 ProgramPrivate::
 assemble(void)
 {
-  if(m_assembled)
+  if (m_assembled)
     {
       return;
     }
@@ -2258,7 +2258,7 @@ assemble(void)
   for(std::vector<fastuidraw::reference_counted_ptr<fastuidraw::gl::Shader> >::iterator iter = m_shaders.begin(),
         end = m_shaders.end(); iter != end; ++iter)
     {
-      if((*iter)->compile_success())
+      if ((*iter)->compile_success())
         {
           glAttachShader(m_name, (*iter)->name());
         }
@@ -2284,7 +2284,7 @@ assemble(void)
 
   populate_info();
 
-  if(!m_link_success)
+  if (!m_link_success)
     {
       std::ostringstream oo;
       oo << "bad_program_" << m_name << ".glsl";
@@ -2328,7 +2328,7 @@ generate_log(void)
   std::ostringstream ostr;
 
   ostr << "gl::Program [GLname: " << m_name << "]\n";
-  if(!m_shader_data.empty())
+  if (!m_shader_data.empty())
     {
       ostr << "Shader Source Codes:";
 
@@ -2343,12 +2343,12 @@ generate_log(void)
         }
     }
 
-  if(m_link_success)
+  if (m_link_success)
     {
       fastuidraw::gl::Program::block_info blk(m_p->default_uniform_block());
       FASTUIDRAWassert(blk);
 
-      if(blk.number_variables() > 0)
+      if (blk.number_variables() > 0)
         {
           ostr << "\n\nUniforms of Default Block:";
           for(unsigned int j = 0, endj = blk.number_variables(); j < endj; ++j)
@@ -2498,7 +2498,7 @@ generate_log(void)
         }
     }
 
-  if(!m_shader_data.empty())
+  if (!m_shader_data.empty())
     {
       ostr << "\nShader Logs:";
       for(std::vector<ShaderData>::const_iterator
@@ -2555,7 +2555,7 @@ fastuidraw::gl::Program::
 {
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
-  if(d->m_name && d->m_delete_program)
+  if (d->m_name && d->m_delete_program)
     {
       glDeleteProgram(d->m_name);
     }
@@ -2697,7 +2697,7 @@ find_shader_variable(c_string pname,
   d = static_cast<ProgramPrivate*>(m_d);
   d->assemble();
 
-  if(!d->m_link_success)
+  if (!d->m_link_success)
     {
       return shader_variable_info();
     }
@@ -2708,7 +2708,7 @@ find_shader_variable(c_string pname,
                                                      out_array_index,
                                                      out_leading_array_index,
                                                      false);
-  if(q != nullptr)
+  if (q != nullptr)
     {
       return shader_variable_info(q);
     }
@@ -2719,7 +2719,7 @@ find_shader_variable(c_string pname,
                                                                             out_array_index,
                                                                             out_leading_array_index,
                                                                             true);
-  if(q != nullptr)
+  if (q != nullptr)
     {
       return shader_variable_info(q);
     }
@@ -2830,7 +2830,7 @@ attribute_location(c_string pname)
   ProgramPrivate *d;
   d = static_cast<ProgramPrivate*>(m_d);
   d->assemble();
-  if(d->m_link_success)
+  if (d->m_link_success)
     {
       const ShaderVariableInfo *q;
       unsigned int array_index(0);
@@ -2865,7 +2865,7 @@ shader_src_code(GLenum tp, unsigned int i) const
 
   std::map<GLenum, std::vector<int> >::const_iterator iter;
   iter = d->m_shader_data_sorted_by_type.find(tp);
-  if(iter != d->m_shader_data_sorted_by_type.end() && i < iter->second.size())
+  if (iter != d->m_shader_data_sorted_by_type.end() && i < iter->second.size())
     {
       return d->m_shader_data[iter->second[i]].m_source_code.c_str();
     }
@@ -2884,7 +2884,7 @@ shader_compile_log(GLenum tp, unsigned int i) const
 
   std::map<GLenum, std::vector<int> >::const_iterator iter;
   iter = d->m_shader_data_sorted_by_type.find(tp);
-  if(iter != d->m_shader_data_sorted_by_type.end() && i < iter->second.size())
+  if (iter != d->m_shader_data_sorted_by_type.end() && i < iter->second.size())
     {
       return d->m_shader_data[iter->second[i]].m_compile_log.c_str();
     }
@@ -2932,7 +2932,7 @@ fastuidraw::gl::ProgramInitializerArray&
 fastuidraw::gl::ProgramInitializerArray::
 operator=(const ProgramInitializerArray &rhs)
 {
-  if(this != &rhs)
+  if (this != &rhs)
     {
       ProgramInitializerArray v(rhs);
       swap(v);
@@ -3004,7 +3004,7 @@ perform_initialization(Program *pr, bool program_bound) const
 
   int loc;
   loc = glGetUniformBlockIndex(pr->name(), d->m_block_name.c_str());
-  if(loc != -1)
+  if (loc != -1)
     {
       glUniformBlockBinding(pr->name(), loc, d->m_binding_point);
     }
@@ -3048,7 +3048,7 @@ perform_initialization(Program *pr, bool program_bound) const
 
   int loc;
   loc = glGetProgramResourceIndex(pr->name(), GL_SHADER_STORAGE_BLOCK, d->m_block_name.c_str());
-  if(loc != -1)
+  if (loc != -1)
     {
       glShaderStorageBlockBinding(pr->name(), loc, d->m_binding_point);
     }
@@ -3093,17 +3093,17 @@ perform_initialization(Program *pr, bool program_bound) const
 
   int loc;
   loc = pr->uniform_location(d->c_str());
-  if(loc == -1)
+  if (loc == -1)
     {
       loc = glGetUniformLocation(pr->name(), d->c_str());
-      if(loc != -1)
+      if (loc != -1)
         {
           std::cerr << "gl_program::uniform_location failed to find uniform, \""
                     << *d << "\"but glGetUniformLocation succeeded\n";
         }
     }
 
-  if(loc != -1)
+  if (loc != -1)
     {
       init_uniform(pr->name(), loc, program_bound);
     }

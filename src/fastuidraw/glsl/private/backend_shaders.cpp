@@ -30,7 +30,7 @@ BlendShaderSetCreator::
 BlendShaderSetCreator(enum PainterBlendShader::shader_type tp):
   m_type(tp)
 {
-  if(m_type == PainterBlendShader::single_src)
+  if (m_type == PainterBlendShader::single_src)
     {
       m_single_src_blend_shader_code =
         FASTUIDRAWnew PainterBlendShaderGLSL(PainterBlendShader::single_src,
@@ -256,7 +256,7 @@ ShaderSetCreator(enum PainterBlendShader::shader_type blend_tp,
   c_string extra_macro;
   ShaderSource add_constants_src, remove_constants_src;
 
-  if(m_stroke_tp == PainterStrokeShader::draws_solid_then_fuzz)
+  if (m_stroke_tp == PainterStrokeShader::draws_solid_then_fuzz)
     {
       extra_macro = "FASTUIDRAW_STROKE_SOLID_THEN_FUZZ";
     }
@@ -413,7 +413,7 @@ create_glyph_shader(bool anisotropic)
                                      "fastuidraw_painter_glyph_coverage.frag.glsl.resource_string",
                                      varyings));
 
-  if(anisotropic)
+  if (anisotropic)
     {
       return_value
         .shader(distance_field_glyph,
@@ -450,7 +450,7 @@ create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
   reference_counted_ptr<PainterItemShader> shader;
   uint32_t sub_shader;
 
-  if(stroke_dash_style == fastuidraw::PainterEnums::number_cap_styles)
+  if (stroke_dash_style == fastuidraw::PainterEnums::number_cap_styles)
     {
       sub_shader = (render_pass << m_stroke_render_pass_bit0)
         | (uint32_t(pixel_width_stroking) << m_stroke_width_pixels_bit0);

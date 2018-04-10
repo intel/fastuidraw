@@ -160,13 +160,13 @@ active(bool b)
   CallBackPrivate *d;
   d = static_cast<CallBackPrivate*>(m_d);
 
-  if(d->m_active == b)
+  if (d->m_active == b)
     {
       return;
     }
 
   d->m_active = b;
-  if(b)
+  if (b)
     {
       d->m_location = d->m_parent->insert(this);
     }

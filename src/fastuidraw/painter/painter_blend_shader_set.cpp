@@ -86,7 +86,7 @@ shader(enum PainterEnums::blend_mode_t tp,
 {
   PainterBlendShaderSetPrivate *d;
   d = static_cast<PainterBlendShaderSetPrivate*>(m_d);
-  if(tp >= d->m_shaders.size())
+  if (tp >= d->m_shaders.size())
     {
       d->m_shaders.resize(tp + 1);
     }

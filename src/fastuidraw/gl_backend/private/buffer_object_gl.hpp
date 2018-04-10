@@ -51,7 +51,7 @@ public:
     m_buffer(0)
   {
     FASTUIDRAWassert(m_size > 0);
-    if(!m_delayed)
+    if (!m_delayed)
       {
         create_buffer();
       }
@@ -59,7 +59,7 @@ public:
 
   ~BufferGL()
   {
-    if(m_buffer != 0)
+    if (m_buffer != 0)
       {
         delete_buffer();
       }
@@ -78,7 +78,7 @@ public:
   set_data(int offset, c_array<const uint8_t> data)
   {
     FASTUIDRAWassert(!data.empty());
-    if(m_delayed)
+    if (m_delayed)
       {
         m_unflushed_commands.push_back(BufferGLEntryLocation());
         m_unflushed_commands.back().m_location = offset;
@@ -97,7 +97,7 @@ public:
   set_data_vector(int offset, std::vector<uint8_t> &data)
   {
     FASTUIDRAWassert(!data.empty());
-    if(m_delayed)
+    if (m_delayed)
       {
         m_unflushed_commands.push_back(BufferGLEntryLocation());
         m_unflushed_commands.back().m_location = offset;
@@ -113,12 +113,12 @@ public:
   flush(void)
   {
     flush_size_change();
-    if(m_buffer == 0)
+    if (m_buffer == 0)
       {
         create_buffer();
       }
 
-    if(!m_unflushed_commands.empty())
+    if (!m_unflushed_commands.empty())
       {
         glBindBuffer(binding_point, m_buffer);
         for(typename std::list<BufferGLEntryLocation>::iterator iter = m_unflushed_commands.begin(),
@@ -155,9 +155,9 @@ private:
   void
   flush_size_change(void)
   {
-    if(m_size != m_buffer_size)
+    if (m_size != m_buffer_size)
       {
-        if(m_buffer != 0)
+        if (m_buffer != 0)
           {
             GLuint old_buffer, prev_buffer(0);
             GLenum src_binding_point, src_binding_point_query;
@@ -166,7 +166,7 @@ private:
             m_buffer = 0;
             create_buffer();
 
-            if(binding_point != GL_COPY_READ_BUFFER)
+            if (binding_point != GL_COPY_READ_BUFFER)
               {
                 src_binding_point = GL_COPY_READ_BUFFER;
                 src_binding_point_query = GL_COPY_READ_BUFFER_BINDING;

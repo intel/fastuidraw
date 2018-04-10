@@ -121,14 +121,14 @@ FASTUIDRAW_CURVEPAIR_COMPUTE_NAME(in uint texel_value,
 
   /* texel_value 0 means completely empty texel
    */
-  if(texel_value == uint(0))
+  if (texel_value == uint(0))
     {
       return -1.0;
     }
 
   /* texel_value 1 means completely full texel
    */
-  if(texel_value == uint(1))
+  if (texel_value == uint(1))
     {
       return 1.0;
     }
@@ -225,7 +225,7 @@ FASTUIDRAW_CURVEPAIR_COMPUTE_NAME(in uint texel_value,
   sigma_max = max(sigma_a, sigma_b);
 
 
-  if(sigma_a < sigma_b)
+  if (sigma_a < sigma_b)
     {
       grad_sigma_min = grad_sigma_a;
       grad_sigma_max = grad_sigma_b;
@@ -241,7 +241,7 @@ FASTUIDRAW_CURVEPAIR_COMPUTE_NAME(in uint texel_value,
       0 <---> OR rule  <--> max
       1 <---> AND rule <--> min
    */
-  if(combine_rule < 0.5)
+  if (combine_rule < 0.5)
     {
       sigma = sigma_max;
       grad = grad_sigma_max;

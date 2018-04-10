@@ -5,7 +5,7 @@
 GlyphFinder::
 ~GlyphFinder()
 {
-  if(m_line_finder)
+  if (m_line_finder)
     {
       FASTUIDRAWdelete(m_line_finder);
     }
@@ -23,7 +23,7 @@ init(const std::vector<LineData> &in_data,
 {
   m_glyph_extents = glyph_extents;
 
-  if(in_data.empty())
+  if (in_data.empty())
     {
       return;
     }
@@ -60,7 +60,7 @@ unsigned int
 GlyphFinder::
 glyph_source(fastuidraw::vec2 p) const
 {
-  if(!m_line_finder)
+  if (!m_line_finder)
     {
       return glyph_not_found;
     }
@@ -74,7 +74,7 @@ glyph_source(fastuidraw::vec2 p) const
       unsigned int G;
 
       ptr->glyph_source(p.x(), &gdst);
-      if(!gdst.empty())
+      if (!gdst.empty())
         {
           return gdst.front();
         }

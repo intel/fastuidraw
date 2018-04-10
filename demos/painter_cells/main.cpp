@@ -45,7 +45,7 @@ public:
   check_arg(const std::vector<std::string> &argv, int location)
   {
     int argc(argv.size());
-    if(location + 1 < argc && argv[location] == m_name)
+    if (location + 1 < argc && argv[location] == m_name)
       {
         insert(argv[location+1]);
         std::cout << "\n\t" << m_name << " \""
@@ -253,7 +253,7 @@ painter_cells(void):
 painter_cells::
 ~painter_cells()
 {
-  if(m_table != nullptr)
+  if (m_table != nullptr)
     {
       FASTUIDRAWdelete(m_table);
     }
@@ -268,7 +268,7 @@ generate_random_colors(int count, std::vector<vec4> &out_values, bool force_opaq
     {
       out_values[i] = random_value(vec4(0.0f, 0.0f, 0.0f, 0.2f),
                                    vec4(1.0f, 1.0f, 1.0f, 0.8f));
-      if(force_opaque)
+      if (force_opaque)
         {
           out_values[i].w() = 1.0f;
         }
@@ -280,7 +280,7 @@ painter_cells::
 dump_file(const std::string &filename, std::vector<std::string> &dest)
 {
   std::ifstream istr(filename.c_str());
-  if(istr)
+  if (istr)
     {
       std::ostringstream str;
       str << istr.rdbuf();
@@ -296,7 +296,7 @@ add_images(const std::string &filename, std::vector<named_image> &dest)
   struct dirent *entry;
 
   dir = opendir(filename.c_str());
-  if(!dir)
+  if (!dir)
     {
       add_single_image(filename, dest);
       return;
@@ -306,7 +306,7 @@ add_images(const std::string &filename, std::vector<named_image> &dest)
     {
       std::string file;
       file = entry->d_name;
-      if(file != ".." && file != ".")
+      if (file != ".." && file != ".")
         {
           add_images(filename + "/" + file, dest);
         }
@@ -321,7 +321,7 @@ add_single_image(const std::string &filename, std::vector<named_image> &dest)
   std::vector<u8vec4> image_data;
   ivec2 image_size;
   image_size = load_image_to_array(filename, image_data);
-  if(image_size.x() > 0 && image_size.y() > 0)
+  if (image_size.x() > 0 && image_size.y() > 0)
     {
       reference_counted_ptr<const Image> im;
       int slack(0);
@@ -350,7 +350,7 @@ derived_init(int w, int h)
   reference_counted_ptr<FreeTypeFace::GeneratorBase> gen;
   gen = FASTUIDRAWnew FreeTypeFace::GeneratorMemory(m_font.m_value.c_str(), 0);
   m_table_params.m_glyph_selector = m_glyph_selector;
-  if(gen->check_creation() == routine_success)
+  if (gen->check_creation() == routine_success)
     {
       m_table_params.m_font = FASTUIDRAWnew FontFreeType(gen,
                                                          FontFreeType::RenderParams(),
@@ -364,7 +364,7 @@ derived_init(int w, int h)
                 << "-----------------------------------------------------\n";
     }
 
-  if(!fastuidraw::GlyphRender::scalable(m_text_renderer.m_value.m_value))
+  if (!fastuidraw::GlyphRender::scalable(m_text_renderer.m_value.m_value))
     {
       fastuidraw::GlyphRender r(m_text_renderer_realized_pixel_size.m_value);
       r.m_type = m_text_renderer.m_value.m_value;
@@ -401,7 +401,7 @@ derived_init(int w, int h)
   m_table_params.m_min_degrees_per_s = m_min_degree_per_second.m_value;
   m_table_params.m_max_degrees_per_s = m_max_degree_per_second.m_value;
 
-  if(m_cell_group_size.m_value > 0)
+  if (m_cell_group_size.m_value > 0)
     {
       m_table_params.m_max_cell_group_size = m_cell_group_size.m_value;
     }
@@ -428,7 +428,7 @@ derived_init(int w, int h)
   tr1.translation(-0.5f * m_table_params.m_wh);
   tr2.translation(0.5f * vec2(w, h));
 
-  if(m_init_show_all_table.m_value)
+  if (m_init_show_all_table.m_value)
     {
       ScaleTranslate<float> sc;
       sc.scale(1.0f / std::max(twh.x(), twh.y()));
@@ -440,7 +440,7 @@ derived_init(int w, int h)
     }
 
 
-  if(m_table_params.m_font)
+  if (m_table_params.m_font)
     {
       std::cout << "Font: " << m_table_params.m_font->properties() << "\n";
     }
@@ -452,7 +452,7 @@ derived_init(int w, int h)
   std::cout << "Window resolution = " << dimensions() << "\n";
 
   m_frame = -m_skip_frames.m_value;
-  if(m_num_frames.m_value > 0)
+  if (m_num_frames.m_value > 0)
     {
       m_frame_times.reserve(m_num_frames.m_value);
     }
@@ -467,21 +467,21 @@ update_cts_params(void)
 
   float speed = static_cast<float>(m_draw_timer.restart()) * 0.001f;
 
-  if(keyboard_state[SDL_SCANCODE_LSHIFT])
+  if (keyboard_state[SDL_SCANCODE_LSHIFT])
     {
       speed *= 0.1f;
     }
-  if(keyboard_state[SDL_SCANCODE_RSHIFT])
+  if (keyboard_state[SDL_SCANCODE_RSHIFT])
     {
       speed *= 10.0f;
     }
 
-  if(keyboard_state[SDL_SCANCODE_RIGHTBRACKET])
+  if (keyboard_state[SDL_SCANCODE_RIGHTBRACKET])
     {
       m_cell_shared_state.m_stroke_width += m_change_stroke_width_rate.m_value * speed / m_zoomer.transformation().scale();
     }
 
-  if(keyboard_state[SDL_SCANCODE_LEFTBRACKET])
+  if (keyboard_state[SDL_SCANCODE_LEFTBRACKET])
     {
       m_cell_shared_state.m_stroke_width -= m_change_stroke_width_rate.m_value  * speed / m_zoomer.transformation().scale();
       m_cell_shared_state.m_stroke_width = std::max(m_cell_shared_state.m_stroke_width, 0.0f);
@@ -496,16 +496,16 @@ draw_frame(void)
   us = m_time.restart_us();
   ms = us / 1000;
 
-  if(m_frame == 0)
+  if (m_frame == 0)
     {
       m_benchmark_timer.restart();
     }
-  else if(m_frame > 0)
+  else if (m_frame > 0)
     {
       m_frame_times.push_back(us);
     }
 
-  if(m_num_frames.m_value > 0 && m_frame == m_num_frames.m_value)
+  if (m_num_frames.m_value > 0 && m_frame == m_num_frames.m_value)
     {
       m_benchmark_time_us = m_benchmark_timer.elapsed_us();
       std::cout << "Frame times(in us):\n";
@@ -546,12 +546,12 @@ draw_frame(void)
   m_painter->restore();
 
 
-  if(m_table_params.m_timer_based_animation)
+  if (m_table_params.m_timer_based_animation)
     {
       std::ostringstream ostr;
 
       ostr << "FPS = ";
-      if(us > 0)
+      if (us > 0)
         {
           ostr << static_cast<int>(1000.0f * 1000.0f / static_cast<float>(us));
         }
@@ -570,7 +570,7 @@ draw_frame(void)
            << "\nHeaders: "
            << m_painter->query_stat(PainterPacker::num_headers)
            << "\n";
-      if(!m_text_brush)
+      if (!m_text_brush)
         {
           PainterBrush brush;
           brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
@@ -602,7 +602,7 @@ handle_event(const SDL_Event &ev)
       break;
 
     case SDL_WINDOWEVENT:
-      if(ev.window.event == SDL_WINDOWEVENT_RESIZED)
+      if (ev.window.event == SDL_WINDOWEVENT_RESIZED)
         {
           on_resize(ev.window.data1, ev.window.data2);
         }
@@ -615,7 +615,7 @@ handle_event(const SDL_Event &ev)
           end_demo(0);
           break;
         case SDLK_a:
-          if(m_cell_shared_state.m_stroke_width > 0.0f)
+          if (m_cell_shared_state.m_stroke_width > 0.0f)
             {
               m_cell_shared_state.m_anti_alias_stroking = !m_cell_shared_state.m_anti_alias_stroking;
               std::cout << "Stroking anti-aliasing = " << m_cell_shared_state.m_anti_alias_stroking << "\n";

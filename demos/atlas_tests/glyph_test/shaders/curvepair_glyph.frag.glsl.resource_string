@@ -60,7 +60,7 @@ main(void)
   #ifdef USE_UINT_TEXEL_FETCH
   {
     texel0 = texelFetch(glyph_texel_store, ivec3(tex_coord_layer), 0).r;
-    if(secondary_tex_coord_layer.z >= 0.0)
+    if (secondary_tex_coord_layer.z >= 0.0)
       {
         texel1 = texelFetch(glyph_texel_store, ivec3(secondary_tex_coord_layer), 0).r;
       }
@@ -80,7 +80,7 @@ main(void)
     ftexel = (255.0 * ftexel + 0.5) / 256.0;
     texel0 = uint(255.0 * ftexel);
 
-    if(secondary_tex_coord_layer.z >= 0.0)
+    if (secondary_tex_coord_layer.z >= 0.0)
       {
         ftexel = texelFetch(glyph_texel_store, ivec3(secondary_tex_coord_layer), 0).r;
         ftexel = (255.0 * ftexel + 0.5) / 256.0;

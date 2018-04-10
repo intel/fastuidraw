@@ -55,7 +55,7 @@ IntervalFinder(float begin, float end):
   m_children(nullptr, nullptr),
   m_counts(0, 0)
 {
-  if(m_region.m_begin > m_region.m_end)
+  if (m_region.m_begin > m_region.m_end)
     {
       std::swap(m_region.m_begin, m_region.m_end);
     }
@@ -65,7 +65,7 @@ template<typename T, unsigned int SplitThreshhold>
 IntervalFinder<T, SplitThreshhold>::
 ~IntervalFinder()
 {
-  if(have_children())
+  if (have_children())
     {
       FASTUIDRAWdelete(m_children[0]);
       FASTUIDRAWdelete(m_children[1]);
@@ -78,24 +78,24 @@ IntervalFinder<T, SplitThreshhold>::
 add_entry(fastuidraw::range_type<float> interval,
           T value)
 {
-  if(interval.m_begin > interval.m_end)
+  if (interval.m_begin > interval.m_end)
     {
       std::swap(interval.m_begin, interval.m_end);
     }
 
-  if(!have_children())
+  if (!have_children())
     {
       m_entries.push_back(entry(interval, value));
-      if(interval.m_end < m_midpoint)
+      if (interval.m_end < m_midpoint)
         {
           ++m_counts[child0_count];
         }
-      else if(interval.m_begin > m_midpoint)
+      else if (interval.m_begin > m_midpoint)
         {
           ++m_counts[child1_count];
         }
 
-      if(m_counts[child0_count] > SplitThreshhold
+      if (m_counts[child0_count] > SplitThreshhold
          || m_counts[child1_count] > SplitThreshhold)
         {
           make_children();
@@ -103,11 +103,11 @@ add_entry(fastuidraw::range_type<float> interval,
     }
   else
     {
-      if(interval.m_end < m_midpoint)
+      if (interval.m_end < m_midpoint)
         {
           m_children[0]->add_entry(interval, value);
         }
-      else if(interval.m_begin > m_midpoint)
+      else if (interval.m_begin > m_midpoint)
         {
           m_children[1]->add_entry(interval, value);
         }
@@ -130,13 +130,13 @@ find_entries(float x, std::vector<T> *dst) const
 
   for(const auto &e : m_entries)
     {
-      if(x >= e.first.m_begin && x <= e.first.m_end)
+      if (x >= e.first.m_begin && x <= e.first.m_end)
         {
           dst->push_back(e.second);
         }
     }
 
-  if(have_children())
+  if (have_children())
     {
       m_children[0]->find_entries(x, dst);
       m_children[1]->find_entries(x, dst);
@@ -158,11 +158,11 @@ make_children(void)
 
   for(const auto &e : tmp)
     {
-      if(e.first.m_end < m_midpoint)
+      if (e.first.m_end < m_midpoint)
         {
           m_children[0]->m_entries.push_back(e);
         }
-      else if(e.first.m_begin > m_midpoint)
+      else if (e.first.m_begin > m_midpoint)
         {
           m_children[1]->m_entries.push_back(e);
         }

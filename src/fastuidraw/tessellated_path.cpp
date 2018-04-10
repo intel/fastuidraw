@@ -58,7 +58,7 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
   m_effective_curvature_threshhold(0.0f),
   m_max_segments(0u)
 {
-  if(input.number_contours() > 0)
+  if (input.number_contours() > 0)
     {
       std::list<std::vector<fastuidraw::TessellatedPath::point> > temp;
       std::vector<fastuidraw::TessellatedPath::point> work_room(m_params.m_max_segments + 1);
@@ -95,7 +95,7 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
 
                   work_room[n].m_distance_from_contour_start = contour_length + work_room[n].m_distance_from_edge_start;
 
-                  if(o == 0 and e == 0 and n == 0)
+                  if (o == 0 and e == 0 and n == 0)
                     {
                       m_box_min = pt;
                       m_box_max = pt;
@@ -111,18 +111,18 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
               std::list<std::vector<fastuidraw::TessellatedPath::point> >::iterator t;
               t = temp.insert(temp.end(),
                               std::vector<fastuidraw::TessellatedPath::point>(work_room.begin(), work_room.begin() + needed));
-              if(e == 0)
+              if (e == 0)
                 {
                   start_contour = t;
                 }
 
               contour_length = temp.back().back().m_distance_from_contour_start;
 
-              if(e + 2 == ende)
+              if (e + 2 == ende)
                 {
                   open_contour_length = contour_length;
                 }
-              else if(e + 1 == ende)
+              else if (e + 1 == ende)
                 {
                   closed_contour_length = contour_length;
                 }
@@ -185,7 +185,7 @@ stroked(void) const
 {
   TessellatedPathPrivate *d;
   d = static_cast<TessellatedPathPrivate*>(m_d);
-  if(!d->m_stroked)
+  if (!d->m_stroked)
     {
       d->m_stroked = FASTUIDRAWnew StrokedPath(*this);
     }
@@ -198,7 +198,7 @@ filled(void) const
 {
   TessellatedPathPrivate *d;
   d = static_cast<TessellatedPathPrivate*>(m_d);
-  if(!d->m_filled)
+  if (!d->m_filled)
     {
       d->m_filled = FASTUIDRAWnew FilledPath(*this);
     }

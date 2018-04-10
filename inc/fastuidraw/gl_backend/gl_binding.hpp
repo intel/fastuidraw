@@ -89,7 +89,7 @@ namespace fastuidraw {
   //get a function pointer for a GL function
   //which takes no arguments and returns nothing.
   void (*functionPointer)(void) = nullptr;
-  if(FASTUIDRAWglfunctionExists(glSomething)
+  if (FASTUIDRAWglfunctionExists(glSomething)
     {
       functionPointer = FASTUIDRAWglfunctionPointer(glSomeFunction);
     }

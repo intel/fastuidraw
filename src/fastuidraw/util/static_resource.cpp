@@ -68,7 +68,7 @@ fetch_static_resource(c_string presource_label)
 
   hoard().m_mutex.lock();
   iter = hoard().m_data.find(sresource_label);
-  if(iter != hoard().m_data.end())
+  if (iter != hoard().m_data.end())
     {
       return_value = make_c_array(iter->second);
     }

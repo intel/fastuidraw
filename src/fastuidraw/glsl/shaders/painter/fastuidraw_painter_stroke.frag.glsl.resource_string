@@ -8,11 +8,11 @@ fastuidraw_stroke_compute_dash_interval(in uint dashed_stroking_data_location,
                                         in float start, in float end,
                                         in uint number_intervals)
 {
-  if(in_distance <= start)
+  if (in_distance <= start)
     {
       return in_distance - start;
     }
-  else if(in_distance >= end)
+  else if (in_distance >= end)
     {
       return end - in_distance;
     }
@@ -66,7 +66,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
      for non-anti-aliased shading because it does not allow discard
   */
   #ifdef FASTUIDRAW_STROKE_DASHED
-  if((fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_gauranteed_to_be_covered_mask)) == 0u)
+  if ((fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_gauranteed_to_be_covered_mask)) == 0u)
     {
       float d, q, fw;
       uint dash_pattern_at, dash_style;
@@ -84,7 +84,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       */
       fastuidraw_read_dashed_stroking_params_header(shader_data_offset, stroke_params);
 
-      if((fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u)
+      if ((fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u)
         {
           q = fastuidraw_stroking_distance;
         }
@@ -113,16 +113,16 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       fw = fwidth(fastuidraw_stroking_distance);
       fwidth_qq_yy = 2.0 * abs(q) * fw + 2.0 * abs(y) * fwidth(y);
 
-      if(dash_style == uint(fastuidraw_stroke_dashed_rounded_caps))
+      if (dash_style == uint(fastuidraw_stroke_dashed_rounded_caps))
         {
           /* fw represents the tolerance of a pixel. The expected
-             condition is if(q < 0.0), but that gives black-line
+             condition is if (q < 0.0), but that gives black-line
              render issue on the boundary between the cap and the
              dash-pattern boundary. By relaxing the condition by
              (essentially) 1-pixel, we can avoid that rendering
              issue.
           */
-          if(q < fw && q > -fw - r)
+          if (q < fw && q > -fw - r)
             {
               float sq;
 
@@ -131,7 +131,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
               fw = 0.5 * fwidth_qq_yy / sq;
             }
         }
-      else if(dash_style == uint(fastuidraw_stroke_dashed_square_caps))
+      else if (dash_style == uint(fastuidraw_stroke_dashed_square_caps))
         {
           q += stroke_params.radius;
         }
@@ -141,12 +141,12 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
       #if !defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
         {
-          if(render_pass == uint(fastuidraw_stroke_non_aa) && q <= 0.0)
+          if (render_pass == uint(fastuidraw_stroke_non_aa) && q <= 0.0)
             {
               FASTUIDRAW_DISCARD;
             }
 
-          if(render_pass == uint(fastuidraw_stroke_aa_pass1) && alpha < 1.0 - 1.0 / 255.0)
+          if (render_pass == uint(fastuidraw_stroke_aa_pass1) && alpha < 1.0 - 1.0 / 255.0)
             {
               FASTUIDRAW_DISCARD;
             }
@@ -171,7 +171,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
     }
   #else
     {
-      if(render_pass == uint(fastuidraw_stroke_aa_pass2))
+      if (render_pass == uint(fastuidraw_stroke_aa_pass2))
         {
           float dd, q;
 

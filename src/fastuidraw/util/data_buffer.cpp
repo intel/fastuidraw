@@ -23,7 +23,7 @@ DataBufferBackingStore(c_string filename)
   m_d = d;
 
   std::ifstream file(filename, std::ios::binary);
-  if(file)
+  if (file)
     {
       std::ifstream::pos_type sz;
 

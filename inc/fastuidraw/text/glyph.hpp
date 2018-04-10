@@ -191,7 +191,7 @@ namespace fastuidraw
           {
             enum return_code R;
             R = G.upload();
-            if(R == routine_fail)
+            if (R == routine_fail)
               {
                  send_render_commands_to_graphics_api();
                  G.cache()->clear_atlas();

@@ -36,7 +36,7 @@ public:
   check_arg(const std::vector<std::string> &argv, int location)
   {
     int argc(argv.size());
-    if(location + 1 < argc && argv[location] == m_name)
+    if (location + 1 < argc && argv[location] == m_name)
       {
         insert(argv[location+1]);
         std::cout << "\n\t" << m_name << " \""
@@ -124,7 +124,7 @@ public:
 
   ~image_test()
   {
-    if(m_sampler != 0)
+    if (m_sampler != 0)
       {
         glDeleteSamplers(1, &m_sampler);
       }
@@ -139,12 +139,12 @@ protected:
     ivec2 image_size;
 
     image_size = load_image_to_array(filename, image_data);
-    if(image_size.x() != 0 && image_size.y() != 0)
+    if (image_size.x() != 0 && image_size.y() != 0)
       {
         m_image_handles.push_back(Image::create(m_atlas, image_size.x(), image_size.y(),
                                                 cast_c_array(image_data), m_slack.m_value));
         m_image_names.push_back(filename);
-        if(m_print_loaded_image_list.m_value)
+        if (m_print_loaded_image_list.m_value)
           {
             std::cout << "Image \"" << filename
                       << " of size " << m_image_handles.back()->dimensions()
@@ -164,7 +164,7 @@ protected:
     struct dirent *entry;
 
     dir = opendir(filename.c_str());
-    if(!dir)
+    if (!dir)
       {
       add_single_image(filename);
       return;
@@ -174,7 +174,7 @@ protected:
       {
         std::string file;
         file = entry->d_name;
-        if(file != ".." && file != ".")
+        if (file != ".." && file != ".")
           {
             add_images(filename + "/" + file);
           }
@@ -215,7 +215,7 @@ protected:
   void
   draw_frame(void)
   {
-    if(m_program[m_current_program].m_pr)
+    if (m_program[m_current_program].m_pr)
       {
         glClear(GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -228,27 +228,27 @@ protected:
         gl::Uniform(m_program[m_current_program].m_translate,
                     m_program[m_current_program].m_zoomer.transformation().translation());
 
-        if(m_program[m_current_program].m_layer != -1)
+        if (m_program[m_current_program].m_layer != -1)
           {
             gl::Uniform(m_program[m_current_program].m_layer, m_current_layer);
           }
 
-        if(m_program[m_current_program].m_index_boundary_mix != -1)
+        if (m_program[m_current_program].m_index_boundary_mix != -1)
           {
             c_array<const float> index_boundary_mix_values;
             index_boundary_mix_values = cast_c_array(m_index_boundary_mix_values);
             gl::Uniform(m_program[m_current_program].m_index_boundary_mix,
                         index_boundary_mix_values);
           }
-        if(m_program[m_current_program].m_color_boundary_mix != -1)
+        if (m_program[m_current_program].m_color_boundary_mix != -1)
           {
             gl::Uniform(m_program[m_current_program].m_color_boundary_mix, m_color_boundary_mix_value);
           }
-        if(m_program[m_current_program].m_filtered_lookup != -1)
+        if (m_program[m_current_program].m_filtered_lookup != -1)
           {
             gl::Uniform(m_program[m_current_program].m_filtered_lookup, m_filtered_lookup);
           }
-        if(m_program[m_current_program].m_uniform_image_num_lookups != -1)
+        if (m_program[m_current_program].m_uniform_image_num_lookups != -1)
           {
             int num_lookups(m_image_handles[m_current_image]->number_index_lookups());
             gl::Uniform(m_program[m_current_program].m_uniform_image_num_lookups, num_lookups);
@@ -317,7 +317,7 @@ protected:
             }
             break;
           case SDLK_i:
-            if(m_current_program == draw_image_on_atlas)
+            if (m_current_program == draw_image_on_atlas)
               {
                 cycle_value(m_current_image, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_image_handles.size());
                 std::cout << "Set to draw image \"" << m_image_names[m_current_image] << "\"\n";
@@ -338,10 +338,10 @@ protected:
             break;
 
           case SDLK_f:
-            if(m_current_program == draw_image_on_atlas)
+            if (m_current_program == draw_image_on_atlas)
               {
                 m_filtered_lookup = 1.0f - m_filtered_lookup;
-                if(m_filtered_lookup > 0.5)
+                if (m_filtered_lookup > 0.5)
                   {
                     std::cout << "Filter set to bilinear filtering.\n";
                   }
@@ -354,7 +354,7 @@ protected:
 
           case SDLK_0:
             m_color_boundary_mix_value = 0.5f - m_color_boundary_mix_value;
-            if(m_color_boundary_mix_value > 0.25f)
+            if (m_color_boundary_mix_value > 0.25f)
               {
                 std::cout << "Set to show tile boundaries.\n";
               }
@@ -373,13 +373,13 @@ protected:
           case SDLK_7:
           case SDLK_8:
           case SDLK_9:
-            if(m_current_program == draw_image_on_atlas)
+            if (m_current_program == draw_image_on_atlas)
               {
                 unsigned int idx(ev.key.keysym.sym - SDLK_1);
-                if(idx < m_index_boundary_mix_values.size())
+                if (idx < m_index_boundary_mix_values.size())
                   {
                     m_index_boundary_mix_values[idx] = 0.5f - m_index_boundary_mix_values[idx];
-                    if(m_index_boundary_mix_values[idx] > 0.25f)
+                    if (m_index_boundary_mix_values[idx] > 0.25f)
                       {
                         std::cout << "Set to show level " << idx << " tile boundaries.\n";
                       }
@@ -392,7 +392,7 @@ protected:
             break;
           }
 
-        if(old_program != m_current_program)
+        if (old_program != m_current_program)
           {
             bind_textures();
             std::cout << "Current draw: "
@@ -402,7 +402,7 @@ protected:
         break;
 
       case SDL_WINDOWEVENT:
-        if(ev.window.event == SDL_WINDOWEVENT_RESIZED)
+        if (ev.window.event == SDL_WINDOWEVENT_RESIZED)
           {
             on_resize(ev.window.data1, ev.window.data2);
           }
@@ -426,7 +426,7 @@ private:
     int max_layers(0);
 
     max_layers = fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS);
-    if(max_layers < m_num_color_layers.m_value)
+    if (max_layers < m_num_color_layers.m_value)
       {
 	std::cout << "num_color_layers exceeds max number texture layers (" << max_layers
 		  << "), num_color_layers set to that value.\n";
@@ -450,7 +450,7 @@ private:
         add_images(*iter);
       }
 
-    if(m_image_handles.empty())
+    if (m_image_handles.empty())
       {
         std::vector<u8vec4> image_data;
         ivec2 image_size;
@@ -593,7 +593,7 @@ private:
     }
 
 
-    if(m_program[draw_image_on_atlas].m_vao)
+    if (m_program[draw_image_on_atlas].m_vao)
       {
         glBindVertexArray(m_program[draw_image_on_atlas].m_vao);
 

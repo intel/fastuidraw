@@ -147,7 +147,7 @@ emit_source_line(std::ostream &output_stream,
 
   #ifndef NDEBUG
     {
-      if(!label.empty() && (S.empty() || *S.rbegin() != '\\'))
+      if (!label.empty() && (S.empty() || *S.rbegin() != '\\'))
         {
           output_stream << std::setw(80-S.length()) << "  //["
                         << std::setw(3) << line_number
@@ -179,7 +179,7 @@ add_source_code_from_stream(const std::string &label,
     {
       /* combine source lines that end with \
        */
-      if(*S.rbegin() == '\\')
+      if (*S.rbegin() == '\\')
         {
           std::vector<std::string> strings;
 
@@ -198,7 +198,7 @@ add_source_code_from_stream(const std::string &label,
           for(std::vector<std::string>::iterator
                 iter = strings.begin(), end = strings.end(); iter != end; ++iter)
             {
-              if(!iter->empty() && *iter->rbegin() == '\\')
+              if (!iter->empty() && *iter->rbegin() == '\\')
                 {
                   iter->resize(iter->size() - 1);
                 }
@@ -218,11 +218,11 @@ add_source_entry(const source_code_t &v, std::ostream &output_stream)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::glsl;
-  if(v.second == ShaderSource::from_file)
+  if (v.second == ShaderSource::from_file)
     {
       std::ifstream file(v.first.c_str());
 
-      if(file)
+      if (file)
         {
           add_source_code_from_stream(v.first, file, output_stream);
         }
@@ -237,7 +237,7 @@ add_source_entry(const source_code_t &v, std::ostream &output_stream)
       std::istringstream istr;
       std::string label;
 
-      if(v.second == ShaderSource::from_string)
+      if (v.second == ShaderSource::from_string)
         {
           istr.str(v.first);
           label.clear();
@@ -248,7 +248,7 @@ add_source_entry(const source_code_t &v, std::ostream &output_stream)
 
           resource_string = fetch_static_resource(v.first.c_str());
           label=v.first;
-          if(!resource_string.empty() && resource_string.back() == 0)
+          if (!resource_string.empty() && resource_string.back() == 0)
             {
               fastuidraw::c_string s;
               s = reinterpret_cast<fastuidraw::c_string>(resource_string.c_ptr());
@@ -301,7 +301,7 @@ fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
 operator=(const ShaderSource &obj)
 {
-  if(this != &obj)
+  if (this != &obj)
     {
       ShaderSource v(obj);
       swap(v);
@@ -339,7 +339,7 @@ add_source(c_string str, enum source_t tp, enum add_location_t loc)
   FASTUIDRAWassert(str);
   SourcePrivate::source_code_t v(str, tp);
 
-  if(loc == push_front)
+  if (loc == push_front)
     {
       d->m_values.push_front(v);
     }
@@ -461,11 +461,11 @@ assembled_code(void) const
   SourcePrivate *d;
   d = static_cast<SourcePrivate*>(m_d);
 
-  if(d->m_dirty)
+  if (d->m_dirty)
     {
       std::ostringstream output_glsl_source_code;
 
-      if(!d->m_version.empty())
+      if (!d->m_version.empty())
         {
           output_glsl_source_code <<"#version " << d->m_version << "\n";
         }
@@ -477,7 +477,7 @@ assembled_code(void) const
                                   << ": " << SourcePrivate::string_from_extension_t(iter->second) << "\n";
         }
 
-      if(!d->m_disable_pre_added_source)
+      if (!d->m_disable_pre_added_source)
         {
           output_glsl_source_code << "uint fastuidraw_mask(uint num_bits) { return (uint(1) << num_bits) - uint(1); }\n"
                                   << "uint fastuidraw_extract_bits(uint bit0, uint num_bits, uint src) { return (src >> bit0) & fastuidraw_mask(num_bits); }\n"

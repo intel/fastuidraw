@@ -16,7 +16,7 @@ uniform float color_boundary_mix;
 void main()
 {
   frag = texelFetch(image, ivec3(image_coord, layer), 0);
-  if(detect_boundary(image_coord, tile_size))
+  if (detect_boundary(image_coord, tile_size))
     {
       frag =  mix(frag, vec4(0.0, 1.0, 1.0, 1.0), color_boundary_mix);
     }

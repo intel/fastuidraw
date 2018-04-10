@@ -144,34 +144,34 @@ int main(int argc, char **argv)
 
       current=argv[i];
       iter=find(current.begin(), current.end(), '=');
-      if(iter!=current.end() and iter+1!=current.end())
+      if (iter!=current.end() and iter+1!=current.end())
         {
-          if(string(current.begin(),iter)==string("macro_prefix"))
+          if (string(current.begin(),iter)==string("macro_prefix"))
             {
               macroPrefix=string(iter+1,current.end());
             }
 
-          if(string(current.begin(),iter)==string("function_prefix"))
+          if (string(current.begin(),iter)==string("function_prefix"))
             {
               function_prefix=string(iter+1,current.end());
             }
 
-          if(string(current.begin(),iter)==string("namespace"))
+          if (string(current.begin(),iter)==string("namespace"))
             {
               namespaceName=string(iter+1,current.end());
             }
 
-          if(string(current.begin(),iter)==string("path"))
+          if (string(current.begin(),iter)==string("path"))
             {
               path=string(iter+1,current.end());
             }
 
-          if(string(current.begin(),iter)==string("output_cpp"))
+          if (string(current.begin(),iter)==string("output_cpp"))
             {
               output_cpp=string(iter+1,current.end());
             }
 
-          if(string(current.begin(),iter)==string("output_hpp"))
+          if (string(current.begin(),iter)==string("output_hpp"))
             {
               output_hpp=string(iter+1,current.end());
             }
@@ -187,7 +187,7 @@ int main(int argc, char **argv)
 
   sourceFile.open(sourceName.c_str());
   headerFile.open(headerName.c_str());
-  if(!sourceFile || !headerFile)
+  if (!sourceFile || !headerFile)
     {
       cerr << "Failed to open one file for writing!\n";
       exit(-1);

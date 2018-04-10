@@ -301,7 +301,7 @@ ready_main_varyings(void)
     .add_float_varying("fastuidraw_brush_p_x")
     .add_float_varying("fastuidraw_brush_p_y");
 
-  if(!m_config.use_hw_clip_planes())
+  if (!m_config.use_hw_clip_planes())
     {
       m_main_varyings_header_only
         .add_float_varying("fastuidraw_clip_plane0")
@@ -739,7 +739,7 @@ declare_shader_uniforms(const fastuidraw::glsl::PainterBackendGLSL::UberShaderPa
 {
   std::ostringstream ostr;
 
-  if(params.use_ubo_for_uniforms())
+  if (params.use_ubo_for_uniforms())
     {
       fastuidraw::c_string ext="xyzw";
       /* Mesa packs UBO data float[N] as really vec4[N],
@@ -806,11 +806,11 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   std::vector<reference_counted_ptr<PainterItemShaderGLSL> > work_shaders;
   c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders;
 
-  if(item_shader_filter)
+  if (item_shader_filter)
     {
       for(unsigned int i = 0, endi = m_item_shaders.size(); i < endi; ++i)
         {
-          if(item_shader_filter->use_shader(m_item_shaders[i]))
+          if (item_shader_filter->use_shader(m_item_shaders[i]))
             {
               work_shaders.push_back(m_item_shaders[i]);
             }
@@ -822,7 +822,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       item_shaders = make_c_array(m_item_shaders);
     }
 
-  if(params.assign_layout_to_vertex_shader_inputs())
+  if (params.assign_layout_to_vertex_shader_inputs())
     {
       std::ostringstream ostr;
       ostr << "layout(location = " << PainterBackendGLSL::primary_attrib_slot << ") in uvec4 fastuidraw_primary_attribute;\n"
@@ -841,7 +841,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       declare_vertex_shader_ins = ostr.str();
     }
 
-  if(params.assign_layout_to_varyings())
+  if (params.assign_layout_to_varyings())
     {
       std::ostringstream ostr;
       ostr << "\n#define FASTUIDRAW_LAYOUT_VARYING(X) layout(location = X)";
@@ -854,7 +854,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       varying_layout_macro = ostr.str();
     }
 
-  if(params.assign_binding_points())
+  if (params.assign_binding_points())
     {
       std::ostringstream ostr;
       ostr << "\n#define FASTUIDRAW_LAYOUT_BINDING(X) layout(binding = X)";
@@ -870,7 +870,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     }
 
   unsigned int varying_slot(0);
-  if(params.unpack_header_and_brush_in_frag_shader())
+  if (params.unpack_header_and_brush_in_frag_shader())
     {
       main_varyings = &m_main_varyings_header_only;
     }
@@ -901,19 +901,19 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
 
   declare_uniforms = declare_shader_uniforms(params);
 
-  if(params.unpack_header_and_brush_in_frag_shader())
+  if (params.unpack_header_and_brush_in_frag_shader())
     {
       vert.add_macro("FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER");
       frag.add_macro("FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER");
     }
 
-  if(params.negate_normalized_y_coordinate())
+  if (params.negate_normalized_y_coordinate())
     {
       vert.add_macro("FASTUIDRAW_PAINTER_NEGATE_POSITION_Y_COORDINATE");
       frag.add_macro("FASTUIDRAW_PAINTER_NEGATE_POSITION_Y_COORDINATE");
     }
 
-  if(params.z_coordinate_convention() == PainterBackendGLSL::z_minus_1_to_1)
+  if (params.z_coordinate_convention() == PainterBackendGLSL::z_minus_1_to_1)
     {
       vert.add_macro("FASTUIDRAW_PAINTER_NORMALIZED_Z_MINUS_1_TO_1");
       frag.add_macro("FASTUIDRAW_PAINTER_NORMALIZED_Z_MINUS_1_TO_1");
@@ -924,7 +924,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       frag.add_macro("FASTUIDRAW_PAINTER_NORMALIZED_0_TO_1");
     }
 
-  if(m_config.use_hw_clip_planes())
+  if (m_config.use_hw_clip_planes())
     {
       vert.add_macro("FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES");
       frag.add_macro("FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES");
@@ -979,7 +979,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       FASTUIDRAWassert(!"Invalid data_store_backing() value");
     }
 
-  if(!params.have_float_glyph_texture_atlas())
+  if (!params.have_float_glyph_texture_atlas())
     {
       vert.add_macro("FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT");
       frag.add_macro("FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT");
@@ -1057,7 +1057,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_source(declare_shader_varyings.c_str(), ShaderSource::from_string);
 
   stream_alias_varyings("_main", vert, *main_varyings, true, main_varying_datum);
-  if(params.unpack_header_and_brush_in_frag_shader())
+  if (params.unpack_header_and_brush_in_frag_shader())
     {
       /* we need to declare the values named in m_brush_varyings
        */
@@ -1127,7 +1127,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_source(declare_shader_varyings.c_str(), ShaderSource::from_string);
 
   stream_alias_varyings("_main", frag, *main_varyings, true, main_varying_datum);
-  if(params.unpack_header_and_brush_in_frag_shader())
+  if (params.unpack_header_and_brush_in_frag_shader())
     {
       /* we need to declare the values named in m_brush_varyings
        */
@@ -1147,7 +1147,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_source("fastuidraw_painter_brush_types.glsl.resource_string", ShaderSource::from_resource)
     .add_source("fastuidraw_painter_forward_declares.frag.glsl.resource_string", ShaderSource::from_resource);
 
-  if(params.unpack_header_and_brush_in_frag_shader())
+  if (params.unpack_header_and_brush_in_frag_shader())
     {
       frag
         .add_source("fastuidraw_painter_brush_unpack_forward_declares.glsl.resource_string", ShaderSource::from_resource)

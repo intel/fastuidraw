@@ -43,27 +43,27 @@ public:
 
   ~gradient_test()
   {
-    if(m_vao != 0)
+    if (m_vao != 0)
       {
         glDeleteVertexArrays(1, &m_vao);
       }
 
-    if(m_bo != 0)
+    if (m_bo != 0)
       {
         glDeleteBuffers(1, &m_bo);
       }
 
-    if(m_ibo != 0)
+    if (m_ibo != 0)
       {
         glDeleteBuffers(1, &m_ibo);
       }
 
-    if(m_pts_bo != 0)
+    if (m_pts_bo != 0)
       {
         glDeleteBuffers(1, &m_pts_bo);
       }
 
-    if(m_pts_vao != 0)
+    if (m_pts_vao != 0)
       {
         glDeleteVertexArrays(1, &m_pts_vao);
       }
@@ -102,7 +102,7 @@ protected:
     }
 
 
-    if(m_draw_gradient_points)
+    if (m_draw_gradient_points)
       {
         float width(20.0f);
 
@@ -140,7 +140,7 @@ protected:
     switch(ev.type)
       {
       case SDL_WINDOWEVENT:
-        if(ev.window.event == SDL_WINDOWEVENT_RESIZED)
+        if (ev.window.event == SDL_WINDOWEVENT_RESIZED)
           {
             glViewport(0, 0, ev.window.data1, ev.window.data2);
           }
@@ -159,7 +159,7 @@ protected:
 
           case SDLK_n:
             ++m_active_color_stop;
-            if(m_active_color_stop >= m_color_stops.size())
+            if (m_active_color_stop >= m_color_stops.size())
               {
                 m_active_color_stop = 0;
               }
@@ -186,11 +186,11 @@ protected:
           ivec2 c(ev.motion.x + ev.motion.xrel,
                   ev.motion.y + ev.motion.yrel);
 
-          if(ev.motion.state & SDL_BUTTON(SDL_BUTTON_LEFT))
+          if (ev.motion.state & SDL_BUTTON(SDL_BUTTON_LEFT))
             {
               m_p0 = get_normalized_device_coords(c);
             }
-          else if(ev.motion.state & SDL_BUTTON(SDL_BUTTON_RIGHT))
+          else if (ev.motion.state & SDL_BUTTON(SDL_BUTTON_RIGHT))
             {
               m_p1 = get_normalized_device_coords(c);
             }
@@ -200,11 +200,11 @@ protected:
       case SDL_MOUSEBUTTONDOWN:
         {
           ivec2 c(ev.button.x, ev.button.y);
-          if(ev.button.button == SDL_BUTTON_LEFT)
+          if (ev.button.button == SDL_BUTTON_LEFT)
             {
               m_p0 = get_normalized_device_coords(c);
             }
-          else if(ev.button.button == SDL_BUTTON_RIGHT)
+          else if (ev.button.button == SDL_BUTTON_RIGHT)
             {
               m_p1 = get_normalized_device_coords(c);
             }
@@ -234,7 +234,7 @@ private:
     int max_layers(0);
 
     max_layers = fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS);
-    if(max_layers < m_color_stop_atlas_layers.m_value)
+    if (max_layers < m_color_stop_atlas_layers.m_value)
       {   
 	std::cout << "atlas_layers exceeds max number texture layers (" << max_layers
 		  << ") atlas_layers set to that value.\n";
@@ -248,7 +248,7 @@ private:
 
     m_atlas = FASTUIDRAWnew gl::ColorStopAtlasGL(params);
 
-    if(m_color_stop_args.m_values.empty())
+    if (m_color_stop_args.m_values.empty())
       {
         c_array<const ColorStop> src;
 
@@ -286,7 +286,7 @@ private:
         reference_counted_ptr<ColorStopSequenceOnAtlas> h;
         reference_counted_ptr<ColorStopSequenceOnAtlas> temp1, temp2;
 
-        if(m_stress.m_value)
+        if (m_stress.m_value)
           {
             int sz1, sz2;
             sz1 = std::max(1, m_color_stop_atlas_width.m_value / 2);

@@ -75,7 +75,7 @@ shader(enum glyph_type tp,
 {
   PainterGlyphShaderPrivate *d;
   d = static_cast<PainterGlyphShaderPrivate*>(m_d);
-  if(tp >= d->m_shaders.size())
+  if (tp >= d->m_shaders.size())
     {
       d->m_shaders.resize(tp + 1);
     }

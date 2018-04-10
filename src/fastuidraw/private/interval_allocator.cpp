@@ -36,7 +36,7 @@ reset(int size)
   m_size = std::max(0, size);
   m_sorted.clear();
   m_free_intervals.clear();
-  if(m_size > 0)
+  if (m_size > 0)
     {
       free_interval(0, m_size);
     }
@@ -47,7 +47,7 @@ fastuidraw::interval_allocator::
 resize(int size)
 {
   FASTUIDRAWassert(size >= m_size);
-  if(size > m_size)
+  if (size > m_size)
     {
       int old_size(m_size);
       m_size = size;
@@ -73,7 +73,7 @@ interval_status(int begin, int size) const
    */
   begin_iter = m_free_intervals.upper_bound(begin);
 
-  if(begin_iter == m_free_intervals.end())
+  if (begin_iter == m_free_intervals.end())
     {
       /* All free intervals end at or before begin,
          thus the interval is completely allocated
@@ -84,7 +84,7 @@ interval_status(int begin, int size) const
   interval I(begin_iter->second);
   FASTUIDRAWassert(I.m_end > begin);
 
-  if(I.m_end >= end && I.m_begin <= begin)
+  if (I.m_end >= end && I.m_begin <= begin)
     {
       /* the free Interval I completely contains
          the interval [begin, end)
@@ -92,7 +92,7 @@ interval_status(int begin, int size) const
       return completely_free;
     }
 
-  if(I.m_begin > begin)
+  if (I.m_begin > begin)
     {
       /* the queried interval begins before I.
          Note that the free interval previous
@@ -101,7 +101,7 @@ interval_status(int begin, int size) const
          [J.m_end, I.m_begin) is completely
          allocated.
        */
-      if(end <= I.m_begin)
+      if (end <= I.m_begin)
         {
           /* end is before I even starts, thus
              [begin, end) is completely allocated
@@ -123,7 +123,7 @@ int
 fastuidraw::interval_allocator::
 allocate_interval(int size)
 {
-  if(size <= 0)
+  if (size <= 0)
     {
       return -1;
     }
@@ -131,7 +131,7 @@ allocate_interval(int size)
   std::map<int, interval_ref_set>::iterator iter;
 
   iter = m_sorted.lower_bound(size);
-  if(iter == m_sorted.end())
+  if (iter == m_sorted.end())
     {
       return -1;
     }
@@ -144,7 +144,7 @@ allocate_interval(int size)
   FASTUIDRAWassert(I.m_end - I.m_begin == iter->first);
 
   iter->second.erase(iter->second.begin());
-  if(iter->second.empty())
+  if (iter->second.empty())
     {
       m_sorted.erase(iter);
     }
@@ -158,7 +158,7 @@ allocate_interval(int size)
   interval_reference->second.m_begin += size;
 
   FASTUIDRAWassert(interval_reference->second.m_begin <= interval_reference->second.m_end);
-  if(interval_reference->second.m_begin == interval_reference->second.m_end)
+  if (interval_reference->second.m_begin == interval_reference->second.m_end)
     {
       /* if the new interval is empty, then we delete it
       */
@@ -190,7 +190,7 @@ free_interval(int location, int size)
    */
   interval_ref iter;
   iter = m_free_intervals.find(location);
-  if(iter != m_free_intervals.end())
+  if (iter != m_free_intervals.end())
     {
       /* in this case we need to enlarge
          the block pointed to by iter,
@@ -204,7 +204,7 @@ free_interval(int location, int size)
     }
 
   iter = m_free_intervals.lower_bound(end);
-  if(iter != m_free_intervals.end() && iter->second.m_begin == end)
+  if (iter != m_free_intervals.end() && iter->second.m_begin == end)
     {
       /* end is the start of an existing block,
          so just make that existing block bigger.
@@ -268,7 +268,7 @@ remove_free_interval_from_sorted_only(std::map<int, interval_ref_set>::iterator 
   FASTUIDRAWassert(sorted_iter->second.find(iter) != sorted_iter->second.end());
 
   sorted_iter->second.erase(iter);
-  if(sorted_iter->second.empty())
+  if (sorted_iter->second.empty())
     {
       m_sorted.erase(sorted_iter);
     }

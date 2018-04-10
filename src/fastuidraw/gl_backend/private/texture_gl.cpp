@@ -47,7 +47,7 @@ namespace
                GLint layer,
                GLint level)
   {
-    if(texture_is_layered(texTarget))
+    if (texture_is_layered(texTarget))
       {
         glFramebufferTextureLayer(fbo, GL_COLOR_ATTACHMENT0, texName, level, layer);
       }
@@ -236,17 +236,17 @@ compute_type(void)
   ContextProperties ctx;
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
-      if(ctx.version() >= ivec2(3, 2))
+      if (ctx.version() >= ivec2(3, 2))
         {
           return unextended_function;
         }
 
-      if(ctx.has_extension("GL_OES_copy_image"))
+      if (ctx.has_extension("GL_OES_copy_image"))
         {
           return oes_function;
         }
 
-      if(ctx.has_extension("GL_EXT_copy_image"))
+      if (ctx.has_extension("GL_EXT_copy_image"))
         {
           return ext_function;
         }
@@ -255,7 +255,7 @@ compute_type(void)
     }
   #else
     {
-      if(ctx.version() >= ivec2(4,3) || ctx.has_extension("GL_ARB_copy_image"))
+      if (ctx.version() >= ivec2(4,3) || ctx.has_extension("GL_ARB_copy_image"))
         {
           return unextended_function;
         }
@@ -274,7 +274,7 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
            GLint dstX, GLint dstY, GLint dstZ,
            GLsizei width, GLsizei height, GLsizei depth) const
 {
-  if(m_type == uninited)
+  if (m_type == uninited)
     {
       m_type = compute_type();
     }
@@ -361,7 +361,7 @@ compute_type(void)
   #else
     {
       ContextProperties ctx;
-      if(ctx.version() >= ivec2(4, 4) || ctx.has_extension("GL_ARB_clear_texture"))
+      if (ctx.version() >= ivec2(4, 4) || ctx.has_extension("GL_ARB_clear_texture"))
         {
           return use_clear_texture;
         }

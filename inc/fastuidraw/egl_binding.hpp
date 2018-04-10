@@ -94,7 +94,7 @@ namespace fastuidraw {
   //get a function pointer for a EGL function
   //which takes no arguments and returns nothing.
   void (*functionPointer)(void) = nullptr;
-  if(FASTUIDRAWeglfunctionExists(eglSomething)
+  if (FASTUIDRAWeglfunctionExists(eglSomething)
     {
       functionPointer = FASTUIDRAWeglfunctionPointer(eglSomeFunction);
     }

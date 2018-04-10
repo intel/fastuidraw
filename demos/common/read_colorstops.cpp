@@ -14,7 +14,7 @@ read_colorstops(fastuidraw::ColorStopSequence &seq, std::istream &input)
       input >> b;
       input >> a;
 
-      if(!input.fail())
+      if (!input.fail())
         {
           fastuidraw::ColorStop c(fastuidraw::u8vec4(r, g, b, a), t);
           seq.add(c);

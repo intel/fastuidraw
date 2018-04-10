@@ -15,22 +15,22 @@ Table(const TableParams &params):
   m_params.m_cell_count.x() = std::max(1, m_params.m_cell_count.x());
   m_params.m_cell_count.y() = std::max(1, m_params.m_cell_count.y());
 
-  if(m_params.m_text_colors.empty())
+  if (m_params.m_text_colors.empty())
     {
       m_params.m_text_colors.push_back(vec4(1.0f, 1.0f, 1.0f, 1.0f));
     }
 
-  if(m_params.m_background_colors.empty())
+  if (m_params.m_background_colors.empty())
     {
       m_params.m_background_colors.push_back(vec4(0.0f, 0.0f, 1.0f, 1.0f));
     }
 
-  if(m_params.m_texts.empty())
+  if (m_params.m_texts.empty())
     {
       m_params.m_texts.push_back("Lonely Text");
     }
 
-  if(m_params.m_images.empty())
+  if (m_params.m_images.empty())
     {
       m_params.m_images.push_back(named_image(reference_counted_ptr<const Image>(),
                                               "nullptr"));
@@ -51,11 +51,11 @@ generate_children_in_group(const reference_counted_ptr<Painter> &painter,
   g->m_bb_min = (vec2(xy) ) * m_cell_sz;
   g->m_bb_max = (vec2(xy) + vec2(count_x, count_y) ) * m_cell_sz;
 
-  if(count_x > m_params.m_max_cell_group_size || count_y > m_params.m_max_cell_group_size)
+  if (count_x > m_params.m_max_cell_group_size || count_y > m_params.m_max_cell_group_size)
     {
       int cx1, cx2, cy1, cy2;
 
-      if(count_x > m_params.m_max_cell_group_size)
+      if (count_x > m_params.m_max_cell_group_size)
         {
           cx1 = count_x / 2;
           cx2 = count_x - cx1;
@@ -66,7 +66,7 @@ generate_children_in_group(const reference_counted_ptr<Painter> &painter,
           cx2 = 0;
         }
 
-      if(count_y > m_params.m_max_cell_group_size)
+      if (count_y > m_params.m_max_cell_group_size)
         {
           cy1 = count_y / 2;
           cy2 = count_y - cy1;
@@ -81,21 +81,21 @@ generate_children_in_group(const reference_counted_ptr<Painter> &painter,
       p = FASTUIDRAWnew CellGroup(g);
       generate_children_in_group(painter, p, J, xy, cx1, cy1, txt, bg, im);
 
-      if(cx2 > 0)
+      if (cx2 > 0)
         {
           p = FASTUIDRAWnew CellGroup(g);
           generate_children_in_group(painter, p, J, ivec2(xy.x() + cx1, xy.y()),
                                      cx2, cy1, txt, bg, im);
         }
 
-      if(cy2 > 0)
+      if (cy2 > 0)
         {
           p = FASTUIDRAWnew CellGroup(g);
           generate_children_in_group(painter, p, J, ivec2(xy.x(), xy.y() + cy1),
                                      cx1, cy2, txt, bg, im);
         }
 
-      if(cx2 > 0 && cy2 > 0)
+      if (cx2 > 0 && cy2 > 0)
         {
           p = FASTUIDRAWnew CellGroup(g);
           generate_children_in_group(painter, p, J, ivec2(xy.x() + cx1, xy.y() + cy1),
@@ -116,22 +116,22 @@ generate_children_in_group(const reference_counted_ptr<Painter> &painter,
               bgJ = J % bg.size();
               imJ = J % im.size();
 
-              if(!txt[txtJ])
+              if (!txt[txtJ])
                 {
                   PainterBrush brush(m_params.m_text_colors[txtJ]);
                   txt[txtJ] = painter->packed_value_pool().create_packed_value(brush);
                 }
 
-              if(!bg[bgJ])
+              if (!bg[bgJ])
                 {
                   PainterBrush brush(m_params.m_background_colors[bgJ]);
                   bg[bgJ] = painter->packed_value_pool().create_packed_value(brush);
                 }
 
-              if(!im[imJ])
+              if (!im[imJ])
                 {
                   PainterBrush brush;
-                  if(m_params.m_images[imJ].first)
+                  if (m_params.m_images[imJ].first)
                     {
                       brush.image(m_params.m_images[imJ].first);
                     }
@@ -155,7 +155,7 @@ generate_children_in_group(const reference_counted_ptr<Painter> &painter,
               params.m_pixel_size = m_params.m_pixel_size;
               params.m_size = m_cell_sz;
               params.m_table_pos = ivec2(x, y) + xy;
-              if(m_params.m_draw_image_name)
+              if (m_params.m_draw_image_name)
                 {
                   params.m_image_name = m_params.m_images[imJ].second;
                 }
@@ -180,7 +180,7 @@ void
 Table::
 paint_pre_children(const reference_counted_ptr<Painter> &painter)
 {
-  if(m_first_draw)
+  if (m_first_draw)
     {
       vec2 cell_loc;
       int x, y, J;
@@ -232,7 +232,7 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
   else
     {
       uint32_t ms;
-      if(m_params.m_timer_based_animation)
+      if (m_params.m_timer_based_animation)
         {
           ms = m_time.restart();
         }
@@ -241,18 +241,18 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
           ms = 16;
         }
 
-      if(m_params.m_cell_state->m_pause)
+      if (m_params.m_cell_state->m_pause)
         {
           ms = 0;
         }
 
       m_thousandths_degrees_rotation += m_params.m_table_rotate_degrees_per_s * ms;
-      if(m_thousandths_degrees_rotation >= 360 * 1000)
+      if (m_thousandths_degrees_rotation >= 360 * 1000)
         {
           m_thousandths_degrees_rotation = m_thousandths_degrees_rotation % (360 * 1000);
         }
 
-      if(!m_rotating)
+      if (!m_rotating)
         {
           m_thousandths_degrees_rotation = 0;
         }
@@ -269,7 +269,7 @@ pre_paint()
   m_bb_min = m_params.m_zoomer->transformation().apply_inverse_to_point(m_bb_min);
   m_bb_max = m_params.m_zoomer->transformation().apply_inverse_to_point(m_bb_max);
 
-  if(m_rotating)
+  if (m_rotating)
     {
       m_parent_matrix_this.reset();
       m_parent_matrix_this.translate(m_dimensions * 0.5f);
@@ -309,7 +309,7 @@ void
 Table::
 paint_post_children(const reference_counted_ptr<Painter> &painter)
 {
-  if(!m_params.m_cell_state->m_rotating && m_params.m_cell_state->m_stroke_width > 0.0f)
+  if (!m_params.m_cell_state->m_rotating && m_params.m_cell_state->m_stroke_width > 0.0f)
     {
       PainterStrokeParams st;
       st.miter_limit(-1.0f);

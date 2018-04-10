@@ -68,7 +68,7 @@ namespace
   unsigned int
   compute_special_index(size_t sz)
   {
-    if(sz % 4 == 1)
+    if (sz % 4 == 1)
       {
         return sz - 1;
       }
@@ -88,11 +88,11 @@ namespace
     fastuidraw::c_string ext = "xyzw";
     for(unsigned int i = 0; i < p.size(); ++i)
       {
-        if(define)
+        if (define)
           {
             std::ostringstream str;
             str << s << append_to_name << i / 4;
-            if(i != special_index)
+            if (i != special_index)
               {
                 str << "." << ext[i % 4];
               }
@@ -128,7 +128,7 @@ namespace
       }
 
     extra_over_4 = cnt % 4;
-    if(extra_over_4 > 0)
+    if (extra_over_4 > 0)
       {
         str << "FASTUIDRAW_LAYOUT_VARYING(" << location << ") "
             << qualifier << " fastuidraw_varying"
@@ -322,19 +322,19 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
       << uber_func_with_args << "\n"
       << "{\n";
 
-  if(has_return_value)
+  if (has_return_value)
     {
       str << "    " << return_type << " p;\n";
     }
 
   for(unsigned int i = 0; i < shaders.size(); ++i)
     {
-      if(shaders[i]->number_sub_shaders() > 1)
+      if (shaders[i]->number_sub_shaders() > 1)
         {
           unsigned int start, end;
           start = shaders[i]->ID();
           end = start + shaders[i]->number_sub_shaders();
-          if(has_sub_shaders)
+          if (has_sub_shaders)
             {
               str << "    else ";
             }
@@ -343,11 +343,11 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
               str << "    ";
             }
 
-          str << "if(" << shader_id << " >= uint(" << start
+          str << "if (" << shader_id << " >= uint(" << start
               << ") && " << shader_id << " < uint(" << end << "))\n"
               << "    {\n"
               << "        ";
-          if(has_return_value)
+          if (has_return_value)
             {
               str << "p = ";
             }
@@ -358,7 +358,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
         }
     }
 
-  if(has_sub_shaders && use_switch)
+  if (has_sub_shaders && use_switch)
     {
       str << "    else\n"
           << "    {\n";
@@ -369,7 +369,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
       tab = "    ";
     }
 
-  if(use_switch)
+  if (use_switch)
     {
       str << tab << "switch(" << shader_id << ")\n"
           << tab << "{\n";
@@ -377,9 +377,9 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
 
   for(unsigned int i = 0; i < shaders.size(); ++i)
     {
-      if(shaders[i]->number_sub_shaders() == 1)
+      if (shaders[i]->number_sub_shaders() == 1)
         {
-          if(use_switch)
+          if (use_switch)
             {
               str << tab << "case uint(" << shaders[i]->ID() << "):\n";
               str << tab << "    {\n"
@@ -387,7 +387,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
             }
           else
             {
-              if(i != 0)
+              if (i != 0)
                 {
                   str << tab << "else if";
                 }
@@ -400,7 +400,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
                   << tab << "    ";
             }
 
-          if(has_return_value)
+          if (has_return_value)
             {
               str << "p = ";
             }
@@ -408,7 +408,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
           str << shader_main << shaders[i]->ID()
               << "(uint(0)" << shader_args << ");\n";
 
-          if(use_switch)
+          if (use_switch)
             {
               str << tab << "    }\n"
                   << tab << "    break;\n\n";
@@ -420,17 +420,17 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
         }
     }
 
-  if(use_switch)
+  if (use_switch)
     {
       str << tab << "}\n";
     }
 
-  if(has_sub_shaders && use_switch)
+  if (has_sub_shaders && use_switch)
     {
       str << "    }\n";
     }
 
-  if(has_return_value)
+  if (has_return_value)
     {
       str << "    return p;\n";
     }

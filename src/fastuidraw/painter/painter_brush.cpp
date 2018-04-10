@@ -30,32 +30,32 @@ data_size(unsigned int alignment) const
 
   return_value += round_up_to_multiple(pen_data_size, alignment);
 
-  if(pshader & image_mask)
+  if (pshader & image_mask)
     {
       return_value += round_up_to_multiple(image_data_size, alignment);
     }
 
-  if(pshader & radial_gradient_mask)
+  if (pshader & radial_gradient_mask)
     {
       FASTUIDRAWassert(pshader & gradient_mask);
       return_value += round_up_to_multiple(radial_gradient_data_size, alignment);
     }
-  else if(pshader & gradient_mask)
+  else if (pshader & gradient_mask)
     {
       return_value += round_up_to_multiple(linear_gradient_data_size, alignment);
     }
 
-  if(pshader & repeat_window_mask)
+  if (pshader & repeat_window_mask)
     {
       return_value += round_up_to_multiple(repeat_window_data_size, alignment);
     }
 
-  if(pshader & transformation_translation_mask)
+  if (pshader & transformation_translation_mask)
     {
       return_value += round_up_to_multiple(transformation_translation_data_size, alignment);
     }
 
-  if(pshader & transformation_matrix_mask)
+  if (pshader & transformation_matrix_mask)
     {
       return_value += round_up_to_multiple(transformation_matrix_data_size, alignment);
     }
@@ -83,7 +83,7 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
     sub_dest[pen_alpha_offset].f = m_data.m_pen.w();
   }
 
-  if(pshader & image_mask)
+  if (pshader & image_mask)
     {
       sz = round_up_to_multiple(image_data_size, alignment);
       sub_dest = dst.sub_array(current, sz);
@@ -112,9 +112,9 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
         | pack_bits(image_slack_bit0, image_slack_num_bits, slack);
     }
 
-  if(pshader & gradient_mask)
+  if (pshader & gradient_mask)
     {
-      if(pshader & radial_gradient_mask)
+      if (pshader & radial_gradient_mask)
         {
           sz = round_up_to_multiple(radial_gradient_data_size, alignment);
         }
@@ -145,14 +145,14 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
       sub_dest[gradient_p1_x_offset].f = m_data.m_grad_end.x();
       sub_dest[gradient_p1_y_offset].f = m_data.m_grad_end.y();
 
-      if(pshader & radial_gradient_mask)
+      if (pshader & radial_gradient_mask)
         {
           sub_dest[gradient_start_radius_offset].f = m_data.m_grad_start_r;
           sub_dest[gradient_end_radius_offset].f = m_data.m_grad_end_r;
         }
     }
 
-  if(pshader & repeat_window_mask)
+  if (pshader & repeat_window_mask)
     {
       sz = round_up_to_multiple(repeat_window_data_size, alignment);
       sub_dest = dst.sub_array(current, sz);
@@ -164,7 +164,7 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
       sub_dest[repeat_window_height_offset].f = m_data.m_window_size.y();
     }
 
-  if(pshader & transformation_matrix_mask)
+  if (pshader & transformation_matrix_mask)
     {
       sz = round_up_to_multiple(transformation_matrix_data_size, alignment);
       sub_dest = dst.sub_array(current, sz);
@@ -176,7 +176,7 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
       sub_dest[transformation_matrix_m11_offset].f = m_data.m_transformation_matrix(1, 1);
     }
 
-  if(pshader & transformation_translation_mask)
+  if (pshader & transformation_translation_mask)
     {
       sz = round_up_to_multiple(transformation_translation_data_size, alignment);
       sub_dest = dst.sub_array(current, sz);
@@ -213,7 +213,7 @@ fastuidraw::PainterBrush::
 image(const reference_counted_ptr<const Image> &im, enum image_filter f)
 {
   uvec2 sz(0, 0);
-  if(im)
+  if (im)
     {
       sz = uvec2(im->dimensions());
     }
@@ -230,7 +230,7 @@ shader(void) const
   /* lacking an image or gradient means the brush does
      nothing and so all bits should be down.
    */
-  if(!m_data.m_image && !m_data.m_cs)
+  if (!m_data.m_image && !m_data.m_cs)
     {
       return_value = 0;
     }

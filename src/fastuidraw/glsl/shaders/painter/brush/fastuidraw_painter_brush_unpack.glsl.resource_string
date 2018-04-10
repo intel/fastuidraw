@@ -46,7 +46,7 @@ fastuidraw_process_image_data(in fastuidraw_brush_image_data_raw raw,
   cooked.slack = slack;
   cooked.number_index_lookups = number_index_lookups;
 
-  if(number_index_lookups > uint(0))
+  if (number_index_lookups > uint(0))
     {
       /*
         The factor from master index tile to color tile is given by
@@ -143,7 +143,7 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
   fastuidraw_brush_pen_color_z = pen_color.z;
   fastuidraw_brush_pen_color_w = pen_color.w;
 
-  if(fastuidraw_brush_shader_has_image(shader))
+  if (fastuidraw_brush_shader_has_image(shader))
     {
       data_ptr = fastuidraw_read_brush_image_data(data_ptr, image);
     }
@@ -156,11 +156,11 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
       image.image_size_over_master_size = uint(1);
     }
 
-  if(fastuidraw_brush_shader_has_radial_gradient(shader))
+  if (fastuidraw_brush_shader_has_radial_gradient(shader))
     {
       data_ptr = fastuidraw_read_brush_radial_gradient_data(data_ptr, gradient);
     }
-  else if(fastuidraw_brush_shader_has_linear_gradient(shader))
+  else if (fastuidraw_brush_shader_has_linear_gradient(shader))
     {
       data_ptr = fastuidraw_read_brush_linear_gradient_data(data_ptr, gradient);
     }
@@ -172,7 +172,7 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
       gradient.color_stop_sequence_xy = vec2(0.0, 0.0);
     }
 
-  if(fastuidraw_brush_shader_has_repeat_window(shader))
+  if (fastuidraw_brush_shader_has_repeat_window(shader))
     {
       data_ptr = fastuidraw_read_brush_repeat_window(data_ptr, repeat_window);
     }
@@ -224,21 +224,21 @@ fastuidraw_painter_offset_to_transformation(uint shader)
 
   r = uint(fastuidraw_shader_pen_num_blocks);
 
-  if(fastuidraw_brush_shader_has_image(shader))
+  if (fastuidraw_brush_shader_has_image(shader))
     {
       r += uint(fastuidraw_shader_image_num_blocks);
     }
 
-  if(fastuidraw_brush_shader_has_radial_gradient(shader))
+  if (fastuidraw_brush_shader_has_radial_gradient(shader))
     {
       r += uint(fastuidraw_shader_radial_gradient_num_blocks);
     }
-  else if(fastuidraw_brush_shader_has_linear_gradient(shader))
+  else if (fastuidraw_brush_shader_has_linear_gradient(shader))
     {
       r += uint(fastuidraw_shader_linear_gradient_num_blocks);
     }
 
-  if(fastuidraw_brush_shader_has_repeat_window(shader))
+  if (fastuidraw_brush_shader_has_repeat_window(shader))
     {
       r += uint(fastuidraw_shader_repeat_window_num_blocks);
     }

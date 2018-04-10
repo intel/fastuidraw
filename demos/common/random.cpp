@@ -6,7 +6,7 @@ void
 init_srand(void)
 {
   static bool inited(false);
-  if(!inited)
+  if (!inited)
     {
       inited = true;
       srand(0);

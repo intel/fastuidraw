@@ -45,12 +45,12 @@ bool
 fastuidraw::GlyphRender::
 operator<(const GlyphRender &rhs) const
 {
-  if(m_type != rhs.m_type)
+  if (m_type != rhs.m_type)
     {
       return m_type < rhs.m_type;
     }
 
-  if(!scalable(m_type))
+  if (!scalable(m_type))
     {
       return m_pixel_size < rhs.m_pixel_size;
     }

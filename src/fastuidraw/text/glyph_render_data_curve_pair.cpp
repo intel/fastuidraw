@@ -129,7 +129,7 @@ entry_ctor_helper(fastuidraw::c_array<const fastuidraw::vec2> pts, bool reverse)
   poly = poly.sub_array(0, pts.size());
 
   /* copy control points */
-  if(reverse)
+  if (reverse)
     {
       std::copy(pts.rbegin(), pts.rend(), work.begin());
     }
@@ -147,7 +147,7 @@ entry_ctor_helper(fastuidraw::c_array<const fastuidraw::vec2> pts, bool reverse)
       *iter -= work[0];
     }
 
-  if(m_is_quadratic)
+  if (m_is_quadratic)
     {
       float div_q;
 
@@ -244,7 +244,7 @@ entry(c_array<const vec2> pts, int curve0_count):
   bool tangential(false), tangled;
 
   d = dot(c0.m_derivative, apply_j(c1.m_derivative));
-  if(d == 0.0f || d == -0.0f)
+  if (d == 0.0f || d == -0.0f)
     {
       float rescale;
 
@@ -254,7 +254,7 @@ entry(c_array<const vec2> pts, int curve0_count):
         + rescale * dot(apply_j(c1.m_derivative), c0.m_accelleration);
     }
 
-  if(d < 0.0f)
+  if (d < 0.0f)
     {
       /* only one need have positive pseudo-distance, so use max */
       m_use_min = false;
@@ -269,7 +269,7 @@ entry(c_array<const vec2> pts, int curve0_count):
     or (!tangential and (c0.tangled(c1.m_derivative) or c1.tangled(c0.m_derivative)) );
 
 
-  if(tangled xor m_use_min)
+  if (tangled xor m_use_min)
     {
       m_zeta = 1.0f;
     }
@@ -297,7 +297,7 @@ entry(bool inside):
   m_curve0.m_q = vec2(1.0f, 0.0f);
   m_curve0.m_quad_coeff = 0.0f;
   m_curve1 = m_curve0;
-  if(inside)
+  if (inside)
     {
       m_use_min = false;
       m_type = entry_completely_covered;
@@ -309,7 +309,7 @@ entry(bool inside):
     }
 
   bool tangled = false;
-  if(tangled xor m_use_min)
+  if (tangled xor m_use_min)
     {
       m_zeta = 1.0f;
     }
@@ -429,11 +429,11 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
         {
           uint16_t v;
           v = d->m_texels[J];
-          if(v == completely_full_texel)
+          if (v == completely_full_texel)
             {
               v = 1;
             }
-          else if(v == completely_empty_texel)
+          else if (v == completely_empty_texel)
             {
               v = 0;
             }
@@ -442,9 +442,9 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
               v += 2;
             }
           primary[J] = v & 0xFF;
-          if(v > 0xFF)
+          if (v > 0xFF)
             {
-              if(!has_secondary)
+              if (!has_secondary)
                 {
                   has_secondary = true;
                   secondary.resize(num_texels, 0);
@@ -459,17 +459,17 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
   geometry_length = 0;
 
   atlas_location = atlas->allocate(d->m_resolution, make_c_array(primary), padding);
-  if(atlas_location.valid())
+  if (atlas_location.valid())
     {
       bool success(true);
 
-      if(has_secondary)
+      if (has_secondary)
         {
           secondary_atlas_location = atlas->allocate(d->m_resolution, make_c_array(secondary), padding);
           success = secondary_atlas_location.valid();
         }
 
-      if(success && !d->m_geometry_data.empty())
+      if (success && !d->m_geometry_data.empty())
         {
           unsigned int entry_size, alignment;
           std::vector<generic_data> geometry_data;
@@ -483,11 +483,11 @@ upload_to_atlas(const reference_counted_ptr<GlyphAtlas> &atlas,
           success = (geometry_offset != -1);
         }
 
-      if(!success)
+      if (!success)
         {
           atlas->deallocate(atlas_location);
           atlas_location = GlyphLocation();
-          if(secondary_atlas_location.valid())
+          if (secondary_atlas_location.valid())
             {
               atlas->deallocate(secondary_atlas_location);
               secondary_atlas_location = GlyphLocation();

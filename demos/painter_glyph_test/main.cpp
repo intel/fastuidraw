@@ -249,7 +249,7 @@ init(unsigned int num_threads,
         {
           --glyph_index;
           FASTUIDRAWassert(glyph_index < static_cast<int>(m_glyphs.size()));
-          if(!found_character_code[glyph_index])
+          if (!found_character_code[glyph_index])
             {
               m_character_codes[glyph_index] = character_code;
               found_character_code[glyph_index] = true;
@@ -288,7 +288,7 @@ init(unsigned int num_threads,
 
       pen.x() += advance;
 
-      if(i + 1 < endi)
+      if (i + 1 < endi)
         {
           float pre_layout, nxt_adv;
           GlyphLayoutData nxtL(m_glyphs[i + 1].layout());
@@ -304,7 +304,7 @@ init(unsigned int num_threads,
           nxt = pen.x();
         }
 
-      if(nxt >= line_length || i + 1 == endi)
+      if (nxt >= line_length || i + 1 == endi)
         {
           std::ostringstream desc;
           desc << "[" << std::setw(5) << m_glyphs[glyph_at_start].layout().m_glyph_code
@@ -368,7 +368,7 @@ init(std::istream &istr,
      GlyphRender renderer,
      size_t glyphs_per_painter_draw)
 {
-  if(istr)
+  if (istr)
     {
       std::vector<LineData> lines;
       create_formatted_text(istr, renderer, pixel_size_formatting,
@@ -505,11 +505,11 @@ create_and_add_font(void)
 {
   reference_counted_ptr<const FontBase> font;
 
-  if(!m_font_file.m_value.empty())
+  if (!m_font_file.m_value.empty())
     {
       reference_counted_ptr<FreeTypeFace::GeneratorBase> gen;
       gen = FASTUIDRAWnew FreeTypeFace::GeneratorMemory(m_font_file.m_value.c_str(), 0);
-      if(gen->check_creation() == routine_success)
+      if (gen->check_creation() == routine_success)
         {
           font = FASTUIDRAWnew FontFreeType(gen,
                                             FontFreeType::RenderParams()
@@ -526,7 +526,7 @@ create_and_add_font(void)
                       .distance_field_pixel_size(m_distance_pixel_size.m_value)
                       .curve_pair_pixel_size(m_curve_pair_pixel_size.m_value));
 
-  if(!font)
+  if (!font)
     {
       FontProperties props;
       props.style(m_font_style.m_value.c_str());
@@ -538,7 +538,7 @@ create_and_add_font(void)
     }
 
   m_font = font.dynamic_cast_ptr<const FontFreeType>();
-  if(m_font)
+  if (m_font)
     {
       std::cout << "Chose font: \"" << m_font->properties() << "\"\n";
     }
@@ -560,7 +560,7 @@ derived_init(int w, int h)
   FASTUIDRAWunused(w);
   FASTUIDRAWunused(h);
 
-  if(create_and_add_font() == routine_fail)
+  if (create_and_add_font() == routine_fail)
     {
       end_demo(-1);
       return;
@@ -577,14 +577,14 @@ void
 painter_glyph_test::
 init_glyph_draw(unsigned int I, GlyphRender renderer)
 {
-  if(m_draw_glyph_set.m_value)
+  if (m_draw_glyph_set.m_value)
     {
       m_draws[I].init(m_realize_glyphs_thread_count.m_value,
                       m_font, m_glyph_cache, m_glyph_selector,
                       m_render_pixel_size.m_value, renderer,
                       m_glyphs_per_painter_draw.m_value);
     }
-  else if(m_use_file.m_value)
+  else if (m_use_file.m_value)
     {
       std::ifstream istr(m_text.m_value.c_str(), std::ios::binary);
       m_draws[I].init(istr, m_font, m_glyph_selector,
@@ -646,7 +646,7 @@ draw_frame(void)
   PainterBrush brush;
   brush.pen(1.0, 1.0, 1.0, 1.0);
 
-  if(!m_fill_glyphs)
+  if (!m_fill_glyphs)
     {
       for(unsigned int S = 0, endS = m_draws[m_current_drawer].size(); S < endS; ++S)
         {
@@ -670,7 +670,7 @@ draw_frame(void)
 
       for(unsigned int i = 0; i < glyphs.size(); ++i)
         {
-          if(glyphs[i].valid())
+          if (glyphs[i].valid())
             {
               m_painter->save();
               m_painter->translate(glyph_positions[i]);
@@ -693,7 +693,7 @@ draw_frame(void)
         }
     }
 
-  if(m_stroke_glyphs)
+  if (m_stroke_glyphs)
     {
       unsigned int src;
       PainterBrush stroke_brush;
@@ -717,7 +717,7 @@ draw_frame(void)
 
       for(unsigned int i = 0; i < glyphs.size(); ++i)
         {
-          if(glyphs[i].valid())
+          if (glyphs[i].valid())
             {
               m_painter->save();
               m_painter->translate(glyph_positions[i]);
@@ -731,7 +731,7 @@ draw_frame(void)
 	      //path, thus we also need to negate in the y-direction.
               m_painter->shear(sc, -sc);
 
-              if(m_pixel_width_stroking)
+              if (m_pixel_width_stroking)
                 {
                   m_painter->stroke_path_pixel_width(PainterData(pst, pbr),
                                                      glyphs[i].path(),
@@ -752,12 +752,12 @@ draw_frame(void)
         }
     }
 
-  if(m_draw_stats)
+  if (m_draw_stats)
     {
       std::ostringstream ostr;
 
       ostr << "FPS = ";
-      if(us > 0.0f)
+      if (us > 0.0f)
         {
           ostr << 1000.0f * 1000.0f / us;
         }
@@ -796,7 +796,7 @@ draw_frame(void)
       SDL_GetMouseState(&mouse_position.x(), &mouse_position.y());
       p = m_zoomer.transformation().apply_inverse_to_point(vec2(mouse_position));
       G = m_draws[src].glyph_finder().glyph_source(p);
-      if(G != GlyphFinder::glyph_not_found)
+      if (G != GlyphFinder::glyph_not_found)
         {
           Glyph glyph;
           GlyphLayoutData layout;
@@ -812,7 +812,7 @@ draw_frame(void)
           wh.x() = ratio * layout.m_size.x();
           wh.y() = -ratio * layout.m_size.y();
 
-          if(p.x() >= t_min(q.x(), q.x() + wh.x())
+          if (p.x() >= t_min(q.x(), q.x() + wh.x())
              && p.x() <= t_max(q.x(), q.x() + wh.x())
              && p.y() >= t_min(q.y(), q.y() + wh.y())
              && p.y() <= t_max(q.y(), q.y() + wh.y()))
@@ -866,27 +866,27 @@ update_cts_params(void)
   return_value = static_cast<float>(m_draw_timer.restart_us());
   speed = return_value * m_change_stroke_width_rate.m_value;
 
-  if(keyboard_state[SDL_SCANCODE_LSHIFT])
+  if (keyboard_state[SDL_SCANCODE_LSHIFT])
     {
       speed *= 0.1f;
     }
-  if(keyboard_state[SDL_SCANCODE_RSHIFT])
+  if (keyboard_state[SDL_SCANCODE_RSHIFT])
     {
       speed *= 10.0f;
     }
 
-  if(keyboard_state[SDL_SCANCODE_RIGHTBRACKET])
+  if (keyboard_state[SDL_SCANCODE_RIGHTBRACKET])
     {
       m_stroke_width += speed;
     }
 
-  if(keyboard_state[SDL_SCANCODE_LEFTBRACKET] && m_stroke_width > 0.0f)
+  if (keyboard_state[SDL_SCANCODE_LEFTBRACKET] && m_stroke_width > 0.0f)
     {
       m_stroke_width -= speed;
       m_stroke_width = fastuidraw::t_max(m_stroke_width, 0.0f);
     }
 
-  if(keyboard_state[SDL_SCANCODE_RIGHTBRACKET] || keyboard_state[SDL_SCANCODE_LEFTBRACKET])
+  if (keyboard_state[SDL_SCANCODE_RIGHTBRACKET] || keyboard_state[SDL_SCANCODE_LEFTBRACKET])
     {
       std::cout << "Stroke width set to: " << m_stroke_width << "\n";
     }
@@ -905,7 +905,7 @@ handle_event(const SDL_Event &ev)
       break;
 
     case SDL_WINDOWEVENT:
-      if(ev.window.event == SDL_WINDOWEVENT_RESIZED)
+      if (ev.window.event == SDL_WINDOWEVENT_RESIZED)
         {
           on_resize(ev.window.data1, ev.window.data2);
         }
@@ -919,10 +919,10 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_a:
-          if(!m_fill_glyphs)
+          if (!m_fill_glyphs)
             {
               m_use_anisotropic_anti_alias = !m_use_anisotropic_anti_alias;
-              if(m_use_anisotropic_anti_alias)
+              if (m_use_anisotropic_anti_alias)
                 {
                   std::cout << "Using Anistropic anti-alias filtering\n";
                 }
@@ -952,7 +952,7 @@ handle_event(const SDL_Event &ev)
           {
             m_stroke_glyphs = !m_stroke_glyphs;
             std::cout << "Set to ";
-            if(!m_stroke_glyphs)
+            if (!m_stroke_glyphs)
               {
                 std::cout << "not ";
               }
@@ -961,7 +961,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_j:
-          if(m_stroke_glyphs)
+          if (m_stroke_glyphs)
             {
               cycle_value(m_join_style, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), PainterEnums::number_join_styles);
               std::cout << "Join drawing mode set to: " << m_join_labels[m_join_style] << "\n";
@@ -969,11 +969,11 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_w:
-          if(m_stroke_glyphs)
+          if (m_stroke_glyphs)
             {
               m_anti_alias_path_stroking = !m_anti_alias_path_stroking;
               std::cout << "Anti-aliasing of path stroking set to ";
-              if(m_anti_alias_path_stroking)
+              if (m_anti_alias_path_stroking)
                 {
                   std::cout << "ON\n";
                 }
@@ -985,10 +985,10 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_p:
-          if(m_stroke_glyphs)
+          if (m_stroke_glyphs)
             {
               m_pixel_width_stroking = !m_pixel_width_stroking;
-              if(m_pixel_width_stroking)
+              if (m_pixel_width_stroking)
                 {
                   std::cout << "Set to stroke with pixel width stroking\n";
                 }
@@ -1005,7 +1005,7 @@ handle_event(const SDL_Event &ev)
 
         case SDLK_f:
           m_fill_glyphs = !m_fill_glyphs;
-          if(m_fill_glyphs)
+          if (m_fill_glyphs)
             {
               std::cout << "Draw glyphs via path filling\n";
             }
@@ -1016,11 +1016,11 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_q:
-          if(m_fill_glyphs)
+          if (m_fill_glyphs)
             {
               m_anti_alias_path_filling = !m_anti_alias_path_filling;
               std::cout << "Anti-aliasing of path fill set to ";
-              if(m_anti_alias_path_filling)
+              if (m_anti_alias_path_filling)
                 {
                   std::cout << "ON\n";
                 }

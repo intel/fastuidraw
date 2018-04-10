@@ -151,7 +151,7 @@ post_call(fastuidraw::c_string call_string_values,
   m_str->stream() << "Post: [" << src_file << "," << src_line << "] "
                   << call_string_values;
 
-  if(error_string && *error_string)
+  if (error_string && *error_string)
     {
       m_str->stream() << "{" << error_string << "}";
     }
@@ -231,10 +231,10 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
 sdl_demo::
 ~sdl_demo()
 {
-  if(m_window)
+  if (m_window)
     {
       m_ctx_egl = fastuidraw::reference_counted_ptr<egl_helper>();
-      if(m_ctx)
+      if (m_ctx)
         {
           SDL_GL_MakeCurrent(m_window, nullptr);
           SDL_GL_DeleteContext(m_ctx);
@@ -252,7 +252,7 @@ enum fastuidraw::return_code
 sdl_demo::
 init_sdl(void)
 {
-  if(SDL_Init(SDL_INIT_EVERYTHING)<0)
+  if (SDL_Init(SDL_INIT_EVERYTHING)<0)
     {
       std::cerr << "\nFailed on SDL_Init\n";
       return fastuidraw::routine_fail;
@@ -261,7 +261,7 @@ init_sdl(void)
   int video_flags;
   video_flags = SDL_WINDOW_RESIZABLE;
 
-  if(m_fullscreen.m_value)
+  if (m_fullscreen.m_value)
     {
       video_flags = video_flags | SDL_WINDOW_FULLSCREEN;
     }
@@ -277,7 +277,7 @@ init_sdl(void)
   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, m_blue_bits.m_value);
   SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, m_alpha_bits.m_value);
 
-  if(m_use_msaa.m_value)
+  if (m_use_msaa.m_value)
     {
       SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
       SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, m_msaa.m_value);
@@ -291,7 +291,7 @@ init_sdl(void)
     }
   #else
     {
-      if(m_gl_major.m_value >= 3)
+      if (m_gl_major.m_value >= 3)
 	{
 	  int context_flags(0);
 	  int profile_mask(0);
@@ -299,17 +299,17 @@ init_sdl(void)
 	  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_gl_major.m_value);
 	  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_gl_minor.m_value);
 
-	  if(m_gl_forward_compatible_context.m_value)
+	  if (m_gl_forward_compatible_context.m_value)
 	    {
 	      context_flags |= SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
 	    }
 
-	  if(m_gl_debug_context.m_value)
+	  if (m_gl_debug_context.m_value)
 	    {
 	      context_flags |= SDL_GL_CONTEXT_DEBUG_FLAG;
 	    }
 
-	  if(m_gl_core_profile.m_value)
+	  if (m_gl_core_profile.m_value)
 	    {
 	      profile_mask = SDL_GL_CONTEXT_PROFILE_CORE;
 	    }
@@ -330,19 +330,19 @@ init_sdl(void)
                               video_flags);
 
 
-  if(m_window == nullptr)
+  if (m_window == nullptr)
     {
       std::cerr << "\nFailed on SDL_SetVideoMode\n";
       return fastuidraw::routine_fail;
     }
 
-  if(m_dimensions_must_match.m_value)
+  if (m_dimensions_must_match.m_value)
     {
       int w, h;
       bool is_fullscreen;
       is_fullscreen = (SDL_GetWindowFlags(m_window) & SDL_WINDOW_FULLSCREEN) != 0;
       SDL_GetWindowSize(m_window, &w, &h);
-      if(w != m_width.m_value || h != m_height.m_value || is_fullscreen != m_fullscreen.m_value)
+      if (w != m_width.m_value || h != m_height.m_value || is_fullscreen != m_fullscreen.m_value)
         {
           std::cerr << "\nDimensions did not match and required to match\n";
           return fastuidraw::routine_fail;
@@ -350,12 +350,12 @@ init_sdl(void)
     }
 
   fastuidraw::reference_counted_ptr<StreamHolder> str;
-  if(!m_log_gl_commands.m_value.empty())
+  if (!m_log_gl_commands.m_value.empty())
     {
       str = FASTUIDRAWnew StreamHolder(m_log_gl_commands.m_value);
     }
 
-  if(m_use_egl.m_value)
+  if (m_use_egl.m_value)
     {
       egl_helper::params P;
       P.m_red_bits = m_red_bits.m_value;
@@ -366,7 +366,7 @@ init_sdl(void)
       P.m_stencil_bits = m_stencil_bits.m_value;
       P.m_gles_major_version = m_gl_major.m_value;
       P.m_gles_minor_version = m_gl_minor.m_value;
-      if(m_use_msaa.m_value)
+      if (m_use_msaa.m_value)
         {
           P.m_msaa = m_msaa.m_value;
         }
@@ -375,19 +375,19 @@ init_sdl(void)
       fastuidraw::gl_binding::get_proc_function(egl_helper::egl_get_proc);
     }
 
-  if(!m_ctx_egl)
+  if (!m_ctx_egl)
     {
       m_ctx = SDL_GL_CreateContext(m_window);
-      if(m_ctx == nullptr)
+      if (m_ctx == nullptr)
         {
           std::cerr << "Unable to create GL context: " << SDL_GetError() << "\n";
           return fastuidraw::routine_fail;
         }
       SDL_GL_MakeCurrent(m_window, m_ctx);
 
-      if(m_swap_interval.set_by_command_line())
+      if (m_swap_interval.set_by_command_line())
         {
-          if(SDL_GL_SetSwapInterval(m_swap_interval.m_value) != 0)
+          if (SDL_GL_SetSwapInterval(m_swap_interval.m_value) != 0)
             {
               std::cerr << "Warning unable to set swap interval: "
                         << SDL_GetError() << "\n";
@@ -396,17 +396,17 @@ init_sdl(void)
       fastuidraw::gl_binding::get_proc_function(get_proc);
     }
 
-  if(m_hide_cursor.m_value)
+  if (m_hide_cursor.m_value)
     {
       SDL_ShowCursor(SDL_DISABLE);
     }
 
-  if(str)
+  if (str)
     {
       m_gl_logger = FASTUIDRAWnew OstreamLogger(str);
     }
 
-  if(m_print_gl_info.m_value)
+  if (m_print_gl_info.m_value)
     {
       std::cout << "\nSwapInterval: " << SDL_GL_GetSwapInterval()
                 << "\ndepth bits: " << GetSDLGLValue(SDL_GL_DEPTH_SIZE)
@@ -441,7 +441,7 @@ init_sdl(void)
         }
       #endif
 
-      if(m_ctx_egl)
+      if (m_ctx_egl)
         {
           m_ctx_egl->print_info(std::cout);
         }
@@ -464,7 +464,7 @@ void
 sdl_demo::
 swap_buffers(unsigned int count)
 {
-  if(!m_ctx_egl)
+  if (!m_ctx_egl)
     {
       for(unsigned int i = 0; i < count; ++i)
         {
@@ -488,7 +488,7 @@ main(int argc, char **argv)
   simple_time render_time;
   unsigned int num_frames;
 
-  if(argc == 2 and is_help_request(argv[1]))
+  if (argc == 2 and is_help_request(argv[1]))
     {
       std::cout << m_about << "\n\nUsage: " << argv[0];
       print_help(std::cout);
@@ -509,7 +509,7 @@ main(int argc, char **argv)
   R = init_sdl();
   int w, h;
 
-  if(R == fastuidraw::routine_fail)
+  if (R == fastuidraw::routine_fail)
     {
       return -1;
     }
@@ -521,7 +521,7 @@ main(int argc, char **argv)
   num_frames = 0;
   while(m_run_demo)
     {
-      if(num_frames == 0)
+      if (num_frames == 0)
         {
           render_time.restart();
         }
@@ -530,12 +530,12 @@ main(int argc, char **argv)
       swap_buffers();
       ++num_frames;
 
-      if(m_run_demo && m_handle_events)
+      if (m_run_demo && m_handle_events)
         {
           SDL_Event ev;
           while(m_run_demo && m_handle_events && SDL_PollEvent(&ev))
             {
-	      if(m_reverse_event_y)
+	      if (m_reverse_event_y)
 		{
 		  int w, h;
 		  FASTUIDRAWassert(m_window);
@@ -547,7 +547,7 @@ main(int argc, char **argv)
         }
     }
 
-  if(m_show_framerate.m_value)
+  if (m_show_framerate.m_value)
     {
       int32_t ms;
       float msf, numf;

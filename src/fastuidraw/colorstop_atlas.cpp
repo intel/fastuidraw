@@ -132,7 +132,7 @@ remove_entry_from_available_layers(std::map<int, std::set<int> >::iterator iter,
   FASTUIDRAWassert(iter != m_available_layers.end());
   FASTUIDRAWassert(iter->second.find(y) != iter->second.end());
   iter->second.erase(y);
-  if(iter->second.empty())
+  if (iter->second.empty())
     {
       m_available_layers.erase(iter);
     }
@@ -169,7 +169,7 @@ deallocate_implement(fastuidraw::ivec2 location, int width)
   m_layer_allocator[y]->free_interval(location.x(), width);
   new_max = m_layer_allocator[y]->largest_free_interval();
 
-  if(old_max != new_max)
+  if (old_max != new_max)
     {
       std::map<int, std::set<int> >::iterator iter;
 
@@ -291,7 +291,7 @@ undelay_interval_freeing(void)
   autolock_mutex m(d->m_mutex);
   FASTUIDRAWassert(d->m_delayed_interval_freeing_counter >= 1);
   --d->m_delayed_interval_freeing_counter;
-  if(d->m_delayed_interval_freeing_counter == 0)
+  if (d->m_delayed_interval_freeing_counter == 0)
     {
       for(unsigned int i = 0, endi = d->m_delayed_freed_intervals.size(); i < endi; ++i)
         {
@@ -310,7 +310,7 @@ deallocate(ivec2 location, int width)
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
   autolock_mutex m(d->m_mutex);
-  if(d->m_delayed_interval_freeing_counter == 0)
+  if (d->m_delayed_interval_freeing_counter == 0)
     {
       d->deallocate_implement(location, width);
     }
@@ -350,7 +350,7 @@ largest_allocation_possible(void) const
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
   autolock_mutex m(d->m_mutex);
-  if(d->m_available_layers.empty())
+  if (d->m_available_layers.empty())
     {
       return 0;
     }
@@ -375,9 +375,9 @@ allocate(c_array<const u8vec4> data)
   FASTUIDRAWassert(width <= max_width());
 
   iter = d->m_available_layers.lower_bound(width);
-  if(iter == d->m_available_layers.end())
+  if (iter == d->m_available_layers.end())
     {
-      if(d->m_backing_store->resizeable())
+      if (d->m_backing_store->resizeable())
         {
           /* TODO: what should the resize algorithm be?
              Right now we double the size, but that might
@@ -409,7 +409,7 @@ allocate(c_array<const u8vec4> data)
   FASTUIDRAWassert(return_value.x() >= 0);
   new_max = d->m_layer_allocator[y]->largest_free_interval();
 
-  if(old_max != new_max)
+  if (old_max != new_max)
     {
       d->remove_entry_from_available_layers(iter, y);
       d->m_available_layers[new_max].insert(y);
@@ -459,13 +459,13 @@ ColorStopSequenceOnAtlas(const ColorStopSequence &pcolor_stops,
   FASTUIDRAWassert(d->m_atlas);
   FASTUIDRAWassert(pwidth>0);
 
-  if(pwidth >= d->m_atlas->max_width())
+  if (pwidth >= d->m_atlas->max_width())
     {
       d->m_width = d->m_atlas->max_width();
       d->m_start_slack = 0;
       d->m_end_slack = 0;
     }
-  else if(pwidth == d->m_atlas->max_width() - 1)
+  else if (pwidth == d->m_atlas->max_width() - 1)
     {
       d->m_start_slack = 0;
       d->m_end_slack = 1;
@@ -521,7 +521,7 @@ ColorStopSequenceOnAtlas(const ColorStopSequence &pcolor_stops,
            in the hunt, but that would mean log2(N) buffer
            reads per pixel. ICK.
          */
-        if(current_t < next_color.m_place)
+        if (current_t < next_color.m_place)
           {
             ColorInterpolator color_interpolate(prev_color, next_color);
 

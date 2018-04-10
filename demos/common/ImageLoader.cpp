@@ -93,7 +93,7 @@ load_image_to_array(const SDL_Surface *img,
   SDL_Surface *q;
   fastuidraw::ivec2 R;
 
-  if(!img)
+  if (!img)
     {
       return fastuidraw::ivec2(0,0);
     }

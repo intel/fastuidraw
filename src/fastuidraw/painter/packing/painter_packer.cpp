@@ -41,12 +41,12 @@ namespace
   const T&
   fetch_value(const fastuidraw::PainterData::value<T> &obj)
   {
-    if(obj.m_packed_value)
+    if (obj.m_packed_value)
       {
         return obj.m_packed_value.value();
       }
 
-    if(obj.m_value != nullptr)
+    if (obj.m_value != nullptr)
       {
         return *obj.m_value;
       }
@@ -107,7 +107,7 @@ namespace
          The following code would make it thread safe.
 
          return_value = m_free_slots_back.fetch_sub(1, std::memory_order_aquire)
-         if(return_value < 0)
+         if (return_value < 0)
            {
               m_free_slots_back.fetch_add(1, std::memory_order_aquire);
            }
@@ -115,7 +115,7 @@ namespace
        */
       int return_value(-1);
 
-      if(m_free_slots_back >= 0)
+      if (m_free_slots_back >= 0)
         {
           return_value = m_free_slots[m_free_slots_back];
           --m_free_slots_back;
@@ -172,7 +172,7 @@ namespace
     {
       FASTUIDRAWassert(m_pool);
       FASTUIDRAWassert(m_pool_slot >= 0);
-      if(m_count.remove_reference())
+      if (m_count.remove_reference())
         {
           m_pool->release_slot(m_pool_slot);
           m_pool_slot = -1;
@@ -260,7 +260,7 @@ namespace
       int slot;
 
       slot = this->aquire_slot();
-      if(slot >= 0)
+      if (slot >= 0)
         {
           return_value = &m_data[slot];
           return_value->set(st, alignment, this, slot);
@@ -288,7 +288,7 @@ namespace
       Entry<T> *return_value;
 
       return_value = m_pools.back()->allocate(st, alignment);
-      if(!return_value)
+      if (!return_value)
         {
           m_pools.push_back(FASTUIDRAWnew Pool<T>());
           return_value = m_pools.back()->allocate(st, alignment);
@@ -427,13 +427,13 @@ namespace
                     const fastuidraw::PainterData::value<T> &obj,
                     uint32_t &location)
     {
-      if(obj.m_packed_value)
+      if (obj.m_packed_value)
         {
           EntryBase *e;
           e = static_cast<EntryBase*>(obj.m_packed_value.opaque_data());
           pack_state_data(p, e, location);
         }
-      else if(obj.m_value != nullptr)
+      else if (obj.m_value != nullptr)
         {
           pack_state_data_from_value(*obj.m_value, location);
         }
@@ -566,11 +566,11 @@ namespace
     unsigned int
     compute_room_needed_for_packing(const fastuidraw::PainterData::value<T> &obj)
     {
-      if(obj.m_packed_value)
+      if (obj.m_packed_value)
         {
           EntryBase *d;
           d = static_cast<EntryBase*>(obj.m_packed_value.opaque_data());
-          if(d->m_painter == m_p && d->m_begin_id == m_number_begins
+          if (d->m_painter == m_p && d->m_begin_id == m_number_begins
              && d->m_draw_command_id == m_accumulated_draws.size())
             {
               return 0;
@@ -580,7 +580,7 @@ namespace
               return d->m_data.size();
             }
         }
-      else if(obj.m_value != nullptr)
+      else if (obj.m_value != nullptr)
         {
           return obj.m_value->data_size(m_alignment);
         }
@@ -655,7 +655,7 @@ per_draw_command::
 pack_state_data(PainterPackerPrivate *p,
                 EntryBase *d, uint32_t &location)
 {
-  if(d->m_painter == p->m_p && d->m_begin_id == p->m_number_begins
+  if (d->m_painter == p->m_p && d->m_begin_id == p->m_number_begins
      && d->m_draw_command_id == p->m_accumulated_draws.size())
     {
       location = d->m_offset;
@@ -709,7 +709,7 @@ pack_header(unsigned int header_size,
   return_value = current_block();
   dst = allocate_store(header_size);
 
-  if(call_back)
+  if (call_back)
     {
       call_back->current_draw(m_draw_command);
     }
@@ -717,7 +717,7 @@ pack_header(unsigned int header_size,
   PainterShaderGroupPrivate current;
   fastuidraw::PainterShader::Tag blend;
 
-  if(blend_shader)
+  if (blend_shader)
     {
       blend = blend_shader->tag();
     }
@@ -737,7 +737,7 @@ pack_header(unsigned int header_size,
   header.m_z = z;
   header.pack_data(m_alignment, dst);
 
-  if(current.m_item_group != m_prev_state.m_item_group
+  if (current.m_item_group != m_prev_state.m_item_group
      || current.m_blend_group != m_prev_state.m_blend_group
      || (m_brush_shader_mask & (current.m_brush ^ m_prev_state.m_brush)) != 0u
      || current.m_blend_mode != m_prev_state.m_blend_mode)
@@ -748,7 +748,7 @@ pack_header(unsigned int header_size,
 
   m_prev_state = current;
 
-  if(call_back)
+  if (call_back)
     {
       call_back->header_added(header, dst);
     }
@@ -780,7 +780,7 @@ void
 PainterPackerPrivate::
 start_new_command(void)
 {
-  if(!m_accumulated_draws.empty())
+  if (!m_accumulated_draws.empty())
     {
       per_draw_command &c(m_accumulated_draws.back());
 
@@ -818,7 +818,7 @@ upload_draw_state(const fastuidraw::PainterPackerData &draw_state)
 
   FASTUIDRAWassert(!m_accumulated_draws.empty());
   needed_room = compute_room_needed_for_packing(draw_state);
-  if(needed_room > m_accumulated_draws.back().store_room())
+  if (needed_room > m_accumulated_draws.back().store_room())
     {
       start_new_command();
     }
@@ -841,7 +841,7 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
 
   number_index_chunks = src.number_index_chunks();
   number_attribute_chunks = src.number_attribute_chunks();
-  if(!shader || number_index_chunks == 0 || number_attribute_chunks == 0)
+  if (!shader || number_index_chunks == 0 || number_attribute_chunks == 0)
     {
       /* should we emit a warning message that the PainterItemShader
          was missing the item shader value?
@@ -872,7 +872,7 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
 
       num_attribs = src.number_attributes(attrib_src);
       num_indices = src.number_indices(chunk);
-      if(num_attribs == 0 || num_indices == 0)
+      if (num_attribs == 0 || num_indices == 0)
         {
           continue;
         }
@@ -880,7 +880,7 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
       needed_attrib_room = (m_work_room.m_attribs_loaded[attrib_src] == NOT_LOADED) ?
         num_attribs : 0;
 
-      if(attrib_room < needed_attrib_room || index_room < num_indices
+      if (attrib_room < needed_attrib_room || index_room < num_indices
          || (allocate_header && data_room < m_header_size))
         {
           start_new_command();
@@ -896,7 +896,7 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
           data_room = m_accumulated_draws.back().store_room();
           allocate_header = true;
 
-          if(attrib_room < needed_attrib_room || index_room < num_indices)
+          if (attrib_room < needed_attrib_room || index_room < num_indices)
             {
               FASTUIDRAWassert(!"Unable to fit chunk into freshly allocated draw command, not good!");
               continue;
@@ -906,7 +906,7 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
         }
 
       per_draw_command &cmd(m_accumulated_draws.back());
-      if(allocate_header)
+      if (allocate_header)
         {
           ++m_stats[fastuidraw::PainterPacker::num_headers];
           allocate_header = false;
@@ -924,7 +924,7 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
        */
       unsigned int attrib_offset;
 
-      if(needed_attrib_room > 0)
+      if (needed_attrib_room > 0)
         {
           fastuidraw::c_array<fastuidraw::PainterAttribute> attrib_dst_ptr;
           fastuidraw::c_array<uint32_t> header_dst_ptr;
@@ -1039,7 +1039,7 @@ query_stat(enum stats_t st) const
   d = static_cast<PainterPackerPrivate*>(m_d);
 
   vecN<unsigned int, num_stats> tmp(0);
-  if(!d->m_accumulated_draws.empty())
+  if (!d->m_accumulated_draws.empty())
     {
       per_draw_command &c(d->m_accumulated_draws.back());
       tmp[num_attributes] = c.m_attributes_written;
@@ -1056,7 +1056,7 @@ end(void)
 {
   PainterPackerPrivate *d;
   d = static_cast<PainterPackerPrivate*>(m_d);
-  if(!d->m_accumulated_draws.empty())
+  if (!d->m_accumulated_draws.empty())
     {
       per_draw_command &c(d->m_accumulated_draws.back());
 
@@ -1289,7 +1289,7 @@ PainterPackedValueBase(void *p):
 {
   EntryBase *d;
   d = static_cast<EntryBase*>(m_d);
-  if(d)
+  if (d)
     {
       d->aquire();
     }
@@ -1300,7 +1300,7 @@ PainterPackedValueBase(const PainterPackedValueBase &obj)
 {
   m_d = obj.m_d;
 
-  if(obj.m_d)
+  if (obj.m_d)
     {
       EntryBase *obj_d;
       obj_d = static_cast<EntryBase*>(obj.m_d);
@@ -1311,7 +1311,7 @@ PainterPackedValueBase(const PainterPackedValueBase &obj)
 fastuidraw::PainterPackedValueBase::
 ~PainterPackedValueBase()
 {
-  if(m_d)
+  if (m_d)
     {
       EntryBase *d;
       d = static_cast<EntryBase*>(m_d);
@@ -1331,7 +1331,7 @@ const fastuidraw::PainterPackedValueBase&
 fastuidraw::PainterPackedValueBase::
 operator=(const PainterPackedValueBase &obj)
 {
-  if(m_d != obj.m_d)
+  if (m_d != obj.m_d)
     {
       PainterPackedValueBase v(obj);
       swap(v);

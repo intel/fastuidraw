@@ -45,11 +45,11 @@
 std::string
 function_pointer_mode(const std::string &filename)
 {
-  if(filename.find("gl2.h") != std::string::npos)
+  if (filename.find("gl2.h") != std::string::npos)
     {
       return "NOFUNCTIONPOINTERMODE_PTR_TYPE_DECLARED";
     }
-  else if(filename.find("egl.h") != std::string::npos)
+  else if (filename.find("egl.h") != std::string::npos)
     {
       return "NOFUNCTIONPOINTERMODE_PTR_TYPE_NOTDECLARED";
     }
@@ -76,7 +76,7 @@ main(int argc, char **argv)
       std::ifstream inFile;
 
       inFile.open(i->c_str());
-      if(inFile)
+      if (inFile)
         {
           int parenCount;
           bool last_char_is_white;
@@ -92,21 +92,21 @@ main(int argc, char **argv)
 
 
               inFile.get(ch);
-              if(ch=='(')
+              if (ch=='(')
                 {
                   ++parenCount;
                   std::cout << ch;
                 }
-              else if(ch==')')
+              else if (ch==')')
                 {
                   --parenCount;
                   std::cout << ch;
                 }
-              else if(ch=='\n' and parenCount>0)
+              else if (ch=='\n' and parenCount>0)
                 {
 
                 }
-              else if(last_char_is_white and isspace(ch) and ch!='\n')
+              else if (last_char_is_white and isspace(ch) and ch!='\n')
                 {
 
                 }

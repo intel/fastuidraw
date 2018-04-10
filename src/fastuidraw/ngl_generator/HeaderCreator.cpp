@@ -44,7 +44,7 @@
 
 void begin_namespace(const string &pn, ostream &stream)
 {
-  if(!pn.empty())
+  if (!pn.empty())
     {
       std::size_t prev, current;
       prev = 0;
@@ -53,7 +53,7 @@ void begin_namespace(const string &pn, ostream &stream)
           current = pn.find("::", prev);
           stream << "namespace " << pn.substr(prev, current) << " {\n";
           prev = current;
-          if(prev != std::string::npos)
+          if (prev != std::string::npos)
             {
               prev  += 2;
             }
@@ -64,7 +64,7 @@ void begin_namespace(const string &pn, ostream &stream)
 
 void end_namespace(const string &pn, ostream &stream)
 {
-  if(!pn.empty())
+  if (!pn.empty())
     {
       std::size_t prev, current;
       prev = 0;
@@ -74,7 +74,7 @@ void end_namespace(const string &pn, ostream &stream)
 
           stream << "\n\n} //" << pn.substr(prev, current);
           prev = current;
-          if(prev != std::string::npos)
+          if (prev != std::string::npos)
             {
               prev += 2;
             }
@@ -245,14 +245,14 @@ openGL_function_info(const string &line_from_gl_h_in,
   argEnd=line_from_gl_h.find_last_not_of(' ',lastParen-1);
   argList=line_from_gl_h.substr(argStart,argEnd-argStart+1);
 
-  if(APIprefix_type.empty())
+  if (APIprefix_type.empty())
     {
       retBegin=0;
     }
   else
     {
       retBegin=line_from_gl_h.find(APIprefix_type);
-      if(retBegin!=string::npos)
+      if (retBegin!=string::npos)
         retBegin+=APIprefix_type.length();
       else
         retBegin=0;
@@ -260,7 +260,7 @@ openGL_function_info(const string &line_from_gl_h_in,
 
   retEnd=line_from_gl_h.find(APIsuffix_type,retBegin);
 
-  if(retEnd==string::npos)
+  if (retEnd==string::npos)
     {
       //unable to find GLAPIENTRY to mark
       //where the return type ends, so we
@@ -274,7 +274,7 @@ openGL_function_info(const string &line_from_gl_h_in,
   /* get the function name by looking at the string before the firstParen */
   glStart=line_from_gl_h.find(function_prefix,retEnd);
   glEnd=line_from_gl_h.rfind(' ',firstParen);
-  if(glEnd!=string::npos && glEnd>glStart)
+  if (glEnd!=string::npos && glEnd>glStart)
     {
       glEnd--;
     }
@@ -292,7 +292,7 @@ openGL_function_info(const string &line_from_gl_h_in,
   SetNames(name,retType,argList);
 
   m_newDeclaration=(GlobalElements::get().m_lookUp.find(function_name())==GlobalElements::get().m_lookUp.end());
-  if(m_newDeclaration)
+  if (m_newDeclaration)
     {
       GlobalElements::get().m_lookUp.insert( pair<string,openGL_function_info*>(function_name(),this) );
     }
@@ -319,7 +319,7 @@ SetNames(const string &functionName,
   m_functionName = RemoveWhiteSpace(functionName);
 
 
-  if(returnType.length()!=0)
+  if (returnType.length()!=0)
     {
       start = returnType.find_first_not_of(' ');
       end = returnType.find_last_not_of(' ');
@@ -339,7 +339,7 @@ SetNames(const string &functionName,
     }
 
 
-  if(argList != "void" && argList != "GLvoid")
+  if (argList != "void" && argList != "GLvoid")
     {
       argList = argList;
     }
@@ -350,7 +350,7 @@ SetNames(const string &functionName,
 
   //if argList is non-empy it may have one or more argument lists.
   last_comma_place = argList.find_first_of(',');
-  if(last_comma_place != string::npos)
+  if (last_comma_place != string::npos)
     {
 
       arg = argList.substr(0, last_comma_place);
@@ -378,7 +378,7 @@ SetNames(const string &functionName,
       GetTypeFromArgumentEntry(arg,argType);
       m_argTypes.push_back(pair<ArgumentType,string>(argType,arg));
     }
-  else if(argList.size()!=0)
+  else if (argList.size()!=0)
     {
       GetTypeFromArgumentEntry(argList,argType);
       m_argTypes.push_back(pair<ArgumentType,string>(argType,argList));
@@ -390,7 +390,7 @@ SetNames(const string &functionName,
   //build our argument lsit with and without names
   for(j=0, i=m_argTypes.begin();i!=m_argTypes.end();++i, ++j)
     {
-      if(j!=0)
+      if (j!=0)
         {
           argListWithNames <<",";
           argListWithoutNames <<",";
@@ -447,13 +447,13 @@ openGL_function_info::
 output_to_header(ostream &headerFile)
 {
 
-  if(!m_newDeclaration)
+  if (!m_newDeclaration)
     {
       //      cerr << "Warning: " << function_name() << " in list twice not putting into header file!\n";
       return;
     }
 
-  if(m_use_function_pointer == dont_use_function_pointer_type_undeclared)
+  if (m_use_function_pointer == dont_use_function_pointer_type_undeclared)
     {
       headerFile << "typedef " << m_returnType << "("
                  << m_APIsuffix_type << " *" << function_pointer_type()
@@ -463,7 +463,7 @@ output_to_header(ostream &headerFile)
   headerFile << "extern " << function_pointer_type() << " "
              << function_pointer_name() << ";\n";
 
-  if(m_use_function_pointer == use_function_pointer)
+  if (m_use_function_pointer == use_function_pointer)
     {
       headerFile << "int " << m_existsFunctionName << "(void);\n"
                  << function_pointer_type() << " " << m_getFunctionName << "(void);\n";
@@ -477,7 +477,7 @@ output_to_header(ostream &headerFile)
   headerFile << "#ifdef FASTUIDRAW_DEBUG\n";
   headerFile << return_type() << " " << debug_function_name() << "(";
 
-  if(number_arguments()!=0)
+  if (number_arguments()!=0)
     {
       headerFile << full_arg_list_with_names() << ", " ;
     }
@@ -492,7 +492,7 @@ output_to_header(ostream &headerFile)
              << "(" << argument_list_names_only()
              << ") " << GlobalElements::get().m_namespace << "::" << debug_function_name()  << "(";
 
-  if(number_arguments()!=0)
+  if (number_arguments()!=0)
     {
       headerFile << argument_list_names_only() << "," ;
     }
@@ -501,7 +501,7 @@ output_to_header(ostream &headerFile)
 
   for(int i=0;i<number_arguments();++i)
     {
-      if(i!=0)
+      if (i!=0)
         headerFile << "\",\"";
       headerFile << "#" << argument_name() << i;
     }
@@ -528,20 +528,20 @@ output_to_source(ostream &sourceFile)
 {
   int i;
 
-  if(!m_newDeclaration)
+  if (!m_newDeclaration)
     {
       //      cerr << "Warning: " << function_name() << " in list twice not putting into source file!\n";
       return;
     }
 
-  if(m_use_function_pointer == dont_use_function_pointer_type_undeclared)
+  if (m_use_function_pointer == dont_use_function_pointer_type_undeclared)
     {
       sourceFile << "typedef " << m_returnType << "("
                  << m_APIsuffix_type << " *" << function_pointer_type()
                  << ")(" << full_arg_list_with_names() << ");\n";
     }
 
-  if(m_use_function_pointer == use_function_pointer)
+  if (m_use_function_pointer == use_function_pointer)
     {
       //declare prototypes:
       sourceFile << "int " << m_existsFunctionName << "(void);\n";
@@ -561,7 +561,7 @@ output_to_source(ostream &sourceFile)
                  << full_arg_list_with_names() <<  ")\n{\n\t"
                  << m_getFunctionName << "();\n\t";
 
-      if(returns_value())
+      if (returns_value())
         {
           sourceFile << "return ";
         }
@@ -573,14 +573,14 @@ output_to_source(ostream &sourceFile)
       sourceFile << front_material() << " " << do_nothing_function_name() << "("
                  << full_arg_list_withoutnames() <<  ")\n{\n\t";
 
-      if(returns_value())
+      if (returns_value())
         {
             sourceFile << return_type() << " retval = 0;\n\t";
         }
       sourceFile << function_call_unloadable_function() << "(\""
                  << function_name() << "\");\n\treturn";
 
-      if(returns_value())
+      if (returns_value())
         {
           sourceFile << " retval";
         }
@@ -588,10 +588,10 @@ output_to_source(ostream &sourceFile)
 
       //fourthly the getFunction, which does the loading.
       sourceFile << function_pointer_type() << " " << m_getFunctionName << "(void)\n{\n\t"
-                 << "if(" << function_pointer_name() << "==" << local_function_name()
+                 << "if (" << function_pointer_name() << "==" << local_function_name()
                  << ")\n\t{\n\t\t" << function_pointer_name() << "=("
                  << function_pointer_type() << ")" << function_loader() << "(\""
-                 << function_name() << "\");\n\t\tif(" << function_pointer_name()
+                 << function_name() << "\");\n\t\tif (" << function_pointer_name()
                  << "==nullptr)\n\t\t{\n\t\t\t"<< function_error_loading() << "(\""
                  << function_name() << "\");\n\t\t\t" << function_pointer_name()
                  << "=" << do_nothing_function_name() << ";\n\t\t}\n\t}\n\t"
@@ -614,7 +614,7 @@ output_to_source(ostream &sourceFile)
   sourceFile << "#ifdef FASTUIDRAW_DEBUG\n"
              << return_type() << " " << debug_function_name()
              << "(";
-  if(number_arguments()!=0)
+  if (number_arguments()!=0)
     {
       sourceFile  << full_arg_list_with_names() << ", ";
     }
@@ -629,7 +629,7 @@ output_to_source(ostream &sourceFile)
              << "std::string call_string;\n\t";
 
 
-  if(returns_value())
+  if (returns_value())
     {
       sourceFile << return_type() << " retval;\n\t";
     }
@@ -637,12 +637,12 @@ output_to_source(ostream &sourceFile)
   sourceFile << "call_stream << \"" << function_name() << "(\" ";
   for(i=0;i<number_arguments();++i)
     {
-      if(i!=0)
+      if (i!=0)
         {
           sourceFile << " << \",\" ";
         }
       sourceFile << "<< argumentName_" << i << " ";
-      if(!arg_type_is_pointer(i))
+      if (!arg_type_is_pointer(i))
         {
           sourceFile << "<< \"=0x\" ";
         }
@@ -660,7 +660,7 @@ output_to_source(ostream &sourceFile)
              << function_name() << "\", (void*)"
              << function_pointer_name() << ", file, line);\n\t";
 
-  if(returns_value())
+  if (returns_value())
     {
       sourceFile << "retval=";
     }
@@ -672,7 +672,7 @@ output_to_source(ostream &sourceFile)
              << function_name() << "\", (void*)"
              << function_pointer_name() << ", file, line);\n\t";
 
-  if(returns_value())
+  if (returns_value())
     {
       sourceFile << "return retval;";
     }
@@ -702,14 +702,14 @@ GetTypeFromArgumentEntry(string inString, ArgumentType &argumentType)
 
   // remove leading white spaces
   startPlace=inString.find_first_not_of(" ",0);
-  if(startPlace==string::npos)
+  if (startPlace==string::npos)
     {
       inString=inString.substr(startPlace);
     }
 
   // check if there is a leading struct
   structPlace = inString.find("struct");
-  if(structPlace != string::npos)
+  if (structPlace != string::npos)
     {
       has_struct = true;
       inString = inString.substr(structPlace + strlen("struct") + 1);
@@ -717,7 +717,7 @@ GetTypeFromArgumentEntry(string inString, ArgumentType &argumentType)
 
   //first eat possible const
   startPlace=inString.rfind("const");
-  if(startPlace==string::npos)
+  if (startPlace==string::npos)
     {
       startPlace=0;
     }
@@ -727,7 +727,7 @@ GetTypeFromArgumentEntry(string inString, ArgumentType &argumentType)
     }
 
   startPlace=inString.find_first_not_of(" ",startPlace);
-  if(startPlace==string::npos)
+  if (startPlace==string::npos)
     {
       startPlace=0;
     }
@@ -735,19 +735,19 @@ GetTypeFromArgumentEntry(string inString, ArgumentType &argumentType)
   placeA=inString.find_first_of(" *",startPlace);
 
   std::string tempStr;
-  if(placeA!=string::npos)
+  if (placeA!=string::npos)
     {
       //we found a space or *, now we get
       //to the first chacater that is NOT a * or space
       placeB=inString.find_first_not_of(" *",placeA);
-      if(placeB!=string::npos)
+      if (placeB!=string::npos)
         {
           std::string str;
 
           argumentType.m_front = inString.substr(0, placeB);
           str = inString.substr(placeB);
           placeB = str.find_first_of('[');
-          if(placeB != string::npos)
+          if (placeB != string::npos)
             {
               argumentType.m_back = str.substr(placeB);
             }
@@ -762,7 +762,7 @@ GetTypeFromArgumentEntry(string inString, ArgumentType &argumentType)
       argumentType.m_front = inString;
     }
 
-  if(has_struct)
+  if (has_struct)
     {
       argumentType.m_front = "struct " + argumentType.m_front;
     }
@@ -812,16 +812,16 @@ SourceEnd(ostream &sourceFile, const list<string> &fileNames)
   for(map<string,openGL_function_info*>::iterator i=GlobalElements::get().m_lookUp.begin();
       i!=GlobalElements::get().m_lookUp.end(); ++i)
     {
-      if(i->second->m_use_function_pointer == use_function_pointer)
+      if (i->second->m_use_function_pointer == use_function_pointer)
         {
           sourceFile << i->second->function_pointer_name() << "=("
                      << i->second->function_pointer_type() << ")"
                      << function_loader() << "(\""
                      << i->second->function_name() << "\");\n\t"
-                     << "if(" << i->second->function_pointer_name()
+                     << "if (" << i->second->function_pointer_name()
                      << "==nullptr)\n\t{\n\t\t" << i->second->function_pointer_name()
                      << "=" << i->second->do_nothing_function_name()
-                     << ";\n\t\tif(emit_load_warning)\n\t\t\t" << function_error_loading() << "(\""
+                     << ";\n\t\tif (emit_load_warning)\n\t\t\t" << function_error_loading() << "(\""
                      << i->second->function_name() << "\");\n\t"
                      << "}\n\t";
         }
@@ -867,7 +867,7 @@ RemoveEndOfLines(const string &input)
 
   for(i=0;i<input.length();++i)
     {
-      if(input[i]!='\n')
+      if (input[i]!='\n')
         {
           retval.push_back(input[i]);
         }
@@ -886,7 +886,7 @@ RemoveWhiteSpace(const string &input)
 
   for(i=0;i<input.length();++i)
     {
-      if(!isspace(input[i]))
+      if (!isspace(input[i]))
         {
           retval.push_back(input[i]);
         }

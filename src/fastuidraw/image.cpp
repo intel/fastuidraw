@@ -82,11 +82,11 @@ namespace
         int dst_x, src_x, src_start;
 
         line_dest = dest.sub_array(dst_y * dest_dim, dest_dim);
-        if(src_y < 0)
+        if (src_y < 0)
           {
             src_start = 0;
           }
-        else if(src_y >= src_dims.y())
+        else if (src_y >= src_dims.y())
           {
             src_start = (src_dims.y() - 1) * src_dims.x();
           }
@@ -123,11 +123,11 @@ namespace
   {
     fastuidraw::ivec2 R;
     R = numerator / denominator;
-    if(numerator.x() % denominator != 0)
+    if (numerator.x() % denominator != 0)
       {
         ++R.x();
       }
-    if(numerator.y() % denominator != 0)
+    if (numerator.y() % denominator != 0)
       {
         ++R.y();
       }
@@ -402,14 +402,14 @@ create_color_tiles(fastuidraw::c_array<const fastuidraw::u8vec4> image_data)
           all_same_color = copy_sub_data<fastuidraw::u8vec4>(make_c_array(tile_data), color_tile_size,
                                                             image_data, source_x, source_y,
                                                             m_dimensions);
-          if(all_same_color)
+          if (all_same_color)
             {
               std::map<fastuidraw::u8vec4, fastuidraw::ivec3>::iterator iter;
               fastuidraw::u8vec4 same_color_value;
 
               same_color_value = tile_data[0];
               iter = m_repeated_tiles.find(same_color_value);
-              if(iter != m_repeated_tiles.end())
+              if (iter != m_repeated_tiles.end())
                 {
                   new_tile = iter->second;
                   ++savings;
@@ -474,7 +474,7 @@ create_index_layer(fastuidraw::c_array<const T> src_tiles,
                                              src_tiles,
                                              source_x, source_y,
                                              src_dims);
-          if(slack == -1)
+          if (slack == -1)
             {
               new_tile = m_atlas->add_index_tile_index_data(tile_data);
             }
@@ -550,17 +550,17 @@ tile_allocator::
 allocate_tile(void)
 {
   fastuidraw::ivec3 return_value;
-  if(m_free_tiles.empty())
+  if (m_free_tiles.empty())
     {
-      if(m_next_tile.x() < m_num_tiles.x() || m_next_tile.y() < m_num_tiles.y() || m_next_tile.z() < m_num_tiles.z())
+      if (m_next_tile.x() < m_num_tiles.x() || m_next_tile.y() < m_num_tiles.y() || m_next_tile.z() < m_num_tiles.z())
         {
           return_value = m_next_tile;
           ++m_next_tile.x();
-          if(m_next_tile.x() == m_num_tiles.x())
+          if (m_next_tile.x() == m_num_tiles.x())
             {
               m_next_tile.x() = 0;
               ++m_next_tile.y();
-              if(m_next_tile.y() == m_num_tiles.y())
+              if (m_next_tile.y() == m_num_tiles.y())
                 {
                   m_next_tile.y() = 0;
                   ++m_next_tile.z();
@@ -603,7 +603,7 @@ undelay_tile_freeing(void)
 {
   FASTUIDRAWassert(m_delay_tile_freeing_counter >= 1);
   --m_delay_tile_freeing_counter;
-  if(m_delay_tile_freeing_counter == 0)
+  if (m_delay_tile_freeing_counter == 0)
     {
       for(unsigned int i = 0, endi = m_delayed_free_tiles.size(); i < endi; ++i)
         {
@@ -617,7 +617,7 @@ void
 tile_allocator::
 delete_tile(fastuidraw::ivec3 v)
 {
-  if(m_delay_tile_freeing_counter == 0)
+  if (m_delay_tile_freeing_counter == 0)
     {
       delete_tile_implement(v);
     }
@@ -654,7 +654,7 @@ bool
 tile_allocator::
 resize_to_fit(int num_tiles)
 {
-  if(num_tiles > number_free())
+  if (num_tiles > number_free())
     {
       /* resize to fit the number of needed tiles,
          compute how many more tiles needed and from
@@ -664,7 +664,7 @@ resize_to_fit(int num_tiles)
       needed_tiles = num_tiles - number_free();
       tiles_per_layer = m_num_tiles.x() * m_num_tiles.y();
       needed_layers = needed_tiles / tiles_per_layer;
-      if(needed_tiles > needed_layers * tiles_per_layer)
+      if (needed_tiles > needed_layers * tiles_per_layer)
         {
           ++needed_layers;
         }
@@ -1018,11 +1018,11 @@ resize_to_fit(int num_color_tiles, int num_index_tiles)
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
   FASTUIDRAWassert(d->m_resizeable);
-  if(d->m_color_tiles.resize_to_fit(num_color_tiles))
+  if (d->m_color_tiles.resize_to_fit(num_color_tiles))
     {
       d->m_color_store->resize(d->m_color_tiles.num_tiles().z());
     }
-  if(d->m_index_tiles.resize_to_fit(num_index_tiles))
+  if (d->m_index_tiles.resize_to_fit(num_index_tiles))
     {
       d->m_index_store->resize(d->m_index_tiles.num_tiles().z());
     }
@@ -1041,7 +1041,7 @@ create(fastuidraw::reference_counted_ptr<ImageAtlas> atlas, int w, int h,
   ivec2 num_color_tiles;
   int index_tiles;
 
-  if(w <= 0 || h <= 0)
+  if (w <= 0 || h <= 0)
     {
       return reference_counted_ptr<Image>();
     }
@@ -1049,13 +1049,13 @@ create(fastuidraw::reference_counted_ptr<ImageAtlas> atlas, int w, int h,
   color_tile_size = atlas->color_tile_size();
   tile_interior_size = color_tile_size - 2 * pslack;
 
-  if(tile_interior_size <= 0)
+  if (tile_interior_size <= 0)
     {
       return reference_counted_ptr<Image>();
     }
 
   num_color_tiles = divide_up(ivec2(w, h), tile_interior_size);
-  if(!enough_room_in_atlas(num_color_tiles, atlas.get(), index_tiles))
+  if (!enough_room_in_atlas(num_color_tiles, atlas.get(), index_tiles))
     {
       /*TODO:
          there actually might be enough room if we take into account
@@ -1063,7 +1063,7 @@ create(fastuidraw::reference_counted_ptr<ImageAtlas> atlas, int w, int h,
          delay this until iamge construction, check if it succeeded
          and if not then delete it and return an invalid handle.
        */
-      if(atlas->resizeable())
+      if (atlas->resizeable())
         {
           atlas->resize_to_fit(num_color_tiles.x() * num_color_tiles.y(), index_tiles);
         }

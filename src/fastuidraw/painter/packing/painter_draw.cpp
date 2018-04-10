@@ -95,7 +95,7 @@ perform_action(void)
 
   d->m_cmd->m_actions[d->m_slot] = reference_counted_ptr<DelayedAction>();
   d->m_cmd->m_action_count--;
-  if(d->m_cmd->m_action_count == 0 && d->m_cmd->m_map_status == status_waiting_for_actions_to_complete)
+  if (d->m_cmd->m_action_count == 0 && d->m_cmd->m_map_status == status_waiting_for_actions_to_complete)
     {
       d->m_cmd->m_p->complete_unmapping();
     }
@@ -158,7 +158,7 @@ unmap(unsigned int attributes_written,
   d->m_indices_written = indices_written;
   d->m_data_store_written = data_store_written;
   d->m_map_status = status_waiting_for_actions_to_complete;
-  if(d->m_action_count == 0)
+  if (d->m_action_count == 0)
     {
       complete_unmapping();
     }

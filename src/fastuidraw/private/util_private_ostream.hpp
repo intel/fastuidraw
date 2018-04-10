@@ -41,7 +41,7 @@ namespace fastuidraw
     ostr << "(";
     for(size_t i = 0; i < N; ++i)
       {
-        if(i != 0)
+        if (i != 0)
           {
             ostr << ", ";
           }
@@ -58,7 +58,7 @@ namespace fastuidraw
     ostr << "(";
     for(size_t i = 0; i < obj.size(); ++i)
       {
-        if(i != 0)
+        if (i != 0)
           {
             ostr << ", ";
           }
@@ -75,7 +75,7 @@ namespace fastuidraw
     ostr << "(";
     for(size_t i = 0; i < obj.size(); ++i)
       {
-        if(i != 0)
+        if (i != 0)
           {
             ostr << ", ";
           }
@@ -92,7 +92,7 @@ namespace fastuidraw
     ostr << "(";
     for(size_t i = 0; i < obj.size(); ++i)
       {
-        if(i != 0)
+        if (i != 0)
           {
             ostr << ", ";
           }

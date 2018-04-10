@@ -121,14 +121,14 @@ FASTUIDRAW_CURVEPAIR_COMPUTE_NAME(in uint texel_value,
 
   /* texel_value 0 means completely empty texel
    */
-  if(texel_value == uint(0))
+  if (texel_value == uint(0))
     {
       return -1.0;
     }
 
   /* texel_value 1 means completely full texel
    */
-  if(texel_value == uint(1))
+  if (texel_value == uint(1))
     {
       return 1.0;
     }
@@ -170,12 +170,12 @@ FASTUIDRAW_CURVEPAIR_COMPUTE_NAME(in uint texel_value,
     if t>1, then making s=2*t-1 is
     equivalent to extending after t=1 as a line.
   */
-  if(ta < 0.0)
+  if (ta < 0.0)
     {
       sa = 0.0;
       grad_sa = vec2(0.0, 0.0);
     }
-  else if(ta < 1.0)
+  else if (ta < 1.0)
     {
       sa = ta * ta;
       grad_sa = 2.0 * ta * grad_ta;
@@ -186,12 +186,12 @@ FASTUIDRAW_CURVEPAIR_COMPUTE_NAME(in uint texel_value,
       grad_sa = 2.0 * grad_ta;
     }
 
-  if(tb < 0.0)
+  if (tb < 0.0)
     {
       sb = 0.0;
       grad_sb = vec2(0.0, 0.0);
     }
-  else if(tb < 1.0)
+  else if (tb < 1.0)
     {
       sb = tb * tb;
       grad_sb = 2.0 * tb * grad_tb;
@@ -225,7 +225,7 @@ FASTUIDRAW_CURVEPAIR_COMPUTE_NAME(in uint texel_value,
      sigma_a=-(A1*ta + ta*ta*QaScale - pa_y)*sign(A0);
      sigma_b= (B1*tb + tb*tb*QbScale - pb_y)*sign(B0);
   */
-  if(omega_a > 0.5)
+  if (omega_a > 0.5)
     {
       sigma_a = -(A1 * ta + sa * QaScale - pa.y) * sign(A0);
       grad_sigma_a.x = -(A1 * grad_ta.x + grad_sa.x * QaScale + Qa.y) * sign(A0);
@@ -237,7 +237,7 @@ FASTUIDRAW_CURVEPAIR_COMPUTE_NAME(in uint texel_value,
       grad_sigma_a.x = grad_sigma_a.y = 0.0;
     }
 
-  if(omega_b > 0.5)
+  if (omega_b > 0.5)
     {
       sigma_b = (B1 * tb + sb * QbScale - pb.y) * sign(B0);
       grad_sigma_b.x = (B1 * grad_tb.x + grad_sb.x * QbScale + Qb.y) * sign(B0);
@@ -249,7 +249,7 @@ FASTUIDRAW_CURVEPAIR_COMPUTE_NAME(in uint texel_value,
       grad_sigma_b.x = grad_sigma_b.y = 0.0;
     }
 
-  if(sigma_a < sigma_b)
+  if (sigma_a < sigma_b)
     {
       sigma_min = sigma_a;
       sigma_max = sigma_b;
@@ -269,7 +269,7 @@ FASTUIDRAW_CURVEPAIR_COMPUTE_NAME(in uint texel_value,
       0 <---> OR rule  <--> max
       1 <---> AND rule <--> min
    */
-  if(combine_rule < 0.5)
+  if (combine_rule < 0.5)
     {
       sigma = sigma_max;
       grad = grad_sigma_max;

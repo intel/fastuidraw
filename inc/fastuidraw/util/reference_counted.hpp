@@ -78,7 +78,7 @@ namespace fastuidraw
     reference_counted_ptr(T *p):
       m_p(p)
     {
-      if(m_p)
+      if (m_p)
         {
           T::add_reference(m_p);
         }
@@ -91,7 +91,7 @@ namespace fastuidraw
     reference_counted_ptr(const reference_counted_ptr &obj):
       m_p(obj.get())
     {
-      if(m_p)
+      if (m_p)
         {
           T::add_reference(m_p);
         }
@@ -107,7 +107,7 @@ namespace fastuidraw
     reference_counted_ptr(const reference_counted_ptr<U> &obj):
       m_p(obj.get())
     {
-      if(m_p)
+      if (m_p)
         {
           T::add_reference(m_p);
         }
@@ -119,7 +119,7 @@ namespace fastuidraw
      */
     ~reference_counted_ptr()
     {
-      if(m_p)
+      if (m_p)
         {
           T::remove_reference(m_p);
         }
@@ -214,11 +214,11 @@ namespace fastuidraw
       \code
       reference_counted_ptr<T> p;
 
-      if(p)
+      if (p)
        {
        }
 
-      if(!p)
+      if (!p)
        {
        }
       \endcode
@@ -297,7 +297,7 @@ namespace fastuidraw
     void
     clear(void)
     {
-      if(m_p)
+      if (m_p)
         {
           T::remove_reference(m_p);
           m_p = nullptr;
@@ -437,7 +437,7 @@ namespace fastuidraw
     remove_reference(const reference_counted_base<T, Counter> *p)
     {
       FASTUIDRAWassert(p);
-      if(p->m_counter.remove_reference())
+      if (p->m_counter.remove_reference())
         {
           FASTUIDRAWdelete(p);
         }

@@ -26,7 +26,7 @@ namespace
   std::ostream&
   operator<<(std::ostream &str, enum_wrapper<bool> b)
   {
-    if(b.m_v)
+    if (b.m_v)
       {
         str << "true";
       }
@@ -445,14 +445,14 @@ init_gl(int w, int h)
   int max_layers(0);
 
   max_layers = fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS);
-  if(max_layers < m_num_color_layers.m_value)
+  if (max_layers < m_num_color_layers.m_value)
     {
       std::cout << "num_color_layers exceeds max number texture layers (" << max_layers
 		<< "), num_color_layers set to that value.\n";
       m_num_color_layers.m_value = max_layers;
     }
 
-  if(max_layers < m_color_stop_atlas_layers.m_value)
+  if (max_layers < m_color_stop_atlas_layers.m_value)
     {   
       std::cout << "atlas_layers exceeds max number texture layers (" << max_layers
 		<< "), atlas_layers set to that value.\n";
@@ -515,7 +515,7 @@ init_gl(int w, int h)
     .num_layers(m_color_stop_atlas_layers.m_value)
     .delayed(m_color_stop_atlas_delayed_upload.m_value);
 
-  if(m_color_stop_atlas_use_optimal_width.m_value)
+  if (m_color_stop_atlas_use_optimal_width.m_value)
     {
       m_colorstop_atlas_params.optimal_width();
       std::cout << "Colorstop Atlas optimal width selected to be "
@@ -524,9 +524,9 @@ init_gl(int w, int h)
 
   m_colorstop_atlas = FASTUIDRAWnew fastuidraw::gl::ColorStopAtlasGL(m_colorstop_atlas_params);
 
-  if(m_painter_msaa.m_value > 1)
+  if (m_painter_msaa.m_value > 1)
     {
-      if(m_provide_auxiliary_image_buffer.m_value.m_value != fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer)
+      if (m_provide_auxiliary_image_buffer.m_value.m_value != fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer)
         {
           std::cout << "Auxilary buffer cannot be used with painter_msaa "
                     << "(and there is little reason since it is used only for shader-based anti-aliasing)\n"
@@ -534,7 +534,7 @@ init_gl(int w, int h)
           m_provide_auxiliary_image_buffer.m_value.m_value = fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer;
         }
 
-      if(m_blend_type.m_value.m_value == fastuidraw::PainterBlendShader::framebuffer_fetch)
+      if (m_blend_type.m_value.m_value == fastuidraw::PainterBlendShader::framebuffer_fetch)
         {
           std::cout << "WARNING: using framebuffer fetch with painter_msaa makes all fragment shading happen per fragment\n"
                     << std::flush;
@@ -573,7 +573,7 @@ init_gl(int w, int h)
   m_glyph_selector = FASTUIDRAWnew fastuidraw::GlyphSelector(m_glyph_cache);
   m_ft_lib = FASTUIDRAWnew fastuidraw::FreeTypeLib();
 
-  if(m_print_painter_config.m_value)
+  if (m_print_painter_config.m_value)
     {
       std::cout << "\nPainterBackendGL configuration:\n";
 
@@ -616,7 +616,7 @@ init_gl(int w, int h)
       #undef LAZY_ENUM
     }
 
-  if(m_print_painter_shader_ids.m_value)
+  if (m_print_painter_shader_ids.m_value)
     {
       const fastuidraw::PainterShaderSet &sh(m_painter->default_shaders());
       std::cout << "Default shader IDs:\n";

@@ -8,11 +8,11 @@ StreamHolder::
 StreamHolder(const std::string &filename):
   m_delete_stream(false)
 {
-  if(filename == "stderr")
+  if (filename == "stderr")
     {
       m_stream = &std::cerr;
     }
-  else if(filename == "stdout")
+  else if (filename == "stdout")
     {
       m_stream = &std::cout;
     }
@@ -26,7 +26,7 @@ StreamHolder(const std::string &filename):
 StreamHolder::
 ~StreamHolder()
 {
-  if(m_delete_stream)
+  if (m_delete_stream)
     {
       FASTUIDRAWdelete(m_stream);
     }

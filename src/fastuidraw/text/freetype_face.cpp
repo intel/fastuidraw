@@ -69,7 +69,7 @@ create_face(reference_counted_ptr<FreeTypeLib> lib) const
   FT_Face face;
   reference_counted_ptr<FreeTypeFace> return_value;
 
-  if(!lib)
+  if (!lib)
     {
       lib = FASTUIDRAWnew FreeTypeLib();
     }
@@ -78,7 +78,7 @@ create_face(reference_counted_ptr<FreeTypeLib> lib) const
   face = create_face_implement(lib->lib());
   lib->unlock();
 
-  if(face != nullptr)
+  if (face != nullptr)
     {
       return_value = FASTUIDRAWnew FreeTypeFace(face, lib);
     }
@@ -92,7 +92,7 @@ check_creation(reference_counted_ptr<FreeTypeLib> lib) const
   enum return_code R;
   FT_Face f;
 
-  if(!lib)
+  if (!lib)
     {
       lib = FASTUIDRAWnew FreeTypeLib();
     }
@@ -132,7 +132,7 @@ create_face_implement(FT_Library lib) const
 
   d = static_cast<GeneratorFilePrivate*>(m_d);
   error_code = FT_New_Face(lib, d->first.c_str(), d->second, &face);
-  if(error_code != 0 && face != nullptr)
+  if (error_code != 0 && face != nullptr)
     {
       FT_Done_Face(face);
       face = nullptr;
@@ -180,7 +180,7 @@ create_face_implement(FT_Library lib) const
 				  static_cast<const FT_Byte*>(src.c_ptr()),
 				  src.size(), d->second,
 				  &face);
-  if(error_code != 0 && face != nullptr)
+  if (error_code != 0 && face != nullptr)
     {
       FT_Done_Face(face);
       face = nullptr;

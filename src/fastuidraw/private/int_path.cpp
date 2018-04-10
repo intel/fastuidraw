@@ -769,7 +769,7 @@ add_solution_if_acceptable(uint32_t flags, float t, int mult)
   tp = (t < 1.0f && t > 0.0f) ?
     within_0_1 :
     outside_0_1;
-  if(flags & tp)
+  if (flags & tp)
     {
       poly_solution P;
       P.m_t = t;
@@ -785,7 +785,7 @@ void
 Solver::poly_solutions<iterator>::
 add_0_solution(uint32_t flags)
 {
-  if(flags & on_0_boundary)
+  if (flags & on_0_boundary)
     {
       ++m_multiplicity_0_solution;
     }
@@ -796,7 +796,7 @@ void
 Solver::poly_solutions<iterator>::
 add_1_solution(uint32_t flags)
 {
-  if(flags & on_1_boundary)
+  if (flags & on_1_boundary)
     {
       ++m_multiplicity_1_solution;
     }
@@ -809,7 +809,7 @@ finalize(void)
 {
   FASTUIDRAWassert(m_multiplicity_0_solution >= 0);
   FASTUIDRAWassert(m_multiplicity_1_solution >= 0);
-  if(m_multiplicity_0_solution > 0)
+  if (m_multiplicity_0_solution > 0)
     {
       poly_solution P;
       P.m_t = 0.0f;
@@ -818,7 +818,7 @@ finalize(void)
       *m_iter++ = P;
     }
 
-  if(m_multiplicity_1_solution > 1)
+  if (m_multiplicity_1_solution > 1)
     {
       poly_solution P;
       P.m_t = 1.0f;
@@ -886,11 +886,11 @@ solve_linear(fastuidraw::c_array<const T> poly,
              poly_solutions<iterator> *solutions)
 {
   FASTUIDRAWassert(poly.size() == 2);
-  if(poly[0] == T(0))
+  if (poly[0] == T(0))
     {
       solutions->add_0_solution(accepted_solutions);
     }
-  else if(poly[0] == -poly[1])
+  else if (poly[0] == -poly[1])
     {
       solutions->add_1_solution(accepted_solutions);
     }
@@ -912,7 +912,7 @@ solve_quadratic(fastuidraw::c_array<const T> poly,
   FASTUIDRAWassert(poly.size() == 3);
 
   // check for t = 0 solution
-  if(poly[0] == T(0))
+  if (poly[0] == T(0))
     {
       solutions->add_0_solution(accepted_solutions);
       solve_linear(poly.sub_array(1), accepted_solutions, solutions);
@@ -921,7 +921,7 @@ solve_quadratic(fastuidraw::c_array<const T> poly,
 
   int sum;
   sum = poly[0] + poly[1] + poly[2];
-  if(sum == T(0))
+  if (sum == T(0))
     {
       /* thus p(t) = a * t^2 + b * t + -(a+b)
          = (t - 1)(at + a + b)
@@ -937,13 +937,13 @@ solve_quadratic(fastuidraw::c_array<const T> poly,
 
   T desc;
   desc = poly[1] * poly[1] - T(4) * poly[0] * poly[2];
-  if(desc < T(0))
+  if (desc < T(0))
     {
       //both roots are imaginary
       return;
     }
 
-  if(desc == 0)
+  if (desc == 0)
     {
       //double root given by -poly[1] / (2 * poly[2])
       float t;
@@ -967,7 +967,7 @@ solve_cubic(fastuidraw::c_array<const T> poly,
             uint32_t accepted_solutions,
             poly_solutions<iterator> *solutions)
 {
-  if(poly[0] == T(0))
+  if (poly[0] == T(0))
     {
       solutions->add_0_solution(accepted_solutions);
       solve_quadratic(poly.sub_array(1), accepted_solutions, solutions);
@@ -976,7 +976,7 @@ solve_cubic(fastuidraw::c_array<const T> poly,
 
   T sum;
   sum = poly[3] + poly[2] + poly[1] + poly[0];
-  if(sum == T(0))
+  if (sum == T(0))
     {
       //t = 1 is a solution.
       fastuidraw::vecN<T, 3> tmp;
@@ -1001,7 +1001,7 @@ solve_cubic(fastuidraw::c_array<const T> poly,
   q = (9.0f * a[1] * a[2] - 27 * a[0]- 2 * a[2] * a[2] * a[2]) / 27.0f;
   dd = a[2] / 3.0f;
 
-  if(T(3) * poly[1] * poly[3] == poly[2] * poly[2])
+  if (T(3) * poly[1] * poly[3] == poly[2] * poly[2])
     {
       solutions->add_solution_if_acceptable(accepted_solutions, -dd + cbrtf(q));
       return;
@@ -1013,7 +1013,7 @@ solve_cubic(fastuidraw::c_array<const T> poly,
   temp = 1.0f / temp;
   temp *= 2.0f;
 
-  if(p > 0.0f)
+  if (p > 0.0f)
     {
       float v0, tau;
 
@@ -1025,7 +1025,7 @@ solve_cubic(fastuidraw::c_array<const T> poly,
     }
   else
     {
-      if(C >= 1.0f)
+      if (C >= 1.0f)
         {
           float v0, tau;
           tau = cbrtf(C + sqrtf(C * C - 1.0f));
@@ -1034,7 +1034,7 @@ solve_cubic(fastuidraw::c_array<const T> poly,
           //v0=temp*coshf( acoshf(C)/3.0f) - dd;
           solutions->add_solution_if_acceptable(accepted_solutions, v0);
         }
-      else if(C <= -1.0f)
+      else if (C <= -1.0f)
         {
           float v0, tau;
           tau = cbrtf(-C+ sqrtf(C * C - 1.0f));
@@ -1077,7 +1077,7 @@ increment_p_and_p_t(const fastuidraw::vecN<fastuidraw::c_array<const T>, 2> &cur
           float fcoeff(coeff);
           p[coord] += fcoeff * powt;
           powt *= t;
-          if(K != 0)
+          if (K != 0)
             {
               p_t[coord] += static_cast<float>(K) * fcoeff * powt_deriv;
               powt_deriv *= t;
@@ -1171,7 +1171,7 @@ compute_lines_intersection(enum coordinate_type tp, int step, int count,
 
   FASTUIDRAWassert(out_value->size() == static_cast<unsigned int>(count));
 
-  if((solution_types_accepted & outside_0_1) == 0)
+  if ((solution_types_accepted & outside_0_1) == 0)
     {
       fastuidraw::BoundingBox<int> bb;
       int bbmin, bbmax;
@@ -1244,7 +1244,7 @@ pixel_value_from_distance(float dist, bool outside)
   uint8_t v;
 
   dist = fastuidraw::t_min(1.0f, fastuidraw::t_max(0.0f, dist));
-  if(outside)
+  if (outside)
     {
       dist = -dist;
     }
@@ -1412,11 +1412,11 @@ compute_fixed_line_values(enum Solver::coordinate_type tp,
               FASTUIDRAWassert(L[current_idx].m_multiplicity > 0);
               current_cnt += L[current_idx].m_multiplicity;
 
-              if(L[current_idx].m_p_t[fixed_coord] > 0.0f)
+              if (L[current_idx].m_p_t[fixed_coord] > 0.0f)
                 {
                   winding += 1;
                 }
-              else if(L[current_idx].m_p_t[fixed_coord] < 0.0f)
+              else if (L[current_idx].m_p_t[fixed_coord] < 0.0f)
                 {
                   winding -= 1;
                 }
@@ -1461,7 +1461,7 @@ record_edge_intersection(ivec2 texel,
   /* add entry to texel as S intersect the min-side of the
      texel
   */
-  if(c < m_size[fixed_coord])
+  if (c < m_size[fixed_coord])
     {
       m_data(texel.x(), texel.y()).second.insert(S.m_src);
     }
@@ -1469,7 +1469,7 @@ record_edge_intersection(ivec2 texel,
   /* the intersection also intersects the max-side of the
      previous texel
    */
-  if(c > 0)
+  if (c > 0)
     {
       --texel[fixed_coord];
       m_data(texel.x(), texel.y()).second.insert(S.m_src);
@@ -1480,7 +1480,7 @@ void
 CurvePairGenerator::IntersectionRecorder::
 record_curve_inside_texel(ivec2 texel, IntBezierCurve::ID_t id)
 {
-  if(texel.x() >= 0 && texel.x() < m_size.x()
+  if (texel.x() >= 0 && texel.x() < m_size.x()
      && texel.y() >= 0 && texel.y() < m_size.y())
     {
       m_data(texel.x(), texel.y()).second.insert(id);
@@ -1493,7 +1493,7 @@ set_winding(ivec2 texel,
             enum Solver::coordinate_type tp,
             int winding)
 {
-  if(texel.x() < m_size.x() && texel.y() < m_size.y())
+  if (texel.x() < m_size.x() && texel.y() < m_size.y())
     {
       m_data(texel.x(), texel.y()).first[tp] = winding;
     }
@@ -1599,11 +1599,11 @@ curve_lists_edge_intersections(enum Solver::coordinate_type tp,
           while(currentL < maxL && L[currentL].m_p[varying_coord] <= p)
             {
               dst->record_edge_intersection(pixel, tp, L[currentL]);
-              if(L[currentL].m_p_t[fixed_coord] > 0.0f)
+              if (L[currentL].m_p_t[fixed_coord] > 0.0f)
                 {
                   winding += 1;
                 }
-              else if(L[currentL].m_p_t[fixed_coord] < 0.0f)
+              else if (L[currentL].m_p_t[fixed_coord] < 0.0f)
                 {
                   winding -= 1;
                 }
@@ -1625,7 +1625,7 @@ curve_lists_edge_intersections(enum Solver::coordinate_type tp,
                +x --> x_fixed
                -y --> y_fixed
            */
-          if(currentL > 0)
+          if (currentL > 0)
             {
               int tL(currentL - 1);
               const Solver::solution_pt &S(L[tL]);
@@ -1636,7 +1636,7 @@ curve_lists_edge_intersections(enum Solver::coordinate_type tp,
               sgn = (Solver::x_fixed == tp) ? 1.0f : -1.0f;
               sgn = (filled) ? sgn : -sgn;
               dot_value = sgn * S.m_p_t[fixed_coord];
-              if(dot_value > 0.0f)
+              if (dot_value > 0.0f)
                 {
                   ++m_contour_reverse_counts[S.m_src.m_contourID];
                 }
@@ -1665,11 +1665,11 @@ select_curve(const IntersectionRecorder::PerTexel &texel) const
 
         id0 = *texel.second.begin();
         id1 = *texel.second.rbegin();
-        if(id1 == next_neighbor(id0))
+        if (id1 == next_neighbor(id0))
           {
             return id0;
           }
-        else if(id0 == next_neighbor(id1))
+        else if (id0 == next_neighbor(id1))
           {
             return id1;
           }
@@ -1708,7 +1708,7 @@ extract_active_curve_pairs(const fastuidraw::ivec2 &texel_size,
           const IntersectionRecorder::PerTexel &texel(curve_lists.texel_data(x, y));
           uint16_t v;
 
-          if(texel.second.empty())
+          if (texel.second.empty())
             {
               int w0, w1;
               bool f0, f1;
@@ -1799,7 +1799,7 @@ extract_entry(bool reverse,
   fastuidraw::c_array<vec2> pts_ptr(&pts[0], total_cnt);
   start_curve_size = c0.size();
 
-  if(reverse)
+  if (reverse)
     {
       std::reverse(pts_ptr.begin(), pts_ptr.end());
       start_curve_size = c1.size() + 1;
@@ -1838,14 +1838,14 @@ process_control_pts(void)
 
   /* check if is quadratic that should be collapsed to line
    */
-  if(m_num_control_pts == 3)
+  if (m_num_control_pts == 3)
     {
       ivec2 p1, p2, p2orig;
       p1 = m_control_pts[1] - m_control_pts[0];
       p2 = m_control_pts[2] - m_control_pts[0];
       p2orig = m_control_pts[2];
 
-      if(p1.x() * p2.y() == p2.x() * p1.y())
+      if (p1.x() * p2.y() == p2.x() * p1.y())
         {
           m_control_pts[1] = p2orig;
           m_num_control_pts = 2;
@@ -1864,7 +1864,7 @@ void
 fastuidraw::detail::IntBezierCurve::
 compute_derivatives_cancel_pts(void)
 {
-  if(degree() < 2)
+  if (degree() < 2)
     {
       m_num_derivatives_cancel = 0;
       return;
@@ -1921,7 +1921,7 @@ replace_cubics_with_quadratics(const IntBezierCurve::transformation<int> &tr,
                                ivec2 texel_size)
 {
   /* Perform surgery on each IntCurve in this IntContour */
-  if(m_curves.empty())
+  if (m_curves.empty())
     {
       return;
     }
@@ -1935,7 +1935,7 @@ replace_cubics_with_quadratics(const IntBezierCurve::transformation<int> &tr,
   for(unsigned int i = 0, endi = src.size(); i < endi; ++i)
     {
       const IntBezierCurve &curve(src[i]);
-      if(curve.degree() == 3)
+      if (curve.degree() == 3)
         {
           fastuidraw::c_array<const fastuidraw::ivec2> pts(curve.control_pts());
           CubicBezierCurve cubic(pts[0], pts[1], pts[2], pts[3]);
@@ -1951,12 +1951,12 @@ replace_cubics_with_quadratics(const IntBezierCurve::transformation<int> &tr,
           t1 = tr(curve.control_pts().back())  / texel_size;
           l1_dist = (t0 - t1).L1norm();
 
-          if(l1_dist > thresh_4_quads)
+          if (l1_dist > thresh_4_quads)
             {
               quads = quads_4;
               cubic.approximate_with_quadratics(&quads_4);
             }
-          else if(l1_dist > thresh_2_quads)
+          else if (l1_dist > thresh_2_quads)
             {
               quads = quads_2;
               cubic.approximate_with_quadratics(&quads_2);
@@ -1988,11 +1988,11 @@ convert_flat_quadratics_to_lines(float thresh)
 {
   for(IntBezierCurve &C : m_curves)
     {
-      if(C.degree() == 2)
+      if (C.degree() == 2)
         {
           fastuidraw::c_array<const fastuidraw::ivec2> pts(C.control_pts());
           QuadraticBezierCurve Q(pts[0], pts[1], pts[2]);
-          if(Q.compute_curvature() < thresh)
+          if (Q.compute_curvature() < thresh)
             {
               C = IntBezierCurve(C.ID(), pts[0], pts[2]);
             }
@@ -2005,7 +2005,7 @@ fastuidraw::detail::IntContour::
 collapse_small_curves(const IntBezierCurve::transformation<int> &tr,
                       ivec2 texel_size)
 {
-  if(m_curves.empty())
+  if (m_curves.empty())
     {
       return;
     }
@@ -2037,13 +2037,13 @@ collapse_small_curves(const IntBezierCurve::transformation<int> &tr,
       p0 = tr(bb.min_point()) / texel_size;
       p1 = tr(bb.max_point()) / texel_size;
 
-      if(p0 != p1)
+      if (p0 != p1)
         {
           non_collapsed_curves.push_back(i);
         }
     }
 
-  if(non_collapsed_curves.size() < 2)
+  if (non_collapsed_curves.size() < 2)
     {
       /* entire contour collapsed, leave m_curves empty */
       return;
@@ -2052,7 +2052,7 @@ collapse_small_curves(const IntBezierCurve::transformation<int> &tr,
   /* correctly handle if a sequence of curves are collapsed and
      that sequence walks over the end-begin boundary (i.e. rollover)
    */
-  if(non_collapsed_curves.front() != 0
+  if (non_collapsed_curves.front() != 0
      || non_collapsed_curves.back() != src.size() - 1)
     {
       /* collapse the sequence that rolls over */
@@ -2085,7 +2085,7 @@ collapse_small_curves(const IntBezierCurve::transformation<int> &tr,
           pt += src[k].control_pts().back();
         }
 
-      if(number > 1)
+      if (number > 1)
         {
           pt /= number;
           src[non_collapsed_curves[C]].set_back_pt(pt);
@@ -2108,7 +2108,7 @@ filter(float curvature_collapse,
        const IntBezierCurve::transformation<int> &tr,
        ivec2 texel_size)
 {
-  if(m_curves.empty())
+  if (m_curves.empty())
     {
       return;
     }
@@ -2121,7 +2121,7 @@ void
 fastuidraw::detail::IntContour::
 add_to_path(const IntBezierCurve::transformation<float> &tr, Path *dst) const
 {
-  if(m_curves.empty())
+  if (m_curves.empty())
     {
       return;
     }
@@ -2307,7 +2307,7 @@ extract_render_data(const ivec2 &step, const ivec2 &image_sz,
           outside2 = !fill_rule(w2);
 
           dist = dist_values(x, y).distance(max_distance) / max_distance;
-          if(outside1 != outside2)
+          if (outside1 != outside2)
             {
               /* if the fills do not match, then a curve is going through
                  the test point of the texel, thus make the distance 0

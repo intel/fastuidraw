@@ -265,12 +265,12 @@ inline
 void
 readvalue_from_string(bool &value, const std::string &value_string)
 {
-  if(value_string==std::string("on")
+  if (value_string==std::string("on")
      or value_string==std::string("true"))
     {
       value=true;
     }
-  else if(value_string==std::string("off")
+  else if (value_string==std::string("off")
      or value_string==std::string("false"))
     {
       value=false;
@@ -289,7 +289,7 @@ inline
 void
 writevalue_to_stream(const bool &value, std::ostream &ostr)
 {
-  if(value)
+  if (value)
     {
       ostr << "on/true";
     }
@@ -391,18 +391,18 @@ public:
     int argc(argv.size());
 
     iter=std::find(str.begin(), str.end(), '=');
-    if(iter==str.end())
+    if (iter==str.end())
       {
         iter=std::find(str.begin(), str.end(), ':');
       }
 
-    if(iter!=str.end() and m_name==std::string(str.begin(), iter) )
+    if (iter!=str.end() and m_name==std::string(str.begin(), iter) )
       {
         std::string val(iter+1, str.end());
 
         readvalue_from_string(m_value, val);
 
-        if(m_print_at_set)
+        if (m_print_at_set)
           {
             std::cout << "\n\t" << m_name
                       << " set to ";
@@ -413,13 +413,13 @@ public:
         on_set_by_command_line();
         return 1;
       }
-    else if(location<argc-1 and str==m_name)
+    else if (location<argc-1 and str==m_name)
       {
         const std::string &val(argv[location+1]);
 
         readvalue_from_string(m_value, val);
 
-        if(m_print_at_set)
+        if (m_print_at_set)
           {
             std::cout << "\n\t" << m_name
                       << " set to ";
@@ -480,7 +480,7 @@ public:
          << m_name << " (default value=";
 
     iter=m_value.m_label_set.m_value_Ts.find(v);
-    if(iter!=m_value.m_label_set.m_value_Ts.end())
+    if (iter!=m_value.m_label_set.m_value_Ts.end())
       {
         ostr << iter->second.first;
       }
@@ -518,22 +518,22 @@ public:
     int argc(argv.size());
 
     iter=std::find(str.begin(), str.end(), '=');
-    if(iter==str.end())
+    if (iter==str.end())
       {
         iter=std::find(str.begin(), str.end(), ':');
       }
 
-    if(iter!=str.end() and m_name==std::string(str.begin(), iter) )
+    if (iter!=str.end() and m_name==std::string(str.begin(), iter) )
       {
         std::string val(iter+1, str.end());
         typename std::map<std::string, T>::const_iterator iter;
 
         iter=m_value.m_label_set.m_value_strings.find(val);
-        if(iter!=m_value.m_label_set.m_value_strings.end())
+        if (iter!=m_value.m_label_set.m_value_strings.end())
           {
             m_value.m_value=iter->second;
 
-            if(m_print_at_set)
+            if (m_print_at_set)
               {
                 std::cout << "\n\t" << m_name
                           << " set to " << val;
@@ -542,16 +542,16 @@ public:
         m_set_by_command_line=true;
         return 1;
       }
-    else if(location<argc-1 and str==m_name)
+    else if (location<argc-1 and str==m_name)
       {
         const std::string &val(argv[location+1]);
         typename std::map<std::string, T>::const_iterator iter;
 
         iter=m_value.m_label_set.m_value_strings.find(val);
-        if(iter!=m_value.m_label_set.m_value_strings.end())
+        if (iter!=m_value.m_label_set.m_value_strings.end())
           {
             m_value.m_value=iter->second;
-            if(m_print_at_set)
+            if (m_print_at_set)
               {
                 std::cout << "\n\t" << m_name
                           << " set to " << val;

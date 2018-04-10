@@ -47,7 +47,7 @@ FreeTypeLibPrivate(void):
 FreeTypeLibPrivate::
 ~FreeTypeLibPrivate()
 {
-  if(m_lib != nullptr)
+  if (m_lib != nullptr)
     {
       FT_Done_FreeType(m_lib);
     }

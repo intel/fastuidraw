@@ -105,7 +105,7 @@ void
 painter_clip_test::
 handle_event(const SDL_Event &ev)
 {
-  if(m_active_zoomer != view_zoomer)
+  if (m_active_zoomer != view_zoomer)
     {
       ScaleTranslate<float> inv;
 
@@ -119,7 +119,7 @@ handle_event(const SDL_Event &ev)
   switch(ev.type)
     {
     case SDL_WINDOWEVENT:
-      if(ev.window.event == SDL_WINDOWEVENT_RESIZED)
+      if (ev.window.event == SDL_WINDOWEVENT_RESIZED)
         {
           on_resize(ev.window.data1, ev.window.data2);
         }
@@ -157,10 +157,10 @@ enum return_code
 painter_clip_test::
 load_path(Path &out_path, const std::string &filename)
 {
-  if(!filename.empty())
+  if (!filename.empty())
     {
       std::ifstream path_file(filename.c_str());
-      if(path_file)
+      if (path_file)
         {
           std::stringstream buffer;
           buffer << path_file.rdbuf();
@@ -176,7 +176,7 @@ void
 painter_clip_test::
 make_paths(void)
 {
-  if(routine_fail == load_path(m_path1, m_path1_file.m_value))
+  if (routine_fail == load_path(m_path1, m_path1_file.m_value))
     {
       m_path1 << vec2(100.0f, 100.0f)
               << vec2(0.0f, 0.0f)
@@ -184,7 +184,7 @@ make_paths(void)
               << Path::contour_end();
     }
 
-  if(routine_fail == load_path(m_path2, m_path2_file.m_value))
+  if (routine_fail == load_path(m_path2, m_path2_file.m_value))
     {
       m_path2 << vec2(100.0f, 0.0f)
               << vec2(0.0f, 100.0f)

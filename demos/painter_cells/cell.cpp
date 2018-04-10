@@ -11,12 +11,12 @@ namespace
     const float delta(q * sc);
 
     v += delta;
-    if(v < 0)
+    if (v < 0)
       {
         v = -v;
         q = -q;
       }
-    else if(v > pmax)
+    else if (v > pmax)
       {
         v = pmax - (v - pmax);
         q = -q;
@@ -71,10 +71,10 @@ void
 Cell::
 pre_paint(void)
 {
-  if(!m_first_frame)
+  if (!m_first_frame)
     {
       uint32_t ms;
-      if(m_timer_based_animation)
+      if (m_timer_based_animation)
         {
           ms = m_time.restart();
         }
@@ -83,7 +83,7 @@ pre_paint(void)
           ms = 16;
         }
 
-      if(m_shared_state->m_pause)
+      if (m_shared_state->m_pause)
         {
           ms = 0;
         }
@@ -92,15 +92,15 @@ pre_paint(void)
       bounce_move(m_item_location, m_pixels_per_ms,
                   m_dimensions, static_cast<float>(ms));
 
-      if(m_thousandths_degrees_rotation >= 360 * 1000)
+      if (m_thousandths_degrees_rotation >= 360 * 1000)
         {
           m_thousandths_degrees_rotation = m_thousandths_degrees_rotation % (360 * 1000);
         }
 
-      if(m_shared_state->m_rotating)
+      if (m_shared_state->m_rotating)
         {
           m_thousandths_degrees_cell_rotation += m_degrees_per_s * ms;
-          if(m_thousandths_degrees_rotation >= 360 * 1000)
+          if (m_thousandths_degrees_rotation >= 360 * 1000)
             {
               m_thousandths_degrees_cell_rotation = m_thousandths_degrees_rotation % (360 * 1000);
             }
@@ -118,7 +118,7 @@ pre_paint(void)
   m_item_rotation =
     static_cast<float>(M_PI) * static_cast<float>(m_thousandths_degrees_rotation) / (1000.0f * 180.0f);
 
-  if(m_shared_state->m_rotating)
+  if (m_shared_state->m_rotating)
     {
       float r;
 
@@ -144,10 +144,10 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
   painter->translate(m_item_location);
   painter->rotate(m_item_rotation);
 
-  if(m_shared_state->m_draw_image)
+  if (m_shared_state->m_draw_image)
     {
       vec2 wh;
-      if(m_image_brush.value().image())
+      if (m_image_brush.value().image())
         {
           wh = vec2(m_image_brush.value().image()->dimensions());
         }
@@ -160,14 +160,14 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
       painter->translate(wh * 0.5f);
     }
 
-  if(m_shared_state->m_draw_text)
+  if (m_shared_state->m_draw_text)
     {
       painter->draw_glyphs(PainterData(m_text_brush), m_text);
     }
 
   painter->restore();
 
-  if(m_shared_state->m_rotating && m_shared_state->m_stroke_width > 0.0f)
+  if (m_shared_state->m_rotating && m_shared_state->m_stroke_width > 0.0f)
     {
       PainterStrokeParams st;
       st.miter_limit(-1.0f);

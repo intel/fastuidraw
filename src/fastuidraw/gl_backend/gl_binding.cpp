@@ -133,7 +133,7 @@ post_call(c_string call_string_values,
   /* Should we just assume the loggers will
    * emit?
    */
-  if(!error.empty())
+  if (!error.empty())
     {
       std::cerr << "[" << src_file << "," << std::dec
                 << src_line << "] "
@@ -151,7 +151,7 @@ fastuidraw::gl_binding::
 get_proc_function(void* (*get_proc)(c_string), bool load_functions)
 {
   ngl().get_proc_function(get_proc);
-  if(load_functions && get_proc != nullptr)
+  if (load_functions && get_proc != nullptr)
     {
       load_all_functions(false);
     }

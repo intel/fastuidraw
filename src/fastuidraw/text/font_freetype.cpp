@@ -233,7 +233,7 @@ FaceGrabber(FontFreeTypePrivate *q):
       for(unsigned int i = 0; i < q->m_faces.size() && !m_p; ++i)
         {
           const fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace> &face(q->m_faces[i]);
-          if(face && face->try_lock())
+          if (face && face->try_lock())
             {
               m_p = face.get();
             }
@@ -244,7 +244,7 @@ FaceGrabber(FontFreeTypePrivate *q):
 FontFreeTypePrivate::FaceGrabber::
 ~FaceGrabber()
 {
-  if(m_p)
+  if (m_p)
     {
       m_p->unlock();
     }
@@ -263,7 +263,7 @@ FontFreeTypePrivate(fastuidraw::FontFreeType *p,
   m_p(p),
   m_all_faces_null(true)
 {
-  if(!m_lib)
+  if (!m_lib)
     {
       m_lib = FASTUIDRAWnew fastuidraw::FreeTypeLib();
     }
@@ -271,7 +271,7 @@ FontFreeTypePrivate(fastuidraw::FontFreeType *p,
   for(unsigned int i = 0; i < m_faces.size(); ++i)
     {
       m_faces[i] = m_generator->create_face(m_lib);
-      if(m_faces[i] && m_faces[i]->face())
+      if (m_faces[i] && m_faces[i]->face())
         {
           m_all_faces_null = false;
           FT_Set_Transform(m_faces[i]->face(), nullptr, nullptr);
@@ -319,7 +319,7 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
 {
   FaceGrabber p(this);
 
-  if(!p.m_p || !p.m_p->face())
+  if (!p.m_p || !p.m_p->face())
     {
       return;
     }
@@ -337,7 +337,7 @@ compute_rendering_data(int pixel_size, uint32_t glyph_code,
 
   /* add one pixel slack on glyph
    */
-  if(bitmap_sz.x() != 0 && bitmap_sz.y() != 0)
+  if (bitmap_sz.x() != 0 && bitmap_sz.y() != 0)
     {
       int pitch;
 
@@ -377,7 +377,7 @@ compute_rendering_data(uint32_t glyph_code,
 
   {
     FaceGrabber p(this);
-    if(!p.m_p || !p.m_p->face())
+    if (!p.m_p || !p.m_p->face())
       {
         return;
       }
@@ -394,7 +394,7 @@ compute_rendering_data(uint32_t glyph_code,
     int_path_ecm.replace_cubics_with_quadratics();
   }
 
-  if(int_path_ecm.empty())
+  if (int_path_ecm.empty())
     {
       return;
     }
@@ -416,7 +416,7 @@ compute_rendering_data(uint32_t glyph_code,
   fastuidraw::vec2 image_sz_f(layout.m_size * scale_factor);
   fastuidraw::ivec2 image_sz(ceilf(image_sz_f.x()), ceilf(image_sz_f.y()));
 
-  if(image_sz.x() == 0 || image_sz.y() == 0)
+  if (image_sz.x() == 0 || image_sz.y() == 0)
     {
       output.resize(fastuidraw::ivec2(0, 0));
       return;
@@ -455,7 +455,7 @@ compute_rendering_data(uint32_t glyph_code,
 
   {
     FaceGrabber p(this);
-    if(!p.m_p || !p.m_p->face())
+    if (!p.m_p || !p.m_p->face())
       {
         return;
       }
@@ -491,7 +491,7 @@ compute_rendering_data(uint32_t glyph_code,
   float curvature_collapse(0.05f);
 
   int_path_ecm.filter(curvature_collapse, tr, texel_distance);
-  if(int_path_ecm.empty() || image_sz.x() == 0 || image_sz.y() == 0)
+  if (int_path_ecm.empty() || image_sz.x() == 0 || image_sz.y() == 0)
     {
       output.resize_active_curve_pair(fastuidraw::ivec2(0, 0));
       return;
@@ -582,7 +582,7 @@ glyph_code(uint32_t pcharacter_code) const
   FT_UInt glyphcode;
   FontFreeTypePrivate::FaceGrabber p(d);
 
-  if(p.m_p && p.m_p->face())
+  if (p.m_p && p.m_p->face())
     {
       glyphcode = FT_Get_Char_Index(p.m_p->face(), FT_ULong(pcharacter_code));
     }
@@ -687,7 +687,7 @@ fastuidraw::FontFreeType::
 compute_font_properties_from_face(const reference_counted_ptr<FreeTypeFace> &in_face)
 {
   FontProperties return_value;
-  if(in_face && in_face->face())
+  if (in_face && in_face->face())
     {
       compute_font_properties_from_face(in_face->face(), return_value);
     }
@@ -698,7 +698,7 @@ void
 fastuidraw::FontFreeType::
 compute_font_properties_from_face(FT_Face in_face, FontProperties &out_properties)
 {
-  if(in_face)
+  if (in_face)
     {
       out_properties.family(in_face->family_name);
       out_properties.style(in_face->style_name);

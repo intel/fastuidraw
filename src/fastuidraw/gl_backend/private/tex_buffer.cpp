@@ -32,19 +32,19 @@ enum fastuidraw::gl::detail::tex_buffer_support_t
 fastuidraw::gl::detail::
 compute_tex_buffer_support(const ContextProperties &ctx)
 {
-  if(ctx.is_es())
+  if (ctx.is_es())
     {
-      if(ctx.version() >= ivec2(3, 2))
+      if (ctx.version() >= ivec2(3, 2))
         {
           return tex_buffer_no_extension;
         }
 
-      if(ctx.has_extension("GL_OES_texture_buffer"))
+      if (ctx.has_extension("GL_OES_texture_buffer"))
         {
           return tex_buffer_oes_extension;
         }
 
-      if(ctx.has_extension("GL_EXT_texture_buffer"))
+      if (ctx.has_extension("GL_EXT_texture_buffer"))
         {
           return tex_buffer_ext_extension;
         }

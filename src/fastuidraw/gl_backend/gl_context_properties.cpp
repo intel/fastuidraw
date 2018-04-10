@@ -64,7 +64,7 @@ ContextPropertiesPrivate(bool make_ready):
     }
   #endif
 
-  if(make_ready)
+  if (make_ready)
     {
       make_version_ready();
       make_extensions_ready();
@@ -75,7 +75,7 @@ void
 ContextPropertiesPrivate::
 make_version_ready(void)
 {
-  if(m_version_ready)
+  if (m_version_ready)
     {
       return;
     }
@@ -89,7 +89,7 @@ void
 ContextPropertiesPrivate::
 make_extensions_ready(void)
 {
-  if(m_extensions_ready)
+  if (m_extensions_ready)
     {
       return;
     }

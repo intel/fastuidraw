@@ -249,17 +249,17 @@ per_draw(void):
 glyph_test::per_draw::
 ~per_draw()
 {
-  if(m_vao != 0)
+  if (m_vao != 0)
     {
       glDeleteVertexArrays(1, &m_vao);
     }
 
-  if(m_vbo != 0)
+  if (m_vbo != 0)
     {
       glDeleteBuffers(1, &m_vbo);
     }
 
-  if(m_ibo != 0)
+  if (m_ibo != 0)
     {
       glDeleteBuffers(1, &m_ibo);
     }
@@ -310,7 +310,7 @@ init_draw_text(c_array<const Glyph> glyphs, c_array<const vec2> glyph_positions,
   indices.resize(glyphs.size());
   for(i = 0, endi = glyphs.size(), glyph_count = 0; i < endi; ++i)
     {
-      if(glyphs[i].valid())
+      if (glyphs[i].valid())
         {
           attribs[glyph_count].pack_data(scale_factor, i, glyphs[i], glyph_positions[i], indices[glyph_count]);
           ++glyph_count;
@@ -323,7 +323,7 @@ init_draw_text(c_array<const Glyph> glyphs, c_array<const vec2> glyph_positions,
    */
   init_and_bind_vao_vbo_ibo();
 
-  if(attribs.empty())
+  if (attribs.empty())
     {
       attribs_per_glyph J;
       glBufferData(GL_ARRAY_BUFFER, sizeof(J), &J, GL_STATIC_DRAW);
@@ -346,7 +346,7 @@ init_draw_text(c_array<const Glyph> glyphs, c_array<const vec2> glyph_positions,
   gl::VertexAttribPointer(3, gl::opengl_trait_values<vec3>(sizeof(single_attribute), offsetof(single_attribute, m_secondary_tex_coord_layer)));
 
 
-  if(indices.empty())
+  if (indices.empty())
     {
       vecN<GLuint, 6> I(0);
       glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(I), &I, GL_STATIC_DRAW);
@@ -369,17 +369,17 @@ draw(glyph_test *q, int which_program, const float4x4 &pvm, int layer, unsigned 
   gl::Uniform(m_programs[which_program].m_translate_loc, m_zoomer->transformation().translation());
   gl::Uniform(m_programs[which_program].m_scale_loc, m_zoomer->transformation().scale());
 
-  if(m_programs[which_program].m_layer_loc != -1)
+  if (m_programs[which_program].m_layer_loc != -1)
     {
       gl::Uniform(m_programs[which_program].m_layer_loc, layer);
     }
 
-  if(m_programs[which_program].m_aa_mode_loc != -1)
+  if (m_programs[which_program].m_aa_mode_loc != -1)
     {
       gl::Uniform(m_programs[which_program].m_aa_mode_loc, aa_mode);
     }
 
-  if(m_programs[which_program].m_fg_color_loc != -1)
+  if (m_programs[which_program].m_fg_color_loc != -1)
     {
       gl::Uniform(m_programs[which_program].m_fg_color_loc,
                   vec3(q->m_fg_red.m_value, q->m_fg_green.m_value, q->m_fg_blue.m_value));
@@ -446,7 +446,7 @@ pack_data(float SCALE, unsigned int i, Glyph G, vec2 p, vecN<GLuint, 6> &indices
   m_data[3].m_geometry_offset = G.geometry_offset();
   m_data[3].m_secondary_tex_coord_layer = vec3(t2_bl.x(), t2_tr.y(), layer2);
 
-  if(layer2 != -1)
+  if (layer2 != -1)
     {
       std::cout << "Needs secondary: glyph_code = " << G.layout().m_glyph_code
                 << "\n\tglyph_size=" << glyph_size << " at " << p_bl << ":" << p_tr
@@ -551,7 +551,7 @@ create_and_add_font(void)
 
   gen = FASTUIDRAWnew FreeTypeFace::GeneratorFile(m_font_file.m_value.c_str(), m_font_index.m_value);
   m_face = gen->create_face();
-  if(m_face)
+  if (m_face)
     {
       m_font = FASTUIDRAWnew FontFreeType(gen,
                                           FontFreeType::RenderParams()
@@ -632,7 +632,7 @@ init_gl(int w, int h)
   m_glyph_cache = FASTUIDRAWnew GlyphCache(m_glyph_atlas);
   m_glyph_selector = FASTUIDRAWnew GlyphSelector(m_glyph_cache);
 
-  if(create_and_add_font() == routine_fail)
+  if (create_and_add_font() == routine_fail)
     {
       end_demo(-1);
       return;
@@ -654,7 +654,7 @@ ready_program(void)
   macros[texel_store_uint] = "USE_UINT_TEXEL_FETCH";
   macros[texel_store_float] = "USE_FLOAT_TEXEL_FETCH";
 
-  if(m_glyph_atlas->geometry_texture_binding_point() == GL_TEXTURE_BUFFER)
+  if (m_glyph_atlas->geometry_texture_binding_point() == GL_TEXTURE_BUFFER)
     {
       glyph_geom_mode = "GLYPH_GEOMETRY_USE_TEXTURE_BUFFER";
     }
@@ -726,11 +726,11 @@ ready_program(void)
           gl::ContextProperties ctx;
           std::string version;
 
-          if(ctx.version() >= ivec2(3, 2))
+          if (ctx.version() >= ivec2(3, 2))
             {
               version = "320 es";
             }
-          else if(ctx.version() >= ivec2(3,1))
+          else if (ctx.version() >= ivec2(3,1))
             {
               version = "310 es";
             }
@@ -857,7 +857,7 @@ compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float p
         {
           --glyph_index;
           FASTUIDRAWassert(glyph_index < static_cast<int>(glyphs.size()));
-          if(!found_character_code[glyph_index])
+          if (!found_character_code[glyph_index])
             {
               character_codes[glyph_index] = character_code;
               found_character_code[glyph_index] = true;
@@ -891,7 +891,7 @@ compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float p
       positions[i].y() = pen.y();
       pen.x() += advance;
 
-      if(i + 1 < endi)
+      if (i + 1 < endi)
         {
           float pre_layout, nxt_adv;
           GlyphLayoutData nxtL(glyphs[i + 1].layout());
@@ -907,7 +907,7 @@ compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float p
           nxt = pen.x();
         }
 
-      if(nxt >= line_length || i + 1 == endi)
+      if (nxt >= line_length || i + 1 == endi)
         {
           std::ostringstream desc;
           desc << "[" << std::setw(5) << glyphs[glyph_at_start].layout().m_glyph_code
@@ -964,15 +964,15 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
                              std::vector<Glyph> &glyphs, std::vector<vec2> &positions,
                              std::vector<uint32_t> &character_codes)
 {
-  if(m_draw_glyph_set.m_value)
+  if (m_draw_glyph_set.m_value)
     {
       compute_glyphs_and_positions_glyph_set(renderer, pixel_size_formatting,
                                              glyphs, positions, character_codes);
     }
-  else if(m_use_file.m_value)
+  else if (m_use_file.m_value)
     {
       std::ifstream istr(m_text.m_value.c_str(), std::ios::binary);
-      if(istr)
+      if (istr)
         {
           create_formatted_text(istr, renderer, pixel_size_formatting,
                                 m_font, m_glyph_selector, glyphs, positions,
@@ -1106,7 +1106,7 @@ handle_event(const SDL_Event &ev)
       break;
 
     case SDL_WINDOWEVENT:
-      if(ev.window.event == SDL_WINDOWEVENT_RESIZED)
+      if (ev.window.event == SDL_WINDOWEVENT_RESIZED)
         {
           int w, h;
           w = ev.window.data1;
@@ -1127,7 +1127,7 @@ handle_event(const SDL_Event &ev)
           std::cout << "Drawing " << m_drawers[m_current_drawer].m_label << "\n";
           break;
         case SDLK_n:
-          if(m_current_drawer == draw_glyph_atlas)
+          if (m_current_drawer == draw_glyph_atlas)
             {
               cycle_value(m_current_layer, false, m_glyph_atlas->texel_store()->dimensions().z());
               std::cout << "Drawing atlas layer #" << m_current_layer << "\n";
@@ -1135,7 +1135,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_p:
-          if(m_current_drawer == draw_glyph_atlas)
+          if (m_current_drawer == draw_glyph_atlas)
             {
               cycle_value(m_current_layer, true, m_glyph_atlas->texel_store()->dimensions().z());
               std::cout << "Drawing atlas layer #" << m_current_layer << "\n";
@@ -1143,7 +1143,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_a:
-          if(m_current_drawer == draw_glyph_curvepair || m_current_drawer == draw_glyph_distance)
+          if (m_current_drawer == draw_glyph_curvepair || m_current_drawer == draw_glyph_distance)
             {
               cycle_value(m_aa_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), NUMBER_AA_MODES);
               std::cout << "AA-mode set to: " << m_aa_mode << "\n";

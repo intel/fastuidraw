@@ -498,7 +498,7 @@ public:
   const vecN&
   operator=(const vecN &obj)
   {
-    if(&obj != this)
+    if (&obj != this)
       {
         for(size_type i = 0; i < N; ++i)
           {
@@ -956,7 +956,7 @@ public:
     T val;
 
     val = dot(*this, referencePt);
-    if(val < T(0))
+    if (val < T(0))
       {
         for(size_type i = 0; i < N; ++i)
           {
@@ -972,13 +972,13 @@ public:
   bool
   operator==(const vecN &obj) const
   {
-    if(this == &obj)
+    if (this == &obj)
       {
         return true;
       }
     for(size_type i = 0; i < N; ++i)
       {
-        if(obj[i] != operator[](i))
+        if (obj[i] != operator[](i))
           {
             return false;
           }
@@ -1007,17 +1007,17 @@ public:
   bool
   operator<(const vecN &obj) const
   {
-    if(this == &obj)
+    if (this == &obj)
       {
         return false;
       }
     for(size_type i = 0; i < N; ++i)
       {
-        if(operator[](i) < obj[i])
+        if (operator[](i) < obj[i])
           {
             return true;
           }
-        if(obj[i] < operator[](i))
+        if (obj[i] < operator[](i))
           {
             return false;
           }

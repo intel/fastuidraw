@@ -53,7 +53,7 @@ init_gl(int w, int h)
 {
   m_screen_size=fastuidraw::ivec2(w,h);
 
-  if(m_render_to_fbo.m_value.m_value!=no_fbo)
+  if (m_render_to_fbo.m_value.m_value!=no_fbo)
     {
       create_and_bind_fbo();
       w = m_fbo_width.m_value;
@@ -68,7 +68,7 @@ void
 sdl_benchmark::
 unbind_and_delete_fbo(void)
 {
-  if(m_fbo != 0)
+  if (m_fbo != 0)
     {
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
       glDeleteFramebuffers(1, &m_fbo);
@@ -81,7 +81,7 @@ void
 sdl_benchmark::
 create_and_bind_fbo(void)
 {
-  if(m_fbo_width.m_value==0 || m_fbo_height.m_value==0)
+  if (m_fbo_width.m_value==0 || m_fbo_height.m_value==0)
     {
       m_fbo_width.m_value=m_screen_size.x();
       m_fbo_height.m_value=m_screen_size.y();
@@ -145,7 +145,7 @@ void
 sdl_benchmark::
 draw_fbo_contents(void)
 {
-  if(m_render_to_fbo.m_value.m_value==blit_fbo)
+  if (m_render_to_fbo.m_value.m_value==blit_fbo)
     {
       glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo);
       glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -158,7 +158,7 @@ draw_fbo_contents(void)
       glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
     }
 
-  if(m_read_pixel.m_value)
+  if (m_read_pixel.m_value)
     {
       GLubyte color[4];
       glReadPixels(0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
@@ -170,18 +170,18 @@ void
 sdl_benchmark::
 draw_frame(void)
 {
-  if(m_print_each_time.m_value)
+  if (m_print_each_time.m_value)
     {
       uint32_t tt;
       tt=m_last_frame_time.restart();
-      if(m_frame!=0)
+      if (m_frame!=0)
         {
           std::cout << "\nframe " << std::setw(5) << m_frame-1 << ": "
                     << std::setw(4) << tt << " ms" << std::flush;
         }
     }
 
-  if(m_frame>=m_num_frames.m_value)
+  if (m_frame>=m_num_frames.m_value)
     {
       uint32_t tt;
 
@@ -201,7 +201,7 @@ draw_frame(void)
           std::cout << "\nTook " << m_to_create
                     << "ms to init GL, compile shader(s), setup state and draw first frame\n";
 
-          if(m_frame>1)
+          if (m_frame>1)
             {
               std::cout << "After first frame, " << m_frame-1 << " frames done in "
                         << tt << " ms"
@@ -212,14 +212,14 @@ draw_frame(void)
         }
       end_benchmark(0);
     }
-  else if(m_frame==0)
+  else if (m_frame==0)
     {
       benchmark_draw_frame(0, 0);
       draw_fbo_contents();
     }
   else
     {
-      if(m_frame==1)
+      if (m_frame==1)
         {
           m_to_create=m_time.restart();
         }

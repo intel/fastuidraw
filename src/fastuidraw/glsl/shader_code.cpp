@@ -53,7 +53,7 @@ namespace
     tempIndex = obj.m_pk / obj.m_N;
     cc = obj.m_pk - obj.m_N * tempIndex;
     FASTUIDRAWassert(0<= cc && cc < 4);
-    if(obj.m_N > 1)
+    if (obj.m_N > 1)
       {
         str << tempIndex << "." << component[cc];
       }
@@ -109,7 +109,7 @@ LoaderMacro(unsigned int alignment,
 
   for(unsigned int c = 0, j = 0; c < fastuidraw::GlyphRenderDataCurvePair::number_elements_to_pack; c += alignment, ++j)
     {
-      if(c != 0)
+      if (c != 0)
         {
           str << ", ";
         }
@@ -185,7 +185,7 @@ curvepair_compute_pseudo_distance(unsigned int alignment,
     .add_source(LoaderMacro(alignment, geometry_store_fetch).value(),
                 ShaderSource::from_string);
 
-  if(derivative_function)
+  if (derivative_function)
     {
       return_value
         .add_source("fastuidraw_curvepair_glyph_derivative.frag.glsl.resource_string",
@@ -300,7 +300,7 @@ compute_interval(c_string function_name, unsigned int data_alignment)
        << "\tint loc;\n"
        << "\tfloat d, lastd, ff, fd;\n";
 
-  if(data_alignment == 1 || data_alignment == 3)
+  if (data_alignment == 1 || data_alignment == 3)
     {
       ostr << "\tfloat s = 1.0;\n";
     }
@@ -324,17 +324,17 @@ compute_interval(c_string function_name, unsigned int data_alignment)
   for(unsigned int i = 0; i < data_alignment; ++i)
     {
       ostr << "\t\t";
-      if(i != 0)
+      if (i != 0)
         {
           ostr << "else ";
         }
-      ostr << "if(d < fV." << xyzw[i] << ")\n"
+      ostr << "if (d < fV." << xyzw[i] << ")\n"
            << "\t\t{\n"
            << "\t\t\tinterval_begin = ff + " << start_interval[i] << ";\n"
            << "\t\t\tinterval_end = ff + " << end_interval[i] << ";\n"
            << "\t\t\tinterval_ID = int(" << data_alignment << ") * loc "
            << "+ int(" << i << ") + int(fd) * int(number_intervals);\n";
-      if(data_alignment == 1 || data_alignment == 3)
+      if (data_alignment == 1 || data_alignment == 3)
         {
           ostr << "\t\t\treturn s * " << return_signs[i] << ";\n";
         }
@@ -348,7 +348,7 @@ compute_interval(c_string function_name, unsigned int data_alignment)
   ostr << "\t\tlastd = fV." << xyzw[data_alignment - 1] << ";\n"
        << "\t\t++loc;\n";
 
-  if(data_alignment == 1 || data_alignment == 3)
+  if (data_alignment == 1 || data_alignment == 3)
     {
       ostr << "\t\ts *= -1.0;\n";
     }

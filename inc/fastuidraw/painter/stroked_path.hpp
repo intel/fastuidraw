@@ -477,7 +477,7 @@ public:
         cs.x() = m_auxiliary_offset.y();
         cs.y() = sqrt(1.0 - cs.x() * cs.x());
 
-        if(m_packed_data & sin_sign_mask)
+        if (m_packed_data & sin_sign_mask)
           cs.y() = -cs.y();
 
         offset = cs
@@ -494,10 +494,10 @@ public:
         n0.y() = sqrt(1.0 - n0.x() * n0.x());
         n1.y() = sqrt(1.0 - n1.x() * n1.x());
 
-        if(m_packed_data & normal0_y_sign_mask)
+        if (m_packed_data & normal0_y_sign_mask)
           n0.y() = -n0.y();
 
-        if(m_packed_data & normal1_y_sign_mask)
+        if (m_packed_data & normal1_y_sign_mask)
           n1.y() = -n1.y();
         \endcode
         The vector n0 represents the normal of the path going into the join,
@@ -513,7 +513,7 @@ public:
         det = dot(Jn1, n0);
         lambda = -t_sign(det);
         r = (det != 0.0) ? (dot(n0, n1) - 1.0) / det : 0.0;
-        if(offset_type() == offset_miter_clip_join_lambda_negated)
+        if (offset_type() == offset_miter_clip_join_lambda_negated)
           {
             lambda = -lambda;
           }

@@ -44,7 +44,7 @@ command_line_register::
     {
       command_line_argument *p(*iter);
 
-      if(p!=nullptr)
+      if (p!=nullptr)
         {
           p->m_parent=nullptr;
           p->m_location=-1;
@@ -85,12 +85,12 @@ parse_command_line(const std::vector<std::string> &argv)
         {
            command_line_argument *p(m_children[i]);
 
-           if(p!=nullptr)
+           if (p!=nullptr)
              {
                int incr;
 
                incr=p->check_arg(argv, location);
-               if(incr>0)
+               if (incr>0)
                  {
                    location+=incr;
                    arg_taken=true;
@@ -98,7 +98,7 @@ parse_command_line(const std::vector<std::string> &argv)
              }
         }
 
-      if(!arg_taken)
+      if (!arg_taken)
         {
           ++location;
         }
@@ -116,7 +116,7 @@ print_help(std::ostream &ostr) const
     {
        command_line_argument *p(*iter);
 
-       if(p!=nullptr)
+       if (p!=nullptr)
          {
            ostr << " ";
            p->print_command_line_description(ostr);
@@ -137,7 +137,7 @@ print_detailed_help(std::ostream &ostr) const
     {
        command_line_argument *p(*iter);
 
-       if(p!=nullptr)
+       if (p!=nullptr)
          {
            p->print_detailed_description(ostr);
          }
@@ -150,7 +150,7 @@ print_detailed_help(std::ostream &ostr) const
 command_line_argument::
 ~command_line_argument()
 {
-  if(m_parent!=nullptr and m_location>=0)
+  if (m_parent!=nullptr and m_location>=0)
     {
       m_parent->m_children[m_location]=nullptr;
     }
@@ -165,7 +165,7 @@ tabs_to_spaces(const std::string &v)
   std::vector<char> vc;
   for(std::string::const_iterator iter=v.begin(), end=v.end(); iter!=end; ++iter)
     {
-      if(*iter!='\t')
+      if (*iter!='\t')
         {
           vc.push_back(*iter);
         }
@@ -205,7 +205,7 @@ format_description_string(const std::string &name, const std::string &desc)
 
   for(iter=desc.begin(), end=desc.end(); iter!=end;)
     {
-      if(*iter!='\n')
+      if (*iter!='\n')
         {
           ostr << "\n\t" << empty;
         }
@@ -221,7 +221,7 @@ format_description_string(const std::string &name, const std::string &desc)
       for(l=nl+TAB_LENGTH; l<70 && iter!=end && *iter!='\n'; ++iter)
         {
           ostr << *iter;
-          if(*iter=='\t')
+          if (*iter=='\t')
             {
               l+=TAB_LENGTH;
             }

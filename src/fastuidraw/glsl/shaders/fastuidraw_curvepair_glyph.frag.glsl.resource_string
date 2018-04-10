@@ -93,14 +93,14 @@ FASTUIDRAW_CURVEPAIR_COMPUTE_NAME(in uint texel_value,
 
   /* texel_value 0 means completely empty texel
    */
-  if(texel_value == uint(0))
+  if (texel_value == uint(0))
     {
       return -1.0;
     }
 
   /* texel_value 1 means completely full texel
    */
-  if(texel_value == uint(1))
+  if (texel_value == uint(1))
     {
       return 1.0;
     }

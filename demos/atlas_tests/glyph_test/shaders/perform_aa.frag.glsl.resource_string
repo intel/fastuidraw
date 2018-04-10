@@ -3,14 +3,14 @@ perform_aa(uint aa_mode, float f, float dfdx, float dfdy, vec2 tex_coord)
 {
   float a;
 
-  if(aa_mode == uint(0)) //default AA of fastuidraw_anisotropic
+  if (aa_mode == uint(0)) //default AA of fastuidraw_anisotropic
     {
       float mag_sq;
       mag_sq = dfdx * dfdx + dfdy * dfdy;
       a = clamp(0.5 + f * inversesqrt(mag_sq), 0.0, 1.0);
     }
 
-  if(aa_mode == uint(1)) //isotropic AA
+  if (aa_mode == uint(1)) //isotropic AA
     {
       vec2 dx, dy;
       float mag_sq, imag;
@@ -22,7 +22,7 @@ perform_aa(uint aa_mode, float f, float dfdx, float dfdy, vec2 tex_coord)
       a = clamp(0.5 + f * max(1.0, imag), 0.0, 1.0);
     }
 
-  if(aa_mode == uint(2)) //AA as in stroke shading.
+  if (aa_mode == uint(2)) //AA as in stroke shading.
     {
       float fw, d;
 
@@ -31,7 +31,7 @@ perform_aa(uint aa_mode, float f, float dfdx, float dfdy, vec2 tex_coord)
       a = step(0.0, f) * max(0.0, abs(f) / d);
     }
 
-  if(aa_mode == uint(3)) //AA via smoothstep
+  if (aa_mode == uint(3)) //AA via smoothstep
     {
       vec2 dx, dy;
       float ss;
@@ -43,7 +43,7 @@ perform_aa(uint aa_mode, float f, float dfdx, float dfdy, vec2 tex_coord)
       a = smoothstep(-0.4 * ss, 0.4 * ss, f);
     }
 
-  if(aa_mode == uint(4))
+  if (aa_mode == uint(4))
     {
       a = f > 0.0 ? 1.0 : 0.0;
     }

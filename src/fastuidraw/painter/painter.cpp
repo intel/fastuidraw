@@ -85,11 +85,11 @@ namespace
           fastuidraw::FilledPath::Subset subset(filled_path.subset(s));
           int m, M;
 
-	  if(!subset.winding_numbers().empty())
+	  if (!subset.winding_numbers().empty())
 	    {
 	      m = subset.winding_numbers().front();
 	      M = subset.winding_numbers().back();
-	      if(first_entry)
+	      if (first_entry)
 		{
 		  min_winding = m;
 		  max_winding = M;
@@ -173,7 +173,7 @@ namespace
     void
     current_draw(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &h)
     {
-      if(h != m_cmd)
+      if (h != m_cmd)
         {
           m_cmd = h;
           m_current = FASTUIDRAWnew ZDelayedAction();
@@ -203,7 +203,7 @@ namespace
   {
     for(int i = 0; i < 4; ++i)
       {
-        if(fastuidraw::dot(pts[0], eq.m_clip_equations[i]) < 0.0f
+        if (fastuidraw::dot(pts[0], eq.m_clip_equations[i]) < 0.0f
            && fastuidraw::dot(pts[1], eq.m_clip_equations[i]) < 0.0f
            && fastuidraw::dot(pts[2], eq.m_clip_equations[i]) < 0.0f
            && fastuidraw::dot(pts[3], eq.m_clip_equations[i]) < 0.0f)
@@ -229,7 +229,7 @@ namespace
                              const fastuidraw::vec3 &plane,
                              const fastuidraw::reference_counted_ptr<ZDataCallBack> &callback)
   {
-    if(fastuidraw::t_abs(plane.x()) > fastuidraw::t_abs(plane.y()))
+    if (fastuidraw::t_abs(plane.x()) > fastuidraw::t_abs(plane.y()))
       {
         float a, b, c, d;
         /* a so that A * a + B * -1 + C = 0 -> a = (+B - C) / A
@@ -242,7 +242,7 @@ namespace
            (c, -1) and (d, 1) so that they are on the correct side
            of the half plane
          */
-        if(plane.x() > 0.0f)
+        if (plane.x() > 0.0f)
           {
             /* increasing x then make the plane more positive,
                and we want the negative side, so take c and
@@ -267,13 +267,13 @@ namespace
                            false,
                            callback);
       }
-    else if(fastuidraw::t_abs(plane.y()) > 0.0f)
+    else if (fastuidraw::t_abs(plane.y()) > 0.0f)
       {
         float a, b, c, d;
         a = (+plane.x() - plane.z()) / plane.y();
         b = (-plane.x() - plane.z()) / plane.y();
 
-        if(plane.y() > 0.0f)
+        if (plane.y() > 0.0f)
           {
             c = fastuidraw::t_min(-1.0f, a);
             d = fastuidraw::t_min(-1.0f, b);
@@ -293,7 +293,7 @@ namespace
                            callback);
 
       }
-    else if(plane.z() <= 0.0f)
+    else if (plane.z() <= 0.0f)
       {
         /* complement of half plane covers entire [-1,1]x[-1,1]
          */
@@ -426,7 +426,7 @@ namespace
     const fastuidraw::PainterPackedValue<fastuidraw::PainterItemMatrix>&
     current_item_marix_state(fastuidraw::PainterPackedValuePool &pool)
     {
-      if(!m_item_matrix_state)
+      if (!m_item_matrix_state)
         {
           m_item_matrix_state = pool.create_packed_value(m_item_matrix);
         }
@@ -446,7 +446,7 @@ namespace
     const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations>&
     clip_equations_state(fastuidraw::PainterPackedValuePool &pool)
     {
-      if(!m_clip_equations_state)
+      if (!m_clip_equations_state)
         {
           m_clip_equations_state = pool.create_packed_value(m_clip_equations);
         }
@@ -711,12 +711,12 @@ void
 clip_rect::
 intersect(const clip_rect &rect)
 {
-  if(!rect.m_enabled)
+  if (!rect.m_enabled)
     {
       return;
     }
 
-  if(m_enabled)
+  if (m_enabled)
     {
       m_min.x() = fastuidraw::t_max(rect.m_min.x(), m_min.x());
       m_min.y() = fastuidraw::t_max(rect.m_min.y(), m_min.y());
@@ -783,7 +783,7 @@ const fastuidraw::float3x3&
 clip_rect_state::
 item_matrix_inverse_transpose(void)
 {
-  if(m_inverse_transpose_not_ready)
+  if (m_inverse_transpose_not_ready)
     {
       m_inverse_transpose_not_ready = false;
       m_item_matrix.m_item_matrix.inverse_transpose(m_item_matrix_inverse_transpose);
@@ -804,7 +804,7 @@ std::bitset<4>
 clip_rect_state::
 set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw::PainterClipEquations> &pcl)
 {
-  if(m_clip_rect.empty())
+  if (m_clip_rect.empty())
     {
       m_all_content_culled = true;
       return std::bitset<4>();
@@ -833,14 +833,14 @@ set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw:
 
   for(int i = 0; i < 4; ++i)
     {
-      if(clip_equation_clips_everything(cl.m_clip_equations[i]))
+      if (clip_equation_clips_everything(cl.m_clip_equations[i]))
         {
           m_all_content_culled = true;
           return std::bitset<4>();
         }
     }
 
-  if(!pcl)
+  if (!pcl)
     {
       return std::bitset<4>();
     }
@@ -921,7 +921,7 @@ rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh)
   pts[2] = m_item_matrix.m_item_matrix * fastuidraw::vec3(pmax.x(), pmax.y(), 1.0f);
   pts[3] = m_item_matrix.m_item_matrix * fastuidraw::vec3(pmax.x(), pmin.y(), 1.0f);
 
-  if(m_clip_rect.m_enabled)
+  if (m_clip_rect.m_enabled)
     {
       /* use equations from clip state
        */
@@ -1006,7 +1006,7 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
 
   /* if the rectangle clipped is empty, then we are completely clipped.
    */
-  if(poly.empty())
+  if (poly.empty())
     {
       return true;
     }
@@ -1033,7 +1033,7 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
       next_i = (next_i == poly.size()) ? 0 : next_i;
       v = poly[next_i] - poly[i];
       n = fastuidraw::vec2(v.y(), -v.x());
-      if(dot(center - poly[i], n) < 0.0f)
+      if (dot(center - poly[i], n) < 0.0f)
         {
           n = -n;
         }
@@ -1097,7 +1097,7 @@ select_path_thresh_perspective(const fastuidraw::Path &path)
   unsigned int src;
 
   r = path.approximate_bounding_box(&bb_min, &bb_max);
-  if(!r)
+  if (!r)
     {
       /* it does not matter, since the path is essentially
          empty. By using a negative value, we get the
@@ -1126,7 +1126,7 @@ select_path_thresh_perspective(const fastuidraw::Path &path)
   fastuidraw::c_array<const fastuidraw::vec2> poly;
   poly = make_c_array(m_work_room.m_clipper_vec2s[src]);
 
-  if(poly.empty())
+  if (poly.empty())
     {
       /* bounding box of path is clipped, just take default
          tessellation and call it a day (!).
@@ -1168,7 +1168,7 @@ select_path_thresh_perspective(const fastuidraw::Path &path)
 
   area_local_coords = fastuidraw::t_abs(area_local_coords);
   area_pixel_coords = fastuidraw::t_abs(area_pixel_coords);
-  if(area_local_coords <= 0.0f || area_pixel_coords <= 0.0f)
+  if (area_local_coords <= 0.0f || area_pixel_coords <= 0.0f)
     {
       return -1.0f;
     }
@@ -1184,7 +1184,7 @@ select_path_thresh(const fastuidraw::Path &path)
   const fastuidraw::float3x3 &m(m_clip_rect_state.item_matrix());
 
   no_perspective = (m(2, 0) == 0.0f && m(2, 1) == 0.0f);
-  if(no_perspective)
+  if (no_perspective)
     {
       return select_path_thresh_non_perspective();
     }
@@ -1247,11 +1247,11 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader, const fastuidr
             end = subset.winding_numbers().end(); iter != end; ++iter)
         {
           int w0(*iter);
-          if(wset(w0))
+          if (wset(w0))
             {
               unsigned int chunk;
               chunk = fastuidraw::FilledPath::Subset::chunk_for_aa_fuzz(w0, w0);
-              if(!data.attribute_data_chunk(chunk).empty())
+              if (!data.attribute_data_chunk(chunk).empty())
                 {
                   m_work_room.m_fill_aa_fuzz_attrib_chunks.push_back(data.attribute_data_chunk(chunk));
                   m_work_room.m_fill_aa_fuzz_index_chunks.push_back(data.index_data_chunk(chunk));
@@ -1263,11 +1263,11 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader, const fastuidr
                 e = subset.winding_neighbors(w0).end(); i != e; ++i)
             {
               int w1(*i);
-              if(wset(w0) != wset(w1))
+              if (wset(w0) != wset(w1))
                 {
                   unsigned int chunk;
                   chunk = fastuidraw::FilledPath::Subset::chunk_for_aa_fuzz(w0, w1);
-                  if(!data.attribute_data_chunk(chunk).empty())
+                  if (!data.attribute_data_chunk(chunk).empty())
                     {
                       m_work_room.m_fill_aa_fuzz_attrib_chunks.push_back(data.attribute_data_chunk(chunk));
                       m_work_room.m_fill_aa_fuzz_index_chunks.push_back(data.index_data_chunk(chunk));
@@ -1362,7 +1362,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  if(!d->m_clip_rect_state.m_all_content_culled)
+  if (!d->m_clip_rect_state.m_all_content_culled)
     {
       d->draw_generic(shader, draw, attrib_chunks, index_chunks,
                       index_adjusts, c_array<const unsigned int>(),
@@ -1381,7 +1381,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  if(!d->m_clip_rect_state.m_all_content_culled)
+  if (!d->m_clip_rect_state.m_all_content_culled)
     {
       d->draw_generic(shader, draw, attrib_chunks, index_chunks,
                       index_adjusts, attrib_chunk_selector,
@@ -1397,7 +1397,7 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  if(!d->m_clip_rect_state.m_all_content_culled)
+  if (!d->m_clip_rect_state.m_all_content_culled)
     {
       d->draw_generic(shader, draw, src, current_z(), call_back);
     }
@@ -1414,18 +1414,18 @@ draw_convex_polygon(const PainterFillShader &shader,
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  if(pts.size() < 3 || d->m_clip_rect_state.m_all_content_culled)
+  if (pts.size() < 3 || d->m_clip_rect_state.m_all_content_culled)
     {
       return;
     }
 
-  if(!d->m_core->hints().clipping_via_hw_clip_planes())
+  if (!d->m_core->hints().clipping_via_hw_clip_planes())
     {
       d->m_clip_rect_state.clip_polygon(pts, d->m_work_room.m_pts_draw_convex_polygon,
                                         d->m_work_room.m_clipper_vec2s[0],
                                         d->m_work_room.m_clipper_floats);
       pts = make_c_array(d->m_work_room.m_pts_draw_convex_polygon);
-      if(pts.size() < 3)
+      if (pts.size() < 3)
         {
           return;
         }
@@ -1448,7 +1448,7 @@ draw_convex_polygon(const PainterFillShader &shader,
       d->m_work_room.m_polygon_indices.push_back(i);
     }
 
-  if(with_anti_aliasing)
+  if (with_anti_aliasing)
     {
       ++d->m_current_z;
     }
@@ -1460,7 +1460,7 @@ draw_convex_polygon(const PainterFillShader &shader,
 
   /* each point spawns an edge, each edge is 4 attributes and 6 indices
    */
-  if(with_anti_aliasing)
+  if (with_anti_aliasing)
     {
       d->m_work_room.m_polygon_attribs.resize(4 * pts.size());
       d->m_work_room.m_polygon_indices.resize(6 * pts.size());
@@ -1578,7 +1578,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  if(d->m_clip_rect_state.m_all_content_culled)
+  if (d->m_clip_rect_state.m_all_content_culled)
     {
       return;
     }
@@ -1594,17 +1594,17 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
   reference_counted_ptr<PainterBlendShader> old_blend;
   BlendMode::packed_value old_blend_mode;
 
-  if(join_data == nullptr)
+  if (join_data == nullptr)
     {
       join_chunks = c_array<const unsigned int>();
     }
 
-  if(edge_data == nullptr)
+  if (edge_data == nullptr)
     {
       edge_chunks = c_array<const unsigned int>();
     }
 
-  if(cap_data == nullptr)
+  if (cap_data == nullptr)
     {
       cap_chunks = c_array<const unsigned int>();
     }
@@ -1614,7 +1614,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
      thus there is no malloc/free noise
    */
   total_chunks = cap_chunks.size() + edge_chunks.size() + join_chunks.size();
-  if(total_chunks == 0)
+  if (total_chunks == 0)
     {
       return;
     }
@@ -1675,7 +1675,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
   modify_z = !with_anti_aliasing || shader.aa_type() == PainterStrokeShader::draws_solid_then_fuzz;
   sh = (with_anti_aliasing) ? &shader.aa_shader_pass1(): &shader.non_aa_shader();
 
-  if(with_anti_aliasing)
+  if (with_anti_aliasing)
     {
       d->m_core->draw_break(shader.aa_action_pass1());
       if (shader.aa_type() == PainterStrokeShader::cover_then_draw)
@@ -1686,7 +1686,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
         }
     }
 
-  if(modify_z)
+  if (modify_z)
     {
       /*
         We want draw the passes so that the depth test prevents overlap drawing
@@ -1717,7 +1717,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
                       d->m_current_z, call_back);
     }
 
-  if(with_anti_aliasing)
+  if (with_anti_aliasing)
     {
       /* the aa-pass does not add to depth from the
          stroke attribute data, thus the written
@@ -1734,7 +1734,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
                       d->m_current_z, call_back);
     }
 
-  if(modify_z)
+  if (modify_z)
     {
       d->m_current_z = startz + zinc_sum + 1;
     }
@@ -1752,7 +1752,7 @@ stroke_path_common(const PainterStrokeShader &shader, const PainterData &draw,
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  if(d->m_clip_rect_state.m_all_content_culled)
+  if (d->m_clip_rect_state.m_all_content_culled)
     {
       return;
     }
@@ -1764,14 +1764,14 @@ stroke_path_common(const PainterStrokeShader &shader, const PainterData &draw,
 
   raw_data = draw.m_item_shader_data.data().data_base();
 
-  if(js == PainterEnums::rounded_joins
+  if (js == PainterEnums::rounded_joins
      || (cp == PainterEnums::rounded_caps && !close_contours))
     {
       rounded_thresh = shader.stroking_data_selector()->compute_rounded_thresh(raw_data, thresh, d->m_curve_flatness);
     }
 
   edge_data = &path.edges();
-  if(!close_contours)
+  if (!close_contours)
     {
       switch(cp)
         {
@@ -1966,7 +1966,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
   unsigned int idx_chunk, atr_chunk, num_subsets;
 
   d = static_cast<PainterPrivate*>(m_d);
-  if(d->m_clip_rect_state.m_all_content_culled)
+  if (d->m_clip_rect_state.m_all_content_culled)
     {
       return;
     }
@@ -1982,7 +1982,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
                                            d->m_max_indices_per_block,
                                            make_c_array(d->m_work_room.m_fill_subset_selector));
 
-  if(num_subsets == 0)
+  if (num_subsets == 0)
     {
       return;
     }
@@ -2004,7 +2004,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       d->m_work_room.m_fill_index_adjusts.push_back(data.index_adjust_chunk(idx_chunk));
     }
 
-  if(with_anti_aliasing)
+  if (with_anti_aliasing)
     {
       ++d->m_current_z;
     }
@@ -2014,7 +2014,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
                fastuidraw::make_c_array(d->m_work_room.m_fill_index_adjusts),
                call_back);
 
-  if(with_anti_aliasing)
+  if (with_anti_aliasing)
     {
       d->m_work_room.m_fill_ws.set(filled_path, subset_list,
                                    CustomFillRuleFunction(fill_rule));
@@ -2063,7 +2063,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
   PainterPrivate *d;
 
   d = static_cast<PainterPrivate*>(m_d);
-  if(d->m_clip_rect_state.m_all_content_culled)
+  if (d->m_clip_rect_state.m_all_content_culled)
     {
       return;
     }
@@ -2076,7 +2076,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
                                            d->m_max_indices_per_block,
                                            make_c_array(d->m_work_room.m_fill_subset_selector));
 
-  if(num_subsets == 0)
+  if (num_subsets == 0)
     {
       return;
     }
@@ -2112,7 +2112,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
 
           chunk = FilledPath::Subset::chunk_from_winding_number(winding_number);
           index_chunk = data.index_data_chunk(chunk);
-          if(!index_chunk.empty() && d->m_work_room.m_fill_ws(winding_number))
+          if (!index_chunk.empty() && d->m_work_room.m_fill_ws(winding_number))
             {
               d->m_work_room.m_fill_selector.push_back(attrib_selector_value);
               d->m_work_room.m_fill_index_chunks.push_back(index_chunk);
@@ -2121,16 +2121,16 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
             }
         }
 
-      if(added_chunk)
+      if (added_chunk)
         {
           attrib_chunk = data.attribute_data_chunk(0);
           d->m_work_room.m_fill_attrib_chunks.push_back(attrib_chunk);
         }
     }
 
-  if(!d->m_work_room.m_fill_index_chunks.empty())
+  if (!d->m_work_room.m_fill_index_chunks.empty())
     {
-      if(with_anti_aliasing)
+      if (with_anti_aliasing)
         {
           ++d->m_current_z;
         }
@@ -2142,7 +2142,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
                       make_c_array(d->m_work_room.m_fill_selector),
                       d->m_current_z, call_back);
 
-      if(with_anti_aliasing)
+      if (with_anti_aliasing)
         {
           --d->m_current_z;
           d->draw_anti_alias_fuzz(shader, draw, filled_path,
@@ -2188,7 +2188,7 @@ draw_glyphs(const PainterGlyphShader &shader, const PainterData &draw,
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  if(d->m_clip_rect_state.m_all_content_culled)
+  if (d->m_clip_rect_state.m_all_content_culled)
     {
       return;
     }
@@ -2213,7 +2213,7 @@ draw_glyphs(const PainterData &draw,
             const PainterAttributeData &data, bool use_anistopic_antialias,
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  if(use_anistopic_antialias)
+  if (use_anistopic_antialias)
     {
       draw_glyphs(default_shaders().glyph_shader_anisotropic(), draw, data, call_back);
     }
@@ -2276,7 +2276,7 @@ concat(const float3x3 &tr)
   m = d->m_clip_rect_state.item_matrix() * tr;
   d->m_clip_rect_state.item_matrix(m, tricky);
 
-  if(!tricky)
+  if (!tricky)
     {
       d->m_clip_rect_state.m_clip_rect.translate(vec2(-tr(0, 2), -tr(1, 2)));
       d->m_clip_rect_state.m_clip_rect.shear(1.0f / tr(0,0), 1.0f / tr(1,1));
@@ -2436,7 +2436,7 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  if(d->m_clip_rect_state.m_all_content_culled)
+  if (d->m_clip_rect_state.m_all_content_culled)
     {
       /* everything is clipped anyways, adding more clipping does not matter
        */
@@ -2470,7 +2470,7 @@ clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  if(d->m_clip_rect_state.m_all_content_culled)
+  if (d->m_clip_rect_state.m_all_content_culled)
     {
       /* everything is clipped anyways, adding more clipping does not matter
        */
@@ -2504,7 +2504,7 @@ clipInPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  if(d->m_clip_rect_state.m_all_content_culled)
+  if (d->m_clip_rect_state.m_all_content_culled)
     {
       /* everything is clipped anyways, adding more clipping does not matter
        */
@@ -2525,7 +2525,7 @@ clipInPath(const Path &path, const CustomFillRuleBase &fill_rule)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
 
-  if(d->m_clip_rect_state.m_all_content_culled)
+  if (d->m_clip_rect_state.m_all_content_culled)
     {
       /* everything is clipped anyways, adding more clipping does not matter
        */
@@ -2554,14 +2554,14 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
     d->m_clip_rect_state.rect_is_culled(pmin, wh) ||
     d->update_clip_equation_series(pmin, pmax);
 
-  if(d->m_clip_rect_state.m_all_content_culled)
+  if (d->m_clip_rect_state.m_all_content_culled)
     {
       /* everything is clipped anyways, adding more clipping does not matter
        */
       return;
     }
 
-  if(!d->m_clip_rect_state.m_clip_rect.m_enabled)
+  if (!d->m_clip_rect_state.m_clip_rect.m_enabled)
     {
       /* no clipped rect defined yet, just take the arguments
          as the clipping window
@@ -2570,7 +2570,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
       d->m_clip_rect_state.set_clip_equations_to_clip_rect();
       return;
     }
-  else if(!d->m_clip_rect_state.item_matrix_transition_tricky())
+  else if (!d->m_clip_rect_state.item_matrix_transition_tricky())
     {
       /* a previous clipping window (defined in m_clip_rect_state),
          but transformation takes screen aligned rectangles to
@@ -2605,7 +2605,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   skip_occluder = d->m_clip_rect_state.set_clip_equations_to_clip_rect(prev_clip);
   current_clip = d->m_clip_rect_state.clip_equations_state(d->m_pool);
 
-  if(d->m_clip_rect_state.m_all_content_culled)
+  if (d->m_clip_rect_state.m_all_content_culled)
     {
       /* The clip equations coming from the new clipping
          rectangle degenerate into an empty clipping region
@@ -2618,7 +2618,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
      in the older clipping region, then we can skip drawing
      the complement of the old clipping rectangle as occluders
    */
-  if(skip_occluder.all())
+  if (skip_occluder.all())
     {
       return;
     }
@@ -2663,7 +2663,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
    */
   for(unsigned int i = 0; i < 4; ++i)
     {
-      if(!skip_occluder[i])
+      if (!skip_occluder[i])
         {
           draw_half_plane_complement(PainterData(d->m_black_brush), this,
                                      prev_clip.value().m_clip_equations[i], zdatacallback);

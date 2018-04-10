@@ -4,7 +4,7 @@ fastuidraw_unpack_unit_vector(float x, uint b)
   vec2 return_value;
   return_value.x = x;
   return_value.y = sqrt(max(0.0, 1.0 - x * x));
-  if(b != 0u)
+  if (b != 0u)
     {
       return_value.y = -return_value.y;
     }

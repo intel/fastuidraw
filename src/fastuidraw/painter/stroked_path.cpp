@@ -128,7 +128,7 @@ namespace
     add_join(const JoinSource &src, unsigned int &chunk)
     {
       OrderingEntry<JoinSource> J(src, chunk);
-      if(src.m_of_closing_edge)
+      if (src.m_of_closing_edge)
         {
           m_closing_edge.push_back(J);
         }
@@ -193,7 +193,7 @@ namespace
     join_chunk(unsigned int J) const
     {
       FASTUIDRAWassert(J < number_joins(true));
-      if(J >= m_non_closing_edge.size())
+      if (J >= m_non_closing_edge.size())
         {
           J -= m_non_closing_edge.size();
           return m_closing_edge[J].m_chunk;
@@ -1361,7 +1361,7 @@ namespace
     const fastuidraw::PainterAttributeData&
     data(const PathData &P, const StrokedPathSubset *st)
     {
-      if(!m_ready)
+      if (!m_ready)
         {
           m_data.set_data(T(P, st));
           m_ready = true;
@@ -1516,7 +1516,7 @@ create_lists(const fastuidraw::TessellatedPath &P, ContourData &path_data,
         {
           process_edge(P, path_data, o, e, data, bx);
 
-          if(e + 2 != ende)
+          if (e + 2 != ende)
             {
               JoinSource J;
               J.m_contour = o;
@@ -1533,11 +1533,11 @@ create_lists(const fastuidraw::TessellatedPath &P, ContourData &path_data,
 
   for(unsigned int o = 0; o < P.number_contours(); ++o)
     {
-      if(P.number_edges(o) > 0)
+      if (P.number_edges(o) > 0)
         {
           process_edge(P, path_data, o, P.number_edges(o) - 1, data, bx);
 
-          if(P.number_edges(o) >= 2)
+          if (P.number_edges(o) >= 2)
             {
               JoinSource J;
               unsigned int e;
@@ -1597,28 +1597,28 @@ process_edge(const fastuidraw::TessellatedPath &P, ContourData &path_data,
       delta = src_pts[i + 1].m_p - src_pts[i].m_p;
       delta_magnitude = delta.magnitude();
 
-      if(delta.magnitude() >= sm_mag_tol)
+      if (delta.magnitude() >= sm_mag_tol)
         {
           normal = fastuidraw::vec2(-delta.y(), delta.x()) / delta_magnitude;
         }
       else
         {
           delta_magnitude = 0.0;
-          if(src_pts[i].m_p_t.magnitudeSq() >= sm_mag_tol * sm_mag_tol)
+          if (src_pts[i].m_p_t.magnitudeSq() >= sm_mag_tol * sm_mag_tol)
             {
               normal = fastuidraw::vec2(-src_pts[i].m_p_t.y(), src_pts[i].m_p_t.x());
               normal.normalize();
             }
         }
 
-      if(i == R.m_begin)
+      if (i == R.m_begin)
         {
           sub_edge.m_bevel_lambda = 0.0f;
           sub_edge.m_has_bevel = false;
           sub_edge.m_bevel_normal = fastuidraw::vec2(0.0f, 0.0f);
           path_data.m_per_contour_data[contour].write_edge_data(edge).m_begin_normal = normal;
           path_data.m_per_contour_data[contour].write_edge_data(edge).m_start_pt = src_pts[i];
-          if(edge == 0)
+          if (edge == 0)
             {
               path_data.m_per_contour_data[contour].m_begin_cap_normal = normal;
             }
@@ -1643,13 +1643,13 @@ process_edge(const fastuidraw::TessellatedPath &P, ContourData &path_data,
       last_normal = normal;
     }
 
-  if(R.m_begin + 1 >= R.m_end)
+  if (R.m_begin + 1 >= R.m_end)
     {
       normal = fastuidraw::vec2(-src_pts[R.m_begin].m_p_t.y(), src_pts[R.m_begin].m_p_t.x());
       normal.normalize();
       path_data.m_per_contour_data[contour].write_edge_data(edge).m_begin_normal = normal;
       path_data.m_per_contour_data[contour].write_edge_data(edge).m_start_pt = src_pts[R.m_begin];
-      if(edge == 0)
+      if (edge == 0)
         {
           path_data.m_per_contour_data[contour].m_begin_cap_normal = normal;
         }
@@ -1657,7 +1657,7 @@ process_edge(const fastuidraw::TessellatedPath &P, ContourData &path_data,
 
   path_data.m_per_contour_data[contour].write_edge_data(edge).m_end_normal = normal;
   path_data.m_per_contour_data[contour].write_edge_data(edge).m_end_pt = src_pts[R.m_end - 1];
-  if(edge + 2 == P.number_edges(contour))
+  if (edge + 2 == P.number_edges(contour))
     {
       path_data.m_per_contour_data[contour].m_end_cap_normal = normal;
     }
@@ -1703,7 +1703,7 @@ SubEdgeCullingHierarchy(const fastuidraw::BoundingBox<float> &start_box,
   check_closing_at_end(joins, num_non_closing_joins);
 
   c = choose_splitting_coordinate(start_box, fastuidraw::make_c_array(edges));
-  if(c != -1)
+  if (c != -1)
     {
       float mid_point;
       fastuidraw::vecN<fastuidraw::BoundingBox<float>, 2> child_boxes;
@@ -1720,7 +1720,7 @@ SubEdgeCullingHierarchy(const fastuidraw::BoundingBox<float> &start_box,
           bool s;
           s = J.m_pt[c] < mid_point;
           child_joins[s].push_back(J);
-          if(!J.m_of_closing_edge)
+          if (!J.m_of_closing_edge)
             {
               ++child_num_non_closing_joins[s];
             }
@@ -1739,12 +1739,12 @@ SubEdgeCullingHierarchy(const fastuidraw::BoundingBox<float> &start_box,
 
           sA = (sub_edge.m_pt0.m_pt[c] < mid_point);
           sB = (sub_edge.m_pt1.m_pt[c] < mid_point);
-          if(sA == sB)
+          if (sA == sB)
             {
               child_boxes[sA].union_point(sub_edge.m_pt0.m_pt);
               child_boxes[sA].union_point(sub_edge.m_pt1.m_pt);
               child_sub_edges[sA].push_back(sub_edge);
-              if(!sub_edge.m_of_closing_edge)
+              if (!sub_edge.m_of_closing_edge)
                 {
                   ++child_num_non_closing_edges[sA];
                 }
@@ -1759,7 +1759,7 @@ SubEdgeCullingHierarchy(const fastuidraw::BoundingBox<float> &start_box,
                   child_boxes[i].union_point(split[i].m_pt0.m_pt);
                   child_boxes[i].union_point(split[i].m_pt1.m_pt);
                   child_sub_edges[i].push_back(split[i]);
-                  if(!split[i].m_of_closing_edge)
+                  if (!split[i].m_of_closing_edge)
                     {
                       ++child_num_non_closing_edges[i];
                     }
@@ -1788,12 +1788,12 @@ SubEdgeCullingHierarchy(const fastuidraw::BoundingBox<float> &start_box,
 SubEdgeCullingHierarchy::
 ~SubEdgeCullingHierarchy(void)
 {
-  if(m_children[0] != nullptr)
+  if (m_children[0] != nullptr)
     {
       FASTUIDRAWdelete(m_children[0]);
     }
 
-  if(m_children[1] != nullptr)
+  if (m_children[1] != nullptr)
     {
       FASTUIDRAWdelete(m_children[1]);
     }
@@ -1804,7 +1804,7 @@ SubEdgeCullingHierarchy::
 choose_splitting_coordinate(const fastuidraw::BoundingBox<float> &start_box,
                             fastuidraw::c_array<const SingleSubEdge> data)
 {
-  if(data.size() < splitting_threshhold)
+  if (data.size() < splitting_threshhold)
     {
       return -1;
     }
@@ -1822,7 +1822,7 @@ choose_splitting_coordinate(const fastuidraw::BoundingBox<float> &start_box,
           bool sA, sB;
           sA = (sub_edge.m_pt0.m_pt[c] < mid_pt[c]);
           sB = (sub_edge.m_pt1.m_pt[c] < mid_pt[c]);
-          if(sA != sB)
+          if (sA != sB)
             {
               ++split_counters[c];
               ++child_counters[c][0];
@@ -1841,7 +1841,7 @@ choose_splitting_coordinate(const fastuidraw::BoundingBox<float> &start_box,
   /* we require that both sides will have fewer edges
      than the parent size.
    */
-  if(child_counters[canidate][0] < data.size() && child_counters[canidate][1] < data.size())
+  if (child_counters[canidate][0] < data.size() && child_counters[canidate][1] < data.size())
     {
       return canidate;
     }
@@ -1856,11 +1856,11 @@ choose_splitting_coordinate(const fastuidraw::BoundingBox<float> &start_box,
 StrokedPathSubset::
 ~StrokedPathSubset()
 {
-  if(m_children[0] != nullptr)
+  if (m_children[0] != nullptr)
     {
       FASTUIDRAWdelete(m_children[0]);
     }
-  if(m_children[1] != nullptr)
+  if (m_children[1] != nullptr)
     {
       FASTUIDRAWdelete(m_children[1]);
     }
@@ -1900,7 +1900,7 @@ post_process(PostProcessVariables &variables,
 
   m_caps.m_depth_range.m_begin = variables.m_cap_depth;
 
-  if(have_children())
+  if (have_children())
     {
       FASTUIDRAWassert(m_children[0] != nullptr);
       FASTUIDRAWassert(m_children[1] != nullptr);
@@ -1986,7 +1986,7 @@ StrokedPathSubset(CreationValues &out_values,
   m_closing_joins.m_elements.m_begin = join_ordering.closing_edge().size();
   m_caps.m_elements.m_begin = cap_ordering.caps().size();
 
-  if(src->has_children())
+  if (src->has_children())
     {
       FASTUIDRAWassert(src->caps().empty());
       FASTUIDRAWassert(src->non_closing_joins().empty());
@@ -2056,7 +2056,7 @@ increment_vertices_indices(fastuidraw::c_array<const SingleSubEdge> src,
 {
   for(const SingleSubEdge &v : src)
     {
-      if(v.m_has_bevel)
+      if (v.m_has_bevel)
         {
           vertex_cnt += 3;
           index_cnt += 3;
@@ -2101,10 +2101,10 @@ compute_chunks(bool include_closing_edge,
     }
 
   dst.reset();
-  if(take_joins_outside_of_region)
+  if (take_joins_outside_of_region)
     {
       dst.add_join_chunk(m_non_closing_joins);
-      if(include_closing_edge)
+      if (include_closing_edge)
         {
           dst.add_join_chunk(m_closing_joins);
         }
@@ -2122,18 +2122,18 @@ compute_chunks_take_all(bool include_closing_edge,
                         unsigned int max_index_cnt,
                         ChunkSetPrivate &dst)
 {
-  if(m_empty_subset)
+  if (m_empty_subset)
     {
       return;
     }
 
-  if(m_non_closing_edges.chunk_fits(max_attribute_cnt, max_index_cnt)
+  if (m_non_closing_edges.chunk_fits(max_attribute_cnt, max_index_cnt)
      && (!include_closing_edge || m_closing_edges.chunk_fits(max_attribute_cnt, max_index_cnt)))
     {
       dst.add_edge_chunk(m_non_closing_edges);
       dst.add_join_chunk(m_non_closing_joins);
 
-      if(include_closing_edge)
+      if (include_closing_edge)
         {
           dst.add_edge_chunk(m_closing_edges);
           dst.add_join_chunk(m_closing_joins);
@@ -2143,7 +2143,7 @@ compute_chunks_take_all(bool include_closing_edge,
           dst.add_cap_chunk(m_caps);
         }
     }
-  else if(have_children())
+  else if (have_children())
     {
       FASTUIDRAWassert(m_children[0] != nullptr);
       FASTUIDRAWassert(m_children[1] != nullptr);
@@ -2168,7 +2168,7 @@ compute_chunks_implement(bool include_closing_edge,
   using namespace fastuidraw;
   using namespace fastuidraw::detail;
 
-  if(m_bb.empty() || m_empty_subset)
+  if (m_bb.empty() || m_empty_subset)
     {
       return;
     }
@@ -2184,19 +2184,19 @@ compute_chunks_implement(bool include_closing_edge,
                                   scratch.m_clip_scratch_floats,
                                   scratch.m_clip_scratch_vec2s);
   //completely unclipped.
-  if(unclipped)
+  if (unclipped)
     {
       compute_chunks_take_all(include_closing_edge, max_attribute_cnt, max_index_cnt, dst);
       return;
     }
 
   //completely clipped
-  if(scratch.m_clipped_rect.empty())
+  if (scratch.m_clipped_rect.empty())
     {
       return;
     }
 
-  if(have_children())
+  if (have_children())
     {
       FASTUIDRAWassert(m_children[0] != nullptr);
       FASTUIDRAWassert(m_children[1] != nullptr);
@@ -2215,7 +2215,7 @@ compute_chunks_implement(bool include_closing_edge,
       dst.add_edge_chunk(m_non_closing_edges);
       dst.add_join_chunk(m_non_closing_joins);
 
-      if(include_closing_edge)
+      if (include_closing_edge)
         {
           FASTUIDRAWassert(m_closing_edges.chunk_fits(max_attribute_cnt, max_index_cnt));
           dst.add_edge_chunk(m_closing_edges);
@@ -2278,7 +2278,7 @@ fill_data_worker(const StrokedPathSubset *e,
                  fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
                  fastuidraw::c_array<int> index_adjusts) const
 {
-  if(e->have_children())
+  if (e->have_children())
     {
       FASTUIDRAWassert(e->child(0) != nullptr);
       FASTUIDRAWassert(e->child(1) != nullptr);
@@ -2323,7 +2323,7 @@ build_chunk(const EdgeRanges &edge,
   zranges[chunk] = fastuidraw::range_type<int>(edge.m_depth_range.m_begin,
                                                edge.m_depth_range.m_end);
 
-  if(!edge.m_src.empty())
+  if (!edge.m_src.empty())
     {
       /* these elements are drawn AFTER the child elements,
          therefor they need to have a smaller depth
@@ -2362,7 +2362,7 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
   const float normal_sign[3] = { 1.0f, -1.0f, 0.0f };
   fastuidraw::vecN<fastuidraw::StrokedPath::point, 6> pts;
 
-  if(sub_edge.m_has_bevel)
+  if (sub_edge.m_has_bevel)
     {
       indices[index_offset + 0] = vert_offset + 0;
       indices[index_offset + 1] = vert_offset + 1;
@@ -2472,7 +2472,7 @@ JoinCount(const ContourData &P):
 {
   for(unsigned int o = 0; o < P.number_contours(); ++o)
     {
-      if(P.number_edges(o) >= 2)
+      if (P.number_edges(o) >= 2)
         {
           m_number_non_close_joins += P.number_edges(o) - 2;
           m_number_close_joins += 2;
@@ -2575,7 +2575,7 @@ CommonJoinData(const fastuidraw::vec2 &p0,
   m_v1 = fastuidraw::vec2(m_n1.y(), -m_n1.x());
 
   m_det = fastuidraw::dot(m_v1, m_n0);
-  if(m_det > 0.0f)
+  if (m_det > 0.0f)
     {
       m_lambda = -1.0f;
     }
@@ -2594,7 +2594,7 @@ compute_lambda(const fastuidraw::vec2 &n0, const fastuidraw::vec2 &n1)
 
   v1 = fastuidraw::vec2(n1.y(), -n1.x());
   d = fastuidraw::dot(v1, n0);
-  if(d > 0.0f)
+  if (d > 0.0f)
     {
       return -1.0f;
     }
@@ -2783,7 +2783,7 @@ set_chunks(const StrokedPathSubset *st,
                 attribute_chunks, index_chunks,
                 zranges, index_adjusts);
 
-  if(st->have_children())
+  if (st->have_children())
     {
       set_chunks(st->child(0),
                  join_vertex_ranges, join_index_ranges,
@@ -2814,7 +2814,7 @@ process_chunk(const RangeAndChunk &ch,
   unsigned int K;
   fastuidraw::range_type<int> vr, ir;
 
-  if(ch.m_elements.m_begin < ch.m_elements.m_end)
+  if (ch.m_elements.m_begin < ch.m_elements.m_end)
     {
       vr.m_begin = join_vertex_ranges[ch.m_elements.m_begin].m_begin;
       vr.m_end = join_vertex_ranges[ch.m_elements.m_end - 1].m_end;
@@ -2924,17 +2924,17 @@ add_data(unsigned int depth,
       pt.m_closed_contour_length = m_closed_contour_length;
       pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPath::point::offset_rounded_join, depth);
 
-      if(m_lambda * m_n0.y() < 0.0f)
+      if (m_lambda * m_n0.y() < 0.0f)
         {
           pt.m_packed_data |= fastuidraw::StrokedPath::point::normal0_y_sign_mask;
         }
 
-      if(m_lambda * m_n1.y() < 0.0f)
+      if (m_lambda * m_n1.y() < 0.0f)
         {
           pt.m_packed_data |= fastuidraw::StrokedPath::point::normal1_y_sign_mask;
         }
 
-      if(cs_as_complex.imag() < 0.0f)
+      if (cs_as_complex.imag() < 0.0f)
         {
           pt.m_packed_data |= fastuidraw::StrokedPath::point::sin_sign_mask;
         }
@@ -3485,7 +3485,7 @@ set_chunks(const StrokedPathSubset *st,
   fastuidraw::range_type<int> vr, ir;
   unsigned int K;
 
-  if(ch.m_elements.m_begin < ch.m_elements.m_end)
+  if (ch.m_elements.m_begin < ch.m_elements.m_end)
     {
       vr.m_begin = cap_vertex_ranges[ch.m_elements.m_begin].m_begin;
       vr.m_end = cap_vertex_ranges[ch.m_elements.m_end - 1].m_end;
@@ -3508,7 +3508,7 @@ set_chunks(const StrokedPathSubset *st,
   zranges[K] = fastuidraw::range_type<int>(ch.m_depth_range.m_begin, ch.m_depth_range.m_end);
   index_adjusts[K] = -int(vr.m_begin);
 
-  if(st->have_children())
+  if (st->have_children())
     {
       set_chunks(st->child(0),
                  cap_vertex_ranges, cap_index_ranges,
@@ -3860,7 +3860,7 @@ StrokedPathPrivate::
 StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
   m_subset(nullptr)
 {
-  if(!P.point_data().empty())
+  if (!P.point_data().empty())
     {
       m_empty_path = false;
       create_edges(P);
@@ -3895,7 +3895,7 @@ StrokedPathPrivate::
       FASTUIDRAWdelete(m_rounded_caps[i].m_data);
     }
 
-  if(!m_empty_path)
+  if (!m_empty_path)
     {
       FASTUIDRAWdelete(m_subset);
     }
@@ -3934,7 +3934,7 @@ const fastuidraw::PainterAttributeData&
 StrokedPathPrivate::
 fetch_create(float thresh, std::vector<ThreshWithData> &values)
 {
-  if(values.empty())
+  if (values.empty())
     {
       fastuidraw::PainterAttributeData *newD;
       newD = FASTUIDRAWnew fastuidraw::PainterAttributeData();
@@ -3947,7 +3947,7 @@ fetch_create(float thresh, std::vector<ThreshWithData> &values)
      the underlying tessellated path?
    */
   thresh = fastuidraw::t_max(thresh, float(1e-6));
-  if(values.back().m_thresh <= thresh)
+  if (values.back().m_thresh <= thresh)
     {
       std::vector<ThreshWithData>::const_iterator iter;
       iter = std::lower_bound(values.begin(), values.end(), thresh,
@@ -4052,7 +4052,7 @@ offset_vector(void)
         lambda = -t_sign(det);
         r = (det != 0.0f) ? (dot(n0, n1) - 1.0f) / det : 0.0f;
 
-        if(tp == offset_miter_clip_join_lambda_negated)
+        if (tp == offset_miter_clip_join_lambda_negated)
           {
             lambda = -lambda;
           }
@@ -4079,7 +4079,7 @@ offset_vector(void)
 
         cs.x() = m_auxiliary_offset.y();
         cs.y() = sqrt(1.0 - cs.x() * cs.x());
-        if(m_packed_data & sin_sign_mask)
+        if (m_packed_data & sin_sign_mask)
           {
             cs.y() = -cs.y();
           }
@@ -4153,7 +4153,7 @@ void
 ChunkSetPrivate::
 add_edge_chunk(const EdgeRanges &ed)
 {
-  if(ed.non_empty())
+  if (ed.non_empty())
     {
       m_edge_chunks.push_back(ed.m_chunk);
     }
@@ -4163,7 +4163,7 @@ void
 ChunkSetPrivate::
 add_join_chunk(const RangeAndChunk &j)
 {
-  if(j.non_empty() && !m_ignore_join_adds)
+  if (j.non_empty() && !m_ignore_join_adds)
     {
       m_join_chunks.push_back(j.m_chunk);
       m_join_ranges.push_back(j.m_elements);
@@ -4174,7 +4174,7 @@ void
 ChunkSetPrivate::
 add_cap_chunk(const RangeAndChunk &c)
 {
-  if(c.non_empty())
+  if (c.non_empty())
     {
       m_cap_chunks.push_back(c.m_chunk);
     }
@@ -4186,7 +4186,7 @@ handle_dashed_evaluator(const fastuidraw::DashEvaluatorBase *dash_evaluator,
                         const fastuidraw::PainterShaderData::DataBase *dash_data,
                         const fastuidraw::StrokedPath &path)
 {
-  if(dash_evaluator != nullptr)
+  if (dash_evaluator != nullptr)
     {
       const fastuidraw::PainterAttributeData &joins(path.bevel_joins());
       unsigned int cnt(0);
@@ -4203,7 +4203,7 @@ handle_dashed_evaluator(const fastuidraw::DashEvaluatorBase *dash_evaluator,
               attribs = joins.attribute_data_chunk(chunk);
               FASTUIDRAWassert(!attribs.empty());
               FASTUIDRAWassert(attribs.size() == 3);
-              if(dash_evaluator->covered_by_dash_pattern(dash_data, attribs[0]))
+              if (dash_evaluator->covered_by_dash_pattern(dash_data, attribs[0]))
                 {
                   m_join_chunks.push_back(chunk);
                 }
@@ -4307,7 +4307,7 @@ compute_chunks(ScratchSpace &scratch_space,
   scratch_space_ptr = static_cast<ScratchSpacePrivate*>(scratch_space.m_d);
   chunk_set_ptr = static_cast<ChunkSetPrivate*>(dst.m_d);
 
-  if(d->m_empty_path)
+  if (d->m_empty_path)
     {
       chunk_set_ptr->reset();
       return;

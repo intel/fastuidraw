@@ -31,7 +31,7 @@ PainterShaderData(void)
 fastuidraw::PainterShaderData::
 PainterShaderData(const PainterShaderData &obj)
 {
-  if(obj.m_data)
+  if (obj.m_data)
     {
       m_data = obj.m_data->copy();
     }
@@ -44,7 +44,7 @@ PainterShaderData(const PainterShaderData &obj)
 fastuidraw::PainterShaderData::
 ~PainterShaderData()
 {
-  if(m_data)
+  if (m_data)
     {
       FASTUIDRAWdelete(m_data);
     }
@@ -62,7 +62,7 @@ fastuidraw::PainterShaderData&
 fastuidraw::PainterShaderData::
 operator=(const PainterShaderData &rhs)
 {
-  if(this != &rhs)
+  if (this != &rhs)
     {
       PainterShaderData v(rhs);
       swap(v);
@@ -74,7 +74,7 @@ void
 fastuidraw::PainterShaderData::
 pack_data(unsigned int alignment, c_array<generic_data> dst) const
 {
-  if(m_data)
+  if (m_data)
     {
       m_data->pack_data(alignment, dst);
     }

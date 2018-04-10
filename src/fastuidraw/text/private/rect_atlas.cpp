@@ -73,7 +73,7 @@ tree_node_without_children(const tree_base *pparent,
   tree_base(bl, sz, pparent, tr),
   m_rectangle(rect)
 {
-  if(m_rectangle != nullptr)
+  if (m_rectangle != nullptr)
     {
       m_rectangle->m_tree = this;
     }
@@ -84,7 +84,7 @@ tree_node_without_children(const tree_base *pparent,
 fastuidraw::detail::RectAtlas::tree_node_without_children::
 ~tree_node_without_children()
 {
-  if(m_rectangle!=nullptr)
+  if (m_rectangle!=nullptr)
     {
       FASTUIDRAWassert(m_rectangle->m_tree == this);
       FASTUIDRAWdelete(m_rectangle);
@@ -140,7 +140,7 @@ fastuidraw::detail::RectAtlas::tree_node_without_children::
 update_tracking(void)
 {
   clear_from_tracking();
-  if(m_rectangle == nullptr)
+  if (m_rectangle == nullptr)
     {
       update_tracking_helper(size().x(), size().y());
     }
@@ -160,12 +160,12 @@ fastuidraw::detail::RectAtlas::add_remove_return_value
 fastuidraw::detail::RectAtlas::tree_node_without_children::
 add(rectangle *im)
 {
-  if(im->size().x() > size().x() or im->size().y() > size().y())
+  if (im->size().x() > size().x() or im->size().y() > size().y())
     {
       return add_remove_return_value(this, routine_fail);
     }
 
-  if(m_rectangle == nullptr)
+  if (m_rectangle == nullptr)
     {
       //do not have a rect so we take it (and move it).
       m_rectangle = im;
@@ -189,18 +189,18 @@ add(rectangle *im)
   split_y_works = (dy >= im->size().y());
   split_x_works = (dx >= im->size().x());
 
-  if(!split_x_works and !split_y_works)
+  if (!split_x_works and !split_y_works)
     {
       return add_remove_return_value(this, routine_fail);
     }
 
-  if(split_x_works and split_y_works)
+  if (split_x_works and split_y_works)
     {
       //choose a split that is nicest
       //by making the other split false.
 
       //whoever has the most room left over is the split.
-      if(dx > dy)
+      if (dx > dy)
         {
           split_y_works = false;
         }
@@ -224,7 +224,7 @@ add(rectangle *im)
   R=new_node->add(im);
   FASTUIDRAWassert(R.second == routine_success);
 
-  if(R.first!=new_node)
+  if (R.first!=new_node)
     {
       FASTUIDRAWdelete(new_node);
       new_node = R.first;
@@ -239,7 +239,7 @@ remove(const fastuidraw::detail::RectAtlas::rectangle *im,
        std::list<const tree_base*> &parent_list)
 {
   FASTUIDRAWassert(!parent_list.empty());
-  if(parent_list.front() != this)
+  if (parent_list.front() != this)
     {
       return add_remove_return_value(this, routine_fail);
     }
@@ -275,7 +275,7 @@ tree_node_with_children(fastuidraw::detail::RectAtlas::tree_node_without_childre
 
   m_children[2] = FASTUIDRAWnew tree_node_without_children(this, src->tracker(),
                                                           R->minX_minY(), R->size(), R);
-  if(split_x)
+  if (split_x)
     {
       m_children[0]
         = FASTUIDRAWnew tree_node_without_children( this, src->tracker(),
@@ -326,9 +326,9 @@ add(rectangle *im)
   for(int i=0;i<3;++i)
     {
       R = m_children[i]->add(im);
-      if(R.second == routine_success)
+      if (R.second == routine_success)
         {
-          if(R.first != m_children[i])
+          if (R.first != m_children[i])
             {
               FASTUIDRAWdelete(m_children[i]);
               m_children[i] = R.first;
@@ -346,7 +346,7 @@ remove(const rectangle *im,
        std::list<const tree_base*> &parent_list)
 {
   FASTUIDRAWassert(!parent_list.empty());
-  if(parent_list.front() != this)
+  if (parent_list.front() != this)
     {
       return add_remove_return_value(this, routine_fail);
     }
@@ -361,7 +361,7 @@ remove(const rectangle *im,
       FASTUIDRAWassert(m_children[i] != nullptr);
 
       R = m_children[i]->remove(im, parent_list);
-      if(R.second == routine_success)
+      if (R.second == routine_success)
         {
           delete_index = i;
         }
@@ -369,7 +369,7 @@ remove(const rectangle *im,
 
   FASTUIDRAWassert(R.second == routine_success);
   FASTUIDRAWassert(delete_index < 3);
-  if(R.first != m_children[delete_index])
+  if (R.first != m_children[delete_index])
     {
       FASTUIDRAWdelete(m_children[delete_index]);
       m_children[delete_index] = R.first;
@@ -378,7 +378,7 @@ remove(const rectangle *im,
   //now check the situation, if all children are
   //empty and thus we can reform to be a
   //tree_node_without_children
-  if(empty())
+  if (empty())
     {
       tree_node_without_children *ptr;
 
@@ -481,20 +481,20 @@ add_rectangle(const ivec2 &dimensions,
   rectangle *return_value(nullptr);
 
   m_mutex.lock();
-  if(m_tracker.fast_check(dimensions))
+  if (m_tracker.fast_check(dimensions))
     {
       add_remove_return_value R;
 
 
-      if(dimensions.x() > 0 and dimensions.y() > 0)
+      if (dimensions.x() > 0 and dimensions.y() > 0)
         {
           //attempt to add the rect:
           return_value = FASTUIDRAWnew rectangle(this, dimensions);
           R = m_root->add(return_value);
 
-          if(R.second == routine_success)
+          if (R.second == routine_success)
             {
-              if(R.first != m_root)
+              if (R.first != m_root)
                 {
                   FASTUIDRAWdelete(m_root);
                   m_root = R.first;
@@ -513,7 +513,7 @@ add_rectangle(const ivec2 &dimensions,
     }
   m_mutex.unlock();
 
-  if(return_value != nullptr && return_value != &m_empty_rect)
+  if (return_value != nullptr && return_value != &m_empty_rect)
     {
       return_value->finalize(left_padding, right_padding,
                              top_padding, bottom_padding);
@@ -531,7 +531,7 @@ remove_rectangle_implement(const rectangle *im)
 
   FASTUIDRAWassert(im->atlas() == this);
 
-  if(im->size().x() <= 0 or im->size().y() <= 0)
+  if (im->size().x() <= 0 or im->size().y() <= 0)
     {
       FASTUIDRAWassert(im == &im->atlas()->m_empty_rect);
       return routine_success;
@@ -540,7 +540,7 @@ remove_rectangle_implement(const rectangle *im)
     {
       m_mutex.lock();
       R = m_root->api_remove(im);
-      if(R.second == routine_success and R.first != m_root)
+      if (R.second == routine_success and R.first != m_root)
         {
           FASTUIDRAWdelete(m_root);
           m_root = R.first;

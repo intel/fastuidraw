@@ -32,7 +32,7 @@ round_up_to_multiple(unsigned int v, unsigned int alignment)
   unsigned int modulas;
 
   modulas = v % alignment;
-  if(modulas == 0)
+  if (modulas == 0)
     {
       return v;
     }
@@ -48,7 +48,7 @@ number_blocks(unsigned int alignment, unsigned int sz)
 {
   unsigned int return_value;
   return_value = sz / alignment;
-  if(return_value * alignment < sz)
+  if (return_value * alignment < sz)
     {
       ++return_value;
     }
@@ -71,7 +71,7 @@ uint32_t
 fastuidraw::
 number_bits_required(uint32_t v)
 {
-  if(v == 0)
+  if (v == 0)
     {
       return 0;
     }
@@ -99,7 +99,7 @@ uint64_t
 fastuidraw::
 uint64_number_bits_required(uint64_t v)
 {
-  if(v == 0)
+  if (v == 0)
     {
       return 0;
     }

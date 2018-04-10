@@ -49,7 +49,7 @@ namespace
     virtual
     ~address_set_type()
     {
-      if(!empty())
+      if (!empty())
         {
           print(std::cerr);
         }
@@ -113,7 +113,7 @@ untrack(const void *ptr, const char *file, int line)
   m_mutex.lock();
 
   iter = find(ptr);
-  if(iter != end())
+  if (iter != end())
     {
       found = true;
       erase(iter);
@@ -125,7 +125,7 @@ untrack(const void *ptr, const char *file, int line)
 
   m_mutex.unlock();
 
-  if(!found)
+  if (!found)
     {
       std::cerr << "Deletion from [" << file << ", "  << line
                 << "] of untracked @" << ptr << "\n"
@@ -158,7 +158,7 @@ object_deletion_message(const void *ptr, const char *file, int line)
 {
   #ifdef FASTUIDRAW_DEBUG
     {
-      if(!ptr)
+      if (!ptr)
         {
           return;
         }
@@ -179,7 +179,7 @@ malloc_implement(size_t size, const char *file, int line)
 {
   void *return_value;
 
-  if(size == 0)
+  if (size == 0)
     {
       return nullptr;
     }
@@ -188,7 +188,7 @@ malloc_implement(size_t size, const char *file, int line)
 
   #ifdef FASTUIDRAW_DEBUG
     {
-      if(!return_value)
+      if (!return_value)
         {
           bad_malloc_message(size, file, line);
         }
@@ -213,7 +213,7 @@ calloc_implement(size_t nmemb, size_t size, const char *file, int line)
 {
   void *return_value;
 
-  if(nmemb == 0 || size == 0)
+  if (nmemb == 0 || size == 0)
     {
       return nullptr;
     }
@@ -222,7 +222,7 @@ calloc_implement(size_t nmemb, size_t size, const char *file, int line)
 
   #ifdef FASTUIDRAW_DEBUG
     {
-      if(!return_value)
+      if (!return_value)
         {
           bad_malloc_message(size * nmemb, file, line);
         }
@@ -247,12 +247,12 @@ realloc_implement(void *ptr, size_t size, const char *file, int line)
 {
   void *return_value;
 
-  if(!ptr)
+  if (!ptr)
     {
       return malloc_implement(size, file, line);
     }
 
-  if(size == 0)
+  if (size == 0)
     {
       free_implement(ptr, file, line);
       return nullptr;
@@ -260,7 +260,7 @@ realloc_implement(void *ptr, size_t size, const char *file, int line)
 
   #ifdef FASTUIDRAW_DEBUG
     {
-      if(!address_set().present(ptr))
+      if (!address_set().present(ptr))
         {
           std::cerr << "Realloc from [" << file << ", "  << line
                     << "] of untracked @" << ptr << "\n"
@@ -278,7 +278,7 @@ realloc_implement(void *ptr, size_t size, const char *file, int line)
 
   #ifdef FASTUIDRAW_DEBUG
     {
-      if(return_value != ptr)
+      if (return_value != ptr)
         {
           address_set().untrack(ptr, file, line);
           address_set().track(return_value, file, line);
@@ -295,7 +295,7 @@ free_implement(void *ptr, const char *file, int line)
 {
   #ifdef FASTUIDRAW_DEBUG
     {
-      if(ptr)
+      if (ptr)
         {
           address_set().untrack(ptr, file, line);
         }

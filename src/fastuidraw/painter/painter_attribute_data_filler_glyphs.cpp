@@ -71,7 +71,7 @@ namespace
          adjust_using_vertical,
          no_adjust
      */
-    if(orientation == fastuidraw::PainterEnums::y_increases_downwards)
+    if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
       {
         p_bl.x() = p.x() + SCALE * glyph.layout().m_horizontal_layout_offset.x();
         p_tr.x() = p_bl.x() + glyph_size.x();
@@ -195,16 +195,16 @@ compute_number_glyphs(void)
     {
       enum fastuidraw::return_code R;
 
-      if(m_glyphs[i].valid())
+      if (m_glyphs[i].valid())
         {
           R = m_glyphs[i].upload_to_atlas();
-          if(R != fastuidraw::routine_success)
+          if (R != fastuidraw::routine_success)
             {
               return;
             }
           ++m_number_glyphs;
 
-          if(m_cnt_by_type.size() <= m_glyphs[i].type())
+          if (m_cnt_by_type.size() <= m_glyphs[i].type())
             {
               m_cnt_by_type.resize(1 + m_glyphs[i].type(), 0);
             }
@@ -295,7 +295,7 @@ fill_data(c_array<PainterAttribute> attribute_data,
   std::vector<unsigned int> current(attrib_chunks.size(), 0);
   for(unsigned int g = 0; g < d->m_number_glyphs; ++g)
     {
-      if(d->m_glyphs[g].valid())
+      if (d->m_glyphs[g].valid())
         {
           float scale;
           unsigned int t;

@@ -110,7 +110,7 @@ compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
   const PainterDashedStrokeParamsData *d;
   d = static_cast<const PainterDashedStrokeParamsData*>(data);
 
-  if(d->m_radius <= 0.0f)
+  if (d->m_radius <= 0.0f)
     {
       /* Not really stroking, just select a LARGE value
          to get a very low level of detail.
@@ -122,7 +122,7 @@ compute_rounded_thresh(const fastuidraw::PainterShaderData::DataBase *data,
       float return_value;
 
       return_value = 1.0f / d->m_radius;
-      if(m_pixel_width)
+      if (m_pixel_width)
         {
           return_value *= curve_flatness;
         }
@@ -143,7 +143,7 @@ stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
   const PainterDashedStrokeParamsData *d;
   d = static_cast<const PainterDashedStrokeParamsData*>(data);
 
-  if(m_pixel_width)
+  if (m_pixel_width)
     {
       *out_pixel_distance = d->m_radius;
       *out_item_space_distance = 0.0f;
@@ -195,7 +195,7 @@ pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> 
   dst[PainterDashedStrokeParams::stroke_first_interval_start_offset].f = m_first_interval_start;
   dst[PainterDashedStrokeParams::stroke_number_intervals_offset].u = m_dash_pattern_packed.size();
 
-  if(!m_dash_pattern_packed.empty())
+  if (!m_dash_pattern_packed.empty())
     {
       c_array<generic_data> dst_pattern;
       dst_pattern = dst.sub_array(round_up_to_multiple(PainterDashedStrokeParams::stroke_static_data_size, alignment));
@@ -220,7 +220,7 @@ covered_by_dash_pattern(const fastuidraw::PainterShaderData::DataBase *data,
   FASTUIDRAWassert(dynamic_cast<const PainterDashedStrokeParamsData*>(data) != nullptr);
   d = static_cast<const PainterDashedStrokeParamsData*>(data);
 
-  if(d->m_total_length <= 0.0f)
+  if (d->m_total_length <= 0.0f)
     {
       return false;
     }
@@ -244,7 +244,7 @@ covered_by_dash_pattern(const fastuidraw::PainterShaderData::DataBase *data,
       float v;
 
       v = d->m_dash_pattern_packed[i].f;
-      if(dist < v)
+      if (dist < v)
         {
           interval.m_begin = ff;
           interval.m_end = ff + v;
@@ -387,7 +387,7 @@ dash_pattern(c_array<const DashPatternElement> f)
     }
 
   d->m_dash_pattern.resize(f.size());
-  if(d->m_dash_pattern.empty())
+  if (d->m_dash_pattern.empty())
     {
       return *this;
     }
@@ -407,7 +407,7 @@ dash_pattern(c_array<const DashPatternElement> f)
              then we join it with the element we are on by adding the
              draw lengths.
        */
-      if(d->m_dash_pattern[current_write].m_space_length <= 0.0f)
+      if (d->m_dash_pattern[current_write].m_space_length <= 0.0f)
         {
           d->m_dash_pattern[current_write].m_draw_length += std::max(0.0f, f[i].m_draw_length);
         }
@@ -428,7 +428,7 @@ dash_pattern(c_array<const DashPatternElement> f)
       d->m_total_length += d->m_dash_pattern[i].m_space_length;
     }
 
-  if(d->m_dash_pattern.back().m_space_length <= 0.0f && d->m_dash_pattern.front().m_draw_length > 0.0f)
+  if (d->m_dash_pattern.back().m_space_length <= 0.0f && d->m_dash_pattern.front().m_draw_length > 0.0f)
     {
       d->m_first_interval_start = -d->m_dash_pattern.back().m_draw_length;
     }
@@ -438,7 +438,7 @@ dash_pattern(c_array<const DashPatternElement> f)
     }
 
   d->m_dash_pattern_packed.resize(d->m_dash_pattern.size() * 2);
-  if(!d->m_dash_pattern_packed.empty())
+  if (!d->m_dash_pattern_packed.empty())
     {
       float total_length = 0.0f;
       for(unsigned int i = 0, j = 0, endi = d->m_dash_pattern.size(); i < endi; ++i, j += 2)

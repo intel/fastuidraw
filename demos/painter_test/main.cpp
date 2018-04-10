@@ -30,7 +30,7 @@ protected:
     c_string label;
 
     cnt = pr->num_shaders(shader_type);
-    if(cnt == 0)
+    if (cnt == 0)
       {
         return;
       }
@@ -78,7 +78,7 @@ protected:
     log_helper(pr, prefix, GL_TESS_EVALUATION_SHADER);
     log_helper(pr, prefix, GL_TESS_CONTROL_SHADER);
 
-    if(pr->link_success())
+    if (pr->link_success())
       {
         std::cout << "Link success\n";
         pr->use_program();

@@ -98,7 +98,7 @@ namespace
       m_str->stream() << "Post: [" << src_file << "," << src_line << "] "
                       << call_string_values;
 
-      if(error_string && *error_string)
+      if (error_string && *error_string)
         {
           m_str->stream() << "{" << error_string << "}";
         }
@@ -221,7 +221,7 @@ egl_helper(const fastuidraw::reference_counted_ptr<StreamHolder> &str,
 
   context_attribs[n++] = EGL_CONTEXT_MAJOR_VERSION;
   context_attribs[n++] = P.m_gles_major_version;
-  if(P.m_gles_minor_version != 0)
+  if (P.m_gles_minor_version != 0)
     {
       context_attribs[n++] = EGL_CONTEXT_MINOR_VERSION;
       context_attribs[n++] = P.m_gles_minor_version;

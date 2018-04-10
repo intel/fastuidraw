@@ -40,7 +40,7 @@ public:
   int
   check_arg(const std::vector<std::string> &args, int location)
   {
-    if(static_cast<unsigned int>(location + 1) < args.size() && args[location] == "add_dash_pattern")
+    if (static_cast<unsigned int>(location + 1) < args.size() && args[location] == "add_dash_pattern")
       {
         m_files.push_back(args[location + 1]);
         std::cout << "\nAdded dash pattern from file " << args[location + 1];
@@ -105,7 +105,7 @@ enable_wire_frame(bool b)
 {
   #ifndef FASTUIDRAW_GL_USE_GLES
     {
-      if(b)
+      if (b)
         {
           glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
           glLineWidth(4.0);
@@ -441,82 +441,82 @@ update_cts_params(void)
   float speed = static_cast<float>(m_draw_timer.restart_us()), speed_stroke, speed_shear;
   speed /= 1000.0f;
 
-  if(keyboard_state[SDL_SCANCODE_LSHIFT])
+  if (keyboard_state[SDL_SCANCODE_LSHIFT])
     {
       speed *= 0.1f;
     }
-  if(keyboard_state[SDL_SCANCODE_RSHIFT])
+  if (keyboard_state[SDL_SCANCODE_RSHIFT])
     {
       speed *= 10.0f;
     }
 
   speed_shear = 0.01f * speed;
-  if(keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL])
+  if (keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL])
     {
       speed_shear = -speed_shear;
     }
 
   vec2 *pshear(&m_shear);
   c_string shear_txt = "";
-  if(keyboard_state[SDL_SCANCODE_RETURN])
+  if (keyboard_state[SDL_SCANCODE_RETURN])
     {
       pshear = &m_shear2;
       shear_txt = "2";
     }
 
-  if(keyboard_state[SDL_SCANCODE_6])
+  if (keyboard_state[SDL_SCANCODE_6])
     {
       pshear->x() += speed_shear;
       std::cout << "Shear" << shear_txt << " set to: " << *pshear << "\n";
     }
-  if(keyboard_state[SDL_SCANCODE_7])
+  if (keyboard_state[SDL_SCANCODE_7])
     {
       pshear->y() += speed_shear;
       std::cout << "Shear " << shear_txt << " set to: " << *pshear << "\n";
     }
 
-  if(keyboard_state[SDL_SCANCODE_9])
+  if (keyboard_state[SDL_SCANCODE_9])
     {
       m_angle += speed * 0.1f;
       std::cout << "Angle set to: " << m_angle << "\n";
     }
-  if(keyboard_state[SDL_SCANCODE_0])
+  if (keyboard_state[SDL_SCANCODE_0])
     {
       m_angle -= speed * 0.1f;
       std::cout << "Angle set to: " << m_angle << "\n";
     }
 
   speed_stroke = speed * m_change_stroke_width_rate.m_value;
-  if(!m_stroke_width_in_pixels)
+  if (!m_stroke_width_in_pixels)
     {
       speed_stroke /= m_zoomer.transformation().scale();
     }
 
-  if(keyboard_state[SDL_SCANCODE_RIGHTBRACKET])
+  if (keyboard_state[SDL_SCANCODE_RIGHTBRACKET])
     {
       m_grid_path_dirty = true;
       m_stroke_width += speed_stroke;
     }
 
-  if(keyboard_state[SDL_SCANCODE_LEFTBRACKET] && m_stroke_width > 0.0f)
+  if (keyboard_state[SDL_SCANCODE_LEFTBRACKET] && m_stroke_width > 0.0f)
     {
       m_grid_path_dirty = true;
       m_stroke_width -= speed_stroke;
       m_stroke_width = fastuidraw::t_max(m_stroke_width, 0.0f);
     }
 
-  if(keyboard_state[SDL_SCANCODE_RIGHTBRACKET] || keyboard_state[SDL_SCANCODE_LEFTBRACKET])
+  if (keyboard_state[SDL_SCANCODE_RIGHTBRACKET] || keyboard_state[SDL_SCANCODE_LEFTBRACKET])
     {
       std::cout << "Stroke width set to: " << m_stroke_width << "\n";
     }
 
-  if(m_repeat_window)
+  if (m_repeat_window)
     {
       vec2 *changer;
       float delta, delta_y;
 
       delta = m_window_change_rate.m_value * speed / m_zoomer.transformation().scale();
-      if(keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL])
+      if (keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL])
         {
           changer = &m_repeat_wh;
           delta_y = delta;
@@ -527,30 +527,30 @@ update_cts_params(void)
           delta_y = -delta;
         }
 
-      if(keyboard_state[SDL_SCANCODE_UP])
+      if (keyboard_state[SDL_SCANCODE_UP])
         {
           changer->y() += delta_y;
           changer->y() = fastuidraw::t_max(0.0f, changer->y());
         }
 
-      if(keyboard_state[SDL_SCANCODE_DOWN])
+      if (keyboard_state[SDL_SCANCODE_DOWN])
         {
           changer->y() -= delta_y;
           changer->y() = fastuidraw::t_max(0.0f, changer->y());
         }
 
-      if(keyboard_state[SDL_SCANCODE_RIGHT])
+      if (keyboard_state[SDL_SCANCODE_RIGHT])
         {
           changer->x() += delta;
         }
 
-      if(keyboard_state[SDL_SCANCODE_LEFT])
+      if (keyboard_state[SDL_SCANCODE_LEFT])
         {
           changer->x() -= delta;
           changer->x() = fastuidraw::t_max(0.0f, changer->x());
         }
 
-      if(keyboard_state[SDL_SCANCODE_UP] || keyboard_state[SDL_SCANCODE_DOWN]
+      if (keyboard_state[SDL_SCANCODE_UP] || keyboard_state[SDL_SCANCODE_DOWN]
          || keyboard_state[SDL_SCANCODE_RIGHT] || keyboard_state[SDL_SCANCODE_LEFT])
         {
           std::cout << "Brush repeat window set to: xy = " << m_repeat_xy << " wh = " << m_repeat_wh << "\n";
@@ -558,33 +558,33 @@ update_cts_params(void)
     }
 
 
-  if(m_gradient_draw_mode == draw_radial_gradient)
+  if (m_gradient_draw_mode == draw_radial_gradient)
     {
       float delta;
 
       delta = m_radial_gradient_change_rate.m_value * speed / m_zoomer.transformation().scale();
-      if(keyboard_state[SDL_SCANCODE_1])
+      if (keyboard_state[SDL_SCANCODE_1])
         {
           m_gradient_r0 -= delta;
           m_gradient_r0 = fastuidraw::t_max(0.0f, m_gradient_r0);
         }
 
-      if(keyboard_state[SDL_SCANCODE_2])
+      if (keyboard_state[SDL_SCANCODE_2])
         {
           m_gradient_r0 += delta;
         }
-      if(keyboard_state[SDL_SCANCODE_3])
+      if (keyboard_state[SDL_SCANCODE_3])
         {
           m_gradient_r1 -= delta;
           m_gradient_r1 = fastuidraw::t_max(0.0f, m_gradient_r1);
         }
 
-      if(keyboard_state[SDL_SCANCODE_4])
+      if (keyboard_state[SDL_SCANCODE_4])
         {
           m_gradient_r1 += delta;
         }
 
-      if(keyboard_state[SDL_SCANCODE_1] || keyboard_state[SDL_SCANCODE_2]
+      if (keyboard_state[SDL_SCANCODE_1] || keyboard_state[SDL_SCANCODE_2]
          || keyboard_state[SDL_SCANCODE_3] || keyboard_state[SDL_SCANCODE_4])
         {
           std::cout << "Radial gradient values set to: r0 = "
@@ -593,32 +593,32 @@ update_cts_params(void)
     }
 
 
-  if(is_miter_join_style(m_join_style) && m_have_miter_limit)
+  if (is_miter_join_style(m_join_style) && m_have_miter_limit)
     {
-      if(keyboard_state[SDL_SCANCODE_N])
+      if (keyboard_state[SDL_SCANCODE_N])
         {
           m_miter_limit += m_change_miter_limit_rate.m_value * speed;
         }
 
-      if(keyboard_state[SDL_SCANCODE_B])
+      if (keyboard_state[SDL_SCANCODE_B])
         {
           m_miter_limit -= m_change_miter_limit_rate.m_value * speed;
           m_miter_limit = fastuidraw::t_max(0.0f, m_miter_limit);
         }
 
-      if(keyboard_state[SDL_SCANCODE_N] || keyboard_state[SDL_SCANCODE_B])
+      if (keyboard_state[SDL_SCANCODE_N] || keyboard_state[SDL_SCANCODE_B])
         {
           std::cout << "Miter-limit set to: " << m_miter_limit << "\n";
         }
     }
 
-  if(m_clipping_window)
+  if (m_clipping_window)
     {
       vec2 *changer;
       float delta, delta_y;
 
       delta = m_window_change_rate.m_value * speed / m_zoomer.transformation().scale();
-      if(keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL])
+      if (keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL])
         {
           changer = &m_clipping_wh;
           delta_y = delta;
@@ -629,27 +629,27 @@ update_cts_params(void)
           delta_y = -delta;
         }
 
-      if(keyboard_state[SDL_SCANCODE_KP_8])
+      if (keyboard_state[SDL_SCANCODE_KP_8])
         {
           changer->y() += delta_y;
         }
 
-      if(keyboard_state[SDL_SCANCODE_KP_2])
+      if (keyboard_state[SDL_SCANCODE_KP_2])
         {
           changer->y() -= delta_y;
         }
 
-      if(keyboard_state[SDL_SCANCODE_KP_6])
+      if (keyboard_state[SDL_SCANCODE_KP_6])
         {
           changer->x() += delta;
         }
 
-      if(keyboard_state[SDL_SCANCODE_KP_4])
+      if (keyboard_state[SDL_SCANCODE_KP_4])
         {
           changer->x() -= delta;
         }
 
-      if(keyboard_state[SDL_SCANCODE_KP_2] || keyboard_state[SDL_SCANCODE_KP_4]
+      if (keyboard_state[SDL_SCANCODE_KP_2] || keyboard_state[SDL_SCANCODE_KP_4]
          || keyboard_state[SDL_SCANCODE_KP_6] || keyboard_state[SDL_SCANCODE_KP_8])
         {
           m_clip_window_path_dirty = true;
@@ -667,12 +667,12 @@ brush_item_coordinate(ivec2 scr)
   vec2 p;
   p = item_coordinates(scr);
 
-  if(m_matrix_brush)
+  if (m_matrix_brush)
     {
       p *= m_zoomer.transformation().scale();
     }
 
-  if(m_translate_brush)
+  if (m_translate_brush)
     {
       p += m_zoomer.transformation().translation();
     }
@@ -727,7 +727,7 @@ handle_event(const SDL_Event &ev)
       break;
 
     case SDL_WINDOWEVENT:
-      if(ev.window.event == SDL_WINDOWEVENT_RESIZED)
+      if (ev.window.event == SDL_WINDOWEVENT_RESIZED)
         {
           m_grid_path_dirty = true;
           on_resize(ev.window.data1, ev.window.data2);
@@ -739,11 +739,11 @@ handle_event(const SDL_Event &ev)
         ivec2 c(ev.motion.x + ev.motion.xrel,
                 ev.motion.y + ev.motion.yrel);
 
-        if(ev.motion.state & SDL_BUTTON(SDL_BUTTON_MIDDLE))
+        if (ev.motion.state & SDL_BUTTON(SDL_BUTTON_MIDDLE))
           {
             m_gradient_p0 = brush_item_coordinate(c);
           }
-        else if(ev.motion.state & SDL_BUTTON(SDL_BUTTON_RIGHT))
+        else if (ev.motion.state & SDL_BUTTON(SDL_BUTTON_RIGHT))
           {
             m_gradient_p1 = brush_item_coordinate(c);
           }
@@ -758,11 +758,11 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_k:
-          if(m_stroke_width_in_pixels)
+          if (m_stroke_width_in_pixels)
             {
               m_stroke_width_pixels_scaled_by_zoom = !m_stroke_width_pixels_scaled_by_zoom;
               std::cout << "Stroke width pixels scale by zoom factor: ";
-              if(m_stroke_width_pixels_scaled_by_zoom)
+              if (m_stroke_width_pixels_scaled_by_zoom)
                 {
                   std::cout << "ON";
                 }
@@ -777,7 +777,7 @@ handle_event(const SDL_Event &ev)
         case SDLK_a:
           m_with_aa = !m_with_aa;
           std::cout << "Anti-aliasing stroking and filling = " << m_with_aa << "\n";
-          if(m_with_aa && m_surface->properties().msaa() > 1)
+          if (m_with_aa && m_surface->properties().msaa() > 1)
             {
               std::cout << "WARNING: doing shader based anti-aliasing with an MSAA render target is BAD\n";
             }
@@ -785,7 +785,7 @@ handle_event(const SDL_Event &ev)
 
         case SDLK_5:
           m_draw_grid = !m_draw_grid;
-          if(m_draw_grid)
+          if (m_draw_grid)
             {
               std::cout << "Draw grid\n";
             }
@@ -801,7 +801,7 @@ handle_event(const SDL_Event &ev)
 
         case SDLK_p:
           m_stroke_width_in_pixels = !m_stroke_width_in_pixels;
-          if(m_stroke_width_in_pixels)
+          if (m_stroke_width_in_pixels)
             {
               std::cout << "Stroke width specified in pixels\n";
             }
@@ -813,7 +813,7 @@ handle_event(const SDL_Event &ev)
 
         case SDLK_v:
           m_force_square_viewport = !m_force_square_viewport;
-          if(m_force_square_viewport)
+          if (m_force_square_viewport)
             {
               std::cout << "Viewport made to square that contains window\n";
             }
@@ -844,10 +844,10 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_h:
-          if(m_gradient_draw_mode != draw_no_gradient)
+          if (m_gradient_draw_mode != draw_no_gradient)
             {
               m_repeat_gradient = !m_repeat_gradient;
-              if(!m_repeat_gradient)
+              if (!m_repeat_gradient)
                 {
                   std::cout << "non-";
                 }
@@ -856,11 +856,11 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_m:
-          if(is_miter_join_style(m_join_style))
+          if (is_miter_join_style(m_join_style))
             {
               m_have_miter_limit = !m_have_miter_limit;
               std::cout << "Miter limit ";
-              if(!m_have_miter_limit)
+              if (!m_have_miter_limit)
                 {
                   std::cout << "NOT ";
                 }
@@ -869,16 +869,16 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_i:
-          if(m_image && m_draw_fill)
+          if (m_image && m_draw_fill)
             {
               cycle_value(m_image_filter, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_image_filter_modes);
               std::cout << "Image filter mode set to: " << m_image_filter_mode_labels[m_image_filter] << "\n";
-              if(m_image_filter == image_linear_filter && m_image->slack() < 1)
+              if (m_image_filter == image_linear_filter && m_image->slack() < 1)
                 {
                   std::cout << "\tWarning: image slack = " << m_image->slack()
                             << " which insufficient to correctly apply linear filter (requires atleast 1)\n";
                 }
-              else if(m_image_filter == image_cubic_filter && m_image->slack() < 2)
+              else if (m_image_filter == image_cubic_filter && m_image->slack() < 2)
                 {
                   std::cout << "\tWarning: image slack = " << m_image->slack()
                             << " which insufficient to correctly apply cubic filter (requires atleast 2)\n";
@@ -887,7 +887,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_s:
-          if(m_draw_fill)
+          if (m_draw_fill)
             {
               cycle_value(m_active_color_stop, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_color_stops.size());
               std::cout << "Drawing color stop: " << m_color_stops[m_active_color_stop].first << "\n";
@@ -895,7 +895,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_g:
-          if(m_draw_fill)
+          if (m_draw_fill)
             {
               cycle_value(m_gradient_draw_mode, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_gradient_draw_modes);
               std::cout << "Gradient mode set to: " << m_gradient_mode_labels[m_gradient_draw_mode] << "\n";
@@ -909,14 +909,14 @@ handle_event(const SDL_Event &ev)
 
         case SDLK_d:
           cycle_value(m_dash, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_dash_patterns.size() + 1);
-          if(is_dashed_stroking())
+          if (is_dashed_stroking())
             {
               unsigned int P;
               P = dash_pattern();
               std::cout << "Set to stroke dashed with pattern: {";
               for(unsigned int i = 0; i < m_dash_patterns[P].size(); ++i)
                 {
-                  if(i != 0)
+                  if (i != 0)
                     {
                       std::cout << ", ";
                     }
@@ -940,7 +940,7 @@ handle_event(const SDL_Event &ev)
         case SDLK_x:
           m_close_contour = !m_close_contour;
           std::cout << "Stroking contours as ";
-          if(m_close_contour)
+          if (m_close_contour)
             {
               std::cout << "closed.\n";
             }
@@ -951,14 +951,14 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_r:
-          if(m_draw_fill)
+          if (m_draw_fill)
             {
               cycle_value(m_fill_rule, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_end_fill_rule + 1);
-              if(m_fill_rule < PainterEnums::fill_rule_data_count)
+              if (m_fill_rule < PainterEnums::fill_rule_data_count)
                 {
                   std::cout << "Fill rule set to: " << m_fill_labels[m_fill_rule] << "\n";
                 }
-              else if(m_fill_rule == m_end_fill_rule)
+              else if (m_fill_rule == m_end_fill_rule)
                 {
                   std::cout << "Fill rule set to custom fill rule: all winding numbers filled\n";
                 }
@@ -975,11 +975,11 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_e:
-          if(m_draw_fill)
+          if (m_draw_fill)
             {
               m_fill_by_clipping = !m_fill_by_clipping;
               std::cout << "Set to ";
-              if(m_fill_by_clipping)
+              if (m_fill_by_clipping)
                 {
                   std::cout << "fill by drawing rectangle clipped to path\n";
                 }
@@ -993,7 +993,7 @@ handle_event(const SDL_Event &ev)
         case SDLK_f:
           m_draw_fill = !m_draw_fill;
           std::cout << "Set to ";
-          if(!m_draw_fill)
+          if (!m_draw_fill)
             {
               std::cout << "NOT ";
             }
@@ -1001,11 +1001,11 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_u:
-          if(m_draw_fill & m_with_aa)
+          if (m_draw_fill & m_with_aa)
             {
               m_aa_fill_by_stroking = !m_aa_fill_by_stroking;
               std::cout << "Set to ";
-              if(!m_aa_fill_by_stroking)
+              if (!m_aa_fill_by_stroking)
                 {
                   std::cout << "NOT ";
                 }
@@ -1023,7 +1023,7 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_z:
-          if(ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT))
+          if (ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT))
             {
               m_curve_flatness *= 0.5f;
             }
@@ -1044,7 +1044,7 @@ void
 painter_stroke_test::
 construct_path(void)
 {
-  if(m_path_from_glyph.m_value)
+  if (m_path_from_glyph.m_value)
     {
       uint32_t glyph_code;
       GlyphRender renderer(distance_field_glyph);
@@ -1052,17 +1052,17 @@ construct_path(void)
 
       glyph_code = m_font->glyph_code(m_character_code.m_value);
       g = m_glyph_cache->fetch_glyph(renderer, m_font, glyph_code);
-      if(g.valid())
+      if (g.valid())
         {
           m_path = g.path();
           return;
         }
     }
 
-  if(!m_path_file.m_value.empty())
+  if (!m_path_file.m_value.empty())
     {
       std::ifstream path_file(m_path_file.m_value.c_str());
-      if(path_file)
+      if (path_file)
         {
           std::stringstream buffer;
           buffer << path_file.rdbuf();
@@ -1121,7 +1121,7 @@ create_stroked_path_attributes(void)
 
           StrokedPath::point::unpack_point(&pt, miter_points[p]);
           v = pt.miter_distance();
-          if(std::isfinite(v))
+          if (std::isfinite(v))
             {
               m_miter_limit = fastuidraw::t_max(m_miter_limit, fastuidraw::t_abs(v));
             }
@@ -1129,7 +1129,7 @@ create_stroked_path_attributes(void)
     }
   m_miter_limit = fastuidraw::t_min(100.0f, m_miter_limit); //100 is an insane miter limit.
 
-  if(m_print_path.m_value)
+  if (m_print_path.m_value)
     {
       reference_counted_ptr<const TessellatedPath> tess;
 
@@ -1198,7 +1198,7 @@ construct_dash_patterns(void)
       std::ifstream file(m_dash_pattern_files.m_files[i].c_str());
 
       read_dash_pattern(tmp, file);
-      if(!tmp.empty())
+      if (!tmp.empty())
         {
           m_dash_patterns.push_back(std::vector<PainterDashedStrokeParams::DashPatternElement>());
           std::swap(tmp, m_dash_patterns.back());
@@ -1206,7 +1206,7 @@ construct_dash_patterns(void)
       tmp.clear();
     }
 
-  if(m_dash_patterns.empty())
+  if (m_dash_patterns.empty())
     {
       m_dash_patterns.push_back(std::vector<PainterDashedStrokeParams::DashPatternElement>());
       m_dash_patterns.back().push_back(PainterDashedStrokeParams::DashPatternElement(20.0f, 10.0f));
@@ -1230,7 +1230,7 @@ draw_frame(void)
   update_cts_params();
 
   enable_wire_frame(m_wire_frame);
-  if(m_force_square_viewport)
+  if (m_force_square_viewport)
     {
       int d;
       d = std::max(wh.x(), wh.y());
@@ -1248,7 +1248,7 @@ draw_frame(void)
 
   m_painter->begin(m_surface);
 
-  if(m_force_square_viewport)
+  if (m_force_square_viewport)
     {
       int d;
       d = std::max(wh.x(), wh.y());
@@ -1270,9 +1270,9 @@ draw_frame(void)
 
   /* draw grid using painter.
    */
-  if(m_draw_grid && m_stroke_width_in_pixels && m_stroke_width > 0.0f)
+  if (m_draw_grid && m_stroke_width_in_pixels && m_stroke_width > 0.0f)
     {
-      if(m_grid_path_dirty && m_stroke_width > 0.0f)
+      if (m_grid_path_dirty && m_stroke_width > 0.0f)
         {
           Path grid_path;
           for(float x = 0, endx = wh.x(); x < endx; x += m_stroke_width)
@@ -1320,9 +1320,9 @@ draw_frame(void)
    */
   m_painter->shear(m_shear2.x(), m_shear2.y());
 
-  if(m_clipping_window)
+  if (m_clipping_window)
     {
-      if(m_clip_window_path_dirty)
+      if (m_clip_window_path_dirty)
         {
           Path clip_window_path;
           clip_window_path << m_clipping_xy
@@ -1350,13 +1350,13 @@ draw_frame(void)
     }
 
 
-  if(m_draw_fill)
+  if (m_draw_fill)
     {
       simple_time measure;
       PainterBrush fill_brush;
 
       fill_brush.pen(1.0f, 1.0f, 1.0f, 1.0f);
-      if(m_translate_brush)
+      if (m_translate_brush)
         {
           fill_brush.transformation_translate(m_zoomer.transformation().translation());
         }
@@ -1365,7 +1365,7 @@ draw_frame(void)
           fill_brush.no_transformation_translation();
         }
 
-      if(m_matrix_brush)
+      if (m_matrix_brush)
         {
           float2x2 m;
           m(0, 0) = m(1, 1) = m_zoomer.transformation().scale();
@@ -1376,7 +1376,7 @@ draw_frame(void)
           fill_brush.no_transformation_matrix();
         }
 
-      if(m_repeat_window)
+      if (m_repeat_window)
         {
           fill_brush.repeat_window(m_repeat_xy, m_repeat_wh);
         }
@@ -1385,12 +1385,12 @@ draw_frame(void)
           fill_brush.no_repeat_window();
         }
 
-      if(m_gradient_draw_mode == draw_linear_gradient)
+      if (m_gradient_draw_mode == draw_linear_gradient)
         {
           fill_brush.linear_gradient(m_color_stops[m_active_color_stop].second,
                                      m_gradient_p0, m_gradient_p1, m_repeat_gradient);
         }
-      else if(m_gradient_draw_mode == draw_radial_gradient)
+      else if (m_gradient_draw_mode == draw_radial_gradient)
         {
           fill_brush.radial_gradient(m_color_stops[m_active_color_stop].second,
                                      m_gradient_p0, m_gradient_r0,
@@ -1403,7 +1403,7 @@ draw_frame(void)
         }
 
 
-      if(!m_image || m_image_filter == no_image)
+      if (!m_image || m_image_filter == no_image)
         {
           fill_brush.no_image();
         }
@@ -1432,11 +1432,11 @@ draw_frame(void)
       WindingValueFillRule value_fill_rule;
       CustomFillRuleBase *fill_rule(&fill_rule_function);
 
-      if(m_fill_rule < PainterEnums::fill_rule_data_count)
+      if (m_fill_rule < PainterEnums::fill_rule_data_count)
         {
           fill_rule_function = CustomFillRuleFunction(static_cast<PainterEnums::fill_rule_t>(m_fill_rule));
         }
-      else if(m_fill_rule != m_end_fill_rule)
+      else if (m_fill_rule != m_end_fill_rule)
         {
           int value;
           c_array<const int> wnd;
@@ -1447,7 +1447,7 @@ draw_frame(void)
           fill_rule = &value_fill_rule;
         }
 
-      if(m_fill_by_clipping)
+      if (m_fill_by_clipping)
         {
           m_painter->save();
           m_painter->clipInPath(m_path, *fill_rule);
@@ -1460,7 +1460,7 @@ draw_frame(void)
           m_painter->fill_path(PainterData(&fill_brush), m_path, *fill_rule, m_with_aa && !m_aa_fill_by_stroking);
         }
 
-      if(m_aa_fill_by_stroking && m_with_aa)
+      if (m_aa_fill_by_stroking && m_with_aa)
         {
           PainterStrokeParams st;
           st.miter_limit(-1.0f);
@@ -1473,18 +1473,18 @@ draw_frame(void)
       submit_fill_time = measure.elapsed_us();
     }
 
-  if(!m_stroke_pen)
+  if (!m_stroke_pen)
     {
       m_stroke_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(1.0f, 1.0f, 1.0f, 0.5f));
     }
 
-  if(m_stroke_width > 0.0f)
+  if (m_stroke_width > 0.0f)
     {
       simple_time measure;
-      if(is_dashed_stroking())
+      if (is_dashed_stroking())
         {
           PainterDashedStrokeParams st;
-          if(m_have_miter_limit)
+          if (m_have_miter_limit)
             {
               st.miter_limit(m_miter_limit);
             }
@@ -1498,7 +1498,7 @@ draw_frame(void)
           c_array<const PainterDashedStrokeParams::DashPatternElement> dash_ptr(&m_dash_patterns[D][0], m_dash_patterns[D].size());
           st.dash_pattern(dash_ptr);
 
-          if(m_stroke_width_in_pixels)
+          if (m_stroke_width_in_pixels)
             {
               m_painter->stroke_dashed_path_pixel_width(PainterData(m_stroke_pen, &st),
                                                         m_path, m_close_contour,
@@ -1518,7 +1518,7 @@ draw_frame(void)
       else
         {
           PainterStrokeParams st;
-          if(m_have_miter_limit)
+          if (m_have_miter_limit)
             {
               st.miter_limit(m_miter_limit);
             }
@@ -1528,9 +1528,9 @@ draw_frame(void)
             }
           st.width(m_stroke_width);
 
-          if(m_stroke_width_in_pixels)
+          if (m_stroke_width_in_pixels)
             {
-              if(m_stroke_width_pixels_scaled_by_zoom)
+              if (m_stroke_width_pixels_scaled_by_zoom)
                 {
                   st.width(m_stroke_width * m_zoomer.transformation().scale());
                 }
@@ -1552,7 +1552,7 @@ draw_frame(void)
       submit_stroke_time = measure.elapsed_us();
     }
 
-  if(m_draw_fill && m_gradient_draw_mode != draw_no_gradient)
+  if (m_draw_fill && m_gradient_draw_mode != draw_no_gradient)
     {
       float r0, r1;
       vec2 p0, p1;
@@ -1565,19 +1565,19 @@ draw_frame(void)
       p0 = m_gradient_p0;
       p1 = m_gradient_p1;
 
-      if(m_translate_brush)
+      if (m_translate_brush)
         {
           p0 -= m_zoomer.transformation().translation();
           p1 -= m_zoomer.transformation().translation();
         }
 
-      if(m_matrix_brush)
+      if (m_matrix_brush)
         {
           p0 *= inv_scale;
           p1 *= inv_scale;
         }
 
-      if(!m_black_pen)
+      if (!m_black_pen)
         {
           FASTUIDRAWassert(!m_white_pen);
           m_white_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(1.0, 1.0, 1.0, 1.0));
@@ -1593,14 +1593,14 @@ draw_frame(void)
 
   m_painter->restore();
 
-  if(m_draw_stats)
+  if (m_draw_stats)
     {
       std::ostringstream ostr;
       ivec2 mouse_position;
 
       SDL_GetMouseState(&mouse_position.x(), &mouse_position.y());
       ostr << "FPS = ";
-      if(us > 0.0f)
+      if (us > 0.0f)
         {
           ostr << 1000.0f * 1000.0f / us;
         }
@@ -1626,7 +1626,7 @@ draw_frame(void)
       draw_text(ostr.str(), 32.0f, m_font, GlyphRender(curve_pair_glyph), PainterData(&brush));
     }
 
-  if(m_print_submit_stroke_time && m_stroke_width > 0.0f)
+  if (m_print_submit_stroke_time && m_stroke_width > 0.0f)
     {
       m_print_submit_stroke_time = false;
       std::cout << "stroke_path took " << submit_stroke_time
@@ -1634,7 +1634,7 @@ draw_frame(void)
                 << "ms)\n";
     }
 
-  if(m_print_submit_fill_time && m_draw_fill)
+  if (m_print_submit_fill_time && m_draw_fill)
     {
       m_print_submit_fill_time = false;
       std::cout << "fill_path took " << submit_fill_time
@@ -1661,7 +1661,7 @@ derived_init(int w, int h)
   reference_counted_ptr<FreeTypeFace::GeneratorFile> gen;
   gen = FASTUIDRAWnew FreeTypeFace::GeneratorFile(m_font_file.m_value.c_str(), 0);
   m_font = FASTUIDRAWnew FontFreeType(gen, FontFreeType::RenderParams(), m_ft_lib);
-  if(gen->check_creation() != routine_success)
+  if (gen->check_creation() != routine_success)
     {
       std::cout << "\n-----------------------------------------------------"
                 << "\nWarning: unable to create font from file \""
@@ -1677,7 +1677,7 @@ derived_init(int w, int h)
     m_path.tessellation()->filled()->subset(0).winding_numbers().size() + PainterEnums::fill_rule_data_count;
 
   /* set shader anti-alias to false if doing msaa rendering */
-  if(m_surface->properties().msaa() > 1)
+  if (m_surface->properties().msaa() > 1)
     {
       m_with_aa = false;
     }
@@ -1700,22 +1700,22 @@ derived_init(int w, int h)
   tr2.translation(dsp * 0.5f);
   m_zoomer.transformation(tr2 * sc * tr1);
 
-  if(!m_image_file.m_value.empty())
+  if (!m_image_file.m_value.empty())
     {
       std::vector<u8vec4> image_data;
       ivec2 image_size;
 
       image_size = load_image_to_array(m_image_file.m_value, image_data);
-      if(image_size.x() > 0 && image_size.y() > 0)
+      if (image_size.x() > 0 && image_size.y() > 0)
         {
           m_image = Image::create(m_painter->image_atlas(), image_size.x(), image_size.y(),
                                   cast_c_array(image_data), m_image_slack.m_value);
         }
     }
 
-  if(m_image)
+  if (m_image)
     {
-      if(m_sub_image_x.m_value < 0 || m_sub_image_y.m_value < 0
+      if (m_sub_image_x.m_value < 0 || m_sub_image_y.m_value < 0
          || m_sub_image_w.m_value < 0 || m_sub_image_h.m_value < 0)
         {
           m_image_offset = uvec2(0, 0);

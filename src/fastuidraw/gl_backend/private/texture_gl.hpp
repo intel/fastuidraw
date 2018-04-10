@@ -134,7 +134,7 @@ tex_storage(bool use_tex_storage,
             GLint internalformat,
             vecN<GLsizei, 3> size)
 {
-  if(use_tex_storage)
+  if (use_tex_storage)
     {
       glTexStorage3D(texture_target, 1, internalformat,
                      size.x(), size.y(), size.z());
@@ -211,7 +211,7 @@ void
 tex_storage(bool use_tex_storage,
             GLenum texture_target, GLint internalformat, vecN<GLsizei, 2> size)
 {
-  if(use_tex_storage)
+  if (use_tex_storage)
     {
       glTexStorage2D(texture_target, 1, internalformat, size.x(), size.y());
     }
@@ -274,7 +274,7 @@ void
 tex_storage(bool use_tex_storage,
             GLenum texture_target, GLint internalformat, vecN<GLsizei, 1> size)
 {
-  if(use_tex_storage)
+  if (use_tex_storage)
     {
       glTexStorage1D(texture_target, 1, internalformat, size.x());
     }
@@ -408,7 +408,7 @@ TextureGLGeneric(GLenum internal_format,
   m_texture(0),
   m_number_times_create_texture_called(0)
 {
-  if(!m_delayed)
+  if (!m_delayed)
     {
       create_texture();
     }
@@ -419,7 +419,7 @@ template<GLenum texture_target>
 TextureGLGeneric<texture_target>::
 ~TextureGLGeneric()
 {
-  if(m_texture != 0)
+  if (m_texture != 0)
     {
       delete_texture();
     }
@@ -430,13 +430,13 @@ void
 TextureGLGeneric<texture_target>::
 flush_size_change(void)
 {
-  if(m_texture_dimension != m_dims)
+  if (m_texture_dimension != m_dims)
     {
       /* only need to issue GL commands to resize
          the underlying GL texture IF we do not have
          a texture yet.
        */
-      if(m_texture != 0)
+      if (m_texture != 0)
         {
           GLuint old_texture;
 
@@ -469,7 +469,7 @@ flush_size_change(void)
                  starting slice with <srcZ> and <dstZ>, and the number of slices to
                  be copied with <srcDepth>.
               */
-              if(texture_target == GL_TEXTURE_1D_ARRAY)
+              if (texture_target == GL_TEXTURE_1D_ARRAY)
                 {
                   std::swap(blit_dims[1], blit_dims[2]);
                 }
@@ -520,7 +520,7 @@ create_texture(void) const
   glGenTextures(1, &m_texture);
   FASTUIDRAWassert(m_texture!=0);
   glBindTexture(texture_target, m_texture);
-  if(m_number_times_create_texture_called == 0)
+  if (m_number_times_create_texture_called == 0)
     {
       ContextProperties ctx;
       m_use_tex_storage = ctx.is_es() || ctx.version() >= ivec2(4, 2)
@@ -539,12 +539,12 @@ TextureGLGeneric<texture_target>::
 flush(void)
 {
   flush_size_change();
-  if(m_texture == 0)
+  if (m_texture == 0)
     {
       create_texture();
     }
 
-  if(!m_unflushed_commands.empty())
+  if (!m_unflushed_commands.empty())
     {
       glBindTexture(texture_target, m_texture);
       glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -569,12 +569,12 @@ TextureGLGeneric<texture_target>::
 set_data_vector(const EntryLocation &loc,
                 std::vector<uint8_t> &data)
 {
-  if(data.empty())
+  if (data.empty())
     {
       return;
     }
 
-  if(m_delayed)
+  if (m_delayed)
     {
       m_unflushed_commands.push_back(typename EntryLocation::with_data());
       typename EntryLocation::with_data &R(m_unflushed_commands.back());
@@ -600,12 +600,12 @@ TextureGLGeneric<texture_target>::
 set_data_c_array(const EntryLocation &loc,
                  fastuidraw::c_array<const uint8_t> data)
 {
-  if(data.empty())
+  if (data.empty())
     {
       return;
     }
 
-  if(m_delayed)
+  if (m_delayed)
     {
       std::vector<uint8_t> data_copy;
       data_copy.resize(data.size());
@@ -678,13 +678,13 @@ clear(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
   sz[0] = width;
   offset[0] = xoffset;
 
-  if(TextureTargetDimension<texture_target>::N >= 2)
+  if (TextureTargetDimension<texture_target>::N >= 2)
     {
       sz[1] = height;
       offset[1] = yoffset;
     }
 
-  if(TextureTargetDimension<texture_target>::N >= 3)
+  if (TextureTargetDimension<texture_target>::N >= 3)
     {
       sz[2] = depth;
       offset[2] = zoffset;

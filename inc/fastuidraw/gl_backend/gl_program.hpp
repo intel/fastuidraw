@@ -450,7 +450,7 @@ protected:
   void
   init_uniform(GLuint program, GLint location, bool program_bound) const
   {
-    if(program_bound)
+    if (program_bound)
       {
         Uniform(location, m_value);
       }
@@ -483,7 +483,7 @@ public:
     UniformInitalizerBase(uniform_name),
     m_data(nullptr)
   {
-    if(!value.empty())
+    if (!value.empty())
       {
         m_data = FASTUIDRAWnew T[value.size()];
         m_value = c_array<const T>(m_data, value.size());
@@ -493,7 +493,7 @@ public:
 
   ~UniformInitializer()
   {
-    if(m_data != nullptr)
+    if (m_data != nullptr)
       {
         FASTUIDRAWdelete_array(m_data);
       }
@@ -505,7 +505,7 @@ protected:
   void
   init_uniform(GLuint program, GLint location, bool program_bound) const
   {
-    if(program_bound)
+    if (program_bound)
       {
         Uniform(location, m_value);
       }
@@ -539,7 +539,7 @@ public:
     UniformInitalizerBase(uniform_name),
     m_data(nullptr)
   {
-    if(!value.empty())
+    if (!value.empty())
       {
         m_data = FASTUIDRAWnew T[value.size()];
         m_value = c_array<const T>(m_data, value.size());
@@ -549,7 +549,7 @@ public:
 
   ~UniformInitializer()
   {
-    if(m_data != nullptr)
+    if (m_data != nullptr)
       {
         FASTUIDRAWdelete_array(m_data);
       }
@@ -561,7 +561,7 @@ protected:
   void
   init_uniform(GLuint program, GLint location, bool program_bound) const
   {
-    if(program_bound)
+    if (program_bound)
       {
         Uniform(location, m_value);
       }

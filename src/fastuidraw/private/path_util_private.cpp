@@ -28,7 +28,7 @@ number_segments_for_tessellation(float radius, float arc_angle,
   float needed_sizef, theta;
   unsigned int needed_size;
 
-  if(P.m_curvature_tessellation)
+  if (P.m_curvature_tessellation)
     {
       theta = P.m_threshhold;
     }

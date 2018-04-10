@@ -57,7 +57,7 @@ draw_scene(bool with_clipping)
 
   /* set clipping to screen center
    */
-  if(with_clipping)
+  if (with_clipping)
     {
       m_painter->clipInRect(vec2(wh.x(), wh.y()) * 0.25f, vec2(wh.x(), wh.y()) * 0.5f);
     }
@@ -70,7 +70,7 @@ draw_scene(bool with_clipping)
 
   /* draw half size.
    */
-  if(m_use_matrices)
+  if (m_use_matrices)
     {
       ScaleTranslate<float> sc(0.5f);
       m_painter->concat(sc.matrix3());
@@ -82,7 +82,7 @@ draw_scene(bool with_clipping)
 
   /* move (0,0) to wh*0.5
    */
-  if(m_use_matrices)
+  if (m_use_matrices)
     {
       ScaleTranslate<float> sc(vec2(wh) * 0.5f);
       m_painter->concat(sc.matrix3());
@@ -94,7 +94,7 @@ draw_scene(bool with_clipping)
 
   /* clip again
    */
-  if(with_clipping)
+  if (with_clipping)
     {
       m_painter->clipInRect(vec2(wh) * 0.125f, vec2(wh) * 0.25f);
     }
@@ -128,7 +128,7 @@ draw_frame(void)
   m_painter->save();
   draw_scene(true);
   m_painter->restore();
-  if(m_draw_overlay)
+  if (m_draw_overlay)
     {
       draw_scene(false);
     }
