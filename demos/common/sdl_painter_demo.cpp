@@ -236,6 +236,15 @@ sdl_painter_demo(const std::string &about_text,
                                              "GL_ARB_shader_image_load_store) for GL and GLES 3.1 for GLES; if requirements "
                                              "are not satisfied will try to fall back to auxilary_buffer_interlock "
                                              "and if those are not satisfied will fall back to auxilary_buffer_atomic and "
+                                             "if those requirement are not satsified, then no_auxilary_buffer")
+                                  .add_entry("auxilary_buffer_framebuffer_fetch",
+                                             fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_framebuffer_fetch,
+                                             "Auxilary buffer via framebuffer fetch; this is high performant option "
+                                             "as it does NOT use atomic ops and does not force any draw call "
+                                             "breaks to issue a memory barrier; requires GL_EXT_shader_framebuffer_fetch; "
+                                             "if requirement is not satisfied will try to fall back to auxilary_buffer_interlock "
+                                             "which if not satisfied will fall back to auxilary_buffer_interlock_main_only "
+                                             "and if those are not satisfied will fall back to auxilary_buffer_atomic and "
                                              "if those requirement are not satsified, then no_auxilary_buffer"),
                                   "provide_auxilary_image_buffer",
                                   "Spcifies if and how to provide auxilary image buffer; "
@@ -392,6 +401,22 @@ init_gl(int w, int h)
 
   m_colorstop_atlas = FASTUIDRAWnew fastuidraw::gl::ColorStopAtlasGL(m_colorstop_atlas_params);
 
+  if(m_painter_msaa.m_value > 1)
+    {
+      if(m_provide_auxilary_image_buffer.m_value.m_value != fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer)
+        {
+          std::cout << "Auxilary buffer cannot be used with painter_msaa "
+                    << "(and there is little reason since it is used only for shader-based anti-aliasing)\n"
+                    << std::flush;
+          m_provide_auxilary_image_buffer.m_value.m_value = fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer;
+        }
+
+      if(m_blend_type.m_value.m_value == fastuidraw::PainterBlendShader::framebuffer_fetch)
+        {
+          std::cout << "WARNING: using framebuffer fetch with painter_msaa makes all fragment shading happen per fragment\n"
+                    << std::flush;
+        }
+    }
 
   m_painter_base_params.alignment(m_painter_alignment.m_value);
   m_painter_params
