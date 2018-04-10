@@ -195,6 +195,44 @@ namespace
     #endif
   }
 
+  fastuidraw::PainterBlendShader::shader_type
+  compute_blend_type(enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t aux_value,
+                     enum fastuidraw::PainterBlendShader::shader_type in_value,
+                     const fastuidraw::gl::ContextProperties &ctx)
+  {
+    if (aux_value == fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_framebuffer_fetch)
+      {
+        /* auxilary framebuffer fetch may only be used with framebuffer fetch blending */
+        return fastuidraw::PainterBlendShader::framebuffer_fetch;
+      }
+
+    bool have_dual_src_blending, have_framebuffer_fetch;
+    if(ctx.is_es())
+      {
+        have_dual_src_blending = ctx.has_extension("GL_EXT_blend_func_extended");
+        have_framebuffer_fetch = ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
+      }
+    else
+      {
+        have_dual_src_blending = true;
+        have_framebuffer_fetch = ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
+      }
+
+    if(in_value == fastuidraw::PainterBlendShader::framebuffer_fetch
+       && !have_framebuffer_fetch)
+      {
+        in_value = fastuidraw::PainterBlendShader::dual_src;
+      }
+
+    if(in_value == fastuidraw::PainterBlendShader::dual_src
+       && !have_dual_src_blending)
+      {
+        in_value = fastuidraw::PainterBlendShader::single_src;
+      }
+
+    return in_value;
+  }
+
   class painter_vao
   {
   public:
@@ -1362,7 +1400,15 @@ compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
       return_value.alignment(4);
     }
 
-  return_value.blend_type(params.blend_type());
+  /* bleck: framebuffer fetch on auxilary buffer is
+     not compatible with single_src and dual_src
+     blending, need to override blend_type() for
+     that case.
+  */
+  fastuidraw::gl::ContextProperties ctx;
+  return_value.blend_type(compute_blend_type(compute_provide_auxilary_buffer(params.provide_auxilary_image_buffer(), ctx),
+                                             params.blend_type(),
+                                             ctx));
   return return_value;
 }
 
@@ -1441,31 +1487,6 @@ configure_backend(void)
     {
       // TBO's not supported, fall back to using UBO's.
       m_params.data_store_backing(fastuidraw::gl::PainterBackendGL::data_store_ubo);
-    }
-
-  bool have_dual_src_blending, have_framebuffer_fetch;
-
-  if(m_ctx_properties.is_es())
-    {
-      have_dual_src_blending = m_ctx_properties.has_extension("GL_EXT_blend_func_extended");
-      have_framebuffer_fetch = m_ctx_properties.has_extension("GL_EXT_shader_framebuffer_fetch");
-    }
-  else
-    {
-      have_dual_src_blending = true;
-      have_framebuffer_fetch = m_ctx_properties.has_extension("GL_EXT_shader_framebuffer_fetch");
-    }
-
-  if(m_params.blend_type() == fastuidraw::PainterBlendShader::framebuffer_fetch
-     && !have_framebuffer_fetch)
-    {
-      m_params.blend_type(fastuidraw::PainterBlendShader::dual_src);
-    }
-
-  if(m_params.blend_type() == fastuidraw::PainterBlendShader::dual_src
-     && !have_dual_src_blending)
-    {
-      m_params.blend_type(fastuidraw::PainterBlendShader::single_src);
     }
 
   /* Query GL what is good size for data store buffer. Size is dependent
@@ -1582,12 +1603,11 @@ configure_backend(void)
   m_interlock_type = compute_interlock_type(m_ctx_properties);
   m_params.provide_auxilary_image_buffer(compute_provide_auxilary_buffer(m_params.provide_auxilary_image_buffer(),
                                                                          m_ctx_properties));
-  if(m_params.provide_auxilary_image_buffer() == fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_framebuffer_fetch)
-    {
-      /* auxilary framebuffer fetch may only be used with framebuffer fetch blending */
-      m_params.blend_type(fastuidraw::PainterBlendShader::framebuffer_fetch);
-    }
-  else if(m_params.provide_auxilary_image_buffer() == fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer)
+  m_params.blend_type(compute_blend_type(m_params.provide_auxilary_image_buffer(),
+                                         m_params.blend_type(),
+                                         m_ctx_properties));
+
+  if(m_params.provide_auxilary_image_buffer() == fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer)
     {
       m_params.default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz);
     }
