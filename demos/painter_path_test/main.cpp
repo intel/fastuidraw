@@ -777,6 +777,10 @@ handle_event(const SDL_Event &ev)
         case SDLK_a:
           m_with_aa = !m_with_aa;
           std::cout << "Anti-aliasing stroking and filling = " << m_with_aa << "\n";
+          if(m_with_aa && m_surface->properties().msaa() > 1)
+            {
+              std::cout << "WARNING: doing shader based anti-aliasing with an MSAA render target is BAD\n";
+            }
           break;
 
         case SDLK_5:
@@ -1669,7 +1673,14 @@ derived_init(int w, int h)
   create_stroked_path_attributes();
   construct_color_stops();
   construct_dash_patterns();
-  m_end_fill_rule = m_path.tessellation()->filled()->subset(0).winding_numbers().size() + PainterEnums::fill_rule_data_count;
+  m_end_fill_rule =
+    m_path.tessellation()->filled()->subset(0).winding_numbers().size() + PainterEnums::fill_rule_data_count;
+
+  /* set shader anti-alias to false if doing msaa rendering */
+  if(m_surface->properties().msaa() > 1)
+    {
+      m_with_aa = false;
+    }
 
   /* set transformation to center and contain path.
    */
