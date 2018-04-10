@@ -83,6 +83,12 @@ namespace
             return in_value;
           }
 
+        if(ctx.has_extension("GL_EXT_shader_framebuffer_fetch")
+           && in_value == PainterBackendGLSL::auxilary_buffer_framebuffer_fetch)
+          {
+            return PainterBackendGLSL::auxilary_buffer_framebuffer_fetch;
+          }
+
         if(ctx.has_extension("GL_NV_fragment_shader_interlock"))
           {
             return PainterBackendGLSL::auxilary_buffer_interlock_main_only;
@@ -104,6 +110,24 @@ namespace
         if(in_value == PainterBackendGLSL::auxilary_buffer_atomic)
           {
             return in_value;
+          }
+
+        /*
+          if asking for framebuffer_fetch, but do not have it,
+          then fall back to auxilary_buffer_interlock; we only
+          give framebuffer_fetch if it is asked for because it
+          is not compatible with MSAA rendering.
+        */
+        if(ctx.has_extension("GL_EXT_shader_framebuffer_fetch"))
+          {
+            if (in_value == PainterBackendGLSL::auxilary_buffer_framebuffer_fetch)
+              {
+                return PainterBackendGLSL::auxilary_buffer_framebuffer_fetch;
+              }
+            else
+              {
+                in_value = PainterBackendGLSL::auxilary_buffer_interlock;
+              }
           }
 
         have_interlock = ctx.has_extension("GL_INTEL_fragment_shader_ordering");
@@ -457,8 +481,21 @@ namespace
   class SurfaceGLPrivate:fastuidraw::noncopyable
   {
   public:
-    explicit
-    SurfaceGLPrivate(const fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties &props);
+    enum fbo_t
+      {
+        fbo_just_color,
+        fbo_with_auxilary_buffer,
+
+        number_fbo_t
+      };
+
+    enum auxilary_buffer_t
+      {
+        auxilary_buffer_u8,
+        auxilary_buffer_u32,
+
+        number_auxilary_buffer_t
+      };
 
     explicit
     SurfaceGLPrivate(GLuint texture,
@@ -471,26 +508,54 @@ namespace
     surface_gl(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface> &surface);
 
     GLuint
-    auxilary_buffer(GLenum internalFormat);
+    auxilary_buffer(enum auxilary_buffer_t tp);
+
+    static
+    GLenum
+    auxilaryBufferInternalFmt(enum auxilary_buffer_t tp)
+    {
+      return tp == auxilary_buffer_u8 ?
+        GL_R8 :
+        GL_R32UI;
+    }
 
     GLuint
-    color_buffer(void);
+    color_buffer(void)
+    {
+      return buffer(buffer_color);
+    }
 
     GLuint
-    fbo(void);
+    fbo(enum fbo_t tp);
+
+    static
+    enum fbo_t
+    fbo_tp(enum fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_t tp)
+    {
+      return (tp == fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_framebuffer_fetch) ?
+        fbo_with_auxilary_buffer :
+        fbo_just_color;
+    }
 
     fastuidraw::PainterBackend::Surface::Viewport m_viewport;
     fastuidraw::vec4 m_clear_color;
     fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties m_properties;
 
   private:
-    void
-    gl_init(void);
+    enum buffer_t
+      {
+        buffer_color,
+        buffer_depth,
 
-    GLuint m_auxilary_buffer;
-    GLenum m_auxilary_buffer_format;
-    GLuint m_color_buffer, m_depth_buffer;
-    GLuint m_fbo;
+        number_buffer_t
+      };
+
+    GLuint
+    buffer(enum buffer_t);
+
+    fastuidraw::vecN<GLuint, number_auxilary_buffer_t> m_auxilary_buffer;
+    fastuidraw::vecN<GLuint, number_buffer_t> m_buffers;
+    fastuidraw::vecN<GLuint, number_fbo_t> m_fbo;
     bool m_own_texture;
   };
 
@@ -1102,33 +1167,16 @@ add_entry(unsigned int indices_written) const
 /////////////////////////////
 //SurfaceGLPrivate methods
 SurfaceGLPrivate::
-SurfaceGLPrivate(const fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties &props):
-  m_clear_color(0.0f, 0.0f, 0.0f, 0.0f),
-  m_properties(props),
-  m_auxilary_buffer(0),
-  m_auxilary_buffer_format(GL_INVALID_ENUM),
-  m_color_buffer(0),
-  m_depth_buffer(0),
-  m_fbo(0),
-  m_own_texture(true)
-{
-  m_viewport.m_dimensions = props.dimensions();
-  m_viewport.m_origin = fastuidraw::ivec2(0, 0);
-}
-
-SurfaceGLPrivate::
 SurfaceGLPrivate(GLuint texture,
                  const fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties &props):
   m_clear_color(0.0f, 0.0f, 0.0f, 0.0f),
   m_properties(props),
   m_auxilary_buffer(0),
-  m_auxilary_buffer_format(GL_INVALID_ENUM),
-  m_color_buffer(texture),
-  m_depth_buffer(0),
+  m_buffers(0),
   m_fbo(0),
-  m_own_texture(false)
+  m_own_texture(texture != 0)
 {
-  FASTUIDRAWassert(m_color_buffer != 0);
+  m_buffers[buffer_color] = texture;
   m_viewport.m_dimensions = props.dimensions();
   m_viewport.m_origin = fastuidraw::ivec2(0, 0);
 }
@@ -1136,25 +1184,13 @@ SurfaceGLPrivate(GLuint texture,
 SurfaceGLPrivate::
 ~SurfaceGLPrivate()
 {
-  if(m_auxilary_buffer)
+  if(!m_own_texture)
     {
-      glDeleteTextures(1, &m_auxilary_buffer);
+      m_buffers[buffer_color] = 0;
     }
-
-  if(m_fbo != 0)
-    {
-      glDeleteFramebuffers(1, &m_fbo);
-    }
-
-  if(m_color_buffer && m_own_texture)
-    {
-      glDeleteTextures(1, &m_color_buffer);
-    }
-
-  if(m_depth_buffer)
-    {
-      glDeleteTextures(1, &m_depth_buffer);
-    }
+  glDeleteTextures(m_auxilary_buffer.size(), m_auxilary_buffer.c_ptr());
+  glDeleteFramebuffers(m_fbo.size(), m_fbo.c_ptr());
+  glDeleteTextures(m_buffers.size(), m_buffers.c_ptr());
 }
 
 fastuidraw::gl::PainterBackendGL::SurfaceGL*
@@ -1170,133 +1206,114 @@ surface_gl(const fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::S
 
 GLuint
 SurfaceGLPrivate::
-auxilary_buffer(GLenum internalFormat)
+auxilary_buffer(enum auxilary_buffer_t tp)
 {
-  if (m_auxilary_buffer && m_auxilary_buffer_format != internalFormat)
+  if (!m_auxilary_buffer[tp])
     {
-      glDeleteTextures(1, &m_auxilary_buffer);
-      m_auxilary_buffer = 0u;
-    }
-
-  if (!m_auxilary_buffer)
-    {
+      GLenum internalFormat;
       fastuidraw::gl::detail::ClearImageSubData clearer;
 
-      glGenTextures(1, &m_auxilary_buffer);
-      FASTUIDRAWassert(m_auxilary_buffer != 0u);
+      internalFormat = auxilaryBufferInternalFmt(tp);
+      glGenTextures(1, &m_auxilary_buffer[tp]);
+      FASTUIDRAWassert(m_auxilary_buffer[tp] != 0u);
 
       glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, m_auxilary_buffer);
+      glBindTexture(GL_TEXTURE_2D, m_auxilary_buffer[tp]);
       fastuidraw::gl::detail::tex_storage(true, GL_TEXTURE_2D,
                                           internalFormat,
                                           m_properties.dimensions());
 
-      clearer.clear<GL_TEXTURE_2D>(m_auxilary_buffer, 0,
+      clearer.clear<GL_TEXTURE_2D>(m_auxilary_buffer[tp], 0,
                                    0, 0, 0, //origin
                                    m_properties.dimensions().x(), m_properties.dimensions().y(), 1, //dimensions
                                    fastuidraw::gl::detail::format_from_internal_format(internalFormat),
                                    fastuidraw::gl::detail::type_from_internal_format(internalFormat));
-
-      m_auxilary_buffer_format = internalFormat;
     }
 
-  return m_auxilary_buffer;
+  return m_auxilary_buffer[tp];
 }
 
 GLuint
 SurfaceGLPrivate::
-color_buffer(void)
+buffer(enum buffer_t tp)
 {
-  if(m_color_buffer == 0)
+  if(m_buffers[tp] == 0)
     {
-      gl_init();
-    }
-  return m_color_buffer;
-}
+      GLenum tex_target, tex_target_binding;
+      GLenum internalFormat;
+      GLint old_tex;
 
-GLuint
-SurfaceGLPrivate::
-fbo(void)
-{
-  if(m_fbo == 0)
-    {
-      gl_init();
-    }
-  return m_fbo;
-}
+      tex_target = (m_properties.msaa() <= 1) ?
+        GL_TEXTURE_2D :
+        GL_TEXTURE_2D_MULTISAMPLE;
 
-void
-SurfaceGLPrivate::
-gl_init(void)
-{
-  GLint old_fbo, old_tex;
-  GLenum tex_target, tex_target_binding;
+      tex_target_binding = (tex_target == GL_TEXTURE_2D) ?
+        GL_TEXTURE_BINDING_2D :
+        GL_TEXTURE_BINDING_2D_MULTISAMPLE;
 
-  FASTUIDRAWassert(m_fbo == 0 && m_depth_buffer == 0);
+      internalFormat = (tp == buffer_color) ?
+        GL_RGBA8 :
+        GL_DEPTH24_STENCIL8;
 
-  tex_target = (m_properties.msaa() <= 1) ?
-    GL_TEXTURE_2D :
-    GL_TEXTURE_2D_MULTISAMPLE;
-
-  tex_target_binding = (tex_target == GL_TEXTURE_2D) ?
-    GL_TEXTURE_BINDING_2D :
-    GL_TEXTURE_BINDING_2D_MULTISAMPLE;
-
-  glGenFramebuffers(1, &m_fbo);
-  FASTUIDRAWassert(m_fbo != 0);
-
-  glGetIntegerv(tex_target_binding, &old_tex);
-  glGetIntegerv(GL_FRAMEBUFFER_BINDING, &old_fbo);
-  glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
-
-  glGenTextures(1, &m_depth_buffer);
-  FASTUIDRAWassert(m_depth_buffer != 0);
-  glBindTexture(tex_target, m_depth_buffer);
-
-  if (m_properties.msaa() <= 1)
-    {
-      fastuidraw::gl::detail::tex_storage(false, tex_target, GL_DEPTH24_STENCIL8,
-                                          m_properties.dimensions());
-      glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    }
-  else
-    {
-      glTexStorage2DMultisample(tex_target, m_properties.msaa(),
-                                GL_DEPTH24_STENCIL8,
-                                m_properties.dimensions().x(),
-                                m_properties.dimensions().y(),
-                                GL_TRUE);
-    }
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
-                         tex_target, m_depth_buffer, 0);
-
-  if(m_color_buffer == 0)
-    {
-      glGenTextures(1, &m_color_buffer);
-      FASTUIDRAWassert(m_color_buffer != 0);
-      glBindTexture(tex_target, m_color_buffer);
+      glGetIntegerv(tex_target_binding, &old_tex);
+      glGenTextures(1, &m_buffers[tp]);
+      FASTUIDRAWassert(m_buffers[tp] != 0);
+      glBindTexture(tex_target, m_buffers[tp]);
 
       if (m_properties.msaa() <= 1)
         {
-          fastuidraw::gl::detail::tex_storage(true, tex_target,
-                                              GL_RGBA8, m_properties.dimensions());
+          fastuidraw::gl::detail::tex_storage(true, tex_target, internalFormat,
+                                              m_properties.dimensions());
           glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
           glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         }
       else
         {
           glTexStorage2DMultisample(tex_target, m_properties.msaa(),
-                                    GL_RGBA8,
+                                    internalFormat,
                                     m_properties.dimensions().x(),
                                     m_properties.dimensions().y(),
                                     GL_TRUE);
         }
-      glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                             tex_target, m_color_buffer, 0);
+      glBindTexture(tex_target, old_tex);
     }
-  glBindTexture(tex_target, old_tex);
-  glBindFramebuffer(GL_FRAMEBUFFER, old_fbo);
+
+  return m_buffers[tp];
+}
+
+GLuint
+SurfaceGLPrivate::
+fbo(enum fbo_t tp)
+{
+  if(m_fbo[tp] == 0)
+    {
+      GLint old_fbo;
+      GLenum tex_target;
+
+      tex_target = (m_properties.msaa() <= 1) ?
+        GL_TEXTURE_2D :
+        GL_TEXTURE_2D_MULTISAMPLE;
+
+      glGenFramebuffers(1, &m_fbo[tp]);
+      FASTUIDRAWassert(m_fbo[tp] != 0);
+
+      glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_fbo);
+      glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo[tp]);
+
+      glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                             tex_target, buffer(buffer_depth), 0);
+      glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                             tex_target, buffer(buffer_color), 0);
+
+      if(tp == fbo_with_auxilary_buffer)
+        {
+          FASTUIDRAWassert(m_properties.msaa() <= 1);
+          glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT1,
+                                 tex_target, auxilary_buffer(auxilary_buffer_u8), 0);
+        }
+      glBindFramebuffer(GL_READ_FRAMEBUFFER, old_fbo);
+    }
+  return m_fbo[tp];
 }
 
 ///////////////////////////////////
@@ -1436,8 +1453,7 @@ configure_backend(void)
   else
     {
       have_dual_src_blending = true;
-      have_framebuffer_fetch = m_ctx_properties.has_extension("GL_EXT_shader_framebuffer_fetch")
-	|| m_ctx_properties.has_extension("GL_MESA_shader_framebuffer_fetch");
+      have_framebuffer_fetch = m_ctx_properties.has_extension("GL_EXT_shader_framebuffer_fetch");
     }
 
   if(m_params.blend_type() == fastuidraw::PainterBlendShader::framebuffer_fetch
@@ -1566,7 +1582,12 @@ configure_backend(void)
   m_interlock_type = compute_interlock_type(m_ctx_properties);
   m_params.provide_auxilary_image_buffer(compute_provide_auxilary_buffer(m_params.provide_auxilary_image_buffer(),
                                                                          m_ctx_properties));
-  if(m_params.provide_auxilary_image_buffer() == fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer)
+  if(m_params.provide_auxilary_image_buffer() == fastuidraw::glsl::PainterBackendGLSL::auxilary_buffer_framebuffer_fetch)
+    {
+      /* auxilary framebuffer fetch may only be used with framebuffer fetch blending */
+      m_params.blend_type(fastuidraw::PainterBlendShader::framebuffer_fetch);
+    }
+  else if(m_params.provide_auxilary_image_buffer() == fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer)
     {
       m_params.default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz);
     }
@@ -1746,7 +1767,6 @@ configure_source_front_matter(void)
             || m_uber_shader_builder_params.provide_auxilary_image_buffer() != PainterBackendGLSL::no_auxilary_buffer);
 
       m_front_matter_frag
-	.specify_extension("GL_MESA_shader_framebuffer_fetch", ShaderSource::enable_extension)
 	.specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension);
 
       if(using_glsl42)
@@ -1905,7 +1925,7 @@ setget_implement(fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties,
 fastuidraw::gl::PainterBackendGL::SurfaceGL::
 SurfaceGL(const Properties &props)
 {
-  m_d = FASTUIDRAWnew SurfaceGLPrivate(props);
+  m_d = FASTUIDRAWnew SurfaceGLPrivate(0u, props);
 }
 
 fastuidraw::gl::PainterBackendGL::SurfaceGL::
@@ -1942,7 +1962,7 @@ blit_surface(const Viewport &src,
   GLint old_fbo;
 
   glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_fbo);
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, d->fbo());
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, d->fbo(SurfaceGLPrivate::fbo_just_color));
   glBlitFramebuffer(src.m_origin.x(),
                     src.m_origin.y(),
                     src.m_origin.x() + src.m_dimensions.x(),
@@ -2179,17 +2199,24 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
   aux_type = uber_params.provide_auxilary_image_buffer();
   if(aux_type != fastuidraw::glsl::PainterBackendGLSL::no_auxilary_buffer)
     {
-      GLenum internalFmt(aux_type == auxilary_buffer_atomic ? GL_R32UI : GL_R8);
+      SurfaceGLPrivate::auxilary_buffer_t tp;
+
+      tp = (aux_type == auxilary_buffer_atomic) ?
+        SurfaceGLPrivate::auxilary_buffer_u32 :
+        SurfaceGLPrivate::auxilary_buffer_u8;
+
       glBindImageTexture(binding_points.auxilary_image_buffer(),
-                         surface_gl->auxilary_buffer(internalFmt), //texture
+                         surface_gl->auxilary_buffer(tp), //texture
                          0, //level
                          GL_FALSE, //layered
                          0, //layer
                          GL_READ_WRITE, //access
-                         internalFmt);
+                         SurfaceGLPrivate::auxilaryBufferInternalFmt(tp));
     }
 
-  GLuint fbo(surface_gl->fbo());
+  enum SurfaceGLPrivate::fbo_t fbo_tp(SurfaceGLPrivate::fbo_tp(aux_type));
+  GLuint fbo(surface_gl->fbo(fbo_tp));
+  vecN<GLenum, 2> draw_buffers(GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1);
   const Surface::Viewport &vwp(surface_gl->m_viewport);
   ivec2 dimensions(surface_gl->m_properties.dimensions());
   PainterBackendGLSL::viewport(vwp);
@@ -2235,7 +2262,13 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
                    surface_gl->m_clear_color.w());
       mask |= GL_COLOR_BUFFER_BIT;
     }
+  glDrawBuffers(1, draw_buffers.c_ptr());
   glClear(mask);
+
+  if(fbo_tp == SurfaceGLPrivate::fbo_with_auxilary_buffer)
+    {
+      glDrawBuffers(2, draw_buffers.c_ptr());
+    }
 
   if(d->m_number_clip_planes > 0)
     {
