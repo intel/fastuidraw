@@ -161,7 +161,6 @@ namespace
   enum interlock_type_t
   compute_interlock_type(const fastuidraw::gl::ContextProperties &ctx)
   {
-    return no_interlock;
     #ifdef FASTUIDRAW_GL_USE_GLES
       {
         if (ctx.has_extension("GL_NV_fragment_shader_interlock"))
@@ -1602,7 +1601,7 @@ configure_backend(void)
 
   m_interlock_type = compute_interlock_type(m_ctx_properties);
   m_params.provide_auxiliary_image_buffer(compute_provide_auxiliary_buffer(m_params.provide_auxiliary_image_buffer(),
-                                                                         m_ctx_properties));
+                                                                           m_ctx_properties));
   m_params.blend_type(compute_blend_type(m_params.provide_auxiliary_image_buffer(),
                                          m_params.blend_type(),
                                          m_ctx_properties));
