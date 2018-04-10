@@ -1027,6 +1027,11 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       frag.add_macro("FASTUIDRAW_PAINTER_HAVE_AUXILARY_BUFFER");
       break;
 
+    case PainterBackendGLSL::auxilary_buffer_framebuffer_fetch:
+      frag.add_macro("FASTUIDRAW_PAINTER_AUXILARY_BUFFER_FRAMEBUFFER_FETCH");
+      frag.add_macro("FASTUIDRAW_PAINTER_HAVE_AUXILARY_BUFFER");
+      break;
+
     default:
       break;
     }

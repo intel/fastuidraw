@@ -160,6 +160,14 @@ namespace fastuidraw
              - fastuidraw_end_interlock() which is called after access
            */
           auxilary_buffer_interlock_main_only,
+
+          /*!
+            Auxilary buffer is present and ordering guarantees
+            are implemented via framebuffer fetch, i.e. the auxilary
+            buffer is present as an inout global with type float
+            and layout(location = 1).
+           */
+          auxilary_buffer_framebuffer_fetch,
         };
 
       /*!

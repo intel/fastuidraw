@@ -73,6 +73,42 @@
   #define FASTUIDRAW_BEGIN_AUX_LOCK fastuidraw_do_nothing()
   #define FASTUIDRAW_END_AUX_LOCK   fastuidraw_do_nothing()
 
+#elif defined(FASTUIDRAW_PAINTER_AUXILARY_BUFFER_FRAMEBUFFER_FETCH)
+
+  layout(location = 1) inout float fastuidraw_auxilary_buffer_inout;
+  float fastuidraw_auxilary_buffer_tmp;
+
+  void
+  fastuidraw_get_auxilary_from_fb(void)
+  {
+    fastuidraw_auxilary_buffer_tmp = fastuidraw_auxilary_buffer_inout;
+  }
+
+  void
+  fastuidraw_write_auxilary_to_fb(void)
+  {
+    fastuidraw_auxilary_buffer_inout = fastuidraw_auxilary_buffer_tmp;
+  }
+
+  float
+  fastuidraw_clear_auxilary(void)
+  {
+    float r;
+    r = fastuidraw_auxilary_buffer_tmp;
+    fastuidraw_auxilary_buffer_tmp = 0.0;
+    return r;
+  }
+
+  void
+  fastuidraw_max_auxilary(in float f)
+  {
+    f = clamp(f, 0.0, 1.0);
+    fastuidraw_auxilary_buffer_tmp = max(fastuidraw_auxilary_buffer_tmp, f);
+  }
+
+  #define FASTUIDRAW_BEGIN_AUX_LOCK fastuidraw_get_auxilary_from_fb()
+  #define FASTUIDRAW_END_AUX_LOCK   fastuidraw_write_auxilary_to_fb()
+
 #else
 
   float fastuidraw_clear_auxilary(void)
