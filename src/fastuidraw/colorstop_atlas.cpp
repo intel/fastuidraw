@@ -18,6 +18,7 @@
 
 
 #include <vector>
+#include <algorithm>
 #include <fastuidraw/colorstop_atlas.hpp>
 #include "private/interval_allocator.hpp"
 #include "private/util_private.hpp"
