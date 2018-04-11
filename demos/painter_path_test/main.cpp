@@ -199,6 +199,14 @@ private:
   command_line_argument_value<std::string> m_font_file;
   command_line_argument_value<bool> m_path_from_glyph;
   command_line_argument_value<uint32_t> m_character_code;
+  command_line_argument_value<float> m_stroke_red;
+  command_line_argument_value<float> m_stroke_green;
+  command_line_argument_value<float> m_stroke_blue;
+  command_line_argument_value<float> m_stroke_alpha;
+  command_line_argument_value<float> m_fill_red;
+  command_line_argument_value<float> m_fill_green;
+  command_line_argument_value<float> m_fill_blue;
+  command_line_argument_value<float> m_fill_alpha;
 
   Path m_path;
   reference_counted_ptr<Image> m_image;
@@ -329,6 +337,14 @@ painter_stroke_test(void):
                     "If true, draw a path from a glyph of the font", *this),
   m_character_code('W', "path_character_code",
                    "If path_from_glyph is true, selects which glyph via character code to use", *this),
+  m_stroke_red(1.0f, "stroke_red", "red component of stroking pen color", *this),
+  m_stroke_green(1.0f, "stroke_green", "green component of stroking pen color", *this),
+  m_stroke_blue(1.0f, "stroke_blue", "blue component of stroking pen olor", *this),
+  m_stroke_alpha(0.5f, "stroke_alpha", "alpha component of stroking pen color", *this),
+  m_fill_red(1.0f, "fill_red", "red component of fill pen color", *this),
+  m_fill_green(1.0f, "fill_green", "green component of fill pen color", *this),
+  m_fill_blue(1.0f, "fill_blue", "blue component of fill pen color", *this),
+  m_fill_alpha(1.0f, "fill_alpha", "alpha component of fill pen color", *this),
   m_join_style(PainterEnums::miter_clip_joins),
   m_cap_style(PainterEnums::square_caps),
   m_close_contour(true),
@@ -1355,7 +1371,8 @@ draw_frame(void)
       simple_time measure;
       PainterBrush fill_brush;
 
-      fill_brush.pen(1.0f, 1.0f, 1.0f, 1.0f);
+      fill_brush.pen(m_fill_red.m_value, m_fill_green.m_value,
+                     m_fill_blue.m_value, m_fill_alpha.m_value);
       if (m_translate_brush)
         {
           fill_brush.transformation_translate(m_zoomer.transformation().translation());
@@ -1475,7 +1492,9 @@ draw_frame(void)
 
   if (!m_stroke_pen)
     {
-      m_stroke_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(1.0f, 1.0f, 1.0f, 0.5f));
+	  PainterBrush br;
+	  br.pen(m_stroke_red.m_value, m_stroke_green.m_value, m_stroke_blue.m_value, m_stroke_alpha.m_value);
+      m_stroke_pen = m_painter->packed_value_pool().create_packed_value(br);
     }
 
   if (m_stroke_width > 0.0f)
