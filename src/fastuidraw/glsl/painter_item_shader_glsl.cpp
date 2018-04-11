@@ -20,6 +20,7 @@
 #include <vector>
 #include <string>
 #include <list>
+#include <algorithm>
 #include <sstream>
 
 #include <fastuidraw/util/c_array.hpp>

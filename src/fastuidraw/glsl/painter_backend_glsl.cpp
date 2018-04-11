@@ -18,6 +18,7 @@
 
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 #include <fastuidraw/glsl/painter_backend_glsl.hpp>
 #include <fastuidraw/painter/stroked_path.hpp>
