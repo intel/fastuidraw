@@ -458,7 +458,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
             }
           else
             {
-              float s2, interval_begin2, interval_end2, d2, delta_mag, grow;
+              float s2, interval_begin2, interval_end2, d2, delta_mag;
               int interval_id2, dash_style;
 
               dash_style = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
@@ -469,10 +469,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
               d2 = (offset_type == fastuidraw_stroke_offset_start_sub_edge) ?
                 d + delta_mag:
                 d - delta_mag;
-
-              grow = (dash_style == fastuidraw_stroke_dashed_flat_caps) ?
-                0.0 :
-                stroke_radius;
 
               s2 = fastuidraw_compute_interval(dash_pattern_at,
                                                stroke_params.total_length,
@@ -495,7 +491,10 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                     If so, avoid expanding past the start or end of the
                     edge.
                */
-              if (interval_id2 == interval_id)
+
+              //BUG: the code to collapse seems to kill something in a test it
+              //     should not, for now just always expand
+              if (interval_id2 == interval_id && interval_id != -1 && false)
                 {
                   fastuidraw_stroking_dash_bits = uint(fastuidraw_stroke_gauranteed_to_be_covered_mask);
                   fastuidraw_stroking_distance = 0.0f;
@@ -506,8 +505,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                 }
               else
                 {
-                  /* contract to avoid drawing extras and expand to draw caps.
-                   */
                   fastuidraw_stroking_dash_bits = 0u;
                   if (offset_type == fastuidraw_stroke_offset_start_sub_edge)
                     {
@@ -524,7 +521,12 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                       if (s < 0.0)
                         {
                           clamp_interval_end = min(interval_end, d2);
-                          new_d = clamp_interval_end - stroke_radius;
+                          new_d = clamp_interval_end;
+
+                          if (dash_style != fastuidraw_stroke_dashed_flat_caps)
+                            {
+                              new_d -= stroke_radius;
+                            }
 
                           position += (new_d - d) * auxiliary_offset / delta_mag;
                           fastuidraw_stroking_distance = new_d;
@@ -549,7 +551,12 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                       if (s < 0.0)
                         {
                           clamp_interval_begin = max(interval_begin, d2);
-                          new_d = interval_begin + stroke_radius;
+                          new_d = interval_begin;
+
+                          if (dash_style != fastuidraw_stroke_dashed_flat_caps)
+                            {
+                              new_d += stroke_radius;
+                            }
 
                           /* auxiliary_offset is the direction from this point
                              (the end of the sub-edge) to the start of the
