@@ -67,5 +67,6 @@ int glu_fastuidraw_gl_meshTessellateInterior( GLUmesh *mesh );
 void glu_fastuidraw_gl_meshDiscardExterior( GLUmesh *mesh );
 int glu_fastuidraw_gl_meshSetWindingNumber( GLUmesh *mesh, int value,
                                 FASTUIDRAW_GLUboolean keepOnlyBoundary );
+void glu_fastuidraw_gl_emitMonotones(fastuidraw_GLUtesselator *tess, GLUmesh *mesh );
 
 #endif

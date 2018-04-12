@@ -98,7 +98,10 @@ public:
   void          (REGALFASTUIDRAW_GLU_CALL *callMesh)( GLUmesh *mesh );
 
   FASTUIDRAW_GLUboolean              (REGALFASTUIDRAW_GLU_CALL *callWinding)(int winding_number);
-
+  void                               (REGALFASTUIDRAW_GLU_CALL *emit_monotone)(int winding,
+                                                                               const unsigned int vertex_ids[],
+                                                                               const int winding_ids[],
+                                                                               unsigned int count);
 
   /*** state needed to cache single-contour polygons for renderCache() */
 
@@ -116,7 +119,12 @@ public:
                                                             void *polygonData );
 
   FASTUIDRAW_GLUboolean    (REGALFASTUIDRAW_GLU_CALL *callWindingData)(int winding_number,
-                                                             void *polygonData );
+                                                                       void *polygonData );
+  void                     (REGALFASTUIDRAW_GLU_CALL *emit_monotone_data)(int winding,
+                                                                          const unsigned int vertex_ids[],
+                                                                          const int winding_ids[],
+                                                                          unsigned int count,
+                                                                          void *polygonData);
 
   jmp_buf env;                  /* place to jump to when memAllocs fail */
 

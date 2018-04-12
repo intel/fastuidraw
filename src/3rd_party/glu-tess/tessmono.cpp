@@ -37,6 +37,8 @@
 #include "geom.hpp"
 #include "mesh.hpp"
 #include "tessmono.hpp"
+#include "tess.hpp"
+#include <vector>
 #include <fastuidraw/util/util.hpp>
 
 #define AddWinding(eDst,eSrc)   (eDst->winding += eSrc->winding, \
@@ -198,4 +200,34 @@ int glu_fastuidraw_gl_meshSetWindingNumber( GLUmesh *mesh, int value,
     }
   }
   return 1;
+}
+
+void glu_fastuidraw_gl_emitMonotones(fastuidraw_GLUtesselator *tess, GLUmesh *mesh )
+{
+  std::vector<unsigned int> vertex_ids;
+  std::vector<int> ws;
+  GLUface *f, *next;
+  GLUhalfEdge *e;
+  int winding;
+
+  for( f = mesh->fHead.next; f != &mesh->fHead; f = next ) {
+    next = f->next;
+    if( f->inside ) {
+      winding = f->winding_number;
+      vertex_ids.clear();
+      ws.clear();
+      e = f->anEdge;
+      do {
+        vertex_ids.push_back(e->Org->client_id );
+        ws.push_back(winding - e->winding);
+        e = e->Lnext;
+      } while( e != f->anEdge );
+
+      if(tess->emit_monotone_data) {
+        (*tess->emit_monotone_data)(winding, &vertex_ids[0], &ws[0], ws.size(), tess->polygonData);
+      } else if (tess->emit_monotone) {
+        (*tess->emit_monotone)(winding, &vertex_ids[0], &ws[0], ws.size());
+      }
+    }
+  }
 }

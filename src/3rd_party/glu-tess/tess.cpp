@@ -199,6 +199,7 @@ fastuidraw_gluNewTess_release( void )
   tess->callMesh = &noMesh;
 
   tess->callWinding= &noWinding;
+  tess->emit_monotone = nullptr;
 
   tess->callBeginData= &glu_fastuidraw_gl_noBeginData;
   tess->callVertexData= &glu_fastuidraw_gl_noVertexData;
@@ -207,6 +208,7 @@ fastuidraw_gluNewTess_release( void )
   tess->callCombineData= &glu_fastuidraw_gl_noCombineData;
 
   tess->callWindingData= &glu_fastuidraw_gl_noWindingData;
+  tess->emit_monotone_data = nullptr;
 
   tess->polygonData= nullptr;
 
@@ -326,6 +328,7 @@ FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_END, fastu
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_ERROR, fastuidraw_glu_tess_function_error, Error)
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_COMBINE, fastuidraw_glu_tess_function_combine, Combine)
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_WINDING_CALLBACK, fastuidraw_glu_tess_function_winding, FillRule)
+FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_EMIT_MONOTONE, fastuidraw_glu_tess_function_emit_monotone, EmitMonotone)
 
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_BEGIN_DATA, fastuidraw_glu_tess_function_begin_data, Begin)
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_VERTEX_DATA, fastuidraw_glu_tess_function_vertex_data, Vertex)
@@ -333,7 +336,7 @@ FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_END_DATA, 
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_ERROR_DATA, fastuidraw_glu_tess_function_error_data, Error)
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_COMBINE_DATA, fastuidraw_glu_tess_function_combine_data, Combine)
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_WINDING_CALLBACK_DATA, fastuidraw_glu_tess_function_winding_data, FillRule)
-
+FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK_IMPLEMENT(FASTUIDRAW_GLU_TESS_EMIT_MONOTONE_DATA, fastuidraw_glu_tess_function_emit_monotone_data, EmitMonotone)
 
 
 void REGALFASTUIDRAW_GLU_CALL
@@ -392,6 +395,14 @@ fastuidraw_gluTessCallback( fastuidraw_GLUtesselator *tess, FASTUIDRAW_GLUenum w
 
   case FASTUIDRAW_GLU_TESS_WINDING_CALLBACK_DATA:
     tess->callWindingData=(fn==nullptr)? &glu_fastuidraw_gl_noWindingData: (FASTUIDRAW_GLUboolean (REGALFASTUIDRAW_GLU_CALL *)(int, void*)) fn;
+    return;
+
+  case FASTUIDRAW_GLU_TESS_EMIT_MONOTONE:
+    tess->emit_monotone = (fastuidraw_glu_tess_function_emit_monotone)fn;
+    return;
+
+  case FASTUIDRAW_GLU_TESS_EMIT_MONOTONE_DATA:
+    tess->emit_monotone_data = (fastuidraw_glu_tess_function_emit_monotone_data)fn;
     return;
 
   default:
@@ -614,6 +625,13 @@ fastuidraw_gluTessEndPolygon( fastuidraw_GLUtesselator *tess )
   mesh = tess->mesh;
   if( ! tess->fatalError ) {
     int rc = 1;
+
+    /* Emit monotones BEFORE tessellating the interior because
+     *  that reduces all monotone regions to seperate triangles
+     */
+    if (tess->emit_monotone || tess->emit_monotone_data) {
+      glu_fastuidraw_gl_emitMonotones(tess, mesh);
+    }
 
     /* If the user wants only the boundary contours, we throw away all edges
      * except those which separate the interior from the exterior.

@@ -141,6 +141,32 @@ typedef FASTUIDRAW_GLUboolean (*fastuidraw_glu_tess_function_winding)(int windin
 #define FASTUIDRAW_GLU_TESS_WINDING_CALLBACK_DATA 200101
 typedef FASTUIDRAW_GLUboolean (*fastuidraw_glu_tess_function_winding_data)(int winding_number, void *polygon_data);
 
+  /*
+    additions from FASTUIDRAW, use a call back for the winding rule
+    function signature is:
+
+    FASTUIDRAW_GLU_TESS_EMIT_MONOTONE --> void emit_monotone(int winding, const unsigned int vertex_ids[], const int winding_nbs[], unsigned int count)
+    FASTUIDRAW_GLU_TESS_EMIT_MONOTONE_DATA --> void emit_monotone_data(int winding, const unsigned int vertex_ids[], const int winding_nbs[], unsigned int count, void *polygon_data)
+
+    Is called to emit the monotone polygons BEFORE they are triangulated.
+     - winding    : winding number of monotone polygone
+     - vertex_ids : vertices of monotone polygon
+     - winding_nbs: i'th winding number of the region that shares the edge vertex_ids[i] to vertex_ids[i + 1]
+     - count      : number of points of the monotone region
+    \
+  */
+#define FASTUIDRAW_GLU_TESS_EMIT_MONOTONE 200102
+typedef void (*fastuidraw_glu_tess_function_emit_monotone)(int winding,
+                                                           const unsigned int vertex_ids[],
+                                                           const int winding_ids[],
+                                                           unsigned int count);
+#define FASTUIDRAW_GLU_TESS_EMIT_MONOTONE_DATA 200103
+typedef void (*fastuidraw_glu_tess_function_emit_monotone_data)(int winding,
+                                                                const unsigned int vertex_ids[],
+                                                                const int winding_ids[],
+                                                                unsigned int count,
+                                                                void *polygon_data);
+
 /* TessContour */
 #define FASTUIDRAW_GLU_CW                             100120
 #define FASTUIDRAW_GLU_CCW                            100121
@@ -246,6 +272,7 @@ FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_END, fastuidraw_glu_
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_ERROR, fastuidraw_glu_tess_function_error, Error);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_COMBINE, fastuidraw_glu_tess_function_combine, Combine);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_WINDING_CALLBACK, fastuidraw_glu_tess_function_winding, FillRule);
+FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_EMIT_MONOTONE, fastuidraw_glu_tess_function_emit_monotone, EmitMonotone);
 
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_BEGIN_DATA, fastuidraw_glu_tess_function_begin_data, Begin);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_VERTEX_DATA, fastuidraw_glu_tess_function_vertex_data, Vertex);
@@ -253,3 +280,4 @@ FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_END_DATA, fastuidraw
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_ERROR_DATA, fastuidraw_glu_tess_function_error_data, Error);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_COMBINE_DATA, fastuidraw_glu_tess_function_combine_data, Combine);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_WINDING_CALLBACK_DATA, fastuidraw_glu_tess_function_winding_data, FillRule);
+FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_EMIT_MONOTONE_DATA, fastuidraw_glu_tess_function_emit_monotone_data, EmitMonotone);
