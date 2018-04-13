@@ -78,7 +78,7 @@ namespace SubsetConstants
 {
   enum
     {
-      recursion_depth = 6,
+      recursion_depth = 12,
       points_per_subset = 64
     };
 
@@ -771,6 +771,13 @@ namespace
     std::vector<fastuidraw::dvec2> &m_pts;
   };
 
+  /* Trickery on winding numbers. There are two different winding numbers:
+   *  - the winding number the the GLU is giving us for a polygon
+   *  - the winding number that we record the polygon as
+   * The difference is caused by that a SubPath has a winding_offset
+   * that is gotten by collapsing all paths that wrap around the boundary
+   * of a SubPath.
+   */
   class tesser:fastuidraw::noncopyable
   {
   protected:
@@ -802,7 +809,7 @@ namespace
 
     virtual
     void
-    on_begin_polygon(void) = 0;
+    on_begin_polygon(int record_winding_number) = 0;
 
     virtual
     void
@@ -810,13 +817,7 @@ namespace
 
     virtual
     FASTUIDRAW_GLUboolean
-    fill_region(int winding_number) = 0;
-
-    int
-    current_winding(void)
-    {
-      return m_current_winding;
-    }
+    fill_region(int glu_tess_winding_number) = 0;
 
   private:
     void
@@ -850,8 +851,7 @@ namespace
     fastuidraw::vecN<unsigned int, 3> m_temp_verts;
     unsigned int m_temp_vert_count;
     bool m_triangulation_failed;
-    int m_current_winding, m_winding_offset;
-    bool m_current_winding_inited;
+    int m_glu_tess_winding, m_winding_offset;
   };
 
   class non_zero_tesser:private tesser
@@ -878,7 +878,7 @@ namespace
 
     virtual
     void
-    on_begin_polygon(void);
+    on_begin_polygon(int w);
 
     virtual
     void
@@ -886,10 +886,9 @@ namespace
 
     virtual
     FASTUIDRAW_GLUboolean
-    fill_region(int winding_number);
+    fill_region(int raw_winding_number);
 
     winding_index_hoard &m_hoard;
-    int m_winding_offset;
     fastuidraw::reference_counted_ptr<per_winding_data> m_current_indices;
   };
 
@@ -918,7 +917,7 @@ namespace
 
     virtual
     void
-    on_begin_polygon(void);
+    on_begin_polygon(int w);
 
     virtual
     void
@@ -1623,6 +1622,20 @@ split_contour(const SubContour &src,
     }
 }
 
+static
+std::ostream&
+operator<<(std::ostream &str, const SubPath::SubContour &C)
+{
+  str << "{";
+  for(auto iter = C.begin(); iter != C.end(); ++iter)
+    {
+      const fastuidraw::dvec2 &pt(*iter);
+      str << pt << ":" << SubContourPoint::corner(iter->flags()) << ", ";
+    }
+  str << "}";
+  return str;
+}
+
 int
 SubPath::
 reduce_contour(SubContour &C)
@@ -1650,6 +1663,7 @@ reduce_contour(SubContour &C)
     }
 
   FASTUIDRAWassert(return_value % 4 == 0);
+  std::cout << "Reduce " << C << ": " << -return_value / 4 << "\n";
   C.clear();
   return -return_value / 4;
 }
@@ -1811,9 +1825,8 @@ tesser(PointHoard &points, BoundaryEdgeTracker &tr,
   m_point_count(0),
   m_points(points),
   m_triangulation_failed(false),
-  m_current_winding(0),
-  m_winding_offset(winding_offset),
-  m_current_winding_inited(false)
+  m_glu_tess_winding(0),
+  m_winding_offset(winding_offset)
 {
   m_tess = fastuidraw_gluNewTess;
   fastuidraw_gluTessCallbackBegin(m_tess, &begin_callBack);
@@ -1952,7 +1965,7 @@ temp_verts_non_degenerate_triangle(uint64_t &twice_area)
 
 void
 tesser::
-begin_callBack(FASTUIDRAW_GLUenum type, int winding_number, void *tess)
+begin_callBack(FASTUIDRAW_GLUenum type, int glu_tess_winding_number, void *tess)
 {
   tesser *p;
   p = static_cast<tesser*>(tess);
@@ -1960,12 +1973,8 @@ begin_callBack(FASTUIDRAW_GLUenum type, int winding_number, void *tess)
   FASTUIDRAWunused(type);
 
   p->m_temp_vert_count = 0;
-  if (!p->m_current_winding_inited || p->m_current_winding != winding_number)
-    {
-      p->m_current_winding_inited = true;
-      p->m_current_winding = winding_number;
-      p->on_begin_polygon();
-    }
+  p->m_glu_tess_winding = glu_tess_winding_number;
+  p->on_begin_polygon(p->m_glu_tess_winding + p->m_winding_offset);
 }
 
 void
@@ -2000,7 +2009,7 @@ vertex_callBack(unsigned int vertex_id, void *tess)
          && p->temp_verts_non_degenerate_triangle(twice_area))
         {
           FASTUIDRAWassert(twice_area > 0);
-          p->m_boundary_edge_tracker.record_triangle(p->current_winding() + p->m_winding_offset,
+          p->m_boundary_edge_tracker.record_triangle(p->m_glu_tess_winding + p->m_winding_offset,
                                                      twice_area,
                                                      p->m_temp_verts[0],
                                                      p->m_temp_verts[1],
@@ -2063,9 +2072,8 @@ non_zero_tesser(PointHoard &points,
                 int winding_offset,
                 winding_index_hoard &hoard,
                 BoundaryEdgeTracker &tr):
-  tesser(points, tr, 0),
-  m_hoard(hoard),
-  m_winding_offset(winding_offset)
+  tesser(points, tr, winding_offset),
+  m_hoard(hoard)
 {
   start();
   add_path(P);
@@ -2074,10 +2082,8 @@ non_zero_tesser(PointHoard &points,
 
 void
 non_zero_tesser::
-on_begin_polygon(void)
+on_begin_polygon(int w)
 {
-  int w(current_winding() + m_winding_offset);
-
   fastuidraw::reference_counted_ptr<per_winding_data> &h(m_hoard[w]);
   if (!h)
     {
@@ -2098,9 +2104,9 @@ on_add_triangle(unsigned int v0, unsigned int v1, unsigned int v2)
 
 FASTUIDRAW_GLUboolean
 non_zero_tesser::
-fill_region(int winding_number)
+fill_region(int glu_tess_winding_number)
 {
-  return winding_number != 0 ?
+  return glu_tess_winding_number != 0 ?
     FASTUIDRAW_GLU_TRUE :
     FASTUIDRAW_GLU_FALSE;
 }
@@ -2129,9 +2135,8 @@ zero_tesser(PointHoard &points,
 
 void
 zero_tesser::
-on_begin_polygon(void)
+on_begin_polygon(int)
 {
-  FASTUIDRAWassert(current_winding() == -1);
 }
 
 void
@@ -2145,9 +2150,9 @@ on_add_triangle(unsigned int v0, unsigned int v1, unsigned int v2)
 
 FASTUIDRAW_GLUboolean
 zero_tesser::
-fill_region(int winding_number)
+fill_region(int glu_tess_winding_number)
 {
-  return winding_number == -1 ?
+  return glu_tess_winding_number == -1 ?
     FASTUIDRAW_GLU_TRUE :
     FASTUIDRAW_GLU_FALSE;
 }
