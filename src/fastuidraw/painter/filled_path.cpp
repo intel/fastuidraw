@@ -1168,9 +1168,8 @@ namespace
 
   private:
 
-    SubsetPrivate(SubsetPrivate *parent, SubPath *P, int max_recursion,
-                  std::vector<SubsetPrivate*> &out_values,
-                  int child_id);
+    SubsetPrivate(SubPath *P, int max_recursion,
+                  std::vector<SubsetPrivate*> &out_value);
 
     void
     select_subsets_implement(ScratchSpacePrivate &scratch,
@@ -1661,10 +1660,9 @@ split(int &splitting_coordinate) const
   fastuidraw::dvec2 mid_pt;
 
   mid_pt = 0.5 * (m_bounds.max_point() + m_bounds.min_point());
-  splitting_coordinate = m_gen & 1; //choose_splitting_coordinate(mid_pt);
+  splitting_coordinate = choose_splitting_coordinate(mid_pt);
 
-  /* now split each contour.
-   */
+  /* now split each contour. */
   fastuidraw::dvec2 B0_max, B1_min;
   B0_max[1 - splitting_coordinate] = m_bounds.max_point()[1 - splitting_coordinate];
   B0_max[splitting_coordinate] = mid_pt[splitting_coordinate];
@@ -1824,27 +1822,23 @@ generate_contour(const SubPath::SubContour &C, std::list<ContourPoint> &output)
       unsigned int I;
 
       I = fetch(C[v], C[v].flags());
-      if (!output.empty() && I == output.back().m_vertex)
-        {
-          output.pop_back();
-          --sz;
-        }
-      else
+      /* remove any edges that are after snapping the same point*/
+      if (output.empty() || I != output.back().m_vertex)
         {
           output.push_back(ContourPoint(I, C[v].flags()));
           ++sz;
         }
     }
 
-  /* remove silly non-sense of when a closing edge is tiny*/
   while(!output.empty() && output.back().m_vertex == output.front().m_vertex)
     {
       output.pop_back();
       --sz;
     }
 
-  if (sz < 3)
+  if (sz < 3 && !output.empty())
     {
+      std::cout << "WTF: crazy contour with only a few points!\n";
       output.clear();
     }
 }
@@ -1881,7 +1875,14 @@ reduce_contour(Contour &C)
   /* We already have that loops are removed from C, so
      C can only be reduced if all edges are boundary edges.
    */
-  FASTUIDRAWassert(!C.empty());
+  if (C.size() <= 2)
+    {
+      /* a contour or 2 or fewer points, either has
+	 no edges or 2 edges that cancel each other.
+       */
+      C.clear();
+      return 0;
+    }
 
   uint32_t prev(C.back().m_flags);
   int bcount(0);
@@ -2760,9 +2761,8 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
 /////////////////////////////////
 // SubsetPrivate methods
 SubsetPrivate::
-SubsetPrivate(SubsetPrivate *parent, SubPath *Q, int max_recursion,
-              std::vector<SubsetPrivate*> &out_values,
-              int child_id):
+SubsetPrivate(SubPath *Q, int max_recursion,
+              std::vector<SubsetPrivate*> &out_values):
   m_ID(out_values.size()),
   m_bounds(Q->bounds()),
   m_bounds_f(fastuidraw::vec2(m_bounds.min_point()),
@@ -2782,8 +2782,8 @@ SubsetPrivate(SubsetPrivate *parent, SubPath *Q, int max_recursion,
       C = Q->split(m_splitting_coordinate);
       if (C[0]->total_points() < m_sub_path->total_points() || C[1]->total_points() < m_sub_path->total_points())
         {
-          m_children[0] = FASTUIDRAWnew SubsetPrivate(this, C[0], max_recursion - 1, out_values, 0);
-          m_children[1] = FASTUIDRAWnew SubsetPrivate(this, C[1], max_recursion - 1, out_values, 1);
+          m_children[0] = FASTUIDRAWnew SubsetPrivate(C[0], max_recursion - 1, out_values);
+          m_children[1] = FASTUIDRAWnew SubsetPrivate(C[1], max_recursion - 1, out_values);
           FASTUIDRAWdelete(m_sub_path);
           m_sub_path = nullptr;
         }
@@ -2829,7 +2829,7 @@ SubsetPrivate::
 create_root_subset(SubPath *P, std::vector<SubsetPrivate*> &out_values)
 {
   SubsetPrivate *root;
-  root = FASTUIDRAWnew SubsetPrivate(nullptr, P, SubsetConstants::recursion_depth, out_values, -1);
+  root = FASTUIDRAWnew SubsetPrivate(P, SubsetConstants::recursion_depth, out_values);
   return root;
 }
 
