@@ -645,9 +645,9 @@ namespace
     }
 
     unsigned int
-    total_points(void) const
+    num_points(void) const
     {
-      return m_total_points;
+      return m_num_points;
     }
 
     const std::string&
@@ -658,6 +658,10 @@ namespace
 
     fastuidraw::vecN<SubPath*, 2>
     split(int &splitting_coordinate) const;
+
+    static
+    bool
+    contour_is_reducable(const SubContour &C);
 
   private:
     SubPath(const fastuidraw::BoundingBox<double> &bb,
@@ -686,7 +690,7 @@ namespace
     compute_spit_point(fastuidraw::dvec2 a, fastuidraw::dvec2 b,
                        int splitting_coordinate, double spitting_value);
 
-    unsigned int m_total_points;
+    unsigned int m_num_points;
     fastuidraw::BoundingBox<double> m_bounds;
     std::vector<SubContour> m_contours;
     int m_gen;
@@ -1372,7 +1376,7 @@ SubPath::
 SubPath(const fastuidraw::BoundingBox<double> &bb,
         std::vector<SubContour> &contours,
         int gen, const std::string &name):
-  m_total_points(0),
+  m_num_points(0),
   m_bounds(bb),
   m_gen(gen),
   m_name(name)
@@ -1382,13 +1386,16 @@ SubPath(const fastuidraw::BoundingBox<double> &bb,
         c_end = m_contours.end(); c_iter != c_end; ++c_iter)
     {
       FASTUIDRAWassert(!c_iter->empty());
-      m_total_points += c_iter->size();
+      if (!SubPath::contour_is_reducable(*c_iter))
+	{
+	  m_num_points += c_iter->size();
+	}
     }
 }
 
 SubPath::
 SubPath(const fastuidraw::TessellatedPath &P):
-  m_total_points(0),
+  m_num_points(0),
   m_bounds(fastuidraw::dvec2(P.bounding_box_min()),
            fastuidraw::dvec2(P.bounding_box_max())),
   m_contours(P.number_contours()),
@@ -1397,7 +1404,10 @@ SubPath(const fastuidraw::TessellatedPath &P):
   for(unsigned int c = 0, endc = P.number_contours(); c < endc; ++c)
     {
       copy_contour(m_contours[c], P, c);
-      m_total_points += m_contours[c].size();
+      if (!SubPath::contour_is_reducable(m_contours[c]))
+	{
+	  m_num_points += m_contours[c].size();
+	}
     }
 }
 
@@ -1702,6 +1712,24 @@ split(int &splitting_coordinate) const
   return return_value;
 }
 
+bool
+SubPath::
+contour_is_reducable(const SubContour &C)
+{
+  uint32_t prev(C.back().flags());
+  for(unsigned int i = 0, endi = C.size(); i < endi; ++i)
+    {
+      int r;
+
+      r = SubContourPoint::boundary_progress(prev, C[i].flags());
+      if (r == 0)
+        {
+          return false;
+        }
+    }
+  return true;
+}
+
 //////////////////////////////////////
 // PointHoard methods
 unsigned int
@@ -1836,9 +1864,8 @@ generate_contour(const SubPath::SubContour &C, std::list<ContourPoint> &output)
       --sz;
     }
 
-  if (sz < 3 && !output.empty())
+  if (sz < 3)
     {
-      std::cout << "WTF: crazy contour with only a few points!\n";
       output.clear();
     }
 }
@@ -2775,12 +2802,12 @@ SubsetPrivate(SubPath *Q, int max_recursion,
   m_splitting_coordinate(-1)
 {
   out_values.push_back(this);
-  if (max_recursion && m_sub_path->total_points() > SubsetConstants::points_per_subset)
+  if (max_recursion && m_sub_path->num_points() > SubsetConstants::points_per_subset)
     {
       fastuidraw::vecN<SubPath*, 2> C;
 
       C = Q->split(m_splitting_coordinate);
-      if (C[0]->total_points() < m_sub_path->total_points() || C[1]->total_points() < m_sub_path->total_points())
+      if (C[0]->num_points() < m_sub_path->num_points() || C[1]->num_points() < m_sub_path->num_points())
         {
           m_children[0] = FASTUIDRAWnew SubsetPrivate(C[0], max_recursion - 1, out_values);
           m_children[1] = FASTUIDRAWnew SubsetPrivate(C[1], max_recursion - 1, out_values);
