@@ -557,6 +557,7 @@ fastuidraw_gluTessVertex( fastuidraw_GLUtesselator *tess, double x, double y, un
 {
   int tooLarge = FALSE;
 
+  FASTUIDRAWassert(data != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
   RequireState( tess, T_IN_CONTOUR );
 
   if( tess->emptyCache ) {

@@ -260,24 +260,8 @@ static void FinishRegion( fastuidraw_GLUtesselator *tess, ActiveRegion *reg )
   GLUhalfEdge *e = reg->eUp;
   GLUface *f = e->Lface;
 
-
-
   f->inside = reg->inside;
   f->winding_number = reg->windingNumber;
-
-  if(CALL_TESS_WINDING_OR_WINDING_DATA(f->winding_number) && !f->inside)
-    {
-      /*
-        [FASTUIDRAW-TODO]:
-        Look at each of the vertices of the Face,
-        if any of the vertices are marked as "DO NOT TRIANGULATE".
-        This essentially means iterating over the vertex linked
-        list f->next checking each of their Org to see if that
-        vertex is a DO NOT TRIANGULATE vertex.
-      */
-    }
-
-
   f->anEdge = e;   /* optimization for glu_fastuidraw_gl_meshTessellateMonoRegion() */
   DeleteRegion( tess, reg );
 }
@@ -427,6 +411,7 @@ static void CallCombine( fastuidraw_GLUtesselator *tess, GLUvertex *isect,
       && data[3] != FASTUIDRAW_GLU_nullptr_CLIENT_ID) {
     isect->client_id = FASTUIDRAW_GLU_nullptr_CLIENT_ID;
     CALL_COMBINE_OR_COMBINE_DATA( x, y, data, weights, &isect->client_id );
+    FASTUIDRAWassert(isect->client_id != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
   }
 }
 
