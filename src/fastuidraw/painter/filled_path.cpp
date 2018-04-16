@@ -432,6 +432,12 @@ namespace
       return m_indices;
     }
 
+    bool
+    empty(void) const
+    {
+      return m_indices.empty();
+    }
+
   private:
     std::list<unsigned int> m_indices;
     unsigned int m_count;
@@ -795,15 +801,22 @@ namespace
    */
   class tesser:fastuidraw::noncopyable
   {
-  protected:
-    explicit
+  public:
     tesser(PointHoard &points,
-           BoundaryEdgeTracker &tr,
-           int winding_offset);
+           const PointHoard::Path &P,
+           int winding_offset,
+           PerWindingTriangleList &hoard,
+           BoundaryEdgeTracker &tr);
 
-    virtual
     ~tesser(void);
 
+    bool
+    triangulation_failed(void)
+    {
+      return m_triangulation_failed;
+    }
+
+  private:
     void
     start(void);
 
@@ -813,28 +826,6 @@ namespace
     void
     add_path(const PointHoard::Path &P);
 
-    void
-    add_path_boundary(void);
-
-    bool
-    triangulation_failed(void)
-    {
-      return m_triangulation_failed;
-    }
-
-    virtual
-    void
-    on_begin_polygon(int record_winding_number) = 0;
-
-    virtual
-    void
-    on_add_triangle(unsigned int v0, unsigned int v1, unsigned int v2) = 0;
-
-    virtual
-    FASTUIDRAW_GLUboolean
-    fill_region(int glu_tess_winding_number) = 0;
-
-  private:
     void
     add_contour(const PointHoard::Contour &C);
 
@@ -851,6 +842,13 @@ namespace
     combine_callback(double x, double y, unsigned int data[4],
                      double weight[4],  unsigned int *outData,
                      void *tess);
+    static
+    void
+    boundary_callback(double x, double y,
+                      FASTUIDRAW_GLUboolean is_max_x,
+                      FASTUIDRAW_GLUboolean is_max_y,
+                      unsigned int *outData,
+                      void *tess);
 
     static
     FASTUIDRAW_GLUboolean
@@ -866,83 +864,9 @@ namespace
     fastuidraw::vecN<unsigned int, 3> m_temp_verts;
     unsigned int m_temp_vert_count;
     bool m_triangulation_failed;
-    int m_glu_tess_winding, m_winding_offset;
-  };
-
-  class non_zero_tesser:private tesser
-  {
-  public:
-    static
-    bool
-    execute_path(PointHoard &points,
-                 const PointHoard::Path &P,
-                 int winding_offset,
-                 PerWindingTriangleList &hoard,
-                 BoundaryEdgeTracker &tr)
-    {
-      non_zero_tesser NZ(points, P, winding_offset, hoard, tr);
-      return NZ.triangulation_failed();
-    }
-
-  private:
-    non_zero_tesser(PointHoard &points,
-                    const PointHoard::Path &P,
-                    int winding_offset,
-                    PerWindingTriangleList &hoard,
-                    BoundaryEdgeTracker &tr);
-
-    virtual
-    void
-    on_begin_polygon(int w);
-
-    virtual
-    void
-    on_add_triangle(unsigned int v0, unsigned int v1, unsigned int v2);
-
-    virtual
-    FASTUIDRAW_GLUboolean
-    fill_region(int raw_winding_number);
-
-    PerWindingTriangleList &m_hoard;
+    int m_current_winding, m_winding_offset;
     fastuidraw::reference_counted_ptr<per_winding_data> m_current_indices;
-  };
-
-  class zero_tesser:private tesser
-  {
-  public:
-    static
-    bool
-    execute_path(PointHoard &points,
-                 const PointHoard::Path &P,
-                 int winding_offset,
-                 PerWindingTriangleList &hoard,
-                 BoundaryEdgeTracker &tr)
-    {
-      zero_tesser Z(points, P, winding_offset, hoard, tr);
-      return Z.triangulation_failed();
-    }
-
-  private:
-
-    zero_tesser(PointHoard &points,
-                const PointHoard::Path &P,
-                int winding_offset,
-                PerWindingTriangleList &hoard,
-                BoundaryEdgeTracker &tr);
-
-    virtual
-    void
-    on_begin_polygon(int w);
-
-    virtual
-    void
-    on_add_triangle(unsigned int v0, unsigned int v1, unsigned int v2);
-
-    virtual
-    FASTUIDRAW_GLUboolean
-    fill_region(int winding_number);
-
-    fastuidraw::reference_counted_ptr<per_winding_data> &m_indices;
+    PerWindingTriangleList &m_hoard;
   };
 
   class builder:fastuidraw::noncopyable
@@ -1986,21 +1910,30 @@ unloop_contour(std::list<ContourPoint> &C, std::vector<Contour> &output)
 ////////////////////////////////////////
 // tesser methods
 tesser::
-tesser(PointHoard &points, BoundaryEdgeTracker &tr,
-       int winding_offset):
+tesser(PointHoard &points,
+       const PointHoard::Path &P,
+       int winding_offset,
+       PerWindingTriangleList &hoard,
+       BoundaryEdgeTracker &tr):
   m_boundary_edge_tracker(tr),
   m_point_count(0),
   m_points(points),
   m_triangulation_failed(false),
-  m_glu_tess_winding(0),
-  m_winding_offset(winding_offset)
+  m_current_winding(0),
+  m_winding_offset(winding_offset),
+  m_hoard(hoard)
 {
   m_tess = fastuidraw_gluNewTess;
   fastuidraw_gluTessCallbackBegin(m_tess, &begin_callBack);
   fastuidraw_gluTessCallbackVertex(m_tess, &vertex_callBack);
   fastuidraw_gluTessCallbackCombine(m_tess, &combine_callback);
   fastuidraw_gluTessCallbackFillRule(m_tess, &winding_callBack);
+  fastuidraw_gluTessCallbackBoundaryCornerPoint(m_tess, &boundary_callback);
   fastuidraw_gluTessPropertyBoundaryOnly(m_tess, FASTUIDRAW_GLU_FALSE);
+
+  start();
+  add_path(P);
+  stop();
 }
 
 tesser::
@@ -2056,30 +1989,6 @@ add_contour(const PointHoard::Contour &C)
 
       fastuidraw_gluTessVertex(m_tess, p.x(), p.y(), I.m_vertex);
     }
-  fastuidraw_gluTessEndContour(m_tess);
-}
-
-void
-tesser::
-add_path_boundary(void)
-{
-  const fastuidraw::vecN<bool, 2> src[4] =
-    {
-      fastuidraw::vecN<bool, 2>(false, false),
-      fastuidraw::vecN<bool, 2>(false, true),
-      fastuidraw::vecN<bool, 2>(true, true),
-      fastuidraw::vecN<bool, 2>(true, false)
-    };
-
-  fastuidraw_gluTessBeginContour(m_tess, FASTUIDRAW_GLU_TRUE);
-  for(unsigned int i = 0; i < 4; ++i)
-    {
-      unsigned int I;
-
-      I = m_points.fetch_corner(src[i].x(), src[i].y());
-      fastuidraw_gluTessVertex(m_tess, m_points.ipt(I).x(), m_points.ipt(I).y(), I);
-    }
-
   fastuidraw_gluTessEndContour(m_tess);
 }
 
@@ -2139,8 +2048,14 @@ begin_callBack(FASTUIDRAW_GLUenum type, int glu_tess_winding_number, void *tess)
   FASTUIDRAWunused(type);
 
   p->m_temp_vert_count = 0;
-  p->m_glu_tess_winding = glu_tess_winding_number;
-  p->on_begin_polygon(p->m_glu_tess_winding + p->m_winding_offset);
+  p->m_current_winding = glu_tess_winding_number + p->m_winding_offset;
+
+  fastuidraw::reference_counted_ptr<per_winding_data> &h(p->m_hoard[p->m_current_winding]);
+  if (!h)
+    {
+      h = FASTUIDRAWnew per_winding_data();
+    }
+  p->m_current_indices = h;
 }
 
 void
@@ -2175,14 +2090,14 @@ vertex_callBack(unsigned int vertex_id, void *tess)
          && p->temp_verts_non_degenerate_triangle(twice_area))
         {
           FASTUIDRAWassert(twice_area > 0);
-          p->m_boundary_edge_tracker.record_triangle(p->m_glu_tess_winding + p->m_winding_offset,
+          p->m_boundary_edge_tracker.record_triangle(p->m_current_winding,
                                                      twice_area,
                                                      p->m_temp_verts[0],
                                                      p->m_temp_verts[1],
                                                      p->m_temp_verts[2]);
-          p->on_add_triangle(p->m_temp_verts[0],
-                             p->m_temp_verts[1],
-                             p->m_temp_verts[2]);
+          p->m_current_indices->add_index(p->m_temp_verts[0]);
+          p->m_current_indices->add_index(p->m_temp_verts[1]);
+          p->m_current_indices->add_index(p->m_temp_verts[2]);
         }
     }
 }
@@ -2211,116 +2126,32 @@ combine_callback(double x, double y, unsigned int data[4],
         }
     }
   v = p->m_points.fetch(pt);
-
-  //p->m_boundary_edge_tracker.split_edge(e0, v, e1);
-  //p->m_boundary_edge_tracker.split_edge(e1, v, e0);
-
   *outData = v;
+}
+
+void
+tesser::
+boundary_callback(double x, double y,
+                  FASTUIDRAW_GLUboolean is_max_x,
+                  FASTUIDRAW_GLUboolean is_max_y,
+                  unsigned int *outData,
+                  void *tess)
+{
+  tesser *p;
+
+  p = static_cast<tesser*>(tess);
+  *outData = p->m_points.fetch_corner(is_max_x, is_max_y);
+  FASTUIDRAWunused(x);
+  FASTUIDRAWunused(y);
 }
 
 FASTUIDRAW_GLUboolean
 tesser::
 winding_callBack(int winding_number, void *tess)
 {
-  tesser *p;
-  FASTUIDRAW_GLUboolean return_value;
-
-  p = static_cast<tesser*>(tess);
-  return_value = p->fill_region(winding_number);
-  return return_value;
-}
-
-///////////////////////////////////
-// non_zero_tesser methods
-non_zero_tesser::
-non_zero_tesser(PointHoard &points,
-                const PointHoard::Path &P,
-                int winding_offset,
-                PerWindingTriangleList &hoard,
-                BoundaryEdgeTracker &tr):
-  tesser(points, tr, winding_offset),
-  m_hoard(hoard)
-{
-  start();
-  add_path(P);
-  stop();
-}
-
-void
-non_zero_tesser::
-on_begin_polygon(int w)
-{
-  fastuidraw::reference_counted_ptr<per_winding_data> &h(m_hoard[w]);
-  if (!h)
-    {
-      h = FASTUIDRAWnew per_winding_data();
-    }
-  m_current_indices = h;
-}
-
-void
-non_zero_tesser::
-on_add_triangle(unsigned int v0, unsigned int v1, unsigned int v2)
-{
-  m_current_indices->add_index(v0);
-  m_current_indices->add_index(v1);
-  m_current_indices->add_index(v2);
-}
-
-
-FASTUIDRAW_GLUboolean
-non_zero_tesser::
-fill_region(int glu_tess_winding_number)
-{
-  return glu_tess_winding_number != 0 ?
-    FASTUIDRAW_GLU_TRUE :
-    FASTUIDRAW_GLU_FALSE;
-}
-
-///////////////////////////////
-// zero_tesser methods
-zero_tesser::
-zero_tesser(PointHoard &points,
-            const PointHoard::Path &P,
-            int winding_offset,
-            PerWindingTriangleList &hoard,
-            BoundaryEdgeTracker &tr):
-  tesser(points, tr, winding_offset + 1),
-  m_indices(hoard[winding_offset])
-{
-  if (!m_indices)
-    {
-      m_indices = FASTUIDRAWnew per_winding_data();
-    }
-
-  start();
-  add_path(P);
-  add_path_boundary();
-  stop();
-}
-
-void
-zero_tesser::
-on_begin_polygon(int)
-{
-}
-
-void
-zero_tesser::
-on_add_triangle(unsigned int v0, unsigned int v1, unsigned int v2)
-{
-  m_indices->add_index(v0);
-  m_indices->add_index(v1);
-  m_indices->add_index(v2);
-}
-
-FASTUIDRAW_GLUboolean
-zero_tesser::
-fill_region(int glu_tess_winding_number)
-{
-  return glu_tess_winding_number == -1 ?
-    FASTUIDRAW_GLU_TRUE :
-    FASTUIDRAW_GLU_FALSE;
+  FASTUIDRAWunused(winding_number);
+  FASTUIDRAWunused(tess);
+  return FASTUIDRAW_GLU_TRUE;
 }
 
 /////////////////////////////////////////
@@ -2330,20 +2161,39 @@ builder(const SubPath &P, std::vector<fastuidraw::dvec2> &points):
   m_points(P.bounds(), points),
   m_boundary_edge_tracker(&m_points)
 {
-  bool failZ, failNZ;
   PointHoard::Path path;
   int winding_offset;
 
   winding_offset = m_points.generate_path(P, path);
-  failNZ = non_zero_tesser::execute_path(m_points, path,
-                                         winding_offset,
-                                         m_hoard,
-                                         m_boundary_edge_tracker);
-  failZ = zero_tesser::execute_path(m_points, path,
-                                    winding_offset,
-                                    m_hoard,
-                                    m_boundary_edge_tracker);
-  m_failed = failNZ || failZ;
+  tesser T(m_points, path, winding_offset,
+           m_hoard, m_boundary_edge_tracker);
+
+  m_failed = T.triangulation_failed();
+
+  for (auto iter = m_hoard.begin(); iter != m_hoard.end(); )
+    {
+      auto prev_iter(iter);
+      ++iter;
+
+      if (prev_iter->second->empty())
+        {
+          m_hoard.erase(prev_iter);
+        }
+    }
+
+  if (m_hoard.empty())
+    {
+      fastuidraw::reference_counted_ptr<per_winding_data> &zero(m_hoard[winding_offset]);
+      zero = FASTUIDRAWnew per_winding_data();
+
+      zero->add_index(m_points.fetch_corner(true, true));
+      zero->add_index(m_points.fetch_corner(true, false));
+      zero->add_index(m_points.fetch_corner(false, false));
+
+      zero->add_index(m_points.fetch_corner(true, true));
+      zero->add_index(m_points.fetch_corner(false, false));
+      zero->add_index(m_points.fetch_corner(false, true));
+    }
 }
 
 builder::
@@ -2802,12 +2652,14 @@ SubsetPrivate(SubPath *Q, int max_recursion,
   m_splitting_coordinate(-1)
 {
   out_values.push_back(this);
-  if (max_recursion && m_sub_path->num_points() > SubsetConstants::points_per_subset)
+  if (max_recursion > 0
+      && m_sub_path->num_points() > SubsetConstants::points_per_subset)
     {
       fastuidraw::vecN<SubPath*, 2> C;
 
       C = Q->split(m_splitting_coordinate);
-      if (C[0]->num_points() < m_sub_path->num_points() || C[1]->num_points() < m_sub_path->num_points())
+      if (C[0]->num_points() < m_sub_path->num_points()
+          || C[1]->num_points() < m_sub_path->num_points())
         {
           m_children[0] = FASTUIDRAWnew SubsetPrivate(C[0], max_recursion - 1, out_values);
           m_children[1] = FASTUIDRAWnew SubsetPrivate(C[1], max_recursion - 1, out_values);
