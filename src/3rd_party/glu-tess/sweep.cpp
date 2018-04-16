@@ -404,12 +404,12 @@ static void CallCombine( fastuidraw_GLUtesselator *tess, GLUvertex *isect,
   x = isect->s;
   y = isect->t;
 
-  if( needed
-      && data[0] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
-      && data[1] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
-      && data[2] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
-      && data[3] != FASTUIDRAW_GLU_nullptr_CLIENT_ID) {
-    isect->client_id = FASTUIDRAW_GLU_nullptr_CLIENT_ID;
+  if( needed ) {
+    FASTUIDRAWassert(data[0] != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
+    FASTUIDRAWassert(data[1] != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
+    FASTUIDRAWassert(data[2] != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
+    FASTUIDRAWassert(data[3] != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
+
     CALL_COMBINE_OR_COMBINE_DATA( x, y, data, weights, &isect->client_id );
     FASTUIDRAWassert(isect->client_id != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
   }
