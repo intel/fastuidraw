@@ -84,7 +84,7 @@
   IGNORE(y);
   IGNORE(data);
   IGNORE(weight);
-  IGNORE(dataOut);
+  *dataOut = 0;
 }
 
 /*ARGSUSED*/ static void REGALFASTUIDRAW_GLU_CALL noMesh( GLUmesh *mesh )
@@ -103,7 +103,7 @@
                                                                                    FASTUIDRAW_GLUboolean is_max_y,
                                                                                    unsigned int *outData)
 {
-  *outData = FASTUIDRAW_GLU_nullptr_CLIENT_ID;
+  *outData = 0;
   IGNORE(x);
   IGNORE(y);
   IGNORE(is_max_x);
@@ -149,7 +149,7 @@
   IGNORE(y);
   IGNORE(data);
   IGNORE(weight);
-  IGNORE(outData);
+  *outData = 0;
 }
 
 /*ARGSUSED*/ static FASTUIDRAW_GLUboolean REGALFASTUIDRAW_GLU_CALL noWindingData(int winding_rule,
@@ -165,7 +165,7 @@
                                                                                        unsigned int *outData,
                                                                                        void *polygon_data)
 {
-  *outData = FASTUIDRAW_GLU_nullptr_CLIENT_ID;
+  *outData = 0;
   IGNORE(x);
   IGNORE(y);
   IGNORE(is_max_x);
