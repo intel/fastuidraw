@@ -13,6 +13,13 @@ namespace
       arc
     };
 
+  enum add_mode_t
+    {
+      add_mode,
+      add_reverse_mode,
+      add_no_mode,
+    };
+
   class edge
   {
   public:
@@ -51,6 +58,7 @@ read_path(fastuidraw::Path &path, const std::string &source)
   bool adding_control_pts(false);
   std::list<outline> data;
   enum arc_mode_t arc_mode(not_arc);
+  enum add_mode_t mode(add_no_mode);
   fastuidraw::vec2 current_value;
   int current_slot(0);
 
@@ -65,13 +73,21 @@ read_path(fastuidraw::Path &path, const std::string &source)
         {
           if (token == "]")
             {
-              /* we actually do not care, the marker "["
-                 is what starts a path, and thus what implicitely
-                 ends it.
-               */
+              if (mode == add_reverse_mode && !data.empty())
+                {
+                  std::reverse(data.back().begin(), data.back().end());
+                }
+              mode = add_no_mode;
             }
           else if (token == "[")
             {
+              mode = add_mode;
+              adding_control_pts = false;
+              data.push_back(outline());
+            }
+          else if (token == "R[")
+            {
+              mode = add_reverse_mode;
               adding_control_pts = false;
               data.push_back(outline());
             }
