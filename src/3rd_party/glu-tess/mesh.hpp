@@ -264,4 +264,6 @@ void            glu_fastuidraw_gl_meshZapFace( GLUface *fZap );
 void            glu_fastuidraw_gl_meshCheckMesh( GLUmesh *mesh );
 #endif
 
+FASTUIDRAW_GLUboolean glu_fastuidraw_gl_excludeFace( GLUface *f );
+
 #endif

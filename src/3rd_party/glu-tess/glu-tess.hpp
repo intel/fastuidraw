@@ -57,7 +57,6 @@
  */
 #define FASTUIDRAW_GLU_nullptr_CLIENT_ID (UINT_MAX)
 
-
 /*************************************************************/
 
 /* Boolean */
@@ -125,36 +124,35 @@ typedef void (*fastuidraw_glu_tess_function_combine_data)(double x, double y, un
                                                           double weight[4], unsigned int *outData,
                                                           void *polygon_data);
 
-  /*
-    additions from FASTUIDRAW, use a call back for the winding rule
-    function signature is:
+/*
+  additions from FASTUIDRAW, use a call back for the winding rule
+  function signature is:
 
-    FASTUIDRAW_GLU_TESS_WINDING_CALLBACK--> FASTUIDRAW_GLUboolean fill_region(int winding_number)
-    FASTUIDRAW_GLU_TESS_WINDING_CALLBACK_DATA --> FASTUIDRAW_GLUboolean fill_region(int winding_number, void *polygon_data)
+  FASTUIDRAW_GLU_TESS_WINDING_CALLBACK--> FASTUIDRAW_GLUboolean fill_region(int winding_number)
+  FASTUIDRAW_GLU_TESS_WINDING_CALLBACK_DATA --> FASTUIDRAW_GLUboolean fill_region(int winding_number, void *polygon_data)
 
-    return GL_TRUE if the winding_number dictates to fill the region
-    return GL_FALSE if the winding_number dictates to not fill the region
-  */
+  return GL_TRUE if the winding_number dictates to fill the region
+  return GL_FALSE if the winding_number dictates to not fill the region
+*/
 #define FASTUIDRAW_GLU_TESS_WINDING_CALLBACK 200100
 typedef FASTUIDRAW_GLUboolean (*fastuidraw_glu_tess_function_winding)(int winding_number);
 
 #define FASTUIDRAW_GLU_TESS_WINDING_CALLBACK_DATA 200101
 typedef FASTUIDRAW_GLUboolean (*fastuidraw_glu_tess_function_winding_data)(int winding_number, void *polygon_data);
 
-  /*
-    additions from FASTUIDRAW, use a call back for the winding rule
-    function signature is:
+/*
+  additions from FASTUIDRAW, use a call back for the winding rule
+  function signature is:
 
-    FASTUIDRAW_GLU_TESS_EMIT_MONOTONE --> void emit_monotone(int winding, const unsigned int vertex_ids[], const int winding_nbs[], unsigned int count)
-    FASTUIDRAW_GLU_TESS_EMIT_MONOTONE_DATA --> void emit_monotone_data(int winding, const unsigned int vertex_ids[], const int winding_nbs[], unsigned int count, void *polygon_data)
+  FASTUIDRAW_GLU_TESS_EMIT_MONOTONE --> void emit_monotone(int winding, const unsigned int vertex_ids[], const int winding_nbs[], unsigned int count)
+  FASTUIDRAW_GLU_TESS_EMIT_MONOTONE_DATA --> void emit_monotone_data(int winding, const unsigned int vertex_ids[], const int winding_nbs[], unsigned int count, void *polygon_data)
 
-    Is called to emit the monotone polygons BEFORE they are triangulated.
-     - winding    : winding number of monotone polygone
-     - vertex_ids : vertices of monotone polygon
-     - winding_nbs: i'th winding number of the region that shares the edge vertex_ids[i] to vertex_ids[i + 1]
-     - count      : number of points of the monotone region
-    \
-  */
+  Is called to emit the monotone polygons BEFORE they are triangulated.
+   - winding    : winding number of monotone polygone
+   - vertex_ids : vertices of monotone polygon
+   - winding_nbs: i'th winding number of the region that shares the edge vertex_ids[i] to vertex_ids[i + 1]
+   - count      : number of points of the monotone region
+*/
 #define FASTUIDRAW_GLU_TESS_EMIT_MONOTONE 200102
 typedef void (*fastuidraw_glu_tess_function_emit_monotone)(int winding,
                                                            const unsigned int vertex_ids[],
@@ -166,6 +164,27 @@ typedef void (*fastuidraw_glu_tess_function_emit_monotone_data)(int winding,
                                                                 const int winding_ids[],
                                                                 unsigned int count,
                                                                 void *polygon_data);
+
+/* if client requests to capture regions with winding == 0 as well,
+ * it needs to supply to GLU what ID's to sue for the corners of the
+ * boundary that it induces.
+ * \param x x-coordinate GLU is using for the boundary point
+ * \param y y-coordinate GLU is using for the boundary point
+ * \param is_max_x : true if asking for x-max point, false if asking for x-min point
+ * \param is_max_y : true if asking for y-max point, false if asking for y-min point
+ * \param outData : location to which to write the vertex ID
+ */
+#define FASTUIDRAW_GLU_TESS_BOUNDARY_CORNER 200104
+typedef void (*fastuidraw_glu_tess_function_boundary_corner_point)(double x, double y,
+                                                                   FASTUIDRAW_GLUboolean is_max_x,
+                                                                   FASTUIDRAW_GLUboolean is_max_y,
+                                                                   unsigned int *outData);
+#define FASTUIDRAW_GLU_TESS_BOUNDARY_CORNER_DATA 200105
+typedef void (*fastuidraw_glu_tess_function_boundary_corner_point_data)(double x, double y,
+                                                                        FASTUIDRAW_GLUboolean is_max_x,
+                                                                        FASTUIDRAW_GLUboolean is_max_y,
+                                                                        unsigned int *outData,
+                                                                        void *polygon_data);
 
 /* TessContour */
 #define FASTUIDRAW_GLU_CW                             100120
@@ -273,6 +292,7 @@ FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_ERROR, fastuidraw_gl
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_COMBINE, fastuidraw_glu_tess_function_combine, Combine);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_WINDING_CALLBACK, fastuidraw_glu_tess_function_winding, FillRule);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_EMIT_MONOTONE, fastuidraw_glu_tess_function_emit_monotone, EmitMonotone);
+FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_BOUNDARY_CORNER, fastuidraw_glu_tess_function_boundary_corner_point, BoundaryCornerPoint);
 
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_BEGIN_DATA, fastuidraw_glu_tess_function_begin_data, Begin);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_VERTEX_DATA, fastuidraw_glu_tess_function_vertex_data, Vertex);
@@ -281,3 +301,4 @@ FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_ERROR_DATA, fastuidr
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_COMBINE_DATA, fastuidraw_glu_tess_function_combine_data, Combine);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_WINDING_CALLBACK_DATA, fastuidraw_glu_tess_function_winding_data, FillRule);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_EMIT_MONOTONE_DATA, fastuidraw_glu_tess_function_emit_monotone_data, EmitMonotone);
+FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_BOUNDARY_CORNER_DATA, fastuidraw_glu_tess_function_boundary_corner_point_data, BoundaryCornerPoint);

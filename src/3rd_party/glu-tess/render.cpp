@@ -31,7 +31,6 @@
 ** Author: Eric Veach, July 1994.
 **
 */
-#include <iostream>
 
 #include "gluos.hpp"
 #include <fastuidraw/util/util.hpp>
@@ -81,7 +80,7 @@ static void RenderTriangles( fastuidraw_GLUtesselator *tess, GLUface *f )
   startFace = f;
 
   for( ; f != startFace || justStarted; f = f->next ) {
-    if(f->winding_number != 0 && CALL_TESS_WINDING_OR_WINDING_DATA(f->winding_number))
+    if(f->inside && !glu_fastuidraw_gl_excludeFace(f))
       {
         FASTUIDRAWassert(f->inside);
         e = f->anEdge;

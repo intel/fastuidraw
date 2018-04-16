@@ -237,7 +237,7 @@ static ActiveRegion *AddRegionBelow( fastuidraw_GLUtesselator *tess,
 
 static FASTUIDRAW_GLUboolean IsWindingInside( fastuidraw_GLUtesselator *tess, int n )
 {
-  return n!=0 and CALL_TESS_WINDING_OR_WINDING_DATA(n);
+  return CALL_TESS_WINDING_OR_WINDING_DATA(n);
 }
 
 
@@ -419,9 +419,13 @@ static void CallCombine( fastuidraw_GLUtesselator *tess, GLUvertex *isect,
   /* Copy coord data in case the callback changes it. */
   x = isect->s;
   y = isect->t;
-  isect->client_id = FASTUIDRAW_GLU_nullptr_CLIENT_ID;
 
-  if( needed ) {
+  if( needed
+      && data[0] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
+      && data[1] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
+      && data[2] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
+      && data[3] != FASTUIDRAW_GLU_nullptr_CLIENT_ID) {
+    isect->client_id = FASTUIDRAW_GLU_nullptr_CLIENT_ID;
     CALL_COMBINE_OR_COMBINE_DATA( x, y, data, weights, &isect->client_id );
   }
 }
@@ -486,7 +490,6 @@ static void GetIntersectData( fastuidraw_GLUtesselator *tess, GLUvertex *isect,
 
   VertexWeights( isect, orgUp, dstUp, &weights[0] );
   VertexWeights( isect, orgLo, dstLo, &weights[2] );
-
   CallCombine( tess, isect, data, weights, TRUE );
 }
 

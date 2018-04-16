@@ -140,7 +140,7 @@ int glu_fastuidraw_gl_meshTessellateInterior( GLUmesh *mesh )
   for( f = mesh->fHead.next; f != &mesh->fHead; f = next ) {
     /* Make sure we don''t try to tessellate the new triangles. */
     next = f->next;
-    if( f->inside ) {
+    if( f->inside && !glu_fastuidraw_gl_excludeFace(f)) {
       if ( !glu_fastuidraw_gl_meshTessellateMonoRegion( f ) ) return 0;
     }
   }
@@ -212,7 +212,7 @@ void glu_fastuidraw_gl_emitMonotones(fastuidraw_GLUtesselator *tess, GLUmesh *me
 
   for( f = mesh->fHead.next; f != &mesh->fHead; f = next ) {
     next = f->next;
-    if( f->inside ) {
+    if( f->inside && !glu_fastuidraw_gl_excludeFace(f)) {
       winding = f->winding_number;
       vertex_ids.clear();
       ws.clear();

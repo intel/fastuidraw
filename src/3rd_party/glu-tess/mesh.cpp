@@ -689,6 +689,23 @@ GLUmesh *glu_fastuidraw_gl_meshUnion( GLUmesh *mesh1, GLUmesh *mesh2 )
   return mesh1;
 }
 
+FASTUIDRAW_GLUboolean glu_fastuidraw_gl_excludeFace(GLUface *f)
+{
+  GLUhalfEdge *e;
+  e = f->anEdge;
+
+  do
+    {
+      if (e->Org->client_id == FASTUIDRAW_GLU_nullptr_CLIENT_ID) {
+        return FASTUIDRAW_GLU_TRUE;
+      }
+      e = e->Lnext;
+    }
+  while(e != f->anEdge);
+
+  return FASTUIDRAW_GLU_FALSE;
+}
+
 
 #ifdef DELETE_BY_ZAPPING
 
