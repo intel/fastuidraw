@@ -27,6 +27,7 @@
 #include <fastuidraw/painter/painter_attribute_data_filler.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_shader_set.hpp>
 #include "../private/util_private.hpp"
+#include "../private/util_private_ostream.hpp"
 #include "../private/bounding_box.hpp"
 #include "../private/path_util_private.hpp"
 #include "../private/clip.hpp"
@@ -449,7 +450,8 @@ namespace
     static
     int
     choose_splitting_coordinate(const fastuidraw::BoundingBox<float> &start_box,
-                                fastuidraw::c_array<const SingleSubEdge> data);
+                                fastuidraw::c_array<const SingleSubEdge> data,
+                                float &split_value);
 
     static
     void
@@ -1697,23 +1699,21 @@ SubEdgeCullingHierarchy(const fastuidraw::BoundingBox<float> &start_box,
   m_bb(start_box)
 {
   int c;
+  float mid_point;
 
   FASTUIDRAWassert(!start_box.empty());
   check_closing_at_end(edges, num_non_closing_edges);
   check_closing_at_end(joins, num_non_closing_joins);
 
-  c = choose_splitting_coordinate(start_box, fastuidraw::make_c_array(edges));
+  c = choose_splitting_coordinate(start_box, fastuidraw::make_c_array(edges), mid_point);
   if (c != -1)
     {
-      float mid_point;
       fastuidraw::vecN<fastuidraw::BoundingBox<float>, 2> child_boxes;
       fastuidraw::vecN<std::vector<SingleSubEdge>, 2> child_sub_edges;
       fastuidraw::vecN<std::vector<JoinSource>, 2> child_joins;
       fastuidraw::vecN<std::vector<CapSource>, 2> child_caps;
       fastuidraw::vecN<unsigned int, 2> child_num_non_closing_edges(0, 0);
       fastuidraw::vecN<unsigned int, 2> child_num_non_closing_joins(0, 0);
-
-      mid_point = 0.5f * (start_box.min_point()[c] + start_box.max_point()[c]);
 
       for(const JoinSource &J : joins)
         {
@@ -1802,26 +1802,39 @@ SubEdgeCullingHierarchy::
 int
 SubEdgeCullingHierarchy::
 choose_splitting_coordinate(const fastuidraw::BoundingBox<float> &start_box,
-                            fastuidraw::c_array<const SingleSubEdge> data)
+                            fastuidraw::c_array<const SingleSubEdge> data,
+                            float &split_value)
 {
   if (data.size() < splitting_threshhold)
     {
       return -1;
     }
 
-  fastuidraw::vec2 mid_pt;
+  fastuidraw::vecN<float, 2> split_values;
   fastuidraw::vecN<unsigned int, 2> split_counters(0, 0);
   fastuidraw::vecN<fastuidraw::uvec2, 2> child_counters(fastuidraw::uvec2(0, 0),
                                                         fastuidraw::uvec2(0, 0));
+  std::vector<float> qs;
+  qs.reserve(data.size());
 
-  mid_pt = 0.5f * (start_box.min_point() + start_box.max_point());
-  for(const SingleSubEdge &sub_edge : data)
+  for(int c = 0; c < 2; ++c)
     {
-      for(unsigned int c = 0; c < 2; ++c)
+      qs.clear();
+      qs.push_back(start_box.min_point()[c]);
+      for(const SingleSubEdge &sub_edge : data)
+        {
+          qs.push_back(sub_edge.m_pt0.m_pt[c]);
+        }
+      qs.push_back(start_box.max_point()[c]);
+
+      std::sort(qs.begin(), qs.end());
+      split_values[c] = qs[qs.size() / 2];
+
+      for(const SingleSubEdge &sub_edge : data)
         {
           bool sA, sB;
-          sA = (sub_edge.m_pt0.m_pt[c] < mid_pt[c]);
-          sB = (sub_edge.m_pt1.m_pt[c] < mid_pt[c]);
+          sA = (sub_edge.m_pt0.m_pt[c] < split_values[c]);
+          sB = (sub_edge.m_pt1.m_pt[c] < split_values[c]);
           if (sA != sB)
             {
               ++split_counters[c];
@@ -1843,6 +1856,7 @@ choose_splitting_coordinate(const fastuidraw::BoundingBox<float> &start_box,
    */
   if (child_counters[canidate][0] < data.size() && child_counters[canidate][1] < data.size())
     {
+      split_value = split_values[canidate];
       return canidate;
     }
   else
