@@ -1635,6 +1635,7 @@ draw_frame(void)
            << m_painter->query_stat(PainterPacker::num_indices)
            << "\nGenericData: "
            << m_painter->query_stat(PainterPacker::num_generic_datas)
+           << "\nPainter Z: " << m_painter->current_z()
            << "\nMouse position:"
            << item_coordinates(mouse_position)
            << "\ncurveFlatness: " << m_curve_flatness
