@@ -675,6 +675,16 @@ namespace
                          const WindingSet &wset,
                          const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
+    int
+    draw_generic_z_layered(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
+                           const fastuidraw::PainterData &draw,
+                           fastuidraw::c_array<const int> z_increments, int zinc_sum,
+                           fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
+                           fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+                           fastuidraw::c_array<const int> index_adjusts,
+                           fastuidraw::c_array<const int> start_zs, int startz,
+                           const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
+
     bool
     update_clip_equation_series(const fastuidraw::vec2 &pmin,
                                 const fastuidraw::vec2 &pmax);
@@ -1287,6 +1297,34 @@ draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader, const fastuidr
                call_back);
 }
 
+int
+PainterPrivate::
+draw_generic_z_layered(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
+                       const fastuidraw::PainterData &draw,
+                       fastuidraw::c_array<const int> z_increments, int zinc_sum,
+                       fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
+                       fastuidraw::c_array<const fastuidraw::c_array<const fastuidraw::PainterIndex> > index_chunks,
+                       fastuidraw::c_array<const int> index_adjusts,
+                       fastuidraw::c_array<const int> start_zs, int startz,
+                       const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+{
+  for(unsigned int i = 0, incr_z = zinc_sum; i < start_zs.size(); ++i)
+    {
+      int z;
+
+      incr_z -= z_increments[i];
+      z = startz + incr_z - start_zs[i];
+
+      draw_generic(shader, draw,
+                   attrib_chunks.sub_array(i, 1),
+                   index_chunks.sub_array(i, 1),
+                   index_adjusts.sub_array(i, 1),
+                   fastuidraw::c_array<const unsigned int>(),
+                   z, call_back);
+    }
+  return startz + zinc_sum;
+}
+
 //////////////////////////////////
 // fastuidraw::Painter methods
 fastuidraw::Painter::
@@ -1583,7 +1621,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
       return;
     }
 
-  unsigned int startz, zinc_sum(0), total_chunks(0), current(0);
+  unsigned int zinc_sum(0), total_chunks(0), current(0), modify_z_coeff;
   bool modify_z;
   const reference_counted_ptr<PainterItemShader> *sh;
   c_array<c_array<const PainterAttribute> > attrib_chunks;
@@ -1671,43 +1709,26 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
    */
   draw.make_packed(d->m_pool);
 
-  startz = d->m_current_z;
   modify_z = !with_anti_aliasing || shader.aa_type() == PainterStrokeShader::draws_solid_then_fuzz;
+  modify_z_coeff = (with_anti_aliasing) ? 2 : 1;
   sh = (with_anti_aliasing) ? &shader.aa_shader_pass1(): &shader.non_aa_shader();
 
   if (with_anti_aliasing)
     {
-      d->m_core->draw_break(shader.aa_action_pass1());
       if (shader.aa_type() == PainterStrokeShader::cover_then_draw)
         {
           old_blend = blend_shader();
           old_blend_mode = blend_mode();
           blend_shader(PainterEnums::blend_porter_duff_dst);
+          d->m_core->draw_break(shader.aa_action_pass1());
         }
     }
 
   if (modify_z)
     {
-      /*
-        We want draw the passes so that the depth test prevents overlap drawing
-        - For each set X, the raw depth value is from 0 to the increment_z_value()
-        - We draw so that the X'th set is drawn with the set before it occluding it.
-          (recall that larger z's occlude smaller z's).
-       */
-      for(unsigned int i = 0, incr_z = zinc_sum; i < total_chunks; ++i)
-        {
-          int z;
-
-          incr_z -= z_increments[i];
-          z = startz + incr_z + 1 - start_zs[i];
-
-          d->draw_generic(*sh, draw,
-                          attrib_chunks.sub_array(i, 1),
-                          index_chunks.sub_array(i, 1),
-                          index_adjusts.sub_array(i, 1),
-                          fastuidraw::c_array<const unsigned int>(),
-                          z, call_back);
-        }
+      d->draw_generic_z_layered(*sh, draw, z_increments, zinc_sum,
+                                attrib_chunks, index_chunks, index_adjusts,
+                                start_zs, d->m_current_z + zinc_sum, call_back);
     }
   else
     {
@@ -1719,24 +1740,30 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
 
   if (with_anti_aliasing)
     {
-      /* the aa-pass does not add to depth from the
-         stroke attribute data, thus the written
-         depth is always startz.
-       */
       if (shader.aa_type() == PainterStrokeShader::cover_then_draw)
         {
           blend_shader(old_blend, old_blend_mode);
+          d->m_core->draw_break(shader.aa_action_pass2());
         }
-      d->m_core->draw_break(shader.aa_action_pass2());
-      d->draw_generic(shader.aa_shader_pass2(), draw, attrib_chunks,
-                      index_chunks, index_adjusts,
-                      fastuidraw::c_array<const unsigned int>(),
-                      d->m_current_z, call_back);
+
+      if (modify_z)
+        {
+          d->draw_generic_z_layered(shader.aa_shader_pass2(), draw, z_increments, zinc_sum,
+                                    attrib_chunks, index_chunks, index_adjusts,
+                                    start_zs, d->m_current_z, call_back);
+        }
+      else
+        {
+          d->draw_generic(shader.aa_shader_pass2(), draw, attrib_chunks,
+                          index_chunks, index_adjusts,
+                          fastuidraw::c_array<const unsigned int>(),
+                          d->m_current_z, call_back);
+        }
     }
 
   if (modify_z)
     {
-      d->m_current_z = startz + zinc_sum + 1;
+      d->m_current_z += modify_z_coeff * zinc_sum;
     }
 }
 
