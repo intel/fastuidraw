@@ -675,10 +675,12 @@ namespace
             int gen, const std::string &name);
 
     int
-    choose_splitting_coordinate(fastuidraw::dvec2 &mid_pt) const;
+    choose_splitting_coordinate(double &s) const;
 
     double
-    nudge_splitting_coordinate(double v, int coordinate) const;
+    compute_splitting_location(int coord, std::vector<double> &work_room,
+                               int &number_points_before,
+                               int &number_points_after) const;
 
     static
     void
@@ -1354,9 +1356,69 @@ copy_contour(SubContour &dst,
     }
 }
 
+double
+SubPath::
+compute_splitting_location(int coord, std::vector<double> &work_room,
+                           int &number_points_before,
+                           int &number_points_after) const
+{
+  double return_value;
+
+  work_room.clear();
+  for(const SubContour &C : m_contours)
+    {
+      for(const SubContourPoint &P : C)
+        {
+          work_room.push_back(P[coord]);
+        }
+    }
+
+  std::sort(work_room.begin(), work_room.end());
+  return_value = work_room[work_room.size() / 2];
+
+  number_points_before = 0;
+  number_points_after = 0;
+  for(const SubContour &C : m_contours)
+    {
+      /* use iterator interface because we need
+         to access the elements in order
+       */
+      double prev_pt(C.back()[coord]);
+      for(SubContour::const_iterator iter = C.begin(),
+            end = C.end(); iter != end; ++iter)
+        {
+          bool prev_b, b;
+          double pt((*iter)[coord]);
+
+          prev_b = prev_pt < return_value;
+          b = pt < return_value;
+
+          if (b || pt == return_value)
+            {
+              ++number_points_before;
+            }
+
+          if (!b || pt == return_value)
+            {
+              ++number_points_after;
+            }
+
+          if (prev_pt != return_value && prev_b != b)
+            {
+              ++number_points_before;
+              ++number_points_after;
+            }
+
+          prev_pt = pt;
+        }
+    }
+
+  return return_value;
+}
+
 int
 SubPath::
-choose_splitting_coordinate(fastuidraw::dvec2 &mid_pt) const
+choose_splitting_coordinate(double &s) const
 {
   /* do not allow the box to be too far from being a square.
      TODO: if the balance of points heavily favors the other
@@ -1364,123 +1426,47 @@ choose_splitting_coordinate(fastuidraw::dvec2 &mid_pt) const
      wieght factor between the different in # of points
      of the sides and the ratio?
    */
+  fastuidraw::dvec2 mid_pt;
+  mid_pt = 0.5 * (m_bounds.max_point() + m_bounds.min_point());
+
   if (SubsetConstants::size_max_ratio > 0.0f)
     {
       fastuidraw::dvec2 wh;
       wh = m_bounds.max_point() - m_bounds.min_point();
       if (wh.x() >= SubsetConstants::size_max_ratio * wh.y())
         {
+          s = mid_pt[0];
           return 0;
         }
       else if (wh.y() >= SubsetConstants::size_max_ratio * wh.x())
         {
+          s = mid_pt[1];
           return 1;
         }
     }
 
-  /* first find which of splitting in X or splitting in Y
-     is optimal.
-   */
-  fastuidraw::ivec2 number_points_before(0, 0);
-  fastuidraw::ivec2 number_points_after(0, 0);
+  std::vector<double> work_room;
+  fastuidraw::ivec2 number_points_before, number_points_after;
   fastuidraw::ivec2 number_points;
-
-  for(std::vector<SubContour>::const_iterator c_iter = m_contours.begin(),
-        c_end = m_contours.end(); c_iter != c_end; ++c_iter)
+  for (int c = 0; c < 2; ++c)
     {
-      fastuidraw::vec2 prev_pt(c_iter->back());
-      for(SubContour::const_iterator iter = c_iter->begin(),
-            end = c_iter->end(); iter != end; ++iter)
-        {
-          fastuidraw::vec2 pt(*iter);
-          for(int i = 0; i < 2; ++i)
-            {
-              bool prev_b, b;
-
-              prev_b = prev_pt[i] < mid_pt[i];
-              b = pt[i] < mid_pt[i];
-
-              if (b || pt[i] == mid_pt[i])
-                {
-                  ++number_points_before[i];
-                }
-
-              if (!b || pt[i] == mid_pt[i])
-                {
-                  ++number_points_after[i];
-                }
-
-              if (prev_pt[i] != mid_pt[i] && prev_b != b)
-                {
-                  ++number_points_before[i];
-                  ++number_points_after[i];
-                }
-            }
-          prev_pt = pt;
-        }
+      mid_pt[c] = compute_splitting_location(c, work_room, number_points_before[c], number_points_after[c]);
     }
 
-  /* choose a splitting that:
-      - minimizes number_points_before[i] + number_points_after[i]
+  /* choose a splitting that: minimizes
+     number_points_before[i] + number_points_after[i]
    */
   number_points = number_points_before + number_points_after;
   if (number_points.x() < number_points.y())
     {
-      mid_pt[0] = nudge_splitting_coordinate(mid_pt[0], 0);
+      s = mid_pt[0];
       return 0;
     }
   else
     {
-      mid_pt[1] = nudge_splitting_coordinate(mid_pt[1], 1);
+      s = mid_pt[1];
       return 1;
     }
-}
-
-double
-SubPath::
-nudge_splitting_coordinate(double v, int coordinate) const
-{
-  std::vector<double> values;
-  for(unsigned int i = 0, endi = m_contours.size(); i < endi; ++i)
-    {
-      for(SubContour::const_iterator iter = m_contours[i].begin(),
-            end = m_contours[i].end(); iter != end; ++iter)
-        {
-          values.push_back((*iter)[coordinate]);
-        }
-    }
-  std::sort(values.begin(), values.end());
-
-  std::vector<double>::const_iterator iter, prev;
-
-  /* find the first element, *iter, so that
-   * *iter >= v
-   */
-  iter = std::lower_bound(values.begin(), values.end(), v);
-  if (iter == values.end())
-    {
-      //all element smaller than v;
-      //won't hit the point any where
-      //near.
-      return v;
-    }
-
-  if (iter == values.begin())
-    {
-      //the first element is v, i.e. all
-      //elements are atleast v, nudge v back
-      //a little to make sure it does not
-      //hit.
-      return v;
-    }
-
-  prev = iter;
-  --prev;
-
-  float r;
-  r = 0.5 * (*prev + *iter);
-
-  return r;
 }
 
 fastuidraw::dvec2
@@ -1591,18 +1577,17 @@ SubPath::
 split(int &splitting_coordinate) const
 {
   fastuidraw::vecN<SubPath*, 2> return_value(nullptr, nullptr);
-  fastuidraw::dvec2 mid_pt;
+  double mid_pt;
 
-  mid_pt = 0.5 * (m_bounds.max_point() + m_bounds.min_point());
   splitting_coordinate = choose_splitting_coordinate(mid_pt);
 
   /* now split each contour. */
   fastuidraw::dvec2 B0_max, B1_min;
   B0_max[1 - splitting_coordinate] = m_bounds.max_point()[1 - splitting_coordinate];
-  B0_max[splitting_coordinate] = mid_pt[splitting_coordinate];
+  B0_max[splitting_coordinate] = mid_pt;
 
   B1_min[1 - splitting_coordinate] = m_bounds.min_point()[1 - splitting_coordinate];
-  B1_min[splitting_coordinate] = mid_pt[splitting_coordinate];
+  B1_min[splitting_coordinate] = mid_pt;
 
   fastuidraw::BoundingBox<double> B0(m_bounds.min_point(), B0_max);
   fastuidraw::BoundingBox<double> B1(B1_min, m_bounds.max_point());
@@ -1615,8 +1600,7 @@ split(int &splitting_coordinate) const
     {
       C0.push_back(SubContour());
       C1.push_back(SubContour());
-      split_contour(*c_iter, splitting_coordinate,
-                    mid_pt[splitting_coordinate],
+      split_contour(*c_iter, splitting_coordinate, mid_pt,
                     C0.back(), C1.back());
 
       if (C0.back().empty())
