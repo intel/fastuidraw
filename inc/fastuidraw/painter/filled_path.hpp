@@ -78,12 +78,13 @@ public:
       of the boudnary of a filled component.
       The attribute data is packed as follows:
       - PainterAttribute::m_attrib0 .xy -> position of point in local coordinate (float)
-      - PainterAttribute::m_attrib0 .zw -> normal vector to edge
+      - PainterAttribute::m_attrib0 .zw -> normal (not necessarily unit length) vector to edge
       - PainterAttribute::m_attrib1 .x  -> boundary value, either -1 or 1.
                                            This value should be interpolated across
-					   each triangle and used as the coverage
-					   value in the fragment shader.
-      - PainterAttribute::m_attrib1 .yzw  -> 0 (free)
+					   each triangle whose absolute value is used as
+                                           the coverage value in the fragment shader.
+      - PainterAttribute::m_attrib1 .y  -> The z-offset value (uint)
+      - PainterAttribute::m_attrib1 .zw -> 0 (free)
       - PainterAttribute::m_attrib2 .xyzw -> 0 (free)
      */
     const PainterAttributeData&
@@ -112,35 +113,36 @@ public:
     winding_neighbors(int w) const;
 
     /*!
-      Returns what chunk to pass PainterAttributeData::index_data_chunks()
-      called on the PainterAttributeData returned by painter_data()
+      Returns what chunk to pass PainterAttributeData::index_data_chunk()
+      called on the \ref PainterAttributeData returned by painter_data()
       to get the triangles of a specified winding number. The same
       attribute chunk, 0, is used regardless of which winding number.
+      \param w winding number
      */
     static
     unsigned int
-    chunk_from_winding_number(int w);
+    fill_chunk_from_winding_number(int w);
 
     /*!
-      Returns what chunk to pass PainterAttributeData::index_data_chunks()
-      called on the PainterAttributeData returned by painter_data()
+      Returns what chunk to pass PainterAttributeData::index_data_chunk()
+      called on the \ref PainterAttributeData returned by painter_data()
       to get the triangles of a specified fill rule.
      */
     static
     unsigned int
-    chunk_from_fill_rule(enum PainterEnums::fill_rule_t fill_rule);
+    fill_chunk_from_fill_rule(enum PainterEnums::fill_rule_t fill_rule);
 
     /*!
-      Returns the chunk to use for drawing the anti-alias fuzz
-      around the filled path caused by edges shared between
-      winding number components. If one gives the value
-      as the same winding number, then these are aa-edges
-      of the winding number component that are NOT shared
-      with any others.
+      Returns the chunk to pass PainterAttributeData::index_data_chunk()
+      and PainterAttributeData::attribute_data_chunk() on the
+      \ref PainterAttributeData returned by aa_fuzz_painter_data().
+      NOTE that this value is NOT the same as returned by
+      fill_chunk_from_winding_number(int).
+      \param w winding number
      */
     static
     unsigned int
-    chunk_for_aa_fuzz(int winding0, int winding1);
+    aa_fuzz_chunk_from_winding_number(int w);
 
   private:
     friend class FilledPath;

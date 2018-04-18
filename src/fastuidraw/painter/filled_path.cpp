@@ -128,11 +128,15 @@ namespace CoordinateConverterConstants
 
 namespace
 {
+  class PointHoard;
+
   unsigned int
   signed_to_unsigned(int w)
   {
     int v, s, r;
 
+    // outputs the ordering
+    // 0, -1, +1, -2, +2
     v = fastuidraw::t_abs(w);
     s = (w < 0) ? -1 : 0;
     r = 2 * v + s;
@@ -140,17 +144,6 @@ namespace
     FASTUIDRAWassert(r >= 0);
     return r;
   }
-
-  unsigned int
-  unique_combine(unsigned int a0, unsigned int a1)
-  {
-    int64_t w0, w1;
-    w0 = fastuidraw::t_min(a0, a1);
-    w1 = fastuidraw::t_max(a0, a1);
-    return w0 + (w1 * (w1 + 1)) / 2;
-  }
-
-  class PointHoard;
 
   class Edge:public fastuidraw::uvec2
   {
@@ -273,11 +266,14 @@ namespace
     add_edge(const AAEdge &edge)
     {
       int w0, w1;
-      unsigned int K;
+      unsigned int K, K0, K1;
 
       w0 = edge.winding(0);
       w1 = edge.winding(1);
-      K = fastuidraw::FilledPath::Subset::chunk_for_aa_fuzz(w0, w1);
+      K0 = fastuidraw::FilledPath::Subset::aa_fuzz_chunk_from_winding_number(w0);
+      K1 = fastuidraw::FilledPath::Subset::aa_fuzz_chunk_from_winding_number(w1);
+      K = std::max(K0, K1);
+
       if (K >= m_edge_count.size())
         {
           m_edge_count.resize(K + 1, 0);
@@ -346,10 +342,9 @@ namespace
     void
     fill_neighbor_list(std::vector<std::vector<int> > *out) const
     {
-      for(std::map<int, std::set<int> >::const_iterator iter = m_neighbor_map.begin(),
-            end = m_neighbor_map.end(); iter != end; ++iter)
+      for(const auto &p : m_neighbor_map)
         {
-          int w(iter->first);
+          int w(p.first);
           unsigned int c;
 
           c = signed_to_unsigned(w);
@@ -358,8 +353,8 @@ namespace
               out->resize(c + 1);
             }
 
-          (*out)[c].resize(iter->second.size());
-          std::copy(iter->second.begin(), iter->second.end(), (*out)[c].begin());
+          (*out)[c].resize(p.second.size());
+          std::copy(p.second.begin(), p.second.end(), (*out)[c].begin());
         }
     }
 
@@ -907,14 +902,6 @@ namespace
   class AttributeDataMerger:public fastuidraw::PainterAttributeDataFiller
   {
   public:
-    AttributeDataMerger(const fastuidraw::PainterAttributeData &a,
-                        const fastuidraw::PainterAttributeData &b,
-                        bool common_chunking):
-      m_a(a), m_b(b),
-      m_common_chunking(common_chunking)
-    {
-    }
-
     virtual
     void
     compute_sizes(unsigned int &number_attributes,
@@ -932,9 +919,79 @@ namespace
               fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
               fastuidraw::c_array<int> index_adjusts) const;
 
-  private:
+  protected:
+    AttributeDataMerger(const fastuidraw::PainterAttributeData &a,
+                        const fastuidraw::PainterAttributeData &b,
+                        bool common_attribute_chunking):
+      m_a(a), m_b(b),
+      m_common_attribute_chunking(common_attribute_chunking)
+    {
+    }
+
+    virtual
+    void
+    post_process_attributes(unsigned int chunk,
+                            fastuidraw::c_array<fastuidraw::PainterAttribute> dst_from_a,
+                            fastuidraw::c_array<fastuidraw::PainterAttribute> dst_from_b) const = 0;
+
+    virtual
+    fastuidraw::range_type<int>
+    compute_z_range(unsigned int chunk) const = 0;
+
     const fastuidraw::PainterAttributeData &m_a, &m_b;
-    bool m_common_chunking;
+
+  private:
+    bool m_common_attribute_chunking;
+  };
+
+  class EdgeAttributeDataMerger:public AttributeDataMerger
+  {
+  public:
+    EdgeAttributeDataMerger(const fastuidraw::PainterAttributeData &a,
+                            const fastuidraw::PainterAttributeData &b):
+      AttributeDataMerger(a, b, false)
+    {}
+
+  protected:
+    virtual
+    void
+    post_process_attributes(unsigned int chunk,
+                            fastuidraw::c_array<fastuidraw::PainterAttribute> dst_from_a,
+                            fastuidraw::c_array<fastuidraw::PainterAttribute> dst_from_b) const;
+
+    virtual
+    fastuidraw::range_type<int>
+    compute_z_range(unsigned int chunk) const;
+  };
+
+  class FillAttributeDataMerger:public AttributeDataMerger
+  {
+  public:
+    FillAttributeDataMerger(const fastuidraw::PainterAttributeData &a,
+                            const fastuidraw::PainterAttributeData &b):
+      AttributeDataMerger(a, b, true)
+    {}
+
+  protected:
+    virtual
+    void
+    post_process_attributes(unsigned int chunk,
+                            fastuidraw::c_array<fastuidraw::PainterAttribute> dst_from_a,
+                            fastuidraw::c_array<fastuidraw::PainterAttribute> dst_from_b) const
+    {
+      FASTUIDRAWunused(chunk);
+      FASTUIDRAWunused(dst_from_a);
+      FASTUIDRAWunused(dst_from_b);
+    }
+
+    virtual
+    fastuidraw::range_type<int>
+    compute_z_range(unsigned int chunk) const
+    {
+      FASTUIDRAWunused(chunk);
+      FASTUIDRAWassert(false);
+      return fastuidraw::range_type<int>();
+    }
   };
 
   class EdgeAttributeDataFiller:public fastuidraw::PainterAttributeDataFiller
@@ -1287,7 +1344,7 @@ create_aa_edges(AAEdgeList &out_aa_edges) const
               aa_edge.add_entry(entries[i]);
             }
 
-          if (!aa_edge.internal_edge())
+          if (!aa_edge.internal_edge() && aa_edge.winding(0) != aa_edge.winding(1))
             {
               out_aa_edges.add_edge(aa_edge);
             }
@@ -2275,8 +2332,6 @@ compute_sizes(unsigned int &number_attributes,
               unsigned int &number_index_chunks,
               unsigned int &number_z_ranges) const
 {
-  number_z_ranges = 0;
-
   number_attribute_chunks = fastuidraw::t_max(m_a.attribute_data_chunks().size(),
                                               m_b.attribute_data_chunks().size());
   number_attributes = 0;
@@ -2300,6 +2355,9 @@ compute_sizes(unsigned int &number_attributes,
       b_sz = m_b.index_data_chunk(c).size();
       number_indices += (a_sz + b_sz);
     }
+
+  number_z_ranges = fastuidraw::t_max(m_a.z_ranges().size(),
+                                      m_b.z_ranges().size());
 }
 
 
@@ -2316,27 +2374,23 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
 
   for(unsigned int i = 0, dst_offset = 0; i < attrib_chunks.size(); ++i)
     {
-      fastuidraw::c_array<fastuidraw::PainterAttribute> dst;
+      fastuidraw::c_array<fastuidraw::PainterAttribute> dst_a, dst_b;
       fastuidraw::c_array<const fastuidraw::PainterAttribute> src;
       unsigned int start(dst_offset), size(0);
 
       src = m_a.attribute_data_chunk(i);
-      if (!src.empty())
-        {
-          dst = attributes.sub_array(dst_offset, src.size());
-          dst_offset += dst.size();
-          size += dst.size();
-          std::copy(src.begin(), src.end(), dst.begin());
-        }
+      dst_a = attributes.sub_array(dst_offset, src.size());
+      dst_offset += dst_a.size();
+      size += dst_a.size();
+      std::copy(src.begin(), src.end(), dst_a.begin());
 
       src = m_b.attribute_data_chunk(i);
-      if (!src.empty())
-        {
-          dst = attributes.sub_array(dst_offset, src.size());
-          dst_offset += dst.size();
-          size += dst.size();
-          std::copy(src.begin(), src.end(), dst.begin());
-        }
+      dst_b = attributes.sub_array(dst_offset, src.size());
+      dst_offset += dst_b.size();
+      size += dst_b.size();
+      std::copy(src.begin(), src.end(), dst_b.begin());
+
+      post_process_attributes(i, dst_a, dst_b);
       attrib_chunks[i] = attributes.sub_array(start, size);
     }
 
@@ -2370,7 +2424,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
           dst_offset += dst.size();
           size += dst.size();
 
-          adjust_chunk = (m_common_chunking) ? 0 : i;
+          adjust_chunk = (m_common_attribute_chunking) ? 0 : i;
           adjust = m_a.attribute_data_chunk(adjust_chunk).size();
           for(unsigned int k = 0; k < src.size(); ++k)
             {
@@ -2379,6 +2433,45 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
         }
       index_chunks[i] = indices.sub_array(start, size);
     }
+
+  for (unsigned int i = 0; i < zranges.size(); ++i)
+    {
+      zranges[i] = compute_z_range(i);
+    }
+}
+
+///////////////////////////////////
+// EdgeAttributeDataMerger methods
+void
+EdgeAttributeDataMerger::
+post_process_attributes(unsigned int chunk,
+                        fastuidraw::c_array<fastuidraw::PainterAttribute> dst_from_a,
+                        fastuidraw::c_array<fastuidraw::PainterAttribute> dst_from_b) const
+{
+  FASTUIDRAWunused(dst_from_b);
+
+  /* the order of drawing is a then b, thus
+     we want to increment the elements of a
+     so they are on top of all elements of b
+   */
+  int add_z(m_b.z_range(chunk).m_end);
+  for(fastuidraw::PainterAttribute &A : dst_from_a)
+    {
+      A.m_attrib1.y() += add_z;
+    }
+}
+
+fastuidraw::range_type<int>
+EdgeAttributeDataMerger::
+compute_z_range(unsigned int chunk) const
+{
+  fastuidraw::range_type<int> R;
+
+  FASTUIDRAWassert(m_a.z_range(chunk).m_begin == 0);
+  FASTUIDRAWassert(m_b.z_range(chunk).m_begin == 0);
+  R.m_begin = 0;
+  R.m_end = m_a.z_range(chunk).m_end + m_b.z_range(chunk).m_end;
+  return R;
 }
 
 ////////////////////////////////////
@@ -2393,14 +2486,16 @@ compute_sizes(unsigned int &number_attributes,
 {
   unsigned int a;
 
-  a = fastuidraw::t_max(signed_to_unsigned(m_min_winding), signed_to_unsigned(m_max_winding));
-  number_attribute_chunks = number_index_chunks = 1 + unique_combine(a, a);
+  a = fastuidraw::t_max(signed_to_unsigned(m_min_winding),
+                        signed_to_unsigned(m_max_winding));
+  number_z_ranges = number_attribute_chunks = number_index_chunks = a + 1;
 
-  /* each edge is 4 attributes and 6 indices
+  /* each edge is 4 attributes and 6 indices; however
+     since each edge is added twice (once for each side),
+     that number doubles.
    */
-  number_attributes = 4 * m_edges.size();
-  number_indices = 6 * m_edges.size();
-  number_z_ranges = 0;
+  number_attributes = 4 * 2 * m_edges.size();
+  number_indices = 6 * 2 * m_edges.size();
 }
 
 void
@@ -2412,24 +2507,30 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
           fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
           fastuidraw::c_array<int> index_adjusts) const
 {
-  FASTUIDRAWassert(attributes.size() == 4 * m_edges.size());
-  FASTUIDRAWassert(indices.size() == 6 * m_edges.size());
+  FASTUIDRAWassert(attributes.size() == 4 * 2 * m_edges.size());
+  FASTUIDRAWassert(indices.size() == 6 * 2 * m_edges.size());
+  FASTUIDRAWassert(zranges.size() == attrib_chunks.size());
+  FASTUIDRAWassert(attrib_chunks.size() > signed_to_unsigned(m_min_winding));
+  FASTUIDRAWassert(attrib_chunks.size() > signed_to_unsigned(m_max_winding));
   FASTUIDRAWassert(attrib_chunks.size() == index_chunks.size());
-  FASTUIDRAWunused(zranges);
+  FASTUIDRAWassert(attrib_chunks.size() == zranges.size());
+  FASTUIDRAWassert(attrib_chunks.size() == index_adjusts.size());
 
   std::vector<unsigned int> tmp(attrib_chunks.size(), 0);
 
-  for(std::vector<AAEdge>::const_iterator iter = m_edges.begin(),
-        end = m_edges.end(); iter != end; ++iter)
+  for(const AAEdge &aa_edge : m_edges)
     {
       int w0, w1;
-      unsigned int ch;
+      unsigned int ch0, ch1;
 
-      w0 = iter->winding(0);
-      w1 = iter->winding(1);
-      ch = fastuidraw::FilledPath::Subset::chunk_for_aa_fuzz(w0, w1);
-      FASTUIDRAWassert(ch < tmp.size());
-      tmp[ch]++;
+      w0 = aa_edge.winding(0);
+      w1 = aa_edge.winding(1);
+      ch0 = signed_to_unsigned(w0);
+      ch1 = signed_to_unsigned(w1);
+      FASTUIDRAWassert(ch0 < tmp.size());
+      FASTUIDRAWassert(ch1 < tmp.size());
+      tmp[ch0]++;
+      tmp[ch1]++;
     }
 
   for(unsigned int ch = 0, dst_offset = 0; ch < attrib_chunks.size(); ++ch)
@@ -2442,31 +2543,54 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
       dst_offset += sz;
       index_adjusts[ch] = 0;
       tmp[ch] = 0;
+
+      zranges[ch].m_begin = 0;
+      zranges[ch].m_end = sz;
     }
 
-  for(std::vector<AAEdge>::const_iterator iter = m_edges.begin(),
-        end = m_edges.end(); iter != end; ++iter)
+  for(const AAEdge &aa_edge : m_edges)
     {
-      int w0, w1, ch;
+      for(int i = 0; i < 2; ++i)
+        {
+          int w, ch;
+          fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attrib;
+          fastuidraw::c_array<fastuidraw::PainterIndex> dst_index;
+
+          w = aa_edge.winding(i);
+          ch = signed_to_unsigned(w);
+
+          dst_attrib = attrib_chunks[ch].sub_array(4 * tmp[ch], 4).const_cast_pointer<fastuidraw::PainterAttribute>();
+          dst_index = index_chunks[ch].sub_array(6 * tmp[ch], 6).const_cast_pointer<fastuidraw::PainterIndex>();
+
+          pack_attribute(aa_edge.edge(), dst_attrib);
+
+          dst_index[0] = 4 * tmp[ch] + 0;
+          dst_index[1] = 4 * tmp[ch] + 1;
+          dst_index[2] = 4 * tmp[ch] + 2;
+          dst_index[3] = 4 * tmp[ch] + 1;
+          dst_index[4] = 4 * tmp[ch] + 3;
+          dst_index[5] = 4 * tmp[ch] + 2;
+          ++tmp[ch];
+        }
+    }
+
+  /* now set the z-value along each chunk. */
+  for(unsigned int ch = 0; ch < attrib_chunks.size(); ++ch)
+    {
       fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attrib;
-      fastuidraw::c_array<fastuidraw::PainterIndex> dst_index;
 
-      w0 = iter->winding(0);
-      w1 = iter->winding(1);
-      ch = fastuidraw::FilledPath::Subset::chunk_for_aa_fuzz(w0, w1);
+      dst_attrib = attrib_chunks[ch].const_cast_pointer<fastuidraw::PainterAttribute>();
+      FASTUIDRAWassert(dst_attrib.size() == 4 * tmp[ch]);
+      FASTUIDRAWassert(zranges[ch].m_end == static_cast<int>(tmp[ch]));
+      FASTUIDRAWassert(zranges[ch].m_begin == 0);
 
-      dst_attrib = attrib_chunks[ch].sub_array(4 * tmp[ch], 4).const_cast_pointer<fastuidraw::PainterAttribute>();
-      dst_index = index_chunks[ch].sub_array(6 * tmp[ch], 6).const_cast_pointer<fastuidraw::PainterIndex>();
-
-      pack_attribute(iter->edge(), dst_attrib);
-
-      dst_index[0] = 4 * tmp[ch] + 0;
-      dst_index[1] = 4 * tmp[ch] + 1;
-      dst_index[2] = 4 * tmp[ch] + 2;
-      dst_index[3] = 4 * tmp[ch] + 1;
-      dst_index[4] = 4 * tmp[ch] + 3;
-      dst_index[5] = 4 * tmp[ch] + 2;
-      ++tmp[ch];
+      for(unsigned int i = 0, z = zranges[ch].m_end - 1; i < dst_attrib.size(); --z)
+        {
+          for(int j = 0; j < 4; ++j, ++i)
+            {
+              dst_attrib[i].m_attrib1.y() = z;
+            }
+        }
     }
 }
 
@@ -2545,8 +2669,8 @@ compute_sizes(unsigned int &number_attributes,
    */
   int smallest_winding(m_per_fill.begin()->first);
   int largest_winding(m_per_fill.rbegin()->first);
-  unsigned int largest_winding_idx(FilledPath::Subset::chunk_from_winding_number(largest_winding));
-  unsigned int smallest_winding_idx(FilledPath::Subset::chunk_from_winding_number(smallest_winding));
+  unsigned int largest_winding_idx(FilledPath::Subset::fill_chunk_from_winding_number(largest_winding));
+  unsigned int smallest_winding_idx(FilledPath::Subset::fill_chunk_from_winding_number(smallest_winding));
   number_index_chunks = 1 + std::max(largest_winding_idx, smallest_winding_idx);
 }
 
@@ -2570,8 +2694,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
   FASTUIDRAWassert(zranges.empty());
   FASTUIDRAWunused(zranges);
 
-  /* generate attribute data
-   */
+  /* generate attribute data */
   std::transform(m_points.begin(), m_points.end(), attributes.begin(),
                  AttributeDataFiller::generate_attribute);
   attrib_chunks[0] = attributes;
@@ -2605,7 +2728,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
           c_array<const unsigned int> src;
           unsigned int idx;
 
-          idx = FilledPath::Subset::chunk_from_winding_number(iter->first);
+          idx = FilledPath::Subset::fill_chunk_from_winding_number(iter->first);
 
           src = iter->second;
           dst = index_data.sub_array(current, src.size());
@@ -2852,9 +2975,8 @@ make_ready_from_children(void)
   m_children[0]->make_ready();
   m_children[1]->make_ready();
 
-  AttributeDataMerger merger(m_children[0]->painter_data(),
-                             m_children[1]->painter_data(),
-                             true);
+  FillAttributeDataMerger merger(m_children[0]->painter_data(),
+                                 m_children[1]->painter_data());
 
   m_painter_data = FASTUIDRAWnew fastuidraw::PainterAttributeData();
   m_painter_data->set_data(merger);
@@ -2898,9 +3020,8 @@ make_ready_from_children(void)
 
   m_fuzz_painter_data = FASTUIDRAWnew fastuidraw::PainterAttributeData();
 
-  AttributeDataMerger fuzz_merger(m_children[0]->fuzz_painter_data(),
-                                  m_children[1]->fuzz_painter_data(),
-                                  false);
+  EdgeAttributeDataMerger fuzz_merger(m_children[0]->fuzz_painter_data(),
+                                      m_children[1]->fuzz_painter_data());
   m_fuzz_painter_data->set_data(fuzz_merger);
 }
 
@@ -3063,7 +3184,7 @@ winding_neighbors(int w) const
 
 unsigned int
 fastuidraw::FilledPath::Subset::
-chunk_from_winding_number(int winding_number)
+fill_chunk_from_winding_number(int winding_number)
 {
   /* basic idea:
      - start counting at fill_rule_data_count
@@ -3083,7 +3204,7 @@ chunk_from_winding_number(int winding_number)
 
 unsigned int
 fastuidraw::FilledPath::Subset::
-chunk_from_fill_rule(enum PainterEnums::fill_rule_t fill_rule)
+fill_chunk_from_fill_rule(enum PainterEnums::fill_rule_t fill_rule)
 {
   FASTUIDRAWassert(fill_rule < fastuidraw::PainterEnums::fill_rule_data_count);
   return fill_rule;
@@ -3091,12 +3212,9 @@ chunk_from_fill_rule(enum PainterEnums::fill_rule_t fill_rule)
 
 unsigned int
 fastuidraw::FilledPath::Subset::
-chunk_for_aa_fuzz(int winding0, int winding1)
+aa_fuzz_chunk_from_winding_number(int w)
 {
-  unsigned int w0, w1;
-  w0 = signed_to_unsigned(winding0);
-  w1 = signed_to_unsigned(winding1);
-  return unique_combine(w0, w1);
+  return signed_to_unsigned(w);
 }
 
 ///////////////////////////////////////

@@ -622,28 +622,41 @@ namespace
   class PainterWorkRoom
   {
   public:
-    std::vector<fastuidraw::vec2> m_pts_draw_convex_polygon;
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_pts_update_clip_series;
     std::vector<float> m_clipper_floats;
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_clipper_vec2s;
+
+    // work room for drawing polygons
+    std::vector<fastuidraw::vec2> m_pts_draw_convex_polygon;
     std::vector<fastuidraw::PainterIndex> m_polygon_indices;
     std::vector<fastuidraw::PainterAttribute> m_polygon_attribs;
+
+    // work room for stroking
     std::vector<fastuidraw::c_array<const fastuidraw::PainterAttribute> > m_stroke_attrib_chunks;
     std::vector<fastuidraw::c_array<const fastuidraw::PainterIndex> > m_stroke_index_chunks;
     std::vector<int> m_stroke_increment_zs;
     std::vector<int> m_stroke_start_zs;
     std::vector<int> m_stroke_index_adjusts;
     fastuidraw::StrokedPath::ChunkSet m_stroke_chunk_set;
+    fastuidraw::StrokedPath::ScratchSpace m_stroked_path_scratch;
+
+    // common filling work room
+    WindingSet m_fill_ws;
+    fastuidraw::FilledPath::ScratchSpace m_filled_path_scratch;
+
+    // work room for fill
     std::vector<fastuidraw::c_array<const fastuidraw::PainterAttribute> > m_fill_attrib_chunks;
     std::vector<fastuidraw::c_array<const fastuidraw::PainterIndex> > m_fill_index_chunks;
     std::vector<int> m_fill_index_adjusts;
     std::vector<unsigned int> m_fill_selector, m_fill_subset_selector;
-    WindingSet m_fill_ws;
+
+    // work room for anti-alias fuzz of fill
     std::vector<fastuidraw::c_array<const fastuidraw::PainterAttribute> > m_fill_aa_fuzz_attrib_chunks;
     std::vector<fastuidraw::c_array<const fastuidraw::PainterIndex> > m_fill_aa_fuzz_index_chunks;
     std::vector<int> m_fill_aa_fuzz_index_adjusts;
-    fastuidraw::StrokedPath::ScratchSpace m_stroked_path_scratch;
-    fastuidraw::FilledPath::ScratchSpace m_filled_path_scratch;
+    std::vector<int> m_fill_aa_fuzz_start_zs;
+    std::vector<int> m_fill_aa_fuzz_z_increments;
+
   };
 
   class PainterPrivate
@@ -669,13 +682,16 @@ namespace
                  int z,
                  const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
 
-    void
-    draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader, const fastuidraw::PainterData &draw,
-                         const fastuidraw::FilledPath &filled_path, fastuidraw::c_array<const unsigned int> subsets,
-                         const WindingSet &wset,
-                         const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back);
-
     int
+    pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path, fastuidraw::c_array<const unsigned int> subsets,
+                             const WindingSet &wset,
+                             std::vector<int> &z_increments,
+                             std::vector<fastuidraw::c_array<const fastuidraw::PainterAttribute> > &attrib_chunks,
+                             std::vector<fastuidraw::c_array<const fastuidraw::PainterIndex> > &index_chunks,
+                             std::vector<int> &index_adjusts,
+                             std::vector<int> &start_zs);
+
+    void
     draw_generic_z_layered(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
                            const fastuidraw::PainterData &draw,
                            fastuidraw::c_array<const int> z_increments, int zinc_sum,
@@ -1236,68 +1252,70 @@ draw_generic(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShad
   m_core->draw_generic(shader, p, src, z, call_back);
 }
 
-void
+int
 PainterPrivate::
-draw_anti_alias_fuzz(const fastuidraw::PainterFillShader &shader, const fastuidraw::PainterData &draw,
-                     const fastuidraw::FilledPath &filled_path,
-                     fastuidraw::c_array<const unsigned int> subsets,
-                     const WindingSet &wset,
-                     const fastuidraw::reference_counted_ptr<fastuidraw::PainterPacker::DataCallBack> &call_back)
+pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
+                         fastuidraw::c_array<const unsigned int> subsets,
+                         const WindingSet &wset,
+                         std::vector<int> &z_increments,
+                         std::vector<fastuidraw::c_array<const fastuidraw::PainterAttribute> > &attrib_chunks,
+                         std::vector<fastuidraw::c_array<const fastuidraw::PainterIndex> > &index_chunks,
+                         std::vector<int> &index_adjusts,
+                         std::vector<int> &start_zs)
 {
-  m_work_room.m_fill_aa_fuzz_attrib_chunks.clear();
-  m_work_room.m_fill_aa_fuzz_index_chunks.clear();
-  m_work_room.m_fill_aa_fuzz_index_adjusts.clear();
-  for(unsigned int i = 0; i < subsets.size(); ++i)
+  int return_value(0);
+
+  z_increments.clear();
+  attrib_chunks.clear();
+  index_chunks.clear();
+  index_adjusts.clear();
+  start_zs.clear();
+  for(unsigned int s : subsets)
     {
-      unsigned int s(subsets[i]);
       fastuidraw::FilledPath::Subset subset(filled_path.subset(s));
       const fastuidraw::PainterAttributeData &data(subset.aa_fuzz_painter_data());
+      fastuidraw::c_array<const int> winding_numbers(subset.winding_numbers());
 
-      for(fastuidraw::c_array<const int>::iterator iter = subset.winding_numbers().begin(),
-            end = subset.winding_numbers().end(); iter != end; ++iter)
+      for(int w : winding_numbers)
         {
-          int w0(*iter);
-          if (wset(w0))
+          bool should_add(false);
+
+          if (wset(w))
             {
-              unsigned int chunk;
-              chunk = fastuidraw::FilledPath::Subset::chunk_for_aa_fuzz(w0, w0);
-              if (!data.attribute_data_chunk(chunk).empty())
+              fastuidraw::c_array<const int> winding_neighbors(subset.winding_neighbors(w));
+              for(int w_neighbor : winding_neighbors)
                 {
-                  m_work_room.m_fill_aa_fuzz_attrib_chunks.push_back(data.attribute_data_chunk(chunk));
-                  m_work_room.m_fill_aa_fuzz_index_chunks.push_back(data.index_data_chunk(chunk));
-                  m_work_room.m_fill_aa_fuzz_index_adjusts.push_back(data.index_adjust_chunk(chunk));
+                  if (!wset(w_neighbor))
+                    {
+                      should_add = true;
+                    }
                 }
             }
 
-          for(fastuidraw::c_array<const int>::iterator i = subset.winding_neighbors(w0).begin(),
-                e = subset.winding_neighbors(w0).end(); i != e; ++i)
+          if (should_add)
             {
-              int w1(*i);
-              if (wset(w0) != wset(w1))
-                {
-                  unsigned int chunk;
-                  chunk = fastuidraw::FilledPath::Subset::chunk_for_aa_fuzz(w0, w1);
-                  if (!data.attribute_data_chunk(chunk).empty())
-                    {
-                      m_work_room.m_fill_aa_fuzz_attrib_chunks.push_back(data.attribute_data_chunk(chunk));
-                      m_work_room.m_fill_aa_fuzz_index_chunks.push_back(data.index_data_chunk(chunk));
-                      m_work_room.m_fill_aa_fuzz_index_adjusts.push_back(data.index_adjust_chunk(chunk));
-                    }
-                }
+              unsigned int ch;
+              fastuidraw::range_type<int> R;
+
+              ch = fastuidraw::FilledPath::Subset::aa_fuzz_chunk_from_winding_number(w);
+              R = data.z_range(ch);
+
+              attrib_chunks.push_back(data.attribute_data_chunk(ch));
+              index_chunks.push_back(data.index_data_chunk(ch));
+              index_adjusts.push_back(data.index_adjust_chunk(ch));
+
+              z_increments.push_back(R.difference());
+              start_zs.push_back(R.m_begin);
+
+              return_value += z_increments.back();
             }
         }
     }
 
-  draw_generic(shader.aa_fuzz_shader(), draw,
-               fastuidraw::make_c_array(m_work_room.m_fill_aa_fuzz_attrib_chunks),
-               fastuidraw::make_c_array(m_work_room.m_fill_aa_fuzz_index_chunks),
-               fastuidraw::make_c_array(m_work_room.m_fill_aa_fuzz_index_adjusts),
-               fastuidraw::c_array<const unsigned int>(),
-               m_current_z,
-               call_back);
+  return return_value;
 }
 
-int
+void
 PainterPrivate::
 draw_generic_z_layered(const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader,
                        const fastuidraw::PainterData &draw,
@@ -1322,7 +1340,6 @@ draw_generic_z_layered(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
                    fastuidraw::c_array<const unsigned int>(),
                    z, call_back);
     }
-  return startz + zinc_sum;
 }
 
 //////////////////////////////////
@@ -1990,7 +2007,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
-  unsigned int idx_chunk, atr_chunk, num_subsets;
+  unsigned int idx_chunk, atr_chunk, num_subsets, incr_z;
 
   d = static_cast<PainterPrivate*>(m_d);
   if (d->m_clip_rect_state.m_all_content_culled)
@@ -1998,7 +2015,7 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
       return;
     }
 
-  idx_chunk = FilledPath::Subset::chunk_from_fill_rule(fill_rule);
+  idx_chunk = FilledPath::Subset::fill_chunk_from_fill_rule(fill_rule);
   atr_chunk = 0;
 
   d->m_work_room.m_fill_subset_selector.resize(filled_path.number_subsets());
@@ -2020,9 +2037,8 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
   d->m_work_room.m_fill_attrib_chunks.clear();
   d->m_work_room.m_fill_index_chunks.clear();
   d->m_work_room.m_fill_index_adjusts.clear();
-  for(unsigned int i = 0; i < num_subsets; ++i)
+  for(unsigned int s : subset_list)
     {
-      unsigned int s(subset_list[i]);
       FilledPath::Subset subset(filled_path.subset(s));
       const PainterAttributeData &data(subset.painter_data());
 
@@ -2033,23 +2049,38 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
 
   if (with_anti_aliasing)
     {
-      ++d->m_current_z;
+      d->m_work_room.m_fill_ws.set(filled_path, subset_list,
+                                   CustomFillRuleFunction(fill_rule));
+      incr_z = d->pre_draw_anti_alias_fuzz(filled_path, subset_list,
+                                           d->m_work_room.m_fill_ws,
+                                           d->m_work_room.m_fill_aa_fuzz_z_increments,
+                                           d->m_work_room.m_fill_aa_fuzz_attrib_chunks,
+                                           d->m_work_room.m_fill_aa_fuzz_index_chunks,
+                                           d->m_work_room.m_fill_aa_fuzz_index_adjusts,
+                                           d->m_work_room.m_fill_aa_fuzz_start_zs);
     }
-  draw_generic(shader.item_shader(), draw,
-               fastuidraw::make_c_array(d->m_work_room.m_fill_attrib_chunks),
-               fastuidraw::make_c_array(d->m_work_room.m_fill_index_chunks),
-               fastuidraw::make_c_array(d->m_work_room.m_fill_index_adjusts),
-               call_back);
+  else
+    {
+      incr_z = 0;
+    }
+
+  d->draw_generic(shader.item_shader(), draw,
+                  fastuidraw::make_c_array(d->m_work_room.m_fill_attrib_chunks),
+                  fastuidraw::make_c_array(d->m_work_room.m_fill_index_chunks),
+                  fastuidraw::make_c_array(d->m_work_room.m_fill_index_adjusts),
+                  c_array<const unsigned int>(), //chunk selector
+                  d->m_current_z + incr_z, call_back);
 
   if (with_anti_aliasing)
     {
-      d->m_work_room.m_fill_ws.set(filled_path, subset_list,
-                                   CustomFillRuleFunction(fill_rule));
-      --d->m_current_z;
-      d->draw_anti_alias_fuzz(shader, draw, filled_path,
-                              subset_list, d->m_work_room.m_fill_ws,
-                              call_back);
-      ++d->m_current_z;
+      d->draw_generic_z_layered(shader.aa_fuzz_shader(), draw,
+                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_z_increments), incr_z,
+                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_attrib_chunks),
+                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_index_chunks),
+                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_index_adjusts),
+                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_start_zs),
+                                d->m_current_z, call_back);
+      d->m_current_z += incr_z;
     }
 }
 
@@ -2109,8 +2140,9 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
     }
 
   fastuidraw::c_array<const unsigned int> subset_list;
-  subset_list = make_c_array(d->m_work_room.m_fill_subset_selector).sub_array(0, num_subsets);
+  int incr_z;
 
+  subset_list = make_c_array(d->m_work_room.m_fill_subset_selector).sub_array(0, num_subsets);
   d->m_work_room.m_fill_ws.set(filled_path, subset_list, fill_rule);
 
   d->m_work_room.m_fill_attrib_chunks.clear();
@@ -2118,26 +2150,24 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
   d->m_work_room.m_fill_index_adjusts.clear();
   d->m_work_room.m_fill_selector.clear();
 
-  for(unsigned int i = 0; i < num_subsets; ++i)
+  for(unsigned int s : subset_list)
     {
-      unsigned int s(subset_list[i]);
       FilledPath::Subset subset(filled_path.subset(s));
       const PainterAttributeData &data(subset.painter_data());
       c_array<const fastuidraw::PainterAttribute> attrib_chunk;
+      c_array<const int> winding_numbers(subset.winding_numbers());
       unsigned int attrib_selector_value;
       bool added_chunk;
 
       added_chunk = false;
       attrib_selector_value = d->m_work_room.m_fill_attrib_chunks.size();
 
-      for(c_array<const int>::iterator iter = subset.winding_numbers().begin(),
-            end = subset.winding_numbers().end(); iter != end; ++iter)
+      for(int winding_number : winding_numbers)
         {
-          int winding_number(*iter);
           int chunk;
           c_array<const PainterIndex> index_chunk;
 
-          chunk = FilledPath::Subset::chunk_from_winding_number(winding_number);
+          chunk = FilledPath::Subset::fill_chunk_from_winding_number(winding_number);
           index_chunk = data.index_data_chunk(chunk);
           if (!index_chunk.empty() && d->m_work_room.m_fill_ws(winding_number))
             {
@@ -2155,28 +2185,43 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
         }
     }
 
-  if (!d->m_work_room.m_fill_index_chunks.empty())
+  if (d->m_work_room.m_fill_index_chunks.empty())
     {
-      if (with_anti_aliasing)
-        {
-          ++d->m_current_z;
-        }
+      return;
+    }
 
-      d->draw_generic(shader.item_shader(), draw,
-                      make_c_array(d->m_work_room.m_fill_attrib_chunks),
-                      make_c_array(d->m_work_room.m_fill_index_chunks),
-                      make_c_array(d->m_work_room.m_fill_index_adjusts),
-                      make_c_array(d->m_work_room.m_fill_selector),
-                      d->m_current_z, call_back);
+  if (with_anti_aliasing)
+    {
+      incr_z = d->pre_draw_anti_alias_fuzz(filled_path, subset_list,
+                                           d->m_work_room.m_fill_ws,
+                                           d->m_work_room.m_fill_aa_fuzz_z_increments,
+                                           d->m_work_room.m_fill_aa_fuzz_attrib_chunks,
+                                           d->m_work_room.m_fill_aa_fuzz_index_chunks,
+                                           d->m_work_room.m_fill_aa_fuzz_index_adjusts,
+                                           d->m_work_room.m_fill_aa_fuzz_start_zs);
+    }
+  else
+    {
+      incr_z = 0;
+    }
 
-      if (with_anti_aliasing)
-        {
-          --d->m_current_z;
-          d->draw_anti_alias_fuzz(shader, draw, filled_path,
-                                  subset_list, d->m_work_room.m_fill_ws,
-                                  call_back);
-          ++d->m_current_z;
-        }
+  d->draw_generic(shader.item_shader(), draw,
+                  make_c_array(d->m_work_room.m_fill_attrib_chunks),
+                  make_c_array(d->m_work_room.m_fill_index_chunks),
+                  make_c_array(d->m_work_room.m_fill_index_adjusts),
+                  make_c_array(d->m_work_room.m_fill_selector),
+                  d->m_current_z + incr_z, call_back);
+
+  if (with_anti_aliasing)
+    {
+      d->draw_generic_z_layered(shader.aa_fuzz_shader(), draw,
+                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_z_increments), incr_z,
+                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_attrib_chunks),
+                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_index_chunks),
+                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_index_adjusts),
+                                fastuidraw::make_c_array(d->m_work_room.m_fill_aa_fuzz_start_zs),
+                                d->m_current_z, call_back);
+      d->m_current_z += incr_z;
     }
 }
 
