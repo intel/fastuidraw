@@ -268,15 +268,15 @@ namespace
       fastuidraw::ivec2 return_value;
 
       r = m_scale * (pt - m_translate);
-      return_value.x() = clamp_int(r.x());
-      return_value.y() = clamp_int(r.y());
+      return_value.x() = 1 + clamp_int(r.x());
+      return_value.y() = 1 + clamp_int(r.y());
       return return_value;
     }
 
     fastuidraw::dvec2
     unapply(const fastuidraw::ivec2 &ipt) const
     {
-      fastuidraw::dvec2 p(ipt.x(), ipt.y());
+      fastuidraw::dvec2 p(ipt.x() - 1, ipt.y() - 1);
       p /= m_scale;
       p += m_translate;
       return p;
@@ -526,8 +526,13 @@ namespace
       FASTUIDRAWassert(!bounds.empty());
     }
 
+    // takes as input the point BEFORE transformation
     unsigned int
-    fetch(const fastuidraw::dvec2 &pt, uint32_t flags = 0u);
+    fetch_discretized(const fastuidraw::dvec2 &pt, uint32_t flags);
+
+    // takes as input the point BEFORE transformation
+    unsigned int
+    fetch_undiscretized(const fastuidraw::dvec2 &pt);
 
     unsigned int
     fetch_corner(bool is_x_max, bool is_y_max);
@@ -548,6 +553,7 @@ namespace
     int
     generate_path(const SubPath &input, Path &output);
 
+    /* Returns the location BEFORE the transformation to the integer bounding box */
     const fastuidraw::dvec2&
     operator[](unsigned int v) const
     {
@@ -555,6 +561,7 @@ namespace
       return m_pts[v];
     }
 
+    /* Returns the location AFTER the transformation to the integer bounding box */
     const fastuidraw::ivec2&
     ipt(unsigned int v) const
     {
@@ -627,9 +634,6 @@ namespace
     void
     add_contour(const PointHoard::Contour &C);
 
-    bool
-    temp_verts_non_degenerate_triangle(void);
-
     static
     void
     begin_callBack(FASTUIDRAW_GLUenum type, int winding_number, void *tess);
@@ -645,7 +649,8 @@ namespace
                      void *tess);
     static
     void
-    boundary_callback(double x, double y,
+    boundary_callback(double *x, double *y,
+                      int step,
                       FASTUIDRAW_GLUboolean is_max_x,
                       FASTUIDRAW_GLUboolean is_max_y,
                       unsigned int *outData,
@@ -1392,7 +1397,7 @@ contour_is_reducable(const SubContour &C)
 // PointHoard methods
 unsigned int
 PointHoard::
-fetch(const fastuidraw::dvec2 &pt, uint32_t flags)
+fetch_discretized(const fastuidraw::dvec2 &pt, uint32_t flags)
 {
   std::map<fastuidraw::ivec2, unsigned int>::iterator iter;
   fastuidraw::ivec2 ipt;
@@ -1438,6 +1443,18 @@ fetch(const fastuidraw::dvec2 &pt, uint32_t flags)
       m_ipts.push_back(ipt);
       m_map[ipt] = return_value;
     }
+  return return_value;
+}
+
+unsigned int
+PointHoard::
+fetch_undiscretized(const fastuidraw::dvec2 &pt)
+{
+  unsigned int return_value(m_pts.size());
+
+  m_ipts.push_back(m_converter.iapply(pt));
+  m_pts.push_back(pt);
+
   return return_value;
 }
 
@@ -1530,7 +1547,7 @@ generate_contour(const SubPath::SubContour &C, std::list<ContourPoint> &output)
     {
       unsigned int I;
 
-      I = fetch(C[v], C[v].flags());
+      I = fetch_discretized(C[v], C[v].flags());
       /* remove any edges that are after snapping the same point*/
       if (output.empty() || I != output.back().m_vertex)
         {
@@ -1748,53 +1765,6 @@ add_contour(const PointHoard::Contour &C)
   fastuidraw_gluTessEndContour(m_tess);
 }
 
-bool
-tesser::
-temp_verts_non_degenerate_triangle(void)
-{
-  if (m_temp_verts[0] == m_temp_verts[1]
-     || m_temp_verts[0] == m_temp_verts[2]
-     || m_temp_verts[1] == m_temp_verts[2])
-    {
-      return false;
-    }
-
-  uint64_t twice_area;
-  fastuidraw::i64vec2 p0(m_points.ipt(m_temp_verts[0]));
-  fastuidraw::i64vec2 p1(m_points.ipt(m_temp_verts[1]));
-  fastuidraw::i64vec2 p2(m_points.ipt(m_temp_verts[2]));
-  fastuidraw::i64vec2 v(p1 - p0), w(p2 - p0);
-
-  twice_area = fastuidraw::t_abs(v.x() * w.y() - v.y() * w.x());
-  if (twice_area == 0)
-    {
-      return false;
-    }
-
-  fastuidraw::i64vec2 u(p2 - p1);
-  double vmag, wmag, umag, two_area(twice_area);
-  const double min_height(CoordinateConverterConstants::min_height);
-
-  vmag = fastuidraw::t_sqrt(static_cast<double>(dot(v, v)));
-  wmag = fastuidraw::t_sqrt(static_cast<double>(dot(w, w)));
-  umag = fastuidraw::t_sqrt(static_cast<double>(dot(u, u)));
-
-  /* the distance from an edge to the 3rd
-     point is given as twice the area divided
-     by the length of the edge. We ask that
-     the distance is atleast 1.
-   */
-  if (two_area < min_height * vmag
-      || two_area < min_height * wmag
-      || two_area < min_height * umag)
-    {
-      twice_area = 0u;
-      return false;
-    }
-
-  return true;
-}
-
 void
 tesser::
 begin_callBack(FASTUIDRAW_GLUenum type, int glu_tess_winding_number, void *tess)
@@ -1842,8 +1812,7 @@ vertex_callBack(unsigned int vertex_id, void *tess)
       */
       if (p->m_temp_verts[0] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
           && p->m_temp_verts[1] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
-          && p->m_temp_verts[2] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
-          && p->temp_verts_non_degenerate_triangle())
+          && p->m_temp_verts[2] != FASTUIDRAW_GLU_nullptr_CLIENT_ID)
         {
           p->m_current_indices->m_triangles.add_index(p->m_temp_verts[0]);
           p->m_current_indices->m_triangles.add_index(p->m_temp_verts[1]);
@@ -1873,24 +1842,54 @@ combine_callback(double x, double y, unsigned int data[4],
           pt += weight[i] * p->m_points[data[i]];
         }
     }
-  v = p->m_points.fetch(pt);
+  v = p->m_points.fetch_undiscretized(pt);
   *outData = v;
 }
 
 void
 tesser::
-boundary_callback(double x, double y,
+boundary_callback(double *x, double *y,
+                  int step,
                   FASTUIDRAW_GLUboolean is_max_x,
                   FASTUIDRAW_GLUboolean is_max_y,
                   unsigned int *outData,
                   void *tess)
 {
   tesser *p;
+  unsigned int idx;
+  fastuidraw::ivec2 ipt;
 
   p = static_cast<tesser*>(tess);
-  *outData = p->m_points.fetch_corner(is_max_x, is_max_y);
-  FASTUIDRAWunused(x);
-  FASTUIDRAWunused(y);
+  idx = p->m_points.fetch_corner(is_max_x, is_max_y);
+  ipt = p->m_points.ipt(idx);
+
+  if (outData)
+    {
+      *outData = p->m_points.fetch_corner(is_max_x, is_max_y);
+      FASTUIDRAWassert(step == 0);
+    }
+  else
+    {
+      if (is_max_x)
+        {
+          ipt.x() += step;
+        }
+      else
+        {
+          ipt.x() -= step;
+        }
+
+      if (is_max_y)
+        {
+          ipt.y() += step;
+        }
+      else
+        {
+          ipt.y() -= step;
+        }
+    }
+  *x = ipt.x();
+  *y = ipt.y();
 }
 
 FASTUIDRAW_GLUboolean

@@ -168,19 +168,22 @@ typedef void (*fastuidraw_glu_tess_function_emit_monotone_data)(int winding,
 /* if client requests to capture regions with winding == 0 as well,
  * it needs to supply to GLU what ID's to sue for the corners of the
  * boundary that it induces.
- * \param x x-coordinate GLU is using for the boundary point
- * \param y y-coordinate GLU is using for the boundary point
+ * \param x x-coordinate GLU is to use for the boundary point
+ * \param y y-coordinate GLU is to use for the boundary point
+ * \param step how many times to move from boundary in units that
+               guarantee that the vertex is distinct.
  * \param is_max_x : true if asking for x-max point, false if asking for x-min point
  * \param is_max_y : true if asking for y-max point, false if asking for y-min point
- * \param outData : location to which to write the vertex ID
+ * \param outData : if non-null, location to which to write the vertex ID; if nullptr,
+                    the vertex is only used internally by the tessellator.
  */
 #define FASTUIDRAW_GLU_TESS_BOUNDARY_CORNER 200104
-typedef void (*fastuidraw_glu_tess_function_boundary_corner_point)(double x, double y,
+typedef void (*fastuidraw_glu_tess_function_boundary_corner_point)(double *x, double *y, int step,
                                                                    FASTUIDRAW_GLUboolean is_max_x,
                                                                    FASTUIDRAW_GLUboolean is_max_y,
                                                                    unsigned int *outData);
 #define FASTUIDRAW_GLU_TESS_BOUNDARY_CORNER_DATA 200105
-typedef void (*fastuidraw_glu_tess_function_boundary_corner_point_data)(double x, double y,
+typedef void (*fastuidraw_glu_tess_function_boundary_corner_point_data)(double *x, double *y, int step,
                                                                         FASTUIDRAW_GLUboolean is_max_x,
                                                                         FASTUIDRAW_GLUboolean is_max_y,
                                                                         unsigned int *outData,

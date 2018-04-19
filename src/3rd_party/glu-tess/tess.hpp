@@ -102,7 +102,8 @@ public:
                                                                                const unsigned int vertex_ids[],
                                                                                const int winding_ids[],
                                                                                unsigned int count);
-  void                     (REGALFASTUIDRAW_GLU_CALL *boundary_corner_point)(double x, double y,
+  void                     (REGALFASTUIDRAW_GLU_CALL *boundary_corner_point)(double *x, double *y,
+                                                                             int step,
                                                                              FASTUIDRAW_GLUboolean is_max_x,
                                                                              FASTUIDRAW_GLUboolean is_max_y,
                                                                              unsigned int *outData);
@@ -129,7 +130,8 @@ public:
                                                                           const int winding_ids[],
                                                                           unsigned int count,
                                                                           void *polygonData);
-  void                     (REGALFASTUIDRAW_GLU_CALL *boundary_corner_point_data)(double x, double y,
+  void                     (REGALFASTUIDRAW_GLU_CALL *boundary_corner_point_data)(double *x, double *y,
+                                                                                  int step,
                                                                                   FASTUIDRAW_GLUboolean is_max_x,
                                                                                   FASTUIDRAW_GLUboolean is_max_y,
                                                                                   unsigned int *outData,
@@ -146,11 +148,6 @@ public:
   /*value is 1 if current contour getting added affects winding, 0 if it should not
    */
   int edges_real;
-
-  /*value is 1 if any vertices have been added
-   */
-  int have_vertices;
-  double min_x, max_x, min_y, max_y;
 };
 
 void REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noBeginData( FASTUIDRAW_GLUenum type, int winding_number, void *polygonData );
@@ -193,9 +190,12 @@ call_tess_winding_or_winding_data_implement(fastuidraw_GLUtesselator *tess, int 
   call_tess_winding_or_winding_data_implement(tess, (a))
 
 
-#define CALL_BOUNDARY_CORNER_POINT(x, y, mx, my, o) \
-  if (tess->boundary_corner_point_data != glu_fastuidraw_gl_noBoundaryCornerPointData) \
-    (*tess->boundary_corner_point_data)((x), (y), (mx), (my), (o), tess->polygonData); \
-  else                                                                  \
-    (*tess->boundary_corner_point)((x), (y), (mx), (my), (o));
+#define CALL_BOUNDARY_CORNER_POINT(x, y, s, mx, my, o)                  \
+  if (tess->boundary_corner_point_data)                                 \
+    (*tess->boundary_corner_point_data)((x), (y), (s), (mx), (my), (o), tess->polygonData); \
+  else if (tess->boundary_corner_point)                                 \
+    (*tess->boundary_corner_point)((x), (y), (s), (mx), (my), (o));
+
+#define HAVE_BOUNDARY_CORNER_POINT (tess->boundary_corner_point_data || tess->boundary_corner_point)
+
 #endif

@@ -32,6 +32,7 @@
 **
 */
 #include "gluos.hpp"
+#include <iostream>
 #include <stddef.h>
 #include <fastuidraw/util/util.hpp>
 #include <map>
@@ -98,19 +99,6 @@
   return winding_rule != 0;
 }
 
-/*ARGSUSED*/ void REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noBoundaryCornerPoint(double x, double y,
-                                                                                   FASTUIDRAW_GLUboolean is_max_x,
-                                                                                   FASTUIDRAW_GLUboolean is_max_y,
-                                                                                   unsigned int *outData)
-{
-  *outData = 0;
-  IGNORE(x);
-  IGNORE(y);
-  IGNORE(is_max_x);
-  IGNORE(is_max_y);
-}
-
-
 /*ARGSUSED*/ void REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noBeginData( FASTUIDRAW_GLUenum type, int winding_number,
                                                                void *polygonData )
 {
@@ -158,22 +146,6 @@
   IGNORE(polygonData);
   return winding_rule&1;
 }
-
-/*ARGSUSED*/ void REGALFASTUIDRAW_GLU_CALL glu_fastuidraw_gl_noBoundaryCornerPointData(double x, double y,
-                                                                                       FASTUIDRAW_GLUboolean is_max_x,
-                                                                                       FASTUIDRAW_GLUboolean is_max_y,
-                                                                                       unsigned int *outData,
-                                                                                       void *polygon_data)
-{
-  *outData = 0;
-  IGNORE(x);
-  IGNORE(y);
-  IGNORE(is_max_x);
-  IGNORE(is_max_y);
-  IGNORE(polygon_data);
-}
-
-
 
 /* Half-edges are allocated in pairs (see mesh.c) */
 typedef struct { GLUhalfEdge e, eSym; } EdgePair;
@@ -225,7 +197,7 @@ fastuidraw_gluNewTess_release( void )
 
   tess->callWinding= &noWinding;
   tess->emit_monotone = nullptr;
-  tess->boundary_corner_point = &glu_fastuidraw_gl_noBoundaryCornerPoint;
+  tess->boundary_corner_point = nullptr;
 
   tess->callBeginData= &glu_fastuidraw_gl_noBeginData;
   tess->callVertexData= &glu_fastuidraw_gl_noVertexData;
@@ -235,12 +207,11 @@ fastuidraw_gluNewTess_release( void )
 
   tess->callWindingData= &noWindingData;
   tess->emit_monotone_data = nullptr;
-  tess->boundary_corner_point_data = &glu_fastuidraw_gl_noBoundaryCornerPointData;
+  tess->boundary_corner_point_data = nullptr;
 
   tess->polygonData= nullptr;
 
   tess->fastuidraw_alloc_tracker = nullptr;
-  tess->have_vertices = 0;
 
   return tess;
 }
@@ -436,11 +407,11 @@ fastuidraw_gluTessCallback( fastuidraw_GLUtesselator *tess, FASTUIDRAW_GLUenum w
     return;
 
   case FASTUIDRAW_GLU_TESS_BOUNDARY_CORNER:
-    tess->boundary_corner_point = (fn == nullptr) ? &glu_fastuidraw_gl_noBoundaryCornerPoint : (fastuidraw_glu_tess_function_boundary_corner_point)fn;
+    tess->boundary_corner_point = (fastuidraw_glu_tess_function_boundary_corner_point)fn;
     return;
 
   case FASTUIDRAW_GLU_TESS_BOUNDARY_CORNER_DATA:
-    tess->boundary_corner_point_data = (fn == nullptr) ? &glu_fastuidraw_gl_noBoundaryCornerPointData : (fastuidraw_glu_tess_function_boundary_corner_point_data)fn;
+    tess->boundary_corner_point_data = (fastuidraw_glu_tess_function_boundary_corner_point_data)fn;
     return;
 
   default:
@@ -449,25 +420,9 @@ fastuidraw_gluTessCallback( fastuidraw_GLUtesselator *tess, FASTUIDRAW_GLUenum w
   }
 }
 
-static void UpdateBounds(fastuidraw_GLUtesselator *tess, double x, double y)
-{
-  if (tess->have_vertices) {
-    tess->min_x = std::min(x, tess->min_x);
-    tess->min_y = std::min(y, tess->min_y);
-    tess->max_x = std::max(x, tess->max_x);
-    tess->max_y = std::max(y, tess->max_y);
-  } else {
-    tess->min_x = tess->max_x = x;
-    tess->min_y = tess->max_y = y;
-  }
-  ++tess->have_vertices;
-}
-
 static int AddVertex( fastuidraw_GLUtesselator *tess, double x, double y, unsigned int data)
 {
   GLUhalfEdge *e;
-
-  UpdateBounds(tess, x, y);
 
   e = tess->lastEdge;
   if( e == nullptr ) {
@@ -506,7 +461,6 @@ static void CacheVertex( fastuidraw_GLUtesselator *tess, double x, double y, uns
 {
   CachedVertex *v = &tess->cache[tess->cacheCount];
 
-  //UpdateBounds(tess, x, y);
   v->client_id = data;
   v->s = x;
   v->t = y;
@@ -603,7 +557,6 @@ fastuidraw_gluTessBeginPolygon( fastuidraw_GLUtesselator *tess, void *data )
   tess->mesh = nullptr;
 
   tess->polygonData= data;
-  tess->have_vertices = 0;
 
   if (CALL_TESS_WINDING_OR_WINDING_DATA(0) == FASTUIDRAW_GLU_TRUE) {
     /* disable the cache if the winding 0 is to be picked up */
@@ -649,7 +602,7 @@ fastuidraw_gluTessEndPolygon( fastuidraw_GLUtesselator *tess )
   GLUmesh *mesh;
 
   RequireState( tess, T_IN_POLYGON );
-  if (CALL_TESS_WINDING_OR_WINDING_DATA(0) == TRUE) {
+  if (CALL_TESS_WINDING_OR_WINDING_DATA(0) == TRUE && HAVE_BOUNDARY_CORNER_POINT) {
     /* if user-space requests the 0 region is filled, we add two
      * square contours one larger than the next, each larger than
      * the bounding box and each going in opposite directions.
@@ -657,17 +610,6 @@ fastuidraw_gluTessEndPolygon( fastuidraw_GLUtesselator *tess )
      * any region that has them, is not reported back the client.
      */
 
-    if (!tess->have_vertices) {
-      tess->polygonData= nullptr;
-      if( tess->mesh ) {
-        glu_fastuidraw_gl_meshDeleteMesh(tess->mesh);
-        tess->mesh = nullptr;
-      }
-      tess->have_vertices = 0;
-      return;
-    }
-
-    double dx, dy, min_x, min_y, max_x, max_y;
     FASTUIDRAW_GLUboolean boundary_flags[4][2] = {
       {FALSE, FALSE},
       {FALSE, TRUE},
@@ -675,33 +617,21 @@ fastuidraw_gluTessEndPolygon( fastuidraw_GLUtesselator *tess )
       {TRUE, FALSE},
     };
 
-    min_x = tess->min_x;
-    max_x = tess->max_x;
-    min_y = tess->min_y;
-    max_y = tess->max_y;
-
-    dx = 0.01 * (max_x - min_x);
-    dy = 0.01 * (max_y - min_y);
     fastuidraw_gluTessBeginContour(tess, TRUE);
     for (int i = 0; i < 4; ++i) {
       double x, y;
       unsigned int client_id;
 
-      x = (boundary_flags[i][0] == TRUE) ? (max_x + dx) : (min_x - dx);
-      y = (boundary_flags[i][1] == TRUE) ? (max_y + dy) : (min_y - dy);
-      CALL_BOUNDARY_CORNER_POINT(x, y, boundary_flags[i][0], boundary_flags[i][1], &client_id);
+      CALL_BOUNDARY_CORNER_POINT(&x, &y, 0, boundary_flags[i][0], boundary_flags[i][1], &client_id);
       AddVertex(tess, x, y, client_id);
     }
     fastuidraw_gluTessEndContour(tess);
 
-    dx *= 2.0;
-    dy *= 2.0;
     fastuidraw_gluTessBeginContour(tess, TRUE);
     for (int i = 3; i >= 0; --i) {
       double x, y;
 
-      x = (boundary_flags[i][0] == TRUE) ? (max_x + dx) : (min_x - dx);
-      y = (boundary_flags[i][1] == TRUE) ? (max_y + dy) : (min_y - dy);
+      CALL_BOUNDARY_CORNER_POINT(&x, &y, 1, boundary_flags[i][0], boundary_flags[i][1], nullptr);
       AddVertex(tess, x, y, FASTUIDRAW_GLU_nullptr_CLIENT_ID);
     }
     fastuidraw_gluTessEndContour(tess);
@@ -797,7 +727,6 @@ fastuidraw_gluTessEndPolygon( fastuidraw_GLUtesselator *tess )
   glu_fastuidraw_gl_meshDeleteMesh( mesh );
   tess->polygonData= nullptr;
   tess->mesh = nullptr;
-  tess->have_vertices = 0;
 }
 
 
