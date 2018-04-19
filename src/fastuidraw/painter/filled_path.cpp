@@ -389,11 +389,11 @@ namespace
     const PointHoard &m_pts;
   };
 
-  class per_winding_data:
-    public fastuidraw::reference_counted<per_winding_data>::non_concurrent
+  class TriangleList:
+    public fastuidraw::reference_counted<TriangleList>::non_concurrent
   {
   public:
-    per_winding_data(void):
+    TriangleList(void):
       m_count(0)
     {}
 
@@ -438,7 +438,7 @@ namespace
     unsigned int m_count;
   };
 
-  typedef std::map<int, fastuidraw::reference_counted_ptr<per_winding_data> > PerWindingTriangleList;
+  typedef std::map<int, fastuidraw::reference_counted_ptr<TriangleList> > PerWindingTriangleList;
 
   bool
   is_even(int v)
@@ -862,7 +862,7 @@ namespace
     unsigned int m_temp_vert_count;
     bool m_triangulation_failed;
     int m_current_winding, m_winding_offset;
-    fastuidraw::reference_counted_ptr<per_winding_data> m_current_indices;
+    fastuidraw::reference_counted_ptr<TriangleList> m_current_indices;
     PerWindingTriangleList &m_hoard;
   };
 
@@ -2091,10 +2091,10 @@ begin_callBack(FASTUIDRAW_GLUenum type, int glu_tess_winding_number, void *tess)
   p->m_temp_vert_count = 0;
   p->m_current_winding = glu_tess_winding_number + p->m_winding_offset;
 
-  fastuidraw::reference_counted_ptr<per_winding_data> &h(p->m_hoard[p->m_current_winding]);
+  fastuidraw::reference_counted_ptr<TriangleList> &h(p->m_hoard[p->m_current_winding]);
   if (!h)
     {
-      h = FASTUIDRAWnew per_winding_data();
+      h = FASTUIDRAWnew TriangleList();
     }
   p->m_current_indices = h;
 }
@@ -2224,8 +2224,8 @@ builder(const SubPath &P, std::vector<fastuidraw::dvec2> &points):
 
   if (m_hoard.empty())
     {
-      fastuidraw::reference_counted_ptr<per_winding_data> &zero(m_hoard[winding_offset]);
-      zero = FASTUIDRAWnew per_winding_data();
+      fastuidraw::reference_counted_ptr<TriangleList> &zero(m_hoard[winding_offset]);
+      zero = FASTUIDRAWnew TriangleList();
 
       zero->add_index(m_points.fetch_corner(true, true));
       zero->add_index(m_points.fetch_corner(true, false));
