@@ -79,10 +79,11 @@ public:
       The attribute data is packed as follows:
       - PainterAttribute::m_attrib0 .xy -> position of point in local coordinate (float)
       - PainterAttribute::m_attrib0 .zw -> normal (not necessarily unit length) vector to edge
-      - PainterAttribute::m_attrib1 .x  -> boundary value, either -1 or 1.
-                                           This value should be interpolated across
-					   each triangle whose absolute value is used as
-                                           the coverage value in the fragment shader.
+      - PainterAttribute::m_attrib1 .x  -> -1 or +1 (float); indicates by what to multiply
+                                           the normal vector to push in a single pixel and
+                                           this value should be interpolated across the quad
+                                           so that (1 - abs()) of the value is to be used in
+                                           the fragment shader to compute a coverage value.
       - PainterAttribute::m_attrib1 .y  -> The z-offset value (uint)
       - PainterAttribute::m_attrib1 .zw -> 0 (free)
       - PainterAttribute::m_attrib2 .xyzw -> 0 (free)
@@ -99,18 +100,6 @@ public:
     */
     c_array<const int>
     winding_numbers(void) const;
-
-    /*!
-      For each entry is winding_numbers(), returns a list
-      of winding numbers (sorted) of those filled components
-      that have edges in common with a given filled
-      component, i.e. if one wishes to know what filled
-      components share an edge with winding number
-      w, that is given by the list winding_neighbors(w).
-      \param w winding number to query
-     */
-    c_array<const int>
-    winding_neighbors(int w) const;
 
     /*!
       Returns what chunk to pass PainterAttributeData::index_data_chunk()

@@ -1278,21 +1278,7 @@ pre_draw_anti_alias_fuzz(const fastuidraw::FilledPath &filled_path,
 
       for(int w : winding_numbers)
         {
-          bool should_add(false);
-
           if (wset(w))
-            {
-              fastuidraw::c_array<const int> winding_neighbors(subset.winding_neighbors(w));
-              for(int w_neighbor : winding_neighbors)
-                {
-                  if (!wset(w_neighbor))
-                    {
-                      should_add = true;
-                    }
-                }
-            }
-
-          if (should_add)
             {
               unsigned int ch;
               fastuidraw::range_type<int> R;
