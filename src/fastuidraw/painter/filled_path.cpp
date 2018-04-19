@@ -1033,7 +1033,7 @@ namespace
     const std::vector<AAEdge> &m_edges;
   };
 
-  class AttributeDataFiller:public fastuidraw::PainterAttributeDataFiller
+  class FillAttributeDataFiller:public fastuidraw::PainterAttributeDataFiller
   {
   public:
     std::vector<fastuidraw::dvec2> m_points;
@@ -2627,9 +2627,9 @@ pack_attribute(const Edge &edge,
 }
 
 ////////////////////////////////////
-// AttributeDataFiller methods
+// FillAttributeDataFiller methods
 void
-AttributeDataFiller::
+FillAttributeDataFiller::
 compute_sizes(unsigned int &number_attributes,
               unsigned int &number_indices,
               unsigned int &number_attribute_chunks,
@@ -2675,7 +2675,7 @@ compute_sizes(unsigned int &number_attributes,
 }
 
 void
-AttributeDataFiller::
+FillAttributeDataFiller::
 fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
           fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
           fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
@@ -2696,7 +2696,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
 
   /* generate attribute data */
   std::transform(m_points.begin(), m_points.end(), attributes.begin(),
-                 AttributeDataFiller::generate_attribute);
+                 FillAttributeDataFiller::generate_attribute);
   attrib_chunks[0] = attributes;
   std::fill(index_adjusts.begin(), index_adjusts.end(), 0);
 
@@ -3035,7 +3035,7 @@ make_ready_from_sub_path(void)
   FASTUIDRAWassert(m_painter_data == nullptr);
   FASTUIDRAWassert(!m_sizes_ready);
 
-  AttributeDataFiller filler;
+  FillAttributeDataFiller filler;
   std::vector<AAEdge> aa_edges;
   AAEdgeList edge_list(&m_aa_edge_list_counter, &aa_edges);
   builder B(*m_sub_path, filler.m_points);
