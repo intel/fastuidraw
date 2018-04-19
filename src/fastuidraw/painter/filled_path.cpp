@@ -49,10 +49,12 @@
    takes doubles but TessellatedPath is floats. When
    we feed the coordinates to GLU-tess, we offset the
    values by an amount that is visible in fp64 but not
-   in fp32. In addition, we also want to merge points
-   that are close in fp32 as well. The details are
-   handled in CoordinateCoverter, PointHoard and
-   tesser.
+   in fp32. When adding the contours to GLU-tess,
+   the locations of the points are discretized and
+   then offsets are added. In addition, some contour
+   filtering is applied as well. Afterwards, there is
+   no more discretization applied to the points.
+   The details are in CoordinateConverter and PointHoard.
 
    The second is needed for primarily to speed up
    tessellation. If a TessellatedPath has a large
@@ -91,7 +93,7 @@ namespace SubsetConstants
 /* Constants for CoordinateConverter.
    CoordinateConverter's purpose is to remap
    the bounding box of a fastuidraw::TessellatedPath
-   to [0, 2 ^ N] x [0,  2 ^ N]
+   to [1, 2 ^ N] x [1,  2 ^ N]
    and then apply a fudge offset to the point
    that an fp64 sees but an fp32 does not.
 
@@ -114,16 +116,6 @@ namespace CoordinateConverterConstants
       negative_log2_fudge = 20,
       box_dim = (1 << log2_box_dim),
     };
-
-  /* essentially the hieght of one pixel
-     from coordinate conversions. We are
-     targetting a resolution of no more
-     thant 2^13. We also can have that
-     a subset is zoomed in by up to a
-     factor of 2^4. This leaves us with
-     7 = 24 - 13 - 4 bits.
-   */
-  const double min_height = double(1u << 7u);
 }
 
 namespace
