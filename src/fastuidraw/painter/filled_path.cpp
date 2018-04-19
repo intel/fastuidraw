@@ -2641,8 +2641,10 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
     }
 
   if (m_sizes_ready
-     && m_num_attributes <= max_attribute_cnt
-     && m_largest_index_block <= max_index_cnt)
+      && m_num_attributes <= max_attribute_cnt
+      && m_largest_index_block <= max_index_cnt
+      && m_aa_largest_attribute_block <= max_attribute_cnt
+      && m_aa_largest_index_block <= max_index_cnt)
     {
       dst[current] = m_ID;
       ++current;
