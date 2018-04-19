@@ -627,6 +627,9 @@ namespace
     void
     add_contour(const PointHoard::Contour &C);
 
+    bool
+    temp_verts_non_degenerate_triangle(void);
+
     static
     void
     begin_callBack(FASTUIDRAW_GLUenum type, int winding_number, void *tess);
@@ -1745,6 +1748,53 @@ add_contour(const PointHoard::Contour &C)
   fastuidraw_gluTessEndContour(m_tess);
 }
 
+bool
+tesser::
+temp_verts_non_degenerate_triangle(void)
+{
+  if (m_temp_verts[0] == m_temp_verts[1]
+     || m_temp_verts[0] == m_temp_verts[2]
+     || m_temp_verts[1] == m_temp_verts[2])
+    {
+      return false;
+    }
+
+  uint64_t twice_area;
+  fastuidraw::i64vec2 p0(m_points.ipt(m_temp_verts[0]));
+  fastuidraw::i64vec2 p1(m_points.ipt(m_temp_verts[1]));
+  fastuidraw::i64vec2 p2(m_points.ipt(m_temp_verts[2]));
+  fastuidraw::i64vec2 v(p1 - p0), w(p2 - p0);
+
+  twice_area = fastuidraw::t_abs(v.x() * w.y() - v.y() * w.x());
+  if (twice_area == 0)
+    {
+      return false;
+    }
+
+  fastuidraw::i64vec2 u(p2 - p1);
+  double vmag, wmag, umag, two_area(twice_area);
+  const double min_height(CoordinateConverterConstants::min_height);
+
+  vmag = fastuidraw::t_sqrt(static_cast<double>(dot(v, v)));
+  wmag = fastuidraw::t_sqrt(static_cast<double>(dot(w, w)));
+  umag = fastuidraw::t_sqrt(static_cast<double>(dot(u, u)));
+
+  /* the distance from an edge to the 3rd
+     point is given as twice the area divided
+     by the length of the edge. We ask that
+     the distance is atleast 1.
+   */
+  if (two_area < min_height * vmag
+      || two_area < min_height * wmag
+      || two_area < min_height * umag)
+    {
+      twice_area = 0u;
+      return false;
+    }
+
+  return true;
+}
+
 void
 tesser::
 begin_callBack(FASTUIDRAW_GLUenum type, int glu_tess_winding_number, void *tess)
@@ -1791,8 +1841,9 @@ vertex_callBack(unsigned int vertex_id, void *tess)
         the triangle is junked.
       */
       if (p->m_temp_verts[0] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
-         && p->m_temp_verts[1] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
-         && p->m_temp_verts[2] != FASTUIDRAW_GLU_nullptr_CLIENT_ID)
+          && p->m_temp_verts[1] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
+          && p->m_temp_verts[2] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
+          && p->temp_verts_non_degenerate_triangle())
         {
           p->m_current_indices->m_triangles.add_index(p->m_temp_verts[0]);
           p->m_current_indices->m_triangles.add_index(p->m_temp_verts[1]);
