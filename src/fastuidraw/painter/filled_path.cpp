@@ -116,6 +116,16 @@ namespace CoordinateConverterConstants
       negative_log2_fudge = 20,
       box_dim = (1 << log2_box_dim),
     };
+
+  /* essentially the hieght of one pixel
+     from coordinate conversions. We are
+     targetting a resolution of no more
+     thant 2^13. We also can have that
+     a subset is zoomed in by up to a
+     factor of 2^4. This leaves us with
+     7 = 24 - 13 - 4 bits.
+   */
+  const double min_height = double(1u << 7u);
 }
 
 namespace
@@ -626,6 +636,9 @@ namespace
     void
     add_contour(const PointHoard::Contour &C);
 
+    bool
+    temp_verts_non_degenerate_triangle(void);
+
     static
     void
     begin_callBack(FASTUIDRAW_GLUenum type, int winding_number, void *tess);
@@ -935,6 +948,12 @@ namespace
       return fastuidraw::make_c_array(m_winding_numbers);
     }
 
+    const fastuidraw::Path&
+    bounding_path(void) const
+    {
+      return m_bounding_path;
+    }
+
     const fastuidraw::PainterAttributeData&
     painter_data(void)
     {
@@ -1000,6 +1019,7 @@ namespace
      */
     fastuidraw::BoundingBox<double> m_bounds;
     fastuidraw::BoundingBox<float> m_bounds_f;
+    fastuidraw::Path m_bounding_path;
 
     /* if this SubsetPrivate has children then
        m_painter_data is made by "merging" the
@@ -1757,6 +1777,53 @@ add_contour(const PointHoard::Contour &C)
   fastuidraw_gluTessEndContour(m_tess);
 }
 
+bool
+tesser::
+temp_verts_non_degenerate_triangle(void)
+{
+  if (m_temp_verts[0] == m_temp_verts[1]
+     || m_temp_verts[0] == m_temp_verts[2]
+     || m_temp_verts[1] == m_temp_verts[2])
+    {
+      return false;
+    }
+
+  uint64_t twice_area;
+  fastuidraw::i64vec2 p0(m_points.ipt(m_temp_verts[0]));
+  fastuidraw::i64vec2 p1(m_points.ipt(m_temp_verts[1]));
+  fastuidraw::i64vec2 p2(m_points.ipt(m_temp_verts[2]));
+  fastuidraw::i64vec2 v(p1 - p0), w(p2 - p0);
+
+  twice_area = fastuidraw::t_abs(v.x() * w.y() - v.y() * w.x());
+  if (twice_area == 0)
+    {
+      return false;
+    }
+
+  fastuidraw::i64vec2 u(p2 - p1);
+  double vmag, wmag, umag, two_area(twice_area);
+  const double min_height(CoordinateConverterConstants::min_height);
+
+  vmag = fastuidraw::t_sqrt(static_cast<double>(dot(v, v)));
+  wmag = fastuidraw::t_sqrt(static_cast<double>(dot(w, w)));
+  umag = fastuidraw::t_sqrt(static_cast<double>(dot(u, u)));
+
+  /* the distance from an edge to the 3rd
+     point is given as twice the area divided
+     by the length of the edge. We ask that
+     the distance is atleast 1.
+   */
+  if (two_area < min_height * vmag
+      || two_area < min_height * wmag
+      || two_area < min_height * umag)
+    {
+      twice_area = 0u;
+      return false;
+    }
+
+  return true;
+}
+
 void
 tesser::
 begin_callBack(FASTUIDRAW_GLUenum type, int glu_tess_winding_number, void *tess)
@@ -1804,7 +1871,8 @@ vertex_callBack(unsigned int vertex_id, void *tess)
       */
       if (p->m_temp_verts[0] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
           && p->m_temp_verts[1] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
-          && p->m_temp_verts[2] != FASTUIDRAW_GLU_nullptr_CLIENT_ID)
+          && p->m_temp_verts[2] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
+          && p->temp_verts_non_degenerate_triangle())
         {
           p->m_current_indices->m_triangles.add_index(p->m_temp_verts[0]);
           p->m_current_indices->m_triangles.add_index(p->m_temp_verts[1]);
@@ -2514,6 +2582,15 @@ SubsetPrivate(SubPath *Q, int max_recursion,
           FASTUIDRAWdelete(C[1]);
         }
     }
+
+  const fastuidraw::vec2 &m(m_bounds_f.min_point());
+  const fastuidraw::vec2 &M(m_bounds_f.max_point());
+
+  m_bounding_path << fastuidraw::vec2(m.x(), m.y())
+                  << fastuidraw::vec2(m.x(), M.y())
+                  << fastuidraw::vec2(M.x(), M.y())
+                  << fastuidraw::vec2(M.x(), m.y())
+                  << fastuidraw::Path::contour_end();
 }
 
 SubsetPrivate::
@@ -2893,6 +2970,15 @@ winding_numbers(void) const
   return d->winding_numbers();
 }
 
+const fastuidraw::Path&
+fastuidraw::FilledPath::Subset::
+bounding_path(void) const
+{
+  SubsetPrivate *d;
+  d = static_cast<SubsetPrivate*>(m_d);
+  return d->bounding_path();
+}
+
 unsigned int
 fastuidraw::FilledPath::Subset::
 fill_chunk_from_winding_number(int winding_number)
@@ -3004,9 +3090,9 @@ select_subsets(ScratchSpace &work_room,
          thread safe (with regards to the SubsetPrivate
          being made ready via make_ready()).
    */
-  return_value= d->m_root->select_subsets(*static_cast<ScratchSpacePrivate*>(work_room.m_d),
-                                          clip_equations, clip_matrix_local,
-                                          max_attribute_cnt, max_index_cnt, dst);
+  return_value = d->m_root->select_subsets(*static_cast<ScratchSpacePrivate*>(work_room.m_d),
+                                           clip_equations, clip_matrix_local,
+                                           max_attribute_cnt, max_index_cnt, dst);
 
   return return_value;
 }
