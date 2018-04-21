@@ -546,8 +546,8 @@ namespace
       double fudge_r;
 
       fudge_r = static_cast<double>(fudge_count) * converter().fudge_delta();
-      fudge.x() = (m_ipts[I].x() >= CoordinateConverterConstants::box_dim / 2) ? fudge_r : -fudge_r;
-      fudge.y() = (m_ipts[I].y() >= CoordinateConverterConstants::box_dim / 2) ? fudge_r : -fudge_r;
+      fudge.x() = (m_ipts[I].x() >= CoordinateConverterConstants::box_dim / 2) ? -fudge_r : fudge_r;
+      fudge.y() = (m_ipts[I].y() >= CoordinateConverterConstants::box_dim / 2) ? -fudge_r : fudge_r;
       r += fudge;
       return r;
     }
@@ -1421,25 +1421,25 @@ fetch_discretized(const fastuidraw::dvec2 &pt, uint32_t flags)
 
   if (flags & SubContourPoint::on_min_x_boundary)
     {
-      ipt.x() = 0;
+      ipt.x() = 1;
       FASTUIDRAWassert(0 == (flags & SubContourPoint::on_max_x_boundary));
     }
 
   if (flags & SubContourPoint::on_max_x_boundary)
     {
-      ipt.x() = CoordinateConverterConstants::box_dim;
+      ipt.x() = CoordinateConverterConstants::box_dim + 1;
       FASTUIDRAWassert(0 == (flags & SubContourPoint::on_min_x_boundary));
     }
 
   if (flags & SubContourPoint::on_min_y_boundary)
     {
-      ipt.y() = 0;
+      ipt.y() = 1;
       FASTUIDRAWassert(0 == (flags & SubContourPoint::on_max_y_boundary));
     }
 
   if (flags & SubContourPoint::on_max_y_boundary)
     {
-      ipt.y() = CoordinateConverterConstants::box_dim;
+      ipt.y() = CoordinateConverterConstants::box_dim + 1;
       FASTUIDRAWassert(0 == (flags & SubContourPoint::on_min_y_boundary));
     }
 
@@ -1474,7 +1474,7 @@ unsigned int
 PointHoard::
 fetch_corner(bool is_max_x, bool is_max_y)
 {
-  fastuidraw::ivec2 ipt(-1, -1);
+  fastuidraw::ivec2 ipt(1, 1);
   fastuidraw::dvec2 P(m_converter.bounds().min_point());
   unsigned int return_value;
 
@@ -1909,7 +1909,7 @@ combine_callback(double x, double y, unsigned int data[4],
 void
 tesser::
 boundary_callback(double *x, double *y,
-                  int step,
+                  int istep,
                   FASTUIDRAW_GLUboolean is_max_x,
                   FASTUIDRAW_GLUboolean is_max_y,
                   unsigned int *outData,
@@ -1922,34 +1922,37 @@ boundary_callback(double *x, double *y,
   p = static_cast<tesser*>(tess);
   idx = p->m_points.fetch_corner(is_max_x, is_max_y);
   ipt = p->m_points.ipt(idx);
+  *x = ipt.x();
+  *y = ipt.y();
 
   if (outData)
     {
-      *outData = p->m_points.fetch_corner(is_max_x, is_max_y);
-      FASTUIDRAWassert(step == 0);
+      *outData = idx;
+      FASTUIDRAWassert(istep == 0);
     }
   else
     {
+      double step;
+
+      step = static_cast<double>(istep) * p->m_points.converter().fudge_delta();
       if (is_max_x)
         {
-          ipt.x() += step;
+          *x += step;
         }
       else
         {
-          ipt.x() -= step;
+          *x -= step;
         }
 
       if (is_max_y)
         {
-          ipt.y() += step;
+          *y += step;
         }
       else
         {
-          ipt.y() -= step;
+          *y -= step;
         }
     }
-  *x = ipt.x();
-  *y = ipt.y();
 }
 
 FASTUIDRAW_GLUboolean
