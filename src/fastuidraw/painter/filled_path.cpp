@@ -284,6 +284,15 @@ namespace
       return p;
     }
 
+    fastuidraw::dvec2
+    unapply(const fastuidraw::dvec2 &ipt) const
+    {
+      fastuidraw::dvec2 p(ipt.x() - 1.0, ipt.y() - 1.0);
+      p /= m_scale;
+      p += m_translate;
+      return p;
+    }
+
     double
     fudge_delta(void) const
     {
@@ -1887,21 +1896,30 @@ combine_callback(double x, double y, unsigned int data[4],
                  double weight[4],  unsigned int *outData,
                  void *tess)
 {
-  FASTUIDRAWunused(x);
-  FASTUIDRAWunused(y);
-
   tesser *p;
-  unsigned int v;
-  fastuidraw::dvec2 pt(0.0, 0.0);
+  fastuidraw::dvec2 pt;
+  bool use_sum(true);
+
+  for(unsigned int i = 0; use_sum && i < 4; ++i)
+    {
+      use_sum = (data[i] != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
+    }
 
   p = static_cast<tesser*>(tess);
-  for(unsigned int i = 0; i < 4; ++i)
+  if (use_sum)
     {
-      FASTUIDRAWassert(data[i] != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
-      pt += weight[i] * p->m_points[data[i]];
+      pt.x() = pt.y() = 0.0;
+      for(unsigned int i = 0; i < 4; ++i)
+        {
+          FASTUIDRAWassert(data[i] != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
+          pt += weight[i] * p->m_points[data[i]];
+        }
     }
-  v = p->m_points.fetch_undiscretized(pt);
-  *outData = v;
+  else
+    {
+      pt = p->m_points.converter().unapply(fastuidraw::dvec2(x, y));
+    }
+  *outData = p->m_points.fetch_undiscretized(pt);
 }
 
 void
