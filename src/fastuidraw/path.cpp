@@ -157,7 +157,7 @@ namespace
                          const fastuidraw::PathContour::interpolator_generic *h):
       TessellatorBase(tess_params, h)
     {
-      FASTUIDRAWassert(tess_params.m_curvature_tessellation);
+      FASTUIDRAWassert(tess_params.m_threshhold_type == fastuidraw::TessellatedPath::threshhold_curvature);
     }
 
   private:
@@ -181,7 +181,7 @@ namespace
                         const fastuidraw::PathContour::interpolator_generic *h):
       TessellatorBase(tess_params, h)
     {
-      FASTUIDRAWassert(!tess_params.m_curvature_tessellation);
+      FASTUIDRAWassert(tess_params.m_threshhold_type == fastuidraw::TessellatedPath::threshhold_curve_distance);
     }
 
   private:
@@ -356,7 +356,7 @@ namespace
   reverse_compare_curve_distance_thresh(const PathPrivate::tessellated_path_ref &lhs,
                                         float rhs)
   {
-    return lhs->effective_curve_distance_threshhold() > rhs;
+    return lhs->effective_threshhold(fastuidraw::TessellatedPath::threshhold_curve_distance) > rhs;
   }
 }
 
@@ -806,15 +806,22 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                      float *out_effective_curvature) const
 {
   unsigned int return_value;
-  if (tess_params.m_curvature_tessellation)
+  switch(tess_params.m_threshhold_type)
     {
-      TessellatorCurvature tesser(tess_params, this);
-      return_value = tesser.dump(out_data, out_effective_curve_distance, out_effective_curvature);
-    }
-  else
-    {
-      TessellatorDistance tesser(tess_params, this);
-      return_value = tesser.dump(out_data, out_effective_curve_distance, out_effective_curvature);
+    case TessellatedPath::threshhold_curvature:
+      {
+        TessellatorCurvature tesser(tess_params, this);
+        return_value = tesser.dump(out_data, out_effective_curve_distance, out_effective_curvature);
+      }
+      break;
+
+    default:
+    case TessellatedPath::threshhold_curve_distance:
+      {
+        TessellatorDistance tesser(tess_params, this);
+        return_value = tesser.dump(out_data, out_effective_curve_distance, out_effective_curvature);
+      }
+      break;
     }
   return return_value;
 }
@@ -1727,7 +1734,7 @@ tessellation(float thresh) const
       return d->m_tessellation.front();
     }
 
-  if (d->m_tessellation.back()->effective_curve_distance_threshhold() <= thresh)
+  if (d->m_tessellation.back()->effective_threshhold(TessellatedPath::threshhold_curve_distance) <= thresh)
     {
       std::vector<PathPrivate::tessellated_path_ref>::const_iterator iter;
       iter = std::lower_bound(d->m_tessellation.begin(),
@@ -1737,7 +1744,7 @@ tessellation(float thresh) const
 
       FASTUIDRAWassert(iter != d->m_tessellation.end());
       FASTUIDRAWassert(*iter);
-      FASTUIDRAWassert((*iter)->effective_curve_distance_threshhold() <= thresh);
+      FASTUIDRAWassert((*iter)->effective_threshhold(TessellatedPath::threshhold_curve_distance) <= thresh);
       return *iter;
     }
   else
@@ -1753,24 +1760,27 @@ tessellation(float thresh) const
       ref = d->m_tessellation.back();
       params
         .max_segments(2 * ref->max_segments())
-        .curve_distance_tessellate(ref->effective_curve_distance_threshhold());
+        .curve_distance_tessellate(ref->effective_threshhold(TessellatedPath::threshhold_curve_distance));
 
       while(!d->m_tessellation_done
-            && ref->effective_curve_distance_threshhold() > thresh)
+            && ref->effective_threshhold(TessellatedPath::threshhold_curve_distance) > thresh)
         {
           float last_tess;
 
           params.m_threshhold *= 0.5f;
-          last_tess = ref->effective_curve_distance_threshhold();
+          last_tess = ref->effective_threshhold(TessellatedPath::threshhold_curve_distance);
           ref = FASTUIDRAWnew TessellatedPath(*this, params);
-          d->m_tessellation_done = (last_tess <= ref->effective_curve_distance_threshhold());
+          d->m_tessellation_done =
+            (last_tess <= ref->effective_threshhold(TessellatedPath::threshhold_curve_distance));
 
-          while(!d->m_tessellation_done && ref->effective_curve_distance_threshhold() > params.m_threshhold)
+          while(!d->m_tessellation_done
+                && ref->effective_threshhold(TessellatedPath::threshhold_curve_distance) > params.m_threshhold)
             {
               params.m_max_segments *= 2;
-              last_tess = ref->effective_curve_distance_threshhold();
+              last_tess = ref->effective_threshhold(TessellatedPath::threshhold_curve_distance);
               ref = FASTUIDRAWnew TessellatedPath(*this, params);
-              d->m_tessellation_done = (last_tess <= ref->effective_curve_distance_threshhold());
+              d->m_tessellation_done =
+                (last_tess <= ref->effective_threshhold(TessellatedPath::threshhold_curve_distance));
             }
 
           if (d->m_tessellation_done)

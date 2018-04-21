@@ -676,13 +676,6 @@ public:
   ~StrokedPath();
 
   /*!
-    Returns TessellatedPath::effective_curve_distance_threshhold()
-    of the TessellatedPath that generated this StrokedPath.
-   */
-  float
-  effective_curve_distance_threshhold(void) const;
-
-  /*!
     Given a set of clip equations in clip coordinates
     and a tranformation from local coordiante to clip
     coordinates, compute what chunks are not completely

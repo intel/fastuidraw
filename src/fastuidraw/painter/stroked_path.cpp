@@ -1410,7 +1410,6 @@ namespace
     std::vector<ThreshWithData> m_rounded_caps;
 
     bool m_empty_path;
-    float m_effective_curve_distance_threshhold;
     fastuidraw::PainterAttributeData m_empty_data;
   };
 
@@ -3878,7 +3877,6 @@ StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
     {
       m_empty_path = false;
       create_edges(P);
-      m_effective_curve_distance_threshhold = P.effective_curve_distance_threshhold();
     }
   else
     {
@@ -3889,7 +3887,6 @@ StrokedPathPrivate(const fastuidraw::TessellatedPath &P):
       m_miter_bevel_joins.mark_as_empty();
       m_square_caps.mark_as_empty();
       m_adjustable_caps.mark_as_empty();
-      m_effective_curve_distance_threshhold = 0.0f;
       std::fill(m_chunk_of_joins.begin(), m_chunk_of_joins.end(), 0);
       std::fill(m_chunk_of_edges.begin(), m_chunk_of_edges.end(), 0);
       m_chunk_of_caps = 0;
@@ -4286,15 +4283,6 @@ fastuidraw::StrokedPath::
   d = static_cast<StrokedPathPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = nullptr;
-}
-
-float
-fastuidraw::StrokedPath::
-effective_curve_distance_threshhold(void) const
-{
-  StrokedPathPrivate *d;
-  d = static_cast<StrokedPathPrivate*>(m_d);
-  return d->m_effective_curve_distance_threshhold;
 }
 
 void

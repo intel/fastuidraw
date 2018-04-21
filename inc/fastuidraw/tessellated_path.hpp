@@ -59,6 +59,34 @@ class TessellatedPath:
 public:
   /*!
     \brief
+    Enumeration to specify the type of threshhold
+    a \ref TessellationParams is.
+   */
+  enum threshhold_type_t
+    {
+      /*!
+        Threshhold specifies how much curvature is to be
+        between successive points of a tessellated edge.
+        This value is crudely estimated via Simpson's rule
+        applied to the curvature. A value of PI / N for a
+        circle represents tessellating the circle into N
+        points.
+       */
+      threshhold_curvature,
+
+      /*!
+         Threshhold specifies how much distance is between
+         line segment between from successive points of a
+         tessellated edge and the sub-curve of the starting
+         curve between those two points.
+       */
+      threshhold_curve_distance,
+
+      number_threshholds,
+    };
+
+  /*!
+    \brief
     A TessellationParams stores how finely to tessellate
     the curves of a path.
    */
@@ -69,7 +97,7 @@ public:
       Ctor, initializes values.
      */
     TessellationParams(void):
-      m_curvature_tessellation(true),
+      m_threshhold_type(threshhold_curvature),
       m_threshhold(float(M_PI)/30.0f),
       m_max_segments(32)
     {}
@@ -81,7 +109,7 @@ public:
     bool
     operator!=(const TessellationParams &rhs) const
     {
-      return m_curvature_tessellation != rhs.m_curvature_tessellation
+      return m_threshhold_type != rhs.m_threshhold_type
         || m_threshhold != rhs.m_threshhold
         || m_max_segments != rhs.m_max_segments;
     }
@@ -89,7 +117,7 @@ public:
     /*!
       Provided as a conveniance. Equivalent to
       \code
-      m_curvature_tessellation = true;
+      m_threshhold_type = threshhold_curvature;
       m_threshhold = p;
       \endcode
       \param p value to which to assign to \ref m_threshhold
@@ -97,7 +125,7 @@ public:
     TessellationParams&
     curvature_tessellate(float p)
     {
-      m_curvature_tessellation = true;
+      m_threshhold_type = threshhold_curvature;
       m_threshhold = p;
       return *this;
     }
@@ -105,7 +133,7 @@ public:
     /*!
       Provided as a conveniance. Equivalent to
       \code
-      m_curvature_tessellation = true;
+      m_threshhold_type = threshhold_curvature;
       m_threshhold = 2.0f * static_cast<float>(M_PI) / static_cast<float>(N);
       \endcode
       \param N number of points for goal to tessellate a circle to.
@@ -113,7 +141,7 @@ public:
     TessellationParams&
     curvature_tessellate_num_points_in_circle(unsigned int N)
     {
-      m_curvature_tessellation = true;
+      m_threshhold_type = threshhold_curvature;
       m_threshhold = 2.0f * static_cast<float>(M_PI) / static_cast<float>(N);
       return *this;
     }
@@ -121,7 +149,7 @@ public:
     /*!
       Provided as a conveniance. Equivalent to
       \code
-      m_curvature_tessellation = false;
+      m_threshhold_type = threshhold_curve_distance;
       m_threshhold = p;
       \endcode
       \param p value to which to assign to \ref m_threshhold
@@ -129,7 +157,7 @@ public:
     TessellationParams&
     curve_distance_tessellate(float p)
     {
-      m_curvature_tessellation = false;
+      m_threshhold_type = threshhold_curve_distance;
       m_threshhold = p;
       return *this;
     }
@@ -147,28 +175,20 @@ public:
 
     /*!
       Specifies the meaning of \ref m_threshhold.
+      Default value is \ref threshhold_curvature.
      */
-    bool m_curvature_tessellation;
+    enum threshhold_type_t m_threshhold_type;
 
     /*!
-      Meaning depends on \ref m_curvature_tessellation.
-       - If m_curvature_tessellation is true, then represents the
-         goal of how much curvature is to be between successive
-         points of a tessellated edge. This value is crudely
-         estimated via Simpson's rule. A value of PI / N for a circle
-         represents tessellating the circle into N points.
-       - If m_curvature_tessellation is false, then represents the
-         goal of the maximum allowed distance between the
-         line segment between from successive points of a
-         tessellated edge and the sub-curve of the starting
-         curve between those two points.
+      Meaning depends on \ref m_threshhold_type.
+      Default value is M_PI / 30.0.
      */
     float m_threshhold;
 
     /*!
       Maximum number of segments to tessellate each
       PathContour::interpolator_base from each
-      PathContour of a Path.
+      PathContour of a Path. Default value is 32.
      */
     unsigned int m_max_segments;
   };
@@ -244,18 +264,10 @@ public:
 
   /*!
     Returns the tessellation threshold achieved for
-    distance between curve and sub-edges.
+    the named threshhold type.
    */
   float
-  effective_curve_distance_threshhold(void) const;
-
-  /*!
-    Returns the tessellation threshold achieved for
-    the (approximated) curvature between successive
-    points of the tessellation.
-   */
-  float
-  effective_curvature_threshhold(void) const;
+  effective_threshhold(enum threshhold_type_t tp) const;
 
   /*!
     Returns the maximum number of segments any edge needed
