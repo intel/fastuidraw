@@ -93,7 +93,7 @@ namespace SubsetConstants
 /* Constants for CoordinateConverter.
    CoordinateConverter's purpose is to remap
    the bounding box of a fastuidraw::TessellatedPath
-   to [1, 2 ^ N] x [1,  2 ^ N]
+   to [1, 1 + 2 ^ N] x [1,  1 + 2 ^ N]
    and then apply a fudge offset to the point
    that an fp64 sees but an fp32 does not.
 
@@ -1897,10 +1897,8 @@ combine_callback(double x, double y, unsigned int data[4],
   p = static_cast<tesser*>(tess);
   for(unsigned int i = 0; i < 4; ++i)
     {
-      if (data[i] != FASTUIDRAW_GLU_nullptr_CLIENT_ID)
-        {
-          pt += weight[i] * p->m_points[data[i]];
-        }
+      FASTUIDRAWassert(data[i] != FASTUIDRAW_GLU_nullptr_CLIENT_ID);
+      pt += weight[i] * p->m_points[data[i]];
     }
   v = p->m_points.fetch_undiscretized(pt);
   *outData = v;
