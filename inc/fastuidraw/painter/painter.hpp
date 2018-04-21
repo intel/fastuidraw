@@ -429,7 +429,9 @@ namespace fastuidraw
       \param shader shader with which to stroke the attribute data
       \param draw data for how to draw
       \param path StrokedPath to stroke
-      \param thresh threshold value to feed the StrokingDataSelectorBase of the shader
+      \param rounded_thresh value to feed to \ref StrokedPath::rounded_joins()
+                            and/or \ref StrokedPath::rounded_caps() if rounded
+                            joins and/or rounded caps are requested
       \param close_contours if true, draw the closing edges (and joins) of each contour
                             of the path
       \param cp cap style
@@ -443,7 +445,7 @@ namespace fastuidraw
      */
     void
     stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
-                const StrokedPath &path, float thresh,
+                const StrokedPath &path, float rounded_thresh,
                 bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                 bool with_shader_based_anti_aliasing,
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
@@ -518,7 +520,9 @@ namespace fastuidraw
       \param shader shader with which to draw
       \param draw data for how to draw
       \param path StrokedPath to stroke
-      \param thresh threshold value to feed the StrokingDataSelectorBase of the shader
+      \param rounded_thresh value to feed to \ref StrokedPath::rounded_joins()
+                            and/or \ref StrokedPath::rounded_caps() if rounded
+                            joins and/or rounded caps are requested
       \param close_contours if true, draw the closing edges (and joins) of each contour
                             of the path
       \param cp cap style
@@ -532,7 +536,7 @@ namespace fastuidraw
      */
     void
     stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
-                       const StrokedPath &path, float thresh,
+                       const StrokedPath &path, float rounded_thresh,
                        bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                        bool with_shader_based_anti_aliasing,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
@@ -973,7 +977,7 @@ namespace fastuidraw
     void
     stroke_path_common(const PainterStrokeShader &shader, const PainterData &draw,
                        const DashEvaluatorBase *dash_evaluator,
-                       const StrokedPath &path, float thresh,
+                       const StrokedPath &path, float rounded_thresh,
                        bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                        bool with_anti_aliasing,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back);

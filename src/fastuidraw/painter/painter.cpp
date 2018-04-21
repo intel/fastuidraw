@@ -706,13 +706,22 @@ namespace
                                 const fastuidraw::vec2 &pmax);
 
     float
-    select_path_thresh(const fastuidraw::Path &path);
+    compute_path_magnification(const fastuidraw::Path &path);
 
     float
-    select_path_thresh_non_perspective(void);
+    compute_path_magnification_non_perspective(void);
 
     float
-    select_path_thresh_perspective(const fastuidraw::Path &path);
+    compute_path_magnification_perspective(const fastuidraw::Path &path);
+
+    const fastuidraw::StrokedPath*
+    select_stroked_path(const fastuidraw::Path &path,
+                        const fastuidraw::PainterStrokeShader &shader,
+                        const fastuidraw::PainterData &draw,
+                        float &out_thresh);
+
+    const fastuidraw::FilledPath&
+    select_filled_path(const fastuidraw::Path &path);
 
     fastuidraw::vec2 m_resolution;
     fastuidraw::vec2 m_one_pixel_width;
@@ -1084,7 +1093,7 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
 
 float
 PainterPrivate::
-select_path_thresh_non_perspective(void)
+compute_path_magnification_non_perspective(void)
 {
   float d;
   const fastuidraw::float3x3 &m(m_clip_rect_state.item_matrix());
@@ -1107,12 +1116,12 @@ select_path_thresh_non_perspective(void)
   d *= 0.25f * m_resolution.x() * m_resolution.y() / fastuidraw::t_abs(m(2, 2));
   d = fastuidraw::t_sqrt(d);
 
-  return m_curve_flatness / d;
+  return d;
 }
 
 float
 PainterPrivate::
-select_path_thresh_perspective(const fastuidraw::Path &path)
+compute_path_magnification_perspective(const fastuidraw::Path &path)
 {
   /* Clip the path bounding box against all the clip
      equations and compute the area of the polygon
@@ -1198,13 +1207,13 @@ select_path_thresh_perspective(const fastuidraw::Path &path)
     {
       return -1.0f;
     }
-  ratio = area_local_coords / area_pixel_coords;
-  return m_curve_flatness * fastuidraw::t_sqrt(ratio);
+  ratio = area_pixel_coords / area_local_coords;
+  return fastuidraw::t_sqrt(ratio);
 }
 
 float
 PainterPrivate::
-select_path_thresh(const fastuidraw::Path &path)
+compute_path_magnification(const fastuidraw::Path &path)
 {
   bool no_perspective;
   const fastuidraw::float3x3 &m(m_clip_rect_state.item_matrix());
@@ -1212,12 +1221,46 @@ select_path_thresh(const fastuidraw::Path &path)
   no_perspective = (m(2, 0) == 0.0f && m(2, 1) == 0.0f);
   if (no_perspective)
     {
-      return select_path_thresh_non_perspective();
+      return compute_path_magnification_non_perspective();
     }
   else
     {
-      return select_path_thresh_perspective(path);
+      return compute_path_magnification_perspective(path);
     }
+}
+
+const fastuidraw::StrokedPath*
+PainterPrivate::
+select_stroked_path(const fastuidraw::Path &path,
+                    const fastuidraw::PainterStrokeShader &shader,
+                    const fastuidraw::PainterData &draw,
+                    float &thresh)
+{
+  using namespace fastuidraw;
+  float mag;
+
+  mag = compute_path_magnification(path);
+  thresh = shader.stroking_data_selector()->compute_thresh(draw.m_item_shader_data.data().data_base(),
+                                                           mag, m_curve_flatness);
+  /* the tessellation in curvature does not really work, so we punt
+   * and use the curve-distance threshhold; however, as the stroke
+   * radius grows, this is not a good value either.
+   */
+  const TessellatedPath *tess;
+  tess = path.tessellation(m_curve_flatness / mag, TessellatedPath::threshhold_curve_distance).get();
+  return tess->stroked().get();
+}
+
+const fastuidraw::FilledPath&
+PainterPrivate::
+select_filled_path(const fastuidraw::Path &path)
+{
+  using namespace fastuidraw;
+  float mag, thresh;
+
+  mag = compute_path_magnification(path);
+  thresh = m_curve_flatness / mag;
+  return *path.tessellation(thresh, TessellatedPath::threshhold_curve_distance)->filled();
 }
 
 void
@@ -1705,16 +1748,19 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
 
   PainterData draw(pdraw);
 
-  /* if any of the data elements of draw are NOT packed state,
-     make them as packed state so that they are reused
-     to prevent filling up the data buffer with repeated
-     state data.
-   */
-  draw.make_packed(d->m_pool);
-
   modify_z = !with_anti_aliasing || shader.aa_type() == PainterStrokeShader::draws_solid_then_fuzz;
   modify_z_coeff = (with_anti_aliasing) ? 2 : 1;
   sh = (with_anti_aliasing) ? &shader.aa_shader_pass1(): &shader.non_aa_shader();
+
+  if (modify_z || with_anti_aliasing)
+    {
+      /* if any of the data elements of draw are NOT packed state,
+         make them as packed state so that they are reused
+         to prevent filling up the data buffer with repeated
+         state data.
+      */
+      draw.make_packed(d->m_pool);
+    }
 
   if (with_anti_aliasing)
     {
@@ -1731,7 +1777,9 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
     {
       d->draw_generic_z_layered(*sh, draw, z_increments, zinc_sum,
                                 attrib_chunks, index_chunks, index_adjusts,
-                                start_zs, d->m_current_z + zinc_sum, call_back);
+                                start_zs,
+                                d->m_current_z + (modify_z_coeff - 1) * zinc_sum,
+                                call_back);
     }
   else
     {
@@ -1789,24 +1837,16 @@ stroke_path_common(const PainterStrokeShader &shader, const PainterData &draw,
 
   const PainterAttributeData *edge_data(nullptr), *cap_data(nullptr), *join_data(nullptr);
   bool is_miter_join;
-  float rounded_thresh(1.0f);
   const PainterShaderData::DataBase *raw_data;
 
   raw_data = draw.m_item_shader_data.data().data_base();
-
-  if (js == PainterEnums::rounded_joins
-     || (cp == PainterEnums::rounded_caps && !close_contours))
-    {
-      rounded_thresh = shader.stroking_data_selector()->compute_rounded_thresh(raw_data, thresh, d->m_curve_flatness);
-    }
-
   edge_data = &path.edges();
   if (!close_contours)
     {
       switch(cp)
         {
         case PainterEnums::rounded_caps:
-          cap_data = &path.rounded_caps(rounded_thresh);
+          cap_data = &path.rounded_caps(thresh);
           break;
 
         case PainterEnums::square_caps:
@@ -1847,7 +1887,7 @@ stroke_path_common(const PainterStrokeShader &shader, const PainterData &draw,
 
     case PainterEnums::rounded_joins:
       is_miter_join = false;
-      join_data = &path.rounded_joins(rounded_thresh);
+      join_data = &path.rounded_joins(thresh);
       break;
 
     default:
@@ -1900,11 +1940,12 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw, const Pa
             const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
+  const StrokedPath *stroked_path;
   float thresh;
 
   d = static_cast<PainterPrivate*>(m_d);
-  thresh = d->select_path_thresh(path);
-  stroke_path(shader, draw, *path.tessellation(thresh)->stroked(), thresh,
+  stroked_path = d->select_stroked_path(path, shader, draw, thresh);
+  stroke_path(shader, draw, *stroked_path, thresh,
               close_contours, cp, js, with_anti_aliasing, call_back);
 }
 
@@ -1955,11 +1996,12 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
+  const StrokedPath *stroked_path;
   float thresh;
 
   d = static_cast<PainterPrivate*>(m_d);
-  thresh = d->select_path_thresh(path);
-  stroke_dashed_path(shader, draw, *path.tessellation(thresh)->stroked(), thresh,
+  stroked_path = d->select_stroked_path(path, shader.shader(cp), draw, thresh);
+  stroke_dashed_path(shader, draw, *stroked_path, thresh,
                      close_contours, cp, js, with_anti_aliasing, call_back);
 }
 
@@ -2078,12 +2120,10 @@ fill_path(const PainterFillShader &shader, const PainterData &draw,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
-  float thresh;
 
   d = static_cast<PainterPrivate*>(m_d);
-  thresh = d->select_path_thresh(path);
-  fill_path(shader, draw, *path.tessellation(thresh)->filled(), fill_rule,
-            with_anti_aliasing, call_back);
+  fill_path(shader, draw, d->select_filled_path(path),
+            fill_rule, with_anti_aliasing, call_back);
 }
 
 void
@@ -2219,12 +2259,10 @@ fill_path(const PainterFillShader &shader,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
-  float thresh;
 
   d = static_cast<PainterPrivate*>(m_d);
-  thresh = d->select_path_thresh(path);
-  fill_path(shader, draw, *path.tessellation(thresh)->filled(), fill_rule,
-            with_anti_aliasing, call_back);
+  fill_path(shader, draw, d->select_filled_path(path),
+            fill_rule, with_anti_aliasing, call_back);
 }
 
 void

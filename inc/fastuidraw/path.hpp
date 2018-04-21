@@ -101,27 +101,24 @@ public:
       To be implemented by a derived class to produce the tessellation
       from start_pt() to end_pt(). The routine must include BOTH start_pt()
       and end_pt() in the result. Only the fields TessellatedPath::point::m_p,
-      TessellatedPath::point::m_p_t, TessellatedPath::point::m_distance_from_edge_start
-      are to be filled; the other fields of TessellatedPath::point are
-      filled by TessellatedPath using the named fields. In addition to
-      filling the output array, the function shall return the number of
-      points needed to perform the required tessellation.
+      TessellatedPath::point::m_p_t and
+      TessellatedPath::point::m_distance_from_edge_start are to be filled;
+      the other fields of TessellatedPath::point are filled by TessellatedPath.
+      In addition to filling the output array, the function shall return the
+      number of points needed to perform the required tessellation.
 
       \param tess_params tessellation parameters
       \param out_data location to which to write the edge tessellated
-      \param out_effective_curve_distance (output) location to which to write the
-                                                   largest distance between sub-edges
-                                                   and the actual curve.
-      \param out_effective_curvature (output) location to which to write the largest
-                                              cumalative curvature of a sub-edge of
-                                              the created tessellation.
+      \param out_threshholds location to which to write the threshholds
+                             the tessellation achieved; array is indexed
+                             by \ref TessellatedPath::threshhold_type_t.
+                             An implementation MUST write to EACH entry.
      */
     virtual
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          c_array<TessellatedPath::point> out_data,
-                         float *out_effective_curve_distance,
-                         float *out_effective_curvature) const = 0;
+                         c_array<float> out_threshholds) const = 0;
 
     /*!
       To be implemented by a derived class to return a fast (and approximate)
@@ -174,8 +171,7 @@ public:
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          c_array<TessellatedPath::point> out_data,
-                         float *out_effective_curve_distance,
-                         float *out_effective_curvature) const;
+                         c_array<float> out_threshholds) const;
     virtual
     void
     approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
@@ -221,8 +217,7 @@ public:
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          c_array<TessellatedPath::point> out_data,
-                         float *out_effective_curve_distance,
-                         float *out_effective_curvature) const;
+                         c_array<float> out_threshholds) const;
 
     /*!
       To be implemented by a derived class to compute datum of the curve
@@ -242,7 +237,8 @@ public:
 
     /*!
       To be implemented by a derived to assist in recursive tessellation.
-      \param in_region region to divide in half
+      \param in_region region to divide in half, a nullptr value indicates
+                       that the region is the entire interpolator.
       \param out_regionA location to which to write the first half
       \param out_regionB location to which to write the second half
       \param out_t location to which to write the time (parameter) for
@@ -253,16 +249,30 @@ public:
                      at the middle of in_region
       \param out_p_tt location to which to write the second derivative at the
                       curve at the middle of in_region
-      \param out_effective_curve_distance location to which to write the distance
-                                          between the actual curve and the line segment
-                                          represented by in_region
+      \param out_threshholds location to which to write the threshholds
+                             the tessellation achieved; array is indexed
+                             by \ref TessellatedPath::threshhold_type_t.
+                             An implementation MUST write to the index
+                             \ref TessellatedPath::threshhold_curvature.
+                             For all other values, if a value is negative,
+                             FastUIDraw will use the data from out_data
+                             to estimate the threshhold achieved.
      */
     virtual
     void
     tessellate(tessellated_region *in_region,
                tessellated_region **out_regionA, tessellated_region **out_regionB,
                float *out_t, vec2 *out_p, vec2 *out_p_t, vec2 *out_p_tt,
-               float *out_effective_curve_distance) const = 0;
+               c_array<float> out_threshholds) const = 0;
+
+    /*!
+      Returns the minimum number of times the curve should
+      be tessellated in halves to capture sufficient geometric
+      data of the interpolator.
+     */
+    virtual
+    int
+    minimum_number_divides(void) const = 0;
   };
 
   /*!
@@ -317,7 +327,11 @@ public:
     tessellate(tessellated_region *in_region,
                tessellated_region **out_regionA, tessellated_region **out_regionB,
                float *out_t, vec2 *out_p, vec2 *out_p_t, vec2 *out_p_tt,
-               float *out_effective_curve_distance) const;
+               c_array<float> out_threshholds) const;
+
+    virtual
+    int
+    minimum_number_divides(void) const;
 
     virtual
     void
@@ -373,8 +387,7 @@ public:
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          c_array<TessellatedPath::point> out_data,
-                         float *out_effective_curve_distance,
-                         float *out_effective_curvature) const;
+                         c_array<float> out_threshholds) const;
 
   private:
     arc(const arc &q, const reference_counted_ptr<const interpolator_base> &prev);
@@ -552,7 +565,7 @@ public:
   public:
     /*!
       Ctor
-      \param pt value to which to set m_location
+      \param pt value to which to set \ref m_location
      */
     explicit
     control_point(const vec2 &pt):
@@ -917,14 +930,16 @@ public:
     then a new TessellatedPath will be contructed on the
     next call to tessellation().
     \param thresh the returned tessellated path will be so that
-                  TessellatedPath::effective_curve_distance_threshhold()
+                  TessellatedPath::curve_distance_threshhold(type)
                   is no more than thresh. A non-positive value
                   will return the starting point tessellation that
                   is created with default values of
                   TessellatedPath::TessellationParams.
+    \param tp the type of threshhold to use for the tessellation requirement.
    */
   const reference_counted_ptr<const TessellatedPath>&
-  tessellation(float thresh) const;
+  tessellation(float thresh,
+               enum TessellatedPath::threshhold_type_t tp = TessellatedPath::threshhold_curve_distance) const;
 
   /*!
     Return the tessellation of this Path tessellated with the

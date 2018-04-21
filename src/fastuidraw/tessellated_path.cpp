@@ -74,23 +74,22 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
           for(unsigned int e = 0, ende = contour->number_points(); e < ende; ++e)
             {
               unsigned int needed;
-              float thresh_dist(0.0f), thresh_curvature(0.0f);
+              vecN<float, TessellatedPath::number_threshholds> tmp;
 
               work_room.resize(m_params.m_max_segments + 1);
               temp.push_back(std::vector<TessellatedPath::point>());
               needed = contour->interpolator(e)->produce_tessellation(m_params,
                                                                       make_c_array(work_room),
-                                                                      &thresh_dist,
-                                                                      &thresh_curvature);
+                                                                      tmp);
               m_edge_ranges[o][e] = range_type<unsigned int>(loc, loc + needed);
               loc += needed;
 
               FASTUIDRAWassert(needed > 0u);
               m_max_segments = t_max(m_max_segments, needed - 1);
-              m_effective_threshholds[TessellatedPath::threshhold_curve_distance]
-                = t_max(m_effective_threshholds[TessellatedPath::threshhold_curve_distance], thresh_dist);
-              m_effective_threshholds[TessellatedPath::threshhold_curvature]
-                = t_max(m_effective_threshholds[TessellatedPath::threshhold_curvature], thresh_curvature);
+              for (unsigned int i = 0; i < TessellatedPath::number_threshholds; ++i)
+                {
+                  m_effective_threshholds[i] = t_max(m_effective_threshholds[i], tmp[i]);
+                }
 
               work_room.resize(needed);
               for(unsigned int n = 0; n < work_room.size(); ++n)

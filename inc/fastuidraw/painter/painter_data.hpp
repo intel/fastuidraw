@@ -72,9 +72,9 @@ namespace fastuidraw
       PainterPackedValue<T> m_packed_value;
 
       /*!
-        If m_packed_value is non-nullptr, returns the value behind it
-        (i.e. PainterPackedValue<T>::value()), otherwise returns
-        the dereference of \ref m_value.
+        If \ref m_packed_value is non-nullptr, returns the value
+        behind it (i.e. PainterPackedValue<T>::value()), otherwise
+        returns the dereference of \ref m_value.
        */
       const T&
       data(void) const

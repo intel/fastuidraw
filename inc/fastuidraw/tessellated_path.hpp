@@ -117,6 +117,34 @@ public:
     /*!
       Provided as a conveniance. Equivalent to
       \code
+      m_threshhold_type = tp;
+      \endcode
+      \param tp value to which to assign to \ref m_threshhold_type
+     */
+    TessellationParams&
+    threshhold_type(enum threshhold_type_t tp)
+    {
+      m_threshhold_type = tp;
+      return *this;
+    }
+
+    /*!
+      Provided as a conveniance. Equivalent to
+      \code
+      m_threshhold_type = tp;
+      \endcode
+      \param p value to which to assign to \ref m_threshhold
+     */
+    TessellationParams&
+    threshhold(float p)
+    {
+      m_threshhold = p;
+      return *this;
+    }
+
+    /*!
+      Provided as a conveniance. Equivalent to
+      \code
       m_threshhold_type = threshhold_curvature;
       m_threshhold = p;
       \endcode

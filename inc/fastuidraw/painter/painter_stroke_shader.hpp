@@ -47,22 +47,24 @@ namespace fastuidraw
   {
   public:
     /*!
-      To be implemented by a derived class to compute the
-      the value for thresh to feed to StrokedPath::rounded_joins(float)
-      and StrokedPath::rounded_caps(float) to get a good
-      level of detail to draw rounded joins or caps.
+      To be implemented by a derived class to compute the curvature
+      threshhold (see \ref TessellatedPath::threshhold_curvature)
+      to be used to select what \ref TessellatedPath to use to stroke
+      a \ref StrokedPath. This value is also used to select rounded
+      join level of detail (\ref StrokedPath::rounded_joins()) and
+      roudned cap level of detail (\ref StrokedPath::rounded_caps()).
       \param data PainterItemShaderData::DataBase object holding
                   the data to be sent to the shader
-      \param thresh threshhold used to select the StrokedPath
-      \param curve_flatness curve flatness theshhold for rendering
-                            the rounded joins. Note that thresh is
-                            partially derived from curve_flatness.
+      \param path_magnification by how much the path is magnified
+                                from its native coordiantes to pixel
+                                coordinates.
+      \param curve_flatness curve flatness
      */
     virtual
     float
-    compute_rounded_thresh(const PainterShaderData::DataBase *data,
-                           float thresh,
-                           float curve_flatness) const = 0;
+    compute_thresh(const PainterShaderData::DataBase *data,
+                   float path_magnification,
+                   float curve_flatness) const = 0;
 
     /*!
       To be implemented by a derived class to give by how
