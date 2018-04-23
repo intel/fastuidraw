@@ -85,22 +85,22 @@ namespace
           fastuidraw::FilledPath::Subset subset(filled_path.subset(s));
           int m, M;
 
-	  if (!subset.winding_numbers().empty())
-	    {
-	      m = subset.winding_numbers().front();
-	      M = subset.winding_numbers().back();
-	      if (first_entry)
-		{
-		  min_winding = m;
-		  max_winding = M;
-		  first_entry = false;
-		}
-	      else
-		{
-		  min_winding = fastuidraw::t_min(min_winding, m);
-		  max_winding = fastuidraw::t_max(max_winding, M);
-		}
-	    }
+          if (!subset.winding_numbers().empty())
+            {
+              m = subset.winding_numbers().front();
+              M = subset.winding_numbers().back();
+              if (first_entry)
+                {
+                  min_winding = m;
+                  max_winding = M;
+                  first_entry = false;
+                }
+              else
+                {
+                  min_winding = fastuidraw::t_min(min_winding, m);
+                  max_winding = fastuidraw::t_max(max_winding, M);
+                }
+            }
         }
       set(min_winding, max_winding, fill_rule);
     }
@@ -1237,17 +1237,14 @@ select_stroked_path(const fastuidraw::Path &path,
                     float &thresh)
 {
   using namespace fastuidraw;
-  float mag;
+  float mag, t;
 
   mag = compute_path_magnification(path);
   thresh = shader.stroking_data_selector()->compute_thresh(draw.m_item_shader_data.data().data_base(),
                                                            mag, m_curve_flatness);
-  /* the tessellation in curvature does not really work, so we punt
-   * and use the curve-distance threshhold; however, as the stroke
-   * radius grows, this is not a good value either.
-   */
+  t = fastuidraw::t_min(thresh, m_curve_flatness / mag);
   const TessellatedPath *tess;
-  tess = path.tessellation(m_curve_flatness / mag, TessellatedPath::threshhold_curve_distance).get();
+  tess = path.tessellation(t, TessellatedPath::threshhold_curve_distance).get();
   return tess->stroked().get();
 }
 
@@ -1553,42 +1550,42 @@ draw_convex_polygon(const PainterFillShader &shader,
       c_array<PainterIndex> indices(make_c_array(d->m_work_room.m_polygon_indices));
 
       for(unsigned int src = 0, prev_src = pts.size() - 1; src < pts.size(); prev_src = src, ++src)
-	{
-	  c_array<PainterAttribute> dst_attrib(attrs.sub_array(src * 4, 4));
-	  c_array<PainterIndex> dst_index(indices.sub_array(src * 6, 6));
-	  vec2 t(pts[src] - pts[prev_src]);
-	  vec2 n(-t.y(), t.x());
+        {
+          c_array<PainterAttribute> dst_attrib(attrs.sub_array(src * 4, 4));
+          c_array<PainterIndex> dst_index(indices.sub_array(src * 6, 6));
+          vec2 t(pts[src] - pts[prev_src]);
+          vec2 n(-t.y(), t.x());
 
-	  dst_index[0] = 4 * src + 0;
-	  dst_index[1] = 4 * src + 1;
-	  dst_index[2] = 4 * src + 2;
-	  dst_index[3] = 4 * src + 1;
-	  dst_index[4] = 4 * src + 3;
-	  dst_index[5] = 4 * src + 2;
+          dst_index[0] = 4 * src + 0;
+          dst_index[1] = 4 * src + 1;
+          dst_index[2] = 4 * src + 2;
+          dst_index[3] = 4 * src + 1;
+          dst_index[4] = 4 * src + 3;
+          dst_index[5] = 4 * src + 2;
 
-	  for(unsigned int k = 0; k < 2; ++k)
-	    {
-	      unsigned int which_pt;
+          for(unsigned int k = 0; k < 2; ++k)
+            {
+              unsigned int which_pt;
 
-	      which_pt = (k == 0) ? prev_src : src;
-	      dst_attrib[2 * k + 0].m_attrib0 = pack_vec4(pts[which_pt].x(), pts[which_pt].y(), n.x(), n.y());
-	      dst_attrib[2 * k + 0].m_attrib1 = pack_vec4(1.0f, 0.0f, 0.0f, 0.0f);
-	      dst_attrib[2 * k + 0].m_attrib2 = uvec4(0, 0, 0, 0);
+              which_pt = (k == 0) ? prev_src : src;
+              dst_attrib[2 * k + 0].m_attrib0 = pack_vec4(pts[which_pt].x(), pts[which_pt].y(), n.x(), n.y());
+              dst_attrib[2 * k + 0].m_attrib1 = pack_vec4(1.0f, 0.0f, 0.0f, 0.0f);
+              dst_attrib[2 * k + 0].m_attrib2 = uvec4(0, 0, 0, 0);
 
-	      dst_attrib[2 * k + 1].m_attrib0 = pack_vec4(pts[which_pt].x(), pts[which_pt].y(), -n.x(), -n.y());
-	      dst_attrib[2 * k + 1].m_attrib1 = pack_vec4(-1.0f, 0.0f, 0.0f, 0.0f);
-	      dst_attrib[2 * k + 1].m_attrib2 = uvec4(0, 0, 0, 0);
-	    }
-	}
+              dst_attrib[2 * k + 1].m_attrib0 = pack_vec4(pts[which_pt].x(), pts[which_pt].y(), -n.x(), -n.y());
+              dst_attrib[2 * k + 1].m_attrib1 = pack_vec4(-1.0f, 0.0f, 0.0f, 0.0f);
+              dst_attrib[2 * k + 1].m_attrib2 = uvec4(0, 0, 0, 0);
+            }
+        }
 
       --d->m_current_z;
       d->draw_generic(shader.aa_fuzz_shader(), draw,
-		      vecN<c_array<const PainterAttribute>, 1>(attrs),
-		      vecN<c_array<const PainterIndex>, 1>(indices),
-		      vecN<int, 1>(0),
-		      c_array<const unsigned int>(),
-		      d->m_current_z,
-		      call_back);
+                      vecN<c_array<const PainterAttribute>, 1>(attrs),
+                      vecN<c_array<const PainterIndex>, 1>(indices),
+                      vecN<int, 1>(0),
+                      c_array<const unsigned int>(),
+                      d->m_current_z,
+                      call_back);
       ++d->m_current_z;
     }
 }

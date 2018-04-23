@@ -40,12 +40,15 @@ namespace
             enum fastuidraw::StrokedPath::point::offset_type_t pt,
             uint32_t depth)
   {
+    using namespace fastuidraw;
     FASTUIDRAWassert(on_boundary == 0 || on_boundary == 1);
 
     uint32_t bb(on_boundary), pp(pt);
-    return fastuidraw::pack_bits(fastuidraw::StrokedPath::point::offset_type_bit0, fastuidraw::StrokedPath::point::offset_type_num_bits, pp)
-      | fastuidraw::pack_bits(fastuidraw::StrokedPath::point::boundary_bit, 1u, bb)
-      | fastuidraw::pack_bits(fastuidraw::StrokedPath::point::depth_bit0, fastuidraw::StrokedPath::point::depth_num_bits, depth);
+    return pack_bits(StrokedPath::point::offset_type_bit0,
+                     StrokedPath::point::offset_type_num_bits, pp)
+      | pack_bits(StrokedPath::point::boundary_bit, 1u, bb)
+      | pack_bits(StrokedPath::point::depth_bit0,
+                  StrokedPath::point::depth_num_bits, depth);
   }
 
   inline
@@ -1602,15 +1605,6 @@ process_edge(const fastuidraw::TessellatedPath &P, ContourData &path_data,
         {
           normal = fastuidraw::vec2(-delta.y(), delta.x()) / delta_magnitude;
         }
-      else
-        {
-          delta_magnitude = 0.0;
-          if (src_pts[i].m_p_t.magnitudeSq() >= sm_mag_tol * sm_mag_tol)
-            {
-              normal = fastuidraw::vec2(-src_pts[i].m_p_t.y(), src_pts[i].m_p_t.x());
-              normal.normalize();
-            }
-        }
 
       if (i == R.m_begin)
         {
@@ -1646,8 +1640,6 @@ process_edge(const fastuidraw::TessellatedPath &P, ContourData &path_data,
 
   if (R.m_begin + 1 >= R.m_end)
     {
-      normal = fastuidraw::vec2(-src_pts[R.m_begin].m_p_t.y(), src_pts[R.m_begin].m_p_t.x());
-      normal.normalize();
       path_data.m_per_contour_data[contour].write_edge_data(edge).m_begin_normal = normal;
       path_data.m_per_contour_data[contour].write_edge_data(edge).m_start_pt = src_pts[R.m_begin];
       if (edge == 0)

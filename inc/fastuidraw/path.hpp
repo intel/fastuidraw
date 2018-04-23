@@ -101,8 +101,7 @@ public:
       To be implemented by a derived class to produce the tessellation
       from start_pt() to end_pt(). The routine must include BOTH start_pt()
       and end_pt() in the result. Only the fields TessellatedPath::point::m_p,
-      TessellatedPath::point::m_p_t and
-      TessellatedPath::point::m_distance_from_edge_start are to be filled;
+      and TessellatedPath::point::m_distance_from_edge_start are to be filled;
       the other fields of TessellatedPath::point are filled by TessellatedPath.
       In addition to filling the output array, the function shall return the
       number of points needed to perform the required tessellation.
@@ -220,22 +219,6 @@ public:
                          c_array<float> out_threshholds) const;
 
     /*!
-      To be implemented by a derived class to compute datum of the curve
-      at a time t (0 <= t <= 1). This is used to tessellate according to
-      curvature.
-      \param in_t (input) argument fed to parameterization of which this
-                  interpolator_base represents with in_t = 0.0
-                  indicating the start of the curve and in_t = 1.0
-                  the end of the curve
-      \param outp (output) if non-nullptr, location to which to write the position value
-      \param outp_t (output) if non-nullptr, location to which to write the first derivative value
-      \param outp_tt (output) if non-nullptr, location to which to write the second derivative value
-     */
-    virtual
-    void
-    compute(float in_t, vec2 *outp, vec2 *outp_t, vec2 *outp_tt) const = 0;
-
-    /*!
       To be implemented by a derived to assist in recursive tessellation.
       \param in_region region to divide in half, a nullptr value indicates
                        that the region is the entire interpolator.
@@ -245,10 +228,6 @@ public:
                    in the middle of in_region
       \param out_p location to which to write the position of the point
                    on the curve in the middle of in_region
-      \param out_p_t location to which to write the derivative at the curve
-                     at the middle of in_region
-      \param out_p_tt location to which to write the second derivative at the
-                      curve at the middle of in_region
       \param out_threshholds location to which to write the threshholds
                              the tessellation achieved; array is indexed
                              by \ref TessellatedPath::threshhold_type_t.
@@ -262,7 +241,7 @@ public:
     void
     tessellate(tessellated_region *in_region,
                tessellated_region **out_regionA, tessellated_region **out_regionB,
-               float *out_t, vec2 *out_p, vec2 *out_p_t, vec2 *out_p_tt,
+               float *out_t, vec2 *out_p,
                c_array<float> out_threshholds) const = 0;
 
     /*!
@@ -320,13 +299,9 @@ public:
 
     virtual
     void
-    compute(float in_t, vec2 *outp, vec2 *outp_t, vec2 *outp_tt) const;
-
-    virtual
-    void
     tessellate(tessellated_region *in_region,
                tessellated_region **out_regionA, tessellated_region **out_regionB,
-               float *out_t, vec2 *out_p, vec2 *out_p_t, vec2 *out_p_tt,
+               float *out_t, vec2 *out_p,
                c_array<float> out_threshholds) const;
 
     virtual

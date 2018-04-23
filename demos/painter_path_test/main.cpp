@@ -1165,7 +1165,6 @@ create_stroked_path_attributes(void)
                 {
                   std::cout << "\t\t\tPoint #" << i << ":\n"
                             << "\t\t\t\tp          = " << pts[i].m_p << "\n"
-                            << "\t\t\t\tp_t        = " << pts[i].m_p_t << "\n"
                             << "\t\t\t\tedge_d     = " << pts[i].m_distance_from_edge_start << "\n"
                             << "\t\t\t\tcontour_d  = " << pts[i].m_distance_from_contour_start << "\n"
                             << "\t\t\t\tedge_l     = " << pts[i].m_edge_length << "\n"

@@ -65,16 +65,6 @@ public:
   enum threshhold_type_t
     {
       /*!
-        Threshhold specifies how much curvature is to be
-        between successive points of a tessellated edge.
-        This value is crudely estimated via Simpson's rule
-        applied to the curvature. A value of PI / N for a
-        circle represents tessellating the circle into N
-        points.
-       */
-      threshhold_curvature,
-
-      /*!
          Threshhold specifies how much distance is between
          line segment between from successive points of a
          tessellated edge and the sub-curve of the starting
@@ -97,8 +87,8 @@ public:
       Ctor, initializes values.
      */
     TessellationParams(void):
-      m_threshhold_type(threshhold_curvature),
-      m_threshhold(float(M_PI)/30.0f),
+      m_threshhold_type(threshhold_curve_distance),
+      m_threshhold(1.0f),
       m_max_segments(32)
     {}
 
@@ -139,38 +129,6 @@ public:
     threshhold(float p)
     {
       m_threshhold = p;
-      return *this;
-    }
-
-    /*!
-      Provided as a conveniance. Equivalent to
-      \code
-      m_threshhold_type = threshhold_curvature;
-      m_threshhold = p;
-      \endcode
-      \param p value to which to assign to \ref m_threshhold
-     */
-    TessellationParams&
-    curvature_tessellate(float p)
-    {
-      m_threshhold_type = threshhold_curvature;
-      m_threshhold = p;
-      return *this;
-    }
-
-    /*!
-      Provided as a conveniance. Equivalent to
-      \code
-      m_threshhold_type = threshhold_curvature;
-      m_threshhold = 2.0f * static_cast<float>(M_PI) / static_cast<float>(N);
-      \endcode
-      \param N number of points for goal to tessellate a circle to.
-     */
-    TessellationParams&
-    curvature_tessellate_num_points_in_circle(unsigned int N)
-    {
-      m_threshhold_type = threshhold_curvature;
-      m_threshhold = 2.0f * static_cast<float>(M_PI) / static_cast<float>(N);
       return *this;
     }
 
@@ -232,11 +190,6 @@ public:
       The position of the point.
      */
     vec2 m_p;
-
-    /*!
-      The derivative of the curve at the point.
-     */
-    vec2 m_p_t;
 
     /*!
       Gives the distance of the point from the start

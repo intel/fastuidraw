@@ -25,19 +25,11 @@ fastuidraw::detail::
 number_segments_for_tessellation(float radius, float arc_angle,
                                  const TessellatedPath::TessellationParams &P)
 {
-  float needed_sizef, theta;
+  float d, needed_sizef, theta;
   unsigned int needed_size;
 
-  if (P.m_threshhold_type == TessellatedPath::threshhold_curvature)
-    {
-      theta = P.m_threshhold;
-    }
-  else
-    {
-      float d;
-      d = t_max(1.0f - P.m_threshhold / radius, 0.5f);
-      theta = t_max(0.00001f, 0.5f * std::acos(d));
-    }
+  d = t_max(1.0f - P.m_threshhold / radius, 0.5f);
+  theta = t_max(0.00001f, 0.5f * std::acos(d));
   needed_sizef = t_abs(arc_angle) / theta;
 
   /* we ask for one more than necessary, to ensure that we BEAT
