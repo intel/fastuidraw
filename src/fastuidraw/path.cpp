@@ -20,7 +20,6 @@
 #include <algorithm>
 #include <cmath>
 #include <vector>
-#include <iostream>
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/tessellated_path.hpp>
 #include "private/util_private.hpp"
@@ -1468,15 +1467,6 @@ add_tess(const tessellated_path_ref &tess)
       || m_tesses.back()->effective_threshhold(m_type) > tess->effective_threshhold(m_type))
     {
       m_tesses.push_back(tess);
-      std::cout << "Add to " << m_type << ":[" << m_type << "]: "
-                << tess->effective_threshhold(m_type)
-                << "\n";
-    }
-  else
-    {
-      std::cout << "Reject to " << m_type << ":[" << m_type << "]: "
-                << tess->effective_threshhold(m_type)
-                << "\n";
     }
 }
 
@@ -1484,9 +1474,28 @@ const TessellatedPathList::tessellated_path_ref&
 TessellatedPathList::
 tessellation(PathPrivate &path, float thresh)
 {
+  using namespace fastuidraw;
+
   if (m_tesses.empty())
     {
       TessellatedPath::TessellationParams params;
+      vec2 bb_min, bb_max, bb_size;
+
+      /* always prefer to use distance threshholds over
+       * curvature; use the size of the bounding box times
+       * 1/500 as teh default tessellation factor.
+       */
+      if (path.m_p->approximate_bounding_box(&bb_min, &bb_max))
+        {
+          vec2 bb_size;
+          float d;
+          bb_size = bb_max - bb_min;
+          d = t_max(bb_size.x(), bb_size.y());
+          if (d > 0.0f)
+            {
+              params.curve_distance_tessellate(d / 500.0f);
+            }
+        }
       path.add_tess(FASTUIDRAWnew TessellatedPath(*path.m_p, params));
     }
 
@@ -1543,12 +1552,14 @@ tessellation(PathPrivate &path, float thresh)
             {
               m_done = true;
 
+              /*
               std::cout << "Tapped out on type = "
                         << m_type << " (max_segs = "
                         << ref->max_segments() << ", tess_factor = "
                         << ref->effective_threshhold(m_type)
                         << ", num_points = " << ref->point_data().size()
                         << ")\n";
+              */
             }
         }
     }

@@ -932,9 +932,7 @@ public:
     \param thresh the returned tessellated path will be so that
                   TessellatedPath::curve_distance_threshhold(type)
                   is no more than thresh. A non-positive value
-                  will return the starting point tessellation that
-                  is created with default values of
-                  TessellatedPath::TessellationParams.
+                  will return the starting point tessellation.
     \param tp the type of threshhold to use for the tessellation requirement.
    */
   const reference_counted_ptr<const TessellatedPath>&
@@ -942,11 +940,11 @@ public:
                enum TessellatedPath::threshhold_type_t tp = TessellatedPath::threshhold_curve_distance) const;
 
   /*!
-    Return the tessellation of this Path tessellated with the
-    default values of TessellatedPath::TessellationParams.
-    The TessellatedPath is constructed lazily. Additionally,
-    If this Path changes its geometry, then a new TessellatedPath
-    will be contructed on the next call to tessellation().
+    Provided as a conveniance, returns the starting point tessellation.
+    Equivalent to
+    \code
+    tessellation(-1.0f)
+    \endcode
    */
   const reference_counted_ptr<const TessellatedPath>&
   tessellation(void) const;
