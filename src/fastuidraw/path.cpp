@@ -1645,7 +1645,14 @@ void
 fastuidraw::Path::
 swap(Path &obj)
 {
+  PathPrivate *obj_d, *d;
+
   std::swap(obj.m_d, m_d);
+  d = static_cast<PathPrivate*>(m_d);
+  obj_d = static_cast<PathPrivate*>(obj.m_d);
+
+  d->m_p = this;
+  obj_d->m_p = &obj;
 }
 
 const fastuidraw::Path&
