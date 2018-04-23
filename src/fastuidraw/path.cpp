@@ -27,40 +27,6 @@
 
 namespace
 {
-  class poly
-  {
-  public:
-
-    static
-    void
-    compute_bernstein_derivative(const std::vector<fastuidraw::vec2> &input,
-                                 std::vector<fastuidraw::vec2> &output);
-
-    static
-    fastuidraw::vec2
-    compute_poly(float t, fastuidraw::c_array<const fastuidraw::vec2> poly);
-  };
-
-
-  class binomial_coeff
-  {
-  public:
-    explicit
-    binomial_coeff(unsigned int N);
-
-    void
-    prepare_bernstein(std::vector<fastuidraw::vec2> &victim) const;
-
-    float
-    operator[](unsigned int k) const
-    {
-      return m_values.back()[k];
-    }
-
-  private:
-    std::vector< std::vector<float> > m_values;
-  };
-
   class analytic_point_data:public fastuidraw::TessellatedPath::point
   {
   public:
@@ -101,8 +67,7 @@ namespace
       m_h(h),
       m_thresh(tess_params),
       m_max_recursion(fastuidraw::uint32_log2(tess_params.m_max_segments)),
-      m_max_size(tess_params.m_max_segments + 1),
-      m_minimum_number_divides(m_h->minimum_number_divides())
+      m_max_size(tess_params.m_max_segments + 1)
     {
     }
 
@@ -129,8 +94,7 @@ namespace
     tessellation_satsified(unsigned int recurse_level,
                            fastuidraw::c_array<const float> threshholds)
     {
-      return (m_minimum_number_divides < recurse_level)
-        && (threshholds[m_thresh.m_threshhold_type] < m_thresh.m_threshhold);
+      return (threshholds[m_thresh.m_threshhold_type] < m_thresh.m_threshhold);
     }
 
     void
@@ -141,7 +105,7 @@ namespace
 
     const fastuidraw::PathContour::interpolator_generic *m_h;
     fastuidraw::TessellatedPath::TessellationParams m_thresh;
-    unsigned int m_max_recursion, m_max_size, m_minimum_number_divides;
+    unsigned int m_max_recursion, m_max_size;
     std::vector<analytic_point_data> m_data;
   };
 
@@ -214,11 +178,8 @@ namespace
 
     fastuidraw::vec2 m_min_bb, m_max_bb;
     BezierTessRegion m_start_region;
-    std::vector<fastuidraw::vec2> m_poly;
-    std::vector<fastuidraw::vec2> m_poly_prime;
-    std::vector<fastuidraw::vec2> m_poly_prime_prime;
+    std::vector<fastuidraw::vec2> m_pts;
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_work_room;
-    int m_minimum_number_divides;
   };
 
   class ArcPrivate
@@ -350,147 +311,6 @@ namespace
 }
 
 ////////////////////////////////////
-// poly methods
-void
-poly::
-compute_bernstein_derivative(const std::vector<fastuidraw::vec2> &input,
-                             std::vector<fastuidraw::vec2> &output)
-{
-  FASTUIDRAWassert(output.empty());
-  if (input.empty())
-    {
-      return;
-    }
-
-  /* the std::vector<vec2> p represents
-       f(t) = sum(0 <= k <=n) { C(n,k) t^k t^(n-k) p[k] }
-     where C(n,k) = n!/(k! (n-k)! ) and n = p.size() - 1 .
-     Let
-      g_k(t) = C(n,k) t^k (1-t)^(n-k) p[k]
-     then
-      g_k'(t) = C(n,k) k t^(k-1) (1-t)^(n-k) p[k] - C(n,k) (n-k) t^k t^(n-1-k)
-              = n C(n-1, k-1) t^(k-1) (1-t)^(n-k) p[k] - n C(n-1, k) t^k t^(n-1-k) p[k]
-     thus:
-      f'(t) = sum(0 <= k <= n-1) { C(n-1,k) t^k t^(n-k) n ( p[k+1] - p[k] ) }
-   */
-
-  float degree;
-  degree = static_cast<float>(input.size() - 1);
-
-  output.resize(input.size() - 1);
-  for(int k = 0, endk = output.size(); k < endk; ++k)
-    {
-      output[k] = degree * (input[k+1] - input[k]);
-    }
-}
-
-
-fastuidraw::vec2
-poly::
-compute_poly(float t, fastuidraw::c_array<const fastuidraw::vec2> poly)
-{
-  float s(1.0f-t);
-  float st(s*t);
-  float s2(s*s), t2(t*t);
-  float tn, sn;
-  unsigned int poly_size(poly.size());
-  unsigned int l, r;
-  fastuidraw::vec2 work;
-
-  /* compute_poly is to evaluate
-     v = sum(0 <= k <= n) t^k s^(n-k) poly[k]
-       = t^n poly[0] + s^n poly[n] + sum(1 <= k <= n-1) t^k s^(n-k) poly[k]
-       = t^n poly[0] + s^n poly[n] + st sum(1 <= k <= n-1) t^(k-1) s^(n-1-k) poly[k]
-
-     the above gives us an iterative method, the below starts in the middle
-     of the polynomial and grows out 1 term on each side.
-   */
-
-  if (poly_size == 0)
-    {
-      return fastuidraw::vec2(0.0f, 0.0f);
-    }
-
-  if (poly_size & 1u)
-    {
-      unsigned int m;
-      m = (poly_size - 1) / 2;
-      work = poly[m];
-      l = m - 1;
-      r = m + 1;
-      sn = 1.0f;
-      tn = 1.0f;
-    }
-  else
-    {
-      unsigned int m;
-      m = poly_size / 2;
-
-      work = s * poly[m-1] + t * poly[m];
-      l = m - 2;
-      r = m + 1;
-      sn = s;
-      tn = t;
-    }
-
-  while(r < poly_size)
-    {
-      FASTUIDRAWassert(l < poly_size);
-      sn *= s2;
-      tn *= t2;
-      work = (poly[r] * tn) + (poly[l] * sn) + (st * work);
-
-      ++r;
-      --l;
-    }
-
-  return work;
-}
-
-
-///////////////////////////////////////////
-// binomial_coeff methods
-binomial_coeff::
-binomial_coeff(unsigned int N):
-  m_values(N+1)
-{
-  m_values[0].resize(1, 1.0f);
-
-  for(unsigned int n = 1; n <= N; ++n)
-    {
-      m_values[n].resize(n+1);
-      m_values[n][0] = 1.0f;
-      m_values[n][n] = 1.0f;
-      for(unsigned int k = 1; k < n; ++k)
-        {
-          m_values[n][k] = m_values[n-1][k-1] + m_values[n-1][k];
-        }
-    }
-}
-
-
-void
-binomial_coeff::
-prepare_bernstein(std::vector<fastuidraw::vec2> &victim) const
-{
-  unsigned int degree;
-
-  if (victim.empty())
-    {
-      return;
-    }
-
-  degree = victim.size() - 1;
-  FASTUIDRAWassert(degree < m_values.size());
-  FASTUIDRAWassert(degree == m_values[degree].size() - 1);
-
-  for(unsigned int k = 0; k <= degree; ++k)
-    {
-      victim[k] *= m_values[degree][k];
-    }
-}
-
-////////////////////////////////////
 // analytic_point_data methods
 analytic_point_data::
 analytic_point_data(float t, const fastuidraw::vec2 &p):
@@ -614,34 +434,21 @@ init(void)
      of it is O(n^2) where as once it is made, the creation
      of bezier is O(n)
    */
-  FASTUIDRAWassert(!m_poly.empty());
-  unsigned int degree = m_poly.size() - 1;
-  binomial_coeff BC(degree);
+  FASTUIDRAWassert(!m_pts.empty());
 
-  m_minimum_number_divides = 2 + __builtin_clz(m_poly.size());
-
-  m_min_bb = m_max_bb = m_poly[0];
-  for(unsigned int i = 1, endi = m_poly.size(); i < endi; ++i)
+  m_min_bb = m_max_bb = m_pts[0];
+  for(unsigned int i = 1, endi = m_pts.size(); i < endi; ++i)
     {
-      m_min_bb.x() = fastuidraw::t_min(m_min_bb.x(), m_poly[i].x());
-      m_min_bb.y() = fastuidraw::t_min(m_min_bb.y(), m_poly[i].y());
+      m_min_bb.x() = fastuidraw::t_min(m_min_bb.x(), m_pts[i].x());
+      m_min_bb.y() = fastuidraw::t_min(m_min_bb.y(), m_pts[i].y());
 
-      m_max_bb.x() = fastuidraw::t_max(m_max_bb.x(), m_poly[i].x());
-      m_max_bb.y() = fastuidraw::t_max(m_max_bb.y(), m_poly[i].y());
+      m_max_bb.x() = fastuidraw::t_max(m_max_bb.x(), m_pts[i].x());
+      m_max_bb.y() = fastuidraw::t_max(m_max_bb.y(), m_pts[i].y());
     }
-  m_start_region.m_pts = m_poly; //original region uses original points.
+  m_start_region.m_pts = m_pts; //original region uses original points.
 
-  //compute derivatives in Bernstein basis
-  poly::compute_bernstein_derivative(m_poly, m_poly_prime);
-  poly::compute_bernstein_derivative(m_poly_prime, m_poly_prime_prime);
-
-  //pre-mulitple by binomial coefficients.
-  BC.prepare_bernstein(m_poly);
-  BC.prepare_bernstein(m_poly_prime);
-  BC.prepare_bernstein(m_poly_prime_prime);
-
-  m_work_room[0].resize(m_poly.size());
-  m_work_room[1].resize(m_poly.size());
+  m_work_room[0].resize(m_pts.size());
+  m_work_room[1].resize(m_pts.size());
 }
 
 ////////////////////////////////////////////
@@ -714,10 +521,10 @@ bezier(const reference_counted_ptr<const interpolator_base> &start, const vec2 &
   BezierPrivate *d;
   d = FASTUIDRAWnew BezierPrivate();
   m_d = d;
-  d->m_poly.resize(3);
-  d->m_poly[0] = start_pt();
-  d->m_poly[1] = ct;
-  d->m_poly[2] = end_pt();
+  d->m_pts.resize(3);
+  d->m_pts[0] = start_pt();
+  d->m_pts[1] = ct;
+  d->m_pts[2] = end_pt();
   d->init();
 }
 
@@ -729,11 +536,11 @@ bezier(const reference_counted_ptr<const interpolator_base> &start, const vec2 &
   BezierPrivate *d;
   d = FASTUIDRAWnew BezierPrivate();
   m_d = d;
-  d->m_poly.resize(4);
-  d->m_poly[0] = start_pt();
-  d->m_poly[1] = ct1;
-  d->m_poly[2] = ct2;
-  d->m_poly[3] = end_pt();
+  d->m_pts.resize(4);
+  d->m_pts[0] = start_pt();
+  d->m_pts[1] = ct1;
+  d->m_pts[2] = ct2;
+  d->m_pts[3] = end_pt();
   d->init();
 }
 
@@ -746,10 +553,10 @@ bezier(const reference_counted_ptr<const interpolator_base> &start,
   BezierPrivate *d;
   d = FASTUIDRAWnew BezierPrivate();
   m_d = d;
-  d->m_poly.resize(control_pts.size() + 2);
-  std::copy(control_pts.begin(), control_pts.end(), d->m_poly.begin() + 1);
-  d->m_poly.front() = start_pt();
-  d->m_poly.back() = end;
+  d->m_pts.resize(control_pts.size() + 2);
+  std::copy(control_pts.begin(), control_pts.end(), d->m_pts.begin() + 1);
+  d->m_pts.front() = start_pt();
+  d->m_pts.back() = end;
   d->init();
 }
 
@@ -777,7 +584,7 @@ is_flat(void) const
 {
   BezierPrivate *d;
   d = static_cast<BezierPrivate*>(m_d);
-  return d->m_poly.size() <= 2;
+  return d->m_pts.size() <= 2;
 }
 
 void
@@ -788,15 +595,6 @@ approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
   d = static_cast<BezierPrivate*>(m_d);
   *out_min_bb = d->m_min_bb;
   *out_max_bb = d->m_max_bb;
-}
-
-int
-fastuidraw::PathContour::bezier::
-minimum_number_divides(void) const
-{
-  BezierPrivate *d;
-  d = static_cast<BezierPrivate*>(m_d);
-  return d->m_minimum_number_divides;
 }
 
 void

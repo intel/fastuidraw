@@ -243,15 +243,6 @@ public:
                tessellated_region **out_regionA, tessellated_region **out_regionB,
                float *out_t, vec2 *out_p,
                c_array<float> out_threshholds) const = 0;
-
-    /*!
-      Returns the minimum number of times the curve should
-      be tessellated in halves to capture sufficient geometric
-      data of the interpolator.
-     */
-    virtual
-    int
-    minimum_number_divides(void) const = 0;
   };
 
   /*!
@@ -303,11 +294,6 @@ public:
                tessellated_region **out_regionA, tessellated_region **out_regionB,
                float *out_t, vec2 *out_p,
                c_array<float> out_threshholds) const;
-
-    virtual
-    int
-    minimum_number_divides(void) const;
-
     virtual
     void
     approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
