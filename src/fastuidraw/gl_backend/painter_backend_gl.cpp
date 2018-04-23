@@ -1786,7 +1786,7 @@ configure_source_front_matter(void)
             || m_uber_shader_builder_params.provide_auxiliary_image_buffer() != PainterBackendGLSL::no_auxiliary_buffer);
 
       m_front_matter_frag
-	.specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension);
+        .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension);
 
       if (using_glsl42)
         {

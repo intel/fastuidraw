@@ -144,7 +144,7 @@ create_face_implement(FT_Library lib) const
 // fastuidraw::FreeTypeFace::GeneratorMemory methods
 fastuidraw::FreeTypeFace::GeneratorMemory::
 GeneratorMemory(const reference_counted_ptr<const DataBufferBase> &src,
-		int face_index)
+                int face_index)
 {
   m_d = FASTUIDRAWnew GeneratorMemoryPrivate(src, face_index);
 }
@@ -177,9 +177,9 @@ create_face_implement(FT_Library lib) const
   d = static_cast<GeneratorMemoryPrivate*>(m_d);
   src = d->first->data_ro();
   error_code = FT_New_Memory_Face(lib,
-				  static_cast<const FT_Byte*>(src.c_ptr()),
-				  src.size(), d->second,
-				  &face);
+                                  static_cast<const FT_Byte*>(src.c_ptr()),
+                                  src.size(), d->second,
+                                  &face);
   if (error_code != 0 && face != nullptr)
     {
       FT_Done_Face(face);

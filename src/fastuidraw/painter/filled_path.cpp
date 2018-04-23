@@ -1089,9 +1089,9 @@ SubPath(const fastuidraw::BoundingBox<double> &bb,
     {
       FASTUIDRAWassert(!c_iter->empty());
       if (!SubPath::contour_is_reducable(*c_iter))
-	{
-	  m_num_points += c_iter->size();
-	}
+        {
+          m_num_points += c_iter->size();
+        }
     }
 }
 
@@ -1107,9 +1107,9 @@ SubPath(const fastuidraw::TessellatedPath &P):
     {
       copy_contour(m_contours[c], P, c);
       if (!SubPath::contour_is_reducable(m_contours[c]))
-	{
-	  m_num_points += m_contours[c].size();
-	}
+        {
+          m_num_points += m_contours[c].size();
+        }
     }
 }
 
@@ -1624,7 +1624,7 @@ reduce_contour(Contour &C)
   if (C.size() <= 2)
     {
       /* a contour or 2 or fewer points, either has
-	 no edges or 2 edges that cancel each other.
+         no edges or 2 edges that cancel each other.
        */
       C.clear();
       return 0;
@@ -2894,7 +2894,7 @@ make_ready_from_sub_path(void)
   if (!m_winding_numbers.empty())
     {
       EdgeAttributeDataFiller edge_filler(fastuidraw::make_c_array(m_winding_numbers),
-					  &filler.m_points, &B);
+                                          &filler.m_points, &B);
       m_fuzz_painter_data->set_data(edge_filler);
 
       unsigned int e_count;
