@@ -121,11 +121,10 @@ public:
     if (!m_unflushed_commands.empty())
       {
         glBindBuffer(binding_point, m_buffer);
-        for(typename std::list<BufferGLEntryLocation>::iterator iter = m_unflushed_commands.begin(),
-              end = m_unflushed_commands.end(); iter != end; ++iter)
+        for(BufferGLEntryLocation &B : m_unflushed_commands)
           {
-            FASTUIDRAWassert(!iter->m_data.empty());
-            glBufferSubData(binding_point, iter->m_location, iter->m_data.size(), &iter->m_data[0]);
+            FASTUIDRAWassert(!B.m_data.empty());
+            glBufferSubData(binding_point, B.m_location, B.m_data.size(), &B.m_data[0]);
           }
         m_unflushed_commands.clear();
       }

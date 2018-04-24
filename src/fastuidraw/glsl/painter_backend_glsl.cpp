@@ -808,11 +808,11 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
 
   if (item_shader_filter)
     {
-      for(unsigned int i = 0, endi = m_item_shaders.size(); i < endi; ++i)
+      for(const auto &sh : m_item_shaders)
         {
-          if (item_shader_filter->use_shader(m_item_shaders[i]))
+          if (item_shader_filter->use_shader(sh))
             {
-              work_shaders.push_back(m_item_shaders[i]);
+              work_shaders.push_back(sh);
             }
         }
       item_shaders = make_c_array(work_shaders);

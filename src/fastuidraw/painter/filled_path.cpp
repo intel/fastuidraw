@@ -1176,13 +1176,12 @@ SubPath(const fastuidraw::BoundingBox<double> &bb,
   m_name(name)
 {
   m_contours.swap(contours);
-  for(std::vector<SubContour>::const_iterator c_iter = m_contours.begin(),
-        c_end = m_contours.end(); c_iter != c_end; ++c_iter)
+  for(const SubContour &C : m_contours)
     {
-      FASTUIDRAWassert(!c_iter->empty());
-      if (!SubPath::contour_is_reducable(*c_iter))
+      FASTUIDRAWassert(!C.empty());
+      if (!SubPath::contour_is_reducable(C))
         {
-          m_num_points += c_iter->size();
+          m_num_points += C.size();
         }
     }
 }
@@ -1463,12 +1462,11 @@ split(int &splitting_coordinate) const
 
   C0.reserve(m_contours.size());
   C1.reserve(m_contours.size());
-  for(std::vector<SubContour>::const_iterator c_iter = m_contours.begin(),
-        c_end = m_contours.end(); c_iter != c_end; ++c_iter)
+  for(const SubContour &S : m_contours)
     {
       C0.push_back(SubContour());
       C1.push_back(SubContour());
-      split_contour(*c_iter, splitting_coordinate, mid_pt,
+      split_contour(S, splitting_coordinate, mid_pt,
                     C0.back(), C1.back());
 
       if (C0.back().empty())
@@ -1639,10 +1637,9 @@ generate_path(const SubPath &input, Path &output)
 
   FASTUIDRAWassert(output.empty());
   const std::vector<SubPath::SubContour> &contours(input.contours());
-  for(std::vector<SubPath::SubContour>::const_iterator iter = contours.begin(),
-        end = contours.end(); iter != end; ++iter)
+  for(const SubPath::SubContour &C : contours)
     {
-      return_value += add_contour_to_path(*iter, output);
+      return_value += add_contour_to_path(C, output);
     }
 
   return return_value;
@@ -2169,7 +2166,7 @@ fill_indices(std::vector<unsigned int> &indices,
   unsigned int total(0), num_odd(0), num_even_non_zero(0), num_zero(0);
 
   /* compute number indices needed */
-  for(const auto element : m_hoard)
+  for(const auto &element : m_hoard)
     {
       TriangleList &tri(element.second->m_triangles);
       int winding(element.first);
@@ -2199,7 +2196,7 @@ fill_indices(std::vector<unsigned int> &indices,
   unsigned int current_zero(num_even_non_zero + num_odd);
 
   indices.resize(total);
-  for(const auto element : m_hoard)
+  for(const auto &element : m_hoard)
     {
       TriangleList &tri(element.second->m_triangles);
       int winding(element.first);
@@ -2613,13 +2610,11 @@ compute_sizes(unsigned int &number_attributes,
     + m_even_winding_indices.size()
     + m_zero_winding_indices.size();
 
-  for(std::map<int, c_array<const unsigned int> >::const_iterator
-        iter = m_per_fill.begin(), end = m_per_fill.end();
-      iter != end; ++iter)
+  for(const auto &e : m_per_fill)
     {
-      if (iter->first != 0) //winding number 0 is by complement_nonzero_fill_rule
+      if (e.first != 0) //winding number 0 is by complement_nonzero_fill_rule
         {
-          number_indices += iter->second.size();
+          number_indices += e.second.size();
         }
     }
 
@@ -2676,19 +2671,17 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
 
 #undef GRAB_MACRO
 
-  for(std::map<int, c_array<const unsigned int> >::const_iterator
-        iter = m_per_fill.begin(), end = m_per_fill.end();
-      iter != end; ++iter)
+  for(const auto & e: m_per_fill)
     {
-      if (iter->first != 0) //winding number 0 is by complement_nonzero_fill_rule
+      if (e.first != 0) //winding number 0 is by complement_nonzero_fill_rule
         {
           c_array<PainterIndex> dst;
           c_array<const unsigned int> src;
           unsigned int idx;
 
-          idx = FilledPath::Subset::fill_chunk_from_winding_number(iter->first);
+          idx = FilledPath::Subset::fill_chunk_from_winding_number(e.first);
 
-          src = iter->second;
+          src = e.second;
           dst = index_data.sub_array(current, src.size());
           FASTUIDRAWassert(dst.size() == src.size());
 
@@ -3014,12 +3007,10 @@ make_ready_from_sub_path(void)
   m_num_attributes = filler.m_points.size();
 
   m_winding_numbers.reserve(filler.m_per_fill.size());
-  for(std::map<int, fastuidraw::c_array<const unsigned int> >::iterator
-        iter = filler.m_per_fill.begin(), end = filler.m_per_fill.end();
-      iter != end; ++iter)
+  for(const auto & e : filler.m_per_fill)
     {
-      FASTUIDRAWassert(!iter->second.empty());
-      m_winding_numbers.push_back(iter->first);
+      FASTUIDRAWassert(!e.second.empty());
+      m_winding_numbers.push_back(e.first);
     }
 
   /* now fill m_painter_data. */

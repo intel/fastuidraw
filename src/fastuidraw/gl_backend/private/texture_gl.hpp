@@ -548,15 +548,14 @@ flush(void)
     {
       glBindTexture(texture_target, m_texture);
       glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-      for(typename list_type::iterator iter = m_unflushed_commands.begin(),
-            end = m_unflushed_commands.end(); iter != end; ++iter)
+      for(const auto &cmd : m_unflushed_commands)
         {
-          FASTUIDRAWassert(!iter->second.empty());
+          FASTUIDRAWassert(!cmd.second.empty());
           tex_sub_image(texture_target,
-                        iter->first.m_location,
-                        iter->first.m_size,
+                        cmd.first.m_location,
+                        cmd.first.m_size,
                         m_external_format, m_external_type,
-                        &iter->second[0]);
+                        &cmd.second[0]);
         }
       m_unflushed_commands.clear();
     }

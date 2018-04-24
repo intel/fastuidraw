@@ -58,9 +58,9 @@ namespace
                                            fastuidraw::c_string type)
   {
     std::ostringstream ostr;
-    for(unsigned int i = 0, endi = p.size(); i < endi; ++i)
+    for(fastuidraw::c_string str : p)
       {
-        ostr << type << " " << p[i] << ";\n";
+        ostr << type << " " << str << ";\n";
       }
     vert.add_source(ostr.str().c_str(), fastuidraw::glsl::ShaderSource::from_string);
   }
@@ -296,22 +296,22 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
             const std::string &shader_id)
 {
   /* first stream all of the item_shaders with predefined macros. */
-  for(unsigned int i = 0; i < shaders.size(); ++i)
+  for(const auto &sh : shaders)
     {
       std::ostringstream start_comment;
       start_comment << "\n/////////////////////////////////////////\n"
-                    << "// Start Shader #" << shaders[i]->ID() << "\n";
+                    << "// Start Shader #" << sh->ID() << "\n";
       dst.add_source(start_comment.str().c_str(), ShaderSource::from_string);
-      pre_stream(dst, shaders[i], datum);
+      pre_stream(dst, sh, datum);
 
       std::ostringstream str;
-      str << shader_main << shaders[i]->ID();
+      str << shader_main << sh->ID();
       dst
         .add_macro(shader_main.c_str(), str.str().c_str())
-        .add_source((shaders[i].get()->*get_src)())
+        .add_source((sh.get()->*get_src)())
         .remove_macro(shader_main.c_str());
 
-      post_stream(dst, shaders[i], datum);
+      post_stream(dst, sh, datum);
     }
 
   std::ostringstream str;
@@ -327,13 +327,13 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
       str << "    " << return_type << " p;\n";
     }
 
-  for(unsigned int i = 0; i < shaders.size(); ++i)
+  for(const auto &sh : shaders)
     {
-      if (shaders[i]->number_sub_shaders() > 1)
+      if (sh->number_sub_shaders() > 1)
         {
           unsigned int start, end;
-          start = shaders[i]->ID();
-          end = start + shaders[i]->number_sub_shaders();
+          start = sh->ID();
+          end = start + sh->number_sub_shaders();
           if (has_sub_shaders)
             {
               str << "    else ";
@@ -351,7 +351,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
             {
               str << "p = ";
             }
-          str << shader_main << shaders[i]->ID()
+          str << shader_main << sh->ID()
               << "(" << shader_id << " - uint(" << start << ")" << shader_args << ");\n"
               << "    }\n";
           has_sub_shaders = true;
@@ -375,19 +375,20 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
           << tab << "{\n";
     }
 
-  for(unsigned int i = 0; i < shaders.size(); ++i)
+  bool first_entry(true);
+  for(const auto &sh : shaders)
     {
-      if (shaders[i]->number_sub_shaders() == 1)
+      if (sh->number_sub_shaders() == 1)
         {
           if (use_switch)
             {
-              str << tab << "case uint(" << shaders[i]->ID() << "):\n";
+              str << tab << "case uint(" << sh->ID() << "):\n";
               str << tab << "    {\n"
                   << tab << "        ";
             }
           else
             {
-              if (i != 0)
+              if (!first_entry)
                 {
                   str << tab << "else if";
                 }
@@ -395,7 +396,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
                 {
                   str << tab << "if";
                 }
-              str << "(" << shader_id << " == uint(" << shaders[i]->ID() << "))\n";
+              str << "(" << shader_id << " == uint(" << sh->ID() << "))\n";
               str << tab << "{\n"
                   << tab << "    ";
             }
@@ -405,7 +406,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
               str << "p = ";
             }
 
-          str << shader_main << shaders[i]->ID()
+          str << shader_main << sh->ID()
               << "(uint(0)" << shader_args << ");\n";
 
           if (use_switch)
@@ -417,6 +418,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
             {
               str << tab << "}\n";
             }
+          first_entry = false;
         }
     }
 

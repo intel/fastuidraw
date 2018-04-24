@@ -127,10 +127,11 @@ SourcePrivate::
 strip_leading_white_spaces(const std::string &S)
 {
   std::string::const_iterator iter, end;
-  for(iter = S.begin(), end = S.end(); iter != end and isspace(*iter); ++iter)
-    {
-    }
-  return (iter != end and *iter == '#')?
+
+  for(iter = S.begin(), end = S.end(); iter != end && isspace(*iter); ++iter)
+    {}
+
+  return (iter != end && *iter == '#')?
     std::string(iter, end):
     S;
 }
@@ -177,8 +178,7 @@ add_source_code_from_stream(const std::string &label,
 
   while(getline(istr, S))
     {
-      /* combine source lines that end with \
-       */
+      /* combine source lines that end with \ */
       if (*S.rbegin() == '\\')
         {
           std::vector<std::string> strings;
@@ -192,17 +192,15 @@ add_source_code_from_stream(const std::string &label,
           getline(istr, S);
           strings.push_back(S);
 
-          /* now remove the '\\' and put on S.
-           */
+          /* now remove the '\\' and put on S. */
           S.clear();
-          for(std::vector<std::string>::iterator
-                iter = strings.begin(), end = strings.end(); iter != end; ++iter)
+          for(std::string &str : strings)
             {
-              if (!iter->empty() && *iter->rbegin() == '\\')
+              if (!str.empty() && *str.rbegin() == '\\')
                 {
-                  iter->resize(iter->size() - 1);
+                  str.resize(str.size() - 1);
                 }
-              S += *iter;
+              S += str;
             }
         }
 
@@ -434,11 +432,9 @@ specify_extensions(const ShaderSource &obj)
   const SourcePrivate *obj_d;
   d = static_cast<SourcePrivate*>(m_d);
   obj_d = static_cast<const SourcePrivate*>(obj.m_d);
-  for(std::map<std::string, extension_enable_t>::const_iterator
-        iter = obj_d->m_extensions.begin(), end = obj_d->m_extensions.end();
-      iter != end; ++iter)
+  for(const auto &ext : obj_d->m_extensions)
     {
-      d->m_extensions[iter->first] = iter->second;
+      d->m_extensions[ext.first] = ext.second;
     }
   return *this;
 }
@@ -470,11 +466,11 @@ assembled_code(void) const
           output_glsl_source_code <<"#version " << d->m_version << "\n";
         }
 
-      for(std::map<std::string, enum extension_enable_t>::const_iterator
-            iter = d->m_extensions.begin(), end = d->m_extensions.end(); iter != end; ++iter)
+      for(const auto &ext : d->m_extensions)
         {
-          output_glsl_source_code << "#extension " << iter->first
-                                  << ": " << SourcePrivate::string_from_extension_t(iter->second) << "\n";
+          output_glsl_source_code << "#extension " << ext.first << ": "
+                                  << SourcePrivate::string_from_extension_t(ext.second)
+                                  << "\n";
         }
 
       if (!d->m_disable_pre_added_source)
@@ -486,10 +482,9 @@ assembled_code(void) const
                                   << "void fastuidraw_do_nothing(void) {}\n";
         }
 
-      for(std::list<SourcePrivate::source_code_t>::const_iterator
-            iter= d->m_values.begin(), end = d->m_values.end(); iter != end; ++iter)
+      for(const SourcePrivate::source_code_t &src : d->m_values)
         {
-          SourcePrivate::add_source_entry(*iter, output_glsl_source_code);
+          SourcePrivate::add_source_entry(src, output_glsl_source_code);
         }
 
       /*

@@ -259,12 +259,9 @@ fastuidraw::ColorStopAtlas::
 
   FASTUIDRAWassert(d->m_delayed_interval_freeing_counter == 0);
   FASTUIDRAWassert(d->m_allocated == 0);
-  for(std::vector<interval_allocator*>::iterator
-        iter = d->m_layer_allocator.begin(),
-        end = d->m_layer_allocator.end();
-      iter != end; ++iter)
+  for(interval_allocator *q : d->m_layer_allocator)
     {
-      FASTUIDRAWdelete(*iter);
+      FASTUIDRAWdelete(q);
     }
   FASTUIDRAWdelete(d);
   m_d = nullptr;

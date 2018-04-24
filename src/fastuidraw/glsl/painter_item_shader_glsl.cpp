@@ -169,10 +169,9 @@ void
 StringArray::
 clear(void)
 {
-  for(std::vector<std::string*>::iterator iter = m_strings.begin(),
-        end = m_strings.end(); iter != end; ++iter)
+  for(std::string *q : m_strings)
     {
-      FASTUIDRAWdelete(*iter);
+      FASTUIDRAWdelete(q);
     }
   m_strings.clear();
   m_strings_array.clear();

@@ -676,17 +676,17 @@ painter_vao_pool::
   FASTUIDRAWassert(m_ubos.size() == m_vaos.size());
   for(unsigned int p = 0, endp = m_vaos.size(); p < endp; ++p)
     {
-      for(unsigned int i = 0, endi = m_vaos[p].size(); i < endi; ++i)
+      for(const painter_vao &vao : m_vaos[p])
         {
-          if (m_vaos[p][i].m_data_tbo != 0)
+          if (vao.m_data_tbo != 0)
             {
-              glDeleteTextures(1, &m_vaos[p][i].m_data_tbo);
+              glDeleteTextures(1, &vao.m_data_tbo);
             }
-          glDeleteBuffers(1, &m_vaos[p][i].m_attribute_bo);
-          glDeleteBuffers(1, &m_vaos[p][i].m_header_bo);
-          glDeleteBuffers(1, &m_vaos[p][i].m_index_bo);
-          glDeleteBuffers(1, &m_vaos[p][i].m_data_bo);
-          glDeleteVertexArrays(1, &m_vaos[p][i].m_vao);
+          glDeleteBuffers(1, &vao.m_attribute_bo);
+          glDeleteBuffers(1, &vao.m_header_bo);
+          glDeleteBuffers(1, &vao.m_index_bo);
+          glDeleteBuffers(1, &vao.m_data_bo);
+          glDeleteVertexArrays(1, &vao.m_vao);
         }
 
       if (m_ubos[p] != 0)
@@ -1148,10 +1148,9 @@ draw(void) const
       m_pr->m_programs[fastuidraw::gl::PainterBackendGL::program_without_discard]->use_program();
     }
 
-  for(std::list<DrawEntry>::const_iterator iter = m_draws.begin(),
-        end = m_draws.end(); iter != end; ++iter)
+  for(const DrawEntry &entry : m_draws)
     {
-      iter->draw();
+      entry.draw();
     }
   glBindVertexArray(0);
 }
