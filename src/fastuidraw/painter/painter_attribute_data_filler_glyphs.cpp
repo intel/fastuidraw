@@ -191,24 +191,24 @@ void
 FillGlyphsPrivate::
 compute_number_glyphs(void)
 {
-  for(unsigned int i = 0, endi = m_glyphs.size(); i < endi; ++i)
+  for(const auto &G : m_glyphs)
     {
       enum fastuidraw::return_code R;
 
-      if (m_glyphs[i].valid())
+      if (G.valid())
         {
-          R = m_glyphs[i].upload_to_atlas();
+          R = G.upload_to_atlas();
           if (R != fastuidraw::routine_success)
             {
               return;
             }
           ++m_number_glyphs;
 
-          if (m_cnt_by_type.size() <= m_glyphs[i].type())
+          if (m_cnt_by_type.size() <= G.type())
             {
-              m_cnt_by_type.resize(1 + m_glyphs[i].type(), 0);
+              m_cnt_by_type.resize(1 + G.type(), 0);
             }
-          ++m_cnt_by_type[m_glyphs[i].type()];
+          ++m_cnt_by_type[G.type()];
         }
     }
 }
