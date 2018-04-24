@@ -609,10 +609,9 @@ namespace
       m_pre_link_actions(action),
       m_p(p)
     {
-      for(fastuidraw::c_array<const ShaderRef>::iterator iter = pshaders.begin(),
-            end = pshaders.end(); iter != end; ++iter)
+      for(const ShaderRef &R : m_shaders)
         {
-          FASTUIDRAWassert(*iter);
+          FASTUIDRAWassert(R);
         }
     }
 
@@ -868,16 +867,16 @@ set_shader_variable_src_type(bool shader_variables_are_attributes,
 {
   if (shader_variables_are_attributes)
     {
-      for(unsigned int v = 0, endv = dst.size(); v < endv; ++v)
+      for(ShaderVariableInfo &v : dst)
         {
-          dst[v].m_shader_variable_src = fastuidraw::gl::Program::src_shader_input;
+          v.m_shader_variable_src = fastuidraw::gl::Program::src_shader_input;
         }
     }
   else
     {
-      for(unsigned int v = 0, endv = dst.size(); v < endv; ++v)
+      for(ShaderVariableInfo &v : dst)
         {
-          dst[v].m_shader_variable_src = (dst[v].m_ubo_index != -1) ?
+          v.m_shader_variable_src = (v.m_ubo_index != -1) ?
             fastuidraw::gl::Program::src_uniform_block :
             fastuidraw::gl::Program::src_default_uniform_block;
         }
@@ -1397,32 +1396,26 @@ populate_private_program_interface_query(GLuint program,
 
   m_all_uniforms.populate_from_resource(program, GL_UNIFORM, uniform_queries);
 
-  /* populate the ABO blocks
-   */
+  /* populate the ABO blocks */
   GLint abo_count(0);
   glGetProgramInterfaceiv(program, GL_ATOMIC_COUNTER_BUFFER, GL_ACTIVE_RESOURCES, &abo_count);
   m_abo_buffers.resize(abo_count);
 
-  /* extract from m_all_uniforms those uniforms from the default block
-   */
-  for(std::vector<ShaderVariableInfo>::const_iterator iter = m_all_uniforms.values().begin(),
-        end = m_all_uniforms.values().end(); iter != end; ++iter)
+  /* extract from m_all_uniforms those uniforms from the default block */
+  for(const ShaderVariableInfo &u : m_all_uniforms.values())
     {
-      /*
-        DO NOT put ABO's in m_default_block
-       */
-      if (iter->m_abo_index != -1)
+      /* Do NOT put ABO's in m_default_block */
+      if (u.m_abo_index != -1)
         {
-          m_abo_buffers[iter->m_abo_index].add_element(*iter);
+          m_abo_buffers[u.m_abo_index].add_element(u);
         }
-      else if (iter->m_ubo_index == -1)
+      else if (u.m_ubo_index == -1)
         {
-          m_default_block.m_members.add_element(*iter);
+          m_default_block.m_members.add_element(u);
         }
     }
 
-  /* poplulate each of the uniform blocks.
-   */
+  /* poplulate each of the uniform blocks. */
   GLint ubo_count(0);
   glGetProgramInterfaceiv(program, GL_UNIFORM_BLOCK, GL_ACTIVE_RESOURCES, &ubo_count);
   resize_number_blocks(ubo_count, fastuidraw::gl::Program::src_uniform_block);
@@ -1531,24 +1524,21 @@ populate_private_non_program_interface_query(GLuint program,
      m_blocks[i] holds the uniform block with block_index
      of value i currently.
   */
-  for(std::vector<ShaderVariableInfo>::const_iterator iter = m_all_uniforms.values().begin(),
-        end = m_all_uniforms.values().end(); iter != end; ++iter)
+  for(const ShaderVariableInfo &u : m_all_uniforms.values())
     {
-      /*
-        DO NOT put ABO's in m_default_block
-       */
-      if (iter->m_abo_index != -1)
+      /* Do NOT put ABO's in m_default_block */
+      if (u.m_abo_index != -1)
         {
-          FASTUIDRAWassert(iter->m_abo_index < static_cast<int>(m_abo_buffers.size()));
-          m_abo_buffers[iter->m_abo_index].add_element(*iter);
+          FASTUIDRAWassert(u.m_abo_index < static_cast<int>(m_abo_buffers.size()));
+          m_abo_buffers[u.m_abo_index].add_element(u);
         }
-      else if (iter->m_ubo_index != -1)
+      else if (u.m_ubo_index != -1)
         {
-          block_ref(iter->m_ubo_index).m_members.add_element(*iter);
+          block_ref(u.m_ubo_index).m_members.add_element(u);
         }
       else
         {
-          m_default_block.m_members.add_element(*iter);
+          m_default_block.m_members.add_element(u);
         }
     }
 
@@ -1819,13 +1809,11 @@ execute_actions(GLuint pr) const
 {
   PreLinkActionArrayPrivate *d;
   d = static_cast<PreLinkActionArrayPrivate*>(m_d);
-  for(std::vector<reference_counted_ptr<PreLinkAction> >::const_iterator
-        iter = d->m_values.begin(), end = d->m_values.end();
-      iter != end; ++iter)
+  for(const auto &p : d->m_values)
     {
-      if (*iter)
+      if (p)
         {
-          (*iter)->action(pr);
+          p->action(pr);
         }
     }
 }
@@ -2255,12 +2243,11 @@ assemble(void)
 
   //attatch the shaders, attaching a bad shader makes
   //m_link_success become false
-  for(std::vector<fastuidraw::reference_counted_ptr<fastuidraw::gl::Shader> >::iterator iter = m_shaders.begin(),
-        end = m_shaders.end(); iter != end; ++iter)
+  for(const auto &sh : m_shaders)
     {
-      if ((*iter)->compile_success())
+      if (sh->compile_success())
         {
-          glAttachShader(m_name, (*iter)->name());
+          glAttachShader(m_name, sh->name());
         }
       else
         {
@@ -2290,15 +2277,14 @@ assemble(void)
       oo << "bad_program_" << m_name << ".glsl";
       std::ofstream eek(oo.str().c_str());
 
-      for(std::vector<ShaderData>::iterator iter = m_shader_data.begin(),
-            end = m_shader_data.end(); iter!=end; ++iter)
+      for(const auto &d : m_shader_data)
         {
-          eek << "\n\nshader: " << iter->m_name
-              << "[" << fastuidraw::gl::Shader::gl_shader_type_label(iter->m_shader_type) << "]\n"
+          eek << "\n\nshader: " << d.m_name
+              << "[" << fastuidraw::gl::Shader::gl_shader_type_label(d.m_shader_type) << "]\n"
               << "shader_source:\n"
-              << iter->m_source_code
+              << d.m_source_code
               << "compile log:\n"
-              << iter->m_compile_log;
+              << d.m_compile_log;
         }
       eek << "\n\nLink Log: " << m_link_log;
     }
@@ -2332,13 +2318,11 @@ generate_log(void)
     {
       ostr << "Shader Source Codes:";
 
-      for(std::vector<ShaderData>::const_iterator
-            iter = m_shader_data.begin(), end = m_shader_data.end();
-          iter != end; ++iter)
+      for(const auto &d : m_shader_data)
         {
-          ostr << "\n\nGLSL name = " << iter->m_name
-               << ", type = " << fastuidraw::gl::Shader::gl_shader_type_label(iter->m_shader_type)
-               << "\nSource:\n" << iter->m_source_code
+          ostr << "\n\nGLSL name = " << d.m_name
+               << ", type = " << fastuidraw::gl::Shader::gl_shader_type_label(d.m_shader_type)
+               << "\nSource:\n" << d.m_source_code
                << "\n\n";
         }
     }
@@ -2501,13 +2485,11 @@ generate_log(void)
   if (!m_shader_data.empty())
     {
       ostr << "\nShader Logs:";
-      for(std::vector<ShaderData>::const_iterator
-            iter = m_shader_data.begin(), end = m_shader_data.end();
-          iter != end; ++iter)
+      for(const auto &d : m_shader_data)
         {
-          ostr << "\n\nGLSL name = " << iter->m_name
-               << ", type = " << fastuidraw::gl::Shader::gl_shader_type_label(iter->m_shader_type)
-               << "\nSource:\n" << iter->m_compile_log
+          ostr << "\n\nGLSL name = " << d.m_name
+               << ", type = " << fastuidraw::gl::Shader::gl_shader_type_label(d.m_shader_type)
+               << "\nSource:\n" << d.m_compile_log
                << "\n\n";
         }
     }
@@ -2957,11 +2939,8 @@ perform_initializations(Program *pr, bool program_bound) const
 {
   ProgramInitializerArrayPrivate *d;
   d = static_cast<ProgramInitializerArrayPrivate*>(m_d);
-  for(std::vector<reference_counted_ptr<ProgramInitializer> >::const_iterator
-        iter = d->m_values.begin(), end = d->m_values.end();
-      iter != end; ++iter)
+  for(const auto &v : d->m_values)
     {
-      const reference_counted_ptr<ProgramInitializer> &v(*iter);
       FASTUIDRAWassert(v);
       v->perform_initialization(pr, program_bound);
     }
