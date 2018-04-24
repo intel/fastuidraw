@@ -2841,10 +2841,9 @@ ready_sizes_from_children(void)
   FASTUIDRAWassert(m_children[1]->m_sizes_ready);
   m_num_attributes = m_children[0]->m_num_attributes + m_children[1]->m_num_attributes;
 
-  /* TODO: the actual values any of the per-block values might actually
-     be smaller than the child sums, this happens whenever the block that
-     does max size is different between the children.
-  */
+  /* these are upper-bounds, they will get overwritten when the actual creation
+     of the attribute objects is done.
+   */
   m_largest_index_block =
     m_children[0]->m_largest_index_block + m_children[1]->m_largest_index_block;
 
@@ -2908,15 +2907,17 @@ make_ready_from_children(void)
                       m_children[1]->winding_numbers(),
                       &m_winding_numbers);
 
-  if (!m_sizes_ready)
-    {
-      ready_sizes_from_children();
-    }
-
   m_fuzz_painter_data = FASTUIDRAWnew fastuidraw::PainterAttributeData();
   EdgeAttributeDataMerger fuzz_merger(m_children[0]->fuzz_painter_data(),
                                       m_children[1]->fuzz_painter_data());
   m_fuzz_painter_data->set_data(fuzz_merger);
+
+  /* overwrite size values to be precise */
+  m_sizes_ready = true;
+  m_num_attributes = m_painter_data->largest_attribute_chunk();
+  m_largest_index_block = m_painter_data->largest_index_chunk();
+  m_aa_largest_attribute_block = m_fuzz_painter_data->largest_attribute_chunk();
+  m_aa_largest_index_block = m_fuzz_painter_data->largest_index_chunk();
 }
 
 void
@@ -2971,11 +2972,8 @@ make_ready_from_sub_path(void)
       EdgeAttributeDataFiller edge_filler(fastuidraw::make_c_array(m_winding_numbers),
                                           &filler.m_points, &B);
       m_fuzz_painter_data->set_data(edge_filler);
-
-      unsigned int e_count;
-      e_count = edge_filler.edge_count_on_largest_block();
-      m_aa_largest_attribute_block = 4 * e_count;
-      m_aa_largest_index_block = 6 * e_count;
+      m_aa_largest_attribute_block = m_fuzz_painter_data->largest_attribute_chunk();
+      m_aa_largest_index_block = m_fuzz_painter_data->largest_index_chunk();
     }
 
   FASTUIDRAWdelete(m_sub_path);
