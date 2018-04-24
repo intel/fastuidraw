@@ -79,9 +79,8 @@ namespace
       int max_winding(0), min_winding(0);
       bool first_entry(true);
 
-      for(unsigned int i = 0; i < subsets.size(); ++i)
+      for(unsigned int s : subsets)
         {
-          unsigned int s(subsets[i]);
           fastuidraw::FilledPath::Subset subset(filled_path.subset(s));
           int m, M;
 
@@ -154,9 +153,9 @@ namespace
     void
     action(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw> &)
     {
-      for(unsigned int i = 0, endi = m_dests.size(); i < endi; ++i)
+      for(change_header_z &d : m_dests)
         {
-          *m_dests[i].m_mapped = m_z_to_write;
+          *d.m_mapped = m_z_to_write;
         }
     }
 
@@ -803,11 +802,11 @@ on_pop(fastuidraw::Painter *p)
      is drawn below them.
    */
   p->increment_z();
-  for(unsigned int i = 0, endi = m_set_occluder_z.size(); i < endi; ++i)
+  for(const auto &s : m_set_occluder_z)
     {
       ZDelayedAction *ptr;
-      FASTUIDRAWassert(dynamic_cast<ZDelayedAction*>(m_set_occluder_z[i].get()) != nullptr);
-      ptr = static_cast<ZDelayedAction*>(m_set_occluder_z[i].get());
+      FASTUIDRAWassert(dynamic_cast<ZDelayedAction*>(s.get()) != nullptr);
+      ptr = static_cast<ZDelayedAction*>(s.get());
       ptr->finalize_z(p->current_z());
     }
 }
@@ -1049,9 +1048,9 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
   /* compute center of polygon so that we can correctly
      orient the normal vectors of the sides.
    */
-  for(unsigned int i = 0; i < poly.size(); ++i)
+  for(const auto &pt : poly)
     {
-      center += poly[i];
+      center += pt;
     }
   center /= static_cast<float>(poly.size());
 
