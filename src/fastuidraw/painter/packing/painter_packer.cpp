@@ -1069,11 +1069,10 @@ end(void)
     }
 
   d->m_backend->on_pre_draw(d->m_surface, d->m_clear_color_buffer);
-  for(std::vector<per_draw_command>::iterator iter = d->m_accumulated_draws.begin(),
-        end = d->m_accumulated_draws.end(); iter != end; ++iter)
+  for(per_draw_command &cmd : d->m_accumulated_draws)
     {
-      FASTUIDRAWassert(iter->m_draw_command->unmapped());
-      iter->m_draw_command->draw();
+      FASTUIDRAWassert(cmd.m_draw_command->unmapped());
+      cmd.m_draw_command->draw();
     }
   d->m_backend->on_post_draw();
   d->m_accumulated_draws.clear();
