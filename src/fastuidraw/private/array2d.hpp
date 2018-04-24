@@ -25,16 +25,16 @@
 namespace fastuidraw {
 
 /*!\addtogroup Utility
-  @{
+ * @{
  */
 
 /*!
-  A generic array2d class:
-
- If FASTUIDRAW_VECTOR_BOUND_CHECK is defined,
- will perform bounds checking.
- \tparam T array2d entry type
-*/
+ * A generic array2d class:
+ *
+ *If FASTUIDRAW_VECTOR_BOUND_CHECK is defined,
+ *will perform bounds checking.
+ *\tparam T array2d entry type
+ */
 template<typename T>
 class array2d
 {
@@ -48,9 +48,9 @@ private:
 public:
 
   /*!
-    Ctor.
-    Initializes an MxN array2d.
-  */
+   * Ctor.
+   * Initializes an MxN array2d.
+   */
   array2d(size_t M, size_t N)
     : m_data(M * N, T())
 #ifdef FASTUIDRAW_VECTOR_BOUND_CHECK
@@ -61,7 +61,7 @@ public:
   }
 
   /*!
-    Resizes the array3d.
+   * Resizes the array3d.
    */
   void
   resize(size_t M, size_t N)
@@ -74,8 +74,8 @@ public:
   }
 
   /*!
-    Fills values with the parameter value.
-    \param value value to fill values with
+   * Fills values with the parameter value.
+   * \param value value to fill values with
    */
   void
   fill(const T& value)
@@ -85,9 +85,9 @@ public:
   }
 
   /*!
-    Returns the value in the vector corresponding M[i,j]
-    \param row row(vertical coordinate) in the array2d
-    \param col column(horizontal coordinate) in the array2d
+   * Returns the value in the vector corresponding M[i,j]
+   * \param row row(vertical coordinate) in the array2d
+   * \param col column(horizontal coordinate) in the array2d
    */
   T&
   operator()(unsigned int row, unsigned int col)
@@ -100,9 +100,9 @@ public:
   }
 
   /*!
-    Returns the value in the vector corresponding M[i,j]
-    \param row row(vertical coordinate) in the array2d
-    \param col column(horizontal coordinate) in the array2d
+   * Returns the value in the vector corresponding M[i,j]
+   * \param row row(vertical coordinate) in the array2d
+   * \param col column(horizontal coordinate) in the array2d
    */
   const T&
   operator()(unsigned int row, unsigned int col) const

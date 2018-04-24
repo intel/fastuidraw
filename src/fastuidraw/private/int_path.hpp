@@ -297,14 +297,14 @@ namespace fastuidraw
       replace_cubics_with_quadratics(void);
 
       /* Convert cubic curves into quadratic curves; A given cubic
-         is converted into 1, 2, or 4 quadratic curves depending
-         on the distance between its end points. If the distance
-         is atleast thresh_4_quads, then if it borken into 4 quadratics,
-         if the distance is atleast thresh_2_quads (but less than
-         thresh_4_quads), then it is broken into 2 quadratic curves.
-         If the distance is less than thresh_2_quads, then it is realized
-         as a line quadratic. The distance values are the distances
-         of the points AFTER tr is applied.
+       *  is converted into 1, 2, or 4 quadratic curves depending
+       *  on the distance between its end points. If the distance
+       *  is atleast thresh_4_quads, then if it borken into 4 quadratics,
+       *  if the distance is atleast thresh_2_quads (but less than
+       *  thresh_4_quads), then it is broken into 2 quadratic curves.
+       *  If the distance is less than thresh_2_quads, then it is realized
+       *  as a line quadratic. The distance values are the distances
+       *  of the points AFTER tr is applied.
        */
       void
       replace_cubics_with_quadratics(const IntBezierCurve::transformation<int> &tr,
@@ -312,23 +312,23 @@ namespace fastuidraw
                                      ivec2 texel_size);
 
       /* Convert those quadratic curves that have small curvature into
-         line segments.
+       *  line segments.
        */
       void
       convert_flat_quadratics_to_lines(float thresh);
 
       /* Collapse any curve that after transformation is contained
-         within a texel (size of texel is given by texel_size) to
-         a point.
+       *  within a texel (size of texel is given by texel_size) to
+       *  a point.
        */
       void
       collapse_small_curves(const IntBezierCurve::transformation<int> &tr,
                             ivec2 texel_size);
 
       /* Call the sequence:
-          1. replace_cubics_with_quadratics(tr, 6, 4, texel_size)
-          2. convert_flat_quadratics_to_lines()
-          3. collapse_small_curves()
+       *   1. replace_cubics_with_quadratics(tr, 6, 4, texel_size)
+       *   2. convert_flat_quadratics_to_lines()
+       *   3. collapse_small_curves()
        */
       void
       filter(float curvature_collapse,
@@ -366,8 +366,8 @@ namespace fastuidraw
       }
 
       /* Add this IntPath with a transforamtion tr applied to it to a
-         pre-exising (and possibly empty) Path.
-         \param tr transformation to apply to data of path
+       *  pre-exising (and possibly empty) Path.
+       *  \param tr transformation to apply to data of path
        */
       void
       add_to_path(const IntBezierCurve::transformation<float> &tr, Path *dst) const;
@@ -377,13 +377,13 @@ namespace fastuidraw
       replace_cubics_with_quadratics(void);
 
       /* Convert cubic curves into quadratic curves; A given cubic
-         is converted into 1, 2, or 4 quadratic curves depending
-         on the distance between its end points. If the distance
-         is atleast thresh_4_quads, then if it borken into 4 quadratics,
-         if the distance is atleast thresh_2_quads (but less than
-         thresh_4_quads), then it is broken into 2 quadratic curves.
-         If the distance is less than thresh_2_quads, then it is realized
-         as a line quadratic.
+       *  is converted into 1, 2, or 4 quadratic curves depending
+       *  on the distance between its end points. If the distance
+       *  is atleast thresh_4_quads, then if it borken into 4 quadratics,
+       *  if the distance is atleast thresh_2_quads (but less than
+       *  thresh_4_quads), then it is broken into 2 quadratic curves.
+       *  If the distance is less than thresh_2_quads, then it is realized
+       *  as a line quadratic.
        */
       void
       replace_cubics_with_quadratics(const IntBezierCurve::transformation<int> &tr,
@@ -391,28 +391,28 @@ namespace fastuidraw
                                      ivec2 texel_size);
 
       /* Convert those quadratic curves that have small curvature into
-         line segments.
+       *  line segments.
        */
       void
       convert_flat_quadratics_to_lines(float thresh);
 
       /* Collapse any curve that after transformation is contained
-         within a texel (size of texel is given by texel_size) to
-         a point.
+       *  within a texel (size of texel is given by texel_size) to
+       *  a point.
        */
       void
       collapse_small_curves(const IntBezierCurve::transformation<int> &tr,
                             ivec2 texel_size);
 
       /* Filter the Path as follows:
-          1. Collapse any curves that are within a texel
-          2. Curves of tiny curvature are realized as a line
-          3. Cubics are broken into quadratics
-         The transformation tr is -NOT- applied to the path,
-         it is used as the transformation from IntContour
-         coordinates to texel coordinates. The value of texel_size
-         gives the size of a texel with the texel at (0, 0)
-         starting at (0, 0) [in texel coordinates].
+       *   1. Collapse any curves that are within a texel
+       *   2. Curves of tiny curvature are realized as a line
+       *   3. Cubics are broken into quadratics
+       *  The transformation tr is -NOT- applied to the path,
+       *  it is used as the transformation from IntContour
+       *  coordinates to texel coordinates. The value of texel_size
+       *  gives the size of a texel with the texel at (0, 0)
+       *  starting at (0, 0) [in texel coordinates].
        */
       void
       filter(float curvature_collapse,
@@ -421,11 +421,11 @@ namespace fastuidraw
 
 
       /* Compute distance field data, where distance values are
-         sampled at the center of each texel.
-         \param texel_size the size of each texel in coordinates
-                           AFTER tr is applied
-         \param image_sz size of the distance field to make
-         \param tr transformation to apply to data of path
+       *  sampled at the center of each texel.
+       *  \param texel_size the size of each texel in coordinates
+       *                    AFTER tr is applied
+       *  \param image_sz size of the distance field to make
+       *  \param tr transformation to apply to data of path
        */
       void
       extract_render_data(const ivec2 &texel_size, const ivec2 &image_sz,
@@ -436,12 +436,12 @@ namespace fastuidraw
 
 
       /* Compute curve-pair render data. The caller should have applied
-         filter() before calling to reduce cubics and collapse tiny
-         curves.
-         \param texel_size the size of each texel in coordinates
-                           AFTER tr is applied
-         \param image_sz size of the distance field to make
-         \param tr transformation to apply to data of path
+       *  filter() before calling to reduce cubics and collapse tiny
+       *  curves.
+       *  \param texel_size the size of each texel in coordinates
+       *                    AFTER tr is applied
+       *  \param image_sz size of the distance field to make
+       *  \param tr transformation to apply to data of path
        */
       void
       extract_render_data(const ivec2 &texel_size, const ivec2 &image_sz,

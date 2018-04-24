@@ -433,8 +433,8 @@ flush_size_change(void)
   if (m_texture_dimension != m_dims)
     {
       /* only need to issue GL commands to resize
-         the underlying GL texture IF we do not have
-         a texture yet.
+       *  the underlying GL texture IF we do not have
+       *  a texture yet.
        */
       if (m_texture != 0)
         {
@@ -461,14 +461,14 @@ flush_size_change(void)
           #ifdef GL_TEXTURE_1D_ARRAY
             {
               /* Sighs. The GL API is utterly wonky. For GL_TEXTURE_1D_ARRAY,
-                 we need to permute [2] and [1].
-                 "Slices of a TEXTURE_1D_ARRAY, TEXTURE_2D_ARRAY, TEXTURE_CUBE_MAP_ARRAY
-                 TEXTURE_3D and faces of TEXTURE_CUBE_MAP are all compatible provided
-                 they share a compatible internal format, and multiple slices or faces
-                 may be copied between these objects with a single call by specifying the
-                 starting slice with <srcZ> and <dstZ>, and the number of slices to
-                 be copied with <srcDepth>.
-              */
+               *  we need to permute [2] and [1].
+               *  "Slices of a TEXTURE_1D_ARRAY, TEXTURE_2D_ARRAY, TEXTURE_CUBE_MAP_ARRAY
+               *  TEXTURE_3D and faces of TEXTURE_CUBE_MAP are all compatible provided
+               *  they share a compatible internal format, and multiple slices or faces
+               *  may be copied between these objects with a single call by specifying the
+               *  starting slice with <srcZ> and <dstZ>, and the number of slices to
+               *  be copied with <srcDepth>.
+               */
               if (texture_target == GL_TEXTURE_1D_ARRAY)
                 {
                   std::swap(blit_dims[1], blit_dims[2]);

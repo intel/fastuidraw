@@ -28,18 +28,18 @@ namespace fastuidraw
   namespace detail
   {
     /* Clip a polygon against a single plane. The clip equation
-       clip_eq and the polygon pts are both in the same coordinate
-       system (likely local). Returns true if the polygon is
-       completely unclipped.
+     *  clip_eq and the polygon pts are both in the same coordinate
+     *  system (likely local). Returns true if the polygon is
+     *  completely unclipped.
      */
     bool
     clip_against_plane(const vec3 &clip_eq, c_array<const vec2> pts,
                        std::vector<vec2> &out_pts, std::vector<float> &scratch_space);
 
     /* Clip a polygon against several planes. The clip equations
-       clip_eq and the polygon pts are both in the same coordinate
-       system (likely local). Returns true if the polygon is
-       completely unclipped.
+     *  clip_eq and the polygon pts are both in the same coordinate
+     *  system (likely local). Returns true if the polygon is
+     *  completely unclipped.
      */
     bool
     clip_against_planes(c_array<const vec3> clip_eq, c_array<const vec2> in_pts,

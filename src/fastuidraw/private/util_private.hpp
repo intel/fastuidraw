@@ -26,8 +26,8 @@
 namespace fastuidraw
 {
   /*!
-    Wrapper over mutex type so that we can replace
-    mutex implementation easily.
+   * Wrapper over mutex type so that we can replace
+   * mutex implementation easily.
    */
   class mutex:fastuidraw::noncopyable
   {
@@ -68,7 +68,7 @@ namespace fastuidraw
   };
 
   /*!
-    Locks mutex on ctor and unlocks un dtor.
+   * Locks mutex on ctor and unlocks un dtor.
    */
   class autolock_mutex:fastuidraw::noncopyable
   {

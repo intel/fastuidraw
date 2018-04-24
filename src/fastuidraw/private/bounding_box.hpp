@@ -24,7 +24,7 @@
 namespace fastuidraw
 {
   /*!
-    Simple bounding box class
+   * Simple bounding box class
    */
   template<typename T>
   class BoundingBox

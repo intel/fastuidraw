@@ -35,8 +35,8 @@ namespace fastuidraw {
 namespace detail {
 
 /*!\class RectAtlas
-  Provides an interface to allocate and free rectangle
-  regions from a large rectangle.
+ * Provides an interface to allocate and free rectangle
+ * regions from a large rectangle.
  */
 class RectAtlas:public fastuidraw::noncopyable
 {
@@ -45,18 +45,18 @@ private:
 
 public:
   /*!\class rectangle
-    An rectangle gives the location (i.e size and
-    position) of a rectangle within a RectAtlas.
-    The location of a rectangle does not change for the
-    lifetime of the rectangle after returned by
-    add_rectangle().
+   * An rectangle gives the location (i.e size and
+   * position) of a rectangle within a RectAtlas.
+   * The location of a rectangle does not change for the
+   * lifetime of the rectangle after returned by
+   * add_rectangle().
    */
   class rectangle:public fastuidraw::noncopyable
   {
   public:
     /*!\fn const ivec2& minX_minY
-      Returns the minX_minY of the rectangle.
-    */
+     * Returns the minX_minY of the rectangle.
+     */
     const ivec2&
     minX_minY(void) const
     {
@@ -64,8 +64,8 @@ public:
     }
 
     /*!\fn const ivec2& size
-      Returns the size of the rectangle.
-    */
+     * Returns the size of the rectangle.
+     */
     const ivec2&
     size(void) const
     {
@@ -85,9 +85,9 @@ public:
     }
 
     /*!\fn
-      Returns the owning RectAtlas of this
-      rectangle.
-    */
+     * Returns the owning RectAtlas of this
+     * rectangle.
+     */
     const RectAtlas*
     atlas(void) const
     {
@@ -127,8 +127,8 @@ public:
   };
 
   /*!\fn
-    Ctor
-    \param dimensions dimension of the atlas, this is then the return value to size().
+   * Ctor
+   * \param dimensions dimension of the atlas, this is then the return value to size().
    */
   explicit
   RectAtlas(const ivec2 &dimensions);
@@ -137,13 +137,13 @@ public:
   ~RectAtlas();
 
   /*!\fn const rectangle* add_rectangle
-    Returns a pointer to the a newly created rectangle
-    of the requested size. Returns nullptr on failure.
-    The rectangle is owned by this RectAtlas.
-    An implementation may not change the location
-    (or size) of a rectangle once it has been
-    returned by add_rectangle().
-    \param dimension width and height of the rectangle
+   * Returns a pointer to the a newly created rectangle
+   * of the requested size. Returns nullptr on failure.
+   * The rectangle is owned by this RectAtlas.
+   * An implementation may not change the location
+   * (or size) of a rectangle once it has been
+   * returned by add_rectangle().
+   * \param dimension width and height of the rectangle
    */
   const rectangle*
   add_rectangle(const ivec2 &dimension,
@@ -151,31 +151,31 @@ public:
                 int top_padding, int bottom_padding);
 
   /*!\fn void clear
-    Clears the RectAtlas, in doing so deleting
-    all recranges allocated by \ref add_rectangle().
-    After clear(), all rectangle objects
-    returned by add_rectangle() are deleted, and as
-    such the pointers are then wild-invalid.
+   * Clears the RectAtlas, in doing so deleting
+   * all recranges allocated by \ref add_rectangle().
+   * After clear(), all rectangle objects
+   * returned by add_rectangle() are deleted, and as
+   * such the pointers are then wild-invalid.
    */
   void
   clear(void);
 
   /*!\fn ivec2 size
-    Returns the size of the \ref RectAtlas,
-    i.e. the value passed as dimensions
-    in RectAtlas().
+   * Returns the size of the \ref RectAtlas,
+   * i.e. the value passed as dimensions
+   * in RectAtlas().
    */
   ivec2
   size(void) const;
 
   /*!\fn enum return_code delete_rectangle
-    Delete a rectangle, and in doing so remove it
-    from the owning RectAtlas, and thus allowing
-    subsequent rectangles added to use the room of the
-    removed rectangle. Removing a rectangle deallocates
-    it's backing data structure.
-    \param im pointer to a rectangle,
-              as returned by add_rectangle, to remove
+   * Delete a rectangle, and in doing so remove it
+   * from the owning RectAtlas, and thus allowing
+   * subsequent rectangles added to use the room of the
+   * removed rectangle. Removing a rectangle deallocates
+   * it's backing data structure.
+   * \param im pointer to a rectangle,
+   *           as returned by add_rectangle, to remove
    */
   static
   enum return_code
@@ -183,20 +183,20 @@ public:
 
 private:
   /*
-    Tree structure to construct the texture atlas,
-    basic idea is very simple: walk the tree until one finds
-    a node where the image can fit.
-
-    if .second is routine_fail, then the routine
-    failed.
-
-    If .first of the return value of add or remove
-    is not the same as the object, then the return value
-    represents a new child and the old object should be deleted.
-
-    if .first of the return value of add or remove
-    is the same as the object, then the routine succeeded
-    and the object should not be deleted.
+   * Tree structure to construct the texture atlas,
+   * basic idea is very simple: walk the tree until one finds
+   * a node where the image can fit.
+   *
+   * if .second is routine_fail, then the routine
+   * failed.
+   *
+   * If .first of the return value of add or remove
+   * is not the same as the object, then the return value
+   * represents a new child and the old object should be deleted.
+   *
+   * if .first of the return value of add or remove
+   * is the same as the object, then the routine succeeded
+   * and the object should not be deleted.
    */
   class tree_base;
   class tree_node_without_children;
@@ -255,13 +255,13 @@ private:
     add(rectangle*)=0;
 
     /*
-      Idea:
-
-      parent_list.front()==this, otherwise
-      abort.
-
-      For recursive calls, pop_front() parent
-      list to next element..
+     * Idea:
+     *
+     * parent_list.front()==this, otherwise
+     * abort.
+     *
+     * For recursive calls, pop_front() parent
+     * list to next element..
      */
     virtual
     add_remove_return_value

@@ -28,10 +28,10 @@ namespace fastuidraw { namespace glsl { namespace detail {
 enum uber_stroke_render_pass_t
   {
     /*
-      uber_stroke_non_aa must be 0 because when we make a special shader
-      with only supporting this render pass, that pass takes no bits,
-      which means bit-extract always returns 0
-    */
+     * uber_stroke_non_aa must be 0 because when we make a special shader
+     * with only supporting this render pass, that pass takes no bits,
+     * which means bit-extract always returns 0
+     */
     uber_stroke_non_aa,
 
     uber_stroke_aa_pass1,
@@ -102,9 +102,9 @@ private:
   create_glyph_shader(bool anisotropic);
 
   /*
-    stroke_dash_style having value number_cap_styles means
-    to not have dashed stroking.
-    */
+   * stroke_dash_style having value number_cap_styles means
+   * to not have dashed stroking.
+   */
   PainterStrokeShader
   create_stroke_shader(enum PainterEnums::cap_style stroke_dash_style,
                        bool pixel_width_stroking,

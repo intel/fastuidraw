@@ -32,12 +32,12 @@ public:
 };
 
 /*!\class BufferGL
-  Wrapper over the GL buffer API providing ability to delay updates to
-  undlering buffer until flush().
-  \tparam binding_point GL binding point (ala glBindBuffer) to use for GL
-                        operations
-  \tparam usage GL usage parameter to pass to glBufferData when buffer
-                object is created
+ * Wrapper over the GL buffer API providing ability to delay updates to
+ * undlering buffer until flush().
+ * \tparam binding_point GL binding point (ala glBindBuffer) to use for GL
+ *                       operations
+ * \tparam usage GL usage parameter to pass to glBufferData when buffer
+ *               object is created
  */
 template<GLenum binding_point,
          GLenum usage>
