@@ -1251,11 +1251,10 @@ compute_splitting_location(int coord, std::vector<double> &work_room,
          to access the elements in order
        */
       double prev_pt(C.back()[coord]);
-      for(SubContour::const_iterator iter = C.begin(),
-            end = C.end(); iter != end; ++iter)
+      for(const auto &q : C)
         {
           bool prev_b, b;
-          double pt((*iter)[coord]);
+          double pt(q[coord]);
 
           prev_b = prev_pt < return_value;
           b = pt < return_value;
@@ -1364,13 +1363,11 @@ split_contour(const SubContour &src,
               SubContour &C0, SubContour &C1)
 {
   SubContourPoint prev_pt(src.back());
-  for(SubContour::const_iterator iter = src.begin(),
-        end = src.end(); iter != end; ++iter)
+  for(const SubContourPoint &pt : src)
     {
       bool b0, prev_b0;
       bool b1, prev_b1;
       fastuidraw::dvec2 split_pt;
-      const SubContourPoint &pt(*iter);
 
       prev_b0 = prev_pt[splitting_coordinate] <= splitting_value;
       b0 = pt[splitting_coordinate] <= splitting_value;
@@ -1491,11 +1488,11 @@ SubPath::
 contour_is_reducable(const SubContour &C)
 {
   uint32_t prev(C.back().flags());
-  for(unsigned int i = 0, endi = C.size(); i < endi; ++i)
+  for(const auto &q : C)
     {
       int r;
 
-      r = SubContourPoint::boundary_progress(prev, C[i].flags());
+      r = SubContourPoint::boundary_progress(prev, q.flags());
       if (r == 0)
         {
           return false;
@@ -1653,15 +1650,15 @@ generate_contour(const SubPath::SubContour &C, std::list<ContourPoint> &output)
   FASTUIDRAWassert(output.empty());
 
   int sz(0);
-  for(unsigned int v = 0, endv = C.size(); v < endv; ++v)
+  for(const auto &q : C)
     {
       unsigned int I;
 
-      I = fetch_discretized(C[v], C[v].flags());
+      I = fetch_discretized(q, q.flags());
       /* remove any edges that are after snapping the same point*/
       if (output.empty() || I != output.back().m_vertex)
         {
-          output.push_back(ContourPoint(I, C[v].flags()));
+          output.push_back(ContourPoint(I, q.flags()));
           ++sz;
         }
     }
@@ -1722,18 +1719,18 @@ reduce_contour(Contour &C)
   uint32_t prev(C.back().m_flags);
   int bcount(0);
 
-  for(unsigned int i = 0, endi = C.size(); i < endi; ++i)
+  for(const auto &q : C)
     {
       int r;
 
-      r = SubContourPoint::boundary_progress(prev, C[i].m_flags);
+      r = SubContourPoint::boundary_progress(prev, q.m_flags);
       if (r == 0)
         {
           return 0;
         }
 
       bcount += r;
-      prev = C[i].m_flags;
+      prev = q.m_flags;
     }
 
   C.clear();
@@ -1843,10 +1840,9 @@ void
 tesser::
 add_path(const PointHoard::Path &P)
 {
-  for(PointHoard::Path::const_iterator iter = P.begin(),
-        end = P.end(); iter != end; ++iter)
+  for(const auto &q : P)
     {
-      add_contour(*iter);
+      add_contour(q);
     }
 }
 
@@ -1857,10 +1853,9 @@ add_contour(const PointHoard::Contour &C)
   FASTUIDRAWassert(!C.empty());
 
   fastuidraw_gluTessBeginContour(m_tess, FASTUIDRAW_GLU_TRUE);
-  for(unsigned int v = 0, endv = C.size(); v < endv; ++v)
+  for(PointHoard::ContourPoint I : C)
     {
       fastuidraw::vecN<double, 2> p;
-      PointHoard::ContourPoint I(C[v]);
 
       /* TODO: Incrementing the amount by which to apply
          fudge is not the correct thing to do. Rather, we
@@ -2671,7 +2666,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
 
 #undef GRAB_MACRO
 
-  for(const auto & e: m_per_fill)
+  for(const auto &e : m_per_fill)
     {
       if (e.first != 0) //winding number 0 is by complement_nonzero_fill_rule
         {
