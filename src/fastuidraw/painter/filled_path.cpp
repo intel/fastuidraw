@@ -147,24 +147,29 @@ namespace
     return r;
   }
 
+  class Edge
+  {
+  public:
+    unsigned int m_start, m_end, m_next;
+    bool m_draw_edge, m_draw_bevel;
+  };
+
   class EdgeList:fastuidraw::noncopyable
   {
   public:
-    typedef fastuidraw::uvec2 Edge;
-
     EdgeList(void):
-      m_edge_count(0)
+      m_edge_count(0),
+      m_bevel_count(0)
     {}
 
     void
-    add_edge(unsigned int i0, unsigned int i1)
-    {
-      if (i0 != i1)
-        {
-          m_edges.push_back(Edge(i0, i1));
-          ++m_edge_count;
-        }
-    }
+    begin_boundary(void);
+
+    void
+    end_boundary(void);
+
+    void
+    add_edge(unsigned int p0, unsigned int p1, bool edge_drawn);
 
     const std::list<Edge>&
     edges(void) const
@@ -173,14 +178,23 @@ namespace
     }
 
     unsigned int
-    count(void) const
+    edge_count(void) const
     {
       return m_edge_count;
     }
 
+    unsigned int
+    bevel_count(void) const
+    {
+      return m_bevel_count;
+    }
+
   private:
     std::list<Edge> m_edges;
-    unsigned int m_edge_count;
+    unsigned int m_edge_count, m_bevel_count;
+
+    unsigned int m_prev_pt;
+    std::vector<Edge> m_current;
   };
 
   class TriangleList:fastuidraw::noncopyable
@@ -1071,6 +1085,63 @@ namespace
     std::vector<SubsetPrivate*> m_subsets;
   };
 }
+
+////////////////////////////////////
+// EdgeList methods
+void
+EdgeList::
+begin_boundary(void)
+{
+  FASTUIDRAWassert(m_current.empty());
+}
+
+void
+EdgeList::
+add_edge(unsigned int p0, unsigned int p1, bool edge_drawn)
+{
+  Edge E;
+
+  if (!m_current.empty())
+    {
+      FASTUIDRAWassert(m_current.back().m_end == p0);
+      m_current.back().m_next = p1;
+      m_current.back().m_draw_bevel = edge_drawn || m_current.back().m_draw_edge;
+    }
+
+  E.m_start = p0;
+  E.m_end = p1;
+  E.m_draw_edge = edge_drawn;
+  m_current.push_back(E);
+}
+
+void
+EdgeList::
+end_boundary(void)
+{
+  if (m_current.empty())
+    {
+      return;
+    }
+
+  FASTUIDRAWassert(m_current.back().m_end == m_current.front().m_start);
+  m_current.back().m_next = m_current.front().m_end;
+  m_current.back().m_draw_bevel = m_current.front().m_draw_edge || m_current.back().m_draw_edge;
+
+  for(const Edge &e : m_current)
+    {
+      if (e.m_draw_edge)
+        {
+          ++m_edge_count;
+          m_edges.push_back(e);
+          if (e.m_draw_bevel)
+            {
+              ++m_bevel_count;
+            }
+        }
+    }
+  m_current.clear();
+}
+
 
 /////////////////////////////////////
 // SubPath methods
@@ -2002,19 +2073,23 @@ emitmonotone_callback(int glu_tess_winding,
    * should we -reverse- the adding of edges, instead of add
    * to m_hoard[winding], we add to m_hoard[winding_ids[]] ?
    */
+  h->m_edge_list.begin_boundary();
   for(unsigned int i = 0; i < count; ++i)
     {
       unsigned int inext, va, vb;
+      bool hugs_bdy, same_winding, draw_edge;
 
       inext = (i + 1 < count) ? (i + 1) : (0);
       va = vertex_ids[i];
       vb = vertex_ids[inext];
-      if (winding_ids[i] != glu_tess_winding
-          && !p->m_points.edge_hugs_boundary(va, vb))
-        {
-          h->m_edge_list.add_edge(va, vb);
-        }
+
+      hugs_bdy = p->m_points.edge_hugs_boundary(va, vb);
+      same_winding = winding_ids[i] == glu_tess_winding;
+      draw_edge = !hugs_bdy && !same_winding;
+
+      h->m_edge_list.add_edge(va, vb, draw_edge);
     }
+  h->m_edge_list.end_boundary();
 }
 
 /////////////////////////////////////////
@@ -2308,7 +2383,7 @@ edge_count_on_largest_block(void) const
   for(int w : m_windings)
     {
       unsigned int num;
-      num = m_builder.edge_list(w).count();
+      num = m_builder.edge_list(w).edge_count();
       return_value = fastuidraw::t_max(num, return_value);
     }
   return return_value;
@@ -2335,7 +2410,7 @@ compute_sizes(unsigned int &number_attributes,
       unsigned int num;
 
       /* each edge is 4 attributes and 6 indices; */
-      num = m_builder.edge_list(w).count();
+      num = m_builder.edge_list(w).edge_count();
       number_attributes += 4 * num;
       number_indices += 6 * num;
     }
@@ -2367,7 +2442,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
       unsigned int num, ch;
 
       ch = signed_to_unsigned(w);
-      num = m_builder.edge_list(w).count();
+      num = m_builder.edge_list(w).edge_count();
       tmp[ch] += num;
 
       zranges[ch].m_begin = 0;
@@ -2391,9 +2466,9 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
   for(int w : m_windings)
     {
       unsigned int ch(signed_to_unsigned(w));
-      const std::list<EdgeList::Edge> &edges(m_builder.edge_list(w).edges());
+      const std::list<Edge> &edges(m_builder.edge_list(w).edges());
 
-      for(const EdgeList::Edge &E : edges)
+      for(const Edge &E : edges)
         {
           fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attrib;
           fastuidraw::c_array<fastuidraw::PainterIndex> dst_index;
@@ -2402,7 +2477,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
           dst_index = index_chunks[ch].sub_array(6 * tmp[ch], 6).const_cast_pointer<fastuidraw::PainterIndex>();
 
           FASTUIDRAWassert(static_cast<int>(tmp[ch]) < zranges[ch].m_end);
-          pack_attribute(E[0], E[1], dst_attrib, zranges[ch].m_end - 1 - tmp[ch]);
+          pack_attribute(E.m_start, E.m_end, dst_attrib, zranges[ch].m_end - 1 - tmp[ch]);
 
           dst_index[0] = 4 * tmp[ch] + 0;
           dst_index[1] = 4 * tmp[ch] + 1;
