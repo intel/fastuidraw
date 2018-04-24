@@ -324,9 +324,9 @@ allocate(fastuidraw::ivec2 size, c_array<const uint8_t> pdata,
       int old_size;
 
       /* TODO:
-          Should we reallocate on powers of 2, or one layer
-          at a time? [Right now we are doing one layer at
-          a time].
+       *   Should we reallocate on powers of 2, or one layer
+       *   at a time? [Right now we are doing one layer at
+       *   a time].
        */
       old_size = d->m_texel_store->dimensions().z();
       d->m_texel_store->resize(old_size + 1);

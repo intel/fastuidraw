@@ -78,13 +78,13 @@ namespace
     int m_allocated;
 
     /* Each layer has an interval allocator to allocate
-       and free "color stop arrays"
+     *  and free "color stop arrays"
      */
     std::vector<fastuidraw::interval_allocator*> m_layer_allocator;
 
     /* m_available_layers[key] gives indices into m_layer_allocator
-       for those layers for which largest_free_interval() returns
-       key.
+     *  for those layers for which largest_free_interval() returns
+     *  key.
      */
     std::map<int, std::set<int> > m_available_layers;
   };
@@ -377,8 +377,8 @@ allocate(c_array<const u8vec4> data)
       if (d->m_backing_store->resizeable())
         {
           /* TODO: what should the resize algorithm be?
-             Right now we double the size, but that might
-             be excessive.
+           *  Right now we double the size, but that might
+           *  be excessive.
            */
           int new_size, old_size;
           old_size = d->m_backing_store->dimensions().y();
@@ -495,28 +495,28 @@ ColorStopSequenceOnAtlas(const ColorStopSequence &pcolor_stops,
         ColorStop next_color(color_stops[color_stops_i]);
 
         /* There are cases where an application might
-           add two color stops with the same stop location;
-           these are for the purpose of changing color
-           immediately at the named location. Adding the
-           check avoids a divide error. The next texel
-           in the gradient will observe the dramatic change.
-           However, passing an interpolate between the
-           immediate change and the texel after it will
-           have the gradient interpolate from before the
-           change to after the change sadly.
-
-           The only way to really handle "fast immediate"
-           changes is to make an array of (stop, color)
-           pair values packed into an array readable from
-           the shader and the fragment shader does the
-           search. This means that rather than a single
-           texture() command we would have multiple buffer
-           look up value in the frag shader to get the
-           interpolate. We can optimize it some where we
-           increase the array size to the nearest power of 2
-           so that within a triangle there is no branching
-           in the hunt, but that would mean log2(N) buffer
-           reads per pixel. ICK.
+         *  add two color stops with the same stop location;
+         *  these are for the purpose of changing color
+         *  immediately at the named location. Adding the
+         *  check avoids a divide error. The next texel
+         *  in the gradient will observe the dramatic change.
+         *  However, passing an interpolate between the
+         *  immediate change and the texel after it will
+         *  have the gradient interpolate from before the
+         *  change to after the change sadly.
+         *
+         *  The only way to really handle "fast immediate"
+         *  changes is to make an array of (stop, color)
+         *  pair values packed into an array readable from
+         *  the shader and the fragment shader does the
+         *  search. This means that rather than a single
+         *  texture() command we would have multiple buffer
+         *  look up value in the frag shader to get the
+         *  interpolate. We can optimize it some where we
+         *  increase the array size to the nearest power of 2
+         *  so that within a triangle there is no branching
+         *  in the hunt, but that would mean log2(N) buffer
+         *  reads per pixel. ICK.
          */
         if (current_t < next_color.m_place)
           {

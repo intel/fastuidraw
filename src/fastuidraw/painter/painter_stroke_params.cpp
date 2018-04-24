@@ -99,7 +99,7 @@ compute_thresh(const fastuidraw::PainterShaderData::DataBase *data,
   if (d->m_radius <= 0.0f)
     {
       /* Not really stroking, just select a LARGE value
-         to get a very low level of detail.
+       *  to get a very low level of detail.
        */
       return 10000.0f;
     }

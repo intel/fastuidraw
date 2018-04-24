@@ -28,35 +28,35 @@ namespace
 {
 
   /*
-    Copies from src the rectangle:
-      [source_x, source_x + dest_dim) x [source_y, source_y + dest_dim)
-    to dest.
-
-    If source_x is negative, then pads each line with the value
-    from src at x=0.
-
-    If source_y is negative, the source for those lines is
-    taken from src at y=0.
-
-    For pixel (x,y) with x < 0, takes the value
-    from source at (0, y).
-
-    For pixel (x,y) with y < 0, takes the value
-    from source at (x, 0).
-
-    For pixels (x,y) with x >= src_dims.x(), takes the value
-    from source at (src_dims.x() - 1, y).
-
-    For pixels (x,y) with y >= src_dims.y(), takes the value
-    from source at (x, src_dims.y() - 1).
-
-    \param dest_dim width and height of destination
-    \param src_dims width and height of source
-    \param source_x, source_y location within src from which to copy
-    \param src: src pixels
-    \param dest: destination pixels
-
-    If all texel are the same value, returns true.
+   * Copies from src the rectangle:
+   *   [source_x, source_x + dest_dim) x [source_y, source_y + dest_dim)
+   * to dest.
+   *
+   * If source_x is negative, then pads each line with the value
+   * from src at x=0.
+   *
+   * If source_y is negative, the source for those lines is
+   * taken from src at y=0.
+   *
+   * For pixel (x,y) with x < 0, takes the value
+   * from source at (0, y).
+   *
+   * For pixel (x,y) with y < 0, takes the value
+   * from source at (x, 0).
+   *
+   * For pixels (x,y) with x >= src_dims.x(), takes the value
+   * from source at (src_dims.x() - 1, y).
+   *
+   * For pixels (x,y) with y >= src_dims.y(), takes the value
+   * from source at (x, src_dims.y() - 1).
+   *
+   * \param dest_dim width and height of destination
+   * \param src_dims width and height of source
+   * \param source_x, source_y location within src from which to copy
+   * \param src: src pixels
+   * \param dest: destination pixels
+   *
+   * If all texel are the same value, returns true.
    */
   template<typename T, typename S>
   bool
@@ -417,8 +417,8 @@ create_color_tiles(fastuidraw::c_array<const fastuidraw::u8vec4> image_data)
               else
                 {
                   /* we only need to call std::fill if the color tile
-                     is only partially filled, but I am lazy and just
-                     call it always.
+                   *  is only partially filled, but I am lazy and just
+                   *  call it always.
                    */
                   std::fill(tile_data.begin(), tile_data.end(), same_color_value);
                   new_tile = m_atlas->add_color_tile(make_c_array(tile_data));
@@ -442,9 +442,9 @@ create_color_tiles(fastuidraw::c_array<const fastuidraw::u8vec4> image_data)
 
 
 /*
-  returns the number of index tiles needed to
-  store the created index data.
-*/
+ * returns the number of index tiles needed to
+ * store the created index data.
+ */
 template<typename T>
 fastuidraw::ivec2
 ImagePrivate::
@@ -657,8 +657,8 @@ resize_to_fit(int num_tiles)
   if (num_tiles > number_free())
     {
       /* resize to fit the number of needed tiles,
-         compute how many more tiles needed and from
-         there compute how many more layers needed.
+       *  compute how many more tiles needed and from
+       *  there compute how many more layers needed.
        */
       int needed_tiles, tiles_per_layer, needed_layers;
       needed_tiles = num_tiles - number_free();
@@ -670,8 +670,8 @@ resize_to_fit(int num_tiles)
         }
 
       /* TODO:
-          Should we resize at powers of 2, or just to what is
-          needed?
+       *   Should we resize at powers of 2, or just to what is
+       *   needed?
        */
       m_num_tiles.z() += needed_layers;
       #ifdef FASTUIDRAW_DEBUG
@@ -881,11 +881,11 @@ add_index_tile(fastuidraw::c_array<const fastuidraw::ivec3> data, int slack)
   autolock_mutex M(d->m_mutex);
 
   /* TODO:
-       have the idea of sub-index tiles (which are squares)but size is
-       in each dimension, half of m_index_tiles.tile_size().
-       The motivation is to reduce the overhead of small but
-       non-tiny images. A single index tile would hold 4 such tiles
-       and we could also recurse such.
+   *    have the idea of sub-index tiles (which are squares)but size is
+   *    in each dimension, half of m_index_tiles.tile_size().
+   *    The motivation is to reduce the overhead of small but
+   *    non-tiny images. A single index tile would hold 4 such tiles
+   *    and we could also recurse such.
    */
   return_value = d->m_index_tiles.allocate_tile();
   d->m_index_store->set_data(return_value.x() * d->m_index_tiles.tile_size(),
@@ -1058,10 +1058,10 @@ create(fastuidraw::reference_counted_ptr<ImageAtlas> atlas, int w, int h,
   if (!enough_room_in_atlas(num_color_tiles, atlas.get(), index_tiles))
     {
       /*TODO:
-         there actually might be enough room if we take into account
-         the savings from repeated tiles. The correct thing is to
-         delay this until iamge construction, check if it succeeded
-         and if not then delete it and return an invalid handle.
+       *  there actually might be enough room if we take into account
+       *  the savings from repeated tiles. The correct thing is to
+       *  delay this until iamge construction, check if it succeeded
+       *  and if not then delete it and return an invalid handle.
        */
       if (atlas->resizeable())
         {

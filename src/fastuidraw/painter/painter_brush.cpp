@@ -228,7 +228,7 @@ shader(void) const
 
   return_value = m_data.m_shader_raw;
   /* lacking an image or gradient means the brush does
-     nothing and so all bits should be down.
+   *  nothing and so all bits should be down.
    */
   if (!m_data.m_image && !m_data.m_cs)
     {

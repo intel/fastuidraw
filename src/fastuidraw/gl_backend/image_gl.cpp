@@ -163,13 +163,13 @@ namespace
 
   private:
     /*
-      Data packed is:
-        - .x    ===> which x-tile.
-        - .y    ===> which y-tile.
-        - .z/.w ===> which layer packed as layer = 2*z + w
-      Note:
-        ColorBackingStore must be no larger than 2^8 * color_tile_size
-        For color_tile_size = 2^5, then value is 2^13 = 8192
+     * Data packed is:
+     *   - .x    ===> which x-tile.
+     *   - .y    ===> which y-tile.
+     *   - .z/.w ===> which layer packed as layer = 2*z + w
+     * Note:
+     *   ColorBackingStore must be no larger than 2^8 * color_tile_size
+     *   For color_tile_size = 2^5, then value is 2^13 = 8192
      */
     typedef Texture<GL_RGBA8UI, GL_RGBA_INTEGER, GL_NEAREST>::type TextureGL;
     TextureGL m_backing_store;
@@ -248,7 +248,7 @@ ColorBackingStoreGL::
 store_size(int log2_tile_size, int log2_num_tiles_per_row_per_col, int num_layers)
 {
   /* Because the index type is an 8-bit integer, log2_num_tiles_per_row_per_col
-     must be clamped to 8.
+   *  must be clamped to 8.
    */
   log2_num_tiles_per_row_per_col = std::max(1, std::min(8, log2_num_tiles_per_row_per_col));
   int v(1 << (log2_num_tiles_per_row_per_col + log2_tile_size));
@@ -318,9 +318,9 @@ IndexBackingStoreGL::
 store_size(int log2_tile_size, int log2_num_index_tiles_per_row_per_col, int num_layers)
 {
   /* Size is just 2^(log2_tile_size + log2_num_index_tiles_per_row_per_col),
-     however, because index is an 8 bit integer, log2_num_index_tiles_per_row_per_col
-     must be capped to 8
-  */
+   *  however, because index is an 8 bit integer, log2_num_index_tiles_per_row_per_col
+   *  must be capped to 8
+   */
   log2_num_index_tiles_per_row_per_col = std::min(8, std::max(1, log2_num_index_tiles_per_row_per_col));
   int v(1 << (log2_num_index_tiles_per_row_per_col + log2_tile_size));
   return fastuidraw::ivec3(v, v, num_layers);

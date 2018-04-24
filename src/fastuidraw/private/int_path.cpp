@@ -282,7 +282,7 @@ namespace
     {}
 
     /* returns what coordinate is fixed for a
-       given coordinate_type
+     *  given coordinate_type
      */
     static
     int
@@ -292,8 +292,8 @@ namespace
     }
 
     /* returns what coordinate is varying for a
-       given coordinate_type
-    */
+     *  given coordinate_type
+     */
     static
     int
     varying_coordinate(enum coordinate_type tp)
@@ -318,12 +318,12 @@ namespace
                      poly_solutions<iterator> *solutions);
 
     /*
-      \param pt fixed value of line
-      \param line_type if line if vertical (x-fixed) or horizontal (y-fixed)
-      \param out_value location to which to put values
-      \param solution_types_accepted bit mask using enums of solution_type
-                                     of what solutions are accepted
-      \param tr transformation to apply to the IntPath
+     * \param pt fixed value of line
+     * \param line_type if line if vertical (x-fixed) or horizontal (y-fixed)
+     * \param out_value location to which to put values
+     * \param solution_types_accepted bit mask using enums of solution_type
+     *                                of what solutions are accepted
+     * \param tr transformation to apply to the IntPath
      */
     void
     compute_line_intersection(int pt, enum coordinate_type line_type,
@@ -458,13 +458,13 @@ namespace
 
   private:
     /* unsigned distance in IntPath coordinates,
-       a negative value indicates value is not
-       assigned
-    */
+     *  a negative value indicates value is not
+     *  assigned
+     */
     float m_distance;
 
     /* number of intersection (counted with multiplicity)
-       of a ray agains the path.
+     *  of a ray agains the path.
      */
     fastuidraw::vecN<int, 4> m_ray_intersection_counts;
 
@@ -487,12 +487,12 @@ namespace
     {}
 
     /*
-      Compute distance_value for the domain
-        D = { (x(i), y(j)) : 0 <= i < count.x(), 0 <= j < count.y() }
-      where
-        x(i) = step.x() * i
-        y(j) = step.y() * j
-      One can get translation via using the transformation argument, tr.
+     * Compute distance_value for the domain
+     *   D = { (x(i), y(j)) : 0 <= i < count.x(), 0 <= j < count.y() }
+     * where
+     *   x(i) = step.x() * i
+     *   y(j) = step.y() * j
+     * One can get translation via using the transformation argument, tr.
      */
     void
     compute_distance_values(const ivec2 &step, const ivec2 &count,
@@ -574,9 +574,9 @@ namespace
       {}
 
       /* Records a curve intersection with a texel edge boundary,
-         \param tp is the nature of the boundary
-         \param texel is the min-side of the texel
-         \param S the intersection
+       *  \param tp is the nature of the boundary
+       *  \param texel is the min-side of the texel
+       *  \param S the intersection
        */
       void
       record_edge_intersection(ivec2 texel,
@@ -587,8 +587,8 @@ namespace
       record_curve_inside_texel(ivec2 texel, IntBezierCurve::ID_t id);
 
       /* Records the winding number on the bottom-left corner
-         of a texel as computed by the intersections with a
-         line.
+       *  of a texel as computed by the intersections with a
+       *  line.
        */
       void
       set_winding(ivec2 coordinate,
@@ -693,15 +693,15 @@ CubicBezierCurve::
 approximate_with_quadratics(fastuidraw::vecN<QuadraticBezierCurve, 4> *out_curves) const
 {
   /*
-    Should we do the arithmatic in 64bit ints
-    and scale the input before and after hand
-    to avoid successive rounding uglies?
-
-    To get perfect avoiding of such, requires multiplying
-    by _64_ since this_curve.pMid has an 8 in the denomitor
-    of the source m_raw_curve and each of alpha and beta
-    are from that, another factor of 8, together it is 64.
-  */
+   * Should we do the arithmatic in 64bit ints
+   * and scale the input before and after hand
+   * to avoid successive rounding uglies?
+   *
+   * To get perfect avoiding of such, requires multiplying
+   * by _64_ since this_curve.pMid has an 8 in the denomitor
+   * of the source m_raw_curve and each of alpha and beta
+   * are from that, another factor of 8, together it is 64.
+   */
   const CubicBezierCurve &in_curve(*this);
   CubicDecomposerHelper<int> this_curve(in_curve[0], in_curve[1], in_curve[2], in_curve[3]);
   CubicDecomposerHelper<int> alpha(this_curve.p[0], this_curve.p0_1, this_curve.p01_12, this_curve.pMid);
@@ -715,12 +715,12 @@ approximate_with_quadratics(fastuidraw::vecN<QuadraticBezierCurve, 4> *out_curve
   pD = compute_midpoint(this_curve.p2_3, compute_midpoint(this_curve.p2_3, this_curve.p[3]));
 
   /*
-    the curves are:
-      [p0, pA, alpha.pMid]
-      [alpha.pMid, pB, pMid]
-      [pMid, pC, beta.pMid]
-      [beta.pMid, pD, p3]
-  */
+   * the curves are:
+   *   [p0, pA, alpha.pMid]
+   *   [alpha.pMid, pB, pMid]
+   *   [pMid, pC, beta.pMid]
+   *   [beta.pMid, pD, p3]
+   */
   (*out_curves)[0] = QuadraticBezierCurve(this_curve.p[0], pA, alpha.pMid);
   (*out_curves)[1] = QuadraticBezierCurve(alpha.pMid, pB, this_curve.pMid);
   (*out_curves)[2] = QuadraticBezierCurve(this_curve.pMid, pC, beta.pMid);
@@ -924,8 +924,8 @@ solve_quadratic(fastuidraw::c_array<const T> poly,
   if (sum == T(0))
     {
       /* thus p(t) = a * t^2 + b * t + -(a+b)
-         = (t - 1)(at + a + b)
-      */
+       *  = (t - 1)(at + a + b)
+       */
       fastuidraw::vecN<T, 2> tmp;
       tmp[0] = poly[1] + poly[2];
       tmp[1] = poly[0];
@@ -1137,15 +1137,15 @@ compute_line_intersection(int pt, enum coordinate_type line_type,
   poly_solutions<solution_iter> solutions(solutions_iter);
 
   /* transform m_as_polynomial via transformation tr;
-     that transformation is tr(p) = tr.translate() + tr.scale() * p,
-     thus we multiply each coefficient of m_as_polynomial by
-     tr.scale(), but add tr.translate() only to the constant term.
+   *  that transformation is tr(p) = tr.translate() + tr.scale() * p,
+   *  thus we multiply each coefficient of m_as_polynomial by
+   *  tr.scale(), but add tr.translate() only to the constant term.
    */
   std::transform(poly.begin(), poly.end(), tmp.begin(), MultiplierFunctor<int>(tr.scale()));
   tmp[0] += tr.translate()[coord];
 
   /* solve for f(t) = pt, which is same as solving for
-     f(t) - pt = 0.
+   *  f(t) - pt = 0.
    */
   tmp[0] -= pt;
   solve_polynomial(fastuidraw::c_array<const int64_t>(tmp), solution_types_accepted, &solutions);
@@ -1183,12 +1183,12 @@ compute_lines_intersection(enum coordinate_type tp, int step, int count,
       bbmax = bb.max_point()[fixed_coord];
 
       /* we do not need to solve the polynomial over the entire field, only
-         the range of the bounding box of the curve, point at c:
-            step * c
-         we want
-            bbmin <= step * c <= bbmax
-         which becomes (assuming step > 0) to:
-            bbmin / step <= c <= bbmax / step
+       *  the range of the bounding box of the curve, point at c:
+       *     step * c
+       *  we want
+       *     bbmin <= step * c <= bbmax
+       *  which becomes (assuming step > 0) to:
+       *     bbmin / step <= c <= bbmax / step
        */
 
       cstart = fastuidraw::t_max(0, bbmin / step);
@@ -1261,24 +1261,24 @@ compute_distance_values(const ivec2 &step, const ivec2 &count,
                         int radius, fastuidraw::array2d<distance_value> &dst) const
 {
   /* We are computing the L1-distance from the path. For a given
-     curve C, that value is given by
-
-       d(x, y) = inf { | x - C_x(t) | + | y - C_y(t) | : 0 <= t <= 1 }
-
-     the function f(t) = | x - C_x(t) | + | y - C_y(t) | is not C1
-     everywhere. However we can still compute its minimum by noting
-     that it is C1 outside of where x = C_x(t) and y = C_y(t) and
-     thus the set of points to check where the minumum occurs
-     is given by the following list:
-       1) those t for which x = C_x(t)
-       2) those t for which y = C_y(t)
-       3) those t for which dC_x/dt + dC_y/dt = 0
-       4) those t for which dC_x/dt - dC_y/dt = 0
-       5) t = 0 or t = 1
-
-     Note that the actual number of polynomial solves needed is
-     then just count.x (for 1) plus count.y (for 2). The items
-     from (3) and (4) are already stored in IntBezierCurve
+   *  curve C, that value is given by
+   *
+   *    d(x, y) = inf { | x - C_x(t) | + | y - C_y(t) | : 0 <= t <= 1 }
+   *
+   *  the function f(t) = | x - C_x(t) | + | y - C_y(t) | is not C1
+   *  everywhere. However we can still compute its minimum by noting
+   *  that it is C1 outside of where x = C_x(t) and y = C_y(t) and
+   *  thus the set of points to check where the minumum occurs
+   *  is given by the following list:
+   *    1) those t for which x = C_x(t)
+   *    2) those t for which y = C_y(t)
+   *    3) those t for which dC_x/dt + dC_y/dt = 0
+   *    4) those t for which dC_x/dt - dC_y/dt = 0
+   *    5) t = 0 or t = 1
+   *
+   *  Note that the actual number of polynomial solves needed is
+   *  then just count.x (for 1) plus count.y (for 2). The items
+   *  from (3) and (4) are already stored in IntBezierCurve
    */
   compute_outline_point_values(step, count, tr, radius, dst);
   compute_derivative_cancel_values(step, count, tr, radius, dst);
@@ -1424,8 +1424,8 @@ compute_fixed_line_values(enum Solver::coordinate_type tp,
             }
 
           /* update the distance values for all those points between
-             the point on the line we were at before the loop start
-             and the point on the line we are at now
+           *  the point on the line we were at before the loop start
+           *  and the point on the line we are at now
            */
           for(int idx = fastuidraw::t_max(0, prev_idx - 1),
                 end_idx = fastuidraw::t_min(sz, current_idx + 1);
@@ -1459,15 +1459,15 @@ record_edge_intersection(ivec2 texel,
   const int c(texel[fixed_coord]);
 
   /* add entry to texel as S intersect the min-side of the
-     texel
-  */
+   *  texel
+   */
   if (c < m_size[fixed_coord])
     {
       m_data(texel.x(), texel.y()).second.insert(S.m_src);
     }
 
   /* the intersection also intersects the max-side of the
-     previous texel
+   *  previous texel
    */
   if (c > 0)
     {
@@ -1555,8 +1555,10 @@ curve_lists_edge_intersections(enum Solver::coordinate_type tp,
 {
   int fixed_coord(Solver::fixed_coordinate(tp));
   int varying_coord(Solver::varying_coordinate(tp));
-  /* the size is one more than the image_sz because we are computing the
-     intersections with each border */
+  /*
+   * the size is one more than the image_sz because we
+   * are computing the intersections with each border
+   */
   std::vector<std::vector<Solver::solution_pt> > intersections(image_sz[fixed_coord] + 1);
 
   for(const IntContour &contour: m_contours)
@@ -1591,9 +1593,9 @@ curve_lists_edge_intersections(enum Solver::coordinate_type tp,
           dst->set_winding(pixel, tp, winding);
 
           /* Note that we are testing to (1 + v), which is the end
-             of the texel; this is because we want the intersections
-             on the edge from the start of the texel (at v) to the
-             end of the texel (at 1 + v).
+           *  of the texel; this is because we want the intersections
+           *  on the edge from the start of the texel (at v) to the
+           *  end of the texel (at 1 + v).
            */
           p = static_cast<float>((1 + v) * texel_size[varying_coord]);
           while(currentL < maxL && L[currentL].m_p[varying_coord] <= p)
@@ -1611,19 +1613,19 @@ curve_lists_edge_intersections(enum Solver::coordinate_type tp,
             }
 
           /* winding represents the computation of the winding number
-             from 0 to v + 1. The last curve we had to worry about is
-             currentL - 1 (if currentL > 0). We test the fill rule
-             against the curves intersection point and if it does not
-             match, then we give a point for reversing.
-
-             We want to test the normal vector of the curve
-             intersection against the unit vector from the the
-             corner at v + 1 to the intersection. The normal vector
-             is given by J(x, y) = (-y, x) and the unit vector
-             is given by (0, 1) for Solver::x_fixed and (1, 0)
-             for Solver::y_fixed. Thus the dot is given by
-               +x --> x_fixed
-               -y --> y_fixed
+           *  from 0 to v + 1. The last curve we had to worry about is
+           *  currentL - 1 (if currentL > 0). We test the fill rule
+           *  against the curves intersection point and if it does not
+           *  match, then we give a point for reversing.
+           *
+           *  We want to test the normal vector of the curve
+           *  intersection against the unit vector from the the
+           *  corner at v + 1 to the intersection. The normal vector
+           *  is given by J(x, y) = (-y, x) and the unit vector
+           *  is given by (0, 1) for Solver::x_fixed and (1, 0)
+           *  for Solver::y_fixed. Thus the dot is given by
+           *    +x --> x_fixed
+           *    -y --> y_fixed
            */
           if (currentL > 0)
             {
@@ -1678,8 +1680,8 @@ select_curve(const IntersectionRecorder::PerTexel &texel) const
 
     default:
       /* TODO:
-         - try to filter "extra" curves from the list and make a weighted choice
-      */
+       *  - try to filter "extra" curves from the list and make a weighted choice
+       */
       return *texel.second.begin();
     }
 }
@@ -2015,12 +2017,12 @@ collapse_small_curves(const IntBezierCurve::transformation<int> &tr,
   id.m_contourID = m_curves.front().ID().m_contourID;
 
   /* When a sequence of curves is collapsed, we collapse
-     that sequence of curves to a single point whose value
-     is the average of the end points of the curves
-     to remove; the tricky part if to correctly handle
-     the case where a curve collapse sequence starts
-     towards the end of the contour and ends at the
-     beginning (i.e. roll over).
+   *  that sequence of curves to a single point whose value
+   *  is the average of the end points of the curves
+   *  to remove; the tricky part if to correctly handle
+   *  the case where a curve collapse sequence starts
+   *  towards the end of the contour and ends at the
+   *  beginning (i.e. roll over).
    */
   std::vector<IntBezierCurve> src;
   std::vector<unsigned int> non_collapsed_curves;
@@ -2050,7 +2052,7 @@ collapse_small_curves(const IntBezierCurve::transformation<int> &tr,
     }
 
   /* correctly handle if a sequence of curves are collapsed and
-     that sequence walks over the end-begin boundary (i.e. rollover)
+   *  that sequence walks over the end-begin boundary (i.e. rollover)
    */
   if (non_collapsed_curves.front() != 0
      || non_collapsed_curves.back() != src.size() - 1)
@@ -2276,11 +2278,11 @@ extract_render_data(const ivec2 &step, const ivec2 &image_sz,
   int radius(2);
 
   /* change tr to be offset by half a texel, so that the
-     distance value is sampled at the center of the texel;
-     we also push it off by 1 more unit to guarnantee that
-     the sample points' x and y coordinates are different
-     from the x and y coordinates of all end points of the
-     curves of the path after transformation.
+   *  distance value is sampled at the center of the texel;
+   *  we also push it off by 1 more unit to guarnantee that
+   *  the sample points' x and y coordinates are different
+   *  from the x and y coordinates of all end points of the
+   *  curves of the path after transformation.
    */
   int tr_scale(tr.scale());
   ivec2 tr_translate(tr.translate() - step / 2 - ivec2(1, 1));
@@ -2310,8 +2312,8 @@ extract_render_data(const ivec2 &step, const ivec2 &image_sz,
           if (outside1 != outside2)
             {
               /* if the fills do not match, then a curve is going through
-                 the test point of the texel, thus make the distance 0
-              */
+               *  the test point of the texel, thus make the distance 0
+               */
               dist = 0.0f;
             }
           v = DistanceFieldGenerator::pixel_value_from_distance(dist, outside1);
@@ -2332,19 +2334,19 @@ extract_render_data(const ivec2 &step, const ivec2 &count,
   CurvePairGenerator generator(fill_rule, m_contours);
 
   /* We nudge the output by 1-unit in each direction
-     so that the horizontal and vertical lines that
-     we use to find intersections and compute the winding
-     number never go through any of the end points of
-     the bezier curves; if one does, its winding computation
-     might be incorrect.
+   *  so that the horizontal and vertical lines that
+   *  we use to find intersections and compute the winding
+   *  number never go through any of the end points of
+   *  the bezier curves; if one does, its winding computation
+   *  might be incorrect.
    */
   int tr_scale(tr.scale());
   ivec2 tr_translate(tr.translate() - ivec2(1, 1));
   tr = IntBezierCurve::transformation<int>(tr_scale, tr_translate);
 
   /* compute what curves should be used to each texel,
-     also figures out which contours should be reversed
-     as well
+   *  also figures out which contours should be reversed
+   *  as well
    */
   generator.extract_active_curve_pairs(step, count, tr, dst);
 

@@ -65,11 +65,11 @@ namespace
     fastuidraw::vec2 p_bl, p_tr;
 
     /* ISSUE: we are assuming horizontal layout; we should probably
-       change the inteface so that caller chooses how to adjust
-       positions with the choices:
-         adjust_using_horizontal,
-         adjust_using_vertical,
-         no_adjust
+     *  change the inteface so that caller chooses how to adjust
+     *  positions with the choices:
+     *    adjust_using_horizontal,
+     *    adjust_using_vertical,
+     *    no_adjust
      */
     if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
       {
@@ -86,9 +86,9 @@ namespace
       }
 
     /* secondary_atlas.layer() can be -1 to indicate that
-       the glyph does not have secondary atlas, when changed
-       to an unsigned value it is ungood, to compensate we
-       will "do something".
+     *  the glyph does not have secondary atlas, when changed
+     *  to an unsigned value it is ungood, to compensate we
+     *  will "do something".
      */
     uint_values.x() = 0u;
     uint_values.y() = glyph.geometry_offset();

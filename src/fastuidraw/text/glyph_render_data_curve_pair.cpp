@@ -237,9 +237,9 @@ entry(c_array<const vec2> pts, int curve0_count):
   m_curve1 = c1.m_c;
 
   /* compute whether or not to use max or min for
-     the curve pair; the value is determined by
-     the derivatives at the point where they meet.
-  */
+   *  the curve pair; the value is determined by
+   *  the derivatives at the point where they meet.
+   */
   float d;
   bool tangential(false), tangled;
 
@@ -285,11 +285,11 @@ entry(bool inside):
   m_p(0.0f, 0.0f)
 {
   /* The pseudo-distance computation computes:
-      t = x / m_m0
-     and ignores the computation if t < 0.0
-     and uses zeta. So, what we do is make sure
-     t is always negative, we do this be assuming
-     that the x coordinate is always positive.
+   *   t = x / m_m0
+   *  and ignores the computation if t < 0.0
+   *  and uses zeta. So, what we do is make sure
+   *  t is always negative, we do this be assuming
+   *  that the x coordinate is always positive.
    */
 
   m_curve0.m_m0 = -1.0f;

@@ -86,7 +86,7 @@ LoaderMacro(unsigned int alignment,
             fastuidraw::c_string geometry_store_fetch)
 {
   /* we are defining a macro, so on end of lines
-     in code we need to add \\
+   *  in code we need to add \\
    */
   std::ostringstream str;
   fastuidraw::c_string texelFetchExt[4] =
@@ -128,7 +128,7 @@ LoaderMacro(unsigned int alignment,
     }
 
   /* this is scary, the shader code will have the macros/whatever defined for us so that
-     that assignment from temp "just works".
+   *  that assignment from temp "just works".
    */
 #define EXTRACT_STREAM(X) str << "\t"#X << " = temp" << Ending(alignment, fastuidraw::GlyphRenderDataCurvePair::pack_offset_##X) << ";\\\n"
 
@@ -167,17 +167,17 @@ curvepair_compute_pseudo_distance(unsigned int alignment,
   ShaderSource return_value;
 
   /* aww, this sucks; we can choose one of 4 options:
-       1. dedicated shader for all variations.
-       2. a loader function (but we need to prefix its name)
-          along with the global values
-       3. break function into sections:
-          - function declaration and local variables
-          - loader code
-          - computation and closing code
-       4. Define the loading macro in C++ and make sure the
-          variable names used match between this C++ code
-          and the GLSL shader code
-     We choose option 4; which sucks for reading the shader code.
+   *    1. dedicated shader for all variations.
+   *    2. a loader function (but we need to prefix its name)
+   *       along with the global values
+   *    3. break function into sections:
+   *       - function declaration and local variables
+   *       - loader code
+   *       - computation and closing code
+   *    4. Define the loading macro in C++ and make sure the
+   *       variable names used match between this C++ code
+   *       and the GLSL shader code
+   *  We choose option 4; which sucks for reading the shader code.
    */
 
   return_value

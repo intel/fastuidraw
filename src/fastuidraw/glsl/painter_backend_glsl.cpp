@@ -325,26 +325,26 @@ ready_brush_varyings(void)
 
   m_brush_varyings
     /* specifies what features are active on the brush
-       through values on its bits.
-    */
+     *  through values on its bits.
+     */
     .add_uint_varying("fastuidraw_brush_shader")
 
     /* Repeat window paremters:
-       - fastuidraw_brush_repeat_window_xy (x,y) coordinate of repeat window
-       - fastuidraw_brush_repeat_window_wh dimensions of repeat window
-       (all in brush coordinate)
-    */
+     *  - fastuidraw_brush_repeat_window_xy (x,y) coordinate of repeat window
+     *  - fastuidraw_brush_repeat_window_wh dimensions of repeat window
+     *  (all in brush coordinate)
+     */
     .add_float_varying("fastuidraw_brush_repeat_window_x", varying_list::interpolation_flat)
     .add_float_varying("fastuidraw_brush_repeat_window_y", varying_list::interpolation_flat)
     .add_float_varying("fastuidraw_brush_repeat_window_w", varying_list::interpolation_flat)
     .add_float_varying("fastuidraw_brush_repeat_window_h", varying_list::interpolation_flat)
 
     /* Gradient paremters (all in brush coordinates)
-       - fastuidraw_brush_gradient_p0 start point of gradient
-       - fastuidraw_brush_gradient_p1 end point of gradient
-       - fastuidraw_brush_gradient_r0 start radius (radial gradients only)
-       - fastuidraw_brush_gradient_r1 end radius (radial gradients only)
-    */
+     *  - fastuidraw_brush_gradient_p0 start point of gradient
+     *  - fastuidraw_brush_gradient_p1 end point of gradient
+     *  - fastuidraw_brush_gradient_r0 start radius (radial gradients only)
+     *  - fastuidraw_brush_gradient_r1 end radius (radial gradients only)
+     */
     .add_float_varying("fastuidraw_brush_gradient_p0_x", varying_list::interpolation_flat)
     .add_float_varying("fastuidraw_brush_gradient_p0_y", varying_list::interpolation_flat)
     .add_float_varying("fastuidraw_brush_gradient_p1_x", varying_list::interpolation_flat)
@@ -353,15 +353,15 @@ ready_brush_varyings(void)
     .add_float_varying("fastuidraw_brush_gradient_r1", varying_list::interpolation_flat)
 
     /* image parameters
-       - fastuidraw_brush_image_xy (x,y) texel coordinate in INDEX texture
-                                   of start of image
-       - fastuidraw_brush_image_layer layer texel coordinate in INDEX
-                                      texture of start of image
-       - fastuidraw_brush_image_size size of image (needed for when brush
-                                     coordinate goes beyond image size)
-       - fastuidraw_brush_image_factor ratio of master index tile size to
-                                       dimension of image
-    */
+     *  - fastuidraw_brush_image_xy (x,y) texel coordinate in INDEX texture
+     *                              of start of image
+     *  - fastuidraw_brush_image_layer layer texel coordinate in INDEX
+     *                                 texture of start of image
+     *  - fastuidraw_brush_image_size size of image (needed for when brush
+     *                                coordinate goes beyond image size)
+     *  - fastuidraw_brush_image_factor ratio of master index tile size to
+     *                                  dimension of image
+     */
     .add_float_varying("fastuidraw_brush_image_x", varying_list::interpolation_flat)
     .add_float_varying("fastuidraw_brush_image_y", varying_list::interpolation_flat)
     .add_float_varying("fastuidraw_brush_image_layer", varying_list::interpolation_flat)
@@ -372,11 +372,11 @@ ready_brush_varyings(void)
     .add_uint_varying("fastuidraw_brush_image_number_index_lookups")
 
     /* ColorStop paremeters (only active if gradient active)
-       - fastuidraw_brush_color_stop_xy (x,y) texture coordinates of start of color stop
-                                       sequence
-       - fastuidraw_brush_color_stop_length length of color stop sequence in normalized
-                                           texture coordinates
-    */
+     *  - fastuidraw_brush_color_stop_xy (x,y) texture coordinates of start of color stop
+     *                                  sequence
+     *  - fastuidraw_brush_color_stop_length length of color stop sequence in normalized
+     *                                      texture coordinates
+     */
     .add_float_varying("fastuidraw_brush_color_stop_x", varying_list::interpolation_flat)
     .add_float_varying("fastuidraw_brush_color_stop_y", varying_list::interpolation_flat)
     .add_float_varying("fastuidraw_brush_color_stop_length", varying_list::interpolation_flat)
@@ -428,14 +428,14 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
   using namespace fastuidraw::PainterEnums;
 
   /* fp32 can store a 24-bit integer exactly,
-     however, the operation of converting from
-     uint to normalized fp32 may lose a bit,
-     so 23-bits it is.
-     TODO: go through the requirements of IEEE754,
-     what a compiler of a driver might do and
-     what a GPU does to see how many bits we
-     really have.
-  */
+   *  however, the operation of converting from
+   *  uint to normalized fp32 may lose a bit,
+   *  so 23-bits it is.
+   *  TODO: go through the requirements of IEEE754,
+   *  what a compiler of a driver might do and
+   *  what a GPU does to see how many bits we
+   *  really have.
+   */
   uint32_t z_bits_supported;
   unsigned int alignment;
 
@@ -556,8 +556,8 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
 
   {
     /* Matrics in GLSL are [column][row], that is why
-       one sees the transposing to the loads
-    */
+     *  one sees the transposing to the loads
+     */
     shader_unpack_value_set<PainterBrush::transformation_matrix_data_size> labels;
     labels
       .set(PainterBrush::transformation_matrix_m00_offset, "[0][0]")
@@ -675,8 +675,8 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
 
   {
     /* Matrics in GLSL are [column][row], that is why
-       one sees the transposing to the loads
-    */
+     *  one sees the transposing to the loads
+     */
     shader_unpack_value_set<PainterItemMatrix::matrix_data_size> labels;
     labels
       .set(PainterItemMatrix::matrix00_offset, "[0][0]")
@@ -743,7 +743,7 @@ declare_shader_uniforms(const fastuidraw::glsl::PainterBackendGLSL::UberShaderPa
     {
       fastuidraw::c_string ext="xyzw";
       /* Mesa packs UBO data float[N] as really vec4[N],
-         so instead realize the data directly as vec4[K]
+       *  so instead realize the data directly as vec4[K]
        */
       ostr << "FASTUIDRAW_LAYOUT_BINDING("
            << params.binding_points().uniforms_ubo()

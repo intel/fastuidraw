@@ -214,7 +214,7 @@ TexelStoreGL(fastuidraw::ivec3 dims, bool delayed):
   m_texture_as_r8(0)
 {
   /* clear the right and bottom border
-     of the texture
+   *  of the texture
    */
   std::vector<uint8_t> right(dims.y(), 0), bottom(dims.x(), 0);
   for(int layer = 0; layer < dims.z(); ++layer)
@@ -248,10 +248,10 @@ resize_implement(int new_num_layers)
   if (m_texture_as_r8 != 0)
     {
       /* a resize generates a new texture which then has
-         a new backing store. The texture view would then
-         be using the old backing store which is useless.
-         We delete the old texture view and let texture()
-         recreate the view on demand.
+       *  a new backing store. The texture view would then
+       *  be using the old backing store which is useless.
+       *  We delete the old texture view and let texture()
+       *  recreate the view on demand.
        */
       glDeleteTextures(1, &m_texture_as_r8);
       m_texture_as_r8 = 0;
@@ -328,8 +328,8 @@ texture(bool as_integer) const
           glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
           /* we do GL_REPEAT because glyphs are stored with padding (always to
-             right/bottom). This way filtering works.
-          */
+           *  right/bottom). This way filtering works.
+           */
           glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
           glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
           glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_R, GL_REPEAT);
@@ -667,7 +667,7 @@ use_optimal_geometry_store_backing(void)
   const int32_t required_max_size(1u << 26u);
 
   /* if texture_buffer_object is supported prefer that if it is
-     big enough.
+   *  big enough.
    */
   if (detail::compute_tex_buffer_support() != detail::tex_buffer_not_supported
      && context_get<int>(GL_MAX_TEXTURE_BUFFER_SIZE) >= required_max_size)
@@ -683,10 +683,10 @@ use_optimal_geometry_store_backing(void)
       max_wh = context_get<int>(GL_MAX_TEXTURE_SIZE);
 
       /* Our selection of size is as follows:
-          First maximize width (to a power of 2)
-          Second maximize depth
-          Last resort, increase height
-         so that we can store required_size texels.
+       *   First maximize width (to a power of 2)
+       *   Second maximize depth
+       *   Last resort, increase height
+       *  so that we can store required_size texels.
        */
       width = 1u << uint32_log2(max_wh);
       required_area_per_layer = required_max_size / max_layers;

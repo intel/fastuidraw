@@ -150,9 +150,9 @@ covered_by_dash_pattern(const fastuidraw::PainterShaderData::DataBase *data,
   bool return_value(true);
 
   /* PainterDashedStrokeParams is for attributes packed
-     by PainterAttributeDataFillerPathStroked which
-     stores the distance from the contour start at
-     m_attrib1.y packed as a float
+   *  by PainterAttributeDataFillerPathStroked which
+   *  stores the distance from the contour start at
+   *  m_attrib1.y packed as a float
    */
   distance = fastuidraw::unpack_float(attrib.m_attrib1.y()) + d->m_dash_offset;
   fd = std::floor(distance / d->m_total_length);
@@ -169,8 +169,8 @@ covered_by_dash_pattern(const fastuidraw::PainterShaderData::DataBase *data,
           interval.m_begin = ff;
           interval.m_end = ff + v;
           /* if the boundary is too close we will return false
-             even if we are in the draw interval so that we can
-             avoid bad rendering.
+           *  even if we are in the draw interval so that we can
+           *  avoid bad rendering.
            */
           return return_value && !close_to_boundary(dist, interval);
         }
@@ -313,8 +313,8 @@ dash_pattern(c_array<const DashPatternElement> f)
     }
 
   /* santize the dash pattern:
-       - starting draw length can be 0
-       - any other 0 lengths are to be joined
+   *    - starting draw length can be 0
+   *    - any other 0 lengths are to be joined
    */
   unsigned int current_write(0);
 
@@ -323,9 +323,9 @@ dash_pattern(c_array<const DashPatternElement> f)
   for(unsigned int i = 1, endi = f.size(); i < endi; ++i)
     {
       /* things to do:
-           - if d->m_dash_pattern[current_write].m_space_length is 0,
-             then we join it with the element we are on by adding the
-             draw lengths.
+       *    - if d->m_dash_pattern[current_write].m_space_length is 0,
+       *      then we join it with the element we are on by adding the
+       *      draw lengths.
        */
       if (d->m_dash_pattern[current_write].m_space_length <= 0.0f)
         {

@@ -488,10 +488,10 @@ assembled_code(void) const
         }
 
       /*
-        some GLSL pre-processors do not like to end on a
-        comment or other certain tokens, to make them
-        less grouchy, we emit a few extra \n's
-      */
+       * some GLSL pre-processors do not like to end on a
+       * comment or other certain tokens, to make them
+       * less grouchy, we emit a few extra \n's
+       */
       output_glsl_source_code << "\n\n\n";
 
       d->m_assembled_code = output_glsl_source_code.str();

@@ -36,42 +36,42 @@
 #include "../../3rd_party/glu-tess/glu-tess.hpp"
 
 /* Actual triangulation is handled by GLU-tess.
-   The main complexity in creating a FilledPath
-   comes from two elements:
-    - handling overlapping edges
-    - creating a hierarchy for creating triangulations
-      and for culling.
-
-   The first is needed because GLU-tess will fail
-   if any two edges overlap (we say a pair of edges
-   overlap if they intersect at more than just a single
-   point). We handle this by observing that GLU-tess
-   takes doubles but TessellatedPath is floats. When
-   we feed the coordinates to GLU-tess, we offset the
-   values by an amount that is visible in fp64 but not
-   in fp32. When adding the contours to GLU-tess,
-   the locations of the points are discretized and
-   then offsets are added. In addition, some contour
-   filtering is applied as well. Afterwards, there is
-   no more discretization applied to the points.
-   The details are in CoordinateConverter and PointHoard.
-
-   The second is needed for primarily to speed up
-   tessellation. If a TessellatedPath has a large
-   number of vertices, then that is likely because
-   it is a high level of detail and likely zoomed in
-   a great deal. To handle that, we need only to
-   have the triangulation of a smaller portion of
-   it ready. Thus we break the original path into
-   a hierarchy of paths. The partitioning is done
-   a single half plane at a time. A contour from
-   the original path is computed by simply removing
-   any points on the wrong side of the half plane
-   and inserting the points where the path crossed
-   the half plane. The sub-path objects are computed
-   via the class SubPath. The class SubsetPrivate
-   is the one that represents an element in the
-   hierarchy that is triangulated on demand.
+ *  The main complexity in creating a FilledPath
+ *  comes from two elements:
+ *   - handling overlapping edges
+ *   - creating a hierarchy for creating triangulations
+ *     and for culling.
+ *
+ *  The first is needed because GLU-tess will fail
+ *  if any two edges overlap (we say a pair of edges
+ *  overlap if they intersect at more than just a single
+ *  point). We handle this by observing that GLU-tess
+ *  takes doubles but TessellatedPath is floats. When
+ *  we feed the coordinates to GLU-tess, we offset the
+ *  values by an amount that is visible in fp64 but not
+ *  in fp32. When adding the contours to GLU-tess,
+ *  the locations of the points are discretized and
+ *  then offsets are added. In addition, some contour
+ *  filtering is applied as well. Afterwards, there is
+ *  no more discretization applied to the points.
+ *  The details are in CoordinateConverter and PointHoard.
+ *
+ *  The second is needed for primarily to speed up
+ *  tessellation. If a TessellatedPath has a large
+ *  number of vertices, then that is likely because
+ *  it is a high level of detail and likely zoomed in
+ *  a great deal. To handle that, we need only to
+ *  have the triangulation of a smaller portion of
+ *  it ready. Thus we break the original path into
+ *  a hierarchy of paths. The partitioning is done
+ *  a single half plane at a time. A contour from
+ *  the original path is computed by simply removing
+ *  any points on the wrong side of the half plane
+ *  and inserting the points where the path crossed
+ *  the half plane. The sub-path objects are computed
+ *  via the class SubPath. The class SubsetPrivate
+ *  is the one that represents an element in the
+ *  hierarchy that is triangulated on demand.
  */
 
 /* Values to define how to create Subset objects.
@@ -85,28 +85,28 @@ namespace SubsetConstants
     };
 
   /* if negative, aspect ratio is not
-     enfored.
+   *  enfored.
    */
   const double size_max_ratio = 4.0;
 }
 
 /* Constants for CoordinateConverter.
-   CoordinateConverter's purpose is to remap
-   the bounding box of a fastuidraw::TessellatedPath
-   to [1, 1 + 2 ^ N] x [1,  1 + 2 ^ N]
-   and then apply a fudge offset to the point
-   that an fp64 sees but an fp32 does not.
-
-   We do this to allow for the input TessellatedPath
-   to have overlapping edges. The value for the
-   fudge offset is to be incremented on each point.
-
-   An fp32 has a 23-bit significand that allows it
-   to represent any integer in the range [-2^24, 2^24]
-   exactly. An fp64 has a 52 bit significand.
-
-   We set N to be 24 and the fudginess to be 2^-20
-   (leaving 9-bits for GLU to use for intersections).
+ *  CoordinateConverter's purpose is to remap
+ *  the bounding box of a fastuidraw::TessellatedPath
+ *  to [1, 1 + 2 ^ N] x [1,  1 + 2 ^ N]
+ *  and then apply a fudge offset to the point
+ *  that an fp64 sees but an fp32 does not.
+ *
+ *  We do this to allow for the input TessellatedPath
+ *  to have overlapping edges. The value for the
+ *  fudge offset is to be incremented on each point.
+ *
+ *  An fp32 has a 23-bit significand that allows it
+ *  to represent any integer in the range [-2^24, 2^24]
+ *  exactly. An fp64 has a 52 bit significand.
+ *
+ *  We set N to be 24 and the fudginess to be 2^-20
+ *  (leaving 9-bits for GLU to use for intersections).
  */
 namespace CoordinateConverterConstants
 {
@@ -118,12 +118,12 @@ namespace CoordinateConverterConstants
     };
 
   /* essentially the hieght of one pixel
-     from coordinate conversions. We are
-     targetting a resolution of no more
-     thant 2^13. We also can have that
-     a subset is zoomed in by up to a
-     factor of 2^4. This leaves us with
-     7 = 24 - 13 - 4 bits.
+   *  from coordinate conversions. We are
+   *  targetting a resolution of no more
+   *  thant 2^13. We also can have that
+   *  a subset is zoomed in by up to a
+   *  factor of 2^4. This leaves us with
+   *  7 = 24 - 13 - 4 bits.
    */
   const double min_height = double(1u << 7u);
 }
@@ -380,7 +380,7 @@ namespace
     enum corner_t
       {
         /* NOTE: ordering of corners in enum is in order of making progress
-           around the square to increment the winding number.
+         *  around the square to increment the winding number.
          */
         corner_minx_miny = 0,
         corner_minx_maxy,
@@ -910,14 +910,14 @@ namespace
     std::vector<fastuidraw::dvec2> m_points;
 
     /* Carefully organize indices as follows:
-       - first all elements with odd winding number
-       - then all elements with even and non-zero winding number
-       - then all element with zero winding number.
-       By doing so, the following are continuous in the array:
-       - non-zero
-       - odd-even fill rule
-       - complement of odd-even fill
-       - complement of non-zero
+     *  - first all elements with odd winding number
+     *  - then all elements with even and non-zero winding number
+     *  - then all element with zero winding number.
+     *  By doing so, the following are continuous in the array:
+     *  - non-zero
+     *  - odd-even fill rule
+     *  - complement of odd-even fill
+     *  - complement of non-zero
      */
     std::vector<unsigned int> m_indices;
     fastuidraw::c_array<const unsigned int> m_nonzero_winding_indices;
@@ -926,9 +926,9 @@ namespace
     fastuidraw::c_array<const unsigned int> m_even_winding_indices;
 
     /* m_per_fill[w] gives the indices to the triangles
-       with the winding number w. The value points into
-       indices
-    */
+     *  with the winding number w. The value points into
+     *  indices
+     */
     std::map<int, fastuidraw::c_array<const unsigned int> > m_per_fill;
 
     virtual
@@ -1055,25 +1055,25 @@ namespace
                         std::vector<int> *out);
 
     /* m_ID represents an index into the std::vector<>
-       passed into create_hierarchy() where this element
-       is found.
+     *  passed into create_hierarchy() where this element
+     *  is found.
      */
     unsigned int m_ID;
 
     /* The bounds of this SubsetPrivate used in
-       select_subsets().
+     *  select_subsets().
      */
     fastuidraw::BoundingBox<double> m_bounds;
     fastuidraw::BoundingBox<float> m_bounds_f;
     fastuidraw::Path m_bounding_path;
 
     /* if this SubsetPrivate has children then
-       m_painter_data is made by "merging" the
-       data of m_painter_data from m_children[0]
-       and m_children[1]. We do this merging so
-       that we can avoid recursing if the entirity
-       of the bounding box is contained in the
-       clipping region.
+     *  m_painter_data is made by "merging" the
+     *  data of m_painter_data from m_children[0]
+     *  and m_children[1]. We do this merging so
+     *  that we can avoid recursing if the entirity
+     *  of the bounding box is contained in the
+     *  clipping region.
      */
     fastuidraw::PainterAttributeData *m_painter_data;
     std::vector<int> m_winding_numbers;
@@ -1087,9 +1087,9 @@ namespace
     unsigned int m_aa_largest_index_block;
 
     /* m_sub_path is non-nullptr only if this SubsetPrivate
-       has no children. In addition, it is set to nullptr
-       and deleted when m_painter_data is created from
-       it.
+     *  has no children. In addition, it is set to nullptr
+     *  and deleted when m_painter_data is created from
+     *  it.
      */
     SubPath *m_sub_path;
     fastuidraw::vecN<SubsetPrivate*, 2> m_children;
@@ -1248,7 +1248,7 @@ compute_splitting_location(int coord, std::vector<double> &work_room,
   for(const SubContour &C : m_contours)
     {
       /* use iterator interface because we need
-         to access the elements in order
+       *  to access the elements in order
        */
       double prev_pt(C.back()[coord]);
       for(const auto &q : C)
@@ -1287,10 +1287,10 @@ SubPath::
 choose_splitting_coordinate(double &s) const
 {
   /* do not allow the box to be too far from being a square.
-     TODO: if the balance of points heavily favors the other
-     side, we should ignore the size_max_ratio. Perhaps a
-     wieght factor between the different in # of points
-     of the sides and the ratio?
+   *  TODO: if the balance of points heavily favors the other
+   *  side, we should ignore the size_max_ratio. Perhaps a
+   *  wieght factor between the different in # of points
+   *  of the sides and the ratio?
    */
   fastuidraw::dvec2 mid_pt;
   mid_pt = 0.5 * (m_bounds.max_point() + m_bounds.min_point());
@@ -1320,7 +1320,7 @@ choose_splitting_coordinate(double &s) const
     }
 
   /* choose a splitting that: minimizes
-     number_points_before[i] + number_points_after[i]
+   *  number_points_before[i] + number_points_after[i]
    */
   number_points = number_points_before + number_points_after;
   if (number_points.x() < number_points.y())
@@ -1705,12 +1705,12 @@ PointHoard::
 reduce_contour(Contour &C)
 {
   /* We already have that loops are removed from C, so
-     C can only be reduced if all edges are boundary edges.
+   *  C can only be reduced if all edges are boundary edges.
    */
   if (C.size() <= 2)
     {
       /* a contour or 2 or fewer points, either has
-         no edges or 2 edges that cancel each other.
+       *  no edges or 2 edges that cancel each other.
        */
       C.clear();
       return 0;
@@ -1743,8 +1743,8 @@ PointHoard::
 unloop_contour(std::list<ContourPoint> &C, std::vector<Contour> &output)
 {
   /* GLU falls appart if it is passed a contour that has
-     a loop within it; thus we need to identify loops within
-     C and realize those as seperate contours.
+   *  a loop within it; thus we need to identify loops within
+   *  C and realize those as seperate contours.
    */
   if (C.empty())
     {
@@ -1762,14 +1762,14 @@ unloop_contour(std::list<ContourPoint> &C, std::vector<Contour> &output)
           if (looking_for == j->m_vertex)
             {
               /* the elements [i, j) form a loop which
-                 has no loops itself (otherwise we would
-                 have an earlier j; this we can add directly
-                 to output.
+               *  has no loops itself (otherwise we would
+               *  have an earlier j; this we can add directly
+               *  to output.
                */
               output.push_back(Contour(i, j));
 
               /* now remove [i, j) from C since it is a distinct
-                 loop added to output.
+               *  loop added to output.
                */
               while(i != j)
                 {
@@ -1858,10 +1858,10 @@ add_contour(const PointHoard::Contour &C)
       fastuidraw::vecN<double, 2> p;
 
       /* TODO: Incrementing the amount by which to apply
-         fudge is not the correct thing to do. Rather, we
-         should only increment and apply fudge on overlapping
-         and degenerate edges.
-      */
+       *  fudge is not the correct thing to do. Rather, we
+       *  should only increment and apply fudge on overlapping
+       *  and degenerate edges.
+       */
       p = m_points.apply(I.m_vertex, m_point_count);
       ++m_point_count;
 
@@ -1902,9 +1902,9 @@ temp_verts_non_degenerate_triangle(void)
   umag = fastuidraw::t_sqrt(static_cast<double>(dot(u, u)));
 
   /* the distance from an edge to the 3rd
-     point is given as twice the area divided
-     by the length of the edge. We ask that
-     the distance is atleast 1.
+   *  point is given as twice the area divided
+   *  by the length of the edge. We ask that
+   *  the distance is atleast 1.
    */
   if (two_area < min_height * vmag
       || two_area < min_height * wmag
@@ -1950,8 +1950,8 @@ vertex_callBack(unsigned int vertex_id, void *tess)
     }
 
   /* Cache adds vertices in groups of 3 (triangles),
-     then if all vertices are NOT FASTUIDRAW_GLU_nullptr_CLIENT_ID,
-     then add them.
+   *  then if all vertices are NOT FASTUIDRAW_GLU_nullptr_CLIENT_ID,
+   *  then add them.
    */
   p->m_temp_verts[p->m_temp_vert_count] = vertex_id;
   p->m_temp_vert_count++;
@@ -1959,9 +1959,9 @@ vertex_callBack(unsigned int vertex_id, void *tess)
     {
       p->m_temp_vert_count = 0;
       /*
-        if vertex_id is FASTUIDRAW_GLU_nullptr_CLIENT_ID, that means
-        the triangle is junked.
-      */
+       * if vertex_id is FASTUIDRAW_GLU_nullptr_CLIENT_ID, that means
+       * the triangle is junked.
+       */
       if (p->m_temp_verts[0] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
           && p->m_temp_verts[1] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
           && p->m_temp_verts[2] != FASTUIDRAW_GLU_nullptr_CLIENT_ID
@@ -2183,9 +2183,9 @@ fill_indices(std::vector<unsigned int> &indices,
     }
 
   /* pack as follows:
-      - odd
-      - even non-zero
-      - zero
+   *   - odd
+   *   - even non-zero
+   *   - zero
    */
   unsigned int current_odd(0), current_even_non_zero(num_odd);
   unsigned int current_zero(num_even_non_zero + num_odd);
@@ -2307,8 +2307,8 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
     }
 
   /* copy indices is trickier; we need to copy with correct chunking
-     AND adjust the values for the indices coming from m_b (because
-     m_b attributes are placed after m_a attributes).
+   *  AND adjust the values for the indices coming from m_b (because
+   *  m_b attributes are placed after m_a attributes).
    */
   for(unsigned int i = 0, dst_offset = 0; i < index_chunks.size(); ++i)
     {
@@ -2363,8 +2363,8 @@ post_process_attributes(unsigned int chunk,
   FASTUIDRAWunused(dst_from_b);
 
   /* the order of drawing is a then b, thus
-     we want to increment the elements of a
-     so they are on top of all elements of b
+   *  we want to increment the elements of a
+   *  so they are on top of all elements of b
    */
   int add_z(m_b.z_range(chunk).m_end);
   for(fastuidraw::PainterAttribute &A : dst_from_a)
@@ -2789,7 +2789,7 @@ select_subsets(ScratchSpacePrivate &scratch,
   for(unsigned int i = 0; i < clip_equations.size(); ++i)
     {
       /* transform clip equations from clip coordinates to
-         local coordinates.
+       *  local coordinates.
        */
       scratch.m_adjusted_clip_eqs[i] = clip_equations[i] * clip_matrix_local;
     }
@@ -2846,7 +2846,7 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
   if (!m_sizes_ready && m_children[0] == nullptr && m_sub_path != nullptr)
     {
       /* we are going to need the attributes because
-         the element will be selected.
+       *  the element will be selected.
        */
       make_ready_from_sub_path();
       FASTUIDRAWassert(m_painter_data != nullptr);
@@ -2891,7 +2891,7 @@ ready_sizes_from_children(void)
   m_num_attributes = m_children[0]->m_num_attributes + m_children[1]->m_num_attributes;
 
   /* these are upper-bounds, they will get overwritten when the actual creation
-     of the attribute objects is done.
+   *  of the attribute objects is done.
    */
   m_largest_index_block =
     m_children[0]->m_largest_index_block + m_children[1]->m_largest_index_block;
@@ -3123,9 +3123,9 @@ fastuidraw::FilledPath::Subset::
 fill_chunk_from_winding_number(int winding_number)
 {
   /* basic idea:
-     - start counting at fill_rule_data_count
-     - ordering is: 1, -1, 2, -2, ...
-  */
+   *  - start counting at fill_rule_data_count
+   *  - ordering is: 1, -1, 2, -2, ...
+   */
   int value, sg;
 
   if (winding_number == 0)
@@ -3210,24 +3210,24 @@ select_subsets(ScratchSpace &work_room,
   d = static_cast<FilledPathPrivate*>(m_d);
   FASTUIDRAWassert(dst.size() >= d->m_subsets.size());
   /* TODO:
-       - have another method in SubsetPrivate called
-         "fast_select_subsets" which ignores the requirements
-         coming from max_attribute_cnt and max_index_cnt.
-         By ignoring this requirement, we do NOT need
-         to do call make_ready() for any SubsetPrivate
-         object chosen.
-       - have the fast_select_subsets() also return
-         if paths needed require triangulation.
-       - if there such, spawn a thread and let the
-         caller decide if to wait for the thread to
-         finish before proceeding or to do something
-         else (like use a lower level of detail that
-         is ready). Another alternatic is to return
-         what Subset's need to have triangulation done
-         and spawn a set of threads to do the job (!)
-       - All this work means we need to make SubsetPrivate
-         thread safe (with regards to the SubsetPrivate
-         being made ready via make_ready()).
+   *    - have another method in SubsetPrivate called
+   *      "fast_select_subsets" which ignores the requirements
+   *      coming from max_attribute_cnt and max_index_cnt.
+   *      By ignoring this requirement, we do NOT need
+   *      to do call make_ready() for any SubsetPrivate
+   *      object chosen.
+   *    - have the fast_select_subsets() also return
+   *      if paths needed require triangulation.
+   *    - if there such, spawn a thread and let the
+   *      caller decide if to wait for the thread to
+   *      finish before proceeding or to do something
+   *      else (like use a lower level of detail that
+   *      is ready). Another alternatic is to return
+   *      what Subset's need to have triangulation done
+   *      and spawn a set of threads to do the job (!)
+   *    - All this work means we need to make SubsetPrivate
+   *      thread safe (with regards to the SubsetPrivate
+   *      being made ready via make_ready()).
    */
   return_value = d->m_root->select_subsets(*static_cast<ScratchSpacePrivate*>(work_room.m_d),
                                            clip_equations, clip_matrix_local,

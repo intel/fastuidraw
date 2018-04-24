@@ -69,14 +69,14 @@ interval_status(int begin, int size) const
   std::map<int, interval>::const_iterator begin_iter;
 
   /* begin_iter points to the first free interval I
-     for which I.m_end >= begin
+   *  for which I.m_end >= begin
    */
   begin_iter = m_free_intervals.upper_bound(begin);
 
   if (begin_iter == m_free_intervals.end())
     {
       /* All free intervals end at or before begin,
-         thus the interval is completely allocated
+       *  thus the interval is completely allocated
        */
       return completely_allocated;
     }
@@ -87,7 +87,7 @@ interval_status(int begin, int size) const
   if (I.m_end >= end && I.m_begin <= begin)
     {
       /* the free Interval I completely contains
-         the interval [begin, end)
+       *  the interval [begin, end)
        */
       return completely_free;
     }
@@ -95,16 +95,16 @@ interval_status(int begin, int size) const
   if (I.m_begin > begin)
     {
       /* the queried interval begins before I.
-         Note that the free interval previous
-         to I (call it J) has that J.m_end < begin,
-         i.e. J ends before begin, and the range
-         [J.m_end, I.m_begin) is completely
-         allocated.
+       *  Note that the free interval previous
+       *  to I (call it J) has that J.m_end < begin,
+       *  i.e. J ends before begin, and the range
+       *  [J.m_end, I.m_begin) is completely
+       *  allocated.
        */
       if (end <= I.m_begin)
         {
           /* end is before I even starts, thus
-             [begin, end) is completely allocated
+           *  [begin, end) is completely allocated
            */
           return completely_allocated;
         }
@@ -150,10 +150,10 @@ allocate_interval(int size)
     }
 
   /* Now take away the room from the interval
-     pointed to by interval_reference that
-     we used in the allocation. We can do
-     this because the map is keyed by
-     m_end of interval.
+   *  pointed to by interval_reference that
+   *  we used in the allocation. We can do
+   *  this because the map is keyed by
+   *  m_end of interval.
    */
   interval_reference->second.m_begin += size;
 
@@ -161,7 +161,7 @@ allocate_interval(int size)
   if (interval_reference->second.m_begin == interval_reference->second.m_end)
     {
       /* if the new interval is empty, then we delete it
-      */
+       */
       m_free_intervals.erase(interval_reference);
     }
   else
@@ -186,17 +186,17 @@ free_interval(int location, int size)
   int end(location + size);
 
   /* see if location corresponds to m_end
-     of an existing free block.
+   *  of an existing free block.
    */
   interval_ref iter;
   iter = m_free_intervals.find(location);
   if (iter != m_free_intervals.end())
     {
       /* in this case we need to enlarge
-         the block pointed to by iter,
-         however that means we need to
-         remove it since we are changing
-         m_end to end;
+       *  the block pointed to by iter,
+       *  however that means we need to
+       *  remove it since we are changing
+       *  m_end to end;
        */
       location = iter->second.m_begin;
       size = end - location;
@@ -207,9 +207,9 @@ free_interval(int location, int size)
   if (iter != m_free_intervals.end() && iter->second.m_begin == end)
     {
       /* end is the start of an existing block,
-         so just make that existing block bigger.
-         First, remove it from m_sorted.
-      */
+       *  so just make that existing block bigger.
+       *  First, remove it from m_sorted.
+       */
       remove_free_interval_from_sorted_only(iter);
 
       /* Second, make it bigger and add it to m_sorted
@@ -220,9 +220,9 @@ free_interval(int location, int size)
     }
 
   /* the element to add has that its end is not
-     the start of an existing free interval and
-     that its beginning is not the end of an
-     existing one either, so just add it:
+   *  the start of an existing free interval and
+   *  that its beginning is not the end of an
+   *  existing one either, so just add it:
    */
   interval I(location, end);
   std::pair<interval_ref, bool> R;
@@ -251,7 +251,7 @@ remove_free_interval(std::map<int, interval_ref_set>::iterator sorted_iter,
                      interval_ref iter)
 {
   /* we need to remove iter from m_sorted
-     and m_free_intervals
+   *  and m_free_intervals
    */
   remove_free_interval_from_sorted_only(sorted_iter, iter);
   m_free_intervals.erase(iter);

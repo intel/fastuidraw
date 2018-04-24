@@ -28,7 +28,7 @@ fastuidraw::detail::RectAtlas::tree_sorter::
 operator()(tree_base *lhs, tree_base *rhs) const
 {
   /* we want to list the smallest "size" first
-     to avoid splitting large elements
+   *  to avoid splitting large elements
    */
   return lhs->area() < rhs->area();
 }
@@ -147,8 +147,8 @@ update_tracking(void)
   else
     {
       /*
-        we have two possible ways to split,
-        thus 2 entries:
+       * we have two possible ways to split,
+       * thus 2 entries:
        */
       update_tracking_helper(size().x(), size().y() - m_rectangle->size().y());
       update_tracking_helper(size().x() - m_rectangle->size().x(), size().y());
@@ -414,24 +414,24 @@ fast_check(ivec2 psize)
     and m_sorted_by_y_size.rbegin()->first >= psize.y();
 
   /*
-    the fast check can cull quickly, but
-    it does not guarnantee that an element
-    can be fit, to that would require
-    checking if the sets
-    [iterx, m_sorted_by_x_size.end())
-    and
-    [itery, m_sorted_by_y_size.end())
-
-    where iterx=m_sorted_by_x_size.lower_bound(psize.x())
-    and itery=m_sorted_by_y_size.lower_bound(psize.y())
-
-    intersect as sets of pointers sorted by pointer
-    (not value). Such a check would induce
-    one to sort, which is O(nlogn),
-    which is likely much more than just walking
-    the tree structure.
-
-    The fast test is O(1).
+   * the fast check can cull quickly, but
+   * it does not guarnantee that an element
+   * can be fit, to that would require
+   * checking if the sets
+   * [iterx, m_sorted_by_x_size.end())
+   * and
+   * [itery, m_sorted_by_y_size.end())
+   *
+   * where iterx=m_sorted_by_x_size.lower_bound(psize.x())
+   * and itery=m_sorted_by_y_size.lower_bound(psize.y())
+   *
+   * intersect as sets of pointers sorted by pointer
+   * (not value). Such a check would induce
+   * one to sort, which is O(nlogn),
+   * which is likely much more than just walking
+   * the tree structure.
+   *
+   * The fast test is O(1).
    */
 }
 

@@ -33,7 +33,7 @@ number_segments_for_tessellation(float radius, float arc_angle,
   needed_sizef = t_abs(arc_angle) / theta;
 
   /* we ask for one more than necessary, to ensure that we BEAT
-     the tessellation requirement.
+   *  the tessellation requirement.
    */
   needed_size = 1 + fastuidraw::t_max(3u, static_cast<unsigned int>(needed_sizef));
   return fastuidraw::t_min(needed_size, P.m_max_segments);
@@ -50,7 +50,7 @@ number_segments_for_tessellation(float arc_angle, float distance_thresh)
   needed_sizef = t_abs(arc_angle) / theta;
 
   /* we ask for one more than necessary, to ensure that we BEAT
-     the tessellation requirement.
+   *  the tessellation requirement.
    */
   return 1 + fastuidraw::t_max(3u, static_cast<unsigned int>(needed_sizef));
 }

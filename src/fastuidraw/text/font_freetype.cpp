@@ -34,7 +34,7 @@
 namespace
 {
   /* covert TO FontCoordinates from Freetype values that
-     are stored in scaled pixel size values.
+   *  are stored in scaled pixel size values.
    */
   class font_coordinate_converter
   {
@@ -215,7 +215,7 @@ namespace
     fastuidraw::FontFreeType *m_p;
 
     /* for now we have a static number of m_faces we use for parallel
-       glyph generation
+     *  glyph generation
      */
     fastuidraw::vecN<fastuidraw::reference_counted_ptr<fastuidraw::FreeTypeFace>, 8> m_faces;
     bool m_all_faces_null;
@@ -423,12 +423,12 @@ compute_rendering_data(uint32_t glyph_code,
     }
 
   /* we translate by -layout_offset to make the points of
-     the IntPath match correctly with that of the texel
-     data (this also gaurantees that the box of the glyph
-     is (0, 0)). In addition, we scale by 2 * pixel_size;
-     By doing this, the distance between texel-centers
-     is then just 2 * units_per_EM.
-  */
+   *  the IntPath match correctly with that of the texel
+   *  data (this also gaurantees that the box of the glyph
+   *  is (0, 0)). In addition, we scale by 2 * pixel_size;
+   *  By doing this, the distance between texel-centers
+   *  is then just 2 * units_per_EM.
+   */
   int tr_scale(2 * pixel_size);
   fastuidraw::ivec2 tr_translate(-2 * pixel_size * layout_offset);
   fastuidraw::detail::IntBezierCurve::transformation<int> tr(tr_scale, tr_translate);

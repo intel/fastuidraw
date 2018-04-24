@@ -35,7 +35,7 @@ namespace
   class PainterPrivate;
 
   /* A WindingSet is way to cache values from a
-     fastuidraw::CustomFillRuleBase.
+   *  fastuidraw::CustomFillRuleBase.
    */
   class WindingSet:fastuidraw::noncopyable
   {
@@ -113,11 +113,11 @@ namespace
     }
 
     /* NOTE:
-        we use an array of uint32_t's that although takes
-        more storage, has faster element access (because
-        to access an element does not require any bit-logic)
-        and a winding_set is used as a cache for output to
-        a custom fill rule.
+     *   we use an array of uint32_t's that although takes
+     *   more storage, has faster element access (because
+     *   to access an element does not require any bit-logic)
+     *   and a winding_set is used as a cache for output to
+     *   a custom fill rule.
      */
     int m_min_value, m_max_value;
     std::vector<uint32_t> m_values;
@@ -232,20 +232,20 @@ namespace
       {
         float a, b, c, d;
         /* a so that A * a + B * -1 + C = 0 -> a = (+B - C) / A
-           b so that A * a + B * +1 + C = 0 -> b = (-B - C) / A
+         *  b so that A * a + B * +1 + C = 0 -> b = (-B - C) / A
          */
         a = (+plane.y() - plane.z()) / plane.x();
         b = (-plane.y() - plane.z()) / plane.x();
 
         /* the two points are then (a, -1) and (b, 1). Grab
-           (c, -1) and (d, 1) so that they are on the correct side
-           of the half plane
+         *  (c, -1) and (d, 1) so that they are on the correct side
+         *  of the half plane
          */
         if (plane.x() > 0.0f)
           {
             /* increasing x then make the plane more positive,
-               and we want the negative side, so take c and
-               d to left of a and b.
+             *  and we want the negative side, so take c and
+             *  d to left of a and b.
              */
             c = fastuidraw::t_min(-1.0f, a);
             d = fastuidraw::t_min(-1.0f, b);
@@ -256,7 +256,7 @@ namespace
             d = fastuidraw::t_max(1.0f, b);
           }
         /* the 4 points of the polygon are then
-           (a, -1), (c, -1), (d, 1), (b, 1).
+         *  (a, -1), (c, -1), (d, 1), (b, 1).
          */
         painter->draw_quad(draw,
                            fastuidraw::vec2(a, -1.0f),
@@ -346,12 +346,12 @@ namespace
   };
 
   /* Tracks the most recent clipping rect:
-     - the 4 clip equations in clip-coordinates
-     - the current transformation from item coordinates
-       to clip-coordinates
-     - the clippin rectangle in local coordinates; this value
-       only "makes sense" if m_item_matrix_transition_tricky
-       is false
+   *  - the 4 clip equations in clip-coordinates
+   *  - the current transformation from item coordinates
+   *    to clip-coordinates
+   *  - the clippin rectangle in local coordinates; this value
+   *    only "makes sense" if m_item_matrix_transition_tricky
+   *    is false
    */
   class clip_rect_state
   {
@@ -540,9 +540,9 @@ namespace
   };
 
   /* To avoid allocating memory all the time, we store the
-     clip polygon data within the same std::vector<vec3>.
-     The usage pattern is that the last element allocated
-     is the first element to be freed.
+   *  clip polygon data within the same std::vector<vec3>.
+   *  The usage pattern is that the last element allocated
+   *  is the first element to be freed.
    */
   class ClipEquationStore
   {
@@ -603,9 +603,9 @@ namespace
     }
 
     /* @param (input) clip_matrix_local transformation from local to clip coordinates
-       @param (input) in_out_pts[0] convex polygon to clip
-       @param (scratch) work_floats scratch space needed
-       @return what index into in_out_pts that holds polygon clipped
+     *  @param (input) in_out_pts[0] convex polygon to clip
+     *  @param (scratch) work_floats scratch space needed
+     *  @return what index into in_out_pts that holds polygon clipped
      */
     unsigned int
     clip_against_current(const fastuidraw::float3x3 &clip_matrix_local,
@@ -798,8 +798,8 @@ occluder_stack_entry::
 on_pop(fastuidraw::Painter *p)
 {
   /* depth test is GL_GEQUAL, so we need to increment the Z
-     before hand so that the occluders block all that
-     is drawn below them.
+   *  before hand so that the occluders block all that
+   *  is drawn below them.
    */
   p->increment_z();
   for(const auto &s : m_set_occluder_z)
@@ -847,16 +847,16 @@ set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw:
   m_item_matrix_transition_tricky = false;
   const fastuidraw::float3x3 &inverse_transpose(item_matrix_inverse_transpose());
   /* The clipping window is given by:
-       w * min_x <= x <= w * max_x
-       w * min_y <= y <= w * max_y
-     which expands to
-         x + w * min_x >= 0  --> ( 1,  0, -min_x)
-        -x - w * max_x >= 0  --> (-1,  0, max_x)
-         y + w * min_y >= 0  --> ( 0,  1, -min_y)
-        -y - w * max_y >= 0  --> ( 0, -1, max_y)
-       However, the clip equations are in clip coordinates
-       so we need to apply the inverse transpose of the
-       transformation matrix to the 4 vectors
+   *    w * min_x <= x <= w * max_x
+   *    w * min_y <= y <= w * max_y
+   *  which expands to
+   *      x + w * min_x >= 0  --> ( 1,  0, -min_x)
+   *     -x - w * max_x >= 0  --> (-1,  0, max_x)
+   *      y + w * min_y >= 0  --> ( 0,  1, -min_y)
+   *     -y - w * max_y >= 0  --> ( 0, -1, max_y)
+   *    However, the clip equations are in clip coordinates
+   *    so we need to apply the inverse transpose of the
+   *    transformation matrix to the 4 vectors
    */
   fastuidraw::PainterClipEquations cl;
   cl.m_clip_equations[0] = inverse_transpose * fastuidraw::vec3( 1.0f,  0.0f, -m_clip_rect.m_min.x());
@@ -880,7 +880,7 @@ set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw:
     }
 
   /* see if the vertices of the clipping rectangle (post m_item_matrix applied)
-     are all within the passed clipped equations.
+   *  are all within the passed clipped equations.
    */
   const fastuidraw::PainterClipEquations &eq(pcl.value());
   const fastuidraw::float3x3 &m(m_item_matrix.m_item_matrix);
@@ -888,7 +888,7 @@ set_clip_equations_to_clip_rect(const fastuidraw::PainterPackedValue<fastuidraw:
   fastuidraw::vecN<fastuidraw::vec3, 4> q;
 
   /* return_value[i] is true exactly when each point of the rectangle is inside
-                     the i'th clip equation.
+   *                  the i'th clip equation.
    */
   q[0] = m * fastuidraw::vec3(m_clip_rect.m_min.x(), m_clip_rect.m_min.y(), 1.0f);
   q[1] = m * fastuidraw::vec3(m_clip_rect.m_max.x(), m_clip_rect.m_min.y(), 1.0f);
@@ -917,11 +917,11 @@ clip_polygon(fastuidraw::c_array<const fastuidraw::vec2> pts,
   const fastuidraw::float3x3 &m(item_matrix());
 
   /* Clip planes are in clip coordinates, i.e.
-       ClipDistance[i] = dot(M * p, clip_equation[i])
-                       = dot(p, transpose(M)(clip_equation[i])
-     To place them in local coordinates, then we need to apply
-     the transpose of m_item_matrix to the clip planes
-     which is the same as post-multiplying the matrix.
+   *    ClipDistance[i] = dot(M * p, clip_equation[i])
+   *                    = dot(p, transpose(M)(clip_equation[i])
+   *  To place them in local coordinates, then we need to apply
+   *  the transpose of m_item_matrix to the clip planes
+   *  which is the same as post-multiplying the matrix.
    */
   fastuidraw::detail::clip_against_plane(eqs.m_clip_equations[0] * m, pts,
                                          work_vec2s, work_floats);
@@ -944,9 +944,9 @@ clip_rect_state::
 rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh)
 {
   /* apply the current transformation matrix to
-     the corners of the clipping rectangle and check
-     if there is a clipping plane for which all
-     those points are on the wrong size.
+   *  the corners of the clipping rectangle and check
+   *  if there is a clipping plane for which all
+   *  those points are on the wrong size.
    */
   fastuidraw::vec2 pmax(wh + pmin);
   fastuidraw::vecN<fastuidraw::vec3, 4> pts;
@@ -1031,7 +1031,7 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
                                           m_work_room.m_clipper_floats);
 
   /* the input rectangle clipped to the previous clipping equation
-     array is now stored in m_work_room.m_pts_update_clip_series[src]
+   *  array is now stored in m_work_room.m_pts_update_clip_series[src]
    */
   fastuidraw::c_array<const fastuidraw::vec2> poly;
   poly = fastuidraw::make_c_array(m_work_room.m_pts_update_clip_series[src]);
@@ -1046,7 +1046,7 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
     }
 
   /* compute center of polygon so that we can correctly
-     orient the normal vectors of the sides.
+   *  orient the normal vectors of the sides.
    */
   for(const auto &pt : poly)
     {
@@ -1056,7 +1056,7 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
 
   const fastuidraw::float3x3 &inverse_transpose(m_clip_rect_state.item_matrix_inverse_transpose());
   /* extract the normal vectors of the polygon sides with
-     correct orientation.
+   *  correct orientation.
    */
   for(unsigned int i = 0; i < poly.size(); ++i)
     {
@@ -1073,15 +1073,15 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
         }
 
       /* The clip equation we have in local coordinates
-         is dot(n, p - poly[i]) >= 0. Algebra time:
-           dot(n, p - poly[i]) = n.x * p.x + n.y * p.y + (-poly[i].x * n.x - poly[i].y * n.y)
-                              = dot( (n, R), (p, 1))
-         where
-           R = -poly[i].x * n.x - poly[i].y * n.y = -dot(n, poly[i])
-         We want the clip equations in clip coordinates though:
-           dot( (n, R), (p, 1) ) = dot( (n, R), inverseM(M(p, 1)) )
-                                 = dot( inverse_transpose_M(R,1), M(p, 1))
-         thus the vector to use is inverse_transpose_M(R,1)
+       *  is dot(n, p - poly[i]) >= 0. Algebra time:
+       *    dot(n, p - poly[i]) = n.x * p.x + n.y * p.y + (-poly[i].x * n.x - poly[i].y * n.y)
+       *                       = dot( (n, R), (p, 1))
+       *  where
+       *    R = -poly[i].x * n.x - poly[i].y * n.y = -dot(n, poly[i])
+       *  We want the clip equations in clip coordinates though:
+       *    dot( (n, R), (p, 1) ) = dot( (n, R), inverseM(M(p, 1)) )
+       *                          = dot( inverse_transpose_M(R,1), M(p, 1))
+       *  thus the vector to use is inverse_transpose_M(R,1)
        */
       fastuidraw::vec3 nn(n.x(), n.y(), -dot(n, poly[i]));
       m_clip_store.add_to_current(inverse_transpose * nn);
@@ -1098,19 +1098,19 @@ compute_path_magnification_non_perspective(void)
   const fastuidraw::float3x3 &m(m_clip_rect_state.item_matrix());
 
   /* Use the sqrt of the area distortion to determine the dividing factor,
-     for matrices with a great deal of skew, this will choose a lower a
-     level of detail that taking the operator norm of the matrix. For
-     reference, the sqrt of the area distortion is the geometric mean
-     of the 2 singular values of a 2x2 matrix.
-
-     The multiplier 0.25 comes from that normalized device
-     coordinates are [-1, 1]x[-1, 1] and thus the scaling
-     factor to pixel coordinates is half of m_resolution
-     for each dimension.
-
-     QUESTION: should we instead take the maxiumum of the two
-     singular values instead?
-  */
+   *  for matrices with a great deal of skew, this will choose a lower a
+   *  level of detail that taking the operator norm of the matrix. For
+   *  reference, the sqrt of the area distortion is the geometric mean
+   *  of the 2 singular values of a 2x2 matrix.
+   *
+   *  The multiplier 0.25 comes from that normalized device
+   *  coordinates are [-1, 1]x[-1, 1] and thus the scaling
+   *  factor to pixel coordinates is half of m_resolution
+   *  for each dimension.
+   *
+   *  QUESTION: should we instead take the maxiumum of the two
+   *  singular values instead?
+   */
   d = fastuidraw::t_abs(m(0, 0) * m(1, 1) - m(0, 1) * m(1, 0));
   d *= 0.25f * m_resolution.x() * m_resolution.y() / fastuidraw::t_abs(m(2, 2));
   d = fastuidraw::t_sqrt(d);
@@ -1123,9 +1123,9 @@ PainterPrivate::
 compute_path_magnification_perspective(const fastuidraw::Path &path)
 {
   /* Clip the path bounding box against all the clip
-     equations and compute the area of the polygon
-     clipped.
-  */
+   *  equations and compute the area of the polygon
+   *  clipped.
+   */
   fastuidraw::vec2 bb_min, bb_max;
   bool r;
   unsigned int src;
@@ -1134,10 +1134,10 @@ compute_path_magnification_perspective(const fastuidraw::Path &path)
   if (!r)
     {
       /* it does not matter, since the path is essentially
-         empty. By using a negative value, we get the
-         default tessellation of the path (which is based
-         off of curvature).
-      */
+       *  empty. By using a negative value, we get the
+       *  default tessellation of the path (which is based
+       *  off of curvature).
+       */
       return -1.0f;
     }
   m_work_room.m_clipper_vec2s[0].resize(4);
@@ -1147,11 +1147,11 @@ compute_path_magnification_perspective(const fastuidraw::Path &path)
   m_work_room.m_clipper_vec2s[0][3] = fastuidraw::vec2(bb_max.x(), bb_min.y());
 
   /* TODO: for stroking, it might be that although the
-     original path is completely clipped, the stroke of
-     is not. It might be wise to inflate the geometry
-     of the path by how much slack the stroking parameters
-     require.
-  */
+   *  original path is completely clipped, the stroke of
+   *  is not. It might be wise to inflate the geometry
+   *  of the path by how much slack the stroking parameters
+   *  require.
+   */
   const fastuidraw::float3x3 &m(m_clip_rect_state.item_matrix());
   src = m_clip_store.clip_against_current(m,
                                           m_work_room.m_clipper_vec2s,
@@ -1163,24 +1163,24 @@ compute_path_magnification_perspective(const fastuidraw::Path &path)
   if (poly.empty())
     {
       /* bounding box of path is clipped, just take default
-         tessellation and call it a day (!).
-      */
+       *  tessellation and call it a day (!).
+       */
       return -1.0f;
     }
 
   /* Get the area of the polygon in item coordinates
-     and in pixel coodinates. The square root of that
-     ratio of the area is what we are going to use as
-     our "d". Bad things happen if the clipped polygon
-     still has points where w == 0.0.
-
-     TODO: is using area wise? With perpsective, different
-     portions of the path will be zoomed in more than
-     others. The area represents a kind of average. Perhaps
-     we should take at each point the distortion of the
-     transformation at the point and take the worse of
-     the bunch.
-  */
+   *  and in pixel coodinates. The square root of that
+   *  ratio of the area is what we are going to use as
+   *  our "d". Bad things happen if the clipped polygon
+   *  still has points where w == 0.0.
+   *
+   *  TODO: is using area wise? With perpsective, different
+   *  portions of the path will be zoomed in more than
+   *  others. The area represents a kind of average. Perhaps
+   *  we should take at each point the distortion of the
+   *  transformation at the point and take the worse of
+   *  the bunch.
+   */
   float area_local_coords(0.0f), area_pixel_coords(0.0f), ratio;
   for(unsigned int i = 0, endi = poly.size(); i < endi; ++i)
     {
@@ -1690,8 +1690,8 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
     }
 
   /* clear first to blank the values, std::vector::clear
-     does not call deallocation on its backing store,
-     thus there is no malloc/free noise
+   *  does not call deallocation on its backing store,
+   *  thus there is no malloc/free noise
    */
   total_chunks = cap_chunks.size() + edge_chunks.size() + join_chunks.size();
   if (total_chunks == 0)
@@ -1751,10 +1751,10 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &pdraw,
   if (modify_z || with_anti_aliasing)
     {
       /* if any of the data elements of draw are NOT packed state,
-         make them as packed state so that they are reused
-         to prevent filling up the data buffer with repeated
-         state data.
-      */
+       *  make them as packed state so that they are reused
+       *  to prevent filling up the data buffer with repeated
+       *  state data.
+       */
       draw.make_packed(d->m_pool);
     }
 
@@ -2497,29 +2497,29 @@ restore(void)
 }
 
 /* How we handle clipping.
-        - clipOut by path P
-           1. add "draw" the path P filled, but with call back for
-              the data indicating where in the attribute or data
-              store buffer to write the new z-value
-           2. on doing clipPop, we know the z-value to use for
-              all the elements that are occluded by the fill
-              path, so we write that value.
-
-        - clipIn by rect R
-            * easy case A: No changes to tranformation matrix since last clipIn by rect
-               1. intersect current clipping rectangle with R, set clip equations
-            * easy case B: Trasnformation matrix change is "easy" (i.e maps coordiante aligned rect to coordiante aligned rects)
-               1. map old clip rect to new coordinates, interset rect, set clip equations.
-            * hard case: Transformation matrix change does not map coordiante aligned rect to coordiante aligned rects
-               1. set clip equations
-               2. temporarily set transformation matrix to identity
-               3. draw 4 half-planes: for each OLD clipping equation draw that half plane
-               4. restore transformation matrix
-
-        - clipIn by path P
-            1. clipIn by R, R = bounding box of P
-            2. clipOut by R\P.
-*/
+ *       - clipOut by path P
+ *          1. add "draw" the path P filled, but with call back for
+ *             the data indicating where in the attribute or data
+ *             store buffer to write the new z-value
+ *          2. on doing clipPop, we know the z-value to use for
+ *             all the elements that are occluded by the fill
+ *             path, so we write that value.
+ *
+ *       - clipIn by rect R
+ * easy case A: No changes to tranformation matrix since last clipIn by rect
+ *              1. intersect current clipping rectangle with R, set clip equations
+ * easy case B: Trasnformation matrix change is "easy" (i.e maps coordiante aligned rect to coordiante aligned rects)
+ *              1. map old clip rect to new coordinates, interset rect, set clip equations.
+ * hard case: Transformation matrix change does not map coordiante aligned rect to coordiante aligned rects
+ *              1. set clip equations
+ *              2. temporarily set transformation matrix to identity
+ *              3. draw 4 half-planes: for each OLD clipping equation draw that half plane
+ *              4. restore transformation matrix
+ *
+ *       - clipIn by path P
+ *           1. clipIn by R, R = bounding box of P
+ *           2. clipOut by R\P.
+ */
 
 void
 fastuidraw::Painter::
@@ -2540,9 +2540,9 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
   reference_counted_ptr<ZDataCallBack> zdatacallback;
 
   /* zdatacallback generates a list of PainterDraw::DelayedAction
-     objects (held in m_actions) who's action is to write the correct
-     z-value to occlude elements drawn after clipOut but not after
-     the next time m_occluder_stack is popped.
+   *  objects (held in m_actions) who's action is to write the correct
+   *  z-value to occlude elements drawn after clipOut but not after
+   *  the next time m_occluder_stack is popped.
    */
   zdatacallback = FASTUIDRAWnew ZDataCallBack();
   old_blend = blend_shader();
@@ -2574,9 +2574,9 @@ clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
   reference_counted_ptr<ZDataCallBack> zdatacallback;
 
   /* zdatacallback generates a list of PainterDraw::DelayedAction
-     objects (held in m_actions) who's action is to write the correct
-     z-value to occlude elements drawn after clipOut but not after
-     the next time m_occluder_stack is popped.
+   *  objects (held in m_actions) who's action is to write the correct
+   *  z-value to occlude elements drawn after clipOut but not after
+   *  the next time m_occluder_stack is popped.
    */
   zdatacallback = FASTUIDRAWnew ZDataCallBack();
   old_blend = blend_shader();
@@ -2656,7 +2656,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   if (!d->m_clip_rect_state.m_clip_rect.m_enabled)
     {
       /* no clipped rect defined yet, just take the arguments
-         as the clipping window
+       *  as the clipping window
        */
       d->m_clip_rect_state.m_clip_rect = clip_rect(pmin, pmax);
       d->m_clip_rect_state.set_clip_equations_to_clip_rect();
@@ -2665,11 +2665,11 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   else if (!d->m_clip_rect_state.item_matrix_transition_tricky())
     {
       /* a previous clipping window (defined in m_clip_rect_state),
-         but transformation takes screen aligned rectangles to
-         screen aligned rectangles, thus the current value of
-         m_clip_rect_state.m_clip_rect is the clipping rect
-         in local coordinates, so we can intersect it with
-         the passed rectangle.
+       *  but transformation takes screen aligned rectangles to
+       *  screen aligned rectangles, thus the current value of
+       *  m_clip_rect_state.m_clip_rect is the clipping rect
+       *  in local coordinates, so we can intersect it with
+       *  the passed rectangle.
        */
       d->m_clip_rect_state.m_clip_rect.intersect(clip_rect(pmin, pmax));
       d->m_clip_rect_state.set_clip_equations_to_clip_rect();
@@ -2678,13 +2678,13 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
 
 
   /* the transformation is tricky, thus the current value of
-     m_clip_rect_state.m_clip_rect does NOT reflect the actual
-     clipping rectangle.
-
-     The clipping is done as follows:
-      1. we set the clip equations to come from pmin, pmax
-      2. we draw the -complement- of the half planes of each
-         of the old clip equations as occluders
+   *  m_clip_rect_state.m_clip_rect does NOT reflect the actual
+   *  clipping rectangle.
+   *
+   *  The clipping is done as follows:
+   *   1. we set the clip equations to come from pmin, pmax
+   *   2. we draw the -complement- of the half planes of each
+   *      of the old clip equations as occluders
    */
   PainterPackedValue<PainterClipEquations> prev_clip, current_clip;
 
@@ -2700,15 +2700,15 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   if (d->m_clip_rect_state.m_all_content_culled)
     {
       /* The clip equations coming from the new clipping
-         rectangle degenerate into an empty clipping region
-         on the screen; immediately return.
+       *  rectangle degenerate into an empty clipping region
+       *  on the screen; immediately return.
        */
       return;
     }
 
   /* if the new clipping rectangle is completely contained
-     in the older clipping region, then we can skip drawing
-     the complement of the old clipping rectangle as occluders
+   *  in the older clipping region, then we can skip drawing
+   *  the complement of the old clipping rectangle as occluders
    */
   if (skip_occluder.all())
     {
@@ -2716,10 +2716,10 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
     }
 
   /* draw the complement of the half planes. The half planes
-     are in 3D api coordinates, so set the matrix temporarily
-     to identity. Note that we pass false to item_matrix_state()
-     to prevent marking the derived values from the matrix
-     state from being marked as dirty.
+   *  are in 3D api coordinates, so set the matrix temporarily
+   *  to identity. Note that we pass false to item_matrix_state()
+   *  to prevent marking the derived values from the matrix
+   *  state from being marked as dirty.
    */
   PainterPackedValue<PainterItemMatrix> matrix_state;
   matrix_state = d->m_clip_rect_state.current_item_marix_state(d->m_pool);
@@ -2736,9 +2736,9 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   blend_shader(PainterEnums::blend_porter_duff_dst);
 
   /* we temporarily set the clipping to a slightly
-     larger rectangle when drawing the occluders.
-     We do this because round off error can have us
-     miss a few pixels when drawing the occluder
+   *  larger rectangle when drawing the occluders.
+   *  We do this because round off error can have us
+   *  miss a few pixels when drawing the occluder
    */
   PainterClipEquations slightly_bigger(current_clip.value());
   for(unsigned int i = 0; i < 4; ++i)

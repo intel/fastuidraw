@@ -113,11 +113,11 @@ namespace
           }
 
         /*
-          if asking for framebuffer_fetch, but do not have it,
-          then fall back to auxiliary_buffer_interlock; we only
-          give framebuffer_fetch if it is asked for because it
-          is not compatible with MSAA rendering.
-        */
+         * if asking for framebuffer_fetch, but do not have it,
+         * then fall back to auxiliary_buffer_interlock; we only
+         * give framebuffer_fetch if it is asked for because it
+         * is not compatible with MSAA rendering.
+         */
         if (ctx.has_extension("GL_EXT_shader_framebuffer_fetch"))
           {
             if (in_value == PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch)
@@ -608,7 +608,7 @@ namespace
       m_break_on_shader_change(false),
       m_use_hw_clip_planes(true),
       /* on Mesa/i965 using switch statement gives much slower
-         performance than using if/else chain.
+       *  performance than using if/else chain.
        */
       m_vert_shader_use_switch(false),
       m_frag_shader_use_switch(false),
@@ -757,8 +757,8 @@ request_vao(void)
         }
 
       /* generate_bo leaves the returned buffer object bound to
-         the passed binding target.
-      */
+       *  the passed binding target.
+       */
       m_vaos[m_pool][m_current].m_attribute_bo = generate_bo(GL_ARRAY_BUFFER, m_attribute_buffer_size);
       m_vaos[m_pool][m_current].m_index_bo = generate_bo(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size);
 
@@ -916,10 +916,10 @@ draw(void) const
   FASTUIDRAWassert(m_counts.size() == m_indices.size());
 
   /* TODO:
-     Get rid of this unholy mess of #ifdef's here and move
-     it to an internal private function that also has a tag
-     on what to call.
-  */
+   *  Get rid of this unholy mess of #ifdef's here and move
+   *  it to an internal private function that also has a tag
+   *  on what to call.
+   */
   #ifndef FASTUIDRAW_GL_USE_GLES
     {
       glMultiDrawElements(GL_TRIANGLES, &m_counts[0],
@@ -1021,8 +1021,8 @@ DrawCommand(painter_vao_pool *hnd,
   m_indices_written(0)
 {
   /* map the buffers and set to the c_array<> fields of
-     fastuidraw::PainterDraw to the mapping location.
-  */
+   *  fastuidraw::PainterDraw to the mapping location.
+   */
   void *attr_bo, *index_bo, *data_bo, *header_bo;
   uint32_t flags;
 
@@ -1113,8 +1113,8 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
   else
     {
       /* any other state changes means that we just need to add an
-         entry to the current draw entry.
-      */
+       *  entry to the current draw entry.
+       */
       add_entry(indices_written);
     }
 }
@@ -1399,10 +1399,10 @@ compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
     }
 
   /* bleck: framebuffer fetch on auxiliary buffer is
-     not compatible with single_src and dual_src
-     blending, need to override blend_type() for
-     that case.
-  */
+   *  not compatible with single_src and dual_src
+   *  blending, need to override blend_type() for
+   *  that case.
+   */
   fastuidraw::gl::ContextProperties ctx;
   return_value.blend_type(compute_blend_type(compute_provide_auxiliary_buffer(params.provide_auxiliary_image_buffer(), ctx),
                                              params.blend_type(),
@@ -1488,7 +1488,7 @@ configure_backend(void)
     }
 
   /* Query GL what is good size for data store buffer. Size is dependent
-     how the data store is backed.
+   *  how the data store is backed.
    */
   switch(m_params.data_store_backing())
     {
@@ -1550,8 +1550,8 @@ configure_backend(void)
   FASTUIDRAWassert(m_params.use_hw_clip_planes() == m_p->configuration_glsl().use_hw_clip_planes());
 
   /* if have to use discard for clipping, then there is zero point to
-     separate the discarding and non-discarding item shaders.
-  */
+   *  separate the discarding and non-discarding item shaders.
+   */
   m_params.separate_program_for_discard(m_params.separate_program_for_discard() && m_params.use_hw_clip_planes());
 
   fastuidraw::gl::ColorStopAtlasGL *color;
@@ -1568,7 +1568,7 @@ configure_backend(void)
     }
 
   /* Some shader features require new version of GL or
-     specific extensions.
+   *  specific extensions.
    */
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
@@ -1581,7 +1581,7 @@ configure_backend(void)
       if (m_ctx_properties.version() <= fastuidraw::ivec2(3, 0))
         {
           /* GL ES 3.0 does not support layout(binding=) and
-             does not support image-load-store either
+           *  does not support image-load-store either
            */
           m_params.assign_binding_points(false);
         }
@@ -1715,8 +1715,8 @@ configure_source_front_matter(void)
         }
 
       /* Only have this front matter present if FASTUIDRAW_DISCARD is empty defined;
-         The issue is that when early_fragment_tests are enabled, then the depth
-         write happens even if the fragment shader hits discard.
+       *  The issue is that when early_fragment_tests are enabled, then the depth
+       *  write happens even if the fragment shader hits discard.
        */
       std::ostringstream early_fragment_tests;
       early_fragment_tests << "#ifdef FASTUIDRAW_ALLOW_EARLY_FRAGMENT_TESTS\n"
@@ -2192,12 +2192,12 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
   surface_gl = static_cast<SurfaceGLPrivate*>(SurfaceGLPrivate::surface_gl(surface)->m_d);
 
   /* we delay setting up GL state until on_pre_draw() for several reasons:
-       1. the atlases may have been resized, if so the underlying textures
-          change
-       2. we gaurantee GL state regardless of what the calling application
-          is doing because PainterPacker() calls on_pre_draw() within
-          PainterPacker::end() and the on_pre_draw() call is immediately
-          followed by PainterDraw::draw() calls.
+   *    1. the atlases may have been resized, if so the underlying textures
+   *       change
+   *    2. we gaurantee GL state regardless of what the calling application
+   *       is doing because PainterPacker() calls on_pre_draw() within
+   *       PainterPacker::end() and the on_pre_draw() call is immediately
+   *       followed by PainterDraw::draw() calls.
    */
   if (d->m_linear_filter_sampler == 0)
     {
@@ -2211,7 +2211,7 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
   const glsl::PainterBackendGLSL::BindingPoints &binding_points(uber_params.binding_points());
 
   /* if using an auxiliary buffer, make the auxiliary buffer match the resolution
-     of Surface (rather than its viewport size).
+   *  of Surface (rather than its viewport size).
    */
   enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t aux_type;
   aux_type = uber_params.provide_auxiliary_image_buffer();
@@ -2378,7 +2378,7 @@ on_post_draw(void)
   d = static_cast<PainterBackendGLPrivate*>(m_d);
 
   /* this is somewhat paranoid to make sure that
-     the GL objects do not leak...
+   *  the GL objects do not leak...
    */
   glUseProgram(0);
   glBindVertexArray(0);

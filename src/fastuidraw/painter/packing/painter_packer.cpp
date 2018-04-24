@@ -75,7 +75,7 @@ namespace
   };
 
   /* QUESTION
-      - does the reference count to a pool need to be thread safe?
+   *   - does the reference count to a pool need to be thread safe?
    */
   class PoolBase:public fastuidraw::reference_counted<PoolBase>::non_concurrent
   {
@@ -103,15 +103,15 @@ namespace
     aquire_slot(void)
     {
       /* Should we make this thread safe? We can make it
-         thread safe by using atomic operation on m_free_slots_back.
-         The following code would make it thread safe.
-
-         return_value = m_free_slots_back.fetch_sub(1, std::memory_order_aquire)
-         if (return_value < 0)
-           {
-              m_free_slots_back.fetch_add(1, std::memory_order_aquire);
-           }
-         return return_value;
+       *  thread safe by using atomic operation on m_free_slots_back.
+       *  The following code would make it thread safe.
+       *
+       *  return_value = m_free_slots_back.fetch_sub(1, std::memory_order_aquire)
+       *  if (return_value < 0)
+       *    {
+       *       m_free_slots_back.fetch_add(1, std::memory_order_aquire);
+       *    }
+       *  return return_value;
        */
       int return_value(-1);
 
@@ -127,14 +127,14 @@ namespace
     release_slot(int v)
     {
       /* Should we make this thread safe? We can make it
-         thread safe by using atomic operation on m_free_slots_back.
-         The following code would make it thread safe.
-
-         int S;
-         S = m_free_slots_back.fetch_add(1, std::memory_order_release);
-         std::atomic_thread_fence(std::memory_order_acquire);
-         FASTUIDRAWassert(S < pool_size);
-         m_free_slots[S] = v;
+       *  thread safe by using atomic operation on m_free_slots_back.
+       *  The following code would make it thread safe.
+       *
+       *  int S;
+       *  S = m_free_slots_back.fetch_add(1, std::memory_order_release);
+       *  std::atomic_thread_fence(std::memory_order_acquire);
+       *  FASTUIDRAWassert(S < pool_size);
+       *  m_free_slots[S] = v;
        */
       FASTUIDRAWassert(v >= 0);
       FASTUIDRAWassert(v < pool_size);
@@ -187,7 +187,7 @@ namespace
     }
 
     /* To what painter and where in data store buffer
-       already packed into PainterDraw::m_store
+     *  already packed into PainterDraw::m_store
      */
     const fastuidraw::PainterPacker *m_painter;
     std::vector<fastuidraw::generic_data> m_data;
@@ -200,7 +200,7 @@ namespace
 
   protected:
     /* pointer to raw state member held
-       by derived class
+     *  by derived class
      */
     const void *m_raw_value;
 
@@ -211,8 +211,8 @@ namespace
 
   private:
     /* Entry reference count is not thread safe because
-       the objects themselves are not.
-    */
+     *  the objects themselves are not.
+     */
     fastuidraw::reference_count_non_concurrent m_count;
   };
 
@@ -663,7 +663,7 @@ pack_state_data(PainterPackerPrivate *p,
     }
 
   /* data not in current data store add
-     it to the current store.
+   *  it to the current store.
    */
   fastuidraw::c_array<const fastuidraw::generic_data> src;
   fastuidraw::c_array<fastuidraw::generic_data> dst;
@@ -844,7 +844,7 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
   if (!shader || number_index_chunks == 0 || number_attribute_chunks == 0)
     {
       /* should we emit a warning message that the PainterItemShader
-         was missing the item shader value?
+       *  was missing the item shader value?
        */
       return;
     }
@@ -920,7 +920,7 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
         }
 
       /* copy attribute data and get offset into attribute buffer
-         where attributes are copied
+       *  where attributes are copied
        */
       unsigned int attrib_offset;
 
