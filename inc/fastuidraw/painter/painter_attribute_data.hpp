@@ -74,6 +74,12 @@ namespace fastuidraw
     attribute_data_chunk(unsigned int i) const;
 
     /*!
+      Returns the size of the largest attribute chunk.
+     */
+    unsigned int
+    largest_attribute_chunk(void) const;
+
+    /*!
       Returns the index data chunks. Usually, for each
       attribute data chunk, there is a matching index data
       chunk. Usually, one uses index_data_chunks()[i]
@@ -81,6 +87,12 @@ namespace fastuidraw
     */
     c_array<const c_array<const PainterIndex> >
     index_data_chunks(void) const;
+
+    /*!
+      Returns the size of the largest index chunk.
+     */
+    unsigned int
+    largest_index_chunk(void) const;
 
     /*!
       Returns the index adjust value for all chunks.
