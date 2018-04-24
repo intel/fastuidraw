@@ -40,12 +40,12 @@
 namespace fastuidraw
 {
 /*!\addtogroup Utility
-  @{
+ * @{
  */
 
   /*!
-    A wrapper over delete. If the type T is not complete,
-    checked_delete() will trigger a compiler error.
+   * A wrapper over delete. If the type T is not complete,
+   * checked_delete() will trigger a compiler error.
    */
   template<typename T>
   inline
@@ -60,8 +60,8 @@ namespace fastuidraw
   }
 
   /*!
-    A wrapper over delete[]. If the type T is not complete,
-    checked_array_delete() will trigger a compiler error.
+   * A wrapper over delete[]. If the type T is not complete,
+   * checked_array_delete() will trigger a compiler error.
    */
   template<typename T>
   inline

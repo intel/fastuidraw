@@ -28,16 +28,16 @@ namespace fastuidraw
 {
 
 /*!\addtogroup Utility
-  @{
+ * @{
  */
 
 /*!
-  \brief
-  A c_array is a wrapper over a
-  C pointer with a size parameter
-  to facilitate bounds checking
-  and provide an STL-like iterator
-  interface.
+ * \brief
+ * A c_array is a wrapper over a
+ * C pointer with a size parameter
+ * to facilitate bounds checking
+ * and provide an STL-like iterator
+ * interface.
  */
 template<typename T>
 class c_array
@@ -45,84 +45,84 @@ class c_array
 public:
 
   /*!
-    \brief
-    STL compliant typedef
-  */
+   * \brief
+   * STL compliant typedef
+   */
   typedef T* pointer;
 
   /*!
-    \brief
-    STL compliant typedef; notice that const_pointer
-    is type T* and not const T*. This is because
-    a c_array is just a HOLDER of a pointer and
-    a length and thus the contents of the value
-    behind the pointer are not part of the value
-    of a c_array.
-  */
+   * \brief
+   * STL compliant typedef; notice that const_pointer
+   * is type T* and not const T*. This is because
+   * a c_array is just a HOLDER of a pointer and
+   * a length and thus the contents of the value
+   * behind the pointer are not part of the value
+   * of a c_array.
+   */
   typedef T* const_pointer;
 
   /*!
-    \brief
-    STL compliant typedef
-  */
+   * \brief
+   * STL compliant typedef
+   */
   typedef T& reference;
 
   /*!
-    \brief
-    STL compliant typedef; notice that const_pointer
-    is type T& and not const T&. This is because
-    a c_array is just a HOLDER of a pointer and
-    a length and thus the contents of the value
-    behind the pointer are not part of the value
-    of a c_array.
-  */
+   * \brief
+   * STL compliant typedef; notice that const_pointer
+   * is type T& and not const T&. This is because
+   * a c_array is just a HOLDER of a pointer and
+   * a length and thus the contents of the value
+   * behind the pointer are not part of the value
+   * of a c_array.
+   */
   typedef T& const_reference;
 
   /*!
-    \brief
-    STL compliant typedef
-  */
+   * \brief
+   * STL compliant typedef
+   */
   typedef T value_type;
 
   /*!
-    \brief
-    STL compliant typedef
-  */
+   * \brief
+   * STL compliant typedef
+   */
   typedef size_t size_type;
 
   /*!
-    \brief
-    STL compliant typedef
-  */
+   * \brief
+   * STL compliant typedef
+   */
   typedef ptrdiff_t difference_type;
 
   /*!
-    \brief
-    iterator typedef to pointer
+   * \brief
+   * iterator typedef to pointer
    */
   typedef pointer iterator;
 
   /*!
-    \brief
-    iterator typedef to const_pointer
+   * \brief
+   * iterator typedef to const_pointer
    */
   typedef const_pointer const_iterator;
 
   /*!
-    \brief
-    iterator typedef using std::reverse_iterator.
+   * \brief
+   * iterator typedef using std::reverse_iterator.
    */
   typedef std::reverse_iterator<const_iterator>  const_reverse_iterator;
 
   /*!
-    \brief
-    iterator typedef using std::reverse_iterator.
+   * \brief
+   * iterator typedef using std::reverse_iterator.
    */
   typedef std::reverse_iterator<iterator>        reverse_iterator;
 
   /*!
-    Default ctor, initializing the pointer as nullptr
-    with size 0.
+   * Default ctor, initializing the pointer as nullptr
+   * with size 0.
    */
   c_array(void):
     m_size(0),
@@ -130,9 +130,9 @@ public:
   {}
 
   /*!
-    Ctor initializing the pointer and size
-    \param pptr pointer value
-    \param sz size, must be no more than the number of elements that pptr points to.
+   * Ctor initializing the pointer and size
+   * \param pptr pointer value
+   * \param sz size, must be no more than the number of elements that pptr points to.
    */
   template<typename U>
   c_array(U *pptr, size_type sz):
@@ -143,9 +143,9 @@ public:
   }
 
   /*!
-    Ctor from a vecN, size is the size of the fixed size array
-    \param pptr fixed size array that c_array references, must be
-                in scope as until c_array is changed
+   * Ctor from a vecN, size is the size of the fixed size array
+   * \param pptr fixed size array that c_array references, must be
+   *             in scope as until c_array is changed
    */
   template<typename U, size_type N>
   c_array(vecN<U, N> &pptr):
@@ -156,9 +156,9 @@ public:
   }
 
   /*!
-    Ctor from a vecN, size is the size of the fixed size array
-    \param pptr fixed size array that c_array references, must be
-                in scope as until c_array is changed
+   * Ctor from a vecN, size is the size of the fixed size array
+   * \param pptr fixed size array that c_array references, must be
+   *             in scope as until c_array is changed
    */
   template<typename U, size_type N>
   c_array(const vecN<U, N> &pptr):
@@ -169,11 +169,11 @@ public:
   }
 
   /*!
-    Ctor from another c_array object.
-    \tparam U type U* must be convertible to type T* AND
-              the size of U must be the same as the size
-              of T
-    \param obj value from which to copy
+   * Ctor from another c_array object.
+   * \tparam U type U* must be convertible to type T* AND
+   *           the size of U must be the same as the size
+   *           of T
+   * \param obj value from which to copy
    */
   template<typename U>
   c_array(const c_array<U> &obj):
@@ -184,8 +184,8 @@ public:
   }
 
   /*!
-    Ctor from a range of pointers.
-    \param R R.m_begin will be the pointer and R.m_end - R.m_begin the size.
+   * Ctor from a range of pointers.
+   * \param R R.m_begin will be the pointer and R.m_end - R.m_begin the size.
    */
   c_array(range_type<iterator> R):
     m_size(R.m_end - R.m_begin),
@@ -193,9 +193,9 @@ public:
   {}
 
   /*!
-    Reinterpret style cast for c_array. It is required
-    that the sizeof(T)*size() evenly divides sizeof(S).
-    \tparam S type to which to be reinterpreted casted
+   * Reinterpret style cast for c_array. It is required
+   * that the sizeof(T)*size() evenly divides sizeof(S).
+   * \tparam S type to which to be reinterpreted casted
    */
   template<typename S>
   c_array<S>
@@ -209,9 +209,9 @@ public:
   }
 
   /*!
-    Const style cast for c_array. It is required
-    that the sizeof(T) is the same as sizeof(S).
-    \tparam S type to which to be const casted
+   * Const style cast for c_array. It is required
+   * that the sizeof(T) is the same as sizeof(S).
+   * \tparam S type to which to be const casted
    */
   template<typename S>
   c_array<S>
@@ -224,7 +224,7 @@ public:
   }
 
   /*!
-    Pointer of the c_array.
+   * Pointer of the c_array.
    */
   T*
   c_ptr(void) const
@@ -233,8 +233,8 @@ public:
   }
 
   /*!
-    Pointer to the element one past
-    the last element of the c_array.
+   * Pointer to the element one past
+   * the last element of the c_array.
    */
   T*
   end_c_ptr(void) const
@@ -243,9 +243,9 @@ public:
   }
 
   /*!
-    Access named element of c_array, under
-    debug build also performs bounds checking.
-    \param j index
+   * Access named element of c_array, under
+   * debug build also performs bounds checking.
+   * \param j index
    */
   reference
   operator[](size_type j) const
@@ -256,7 +256,7 @@ public:
   }
 
   /*!
-    STL compliant function.
+   * STL compliant function.
    */
   bool
   empty(void) const
@@ -265,7 +265,7 @@ public:
   }
 
   /*!
-    STL compliant function.
+   * STL compliant function.
    */
   size_type
   size(void) const
@@ -274,7 +274,7 @@ public:
   }
 
   /*!
-    STL compliant function.
+   * STL compliant function.
    */
   iterator
   begin(void) const
@@ -283,7 +283,7 @@ public:
   }
 
   /*!
-    STL compliant function.
+   * STL compliant function.
    */
   iterator
   end(void) const
@@ -292,7 +292,7 @@ public:
   }
 
   /*!
-    STL compliant function.
+   * STL compliant function.
    */
   reverse_iterator
   rbegin(void) const
@@ -301,7 +301,7 @@ public:
   }
 
   /*!
-    STL compliant function.
+   * STL compliant function.
    */
   reverse_iterator
   rend(void) const
@@ -310,8 +310,8 @@ public:
   }
 
   /*!
-    Returns the range of the c_array as an
-    iterator range.
+   * Returns the range of the c_array as an
+   * iterator range.
    */
   range_type<iterator>
   range(void) const
@@ -320,8 +320,8 @@ public:
   }
 
   /*!
-    Returns the range of the c_array as a
-    reverse_iterator range
+   * Returns the range of the c_array as a
+   * reverse_iterator range
    */
   range_type<reverse_iterator>
   reverse_range(void) const
@@ -330,12 +330,12 @@ public:
   }
 
   /*!
-    Equivalent to
-    \code
-    operator[](size()-1-I)
-    \endcode
-    \param I index from the back to retrieve, I=0
-             corrseponds to the back of the array.
+   * Equivalent to
+   * \code
+   * operator[](size()-1-I)
+   * \endcode
+   * \param I index from the back to retrieve, I=0
+   *          corrseponds to the back of the array.
    */
   reference
   back(size_type I) const
@@ -345,7 +345,7 @@ public:
   }
 
   /*!
-    STL compliant function.
+   * STL compliant function.
    */
   reference
   back(void) const
@@ -354,7 +354,7 @@ public:
   }
 
   /*!
-    STL compliant function.
+   * STL compliant function.
    */
   reference
   front(void) const
@@ -363,14 +363,14 @@ public:
   }
 
   /*!
-    Returns a sub-array
-    \param pos position of returned sub-array to start,
-               i.e. returned c_array's c_ptr() will return
-               this->c_ptr()+pos. It is an error if pos
-               is negative.
-    \param length length of sub array to return, note
-                  that it is an error if length+pos>size()
-                  or if length is negative.
+   * Returns a sub-array
+   * \param pos position of returned sub-array to start,
+   *            i.e. returned c_array's c_ptr() will return
+   *            this->c_ptr()+pos. It is an error if pos
+   *            is negative.
+   * \param length length of sub array to return, note
+   *               that it is an error if length+pos>size()
+   *               or if length is negative.
    */
   c_array
   sub_array(size_type pos, size_type length) const
@@ -380,14 +380,14 @@ public:
   }
 
   /*!
-    Returns a sub-array, equivalent to
-    \code
-    sub_array(pos, size() - pos)
-    \endcode
-    \param pos position of returned sub-array to start,
-               i.e. returned c_array's c_ptr() will return
-               this->c_ptr() + pos. It is an error is pos
-               is negative.
+   * Returns a sub-array, equivalent to
+   * \code
+   * sub_array(pos, size() - pos)
+   * \endcode
+   * \param pos position of returned sub-array to start,
+   *            i.e. returned c_array's c_ptr() will return
+   *            this->c_ptr() + pos. It is an error is pos
+   *            is negative.
    */
   c_array
   sub_array(size_type pos) const
@@ -397,12 +397,12 @@ public:
   }
 
   /*!
-    Returns a sub-array, equivalent to
-    \code
-    sub_array(R.m_begin, R.m_end - R.m_begin)
-    \endcode
-    \tparam I type convertible to size_type
-    \param R range of returned sub-array
+   * Returns a sub-array, equivalent to
+   * \code
+   * sub_array(R.m_begin, R.m_end - R.m_begin)
+   * \endcode
+   * \tparam I type convertible to size_type
+   * \param R range of returned sub-array
    */
   template<typename I>
   c_array
@@ -412,10 +412,10 @@ public:
   }
 
   /*!
-    Returns true if and only if the passed
-    the c_array references exactly the same
-    data as this c_array.
-    \param rhs c_array to which to compare
+   * Returns true if and only if the passed
+   * the c_array references exactly the same
+   * data as this c_array.
+   * \param rhs c_array to which to compare
    */
   template<typename U>
   bool

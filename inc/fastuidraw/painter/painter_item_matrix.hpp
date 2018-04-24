@@ -27,24 +27,24 @@
 namespace fastuidraw
 {
 /*!\addtogroup Painter
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    A PainterItemMatrix holds the value for the
-    transformation from item coordinates to the coordinates
-    in which the clipping rectangle applies.
-  */
+   * \brief
+   * A PainterItemMatrix holds the value for the
+   * transformation from item coordinates to the coordinates
+   * in which the clipping rectangle applies.
+   */
   class PainterItemMatrix
   {
   public:
 
     /*!
-      \brief
-      Enumeration that provides offsets for the
-      item matrix from the location of that data
-      (item_matrix_offset)
+     * \brief
+     * Enumeration that provides offsets for the
+     * item matrix from the location of that data
+     * (item_matrix_offset)
      */
     enum item_matrix_data_offset_t
       {
@@ -62,27 +62,27 @@ namespace fastuidraw
       };
 
     /*!
-      Ctor from a float3x3
-      \param m value with which to initailize m_item_matrix
-    */
+     * Ctor from a float3x3
+     * \param m value with which to initailize m_item_matrix
+     */
     PainterItemMatrix(const float3x3 &m):
       m_item_matrix(m)
     {}
 
     /*!
-      Ctor, initializes m_item_matrix as the
-      identity matrix
-    */
+     * Ctor, initializes m_item_matrix as the
+     * identity matrix
+     */
     PainterItemMatrix(void)
     {}
 
     /*!
-      Returns the length of the data needed to encode the data.
-      Data is padded to be multiple of alignment.
-      \param alignment alignment of the data store
-                       in units of generic_data, see
-                       PainterBackend::ConfigurationBase::alignment()
-    */
+     * Returns the length of the data needed to encode the data.
+     * Data is padded to be multiple of alignment.
+     * \param alignment alignment of the data store
+     *                  in units of generic_data, see
+     *                  PainterBackend::ConfigurationBase::alignment()
+     */
     unsigned int
     data_size(unsigned int alignment) const
     {
@@ -90,19 +90,19 @@ namespace fastuidraw
     }
 
     /*!
-      Pack the values of this PainterItemMatrix
-      \param alignment alignment of the data store
-      in units of generic_data, see
-      PainterBackend::ConfigurationBase::alignment()
-      \param dst place to which to pack data
-    */
+     * Pack the values of this PainterItemMatrix
+     * \param alignment alignment of the data store
+     * in units of generic_data, see
+     * PainterBackend::ConfigurationBase::alignment()
+     * \param dst place to which to pack data
+     */
     void
     pack_data(unsigned int alignment, c_array<generic_data> dst) const;
 
     /*!
-      The 3x3 matrix tranforming from item coordinate
-      to the coordinates of the clipping rectange.
-    */
+     * The 3x3 matrix tranforming from item coordinate
+     * to the coordinates of the clipping rectange.
+     */
     float3x3 m_item_matrix;
   };
 /*! @} */

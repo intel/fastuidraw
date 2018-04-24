@@ -24,37 +24,37 @@ namespace fastuidraw
 {
 
 /*!\addtogroup Painter
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    A PainterBlendShader represents a shader
-    for performing blending operations.
+   * \brief
+   * A PainterBlendShader represents a shader
+   * for performing blending operations.
    */
   class PainterBlendShader:public PainterShader
   {
   public:
     /*!
-      \brief
-      Enumeration to specify how blend shader operates
+     * \brief
+     * Enumeration to specify how blend shader operates
      */
     enum shader_type
       {
         /*!
-          Indicates blending is via fixed function blending
-          with single source blending.
+         * Indicates blending is via fixed function blending
+         * with single source blending.
          */
         single_src,
 
         /*!
-          Indicates blending is via fixed function blending
-          with dual source blending.
+         * Indicates blending is via fixed function blending
+         * with dual source blending.
          */
         dual_src,
 
         /*!
-          Indicates blending is via framebuffer fetch.
+         * Indicates blending is via framebuffer fetch.
          */
         framebuffer_fetch,
 
@@ -62,13 +62,13 @@ namespace fastuidraw
       };
 
     /*!
-      Ctor for creating a PainterBlendShader which has multiple
-      sub-shaders. The purpose of sub-shaders is for the case
-      where multiple shaders have almost same code and those
-      code differences can be realized by examining a sub-shader
-      ID.
-      \param tp the "how" the blend shader operates
-      \param num_sub_shaders number of sub-shaders
+     * Ctor for creating a PainterBlendShader which has multiple
+     * sub-shaders. The purpose of sub-shaders is for the case
+     * where multiple shaders have almost same code and those
+     * code differences can be realized by examining a sub-shader
+     * ID.
+     * \param tp the "how" the blend shader operates
+     * \param num_sub_shaders number of sub-shaders
      */
     explicit
     PainterBlendShader(enum shader_type tp,
@@ -78,10 +78,10 @@ namespace fastuidraw
     {}
 
     /*!
-      Ctor to create a PainterBlendShader realized as a sub-shader
-      of an existing PainterBlendShader
-      \param sub_shader which sub-shader of the parent PainterBlendShader
-      \param parent parent PainterBlendShader that has sub-shaders
+     * Ctor to create a PainterBlendShader realized as a sub-shader
+     * of an existing PainterBlendShader
+     * \param sub_shader which sub-shader of the parent PainterBlendShader
+     * \param parent parent PainterBlendShader that has sub-shaders
      */
     PainterBlendShader(unsigned int sub_shader,
                        reference_counted_ptr<PainterBlendShader> parent):
@@ -90,7 +90,7 @@ namespace fastuidraw
     {}
 
     /*!
-      Returns how the PainterBlendShader operates.
+     * Returns how the PainterBlendShader operates.
      */
     enum shader_type
     type(void) const

@@ -24,23 +24,23 @@
 namespace fastuidraw
 {
 /*!\addtogroup Painter
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    Class to specify dashed stroking parameters, data is packed
-    as according to PainterDashedStrokeParams::stroke_data_offset_t.
-    Data for dashing is packed [TODO describe].
+   * \brief
+   * Class to specify dashed stroking parameters, data is packed
+   * as according to PainterDashedStrokeParams::stroke_data_offset_t.
+   * Data for dashing is packed [TODO describe].
    */
   class PainterDashedStrokeParams:public PainterItemShaderData
   {
   public:
     /*!
-      \brief
-      Enumeration that provides offsets for the stroking
-      parameters. The dashed pattern is packed in the next
-      block of the data store.
+     * \brief
+     * Enumeration that provides offsets for the stroking
+     * parameters. The dashed pattern is packed in the next
+     * block of the data store.
      */
     enum stroke_data_offset_t
       {
@@ -55,17 +55,17 @@ namespace fastuidraw
       };
 
     /*!
-      \brief
-      A DashPatternElement is an element of a dash pattern.
-      It specifies how long to draw then how much space to
-      emit before the next DashPatternElement.
+     * \brief
+     * A DashPatternElement is an element of a dash pattern.
+     * It specifies how long to draw then how much space to
+     * emit before the next DashPatternElement.
      */
     class DashPatternElement
     {
     public:
       /*!
-        Ctor, intializes both \ref m_draw_length and
-        \ref m_space_length as 0.
+       * Ctor, intializes both \ref m_draw_length and
+       * \ref m_space_length as 0.
        */
       DashPatternElement(void):
         m_draw_length(0.0f),
@@ -73,9 +73,9 @@ namespace fastuidraw
       {}
 
       /*!
-        Ctor.
-        \param d value with which to initialize \ref m_draw_length
-        \param s value with which to initialize \ref m_space_length
+       * Ctor.
+       * \param d value with which to initialize \ref m_draw_length
+       * \param s value with which to initialize \ref m_space_length
        */
       DashPatternElement(float d, float s):
         m_draw_length(d),
@@ -83,106 +83,106 @@ namespace fastuidraw
       {}
 
       /*!
-        How long to draw
+       * How long to draw
        */
       float m_draw_length;
 
       /*!
-        How much space to next DashPatternElement
+       * How much space to next DashPatternElement
        */
       float m_space_length;
     };
 
     /*!
-      Ctor.
+     * Ctor.
      */
     PainterDashedStrokeParams(void);
 
     /*!
-      The miter limit for miter joins
+     * The miter limit for miter joins
      */
     float
     miter_limit(void) const;
 
     /*!
-      Set the value of miter_limit(void) const
+     * Set the value of miter_limit(void) const
      */
     PainterDashedStrokeParams&
     miter_limit(float f);
 
     /*!
-      The stroking width
+     * The stroking width
      */
     float
     width(void) const;
 
     /*!
-      Set the value of width(void) const
+     * Set the value of width(void) const
      */
     PainterDashedStrokeParams&
     width(float f);
     /*!
-      The stroking radius, equivalent to
-      \code
-      width() * 0.5
-      \endcode
+     * The stroking radius, equivalent to
+     * \code
+     * width() * 0.5
+     * \endcode
      */
     float
     radius(void) const;
 
     /*!
-      Set the value of radius(void) const,
-      equivalent to
-      \code
-      width(2.0 * f)
-      \endcode
+     * Set the value of radius(void) const,
+     * equivalent to
+     * \code
+     * width(2.0 * f)
+     * \endcode
      */
     PainterDashedStrokeParams&
     radius(float f);
 
     /*!
-      The dashed offset, i.e. the starting point of the
-      dash pattern to start dashed stroking.
+     * The dashed offset, i.e. the starting point of the
+     * dash pattern to start dashed stroking.
      */
     float
     dash_offset(void) const;
 
     /*!
-      Set the value of dash_offset(void) const
+     * Set the value of dash_offset(void) const
      */
     PainterDashedStrokeParams&
     dash_offset(float f);
 
     /*!
-      Returns the dash pattern for stroking.
+     * Returns the dash pattern for stroking.
      */
     c_array<const DashPatternElement>
     dash_pattern(void) const;
 
     /*!
-      Set the value return by dash_pattern(void) const.
-      \param v dash pattern; the values are -copied-.
+     * Set the value return by dash_pattern(void) const.
+     * \param v dash pattern; the values are -copied-.
      */
     PainterDashedStrokeParams&
     dash_pattern(c_array<const DashPatternElement> v);
 
     /*!
-      Constructs and returns a DashEvaluator compatible
-      with the data of PainterDashedStrokeParams.
-      \param pixel_width_stroking if true return an object to
-                                  be used when stroking width
-                                  is in pixels; if false return
-                                  an object to be used when
-                                  stroking width is in coordinates
-                                  of the path.
+     * Constructs and returns a DashEvaluator compatible
+     * with the data of PainterDashedStrokeParams.
+     * \param pixel_width_stroking if true return an object to
+     *                             be used when stroking width
+     *                             is in pixels; if false return
+     *                             an object to be used when
+     *                             stroking width is in coordinates
+     *                             of the path.
      */
     static
     reference_counted_ptr<const DashEvaluatorBase>
     dash_evaluator(bool pixel_width_stroking);
 
     /*!
-      Returns a StrokingDataSelectorBase suitable for
-      PainterDashedStrokeParams.
+     * Returns a StrokingDataSelectorBase suitable for
+     * PainterDashedStrokeParams.
      */
     static
     reference_counted_ptr<const StrokingDataSelectorBase>

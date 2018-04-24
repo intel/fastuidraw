@@ -26,72 +26,72 @@
 namespace fastuidraw
 {
 /*!\addtogroup Painter
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    A PainterFillShader holds the shaders for drawing filled paths.
+   * \brief
+   * A PainterFillShader holds the shaders for drawing filled paths.
    */
   class PainterFillShader
   {
   public:
     /*!
-      Ctor
+     * Ctor
      */
     PainterFillShader(void);
 
     /*!
-      Copy ctor.
+     * Copy ctor.
      */
     PainterFillShader(const PainterFillShader &obj);
 
     ~PainterFillShader();
 
     /*!
-      Assignment operator.
+     * Assignment operator.
      */
     PainterFillShader&
     operator=(const PainterFillShader &rhs);
 
     /*!
-      Swap operation
-      \param obj object with which to swap
-    */
+     * Swap operation
+     * \param obj object with which to swap
+     */
     void
     swap(PainterFillShader &obj);
 
     /*!
-      Returns the PainterItemShader to use to draw
-      the filled path triangles. The expected format
-      of the attributes is as found in the \ref
-      PainterAttributeData returned by \ref
-      FilledPath::Subset::painter_data().
+     * Returns the PainterItemShader to use to draw
+     * the filled path triangles. The expected format
+     * of the attributes is as found in the \ref
+     * PainterAttributeData returned by \ref
+     * FilledPath::Subset::painter_data().
      */
     const reference_counted_ptr<PainterItemShader>&
     item_shader(void) const;
 
     /*!
-      Set the value returned by item_shader(void) const.
-      \param sh value to use
+     * Set the value returned by item_shader(void) const.
+     * \param sh value to use
      */
     PainterFillShader&
     item_shader(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
-      Returns the PainterItemShader to use to draw
-      the anti-alias fuzz around the boundary of
-      a filled path. The expected format of the
-      attributes is as found in the \ref
-      PainterAttributeData returned by \ref
-      FilledPath::Subset::aa_fuzz_painter_data().
+     * Returns the PainterItemShader to use to draw
+     * the anti-alias fuzz around the boundary of
+     * a filled path. The expected format of the
+     * attributes is as found in the \ref
+     * PainterAttributeData returned by \ref
+     * FilledPath::Subset::aa_fuzz_painter_data().
      */
     const reference_counted_ptr<PainterItemShader>&
     aa_fuzz_shader(void) const;
 
     /*!
-      Set the value returned by aa_fuzz_shader(void) const.
-      \param sh value to use
+     * Set the value returned by aa_fuzz_shader(void) const.
+     * \param sh value to use
      */
     PainterFillShader&
     aa_fuzz_shader(const reference_counted_ptr<PainterItemShader> &sh);

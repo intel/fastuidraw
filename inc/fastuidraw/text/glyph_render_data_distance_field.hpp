@@ -24,60 +24,60 @@
 namespace fastuidraw
 {
 /*!\addtogroup Text
-  @{
-*/
+ * @{
+ */
 
   /*!
-    \brief
-    Represents a signed distance field of a glyph.
-    This data can be rendered scaled, but the rendering
-    distorts the corners of the glyph making them
-    appeared rounded.
+   * \brief
+   * Represents a signed distance field of a glyph.
+   * This data can be rendered scaled, but the rendering
+   * distorts the corners of the glyph making them
+   * appeared rounded.
    */
   class GlyphRenderDataDistanceField:public GlyphRenderData
   {
   public:
     /*!
-      Ctor, initialized the resolution as (0,0).
+     * Ctor, initialized the resolution as (0,0).
      */
     GlyphRenderDataDistanceField(void);
     ~GlyphRenderDataDistanceField(void);
 
     /*!
-      Returns the resolution of the glyph with padding.
-      The padding is to be 1 pixel wide on the bottom
-      and on the right, i.e.
-      GlyphAtlas::Padding::m_right = GlyphAtlas::Padding::m_bottom = 1
-      and GlyphAtlas::Padding::m_left = GlyphAtlas::Padding::m_top = 0.
+     * Returns the resolution of the glyph with padding.
+     * The padding is to be 1 pixel wide on the bottom
+     * and on the right, i.e.
+     * GlyphAtlas::Padding::m_right = GlyphAtlas::Padding::m_bottom = 1
+     * and GlyphAtlas::Padding::m_left = GlyphAtlas::Padding::m_top = 0.
      */
     ivec2
     resolution(void) const;
 
     /*!
-      Returns the distance values for rendering.
-      The texel (x,y) is located at I where I is
-      given by I = x + y * resolution().x(). The
-      -normalized- distance is given by:
-      static_cast<float>(V) / 255.0 - 0.5, where
-      V = distance_values()[I].
+     * Returns the distance values for rendering.
+     * The texel (x,y) is located at I where I is
+     * given by I = x + y * resolution().x(). The
+     * -normalized- distance is given by:
+     * static_cast<float>(V) / 255.0 - 0.5, where
+     * V = distance_values()[I].
      */
     c_array<const uint8_t>
     distance_values(void) const;
 
     /*!
-      Returns the distance values for rendering.
-      The texel (x,y) is located at I where I is
-      given by I = x + y * resolution().x(). The
-      -normalized- distance is given by:
-      static_cast<float>(V) / 255.0 - 0.5, where
-      V = distance_values()[I].
+     * Returns the distance values for rendering.
+     * The texel (x,y) is located at I where I is
+     * given by I = x + y * resolution().x(). The
+     * -normalized- distance is given by:
+     * static_cast<float>(V) / 255.0 - 0.5, where
+     * V = distance_values()[I].
      */
     c_array<uint8_t>
     distance_values(void);
 
     /*!
-      Change the resolution
-      \param sz new resolution
+     * Change the resolution
+     * \param sz new resolution
      */
     void
     resize(ivec2 sz);

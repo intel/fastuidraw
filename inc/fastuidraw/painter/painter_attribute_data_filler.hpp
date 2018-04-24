@@ -26,13 +26,13 @@
 namespace fastuidraw
 {
 /*!\addtogroup Painter
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    A PainterAttributeDataFiller is the interfaceto fill the
-    data held by a \ref PainterAttributeData
+   * \brief
+   * A PainterAttributeDataFiller is the interfaceto fill the
+   * data held by a \ref PainterAttributeData
    */
   class PainterAttributeDataFiller:noncopyable
   {
@@ -42,20 +42,20 @@ namespace fastuidraw
     {}
 
     /*!
-      To be implemented by a derived class to specify
-      how many attributes, indices and chunks the
-      PainterAttributeDataFiller will fill. All attributes
-      and indices are on a common array. A chunk is a
-      selection of attribute and index data. Each
-      of the outputs is initialized as zero.
-      \param[out] number_attributes number of total attributes to be set
-      \param[out] number_indices number of total indices to be set
-      \param[out] number_attribute_chunks number of attribute chunks to be set
-      \param[out] number_index_chunks number of index chunks to be set
-      \param[out] number_z_ranges the number of z-ranges to be set;
-                                  z-ranges of PainterAttribtueData are
-                                  accessed by PainterAttributeData::z_ranges()
-                                  and PainterAttributeData::z_range().
+     * To be implemented by a derived class to specify
+     * how many attributes, indices and chunks the
+     * PainterAttributeDataFiller will fill. All attributes
+     * and indices are on a common array. A chunk is a
+     * selection of attribute and index data. Each
+     * of the outputs is initialized as zero.
+     * \param[out] number_attributes number of total attributes to be set
+     * \param[out] number_indices number of total indices to be set
+     * \param[out] number_attribute_chunks number of attribute chunks to be set
+     * \param[out] number_index_chunks number of index chunks to be set
+     * \param[out] number_z_ranges the number of z-ranges to be set;
+     *                             z-ranges of PainterAttribtueData are
+     *                             accessed by PainterAttributeData::z_ranges()
+     *                             and PainterAttributeData::z_range().
      */
     virtual
     void
@@ -66,21 +66,21 @@ namespace fastuidraw
                   unsigned int &number_z_ranges) const = 0;
 
     /*!
-      To be implemented by a derived class to fill data.
-      \param attributes location to which to place attributes
-      \param indices location to which to place indices
-      \param attrib_chunks location to which to fill attribute chunks;
-                           each element of attrib_chunks must be a
-                           sub-array of attributes. Initialized so that
-                           each element is an empty array.
-      \param index_chunks location to which to fill index chunks;
-                          each element of attrib_chunks must be a
-                          sub-array of indices. Initialized so that
-                          each element is an empty array.
-      \param zranges location to which to fill the z-range values
-                     (PainterAttributeData::z_ranges()).
-      \param index_adjusts location to which to fill the index adjust value
-                           (PainterAttributeData::index_adjust_chunks()).
+     * To be implemented by a derived class to fill data.
+     * \param attributes location to which to place attributes
+     * \param indices location to which to place indices
+     * \param attrib_chunks location to which to fill attribute chunks;
+     *                      each element of attrib_chunks must be a
+     *                      sub-array of attributes. Initialized so that
+     *                      each element is an empty array.
+     * \param index_chunks location to which to fill index chunks;
+     *                     each element of attrib_chunks must be a
+     *                     sub-array of indices. Initialized so that
+     *                     each element is an empty array.
+     * \param zranges location to which to fill the z-range values
+     *                (PainterAttributeData::z_ranges()).
+     * \param index_adjusts location to which to fill the index adjust value
+     *                      (PainterAttributeData::index_adjust_chunks()).
      */
     virtual
     void

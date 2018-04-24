@@ -24,21 +24,21 @@
 namespace fastuidraw
 {
 /*!\addtogroup Painter
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    Class to specify stroking parameters, data is packed
-    as according to PainterStrokeParams::stroke_data_offset_t.
+   * \brief
+   * Class to specify stroking parameters, data is packed
+   * as according to PainterStrokeParams::stroke_data_offset_t.
    */
   class PainterStrokeParams:public PainterItemShaderData
   {
   public:
     /*!
-      \brief
-      Enumeration that provides offsets for the stroking
-      parameters.
+     * \brief
+     * Enumeration that provides offsets for the stroking
+     * parameters.
      */
     enum stroke_data_offset_t
       {
@@ -49,56 +49,56 @@ namespace fastuidraw
       };
 
     /*!
-      Ctor.
+     * Ctor.
      */
     PainterStrokeParams(void);
 
     /*!
-      The miter limit for miter joins
+     * The miter limit for miter joins
      */
     float
     miter_limit(void) const;
 
     /*!
-      Set the value of miter_limit(void) const
+     * Set the value of miter_limit(void) const
      */
     PainterStrokeParams&
     miter_limit(float f);
 
     /*!
-      The stroking width
+     * The stroking width
      */
     float
     width(void) const;
 
     /*!
-      Set the value of width(void) const
+     * Set the value of width(void) const
      */
     PainterStrokeParams&
     width(float f);
 
     /*!
-      The stroking radius, equivalent to
-      \code
-      width() * 0.5
-      \endcode
+     * The stroking radius, equivalent to
+     * \code
+     * width() * 0.5
+     * \endcode
      */
     float
     radius(void) const;
 
     /*!
-      Set the value of radius(void) const,
-      equivalent to
-      \code
-      width(2.0 * f)
-      \endcode
+     * Set the value of radius(void) const,
+     * equivalent to
+     * \code
+     * width(2.0 * f)
+     * \endcode
      */
     PainterStrokeParams&
     radius(float f);
 
     /*!
-      Returns a StrokingDataSelectorBase suitable for
-      PainterStrokeParams
+     * Returns a StrokingDataSelectorBase suitable for
+     * PainterStrokeParams
      */
     static
     reference_counted_ptr<const StrokingDataSelectorBase>

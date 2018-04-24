@@ -27,14 +27,14 @@
 namespace fastuidraw
 {
 /*!\addtogroup Text
-  @{
-*/
+ * @{
+ */
 
   /*!
-    \brief
-    A GlyphLocation represents the location of a glyph
-    within a GlyphAtlas.
-  */
+   * \brief
+   * A GlyphLocation represents the location of a glyph
+   * within a GlyphAtlas.
+   */
   class GlyphLocation
   {
   public:
@@ -43,8 +43,8 @@ namespace fastuidraw
     {}
 
     /*!
-      Returns true if and only if the GlyphLocation refers
-      to an actual location on a GlyphAtlas
+     * Returns true if and only if the GlyphLocation refers
+     * to an actual location on a GlyphAtlas
      */
     bool
     valid(void) const
@@ -53,26 +53,26 @@ namespace fastuidraw
     }
 
     /*!
-      If valid() returns true, returns the bottom left
-      corner of the location of the glyph on the texel
-      store on which it resides. If valid() returns false,
-      returns ivec2(-1, -1).
+     * If valid() returns true, returns the bottom left
+     * corner of the location of the glyph on the texel
+     * store on which it resides. If valid() returns false,
+     * returns ivec2(-1, -1).
      */
     ivec2
     location(void) const;
 
     /*!
-      If valid() returns true, returns the layer of the
-      location glyph on the texel store on which it resides.
-      If valid() returns false, returns -1.
+     * If valid() returns true, returns the layer of the
+     * location glyph on the texel store on which it resides.
+     * If valid() returns false, returns -1.
      */
     int
     layer(void) const;
 
     /*!
-      If valid() returns true, returns the size of the glyph
-      on the texel store on which it resides. If valid()
-      returns false, returns ivec2(-1, -1).
+     * If valid() returns true, returns the size of the glyph
+     * on the texel store on which it resides. If valid()
+     * returns false, returns ivec2(-1, -1).
      */
     ivec2
     size(void) const;

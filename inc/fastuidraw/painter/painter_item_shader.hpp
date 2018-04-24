@@ -24,32 +24,32 @@ namespace fastuidraw
 {
 
 /*!\addtogroup Painter
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    A PainterItemShader represents a shader to
-    draw an item (typically a vertex and fragment
-    shader pair).
+   * \brief
+   * A PainterItemShader represents a shader to
+   * draw an item (typically a vertex and fragment
+   * shader pair).
    */
   class PainterItemShader:public PainterShader
   {
   public:
     /*!
-      Ctor for a PainterItemShader with no sub-shaders.
+     * Ctor for a PainterItemShader with no sub-shaders.
      */
     PainterItemShader(void):
       PainterShader()
     {}
 
     /*!
-      Ctor for creating a PainterItemShader which has multiple
-      sub-shaders. The purpose of sub-shaders is for the
-      case where multiple shaders almost same code and those
-      code differences can be realized by examining a sub-shader
-      ID.
-      \param num_sub_shaders number of sub-shaders
+     * Ctor for creating a PainterItemShader which has multiple
+     * sub-shaders. The purpose of sub-shaders is for the
+     * case where multiple shaders almost same code and those
+     * code differences can be realized by examining a sub-shader
+     * ID.
+     * \param num_sub_shaders number of sub-shaders
      */
     explicit
     PainterItemShader(unsigned int num_sub_shaders):
@@ -57,10 +57,10 @@ namespace fastuidraw
     {}
 
     /*!
-      Ctor to create a PainterItemShader realized as a sub-shader
-      of an existing PainterItemShader
-      \param sub_shader which sub-shader of the parent PainterItemShader
-      \param parent parent PainterItemShader that has sub-shaders
+     * Ctor to create a PainterItemShader realized as a sub-shader
+     * of an existing PainterItemShader
+     * \param sub_shader which sub-shader of the parent PainterItemShader
+     * \param parent parent PainterItemShader that has sub-shaders
      */
     PainterItemShader(unsigned int sub_shader,
                       reference_counted_ptr<PainterItemShader> parent):

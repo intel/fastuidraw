@@ -25,21 +25,21 @@
 namespace fastuidraw
 {
 /*!\addtogroup Utility
-  @{
+ * @{
  */
   /*!
-    \brief
-    Base class for passing around buffers of data; derived
-    classes have the responsibility of maintaining storage
-    cleanup at destruction.
+   * \brief
+   * Base class for passing around buffers of data; derived
+   * classes have the responsibility of maintaining storage
+   * cleanup at destruction.
    */
   class DataBufferBase:public reference_counted<DataBufferBase>::default_base
   {
   public:
     /*!
-      Ctor.
-      \param pdata_ro value which data_ro() will return
-      \param pdata_rw value which data_rw() will return
+     * Ctor.
+     * \param pdata_ro value which data_ro() will return
+     * \param pdata_rw value which data_rw() will return
      */
     DataBufferBase(c_array<const uint8_t> pdata_ro,
                    c_array<uint8_t> pdata_rw):
@@ -48,7 +48,7 @@ namespace fastuidraw
     {}
 
     /*!
-      Return the memory as read-only
+     * Return the memory as read-only
      */
     c_array<const uint8_t>
     data_ro(void) const
@@ -57,7 +57,7 @@ namespace fastuidraw
     }
 
     /*!
-      Return the memory as read-write
+     * Return the memory as read-write
      */
     c_array<uint8_t>
     data_rw(void)

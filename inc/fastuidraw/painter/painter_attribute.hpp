@@ -24,38 +24,38 @@
 namespace fastuidraw
 {
 /*!\addtogroup Painter
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    The attribute data generated/filled by PainterPacker.
-    Attribute data is sent to 3D API as raw bits with
-    the expectation that shaders will cast the bits
-    to the appropiate types for themselves.
+   * \brief
+   * The attribute data generated/filled by PainterPacker.
+   * Attribute data is sent to 3D API as raw bits with
+   * the expectation that shaders will cast the bits
+   * to the appropiate types for themselves.
    */
   class PainterAttribute
   {
   public:
     /*!
-      Generic attribute data
+     * Generic attribute data
      */
     uvec4 m_attrib0;
 
     /*!
-      Generic attribute data
+     * Generic attribute data
      */
     uvec4 m_attrib1;
 
     /*!
-      Generic attribute data
+     * Generic attribute data
      */
     uvec4 m_attrib2;
   };
 
   /*!
-    \brief
-    Typedef for the index type used by PainterPacker
+   * \brief
+   * Typedef for the index type used by PainterPacker
    */
   typedef uint32_t PainterIndex;
 

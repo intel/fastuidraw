@@ -26,66 +26,66 @@ namespace fastuidraw
 {
 
 /*!\addtogroup Painter
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    A PainterGlyphShader holds a shader pair
-    for each glyph_type. The shaders are to
-    handle attribute data as packed by
-    PainterAttributeDataFillerGlyphs.
+   * \brief
+   * A PainterGlyphShader holds a shader pair
+   * for each glyph_type. The shaders are to
+   * handle attribute data as packed by
+   * PainterAttributeDataFillerGlyphs.
    */
   class PainterGlyphShader
   {
   public:
     /*!
-      Ctor, inits as all return value from shader(enum glyph_type)
-      as a nullptr PainterItemShader
+     * Ctor, inits as all return value from shader(enum glyph_type)
+     * as a nullptr PainterItemShader
      */
     PainterGlyphShader(void);
 
     /*!
-      Copy ctor.
+     * Copy ctor.
      */
     PainterGlyphShader(const PainterGlyphShader &obj);
 
     ~PainterGlyphShader();
 
     /*!
-      Assignment operator.
+     * Assignment operator.
      */
     PainterGlyphShader&
     operator=(const PainterGlyphShader &rhs);
 
     /*!
-      Swap operation
-      \param obj object with which to swap
-    */
+     * Swap operation
+     * \param obj object with which to swap
+     */
     void
     swap(PainterGlyphShader &obj);
 
     /*!
-      Return the PainterItemShader for a given
-      glyph_type.
-      \param tp glyph type to render
+     * Return the PainterItemShader for a given
+     * glyph_type.
+     * \param tp glyph type to render
      */
     const reference_counted_ptr<PainterItemShader>&
     shader(enum glyph_type tp) const;
 
     /*!
-      Set the PainterItemShader for a given
-      glyph_type.
-      \param tp glyph type to render
-      \param sh PainterItemShader to use for the glyph type
+     * Set the PainterItemShader for a given
+     * glyph_type.
+     * \param tp glyph type to render
+     * \param sh PainterItemShader to use for the glyph type
      */
     PainterGlyphShader&
     shader(enum glyph_type tp, const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
-      Returns the one plus the largest value for which
-      shader(enum glyph_type, PainterItemShader)
-      was called.
+     * Returns the one plus the largest value for which
+     * shader(enum glyph_type, PainterItemShader)
+     * was called.
      */
     unsigned int
     shader_count(void) const;

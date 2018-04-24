@@ -29,23 +29,23 @@
 namespace fastuidraw
 {
 /*!\addtogroup Text
-  @{
-*/
+ * @{
+ */
 
   class GlyphLayoutData;
 
   /*!
-    \brief
-    FontBase provides an interface for a font
-    to generate glyph rendering data.
+   * \brief
+   * FontBase provides an interface for a font
+   * to generate glyph rendering data.
    */
   class FontBase:
     public reference_counted<FontBase>::default_base
   {
   public:
     /*!
-      Ctor.
-      \param pprops font properties describing the font
+     * Ctor.
+     * \param pprops font properties describing the font
      */
     explicit
     FontBase(const FontProperties &pprops):
@@ -57,7 +57,7 @@ namespace fastuidraw
     {}
 
     /*!
-      Returns the properties of the font.
+     * Returns the properties of the font.
      */
     const FontProperties&
     properties(void) const
@@ -66,35 +66,35 @@ namespace fastuidraw
     }
 
     /*!
-      To be implemented by a derived class to return an
-      index value (glyph code) from a character code
-      (typically a unicode). A return value of 0 indicates
-      that the character code is not contained in the font.
+     * To be implemented by a derived class to return an
+     * index value (glyph code) from a character code
+     * (typically a unicode). A return value of 0 indicates
+     * that the character code is not contained in the font.
      */
     virtual
     uint32_t
     glyph_code(uint32_t pcharacter_code) const = 0;
 
     /*!
-      To be implemented by a derived class to indicate
-      that it will return non-nullptr in
-      compute_rendering_data() when passed a
-      GlyphRender whose GlyphRender::m_type
-      is a specified value.
+     * To be implemented by a derived class to indicate
+     * that it will return non-nullptr in
+     * compute_rendering_data() when passed a
+     * GlyphRender whose GlyphRender::m_type
+     * is a specified value.
      */
     virtual
     bool
     can_create_rendering_data(enum glyph_type tp) const = 0;
 
     /*!
-      To be implemented by a derived class to generate glyph
-      rendering data given a glyph code and GlyphRender.
-      \param render specifies object to return via GlyphRender::type(),
-                    it is guaranteed by the caller that can_create_rendering_data()
-                    returns true on render.type()
-      \param glyph_code glyph code of glyph rendering data to create
-      \param[out] layout location to which to place the GlyphLayoutData for the glyph
-      \param[out] path Path of the glyph
+     * To be implemented by a derived class to generate glyph
+     * rendering data given a glyph code and GlyphRender.
+     * \param render specifies object to return via GlyphRender::type(),
+     *               it is guaranteed by the caller that can_create_rendering_data()
+     *               returns true on render.type()
+     * \param glyph_code glyph code of glyph rendering data to create
+     * \param[out] layout location to which to place the GlyphLayoutData for the glyph
+     * \param[out] path Path of the glyph
      */
     virtual
     GlyphRenderData*

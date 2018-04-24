@@ -26,26 +26,26 @@
 namespace fastuidraw
 {
 /*!\addtogroup Painter
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    A PainterClipEquations stores the clip equation for
-    PainterPacker.
-
-    Each vec3 gives a clip equation in
-    3D API clip coordinats (i.e. after PainterItemMatrix
-    transformation is applied) as dot(clip_vector, p) >= 0.
-  */
+   * \brief
+   * A PainterClipEquations stores the clip equation for
+   * PainterPacker.
+   *
+   * Each vec3 gives a clip equation in
+   * 3D API clip coordinats (i.e. after PainterItemMatrix
+   * transformation is applied) as dot(clip_vector, p) >= 0.
+   */
   class PainterClipEquations
   {
   public:
     /*!
-      \brief
-      Enumeration that provides offsets for the
-      elements of the clip equation offsets
-      (clip_equations_offset)
+     * \brief
+     * Enumeration that provides offsets for the
+     * elements of the clip equation offsets
+     * (clip_equations_offset)
      */
     enum clip_equations_data_offset_t
       {
@@ -69,29 +69,29 @@ namespace fastuidraw
       };
 
     /*!
-      Ctor, initializes all clip equations as \f$ z \geq 0\f$
-    */
+     * Ctor, initializes all clip equations as \f$ z \geq 0\f$
+     */
     PainterClipEquations(void):
       m_clip_equations(vec3(0.0f, 0.0f, 1.0f))
     {}
 
     /*!
-      Pack the values of this ClipEquations
-      \param alignment alignment of the data store
-             in units of generic_data, see
-             PainterBackend::ConfigurationBase::alignment()
-      \param dst place to which to pack data
-    */
+     * Pack the values of this ClipEquations
+     * \param alignment alignment of the data store
+     *        in units of generic_data, see
+     *        PainterBackend::ConfigurationBase::alignment()
+     * \param dst place to which to pack data
+     */
     void
     pack_data(unsigned int alignment, c_array<generic_data> dst) const;
 
     /*!
-      Returns the length of the data needed to encode the data.
-      Data is padded to be multiple of alignment.
-      \param alignment alignment of the data store
-             in units of generic_data, see
-             PainterBackend::ConfigurationBase::alignment()
-    */
+     * Returns the length of the data needed to encode the data.
+     * Data is padded to be multiple of alignment.
+     * \param alignment alignment of the data store
+     *        in units of generic_data, see
+     *        PainterBackend::ConfigurationBase::alignment()
+     */
     unsigned int
     data_size(unsigned int alignment) const
     {
@@ -99,12 +99,12 @@ namespace fastuidraw
     }
 
     /*!
-      Each element of m_clip_equations specifies a
-      clipping plane in 3D API clip-space as
-      \code
-      dot(m_clip_equations[i], p) >= 0
-      \endcode
-    */
+     * Each element of m_clip_equations specifies a
+     * clipping plane in 3D API clip-space as
+     * \code
+     * dot(m_clip_equations[i], p) >= 0
+     * \endcode
+     */
     vecN<vec3, 4> m_clip_equations;
   };
 

@@ -25,19 +25,19 @@
 namespace fastuidraw
 {
 /*!\addtogroup Utility
-  @{
+ * @{
  */
   /*!
-    \brief
-    Class to hold the blend mode as exposed by typical
-    3D APIs
-  */
+   * \brief
+   * Class to hold the blend mode as exposed by typical
+   * 3D APIs
+   */
   class BlendMode
   {
   public:
     /*!
-      \brief
-      Enumeration to specify blend equation, i.e. glBlendEquation.
+     * \brief
+     * Enumeration to specify blend equation, i.e. glBlendEquation.
      */
     enum op_t
       {
@@ -51,9 +51,9 @@ namespace fastuidraw
       };
 
     /*!
-      \brief
-      Enumeration to specify the blend coefficient factor,
-      i.e. glBlendFunc.
+     * \brief
+     * Enumeration to specify the blend coefficient factor,
+     * i.e. glBlendFunc.
      */
     enum func_t
       {
@@ -81,14 +81,14 @@ namespace fastuidraw
       };
 
     /*!
-      \brief
-      Represents a BlendMode packed as a single
-      32-bit integer value, see also packed().
+     * \brief
+     * Represents a BlendMode packed as a single
+     * 32-bit integer value, see also packed().
      */
     typedef uint32_t packed_value;
 
     /*!
-      Ctor.
+     * Ctor.
      */
     BlendMode(void)
     {
@@ -99,15 +99,15 @@ namespace fastuidraw
     }
 
     /*!
-      Construct a BlendMode from a value as packed by
-      packed().
+     * Construct a BlendMode from a value as packed by
+     * packed().
      */
     explicit
     BlendMode(packed_value v);
 
     /*!
-      Set that 3D API blending is on or off.
-      Default value is true.
+     * Set that 3D API blending is on or off.
+     * Default value is true.
      */
     BlendMode&
     blending_on(bool v)
@@ -117,7 +117,7 @@ namespace fastuidraw
     }
 
     /*!
-      Return the value as set by equation_rgb(enum op_t).
+     * Return the value as set by equation_rgb(enum op_t).
      */
     bool
     blending_on(void) const
@@ -126,37 +126,37 @@ namespace fastuidraw
     }
 
     /*!
-      Set the blend equation for the RGB channels.
-      Default value is ADD.
+     * Set the blend equation for the RGB channels.
+     * Default value is ADD.
      */
     BlendMode&
     equation_rgb(enum op_t v) { m_blend_equation[Kequation_rgb] = v; return *this; }
 
     /*!
-      Return the value as set by equation_rgb(enum op_t).
+     * Return the value as set by equation_rgb(enum op_t).
      */
     enum op_t
     equation_rgb(void) const { return m_blend_equation[Kequation_rgb]; }
 
     /*!
-      Set the blend equation for the Alpha channel.
-      Default value is ADD.
+     * Set the blend equation for the Alpha channel.
+     * Default value is ADD.
      */
     BlendMode&
     equation_alpha(enum op_t v) { m_blend_equation[Kequation_alpha] = v; return *this; }
 
     /*!
-      Return the value as set by equation_alpha(enum op_t).
+     * Return the value as set by equation_alpha(enum op_t).
      */
     enum op_t
     equation_alpha(void) const { return m_blend_equation[Kequation_alpha]; }
 
     /*!
-      Provided as a conveniance, equivalent to
-      \code
-      equation_rgb(v);
-      equation_alpha(v);
-      \endcode
+     * Provided as a conveniance, equivalent to
+     * \code
+     * equation_rgb(v);
+     * equation_alpha(v);
+     * \endcode
      */
     BlendMode&
     equation(enum op_t v)
@@ -167,37 +167,37 @@ namespace fastuidraw
     }
 
     /*!
-      Set the source coefficient for the RGB channels.
-      Default value is ONE.
+     * Set the source coefficient for the RGB channels.
+     * Default value is ONE.
      */
     BlendMode&
     func_src_rgb(enum func_t v) { m_blend_func[Kfunc_src_rgb] = v; return *this; }
 
     /*!
-      Return the value as set by func_src_rgb(enum t).
+     * Return the value as set by func_src_rgb(enum t).
      */
     enum func_t
     func_src_rgb(void) const { return m_blend_func[Kfunc_src_rgb]; }
 
     /*!
-      Set the source coefficient for the Alpha channel.
-      Default value is ONE.
+     * Set the source coefficient for the Alpha channel.
+     * Default value is ONE.
      */
     BlendMode&
     func_src_alpha(enum func_t v) { m_blend_func[Kfunc_src_alpha] = v; return *this; }
 
     /*!
-      Return the value as set by func_src_alpha(enum t).
+     * Return the value as set by func_src_alpha(enum t).
      */
     enum func_t
     func_src_alpha(void) const { return m_blend_func[Kfunc_src_alpha]; }
 
     /*!
-      Provided as a conveniance, equivalent to
-      \code
-      func_src_rgb(v);
-      func_src_alpha(v);
-      \endcode
+     * Provided as a conveniance, equivalent to
+     * \code
+     * func_src_rgb(v);
+     * func_src_alpha(v);
+     * \endcode
      */
     BlendMode&
     func_src(enum func_t v)
@@ -207,37 +207,37 @@ namespace fastuidraw
     }
 
     /*!
-      Set the destication coefficient for the RGB channels.
-      Default value is ZERO.
+     * Set the destication coefficient for the RGB channels.
+     * Default value is ZERO.
      */
     BlendMode&
     func_dst_rgb(enum func_t v) { m_blend_func[Kfunc_dst_rgb] = v; return *this; }
 
     /*!
-      Return the value as set by func_dst_rgb(enum t).
+     * Return the value as set by func_dst_rgb(enum t).
      */
     enum func_t
     func_dst_rgb(void) const { return m_blend_func[Kfunc_dst_rgb]; }
 
     /*!
-      Set the destication coefficient for the Alpha channel.
-      Default value is ZERO.
+     * Set the destication coefficient for the Alpha channel.
+     * Default value is ZERO.
      */
     BlendMode&
     func_dst_alpha(enum func_t v) { m_blend_func[Kfunc_dst_alpha] = v; return *this; }
 
     /*!
-      Return the value as set by func_dst_alpha(enum t).
+     * Return the value as set by func_dst_alpha(enum t).
      */
     enum func_t
     func_dst_alpha(void) const { return m_blend_func[Kfunc_dst_alpha]; }
 
     /*!
-      Provided as a conveniance, equivalent to
-      \code
-      func_dst_rgb(v);
-      func_dst_alpha(v);
-      \endcode
+     * Provided as a conveniance, equivalent to
+     * \code
+     * func_dst_rgb(v);
+     * func_dst_alpha(v);
+     * \endcode
      */
     BlendMode&
     func_dst(enum func_t v)
@@ -247,11 +247,11 @@ namespace fastuidraw
     }
 
     /*!
-      Provided as a conveniance, equivalent to
-      \code
-      func_src(src);
-      func_dst(dst);
-      \endcode
+     * Provided as a conveniance, equivalent to
+     * \code
+     * func_src(src);
+     * func_dst(dst);
+     * \endcode
      */
     BlendMode&
     func(enum func_t src, enum func_t dst)
@@ -262,8 +262,8 @@ namespace fastuidraw
     }
 
     /*!
-      Return the blend mode as a single packed 64-bit
-      unsigned integer.
+     * Return the blend mode as a single packed 64-bit
+     * unsigned integer.
      */
     packed_value
     packed(void) const;

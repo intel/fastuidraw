@@ -27,47 +27,47 @@
 namespace fastuidraw
 {
 /*!\addtogroup Painter
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    A PainterAttributeDataFillerGlyphs is for filling the data of a
-    PainterAttributeDataFiller for the purpose of drawing glyphs.
-
-    The enumeration glyph_type provide the indices into
-    PainterAttributeData::attribute_data_chunks() and
-    PainterAttributeData::index_data_chunks() for the different
-    glyph types. If a glyph is not uploaded to its GlyphCache and
-    failed to be uploaded to its GlyphCache, then filling will
-    only fill the PainterAttrributeData to the last glyph that
-    successfully uploaded to its GlyphCache. That value can be
-    queried by number_glyphs(). If all glyphs are uploaded or
-    successfully loaded, then number_glyphs() returns the number
-    glyph in the glyph run. Data for glyphs is packed as follows:
-      - PainterAttribute::m_attrib0 .xy   -> xy-texel location in primary atlas (float)
-      - PainterAttribute::m_attrib0 .zw   -> xy-texel location in secondary atlas (float)
-      - PainterAttribute::m_attrib1 .xy -> position in item coordinates (float)
-      - PainterAttribute::m_attrib1 .z  -> 0 (free)
-      - PainterAttribute::m_attrib1 .w  -> 0 (free)
-      - PainterAttribute::m_attrib2 .x -> 0 (free)
-      - PainterAttribute::m_attrib2 .y -> glyph offset (uint)
-      - PainterAttribute::m_attrib2 .z -> layer in primary atlas (uint)
-      - PainterAttribute::m_attrib2 .w -> layer in secondary atlas (uint)
+   * \brief
+   * A PainterAttributeDataFillerGlyphs is for filling the data of a
+   * PainterAttributeDataFiller for the purpose of drawing glyphs.
+   *
+   * The enumeration glyph_type provide the indices into
+   * PainterAttributeData::attribute_data_chunks() and
+   * PainterAttributeData::index_data_chunks() for the different
+   * glyph types. If a glyph is not uploaded to its GlyphCache and
+   * failed to be uploaded to its GlyphCache, then filling will
+   * only fill the PainterAttrributeData to the last glyph that
+   * successfully uploaded to its GlyphCache. That value can be
+   * queried by number_glyphs(). If all glyphs are uploaded or
+   * successfully loaded, then number_glyphs() returns the number
+   * glyph in the glyph run. Data for glyphs is packed as follows:
+   *   - PainterAttribute::m_attrib0 .xy   -> xy-texel location in primary atlas (float)
+   *   - PainterAttribute::m_attrib0 .zw   -> xy-texel location in secondary atlas (float)
+   *   - PainterAttribute::m_attrib1 .xy -> position in item coordinates (float)
+   *   - PainterAttribute::m_attrib1 .z  -> 0 (free)
+   *   - PainterAttribute::m_attrib1 .w  -> 0 (free)
+   *   - PainterAttribute::m_attrib2 .x -> 0 (free)
+   *   - PainterAttribute::m_attrib2 .y -> glyph offset (uint)
+   *   - PainterAttribute::m_attrib2 .z -> layer in primary atlas (uint)
+   *   - PainterAttribute::m_attrib2 .w -> layer in secondary atlas (uint)
    */
   class PainterAttributeDataFillerGlyphs:public PainterAttributeDataFiller
   {
   public:
     /*!
-      Ctor. The values behind the arrays passed are NOT copied. As such
-      the memory behind the arrays need to stay in scope for the duration
-      of the call to PainterAttributeData::set_data() when passed this.
-      \param glyph_positions position of the bottom left corner of each glyph
-      \param glyphs glyphs to draw, array must be same size as glyph_positions
-      \param scale_factors scale factors to apply to each glyph, must be either
-                           empty (indicating no scaling factors) or the exact
-                           same length as glyph_positions
-      \param orientation orientation of drawing
+     * Ctor. The values behind the arrays passed are NOT copied. As such
+     * the memory behind the arrays need to stay in scope for the duration
+     * of the call to PainterAttributeData::set_data() when passed this.
+     * \param glyph_positions position of the bottom left corner of each glyph
+     * \param glyphs glyphs to draw, array must be same size as glyph_positions
+     * \param scale_factors scale factors to apply to each glyph, must be either
+     *                      empty (indicating no scaling factors) or the exact
+     *                      same length as glyph_positions
+     * \param orientation orientation of drawing
      */
     PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
                                      c_array<const Glyph> glyphs,
@@ -76,13 +76,13 @@ namespace fastuidraw
                                      = PainterEnums::y_increases_downwards);
 
     /*!
-      Ctor. The values behind the arrays passed are NOT copied. As such
-      the memory behind the arrays need to stay in scope for the duration
-      of the call to PainterAttributeData::set_data() when passed this.
-      \param glyph_positions position of the bottom left corner of each glyph
-      \param glyphs glyphs to draw, array must be same size as glyph_positions
-      \param render_pixel_size pixel size to which to scale the glyphs
-      \param orientation orientation of drawing
+     * Ctor. The values behind the arrays passed are NOT copied. As such
+     * the memory behind the arrays need to stay in scope for the duration
+     * of the call to PainterAttributeData::set_data() when passed this.
+     * \param glyph_positions position of the bottom left corner of each glyph
+     * \param glyphs glyphs to draw, array must be same size as glyph_positions
+     * \param render_pixel_size pixel size to which to scale the glyphs
+     * \param orientation orientation of drawing
      */
     PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
                                      c_array<const Glyph> glyphs,
@@ -91,13 +91,13 @@ namespace fastuidraw
                                      = PainterEnums::y_increases_downwards);
 
     /*!
-      Ctor. The values behind the arrays passed are NOT copied. As such
-      the memory behind the arrays need to stay in scope for the duration
-      of the call to PainterAttributeData::set_data() when passed this.
-      When filling the data, the glyphs are not scaled.
-      \param glyph_positions position of the bottom left corner of each glyph
-      \param glyphs glyphs to draw, array must be same size as glyph_positions
-      \param orientation orientation of drawing
+     * Ctor. The values behind the arrays passed are NOT copied. As such
+     * the memory behind the arrays need to stay in scope for the duration
+     * of the call to PainterAttributeData::set_data() when passed this.
+     * When filling the data, the glyphs are not scaled.
+     * \param glyph_positions position of the bottom left corner of each glyph
+     * \param glyphs glyphs to draw, array must be same size as glyph_positions
+     * \param orientation orientation of drawing
      */
     PainterAttributeDataFillerGlyphs(c_array<const vec2> glyph_positions,
                                      c_array<const Glyph> glyphs,
@@ -107,15 +107,15 @@ namespace fastuidraw
     ~PainterAttributeDataFillerGlyphs();
 
     /*!
-      After calling PainterAttributeData::set_data() with this object,
-      returns the number of glyphs of the glyph runs set at the ctor
-      that are in the filled PainterAttributeData. The filling by
-      a PainterAttributeDataFillerGlyphs stops as soon as a glyph
-      is not and cannot be uploaded to its GlyphCache. If all glyphs
-      are or can be uploaded to their GlyphCache, returns the
-      length of the glyph array passed to the ctor, otherwise returns
-      the index into the glyph array of the first glyph that cannot
-      be uploaded to its GlyphCache.
+     * After calling PainterAttributeData::set_data() with this object,
+     * returns the number of glyphs of the glyph runs set at the ctor
+     * that are in the filled PainterAttributeData. The filling by
+     * a PainterAttributeDataFillerGlyphs stops as soon as a glyph
+     * is not and cannot be uploaded to its GlyphCache. If all glyphs
+     * are or can be uploaded to their GlyphCache, returns the
+     * length of the glyph array passed to the ctor, otherwise returns
+     * the index into the glyph array of the first glyph that cannot
+     * be uploaded to its GlyphCache.
      */
     unsigned int
     number_glyphs(void) const;

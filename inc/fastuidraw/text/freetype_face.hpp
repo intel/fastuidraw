@@ -29,25 +29,25 @@
 namespace fastuidraw
 {
 /*!\addtogroup Text
-  @{
-*/
+ * @{
+ */
   /*!\brief
-    A FreeTypeFace wraps an FT_Face object of the FreeType library
-    together with a mutex in a reference counted object.
-
-    The threading model for the FreeType appears to be:
-    - Create an FT_Library object
-    - When creating or releasing FT_Face objects, lock a mutex
-      around the FT_Library when doing so
-    - If an FT_Face is accessed from multiple threads, the FT_Face
-      (but not the FT_Library) needs to be mutex locked
+   * A FreeTypeFace wraps an FT_Face object of the FreeType library
+   * together with a mutex in a reference counted object.
+   *
+   * The threading model for the FreeType appears to be:
+   * - Create an FT_Library object
+   * - When creating or releasing FT_Face objects, lock a mutex
+   *   around the FT_Library when doing so
+   * - If an FT_Face is accessed from multiple threads, the FT_Face
+   *   (but not the FT_Library) needs to be mutex locked
    */
   class FreeTypeFace:public reference_counted<FreeTypeFace>::default_base
   {
   public:
     /*!\brief
-      A Generator provides an interface to create FreeTypeFace
-      objects.
+     * A Generator provides an interface to create FreeTypeFace
+     * objects.
      */
     class GeneratorBase:public reference_counted<GeneratorBase>::default_base
     {
@@ -57,11 +57,11 @@ namespace fastuidraw
       {}
 
       /*!
-        Public interface to create a FreeTypeFace object.
-        \param lib FreeTypeLib with which to create the FT_Face;
-                   if lib is nullptr, then lib will be sustituted
-                   with a newly created FreeTypeLib object that
-                   only the returned FreeTypeFace will use.
+       * Public interface to create a FreeTypeFace object.
+       * \param lib FreeTypeLib with which to create the FT_Face;
+       *            if lib is nullptr, then lib will be sustituted
+       *            with a newly created FreeTypeLib object that
+       *            only the returned FreeTypeFace will use.
        */
       virtual
       reference_counted_ptr<FreeTypeFace>
@@ -69,13 +69,13 @@ namespace fastuidraw
                   = reference_counted_ptr<FreeTypeLib>()) const;
 
       /*!
-        Checks if the GeneratorBase object can create a face
-        (by calling create_face_implement()). Returns routine_fail
-        if the object is unable to create a face.
-        \param lib FreeTypeLib with which to test face creation;
-                   if lib is nullptr, then lib will be sustituted
-                   with a newly created FreeTypeLib object that
-                   only the returned FreeTypeFace will use.
+       * Checks if the GeneratorBase object can create a face
+       * (by calling create_face_implement()). Returns routine_fail
+       * if the object is unable to create a face.
+       * \param lib FreeTypeLib with which to test face creation;
+       *            if lib is nullptr, then lib will be sustituted
+       *            with a newly created FreeTypeLib object that
+       *            only the returned FreeTypeFace will use.
        */
       enum return_code
       check_creation(reference_counted_ptr<FreeTypeLib> lib
@@ -83,10 +83,10 @@ namespace fastuidraw
 
     protected:
       /*!
-        To be implemented by a derived class to create a
-        FT_Face using a given (and locked by the caller)
-        FT_Library object.
-        \param lib FT_Libray with which to create the FT_Face
+       * To be implemented by a derived class to create a
+       * FT_Face using a given (and locked by the caller)
+       * FT_Library object.
+       * \param lib FT_Libray with which to create the FT_Face
        */
       virtual
       FT_Face
@@ -94,17 +94,17 @@ namespace fastuidraw
     };
 
     /*!
-      \brief Implementation of GeneratorBase to create a FreeTypeFace
-             from a face index / file pair via lib FreeType's FT_New_Face
+     * \brief Implementation of GeneratorBase to create a FreeTypeFace
+     *        from a face index / file pair via lib FreeType's FT_New_Face
      */
     class GeneratorFile:public GeneratorBase
     {
     public:
       /*!
-        Ctor.
-        \param filename name of file from which to source the created
-                        FT_Face objects
-        \param face_index face index of file
+       * Ctor.
+       * \param filename name of file from which to source the created
+       *                 FT_Face objects
+       * \param face_index face index of file
        */
       GeneratorFile(c_string filename, int face_index);
       ~GeneratorFile();
@@ -119,29 +119,29 @@ namespace fastuidraw
     };
 
     /*!
-      \brief Implementation of GeneratorBase to create a FreeTypeFace
-             from a face index / file pair via lib FreeType's
-	     FT_New_Memory_Face
+     * \brief Implementation of GeneratorBase to create a FreeTypeFace
+     *        from a face index / file pair via lib FreeType's
+     *	     FT_New_Memory_Face
      */
     class GeneratorMemory:public GeneratorBase
     {
     public:
       /*!
-	Ctor.
-	\param src holder of data; modifying the data after creating
-	           a GeneratorMemory that uses it is undefined and
-		   crashing behavior.
-        \param face_index face index of data
+       *	Ctor.
+       *	\param src holder of data; modifying the data after creating
+       *	           a GeneratorMemory that uses it is undefined and
+       *		   crashing behavior.
+       * \param face_index face index of data
        */
       GeneratorMemory(const reference_counted_ptr<const DataBufferBase> &src,
 		      int face_index);
 
       /*!
-        Ctor. Provided as a convenience, a DataBuffer object is created
-	from the named file and used as the memory source.
-        \param filename name of file from which to source the created
-                        FT_Face objects
-        \param face_index face index of file
+       * Ctor. Provided as a convenience, a DataBuffer object is created
+       *	from the named file and used as the memory source.
+       * \param filename name of file from which to source the created
+       *                 FT_Face objects
+       * \param face_index face index of file
        */
       GeneratorMemory(c_string filename, int face_index);
 
@@ -157,11 +157,11 @@ namespace fastuidraw
     };
 
     /*!
-      Ctor.
-      \param pFace the underlying FT_Face; the created FreeTypeFace
-             takes ownership of pFace and pFace will be deleted when
-             the created FreeTypeFace is deleted.
-      \param pLib the FreeTypeLib that was used to create pFace
+     * Ctor.
+     * \param pFace the underlying FT_Face; the created FreeTypeFace
+     *        takes ownership of pFace and pFace will be deleted when
+     *        the created FreeTypeFace is deleted.
+     * \param pLib the FreeTypeLib that was used to create pFace
      */
     FreeTypeFace(FT_Face pFace,
                  const reference_counted_ptr<FreeTypeLib> &pLib);
@@ -169,35 +169,35 @@ namespace fastuidraw
     ~FreeTypeFace();
 
     /*!
-      Returns the FT_Face object about which
-      this object wraps.
+     * Returns the FT_Face object about which
+     * this object wraps.
      */
     FT_Face
     face(void);
 
     /*!
-      Returns the FreeTypeLib that was used to
-      create the FT_Face face().
+     * Returns the FreeTypeLib that was used to
+     * create the FT_Face face().
      */
     const reference_counted_ptr<FreeTypeLib>&
     lib(void) const;
 
     /*!
-      Aquire the lock of the mutex used to access/use the FT_Face
-      return by face() safely across multiple threads.
+     * Aquire the lock of the mutex used to access/use the FT_Face
+     * return by face() safely across multiple threads.
      */
     void
     lock(void);
 
     /*!
-      Release the lock of the mutex used to access/use the FT_Face
-      return by face() safely across multiple threads.
+     * Release the lock of the mutex used to access/use the FT_Face
+     * return by face() safely across multiple threads.
      */
     void
     unlock(void);
 
     /*!
-      Try to aquire the lock of the mutex. Return true on success.
+     * Try to aquire the lock of the mutex. Return true on success.
      */
     bool
     try_lock(void);

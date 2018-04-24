@@ -23,20 +23,20 @@
 namespace fastuidraw
 {
 /*!\addtogroup Painter
-  @{
+ * @{
  */
   /*!
-    \brief
-    Base class to specify a custom fill rule.
+   * \brief
+   * Base class to specify a custom fill rule.
    */
   class CustomFillRuleBase
   {
   public:
     /*!
-      To be implemented by a derived class to return
-      true if to draw those regions with the passed
-      winding number.
-      \param winding_number winding number value to test.
+     * To be implemented by a derived class to return
+     * true if to draw those regions with the passed
+     * winding number.
+     * \param winding_number winding number value to test.
      */
     virtual
     bool
@@ -44,22 +44,22 @@ namespace fastuidraw
   };
 
   /*!
-    \brief
-    Class to specify a custom fill rule from
-    a function.
-  */
+   * \brief
+   * Class to specify a custom fill rule from
+   * a function.
+   */
   class CustomFillRuleFunction:public CustomFillRuleBase
   {
   public:
     /*!
-      Typedef to fill rule function pointer type
+     * Typedef to fill rule function pointer type
      */
     typedef bool (*fill_rule_fcn)(int);
 
     /*!
-      Ctor.
-      \param fill_rule function to use to implement
-                       operator(int) const.
+     * Ctor.
+     * \param fill_rule function to use to implement
+     *                  operator(int) const.
      */
     explicit
     CustomFillRuleFunction(fill_rule_fcn fill_rule):
@@ -67,8 +67,8 @@ namespace fastuidraw
     {}
 
     /*!
-      Ctor from a PainterEnums::fill_rule_t enumeration
-      \param fill_rule enumeration for fill rule.
+     * Ctor from a PainterEnums::fill_rule_t enumeration
+     * \param fill_rule enumeration for fill rule.
      */
     explicit
     CustomFillRuleFunction(enum PainterEnums::fill_rule_t fill_rule):
@@ -83,9 +83,9 @@ namespace fastuidraw
     }
 
     /*!
-      Returns a \ref fill_rule_fcn implementing
-      a fill rule from a \ref PainterEnums::fill_rule_t.
-      \param fill_rule enumerated fill rule.
+     * Returns a \ref fill_rule_fcn implementing
+     * a fill rule from a \ref PainterEnums::fill_rule_t.
+     * \param fill_rule enumerated fill rule.
      */
     static
     fill_rule_fcn

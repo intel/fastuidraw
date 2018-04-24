@@ -30,17 +30,17 @@
 namespace fastuidraw
 {
 /*!\addtogroup Text
-  @{
-*/
+ * @{
+ */
   /*!
-    \brief
-    A GlyphLayoutData provides information on how to
-    layout text using a glyph, all the values are in
-    units of the font glyph. The field \ref m_units_per_EM
-    gives the conversion factor to pixel coordinates via
-    \f$PixelCoordinates = FontCoordinates * PixelSize / m_units_per_EM\f$
-    where PixelSize is the pixel size in which one is
-    to render the text.
+   * \brief
+   * A GlyphLayoutData provides information on how to
+   * layout text using a glyph, all the values are in
+   * units of the font glyph. The field \ref m_units_per_EM
+   * gives the conversion factor to pixel coordinates via
+   * \f$PixelCoordinates = FontCoordinates * PixelSize / m_units_per_EM\f$
+   * where PixelSize is the pixel size in which one is
+   * to render the text.
    */
   class GlyphLayoutData
   {
@@ -56,48 +56,48 @@ namespace fastuidraw
     {}
 
     /*!
-      The index of the glyph into the -font- of the glyph
+     * The index of the glyph into the -font- of the glyph
      */
     uint32_t m_glyph_code;
 
     /*!
-      Font of the glyph;
+     * Font of the glyph;
      */
     reference_counted_ptr<const FontBase> m_font;
 
     /*!
-      The offset (in font coordinates) from the pen
-      at which to display the glyph when performing
-      horizontal text layout.
+     * The offset (in font coordinates) from the pen
+     * at which to display the glyph when performing
+     * horizontal text layout.
      */
     vec2 m_horizontal_layout_offset;
 
     /*!
-      The offset (in font coordinates) from the pen
-      at which to display the glyph when performing
-      horizontal text layout.
+     * The offset (in font coordinates) from the pen
+     * at which to display the glyph when performing
+     * horizontal text layout.
      */
     vec2 m_vertical_layout_offset;
 
     /*!
-      Size (in font coordinates) at which to draw
-      the glyph.
+     * Size (in font coordinates) at which to draw
+     * the glyph.
      */
     vec2 m_size;
 
     /*!
-      How much (in font coordinates) to advance the pen
-      after drawing the glyph. The x-coordinate holds the
-      advance when performing layout horizontally and
-      the y-coordinate when performing layout vertically.
+     * How much (in font coordinates) to advance the pen
+     * after drawing the glyph. The x-coordinate holds the
+     * advance when performing layout horizontally and
+     * the y-coordinate when performing layout vertically.
      */
     vec2 m_advance;
 
     /*!
-      The number of font units per EM for the glyph.
-      The conversion from font coordinates to pixel
-      coordiantes is given by:
-      \f$PixelCoordinates = FontCoordinates * PixelSize / m_units_per_EM\f$
+     * The number of font units per EM for the glyph.
+     * The conversion from font coordinates to pixel
+     * coordiantes is given by:
+     * \f$PixelCoordinates = FontCoordinates * PixelSize / m_units_per_EM\f$
      */
     float m_units_per_EM;
   };

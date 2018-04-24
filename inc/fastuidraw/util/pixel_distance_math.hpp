@@ -23,18 +23,18 @@
 namespace fastuidraw
 {
 /*!\addtogroup Utility
-  @{
+ * @{
  */
   /*!
-    Given a direction and location in LOCAL coordinates and a
-    distance value in pixel coordinates, return that distance
-    value in local coordinates.
-    \param distance distance value in pixel coordinates
-    \param resolution resolution of viewport
-    \param transformation_matrix transformation matrix from local
-                                 coordinates to clip-coordinates
-    \param point location in local coordinates
-    \param direction direction in local coordinates
+   * Given a direction and location in LOCAL coordinates and a
+   * distance value in pixel coordinates, return that distance
+   * value in local coordinates.
+   * \param distance distance value in pixel coordinates
+   * \param resolution resolution of viewport
+   * \param transformation_matrix transformation matrix from local
+   *                              coordinates to clip-coordinates
+   * \param point location in local coordinates
+   * \param direction direction in local coordinates
    */
   float
   local_distance_from_pixel_distance(float distance,

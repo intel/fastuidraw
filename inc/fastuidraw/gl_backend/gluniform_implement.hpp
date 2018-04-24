@@ -30,13 +30,13 @@ namespace gl
 {
 
 /*
-  Implement Uniform{1,2,3,4}v overloads to correct
-  glUniform{1,2,3,4}{d,f,i,ui}v calls and provide overloads
-  for vecN types too.
-
-  GLFN one of {d,f,i,ui}
-  TYPE GL type, such as GLfloat
-  COUNT one of {1,2,3,4}
+ * Implement Uniform{1,2,3,4}v overloads to correct
+ * glUniform{1,2,3,4}{d,f,i,ui}v calls and provide overloads
+ * for vecN types too.
+ *
+ * GLFN one of {d,f,i,ui}
+ * TYPE GL type, such as GLfloat
+ * COUNT one of {1,2,3,4}
  */
 #define MACRO_IMPLEMENT_GL_UNIFORM_IMPL_CNT(GLFN, TYPE, COUNT)          \
   void Uniform##COUNT##v(int location, GLsizei count, const TYPE *v);   \
@@ -59,12 +59,12 @@ namespace gl
   }
 
 /*
-  Use MACRO_IMPEMENT_GL_UNIFORM_IMPL_CNT to implement
-  all for a given type. In addition array Uniform
-  without vecN.
-
-  GLFN one of {d,f,i,ui}
-  TYPE GL type, such as GLfloat
+ * Use MACRO_IMPEMENT_GL_UNIFORM_IMPL_CNT to implement
+ * all for a given type. In addition array Uniform
+ * without vecN.
+ *
+ * GLFN one of {d,f,i,ui}
+ * TYPE GL type, such as GLfloat
  */
 #define MACRO_IMPLEMENT_GL_UNIFORM_IMPL(GLFN, TYPE)                     \
   MACRO_IMPLEMENT_GL_UNIFORM_IMPL_CNT(GLFN, TYPE, 1)                    \
@@ -83,11 +83,11 @@ namespace gl
   }
 
 /*
-  Implement square matrices uniform setting
-  A: dimension of matrix, one of  {2,3,4}
-  GLFN: one of {f,d}
-  TYPE: one of {GLfloat, GLdouble}
-*/
+ * Implement square matrices uniform setting
+ * A: dimension of matrix, one of  {2,3,4}
+ * GLFN: one of {f,d}
+ * TYPE: one of {GLfloat, GLdouble}
+ */
 #define MACRO_IMPLEMENT_GL_UNIFORM_SQUARE_MATRIX_IMPL_DIM(GLFN, TYPE, A) \
   void Uniform(int location, GLsizei count, const matrixNxM<A,A,TYPE> *matrices, bool transposed=false); \
   inline void Uniform(int location, const matrixNxM<A,A,TYPE> &matrix, bool transposed=false) \
@@ -102,12 +102,12 @@ namespace gl
 
 
   /*
-    Implement non-square matrices uniform setting
-    A: height of matrix, one of  {2,3,4}
-    B: width of matrix, one of  {2,3,4}
-    GLFN: one of {f,d}
-    TYPE: one of {GLfloat, GLdouble}
- */
+   * Implement non-square matrices uniform setting
+   * A: height of matrix, one of  {2,3,4}
+   * B: width of matrix, one of  {2,3,4}
+   * GLFN: one of {f,d}
+   * TYPE: one of {GLfloat, GLdouble}
+   */
 #define MACRO_IMPLEMENT_GL_UNIFORM_NON_SQUARE_MATRIX_IMPL_DIM(GLFN, TYPE, A, B) \
   void Uniform(int location, GLsizei count, const matrixNxM<A,B,TYPE> *matrices, bool transposed=false); \
   inline void Uniform(int location, const matrixNxM<A,B,TYPE> &matrix, bool transposed=false) \
@@ -123,10 +123,10 @@ namespace gl
 
 
 /*
-  Implement square matrices uniform setting
-  GLFN: one of {f,d}
-  TYPE: one of {GLfloat, GLdouble}
-*/
+ * Implement square matrices uniform setting
+ * GLFN: one of {f,d}
+ * TYPE: one of {GLfloat, GLdouble}
+ */
 #define MACRO_IMPLEMENT_GL_UNIFORM_SQUARE_MATRIX_IMPL(GLFN, TYPE)  \
   MACRO_IMPLEMENT_GL_UNIFORM_SQUARE_MATRIX_IMPL_DIM(GLFN, TYPE, 2) \
   MACRO_IMPLEMENT_GL_UNIFORM_SQUARE_MATRIX_IMPL_DIM(GLFN, TYPE, 3) \
@@ -134,10 +134,10 @@ namespace gl
 
 
 /*
-  Implement non-square matrices uniform setting
-  GLFN: one of {f,d}
-  TYPE: one of {GLfloat, GLdouble}
-*/
+ * Implement non-square matrices uniform setting
+ * GLFN: one of {f,d}
+ * TYPE: one of {GLfloat, GLdouble}
+ */
 #define MACRO_IMPLEMENT_GL_UNIFORM_NON_SQUARE_MATRIX_IMPL(GLFN, TYPE)   \
   MACRO_IMPLEMENT_GL_UNIFORM_NON_SQUARE_MATRIX_IMPL_DIM(GLFN,TYPE,2,3)  \
   MACRO_IMPLEMENT_GL_UNIFORM_NON_SQUARE_MATRIX_IMPL_DIM(GLFN,TYPE,2,4)  \
@@ -148,10 +148,10 @@ namespace gl
 
 
 /*
-  Implement all matrix uniform setting
-  GLFN: one of {f,d}
-  TYPE: one of {GLfloat, GLdouble}
-*/
+ * Implement all matrix uniform setting
+ * GLFN: one of {f,d}
+ * TYPE: one of {GLfloat, GLdouble}
+ */
 #define MACRO_IMPLEMENT_GL_UNIFORM_MATRIX_IMPL(GLFN, TYPE)        \
   MACRO_IMPLEMENT_GL_UNIFORM_SQUARE_MATRIX_IMPL(GLFN, TYPE)       \
   MACRO_IMPLEMENT_GL_UNIFORM_NON_SQUARE_MATRIX_IMPL(GLFN, TYPE)

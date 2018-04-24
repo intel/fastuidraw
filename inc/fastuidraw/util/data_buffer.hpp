@@ -22,34 +22,34 @@
 
 namespace fastuidraw {
 /*!\addtogroup Utility
-  @{
+ * @{
  */
   /*!
-    \brief
-    Represents a buffer directly stored in memory.
+   * \brief
+   * Represents a buffer directly stored in memory.
    */
   class DataBufferBackingStore
   {
   public:
     /*!
-      Ctor.
-      Copies a file into memory.
-      \param filename name of file to open
+     * Ctor.
+     * Copies a file into memory.
+     * \param filename name of file to open
      */
     DataBufferBackingStore(c_string filename);
 
     /*!
-      Ctor. Allocate memory and fill the buffer
-      with a fixed value.
-      \param num_bytes number of bytes to give the backing store
-      \param init initial value to give each byte
+     * Ctor. Allocate memory and fill the buffer
+     * with a fixed value.
+     * \param num_bytes number of bytes to give the backing store
+     * \param init initial value to give each byte
      */
     DataBufferBackingStore(unsigned int num_bytes, uint8_t init = uint8_t(0));
 
     ~DataBufferBackingStore();
 
     /*!
-      Return a pointer to the backing store of the memory.
+     * Return a pointer to the backing store of the memory.
      */
     c_array<uint8_t>
     data(void);
@@ -59,9 +59,9 @@ namespace fastuidraw {
   };
 
   /*!
-    \brief
-    DataBuffer is an implementation of DataBufferBase where the
-    data is directly backed by memory
+   * \brief
+   * DataBuffer is an implementation of DataBufferBase where the
+   * data is directly backed by memory
    */
   class DataBuffer:
     private DataBufferBackingStore,
@@ -69,8 +69,8 @@ namespace fastuidraw {
   {
   public:
     /*!
-      Ctor. Initialize the DataBuffer to be backed by uninitalized
-      memory. Use the pointer returned by data() to set the data.
+     * Ctor. Initialize the DataBuffer to be backed by uninitalized
+     * memory. Use the pointer returned by data() to set the data.
      */
     explicit
     DataBuffer(unsigned int num_bytes):
@@ -79,8 +79,8 @@ namespace fastuidraw {
     {}
 
     /*!
-      Ctor. Initialize the DataBuffer to be backed by memory
-      whose value is copied from a file.
+     * Ctor. Initialize the DataBuffer to be backed by memory
+     * whose value is copied from a file.
      */
     explicit
     DataBuffer(c_string filename):

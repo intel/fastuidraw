@@ -23,27 +23,27 @@
 namespace fastuidraw
 {
 /*!\addtogroup PainterPacking
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    A PainterPackerData is the data parameters for drawing
-    commands of PainterPacker.
+   * \brief
+   * A PainterPackerData is the data parameters for drawing
+   * commands of PainterPacker.
    */
   class PainterPackerData:public PainterData
   {
   public:
     /*!
-      Ctor. Intitializes all fields as default nothings.
+     * Ctor. Intitializes all fields as default nothings.
      */
     PainterPackerData(void)
     {}
 
     /*!
-      Initializes those fiels coming from PainterData from
-      a PainterData value.
-      \param obj PainterData object from which to take value
+     * Initializes those fiels coming from PainterData from
+     * a PainterData value.
+     * \param obj PainterData object from which to take value
      */
     explicit
     PainterPackerData(const PainterData &obj):
@@ -51,12 +51,12 @@ namespace fastuidraw
     {}
 
     /*!
-      value for the clip equations.
+     * value for the clip equations.
      */
     value<PainterClipEquations> m_clip;
 
     /*!
-      value for the transformation matrix.
+     * value for the transformation matrix.
      */
     value<PainterItemMatrix> m_matrix;
   };

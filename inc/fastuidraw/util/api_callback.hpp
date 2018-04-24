@@ -24,24 +24,24 @@
 namespace fastuidraw
 {
   /*!
-    An APICallbackSet represents a collection of functors
-    to be called before and after each function call from
-    a collection of functions. This class is used by the
-    \ref fastuidraw::gl_binding.
+   * An APICallbackSet represents a collection of functors
+   * to be called before and after each function call from
+   * a collection of functions. This class is used by the
+   * \ref fastuidraw::gl_binding.
    */
   class APICallbackSet:fastuidraw::noncopyable
   {
   public:
     /*!
-      A Callback is a functor to be called before
-      and after each function.
+     * A Callback is a functor to be called before
+     * and after each function.
      */
     class CallBack:public reference_counted<CallBack>::default_base
     {
     public:
       /*!
-        Ctor
-        \param parent APICallbackSet on which to attach the object
+       * Ctor
+       * \param parent APICallbackSet on which to attach the object
        */
       explicit
       CallBack(APICallbackSet *parent);
@@ -50,27 +50,27 @@ namespace fastuidraw
       ~CallBack();
 
       /*!
-        Set if the CallBack is active.
-      */
+       * Set if the CallBack is active.
+       */
       void
       active(bool b);
 
       /*!
-        Returns true if and only if the CallBack is active
-      */
+       * Returns true if and only if the CallBack is active
+       */
       bool
       active(void) const;
 
       /*!
-        To be implemented by a derived class to record
-        just before a call.
-        \param call_string_values string showing call's values
-        \param call_string_src string showing function call as it appears in source
-        \param function_name name of function called
-        \param function_ptr pointer to GL function originating the call
-        \param src_file file of orignating GL call
-        \param src_line line number of orignating GL call
-      */
+       * To be implemented by a derived class to record
+       * just before a call.
+       * \param call_string_values string showing call's values
+       * \param call_string_src string showing function call as it appears in source
+       * \param function_name name of function called
+       * \param function_ptr pointer to GL function originating the call
+       * \param src_file file of orignating GL call
+       * \param src_line line number of orignating GL call
+       */
       virtual
       void
       pre_call(c_string call_string_values,
@@ -80,16 +80,16 @@ namespace fastuidraw
                c_string src_file, int src_line) = 0;
 
       /*!
-        To be implemented by a derived class to record
-        just after a GL call.
-        \param call_string_values string showing call's values
-        \param call_string_src string showing function call as it appears in source
-        \param function_name name of function called
-        \param error_string error string generated
-        \param function_ptr pointer to GL function originating the call
-        \param src_file file of orignating GL call
-        \param src_line line number of orignating GL call
-      */
+       * To be implemented by a derived class to record
+       * just after a GL call.
+       * \param call_string_values string showing call's values
+       * \param call_string_src string showing function call as it appears in source
+       * \param function_name name of function called
+       * \param error_string error string generated
+       * \param function_ptr pointer to GL function originating the call
+       * \param src_file file of orignating GL call
+       * \param src_line line number of orignating GL call
+       */
       virtual
       void
       post_call(c_string call_string_values,
@@ -100,9 +100,9 @@ namespace fastuidraw
                 c_string src_file, int src_line) = 0;
 
       /*!
-        To be optionally implemented by a derived class; called
-        when a function cannot be loaded/found.
-        \param function_name name of function that could not be loaded/found
+       * To be optionally implemented by a derived class; called
+       * when a function cannot be loaded/found.
+       * \param function_name name of function that could not be loaded/found
        */
       virtual
       void
@@ -116,7 +116,7 @@ namespace fastuidraw
     };
 
     /*!
-      Ctor.
+     * Ctor.
      */
     APICallbackSet(void);
 
@@ -124,24 +124,24 @@ namespace fastuidraw
     ~APICallbackSet();
 
     /*!
-      Sets the function that the system uses
-      to fetch the function pointers for GL or GLES.
-      \param get_proc value to use, default is nullptr.
-    */
+     * Sets the function that the system uses
+     * to fetch the function pointers for GL or GLES.
+     * \param get_proc value to use, default is nullptr.
+     */
     void
     get_proc_function(void* (*get_proc)(c_string));
 
     /*!
-      Fetches a GL/GLES function using the function fetcher
-      passed to get_proc_function().
-      \param function name of function to fetch
-    */
+     * Fetches a GL/GLES function using the function fetcher
+     * passed to get_proc_function().
+     * \param function name of function to fetch
+     */
     void*
     get_proc(c_string function);
 
     /*!
-      To be called by an implementation before issuing a function
-      call.
+     * To be called by an implementation before issuing a function
+     * call.
      */
     void
     pre_call(c_string call_string_values,
@@ -151,8 +151,8 @@ namespace fastuidraw
              c_string src_file, int src_line);
 
     /*!
-      To be called by an impementation after issuing a function
-      call.
+     * To be called by an impementation after issuing a function
+     * call.
      */
     void
     post_call(c_string call_string_values,
@@ -163,8 +163,8 @@ namespace fastuidraw
               c_string src_file, int src_line);
 
     /*!
-      To be called by an implementation when attempting to
-      call a function whose function pointer is null
+     * To be called by an implementation when attempting to
+     * call a function whose function pointer is null
      */
     void
     call_unloadable_function(c_string fname);

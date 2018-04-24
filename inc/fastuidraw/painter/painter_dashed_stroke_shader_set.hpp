@@ -29,27 +29,27 @@
 namespace fastuidraw
 {
 /*!\addtogroup Painter
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    A DashEvaluatorBase is the interface used by Painter
-    to realize the data to send to a PainterPacker for
-    the purpose of dashed stroking.
+   * \brief
+   * A DashEvaluatorBase is the interface used by Painter
+   * to realize the data to send to a PainterPacker for
+   * the purpose of dashed stroking.
    */
   class DashEvaluatorBase:
     public reference_counted<DashEvaluatorBase>::default_base
   {
   public:
     /*!
-      To be implemented by a derived class to return true if and
-      only if a point from a join emobodied by a PainterAttribute
-      is covered by a dash pattern.
-      \param data PainterItemShaderData::DataBase object holding the data to
-                  be sent to the shader
-      \param attrib PainterAttribute from which to extract the distance to
-                    use to compute the return value
+     * To be implemented by a derived class to return true if and
+     * only if a point from a join emobodied by a PainterAttribute
+     * is covered by a dash pattern.
+     * \param data PainterItemShaderData::DataBase object holding the data to
+     *             be sent to the shader
+     * \param attrib PainterAttribute from which to extract the distance to
+     *               use to compute the return value
      */
     virtual
     bool
@@ -58,72 +58,72 @@ namespace fastuidraw
   };
 
   /*!
-    \brief
-    A PainterDashedStrokeShaderSet holds a collection of
-    PainterStrokeShaderSet objects for the purpose of
-    dashed stroking. The shaders within a
-    PainterDashedStrokeShaderSet are expected to draw
-    any caps of dashed stroking from using just the edge
-    data. In particular, attributes/indices for caps are
-    NEVER given to a shader within a PainterDashedStrokeShaderSet.
+   * \brief
+   * A PainterDashedStrokeShaderSet holds a collection of
+   * PainterStrokeShaderSet objects for the purpose of
+   * dashed stroking. The shaders within a
+   * PainterDashedStrokeShaderSet are expected to draw
+   * any caps of dashed stroking from using just the edge
+   * data. In particular, attributes/indices for caps are
+   * NEVER given to a shader within a PainterDashedStrokeShaderSet.
    */
   class PainterDashedStrokeShaderSet
   {
   public:
     /*!
-      Ctor
+     * Ctor
      */
     PainterDashedStrokeShaderSet(void);
 
     /*!
-      Copy ctor.
+     * Copy ctor.
      */
     PainterDashedStrokeShaderSet(const PainterDashedStrokeShaderSet &obj);
 
     ~PainterDashedStrokeShaderSet();
 
     /*!
-      Assignment operator.
+     * Assignment operator.
      */
     PainterDashedStrokeShaderSet&
     operator=(const PainterDashedStrokeShaderSet &rhs);
 
     /*!
-      Swap operation
-      \param obj object with which to swap
-    */
+     * Swap operation
+     * \param obj object with which to swap
+     */
     void
     swap(PainterDashedStrokeShaderSet &obj);
 
     /*!
-      Returns the DashEvaluator object to be used with
-      the expected PainterItemShaderData passed to the
-      PainterStrokeShader objects of this
-      PainterDashedStrokeShaderSet.
+     * Returns the DashEvaluator object to be used with
+     * the expected PainterItemShaderData passed to the
+     * PainterStrokeShader objects of this
+     * PainterDashedStrokeShaderSet.
      */
     const reference_counted_ptr<const DashEvaluatorBase>&
     dash_evaluator(void) const;
 
     /*!
-      Set the value returned by dash_evaluator(void) const.
-      Initial value is nullptr.
+     * Set the value returned by dash_evaluator(void) const.
+     * Initial value is nullptr.
      */
     PainterDashedStrokeShaderSet&
     dash_evaluator(const reference_counted_ptr<const DashEvaluatorBase>&);
 
     /*!
-      Shader set for dashed stroking of paths where the stroking
-      width is given in same units as the original path.
-      The stroking parameters are given by PainterDashedStrokeParams.
-      \param st cap style
+     * Shader set for dashed stroking of paths where the stroking
+     * width is given in same units as the original path.
+     * The stroking parameters are given by PainterDashedStrokeParams.
+     * \param st cap style
      */
     const PainterStrokeShader&
     shader(enum PainterEnums::cap_style st) const;
 
     /*!
-      Set the value returned by dashed_stroke_shader(enum PainterEnums::cap_style) const.
-      \param st cap style
-      \param sh value to use
+     * Set the value returned by dashed_stroke_shader(enum PainterEnums::cap_style) const.
+     * \param st cap style
+     * \param sh value to use
      */
     PainterDashedStrokeShaderSet&
     shader(enum PainterEnums::cap_style st, const PainterStrokeShader &sh);

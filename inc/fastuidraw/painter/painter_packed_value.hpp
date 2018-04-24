@@ -35,12 +35,12 @@ namespace fastuidraw
   class PainterPackedValue;
 
 /*!\addtogroup Painter
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    (Private) base classe used for PainterPackedValue
+   * \brief
+   * (Private) base classe used for PainterPackedValue
    */
   class PainterPackedValueBase
   {
@@ -72,20 +72,20 @@ namespace fastuidraw
   };
 
   /*!
-    \brief
-    A PainterPackedValue represents a handle to an object that stores
-    packed state data and tracks if that underlying data is already is
-    already copied to PainterDraw::m_store.
-
-    If already on a store, then rather than copying the data again, the data
-    is reused. The object behind the handle is NOT thread safe. In addition
-    the underlying reference count is not either. Hence any access
-    (even dtor, copy ctor and equality operator) on a fixed object cannot
-    be done from multiple threads simutaneously. A fixed
-    PainterPackedValue can be used by different Painter (and PainterPacker)
-    objects subject to the condition that the data store alignment (see
-    PainterPacker::Configuration::alignment()) is the same for each of these
-    objects.
+   * \brief
+   * A PainterPackedValue represents a handle to an object that stores
+   * packed state data and tracks if that underlying data is already is
+   * already copied to PainterDraw::m_store.
+   *
+   * If already on a store, then rather than copying the data again, the data
+   * is reused. The object behind the handle is NOT thread safe. In addition
+   * the underlying reference count is not either. Hence any access
+   * (even dtor, copy ctor and equality operator) on a fixed object cannot
+   * be done from multiple threads simutaneously. A fixed
+   * PainterPackedValue can be used by different Painter (and PainterPacker)
+   * objects subject to the condition that the data store alignment (see
+   * PainterPacker::Configuration::alignment()) is the same for each of these
+   * objects.
    */
   template<typename T>
   class PainterPackedValue:PainterPackedValueBase
@@ -95,16 +95,16 @@ namespace fastuidraw
 
   public:
     /*!
-      Ctor, initializes handle to nullptr, i.e.
-      no underlying value object.
+     * Ctor, initializes handle to nullptr, i.e.
+     * no underlying value object.
      */
     PainterPackedValue(void)
     {}
 
     /*!
-      Swap operation
-      \param obj object with which to swap
-    */
+     * Swap operation
+     * \param obj object with which to swap
+     */
     void
     swap(PainterPackedValue &obj)
     {
@@ -112,8 +112,8 @@ namespace fastuidraw
     }
 
     /*!
-      Returns the value to which the handle points.
-      If the handle is not-valid, then FASTUIDRAWasserts.
+     * Returns the value to which the handle points.
+     * If the handle is not-valid, then FASTUIDRAWasserts.
      */
     const T&
     value(void) const
@@ -126,10 +126,10 @@ namespace fastuidraw
     }
 
     /*!
-      Returns the alignment packing for PainterPackedValue
-      object (see PainterPacker::Configuration::alignment());
-      If the PainterPackedValue represents a nullptr handle then
-      returns 0.
+     * Returns the alignment packing for PainterPackedValue
+     * object (see PainterPacker::Configuration::alignment());
+     * If the PainterPackedValue represents a nullptr handle then
+     * returns 0.
      */
     unsigned int
     alignment_packing(void) const
@@ -138,9 +138,9 @@ namespace fastuidraw
     }
 
     /*!
-      Used to allow using object as a boolean without
-      accidentally converting to a boolean (since it
-      returns a pointer to a function).
+     * Used to allow using object as a boolean without
+     * accidentally converting to a boolean (since it
+     * returns a pointer to a function).
      */
     operator
     unspecified_bool_type(void) const
@@ -149,9 +149,9 @@ namespace fastuidraw
     }
 
     /*!
-      Comparison operator to underlying object
-      storing value.
-      \param rhs handle to which to compare
+     * Comparison operator to underlying object
+     * storing value.
+     * \param rhs handle to which to compare
      */
     bool
     operator==(const PainterPackedValue &rhs) const
@@ -160,9 +160,9 @@ namespace fastuidraw
     }
 
     /*!
-      Comparison operator to underlying object
-      storing value.
-      \param rhs handle to which to compare
+     * Comparison operator to underlying object
+     * storing value.
+     * \param rhs handle to which to compare
      */
     bool
     operator!=(const PainterPackedValue &rhs) const
@@ -171,9 +171,9 @@ namespace fastuidraw
     }
 
     /*!
-      Comparison operator to underlying object
-      storing value.
-      \param rhs handle to which to compare
+     * Comparison operator to underlying object
+     * storing value.
+     * \param rhs handle to which to compare
      */
     bool
     operator<(const PainterPackedValue &rhs) const
@@ -182,8 +182,8 @@ namespace fastuidraw
     }
 
     /*!
-      Pointer to opaque data of PainterPackedValueBase, used
-      internally by fastuidraw. Do not touch!
+     * Pointer to opaque data of PainterPackedValueBase, used
+     * internally by fastuidraw. Do not touch!
      */
     void*
     opaque_data(void) const
@@ -202,26 +202,26 @@ namespace fastuidraw
   };
 
   /*!
-    \brief
-    A PainterPackedValuePool can be used to create PainterPackedValue
-    objects.
-
-    Just like PainterPackedValue, PainterPackedValuePool is
-    NOT thread safe, as such it is not a safe operation to use the
-    same PainterPackedValuePool object from multiple threads at the
-    same time. A fixed PainterPackedValuePool can create PainterPackedValue
-    objects used by different Painter (and PainterPacker) objects subject
-    to the condition that the data store alignment (see
-    PainterPacker::Configuration::alignment()) is the same for each of
-    these objects.
+   * \brief
+   * A PainterPackedValuePool can be used to create PainterPackedValue
+   * objects.
+   *
+   * Just like PainterPackedValue, PainterPackedValuePool is
+   * NOT thread safe, as such it is not a safe operation to use the
+   * same PainterPackedValuePool object from multiple threads at the
+   * same time. A fixed PainterPackedValuePool can create PainterPackedValue
+   * objects used by different Painter (and PainterPacker) objects subject
+   * to the condition that the data store alignment (see
+   * PainterPacker::Configuration::alignment()) is the same for each of
+   * these objects.
    */
   class PainterPackedValuePool:noncopyable
   {
   public:
     /*!
-      Ctor.
-      \param painter_alignment the alignment to create packed data, see
-                                PainterPacker::Configuration::alignment()
+     * Ctor.
+     * \param painter_alignment the alignment to create packed data, see
+     *                           PainterPacker::Configuration::alignment()
      */
     explicit
     PainterPackedValuePool(int painter_alignment);
@@ -229,41 +229,41 @@ namespace fastuidraw
     ~PainterPackedValuePool();
 
     /*!
-      Create and return a PainterPackedValue<PainterBrush>
-      object for the value of a PainterBrush object.
-      \param value data to pack into returned PainterPackedValue
+     * Create and return a PainterPackedValue<PainterBrush>
+     * object for the value of a PainterBrush object.
+     * \param value data to pack into returned PainterPackedValue
      */
     PainterPackedValue<PainterBrush>
     create_packed_value(const PainterBrush &value);
 
     /*!
-      Create and return a PainterPackedValue<PainterClipEquations>
-      object for the value of a PainterClipEquations object.
-      \param value data to pack into returned PainterPackedValue
+     * Create and return a PainterPackedValue<PainterClipEquations>
+     * object for the value of a PainterClipEquations object.
+     * \param value data to pack into returned PainterPackedValue
      */
     PainterPackedValue<PainterClipEquations>
     create_packed_value(const PainterClipEquations &value);
 
     /*!
-      Create and return a PainterPackedValue<PainterItemMatrix>
-      object for the value of a PainterItemMatrix object.
-      \param value data to pack into returned PainterPackedValue
+     * Create and return a PainterPackedValue<PainterItemMatrix>
+     * object for the value of a PainterItemMatrix object.
+     * \param value data to pack into returned PainterPackedValue
      */
     PainterPackedValue<PainterItemMatrix>
     create_packed_value(const PainterItemMatrix &value);
 
     /*!
-      Create and return a PainterPackedValue<PainterItemShaderData>
-      object for the value of a PainterItemShaderData object.
-      \param value data to pack into returned PainterPackedValue
+     * Create and return a PainterPackedValue<PainterItemShaderData>
+     * object for the value of a PainterItemShaderData object.
+     * \param value data to pack into returned PainterPackedValue
      */
     PainterPackedValue<PainterItemShaderData>
     create_packed_value(const PainterItemShaderData &value);
 
     /*!
-      Create and return a PainterPackedValue<PainterBlendShaderData>
-      object for the value of a PainterBlendShaderData object.
-      \param value data to pack into returned PainterPackedValue
+     * Create and return a PainterPackedValue<PainterBlendShaderData>
+     * object for the value of a PainterBlendShaderData object.
+     * \param value data to pack into returned PainterPackedValue
      */
     PainterPackedValue<PainterBlendShaderData>
     create_packed_value(const PainterBlendShaderData &value);

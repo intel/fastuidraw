@@ -29,18 +29,18 @@
 namespace fastuidraw  {
 
 /*!\addtogroup Paths
-  @{
+ * @{
  */
 
 /*!
-  \brief
-  An PathContour represents a single contour within
-  a Path.
-
-  Ending a contour (see \ref end(), \ref
-  end_generic() and end_arc()) means to specify
-  the edge from the last point of the PathContour
-  to the first point.
+ * \brief
+ * An PathContour represents a single contour within
+ * a Path.
+ *
+ * Ending a contour (see \ref end(), \ref
+ * end_generic() and end_arc()) means to specify
+ * the edge from the last point of the PathContour
+ * to the first point.
  */
 class PathContour:
     public reference_counted<PathContour>::non_concurrent
@@ -48,20 +48,20 @@ class PathContour:
 public:
 
   /*!
-    \brief
-    Base class to describe how to interpolate from one
-    point of a PathContour to the next, i.e. describes
-    the shape of an edge.
+   * \brief
+   * Base class to describe how to interpolate from one
+   * point of a PathContour to the next, i.e. describes
+   * the shape of an edge.
    */
   class interpolator_base:
     public reference_counted<interpolator_base>::non_concurrent
   {
   public:
     /*!
-      Ctor.
-      \param prev interpolator to edge that ends at start of edge
-                  of this interpolator
-      \param end end point of the edge of this interpolator
+     * Ctor.
+     * \param prev interpolator to edge that ends at start of edge
+     *             of this interpolator
+     * \param end end point of the edge of this interpolator
      */
     interpolator_base(const reference_counted_ptr<const interpolator_base> &prev,
                       const vec2 &end);
@@ -70,48 +70,48 @@ public:
     ~interpolator_base();
 
     /*!
-      Returns the interpolator previous to this interpolator_base
-      within the PathContour that this object resides.
+     * Returns the interpolator previous to this interpolator_base
+     * within the PathContour that this object resides.
      */
     reference_counted_ptr<const interpolator_base>
     prev_interpolator(void) const;
 
     /*!
-      Returns the starting point of this interpolator.
+     * Returns the starting point of this interpolator.
      */
     const vec2&
     start_pt(void) const;
 
     /*!
-      Returns the ending point of this interpolator
+     * Returns the ending point of this interpolator
      */
     const vec2&
     end_pt(void) const;
 
     /*!
-      To be implemented by a derived class to return true if
-      the interpolator is flat, i.e. is just a line segment
-      connecting start_pt() to end_pt().
+     * To be implemented by a derived class to return true if
+     * the interpolator is flat, i.e. is just a line segment
+     * connecting start_pt() to end_pt().
      */
     virtual
     bool
     is_flat(void) const = 0;
 
     /*!
-      To be implemented by a derived class to produce the tessellation
-      from start_pt() to end_pt(). The routine must include BOTH start_pt()
-      and end_pt() in the result. Only the fields TessellatedPath::point::m_p,
-      and TessellatedPath::point::m_distance_from_edge_start are to be filled;
-      the other fields of TessellatedPath::point are filled by TessellatedPath.
-      In addition to filling the output array, the function shall return the
-      number of points needed to perform the required tessellation.
-
-      \param tess_params tessellation parameters
-      \param out_data location to which to write the edge tessellated
-      \param out_threshholds location to which to write the threshholds
-                             the tessellation achieved; array is indexed
-                             by \ref TessellatedPath::threshhold_type_t.
-                             An implementation MUST write to EACH entry.
+     * To be implemented by a derived class to produce the tessellation
+     * from start_pt() to end_pt(). The routine must include BOTH start_pt()
+     * and end_pt() in the result. Only the fields TessellatedPath::point::m_p,
+     * and TessellatedPath::point::m_distance_from_edge_start are to be filled;
+     * the other fields of TessellatedPath::point are filled by TessellatedPath.
+     * In addition to filling the output array, the function shall return the
+     * number of points needed to perform the required tessellation.
+     *
+     * \param tess_params tessellation parameters
+     * \param out_data location to which to write the edge tessellated
+     * \param out_threshholds location to which to write the threshholds
+     *                        the tessellation achieved; array is indexed
+     *                        by \ref TessellatedPath::threshhold_type_t.
+     *                        An implementation MUST write to EACH entry.
      */
     virtual
     unsigned int
@@ -120,20 +120,20 @@ public:
                          c_array<float> out_threshholds) const = 0;
 
     /*!
-      To be implemented by a derived class to return a fast (and approximate)
-      bounding box for the interpolator.
-      \param out_min_bb (output) location to which to write the min-x and min-y
-                                 coordinates of the approximate bounding box.
-      \param out_max_bb (output) location to which to write the max-x and max-y
-                                 coordinates of the approximate bounding box.
+     * To be implemented by a derived class to return a fast (and approximate)
+     * bounding box for the interpolator.
+     * \param out_min_bb (output) location to which to write the min-x and min-y
+     *                            coordinates of the approximate bounding box.
+     * \param out_max_bb (output) location to which to write the max-x and max-y
+     *                            coordinates of the approximate bounding box.
      */
     virtual
     void
     approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const = 0;
 
     /*!
-      To be implemented by a derived class to create and
-      return a deep copy of the interpolator object.
+     * To be implemented by a derived class to create and
+     * return a deep copy of the interpolator object.
      */
     virtual
     interpolator_base*
@@ -145,17 +145,17 @@ public:
   };
 
   /*!
-    \brief
-    A flat interpolator represents a flat edge.
+   * \brief
+   * A flat interpolator represents a flat edge.
    */
   class flat:public interpolator_base
   {
   public:
     /*!
-      Ctor.
-      \param prev interpolator to edge that ends at start of edge
-                  of this interpolator
-      \param end end point of the edge of this interpolator
+     * Ctor.
+     * \param prev interpolator to edge that ends at start of edge
+     *             of this interpolator
+     * \param end end point of the edge of this interpolator
      */
     flat(const reference_counted_ptr<const interpolator_base> &prev,
          const vec2 &end):
@@ -181,17 +181,17 @@ public:
   };
 
   /*!
-    \brief
-    Interpolator generic implements tessellation by recursion
-    and relying on analytic derivative provided by derived
-    class.
+   * \brief
+   * Interpolator generic implements tessellation by recursion
+   * and relying on analytic derivative provided by derived
+   * class.
    */
   class interpolator_generic:public interpolator_base
   {
   public:
     /*!
-      A tessellated_region is a base class for a cookie
-      used and generated by tessellate().
+     * A tessellated_region is a base class for a cookie
+     * used and generated by tessellate().
      */
     class tessellated_region
     {
@@ -202,10 +202,10 @@ public:
     };
 
     /*!
-      Ctor.
-      \param prev interpolator to edge that ends at start of edge
-                  of this interpolator
-      \param end end point of the edge of this interpolator
+     * Ctor.
+     * \param prev interpolator to edge that ends at start of edge
+     *             of this interpolator
+     * \param end end point of the edge of this interpolator
      */
     interpolator_generic(const reference_counted_ptr<const interpolator_base> &prev,
                          const vec2 &end):
@@ -219,23 +219,23 @@ public:
                          c_array<float> out_threshholds) const;
 
     /*!
-      To be implemented by a derived to assist in recursive tessellation.
-      \param in_region region to divide in half, a nullptr value indicates
-                       that the region is the entire interpolator.
-      \param out_regionA location to which to write the first half
-      \param out_regionB location to which to write the second half
-      \param out_t location to which to write the time (parameter) for
-                   in the middle of in_region
-      \param out_p location to which to write the position of the point
-                   on the curve in the middle of in_region
-      \param out_threshholds location to which to write the threshholds
-                             the tessellation achieved; array is indexed
-                             by \ref TessellatedPath::threshhold_type_t.
-                             An implementation MUST write to the index
-                             \ref TessellatedPath::threshhold_curvature.
-                             For all other values, if a value is negative,
-                             FastUIDraw will use the data from out_data
-                             to estimate the threshhold achieved.
+     * To be implemented by a derived to assist in recursive tessellation.
+     * \param in_region region to divide in half, a nullptr value indicates
+     *                  that the region is the entire interpolator.
+     * \param out_regionA location to which to write the first half
+     * \param out_regionB location to which to write the second half
+     * \param out_t location to which to write the time (parameter) for
+     *              in the middle of in_region
+     * \param out_p location to which to write the position of the point
+     *              on the curve in the middle of in_region
+     * \param out_threshholds location to which to write the threshholds
+     *                        the tessellation achieved; array is indexed
+     *                        by \ref TessellatedPath::threshhold_type_t.
+     *                        An implementation MUST write to the index
+     *                        \ref TessellatedPath::threshhold_curve_distance.
+     *                        For all other values, if a value is negative,
+     *                        FastUIDraw will use the data from out_data
+     *                        to estimate the threshhold achieved.
      */
     virtual
     void
@@ -246,37 +246,37 @@ public:
   };
 
   /*!
-    \brief
-    Derived class of interpolator_base to indicate a Bezier curve.
-    Supports Bezier curves of _any_ degree.
+   * \brief
+   * Derived class of interpolator_base to indicate a Bezier curve.
+   * Supports Bezier curves of _any_ degree.
    */
   class bezier:public interpolator_generic
   {
   public:
     /*!
-      Ctor. One control point, thus interpolation is a quadratic curve.
-      \param start start of curve
-      \param ct control point
-      \param end end of curve
+     * Ctor. One control point, thus interpolation is a quadratic curve.
+     * \param start start of curve
+     * \param ct control point
+     * \param end end of curve
      */
     bezier(const reference_counted_ptr<const interpolator_base> &start,
            const vec2 &ct, const vec2 &end);
 
     /*!
-      Ctor. Two control points, thus interpolation is a cubic curve.
-      \param start start of curve
-      \param ct1 1st control point
-      \param ct2 2nd control point
-      \param end end point of curve
+     * Ctor. Two control points, thus interpolation is a cubic curve.
+     * \param start start of curve
+     * \param ct1 1st control point
+     * \param ct2 2nd control point
+     * \param end end point of curve
      */
     bezier(const reference_counted_ptr<const interpolator_base> &start,
            const vec2 &ct1, const vec2 &ct2, const vec2 &end);
 
     /*!
-      Ctor. Iterator range defines the control points of the bezier curve.
-      \param start start of curve
-      \param control_pts control points
-      \param end end point of curve
+     * Ctor. Iterator range defines the control points of the bezier curve.
+     * \param start start of curve
+     * \param control_pts control points
+     * \param end end point of curve
      */
     bezier(const reference_counted_ptr<const interpolator_base> &start,
            c_array<const vec2> control_pts, const vec2 &end);
@@ -310,22 +310,22 @@ public:
   };
 
   /*!
-    \brief
-    An arc is for connecting one point to the next via an
-    arc of a circle.
+   * \brief
+   * An arc is for connecting one point to the next via an
+   * arc of a circle.
    */
   class arc:public interpolator_base
   {
   public:
     /*!
-      Ctor.
-      \param start start of curve
-      \param angle The angle of the arc in radians, the value must not
-                   be a multiple of 2*M_PI. Assuming a coordinate system
-                   where y-increases vertically and x-increases to the right,
-                   a positive value indicates to have the arc go counter-clockwise,
-                   a negative angle for the arc to go clockwise.
-      \param end end of curve
+     * Ctor.
+     * \param start start of curve
+     * \param angle The angle of the arc in radians, the value must not
+     *              be a multiple of 2*M_PI. Assuming a coordinate system
+     *              where y-increases vertically and x-increases to the right,
+     *              a positive value indicates to have the arc go counter-clockwise,
+     *              a negative angle for the arc to go clockwise.
+     * \param end end of curve
      */
     arc(const reference_counted_ptr<const interpolator_base> &start,
         float angle, const vec2 &end);
@@ -357,7 +357,7 @@ public:
   };
 
   /*!
-    Ctor.
+   * Ctor.
    */
   explicit
   PathContour(void);
@@ -365,133 +365,133 @@ public:
   ~PathContour();
 
   /*!
-    Start the PathContour, may only be called once in the lifetime
-    of a PathContour() and must be called before adding points
-    (to_point()), adding control points (add_control_point()),
-    adding arcs (to_arc()), adding generic interpolator (
-    to_generic()) or ending the contour (end(), end_generic()).
+   * Start the PathContour, may only be called once in the lifetime
+   * of a PathContour() and must be called before adding points
+   * (to_point()), adding control points (add_control_point()),
+   * adding arcs (to_arc()), adding generic interpolator (
+   * to_generic()) or ending the contour (end(), end_generic()).
    */
   void
   start(const vec2 &pt);
 
   /*!
-    End the current edge.
-    \param pt point location of end of edge (and thus start of new edge)
+   * End the current edge.
+   * \param pt point location of end of edge (and thus start of new edge)
    */
   void
   to_point(const vec2 &pt);
 
   /*!
-    Add a control point. Will fail if end() was called
-    \param pt location of new control point
+   * Add a control point. Will fail if end() was called
+   * \param pt location of new control point
    */
   void
   add_control_point(const vec2 &pt);
 
   /*!
-    Will fail if end() was called of if add_control_point() has been
-    called more recently than to_point() or if interpolator_base::prev_interpolator()
-    of the passed interpolator_base is not the same as prev_interpolator().
-    \param p interpolator describing edge
+   * Will fail if end() was called of if add_control_point() has been
+   * called more recently than to_point() or if interpolator_base::prev_interpolator()
+   * of the passed interpolator_base is not the same as prev_interpolator().
+   * \param p interpolator describing edge
    */
   void
   to_generic(const reference_counted_ptr<const interpolator_base> &p);
 
   /*!
-    Will fail if end() was called of if add_control_point() has been
-    called more recently than to_point().
-    \param angle angle of arc in radians
-    \param pt point where arc ends (and next edge starts)
+   * Will fail if end() was called of if add_control_point() has been
+   * called more recently than to_point().
+   * \param angle angle of arc in radians
+   * \param pt point where arc ends (and next edge starts)
    */
   void
   to_arc(float angle, const vec2 &pt);
 
   /*!
-    Ends with the passed interpolator_base. The interpolator
-    must interpolate to the start point of the PathContour
-    \param h interpolator describing the closing edge
+   * Ends with the passed interpolator_base. The interpolator
+   * must interpolate to the start point of the PathContour
+   * \param h interpolator describing the closing edge
    */
   void
   end_generic(reference_counted_ptr<const interpolator_base> h);
 
   /*!
-    Ends with the Bezier curve defined by the current
-    control points added by add_control_point().
+   * Ends with the Bezier curve defined by the current
+   * control points added by add_control_point().
    */
   void
   end(void);
 
   /*!
-    Ends with an arc.
-    \param angle angle of arc in radians
+   * Ends with an arc.
+   * \param angle angle of arc in radians
    */
   void
   end_arc(float angle);
 
   /*!
-    Returns the last interpolator added to this PathContour.
-    You MUST use this interpolator in the ctor of
-    interpolator_base for interpolator passed to
-    to_generic() and end_generic().
+   * Returns the last interpolator added to this PathContour.
+   * You MUST use this interpolator in the ctor of
+   * interpolator_base for interpolator passed to
+   * to_generic() and end_generic().
    */
   const reference_counted_ptr<const interpolator_base>&
   prev_interpolator(void);
 
   /*!
-    Returns true if the PathContour has ended
+   * Returns true if the PathContour has ended
    */
   bool
   ended(void) const;
 
   /*!
-    Return the I'th point of this PathContour.
-    For I = 0, returns the value passed to start().
-    \param I index of point.
+   * Return the I'th point of this PathContour.
+   * For I = 0, returns the value passed to start().
+   * \param I index of point.
    */
   const vec2&
   point(unsigned int I) const;
 
   /*!
-    Returns the number of points of this PathContour.
+   * Returns the number of points of this PathContour.
    */
   unsigned int
   number_points(void) const;
 
   /*!
-    Returns the interpolator of this PathContour
-    that interpolates from the I'th point to the
-    (I+1)'th point. If I == number_points() - 1,
-    then returns the interpolator from the last
-    point to the first point.
+   * Returns the interpolator of this PathContour
+   * that interpolates from the I'th point to the
+   * (I+1)'th point. If I == number_points() - 1,
+   * then returns the interpolator from the last
+   * point to the first point.
    */
   const reference_counted_ptr<const interpolator_base>&
   interpolator(unsigned int I) const;
 
   /*!
-    Returns an approximation of the bounding box for
-    this PathContour WITHOUT relying on tessellating
-    the \ref interpolator_base objects of this \ref
-    PathContour IF this PathCountour is ended().
-    Returns true if this is ended() and writes the
-    values, otherwise returns false and does not write
-    any value.
-    \param out_min_bb (output) location to which to write the min-x and min-y
-                               coordinates of the approximate bounding box.
-    \param out_max_bb (output) location to which to write the max-x and max-y
-                               coordinates of the approximate bounding box.
+   * Returns an approximation of the bounding box for
+   * this PathContour WITHOUT relying on tessellating
+   * the \ref interpolator_base objects of this \ref
+   * PathContour IF this PathCountour is ended().
+   * Returns true if this is ended() and writes the
+   * values, otherwise returns false and does not write
+   * any value.
+   * \param out_min_bb (output) location to which to write the min-x and min-y
+   *                            coordinates of the approximate bounding box.
+   * \param out_max_bb (output) location to which to write the max-x and max-y
+   *                            coordinates of the approximate bounding box.
    */
   bool
   approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
 
   /*!
-    Returns true if each interpolator of the PathContour is
-    flat.
+   * Returns true if each interpolator of the PathContour is
+   * flat.
    */
   bool
   is_flat(void) const;
 
   /*!
-    Create a deep copy of this PathContour.
+   * Create a deep copy of this PathContour.
    */
   PathContour*
   deep_copy(void);
@@ -501,32 +501,32 @@ private:
 };
 
 /*!
-  \brief
-  A Path represents a collection of PathContour
-  objects.
-
-  To end a contour in a Path (see
-  \ref end_contour_quadratic(), \ref
-  end_contour_arc(), \ref end_contour_cubic(),
-  \ref end_contour_custom(), \ref contour_end_arc
-  and \ref contour_end) means to specify
-  the edge from the last point of the current
-  contour to the first point of it.
+ * \brief
+ * A Path represents a collection of PathContour
+ * objects.
+ *
+ * To end a contour in a Path (see
+ * \ref end_contour_quadratic(), \ref
+ * end_contour_arc(), \ref end_contour_cubic(),
+ * \ref end_contour_custom(), \ref contour_end_arc
+ * and \ref contour_end) means to specify
+ * the edge from the last point of the current
+ * contour to the first point of it.
  */
 class Path
 {
 public:
   /*!
-    \brief
-    Class that wraps a vec2 to mark a point
-    as a control point for a Bezier curve
+   * \brief
+   * Class that wraps a vec2 to mark a point
+   * as a control point for a Bezier curve
    */
   class control_point
   {
   public:
     /*!
-      Ctor
-      \param pt value to which to set \ref m_location
+     * Ctor
+     * \param pt value to which to set \ref m_location
      */
     explicit
     control_point(const vec2 &pt):
@@ -534,64 +534,64 @@ public:
     {}
 
     /*!
-      Ctor
-      \param x value to which to set m_location.x()
-      \param y value to which to set m_location.y()
+     * Ctor
+     * \param x value to which to set m_location.x()
+     * \param y value to which to set m_location.y()
      */
     control_point(float x, float y):
       m_location(x,y)
     {}
 
     /*!
-      Position of control point
+     * Position of control point
      */
     vec2 m_location;
   };
 
   /*!
-    \brief
-    Wraps the data to specify an arc
+   * \brief
+   * Wraps the data to specify an arc
    */
   class arc
   {
   public:
     /*!
-      Ctor
-      \param angle angle of arc in radians
-      \param pt point to which to arc
+     * Ctor
+     * \param angle angle of arc in radians
+     * \param pt point to which to arc
      */
     arc(float angle, const vec2 &pt):
       m_angle(angle), m_pt(pt)
     {}
 
     /*!
-      Angle of arc in radians
+     * Angle of arc in radians
      */
     float m_angle;
 
     /*!
-      End point of arc
+     * End point of arc
      */
     vec2 m_pt;
   };
 
   /*!
-    \brief
-    Tag class to mark the end of an contour
+   * \brief
+   * Tag class to mark the end of an contour
    */
   class contour_end
   {};
 
   /*!
-    \brief
-    Tag class to mark the end of an contour with an arc
+   * \brief
+   * Tag class to mark the end of an contour with an arc
    */
   class contour_end_arc
   {
   public:
     /*!
-      Ctor
-      \param angle angle of arc in radians
+     * Ctor
+     * \param angle angle of arc in radians
      */
     explicit
     contour_end_arc(float angle):
@@ -599,50 +599,50 @@ public:
     {}
 
     /*!
-      Angle of arc in radians
+     * Angle of arc in radians
      */
     float m_angle;
   };
 
   /*!
-    Ctor.
+   * Ctor.
    */
   explicit
   Path(void);
 
   /*!
-    Copy ctor.
-    \param obj Path from which to copy path data
+   * Copy ctor.
+   * \param obj Path from which to copy path data
    */
   Path(const Path &obj);
 
   ~Path();
 
   /*!
-    Assignment operator
-    \param rhs value from which to assign.
+   * Assignment operator
+   * \param rhs value from which to assign.
    */
   const Path&
   operator=(const Path &rhs);
 
   /*!
-    Clear the path, i.e. remove all PathContour's from the
-    path
+   * Clear the path, i.e. remove all PathContour's from the
+   * path
    */
   void
   clear(void);
 
   /*!
-    Swap contents of Path with another Path
-    \param obj Path with which to swap
+   * Swap contents of Path with another Path
+   * \param obj Path with which to swap
    */
   void
   swap(Path &obj);
 
   /*!
-    Create an arc but specify the angle in degrees.
-    \param angle angle of arc in degrees
-    \param pt point to which to arc
+   * Create an arc but specify the angle in degrees.
+   * \param angle angle of arc in degrees
+   * \param pt point to which to arc
    */
   static
   arc
@@ -652,8 +652,8 @@ public:
   }
 
   /*!
-    Create an contour_end_arc but specify the angle in degrees.
-    \param angle angle or arc in degrees
+   * Create an contour_end_arc but specify the angle in degrees.
+   * \param angle angle or arc in degrees
    */
   static
   contour_end_arc
@@ -663,249 +663,249 @@ public:
   }
 
   /*!
-    Operator overload to add a point of the current
-    contour in the Path.
-    \param pt point to add
+   * Operator overload to add a point of the current
+   * contour in the Path.
+   * \param pt point to add
    */
   Path&
   operator<<(const vec2 &pt);
 
   /*!
-    Operator overload to add a control point of the current
-    contour in the Path.
-    \param pt control point to add
+   * Operator overload to add a control point of the current
+   * contour in the Path.
+   * \param pt control point to add
    */
   Path&
   operator<<(const control_point &pt);
 
   /*!
-    Operator overload to add an arc to the current contour
-    in the Path.
-    \param a arc to add
+   * Operator overload to add an arc to the current contour
+   * in the Path.
+   * \param a arc to add
    */
   Path&
   operator<<(const arc &a);
 
   /*!
-    Operator overload to end the current contour
+   * Operator overload to end the current contour
    */
   Path&
   operator<<(contour_end);
 
   /*!
-    Operator overload to end the current contour
-    \param a specifies the angle of the arc for closing
-             the current contour
+   * Operator overload to end the current contour
+   * \param a specifies the angle of the arc for closing
+   *          the current contour
    */
   Path&
   operator<<(contour_end_arc a);
 
   /*!
-    Append a line to the current contour.
-    \param pt point to which the line goes
+   * Append a line to the current contour.
+   * \param pt point to which the line goes
    */
   Path&
   line_to(const vec2 &pt);
 
   /*!
-    Append a quadratic Bezier curve to the current contour.
-    \param ct control point of the quadratic Bezier curve
-    \param pt point to which the quadratic Bezier curve goes
+   * Append a quadratic Bezier curve to the current contour.
+   * \param ct control point of the quadratic Bezier curve
+   * \param pt point to which the quadratic Bezier curve goes
    */
   Path&
   quadratic_to(const vec2 &ct, const vec2 &pt);
 
   /*!
-    Append a cubic Bezier curve to the current contour.
-    \param ct1 first control point of the cubic Bezier curve
-    \param ct2 second control point of the cubic Bezier curve
-    \param pt point to which the cubic Bezier curve goes
+   * Append a cubic Bezier curve to the current contour.
+   * \param ct1 first control point of the cubic Bezier curve
+   * \param ct2 second control point of the cubic Bezier curve
+   * \param pt point to which the cubic Bezier curve goes
    */
   Path&
   cubic_to(const vec2 &ct1, const vec2 &ct2, const vec2 &pt);
 
   /*!
-    Append an arc curve to the current contour.
-    \param angle gives the angle of the arc in radians. For a coordinate system
-                 where y increases upwards and x increases to the right, a positive
-                 value indicates counter-clockwise and a negative value indicates
-                 clockwise
-    \param pt point to which the arc curve goes
+   * Append an arc curve to the current contour.
+   * \param angle gives the angle of the arc in radians. For a coordinate system
+   *              where y increases upwards and x increases to the right, a positive
+   *              value indicates counter-clockwise and a negative value indicates
+   *              clockwise
+   * \param pt point to which the arc curve goes
    */
   Path&
   arc_to(float angle, const vec2 &pt);
 
   /*!
-    Returns the last interpolator added to this the current
-    contour of this Path. When creating custom
-    interpolator to be added with custom_to(),
-    You MUST use this interpolator in the ctor of
-    interpolator_base.
+   * Returns the last interpolator added to this the current
+   * contour of this Path. When creating custom
+   * interpolator to be added with custom_to(),
+   * You MUST use this interpolator in the ctor of
+   * interpolator_base.
    */
   const reference_counted_ptr<const PathContour::interpolator_base>&
   prev_interpolator(void);
 
   /*!
-    Add a custom interpolator. Use prev_interpolator()
-    to get the last interpolator of the current contour.
+   * Add a custom interpolator. Use prev_interpolator()
+   * to get the last interpolator of the current contour.
    */
   Path&
   custom_to(const reference_counted_ptr<const PathContour::interpolator_base> &p);
 
   /*!
-    Begin a new contour
-    \param pt point at which the contour begins
+   * Begin a new contour
+   * \param pt point at which the contour begins
    */
   Path&
   move(const vec2 &pt);
 
   /*!
-    End the current contour in an arc and begin a new contour
-    \param angle gives the angle of the arc in radians. For a coordinate system
-                 where y increases upwards and x increases to the right, a positive
-                 value indicates counter-clockwise and a negative value indicates
-                 clockwise
-    \param pt point at which the contour begins
+   * End the current contour in an arc and begin a new contour
+   * \param angle gives the angle of the arc in radians. For a coordinate system
+   *              where y increases upwards and x increases to the right, a positive
+   *              value indicates counter-clockwise and a negative value indicates
+   *              clockwise
+   * \param pt point at which the contour begins
    */
   Path&
   arc_move(float angle, const vec2 &pt);
 
   /*!
-    End the current contour in an arc
-    \param angle gives the angle of the arc in radians. For a coordinate system
-                 where y increases upwards and x increases to the right, a positive
-                 value indicates counter-clockwise and a negative value indicates
-                 clockwise
+   * End the current contour in an arc
+   * \param angle gives the angle of the arc in radians. For a coordinate system
+   *              where y increases upwards and x increases to the right, a positive
+   *              value indicates counter-clockwise and a negative value indicates
+   *              clockwise
    */
   Path&
   end_contour_arc(float angle);
 
   /*!
-    End the current contour in a quadratic Bezier curve and begin a new contour
-    \param ct control point of the quadratic Bezier curve
-    \param pt point at which the contour begins
+   * End the current contour in a quadratic Bezier curve and begin a new contour
+   * \param ct control point of the quadratic Bezier curve
+   * \param pt point at which the contour begins
    */
   Path&
   quadratic_move(const vec2 &ct, const vec2 &pt);
 
   /*!
-    End the current contour in a quadratic Bezier curve
-    \param ct control point of the quadratic Bezier curve
+   * End the current contour in a quadratic Bezier curve
+   * \param ct control point of the quadratic Bezier curve
    */
   Path&
   end_contour_quadratic(const vec2 &ct);
 
   /*!
-    End the current contour in a cubic Bezier curve and begin a new contour
-    \param ct1 first control point of the cubic Bezier curve
-    \param ct2 second control point of the cubic Bezier curve
-    \param pt point at which the contour begins
+   * End the current contour in a cubic Bezier curve and begin a new contour
+   * \param ct1 first control point of the cubic Bezier curve
+   * \param ct2 second control point of the cubic Bezier curve
+   * \param pt point at which the contour begins
    */
   Path&
   cubic_move(const vec2 &ct1, const vec2 &ct2, const vec2 &pt);
 
   /*!
-    End the current contour in a cubic Bezier curve
-    \param ct1 first control point of the cubic Bezier curve
-    \param ct2 second control point of the cubic Bezier curve
+   * End the current contour in a cubic Bezier curve
+   * \param ct1 first control point of the cubic Bezier curve
+   * \param ct2 second control point of the cubic Bezier curve
    */
   Path&
   end_contour_cubic(const vec2 &ct1, const vec2 &ct2);
 
   /*!
-    Use a custom interpolator to end the current contour and begin a new contour
-    Use prev_interpolator() to get the last interpolator
-    of the current contour.
-    \param p custom interpolator
-    \param pt point at which the contour begins
+   * Use a custom interpolator to end the current contour and begin a new contour
+   * Use prev_interpolator() to get the last interpolator
+   * of the current contour.
+   * \param p custom interpolator
+   * \param pt point at which the contour begins
    */
   Path&
   custom_move(const reference_counted_ptr<const PathContour::interpolator_base> &p, const vec2 &pt);
 
   /*!
-    Use a custom interpolator to end the current contour
-    Use prev_interpolator() to get the last interpolator
-    of the current contour.
-    \param p custom interpolator
+   * Use a custom interpolator to end the current contour
+   * Use prev_interpolator() to get the last interpolator
+   * of the current contour.
+   * \param p custom interpolator
    */
   Path&
   end_contour_custom(const reference_counted_ptr<const PathContour::interpolator_base> &p);
 
   /*!
-    Adds a PathContour to this Path. PathContour is only added
-    if the contour is ended (i.e. PathContour::ended() returns
-    true). A fixed, ended PathContour can be used by multiple
-    Path's at the same time.
-    \param contour PathContour to add to the Path
+   * Adds a PathContour to this Path. PathContour is only added
+   * if the contour is ended (i.e. PathContour::ended() returns
+   * true). A fixed, ended PathContour can be used by multiple
+   * Path's at the same time.
+   * \param contour PathContour to add to the Path
    */
   Path&
   add_contour(const reference_counted_ptr<const PathContour> &contour);
 
   /*!
-    Add all the ended PathContour objects of a Path into this Path.
-    \param path Path to add
+   * Add all the ended PathContour objects of a Path into this Path.
+   * \param path Path to add
    */
   Path&
   add_contours(const Path &path);
 
   /*!
-    Returns the number of contours of the Path.
+   * Returns the number of contours of the Path.
    */
   unsigned int
   number_contours(void) const;
 
   /*!
-    Returns the named contour
-    \param i index of contour to fetch (0 <= i < number_contours())
+   * Returns the named contour
+   * \param i index of contour to fetch (0 <= i < number_contours())
    */
   reference_counted_ptr<const PathContour>
   contour(unsigned int i) const;
 
   /*!
-    Returns true if each PathContour of the Path is flat.
+   * Returns true if each PathContour of the Path is flat.
    */
   bool
   is_flat(void) const;
 
   /*!
-    Returns an approximation of the bounding box for
-    the PathContour::ended() PathContour obejcts of
-    this Path WITHOUT relying on tessellating
-    (or for that matter creating a TessellatedPath)
-    this Path. Returns true if atleast one PathContour
-    of this Path is PathContour::ended() and writes the
-    values, otherwise returns false and does not write
-    any value.
-    \param out_min_bb (output) location to which to write the min-x and min-y
-                               coordinates of the approximate bounding box.
-    \param out_max_bb (output) location to which to write the max-x and max-y
-                               coordinates of the approximate bounding box.
+   * Returns an approximation of the bounding box for
+   * the PathContour::ended() PathContour obejcts of
+   * this Path WITHOUT relying on tessellating
+   * (or for that matter creating a TessellatedPath)
+   * this Path. Returns true if atleast one PathContour
+   * of this Path is PathContour::ended() and writes the
+   * values, otherwise returns false and does not write
+   * any value.
+   * \param out_min_bb (output) location to which to write the min-x and min-y
+   *                            coordinates of the approximate bounding box.
+   * \param out_max_bb (output) location to which to write the max-x and max-y
+   *                            coordinates of the approximate bounding box.
    */
   bool
   approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
 
   /*!
-    Return the tessellation of this Path at a specific
-    level of detail. The TessellatedPath is constructed
-    lazily. Additionally, if this Path changes its geometry,
-    then a new TessellatedPath will be contructed on the
-    next call to tessellation().
-    \param thresh the returned tessellated path will be so that
-                  TessellatedPath::curve_distance_threshhold(type)
-                  is no more than thresh. A non-positive value
-                  will return the starting point tessellation.
-    \param tp the type of threshhold to use for the tessellation requirement.
+   * Return the tessellation of this Path at a specific
+   * level of detail. The TessellatedPath is constructed
+   * lazily. Additionally, if this Path changes its geometry,
+   * then a new TessellatedPath will be contructed on the
+   * next call to tessellation().
+   * \param thresh the returned tessellated path will be so that
+   *               TessellatedPath::curve_distance_threshhold(type)
+   *               is no more than thresh. A non-positive value
+   *               will return the starting point tessellation.
+   * \param tp the type of threshhold to use for the tessellation requirement.
    */
   const reference_counted_ptr<const TessellatedPath>&
   tessellation(float thresh,
                enum TessellatedPath::threshhold_type_t tp = TessellatedPath::threshhold_curve_distance) const;
 
   /*!
-    Provided as a conveniance, returns the starting point tessellation.
-    Equivalent to
-    \code
-    tessellation(-1.0f)
-    \endcode
+   * Provided as a conveniance, returns the starting point tessellation.
+   * Equivalent to
+   * \code
+   * tessellation(-1.0f)
+   * \endcode
    */
   const reference_counted_ptr<const TessellatedPath>&
   tessellation(void) const;

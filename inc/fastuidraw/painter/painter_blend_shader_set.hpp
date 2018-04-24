@@ -27,65 +27,65 @@ namespace fastuidraw
 {
 
 /*!\addtogroup Painter
-  @{
+ * @{
  */
 
   /*!
-    \brief
-    A PainterBlendShaderSet represents a set of shaders
-    for the blend modes enumerated by PainterEnums::blend_mode_t
+   * \brief
+   * A PainterBlendShaderSet represents a set of shaders
+   * for the blend modes enumerated by PainterEnums::blend_mode_t
    */
   class PainterBlendShaderSet
   {
   public:
     /*!
-      Ctor, inits as all return value from shader(enum glyph_type)
-      return a PainterItemShader with no shaders
+     * Ctor, inits as all return value from shader(enum glyph_type)
+     * return a PainterItemShader with no shaders
      */
     PainterBlendShaderSet(void);
 
     /*!
-      Copy ctor.
+     * Copy ctor.
      */
     PainterBlendShaderSet(const PainterBlendShaderSet &obj);
 
     ~PainterBlendShaderSet();
 
     /*!
-      Assignment operator.
+     * Assignment operator.
      */
     PainterBlendShaderSet&
     operator=(const PainterBlendShaderSet &rhs);
 
     /*!
-      Swap operation
-      \param obj object with which to swap
-    */
+     * Swap operation
+     * \param obj object with which to swap
+     */
     void
     swap(PainterBlendShaderSet &obj);
 
     /*!
-      Return the PainterShader for a given
-      PainterEnums::blend_mode_t.
-      \param tp blend mode
+     * Return the PainterShader for a given
+     * PainterEnums::blend_mode_t.
+     * \param tp blend mode
      */
     const reference_counted_ptr<PainterBlendShader>&
     shader(enum PainterEnums::blend_mode_t tp) const;
 
     /*!
-      Returns the BlendMode packed via BlendMode::packed()
-      for a given PainterEnums::blend_mode_t.
-      \param tp blend mode
+     * Returns the BlendMode packed via BlendMode::packed()
+     * for a given PainterEnums::blend_mode_t.
+     * \param tp blend mode
      */
     BlendMode::packed_value
     blend_mode(enum PainterEnums::blend_mode_t tp) const;
 
     /*!
-      Set the PainterShader for a given
-      PainterEnums::blend_mode_t.
-      \param tp blend shader being specified
-      \param mode 3D API BlendMode to use
-      \param sh PainterShader to use for the blend mode
+     * Set the PainterShader for a given
+     * PainterEnums::blend_mode_t.
+     * \param tp blend shader being specified
+     * \param mode 3D API BlendMode to use
+     * \param sh PainterShader to use for the blend mode
      */
     PainterBlendShaderSet&
     shader(enum PainterEnums::blend_mode_t tp,
@@ -93,9 +93,9 @@ namespace fastuidraw
            const reference_counted_ptr<PainterBlendShader> &sh);
 
     /*!
-      Returns the one plus the largest value for which
-      shader(enum PainterEnums::blend_mode_t, const reference_counted_ptr<PainterShader>&)
-      was called.
+     * Returns the one plus the largest value for which
+     * shader(enum PainterEnums::blend_mode_t, const reference_counted_ptr<PainterShader>&)
+     * was called.
      */
     unsigned int
     shader_count(void) const;

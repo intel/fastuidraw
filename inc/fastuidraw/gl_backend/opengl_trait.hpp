@@ -26,13 +26,13 @@ namespace fastuidraw {
 namespace gl {
 
 /*!\addtogroup GLUtility
-  @{
+ * @{
  */
 
 /*!
-  Converts an offset given in bytes to a const void* value
-  as expected by GL functions (for example glVertexAttribPointer)
-  \param offset offset in bytes
+ * Converts an offset given in bytes to a const void* value
+ * as expected by GL functions (for example glVertexAttribPointer)
+ * \param offset offset in bytes
  */
 inline
 const void*
@@ -44,39 +44,39 @@ offset_as_void_pointer(unsigned int offset)
 }
 
 /*!
-  \brief
-  Type trait struct that provides type information to feed GL commands.
-  \tparam T type from which to extract values. The struct is specicialized for
-            each of the GL types: GLubyte, GLbyte, GLuint, GLint, GLushort, GLshort, GLfloat
-            and recursively for vecN
+ * \brief
+ * Type trait struct that provides type information to feed GL commands.
+ * \tparam T type from which to extract values. The struct is specicialized for
+ *           each of the GL types: GLubyte, GLbyte, GLuint, GLint, GLushort, GLshort, GLfloat
+ *           and recursively for vecN
  */
 template<typename T>
 struct opengl_trait
 {
   /*!
-    \brief
-    Typedef to template parameter
+   * \brief
+   * Typedef to template parameter
    */
   typedef T data_type;
 
   /*!
-    \brief
-    For an array type, such as vecN,
-    element type of the array, otherwise
-    is same as data_type. Note,
-    for vecN types of vecN's reports
-    the element type of inner array type,
-    for example
-    \code vecN<vecN<something,N>, M> \endcode
-    gives something for basic_type
+   * \brief
+   * For an array type, such as vecN,
+   * element type of the array, otherwise
+   * is same as data_type. Note,
+   * for vecN types of vecN's reports
+   * the element type of inner array type,
+   * for example
+   * \code vecN<vecN<something,N>, M> \endcode
+   * gives something for basic_type
    */
   typedef T basic_type;
 
   enum
     {
       /*!
-        GL type label, for example if basic_type
-        is GLuint, then type is GL_UNSIGNED_INT
+       * GL type label, for example if basic_type
+       * is GLuint, then type is GL_UNSIGNED_INT
        */
       type = GL_INVALID_ENUM
     };
@@ -84,8 +84,8 @@ struct opengl_trait
   enum
     {
       /*!
-        The number of basic_type
-        elements packed into one data_type
+       * The number of basic_type
+       * elements packed into one data_type
        */
       count = 1
     };
@@ -93,8 +93,8 @@ struct opengl_trait
   enum
     {
       /*!
-        The space between adjacent
-        data_type elements in an array
+       * The space between adjacent
+       * data_type elements in an array
        */
       stride = sizeof(T)
     };
@@ -197,41 +197,41 @@ struct opengl_trait< vecN<T,N> >
 
 
 /*!
-  \brief
-  Class the bundles up count, size and type parameters
-  for the GL API function glVertexAttribPointer
-*/
+ * \brief
+ * Class the bundles up count, size and type parameters
+ * for the GL API function glVertexAttribPointer
+ */
 class opengl_trait_value
 {
 public:
   /*!
-    The number of elements, \sa opengl_trait::count
+   * The number of elements, \sa opengl_trait::count
    */
   GLint m_count;
 
   /*!
-    The element type, \sa opengl_train::type
+   * The element type, \sa opengl_train::type
    */
   GLenum m_type;
 
   /*!
-    The stride to the next element in the buffer
-    from which to source the attribute data
+   * The stride to the next element in the buffer
+   * from which to source the attribute data
    */
   GLsizei m_stride;
 
   /*!
-    The <i>offset</i> of the location of the
-    attribute data in the buffer from which to
-    source the attribute data
+   * The <i>offset</i> of the location of the
+   * attribute data in the buffer from which to
+   * source the attribute data
    */
   const void *m_offset;
 };
 
 /*!
-  Template function that initializes the members of
-  opengl_trait_value_base class from
-  the enums of a opengl_trait<>.
+ * Template function that initializes the members of
+ * opengl_trait_value_base class from
+ * the enums of a opengl_trait<>.
  */
 template<typename T>
 opengl_trait_value
@@ -246,11 +246,11 @@ opengl_trait_values(void)
 }
 
 /*!
-  Template function that initializes the members of
-  opengl_trait_value_base class from
-  the enums of a opengl_trait<>.
-  \param stride stride argument
-  \param offset offset in bytes
+ * Template function that initializes the members of
+ * opengl_trait_value_base class from
+ * the enums of a opengl_trait<>.
+ * \param stride stride argument
+ * \param offset offset in bytes
  */
 template<typename T>
 opengl_trait_value
@@ -265,12 +265,12 @@ opengl_trait_values(GLsizei stride, GLsizei offset)
 }
 
 /*!
-  Template function that initializes the members of
-  opengl_trait_value_base class from
-  the enums of a opengl_trait<>, equivalent to
-  \code
-  opengl_trait_values<T>(sizeof(C), offset)
-  \endcode
+ * Template function that initializes the members of
+ * opengl_trait_value_base class from
+ * the enums of a opengl_trait<>, equivalent to
+ * \code
+ * opengl_trait_values<T>(sizeof(C), offset)
+ * \endcode
  */
 template<typename C, typename T>
 opengl_trait_value
@@ -280,24 +280,24 @@ opengl_trait_values(GLsizei offset)
 }
 
 /*!
-  Provided as a conveniance, equivalent to
-  \code
-  glVertexAttribPointer(index, v.m_count, v.m_type, normalized, v.m_stride, v.m_offset);
-  \endcode
-  \param index which attribute
-  \param v traits for attribute
-  \param normalized if attribute data should be normalized
+ * Provided as a conveniance, equivalent to
+ * \code
+ * glVertexAttribPointer(index, v.m_count, v.m_type, normalized, v.m_stride, v.m_offset);
+ * \endcode
+ * \param index which attribute
+ * \param v traits for attribute
+ * \param normalized if attribute data should be normalized
  */
 void
 VertexAttribPointer(GLint index, const opengl_trait_value &v, GLboolean normalized = GL_FALSE);
 
 /*!
-  Provided as a conveniance, equivalent to
-  \code
-  glVertexAttribIPointer(index, v.m_count, v.m_type, v.m_stride, v.m_offset);
-  \endcode
-  \param index which attribute
-  \param v traits for attribute
+ * Provided as a conveniance, equivalent to
+ * \code
+ * glVertexAttribIPointer(index, v.m_count, v.m_type, v.m_stride, v.m_offset);
+ * \endcode
+ * \param index which attribute
+ * \param v traits for attribute
  */
 void
 VertexAttribIPointer(GLint index, const opengl_trait_value &v);
