@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Adapted from: create_cpp_from_string_resource.sh of WRATH:
 #
