@@ -127,10 +127,11 @@ class PerPath
 {
 public:
   PerPath(const Path &path, const std::string &label,
-          int w, int h);
+          int w, int h, bool from_gylph);
 
   Path m_path;
   std::string m_label;
+  bool m_from_glyph;
   unsigned int m_fill_rule;
   unsigned int m_end_fill_rule;
   vec2 m_shear, m_shear2;
@@ -339,9 +340,10 @@ private:
 ///////////////////////////////////
 // PerPath methods
 PerPath::
-PerPath(const Path &path, const std::string &label, int w, int h):
+PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylph):
   m_path(path),
   m_label(label),
+  m_from_glyph(from_gylph),
   m_fill_rule(PainterEnums::odd_even_fill_rule),
   m_end_fill_rule(PainterEnums::fill_rule_data_count),
   m_shear(1.0f, 1.0f),
@@ -1135,7 +1137,7 @@ construct_paths(int w, int h)
           read_path(P, buffer.str());
           if (P.number_contours() > 0)
             {
-              m_paths.push_back(PerPath(P, file, w, h));
+              m_paths.push_back(PerPath(P, file, w, h, false));
             }
         }
     }
@@ -1152,7 +1154,7 @@ construct_paths(int w, int h)
         {
           std::ostringstream str;
           str << "character code:" << character_code;
-          m_paths.push_back(PerPath(g.path(), str.str(), w, h));
+          m_paths.push_back(PerPath(g.path(), str.str(), w, h, true));
         }
     }
 
@@ -1181,7 +1183,7 @@ construct_paths(int w, int h)
            << Path::contour_end()
            << vec2(300.0f, 300.0f)
            << Path::contour_end();
-      m_paths.push_back(PerPath(path, "Default Path", w, h));
+      m_paths.push_back(PerPath(path, "Default Path", w, h, false));
     }
 }
 
@@ -1409,6 +1411,18 @@ draw_frame(void)
   /* apply shear2
    */
   m_painter->shear(shear2().x(), shear2().y());
+
+  if (m_paths[m_selected_path].m_from_glyph)
+    {
+      /* Glyphs have y-increasing upwards, rather than
+       * downwards; so we reverse the y
+       */
+      float y;
+      y = path().tessellation()->bounding_box_min().y()
+        + path().tessellation()->bounding_box_max().y();
+      m_painter->translate(vec2(0.0f, y));
+      m_painter->shear(1.0f, -1.0f);
+    }
 
   if (m_clipping_window)
     {
