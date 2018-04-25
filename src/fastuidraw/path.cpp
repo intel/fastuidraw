@@ -24,6 +24,7 @@
 #include <fastuidraw/tessellated_path.hpp>
 #include "private/util_private.hpp"
 #include "private/path_util_private.hpp"
+#include "private/bounding_box.hpp"
 
 namespace
 {
@@ -94,6 +95,7 @@ namespace
     tessellation_satsified(unsigned int recurse_level,
                            fastuidraw::c_array<const float> threshholds)
     {
+      FASTUIDRAWunused(recurse_level);
       return (threshholds[m_thresh.m_threshhold_type] < m_thresh.m_threshhold);
     }
 
@@ -189,6 +191,37 @@ namespace
     float m_start_angle;
     fastuidraw::vec2 m_center;
     fastuidraw::vec2 m_min_bb, m_max_bb;
+
+    void
+    compute_bb(void)
+    {
+      using namespace fastuidraw;
+
+      vec2 p0, p1, z;
+      float d;
+
+      p0 = vec2(t_cos(m_start_angle),
+                t_sin(m_start_angle));
+
+      p1 = vec2(t_cos(m_start_angle + m_angle_speed),
+                t_sin(m_start_angle + m_angle_speed));
+
+      d = 1.0f - t_cos(m_angle_speed * 0.5f);
+
+      /*
+       * bb represents the bounding box of an arc
+       * [m_start_angle, m_start_angle + m_angle_speed)
+       * with radius one centered at the origin
+       */
+      BoundingBox<float> bb;
+      bb.union_point(p0);
+      bb.union_point(p1);
+      bb.union_point(p0 + d * z);
+      bb.union_point(p1 + d * z);
+
+      m_min_bb = m_center + m_radius * bb.min_point();
+      m_max_bb = m_center + m_radius * bb.max_point();
+    }
   };
 
   class PathContourPrivate
@@ -765,18 +798,30 @@ arc(const reference_counted_ptr<const interpolator_base> &start, float angle, co
   d->m_start_angle = std::atan2(start_center.y(), start_center.x());
   d->m_angle_speed = angle_coeff_dir * angle;
 
-  vec2 p0, p1;
-  p0 = vec2(std::cos(d->m_start_angle), std::sin(d->m_start_angle));
-  p1 = vec2(std::cos(d->m_start_angle + d->m_angle_speed), std::sin(d->m_start_angle + d->m_angle_speed));
+  d->compute_bb();
+}
 
-  d->m_min_bb.x() = fastuidraw::t_min(p0.x(), p1.x());
-  d->m_min_bb.y() = fastuidraw::t_min(p0.y(), p1.y());
+fastuidraw::PathContour::arc::
+arc(const reference_counted_ptr<const interpolator_base> &start,
+    const vec2 &center, const vec2 &end):
+  fastuidraw::PathContour::interpolator_base(start, end)
+{
+  ArcPrivate *d;
+  d = FASTUIDRAWnew ArcPrivate();
+  m_d = d;
 
-  d->m_max_bb.x() = fastuidraw::t_max(p0.x(), p1.x());
-  d->m_max_bb.y() = fastuidraw::t_max(p0.y(), p1.y());
+  vec2 start_center(start_pt() - center);
+  vec2 end_center(end - center);
+  float end_angle;
 
-  d->m_min_bb = d->m_center + d->m_radius * d->m_min_bb;
-  d->m_max_bb = d->m_center + d->m_radius * d->m_max_bb;
+  end_angle = std::atan2(end_center.y(), end_center.x());
+
+  d->m_center = center;
+  d->m_radius = start_center.magnitude();
+  d->m_start_angle = std::atan2(start_center.y(), start_center.x());
+  d->m_angle_speed = end_angle - d->m_start_angle;
+
+  d->compute_bb();
 }
 
 fastuidraw::PathContour::arc::
