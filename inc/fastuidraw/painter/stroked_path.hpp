@@ -60,8 +60,6 @@ class StrokedPath:
     public reference_counted<StrokedPath>::non_concurrent
 {
 public:
-  typedef StrokedPoint point;
-
   /*!
    * \brief
    * Opaque object to hold work room needed for functions
