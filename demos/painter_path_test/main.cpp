@@ -1210,9 +1210,9 @@ per_path_processing(void)
           for(unsigned p = 0, endp = miter_points.size(); p < endp; ++p)
             {
               float v;
-              StrokedPath::point pt;
+              StrokedPoint pt;
 
-              StrokedPath::point::unpack_point(&pt, miter_points[p]);
+              StrokedPoint::unpack_point(&pt, miter_points[p]);
               v = pt.miter_distance();
               if (std::isfinite(v))
                 {
