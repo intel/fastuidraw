@@ -135,7 +135,20 @@ public:
   unsigned int m_fill_rule;
   unsigned int m_end_fill_rule;
   vec2 m_shear, m_shear2;
+  float m_angle;
   PanZoomTrackerSDLEvent m_path_zoomer;
+
+  bool m_translate_brush, m_matrix_brush;
+
+  vec2 m_gradient_p0, m_gradient_p1;
+  float m_gradient_r0, m_gradient_r1;
+  bool m_repeat_gradient;
+
+  bool m_repeat_window;
+  vec2 m_repeat_xy, m_repeat_wh;
+
+  bool m_clipping_window;
+  vec2 m_clipping_xy, m_clipping_wh;
 };
 
 class painter_stroke_test:public sdl_painter_demo
@@ -235,6 +248,90 @@ private:
     return m_paths[m_selected_path].m_shear2;
   }
 
+  float&
+  angle(void)
+  {
+    return m_paths[m_selected_path].m_angle;
+  }
+
+  vec2&
+  gradient_p0(void)
+  {
+    return m_paths[m_selected_path].m_gradient_p0;
+  }
+
+  vec2&
+  gradient_p1(void)
+  {
+    return m_paths[m_selected_path].m_gradient_p1;
+  }
+
+  float&
+  gradient_r0(void)
+  {
+    return m_paths[m_selected_path].m_gradient_r0;
+  }
+
+  float&
+  gradient_r1(void)
+  {
+    return m_paths[m_selected_path].m_gradient_r1;
+  }
+
+  bool&
+  repeat_gradient(void)
+  {
+    return m_paths[m_selected_path].m_repeat_gradient;
+  }
+
+  bool&
+  translate_brush(void)
+  {
+    return m_paths[m_selected_path].m_translate_brush;
+  }
+
+  bool&
+  matrix_brush(void)
+  {
+    return m_paths[m_selected_path].m_matrix_brush;
+  }
+
+  bool&
+  repeat_window(void)
+  {
+    return m_paths[m_selected_path].m_repeat_window;
+  }
+
+  vec2&
+  repeat_xy(void)
+  {
+    return m_paths[m_selected_path].m_repeat_xy;
+  }
+
+  vec2&
+  repeat_wh(void)
+  {
+    return m_paths[m_selected_path].m_repeat_wh;
+  }
+
+  bool&
+  clipping_window(void)
+  {
+    return m_paths[m_selected_path].m_clipping_window;
+  }
+
+  vec2&
+  clipping_xy(void)
+  {
+    return m_paths[m_selected_path].m_clipping_xy;
+  }
+
+  vec2&
+  clipping_wh(void)
+  {
+    return m_paths[m_selected_path].m_clipping_wh;
+  }
+
   command_line_argument_value<float> m_change_miter_limit_rate;
   command_line_argument_value<float> m_change_stroke_width_rate;
   command_line_argument_value<float> m_window_change_rate;
@@ -303,21 +400,10 @@ private:
   bool m_draw_fill, m_aa_fill_by_stroking;
   unsigned int m_active_color_stop;
   unsigned int m_gradient_draw_mode;
-  bool m_repeat_gradient;
   unsigned int m_image_filter;
   bool m_draw_stats;
   float m_curve_flatness;
   bool m_print_submit_stroke_time, m_print_submit_fill_time;
-
-  vec2 m_gradient_p0, m_gradient_p1;
-  float m_gradient_r0, m_gradient_r1;
-  bool m_translate_brush, m_matrix_brush;
-
-  bool m_repeat_window;
-  vec2 m_repeat_xy, m_repeat_wh;
-
-  bool m_clipping_window;
-  vec2 m_clipping_xy, m_clipping_wh;
 
   bool m_with_aa;
   bool m_wire_frame;
@@ -326,8 +412,6 @@ private:
 
   bool m_fill_by_clipping;
   bool m_draw_grid;
-
-  float m_angle;
 
   simple_time m_draw_timer, m_fps_timer;
   Path m_grid_path;
@@ -347,7 +431,13 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
   m_fill_rule(PainterEnums::odd_even_fill_rule),
   m_end_fill_rule(PainterEnums::fill_rule_data_count),
   m_shear(1.0f, 1.0f),
-  m_shear2(1.0f, 1.0f)
+  m_shear2(1.0f, 1.0f),
+  m_angle(0.0f),
+  m_translate_brush(false),
+  m_matrix_brush(false),
+  m_repeat_gradient(true),
+  m_repeat_window(false),
+  m_clipping_window(false)
 {
   m_end_fill_rule =
     m_path.tessellation()->filled()->subset(0).winding_numbers().size() + PainterEnums::fill_rule_data_count;
@@ -368,6 +458,18 @@ PerPath(const Path &path, const std::string &label, int w, int h, bool from_gylp
   sc.scale( 1.0f / mm);
   tr2.translation(dsp * 0.5f);
   m_path_zoomer.transformation(tr2 * sc * tr1);
+
+  m_gradient_p0 = p0;
+  m_gradient_p1 = p1;
+
+  m_gradient_r0 = 0.0f;
+  m_gradient_r1 = 200.0f / m_path_zoomer.transformation().scale();
+
+  m_repeat_xy = vec2(0.0f, 0.0f);
+  m_repeat_wh = m_path.tessellation()->bounding_box_max() - m_path.tessellation()->bounding_box_min();
+
+  m_clipping_xy = m_path.tessellation()->bounding_box_min();
+  m_clipping_wh = m_repeat_wh;
 }
 
 //////////////////////////////////////
@@ -434,20 +536,14 @@ painter_stroke_test(void):
   m_draw_fill(false), m_aa_fill_by_stroking(false),
   m_active_color_stop(0),
   m_gradient_draw_mode(draw_no_gradient),
-  m_repeat_gradient(true),
   m_image_filter(image_nearest_filter),
   m_draw_stats(false),
-  m_translate_brush(false),
-  m_matrix_brush(false),
-  m_repeat_window(false),
-  m_clipping_window(false),
   m_with_aa(true),
   m_wire_frame(false),
   m_stroke_width_in_pixels(false),
   m_force_square_viewport(false),
   m_fill_by_clipping(false),
   m_draw_grid(false),
-  m_angle(0.0f),
   m_grid_path_dirty(true),
   m_clip_window_path_dirty(true)
 {
@@ -568,13 +664,13 @@ update_cts_params(void)
 
   if (keyboard_state[SDL_SCANCODE_9])
     {
-      m_angle += speed * 0.1f;
-      std::cout << "Angle set to: " << m_angle << "\n";
+      angle() += speed * 0.1f;
+      std::cout << "Angle set to: " << angle() << "\n";
     }
   if (keyboard_state[SDL_SCANCODE_0])
     {
-      m_angle -= speed * 0.1f;
-      std::cout << "Angle set to: " << m_angle << "\n";
+      angle() -= speed * 0.1f;
+      std::cout << "Angle set to: " << angle() << "\n";
     }
 
   speed_stroke = speed * m_change_stroke_width_rate.m_value;
@@ -601,7 +697,7 @@ update_cts_params(void)
       std::cout << "Stroke width set to: " << m_stroke_width << "\n";
     }
 
-  if (m_repeat_window)
+  if (repeat_window())
     {
       vec2 *changer;
       float delta, delta_y;
@@ -609,12 +705,12 @@ update_cts_params(void)
       delta = m_window_change_rate.m_value * speed / zoomer().transformation().scale();
       if (keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL])
         {
-          changer = &m_repeat_wh;
+          changer = &repeat_wh();
           delta_y = delta;
         }
       else
         {
-          changer = &m_repeat_xy;
+          changer = &repeat_xy();
           delta_y = -delta;
         }
 
@@ -644,7 +740,7 @@ update_cts_params(void)
       if (keyboard_state[SDL_SCANCODE_UP] || keyboard_state[SDL_SCANCODE_DOWN]
          || keyboard_state[SDL_SCANCODE_RIGHT] || keyboard_state[SDL_SCANCODE_LEFT])
         {
-          std::cout << "Brush repeat window set to: xy = " << m_repeat_xy << " wh = " << m_repeat_wh << "\n";
+          std::cout << "Brush repeat window set to: xy = " << repeat_xy() << " wh = " << repeat_wh() << "\n";
         }
     }
 
@@ -656,30 +752,30 @@ update_cts_params(void)
       delta = m_radial_gradient_change_rate.m_value * speed / zoomer().transformation().scale();
       if (keyboard_state[SDL_SCANCODE_1])
         {
-          m_gradient_r0 -= delta;
-          m_gradient_r0 = fastuidraw::t_max(0.0f, m_gradient_r0);
+          gradient_r0() -= delta;
+          gradient_r0() = fastuidraw::t_max(0.0f, gradient_r0());
         }
 
       if (keyboard_state[SDL_SCANCODE_2])
         {
-          m_gradient_r0 += delta;
+          gradient_r0() += delta;
         }
       if (keyboard_state[SDL_SCANCODE_3])
         {
-          m_gradient_r1 -= delta;
-          m_gradient_r1 = fastuidraw::t_max(0.0f, m_gradient_r1);
+          gradient_r1() -= delta;
+          gradient_r1() = fastuidraw::t_max(0.0f, gradient_r1());
         }
 
       if (keyboard_state[SDL_SCANCODE_4])
         {
-          m_gradient_r1 += delta;
+          gradient_r1() += delta;
         }
 
       if (keyboard_state[SDL_SCANCODE_1] || keyboard_state[SDL_SCANCODE_2]
          || keyboard_state[SDL_SCANCODE_3] || keyboard_state[SDL_SCANCODE_4])
         {
           std::cout << "Radial gradient values set to: r0 = "
-                    << m_gradient_r0 << " r1 = " << m_gradient_r1 << "\n";
+                    << gradient_r0() << " r1 = " << gradient_r1() << "\n";
         }
     }
 
@@ -703,7 +799,7 @@ update_cts_params(void)
         }
     }
 
-  if (m_clipping_window)
+  if (clipping_window())
     {
       vec2 *changer;
       float delta, delta_y;
@@ -711,12 +807,12 @@ update_cts_params(void)
       delta = m_window_change_rate.m_value * speed / zoomer().transformation().scale();
       if (keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL])
         {
-          changer = &m_clipping_wh;
+          changer = &clipping_wh();
           delta_y = delta;
         }
       else
         {
-          changer = &m_clipping_xy;
+          changer = &clipping_xy();
           delta_y = -delta;
         }
 
@@ -744,12 +840,10 @@ update_cts_params(void)
          || keyboard_state[SDL_SCANCODE_KP_6] || keyboard_state[SDL_SCANCODE_KP_8])
         {
           m_clip_window_path_dirty = true;
-          std::cout << "Clipping window set to: xy = " << m_clipping_xy << " wh = " << m_clipping_wh << "\n";
+          std::cout << "Clipping window set to: xy = " << clipping_xy() << " wh = " << clipping_wh() << "\n";
         }
     }
 }
-
-
 
 vec2
 painter_stroke_test::
@@ -758,12 +852,12 @@ brush_item_coordinate(ivec2 scr)
   vec2 p;
   p = item_coordinates(scr);
 
-  if (m_matrix_brush)
+  if (matrix_brush())
     {
       p *= zoomer().transformation().scale();
     }
 
-  if (m_translate_brush)
+  if (translate_brush())
     {
       p += zoomer().transformation().translation();
     }
@@ -784,11 +878,11 @@ item_coordinates(ivec2 scr)
    */
   p /= shear();
 
-  /* unapply rotation by m_angle
+  /* unapply rotation by angle()
    */
   float s, c, a;
   float2x2 tr;
-  a = -m_angle * M_PI / 180.0f;
+  a = -angle() * M_PI / 180.0f;
   s = t_sin(a);
   c = t_cos(a);
 
@@ -802,6 +896,17 @@ item_coordinates(ivec2 scr)
   /* unapply shear2()
    */
   p /= shear2();
+
+  /* unapply glyph-flip
+   */
+  if (m_paths[m_selected_path].m_from_glyph)
+    {
+      float y;
+      y = path().tessellation()->bounding_box_min().y()
+        + path().tessellation()->bounding_box_max().y();
+      p.y() -= y;
+      p.y() *= -1.0f;
+    }
 
   return p;
 }
@@ -832,11 +937,11 @@ handle_event(const SDL_Event &ev)
 
         if (ev.motion.state & SDL_BUTTON(SDL_BUTTON_MIDDLE))
           {
-            m_gradient_p0 = brush_item_coordinate(c);
+            gradient_p0() = brush_item_coordinate(c);
           }
         else if (ev.motion.state & SDL_BUTTON(SDL_BUTTON_RIGHT))
           {
-            m_gradient_p1 = brush_item_coordinate(c);
+            gradient_p1() = brush_item_coordinate(c);
           }
       }
       break;
@@ -851,6 +956,7 @@ handle_event(const SDL_Event &ev)
         case SDLK_k:
           cycle_value(m_selected_path, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_paths.size());
           std::cout << "Path " << m_paths[m_selected_path].m_label << " selected\n";
+          m_clip_window_path_dirty = true;
           break;
 
         case SDLK_a:
@@ -903,30 +1009,30 @@ handle_event(const SDL_Event &ev)
           break;
 
         case SDLK_o:
-          m_clipping_window = !m_clipping_window;
-          std::cout << "Clipping window: " << on_off(m_clipping_window) << "\n";
+          clipping_window() = !clipping_window();
+          std::cout << "Clipping window: " << on_off(clipping_window()) << "\n";
           break;
 
         case SDLK_w:
-          m_repeat_window = !m_repeat_window;
-          std::cout << "Brush Repeat window: " << on_off(m_repeat_window) << "\n";
+          repeat_window() = !repeat_window();
+          std::cout << "Brush Repeat window: " << on_off(repeat_window()) << "\n";
           break;
 
         case SDLK_y:
-          m_matrix_brush = !m_matrix_brush;
-          std::cout << "Matrix brush: " << on_off(m_matrix_brush) << "\n";
+          matrix_brush() = !matrix_brush();
+          std::cout << "Matrix brush: " << on_off(matrix_brush()) << "\n";
           break;
 
         case SDLK_t:
-          m_translate_brush = !m_translate_brush;
-          std::cout << "Translate brush: " << on_off(m_translate_brush) << "\n";
+          translate_brush() = !translate_brush();
+          std::cout << "Translate brush: " << on_off(translate_brush()) << "\n";
           break;
 
         case SDLK_h:
           if (m_gradient_draw_mode != draw_no_gradient)
             {
-              m_repeat_gradient = !m_repeat_gradient;
-              if (!m_repeat_gradient)
+              repeat_gradient() = !repeat_gradient();
+              if (!repeat_gradient())
                 {
                   std::cout << "non-";
                 }
@@ -1406,7 +1512,7 @@ draw_frame(void)
 
   /* apply rotation
    */
-  m_painter->rotate(m_angle * M_PI / 180.0f);
+  m_painter->rotate(angle() * M_PI / 180.0f);
 
   /* apply shear2
    */
@@ -1424,15 +1530,15 @@ draw_frame(void)
       m_painter->shear(1.0f, -1.0f);
     }
 
-  if (m_clipping_window)
+  if (clipping_window())
     {
       if (m_clip_window_path_dirty)
         {
           Path clip_window_path;
-          clip_window_path << m_clipping_xy
-                           << vec2(m_clipping_xy.x(), m_clipping_xy.y() + m_clipping_wh.y())
-                           << m_clipping_xy + m_clipping_wh
-                           << vec2(m_clipping_xy.x() + m_clipping_wh.x(), m_clipping_xy.y())
+          clip_window_path << clipping_xy()
+                           << vec2(clipping_xy().x(), clipping_xy().y() + clipping_wh().y())
+                           << clipping_xy() + clipping_wh()
+                           << vec2(clipping_xy().x() + clipping_wh().x(), clipping_xy().y())
                            << Path::contour_end();
           m_clip_window_path.swap(clip_window_path);
           m_clip_window_path_dirty = false;
@@ -1450,7 +1556,7 @@ draw_frame(void)
                              PainterEnums::miter_clip_joins,
                              false);
       m_painter->restore();
-      m_painter->clipInRect(m_clipping_xy, m_clipping_wh);
+      m_painter->clipInRect(clipping_xy(), clipping_wh());
     }
 
 
@@ -1461,7 +1567,7 @@ draw_frame(void)
 
       fill_brush.pen(m_fill_red.m_value, m_fill_green.m_value,
                      m_fill_blue.m_value, m_fill_alpha.m_value);
-      if (m_translate_brush)
+      if (translate_brush())
         {
           fill_brush.transformation_translate(zoomer().transformation().translation());
         }
@@ -1470,7 +1576,7 @@ draw_frame(void)
           fill_brush.no_transformation_translation();
         }
 
-      if (m_matrix_brush)
+      if (matrix_brush())
         {
           float2x2 m;
           m(0, 0) = m(1, 1) = zoomer().transformation().scale();
@@ -1481,9 +1587,9 @@ draw_frame(void)
           fill_brush.no_transformation_matrix();
         }
 
-      if (m_repeat_window)
+      if (repeat_window())
         {
-          fill_brush.repeat_window(m_repeat_xy, m_repeat_wh);
+          fill_brush.repeat_window(repeat_xy(), repeat_wh());
         }
       else
         {
@@ -1493,14 +1599,14 @@ draw_frame(void)
       if (m_gradient_draw_mode == draw_linear_gradient)
         {
           fill_brush.linear_gradient(m_color_stops[m_active_color_stop].second,
-                                     m_gradient_p0, m_gradient_p1, m_repeat_gradient);
+                                     gradient_p0(), gradient_p1(), repeat_gradient());
         }
       else if (m_gradient_draw_mode == draw_radial_gradient)
         {
           fill_brush.radial_gradient(m_color_stops[m_active_color_stop].second,
-                                     m_gradient_p0, m_gradient_r0,
-                                     m_gradient_p1, m_gradient_r1,
-                                     m_repeat_gradient);
+                                     gradient_p0(), gradient_r0(),
+                                     gradient_p1(), gradient_r1(),
+                                     repeat_gradient());
         }
       else
         {
@@ -1668,16 +1774,16 @@ draw_frame(void)
       r0 = 15.0f * inv_scale;
       r1 = 30.0f * inv_scale;
 
-      p0 = m_gradient_p0;
-      p1 = m_gradient_p1;
+      p0 = gradient_p0();
+      p1 = gradient_p1();
 
-      if (m_translate_brush)
+      if (translate_brush())
         {
           p0 -= zoomer().transformation().translation();
           p1 -= zoomer().transformation().translation();
         }
 
-      if (m_matrix_brush)
+      if (matrix_brush())
         {
           p0 *= inv_scale;
           p1 *= inv_scale;
@@ -1815,18 +1921,6 @@ derived_init(int w, int h)
           m_image_size = uvec2(m_sub_image_w.m_value, m_sub_image_h.m_value);
         }
     }
-
-  m_gradient_p0 = item_coordinates(ivec2(0, 0));
-  m_gradient_p1 = item_coordinates(ivec2(w, h));
-
-  m_gradient_r0 = 0.0f;
-  m_gradient_r1 = 200.0f / zoomer().transformation().scale();
-
-  m_repeat_xy = vec2(0.0f, 0.0f);
-  m_repeat_wh = path().tessellation()->bounding_box_max() - path().tessellation()->bounding_box_min();
-
-  m_clipping_xy = path().tessellation()->bounding_box_min();
-  m_clipping_wh = m_repeat_wh;
 
   m_curve_flatness = m_painter->curveFlatness();
   m_print_submit_stroke_time = true;
