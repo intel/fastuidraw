@@ -1,7 +1,7 @@
 Fast UI Draw
 ============
 
-Fast UI Draw in a library that provides a higher performance Canvas interface.
+Fast UI Draw is a library that provides a higher performance Canvas interface.
 It is designed so that it always draws using a GPU.
 
 In contrast to many common implementations of Canvas drawing, Fast UI Draw
