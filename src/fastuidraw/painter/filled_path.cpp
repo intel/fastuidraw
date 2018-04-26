@@ -151,7 +151,7 @@ namespace
   {
   public:
     unsigned int m_start, m_end, m_next;
-    bool m_draw_edge, m_draw_bevel;
+    bool m_draw_edge, m_draw_join;
 
     unsigned int
     num_attributes(void) const
@@ -159,7 +159,7 @@ namespace
       unsigned int e, b;
 
       e = (m_draw_edge) ? 4 : 0;
-      b = (m_draw_bevel) ? 3 : 0;
+      b = (m_draw_join) ? 3 : 0;
       return e + b;
     }
 
@@ -169,7 +169,7 @@ namespace
       unsigned int e, b;
 
       e = (m_draw_edge) ? 6 : 0;
-      b = (m_draw_bevel) ? 3 : 0;
+      b = (m_draw_join) ? 3 : 0;
       return e + b;
     }
   };
@@ -1128,7 +1128,7 @@ add_edge(unsigned int p0, unsigned int p1, bool edge_drawn)
     {
       FASTUIDRAWassert(m_current.back().m_end == p0);
       m_current.back().m_next = p1;
-      m_current.back().m_draw_bevel = edge_drawn || m_current.back().m_draw_edge;
+      m_current.back().m_draw_join = edge_drawn || m_current.back().m_draw_edge;
     }
 
   E.m_start = p0;
@@ -1148,11 +1148,11 @@ end_boundary(void)
 
   FASTUIDRAWassert(m_current.back().m_end == m_current.front().m_start);
   m_current.back().m_next = m_current.front().m_end;
-  m_current.back().m_draw_bevel = m_current.front().m_draw_edge || m_current.back().m_draw_edge;
+  m_current.back().m_draw_join = m_current.front().m_draw_edge || m_current.back().m_draw_edge;
 
   for(const Edge &e : m_current)
     {
-      if (e.m_draw_edge || e.m_draw_bevel)
+      if (e.m_draw_edge || e.m_draw_join)
         {
           m_edges.push_back(e);
           ++m_edge_count;
@@ -2474,7 +2474,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
           fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attrib;
           fastuidraw::c_array<fastuidraw::PainterIndex> dst_index;
           unsigned int num_attribute, num_indices;
-          unsigned int start_bevel_idx(0), start_bevel_attr(0);
+          unsigned int start_join_idx(0), start_join_attr(0);
 
           num_attribute = E.num_attributes();
           num_indices = E.num_indices();
@@ -2494,15 +2494,15 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
               dst_index[4] = a_tmp[ch] + 2;
               dst_index[5] = a_tmp[ch] + 3;
 
-              start_bevel_idx = 6;
-              start_bevel_attr = 4;
+              start_join_idx = 6;
+              start_join_attr = 4;
             }
 
-          if (E.m_draw_bevel)
+          if (E.m_draw_join)
             {
               for (unsigned int i = 0; i < 3; ++i)
                 {
-                  dst_index[start_bevel_idx + i] = a_tmp[ch] + start_bevel_attr + i;
+                  dst_index[start_join_idx + i] = a_tmp[ch] + start_join_attr + i;
                 }
             }
 
@@ -2532,7 +2532,7 @@ pack_attribute(const Edge &E,
       -1.0f
     };
 
-  FASTUIDRAWassert(E.m_draw_bevel || E.m_draw_edge);
+  FASTUIDRAWassert(E.m_draw_join || E.m_draw_edge);
 
   if (E.m_draw_edge)
     {
@@ -2548,7 +2548,7 @@ pack_attribute(const Edge &E,
         }
     }
 
-  if (E.m_draw_bevel)
+  if (E.m_draw_join)
     {
       float s;
       fastuidraw::dvec2 t2, n2, p;
