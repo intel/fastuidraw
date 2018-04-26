@@ -19,6 +19,7 @@
 #pragma once
 
 #include <fastuidraw/painter/painter_dashed_stroke_shader_set.hpp>
+#include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_shader_data.hpp>
 
 namespace fastuidraw
@@ -117,10 +118,12 @@ namespace fastuidraw
     width(void) const;
 
     /*!
-     * Set the value of width(void) const
+     * Set the value of width(void) const,
+     * values are clamped to be non-negative.
      */
     PainterDashedStrokeParams&
     width(float f);
+
     /*!
      * The stroking radius, equivalent to
      * \code
@@ -139,6 +142,20 @@ namespace fastuidraw
      */
     PainterDashedStrokeParams&
     radius(float f);
+
+    /*!
+     * Returns the units of the stroking, default value is
+     * \ref PainterStrokeParams::path_stroking_units
+     */
+    enum PainterStrokeParams::stroking_units_t
+    stroking_units(void) const;
+
+    /*!
+     * Set the value of stroking_units(void) const,
+     * values are clamped to be non-negative.
+     */
+    PainterDashedStrokeParams&
+    stroking_units(enum PainterStrokeParams::stroking_units_t);
 
     /*!
      * The dashed offset, i.e. the starting point of the
@@ -169,16 +186,10 @@ namespace fastuidraw
     /*!
      * Constructs and returns a DashEvaluator compatible
      * with the data of PainterDashedStrokeParams.
-     * \param pixel_width_stroking if true return an object to
-     *                             be used when stroking width
-     *                             is in pixels; if false return
-     *                             an object to be used when
-     *                             stroking width is in coordinates
-     *                             of the path.
      */
     static
     reference_counted_ptr<const DashEvaluatorBase>
-    dash_evaluator(bool pixel_width_stroking);
+    dash_evaluator(void);
 
     /*!
      * Returns a StrokingDataSelectorBase suitable for
@@ -186,7 +197,7 @@ namespace fastuidraw
      */
     static
     reference_counted_ptr<const StrokingDataSelectorBase>
-    stroking_data_selector(bool pixel_width_stroking);
+    stroking_data_selector(void);
   };
 /*! @} */
 

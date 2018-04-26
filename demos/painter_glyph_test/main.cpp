@@ -702,6 +702,10 @@ draw_frame(void)
       PainterStrokeParams st;
       st.miter_limit(5.0f);
       st.width(m_stroke_width);
+      if (m_pixel_width_stroking)
+        {
+          st.stroking_units(PainterStrokeParams::pixel_stroking_units);
+        }
 
       src = m_current_drawer;
 
@@ -731,22 +735,12 @@ draw_frame(void)
 	      //path, thus we also need to negate in the y-direction.
               m_painter->shear(sc, -sc);
 
-              if (m_pixel_width_stroking)
-                {
-                  m_painter->stroke_path_pixel_width(PainterData(pst, pbr),
-                                                     glyphs[i].path(),
-                                                     true, PainterEnums::flat_caps,
-                                                     static_cast<enum PainterEnums::join_style>(m_join_style),
-                                                     m_anti_alias_path_stroking);
-                }
-              else
-                {
-                  m_painter->stroke_path(PainterData(pst, pbr),
-                                         glyphs[i].path(),
-                                         true, PainterEnums::flat_caps,
-                                         static_cast<enum PainterEnums::join_style>(m_join_style),
-                                         m_anti_alias_path_stroking);
-                }
+              m_painter->stroke_path(PainterData(pst, pbr),
+                                     glyphs[i].path(),
+                                     true, PainterEnums::flat_caps,
+                                     static_cast<enum PainterEnums::join_style>(m_join_style),
+                                     m_anti_alias_path_stroking);
+
               m_painter->restore();
             }
         }

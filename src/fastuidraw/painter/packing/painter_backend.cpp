@@ -258,9 +258,7 @@ fastuidraw::PainterBackend::
 register_shader(const PainterShaderSet &shaders)
 {
   register_shader(shaders.stroke_shader());
-  register_shader(shaders.pixel_width_stroke_shader());
   register_shader(shaders.dashed_stroke_shader());
-  register_shader(shaders.pixel_width_dashed_stroke_shader());
   register_shader(shaders.fill_shader());
   register_shader(shaders.glyph_shader());
   register_shader(shaders.glyph_shader_anisotropic());

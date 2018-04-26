@@ -28,7 +28,8 @@ namespace
   public:
     PainterStrokeParamsData(void):
       m_miter_limit(15.0f),
-      m_radius(1.0f)
+      m_radius(1.0f),
+      m_stroking_units(fastuidraw::PainterStrokeParams::path_stroking_units)
     {}
 
     virtual
@@ -49,20 +50,30 @@ namespace
     void
     pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> dst) const
     {
+      using namespace fastuidraw;
       FASTUIDRAWunused(alignment);
-      dst[fastuidraw::PainterStrokeParams::stroke_miter_limit_offset].f = m_miter_limit;
-      dst[fastuidraw::PainterStrokeParams::stroke_radius_offset].f = m_radius;
+
+      dst[PainterStrokeParams::stroke_miter_limit_offset].f = m_miter_limit;
+      if (m_stroking_units == PainterStrokeParams::pixel_stroking_units)
+        {
+          dst[PainterStrokeParams::stroke_radius_offset].f = -m_radius;
+        }
+      else
+        {
+          dst[PainterStrokeParams::stroke_radius_offset].f = m_radius;
+        }
     }
 
     float m_miter_limit;
     float m_radius;
+    enum fastuidraw::PainterStrokeParams::stroking_units_t m_stroking_units;
   };
 
   class StrokingDataSelector:public fastuidraw::StrokingDataSelectorBase
   {
   public:
     explicit
-    StrokingDataSelector(bool pixel_width);
+    StrokingDataSelector(void);
 
     virtual
     float
@@ -73,9 +84,6 @@ namespace
     stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
                        float *out_pixel_distance,
                        float *out_item_space_distance) const;
-
-  private:
-    bool m_pixel_width;
   };
 
 }
@@ -83,8 +91,7 @@ namespace
 ////////////////////////////////
 // StrokingDataSelector methods
 StrokingDataSelector::
-StrokingDataSelector(bool pixel_width):
-  m_pixel_width(pixel_width)
+StrokingDataSelector(void)
 {}
 
 float
@@ -108,7 +115,7 @@ compute_thresh(const fastuidraw::PainterShaderData::DataBase *data,
       float return_value;
 
       return_value = curve_flatness / d->m_radius;
-      if (!m_pixel_width)
+      if (d->m_stroking_units == fastuidraw::PainterStrokeParams::path_stroking_units)
         {
           return_value /= path_magnification;
         }
@@ -125,15 +132,15 @@ stroking_distances(const fastuidraw::PainterShaderData::DataBase *data,
   const PainterStrokeParamsData *d;
   d = static_cast<const PainterStrokeParamsData*>(data);
 
-  if (m_pixel_width)
-    {
-      *out_pixel_distance = d->m_radius;
-      *out_item_space_distance = 0.0f;
-    }
-  else
+  if (d->m_stroking_units == fastuidraw::PainterStrokeParams::path_stroking_units)
     {
       *out_pixel_distance = 0.0f;
       *out_item_space_distance = d->m_radius;
+    }
+  else
+    {
+      *out_pixel_distance = d->m_radius;
+      *out_item_space_distance = 0.0f;
     }
 }
 
@@ -183,7 +190,7 @@ width(float f)
   PainterStrokeParamsData *d;
   FASTUIDRAWassert(dynamic_cast<PainterStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterStrokeParamsData*>(m_data);
-  d->m_radius = 0.5f * f;
+  d->m_radius = (f > 0.0f ) ? 0.5f * f : 0.0f;
   return *this;
 }
 
@@ -204,13 +211,34 @@ radius(float f)
   PainterStrokeParamsData *d;
   FASTUIDRAWassert(dynamic_cast<PainterStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterStrokeParamsData*>(m_data);
-  d->m_radius = f;
+  d->m_radius = (f > 0.0f ) ? f : 0.0f;
+  return *this;
+}
+
+enum fastuidraw::PainterStrokeParams::stroking_units_t
+fastuidraw::PainterStrokeParams::
+stroking_units(void) const
+{
+  PainterStrokeParamsData *d;
+  FASTUIDRAWassert(dynamic_cast<PainterStrokeParamsData*>(m_data) != nullptr);
+  d = static_cast<PainterStrokeParamsData*>(m_data);
+  return d->m_stroking_units;
+}
+
+fastuidraw::PainterStrokeParams&
+fastuidraw::PainterStrokeParams::
+stroking_units(enum stroking_units_t v)
+{
+  PainterStrokeParamsData *d;
+  FASTUIDRAWassert(dynamic_cast<PainterStrokeParamsData*>(m_data) != nullptr);
+  d = static_cast<PainterStrokeParamsData*>(m_data);
+  d->m_stroking_units = v;
   return *this;
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>
 fastuidraw::PainterStrokeParams::
-stroking_data_selector(bool pixel_width_stroking)
+stroking_data_selector(void)
 {
-  return FASTUIDRAWnew StrokingDataSelector(pixel_width_stroking);
+  return FASTUIDRAWnew StrokingDataSelector();
 }

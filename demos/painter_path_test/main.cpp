@@ -1675,13 +1675,16 @@ draw_frame(void)
       if (m_aa_fill_by_stroking && m_with_aa)
         {
           PainterStrokeParams st;
-          st.miter_limit(-1.0f);
-          st.width(2.0f);
-          m_painter->stroke_path_pixel_width(PainterData(&fill_brush, &st),
-                                             path(), true,
-                                             PainterEnums::flat_caps,
-                                             PainterEnums::bevel_joins,
-                                             true);
+          st
+            .miter_limit(-1.0f)
+            .width(2.0f)
+            .stroking_units(PainterStrokeParams::pixel_stroking_units);
+
+          m_painter->stroke_path(PainterData(&fill_brush, &st),
+                                 path(), true,
+                                 PainterEnums::flat_caps,
+                                 PainterEnums::bevel_joins,
+                                 true);
         }
       submit_fill_time = measure.elapsed_us();
     }
@@ -1713,23 +1716,16 @@ draw_frame(void)
           c_array<const PainterDashedStrokeParams::DashPatternElement> dash_ptr(&m_dash_patterns[D][0],
                                                                                 m_dash_patterns[D].size());
           st.dash_pattern(dash_ptr);
-
           if (m_stroke_width_in_pixels)
             {
-              m_painter->stroke_dashed_path_pixel_width(PainterData(m_stroke_pen, &st),
-                                                        path(), m_close_contour,
-                                                        static_cast<enum PainterEnums::cap_style>(m_cap_style),
-                                                        static_cast<enum PainterEnums::join_style>(m_join_style),
-                                                        m_with_aa);
+              st.stroking_units(PainterStrokeParams::pixel_stroking_units);
             }
-          else
-            {
-              m_painter->stroke_dashed_path(PainterData(m_stroke_pen, &st),
-                                            path(), m_close_contour,
-                                            static_cast<enum PainterEnums::cap_style>(m_cap_style),
-                                            static_cast<enum PainterEnums::join_style>(m_join_style),
-                                            m_with_aa);
-            }
+
+          m_painter->stroke_dashed_path(PainterData(m_stroke_pen, &st),
+                                        path(), m_close_contour,
+                                        static_cast<enum PainterEnums::cap_style>(m_cap_style),
+                                        static_cast<enum PainterEnums::join_style>(m_join_style),
+                                        m_with_aa);
         }
       else
         {
@@ -1743,23 +1739,16 @@ draw_frame(void)
               st.miter_limit(-1.0f);
             }
           st.width(m_stroke_width);
-
           if (m_stroke_width_in_pixels)
             {
-              m_painter->stroke_path_pixel_width(PainterData(m_stroke_pen, &st),
-                                                 path(), m_close_contour,
-                                                 static_cast<enum PainterEnums::cap_style>(m_cap_style),
-                                                 static_cast<enum PainterEnums::join_style>(m_join_style),
-                                                 m_with_aa);
+              st.stroking_units(PainterStrokeParams::pixel_stroking_units);
             }
-          else
-            {
-              m_painter->stroke_path(PainterData(m_stroke_pen, &st),
-                                     path(), m_close_contour,
-                                     static_cast<enum PainterEnums::cap_style>(m_cap_style),
-                                     static_cast<enum PainterEnums::join_style>(m_join_style),
-                                     m_with_aa);
-            }
+
+          m_painter->stroke_path(PainterData(m_stroke_pen, &st),
+                                 path(), m_close_contour,
+                                 static_cast<enum PainterEnums::cap_style>(m_cap_style),
+                                 static_cast<enum PainterEnums::join_style>(m_join_style),
+                                 m_with_aa);
         }
       submit_stroke_time = measure.elapsed_us();
     }
