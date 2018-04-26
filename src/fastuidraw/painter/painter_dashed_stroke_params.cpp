@@ -46,6 +46,7 @@ namespace
 
     float m_miter_limit;
     float m_radius;
+    enum fastuidraw::PainterStrokeParams::stroking_units_t m_stroking_units;
     float m_dash_offset;
     float m_total_length;
     float m_first_interval_start;
@@ -57,8 +58,7 @@ namespace
   {
   public:
     explicit
-    DashEvaluator(bool pixel_width_stroking):
-      m_pixel_width_stroking(pixel_width_stroking)
+    DashEvaluator(void)
     {}
 
     virtual
@@ -70,8 +70,6 @@ namespace
     bool
     close_to_boundary(float dist,
                       fastuidraw::range_type<float> interval);
-
-    bool m_pixel_width_stroking;
   };
 }
 
@@ -81,6 +79,7 @@ PainterDashedStrokeParamsData::
 PainterDashedStrokeParamsData(void):
   m_miter_limit(15.0f),
   m_radius(1.0f),
+  m_stroking_units(fastuidraw::PainterStrokeParams::path_stroking_units),
   m_dash_offset(0.0f),
   m_total_length(0.0f),
   m_first_interval_start(0.0f)
@@ -109,7 +108,14 @@ pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> 
   using namespace fastuidraw;
 
   dst[PainterDashedStrokeParams::stroke_miter_limit_offset].f = m_miter_limit;
-  dst[PainterDashedStrokeParams::stroke_radius_offset].f = m_radius;
+  if (m_stroking_units == PainterStrokeParams::pixel_stroking_units)
+    {
+      dst[PainterDashedStrokeParams::stroke_radius_offset].f = -m_radius;
+    }
+  else
+    {
+      dst[PainterDashedStrokeParams::stroke_radius_offset].f = m_radius;
+    }
   dst[PainterDashedStrokeParams::stroke_dash_offset_offset].f = m_dash_offset;
   dst[PainterDashedStrokeParams::stroke_total_length_offset].f = m_total_length;
   dst[PainterDashedStrokeParams::stroke_first_interval_start_offset].f = m_first_interval_start;
@@ -235,7 +241,7 @@ width(float f)
   PainterDashedStrokeParamsData *d;
   FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
-  d->m_radius = 0.5f * f;
+  d->m_radius = (f > 0.0f) ? 0.5f * f : 0.0f;
   return *this;
 }
 
@@ -256,7 +262,7 @@ radius(float f)
   PainterDashedStrokeParamsData *d;
   FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
-  d->m_radius = f;
+  d->m_radius = (f > 0.0f) ? f : 0.0f;
   return *this;
 }
 
@@ -299,8 +305,7 @@ dash_pattern(c_array<const DashPatternElement> f)
   FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
 
-  /* skip to first element on f[] that is non-zero.
-   */
+  /* skip to first element on f[] that is non-zero.   */
   while(f.front().m_draw_length <= 0.0f && f.front().m_space_length <= 0.0f)
     {
       f = f.sub_array(1);
@@ -374,16 +379,37 @@ dash_pattern(c_array<const DashPatternElement> f)
   return *this;
 }
 
+enum fastuidraw::PainterStrokeParams::stroking_units_t
+fastuidraw::PainterDashedStrokeParams::
+stroking_units(void) const
+{
+  PainterDashedStrokeParamsData *d;
+  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
+  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
+  return d->m_stroking_units;
+}
+
+fastuidraw::PainterDashedStrokeParams&
+fastuidraw::PainterDashedStrokeParams::
+stroking_units(enum PainterStrokeParams::stroking_units_t v)
+{
+  PainterDashedStrokeParamsData *d;
+  FASTUIDRAWassert(dynamic_cast<PainterDashedStrokeParamsData*>(m_data) != nullptr);
+  d = static_cast<PainterDashedStrokeParamsData*>(m_data);
+  d->m_stroking_units = v;
+  return *this;
+}
+
 fastuidraw::reference_counted_ptr<const fastuidraw::DashEvaluatorBase>
 fastuidraw::PainterDashedStrokeParams::
-dash_evaluator(bool pixel_width_stroking)
+dash_evaluator(void)
 {
-  return FASTUIDRAWnew DashEvaluator(pixel_width_stroking);
+  return FASTUIDRAWnew DashEvaluator();
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>
 fastuidraw::PainterDashedStrokeParams::
-stroking_data_selector(bool pixel_width_stroking)
+stroking_data_selector(void)
 {
-  return PainterStrokeParams::stroking_data_selector(pixel_width_stroking);
+  return PainterStrokeParams::stroking_data_selector();
 }

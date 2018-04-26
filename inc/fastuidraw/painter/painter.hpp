@@ -494,28 +494,6 @@ namespace fastuidraw
                 const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
-     * Stroke a path using PainterShaderSet::pixel_width_stroke_shader()
-     * of default_shaders().
-     * \param draw data for how to draw
-     * \param path Path to stroke
-     * \param close_contours if true, draw the closing edges (and joins) of each contour
-     *                       of the path
-     * \param cp cap style
-     * \param js join style
-     * \param with_shader_based_anti_aliasing draw the path in two passes using shader
-     *                                        based anti-aliasing; one should NEVER
-     *                                        have this as true if the surface passed
-     *                                        in begin() is a multi-sampled surface
-     * \param call_back if non-nullptr handle, call back called when attribute data
-     *                  is added.
-     */
-    void
-    stroke_path_pixel_width(const PainterData &draw, const Path &path,
-                            bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                            bool with_shader_based_anti_aliasing,
-                            const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
-
-    /*!
      * Stroke a path dashed.
      * \param shader shader with which to draw
      * \param draw data for how to draw
@@ -583,27 +561,6 @@ namespace fastuidraw
                        bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
                        bool with_shader_based_anti_aliasing,
                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
-
-    /*!
-     * Stroke a path using PainterShaderSet::pixel_width_dashed_stroke_shader() of default_shaders().
-     * \param draw data for how to draw
-     * \param path Path to stroke
-     * \param close_contours if true, draw the closing edges (and joins) of each contour
-     *                       of the path
-     * \param cp cap style
-     * \param js join style
-     * \param with_shader_based_anti_aliasing draw the path in two passes using shader
-     *                                        based anti-aliasing; one should NEVER
-     *                                        have this as true if the surface passed
-     *                                        in begin() is a multi-sampled surface
-     * \param call_back if non-nullptr handle, call back called when attribute data
-     *                  is added.
-     */
-    void
-    stroke_dashed_path_pixel_width(const PainterData &draw, const Path &path,
-                                   bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                                   bool with_shader_based_anti_aliasing,
-                                   const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
      * Fill a path.

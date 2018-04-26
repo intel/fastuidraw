@@ -630,14 +630,8 @@ init_gl(int w, int h)
       std::cout << "\tSolid StrokeShaders:\n";
       print_stroke_shader_ids(sh.stroke_shader());
 
-      std::cout << "\tPixel Width Stroke Shaders:\n";
-      print_stroke_shader_ids(sh.pixel_width_stroke_shader());
-
       std::cout << "\tDashed Stroke Shader:\n";
       print_dashed_stroke_shader_ids(sh.dashed_stroke_shader());
-
-      std::cout << "\tPixel Width Dashed Stroke Shader:\n";
-      print_dashed_stroke_shader_ids(sh.pixel_width_dashed_stroke_shader());
 
       std::cout << "\tFill Shader:" << sh.fill_shader().item_shader()->tag() << "\n";
     }

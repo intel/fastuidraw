@@ -27,9 +27,7 @@ namespace
   public:
     fastuidraw::PainterGlyphShader m_glyph_shader, m_glyph_shader_anisotropic;
     fastuidraw::PainterStrokeShader m_stroke_shader;
-    fastuidraw::PainterStrokeShader m_pixel_width_stroke_shader;
     fastuidraw::PainterDashedStrokeShaderSet m_dashed_stroke_shader;
-    fastuidraw::PainterDashedStrokeShaderSet m_pixel_width_dashed_stroke_shader;
     fastuidraw::PainterFillShader m_fill_shader;
     fastuidraw::PainterBlendShaderSet m_blend_shaders;
   };
@@ -68,11 +66,7 @@ setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
 setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
                  const fastuidraw::PainterStrokeShader&, stroke_shader)
 setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
-                 const fastuidraw::PainterStrokeShader&, pixel_width_stroke_shader)
-setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
                  const fastuidraw::PainterDashedStrokeShaderSet&, dashed_stroke_shader)
-setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
-                 const fastuidraw::PainterDashedStrokeShaderSet&, pixel_width_dashed_stroke_shader)
 setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,
                  const fastuidraw::PainterFillShader&, fill_shader)
 setget_implement(fastuidraw::PainterShaderSet, PainterShaderSetPrivate,

@@ -1958,17 +1958,6 @@ stroke_path(const PainterData &draw, const Path &path,
 
 void
 fastuidraw::Painter::
-stroke_path_pixel_width(const PainterData &draw, const Path &path,
-                        bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                        bool with_anti_aliasing,
-                        const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
-{
-  stroke_path(default_shaders().pixel_width_stroke_shader(), draw, path,
-              close_contours, cp, js, with_anti_aliasing, call_back);
-}
-
-void
-fastuidraw::Painter::
 stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData &draw,
                    const StrokedPath &path, float thresh,
                    bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
@@ -2009,17 +1998,6 @@ stroke_dashed_path(const PainterData &draw, const Path &path,
                    const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   stroke_dashed_path(default_shaders().dashed_stroke_shader(), draw, path,
-                     close_contours, cp, js, with_anti_aliasing, call_back);
-}
-
-void
-fastuidraw::Painter::
-stroke_dashed_path_pixel_width(const PainterData &draw, const Path &path,
-                               bool close_contours, enum PainterEnums::cap_style cp, enum PainterEnums::join_style js,
-                               bool with_anti_aliasing,
-                               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
-{
-  stroke_dashed_path(default_shaders().pixel_width_dashed_stroke_shader(), draw, path,
                      close_contours, cp, js, with_anti_aliasing, call_back);
 }
 

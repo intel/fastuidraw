@@ -75,7 +75,7 @@ protected:
   remove_constants(ShaderSource &src) const;
 
   uint32_t m_stroke_render_pass_num_bits, m_stroke_dash_style_num_bits;
-  uint32_t m_stroke_width_pixels_bit0, m_stroke_render_pass_bit0, m_stroke_dash_style_bit0;
+  uint32_t m_stroke_render_pass_bit0, m_stroke_dash_style_bit0;
 };
 
 class ShaderSetCreator:
@@ -107,15 +107,13 @@ private:
    */
   PainterStrokeShader
   create_stroke_shader(enum PainterEnums::cap_style stroke_dash_style,
-                       bool pixel_width_stroking,
                        const reference_counted_ptr<const StrokingDataSelectorBase> &stroke_data_selector);
 
   PainterDashedStrokeShaderSet
-  create_dashed_stroke_shader_set(bool pixel_width_stroking);
+  create_dashed_stroke_shader_set(void);
 
   reference_counted_ptr<PainterItemShader>
   create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
-                            bool pixel_width_stroking,
                             enum uber_stroke_render_pass_t render_pass_macro);
 
   PainterFillShader

@@ -364,7 +364,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   primary_attrib = uintBitsToFloat(uprimary_attrib);
   secondary_attrib = uintBitsToFloat(usecondary_attrib);
 
-  uint width_pixels;
   uint render_pass;
   bool stroke_width_pixels;
   int stroking_pass;
@@ -382,12 +381,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     }
   #endif
 
-  width_pixels = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_width_pixels_bit0,
-                                         fastuidraw_stroke_sub_shader_width_pixels_num_bits,
-                                         sub_shader);
-
-
-  stroke_width_pixels = (width_pixels == uint(1));
   stroking_pass = int(render_pass);
 
   vec2 p;
@@ -422,7 +415,8 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                                             1,
                                             point_packed_data));
 
-  stroke_radius = stroke_params.radius;
+  stroke_width_pixels = (stroke_params.radius < 0.0);
+  stroke_radius = abs(stroke_params.radius);
 
   #ifdef FASTUIDRAW_STROKE_DASHED
     {
