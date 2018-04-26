@@ -28,20 +28,6 @@
 
 namespace
 {
-  class analytic_point_data:public fastuidraw::TessellatedPath::point
-  {
-  public:
-    analytic_point_data(float t, const fastuidraw::vec2 &p);
-
-    bool
-    operator<(const analytic_point_data &rhs) const
-    {
-      return m_time < rhs.m_time;
-    }
-
-    float m_time;
-  };
-
   inline
   float
   compute_distance(const fastuidraw::vec2 &a,
@@ -82,8 +68,7 @@ namespace
 
   private:
     void
-    tessellation_worker(unsigned int idx_p, unsigned int idx_q,
-                        unsigned int recursion_level,
+    tessellation_worker(unsigned int recurse_level,
                         fastuidraw::PathContour::interpolator_generic::tessellated_region *in_src,
                         fastuidraw::c_array<float> out_threshholds);
 
@@ -100,15 +85,17 @@ namespace
     }
 
     void
-    complete_threshholds(unsigned int idx_start,
-                         unsigned int idx_mid,
-                         unsigned int idx_end,
-                         fastuidraw::c_array<float> out_threshholds);
+    add_point(const fastuidraw::vec2 &pt)
+    {
+      fastuidraw::TessellatedPath::point P;
+      P.m_p = pt;
+      m_data.push_back(P);
+    }
 
     const fastuidraw::PathContour::interpolator_generic *m_h;
     fastuidraw::TessellatedPath::TessellationParams m_thresh;
     unsigned int m_max_recursion, m_max_size;
-    std::vector<analytic_point_data> m_data;
+    std::vector<fastuidraw::TessellatedPath::point> m_data;
   };
 
   class InterpolatorBasePrivate
@@ -343,15 +330,6 @@ namespace
   };
 }
 
-////////////////////////////////////
-// analytic_point_data methods
-analytic_point_data::
-analytic_point_data(float t, const fastuidraw::vec2 &p):
-  m_time(t)
-{
-  m_p = p;
-}
-
 /////////////////////////////////
 // Tessellator methods
 unsigned int
@@ -388,16 +366,14 @@ Tessellator::
 fill_data(fastuidraw::c_array<fastuidraw::TessellatedPath::point> out_data,
           fastuidraw::c_array<float> out_threshholds)
 {
-  /* initialize m_data with start and end point data.
+  /*
+   * tessellate: note that we add the start point, then tessellate
+   * and then at the end add the end point. By doing so, the points
+   * are added to m_data in order of time automatically.
    */
-  m_data.push_back(analytic_point_data(0.0f, m_h->start_pt()));
-  m_data.push_back(analytic_point_data(1.0f, m_h->end_pt()));
-
-  /* tessellate */
-  tessellation_worker(0, 1, 0, nullptr, out_threshholds);
-
-  /* sort the values by time */
-  std::sort(m_data.begin(), m_data.end());
+  add_point(m_h->start_pt());
+  tessellation_worker(0, nullptr, out_threshholds);
+  add_point(m_h->end_pt());
 
   FASTUIDRAWassert(m_data.size() <= out_data.size());
   std::copy(m_data.begin(), m_data.end(), out_data.begin());
@@ -406,54 +382,56 @@ fill_data(fastuidraw::c_array<fastuidraw::TessellatedPath::point> out_data,
 
 void
 Tessellator::
-complete_threshholds(unsigned int idx_start,
-                     unsigned int idx_mid,
-                     unsigned int idx_end,
-                     fastuidraw::c_array<float> out_threshholds)
-{
-  using namespace fastuidraw;
-
-  FASTUIDRAWassert(out_threshholds[TessellatedPath::threshhold_curve_distance] >= 0.0f);
-  FASTUIDRAWunused(idx_start);
-  FASTUIDRAWunused(idx_mid);
-  FASTUIDRAWunused(idx_end);
-  FASTUIDRAWunused(out_threshholds);
-}
-
-void
-Tessellator::
-tessellation_worker(unsigned int idx_start, unsigned int idx_end,
-                    unsigned int recurse_level,
+tessellation_worker(unsigned int recurse_level,
                     fastuidraw::PathContour::interpolator_generic::tessellated_region *in_src,
                     fastuidraw::c_array<float> out_threshholds)
 {
   using namespace fastuidraw;
 
-  unsigned int idx_mid(m_data.size());
-  PathContour::interpolator_generic::tessellated_region *rgnA, *rgnB;
-  vec2 p;;
-  float t;
+  PathContour::interpolator_generic::tessellated_region *rgnA(nullptr);
+  PathContour::interpolator_generic::tessellated_region *rgnB(nullptr);
+  vec2 p;
 
-  m_h->tessellate(in_src, &rgnA, &rgnB,
-                  &t, &p, out_threshholds);
-
-  complete_threshholds(idx_start, idx_mid, idx_end, out_threshholds);
-  m_data.push_back(analytic_point_data(t, p));
+  m_h->tessellate(in_src, &rgnA, &rgnB, &p, out_threshholds);
 
   if (recurse_level + 1u < m_max_recursion
       && !tessellation_satsified(recurse_level, out_threshholds))
     {
       vecN<float, TessellatedPath::number_threshholds> tmpA(-1.0f), tmpB(-1.0f);
-      tessellation_worker(idx_start, idx_mid, recurse_level + 1, rgnA, tmpA);
-      tessellation_worker(idx_mid, idx_end, recurse_level + 1, rgnB, tmpB);
+
+      /* NOTE the order of recursing and adding to m_data:
+       *  - first we recurse into the left side
+       *  - second we add the mid-point
+       *  - last we recurse into the right side
+       * By doing so, we keep the order in time of the points,
+       * since all points on the left side come before the
+       * mid point, and all points in the right side come
+       * after the midpoint.
+       */
+      tessellation_worker(recurse_level + 1, rgnA, tmpA);
+      add_point(p);
+      tessellation_worker(recurse_level + 1, rgnB, tmpB);
+
       for (unsigned int i = 0; i < TessellatedPath::number_threshholds; ++i)
         {
           out_threshholds[i] = t_max(tmpA[i], tmpB[i]);
         }
     }
+  else
+    {
+      add_point(p);
+    }
 
-  FASTUIDRAWdelete(rgnA);
-  FASTUIDRAWdelete(rgnB);
+
+  if (rgnA)
+    {
+      FASTUIDRAWdelete(rgnA);
+    }
+
+  if (rgnB)
+    {
+      FASTUIDRAWdelete(rgnB);
+    }
 }
 
 ////////////////////////////////////////
@@ -634,8 +612,7 @@ void
 fastuidraw::PathContour::bezier::
 tessellate(tessellated_region *in_region,
            tessellated_region **out_regionA, tessellated_region **out_regionB,
-           float *out_t, vec2 *out_p,
-           c_array<float> out_threshholds) const
+           vec2 *out_p, c_array<float> out_threshholds) const
 {
   BezierPrivate *d;
   d = static_cast<BezierPrivate*>(m_d);
@@ -689,7 +666,6 @@ tessellate(tessellated_region *in_region,
 
   *out_regionA = newA;
   *out_regionB = newB;
-  *out_t = newA->m_end;
   *out_p = newA->m_pts.back();
 
   out_threshholds[TessellatedPath::threshhold_curve_distance]

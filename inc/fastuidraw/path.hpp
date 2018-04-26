@@ -224,10 +224,9 @@ public:
      *                  that the region is the entire interpolator.
      * \param out_regionA location to which to write the first half
      * \param out_regionB location to which to write the second half
-     * \param out_t location to which to write the time (parameter) for
-     *              in the middle of in_region
      * \param out_p location to which to write the position of the point
-     *              on the curve in the middle of in_region
+     *              on the curve in the middle (with repsect to time) of
+     *              in_region
      * \param out_threshholds location to which to write the threshholds
      *                        the tessellation achieved; array is indexed
      *                        by \ref TessellatedPath::threshhold_type_t.
@@ -241,8 +240,7 @@ public:
     void
     tessellate(tessellated_region *in_region,
                tessellated_region **out_regionA, tessellated_region **out_regionB,
-               float *out_t, vec2 *out_p,
-               c_array<float> out_threshholds) const = 0;
+               vec2 *out_p, c_array<float> out_threshholds) const = 0;
   };
 
   /*!
@@ -292,8 +290,7 @@ public:
     void
     tessellate(tessellated_region *in_region,
                tessellated_region **out_regionA, tessellated_region **out_regionB,
-               float *out_t, vec2 *out_p,
-               c_array<float> out_threshholds) const;
+               vec2 *out_p, c_array<float> out_threshholds) const;
     virtual
     void
     approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
