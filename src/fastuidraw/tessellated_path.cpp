@@ -170,7 +170,8 @@ fastuidraw::TessellatedPath::
 TessellatedPath(const Path &input,
                 fastuidraw::TessellatedPath::TessellationParams TP)
 {
-  m_d = FASTUIDRAWnew TessellatedPathPrivate(input, TP);
+  TessellatedPathPrivate *d;
+  m_d = d = FASTUIDRAWnew TessellatedPathPrivate(input, TP);
 }
 
 fastuidraw::TessellatedPath::
