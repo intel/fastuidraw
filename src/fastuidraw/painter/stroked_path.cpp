@@ -52,13 +52,6 @@ namespace
                   StrokedPoint::depth_num_bits, depth);
   }
 
-  class PerEdgeData
-  {
-  public:
-    fastuidraw::vec2 m_begin_normal, m_end_normal;
-    fastuidraw::TessellatedPath::point m_start_pt, m_end_pt;
-  };
-
   template<typename T>
   class OrderingEntry:public T
   {
@@ -71,54 +64,6 @@ namespace
 
     unsigned int m_chunk;
     unsigned int m_depth;
-  };
-
-  class PerContourData
-  {
-  public:
-    const PerEdgeData&
-    edge_data(unsigned int E) const
-    {
-      return (E == m_edge_data_store.size()) ?
-        m_edge_data_store[0]:
-        m_edge_data_store[E];
-    }
-
-    PerEdgeData&
-    write_edge_data(unsigned int E)
-    {
-      FASTUIDRAWassert(E < m_edge_data_store.size());
-      return m_edge_data_store[E];
-    }
-
-    fastuidraw::vec2 m_begin_cap_normal, m_end_cap_normal;
-    fastuidraw::TessellatedPath::point m_start_contour_pt, m_end_contour_pt;
-    std::vector<PerEdgeData> m_edge_data_store;
-  };
-
-  class ContourData:fastuidraw::noncopyable
-  {
-  public:
-    unsigned int
-    number_contours(void) const
-    {
-      return m_per_contour_data.size();
-    }
-
-    unsigned int
-    number_edges(unsigned int C) const
-    {
-      FASTUIDRAWassert(C < m_per_contour_data.size());
-      return m_per_contour_data[C].m_edge_data_store.size();
-    }
-
-    std::vector<PerContourData> m_per_contour_data;
-  };
-
-  class PathData:fastuidraw::noncopyable
-  {
-  public:
-    ContourData m_contour_data;
   };
 
   class SingleSubEdge
@@ -163,7 +108,7 @@ namespace
   public:
     static
     SubEdgeCullingHierarchy*
-    create(const fastuidraw::TessellatedPath &P, ContourData &contour_data);
+    create(const fastuidraw::TessellatedPath &P);
 
     ~SubEdgeCullingHierarchy();
 
@@ -253,13 +198,13 @@ namespace
 
     static
     void
-    create_lists(const fastuidraw::TessellatedPath &P, ContourData &contour_data,
+    create_lists(const fastuidraw::TessellatedPath &P,
                  std::vector<SingleSubEdge> &data, unsigned int &num_non_closing_edges,
                  fastuidraw::BoundingBox<float> &bx);
 
     static
     void
-    process_edge(const fastuidraw::TessellatedPath &P, ContourData &contour_data,
+    process_edge(const fastuidraw::TessellatedPath &P,
                  unsigned int contour, unsigned int edge,
                  std::vector<SingleSubEdge> &dst,
                  fastuidraw::BoundingBox<float> &bx);
@@ -580,11 +525,11 @@ namespace
     }
 
     const fastuidraw::PainterAttributeData&
-    data(const PathData &P, const StrokedPathSubset *st)
+    data(const StrokedPathSubset *st)
     {
       if (!m_ready)
         {
-          m_data.set_data(T(P, st));
+          m_data.set_data(T(st));
           m_ready = true;
         }
       return m_data;
@@ -621,7 +566,6 @@ namespace
     StrokedPathSubset* m_subset;
     fastuidraw::PainterAttributeData m_edges;
 
-    PathData m_path_data;
     fastuidraw::vecN<unsigned int, 2> m_chunk_of_edges;
 
     bool m_empty_path;
@@ -694,36 +638,30 @@ const float SubEdgeCullingHierarchy::sm_mag_tol = 0.000001f;
 
 SubEdgeCullingHierarchy*
 SubEdgeCullingHierarchy::
-create(const fastuidraw::TessellatedPath &P, ContourData &path_data)
+create(const fastuidraw::TessellatedPath &P)
 {
   std::vector<SingleSubEdge> data;
   fastuidraw::BoundingBox<float> bx;
   unsigned int num_non_closing_edges;
   SubEdgeCullingHierarchy *return_value;
 
-  create_lists(P, path_data, data, num_non_closing_edges, bx);
+  create_lists(P, data, num_non_closing_edges, bx);
   return_value =  FASTUIDRAWnew SubEdgeCullingHierarchy(bx, data, num_non_closing_edges);
   return return_value;
 }
 
 void
 SubEdgeCullingHierarchy::
-create_lists(const fastuidraw::TessellatedPath &P, ContourData &path_data,
+create_lists(const fastuidraw::TessellatedPath &P,
              std::vector<SingleSubEdge> &data, unsigned int &num_non_closing_edges,
              fastuidraw::BoundingBox<float> &bx)
 {
-  path_data.m_per_contour_data.resize(P.number_contours());
-
-  /* place data of closing sub-edges at the tail of the lists.
-   */
+  /* place data of closing sub-edges at the tail of the lists. */
   for(unsigned int o = 0; o < P.number_contours(); ++o)
     {
-      path_data.m_per_contour_data[o].m_edge_data_store.resize(P.number_edges(o));
-      path_data.m_per_contour_data[o].m_start_contour_pt = P.unclosed_contour_point_data(o).front();
-      path_data.m_per_contour_data[o].m_end_contour_pt = P.unclosed_contour_point_data(o).back();
       for(unsigned int e = 0, ende = P.number_edges(o); e + 1 < ende; ++e)
         {
-          process_edge(P, path_data, o, e, data, bx);
+          process_edge(P, o, e, data, bx);
         }
     }
 
@@ -732,14 +670,14 @@ create_lists(const fastuidraw::TessellatedPath &P, ContourData &path_data,
     {
       if (P.number_edges(o) > 0)
         {
-          process_edge(P, path_data, o, P.number_edges(o) - 1, data, bx);
+          process_edge(P, o, P.number_edges(o) - 1, data, bx);
         }
     }
 }
 
 void
 SubEdgeCullingHierarchy::
-process_edge(const fastuidraw::TessellatedPath &P, ContourData &path_data,
+process_edge(const fastuidraw::TessellatedPath &P,
              unsigned int contour, unsigned int edge,
              std::vector<SingleSubEdge> &dst, fastuidraw::BoundingBox<float> &bx)
 {
@@ -773,12 +711,6 @@ process_edge(const fastuidraw::TessellatedPath &P, ContourData &path_data,
           sub_edge.m_bevel_lambda = 0.0f;
           sub_edge.m_has_bevel = false;
           sub_edge.m_bevel_normal = fastuidraw::vec2(0.0f, 0.0f);
-          path_data.m_per_contour_data[contour].write_edge_data(edge).m_begin_normal = normal;
-          path_data.m_per_contour_data[contour].write_edge_data(edge).m_start_pt = src_pts[i];
-          if (edge == 0)
-            {
-              path_data.m_per_contour_data[contour].m_begin_cap_normal = normal;
-            }
         }
       else
         {
@@ -798,23 +730,6 @@ process_edge(const fastuidraw::TessellatedPath &P, ContourData &path_data,
       bx.union_point(src_pts[i + 1].m_p);
 
       last_normal = normal;
-    }
-
-  if (R.m_begin + 1 >= R.m_end)
-    {
-      path_data.m_per_contour_data[contour].write_edge_data(edge).m_begin_normal = normal;
-      path_data.m_per_contour_data[contour].write_edge_data(edge).m_start_pt = src_pts[R.m_begin];
-      if (edge == 0)
-        {
-          path_data.m_per_contour_data[contour].m_begin_cap_normal = normal;
-        }
-    }
-
-  path_data.m_per_contour_data[contour].write_edge_data(edge).m_end_normal = normal;
-  path_data.m_per_contour_data[contour].write_edge_data(edge).m_end_pt = src_pts[R.m_end - 1];
-  if (edge + 2 == P.number_edges(contour))
-    {
-      path_data.m_per_contour_data[contour].m_end_cap_normal = normal;
     }
 }
 
@@ -1547,7 +1462,7 @@ ready_builder_contour(const fastuidraw::TessellatedPath *tess,
                       fastuidraw::StrokedCapsJoins::Builder &b)
 {
   fastuidraw::c_array<const fastuidraw::TessellatedPath::point> last_pts;
-  fastuidraw::vec2 delta, last_normal;
+  fastuidraw::vec2 delta, last_direction;
   float delta_mag;
   const float tol(0.000001f);
 
@@ -1563,7 +1478,7 @@ ready_builder_contour(const fastuidraw::TessellatedPath *tess,
     {
       delta /= delta_mag;
     }
-  last_normal = delta;
+  last_direction = delta;
   b.begin_contour(last_pts[0].m_p, delta);
 
   for(unsigned int e = 1, ende = tess->number_edges(c); e < ende; ++e)
@@ -1577,24 +1492,24 @@ ready_builder_contour(const fastuidraw::TessellatedPath *tess,
       mag = delta_into.magnitude();
       if (mag < tol)
         {
-          delta_into = last_normal;
+          delta_into = last_direction;
         }
       else
         {
           delta_into /= mag;
-          last_normal = delta_into;
+          last_direction = delta_into;
         }
 
       delta_leaving = pts[1].m_p - pts[0].m_p;
       mag = delta_leaving.magnitude();
       if (mag < tol)
         {
-          delta_leaving = last_normal;
+          delta_leaving = last_direction;
         }
       else
         {
           delta_leaving /= mag;
-          last_normal = delta_leaving;
+          last_direction = delta_leaving;
         }
 
       b.add_join(pts[0].m_p,
@@ -1607,7 +1522,7 @@ ready_builder_contour(const fastuidraw::TessellatedPath *tess,
   delta_mag = delta.magnitude();
   if (delta_mag < tol)
     {
-      delta = last_normal;
+      delta = last_direction;
     }
   else
     {
@@ -1624,7 +1539,7 @@ create_edges(const fastuidraw::TessellatedPath &P)
   StrokedPathSubset::CreationValues cnts;
 
   FASTUIDRAWassert(!m_empty_path);
-  s = SubEdgeCullingHierarchy::create(P, m_path_data.m_contour_data);
+  s = SubEdgeCullingHierarchy::create(P);
   m_subset = StrokedPathSubset::create(s, cnts);
   m_edges.set_data(EdgeAttributeFiller(m_subset, P, cnts));
 
