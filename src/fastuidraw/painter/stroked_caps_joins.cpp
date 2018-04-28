@@ -144,90 +144,21 @@ namespace
   class PerContourData
   {
   public:
-    PerContourData(void):
-      m_cap_count(0)
-    {}
+    PerContourData(void);
 
     void
     start(const fastuidraw::vec2 &p,
-          const fastuidraw::vec2 &tangent_along_curve)
-    {
-      FASTUIDRAWassert(m_cap_count == 0);
-      m_caps[0].m_p = p;
-      m_caps[0].m_tangent_into_cap = -tangent_along_curve;
-      m_caps[0].m_distance_from_edge_start = 0.0f;
-      m_caps[0].m_distance_from_contour_start = 0.0f;
-      m_caps[0].m_is_starting_cap = true;
-      m_cap_count = 1;
-    }
+          const fastuidraw::vec2 &tangent_along_curve);
 
     void
     end(float distance_from_previous_join,
-        const fastuidraw::vec2 &direction_into_join)
-    {
-      fastuidraw::vec2 end_cap_pt, end_cap_direction;
-      float end_cap_edge_distance;
-
-      /* the last added join starts the closing edge */
-      if (!m_joins.empty())
-        {
-          end_cap_pt = m_joins.back().m_p;
-          end_cap_direction = m_joins.back().m_tangent_into_join;
-          end_cap_edge_distance = m_joins.back().m_distance_from_previous_join;
-          m_joins.back().m_of_closing_edge = true;
-
-          /* add the join ending the closing edge */
-          add_join(m_caps[0].m_p, distance_from_previous_join,
-                   direction_into_join,
-                   -m_caps[0].m_tangent_into_cap);
-          m_joins.back().m_of_closing_edge = true;
-        }
-      else
-        {
-          end_cap_edge_distance = 0;
-          end_cap_pt = m_caps[0].m_p;
-          end_cap_direction = m_caps[0].m_tangent_into_cap;
-        }
-
-      /* compute the contour lengths */
-      float d(0.0f);
-      for(unsigned int i = 0, endi = m_joins.size(); i < endi; ++i)
-        {
-          d += m_joins[i].m_distance_from_previous_join;
-          m_joins[i].m_distance_from_contour_start = d;
-        }
-
-      for (PerJoinData &J : m_joins)
-        {
-          J.m_closed_contour_length = d;
-          J.m_open_contour_length = d - distance_from_previous_join;
-        }
-
-      for (PerCapData &C : m_caps)
-        {
-          C.m_closed_contour_length = m_joins.empty() ? 0.0f : d;
-          C.m_open_contour_length = m_joins.empty() ? distance_from_previous_join : d - distance_from_previous_join;
-        }
-
-      m_caps[1].m_p = end_cap_pt;
-      m_caps[1].m_tangent_into_cap = end_cap_direction;
-      m_caps[1].m_distance_from_edge_start = end_cap_edge_distance;
-      m_caps[1].m_distance_from_contour_start = m_caps[1].m_open_contour_length;
-      m_caps[1].m_is_starting_cap = false;
-
-      m_cap_count = 2;
-    }
+        const fastuidraw::vec2 &direction_into_join);
 
     void
     add_join(const fastuidraw::vec2 &p,
              float distance_from_previous_join,
              const fastuidraw::vec2 &tangent_into_join,
-             const fastuidraw::vec2 &tangent_leaving_join)
-    {
-      FASTUIDRAWassert(m_cap_count == 1);
-      m_joins.push_back(PerJoinData(p, distance_from_previous_join,
-                                    tangent_into_join, tangent_leaving_join));
-    }
+             const fastuidraw::vec2 &tangent_leaving_join);
 
     const PerCapData&
     cap(unsigned int I) const
@@ -239,30 +170,21 @@ namespace
     fastuidraw::c_array<const PerJoinData>
     joins_of_non_closing_edges(void) const
     {
-      fastuidraw::c_array<const PerJoinData> r;
-      if (m_joins.size() > 2)
-        {
-          r = fastuidraw::make_c_array(m_joins);
-          r = r.sub_array(0, m_joins.size() - 2);
-        }
-      return r;
+      FASTUIDRAWassert(m_cap_count == 2);
+      return m_joins_of_non_closing_edges;
     }
 
     fastuidraw::c_array<const PerJoinData>
-    joins_of_closing_edges(void) const
+    joins_of_closing_edge(void) const
     {
-      fastuidraw::c_array<const PerJoinData> r;
-
-      r = fastuidraw::make_c_array(m_joins);
-      if (m_joins.size() > 2)
-        {
-          r = r.sub_array(m_joins.size() - 2);
-        }
-      return r;
+      FASTUIDRAWassert(m_cap_count == 2);
+      return m_joins_of_closing_edge;
     }
 
   private:
     std::vector<PerJoinData> m_joins;
+    fastuidraw::c_array<const PerJoinData> m_joins_of_non_closing_edges;
+    fastuidraw::c_array<const PerJoinData> m_joins_of_closing_edge;
     fastuidraw::vecN<PerCapData, 2> m_caps;
     unsigned int m_cap_count;
   };
@@ -305,61 +227,16 @@ namespace
     }
 
     void
-    add_join(const PerJoinData &src, unsigned int &chunk)
-    {
-      OrderingEntry<PerJoinData> J(src, chunk);
-      if (src.m_of_closing_edge)
-        {
-          m_closing_edge.push_back(J);
-        }
-      else
-        {
-          m_non_closing_edge.push_back(J);
-        }
-      ++chunk;
-    }
+    add_join(const PerJoinData &src, unsigned int &chunk);
 
     void
     post_process_non_closing(fastuidraw::range_type<unsigned int> join_range,
-                             unsigned int &depth)
-    {
-      unsigned int R, d;
-
-      /* the depth values of the joins must come in reverse
-       * so that higher depth values occlude later elements
-       */
-      R = join_range.difference();
-      d = depth + R - 1;
-
-      for(unsigned int i = join_range.m_begin; i < join_range.m_end; ++i, --d)
-        {
-          FASTUIDRAWassert(i < m_non_closing_edge.size());
-          m_non_closing_edge[i].m_depth = d;
-        }
-      depth += R;
-    }
+                             unsigned int &depth);
 
     void
     post_process_closing(unsigned int non_closing_edge_chunk_count,
                          fastuidraw::range_type<unsigned int> join_range,
-                         unsigned int &depth)
-    {
-      unsigned int R, d;
-
-      /* the depth values of the joins must come in reverse
-       * so that higher depth values occlude later elements
-       */
-      R = join_range.difference();
-      d = depth + R - 1;
-
-      for(unsigned int i = join_range.m_begin; i < join_range.m_end; ++i, --d)
-        {
-          FASTUIDRAWassert(i < m_closing_edge.size());
-          m_closing_edge[i].m_depth = d;
-          m_closing_edge[i].m_chunk += non_closing_edge_chunk_count;
-        }
-      depth += R;
-    }
+                         unsigned int &depth);
 
     unsigned int
     number_joins(bool include_joins_of_closing_edge) const
@@ -370,19 +247,7 @@ namespace
     }
 
     unsigned int
-    join_chunk(unsigned int J) const
-    {
-      FASTUIDRAWassert(J < number_joins(true));
-      if (J >= m_non_closing_edge.size())
-        {
-          J -= m_non_closing_edge.size();
-          return m_closing_edge[J].m_chunk;
-        }
-      else
-        {
-          return m_non_closing_edge[J].m_chunk;
-        }
-    }
+    join_chunk(unsigned int J) const;
 
   private:
     std::vector<OrderingEntry<PerJoinData> > m_non_closing_edge;
@@ -408,22 +273,7 @@ namespace
 
     void
     post_process(fastuidraw::range_type<unsigned int> range,
-                 unsigned int &depth)
-    {
-      unsigned int R, d;
-
-      /* the depth values of the caps must come in reverse
-       * so that higher depth values occlude later elements
-       */
-      R = range.difference();
-      d = depth + R - 1;
-      for(unsigned int i = range.m_begin; i < range.m_end; ++i, --d)
-        {
-          FASTUIDRAWassert(i < m_caps.size());
-          m_caps[i].m_depth = d;
-        }
-      depth += R;
-    }
+                 unsigned int &depth);
 
   private:
     std::vector<OrderingEntry<PerCapData> > m_caps;
@@ -1188,6 +1038,209 @@ namespace
 }
 
 /////////////////////////////////
+// PerContourData methods
+PerContourData::
+PerContourData(void):
+  m_cap_count(0)
+{}
+
+void
+PerContourData::
+start(const fastuidraw::vec2 &p,
+      const fastuidraw::vec2 &tangent_along_curve)
+{
+  FASTUIDRAWassert(m_cap_count == 0);
+  m_caps[0].m_p = p;
+  m_caps[0].m_tangent_into_cap = -tangent_along_curve;
+  m_caps[0].m_distance_from_edge_start = 0.0f;
+  m_caps[0].m_distance_from_contour_start = 0.0f;
+  m_caps[0].m_is_starting_cap = true;
+  m_cap_count = 1;
+}
+
+void
+PerContourData::
+end(float distance_from_previous_join,
+    const fastuidraw::vec2 &direction_into_join)
+{
+  fastuidraw::vec2 end_cap_pt, end_cap_direction;
+  float end_cap_edge_distance;
+
+  /* the last added join starts the closing edge */
+  if (!m_joins.empty())
+    {
+      end_cap_pt = m_joins.back().m_p;
+      end_cap_direction = m_joins.back().m_tangent_into_join;
+      end_cap_edge_distance = m_joins.back().m_distance_from_previous_join;
+      m_joins.back().m_of_closing_edge = true;
+
+      /* add the join ending the closing edge */
+      add_join(m_caps[0].m_p, distance_from_previous_join,
+               direction_into_join,
+               -m_caps[0].m_tangent_into_cap);
+      m_joins.back().m_of_closing_edge = true;
+    }
+  else
+    {
+      end_cap_edge_distance = 0;
+      end_cap_pt = m_caps[0].m_p;
+      end_cap_direction = m_caps[0].m_tangent_into_cap;
+    }
+
+  /* compute the contour lengths */
+  float d(0.0f);
+  for(unsigned int i = 0, endi = m_joins.size(); i < endi; ++i)
+    {
+      d += m_joins[i].m_distance_from_previous_join;
+      m_joins[i].m_distance_from_contour_start = d;
+    }
+
+  for (PerJoinData &J : m_joins)
+    {
+      J.m_closed_contour_length = d;
+      J.m_open_contour_length = d - distance_from_previous_join;
+    }
+
+  for (PerCapData &C : m_caps)
+    {
+      C.m_closed_contour_length = m_joins.empty() ? 0.0f : d;
+      C.m_open_contour_length = m_joins.empty() ? distance_from_previous_join : d - distance_from_previous_join;
+    }
+
+  m_caps[1].m_p = end_cap_pt;
+  m_caps[1].m_tangent_into_cap = end_cap_direction;
+  m_caps[1].m_distance_from_edge_start = end_cap_edge_distance;
+  m_caps[1].m_distance_from_contour_start = m_caps[1].m_open_contour_length;
+  m_caps[1].m_is_starting_cap = false;
+
+  m_cap_count = 2;
+
+  fastuidraw::c_array<const PerJoinData> all_joins;
+  all_joins = fastuidraw::make_c_array(m_joins);
+  if (all_joins.size() > 2)
+    {
+      m_joins_of_non_closing_edges = all_joins.sub_array(0, all_joins.size() - 2);
+      m_joins_of_closing_edge = all_joins.sub_array(all_joins.size() - 2, 2);
+    }
+  else
+    {
+      m_joins_of_closing_edge = all_joins;
+    }
+}
+
+void
+PerContourData::
+add_join(const fastuidraw::vec2 &p,
+         float distance_from_previous_join,
+         const fastuidraw::vec2 &tangent_into_join,
+         const fastuidraw::vec2 &tangent_leaving_join)
+{
+  FASTUIDRAWassert(m_cap_count == 1);
+  m_joins.push_back(PerJoinData(p, distance_from_previous_join,
+                                tangent_into_join, tangent_leaving_join));
+}
+
+//////////////////////////////////
+// JoinOrdering methods
+void
+JoinOrdering::
+add_join(const PerJoinData &src, unsigned int &chunk)
+{
+  OrderingEntry<PerJoinData> J(src, chunk);
+  if (src.m_of_closing_edge)
+    {
+      m_closing_edge.push_back(J);
+    }
+  else
+    {
+      m_non_closing_edge.push_back(J);
+    }
+  ++chunk;
+}
+
+void
+JoinOrdering::
+post_process_non_closing(fastuidraw::range_type<unsigned int> join_range,
+                         unsigned int &depth)
+{
+  unsigned int R, d;
+
+  /* the depth values of the joins must come in reverse
+   * so that higher depth values occlude later elements
+   */
+  R = join_range.difference();
+  d = depth + R - 1;
+
+  for(unsigned int i = join_range.m_begin; i < join_range.m_end; ++i, --d)
+    {
+      FASTUIDRAWassert(i < m_non_closing_edge.size());
+      m_non_closing_edge[i].m_depth = d;
+    }
+  depth += R;
+}
+
+void
+JoinOrdering::
+post_process_closing(unsigned int non_closing_edge_chunk_count,
+                     fastuidraw::range_type<unsigned int> join_range,
+                     unsigned int &depth)
+{
+  unsigned int R, d;
+
+  /* the depth values of the joins must come in reverse
+   * so that higher depth values occlude later elements
+   */
+  R = join_range.difference();
+  d = depth + R - 1;
+
+  for(unsigned int i = join_range.m_begin; i < join_range.m_end; ++i, --d)
+    {
+      FASTUIDRAWassert(i < m_closing_edge.size());
+      m_closing_edge[i].m_depth = d;
+      m_closing_edge[i].m_chunk += non_closing_edge_chunk_count;
+    }
+  depth += R;
+}
+
+unsigned int
+JoinOrdering::
+join_chunk(unsigned int J) const
+{
+  FASTUIDRAWassert(J < number_joins(true));
+  if (J >= m_non_closing_edge.size())
+    {
+      J -= m_non_closing_edge.size();
+      return m_closing_edge[J].m_chunk;
+    }
+  else
+    {
+      return m_non_closing_edge[J].m_chunk;
+    }
+}
+
+///////////////////////////
+// CapOrdering methods
+void
+CapOrdering::
+post_process(fastuidraw::range_type<unsigned int> range,
+             unsigned int &depth)
+{
+  unsigned int R, d;
+
+  /* the depth values of the caps must come in reverse
+   * so that higher depth values occlude later elements
+   */
+  R = range.difference();
+  d = depth + R - 1;
+  for(unsigned int i = range.m_begin; i < range.m_end; ++i, --d)
+    {
+      FASTUIDRAWassert(i < m_caps.size());
+      m_caps[i].m_depth = d;
+    }
+  depth += R;
+}
+
+/////////////////////////////////
 // CullingHierarchy methods
 CullingHierarchy*
 CullingHierarchy::
@@ -1217,7 +1270,7 @@ create(const ContourData &path_data)
       /* add all but the joins of the closing edge of C, i.e. all but
        * the last two joins
        */
-      for(const PerJoinData &J : C.joins_of_closing_edges())
+      for(const PerJoinData &J : C.joins_of_closing_edge())
         {
           joins.push_back(J);
         }
