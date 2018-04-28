@@ -486,9 +486,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                     edge.
                */
 
-              //BUG: the code to collapse seems to kill something in a test it
-              //     should not, for now just always expand
-              if (interval_id2 == interval_id && interval_id != -1 && false)
+              if (interval_id2 == interval_id && interval_id != -1 && dash_style != fastuidraw_stroke_dashed_flat_caps)
                 {
                   fastuidraw_stroking_dash_bits = uint(fastuidraw_stroke_gauranteed_to_be_covered_mask);
                   fastuidraw_stroking_distance = 0.0f;
