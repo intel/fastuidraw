@@ -112,7 +112,9 @@ public:
     }
 
     /*!
-     * Meaning depends on \ref m_threshhold_type.
+     * The targetted threshhold, measured by an upper-bound
+     * (per-tessellated edge) of the distance between the line
+     * segments of the tessellation and the original curve.
      * Default value is 1.0.
      */
     float m_threshhold;
@@ -190,8 +192,7 @@ public:
   tessellation_parameters(void) const;
 
   /*!
-   * Returns the tessellation threshold achieved for
-   * the named threshhold type.
+   * Returns the tessellation threshold achieved
    */
   float
   effective_threshhold(void) const;
