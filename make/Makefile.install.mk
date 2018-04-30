@@ -60,7 +60,6 @@ fastuidraw$(2)-$(1).pc: fastuidraw-backend.pc.in n$(2)-$(1).pc
 .SECONDARY: fastuidraw$(2)-$(1).pc n$(2)-$(1).pc
 pkg-config-files: fastuidraw$(2)-$(1).pc n$(2)-$(1).pc
 INSTALL_PKG_FILES+=fastuidraw$(2)-$(1).pc n$(2)-$(1).pc
-TARGETLIST+=fastuidraw$(2)-$(1).pc n$(2)-$(1).pc
 endif
 )
 CLEAN_FILES+=fastuidraw$(2)-$(1).pc n$(2)-$(1).pc
@@ -87,14 +86,12 @@ nEGL-$(1).pc: n.pc.in fastuidraw-$(1).pc
 	@sed -i 's!@INSTALL_LOCATION@!$(INSTALL_LOCATION_VALUE)!g' $$@
 	@sed -i 's!@N_ADDITIONAL_LIBS@!-lEGL!g' $$@
 INSTALL_PKG_FILES+=nEGL-$(1).pc
-TARGETLIST+=nEGL-$(1).pc
 pkg-config-files: nEGL-$(1).pc
 endif
 .PHONY:fastuidraw-$(1).pc nEGL-$(1).pc
 .SECONDARY: fastuidraw-$(1).pc nEGL-$(1).pc
 CLEAN_FILES+=fastuidraw-$(1).pc nEGL-$(1).pc
 INSTALL_PKG_FILES+=fastuidraw-$(1).pc
-TARGETLIST+=fastuidraw-$(1).pc
 pkg-config-files: fastuidraw-$(1).pc
 $(call pkgconfrulesapi,$(1),GL,$(BUILD_GL))
 $(call pkgconfrulesapi,$(1),GLES,$(BUILD_GLES)))

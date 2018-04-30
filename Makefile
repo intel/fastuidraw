@@ -19,7 +19,7 @@ INSTALL_LOCATION ?= /usr/local
 ENVIRONMENTALDESCRIPTIONS += "INSTALL_LOCATION: provides install location (default /usr/local)"
 
 INSTALL_STATIC ?= 0
-ENVIRONMENTALDESCRIPTIONS += "INSTALL_STATIC: if 1, install static libraries (default 0)"
+ENVIRONMENTALDESCRIPTIONS += "INSTALL_STATIC: if 1, install static libraries (default 0). NOTE: if linking static libs, make sure one links in the entire archive (for example via the linker option --whole-archive (from g++ do -Wl,--whole-archive)"
 
 # Mark all intermediate files as secondary and precious
 .PRECIOUS:
