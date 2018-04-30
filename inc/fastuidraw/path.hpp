@@ -892,10 +892,9 @@ public:
    * then a new TessellatedPath will be contructed on the
    * next call to tessellation().
    * \param thresh the returned tessellated path will be so that
-   *               TessellatedPath::curve_distance_threshhold(type)
+   *               TessellatedPath::effective_threshhold()
    *               is no more than thresh. A non-positive value
    *               will return the starting point tessellation.
-   * \param tp the type of threshhold to use for the tessellation requirement.
    */
   const reference_counted_ptr<const TessellatedPath>&
   tessellation(float thresh) const;
