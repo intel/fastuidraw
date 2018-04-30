@@ -33,6 +33,8 @@ fi
 
 mode=unknown
 
+static_linking=0
+
 print_cflags=0
 print_libs=0
 print_dirs=1
@@ -80,6 +82,7 @@ while test $# -gt 0; do
       --ngl) add_ngl=1 ;;
       --ngles) add_ngles=1 ;;
       --negl) add_negl=1 ;;
+      --static) static_linking=1 ;;
       --help) printhelp=1 ;;
       *)
         print_help
@@ -92,11 +95,11 @@ cflags=
 base_cflags=
 
 libs=
-base_libs=
+dir_libs=
 
 if [ "$print_dirs" = "1" ]; then
     base_cflags=-I$include_location
-    base_libs=-L$lib_location
+    dir_libs=-L$lib_location
 fi
 
 if [ "$printhelp" = "1" ]; then
@@ -121,7 +124,8 @@ if [ "$print_cflags" = "1" ] || [ "$print_libs" = "1" ]; then
   fi
 fi
 
-libs="@FASTUIDRAW_LIBS@ $base_libs -lFastUIDraw_$mode"
+base_libs="@FASTUIDRAW_LIBS@"
+libs="$dir_libs -lFastUIDraw_$mode"
 cflags="$base_cflags"
 
 if [ "$mode" = "release" ]; then
@@ -157,6 +161,14 @@ if [ "$print_cflags" = "1" ]; then
     echo $cflags
 fi
 
+if [ "$static_linking" = "1" ]; then
+    pre_link="-Wl,--whole-archive -Wl,-Bstatic"
+    post_link="-Wl,--no-whole-archive -Wl,-Bdynamic"
+else
+    pre_link=
+    post_link=
+fi
+
 if [ "$print_libs" = "1" ]; then
-    echo $libs
+    echo $pre_link $libs $post_link $base_libs
 fi
