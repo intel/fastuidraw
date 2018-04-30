@@ -78,7 +78,6 @@ $(1)-$(3): $(1)-$(2)-$(3)
 .PHONY: $(1)-$(3)
 $(1): $(1)-$(2)
 .PHONY: $(1)
-DEMO_TARGETLIST += $(1)-$(2)-$(3)
 $(1)-$(2)-$(3): libFastUIDraw$(2)_$(3) $$(NEGL_$(3)_LIB_DEP_$(2)) $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS) $$(THISDEMO_$(1)_$(2)_$(3)_DEPS)
 	$$(CXX) -o $$@ $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS) $$(DEMO_$(3)_LIBS_$(2))
 endif
@@ -97,6 +96,11 @@ endif
 )
 endef
 
+define adddemotarget
+$(eval DEMO_TARGETLIST+=$(1))
+endef
+
+$(foreach demoname,$(DEMOS),$(call adddemotarget,$(demoname)))
 
 
 TARGETLIST+=demos demos-debug demos-release
