@@ -9,7 +9,8 @@ OTHER_TYPE_debug = release
 fastuidraw-config.nodir: fastuidraw-config.in
 	@echo Generating $@
 	@cp $< $@
-	@sed -i 's!@FASTUIDRAW_LIBS@!$(FASTUIDRAW_LIBS)!g' $@
+	@sed -i 's!@FASTUIDRAW_DEPS_LIBS@!$(FASTUIDRAW_DEPS_LIBS)!g' $@
+	@sed -i 's!@FASTUIDRAW_DEPS_STATIC_LIBS@!$(FASTUIDRAW_DEPS_STATIC_LIBS)!g' $@
 	@sed -i 's!@FASTUIDRAW_release_CFLAGS@!$(FASTUIDRAW_release_CFLAGS)!g' $@
 	@sed -i 's!@FASTUIDRAW_debug_CFLAGS@!$(FASTUIDRAW_debug_CFLAGS)!g' $@
 	@sed -i 's!@FASTUIDRAW_GLES_CFLAGS@!$(FASTUIDRAW_GLES_CFLAGS)!g' $@

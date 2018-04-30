@@ -21,13 +21,12 @@ DARWIN_BUILD = 0
 CXX ?= g++
 CC ?= gcc
 STRING_RESOURCE_CC = shell_scripts/fastuidraw-create-resource-cpp-file.sh
-FASTUIDRAW_LIBS =
-
 
 #######################################
 # Platform specific libraries needed
 ifeq ($(MINGW_BUILD),1)
-  FASTUIDRAW_LIBS += -lmingw32
+  FASTUIDRAW_DEPS_LIBS += -lmingw32
+  FASTUIDRAW_DEPS_STATIC_LIBS += -lmingw32
 endif
 
 #############################################
