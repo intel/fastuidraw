@@ -37,7 +37,7 @@ namespace
     std::vector<fastuidraw::TessellatedPath::point> m_point_data;
     fastuidraw::vec2 m_box_min, m_box_max;
     fastuidraw::TessellatedPath::TessellationParams m_params;
-    fastuidraw::vecN<float, fastuidraw::TessellatedPath::number_threshholds> m_effective_threshholds;
+    float m_effective_threshhold;
     unsigned int m_max_segments;
     fastuidraw::reference_counted_ptr<const fastuidraw::StrokedPath> m_stroked;
     fastuidraw::reference_counted_ptr<const fastuidraw::FilledPath> m_filled;
@@ -53,7 +53,7 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
   m_box_min(0.0f, 0.0f),
   m_box_max(0.0f, 0.0f),
   m_params(TP),
-  m_effective_threshholds(0.0f),
+  m_effective_threshhold(0.0f),
   m_max_segments(0u)
 {
   using namespace fastuidraw;
@@ -74,22 +74,19 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
           for(unsigned int e = 0, ende = contour->number_points(); e < ende; ++e)
             {
               unsigned int needed;
-              vecN<float, TessellatedPath::number_threshholds> tmp;
+              float tmp;
 
               work_room.resize(m_params.m_max_segments + 1);
               temp.push_back(std::vector<TessellatedPath::point>());
               needed = contour->interpolator(e)->produce_tessellation(m_params,
                                                                       make_c_array(work_room),
-                                                                      tmp);
+                                                                      &tmp);
               m_edge_ranges[o][e] = range_type<unsigned int>(loc, loc + needed);
               loc += needed;
 
               FASTUIDRAWassert(needed > 0u);
               m_max_segments = t_max(m_max_segments, needed - 1);
-              for (unsigned int i = 0; i < TessellatedPath::number_threshholds; ++i)
-                {
-                  m_effective_threshholds[i] = t_max(m_effective_threshholds[i], tmp[i]);
-                }
+              m_effective_threshhold = t_max(m_effective_threshhold, tmp);
 
               work_room.resize(needed);
               for(unsigned int n = 0; n < work_room.size(); ++n)
@@ -221,12 +218,11 @@ tessellation_parameters(void) const
 
 float
 fastuidraw::TessellatedPath::
-effective_threshhold(enum threshhold_type_t tp) const
+effective_threshhold(void) const
 {
   TessellatedPathPrivate *d;
   d = static_cast<TessellatedPathPrivate*>(m_d);
-  return tp < d->m_effective_threshholds.size() ?
-    d->m_effective_threshholds[tp] : 0.0f;
+  return d->m_effective_threshhold;
 }
 
 unsigned int
