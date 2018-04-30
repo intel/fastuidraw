@@ -50,8 +50,7 @@ class DashEvaluatorBase;
  * compute_chunks(); the PainterAttributeData chunking for joins
  * and caps is the same regardless of the cap and join type.
  */
-class StrokedCapsJoins:
-    public reference_counted<StrokedCapsJoins>::non_concurrent
+class StrokedCapsJoins:noncopyable
 {
 public:
   /*!
