@@ -163,7 +163,7 @@ fi
 
 if [ "$static_linking" = "1" ]; then
     pre_link="-Wl,--whole-archive,-Bstatic"
-    post_link="-Wl,--no-whole-archive"
+    post_link="-Wl,--no-whole-archive -static-libstdc++ -static-libgcc"
 else
     pre_link=
     post_link=

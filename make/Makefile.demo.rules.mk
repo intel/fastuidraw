@@ -3,12 +3,9 @@ CLEAN_FILES += $(DEMO_COMMON_RESOURCE_STRING_SRCS)
 
 # This is awful. Makes me wish I used cmake.
 DEMO_COMMON_LIBS := $(shell sdl2-config --libs) -lSDL2_image
-DEMO_COMMON_STATIC_LIBS := $(shell sdl2-config --static-libs) -lSDL2_image
 ifeq ($(MINGW_BUILD),1)
   TEMP := $(DEMO_COMMON_LIBS)
   DEMO_COMMON_LIBS := $(subst -mwindows, ,$(TEMP))
-  TEMP := $(DEMO_COMMON_STATIC_LIBS)
-  DEMO_COMMON_STATIC_LIBS := $(subst -mwindows, ,$(TEMP))
 endif
 
 DEMO_COMMON_CFLAGS = $(shell sdl2-config --cflags) -Idemos/common
@@ -24,7 +21,6 @@ DEMO_$(2)_LIBS_$(1) = $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --libs --
 DEMO_$(2)_LIBS_STATIC_$(1) = $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --static --libs --libdir=.)
 ifeq ($(MINGW_BUILD),0)
 DEMO_COMMON_LIBS += -lEGL -lwayland-egl
-DEMO_COMMON_STATIC_LIBS += -lEGL -lwayland-egl
 DEMO_$(2)_LIBS_$(1) += $$(shell ./fastuidraw-config.nodir --negl --$(2) --libs --libdir=.)
 DEMO_$(2)_LIBS_STATIC_$(1) = $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --negl --static --libs --libdir=.)
 NEGL_$(2)_DEP_$(1) = $(NGL_EGL_HPP)
@@ -99,7 +95,7 @@ $(1)-$(3)-static: $(1)-$(2)-$(3)-static
 $(1)-static: $(1)-$(2)-static
 .PHONY: $(1)-static
 $(1)-$(2)-$(3)-static: libFastUIDraw_$(3).a libFastUIDraw$(2)_$(3).a libN$(2)_$(3).a libNEGL_$(3).a $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS)
-	$$(CXX) -static-libstdc++ -static-libgcc -o $$@ $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS)  $(DEMO_COMMON_STATIC_LIBS) $$(DEMO_$(3)_LIBS_STATIC_$(2))
+	$$(CXX) -o $$@ $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS) $(DEMO_COMMON_LIBS) $$(DEMO_$(3)_LIBS_STATIC_$(2))
 endif
 )
 endef
