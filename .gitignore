@@ -6,6 +6,7 @@ build/
 *.exe
 *.clang_tidy
 *.pc
+*.a
 inc/fastuidraw/gl_backend/ngl_gl.hpp
 src/fastuidraw/gl_backend/ngl_gl.cpp
 inc/fastuidraw/gl_backend/ngl_gles3.hpp
@@ -17,5 +18,9 @@ src/fastuidraw/ngl_egl.cpp
 *-GL-debug
 *-GLES-release
 *-GLES-debug
+*-GL-release-static
+*-GL-debug-static
+*-GLES-release-static
+*-GLES-debug-static
 fastuidraw-config.nodir
 fastuidraw-config

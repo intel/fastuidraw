@@ -9,5 +9,5 @@ Version:
 Requires: fastuidraw-@TYPE@
 Conflicts: n@API@-@OTHER_TYPE@ n@OTHER_API@-@TYPE@ n@OTHER_API@-@OTHER_TYPE@
 Cflags:
-Libs: -L${libdir} -lN@API@_@TYPE@ @N_ADDITIONAL_LIBS@
-Libs.private:
+Libs: -L${libdir} -lN@API@_@TYPE@
+Libs.private: @N_ADDITIONAL_LIBS@

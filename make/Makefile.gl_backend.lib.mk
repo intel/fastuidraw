@@ -57,8 +57,6 @@ libN$(1)_$(2): libN$(1)_$(2).dll.a
 libN$(1)_$(2).dll.a: libN$(1)_$(2).dll
 libN$(1)_$(2).dll: $$(NGL_$(1)_$(2)_OBJ) libFastUIDraw_$(2)
 	$(CXX) -shared -Wl,--out-implib,libN$(1)_$(2).dll.a -o libN$(1)_$(2).dll $$(NGL_$(1)_$(2)_OBJ) -L. $$(FASTUIDRAW_$(2)_LIBS)
-LIBFASTUIDRAW_$(1)_$(2) = libFastUIDraw$(1)_$(2).dll.a
-LIBN$(1)_$(2) = libN$(1)_$(2).dll.a
 INSTALL_LIBS += libFastUIDraw$(1)_$(2).dll.a libN$(1)_$(2).dll.a
 INSTALL_EXES += libFastUIDraw$(1)_$(2).dll libN$(1)_$(2).dll
 else
@@ -68,10 +66,21 @@ libFastUIDraw$(1)_$(2).so: libFastUIDraw_$(2).so libN$(1)_$(2).so $$(FASTUIDRAW_
 libN$(1)_$(2): libN$(1)_$(2).so
 libN$(1)_$(2).so: $$(NGL_$(1)_$(2)_OBJ) libFastUIDraw_$(2)
 	$(CXX) -shared -Wl,-soname,libN$(1)_$(2).so -o libN$(1)_$(2).so $$(NGL_$(1)_$(2)_OBJ) -L. $$(FASTUIDRAW_$(2)_LIBS)
-LIBFASTUIDRAW_$(1)_$(2) = libFastUIDraw$(1)_$(2).so
-LIBN$(1)_$(2) = libN$(1)_$(2).so
 INSTALL_LIBS += libFastUIDraw$(1)_$(2).so libN$(1)_$(2).so
 endif
+
+libFastUIDraw$(1)_$(2)-static: libFastUIDraw$(1)_$(2).a
+.PHONY: libFastUIDraw$(1)_$(2)-static
+libFastUIDraw$(1)_$(2).a: $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJS) libN$(1)_$(2).a
+	ar rcs $$@ $$(FASTUIDRAW_$(1)_$(2)_ALL_OBJS)
+
+libN$(1)_$(2)-static: libN$(1)_$(2).a
+.PHONY: libN$(1)_$(2)-static
+libN$(1)_$(2).a: $$(NGL_$(1)_$(2)_OBJ)
+	ar rcs $$@ $$(NGL_$(1)_$(2)_OBJ)
+
+CLEAN_FILES += libFastUIDraw$(1)_$(2).a libN$(1)_$(2).a
+TARGETLIST += libN$(1)_$(2)-static libFastUIDraw$(1)_$(2)-static
 
 endif
 )
@@ -83,17 +92,20 @@ define glrules
 $(eval $(call glrule,$(1),release,$(2))
 $(call glrule,$(1),debug,$(2))
 ifeq ($(2),1)
-TARGETLIST += libFastUIDraw$(1) libFastUIDraw$(1)_debug libFastUIDraw$(1)_release
+TARGETLIST += libFastUIDraw$(1) libFastUIDraw$(1)-static libFastUIDraw$(1)_debug libFastUIDraw$(1)_release
 libFastUIDraw$(1): libFastUIDraw$(1)_debug libFastUIDraw$(1)_release
+libFastUIDraw$(1)-static: libFastUIDraw$(1)_release-static libFastUIDraw$(1)_debug-static
 .PHONY: libFastUIDraw$(1)
 .PHONY: libFastUIDraw$(1)_release
 .PHONY: libFastUIDraw$(1)_debug
 libN$(1): libN$(1)_debug libN$(1)_release
-TARGETLIST += libN$(1) libN$(1)_debug libN$(1)_release
-all: libFastUIDraw$(1) libN$(1)
+libN$(1)-static: libN$(1)_debug-static libN$(1)_release-static
+TARGETLIST += libN$(1) libN$(1)_debug libN$(1)_release libN$(1)-static
+all: libFastUIDraw$(1)-static libFastUIDraw$(1) libN$(1) libN$(1)-static
 .PHONY: libN$(1)
 .PHONY: libN$(1)_debug
 .PHONY: libN$(1)_release
+.PHONY: static-libs-$(1)
 endif
 )
 endef

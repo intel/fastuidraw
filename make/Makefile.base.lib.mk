@@ -1,4 +1,4 @@
-FASTUIDRAW_LIBS += $(shell freetype-config --libs) -lm
+FASTUIDRAW_LIBS += $(shell freetype-config --libs)
 
 FASTUIDRAW_BASE_CFLAGS = -std=c++11 -D_USE_MATH_DEFINES
 FASTUIDRAW_debug_BASE_CFLAGS = $(FASTUIDRAW_BASE_CFLAGS) -DFASTUIDRAW_DEBUG
@@ -55,6 +55,7 @@ build/$(1)/private/%.o: %.cpp build/$(1)/private/%.d
 build/$(1)/private/%.d: ;
 .PRECIOUS: build/$(1)/%.d
 
+TARGET_LIST += libFastUIDraw_$(1)
 ifeq ($(MINGW_BUILD),1)
 
 libFastUIDraw_$(1): libFastUIDraw_$(1).dll
@@ -75,14 +76,22 @@ INSTALL_LIBS += libFastUIDraw_$(1).so
 .PHONY: libFastUIDraw_$(1) libFastUIDraw
 endif
 
+libFastUIDraw-static: libFastUIDraw_$(1)-static
+.PHONY: libFastUIDraw-static
+libFastUIDraw_$(1)-static: libFastUIDraw_$(1).a
+.PHONY: libFastUIDraw_$(1)-static
+libFastUIDraw_$(1).a: $(FASTUIDRAW_STRING_RESOURCES_SRCS) $$(FASTUIDRAW_$(1)_ALL_OBJS)
+	ar rcs $$@ $$(FASTUIDRAW_$(1)_ALL_OBJS)
+CLEAN_FILES += libFastUIDraw_$(1).a
+TARGETLIST += libFastUIDraw_$(1)-static
+
 -include $$(FASTUIDRAW_$(1)_DEPS)
 
 libFastUIDraw: libFastUIDraw_$(1)
 )
 endef
 
-TARGETLIST += libFastUIDraw
-TARGETLIST += libFastUIDraw_debug libFastUIDraw_release
+TARGETLIST += libFastUIDraw libFastUIDraw-static
 $(call librules,release)
 $(call librules,debug)
 all: libFastUIDraw

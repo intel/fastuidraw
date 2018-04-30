@@ -14,15 +14,27 @@ build/NEGL/$(1)/%.d: ;
 
 libNEGL_$(1): libNEGL_$(1).so
 libNEGL_$(1).so: $$(NEGL_OBJS_$(1)) libFastUIDraw_$(1).so
-	$(CXX) -shared -Wl,-soname,libNEGL_$(1).so -o libNEGL_$(1).so $$(NEGL_OBJS_$(1)) -lEGL -L. -lFastUIDraw_$(1) $(FASTUIDRAW_LIBS)
+	$(CXX) -shared -Wl,-soname,libNEGL_$(1).so -o libNEGL_$(1).so $$(NEGL_OBJS_$(1)) -lEGL -L. -lFastUIDraw_$(1) $(FASTUIDRAW_DEPS_LIBS)
 CLEAN_FILES += libNEGL_$(1).so
 INSTALL_LIBS += libNEGL_$(1).so
 libNEGL: libNEGL_$(1)
 .PHONY: libNEGL_$(1) libNEGL
+
+libNEGL_$(1):libNEGL_$(1).a
+libNEGL_$(1).a: $$(NEGL_OBJS_$(1))
+	ar rcs $$@ $$(NEGL_OBJS_$(1))
+CLEAN_FILES += libNEGL_$(1).a
+
+TARGETLIST += libNEGL_$(1)-static
+libNEGL_$(1)-static: libNEGL_$(1).a
+.PHONY: libNEGL_$(1)-static
+libNEGL-static: libNEGL_$(1).a
+.PHONY: libNEGL
 )
 endef
 
 ifeq ($(BUILD_NEGL),1)
 $(call egllibrules,release)
 $(call egllibrules,debug)
+TARGETLIST += libNEGL-static
 endif
