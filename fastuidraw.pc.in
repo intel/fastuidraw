@@ -9,5 +9,5 @@ Version:
 Requires: freetype2
 Conflicts: fastuidraw-@OTHER_TYPE@
 Cflags: -I${includedir} @FASTUIDRAW_CFLAGS@
-Libs: -L${libdir} -lFastUIDraw_@TYPE@ -lm
+Libs: -L${libdir} -lFastUIDraw_@TYPE@
 Libs.private:
