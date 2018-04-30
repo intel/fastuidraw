@@ -10,8 +10,7 @@ fastuidraw_stroke_compute_offset(in uint point_packed_data,
                                  in float miter_limit,
                                  out vec2 offset)
 {
-  if (offset_type == fastuidraw_stroke_offset_miter_clip_join
-     || offset_type == fastuidraw_stroke_offset_miter_clip_join_lambda_negated)
+  if (offset_type == fastuidraw_stroke_offset_miter_clip_join)
     {
       vec2 n0 = pre_offset, Jn0 = vec2(n0.y, -n0.x);
       vec2 n1 = auxiliary_offset, Jn1 = vec2(n1.y, -n1.x);
@@ -21,7 +20,7 @@ fastuidraw_stroke_compute_offset(in uint point_packed_data,
       lambda = -sign(det);
       r = (det != 0.0) ? (dot(n0, n1) - 1.0) / det : 0.0;
 
-      if (offset_type == fastuidraw_stroke_offset_miter_clip_join_lambda_negated)
+      if ((uint(fastuidraw_stroke_lambda_negaged_mask) & point_packed_data) != 0)
         {
           lambda = -lambda;
         }
@@ -103,8 +102,7 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
                                         out vec2 offset,
                                         inout float stroke_radius)
 {
-  if (offset_type == fastuidraw_stroke_offset_miter_clip_join
-     || offset_type == fastuidraw_stroke_offset_miter_clip_join_lambda_negated)
+  if (offset_type == fastuidraw_stroke_offset_miter_clip_join)
     {
       vec2 n0 = pre_offset, v0 = vec2(n0.y, -n0.x);
       vec2 n1 = auxiliary_offset, v1 = vec2(n1.y, -n1.x);
@@ -113,7 +111,8 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
       float det, r, r0, r1, lambda;
 
       lambda = -sign(dot(v1, n0));
-      if (offset_type == fastuidraw_stroke_offset_miter_clip_join_lambda_negated)
+
+      if ((uint(fastuidraw_stroke_lambda_negaged_mask) & point_packed_data) != 0)
         {
           lambda = -lambda;
         }

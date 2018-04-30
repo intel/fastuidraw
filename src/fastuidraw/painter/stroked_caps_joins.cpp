@@ -2288,7 +2288,8 @@ fill_join_implement(unsigned int join_id, const PerJoinData &J,
   pt.m_position = J.m_p;
   pt.m_pre_offset = J.n1();
   pt.m_auxiliary_offset = J.n0();
-  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_miter_clip_join_lambda_negated, depth);
+  pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_miter_clip_join, depth);
+  pt.m_packed_data |= fastuidraw::StrokedPoint::lambda_negated_mask;
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 

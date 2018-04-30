@@ -162,7 +162,7 @@ public:
 
     /*!
      * Specifies the meaning of \ref m_threshhold.
-     * Default value is \ref threshhold_curvature.
+     * Default value is \ref threshhold_curve_distance.
      */
     enum threshhold_type_t m_threshhold_type;
 

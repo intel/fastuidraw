@@ -43,80 +43,6 @@ unpack_point(StrokedPoint *dst, const PainterAttribute &a)
   dst->m_closed_contour_length = unpack_float(a.m_attrib2.w());
 }
 
-fastuidraw::vec2
-fastuidraw::StrokedPoint::
-offset_vector(void)
-{
-  enum offset_type_t tp;
-
-  tp = offset_type();
-
-  switch(tp)
-    {
-    case offset_start_sub_edge:
-    case offset_end_sub_edge:
-    case offset_shared_with_edge:
-      return m_pre_offset;
-
-    case offset_square_cap:
-      return m_pre_offset + m_auxiliary_offset;
-
-    case offset_rounded_cap:
-      {
-        vec2 n(m_pre_offset), v(n.y(), -n.x());
-        return m_auxiliary_offset.x() * v + m_auxiliary_offset.y() * n;
-      }
-
-    case offset_miter_clip_join:
-    case offset_miter_clip_join_lambda_negated:
-      {
-        vec2 n0(m_pre_offset), Jn0(n0.y(), -n0.x());
-        vec2 n1(m_auxiliary_offset), Jn1(n1.y(), -n1.x());
-        float r, det, lambda;
-
-        det = dot(Jn1, n0);
-        lambda = -t_sign(det);
-        r = (det != 0.0f) ? (dot(n0, n1) - 1.0f) / det : 0.0f;
-
-        if (tp == offset_miter_clip_join_lambda_negated)
-          {
-            lambda = -lambda;
-          }
-
-        return lambda * (n0 + r * Jn0);
-      }
-
-    case offset_miter_bevel_join:
-    case offset_miter_join:
-      {
-        vec2 n0(m_pre_offset), Jn0(n0.y(), -n0.x());
-        vec2 n1(m_auxiliary_offset), Jn1(n1.y(), -n1.x());
-        float r, lambda, den;
-
-        lambda = t_sign(dot(Jn0, n1));
-        den = 1.0f + dot(n0, n1);
-        r = (den != 0.0f) ? lambda / den : 0.0f;
-        return r * (n0 + n1);
-      }
-
-    case offset_rounded_join:
-      {
-        vec2 cs;
-
-        cs.x() = m_auxiliary_offset.y();
-        cs.y() = sqrt(1.0 - cs.x() * cs.x());
-        if (m_packed_data & sin_sign_mask)
-          {
-            cs.y() = -cs.y();
-          }
-        return cs;
-      }
-
-    default:
-      return vec2(0.0f, 0.0f);
-    }
-}
-
 float
 fastuidraw::StrokedPoint::
 miter_distance(void) const
@@ -127,7 +53,6 @@ miter_distance(void) const
   switch(tp)
     {
     case offset_miter_clip_join:
-    case offset_miter_clip_join_lambda_negated:
       {
         vec2 n0(m_pre_offset), Jn0(n0.y(), -n0.x());
         vec2 n1(m_auxiliary_offset), Jn1(n1.y(), -n1.x());
