@@ -81,6 +81,7 @@ libN$(1)_$(2).a: $$(NGL_$(1)_$(2)_OBJ)
 
 CLEAN_FILES += libFastUIDraw$(1)_$(2).a libN$(1)_$(2).a
 TARGETLIST += libN$(1)_$(2)-static libFastUIDraw$(1)_$(2)-static
+INSTALL_STATIC_LIBS += libFastUIDraw$(1)_$(2).a libN$(1)_$(2).a
 
 endif
 )

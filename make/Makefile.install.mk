@@ -100,6 +100,9 @@ $(call pkgconfrulesapi,$(1),GL,$(BUILD_GL))
 $(call pkgconfrulesapi,$(1),GLES,$(BUILD_GLES)))
 endef
 
+ifeq ($(INSTALL_STATIC),1)
+INSTALL_LIBS += $(INSTALL_STATIC_LIBS)
+endif
 
 $(call pkgconfrules,release)
 $(call pkgconfrules,debug)
