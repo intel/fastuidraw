@@ -93,10 +93,13 @@ $(eval $(call demobuildrules,$(1),$(2))
 $(foreach demoname,$(DEMOS),$(call demorule,$(demoname),$(1),$(2),$(3)))
 ifeq ($(3),1)
 .PHONY: demos-$(1)-$(2)
-TARGETLIST += demos-$(1)-$(2)
 endif
 )
 endef
+
+
+
+TARGETLIST+=demos demos-debug demos-release
 
 # $1 --> gl or gles
 # $2 --> (0: skip build targets, 1: add build targets)
@@ -117,5 +120,4 @@ endef
 $(call demosapi,GL,$(BUILD_GL))
 $(call demosapi,GLES,$(BUILD_GLES))
 demos: demos-debug demos-release
-TARGETLIST+=demos demos-debug demos-release
 all: demos

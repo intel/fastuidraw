@@ -26,7 +26,6 @@ libNEGL_$(1).a: $$(NEGL_OBJS_$(1))
 CLEAN_FILES += libNEGL_$(1).a
 INSTALL_STATIC_LIBS += libNEGL_$(1).a
 
-TARGETLIST += libNEGL_$(1)-static
 libNEGL_$(1)-static: libNEGL_$(1).a
 .PHONY: libNEGL_$(1)-static
 libNEGL-static: libNEGL_$(1).a
@@ -37,5 +36,5 @@ endef
 ifeq ($(BUILD_NEGL),1)
 $(call egllibrules,release)
 $(call egllibrules,debug)
-TARGETLIST += libNEGL-static
+TARGETLIST += libNEGL libNEGL-static
 endif
