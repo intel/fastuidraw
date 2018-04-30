@@ -485,6 +485,15 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
   return tesser.dump(out_data, out_threshhold);
 }
 
+unsigned int
+fastuidraw::PathContour::interpolator_generic::
+produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
+                     c_array<ArcTessellatedPath::segment> out_data,
+                     float *out_threshhold) const
+{
+  /* TODO */
+  return 0;
+}
 
 ////////////////////////////////////
 // fastuidraw::PathContour::bezier methods
@@ -669,6 +678,21 @@ produce_tessellation(const TessellatedPath::TessellationParams&,
   return 2;
 }
 
+unsigned int
+fastuidraw::PathContour::flat::
+produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
+                     c_array<ArcTessellatedPath::segment> out_data,
+                     float *out_threshhold) const
+{
+  out_data[0].m_type = ArcTessellatedPath::line_segment;
+  out_data[0].m_p = start_pt();
+  out_data[0].m_data = end_pt();
+  out_data[0].m_radius = 0.0f;
+
+  *out_threshhold = 0.0f;
+  return 1;
+}
+
 fastuidraw::PathContour::interpolator_base*
 fastuidraw::PathContour::flat::
 deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const
@@ -818,6 +842,25 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
 
   return_value = needed_size + 1;
   return return_value;
+}
+
+unsigned int
+fastuidraw::PathContour::arc::
+produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
+                     c_array<ArcTessellatedPath::segment> out_data,
+                     float *out_threshhold) const
+{
+  ArcPrivate *d;
+  d = static_cast<ArcPrivate*>(m_d);
+
+  out_data[0].m_type = ArcTessellatedPath::arc_segment;
+  out_data[0].m_p = d->m_center;
+  out_data[0].m_data.x() = d->m_start_angle;
+  out_data[0].m_data.y() = d->m_start_angle + d->m_angle_speed;
+  out_data[0].m_radius = d->m_radius;
+
+  *out_threshhold = 0.0f;
+  return 1;
 }
 
 void

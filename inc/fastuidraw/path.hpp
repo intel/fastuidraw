@@ -25,6 +25,7 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/tessellated_path.hpp>
+#include <fastuidraw/arc_tessellated_path.hpp>
 
 namespace fastuidraw  {
 
@@ -119,6 +120,27 @@ public:
                          float *out_threshhold) const = 0;
 
     /*!
+     * To be implemented by a derived class to produce the arc-tessellation
+     * from start_pt() to end_pt(). Only the fields ArcTessellatedPath::segment::m_p,
+     * and ArcTessellatedPath::m_type, ArcTessellatedPath::m_data and
+     * ArcTessellatedPath::m_data are to be filled; the other fields of
+     * ArcTessellatedPath::segment are filled by ArcTessellatedPath.
+     * In addition to filling the output array, the function shall return the
+     * number of segments needed to perform the required tessellation.
+     *
+     * \param tess_params tessellation parameters
+     * \param out_data location to which to write the tessellation
+     * \param out_threshhold location to which to write an upperbound for the
+     *                       distance between the curve and the tesseallation
+     *                       approximation.
+     */
+    virtual
+    unsigned int
+    produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
+                         c_array<ArcTessellatedPath::segment> out_data,
+                         float *out_threshhold) const = 0;
+
+    /*!
      * To be implemented by a derived class to return a fast (and approximate)
      * bounding box for the interpolator.
      * \param out_min_bb (output) location to which to write the min-x and min-y
@@ -171,6 +193,11 @@ public:
                          c_array<TessellatedPath::point> out_data,
                          float *out_threshholds) const;
     virtual
+    unsigned int
+    produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
+                         c_array<ArcTessellatedPath::segment> out_data,
+                         float *out_threshhold) const;
+    virtual
     void
     approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
 
@@ -216,6 +243,11 @@ public:
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          c_array<TessellatedPath::point> out_data,
                          float *out_threshholds) const;
+    virtual
+    unsigned int
+    produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
+                         c_array<ArcTessellatedPath::segment> out_data,
+                         float *out_threshhold) const;
 
     /*!
      * To be implemented by a derived to assist in recursive tessellation.
@@ -350,6 +382,11 @@ public:
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          c_array<TessellatedPath::point> out_data,
                          float *out_threshholds) const;
+    virtual
+    unsigned int
+    produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
+                         c_array<ArcTessellatedPath::segment> out_data,
+                         float *out_threshhold) const;
 
   private:
     arc(const arc &q, const reference_counted_ptr<const interpolator_base> &prev);
