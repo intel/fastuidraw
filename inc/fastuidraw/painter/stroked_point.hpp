@@ -79,6 +79,18 @@ public:
       offset_shared_with_edge,
 
       /*!
+       * The point is a point to bound an arc-edge which is to be used for
+       * stroking an arc where rather than approximating the arc-edge with
+       * a sequence of line segments, a pixel shader is used to determine
+       * if inside or outside of the arc.
+       * - \ref m_position holds the center of the circle of the arc
+       * - \ref m_pre_offset radius of the circle of the arc
+       * - \ref m_auxilary holds the angle range of the arc, the start
+       *                         at .x() and the end at .y().
+       */
+      offset_edge_arc,
+
+      /*!
        * The point is for a boundary point of a rounded join of the path.
        * The meanings of the members  \ref m_pre_offset and and \ref
        * m_auxiliary_offset are:
@@ -250,6 +262,27 @@ public:
   /*!
    * \brief
    * Enumeration encoding of bits of point::m_packed_data
+   * for those with offset type \ref offset_edge_arc
+   */
+  enum packed_data_bit_layout_arc_edge_t
+    {
+      /*!
+       * If bit is up, indicates that the arc edge point
+       * is to be extended away from the center when stroking
+       * (i.e. it is the outside of teh stroking edge).
+       */
+      outside_arc_bit = number_common_bits,
+
+      /*!
+       * If bit is up, indicates that the arc edge point
+       * is at the end of the arc.
+       */
+      end_of_arc_bit,
+    };
+
+  /*!
+   * \brief
+   * Enumeration encoding of bits of point::m_packed_data
    * for those with offset type \ref offset_rounded_join
    */
   enum packed_data_bit_layout_rounded_join_t
@@ -338,6 +371,16 @@ public:
        * \ref offset_type_num_bits
        */
       offset_type_mask = FASTUIDRAW_MASK(offset_type_bit0, offset_type_num_bits),
+
+      /*!
+       * Mask generated for \ref outside_arc_bit
+       */
+      outside_arc_mask = FASTUIDRAW_MASK(outside_arc_bit, 1),
+
+      /*!
+       * Mask generated for \ref end_of_arc_bit
+       */
+      end_of_arc_mask = FASTUIDRAW_MASK(end_of_arc_bit, 1),
 
       /*!
        * Mask generated for \ref normal0_y_sign_bit
