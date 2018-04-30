@@ -162,13 +162,13 @@ if [ "$print_cflags" = "1" ]; then
 fi
 
 if [ "$static_linking" = "1" ]; then
-    pre_link="-Wl,--whole-archive -Wl,-Bstatic"
-    post_link="-Wl,--no-whole-archive -Wl,-Bdynamic"
+    pre_link="-Wl,--whole-archive,-Bstatic"
+    post_link="-Wl,--no-whole-archive"
 else
     pre_link=
     post_link=
 fi
 
 if [ "$print_libs" = "1" ]; then
-    echo $pre_link $libs $post_link $base_libs
+    echo  $base_libs $pre_link $libs $post_link
 fi
