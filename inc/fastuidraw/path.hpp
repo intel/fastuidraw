@@ -108,16 +108,15 @@ public:
      *
      * \param tess_params tessellation parameters
      * \param out_data location to which to write the edge tessellated
-     * \param out_threshholds location to which to write the threshholds
-     *                        the tessellation achieved; array is indexed
-     *                        by \ref TessellatedPath::threshhold_type_t.
-     *                        An implementation MUST write to EACH entry.
+     * \param out_threshhold location to which to write an upperbound for the
+     *                       distance between the curve and the tesseallation
+     *                       approximation.
      */
     virtual
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          c_array<TessellatedPath::point> out_data,
-                         c_array<float> out_threshholds) const = 0;
+                         float *out_threshhold) const = 0;
 
     /*!
      * To be implemented by a derived class to return a fast (and approximate)
@@ -170,7 +169,7 @@ public:
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          c_array<TessellatedPath::point> out_data,
-                         c_array<float> out_threshholds) const;
+                         float *out_threshholds) const;
     virtual
     void
     approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
@@ -216,7 +215,7 @@ public:
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          c_array<TessellatedPath::point> out_data,
-                         c_array<float> out_threshholds) const;
+                         float *out_threshholds) const;
 
     /*!
      * To be implemented by a derived to assist in recursive tessellation.
@@ -227,20 +226,15 @@ public:
      * \param out_p location to which to write the position of the point
      *              on the curve in the middle (with repsect to time) of
      *              in_region
-     * \param out_threshholds location to which to write the threshholds
-     *                        the tessellation achieved; array is indexed
-     *                        by \ref TessellatedPath::threshhold_type_t.
-     *                        An implementation MUST write to the index
-     *                        \ref TessellatedPath::threshhold_curve_distance.
-     *                        For all other values, if a value is negative,
-     *                        FastUIDraw will use the data from out_data
-     *                        to estimate the threshhold achieved.
+     * \param out_threshhold location to which to write an upperbound for the
+     *                       distance between the curve and the tesseallation
+     *                       approximation.
      */
     virtual
     void
     tessellate(tessellated_region *in_region,
                tessellated_region **out_regionA, tessellated_region **out_regionB,
-               vec2 *out_p, c_array<float> out_threshholds) const = 0;
+               vec2 *out_p, float *out_threshholds) const = 0;
   };
 
   /*!
@@ -290,7 +284,7 @@ public:
     void
     tessellate(tessellated_region *in_region,
                tessellated_region **out_regionA, tessellated_region **out_regionB,
-               vec2 *out_p, c_array<float> out_threshholds) const;
+               vec2 *out_p, float *out_threshholds) const;
     virtual
     void
     approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
@@ -355,7 +349,7 @@ public:
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          c_array<TessellatedPath::point> out_data,
-                         c_array<float> out_threshholds) const;
+                         float *out_threshholds) const;
 
   private:
     arc(const arc &q, const reference_counted_ptr<const interpolator_base> &prev);
@@ -904,8 +898,7 @@ public:
    * \param tp the type of threshhold to use for the tessellation requirement.
    */
   const reference_counted_ptr<const TessellatedPath>&
-  tessellation(float thresh,
-               enum TessellatedPath::threshhold_type_t tp = TessellatedPath::threshhold_curve_distance) const;
+  tessellation(float thresh) const;
 
   /*!
    * Provided as a conveniance, returns the starting point tessellation.

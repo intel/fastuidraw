@@ -40,7 +40,8 @@ class FilledPath;
 
 /*!
  * \brief
- * A TessellatedPath represents the tessellation of a Path.
+ * A TessellatedPath represents the tessellation of a Path
+ * into line segments.
  *
  * A single contour of a TessellatedPath is constructed from
  * a single \ref PathContour of the source \ref Path. Each
@@ -60,24 +61,6 @@ class TessellatedPath:
 public:
   /*!
    * \brief
-   * Enumeration to specify the type of threshhold
-   * a \ref TessellationParams is.
-   */
-  enum threshhold_type_t
-    {
-      /*!
-       *  Threshhold specifies how much distance is between
-       *  line segment between from successive points of a
-       *  tessellated edge and the sub-curve of the starting
-       *  curve between those two points.
-       */
-      threshhold_curve_distance,
-
-      number_threshholds,
-    };
-
-  /*!
-   * \brief
    * A TessellationParams stores how finely to tessellate
    * the curves of a path.
    */
@@ -88,7 +71,6 @@ public:
      * Ctor, initializes values.
      */
     TessellationParams(void):
-      m_threshhold_type(threshhold_curve_distance),
       m_threshhold(1.0f),
       m_max_segments(32)
     {}
@@ -100,23 +82,8 @@ public:
     bool
     operator!=(const TessellationParams &rhs) const
     {
-      return m_threshhold_type != rhs.m_threshhold_type
-        || m_threshhold != rhs.m_threshhold
+      return m_threshhold != rhs.m_threshhold
         || m_max_segments != rhs.m_max_segments;
-    }
-
-    /*!
-     * Provided as a conveniance. Equivalent to
-     * \code
-     * m_threshhold_type = tp;
-     * \endcode
-     * \param tp value to which to assign to \ref m_threshhold_type
-     */
-    TessellationParams&
-    threshhold_type(enum threshhold_type_t tp)
-    {
-      m_threshhold_type = tp;
-      return *this;
     }
 
     /*!
@@ -134,22 +101,6 @@ public:
     }
 
     /*!
-     * Provided as a conveniance. Equivalent to
-     * \code
-     * m_threshhold_type = threshhold_curve_distance;
-     * m_threshhold = p;
-     * \endcode
-     * \param p value to which to assign to \ref m_threshhold
-     */
-    TessellationParams&
-    curve_distance_tessellate(float p)
-    {
-      m_threshhold_type = threshhold_curve_distance;
-      m_threshhold = p;
-      return *this;
-    }
-
-    /*!
      * Set the value of \ref m_max_segments.
      * \param v value to which to assign to \ref m_max_segments
      */
@@ -161,14 +112,8 @@ public:
     }
 
     /*!
-     * Specifies the meaning of \ref m_threshhold.
-     * Default value is \ref threshhold_curve_distance.
-     */
-    enum threshhold_type_t m_threshhold_type;
-
-    /*!
      * Meaning depends on \ref m_threshhold_type.
-     * Default value is M_PI / 30.0.
+     * Default value is 1.0.
      */
     float m_threshhold;
 
@@ -249,7 +194,7 @@ public:
    * the named threshhold type.
    */
   float
-  effective_threshhold(enum threshhold_type_t tp) const;
+  effective_threshhold(void) const;
 
   /*!
    * Returns the maximum number of segments any edge needed

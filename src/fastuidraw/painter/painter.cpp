@@ -1245,7 +1245,7 @@ select_stroked_path(const fastuidraw::Path &path,
                                                            mag, m_curve_flatness);
   t = fastuidraw::t_min(thresh, m_curve_flatness / mag);
   const TessellatedPath *tess;
-  tess = path.tessellation(t, TessellatedPath::threshhold_curve_distance).get();
+  tess = path.tessellation(t).get();
   return tess->stroked().get();
 }
 
@@ -1258,7 +1258,7 @@ select_filled_path(const fastuidraw::Path &path)
 
   mag = compute_path_magnification(path);
   thresh = m_curve_flatness / mag;
-  return *path.tessellation(thresh, TessellatedPath::threshhold_curve_distance)->filled();
+  return *path.tessellation(thresh)->filled();
 }
 
 void
