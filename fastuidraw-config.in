@@ -6,6 +6,7 @@ print_help() {
     echo "  --debug: indicate to compile/link for debug"
     echo "  --cflags: print compile flags"
     echo "  --libs: print link flags"
+    echo "  --static: modifier to indicate statically linking against FastUIDraw"
     echo "  --nodirs: exclude directory directives of FastUIDraw install location"
     echo "  --libdir=/some/path: specify library directory"
     echo "  --incdir=/some/path: specify include directory"
