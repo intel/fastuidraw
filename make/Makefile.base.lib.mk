@@ -1,4 +1,5 @@
-FASTUIDRAW_LIBS += $(shell freetype-config --libs)
+FASTUIDRAW_DEPS_LIBS += $(shell freetype-config --libs)
+FASTUIDRAW_DEPS_STATIC_LIBS += $(shell freetype-config --static --libs)
 
 FASTUIDRAW_BASE_CFLAGS = -std=c++11 -D_USE_MATH_DEFINES
 FASTUIDRAW_debug_BASE_CFLAGS = $(FASTUIDRAW_BASE_CFLAGS) -DFASTUIDRAW_DEBUG
@@ -35,7 +36,6 @@ FASTUIDRAW_$(1)_RESOURCE_OBJS = $$(patsubst %.resource_string, build/$(1)/%.reso
 FASTUIDRAW_$(1)_ALL_OBJS = $$(FASTUIDRAW_$(1)_OBJS) $$(FASTUIDRAW_PRIVATE_$(1)_OBJS) $$(FASTUIDRAW_$(1)_RESOURCE_OBJS)
 COMPILE_$(1)_CFLAGS=$$(FASTUIDRAW_BUILD_$(1)_FLAGS) $(FASTUIDRAW_BUILD_WARN_FLAGS) $(FASTUIDRAW_BUILD_INCLUDES_CFLAGS) $$(FASTUIDRAW_$(1)_CFLAGS)
 CLEAN_FILES += $$(FASTUIDRAW_$(1)_ALL_OBJS) $$(FASTUIDRAW_$(1)_RESOURCE_OBJS)
-FASTUIDRAW_$(1)_LIBS = -lFastUIDraw_$(1) $(FASTUIDRAW_LIBS)
 SUPER_CLEAN_FILES += $$(FASTUIDRAW_$(1)_DEPS)
 build/$(1)/%.resource_string.o: build/string_resources_cpp/%.resource_string.cpp
 	@mkdir -p $$(dir $$@)
@@ -61,7 +61,7 @@ ifeq ($(MINGW_BUILD),1)
 libFastUIDraw_$(1): libFastUIDraw_$(1).dll
 libFastUIDraw_$(1).dll.a: libFastUIDraw_$(1).dll
 libFastUIDraw_$(1).dll: $$(FASTUIDRAW_$(1)_ALL_OBJS)
-	$(CXX) -shared -Wl,--out-implib,libFastUIDraw_$(1).dll.a -o libFastUIDraw_$(1).dll $$(FASTUIDRAW_$(1)_ALL_OBJS) $(FASTUIDRAW_LIBS)
+	$(CXX) -shared -Wl,--out-implib,libFastUIDraw_$(1).dll.a -o libFastUIDraw_$(1).dll $$(FASTUIDRAW_$(1)_ALL_OBJS) $(FASTUIDRAW_DEPS_LIBS)
 CLEAN_FILES += libFastUIDraw_$(1).dll libFastUIDraw_$(1).dll.a
 INSTALL_LIBS += libFastUIDraw_$(1).dll.a
 INSTALL_EXES += libFastUIDraw_$(1).dll
@@ -70,7 +70,7 @@ else
 
 libFastUIDraw_$(1): libFastUIDraw_$(1).so
 libFastUIDraw_$(1).so: $(FASTUIDRAW_STRING_RESOURCES_SRCS) $$(FASTUIDRAW_$(1)_ALL_OBJS)
-	$(CXX) -shared -Wl,-soname,libFastUIDraw_$(1).so -o libFastUIDraw_$(1).so $$(FASTUIDRAW_$(1)_ALL_OBJS) $(FASTUIDRAW_LIBS)
+	$(CXX) -shared -Wl,-soname,libFastUIDraw_$(1).so -o libFastUIDraw_$(1).so $$(FASTUIDRAW_$(1)_ALL_OBJS) $(FASTUIDRAW_DEPS_LIBS)
 CLEAN_FILES += libFastUIDraw_$(1).so
 INSTALL_LIBS += libFastUIDraw_$(1).so
 .PHONY: libFastUIDraw_$(1) libFastUIDraw

@@ -124,7 +124,6 @@ if [ "$print_cflags" = "1" ] || [ "$print_libs" = "1" ]; then
   fi
 fi
 
-base_libs="@FASTUIDRAW_LIBS@"
 libs="$dir_libs -lFastUIDraw_$mode"
 cflags="$base_cflags"
 
@@ -164,11 +163,13 @@ fi
 if [ "$static_linking" = "1" ]; then
     pre_link="-Wl,--whole-archive,-Bstatic"
     post_link="-Wl,--no-whole-archive -static-libstdc++ -static-libgcc"
+    base_libs="@FASTUIDRAW_DEPS_STATIC_LIBS@"
 else
     pre_link=
     post_link=
+    base_libs="@FASTUIDRAW_DEPS_LIBS@"
 fi
 
 if [ "$print_libs" = "1" ]; then
-    echo  $base_libs $pre_link $libs $post_link
+    echo $base_libs $pre_link $libs $post_link
 fi
