@@ -40,89 +40,150 @@ class StrokedPoint
 public:
   /*!
    * \brief
-   * Enumeration for specifing how to compute
-   * \ref offset_vector()).
+   * Enumeration for specifing the point type which in turn
+   * determines the meaning of the fields \ref m_pre_offset
+   * and \ref m_auxiliary_offset
    */
   enum offset_type_t
     {
       /*!
-       * The point is for an edge of the path,
-       * point signifies the start of a sub-edge
-       * (quad) of drawing an edge.
+       * The point is for an edge of the path, point signifies the start
+       * of a sub-edge (quad) of drawing an edge. The meanings of \ref
+       * m_pre_offset and \ref m_auxiliary_offset are:
+       *  - \ref m_pre_offset the normal vector to the edge in which
+       *                      move the point by when stroking
+       *  - \ref m_auxiliary_offset when added to \ref m_position, gives
+       *                            the position of the point on the other
+       *                            side of the edge.
        */
       offset_start_sub_edge,
 
       /*!
-       * The point is for an edge of the path,
-       * point signifies the end of a sub-edge
-       * (quad) of drawing an edge.
+       * The point is for an edge of the path, point signifies the end
+       * of a sub-edge (quad) of drawing an edge. The meanings of the
+       * members \ref m_pre_offset and \ref m_auxiliary_offset are
+       * identical to \ref offset_start_sub_edge.
        */
       offset_end_sub_edge,
 
       /*!
-       * The point is at a position that has the
-       * same value as point on an edge but the
-       * point itself is part of a cap or join.
+       * The point is at a position that has the same value as point on
+       * an edge but the point itself is part of a cap or join. The
+       * meanings of the members \ref m_pre_offset and \ref
+       * m_auxiliary_offset are:
+       *  - \ref m_pre_offset the normal vector to the edge in which move
+       *                      the point by when stroking; this vector can
+       *                      be (0, 0).
+       *  - \ref m_auxiliary_offset unused (set to (0, 0))
        */
       offset_shared_with_edge,
 
       /*!
-       * The point is for a boundary point of a rounded join of the path
+       * The point is for a boundary point of a rounded join of the path.
+       * The meanings of the members  \ref m_pre_offset and and \ref
+       * m_auxiliary_offset are:
+       *  - \ref m_pre_offset the .x() component holds the unit normal vector
+       *                      between the join point and the edge going into
+       *                      the join. The .y() component holds the unit
+       *                      normal vector between the join point and the edge
+       *                      leaving the join. The packing is that the
+       *                      x-coordinate value is given and the y-coordinate
+       *                      magnitude is \f$ sqrt(1 - x^2) \f$. If the bit
+       *                      \ref normal0_y_sign_bit is up, then the y-coordinate
+       *                      for the normal vector of going into the join,
+       *                      then the y-value is negative. If the bit \ref
+       *                      normal1_y_sign_bit is up, then the y-coordinate
+       *                      for the normal vector of leaving the join, then
+       *                      the y-value is negative.
+       *  - \ref m_auxiliary_offset the .x() component gives an interpolation
+       *                            in the range [0, 1] to interpolate between
+       *                            the normal vectors packed in \ref m_pre_offset.
+       *                            The .y() value gives the normal vector directly
+       *                            but packed (as in \ref m_pre_offset) where the
+       *                            y-coordinate sign is negative if the bit \ref
+       *                            sin_sign_mask is up.
        */
       offset_rounded_join,
 
       /*!
-       * Point type for miter-clip join point whose position
-       * depends on the miter-limit.
+       * Point type for miter-clip join point whose position depends on the
+       * stroking radius and the miter-limit. The meanings of \ref m_pre_offset
+       * and \ref m_auxiliary_offset are:
+       * - \ref m_pre_offset gives the unit normal vector of teh edge going
+       *                     into the join
+       * - \ref m_auxiliary_offset gives the unit normal vector of teh edge
+       *                           leaving the join
        */
       offset_miter_clip_join,
 
       /*!
-       * Point type for miter-clip join point whose position
-       * depends on the miter-limit where the lambda of the
-       * computation is negatted.
-       */
-      offset_miter_clip_join_lambda_negated,
-
-      /*!
-       * Point type for miter-bevel join point whose position
-       * depends on the miter-limit.
+       * Point type for miter-bevel join point whose position depends on the
+       * stroking radius and the miter-limit. The meanings of \ref m_pre_offset
+       * and \ref m_auxiliary_offset are:
+       * - \ref m_pre_offset gives the unit normal vector of teh edge going
+       *                     into the join
+       * - \ref m_auxiliary_offset gives the unit normal vector of teh edge
+       *                           leaving the join
        */
       offset_miter_bevel_join,
 
       /*!
-       * Point type for miter join whose position depends on
-       * the miter-limit.
+       * Point type for miter join whose position position depends on the
+       * stroking radius and the miter-limit. The meanings of \ref m_pre_offset
+       * and \ref m_auxiliary_offset are:
+       * - \ref m_pre_offset gives the unit normal vector of teh edge going
+       *                     into the join
+       * - \ref m_auxiliary_offset gives the unit normal vector of teh edge
+       *                           leaving the join
        */
       offset_miter_join,
 
       /*!
-       * The point is for a boundary point of a rounded cap of the path
+       * The point is for a boundary point of a rounded cap of the path.
+       * The meanings of \ref m_pre_offset and \ref m_auxiliary_offset
+       * are:
+       * - \ref m_pre_offset is the normal vector to the path to start
+       *                     drawing the rounded cap
+       * - \ref m_auxiliary_offset gives the the unit vector (cos, sin)
+       *                           of the angle to make with the vector
+       *                           given by \ref m_pre_offset
        */
       offset_rounded_cap,
 
       /*!
-       * The point is for a boundary point of a square cap of the path
+       * The point is for a boundary point of a square cap of the path,
+       * the meanings of \ref m_pre_offset and \ref m_auxiliary_offset are:
+       * - \ref m_pre_offset is the normal vector to the path by which
+       *                     to move the point
+       * - \ref m_auxiliary_offset is the tangent vector to the path
+       *                           by which to move the point
        */
       offset_square_cap,
 
       /*!
-       * The point is from \ref adjustable_caps() point set.
-       * It is for a point for a cap at the start of a contour.
-       * These points are for dashed stroking with caps; they
-       * contain data to allow one from a vertex shader to extend
-       * or shrink the cap area correctly to implement dashed
-       * stroking.
+       * The point is a point of an adjustable cap. It is for a point for a
+       * cap at the start of a contour. These points are for dashed stroking
+       * with caps; they contain data to allow one from a vertex shader to
+       * extend or shrink the cap area correctly to implement dashed stroking.
+       * The meanings of \ref m_pre_offset and \ref m_auxiliary_offset are:
+       * - \ref m_pre_offset is the normal vector to the path by which
+       *                     to move the point; this value can be (0, 0)
+       *                     to indicate to not move perpindicular to the
+       *                     path
+       * - \ref m_auxiliary_offset is the tangent vector to the path
+       *                           by which to move the point; this value
+       *                           can be (0, 0) to indicate to not move
+       *                           parallel to the path
        */
       offset_adjustable_cap_contour_start,
 
       /*!
-       * The point is from \ref adjustable_caps() point set.
-       * It is for a point for a cap at the end of a contour.
-       * These points are for dashed stroking with caps; they
-       * contain data to allow one from a vertex shader to extend
-       * or shrink the cap area correctly to implement dashed
-       * stroking.
+       * The point is a point of an adjustable cap. It is for a point for a
+       * cap at the end of a contour. These points are for dashed stroking
+       * with caps; they contain data to allow one from a vertex shader to
+       * extend or shrink the cap area correctly to implement dashed stroking.
+       * The meanings of \ref m_pre_offset and \ref m_auxiliary_offset are
+       * identical to the meanings for \ref offset_adjustable_cap_contour_start.
        */
       offset_adjustable_cap_contour_end,
 
@@ -219,6 +280,20 @@ public:
 
   /*!
    * \brief
+   * Enumeration encoding of bits of point::m_packed_data
+   * for those with offset type \ref offset_miter_clip_join.
+   */
+  enum packed_data_bit_layout_miter_join_t
+    {
+      /*!
+       * Indicates that the lambda of the miter-join
+       * computation should be negated.
+       */
+      lambda_negated_bit = number_common_bits,
+    };
+
+  /*!
+   * \brief
    * Enumeration encoding of bits of point::m_packed_data for
    * those with offset type \ref offset_adjustable_cap_contour_end
    * or \ref offset_adjustable_cap_contour_start.
@@ -280,6 +355,11 @@ public:
       sin_sign_mask = FASTUIDRAW_MASK(sin_sign_bit, 1),
 
       /*!
+       * Mask generated for \ref lambda_negated_mask
+       */
+      lambda_negated_mask = FASTUIDRAW_MASK(lambda_negated_bit, 1),
+
+      /*!
        * Mask generated for \ref boundary_bit
        */
       boundary_mask = FASTUIDRAW_MASK(boundary_bit, 1),
@@ -306,20 +386,24 @@ public:
     };
 
   /*!
-   * The base position of a point, taken directly from
-   * the TessellatedPath from which the
-   * StrokedPath is constructed.
+   * The base position of a point before applying the stroking width
+   * to the position.
    */
   vec2 m_position;
 
   /*!
-   * Gives the offset vector used to help compute
-   * the point offset vector.
+   * Gives values to help compute the location of the point after
+   * applying the stroking width. See the descriptions to the
+   * elements of \ref offset_type_t for its meaning for different
+   * offset types.
    */
   vec2 m_pre_offset;
 
   /*!
-   * Provides an auxiliary offset data
+   * Gives values to help compute the location of the point after
+   * applying the stroking width. See the descriptions to the
+   * elements of \ref offset_type_t for its meaning for different
+   * offset types.
    */
   vec2 m_auxiliary_offset;
 
@@ -423,107 +507,7 @@ public:
   }
 
   /*!
-   * Computes the offset vector for a point. The final position
-   * of a point when stroking with a width of W is given by
-   * \code
-   * m_position + 0.5f * W * offset_vector().
-   * \endcode
-   * The computation for offset_vector() is as follows.
-   * - For those with offset_type() being \ref offset_start_sub_edge,
-   *   \ref offset_end_sub_edge and \ref offset_shared_with_edge,
-   *   the offset is given by
-   *   \code
-   *   m_pre_offset
-   *   \endcode
-   *   In addition, for these offset types, \ref m_auxiliary_offset
-   *   holds the the delta vector to the point on edge with
-   *   which the point makes a quad.
-   * - For those with offset_type() being \ref offset_rounded_join,
-   *   the value is given by the following code
-   *   \code
-   *   vec2 cs;
-   *
-   *   cs.x() = m_auxiliary_offset.y();
-   *   cs.y() = sqrt(1.0 - cs.x() * cs.x());
-   *
-   *   if (m_packed_data & sin_sign_mask)
-   *     cs.y() = -cs.y();
-   *
-   *   offset = cs
-   *   \endcode
-   *   In addition, the source data for join is encoded as follows:
-   *   \code
-   *   float t;
-   *   vec2 n0, n1;
-   *
-   *   t = m_auxiliary_offset.x();
-   *   n0.x() = m_pre_offset.x();
-   *   n1.x() = m_pre_offset.y();
-   *
-   *   n0.y() = sqrt(1.0 - n0.x() * n0.x());
-   *   n1.y() = sqrt(1.0 - n1.x() * n1.x());
-   *
-   *   if (m_packed_data & normal0_y_sign_mask)
-   *     n0.y() = -n0.y();
-   *
-   *   if (m_packed_data & normal1_y_sign_mask)
-   *     n1.y() = -n1.y();
-   *   \endcode
-   *   The vector n0 represents the normal of the path going into the join,
-   *   the vector n1 represents the normal of the path going out of the join
-   *   and t represents how much to interpolate from n0 to n1.
-   * - For those with offset_type() being \ref offset_miter_clip_join
-   *   or \ref offset_miter_clip_join_lambda_negated
-   *   the value is given by the following code
-   *   \code
-   *   vec2 n0(m_pre_offset), Jn0(n0.y(), -n0.x());
-   *   vec2 n1(m_auxiliary_offset), Jn1(n1.y(), -n1.x());
-   *   float r, det, lambda;
-   *   det = dot(Jn1, n0);
-   *   lambda = -t_sign(det);
-   *   r = (det != 0.0) ? (dot(n0, n1) - 1.0) / det : 0.0;
-   *   if (offset_type() == offset_miter_clip_join_lambda_negated)
-   *     {
-   *       lambda = -lambda;
-   *     }
-   *   //result:
-   *   offset = lambda * (n + r * v);
-   *   \endcode
-   * - For those with offset_type() being \ref offset_miter_join,
-   *   or \ref offset_miter_bevel_join the value is given by the
-   *   following code:
-   *   \code
-   *   vec2 n0(m_pre_offset), Jn0(n0.y(), -n0.x());
-   *   vec2 n1(m_auxiliary_offset), Jn1(n1.y(), -n1.x());
-   *   float lambda, r, d;
-   *   lambda = t_sign(dot(Jn0, n1));
-   *   r = lambda / (1.0 + dot(n0, n1));
-   *   offset = r * (n0 + n1);
-   *   \endcode
-   * - For those with offset_type() being \ref offset_rounded_cap,
-   *   the value is given by the following code
-   *   \code
-   *   vec2 n(m_pre_offset), v(n.y(), -n.x());
-   *   offset = m_auxiliary_offset.x() * v + m_auxiliary_offset.y() * n;
-   *   \endcode
-   * - For those with offset_type() being \ref offset_square_cap,
-   *   \ref offset_adjustable_cap_contour_start or
-   *   \ref offset_adjustable_cap_contour_end the value the value
-   *   is given by
-   *   \code
-   *   m_pre_offset + m_auxiliary_offset
-   *   \endcode
-   *   In addition, \ref m_auxiliary_offset the tangent vector along
-   *   the path in the direction of the path and \ref m_pre_offset
-   *   holds a vector perpindicular to the path or a zero vector
-   *   (indicating it is not on boundary of cap).
-   */
-  vec2
-  offset_vector(void);
-
-  /*!
    * When offset_type() is one of \ref offset_miter_clip_join,
-   * \ref offset_miter_clip_join_lambda_negated,
    * \ref offset_miter_bevel_join or \ref offset_miter_join,
    * returns the distance to the miter point. For other point
    * types, returns 0.0.
@@ -532,17 +516,17 @@ public:
   miter_distance(void) const;
 
   /*!
-   * Pack the data of this \ref point into a \ref
+   * Pack the data of this \ref StrokedPoint into a \ref
    * PainterAttribute. The packing is as follows:
-   * - PainterAttribute::m_attrib0 .xy -> point::m_position (float)
-   * - PainterAttribute::m_attrib0 .zw -> point::m_pre_offset (float)
-   * - PainterAttribute::m_attrib1 .x  -> point::m_distance_from_edge_start (float)
-   * - PainterAttribute::m_attrib1 .y  -> point::m_distance_from_contour_start (float)
-   * - PainterAttribute::m_attrib1 .zw -> point::m_auxiliary_offset (float)
-   * - PainterAttribute::m_attrib2 .x  -> point::m_packed_data (uint)
-   * - PainterAttribute::m_attrib2 .y  -> point::m_edge_length (float)
-   * - PainterAttribute::m_attrib2 .z  -> point::m_open_contour_length (float)
-   * - PainterAttribute::m_attrib2 .w  -> point::m_closed_contour_length (float)
+   * - PainterAttribute::m_attrib0 .xy -> \ref m_position (float)
+   * - PainterAttribute::m_attrib0 .zw -> \ref m_pre_offset (float)
+   * - PainterAttribute::m_attrib1 .x  -> \ref m_distance_from_edge_start (float)
+   * - PainterAttribute::m_attrib1 .y  -> \ref m_distance_from_contour_start (float)
+   * - PainterAttribute::m_attrib1 .zw -> \ref m_auxiliary_offset (float)
+   * - PainterAttribute::m_attrib2 .x  -> \ref m_packed_data (uint)
+   * - PainterAttribute::m_attrib2 .y  -> \ref m_edge_length (float)
+   * - PainterAttribute::m_attrib2 .z  -> \ref m_open_contour_length (float)
+   * - PainterAttribute::m_attrib2 .w  -> \ref m_closed_contour_length (float)
    *
    * \param dst PainterAttribute to which to pack
    */
@@ -550,7 +534,7 @@ public:
   pack_point(PainterAttribute *dst) const;
 
   /*!
-   * Unpack a \ref point from a \ref PainterAttribute.
+   * Unpack a \ref StrokedPoint from a \ref PainterAttribute.
    * \param dst point to which to unpack data
    * \param src PainterAttribute from which to unpack data
    */
