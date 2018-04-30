@@ -3,9 +3,12 @@ CLEAN_FILES += $(DEMO_COMMON_RESOURCE_STRING_SRCS)
 
 # This is awful. Makes me wish I used cmake.
 DEMO_COMMON_LIBS := $(shell sdl2-config --libs) -lSDL2_image
+DEMO_COMMON_STATIC_LIBS := $(shell sdl2-config --static-libs) -lSDL2_image
 ifeq ($(MINGW_BUILD),1)
   TEMP := $(DEMO_COMMON_LIBS)
   DEMO_COMMON_LIBS := $(subst -mwindows, ,$(TEMP))
+  TEMP := $(DEMO_COMMON_STATIC_LIBS)
+  DEMO_COMMON_STATIC_LIBS := $(subst -mwindows, ,$(TEMP))
 endif
 
 DEMO_COMMON_CFLAGS = $(shell sdl2-config --cflags) -Idemos/common
@@ -17,9 +20,13 @@ DEMO_debug_CFLAGS = -g $(DEMO_COMMON_CFLAGS)
 define demobuildrules
 $(eval
 DEMO_$(2)_CFLAGS_$(1) = $$(DEMO_$(2)_CFLAGS) $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --cflags --incdir=inc)
-DEMO_$(2)_LIBS_$(1) = $(DEMO_COMMON_LIBS) $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --libs --libdir=.)
+DEMO_$(2)_LIBS_$(1) = $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --libs --libdir=.)
+DEMO_$(2)_LIBS_STATIC_$(1) = $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --static --libs --libdir=.)
 ifeq ($(MINGW_BUILD),0)
-DEMO_$(2)_LIBS_$(1) +=  -lEGL -lwayland-egl $$(shell ./fastuidraw-config.nodir --negl --$(2) --libs --libdir=.)
+DEMO_COMMON_LIBS += -lEGL -lwayland-egl
+DEMO_COMMON_STATIC_LIBS += -lEGL -lwayland-egl
+DEMO_$(2)_LIBS_$(1) += $$(shell ./fastuidraw-config.nodir --negl --$(2) --libs --libdir=.)
+DEMO_$(2)_LIBS_STATIC_$(1) = $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --negl --static --libs --libdir=.)
 NEGL_$(2)_DEP_$(1) = $(NGL_EGL_HPP)
 NEGL_$(2)_LIB_DEP_$(1) = libNEGL_$(2).so
 endif
@@ -52,7 +59,9 @@ THISDEMO_$(1)_$(2)_$(3)_OBJS_RAW = $$(patsubst %.cpp, %.o, $$(THISDEMO_$(1)_$(2)
 THISDEMO_$(1)_$(2)_$(3)_DEPS = $$(addprefix build/demo/$(3)/$(2)/, $$(THISDEMO_$(1)_$(2)_$(3)_DEPS_RAW))
 THISDEMO_$(1)_$(2)_$(3)_OBJS = $$(addprefix build/demo/$(3)/$(2)/, $$(THISDEMO_$(1)_$(2)_$(3)_OBJS_RAW))
 THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS = $$(THISDEMO_$(1)_$(2)_$(3)_OBJS) $$(THISDEMO_$(1)_$(2)_$(3)_RESOURCE_OBJS)
-CLEAN_FILES += $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS) $(1)-$(2)-$(3) $(1)-$(2)-$(3).exe $$(THISDEMO_$(1)_RESOURCE_STRING_SRCS)
+CLEAN_FILES += $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS)  $$(THISDEMO_$(1)_RESOURCE_STRING_SRCS)
+CLEAN_FILES += $(1)-$(2)-$(3) $(1)-$(2)-$(3).exe
+CLEAN_FILES += $(1)-$(2)-$(3)-static $(1)-$(2)-$(3)-static.exe
 SUPER_CLEAN_FILES += $$(THISDEMO_$(1)_$(2)_$(3)_DEPS)
 ifeq ($(4),1)
 ifneq ($(MAKECMDGOALS),clean)
@@ -78,8 +87,19 @@ $(1)-$(3): $(1)-$(2)-$(3)
 .PHONY: $(1)-$(3)
 $(1): $(1)-$(2)
 .PHONY: $(1)
-$(1)-$(2)-$(3): libFastUIDraw$(2)_$(3) $$(NEGL_$(3)_LIB_DEP_$(2)) $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS) $$(THISDEMO_$(1)_$(2)_$(3)_DEPS)
-	$$(CXX) -o $$@ $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS) $$(DEMO_$(3)_LIBS_$(2))
+$(1)-$(2)-$(3): libFastUIDraw$(2)_$(3) $$(NEGL_$(3)_LIB_DEP_$(2)) $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS)
+	$$(CXX) -o $$@ $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS) $$(DEMO_$(3)_LIBS_$(2)) $(DEMO_COMMON_LIBS)
+
+demos-$(2)-$(3)-static: $(1)-$(2)-$(3)-static
+.PHONY: demos-$(2)-$(3)-static
+$(1)-$(2)-static: $(1)-$(2)-$(3)-static
+.PHONY: $(1)-$(2)-static
+$(1)-$(3)-static: $(1)-$(2)-$(3)-static
+.PHONY: $(1)-$(3)-static
+$(1)-static: $(1)-$(2)-static
+.PHONY: $(1)-static
+$(1)-$(2)-$(3)-static: libFastUIDraw_$(3).a libFastUIDraw$(2)_$(3).a libN$(2)_$(3).a libNEGL_$(3).a $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS)
+	$$(CXX) -static-libstdc++ -static-libgcc -o $$@ $$(THISDEMO_$(1)_$(2)_$(3)_ALL_OBJS)  $(DEMO_COMMON_STATIC_LIBS) $$(DEMO_$(3)_LIBS_STATIC_$(2))
 endif
 )
 endef
@@ -104,6 +124,7 @@ $(foreach demoname,$(DEMOS),$(call adddemotarget,$(demoname)))
 
 
 TARGETLIST+=demos demos-debug demos-release
+TARGETLIST+=demos-static demos-debug-static demos-release-static
 
 # $1 --> gl or gles
 # $2 --> (0: skip build targets, 1: add build targets)
@@ -116,6 +137,11 @@ demos-release: demos-$(1)-release
 demos-debug: demos-$(1)-debug
 .PHONY: demos-$(1)
 TARGETLIST += demos-$(1)
+demos-$(1)-static: demos-$(1)-release-static demos-$(1)-debug-static
+demos-release-static: demos-$(1)-release-static
+demos-debug-static: demos-$(1)-debug-static
+.PHONY: demos-$(1)-static
+TARGETLIST += demos-$(1)-static
 endif
 )
 endef
