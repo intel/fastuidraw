@@ -20,7 +20,7 @@ fastuidraw_stroke_compute_offset(in uint point_packed_data,
       lambda = -sign(det);
       r = (det != 0.0) ? (dot(n0, n1) - 1.0) / det : 0.0;
 
-      if ((uint(fastuidraw_stroke_lambda_negaged_mask) & point_packed_data) != 0)
+      if ((uint(fastuidraw_stroke_lambda_negaged_mask) & point_packed_data) != 0u)
         {
           lambda = -lambda;
         }
@@ -112,7 +112,7 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
 
       lambda = -sign(dot(v1, n0));
 
-      if ((uint(fastuidraw_stroke_lambda_negaged_mask) & point_packed_data) != 0)
+      if ((uint(fastuidraw_stroke_lambda_negaged_mask) & point_packed_data) != 0u)
         {
           lambda = -lambda;
         }
