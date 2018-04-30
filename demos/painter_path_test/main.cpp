@@ -1301,12 +1301,12 @@ per_path_processing(void)
   for(const PerPath &P : m_paths)
     {
       reference_counted_ptr<const TessellatedPath> tess;
-      reference_counted_ptr<const StrokedPath> stroked;
+      const StrokedCapsJoins *stroked;
       const PainterAttributeData *data;
       c_array<const PainterAttribute> miter_points;
 
       tess = P.m_path.tessellation(-1.0f);
-      stroked = tess->stroked();
+      stroked = &tess->stroked()->caps_joins();
       data = &stroked->miter_clip_joins();
 
       for(unsigned int J = 0, endJ = stroked->number_joins(true); J < endJ; ++J)

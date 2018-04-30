@@ -250,7 +250,6 @@ namespace
 
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_clip_scratch_vec2s;
     std::vector<float> m_clip_scratch_floats;
-    fastuidraw::StrokedCapsJoins::ScratchSpace m_caps_joins;
   };
 
   class EdgeRanges
@@ -1605,24 +1604,6 @@ edge_chunks(void) const
   return d->edge_chunks();
 }
 
-fastuidraw::c_array<const unsigned int>
-fastuidraw::StrokedPath::ChunkSet::
-join_chunks(void) const
-{
-  ChunkSetPrivate *d;
-  d = static_cast<ChunkSetPrivate*>(m_d);
-  return d->m_caps_joins.join_chunks();
-}
-
-fastuidraw::c_array<const unsigned int>
-fastuidraw::StrokedPath::ChunkSet::
-cap_chunks(void) const
-{
-  ChunkSetPrivate *d;
-  d = static_cast<ChunkSetPrivate*>(m_d);
-  return d->m_caps_joins.cap_chunks();
-}
-
 //////////////////////////////////////////////////////////////
 // fastuidraw::StrokedPath methods
 fastuidraw::StrokedPath::
@@ -1645,8 +1626,6 @@ fastuidraw::StrokedPath::
 void
 fastuidraw::StrokedPath::
 compute_chunks(ScratchSpace &scratch_space,
-               const DashEvaluatorBase *dash_evaluator,
-               const PainterShaderData::DataBase *dash_data,
                c_array<const vec3> clip_equations,
                const float3x3 &clip_matrix_local,
                const vec2 &recip_dimensions,
@@ -1655,7 +1634,6 @@ compute_chunks(ScratchSpace &scratch_space,
                bool include_closing_edges,
                unsigned int max_attribute_cnt,
                unsigned int max_index_cnt,
-               bool take_joins_outside_of_region,
                ChunkSet &dst) const
 {
   StrokedPathPrivate *d;
@@ -1665,19 +1643,6 @@ compute_chunks(ScratchSpace &scratch_space,
   d = static_cast<StrokedPathPrivate*>(m_d);
   scratch_space_ptr = static_cast<ScratchSpacePrivate*>(scratch_space.m_d);
   chunk_set_ptr = static_cast<ChunkSetPrivate*>(dst.m_d);
-
-  d->m_caps_joins.compute_chunks(scratch_space_ptr->m_caps_joins,
-                                 dash_evaluator, dash_data,
-                                 clip_equations,
-                                 clip_matrix_local,
-                                 recip_dimensions,
-                                 pixels_additional_room,
-                                 item_space_additional_room,
-                                 include_closing_edges,
-                                 max_attribute_cnt,
-                                 max_index_cnt,
-                                 take_joins_outside_of_region,
-                                 chunk_set_ptr->m_caps_joins);
 
   if (d->m_empty_path)
     {
@@ -1715,113 +1680,11 @@ chunk_of_edges(enum chunk_selection c) const
   return d->m_chunk_of_edges[c];
 }
 
-unsigned int
+const fastuidraw::StrokedCapsJoins&
 fastuidraw::StrokedPath::
-number_joins(bool include_joins_of_closing_edge) const
+caps_joins(void) const
 {
   StrokedPathPrivate *d;
   d = static_cast<StrokedPathPrivate*>(m_d);
-  return d->m_caps_joins.number_joins(include_joins_of_closing_edge);
-}
-
-unsigned int
-fastuidraw::StrokedPath::
-join_chunk(unsigned int J) const
-{
-  StrokedPathPrivate *d;
-  d = static_cast<StrokedPathPrivate*>(m_d);
-  return d->m_caps_joins.join_chunk(J);
-}
-
-unsigned int
-fastuidraw::StrokedPath::
-chunk_of_joins(enum chunk_selection c) const
-{
-  StrokedPathPrivate *d;
-  enum StrokedCapsJoins::chunk_selection cc;
-
-  d = static_cast<StrokedPathPrivate*>(m_d);
-  cc = static_cast<enum StrokedCapsJoins::chunk_selection>(c);
-  return d->m_caps_joins.chunk_of_joins(cc);
-}
-
-unsigned int
-fastuidraw::StrokedPath::
-chunk_of_caps(void) const
-{
-  StrokedPathPrivate *d;
-  d = static_cast<StrokedPathPrivate*>(m_d);
-  return d->m_caps_joins.chunk_of_caps();
-}
-
-const fastuidraw::PainterAttributeData&
-fastuidraw::StrokedPath::
-square_caps(void) const
-{
-  StrokedPathPrivate *d;
-  d = static_cast<StrokedPathPrivate*>(m_d);
-  return d->m_caps_joins.square_caps();
-}
-
-const fastuidraw::PainterAttributeData&
-fastuidraw::StrokedPath::
-adjustable_caps(void) const
-{
-  StrokedPathPrivate *d;
-  d = static_cast<StrokedPathPrivate*>(m_d);
-  return d->m_caps_joins.adjustable_caps();
-}
-
-const fastuidraw::PainterAttributeData&
-fastuidraw::StrokedPath::
-bevel_joins(void) const
-{
-  StrokedPathPrivate *d;
-  d = static_cast<StrokedPathPrivate*>(m_d);
-  return d->m_caps_joins.bevel_joins();
-}
-
-const fastuidraw::PainterAttributeData&
-fastuidraw::StrokedPath::
-miter_clip_joins(void) const
-{
-  StrokedPathPrivate *d;
-  d = static_cast<StrokedPathPrivate*>(m_d);
-  return d->m_caps_joins.miter_clip_joins();
-}
-
-const fastuidraw::PainterAttributeData&
-fastuidraw::StrokedPath::
-miter_bevel_joins(void) const
-{
-  StrokedPathPrivate *d;
-  d = static_cast<StrokedPathPrivate*>(m_d);
-  return d->m_caps_joins.miter_bevel_joins();
-}
-
-const fastuidraw::PainterAttributeData&
-fastuidraw::StrokedPath::
-miter_joins(void) const
-{
-  StrokedPathPrivate *d;
-  d = static_cast<StrokedPathPrivate*>(m_d);
-  return d->m_caps_joins.miter_joins();
-}
-
-const fastuidraw::PainterAttributeData&
-fastuidraw::StrokedPath::
-rounded_joins(float thresh) const
-{
-  StrokedPathPrivate *d;
-  d = static_cast<StrokedPathPrivate*>(m_d);
-  return d->m_caps_joins.rounded_joins(thresh);
-}
-
-const fastuidraw::PainterAttributeData&
-fastuidraw::StrokedPath::
-rounded_caps(float thresh) const
-{
-  StrokedPathPrivate *d;
-  d = static_cast<StrokedPathPrivate*>(m_d);
-  return d->m_caps_joins.rounded_caps(thresh);
+  return d->m_caps_joins;
 }
