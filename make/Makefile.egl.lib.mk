@@ -24,6 +24,7 @@ libNEGL_$(1):libNEGL_$(1).a
 libNEGL_$(1).a: $$(NEGL_OBJS_$(1))
 	ar rcs $$@ $$(NEGL_OBJS_$(1))
 CLEAN_FILES += libNEGL_$(1).a
+INSTALL_STATIC_LIBS += libNEGL_$(1).a
 
 TARGETLIST += libNEGL_$(1)-static
 libNEGL_$(1)-static: libNEGL_$(1).a
