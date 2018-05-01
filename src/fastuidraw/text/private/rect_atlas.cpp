@@ -18,6 +18,7 @@
  */
 
 #include <algorithm>
+#include <ciso646>
 
 #include "rect_atlas.hpp"
 

@@ -31,6 +31,7 @@
 #include <sstream>
 #include <stdint.h>
 #include <cctype>
+#include <ciso646>
 #ifdef _MSC_VER
 #include <Windows.h>
 #include <fastuidraw/util/time.hpp>
