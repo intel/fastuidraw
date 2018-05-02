@@ -102,10 +102,8 @@ public:
      * To be implemented by a derived class to produce the tessellation
      * from start_pt() to end_pt(). The routine must include BOTH start_pt()
      * and end_pt() in the result. Only the fields TessellatedPath::point::m_p,
-     * and TessellatedPath::point::m_distance_from_edge_start are to be filled;
-     * the other fields of TessellatedPath::point are filled by TessellatedPath.
-     * In addition to filling the output array, the function shall return the
-     * number of points needed to perform the required tessellation.
+     * and are to be filled; the other fields of TessellatedPath::point are
+     * filled by TessellatedPath.
      *
      * \param tess_params tessellation parameters
      * \param out_data location to which to write the edge tessellated
@@ -114,19 +112,17 @@ public:
      *                       approximation.
      */
     virtual
-    unsigned int
+    void
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
-                         c_array<TessellatedPath::point> out_data,
+                         TessellatedPath::PointStorage *out_data,
                          float *out_threshhold) const = 0;
 
     /*!
      * To be implemented by a derived class to produce the arc-tessellation
      * from start_pt() to end_pt(). Only the fields ArcTessellatedPath::segment::m_p,
      * and ArcTessellatedPath::m_type, ArcTessellatedPath::m_data and
-     * ArcTessellatedPath::m_data are to be filled; the other fields of
+     * ArcTessellatedPath::m_radius are to be filled; the other fields of
      * ArcTessellatedPath::segment are filled by ArcTessellatedPath.
-     * In addition to filling the output array, the function shall return the
-     * number of segments needed to perform the required tessellation.
      *
      * \param tess_params tessellation parameters
      * \param out_data location to which to write the tessellation
@@ -197,9 +193,9 @@ public:
     is_flat(void) const;
 
     virtual
-    unsigned int
+    void
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
-                         c_array<TessellatedPath::point> out_data,
+                         TessellatedPath::PointStorage *out_data,
                          float *out_threshholds) const;
     virtual
     void
@@ -248,9 +244,9 @@ public:
     {}
 
     virtual
-    unsigned int
+    void
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
-                         c_array<TessellatedPath::point> out_data,
+                         TessellatedPath::PointStorage *out_data,
                          float *out_threshholds) const;
     virtual
     void
@@ -393,9 +389,9 @@ public:
     deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const;
 
     virtual
-    unsigned int
+    void
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
-                         c_array<TessellatedPath::point> out_data,
+                         TessellatedPath::PointStorage *out_data,
                          float *out_threshholds) const;
     virtual
     void

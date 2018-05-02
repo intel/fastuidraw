@@ -65,32 +65,29 @@ namespace
     {
     }
 
-    unsigned int
-    dump(fastuidraw::c_array<TessellatedPath::point> out_data,
-         float *out_threshhold);
+    void
+    dump(TessellatedPath::PointStorage *out_data,
+         float *out_threshhold) const;
 
   private:
     void
     tessellation_worker(unsigned int recurse_level,
+                        TessellatedPath::PointStorage *out_data,
                         fastuidraw::reference_counted_ptr<tessellated_region> in_src,
-                        float *out_threshhold);
-
-    unsigned int
-    fill_data(fastuidraw::c_array<TessellatedPath::point> out_data,
-              float *out_threshhold);
+                        float *out_threshhold) const;
 
     void
-    add_point(const fastuidraw::vec2 &pt)
+    add_point(TessellatedPath::PointStorage *out_data,
+              const fastuidraw::vec2 &pt) const
     {
       TessellatedPath::point P;
       P.m_p = pt;
-      m_data.push_back(P);
+      out_data->add_point(P);
     }
 
     const interpolator_generic *m_h;
     TessellationParams m_thresh;
     unsigned int m_max_recursion, m_max_size;
-    std::vector<TessellatedPath::point> m_data;
   };
 
   class ArcTessellator
@@ -344,48 +341,28 @@ namespace
 
 /////////////////////////////////
 // Tessellator methods
-unsigned int
+void
 Tessellator::
-dump(fastuidraw::c_array<fastuidraw::TessellatedPath::point> out_data,
-     float *out_threshhold)
+dump(TessellatedPath::PointStorage *out_data,
+     float *out_threshhold) const
 {
-  unsigned int return_value;
-
   *out_threshhold = -1.0f;
-  return_value = fill_data(out_data, out_threshhold);
-  out_data = out_data.sub_array(0, return_value);
-
-  /* enforce start and end point values */
-  out_data.front().m_p = m_h->start_pt();
-  out_data.back().m_p = m_h->end_pt();
-
-  return return_value;
-}
-
-unsigned int
-Tessellator::
-fill_data(fastuidraw::c_array<fastuidraw::TessellatedPath::point> out_data,
-          float *out_threshhold)
-{
   /*
    * tessellate: note that we add the start point, then tessellate
    * and then at the end add the end point. By doing so, the points
    * are added to m_data in order of time automatically.
    */
-  add_point(m_h->start_pt());
-  tessellation_worker(0, nullptr, out_threshhold);
-  add_point(m_h->end_pt());
-
-  FASTUIDRAWassert(m_data.size() <= out_data.size());
-  std::copy(m_data.begin(), m_data.end(), out_data.begin());
-  return m_data.size();
+  add_point(out_data, m_h->start_pt());
+  tessellation_worker(0, out_data, nullptr, out_threshhold);
+  add_point(out_data, m_h->end_pt());
 }
 
 void
 Tessellator::
 tessellation_worker(unsigned int recurse_level,
+                    TessellatedPath::PointStorage *out_data,
                     fastuidraw::reference_counted_ptr<tessellated_region> in_src,
-                    float *out_threshhold)
+                    float *out_threshhold) const
 {
   using namespace fastuidraw;
 
@@ -408,15 +385,15 @@ tessellation_worker(unsigned int recurse_level,
        * mid point, and all points in the right side come
        * after the midpoint.
        */
-      tessellation_worker(recurse_level + 1, rgnA, &tmpA);
-      add_point(p);
-      tessellation_worker(recurse_level + 1, rgnB, &tmpB);
+      tessellation_worker(recurse_level + 1, out_data, rgnA, &tmpA);
+      add_point(out_data, p);
+      tessellation_worker(recurse_level + 1, out_data, rgnB, &tmpB);
 
       *out_threshhold = t_max(tmpA, tmpB);
     }
   else
     {
-      add_point(p);
+      add_point(out_data, p);
     }
 }
 
@@ -609,14 +586,14 @@ end_pt(void) const
 
 //////////////////////////////////////////////
 // fastuidraw::PathContour::interpolator_generic methods
-unsigned int
+void
 fastuidraw::PathContour::interpolator_generic::
 produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
-                     c_array<TessellatedPath::point> out_data,
+                     TessellatedPath::PointStorage *out_data,
                      float *out_threshhold) const
 {
   Tessellator tesser(tess_params, this);
-  return tesser.dump(out_data, out_threshhold);
+  tesser.dump(out_data, out_threshhold);
 }
 
 void
@@ -807,24 +784,25 @@ is_flat(void) const
   return true;
 }
 
-unsigned int
+void
 fastuidraw::PathContour::flat::
 produce_tessellation(const TessellatedPath::TessellationParams&,
-                     c_array<TessellatedPath::point> out_data,
+                     TessellatedPath::PointStorage *out_data,
                      float *out_threshhold) const
 {
+  TessellatedPath::point p0, p1;
   vec2 delta(end_pt() - start_pt());
   float mag(delta.magnitude());
 
-  out_data[0].m_p = start_pt();
-  out_data[0].m_distance_from_edge_start = 0.0f;
+  p0.m_p = start_pt();
+  p0.m_distance_from_edge_start = 0.0f;
+  out_data->add_point(p0);
 
-  out_data[1].m_p = end_pt();
-  out_data[1].m_distance_from_edge_start = mag;
+  p1.m_p = end_pt();
+  p1.m_distance_from_edge_start = mag;
+  out_data->add_point(p1);
 
   *out_threshhold = 0.0f;
-
-  return 2;
 }
 
 void
@@ -970,16 +948,15 @@ is_flat(void) const
   return false;
 }
 
-unsigned int
+void
 fastuidraw::PathContour::arc::
 produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
-                     c_array<TessellatedPath::point> out_data,
+                     TessellatedPath::PointStorage *out_data,
                      float *out_threshhold) const
 {
   ArcPrivate *d;
   d = static_cast<ArcPrivate*>(m_d);
-  unsigned int return_value;
-  float s, c, a, da;
+  float a, da;
   unsigned int needed_size;
   float delta_angle;
 
@@ -990,18 +967,30 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
   da = 0.0f;
   for(unsigned int i = 0; i <= needed_size; ++i, a += delta_angle, da += delta_angle)
     {
-      s = d->m_radius * std::sin(a);
-      c = d->m_radius * std::cos(a);
-      out_data[i].m_p = d->m_center + vec2(c, s);
-      out_data[i].m_distance_from_edge_start = t_abs(da) * d->m_radius;
+      TessellatedPath::point p;
+
+      if (i == 0)
+        {
+          p.m_p = start_pt();
+        }
+      else if (i == needed_size)
+        {
+          p.m_p = end_pt();
+        }
+      else
+        {
+          float c, s;
+
+          c = d->m_radius * std::cos(a);
+          s = d->m_radius * std::sin(a);
+          p.m_p = d->m_center + vec2(c, s);
+        }
+
+      p.m_distance_from_edge_start = t_abs(da) * d->m_radius;
+      out_data->add_point(p);
     }
-  out_data[0].m_p = start_pt();
-  out_data[needed_size].m_p = end_pt();
 
   *out_threshhold = d->m_radius * (1.0f - t_cos(delta_angle * 0.5f));
-
-  return_value = needed_size + 1;
-  return return_value;
 }
 
 void
