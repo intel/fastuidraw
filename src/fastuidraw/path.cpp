@@ -324,17 +324,6 @@ dump(fastuidraw::c_array<fastuidraw::TessellatedPath::point> out_data,
   out_data.front().m_p = m_h->start_pt();
   out_data.back().m_p = m_h->end_pt();
 
-  /* compute distance values along edge */
-  out_data[0].m_distance_from_edge_start = 0.0f;
-  for(unsigned int i = 1, endi = out_data.size(); i < endi; ++i)
-    {
-      fastuidraw::vec2 delta;
-
-      delta = out_data[i].m_p - out_data[i-1].m_p;
-      out_data[i].m_distance_from_edge_start = delta.magnitude()
-        + out_data[i-1].m_distance_from_edge_start;
-    }
-
   return return_value;
 }
 
