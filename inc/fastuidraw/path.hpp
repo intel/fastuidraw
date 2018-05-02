@@ -138,12 +138,12 @@ public:
 
     /*!
      * To be implemented by a derived class to return a reasonable
-     * lower bound on the needed number of segments to capture the
-     * general shape when performing arc-tessellation.
+     * lower bound on the needed number of times the edge should be
+     * cut in half in order to capture its shape.
      */
     virtual
     unsigned int
-    minimum_arc_tessellation_segments(void) const = 0;
+    minimum_arc_tessellation_recursion(void) const = 0;
 
     /*!
      * To be implemented by a derived class to return a fast (and approximate)
@@ -212,7 +212,7 @@ public:
 
     virtual
     unsigned int
-    minimum_arc_tessellation_segments(void) const;
+    minimum_arc_tessellation_recursion(void) const;
   };
 
   /*!
@@ -334,7 +334,7 @@ public:
 
     virtual
     unsigned int
-    minimum_arc_tessellation_segments(void) const;
+    minimum_arc_tessellation_recursion(void) const;
 
   private:
     bezier(const bezier &q,
@@ -400,7 +400,7 @@ public:
                          float *out_threshhold) const;
     virtual
     unsigned int
-    minimum_arc_tessellation_segments(void) const;
+    minimum_arc_tessellation_recursion(void) const;
 
   private:
     arc(const arc &q, const reference_counted_ptr<const interpolator_base> &prev);

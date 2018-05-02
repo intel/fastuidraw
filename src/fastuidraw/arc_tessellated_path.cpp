@@ -130,8 +130,6 @@ ArcTessellatedPath(const Path &input,
               float tmp;
               SegmentStorage segment_storage;
 
-              d->m_params.m_max_segments = t_max(TP.m_max_segments,
-                                                 contour->interpolator(e)->minimum_arc_tessellation_segments());
               FASTUIDRAWassert(work_room.empty());
               segment_storage.m_d = &work_room;
 
@@ -213,8 +211,6 @@ ArcTessellatedPath(const Path &input,
         }
       FASTUIDRAWassert(total_needed == d->m_segment_data.size());
     }
-
-  d->m_params.m_max_segments = TP.m_max_segments;
 }
 
 fastuidraw::ArcTessellatedPath::

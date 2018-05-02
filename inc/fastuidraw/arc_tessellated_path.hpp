@@ -79,19 +79,8 @@ public:
      */
     TessellationParams(void):
       m_threshhold(1.0f),
-      m_max_segments(32)
+      m_max_recursion(5)
     {}
-
-    /*!
-     * Non-equal comparison operator.
-     * \param rhs value to which to compare against
-     */
-    bool
-    operator!=(const TessellationParams &rhs) const
-    {
-      return m_threshhold != rhs.m_threshhold
-        || m_max_segments != rhs.m_max_segments;
-    }
 
     /*!
      * Provided as a conveniance. Equivalent to
@@ -112,24 +101,22 @@ public:
      * \param v value to which to assign to \ref m_max_segments
      */
     TessellationParams&
-    max_segments(unsigned int v)
+    max_recursion(unsigned int v)
     {
-      m_max_segments = v;
+      m_max_recursion = v;
       return *this;
     }
 
     /*!
-     * Meaning depends on \ref m_threshhold_type.
      * Default value is 1.0.
      */
     float m_threshhold;
 
     /*!
-     * Maximum number of segments to tessellate each
-     * PathContour::interpolator_base from each
-     * PathContour of a Path. Default value is 32.
+     * Maximum number of times to cut a single edge in
+     * half. Default value is 5.
      */
-    unsigned int m_max_segments;
+    unsigned int m_max_recursion;
   };
 
   /*!
