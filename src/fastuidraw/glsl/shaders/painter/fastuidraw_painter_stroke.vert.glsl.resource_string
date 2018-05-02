@@ -485,8 +485,15 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                     edge.
                */
 
-              if (interval_id2 == interval_id && interval_id != -1 && dash_style != fastuidraw_stroke_dashed_flat_caps)
+              if (interval_id2 == interval_id && interval_id != -1)
                 {
+                  /* since the interval ID's are the same, then the edge is completely
+                   * contained within an interval and does not need to be extended
+                   * regardless of caps added, also the dashing computation can
+                   * be entirely skipped. In addition, if the interval is a "skip"
+                   * interval, then the sub-edge is NOT drawn and we collapse it
+                   * to a point be setting on_boundary to 0.
+                   */
                   fastuidraw_stroking_dash_bits = uint(fastuidraw_stroke_gauranteed_to_be_covered_mask);
                   fastuidraw_stroking_distance = 0.0f;
                   if (s < 0.0)
@@ -496,12 +503,19 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                 }
               else
                 {
+                  /* since the interval ID's are different, the sub-edge spans
+                   * multiple intervals. We extend the sub-interval on the start
+                   * and on the end by the stroking radius, but we inform the
+                   * fragment shader of the interval boundaries closest to the
+                   * sub-edge boundaries via fastuidraw_stroking_distance_sub_edge_start
+                   * and fastuidraw_stroking_distance_sub_edge_end
+                   */
                   fastuidraw_stroking_dash_bits = 0u;
                   if (offset_type == fastuidraw_stroke_offset_start_sub_edge)
                     {
-                      float new_d, clamp_interval_end;
+                      float clamp_interval_end;
 
-                      fastuidraw_stroking_distance_sub_edge_start = (s < 0.0 )?
+                      fastuidraw_stroking_distance_sub_edge_start = (s < 0.0) ?
                         interval_end :
                         d;
 
@@ -509,18 +523,10 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                         interval_begin2 :
                         d2;
 
-                      if (s < 0.0)
+                      if (s < 0.0 && dash_style != fastuidraw_stroke_dashed_flat_caps)
                         {
-                          clamp_interval_end = min(interval_end, d2);
-                          new_d = clamp_interval_end;
-
-                          if (dash_style != fastuidraw_stroke_dashed_flat_caps)
-                            {
-                              new_d -= stroke_radius;
-                            }
-
-                          position += (new_d - d) * auxiliary_offset / delta_mag;
-                          fastuidraw_stroking_distance = new_d;
+                          fastuidraw_stroking_distance = d - stroke_radius;
+                          position -= auxiliary_offset * (stroke_radius / delta_mag);
                         }
                       else
                         {
@@ -529,7 +535,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                     }
                   else
                     {
-                      float new_d, clamp_interval_begin;
+                      float clamp_interval_begin;
 
                       fastuidraw_stroking_distance_sub_edge_start = (s2 < 0.0) ?
                         interval_end2 :
@@ -539,24 +545,10 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                         interval_begin :
                         d;
 
-                      if (s < 0.0)
+                      if (s < 0.0 && dash_style != fastuidraw_stroke_dashed_flat_caps)
                         {
-                          clamp_interval_begin = max(interval_begin, d2);
-                          new_d = interval_begin;
-
-                          if (dash_style != fastuidraw_stroke_dashed_flat_caps)
-                            {
-                              new_d += stroke_radius;
-                            }
-
-                          /* auxiliary_offset is the direction from this point
-                             (the end of the sub-edge) to the start of the
-                             sub-edge. This is why we have the coefficient
-                             (d - new_d) because moving in auxiliary_offset
-                             is moving towards the start.
-                          */
-                          position += (d - new_d) * auxiliary_offset / delta_mag;
-                          fastuidraw_stroking_distance = new_d;
+                          fastuidraw_stroking_distance = d + stroke_radius;
+                          position -= auxiliary_offset * (stroke_radius / delta_mag);
                         }
                        else
                          {
