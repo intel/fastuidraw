@@ -140,6 +140,8 @@ public:
   {
   public:
     /*!
+     * Specifies the segment type which in turn determines the
+     * meaning of \ref m_p, \ref m_data and \ref m_radius
      */
     enum segment_type_t m_type;
 
@@ -165,10 +167,29 @@ public:
     float m_radius;
 
     /*!
-     * Gives the distance of the point from the start
-     * of the -contour- to the start of the segment.
+     * Gives the length of the segment.
+     */
+    float m_length;
+
+    /*!
+     * Gives the distance of the start of the segment from
+     * the start of the edge (i.e PathContour::interpolator_base).
+     */
+    float m_distance_from_edge_start;
+
+    /*!
+     * Gives the distance of the start of segment to the
+     * start of the -contour-.
      */
     float m_distance_from_contour_start;
+
+    /*!
+     * Gives the length of the edge (i.e.
+     * PathContour::interpolator_base) on which the
+     * segment lies. This value is the same for all
+     * segments along a fixed edge.
+     */
+    float m_edge_length;
 
     /*!
      * Gives the length of the contour open on which
@@ -248,7 +269,7 @@ public:
    * Returns the segment data of the named contour including
    * the closing edge. Provided as a conveniance equivalent to
    * \code
-   * point_data().sub_array(contour_range(contour))
+   * segment_data().sub_array(contour_range(contour))
    * \endcode
    * \param contour which path contour to query, must have
    *                that 0 <= contour < number_contours()
@@ -261,13 +282,13 @@ public:
    * lacking the segment data of the closing edge.
    * Provided as a conveniance, equivalent to
    * \code
-   * point_data().sub_array(unclosed_contour_range(contour))
+   * segment_data().sub_array(unclosed_contour_range(contour))
    * \endcode
    * \param contour which path contour to query, must have
    *                that 0 <= contour < number_contours()
    */
   c_array<const segment>
-  unclosed_segment_point_data(unsigned int contour) const;
+  unclosed_contour_segment_data(unsigned int contour) const;
 
   /*!
    * Returns the number of edges for the named contour
@@ -293,7 +314,7 @@ public:
    * named contour, provided as a conveniance, equivalent
    * to
    * \code
-   * point_data().sub_array(edge_range(contour, edge))
+   * segment_data().sub_array(edge_range(contour, edge))
    * \endcode
    * \param contour which path contour to query, must have
    *                that 0 <= contour < number_contours()
@@ -301,7 +322,7 @@ public:
    *             have that 0 <= edge < number_edges(contour)
    */
   c_array<const segment>
-  edge_point_data(unsigned int contour, unsigned int edge) const;
+  edge_segment_data(unsigned int contour, unsigned int edge) const;
 
   /*!
    * Returns the minimum point of the bounding box of
