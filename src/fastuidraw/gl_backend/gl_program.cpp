@@ -1940,7 +1940,7 @@ is_row_major(void) const
 {
   const ShaderVariableInfo *d;
   d = static_cast<const ShaderVariableInfo*>(m_d);
-  return (d) ? d->m_is_row_major : false;
+  return (d) ? (d->m_is_row_major != 0) : false;
 }
 
 GLint
