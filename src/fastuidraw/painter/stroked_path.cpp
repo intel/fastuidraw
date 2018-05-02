@@ -615,13 +615,13 @@ split_sub_edge(int splitting_coordinate,
   out_edges[0].m_pt1 = p;
   out_edges[0].m_distance_from_edge_start = m_distance_from_edge_start;
   out_edges[0].m_distance_from_contour_start = m_distance_from_contour_start;
-  out_edges[0].m_sub_edge_length = (p - m_pt0).magnitude();
+  out_edges[0].m_sub_edge_length = t * m_sub_edge_length;
 
   out_edges[1].m_pt0 = p;
   out_edges[1].m_pt1 = m_pt1;
   out_edges[1].m_distance_from_edge_start = m_distance_from_edge_start + out_edges[0].m_sub_edge_length;
   out_edges[1].m_distance_from_contour_start = m_distance_from_contour_start + out_edges[0].m_sub_edge_length;
-  out_edges[1].m_sub_edge_length = (p - m_pt1).magnitude();
+  out_edges[1].m_sub_edge_length = s * m_sub_edge_length;
 
   for(unsigned int i = 0; i < 2; ++i)
     {
