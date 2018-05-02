@@ -89,45 +89,66 @@ ArcTessellatedPathPrivate(const fastuidraw::Path &input,
   m_effective_threshhold(0.0f),
   m_max_segments(0u)
 {
-  using namespace fastuidraw;
+}
+
+//////////////////////////////////////////////////////////
+// fastuidraw::ArcTessellatedPath::SegmentStorage methods
+void
+fastuidraw::ArcTessellatedPath::SegmentStorage::
+add_segment(const segment &S)
+{
+  std::vector<segment> *d;
+  d = static_cast<std::vector<segment>*>(m_d);
+  d->push_back(S);
+}
+
+//////////////////////////////////////
+// fastuidraw::ArcTessellatedPath methods
+fastuidraw::ArcTessellatedPath::
+ArcTessellatedPath(const Path &input,
+                   fastuidraw::ArcTessellatedPath::TessellationParams TP)
+{
+  ArcTessellatedPathPrivate *d;
+  m_d = d = FASTUIDRAWnew ArcTessellatedPathPrivate(input, TP);
 
   if (input.number_contours() > 0)
     {
-      std::list<std::vector<ArcTessellatedPath::segment> > temp;
-      std::vector<ArcTessellatedPath::segment> work_room;
-      std::list<std::vector<ArcTessellatedPath::segment> >::const_iterator iter, end_iter;
+      std::list<std::vector<segment> > temp;
+      std::vector<segment> work_room;
+      std::list<std::vector<segment> >::const_iterator iter, end_iter;
 
       for(unsigned int loc = 0, o = 0, endo = input.number_contours(); o < endo; ++o)
         {
           reference_counted_ptr<const PathContour> contour(input.contour(o));
           float contour_length(0.0f), open_contour_length(0.0f), closed_contour_length(0.0f);
-          std::list<std::vector<ArcTessellatedPath::segment> >::iterator start_contour;
+          std::list<std::vector<segment> >::iterator start_contour;
 
-          m_edge_ranges[o].resize(contour->number_points());
+          d->m_edge_ranges[o].resize(contour->number_points());
           for(unsigned int e = 0, ende = contour->number_points(); e < ende; ++e)
             {
               unsigned int needed;
               float tmp;
+              SegmentStorage segment_storage;
 
-              m_params.m_max_segments = t_max(TP.m_max_segments,
-                                              contour->interpolator(e)->minimum_arc_tessellation_segments());
-              work_room.resize(m_params.m_max_segments);
+              d->m_params.m_max_segments = t_max(TP.m_max_segments,
+                                                 contour->interpolator(e)->minimum_arc_tessellation_segments());
+              FASTUIDRAWassert(work_room.empty());
+              segment_storage.m_d = &work_room;
 
-              temp.push_back(std::vector<ArcTessellatedPath::segment>());
-              needed = contour->interpolator(e)->produce_tessellation(m_params,
-                                                                      make_c_array(work_room),
-                                                                      &tmp);
-              m_edge_ranges[o][e] = range_type<unsigned int>(loc, loc + needed);
+              contour->interpolator(e)->produce_tessellation(d->m_params, &segment_storage, &tmp);
+
+              needed = work_room.size();
+              d->m_edge_ranges[o][e] = range_type<unsigned int>(loc, loc + needed);
               loc += needed;
 
               FASTUIDRAWassert(needed > 0u);
-              m_max_segments = t_max(m_max_segments, needed);
-              m_effective_threshhold = t_max(m_effective_threshhold, tmp);
+              d->m_max_segments = t_max(d->m_max_segments, needed);
+              d->m_effective_threshhold = t_max(d->m_effective_threshhold, tmp);
 
               work_room.resize(needed);
               for(unsigned int n = 0; n < work_room.size(); ++n)
                 {
-                  union_segment(work_room[n], m_bounding_box);
+                  union_segment(work_room[n], d->m_bounding_box);
                   work_room[n].m_length = segment_length(work_room[n]);
 
                   if (n != 0)
@@ -141,19 +162,15 @@ ArcTessellatedPathPrivate(const fastuidraw::Path &input,
                       work_room[n].m_distance_from_edge_start = 0.0f;
                     }
 
-                  work_room[n].m_distance_from_contour_start
-                    = contour_length + work_room[n].m_distance_from_edge_start;
+                  work_room[n].m_distance_from_contour_start = contour_length;
+                  contour_length += work_room[n].m_distance_from_edge_start;
                 }
 
-              std::list<std::vector<ArcTessellatedPath::segment> >::iterator t;
-              t = temp.insert(temp.end(), work_room);
-              if (e == 0)
+              for(unsigned int n = 0; n < needed; ++n)
                 {
-                  start_contour = t;
+                  work_room[n].m_edge_length = work_room[needed - 1].m_distance_from_edge_start
+                    + work_room[needed - 1].m_length;
                 }
-
-              contour_length = temp.back().back().m_distance_from_contour_start
-                + temp.back().back().m_length;
 
               if (e + 2 == ende)
                 {
@@ -164,14 +181,18 @@ ArcTessellatedPathPrivate(const fastuidraw::Path &input,
                   closed_contour_length = contour_length;
                 }
 
-              for(unsigned int n = 0; n < needed; ++n)
+              /* append the data to temp and clear work_room for the next edge */
+              std::list<std::vector<segment> >::iterator t;
+              t = temp.insert(temp.end(), std::vector<segment>());
+              t->swap(work_room);
+
+              if (e == 0)
                 {
-                  (*t)[n].m_edge_length = (*t)[needed - 1].m_distance_from_edge_start
-                    + (*t)[needed - 1].m_length;
+                  start_contour = t;
                 }
             }
 
-          for(std::list<std::vector<fastuidraw::ArcTessellatedPath::segment> >::iterator
+          for(std::list<std::vector<segment> >::iterator
                 t = start_contour, endt = temp.end(); t != endt; ++t)
             {
               for(unsigned int e = 0, ende = t->size(); e < ende; ++e)
@@ -184,26 +205,16 @@ ArcTessellatedPathPrivate(const fastuidraw::Path &input,
 
       unsigned int total_needed;
 
-      total_needed = m_edge_ranges.back().back().m_end;
-      m_segment_data.reserve(total_needed);
+      total_needed = d->m_edge_ranges.back().back().m_end;
+      d->m_segment_data.reserve(total_needed);
       for(iter = temp.begin(), end_iter = temp.end(); iter != end_iter; ++iter)
         {
-          std::copy(iter->begin(), iter->end(), std::back_inserter(m_segment_data));
+          std::copy(iter->begin(), iter->end(), std::back_inserter(d->m_segment_data));
         }
-      FASTUIDRAWassert(total_needed == m_segment_data.size());
+      FASTUIDRAWassert(total_needed == d->m_segment_data.size());
     }
 
-  m_params.m_max_segments = TP.m_max_segments;
-}
-
-//////////////////////////////////////
-// fastuidraw::ArcTessellatedPath methods
-fastuidraw::ArcTessellatedPath::
-ArcTessellatedPath(const Path &input,
-                   fastuidraw::ArcTessellatedPath::TessellationParams TP)
-{
-  ArcTessellatedPathPrivate *d;
-  m_d = d = FASTUIDRAWnew ArcTessellatedPathPrivate(input, TP);
+  d->m_params.m_max_segments = TP.m_max_segments;
 }
 
 fastuidraw::ArcTessellatedPath::

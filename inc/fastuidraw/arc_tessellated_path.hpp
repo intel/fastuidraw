@@ -207,6 +207,30 @@ public:
   };
 
   /*!
+   * \brief
+   * A wrapper over a dynamic array of \ref segment objects;
+   * segment values added to SegmentStorage must be added
+   * in order of time along the domain of a \ref
+   * PathContour::interpolate_base
+   */
+  class SegmentStorage:fastuidraw::noncopyable
+  {
+  public:
+    /*!
+     * Add a \ref segment to the SegmentStorage.
+     */
+    void
+    add_segment(const segment&);
+
+  private:
+    SegmentStorage(void) {}
+    ~SegmentStorage() {}
+
+    friend class ArcTessellatedPath;
+    void *m_d;
+  };
+
+  /*!
    * Ctor. Construct a TessellatedPath from a Path
    * \param input source path to tessellate
    * \param P parameters on how to tessellate the source Path
