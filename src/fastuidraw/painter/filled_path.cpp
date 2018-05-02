@@ -1214,10 +1214,13 @@ copy_contour(SubContour &dst,
       fastuidraw::range_type<unsigned int> R;
 
       R = src.edge_range(C, e);
-      dst.push_back(SubContourPoint(src.point_data()[R.m_begin].m_p, 0u));
-      for(unsigned int v = R.m_begin + 1; v + 1 < R.m_end; ++v)
+
+      FASTUIDRAWassert(src.segment_data()[R.m_begin].m_type == fastuidraw::TessellatedPath::line_segment);
+      dst.push_back(SubContourPoint(src.segment_data()[R.m_begin].m_p, 0u));
+      for(unsigned int v = R.m_begin + 1; v < R.m_end; ++v)
         {
-          SubContourPoint pt(src.point_data()[v].m_p, 0u);
+          FASTUIDRAWassert(src.segment_data()[v].m_type == fastuidraw::TessellatedPath::line_segment);
+          SubContourPoint pt(src.segment_data()[v].m_p, 0u);
           dst.push_back(pt);
         }
     }

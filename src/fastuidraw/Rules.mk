@@ -29,8 +29,7 @@ dir := $(d)/gl_backend
 include $(dir)/Rules.mk
 
 FASTUIDRAW_SOURCES += $(call filelist, image.cpp colorstop.cpp \
-	colorstop_atlas.cpp path.cpp tessellated_path.cpp \
-        arc_tessellated_path.cpp)
+	colorstop_atlas.cpp path.cpp tessellated_path.cpp)
 
 NEGL_SRCS += $(call filelist, egl_binding.cpp)
 

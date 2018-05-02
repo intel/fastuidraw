@@ -25,7 +25,6 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/tessellated_path.hpp>
-#include <fastuidraw/arc_tessellated_path.hpp>
 
 namespace fastuidraw  {
 
@@ -99,32 +98,11 @@ public:
     is_flat(void) const = 0;
 
     /*!
-     * To be implemented by a derived class to produce the tessellation
-     * from start_pt() to end_pt(). The routine must include BOTH start_pt()
-     * and end_pt() in the result. Only the fields TessellatedPath::point::m_p,
-     * and are to be filled; the other fields of TessellatedPath::point are
-     * filled by TessellatedPath. In addition, returns the deepest number of
-     * times it recurses (for example each level is dividing the path in half).
-     * If the routine is not recursive, should return 0.
-     *
-     * \param tess_params tessellation parameters
-     * \param out_data location to which to write the edge tessellated
-     * \param out_threshhold location to which to write an upperbound for the
-     *                       distance between the curve and the tesseallation
-     *                       approximation.
-     */
-    virtual
-    unsigned int
-    produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
-                         TessellatedPath::PointStorage *out_data,
-                         float *out_threshhold) const = 0;
-
-    /*!
      * To be implemented by a derived class to produce the arc-tessellation
-     * from start_pt() to end_pt(). Only the fields ArcTessellatedPath::segment::m_p,
-     * and ArcTessellatedPath::m_type, ArcTessellatedPath::m_data and
-     * ArcTessellatedPath::m_radius are to be filled; the other fields of
-     * ArcTessellatedPath::segment are filled by ArcTessellatedPath. In addition,
+     * from start_pt() to end_pt(). Only the fields TessellatedPath::segment::m_p,
+     * and TessellatedPath::m_type, TessellatedPath::m_data and
+     * TessellatedPath::m_radius are to be filled; the other fields of
+     * TessellatedPath::segment are filled by TessellatedPath. In addition,
      * returns the deepest number of times it recurses (for example each level
      * is dividing the path in half). If the routine is not recursive, should
      * return 0.
@@ -138,8 +116,8 @@ public:
      */
     virtual
     unsigned int
-    produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
-                         ArcTessellatedPath::SegmentStorage *out_data,
+    produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
+                         TessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const = 0;
 
     /*!
@@ -192,12 +170,7 @@ public:
     virtual
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
-                         TessellatedPath::PointStorage *out_data,
-                         float *out_threshholds) const;
-    virtual
-    unsigned int
-    produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
-                         ArcTessellatedPath::SegmentStorage *out_data,
+                         TessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const;
     virtual
     void
@@ -239,12 +212,7 @@ public:
     virtual
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
-                         TessellatedPath::PointStorage *out_data,
-                         float *out_threshholds) const;
-    virtual
-    unsigned int
-    produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
-                         ArcTessellatedPath::SegmentStorage *out_data,
+                         TessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const;
 
     /*!
@@ -393,12 +361,7 @@ public:
     virtual
     unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
-                         TessellatedPath::PointStorage *out_data,
-                         float *out_threshholds) const;
-    virtual
-    unsigned int
-    produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
-                         ArcTessellatedPath::SegmentStorage *out_data,
+                         TessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const;
 
   private:
@@ -961,16 +924,16 @@ public:
 
   /*!
    * Return the arc-tessellation of this Path at a specific
-   * level of detail. The ArcTessellatedPath is constructed
+   * level of detail. The TessellatedPath is constructed
    * lazily. Additionally, if this Path changes its geometry,
-   * then a new ArcTessellatedPath will be contructed on the
+   * then a new TessellatedPath will be contructed on the
    * next call to arc_tessellation().
    * \param thresh the returned tessellated path will be so that
-   *               ArcTessellatedPath::effective_threshhold()
+   *               TessellatedPath::effective_threshhold()
    *               is no more than thresh. A non-positive value
    *               will return the starting point tessellation.
    */
-  const reference_counted_ptr<const ArcTessellatedPath>&
+  const reference_counted_ptr<const TessellatedPath>&
   arc_tessellation(float thresh) const;
 
   /*!
@@ -980,7 +943,7 @@ public:
    * arc_tessellation(-1.0f)
    * \endcode
    */
-  const reference_counted_ptr<const ArcTessellatedPath>&
+  const reference_counted_ptr<const TessellatedPath>&
   arc_tessellation(void) const;
 
 private:
