@@ -33,6 +33,8 @@ namespace fastuidraw
     typedef vecN<T, 2> pt_type;
 
     BoundingBox(void):
+      m_min(T(0), T(0)),
+      m_max(T(0), T(0)),
       m_empty(true)
     {}
 
