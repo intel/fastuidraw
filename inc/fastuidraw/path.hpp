@@ -103,7 +103,9 @@ public:
      * from start_pt() to end_pt(). The routine must include BOTH start_pt()
      * and end_pt() in the result. Only the fields TessellatedPath::point::m_p,
      * and are to be filled; the other fields of TessellatedPath::point are
-     * filled by TessellatedPath.
+     * filled by TessellatedPath. In addition, returns the deepest number of
+     * times it recurses (for example each level is dividing the path in half).
+     * If the routine is not recursive, should return 0.
      *
      * \param tess_params tessellation parameters
      * \param out_data location to which to write the edge tessellated
@@ -112,7 +114,7 @@ public:
      *                       approximation.
      */
     virtual
-    void
+    unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          TessellatedPath::PointStorage *out_data,
                          float *out_threshhold) const = 0;
@@ -122,7 +124,11 @@ public:
      * from start_pt() to end_pt(). Only the fields ArcTessellatedPath::segment::m_p,
      * and ArcTessellatedPath::m_type, ArcTessellatedPath::m_data and
      * ArcTessellatedPath::m_radius are to be filled; the other fields of
-     * ArcTessellatedPath::segment are filled by ArcTessellatedPath.
+     * ArcTessellatedPath::segment are filled by ArcTessellatedPath. In addition,
+     * returns the deepest number of times it recurses (for example each level
+     * is dividing the path in half). If the routine is not recursive, should
+     * return 0.
+     *
      *
      * \param tess_params tessellation parameters
      * \param out_data location to which to write the tessellation
@@ -131,7 +137,7 @@ public:
      *                       approximation.
      */
     virtual
-    void
+    unsigned int
     produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
                          ArcTessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const = 0;
@@ -184,12 +190,12 @@ public:
     is_flat(void) const;
 
     virtual
-    void
+    unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          TessellatedPath::PointStorage *out_data,
                          float *out_threshholds) const;
     virtual
-    void
+    unsigned int
     produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
                          ArcTessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const;
@@ -231,12 +237,12 @@ public:
     {}
 
     virtual
-    void
+    unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          TessellatedPath::PointStorage *out_data,
                          float *out_threshholds) const;
     virtual
-    void
+    unsigned int
     produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
                          ArcTessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const;
@@ -385,12 +391,12 @@ public:
     deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const;
 
     virtual
-    void
+    unsigned int
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          TessellatedPath::PointStorage *out_data,
                          float *out_threshholds) const;
     virtual
-    void
+    unsigned int
     produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
                          ArcTessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const;

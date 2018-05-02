@@ -636,24 +636,24 @@ end_pt(void) const
 
 //////////////////////////////////////////////
 // fastuidraw::PathContour::interpolator_generic methods
-void
+unsigned int
 fastuidraw::PathContour::interpolator_generic::
 produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                      TessellatedPath::PointStorage *out_data,
                      float *out_threshhold) const
 {
   Tessellator tesser(tess_params, this);
-  tesser.dump(out_data, out_threshhold);
+  return tesser.dump(out_data, out_threshhold);
 }
 
-void
+unsigned int
 fastuidraw::PathContour::interpolator_generic::
 produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
                      ArcTessellatedPath::SegmentStorage *out_data,
                      float *out_threshhold) const
 {
   ArcTessellator tesser(tess_params, this);
-  tesser.dump(out_data, out_threshhold);
+  return tesser.dump(out_data, out_threshhold);
 }
 
 ////////////////////////////////////
@@ -834,7 +834,7 @@ is_flat(void) const
   return true;
 }
 
-void
+unsigned int
 fastuidraw::PathContour::flat::
 produce_tessellation(const TessellatedPath::TessellationParams&,
                      TessellatedPath::PointStorage *out_data,
@@ -853,9 +853,10 @@ produce_tessellation(const TessellatedPath::TessellationParams&,
   out_data->add_point(p1);
 
   *out_threshhold = 0.0f;
+  return 0;
 }
 
-void
+unsigned int
 fastuidraw::PathContour::flat::
 produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
                      ArcTessellatedPath::SegmentStorage *out_data,
@@ -872,6 +873,7 @@ produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
   out_data->add_segment(S);
 
   *out_threshhold = 0.0f;
+  return 0;
 }
 
 fastuidraw::PathContour::interpolator_base*
@@ -991,7 +993,7 @@ is_flat(void) const
   return false;
 }
 
-void
+unsigned int
 fastuidraw::PathContour::arc::
 produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                      TessellatedPath::PointStorage *out_data,
@@ -1034,9 +1036,10 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
     }
 
   *out_threshhold = d->m_radius * (1.0f - t_cos(delta_angle * 0.5f));
+  return 0;
 }
 
-void
+unsigned int
 fastuidraw::PathContour::arc::
 produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
                      ArcTessellatedPath::SegmentStorage *out_data,
@@ -1055,6 +1058,7 @@ produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
   out_data->add_segment(S);
 
   *out_threshhold = 0.0f;
+  return 0;
 }
 
 void
