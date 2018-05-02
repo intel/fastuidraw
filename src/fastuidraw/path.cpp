@@ -471,6 +471,7 @@ tessellation_worker(unsigned int recurse_level,
   /* compute the circle going through start, mid, end */
   vec2 c, v0, v1, n0, n1, p0, p1;
   float s, det, r;
+  float threshL, threshR;
 
   p0 = 0.5f * (start + mid);
   p1 = 0.5f * (mid + end);
@@ -484,19 +485,31 @@ tessellation_worker(unsigned int recurse_level,
   det = n1.y() * n0.x() - n0.y() * n1.x();
   if (t_abs(det) < tol)
     {
-      /* practically flat anyways, just add a line segment */
-      ArcTessellatedPath::segment S;
+      if (recurse_level + 1u < m_max_recursion)
+        {
+          tessellation_worker(recurse_level + 1u, L0, L1,
+                              start, midL, mid, &threshL);
+          tessellation_worker(recurse_level + 1u, R0, R1,
+                              mid, midR, end, &threshR);
+          *out_threshhold = t_max(threshL, threshR);
+        }
+      else
+        {
+          /* practically flat anyways, just add a line segment */
+          ArcTessellatedPath::segment S;
 
-      S.m_type = ArcTessellatedPath::line_segment;
-      S.m_p = start;
-      S.m_data = end;
-      S.m_radius = 0.0f;
-      m_data.push_back(S);
+          S.m_type = ArcTessellatedPath::line_segment;
+          S.m_p = start;
+          S.m_data = end;
+          S.m_radius = 0.0f;
+          m_data.push_back(S);
 
-      /* TODO: compute the distance of mid, midL and midR from
-       * the segment and use that as the output threshhold
-       */
-      *out_threshhold = 0.0f;
+          /* TODO: compute the distance of mid, midL and midR from
+           * the segment and use that as the output threshhold
+           */
+          *out_threshhold = 0.0f;
+        }
+
       if (L0)
         {
           FASTUIDRAWdelete(L0);
@@ -520,14 +533,7 @@ tessellation_worker(unsigned int recurse_level,
   c = p0 + s * n0;
   r = (c - mid).magnitude();
 
-  std::cout << "r = " << r
-            << ", r_start = " << (c - start).magnitude()
-            << ", r_end = " << (c - end).magnitude()
-            << "\n";
-
   /* we are done if both midL and midR are close enough to C */
-  float threshL, threshR;
-
   threshL = t_abs(r - (c - midL).magnitude());
   threshR = t_abs(r - (c - midR).magnitude());
   *out_threshhold = t_max(threshL, threshR);
