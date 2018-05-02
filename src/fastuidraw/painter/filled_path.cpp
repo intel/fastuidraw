@@ -23,6 +23,7 @@
 #include <set>
 #include <algorithm>
 #include <ctime>
+#include <set>
 #include <math.h>
 
 #include <fastuidraw/tessellated_path.hpp>
