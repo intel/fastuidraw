@@ -409,6 +409,9 @@ arc_recurse(unsigned int recurse_level,
   float threshL, threshR;
   unsigned int vL, vR;
 
+  std::cout << m_h << ":" << recurse_level + 1u
+            << "/ " << m_thresh.m_max_recursion << "\n";
+
   vL = arc_tessellation_worker(recurse_level + 1u, out_data, L0, L1,
                                start, midL, mid, &threshL);
   vR = arc_tessellation_worker(recurse_level + 1u, out_data, R0, R1,
@@ -779,14 +782,7 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
 {
   FASTUIDRAWunused(tess_params);
 
-  TessellatedPath::segment S;
-
-  S.m_type = TessellatedPath::line_segment;
-  S.m_p = start_pt();
-  S.m_data = end_pt();
-  S.m_radius = 0.0f;
-  out_data->add_segment(S);
-
+  out_data->add_line_segment(start_pt(), end_pt());
   *out_threshhold = 0.0f;
   return 0;
 }
@@ -920,13 +916,9 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
 
   if (tess_params.m_allow_arcs)
     {
-      S.m_type = TessellatedPath::arc_segment;
-      S.m_p = d->m_center;
-      S.m_data.x() = d->m_start_angle;
-      S.m_data.y() = d->m_start_angle + d->m_angle_speed;
-      S.m_radius = d->m_radius;
-      out_data->add_segment(S);
-
+      out_data->add_arc_segment(d->m_center, d->m_radius,
+                                d->m_start_angle,
+                                d->m_start_angle + d->m_angle_speed);
       *out_threshhold = 0.0f;
     }
   else
