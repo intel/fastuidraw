@@ -24,6 +24,7 @@
 #include <fastuidraw/painter/stroked_path.hpp>
 #include <fastuidraw/painter/filled_path.hpp>
 #include "private/util_private.hpp"
+#include "private/bounding_box.hpp"
 
 namespace
 {
@@ -35,7 +36,7 @@ namespace
 
     std::vector<std::vector<fastuidraw::range_type<unsigned int> > > m_edge_ranges;
     std::vector<fastuidraw::TessellatedPath::point> m_point_data;
-    fastuidraw::vec2 m_box_min, m_box_max;
+    fastuidraw::BoundingBox<float> m_bounding_box;
     fastuidraw::TessellatedPath::TessellationParams m_params;
     float m_effective_threshhold;
     unsigned int m_max_segments;
@@ -50,8 +51,6 @@ TessellatedPathPrivate::
 TessellatedPathPrivate(const fastuidraw::Path &input,
                        fastuidraw::TessellatedPath::TessellationParams TP):
   m_edge_ranges(input.number_contours()),
-  m_box_min(0.0f, 0.0f),
-  m_box_max(0.0f, 0.0f),
   m_params(TP),
   m_effective_threshhold(0.0f),
   m_max_segments(0u)
@@ -91,23 +90,22 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
               work_room.resize(needed);
               for(unsigned int n = 0; n < work_room.size(); ++n)
                 {
-                  const vec2 &pt(work_room[n].m_p);
+                  m_bounding_box.union_point(work_room[n].m_p);
 
-                  work_room[n].m_distance_from_contour_start
-                    = contour_length + work_room[n].m_distance_from_edge_start;
-
-                  if (o == 0 && e == 0 && n == 0)
+                  if (n != 0)
                     {
-                      m_box_min = pt;
-                      m_box_max = pt;
+                      vec2 delta;
+                      delta = work_room[n].m_p - work_room[n - 1].m_p;
+                      work_room[n].m_distance_from_edge_start = delta.magnitude()
+                        + work_room[n - 1].m_distance_from_edge_start;
                     }
                   else
                     {
-                      m_box_min.x() = t_min(m_box_min.x(), pt.x());
-                      m_box_min.y() = t_min(m_box_min.y(), pt.y());
-                      m_box_max.x() = t_max(m_box_max.x(), pt.x());
-                      m_box_max.y() = t_max(m_box_max.y(), pt.y());
+                      work_room[n].m_distance_from_edge_start = 0.0f;
                     }
+
+                  work_room[n].m_distance_from_contour_start
+                    = contour_length + work_room[n].m_distance_from_edge_start;
                 }
 
               std::list<std::vector<TessellatedPath::point> >::iterator t;
@@ -154,10 +152,6 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
           std::copy(iter->begin(), iter->end(), std::back_inserter(m_point_data));
         }
       FASTUIDRAWassert(total_needed == m_point_data.size());
-    }
-  else
-    {
-      m_box_min = m_box_max = fastuidraw::vec2(0.0f, 0.0f);
     }
 }
 
@@ -340,7 +334,7 @@ bounding_box_min(void) const
   TessellatedPathPrivate *d;
   d = static_cast<TessellatedPathPrivate*>(m_d);
 
-  return d->m_box_min;
+  return d->m_bounding_box.min_point();
 }
 
 fastuidraw::vec2
@@ -350,7 +344,7 @@ bounding_box_max(void) const
   TessellatedPathPrivate *d;
   d = static_cast<TessellatedPathPrivate*>(m_d);
 
-  return d->m_box_max;
+  return d->m_bounding_box.max_point();
 }
 
 fastuidraw::vec2
@@ -360,5 +354,5 @@ bounding_box_size(void) const
   TessellatedPathPrivate *d;
   d = static_cast<TessellatedPathPrivate*>(m_d);
 
-  return d->m_box_max - d->m_box_min;
+  return d->m_bounding_box.size();
 }
