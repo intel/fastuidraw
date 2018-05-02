@@ -123,13 +123,138 @@ enable_wire_frame(bool b)
   #endif
 }
 
+vec2
+start_point(const TessellatedPath::segment &S)
+{
+  if (S.m_type == TessellatedPath::arc_segment)
+    {
+      float theta(S.m_data[0]);
+      return S.m_p + S.m_radius * vec2(t_cos(theta), t_sin(theta));
+    }
+  else
+    {
+      return S.m_p;
+    }
+}
+
+vec2
+end_point(const TessellatedPath::segment &S)
+{
+  if (S.m_type == TessellatedPath::arc_segment)
+    {
+      float theta(S.m_data[1]);
+      return S.m_p + S.m_radius * vec2(t_cos(theta), t_sin(theta));
+    }
+  else
+    {
+      return S.m_data;
+    }
+}
+
+void
+add_arc_segment_end_contour(const TessellatedPath::segment &S, Path &out)
+{
+  if (S.m_type == TessellatedPath::arc_segment)
+    {
+      float angle(S.m_data[1] - S.m_data[0]);
+      out << Path::contour_end_arc(angle);
+    }
+  else
+    {
+      out << Path::contour_end();
+    }
+}
+
+void
+add_arc_segment(const TessellatedPath::segment &S, Path &out)
+{
+  if (S.m_type == TessellatedPath::arc_segment)
+    {
+      float angle(S.m_data[1] - S.m_data[0]);
+      out << Path::arc(angle, end_point(S));
+    }
+  else
+    {
+      out << end_point(S);
+    }
+}
+
+void
+add_contour_from_arc_contour(c_array<const TessellatedPath::segment> contour, Path &out)
+{
+  c_array<const TessellatedPath::segment> tmp(contour);
+
+  tmp = tmp.sub_array(0, tmp.size() - 1);
+  out << start_point(tmp.front());
+
+  for(const TessellatedPath::segment &S : tmp)
+    {
+      add_arc_segment(S, out);
+    }
+
+  add_arc_segment_end_contour(contour.back(), out);
+}
+
+void
+create_path_from_arc_path(const TessellatedPath &in, Path &out)
+{
+  for(unsigned int C = 0, endC = in.number_contours(); C < endC; ++C)
+    {
+      add_contour_from_arc_contour(in.contour_segment_data(C), out);
+    }
+}
+
 class PerPath
 {
 public:
   PerPath(const Path &path, const std::string &label,
           int w, int h, bool from_gylph);
 
-  Path m_path;
+  reference_counted_ptr<const TessellatedPath>
+  arc_tessellated_path(float painter_tol)
+  {
+    float tol, det;
+
+    det = m_shear.x() * m_shear.y() * m_shear2.x() * m_shear2.y();
+    tol = painter_tol / (m_path_zoomer.transformation().scale() * t_sqrt(det));
+
+    return m_path.arc_tessellation(tol);
+  }
+
+  reference_counted_ptr<const TessellatedPath>
+  tessellated_path(float painter_tol)
+  {
+    reference_counted_ptr<const TessellatedPath> q;
+    float tol, det;
+
+    det = m_shear.x() * m_shear.y() * m_shear2.x() * m_shear2.y();
+    tol = painter_tol / (m_path_zoomer.transformation().scale() * t_sqrt(det));
+    q = m_path.tessellation(tol);
+    q->stroked();
+
+    return q;
+  }
+
+  const Path&
+  arc_path(float painter_tol)
+  {
+    reference_counted_ptr<const TessellatedPath> arc;
+    std::map<reference_counted_ptr<const TessellatedPath>, Path>::iterator iter;
+
+    arc = arc_tessellated_path(painter_tol);
+    iter = m_arc_paths.find(arc);
+
+    if (iter == m_arc_paths.end())
+      {
+        Path &path(m_arc_paths[arc]);
+        create_path_from_arc_path(*arc, path);
+        return path;
+      }
+    return iter->second;
+  }
+
+  Path m_path, m_arc_path;
+  std::map<reference_counted_ptr<const TessellatedPath>, Path> m_arc_paths;
   std::string m_label;
   bool m_from_glyph;
   unsigned int m_fill_rule;
@@ -218,10 +343,28 @@ private:
     return m_paths[m_selected_path].m_path_zoomer;
   }
 
-  Path&
+  const Path&
   path(void)
   {
     return m_paths[m_selected_path].m_path;
+  }
+
+  const Path&
+  arc_path(void)
+  {
+    return m_paths[m_selected_path].arc_path(m_curve_flatness);
+  }
+
+  const TessellatedPath&
+  tessellated_path(void)
+  {
+    return *m_paths[m_selected_path].tessellated_path(m_curve_flatness);
+  }
+
+  const TessellatedPath&
+  arc_tessellated_path(void)
+  {
+    return *m_paths[m_selected_path].arc_tessellated_path(m_curve_flatness);
   }
 
   unsigned int&
@@ -373,6 +516,7 @@ private:
   PainterPackedValue<PainterBrush> m_stroke_pen;
 
   unsigned int m_selected_path;
+  bool m_show_arc_path, m_show_path;
   unsigned int m_join_style;
   unsigned int m_cap_style;
   bool m_close_contour;
@@ -526,6 +670,8 @@ painter_stroke_test(void):
   m_fill_blue(1.0f, "fill_blue", "blue component of fill pen color", *this),
   m_fill_alpha(1.0f, "fill_alpha", "alpha component of fill pen color", *this),
   m_selected_path(0),
+  m_show_arc_path(false),
+  m_show_path(true),
   m_join_style(PainterEnums::miter_clip_joins),
   m_cap_style(PainterEnums::square_caps),
   m_close_contour(true),
@@ -953,6 +1099,32 @@ handle_event(const SDL_Event &ev)
           end_demo(0);
           break;
 
+        case SDLK_b:
+          m_show_arc_path = !m_show_arc_path;
+          if (m_show_arc_path)
+            {
+              std::cout << "Do";
+            }
+          else
+            {
+              std::cout << "Do NOT";
+            }
+          std::cout << " show arc-path\n";
+          break;
+
+        case SDLK_n:
+          m_show_path = !m_show_path;
+          if (m_show_path)
+            {
+              std::cout << "Do";
+            }
+          else
+            {
+              std::cout << "Do NOT";
+            }
+          std::cout << " show original path\n";
+          break;
+
         case SDLK_k:
           cycle_value(m_selected_path, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_paths.size());
           std::cout << "Path " << m_paths[m_selected_path].m_label << " selected\n";
@@ -1337,20 +1509,22 @@ per_path_processing(void)
               std::cout << "\tContour #" << c << "\n";
               for(unsigned int e = 0; e < tess->number_edges(c); ++e)
                 {
-                  fastuidraw::c_array<const fastuidraw::TessellatedPath::point> pts;
+                  fastuidraw::c_array<const fastuidraw::TessellatedPath::segment> segs;
 
                   std::cout << "\t\tEdge #" << e << " has "
-                            << tess->edge_point_data(c, e).size() << " pts\n";
-                  pts = tess->edge_point_data(c, e);
-                  for(unsigned int i = 0; i < pts.size(); ++i)
+                            << tess->edge_segment_data(c, e).size() << " segments\n";
+                  segs = tess->edge_segment_data(c, e);
+                  for(unsigned int i = 0; i < segs.size(); ++i)
                     {
-                      std::cout << "\t\t\tPoint #" << i << ":\n"
-                                << "\t\t\t\tp          = " << pts[i].m_p << "\n"
-                                << "\t\t\t\tedge_d     = " << pts[i].m_distance_from_edge_start << "\n"
-                                << "\t\t\t\tcontour_d  = " << pts[i].m_distance_from_contour_start << "\n"
-                                << "\t\t\t\tedge_l     = " << pts[i].m_edge_length << "\n"
-                                << "\t\t\t\tcontour_l  = " << pts[i].m_open_contour_length << "\n"
-                                << "\t\t\t\tcontour_cl = " << pts[i].m_closed_contour_length << "\n";
+                      std::cout << "\t\t\tSegment #" << i << ":\n"
+                                << "\t\t\t\tstart_p    = " << segs[i].m_p << "\n"
+                                << "\t\t\t\tend_p      = " << segs[i].m_data << "\n"
+                                << "\t\t\t\tlength     = " << segs[i].m_length << "\n"
+                                << "\t\t\t\tedge_d     = " << segs[i].m_distance_from_edge_start << "\n"
+                                << "\t\t\t\tcontour_d  = " << segs[i].m_distance_from_contour_start << "\n"
+                                << "\t\t\t\tedge_l     = " << segs[i].m_edge_length << "\n"
+                                << "\t\t\t\tcontour_l  = " << segs[i].m_open_contour_length << "\n"
+                                << "\t\t\t\tcontour_cl = " << segs[i].m_closed_contour_length << "\n";
                     }
                 }
             }
@@ -1721,11 +1895,24 @@ draw_frame(void)
               st.stroking_units(PainterStrokeParams::pixel_stroking_units);
             }
 
-          m_painter->stroke_dashed_path(PainterData(m_stroke_pen, &st),
-                                        path(), m_close_contour,
-                                        static_cast<enum PainterEnums::cap_style>(m_cap_style),
-                                        static_cast<enum PainterEnums::join_style>(m_join_style),
-                                        m_with_aa);
+
+          if (m_show_path)
+            {
+              m_painter->stroke_dashed_path(PainterData(m_stroke_pen, &st),
+                                            path(), m_close_contour,
+                                            static_cast<enum PainterEnums::cap_style>(m_cap_style),
+                                            static_cast<enum PainterEnums::join_style>(m_join_style),
+                                            m_with_aa);
+            }
+          if (m_show_arc_path)
+            {
+              m_painter->stroke_dashed_path(PainterData(m_stroke_pen, &st),
+                                            arc_path(), m_close_contour,
+                                            static_cast<enum PainterEnums::cap_style>(m_cap_style),
+                                            static_cast<enum PainterEnums::join_style>(m_join_style),
+                                            m_with_aa);
+            }
+
         }
       else
         {
@@ -1744,11 +1931,23 @@ draw_frame(void)
               st.stroking_units(PainterStrokeParams::pixel_stroking_units);
             }
 
-          m_painter->stroke_path(PainterData(m_stroke_pen, &st),
-                                 path(), m_close_contour,
-                                 static_cast<enum PainterEnums::cap_style>(m_cap_style),
-                                 static_cast<enum PainterEnums::join_style>(m_join_style),
-                                 m_with_aa);
+          if (m_show_path)
+            {
+              m_painter->stroke_path(PainterData(m_stroke_pen, &st),
+                                     path(), m_close_contour,
+                                     static_cast<enum PainterEnums::cap_style>(m_cap_style),
+                                     static_cast<enum PainterEnums::join_style>(m_join_style),
+                                     m_with_aa);
+            }
+
+          if (m_show_arc_path)
+            {
+              m_painter->stroke_path(PainterData(m_stroke_pen, &st),
+                                     arc_path(), m_close_contour,
+                                     static_cast<enum PainterEnums::cap_style>(m_cap_style),
+                                     static_cast<enum PainterEnums::join_style>(m_join_style),
+                                     m_with_aa);
+            }
         }
       submit_stroke_time = measure.elapsed_us();
     }
@@ -1822,6 +2021,8 @@ draw_frame(void)
            << "\nMouse position:"
            << item_coordinates(mouse_position)
            << "\ncurveFlatness: " << m_curve_flatness
+           << "\nArcTessellatedPath has " << arc_tessellated_path().segment_data().size() << " segments"
+           << "\nTessellatedPath has " << tessellated_path().segment_data().size() << " segments"
            << "\n";
 
       PainterBrush brush;

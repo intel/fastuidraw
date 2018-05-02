@@ -100,7 +100,7 @@ namespace fastuidraw
        * Construct/returns a ShaderSource value that
        * implements the function:
        * \code
-       * void
+       * float
        * function_name(in uint intervals_location,
        *               in float total_distance,
        *               in float first_interval_start,
@@ -121,6 +121,7 @@ namespace fastuidraw
        * - interval_id (output) ID of interval
        * - interval_begin (output) interval start of interval
        * - interval_end (output) interval end of interval
+       * - return -1 if on an odd interval, +1 if on an even interval
        *
        * \param function_name name to give to the function
        * \param data_alignment the alignment of the data store (see PainterBackend::ConfigurationBase::alignemnt()).

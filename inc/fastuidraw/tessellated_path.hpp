@@ -2,7 +2,7 @@
  * \file tessellated_path.hpp
  * \brief file tessellated_path.hpp
  *
- * Copyright 2016 by Intel.
+ * Copyright 2018 by Intel.
  *
  * Contact: kevin.rogovin@intel.com
  *
@@ -30,6 +30,7 @@ namespace fastuidraw  {
 
 ///@cond
 class Path;
+class ArcStrokedPath;
 class StrokedPath;
 class FilledPath;
 ///@endcond
@@ -40,8 +41,8 @@ class FilledPath;
 
 /*!
  * \brief
- * A TessellatedPath represents the tessellation of a Path
- * into line segments.
+ * An TessellatedPath represents the tessellation of a Path
+ * into line segments and arcs.
  *
  * A single contour of a TessellatedPath is constructed from
  * a single \ref PathContour of the source \ref Path. Each
@@ -60,6 +61,14 @@ class TessellatedPath:
 {
 public:
   /*!
+   */
+  enum segment_type_t
+    {
+      arc_segment,
+      line_segment,
+    };
+
+  /*!
    * \brief
    * A TessellationParams stores how finely to tessellate
    * the curves of a path.
@@ -72,13 +81,14 @@ public:
      */
     TessellationParams(void):
       m_threshhold(1.0f),
-      m_max_recursion(5)
+      m_max_recursion(5),
+      m_allow_arcs(true)
     {}
 
     /*!
      * Provided as a conveniance. Equivalent to
      * \code
-     * m_threshhold_type = tp;
+     * m_threshhold = tp;
      * \endcode
      * \param p value to which to assign to \ref m_threshhold
      */
@@ -90,8 +100,8 @@ public:
     }
 
     /*!
-     * Set the value of \ref m_max_recursion.
-     * \param v value to which to assign to \ref m_max_recursion
+     * Set the value of \ref m_max_segments.
+     * \param v value to which to assign to \ref m_max_segments
      */
     TessellationParams&
     max_recursion(unsigned int v)
@@ -101,9 +111,20 @@ public:
     }
 
     /*!
-     * The targetted threshhold, measured by an upper-bound
-     * (per-tessellated edge) of the distance between the line
-     * segments of the tessellation and the original curve.
+     * Provided as a conveniance. Equivalent to
+     * \code
+     * m_allow_arcs = p;
+     * \endcode
+     * \param p value to which to assign to \ref m_allow_arcs
+     */
+    TessellationParams&
+    allow_arcs(bool p)
+    {
+      m_allow_arcs = p;
+      return *this;
+    }
+
+    /*!
      * Default value is 1.0.
      */
     float m_threshhold;
@@ -113,52 +134,85 @@ public:
      * half. Default value is 5.
      */
     unsigned int m_max_recursion;
+
+    /*!
+     * If true, the produces tessellation will have \ref arc_segment
+     * typed \ref segment objects. If false, all segment objects
+     * will be of type \ref line_segment. Default value is true.
+     */
+    bool m_allow_arcs;
   };
 
   /*!
    * \brief
-   * Represents point of a tessellated path.
+   * Represents segment of an arc-tessellated path.
    */
-  class point
+  class segment
   {
   public:
     /*!
-     * The position of the point.
+     * Specifies the segment type which in turn determines the
+     * meaning of \ref m_p, \ref m_data and \ref m_radius
+     */
+    enum segment_type_t m_type;
+
+    /*!
+     * If \ref m_type is \ref line_segment, then gives the
+     * start position of the segment. If \ref m_type is \ref
+     * arc_segment, gives the center of the arc.
      */
     vec2 m_p;
 
     /*!
-     * Gives the distance of the point from the start
-     * of the edge (i.e PathContour::interpolator_base)
-     * on which the point resides.
+     * If \ref m_type is \ref line_segment, then gives the
+     * the position where the segment ends. If \ref m_type
+     * is \ref arc_segment, gives the start and end angles
+     * of the arc.
+     */
+    vec2 m_data;
+
+    /*!
+     * Only valid if \ref m_type is \ref arc_segment; gives
+     * the radius of the arc.
+     */
+    float m_radius;
+
+    /*!
+     * Gives the length of the segment.
+     */
+    float m_length;
+
+    /*!
+     * Gives the distance of the start of the segment from
+     * the start of the edge (i.e PathContour::interpolator_base).
      */
     float m_distance_from_edge_start;
 
     /*!
-     * Gives the distance of the point from the start
-     * of the -contour- on which the point resides.
+     * Gives the distance of the start of segment to the
+     * start of the -contour-.
      */
     float m_distance_from_contour_start;
 
     /*!
      * Gives the length of the edge (i.e.
      * PathContour::interpolator_base) on which the
-     * point lies. This value is the same for all
-     * points along a fixed edge.
+     * segment lies. This value is the same for all
+     * segments along a fixed edge.
      */
     float m_edge_length;
 
     /*!
      * Gives the length of the contour open on which
-     * the point lies. This value is the same for all
-     * points along a fixed contour.
+     * the segment lies. This value is the same for all
+     * segments along a fixed contour.
      */
     float m_open_contour_length;
 
     /*!
      * Gives the length of the contour closed on which
-     * the point lies. This value is the same for all
-     * points along a fixed contour.
+     * the segment lies. This value is the same for all
+     * segments along a fixed contour.
      */
     float m_closed_contour_length;
   };
@@ -170,18 +224,33 @@ public:
    * in order of time along the domain of a \ref
    * PathContour::interpolate_base
    */
-  class PointStorage:fastuidraw::noncopyable
+  class SegmentStorage:fastuidraw::noncopyable
   {
   public:
     /*!
-     * Add a \ref point to the PointStorage.
+     * Add a \ref segment to the SegmentStorage.
      */
     void
-    add_point(const point&);
+    add_segment(const segment&);
+
+    /*!
+     * Add a \ref segment to the SegmentStorage
+     * that is a line segment between two points.
+     */
+    void
+    add_line_segment(const vec2 &start, const vec2 &end);
+
+    /*!
+     * Add a \ref segment to the SegmentStorage
+     * that is an arc segment
+     */
+    void
+    add_arc_segment(const vec2 &center, float radius,
+                    float start_angle, float end_angle);
 
   private:
-    PointStorage(void) {}
-    ~PointStorage() {}
+    SegmentStorage(void) {}
+    ~SegmentStorage() {}
 
     friend class TessellatedPath;
     void *m_d;
@@ -204,6 +273,14 @@ public:
   tessellation_parameters(void) const;
 
   /*!
+   * Returns true if and only if there is a \ref segment
+   * in segment_data() for which segment::m_type is
+   * \ref arc_segment.
+   */
+  bool
+  has_arcs(void) const;
+
+  /*!
    * Returns the tessellation threshold achieved
    */
   float
@@ -222,10 +299,10 @@ public:
   max_recursion(void) const;
 
   /*!
-   * Returns all the point data
+   * Returns all the segment data
    */
-  c_array<const point>
-  point_data(void) const;
+  c_array<const segment>
+  segment_data(void) const;
 
   /*!
    * Returns the number of contours
@@ -234,12 +311,8 @@ public:
   number_contours(void) const;
 
   /*!
-   * Returns the range into point_data()
-   * for the named contour. The contour data is a
-   * sequence of points specifing a line strip.
-   * Points that are shared between edges (an edge
-   * corresponds to a PathContour::interpolator_base) are
-   * replicated (because the derivatives are different).
+   * Returns the range into segment_data() for the named
+   * contour.
    * \param contour which path contour to query, must have
    *                that 0 <= contour < number_contours()
    */
@@ -247,12 +320,8 @@ public:
   contour_range(unsigned int contour) const;
 
   /*!
-   * Returns the range into point_data()
-   * for the named contour lacking the closing
-   * edge. The contour data is a
-   * sequence of points specifing a line strip.
-   * Points that are shared between edges (an edge
-   * corresponds to a PathContour::interpolator_base) are
+   * Returns the range into segment_data() for the named
+   * contour lacking the closing edge.
    * replicated (because the derivatives are different).
    * \param contour which path contour to query, must have
    *                that 0 <= contour < number_contours()
@@ -261,39 +330,29 @@ public:
   unclosed_contour_range(unsigned int contour) const;
 
   /*!
-   * Returns the point data of the named contour
-   * including the closing edge. The contour data is a
-   * sequence of points specifing a line strip.
-   * Points that are shared between edges (an edge
-   * corresponds to a PathContour::interpolator_base) are
-   * replicated (because the derivatives are different).
-   * Provided as a conveniance, equivalent to
+   * Returns the segment data of the named contour including
+   * the closing edge. Provided as a conveniance equivalent to
    * \code
-   * point_data().sub_array(contour_range(contour))
+   * segment_data().sub_array(contour_range(contour))
    * \endcode
    * \param contour which path contour to query, must have
    *                that 0 <= contour < number_contours()
    */
-  c_array<const point>
-  contour_point_data(unsigned int contour) const;
+  c_array<const segment>
+  contour_segment_data(unsigned int contour) const;
 
   /*!
-   * Returns the point data of the named contour
-   * lacking the point data of the closing edge.
-   * The contour data is a sequence of points
-   * specifing a line strip. Points that are
-   * shared between edges (an edge corresponds to
-   * a PathContour::interpolator_base) are replicated
-   * (because the derivatives are different).
+   * Returns the segment data of the named contour
+   * lacking the segment data of the closing edge.
    * Provided as a conveniance, equivalent to
    * \code
-   * point_data().sub_array(unclosed_contour_range(contour))
+   * segment_data().sub_array(unclosed_contour_range(contour))
    * \endcode
    * \param contour which path contour to query, must have
    *                that 0 <= contour < number_contours()
    */
-  c_array<const point>
-  unclosed_contour_point_data(unsigned int contour) const;
+  c_array<const segment>
+  unclosed_contour_segment_data(unsigned int contour) const;
 
   /*!
    * Returns the number of edges for the named contour
@@ -304,12 +363,8 @@ public:
   number_edges(unsigned int contour) const;
 
   /*!
-   * Returns the range into point_data(void)
+   * Returns the range into segment_data(void)
    * for the named edge of the named contour.
-   * The returned range does include the end
-   * point of the edge. The edge corresponds
-   * to the PathContour::interpolator_base
-   * Path::contour(contour)->interpolator(edge).
    * \param contour which path contour to query, must have
    *                that 0 <= contour < number_contours()
    * \param edge which edge of the contour to query, must
@@ -319,19 +374,19 @@ public:
   edge_range(unsigned int contour, unsigned int edge) const;
 
   /*!
-   * Returns the point data of the named edge of the
+   * Returns the segment data of the named edge of the
    * named contour, provided as a conveniance, equivalent
    * to
    * \code
-   * point_data().sub_array(edge_range(contour, edge))
+   * segment_data().sub_array(edge_range(contour, edge))
    * \endcode
    * \param contour which path contour to query, must have
    *                that 0 <= contour < number_contours()
    * \param edge which edge of the contour to query, must
    *             have that 0 <= edge < number_edges(contour)
    */
-  c_array<const point>
-  edge_point_data(unsigned int contour, unsigned int edge) const;
+  c_array<const segment>
+  edge_segment_data(unsigned int contour, unsigned int edge) const;
 
   /*!
    * Returns the minimum point of the bounding box of
@@ -355,15 +410,24 @@ public:
   bounding_box_size(void) const;
 
   /*!
-   * Returns this TessellatedPath stroked. The StrokedPath object
-   * is constructed lazily.
+   * Returns this TessellatedPath arc-stroked. The ArcStrokedPath
+   * object is constructed lazily.
+   */
+  const reference_counted_ptr<const ArcStrokedPath>&
+  arc_stroked(void) const;
+
+  /*!
+   * Returns this TessellatedPath linearly-stroked. The StrokedPath
+   * object is constructed lazily. NOTE: will return a null-reference
+   * if \ref has_arcs() returns true.
    */
   const reference_counted_ptr<const StrokedPath>&
   stroked(void) const;
 
   /*!
-   * Returns this TessellatedPath filled. The FilledPath object
-   * is constructed lazily.
+   * Returns this TessellatedPath linearly-filled. The FilledPath
+   * object is constructed lazily. NOTE: will return a null-reference
+   * if \ref has_arcs() returns true.
    */
   const reference_counted_ptr<const FilledPath>&
   filled(void) const;
