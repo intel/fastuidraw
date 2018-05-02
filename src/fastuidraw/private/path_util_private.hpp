@@ -31,5 +31,8 @@ namespace fastuidraw
 
     unsigned int
     number_segments_for_tessellation(float arc_angle, float distance_thresh);
+
+    float
+    distance_to_line(const vec2 &q, const vec2 &p0, const vec2 &p1);
   }
 }

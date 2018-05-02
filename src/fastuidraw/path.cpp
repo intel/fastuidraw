@@ -264,18 +264,20 @@ namespace
 
   class PathPrivate;
 
+  template<typename pTessedClass>
   class TessellatedPathList
   {
   public:
-    typedef fastuidraw::TessellatedPath TessellatedPath;
-    typedef fastuidraw::reference_counted_ptr<const TessellatedPath> tessellated_path_ref;
+    typedef pTessedClass TessedPath;
+    typedef typename TessedPath::TessellationParams TessParams;
+    typedef fastuidraw::reference_counted_ptr<const TessedPath> TessedPathRef;
 
     explicit
     TessellatedPathList(void):
       m_done(false)
     {}
 
-    const tessellated_path_ref&
+    const TessedPathRef&
     tessellation(const fastuidraw::Path &path, float thresh);
 
     void
@@ -286,8 +288,25 @@ namespace
     }
 
   private:
+    class reverse_compare_thresh
+    {
+    public:
+      bool
+      operator()(const TessedPathRef &lhs, float rhs) const
+      {
+        return lhs->effective_threshhold() > rhs;
+      }
+
+      bool
+      operator()(const TessedPathRef &lhs,
+                 const TessedPathRef &rhs) const
+      {
+        return lhs->effective_threshhold() > rhs->effective_threshhold();
+      }
+    };
+
     bool m_done;
-    std::vector<tessellated_path_ref> m_data;
+    std::vector<TessedPathRef> m_data;
   };
 
   class PathPrivate:fastuidraw::noncopyable
@@ -313,7 +332,8 @@ namespace
     clear_tesses(void);
 
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::PathContour> > m_contours;
-    TessellatedPathList m_tess_list;
+    TessellatedPathList<fastuidraw::TessellatedPath> m_tess_list;
+    TessellatedPathList<fastuidraw::ArcTessellatedPath> m_arc_tess_list;
 
     /* m_start_check_bb gives the index into m_contours that
      *  have not had their bounding box absorbed into
@@ -323,23 +343,6 @@ namespace
     fastuidraw::vec2 m_max_bb, m_min_bb;
     bool m_is_flat;
     fastuidraw::Path *m_p;
-  };
-
-  class reverse_compare_thresh
-  {
-  public:
-    bool
-    operator()(const TessellatedPathList::tessellated_path_ref &lhs, float rhs) const
-    {
-      return lhs->effective_threshhold() > rhs;
-    }
-
-    bool
-    operator()(const TessellatedPathList::tessellated_path_ref &lhs,
-               const TessellatedPathList::tessellated_path_ref &rhs) const
-    {
-      return lhs->effective_threshhold() > rhs->effective_threshhold();
-    }
   };
 }
 
@@ -493,10 +496,11 @@ tessellation_worker(unsigned int recurse_level,
           S.m_radius = 0.0f;
           m_data.push_back(S);
 
-          /* TODO: compute the distance of mid, midL and midR from
-           * the segment and use that as the output threshhold
-           */
-          *out_threshhold = 0.0f;
+          *out_threshhold = t_max(detail::distance_to_line(p0, start, end),
+                                  detail::distance_to_line(p1, start, end));
+
+          *out_threshhold = t_max(*out_threshhold,
+                                  detail::distance_to_line(mid, start, end));
         }
       return;
     }
@@ -791,6 +795,16 @@ deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const
   return FASTUIDRAWnew bezier(*this, prev);
 }
 
+unsigned int
+fastuidraw::PathContour::bezier::
+minimum_arc_tessellation_segments(void) const
+{
+  BezierPrivate *d;
+  d = static_cast<BezierPrivate*>(m_d);
+
+  return 2 * d->m_pts.size();
+}
+
 //////////////////////////////////////
 // fastuidraw::PathContour::flat methods
 bool
@@ -855,6 +869,13 @@ approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
 
   out_max_bb->x() = fastuidraw::t_max(p0.x(), p1.x());
   out_max_bb->y() = fastuidraw::t_max(p0.y(), p1.y());
+}
+
+unsigned int
+fastuidraw::PathContour::flat::
+minimum_arc_tessellation_segments(void) const
+{
+  return 1;
 }
 
 //////////////////////////////////////
@@ -1004,6 +1025,13 @@ produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
   out_data[0].m_radius = d->m_radius;
 
   *out_threshhold = 0.0f;
+  return 1;
+}
+
+unsigned int
+fastuidraw::PathContour::arc::
+minimum_arc_tessellation_segments(void) const
+{
   return 1;
 }
 
@@ -1343,15 +1371,16 @@ approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
 
 /////////////////////////////////
 // TessellatedPathList methods
-const TessellatedPathList::tessellated_path_ref&
-TessellatedPathList::
+template<typename pTessedClass>
+const typename TessellatedPathList<pTessedClass>::TessedPathRef&
+TessellatedPathList<pTessedClass>::
 tessellation(const fastuidraw::Path &path, float thresh)
 {
   using namespace fastuidraw;
 
   if (m_data.empty())
     {
-      TessellatedPath::TessellationParams params;
+      TessParams params;
       vec2 bb_min, bb_max, bb_size;
 
       /* always prefer to use distance threshholds over
@@ -1369,7 +1398,7 @@ tessellation(const fastuidraw::Path &path, float thresh)
               params.threshhold(d / 500.0f);
             }
         }
-      m_data.push_back(FASTUIDRAWnew TessellatedPath(path, params));
+      m_data.push_back(FASTUIDRAWnew TessedPath(path, params));
     }
 
   if (thresh <= 0.0 || path.is_flat())
@@ -1379,7 +1408,7 @@ tessellation(const fastuidraw::Path &path, float thresh)
 
   if (m_data.back()->effective_threshhold() <= thresh)
     {
-      std::vector<tessellated_path_ref>::const_iterator iter;
+      typename std::vector<TessedPathRef>::const_iterator iter;
       iter = std::lower_bound(m_data.begin(),
                               m_data.end(),
                               thresh,
@@ -1396,8 +1425,8 @@ tessellation(const fastuidraw::Path &path, float thresh)
       return m_data.back();
     }
 
-  tessellated_path_ref prev_ref, ref;
-  TessellatedPath::TessellationParams params;
+  TessedPathRef prev_ref, ref;
+  TessParams params;
 
   ref = m_data.back();
   params
@@ -1406,16 +1435,28 @@ tessellation(const fastuidraw::Path &path, float thresh)
 
   while(!m_done && ref->effective_threshhold() > thresh)
     {
+      const int max_tries(6);
+
       params.m_threshhold *= 0.5f;
       while(!m_done
             && ref->effective_threshhold() > params.m_threshhold)
         {
           float last_tess;
+          int no_improve_count;
 
+          no_improve_count = 0;
           params.m_max_segments *= 2;
           last_tess = ref->effective_threshhold();
-          ref = FASTUIDRAWnew TessellatedPath(path, params);
-          if (last_tess > ref->effective_threshhold())
+          ref = FASTUIDRAWnew TessedPath(path, params);
+
+          while (last_tess <= ref->effective_threshhold() && no_improve_count < max_tries)
+            {
+              params.m_max_segments *= 2;
+              ref = FASTUIDRAWnew TessedPath(path, params);
+              ++no_improve_count;
+            }
+
+          if (no_improve_count < max_tries)
             {
               m_data.push_back(ref);
             }
@@ -1423,13 +1464,12 @@ tessellation(const fastuidraw::Path &path, float thresh)
             {
               m_done = true;
 
-              /*
-               *std::cout << "Tapped out on type = (max_segs = "
-               *         << ref->max_segments() << ", tess_factor = "
-               *         << ref->effective_threshhold(m_type)
-               *         << ", num_points = " << ref->point_data().size()
-               *         << ")\n";
-               */
+              /**/
+               std::cout << "Tapped out on type = (max_segs = "
+                        << ref->max_segments() << ", tess_factor = "
+                        << ref->effective_threshhold()
+                        << ")\n";
+                        /**/
             }
         }
     }
@@ -1451,6 +1491,7 @@ PathPrivate::
 PathPrivate(fastuidraw::Path *p, const PathPrivate &obj):
   m_contours(obj.m_contours),
   m_tess_list(obj.m_tess_list),
+  m_arc_tess_list(obj.m_arc_tess_list),
   m_start_check_bb(obj.m_start_check_bb),
   m_max_bb(obj.m_max_bb),
   m_min_bb(obj.m_min_bb),
@@ -1485,6 +1526,7 @@ PathPrivate::
 clear_tesses(void)
 {
   m_tess_list.clear();
+  m_arc_tess_list.clear();
 }
 
 /////////////////////////////////////////
@@ -1683,6 +1725,22 @@ tessellation(float thresh) const
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
   return d->m_tess_list.tessellation(*this, thresh);
+}
+
+const fastuidraw::reference_counted_ptr<const fastuidraw::ArcTessellatedPath>&
+fastuidraw::Path::
+arc_tessellation(void) const
+{
+  return arc_tessellation(-1.0f);
+}
+
+const fastuidraw::reference_counted_ptr<const fastuidraw::ArcTessellatedPath>&
+fastuidraw::Path::
+arc_tessellation(float thresh) const
+{
+  PathPrivate *d;
+  d = static_cast<PathPrivate*>(m_d);
+  return d->m_arc_tess_list.tessellation(*this, thresh);
 }
 
 bool

@@ -54,3 +54,16 @@ number_segments_for_tessellation(float arc_angle, float distance_thresh)
    */
   return 1 + fastuidraw::t_max(3u, static_cast<unsigned int>(needed_sizef));
 }
+
+float
+fastuidraw::detail::
+distance_to_line(const vec2 &q, const vec2 &p1, const vec2 &p2)
+{
+  vec2 delta(p2 - p1);
+  float num, den;
+
+  num = delta.y() * q.x() - delta.x() * q.y() - p2.x() * p1.y() - p1.x() * p2.y();
+  den = delta.magnitudeSq();
+
+  return t_sqrt(num / den);
+}

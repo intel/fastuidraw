@@ -141,6 +141,15 @@ public:
                          float *out_threshhold) const = 0;
 
     /*!
+     * To be implemented by a derived class to return a reasonable
+     * lower bound on the needed number of segments to capture the
+     * general shape when performing arc-tessellation.
+     */
+    virtual
+    unsigned int
+    minimum_arc_tessellation_segments(void) const = 0;
+
+    /*!
      * To be implemented by a derived class to return a fast (and approximate)
      * bounding box for the interpolator.
      * \param out_min_bb (output) location to which to write the min-x and min-y
@@ -204,6 +213,10 @@ public:
     virtual
     interpolator_base*
     deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const;
+
+    virtual
+    unsigned int
+    minimum_arc_tessellation_segments(void) const;
   };
 
   /*!
@@ -323,6 +336,10 @@ public:
     interpolator_base*
     deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const;
 
+    virtual
+    unsigned int
+    minimum_arc_tessellation_segments(void) const;
+
   private:
     bezier(const bezier &q,
            const reference_counted_ptr<const interpolator_base> &prev);
@@ -385,6 +402,9 @@ public:
     produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
                          c_array<ArcTessellatedPath::segment> out_data,
                          float *out_threshhold) const;
+    virtual
+    unsigned int
+    minimum_arc_tessellation_segments(void) const;
 
   private:
     arc(const arc &q, const reference_counted_ptr<const interpolator_base> &prev);
@@ -943,6 +963,30 @@ public:
    */
   const reference_counted_ptr<const TessellatedPath>&
   tessellation(void) const;
+
+  /*!
+   * Return the arc-tessellation of this Path at a specific
+   * level of detail. The ArcTessellatedPath is constructed
+   * lazily. Additionally, if this Path changes its geometry,
+   * then a new ArcTessellatedPath will be contructed on the
+   * next call to arc_tessellation().
+   * \param thresh the returned tessellated path will be so that
+   *               ArcTessellatedPath::effective_threshhold()
+   *               is no more than thresh. A non-positive value
+   *               will return the starting point tessellation.
+   */
+  const reference_counted_ptr<const ArcTessellatedPath>&
+  arc_tessellation(float thresh) const;
+
+  /*!
+   * Provided as a conveniance, returns the starting point tessellation.
+   * Equivalent to
+   * \code
+   * arc_tessellation(-1.0f)
+   * \endcode
+   */
+  const reference_counted_ptr<const ArcTessellatedPath>&
+  arc_tessellation(void) const;
 
 private:
   void *m_d;

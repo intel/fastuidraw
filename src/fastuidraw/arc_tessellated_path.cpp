@@ -109,7 +109,10 @@ ArcTessellatedPathPrivate(const fastuidraw::Path &input,
               unsigned int needed;
               float tmp;
 
-              work_room.resize(m_params.m_max_segments + 1);
+              m_params.m_max_segments = t_max(TP.m_max_segments,
+                                              contour->interpolator(e)->minimum_arc_tessellation_segments());
+              work_room.resize(m_params.m_max_segments);
+
               temp.push_back(std::vector<ArcTessellatedPath::segment>());
               needed = contour->interpolator(e)->produce_tessellation(m_params,
                                                                       make_c_array(work_room),
@@ -118,7 +121,7 @@ ArcTessellatedPathPrivate(const fastuidraw::Path &input,
               loc += needed;
 
               FASTUIDRAWassert(needed > 0u);
-              m_max_segments = t_max(m_max_segments, needed - 1);
+              m_max_segments = t_max(m_max_segments, needed);
               m_effective_threshhold = t_max(m_effective_threshhold, tmp);
 
               work_room.resize(needed);
@@ -189,6 +192,8 @@ ArcTessellatedPathPrivate(const fastuidraw::Path &input,
         }
       FASTUIDRAWassert(total_needed == m_segment_data.size());
     }
+
+  m_params.m_max_segments = TP.m_max_segments;
 }
 
 //////////////////////////////////////
