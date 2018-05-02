@@ -135,9 +135,9 @@ public:
      *                       approximation.
      */
     virtual
-    unsigned int
+    void
     produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
-                         c_array<ArcTessellatedPath::segment> out_data,
+                         ArcTessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const = 0;
 
     /*!
@@ -202,9 +202,9 @@ public:
                          c_array<TessellatedPath::point> out_data,
                          float *out_threshholds) const;
     virtual
-    unsigned int
+    void
     produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
-                         c_array<ArcTessellatedPath::segment> out_data,
+                         ArcTessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const;
     virtual
     void
@@ -253,9 +253,9 @@ public:
                          c_array<TessellatedPath::point> out_data,
                          float *out_threshholds) const;
     virtual
-    unsigned int
+    void
     produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
-                         c_array<ArcTessellatedPath::segment> out_data,
+                         ArcTessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const;
 
     /*!
@@ -398,9 +398,9 @@ public:
                          c_array<TessellatedPath::point> out_data,
                          float *out_threshholds) const;
     virtual
-    unsigned int
+    void
     produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
-                         c_array<ArcTessellatedPath::segment> out_data,
+                         ArcTessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const;
     virtual
     unsigned int
