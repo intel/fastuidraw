@@ -515,11 +515,7 @@ tessellation_worker(unsigned int recurse_level,
           S.m_radius = 0.0f;
           out_data->add_segment(S);
 
-          *out_threshhold = t_max(detail::distance_to_line(p0, start, end),
-                                  detail::distance_to_line(p1, start, end));
-
-          *out_threshhold = t_max(*out_threshhold,
-                                  detail::distance_to_line(mid, start, end));
+          *out_threshhold = 0.0f;
           return recurse_level;
         }
     }
@@ -1409,8 +1405,7 @@ tessellation(const fastuidraw::Path &path, float thresh)
       TessParams params;
       vec2 bb_min, bb_max, bb_size;
 
-      /* always prefer to use distance threshholds over
-       * curvature; use the size of the bounding box times
+      /* use the size of the bounding box times
        * 1/500 as teh default tessellation factor.
        */
       if (path.approximate_bounding_box(&bb_min, &bb_max))
@@ -1456,46 +1451,42 @@ tessellation(const fastuidraw::Path &path, float thresh)
 
   ref = m_data.back();
   params
-    .max_recursion(ref->tessellation_parameters().m_max_recursion)
+    .max_recursion(ref->max_recursion())
     .threshhold(ref->effective_threshhold());
 
   while(!m_done && ref->effective_threshhold() > thresh)
     {
-      const int max_tries(6);
-
       params.m_threshhold *= 0.5f;
       while(!m_done
             && ref->effective_threshhold() > params.m_threshhold)
         {
           float last_tess;
-          int no_improve_count;
 
-          no_improve_count = 0;
           ++params.m_max_recursion;
           last_tess = ref->effective_threshhold();
           ref = FASTUIDRAWnew TessedPath(path, params);
 
-          while (last_tess <= ref->effective_threshhold() && no_improve_count < max_tries)
-            {
-              ++params.m_max_recursion;
-              ref = FASTUIDRAWnew TessedPath(path, params);
-              ++no_improve_count;
-            }
-
-          if (no_improve_count < max_tries)
+          if (last_tess > ref->effective_threshhold())
             {
               m_data.push_back(ref);
+
+              /*
+              std::cout << "Add type = " << typeid(TessedPath).name()
+                        << "(max_segs = "  << ref->max_segments() << ", tess_factor = "
+                        << ref->effective_threshhold()
+                        << ")\n";
+              */
             }
           else
             {
               m_done = true;
 
-              /**/
-               std::cout << "Tapped out on type = (max_segs = "
-                        << ref->max_segments() << ", tess_factor = "
+              /*
+              std::cout << "Tapped out on type = " << typeid(TessedPath).name()
+                        << "(max_segs = "  << ref->max_segments() << ", tess_factor = "
                         << ref->effective_threshhold()
                         << ")\n";
-                        /**/
+              */
             }
         }
     }
