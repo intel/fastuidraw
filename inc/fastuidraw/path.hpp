@@ -137,15 +137,6 @@ public:
                          float *out_threshhold) const = 0;
 
     /*!
-     * To be implemented by a derived class to return a reasonable
-     * lower bound on the needed number of times the edge should be
-     * cut in half in order to capture its shape.
-     */
-    virtual
-    unsigned int
-    minimum_arc_tessellation_recursion(void) const = 0;
-
-    /*!
      * To be implemented by a derived class to return a fast (and approximate)
      * bounding box for the interpolator.
      * \param out_min_bb (output) location to which to write the min-x and min-y
@@ -209,10 +200,6 @@ public:
     virtual
     interpolator_base*
     deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const;
-
-    virtual
-    unsigned int
-    minimum_arc_tessellation_recursion(void) const;
   };
 
   /*!
@@ -273,6 +260,15 @@ public:
                reference_counted_ptr<tessellated_region> *out_regionA,
                reference_counted_ptr<tessellated_region> *out_regionB,
                vec2 *out_p, float *out_threshholds) const = 0;
+
+    /*!
+     * To be implemented by a derived class to return a reasonable
+     * lower bound on the needed number of times the edge should be
+     * cut in half in order to capture its shape.
+     */
+    virtual
+    unsigned int
+    minimum_tessellation_recursion(void) const = 0;
   };
 
   /*!
@@ -334,7 +330,7 @@ public:
 
     virtual
     unsigned int
-    minimum_arc_tessellation_recursion(void) const;
+    minimum_tessellation_recursion(void) const;
 
   private:
     bezier(const bezier &q,
@@ -398,9 +394,6 @@ public:
     produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
                          ArcTessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const;
-    virtual
-    unsigned int
-    minimum_arc_tessellation_recursion(void) const;
 
   private:
     arc(const arc &q, const reference_counted_ptr<const interpolator_base> &prev);

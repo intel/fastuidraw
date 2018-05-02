@@ -59,16 +59,17 @@ namespace
     Tessellator(const TessellationParams &tess_params,
                 const interpolator_generic *h):
       m_h(h),
-      m_thresh(tess_params)
+      m_thresh(tess_params),
+      m_minimum_tessellation_recursion(m_h->minimum_tessellation_recursion())
     {
     }
 
-    void
+    unsigned int
     dump(TessellatedPath::PointStorage *out_data,
          float *out_threshhold) const;
 
   private:
-    void
+    unsigned int
     tessellation_worker(unsigned int recurse_level,
                         TessellatedPath::PointStorage *out_data,
                         fastuidraw::reference_counted_ptr<tessellated_region> in_src,
@@ -85,6 +86,7 @@ namespace
 
     const interpolator_generic *m_h;
     TessellationParams m_thresh;
+    unsigned int m_minimum_tessellation_recursion;
   };
 
   class ArcTessellator
@@ -99,16 +101,17 @@ namespace
     ArcTessellator(const TessellationParams &tess_params,
                    const interpolator_generic *h):
       m_h(h),
-      m_thresh(tess_params)
+      m_thresh(tess_params),
+      m_minimum_tessellation_recursion(m_h->minimum_tessellation_recursion())
     {
     }
 
-    void
+    unsigned int
     dump(ArcTessellatedPath::SegmentStorage *out_data,
          float *out_threshhold) const;
 
   private:
-    void
+    unsigned int
     tessellation_worker(unsigned int recurse_level,
                         ArcTessellatedPath::SegmentStorage *out_data,
                         fastuidraw::reference_counted_ptr<tessellated_region> in_L,
@@ -116,8 +119,21 @@ namespace
                         fastuidraw::vec2 start, fastuidraw::vec2 mid, fastuidraw::vec2 end,
                         float *out_threshhold) const;
 
+    unsigned int
+    recurse(unsigned int recurse_level,
+            ArcTessellatedPath::SegmentStorage *out_data,
+            fastuidraw::reference_counted_ptr<tessellated_region> L0,
+            fastuidraw::reference_counted_ptr<tessellated_region> L1,
+            fastuidraw::reference_counted_ptr<tessellated_region> R0,
+            fastuidraw::reference_counted_ptr<tessellated_region> R1,
+            fastuidraw::vec2 start, fastuidraw::vec2 midL,
+            fastuidraw::vec2 mid, fastuidraw::vec2 midR,
+            fastuidraw::vec2 end,
+            float *out_threshhold) const;
+
     const interpolator_generic *m_h;
     TessellationParams m_thresh;
+    unsigned int m_minimum_tessellation_recursion;
   };
 
   class InterpolatorBasePrivate
@@ -335,11 +351,13 @@ namespace
 
 /////////////////////////////////
 // Tessellator methods
-void
+unsigned int
 Tessellator::
 dump(TessellatedPath::PointStorage *out_data,
      float *out_threshhold) const
 {
+  unsigned int return_value;
+
   *out_threshhold = -1.0f;
   /*
    * tessellate: note that we add the start point, then tessellate
@@ -347,11 +365,13 @@ dump(TessellatedPath::PointStorage *out_data,
    * are added to m_data in order of time automatically.
    */
   add_point(out_data, m_h->start_pt());
-  tessellation_worker(0, out_data, nullptr, out_threshhold);
+  return_value = tessellation_worker(0, out_data, nullptr, out_threshhold);
   add_point(out_data, m_h->end_pt());
+
+  return return_value;
 }
 
-void
+unsigned int
 Tessellator::
 tessellation_worker(unsigned int recurse_level,
                     TessellatedPath::PointStorage *out_data,
@@ -365,10 +385,12 @@ tessellation_worker(unsigned int recurse_level,
 
   m_h->tessellate(in_src, &rgnA, &rgnB, &p, out_threshhold);
 
-  if (recurse_level <= m_thresh.m_max_recursion
-      && *out_threshhold > m_thresh.m_threshhold)
+  if (recurse_level < m_minimum_tessellation_recursion
+      || (recurse_level <= m_thresh.m_max_recursion
+          && *out_threshhold > m_thresh.m_threshhold))
     {
       float tmpA(-1.0f), tmpB(-1.0f);
+      unsigned int vA, vB;
 
       /* NOTE the order of recursing and adding to m_data:
        *  - first we recurse into the left side
@@ -379,21 +401,23 @@ tessellation_worker(unsigned int recurse_level,
        * mid point, and all points in the right side come
        * after the midpoint.
        */
-      tessellation_worker(recurse_level + 1, out_data, rgnA, &tmpA);
+      vA = tessellation_worker(recurse_level + 1, out_data, rgnA, &tmpA);
       add_point(out_data, p);
-      tessellation_worker(recurse_level + 1, out_data, rgnB, &tmpB);
+      vB = tessellation_worker(recurse_level + 1, out_data, rgnB, &tmpB);
 
       *out_threshhold = t_max(tmpA, tmpB);
+      return t_max(vA, vB);
     }
   else
     {
       add_point(out_data, p);
+      return recurse_level;
     }
 }
 
 ///////////////////////////////////////
 // ArcTessellator methods
-void
+unsigned int
 ArcTessellator::
 dump(ArcTessellatedPath::SegmentStorage *out_data,
      float *out_threshhold) const
@@ -404,10 +428,34 @@ dump(ArcTessellatedPath::SegmentStorage *out_data,
   vec2 mid;
 
   m_h->tessellate(nullptr, &L, &R, &mid, nullptr);
-  tessellation_worker(1, out_data, L, R, m_h->start_pt(), mid, m_h->end_pt(), out_threshhold);
+  return tessellation_worker(1, out_data, L, R, m_h->start_pt(), mid, m_h->end_pt(), out_threshhold);
 }
 
-void
+unsigned int
+ArcTessellator::
+recurse(unsigned int recurse_level,
+        ArcTessellatedPath::SegmentStorage *out_data,
+        fastuidraw::reference_counted_ptr<tessellated_region> L0,
+        fastuidraw::reference_counted_ptr<tessellated_region> L1,
+        fastuidraw::reference_counted_ptr<tessellated_region> R0,
+        fastuidraw::reference_counted_ptr<tessellated_region> R1,
+        fastuidraw::vec2 start, fastuidraw::vec2 midL,
+        fastuidraw::vec2 mid, fastuidraw::vec2 midR,
+        fastuidraw::vec2 end,
+        float *out_threshhold) const
+{
+  float threshL, threshR;
+  unsigned int vL, vR;
+
+  vL = tessellation_worker(recurse_level + 1u, out_data, L0, L1,
+                           start, midL, mid, &threshL);
+  vR = tessellation_worker(recurse_level + 1u, out_data, R0, R1,
+                           mid, midR, end, &threshR);
+  *out_threshhold = fastuidraw::t_max(threshL, threshR);
+  return fastuidraw::t_max(vL, vR);
+}
+
+unsigned int
 ArcTessellator::
 tessellation_worker(unsigned int recurse_level,
                     ArcTessellatedPath::SegmentStorage *out_data,
@@ -425,14 +473,12 @@ tessellation_worker(unsigned int recurse_level,
   m_h->tessellate(inL, &L0, &L1, &midL, nullptr);
   m_h->tessellate(inR, &R0, &R1, &midR, nullptr);
 
-  if (recurse_level < m_h->minimum_arc_tessellation_recursion())
+  if (recurse_level < m_minimum_tessellation_recursion)
     {
-      tessellation_worker(recurse_level + 1u, out_data, L0, L1,
-                          start, midL, mid, &threshL);
-      tessellation_worker(recurse_level + 1u, out_data, R0, R1,
-                          mid, midR, end, &threshR);
-      *out_threshhold = t_max(threshL, threshR);
-      return;
+      return recurse(recurse_level, out_data,
+                     L0, L1, R0, R1,
+                     start, midL, mid, midR, end,
+                     out_threshhold);
     }
 
   /* compute the circle going through start, mid, end */
@@ -451,13 +497,12 @@ tessellation_worker(unsigned int recurse_level,
   det = n1.y() * n0.x() - n0.y() * n1.x();
   if (t_abs(det) < tol)
     {
-      if (recurse_level < m_thresh.m_max_recursion)
+      if (recurse_level <= m_thresh.m_max_recursion)
         {
-          tessellation_worker(recurse_level + 1u, out_data, L0, L1,
-                              start, midL, mid, &threshL);
-          tessellation_worker(recurse_level + 1u, out_data, R0, R1,
-                              mid, midR, end, &threshR);
-          *out_threshhold = t_max(threshL, threshR);
+          return recurse(recurse_level, out_data,
+                         L0, L1, R0, R1,
+                         start, midL, mid, midR, end,
+                         out_threshhold);
         }
       else
         {
@@ -475,8 +520,8 @@ tessellation_worker(unsigned int recurse_level,
 
           *out_threshhold = t_max(*out_threshhold,
                                   detail::distance_to_line(mid, start, end));
+          return recurse_level;
         }
-      return;
     }
 
   s = dot(v1, p1 - p0) / det;
@@ -488,14 +533,13 @@ tessellation_worker(unsigned int recurse_level,
   threshR = t_abs(r - (c - midR).magnitude());
   *out_threshhold = t_max(threshL, threshR);
 
-  if (recurse_level + 1u < m_thresh.m_max_recursion
+  if (recurse_level <= m_thresh.m_max_recursion
       && *out_threshhold > m_thresh.m_threshhold)
     {
-      tessellation_worker(recurse_level + 1u, out_data, L0, L1,
-                          start, midL, mid, &threshL);
-      tessellation_worker(recurse_level + 1u, out_data, R0, R1,
-                          mid, midR, end, &threshR);
-      *out_threshhold = t_max(threshL, threshR);
+      return recurse(recurse_level, out_data,
+                     L0, L1, R0, R1,
+                     start, midL, mid, midR, end,
+                     out_threshhold);
     }
   else
     {
@@ -508,6 +552,8 @@ tessellation_worker(unsigned int recurse_level,
       S.m_data.x() = std::atan2(start.y() - c.y(), start.x() - c.x());
       S.m_data.y() = std::atan2(end.y() - c.y(), end.x() - c.x());
       out_data->add_segment(S);
+
+      return recurse_level;
     }
 }
 
@@ -771,12 +817,12 @@ deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const
 
 unsigned int
 fastuidraw::PathContour::bezier::
-minimum_arc_tessellation_recursion(void) const
+minimum_tessellation_recursion(void) const
 {
   BezierPrivate *d;
   d = static_cast<BezierPrivate*>(m_d);
 
-  return uint32_log2(d->m_pts.size());
+  return 1 + uint32_log2(d->m_pts.size());
 }
 
 //////////////////////////////////////
@@ -847,13 +893,6 @@ approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
 
   out_max_bb->x() = fastuidraw::t_max(p0.x(), p1.x());
   out_max_bb->y() = fastuidraw::t_max(p0.y(), p1.y());
-}
-
-unsigned int
-fastuidraw::PathContour::flat::
-minimum_arc_tessellation_recursion(void) const
-{
-  return 0;
 }
 
 //////////////////////////////////////
@@ -1016,13 +1055,6 @@ produce_tessellation(const ArcTessellatedPath::TessellationParams &tess_params,
   out_data->add_segment(S);
 
   *out_threshhold = 0.0f;
-}
-
-unsigned int
-fastuidraw::PathContour::arc::
-minimum_arc_tessellation_recursion(void) const
-{
-  return 0;
 }
 
 void
