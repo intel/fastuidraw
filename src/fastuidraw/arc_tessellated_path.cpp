@@ -39,7 +39,7 @@ namespace
     fastuidraw::BoundingBox<float> m_bounding_box;
     fastuidraw::ArcTessellatedPath::TessellationParams m_params;
     float m_effective_threshhold;
-    unsigned int m_max_segments;
+    unsigned int m_max_segments, m_max_recursion;
   };
 
   void
@@ -87,7 +87,8 @@ ArcTessellatedPathPrivate(const fastuidraw::Path &input,
   m_edge_ranges(input.number_contours()),
   m_params(TP),
   m_effective_threshhold(0.0f),
-  m_max_segments(0u)
+  m_max_segments(0u),
+  m_max_recursion(0u)
 {
 }
 
@@ -126,14 +127,15 @@ ArcTessellatedPath(const Path &input,
           d->m_edge_ranges[o].resize(contour->number_points());
           for(unsigned int e = 0, ende = contour->number_points(); e < ende; ++e)
             {
-              unsigned int needed;
+              unsigned int needed, recurse_depth;
               float tmp;
               SegmentStorage segment_storage;
 
               FASTUIDRAWassert(work_room.empty());
               segment_storage.m_d = &work_room;
 
-              contour->interpolator(e)->produce_tessellation(d->m_params, &segment_storage, &tmp);
+              recurse_depth = contour->interpolator(e)->produce_tessellation(d->m_params, &segment_storage, &tmp);
+              d->m_max_recursion = t_max(d->m_max_recursion, recurse_depth);
 
               needed = work_room.size();
               d->m_edge_ranges[o][e] = range_type<unsigned int>(loc, loc + needed);
@@ -248,6 +250,15 @@ max_segments(void) const
   ArcTessellatedPathPrivate *d;
   d = static_cast<ArcTessellatedPathPrivate*>(m_d);
   return d->m_max_segments;
+}
+
+unsigned int
+fastuidraw::ArcTessellatedPath::
+max_recursion(void) const
+{
+  ArcTessellatedPathPrivate *d;
+  d = static_cast<ArcTessellatedPathPrivate*>(m_d);
+  return d->m_max_recursion;
 }
 
 fastuidraw::c_array<const fastuidraw::ArcTessellatedPath::segment>

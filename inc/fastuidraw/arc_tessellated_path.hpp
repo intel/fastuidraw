@@ -246,6 +246,12 @@ public:
   max_segments(void) const;
 
   /*!
+   * Returns the maximum recursion employed by any edge
+   */
+  unsigned int
+  max_recursion(void) const;
+
+  /*!
    * Returns all the segment data
    */
   c_array<const segment>
