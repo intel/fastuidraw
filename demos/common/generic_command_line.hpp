@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <map>
 #include <string>
 #include <sstream>
+#include <ciso646>
 #include <fastuidraw/util/util.hpp>
 
 class command_line_register;
