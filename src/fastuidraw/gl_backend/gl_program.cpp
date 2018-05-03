@@ -1114,7 +1114,7 @@ filter_name(iterator begin, iterator end, unsigned int *array_index)
    * and if it is remove characters until
    * a '[' is encountered.
    */
-  if (!return_value.empty() and *return_value.rbegin() == ']')
+  if (!return_value.empty() && *return_value.rbegin() == ']')
     {
       std::string::size_type loc;
 

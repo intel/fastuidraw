@@ -200,7 +200,7 @@ bool
 entry_ctor_helper::
 tangled(const fastuidraw::vec2 &v) const
 {
-  return m_is_quadratic and sub_tangled(v);
+  return m_is_quadratic && sub_tangled(v);
 }
 
 bool
@@ -216,7 +216,7 @@ sub_tangled(const fastuidraw::vec2 &v) const
   d = fastuidraw::dot(v, m_derivative);
   dd = fastuidraw::dot(vv, m_derivative);
 
-  return (r > 0.0f) and (d > 0.0f) and ( (rr > 0.0f) xor (dd > 0.0f) );
+  return (r > 0.0f) && (d > 0.0f) && ( (rr > 0.0f) != (dd > 0.0f) );
 }
 
 //////////////////////////////////////////////
@@ -266,11 +266,11 @@ entry(c_array<const vec2> pts, int curve0_count):
       m_use_min = true;
     }
 
-  tangled = c0.tangled(c1.m_ray) or c1.tangled(c0.m_ray)
-    or (!tangential and (c0.tangled(c1.m_derivative) or c1.tangled(c0.m_derivative)) );
+  tangled = c0.tangled(c1.m_ray) || c1.tangled(c0.m_ray)
+    || (!tangential && (c0.tangled(c1.m_derivative) || c1.tangled(c0.m_derivative)) );
 
 
-  if (tangled xor m_use_min)
+  if (tangled != m_use_min)
     {
       m_zeta = 1.0f;
     }
@@ -310,7 +310,7 @@ entry(bool inside):
     }
 
   bool tangled = false;
-  if (tangled xor m_use_min)
+  if (tangled != m_use_min)
     {
       m_zeta = 1.0f;
     }
