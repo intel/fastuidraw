@@ -144,7 +144,7 @@ int main(int argc, char **argv)
 
       current=argv[i];
       iter=find(current.begin(), current.end(), '=');
-      if (iter!=current.end() and iter+1!=current.end())
+      if (iter!=current.end() && iter+1!=current.end())
         {
           if (string(current.begin(),iter)==string("macro_prefix"))
             {

@@ -102,18 +102,18 @@ main(int argc, char **argv)
                   --parenCount;
                   std::cout << ch;
                 }
-              else if (ch=='\n' and parenCount>0)
+              else if (ch=='\n' && parenCount>0)
                 {
 
                 }
-              else if (last_char_is_white and isspace(ch) and ch!='\n')
+              else if (last_char_is_white && isspace(ch) && ch!='\n')
                 {
 
                 }
               else
                 {
                   std::cout << ch;
-                  last_char_is_white=isspace(ch) and ch!='\n';
+                  last_char_is_white=isspace(ch) && ch!='\n';
                 }
             }
           inFile.close();
