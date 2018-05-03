@@ -29,9 +29,6 @@
 #include <vector>
 
 #include <SDL.h>
-#ifndef _MSC_VER
-#include <sys/time.h>
-#endif
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
