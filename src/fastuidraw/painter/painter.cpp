@@ -616,6 +616,79 @@ namespace
     std::vector<fastuidraw::vec3> m_current;
   };
 
+  class StrokingItem
+  {
+  public:
+    StrokingItem(void)
+    {}
+
+    StrokingItem(bool with_aa,
+                 const fastuidraw::PainterStrokeShader &shader,
+                 unsigned int start, unsigned int size):
+      m_range(start, start + size)
+    {
+      m_shader_pass1 = (with_aa) ? &shader.aa_shader_pass1() : &shader.non_aa_shader();
+      m_shader_pass2 = (with_aa) ? &shader.aa_shader_pass2() : nullptr;
+    }
+
+    fastuidraw::range_type<unsigned int> m_range;
+    const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> *m_shader_pass1;
+    const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> *m_shader_pass2;
+  };
+
+  class StrokingItems
+  {
+  public:
+    explicit
+    StrokingItems(bool with_aa):
+      m_with_aa(with_aa),
+      m_count(0),
+      m_last_end(0)
+    {}
+
+    void
+    add_element(const fastuidraw::PainterStrokeShader &shader, unsigned int size)
+    {
+      m_data[m_count] = StrokingItem(m_with_aa, shader, m_last_end, size);
+      if (m_count == 0
+          || m_data[m_count].m_shader_pass1 != m_data[m_count - 1].m_shader_pass1
+          || m_data[m_count].m_shader_pass2 != m_data[m_count - 1].m_shader_pass2)
+        {
+          ++m_count;
+        }
+      else
+        {
+          m_data[m_count - 1].m_range.m_end += size;
+        }
+      m_last_end = m_data[m_count - 1].m_range.m_end;
+    }
+
+    fastuidraw::c_array<const StrokingItem>
+    data(void) const
+    {
+      return fastuidraw::c_array<const StrokingItem>(m_data).sub_array(0, m_count);
+    }
+
+    const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>*
+    current_shader_pass1(void) const
+    {
+      FASTUIDRAWassert(m_count > 0);
+      return m_data[m_count - 1].m_shader_pass1;
+    }
+
+    const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>*
+    current_shader_pass2(void) const
+    {
+      FASTUIDRAWassert(m_count > 0);
+      return m_data[m_count - 1].m_shader_pass2;
+    }
+
+  private:
+    fastuidraw::vecN<StrokingItem, 3> m_data;
+    bool m_with_aa;
+    unsigned int m_count, m_last_end;
+  };
+
   class PainterWorkRoom
   {
   public:
@@ -657,7 +730,6 @@ namespace
     std::vector<int> m_fill_aa_fuzz_index_adjusts;
     std::vector<int> m_fill_aa_fuzz_start_zs;
     std::vector<int> m_fill_aa_fuzz_z_increments;
-
   };
 
   class PainterPrivate
@@ -1575,7 +1647,6 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
   unsigned int zinc_sum(0), total_chunks(0), current(0), modify_z_coeff;
   PainterStrokeShader::type_t aa_type;
   bool modify_z;
-  const reference_counted_ptr<PainterItemShader> *sh1(nullptr), *sh2(nullptr);
   c_array<c_array<const PainterAttribute> > attrib_chunks;
   c_array<c_array<const PainterIndex> > index_chunks;
   c_array<int> index_adjusts;
@@ -1583,7 +1654,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
   c_array<int> start_zs;
   c_array<const reference_counted_ptr<PainterItemShader>* > shaders_pass1;
   c_array<const reference_counted_ptr<PainterItemShader>* > shaders_pass2;
-  range_type<unsigned int> edge_range(0, 0), join_range(0, 0), cap_range(0, 0);
+  StrokingItems stroking_items(with_anti_aliasing);
   reference_counted_ptr<PainterBlendShader> old_blend;
   BlendMode::packed_value old_blend_mode;
 
@@ -1631,10 +1702,8 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
 
   if (!edge_chunks.empty())
     {
-      sh1 = (with_anti_aliasing) ? &edge_shader.aa_shader_pass1(): &edge_shader.non_aa_shader();
-      sh2 = &edge_shader.aa_shader_pass2();
+      stroking_items.add_element(edge_shader, edge_chunks.size());
       aa_type = edge_shader.aa_type();
-      edge_range = range_type<unsigned int>(current, current + edge_chunks.size());
       for(unsigned int E = 0; E < edge_chunks.size(); ++E, ++current)
         {
           attrib_chunks[current] = edge_data->attribute_data_chunk(edge_chunks[E]);
@@ -1642,19 +1711,17 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
           index_adjusts[current] = edge_data->index_adjust_chunk(edge_chunks[E]);
           z_increments[current] = edge_data->z_range(edge_chunks[E]).difference();
           start_zs[current] = edge_data->z_range(edge_chunks[E]).m_begin;
-          shaders_pass1[current] = sh1;
-          shaders_pass2[current] = sh2;
+          shaders_pass1[current] = stroking_items.current_shader_pass1();
+          shaders_pass2[current] = stroking_items.current_shader_pass2();
           zinc_sum += z_increments[current];
         }
     }
 
   if (!join_chunks.empty())
     {
-      sh1 = (with_anti_aliasing) ? &join_shader.aa_shader_pass1(): &join_shader.non_aa_shader();
-      sh2 = &join_shader.aa_shader_pass2();
+      stroking_items.add_element(join_shader, join_chunks.size());
       FASTUIDRAWassert(current == 0 || aa_type == join_shader.aa_type() || !with_anti_aliasing);
       aa_type = join_shader.aa_type();
-      join_range = range_type<unsigned int>(current, current + join_chunks.size());
       for(unsigned int J = 0; J < join_chunks.size(); ++J, ++current)
         {
           attrib_chunks[current] = join_data->attribute_data_chunk(join_chunks[J]);
@@ -1662,19 +1729,17 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
           index_adjusts[current] = join_data->index_adjust_chunk(join_chunks[J]);
           z_increments[current] = join_data->z_range(join_chunks[J]).difference();
           start_zs[current] = join_data->z_range(join_chunks[J]).m_begin;
-          shaders_pass1[current] = sh1;
-          shaders_pass2[current] = sh2;
+          shaders_pass1[current] = stroking_items.current_shader_pass1();
+          shaders_pass2[current] = stroking_items.current_shader_pass2();
           zinc_sum += z_increments[current];
         }
     }
 
   if (!cap_chunks.empty())
     {
-      sh1 = (with_anti_aliasing) ? &cap_shader.aa_shader_pass1(): &cap_shader.non_aa_shader();
-      sh2 = &cap_shader.aa_shader_pass2();
+      stroking_items.add_element(cap_shader, cap_chunks.size());
       FASTUIDRAWassert(current == 0 || aa_type == cap_shader.aa_type() || !with_anti_aliasing);
       aa_type = cap_shader.aa_type();
-      cap_range = range_type<unsigned int>(current, current + cap_chunks.size());
       for(unsigned int C = 0; C < cap_chunks.size(); ++C, ++current)
         {
           attrib_chunks[current] = cap_data->attribute_data_chunk(cap_chunks[C]);
@@ -1682,8 +1747,8 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
           index_adjusts[current] = cap_data->index_adjust_chunk(cap_chunks[C]);
           z_increments[current] = cap_data->z_range(cap_chunks[C]).difference();
           start_zs[current] = cap_data->z_range(cap_chunks[C]).m_begin;
-          shaders_pass1[current] = sh1;
-          shaders_pass2[current] = sh2;
+          shaders_pass1[current] = stroking_items.current_shader_pass1();
+          shaders_pass2[current] = stroking_items.current_shader_pass2();
           zinc_sum += z_increments[current];
         }
     }
@@ -1732,32 +1797,12 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
     }
   else
     {
-      if (edge_range.m_begin != edge_range.m_end)
+      for(const StrokingItem &S : stroking_items.data())
         {
-          draw_generic(*shaders_pass1[edge_range.m_begin], draw,
-                       attrib_chunks.sub_array(edge_range),
-                       index_chunks.sub_array(edge_range),
-                       index_adjusts.sub_array(edge_range),
-                       fastuidraw::c_array<const unsigned int>(),
-                       m_current_z, call_back);
-        }
-
-      if (join_range.m_begin != join_range.m_end)
-        {
-          draw_generic(*shaders_pass1[join_range.m_begin], draw,
-                       attrib_chunks.sub_array(join_range),
-                       index_chunks.sub_array(join_range),
-                       index_adjusts.sub_array(join_range),
-                       fastuidraw::c_array<const unsigned int>(),
-                       m_current_z, call_back);
-        }
-
-      if (cap_range.m_begin != cap_range.m_end)
-        {
-          draw_generic(*shaders_pass1[cap_range.m_begin], draw,
-                       attrib_chunks.sub_array(cap_range),
-                       index_chunks.sub_array(cap_range),
-                       index_adjusts.sub_array(cap_range),
+          draw_generic(*S.m_shader_pass1, draw,
+                       attrib_chunks.sub_array(S.m_range),
+                       index_chunks.sub_array(S.m_range),
+                       index_adjusts.sub_array(S.m_range),
                        fastuidraw::c_array<const unsigned int>(),
                        m_current_z, call_back);
         }
@@ -1779,32 +1824,12 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
         }
       else
         {
-          if (edge_range.m_begin != edge_range.m_end)
+          for(const StrokingItem &S : stroking_items.data())
             {
-              draw_generic(*shaders_pass2[edge_range.m_begin], draw,
-                           attrib_chunks.sub_array(edge_range),
-                           index_chunks.sub_array(edge_range),
-                           index_adjusts.sub_array(edge_range),
-                           fastuidraw::c_array<const unsigned int>(),
-                           m_current_z, call_back);
-            }
-
-          if (join_range.m_begin != join_range.m_end)
-            {
-              draw_generic(*shaders_pass2[join_range.m_begin], draw,
-                           attrib_chunks.sub_array(join_range),
-                           index_chunks.sub_array(join_range),
-                           index_adjusts.sub_array(join_range),
-                           fastuidraw::c_array<const unsigned int>(),
-                           m_current_z, call_back);
-            }
-
-          if (cap_range.m_begin != cap_range.m_end)
-            {
-              draw_generic(*shaders_pass2[cap_range.m_begin], draw,
-                           attrib_chunks.sub_array(cap_range),
-                           index_chunks.sub_array(cap_range),
-                           index_adjusts.sub_array(cap_range),
+              draw_generic(*S.m_shader_pass2, draw,
+                           attrib_chunks.sub_array(S.m_range),
+                           index_chunks.sub_array(S.m_range),
+                           index_adjusts.sub_array(S.m_range),
                            fastuidraw::c_array<const unsigned int>(),
                            m_current_z, call_back);
             }
