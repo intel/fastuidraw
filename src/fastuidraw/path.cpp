@@ -867,29 +867,6 @@ arc(const reference_counted_ptr<const interpolator_base> &start, float angle, co
 }
 
 fastuidraw::PathContour::arc::
-arc(const reference_counted_ptr<const interpolator_base> &start,
-    const vec2 &center, const vec2 &end):
-  fastuidraw::PathContour::interpolator_base(start, end)
-{
-  ArcPrivate *d;
-  d = FASTUIDRAWnew ArcPrivate();
-  m_d = d;
-
-  vec2 start_center(start_pt() - center);
-  vec2 end_center(end - center);
-  float end_angle;
-
-  end_angle = std::atan2(end_center.y(), end_center.x());
-
-  d->m_center = center;
-  d->m_radius = start_center.magnitude();
-  d->m_start_angle = std::atan2(start_center.y(), start_center.x());
-  d->m_angle_speed = end_angle - d->m_start_angle;
-
-  d->compute_bb();
-}
-
-fastuidraw::PathContour::arc::
 arc(const arc &q, const reference_counted_ptr<const interpolator_base> &prev):
   fastuidraw::PathContour::interpolator_base(prev, q.end_pt())
 {

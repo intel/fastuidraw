@@ -333,16 +333,6 @@ public:
      */
     arc(const reference_counted_ptr<const interpolator_base> &start,
         float angle, const vec2 &end);
-    /*!
-     * Ctor.
-     * \param start start of curve
-     * \param center center of curve
-     * \param end end of curve; if the point is collinear with start and center
-     *            then it is undefined if the arc flips one way or the other
-     *            along the circle.
-     */
-    arc(const reference_counted_ptr<const interpolator_base> &start,
-        const vec2 &center, const vec2 &end);
 
     ~arc();
 
