@@ -523,11 +523,6 @@ void
 BezierPrivate::
 init(void)
 {
-  /* TODO: silly to recompute the binomial coefficients
-   *  every time a bezier object is created since creation
-   *  of it is O(n^2) where as once it is made, the creation
-   *  of bezier is O(n)
-   */
   FASTUIDRAWassert(!m_pts.empty());
 
   m_min_bb = m_max_bb = m_pts[0];

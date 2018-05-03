@@ -61,10 +61,22 @@ class TessellatedPath:
 {
 public:
   /*!
+   * \brief
+   * Enumeration to identify the type of a \ref segment
    */
   enum segment_type_t
     {
+      /*!
+       * Indicates that the segment is an arc segment,
+       * i.e. it connects two point via an arc of a
+       * circle
+       */
       arc_segment,
+
+      /*!
+       * Indicates that the segment is a line segment
+       * i.e. it connects two point via a line.
+       */
       line_segment,
     };
 
