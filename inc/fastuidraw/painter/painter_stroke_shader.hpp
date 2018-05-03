@@ -49,8 +49,8 @@ namespace fastuidraw
     /*!
      * To be implemented by a derived class to compute the value
      * used to select rounded join level of detail (\ref
-     * StrokedPath::rounded_joins()) and roudned cap level of detail
-     * (\ref StrokedPath::rounded_caps()).
+     * StrokedCapsJoins::rounded_joins()) and rounded cap level of detail
+     * (\ref StrokedCapsJoins::rounded_caps()).
      * \param data PainterItemShaderData::DataBase object holding
      *             the data to be sent to the shader
      * \param path_magnification by how much the path is magnified
