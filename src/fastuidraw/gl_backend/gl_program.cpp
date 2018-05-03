@@ -32,12 +32,7 @@
 #include <stdint.h>
 #include <cctype>
 #include <ciso646>
-#ifdef _MSC_VER
-#include <Windows.h>
-#include <fastuidraw/util/time.hpp>
-#else
-#include <sys/time.h>
-#endif
+#include <chrono>
 
 #include <fastuidraw/util/static_resource.hpp>
 #include <fastuidraw/gl_backend/ngl_header.hpp>
@@ -2238,8 +2233,7 @@ assemble(void)
       return;
     }
 
-  struct timeval start_time, end_time;
-  gettimeofday(&start_time, nullptr);
+  auto start_time = std::chrono::steady_clock::now();
 
   std::ostringstream error_ostr;
 
@@ -2272,9 +2266,8 @@ assemble(void)
   //now finally link!
   glLinkProgram(m_name);
 
-  gettimeofday(&end_time, nullptr);
-  m_assemble_time = float(end_time.tv_sec - start_time.tv_sec)
-    + float(end_time.tv_usec - start_time.tv_usec) / 1e6f;
+  auto end_time = std::chrono::steady_clock::now();
+  m_assemble_time = std::chrono::duration<float>(end_time - start_time).count();
 
   populate_info();
 
