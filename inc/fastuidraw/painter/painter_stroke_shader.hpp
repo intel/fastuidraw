@@ -226,13 +226,11 @@ namespace fastuidraw
     aa_action_pass2(const reference_counted_ptr<const PainterDraw::Action> &a);
 
     /*!
-     * Shader for rendering a stroked path without
-     * anti-aliasing. The depth value emitted
-     * in vertex shading should be z-value from
-     * the painter header (the value is
-     * Painter::current_z()) PLUS the value written
-     * to in PainterAttribute::m_uint_attrib.x()
-     * by PainterAttributeData.
+     * Shader for rendering a stroked path without anti-aliasing. The
+     * depth value emitted in vertex shading should be z-value from
+     * the painter header (the value is Painter::current_z()) PLUS a
+     * depth value to guarantee that there is no overdraw, see for
+     * example \ref StrokedPoint::depth().
      */
     const reference_counted_ptr<PainterItemShader>&
     non_aa_shader(void) const;

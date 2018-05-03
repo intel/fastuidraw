@@ -100,7 +100,8 @@ namespace fastuidraw
     /*!
      * Shader set for stroking of paths where the stroking
      * width is given in same units as the original path.
-     * The stroking parameters are given by PainterStrokeParams.
+     * The stroking parameters are given by \ref
+     * PainterStrokeParams.
      */
     const PainterStrokeShader&
     stroke_shader(void) const;
@@ -115,7 +116,8 @@ namespace fastuidraw
     /*!
      * Shader set for stroking of paths where the stroking
      * width is given in same units as the original path.
-     * The stroking parameters are given by PainterStrokeParams.
+     * The stroking parameters are given by \ref
+     * PainterDashedStrokeParams.
      */
     const PainterDashedStrokeShaderSet&
     dashed_stroke_shader(void) const;

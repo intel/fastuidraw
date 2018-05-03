@@ -64,8 +64,9 @@ namespace fastuidraw
    * dashed stroking. The shaders within a
    * PainterDashedStrokeShaderSet are expected to draw
    * any caps of dashed stroking from using just the edge
-   * data. In particular, attributes/indices for caps are
-   * NEVER given to a shader within a PainterDashedStrokeShaderSet.
+   * data. In particular, attributes/indices for caps induced
+   * by stroking are NOT given to a shader within a
+   * PainterDashedStrokeShaderSet.
    */
   class PainterDashedStrokeShaderSet
   {
