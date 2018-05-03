@@ -264,7 +264,6 @@ namespace
                            fastuidraw::vec2(c, -1.0f),
                            fastuidraw::vec2(d, +1.0f),
                            fastuidraw::vec2(b, +1.0f),
-                           false,
                            callback);
       }
     else if (fastuidraw::t_abs(plane.y()) > 0.0f)
@@ -289,7 +288,6 @@ namespace
                            fastuidraw::vec2(-1.0f, c),
                            fastuidraw::vec2(+1.0f, d),
                            fastuidraw::vec2(+1.0f, b),
-                           false,
                            callback);
 
       }
@@ -302,7 +300,6 @@ namespace
                            fastuidraw::vec2(-1.0f, +1.0f),
                            fastuidraw::vec2(+1.0f, +1.0f),
                            fastuidraw::vec2(+1.0f, -1.0f),
-                           false,
                            callback);
       }
   }
@@ -1491,7 +1488,6 @@ void
 fastuidraw::Painter::
 draw_convex_polygon(const PainterFillShader &shader,
                     const PainterData &draw, c_array<const vec2> pts,
-                    bool with_anti_aliasing,
                     const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   PainterPrivate *d;
@@ -1531,82 +1527,25 @@ draw_convex_polygon(const PainterFillShader &shader,
       d->m_work_room.m_polygon_indices.push_back(i);
     }
 
-  if (with_anti_aliasing)
-    {
-      ++d->m_current_z;
-    }
   draw_generic(shader.item_shader(), draw,
                make_c_array(d->m_work_room.m_polygon_attribs),
                make_c_array(d->m_work_room.m_polygon_indices),
                0,
                call_back);
-
-  /* each point spawns an edge, each edge is 4 attributes and 6 indices
-   */
-  if (with_anti_aliasing)
-    {
-      d->m_work_room.m_polygon_attribs.resize(4 * pts.size());
-      d->m_work_room.m_polygon_indices.resize(6 * pts.size());
-
-      c_array<PainterAttribute> attrs(make_c_array(d->m_work_room.m_polygon_attribs));
-      c_array<PainterIndex> indices(make_c_array(d->m_work_room.m_polygon_indices));
-
-      for(unsigned int src = 0, prev_src = pts.size() - 1; src < pts.size(); prev_src = src, ++src)
-        {
-          c_array<PainterAttribute> dst_attrib(attrs.sub_array(src * 4, 4));
-          c_array<PainterIndex> dst_index(indices.sub_array(src * 6, 6));
-          vec2 t(pts[src] - pts[prev_src]);
-          vec2 n(-t.y(), t.x());
-
-          dst_index[0] = 4 * src + 0;
-          dst_index[1] = 4 * src + 1;
-          dst_index[2] = 4 * src + 2;
-          dst_index[3] = 4 * src + 1;
-          dst_index[4] = 4 * src + 3;
-          dst_index[5] = 4 * src + 2;
-
-          for(unsigned int k = 0; k < 2; ++k)
-            {
-              unsigned int which_pt;
-
-              which_pt = (k == 0) ? prev_src : src;
-              dst_attrib[2 * k + 0].m_attrib0 = pack_vec4(pts[which_pt].x(), pts[which_pt].y(), n.x(), n.y());
-              dst_attrib[2 * k + 0].m_attrib1 = pack_vec4(1.0f, 0.0f, 0.0f, 0.0f);
-              dst_attrib[2 * k + 0].m_attrib2 = uvec4(0, 0, 0, 0);
-
-              dst_attrib[2 * k + 1].m_attrib0 = pack_vec4(pts[which_pt].x(), pts[which_pt].y(), -n.x(), -n.y());
-              dst_attrib[2 * k + 1].m_attrib1 = pack_vec4(-1.0f, 0.0f, 0.0f, 0.0f);
-              dst_attrib[2 * k + 1].m_attrib2 = uvec4(0, 0, 0, 0);
-            }
-        }
-
-      --d->m_current_z;
-      d->draw_generic(shader.aa_fuzz_shader(), draw,
-                      vecN<c_array<const PainterAttribute>, 1>(attrs),
-                      vecN<c_array<const PainterIndex>, 1>(indices),
-                      vecN<int, 1>(0),
-                      c_array<const unsigned int>(),
-                      d->m_current_z,
-                      call_back);
-      ++d->m_current_z;
-    }
 }
 
 void
 fastuidraw::Painter::
 draw_convex_polygon(const PainterData &draw, c_array<const vec2> pts,
-                    bool with_anti_aliasing,
                     const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  draw_convex_polygon(default_shaders().fill_shader(), draw, pts,
-                      with_anti_aliasing, call_back);
+  draw_convex_polygon(default_shaders().fill_shader(), draw, pts, call_back);
 }
 
 void
 fastuidraw::Painter::
 draw_quad(const PainterFillShader &shader,
           const PainterData &draw, const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
-          bool with_anti_aliasing,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   vecN<vec2, 4> pts;
@@ -1614,40 +1553,33 @@ draw_quad(const PainterFillShader &shader,
   pts[1] = p1;
   pts[2] = p2;
   pts[3] = p3;
-  draw_convex_polygon(shader, draw, c_array<const vec2>(&pts[0], pts.size()),
-                      with_anti_aliasing, call_back);
+  draw_convex_polygon(shader, draw, pts, call_back);
 }
 
 void
 fastuidraw::Painter::
 draw_quad(const PainterData &draw, const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
-          bool with_anti_aliasing,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  draw_quad(default_shaders().fill_shader(), draw, p0, p1, p2, p3,
-            with_anti_aliasing, call_back);
+  draw_quad(default_shaders().fill_shader(), draw, p0, p1, p2, p3, call_back);
 }
 
 void
 fastuidraw::Painter::
 draw_rect(const PainterFillShader &shader,
           const PainterData &draw, const vec2 &p, const vec2 &wh,
-          bool with_anti_aliasing,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
   draw_quad(shader, draw, p, p + vec2(0.0f, wh.y()),
-            p + wh, p + vec2(wh.x(), 0.0f),
-            with_anti_aliasing, call_back);
+            p + wh, p + vec2(wh.x(), 0.0f), call_back);
 }
 
 void
 fastuidraw::Painter::
 draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
-          bool with_anti_aliasing,
           const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
 {
-  draw_rect(default_shaders().fill_shader(), draw, p, wh,
-            with_anti_aliasing, call_back);
+  draw_rect(default_shaders().fill_shader(), draw, p, wh, call_back);
 }
 
 void

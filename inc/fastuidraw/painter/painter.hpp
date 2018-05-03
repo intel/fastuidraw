@@ -678,16 +678,11 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param pts points of the polygon so that neighboring points (modulo pts.size())
      *            are the edges of the polygon.
-     * \param with_shader_based_anti_aliasing draw the path in two passes using shader
-     *                                        based anti-aliasing; one should NEVER
-     *                                        have this as true if the surface passed
-     *                                        in begin() is a multi-sampled surface
      * \param call_back if non-nullptr handle, call back called when attribute data
      *                  is added.
      */
     void
-    draw_convex_polygon(const PainterFillShader &shader, const PainterData &draw,
-                        c_array<const vec2> pts, bool with_shader_based_anti_aliasing,
+    draw_convex_polygon(const PainterFillShader &shader, const PainterData &draw, c_array<const vec2> pts,
                         const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -695,15 +690,11 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param pts points of the polygon so that neighboring points (modulo pts.size())
      *            are the edges of the polygon.
-     * \param with_shader_based_anti_aliasing draw the path in two passes using shader
-     *                                        based anti-aliasing; one should NEVER
-     *                                        have this as true if the surface passed
-     *                                        in begin() is a multi-sampled surface
      * \param call_back if non-nullptr handle, call back called when attribute data
      *                  is added.
      */
     void
-    draw_convex_polygon(const PainterData &draw, c_array<const vec2> pts, bool with_shader_based_anti_aliasing,
+    draw_convex_polygon(const PainterData &draw, c_array<const vec2> pts,
                         const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -714,17 +705,12 @@ namespace fastuidraw
      * \param p1 point after p0, shares an edge with p0
      * \param p2 point after p1, shares an edge with p1
      * \param p3 point after p2, shares an edge with p2
-     * \param with_shader_based_anti_aliasing draw the path in two passes using shader
-     *                                        based anti-aliasing; one should NEVER
-     *                                        have this as true if the surface passed
-     *                                        in begin() is a multi-sampled surface
      * \param call_back if non-nullptr handle, call back called when attribute data
      *                  is added.
      */
     void
     draw_quad(const PainterFillShader &shader, const PainterData &draw,
               const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
-              bool with_shader_based_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -734,17 +720,12 @@ namespace fastuidraw
      * \param p1 point after p0, shares an edge with p0
      * \param p2 point after p1, shares an edge with p1
      * \param p3 point after p2, shares an edge with p2
-     * \param with_shader_based_anti_aliasing draw the path in two passes using shader
-     *                                        based anti-aliasing; one should NEVER
-     *                                        have this as true if the surface passed
-     *                                        in begin() is a multi-sampled surface
      * \param call_back if non-nullptr handle, call back called when attribute data
      *                  is added.
      */
     void
     draw_quad(const PainterData &draw,
               const vec2 &p0, const vec2 &p1, const vec2 &p2, const vec2 &p3,
-              bool with_shader_based_anti_aliasing,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -753,16 +734,12 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param p min-corner of rect
      * \param wh width and height of rect
-     * \param with_shader_based_anti_aliasing draw the path in two passes using shader
-     *                                        based anti-aliasing; one should NEVER
-     *                                        have this as true if the surface passed
-     *                                        in begin() is a multi-sampled surface
      * \param call_back if non-nullptr handle, call back called when attribute data
      *                  is added.
      */
     void
     draw_rect(const PainterFillShader &shader, const PainterData &draw,
-              const vec2 &p, const vec2 &wh, bool with_shader_based_anti_aliasing,
+              const vec2 &p, const vec2 &wh,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
@@ -770,15 +747,11 @@ namespace fastuidraw
      * \param draw data for how to draw
      * \param p min-corner of rect
      * \param wh width and height of rect
-     * \param with_shader_based_anti_aliasing draw the path in two passes using shader
-     *                                        based anti-aliasing; one should NEVER
-     *                                        have this as true if the surface passed
-     *                                        in begin() is a multi-sampled surface
      * \param call_back if non-nullptr handle, call back called when attribute data
      *                  is added.
      */
     void
-    draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh, bool with_shader_based_anti_aliasing,
+    draw_rect(const PainterData &draw, const vec2 &p, const vec2 &wh,
               const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
