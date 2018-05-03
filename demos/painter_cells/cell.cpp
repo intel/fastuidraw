@@ -139,7 +139,7 @@ Cell::
 paint_pre_children(const reference_counted_ptr<Painter> &painter)
 {
   painter->save();
-  painter->draw_rect(PainterData(m_background_brush), vec2(0.0f, 0.0f), m_dimensions, false);
+  painter->draw_rect(PainterData(m_background_brush), vec2(0.0f, 0.0f), m_dimensions);
 
   painter->translate(m_item_location);
   painter->rotate(m_item_rotation);
@@ -156,7 +156,7 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
           wh = vec2(m_dimensions) * 0.25f;
         }
       painter->translate(-wh * 0.5f);
-      painter->draw_rect(PainterData(m_image_brush), vec2(0.0, 0.0), wh, true);
+      painter->draw_rect(PainterData(m_image_brush), vec2(0.0, 0.0), wh);
       painter->translate(wh * 0.5f);
     }
 
