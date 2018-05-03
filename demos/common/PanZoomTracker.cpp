@@ -45,7 +45,7 @@ handle_motion(const fastuidraw::vec2 &pos, const fastuidraw::vec2 &delta)
 
       m_transformation.translation( m_transformation.translation() + delta);
 
-      if (fastuidraw::t_abs(zdx) > zdivide or fastuidraw::t_abs(zdy) > zdivide)
+      if (fastuidraw::t_abs(zdx) > zdivide || fastuidraw::t_abs(zdy) > zdivide)
         {
           m_zoom_time.restart();
           m_zoom_pivot = pos;

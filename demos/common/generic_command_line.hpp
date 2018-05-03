@@ -267,12 +267,12 @@ void
 readvalue_from_string(bool &value, const std::string &value_string)
 {
   if (value_string==std::string("on")
-     or value_string==std::string("true"))
+      || value_string==std::string("true"))
     {
       value=true;
     }
   else if (value_string==std::string("off")
-     or value_string==std::string("false"))
+	   || value_string==std::string("false"))
     {
       value=false;
     }
@@ -397,7 +397,7 @@ public:
         iter=std::find(str.begin(), str.end(), ':');
       }
 
-    if (iter!=str.end() and m_name==std::string(str.begin(), iter) )
+    if (iter!=str.end() && m_name==std::string(str.begin(), iter) )
       {
         std::string val(iter+1, str.end());
 
@@ -414,7 +414,7 @@ public:
         on_set_by_command_line();
         return 1;
       }
-    else if (location<argc-1 and str==m_name)
+    else if (location<argc-1 && str==m_name)
       {
         const std::string &val(argv[location+1]);
 
@@ -524,7 +524,7 @@ public:
         iter=std::find(str.begin(), str.end(), ':');
       }
 
-    if (iter!=str.end() and m_name==std::string(str.begin(), iter) )
+    if (iter!=str.end() && m_name==std::string(str.begin(), iter) )
       {
         std::string val(iter+1, str.end());
         typename std::map<std::string, T>::const_iterator iter;
@@ -543,7 +543,7 @@ public:
         m_set_by_command_line=true;
         return 1;
       }
-    else if (location<argc-1 and str==m_name)
+    else if (location<argc-1 && str==m_name)
       {
         const std::string &val(argv[location+1]);
         typename std::map<std::string, T>::const_iterator iter;
