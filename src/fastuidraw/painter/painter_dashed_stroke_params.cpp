@@ -16,6 +16,7 @@
  *
  */
 
+#include <algorithm>
 #include <cmath>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
 #include <fastuidraw/painter/stroked_path.hpp>

@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "table.hpp"
 #include "cell.hpp"
 #include "random.hpp"

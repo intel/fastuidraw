@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <bitset>
+#include <algorithm>
 
 #include <fastuidraw/util/math.hpp>
 #include <fastuidraw/painter/painter_header.hpp>
