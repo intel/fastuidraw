@@ -1859,7 +1859,7 @@ draw_frame(void)
           m_painter->save();
           m_painter->clipInPath(path(), *fill_rule);
           m_painter->transformation(float3x3());
-          m_painter->draw_rect(PainterData(&fill_brush), vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f), false);
+          m_painter->draw_rect(PainterData(&fill_brush), vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
           m_painter->restore();
         }
       else

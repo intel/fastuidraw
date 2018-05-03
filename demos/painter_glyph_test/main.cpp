@@ -828,7 +828,7 @@ draw_frame(void)
               PainterBrush brush;
 
               brush.pen(1.0f, 0.0f, 0.0f, 0.3f);
-              m_painter->draw_rect(PainterData(&brush), q, wh, false);
+              m_painter->draw_rect(PainterData(&brush), q, wh);
             }
         }
       else
