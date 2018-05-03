@@ -99,17 +99,12 @@ public:
 
     /*!
      * To be implemented by a derived class to produce the arc-tessellation
-     * from start_pt() to end_pt(). Only the fields TessellatedPath::segment::m_p,
-     * and TessellatedPath::m_type, TessellatedPath::m_data and
-     * TessellatedPath::m_radius are to be filled; the other fields of
-     * TessellatedPath::segment are filled by TessellatedPath. In addition,
-     * returns the deepest number of times it recurses (for example each level
-     * is dividing the path in half). If the routine is not recursive, should
-     * return 0.
-     *
+     * from start_pt() to end_pt(). In addition, returns the deepest number
+     * of times it recurses (for example each level is dividing the path in
+     * half). If the routine is not recursive, should return 0.
      *
      * \param tess_params tessellation parameters
-     * \param out_data location to which to write the tessellation
+     * \param out_data location to which to write the tessellations
      * \param out_threshhold location to which to write an upperbound for the
      *                       distance between the curve and the tesseallation
      *                       approximation.

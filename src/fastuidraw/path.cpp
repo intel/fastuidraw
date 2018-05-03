@@ -329,7 +329,7 @@ dump(TessellatedPath::SegmentStorage *out_data,
       fastuidraw::vec2 mid;
 
       m_h->tessellate(nullptr, &L, &R, &mid, nullptr);
-      return_value = arc_tessellation_worker(1, out_data, L, R,
+      return_value = arc_tessellation_worker(0, out_data, L, R,
                                              m_h->start_pt(), mid, m_h->end_pt(),
                                              out_threshhold);
     }
