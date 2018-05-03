@@ -161,7 +161,7 @@ fastuidraw::detail::RectAtlas::add_remove_return_value
 fastuidraw::detail::RectAtlas::tree_node_without_children::
 add(rectangle *im)
 {
-  if (im->size().x() > size().x() or im->size().y() > size().y())
+  if (im->size().x() > size().x() || im->size().y() > size().y())
     {
       return add_remove_return_value(this, routine_fail);
     }
@@ -190,12 +190,12 @@ add(rectangle *im)
   split_y_works = (dy >= im->size().y());
   split_x_works = (dx >= im->size().x());
 
-  if (!split_x_works and !split_y_works)
+  if (!split_x_works && !split_y_works)
     {
       return add_remove_return_value(this, routine_fail);
     }
 
-  if (split_x_works and split_y_works)
+  if (split_x_works && split_y_works)
     {
       //choose a split that is nicest
       //by making the other split false.
@@ -357,7 +357,7 @@ remove(const rectangle *im,
   add_remove_return_value R(null_tree_base, routine_fail);
   int delete_index(3);
 
-  for(int i = 0; i < 3 and R.second == routine_fail; ++i)
+  for(int i = 0; i < 3 && R.second == routine_fail; ++i)
     {
       FASTUIDRAWassert(m_children[i] != nullptr);
 
@@ -398,8 +398,8 @@ fastuidraw::detail::RectAtlas::tree_node_with_children::
 empty(void)
 {
   return m_children[0]->empty()
-    and m_children[1]->empty()
-    and m_children[2]->empty();
+    && m_children[1]->empty()
+    && m_children[2]->empty();
 }
 
 //////////////////////////////////////
@@ -410,9 +410,9 @@ fast_check(ivec2 psize)
 {
 
   return !m_sorted_by_x_size.empty()
-    and m_sorted_by_x_size.rbegin()->first >= psize.x()
-    and !m_sorted_by_y_size.empty()
-    and m_sorted_by_y_size.rbegin()->first >= psize.y();
+    && m_sorted_by_x_size.rbegin()->first >= psize.x()
+    && !m_sorted_by_y_size.empty()
+    && m_sorted_by_y_size.rbegin()->first >= psize.y();
 
   /*
    * the fast check can cull quickly, but
@@ -487,7 +487,7 @@ add_rectangle(const ivec2 &dimensions,
       add_remove_return_value R;
 
 
-      if (dimensions.x() > 0 and dimensions.y() > 0)
+      if (dimensions.x() > 0 && dimensions.y() > 0)
         {
           //attempt to add the rect:
           return_value = FASTUIDRAWnew rectangle(this, dimensions);
@@ -532,7 +532,7 @@ remove_rectangle_implement(const rectangle *im)
 
   FASTUIDRAWassert(im->atlas() == this);
 
-  if (im->size().x() <= 0 or im->size().y() <= 0)
+  if (im->size().x() <= 0 || im->size().y() <= 0)
     {
       FASTUIDRAWassert(im == &im->atlas()->m_empty_rect);
       return routine_success;
@@ -541,7 +541,7 @@ remove_rectangle_implement(const rectangle *im)
     {
       m_mutex.lock();
       R = m_root->api_remove(im);
-      if (R.second == routine_success and R.first != m_root)
+      if (R.second == routine_success && R.first != m_root)
         {
           FASTUIDRAWdelete(m_root);
           m_root = R.first;
