@@ -21,15 +21,11 @@
 
 #pragma once
 
-#ifdef _MSC_VER
-#define WIN32_LEAN_AND_MEAN
-#include <Windows.h>
-#include <WinSock2.h>
-#include <fastuidraw/util/time.hpp>
-#else
-#include <sys/time.h>
-#endif
+#include <chrono>
+
 #include <stdint.h>
+
+using namespace std::chrono;
 
 class simple_time
 {
@@ -37,26 +33,21 @@ public:
 
   simple_time(void)
   {
-    gettimeofday(&m_start_time, nullptr);
+    m_start_time = steady_clock::now();
   }
 
   int32_t
   elapsed(void)
   {
-    struct timeval current_time;
-
-    gettimeofday(&current_time, nullptr);
-    return time_difference_ms(current_time, m_start_time);
+    return time_difference_ms(steady_clock::now(), m_start_time);
   }
 
   int32_t
   restart(void)
   {
-    int32_t return_value;
-    struct timeval current_time;
+    auto current_time = steady_clock::now();
 
-    gettimeofday(&current_time, nullptr);
-    return_value = time_difference_ms(current_time, m_start_time);
+    auto return_value = time_difference_ms(current_time, m_start_time);
     m_start_time = current_time;
 
     return return_value;
@@ -67,20 +58,15 @@ public:
   int64_t
   elapsed_us(void)
   {
-    struct timeval current_time;
-
-    gettimeofday(&current_time, nullptr);
-    return time_difference_us(current_time, m_start_time);
+    return time_difference_us(steady_clock::now(), m_start_time);
   }
 
   int64_t
   restart_us(void)
   {
-    int64_t return_value;
-    struct timeval current_time;
+    auto current_time = steady_clock::now();
 
-    gettimeofday(&current_time, nullptr);
-    return_value = time_difference_us(current_time, m_start_time);
+    auto return_value = time_difference_us(current_time, m_start_time);
     m_start_time = current_time;
 
     return return_value;
@@ -90,22 +76,17 @@ private:
 
   static
   int32_t
-  time_difference_ms(const struct timeval &end, const struct timeval &begin)
+  time_difference_ms(const time_point<steady_clock> &end, const time_point<steady_clock> &begin)
   {
-    return (end.tv_sec - begin.tv_sec) * 1000+
-      (end.tv_usec - begin.tv_usec) / 1000;
+    return duration_cast<milliseconds>(end - begin).count();
   }
 
   static
   int64_t
-  time_difference_us(const struct timeval &end, const struct timeval &begin)
+  time_difference_us(const time_point<steady_clock> &end, const time_point<steady_clock> &begin)
   {
-    int64_t delta_usec, delta_sec;
-
-    delta_usec = int64_t(end.tv_usec) - int64_t(begin.tv_usec);
-    delta_sec = int64_t(end.tv_sec) - int64_t(begin.tv_sec);
-    return delta_sec * int64_t(1000) * int64_t(1000) + delta_usec;
+    return duration_cast<microseconds>(end - begin).count();
   }
 
-  struct timeval m_start_time;
+  time_point<steady_clock> m_start_time;
 };
