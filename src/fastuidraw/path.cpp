@@ -409,9 +409,6 @@ arc_recurse(unsigned int recurse_level,
   float threshL, threshR;
   unsigned int vL, vR;
 
-  std::cout << m_h << ":" << recurse_level + 1u
-            << "/ " << m_thresh.m_max_recursion << "\n";
-
   vL = arc_tessellation_worker(recurse_level + 1u, out_data, L0, L1,
                                start, midL, mid, &threshL);
   vR = arc_tessellation_worker(recurse_level + 1u, out_data, R0, R1,
@@ -497,10 +494,23 @@ arc_tessellation_worker(unsigned int recurse_level,
     }
   else
     {
-      float start_angle, end_angle;
+      float start_angle, end_angle, mid_angle;
 
       start_angle = std::atan2(start.y() - c.y(), start.x() - c.x());
       end_angle = std::atan2(end.y() - c.y(), end.x() - c.x());
+
+      mid_angle = std::atan2(mid.y() - c.y(), mid.x() - c.x());
+      if ((mid_angle > start_angle) != (end_angle > start_angle))
+        {
+          /* end_angle is on a different side of start_angle
+           * than mid_angle. Recall that atan2 returns a value in
+           * the range [-PI, PI]. We can make end_angle on the
+           * same side as mid_angle by adding 2.0 * M_PI.
+           */
+          end_angle += 2.0f * M_PI;
+          FASTUIDRAWassert((mid_angle > start_angle) == (end_angle > start_angle));
+        }
+
       out_data->add_arc_segment(c, r, start_angle, end_angle);
 
       return recurse_level;
