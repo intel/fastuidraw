@@ -475,6 +475,9 @@ private:
     return m_paths[m_selected_path].m_clipping_wh;
   }
 
+  void
+  draw_rect(const vec2 &pt, float r, const PainterData &d);
+
   command_line_argument_value<float> m_change_miter_limit_rate;
   command_line_argument_value<float> m_change_stroke_width_rate;
   command_line_argument_value<float> m_window_change_rate;
@@ -514,6 +517,8 @@ private:
   PainterPackedValue<PainterBrush> m_black_pen;
   PainterPackedValue<PainterBrush> m_white_pen;
   PainterPackedValue<PainterBrush> m_stroke_pen;
+
+  Path m_rect;
 
   unsigned int m_selected_path;
   bool m_show_arc_path, m_show_path;
@@ -761,6 +766,12 @@ painter_stroke_test(void):
   m_image_filter_mode_labels[image_nearest_filter] = "image_nearest_filter";
   m_image_filter_mode_labels[image_linear_filter] = "image_linear_filter";
   m_image_filter_mode_labels[image_cubic_filter] = "image_cubic_filter";
+
+  m_rect << vec2(-0.5f, -0.5f)
+         << vec2(-0.5f, +0.5f)
+         << vec2(+0.5f, +0.5f)
+         << vec2(+0.5f, -0.5f)
+         << Path::contour_end();
 }
 
 
@@ -989,6 +1000,17 @@ update_cts_params(void)
           std::cout << "Clipping window set to: xy = " << clipping_xy() << " wh = " << clipping_wh() << "\n";
         }
     }
+}
+
+void
+painter_stroke_test::
+draw_rect(const vec2 &pt, float r, const PainterData &d)
+{
+  m_painter->save();
+  m_painter->translate(pt);
+  m_painter->scale(r);
+  m_painter->fill_path(d, m_rect, PainterEnums::odd_even_fill_rule, true);
+  m_painter->restore();
 }
 
 vec2
@@ -1984,11 +2006,11 @@ draw_frame(void)
           m_black_pen = m_painter->packed_value_pool().create_packed_value(PainterBrush().pen(0.0, 0.0, 0.0, 1.0));
         }
 
-      m_painter->draw_rect(PainterData(m_black_pen), p0 - vec2(r1) * 0.5, vec2(r1), true);
-      m_painter->draw_rect(PainterData(m_white_pen), p0 - vec2(r0) * 0.5, vec2(r0), true);
+      draw_rect(p0, r1, PainterData(m_black_pen));
+      draw_rect(p0, r0, PainterData(m_white_pen));
 
-      m_painter->draw_rect(PainterData(m_white_pen), p1 - vec2(r1) * 0.5, vec2(r1), true);
-      m_painter->draw_rect(PainterData(m_black_pen), p1 - vec2(r0) * 0.5, vec2(r0), true);
+      draw_rect(p1, r1, PainterData(m_white_pen));
+      draw_rect(p1, r0, PainterData(m_black_pen));
     }
 
   m_painter->restore();
@@ -2021,8 +2043,10 @@ draw_frame(void)
            << "\nMouse position:"
            << item_coordinates(mouse_position)
            << "\ncurveFlatness: " << m_curve_flatness
-           << "\nArcTessellatedPath has " << arc_tessellated_path().segment_data().size() << " segments"
-           << "\nTessellatedPath has " << tessellated_path().segment_data().size() << " segments"
+           << "\nArcTessellatedPath has " << arc_tessellated_path().segment_data().size()
+           << " segments (max_recursion = " << arc_tessellated_path().max_recursion() << ")"
+           << "\nTessellatedPath has " << tessellated_path().segment_data().size()
+           << " segments (max_recursion = " << tessellated_path().max_recursion() << ")"
            << "\n";
 
       PainterBrush brush;
