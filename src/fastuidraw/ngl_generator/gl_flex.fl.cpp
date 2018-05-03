@@ -41,6 +41,11 @@
 
 %{
 #include "HeaderCreator.hpp"
+#ifdef _MSC_VER
+#include <io.h>
+#define isatty(x) _isatty(x)
+#define YY_NO_UNISTD_H
+#endif
 
 
 %}
