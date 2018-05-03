@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef __WIN32
+#ifdef _WIN32
  #define EGL_HELPER_DISABLED
 #endif
 

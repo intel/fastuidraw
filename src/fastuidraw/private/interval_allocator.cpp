@@ -16,6 +16,7 @@
  *
  */
 
+#include <algorithm>
 
 #include <fastuidraw/util/util.hpp>
 #include "interval_allocator.hpp"

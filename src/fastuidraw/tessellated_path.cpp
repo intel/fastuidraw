@@ -19,6 +19,7 @@
 
 #include <list>
 #include <vector>
+#include <algorithm>
 #include <fastuidraw/tessellated_path.hpp>
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/painter/stroked_path.hpp>

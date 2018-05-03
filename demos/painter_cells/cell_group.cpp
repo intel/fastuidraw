@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "cell_group.hpp"
 
 void

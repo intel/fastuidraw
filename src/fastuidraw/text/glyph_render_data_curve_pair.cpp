@@ -16,6 +16,7 @@
  * \author Kevin Rogovin <kevin.rogovin@intel.com>
  */
 
+#include <ciso646>
 #include <vector>
 #include <fastuidraw/text/glyph_render_data_curve_pair.hpp>
 
