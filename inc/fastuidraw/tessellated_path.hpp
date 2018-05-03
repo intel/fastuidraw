@@ -228,21 +228,21 @@ public:
   {
   public:
     /*!
-     * Add a \ref segment to the SegmentStorage.
-     */
-    void
-    add_segment(const segment&);
-
-    /*!
-     * Add a \ref segment to the SegmentStorage
-     * that is a line segment between two points.
+     * Add a \ref segment to the SegmentStorage that is a
+     * line segment between two points.
+     * \param start the starting point of the segment
+     * \param end the ending point of the segment
      */
     void
     add_line_segment(const vec2 &start, const vec2 &end);
 
     /*!
-     * Add a \ref segment to the SegmentStorage
-     * that is an arc segment
+     * Add a \ref segment to the SegmentStorage that is an
+     * arc segment.
+     * \param center center of the circle that defines the arc
+     * \param radius radius of the circle that defines the arc
+     * \param start_angle the start angle (in radians) of the arc
+     * \param end_angle the end angle (in radians) of the arc
      */
     void
     add_arc_segment(const vec2 &center, float radius,

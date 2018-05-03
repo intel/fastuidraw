@@ -101,25 +101,18 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
 // fastuidraw::TessellatedPath::SegmentStorage methods
 void
 fastuidraw::TessellatedPath::SegmentStorage::
-add_segment(const segment &S)
-{
-  std::vector<segment> *d;
-  d = static_cast<std::vector<segment>*>(m_d);
-  d->push_back(S);
-}
-
-void
-fastuidraw::TessellatedPath::SegmentStorage::
 add_line_segment(const vec2 &start, const vec2 &end)
 {
   segment S;
+  std::vector<segment> *d;
 
+  d = static_cast<std::vector<segment>*>(m_d);
   S.m_p = start;
   S.m_data = end;
   S.m_radius = 0;
   S.m_type = line_segment;
 
-  add_segment(S);
+  d->push_back(S);
 }
 
 void
@@ -128,14 +121,16 @@ add_arc_segment(const vec2 &center, float radius,
                 float start_angle, float end_angle)
 {
   segment S;
+  std::vector<segment> *d;
 
+  d = static_cast<std::vector<segment>*>(m_d);
   S.m_p = center;
   S.m_data[0] = start_angle;
   S.m_data[1] = end_angle;
   S.m_radius = radius;
   S.m_type = arc_segment;
 
-  add_segment(S);
+  d->push_back(S);
 }
 
 //////////////////////////////////////
