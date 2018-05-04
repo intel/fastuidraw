@@ -78,19 +78,22 @@ namespace
 
     unsigned int
     arc_tessellation_worker(unsigned int recurse_level,
-                        TessellatedPath::SegmentStorage *out_data,
-                        fastuidraw::reference_counted_ptr<tessellated_region> in_L,
-                        fastuidraw::reference_counted_ptr<tessellated_region> in_R,
-                        fastuidraw::vec2 start, fastuidraw::vec2 mid, fastuidraw::vec2 end,
-                        float *out_threshhold) const;
+                            TessellatedPath::SegmentStorage *out_data,
+                            fastuidraw::reference_counted_ptr<tessellated_region> in_L,
+                            fastuidraw::reference_counted_ptr<tessellated_region> in_R,
+                            float parition_threshhold,
+                            fastuidraw::vec2 start, fastuidraw::vec2 mid, fastuidraw::vec2 end,
+                            float *out_threshhold) const;
 
     unsigned int
     arc_recurse(unsigned int recurse_level,
                 TessellatedPath::SegmentStorage *out_data,
                 fastuidraw::reference_counted_ptr<tessellated_region> L0,
                 fastuidraw::reference_counted_ptr<tessellated_region> L1,
+                float Lpartitiion_threshhold,
                 fastuidraw::reference_counted_ptr<tessellated_region> R0,
                 fastuidraw::reference_counted_ptr<tessellated_region> R1,
+                float Rpartitiion_threshhold,
                 fastuidraw::vec2 start, fastuidraw::vec2 midL,
                 fastuidraw::vec2 mid, fastuidraw::vec2 midR,
                 fastuidraw::vec2 end,
@@ -327,9 +330,10 @@ dump(TessellatedPath::SegmentStorage *out_data,
     {
       fastuidraw::reference_counted_ptr<tessellated_region> L, R;
       fastuidraw::vec2 mid;
+      float partition_thresh;
 
-      m_h->tessellate(nullptr, &L, &R, &mid, nullptr);
-      return_value = arc_tessellation_worker(0, out_data, L, R,
+      m_h->tessellate(nullptr, &L, &R, &mid, &partition_thresh);
+      return_value = arc_tessellation_worker(0, out_data, L, R, partition_thresh,
                                              m_h->start_pt(), mid, m_h->end_pt(),
                                              out_threshhold);
     }
@@ -399,8 +403,10 @@ arc_recurse(unsigned int recurse_level,
             TessellatedPath::SegmentStorage *out_data,
             fastuidraw::reference_counted_ptr<tessellated_region> L0,
             fastuidraw::reference_counted_ptr<tessellated_region> L1,
+            float Lpartitiion_threshhold,
             fastuidraw::reference_counted_ptr<tessellated_region> R0,
             fastuidraw::reference_counted_ptr<tessellated_region> R1,
+            float Rpartitiion_threshhold,
             fastuidraw::vec2 start, fastuidraw::vec2 midL,
             fastuidraw::vec2 mid, fastuidraw::vec2 midR,
             fastuidraw::vec2 end,
@@ -410,9 +416,9 @@ arc_recurse(unsigned int recurse_level,
   unsigned int vL, vR;
 
   vL = arc_tessellation_worker(recurse_level + 1u, out_data, L0, L1,
-                               start, midL, mid, &threshL);
+                               Lpartitiion_threshhold, start, midL, mid, &threshL);
   vR = arc_tessellation_worker(recurse_level + 1u, out_data, R0, R1,
-                               mid, midR, end, &threshR);
+                               Rpartitiion_threshhold, mid, midR, end, &threshR);
   *out_threshhold = fastuidraw::t_max(threshL, threshR);
   return fastuidraw::t_max(vL, vR);
 }
@@ -423,6 +429,7 @@ arc_tessellation_worker(unsigned int recurse_level,
                         TessellatedPath::SegmentStorage *out_data,
                         fastuidraw::reference_counted_ptr<tessellated_region> inL,
                         fastuidraw::reference_counted_ptr<tessellated_region> inR,
+                        float partition_thresh,
                         fastuidraw::vec2 start, fastuidraw::vec2 mid, fastuidraw::vec2 end,
                         float *out_threshhold) const
 {
@@ -430,17 +437,25 @@ arc_tessellation_worker(unsigned int recurse_level,
   reference_counted_ptr<tessellated_region> L0, L1, R0, R1;
   vec2 midL, midR;
   static float tol(0.00001f);
-  float threshL, threshR;
+  float threshL, threshR, partition_threshL, partition_threshR;
 
-  m_h->tessellate(inL, &L0, &L1, &midL, nullptr);
-  m_h->tessellate(inR, &R0, &R1, &midR, nullptr);
+  m_h->tessellate(inL, &L0, &L1, &midL, &partition_threshL);
+  m_h->tessellate(inR, &R0, &R1, &midR, &partition_threshR);
 
   if (recurse_level < m_minimum_tessellation_recursion)
     {
       return arc_recurse(recurse_level, out_data,
-                         L0, L1, R0, R1,
+                         L0, L1, partition_threshL,
+                         R0, R1, partition_threshR,
                          start, midL, mid, midR, end,
                          out_threshhold);
+    }
+
+  if (partition_thresh < m_thresh.m_threshhold)
+    {
+      out_data->add_line_segment(start, end);
+      *out_threshhold = partition_thresh;
+      return recurse_level;
     }
 
   /* compute the circle going through start, mid, end */
@@ -461,16 +476,25 @@ arc_tessellation_worker(unsigned int recurse_level,
     {
       if (recurse_level <= m_thresh.m_max_recursion)
         {
+          /* from test before we already know that the
+           * curve is not within m_thresh.m_threshhold
+           * of the end points, so we recurse to circle
+           * and expect that the curves shape will be
+           * seen deeper.
+           */
           return arc_recurse(recurse_level, out_data,
-                             L0, L1, R0, R1,
+                             L0, L1, partition_threshL,
+                             R0, R1, partition_threshR,
                              start, midL, mid, midR, end,
                              out_threshhold);
         }
       else
         {
-          /* practically flat anyways, just add a line segment */
+          /* Sighs, we are out of options and have to say flat
+           * and we fail the threshhold requirement.
+           */
           out_data->add_line_segment(start, end);
-          *out_threshhold = 0.0f;
+          *out_threshhold = partition_thresh;
           return recurse_level;
         }
     }
@@ -479,7 +503,7 @@ arc_tessellation_worker(unsigned int recurse_level,
   c = p0 + s * n0;
   r = (c - mid).magnitude();
 
-  /* we are done if both midL and midR are close enough to C */
+  /* we are done if both midL and midR are close enough to Circle(c, r) */
   threshL = t_abs(r - (c - midL).magnitude());
   threshR = t_abs(r - (c - midR).magnitude());
   *out_threshhold = t_max(threshL, threshR);
@@ -488,7 +512,8 @@ arc_tessellation_worker(unsigned int recurse_level,
       && *out_threshhold > m_thresh.m_threshhold)
     {
       return arc_recurse(recurse_level, out_data,
-                         L0, L1, R0, R1,
+                         L0, L1, partition_threshL,
+                         R0, R1, partition_threshR,
                          start, midL, mid, midR, end,
                          out_threshhold);
     }
