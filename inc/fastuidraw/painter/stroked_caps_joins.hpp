@@ -263,19 +263,22 @@ public:
 
   /*!
    * Returns the data to draw the square caps of a stroked path.
+   * The attribute data is packed \ref StrokedPoint data.
    */
   const PainterAttributeData&
   square_caps(void) const;
 
   /*!
    * Returns the data to draw the caps of a stroked path used
-   * when stroking with a dash pattern.
+   * when stroking with a dash pattern. The attribute data is
+   * packed \ref StrokedPoint data.
    */
   const PainterAttributeData&
   adjustable_caps(void) const;
 
   /*!
    * Returns the data to draw the bevel joins of a stroked path.
+   * The attribute data is packed \ref StrokedPoint data.
    */
   const PainterAttributeData&
   bevel_joins(void) const;
@@ -283,7 +286,8 @@ public:
   /*!
    * Returns the data to draw the miter joins of a stroked path,
    * if the miter-limit is exceeded on stroking, the miter-join
-   * is clipped to the miter-limit.
+   * is clipped to the miter-limit. The attribute data is
+   * packed \ref StrokedPoint data.
    */
   const PainterAttributeData&
   miter_clip_joins(void) const;
@@ -291,7 +295,8 @@ public:
   /*!
    * Returns the data to draw the miter joins of a stroked path,
    * if the miter-limit is exceeded on stroking, the miter-join
-   * is to be drawn as a bevel join.
+   * is to be drawn as a bevel join. The attribute data is
+   * packed \ref StrokedPoint data.
    */
   const PainterAttributeData&
   miter_bevel_joins(void) const;
@@ -299,13 +304,15 @@ public:
   /*!
    * Returns the data to draw the miter joins of a stroked path,
    * if the miter-limit is exceeded on stroking, the miter-join
-   * end point is clamped to the miter-distance.
+   * end point is clamped to the miter-distance. The attribute
+   * data is packed \ref StrokedPoint data.
    */
   const PainterAttributeData&
   miter_joins(void) const;
 
   /*!
    * Returns the data to draw rounded joins of a stroked path.
+   * The attribute data is packed \ref StrokedPoint data.
    * \param thresh will return rounded joins so that the distance
    *               between the approximation of the round and the
    *               actual round is no more than thresh.
@@ -315,6 +322,7 @@ public:
 
   /*!
    * Returns the data to draw rounded caps of a stroked path.
+   * The attribute data is packed \ref StrokedPoint data.
    * \param thresh will return rounded caps so that the distance
    *               between the approximation of the round and the
    *               actual round is no more than thresh.
