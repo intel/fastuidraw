@@ -772,10 +772,8 @@ tessellate(reference_counted_ptr<tessellated_region> in_region,
   *out_regionB = newB;
   *out_p = newA->m_pts.back();
 
-  if (out_threshhold)
-    {
-      *out_threshhold = t_max(newA->compute_curve_distance(), newB->compute_curve_distance());
-    }
+  FASTUIDRAWassert(out_threshhold);
+  *out_threshhold = t_max(newA->compute_curve_distance(), newB->compute_curve_distance());
 }
 
 fastuidraw::PathContour::interpolator_base*
