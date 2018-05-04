@@ -70,7 +70,7 @@ namespace fastuidraw
      * These values are geometrically added together. The
      * intersection test performed is to first inflate the
      * bounding boxes in local coordinates by the output
-     *out_item_space_distance, then to convert the box
+     * out_item_space_distance, then to convert the box
      * to clip-coordinates and then push each clip-equation
      * by *out_pixel_space_distance
      * \param data PainterItemShaderData::DataBase object holding
