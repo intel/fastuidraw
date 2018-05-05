@@ -579,7 +579,7 @@ SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg,
   m_open_contour_length(seg.m_open_contour_length),
   m_closed_contour_length(seg.m_closed_contour_length),
   m_of_closing_edge(is_closing_edge),
-  m_delta(seg.m_start_pt - seg.m_end_pt),
+  m_delta(seg.m_end_pt - seg.m_start_pt),
   m_sub_edge_length(m_delta.magnitude())
 {
   const float mag_tol = 0.000001f;
