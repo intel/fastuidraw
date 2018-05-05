@@ -571,15 +571,15 @@ namespace
 SingleSubEdge::
 SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg,
               bool is_closing_edge):
-  m_pt0(seg.m_p),
-  m_pt1(seg.m_data),
+  m_pt0(seg.m_start_pt),
+  m_pt1(seg.m_end_pt),
   m_distance_from_edge_start(seg.m_distance_from_edge_start),
   m_distance_from_contour_start(seg.m_distance_from_contour_start),
   m_edge_length(seg.m_edge_length),
   m_open_contour_length(seg.m_open_contour_length),
   m_closed_contour_length(seg.m_closed_contour_length),
   m_of_closing_edge(is_closing_edge),
-  m_delta(seg.m_data - seg.m_p),
+  m_delta(seg.m_start_pt - seg.m_end_pt),
   m_sub_edge_length(m_delta.magnitude())
 {
   const float mag_tol = 0.000001f;
@@ -1454,7 +1454,7 @@ ready_builder_contour(const fastuidraw::TessellatedPath *tess,
 
   last_segs = tess->edge_segment_data(c, 0);
 
-  delta = last_segs.front().m_data - last_segs.front().m_p;
+  delta = last_segs.front().m_end_pt - last_segs.front().m_start_pt;
   delta_mag = delta.magnitude();
   if (delta_mag < tol)
     {
@@ -1465,7 +1465,7 @@ ready_builder_contour(const fastuidraw::TessellatedPath *tess,
       delta /= delta_mag;
     }
   last_direction = delta;
-  b.begin_contour(last_segs.front().m_p, delta);
+  b.begin_contour(last_segs.front().m_start_pt, delta);
 
   for(unsigned int e = 1, ende = tess->number_edges(c); e < ende; ++e)
     {
@@ -1474,7 +1474,7 @@ ready_builder_contour(const fastuidraw::TessellatedPath *tess,
       float mag;
 
       segs = tess->edge_segment_data(c, e);
-      delta_into = last_segs.back().m_data - last_segs.back().m_p;
+      delta_into = last_segs.back().m_end_pt - last_segs.back().m_start_pt;
       mag = delta_into.magnitude();
       if (mag < tol)
         {
@@ -1486,7 +1486,7 @@ ready_builder_contour(const fastuidraw::TessellatedPath *tess,
           last_direction = delta_into;
         }
 
-      delta_leaving = segs.front().m_data - segs.front().m_p;
+      delta_leaving = segs.front().m_end_pt - segs.front().m_start_pt;
       mag = delta_leaving.magnitude();
       if (mag < tol)
         {
@@ -1498,13 +1498,13 @@ ready_builder_contour(const fastuidraw::TessellatedPath *tess,
           last_direction = delta_leaving;
         }
 
-      b.add_join(segs.front().m_p,
+      b.add_join(segs.front().m_start_pt,
                  last_segs.back().m_edge_length,
                  delta_into, delta_leaving);
       last_segs = segs;
     }
 
-  delta = last_segs.back().m_data - last_segs.back().m_p;
+  delta = last_segs.back().m_end_pt - last_segs.back().m_start_pt;
   delta_mag = delta.magnitude();
   if (delta_mag < tol)
     {

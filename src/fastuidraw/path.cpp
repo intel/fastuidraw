@@ -536,7 +536,8 @@ arc_tessellation_worker(unsigned int recurse_level,
           FASTUIDRAWassert((mid_angle > start_angle) == (end_angle > start_angle));
         }
 
-      out_data->add_arc_segment(c, r, start_angle, end_angle);
+      out_data->add_arc_segment(start, end, c, r,
+				range_type<float>(start_angle, end_angle));
 
       return recurse_level;
     }
@@ -921,9 +922,10 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
 
   if (tess_params.m_allow_arcs)
     {
-      out_data->add_arc_segment(d->m_center, d->m_radius,
-                                d->m_start_angle,
-                                d->m_start_angle + d->m_angle_speed);
+      out_data->add_arc_segment(start_pt(), end_pt(),
+				d->m_center, d->m_radius,
+                                range_type<float>(d->m_start_angle,
+						  d->m_start_angle + d->m_angle_speed));
       *out_threshhold = 0.0f;
     }
   else

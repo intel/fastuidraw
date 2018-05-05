@@ -123,40 +123,12 @@ enable_wire_frame(bool b)
   #endif
 }
 
-vec2
-start_point(const TessellatedPath::segment &S)
-{
-  if (S.m_type == TessellatedPath::arc_segment)
-    {
-      float theta(S.m_data[0]);
-      return S.m_p + S.m_radius * vec2(t_cos(theta), t_sin(theta));
-    }
-  else
-    {
-      return S.m_p;
-    }
-}
-
-vec2
-end_point(const TessellatedPath::segment &S)
-{
-  if (S.m_type == TessellatedPath::arc_segment)
-    {
-      float theta(S.m_data[1]);
-      return S.m_p + S.m_radius * vec2(t_cos(theta), t_sin(theta));
-    }
-  else
-    {
-      return S.m_data;
-    }
-}
-
 void
 add_arc_segment_end_contour(const TessellatedPath::segment &S, Path &out)
 {
   if (S.m_type == TessellatedPath::arc_segment)
     {
-      float angle(S.m_data[1] - S.m_data[0]);
+      float angle(S.m_arc_angle.m_end - S.m_arc_angle.m_begin);
       out << Path::contour_end_arc(angle);
     }
   else
@@ -170,12 +142,12 @@ add_arc_segment(const TessellatedPath::segment &S, Path &out)
 {
   if (S.m_type == TessellatedPath::arc_segment)
     {
-      float angle(S.m_data[1] - S.m_data[0]);
-      out << Path::arc(angle, end_point(S));
+      float angle(S.m_arc_angle.m_end - S.m_arc_angle.m_begin);
+      out << Path::arc(angle, S.m_end_pt);
     }
   else
     {
-      out << end_point(S);
+      out << S.m_end_pt;
     }
 }
 
@@ -185,7 +157,7 @@ add_contour_from_arc_contour(c_array<const TessellatedPath::segment> contour, Pa
   c_array<const TessellatedPath::segment> tmp(contour);
 
   tmp = tmp.sub_array(0, tmp.size() - 1);
-  out << start_point(tmp.front());
+  out << tmp.front().m_start_pt;
 
   for(const TessellatedPath::segment &S : tmp)
     {
@@ -1539,8 +1511,8 @@ per_path_processing(void)
                   for(unsigned int i = 0; i < segs.size(); ++i)
                     {
                       std::cout << "\t\t\tSegment #" << i << ":\n"
-                                << "\t\t\t\tstart_p    = " << segs[i].m_p << "\n"
-                                << "\t\t\t\tend_p      = " << segs[i].m_data << "\n"
+                                << "\t\t\t\tstart_p    = " << segs[i].m_start_pt << "\n"
+                                << "\t\t\t\tend_p      = " << segs[i].m_end_pt << "\n"
                                 << "\t\t\t\tlength     = " << segs[i].m_length << "\n"
                                 << "\t\t\t\tedge_d     = " << segs[i].m_distance_from_edge_start << "\n"
                                 << "\t\t\t\tcontour_d  = " << segs[i].m_distance_from_contour_start << "\n"

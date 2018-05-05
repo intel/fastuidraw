@@ -51,34 +51,37 @@ namespace
                 fastuidraw::BoundingBox<float> &BB)
   {
     using namespace fastuidraw;
-    if (S.m_type == TessellatedPath::line_segment)
+
+    BB.union_point(S.m_start_pt);
+    BB.union_point(S.m_end_pt);
+    if (S.m_type == TessellatedPath::arc_segment)
       {
-        BB.union_point(S.m_p);
-        BB.union_point(S.m_data);
-      }
-    else
-      {
-        vec2 s, e;
-        for (int i = 0; i < 2; ++i)
-          {
-            vec2 q;
-            q = S.m_p + S.m_radius * vec2(t_cos(S.m_data[i]), t_sin(S.m_data[i]));
-            BB.union_point(q);
-          }
+	float s, c, l, half_angle;
+	float2x2 mat;
+	vec2 tau;
+
+	half_angle = 0.5f * (S.m_arc_angle.m_end - S.m_arc_angle.m_begin);
+	c = t_cos(S.m_arc_angle.m_begin + half_angle);
+	s = t_sin(S.m_arc_angle.m_begin + half_angle);
+	l = 1.0f - t_cos(half_angle);
+	tau = l * vec2(c, s);
+		
+        BB.union_point(S.m_start_pt + tau);
+        BB.union_point(S.m_end_pt + tau);
       }
   }
 
   float
-  segment_length(const fastuidraw::TessellatedPath::segment &S)
+  compute_segment_length(const fastuidraw::TessellatedPath::segment &S)
   {
     using namespace fastuidraw;
     if (S.m_type == TessellatedPath::line_segment)
       {
-        return (S.m_p - S.m_data).magnitude();
+        return (S.m_end_pt - S.m_start_pt).magnitude();
       }
     else
       {
-        return t_abs(S.m_data[0] - S.m_data[1]) * S.m_radius;
+        return t_abs(S.m_arc_angle.m_end - S.m_arc_angle.m_begin) * S.m_radius;
       }
   }
 }
@@ -101,15 +104,17 @@ TessellatedPathPrivate(const fastuidraw::Path &input,
 // fastuidraw::TessellatedPath::SegmentStorage methods
 void
 fastuidraw::TessellatedPath::SegmentStorage::
-add_line_segment(const vec2 &start, const vec2 &end)
+add_line_segment(vec2 start, vec2 end)
 {
   segment S;
   std::vector<segment> *d;
 
   d = static_cast<std::vector<segment>*>(m_d);
-  S.m_p = start;
-  S.m_data = end;
+  S.m_start_pt = start;
+  S.m_end_pt = end;
   S.m_radius = 0;
+  S.m_center = vec2(0.0f, 0.0f);
+  S.m_arc_angle = range_type<float>(0.0f, 0.0f);
   S.m_type = line_segment;
 
   d->push_back(S);
@@ -117,16 +122,18 @@ add_line_segment(const vec2 &start, const vec2 &end)
 
 void
 fastuidraw::TessellatedPath::SegmentStorage::
-add_arc_segment(const vec2 &center, float radius,
-                float start_angle, float end_angle)
+add_arc_segment(vec2 start, vec2 end,
+		vec2 center, float radius,
+		range_type<float> arc_angle)
 {
   segment S;
   std::vector<segment> *d;
 
   d = static_cast<std::vector<segment>*>(m_d);
-  S.m_p = center;
-  S.m_data[0] = start_angle;
-  S.m_data[1] = end_angle;
+  S.m_start_pt = start;
+  S.m_end_pt = end;
+  S.m_center = center;
+  S.m_arc_angle = arc_angle;
   S.m_radius = radius;
   S.m_type = arc_segment;
 
@@ -180,7 +187,7 @@ TessellatedPath(const Path &input,
                 {
                   d->m_has_arcs = d->m_has_arcs || (work_room[n].m_type == arc_segment);
                   union_segment(work_room[n], d->m_bounding_box);
-                  work_room[n].m_length = segment_length(work_room[n]);
+                  work_room[n].m_length = compute_segment_length(work_room[n]);
 
                   if (n != 0)
                     {
