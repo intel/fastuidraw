@@ -2697,7 +2697,8 @@ add_cap(const PerCapData &C, unsigned int depth,
   uint32_t mask;
   StrokedPoint pt;
 
-  mask = (C.m_is_starting_cap) ? 0u : StrokedPoint::adjustable_cap_is_end_contour_mask;
+  mask = (C.m_is_starting_cap) ? 0u :
+    uint32_t(StrokedPoint::adjustable_cap_is_end_contour_mask);
   type = StrokedPoint::offset_adjustable_cap;
 
   first = vertex_offset;
