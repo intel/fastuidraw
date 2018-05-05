@@ -169,19 +169,26 @@ public:
     enum segment_type_t m_type;
 
     /*!
-     * If \ref m_type is \ref line_segment, then gives the
-     * start position of the segment. If \ref m_type is \ref
-     * arc_segment, gives the center of the arc.
+     * Gives the start point on the path of the segment.
      */
-    vec2 m_p;
+    vec2 m_start_pt;
 
     /*!
-     * If \ref m_type is \ref line_segment, then gives the
-     * the position where the segment ends. If \ref m_type
-     * is \ref arc_segment, gives the start and end angles
-     * of the arc.
+     * Gives the end point on the path of the segment.
      */
-    vec2 m_data;
+    vec2 m_end_pt;
+
+    /*!
+     * Only valid if \ref m_type is \ref arc_segment; gives
+     * the center of the arc.
+     */
+    vec2 m_center;
+
+    /*!
+     * Only valid if \ref m_type is \ref arc_segment; gives
+     * the angle range of the arc.
+     */
+    range_type<float> m_arc_angle;
 
     /*!
      * Only valid if \ref m_type is \ref arc_segment; gives
@@ -246,19 +253,21 @@ public:
      * \param end the ending point of the segment
      */
     void
-    add_line_segment(const vec2 &start, const vec2 &end);
+    add_line_segment(vec2 start, vec2 end);
 
     /*!
      * Add a \ref segment to the SegmentStorage that is an
      * arc segment.
-     * \param center center of the circle that defines the arc
-     * \param radius radius of the circle that defines the arc
-     * \param start_angle the start angle (in radians) of the arc
-     * \param end_angle the end angle (in radians) of the arc
+     * \param start gives the start point of the arc on the path
+     * \param end gives the end point of the arc on the path
+     * \param center is the center of the circle that defines the arc
+     * \param radius is the radius of the circle that defines the arc
+     * \param arc_angle is the arc-angle range that defines the arc
      */
     void
-    add_arc_segment(const vec2 &center, float radius,
-                    float start_angle, float end_angle);
+    add_arc_segment(vec2 start, vec2 end,
+		    vec2 center, float radius,
+                    range_type<float> arc_angle);
 
   private:
     SegmentStorage(void) {}
