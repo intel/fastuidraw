@@ -493,10 +493,8 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_blend_shader_bit0", PainterHeader::blend_shader_bit0)
     .add_macro("fastuidraw_blend_shader_num_bits", PainterHeader::blend_shader_num_bits)
 
-    /* offset types for stroking.
-     */
-    .add_macro("fastuidraw_stroke_offset_start_sub_edge", StrokedPoint::offset_start_sub_edge)
-    .add_macro("fastuidraw_stroke_offset_end_sub_edge", StrokedPoint::offset_end_sub_edge)
+    /* offset types for stroking. */
+    .add_macro("fastuidraw_stroke_offset_sub_edge", StrokedPoint::offset_sub_edge)
     .add_macro("fastuidraw_stroke_offset_shared_with_edge", StrokedPoint::offset_shared_with_edge)
     .add_macro("fastuidraw_stroke_offset_rounded_join", StrokedPoint::offset_rounded_join)
 
@@ -506,13 +504,11 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
 
     .add_macro("fastuidraw_stroke_offset_rounded_cap", StrokedPoint::offset_rounded_cap)
     .add_macro("fastuidraw_stroke_offset_square_cap", StrokedPoint::offset_square_cap)
-    .add_macro("fastuidraw_stroke_offset_adjustable_cap_contour_start", StrokedPoint::offset_adjustable_cap_contour_start)
-    .add_macro("fastuidraw_stroke_offset_adjustable_cap_contour_end", StrokedPoint::offset_adjustable_cap_contour_end)
+    .add_macro("fastuidraw_stroke_offset_adjustable_cap", StrokedPoint::offset_adjustable_cap)
     .add_macro("fastuidraw_stroke_offset_type_bit0", StrokedPoint::offset_type_bit0)
     .add_macro("fastuidraw_stroke_offset_type_num_bits", StrokedPoint::offset_type_num_bits)
 
-    /* bit masks for StrokedPoint::m_packed_data
-     */
+    /* bit masks for StrokedPoint::m_packed_data  */
     .add_macro("fastuidraw_stroke_sin_sign_mask", StrokedPoint::sin_sign_mask)
     .add_macro("fastuidraw_stroke_normal0_y_sign_mask", StrokedPoint::normal0_y_sign_mask)
     .add_macro("fastuidraw_stroke_normal1_y_sign_mask", StrokedPoint::normal1_y_sign_mask)
@@ -520,7 +516,9 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_stroke_boundary_bit", StrokedPoint::boundary_bit)
     .add_macro("fastuidraw_stroke_join_mask", StrokedPoint::join_mask)
     .add_macro("fastuidraw_stroke_bevel_edge_mask", StrokedPoint::bevel_edge_mask)
+    .add_macro("fastuidraw_stroke_end_sub_edge_mask", StrokedPoint::end_sub_edge_mask)
     .add_macro("fastuidraw_stroke_adjustable_cap_ending_mask", StrokedPoint::adjustable_cap_ending_mask)
+    .add_macro("fastuidraw_stroke_adjustable_cap_end_contour_mask", StrokedPoint::adjustable_cap_is_end_contour_mask)
     .add_macro("fastuidraw_stroke_depth_bit0", StrokedPoint::depth_bit0)
     .add_macro("fastuidraw_stroke_depth_num_bits", StrokedPoint::depth_num_bits)
 

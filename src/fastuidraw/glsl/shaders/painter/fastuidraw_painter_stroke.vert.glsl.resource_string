@@ -82,8 +82,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                                       interval_id,
                                       interval_begin, interval_end);
 
-      if (offset_type == fastuidraw_stroke_offset_start_sub_edge
-         || offset_type == fastuidraw_stroke_offset_end_sub_edge)
+      if (offset_type == fastuidraw_stroke_offset_sub_edge)
         {
           if ((point_packed_data & uint(fastuidraw_stroke_bevel_edge_mask)) != 0u)
             {
@@ -107,7 +106,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                                                        sub_shader));
 
               delta_mag = length(auxiliary_offset);
-              d2 = (offset_type == fastuidraw_stroke_offset_start_sub_edge) ?
+              d2 = ((point_packed_data & uint(fastuidraw_stroke_end_sub_edge_mask)) == 0u) ?
                 d + delta_mag:
                 d - delta_mag;
 
@@ -159,7 +158,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                    * and fastuidraw_stroking_distance_sub_edge_end
                    */
                   fastuidraw_stroking_dash_bits = 0u;
-                  if (offset_type == fastuidraw_stroke_offset_start_sub_edge)
+                  if ((point_packed_data & uint(fastuidraw_stroke_end_sub_edge_mask)) == 0u)
                     {
                       float clamp_interval_end;
 
@@ -207,8 +206,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
             }
 
         }
-      else if (offset_type == fastuidraw_stroke_offset_adjustable_cap_contour_start
-         || offset_type == fastuidraw_stroke_offset_adjustable_cap_contour_end)
+      else if (offset_type == fastuidraw_stroke_offset_adjustable_cap)
         {
           if (s > 0.0)
             {

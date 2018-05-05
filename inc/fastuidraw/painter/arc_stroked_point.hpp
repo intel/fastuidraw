@@ -43,7 +43,7 @@ public:
   enum offset_type_t
     {
       /*!
-       * A point on the arc. Indicates the point is at the outer stroking
+       * A point of an arc. Indicates the point is at the outer stroking
        * boundary of the arc when stroked (i.e. the distance between the
        * point and the center of the arc is given by R + S where R is
        * the radius of the arc and S is the radius of the stroking).
@@ -51,7 +51,7 @@ public:
       offset_arc_point_outer_stroking_boundary,
 
       /*!
-       * A point on the arc. Indicates the point is at the inner stroking
+       * A point of an arc. Indicates the point is at the inner stroking
        * boundary of the arc when stroked (i.e. the distance between the
        * point and the center of the arc is given by R - S where R is
        * the radius of the arc and S is the radius of the stroking).
@@ -59,12 +59,12 @@ public:
       offset_arc_point_inner_stroking_boundary,
 
       /*!
-       * The point on the arc that extends beyond the outer stroking boundary.
+       * The point of an arc that extends beyond the outer stroking boundary.
        */
       offset_arc_point_beyond_outer_stroking_boundary,
 
       /*!
-       * A point on the arc. When the stroking radius is smaller than the
+       * A point of an arc. When the stroking radius is smaller than the
        * arc radius, position of this point is the same as \ref
        * offset_arc_point_outer_stroking_boundary; when the stroking
        * radius is greater that the arc-radius the position is the
@@ -73,7 +73,7 @@ public:
       offset_arc_point_outer_stroking_boundary_origin,
 
       /*!
-       * A point on the arc. When the stroking radius is smaller than the
+       * A point of an arc. When the stroking radius is smaller than the
        * arc radius, position of this point is the same as \ref
        * offset_arc_point_inner_stroking_boundary; when the stroking
        * radius is greater that the arc-radius the position is the
@@ -113,8 +113,10 @@ public:
 
       /*!
        * Bit indicates that the point in on the stroking
-       * boundary, can only be up for \ref offset_arc_join
-       * and \ref offset_line_segment.
+       * boundary, only applies to \ref offset_arc_join
+       * and \ref offset_line_segment. When the bit is up
+       * indicates to push the point in the direction
+       * of \ref m_offset_direction.
        */
       boundary_bit = offset_type_bit0 + offset_type_num_bits,
 
@@ -122,7 +124,7 @@ public:
        * Bit indicates that point is on the end of a
        * segment.
        */
-      end_segment_bit,
+      end_segment_bit = offset_type_bit0 + offset_type_num_bits,
 
       /*!
        * Bit0 for holding the depth() value
@@ -180,7 +182,7 @@ public:
    * Gives the unit vector in which to push the point.
    * For those points that are arc's the location of
    * the center is always given by
-   *   \ref m_psition - \ref m_radius * \ref m_offset_direction
+   *   \ref m_position - \ref m_radius * \ref m_offset_direction
    */
   vec2 m_offset_direction;
 
