@@ -157,11 +157,11 @@ public:
       offset_square_cap,
 
       /*!
-       * The point is a point of an adjustable cap. It is for a point for a
-       * cap at the start of a contour. These points are for dashed stroking
-       * with caps; they contain data to allow one from a vertex shader to
-       * extend or shrink the cap area correctly to implement dashed stroking.
-       * The meanings of \ref m_pre_offset and \ref m_auxiliary_offset are:
+       * The point is a point of an adjustable cap. These points are for
+       * dashed stroking with caps; they contain data to allow one from a
+       * vertex shader to extend or shrink the cap area correctly to implement
+       * dashed stroking. The meanings of \ref m_pre_offset and \ref
+       * m_auxiliary_offset are:
        * - \ref m_pre_offset is the normal vector to the path by which
        *                     to move the point; this value can be (0, 0)
        *                     to indicate to not move perpindicular to the
@@ -235,7 +235,7 @@ public:
 
   /*!\brief
    * Enumeration encoding of bits of \ref m_packed_data
-   * for those with offset type \ref offset_end_sub_edge
+   * for those with offset type \ref offset_sub_edge
    */
   enum packed_data_sub_edge_t
     {
@@ -321,11 +321,7 @@ public:
 
   /*!
    * \brief
-   * Enumeration holding bit masks generated from
-   * values in \ref packed_data_bit_layout_common_t,
-   * \ref packed_data_bit_layout_rounded_join_t,
-   * \ref packed_data_bit_adjustable_cap_t and \ref
-   * packed_data_bit_sub_edge_t.
+   * Enumeration holding bit masks.
    */
   enum packed_data_bit_masks_t
     {
