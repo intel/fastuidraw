@@ -1297,9 +1297,10 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
                  fastuidraw::c_array<fastuidraw::PainterIndex> indices,
                  unsigned int &vert_offset, unsigned int &index_offset) const
 {
+  using namespace fastuidraw;
   const int boundary_values[3] = { 1, 1, 0 };
   const float normal_sign[3] = { 1.0f, -1.0f, 0.0f };
-  fastuidraw::vecN<fastuidraw::StrokedPoint, 6> pts;
+  vecN<StrokedPoint, 6> pts;
 
   if (sub_edge.m_has_bevel)
     {
@@ -1316,24 +1317,24 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
           pts[k].m_edge_length = sub_edge.m_edge_length;
           pts[k].m_open_contour_length = sub_edge.m_open_contour_length;
           pts[k].m_closed_contour_length = sub_edge.m_closed_contour_length;
-          pts[k].m_auxiliary_offset = fastuidraw::vec2(0.0f, 0.0f);
+          pts[k].m_auxiliary_offset = vec2(0.0f, 0.0f);
         }
 
-      pts[0].m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
-      pts[0].m_packed_data = pack_data(0, fastuidraw::StrokedPoint::offset_start_sub_edge, depth)
-        | fastuidraw::StrokedPoint::bevel_edge_mask;
+      pts[0].m_pre_offset = vec2(0.0f, 0.0f);
+      pts[0].m_packed_data = pack_data(0, StrokedPoint::offset_sub_edge, depth)
+        | StrokedPoint::bevel_edge_mask;
 
       pts[1].m_pre_offset = sub_edge.m_bevel_lambda * sub_edge.m_bevel_normal;
-      pts[1].m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_start_sub_edge, depth)
-        | fastuidraw::StrokedPoint::bevel_edge_mask;
+      pts[1].m_packed_data = pack_data(1, StrokedPoint::offset_sub_edge, depth)
+        | StrokedPoint::bevel_edge_mask;
 
       pts[2].m_pre_offset = sub_edge.m_bevel_lambda * sub_edge.m_normal;
-      pts[2].m_packed_data = pack_data(1, fastuidraw::StrokedPoint::offset_start_sub_edge, depth)
-        | fastuidraw::StrokedPoint::bevel_edge_mask;
+      pts[2].m_packed_data = pack_data(1, StrokedPoint::offset_sub_edge, depth)
+        | StrokedPoint::bevel_edge_mask;
 
       for(unsigned int i = 0; i < 3; ++i)
         {
-          pts[i].fastuidraw::StrokedPoint::pack_point(&attribute_data[vert_offset + i]);
+          pts[i].pack_point(&attribute_data[vert_offset + i]);
         }
 
       vert_offset += 3;
@@ -1361,9 +1362,7 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
       pts[k].m_closed_contour_length = sub_edge.m_closed_contour_length;
       pts[k].m_pre_offset = normal_sign[k] * sub_edge.m_normal;
       pts[k].m_auxiliary_offset = sub_edge.m_delta;
-      pts[k].m_packed_data = pack_data(boundary_values[k],
-                                       fastuidraw::StrokedPoint::offset_start_sub_edge,
-                                       depth);
+      pts[k].m_packed_data = pack_data(boundary_values[k], StrokedPoint::offset_sub_edge, depth);
 
       pts[k + 3].m_position = sub_edge.m_pt1;
       pts[k + 3].m_distance_from_edge_start = sub_edge.m_distance_from_edge_start + sub_edge.m_sub_edge_length;
@@ -1373,14 +1372,13 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
       pts[k + 3].m_closed_contour_length = sub_edge.m_closed_contour_length;
       pts[k + 3].m_pre_offset = normal_sign[k] * sub_edge.m_normal;
       pts[k + 3].m_auxiliary_offset = -sub_edge.m_delta;
-      pts[k + 3].m_packed_data = pack_data(boundary_values[k],
-                                           fastuidraw::StrokedPoint::offset_end_sub_edge,
-                                           depth);
+      pts[k + 3].m_packed_data = pack_data(boundary_values[k], StrokedPoint::offset_sub_edge, depth)
+	| StrokedPoint::end_sub_edge_mask;
     }
 
   for(unsigned int i = 0; i < 6; ++i)
     {
-      pts[i].fastuidraw::StrokedPoint::pack_point(&attribute_data[vert_offset + i]);
+      pts[i].pack_point(&attribute_data[vert_offset + i]);
     }
 
   indices[index_offset + 0] = vert_offset + 0;

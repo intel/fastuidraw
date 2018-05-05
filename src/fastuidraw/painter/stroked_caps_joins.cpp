@@ -2690,59 +2690,60 @@ add_cap(const PerCapData &C, unsigned int depth,
         unsigned int &vertex_offset,
         unsigned int &index_offset) const
 {
-  enum fastuidraw::StrokedPoint::offset_type_t type;
-  fastuidraw::vec2 n, v;
+  using namespace fastuidraw;
+  enum StrokedPoint::offset_type_t type;
+  vec2 n, v;
   unsigned int first;
-  fastuidraw::StrokedPoint pt;
+  uint32_t mask;
+  StrokedPoint pt;
 
-  type = (C.m_is_starting_cap) ?
-    fastuidraw::StrokedPoint::offset_adjustable_cap_contour_start :
-    fastuidraw::StrokedPoint::offset_adjustable_cap_contour_end;
+  mask = (C.m_is_starting_cap) ? 0u : StrokedPoint::adjustable_cap_is_end_contour_mask;
+  type = StrokedPoint::offset_adjustable_cap;
 
   first = vertex_offset;
   v = C.m_tangent_into_cap;
-  n = fastuidraw::vec2(-v.y(), v.x());
+  n = vec2(-v.y(), v.x());
   C.set_distance_values(&pt);
 
   pt.m_position = C.m_p;
-  pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_pre_offset = vec2(0.0f, 0.0f);
   pt.m_auxiliary_offset = v;
-  pt.m_packed_data = pack_data(0, type, depth);
+  pt.m_packed_data = pack_data(0, type, depth) | mask;
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
   pt.m_position = C.m_p;
   pt.m_pre_offset = n;
   pt.m_auxiliary_offset = v;
-  pt.m_packed_data = pack_data(1, type, depth);
+  pt.m_packed_data = pack_data(1, type, depth) | mask;
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
   pt.m_position = C.m_p;
   pt.m_pre_offset = n;
   pt.m_auxiliary_offset = v;
-  pt.m_packed_data = pack_data(1, type, depth) | fastuidraw::StrokedPoint::adjustable_cap_ending_mask;
+  pt.m_packed_data = pack_data(1, type, depth) | StrokedPoint::adjustable_cap_ending_mask | mask;
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
   pt.m_position = C.m_p;
   pt.m_pre_offset = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_auxiliary_offset = v;
-  pt.m_packed_data = pack_data(0, type, depth) | fastuidraw::StrokedPoint::adjustable_cap_ending_mask;
+  pt.m_packed_data = pack_data(0, type, depth) | StrokedPoint::adjustable_cap_ending_mask | mask;
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
   pt.m_position = C.m_p;
   pt.m_pre_offset = -n;
   pt.m_auxiliary_offset = v;
-  pt.m_packed_data = pack_data(1, type, depth) | fastuidraw::StrokedPoint::adjustable_cap_ending_mask;
+  pt.m_packed_data = pack_data(1, type, depth) | StrokedPoint::adjustable_cap_ending_mask | mask;
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
   pt.m_position = C.m_p;
   pt.m_pre_offset = -n;
   pt.m_auxiliary_offset = v;
-  pt.m_packed_data = pack_data(1, type, depth);
+  pt.m_packed_data = pack_data(1, type, depth | mask);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 

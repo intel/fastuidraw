@@ -60,15 +60,7 @@ public:
        *                            the position of the point on the other
        *                            side of the edge.
        */
-      offset_start_sub_edge,
-
-      /*!
-       * The point is for an edge of the path, point signifies the end
-       * of a sub-edge (quad) of drawing an edge. The meanings of the
-       * members \ref m_pre_offset and \ref m_auxiliary_offset are
-       * identical to \ref offset_start_sub_edge.
-       */
-      offset_end_sub_edge,
+      offset_sub_edge,
 
       /*!
        * The point is at a position that has the same value as point on
@@ -179,17 +171,7 @@ public:
        *                           can be (0, 0) to indicate to not move
        *                           parallel to the path
        */
-      offset_adjustable_cap_contour_start,
-
-      /*!
-       * The point is a point of an adjustable cap. It is for a point for a
-       * cap at the end of a contour. These points are for dashed stroking
-       * with caps; they contain data to allow one from a vertex shader to
-       * extend or shrink the cap area correctly to implement dashed stroking.
-       * The meanings of \ref m_pre_offset and \ref m_auxiliary_offset are
-       * identical to the meanings for \ref offset_adjustable_cap_contour_start.
-       */
-      offset_adjustable_cap_contour_end,
+      offset_adjustable_cap,
 
       /*!
        * Number different point types with respect to rendering
@@ -251,6 +233,26 @@ public:
       number_common_bits,
     };
 
+  /*!\brief
+   * Enumeration encoding of bits of \ref m_packed_data
+   * for those with offset type \ref offset_end_sub_edge
+   */
+  enum packed_data_sub_edge_t
+    {
+      /*!
+       * If this bit is down indicates the point is the
+       * start of a sub-edge; if the bit is up, indicates
+       * that the point is the end of a subedge.
+       */
+      end_sub_edge_bit = number_common_bits,
+
+      /*!
+       * The bit is up if the point is for the
+       * geometry of a bevel between two sub-edges.
+       */
+      bevel_edge_bit
+    };
+
   /*!
    * \brief
    * Enumeration encoding of bits of \ref m_packed_data
@@ -299,8 +301,7 @@ public:
   /*!
    * \brief
    * Enumeration encoding of bits of \ref m_packed_data for
-   * those with offset type \ref offset_adjustable_cap_contour_end
-   * or \ref offset_adjustable_cap_contour_start.
+   * those with offset type \ref offset_adjustable_cap
    */
   enum packed_data_bit_adjustable_cap_t
     {
@@ -310,21 +311,12 @@ public:
        * sure the entire cap near the end of edge is drawn).
        */
       adjustable_cap_ending_bit = number_common_bits,
-    };
 
-  /*!
-   * \brief
-   * Enumeration encoding of bits of \ref m_packed_data
-   * for those with offset type \ref offset_start_sub_edge
-   * or \ref offset_end_sub_edge.
-   */
-  enum packed_data_bit_sub_edge_t
-    {
       /*!
-       * The bit is up if the point is for the
-       * geometry of a bevel between two sub-edges.
+       * The bit is up if the point is for cap at the
+       * end of the contour.
        */
-      bevel_edge_bit = number_common_bits,
+      adjustable_cap_is_end_contour_bit
     };
 
   /*!
@@ -342,6 +334,26 @@ public:
        * \ref offset_type_num_bits
        */
       offset_type_mask = FASTUIDRAW_MASK(offset_type_bit0, offset_type_num_bits),
+
+      /*!
+       * Mask generated for \ref boundary_bit
+       */
+      boundary_mask = FASTUIDRAW_MASK(boundary_bit, 1),
+
+      /*!
+       * Mask generated for \ref depth_bit0 and \ref depth_num_bits
+       */
+      depth_mask = FASTUIDRAW_MASK(depth_bit0, depth_num_bits),
+
+      /*!
+       * Mask generated for \ref end_sub_edge_bit
+       */
+      end_sub_edge_mask = FASTUIDRAW_MASK(end_sub_edge_bit, 1),
+
+      /*!
+       * Mask generated for \ref bevel_edge_bit
+       */
+      bevel_edge_mask = FASTUIDRAW_MASK(bevel_edge_bit, 1),
 
       /*!
        * Mask generated for \ref normal0_y_sign_bit
@@ -364,11 +376,6 @@ public:
       lambda_negated_mask = FASTUIDRAW_MASK(lambda_negated_bit, 1),
 
       /*!
-       * Mask generated for \ref boundary_bit
-       */
-      boundary_mask = FASTUIDRAW_MASK(boundary_bit, 1),
-
-      /*!
        * Mask generated for \ref join_bit
        */
       join_mask = FASTUIDRAW_MASK(join_bit, 1),
@@ -379,14 +386,9 @@ public:
       adjustable_cap_ending_mask = FASTUIDRAW_MASK(adjustable_cap_ending_bit, 1),
 
       /*!
-       * Mask generated for \ref bevel_edge_bit
+       * Mask generated for \ref adjustable_cap_is_end_contour_bit
        */
-      bevel_edge_mask = FASTUIDRAW_MASK(bevel_edge_bit, 1),
-
-      /*!
-       * Mask generated for \ref depth_bit0 and \ref depth_num_bits
-       */
-      depth_mask = FASTUIDRAW_MASK(depth_bit0, depth_num_bits),
+      adjustable_cap_is_end_contour_mask = FASTUIDRAW_MASK(adjustable_cap_is_end_contour_bit, 1),
     };
 
   /*!
