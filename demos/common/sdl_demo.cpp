@@ -324,7 +324,7 @@ init_sdl(void)
   #endif
 
   m_window = SDL_CreateWindow("",
-                              0, 0,
+                              SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                               m_width.m_value,
                               m_height.m_value,
                               video_flags);
