@@ -2291,16 +2291,16 @@ add_data(unsigned int depth,
 
   pt.m_position = m_p;
   pt.m_offset_direction = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_radius = 0.0f;
-  pt.m_arc_angle = per_element;
+  pt.radius() = 0.0f;
+  pt.arc_angle() = per_element;
   pt.m_packed_data = arc_pack_data(0, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
   pt.m_position = m_p;
   pt.m_offset_direction = m_lambda * n0();
-  pt.m_radius = 0.0f;
-  pt.m_arc_angle = per_element;
+  pt.radius() = 0.0f;
+  pt.arc_angle() = per_element;
   pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
@@ -2317,8 +2317,8 @@ add_data(unsigned int depth,
       pt.m_position = m_p;
       pt.m_offset_direction = beyond * fastuidraw::vec2(cs_as_complex.real(),
                                                         cs_as_complex.imag());
-      pt.m_radius = 0.0f;
-      pt.m_arc_angle = per_element;
+      pt.radius() = 0.0f;
+      pt.arc_angle() = per_element;
       pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
       pt.pack_point(&pts[vertex_offset]);
       ++vertex_offset;
@@ -2326,8 +2326,8 @@ add_data(unsigned int depth,
 
   pt.m_position = m_p;
   pt.m_offset_direction = m_lambda * n1();
-  pt.m_radius = 0.0f;
-  pt.m_arc_angle = per_element;
+  pt.radius() = 0.0f;
+  pt.arc_angle() = per_element;
   pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
@@ -3036,16 +3036,16 @@ add_cap(const PerCapData &C, unsigned int depth,
 
   pt.m_position = C.m_p;
   pt.m_offset_direction = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_radius = 0.0f;
-  pt.m_arc_angle = per_element;
+  pt.radius() = 0.0f;
+  pt.arc_angle() = per_element;
   pt.m_packed_data = arc_pack_data(0, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
   pt.m_position = C.m_p;
   pt.m_offset_direction = n;
-  pt.m_radius = 0.0f;
-  pt.m_arc_angle = per_element;
+  pt.radius() = 0.0f;
+  pt.arc_angle() = per_element;
   pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
@@ -3062,8 +3062,8 @@ add_cap(const PerCapData &C, unsigned int depth,
       pt.m_position = C.m_p;
       pt.m_offset_direction = beyond * fastuidraw::vec2(cs_as_complex.real(),
                                                         cs_as_complex.imag());
-      pt.m_radius = 0.0f;
-      pt.m_arc_angle = per_element;
+      pt.radius() = 0.0f;
+      pt.arc_angle() = per_element;
       pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
       pt.pack_point(&pts[vertex_offset]);
       ++vertex_offset;
@@ -3071,8 +3071,8 @@ add_cap(const PerCapData &C, unsigned int depth,
 
   pt.m_position = C.m_p;
   pt.m_offset_direction = -n;
-  pt.m_radius = 0.0f;
-  pt.m_arc_angle = per_element;
+  pt.radius() = 0.0f;
+  pt.arc_angle() = per_element;
   pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
