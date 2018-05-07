@@ -167,6 +167,16 @@ namespace
       pt->m_closed_contour_length = m_closed_contour_length;
       pt->m_distance_from_contour_start = m_distance_from_contour_start;
     }
+
+    void
+    set_distance_values(fastuidraw::ArcStrokedPoint *pt) const
+    {
+      pt->m_distance_from_edge_start = m_distance_from_edge_start;
+      pt->m_edge_length = m_distance_from_edge_start;
+      pt->m_open_contour_length = m_open_contour_length;
+      pt->m_closed_contour_length = m_closed_contour_length;
+      pt->m_distance_from_contour_start = m_distance_from_contour_start;
+    }
   };
 
   class PerContourData
@@ -1017,6 +1027,32 @@ namespace
             unsigned int &index_offset) const;
   };
 
+  class ArcRoundedCapCreator:public CapCreatorBase
+  {
+  public:
+    ArcRoundedCapCreator(const PathData &P,
+                         const SubsetPrivate *st);
+
+  private:
+    enum
+      {
+        /* a cap is 180 degrees, make each arc-join as 45 degrees */
+        num_arcs_per_cap = 4
+      };
+
+    static
+    PointIndexCapSize
+    compute_size(const PathData &P);
+
+    virtual
+    void
+    add_cap(const PerCapData &C, unsigned int depth,
+            fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+            fastuidraw::c_array<unsigned int> indices,
+            unsigned int &vertex_offset,
+            unsigned int &index_offset) const;
+  };
+
   class ThreshWithData
   {
   public:
@@ -1096,6 +1132,7 @@ namespace
     PreparedAttributeData<ArcRoundedJoinCreator> m_arc_rounded_joins;
     PreparedAttributeData<SquareCapCreator> m_square_caps;
     PreparedAttributeData<AdjustableCapCreator> m_adjustable_caps;
+    PreparedAttributeData<ArcRoundedCapCreator> m_arc_rounded_caps;
 
     PathData m_path_data;
     fastuidraw::vecN<unsigned int, 2> m_chunk_of_joins;
@@ -2214,7 +2251,7 @@ ArcRoundedJoinCreator::PerArcRoundedJoin::
 PerArcRoundedJoin(const PerJoinData &J):
   PerJoinData(J)
 {
-  const float per_arc_angle_max(M_PI / 2.0);
+  const float per_arc_angle_max(M_PI / 4.0);
   float delta_angle_mag;
 
   std::complex<float> n0z(m_lambda * n0().x(), m_lambda * n0().y());
@@ -2228,9 +2265,8 @@ PerArcRoundedJoin(const PerJoinData &J):
 
   m_count = 1u + static_cast<unsigned int>(delta_angle_mag / per_arc_angle_max);
 
-  m_vertex_count = 5 + m_count - 1;
+  m_vertex_count = 4 + m_count;
   m_index_count = 3 * (m_vertex_count - 2);
-
 }
 
 void
@@ -2244,12 +2280,11 @@ add_data(unsigned int depth,
   unsigned int i, center;
   float theta, per_element, beyond;
   fastuidraw::ArcStrokedPoint pt;
-  float cv, sv;
+  float cv;
   fastuidraw::vec2 v;
 
   per_element = m_delta_angle / static_cast<float>(m_count);
   cv = fastuidraw::t_cos(per_element * 0.5);
-  sv = fastuidraw::t_sin(per_element * 0.5);
   beyond = 1.0f / cv;
   center = vertex_offset;
   set_distance_values(&pt);
@@ -2952,6 +2987,99 @@ add_cap(const PerCapData &C, unsigned int depth,
   add_triangle_fan(first, vertex_offset, indices, index_offset);
 }
 
+///////////////////////////////////////////
+// ArcRoundedCapCreator methods
+ArcRoundedCapCreator::
+ArcRoundedCapCreator(const PathData &P,
+                     const SubsetPrivate *st):
+  CapCreatorBase(P, st, compute_size(P))
+{
+}
+
+PointIndexCapSize
+ArcRoundedCapCreator::
+compute_size(const PathData &P)
+{
+  unsigned int num_caps;
+  PointIndexCapSize return_value;
+
+  /* each cap is a triangle fan centered at the cap point. */
+  num_caps = P.m_cap_ordering.caps().size();
+  return_value.m_verts = (4 + num_arcs_per_cap) * num_caps;
+  return_value.m_indices = 3 * (num_arcs_per_cap + 2) * num_caps;
+
+  return return_value;
+}
+
+void
+ArcRoundedCapCreator::
+add_cap(const PerCapData &C, unsigned int depth,
+        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+        fastuidraw::c_array<unsigned int> indices,
+        unsigned int &vertex_offset,
+        unsigned int &index_offset) const
+{
+  fastuidraw::vec2 n, v;
+  unsigned int first, i;
+  float theta;
+  fastuidraw::ArcStrokedPoint pt;
+  const float per_element = M_PI / static_cast<float>(num_arcs_per_cap);
+  const float f = fastuidraw::t_cos(per_element);
+  const float beyond = 1.0f / f;
+  std::complex<float> arc_start;
+
+  first = vertex_offset;
+  v = C.m_tangent_into_cap;
+  n = fastuidraw::vec2(v.y(), -v.x());
+  arc_start = std::complex<float>(n.x(), n.y());
+  C.set_distance_values(&pt);
+
+  pt.m_position = C.m_p;
+  pt.m_offset_direction = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_radius = 0.0f;
+  pt.m_arc_angle = per_element;
+  pt.m_packed_data = arc_pack_data(0, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  pt.m_position = C.m_p;
+  pt.m_offset_direction = n;
+  pt.m_radius = 0.0f;
+  pt.m_arc_angle = per_element;
+  pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  for (theta = 0.0f, i = 0; i <= num_arcs_per_cap; ++i, theta += per_element)
+    {
+      float s, c;
+      std::complex<float> cs_as_complex;
+
+      c = fastuidraw::t_cos(theta);
+      s = fastuidraw::t_sin(theta);
+      cs_as_complex = std::complex<float>(c, s) * arc_start;
+
+      pt.m_position = C.m_p;
+      pt.m_offset_direction = beyond * fastuidraw::vec2(cs_as_complex.real(),
+                                                        cs_as_complex.imag());
+      pt.m_radius = 0.0f;
+      pt.m_arc_angle = per_element;
+      pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
+      pt.pack_point(&pts[vertex_offset]);
+      ++vertex_offset;
+    }
+
+  pt.m_position = C.m_p;
+  pt.m_offset_direction = -n;
+  pt.m_radius = 0.0f;
+  pt.m_arc_angle = per_element;
+  pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  add_triangle_fan(first, vertex_offset, indices, index_offset);
+}
+
 /////////////////////////////////////////////
 // StrokedCapsJoinsPrivate methods
 StrokedCapsJoinsPrivate::
@@ -3389,6 +3517,15 @@ arc_rounded_joins(void) const
   StrokedCapsJoinsPrivate *d;
   d = static_cast<StrokedCapsJoinsPrivate*>(m_d);
   return d->m_arc_rounded_joins.data(d->m_path_data, d->m_subset);
+}
+
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedCapsJoins::
+arc_rounded_caps(void) const
+{
+  StrokedCapsJoinsPrivate *d;
+  d = static_cast<StrokedCapsJoinsPrivate*>(m_d);
+  return d->m_arc_rounded_caps.data(d->m_path_data, d->m_subset);
 }
 
 const fastuidraw::PainterAttributeData&
