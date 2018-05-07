@@ -13,7 +13,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   uint render_pass;
   bool stroke_width_pixels;
-  int stroking_pass;
   const float anti_alias_thickness = 1.5;
 
   #ifndef FASTUIDRAW_STROKE_ONLY_SUPPORT_NON_AA
@@ -27,8 +26,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       render_pass = uint(fastuidraw_stroke_non_aa);
     }
   #endif
-
-  stroking_pass = int(render_pass);
 
   vec2 p;
   vec2 position, offset_direction;
@@ -70,7 +67,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   stroke_width_pixels = (stroke_params.radius < 0.0);
   stroke_radius = abs(stroke_params.radius);
 
-  if (offset_type == uint(fastuidraw_arc_stroke_arc_join))
+  if (offset_type == fastuidraw_arc_stroke_arc_join)
     {
       p = position + float(on_boundary) * stroke_radius * offset_direction;
       fastuidraw_arc_stroke_relative_to_center_x = p.x - position.x;
@@ -81,7 +78,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   #if defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
     {
-      if (stroking_pass != fastuidraw_stroke_non_aa)
+      if (render_pass != uint(fastuidraw_stroke_non_aa))
         {
           z_add = 0;
         }
