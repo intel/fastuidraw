@@ -1364,7 +1364,11 @@ select_stroked_path(const fastuidraw::Path &path,
   thresh = shader.stroking_data_selector()->compute_thresh(draw.m_item_shader_data.data().data_base(),
                                                            mag, m_curve_flatness);
   t = fastuidraw::t_min(thresh, m_curve_flatness / mag);
+
   const TessellatedPath *tess;
+  /* TODO: have a mechanism where the PainterBackend informs Painter
+   * what is best to have: line-stroked or arc-stroked.
+   */
   tess = path.tessellation(t).get();
   return tess->stroked().get();
 }
@@ -1541,6 +1545,7 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
   bool is_miter_join;
   const PainterShaderData::DataBase *raw_data;
   const StrokedCapsJoins &caps_joins(path.caps_joins());
+  bool edge_arc_shader(path.has_arcs()), cap_arc_shader(false), join_arc_shader(false);
 
   raw_data = draw.m_item_shader_data.data().data_base();
   edge_data = &path.edges();
@@ -1549,7 +1554,15 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
       switch(cp)
         {
         case PainterEnums::rounded_caps:
-          cap_data = &caps_joins.rounded_caps(thresh);
+	  if (edge_arc_shader)
+	    {
+	      cap_data = &caps_joins.arc_rounded_caps();
+	      cap_arc_shader = true;
+	    }
+	  else
+	    {
+	      cap_data = &caps_joins.rounded_caps(thresh);
+	    }
           break;
 
         case PainterEnums::square_caps:
@@ -1590,7 +1603,15 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
 
     case PainterEnums::rounded_joins:
       is_miter_join = false;
-      join_data = &caps_joins.rounded_joins(thresh);
+      if (edge_arc_shader)
+	{
+	  join_data = &caps_joins.arc_rounded_joins();
+	  join_arc_shader = true;
+	}
+      else
+	{
+	  join_data = &caps_joins.rounded_joins(thresh);
+	}
       break;
 
     default:
@@ -1625,7 +1646,7 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                             is_miter_join,
                             m_work_room.m_stroke_caps_joins_chunk_set);
 
-  stroke_path_raw(shader, false, false, false, draw,
+  stroke_path_raw(shader, edge_arc_shader, join_arc_shader, cap_arc_shader, draw,
                   edge_data, m_work_room.m_stroke_chunk_set.edge_chunks(),
                   cap_data, m_work_room.m_stroke_caps_joins_chunk_set.cap_chunks(),
                   join_data, m_work_room.m_stroke_caps_joins_chunk_set.join_chunks(),
