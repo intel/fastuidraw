@@ -20,6 +20,7 @@
 #pragma once
 
 #include <fastuidraw/tessellated_path.hpp>
+#include "bounding_box.hpp"
 
 namespace fastuidraw
 {
@@ -34,5 +35,10 @@ namespace fastuidraw
 
     float
     distance_to_line(const vec2 &q, const vec2 &p0, const vec2 &p1);
+
+    void
+    bouding_box_union_arc(const vec2 &center, float radius,
+                          float start_angle, float end_angle,
+                          BoundingBox<float> *dst);
   }
 }
