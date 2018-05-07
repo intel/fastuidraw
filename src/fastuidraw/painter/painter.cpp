@@ -624,11 +624,20 @@ namespace
 
     StrokingItem(bool with_aa,
                  const fastuidraw::PainterStrokeShader &shader,
+                 bool use_arc_shading,
                  unsigned int start, unsigned int size):
       m_range(start, start + size)
     {
-      m_shader_pass1 = (with_aa) ? &shader.aa_shader_pass1() : &shader.non_aa_shader();
-      m_shader_pass2 = (with_aa) ? &shader.aa_shader_pass2() : nullptr;
+      if (!use_arc_shading)
+        {
+          m_shader_pass1 = (with_aa) ? &shader.aa_shader_pass1() : &shader.non_aa_shader();
+          m_shader_pass2 = (with_aa) ? &shader.aa_shader_pass2() : nullptr;
+        }
+      else
+        {
+          m_shader_pass1 = (with_aa) ? &shader.arc_aa_shader_pass1() : &shader.arc_non_aa_shader();
+          m_shader_pass2 = (with_aa) ? &shader.arc_aa_shader_pass2() : nullptr;
+        }
     }
 
     fastuidraw::range_type<unsigned int> m_range;
@@ -647,9 +656,9 @@ namespace
     {}
 
     void
-    add_element(const fastuidraw::PainterStrokeShader &shader, unsigned int size)
+    add_element(bool use_arc_shading, const fastuidraw::PainterStrokeShader &shader, unsigned int size)
     {
-      m_data[m_count] = StrokingItem(m_with_aa, shader, m_last_end, size);
+      m_data[m_count] = StrokingItem(m_with_aa, shader, use_arc_shading, m_last_end, size);
       if (m_count == 0
           || m_data[m_count].m_shader_pass1 != m_data[m_count - 1].m_shader_pass1
           || m_data[m_count].m_shader_pass2 != m_data[m_count - 1].m_shader_pass2)
@@ -789,8 +798,9 @@ namespace
 
     void
     stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
-                    const fastuidraw::PainterStrokeShader &join_shader,
-                    const fastuidraw::PainterStrokeShader &cap_shader,
+                    bool edge_use_arc_shaders,
+                    bool join_use_arc_shaders,
+                    bool caps_use_arc_shaders,
                     const fastuidraw::PainterData &pdraw,
                     const fastuidraw::PainterAttributeData *edge_data,
                     fastuidraw::c_array<const unsigned int> edge_chunks,
@@ -1615,7 +1625,7 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                             is_miter_join,
                             m_work_room.m_stroke_caps_joins_chunk_set);
 
-  stroke_path_raw(shader, shader, shader, draw,
+  stroke_path_raw(shader, false, false, false, draw,
                   edge_data, m_work_room.m_stroke_chunk_set.edge_chunks(),
                   cap_data, m_work_room.m_stroke_caps_joins_chunk_set.cap_chunks(),
                   join_data, m_work_room.m_stroke_caps_joins_chunk_set.join_chunks(),
@@ -1624,9 +1634,10 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
 
 void
 PainterPrivate::
-stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
-                const fastuidraw::PainterStrokeShader &join_shader,
-                const fastuidraw::PainterStrokeShader &cap_shader,
+stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
+                bool edge_use_arc_shaders,
+                bool join_use_arc_shaders,
+                bool cap_use_arc_shaders,
                 const fastuidraw::PainterData &pdraw,
                 const fastuidraw::PainterAttributeData *edge_data,
                 fastuidraw::c_array<const unsigned int> edge_chunks,
@@ -1643,20 +1654,6 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
     {
       return;
     }
-
-  unsigned int zinc_sum(0), total_chunks(0), current(0), modify_z_coeff;
-  PainterStrokeShader::type_t aa_type;
-  bool modify_z;
-  c_array<c_array<const PainterAttribute> > attrib_chunks;
-  c_array<c_array<const PainterIndex> > index_chunks;
-  c_array<int> index_adjusts;
-  c_array<int> z_increments;
-  c_array<int> start_zs;
-  c_array<const reference_counted_ptr<PainterItemShader>* > shaders_pass1;
-  c_array<const reference_counted_ptr<PainterItemShader>* > shaders_pass2;
-  StrokingItems stroking_items(with_anti_aliasing);
-  reference_counted_ptr<PainterBlendShader> old_blend;
-  BlendMode::packed_value old_blend_mode;
 
   if (join_data == nullptr)
     {
@@ -1677,11 +1674,28 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
    *  does not call deallocation on its backing store,
    *  thus there is no malloc/free noise
    */
+  unsigned int total_chunks;
+
   total_chunks = cap_chunks.size() + edge_chunks.size() + join_chunks.size();
   if (total_chunks == 0)
     {
       return;
     }
+
+  unsigned int zinc_sum(0), current(0), modify_z_coeff;
+  PainterStrokeShader::type_t aa_type;
+  bool modify_z;
+  c_array<c_array<const PainterAttribute> > attrib_chunks;
+  c_array<c_array<const PainterIndex> > index_chunks;
+  c_array<int> index_adjusts;
+  c_array<int> z_increments;
+  c_array<int> start_zs;
+  c_array<const reference_counted_ptr<PainterItemShader>* > shaders_pass1;
+  c_array<const reference_counted_ptr<PainterItemShader>* > shaders_pass2;
+  StrokingItems stroking_items(with_anti_aliasing);
+  reference_counted_ptr<PainterBlendShader> old_blend;
+  BlendMode::packed_value old_blend_mode;
+  PainterData draw(pdraw);
 
   m_work_room.m_stroke_attrib_chunks.resize(total_chunks);
   m_work_room.m_stroke_index_chunks.resize(total_chunks);
@@ -1702,8 +1716,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
 
   if (!edge_chunks.empty())
     {
-      stroking_items.add_element(edge_shader, edge_chunks.size());
-      aa_type = edge_shader.aa_type();
+      stroking_items.add_element(edge_use_arc_shaders, shader, edge_chunks.size());
       for(unsigned int E = 0; E < edge_chunks.size(); ++E, ++current)
         {
           attrib_chunks[current] = edge_data->attribute_data_chunk(edge_chunks[E]);
@@ -1719,9 +1732,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
 
   if (!join_chunks.empty())
     {
-      stroking_items.add_element(join_shader, join_chunks.size());
-      FASTUIDRAWassert(current == 0 || aa_type == join_shader.aa_type() || !with_anti_aliasing);
-      aa_type = join_shader.aa_type();
+      stroking_items.add_element(join_use_arc_shaders, shader, join_chunks.size());
       for(unsigned int J = 0; J < join_chunks.size(); ++J, ++current)
         {
           attrib_chunks[current] = join_data->attribute_data_chunk(join_chunks[J]);
@@ -1737,9 +1748,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
 
   if (!cap_chunks.empty())
     {
-      stroking_items.add_element(cap_shader, cap_chunks.size());
-      FASTUIDRAWassert(current == 0 || aa_type == cap_shader.aa_type() || !with_anti_aliasing);
-      aa_type = cap_shader.aa_type();
+      stroking_items.add_element(cap_use_arc_shaders, shader, cap_chunks.size());
       for(unsigned int C = 0; C < cap_chunks.size(); ++C, ++current)
         {
           attrib_chunks[current] = cap_data->attribute_data_chunk(cap_chunks[C]);
@@ -1753,8 +1762,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
         }
     }
 
-  PainterData draw(pdraw);
-
+  aa_type = shader.aa_type();
   modify_z = !with_anti_aliasing || aa_type == PainterStrokeShader::draws_solid_then_fuzz;
   modify_z_coeff = (with_anti_aliasing) ? 2 : 1;
 
@@ -1778,12 +1786,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
           old_blend = m_core->blend_shader();
           old_blend_mode = m_core->blend_mode();
           m_core->blend_shader(shader_set.shader(m), shader_set.blend_mode(m));
-          /* NOTE: we are assuming that the actions of each of the shaders
-           * does the -exact- same thing and can be rolled up into one call.
-           * This is a reasonable assumption since the items are getting drawn
-           * together.
-           */
-          m_core->draw_break(edge_shader.aa_action_pass1());
+          m_core->draw_break(shader.aa_action_pass1());
         }
     }
 
@@ -1813,7 +1816,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &edge_shader,
       if (aa_type == PainterStrokeShader::cover_then_draw)
         {
           m_core->blend_shader(old_blend, old_blend_mode);
-          m_core->draw_break(edge_shader.aa_action_pass2());
+          m_core->draw_break(shader.aa_action_pass2());
         }
 
       if (modify_z)

@@ -164,7 +164,26 @@ namespace fastuidraw
     aa_type(enum type_t v);
 
     /*!
-     * The 1st pass of stroking with anti-aliasing
+     * Shader for rendering a stroked path without anti-aliasing. The
+     * depth value emitted in vertex shading should be z-value from
+     * the painter header (the value is Painter::current_z()) PLUS a
+     * depth value to guarantee that there is no overdraw, see for
+     * example \ref StrokedPoint::depth(). This shader is expected
+     * to handle attribute data as packed by StrokedPoint::pack_data().
+     */
+    const reference_counted_ptr<PainterItemShader>&
+    non_aa_shader(void) const;
+
+    /*!
+     * Set the value returned by non_aa_shader(void) const.
+     * \param sh value to use
+     */
+    PainterStrokeShader&
+    non_aa_shader(const reference_counted_ptr<PainterItemShader> &sh);
+
+    /*!
+     * The 1st pass of stroking with anti-aliasing. This shader is expected
+     * to handle attribute data as packed by StrokedPoint::pack_data().
      * via alpha-coverage.
      */
     const reference_counted_ptr<PainterItemShader>&
@@ -179,7 +198,8 @@ namespace fastuidraw
     aa_shader_pass1(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
-     * The 2nd pass of stroking with anti-aliasing
+     * The 2nd pass of stroking with anti-aliasing. This shader is expected
+     * to handle attribute data as packed by StrokedPoint::pack_data().
      * via alpha-coverage.
      */
     const reference_counted_ptr<PainterItemShader>&
@@ -192,6 +212,56 @@ namespace fastuidraw
      */
     PainterStrokeShader&
     aa_shader_pass2(const reference_counted_ptr<PainterItemShader> &sh);
+
+    /*!
+     * Shader for rendering a stroked path without anti-aliasing. The
+     * depth value emitted in vertex shading should be z-value from
+     * the painter header (the value is Painter::current_z()) PLUS a
+     * depth value to guarantee that there is no overdraw, see for
+     * example \ref ArcStrokedPoint::depth(). This shader is expected
+     * to handle attribute data as packed by ArcStrokedPoint::pack_data().
+     */
+    const reference_counted_ptr<PainterItemShader>&
+    arc_non_aa_shader(void) const;
+
+    /*!
+     * Set the value returned by arc_non_aa_shader(void) const.
+     * \param sh value to use
+     */
+    PainterStrokeShader&
+    arc_non_aa_shader(const reference_counted_ptr<PainterItemShader> &sh);
+
+    /*!
+     * The 1st pass of stroking with anti-aliasing. This shader is expected
+     * to handle attribute data as packed by ArcStrokedPoint::pack_data().
+     * via alpha-coverage.
+     */
+    const reference_counted_ptr<PainterItemShader>&
+    arc_aa_shader_pass1(void) const;
+
+    /*!
+     * Set the value returned by arc_aa_shader_pass1(void) const.
+     * Initial value is nullptr.
+     * \param sh value to use
+     */
+    PainterStrokeShader&
+    arc_aa_shader_pass1(const reference_counted_ptr<PainterItemShader> &sh);
+
+    /*!
+     * The 2nd pass of stroking with anti-aliasing. This shader is expected
+     * to handle attribute data as packed by ArcStrokedPoint::pack_data().
+     * via alpha-coverage.
+     */
+    const reference_counted_ptr<PainterItemShader>&
+    arc_aa_shader_pass2(void) const;
+
+    /*!
+     * Set the value returned by arc_aa_shader_pass2(void) const.
+     * Initial value is nullptr.
+     * \param sh value to use
+     */
+    PainterStrokeShader&
+    arc_aa_shader_pass2(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
      * Returns the action to be called before the 1st pass,
@@ -224,23 +294,6 @@ namespace fastuidraw
      */
     PainterStrokeShader&
     aa_action_pass2(const reference_counted_ptr<const PainterDraw::Action> &a);
-
-    /*!
-     * Shader for rendering a stroked path without anti-aliasing. The
-     * depth value emitted in vertex shading should be z-value from
-     * the painter header (the value is Painter::current_z()) PLUS a
-     * depth value to guarantee that there is no overdraw, see for
-     * example \ref StrokedPoint::depth().
-     */
-    const reference_counted_ptr<PainterItemShader>&
-    non_aa_shader(void) const;
-
-    /*!
-     * Set the value returned by non_aa_shader(void) const.
-     * \param sh value to use
-     */
-    PainterStrokeShader&
-    non_aa_shader(const reference_counted_ptr<PainterItemShader> &sh);
 
     /*!
      * Returns the StrokingDataSelectorBase associated to this
