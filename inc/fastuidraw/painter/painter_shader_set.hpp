@@ -98,8 +98,7 @@ namespace fastuidraw
     glyph_shader_anisotropic(const PainterGlyphShader &sh);
 
     /*!
-     * Shader set for stroking of paths via point data
-     * packed via \ref StrokedPoint; the stroking
+     * Shader set for stroking of paths; the stroking
      * parameters are given by a \ref PainterStrokeParams
      * value.
      */
@@ -114,9 +113,8 @@ namespace fastuidraw
     stroke_shader(const PainterStrokeShader &sh);
 
     /*!
-     * Shader set for dashed stroking of paths via point
-     * data packed via \ref StrokedPoint; the stroking
-     * parameters are given by a \ref
+     * Shader set for dashed stroking of paths;
+     * the stroking parameters are given by a \ref
      * PainterDashedStrokeParams value.
      */
     const PainterDashedStrokeShaderSet&
@@ -128,38 +126,6 @@ namespace fastuidraw
      */
     PainterShaderSet&
     dashed_stroke_shader(const PainterDashedStrokeShaderSet &sh);
-
-    /*!
-     * Shader set for stroking of paths via point data
-     * packed via \ref ArcStrokedPoint; the stroking
-     * parameters are given by a \ref PainterStrokeParams
-     * value.
-     */
-    const PainterStrokeShader&
-    arc_stroke_shader(void) const;
-
-    /*!
-     * Set the value returned by arc_stroke_shader(void) const.
-     * \param sh value to use
-     */
-    PainterShaderSet&
-    arc_stroke_shader(const PainterStrokeShader &sh);
-
-    /*!
-     * Shader set for dashed stroking of paths via point
-     * data packed via \ref ArcStrokedPoint; the stroking
-     * parameters are given by a \ref
-     * PainterDashedStrokeParams value.
-     */
-    const PainterDashedStrokeShaderSet&
-    dashed_arc_stroke_shader(void) const;
-
-    /*!
-     * Set the value returned by dashed_arc_stroke_shader(void) const.
-     * \param sh value to use
-     */
-    PainterShaderSet&
-    dashed_arc_stroke_shader(const PainterDashedStrokeShaderSet &sh);
 
     /*!
      * Shader for filling of paths via \ref FilledPath.

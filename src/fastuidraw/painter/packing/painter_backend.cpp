@@ -287,6 +287,9 @@ register_shader(const PainterStrokeShader &p)
   register_shader(p.non_aa_shader());
   register_shader(p.aa_shader_pass1());
   register_shader(p.aa_shader_pass2());
+  register_shader(p.arc_non_aa_shader());
+  register_shader(p.arc_aa_shader_pass1());
+  register_shader(p.arc_aa_shader_pass2());
 }
 
 void
