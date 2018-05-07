@@ -80,9 +80,9 @@ namespace
                   std::vector<SingleSubEdge> &dst,
                   fastuidraw::BoundingBox<float> &bx);
 
-    void
+    unsigned int
     split_sub_edge(int splitting_coordinate,
-                   fastuidraw::vecN<SingleSubEdge, 2> &out_edges,
+                   fastuidraw::vecN<SingleSubEdge, 3> &out_edges,
                    float split_value) const;
 
     bool m_from_line_segment;
@@ -465,13 +465,12 @@ namespace
     bool m_empty_subset;
   };
 
-  class EdgeAttributeFiller:public fastuidraw::PainterAttributeDataFiller
+  class EdgeAttributeFillerBase:public fastuidraw::PainterAttributeDataFiller
   {
   public:
-    explicit
-    EdgeAttributeFiller(const StrokedPathSubset *src,
-                        const fastuidraw::TessellatedPath &P,
-                        const StrokedPathSubset::CreationValues &cnts);
+    EdgeAttributeFillerBase(const StrokedPathSubset *src,
+			    const fastuidraw::TessellatedPath &P,
+			    const StrokedPathSubset::CreationValues &cnts);
 
     virtual
     void
@@ -508,16 +507,53 @@ namespace
                 fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
                 fastuidraw::c_array<int> index_adjusts) const;
 
+    virtual
     void
     process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
                      fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                      fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
-                     unsigned int &vertex_offset, unsigned int &index_offset) const;
+                     unsigned int &vertex_offset, unsigned int &index_offset) const = 0;
 
     const StrokedPathSubset *m_src;
     const fastuidraw::TessellatedPath &m_P;
     unsigned int m_total_vertex_cnt, m_total_index_cnt;
     unsigned int m_total_number_chunks;
+  };
+
+  class LineEdgeAttributeFiller:public EdgeAttributeFillerBase
+  {
+  public:
+    LineEdgeAttributeFiller(const StrokedPathSubset *src,
+			const fastuidraw::TessellatedPath &P,
+			const StrokedPathSubset::CreationValues &cnts):
+      EdgeAttributeFillerBase(src, P, cnts)
+    {}
+
+  private:
+    virtual
+    void
+    process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
+                     fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+                     fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+                     unsigned int &vertex_offset, unsigned int &index_offset) const;
+  };
+
+  class ArcEdgeAttributeFiller:public EdgeAttributeFillerBase
+  {
+  public:
+    ArcEdgeAttributeFiller(const StrokedPathSubset *src,
+			const fastuidraw::TessellatedPath &P,
+			const StrokedPathSubset::CreationValues &cnts):
+      EdgeAttributeFillerBase(src, P, cnts)
+    {}
+
+  private:
+    virtual
+    void
+    process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
+                     fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+                     fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+                     unsigned int &vertex_offset, unsigned int &index_offset) const;
   };
 
   template<typename T>
@@ -618,8 +654,9 @@ SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg,
       m_center = seg.m_center;
       m_radius = seg.m_radius;
       m_arc_angle = seg.m_arc_angle;
-
-      /* TODO: compute bounding box of arc */
+      fastuidraw::detail::bouding_box_union_arc(m_center, m_radius,
+						m_arc_angle.m_begin, m_arc_angle.m_end,
+						&m_bounding_box);
     }
 }
 
@@ -641,6 +678,12 @@ add_sub_edges(const SingleSubEdge *prev_subedge_of_edge,
     }
   else
     {
+      /* TODO: when meeting between two arc-joins, check the angle
+       * that the arc-join would make. if the angle is large (such
+       * as nearly 180 degrees), then SKIP the arc-join between
+       * then as that means the original curve had a cusp and we do
+       * NOT want to add an arc-join between the arcs.
+       */
       sub_edge.m_bevel_lambda = compute_lambda(prev_subedge_of_edge->m_end_normal,
                                                sub_edge.m_begin_normal);
       sub_edge.m_has_bevel = true;
@@ -651,14 +694,15 @@ add_sub_edges(const SingleSubEdge *prev_subedge_of_edge,
   dst.push_back(sub_edge);
 }
 
-void
+unsigned int
 SingleSubEdge::
 split_sub_edge(int splitting_coordinate,
-               fastuidraw::vecN<SingleSubEdge, 2> &out_edges,
+               fastuidraw::vecN<SingleSubEdge, 3> &out_edges,
                float split_value) const
 {
   float s, t;
   fastuidraw::vec2 p, mid_normal;
+  unsigned int return_value;
 
   if (m_from_line_segment)
     {
@@ -671,12 +715,13 @@ split_sub_edge(int splitting_coordinate,
 
       p = (1.0f - t) * m_pt0 + t * m_pt1;
       mid_normal = m_begin_normal;
+      return_value = 2;
     }
   else
     {
       /* TODO: compute t, s, p, mid_normal;
-       * Issue: if horizontal/vertical line splits arc into
-       * more than two pieces, we will suffer.
+       * if horizontal/vertical line splits arc into
+       * more than two pieces, handle that as well.
        */
     }
 
@@ -709,6 +754,8 @@ split_sub_edge(int splitting_coordinate,
       out_edges[i].m_open_contour_length = m_open_contour_length;
       out_edges[i].m_closed_contour_length = m_closed_contour_length;
     }
+
+  return return_value;
 }
 
 //////////////////////////////////////////////
@@ -838,10 +885,11 @@ SubEdgeCullingHierarchy(const fastuidraw::BoundingBox<float> &start_box,
             }
           else
             {
-              fastuidraw::vecN<SingleSubEdge, 2> split;
+              unsigned int cnt;
+              fastuidraw::vecN<SingleSubEdge, 3> split;
 
-              sub_edge.split_sub_edge(c, split, mid_point);
-              for(int i = 0; i < 2; ++i)
+              cnt = sub_edge.split_sub_edge(c, split, mid_point);
+              for(unsigned int i = 0; i < cnt; ++i)
                 {
                   child_boxes[i].union_box(split[i].m_bounding_box);
                   child_sub_edges[i].push_back(split[i]);
@@ -888,6 +936,12 @@ choose_splitting_coordinate(const fastuidraw::BoundingBox<float> &start_box,
       return -1;
     }
 
+  /* NOTE: we use the end points of the SingleSubEdge
+   * to count on what side or sides a SingleSubEdge
+   * will land. This is not perfect solution for arcs
+   * but we are not looking for something perfect, just
+   * something to keep the tree roughly balanced.
+   */
   fastuidraw::vecN<float, 2> split_values;
   fastuidraw::vecN<unsigned int, 2> split_counters(0, 0);
   fastuidraw::vecN<fastuidraw::uvec2, 2> child_counters(fastuidraw::uvec2(0, 0),
@@ -931,7 +985,7 @@ choose_splitting_coordinate(const fastuidraw::BoundingBox<float> &start_box,
   canidate = (split_counters[0] < split_counters[1]) ? 0 : 1;
 
   /* we require that both sides will have fewer edges
-   *  than the parent size.
+   * than the parent size.
    */
   if (child_counters[canidate][0] < data.size() && child_counters[canidate][1] < data.size())
     {
@@ -1075,14 +1129,23 @@ increment_vertices_indices(fastuidraw::c_array<const SingleSubEdge> src,
 {
   for(const SingleSubEdge &v : src)
     {
-      if (v.m_has_bevel)
-        {
-          vertex_cnt += 3;
-          index_cnt += 3;
-        }
+      if (v.m_from_line_segment)
+	{
+	  if (v.m_has_bevel)
+	    {
+	      vertex_cnt += 3;
+	      index_cnt += 3;
+	    }
 
-      vertex_cnt += points_per_segment;
-      index_cnt += indices_per_segment_without_bevel;
+	  vertex_cnt += points_per_segment;
+	  index_cnt += indices_per_segment_without_bevel;
+	}
+      else
+	{
+	  /* TODO: increment vertex_cnt and index_cnt for when
+	   * v is an arc-segment.
+	   */
+	}
     }
 }
 
@@ -1224,11 +1287,11 @@ compute_chunks_implement(bool include_closing_edge,
 }
 
 ////////////////////////////////////////
-// EdgeAttributeFiller methods
-EdgeAttributeFiller::
-EdgeAttributeFiller(const StrokedPathSubset *src,
-                    const fastuidraw::TessellatedPath &P,
-                    const StrokedPathSubset::CreationValues &cnts):
+// EdgeAttributeFillerBase methods
+EdgeAttributeFillerBase::
+EdgeAttributeFillerBase(const StrokedPathSubset *src,
+			const fastuidraw::TessellatedPath &P,
+			const StrokedPathSubset::CreationValues &cnts):
   m_src(src),
   m_P(P),
   m_total_vertex_cnt(cnts.m_non_closing_edge_vertex_cnt + cnts.m_closing_edge_vertex_cnt),
@@ -1238,7 +1301,7 @@ EdgeAttributeFiller(const StrokedPathSubset *src,
 }
 
 void
-EdgeAttributeFiller::
+EdgeAttributeFillerBase::
 compute_sizes(unsigned int &num_attributes,
               unsigned int &num_indices,
               unsigned int &num_attribute_chunks,
@@ -1251,7 +1314,7 @@ compute_sizes(unsigned int &num_attributes,
 }
 
 void
-EdgeAttributeFiller::
+EdgeAttributeFillerBase::
 fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
           fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
           fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attribute_chunks,
@@ -1264,7 +1327,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
 }
 
 void
-EdgeAttributeFiller::
+EdgeAttributeFillerBase::
 fill_data_worker(const StrokedPathSubset *e,
                  fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                  fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
@@ -1295,7 +1358,7 @@ fill_data_worker(const StrokedPathSubset *e,
 }
 
 void
-EdgeAttributeFiller::
+EdgeAttributeFillerBase::
 build_chunk(const EdgeRanges &edge,
             fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
             fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
@@ -1346,8 +1409,10 @@ build_chunk(const EdgeRanges &edge,
   #endif
 }
 
+///////////////////////////////////////////////
+// LineEdgeAttributeFiller methods
 void
-EdgeAttributeFiller::
+LineEdgeAttributeFiller::
 process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
                  fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                  fastuidraw::c_array<fastuidraw::PainterIndex> indices,
@@ -1457,6 +1522,20 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
   vert_offset += StrokedPathSubset::points_per_segment;
 }
 
+////////////////////////////////////
+// ArcEdgeAttributeFiller methods
+void
+ArcEdgeAttributeFiller::
+process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
+                 fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+                 fastuidraw::c_array<fastuidraw::PainterIndex> indices,
+                 unsigned int &vert_offset, unsigned int &index_offset) const
+{
+  FASTUIDRAWassert(!"ArcEdgeAttributeFiller not ready!");
+
+  //TODO: implement.
+}
+
 /////////////////////////////////////////////
 // StrokedPathPrivate methods
 StrokedPathPrivate::
@@ -1542,10 +1621,17 @@ create_edges(const fastuidraw::TessellatedPath &P)
   FASTUIDRAWassert(!m_empty_path);
   s = SubEdgeCullingHierarchy::create(P);
   m_subset = StrokedPathSubset::create(s, cnts);
-  m_edges.set_data(EdgeAttributeFiller(m_subset, P, cnts));
 
-  /* the chunks of the root element have the data for everything.
-   */
+  if (m_has_arcs)
+    {
+      m_edges.set_data(ArcEdgeAttributeFiller(m_subset, P, cnts));
+    }
+  else
+    {
+      m_edges.set_data(LineEdgeAttributeFiller(m_subset, P, cnts));
+    }
+
+  /* the chunks of the root element have the data for everything. */
   m_chunk_of_edges[fastuidraw::StrokedPath::all_non_closing] = m_subset->non_closing_edges().m_chunk;
   m_chunk_of_edges[fastuidraw::StrokedPath::all_closing] = m_subset->closing_edges().m_chunk;
 
