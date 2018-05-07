@@ -72,9 +72,13 @@ namespace
     SingleSubEdge()
     {}
 
-    explicit
-    SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg,
-                  bool is_closing_edge);
+    static
+    void
+    add_sub_edges(bool first_sub_edge_of_edge,
+                  const fastuidraw::TessellatedPath::segment &seg,
+                  bool is_closing_edge,
+                  std::vector<SingleSubEdge> &dst,
+                  fastuidraw::BoundingBox<float> &bx);
 
     void
     split_sub_edge(int splitting_coordinate,
@@ -95,6 +99,21 @@ namespace
     bool m_has_bevel;
     float m_bevel_lambda;
     fastuidraw::vec2 m_bevel_normal;
+
+  private:
+    SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg,
+                  bool is_closing_edge);
+
+    static
+    float
+    compute_lambda(const fastuidraw::vec2 &n0, const fastuidraw::vec2 &n1)
+    {
+      fastuidraw::vec2 v1(n1.y(), -n1.x());
+      float d;
+
+      d = fastuidraw::dot(v1, n0);
+      return (d > 0.0f) ? -1.0f : 1.0f;
+    }
   };
 
   /* A SubEdgeCullingHierarchy represents a hierarchy choice of
@@ -210,17 +229,6 @@ namespace
     static
     void
     check_closing_at_end(const std::vector<T> &data, unsigned int num_non_closing);
-
-    static
-    float
-    compute_lambda(const fastuidraw::vec2 &n0, const fastuidraw::vec2 &n1)
-    {
-      fastuidraw::vec2 v1(n1.y(), -n1.x());
-      float d;
-
-      d = fastuidraw::dot(v1, n0);
-      return (d > 0.0f) ? -1.0f : 1.0f;
-    }
 
     /* children, if any
      */
@@ -554,6 +562,7 @@ namespace
                           unsigned int contour,
                           fastuidraw::StrokedCapsJoins::Builder &b);
 
+    bool m_has_arcs;
     fastuidraw::StrokedCapsJoins m_caps_joins;
     StrokedPathSubset* m_subset;
     fastuidraw::PainterAttributeData m_edges;
@@ -593,6 +602,34 @@ SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg,
     {
       m_normal = fastuidraw::vec2(1.0f, 0.0f);
     }
+}
+
+void
+SingleSubEdge::
+add_sub_edges(bool first_sub_edge_of_edge,
+              const fastuidraw::TessellatedPath::segment &seg,
+              bool is_closing_edge,
+              std::vector<SingleSubEdge> &dst,
+              fastuidraw::BoundingBox<float> &bx)
+{
+  SingleSubEdge sub_edge(seg, is_closing_edge);
+
+  if (first_sub_edge_of_edge)
+    {
+      sub_edge.m_bevel_lambda = 0.0f;
+      sub_edge.m_has_bevel = false;
+      sub_edge.m_bevel_normal = fastuidraw::vec2(0.0f, 0.0f);
+    }
+  else
+    {
+      sub_edge.m_bevel_lambda = compute_lambda(dst.back().m_normal, sub_edge.m_normal);
+      sub_edge.m_has_bevel = true;
+      sub_edge.m_bevel_normal = dst.back().m_normal;
+    }
+
+  dst.push_back(sub_edge);
+  bx.union_point(sub_edge.m_pt0);
+  bx.union_point(sub_edge.m_pt1);
 }
 
 void
@@ -695,26 +732,8 @@ process_edge(const fastuidraw::TessellatedPath &P,
 
   for(unsigned int i = R.m_begin; i < R.m_end; ++i)
     {
-      /* for the edge connecting src_pts[i] to src_pts[i+1]
-       */
-      SingleSubEdge sub_edge(src_segments[i], is_closing_edge);
-
-      if (i == R.m_begin)
-        {
-          sub_edge.m_bevel_lambda = 0.0f;
-          sub_edge.m_has_bevel = false;
-          sub_edge.m_bevel_normal = fastuidraw::vec2(0.0f, 0.0f);
-        }
-      else
-        {
-          sub_edge.m_bevel_lambda = compute_lambda(dst.back().m_normal, sub_edge.m_normal);
-          sub_edge.m_has_bevel = true;
-          sub_edge.m_bevel_normal = dst.back().m_normal;
-        }
-
-      dst.push_back(sub_edge);
-      bx.union_point(sub_edge.m_pt0);
-      bx.union_point(sub_edge.m_pt1);
+      SingleSubEdge::add_sub_edges(i == R.m_begin, src_segments[i],
+                                   is_closing_edge, dst, bx);
     }
 }
 
@@ -1404,6 +1423,7 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
 StrokedPathPrivate::
 StrokedPathPrivate(const fastuidraw::TessellatedPath &P,
                    const fastuidraw::StrokedCapsJoins::Builder &b):
+  m_has_arcs(P.has_arcs()),
   m_caps_joins(b),
   m_subset(nullptr)
 {
@@ -1446,55 +1466,22 @@ ready_builder_contour(const fastuidraw::TessellatedPath *tess,
                       fastuidraw::StrokedCapsJoins::Builder &b)
 {
   fastuidraw::c_array<const fastuidraw::TessellatedPath::segment> last_segs;
-  fastuidraw::vec2 delta, last_direction;
-  float delta_mag;
-  const float tol(0.000001f);
 
   last_segs = tess->edge_segment_data(c, 0);
-
-  delta = last_segs.front().m_end_pt - last_segs.front().m_start_pt;
-  delta_mag = delta.magnitude();
-  if (delta_mag < tol)
-    {
-      delta = fastuidraw::vec2(1.0f, 0.0f);
-    }
-  else
-    {
-      delta /= delta_mag;
-    }
-  last_direction = delta;
-  b.begin_contour(last_segs.front().m_start_pt, delta);
+  b.begin_contour(last_segs.front().m_start_pt,
+                  last_segs.front().m_enter_segment_unit_vector);
 
   for(unsigned int e = 1, ende = tess->number_edges(c); e < ende; ++e)
     {
       fastuidraw::c_array<const fastuidraw::TessellatedPath::segment> segs;
       fastuidraw::vec2 delta_into, delta_leaving;
-      float mag;
 
       segs = tess->edge_segment_data(c, e);
-      delta_into = last_segs.back().m_end_pt - last_segs.back().m_start_pt;
-      mag = delta_into.magnitude();
-      if (mag < tol)
-        {
-          delta_into = last_direction;
-        }
-      else
-        {
-          delta_into /= mag;
-          last_direction = delta_into;
-        }
-
-      delta_leaving = segs.front().m_end_pt - segs.front().m_start_pt;
-      mag = delta_leaving.magnitude();
-      if (mag < tol)
-        {
-          delta_leaving = last_direction;
-        }
-      else
-        {
-          delta_leaving /= mag;
-          last_direction = delta_leaving;
-        }
+      /* Leaving the previous segment is entering the join;
+       * Entering the segment is leaving the join
+       */
+      delta_into = last_segs.back().m_leaving_segment_unit_vector;
+      delta_leaving = segs.front().m_enter_segment_unit_vector;
 
       b.add_join(segs.front().m_start_pt,
                  last_segs.back().m_edge_length,
@@ -1502,17 +1489,8 @@ ready_builder_contour(const fastuidraw::TessellatedPath *tess,
       last_segs = segs;
     }
 
-  delta = last_segs.back().m_end_pt - last_segs.back().m_start_pt;
-  delta_mag = delta.magnitude();
-  if (delta_mag < tol)
-    {
-      delta = last_direction;
-    }
-  else
-    {
-      delta /= delta_mag;
-    }
-  b.end_contour(last_segs.back().m_edge_length, delta);
+  b.end_contour(last_segs.back().m_edge_length,
+                last_segs.back().m_leaving_segment_unit_vector);
 }
 
 void
@@ -1606,6 +1584,15 @@ fastuidraw::StrokedPath::
   d = static_cast<StrokedPathPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = nullptr;
+}
+
+bool
+fastuidraw::StrokedPath::
+has_arcs(void) const
+{
+  StrokedPathPrivate *d;
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  return d->m_has_arcs;
 }
 
 void

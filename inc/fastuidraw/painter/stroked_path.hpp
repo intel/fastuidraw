@@ -49,13 +49,6 @@ class DashEvaluatorBase;
  * stroking style. In particular, for a given TessellatedPath,
  * one only needs to construct a StrokedPath <i>once</i> regardless
  * of how one strokes the original path for drawing.
- *
- * The data is stored as \ref PainterAttributeData, a seperate
- * object for edges, each type of join and each type of caps.
- * What chunks to use from these objects is computed by
- * the member function compute_chunks(); the PainterAttributeData
- * chunking for joins and caps is the same regardless of
- * the cap and join type.
  */
 class StrokedPath:
     public reference_counted<StrokedPath>::non_concurrent
@@ -129,6 +122,16 @@ public:
   ~StrokedPath();
 
   /*!
+   * Returns true if the \ref StrokedPath has arc.
+   * If the stroked path has arcs, ALL of the attribute
+   * data is packed \ref ArcStrokedPoint data,
+   * if it has no arcs then ALL of the data is
+   * packed \ref StrokedPoint data.
+   */
+  bool
+  has_arcs(void) const;
+
+  /*!
    * Given a set of clip equations in clip coordinates
    * and a tranformation from local coordiante to clip
    * coordinates, compute what chunks are not completely
@@ -168,6 +171,9 @@ public:
 
   /*!
    * Returns the data to draw the edges of a stroked path.
+   * Note: the data is packed with ArcStrokedPoint::pack()
+   * if has_arcs() returns true, otherwise the data is
+   * packed with StrokedPoint::pack().
    */
   const PainterAttributeData&
   edges(void) const;
