@@ -415,7 +415,7 @@ add_fonts_from_path(const std::string &filename,
 fastuidraw::c_string
 default_font(void)
 {
-  #ifdef __WIN32
+  #ifdef _WIN32
     {
       return "C:/Windows/Fonts/arial.ttf";
     }
@@ -429,7 +429,7 @@ default_font(void)
 fastuidraw::c_string
 default_font_path(void)
 {
-  #ifdef __WIN32
+  #ifdef _WIN32
     {
       return "C:/Windows/Fonts";
     }
