@@ -18,6 +18,7 @@
 
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
+#include <fastuidraw/painter/arc_stroked_point.hpp>
 #include "backend_shaders.hpp"
 
 #include <string>
@@ -368,6 +369,66 @@ ShaderSetCreator(enum PainterBlendShader::shader_type blend_tp,
     {
       m_dashed_discard_stroke_shader = nullptr;
     }
+
+  m_uber_arc_stroke_shader =
+    FASTUIDRAWnew PainterItemShaderGLSL(stroke_tp == PainterStrokeShader::draws_solid_then_fuzz,
+                                        ShaderSource()
+                                        .add_macro(extra_macro)
+                                        .add_source(add_constants_src)
+                                        .add_source("fastuidraw_painter_arc_stroke.vert.glsl.resource_string",
+                                                    ShaderSource::from_resource)
+                                        .add_source(remove_constants_src)
+                                        .remove_macro(extra_macro),
+
+                                        ShaderSource()
+                                        .add_macro(extra_macro)
+                                        .add_source(add_constants_src)
+                                        .add_source("fastuidraw_painter_arc_stroke.frag.glsl.resource_string",
+                                                    ShaderSource::from_resource)
+                                        .add_source(remove_constants_src)
+                                        .remove_macro(extra_macro),
+
+                                        varying_list()
+                                        .add_float_varying("fastuidraw_arc_stroke_relative_to_center_x")
+                                        .add_float_varying("fastuidraw_arc_stroke_relative_to_center_y")
+                                        .add_float_varying("fastuidraw_arc_stroke_arc_radius")
+                                        .add_float_varying("fastuidraw_arc_stroke_stroke_radius"),
+                                        num_dashed_sub_shaders
+                                        );
+
+  m_uber_arc_dashed_stroke_shader =
+    FASTUIDRAWnew PainterItemShaderGLSL(stroke_tp == PainterStrokeShader::draws_solid_then_fuzz,
+                                        ShaderSource()
+                                        .add_macro("FASTUIDRAW_STROKE_DASHED")
+                                        .add_macro(extra_macro)
+                                        .add_source(add_constants_src)
+                                        .add_source("fastuidraw_painter_arc_stroke.vert.glsl.resource_string",
+                                                    ShaderSource::from_resource)
+                                        .add_source(remove_constants_src)
+                                        .remove_macro(extra_macro)
+                                        .remove_macro("FASTUIDRAW_STROKE_DASHED"),
+
+                                        ShaderSource()
+                                        .add_macro("FASTUIDRAW_STROKE_DASHED")
+                                        .add_macro(extra_macro)
+                                        .add_source(add_constants_src)
+                                        .add_source("fastuidraw_painter_arc_stroke.frag.glsl.resource_string",
+                                                    ShaderSource::from_resource)
+                                        .add_source(remove_constants_src)
+                                        .remove_macro(extra_macro)
+                                        .remove_macro("FASTUIDRAW_STROKE_DASHED"),
+
+                                        varying_list()
+                                        .add_float_varying("fastuidraw_arc_stroke_relative_to_center_x")
+                                        .add_float_varying("fastuidraw_arc_stroke_relative_to_center_y")
+                                        .add_float_varying("fastuidraw_arc_stroke_arc_radius")
+                                        .add_float_varying("fastuidraw_arc_stroke_stroke_radius")
+                                        .add_float_varying("fastuidraw_arc_stroke_arc_angle")
+                                        .add_float_varying("fastuidraw_stroking_distance")
+                                        .add_float_varying("fastuidraw_stroking_distance_sub_edge_start")
+                                        .add_float_varying("fastuidraw_stroking_distance_sub_edge_end"),
+                                        num_dashed_sub_shaders
+                                        );
 }
 
 reference_counted_ptr<PainterItemShader>
@@ -438,7 +499,8 @@ create_glyph_shader(bool anisotropic)
 
 reference_counted_ptr<PainterItemShader>
 ShaderSetCreator::
-create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
+create_stroke_item_shader(bool arc_shader,
+                          enum PainterEnums::cap_style stroke_dash_style,
                           enum uber_stroke_render_pass_t render_pass)
 {
   reference_counted_ptr<PainterItemShader> shader;
@@ -447,11 +509,14 @@ create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
   if (stroke_dash_style == fastuidraw::PainterEnums::number_cap_styles)
     {
       sub_shader = (render_pass << m_stroke_render_pass_bit0);
-      shader = FASTUIDRAWnew PainterItemShader(sub_shader, m_uber_stroke_shader);
+      shader = FASTUIDRAWnew PainterItemShader(sub_shader,
+                                               (arc_shader) ?
+                                               m_uber_arc_stroke_shader :
+                                               m_uber_stroke_shader);
     }
   else
     {
-      if (render_pass == uber_stroke_non_aa && m_dashed_discard_stroke_shader)
+      if (!arc_shader && render_pass == uber_stroke_non_aa && m_dashed_discard_stroke_shader)
         {
           sub_shader = (stroke_dash_style << (m_stroke_dash_style_bit0 - m_stroke_render_pass_num_bits));
           shader = FASTUIDRAWnew PainterItemShader(sub_shader, m_dashed_discard_stroke_shader);
@@ -460,7 +525,10 @@ create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
         {
           sub_shader = (stroke_dash_style << m_stroke_dash_style_bit0)
             | (render_pass << m_stroke_render_pass_bit0);
-          shader = FASTUIDRAWnew PainterItemShader(sub_shader, m_uber_dashed_stroke_shader);
+          shader = FASTUIDRAWnew PainterItemShader(sub_shader,
+                                                   (arc_shader) ?
+                                                   m_uber_arc_dashed_stroke_shader :
+                                                   m_uber_dashed_stroke_shader);
         }
     }
   return shader;
@@ -478,10 +546,13 @@ create_stroke_shader(enum PainterEnums::cap_style stroke_style,
     .aa_type(m_stroke_tp)
     .stroking_data_selector(stroke_data_selector)
     .aa_action_pass1(m_stroke_action_pass1)
-    .aa_shader_pass1(create_stroke_item_shader(stroke_style, uber_stroke_aa_pass1))
     .aa_action_pass2(m_stroke_action_pass2)
-    .aa_shader_pass2(create_stroke_item_shader(stroke_style, uber_stroke_aa_pass2))
-    .non_aa_shader(create_stroke_item_shader(stroke_style, uber_stroke_non_aa));
+    .aa_shader_pass1(create_stroke_item_shader(false, stroke_style, uber_stroke_aa_pass1))
+    .aa_shader_pass2(create_stroke_item_shader(false, stroke_style, uber_stroke_aa_pass2))
+    .non_aa_shader(create_stroke_item_shader(false, stroke_style, uber_stroke_non_aa))
+    .arc_aa_shader_pass1(create_stroke_item_shader(true, stroke_style, uber_stroke_aa_pass1))
+    .arc_aa_shader_pass2(create_stroke_item_shader(true, stroke_style, uber_stroke_aa_pass2))
+    .arc_non_aa_shader(create_stroke_item_shader(true, stroke_style, uber_stroke_non_aa));
   return return_value;
 }
 

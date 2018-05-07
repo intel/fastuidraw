@@ -113,7 +113,8 @@ private:
   create_dashed_stroke_shader_set(void);
 
   reference_counted_ptr<PainterItemShader>
-  create_stroke_item_shader(enum PainterEnums::cap_style stroke_dash_style,
+  create_stroke_item_shader(bool arc_shader,
+                            enum PainterEnums::cap_style stroke_dash_style,
                             enum uber_stroke_render_pass_t render_pass_macro);
 
   PainterFillShader
@@ -122,6 +123,7 @@ private:
   enum PainterStrokeShader::type_t m_stroke_tp;
   reference_counted_ptr<PainterItemShader> m_uber_stroke_shader, m_uber_dashed_stroke_shader;
   reference_counted_ptr<PainterItemShader> m_dashed_discard_stroke_shader;
+  reference_counted_ptr<PainterItemShader> m_uber_arc_stroke_shader, m_uber_arc_dashed_stroke_shader;
   reference_counted_ptr<const PainterDraw::Action> m_stroke_action_pass1;
   reference_counted_ptr<const PainterDraw::Action> m_stroke_action_pass2;
 };
