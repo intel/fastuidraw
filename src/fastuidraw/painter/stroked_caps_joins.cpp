@@ -23,6 +23,7 @@
 #include <fastuidraw/tessellated_path.hpp>
 #include <fastuidraw/path.hpp>
 #include <fastuidraw/painter/stroked_point.hpp>
+#include <fastuidraw/painter/arc_stroked_point.hpp>
 #include <fastuidraw/painter/stroked_caps_joins.hpp>
 #include <fastuidraw/painter/painter_attribute_data.hpp>
 #include <fastuidraw/painter/painter_attribute_data_filler.hpp>
@@ -51,6 +52,23 @@ namespace
       | pack_bits(StrokedPoint::boundary_bit, 1u, bb)
       | pack_bits(StrokedPoint::depth_bit0,
                   StrokedPoint::depth_num_bits, depth);
+  }
+
+  inline
+  uint32_t
+  arc_pack_data(int on_boundary,
+                enum fastuidraw::ArcStrokedPoint::offset_type_t pt,
+                uint32_t depth)
+  {
+    using namespace fastuidraw;
+    FASTUIDRAWassert(on_boundary == 0 || on_boundary == 1);
+
+    uint32_t bb(on_boundary), pp(pt);
+    return pack_bits(ArcStrokedPoint::offset_type_bit0,
+                     ArcStrokedPoint::offset_type_num_bits, pp)
+      | pack_bits(ArcStrokedPoint::boundary_bit, 1u, bb)
+      | pack_bits(ArcStrokedPoint::depth_bit0,
+                  ArcStrokedPoint::depth_num_bits, depth);
   }
 
   inline
@@ -97,6 +115,16 @@ namespace
 
     void
     set_distance_values(fastuidraw::StrokedPoint *pt) const
+    {
+      pt->m_distance_from_edge_start = m_distance_from_previous_join;
+      pt->m_edge_length = m_distance_from_previous_join;
+      pt->m_open_contour_length = m_open_contour_length;
+      pt->m_closed_contour_length = m_closed_contour_length;
+      pt->m_distance_from_contour_start = m_distance_from_contour_start;
+    }
+
+    void
+    set_distance_values(fastuidraw::ArcStrokedPoint *pt) const
     {
       pt->m_distance_from_edge_start = m_distance_from_previous_join;
       pt->m_edge_length = m_distance_from_previous_join;
@@ -695,6 +723,50 @@ namespace
     bool m_post_ctor_initalized_called;
   };
 
+  class ArcRoundedJoinCreator:public JoinCreatorBase
+  {
+  public:
+    ArcRoundedJoinCreator(const PathData &P, const SubsetPrivate *st);
+
+  private:
+    class PerArcRoundedJoin:public PerJoinData
+    {
+    public:
+      explicit
+      PerArcRoundedJoin(const PerJoinData &J);
+
+      void
+      add_data(unsigned int depth,
+               fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+               unsigned int &vertex_offset,
+               fastuidraw::c_array<unsigned int> indices,
+               unsigned int &index_offset) const;
+
+      /* how many arc-joins are used to realize the join */
+      unsigned int m_count;
+
+      /* number of vertices and indices needed */
+      unsigned int m_vertex_count, m_index_count;
+
+      float m_delta_angle;
+      std::complex<float> m_arc_start;
+    };
+
+    virtual
+    void
+    add_join(unsigned int join_id, const PerJoinData &join,
+             unsigned int &vert_count, unsigned int &index_count) const;
+
+    virtual
+    void
+    fill_join_implement(unsigned int join_id, const PerJoinData &join,
+                        fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                        unsigned int depth,
+                        fastuidraw::c_array<unsigned int> indices,
+                        unsigned int &vertex_offset, unsigned int &index_offset) const;
+
+    mutable std::vector<PerArcRoundedJoin> m_per_join_data;
+  };
 
   class RoundedJoinCreator:public JoinCreatorBase
   {
@@ -1021,6 +1093,7 @@ namespace
     PreparedAttributeData<MiterClipJoinCreator> m_miter_clip_joins;
     PreparedAttributeData<MiterJoinCreator<fastuidraw::StrokedPoint::offset_miter_join> > m_miter_joins;
     PreparedAttributeData<MiterJoinCreator<fastuidraw::StrokedPoint::offset_miter_bevel_join> > m_miter_bevel_joins;
+    PreparedAttributeData<ArcRoundedJoinCreator> m_arc_rounded_joins;
     PreparedAttributeData<SquareCapCreator> m_square_caps;
     PreparedAttributeData<AdjustableCapCreator> m_adjustable_caps;
 
@@ -2135,7 +2208,135 @@ fill_join_implement(unsigned int join_id, const PerJoinData &join,
   m_per_join_data[join_id].add_data(depth, pts, vertex_offset, indices, index_offset);
 }
 
+////////////////////////////////////////////////
+// ArcRoundedJoinCreator::PerArcRoundedJoin methods
+ArcRoundedJoinCreator::PerArcRoundedJoin::
+PerArcRoundedJoin(const PerJoinData &J):
+  PerJoinData(J)
+{
+  const float per_arc_angle_max(M_PI / 2.0);
+  float delta_angle_mag;
 
+  std::complex<float> n0z(m_lambda * n0().x(), m_lambda * n0().y());
+  std::complex<float> n1z(m_lambda * n1().x(), m_lambda * n1().y());
+  std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z));
+
+  m_arc_start = n0z;
+  m_delta_angle = std::atan2(n1z_times_conj_n0z.imag(),
+                             n1z_times_conj_n0z.real());
+  delta_angle_mag = fastuidraw::t_abs(m_delta_angle);
+
+  m_count = 1u + static_cast<unsigned int>(delta_angle_mag / per_arc_angle_max);
+
+  m_vertex_count = 5 + m_count - 1;
+  m_index_count = 3 * (m_vertex_count - 2);
+
+}
+
+void
+ArcRoundedJoinCreator::PerArcRoundedJoin::
+add_data(unsigned int depth,
+         fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+         unsigned int &vertex_offset,
+         fastuidraw::c_array<unsigned int> indices,
+         unsigned int &index_offset) const
+{
+  unsigned int i, center;
+  float theta, per_element, beyond;
+  fastuidraw::ArcStrokedPoint pt;
+  float cv, sv;
+  fastuidraw::vec2 v;
+
+  per_element = m_delta_angle / static_cast<float>(m_count);
+  cv = fastuidraw::t_cos(per_element * 0.5);
+  sv = fastuidraw::t_sin(per_element * 0.5);
+  beyond = 1.0f / cv;
+  center = vertex_offset;
+  set_distance_values(&pt);
+
+  pt.m_position = m_p;
+  pt.m_offset_direction = fastuidraw::vec2(0.0f, 0.0f);
+  pt.m_radius = 0.0f;
+  pt.m_arc_angle = per_element;
+  pt.m_packed_data = arc_pack_data(0, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  pt.m_position = m_p;
+  pt.m_offset_direction = m_lambda * n0();
+  pt.m_radius = 0.0f;
+  pt.m_arc_angle = per_element;
+  pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  for (theta = 0.0f, i = 0; i <= m_count; ++i, theta += per_element)
+    {
+      float s, c;
+      std::complex<float> cs_as_complex;
+
+      c = fastuidraw::t_cos(theta);
+      s = fastuidraw::t_sin(theta);
+      cs_as_complex = std::complex<float>(c, s) * m_arc_start;
+
+      pt.m_position = m_p;
+      pt.m_offset_direction = beyond * fastuidraw::vec2(cs_as_complex.real(),
+                                                        cs_as_complex.imag());
+      pt.m_radius = 0.0f;
+      pt.m_arc_angle = per_element;
+      pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
+      pt.pack_point(&pts[vertex_offset]);
+      ++vertex_offset;
+    }
+
+  pt.m_position = m_p;
+  pt.m_offset_direction = m_lambda * n1();
+  pt.m_radius = 0.0f;
+  pt.m_arc_angle = per_element;
+  pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
+  pt.pack_point(&pts[vertex_offset]);
+  ++vertex_offset;
+
+  add_triangle_fan(center, vertex_offset, indices, index_offset);
+}
+
+///////////////////////////////////////////////////
+// PerArcRoundedJoin methods
+ArcRoundedJoinCreator::
+ArcRoundedJoinCreator(const PathData &P, const SubsetPrivate *st):
+  JoinCreatorBase(P, st)
+{
+  JoinCount J(P.m_join_ordering);
+  m_per_join_data.reserve(J.m_number_close_joins + J.m_number_non_close_joins);
+  post_ctor_initalize();
+}
+
+void
+ArcRoundedJoinCreator::
+add_join(unsigned int join_id, const PerJoinData &join,
+         unsigned int &vert_count, unsigned int &index_count) const
+{
+  FASTUIDRAWunused(join_id);
+  PerArcRoundedJoin J(join);
+
+  m_per_join_data.push_back(J);
+
+  vert_count += J.m_vertex_count;
+  index_count += J.m_index_count;
+}
+
+void
+ArcRoundedJoinCreator::
+fill_join_implement(unsigned int join_id, const PerJoinData &join,
+                    fastuidraw::c_array<fastuidraw::PainterAttribute> pts,
+                    unsigned int depth,
+                    fastuidraw::c_array<unsigned int> indices,
+                    unsigned int &vertex_offset, unsigned int &index_offset) const
+{
+  FASTUIDRAWunused(join);
+  FASTUIDRAWassert(join_id < m_per_join_data.size());
+  m_per_join_data[join_id].add_data(depth, pts, vertex_offset, indices, index_offset);
+}
 
 ///////////////////////////////////////////////////
 // BevelJoinCreator methods
@@ -3179,6 +3380,15 @@ miter_joins(void) const
   StrokedCapsJoinsPrivate *d;
   d = static_cast<StrokedCapsJoinsPrivate*>(m_d);
   return d->m_miter_joins.data(d->m_path_data, d->m_subset);
+}
+
+const fastuidraw::PainterAttributeData&
+fastuidraw::StrokedCapsJoins::
+arc_rounded_joins(void) const
+{
+  StrokedCapsJoinsPrivate *d;
+  d = static_cast<StrokedCapsJoinsPrivate*>(m_d);
+  return d->m_arc_rounded_joins.data(d->m_path_data, d->m_subset);
 }
 
 const fastuidraw::PainterAttributeData&
