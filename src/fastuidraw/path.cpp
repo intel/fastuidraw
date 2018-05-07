@@ -171,7 +171,7 @@ namespace
     void
     init(void);
 
-    fastuidraw::vec2 m_min_bb, m_max_bb;
+    fastuidraw::BoundingBox<float> m_bb;
     fastuidraw::reference_counted_ptr<BezierTessRegion> m_start_region;
     std::vector<fastuidraw::vec2> m_pts;
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_work_room;
@@ -183,38 +183,7 @@ namespace
     float m_radius, m_angle_speed;
     float m_start_angle;
     fastuidraw::vec2 m_center;
-    fastuidraw::vec2 m_min_bb, m_max_bb;
-
-    void
-    compute_bb(void)
-    {
-      using namespace fastuidraw;
-
-      vec2 p0, p1, z;
-      float d;
-
-      p0 = vec2(t_cos(m_start_angle),
-                t_sin(m_start_angle));
-
-      p1 = vec2(t_cos(m_start_angle + m_angle_speed),
-                t_sin(m_start_angle + m_angle_speed));
-
-      d = 1.0f - t_cos(m_angle_speed * 0.5f);
-
-      /*
-       * bb represents the bounding box of an arc
-       * [m_start_angle, m_start_angle + m_angle_speed)
-       * with radius one centered at the origin
-       */
-      BoundingBox<float> bb;
-      bb.union_point(p0);
-      bb.union_point(p1);
-      bb.union_point(p0 + d * z);
-      bb.union_point(p1 + d * z);
-
-      m_min_bb = m_center + m_radius * bb.min_point();
-      m_max_bb = m_center + m_radius * bb.max_point();
-    }
+    fastuidraw::BoundingBox<float> m_bb;
   };
 
   class PathContourPrivate
@@ -229,7 +198,7 @@ namespace
     fastuidraw::reference_counted_ptr<const fastuidraw::PathContour::interpolator_base> m_end_to_start;
     std::vector<fastuidraw::reference_counted_ptr<const fastuidraw::PathContour::interpolator_base> > m_interpolators;
 
-    fastuidraw::vec2 m_min_bb, m_max_bb;
+    fastuidraw::BoundingBox<float> m_bb;
     bool m_is_flat;
   };
 
@@ -307,11 +276,10 @@ namespace
     TessellatedPathList m_arc_tess_list;
 
     /* m_start_check_bb gives the index into m_contours that
-     *  have not had their bounding box absorbed into
-     *  m_max_bb and m_min_bb.
+     *  have not had their bounding box absorbed m_bb
      */
     unsigned int m_start_check_bb;
-    fastuidraw::vec2 m_max_bb, m_min_bb;
+    fastuidraw::BoundingBox<float> m_bb;
     bool m_is_flat;
     fastuidraw::Path *m_p;
   };
@@ -551,14 +519,9 @@ init(void)
 {
   FASTUIDRAWassert(!m_pts.empty());
 
-  m_min_bb = m_max_bb = m_pts[0];
-  for(unsigned int i = 1, endi = m_pts.size(); i < endi; ++i)
+  for(const fastuidraw::vec2 &pt : m_pts)
     {
-      m_min_bb.x() = fastuidraw::t_min(m_min_bb.x(), m_pts[i].x());
-      m_min_bb.y() = fastuidraw::t_min(m_min_bb.y(), m_pts[i].y());
-
-      m_max_bb.x() = fastuidraw::t_max(m_max_bb.x(), m_pts[i].x());
-      m_max_bb.y() = fastuidraw::t_max(m_max_bb.y(), m_pts[i].y());
+      m_bb.union_point(pt);
     }
   m_start_region = FASTUIDRAWnew BezierTessRegion();
   m_start_region->m_pts = m_pts; //original region uses original points.
@@ -708,8 +671,8 @@ approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
 {
   BezierPrivate *d;
   d = static_cast<BezierPrivate*>(m_d);
-  *out_min_bb = d->m_min_bb;
-  *out_max_bb = d->m_max_bb;
+  *out_min_bb = d->m_bb.min_point();
+  *out_max_bb = d->m_bb.max_point();
 }
 
 void
@@ -882,7 +845,10 @@ arc(const reference_counted_ptr<const interpolator_base> &start, float angle, co
   d->m_start_angle = std::atan2(start_center.y(), start_center.x());
   d->m_angle_speed = angle_coeff_dir * angle;
 
-  d->compute_bb();
+  detail::bouding_box_union_arc(d->m_center, d->m_radius,
+                                d->m_start_angle,
+                                d->m_start_angle + d->m_angle_speed,
+                                &d->m_bb);
 }
 
 fastuidraw::PathContour::arc::
@@ -973,8 +939,8 @@ approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
 {
   ArcPrivate *d;
   d = static_cast<ArcPrivate*>(m_d);
-  *out_min_bb = d->m_min_bb;
-  *out_max_bb = d->m_max_bb;
+  *out_min_bb = d->m_bb.min_point();
+  *out_max_bb = d->m_bb.max_point();
 }
 
 fastuidraw::PathContour::interpolator_base*
@@ -1121,19 +1087,13 @@ end_generic(reference_counted_ptr<const interpolator_base> p)
   d->m_end_to_start = p;
   d->m_is_flat = d->m_is_flat && p->is_flat();
 
-  /* compute bounding box after ending the PathContour.
-   */
-  d->m_interpolators[0]->approximate_bounding_box(&d->m_min_bb, &d->m_max_bb);
-  for(unsigned int i = 1, endi = d->m_interpolators.size(); i < endi; ++i)
+  /* compute bounding box after ending the PathContour.  */
+  for(unsigned int i = 0, endi = d->m_interpolators.size(); i < endi; ++i)
     {
       vec2 p0, p1;
       d->m_interpolators[i]->approximate_bounding_box(&p0, &p1);
-
-      d->m_min_bb.x() = fastuidraw::t_min(d->m_min_bb.x(), p0.x());
-      d->m_min_bb.y() = fastuidraw::t_min(d->m_min_bb.y(), p0.y());
-
-      d->m_max_bb.x() = fastuidraw::t_max(d->m_max_bb.x(), p1.x());
-      d->m_max_bb.y() = fastuidraw::t_max(d->m_max_bb.y(), p1.y());
+      d->m_bb.union_point(p0);
+      d->m_bb.union_point(p1);
     }
 }
 
@@ -1295,8 +1255,8 @@ approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
   PathContourPrivate *d;
   d = static_cast<PathContourPrivate*>(m_d);
 
-  *out_min_bb = d->m_min_bb;
-  *out_max_bb = d->m_max_bb;
+  *out_min_bb = d->m_bb.min_point();
+  *out_max_bb = d->m_bb.max_point();
 
   return true;
 }
@@ -1422,8 +1382,7 @@ PathPrivate(fastuidraw::Path *p, const PathPrivate &obj):
   m_tess_list(obj.m_tess_list),
   m_arc_tess_list(obj.m_arc_tess_list),
   m_start_check_bb(obj.m_start_check_bb),
-  m_max_bb(obj.m_max_bb),
-  m_min_bb(obj.m_min_bb),
+  m_bb(obj.m_bb),
   m_is_flat(obj.m_is_flat),
   m_p(p)
 {
@@ -1679,7 +1638,6 @@ approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
   PathPrivate *d;
   d = static_cast<PathPrivate*>(m_d);
 
-  bool assigned_value(d->m_start_check_bb != 0u);
   for(unsigned endi = d->m_contours.size();
       d->m_start_check_bb < endi && d->m_contours[d->m_start_check_bb]->ended();
       ++d->m_start_check_bb)
@@ -1689,34 +1647,14 @@ approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
 
       value_valid = d->m_contours[d->m_start_check_bb]->approximate_bounding_box(&p0, &p1);
       FASTUIDRAWassert(value_valid);
-      FASTUIDRAWunused(value_valid);
 
-      if (assigned_value)
-        {
-          d->m_min_bb.x() = fastuidraw::t_min(d->m_min_bb.x(), p0.x());
-          d->m_min_bb.y() = fastuidraw::t_min(d->m_min_bb.y(), p0.y());
-
-          d->m_max_bb.x() = fastuidraw::t_max(d->m_max_bb.x(), p1.x());
-          d->m_max_bb.y() = fastuidraw::t_max(d->m_max_bb.y(), p1.y());
-        }
-      else
-        {
-          d->m_min_bb = p0;
-          d->m_max_bb = p1;
-          assigned_value = true;
-        }
+      d->m_bb.union_point(p0);
+      d->m_bb.union_point(p1);
     }
 
-  if (assigned_value)
-    {
-      *out_min_bb = d->m_min_bb;
-      *out_max_bb = d->m_max_bb;
-      return true;
-    }
-  else
-    {
-      return false;
-    }
+  *out_min_bb = d->m_bb.min_point();
+  *out_max_bb = d->m_bb.max_point();
+  return !d->m_bb.empty();
 }
 
 fastuidraw::Path&
