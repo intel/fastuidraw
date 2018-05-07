@@ -1,6 +1,6 @@
 /*!
- * \file stroked_point.hpp
- * \brief file stroked_point.hpp
+ * \file arc_stroked_point.hpp
+ * \brief file arc_stroked_point.hpp
  *
  * Copyright 2018 by Intel.
  *
@@ -90,6 +90,11 @@ public:
        * The point is a point of an arc-join
        */
       offset_arc_join,
+
+      /*!
+       * Number of offset types, not an actual offset type(!).
+       */
+      number_offset_types,
     };
 
   /*!
@@ -232,13 +237,7 @@ public:
   float m_closed_contour_length;
 
   /*!
-   * Bit field with data packed as according to
-   * \ref packed_data_bit_layout_common_t, \ref
-   * packed_data_bit_layout_rounded_join_t, \ref
-   * packed_data_bit_adjustable_cap_t and \ref
-   * packed_data_bit_sub_edge_t. See also,
-   * \ref packed_data_bit_masks_t for bit masks
-   * generated.
+   * Bit field with data packed.
    */
   uint32_t m_packed_data;
 
