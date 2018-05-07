@@ -78,11 +78,9 @@ namespace
     if (S.m_type == TessellatedPath::line_segment)
       {
         vec2 delta(S.m_end_pt - S.m_start_pt);
-        const float tol(1e-7f);
 
         S.m_length = delta.magnitude();
-
-        if (S.m_length > tol)
+        if (S.m_length > 0.0f)
           {
             delta /= S.m_length;
           }
