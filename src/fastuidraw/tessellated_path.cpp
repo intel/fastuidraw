@@ -143,18 +143,47 @@ add_arc_segment(vec2 start, vec2 end,
 		vec2 center, float radius,
 		range_type<float> arc_angle)
 {
-  segment S;
   std::vector<segment> *d;
-
   d = static_cast<std::vector<segment>*>(m_d);
-  S.m_start_pt = start;
-  S.m_end_pt = end;
-  S.m_center = center;
-  S.m_arc_angle = arc_angle;
-  S.m_radius = radius;
-  S.m_type = arc_segment;
 
-  d->push_back(S);
+  float a, da, theta;
+  unsigned int i, cnt;
+  float max_arc(M_PI / 4.0);
+
+  a = t_abs(arc_angle.m_end - arc_angle.m_begin);
+  cnt = 1u + static_cast<unsigned int>(a / max_arc);
+  da = (arc_angle.m_end - arc_angle.m_begin) / static_cast<float>(cnt);
+
+  for (i = 0, theta = arc_angle.m_begin; i < cnt; ++i, theta += da)
+    {
+      segment S;
+
+      if (i == 0)
+        {
+          S.m_start_pt = start;
+        }
+      else
+        {
+          S.m_start_pt = d->back().m_end_pt;
+        }
+
+      if (i + 1 == cnt)
+        {
+          S.m_end_pt = end;
+        }
+      else
+        {
+          S.m_end_pt = center + radius * vec2(t_cos(theta + da), t_sin(theta + da));
+        }
+
+      S.m_center = center;
+      S.m_arc_angle.m_begin = theta;
+      S.m_arc_angle.m_end = theta + da;
+      S.m_radius = radius;
+      S.m_type = arc_segment;
+
+      d->push_back(S);
+    }
 }
 
 //////////////////////////////////////
