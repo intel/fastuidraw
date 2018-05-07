@@ -37,10 +37,17 @@ fastuidraw_gl_frag_main(in uint sub_shader,
     }
   #else
     {
-      if (render_pass == uint(fastuidraw_stroke_non_aa) && q <= 0.0)
+      if (render_pass == uint(fastuidraw_stroke_non_aa))
         {
-          FASTUIDRAW_DISCARD;
-          alpha = 0.0;
+          if (q <= 0.0)
+            {
+              FASTUIDRAW_DISCARD;
+              alpha = 0.0;
+            }
+          else
+            {
+              alpha = 1.0;
+            }
         }
 
       if (render_pass == uint(fastuidraw_stroke_aa_pass1) && alpha < 1.0 - 1.0 / 255.0)
