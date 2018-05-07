@@ -187,21 +187,20 @@ public:
    * Gives the unit vector in which to push the point.
    * For those points that are arc's the location of
    * the center is always given by
-   *   \ref m_position - \ref m_radius * \ref m_offset_direction
+   *   \ref m_position - \ref radius() * \ref m_offset_direction
    */
   vec2 m_offset_direction;
 
   /*!
-   * If a point from an arc-segment, gives the radius
-   * of the arc.
+   * Meaning of \ref m_data depends on \ref offset_type(). If
+   * \ref offset_type() is \ref offset_line_segment, then
+   * \ref m_data holds the vector from this point to other
+   * point of the line segment. Otherwise, \ref m_data[0]
+   * holds the radius of the arc and \ref m_data[1] holds
+   * the angle difference from the end of the arc to the
+   * start of the arc.
    */
-  float m_radius;
-
-  /*!
-   * If a point from an arc-segment, gives the angle
-   * of the arc.
-   */
-  float m_arc_angle;
+  vec2 m_data;
 
   /*!
    * Gives the distance of the point from the start
@@ -267,6 +266,46 @@ public:
   }
 
   /*!
+   * If a point from an arc-segment, gives the radius
+   * of the arc, equivalent to \ref m_data[0].
+   */
+  float
+  radius(void) const
+  {
+    return m_data[0];
+  }
+
+  /*!
+   * If a point from an arc-segment, gives the radius
+   * of the arc, equivalent to \ref m_data[0].
+   */
+  float&
+  radius(void)
+  {
+    return m_data[0];
+  }
+
+  /*!
+   * If a point from an arc-segment, gives the angle
+   * of the arc, equivalent to \ref m_data[1].
+   */
+  float
+  arc_angle(void) const
+  {
+    return m_data[1];
+  }
+
+  /*!
+   * If a point from an arc-segment, gives the angle
+   * of the arc, equivalent to \ref m_data[1].
+   */
+  float&
+  arc_angle(void)
+  {
+    return m_data[1];
+  }
+
+  /*!
    * When stroking the data, the depth test to only
    * pass when the depth value is -strictly- larger
    * so that a fixed pixel is not stroked twice by
@@ -287,8 +326,7 @@ public:
    * - PainterAttribute::m_attrib0 .zw -> \ref m_offset_direction (float)
    * - PainterAttribute::m_attrib1 .x  -> \ref m_distance_from_edge_start (float)
    * - PainterAttribute::m_attrib1 .y  -> \ref m_distance_from_contour_start (float)
-   * - PainterAttribute::m_attrib1 .z  -> \ref m_radius (float)
-   * - PainterAttribute::m_attrib1 .w  -> \ref m_arc_angle (float)
+   * - PainterAttribute::m_attrib1 .zw -> \ref m_data (float)
    * - PainterAttribute::m_attrib2 .x  -> \ref m_packed_data (uint)
    * - PainterAttribute::m_attrib2 .y  -> \ref m_edge_length (float)
    * - PainterAttribute::m_attrib2 .z  -> \ref m_open_contour_length (float)
