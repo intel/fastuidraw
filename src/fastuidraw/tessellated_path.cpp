@@ -71,17 +71,34 @@ namespace
       }
   }
 
-  float
-  compute_segment_length(const fastuidraw::TessellatedPath::segment &S)
+  void
+  compute_local_segment_values(fastuidraw::TessellatedPath::segment &S)
   {
     using namespace fastuidraw;
     if (S.m_type == TessellatedPath::line_segment)
       {
-        return (S.m_end_pt - S.m_start_pt).magnitude();
+        vec2 delta(S.m_end_pt - S.m_start_pt);
+        const float tol(1e-7f);
+
+        S.m_length = delta.magnitude();
+
+        if (S.m_length > tol)
+          {
+            delta /= S.m_length;
+          }
+        else
+          {
+            delta = vec2(1.0f, 0.0f);
+          }
+
+        S.m_enter_segment_unit_vector = delta;
+        S.m_leaving_segment_unit_vector = delta;
       }
     else
       {
-        return t_abs(S.m_arc_angle.m_end - S.m_arc_angle.m_begin) * S.m_radius;
+        S.m_length = t_abs(S.m_arc_angle.m_end - S.m_arc_angle.m_begin) * S.m_radius;
+        S.m_enter_segment_unit_vector = vec2(-t_sin(S.m_arc_angle.m_begin), t_cos(S.m_arc_angle.m_begin));
+        S.m_leaving_segment_unit_vector = vec2(-t_sin(S.m_arc_angle.m_end), t_cos(S.m_arc_angle.m_end));
       }
   }
 }
@@ -187,7 +204,7 @@ TessellatedPath(const Path &input,
                 {
                   d->m_has_arcs = d->m_has_arcs || (work_room[n].m_type == arc_segment);
                   union_segment(work_room[n], d->m_bounding_box);
-                  work_room[n].m_length = compute_segment_length(work_room[n]);
+                  compute_local_segment_values(work_room[n]);
 
                   if (n != 0)
                     {
@@ -442,7 +459,7 @@ stroked(void) const
 {
   TessellatedPathPrivate *d;
   d = static_cast<TessellatedPathPrivate*>(m_d);
-  if (!d->m_stroked && !d->m_has_arcs)
+  if (!d->m_stroked)
     {
       d->m_stroked = FASTUIDRAWnew StrokedPath(*this);
     }

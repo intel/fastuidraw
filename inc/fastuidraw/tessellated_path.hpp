@@ -234,6 +234,16 @@ public:
      * segments along a fixed contour.
      */
     float m_closed_contour_length;
+
+    /*!
+     * Gives the unit-vector of the path entering the segment.
+     */
+    vec2 m_enter_segment_unit_vector;
+
+    /*!
+     * Gives the unit-vector of the path leaving the segment.
+     */
+    vec2 m_leaving_segment_unit_vector;
   };
 
   /*!
