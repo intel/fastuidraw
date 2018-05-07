@@ -339,6 +339,15 @@ public:
   const PainterAttributeData&
   arc_rounded_joins(void) const;
 
+  /*!
+   * Returns the data to draw rounded caps of a stroked path
+   * using the fragment shader to provide per-pixel coverage
+   * computation. The attribute data is packed \ref
+   * ArcStrokedPoint data.
+   */
+  const PainterAttributeData&
+  arc_rounded_caps(void) const;
+
 private:
   void *m_d;
 };
