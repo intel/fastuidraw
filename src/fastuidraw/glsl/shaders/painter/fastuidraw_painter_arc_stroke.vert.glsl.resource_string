@@ -1,0 +1,104 @@
+vec4
+fastuidraw_gl_vert_main(in uint sub_shader,
+                        in uvec4 uprimary_attrib,
+                        in uvec4 usecondary_attrib,
+                        in uvec4 uint_attrib,
+                        in uint shader_data_offset,
+                        out int z_add)
+{
+  vec4 primary_attrib, secondary_attrib;
+
+  primary_attrib = uintBitsToFloat(uprimary_attrib);
+  secondary_attrib = uintBitsToFloat(usecondary_attrib);
+
+  uint render_pass;
+  bool stroke_width_pixels;
+  int stroking_pass;
+  const float anti_alias_thickness = 1.5;
+
+  #ifndef FASTUIDRAW_STROKE_ONLY_SUPPORT_NON_AA
+    {
+      render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
+                                            fastuidraw_stroke_sub_shader_render_pass_num_bits,
+                                            sub_shader);
+    }
+  #else
+    {
+      render_pass = uint(fastuidraw_stroke_non_aa);
+    }
+  #endif
+
+  stroking_pass = int(render_pass);
+
+  vec2 p;
+  vec2 position, offset_direction;
+  float radius, arc_angle;
+
+  float distance_from_edge_start, distance_from_contour_start;
+  float total_edge_length, total_open_contour_length, total_closed_contour_length;
+
+  float stroke_radius;
+  int on_boundary, offset_type;
+  uint point_packed_data;
+
+  #ifdef FASTUIDRAW_STROKE_DASHED
+  fastuidraw_dashed_stroking_params_header stroke_params;
+  fastuidraw_read_dashed_stroking_params_header(shader_data_offset, stroke_params);
+  #else
+  fastuidraw_stroking_params stroke_params;
+  fastuidraw_read_stroking_params(shader_data_offset, stroke_params);
+  #endif
+
+  position = primary_attrib.xy;
+  offset_direction = primary_attrib.zw;
+  radius = secondary_attrib.z;
+  arc_angle = secondary_attrib.w;
+  distance_from_edge_start = secondary_attrib.x;
+  distance_from_contour_start = secondary_attrib.y;
+  total_edge_length = uintBitsToFloat(uint_attrib.y);
+  total_open_contour_length = uintBitsToFloat(uint_attrib.z);
+  total_closed_contour_length = uintBitsToFloat(uint_attrib.w);
+  point_packed_data = uint_attrib.x;
+
+  offset_type = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_arc_stroke_offset_type_bit0,
+                                            fastuidraw_arc_stroke_offset_type_num_bits,
+                                            point_packed_data));
+  on_boundary = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_arc_stroke_boundary_bit,
+                                            1,
+                                            point_packed_data));
+
+  stroke_width_pixels = (stroke_params.radius < 0.0);
+  stroke_radius = abs(stroke_params.radius);
+
+  if (offset_type == uint(fastuidraw_arc_stroke_arc_join))
+    {
+      p = position + float(on_boundary) * stroke_radius * offset_direction;
+      fastuidraw_arc_stroke_relative_to_center_x = p.x - position.x;
+      fastuidraw_arc_stroke_relative_to_center_y = p.y - position.y;
+      fastuidraw_arc_stroke_arc_radius = 0.0;
+      fastuidraw_arc_stroke_stroke_radius = stroke_radius;
+    }
+
+  #if defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
+    {
+      if (stroking_pass != fastuidraw_stroke_non_aa)
+        {
+          z_add = 0;
+        }
+      else
+        {
+          z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_arc_stroke_depth_bit0,
+                                              fastuidraw_arc_stroke_depth_num_bits,
+                                              point_packed_data));
+        }
+    }
+  #else
+    {
+      z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_arc_stroke_depth_bit0,
+                                          fastuidraw_arc_stroke_depth_num_bits,
+                                          point_packed_data));
+    }
+  #endif
+
+  return vec4(p, p);
+}
