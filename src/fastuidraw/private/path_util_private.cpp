@@ -56,3 +56,27 @@ distance_to_line(const vec2 &q, const vec2 &p1, const vec2 &p2)
 
   return t_sqrt(num / den);
 }
+
+void
+fastuidraw::detail::
+bouding_box_union_arc(const vec2 &center, float radius,
+                      float start_angle, float end_angle,
+                      BoundingBox<float> *dst)
+{
+  float delta_angle(start_angle - end_angle);
+  float half_angle(0.5f * delta_angle), d;
+  vec2 p0, p1, z, z0, z1;
+
+  p0 = vec2(t_cos(start_angle), t_sin(start_angle));
+  p1 = vec2(t_cos(end_angle), t_sin(end_angle));
+
+  d = 1.0f - t_cos(delta_angle * 0.5f);
+  z = vec2(t_cos(start_angle + half_angle), t_sin(start_angle + half_angle));
+  z0 = p0 + d * z;
+  z1 = p1 + d * z;
+
+  dst->union_point(center + radius * p0);
+  dst->union_point(center + radius * p1);
+  dst->union_point(center + radius * z0);
+  dst->union_point(center + radius * z1);
+}
