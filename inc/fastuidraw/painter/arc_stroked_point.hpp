@@ -64,19 +64,23 @@ public:
       offset_arc_point_beyond_outer_stroking_boundary,
 
       /*!
+       * The point of an arc on the path.
+       */
+      offset_arc_point_on_path,
+
+      /*!
        * A point of an arc. When the stroking radius is smaller than the
        * arc radius, position of this point is the same as \ref
-       * offset_arc_point_outer_stroking_boundary; when the stroking
-       * radius is greater that the arc-radius the position is the
-       * center of the arc.
+       * offset_arc_point_on_path; when the stroking* radius is greater
+       * than the arc-radius the position is the center of the arc.
        */
-      offset_arc_point_outer_stroking_boundary_origin,
+      offset_arc_point_on_path_origin,
 
       /*!
        * A point of an arc. When the stroking radius is smaller than the
        * arc radius, position of this point is the same as \ref
        * offset_arc_point_inner_stroking_boundary; when the stroking
-       * radius is greater that the arc-radius the position is the
+       * radius is greater than the arc-radius the position is the
        * center of the arc.
        */
       offset_arc_point_inner_stroking_boundary_origin,
@@ -85,6 +89,11 @@ public:
        * The point is part of a line-segment.
        */
       offset_line_segment,
+
+      /*!
+       * The point is part of a bevel connecting two line segments.
+       */
+      offset_bevel_segment,
 
       /*!
        * The point is a point of an arc-join
@@ -129,7 +138,7 @@ public:
        * Bit indicates that point is on the end of a
        * segment.
        */
-      end_segment_bit = offset_type_bit0 + offset_type_num_bits,
+      end_segment_bit,
 
       /*!
        * Bit0 for holding the depth() value
