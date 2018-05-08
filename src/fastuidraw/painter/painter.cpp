@@ -847,6 +847,7 @@ namespace
     fastuidraw::vec2 m_resolution;
     fastuidraw::vec2 m_one_pixel_width;
     float m_curve_flatness;
+    bool m_stroke_arc_path;
     int m_current_z;
     clip_rect_state m_clip_rect_state;
     std::vector<occluder_stack_entry> m_occluder_stack;
@@ -1123,6 +1124,7 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
   m_resolution(1.0f, 1.0f),
   m_one_pixel_width(1.0f, 1.0f),
   m_curve_flatness(1.0f),
+  m_stroke_arc_path(true),
   m_pool(backend->configuration_base().alignment())
 {
   m_core = FASTUIDRAWnew fastuidraw::PainterPacker(backend);
@@ -1366,10 +1368,14 @@ select_stroked_path(const fastuidraw::Path &path,
   t = fastuidraw::t_min(thresh, m_curve_flatness / mag);
 
   const TessellatedPath *tess;
-  /* TODO: have a mechanism where the PainterBackend informs Painter
-   * what is best to have: line-stroked or arc-stroked.
-   */
-  tess = path.tessellation(t).get();
+  if (m_stroke_arc_path)
+    {
+      tess = path.arc_tessellation(t).get();
+    }
+  else
+    {
+      tess = path.tessellation(t).get();
+    }
   return tess->stroked().get();
 }
 
@@ -2587,6 +2593,24 @@ rotate(float angle)
   float3x3 m(d->m_clip_rect_state.item_matrix());
   m = m * tr;
   d->m_clip_rect_state.item_matrix(m, true);
+}
+
+void
+fastuidraw::Painter::
+stroke_arc_path(bool b)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  d->m_stroke_arc_path = b;
+}
+
+bool
+fastuidraw::Painter::
+stroke_arc_path(void)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  return d->m_stroke_arc_path;
 }
 
 void
