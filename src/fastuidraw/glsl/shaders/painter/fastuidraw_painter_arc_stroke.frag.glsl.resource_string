@@ -18,14 +18,29 @@ fastuidraw_gl_frag_main(in uint sub_shader,
     }
   #endif
 
-  float r, d, q;
+    float r, d, q, ql, qlw;
 
   r = length(vec2(fastuidraw_arc_stroke_relative_to_center_x,
                   fastuidraw_arc_stroke_relative_to_center_y));
 
   q = fastuidraw_arc_stroke_stroke_radius - abs(r - fastuidraw_arc_stroke_arc_radius);
   d = max(abs(q), fwidth(q));
-  alpha = max(0.0, q / d);
+
+  ql = 1.0 - fastuidraw_arc_stroke_relative_to_center_x;
+  qlw = fwidth(ql);
+
+  /* A negtive arc_radius indicates that it is a segment */
+  if (fastuidraw_arc_stroke_arc_radius > -0.5)
+    {
+      alpha = max(0.0, q / d);
+    }
+  else
+    {
+      float dd;
+      q = 1.0;
+      dd = max(ql, qlw);
+      alpha = ql / dd;
+    }
 
   #ifdef FASTUIDRAW_STROKE_COVER_THEN_DRAW
     {
