@@ -20,6 +20,9 @@
 #pragma once
 
 #include <fastuidraw/tessellated_path.hpp>
+#include <fastuidraw/painter/painter_attribute.hpp>
+#include <fastuidraw/painter/stroked_point.hpp>
+#include <fastuidraw/painter/arc_stroked_point.hpp>
 #include "bounding_box.hpp"
 
 namespace fastuidraw
@@ -40,5 +43,63 @@ namespace fastuidraw
     bouding_box_union_arc(const vec2 &center, float radius,
                           float start_angle, float end_angle,
                           BoundingBox<float> *dst);
+
+    inline
+    uint32_t
+    stroked_point_pack_bits(int on_boundary,
+                            enum StrokedPoint::offset_type_t pt,
+                            uint32_t depth)
+    {
+      FASTUIDRAWassert(on_boundary == 0 || on_boundary == 1);
+
+      uint32_t bb(on_boundary), pp(pt);
+      return pack_bits(StrokedPoint::offset_type_bit0,
+                       StrokedPoint::offset_type_num_bits, pp)
+        | pack_bits(StrokedPoint::boundary_bit, 1u, bb)
+        | pack_bits(StrokedPoint::depth_bit0,
+                    StrokedPoint::depth_num_bits, depth);
+    }
+
+    inline
+    uint32_t
+    arc_stroked_point_pack_bits(int on_boundary,
+                                enum ArcStrokedPoint::offset_type_t pt,
+                                uint32_t depth)
+    {
+      FASTUIDRAWassert(on_boundary == 0 || on_boundary == 1);
+
+      uint32_t bb(on_boundary), pp(pt);
+      return pack_bits(ArcStrokedPoint::offset_type_bit0,
+                       ArcStrokedPoint::offset_type_num_bits, pp)
+        | pack_bits(ArcStrokedPoint::boundary_bit, 1u, bb)
+        | pack_bits(ArcStrokedPoint::depth_bit0,
+                    ArcStrokedPoint::depth_num_bits, depth);
+    }
+
+    void
+    compute_arc_join_size(unsigned int cnt,
+                          unsigned int *out_vertex_cnt,
+                          unsigned int *out_index_cnt);
+
+    /* \param pt gives position of join location and all distance values
+     * \param count how many arc-joins to make
+     * \param n_start normal vector at join start
+     * \param n_end normal vector at join end
+     * \param delta_angle angle difference between n_start and n_end
+     * \param depth depth value to use for all arc-join points
+     */
+    void
+    pack_arc_join(ArcStrokedPoint pt, unsigned int count,
+                  vec2 n_start, float delta_angle, vec2 n_end,
+                  unsigned int depth,
+                  c_array<PainterAttribute> dst_pts,
+                  unsigned int &vertex_offset,
+                  c_array<PainterIndex> dst_indices,
+                  unsigned int &index_offset);
+
+    void
+    add_triangle_fan(unsigned int begin, unsigned int end,
+                     c_array<unsigned int> indices,
+                     unsigned int &index_offset);
   }
 }
