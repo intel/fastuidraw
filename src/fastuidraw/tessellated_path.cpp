@@ -94,9 +94,12 @@ namespace
       }
     else
       {
+        float sgn;
+
+        sgn = (S.m_arc_angle.m_begin < S.m_arc_angle.m_end) ? 1.0f : -1.0f;
         S.m_length = t_abs(S.m_arc_angle.m_end - S.m_arc_angle.m_begin) * S.m_radius;
-        S.m_enter_segment_unit_vector = vec2(-t_sin(S.m_arc_angle.m_begin), t_cos(S.m_arc_angle.m_begin));
-        S.m_leaving_segment_unit_vector = vec2(-t_sin(S.m_arc_angle.m_end), t_cos(S.m_arc_angle.m_end));
+        S.m_enter_segment_unit_vector = sgn * vec2(-t_sin(S.m_arc_angle.m_begin), t_cos(S.m_arc_angle.m_begin));
+        S.m_leaving_segment_unit_vector = sgn * vec2(-t_sin(S.m_arc_angle.m_end), t_cos(S.m_arc_angle.m_end));
       }
   }
 }
@@ -105,7 +108,7 @@ namespace
 // TessellatedPathPrivate methods
 TessellatedPathPrivate::
 TessellatedPathPrivate(const fastuidraw::Path &input,
-                          fastuidraw::TessellatedPath::TessellationParams TP):
+                       fastuidraw::TessellatedPath::TessellationParams TP):
   m_edge_ranges(input.number_contours()),
   m_params(TP),
   m_effective_threshhold(0.0f),
