@@ -344,6 +344,19 @@ namespace fastuidraw
     curveFlatness(void);
 
     /*!
+     * If true, use arc-tessellation to stroke paths when passed
+     * a \ref Path to a stroke_path() method.
+     */
+    void
+    stroke_arc_path(bool);
+
+    /*!
+     * Returns the value set by stroke_arc_path(bool).
+     */
+    bool
+    stroke_arc_path(void);
+
+    /*!
      * Save the current state of this Painter onto the save state stack.
      * The state is restored (and the stack popped) by called restore().
      * The state saved is:
