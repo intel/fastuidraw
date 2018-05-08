@@ -169,3 +169,22 @@ pack_arc_join(ArcStrokedPoint pt, unsigned int count,
 
   add_triangle_fan(center, vertex_offset, dst_indices, index_offset);
 }
+
+void
+fastuidraw::detail::
+pack_arc_join(ArcStrokedPoint pt, unsigned int count,
+              vec2 n0, vec2 n1, unsigned int depth,
+              c_array<PainterAttribute> dst_pts,
+              unsigned int &vertex_offset,
+              c_array<PainterIndex> dst_indices,
+              unsigned int &index_offset)
+{
+  std::complex<float> n0z(n0.x(), n0.y());
+  std::complex<float> n1z(n1.x(), n1.y());
+  std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z));
+  float angle(std::atan2(n1z_times_conj_n0z.imag(), n1z_times_conj_n0z.real()));
+
+  pack_arc_join(pt, count, n0, angle, n1, depth,
+                dst_pts, vertex_offset,
+                dst_indices, index_offset);
+}
