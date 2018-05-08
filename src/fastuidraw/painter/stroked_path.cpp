@@ -721,8 +721,7 @@ add_sub_edges(const SingleSubEdge *prev_subedge_of_edge,
       /* make them meet at an arc-join if one of them is not
        * a line-segment
        */
-      sub_edge.m_use_arc_for_bevel = false
-        && !(sub_edge.m_from_line_segment && prev_subedge_of_edge->m_from_line_segment);
+      sub_edge.m_use_arc_for_bevel = !(sub_edge.m_from_line_segment && prev_subedge_of_edge->m_from_line_segment);
     }
 
   bx.union_box(sub_edge.m_bounding_box);
@@ -1609,8 +1608,8 @@ build_arc_bevel(const SingleSubEdge &sub_edge, unsigned int depth,
   fastuidraw::vec2 n_start, n_end;
   fastuidraw::ArcStrokedPoint pt;
 
-  n_start = sub_edge.m_bevel_normal;
-  n_end = sub_edge.m_begin_normal;
+  n_start = sub_edge.m_bevel_lambda * sub_edge.m_bevel_normal;
+  n_end = sub_edge.m_bevel_lambda * sub_edge.m_begin_normal;
 
   pt.m_position = sub_edge.m_pt0;
   pt.m_distance_from_edge_start = sub_edge.m_distance_from_edge_start;
