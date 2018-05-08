@@ -97,6 +97,18 @@ namespace fastuidraw
                   c_array<PainterIndex> dst_indices,
                   unsigned int &index_offset);
 
+    /* Same as above, except that delta-angle is computed
+     * from n_start and n_end
+     */
+    void
+    pack_arc_join(ArcStrokedPoint pt, unsigned int count,
+                  vec2 n_start, vec2 n_end,
+                  unsigned int depth,
+                  c_array<PainterAttribute> dst_pts,
+                  unsigned int &vertex_offset,
+                  c_array<PainterIndex> dst_indices,
+                  unsigned int &index_offset);
+
     void
     add_triangle_fan(unsigned int begin, unsigned int end,
                      c_array<unsigned int> indices,
