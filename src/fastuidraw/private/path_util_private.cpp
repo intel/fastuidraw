@@ -85,18 +85,18 @@ bouding_box_union_arc(const vec2 &center, float radius,
 
 void
 fastuidraw::detail::
-compute_arc_join_size(unsigned int cnt,
-                      unsigned int *out_vertex_cnt,
-                      unsigned int *out_index_cnt)
+add_triangle(PainterIndex v0, PainterIndex v1, PainterIndex v2,
+             c_array<PainterIndex> dst_indices, unsigned int &index_offset)
 {
-  *out_vertex_cnt = 4 + cnt;
-  *out_index_cnt = 3 * (2 + cnt);
+  dst_indices[index_offset++] = v0;
+  dst_indices[index_offset++] = v1;
+  dst_indices[index_offset++] = v2;
 }
 
 void
 fastuidraw::detail::
-add_triangle_fan(unsigned int begin, unsigned int end,
-                 fastuidraw::c_array<unsigned int> indices,
+add_triangle_fan(PainterIndex begin, PainterIndex end,
+                 c_array<PainterIndex> indices,
                  unsigned int &index_offset)
 {
   for(unsigned int i = begin + 1; i < end - 1; ++i, index_offset += 3)
@@ -109,6 +109,16 @@ add_triangle_fan(unsigned int begin, unsigned int end,
 
 void
 fastuidraw::detail::
+compute_arc_join_size(unsigned int cnt,
+                      unsigned int *out_vertex_cnt,
+                      unsigned int *out_index_cnt)
+{
+  *out_vertex_cnt = 3 * (cnt - 1) + 5;
+  *out_index_cnt = 9 * cnt;
+}
+
+void
+fastuidraw::detail::
 pack_arc_join(ArcStrokedPoint pt, unsigned int count,
               vec2 n_start, float delta_angle, vec2 n_end,
               unsigned int depth,
@@ -117,57 +127,64 @@ pack_arc_join(ArcStrokedPoint pt, unsigned int count,
               c_array<PainterIndex> dst_indices,
               unsigned int &index_offset)
 {
+  float per_element(delta_angle / static_cast<float>(count));
   std::complex<float> arc_start(n_start.x(), n_start.y());
+  std::complex<float> da(t_cos(per_element), t_sin(per_element));
+  std::complex<float> theta;
+
   unsigned int i, center;
-  float theta, per_element, beyond;
-  float cv;
-  fastuidraw::vec2 v;
+  uint32_t arc_value, beyond_arc_value;
 
-  per_element = delta_angle / static_cast<float>(count);
-  cv = fastuidraw::t_cos(per_element * 0.5);
-  beyond = 1.0f / cv;
   center = vertex_offset;
+  arc_value = arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_outer_stroking_boundary, depth);
+  beyond_arc_value = arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_beyond_outer_stroking_boundary, depth);
 
+  pt.radius() = 0.0f;
+  pt.arc_angle() = per_element;
   pt.m_offset_direction = fastuidraw::vec2(0.0f, 0.0f);
-  pt.radius() = 0.0f;
-  pt.arc_angle() = per_element;
-  pt.m_packed_data = arc_stroked_point_pack_bits(0, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
-  pt.pack_point(&dst_pts[vertex_offset]);
-  ++vertex_offset;
+  pt.m_packed_data = arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_arc_point_on_path, depth);
+  pt.pack_point(&dst_pts[vertex_offset++]);
 
-  pt.m_offset_direction = n_start;
-  pt.radius() = 0.0f;
-  pt.arc_angle() = per_element;
-  pt.m_packed_data = arc_stroked_point_pack_bits(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
-  pt.pack_point(&dst_pts[vertex_offset]);
-  ++vertex_offset;
-
-  for (theta = 0.0f, i = 0; i <= count; ++i, theta += per_element)
+  for (theta = arc_start, i = 0; i <= count; ++i, theta *= da)
     {
-      float s, c;
-      std::complex<float> cs_as_complex;
+      vec2 n;
+      unsigned int start;
 
-      c = fastuidraw::t_cos(theta);
-      s = fastuidraw::t_sin(theta);
-      cs_as_complex = std::complex<float>(c, s) * arc_start;
+      if (i == 0)
+        {
+          n = n_start;
+        }
+      else if (i == count)
+        {
+          n = n_end;
+        }
+      else
+        {
+          n = vec2(theta.real(), theta.imag());
+        }
 
-      pt.m_offset_direction = beyond * fastuidraw::vec2(cs_as_complex.real(),
-                                                        cs_as_complex.imag());
-      pt.radius() = 0.0f;
-      pt.arc_angle() = per_element;
-      pt.m_packed_data = arc_stroked_point_pack_bits(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
-      pt.pack_point(&dst_pts[vertex_offset]);
-      ++vertex_offset;
+      pt.m_offset_direction = n;
+
+      if (i != 0)
+        {
+          pt.m_packed_data = beyond_arc_value | ArcStrokedPoint::end_segment_mask;
+          pt.pack_point(&dst_pts[vertex_offset++]);
+        }
+
+      start = vertex_offset;
+      pt.m_packed_data = arc_value;
+      pt.pack_point(&dst_pts[vertex_offset++]);
+
+      if (i != count)
+        {
+          pt.m_packed_data = beyond_arc_value;
+          pt.pack_point(&dst_pts[vertex_offset++]);
+
+          add_triangle(center, start, vertex_offset + 1, dst_indices, index_offset);
+          add_triangle(start, start + 1, vertex_offset, dst_indices, index_offset);
+          add_triangle(start, vertex_offset, vertex_offset + 1, dst_indices, index_offset);
+        }
     }
-
-  pt.m_offset_direction = n_end;
-  pt.radius() = 0.0f;
-  pt.arc_angle() = per_element;
-  pt.m_packed_data = arc_stroked_point_pack_bits(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
-  pt.pack_point(&dst_pts[vertex_offset]);
-  ++vertex_offset;
-
-  add_triangle_fan(center, vertex_offset, dst_indices, index_offset);
 }
 
 void

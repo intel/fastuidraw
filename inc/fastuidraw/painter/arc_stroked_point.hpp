@@ -96,11 +96,6 @@ public:
       offset_bevel_segment,
 
       /*!
-       * The point is a point of an arc-join
-       */
-      offset_arc_join,
-
-      /*!
        * Number of offset types, not an actual offset type(!).
        */
       number_offset_types,
