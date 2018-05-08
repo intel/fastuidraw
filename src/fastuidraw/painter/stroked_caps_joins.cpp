@@ -43,32 +43,7 @@ namespace
             enum fastuidraw::StrokedPoint::offset_type_t pt,
             uint32_t depth)
   {
-    using namespace fastuidraw;
-    FASTUIDRAWassert(on_boundary == 0 || on_boundary == 1);
-
-    uint32_t bb(on_boundary), pp(pt);
-    return pack_bits(StrokedPoint::offset_type_bit0,
-                     StrokedPoint::offset_type_num_bits, pp)
-      | pack_bits(StrokedPoint::boundary_bit, 1u, bb)
-      | pack_bits(StrokedPoint::depth_bit0,
-                  StrokedPoint::depth_num_bits, depth);
-  }
-
-  inline
-  uint32_t
-  arc_pack_data(int on_boundary,
-                enum fastuidraw::ArcStrokedPoint::offset_type_t pt,
-                uint32_t depth)
-  {
-    using namespace fastuidraw;
-    FASTUIDRAWassert(on_boundary == 0 || on_boundary == 1);
-
-    uint32_t bb(on_boundary), pp(pt);
-    return pack_bits(ArcStrokedPoint::offset_type_bit0,
-                     ArcStrokedPoint::offset_type_num_bits, pp)
-      | pack_bits(ArcStrokedPoint::boundary_bit, 1u, bb)
-      | pack_bits(ArcStrokedPoint::depth_bit0,
-                  ArcStrokedPoint::depth_num_bits, depth);
+    return fastuidraw::detail::stroked_point_pack_bits(on_boundary, pt, depth);
   }
 
   inline
@@ -78,19 +53,6 @@ namespace
                  uint32_t depth)
   {
     return pack_data(on_boundary, pt, depth) | fastuidraw::StrokedPoint::join_mask;
-  }
-
-  void
-  add_triangle_fan(unsigned int begin, unsigned int end,
-                   fastuidraw::c_array<unsigned int> indices,
-                   unsigned int &index_offset)
-  {
-    for(unsigned int i = begin + 1; i < end - 1; ++i, index_offset += 3)
-      {
-        indices[index_offset + 0] = begin;
-        indices[index_offset + 1] = i;
-        indices[index_offset + 2] = i + 1;
-      }
   }
 
   class PerJoinData
@@ -2198,7 +2160,7 @@ add_data(unsigned int depth,
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  add_triangle_fan(first, vertex_offset, indices, index_offset);
+  fastuidraw::detail::add_triangle_fan(first, vertex_offset, indices, index_offset);
 }
 
 ///////////////////////////////////////////////////
@@ -2264,9 +2226,7 @@ PerArcRoundedJoin(const PerJoinData &J):
   delta_angle_mag = fastuidraw::t_abs(m_delta_angle);
 
   m_count = 1u + static_cast<unsigned int>(delta_angle_mag / per_arc_angle_max);
-
-  m_vertex_count = 4 + m_count;
-  m_index_count = 3 * (m_vertex_count - 2);
+  fastuidraw::detail::compute_arc_join_size(m_count, &m_vertex_count, &m_index_count);
 }
 
 void
@@ -2277,66 +2237,18 @@ add_data(unsigned int depth,
          fastuidraw::c_array<unsigned int> indices,
          unsigned int &index_offset) const
 {
-  unsigned int i, center;
-  float theta, per_element, beyond;
   fastuidraw::ArcStrokedPoint pt;
-  float cv;
-  fastuidraw::vec2 v;
 
-  per_element = m_delta_angle / static_cast<float>(m_count);
-  cv = fastuidraw::t_cos(per_element * 0.5);
-  beyond = 1.0f / cv;
-  center = vertex_offset;
   set_distance_values(&pt);
-
   pt.m_position = m_p;
-  pt.m_offset_direction = fastuidraw::vec2(0.0f, 0.0f);
-  pt.radius() = 0.0f;
-  pt.arc_angle() = per_element;
-  pt.m_packed_data = arc_pack_data(0, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  pt.m_position = m_p;
-  pt.m_offset_direction = m_lambda * n0();
-  pt.radius() = 0.0f;
-  pt.arc_angle() = per_element;
-  pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  for (theta = 0.0f, i = 0; i <= m_count; ++i, theta += per_element)
-    {
-      float s, c;
-      std::complex<float> cs_as_complex;
-
-      c = fastuidraw::t_cos(theta);
-      s = fastuidraw::t_sin(theta);
-      cs_as_complex = std::complex<float>(c, s) * m_arc_start;
-
-      pt.m_position = m_p;
-      pt.m_offset_direction = beyond * fastuidraw::vec2(cs_as_complex.real(),
-                                                        cs_as_complex.imag());
-      pt.radius() = 0.0f;
-      pt.arc_angle() = per_element;
-      pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
-      pt.pack_point(&pts[vertex_offset]);
-      ++vertex_offset;
-    }
-
-  pt.m_position = m_p;
-  pt.m_offset_direction = m_lambda * n1();
-  pt.radius() = 0.0f;
-  pt.arc_angle() = per_element;
-  pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  add_triangle_fan(center, vertex_offset, indices, index_offset);
+  fastuidraw::detail::pack_arc_join(pt, m_count, m_lambda * n0(),
+                                    m_delta_angle, m_lambda * n1(),
+                                    depth, pts, vertex_offset,
+                                    indices, index_offset);
 }
 
 ///////////////////////////////////////////////////
-// PerArcRoundedJoin methods
+// ArcRoundedJoinCreator methods
 ArcRoundedJoinCreator::
 ArcRoundedJoinCreator(const PathData &P, const SubsetPrivate *st):
   JoinCreatorBase(P, st)
@@ -2426,7 +2338,7 @@ fill_join_implement(unsigned int join_id, const PerJoinData &J,
   pt.m_packed_data = pack_data_join(1, fastuidraw::StrokedPoint::offset_shared_with_edge, depth);
   pt.pack_point(&pts[vertex_offset + 2]);
 
-  add_triangle_fan(vertex_offset, vertex_offset + 3, indices, index_offset);
+  fastuidraw::detail::add_triangle_fan(vertex_offset, vertex_offset + 3, indices, index_offset);
 
   vertex_offset += 3;
 }
@@ -2537,7 +2449,7 @@ fill_join_implement(unsigned int join_id, const PerJoinData &J,
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  add_triangle_fan(first, vertex_offset, indices, index_offset);
+  fastuidraw::detail::add_triangle_fan(first, vertex_offset, indices, index_offset);
 }
 
 
@@ -2616,7 +2528,7 @@ fill_join_implement(unsigned int join_id, const PerJoinData &J,
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  add_triangle_fan(first, vertex_offset, indices, index_offset);
+  fastuidraw::detail::add_triangle_fan(first, vertex_offset, indices, index_offset);
 }
 
 
@@ -2825,7 +2737,7 @@ add_cap(const PerCapData &C, unsigned int depth,
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  add_triangle_fan(first, vertex_offset, indices, index_offset);
+  fastuidraw::detail::add_triangle_fan(first, vertex_offset, indices, index_offset);
 }
 
 ///////////////////////////////////////////////////
@@ -2899,7 +2811,7 @@ add_cap(const PerCapData &C, unsigned int depth,
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  add_triangle_fan(first, vertex_offset, indices, index_offset);
+  fastuidraw::detail::add_triangle_fan(first, vertex_offset, indices, index_offset);
 }
 
 //////////////////////////////////////
@@ -2984,7 +2896,7 @@ add_cap(const PerCapData &C, unsigned int depth,
   pt.pack_point(&pts[vertex_offset]);
   ++vertex_offset;
 
-  add_triangle_fan(first, vertex_offset, indices, index_offset);
+  fastuidraw::detail::add_triangle_fan(first, vertex_offset, indices, index_offset);
 }
 
 ///////////////////////////////////////////
@@ -3002,11 +2914,13 @@ compute_size(const PathData &P)
 {
   unsigned int num_caps;
   PointIndexCapSize return_value;
+  unsigned int verts_per_cap, indices_per_cap;
 
   /* each cap is a triangle fan centered at the cap point. */
   num_caps = P.m_cap_ordering.caps().size();
-  return_value.m_verts = (4 + num_arcs_per_cap) * num_caps;
-  return_value.m_indices = 3 * (num_arcs_per_cap + 2) * num_caps;
+  fastuidraw::detail::compute_arc_join_size(num_arcs_per_cap, &verts_per_cap, &indices_per_cap);
+  return_value.m_verts = verts_per_cap * num_caps;
+  return_value.m_indices = indices_per_cap * num_caps;
 
   return return_value;
 }
@@ -3019,65 +2933,18 @@ add_cap(const PerCapData &C, unsigned int depth,
         unsigned int &vertex_offset,
         unsigned int &index_offset) const
 {
-  fastuidraw::vec2 n, v;
-  unsigned int first, i;
-  float theta;
   fastuidraw::ArcStrokedPoint pt;
-  const float per_element = M_PI / static_cast<float>(num_arcs_per_cap);
-  const float f = fastuidraw::t_cos(per_element);
-  const float beyond = 1.0f / f;
-  std::complex<float> arc_start;
+  fastuidraw::vec2 n, v;
 
-  first = vertex_offset;
+  pt.m_position = C.m_p;
+  C.set_distance_values(&pt);
   v = C.m_tangent_into_cap;
   n = fastuidraw::vec2(v.y(), -v.x());
-  arc_start = std::complex<float>(n.x(), n.y());
-  C.set_distance_values(&pt);
 
-  pt.m_position = C.m_p;
-  pt.m_offset_direction = fastuidraw::vec2(0.0f, 0.0f);
-  pt.radius() = 0.0f;
-  pt.arc_angle() = per_element;
-  pt.m_packed_data = arc_pack_data(0, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  pt.m_position = C.m_p;
-  pt.m_offset_direction = n;
-  pt.radius() = 0.0f;
-  pt.arc_angle() = per_element;
-  pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  for (theta = 0.0f, i = 0; i <= num_arcs_per_cap; ++i, theta += per_element)
-    {
-      float s, c;
-      std::complex<float> cs_as_complex;
-
-      c = fastuidraw::t_cos(theta);
-      s = fastuidraw::t_sin(theta);
-      cs_as_complex = std::complex<float>(c, s) * arc_start;
-
-      pt.m_position = C.m_p;
-      pt.m_offset_direction = beyond * fastuidraw::vec2(cs_as_complex.real(),
-                                                        cs_as_complex.imag());
-      pt.radius() = 0.0f;
-      pt.arc_angle() = per_element;
-      pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
-      pt.pack_point(&pts[vertex_offset]);
-      ++vertex_offset;
-    }
-
-  pt.m_position = C.m_p;
-  pt.m_offset_direction = -n;
-  pt.radius() = 0.0f;
-  pt.arc_angle() = per_element;
-  pt.m_packed_data = arc_pack_data(1, fastuidraw::ArcStrokedPoint::offset_arc_join, depth);
-  pt.pack_point(&pts[vertex_offset]);
-  ++vertex_offset;
-
-  add_triangle_fan(first, vertex_offset, indices, index_offset);
+  fastuidraw::detail::pack_arc_join(pt, num_arcs_per_cap,
+                                    n, M_PI, -n,
+                                    depth, pts, vertex_offset,
+                                    indices, index_offset);
 }
 
 /////////////////////////////////////////////
