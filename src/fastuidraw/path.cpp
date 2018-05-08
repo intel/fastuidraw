@@ -419,13 +419,6 @@ arc_tessellation_worker(unsigned int recurse_level,
                          out_threshhold);
     }
 
-  if (partition_thresh < m_thresh.m_threshhold)
-    {
-      out_data->add_line_segment(start, end);
-      *out_threshhold = partition_thresh;
-      return recurse_level;
-    }
-
   /* compute the circle going through start, mid, end */
   vec2 c, v0, v1, n0, n1, p0, p1;
   float s, det, r;
