@@ -137,7 +137,7 @@ pack_arc_join(ArcStrokedPoint pt, unsigned int count,
 
   center = vertex_offset;
   arc_value = arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_outer_stroking_boundary, depth);
-  beyond_arc_value = arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_beyond_outer_stroking_boundary, depth);
+  beyond_arc_value = arc_value | ArcStrokedPoint::beyond_boundary_mask;
 
   pt.radius() = 0.0f;
   pt.arc_angle() = per_element;

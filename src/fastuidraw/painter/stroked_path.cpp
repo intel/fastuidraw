@@ -1751,7 +1751,8 @@ build_arc_segment(const SingleSubEdge &sub_edge, unsigned int depth,
   pt.pack_point(&attribute_data[vert_offset++]);
 
   /* beyond outer stroking boundary points (points 6, 7) */
-  pt.m_packed_data = arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_beyond_outer_stroking_boundary, depth);
+  pt.m_packed_data = ArcStrokedPoint::beyond_boundary_mask
+    | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_outer_stroking_boundary, depth);
   pt.m_position = sub_edge.m_pt0;
   pt.m_offset_direction = begin_radial;
   pt.pack_point(&attribute_data[vert_offset++]);
@@ -1773,7 +1774,8 @@ build_arc_segment(const SingleSubEdge &sub_edge, unsigned int depth,
   pt.pack_point(&attribute_data[vert_offset++]);
 
   /* beyond inner stroking boundary (points 10, 11) */
-  pt.m_packed_data = arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_beyond_inner_stroking_boundary, depth);
+  pt.m_packed_data = ArcStrokedPoint::beyond_boundary_mask
+    | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_inner_stroking_boundary, depth);
   pt.m_position = sub_edge.m_pt0;
   pt.m_offset_direction = begin_radial;
   pt.pack_point(&attribute_data[vert_offset++]);
