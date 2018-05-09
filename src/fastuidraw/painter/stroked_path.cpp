@@ -740,22 +740,24 @@ split_sub_edge(int splitting_coordinate,
   fastuidraw::vec2 p, mid_normal;
   fastuidraw::vecN<SingleSubEdge, 2> out_edges;
 
+  if (m_bounding_box.max_point()[splitting_coordinate] < split_value)
+    {
+      FASTUIDRAWassert(m_pt0[splitting_coordinate] < split_value);
+      FASTUIDRAWassert(m_pt1[splitting_coordinate] < split_value);
+      dst_before_split_value->push_back(*this);
+      return;
+    }
+
+  if (m_bounding_box.min_point()[splitting_coordinate] > split_value)
+    {
+      FASTUIDRAWassert(m_pt0[splitting_coordinate] > split_value);
+      FASTUIDRAWassert(m_pt1[splitting_coordinate] > split_value);
+      dst_after_split_value->push_back(*this);
+      return;
+    }
+
   if (m_from_line_segment)
     {
-      if (m_pt0[splitting_coordinate] < split_value
-          && m_pt1[splitting_coordinate] < split_value)
-        {
-          dst_before_split_value->push_back(*this);
-          return;
-        }
-
-      if (m_pt0[splitting_coordinate] > split_value
-          && m_pt1[splitting_coordinate] > split_value)
-        {
-          dst_after_split_value->push_back(*this);
-          return;
-        }
-
       float v0, v1;
 
       v0 = m_pt0[splitting_coordinate];
@@ -781,6 +783,8 @@ split_sub_edge(int splitting_coordinate,
   out_edges[0].m_distance_from_edge_start = m_distance_from_edge_start;
   out_edges[0].m_distance_from_contour_start = m_distance_from_contour_start;
   out_edges[0].m_sub_edge_length = t * m_sub_edge_length;
+  out_edges[0].m_bounding_box.union_point(m_pt0);
+  out_edges[0].m_bounding_box.union_point(p);
 
   out_edges[1].m_pt0 = p;
   out_edges[1].m_pt1 = m_pt1;
@@ -789,6 +793,8 @@ split_sub_edge(int splitting_coordinate,
   out_edges[1].m_distance_from_edge_start = m_distance_from_edge_start + out_edges[0].m_sub_edge_length;
   out_edges[1].m_distance_from_contour_start = m_distance_from_contour_start + out_edges[0].m_sub_edge_length;
   out_edges[1].m_sub_edge_length = s * m_sub_edge_length;
+  out_edges[1].m_bounding_box.union_point(p);
+  out_edges[1].m_bounding_box.union_point(m_pt1);
 
   for(unsigned int i = 0; i < 2; ++i)
     {
@@ -1548,19 +1554,18 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
       pts[i].pack_point(&attribute_data[vert_offset + i]);
     }
 
-  indices[index_offset + 0] = vert_offset + 0;
-  indices[index_offset + 1] = vert_offset + 2;
-  indices[index_offset + 2] = vert_offset + 5;
-  indices[index_offset + 3] = vert_offset + 0;
-  indices[index_offset + 4] = vert_offset + 5;
-  indices[index_offset + 5] = vert_offset + 3;
+  const unsigned int tris[12] =
+    {
+      0, 2, 5,
+      0, 5, 3,
+      2, 1, 4,
+      2, 4, 5
+    };
 
-  indices[index_offset + 6] = vert_offset + 2;
-  indices[index_offset + 7] = vert_offset + 1;
-  indices[index_offset + 8] = vert_offset + 4;
-  indices[index_offset + 9] = vert_offset + 2;
-  indices[index_offset + 10] = vert_offset + 4;
-  indices[index_offset + 11] = vert_offset + 5;
+  for(unsigned int i = 0; i < 12; ++i)
+    {
+      indices[index_offset + i] = vert_offset + tris[i];
+    }
 
   index_offset += StrokedPathSubset::indices_per_segment;
   vert_offset += StrokedPathSubset::points_per_segment;
@@ -1823,19 +1828,18 @@ build_line_segment(const SingleSubEdge &sub_edge, unsigned int depth,
       pts[i].pack_point(&attribute_data[vert_offset + i]);
     }
 
-  indices[index_offset + 0] = vert_offset + 0;
-  indices[index_offset + 1] = vert_offset + 2;
-  indices[index_offset + 2] = vert_offset + 5;
-  indices[index_offset + 3] = vert_offset + 0;
-  indices[index_offset + 4] = vert_offset + 5;
-  indices[index_offset + 5] = vert_offset + 3;
+  const unsigned int tris[12] =
+    {
+      0, 2, 5,
+      0, 5, 3,
+      2, 1, 4,
+      2, 4, 5
+    };
 
-  indices[index_offset + 6] = vert_offset + 2;
-  indices[index_offset + 7] = vert_offset + 1;
-  indices[index_offset + 8] = vert_offset + 4;
-  indices[index_offset + 9] = vert_offset + 2;
-  indices[index_offset + 10] = vert_offset + 4;
-  indices[index_offset + 11] = vert_offset + 5;
+  for(unsigned int i = 0; i < 12; ++i)
+    {
+      indices[index_offset + i] = vert_offset + tris[i];
+    }
 
   index_offset += StrokedPathSubset::indices_per_segment;
   vert_offset += StrokedPathSubset::points_per_segment;
