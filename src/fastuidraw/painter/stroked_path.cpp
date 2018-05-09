@@ -346,8 +346,8 @@ namespace
         triangles_per_segment = points_per_segment - 2,
         indices_per_segment = 3 * triangles_per_segment,
 
-        points_per_arc_segment = 10,
-        triangles_per_arc_segment = 6,
+        points_per_arc_segment = 12,
+        triangles_per_arc_segment = 8,
         indices_per_arc_segment = 3 * triangles_per_arc_segment,
       };
 
@@ -1688,14 +1688,17 @@ build_arc_segment(const SingleSubEdge &sub_edge, unsigned int depth,
   ArcStrokedPoint pt;
   vec2 begin_radial, end_radial;
 
-  const unsigned int tris[18] =
+  const unsigned int tris[24] =
     {
       4, 6, 7,
       4, 7, 5,
       2, 4, 5,
       2, 5, 3,
       8, 0, 1,
-      9, 2, 3
+      9, 2, 3,
+
+      0,  1, 10,
+      1, 10, 11
     };
 
   for (unsigned int i = 0; i < StrokedPathSubset::indices_per_arc_segment; ++i, ++index_offset)
@@ -1765,6 +1768,17 @@ build_arc_segment(const SingleSubEdge &sub_edge, unsigned int depth,
   pt.pack_point(&attribute_data[vert_offset++]);
 
   pt.m_packed_data = arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_inner_stroking_boundary_origin, depth) | ArcStrokedPoint::end_segment_mask;
+  pt.m_position = sub_edge.m_pt1;
+  pt.m_offset_direction = end_radial;
+  pt.pack_point(&attribute_data[vert_offset++]);
+
+  /* beyond inner stroking boundary (points 10, 11) */
+  pt.m_packed_data = arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_beyond_inner_stroking_boundary, depth);
+  pt.m_position = sub_edge.m_pt0;
+  pt.m_offset_direction = begin_radial;
+  pt.pack_point(&attribute_data[vert_offset++]);
+
+  pt.m_packed_data |= ArcStrokedPoint::end_segment_mask;
   pt.m_position = sub_edge.m_pt1;
   pt.m_offset_direction = end_radial;
   pt.pack_point(&attribute_data[vert_offset++]);

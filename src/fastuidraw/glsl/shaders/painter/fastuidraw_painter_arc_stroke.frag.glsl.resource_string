@@ -18,7 +18,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
     }
   #endif
 
-    float r, d, q, ql, qlw;
+  float r, d, q, ql, qlw;
 
   r = length(vec2(fastuidraw_arc_stroke_relative_to_center_x,
                   fastuidraw_arc_stroke_relative_to_center_y));
@@ -73,5 +73,5 @@ fastuidraw_gl_frag_main(in uint sub_shader,
     }
   #endif
 
-  return vec4(1.0, 1.0, 1.0, alpha);
+  return vec4(1.0, 1.0, 1.0, alpha).xyzw;
 }

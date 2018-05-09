@@ -88,7 +88,13 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     {
       if (stroke_radius > radius)
         {
+          /* make point at the center and change the behavior to be like
+           * an arc-join centered at the same location with stroknig
+           * radius as stroke_radius - radius
+           */
           scale_factor = -radius;
+          fastuidraw_arc_stroke_arc_radius = 0.0;
+          fastuidraw_arc_stroke_stroke_radius = stroke_radius - radius;
         }
       else
         {
@@ -96,14 +102,36 @@ fastuidraw_gl_vert_main(in uint sub_shader,
         }
     }
 
-  if (offset_type == fastuidraw_arc_stroke_inner_stroking_boundary)
+  if (offset_type == fastuidraw_arc_stroke_inner_stroking_boundary ||
+      offset_type == fastuidraw_arc_stroke_beyond_inner_stroking_boundary)
     {
-      scale_factor = -scale_factor;
+      if (stroke_radius < radius)
+        {
+          scale_factor = -scale_factor;
+          /* collapse beyond_inner_stroking_boundary to be the same
+           * location as inner_stroking_boundary since they are only
+           * needed/used when the stroke_radius > radius.
+           */
+          offset_type = fastuidraw_arc_stroke_inner_stroking_boundary;
+        }
+      else
+        {
+          position = center;
+          scale_factor = stroke_radius - radius;
+          offset_direction = -offset_direction;
+
+          /* change the behavior to be like an arc-join centered at the
+           * same location with stroknig radius as stroke_radius - radius
+           */
+          fastuidraw_arc_stroke_arc_radius = 0.0;
+          fastuidraw_arc_stroke_stroke_radius = stroke_radius - radius;
+        }
     }
 
   p = position + scale_factor * offset_direction;
 
-  if (offset_type == fastuidraw_arc_stroke_beyond_outer_stroking_boundary)
+  if (offset_type == fastuidraw_arc_stroke_beyond_outer_stroking_boundary
+      || offset_type == fastuidraw_arc_stroke_beyond_inner_stroking_boundary)
     {
       float half_angle, L, D, c, s;
       vec2 v;
@@ -120,7 +148,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       v.y = s * offset_direction.x + c * offset_direction.y;
 
       L = 1.0 - cos(half_angle);
-      D = (radius + stroke_radius) * L;
+      D = (fastuidraw_arc_stroke_arc_radius + fastuidraw_arc_stroke_stroke_radius) * L;
       p += D * v;
     }
 
