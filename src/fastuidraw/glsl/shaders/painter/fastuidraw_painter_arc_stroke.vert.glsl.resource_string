@@ -102,8 +102,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
         }
     }
 
-  if (offset_type == fastuidraw_arc_stroke_inner_stroking_boundary ||
-      offset_type == fastuidraw_arc_stroke_beyond_inner_stroking_boundary)
+  if (offset_type == fastuidraw_arc_stroke_inner_stroking_boundary)
     {
       if (stroke_radius < radius)
         {
@@ -112,7 +111,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
            * location as inner_stroking_boundary since they are only
            * needed/used when the stroke_radius > radius.
            */
-          offset_type = fastuidraw_arc_stroke_inner_stroking_boundary;
+          point_packed_data &= ~uint(fastuidraw_arc_stroke_beyond_boundary_mask);
         }
       else
         {
@@ -130,8 +129,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   p = position + scale_factor * offset_direction;
 
-  if (offset_type == fastuidraw_arc_stroke_beyond_outer_stroking_boundary
-      || offset_type == fastuidraw_arc_stroke_beyond_inner_stroking_boundary)
+  if ((point_packed_data & uint(fastuidraw_arc_stroke_beyond_boundary_mask)) != 0u)
     {
       float half_angle, L, D, c, s;
       vec2 v;

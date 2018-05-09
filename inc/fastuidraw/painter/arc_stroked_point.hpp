@@ -59,16 +59,6 @@ public:
       offset_arc_point_inner_stroking_boundary,
 
       /*!
-       * The point of an arc that extends beyond the outer stroking boundary.
-       */
-      offset_arc_point_beyond_outer_stroking_boundary,
-
-      /*!
-       * The point of an arc that extends beyond the inner stroking boundary.
-       */
-      offset_arc_point_beyond_inner_stroking_boundary,
-
-      /*!
        * The point of an arc on the path.
        */
       offset_arc_point_on_path,
@@ -127,10 +117,9 @@ public:
 
       /*!
        * Bit indicates that the point in on the stroking
-       * boundary, only applies to \ref offset_arc_join
-       * and \ref offset_line_segment. When the bit is up
-       * indicates to push the point in the direction
-       * of \ref m_offset_direction.
+       * boundary. Points with this bit down have that
+       * the vertex position after stroking is the same
+       * as \ref m_position.
        */
       boundary_bit = offset_type_bit0 + offset_type_num_bits,
 
@@ -139,6 +128,16 @@ public:
        * segment.
        */
       end_segment_bit,
+
+      /*!
+       * Bit indicates that the point is a beyond stroking
+       * boundary bit. These points go beyond the stroking
+       * boundary to make sure that the triangles emitted
+       * contain the stroked arc. This bit only applies to
+       * \ref offset_arc_point_inner_stroking_boundary and
+       * \ref offset_arc_point_outer_stroking_boundary types.
+       */
+      beyond_boundary_bit,
 
       /*!
        * Bit0 for holding the depth() value
@@ -175,6 +174,11 @@ public:
        * Mask generated for \ref boundary_bit
        */
       boundary_mask = FASTUIDRAW_MASK(boundary_bit, 1),
+
+      /*!
+       * Mask generated for \ref boundary_bit
+       */
+      beyond_boundary_mask = FASTUIDRAW_MASK(beyond_boundary_bit, 1),
 
       /*!
        * Mask generated for \ref end_segment_bit
