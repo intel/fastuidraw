@@ -64,6 +64,11 @@ public:
       offset_arc_point_beyond_outer_stroking_boundary,
 
       /*!
+       * The point of an arc that extends beyond the inner stroking boundary.
+       */
+      offset_arc_point_beyond_inner_stroking_boundary,
+
+      /*!
        * The point of an arc on the path.
        */
       offset_arc_point_on_path,
