@@ -705,6 +705,7 @@ add_sub_edges(const SingleSubEdge *prev_subedge_of_edge,
    * arc) join then.
    */
   if (!prev_subedge_of_edge
+      || seg.m_tangent_with_predecessor
       || fastuidraw::dot(prev_subedge_of_edge->m_end_normal,
                          sub_edge.m_begin_normal) < 0.0f)
     {
