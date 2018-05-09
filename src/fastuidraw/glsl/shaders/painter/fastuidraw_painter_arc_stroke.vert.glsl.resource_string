@@ -84,12 +84,12 @@ fastuidraw_gl_vert_main(in uint sub_shader,
         }
     }
 
-  if (offset_type == fastuidraw_arc_stroke_inner_stroking_boundary_origin)
+  if (offset_type == fastuidraw_arc_stroke_stroking_boundary_origin)
     {
       if (stroke_radius > radius)
         {
           /* make point at the center and change the behavior to be like
-           * an arc-join centered at the same location with stroknig
+           * an arc-join centered at the same location with stroking
            * radius as stroke_radius - radius
            */
           scale_factor = -radius;
@@ -98,11 +98,12 @@ fastuidraw_gl_vert_main(in uint sub_shader,
         }
       else
         {
-          offset_type = fastuidraw_arc_stroke_inner_stroking_boundary;
+          offset_type = fastuidraw_arc_stroke_stroking_boundary;
         }
     }
 
-  if (offset_type == fastuidraw_arc_stroke_inner_stroking_boundary)
+  if (offset_type == fastuidraw_arc_stroke_stroking_boundary
+      && (point_packed_data & uint(fastuidraw_arc_stroke_inner_stroking_mask)) != 0u)
     {
       if (stroke_radius < radius)
         {

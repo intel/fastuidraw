@@ -43,20 +43,10 @@ public:
   enum offset_type_t
     {
       /*!
-       * A point of an arc. Indicates the point is at the outer stroking
-       * boundary of the arc when stroked (i.e. the distance between the
-       * point and the center of the arc is given by R + S where R is
-       * the radius of the arc and S is the radius of the stroking).
+       * A point of an arc. Indicates the point is at on the stroking
+       * boundary of the arc when stroked.
        */
-      offset_arc_point_outer_stroking_boundary,
-
-      /*!
-       * A point of an arc. Indicates the point is at the inner stroking
-       * boundary of the arc when stroked (i.e. the distance between the
-       * point and the center of the arc is given by R - S where R is
-       * the radius of the arc and S is the radius of the stroking).
-       */
-      offset_arc_point_inner_stroking_boundary,
+      offset_arc_point_stroking_boundary,
 
       /*!
        * The point of an arc on the path.
@@ -72,13 +62,13 @@ public:
       offset_arc_point_on_path_origin,
 
       /*!
-       * A point of an arc. When the stroking radius is smaller than the
-       * arc radius, position of this point is the same as \ref
-       * offset_arc_point_inner_stroking_boundary; when the stroking
-       * radius is greater than the arc-radius the position is the
-       * center of the arc.
+       * A point of an arc. When the stroking radius is smaller
+       * than the arc radius, position of this point is the same
+       * as \ref offset_arc_point_stroking_boundary; when the
+       * stroking radius is greater than the arc-radius the
+       * position is the center of the arc.
        */
-      offset_arc_point_inner_stroking_boundary_origin,
+      offset_arc_point_stroking_boundary_origin,
 
       /*!
        * The point is part of a line-segment.
@@ -130,16 +120,6 @@ public:
       end_segment_bit,
 
       /*!
-       * Bit indicates that the point is a beyond stroking
-       * boundary bit. These points go beyond the stroking
-       * boundary to make sure that the triangles emitted
-       * contain the stroked arc. This bit only applies to
-       * \ref offset_arc_point_inner_stroking_boundary and
-       * \ref offset_arc_point_outer_stroking_boundary types.
-       */
-      beyond_boundary_bit,
-
-      /*!
        * Bit0 for holding the depth() value
        * of the point
        */
@@ -155,6 +135,28 @@ public:
        * Number of bits used on common packed data
        */
       number_common_bits = depth_bit0 + depth_num_bits,
+    };
+
+  /*!
+   * Enumeration of the bits of \ref m_packed_data
+   * for thos with offset type \ref offset_stroking_boundary
+   */
+  enum packed_data_bit_stroking_boundary_t
+    {
+      /*!
+       * Bit indicates that the point is a beyond stroking
+       * boundary bit. These points go beyond the stroking
+       * boundary to make sure that the triangles emitted
+       * contain the stroked arc.
+       */
+      beyond_boundary_bit = number_common_bits,
+
+      /*!
+       * If bit is up, then point is on the inside
+       * stroking boundary, otherwise the point is
+       * on the outside stroking boundary.
+       */
+      inner_stroking_bit,
     };
 
   /*!
@@ -179,6 +181,11 @@ public:
        * Mask generated for \ref boundary_bit
        */
       beyond_boundary_mask = FASTUIDRAW_MASK(beyond_boundary_bit, 1),
+
+      /*!
+       * Mask generated for \ref inner_stroking_bit
+       */
+      inner_stroking_mask = FASTUIDRAW_MASK(inner_stroking_bit, 1),
 
       /*!
        * Mask generated for \ref end_segment_bit
