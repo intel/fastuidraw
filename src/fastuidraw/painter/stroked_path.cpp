@@ -80,9 +80,10 @@ namespace
                   std::vector<SingleSubEdge> &dst,
                   fastuidraw::BoundingBox<float> &bx);
 
-    unsigned int
+    void
     split_sub_edge(int splitting_coordinate,
-                   fastuidraw::vecN<SingleSubEdge, 3> &out_edges,
+                   std::vector<SingleSubEdge> *dst_before_split_value,
+                   std::vector<SingleSubEdge> *dst_after_split_value,
                    float split_value) const;
 
     bool m_from_line_segment;
@@ -728,28 +729,42 @@ add_sub_edges(const SingleSubEdge *prev_subedge_of_edge,
   dst.push_back(sub_edge);
 }
 
-unsigned int
+void
 SingleSubEdge::
 split_sub_edge(int splitting_coordinate,
-               fastuidraw::vecN<SingleSubEdge, 3> &out_edges,
+               std::vector<SingleSubEdge> *dst_before_split_value,
+               std::vector<SingleSubEdge> *dst_after_split_value,
                float split_value) const
 {
   float s, t;
   fastuidraw::vec2 p, mid_normal;
-  unsigned int return_value;
+  fastuidraw::vecN<SingleSubEdge, 2> out_edges;
 
   if (m_from_line_segment)
     {
+      if (m_pt0[splitting_coordinate] < split_value
+          && m_pt1[splitting_coordinate] < split_value)
+        {
+          dst_before_split_value->push_back(*this);
+          return;
+        }
+
+      if (m_pt0[splitting_coordinate] > split_value
+          && m_pt1[splitting_coordinate] > split_value)
+        {
+          dst_after_split_value->push_back(*this);
+          return;
+        }
+
       float v0, v1;
 
       v0 = m_pt0[splitting_coordinate];
       v1 = m_pt1[splitting_coordinate];
       t = (split_value - v0) / (v1 - v0);
-      s = 1.0 - t;
 
+      s = 1.0 - t;
       p = (1.0f - t) * m_pt0 + t * m_pt1;
       mid_normal = m_begin_normal;
-      return_value = 2;
     }
   else
     {
@@ -790,7 +805,8 @@ split_sub_edge(int splitting_coordinate,
       out_edges[i].m_closed_contour_length = m_closed_contour_length;
     }
 
-  return return_value;
+  dst_before_split_value->push_back(out_edges[0]);
+  dst_after_split_value->push_back(out_edges[1]);
 }
 
 //////////////////////////////////////////////
@@ -904,31 +920,18 @@ SubEdgeCullingHierarchy(const fastuidraw::BoundingBox<float> &start_box,
 
       for(const SingleSubEdge &sub_edge : edges)
         {
-          bool sA, sB;
+          fastuidraw::vecN<unsigned int, 2> last;
 
-          sA = (sub_edge.m_pt0[c] < mid_point);
-          sB = (sub_edge.m_pt1[c] < mid_point);
-          if (sA == sB)
-            {
-              child_boxes[sA].union_point(sub_edge.m_pt0);
-              child_boxes[sA].union_point(sub_edge.m_pt1);
-              child_sub_edges[sA].push_back(sub_edge);
-              if (!sub_edge.m_of_closing_edge)
-                {
-                  ++child_num_non_closing_edges[sA];
-                }
-            }
-          else
-            {
-              unsigned int cnt;
-              fastuidraw::vecN<SingleSubEdge, 3> split;
+          last[0] = child_sub_edges[0].size();
+          last[1] = child_sub_edges[1].size();
+          sub_edge.split_sub_edge(c, &child_sub_edges[0], &child_sub_edges[1], mid_point);
 
-              cnt = sub_edge.split_sub_edge(c, split, mid_point);
-              for(unsigned int i = 0; i < cnt; ++i)
+          for (unsigned int i = 0; i < 2; ++i)
+            {
+              for (unsigned int j = last[i], endj = child_sub_edges[i].size(); j < endj; ++j)
                 {
-                  child_boxes[i].union_box(split[i].m_bounding_box);
-                  child_sub_edges[i].push_back(split[i]);
-                  if (!split[i].m_of_closing_edge)
+                  child_boxes[i].union_box(child_sub_edges[i][j].m_bounding_box);
+                  if (!child_sub_edges[i][j].m_of_closing_edge)
                     {
                       ++child_num_non_closing_edges[i];
                     }
