@@ -244,6 +244,14 @@ public:
      * Gives the unit-vector of the path leaving the segment.
      */
     vec2 m_leaving_segment_unit_vector;
+
+    /*!
+     * If true, indicates that the arc is tangent with its
+     * predecessor. This happens when TessellatedPath breaks
+     * a \ref segment into smaller pieces to make its angle
+     * smaller or to make it monotonic.
+     */
+    bool m_tangent_with_predecessor;
   };
 
   /*!
