@@ -102,6 +102,57 @@ namespace
         S.m_leaving_segment_unit_vector = sgn * vec2(-t_sin(S.m_arc_angle.m_end), t_cos(S.m_arc_angle.m_end));
       }
   }
+
+  void
+  add_tessellated_arc_segment(fastuidraw::vec2 start, fastuidraw::vec2 end,
+                              fastuidraw::vec2 center, float radius,
+                              fastuidraw::range_type<float> arc_angle,
+                              bool tangent_with_predecessor,
+                              std::vector<fastuidraw::TessellatedPath::segment> *d)
+  {
+    using namespace fastuidraw;
+
+    float a, da, theta;
+    unsigned int i, cnt;
+    float max_arc(M_PI / 4.0);
+
+    a = t_abs(arc_angle.m_end - arc_angle.m_begin);
+    cnt = 1u + static_cast<unsigned int>(a / max_arc);
+    da = (arc_angle.m_end - arc_angle.m_begin) / static_cast<float>(cnt);
+
+    for (i = 0, theta = arc_angle.m_begin; i < cnt; ++i, theta += da)
+      {
+        TessellatedPath::segment S;
+
+        if (i == 0)
+          {
+            S.m_start_pt = start;
+            S.m_tangent_with_predecessor = tangent_with_predecessor;
+          }
+        else
+          {
+            S.m_start_pt = d->back().m_end_pt;
+            S.m_tangent_with_predecessor = true;
+          }
+
+        if (i + 1 == cnt)
+          {
+            S.m_end_pt = end;
+          }
+        else
+          {
+            S.m_end_pt = center + radius * vec2(t_cos(theta + da), t_sin(theta + da));
+          }
+
+        S.m_center = center;
+        S.m_arc_angle.m_begin = theta;
+        S.m_arc_angle.m_end = theta + da;
+        S.m_radius = radius;
+        S.m_type = TessellatedPath::arc_segment;
+
+        d->push_back(S);
+      }
+  }
 }
 
 //////////////////////////////////////////////
@@ -134,6 +185,7 @@ add_line_segment(vec2 start, vec2 end)
   S.m_center = vec2(0.0f, 0.0f);
   S.m_arc_angle = range_type<float>(0.0f, 0.0f);
   S.m_type = line_segment;
+  S.m_tangent_with_predecessor = false;
 
   d->push_back(S);
 }
@@ -147,44 +199,74 @@ add_arc_segment(vec2 start, vec2 end,
   std::vector<segment> *d;
   d = static_cast<std::vector<segment>*>(m_d);
 
-  float a, da, theta;
-  unsigned int i, cnt;
-  float max_arc(M_PI / 4.0);
-
-  a = t_abs(arc_angle.m_end - arc_angle.m_begin);
-  cnt = 1u + static_cast<unsigned int>(a / max_arc);
-  da = (arc_angle.m_end - arc_angle.m_begin) / static_cast<float>(cnt);
-
-  for (i = 0, theta = arc_angle.m_begin; i < cnt; ++i, theta += da)
+  /* tessellate the segment so that each sub-segment is monotonic in both
+   * x and y coordinates. We are relying very closely on the implementation
+   * of Tessellator::arc_tessellation_worker() in Path.cpp where m_begin
+   * is ALWAYS computed by atan2 and m_end is from atan2 with optionally
+   * having 2PI added. Thus we know that -PI <= m_begin <= PI and
+   * -PI <= end <= 3 * PI
+   */
+  const float crit_angles[] =
     {
-      segment S;
+      -0.5 * M_PI,
+      0.0,
+      0.5 * M_PI,
+      M_PI,
+      1.5 * M_PI,
+      2.0 * M_PI,
+      2.5 * M_PI,
+    };
 
-      if (i == 0)
+  const vec2 crit_pts[] =
+    {
+      vec2(+0.0f, -1.0f), // -PI/2
+      vec2(+1.0f, +0.0f), // 0
+      vec2(+0.0f, +1.0f), // +PI/2
+      vec2(-1.0f, +0.0f), // +PI
+      vec2(+0.0f, -1.0f), // 3PI/2
+      vec2(+1.0f, +0.0f), // 2PI
+      vec2(+0.0f, +1.0f), // 5PI/2
+    };
+
+  float prev_angle(arc_angle.m_begin);
+  vec2 prev_pt(start);
+  bool tangent_with_predessor(false);
+
+  for (unsigned int i = 0, reverse_i = 6; i < 7; ++i, --reverse_i)
+    {
+      unsigned int K;
+      bool should_split;
+
+      if (arc_angle.m_begin < arc_angle.m_end)
         {
-          S.m_start_pt = start;
+          K = i;
+          should_split = (arc_angle.m_begin < crit_angles[K]
+                          && crit_angles[K] < arc_angle.m_end);
         }
       else
         {
-          S.m_start_pt = d->back().m_end_pt;
+          K = reverse_i;
+          should_split = (arc_angle.m_end < crit_angles[K]
+                          && crit_angles[K] < arc_angle.m_begin);
         }
 
-      if (i + 1 == cnt)
+      if (should_split)
         {
-          S.m_end_pt = end;
-        }
-      else
-        {
-          S.m_end_pt = center + radius * vec2(t_cos(theta + da), t_sin(theta + da));
-        }
+          vec2 end_pt;
 
-      S.m_center = center;
-      S.m_arc_angle.m_begin = theta;
-      S.m_arc_angle.m_end = theta + da;
-      S.m_radius = radius;
-      S.m_type = arc_segment;
-
-      d->push_back(S);
+          end_pt = center + radius * crit_pts[K];
+          add_tessellated_arc_segment(prev_pt, end_pt, center, radius,
+                                      range_type<float>(prev_angle, crit_angles[K]),
+                                      tangent_with_predessor, d);
+          prev_pt = end_pt;
+          prev_angle = crit_angles[K];
+          tangent_with_predessor = false;
+        }
     }
+
+  add_tessellated_arc_segment(prev_pt, end, center, radius,
+                              range_type<float>(prev_angle, arc_angle.m_end),
+                              tangent_with_predessor, d);
 }
 
 //////////////////////////////////////
