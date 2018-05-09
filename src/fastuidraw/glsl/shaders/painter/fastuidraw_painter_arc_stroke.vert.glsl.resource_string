@@ -146,9 +146,21 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       v.x = c * offset_direction.x - s * offset_direction.y;
       v.y = s * offset_direction.x + c * offset_direction.y;
 
-      L = 1.0 - cos(half_angle);
+      L = 1.0 - c;
       D = (fastuidraw_arc_stroke_arc_radius + fastuidraw_arc_stroke_stroke_radius) * L;
       p += D * v;
+
+      /* move p an additional amount so that the edge formed
+       * from the beyond boudnary points is atleast one pixel
+       * from the stroking-arc boundary.
+       */
+      vec3 clip_p, clip_direction;
+      float d;
+
+      clip_p = fastuidraw_item_matrix * vec3(p, 1.0);
+      clip_direction = fastuidraw_item_matrix * vec3(v, 0);
+      d = fastuidraw_local_distance_from_pixel_distance(1.0, clip_p, clip_direction);
+      p += d / c * v;
     }
 
   fastuidraw_arc_stroke_relative_to_center_x = p.x - center.x;
