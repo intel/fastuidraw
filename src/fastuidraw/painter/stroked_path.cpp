@@ -118,6 +118,9 @@ namespace
     SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg,
                   bool is_closing_edge);
 
+    bool
+    intersection_point_in_arc(fastuidraw::vec2 pt, float *out_arc_angle) const;
+
     static
     float
     compute_lambda(const fastuidraw::vec2 &n0, const fastuidraw::vec2 &n1)
@@ -676,18 +679,56 @@ SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg,
   if (m_from_line_segment)
     {
       m_delta = m_pt1 - m_pt0;
-      m_bounding_box.union_point(m_pt0);
-      m_bounding_box.union_point(m_pt1);
     }
   else
     {
       m_center = seg.m_center;
       m_radius = seg.m_radius;
       m_arc_angle = seg.m_arc_angle;
-      fastuidraw::detail::bouding_box_union_arc(m_center, m_radius,
-						m_arc_angle.m_begin, m_arc_angle.m_end,
-						&m_bounding_box);
     }
+
+  /* We know that the even if it is and arc, the edge is monotonic,
+   * thus the bounding box of the arc is given by the bounding box
+   * containing the end points.
+   */
+  m_bounding_box.union_point(m_pt0);
+  m_bounding_box.union_point(m_pt1);
+}
+
+bool
+SingleSubEdge::
+intersection_point_in_arc(fastuidraw::vec2 pt, float *out_arc_angle) const
+{
+  using namespace fastuidraw;
+
+  vec2 v0(m_pt0 - m_center), v1(m_pt1 - m_center);
+  vec2 n0(-v0.y(), v0.x()), n1(-v1.y(), v1.x());
+
+  /* The arc's radial edges coincide with the edges of the
+   * triangle [m_center, m_pt0, m_pt1], as such we can use the
+   * edges that use m_center define the clipping planes to
+   * check if an intersection point is inside the arc.
+   */
+  pt -= m_center;
+  if ((dot(n0, pt) > 0.0) == (dot(n0, m_pt1 - m_center) > 0.0)
+      && (dot(n1, pt) > 0.0) == (dot(n1, m_pt0 - m_center) > 0.0))
+    {
+      /* pt is within the arc; compute the angle */
+      float theta;
+
+      theta = std::atan2(pt.y(), pt.x());
+      if (theta < t_min(m_arc_angle.m_begin, m_arc_angle.m_end))
+        {
+          theta += 2.0f * static_cast<float>(M_PI);
+        }
+      FASTUIDRAWassert(theta >= t_min(m_arc_angle.m_begin, m_arc_angle.m_end));
+      FASTUIDRAWassert(theta <= t_max(m_arc_angle.m_begin, m_arc_angle.m_end));
+      *out_arc_angle = theta;
+
+      return true;
+    }
+
+  return false;
 }
 
 void
@@ -737,22 +778,22 @@ split_sub_edge(int splitting_coordinate,
                std::vector<SingleSubEdge> *dst_after_split_value,
                float split_value) const
 {
-  float s, t;
+  float s, t, mid_angle;
   fastuidraw::vec2 p, mid_normal;
   fastuidraw::vecN<SingleSubEdge, 2> out_edges;
 
-  if (m_bounding_box.max_point()[splitting_coordinate] < split_value)
+  if (m_bounding_box.max_point()[splitting_coordinate] <= split_value)
     {
-      FASTUIDRAWassert(m_pt0[splitting_coordinate] < split_value);
-      FASTUIDRAWassert(m_pt1[splitting_coordinate] < split_value);
+      FASTUIDRAWassert(m_pt0[splitting_coordinate] <= split_value);
+      FASTUIDRAWassert(m_pt1[splitting_coordinate] <= split_value);
       dst_before_split_value->push_back(*this);
       return;
     }
 
-  if (m_bounding_box.min_point()[splitting_coordinate] > split_value)
+  if (m_bounding_box.min_point()[splitting_coordinate] >= split_value)
     {
-      FASTUIDRAWassert(m_pt0[splitting_coordinate] > split_value);
-      FASTUIDRAWassert(m_pt1[splitting_coordinate] > split_value);
+      FASTUIDRAWassert(m_pt0[splitting_coordinate] >= split_value);
+      FASTUIDRAWassert(m_pt1[splitting_coordinate] >= split_value);
       dst_after_split_value->push_back(*this);
       return;
     }
@@ -771,16 +812,46 @@ split_sub_edge(int splitting_coordinate,
     }
   else
     {
-      /* TODO: compute t, s, p, mid_normal;
-       * if horizontal/vertical line splits arc into
-       * more than two pieces, handle that as well.
+      /* compute t, s, p, mid_normal; We are gauranteed
+       * that the arc is monotonic, thus the splitting will
+       * split it into at most two pieces. In addition, because
+       * it is monotonic, we know it will split it in exactly
+       * two pieces.
        */
+      float radical, d;
+      fastuidraw::vec2 test_pt;
+
+      d = split_value - m_center[splitting_coordinate];
+      radical = m_radius * m_radius - d * d;
+
+      FASTUIDRAWassert(radical > 0.0f);
+      radical = fastuidraw::t_sqrt(radical);
+
+      test_pt[splitting_coordinate] = split_value;
+      test_pt[1 - splitting_coordinate] = m_center[1 - splitting_coordinate] - radical;
+
+      if (!intersection_point_in_arc(test_pt, &mid_angle))
+        {
+          bool result;
+
+          test_pt[1 - splitting_coordinate] = m_center[1 - splitting_coordinate] + radical;
+          result = intersection_point_in_arc(test_pt, &mid_angle);
+
+          FASTUIDRAWassert(result);
+          FASTUIDRAWunused(result);
+        }
+
+      p = test_pt;
+      t = (mid_angle - m_arc_angle.m_begin) / (m_arc_angle.m_end - m_arc_angle.m_begin);
+      s = 1.0f - t;
     }
 
   out_edges[0].m_pt0 = m_pt0;
   out_edges[0].m_pt1 = p;
   out_edges[0].m_begin_normal = m_begin_normal;
   out_edges[0].m_end_normal = mid_normal;
+  out_edges[0].m_arc_angle.m_begin = m_arc_angle.m_begin;
+  out_edges[0].m_arc_angle.m_end = mid_angle;
   out_edges[0].m_distance_from_edge_start = m_distance_from_edge_start;
   out_edges[0].m_distance_from_contour_start = m_distance_from_contour_start;
   out_edges[0].m_sub_edge_length = t * m_sub_edge_length;
@@ -791,6 +862,8 @@ split_sub_edge(int splitting_coordinate,
   out_edges[1].m_pt1 = m_pt1;
   out_edges[1].m_begin_normal = mid_normal;
   out_edges[1].m_end_normal = m_end_normal;
+  out_edges[1].m_arc_angle.m_begin = mid_angle;
+  out_edges[1].m_arc_angle.m_end = m_arc_angle.m_end;
   out_edges[1].m_distance_from_edge_start = m_distance_from_edge_start + out_edges[0].m_sub_edge_length;
   out_edges[1].m_distance_from_contour_start = m_distance_from_contour_start + out_edges[0].m_sub_edge_length;
   out_edges[1].m_sub_edge_length = s * m_sub_edge_length;
@@ -800,12 +873,15 @@ split_sub_edge(int splitting_coordinate,
   for(unsigned int i = 0; i < 2; ++i)
     {
       out_edges[i].m_from_line_segment = m_from_line_segment;
-      out_edges[i].m_use_arc_for_bevel = m_use_arc_for_bevel;
       out_edges[i].m_delta = out_edges[i].m_pt1 - out_edges[i].m_pt0;
       out_edges[i].m_of_closing_edge = m_of_closing_edge;
       out_edges[i].m_has_bevel = m_has_bevel && (i == 0);
       out_edges[i].m_bevel_lambda = (i == 0) ? m_bevel_lambda : 0.0f;
       out_edges[i].m_bevel_normal = (i == 0) ? m_bevel_normal : fastuidraw::vec2(0.0f, 0.0f);
+      out_edges[i].m_use_arc_for_bevel = m_use_arc_for_bevel;
+
+      out_edges[i].m_center = m_center;
+      out_edges[i].m_radius = m_radius;
 
       out_edges[i].m_edge_length = m_edge_length;
       out_edges[i].m_open_contour_length = m_open_contour_length;
@@ -981,11 +1057,11 @@ choose_splitting_coordinate(const fastuidraw::BoundingBox<float> &start_box,
       return -1;
     }
 
-  /* NOTE: we use the end points of the SingleSubEdge
+  /* NOTE: we can use the end points of the SingleSubEdge
    * to count on what side or sides a SingleSubEdge
-   * will land. This is not perfect solution for arcs
-   * but we are not looking for something perfect, just
-   * something to keep the tree roughly balanced.
+   * will land even when arcs are present because we
+   * have the guarantee that a SingleSubEdge that is an
+   * arc is a monotonic-arc.
    */
   fastuidraw::vecN<float, 2> split_values;
   fastuidraw::vecN<unsigned int, 2> split_counters(0, 0);
@@ -1022,14 +1098,6 @@ choose_splitting_coordinate(const fastuidraw::BoundingBox<float> &start_box,
           else
             {
               ++child_counters[c][sA];
-            }
-
-          /* HACK: avoid splitting on arc-edges until we
-           * implement splitting arc-edges
-           */
-          if (!sub_edge.m_from_line_segment)
-            {
-              return -1;
             }
         }
     }
