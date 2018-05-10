@@ -136,7 +136,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       vec2 v;
 
       half_angle = 0.5 * arc_angle;
-      if ((point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0)
+      if ((point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0u)
         {
           half_angle = -half_angle;
         }
