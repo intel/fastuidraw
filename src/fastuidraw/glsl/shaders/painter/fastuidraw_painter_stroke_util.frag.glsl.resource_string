@@ -1,0 +1,90 @@
+float
+fastuidraw_stroke_compute_dash_interval(in uint dashed_stroking_data_location,
+                                        in float total_distance,
+                                        in float first_interval_start,
+                                        in float in_distance,
+                                        in float start, in float end,
+                                        in uint number_intervals)
+{
+  if (in_distance <= start)
+    {
+      return in_distance - start;
+    }
+  else if (in_distance >= end)
+    {
+      return end - in_distance;
+    }
+  else
+    {
+      int interval_id;
+      float interval_begin, interval_end, s;
+
+      s = fastuidraw_compute_interval(dashed_stroking_data_location,
+                                      total_distance,
+                                      first_interval_start,
+                                      in_distance, number_intervals,
+                                      interval_id,
+                                      interval_begin,
+                                      interval_end);
+
+      return s * min(in_distance - interval_begin, interval_end - in_distance);
+    }
+}
+
+float
+fastuidraw_stroke_compute_dash_coverage(in uint dash_style,
+                                        in uint shader_data_offset,
+                                        in float distance_value,
+                                        in float distance_sub_edge_start,
+                                        in float distance_sub_edge_end,
+                                        in float fwidth_distance_value,
+                                        in float stroking_on_boundary,
+                                        in float fwidth_stroking_on_boundary)
+{
+  float d, q;
+  uint dash_pattern_at;
+  fastuidraw_dashed_stroking_params_header stroke_params;
+
+  dash_pattern_at = shader_data_offset + uint(fastuidraw_stroke_dashed_stroking_params_header_num_blocks);
+  fastuidraw_read_dashed_stroking_params_header(shader_data_offset, stroke_params);
+
+  q = fastuidraw_stroke_compute_dash_interval(dash_pattern_at,
+                                              stroke_params.total_length,
+                                              stroke_params.first_interval_start,
+                                              distance_value,
+                                              distance_sub_edge_start,
+                                              distance_sub_edge_end,
+                                              stroke_params.number_intervals);
+  float y, r, qq_yy, fwidth_qq_yy, fw;
+
+  r = abs(stroke_params.radius);
+  y = r * stroking_on_boundary;
+  qq_yy = q * q + y * y;
+
+  fw = fwidth_distance_value;
+  fwidth_qq_yy = 2.0 * abs(q) * fw + 2.0 * abs(y) * r * fwidth_stroking_on_boundary;
+  if (dash_style == uint(fastuidraw_stroke_dashed_rounded_caps))
+    {
+      /* fw represents the tolerance of a pixel. The expected
+       * condition is if (q < 0.0), but that gives black-line
+       * render issue on the boundary between the cap and the
+       * dash-pattern boundary. By relaxing the condition by
+       * (essentially) 1-pixel, we can avoid that rendering
+       * issue.
+       */
+      if (q < fw && q > -fw - r)
+        {
+          float sq;
+
+          sq = sqrt(qq_yy);
+          q = r - sq;
+          fw = 0.5 * fwidth_qq_yy / sq;
+        }
+    }
+  else if (dash_style == uint(fastuidraw_stroke_dashed_square_caps))
+    {
+      q += r;
+    }
+  d = max(abs(q), fw);
+  return max(0.0, q / d);
+}
