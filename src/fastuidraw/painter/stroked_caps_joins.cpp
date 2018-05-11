@@ -446,11 +446,6 @@ namespace
       m_ignore_join_adds = true;
     }
 
-    void
-    handle_dashed_evaluator(const fastuidraw::DashEvaluatorBase *dash_evaluator,
-                            const fastuidraw::PainterShaderData::DataBase *dash_data,
-                            const fastuidraw::StrokedCapsJoins &path);
-
   private:
     std::vector<unsigned int> m_join_chunks, m_cap_chunks;
     std::vector<fastuidraw::range_type<unsigned int> > m_join_ranges;
@@ -3099,38 +3094,6 @@ add_cap_chunk(const RangeAndChunk &c)
     }
 }
 
-void
-ChunkSetPrivate::
-handle_dashed_evaluator(const fastuidraw::DashEvaluatorBase *dash_evaluator,
-                        const fastuidraw::PainterShaderData::DataBase *dash_data,
-                        const fastuidraw::StrokedCapsJoins &path)
-{
-  if (dash_evaluator != nullptr)
-    {
-      const fastuidraw::PainterAttributeData &joins(path.bevel_joins());
-      unsigned int cnt(0);
-
-      m_join_chunks.clear();
-      for(const fastuidraw::range_type<unsigned int> &R : m_join_ranges)
-        {
-          for(unsigned int J = R.m_begin; J < R.m_end; ++J, ++cnt)
-            {
-              unsigned int chunk;
-              fastuidraw::c_array<const fastuidraw::PainterAttribute> attribs;
-
-              chunk = path.join_chunk(J);
-              attribs = joins.attribute_data_chunk(chunk);
-              FASTUIDRAWassert(!attribs.empty());
-              FASTUIDRAWassert(attribs.size() == 3);
-              if (dash_evaluator->covered_by_dash_pattern(dash_data, attribs[0]))
-                {
-                  m_join_chunks.push_back(chunk);
-                }
-            }
-        }
-    }
-}
-
 //////////////////////////////////////////
 // fastuidraw::StrokedCapsJoins::ChunkSet methods
 fastuidraw::StrokedCapsJoins::ChunkSet::
@@ -3246,7 +3209,6 @@ fastuidraw::StrokedCapsJoins::
 void
 fastuidraw::StrokedCapsJoins::
 compute_chunks(ScratchSpace &scratch_space,
-               const DashEvaluatorBase *dash_evaluator,
                const PainterShaderData::DataBase *dash_data,
                c_array<const vec3> clip_equations,
                const float3x3 &clip_matrix_local,
@@ -3284,7 +3246,6 @@ compute_chunks(ScratchSpace &scratch_space,
                               max_index_cnt,
                               take_joins_outside_of_region,
                               *chunk_set_ptr);
-  chunk_set_ptr->handle_dashed_evaluator(dash_evaluator, dash_data, *this);
 }
 
 unsigned int

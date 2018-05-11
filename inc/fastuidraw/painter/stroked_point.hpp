@@ -218,12 +218,9 @@ public:
 
       /*!
        * Bit to indicate point is from a join. For these
-       * points, during dashed stroking, Painter does the
-       * check if a join should be drawn, as such when the
-       * bit is up encountered in a shader, the computation
-       * to check that it is drawn from dashing can be
-       * skipped and assume that fragments from such points
-       * are covered by the dash pattern.
+       * points, during dashed stroking. For joins, one is
+       * guaranteed that the distance values for all points
+       * of a fixed join are the same.
        */
       join_bit = depth_bit0 + depth_num_bits,
 

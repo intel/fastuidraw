@@ -184,14 +184,6 @@ namespace fastuidraw
     dash_pattern(c_array<const DashPatternElement> v);
 
     /*!
-     * Constructs and returns a DashEvaluator compatible
-     * with the data of PainterDashedStrokeParams.
-     */
-    static
-    reference_counted_ptr<const DashEvaluatorBase>
-    dash_evaluator(void);
-
-    /*!
      * Returns a StrokingDataSelectorBase suitable for
      * PainterDashedStrokeParams.
      */

@@ -31,7 +31,6 @@ namespace fastuidraw  {
 
 ///@cond
 class PainterAttributeData;
-class DashEvaluatorBase;
 ///@endcond
 
 /*!\addtogroup Paths
@@ -184,9 +183,6 @@ public:
    * coordinates, compute what chunks are not completely
    * culled by the clip equations.
    * \param scratch_space scratch space for computations
-   * \param dash_evaluator if doing dashed stroking, the dash evalulator will cull
-   *                       joins not to be drawn, if nullptr only those joins not in the
-   *                       visible area defined by clip_equations are culled.
    * \param dash_data data to pass to dast evaluator
    * \param clip_equations array of clip equations
    * \param clip_matrix_local 3x3 transformation from local (x, y, 1)
@@ -210,7 +206,6 @@ public:
    */
   void
   compute_chunks(ScratchSpace &scratch_space,
-                 const DashEvaluatorBase *dash_evaluator,
                  const PainterShaderData::DataBase *dash_data,
                  c_array<const vec3> clip_equations,
                  const float3x3 &clip_matrix_local,
