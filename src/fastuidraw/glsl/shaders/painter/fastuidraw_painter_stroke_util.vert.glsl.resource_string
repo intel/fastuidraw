@@ -510,3 +510,141 @@ fastuidraw_stroke_compute_offset_pixels(in uint point_packed_data,
                                                       miter_limit, offset, stroke_radius);
     }
 }
+
+
+struct fastuidraw_dashed_struct_base
+{
+  float d; //distance at current vertex
+  float s; //negative if current vertex in skip dash interval, positive if in draw dash interval
+  int interval_id; //interval id of dash interface where current vertex located
+  float interval_begin, interval_end; //begin and ending of interval
+  uint dash_pattern_at;
+};
+
+struct fastuidraw_dashed_struct_edge_extend
+{
+  bool is_end_of_edge;  //true if and only if current vertex is at the end of the edge
+  float edge_length; //length of edge
+  bool has_caps;
+
+  float d2; //distance of other vertex
+  float s2; //negative if other vertex in skip dash interval, positive if in draw dash interval
+  int interval_id2; //interval id of dash interface where other vertex located
+  float interval_begin2, interval_end2; //begin and ending of interval
+
+  uint stroking_bits; //stroking bit-masks that frag shader will use
+  float stroking_distance; //stroking distance value to pass to frag-shader
+  float edge_distance_start, edge_distance_end; //stroking begin/end distance to pass to frag shader
+  bool extend_edge; // true if edge should be extended
+  bool collapse;
+};
+
+#define fastuidraw_dashed_stroking_edge_start 0
+#define fastuidraw_dashed_stroking_edge_end   1
+
+/*
+ * Returns false if the entire is within a skip interval.
+ */
+void
+fastuidraw_dashed_helper_vert_base(in float d,
+                                   in uint shader_data_offset,
+                                   in fastuidraw_dashed_stroking_params_header stroke_params,
+                                   out fastuidraw_dashed_struct_base out_data)
+{
+  out_data.d = d;
+  out_data.dash_pattern_at = shader_data_offset + uint(fastuidraw_stroke_dashed_stroking_params_header_num_blocks);
+  out_data.s = fastuidraw_compute_interval(out_data.dash_pattern_at,
+                                           stroke_params.total_length,
+                                           stroke_params.first_interval_start,
+                                           out_data.d,
+                                           stroke_params.number_intervals,
+                                           out_data.interval_id,
+                                           out_data.interval_begin, out_data.interval_end);
+}
+
+void
+fastuidraw_dashed_helper_vert_extend_edge(in uint shader_data_offset,
+                                          in fastuidraw_dashed_stroking_params_header stroke_params,
+                                          in float stroke_radius,
+                                          in bool is_edge_end,
+                                          in float edge_length,
+                                          in bool has_caps,
+                                          in fastuidraw_dashed_struct_base base,
+                                          out fastuidraw_dashed_struct_edge_extend extend_edge)
+{
+  extend_edge.is_end_of_edge = is_edge_end;
+  extend_edge.edge_length = edge_length;
+  extend_edge.has_caps = has_caps;
+
+  extend_edge.d2 = (extend_edge.is_end_of_edge) ?
+    base.d - edge_length:
+    base.d + edge_length;
+
+  extend_edge.s2 = fastuidraw_compute_interval(base.dash_pattern_at,
+                                               stroke_params.total_length,
+                                               stroke_params.first_interval_start,
+                                               extend_edge.d2,
+                                               stroke_params.number_intervals,
+                                               extend_edge.interval_id2,
+                                               extend_edge.interval_begin2, extend_edge.interval_end2);
+
+  if (extend_edge.interval_id2 == base.interval_id && base.interval_id != -1)
+    {
+      extend_edge.stroking_bits = uint(fastuidraw_stroke_gauranteed_to_be_covered_mask);
+      extend_edge.stroking_distance = 0.0;
+      extend_edge.collapse = (extend_edge.s2 < 0.0);
+      extend_edge.extend_edge = false;
+    }
+  else
+    {
+      extend_edge.stroking_bits = 0u;
+      extend_edge.collapse = false;
+
+      if (!extend_edge.is_end_of_edge)
+        {
+          float clamp_interval_end;
+
+          extend_edge.edge_distance_start = (base.s < 0.0) ?
+            base.interval_end :
+            base.d;
+
+          extend_edge.edge_distance_end = (extend_edge.s2 < 0.0) ?
+            extend_edge.interval_begin2 :
+            extend_edge.d2;
+
+          if (base.s < 0.0 && extend_edge.has_caps)
+            {
+              extend_edge.stroking_distance = base.d - stroke_radius;
+              extend_edge.extend_edge = true;
+            }
+          else
+            {
+              extend_edge.stroking_distance = base.d;
+              extend_edge.extend_edge = false;
+            }
+        }
+      else
+        {
+          float clamp_interval_begin;
+
+          extend_edge.edge_distance_start = (extend_edge.s2 < 0.0) ?
+            extend_edge.interval_end2 :
+            extend_edge.d2;
+
+          extend_edge.edge_distance_end = (base.s < 0.0) ?
+            base.interval_begin :
+            base.d;
+
+          if (base.s < 0.0 && extend_edge.has_caps)
+            {
+              extend_edge.stroking_distance = base.d + stroke_radius;
+              extend_edge.extend_edge = true;
+            }
+          else
+            {
+              extend_edge.stroking_distance = base.d;
+              extend_edge.extend_edge = false;
+            }
+        }
+    }
+}
