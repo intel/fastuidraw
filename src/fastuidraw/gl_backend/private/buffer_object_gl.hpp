@@ -165,15 +165,21 @@ private:
             m_buffer = 0;
             create_buffer();
 
+            /* The values of GL_COPY_READ/WRITE_BUFFER
+             * and GL_COPY_READ/WRITE_BUFFER_BINDING are
+             * the -same-. However, some GL headers (namely
+             * Apples OpenGL/gl3.h do not define the macro
+             * values with the _BINDING suffix.
+             */
             if (binding_point != GL_COPY_READ_BUFFER)
               {
                 src_binding_point = GL_COPY_READ_BUFFER;
-                src_binding_point_query = GL_COPY_READ_BUFFER_BINDING;
+                src_binding_point_query = GL_COPY_READ_BUFFER;
               }
             else
               {
                 src_binding_point = GL_COPY_WRITE_BUFFER;
-                src_binding_point_query = GL_COPY_WRITE_BUFFER_BINDING;
+                src_binding_point_query = GL_COPY_WRITE_BUFFER;
               }
             prev_buffer = fastuidraw::gl::context_get<GLint>(src_binding_point_query);
             glBindBuffer(binding_point, m_buffer);
