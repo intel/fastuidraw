@@ -1,39 +1,3 @@
-#ifndef FASTUIDRAW_STROKE_COMPUTE_DASH_INTERVAL_DEFINED
-#define FASTUIDRAW_STROKE_COMPUTE_DASH_INTERVAL_DEFINED
-float
-fastuidraw_stroke_compute_dash_interval(in uint dashed_stroking_data_location,
-                                        in float total_distance,
-                                        in float first_interval_start,
-                                        in float in_distance,
-                                        in float start, in float end,
-                                        in uint number_intervals)
-{
-  if (in_distance <= start)
-    {
-      return in_distance - start;
-    }
-  else if (in_distance >= end)
-    {
-      return end - in_distance;
-    }
-  else
-    {
-      int interval_id;
-      float interval_begin, interval_end, s;
-
-      s = fastuidraw_compute_interval(dashed_stroking_data_location,
-                                      total_distance,
-                                      first_interval_start,
-                                      in_distance, number_intervals,
-                                      interval_id,
-                                      interval_begin,
-                                      interval_end);
-
-      return s * min(in_distance - interval_begin, interval_end - in_distance);
-    }
-}
-#endif
-
 vec4
 fastuidraw_gl_frag_main(in uint sub_shader,
                         in uint shader_data_offset)
@@ -66,93 +30,41 @@ fastuidraw_gl_frag_main(in uint sub_shader,
      for non-anti-aliased shading because it does not allow discard
   */
   #ifdef FASTUIDRAW_STROKE_DASHED
-
-  if ((fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_gauranteed_to_be_covered_mask)) == 0u)
     {
-      float d, q, fw;
-      uint dash_pattern_at, dash_style;
-      fastuidraw_dashed_stroking_params_header stroke_params;
-
-      dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
-                                           fastuidraw_stroke_sub_shader_dash_style_num_bits,
-                                           sub_shader);
-
-      /* stroke_params takes 4 elements */
-      dash_pattern_at = shader_data_offset + uint(fastuidraw_stroke_dashed_stroking_params_header_num_blocks);
-
-      /* read the header data (includes the stroking width and total length
-         of the dash pattern).
-      */
-      fastuidraw_read_dashed_stroking_params_header(shader_data_offset, stroke_params);
-
-      if ((fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u)
+      if ((fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_gauranteed_to_be_covered_mask)) == 0u)
         {
-          q = fastuidraw_stroking_distance;
-        }
-      else
-        {
-          q = fastuidraw_stroke_compute_dash_interval(dash_pattern_at,
-                                                      stroke_params.total_length,
-                                                      stroke_params.first_interval_start,
-                                                      fastuidraw_stroking_distance,
-                                                      fastuidraw_stroking_distance_sub_edge_start,
-                                                      fastuidraw_stroking_distance_sub_edge_end,
-                                                      stroke_params.number_intervals);
-        }
+          uint dash_style;
+          float fwidth_fastuidraw_stroking_distance = fwidth(fastuidraw_stroking_distance);
+          float fwidth_fastuidraw_stroking_on_boundary = fwidth(fastuidraw_stroking_on_boundary);
 
-      /* the value of q is branchy-pixel-dependent, the
-         code path if we are to hit rounded-cap code is
-         dependent on the value of q. To keep the anti-aliasing
-         from going ugly at boundaries, we explicitely compute
-         fwidth() from values that are not branchy-pixel-dependent.
-      */
-      float y, r, qq_yy, fwidth_qq_yy;
-      r = abs(stroke_params.radius);
-      y = r * fastuidraw_stroking_on_boundary;
-      qq_yy = q * q + y * y;
+          dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
+                                               fastuidraw_stroke_sub_shader_dash_style_num_bits,
+                                               sub_shader);
 
-      fw = fwidth(fastuidraw_stroking_distance);
-      fwidth_qq_yy = 2.0 * abs(q) * fw + 2.0 * abs(y) * fwidth(y);
-
-      if (dash_style == uint(fastuidraw_stroke_dashed_rounded_caps))
-        {
-          /* fw represents the tolerance of a pixel. The expected
-             condition is if (q < 0.0), but that gives black-line
-             render issue on the boundary between the cap and the
-             dash-pattern boundary. By relaxing the condition by
-             (essentially) 1-pixel, we can avoid that rendering
-             issue.
-          */
-          if (q < fw && q > -fw - r)
+          if ((fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u)
             {
-              float sq;
-
-              sq = sqrt(qq_yy);
-              q = r - sq;
-              fw = 0.5 * fwidth_qq_yy / sq;
+              alpha = 1.0;
             }
-        }
-      else if (dash_style == uint(fastuidraw_stroke_dashed_square_caps))
-        {
-          q += abs(stroke_params.radius);
-        }
-
-      d = max(abs(q), fw);
-      alpha = max(0.0, q / d);
-
-      #if !defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
-        {
-          if (render_pass == uint(fastuidraw_stroke_non_aa) && q <= 0.0)
+          else
             {
-              alpha = 0.0;
+              alpha = fastuidraw_stroke_compute_dash_coverage(dash_style, shader_data_offset,
+                                                              fastuidraw_stroking_distance,
+                                                              fastuidraw_stroking_distance_sub_edge_start,
+                                                              fastuidraw_stroking_distance_sub_edge_end,
+                                                              fwidth_fastuidraw_stroking_distance,
+                                                              fastuidraw_stroking_on_boundary,
+                                                              fwidth_fastuidraw_stroking_on_boundary);
             }
 
-          if (render_pass == uint(fastuidraw_stroke_aa_pass1) && alpha < 1.0 - 1.0 / 255.0)
+          #if !defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
             {
-              alpha = 0.0;
+              if (render_pass == uint(fastuidraw_stroke_aa_pass1) && alpha < 1.0 - 1.0 / 255.0)
+                {
+                  alpha = 0.0;
+                }
             }
+          #endif
         }
-      #endif
     }
   #endif
 
