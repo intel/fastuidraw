@@ -107,7 +107,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
          fwidth() from values that are not branchy-pixel-dependent.
       */
       float y, r, qq_yy, fwidth_qq_yy;
-      r = stroke_params.radius;
+      r = abs(stroke_params.radius);
       y = r * fastuidraw_stroking_on_boundary;
       qq_yy = q * q + y * y;
 
@@ -134,7 +134,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
         }
       else if (dash_style == uint(fastuidraw_stroke_dashed_square_caps))
         {
-          q += stroke_params.radius;
+          q += abs(stroke_params.radius);
         }
 
       d = max(abs(q), fw);
