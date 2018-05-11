@@ -255,10 +255,14 @@ compute_type(void)
     }
   #else
     {
-      if (ctx.version() >= ivec2(4,3) || ctx.has_extension("GL_ARB_copy_image"))
+      #ifndef __APPLE__
         {
-          return unextended_function;
+          if (ctx.version() >= ivec2(4,3) || ctx.has_extension("GL_ARB_copy_image"))
+            {
+              return unextended_function;
+            }
         }
+      #endif
 
       return emulate_function;
     }
@@ -281,6 +285,7 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
 
   switch(m_type)
     {
+#ifndef __APPLE__
     case unextended_function:
       glCopyImageSubData(srcName, srcTarget, srcLevel,
                          srcX, srcY, srcZ,
@@ -288,6 +293,7 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
                          dstX, dstY, dstZ,
                          width, height, depth);
       break;
+#endif
 
 #ifdef FASTUIDRAW_GL_USE_GLES
     case oes_function:
