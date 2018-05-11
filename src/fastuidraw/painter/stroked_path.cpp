@@ -674,19 +674,12 @@ SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg,
   m_begin_normal(-seg.m_enter_segment_unit_vector.y(),
                  seg.m_enter_segment_unit_vector.x()),
   m_end_normal(-seg.m_leaving_segment_unit_vector.y(),
-               seg.m_leaving_segment_unit_vector.x())
+               seg.m_leaving_segment_unit_vector.x()),
+  m_delta(m_pt1 - m_pt0),
+  m_center(seg.m_center),
+  m_arc_angle(seg.m_arc_angle),
+  m_radius(seg.m_radius)
 {
-  if (m_from_line_segment)
-    {
-      m_delta = m_pt1 - m_pt0;
-    }
-  else
-    {
-      m_center = seg.m_center;
-      m_radius = seg.m_radius;
-      m_arc_angle = seg.m_arc_angle;
-    }
-
   /* We know that the even if it is and arc, the edge is monotonic,
    * thus the bounding box of the arc is given by the bounding box
    * containing the end points.
@@ -809,6 +802,11 @@ split_sub_edge(int splitting_coordinate,
       s = 1.0 - t;
       p = (1.0f - t) * m_pt0 + t * m_pt1;
       mid_normal = m_begin_normal;
+
+      /* strictly speaking this is non-sense, but lets silence
+       * any writes with uninitialized data here.
+       */
+      mid_angle = 0.5f * (m_arc_angle.m_begin + m_arc_angle.m_end);
     }
   else
     {
