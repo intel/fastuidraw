@@ -54,24 +54,6 @@ namespace
     std::vector<fastuidraw::PainterDashedStrokeParams::DashPatternElement> m_dash_pattern;
     std::vector<fastuidraw::generic_data> m_dash_pattern_packed;
   };
-
-  class DashEvaluator:public fastuidraw::DashEvaluatorBase
-  {
-  public:
-    explicit
-    DashEvaluator(void)
-    {}
-
-    virtual
-    bool
-    covered_by_dash_pattern(const fastuidraw::PainterShaderData::DataBase *data,
-                            const fastuidraw::PainterAttribute &attrib) const;
-
-    static
-    bool
-    close_to_boundary(float dist,
-                      fastuidraw::range_type<float> interval);
-  };
 }
 
 //////////////////////////////////////
@@ -134,66 +116,6 @@ pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> 
           dst_pattern[i].f = m_total_length * 2.0f + 1.0f;
         }
     }
-}
-
-///////////////////////////////
-// DashEvaluator methods
-bool
-DashEvaluator::
-covered_by_dash_pattern(const fastuidraw::PainterShaderData::DataBase *data,
-                        const fastuidraw::PainterAttribute &attrib) const
-{
-  const PainterDashedStrokeParamsData *d;
-  FASTUIDRAWassert(dynamic_cast<const PainterDashedStrokeParamsData*>(data) != nullptr);
-  d = static_cast<const PainterDashedStrokeParamsData*>(data);
-
-  if (d->m_total_length <= 0.0f)
-    {
-      return false;
-    }
-
-  float fd, ff, dist, distance;
-  fastuidraw::range_type<float> interval;
-  bool return_value(true);
-
-  /* PainterDashedStrokeParams is for attributes packed
-   *  by PainterAttributeDataFillerPathStroked which
-   *  stores the distance from the contour start at
-   *  m_attrib1.y packed as a float
-   */
-  distance = fastuidraw::unpack_float(attrib.m_attrib1.y()) + d->m_dash_offset;
-  fd = std::floor(distance / d->m_total_length);
-  ff = d->m_total_length * fd;
-  dist = distance - ff;
-
-  for(unsigned int i = 0, endi = d->m_dash_pattern_packed.size(); i < endi; ++i)
-    {
-      float v;
-
-      v = d->m_dash_pattern_packed[i].f;
-      if (dist < v)
-        {
-          interval.m_begin = ff;
-          interval.m_end = ff + v;
-          /* if the boundary is too close we will return false
-           *  even if we are in the draw interval so that we can
-           *  avoid bad rendering.
-           */
-          return return_value && !close_to_boundary(dist, interval);
-        }
-      return_value = !return_value;
-    }
-  return false;
-}
-
-bool
-DashEvaluator::
-close_to_boundary(float dist, fastuidraw::range_type<float> interval)
-{
-  bool return_value;
-
-  return_value = interval.m_begin == dist || interval.m_end == dist;
-  return return_value;
 }
 
 ///////////////////////////////////
@@ -399,13 +321,6 @@ stroking_units(enum PainterStrokeParams::stroking_units_t v)
   d = static_cast<PainterDashedStrokeParamsData*>(m_data);
   d->m_stroking_units = v;
   return *this;
-}
-
-fastuidraw::reference_counted_ptr<const fastuidraw::DashEvaluatorBase>
-fastuidraw::PainterDashedStrokeParams::
-dash_evaluator(void)
-{
-  return FASTUIDRAWnew DashEvaluator();
 }
 
 fastuidraw::reference_counted_ptr<const fastuidraw::StrokingDataSelectorBase>

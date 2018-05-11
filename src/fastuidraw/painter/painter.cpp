@@ -814,7 +814,6 @@ namespace
     void
     stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                        const fastuidraw::PainterData &draw,
-                       const fastuidraw::DashEvaluatorBase *dash_evaluator,
                        const fastuidraw::StrokedPath &path, float thresh,
                        bool close_contours,
                        enum fastuidraw::PainterEnums::cap_style cp,
@@ -1532,7 +1531,6 @@ void
 PainterPrivate::
 stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                    const fastuidraw::PainterData &draw,
-                   const fastuidraw::DashEvaluatorBase *dash_evaluator,
                    const fastuidraw::StrokedPath &path, float thresh,
                    bool close_contours,
                    enum fastuidraw::PainterEnums::cap_style cp,
@@ -1640,7 +1638,7 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                       m_work_room.m_stroke_chunk_set);
 
   caps_joins.compute_chunks(m_work_room.m_stroked_caps_joins_scratch,
-                            dash_evaluator, draw.m_item_shader_data.data().data_base(),
+                            draw.m_item_shader_data.data().data_base(),
                             m_clip_store.current(),
                             m_clip_rect_state.item_matrix(),
                             m_one_pixel_width,
@@ -2099,7 +2097,7 @@ stroke_path(const PainterStrokeShader &shader, const PainterData &draw,
 
   FASTUIDRAWassert(0 <= cp && cp < PainterEnums::number_cap_styles);
   FASTUIDRAWassert(0 <= js && js < PainterEnums::number_join_styles);
-  d->stroke_path_common(shader, draw, nullptr, path, thresh,
+  d->stroke_path_common(shader, draw, path, thresh,
                         close_contours, cp, js, with_anti_aliasing,
                         call_back);
 }
@@ -2146,7 +2144,6 @@ stroke_dashed_path(const PainterDashedStrokeShaderSet &shader, const PainterData
   FASTUIDRAWassert(0 <= cp && cp < PainterEnums::number_cap_styles);
   FASTUIDRAWassert(0 <= js && js < PainterEnums::number_join_styles);
   d->stroke_path_common(shader.shader(cp), draw,
-                        shader.dash_evaluator().get(),
                         path, thresh, close_contours,
                         PainterEnums::number_cap_styles, js,
                         with_anti_aliasing, call_back);

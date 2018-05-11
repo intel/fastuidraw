@@ -244,8 +244,16 @@ fastuidraw_gl_vert_main(in uint sub_shader,
         }
       else if ((point_packed_data & uint(fastuidraw_stroke_join_mask)) != 0u)
         {
+          /* The points of a join all have the same distance values, thus
+           * if it is ouside the dash-pattern, then collapse the join to
+           * a point to prevent any rasterization.
+           */
           fastuidraw_stroking_dash_bits = uint(fastuidraw_stroke_gauranteed_to_be_covered_mask);
           fastuidraw_stroking_distance = 0.0;
+          if (s < 0.0)
+            {
+              on_boundary = 0;
+            }
         }
     }
   #endif

@@ -528,13 +528,10 @@ create_dashed_stroke_shader_set(void)
 {
   using namespace fastuidraw::PainterEnums;
   PainterDashedStrokeShaderSet return_value;
-  reference_counted_ptr<const DashEvaluatorBase> de;
   reference_counted_ptr<const StrokingDataSelectorBase> se;
 
   se = PainterDashedStrokeParams::stroking_data_selector();
-  de = PainterDashedStrokeParams::dash_evaluator();
   return_value
-    .dash_evaluator(de)
     .shader(flat_caps, create_stroke_shader(flat_caps, se))
     .shader(rounded_caps, create_stroke_shader(rounded_caps, se))
     .shader(square_caps, create_stroke_shader(square_caps, se));

@@ -34,31 +34,6 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * A DashEvaluatorBase is the interface used by Painter
-   * to realize the data to send to a PainterPacker for
-   * the purpose of dashed stroking.
-   */
-  class DashEvaluatorBase:
-    public reference_counted<DashEvaluatorBase>::default_base
-  {
-  public:
-    /*!
-     * To be implemented by a derived class to return true if and
-     * only if a point from a join emobodied by a PainterAttribute
-     * is covered by a dash pattern.
-     * \param data PainterItemShaderData::DataBase object holding the data to
-     *             be sent to the shader
-     * \param attrib PainterAttribute from which to extract the distance to
-     *               use to compute the return value
-     */
-    virtual
-    bool
-    covered_by_dash_pattern(const PainterShaderData::DataBase *data,
-                            const PainterAttribute &attrib) const = 0;
-  };
-
-  /*!
-   * \brief
    * A PainterDashedStrokeShaderSet holds a collection of
    * PainterStrokeShaderSet objects for the purpose of
    * dashed stroking. The shaders within a
@@ -95,22 +70,6 @@ namespace fastuidraw
      */
     void
     swap(PainterDashedStrokeShaderSet &obj);
-
-    /*!
-     * Returns the DashEvaluator object to be used with
-     * the expected PainterItemShaderData passed to the
-     * PainterStrokeShader objects of this
-     * PainterDashedStrokeShaderSet.
-     */
-    const reference_counted_ptr<const DashEvaluatorBase>&
-    dash_evaluator(void) const;
-
-    /*!
-     * Set the value returned by dash_evaluator(void) const.
-     * Initial value is nullptr.
-     */
-    PainterDashedStrokeShaderSet&
-    dash_evaluator(const reference_counted_ptr<const DashEvaluatorBase>&);
 
     /*!
      * Shader set for dashed stroking of paths where the stroking

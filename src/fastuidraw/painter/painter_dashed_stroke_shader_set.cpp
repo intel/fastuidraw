@@ -30,7 +30,6 @@ namespace
     enum { count = fastuidraw::PainterEnums::number_cap_styles };
 
     fastuidraw::vecN<PainterStrokeShader, count> m_shaders;
-    fastuidraw::reference_counted_ptr<const fastuidraw::DashEvaluatorBase> m_dash_evaluator;
   };
 }
 
@@ -61,10 +60,6 @@ fastuidraw::PainterDashedStrokeShaderSet::
 }
 
 assign_swap_implement(fastuidraw::PainterDashedStrokeShaderSet)
-setget_implement(fastuidraw::PainterDashedStrokeShaderSet,
-                 PainterDashedStrokeShaderSetPrivate,
-                 const fastuidraw::reference_counted_ptr<const fastuidraw::DashEvaluatorBase>&,
-                 dash_evaluator)
 
 const fastuidraw::PainterStrokeShader&
 fastuidraw::PainterDashedStrokeShaderSet::

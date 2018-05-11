@@ -35,7 +35,6 @@ class TessellatedPath;
 class Path;
 class PainterAttribute;
 class PainterAttributeData;
-class DashEvaluatorBase;
 ///@endcond
 
 /*!\addtogroup Paths
