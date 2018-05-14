@@ -27,7 +27,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     }
   #endif
 
-  vec2 p;
+  vec2 vector_from_center, p;
   vec2 position, center, offset_direction;
   float scale_factor, radius, arc_angle;
 
@@ -40,6 +40,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   #ifdef FASTUIDRAW_STROKE_DASHED
   fastuidraw_dashed_stroking_params_header stroke_params;
+  mat2 rotate_by = mat2(1.0, 0.0, 0.0, 1.0);
   fastuidraw_read_dashed_stroking_params_header(shader_data_offset, stroke_params);
   #else
   fastuidraw_stroking_params stroke_params;
@@ -68,9 +69,166 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   stroke_radius = abs(stroke_params.radius);
   scale_factor = float(on_boundary) * stroke_radius;
 
-  fastuidraw_arc_stroke_stroke_radius = stroke_radius;
-  fastuidraw_arc_stroke_arc_radius = radius;
+  fastuidraw_arc_stroking_stroke_radius = stroke_radius;
+  fastuidraw_arc_stroking_arc_radius = radius;
   center = position - radius * offset_direction;
+
+  #ifdef FASTUIDRAW_STROKE_DASHED
+    {
+      fastuidraw_dashed_struct_base base;
+      float stroke_distance;
+
+      stroke_distance = distance_from_contour_start + stroke_params.dash_offset;
+      fastuidraw_dashed_helper_vert_base(stroke_distance, shader_data_offset, stroke_params, base);
+      if ((point_packed_data & uint(fastuidraw_arc_stroke_distance_constant_on_primitive_mask)) != 0u)
+        {
+          fastuidraw_arc_stroking_distance = base.d;
+          fastuidraw_arc_stroking_dash_bits = uint(fastuidraw_stroke_gauranteed_to_be_covered_mask);
+          if (base.s < 0.0)
+            {
+              scale_factor = 0.0;
+              if (offset_type != fastuidraw_arc_stroke_bevel_segment)
+                {
+                  fastuidraw_arc_stroking_stroke_radius = 0.0;
+                  fastuidraw_arc_stroking_arc_radius = 0.0;
+                  offset_type = fastuidraw_arc_stroke_bevel_segment;
+                  position = center;
+                  point_packed_data = 0u;
+                }
+            }
+        }
+      else
+        {
+          fastuidraw_dashed_struct_edge_extend extend_edge;
+          float delta_mag;
+          int dash_style;
+
+          dash_style = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
+                                                   fastuidraw_stroke_sub_shader_dash_style_num_bits,
+                                                   sub_shader));
+
+          if (offset_type == fastuidraw_arc_stroke_line_segment)
+            {
+              delta_mag = length(secondary_attrib.zw);
+            }
+          else
+            {
+              delta_mag = radius * abs(arc_angle);
+            }
+
+          fastuidraw_dashed_helper_vert_extend_edge(shader_data_offset,
+                                                    stroke_params,
+                                                    stroke_radius,
+                                                    (point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0u,
+                                                    delta_mag,
+                                                    dash_style != fastuidraw_stroke_dashed_flat_caps,
+                                                    base,
+                                                    extend_edge);
+
+          fastuidraw_arc_stroking_dash_bits = extend_edge.stroking_bits;
+          fastuidraw_arc_stroking_distance_sub_edge_start = extend_edge.edge_distance_start;
+          fastuidraw_arc_stroking_distance_sub_edge_end = extend_edge.edge_distance_end;
+          fastuidraw_arc_stroking_distance = extend_edge.stroking_distance;
+
+          if (extend_edge.collapse)
+            {
+              scale_factor = 0.0;
+              if (offset_type != fastuidraw_arc_stroke_line_segment)
+                {
+                  fastuidraw_arc_stroking_stroke_radius = 0.0;
+                  fastuidraw_arc_stroking_arc_radius = 0.0;
+                  offset_type = fastuidraw_arc_stroke_line_segment;
+                  position = center;
+                  point_packed_data = 0u;
+                }
+            }
+          else if (offset_type != fastuidraw_arc_stroke_line_segment)
+            {
+              if (arc_angle < 0.0)
+                {
+                  fastuidraw_arc_stroking_dash_bits |= uint(fastuidraw_arc_stroke_negative_arc_angle_mask);
+                }
+
+              if ((point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0u)
+                {
+                  fastuidraw_arc_stroking_distance -= delta_mag;
+                }
+
+              /* the fragment shader just does radius * atan() to compute the
+               * distance from the start of the arc-edge. As such, we need to
+               * rotate back by the start angle.
+               */
+              rotate_by =
+                mat2(offset_direction.x, -offset_direction.y,
+                     offset_direction.y, offset_direction.x);
+
+              if ((point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0u)
+                {
+                  /* we rotated by the offset_direction, which means we rotated
+                   * back by the end-angle, rotate forward by arc-angle to get
+                   * a net rotation of backwards by start angle
+                   */
+                  mat2 tmp;
+                  float c, s;
+
+                  c = cos(arc_angle);
+                  s = sin(arc_angle);
+                  tmp = mat2(c, s, -s, c);
+                  rotate_by = tmp * rotate_by;
+                }
+            }
+
+          if (offset_type == fastuidraw_arc_stroke_line_segment)
+            {
+              if (extend_edge.extend_edge)
+                {
+                  position -= secondary_attrib.zw * (stroke_radius / delta_mag);
+                }
+            }
+          else if (dash_style != fastuidraw_stroke_dashed_flat_caps)
+            {
+              /* TODO: we need to make sure that the arc_angle is no more than
+               * 180 degrees otherwise the beyond boundary points will be utterly
+               * wrong and induce ovelap.
+               */
+              float increase_by;
+              float cc, ss;
+
+              increase_by = sign(arc_angle) * stroke_radius / radius;
+              cc = cos(increase_by);
+              ss = sin(increase_by);
+
+              if (extend_edge.extend_edge)
+                {
+                  arc_angle += increase_by;
+
+                  /* we need rotate offset_vector by increase_by to enlarge the
+                   * the zone the arc; if at the end of a segment, we rotate forward,
+                   * if at the start of a segment, we rotate backwards.
+                   */
+                  if ((point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0u)
+                    {
+                      mat2 M = mat2(cc, ss, -ss, cc);
+                      offset_direction = M * offset_direction;
+                    }
+                  else
+                    {
+                      mat2 M = mat2(cc, -ss, ss, cc);
+                      offset_direction = M * offset_direction;
+                    }
+                }
+
+              /* if the other side is to be extended as well, we need
+               * to note that in arc_angle as well.
+               */
+              if (extend_edge.extend_opposite_edge)
+                {
+                  arc_angle += increase_by;
+                }
+            }
+        }
+    }
+  #endif
 
   if(offset_type == fastuidraw_arc_stroke_arc_point_on_path_origin)
     {
@@ -93,8 +251,8 @@ fastuidraw_gl_vert_main(in uint sub_shader,
            * radius as stroke_radius - radius
            */
           scale_factor = -radius;
-          fastuidraw_arc_stroke_arc_radius = 0.0;
-          fastuidraw_arc_stroke_stroke_radius = stroke_radius - radius;
+          fastuidraw_arc_stroking_arc_radius = 0.0;
+          fastuidraw_arc_stroking_stroke_radius = stroke_radius - radius;
         }
       else
         {
@@ -123,8 +281,8 @@ fastuidraw_gl_vert_main(in uint sub_shader,
           /* change the behavior to be like an arc-join centered at the
            * same location with stroknig radius as stroke_radius - radius
            */
-          fastuidraw_arc_stroke_arc_radius = 0.0;
-          fastuidraw_arc_stroke_stroke_radius = stroke_radius - radius;
+          fastuidraw_arc_stroking_arc_radius = 0.0;
+          fastuidraw_arc_stroking_stroke_radius = stroke_radius - radius;
         }
     }
 
@@ -147,7 +305,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       v.y = s * offset_direction.x + c * offset_direction.y;
 
       L = 1.0 - c;
-      D = (fastuidraw_arc_stroke_arc_radius + fastuidraw_arc_stroke_stroke_radius) * L;
+      D = (fastuidraw_arc_stroking_arc_radius + fastuidraw_arc_stroking_stroke_radius) * L;
       p += D * v;
 
       /* move p an additional amount so that the edge formed
@@ -163,14 +321,21 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       p += d / c * v;
     }
 
-  fastuidraw_arc_stroke_relative_to_center_x = p.x - center.x;
-  fastuidraw_arc_stroke_relative_to_center_y = p.y - center.y;
+  vector_from_center = p - center;
+  #ifdef FASTUIDRAW_STROKE_DASHED
+    {
+      vector_from_center = rotate_by * vector_from_center;
+    }
+  #endif
+
+  fastuidraw_arc_stroking_relative_to_center_x = vector_from_center.x;
+  fastuidraw_arc_stroking_relative_to_center_y = vector_from_center.y;
 
   if (offset_type == fastuidraw_arc_stroke_line_segment ||
       offset_type == fastuidraw_arc_stroke_bevel_segment)
     {
-      fastuidraw_arc_stroke_arc_radius = -1.0f; //indicate to frag shader to skip arc-coverage
-      fastuidraw_arc_stroke_relative_to_center_x = float(on_boundary);
+      fastuidraw_arc_stroking_arc_radius = -1.0f; //indicate to frag shader to skip arc-coverage
+      fastuidraw_arc_stroking_relative_to_center_x = float(on_boundary);
     }
 
   #if defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
