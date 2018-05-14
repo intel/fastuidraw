@@ -90,19 +90,19 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       is_edge_end = (point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0u;
       is_constant_distance = (point_packed_data & uint(fastuidraw_arc_stroke_distance_constant_on_primitive_mask)) != 0u;
 
+      /* TODO: pass along a start and end of edge to limit fragment shader
+       * looking for values when doing dashed stroking. The values are to be
+       *    start <-- m_distance_from_contour_start - m_distance_from_edge_start
+       *      end <-- m_distance_from_contour_start + m_edge_length
+       */
       fastuidraw_arc_stroking_distance = base.d;
       if (is_constant_distance)
         {
-          fastuidraw_arc_stroking_dash_bits = uint(fastuidraw_stroke_gauranteed_to_be_covered_mask);
-          if (base.s < 0.0)
-            {
-              scale_factor = 0.0;
-              fastuidraw_arc_stroking_stroke_radius = 0.0;
-              fastuidraw_arc_stroking_arc_radius = 0.0;
-              offset_type = fastuidraw_arc_stroke_bevel_segment;
-              position = center;
-              point_packed_data = 0u;
-            }
+          /* TODO: if the element is from a rounded-join, then
+           *   -  collapse if base.s < 0.0
+           *   -  set mask to always_covered if base.s > 0.0
+           */
+          fastuidraw_arc_stroking_dash_bits = uint(fastuidraw_stroke_distance_constant);
         }
       else
         {
@@ -129,7 +129,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
               collapse = (base.interval_end > base.d + delta_mag && base.s < 0.0);
             }
 
-          if (collapse)
+          if (collapse && dash_style == fastuidraw_stroke_dashed_flat_caps)
             {
               if (offset_type != fastuidraw_arc_stroke_line_segment)
                 {
