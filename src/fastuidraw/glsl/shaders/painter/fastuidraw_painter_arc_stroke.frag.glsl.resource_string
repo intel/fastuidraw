@@ -57,8 +57,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
             }
 
           alpha *= fastuidraw_stroke_compute_dash_coverage(dash_style, shader_data_offset,
-                                                           dist,
-                                                           distw,
+                                                           dist, distw,
                                                            0.0, 0.0,
                                                            false);
         }

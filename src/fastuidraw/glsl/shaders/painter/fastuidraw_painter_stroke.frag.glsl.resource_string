@@ -49,11 +49,11 @@ fastuidraw_gl_frag_main(in uint sub_shader,
             {
               alpha = fastuidraw_stroke_compute_dash_coverage(dash_style, shader_data_offset,
                                                               fastuidraw_stroking_distance,
-                                                              fastuidraw_stroking_distance_sub_edge_start,
-                                                              fastuidraw_stroking_distance_sub_edge_end,
                                                               fwidth_fastuidraw_stroking_distance,
                                                               fastuidraw_stroking_on_boundary,
                                                               fwidth_fastuidraw_stroking_on_boundary,
+                                                              fastuidraw_stroking_distance_sub_edge_start,
+                                                              fastuidraw_stroking_distance_sub_edge_end,
                                                               (fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u);
             }
 

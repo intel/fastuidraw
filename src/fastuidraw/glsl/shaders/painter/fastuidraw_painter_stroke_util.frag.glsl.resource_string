@@ -95,11 +95,11 @@ float
 fastuidraw_stroke_compute_dash_coverage(in uint dash_style,
                                         in uint shader_data_offset,
                                         in float distance_value,
-                                        in float distance_sub_edge_start,
-                                        in float distance_sub_edge_end,
                                         in float fwidth_distance_value,
                                         in float stroking_on_boundary,
                                         in float fwidth_stroking_on_boundary,
+                                        in float distance_sub_edge_start,
+                                        in float distance_sub_edge_end,
                                         in bool skip_interval_lookup)
 {
   float d, q;
@@ -129,6 +129,7 @@ fastuidraw_stroke_compute_dash_coverage(in uint dash_style,
                                                            stroking_on_boundary,
                                                            fwidth_stroking_on_boundary);
 }
+
 
 float
 fastuidraw_stroke_compute_dash_coverage(in uint dash_style,
