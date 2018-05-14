@@ -535,7 +535,8 @@ struct fastuidraw_dashed_struct_edge_extend
   uint stroking_bits; //stroking bit-masks that frag shader will use
   float stroking_distance; //stroking distance value to pass to frag-shader
   float edge_distance_start, edge_distance_end; //stroking begin/end distance to pass to frag shader
-  bool extend_edge; // true if edge should be extended
+  bool extend_edge; // true if edge should be extended on the current vertex side
+  bool extend_opposite_edge; //true if edge should be extended on the other vertex side
   bool collapse;
 };
 
@@ -594,11 +595,26 @@ fastuidraw_dashed_helper_vert_extend_edge(in uint shader_data_offset,
       extend_edge.stroking_distance = 0.0;
       extend_edge.collapse = (extend_edge.s2 < 0.0);
       extend_edge.extend_edge = false;
+
+      if (!is_edge_end)
+        {
+          extend_edge.edge_distance_start = base.d;
+          extend_edge.edge_distance_end = extend_edge.d2;
+        }
+      else
+        {
+          extend_edge.edge_distance_start = extend_edge.d2;
+          extend_edge.edge_distance_end = base.d;
+        }
     }
   else
     {
       extend_edge.stroking_bits = 0u;
       extend_edge.collapse = false;
+      if (extend_edge.s2 < 0.0 && extend_edge.has_caps)
+        {
+          extend_edge.extend_opposite_edge = true;
+        }
 
       if (!extend_edge.is_end_of_edge)
         {

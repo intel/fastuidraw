@@ -120,6 +120,15 @@ public:
       end_segment_bit,
 
       /*!
+       * Bit indicates that when doing dashed stroking that
+       * the value the distance value is the same for all
+       * points of a triangle, i.e. the dashed coverage
+       * computation can be done purely from the vertex
+       * shader
+       */
+      distance_constant_on_primitive_bit,
+
+      /*!
        * Bit0 for holding the depth() value
        * of the point
        */
@@ -191,6 +200,11 @@ public:
        * Mask generated for \ref end_segment_bit
        */
       end_segment_mask = FASTUIDRAW_MASK(end_segment_bit, 1),
+
+      /*!
+       * Mask generated for \ref distance_constant_on_primitive_bit
+       */
+      distance_constant_on_primitive_mask = FASTUIDRAW_MASK(distance_constant_on_primitive_bit, 1),
 
       /*!
        * Mask generated for \ref depth_bit0 and \ref depth_num_bits

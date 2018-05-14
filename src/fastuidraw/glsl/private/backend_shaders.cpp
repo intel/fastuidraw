@@ -284,18 +284,18 @@ build_uber_stroke_varyings(uint32_t flags) const
   if (flags & arc_shader)
     {
       return_value
-        .add_float_varying("fastuidraw_arc_stroke_relative_to_center_x")
-        .add_float_varying("fastuidraw_arc_stroke_relative_to_center_y")
-        .add_float_varying("fastuidraw_arc_stroke_arc_radius")
-        .add_float_varying("fastuidraw_arc_stroke_stroke_radius");
+        .add_float_varying("fastuidraw_arc_stroking_relative_to_center_x")
+        .add_float_varying("fastuidraw_arc_stroking_relative_to_center_y")
+        .add_float_varying("fastuidraw_arc_stroking_arc_radius")
+        .add_float_varying("fastuidraw_arc_stroking_stroke_radius");
 
       if (flags & dashed_shader)
         {
           return_value
-            .add_float_varying("fastuidraw_arc_stroke_arc_angle")
-            .add_float_varying("fastuidraw_stroking_distance")
-            .add_float_varying("fastuidraw_stroking_distance_sub_edge_start")
-            .add_float_varying("fastuidraw_stroking_distance_sub_edge_end");
+            .add_float_varying("fastuidraw_arc_stroking_distance")
+            .add_float_varying("fastuidraw_arc_stroking_distance_sub_edge_start")
+            .add_float_varying("fastuidraw_arc_stroking_distance_sub_edge_end")
+            .add_uint_varying("fastuidraw_arc_stroking_dash_bits");
         }
     }
   else

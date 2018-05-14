@@ -2,7 +2,7 @@ vec4
 fastuidraw_gl_frag_main(in uint sub_shader,
                         in uint shader_data_offset)
 {
-  float alpha = 1.0, red = 1.0;
+  float alpha = 1.0;
   uint render_pass, dash_style;
 
   render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
@@ -20,26 +20,62 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
   float r, d, q, ql, qlw;
 
-  r = length(vec2(fastuidraw_arc_stroke_relative_to_center_x,
-                  fastuidraw_arc_stroke_relative_to_center_y));
+  r = length(vec2(fastuidraw_arc_stroking_relative_to_center_x,
+                  fastuidraw_arc_stroking_relative_to_center_y));
 
-  q = fastuidraw_arc_stroke_stroke_radius - abs(r - fastuidraw_arc_stroke_arc_radius);
+  q = fastuidraw_arc_stroking_stroke_radius - abs(r - fastuidraw_arc_stroking_arc_radius);
   d = max(abs(q), fwidth(q));
 
-  ql = 1.0 - fastuidraw_arc_stroke_relative_to_center_x;
+  ql = 1.0 - fastuidraw_arc_stroking_relative_to_center_x;
   qlw = fwidth(ql);
 
-  /* A negtive arc_radius indicates that it is a segment */
-  if (fastuidraw_arc_stroke_arc_radius > -0.5)
+  #ifdef FASTUIDRAW_STROKE_DASHED
     {
-      alpha = max(0.0, q / d);
+      float theta, thetaw, dist, distw;
+      uint dash_style;
+
+      dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
+                                           fastuidraw_stroke_sub_shader_dash_style_num_bits,
+                                           sub_shader);
+
+      theta = atan(fastuidraw_arc_stroking_relative_to_center_y,
+                   fastuidraw_arc_stroking_relative_to_center_x);
+      thetaw = fwidth(theta);
+      dist = fastuidraw_arc_stroking_distance;
+      distw = fwidth(fastuidraw_arc_stroking_distance);
+
+      if ((fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_gauranteed_to_be_covered_mask)) == 0u)
+        {
+          if (fastuidraw_arc_stroking_arc_radius > -0.5)
+            {
+              if ((fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_arc_stroke_negative_arc_angle_mask)) != 0u)
+                {
+                  theta = -theta;
+                }
+              dist += theta * fastuidraw_arc_stroking_arc_radius;
+              distw = thetaw * fastuidraw_arc_stroking_arc_radius;
+            }
+
+          alpha *= fastuidraw_stroke_compute_dash_coverage(dash_style, shader_data_offset,
+                                                           dist,
+                                                           distw,
+                                                           0.0, 0.0,
+                                                           false);
+        }
+    }
+  #endif
+
+  /* A negtive arc_radius indicates that it is a segment */
+  if (fastuidraw_arc_stroking_arc_radius > -0.5)
+    {
+      alpha *= max(0.0, q / d);
     }
   else
     {
       float dd;
       q = 1.0;
       dd = max(ql, qlw);
-      alpha = ql / dd;
+      alpha *= ql / dd;
     }
 
   #ifdef FASTUIDRAW_STROKE_COVER_THEN_DRAW
@@ -73,5 +109,5 @@ fastuidraw_gl_frag_main(in uint sub_shader,
     }
   #endif
 
-  return vec4(1.0, 1.0, 1.0, alpha).xyzw;
+    return vec4(1.0, 1.0, 1.0, alpha);
 }
