@@ -56,9 +56,10 @@ fastuidraw_stroke_compute_dash_coverage_implement(in uint dash_style,
                                                   in float q, in float r,
                                                   in float fwidth_distance_value,
                                                   in float stroking_on_boundary,
-                                                  in float fwidth_stroking_on_boundary)
+                                                  in float fwidth_stroking_on_boundary,
+                                                  in bool distance_value_constant_on_primitive)
 {
-  float d, y, qq_yy, fwidth_qq_yy, fw;
+  float d, y, qq_yy, fwidth_qq_yy, fw, return_value;
 
   y = r * stroking_on_boundary;
   qq_yy = q * q + y * y;
@@ -87,8 +88,18 @@ fastuidraw_stroke_compute_dash_coverage_implement(in uint dash_style,
     {
       q += r;
     }
-  d = max(abs(q), fw);
-  return max(0.0, q / d);
+
+  if (!distance_value_constant_on_primitive)
+    {
+      d = max(abs(q), fw);
+      return_value = max(0.0, q / d);
+    }
+  else
+    {
+      return_value = q > 0.0 ? 1.0 : 0.0;
+    }
+
+  return return_value;
 }
 
 float
@@ -100,7 +111,8 @@ fastuidraw_stroke_compute_dash_coverage(in uint dash_style,
                                         in float fwidth_stroking_on_boundary,
                                         in float distance_sub_edge_start,
                                         in float distance_sub_edge_end,
-                                        in bool skip_interval_lookup)
+                                        in bool skip_interval_lookup,
+                                        in bool distance_value_constant_on_primitive)
 {
   float d, q;
   uint dash_pattern_at;
@@ -127,7 +139,8 @@ fastuidraw_stroke_compute_dash_coverage(in uint dash_style,
   return fastuidraw_stroke_compute_dash_coverage_implement(dash_style, q, abs(stroke_params.radius),
                                                            fwidth_distance_value,
                                                            stroking_on_boundary,
-                                                           fwidth_stroking_on_boundary);
+                                                           fwidth_stroking_on_boundary,
+                                                           distance_value_constant_on_primitive);
 }
 
 
@@ -138,7 +151,8 @@ fastuidraw_stroke_compute_dash_coverage(in uint dash_style,
                                         in float fwidth_distance_value,
                                         in float stroking_on_boundary,
                                         in float fwidth_stroking_on_boundary,
-                                        in bool skip_interval_lookup)
+                                        in bool skip_interval_lookup,
+                                        in bool distance_value_constant_on_primitive)
 {
   float d, q;
   uint dash_pattern_at;
@@ -163,5 +177,6 @@ fastuidraw_stroke_compute_dash_coverage(in uint dash_style,
   return fastuidraw_stroke_compute_dash_coverage_implement(dash_style, q, abs(stroke_params.radius),
                                                            fwidth_distance_value,
                                                            stroking_on_boundary,
-                                                           fwidth_stroking_on_boundary);
+                                                           fwidth_stroking_on_boundary,
+                                                           distance_value_constant_on_primitive);
 }

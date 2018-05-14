@@ -1,3 +1,4 @@
 #define fastuidraw_stroke_gauranteed_to_be_covered_mask 1
 #define fastuidraw_stroke_skip_dash_interval_lookup_mask 2
-#define fastuidraw_arc_stroke_negative_arc_angle_mask 4
+#define fastuidraw_stroke_distance_constant 4
+#define fastuidraw_arc_stroke_negative_arc_angle_mask 8
