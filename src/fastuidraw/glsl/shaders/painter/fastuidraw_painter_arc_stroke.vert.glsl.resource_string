@@ -121,14 +121,14 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                                                     stroke_radius,
                                                     (point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0u,
                                                     delta_mag,
-                                                    dash_style != fastuidraw_stroke_dashed_flat_caps,
+                                                    dash_style != fastuidraw_stroke_dashed_flat_caps
+                                                    && offset_type == fastuidraw_arc_stroke_line_segment,
                                                     base,
                                                     extend_edge);
 
           fastuidraw_arc_stroking_dash_bits = extend_edge.stroking_bits;
           fastuidraw_arc_stroking_distance_sub_edge_start = extend_edge.edge_distance_start;
           fastuidraw_arc_stroking_distance_sub_edge_end = extend_edge.edge_distance_end;
-          fastuidraw_arc_stroking_distance = extend_edge.stroking_distance;
 
           if (extend_edge.collapse)
             {
@@ -137,12 +137,21 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                 {
                   fastuidraw_arc_stroking_stroke_radius = 0.0;
                   fastuidraw_arc_stroking_arc_radius = 0.0;
+                  fastuidraw_arc_stroking_distance = 0.0;
                   offset_type = fastuidraw_arc_stroke_line_segment;
                   position = center;
                   point_packed_data = 0u;
                 }
             }
-          else if (offset_type != fastuidraw_arc_stroke_line_segment)
+          else if (offset_type == fastuidraw_arc_stroke_line_segment)
+            {
+              fastuidraw_arc_stroking_distance = extend_edge.stroking_distance;
+              if (extend_edge.extend_edge)
+                {
+                  position -= secondary_attrib.zw * (stroke_radius / delta_mag);
+                }
+            }
+          else
             {
               if (arc_angle < 0.0)
                 {
@@ -151,7 +160,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
               if ((point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0u)
                 {
-                  fastuidraw_arc_stroking_distance -= delta_mag;
+                  fastuidraw_arc_stroking_distance = base.d - delta_mag;
                 }
 
               /* the fragment shader just does radius * atan() to compute the
@@ -175,55 +184,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                   s = sin(arc_angle);
                   tmp = mat2(c, s, -s, c);
                   rotate_by = tmp * rotate_by;
-                }
-            }
-
-          if (offset_type == fastuidraw_arc_stroke_line_segment)
-            {
-              if (extend_edge.extend_edge)
-                {
-                  position -= secondary_attrib.zw * (stroke_radius / delta_mag);
-                }
-            }
-          else if (dash_style != fastuidraw_stroke_dashed_flat_caps)
-            {
-              /* TODO: we need to make sure that the arc_angle is no more than
-               * 180 degrees otherwise the beyond boundary points will be utterly
-               * wrong and induce ovelap.
-               */
-              float increase_by;
-              float cc, ss;
-
-              increase_by = sign(arc_angle) * stroke_radius / radius;
-              cc = cos(increase_by);
-              ss = sin(increase_by);
-
-              if (extend_edge.extend_edge)
-                {
-                  arc_angle += increase_by;
-
-                  /* we need rotate offset_vector by increase_by to enlarge the
-                   * the zone the arc; if at the end of a segment, we rotate forward,
-                   * if at the start of a segment, we rotate backwards.
-                   */
-                  if ((point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0u)
-                    {
-                      mat2 M = mat2(cc, ss, -ss, cc);
-                      offset_direction = M * offset_direction;
-                    }
-                  else
-                    {
-                      mat2 M = mat2(cc, -ss, ss, cc);
-                      offset_direction = M * offset_direction;
-                    }
-                }
-
-              /* if the other side is to be extended as well, we need
-               * to note that in arc_angle as well.
-               */
-              if (extend_edge.extend_opposite_edge)
-                {
-                  arc_angle += increase_by;
                 }
             }
         }
