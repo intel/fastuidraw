@@ -75,92 +75,83 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   #ifdef FASTUIDRAW_STROKE_DASHED
     {
-      fastuidraw_dashed_struct_base base;
       float stroke_distance;
+      bool is_constant_distance, is_edge_end;
+      fastuidraw_dashed_struct_base base;
+      int dash_style;
+
+      dash_style = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
+                                               fastuidraw_stroke_sub_shader_dash_style_num_bits,
+                                               sub_shader));
 
       stroke_distance = distance_from_contour_start + stroke_params.dash_offset;
       fastuidraw_dashed_helper_vert_base(stroke_distance, shader_data_offset, stroke_params, base);
-      if ((point_packed_data & uint(fastuidraw_arc_stroke_distance_constant_on_primitive_mask)) != 0u)
+
+      is_edge_end = (point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0u;
+      is_constant_distance = (point_packed_data & uint(fastuidraw_arc_stroke_distance_constant_on_primitive_mask)) != 0u;
+
+      fastuidraw_arc_stroking_distance = base.d;
+      if (is_constant_distance)
         {
-          fastuidraw_arc_stroking_distance = base.d;
           fastuidraw_arc_stroking_dash_bits = uint(fastuidraw_stroke_gauranteed_to_be_covered_mask);
           if (base.s < 0.0)
             {
               scale_factor = 0.0;
-              if (offset_type != fastuidraw_arc_stroke_bevel_segment)
-                {
-                  fastuidraw_arc_stroking_stroke_radius = 0.0;
-                  fastuidraw_arc_stroking_arc_radius = 0.0;
-                  offset_type = fastuidraw_arc_stroke_bevel_segment;
-                  position = center;
-                  point_packed_data = 0u;
-                }
+              fastuidraw_arc_stroking_stroke_radius = 0.0;
+              fastuidraw_arc_stroking_arc_radius = 0.0;
+              offset_type = fastuidraw_arc_stroke_bevel_segment;
+              position = center;
+              point_packed_data = 0u;
             }
         }
       else
         {
-          fastuidraw_dashed_struct_edge_extend extend_edge;
           float delta_mag;
-          int dash_style;
+          bool collapse;
 
-          dash_style = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
-                                                   fastuidraw_stroke_sub_shader_dash_style_num_bits,
-                                                   sub_shader));
-
-          if (offset_type == fastuidraw_arc_stroke_line_segment)
+          fastuidraw_arc_stroking_dash_bits = 0u;
+          fastuidraw_arc_stroking_distance = stroke_distance;
+          if (offset_type != fastuidraw_arc_stroke_line_segment)
+            {
+              delta_mag = abs(arc_angle) * radius;
+            }
+          else
             {
               delta_mag = length(secondary_attrib.zw);
             }
+
+          if (is_edge_end)
+            {
+              collapse = (base.interval_begin < base.d - delta_mag && base.s < 0.0);
+            }
           else
             {
-              delta_mag = radius * abs(arc_angle);
+              collapse = (base.interval_end > base.d + delta_mag && base.s < 0.0);
             }
 
-          fastuidraw_dashed_helper_vert_extend_edge(shader_data_offset,
-                                                    stroke_params,
-                                                    stroke_radius,
-                                                    (point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0u,
-                                                    delta_mag,
-                                                    dash_style != fastuidraw_stroke_dashed_flat_caps
-                                                    && offset_type == fastuidraw_arc_stroke_line_segment,
-                                                    base,
-                                                    extend_edge);
-
-          fastuidraw_arc_stroking_dash_bits = extend_edge.stroking_bits;
-          fastuidraw_arc_stroking_distance_sub_edge_start = extend_edge.edge_distance_start;
-          fastuidraw_arc_stroking_distance_sub_edge_end = extend_edge.edge_distance_end;
-
-          if (extend_edge.collapse)
+          if (collapse)
             {
-              scale_factor = 0.0;
               if (offset_type != fastuidraw_arc_stroke_line_segment)
                 {
-                  fastuidraw_arc_stroking_stroke_radius = 0.0;
-                  fastuidraw_arc_stroking_arc_radius = 0.0;
-                  fastuidraw_arc_stroking_distance = 0.0;
                   offset_type = fastuidraw_arc_stroke_line_segment;
                   position = center;
-                  point_packed_data = 0u;
+                  scale_factor = 0.0;
                 }
-            }
-          else if (offset_type == fastuidraw_arc_stroke_line_segment)
-            {
-              fastuidraw_arc_stroking_distance = extend_edge.stroking_distance;
-              if (extend_edge.extend_edge)
+              else
                 {
-                  position -= secondary_attrib.zw * (stroke_radius / delta_mag);
+                  scale_factor = 0.0;
                 }
             }
-          else
+          else if (offset_type != fastuidraw_arc_stroke_line_segment)
             {
               if (arc_angle < 0.0)
                 {
                   fastuidraw_arc_stroking_dash_bits |= uint(fastuidraw_arc_stroke_negative_arc_angle_mask);
                 }
 
-              if ((point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0u)
+              if (is_edge_end)
                 {
-                  fastuidraw_arc_stroking_distance = base.d - delta_mag;
+                  fastuidraw_arc_stroking_distance = stroke_distance - abs(arc_angle) * radius;
                 }
 
               /* the fragment shader just does radius * atan() to compute the
