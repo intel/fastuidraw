@@ -18,20 +18,21 @@ fastuidraw_gl_frag_main(in uint sub_shader,
     }
   #endif
 
-  float r, d, q, ql, qlw;
+  float r, d, q, qw, ql, qlw;
 
   r = length(vec2(fastuidraw_arc_stroking_relative_to_center_x,
                   fastuidraw_arc_stroking_relative_to_center_y));
 
   q = fastuidraw_arc_stroking_stroke_radius - abs(r - fastuidraw_arc_stroking_arc_radius);
-  d = max(abs(q), fwidth(q));
+  qw = fwidth(q);
+  d = max(abs(q), qw);
 
   ql = 1.0 - fastuidraw_arc_stroking_relative_to_center_x;
   qlw = fwidth(ql);
 
   #ifdef FASTUIDRAW_STROKE_DASHED
     {
-      float theta, thetaw, dist, distw;
+      float theta, thetaw, dist, distw, bd, bdw;
       uint dash_style;
 
       dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
@@ -52,15 +53,24 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                 {
                   theta = -theta;
                 }
+              float recip = 1.0 / fastuidraw_arc_stroking_stroke_radius;
+
               dist += theta * fastuidraw_arc_stroking_arc_radius;
               distw = thetaw * fastuidraw_arc_stroking_arc_radius;
+              bd = 1.0 - q * recip;
+              bdw = qw * recip;
+            }
+          else
+            {
+              bd = fastuidraw_arc_stroking_relative_to_center_x;
+              bdw = qlw;
             }
 
           float bd_location;
           bool covered_without_dashes;
 
           alpha *= fastuidraw_stroke_compute_dash_coverage(dash_style, shader_data_offset,
-                                                           dist, distw, 0.0, 0.0,
+                                                           dist, distw, bd, bdw,
                                                            (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_distance_constant)) != 0u,
                                                            bd_location, covered_without_dashes);
 
