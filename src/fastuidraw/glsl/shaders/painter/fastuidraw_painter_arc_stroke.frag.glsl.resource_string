@@ -66,11 +66,15 @@ fastuidraw_gl_frag_main(in uint sub_shader,
               bdw = qlw;
             }
 
+          bool dont_anti_alias_dash_boundary;
+          dont_anti_alias_dash_boundary = render_pass == uint(fastuidraw_stroke_non_aa)
+            || (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_distance_constant)) != 0u;
+
           if (dash_style == fastuidraw_stroke_dashed_flat_caps)
             {
               alpha *= fastuidraw_stroke_compute_dash_coverage(shader_data_offset, dist, distw,
                                                                (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u,
-                                                               (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_distance_constant)) != 0u);
+                                                               dont_anti_alias_dash_boundary);
             }
           else
             {
@@ -79,7 +83,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                                                                fastuidraw_arc_stroking_distance_sub_edge_start,
                                                                fastuidraw_arc_stroking_distance_sub_edge_end,
                                                                (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u,
-                                                               (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_distance_constant)) != 0u);
+                                                               dont_anti_alias_dash_boundary);
             }
         }
     }
