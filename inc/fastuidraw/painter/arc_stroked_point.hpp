@@ -129,6 +129,11 @@ public:
       distance_constant_on_primitive_bit,
 
       /*!
+       * Bit indicates that the primitive formed is for a join
+       */
+      join_bit,
+
+      /*!
        * Bit0 for holding the depth() value
        * of the point
        */
@@ -205,6 +210,11 @@ public:
        * Mask generated for \ref distance_constant_on_primitive_bit
        */
       distance_constant_on_primitive_mask = FASTUIDRAW_MASK(distance_constant_on_primitive_bit, 1),
+
+      /*!
+       * Mask generated for \ref distance_constant_on_primitive_bit
+       */
+      join_mask = FASTUIDRAW_MASK(join_bit, 1),
 
       /*!
        * Mask generated for \ref depth_bit0 and \ref depth_num_bits

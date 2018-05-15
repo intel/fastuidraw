@@ -56,19 +56,26 @@ fastuidraw_gl_frag_main(in uint sub_shader,
               distw = thetaw * fastuidraw_arc_stroking_arc_radius;
             }
 
-          /* TODO: use fastuidraw_stroking_distance_sub_edge_start
-           * and fastuidraw_stroking_distance_sub_edge_end to restrict
-           * the coverage lookup value. These values are to be set
-           * as the legnth at the start of the edge and the length at
-           * the end of the edge which are given by:
-           *    start <-- m_distance_from_contour_start - m_distance_from_edge_start
-           *      end <-- m_distance_from_contour_start + m_edge_length
-           */
+          float bd_location;
+          bool covered_without_dashes;
+
           alpha *= fastuidraw_stroke_compute_dash_coverage(dash_style, shader_data_offset,
-                                                           dist, distw,
-                                                           0.0, 0.0,
-                                                           (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u,
-                                                           (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_distance_constant)) != 0u);
+                                                           dist, distw, 0.0, 0.0,
+                                                           (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_distance_constant)) != 0u,
+                                                           bd_location, covered_without_dashes);
+
+          if (!covered_without_dashes)
+            {
+              if (bd_location < fastuidraw_arc_stroking_distance_sub_edge_start)
+                {
+                  alpha = 0.0;
+                }
+
+              if (bd_location > fastuidraw_arc_stroking_distance_sub_edge_end)
+                {
+                  alpha = 0.0;
+                }
+            }
         }
     }
   #endif
@@ -117,5 +124,5 @@ fastuidraw_gl_frag_main(in uint sub_shader,
     }
   #endif
 
-    return vec4(1.0, 1.0, 1.0, alpha);
+  return vec4(1.0, 1.0, 1.0, alpha);
 }

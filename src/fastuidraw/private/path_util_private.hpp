@@ -87,6 +87,7 @@ namespace fastuidraw
      * \param n_end normal vector at join end
      * \param delta_angle angle difference between n_start and n_end
      * \param depth depth value to use for all arc-join points
+     * \param is_join points are for a join
      */
     void
     pack_arc_join(ArcStrokedPoint pt, unsigned int count,
@@ -95,7 +96,8 @@ namespace fastuidraw
                   c_array<PainterAttribute> dst_pts,
                   unsigned int &vertex_offset,
                   c_array<PainterIndex> dst_indices,
-                  unsigned int &index_offset);
+                  unsigned int &index_offset,
+                  bool is_join);
 
     /* Same as above, except that delta-angle is computed
      * from n_start and n_end
@@ -107,7 +109,8 @@ namespace fastuidraw
                   c_array<PainterAttribute> dst_pts,
                   unsigned int &vertex_offset,
                   c_array<PainterIndex> dst_indices,
-                  unsigned int &index_offset);
+                  unsigned int &index_offset,
+                  bool is_join);
 
     void
     add_triangle(PainterIndex v0, PainterIndex v1, PainterIndex v2,

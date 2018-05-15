@@ -1695,7 +1695,7 @@ build_arc_bevel(const SingleSubEdge &sub_edge, unsigned int depth,
 
   fastuidraw::detail::pack_arc_join(pt, 1, n_start, n_end, depth,
                                     attribute_data, vert_offset,
-                                    indices, index_offset);
+                                    indices, index_offset, false);
 }
 
 void

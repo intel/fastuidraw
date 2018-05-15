@@ -526,6 +526,7 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_arc_stroke_bevel_segment", ArcStrokedPoint::offset_bevel_segment)
 
     /* bit masks for ArcStrokedPoint::m_packed_data */
+    .add_macro("fastuidraw_arc_stroke_join_mask", ArcStrokedPoint::join_mask)
     .add_macro("fastuidraw_arc_stroke_beyond_boundary_mask", ArcStrokedPoint::beyond_boundary_mask)
     .add_macro("fastuidraw_arc_stroke_distance_constant_on_primitive_mask", ArcStrokedPoint::distance_constant_on_primitive_mask)
     .add_macro("fastuidraw_arc_stroke_inner_stroking_mask", ArcStrokedPoint::inner_stroking_mask)
