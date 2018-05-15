@@ -3209,7 +3209,6 @@ fastuidraw::StrokedCapsJoins::
 void
 fastuidraw::StrokedCapsJoins::
 compute_chunks(ScratchSpace &scratch_space,
-               const PainterShaderData::DataBase *dash_data,
                c_array<const vec3> clip_equations,
                const float3x3 &clip_matrix_local,
                const vec2 &recip_dimensions,

@@ -1638,7 +1638,6 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                       m_work_room.m_stroke_chunk_set);
 
   caps_joins.compute_chunks(m_work_room.m_stroked_caps_joins_scratch,
-                            draw.m_item_shader_data.data().data_base(),
                             m_clip_store.current(),
                             m_clip_rect_state.item_matrix(),
                             m_one_pixel_width,
