@@ -183,7 +183,6 @@ public:
    * coordinates, compute what chunks are not completely
    * culled by the clip equations.
    * \param scratch_space scratch space for computations
-   * \param dash_data data to pass to dast evaluator
    * \param clip_equations array of clip equations
    * \param clip_matrix_local 3x3 transformation from local (x, y, 1)
    *                          coordinates to clip coordinates.
@@ -206,7 +205,6 @@ public:
    */
   void
   compute_chunks(ScratchSpace &scratch_space,
-                 const PainterShaderData::DataBase *dash_data,
                  c_array<const vec3> clip_equations,
                  const float3x3 &clip_matrix_local,
                  const vec2 &recip_dimensions,

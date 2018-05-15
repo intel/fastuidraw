@@ -1640,6 +1640,7 @@ approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
 
       value_valid = d->m_contours[d->m_start_check_bb]->approximate_bounding_box(&p0, &p1);
       FASTUIDRAWassert(value_valid);
+      FASTUIDRAWunused(value_valid);
 
       d->m_bb.union_point(p0);
       d->m_bb.union_point(p1);
