@@ -76,6 +76,15 @@ public:
       offset_line_segment,
 
       /*!
+       * Represents a point at the start or end of an edge.
+       * When performing dashed stroking with caps, these
+       * points can be expanded into quads to cover a cap
+       * induced by stroking at the start or end of an
+       * edge.
+       */
+      offset_arc_point_dashed_capper,
+
+      /*!
        * The point is part of a bevel connecting two line segments.
        */
       offset_bevel_segment,
@@ -153,7 +162,7 @@ public:
 
   /*!
    * Enumeration of the bits of \ref m_packed_data
-   * for thos with offset type \ref offset_stroking_boundary
+   * for those with offset type \ref offset_stroking_boundary
    */
   enum packed_data_bit_stroking_boundary_t
     {
@@ -171,6 +180,19 @@ public:
        * on the outside stroking boundary.
        */
       inner_stroking_bit,
+    };
+
+  /*!
+   * Enumeration of the bits of \ref m_packed_data
+   * for those with offset type \ref offset_arc_point_dashed_capper
+   */
+  enum packed_data_bit_arc_point_dashed_capper
+    {
+      /*!
+       * if up, the point is to be moved in the direction
+       * of \ref m_data to cover an induced cap.
+       */
+      extend_bit = number_common_bits,
     };
 
   /*!
@@ -212,9 +234,14 @@ public:
       distance_constant_on_primitive_mask = FASTUIDRAW_MASK(distance_constant_on_primitive_bit, 1),
 
       /*!
-       * Mask generated for \ref distance_constant_on_primitive_bit
+       * Mask generated for \ref join_bit
        */
       join_mask = FASTUIDRAW_MASK(join_bit, 1),
+
+      /*!
+       * Mask generated for \ref extend_bit
+       */
+      extend_mask = FASTUIDRAW_MASK(extend_bit, 1),
 
       /*!
        * Mask generated for \ref depth_bit0 and \ref depth_num_bits

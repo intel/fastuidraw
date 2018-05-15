@@ -66,26 +66,12 @@ fastuidraw_gl_frag_main(in uint sub_shader,
               bdw = qlw;
             }
 
-          float bd_location;
-          bool covered_without_dashes;
-
           alpha *= fastuidraw_stroke_compute_dash_coverage(dash_style, shader_data_offset,
                                                            dist, distw, bd, bdw,
-                                                           (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_distance_constant)) != 0u,
-                                                           bd_location, covered_without_dashes);
-
-          if (!covered_without_dashes)
-            {
-              if (bd_location < fastuidraw_arc_stroking_distance_sub_edge_start)
-                {
-                  alpha = 0.0;
-                }
-
-              if (bd_location > fastuidraw_arc_stroking_distance_sub_edge_end)
-                {
-                  alpha = 0.0;
-                }
-            }
+                                                           fastuidraw_arc_stroking_distance_sub_edge_start,
+                                                           fastuidraw_arc_stroking_distance_sub_edge_end,
+                                                           (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u,
+                                                           (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_distance_constant)) != 0u);
         }
     }
   #endif
