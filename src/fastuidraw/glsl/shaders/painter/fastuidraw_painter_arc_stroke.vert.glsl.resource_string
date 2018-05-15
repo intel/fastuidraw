@@ -75,9 +75,9 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   #ifdef FASTUIDRAW_STROKE_DASHED
     {
-      float stroke_distance;
+      float edge_start, edge_end, stroke_distance;
       bool is_constant_distance, is_edge_end;
-      fastuidraw_dashed_struct_base base;
+      fastuidraw_dashed_struct_base base, base_start, base_end;
       int dash_style;
 
       dash_style = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
@@ -86,14 +86,55 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
       stroke_distance = distance_from_contour_start + stroke_params.dash_offset;
       fastuidraw_dashed_helper_vert_base(stroke_distance, shader_data_offset, stroke_params, base);
+      fastuidraw_arc_stroking_distance = base.d;
+
+      edge_start = distance_from_contour_start - distance_from_edge_start + stroke_params.dash_offset;
+      fastuidraw_dashed_helper_vert_base(edge_start, shader_data_offset, stroke_params, base_start);
+      fastuidraw_arc_stroking_distance_sub_edge_start = (base_start.s < 0.0) ? base_start.interval_end : edge_start;
+
+      edge_end = edge_start + total_edge_length;
+      fastuidraw_dashed_helper_vert_base(edge_end, shader_data_offset, stroke_params, base_end);
+      fastuidraw_arc_stroking_distance_sub_edge_end = (base_end.s < 0.0) ? base_end.interval_begin : edge_end;
 
       is_edge_end = (point_packed_data & uint(fastuidraw_arc_stroke_end_segment_mask)) != 0u;
       is_constant_distance = (point_packed_data & uint(fastuidraw_arc_stroke_distance_constant_on_primitive_mask)) != 0u;
+      if (offset_type == fastuidraw_arc_stroke_dashed_capper)
+        {
+          fastuidraw_arc_stroking_dash_bits = uint(fastuidraw_stroke_skip_dash_interval_lookup_mask);
 
-      fastuidraw_arc_stroking_distance = base.d;
-      fastuidraw_arc_stroking_distance_sub_edge_start = distance_from_contour_start - distance_from_edge_start;
-      fastuidraw_arc_stroking_distance_sub_edge_end = fastuidraw_arc_stroking_distance_sub_edge_start + total_edge_length;
-      if (is_constant_distance)
+          fastuidraw_arc_stroking_distance = (is_edge_end) ?
+            base.interval_begin - base.d :
+            base.d - base.interval_end;
+
+          if (base.s < 0.0
+              && dash_style != fastuidraw_stroke_dashed_flat_caps
+              && (point_packed_data & uint(fastuidraw_arc_stroke_extend_mask)) != 0u)
+            {
+              float d = 0.0;
+
+              if (is_edge_end)
+                {
+                  if (stroke_radius + base.interval_begin > base.d
+                      && base.interval_begin > edge_start)
+                    {
+                      d = stroke_radius + base.interval_begin - base.d;
+                      position += d * secondary_attrib.zw;
+                      fastuidraw_arc_stroking_distance = -stroke_radius;
+                    }
+                }
+              else
+                {
+                  if (base.interval_end - stroke_radius < base.d
+                      && base.interval_end < edge_end)
+                    {
+                      d = base.d - base.interval_end + stroke_radius;
+                      position += d * secondary_attrib.zw;
+                      fastuidraw_arc_stroking_distance = -stroke_radius;
+                    }
+                }
+            }
+        }
+      else if (is_constant_distance)
         {
           fastuidraw_arc_stroking_dash_bits = uint(fastuidraw_stroke_distance_constant);
           if ((point_packed_data & uint(fastuidraw_arc_stroke_join_mask)) != 0u)
@@ -242,7 +283,8 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   p = position + scale_factor * offset_direction;
 
-  if ((point_packed_data & uint(fastuidraw_arc_stroke_beyond_boundary_mask)) != 0u)
+  if (offset_type == fastuidraw_arc_stroke_stroking_boundary
+      && (point_packed_data & uint(fastuidraw_arc_stroke_beyond_boundary_mask)) != 0u)
     {
       float half_angle, L, D, c, s;
       vec2 v;
@@ -285,8 +327,9 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   fastuidraw_arc_stroking_relative_to_center_x = vector_from_center.x;
   fastuidraw_arc_stroking_relative_to_center_y = vector_from_center.y;
 
-  if (offset_type == fastuidraw_arc_stroke_line_segment ||
-      offset_type == fastuidraw_arc_stroke_bevel_segment)
+  if (offset_type == fastuidraw_arc_stroke_line_segment
+      || offset_type == fastuidraw_arc_stroke_bevel_segment
+      || offset_type == fastuidraw_arc_stroke_dashed_capper)
     {
       fastuidraw_arc_stroking_arc_radius = -1.0f; //indicate to frag shader to skip arc-coverage
       fastuidraw_arc_stroking_relative_to_center_x = float(on_boundary);

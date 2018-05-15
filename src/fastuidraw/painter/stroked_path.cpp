@@ -69,22 +69,41 @@ namespace
   class SingleSubEdge
   {
   public:
+    enum
+      {
+        first_segment_of_edge = 1,
+        last_segment_of_edge  = 2,
+      };
+
     SingleSubEdge()
     {}
 
     static
     void
-    add_sub_edges(const SingleSubEdge *prev_subedge_of_edge,
-                  const fastuidraw::TessellatedPath::segment &seg,
-                  bool is_closing_edge,
-                  std::vector<SingleSubEdge> &dst,
-                  fastuidraw::BoundingBox<float> &bx);
+    add_sub_edge(const SingleSubEdge *prev_subedge_of_edge,
+                 const fastuidraw::TessellatedPath::segment &seg,
+                 bool is_closing_edge,
+                 std::vector<SingleSubEdge> &dst,
+                 fastuidraw::BoundingBox<float> &bx,
+                 uint32_t flags);
 
     void
     split_sub_edge(int splitting_coordinate,
                    std::vector<SingleSubEdge> *dst_before_split_value,
                    std::vector<SingleSubEdge> *dst_after_split_value,
                    float split_value) const;
+
+    fastuidraw::vec2
+    unit_vector_into_segment(void) const
+    {
+      return fastuidraw::vec2(m_begin_normal.y(), -m_begin_normal.x());
+    }
+
+    fastuidraw::vec2
+    unit_vector_leaving_segment(void) const
+    {
+      return fastuidraw::vec2(m_end_normal.y(), -m_end_normal.x());
+    }
 
     bool m_from_line_segment;
 
@@ -114,9 +133,13 @@ namespace
     fastuidraw::range_type<float> m_arc_angle;
     float m_radius;
 
+    // only needed when arc-stroking where an edge begins or ends.
+    bool m_has_start_dashed_capper;
+    bool m_has_end_dashed_capper;
+
   private:
     SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg,
-                  bool is_closing_edge);
+                  bool is_closing_edge, uint32_t flags);
 
     bool
     intersection_point_in_arc(fastuidraw::vec2 pt, float *out_arc_angle) const;
@@ -587,6 +610,13 @@ namespace
                     fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                     fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
                     unsigned int &vertex_offset, unsigned int &index_offset) const;
+
+    void
+    build_dashed_capper(bool for_start_dashed_capper,
+                        const SingleSubEdge &sub_edge, unsigned int depth,
+                        fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+                        fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+                        unsigned int &vertex_offset, unsigned int &index_offset) const;
   };
 
   template<typename T>
@@ -660,7 +690,7 @@ namespace
 // SingleSubEdge methods
 SingleSubEdge::
 SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg,
-              bool is_closing_edge):
+              bool is_closing_edge, uint32_t flags):
   m_from_line_segment(seg.m_type == fastuidraw::TessellatedPath::line_segment),
   m_pt0(seg.m_start_pt),
   m_pt1(seg.m_end_pt),
@@ -678,9 +708,11 @@ SingleSubEdge(const fastuidraw::TessellatedPath::segment &seg,
   m_delta(m_pt1 - m_pt0),
   m_center(seg.m_center),
   m_arc_angle(seg.m_arc_angle),
-  m_radius(seg.m_radius)
+  m_radius(seg.m_radius),
+  m_has_start_dashed_capper(flags & first_segment_of_edge),
+  m_has_end_dashed_capper(flags & last_segment_of_edge)
 {
-  /* We know that the even if it is and arc, the edge is monotonic,
+  /* We know that the even if it is an arc, the edge is monotonic,
    * thus the bounding box of the arc is given by the bounding box
    * containing the end points.
    */
@@ -726,13 +758,14 @@ intersection_point_in_arc(fastuidraw::vec2 pt, float *out_arc_angle) const
 
 void
 SingleSubEdge::
-add_sub_edges(const SingleSubEdge *prev_subedge_of_edge,
-              const fastuidraw::TessellatedPath::segment &seg,
-              bool is_closing_edge,
-              std::vector<SingleSubEdge> &dst,
-              fastuidraw::BoundingBox<float> &bx)
+add_sub_edge(const SingleSubEdge *prev_subedge_of_edge,
+             const fastuidraw::TessellatedPath::segment &seg,
+             bool is_closing_edge,
+             std::vector<SingleSubEdge> &dst,
+             fastuidraw::BoundingBox<float> &bx,
+             uint32_t flags)
 {
-  SingleSubEdge sub_edge(seg, is_closing_edge);
+  SingleSubEdge sub_edge(seg, is_closing_edge, flags);
 
   /* If the dot product between the normal is negative, then
    * chances are there is a cusp; we do NOT want a bevel (or
@@ -855,6 +888,8 @@ split_sub_edge(int splitting_coordinate,
   out_edges[0].m_sub_edge_length = t * m_sub_edge_length;
   out_edges[0].m_bounding_box.union_point(m_pt0);
   out_edges[0].m_bounding_box.union_point(p);
+  out_edges[0].m_has_start_dashed_capper = m_has_start_dashed_capper;
+  out_edges[0].m_has_end_dashed_capper = false;
 
   out_edges[1].m_pt0 = p;
   out_edges[1].m_pt1 = m_pt1;
@@ -867,6 +902,8 @@ split_sub_edge(int splitting_coordinate,
   out_edges[1].m_sub_edge_length = s * m_sub_edge_length;
   out_edges[1].m_bounding_box.union_point(p);
   out_edges[1].m_bounding_box.union_point(m_pt1);
+  out_edges[1].m_has_start_dashed_capper = false;
+  out_edges[1].m_has_end_dashed_capper = m_has_end_dashed_capper;
 
   for(unsigned int i = 0; i < 2; ++i)
     {
@@ -939,7 +976,7 @@ process_edge(const fastuidraw::TessellatedPath &P,
 {
   fastuidraw::range_type<unsigned int> R;
   fastuidraw::c_array<const fastuidraw::TessellatedPath::segment> src_segments(P.segment_data());
-  bool is_closing_edge;
+  bool is_closing_edge, has_arcs(P.has_arcs());
   const SingleSubEdge *prev(nullptr);
 
   is_closing_edge = (edge + 1 == P.number_edges(contour));
@@ -948,8 +985,21 @@ process_edge(const fastuidraw::TessellatedPath &P,
 
   for(unsigned int i = R.m_begin; i < R.m_end; ++i)
     {
-      SingleSubEdge::add_sub_edges(prev, src_segments[i],
-                                   is_closing_edge, dst, bx);
+      uint32_t flags;
+
+      flags = 0u;
+      if (has_arcs && i == R.m_begin)
+        {
+          flags |= SingleSubEdge::first_segment_of_edge;
+        }
+      if (has_arcs && i + 1 == R.m_end)
+        {
+          flags |= SingleSubEdge::last_segment_of_edge;
+        }
+
+      SingleSubEdge::add_sub_edge(prev, src_segments[i],
+                                  is_closing_edge, dst, bx,
+                                  flags);
       prev = &dst.back();
     }
 }
@@ -1275,6 +1325,18 @@ increment_vertices_indices(fastuidraw::c_array<const SingleSubEdge> src,
           vertex_cnt += points_per_arc_segment;
           index_cnt += indices_per_arc_segment;
 	}
+
+      if (S.m_has_start_dashed_capper)
+        {
+          vertex_cnt += 6;
+          index_cnt += 12;
+        }
+
+      if (S.m_has_end_dashed_capper)
+        {
+          vertex_cnt += 6;
+          index_cnt += 12;
+        }
     }
 }
 
@@ -1541,6 +1603,8 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
   vecN<StrokedPoint, 6> pts;
 
   FASTUIDRAWassert(sub_edge.m_from_line_segment);
+  FASTUIDRAWassert(!sub_edge.m_has_start_dashed_capper);
+  FASTUIDRAWassert(!sub_edge.m_has_end_dashed_capper);
 
   if (sub_edge.m_has_bevel)
     {
@@ -1661,6 +1725,12 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
         }
     }
 
+  if (sub_edge.m_has_start_dashed_capper)
+    {
+      build_dashed_capper(true, sub_edge, depth, attribute_data,
+                         indices, vert_offset, index_offset);
+    }
+
   if (sub_edge.m_from_line_segment)
     {
       build_line_segment(sub_edge, depth, attribute_data,
@@ -1671,6 +1741,94 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
       build_arc_segment(sub_edge, depth, attribute_data,
                         indices, vert_offset, index_offset);
     }
+
+  if (sub_edge.m_has_end_dashed_capper)
+    {
+      build_dashed_capper(false, sub_edge, depth, attribute_data,
+                         indices, vert_offset, index_offset);
+    }
+}
+
+void
+ArcEdgeAttributeFiller::
+build_dashed_capper(bool for_start_dashed_capper,
+                    const SingleSubEdge &sub_edge, unsigned int depth,
+                    fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+                    fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+                    unsigned int &vertex_offset, unsigned int &index_offset) const
+{
+  using namespace fastuidraw;
+  using namespace detail;
+
+  const PainterIndex tris[12] =
+    {
+      0, 3, 4,
+      0, 4, 1,
+      1, 4, 5,
+      1, 5, 2,
+    };
+
+  for (unsigned int i = 0; i < 12; ++i, ++index_offset)
+    {
+      index_data[index_offset] = vertex_offset + tris[i];
+    }
+
+  vec2 tangent, normal, pos;
+  uint32_t packed_data, packed_data_mid;
+  float d;
+
+  packed_data = arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_dashed_capper, depth);
+  packed_data_mid = arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_arc_point_dashed_capper, depth);
+  if (for_start_dashed_capper)
+    {
+      normal = sub_edge.m_begin_normal;
+      tangent = -sub_edge.unit_vector_into_segment();
+      pos = sub_edge.m_pt0;
+      d = 0.0f;
+    }
+  else
+    {
+      normal = sub_edge.m_end_normal;
+      tangent = sub_edge.unit_vector_leaving_segment();
+      pos = sub_edge.m_pt1;
+      packed_data |= ArcStrokedPoint::end_segment_mask;
+      packed_data_mid |= ArcStrokedPoint::end_segment_mask;
+      d = sub_edge.m_sub_edge_length;
+    }
+
+  ArcStrokedPoint pt;
+
+  pt.m_position = pos;
+  pt.m_distance_from_edge_start = sub_edge.m_distance_from_edge_start + d;
+  pt.m_distance_from_contour_start = sub_edge.m_distance_from_contour_start + d;
+  pt.m_edge_length = sub_edge.m_edge_length;
+  pt.m_open_contour_length = sub_edge.m_open_contour_length;
+  pt.m_closed_contour_length = sub_edge.m_closed_contour_length;
+  pt.m_data = tangent;
+
+  pt.m_packed_data = packed_data;
+  pt.m_offset_direction = normal;
+  pt.pack_point(&attribute_data[vertex_offset++]);
+
+  pt.m_packed_data = packed_data_mid;
+  pt.m_offset_direction = vec2(0.0f, 0.0f);
+  pt.pack_point(&attribute_data[vertex_offset++]);
+
+  pt.m_packed_data = packed_data;
+  pt.m_offset_direction = -normal;
+  pt.pack_point(&attribute_data[vertex_offset++]);
+
+  pt.m_packed_data = packed_data | ArcStrokedPoint::extend_mask;
+  pt.m_offset_direction = normal;
+  pt.pack_point(&attribute_data[vertex_offset++]);
+
+  pt.m_packed_data = packed_data_mid | ArcStrokedPoint::extend_mask;
+  pt.m_offset_direction = vec2(0.0f, 0.0f);
+  pt.pack_point(&attribute_data[vertex_offset++]);
+
+  pt.m_packed_data = packed_data | ArcStrokedPoint::extend_mask;
+  pt.m_offset_direction = -normal;
+  pt.pack_point(&attribute_data[vertex_offset++]);
 }
 
 void
