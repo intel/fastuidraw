@@ -292,6 +292,8 @@ build_uber_stroke_varyings(uint32_t flags) const
       if (flags & dashed_shader)
         {
           return_value
+            .add_float_varying("fastuidraw_arc_stroking_distance_sub_edge_start")
+            .add_float_varying("fastuidraw_arc_stroking_distance_sub_edge_end")
             .add_float_varying("fastuidraw_arc_stroking_distance")
             .add_uint_varying("fastuidraw_arc_stroking_dash_bits");
         }

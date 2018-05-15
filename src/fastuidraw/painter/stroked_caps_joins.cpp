@@ -2239,7 +2239,7 @@ add_data(unsigned int depth,
   fastuidraw::detail::pack_arc_join(pt, m_count, m_lambda * n0(),
                                     m_delta_angle, m_lambda * n1(),
                                     depth, pts, vertex_offset,
-                                    indices, index_offset);
+                                    indices, index_offset, true);
 }
 
 ///////////////////////////////////////////////////
@@ -2939,7 +2939,7 @@ add_cap(const PerCapData &C, unsigned int depth,
   fastuidraw::detail::pack_arc_join(pt, num_arcs_per_cap,
                                     n, M_PI, -n,
                                     depth, pts, vertex_offset,
-                                    indices, index_offset);
+                                    indices, index_offset, true);
 }
 
 /////////////////////////////////////////////

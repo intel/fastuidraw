@@ -125,7 +125,8 @@ pack_arc_join(ArcStrokedPoint pt, unsigned int count,
               c_array<PainterAttribute> dst_pts,
               unsigned int &vertex_offset,
               c_array<PainterIndex> dst_indices,
-              unsigned int &index_offset)
+              unsigned int &index_offset,
+              bool is_join)
 {
   float per_element(delta_angle / static_cast<float>(count));
   std::complex<float> arc_start(n_start.x(), n_start.y());
@@ -133,17 +134,21 @@ pack_arc_join(ArcStrokedPoint pt, unsigned int count,
   std::complex<float> theta;
 
   unsigned int i, center;
-  uint32_t arc_value, beyond_arc_value;
+  uint32_t arc_value, beyond_arc_value, join_mask;
 
   center = vertex_offset;
-  arc_value = ArcStrokedPoint::distance_constant_on_primitive_mask
+  join_mask = is_join ? uint(ArcStrokedPoint::join_mask) : 0u;
+
+  arc_value = join_mask
+    | ArcStrokedPoint::distance_constant_on_primitive_mask
     | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_stroking_boundary, depth);
   beyond_arc_value = arc_value | ArcStrokedPoint::beyond_boundary_mask;
 
   pt.radius() = 0.0f;
   pt.arc_angle() = per_element;
   pt.m_offset_direction = fastuidraw::vec2(0.0f, 0.0f);
-  pt.m_packed_data = ArcStrokedPoint::distance_constant_on_primitive_mask
+  pt.m_packed_data = join_mask
+    | ArcStrokedPoint::distance_constant_on_primitive_mask
     | arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_arc_point_on_path, depth);
   pt.pack_point(&dst_pts[vertex_offset++]);
 
@@ -196,7 +201,8 @@ pack_arc_join(ArcStrokedPoint pt, unsigned int count,
               c_array<PainterAttribute> dst_pts,
               unsigned int &vertex_offset,
               c_array<PainterIndex> dst_indices,
-              unsigned int &index_offset)
+              unsigned int &index_offset,
+              bool is_join)
 {
   std::complex<float> n0z(n0.x(), n0.y());
   std::complex<float> n1z(n1.x(), n1.y());
@@ -205,5 +211,6 @@ pack_arc_join(ArcStrokedPoint pt, unsigned int count,
 
   pack_arc_join(pt, count, n0, angle, n1, depth,
                 dst_pts, vertex_offset,
-                dst_indices, index_offset);
+                dst_indices, index_offset,
+                is_join);
 }
