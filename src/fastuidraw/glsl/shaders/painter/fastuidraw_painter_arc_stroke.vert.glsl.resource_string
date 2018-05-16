@@ -216,10 +216,21 @@ fastuidraw_gl_vert_main(in uint sub_shader,
                    * a net rotation of backwards by start angle
                    */
                   mat2 tmp;
-                  float c, s;
+                  float c, s, v;
 
                   c = cos(arc_angle);
                   s = sin(arc_angle);
+
+                  /* A number of GPU's have not-so-accurate cos/sin implementations.
+                   * These innacuracies are significant enough to make the rotation
+                   * matrix made from a cos/sin significantly far from being orthonormal.
+                   * To combat this, we normalize c and s by the norm of the vector
+                   * (c, s).
+                   */
+                  v = sqrt(c * c + s * s);
+                  c /= v;
+                  s /= v;
+
                   tmp = mat2(c, s, -s, c);
                   rotate_by = tmp * rotate_by;
                 }
@@ -324,23 +335,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   vector_from_center = p - center;
   #ifdef FASTUIDRAW_STROKE_DASHED
     {
-      /* Numerical error has a nasty habit of coming in;
-       * to battle that numerical error, orthogonalize the
-       * columns of rotate_by. The largest source of numerical
-       * error is NOT the potential matrix multiplication,
-       * but rather the cos/sin we use previously.
-       */
-      vec2 A, B;
-
-      A = rotate_by[0];
-      B = rotate_by[1];
-
-      A = normalize(A);
-      B = normalize(B - dot(A,B) * A);
-
-      rotate_by[0] = A;
-      rotate_by[1] = B;
-
       vector_from_center = rotate_by * vector_from_center;
     }
   #endif
