@@ -70,7 +70,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
           dont_anti_alias_dash_boundary = render_pass == uint(fastuidraw_stroke_non_aa)
             || (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_distance_constant)) != 0u;
 
-          if (dash_style == fastuidraw_stroke_dashed_flat_caps)
+          if (dash_style == uint(fastuidraw_stroke_dashed_flat_caps))
             {
               alpha *= fastuidraw_stroke_compute_dash_coverage(shader_data_offset, dist, distw,
                                                                (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u,
