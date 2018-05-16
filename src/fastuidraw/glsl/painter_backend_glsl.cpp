@@ -518,20 +518,17 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_stroke_offset_type_num_bits", StrokedPoint::offset_type_num_bits)
 
     /* offset types of ArcStrokedPoint */
-    .add_macro("fastuidraw_arc_stroke_stroking_boundary", ArcStrokedPoint::offset_arc_point_stroking_boundary)
-    .add_macro("fastuidraw_arc_stroke_arc_point_on_path", ArcStrokedPoint::offset_arc_point_on_path)
-    .add_macro("fastuidraw_arc_stroke_arc_point_on_path_origin", ArcStrokedPoint::offset_arc_point_on_path_origin)
-    .add_macro("fastuidraw_arc_stroke_stroking_boundary_origin", ArcStrokedPoint::offset_arc_point_stroking_boundary_origin)
+    .add_macro("fastuidraw_arc_stroke_arc_point", ArcStrokedPoint::offset_arc_point)
     .add_macro("fastuidraw_arc_stroke_line_segment", ArcStrokedPoint::offset_line_segment)
-    .add_macro("fastuidraw_arc_stroke_bevel_segment", ArcStrokedPoint::offset_bevel_segment)
     .add_macro("fastuidraw_arc_stroke_dashed_capper", ArcStrokedPoint::offset_arc_point_dashed_capper)
 
     /* bit masks for ArcStrokedPoint::m_packed_data */
     .add_macro("fastuidraw_arc_stroke_extend_mask", ArcStrokedPoint::extend_mask)
     .add_macro("fastuidraw_arc_stroke_join_mask", ArcStrokedPoint::join_mask)
-    .add_macro("fastuidraw_arc_stroke_beyond_boundary_mask", ArcStrokedPoint::beyond_boundary_mask)
     .add_macro("fastuidraw_arc_stroke_distance_constant_on_primitive_mask", ArcStrokedPoint::distance_constant_on_primitive_mask)
+    .add_macro("fastuidraw_arc_stroke_beyond_boundary_mask", ArcStrokedPoint::beyond_boundary_mask)
     .add_macro("fastuidraw_arc_stroke_inner_stroking_mask", ArcStrokedPoint::inner_stroking_mask)
+    .add_macro("fastuidraw_arc_stroke_move_to_arc_center_mask", ArcStrokedPoint::move_to_arc_center_mask)
     .add_macro("fastuidraw_arc_stroke_end_segment_mask", ArcStrokedPoint::end_segment_mask)
     .add_macro("fastuidraw_arc_stroke_boundary_bit", ArcStrokedPoint::boundary_bit)
     .add_macro("fastuidraw_arc_stroke_boundary_mask", ArcStrokedPoint::boundary_mask)

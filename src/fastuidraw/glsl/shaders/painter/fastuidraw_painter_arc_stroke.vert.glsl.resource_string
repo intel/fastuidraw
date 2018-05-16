@@ -239,34 +239,17 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     }
   #endif
 
-  if(offset_type == fastuidraw_arc_stroke_arc_point_on_path_origin)
+  if(offset_type == fastuidraw_arc_stroke_arc_point
+     && (point_packed_data & uint(fastuidraw_arc_stroke_move_to_arc_center_mask)) != 0u)
     {
-      scale_factor = 0.0;
       if (stroke_radius > radius)
         {
           position = center;
+          scale_factor = 0.0;
         }
     }
 
-  if (offset_type == fastuidraw_arc_stroke_stroking_boundary_origin)
-    {
-      if (stroke_radius > radius)
-        {
-          /* make point at the center and change the behavior to be like
-           * an arc-join centered at the same location with stroking
-           * radius as stroke_radius - radius
-           */
-          scale_factor = -radius;
-          fastuidraw_arc_stroking_arc_radius = 0.0;
-          fastuidraw_arc_stroking_stroke_radius = stroke_radius - radius;
-        }
-      else
-        {
-          offset_type = fastuidraw_arc_stroke_stroking_boundary;
-        }
-    }
-
-  if (offset_type == fastuidraw_arc_stroke_stroking_boundary
+  if (offset_type == fastuidraw_arc_stroke_arc_point
       && (point_packed_data & uint(fastuidraw_arc_stroke_inner_stroking_mask)) != 0u)
     {
       if (stroke_radius < radius)
@@ -286,11 +269,17 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       else
         {
           /* change the behavior to be like an arc-join centered at the
-           * same location with stroking radius as stroke_radius - radius
+           * same location with stroking radius as stroke_radius - radius.
+           * Note that we only modify position, scale_factor and offset_direction
+           * for the point NOT moved to the origin since that was handled
+           * by the previous block.
            */
-          position = center;
-          scale_factor = stroke_radius - radius;
-          offset_direction = -offset_direction;
+          if ((point_packed_data & uint(fastuidraw_arc_stroke_move_to_arc_center_mask)) == 0u)
+            {
+              position = center;
+              scale_factor = stroke_radius - radius;
+              offset_direction = -offset_direction;
+            }
           fastuidraw_arc_stroking_arc_radius = 0.0;
           fastuidraw_arc_stroking_stroke_radius = stroke_radius - radius;
         }
@@ -298,7 +287,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   p = position + scale_factor * offset_direction;
 
-  if (offset_type == fastuidraw_arc_stroke_stroking_boundary
+  if (offset_type == fastuidraw_arc_stroke_arc_point
       && (point_packed_data & uint(fastuidraw_arc_stroke_beyond_boundary_mask)) != 0u)
     {
       float half_angle, L, D, c, s;
@@ -343,7 +332,6 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   fastuidraw_arc_stroking_relative_to_center_y = vector_from_center.y;
 
   if (offset_type == fastuidraw_arc_stroke_line_segment
-      || offset_type == fastuidraw_arc_stroke_bevel_segment
       || offset_type == fastuidraw_arc_stroke_dashed_capper)
     {
       fastuidraw_arc_stroking_arc_radius = -1.0f; //indicate to frag shader to skip arc-coverage

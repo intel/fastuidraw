@@ -141,7 +141,7 @@ pack_arc_join(ArcStrokedPoint pt, unsigned int count,
 
   arc_value = join_mask
     | ArcStrokedPoint::distance_constant_on_primitive_mask
-    | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point_stroking_boundary, depth);
+    | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_arc_point, depth);
   beyond_arc_value = arc_value | ArcStrokedPoint::beyond_boundary_mask;
 
   pt.radius() = 0.0f;
@@ -149,7 +149,7 @@ pack_arc_join(ArcStrokedPoint pt, unsigned int count,
   pt.m_offset_direction = fastuidraw::vec2(0.0f, 0.0f);
   pt.m_packed_data = join_mask
     | ArcStrokedPoint::distance_constant_on_primitive_mask
-    | arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_arc_point_on_path, depth);
+    | arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_arc_point, depth);
   pt.pack_point(&dst_pts[vertex_offset++]);
 
   for (theta = arc_start, i = 0; i <= count; ++i, theta *= da)

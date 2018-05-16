@@ -43,35 +43,13 @@ public:
   enum offset_type_t
     {
       /*!
-       * A point of an arc. Indicates the point is at on the stroking
-       * boundary of the arc when stroked.
+       * A point of an arc. Indicates the point is part of
+       * an arc.
        */
-      offset_arc_point_stroking_boundary,
+      offset_arc_point,
 
       /*!
-       * The point of an arc on the path.
-       */
-      offset_arc_point_on_path,
-
-      /*!
-       * A point of an arc. When the stroking radius is smaller than the
-       * arc radius, position of this point is the same as \ref
-       * offset_arc_point_on_path; when the stroking* radius is greater
-       * than the arc-radius the position is the center of the arc.
-       */
-      offset_arc_point_on_path_origin,
-
-      /*!
-       * A point of an arc. When the stroking radius is smaller
-       * than the arc radius, position of this point is the same
-       * as \ref offset_arc_point_stroking_boundary; when the
-       * stroking radius is greater than the arc-radius the
-       * position is the center of the arc.
-       */
-      offset_arc_point_stroking_boundary_origin,
-
-      /*!
-       * The point is part of a line-segment.
+       * The point is part of a line-segment
        */
       offset_line_segment,
 
@@ -83,11 +61,6 @@ public:
        * edge.
        */
       offset_arc_point_dashed_capper,
-
-      /*!
-       * The point is part of a bevel connecting two line segments.
-       */
-      offset_bevel_segment,
 
       /*!
        * Number of offset types, not an actual offset type(!).
@@ -112,7 +85,7 @@ public:
        * number of bits needed to hold the
        * offset_type() value of the point.
        */
-      offset_type_num_bits = 4,
+      offset_type_num_bits = 2,
 
       /*!
        * Bit indicates that the point in on the stroking
@@ -162,7 +135,7 @@ public:
 
   /*!
    * Enumeration of the bits of \ref m_packed_data
-   * for those with offset type \ref offset_stroking_boundary
+   * for those with offset type \ref offset_arc_point
    */
   enum packed_data_bit_stroking_boundary_t
     {
@@ -180,6 +153,13 @@ public:
        * on the outside stroking boundary.
        */
       inner_stroking_bit,
+
+      /*!
+       * When this bit is up and the stroking radius exceeds
+       * the arc-radius, the point should be placed at the
+       * center of the arc.
+       */
+      move_to_arc_center_bit,
     };
 
   /*!
@@ -222,6 +202,11 @@ public:
        * Mask generated for \ref inner_stroking_bit
        */
       inner_stroking_mask = FASTUIDRAW_MASK(inner_stroking_bit, 1),
+
+      /*!
+       * Mask generated for \ref move_to_arc_center_bit
+       */
+      move_to_arc_center_mask = FASTUIDRAW_MASK(move_to_arc_center_bit, 1),
 
       /*!
        * Mask generated for \ref end_segment_bit
