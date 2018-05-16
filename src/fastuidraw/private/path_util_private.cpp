@@ -137,7 +137,7 @@ pack_arc_join(ArcStrokedPoint pt, unsigned int count,
   uint32_t arc_value, beyond_arc_value, join_mask;
 
   center = vertex_offset;
-  join_mask = is_join ? uint(ArcStrokedPoint::join_mask) : 0u;
+  join_mask = is_join ? uint32_t(ArcStrokedPoint::join_mask) : 0u;
 
   arc_value = join_mask
     | ArcStrokedPoint::distance_constant_on_primitive_mask
