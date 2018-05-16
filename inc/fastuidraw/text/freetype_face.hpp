@@ -121,24 +121,24 @@ namespace fastuidraw
     /*!
      * \brief Implementation of GeneratorBase to create a FreeTypeFace
      *        from a face index / file pair via lib FreeType's
-     *	     FT_New_Memory_Face
+     *       FT_New_Memory_Face
      */
     class GeneratorMemory:public GeneratorBase
     {
     public:
       /*!
-       *	Ctor.
-       *	\param src holder of data; modifying the data after creating
-       *	           a GeneratorMemory that uses it is undefined and
-       *		   crashing behavior.
+       *        Ctor.
+       *        \param src holder of data; modifying the data after creating
+       *                   a GeneratorMemory that uses it is undefined and
+       *                   crashing behavior.
        * \param face_index face index of data
        */
       GeneratorMemory(const reference_counted_ptr<const DataBufferBase> &src,
-		      int face_index);
+                      int face_index);
 
       /*!
        * Ctor. Provided as a convenience, a DataBuffer object is created
-       *	from the named file and used as the memory source.
+       *        from the named file and used as the memory source.
        * \param filename name of file from which to source the created
        *                 FT_Face objects
        * \param face_index face index of file

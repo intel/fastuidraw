@@ -286,7 +286,7 @@ public:
      */
     void
     add_arc_segment(vec2 start, vec2 end,
-		    vec2 center, float radius,
+                    vec2 center, float radius,
                     range_type<float> arc_angle);
 
   private:
