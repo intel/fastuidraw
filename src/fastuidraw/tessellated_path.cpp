@@ -56,16 +56,16 @@ namespace
     BB.union_point(S.m_end_pt);
     if (S.m_type == TessellatedPath::arc_segment)
       {
-	float s, c, l, half_angle;
-	float2x2 mat;
-	vec2 tau;
+        float s, c, l, half_angle;
+        float2x2 mat;
+        vec2 tau;
 
-	half_angle = 0.5f * (S.m_arc_angle.m_end - S.m_arc_angle.m_begin);
-	c = t_cos(S.m_arc_angle.m_begin + half_angle);
-	s = t_sin(S.m_arc_angle.m_begin + half_angle);
-	l = 1.0f - t_cos(half_angle);
-	tau = l * vec2(c, s);
-		
+        half_angle = 0.5f * (S.m_arc_angle.m_end - S.m_arc_angle.m_begin);
+        c = t_cos(S.m_arc_angle.m_begin + half_angle);
+        s = t_sin(S.m_arc_angle.m_begin + half_angle);
+        l = 1.0f - t_cos(half_angle);
+        tau = l * vec2(c, s);
+
         BB.union_point(S.m_start_pt + tau);
         BB.union_point(S.m_end_pt + tau);
       }
@@ -193,8 +193,8 @@ add_line_segment(vec2 start, vec2 end)
 void
 fastuidraw::TessellatedPath::SegmentStorage::
 add_arc_segment(vec2 start, vec2 end,
-		vec2 center, float radius,
-		range_type<float> arc_angle)
+                vec2 center, float radius,
+                range_type<float> arc_angle)
 {
   std::vector<segment> *d;
   d = static_cast<std::vector<segment>*>(m_d);

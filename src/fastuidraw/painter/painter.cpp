@@ -1558,15 +1558,15 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
       switch(cp)
         {
         case PainterEnums::rounded_caps:
-	  if (edge_arc_shader)
-	    {
-	      cap_data = &caps_joins.arc_rounded_caps();
-	      cap_arc_shader = true;
-	    }
-	  else
-	    {
-	      cap_data = &caps_joins.rounded_caps(thresh);
-	    }
+          if (edge_arc_shader)
+            {
+              cap_data = &caps_joins.arc_rounded_caps();
+              cap_arc_shader = true;
+            }
+          else
+            {
+              cap_data = &caps_joins.rounded_caps(thresh);
+            }
           break;
 
         case PainterEnums::square_caps:
@@ -1608,14 +1608,14 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
     case PainterEnums::rounded_joins:
       is_miter_join = false;
       if (edge_arc_shader)
-	{
-	  join_data = &caps_joins.arc_rounded_joins();
-	  join_arc_shader = true;
-	}
+        {
+          join_data = &caps_joins.arc_rounded_joins();
+          join_arc_shader = true;
+        }
       else
-	{
-	  join_data = &caps_joins.rounded_joins(thresh);
-	}
+        {
+          join_data = &caps_joins.rounded_joins(thresh);
+        }
       break;
 
     default:
