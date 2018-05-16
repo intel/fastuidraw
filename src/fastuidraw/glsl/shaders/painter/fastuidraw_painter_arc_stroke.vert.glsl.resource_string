@@ -323,6 +323,21 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   vector_from_center = p - center;
   #ifdef FASTUIDRAW_STROKE_DASHED
     {
+      /* Numerical error has a nasty habit of coming in;
+       * to battle that numerical error, orthogonalize the
+       * column of rotate_by.
+       */
+      vec2 A, B;
+
+      A = rotate_by[0];
+      B = rotate_by[1];
+
+      A = normalize(A);
+      B = normalize(B - dot(A,B) * A);
+
+      rotate_by[0] = A;
+      rotate_by[1] = B;
+
       vector_from_center = rotate_by * vector_from_center;
     }
   #endif
