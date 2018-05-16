@@ -230,13 +230,10 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   if(offset_type == fastuidraw_arc_stroke_arc_point_on_path_origin)
     {
+      scale_factor = 0.0;
       if (stroke_radius > radius)
         {
-          scale_factor = -radius;
-        }
-      else
-        {
-          scale_factor = 0.0;
+          position = center;
         }
     }
 
@@ -263,22 +260,26 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     {
       if (stroke_radius < radius)
         {
+          /* offset_vector always points from the arc-center to the arc;
+           * However, for inner stroking, we need to move the point to
+           * the center. We accomplish this by negating scale_factor.
+           */
           scale_factor = -scale_factor;
-          /* collapse beyond_inner_stroking_boundary to be the same
-           * location as inner_stroking_boundary since they are only
-           * needed/used when the stroke_radius > radius.
+
+          /* If the point is beyond_inner_stroking_boundary, collapse it
+           * to be the same location as inner_stroking_boundary since they
+           * are only needed/used when the stroke_radius > radius.
            */
           point_packed_data &= ~uint(fastuidraw_arc_stroke_beyond_boundary_mask);
         }
       else
         {
+          /* change the behavior to be like an arc-join centered at the
+           * same location with stroking radius as stroke_radius - radius
+           */
           position = center;
           scale_factor = stroke_radius - radius;
           offset_direction = -offset_direction;
-
-          /* change the behavior to be like an arc-join centered at the
-           * same location with stroknig radius as stroke_radius - radius
-           */
           fastuidraw_arc_stroking_arc_radius = 0.0;
           fastuidraw_arc_stroking_stroke_radius = stroke_radius - radius;
         }
@@ -325,7 +326,9 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     {
       /* Numerical error has a nasty habit of coming in;
        * to battle that numerical error, orthogonalize the
-       * column of rotate_by.
+       * columns of rotate_by. The largest source of numerical
+       * error is NOT the potential matrix multiplication,
+       * but rather the cos/sin we use previously.
        */
       vec2 A, B;
 
