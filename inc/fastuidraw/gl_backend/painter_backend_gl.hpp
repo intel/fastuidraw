@@ -394,9 +394,9 @@ namespace fastuidraw
 
         /*!
          * Returns the blend_type() to be used by the PainterBackendGL,
-         *	  if the spcified blend type is not supported, falls back to
-         *	  first to PainterBlendShader::dual_src and if that is
-         *	  not supported falls back to PainterBlendShader::single_src.
+         *        if the spcified blend type is not supported, falls back to
+         *        first to PainterBlendShader::dual_src and if that is
+         *        not supported falls back to PainterBlendShader::single_src.
          */
         enum PainterBlendShader::shader_type
         blend_type(void) const;
