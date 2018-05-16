@@ -501,8 +501,8 @@ namespace
   {
   public:
     EdgeAttributeFillerBase(const StrokedPathSubset *src,
-			    const fastuidraw::TessellatedPath &P,
-			    const StrokedPathSubset::CreationValues &cnts);
+                            const fastuidraw::TessellatedPath &P,
+                            const StrokedPathSubset::CreationValues &cnts);
 
     virtual
     void
@@ -556,8 +556,8 @@ namespace
   {
   public:
     LineEdgeAttributeFiller(const StrokedPathSubset *src,
-			const fastuidraw::TessellatedPath &P,
-			const StrokedPathSubset::CreationValues &cnts):
+                        const fastuidraw::TessellatedPath &P,
+                        const StrokedPathSubset::CreationValues &cnts):
       EdgeAttributeFillerBase(src, P, cnts)
     {}
 
@@ -574,8 +574,8 @@ namespace
   {
   public:
     ArcEdgeAttributeFiller(const StrokedPathSubset *src,
-			const fastuidraw::TessellatedPath &P,
-			const StrokedPathSubset::CreationValues &cnts):
+                        const fastuidraw::TessellatedPath &P,
+                        const StrokedPathSubset::CreationValues &cnts):
       EdgeAttributeFillerBase(src, P, cnts)
     {}
 
@@ -1316,15 +1316,15 @@ increment_vertices_indices(fastuidraw::c_array<const SingleSubEdge> src,
         }
 
       if (S.m_from_line_segment)
-	{
-	  vertex_cnt += points_per_segment;
-	  index_cnt += indices_per_segment;
-	}
+        {
+          vertex_cnt += points_per_segment;
+          index_cnt += indices_per_segment;
+        }
       else
-	{
+        {
           vertex_cnt += points_per_arc_segment;
           index_cnt += indices_per_arc_segment;
-	}
+        }
 
       if (S.m_has_start_dashed_capper)
         {
@@ -1481,8 +1481,8 @@ compute_chunks_implement(bool include_closing_edge,
 // EdgeAttributeFillerBase methods
 EdgeAttributeFillerBase::
 EdgeAttributeFillerBase(const StrokedPathSubset *src,
-			const fastuidraw::TessellatedPath &P,
-			const StrokedPathSubset::CreationValues &cnts):
+                        const fastuidraw::TessellatedPath &P,
+                        const StrokedPathSubset::CreationValues &cnts):
   m_src(src),
   m_P(P),
   m_total_vertex_cnt(cnts.m_non_closing_edge_vertex_cnt + cnts.m_closing_edge_vertex_cnt),
@@ -1677,7 +1677,7 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
       pts[k + 3].m_pre_offset = normal_sign[k] * sub_edge.m_end_normal;
       pts[k + 3].m_auxiliary_offset = -sub_edge.m_delta;
       pts[k + 3].m_packed_data = pack_data(boundary_values[k], StrokedPoint::offset_sub_edge, depth)
-	| StrokedPoint::end_sub_edge_mask;
+        | StrokedPoint::end_sub_edge_mask;
     }
 
   for(unsigned int i = 0; i < 6; ++i)
@@ -2076,7 +2076,7 @@ build_line_segment(const SingleSubEdge &sub_edge, unsigned int depth,
       pts[k + 3].m_packed_data = arc_stroked_point_pack_bits(boundary_values[k],
                                                              ArcStrokedPoint::offset_line_segment,
                                                              depth)
-	| ArcStrokedPoint::end_segment_mask;
+        | ArcStrokedPoint::end_segment_mask;
     }
 
   for(unsigned int i = 0; i < 6; ++i)
