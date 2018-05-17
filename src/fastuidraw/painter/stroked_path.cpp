@@ -545,7 +545,7 @@ namespace
 
     virtual
     void
-    process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
+    process_sub_edge(const SingleSubEdge &sub_edge, unsigned int &depth,
                      fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                      fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
                      unsigned int &vertex_offset, unsigned int &index_offset) const = 0;
@@ -568,7 +568,7 @@ namespace
   private:
     virtual
     void
-    process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
+    process_sub_edge(const SingleSubEdge &sub_edge, unsigned int &depth,
                      fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                      fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
                      unsigned int &vertex_offset, unsigned int &index_offset) const;
@@ -586,7 +586,7 @@ namespace
   private:
     virtual
     void
-    process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
+    process_sub_edge(const SingleSubEdge &sub_edge, unsigned int &depth,
                      fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                      fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
                      unsigned int &vertex_offset, unsigned int &index_offset) const;
@@ -1211,6 +1211,14 @@ compute_edge_depth(fastuidraw::c_array<const SingleSubEdge> edges)
         {
           ++return_value;
         }
+      if (E.m_has_start_dashed_capper)
+        {
+          ++return_value;
+        }
+      if (E.m_has_end_dashed_capper)
+        {
+          ++return_value;
+        }
     }
   return return_value;
 }
@@ -1597,19 +1605,16 @@ build_chunk(const EdgeRanges &edge,
       /* these elements are drawn AFTER the child elements,
        *  therefor they need to have a smaller depth
        */
+      unsigned int d = edge.m_depth_range.m_end - 1;
       for(unsigned int k = 0,
-            d = edge.m_depth_range.m_end - 1,
             v = edge.m_vertex_data_range.m_begin,
             i = edge.m_index_data_range.m_begin;
           k < edge.m_src.size(); ++k)
         {
+          FASTUIDRAWassert(d >= edge.m_depth_range.m_begin);
           process_sub_edge(edge.m_src[k], d, attribute_data, index_data, v, i);
-          --d;
-          if (edge.m_src[k].m_has_bevel && edge.m_src[k].m_use_arc_for_bevel)
-            {
-              --d;
-            }
         }
+      FASTUIDRAWassert(d + 1 == edge.m_depth_range.m_begin);
     }
 }
 
@@ -1617,7 +1622,7 @@ build_chunk(const EdgeRanges &edge,
 // LineEdgeAttributeFiller methods
 void
 LineEdgeAttributeFiller::
-process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
+process_sub_edge(const SingleSubEdge &sub_edge, unsigned int &depth,
                  fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                  fastuidraw::c_array<fastuidraw::PainterIndex> indices,
                  unsigned int &vert_offset, unsigned int &index_offset) const
@@ -1725,13 +1730,14 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
 
   index_offset += StrokedPathSubset::indices_per_segment;
   vert_offset += StrokedPathSubset::points_per_segment;
+  --depth;
 }
 
 ////////////////////////////////////
 // ArcEdgeAttributeFiller methods
 void
 ArcEdgeAttributeFiller::
-process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
+process_sub_edge(const SingleSubEdge &sub_edge, unsigned int &depth,
                  fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                  fastuidraw::c_array<fastuidraw::PainterIndex> indices,
                  unsigned int &vert_offset, unsigned int &index_offset) const
@@ -1755,6 +1761,7 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
     {
       build_dashed_capper(true, sub_edge, depth, attribute_data,
                          indices, vert_offset, index_offset);
+      --depth;
     }
 
   if (sub_edge.m_from_line_segment)
@@ -1767,11 +1774,13 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
       build_arc_segment(sub_edge, depth, attribute_data,
                         indices, vert_offset, index_offset);
     }
+  --depth;
 
   if (sub_edge.m_has_end_dashed_capper)
     {
       build_dashed_capper(false, sub_edge, depth, attribute_data,
                          indices, vert_offset, index_offset);
+      --depth;
     }
 }
 
