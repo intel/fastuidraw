@@ -33,6 +33,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   float distance_from_edge_start, distance_from_contour_start;
   float total_edge_length, total_open_contour_length, total_closed_contour_length;
+  float stroke_radius_for_outer_boundary, arc_radius_for_outer_boundary;
 
   float stroke_radius;
   int on_boundary, offset_type;
@@ -72,6 +73,9 @@ fastuidraw_gl_vert_main(in uint sub_shader,
   fastuidraw_arc_stroking_stroke_radius = stroke_radius;
   fastuidraw_arc_stroking_arc_radius = radius;
   center = position - radius * offset_direction;
+
+  stroke_radius_for_outer_boundary = stroke_radius;
+  arc_radius_for_outer_boundary = radius;
 
   #ifdef FASTUIDRAW_STROKE_DASHED
     {
@@ -246,6 +250,24 @@ fastuidraw_gl_vert_main(in uint sub_shader,
         {
           position = center;
           scale_factor = 0.0;
+          if ((point_packed_data & uint(fastuidraw_arc_stroke_inner_stroking_mask)) == 0u)
+            {
+              /* this point is used to make a triangle with the inverted inner
+               * stroking region; do the same to it as we would inner stroking
+               * boundary points.
+               */
+              #ifdef FASTUIDRAW_STROKE_DASHED
+                {
+                  rotate_by *= -1.0;
+                  fastuidraw_arc_stroking_dash_bits |= fastuidraw_arc_stroke_inverted_inner_region_mask;
+                }
+              #else
+                {
+                  fastuidraw_arc_stroking_arc_radius = 0.0;
+                  fastuidraw_arc_stroking_stroke_radius = stroke_radius - radius;
+                }
+              #endif
+            }
         }
     }
 
@@ -272,16 +294,39 @@ fastuidraw_gl_vert_main(in uint sub_shader,
            * same location with stroking radius as stroke_radius - radius.
            * Note that we only modify position, scale_factor and offset_direction
            * for the point NOT moved to the origin since that was handled
-           * by the previous block.
+           * by the previous block and that point is used to form a triangle
+           * between the center and the path, not the center and the invereted
+           * inner-stroking region.
            */
           if ((point_packed_data & uint(fastuidraw_arc_stroke_move_to_arc_center_mask)) == 0u)
             {
               position = center;
               scale_factor = stroke_radius - radius;
               offset_direction = -offset_direction;
+              arc_radius_for_outer_boundary = 0.0;
+              stroke_radius_for_outer_boundary = stroke_radius - radius;
+
+              #ifdef FASTUIDRAW_STROKE_DASHED
+                {
+                  /* because the inner stroking is inverted, we need to
+                   * rotate by 180 degrees to make the atan in frag-shader
+                   * give the correct results.
+                   */
+                  rotate_by *= -1.0;
+
+                  /* we need to all tell the fragment-shader to reinterpret
+                   * the values of fastuidraw_arc_stroking_arc_radius and
+                   * fastuidraw_arc_stroking_stroke_radius for radial inclusion
+                   */
+                  fastuidraw_arc_stroking_dash_bits |= fastuidraw_arc_stroke_inverted_inner_region_mask;
+                }
+              #else
+                {
+                  fastuidraw_arc_stroking_arc_radius = arc_radius_for_outer_boundary;
+                  fastuidraw_arc_stroking_stroke_radius = stroke_radius_for_outer_boundary;
+                }
+              #endif
             }
-          fastuidraw_arc_stroking_arc_radius = 0.0;
-          fastuidraw_arc_stroking_stroke_radius = stroke_radius - radius;
         }
     }
 
@@ -305,7 +350,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       v.y = s * offset_direction.x + c * offset_direction.y;
 
       L = 1.0 - c;
-      D = (fastuidraw_arc_stroking_arc_radius + fastuidraw_arc_stroking_stroke_radius) * L;
+      D = (stroke_radius_for_outer_boundary + arc_radius_for_outer_boundary) * L;
       p += D * v;
 
       /* move p an additional amount so that the edge formed
