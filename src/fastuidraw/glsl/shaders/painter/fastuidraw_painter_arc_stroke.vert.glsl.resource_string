@@ -109,36 +109,58 @@ fastuidraw_gl_vert_main(in uint sub_shader,
         {
           fastuidraw_arc_stroking_dash_bits = uint(fastuidraw_stroke_skip_dash_interval_lookup_mask);
 
-          fastuidraw_arc_stroking_distance = (is_edge_end) ?
-            base.interval_begin - base.d :
-            base.d - base.interval_end;
+          if (dash_style != fastuidraw_stroke_dashed_flat_caps)
+            {
+              fastuidraw_arc_stroking_distance = (is_edge_end) ?
+                base.interval_begin - base.d :
+                base.d - base.interval_end;
+            }
+          else
+            {
+              fastuidraw_arc_stroking_distance = 1.0;
+            }
 
-          if (base.s < 0.0
-              && dash_style != fastuidraw_stroke_dashed_flat_caps
-              && (point_packed_data & uint(fastuidraw_arc_stroke_extend_mask)) != 0u)
+          if ((point_packed_data & uint(fastuidraw_arc_stroke_extend_mask)) != 0u)
             {
               float d = 0.0;
 
-              if (is_edge_end)
+              if (base.s < 0.0
+                  && dash_style != fastuidraw_stroke_dashed_flat_caps)
                 {
-                  if (stroke_radius + base.interval_begin > base.d
-                      && base.interval_begin > edge_start)
+                  if (is_edge_end)
                     {
-                      d = stroke_radius + base.interval_begin - base.d;
-                      position += d * secondary_attrib.zw;
-                      fastuidraw_arc_stroking_distance = -stroke_radius;
+                      if (stroke_radius + base.interval_begin > base.d
+                          && base.interval_begin > edge_start)
+                        {
+                          d = stroke_radius + base.interval_begin - base.d;
+                          fastuidraw_arc_stroking_distance = -stroke_radius;
+                        }
+                    }
+                  else
+                    {
+                      if (base.interval_end - stroke_radius < base.d
+                          && base.interval_end < edge_end)
+                        {
+                          d = base.d - base.interval_end + stroke_radius;
+                          fastuidraw_arc_stroking_distance = -stroke_radius;
+                        }
                     }
                 }
-              else
+              else if (base.s >= 0.0
+                       && dash_style == fastuidraw_stroke_dashed_flat_caps)
                 {
-                  if (base.interval_end - stroke_radius < base.d
-                      && base.interval_end < edge_end)
-                    {
-                      d = base.d - base.interval_end + stroke_radius;
-                      position += d * secondary_attrib.zw;
-                      fastuidraw_arc_stroking_distance = -stroke_radius;
-                    }
+                  vec3 clip_p, clip_dir;
+                  clip_p = fastuidraw_item_matrix * vec3(position, 1.0);
+                  clip_dir = fastuidraw_item_matrix * vec3(secondary_attrib.zw, 0.0);
+                  /* when not drawing caps, and an ending of a path-edge is visible,
+                   * we want to anti-alias the edge, we do this by adding a 1-pixel
+                   * smudge to the end of the path.
+                   */
+                  d = fastuidraw_local_distance_from_pixel_distance(2.0, clip_p, clip_dir);
+                  fastuidraw_arc_stroking_distance = 0.0;
                 }
+
+              position += d * secondary_attrib.zw;
             }
         }
       else if (is_constant_distance)
