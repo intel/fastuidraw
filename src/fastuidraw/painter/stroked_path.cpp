@@ -574,13 +574,14 @@ namespace
                      unsigned int &vertex_offset, unsigned int &index_offset) const;
 
     void
-    build_line_segment(const SingleSubEdge &sub_edge, unsigned int depth,
+    build_line_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
                        fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                        fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
                        unsigned int &vertex_offset, unsigned int &index_offset) const;
 
     void
-    build_line_bevel(const SingleSubEdge &sub_edge, unsigned int depth,
+    build_line_bevel(bool is_inner_bevel,
+                     const SingleSubEdge &sub_edge, unsigned int &depth,
                      fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                      fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
                      unsigned int &vertex_offset, unsigned int &index_offset) const;
@@ -604,32 +605,34 @@ namespace
                      unsigned int &vertex_offset, unsigned int &index_offset) const;
 
     void
-    build_line_segment(const SingleSubEdge &sub_edge, unsigned int depth,
+    build_line_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
                        fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                        fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
                        unsigned int &vertex_offset, unsigned int &index_offset) const;
 
     void
-    build_arc_segment(const SingleSubEdge &sub_edge, unsigned int depth,
+    build_arc_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
                       fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                       fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
                       unsigned int &vertex_offset, unsigned int &index_offset) const;
 
     void
-    build_line_bevel(const SingleSubEdge &sub_edge, unsigned int depth,
+    build_line_bevel(bool is_inner_bevel,
+                     const SingleSubEdge &sub_edge, unsigned int &depth,
                      fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                      fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
                      unsigned int &vertex_offset, unsigned int &index_offset) const;
 
     void
-    build_arc_bevel(const SingleSubEdge &sub_edge, unsigned int depth,
+    build_arc_bevel(bool is_inner_bevel,
+                    const SingleSubEdge &sub_edge, unsigned int &depth,
                     fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                     fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
                     unsigned int &vertex_offset, unsigned int &index_offset) const;
 
     void
     build_dashed_capper(bool for_start_dashed_capper,
-                        const SingleSubEdge &sub_edge, unsigned int depth,
+                        const SingleSubEdge &sub_edge, unsigned int &depth,
                         fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                         fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
                         unsigned int &vertex_offset, unsigned int &index_offset) const;
@@ -1218,15 +1221,25 @@ compute_edge_depth(fastuidraw::c_array<const SingleSubEdge> edges)
   unsigned int return_value(0);
   for (const SingleSubEdge &E : edges)
     {
+      // for the actual edge.
       ++return_value;
-      if (E.m_has_bevel && E.m_use_arc_for_bevel)
+
+      if (E.m_has_bevel)
         {
+          // for the inner bevel.
           ++return_value;
+          if (E.m_use_arc_for_bevel)
+            {
+              // the arc-outer bevel needs a depth.
+              ++return_value;
+            }
         }
+
       if (E.m_has_start_dashed_capper)
         {
           ++return_value;
         }
+
       if (E.m_has_end_dashed_capper)
         {
           ++return_value;
@@ -1345,13 +1358,13 @@ increment_vertices_indices(fastuidraw::c_array<const SingleSubEdge> src,
               unsigned int i, v;
 
               fastuidraw::detail::compute_arc_join_size(1, &v, &i);
-              vertex_cnt += v;
-              index_cnt += i;
+              vertex_cnt += 2 * v;
+              index_cnt += 2 * i;
             }
           else
             {
-              vertex_cnt += 3;
-              index_cnt += 3;
+              vertex_cnt += 2 * 3;
+              index_cnt += 2 * 3;
             }
         }
 
@@ -1634,15 +1647,27 @@ build_chunk(const EdgeRanges &edge,
 // LineEdgeAttributeFiller methods
 void
 LineEdgeAttributeFiller::
-build_line_bevel(const SingleSubEdge &sub_edge, unsigned int depth,
-                fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
-                fastuidraw::c_array<fastuidraw::PainterIndex> indices,
-                unsigned int &vert_offset, unsigned int &index_offset) const
+build_line_bevel(bool is_inner_bevel,
+                 const SingleSubEdge &sub_edge, unsigned int &depth,
+                 fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+                 fastuidraw::c_array<fastuidraw::PainterIndex> indices,
+                 unsigned int &vert_offset, unsigned int &index_offset) const
 {
   using namespace fastuidraw;
   using namespace detail;
 
   vecN<StrokedPoint, 3> pts;
+  float sgn;
+
+  if (is_inner_bevel)
+    {
+      sgn = -sub_edge.m_bevel_lambda;
+    }
+  else
+    {
+      sgn = sub_edge.m_bevel_lambda;
+    }
+
   indices[index_offset + 0] = vert_offset + 0;
   indices[index_offset + 1] = vert_offset + 1;
   indices[index_offset + 2] = vert_offset + 2;
@@ -1663,11 +1688,11 @@ build_line_bevel(const SingleSubEdge &sub_edge, unsigned int depth,
   pts[0].m_packed_data = pack_data(0, StrokedPoint::offset_sub_edge, depth)
     | StrokedPoint::bevel_edge_mask;
 
-  pts[1].m_pre_offset = sub_edge.m_bevel_lambda * sub_edge.m_bevel_normal;
+  pts[1].m_pre_offset = sgn * sub_edge.m_bevel_normal;
   pts[1].m_packed_data = pack_data(1, StrokedPoint::offset_sub_edge, depth)
     | StrokedPoint::bevel_edge_mask;
 
-  pts[2].m_pre_offset = sub_edge.m_bevel_lambda * sub_edge.m_begin_normal;
+  pts[2].m_pre_offset = sgn * sub_edge.m_begin_normal;
   pts[2].m_packed_data = pack_data(1, StrokedPoint::offset_sub_edge, depth)
     | StrokedPoint::bevel_edge_mask;
 
@@ -1677,11 +1702,16 @@ build_line_bevel(const SingleSubEdge &sub_edge, unsigned int depth,
     }
 
   vert_offset += 3;
+
+  if (is_inner_bevel)
+    {
+      --depth;
+    }
 }
 
 void
 LineEdgeAttributeFiller::
-build_line_segment(const SingleSubEdge &sub_edge, unsigned int depth,
+build_line_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
                    fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                    fastuidraw::c_array<fastuidraw::PainterIndex> indices,
                    unsigned int &vert_offset, unsigned int &index_offset) const
@@ -1747,6 +1777,7 @@ build_line_segment(const SingleSubEdge &sub_edge, unsigned int depth,
 
   index_offset += StrokedPathSubset::indices_per_segment;
   vert_offset += StrokedPathSubset::points_per_segment;
+  --depth;
 }
 
 void
@@ -1762,12 +1793,19 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int &depth,
 
   if (sub_edge.m_has_bevel)
     {
-      build_line_bevel(sub_edge, depth, attribute_data,
+      build_line_bevel(false,
+                       sub_edge, depth, attribute_data,
                        indices, vert_offset, index_offset);
     }
   build_line_segment(sub_edge, depth, attribute_data,
                      indices, vert_offset, index_offset);
-  --depth;
+
+  if (sub_edge.m_has_bevel)
+    {
+      build_line_bevel(true,
+                       sub_edge, depth, attribute_data,
+                       indices, vert_offset, index_offset);
+    }
 }
 
 ////////////////////////////////////
@@ -1783,13 +1821,12 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int &depth,
     {
       if (sub_edge.m_use_arc_for_bevel)
         {
-          build_arc_bevel(sub_edge, depth, attribute_data,
+          build_arc_bevel(false, sub_edge, depth, attribute_data,
                           indices, vert_offset, index_offset);
-          --depth;
         }
       else
         {
-          build_line_bevel(sub_edge, depth, attribute_data,
+          build_line_bevel(false, sub_edge, depth, attribute_data,
                            indices, vert_offset, index_offset);
         }
     }
@@ -1798,7 +1835,6 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int &depth,
     {
       build_dashed_capper(true, sub_edge, depth, attribute_data,
                          indices, vert_offset, index_offset);
-      --depth;
     }
 
   if (sub_edge.m_from_line_segment)
@@ -1811,20 +1847,32 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int &depth,
       build_arc_segment(sub_edge, depth, attribute_data,
                         indices, vert_offset, index_offset);
     }
-  --depth;
+
+  if (sub_edge.m_has_bevel)
+    {
+      if (sub_edge.m_use_arc_for_bevel)
+        {
+          build_arc_bevel(true, sub_edge, depth, attribute_data,
+                          indices, vert_offset, index_offset);
+        }
+      else
+        {
+          build_line_bevel(true, sub_edge, depth, attribute_data,
+                           indices, vert_offset, index_offset);
+        }
+    }
 
   if (sub_edge.m_has_end_dashed_capper)
     {
       build_dashed_capper(false, sub_edge, depth, attribute_data,
                          indices, vert_offset, index_offset);
-      --depth;
     }
 }
 
 void
 ArcEdgeAttributeFiller::
 build_dashed_capper(bool for_start_dashed_capper,
-                    const SingleSubEdge &sub_edge, unsigned int depth,
+                    const SingleSubEdge &sub_edge, unsigned int &depth,
                     fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                     fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
                     unsigned int &vertex_offset, unsigned int &index_offset) const
@@ -1901,11 +1949,14 @@ build_dashed_capper(bool for_start_dashed_capper,
   pt.m_packed_data = packed_data | ArcStrokedPoint::extend_mask;
   pt.m_offset_direction = -normal;
   pt.pack_point(&attribute_data[vertex_offset++]);
+
+  --depth;
 }
 
 void
 ArcEdgeAttributeFiller::
-build_arc_bevel(const SingleSubEdge &sub_edge, unsigned int depth,
+build_arc_bevel(bool is_inner_bevel,
+                const SingleSubEdge &sub_edge, unsigned int &depth,
                 fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                 fastuidraw::c_array<fastuidraw::PainterIndex> indices,
                 unsigned int &vert_offset, unsigned int &index_offset) const
@@ -1913,8 +1964,16 @@ build_arc_bevel(const SingleSubEdge &sub_edge, unsigned int depth,
   fastuidraw::vec2 n_start, n_end;
   fastuidraw::ArcStrokedPoint pt;
 
-  n_start = sub_edge.m_bevel_lambda * sub_edge.m_bevel_normal;
-  n_end = sub_edge.m_bevel_lambda * sub_edge.m_begin_normal;
+  if (is_inner_bevel)
+    {
+      n_start = -sub_edge.m_bevel_lambda * sub_edge.m_begin_normal;
+      n_end = -sub_edge.m_bevel_lambda * sub_edge.m_bevel_normal;
+    }
+  else
+    {
+      n_start = sub_edge.m_bevel_lambda * sub_edge.m_bevel_normal;
+      n_end = sub_edge.m_bevel_lambda * sub_edge.m_begin_normal;
+    }
 
   pt.m_position = sub_edge.m_pt0;
   pt.m_distance_from_edge_start = sub_edge.m_distance_from_edge_start;
@@ -1926,19 +1985,32 @@ build_arc_bevel(const SingleSubEdge &sub_edge, unsigned int depth,
   fastuidraw::detail::pack_arc_join(pt, 1, n_start, n_end, depth,
                                     attribute_data, vert_offset,
                                     indices, index_offset, false);
+  --depth;
 }
 
 void
 ArcEdgeAttributeFiller::
-build_line_bevel(const SingleSubEdge &sub_edge, unsigned int depth,
-                fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
-                fastuidraw::c_array<fastuidraw::PainterIndex> indices,
-                unsigned int &vert_offset, unsigned int &index_offset) const
+build_line_bevel(bool is_inner_bevel,
+                 const SingleSubEdge &sub_edge, unsigned int &depth,
+                 fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+                 fastuidraw::c_array<fastuidraw::PainterIndex> indices,
+                 unsigned int &vert_offset, unsigned int &index_offset) const
 {
   using namespace fastuidraw;
   using namespace detail;
 
   vecN<ArcStrokedPoint, 3> pts;
+  float sgn;
+
+  if (is_inner_bevel)
+    {
+      sgn = -sub_edge.m_bevel_lambda;
+    }
+  else
+    {
+      sgn = sub_edge.m_bevel_lambda;
+    }
+
   indices[index_offset + 0] = vert_offset + 0;
   indices[index_offset + 1] = vert_offset + 1;
   indices[index_offset + 2] = vert_offset + 2;
@@ -1959,11 +2031,11 @@ build_line_bevel(const SingleSubEdge &sub_edge, unsigned int depth,
   pts[0].m_packed_data = ArcStrokedPoint::distance_constant_on_primitive_mask
     | arc_stroked_point_pack_bits(0, ArcStrokedPoint::offset_line_segment, depth);
 
-  pts[1].m_offset_direction = sub_edge.m_bevel_lambda * sub_edge.m_bevel_normal;
+  pts[1].m_offset_direction = sgn * sub_edge.m_bevel_normal;
   pts[1].m_packed_data = ArcStrokedPoint::distance_constant_on_primitive_mask
     | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_line_segment, depth);
 
-  pts[2].m_offset_direction = sub_edge.m_bevel_lambda * sub_edge.m_begin_normal;
+  pts[2].m_offset_direction = sgn * sub_edge.m_begin_normal;
   pts[2].m_packed_data = ArcStrokedPoint::distance_constant_on_primitive_mask
     | arc_stroked_point_pack_bits(1, ArcStrokedPoint::offset_line_segment, depth);
 
@@ -1973,11 +2045,12 @@ build_line_bevel(const SingleSubEdge &sub_edge, unsigned int depth,
     }
 
   vert_offset += 3;
+  --depth;
 }
 
 void
 ArcEdgeAttributeFiller::
-build_arc_segment(const SingleSubEdge &sub_edge, unsigned int depth,
+build_arc_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
                   fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                   fastuidraw::c_array<fastuidraw::PainterIndex> indices,
                   unsigned int &vert_offset, unsigned int &index_offset) const
@@ -2098,11 +2171,13 @@ build_arc_segment(const SingleSubEdge &sub_edge, unsigned int depth,
   end_pt.m_position = sub_edge.m_pt1;
   end_pt.m_offset_direction = end_radial;
   end_pt.pack_point(&attribute_data[vert_offset++]);
+
+  --depth;
 }
 
 void
 ArcEdgeAttributeFiller::
-build_line_segment(const SingleSubEdge &sub_edge, unsigned int depth,
+build_line_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
                    fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                    fastuidraw::c_array<fastuidraw::PainterIndex> indices,
                    unsigned int &vert_offset, unsigned int &index_offset) const
@@ -2173,6 +2248,7 @@ build_line_segment(const SingleSubEdge &sub_edge, unsigned int depth,
 
   index_offset += StrokedPathSubset::indices_per_segment;
   vert_offset += StrokedPathSubset::points_per_segment;
+  --depth;
 }
 
 /////////////////////////////////////////////
