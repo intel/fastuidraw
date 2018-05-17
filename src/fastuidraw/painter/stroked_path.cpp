@@ -306,13 +306,13 @@ namespace
     fastuidraw::range_type<unsigned int> m_depth_range;
 
     /* chunk in PainterAttributeData holding the range
-     *  of indices and vertices above.
+     * of indices and vertices above.
      */
     unsigned int m_chunk;
 
     /* source of data, only non-empty if EdgeAttributeFiller
-     *  should create attribute/index data at the ranges
-     *  above.
+     * should create attribute/index data at the ranges
+     * above.
      */
     fastuidraw::c_array<const SingleSubEdge> m_src;
 
@@ -477,6 +477,10 @@ namespace
                             unsigned int max_attribute_cnt,
                             unsigned int max_index_cnt,
                             ChunkSetPrivate &dst);
+
+    static
+    unsigned int
+    compute_edge_depth(fastuidraw::c_array<const SingleSubEdge> edges);
 
     static
     void
@@ -1195,6 +1199,22 @@ create(const SubEdgeCullingHierarchy *src,
   return return_value;
 }
 
+unsigned int
+StrokedPathSubset::
+compute_edge_depth(fastuidraw::c_array<const SingleSubEdge> edges)
+{
+  unsigned int return_value(0);
+  for (const SingleSubEdge &E : edges)
+    {
+      ++return_value;
+      if (E.m_has_bevel && E.m_use_arc_for_bevel)
+        {
+          ++return_value;
+        }
+    }
+  return return_value;
+}
+
 void
 StrokedPathSubset::
 post_process(PostProcessVariables &variables, const CreationValues &constants)
@@ -1221,8 +1241,8 @@ post_process(PostProcessVariables &variables, const CreationValues &constants)
       FASTUIDRAWassert(m_children[0] == nullptr);
       FASTUIDRAWassert(m_children[1] == nullptr);
 
-      variables.m_edge_depth += m_non_closing_edges.m_src.size();
-      variables.m_closing_edge_depth += m_closing_edges.m_src.size();
+      variables.m_edge_depth += compute_edge_depth(m_non_closing_edges.m_src);
+      variables.m_closing_edge_depth += compute_edge_depth(m_closing_edges.m_src);
     }
   m_non_closing_edges.m_depth_range.m_end = variables.m_edge_depth;
   m_closing_edges.m_depth_range.m_end = variables.m_closing_edge_depth;
@@ -1581,9 +1601,14 @@ build_chunk(const EdgeRanges &edge,
             d = edge.m_depth_range.m_end - 1,
             v = edge.m_vertex_data_range.m_begin,
             i = edge.m_index_data_range.m_begin;
-          k < edge.m_src.size(); ++k, --d)
+          k < edge.m_src.size(); ++k)
         {
           process_sub_edge(edge.m_src[k], d, attribute_data, index_data, v, i);
+          --d;
+          if (edge.m_src[k].m_has_bevel && edge.m_src[k].m_use_arc_for_bevel)
+            {
+              --d;
+            }
         }
     }
 }
@@ -1717,6 +1742,7 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int depth,
         {
           build_arc_bevel(sub_edge, depth, attribute_data,
                           indices, vert_offset, index_offset);
+          --depth;
         }
       else
         {
