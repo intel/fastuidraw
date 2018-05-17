@@ -572,6 +572,18 @@ namespace
                      fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
                      fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
                      unsigned int &vertex_offset, unsigned int &index_offset) const;
+
+    void
+    build_line_segment(const SingleSubEdge &sub_edge, unsigned int depth,
+                       fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+                       fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+                       unsigned int &vertex_offset, unsigned int &index_offset) const;
+
+    void
+    build_line_bevel(const SingleSubEdge &sub_edge, unsigned int depth,
+                     fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+                     fastuidraw::c_array<fastuidraw::PainterIndex> index_data,
+                     unsigned int &vertex_offset, unsigned int &index_offset) const;
   };
 
   class ArcEdgeAttributeFiller:public EdgeAttributeFillerBase
@@ -1622,57 +1634,62 @@ build_chunk(const EdgeRanges &edge,
 // LineEdgeAttributeFiller methods
 void
 LineEdgeAttributeFiller::
-process_sub_edge(const SingleSubEdge &sub_edge, unsigned int &depth,
-                 fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
-                 fastuidraw::c_array<fastuidraw::PainterIndex> indices,
-                 unsigned int &vert_offset, unsigned int &index_offset) const
+build_line_bevel(const SingleSubEdge &sub_edge, unsigned int depth,
+                fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+                fastuidraw::c_array<fastuidraw::PainterIndex> indices,
+                unsigned int &vert_offset, unsigned int &index_offset) const
+{
+  using namespace fastuidraw;
+  using namespace detail;
+
+  vecN<StrokedPoint, 3> pts;
+  indices[index_offset + 0] = vert_offset + 0;
+  indices[index_offset + 1] = vert_offset + 1;
+  indices[index_offset + 2] = vert_offset + 2;
+  index_offset += 3;
+
+  for(unsigned int k = 0; k < 3; ++k)
+    {
+      pts[k].m_position = sub_edge.m_pt0;
+      pts[k].m_distance_from_edge_start = sub_edge.m_distance_from_edge_start;
+      pts[k].m_distance_from_contour_start = sub_edge.m_distance_from_contour_start;
+      pts[k].m_edge_length = sub_edge.m_edge_length;
+      pts[k].m_open_contour_length = sub_edge.m_open_contour_length;
+      pts[k].m_closed_contour_length = sub_edge.m_closed_contour_length;
+      pts[k].m_auxiliary_offset = vec2(0.0f, 0.0f);
+    }
+
+  pts[0].m_pre_offset = vec2(0.0f, 0.0f);
+  pts[0].m_packed_data = pack_data(0, StrokedPoint::offset_sub_edge, depth)
+    | StrokedPoint::bevel_edge_mask;
+
+  pts[1].m_pre_offset = sub_edge.m_bevel_lambda * sub_edge.m_bevel_normal;
+  pts[1].m_packed_data = pack_data(1, StrokedPoint::offset_sub_edge, depth)
+    | StrokedPoint::bevel_edge_mask;
+
+  pts[2].m_pre_offset = sub_edge.m_bevel_lambda * sub_edge.m_begin_normal;
+  pts[2].m_packed_data = pack_data(1, StrokedPoint::offset_sub_edge, depth)
+    | StrokedPoint::bevel_edge_mask;
+
+  for(unsigned int i = 0; i < 3; ++i)
+    {
+      pts[i].pack_point(&attribute_data[vert_offset + i]);
+    }
+
+  vert_offset += 3;
+}
+
+void
+LineEdgeAttributeFiller::
+build_line_segment(const SingleSubEdge &sub_edge, unsigned int depth,
+                   fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+                   fastuidraw::c_array<fastuidraw::PainterIndex> indices,
+                   unsigned int &vert_offset, unsigned int &index_offset) const
 {
   using namespace fastuidraw;
   const int boundary_values[3] = { 1, 1, 0 };
   const float normal_sign[3] = { 1.0f, -1.0f, 0.0f };
   vecN<StrokedPoint, 6> pts;
-
-  FASTUIDRAWassert(sub_edge.m_from_line_segment);
-  FASTUIDRAWassert(!sub_edge.m_has_start_dashed_capper);
-  FASTUIDRAWassert(!sub_edge.m_has_end_dashed_capper);
-
-  if (sub_edge.m_has_bevel)
-    {
-      indices[index_offset + 0] = vert_offset + 0;
-      indices[index_offset + 1] = vert_offset + 1;
-      indices[index_offset + 2] = vert_offset + 2;
-      index_offset += 3;
-
-      for(unsigned int k = 0; k < 3; ++k)
-        {
-          pts[k].m_position = sub_edge.m_pt0;
-          pts[k].m_distance_from_edge_start = sub_edge.m_distance_from_edge_start;
-          pts[k].m_distance_from_contour_start = sub_edge.m_distance_from_contour_start;
-          pts[k].m_edge_length = sub_edge.m_edge_length;
-          pts[k].m_open_contour_length = sub_edge.m_open_contour_length;
-          pts[k].m_closed_contour_length = sub_edge.m_closed_contour_length;
-          pts[k].m_auxiliary_offset = vec2(0.0f, 0.0f);
-        }
-
-      pts[0].m_pre_offset = vec2(0.0f, 0.0f);
-      pts[0].m_packed_data = pack_data(0, StrokedPoint::offset_sub_edge, depth)
-        | StrokedPoint::bevel_edge_mask;
-
-      pts[1].m_pre_offset = sub_edge.m_bevel_lambda * sub_edge.m_bevel_normal;
-      pts[1].m_packed_data = pack_data(1, StrokedPoint::offset_sub_edge, depth)
-        | StrokedPoint::bevel_edge_mask;
-
-      pts[2].m_pre_offset = sub_edge.m_bevel_lambda * sub_edge.m_begin_normal;
-      pts[2].m_packed_data = pack_data(1, StrokedPoint::offset_sub_edge, depth)
-        | StrokedPoint::bevel_edge_mask;
-
-      for(unsigned int i = 0; i < 3; ++i)
-        {
-          pts[i].pack_point(&attribute_data[vert_offset + i]);
-        }
-
-      vert_offset += 3;
-    }
 
   /* The quad is:
    *  (p, n, delta,  1),
@@ -1730,6 +1747,26 @@ process_sub_edge(const SingleSubEdge &sub_edge, unsigned int &depth,
 
   index_offset += StrokedPathSubset::indices_per_segment;
   vert_offset += StrokedPathSubset::points_per_segment;
+}
+
+void
+LineEdgeAttributeFiller::
+process_sub_edge(const SingleSubEdge &sub_edge, unsigned int &depth,
+                 fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
+                 fastuidraw::c_array<fastuidraw::PainterIndex> indices,
+                 unsigned int &vert_offset, unsigned int &index_offset) const
+{
+  FASTUIDRAWassert(sub_edge.m_from_line_segment);
+  FASTUIDRAWassert(!sub_edge.m_has_start_dashed_capper);
+  FASTUIDRAWassert(!sub_edge.m_has_end_dashed_capper);
+
+  if (sub_edge.m_has_bevel)
+    {
+      build_line_bevel(sub_edge, depth, attribute_data,
+                       indices, vert_offset, index_offset);
+    }
+  build_line_segment(sub_edge, depth, attribute_data,
+                     indices, vert_offset, index_offset);
   --depth;
 }
 
