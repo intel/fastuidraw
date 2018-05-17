@@ -147,6 +147,10 @@ fastuidraw_gl_frag_main(in uint sub_shader,
           FASTUIDRAW_DISCARD;
           alpha = 0.0;
         }
+      else if (render_pass == uint(fastuidraw_stroke_aa_pass2) && alpha <= 0.0)
+        {
+          FASTUIDRAW_DISCARD;
+        }
     }
   #endif
 
