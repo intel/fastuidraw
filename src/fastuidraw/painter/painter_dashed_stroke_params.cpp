@@ -276,9 +276,14 @@ dash_pattern(c_array<const DashPatternElement> f)
       d->m_total_length += d->m_dash_pattern[i].m_space_length;
     }
 
-  if (d->m_dash_pattern.back().m_space_length <= 0.0f && d->m_dash_pattern.front().m_draw_length > 0.0f)
+  if (d->m_dash_pattern.front().m_draw_length > 0.0f)
     {
-      d->m_first_interval_start = -d->m_dash_pattern.back().m_draw_length;
+      /* make sure that any sample point in rasterizing that
+       * it near zero, gets a positive distance from the
+       * dash boundary when the dash pattern starts with
+       * a draw length.
+       */
+      d->m_first_interval_start = -d->m_dash_pattern.front().m_draw_length;
     }
   else
     {
