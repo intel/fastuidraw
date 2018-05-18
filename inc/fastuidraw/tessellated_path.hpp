@@ -298,11 +298,47 @@ public:
   };
 
   /*!
+   * A Refiner is stateful object that creates new TessellatedPath
+   * objects from a starting TessellatedPath where the tessellation
+   * is made finer.
+   */
+  class Refiner:
+    public reference_counted<Refiner>::non_concurrent
+  {
+  public:
+    virtual
+    ~Refiner();
+
+    /*!
+     * Update the TessellatedPath returned by tessellated_path() by
+     * refining the current value returned by tessellated_path().
+     */
+    void
+    refine_tessellation(float threshhold,
+                        unsigned int additional_recursion_count);
+
+    /*!
+     * Returns the current TessellatedPath of this Refiner.
+     */
+    reference_counted_ptr<TessellatedPath>
+    tessellated_path(void) const;
+
+  private:
+    friend class TessellatedPath;
+    Refiner(TessellatedPath *p, const Path &path);
+
+    void *m_d;
+  };
+
+  /*!
    * Ctor. Construct a TessellatedPath from a Path
    * \param input source path to tessellate
    * \param P parameters on how to tessellate the source Path
+   * \param ref if non-NULL, construct a Refiner object and return
+   *            the value via upading the value of ref.
    */
-  TessellatedPath(const Path &input, TessellationParams P);
+  TessellatedPath(const Path &input, TessellationParams P,
+                  reference_counted_ptr<Refiner> *ref = nullptr);
 
   ~TessellatedPath();
 
@@ -474,6 +510,8 @@ public:
   filled(void) const;
 
 private:
+  TessellatedPath(Refiner *p, float threshhold,
+                  unsigned int additional_recursion_count);
   void *m_d;
 };
 
