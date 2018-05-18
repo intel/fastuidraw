@@ -86,6 +86,34 @@ namespace fastuidraw
    * Conveniance overload avoiding to rely on std::
    */
   inline
+  float
+  t_asin(float x) { return ::asinf(x); }
+
+  /*!
+   * Conveniance overload avoiding to rely on std::
+   */
+  inline
+  float
+  t_acos(float x) { return ::acosf(x); }
+
+  /*!
+   * Conveniance overload avoiding to rely on std::
+   */
+  inline
+  float
+  t_atan(float x) { return ::atanf(x); }
+
+  /*!
+   * Conveniance overload avoiding to rely on std::
+   */
+  inline
+  float
+  t_atan2(float y, float x) { return ::atan2f(y, x); }
+
+  /*!
+   * Conveniance overload avoiding to rely on std::
+   */
+  inline
   double
   t_sin(double x) { return ::sin(x); }
 
@@ -107,6 +135,34 @@ namespace fastuidraw
    * Conveniance overload avoiding to rely on std::
    */
   inline
+  double
+  t_asin(double x) { return ::asin(x); }
+
+  /*!
+   * Conveniance overload avoiding to rely on std::
+   */
+  inline
+  double
+  t_acos(double x) { return ::acos(x); }
+
+  /*!
+   * Conveniance overload avoiding to rely on std::
+   */
+  inline
+  double
+  t_atan(double x) { return ::atan(x); }
+
+  /*!
+   * Conveniance overload avoiding to rely on std::
+   */
+  inline
+  double
+  t_atan2(double y, double x) { return ::atan2(y, x); }
+
+  /*!
+   * Conveniance overload avoiding to rely on std::
+   */
+  inline
   long double
   t_sin(long double x) { return ::sinl(x); }
 
@@ -123,6 +179,34 @@ namespace fastuidraw
   inline
   long double
   t_sqrt(long double x) { return ::sqrtl(x); }
+
+  /*!
+   * Conveniance overload avoiding to rely on std::
+   */
+  inline
+  long double
+  t_asin(long double x) { return ::asinl(x); }
+
+  /*!
+   * Conveniance overload avoiding to rely on std::
+   */
+  inline
+  long double
+  t_acos(long double x) { return ::acosl(x); }
+
+  /*!
+   * Conveniance overload avoiding to rely on std::
+   */
+  inline
+  long double
+  t_atan(long double x) { return ::atanl(x); }
+
+  /*!
+   * Conveniance overload avoiding to rely on std::
+   */
+  inline
+  long double
+  t_atan2(long double y, long double x) { return ::atan2l(y, x); }
 
   /*!
    * Conveniance overload avoiding to rely on std::
