@@ -129,9 +129,14 @@ fastuidraw_stroke_compute_dash_coverage(in uint dash_style,
     }
   else
     {
+      float f;
+      f = distance_value > stroke_params.total_length ?
+        stroke_params.first_interval_start_on_looping :
+        stroke_params.first_interval_start;
+
       q = fastuidraw_stroke_compute_dash_interval(dash_pattern_at,
                                                   stroke_params.total_length,
-                                                  stroke_params.first_interval_start,
+                                                  f,
                                                   distance_value,
                                                   distance_sub_edge_start,
                                                   distance_sub_edge_end,
@@ -165,9 +170,13 @@ fastuidraw_stroke_compute_dash_coverage(in uint shader_data_offset,
     }
   else
     {
+      float f;
+      f = distance_value > stroke_params.total_length ?
+        stroke_params.first_interval_start_on_looping :
+        stroke_params.first_interval_start;
       q = fastuidraw_stroke_compute_dash_interval(dash_pattern_at,
                                                   stroke_params.total_length,
-                                                  stroke_params.first_interval_start,
+                                                  f,
                                                   distance_value,
                                                   stroke_params.number_intervals);
     }

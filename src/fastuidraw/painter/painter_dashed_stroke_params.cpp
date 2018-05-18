@@ -51,6 +51,7 @@ namespace
     float m_dash_offset;
     float m_total_length;
     float m_first_interval_start;
+    float m_first_interval_start_on_looping;
     std::vector<fastuidraw::PainterDashedStrokeParams::DashPatternElement> m_dash_pattern;
     std::vector<fastuidraw::generic_data> m_dash_pattern_packed;
   };
@@ -65,7 +66,8 @@ PainterDashedStrokeParamsData(void):
   m_stroking_units(fastuidraw::PainterStrokeParams::path_stroking_units),
   m_dash_offset(0.0f),
   m_total_length(0.0f),
-  m_first_interval_start(0.0f)
+  m_first_interval_start(0.0f),
+  m_first_interval_start_on_looping(0.0f)
 {}
 
 fastuidraw::PainterShaderData::DataBase*
@@ -102,6 +104,7 @@ pack_data(unsigned int alignment, fastuidraw::c_array<fastuidraw::generic_data> 
   dst[PainterDashedStrokeParams::stroke_dash_offset_offset].f = m_dash_offset;
   dst[PainterDashedStrokeParams::stroke_total_length_offset].f = m_total_length;
   dst[PainterDashedStrokeParams::stroke_first_interval_start_offset].f = m_first_interval_start;
+  dst[PainterDashedStrokeParams::stroke_first_interval_start_on_looping_offset].f = m_first_interval_start_on_looping;
   dst[PainterDashedStrokeParams::stroke_number_intervals_offset].u = m_dash_pattern_packed.size();
 
   if (!m_dash_pattern_packed.empty())
@@ -274,6 +277,15 @@ dash_pattern(c_array<const DashPatternElement> f)
     {
       d->m_total_length += d->m_dash_pattern[i].m_draw_length;
       d->m_total_length += d->m_dash_pattern[i].m_space_length;
+    }
+
+  if (d->m_dash_pattern.back().m_space_length <= 0.0f && d->m_dash_pattern.front().m_draw_length > 0.0f)
+    {
+      d->m_first_interval_start_on_looping = -d->m_dash_pattern.back().m_draw_length;
+    }
+  else
+    {
+      d->m_first_interval_start_on_looping = 0.0;
     }
 
   if (d->m_dash_pattern.front().m_draw_length > 0.0f)

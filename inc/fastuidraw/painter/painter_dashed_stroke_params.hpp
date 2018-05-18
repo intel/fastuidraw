@@ -50,6 +50,7 @@ namespace fastuidraw
         stroke_dash_offset_offset, /*!< offset to dash offset value for dashed stroking (packed as float) */
         stroke_total_length_offset, /*!< offset to total legnth of dash pattern (packed as float) */
         stroke_first_interval_start_offset, /*!< offset to value recording the start of the first interval (packed as float) */
+        stroke_first_interval_start_on_looping_offset, /*!< offset to value recording the start of the first interval on looping (packed as float) */
         stroke_number_intervals_offset, /*!< offset to value giving the number of intervals (packed as uint) */
 
         stroke_static_data_size /*!< size of static data for dashed stroking */
