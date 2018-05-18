@@ -610,30 +610,6 @@ public:
   }
 
   /*!
-   * Component-wise addition operator against a singleton
-   * \param obj right hand side of + operator
-   */
-  vecN
-  operator+(const T &obj) const
-  {
-    vecN retval(*this);
-    retval += obj;
-    return retval;
-  }
-
-  /*!
-   * Component-wise subtraction operator against a singleton
-   * \param obj right hand side of + operator
-   */
-  vecN
-  operator-(const T &obj) const
-  {
-    vecN retval(*this);
-    retval -= obj;
-    return retval;
-  }
-
-  /*!
    * Component-wise multiplication operator against a singleton
    * \param obj right hand side of * operator
    */
@@ -750,36 +726,6 @@ public:
   }
 
   /*!
-   * Increment add operator against a singleton,
-   * i.e. increment each element of this against
-   * the passed T value.
-   * \param obj right hind side of operator+=
-   */
-  void
-  operator+=(const T &obj)
-  {
-    for(size_type i = 0; i < N; ++i)
-      {
-        operator[](i) += obj;
-      }
-  }
-
-  /*!
-   * Increment subtract operator against a singleton,
-   * i.e. decrement each element of this against
-   * the passed T value.
-   * \param obj right hind side of operator-=
-   */
-  void
-  operator-=(const T &obj)
-  {
-    for(size_type i = 0; i < N; ++i)
-      {
-        operator[](i) -= obj;
-      }
-  }
-
-  /*!
    * Increment multiply operator against a singleton,
    * i.e. increment multiple each element of this against
    * the passed T value.
@@ -822,32 +768,6 @@ public:
       {
         operator[](i) %= obj;
       }
-  }
-
-  /*!
-   * Component-wise addition against a singleton
-   * \param obj left hand side of + operator
-   * \param vec right hand side of + operator
-   */
-  friend
-  vecN operator+(const T &obj, const vecN &vec)
-  {
-    vecN retval(obj);
-    retval += vec;
-    return retval;
-  }
-
-  /*!
-   * Component-wise subtraction against a singleton
-   * \param obj left hand side of - operator
-   * \param vec right hand side of - operator
-   */
-  friend
-  vecN operator-(const T &obj, const vecN &vec)
-  {
-    vecN retval(obj);
-    retval -= vec;
-    return retval;
   }
 
   /*!
