@@ -300,6 +300,7 @@ namespace
     clear(void)
     {
       m_data.clear();
+      m_refiner = nullptr;
       m_done = false;
     }
 
@@ -322,6 +323,7 @@ namespace
     };
 
     bool m_allow_arcs, m_done;
+    fastuidraw::reference_counted_ptr<TessellatedPath::Refiner> m_refiner;
     std::vector<TessellatedPathRef> m_data;
   };
 
@@ -578,6 +580,7 @@ resume_tessellation(const fastuidraw::TessellatedPath::TessellationParams &tess_
 
   std::swap(new_nodes, m_nodes);
   *out_threshhold = 0.0f;
+  m_recursion_depth = 0;
   for(const T &node : m_nodes)
     {
       node.add_segment(out_data);
@@ -1398,7 +1401,7 @@ tessellation(const fastuidraw::Path &path, float thresh)
             }
         }
       params.allow_arcs(m_allow_arcs);
-      m_data.push_back(FASTUIDRAWnew TessellatedPath(path, params));
+      m_data.push_back(FASTUIDRAWnew TessellatedPath(path, params, &m_refiner));
     }
 
   if (thresh <= 0.0 || path.is_flat())
@@ -1426,24 +1429,21 @@ tessellation(const fastuidraw::Path &path, float thresh)
     }
 
   TessellatedPathRef ref;
-  TessellationParams params;
+  float current_thresh;
 
   ref = m_data.back();
-  params
-    .allow_arcs(m_allow_arcs)
-    .max_recursion(ref->max_recursion())
-    .threshhold(ref->effective_threshhold());
+  current_thresh = ref->tessellation_parameters().m_threshhold;
 
   while(!m_done && ref->effective_threshhold() > thresh)
     {
-      params.m_threshhold *= 0.5f;
-      while(!m_done && ref->effective_threshhold() > params.m_threshhold)
+      current_thresh *= 0.5f;
+      while(!m_done && ref->effective_threshhold() > current_thresh)
         {
           float last_tess;
 
-          ++params.m_max_recursion;
           last_tess = ref->effective_threshhold();
-          ref = FASTUIDRAWnew TessellatedPath(path, params);
+          m_refiner->refine_tessellation(current_thresh, 1);
+          ref = m_refiner->tessellated_path();
 
           if (last_tess > ref->effective_threshhold())
             {
@@ -1459,6 +1459,7 @@ tessellation(const fastuidraw::Path &path, float thresh)
           else
             {
               m_done = true;
+              m_refiner = nullptr;
 
               /*
               std::cout << "Tapped out on allow arcs = " << m_allow_arcs
