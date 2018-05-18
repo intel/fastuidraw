@@ -92,7 +92,7 @@ public:
      * Ctor, initializes values.
      */
     TessellationParams(void):
-      m_threshhold(1.0f),
+      m_max_distance(-1.0f),
       m_max_recursion(5),
       m_allow_arcs(true)
     {}
@@ -100,14 +100,14 @@ public:
     /*!
      * Provided as a conveniance. Equivalent to
      * \code
-     * m_threshhold = tp;
+     * m_max_distance = tp;
      * \endcode
-     * \param p value to which to assign to \ref m_threshhold
+     * \param p value to which to assign to \ref m_max_distance
      */
     TessellationParams&
-    threshhold(float p)
+    max_distance(float p)
     {
-      m_threshhold = p;
+      m_max_distance = p;
       return *this;
     }
 
@@ -137,13 +137,16 @@ public:
     }
 
     /*!
-     * Default value is 1.0.
+     * Maximum distance to attempt between the actual curve and the
+     * tessellation. A value less than or equal to zero indicates to
+     * accept any distance value between the tessellation and the
+     * curve. Default value is -1.0 (i.e. accept any distance value).
      */
-    float m_threshhold;
+    float m_max_distance;
 
     /*!
-     * Maximum number of times to cut a single edge in
-     * half. Default value is 5.
+     * Maximum number of times to perform recursion to tessellate an edge.
+     * Default value is 5.
      */
     unsigned int m_max_recursion;
 
@@ -312,10 +315,13 @@ public:
     /*!
      * Update the TessellatedPath returned by tessellated_path() by
      * refining the current value returned by tessellated_path().
+     * \param max_distance new maximum distance to aim for
+     * \param additional_recursion amount by which to additionally recurse
+     *                             when tessellating.
      */
     void
-    refine_tessellation(float threshhold,
-                        unsigned int additional_recursion_count);
+    refine_tessellation(float max_distance,
+                        unsigned int additional_recursion);
 
     /*!
      * Returns the current TessellatedPath of this Refiner.
@@ -358,10 +364,12 @@ public:
   has_arcs(void) const;
 
   /*!
-   * Returns the tessellation threshold achieved
+   * Returns the maximum across all edges of all contours
+   * of the distance between the tessellation and the actual
+   * path.
    */
   float
-  effective_threshhold(void) const;
+  max_distance(void) const;
 
   /*!
    * Returns the maximum number of segments any edge needed
