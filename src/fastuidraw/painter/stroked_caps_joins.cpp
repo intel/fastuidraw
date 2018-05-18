@@ -2082,7 +2082,7 @@ PerRoundedJoin(const PerJoinData &J, float thresh):
   std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z));
 
   m_arc_start = n0z;
-  m_delta_theta = std::atan2(n1z_times_conj_n0z.imag(), n1z_times_conj_n0z.real());
+  m_delta_theta = fastuidraw::t_atan2(n1z_times_conj_n0z.imag(), n1z_times_conj_n0z.real());
   m_num_arc_points = fastuidraw::detail::number_segments_for_tessellation(m_delta_theta, thresh);
   m_delta_theta /= static_cast<float>(m_num_arc_points - 1);
 }
@@ -2122,8 +2122,8 @@ add_data(unsigned int depth,
       std::complex<float> cs_as_complex;
 
       t = static_cast<float>(i) / static_cast<float>(m_num_arc_points - 1);
-      c = std::cos(theta);
-      s = std::sin(theta);
+      c = fastuidraw::t_cos(theta);
+      s = fastuidraw::t_sin(theta);
       cs_as_complex = std::complex<float>(c, s) * m_arc_start;
 
       pt.m_position = m_p;
@@ -2216,8 +2216,8 @@ PerArcRoundedJoin(const PerJoinData &J):
   std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z));
 
   m_arc_start = n0z;
-  m_delta_angle = std::atan2(n1z_times_conj_n0z.imag(),
-                             n1z_times_conj_n0z.real());
+  m_delta_angle = fastuidraw::t_atan2(n1z_times_conj_n0z.imag(),
+                                      n1z_times_conj_n0z.real());
   delta_angle_mag = fastuidraw::t_abs(m_delta_angle);
 
   m_count = 1u + static_cast<unsigned int>(delta_angle_mag / per_arc_angle_max);
@@ -2716,8 +2716,8 @@ add_cap(const PerCapData &C, unsigned int depth,
     {
       float s, c;
 
-      s = std::sin(theta);
-      c = std::cos(theta);
+      s = fastuidraw::t_sin(theta);
+      c = fastuidraw::t_cos(theta);
       pt.m_position = C.m_p;
       pt.m_pre_offset = n;
       pt.m_auxiliary_offset = fastuidraw::vec2(s, c);
