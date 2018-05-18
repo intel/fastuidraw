@@ -760,7 +760,7 @@ intersection_point_in_arc(fastuidraw::vec2 pt, float *out_arc_angle) const
       /* pt is within the arc; compute the angle */
       float theta;
 
-      theta = std::atan2(pt.y(), pt.x());
+      theta = t_atan2(pt.y(), pt.x());
       if (theta < t_min(m_arc_angle.m_begin, m_arc_angle.m_end))
         {
           theta += 2.0f * static_cast<float>(M_PI);

@@ -497,9 +497,9 @@ compute_circle(const fastuidraw::PathContour::interpolator_generic *h,
       ce = m_end - m_center;
       cm = m_mid - m_center;
 
-      m_angle.m_begin = std::atan2(cs.y(), cs.x());
-      m_angle.m_end = std::atan2(ce.y(), ce.x());
-      mid_angle = std::atan2(cm.y(), cm.x());
+      m_angle.m_begin = cs.atan();
+      m_angle.m_end = ce.atan();
+      mid_angle = cm.atan();
 
       if ((mid_angle > m_angle.m_begin) != (m_angle.m_end > m_angle.m_begin))
         {
@@ -934,8 +934,8 @@ arc(const reference_counted_ptr<const interpolator_base> &start, float angle, co
   end_start = end_pt() - start_pt();
   mid = (end_pt() + start_pt()) * 0.5f;
   n = vec2(-end_start.y(), end_start.x());
-  s = std::sin(angle * 0.5f);
-  c = std::cos(angle * 0.5f);
+  s = fastuidraw::t_sin(angle * 0.5f);
+  c = fastuidraw::t_cos(angle * 0.5f);
 
   /* Let t be the point so that m_center = t*n + mid
    *  Then
@@ -951,7 +951,7 @@ arc(const reference_counted_ptr<const interpolator_base> &start, float angle, co
   vec2 start_center(start_pt() - d->m_center);
 
   d->m_radius = start_center.magnitude();
-  d->m_start_angle = std::atan2(start_center.y(), start_center.x());
+  d->m_start_angle = start_center.atan();
   d->m_angle_speed = angle_coeff_dir * angle;
 
   detail::bouding_box_union_arc(d->m_center, d->m_radius,
@@ -1029,8 +1029,8 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
             {
               float c, s;
 
-              c = d->m_radius * std::cos(a);
-              s = d->m_radius * std::sin(a);
+              c = d->m_radius * t_cos(a);
+              s = d->m_radius * t_sin(a);
               p = d->m_center + vec2(c, s);
             }
           out_data->add_line_segment(prev_pt, p);
