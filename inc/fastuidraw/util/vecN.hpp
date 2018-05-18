@@ -1039,6 +1039,19 @@ public:
   }
 
   /*!
+   * Conveniance function only for N = 2, equivalent to
+   * \code
+   *  t_atan(y(), x())
+   * \endcode
+   */
+  T
+  atan(void) const
+  {
+    FASTUIDRAWstatic_assert(N == 2);
+    return t_atan2(y(), x());
+  }
+
+  /*!
    * STL compliand size function, note that it is static
    * since the size of the array is determined by the template
    * parameter N.
