@@ -723,6 +723,7 @@ stream_unpack_code(fastuidraw::glsl::ShaderSource &str)
       .set(PainterDashedStrokeParams::stroke_dash_offset_offset, ".dash_offset")
       .set(PainterDashedStrokeParams::stroke_total_length_offset, ".total_length")
       .set(PainterDashedStrokeParams::stroke_first_interval_start_offset, ".first_interval_start")
+      .set(PainterDashedStrokeParams::stroke_first_interval_start_on_looping_offset, ".first_interval_start_on_looping")
       .set(PainterDashedStrokeParams::stroke_number_intervals_offset, ".number_intervals", shader_unpack_value::uint_type)
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_dashed_stroking_params_header",
