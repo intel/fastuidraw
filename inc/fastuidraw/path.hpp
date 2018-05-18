@@ -70,15 +70,15 @@ public:
      * value.
      * \param tess_params tessellation parameters
      * \param out_data location to which to write the tessellations
-     * \param out_threshhold location to which to write an upperbound for the
-     *                       distance between the curve and the tesseallation
-     *                       approximation.
+     * \param out_max_distance location to which to write an upperbound for the
+     *                         distance between the curve and the tesseallation
+     *                         approximation.
      */
     virtual
     void
     resume_tessellation(const TessellatedPath::TessellationParams &tess_params,
                         TessellatedPath::SegmentStorage *out_data,
-                        float *out_threshhold) = 0;
+                        float *out_max_distance) = 0;
   };
 
   /*!
@@ -140,7 +140,7 @@ public:
      *
      * \param tess_params tessellation parameters
      * \param out_data location to which to write the tessellations
-     * \param out_threshhold location to which to write an upperbound for the
+     * \param out_max_distance location to which to write an upperbound for the
      *                       distance between the curve and the tesseallation
      *                       approximation.
      */
@@ -148,7 +148,7 @@ public:
     reference_counted_ptr<tessellation_state>
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          TessellatedPath::SegmentStorage *out_data,
-                         float *out_threshhold) const = 0;
+                         float *out_max_distance) const = 0;
 
     /*!
      * To be implemented by a derived class to return a fast (and approximate)
@@ -201,7 +201,7 @@ public:
     reference_counted_ptr<tessellation_state>
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          TessellatedPath::SegmentStorage *out_data,
-                         float *out_threshhold) const;
+                         float *out_max_distance) const;
     virtual
     void
     approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
@@ -243,7 +243,7 @@ public:
     reference_counted_ptr<tessellation_state>
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          TessellatedPath::SegmentStorage *out_data,
-                         float *out_threshhold) const;
+                         float *out_max_distance) const;
 
     /*!
      * To be implemented by a derived to assist in recursive tessellation.
@@ -254,16 +254,16 @@ public:
      * \param out_p location to which to write the position of the point
      *              on the curve in the middle (with repsect to time) of
      *              in_region
-     * \param out_threshhold location to which to write an upperbound for the
-     *                       distance between the curve and the tesseallation
-     *                       approximation.
+     * \param out_max_distance location to which to write an upperbound for the
+     *                         distance between the curve and the tesseallation
+     *                         approximation.
      */
     virtual
     void
     tessellate(reference_counted_ptr<tessellated_region> in_region,
                reference_counted_ptr<tessellated_region> *out_regionA,
                reference_counted_ptr<tessellated_region> *out_regionB,
-               vec2 *out_p, float *out_threshholds) const = 0;
+               vec2 *out_p, float *out_max_distance) const = 0;
 
     /*!
      * To be implemented by a derived class to return a reasonable
@@ -323,7 +323,7 @@ public:
     tessellate(reference_counted_ptr<tessellated_region> in_region,
                reference_counted_ptr<tessellated_region> *out_regionA,
                reference_counted_ptr<tessellated_region> *out_regionB,
-               vec2 *out_p, float *out_threshholds) const;
+               vec2 *out_p, float *out_max_distance) const;
     virtual
     void
     approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
@@ -382,7 +382,7 @@ public:
     reference_counted_ptr<tessellation_state>
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          TessellatedPath::SegmentStorage *out_data,
-                         float *out_threshhold) const;
+                         float *out_max_distance) const;
 
   private:
     arc(const arc &q, const reference_counted_ptr<const interpolator_base> &prev);
@@ -924,10 +924,10 @@ public:
    * lazily. Additionally, if this Path changes its geometry,
    * then a new TessellatedPath will be contructed on the
    * next call to tessellation().
-   * \param thresh the returned tessellated path will be so that
-   *               TessellatedPath::effective_threshhold()
-   *               is no more than thresh. A non-positive value
-   *               will return the starting point tessellation.
+   * \param max_distance the returned tessellated path will be so that
+   *                     TessellatedPath::effective_max_distance()
+   *                     is no more than thresh. A non-positive value
+   *                     will return the starting point tessellation.
    */
   const reference_counted_ptr<const TessellatedPath>&
   tessellation(float thresh) const;
@@ -948,13 +948,13 @@ public:
    * lazily. Additionally, if this Path changes its geometry,
    * then a new TessellatedPath will be contructed on the
    * next call to arc_tessellation().
-   * \param thresh the returned tessellated path will be so that
-   *               TessellatedPath::effective_threshhold()
-   *               is no more than thresh. A non-positive value
-   *               will return the starting point tessellation.
+   * \param max_distance the returned tessellated path will be so that
+   *                     TessellatedPath::effective_max_distance()
+   *                     is no more than thresh. A non-positive value
+   *                     will return the starting point tessellation.
    */
   const reference_counted_ptr<const TessellatedPath>&
-  arc_tessellation(float thresh) const;
+  arc_tessellation(float max_distance) const;
 
   /*!
    * Provided as a conveniance, returns the starting point tessellation.

@@ -27,23 +27,34 @@ fastuidraw::detail::
 number_segments_for_tessellation(float radius, float arc_angle,
                                  const TessellatedPath::TessellationParams &P)
 {
-  return number_segments_for_tessellation(arc_angle, P.m_threshhold / radius);
+  return number_segments_for_tessellation(arc_angle, P.m_max_distance / radius);
 }
 
 unsigned int
 fastuidraw::detail::
 number_segments_for_tessellation(float arc_angle, float distance_thresh)
 {
-  float needed_sizef, d, theta;
+  if (distance_thresh <= 0.0f)
+    {
+      return 1;
+    }
+  else
+    {
+      float needed_sizef, d, theta, num_half_circles;
+      const float pi(M_PI);
 
-  d = t_max(1.0f - distance_thresh, 0.5f);
-  theta = t_max(0.00001f, 0.5f * std::acos(d));
-  needed_sizef = t_abs(arc_angle) / theta;
+      num_half_circles = std::floor(t_abs(arc_angle / pi));
+      arc_angle = t_max(-pi, t_min(arc_angle, pi));
 
-  /* we ask for one more than necessary, to ensure that we BEAT
-   *  the tessellation requirement.
-   */
-  return 1 + fastuidraw::t_max(3u, static_cast<unsigned int>(needed_sizef));
+      d = t_max(1.0f - distance_thresh, 0.5f);
+      theta = t_max(0.00001f, 0.5f * std::acos(d));
+      needed_sizef = (pi * num_half_circles + t_abs(arc_angle)) / theta;
+
+      /* we ask for one more than necessary, to ensure that we BEAT
+       *  the tessellation requirement.
+       */
+      return 1 + fastuidraw::t_max(3u, static_cast<unsigned int>(needed_sizef));
+    }
 }
 
 float

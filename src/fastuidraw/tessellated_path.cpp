@@ -82,7 +82,7 @@ namespace
     add_edge(TessellatedPathBuildingState &b,
              unsigned int contour, unsigned int edge,
              std::vector<fastuidraw::TessellatedPath::segment> &segments,
-             float edge_thresh);
+             float edge_max_distance);
 
     void
     end_contour(TessellatedPathBuildingState &b);
@@ -94,7 +94,7 @@ namespace
     std::vector<fastuidraw::TessellatedPath::segment> m_segment_data;
     fastuidraw::BoundingBox<float> m_bounding_box;
     fastuidraw::TessellatedPath::TessellationParams m_params;
-    float m_effective_threshhold;
+    float m_max_distance;
     bool m_has_arcs;
     unsigned int m_max_segments, m_max_recursion;
     fastuidraw::reference_counted_ptr<const fastuidraw::StrokedPath> m_stroked;
@@ -217,7 +217,7 @@ TessellatedPathPrivate(unsigned int num_contours,
                        fastuidraw::TessellatedPath::TessellationParams TP):
   m_edge_ranges(num_contours),
   m_params(TP),
-  m_effective_threshhold(0.0f),
+  m_max_distance(0.0f),
   m_has_arcs(false),
   m_max_segments(0u),
   m_max_recursion(0u)
@@ -240,7 +240,7 @@ TessellatedPathPrivate::
 add_edge(TessellatedPathBuildingState &builder,
          unsigned int o, unsigned int e,
          std::vector<fastuidraw::TessellatedPath::segment> &work_room,
-         float edge_thresh)
+         float edge_max_distance)
 {
   using namespace fastuidraw;
 
@@ -252,7 +252,7 @@ add_edge(TessellatedPathBuildingState &builder,
 
   FASTUIDRAWassert(needed > 0u);
   m_max_segments = t_max(m_max_segments, needed);
-  m_effective_threshhold = t_max(m_effective_threshhold, edge_thresh);
+  m_max_distance = t_max(m_max_distance, edge_max_distance);
 
   for(unsigned int n = 0; n < work_room.size(); ++n)
     {
@@ -462,18 +462,18 @@ tessellated_path(void) const
 
 void
 fastuidraw::TessellatedPath::Refiner::
-refine_tessellation(float threshhold,
+refine_tessellation(float max_distance,
                     unsigned int additional_recursion_count)
 {
   RefinerPrivate *d;
   d = static_cast<RefinerPrivate*>(m_d);
-  d->m_path = FASTUIDRAWnew TessellatedPath(this, threshhold, additional_recursion_count);
+  d->m_path = FASTUIDRAWnew TessellatedPath(this, max_distance, additional_recursion_count);
 }
 
 //////////////////////////////////////
 // fastuidraw::TessellatedPath methods
 fastuidraw::TessellatedPath::
-TessellatedPath(Refiner *p, float threshhold,
+TessellatedPath(Refiner *p, float max_distance,
                 unsigned int additional_recursion_count)
 {
   RefinerPrivate *ref_d;
@@ -482,7 +482,7 @@ TessellatedPath(Refiner *p, float threshhold,
   ref_d = static_cast<RefinerPrivate*>(p->m_d);
 
   TessellationParams params(ref_d->m_path->tessellation_parameters());
-  params.m_threshhold = threshhold;
+  params.m_max_distance = max_distance;
   params.m_max_recursion += additional_recursion_count;
 
   m_d = d = FASTUIDRAWnew TessellatedPathPrivate(ref_d->m_contours.size(),
@@ -611,11 +611,11 @@ tessellation_parameters(void) const
 
 float
 fastuidraw::TessellatedPath::
-effective_threshhold(void) const
+max_distance(void) const
 {
   TessellatedPathPrivate *d;
   d = static_cast<TessellatedPathPrivate*>(m_d);
-  return d->m_effective_threshhold;
+  return d->m_max_distance;
 }
 
 unsigned int
