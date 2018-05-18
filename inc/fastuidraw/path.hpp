@@ -46,6 +46,40 @@ class PathContour:
     public reference_counted<PathContour>::non_concurrent
 {
 public:
+  /*!
+   * \brief
+   * Provides an interface to resume from a previous tessellation
+   * of a \ref interpolator_base derived object.
+   */
+  class tessellation_state:
+    public reference_counted<tessellation_state>::non_concurrent
+  {
+  public:
+    /*!
+     * To be implemented by a derived class to return the depth
+     * of recursion at this objects stage of tessellation.
+     */
+    virtual
+    unsigned int
+    recursion_depth(void) const = 0;
+
+    /*!
+     * To be implemented by a derived class to resume tessellation
+     * and to (try to) achieve the required threshhold within the
+     * recursion limits of a \ref TessellatedPath::TessellationParams
+     * value.
+     * \param tess_params tessellation parameters
+     * \param out_data location to which to write the tessellations
+     * \param out_threshhold location to which to write an upperbound for the
+     *                       distance between the curve and the tesseallation
+     *                       approximation.
+     */
+    virtual
+    void
+    resume_tessellation(const TessellatedPath::TessellationParams &tess_params,
+                        TessellatedPath::SegmentStorage *out_data,
+                        float *out_threshhold) = 0;
+  };
 
   /*!
    * \brief
@@ -99,9 +133,10 @@ public:
 
     /*!
      * To be implemented by a derived class to produce the arc-tessellation
-     * from start_pt() to end_pt(). In addition, returns the deepest number
-     * of times it recurses (for example each level is dividing the path in
-     * half). If the routine is not recursive, should return 0.
+     * from start_pt() to end_pt(). In addition, for recursive tessellation,
+     * returns the tessellation state to be queried for recursion depth and
+     * reused to refine the tessellation. If the tessellation routine is not
+     * recursive in nature, return nullptr.
      *
      * \param tess_params tessellation parameters
      * \param out_data location to which to write the tessellations
@@ -110,7 +145,7 @@ public:
      *                       approximation.
      */
     virtual
-    unsigned int
+    reference_counted_ptr<tessellation_state>
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          TessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const = 0;
@@ -163,7 +198,7 @@ public:
     is_flat(void) const;
 
     virtual
-    unsigned int
+    reference_counted_ptr<tessellation_state>
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          TessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const;
@@ -205,7 +240,7 @@ public:
     {}
 
     virtual
-    unsigned int
+    reference_counted_ptr<tessellation_state>
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          TessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const;
@@ -344,7 +379,7 @@ public:
     deep_copy(const reference_counted_ptr<const interpolator_base> &prev) const;
 
     virtual
-    unsigned int
+    reference_counted_ptr<tessellation_state>
     produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
                          TessellatedPath::SegmentStorage *out_data,
                          float *out_threshhold) const;

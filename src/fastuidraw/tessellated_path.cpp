@@ -293,15 +293,19 @@ TessellatedPath(const Path &input,
           d->m_edge_ranges[o].resize(contour->number_points());
           for(unsigned int e = 0, ende = contour->number_points(); e < ende; ++e)
             {
-              unsigned int needed, recurse_depth;
+              unsigned int needed;
               float tmp;
               SegmentStorage segment_storage;
+              reference_counted_ptr<PathContour::tessellation_state> tess_state;
 
               FASTUIDRAWassert(work_room.empty());
               segment_storage.m_d = &work_room;
 
-              recurse_depth = contour->interpolator(e)->produce_tessellation(d->m_params, &segment_storage, &tmp);
-              d->m_max_recursion = t_max(d->m_max_recursion, recurse_depth);
+              tess_state = contour->interpolator(e)->produce_tessellation(d->m_params, &segment_storage, &tmp);
+              if (tess_state)
+                {
+                  d->m_max_recursion = t_max(d->m_max_recursion, tess_state->recursion_depth());
+                }
 
               needed = work_room.size();
               d->m_edge_ranges[o][e] = range_type<unsigned int>(loc, loc + needed);
