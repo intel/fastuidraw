@@ -614,6 +614,7 @@ namespace
       for(const ShaderRef &R : m_shaders)
         {
           FASTUIDRAWassert(R);
+          FASTUIDRAWunused(R);
         }
     }
 
