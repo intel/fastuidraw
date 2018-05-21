@@ -561,7 +561,8 @@ remove_macros(const MacroSet &macros, enum add_location_t loc)
   d = static_cast<MacroSetPrivate*>(macros.m_d);
   for (const MacroSetEntry &entry : d->m_entries)
     {
-      remove_macro(entry.m_name.c_str(), loc);
+      std::string stripped(stripped_macro_name(entry.m_name));
+      remove_macro(stripped.c_str(), loc);
     }
   return *this;
 }
