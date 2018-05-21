@@ -304,12 +304,15 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
       dst.add_source(start_comment.str().c_str(), ShaderSource::from_string);
       pre_stream(dst, sh, datum);
 
-      std::ostringstream str;
+      std::ostringstream str, localalize_macro;
       str << shader_main << sh->ID();
+      localalize_macro << shader_main << "_local_" << sh->ID() << "_##X";
       dst
+        .add_macro("FASTUIDRAW_LOCAL(X)", localalize_macro.str().c_str())
         .add_macro(shader_main.c_str(), str.str().c_str())
         .add_source((sh.get()->*get_src)())
-        .remove_macro(shader_main.c_str());
+        .remove_macro(shader_main.c_str())
+        .remove_macro("FASTUIDRAW_LOCAL");
 
       post_stream(dst, sh, datum);
     }
