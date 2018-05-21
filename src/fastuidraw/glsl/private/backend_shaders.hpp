@@ -68,14 +68,15 @@ public:
   ShaderSetCreatorConstants(void);
 
 protected:
-  ShaderSource&
-  add_constants(ShaderSource &src, bool render_pass_varies) const;
-
-  ShaderSource&
-  remove_constants(ShaderSource &src) const;
-
   uint32_t m_stroke_render_pass_num_bits, m_stroke_dash_style_num_bits;
   uint32_t m_stroke_render_pass_bit0, m_stroke_dash_style_bit0;
+  ShaderSource::MacroSet m_constants;
+  ShaderSource::MacroSet m_constants_non_aa_only;
+
+private:
+  void
+  create_macro_set(ShaderSource::MacroSet &dst,
+                   bool render_pass_varies) const;
 };
 
 class ShaderSetCreator:
@@ -137,9 +138,6 @@ private:
   create_fill_shader(void);
 
   enum PainterStrokeShader::type_t m_stroke_tp;
-  ShaderSource m_add_constants;
-  ShaderSource m_add_constants_non_aa_only;
-  ShaderSource m_remove_constants;
 
   reference_counted_ptr<PainterItemShaderGLSL> m_uber_stroke_shader, m_uber_dashed_stroke_shader;
   reference_counted_ptr<PainterItemShaderGLSL> m_dashed_discard_stroke_shader;

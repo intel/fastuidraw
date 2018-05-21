@@ -190,11 +190,14 @@ ShaderSetCreatorConstants(void)
 
   m_stroke_render_pass_bit0 = 0;
   m_stroke_dash_style_bit0 = m_stroke_render_pass_bit0 + m_stroke_render_pass_num_bits;
+
+  create_macro_set(m_constants, true);
+  create_macro_set(m_constants_non_aa_only, false);
 }
 
-ShaderSource&
+void
 ShaderSetCreatorConstants::
-add_constants(ShaderSource &src, bool render_pass_varies) const
+create_macro_set(ShaderSource::MacroSet &dst, bool render_pass_varies) const
 {
   unsigned int stroke_dash_style_bit0(m_stroke_dash_style_bit0);
   unsigned int stroke_render_pass_num_bits(m_stroke_render_pass_num_bits);
@@ -204,33 +207,19 @@ add_constants(ShaderSource &src, bool render_pass_varies) const
       stroke_dash_style_bit0 -= m_stroke_render_pass_num_bits;
       stroke_render_pass_num_bits -= m_stroke_render_pass_num_bits;
     }
+  else
+    {
+      dst
+        .add_macro("fastuidraw_stroke_sub_shader_render_pass_bit0", m_stroke_render_pass_bit0)
+        .add_macro("fastuidraw_stroke_sub_shader_render_pass_num_bits", stroke_render_pass_num_bits);
+    }
 
-  src
-    .add_macro("fastuidraw_stroke_sub_shader_render_pass_bit0", m_stroke_render_pass_bit0)
-    .add_macro("fastuidraw_stroke_sub_shader_render_pass_num_bits", stroke_render_pass_num_bits)
+  dst
     .add_macro("fastuidraw_stroke_sub_shader_dash_style_bit0", stroke_dash_style_bit0)
     .add_macro("fastuidraw_stroke_sub_shader_dash_style_num_bits", m_stroke_dash_style_num_bits)
     .add_macro("fastuidraw_stroke_aa_pass1", uber_stroke_aa_pass1)
     .add_macro("fastuidraw_stroke_aa_pass2", uber_stroke_aa_pass2)
     .add_macro("fastuidraw_stroke_non_aa", uber_stroke_non_aa);
-
-  return src;
-}
-
-ShaderSource&
-ShaderSetCreatorConstants::
-remove_constants(ShaderSource &src) const
-{
-  src
-    .remove_macro("fastuidraw_stroke_sub_shader_render_pass_bit0")
-    .remove_macro("fastuidraw_stroke_sub_shader_render_pass_num_bits")
-    .remove_macro("fastuidraw_stroke_sub_shader_dash_style_bit0")
-    .remove_macro("fastuidraw_stroke_sub_shader_dash_style_num_bits")
-    .remove_macro("fastuidraw_stroke_aa_pass1")
-    .remove_macro("fastuidraw_stroke_aa_pass2")
-    .remove_macro("fastuidraw_stroke_non_aa");
-
-  return src;
 }
 
 //////////////////////////////////////////
@@ -246,11 +235,6 @@ ShaderSetCreator(enum PainterBlendShader::shader_type blend_tp,
   m_stroke_action_pass2(stroke_action_pass2)
 {
   unsigned int num_undashed_sub_shaders, num_dashed_sub_shaders;
-
-  // prepare the uber-stroke shader builds.
-  add_constants(m_add_constants, true);
-  add_constants(m_add_constants_non_aa_only, false);
-  remove_constants(m_remove_constants);
 
   num_undashed_sub_shaders = 1u << (m_stroke_render_pass_num_bits + 1);
   num_dashed_sub_shaders = 1u << (m_stroke_render_pass_num_bits + m_stroke_dash_style_num_bits + 1u);
@@ -331,7 +315,7 @@ ShaderSetCreator::
 build_uber_stroke_source(uint32_t flags, fastuidraw::c_string src) const
 {
   ShaderSource return_value;
-  const ShaderSource *add_constants_ptr;
+  const ShaderSource::MacroSet *constants_ptr;
   c_string extra_macro;
 
   if (m_stroke_tp == PainterStrokeShader::draws_solid_then_fuzz
@@ -352,18 +336,18 @@ build_uber_stroke_source(uint32_t flags, fastuidraw::c_string src) const
   if (flags & only_supports_non_aa)
     {
       return_value.add_macro("FASTUIDRAW_STROKE_ONLY_SUPPORT_NON_AA");
-      add_constants_ptr = &m_add_constants_non_aa_only;
+      constants_ptr = &m_constants_non_aa_only;
     }
   else
     {
-      add_constants_ptr = &m_add_constants;
+      constants_ptr = &m_constants;
     }
 
   return_value
     .add_macro(extra_macro)
-    .add_source(*add_constants_ptr)
+    .add_macros(*constants_ptr)
     .add_source(src, ShaderSource::from_resource)
-    .add_source(m_remove_constants)
+    .remove_macros(*constants_ptr)
     .remove_macro(extra_macro);
 
   if (flags & only_supports_non_aa)
