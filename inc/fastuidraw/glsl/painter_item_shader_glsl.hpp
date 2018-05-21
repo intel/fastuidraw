@@ -429,6 +429,13 @@ namespace fastuidraw
      * Use the GLSL built-in uintBitsToFloat() to covert the uint bit-value to float
      * and just cast int() to get the value as an integer.
      *
+     * Also, if one defines macros in any of the passed ShaderSource objects,
+     * those macros MUST be undefined at the end. In addition, if one
+     * has local helper functions, to avoid global name collision, those
+     * function names should be wrapped in the macro FASTUIDRAW_LOCAL()
+     * to make sure that the function is given a unique global name within
+     * the uber-shader.
+     *
      * Lastly, one can use the classes \ref shader_unpack_value
      * and \ref shader_unpack_value_set to generate shader code
      * to unpack values from the data in the data store buffer.
