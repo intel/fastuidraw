@@ -5,9 +5,17 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   float alpha = 1.0;
   uint render_pass, dash_style;
 
-  render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
-                                        fastuidraw_stroke_sub_shader_render_pass_num_bits,
-                                        sub_shader);
+  #ifndef FASTUIDRAW_STROKE_ONLY_SUPPORT_NON_AA
+    {
+      render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
+                                            fastuidraw_stroke_sub_shader_render_pass_num_bits,
+                                            sub_shader);
+    }
+  #else
+    {
+      render_pass = uint(fastuidraw_stroke_non_aa);
+    }
+  #endif
 
   #ifdef FASTUIDRAW_STROKE_COVER_THEN_DRAW
     {
@@ -89,19 +97,28 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
           if (dash_style == uint(fastuidraw_stroke_dashed_flat_caps))
             {
-              alpha *= fastuidraw_stroke_compute_dash_coverage(shader_data_offset, dist, distw,
-                                                               (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u,
-                                                               dont_anti_alias_dash_boundary);
+              alpha = fastuidraw_stroke_compute_dash_coverage(shader_data_offset, dist, distw,
+                                                              (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u,
+                                                              dont_anti_alias_dash_boundary);
             }
           else
             {
-              alpha *= fastuidraw_stroke_compute_dash_coverage(dash_style, shader_data_offset,
-                                                               dist, distw, bd, bdw,
-                                                               fastuidraw_arc_stroking_distance_sub_edge_start,
-                                                               fastuidraw_arc_stroking_distance_sub_edge_end,
-                                                               (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u,
-                                                               dont_anti_alias_dash_boundary);
+              alpha = fastuidraw_stroke_compute_dash_coverage(dash_style, shader_data_offset,
+                                                              dist, distw, bd, bdw,
+                                                              fastuidraw_arc_stroking_distance_sub_edge_start,
+                                                              fastuidraw_arc_stroking_distance_sub_edge_end,
+                                                              (fastuidraw_arc_stroking_dash_bits & uint(fastuidraw_stroke_skip_dash_interval_lookup_mask)) != 0u,
+                                                              dont_anti_alias_dash_boundary);
             }
+
+          #if !defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
+            {
+              if (render_pass == uint(fastuidraw_stroke_aa_pass1) && alpha < 1.0 - 1.0 / 255.0)
+                {
+                  alpha = 0.0;
+                }
+            }
+          #endif
         }
     }
   #endif
@@ -127,27 +144,16 @@ fastuidraw_gl_frag_main(in uint sub_shader,
           alpha = 0.0;
         }
     }
-  #else
+  #elif defined(FASTUIDRAW_STROKE_DASHED)
     {
-      if (render_pass == uint(fastuidraw_stroke_non_aa))
-        {
-          if (q <= 0.0 || alpha <= 0.0)
-            {
-              FASTUIDRAW_DISCARD;
-              alpha = 0.0;
-            }
-          else
-            {
-              alpha = 1.0;
-            }
-        }
-
-      if (render_pass == uint(fastuidraw_stroke_aa_pass1) && alpha < 1.0 - 1.0 / 255.0)
+      if (render_pass != uint(fastuidraw_stroke_aa_pass2) && alpha < 1.0 - 1.0 / 255.0)
         {
           FASTUIDRAW_DISCARD;
-          alpha = 0.0;
         }
-      else if (render_pass == uint(fastuidraw_stroke_aa_pass2) && alpha <= 0.0)
+    }
+  #else
+    {
+      if (render_pass != uint(fastuidraw_stroke_aa_pass2) && alpha < 1.0 - 1.0 / 255.0)
         {
           FASTUIDRAW_DISCARD;
         }

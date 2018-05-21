@@ -13,6 +13,7 @@ fastuidraw_gl_vert_main(in uint sub_shader,
 
   uint render_pass;
   bool stroke_width_pixels;
+  int stroking_pass;
   const float anti_alias_thickness = 1.5;
 
   #ifndef FASTUIDRAW_STROKE_ONLY_SUPPORT_NON_AA
@@ -26,6 +27,8 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       render_pass = uint(fastuidraw_stroke_non_aa);
     }
   #endif
+
+  stroking_pass = int(render_pass);
 
   vec2 vector_from_center, p;
   vec2 position, center, offset_direction;
@@ -405,16 +408,22 @@ fastuidraw_gl_vert_main(in uint sub_shader,
       fastuidraw_arc_stroking_relative_to_center_x = float(on_boundary);
     }
 
-  #if defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
+  #if defined(FASTUIDRAW_STROKE_ONLY_SUPPORT_NON_AA)
     {
-      if (render_pass != uint(fastuidraw_stroke_non_aa))
+      z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_depth_bit0,
+                                          fastuidraw_stroke_depth_num_bits,
+                                          point_packed_data));
+    }
+  #elif defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
+    {
+      if (stroking_pass != fastuidraw_stroke_non_aa)
         {
           z_add = 0;
         }
       else
         {
-          z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_arc_stroke_depth_bit0,
-                                              fastuidraw_arc_stroke_depth_num_bits,
+          z_add = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_depth_bit0,
+                                              fastuidraw_stroke_depth_num_bits,
                                               point_packed_data));
         }
     }
