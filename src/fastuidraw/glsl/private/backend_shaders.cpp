@@ -275,6 +275,13 @@ ShaderSetCreator(enum PainterBlendShader::shader_type blend_tp,
       m_dashed_arc_discard_stroke_shader = build_uber_stroke_shader(only_supports_non_aa | dashed_shader | arc_shader, num_dashed_sub_shaders_non_aa);
       FASTUIDRAWassert(m_arc_discard_stroke_shader->uses_discard());
       FASTUIDRAWassert(m_dashed_arc_discard_stroke_shader->uses_discard());
+      FASTUIDRAWassert(!m_uber_arc_stroke_shader->uses_discard());
+      FASTUIDRAWassert(!m_uber_arc_dashed_stroke_shader->uses_discard());
+    }
+  else
+    {
+      FASTUIDRAWassert(m_uber_arc_stroke_shader->uses_discard());
+      FASTUIDRAWassert(m_uber_arc_dashed_stroke_shader->uses_discard());
     }
 }
 
