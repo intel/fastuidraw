@@ -176,9 +176,9 @@ create_blend_shaders(void)
 }
 
 ///////////////////////////////////////////////
-// ShaderSetCreatorConstants methods
-ShaderSetCreatorConstants::
-ShaderSetCreatorConstants(void)
+// ShaderSetCreatorStrokingConstants methods
+ShaderSetCreatorStrokingConstants::
+ShaderSetCreatorStrokingConstants(void)
 {
   using namespace fastuidraw::PainterEnums;
 
@@ -191,12 +191,63 @@ ShaderSetCreatorConstants(void)
   m_stroke_render_pass_bit0 = 0;
   m_stroke_dash_style_bit0 = m_stroke_render_pass_bit0 + m_stroke_render_pass_num_bits;
 
-  create_macro_set(m_constants, true);
-  create_macro_set(m_constants_non_aa_only, false);
+  create_macro_set(m_subshader_constants, true);
+  create_macro_set(m_subshader_constants_non_aa_only, false);
+
+  m_stroke_constants
+    /* offset types of StrokedPoint */
+    .add_macro("fastuidraw_stroke_offset_sub_edge", StrokedPoint::offset_sub_edge)
+    .add_macro("fastuidraw_stroke_offset_shared_with_edge", StrokedPoint::offset_shared_with_edge)
+    .add_macro("fastuidraw_stroke_offset_rounded_join", StrokedPoint::offset_rounded_join)
+
+    .add_macro("fastuidraw_stroke_offset_miter_bevel_join", StrokedPoint::offset_miter_bevel_join)
+    .add_macro("fastuidraw_stroke_offset_miter_join", StrokedPoint::offset_miter_join)
+    .add_macro("fastuidraw_stroke_offset_miter_clip_join", StrokedPoint::offset_miter_clip_join)
+
+    .add_macro("fastuidraw_stroke_offset_rounded_cap", StrokedPoint::offset_rounded_cap)
+    .add_macro("fastuidraw_stroke_offset_square_cap", StrokedPoint::offset_square_cap)
+    .add_macro("fastuidraw_stroke_offset_adjustable_cap", StrokedPoint::offset_adjustable_cap)
+
+    /* bit masks for StrokedPoint::m_packed_data */
+    .add_macro("fastuidraw_stroke_sin_sign_mask", StrokedPoint::sin_sign_mask)
+    .add_macro("fastuidraw_stroke_normal0_y_sign_mask", StrokedPoint::normal0_y_sign_mask)
+    .add_macro("fastuidraw_stroke_normal1_y_sign_mask", StrokedPoint::normal1_y_sign_mask)
+    .add_macro("fastuidraw_stroke_lambda_negated_mask", StrokedPoint::lambda_negated_mask)
+    .add_macro("fastuidraw_stroke_boundary_bit", StrokedPoint::boundary_bit)
+    .add_macro("fastuidraw_stroke_join_mask", StrokedPoint::join_mask)
+    .add_macro("fastuidraw_stroke_bevel_edge_mask", StrokedPoint::bevel_edge_mask)
+    .add_macro("fastuidraw_stroke_end_sub_edge_mask", StrokedPoint::end_sub_edge_mask)
+    .add_macro("fastuidraw_stroke_adjustable_cap_ending_mask", StrokedPoint::adjustable_cap_ending_mask)
+    .add_macro("fastuidraw_stroke_adjustable_cap_end_contour_mask", StrokedPoint::adjustable_cap_is_end_contour_mask)
+    .add_macro("fastuidraw_stroke_depth_bit0", StrokedPoint::depth_bit0)
+    .add_macro("fastuidraw_stroke_depth_num_bits", StrokedPoint::depth_num_bits)
+    .add_macro("fastuidraw_stroke_offset_type_bit0", StrokedPoint::offset_type_bit0)
+    .add_macro("fastuidraw_stroke_offset_type_num_bits", StrokedPoint::offset_type_num_bits);
+
+  m_arc_stroke_constants
+    /* offset types of ArcStrokedPoint */
+    .add_macro("fastuidraw_arc_stroke_arc_point", ArcStrokedPoint::offset_arc_point)
+    .add_macro("fastuidraw_arc_stroke_line_segment", ArcStrokedPoint::offset_line_segment)
+    .add_macro("fastuidraw_arc_stroke_dashed_capper", ArcStrokedPoint::offset_arc_point_dashed_capper)
+
+    /* bit masks for ArcStrokedPoint::m_packed_data */
+    .add_macro("fastuidraw_arc_stroke_extend_mask", ArcStrokedPoint::extend_mask)
+    .add_macro("fastuidraw_arc_stroke_join_mask", ArcStrokedPoint::join_mask)
+    .add_macro("fastuidraw_arc_stroke_distance_constant_on_primitive_mask", ArcStrokedPoint::distance_constant_on_primitive_mask)
+    .add_macro("fastuidraw_arc_stroke_beyond_boundary_mask", ArcStrokedPoint::beyond_boundary_mask)
+    .add_macro("fastuidraw_arc_stroke_inner_stroking_mask", ArcStrokedPoint::inner_stroking_mask)
+    .add_macro("fastuidraw_arc_stroke_move_to_arc_center_mask", ArcStrokedPoint::move_to_arc_center_mask)
+    .add_macro("fastuidraw_arc_stroke_end_segment_mask", ArcStrokedPoint::end_segment_mask)
+    .add_macro("fastuidraw_arc_stroke_boundary_bit", ArcStrokedPoint::boundary_bit)
+    .add_macro("fastuidraw_arc_stroke_boundary_mask", ArcStrokedPoint::boundary_mask)
+    .add_macro("fastuidraw_arc_stroke_depth_bit0", ArcStrokedPoint::depth_bit0)
+    .add_macro("fastuidraw_arc_stroke_depth_num_bits", ArcStrokedPoint::depth_num_bits)
+    .add_macro("fastuidraw_arc_stroke_offset_type_bit0", ArcStrokedPoint::offset_type_bit0)
+    .add_macro("fastuidraw_arc_stroke_offset_type_num_bits", ArcStrokedPoint::offset_type_num_bits);
 }
 
 void
-ShaderSetCreatorConstants::
+ShaderSetCreatorStrokingConstants::
 create_macro_set(ShaderSource::MacroSet &dst, bool render_pass_varies) const
 {
   unsigned int stroke_dash_style_bit0(m_stroke_dash_style_bit0);
@@ -217,6 +268,9 @@ create_macro_set(ShaderSource::MacroSet &dst, bool render_pass_varies) const
   dst
     .add_macro("fastuidraw_stroke_sub_shader_dash_style_bit0", stroke_dash_style_bit0)
     .add_macro("fastuidraw_stroke_sub_shader_dash_style_num_bits", m_stroke_dash_style_num_bits)
+    .add_macro("fastuidraw_stroke_dashed_flat_caps", PainterEnums::flat_caps)
+    .add_macro("fastuidraw_stroke_dashed_rounded_caps", PainterEnums::rounded_caps)
+    .add_macro("fastuidraw_stroke_dashed_square_caps", PainterEnums::square_caps)
     .add_macro("fastuidraw_stroke_aa_pass1", uber_stroke_aa_pass1)
     .add_macro("fastuidraw_stroke_aa_pass2", uber_stroke_aa_pass2)
     .add_macro("fastuidraw_stroke_non_aa", uber_stroke_non_aa);
@@ -312,11 +366,12 @@ build_uber_stroke_varyings(uint32_t flags) const
 
 ShaderSource
 ShaderSetCreator::
-build_uber_stroke_source(uint32_t flags, fastuidraw::c_string src) const
+build_uber_stroke_source(uint32_t flags, bool is_vertex_shader) const
 {
   ShaderSource return_value;
-  const ShaderSource::MacroSet *constants_ptr;
-  c_string extra_macro;
+  const ShaderSource::MacroSet *subpass_constants_ptr;
+  const ShaderSource::MacroSet *stroke_constants_ptr;
+  c_string extra_macro, src, src_util(nullptr);
 
   if (m_stroke_tp == PainterStrokeShader::draws_solid_then_fuzz
       || (flags & only_supports_non_aa) != 0)
@@ -336,18 +391,44 @@ build_uber_stroke_source(uint32_t flags, fastuidraw::c_string src) const
   if (flags & only_supports_non_aa)
     {
       return_value.add_macro("FASTUIDRAW_STROKE_ONLY_SUPPORT_NON_AA");
-      constants_ptr = &m_constants_non_aa_only;
+      subpass_constants_ptr = &m_subshader_constants_non_aa_only;
     }
   else
     {
-      constants_ptr = &m_constants;
+      subpass_constants_ptr = &m_subshader_constants;
+    }
+
+  if (flags & arc_shader)
+    {
+      stroke_constants_ptr = &m_arc_stroke_constants;
+      src = (is_vertex_shader) ?
+        "fastuidraw_painter_arc_stroke.vert.glsl.resource_string":
+        "fastuidraw_painter_arc_stroke.frag.glsl.resource_string";
+    }
+  else
+    {
+      stroke_constants_ptr = &m_stroke_constants;
+      src = (is_vertex_shader) ?
+        "fastuidraw_painter_stroke.vert.glsl.resource_string":
+        "fastuidraw_painter_stroke.frag.glsl.resource_string";
+
+      src_util = (is_vertex_shader) ?
+        "fastuidraw_painter_stroke_compute_offset.vert.glsl.resource_string":
+        nullptr;
     }
 
   return_value
     .add_macro(extra_macro)
-    .add_macros(*constants_ptr)
+    .add_macros(*subpass_constants_ptr)
+    .add_macros(*stroke_constants_ptr);
+  if (src_util)
+    {
+      return_value.add_source(src_util, ShaderSource::from_resource);
+    }
+  return_value
     .add_source(src, ShaderSource::from_resource)
-    .remove_macros(*constants_ptr)
+    .remove_macros(*stroke_constants_ptr)
+    .remove_macros(*subpass_constants_ptr)
     .remove_macro(extra_macro);
 
   if (flags & only_supports_non_aa)
@@ -367,26 +448,14 @@ PainterItemShaderGLSL*
 ShaderSetCreator::
 build_uber_stroke_shader(uint32_t flags, unsigned int num_sub_shaders) const
 {
-  c_string vert, frag;
   bool uses_discard;
-
-  if (flags & arc_shader)
-    {
-      vert = "fastuidraw_painter_arc_stroke.vert.glsl.resource_string";
-      frag = "fastuidraw_painter_arc_stroke.frag.glsl.resource_string";
-    }
-  else
-    {
-      vert = "fastuidraw_painter_stroke.vert.glsl.resource_string";
-      frag = "fastuidraw_painter_stroke.frag.glsl.resource_string";
-    }
 
   uses_discard = (flags & only_supports_non_aa) != 0
     || (m_stroke_tp == PainterStrokeShader::draws_solid_then_fuzz && (flags & (arc_shader | dashed_shader)) != 0);
 
   return FASTUIDRAWnew PainterItemShaderGLSL(uses_discard,
-                                             build_uber_stroke_source(flags, vert),
-                                             build_uber_stroke_source(flags, frag),
+                                             build_uber_stroke_source(flags, true),
+                                             build_uber_stroke_source(flags, false),
                                              build_uber_stroke_varyings(flags),
                                              num_sub_shaders);
 }

@@ -3,23 +3,23 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                         in uint shader_data_offset)
 {
   float alpha = 1.0, red = 1.0;
-  uint render_pass, dash_style;
+  int render_pass;
 
   #ifndef FASTUIDRAW_STROKE_ONLY_SUPPORT_NON_AA
     {
-      render_pass = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
-                                            fastuidraw_stroke_sub_shader_render_pass_num_bits,
-                                            sub_shader);
+      render_pass = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_render_pass_bit0,
+                                                fastuidraw_stroke_sub_shader_render_pass_num_bits,
+                                                sub_shader));
     }
   #else
     {
-      render_pass = uint(fastuidraw_stroke_non_aa);
+      render_pass = fastuidraw_stroke_non_aa;
     }
   #endif
 
   #ifdef FASTUIDRAW_STROKE_COVER_THEN_DRAW
     {
-      if (render_pass == uint(fastuidraw_stroke_aa_pass2))
+      if (render_pass == fastuidraw_stroke_aa_pass2)
         {
           return vec4(1.0, 1.0, 1.0, fastuidraw_clear_auxiliary());
         }
@@ -33,13 +33,13 @@ fastuidraw_gl_frag_main(in uint sub_shader,
     {
       if ((fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_gauranteed_to_be_covered_mask)) == 0u)
         {
-          uint dash_style;
+          int dash_style;
           float fwidth_fastuidraw_stroking_distance = fwidth(fastuidraw_stroking_distance);
           float fwidth_fastuidraw_stroking_on_boundary = fwidth(fastuidraw_stroking_on_boundary);
 
-          dash_style = FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
-                                               fastuidraw_stroke_sub_shader_dash_style_num_bits,
-                                               sub_shader);
+          dash_style = int(FASTUIDRAW_EXTRACT_BITS(fastuidraw_stroke_sub_shader_dash_style_bit0,
+                                                   fastuidraw_stroke_sub_shader_dash_style_num_bits,
+                                                   sub_shader));
 
           if ((fastuidraw_stroking_dash_bits & uint(fastuidraw_stroke_gauranteed_to_be_covered_mask)) != 0u)
             {
@@ -47,7 +47,9 @@ fastuidraw_gl_frag_main(in uint sub_shader,
             }
           else
             {
-              alpha = fastuidraw_stroke_compute_dash_coverage(dash_style, shader_data_offset,
+              alpha = fastuidraw_stroke_compute_dash_coverage(dash_style == fastuidraw_stroke_dashed_rounded_caps,
+                                                              dash_style == fastuidraw_stroke_dashed_square_caps,
+                                                              shader_data_offset,
                                                               fastuidraw_stroking_distance,
                                                               fwidth_fastuidraw_stroking_distance,
                                                               fastuidraw_stroking_on_boundary,

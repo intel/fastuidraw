@@ -54,7 +54,8 @@ fastuidraw_stroke_compute_dash_interval(in uint dashed_stroking_data_location,
 
 
 float
-fastuidraw_stroke_compute_dash_coverage_implement(in uint dash_style,
+fastuidraw_stroke_compute_dash_coverage_implement(in bool add_rounded_caps,
+                                                  in bool add_square_caps,
                                                   in float q, in float r,
                                                   in float fwidth_distance_value,
                                                   in float stroking_on_boundary,
@@ -68,7 +69,7 @@ fastuidraw_stroke_compute_dash_coverage_implement(in uint dash_style,
 
   fw = fwidth_distance_value;
   fwidth_qq_yy = 2.0 * abs(q) * fw + 2.0 * abs(y) * r * fwidth_stroking_on_boundary;
-  if (dash_style == uint(fastuidraw_stroke_dashed_rounded_caps))
+  if (add_rounded_caps)
     {
       /* fw represents the tolerance of a pixel. The expected
        * condition is if (q < 0.0), but that gives black-line
@@ -86,7 +87,7 @@ fastuidraw_stroke_compute_dash_coverage_implement(in uint dash_style,
           fw = 0.5 * fwidth_qq_yy / sq;
         }
     }
-  else if (dash_style == uint(fastuidraw_stroke_dashed_square_caps))
+  else if (add_square_caps)
     {
       q += r;
     }
@@ -105,7 +106,8 @@ fastuidraw_stroke_compute_dash_coverage_implement(in uint dash_style,
 }
 
 float
-fastuidraw_stroke_compute_dash_coverage(in uint dash_style,
+fastuidraw_stroke_compute_dash_coverage(in bool add_rounded_caps,
+                                        in bool add_square_caps,
                                         in uint shader_data_offset,
                                         in float distance_value,
                                         in float fwidth_distance_value,
@@ -143,7 +145,9 @@ fastuidraw_stroke_compute_dash_coverage(in uint dash_style,
                                                   stroke_params.number_intervals);
     }
 
-  return fastuidraw_stroke_compute_dash_coverage_implement(dash_style, q, abs(stroke_params.radius),
+  return fastuidraw_stroke_compute_dash_coverage_implement(add_rounded_caps,
+                                                           add_square_caps,
+                                                           q, abs(stroke_params.radius),
                                                            fwidth_distance_value,
                                                            stroking_on_boundary,
                                                            fwidth_stroking_on_boundary,

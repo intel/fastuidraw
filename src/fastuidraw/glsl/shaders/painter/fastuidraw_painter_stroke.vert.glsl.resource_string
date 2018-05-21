@@ -189,14 +189,14 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     {
       if (stroke_width_pixels)
         {
-          fastuidraw_stroke_compute_offset_pixels(point_packed_data, offset_type, position,
+          FASTUIDRAW_LOCAL(compute_offset_pixels)(point_packed_data, offset_type, position,
                                                   pre_offset, auxiliary_offset,
                                                   stroke_params.miter_limit,
                                                   offset, stroke_radius);
         }
       else
         {
-          fastuidraw_stroke_compute_offset(point_packed_data, offset_type, position,
+          FASTUIDRAW_LOCAL(compute_offset)(point_packed_data, offset_type, position,
                                            pre_offset, auxiliary_offset,
                                            stroke_params.miter_limit,
                                            offset);
