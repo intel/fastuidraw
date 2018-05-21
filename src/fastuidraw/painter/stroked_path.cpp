@@ -238,10 +238,12 @@ namespace
 
     enum
       {
-        splitting_threshhold = 20
+        splitting_threshhold = 20,
+        max_recursion_depth = 10
       };
 
-    SubEdgeCullingHierarchy(const fastuidraw::BoundingBox<float> &start_box,
+    SubEdgeCullingHierarchy(unsigned int recursion_depth,
+                            const fastuidraw::BoundingBox<float> &start_box,
                             std::vector<SingleSubEdge> &data, unsigned int num_non_closing_edges);
 
     /* a value of -1 means to NOT split.
@@ -958,7 +960,7 @@ create(const fastuidraw::TessellatedPath &P)
   SubEdgeCullingHierarchy *return_value;
 
   create_lists(P, data, num_non_closing_edges, bx);
-  return_value =  FASTUIDRAWnew SubEdgeCullingHierarchy(bx, data, num_non_closing_edges);
+  return_value =  FASTUIDRAWnew SubEdgeCullingHierarchy(0, bx, data, num_non_closing_edges);
   return return_value;
 }
 
@@ -1049,7 +1051,8 @@ check_closing_at_end(const std::vector<T> &data, unsigned int num_non_closing)
 }
 
 SubEdgeCullingHierarchy::
-SubEdgeCullingHierarchy(const fastuidraw::BoundingBox<float> &start_box,
+SubEdgeCullingHierarchy(unsigned int recursion_depth,
+                        const fastuidraw::BoundingBox<float> &start_box,
                         std::vector<SingleSubEdge> &edges, unsigned int num_non_closing_edges):
   m_children(nullptr, nullptr),
   m_bb(start_box)
@@ -1060,7 +1063,10 @@ SubEdgeCullingHierarchy(const fastuidraw::BoundingBox<float> &start_box,
   FASTUIDRAWassert(!start_box.empty());
   check_closing_at_end(edges, num_non_closing_edges);
 
-  c = choose_splitting_coordinate(start_box, fastuidraw::make_c_array(edges), mid_point);
+  c = (recursion_depth <= max_recursion_depth) ?
+    choose_splitting_coordinate(start_box, fastuidraw::make_c_array(edges), mid_point):
+    -1;
+
   if (c != -1)
     {
       fastuidraw::vecN<fastuidraw::BoundingBox<float>, 2> child_boxes;
@@ -1089,8 +1095,14 @@ SubEdgeCullingHierarchy(const fastuidraw::BoundingBox<float> &start_box,
             }
         }
 
-      m_children[0] = FASTUIDRAWnew SubEdgeCullingHierarchy(child_boxes[0], child_sub_edges[0], child_num_non_closing_edges[0]);
-      m_children[1] = FASTUIDRAWnew SubEdgeCullingHierarchy(child_boxes[1], child_sub_edges[1], child_num_non_closing_edges[1]);
+      for (int i = 0; i < 2; ++i)
+        {
+          m_children[i] =
+            FASTUIDRAWnew SubEdgeCullingHierarchy(recursion_depth + 1,
+                                                  child_boxes[i],
+                                                  child_sub_edges[i],
+                                                  child_num_non_closing_edges[i]);
+        }
     }
   else
     {
