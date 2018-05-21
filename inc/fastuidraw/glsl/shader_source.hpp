@@ -125,6 +125,76 @@ public:
     };
 
   /*!
+   * A MacroSet represents a set of macros.
+   */
+  class MacroSet
+  {
+  public:
+    /*!
+     * Ctor.
+     */
+    MacroSet(void);
+
+    /*!
+     * Copy ctor.
+     * \param obj value from which to copy
+     */
+    MacroSet(const MacroSet &obj);
+
+    ~MacroSet();
+
+    /*!
+     * Assignment operator.
+     * \param obj value from which to copy
+     */
+    MacroSet&
+    operator=(const MacroSet &obj);
+
+    /*!
+     * Swap operation
+     * \param obj object with which to swap
+     */
+    void
+    swap(MacroSet &obj);
+
+    /*!
+     * Add a macro to this MacroSet.
+     * \param macro_name name of macro
+     * \param macro_value value to which macro is given
+     */
+    MacroSet&
+    add_macro(c_string macro_name, c_string macro_value = "");
+
+    /*!
+     * Add a macro to this MacroSet.
+     * \param macro_name name of macro
+     * \param macro_value value to which macro is given
+     */
+    MacroSet&
+    add_macro(c_string macro_name, uint32_t macro_value);
+
+    /*!
+     * Add a macro to this MacroSet.
+     * \param macro_name name of macro
+     * \param macro_value value to which macro is given
+     */
+    MacroSet&
+    add_macro(c_string macro_name, int32_t macro_value);
+
+    /*!
+     * Add a macro to this MacroSet.
+     * \param macro_name name of macro
+     * \param macro_value value to which macro is given
+     */
+    MacroSet&
+    add_macro(c_string macro_name, float macro_value);
+
+  private:
+    friend class ShaderSource;
+    void *m_d;
+  };
+
+  /*!
    * Ctor.
    */
   ShaderSource(void);
@@ -235,15 +305,38 @@ public:
             enum add_location_t loc = push_back);
 
   /*!
-   * Adds the string
-   * \code
-   * #undef X
-   * \endcode
-   * where X is the passed macro name
-   * \param macro_name name of macro
+   * Add macros of a MacroSet to this ShaderSource.
+   * Functionally, will insert \#define macro_name macro_value
+   * in the GLSL source code for each macro in the
+   * \ref MacroSet.
+   * \param macros set of macros to add
+   * \param loc location to add macro within code
    */
   ShaderSource&
-  remove_macro(c_string macro_name);
+  add_macros(const MacroSet &macros,
+             enum add_location_t loc = push_back);
+
+  /*!
+   * Functionally, will insert \#undef macro_name
+   * in the GLSL source code.
+   * \param macro_name name of macro
+   * \param loc location to add macro within code
+   */
+  ShaderSource&
+  remove_macro(c_string macro_name,
+             enum add_location_t loc = push_back);
+
+  /*!
+   * Remove macros of a MacroSet to this ShaderSource.
+   * Functionally, will insert \#undef macro_name
+   * in the GLSL source code for each macro in the
+   * \ref MacroSet.
+   * \param macros set of macros to remove
+   * \param loc location to add macro within code
+   */
+  ShaderSource&
+  remove_macros(const MacroSet &macros,
+                enum add_location_t loc = push_back);
 
   /*!
    * Specifiy an extension and usage.
@@ -289,8 +382,8 @@ public:
   c_string
   assembled_code(void) const;
 
-  private:
-    void *m_d;
+private:
+  void *m_d;
 };
 /*! @} */
 

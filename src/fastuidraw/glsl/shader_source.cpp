@@ -36,6 +36,7 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/static_resource.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
+#include "../private/util_private.hpp"
 
 namespace
 {
@@ -82,6 +83,66 @@ namespace
   };
 
   std::string
+  macro_value_as_string(uint32_t v)
+  {
+    std::ostringstream str;
+    str << v;
+    return str.str();
+  }
+
+  std::string
+  macro_value_as_string(int32_t v)
+  {
+    std::ostringstream str;
+    str << v;
+    return str.str();
+  }
+
+  std::string
+  macro_value_as_string(float v)
+  {
+    std::ostringstream str;
+    str << v;
+    return str.str();
+  }
+
+  class MacroSetEntry
+  {
+  public:
+    MacroSetEntry(fastuidraw::c_string name,
+                  fastuidraw::c_string value):
+      m_name(name),
+      m_value(value)
+    {}
+
+    MacroSetEntry(fastuidraw::c_string name,
+                  uint32_t value):
+      m_name(name),
+      m_value(macro_value_as_string(value))
+    {}
+
+    MacroSetEntry(fastuidraw::c_string name,
+                  int32_t value):
+      m_name(name),
+      m_value(macro_value_as_string(value))
+    {}
+
+    MacroSetEntry(fastuidraw::c_string name,
+                  float value):
+      m_name(name),
+      m_value(macro_value_as_string(value))
+    {}
+
+    std::string m_name, m_value;
+  };
+
+  class MacroSetPrivate
+  {
+  public:
+    std::vector<MacroSetEntry> m_entries;
+  };
+
+  std::string
   stripped_macro_name(const std::string &macro_name)
   {
     std::string::size_type pos;
@@ -89,6 +150,7 @@ namespace
     return macro_name.substr(0, pos);
   }
 }
+
 //////////////////////////////////////////////////
 // SourcePrivate methods
 SourcePrivate::
@@ -97,7 +159,6 @@ SourcePrivate(void):
   m_disable_pre_added_source(false)
 {
 }
-
 
 fastuidraw::c_string
 SourcePrivate::
@@ -173,7 +234,6 @@ emit_source_line(std::ostream &output_stream,
 
   output_stream << "\n";
 }
-
 
 void
 SourcePrivate::
@@ -271,7 +331,74 @@ add_source_entry(const source_code_t &v, std::ostream &output_stream)
     }
 }
 
-////////////////////////////////////////////////////
+///////////////////////////////////////////////////
+// fastuidraw::glsl::ShaderSource::MacroSet methods
+fastuidraw::glsl::ShaderSource::MacroSet::
+MacroSet(void)
+{
+  m_d = FASTUIDRAWnew MacroSetPrivate();
+}
+
+fastuidraw::glsl::ShaderSource::MacroSet::
+MacroSet(const MacroSet &obj)
+{
+  MacroSetPrivate *d;
+  d = static_cast<MacroSetPrivate*>(obj.m_d);
+  m_d = FASTUIDRAWnew MacroSetPrivate(*d);
+}
+
+fastuidraw::glsl::ShaderSource::MacroSet::
+~MacroSet()
+{
+  MacroSetPrivate *d;
+  d = static_cast<MacroSetPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+  m_d = nullptr;
+}
+
+assign_swap_implement(fastuidraw::glsl::ShaderSource::MacroSet)
+
+fastuidraw::glsl::ShaderSource::MacroSet&
+fastuidraw::glsl::ShaderSource::MacroSet::
+add_macro(c_string macro_name, c_string macro_value)
+{
+  MacroSetPrivate *d;
+  d = static_cast<MacroSetPrivate*>(m_d);
+  d->m_entries.push_back(MacroSetEntry(macro_name, macro_value));
+  return *this;
+}
+
+fastuidraw::glsl::ShaderSource::MacroSet&
+fastuidraw::glsl::ShaderSource::MacroSet::
+add_macro(c_string macro_name, uint32_t macro_value)
+{
+  MacroSetPrivate *d;
+  d = static_cast<MacroSetPrivate*>(m_d);
+  d->m_entries.push_back(MacroSetEntry(macro_name, macro_value));
+  return *this;
+}
+
+fastuidraw::glsl::ShaderSource::MacroSet&
+fastuidraw::glsl::ShaderSource::MacroSet::
+add_macro(c_string macro_name, int32_t macro_value)
+{
+  MacroSetPrivate *d;
+  d = static_cast<MacroSetPrivate*>(m_d);
+  d->m_entries.push_back(MacroSetEntry(macro_name, macro_value));
+  return *this;
+}
+
+fastuidraw::glsl::ShaderSource::MacroSet&
+fastuidraw::glsl::ShaderSource::MacroSet::
+add_macro(c_string macro_name, float macro_value)
+{
+  MacroSetPrivate *d;
+  d = static_cast<MacroSetPrivate*>(m_d);
+  d->m_entries.push_back(MacroSetEntry(macro_name, macro_value));
+  return *this;
+}
+
+/////////////////////////////////////////
 // fastuidraw::glsl::ShaderSource methods
 fastuidraw::glsl::ShaderSource::
 ShaderSource(void)
@@ -296,24 +423,7 @@ fastuidraw::glsl::ShaderSource::
   m_d = nullptr;
 }
 
-void
-fastuidraw::glsl::ShaderSource::
-swap(ShaderSource &obj)
-{
-  std::swap(obj.m_d, m_d);
-}
-
-fastuidraw::glsl::ShaderSource&
-fastuidraw::glsl::ShaderSource::
-operator=(const ShaderSource &obj)
-{
-  if (this != &obj)
-    {
-      ShaderSource v(obj);
-      swap(v);
-    }
-  return *this;
-}
+assign_swap_implement(fastuidraw::glsl::ShaderSource)
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
@@ -392,9 +502,8 @@ fastuidraw::glsl::ShaderSource::
 add_macro(c_string macro_name, uint32_t macro_value,
           enum add_location_t loc)
 {
-  std::ostringstream ostr;
-  ostr << macro_value;
-  return add_macro(macro_name, ostr.str().c_str(), loc);
+  std::string v(macro_value_as_string(macro_value));
+  return add_macro(macro_name, v.c_str(), loc);
 }
 
 fastuidraw::glsl::ShaderSource&
@@ -402,9 +511,8 @@ fastuidraw::glsl::ShaderSource::
 add_macro(c_string macro_name, int32_t macro_value,
           enum add_location_t loc)
 {
-  std::ostringstream ostr;
-  ostr << macro_value;
-  return add_macro(macro_name, ostr.str().c_str(), loc);
+  std::string v(macro_value_as_string(macro_value));
+  return add_macro(macro_name, v.c_str(), loc);
 }
 
 fastuidraw::glsl::ShaderSource&
@@ -412,20 +520,51 @@ fastuidraw::glsl::ShaderSource::
 add_macro(c_string macro_name, float macro_value,
           enum add_location_t loc)
 {
-  std::ostringstream ostr;
-  ostr << macro_value;
-  return add_macro(macro_name, ostr.str().c_str(), loc);
+  std::string v(macro_value_as_string(macro_value));
+  return add_macro(macro_name, v.c_str(), loc);
 }
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
-remove_macro(c_string macro_name)
+add_macros(const MacroSet &macros, enum add_location_t loc)
 {
-  std::ostringstream ostr;
-  ostr << "#undef " << macro_name;
-  return add_source(ostr.str().c_str(), from_string);
+  MacroSetPrivate *d;
+
+  d = static_cast<MacroSetPrivate*>(macros.m_d);
+  for (const MacroSetEntry &entry : d->m_entries)
+    {
+      add_macro(entry.m_name.c_str(), entry.m_value.c_str(), loc);
+    }
+  return *this;
 }
 
+fastuidraw::glsl::ShaderSource&
+fastuidraw::glsl::ShaderSource::
+remove_macro(c_string macro_name,
+             enum add_location_t loc)
+{
+  std::ostringstream ostr;
+  ostr << "#ifndef " << macro_name << "\n"
+       << "#error \"FastUIDraw: ShaderSource::remove_macro() "
+       << "used on undefined macro " << macro_name << "\"\n"
+       << "#endif\n"
+       << "#undef " << macro_name;
+  return add_source(ostr.str().c_str(), from_string, loc);
+}
+
+fastuidraw::glsl::ShaderSource&
+fastuidraw::glsl::ShaderSource::
+remove_macros(const MacroSet &macros, enum add_location_t loc)
+{
+  MacroSetPrivate *d;
+
+  d = static_cast<MacroSetPrivate*>(macros.m_d);
+  for (const MacroSetEntry &entry : d->m_entries)
+    {
+      remove_macro(entry.m_name.c_str(), loc);
+    }
+  return *this;
+}
 
 fastuidraw::glsl::ShaderSource&
 fastuidraw::glsl::ShaderSource::
