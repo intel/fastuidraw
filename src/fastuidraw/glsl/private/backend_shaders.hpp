@@ -62,16 +62,18 @@ private:
   reference_counted_ptr<PainterBlendShaderGLSL> m_single_src_blend_shader_code;
 };
 
-class ShaderSetCreatorConstants
+class ShaderSetCreatorStrokingConstants
 {
 public:
-  ShaderSetCreatorConstants(void);
+  ShaderSetCreatorStrokingConstants(void);
 
 protected:
   uint32_t m_stroke_render_pass_num_bits, m_stroke_dash_style_num_bits;
   uint32_t m_stroke_render_pass_bit0, m_stroke_dash_style_bit0;
-  ShaderSource::MacroSet m_constants;
-  ShaderSource::MacroSet m_constants_non_aa_only;
+  ShaderSource::MacroSet m_subshader_constants;
+  ShaderSource::MacroSet m_subshader_constants_non_aa_only;
+  ShaderSource::MacroSet m_stroke_constants;
+  ShaderSource::MacroSet m_arc_stroke_constants;
 
 private:
   void
@@ -80,7 +82,7 @@ private:
 };
 
 class ShaderSetCreator:
-  public ShaderSetCreatorConstants,
+  private ShaderSetCreatorStrokingConstants,
   public BlendShaderSetCreator
 {
 public:
@@ -108,7 +110,7 @@ private:
   build_uber_stroke_varyings(uint32_t flags) const;
 
   ShaderSource
-  build_uber_stroke_source(uint32_t flags, fastuidraw::c_string src) const;
+  build_uber_stroke_source(uint32_t flags, bool is_vertex_shader) const;
 
   reference_counted_ptr<PainterItemShader>
   create_glyph_item_shader(const std::string &vert_src,
