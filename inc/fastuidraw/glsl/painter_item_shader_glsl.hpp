@@ -355,7 +355,7 @@ namespace fastuidraw
 
     /*!
      * \brief
-     * A PainterItemShaderGL is a collection of GLSL source code
+     * A PainterItemShaderGLSL is a collection of GLSL source code
      * fragments for a PainterBackendGL.
      *
      * The vertex shader code needs to implement the function:
