@@ -222,8 +222,6 @@ ShaderSetCreatorConstants::
 remove_constants(ShaderSource &src) const
 {
   src
-    .remove_macro("fastuidraw_stroke_sub_shader_width_pixels_bit0")
-    .remove_macro("fastuidraw_stroke_sub_shader_width_pixels_num_bits")
     .remove_macro("fastuidraw_stroke_sub_shader_render_pass_bit0")
     .remove_macro("fastuidraw_stroke_sub_shader_render_pass_num_bits")
     .remove_macro("fastuidraw_stroke_sub_shader_dash_style_bit0")
@@ -270,8 +268,13 @@ ShaderSetCreator(enum PainterBlendShader::shader_type blend_tp,
 
       num_dashed_sub_shaders_non_aa = 1u << (1 + m_stroke_dash_style_num_bits);
       m_dashed_discard_stroke_shader = build_uber_stroke_shader(dashed_shader | only_supports_non_aa, num_dashed_sub_shaders_non_aa);
+      FASTUIDRAWassert(m_dashed_discard_stroke_shader->uses_discard());
 
       /* we also need a shaders for non-aa arc-shading as they will do discard too */
+      m_arc_discard_stroke_shader = build_uber_stroke_shader(only_supports_non_aa | arc_shader, 1);
+      m_dashed_arc_discard_stroke_shader = build_uber_stroke_shader(only_supports_non_aa | dashed_shader | arc_shader, num_dashed_sub_shaders_non_aa);
+      FASTUIDRAWassert(m_arc_discard_stroke_shader->uses_discard());
+      FASTUIDRAWassert(m_dashed_arc_discard_stroke_shader->uses_discard());
     }
 }
 
@@ -369,7 +372,7 @@ build_uber_stroke_source(uint32_t flags, fastuidraw::c_string src) const
   return return_value;
 }
 
-PainterItemShader*
+PainterItemShaderGLSL*
 ShaderSetCreator::
 build_uber_stroke_shader(uint32_t flags, unsigned int num_sub_shaders) const
 {
@@ -469,35 +472,47 @@ create_stroke_item_shader(bool arc_shader,
                           enum PainterEnums::cap_style stroke_dash_style,
                           enum uber_stroke_render_pass_t render_pass)
 {
-  reference_counted_ptr<PainterItemShader> shader;
+  reference_counted_ptr<PainterItemShader> shader, return_value;
   uint32_t sub_shader;
 
-  if (stroke_dash_style == fastuidraw::PainterEnums::number_cap_styles)
+  if (m_stroke_tp == PainterStrokeShader::draws_solid_then_fuzz || render_pass != uber_stroke_non_aa)
     {
-      sub_shader = (render_pass << m_stroke_render_pass_bit0);
-      shader = FASTUIDRAWnew PainterItemShader(sub_shader,
-                                               (arc_shader) ?
-                                               m_uber_arc_stroke_shader :
-                                               m_uber_stroke_shader);
-    }
-  else
-    {
-      if (!arc_shader && render_pass == uber_stroke_non_aa && m_dashed_discard_stroke_shader)
+      if (stroke_dash_style == fastuidraw::PainterEnums::number_cap_styles)
         {
-          sub_shader = (stroke_dash_style << (m_stroke_dash_style_bit0 - m_stroke_render_pass_num_bits));
-          shader = FASTUIDRAWnew PainterItemShader(sub_shader, m_dashed_discard_stroke_shader);
+          sub_shader = render_pass << m_stroke_render_pass_bit0;
+          shader = (arc_shader) ?
+            m_uber_arc_stroke_shader :
+            m_uber_stroke_shader;
         }
       else
         {
           sub_shader = (stroke_dash_style << m_stroke_dash_style_bit0)
             | (render_pass << m_stroke_render_pass_bit0);
-          shader = FASTUIDRAWnew PainterItemShader(sub_shader,
-                                                   (arc_shader) ?
-                                                   m_uber_arc_dashed_stroke_shader :
-                                                   m_uber_dashed_stroke_shader);
+          shader = (arc_shader) ?
+            m_uber_arc_dashed_stroke_shader :
+            m_uber_dashed_stroke_shader;
         }
     }
-  return shader;
+  else
+    {
+      if (stroke_dash_style == fastuidraw::PainterEnums::number_cap_styles)
+        {
+          shader = (arc_shader) ?
+            m_arc_discard_stroke_shader :
+            m_uber_stroke_shader;
+          sub_shader = (arc_shader) ? 0u : render_pass << m_stroke_render_pass_bit0;
+        }
+      else
+        {
+          shader = (arc_shader) ?
+            m_dashed_arc_discard_stroke_shader :
+            m_dashed_discard_stroke_shader;
+          sub_shader = stroke_dash_style << (m_stroke_dash_style_bit0 - m_stroke_render_pass_num_bits);
+        }
+    }
+
+  return_value = FASTUIDRAWnew PainterItemShader(sub_shader, shader);
+  return return_value;
 }
 
 PainterStrokeShader

@@ -100,7 +100,7 @@ private:
       only_supports_non_aa = 4,
     };
 
-  PainterItemShader*
+  PainterItemShaderGLSL*
   build_uber_stroke_shader(uint32_t flags, unsigned int num_shaders) const;
 
   varying_list
@@ -141,11 +141,11 @@ private:
   ShaderSource m_add_constants_non_aa_only;
   ShaderSource m_remove_constants;
 
-  reference_counted_ptr<PainterItemShader> m_uber_stroke_shader, m_uber_dashed_stroke_shader;
-  reference_counted_ptr<PainterItemShader> m_dashed_discard_stroke_shader;
-  reference_counted_ptr<PainterItemShader> m_uber_arc_stroke_shader, m_uber_arc_dashed_stroke_shader;
-  reference_counted_ptr<PainterItemShader> m_arc_discard_stroke_shader;
-  reference_counted_ptr<PainterItemShader> m_dashed_arc_discard_stroke_shader;
+  reference_counted_ptr<PainterItemShaderGLSL> m_uber_stroke_shader, m_uber_dashed_stroke_shader;
+  reference_counted_ptr<PainterItemShaderGLSL> m_dashed_discard_stroke_shader;
+  reference_counted_ptr<PainterItemShaderGLSL> m_uber_arc_stroke_shader, m_uber_arc_dashed_stroke_shader;
+  reference_counted_ptr<PainterItemShaderGLSL> m_arc_discard_stroke_shader;
+  reference_counted_ptr<PainterItemShaderGLSL> m_dashed_arc_discard_stroke_shader;
 
   reference_counted_ptr<const PainterDraw::Action> m_stroke_action_pass1;
   reference_counted_ptr<const PainterDraw::Action> m_stroke_action_pass2;
