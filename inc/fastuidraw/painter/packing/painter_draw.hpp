@@ -23,6 +23,7 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/matrix.hpp>
 #include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/util/gpu_dirty_state.hpp>
 #include <fastuidraw/painter/painter_attribute.hpp>
 #include <fastuidraw/painter/painter_shader.hpp>
 #include <fastuidraw/painter/packing/painter_shader_group.hpp>
@@ -95,10 +96,11 @@ namespace fastuidraw
     public:
       /*!
        * To be implemented by a derived class to execute
-       * the action.
+       * the action and to return what portions of the
+       * GPU state are made dirty by the action.
        */
       virtual
-      void
+      gpu_dirty_state
       execute(void) const = 0;
     };
 

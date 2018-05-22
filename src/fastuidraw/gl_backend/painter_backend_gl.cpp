@@ -352,10 +352,11 @@ namespace
   {
   public:
     virtual
-    void
+    fastuidraw::gpu_dirty_state
     execute(void) const
     {
       glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+      return fastuidraw::gpu_dirty_state();
     }
   };
 
@@ -425,12 +426,6 @@ namespace
   class DrawEntry
   {
   public:
-    enum
-      {
-        set_program = 1,
-        set_blend_state = 2,
-      };
-
     DrawEntry(const fastuidraw::BlendMode &mode,
               PainterBackendGLPrivate *pr,
               unsigned int pz);
@@ -454,7 +449,7 @@ namespace
     GLenum
     convert_blend_func(enum fastuidraw::BlendMode::func_t v);
 
-    uint32_t m_flags;
+    fastuidraw::gpu_dirty_state m_flags;
     fastuidraw::BlendMode m_blend_mode;
     fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_action;
 
@@ -861,7 +856,7 @@ DrawEntry::
 DrawEntry(const fastuidraw::BlendMode &mode,
           PainterBackendGLPrivate *pr,
           unsigned int pz):
-  m_flags(set_program | set_blend_state),
+  m_flags(fastuidraw::gpu_dirty_state::shader | fastuidraw::gpu_dirty_state::blend_mode),
   m_blend_mode(mode),
   m_private(pr),
   m_choice(pz)
@@ -870,7 +865,7 @@ DrawEntry(const fastuidraw::BlendMode &mode,
 
 DrawEntry::
 DrawEntry(const fastuidraw::BlendMode &mode):
-  m_flags(set_blend_state),
+  m_flags(fastuidraw::gpu_dirty_state::blend_mode),
   m_blend_mode(mode),
   m_private(nullptr),
   m_choice(fastuidraw::gl::PainterBackendGL::number_program_types)
@@ -896,18 +891,21 @@ void
 DrawEntry::
 draw(void) const
 {
+  using namespace fastuidraw;
+
+  uint32_t flags(m_flags);
   if (m_action)
     {
-      m_action->execute();
+      flags |= m_action->execute();
     }
 
-  if (m_flags & set_program)
+  if (flags & gpu_dirty_state::shader)
     {
       FASTUIDRAWassert(m_private);
       m_private->m_programs[m_choice]->use_program();
     }
 
-  if (m_flags & set_blend_state)
+  if (flags & gpu_dirty_state::blend_mode)
     {
       if (m_blend_mode.blending_on())
         {
