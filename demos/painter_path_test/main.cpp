@@ -101,27 +101,37 @@ is_miter_join_style(unsigned int js)
     || js == PainterEnums::miter_joins;
 }
 
-void
-enable_wire_frame(bool b)
+#ifndef FASTUIDRAW_GL_USE_GLES
+
+class EnableWireFrameAction:public PainterDraw::Action
 {
-  #ifndef FASTUIDRAW_GL_USE_GLES
-    {
-      if (b)
-        {
-          glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-          glLineWidth(4.0);
-        }
-      else
-        {
-          glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
-    }
-  #else
-    {
-      FASTUIDRAWunused(b);
-    }
-  #endif
-}
+public:
+  explicit
+  EnableWireFrameAction(bool b):
+    m_lines(b)
+  {}
+
+  virtual
+  fastuidraw::gpu_dirty_state
+  execute(void) const
+  {
+    if (m_lines)
+      {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glLineWidth(4.0);
+      }
+    else
+      {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      }
+    return 0u;
+  }
+
+private:
+  bool m_lines;
+};
+
+#endif
 
 class PerPath
 {
@@ -335,6 +345,9 @@ private:
   void
   draw_rect(const vec2 &pt, float r, const PainterData &d);
 
+  void
+  draw_scene(bool drawing_wire_frame);
+
   command_line_argument_value<float> m_change_miter_limit_rate;
   command_line_argument_value<float> m_change_stroke_width_rate;
   command_line_argument_value<float> m_window_change_rate;
@@ -357,6 +370,10 @@ private:
   command_line_argument_value<float> m_fill_green;
   command_line_argument_value<float> m_fill_blue;
   command_line_argument_value<float> m_fill_alpha;
+  command_line_argument_value<float> m_draw_line_red;
+  command_line_argument_value<float> m_draw_line_green;
+  command_line_argument_value<float> m_draw_line_blue;
+  command_line_argument_value<float> m_draw_line_alpha;
 
   std::vector<PerPath> m_paths;
   reference_counted_ptr<Image> m_image;
@@ -374,6 +391,7 @@ private:
   PainterPackedValue<PainterBrush> m_black_pen;
   PainterPackedValue<PainterBrush> m_white_pen;
   PainterPackedValue<PainterBrush> m_stroke_pen;
+  PainterPackedValue<PainterBrush> m_draw_line_pen;
 
   Path m_rect;
 
@@ -408,7 +426,6 @@ private:
   unsigned int m_image_filter;
   bool m_draw_stats;
   float m_curve_flatness;
-  bool m_print_submit_stroke_time, m_print_submit_fill_time;
 
   bool m_with_aa;
   bool m_wire_frame;
@@ -530,6 +547,10 @@ painter_stroke_test(void):
   m_fill_green(1.0f, "fill_green", "green component of fill pen color", *this),
   m_fill_blue(1.0f, "fill_blue", "blue component of fill pen color", *this),
   m_fill_alpha(1.0f, "fill_alpha", "alpha component of fill pen color", *this),
+  m_draw_line_red(1.0f, "draw_line_red", "red component when showing line-rasterization", *this),
+  m_draw_line_green(0.0f, "draw_line_green", "green component when showing line-rasterization", *this),
+  m_draw_line_blue(0.0f, "draw_line_blue", "blue component when showing line-rasterization", *this),
+  m_draw_line_alpha(0.4f, "draw_line_alpha", "alpha component when showing line-rasterization", *this),
   m_selected_path(0),
   m_join_style(PainterEnums::miter_clip_joins),
   m_cap_style(PainterEnums::square_caps),
@@ -1253,8 +1274,6 @@ handle_event(const SDL_Event &ev)
             {
               m_curve_flatness *= 2.0f;
             }
-          m_print_submit_stroke_time = true;
-          m_print_submit_fill_time = true;
           std::cout << "Painter::curveFlatness set to " << m_curve_flatness << "\n";
           break;
         }
@@ -1453,107 +1472,15 @@ construct_dash_patterns(void)
 
 void
 painter_stroke_test::
-draw_frame(void)
+draw_scene(bool drawing_wire_frame)
 {
-  ivec2 wh(dimensions());
-  int64_t submit_stroke_time, submit_fill_time;
-  float us;
-  PainterBackend::Surface::Viewport vwp;
-
-  us = static_cast<float>(m_fps_timer.restart_us());
-
-  update_cts_params();
-
-  enable_wire_frame(m_wire_frame);
-  if (m_force_square_viewport)
+  if (!m_draw_line_pen)
     {
-      int d;
-      d = std::max(wh.x(), wh.y());
-      vwp.m_dimensions = ivec2(d, d);
+      PainterBrush br;
+      br.pen(m_draw_line_red.m_value, m_draw_line_green.m_value,
+             m_draw_line_blue.m_value, m_draw_line_alpha.m_value);
+      m_draw_line_pen = m_painter->packed_value_pool().create_packed_value(br);
     }
-  else
-    {
-      vwp.m_dimensions = wh;
-    }
-
-  /* we must set the viewport of the surface
-     OUTSIDE of Painter::begin()/Painter::end().
-   */
-  m_surface->viewport(vwp);
-
-  m_painter->begin(m_surface);
-
-  if (m_force_square_viewport)
-    {
-      int d;
-      d = std::max(wh.x(), wh.y());
-      /* Make the viewport dimensions as a square.
-         The projection matrix below is the matrix to use for
-         orthogonal projection so that the top is 0
-      */
-      float3x3 proj(float_orthogonal_projection_params(0, d, wh.y(), wh.y() - d));
-      m_painter->transformation(proj);
-    }
-  else
-    {
-      float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));
-      m_painter->transformation(proj);
-    }
-
-  m_painter->curveFlatness(m_curve_flatness);
-  m_painter->save();
-
-  /* draw grid using painter.
-   */
-  if (m_draw_grid && m_stroke_width_in_pixels && m_stroke_width > 0.0f)
-    {
-      if (m_grid_path_dirty && m_stroke_width > 0.0f)
-        {
-          Path grid_path;
-          for(float x = 0, endx = wh.x(); x < endx; x += m_stroke_width)
-            {
-              grid_path << vec2(x, 0.0f)
-                        << vec2(x, wh.y())
-                        << Path::contour_end();
-            }
-          for(float y = 0, endy = wh.y(); y < endy; y += m_stroke_width)
-            {
-              grid_path << vec2(0.0f, y)
-                        << vec2(wh.x(), y)
-                        << Path::contour_end();
-            }
-          m_grid_path_dirty = false;
-          m_grid_path.swap(grid_path);
-        }
-
-      PainterStrokeParams st;
-      st.miter_limit(-1.0f);
-      st.width(2.0f);
-
-      PainterBrush stroke_pen;
-      stroke_pen.pen(1.0f, 1.0f, 1.0f, 1.0f);
-
-      m_painter->stroke_path(PainterData(&stroke_pen, &st),
-                             m_grid_path,
-                             false, PainterEnums::flat_caps, PainterEnums::no_joins,
-                             false);
-    }
-
-  /* apply zoomer()
-   */
-  m_painter->concat(zoomer().transformation().matrix3());
-
-  /* apply shear
-   */
-  m_painter->shear(shear().x(), shear().y());
-
-  /* apply rotation
-   */
-  m_painter->rotate(angle() * M_PI / 180.0f);
-
-  /* apply shear2
-   */
-  m_painter->shear(shear2().x(), shear2().y());
 
   if (m_paths[m_selected_path].m_from_glyph)
     {
@@ -1567,7 +1494,7 @@ draw_frame(void)
       m_painter->shear(1.0f, -1.0f);
     }
 
-  if (clipping_window())
+  if (clipping_window() && !drawing_wire_frame)
     {
       if (m_clip_window_path_dirty)
         {
@@ -1596,10 +1523,8 @@ draw_frame(void)
       m_painter->clipInRect(clipping_xy(), clipping_wh());
     }
 
-
   if (m_draw_fill)
     {
-      simple_time measure;
       PainterBrush fill_brush;
 
       fill_brush.pen(m_fill_red.m_value, m_fill_green.m_value,
@@ -1695,21 +1620,30 @@ draw_frame(void)
           fill_rule = &value_fill_rule;
         }
 
+      PainterData D;
+      if (drawing_wire_frame)
+        {
+          D = PainterData(m_draw_line_pen);
+        }
+      else
+        {
+          D = PainterData(&fill_brush);
+        }
+
       if (m_fill_by_clipping)
         {
           m_painter->save();
           m_painter->clipInPath(path(), *fill_rule);
           m_painter->transformation(float3x3());
-          m_painter->draw_rect(PainterData(&fill_brush), vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
+          m_painter->draw_rect(D, vec2(-1.0f, -1.0f), vec2(2.0f, 2.0f));
           m_painter->restore();
         }
       else
         {
-          m_painter->fill_path(PainterData(&fill_brush), path(),
-                               *fill_rule, m_with_aa && !m_aa_fill_by_stroking);
+          m_painter->fill_path(D, path(), *fill_rule, m_with_aa && !m_aa_fill_by_stroking);
         }
 
-      if (m_aa_fill_by_stroking && m_with_aa)
+      if (m_aa_fill_by_stroking && m_with_aa && !drawing_wire_frame)
         {
           PainterStrokeParams st;
           st
@@ -1723,7 +1657,6 @@ draw_frame(void)
                                  PainterEnums::bevel_joins,
                                  true);
         }
-      submit_fill_time = measure.elapsed_us();
     }
 
   if (!m_stroke_pen)
@@ -1735,7 +1668,9 @@ draw_frame(void)
 
   if (m_stroke_width > 0.0f)
     {
-      simple_time measure;
+      PainterPackedValue<PainterBrush> *stroke_pen;
+      stroke_pen = (!drawing_wire_frame) ? &m_stroke_pen : &m_draw_line_pen;
+
       if (is_dashed_stroking())
         {
           PainterDashedStrokeParams st;
@@ -1759,7 +1694,7 @@ draw_frame(void)
             }
 
 
-          m_painter->stroke_dashed_path(PainterData(m_stroke_pen, &st),
+          m_painter->stroke_dashed_path(PainterData(*stroke_pen, &st),
                                         path(), m_close_contour,
                                         static_cast<enum PainterEnums::cap_style>(m_cap_style),
                                         static_cast<enum PainterEnums::join_style>(m_join_style),
@@ -1783,17 +1718,16 @@ draw_frame(void)
               st.stroking_units(PainterStrokeParams::pixel_stroking_units);
             }
 
-          m_painter->stroke_path(PainterData(m_stroke_pen, &st),
+          m_painter->stroke_path(PainterData(*stroke_pen, &st),
                                  path(), m_close_contour,
                                  static_cast<enum PainterEnums::cap_style>(m_cap_style),
                                  static_cast<enum PainterEnums::join_style>(m_join_style),
                                  m_with_aa);
 
         }
-      submit_stroke_time = measure.elapsed_us();
     }
 
-  if (m_draw_fill && m_gradient_draw_mode != draw_no_gradient)
+  if (m_draw_fill && m_gradient_draw_mode != draw_no_gradient && !drawing_wire_frame)
     {
       float r0, r1;
       vec2 p0, p1;
@@ -1831,6 +1765,117 @@ draw_frame(void)
       draw_rect(p1, r1, PainterData(m_white_pen));
       draw_rect(p1, r0, PainterData(m_black_pen));
     }
+}
+
+void
+painter_stroke_test::
+draw_frame(void)
+{
+  ivec2 wh(dimensions());
+  float us;
+  PainterBackend::Surface::Viewport vwp;
+
+  us = static_cast<float>(m_fps_timer.restart_us());
+
+  update_cts_params();
+
+  if (m_force_square_viewport)
+    {
+      int d;
+      d = std::max(wh.x(), wh.y());
+      vwp.m_dimensions = ivec2(d, d);
+    }
+  else
+    {
+      vwp.m_dimensions = wh;
+    }
+
+  /* we must set the viewport of the surface
+     OUTSIDE of Painter::begin()/Painter::end().
+   */
+  m_surface->viewport(vwp);
+
+  m_painter->begin(m_surface);
+
+  if (m_force_square_viewport)
+    {
+      int d;
+      d = std::max(wh.x(), wh.y());
+      /* Make the viewport dimensions as a square.
+         The projection matrix below is the matrix to use for
+         orthogonal projection so that the top is 0
+      */
+      float3x3 proj(float_orthogonal_projection_params(0, d, wh.y(), wh.y() - d));
+      m_painter->transformation(proj);
+    }
+  else
+    {
+      float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));
+      m_painter->transformation(proj);
+    }
+
+  m_painter->curveFlatness(m_curve_flatness);
+  m_painter->save();
+
+  /* draw grid using painter. */
+  if (m_draw_grid && m_stroke_width_in_pixels && m_stroke_width > 0.0f)
+    {
+      if (m_grid_path_dirty && m_stroke_width > 0.0f)
+        {
+          Path grid_path;
+          for(float x = 0, endx = wh.x(); x < endx; x += m_stroke_width)
+            {
+              grid_path << vec2(x, 0.0f)
+                        << vec2(x, wh.y())
+                        << Path::contour_end();
+            }
+          for(float y = 0, endy = wh.y(); y < endy; y += m_stroke_width)
+            {
+              grid_path << vec2(0.0f, y)
+                        << vec2(wh.x(), y)
+                        << Path::contour_end();
+            }
+          m_grid_path_dirty = false;
+          m_grid_path.swap(grid_path);
+        }
+
+      PainterStrokeParams st;
+      st.miter_limit(-1.0f);
+      st.width(2.0f);
+
+      PainterBrush stroke_pen;
+      stroke_pen.pen(1.0f, 1.0f, 1.0f, 1.0f);
+
+      m_painter->stroke_path(PainterData(&stroke_pen, &st),
+                             m_grid_path,
+                             false, PainterEnums::flat_caps, PainterEnums::no_joins,
+                             false);
+    }
+
+  /* apply zoomer() */
+  m_painter->concat(zoomer().transformation().matrix3());
+
+  /* apply shear */
+  m_painter->shear(shear().x(), shear().y());
+
+  /* apply rotation */
+  m_painter->rotate(angle() * M_PI / 180.0f);
+
+  /* apply shear2 */
+  m_painter->shear(shear2().x(), shear2().y());
+
+  /* draw the scene */
+  draw_scene(false);
+  #ifndef FASTUIDRAW_GL_USE_GLES
+    {
+      if (m_wire_frame)
+        {
+          m_painter->queue_action(FASTUIDRAWnew EnableWireFrameAction(true));
+          draw_scene(true);
+          m_painter->queue_action(FASTUIDRAWnew EnableWireFrameAction(false));
+        }
+    }
+  #endif
 
   m_painter->restore();
 
@@ -1867,22 +1912,6 @@ draw_frame(void)
       PainterBrush brush;
       brush.pen(0.0f, 1.0f, 1.0f, 1.0f);
       draw_text(ostr.str(), 32.0f, m_font, GlyphRender(curve_pair_glyph), PainterData(&brush));
-    }
-
-  if (m_print_submit_stroke_time && m_stroke_width > 0.0f)
-    {
-      m_print_submit_stroke_time = false;
-      std::cout << "stroke_path took " << submit_stroke_time
-                << " us (= " << submit_stroke_time / 1000
-                << "ms)\n";
-    }
-
-  if (m_print_submit_fill_time && m_draw_fill)
-    {
-      m_print_submit_fill_time = false;
-      std::cout << "fill_path took " << submit_fill_time
-                << " us (= " << submit_fill_time / 1000
-                << "ms)\n";
     }
 
   m_painter->end();
@@ -1952,8 +1981,6 @@ derived_init(int w, int h)
     }
 
   m_curve_flatness = m_painter->curveFlatness();
-  m_print_submit_stroke_time = true;
-  m_print_submit_fill_time = true;
   m_draw_timer.restart();
   m_fps_timer.restart();
 }
