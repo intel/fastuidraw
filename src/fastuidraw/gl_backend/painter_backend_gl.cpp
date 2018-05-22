@@ -426,6 +426,33 @@ namespace
     fastuidraw::gl::PainterBackendGL *m_p;
   };
 
+  class DrawState
+  {
+  public:
+    explicit
+    DrawState(fastuidraw::gl::Program *pr):
+      m_current_program(pr),
+      m_current_blend_mode(nullptr)
+    {}
+
+    void
+    restore_gl_state(const painter_vao &vao,
+                     PainterBackendGLPrivate *pr,
+                     fastuidraw::gpu_dirty_state flags) const;
+
+    fastuidraw::gl::Program *m_current_program;
+    const fastuidraw::BlendMode *m_current_blend_mode;
+
+  private:
+    static
+    GLenum
+    convert_blend_op(enum fastuidraw::BlendMode::op_t v);
+
+    static
+    GLenum
+    convert_blend_func(enum fastuidraw::BlendMode::func_t v);
+  };
+
   class DrawEntry
   {
   public:
@@ -434,33 +461,24 @@ namespace
               unsigned int pz);
 
     DrawEntry(const fastuidraw::BlendMode &mode);
-    DrawEntry(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action,
-              PainterBackendGLPrivate *pr);
+
+    DrawEntry(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action);
 
     void
     add_entry(GLsizei count, const void *offset);
 
     void
-    draw(void) const;
+    draw(PainterBackendGLPrivate *pr, const painter_vao &vao,
+         DrawState &st) const;
 
   private:
-
-    static
-    GLenum
-    convert_blend_op(enum fastuidraw::BlendMode::op_t v);
-
-    static
-    GLenum
-    convert_blend_func(enum fastuidraw::BlendMode::func_t v);
-
-    fastuidraw::gpu_dirty_state m_flags;
+    bool m_set_blend;
     fastuidraw::BlendMode m_blend_mode;
     fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_action;
 
     std::vector<GLsizei> m_counts;
     std::vector<const GLvoid*> m_indices;
-    PainterBackendGLPrivate *m_private;
-    unsigned int m_choice;
+    fastuidraw::gl::Program *m_new_program;
   };
 
   class DrawCommand:public fastuidraw::PainterDraw
@@ -854,120 +872,70 @@ generate_bo(GLenum bind_target, GLsizei psize)
   return return_value;
 }
 
-///////////////////////////////////////////////
-// DrawEntry methods
-DrawEntry::
-DrawEntry(const fastuidraw::BlendMode &mode,
-          PainterBackendGLPrivate *pr,
-          unsigned int pz):
-  m_flags(fastuidraw::gpu_dirty_state::shader | fastuidraw::gpu_dirty_state::blend_mode),
-  m_blend_mode(mode),
-  m_private(pr),
-  m_choice(pz)
-{}
-
-
-DrawEntry::
-DrawEntry(const fastuidraw::BlendMode &mode):
-  m_flags(fastuidraw::gpu_dirty_state::blend_mode),
-  m_blend_mode(mode),
-  m_private(nullptr),
-  m_choice(fastuidraw::gl::PainterBackendGL::number_program_types)
-{}
-
-DrawEntry::
-DrawEntry(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action,
-          PainterBackendGLPrivate *pr):
-  m_flags(0u),
-  m_action(action),
-  m_private(pr),
-  m_choice(fastuidraw::gl::PainterBackendGL::number_program_types)
-{}
-
+////////////////////////////////////////////
+// DrawState methods
 void
-DrawEntry::
-add_entry(GLsizei count, const void *offset)
-{
-  m_counts.push_back(count);
-  m_indices.push_back(offset);
-}
-
-void
-DrawEntry::
-draw(void) const
+DrawState::
+restore_gl_state(const painter_vao &vao,
+                 PainterBackendGLPrivate *pr,
+                 fastuidraw::gpu_dirty_state flags) const
 {
   using namespace fastuidraw;
 
-  uint32_t flags(m_flags);
-  if (m_action)
-    {
-      flags |= m_action->execute();
-    }
-
   if (flags & gpu_dirty_state::shader)
     {
-      FASTUIDRAWassert(m_private);
-      m_private->m_programs[m_choice]->use_program();
+      FASTUIDRAWassert(m_current_program);
+      m_current_program->use_program();
+    }
+
+  pr->set_gl_state(flags, false, false);
+
+  /* If necessary, restore the UBO or TBO assoicated to the data
+   * store binding point.
+   */
+  switch(vao.m_data_store_backing)
+    {
+    case fastuidraw::gl::PainterBackendGL::data_store_tbo:
+      if (flags & gpu_dirty_state::textures)
+        {
+          glActiveTexture(GL_TEXTURE0 + vao.m_data_store_binding_point);
+          glBindTexture(GL_TEXTURE_BUFFER, vao.m_data_tbo);
+        }
+      break;
+
+    case fastuidraw::gl::PainterBackendGL::data_store_ubo:
+      if (flags & gpu_dirty_state::constant_buffers)
+        {
+          glBindBufferBase(GL_UNIFORM_BUFFER, vao.m_data_store_binding_point, vao.m_data_bo);
+        }
+      break;
+
+    default:
+      FASTUIDRAWassert(!"Bad value for vao.m_data_store_backing");
     }
 
   if (flags & gpu_dirty_state::blend_mode)
     {
-      if (m_blend_mode.blending_on())
+      FASTUIDRAWassert(m_current_blend_mode);
+      if (m_current_blend_mode->blending_on())
         {
           glEnable(GL_BLEND);
-          glBlendEquationSeparate(convert_blend_op(m_blend_mode.equation_rgb()),
-                                  convert_blend_op(m_blend_mode.equation_alpha()));
-          glBlendFuncSeparate(convert_blend_func(m_blend_mode.func_src_rgb()),
-                              convert_blend_func(m_blend_mode.func_dst_rgb()),
-                              convert_blend_func(m_blend_mode.func_src_alpha()),
-                              convert_blend_func(m_blend_mode.func_dst_alpha()));
+          glBlendEquationSeparate(convert_blend_op(m_current_blend_mode->equation_rgb()),
+                                  convert_blend_op(m_current_blend_mode->equation_alpha()));
+          glBlendFuncSeparate(convert_blend_func(m_current_blend_mode->func_src_rgb()),
+                              convert_blend_func(m_current_blend_mode->func_dst_rgb()),
+                              convert_blend_func(m_current_blend_mode->func_src_alpha()),
+                              convert_blend_func(m_current_blend_mode->func_dst_alpha()));
         }
       else
         {
           glDisable(GL_BLEND);
         }
     }
-
-  if (m_counts.empty())
-    {
-      return;
-    }
-  FASTUIDRAWassert(m_counts.size() == m_indices.size());
-
-  /* TODO:
-   *  Get rid of this unholy mess of #ifdef's here and move
-   *  it to an internal private function that also has a tag
-   *  on what to call.
-   */
-  #ifndef FASTUIDRAW_GL_USE_GLES
-    {
-      glMultiDrawElements(GL_TRIANGLES, &m_counts[0],
-                          fastuidraw::gl::opengl_trait<fastuidraw::PainterIndex>::type,
-                          &m_indices[0], m_counts.size());
-    }
-  #else
-    {
-      if (FASTUIDRAWglfunctionExists(glMultiDrawElementsEXT))
-        {
-          glMultiDrawElementsEXT(GL_TRIANGLES, &m_counts[0],
-                                 fastuidraw::gl::opengl_trait<fastuidraw::PainterIndex>::type,
-                                 &m_indices[0], m_counts.size());
-        }
-      else
-        {
-          for(unsigned int i = 0, endi = m_counts.size(); i < endi; ++i)
-            {
-              glDrawElements(GL_TRIANGLES, m_counts[i],
-                             fastuidraw::gl::opengl_trait<fastuidraw::PainterIndex>::type,
-                             m_indices[i]);
-            }
-        }
-    }
-  #endif
 }
 
 GLenum
-DrawEntry::
+DrawState::
 convert_blend_op(enum fastuidraw::BlendMode::op_t v)
 {
 #define C(X) case fastuidraw::BlendMode::X: return GL_FUNC_##X
@@ -993,7 +961,7 @@ convert_blend_op(enum fastuidraw::BlendMode::op_t v)
 }
 
 GLenum
-DrawEntry::
+DrawState::
 convert_blend_func(enum fastuidraw::BlendMode::func_t v)
 {
 #define C(X) case fastuidraw::BlendMode::X: return GL_##X
@@ -1026,6 +994,112 @@ convert_blend_func(enum fastuidraw::BlendMode::func_t v)
 #undef C
   FASTUIDRAWassert("Invalid blend_t");
   return GL_INVALID_ENUM;
+}
+
+///////////////////////////////////////////////
+// DrawEntry methods
+DrawEntry::
+DrawEntry(const fastuidraw::BlendMode &mode,
+          PainterBackendGLPrivate *pr,
+          unsigned int pz):
+  m_set_blend(true),
+  m_blend_mode(mode),
+  m_new_program(pr->m_programs[pz].get())
+{}
+
+DrawEntry::
+DrawEntry(const fastuidraw::BlendMode &mode):
+  m_set_blend(true),
+  m_blend_mode(mode),
+  m_new_program(nullptr)
+{}
+
+DrawEntry::
+DrawEntry(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action):
+  m_set_blend(false),
+  m_action(action),
+  m_new_program(nullptr)
+{}
+
+void
+DrawEntry::
+add_entry(GLsizei count, const void *offset)
+{
+  m_counts.push_back(count);
+  m_indices.push_back(offset);
+}
+
+void
+DrawEntry::
+draw(PainterBackendGLPrivate *pr, const painter_vao &vao,
+     DrawState &st) const
+{
+  using namespace fastuidraw;
+
+  uint32_t flags(0);
+
+  if (m_action)
+    {
+      /* Rather than having something delicate to restore
+       * the currently bound VAO, instead we unbind it
+       * and rebind it after the action.
+       */
+      glBindVertexArray(0);
+      flags |= m_action->execute();
+      glBindVertexArray(vao.m_vao);
+    }
+
+  if (m_set_blend)
+    {
+      st.m_current_blend_mode = &m_blend_mode;
+      flags |= gpu_dirty_state::blend_mode;
+    }
+
+  if (m_new_program && st.m_current_program != m_new_program)
+    {
+      st.m_current_program = m_new_program;
+      flags |= gpu_dirty_state::shader;
+    }
+
+  st.restore_gl_state(vao, pr, flags);
+
+  if (m_counts.empty())
+    {
+      return;
+    }
+
+  FASTUIDRAWassert(m_counts.size() == m_indices.size());
+
+  /* TODO:
+   *  Get rid of this unholy mess of #ifdef's here and move
+   *  it to an internal private function that also has a tag
+   *  on what to call.
+   */
+  #ifndef FASTUIDRAW_GL_USE_GLES
+    {
+      glMultiDrawElements(GL_TRIANGLES, &m_counts[0],
+                          fastuidraw::gl::opengl_trait<fastuidraw::PainterIndex>::type,
+                          &m_indices[0], m_counts.size());
+    }
+  #else
+    {
+      if (FASTUIDRAWglfunctionExists(glMultiDrawElementsEXT))
+        {
+          glMultiDrawElementsEXT(GL_TRIANGLES, &m_counts[0],
+                                 fastuidraw::gl::opengl_trait<fastuidraw::PainterIndex>::type,
+                                 &m_indices[0], m_counts.size());
+        }
+      else
+        {
+          for(unsigned int i = 0, endi = m_counts.size(); i < endi; ++i)
+            {
+              glDrawElements(GL_TRIANGLES, m_counts[i],
+                             fastuidraw::gl::opengl_trait<fastuidraw::PainterIndex>::type,
+                             m_indices[i]);
+            }
+        }
+    }
+  #endif
 }
 
 ////////////////////////////////////
@@ -1088,7 +1162,7 @@ draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw
         {
           add_entry(indices_written);
         }
-      m_draws.push_back(DrawEntry(action, m_pr));
+      m_draws.push_back(action);
     }
 }
 
@@ -1142,17 +1216,19 @@ void
 DrawCommand::
 draw(void) const
 {
+  using namespace fastuidraw::gl;
+
   glBindVertexArray(m_vao.m_vao);
   switch(m_vao.m_data_store_backing)
     {
-    case fastuidraw::gl::PainterBackendGL::data_store_tbo:
+    case PainterBackendGL::data_store_tbo:
       {
         glActiveTexture(GL_TEXTURE0 + m_vao.m_data_store_binding_point);
         glBindTexture(GL_TEXTURE_BUFFER, m_vao.m_data_tbo);
       }
       break;
 
-    case fastuidraw::gl::PainterBackendGL::data_store_ubo:
+    case PainterBackendGL::data_store_ubo:
       {
         glBindBufferBase(GL_UNIFORM_BUFFER, m_vao.m_data_store_binding_point, m_vao.m_data_bo);
       }
@@ -1162,14 +1238,17 @@ draw(void) const
       FASTUIDRAWassert(!"Bad value for m_vao.m_data_store_backing");
     }
 
-  if (m_pr->m_params.separate_program_for_discard())
-    {
-      m_pr->m_programs[fastuidraw::gl::PainterBackendGL::program_without_discard]->use_program();
-    }
+  unsigned int choice;
+  choice = m_pr->m_params.separate_program_for_discard() ?
+    PainterBackendGL::program_without_discard :
+    PainterBackendGL::program_all;
+
+  DrawState st(m_pr->m_programs[choice].get());
+  st.m_current_program->use_program();
 
   for(const DrawEntry &entry : m_draws)
     {
-      entry.draw();
+      entry.draw(m_pr, m_vao, st);
     }
   glBindVertexArray(0);
 }
@@ -2097,7 +2176,7 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
       glBindTexture(ColorStopAtlasGL::texture_bind_target(), color->texture());
     }
 
-  if (v & gpu_dirty_state::constant_buffer)
+  if (v & gpu_dirty_state::constant_buffers)
     {
       GLuint ubo;
       unsigned int size_generics(m_p->ubo_size());
@@ -2415,14 +2494,9 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
   PainterBackendGLSL::viewport(d->m_surface_gl->m_viewport);
   d->set_gl_state(gpu_dirty_state::all, true, clear_color_buffer);
 
-  //grabbing the programs via programs() makes sure they are built.
-  const PainterBackendGLPrivate::program_set &prs(d->programs(shader_code_added()));
+  //makes sure that the GLSL programs are built.
+  d->programs(shader_code_added());
   FASTUIDRAWassert(!shader_code_added());
-
-  if (!d->m_params.separate_program_for_discard())
-    {
-      prs[program_all]->use_program();
-    }
 }
 
 void
