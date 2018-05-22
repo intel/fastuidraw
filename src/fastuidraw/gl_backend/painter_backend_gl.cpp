@@ -360,6 +360,7 @@ namespace
     }
   };
 
+  class SurfaceGLPrivate;
   class PainterBackendGLPrivate
   {
   public:
@@ -397,7 +398,8 @@ namespace
     build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp);
 
     void
-    build_vao_tbos(void);
+    set_gl_state(fastuidraw::gpu_dirty_state v,
+                 bool clear_depth, bool clear_color);
 
     enum interlock_type_t m_interlock_type;
     fastuidraw::gl::PainterBackendGL::ConfigurationGL m_params;
@@ -419,6 +421,7 @@ namespace
     std::vector<fastuidraw::generic_data> m_uniform_values;
     fastuidraw::c_array<fastuidraw::generic_data> m_uniform_values_ptr;
     painter_vao_pool *m_pool;
+    SurfaceGLPrivate *m_surface_gl;
 
     fastuidraw::gl::PainterBackendGL *m_p;
   };
@@ -431,7 +434,8 @@ namespace
               unsigned int pz);
 
     DrawEntry(const fastuidraw::BlendMode &mode);
-    DrawEntry(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action);
+    DrawEntry(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action,
+              PainterBackendGLPrivate *pr);
 
     void
     add_entry(GLsizei count, const void *offset);
@@ -872,10 +876,11 @@ DrawEntry(const fastuidraw::BlendMode &mode):
 {}
 
 DrawEntry::
-DrawEntry(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action):
+DrawEntry(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action,
+          PainterBackendGLPrivate *pr):
   m_flags(0u),
   m_action(action),
-  m_private(nullptr),
+  m_private(pr),
   m_choice(fastuidraw::gl::PainterBackendGL::number_program_types)
 {}
 
@@ -1083,7 +1088,7 @@ draw_break(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw
         {
           add_entry(indices_written);
         }
-      m_draws.push_back(action);
+      m_draws.push_back(DrawEntry(action, m_pr));
     }
 }
 
@@ -1378,6 +1383,7 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL 
   m_clip_plane0(GL_INVALID_ENUM),
   m_linear_filter_sampler(0),
   m_pool(nullptr),
+  m_surface_gl(nullptr),
   m_p(p)
 {
   configure_backend();
@@ -1918,6 +1924,200 @@ build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
   return return_value;
 }
 
+void
+PainterBackendGLPrivate::
+set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_buffer)
+{
+  using namespace fastuidraw;
+  using namespace fastuidraw::gl;
+
+  const glsl::PainterBackendGLSL::UberShaderParams &uber_params(m_uber_shader_builder_params);
+  const glsl::PainterBackendGLSL::BindingPoints &binding_points(uber_params.binding_points());
+  enum glsl::PainterBackendGLSL::auxiliary_buffer_t aux_type;
+  const PainterBackend::Surface::Viewport &vwp(m_surface_gl->m_viewport);
+  ivec2 dimensions(m_surface_gl->m_properties.dimensions());
+
+  aux_type = uber_params.provide_auxiliary_image_buffer();
+  if (v & gpu_dirty_state::images
+      && aux_type != fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer)
+    {
+      SurfaceGLPrivate::auxiliary_buffer_t tp;
+
+      tp = (aux_type == glsl::PainterBackendGLSL::auxiliary_buffer_atomic) ?
+        SurfaceGLPrivate::auxiliary_buffer_u32 :
+        SurfaceGLPrivate::auxiliary_buffer_u8;
+
+      glBindImageTexture(binding_points.auxiliary_image_buffer(),
+                         m_surface_gl->auxiliary_buffer(tp), //texture
+                         0, //level
+                         GL_FALSE, //layered
+                         0, //layer
+                         GL_READ_WRITE, //access
+                         SurfaceGLPrivate::auxiliaryBufferInternalFmt(tp));
+    }
+
+  if (v & gpu_dirty_state::render_target)
+    {
+      enum SurfaceGLPrivate::fbo_t fbo_tp(SurfaceGLPrivate::fbo_tp(aux_type));
+      GLuint fbo(m_surface_gl->fbo(fbo_tp));
+      vecN<GLenum, 2> draw_buffers(GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1);
+
+      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+      if (clear_depth)
+        {
+          GLbitfield mask(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+          if (clear_color_buffer)
+            {
+              glClearColor(m_surface_gl->m_clear_color.x(),
+                           m_surface_gl->m_clear_color.y(),
+                           m_surface_gl->m_clear_color.z(),
+                           m_surface_gl->m_clear_color.w());
+              mask |= GL_COLOR_BUFFER_BIT;
+            }
+          glDrawBuffers(1, draw_buffers.c_ptr());
+          glClear(mask);
+        }
+      else
+        {
+          FASTUIDRAWassert(!clear_color_buffer);
+        }
+
+      if (fbo_tp == SurfaceGLPrivate::fbo_with_auxiliary_buffer)
+        {
+          glDrawBuffers(2, draw_buffers.c_ptr());
+        }
+      else
+        {
+          glDrawBuffers(1, draw_buffers.c_ptr());
+        }
+
+      v |= gpu_dirty_state::viewport_scissor;
+    }
+  else
+    {
+      FASTUIDRAWassert(!clear_color_buffer);
+      FASTUIDRAWassert(!clear_depth);
+    }
+
+  if (v & gpu_dirty_state::depth_stencil)
+    {
+      glEnable(GL_DEPTH_TEST);
+      glDepthFunc(GL_GEQUAL);
+      glDisable(GL_STENCIL_TEST);
+
+      #ifdef FASTUIDRAW_GL_USE_GLES
+        {
+          glClearDepthf(0.0f);
+        }
+      #else
+        {
+          glClearDepth(0.0f);
+        }
+      #endif
+    }
+
+  if (v & gpu_dirty_state::buffer_masks)
+    {
+      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+      glDepthMask(GL_TRUE);
+    }
+
+  if (v & gpu_dirty_state::viewport_scissor)
+    {
+      if (dimensions.x() > vwp.m_dimensions.x()
+          || dimensions.y() > vwp.m_dimensions.y()
+          || vwp.m_origin.x() != 0
+          || vwp.m_origin.y() != 0)
+        {
+          glEnable(GL_SCISSOR_TEST);
+          glScissor(vwp.m_origin.x(), vwp.m_origin.y(),
+                    vwp.m_dimensions.x(), vwp.m_dimensions.y());
+        }
+      else
+        {
+          glDisable(GL_SCISSOR_TEST);
+        }
+
+      glViewport(vwp.m_origin.x(), vwp.m_origin.y(),
+                 vwp.m_dimensions.x(), vwp.m_dimensions.y());
+    }
+
+  if ((v & gpu_dirty_state::hw_clip) && m_number_clip_planes > 0)
+    {
+      glEnable(m_clip_plane0 + 0);
+      glEnable(m_clip_plane0 + 1);
+      glEnable(m_clip_plane0 + 2);
+      glEnable(m_clip_plane0 + 3);
+      for(int i = 4; i < m_number_clip_planes; ++i)
+        {
+          glDisable(m_clip_plane0 + i);
+        }
+    }
+
+  if (v & gpu_dirty_state::textures)
+    {
+      GlyphAtlasGL *glyphs;
+      FASTUIDRAWassert(dynamic_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get()));
+      glyphs = static_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get());
+
+      ImageAtlasGL *image;
+      FASTUIDRAWassert(dynamic_cast<ImageAtlasGL*>(m_p->image_atlas().get()));
+      image = static_cast<ImageAtlasGL*>(m_p->image_atlas().get());
+
+      ColorStopAtlasGL *color;
+      FASTUIDRAWassert(dynamic_cast<ColorStopAtlasGL*>(m_p->colorstop_atlas().get()));
+      color = static_cast<ColorStopAtlasGL*>(m_p->colorstop_atlas().get());
+
+      glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_color_tiles_unfiltered());
+      glBindSampler(binding_points.image_atlas_color_tiles_unfiltered(), 0);
+      glBindTexture(GL_TEXTURE_2D_ARRAY, image->color_texture());
+
+      glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_color_tiles_filtered());
+      glBindSampler(binding_points.image_atlas_color_tiles_filtered(), m_linear_filter_sampler);
+      glBindTexture(GL_TEXTURE_2D_ARRAY, image->color_texture());
+
+      glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_index_tiles());
+      glBindSampler(binding_points.image_atlas_index_tiles(), 0);
+      glBindTexture(GL_TEXTURE_2D_ARRAY, image->index_texture());
+
+      glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_texel_store_uint());
+      glBindSampler(binding_points.glyph_atlas_texel_store_uint(), 0);
+      glBindTexture(GL_TEXTURE_2D_ARRAY, glyphs->texel_texture(true));
+
+      glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_texel_store_float());
+      glBindSampler(binding_points.glyph_atlas_texel_store_float(), 0);
+      glBindTexture(GL_TEXTURE_2D_ARRAY, glyphs->texel_texture(false));
+
+      glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_geometry_store());
+      glBindSampler(binding_points.glyph_atlas_geometry_store(), 0);
+      glBindTexture(glyphs->geometry_texture_binding_point(), glyphs->geometry_texture());
+
+      glActiveTexture(GL_TEXTURE0 + binding_points.colorstop_atlas());
+      glBindSampler(binding_points.colorstop_atlas(), 0);
+      glBindTexture(ColorStopAtlasGL::texture_bind_target(), color->texture());
+    }
+
+  if (v & gpu_dirty_state::constant_buffer)
+    {
+      GLuint ubo;
+      unsigned int size_generics(m_p->ubo_size());
+      unsigned int size_bytes(sizeof(generic_data) * size_generics);
+      void *ubo_mapped;
+
+      /* Grabs and binds the buffer */
+      ubo = m_pool->request_uniform_ubo(size_bytes, GL_UNIFORM_BUFFER);
+      FASTUIDRAWassert(ubo != 0);
+      ubo_mapped = glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
+                                    GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
+
+      m_p->fill_uniform_buffer(c_array<generic_data>(static_cast<generic_data*>(ubo_mapped), size_generics));
+      glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
+      glUnmapBuffer(GL_UNIFORM_BUFFER);
+
+      glBindBufferBase(GL_UNIFORM_BUFFER, m_uber_shader_builder_params.binding_points().uniforms_ubo(), ubo);
+    }
+}
+
 /////////////////////////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties methods
 fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties::
@@ -2200,19 +2400,10 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
             bool clear_color_buffer)
 {
   PainterBackendGLPrivate *d;
-  SurfaceGLPrivate *surface_gl;
 
   d = static_cast<PainterBackendGLPrivate*>(m_d);
-  surface_gl = static_cast<SurfaceGLPrivate*>(SurfaceGLPrivate::surface_gl(surface)->m_d);
+  d->m_surface_gl = static_cast<SurfaceGLPrivate*>(SurfaceGLPrivate::surface_gl(surface)->m_d);
 
-  /* we delay setting up GL state until on_pre_draw() for several reasons:
-   *    1. the atlases may have been resized, if so the underlying textures
-   *       change
-   *    2. we gaurantee GL state regardless of what the calling application
-   *       is doing because PainterPacker() calls on_pre_draw() within
-   *       PainterPacker::end() and the on_pre_draw() call is immediately
-   *       followed by PainterDraw::draw() calls.
-   */
   if (d->m_linear_filter_sampler == 0)
     {
       glGenSamplers(1, &d->m_linear_filter_sampler);
@@ -2221,142 +2412,10 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
       glSamplerParameteri(d->m_linear_filter_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
 
-  const glsl::PainterBackendGLSL::UberShaderParams &uber_params(d->m_uber_shader_builder_params);
-  const glsl::PainterBackendGLSL::BindingPoints &binding_points(uber_params.binding_points());
+  PainterBackendGLSL::viewport(d->m_surface_gl->m_viewport);
+  d->set_gl_state(gpu_dirty_state::all, true, clear_color_buffer);
 
-  /* if using an auxiliary buffer, make the auxiliary buffer match the resolution
-   *  of Surface (rather than its viewport size).
-   */
-  enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t aux_type;
-  aux_type = uber_params.provide_auxiliary_image_buffer();
-  if (aux_type != fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer)
-    {
-      SurfaceGLPrivate::auxiliary_buffer_t tp;
-
-      tp = (aux_type == auxiliary_buffer_atomic) ?
-        SurfaceGLPrivate::auxiliary_buffer_u32 :
-        SurfaceGLPrivate::auxiliary_buffer_u8;
-
-      glBindImageTexture(binding_points.auxiliary_image_buffer(),
-                         surface_gl->auxiliary_buffer(tp), //texture
-                         0, //level
-                         GL_FALSE, //layered
-                         0, //layer
-                         GL_READ_WRITE, //access
-                         SurfaceGLPrivate::auxiliaryBufferInternalFmt(tp));
-    }
-
-  enum SurfaceGLPrivate::fbo_t fbo_tp(SurfaceGLPrivate::fbo_tp(aux_type));
-  GLuint fbo(surface_gl->fbo(fbo_tp));
-  vecN<GLenum, 2> draw_buffers(GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1);
-  const Surface::Viewport &vwp(surface_gl->m_viewport);
-  ivec2 dimensions(surface_gl->m_properties.dimensions());
-
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
-
-  glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_GEQUAL);
-  glDisable(GL_STENCIL_TEST);
-  PainterBackendGLSL::viewport(vwp);
-  glViewport(vwp.m_origin.x(), vwp.m_origin.y(),
-             vwp.m_dimensions.x(), vwp.m_dimensions.y());
-
-  if (dimensions.x() > vwp.m_dimensions.x()
-      || dimensions.y() > vwp.m_dimensions.y()
-      || vwp.m_origin.x() != 0
-      || vwp.m_origin.y() != 0)
-    {
-      glEnable(GL_SCISSOR_TEST);
-      glScissor(vwp.m_origin.x(), vwp.m_origin.y(),
-                vwp.m_dimensions.x(), vwp.m_dimensions.y());
-    }
-  else
-    {
-      glDisable(GL_SCISSOR_TEST);
-    }
-
-  #ifdef FASTUIDRAW_GL_USE_GLES
-    {
-      glClearDepthf(0.0f);
-    }
-  #else
-    {
-      glClearDepth(0.0f);
-    }
-  #endif
-
-  GLbitfield mask(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-  if (clear_color_buffer)
-    {
-      glClearColor(surface_gl->m_clear_color.x(),
-                   surface_gl->m_clear_color.y(),
-                   surface_gl->m_clear_color.z(),
-                   surface_gl->m_clear_color.w());
-      mask |= GL_COLOR_BUFFER_BIT;
-    }
-  glDrawBuffers(1, draw_buffers.c_ptr());
-  glClear(mask);
-
-  if (fbo_tp == SurfaceGLPrivate::fbo_with_auxiliary_buffer)
-    {
-      glDrawBuffers(2, draw_buffers.c_ptr());
-    }
-
-  if (d->m_number_clip_planes > 0)
-    {
-      glEnable(d->m_clip_plane0 + 0);
-      glEnable(d->m_clip_plane0 + 1);
-      glEnable(d->m_clip_plane0 + 2);
-      glEnable(d->m_clip_plane0 + 3);
-      for(int i = 4; i < d->m_number_clip_planes; ++i)
-        {
-          glDisable(d->m_clip_plane0 + i);
-        }
-    }
-
-  /* all of our texture units, oh my. */
-  GlyphAtlasGL *glyphs;
-  FASTUIDRAWassert(dynamic_cast<GlyphAtlasGL*>(glyph_atlas().get()));
-  glyphs = static_cast<GlyphAtlasGL*>(glyph_atlas().get());
-
-  ImageAtlasGL *image;
-  FASTUIDRAWassert(dynamic_cast<ImageAtlasGL*>(image_atlas().get()));
-  image = static_cast<ImageAtlasGL*>(image_atlas().get());
-
-  ColorStopAtlasGL *color;
-  FASTUIDRAWassert(dynamic_cast<ColorStopAtlasGL*>(colorstop_atlas().get()));
-  color = static_cast<ColorStopAtlasGL*>(colorstop_atlas().get());
-
-  glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_color_tiles_unfiltered());
-  glBindSampler(binding_points.image_atlas_color_tiles_unfiltered(), 0);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, image->color_texture());
-
-  glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_color_tiles_filtered());
-  glBindSampler(binding_points.image_atlas_color_tiles_filtered(), d->m_linear_filter_sampler);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, image->color_texture());
-
-  glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_index_tiles());
-  glBindSampler(binding_points.image_atlas_index_tiles(), 0);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, image->index_texture());
-
-  glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_texel_store_uint());
-  glBindSampler(binding_points.glyph_atlas_texel_store_uint(), 0);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, glyphs->texel_texture(true));
-
-  glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_texel_store_float());
-  glBindSampler(binding_points.glyph_atlas_texel_store_float(), 0);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, glyphs->texel_texture(false));
-
-  glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_geometry_store());
-  glBindSampler(binding_points.glyph_atlas_geometry_store(), 0);
-  glBindTexture(glyphs->geometry_texture_binding_point(), glyphs->geometry_texture());
-
-  glActiveTexture(GL_TEXTURE0 + binding_points.colorstop_atlas());
-  glBindSampler(binding_points.colorstop_atlas(), 0);
-  glBindTexture(ColorStopAtlasGL::texture_bind_target(), color->texture());
-
-  //grabbing the programs via programs() makes sure they
-  //are built.
+  //grabbing the programs via programs() makes sure they are built.
   const PainterBackendGLPrivate::program_set &prs(d->programs(shader_code_added()));
   FASTUIDRAWassert(!shader_code_added());
 
@@ -2364,23 +2423,6 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
     {
       prs[program_all]->use_program();
     }
-
-  GLuint ubo;
-  unsigned int size_generics(ubo_size());
-  unsigned int size_bytes(sizeof(generic_data) * size_generics);
-  void *ubo_mapped;
-
-  /* Grabs and binds the buffer */
-  ubo = d->m_pool->request_uniform_ubo(size_bytes, GL_UNIFORM_BUFFER);
-  FASTUIDRAWassert(ubo != 0);
-  ubo_mapped = glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
-                                GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
-
-  fill_uniform_buffer(c_array<generic_data>(static_cast<generic_data*>(ubo_mapped), size_generics));
-  glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
-  glUnmapBuffer(GL_UNIFORM_BUFFER);
-
-  glBindBufferBase(GL_UNIFORM_BUFFER, d->m_uber_shader_builder_params.binding_points().uniforms_ubo(), ubo);
 }
 
 void
