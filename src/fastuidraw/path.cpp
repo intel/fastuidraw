@@ -35,16 +35,34 @@ namespace
                    const fastuidraw::vec2 &p,
                    const fastuidraw::vec2 &b)
   {
-    fastuidraw::vec2 a_p, b_a;
-    float d, d_sq, b_a_mag_sq, a_p_mag_sq;
+    fastuidraw::vec2 p_a, b_a, p_b;
+    float d, p_a_mag_sq;
 
-    a_p = a - p;
+    p_a = p - a;
     b_a = b - a;
-    d = fastuidraw::dot(a_p, b_a);
-    d_sq = d * d;
-    a_p_mag_sq = a_p.magnitudeSq();
-    b_a_mag_sq = b_a.magnitudeSq();
-    return fastuidraw::t_sqrt(fastuidraw::t_max(0.0f, a_p_mag_sq - d_sq / b_a_mag_sq));
+    p_b = p - b;
+    d = fastuidraw::dot(p_a, b_a);
+    p_a_mag_sq = p_a.magnitudeSq();
+
+    if (fastuidraw::dot(p_b, b_a) <= 0.0f && d >= 0.0f)
+      {
+        float d_sq, r, b_a_mag_sq;
+
+        b_a_mag_sq = b_a.magnitudeSq();
+        d_sq = d * d;
+        r = p_a_mag_sq - d_sq / b_a_mag_sq;
+        r = fastuidraw::t_max(0.0f, r);
+        return fastuidraw::t_sqrt(r);
+      }
+    else
+      {
+        float r, b_p_mag_sq;
+
+        b_p_mag_sq = (b - p).magnitudeSq();
+        r = fastuidraw::t_min(p_a_mag_sq, b_p_mag_sq);
+        r = fastuidraw::t_sqrt(r);
+        return r;
+      }
   }
 
   class LinearTessellatorStateNode
