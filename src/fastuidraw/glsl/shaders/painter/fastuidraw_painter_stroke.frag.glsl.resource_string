@@ -62,7 +62,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
           #if !defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
             {
-              if (render_pass == uint(fastuidraw_stroke_aa_pass1) && alpha < 1.0 - 1.0 / 255.0)
+              if (render_pass == fastuidraw_stroke_aa_pass1 && alpha < 1.0 - 1.0 / 255.0)
                 {
                   alpha = 0.0;
                 }
@@ -74,7 +74,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
   #ifdef FASTUIDRAW_STROKE_COVER_THEN_DRAW
     {
-      if (render_pass == uint(fastuidraw_stroke_aa_pass1))
+      if (render_pass == fastuidraw_stroke_aa_pass1)
         {
           float dd, q;
 
@@ -95,14 +95,14 @@ fastuidraw_gl_frag_main(in uint sub_shader,
       dd = max(q, fwidth(q));
       alpha *= q / dd;
 
-      if (render_pass != uint(fastuidraw_stroke_aa_pass2) && alpha < 1.0 - 1.0 / 255.0)
+      if (render_pass != fastuidraw_stroke_aa_pass2 && alpha < 1.0 - 1.0 / 255.0)
         {
           FASTUIDRAW_DISCARD;
         }
     }
   #else
     {
-      if (render_pass == uint(fastuidraw_stroke_aa_pass2))
+      if (render_pass == fastuidraw_stroke_aa_pass2)
         {
           float dd, q;
 
