@@ -56,6 +56,7 @@ namespace
     bool m_disable_pre_added_source;
 
     std::string m_assembled_code;
+    std::string m_assembled_code_base;
 
     static
     std::string
@@ -313,7 +314,7 @@ add_source_entry(const source_code_t &v, std::ostream &output_stream)
           c_array<const uint8_t> resource_string;
 
           resource_string = fetch_static_resource(v.first.c_str());
-          label=v.first;
+          label = v.first;
           if (!resource_string.empty() && resource_string.back() == 0)
             {
               fastuidraw::c_string s;
@@ -606,7 +607,7 @@ disable_pre_added_source(void)
 
 fastuidraw::c_string
 fastuidraw::glsl::ShaderSource::
-assembled_code(void) const
+assembled_code(bool code_only) const
 {
   SourcePrivate *d;
   d = static_cast<SourcePrivate*>(m_d);
@@ -614,6 +615,7 @@ assembled_code(void) const
   if (d->m_dirty)
     {
       std::ostringstream output_glsl_source_code;
+      std::ostringstream output_glsl_source_code_base;
 
       if (!d->m_version.empty())
         {
@@ -639,6 +641,7 @@ assembled_code(void) const
       for(const SourcePrivate::source_code_t &src : d->m_values)
         {
           SourcePrivate::add_source_entry(src, output_glsl_source_code);
+          SourcePrivate::add_source_entry(src, output_glsl_source_code_base);
         }
 
       /*
@@ -647,9 +650,14 @@ assembled_code(void) const
        * less grouchy, we emit a few extra \n's
        */
       output_glsl_source_code << "\n\n\n";
+      output_glsl_source_code_base << "\n\n\n";
 
       d->m_assembled_code = output_glsl_source_code.str();
+      d->m_assembled_code_base = output_glsl_source_code_base.str();
       d->m_dirty = false;
     }
-  return d->m_assembled_code.c_str();
+
+  return code_only ?
+    d->m_assembled_code_base.c_str():
+    d->m_assembled_code.c_str();
 }
