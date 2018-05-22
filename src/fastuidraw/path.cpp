@@ -413,7 +413,11 @@ void
 LinearTessellatorStateNode::
 add_segment(fastuidraw::TessellatedPath::SegmentStorage *out_data) const
 {
-  out_data->add_line_segment(m_pt0, m_pt1);
+  /* We add the two segments because the value of m_max_distance
+   * is the error estimate using the two segments.
+   */
+  out_data->add_line_segment(m_pt0, m_mid_pt);
+  out_data->add_line_segment(m_mid_pt, m_pt1);
 }
 
 LinearTessellatorStateNode
@@ -551,7 +555,8 @@ add_segment(fastuidraw::TessellatedPath::SegmentStorage *out_data) const
 {
   if (m_too_flat)
     {
-      out_data->add_line_segment(m_start, m_end);
+      out_data->add_line_segment(m_start, m_mid);
+      out_data->add_line_segment(m_mid, m_end);
     }
   else
     {
