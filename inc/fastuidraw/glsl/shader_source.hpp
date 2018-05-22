@@ -378,9 +378,12 @@ public:
    * Returns the GLSL code assembled. The returned string is only
    * gauranteed to be valid up until the ShaderSource object
    * is modified.
+   * \param code_only if true only, return the GLSL code without
+   *                  the additions of version, extension and
+   *                  FastUIDraw convenience functions and macros.
    */
   c_string
-  assembled_code(void) const;
+  assembled_code(bool code_only = false) const;
 
 private:
   void *m_d;
