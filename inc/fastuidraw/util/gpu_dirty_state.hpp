@@ -59,7 +59,7 @@ namespace fastuidraw
          * For example, in GL these changes are accompished
          * by calling glBindImageTexture().
          */
-        bound_images = 1 << 2,
+        images = 1 << 2,
 
         /*!
          * If this bit is up, indicates that the blend
@@ -77,10 +77,12 @@ namespace fastuidraw
 
         /*!
          * If this bit is up, indicates that the viewport
-         * values have changed. For example, in GL this
-         * is accomplished by calling glViewport().
+         * or scissor values have changed. For example, in GL
+         * this is accomplished by calling glViewport(),
+         * glScissor() or glEnable/glDisable() passing
+         * GL_SCISSOR_TEST.
          */
-        viewport = 1 << 5,
+        viewport_scissor = 1 << 5,
 
         /*!
          * If this bit is up, indicates that the source or format
@@ -106,6 +108,30 @@ namespace fastuidraw
          * with the binding target as GL_SHADER_STORAGE_BUFFER.
          */
         storage_buffer = 1 << 8,
+
+        /*!
+         * If this bit is up, the depth or stencil test has been
+         * modified.
+         */
+        depth_stencil = 1 << 9,
+
+        /*!
+         * If this bit is up, the color, depth or stencil masks
+         * have changed. For example, in GL this is accomlished
+         * by called glColorMask() glDepthMask() or glStencilMask().
+         */
+        buffer_masks = 1 << 10,
+
+        /*!
+         * If this bit is up, indicates that the HW clip planes
+         * has changed.
+         */
+        hw_clip = 1 << 11,
+
+        /*!
+         * Specify that all state is dirty.
+         */
+        all = ~0u,
       };
 
     /*!
@@ -121,6 +147,11 @@ namespace fastuidraw
      * Implicit cast-operator to uint32_t.
      */
     operator uint32_t() const { return m_flags; }
+
+    /*!
+     * Implicit cast-operator to uint32_t.
+     */
+    operator uint32_t&() { return m_flags; }
 
   private:
     uint32_t m_flags;
