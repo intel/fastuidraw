@@ -117,12 +117,24 @@ fastuidraw_gl_frag_main(in uint sub_shader,
 
           #if !defined(FASTUIDRAW_STROKE_COVER_THEN_DRAW)
             {
-              if (render_pass == uint(fastuidraw_stroke_aa_pass1) && alpha < 1.0 - 1.0 / 255.0)
+              if (render_pass == fastuidraw_stroke_aa_pass1 && alpha < 1.0 - 1.0 / 255.0)
                 {
                   alpha = 0.0;
                 }
             }
           #endif
+
+           if (render_pass == fastuidraw_stroke_non_aa)
+             {
+               if (alpha < 1.0 - 1.0 / 255.0)
+                 {
+                   FASTUIDRAW_DISCARD;
+                 }
+               else
+                 {
+                   alpha = 1.0;
+                 }
+             }
         }
     }
   #endif
@@ -130,14 +142,33 @@ fastuidraw_gl_frag_main(in uint sub_shader,
   /* A negtive arc_radius indicates that it is a segment */
   if (fastuidraw_arc_stroking_arc_radius > -0.5)
     {
-      alpha *= max(0.0, q / d);
+      if (render_pass != fastuidraw_stroke_non_aa)
+        {
+          alpha *= max(0.0, q / d);
+        }
+      else
+        {
+          if (q < 0.0)
+            {
+              FASTUIDRAW_DISCARD;
+            }
+          alpha = 1.0;
+        }
+
     }
   else
     {
-      float dd;
-      q = 1.0;
-      dd = max(ql, qlw);
-      alpha *= ql / dd;
+      if (render_pass != fastuidraw_stroke_non_aa)
+        {
+          float dd;
+          q = 1.0;
+          dd = max(ql, qlw);
+          alpha *= ql / dd;
+        }
+      else
+        {
+          alpha = 1.0;
+        }
     }
 
   #ifdef FASTUIDRAW_STROKE_COVER_THEN_DRAW
