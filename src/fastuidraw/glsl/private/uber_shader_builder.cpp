@@ -278,8 +278,71 @@ namespace
                   return_type, uber_func_with_args,
                   shader_main, shader_args, shader_id);
     }
+  private:
+    static
+    void
+    stream_source(ShaderSource &dst, const std::string &prefix,
+                  const ShaderSource &shader);
   };
 
+}
+
+template<typename T>
+void
+UberShaderStreamer<T>::
+stream_source(ShaderSource &dst, const std::string &prefix,
+              const ShaderSource &shader)
+{
+  /* This terribly hack is because GLES specfication mandates
+   * for GLSL in GLES to not support token pasting (##) in the
+   * pre-processor. Many GLES drivers support it anyways, but
+   * Mesa does not. Sighs. So we emulate the token pasting
+   * for the FASTUIDRAW_LOCAL() macro.
+   */
+  using namespace fastuidraw;
+  std::string src, needle;
+  std::string::size_type pos, last_pos;
+  std::ostringstream ostr;
+
+  needle = "FASTUIDRAW_LOCAL";
+  src = shader.assembled_code(true);
+
+  /* HUNT for FASTUIDRAW_LOCAL(X) anywhere in the code and expand
+   * it. NOTE: this is NOT robust at all as it is not a real
+   * pre-processor, just a hack. It will fail if the macro
+   * invocation is spread across multiple lines or if the agument
+   * was a macro itself that needs to expanded by the pre-processor.
+   */
+  for (last_pos = 0, pos = src.find(needle); pos != std::string::npos; last_pos = pos + 1, pos = src.find(needle, pos + 1))
+    {
+      std::string::size_type open_pos, close_pos;
+
+      /* stream up to pos */
+      if (pos > last_pos)
+        {
+          ostr << src.substr(last_pos, pos - last_pos);
+        }
+
+      /* find the first open and close-parentesis pair after pos. */
+      open_pos = src.find('(', pos);
+      close_pos = src.find(')', pos);
+
+      if (open_pos != std::string::npos
+          && close_pos != std::string::npos
+          && open_pos < close_pos)
+        {
+          std::string tmp;
+          tmp = src.substr(open_pos + 1, close_pos - open_pos - 1);
+          // trim the string of white spaces.
+          tmp.erase(0, tmp.find_first_not_of(" \t"));
+          tmp.erase(tmp.find_last_not_of(" \t") + 1);
+          ostr << prefix << tmp;
+          pos = close_pos;
+        }
+    }
+  ostr << src.substr(last_pos);
+
+  dst.add_source(ostr.str().c_str(), ShaderSource::from_string);
 }
 
 template<typename T>
@@ -298,22 +361,20 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
   /* first stream all of the item_shaders with predefined macros. */
   for(const auto &sh : shaders)
     {
-      std::ostringstream start_comment;
+      std::ostringstream start_comment, str, prefix_ostr;
+      std::string prefix;
+
+      str << shader_main << sh->ID();
+      prefix_ostr << shader_main << "_local_" << sh->ID() << "_";
+      prefix = prefix_ostr.str();
       start_comment << "\n/////////////////////////////////////////\n"
                     << "// Start Shader #" << sh->ID() << "\n";
+
       dst.add_source(start_comment.str().c_str(), ShaderSource::from_string);
       pre_stream(dst, sh, datum);
-
-      std::ostringstream str, localalize_macro;
-      str << shader_main << sh->ID();
-      localalize_macro << shader_main << "_local_" << sh->ID() << "_##X";
-      dst
-        .add_macro("FASTUIDRAW_LOCAL(X)", localalize_macro.str().c_str())
-        .add_macro(shader_main.c_str(), str.str().c_str())
-        .add_source((sh.get()->*get_src)())
-        .remove_macro(shader_main.c_str())
-        .remove_macro("FASTUIDRAW_LOCAL");
-
+      dst.add_macro(shader_main.c_str(), str.str().c_str());
+      stream_source(dst, prefix, (sh.get()->*get_src)());
+      dst.remove_macro(shader_main.c_str());
       post_stream(dst, sh, datum);
     }
 
