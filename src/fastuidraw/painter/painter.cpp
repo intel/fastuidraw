@@ -1330,7 +1330,12 @@ compute_path_magnification_perspective(const fastuidraw::Path &path)
       return -1.0f;
     }
   ratio = area_pixel_coords / area_local_coords;
-  return fastuidraw::t_sqrt(ratio);
+
+  /* in the loop above, the pixel coordinates were NOT scaled
+   * by 0.5 (needed because the normalized coordinates are in
+   * range [-1.0, 1.0], so we scale the final ratio now.
+   */
+  return 0.5f * fastuidraw::t_sqrt(ratio);
 }
 
 float
