@@ -99,7 +99,7 @@ namespace fastuidraw
          * in GL, this can be accomplished by calling glBindBuffer()
          * with the binding target as GL_UNIFORM_BUFFER.
          */
-        constant_buffer = 1 << 7,
+        constant_buffers = 1 << 7,
 
         /*!
          * If this bit is up, indicates that a storage buffer
