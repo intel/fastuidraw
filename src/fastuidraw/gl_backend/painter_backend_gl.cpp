@@ -425,6 +425,12 @@ namespace
   class DrawEntry
   {
   public:
+    enum
+      {
+        set_program = 1,
+        set_blend_state = 2,
+      };
+
     DrawEntry(const fastuidraw::BlendMode &mode,
               PainterBackendGLPrivate *pr,
               unsigned int pz);
@@ -448,6 +454,7 @@ namespace
     GLenum
     convert_blend_func(enum fastuidraw::BlendMode::func_t v);
 
+    uint32_t m_flags;
     fastuidraw::BlendMode m_blend_mode;
     fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_action;
 
@@ -854,6 +861,7 @@ DrawEntry::
 DrawEntry(const fastuidraw::BlendMode &mode,
           PainterBackendGLPrivate *pr,
           unsigned int pz):
+  m_flags(set_program | set_blend_state),
   m_blend_mode(mode),
   m_private(pr),
   m_choice(pz)
@@ -862,6 +870,7 @@ DrawEntry(const fastuidraw::BlendMode &mode,
 
 DrawEntry::
 DrawEntry(const fastuidraw::BlendMode &mode):
+  m_flags(set_blend_state),
   m_blend_mode(mode),
   m_private(nullptr),
   m_choice(fastuidraw::gl::PainterBackendGL::number_program_types)
@@ -869,8 +878,10 @@ DrawEntry(const fastuidraw::BlendMode &mode):
 
 DrawEntry::
 DrawEntry(const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> &action):
+  m_flags(0u),
   m_action(action),
-  m_private(nullptr)
+  m_private(nullptr),
+  m_choice(fastuidraw::gl::PainterBackendGL::number_program_types)
 {}
 
 void
@@ -885,28 +896,33 @@ void
 DrawEntry::
 draw(void) const
 {
-  if (m_private)
-    {
-      m_private->m_programs[m_choice]->use_program();
-    }
-
   if (m_action)
     {
       m_action->execute();
     }
-  else if (m_blend_mode.blending_on())
+
+  if (m_flags & set_program)
     {
-      glEnable(GL_BLEND);
-      glBlendEquationSeparate(convert_blend_op(m_blend_mode.equation_rgb()),
-                              convert_blend_op(m_blend_mode.equation_alpha()));
-      glBlendFuncSeparate(convert_blend_func(m_blend_mode.func_src_rgb()),
-                          convert_blend_func(m_blend_mode.func_dst_rgb()),
-                          convert_blend_func(m_blend_mode.func_src_alpha()),
-                          convert_blend_func(m_blend_mode.func_dst_alpha()));
+      FASTUIDRAWassert(m_private);
+      m_private->m_programs[m_choice]->use_program();
     }
-  else
+
+  if (m_flags & set_blend_state)
     {
-      glDisable(GL_BLEND);
+      if (m_blend_mode.blending_on())
+        {
+          glEnable(GL_BLEND);
+          glBlendEquationSeparate(convert_blend_op(m_blend_mode.equation_rgb()),
+                                  convert_blend_op(m_blend_mode.equation_alpha()));
+          glBlendFuncSeparate(convert_blend_func(m_blend_mode.func_src_rgb()),
+                              convert_blend_func(m_blend_mode.func_dst_rgb()),
+                              convert_blend_func(m_blend_mode.func_src_alpha()),
+                              convert_blend_func(m_blend_mode.func_dst_alpha()));
+        }
+      else
+        {
+          glDisable(GL_BLEND);
+        }
     }
 
   if (m_counts.empty())
@@ -1113,7 +1129,7 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
   else
     {
       /* any other state changes means that we just need to add an
-       *  entry to the current draw entry.
+       * entry to the current draw entry.
        */
       add_entry(indices_written);
     }
@@ -2237,13 +2253,13 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
   vecN<GLenum, 2> draw_buffers(GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1);
   const Surface::Viewport &vwp(surface_gl->m_viewport);
   ivec2 dimensions(surface_gl->m_properties.dimensions());
-  PainterBackendGLSL::viewport(vwp);
 
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
 
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_GEQUAL);
   glDisable(GL_STENCIL_TEST);
+  PainterBackendGLSL::viewport(vwp);
   glViewport(vwp.m_origin.x(), vwp.m_origin.y(),
              vwp.m_dimensions.x(), vwp.m_dimensions.y());
 
@@ -2351,15 +2367,14 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
       prs[program_all]->use_program();
     }
 
-  /* Grab the buffer, map it, fill it and leave it bound. */
   GLuint ubo;
   unsigned int size_generics(ubo_size());
   unsigned int size_bytes(sizeof(generic_data) * size_generics);
   void *ubo_mapped;
 
+  /* Grabs and binds the buffer */
   ubo = d->m_pool->request_uniform_ubo(size_bytes, GL_UNIFORM_BUFFER);
   FASTUIDRAWassert(ubo != 0);
-  // request_uniform_ubo also binds the buffer for us
   ubo_mapped = glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
                                 GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
 
