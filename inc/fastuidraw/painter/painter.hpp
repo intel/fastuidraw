@@ -815,6 +815,17 @@ namespace fastuidraw
                  const reference_counted_ptr<PainterPacker::DataCallBack> &call_back = reference_counted_ptr<PainterPacker::DataCallBack>());
 
     /*!
+     * Queue an action that uses (or affects) the GPU. Through these actions,
+     * one can mix FastUIDraw::Painter with native API calls on a surface.
+     * However, adding an action induces a draw-break (and state restore)
+     * after each such action. Also, the action is not called until end()
+     * is called.
+     * \param action action to execute within a draw-stream.
+     */
+    void
+    queue_action(const reference_counted_ptr<const PainterDraw::Action> &action);
+
+    /*!
      * Returns a stat on how much data the Packer has
      * handled since the last call to begin().
      * \param st stat to query

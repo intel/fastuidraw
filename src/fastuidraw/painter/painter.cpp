@@ -1987,6 +1987,15 @@ draw_generic(const reference_counted_ptr<PainterItemShader> &shader, const Paint
 
 void
 fastuidraw::Painter::
+queue_action(const reference_counted_ptr<const PainterDraw::Action> &action)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  d->m_core->draw_break(action);
+}
+
+void
+fastuidraw::Painter::
 draw_convex_polygon(const PainterFillShader &shader,
                     const PainterData &draw, c_array<const vec2> pts,
                     const reference_counted_ptr<PainterPacker::DataCallBack> &call_back)
