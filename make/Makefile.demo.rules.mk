@@ -19,12 +19,14 @@ $(eval
 DEMO_$(2)_CFLAGS_$(1) = $$(DEMO_$(2)_CFLAGS) $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --cflags --incdir=inc)
 DEMO_$(2)_LIBS_$(1) = $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --libs --libdir=.)
 DEMO_$(2)_LIBS_STATIC_$(1) = $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --static --libs --libdir=.)
-ifeq ($(MINGW_BUILD),0)
+ifeq ($(BUILD_NEGL),1)
 DEMO_COMMON_LIBS += -lEGL -lwayland-egl
 DEMO_$(2)_LIBS_$(1) += $$(shell ./fastuidraw-config.nodir --negl --$(2) --libs --libdir=.)
 DEMO_$(2)_LIBS_STATIC_$(1) = $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --negl --static --libs --libdir=.)
 NEGL_$(2)_DEP_$(1) = $(NGL_EGL_HPP)
 NEGL_$(2)_LIB_DEP_$(1) = libNEGL_$(2).so
+else
+DEMO_$(2)_CFLAGS_$(1) += -DEGL_HELPER_DISABLED
 endif
 
 build/demo/$(2)/$(1)/%.resource_string.o: build/string_resources_cpp/%.resource_string.cpp fastuidraw-config.nodir

@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef _WIN32
- #define EGL_HELPER_DISABLED
-#endif
-
 #include <iostream>
 #include <SDL.h>
 #include <fastuidraw/util/util.hpp>
