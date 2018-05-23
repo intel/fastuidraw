@@ -417,6 +417,7 @@ namespace
     int m_number_clip_planes;
     GLenum m_clip_plane0;
     std::string m_gles_clip_plane_extension;
+    bool m_has_multi_draw_elements;
 
     GLuint m_linear_filter_sampler;
     fastuidraw::gl::PreLinkActionArray m_attribute_binder;
@@ -1076,11 +1077,6 @@ draw(PainterBackendGLPrivate *pr, const painter_vao &vao,
 
   FASTUIDRAWassert(m_counts.size() == m_indices.size());
 
-  /* TODO:
-   *  Get rid of this unholy mess of #ifdef's here and move
-   *  it to an internal private function that also has a tag
-   *  on what to call.
-   */
   #ifndef FASTUIDRAW_GL_USE_GLES
     {
       glMultiDrawElements(GL_TRIANGLES, &m_counts[0],
@@ -1089,7 +1085,7 @@ draw(PainterBackendGLPrivate *pr, const painter_vao &vao,
     }
   #else
     {
-      if (FASTUIDRAWglfunctionExists(glMultiDrawElementsEXT))
+      if (pr->m_has_multi_draw_elements)
         {
           glMultiDrawElementsEXT(GL_TRIANGLES, &m_counts[0],
                                  fastuidraw::gl::opengl_trait<fastuidraw::PainterIndex>::type,
@@ -1661,6 +1657,16 @@ configure_backend(void)
       #endif
     }
   FASTUIDRAWassert(m_params.use_hw_clip_planes() == m_p->configuration_glsl().use_hw_clip_planes());
+
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      m_has_multi_draw_elements = m_ctx_properties.has_extension("GL_EXT_multi_draw_arrays");
+    }
+  #else
+    {
+      m_has_multi_draw_elements = true;
+    }
+  #endif
 
   /* if have to use discard for clipping, then there is zero point to
    *  separate the discarding and non-discarding item shaders.
