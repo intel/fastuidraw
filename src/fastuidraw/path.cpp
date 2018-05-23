@@ -509,9 +509,9 @@ compute_circle(const fastuidraw::PathContour::interpolator_generic *h,
     }
   else
     {
-      float s, tL, tR, middle_angle, min_angle, max_angle;
-      vec2 cs, ce, cm;
-      const float two_pi(2.0f * float(M_PI));
+      float s, tL, tR;
+      vec2 cs, ce;
+      const float pi(M_PI), two_pi(2.0f * pi);
 
       s = dot(v1, p1 - p0) / det;
       m_center = p0 + s * n0;
@@ -523,46 +523,23 @@ compute_circle(const fastuidraw::PathContour::interpolator_generic *h,
 
       cs = m_start - m_center;
       ce = m_end - m_center;
-      cm = m_mid - m_center;
 
       m_angle.m_begin = cs.atan();
       m_angle.m_end = ce.atan();
-      middle_angle = cm.atan();
 
-      /* this mess is to gaurantee that the point cm
-       * is in the arc defined by the range m_angle.
+      /* Under linear tessellation the points from m_start to m_end
+       * would be approximated by a line segment. In that spirit,
+       * take the smaller arc always.
        */
-      min_angle = t_min(m_angle.m_begin, m_angle.m_end);
-      max_angle = t_max(m_angle.m_begin, m_angle.m_end);
-
-      if (middle_angle < min_angle || middle_angle > max_angle)
+      if (t_abs(m_angle.m_begin - m_angle.m_end) > pi)
         {
-          /* we want to flip which side of the circle we are taking,
-           * which means we want to increment max_angle or decrement
-           * min_angle so that the angle difference is still less
-           * than two_pi.
-           */
-          if (middle_angle < min_angle)
+          if (m_angle.m_begin < m_angle.m_end)
             {
-              if (t_abs(m_angle.m_begin - two_pi - m_angle.m_end) < two_pi)
-                {
-                  m_angle.m_begin -= two_pi;
-                }
-              else
-                {
-                  m_angle.m_end -= two_pi;
-                }
+              m_angle.m_begin += two_pi;
             }
           else
             {
-              if (t_abs(m_angle.m_begin + two_pi - m_angle.m_end) < two_pi)
-                {
-                  m_angle.m_begin += two_pi;
-                }
-              else
-                {
-                  m_angle.m_end += two_pi;
-                }
+              m_angle.m_end += two_pi;
             }
         }
     }

@@ -365,9 +365,8 @@ add_arc_segment(vec2 start, vec2 end,
   /* tessellate the segment so that each sub-segment is monotonic in both
    * x and y coordinates. We are relying very closely on the implementation
    * of Tessellator::arc_tessellation_worker() in Path.cpp where m_begin
-   * is ALWAYS computed by atan2 and m_end is from atan2 with optionally
-   * having 2PI added. Thus we know that -PI <= m_begin <= PI and
-   * -PI <= end <= 3 * PI
+   * is ALWAYS computed by atan2 and that it is possible that one of
+   * m_begin or m_end has 2 * PI added to it.
    */
   const float crit_angles[] =
     {
