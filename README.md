@@ -57,7 +57,8 @@ Building requirements
 Building
 ========
   "make targets" to see all build targets and the list of environmental
-  variables that control what is built and how.
+  variables that control what is built and how. On MS-Windows, the helper
+  library NEGL is NOT built by default and on other platforms it is.
 
 Installing
 ==========
