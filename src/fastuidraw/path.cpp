@@ -509,8 +509,9 @@ compute_circle(const fastuidraw::PathContour::interpolator_generic *h,
     }
   else
     {
-      float mid_angle, s, tL, tR;
+      float s, tL, tR, middle_angle, min_angle, max_angle;
       vec2 cs, ce, cm;
+      const float two_pi(2.0f * float(M_PI));
 
       s = dot(v1, p1 - p0) / det;
       m_center = p0 + s * n0;
@@ -526,25 +527,43 @@ compute_circle(const fastuidraw::PathContour::interpolator_generic *h,
 
       m_angle.m_begin = cs.atan();
       m_angle.m_end = ce.atan();
-      mid_angle = cm.atan();
+      middle_angle = cm.atan();
 
-      if ((mid_angle > m_angle.m_begin) != (m_angle.m_end > m_angle.m_begin))
+      /* this mess is to gaurantee that the point cm
+       * is in the arc defined by the range m_angle.
+       */
+      min_angle = t_min(m_angle.m_begin, m_angle.m_end);
+      max_angle = t_max(m_angle.m_begin, m_angle.m_end);
+
+      if (middle_angle < min_angle || middle_angle > max_angle)
         {
-          /* end_angle is on a different side of start_angle
-           * than mid_angle, we need to increment or decrement
-           * one of m_angle.m_begin/m_angle.m_end by 2 * PI.
+          /* we want to flip which side of the circle we are taking,
+           * which means we want to increment max_angle or decrement
+           * min_angle so that the angle difference is still less
+           * than two_pi.
            */
-          if (mid_angle > m_angle.m_begin)
+          if (middle_angle < min_angle)
             {
-              // thus m_end <= m_begin, but we want that m_end >= m_begin
-              m_angle.m_end += 2.0f * float(M_PI);
+              if (t_abs(m_angle.m_begin - two_pi - m_angle.m_end) < two_pi)
+                {
+                  m_angle.m_begin -= two_pi;
+                }
+              else
+                {
+                  m_angle.m_end -= two_pi;
+                }
             }
           else
             {
-              // thus m_end >= m_begin, but we want m_end <= m_begin
-              m_angle.m_end -= 2.0f * float(M_PI);
+              if (t_abs(m_angle.m_begin + two_pi - m_angle.m_end) < two_pi)
+                {
+                  m_angle.m_begin += two_pi;
+                }
+              else
+                {
+                  m_angle.m_end += two_pi;
+                }
             }
-          FASTUIDRAWassert((mid_angle > m_angle.m_begin) == (m_angle.m_end > m_angle.m_begin));
         }
     }
 }
@@ -1418,6 +1437,7 @@ tessellation(const fastuidraw::Path &path, float max_distance)
       TessellationParams params;
 
       params.allow_arcs(m_allow_arcs);
+      std::cout << "LOD(" << m_data.size() << ")\n";
       m_data.push_back(FASTUIDRAWnew TessellatedPath(path, params, &m_refiner));
     }
 
@@ -1460,6 +1480,7 @@ tessellation(const fastuidraw::Path &path, float max_distance)
 
           last_tess = ref->max_distance();
           m_refiner->refine_tessellation(current_max_distance, 1);
+          std::cout << "LOD(" << m_data.size() << ")\n";
           ref = m_refiner->tessellated_path();
 
           if (last_tess > ref->max_distance())
