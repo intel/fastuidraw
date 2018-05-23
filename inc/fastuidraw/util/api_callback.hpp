@@ -117,22 +117,31 @@ namespace fastuidraw
 
     /*!
      * Ctor.
+     * \param label label with which to identify the APICallbackSet,
+     *              string is copied.
      */
-    APICallbackSet(void);
+    explicit
+    APICallbackSet(c_string label);
 
     virtual
     ~APICallbackSet();
 
     /*!
+     * Return the label passed in the ctor.
+     */
+    c_string
+    label(void) const;
+
+    /*!
      * Sets the function that the system uses
-     * to fetch the function pointers for GL or GLES.
+     * to fetch the function pointers.
      * \param get_proc value to use, default is nullptr.
      */
     void
     get_proc_function(void* (*get_proc)(c_string));
 
     /*!
-     * Fetches a GL/GLES function using the function fetcher
+     * Fetches a function using the function fetcher
      * passed to get_proc_function().
      * \param function name of function to fetch
      */

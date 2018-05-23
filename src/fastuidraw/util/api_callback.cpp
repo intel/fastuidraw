@@ -1,6 +1,7 @@
 #include <list>
 #include <mutex>
 #include <functional>
+#include <iostream>
 #include <fastuidraw/util/api_callback.hpp>
 
 namespace
@@ -12,7 +13,8 @@ namespace
   class APICallbackSetPrivate:public fastuidraw::noncopyable
   {
   public:
-    APICallbackSetPrivate(void);
+    explicit
+    APICallbackSetPrivate(fastuidraw::c_string label);
 
     CallBackList::iterator
     insert(fastuidraw::APICallbackSet::CallBack *q);
@@ -35,16 +37,29 @@ namespace
     void*
     get_proc(fastuidraw::c_string function_name)
     {
-      void *return_value;
+      void *return_value(nullptr);
       m_mutex.lock();
-      return_value = m_get_proc ?
-        m_get_proc(function_name) :
-        nullptr;
+      if (m_get_proc)
+        {
+          return_value = m_get_proc(function_name);
+        }
+      else
+        {
+          std::cerr << m_label << ": get_proc function pointer not set when "
+                    << "fetching function \"" << function_name << "\"\n";
+        }
       m_mutex.unlock();
       return return_value;
     }
 
+    fastuidraw::c_string
+    label(void) const
+    {
+      return m_label.c_str();
+    }
+
   private:
+    std::string m_label;
     std::recursive_mutex m_mutex;
     bool m_in_callback_sequence;
 
@@ -72,7 +87,8 @@ namespace
 ///////////////////////////////////////
 // APICallbackSetPrivate methods
 APICallbackSetPrivate::
-APICallbackSetPrivate(void):
+APICallbackSetPrivate(fastuidraw::c_string label):
+  m_label(label ? label : ""),
   m_in_callback_sequence(false),
   m_get_proc(nullptr)
 {}
@@ -179,9 +195,9 @@ active(bool b)
 //////////////////////////////////////////////
 // fastuidraw::APICallbackSet methods
 fastuidraw::APICallbackSet::
-APICallbackSet(void)
+APICallbackSet(c_string label)
 {
-  m_d = FASTUIDRAWnew APICallbackSetPrivate();
+  m_d = FASTUIDRAWnew APICallbackSetPrivate(label);
 }
 
 fastuidraw::APICallbackSet::
@@ -190,6 +206,15 @@ fastuidraw::APICallbackSet::
   APICallbackSetPrivate *d;
   d = static_cast<APICallbackSetPrivate*>(m_d);
   FASTUIDRAWdelete(d);
+}
+
+fastuidraw::c_string
+fastuidraw::APICallbackSet::
+label(void) const
+{
+  APICallbackSetPrivate *d;
+  d = static_cast<APICallbackSetPrivate*>(m_d);
+  return d->label();
 }
 
 void

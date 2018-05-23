@@ -62,7 +62,12 @@ namespace
   fastuidraw::APICallbackSet&
   ngl(void)
   {
-    static fastuidraw::APICallbackSet R;
+    #ifdef FASTUIDRAW_GL_USE_GLES
+    static fastuidraw::APICallbackSet R("libNGLES");
+    #else
+    static fastuidraw::APICallbackSet R("libNGL");
+    #endif
+
     return R;
   }
 }
@@ -92,7 +97,7 @@ void
 fastuidraw::gl_binding::
 on_load_function_error(c_string fname)
 {
-  std::cerr << "Unable to load function: \"" << fname << "\"\n";
+  std::cerr << ngl().label() << ": Unable to load function: \"" << fname << "\"\n";
 }
 
 void
@@ -102,7 +107,7 @@ call_unloadable_function(c_string fname)
   /* Should we just assume the loggers will
    * emit?
    */
-  std::cerr << "Call to unloadable function: \"" << fname << "\"\n";
+  std::cerr << ngl().label() << ": Call to unloadable function: \"" << fname << "\"\n";
   ngl().call_unloadable_function(fname);
 }
 
