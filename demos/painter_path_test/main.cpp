@@ -552,7 +552,7 @@ painter_stroke_test(void):
   m_draw_line_blue(0.0f, "draw_line_blue", "blue component when showing line-rasterization", *this),
   m_draw_line_alpha(0.4f, "draw_line_alpha", "alpha component when showing line-rasterization", *this),
   m_selected_path(0),
-  m_join_style(PainterEnums::miter_clip_joins),
+  m_join_style(PainterEnums::rounded_joins),
   m_cap_style(PainterEnums::square_caps),
   m_close_contour(true),
   m_dash(0),
