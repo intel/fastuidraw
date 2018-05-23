@@ -61,7 +61,7 @@ namespace
 
   enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t
   compute_provide_auxiliary_buffer(enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t in_value,
-                                  const fastuidraw::gl::ContextProperties &ctx)
+                                   const fastuidraw::gl::ContextProperties &ctx)
   {
     using namespace fastuidraw;
     using namespace fastuidraw::glsl;
@@ -69,6 +69,24 @@ namespace
     if (in_value == PainterBackendGLSL::no_auxiliary_buffer)
       {
         return in_value;
+      }
+
+    /* If asking for auxiliary_buffer_framebuffer_fetch and have
+     * the extension, immediately give the return value, otherwise
+     * fall back to interlock. Note that we do NOT fallback
+     * from interlock to framebuffer fetch because framebuffer-fetch
+     * makes MSAA render targets become shaded per-sample.
+     */
+    if (in_value == PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch)
+      {
+        if (ctx.has_extension("GL_EXT_shader_framebuffer_fetch"))
+          {
+            return in_value;
+          }
+        else
+          {
+            in_value = PainterBackendGLSL::auxiliary_buffer_interlock;
+          }
       }
 
     #ifdef FASTUIDRAW_GL_USE_GLES
@@ -81,12 +99,6 @@ namespace
         if (in_value == PainterBackendGLSL::auxiliary_buffer_atomic)
           {
             return in_value;
-          }
-
-        if (ctx.has_extension("GL_EXT_shader_framebuffer_fetch")
-           && in_value == PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch)
-          {
-            return PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch;
           }
 
         if (ctx.has_extension("GL_NV_fragment_shader_interlock"))
@@ -110,24 +122,6 @@ namespace
         if (in_value == PainterBackendGLSL::auxiliary_buffer_atomic)
           {
             return in_value;
-          }
-
-        /*
-         * if asking for framebuffer_fetch, but do not have it,
-         * then fall back to auxiliary_buffer_interlock; we only
-         * give framebuffer_fetch if it is asked for because it
-         * is not compatible with MSAA rendering.
-         */
-        if (ctx.has_extension("GL_EXT_shader_framebuffer_fetch"))
-          {
-            if (in_value == PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch)
-              {
-                return PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch;
-              }
-            else
-              {
-                in_value = PainterBackendGLSL::auxiliary_buffer_interlock;
-              }
           }
 
         have_interlock = ctx.has_extension("GL_INTEL_fragment_shader_ordering");
@@ -218,13 +212,13 @@ namespace
       }
 
     if (in_value == fastuidraw::PainterBlendShader::framebuffer_fetch
-       && !have_framebuffer_fetch)
+        && !have_framebuffer_fetch)
       {
         in_value = fastuidraw::PainterBlendShader::dual_src;
       }
 
     if (in_value == fastuidraw::PainterBlendShader::dual_src
-       && !have_dual_src_blending)
+        && !have_dual_src_blending)
       {
         in_value = fastuidraw::PainterBlendShader::single_src;
       }
@@ -1514,8 +1508,22 @@ PainterBackendGLPrivate::
 compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params)
 {
   using namespace fastuidraw;
+  enum glsl::PainterBackendGLSL::auxiliary_buffer_t aux_type;
   glsl::PainterBackendGLSL::ConfigurationGLSL return_value;
   gl::ContextProperties ctx;
+
+  aux_type = params.provide_auxiliary_image_buffer();
+  aux_type = compute_provide_auxiliary_buffer(aux_type, ctx);
+  if (aux_type != glsl::PainterBackendGLSL::no_auxiliary_buffer)
+    {
+      return_value
+        .default_stroke_shader_aa_type(params.default_stroke_shader_aa_type());
+    }
+  else
+    {
+      return_value
+        .default_stroke_shader_aa_type(PainterStrokeShader::draws_solid_then_fuzz);
+    }
 
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
@@ -1524,47 +1532,21 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
         && (ctx.has_extension("GL_APPLE_clip_distance") || ctx.has_extension("GL_EXT_clip_cull_distance"));
 
       return_value.use_hw_clip_planes(use_hw_clip_planes);
-
-      if (ctx.version() >= ivec2(3, 1))
-        {
-          return_value
-            .default_stroke_shader_aa_type(params.default_stroke_shader_aa_type());
-        }
-      else
-        {
-          return_value
-            .default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz);
-        }
     }
   #else
     {
       return_value.use_hw_clip_planes(params.use_hw_clip_planes());
-      if (ctx.version() >= ivec2(4, 2)
-          || ctx.has_extension("GL_ARB_shader_image_load_store"))
-        {
-          return_value
-            .default_stroke_shader_aa_type(params.default_stroke_shader_aa_type());
-        }
-      else
-        {
-          return_value
-            .default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz);
-        }
     }
   #endif
 
-  if (return_value.default_stroke_shader_aa_type() == fastuidraw::PainterStrokeShader::cover_then_draw)
+  if (return_value.default_stroke_shader_aa_type() == PainterStrokeShader::cover_then_draw
+      && aux_type == glsl::PainterBackendGLSL::auxiliary_buffer_atomic)
     {
-      if (!ctx.has_extension("GL_ARB_fragment_shader_interlock")
-          && !ctx.has_extension("GL_INTEL_fragment_shader_ordering")
-          && !ctx.has_extension("GL_NV_fragment_shader_interlock"))
-        {
-          fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> q;
-          q = FASTUIDRAWnew ImageBarrier();
-          return_value
-            .default_stroke_shader_aa_pass1_action(q)
-            .default_stroke_shader_aa_pass2_action(q);
-        }
+      fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> q;
+      q = FASTUIDRAWnew ImageBarrier();
+      return_value
+        .default_stroke_shader_aa_pass1_action(q)
+        .default_stroke_shader_aa_pass2_action(q);
     }
 
   return return_value;
