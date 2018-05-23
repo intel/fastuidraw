@@ -31,7 +31,7 @@ namespace
   fastuidraw::APICallbackSet&
   ngl(void)
   {
-    static fastuidraw::APICallbackSet R;
+    static fastuidraw::APICallbackSet R("libNEGL");
     return R;
   }
 
