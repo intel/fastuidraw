@@ -111,7 +111,11 @@ EGLAPI{space}+{CEGLEGLTYPE}{space}*+EGLAPIENTRY{space}+egl[^\n]*\n {
 }
 
 FUNCTIONPOINTERMODE {
-  openGL_function_info::use_function_pointer_mode()=use_function_pointer;
+  openGL_function_info::use_function_pointer_mode()=use_function_pointer_type_declared;
+}
+
+FUNCTIONPOINTERMODE_PTR_TYPE_NOTDECLARED {
+  openGL_function_info::use_function_pointer_mode()=use_function_pointer_type_undeclared;
 }
 
 NOFUNCTIONPOINTERMODE_PTR_TYPE_DECLARED {
