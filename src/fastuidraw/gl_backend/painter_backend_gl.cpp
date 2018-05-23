@@ -354,6 +354,18 @@ namespace
     }
   };
 
+  class ImageBarrierByRegion:public fastuidraw::PainterDraw::Action
+  {
+  public:
+    virtual
+    fastuidraw::gpu_dirty_state
+    execute(void) const
+    {
+      glMemoryBarrierByRegion(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+      return fastuidraw::gpu_dirty_state();
+    }
+  };
+
   class SurfaceGLPrivate;
   class PainterBackendGLPrivate
   {
@@ -1542,8 +1554,28 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
   if (return_value.default_stroke_shader_aa_type() == PainterStrokeShader::cover_then_draw
       && aux_type == glsl::PainterBackendGLSL::auxiliary_buffer_atomic)
     {
+      bool use_by_region;
       fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> q;
-      q = FASTUIDRAWnew ImageBarrier();
+
+      #ifdef FASTUIDRAW_GL_USE_GLES
+        {
+          use_by_region = true;
+        }
+      #else
+        {
+          use_by_region = ctx.version() >= ivec2(4, 5)
+            || ctx.has_extension("GL_ARB_ES3_1_compatibility");
+        }
+      #endif
+
+      if (use_by_region)
+        {
+          q = FASTUIDRAWnew ImageBarrierByRegion();
+        }
+      else
+        {
+          q = FASTUIDRAWnew ImageBarrier();
+        }
       return_value
         .default_stroke_shader_aa_pass1_action(q)
         .default_stroke_shader_aa_pass2_action(q);

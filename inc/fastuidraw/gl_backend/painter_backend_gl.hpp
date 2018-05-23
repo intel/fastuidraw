@@ -411,7 +411,7 @@ namespace fastuidraw
          * If true, provide an image2D (of type r8) uniform to
          * which to write coverage value for multi-pass shaders
          * (in particular shader based ant-aliased stroking).
-         * Default value is false.
+         * Default value is \ref no_auxiliary_buffer.
          */
         enum auxiliary_buffer_t
         provide_auxiliary_image_buffer(void) const;
@@ -419,7 +419,6 @@ namespace fastuidraw
         /*!
          * Set the value returned by
          * provide_auxiliary_image_buffer(void) const.
-         * Default value is .
          */
         ConfigurationGL&
         provide_auxiliary_image_buffer(enum auxiliary_buffer_t);
