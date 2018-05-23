@@ -2057,7 +2057,10 @@ build_line_bevel(bool is_inner_bevel,
     }
 
   vert_offset += 3;
-  --depth;
+  if (is_inner_bevel)
+    {
+      --depth;
+    }
 }
 
 void
