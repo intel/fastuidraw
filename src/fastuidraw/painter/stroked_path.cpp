@@ -238,7 +238,7 @@ namespace
 
     enum
       {
-        splitting_threshhold = 20,
+        splitting_threshhold = 50,
         max_recursion_depth = 10
       };
 
@@ -1181,6 +1181,7 @@ choose_splitting_coordinate(const fastuidraw::BoundingBox<float> &start_box,
         }
     }
 
+  /* choose the coordiante that splits the smallest number of edges */
   int canidate;
   canidate = (split_counters[0] < split_counters[1]) ? 0 : 1;
 
