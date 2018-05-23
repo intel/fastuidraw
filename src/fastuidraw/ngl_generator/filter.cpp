@@ -51,7 +51,7 @@ function_pointer_mode(const std::string &filename)
     }
   else if (filename.find("egl.h") != std::string::npos)
     {
-      return "NOFUNCTIONPOINTERMODE_PTR_TYPE_NOTDECLARED";
+      return "FUNCTIONPOINTERMODE_PTR_TYPE_NOTDECLARED";
     }
   else
     {

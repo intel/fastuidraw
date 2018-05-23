@@ -68,7 +68,8 @@ using namespace std;
 
 enum use_function_pointer_mode_t
   {
-    use_function_pointer,
+    use_function_pointer_type_declared,
+    use_function_pointer_type_undeclared,
     dont_use_function_pointer_type_declared,
     dont_use_function_pointer_type_undeclared,
   };

@@ -88,7 +88,7 @@ class GlobalElements
 public:
   GlobalElements(void):
     m_numberFunctions(0),
-    m_use_function_pointer_mode(use_function_pointer)
+    m_use_function_pointer_mode(use_function_pointer_type_declared)
   {}
 
   list<openGL_function_info*> m_openGL_functionList;
@@ -453,7 +453,8 @@ output_to_header(ostream &headerFile)
       return;
     }
 
-  if (m_use_function_pointer == dont_use_function_pointer_type_undeclared)
+  if (m_use_function_pointer == dont_use_function_pointer_type_undeclared
+      || m_use_function_pointer == use_function_pointer_type_undeclared)
     {
       headerFile << "typedef " << m_returnType << "("
                  << m_APIsuffix_type << " *" << function_pointer_type()
@@ -463,7 +464,8 @@ output_to_header(ostream &headerFile)
   headerFile << "extern " << function_pointer_type() << " "
              << function_pointer_name() << ";\n";
 
-  if (m_use_function_pointer == use_function_pointer)
+  if (m_use_function_pointer == use_function_pointer_type_declared
+      || m_use_function_pointer == use_function_pointer_type_undeclared)
     {
       headerFile << "int " << m_existsFunctionName << "(void);\n"
                  << function_pointer_type() << " " << m_getFunctionName << "(void);\n";
@@ -534,14 +536,18 @@ output_to_source(ostream &sourceFile)
       return;
     }
 
-  if (m_use_function_pointer == dont_use_function_pointer_type_undeclared)
+  sourceFile << "// m_use_function_pointer = " << m_use_function_pointer << "\n";
+
+  if (m_use_function_pointer == dont_use_function_pointer_type_undeclared
+      || m_use_function_pointer == use_function_pointer_type_undeclared)
     {
       sourceFile << "typedef " << m_returnType << "("
                  << m_APIsuffix_type << " *" << function_pointer_type()
                  << ")(" << full_arg_list_with_names() << ");\n";
     }
 
-  if (m_use_function_pointer == use_function_pointer)
+  if (m_use_function_pointer == use_function_pointer_type_declared
+      || m_use_function_pointer == use_function_pointer_type_undeclared)
     {
       //declare prototypes:
       sourceFile << "int " << m_existsFunctionName << "(void);\n";
@@ -812,7 +818,8 @@ SourceEnd(ostream &sourceFile, const list<string> &fileNames)
   for(map<string,openGL_function_info*>::iterator i=GlobalElements::get().m_lookUp.begin();
       i!=GlobalElements::get().m_lookUp.end(); ++i)
     {
-      if (i->second->m_use_function_pointer == use_function_pointer)
+      if (i->second->m_use_function_pointer == use_function_pointer_type_declared
+          || i->second->m_use_function_pointer == use_function_pointer_type_undeclared)
         {
           sourceFile << i->second->function_pointer_name() << "=("
                      << i->second->function_pointer_type() << ")"
