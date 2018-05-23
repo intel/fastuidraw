@@ -1437,7 +1437,6 @@ tessellation(const fastuidraw::Path &path, float max_distance)
       TessellationParams params;
 
       params.allow_arcs(m_allow_arcs);
-      std::cout << "LOD(" << m_data.size() << ")\n";
       m_data.push_back(FASTUIDRAWnew TessellatedPath(path, params, &m_refiner));
     }
 
@@ -1480,7 +1479,6 @@ tessellation(const fastuidraw::Path &path, float max_distance)
 
           last_tess = ref->max_distance();
           m_refiner->refine_tessellation(current_max_distance, 1);
-          std::cout << "LOD(" << m_data.size() << ")\n";
           ref = m_refiner->tessellated_path();
 
           if (last_tess > ref->max_distance())
