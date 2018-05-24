@@ -653,6 +653,20 @@ namespace fastuidraw
       const ConfigurationGL&
       configuration_gl(void) const;
 
+      /*!
+       * Returns the binding points used by the PainterBackendGL.
+       * If one queues actions (via Painter::queue_action()) and
+       * if that action does not change any of the bindings listed
+       * by the return value, then the corresponding bit of
+       * the PainterDraw::Action::execute() method does not need
+       * to have the corresponding element of \ref gpu_dirty_state
+       * (namely gpu_dirty_state::textures, gpu_dirty_state::images,
+       * gpu_diry_state::constant_buffers, gpu_dirty_state::storage_buffers)
+       * up.
+       */
+      const BindingPoints&
+      binding_points(void) const;
+
     protected:
 
       virtual
