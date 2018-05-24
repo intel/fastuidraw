@@ -345,13 +345,6 @@ namespace fastuidraw
     enum image_offset_t
       {
         /*!
-         * Location of image (Image::master_index_tile()) in
-         * the image atlas is encoded in a single uint32. The bits
-         * are packed as according to \ref image_atlas_location_encoding
-         */
-        image_atlas_location_xyz_offset,
-
-        /*!
          * Width and height of the image (Image::dimensions())
          * encoded in a single uint32. The bits are packed as according
          * to \ref image_size_encoding
@@ -366,6 +359,13 @@ namespace fastuidraw
          * image_size_encoding
          */
         image_start_xy_offset,
+
+        /*!
+         * Location of image (Image::master_index_tile()) in
+         * the image atlas is encoded in a single uint32. The bits
+         * are packed as according to \ref image_atlas_location_encoding
+         */
+        image_atlas_location_xyz_offset,
 
         /*!
          * holds the amount of slack in the image (see Image::slack())
@@ -816,7 +816,7 @@ namespace fastuidraw
     static
     bool
     filter_suitable_for_image(const reference_counted_ptr<const Image> &im,
-                  enum image_filter f);
+                              enum image_filter f);
 
     /*!
      * Returns the highest quality filter with which
