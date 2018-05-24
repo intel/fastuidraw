@@ -1,31 +1,40 @@
 
 struct fastuidraw_brush_image_data
 {
-  // location of mater index tile for the image
-  vec3 master_index_tile_atlas_location_xyz;
-
   // size of the (sub)image in texels
   uvec2 image_size;
 
-  // slack in tiles, i.e. how many texel repeated
-  // on each size of tile to facilitate filtering
-  uint slack;
-
-  // number of index tile lookups
-  uint number_index_lookups;
-
-  // conversion factor from master index tile
-  // coordinates to image texel coordinates
-  // The formulat is given as:
-  //  image_size_over_master_size = pow(IndexTileSize, number_index_lookups - 1) * C
-  // where
-  //   C = FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE - 2 * slack
-  // and FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE is the color
-  // tile size.
-  uint image_size_over_master_size;
-
   // location within image of start of sub-image
   uvec2 image_start;
+
+  //////////////////////////////////////////////////////////
+  // only valid for images of type fastuidraw_image_on_atlas
+  //
+  /* slack in tiles, i.e. how many texel repeated
+   * on each size of tile to facilitate filtering
+   */
+  uint slack;
+
+  /* location of mater index tile for the image */
+  vec3 master_index_tile_atlas_location_xyz;
+
+  /* number of index tile lookups */
+  uint number_index_lookups;
+
+  /* conversion factor from master index tile
+   * coordinates to image texel coordinates
+   * The formulat is given as:
+   *  image_size_over_master_size = pow(IndexTileSize, number_index_lookups - 1) * C
+   * where
+   *  C = FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE - 2 * slack
+   * and FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE is the color
+   * tile size.
+   */
+  uint image_size_over_master_size;
+
+  ////////////////////////////////////////////
+  // only valid for images taken from a handle
+  uint bindless_handle_low, bindless_handle_hi;
 };
 
 
