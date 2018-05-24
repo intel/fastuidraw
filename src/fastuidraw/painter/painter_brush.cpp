@@ -94,11 +94,6 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
       uint32_t slack(m_data.m_image->slack());
       uint32_t lookups(m_data.m_image->number_index_lookups());
 
-      sub_dest[image_atlas_location_xyz_offset].u =
-        pack_bits(image_atlas_location_x_bit0, image_atlas_location_x_num_bits, loc.x())
-        | pack_bits(image_atlas_location_y_bit0, image_atlas_location_y_num_bits, loc.y())
-        | pack_bits(image_atlas_location_z_bit0, image_atlas_location_z_num_bits, loc.z());
-
       sub_dest[image_size_xy_offset].u =
         pack_bits(image_size_x_bit0, image_size_x_num_bits, m_data.m_image_size.x())
         | pack_bits(image_size_y_bit0, image_size_y_num_bits, m_data.m_image_size.y());
@@ -107,9 +102,29 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
         pack_bits(image_size_x_bit0, image_size_x_num_bits, m_data.m_image_start.x())
         | pack_bits(image_size_y_bit0, image_size_y_num_bits, m_data.m_image_start.y());
 
-      sub_dest[image_slack_number_lookups_offset].u =
-        pack_bits(image_number_index_lookups_bit0, image_number_index_lookups_num_bits, lookups)
-        | pack_bits(image_slack_bit0, image_slack_num_bits, slack);
+      if (m_data.m_image->type() == Image::on_atlas)
+        {
+          sub_dest[image_atlas_location_xyz_offset].u =
+            pack_bits(image_atlas_location_x_bit0, image_atlas_location_x_num_bits, loc.x())
+            | pack_bits(image_atlas_location_y_bit0, image_atlas_location_y_num_bits, loc.y())
+            | pack_bits(image_atlas_location_z_bit0, image_atlas_location_z_num_bits, loc.z());
+
+          sub_dest[image_slack_number_lookups_offset].u =
+            pack_bits(image_number_index_lookups_bit0, image_number_index_lookups_num_bits, lookups)
+            | pack_bits(image_slack_bit0, image_slack_num_bits, slack);
+        }
+      else
+        {
+          uint64_t v, hi, low;
+
+          v = m_data.m_image->bindless_handle();
+          
+          hi = uint64_unpack_bits(32, 32, v);
+          low = uint64_unpack_bits(0, 32, v);
+
+          sub_dest[image_bindless_handle_hi_offset].u = hi;
+          sub_dest[image_bindless_handle_low_offset].u = low;
+        }
     }
 
   if (pshader & gradient_mask)
@@ -194,9 +209,10 @@ fastuidraw::PainterBrush::
 sub_image(const reference_counted_ptr<const Image> &im,
           uvec2 xy, uvec2 wh, enum image_filter f)
 {
-  uint32_t filter_bits;
+  uint32_t filter_bits, type_bits;
 
-  filter_bits = im ? f : 0;
+  filter_bits = (im) ? f : 0;
+  type_bits = (im) ? uint32_t(im->type()) : uint32_t(0);
 
   m_data.m_image = im;
   m_data.m_image_start = xy;
@@ -204,6 +220,9 @@ sub_image(const reference_counted_ptr<const Image> &im,
 
   m_data.m_shader_raw &= ~image_mask;
   m_data.m_shader_raw |= (filter_bits << image_filter_bit0);
+
+  m_data.m_shader_raw &= ~image_type_mask;
+  m_data.m_shader_raw |= (type_bits << image_type_bit0);
 
   return *this;
 }

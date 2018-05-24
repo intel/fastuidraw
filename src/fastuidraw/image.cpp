@@ -295,6 +295,18 @@ namespace
                  fastuidraw::c_array<const fastuidraw::u8vec4> image_data,
                  unsigned int pslack);
 
+    ImagePrivate(int w, int h, fastuidraw::Image::type_t t, uint64_t handle):
+      m_dimensions(w, h),
+      m_type(t),
+      m_slack(~0u),
+      m_num_color_tiles(-1, -1),
+      m_master_index_tile(-1, -1, -1),
+      m_master_index_tile_dims(-1.0f, -1.0f),
+      m_number_index_lookups(0),
+      m_dimensions_index_divisor(-1.0f),
+      m_bindless_handle(handle)
+    {}
+
     ~ImagePrivate();
 
     void
@@ -311,17 +323,22 @@ namespace
 
     fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> m_atlas;
     fastuidraw::ivec2 m_dimensions;
+
+    enum fastuidraw::Image::type_t m_type;
+
+    /* Data for when the image has type on_atlas */
     unsigned int m_slack;
     fastuidraw::ivec2 m_num_color_tiles;
-
     std::map<fastuidraw::u8vec4, fastuidraw::ivec3> m_repeated_tiles;
     std::vector<per_color_tile> m_color_tiles;
     std::list<std::vector<fastuidraw::ivec3> > m_index_tiles;
-
     fastuidraw::ivec3 m_master_index_tile;
     fastuidraw::vec2 m_master_index_tile_dims;
     unsigned int m_number_index_lookups;
     float m_dimensions_index_divisor;
+
+    /* data for when image has different type than on_atlas */
+    uint64_t m_bindless_handle;
   };
 }
 
@@ -334,7 +351,9 @@ ImagePrivate(fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> patlas,
              unsigned int pslack):
   m_atlas(patlas),
   m_dimensions(w,h),
-  m_slack(pslack)
+  m_type(fastuidraw::Image::on_atlas),
+  m_slack(pslack),
+  m_bindless_handle(-1)
 {
   FASTUIDRAWassert(m_dimensions.x() > 0);
   FASTUIDRAWassert(m_dimensions.y() > 0);
@@ -347,28 +366,24 @@ ImagePrivate(fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> patlas,
 ImagePrivate::
 ~ImagePrivate()
 {
-  for(std::vector<per_color_tile>::const_iterator iter = m_color_tiles.begin(),
-        end = m_color_tiles.end(); iter != end; ++iter)
+  for(const per_color_tile &C : m_color_tiles)
     {
-      if (iter->m_non_repeat_color)
+      if (C.m_non_repeat_color)
         {
-          m_atlas->delete_color_tile(iter->m_tile);
+          m_atlas->delete_color_tile(C.m_tile);
         }
     }
 
-  for(std::map<fastuidraw::u8vec4, fastuidraw::ivec3>::const_iterator iter = m_repeated_tiles.begin(),
-        end = m_repeated_tiles.end(); iter != end; ++iter)
+  for(const auto &C : m_repeated_tiles)
     {
-      m_atlas->delete_color_tile(iter->second);
+      m_atlas->delete_color_tile(C.second);
     }
 
-  for(std::list<std::vector<fastuidraw::ivec3> >::const_iterator viter = m_index_tiles.begin(),
-        vend = m_index_tiles.end(); viter != vend; ++viter)
+  for(const auto &tile_array: m_index_tiles)
     {
-      for(std::vector<fastuidraw::ivec3>::const_iterator iter = viter->begin(),
-            end = viter->end(); iter != end; ++iter)
+      for(const fastuidraw::ivec3 &index_tile : tile_array)
         {
-          m_atlas->delete_index_tile(*iter);
+          m_atlas->delete_index_tile(index_tile);
         }
     }
 }
@@ -1076,6 +1091,24 @@ create(fastuidraw::reference_counted_ptr<ImageAtlas> atlas, int w, int h,
   return FASTUIDRAWnew Image(atlas, w, h, image_data, pslack);
 }
 
+fastuidraw::reference_counted_ptr<fastuidraw::Image>
+fastuidraw::Image::
+create_bindless(int w, int h, enum type_t type, uint64_t handle)
+{
+  Image *p(nullptr);
+  if (type != on_atlas)
+    {
+      p = FASTUIDRAWnew Image(w, h, type, handle);
+    }
+  return p;
+}
+
+fastuidraw::Image::
+Image(int w, int h, enum type_t type, uint64_t handle)
+{
+  m_d = FASTUIDRAWnew ImagePrivate(w, h, type, handle);
+}
+
 fastuidraw::Image::
 Image(fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> patlas,
       int w, int h,
@@ -1147,6 +1180,24 @@ dimensions_index_divisor(void) const
   ImagePrivate *d;
   d = static_cast<ImagePrivate*>(m_d);
   return d->m_dimensions_index_divisor;
+}
+
+enum fastuidraw::Image::type_t
+fastuidraw::Image::
+type(void) const
+{
+  ImagePrivate *d;
+  d = static_cast<ImagePrivate*>(m_d);
+  return d->m_type;
+}
+
+uint64_t
+fastuidraw::Image::
+bindless_handle(void) const
+{
+  ImagePrivate *d;
+  d = static_cast<ImagePrivate*>(m_d);
+  return d->m_bindless_handle;
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas>&
