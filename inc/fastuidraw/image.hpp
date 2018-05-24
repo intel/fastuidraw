@@ -442,9 +442,26 @@ class Image;
   {
   public:
     /*!
-     * Construct an image. If there is insufficient room on the atlas,
-     * returns a nullptr handle.
-     * \param atlas ImageAtlas atlas onto which to place the image
+     * Gives the image-type of an Image
+     */
+    enum type_t
+      {
+        /*!
+         * Indicates that the Image is on an ImageAtlas
+         */
+        on_atlas,
+
+        /*!
+         * Indicates that the Image is backed by a gfx API
+         * texture via a bindless interface.
+         */
+        bindless_texture2d
+      };
+
+    /*!
+     * Construct an \ref Image backed by an \ref ImageAtlas. If there is
+     * insufficient room on the atlas, returns a nullptr handle.
+     * \param atlas ImageAtlas atlas onto which to place the image.
      * \param w width of the image
      * \param h height of the image
      * \param image_data image data to which to initialize the image
@@ -457,17 +474,31 @@ class Image;
     create(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
            c_array<const u8vec4> image_data, unsigned int pslack);
 
+    /*!
+     * Create an \ref Image backed by a bindless texture.
+     * \param w width of the image
+     * \param h height of the image
+     * \param type the type of the bindless texture, must NOT have value
+     *             \ref on_atlas.
+     * \param handle the bindless handle value used by the Gfx API in
+     *               shaders to reference the texture.
+     */
+    static
+    reference_counted_ptr<Image>
+    create_bindless(int w, int h, enum type_t type, uint64_t handle);
+
     ~Image();
 
     /*!
-     * Returns the number of index look-ups
-     * to get to the image data.
+     * Returns the number of index look-ups to get to the image data.
+     *
+     * Only applies when type() returns \ref on_atlas.
      */
     unsigned int
     number_index_lookups(void) const;
 
     /*!
-     * Returns the dimensions of the image, i.e the width and height
+     * Returns the dimensions of the image, i.e the width and height.
      */
     ivec2
     dimensions(void) const;
@@ -475,6 +506,8 @@ class Image;
     /*!
      * Returns the slack of the image, i.e. how many texels ouside
      * of the image's sub-tiles from which one may sample.
+     *
+     * Only applies when type() returns \ref on_atlas.
      */
     unsigned int
     slack(void) const;
@@ -483,6 +516,8 @@ class Image;
      * Returns the "head" index tile as returned by
      * ImageAtlas::add_index_tile() or
      * ImageAtlas::add_index_tile_index_data().
+     *
+     * Only applies when type() returns \ref on_atlas.
      */
     ivec3
     master_index_tile(void) const;
@@ -492,6 +527,8 @@ class Image;
      * each dimension of the master index tile this Image lies.
      * If number_index_lookups() is 0, the returns the same value
      * as dimensions().
+     *
+     * Only applies when type() returns \ref on_atlas.
      */
     vec2
     master_index_tile_dims(void) const;
@@ -499,6 +536,8 @@ class Image;
     /*!
      * Returns the quotient of dimensions() divided
      * by master_index_tile_dims().
+     *
+     * Only applies when type() returns \ref on_atlas.
      */
     float
     dimensions_index_divisor(void) const;
@@ -509,9 +548,25 @@ class Image;
     const reference_counted_ptr<ImageAtlas>&
     atlas(void) const;
 
+    /*!
+     * Returns the bindless handle for the Image.
+     *
+     * Only applies when type() does NOT return \ref on_atlas.
+     */
+    uint64_t
+    bindless_handle(void) const;
+
+    /*!
+     * Returns the image type.
+     */
+    type_t
+    type(void) const;
+
   private:
     Image(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
           c_array<const u8vec4> image_data, unsigned int pslack);
+
+    Image(int w, int h, enum type_t type, uint64_t handle);
 
     void *m_d;
   };

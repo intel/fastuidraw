@@ -110,6 +110,13 @@ namespace fastuidraw
         image_filter_num_bits = 2,
 
         /*!
+         * Number of bits needed to encode the image type
+         * (when an image is present). The possible values
+         * are given by the enumeration \ref Image::type_t.
+         */
+        image_type_num_bits = 4,
+
+        /*!
          * first bit for if image is present on the brush and if so, what filter
          */
         image_filter_bit0 = 0,
@@ -143,6 +150,12 @@ namespace fastuidraw
          * Bit up is translation is present
          */
         transformation_matrix_bit,
+
+        /*!
+         * First bit to hold the type of image present if an image is present;
+         * the value is the enumeration in \ref Image::type_t
+         */
+        image_type_bit0,
       };
 
     /*!
@@ -154,46 +167,44 @@ namespace fastuidraw
     enum shader_masks
       {
         /*!
-         * bit mask for if image is used in brush,
-         * the value of shader() bit wise anded
-         * with \ref image_mask shifted right by
-         * \ref image_filter_bit0 gives what filter
-         * to use from the values of the enumeration
-         * of image_filter.
+         * mask generated from \ref image_filter_bit0 and \ref image_filter_num_bits
          */
         image_mask = FASTUIDRAW_MASK(image_filter_bit0, image_filter_num_bits),
 
         /*!
-         * bit for if gradient is used in brush
+         * mask generated from \ref gradient_bit
          */
         gradient_mask = FASTUIDRAW_MASK(gradient_bit, 1),
 
         /*!
-         * bit for if radial_gradient is used in brush
-         * (only up if gradient_mask is also up)
+         * mask generated from \ref radial_gradient_bit
          */
         radial_gradient_mask = FASTUIDRAW_MASK(radial_gradient_bit, 1),
 
         /*!
-         * bit for if repeat gradient is used in brush
-         * (only up if gradient_mask is also up)
+         * mask generated from \ref gradient_repeat_bit
          */
         gradient_repeat_mask = FASTUIDRAW_MASK(gradient_repeat_bit, 1),
 
         /*!
-         * bit for if repeat_window is used in brush
+         * mask generated from \ref repeat_window_bit
          */
         repeat_window_mask = FASTUIDRAW_MASK(repeat_window_bit, 1),
 
         /*!
-         * bit mask for if translation is used in brush
+         * mask generated from \ref transformation_translation_bit
          */
         transformation_translation_mask = FASTUIDRAW_MASK(transformation_translation_bit, 1),
 
         /*!
-         * bit mask for if matrix is used in brush
+         * mask generated from \ref transformation_matrix_bit
          */
         transformation_matrix_mask = FASTUIDRAW_MASK(transformation_matrix_bit, 1),
+
+        /*!
+         * mask generated from \ref image_type_bit0 and \ref image_type_num_bits
+         */
+        image_type_mask = FASTUIDRAW_MASK(image_type_bit0, image_type_num_bits),
       };
 
     /*!
@@ -361,18 +372,34 @@ namespace fastuidraw
         image_start_xy_offset,
 
         /*!
-         * Location of image (Image::master_index_tile()) in
-         * the image atlas is encoded in a single uint32. The bits
-         * are packed as according to \ref image_atlas_location_encoding
+         * Location of image (Image::master_index_tile()) in the image
+         * atlas is encoded in a single uint32. The bits are packed as
+         * according to \ref image_atlas_location_encoding. If the image
+         * is not of type Image::on_atlas, gives the high 32-bits of
+         * Image::handle().
          */
         image_atlas_location_xyz_offset,
 
         /*!
-         * holds the amount of slack in the image (see Image::slack())
+         * Alias for image_atlas_location_xyz_offset to be used
+         * when packing an image whose type is not Image::on_atlas.
+         */
+        image_bindless_handle_hi_offset = image_atlas_location_xyz_offset,
+
+        /*!
+         * Holds the amount of slack in the image (see Image::slack())
          * and the number of index looks ups (Image::number_index_lookups())
          * with bits packed as according to \ref image_slack_number_lookups_encoding.
+         * If the image is not of type Image::on_atlas, gives the low 32-bits
+         * of Image::handle().
          */
         image_slack_number_lookups_offset,
+
+        /*!
+         * Alias for image_slack_number_lookups_offset to be used
+         * when packing an image whose type is not Image::on_atlas.
+         */
+        image_bindless_handle_low_offset = image_slack_number_lookups_offset,
 
         /*!
          * Number of elements packed for image support
