@@ -107,7 +107,7 @@ namespace fastuidraw
          * in GL, this can be accomplished by calling glBindBuffer()
          * with the binding target as GL_SHADER_STORAGE_BUFFER.
          */
-        storage_buffer = 1 << 8,
+        storage_buffers = 1 << 8,
 
         /*!
          * If this bit is up, the depth or stencil test has been
