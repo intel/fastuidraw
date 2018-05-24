@@ -45,15 +45,15 @@ namespace fastuidraw
    * queried by number_glyphs(). If all glyphs are uploaded or
    * successfully loaded, then number_glyphs() returns the number
    * glyph in the glyph run. Data for glyphs is packed as follows:
-   *   - PainterAttribute::m_attrib0 .xy   -> xy-texel location in primary atlas (float)
-   *   - PainterAttribute::m_attrib0 .zw   -> xy-texel location in secondary atlas (float)
+   *   - PainterAttribute::m_attrib0 .xy -> xy-texel location in primary atlas (float)
+   *   - PainterAttribute::m_attrib0 .zw -> xy-texel location in secondary atlas (float)
    *   - PainterAttribute::m_attrib1 .xy -> position in item coordinates (float)
    *   - PainterAttribute::m_attrib1 .z  -> 0 (free)
    *   - PainterAttribute::m_attrib1 .w  -> 0 (free)
-   *   - PainterAttribute::m_attrib2 .x -> 0 (free)
-   *   - PainterAttribute::m_attrib2 .y -> glyph offset (uint)
-   *   - PainterAttribute::m_attrib2 .z -> layer in primary atlas (uint)
-   *   - PainterAttribute::m_attrib2 .w -> layer in secondary atlas (uint)
+   *   - PainterAttribute::m_attrib2 .x  -> 0 (free)
+   *   - PainterAttribute::m_attrib2 .y  -> glyph offset (uint)
+   *   - PainterAttribute::m_attrib2 .z  -> layer in primary atlas (float)
+   *   - PainterAttribute::m_attrib2 .w  -> layer in secondary atlas (float)
    */
   class PainterAttributeDataFillerGlyphs:public PainterAttributeDataFiller
   {
