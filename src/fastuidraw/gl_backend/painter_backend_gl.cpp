@@ -773,7 +773,7 @@ request_vao(void)
         {
         case fastuidraw::gl::PainterBackendGL::data_store_tbo:
           {
-            m_vaos[m_pool][m_current].m_data_bo = generate_bo(GL_TEXTURE_BUFFER, m_data_buffer_size);
+            m_vaos[m_pool][m_current].m_data_bo = generate_bo(GL_ARRAY_BUFFER, m_data_buffer_size);
             m_vaos[m_pool][m_current].m_data_store_binding_point = m_binding_points.data_store_buffer_tbo();
             generate_tbos(m_vaos[m_pool][m_current]);
           }
@@ -2560,7 +2560,7 @@ on_post_draw(void)
 
   if (d->m_tex_buffer_support != fastuidraw::gl::detail::tex_buffer_not_supported)
     {
-      glBindBuffer(GL_TEXTURE_BUFFER, 0);
+      // glBindBuffer(GL_TEXTURE_BUFFER, 0);
     }
 
   const glsl::PainterBackendGLSL::UberShaderParams &uber_params(d->m_uber_shader_builder_params);
