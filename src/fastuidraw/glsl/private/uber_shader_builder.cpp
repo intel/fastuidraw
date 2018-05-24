@@ -116,7 +116,7 @@ namespace
     unsigned int return_value;
 
     /* pack the data into vec4 types an duse macros
-     *  to do the rest.
+     * to do the rest.
      */
     return_value = cnt / 4;
     for(unsigned int i = 0; i < return_value; ++i, ++location)

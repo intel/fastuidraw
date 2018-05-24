@@ -244,8 +244,8 @@ dash_pattern(c_array<const DashPatternElement> f)
     }
 
   /* santize the dash pattern:
-   *    - starting draw length can be 0
-   *    - any other 0 lengths are to be joined
+   *   - starting draw length can be 0
+   *   - any other 0 lengths are to be joined
    */
   unsigned int current_write(0);
 
@@ -254,9 +254,9 @@ dash_pattern(c_array<const DashPatternElement> f)
   for(unsigned int i = 1, endi = f.size(); i < endi; ++i)
     {
       /* things to do:
-       *    - if d->m_dash_pattern[current_write].m_space_length is 0,
-       *      then we join it with the element we are on by adding the
-       *      draw lengths.
+       *   - if d->m_dash_pattern[current_write].m_space_length is 0,
+       *     then we join it with the element we are on by adding the
+       *     draw lengths.
        */
       if (d->m_dash_pattern[current_write].m_space_length <= 0.0f)
         {

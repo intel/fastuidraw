@@ -157,7 +157,7 @@ namespace
   };
 
   /* A SubEdgeCullingHierarchy represents a hierarchy choice of
-   *  what sub-edges land in each element of a hierarchy.
+   * what sub-edges land in each element of a hierarchy.
    */
   class SubEdgeCullingHierarchy:fastuidraw::noncopyable
   {
@@ -223,7 +223,7 @@ namespace
       }
 
       /* all data, with data so that data with closing
-       *  is only in the back
+       * is only in the back
        */
       std::vector<T> m_data;
 
@@ -358,12 +358,12 @@ namespace
   };
 
   /* Subset of a StrokedPath. Edges are to be placed into
-   *  the store as follows:
-   *    1. child0 edges
-   *    2. child1 edges
-   *    3. edges (i.e. from SubEdgeCullingHierarchy::m_sub_edges)
+   * the store as follows:
+   *   1. child0 edges
+   *   2. child1 edges
+   *   3. edges (i.e. from SubEdgeCullingHierarchy::m_sub_edges)
    *
-   *  with the invariant thats that
+   * with the invariant thats that
    */
   class StrokedPathSubset
   {
@@ -1271,8 +1271,8 @@ StrokedPathSubset::
 post_process(PostProcessVariables &variables, const CreationValues &constants)
 {
   /* We want the depth to go in the reverse order as the
-   *  draw order. The Draw order is child(0), child(1)
-   *  Thus, we first handle depth child(1) and then child(0).
+   * draw order. The Draw order is child(0), child(1)
+   * Thus, we first handle depth child(1) and then child(0).
    */
   m_non_closing_edges.m_depth_range.m_begin = variables.m_edge_depth;
   m_closing_edges.m_depth_range.m_begin = variables.m_closing_edge_depth;
@@ -1299,12 +1299,12 @@ post_process(PostProcessVariables &variables, const CreationValues &constants)
   m_closing_edges.m_depth_range.m_end = variables.m_closing_edge_depth;
 
   /* make the closing edge chunks start after the
-   *  non-closing edge chunks.
+   * non-closing edge chunks.
    */
   m_closing_edges.m_chunk += constants.m_non_closing_edge_chunk_cnt;
 
   /* make vertices and indices of closing edges appear
-   *  after those of non-closing edges
+   * after those of non-closing edges
    */
   m_closing_edges.m_vertex_data_range += constants.m_non_closing_edge_vertex_cnt;
   m_closing_edges.m_index_data_range += constants.m_non_closing_edge_index_cnt;
@@ -1319,8 +1319,8 @@ StrokedPathSubset(CreationValues &out_values, const SubEdgeCullingHierarchy *src
   m_bb(src->bounding_box())
 {
   /* Draw order is:
-   *    child(0)
-   *    child(1)
+   *   child(0)
+   *   child(1)
    */
   m_non_closing_edges.m_vertex_data_range.m_begin = out_values.m_non_closing_edge_vertex_cnt;
   m_non_closing_edges.m_index_data_range.m_begin = out_values.m_non_closing_edge_index_cnt;
@@ -1438,7 +1438,7 @@ compute_chunks(bool include_closing_edge,
       c.z() += pixels_additional_room * f;
 
       /* transform clip equations from clip coordinates to
-       *  local coordinates.
+       * local coordinates.
        */
       scratch.m_adjusted_clip_eqs[i] = c * clip_matrix_local;
     }
@@ -1646,7 +1646,7 @@ build_chunk(const EdgeRanges &edge,
   if (!edge.m_src.empty())
     {
       /* these elements are drawn AFTER the child elements,
-       *  therefor they need to have a smaller depth
+       * therefor they need to have a smaller depth
        */
       unsigned int d = edge.m_depth_range.m_end - 1;
       for(unsigned int k = 0,
@@ -1740,16 +1740,16 @@ build_line_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
   vecN<StrokedPoint, 6> pts;
 
   /* The quad is:
-   *  (p, n, delta,  1),
-   *  (p,-n, delta,  1),
-   *  (p, 0,     0,  0),
-   *  (p_next,  n, -delta, 1),
-   *  (p_next, -n, -delta, 1),
-   *  (p_next,  0, 0)
+   * (p, n, delta,  1),
+   * (p,-n, delta,  1),
+   * (p, 0,     0,  0),
+   * (p_next,  n, -delta, 1),
+   * (p_next, -n, -delta, 1),
+   * (p_next,  0, 0)
    *
-   *  Notice that we are encoding if it is
-   *  start or end of edge from the sign of
-   *  m_on_boundary.
+   * Notice that we are encoding if it is
+   * start or end of edge from the sign of
+   * m_on_boundary.
    */
   for(unsigned int k = 0; k < 3; ++k)
     {
@@ -2210,16 +2210,16 @@ build_line_segment(const SingleSubEdge &sub_edge, unsigned int &depth,
   vecN<ArcStrokedPoint, 6> pts;
 
   /* The quad is:
-   *  (p, n, delta,  1),
-   *  (p,-n, delta,  1),
-   *  (p, 0,     0,  0),
-   *  (p_next,  n, -delta, 1),
-   *  (p_next, -n, -delta, 1),
-   *  (p_next,  0, 0)
+   * (p, n, delta,  1),
+   * (p,-n, delta,  1),
+   * (p, 0,     0,  0),
+   * (p_next,  n, -delta, 1),
+   * (p_next, -n, -delta, 1),
+   * (p_next,  0, 0)
    *
-   *  Notice that we are encoding if it is
-   *  start or end of edge from the sign of
-   *  m_on_boundary.
+   * Notice that we are encoding if it is
+   * start or end of edge from the sign of
+   * m_on_boundary.
    */
   for(unsigned int k = 0; k < 3; ++k)
     {

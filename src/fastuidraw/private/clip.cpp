@@ -25,7 +25,7 @@ clip_against_plane(const vec3 &clip_eq, c_array<const vec2> pts,
                    std::vector<vec2> &out_pts, std::vector<float> &work_room)
 {
   /* clip the convex polygon of pts, placing the results
-   *  into out_pts.
+   * into out_pts.
    */
   bool all_clipped, all_unclipped;
   unsigned int first_unclipped;
@@ -67,7 +67,7 @@ clip_against_plane(const vec3 &clip_eq, c_array<const vec2> pts,
     }
 
   /* the polygon is convex, and atleast one point is clipped, thus
-   *  the clip line goes through 2 edges.
+   * the clip line goes through 2 edges.
    */
   fastuidraw::vecN<std::pair<unsigned int, unsigned int>, 2> edges;
   unsigned int num_edges(0);
@@ -104,8 +104,8 @@ clip_against_plane(const vec3 &clip_eq, c_array<const vec2> pts,
   out_pts.resize(0);
 
   /* now add the points that are unclipped (in order)
-   *  and the 2 new points representing the new points
-   *  added by the clipping plane.
+   * and the 2 new points representing the new points
+   * added by the clipping plane.
    */
 
   for(unsigned int i = first_unclipped; i <= edges[0].first; ++i)
@@ -114,8 +114,8 @@ clip_against_plane(const vec3 &clip_eq, c_array<const vec2> pts,
     }
 
   /* now add the implicitely made vertex of the clip equation
-   *  intersecting against the edge between pts[edges[0].first] and
-   *  pts[edges[0].second]
+   * intersecting against the edge between pts[edges[0].first] and
+   * pts[edges[0].second]
    */
   {
     fastuidraw::vec2 pp;
@@ -127,12 +127,12 @@ clip_against_plane(const vec3 &clip_eq, c_array<const vec2> pts,
   }
 
   /* the vertices from pts[edges[0].second] to pts[edges[1].first]
-   *  are all on the clipped size of the plane, so they are skipped.
+   * are all on the clipped size of the plane, so they are skipped.
    */
 
   /* now add the implicitely made vertex of the clip equation
-   *  intersecting against the edge between pts[edges[1].first] and
-   *  pts[edges[1].second]
+   * intersecting against the edge between pts[edges[1].first] and
+   * pts[edges[1].second]
    */
   {
     fastuidraw::vec2 pp;
@@ -144,7 +144,7 @@ clip_against_plane(const vec3 &clip_eq, c_array<const vec2> pts,
   }
 
   /* add all vertices starting from pts[edges[1].second] wrapping
-   *  around until the points are clipped again.
+   * around until the points are clipped again.
    */
   for(unsigned int i = edges[1].second; i != first_unclipped && work_room[i] >= 0.0f;)
     {

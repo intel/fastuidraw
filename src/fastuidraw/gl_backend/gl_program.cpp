@@ -135,7 +135,7 @@ namespace
   class ShaderVariableInterfaceQueryList;
 
   /* class to hold information about a single
-   *  GLSL variable.
+   * GLSL variable.
    */
   class ShaderVariableInfo
   {
@@ -197,7 +197,7 @@ namespace
   };
 
   /* class to use program interface query to fill
-   *  the fields of a ShaderVariableInfo
+   * the fields of a ShaderVariableInfo
    */
   class ShaderVariableInterfaceQueryList
   {
@@ -213,12 +213,12 @@ namespace
     }
 
     /* fill the fields of a ShaderVariableInfo by using GL program interface query
-     *   - program: what GLSL program
-     *   - program_inteface: what GLSL interface from which to take the
-     *     variable information (for example GL_UNIFORM, GL_BUFFER_VARIABLE,
-     *     GL_PROGRAM_INPUT, GL_PROGRAM_OUTPUT)
-     *   - interface_index: GL index of variable from the interface
-     *   - queries: what GL enums and where to write to in ShaderVariableInfo
+     *  - program: what GLSL program
+     *  - program_inteface: what GLSL interface from which to take the
+     *    variable information (for example GL_UNIFORM, GL_BUFFER_VARIABLE,
+     *    GL_PROGRAM_INPUT, GL_PROGRAM_OUTPUT)
+     *  - interface_index: GL index of variable from the interface
+     *  - queries: what GL enums and where to write to in ShaderVariableInfo
      */
     void
     fill_variable(GLuint program,
@@ -233,8 +233,8 @@ namespace
   };
 
   /* class to fill fields associated to uniforms of a ShaderVariableInfo
-   *  using glGetActiveUniformsiv (thus NOT using the program interface
-   *  query interface)
+   * using glGetActiveUniformsiv (thus NOT using the program interface
+   * query interface)
    */
   class ShaderUniformQueryList
   {
@@ -314,8 +314,8 @@ namespace
                   bool check_leading_dim) const;
 
     /* Poplulate using the old GL interface for
-     *  getting information about uniforms, uniform blocks
-     *  and attributes.
+     * getting information about uniforms, uniform blocks
+     * and attributes.
      */
     template<typename F, typename G>
     void
@@ -325,13 +325,13 @@ namespace
                                          const ShaderUniformQueryList &query_list = ShaderUniformQueryList());
 
     /* Poplulate from a named interface block
-     *  - program interface: what GLSL interface from which to take the
-     *    variable information (for example GL_UNIFORM_BLOCK,
-     *    GL_ATOMIC_COUNTER_BUFFER, GL_TRANSFORM_FEEDBACK_BUFFER or
-     *    GL_SHADER_STORAGE_BLOCK
-     *  - interface_index: the name of the interface block
-     *  - variable_interface: the interface to access the contents of
-     *                        the named block
+     * - program interface: what GLSL interface from which to take the
+     *   variable information (for example GL_UNIFORM_BLOCK,
+     *   GL_ATOMIC_COUNTER_BUFFER, GL_TRANSFORM_FEEDBACK_BUFFER or
+     *   GL_SHADER_STORAGE_BLOCK
+     * - interface_index: the name of the interface block
+     * - variable_interface: the interface to access the contents of
+     *                       the named block
      */
     void
     populate_from_interface_block(GLuint program,
@@ -341,7 +341,7 @@ namespace
                                   const ShaderVariableInterfaceQueryList &queries);
 
     /* Poplulate from a named interface block
-     *   - program interface: one of GL_PROGRAM_INPUT, GL_PROGRAM_OUPUT, GL_UNIFORM
+     *  - program interface: one of GL_PROGRAM_INPUT, GL_PROGRAM_OUPUT, GL_UNIFORM
      */
     void
     populate_from_resource(GLuint program,
@@ -367,7 +367,7 @@ namespace
   };
 
   /* class to hold attribute information of a GLSL
-   *  program
+   * program
    */
   class AttributeInfo:public ShaderVariableSet
   {
@@ -417,7 +417,7 @@ namespace
     {}
 
     /* populate the block information using
-     *  program interface query
+     * program interface query
      */
     void
     populate(GLuint program, GLenum program_interface,
@@ -434,7 +434,7 @@ namespace
   };
 
   /* class to hold information for multiple
-   *  (indexed) blocks
+   * (indexed) blocks
    */
   class BlockSetInfoBase
   {
@@ -503,7 +503,7 @@ namespace
   };
 
   /* class to hold information for each shader storage
-   *  block
+   * block
    */
   class ShaderStorageBlockSetInfo:public BlockSetInfoBase
   {
@@ -523,8 +523,8 @@ namespace
   };
 
   /* class to hold information for each uniform block,
-   *  including the default uniform block of a GLSL
-   *  program
+   * including the default uniform block of a GLSL
+   * program
    */
   class UniformBlockSetInfo:public BlockSetInfoBase
   {
@@ -1524,8 +1524,8 @@ populate_private_non_program_interface_query(GLuint program,
     }
 
   /* extract uniform data from all_uniforms, note that
-   *  m_blocks[i] holds the uniform block with block_index
-   *  of value i currently.
+   * m_blocks[i] holds the uniform block with block_index
+   * of value i currently.
    */
   for(const ShaderVariableInfo &u : m_all_uniforms.values())
     {

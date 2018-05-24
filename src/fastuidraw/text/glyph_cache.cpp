@@ -107,10 +107,10 @@ namespace
 
     ~GlyphCachePrivate();
 
-    /*  When the atlas is full, we will clear the atlas, but save
-     *   the values in m_glyphs but mark them as not having been
-     *   uploaded, this way returned values are safe and we do
-     *   not have to regenerate data either.
+    /* When the atlas is full, we will clear the atlas, but save
+     *  the values in m_glyphs but mark them as not having been
+     *  uploaded, this way returned values are safe and we do
+     *  not have to regenerate data either.
      */
 
     GlyphDataPrivate*
@@ -189,10 +189,10 @@ GlyphDataPrivate::
 upload_to_atlas(void)
 {
   /* TODO:
-   *  1. this method is not thread safe if different threads
-   *     attempt to access the same glyph (or if different
-   *     threads call this routine and clear_atlas()
-   *     at the same time).
+   * 1. this method is not thread safe if different threads
+   *    attempt to access the same glyph (or if different
+   *    threads call this routine and clear_atlas()
+   *    at the same time).
    */
   enum fastuidraw::return_code return_value;
 

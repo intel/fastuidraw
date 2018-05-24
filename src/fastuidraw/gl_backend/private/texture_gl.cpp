@@ -331,7 +331,7 @@ operator()(GLuint srcName, GLenum srcTarget, GLint srcLevel,
             layer < depth; ++layer, ++src_layer, ++dst_layer)
           {
             /* TODO: handle depth, stencil and depth/stencil textures
-             *  correctly.
+             * correctly.
              */
             FASTUIDRAWassert(src_layer == 0 || texture_is_layered(srcTarget));
             FASTUIDRAWassert(dst_layer == 0 || texture_is_layered(dstTarget));
