@@ -124,6 +124,20 @@ namespace fastuidraw
       ConfigurationBase&
       blend_type(enum PainterBlendShader::shader_type tp);
 
+      /*!
+       * If true, indicates that the PainterBackend supports
+       * bindless texturing. Default value is false.
+       */
+      bool
+      supports_bindless_texturing(void) const;
+
+      /*!
+       * Specify the return value to supports_bindless_texturing() const.
+       * Default value is false.
+       */
+      ConfigurationBase&
+      supports_bindless_texturing(bool);
+
     private:
       void *m_d;
     };
