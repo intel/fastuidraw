@@ -1505,9 +1505,12 @@ compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
    * that case.
    */
   fastuidraw::gl::ContextProperties ctx;
-  return_value.blend_type(compute_blend_type(compute_provide_auxiliary_buffer(params.provide_auxiliary_image_buffer(), ctx),
-                                             params.blend_type(),
-                                             ctx));
+  return_value
+    .supports_bindless_texturing(ctx.has_extension("GL_ARB_bindless_texture") || ctx.has_extension("GL_NV_bindless_texture"))
+    .blend_type(compute_blend_type(compute_provide_auxiliary_buffer(params.provide_auxiliary_image_buffer(), ctx),
+                                   params.blend_type(),
+                                   ctx));
+    
   return return_value;
 }
 
@@ -1746,7 +1749,8 @@ configure_backend(void)
     .glyph_geometry_backing_log2_dims(m_params.glyph_atlas()->param_values().texture_2d_array_geometry_store_log2_dims())
     .have_float_glyph_texture_atlas(m_params.glyph_atlas()->texel_texture(false) != 0)
     .colorstop_atlas_backing(colorstop_tp)
-    .provide_auxiliary_image_buffer(m_params.provide_auxiliary_image_buffer());
+    .provide_auxiliary_image_buffer(m_params.provide_auxiliary_image_buffer())
+    .use_uvec2_for_bindless_handle(m_ctx_properties.has_extension("GL_ARB_bindless_texture"));
 
   /* now allocate m_pool after adjusting m_params */
   m_pool = FASTUIDRAWnew painter_vao_pool(m_params, m_p->configuration_base(),
@@ -1956,6 +1960,28 @@ configure_source_front_matter(void)
 
     default:
       break;
+    }
+
+  if (m_p->configuration_base().supports_bindless_texturing())
+    {
+      if (m_uber_shader_builder_params.use_uvec2_for_bindless_handle())
+        {
+          m_front_matter_frag
+            .specify_extension("GL_ARB_bindless_texture", ShaderSource::enable_extension);
+
+          m_front_matter_vert
+            .specify_extension("GL_ARB_bindless_texture", ShaderSource::enable_extension);
+        }
+      else
+        {
+          m_front_matter_frag
+            .specify_extension("GL_NV_gpu_shader5", ShaderSource::enable_extension)
+            .specify_extension("GL_NV_bindless_texture", ShaderSource::enable_extension);
+
+          m_front_matter_vert
+            .specify_extension("GL_NV_gpu_shader5", ShaderSource::enable_extension)
+            .specify_extension("GL_NV_bindless_texture", ShaderSource::enable_extension);
+        }
     }
 }
 
