@@ -88,11 +88,11 @@ create_blend_shaders(void)
 {
   using namespace fastuidraw::PainterEnums;
   /* try to use as few blend modes as possible so that
-   *  we have fewer draw call breaks. The convention is as
-   *  follows:
-   *  - src0 is GL_ONE and the GLSL code handles the multiply
-   *  - src1 is computed by the GLSL code as needed
-   *  This is fine for those modes that do not need DST values
+   * we have fewer draw call breaks. The convention is as
+   * follows:
+   * - src0 is GL_ONE and the GLSL code handles the multiply
+   * - src1 is computed by the GLSL code as needed
+   * This is fine for those modes that do not need DST values
    */
   BlendMode one_src1, dst_alpha_src1, one_minus_dst_alpha_src1;
   PainterBlendShaderSet shaders;

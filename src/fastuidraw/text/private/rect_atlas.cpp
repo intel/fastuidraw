@@ -29,7 +29,7 @@ fastuidraw::detail::RectAtlas::tree_sorter::
 operator()(tree_base *lhs, tree_base *rhs) const
 {
   /* we want to list the smallest "size" first
-   *  to avoid splitting large elements
+   * to avoid splitting large elements
    */
   return lhs->area() < rhs->area();
 }

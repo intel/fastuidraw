@@ -639,7 +639,7 @@ namespace
       m_break_on_shader_change(false),
       m_use_hw_clip_planes(true),
       /* on Mesa/i965 using switch statement gives much slower
-       *  performance than using if/else chain.
+       * performance than using if/else chain.
        */
       m_vert_shader_use_switch(false),
       m_frag_shader_use_switch(false),
@@ -788,7 +788,7 @@ request_vao(void)
         }
 
       /* generate_bo leaves the returned buffer object bound to
-       *  the passed binding target.
+       * the passed binding target.
        */
       m_vaos[m_pool][m_current].m_attribute_bo = generate_bo(GL_ARRAY_BUFFER, m_attribute_buffer_size);
       m_vaos[m_pool][m_current].m_index_bo = generate_bo(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size);
@@ -1116,7 +1116,7 @@ DrawCommand(painter_vao_pool *hnd,
   m_indices_written(0)
 {
   /* map the buffers and set to the c_array<> fields of
-   *  fastuidraw::PainterDraw to the mapping location.
+   * fastuidraw::PainterDraw to the mapping location.
    */
   void *attr_bo, *index_bo, *data_bo, *header_bo;
   uint32_t flags;
@@ -1500,9 +1500,9 @@ compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
     }
 
   /* bleck: framebuffer fetch on auxiliary buffer is
-   *  not compatible with single_src and dual_src
-   *  blending, need to override blend_type() for
-   *  that case.
+   * not compatible with single_src and dual_src
+   * blending, need to override blend_type() for
+   * that case.
    */
   fastuidraw::gl::ContextProperties ctx;
   return_value.blend_type(compute_blend_type(compute_provide_auxiliary_buffer(params.provide_auxiliary_image_buffer(), ctx),
@@ -1597,7 +1597,7 @@ configure_backend(void)
     }
 
   /* Query GL what is good size for data store buffer. Size is dependent
-   *  how the data store is backed.
+   * how the data store is backed.
    */
   switch(m_params.data_store_backing())
     {
@@ -1669,7 +1669,7 @@ configure_backend(void)
   #endif
 
   /* if have to use discard for clipping, then there is zero point to
-   *  separate the discarding and non-discarding item shaders.
+   * separate the discarding and non-discarding item shaders.
    */
   m_params.separate_program_for_discard(m_params.separate_program_for_discard() && m_params.use_hw_clip_planes());
 
@@ -1687,7 +1687,7 @@ configure_backend(void)
     }
 
   /* Some shader features require new version of GL or
-   *  specific extensions.
+   * specific extensions.
    */
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
@@ -1700,7 +1700,7 @@ configure_backend(void)
       if (m_ctx_properties.version() <= fastuidraw::ivec2(3, 0))
         {
           /* GL ES 3.0 does not support layout(binding=) and
-           *  does not support image-load-store either
+           * does not support image-load-store either
            */
           m_params.assign_binding_points(false);
         }
@@ -1834,8 +1834,8 @@ configure_source_front_matter(void)
         }
 
       /* Only have this front matter present if FASTUIDRAW_DISCARD is empty defined;
-       *  The issue is that when early_fragment_tests are enabled, then the depth
-       *  write happens even if the fragment shader hits discard.
+       * The issue is that when early_fragment_tests are enabled, then the depth
+       * write happens even if the fragment shader hits discard.
        */
       std::ostringstream early_fragment_tests;
       early_fragment_tests << "#ifdef FASTUIDRAW_ALLOW_EARLY_FRAGMENT_TESTS\n"
@@ -2527,7 +2527,7 @@ on_post_draw(void)
   d = static_cast<PainterBackendGLPrivate*>(m_d);
 
   /* this is somewhat paranoid to make sure that
-   *  the GL objects do not leak...
+   * the GL objects do not leak...
    */
   glUseProgram(0);
   glBindVertexArray(0);

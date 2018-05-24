@@ -291,7 +291,7 @@ namespace
   };
 
   /* A CullingHierarchy represents a hierarchy choice of
-   *  what joins and caps in each element of a hierarchy.
+   * what joins and caps in each element of a hierarchy.
    */
   class CullingHierarchy:fastuidraw::noncopyable
   {
@@ -453,10 +453,10 @@ namespace
   };
 
   /* Subset of a StrokedCapsJoins. Edges are to be placed into
-   *  the store as follows:
-   *    1. child0
-   *    2. child1
-   *    3. caps/joins (i.e. from CullingHierarchy)
+   * the store as follows:
+   *   1. child0
+   *   2. child1
+   *   3. caps/joins (i.e. from CullingHierarchy)
    */
   class SubsetPrivate
   {
@@ -1504,8 +1504,8 @@ post_process(PostProcessVariables &variables,
              CapOrdering &cap_ordering)
 {
   /* We want the depth to go in the reverse order as the
-   *  draw order. The Draw order is child(0), child(1)
-   *  Thus, we first handle depth child(1) and then child(0).
+   * draw order. The Draw order is child(0), child(1)
+   * Thus, we first handle depth child(1) and then child(0).
    */
   m_non_closing_joins.m_depth_range.m_begin = variables.m_join_depth;
   m_closing_joins.m_depth_range.m_begin = variables.m_closing_join_depth;
@@ -1544,12 +1544,12 @@ post_process(PostProcessVariables &variables,
   FASTUIDRAWassert(m_closing_joins.m_elements.difference() == m_closing_joins.m_depth_range.difference());
 
   /* the joins are ordered so that the joins of the non-closing
-   *  edges appear first.
+   * edges appear first.
    */
   m_closing_joins.m_elements += join_ordering.non_closing_edge().size();
 
   /* make the chunks of closing edges come AFTER
-   *  chunks of non-closing edge
+   * chunks of non-closing edge
    */
   m_closing_joins.m_chunk += constants.m_non_closing_join_chunk_cnt;
 
@@ -1566,8 +1566,8 @@ SubsetPrivate(CreationValues &out_values,
   m_bb(src->bounding_box())
 {
   /* Draw order is:
-   *    child(0)
-   *    child(1)
+   *   child(0)
+   *   child(1)
    */
   m_non_closing_joins.m_elements.m_begin = join_ordering.non_closing_edge().size();
   m_closing_joins.m_elements.m_begin = join_ordering.closing_edge().size();
@@ -1643,7 +1643,7 @@ compute_chunks(bool include_closing_edge,
       c.z() += pixels_additional_room * f;
 
       /* transform clip equations from clip coordinates to
-       *  local coordinates.
+       * local coordinates.
        */
       scratch.m_adjusted_clip_eqs[i] = c * clip_matrix_local;
     }
@@ -1678,9 +1678,9 @@ compute_chunks_take_all(bool include_closing_edge,
   /*
    * TODO: take into account  max_attribute_cnt/max_indent
    * ISSUE: rounded joins/caps have variable attribue/index count,
-   *        solve this by giving cap coefficient and join coefficient
-   *        and multiplying the number of caps and joins by their
-   *        coefficients to get the correct value.
+   *       solve this by giving cap coefficient and join coefficient
+   *       and multiplying the number of caps and joins by their
+   *       coefficients to get the correct value.
    */
   FASTUIDRAWunused(max_attribute_cnt);
   FASTUIDRAWunused(max_index_cnt);
@@ -1768,72 +1768,72 @@ PerJoinData(const fastuidraw::vec2 &p,
   m_normal_leaving_join(-tangent_leaving_join.y(), tangent_leaving_join.x())
 {
   /* Explanation:
-   *   We have two curves, a(t) and b(t) with a(1) = b(0)
-   *   The point p0 represents the end of a(t) and the
-   *   point p1 represents the start of b(t).
+   *  We have two curves, a(t) and b(t) with a(1) = b(0)
+   *  The point p0 represents the end of a(t) and the
+   *  point p1 represents the start of b(t).
    *
-   *   When stroking we have four auxiliary curves:
-   *     a0(t) = a(t) + w * a_n(t)
-   *     a1(t) = a(t) - w * a_n(t)
-   *     b0(t) = b(t) + w * b_n(t)
-   *     b1(t) = b(t) - w * b_n(t)
-   *   where
-   *     w = width of stroking
-   *     a_n(t) = J( a'(t) ) / || a'(t) ||
-   *     b_n(t) = J( b'(t) ) / || b'(t) ||
-   *   when
-   *     J(x, y) = (-y, x).
+   *  When stroking we have four auxiliary curves:
+   *    a0(t) = a(t) + w * a_n(t)
+   *    a1(t) = a(t) - w * a_n(t)
+   *    b0(t) = b(t) + w * b_n(t)
+   *    b1(t) = b(t) - w * b_n(t)
+   *  where
+   *    w = width of stroking
+   *    a_n(t) = J( a'(t) ) / || a'(t) ||
+   *    b_n(t) = J( b'(t) ) / || b'(t) ||
+   *  when
+   *    J(x, y) = (-y, x).
    *
-   *   A Bevel join is a triangle that connects
-   *   consists of p, A and B where p is a(1)=b(0),
-   *   A is one of a0(1) or a1(1) and B is one
-   *   of b0(0) or b1(0). Now if we use a0(1) for
-   *   A then we will use b0(0) for B because
-   *   the normals are generated the same way for
-   *   a(t) and b(t). Then, the questions comes
-   *   down to, do we wish to add or subtract the
-   *   normal. That value is represented by m_lambda.
+   *  A Bevel join is a triangle that connects
+   *  consists of p, A and B where p is a(1)=b(0),
+   *  A is one of a0(1) or a1(1) and B is one
+   *  of b0(0) or b1(0). Now if we use a0(1) for
+   *  A then we will use b0(0) for B because
+   *  the normals are generated the same way for
+   *  a(t) and b(t). Then, the questions comes
+   *  down to, do we wish to add or subtract the
+   *  normal. That value is represented by m_lambda.
    *
-   *   Now to figure out m_lambda. Let q0 be a point
-   *   on a(t) before p=a(1). The q0 is given by
+   *  Now to figure out m_lambda. Let q0 be a point
+   *  on a(t) before p=a(1). The q0 is given by
    *
-   *     q0 = p - s * m_v0
+   *    q0 = p - s * m_v0
    *
-   *   and let q1 be a point on b(t) after p=b(0),
+   *  and let q1 be a point on b(t) after p=b(0),
    *
-   *     q1 = p + t * m_v1
+   *    q1 = p + t * m_v1
    *
-   *   where both s, t are positive. Let
+   *  where both s, t are positive. Let
    *
-   *     z = (q0+q1) / 2
+   *    z = (q0+q1) / 2
    *
-   *   the point z is then on the side of the join
-   *   of the acute angle of the join.
+   *  the point z is then on the side of the join
+   *  of the acute angle of the join.
    *
-   *   With this in mind, if either of <z-p, m_n0>
-   *   or <z-p, m_n1> is positive then we want
-   *   to add by -w * n rather than  w * n.
+   *  With this in mind, if either of <z-p, m_n0>
+   *  or <z-p, m_n1> is positive then we want
+   *  to add by -w * n rather than  w * n.
    *
-   *   Note that:
+   *  Note that:
    *
-   *   <z-p, m_n1> = 0.5 * < -s * m_v0 + t * m_v1, m_n1 >
-   *               = -0.5 * s * <m_v0, m_n1> + 0.5 * t * <m_v1, m_n1>
-   *               = -0.5 * s * <m_v0, m_n1>
-   *               = -0.5 * s * <m_v0, J(m_v1) >
+   *  <z-p, m_n1> = 0.5 * < -s * m_v0 + t * m_v1, m_n1 >
+   *              = -0.5 * s * <m_v0, m_n1> + 0.5 * t * <m_v1, m_n1>
+   *              = -0.5 * s * <m_v0, m_n1>
+   *              = -0.5 * s * <m_v0, J(m_v1) >
    *
-   *   and
+   *  and
    *
-   *   <z-p, m_n0> = 0.5 * < -s * m_v0 + t * m_v1, m_n0 >
-   *               = -0.5 * s * <m_v0, m_n0> + 0.5 * t * <m_v1, m_n0>
-   *               = 0.5 * t * <m_v1, m_n0>
-   *               = 0.5 * t * <m_v1, J(m_v0) >
-   *               = -0.5 * t * <J(m_v1), m_v0>
+   *  <z-p, m_n0> = 0.5 * < -s * m_v0 + t * m_v1, m_n0 >
+   *              = -0.5 * s * <m_v0, m_n0> + 0.5 * t * <m_v1, m_n0>
+   *              = 0.5 * t * <m_v1, m_n0>
+   *              = 0.5 * t * <m_v1, J(m_v0) >
+   *              = -0.5 * t * <J(m_v1), m_v0>
    *
-   *   (the last line because transpose(J) = -J). Notice
-   *   that the sign of <z-p, m_n1> and the sign of <z-p, m_n0>
-   *   is then the same.
+   *  (the last line because transpose(J) = -J). Notice
+   *  that the sign of <z-p, m_n1> and the sign of <z-p, m_n0>
+   *  is then the same.
    *
-   *   thus m_lambda is positive if <m_v1, m_n0> is negative.
+   *  thus m_lambda is positive if <m_v1, m_n0> is negative.
    */
 
   m_det = fastuidraw::dot(m_tangent_leaving_join, m_normal_into_join);
@@ -1951,7 +1951,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attribute_data,
   FASTUIDRAWassert(index_adjusts.size() == m_num_chunks);
 
   /* Note that we reverse the the depth value, we need to do this because
-   *  we want the joins draw first to obscure the joins drawn later.
+   * we want the joins draw first to obscure the joins drawn later.
    */
   for(const OrderingEntry<PerJoinData> &J : m_ordering.non_closing_edge())
     {
@@ -2069,15 +2069,15 @@ PerRoundedJoin(const PerJoinData &J, float thresh):
   PerJoinData(J)
 {
   /* n0z represents the start point of the rounded join in the complex plane
-   *  as if the join was at the origin, n1z represents the end point of the
-   *  rounded join in the complex plane as if the join was at the origin.
+   * as if the join was at the origin, n1z represents the end point of the
+   * rounded join in the complex plane as if the join was at the origin.
    */
   std::complex<float> n0z(m_lambda * n0().x(), m_lambda * n0().y());
   std::complex<float> n1z(m_lambda * n1().x(), m_lambda * n1().y());
 
   /* n1z_times_conj_n0z satisfies:
-   *  n1z = n1z_times_conj_n0z * n0z
-   *  i.e. it represents the arc-movement from n0z to n1z
+   * n1z = n1z_times_conj_n0z * n0z
+   * i.e. it represents the arc-movement from n0z to n1z
    */
   std::complex<float> n1z_times_conj_n0z(n1z * std::conj(n0z));
 
@@ -2358,7 +2358,7 @@ add_join(unsigned int join_id, const PerJoinData &join,
   FASTUIDRAWunused(join);
 
   /* Each join is a triangle fan from 5 points
-   *  (thus 3 triangles, which is 9 indices)
+   * (thus 3 triangles, which is 9 indices)
    */
   vert_count += 5;
   index_count += 9;
@@ -2378,10 +2378,10 @@ fill_join_implement(unsigned int join_id, const PerJoinData &J,
   unsigned int first;
 
   /* The miter point is given by where the two boundary
-   *  curves intersect. The two curves are given by:
+   * curves intersect. The two curves are given by:
    *
-   *  a(t) = J.m_p0 + stroke_width * J.m_lamba * J.m_n0 + t * J.m_v0
-   *  b(s) = J.m_p1 + stroke_width * J.m_lamba * J.m_n1 - s * J.m_v1
+   * a(t) = J.m_p0 + stroke_width * J.m_lamba * J.m_n0 + t * J.m_v0
+   * b(s) = J.m_p1 + stroke_width * J.m_lamba * J.m_n1 - s * J.m_v1
    *
    * With J.m_0 is  the location of the join.
    *
@@ -2390,14 +2390,14 @@ fill_join_implement(unsigned int join_id, const PerJoinData &J,
    *
    * t = - stroke_width * J.m_lamba * r
    * s = - stroke_width * J.m_lamba * r
-   *  where
+   * where
    * r = (<J.m_v1, J.m_v0> - 1) / <J.m_v0, J.m_n1>
    *
    * thus
    *
    * a(t) = J.m_p + stroke_width * ( J.m_lamba * J.m_n0 -  r * J.m_lamba * J.m_v0)
-   *      = b(s)
-   *      = J.m_p + stroke_width * ( J.m_lamba * J.m_n1 +  r * J.m_lamba * J.m_v1)
+   *     = b(s)
+   *     = J.m_p + stroke_width * ( J.m_lamba * J.m_n1 +  r * J.m_lamba * J.m_v1)
    */
 
   first = vertex_offset;
@@ -2465,7 +2465,7 @@ add_join(unsigned int join_id, const PerJoinData &J,
          unsigned int &vert_count, unsigned int &index_count) const
 {
   /* Each join is a triangle fan from 4 points
-   *  (thus 2 triangles, which is 6 indices)
+   * (thus 2 triangles, which is 6 indices)
    */
   FASTUIDRAWunused(join_id);
   FASTUIDRAWunused(J);
@@ -2745,7 +2745,7 @@ compute_size(const PathData &P)
   unsigned int num_caps;
 
   /* each square cap generates 5 new points
-   *  and 3 triangles (= 9 indices)
+   * and 3 triangles (= 9 indices)
    */
   num_caps = P.m_cap_ordering.caps().size();
   return_value.m_verts = 5 * num_caps;
@@ -3023,8 +3023,8 @@ fetch_create(float thresh, std::vector<ThreshWithData> &values)
     }
 
   /* we set a hard tolerance of 1e-6. Should we
-   *  set it as a ratio of the bounding box of
-   *  the underlying tessellated path?
+   * set it as a ratio of the bounding box of
+   * the underlying tessellated path?
    */
   thresh = fastuidraw::t_max(thresh, float(1e-6));
   if (values.back().m_thresh <= thresh)

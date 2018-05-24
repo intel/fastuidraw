@@ -239,11 +239,11 @@ namespace
     compute_curve_distance(void)
     {
       /* Compute the maximum distance between the points
-       *  of a BezierTessRegion and the line segment between
-       *  the start and  end point of the BezierTessRegion.
-       *  The curve is contained within the convex hull of the
-       *  points, so this computation is fast, conservative
-       *  value for getting the curve_distance.
+       * of a BezierTessRegion and the line segment between
+       * the start and  end point of the BezierTessRegion.
+       * The curve is contained within the convex hull of the
+       * points, so this computation is fast, conservative
+       * value for getting the curve_distance.
        */
       float return_value(0.0f);
       for(unsigned int i = 1, endi = m_pts.size(); i + 1 < endi; ++i)
@@ -842,19 +842,19 @@ tessellate(reference_counted_ptr<tessellated_region> in_region,
   newB->m_pts.push_back(src.back());
 
   /* For a Bezier curve, given by points p(0), .., p(n),
-   *  and a time 0 <= t <= 1, De Casteljau's algorithm is
-   *  the following.
+   * and a time 0 <= t <= 1, De Casteljau's algorithm is
+   * the following.
    *
-   *  Let
-   *    q(0, j) = p(j) for 0 <= j <= n,
-   *    q(i + 1, j) = (1 - t) * q(i, j) + t * q(i, j + 1) for 0 <= i <= n, 0 <= j <= n - i
-   *  then
-   *    The curve split at time t is given by
-   *      A = { q(0, 0), q(1, 0), q(2, 0), ... , q(n, 0) }
-   *      B = { q(n, 0), q(n - 1, 1), q(n - 2, 2), ... , q(0, n) }
-   *    and
-   *      the curve evaluated at t is given by q(n, 0).
-   *  We use t = 0.5 because we are always doing mid-point cutting.
+   * Let
+   *   q(0, j) = p(j) for 0 <= j <= n,
+   *   q(i + 1, j) = (1 - t) * q(i, j) + t * q(i, j + 1) for 0 <= i <= n, 0 <= j <= n - i
+   * then
+   *   The curve split at time t is given by
+   *     A = { q(0, 0), q(1, 0), q(2, 0), ... , q(n, 0) }
+   *     B = { q(n, 0), q(n - 1, 1), q(n - 2, 2), ... , q(0, n) }
+   *   and
+   *     the curve evaluated at t is given by q(n, 0).
+   * We use t = 0.5 because we are always doing mid-point cutting.
    */
   for(unsigned int i = 0, endi = src.size(), sz = endi - 1; sz > 0 && i < endi; ++i, --sz)
     {
@@ -954,9 +954,9 @@ arc(const reference_counted_ptr<const interpolator_base> &start, float angle, co
   angle_coeff_dir = (angle > 0.0f) ? 1.0f : -1.0f;
 
   /* find the center of the circle. The center is
-   *  on the perpindicular bisecter of start and end.
-   *  The perpindicular bisector is given by
-   *  { t*n + mid | t real }
+   * on the perpindicular bisecter of start and end.
+   * The perpindicular bisector is given by
+   * { t*n + mid | t real }
    */
   angle = fastuidraw::t_abs(angle);
   end_start = end_pt() - start_pt();
@@ -966,12 +966,12 @@ arc(const reference_counted_ptr<const interpolator_base> &start, float angle, co
   c = fastuidraw::t_cos(angle * 0.5f);
 
   /* Let t be the point so that m_center = t*n + mid
-   *  Then
-   *    tan(angle/2) = 0.5 * ||end - start|| / || m_center - mid ||
-   *                 = 0.5 * ||end - start|| / || t * n ||
-   *                 = 0.5 * || n || / || t * n||
-   *  thus
-   *    |t| = 0.5/tan(angle/2) = 0.5 * c / s
+   * Then
+   *   tan(angle/2) = 0.5 * ||end - start|| / || m_center - mid ||
+   *                = 0.5 * ||end - start|| / || t * n ||
+   *                = 0.5 * || n || / || t * n||
+   * thus
+   *   |t| = 0.5/tan(angle/2) = 0.5 * c / s
    */
   t = angle_coeff_dir * 0.5f * c / s;
   d->m_center = mid + (t * n);
@@ -1120,7 +1120,7 @@ start(const vec2 &start_pt)
   d->m_start_pt = start_pt;
 
   /* m_interpolators[0] is an "empty" interpolator whose only purpose
-   *  it to provide a "previous" for the first interpolator added.
+   * it to provide a "previous" for the first interpolator added.
    */
   reference_counted_ptr<const interpolator_base> h;
   h = FASTUIDRAWnew flat(reference_counted_ptr<const interpolator_base>(), d->m_start_pt);
@@ -1201,10 +1201,10 @@ end_generic(reference_counted_ptr<const interpolator_base> p)
   if (d->m_interpolators.size() == 1)
     {
       /* we have only the fake interpolator which will be replaced
-       *  by p; to avoid needing to handle the corner cases of
-       *  having just one interpolator we will add an additional
-       *  interpolator -after- p which starts and ends on the
-       *  end point of p.
+       * by p; to avoid needing to handle the corner cases of
+       * having just one interpolator we will add an additional
+       * interpolator -after- p which starts and ends on the
+       * end point of p.
        */
       reference_counted_ptr<const interpolator_base> h;
 
@@ -1214,8 +1214,8 @@ end_generic(reference_counted_ptr<const interpolator_base> p)
     }
 
   /* hack-evil: we are going to replace m_interpolator[0]
-   *  with p, we also need to change m_interpolator[1]->m_prev
-   *  as well to p.
+   * with p, we also need to change m_interpolator[1]->m_prev
+   * as well to p.
    */
   FASTUIDRAWassert(d->m_interpolators.size() > 1);
 
@@ -1304,8 +1304,8 @@ interpolator(unsigned int I) const
   FASTUIDRAWassert(J <= d->m_interpolators.size());
 
   /* interpolator(number_points()) is the interpolator
-   *  connecting the last point added to the first
-   *  point of the contour, i.e. is given by m_end_to_start
+   * connecting the last point added to the first
+   * point of the contour, i.e. is given by m_end_to_start
    */
   return (J == d->m_interpolators.size())?
     d->m_end_to_start:
