@@ -202,7 +202,7 @@ sub_image(const reference_counted_ptr<const Image> &im,
   m_data.m_image_start = xy;
   m_data.m_image_size = wh;
 
-  m_data.m_shader_raw &= ~(filter_bits << image_filter_bit0);
+  m_data.m_shader_raw &= ~image_mask;
   m_data.m_shader_raw |= (filter_bits << image_filter_bit0);
 
   return *this;
