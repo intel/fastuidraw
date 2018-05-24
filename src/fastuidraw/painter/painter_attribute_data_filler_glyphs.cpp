@@ -26,10 +26,10 @@ namespace
 {
   inline
   uint32_t
-  filter_atlas_layer(int layer)
+  atlas_layer(int layer)
   {
     FASTUIDRAWassert(layer >= -1);
-    return (layer != -1) ? static_cast<uint32_t>(layer) : ~0u;
+    return fastuidraw::pack_float(layer);
   }
 
   inline
@@ -92,8 +92,8 @@ namespace
      */
     uint_values.x() = 0u;
     uint_values.y() = glyph.geometry_offset();
-    uint_values.z() = filter_atlas_layer(atlas.layer());
-    uint_values.w() = filter_atlas_layer(secondary_atlas.layer());
+    uint_values.z() = atlas_layer(atlas.layer());
+    uint_values.w() = atlas_layer(secondary_atlas.layer());
 
     dst[0].m_attrib0 = fastuidraw::pack_vec4(t_bl.x(), t_bl.y(), t2_bl.x(), t2_bl.y());
     dst[0].m_attrib1 = fastuidraw::pack_vec4(p_bl.x(), p_bl.y(), 0.0f, 0.0f);

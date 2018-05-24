@@ -488,8 +488,8 @@ create_glyph_shader(bool anisotropic)
     .add_float_varying("fastuidraw_glyph_tex_coord_y")
     .add_float_varying("fastuidraw_glyph_secondary_tex_coord_x")
     .add_float_varying("fastuidraw_glyph_secondary_tex_coord_y")
-    .add_uint_varying("fastuidraw_glyph_tex_coord_layer")
-    .add_uint_varying("fastuidraw_glyph_secondary_tex_coord_layer")
+    .add_float_varying("fastuidraw_glyph_tex_coord_layer")
+    .add_float_varying("fastuidraw_glyph_secondary_tex_coord_layer")
     .add_uint_varying("fastuidraw_glyph_geometry_data_location");
 
   return_value

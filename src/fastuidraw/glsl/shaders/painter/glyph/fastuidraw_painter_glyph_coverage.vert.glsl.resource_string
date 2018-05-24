@@ -43,8 +43,8 @@ fastuidraw_gl_vert_main(in uint sub_shader,
     }
   #endif
 
-  fastuidraw_glyph_tex_coord_layer = uint_attrib.z;
-  fastuidraw_glyph_secondary_tex_coord_layer = uint_attrib.w;
+  fastuidraw_glyph_tex_coord_layer = uintBitsToFloat(uint_attrib.z);
+  fastuidraw_glyph_secondary_tex_coord_layer = uintBitsToFloat(uint_attrib.w);
   fastuidraw_glyph_secondary_tex_coord_x = primary_attrib.x;
   fastuidraw_glyph_secondary_tex_coord_y = primary_attrib.y;
   fastuidraw_glyph_geometry_data_location = uint_attrib.y;

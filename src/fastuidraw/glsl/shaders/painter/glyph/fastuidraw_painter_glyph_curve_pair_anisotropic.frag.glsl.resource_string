@@ -31,7 +31,7 @@ fastuidraw_gl_frag_main(in uint sub_shader,
                       ivec3(tex_coord, fastuidraw_glyph_tex_coord_layer),
                       0).r;
 
-  if (fastuidraw_glyph_secondary_tex_coord_layer != ~0u)
+  if (fastuidraw_glyph_secondary_tex_coord_layer > -0.5)
     {
       texel1 = texelFetch(fastuidraw_glyphTexelStoreUINT,
                           ivec3(fastuidraw_glyph_secondary_tex_coord_x,
