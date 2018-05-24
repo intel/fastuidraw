@@ -2602,3 +2602,12 @@ map_draw(void)
 
   return FASTUIDRAWnew DrawCommand(d->m_pool, d->m_params, d);
 }
+
+const fastuidraw::gl::PainterBackendGL::BindingPoints&
+fastuidraw::gl::PainterBackendGL::
+binding_points(void) const
+{
+  PainterBackendGLPrivate *d;
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
+  return d->m_uber_shader_builder_params.binding_points();
+}
