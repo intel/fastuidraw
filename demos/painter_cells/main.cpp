@@ -5,6 +5,7 @@
 #include <fastuidraw/text/glyph_cache.hpp>
 #include <fastuidraw/text/font_freetype.hpp>
 #include <fastuidraw/text/glyph_selector.hpp>
+#include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
 #include "sdl_painter_demo.hpp"
 #include "PainterWidget.hpp"
@@ -92,6 +93,13 @@ protected:
 
 private:
 
+  enum bindless_texture_support_t
+    {
+      no_bindless_texture,
+      arb_bindless_texture,
+      nv_bindless_texture,
+    };
+
   static
   void
   generate_random_colors(int count, std::vector<vec4> &out_values, bool force_opaque);
@@ -109,6 +117,15 @@ private:
   void
   update_cts_params(void);
 
+  GLuint64
+  get_texture_handle(GLuint tex);
+
+  void
+  make_texture_handle_resident(GLuint64 h);
+
+  void
+  make_texture_handle_non_resident(GLuint64 h);
+
   command_line_argument_value<float> m_table_width, m_table_height;
   command_line_argument_value<int> m_num_cells_x, m_num_cells_y;
   command_line_argument_value<int> m_cell_group_size;
@@ -120,6 +137,7 @@ private:
   command_line_list m_strings;
   command_line_list m_files;
   command_line_list m_images;
+  command_line_argument_value<bool> m_use_bindless;
   command_line_argument_value<bool> m_draw_image_name;
   command_line_argument_value<int> m_num_background_colors;
   command_line_argument_value<bool> m_background_colors_opaque;
@@ -154,6 +172,10 @@ private:
   uint64_t m_benchmark_time_us;
   simple_time m_benchmark_timer;
   std::vector<uint64_t> m_frame_times;
+
+  enum bindless_texture_support_t m_bindless_texture_support;
+  std::vector<GLuint> m_textures;
+  std::vector<GLuint64> m_texture_handles;
 };
 
 painter_cells::
@@ -182,6 +204,9 @@ painter_cells(void):
   m_strings("add_string", "add a string to use by the cells", *this),
   m_files("add_string_file", "add a string to use by a cell, taken from file", *this),
   m_images("add_image", "Add an image to use by the cells", *this),
+  m_use_bindless(false, "use_bindless",
+                 "Use bindless texturing for images of each brush (requires GL_ARB_bindless_texture",
+                 *this),
   m_draw_image_name(false, "draw_image_name", "If true draw the image name in each cell as part of the text", *this),
   m_num_background_colors(1, "num_background_colors", "Number of distinct background colors in cells", *this),
   m_background_colors_opaque(false, "background_colors_opaque",
@@ -253,6 +278,15 @@ painter_cells(void):
 painter_cells::
 ~painter_cells()
 {
+  if (!m_textures.empty())
+    {
+      for(GLuint64 h : m_texture_handles)
+        {
+          make_texture_handle_non_resident(h);
+        }
+      glDeleteTextures(m_textures.size(), &m_textures[0]);
+    }
+  
   if (m_table != nullptr)
     {
       FASTUIDRAWdelete(m_table);
@@ -326,10 +360,43 @@ add_single_image(const std::string &filename, std::vector<named_image> &dest)
       reference_counted_ptr<const Image> im;
       int slack(0);
 
-      im = Image::create(m_painter->image_atlas(), image_size.x(), image_size.y(),
-                         cast_c_array(image_data), slack);
-      std::cout << "\tImage \"" << filename << "\" loaded @" << im.get() << ".\n";
+       std::cout << "\tImage \"" << filename << "\" of size "
+                 << image_size << " loaded";
+      if (m_use_bindless.m_value && m_bindless_texture_support != no_bindless_texture)
+        {
+          GLuint tex(0u);
+          GLuint64 handle;
 
+          glGenTextures(1, &tex);
+          FASTUIDRAWassert(tex != 0);
+          glBindTexture(GL_TEXTURE_2D, tex);
+          glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, image_size.x(), image_size.y());
+          glTexSubImage2D(GL_TEXTURE_2D, 0,
+                          0, 0, image_size.x(), image_size.y(),
+                          GL_RGBA, GL_UNSIGNED_BYTE, &image_data[0]);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+          glBindTexture(GL_TEXTURE_2D, 0);
+
+          handle = get_texture_handle(tex);
+          make_texture_handle_resident(handle);
+
+          im = Image::create_bindless(image_size.x(), image_size.y(),
+                                      Image::bindless_texture2d,
+                                      handle);
+
+          m_textures.push_back(tex);
+          m_texture_handles.push_back(handle);
+          std::cout << " bindlessly (handle = 0x" << std::hex
+                    << handle << std::dec <<  ")";
+        }
+      else
+        {
+          im = Image::create(m_painter->image_atlas(), image_size.x(), image_size.y(),
+                             cast_c_array(image_data), slack);
+        }
+
+      std::cout << " @" << im.get() << ".\n";
       dest.push_back(named_image(im, filename));
     }
 }
@@ -338,6 +405,36 @@ void
 painter_cells::
 derived_init(int w, int h)
 {
+  
+  gl::ContextProperties ctx;
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      if(ctx.has_extension("GL_NV_bindless_texture"))
+        {
+          m_bindless_texture_support = nv_bindless_texture;
+        }
+      else
+        {
+          m_bindless_texture_support = no_bindless_texture;
+        }
+    }
+  #else
+    {
+      if (ctx.has_extension("GL_ARB_bindless_texture"))
+        {
+          m_bindless_texture_support = arb_bindless_texture;
+        }
+      else if (ctx.has_extension("GL_NV_bindless_texture"))
+        {
+          m_bindless_texture_support = nv_bindless_texture;
+        }
+      else
+        {
+          m_bindless_texture_support = no_bindless_texture;
+        }
+    }
+  #endif
+
   m_table_params.m_wh = vec2(m_table_width.m_value, m_table_height.m_value);
   m_table_params.m_cell_count = ivec2(m_num_cells_x.m_value, m_num_cells_y.m_value);
   m_table_params.m_line_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -456,6 +553,78 @@ derived_init(int w, int h)
     {
       m_frame_times.reserve(m_num_frames.m_value);
     }
+}
+
+GLuint64
+painter_cells::
+get_texture_handle(GLuint tex)
+{
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      FASTUIDRAWassert(m_bindless_texture_support == nv_bindless_texture);
+      return glGetTextureHandleNV(tex);
+    }
+  #else
+    {
+      FASTUIDRAWassert(m_bindless_texture_support != no_bindless_texture);
+      if (m_bindless_texture_support == nv_bindless_texture)
+        {
+          return glGetTextureHandleNV(tex);
+        }
+      else
+        {
+          return glGetTextureHandleARB(tex);
+        }
+    }
+  #endif
+}
+
+void
+painter_cells::
+make_texture_handle_resident(GLuint64 h)
+{
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      FASTUIDRAWassert(m_bindless_texture_support == nv_bindless_texture);
+      glMakeTextureHandleResidentNV(h);
+    }
+  #else
+    {
+      FASTUIDRAWassert(m_bindless_texture_support != no_bindless_texture);
+      if (m_bindless_texture_support == nv_bindless_texture)
+        {
+          glMakeTextureHandleResidentNV(h);
+        }
+      else
+        {
+          glMakeTextureHandleResidentARB(h);
+        }
+    }
+  #endif
+}
+
+void
+painter_cells::
+make_texture_handle_non_resident(GLuint64 h)
+{
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      FASTUIDRAWassert(m_bindless_texture_support == nv_bindless_texture);
+      glMakeTextureHandleNonResidentNV(h);
+    }
+  #else
+    {
+      FASTUIDRAWassert(m_bindless_texture_support != no_bindless_texture);
+      if (m_bindless_texture_support == nv_bindless_texture)
+        {
+          glMakeTextureHandleNonResidentNV(h);
+        }
+      else
+        {
+          glMakeTextureHandleNonResidentARB(h);
+        }
+    }
+  #endif
 }
 
 void
