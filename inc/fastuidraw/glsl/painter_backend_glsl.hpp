@@ -834,6 +834,23 @@ namespace fastuidraw
         UberShaderParams&
         provide_auxiliary_image_buffer(enum auxiliary_buffer_t);
 
+        /*!
+         * If the PainterBackendGLSL has bindless texturing enabled,
+         * (see PainterBackend::ConfigurationBase::supports_bindless_texturing())
+         * then have that the handles to create sampler2D object
+         * is a uvec2. If false, use uint64_t as the handle type in the
+         * GLSL source code. Default value is true.
+         */
+        bool
+        use_uvec2_for_bindless_handle(void) const;
+
+        /*!
+         * Set the value returned by use_uvec2_for_bindless_handle(void) const.
+         * Default value is true.
+         */
+        UberShaderParams&
+        use_uvec2_for_bindless_handle(bool);
+
       private:
         void *m_d;
       };
