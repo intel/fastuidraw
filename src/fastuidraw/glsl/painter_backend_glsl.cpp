@@ -123,7 +123,8 @@ namespace
       m_have_float_glyph_texture_atlas(true),
       m_colorstop_atlas_backing(fastuidraw::glsl::PainterBackendGLSL::colorstop_texture_1d_array),
       m_use_ubo_for_uniforms(true),
-      m_provide_auxiliary_image_buffer(fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer)
+      m_provide_auxiliary_image_buffer(fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer),
+      m_use_uvec2_for_bindless_handle(true)
     {}
 
     enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t m_z_coordinate_convention;
@@ -144,6 +145,7 @@ namespace
     bool m_use_ubo_for_uniforms;
     enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t m_provide_auxiliary_image_buffer;
     fastuidraw::glsl::PainterBackendGLSL::BindingPoints m_binding_points;
+    bool m_use_uvec2_for_bindless_handle;
   };
 
   class PainterBackendGLSLPrivate
@@ -440,12 +442,20 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
   src
     .add_macro("fastuidraw_half_max_z", FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(z_bits_supported - 1))
     .add_macro("fastuidraw_max_z", FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(z_bits_supported))
+
     .add_macro("fastuidraw_shader_image_mask", PainterBrush::image_mask)
     .add_macro("fastuidraw_shader_image_filter_bit0", PainterBrush::image_filter_bit0)
     .add_macro("fastuidraw_shader_image_filter_num_bits", PainterBrush::image_filter_num_bits)
     .add_macro("fastuidraw_shader_image_filter_nearest", PainterBrush::image_filter_nearest)
     .add_macro("fastuidraw_shader_image_filter_linear", PainterBrush::image_filter_linear)
     .add_macro("fastuidraw_shader_image_filter_cubic", PainterBrush::image_filter_cubic)
+
+    .add_macro("fastuidraw_shader_image_type_mask", PainterBrush::image_type_mask)
+    .add_macro("fastuidraw_image_type_bit0", PainterBrush::image_type_bit0)
+    .add_macro("fastuidraw_image_type_num_bits", PainterBrush::image_type_num_bits)
+    .add_macro("fastuidraw_image_type_on_atlas", Image::on_atlas)
+    .add_macro("fastuidraw_image_type_bindless_texture2d", Image::bindless_texture2d)
+
     .add_macro("fastuidraw_shader_linear_gradient_mask", PainterBrush::gradient_mask)
     .add_macro("fastuidraw_shader_radial_gradient_mask", PainterBrush::radial_gradient_mask)
     .add_macro("fastuidraw_shader_gradient_repeat_mask", PainterBrush::gradient_repeat_mask)
@@ -887,6 +897,18 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       frag.add_macro("FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES");
     }
 
+  if (m_p->configuration_base().supports_bindless_texturing())
+    {
+      vert.add_macro("FASTUIDRAW_SUPPORT_BINDLESS_TEXTURE");
+      frag.add_macro("FASTUIDRAW_SUPPORT_BINDLESS_TEXTURE");
+    }
+
+  if (params.use_uvec2_for_bindless_handle())
+    {
+      vert.add_macro("FASTUIDRAW_BINDLESS_HANDLE_UVEC2");
+      frag.add_macro("FASTUIDRAW_BINDLESS_HANDLE_UVEC2");
+    }
+
   switch(params.colorstop_atlas_backing())
     {
     case PainterBackendGLSL::colorstop_texture_1d_array:
@@ -1275,6 +1297,8 @@ setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
                  UberShaderParamsPrivate, enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t, provide_auxiliary_image_buffer)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
                  UberShaderParamsPrivate, const fastuidraw::glsl::PainterBackendGLSL::BindingPoints&, binding_points)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, bool, use_uvec2_for_bindless_handle)
 
 //////////////////////////////////////////////
 // fastuidraw::glsl::PainterBackendGLSL methods
