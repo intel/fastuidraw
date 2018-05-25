@@ -266,6 +266,8 @@ namespace fastuidraw
   {
     uint32_t mask;
     mask = (1u << num_bits) - 1u;
+    FASTUIDRAWassert(bit0 + num_bits <= 32u);
+    FASTUIDRAWassert(value <= mask);
     return (value & mask) << bit0;
   }
 
@@ -281,6 +283,8 @@ namespace fastuidraw
   {
     uint64_t mask;
     mask = (uint64_t(1u) << num_bits) - uint64_t(1u);
+    FASTUIDRAWassert(bit0 + num_bits <= 64u);
+    FASTUIDRAWassert(value <= mask);
     return (value & mask) << bit0;
   }
 
@@ -294,6 +298,8 @@ namespace fastuidraw
   uint32_t
   unpack_bits(uint32_t bit0, uint32_t num_bits, uint32_t value)
   {
+    FASTUIDRAWassert(bit0 + num_bits <= 32u);
+
     uint32_t mask;
     mask = (uint32_t(1u) << num_bits) - uint32_t(1u);
     return (value >> bit0) & mask;
@@ -309,6 +315,8 @@ namespace fastuidraw
   uint64_t
   uint64_unpack_bits(uint64_t bit0, uint64_t num_bits, uint64_t value)
   {
+    FASTUIDRAWassert(bit0 + num_bits <= 64u);
+
     uint64_t mask;
     mask = (uint64_t(1u) << num_bits) - uint64_t(1u);
     return (value >> bit0) & mask;
