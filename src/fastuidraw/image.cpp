@@ -59,26 +59,23 @@ namespace
    * If all texel are the same value, returns true.
    */
   template<typename T, typename S>
-  bool
+  void
   copy_sub_data(fastuidraw::c_array<T> dest,
                 int dest_dim,
                 fastuidraw::c_array<const S> src,
                 int source_x, int source_y,
                 fastuidraw::ivec2 src_dims)
   {
-    bool return_value(true);
-    T first_value;
+    using namespace fastuidraw;
 
     FASTUIDRAWassert(dest_dim > 0);
     FASTUIDRAWassert(src_dims.x() > 0);
     FASTUIDRAWassert(src_dims.y() > 0);
 
-    first_value = src[std::max(source_x, 0) + std::max(source_y, 0) * src_dims.x()];
-
     for(int src_y = source_y, dst_y = 0; dst_y < dest_dim; ++src_y, ++dst_y)
       {
-        fastuidraw::c_array<const S> line_src;
-        fastuidraw::c_array<T> line_dest;
+        c_array<const S> line_src;
+        c_array<T> line_dest;
         int dst_x, src_x, src_start;
 
         line_dest = dest.sub_array(dst_y * dest_dim, dest_dim);
@@ -101,12 +98,11 @@ namespace
             line_dest[dst_x] = line_src[0];
           }
 
-        for(src_x = std::max(0, source_x);
+        for(src_x = t_max(0, source_x);
             src_x < src_dims.x() && dst_x < dest_dim;
             ++src_x, ++dst_x)
           {
             line_dest[dst_x] = line_src[src_x];
-            return_value = return_value && (line_dest[dst_x] == first_value);
           }
 
         for(;dst_x < dest_dim; ++dst_x)
@@ -114,8 +110,6 @@ namespace
             line_dest[dst_x] = line_src[src_dims.x() - 1];
           }
       }
-
-    return return_value;
   }
 
   fastuidraw::ivec2
@@ -741,7 +735,7 @@ fetch_texels(unsigned int mipmap_level, ivec2 location,
 {
   if (mipmap_level >= m_data.size())
     {
-      std::fill(dst.begin(), dst.end(), u8vec4(0u, 0u, 0u, 0u));
+      std::fill(dst.begin(), dst.end(), u8vec4(255u, 255u, 0u, 255u));
     }
   else
     {
@@ -996,7 +990,6 @@ delete_index_tile(fastuidraw::ivec3 tile)
   autolock_mutex M(d->m_mutex);
   d->m_index_tiles.delete_tile(tile);
 }
-
 
 int
 fastuidraw::ImageAtlas::
