@@ -207,7 +207,8 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
 fastuidraw::PainterBrush&
 fastuidraw::PainterBrush::
 sub_image(const reference_counted_ptr<const Image> &im,
-          uvec2 xy, uvec2 wh, enum image_filter f)
+          uvec2 xy, uvec2 wh, enum image_filter f,
+          bool use_mipmaps)
 {
   uint32_t filter_bits, type_bits;
 
@@ -224,19 +225,29 @@ sub_image(const reference_counted_ptr<const Image> &im,
   m_data.m_shader_raw &= ~image_type_mask;
   m_data.m_shader_raw |= (type_bits << image_type_bit0);
 
+  if (use_mipmaps)
+    {
+      m_data.m_shader_raw |= image_filter_use_mipmaps_mask;
+    }
+  else
+    {
+      m_data.m_shader_raw &= ~image_filter_use_mipmaps_mask;
+    }
+
   return *this;
 }
 
 fastuidraw::PainterBrush&
 fastuidraw::PainterBrush::
-image(const reference_counted_ptr<const Image> &im, enum image_filter f)
+image(const reference_counted_ptr<const Image> &im, enum image_filter f,
+      bool use_mipmaps)
 {
   uvec2 sz(0, 0);
   if (im)
     {
       sz = uvec2(im->dimensions());
     }
-  return sub_image(im, uvec2(0,0), sz, f);
+  return sub_image(im, uvec2(0,0), sz, f, use_mipmaps);
 }
 
 uint32_t

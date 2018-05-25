@@ -122,9 +122,14 @@ namespace fastuidraw
         image_filter_bit0 = 0,
 
         /*!
+         * if up, indicates to use mipmapping in image lookup
+         */
+        image_filter_use_mipmaps_bit = image_filter_bit0 + image_filter_num_bits,
+
+        /*!
          * Bit is up if a gradient is present
          */
-        gradient_bit = image_filter_bit0 + image_filter_num_bits,
+        gradient_bit,
 
         /*!
          * bit is up if gradient is present and it is radial
@@ -170,6 +175,11 @@ namespace fastuidraw
          * mask generated from \ref image_filter_bit0 and \ref image_filter_num_bits
          */
         image_mask = FASTUIDRAW_MASK(image_filter_bit0, image_filter_num_bits),
+
+        /*!
+         * mask generated from \ref image_filter_use_mipmaps_bit
+         */
+        image_filter_use_mipmaps_mask = FASTUIDRAW_MASK(image_filter_use_mipmaps_bit, 1),
 
         /*!
          * mask generated from \ref gradient_bit
@@ -580,9 +590,12 @@ namespace fastuidraw
      *           then sets brush to not have an image.
      * \param f filter to apply to image, only has effect if im
      *          is non-nullptr
+     * \param use_mipmaps if true apply the image with mipmapping
      */
     PainterBrush&
-    image(const reference_counted_ptr<const Image> &im, enum image_filter f = image_filter_nearest);
+    image(const reference_counted_ptr<const Image> &im,
+          enum image_filter f = image_filter_nearest,
+          bool use_mipmaps = false);
 
     /*!
      * Set the brush to source from a sub-rectangle of an image
@@ -591,10 +604,12 @@ namespace fastuidraw
      * \param wh width and height of sub-rectangle of image to use
      * \param f filter to apply to image, only has effect if im
      *          is non-nullptr
+     * \param use_mipmaps if true apply the image with mipmapping
      */
     PainterBrush&
     sub_image(const reference_counted_ptr<const Image> &im, uvec2 xy, uvec2 wh,
-              enum image_filter f = image_filter_nearest);
+              enum image_filter f = image_filter_nearest,
+              bool use_mipmaps = false);
 
     /*!
      * Sets the brush to not have an image.
