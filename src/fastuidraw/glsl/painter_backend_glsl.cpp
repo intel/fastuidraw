@@ -78,8 +78,8 @@ namespace
   public:
     BindingPointsPrivate(void):
       m_colorstop_atlas(0),
-      m_image_atlas_color_tiles_unfiltered(1),
-      m_image_atlas_color_tiles_filtered(2),
+      m_image_atlas_color_tiles_nearest(1),
+      m_image_atlas_color_tiles_linear(2),
       m_image_atlas_index_tiles(3),
       m_glyph_atlas_texel_store_uint(4),
       m_glyph_atlas_texel_store_float(5),
@@ -91,8 +91,8 @@ namespace
     {}
 
     unsigned int m_colorstop_atlas;
-    unsigned int m_image_atlas_color_tiles_unfiltered;
-    unsigned int m_image_atlas_color_tiles_filtered;
+    unsigned int m_image_atlas_color_tiles_nearest;
+    unsigned int m_image_atlas_color_tiles_linear;
     unsigned int m_image_atlas_index_tiles;
     unsigned int m_glyph_atlas_texel_store_uint;
     unsigned int m_glyph_atlas_texel_store_float;
@@ -406,12 +406,12 @@ add_texture_size_constants(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_glyphTexelStore_size_reciprocal",
                "vec2(fastuidraw_glyphTexelStore_size_reciprocal_x, fastuidraw_glyphTexelStore_size_reciprocal_y)")
 
-    .add_macro("fastuidraw_imageAtlas_size_x", image_atlas_size.x())
-    .add_macro("fastuidraw_imageAtlas_size_y", image_atlas_size.y())
-    .add_macro("fastuidraw_imageAtlas_size", "ivec2(fastuidraw_imageAtlas_size_x, fastuidraw_imageAtlas_size_y)")
-    .add_macro("fastuidraw_imageAtlas_size_reciprocal_x", "(1.0 / float(fastuidraw_imageAtlas_size_x) )")
-    .add_macro("fastuidraw_imageAtlas_size_reciprocal_y", "(1.0 / float(fastuidraw_imageAtlas_size_y) )")
-    .add_macro("fastuidraw_imageAtlas_size_reciprocal", "vec2(fastuidraw_imageAtlas_size_reciprocal_x, fastuidraw_imageAtlas_size_reciprocal_y)")
+    .add_macro("fastuidraw_imageAtlasLinear_size_x", image_atlas_size.x())
+    .add_macro("fastuidraw_imageAtlasLinear_size_y", image_atlas_size.y())
+    .add_macro("fastuidraw_imageAtlasLinear_size", "ivec2(fastuidraw_imageAtlasLinear_size_x, fastuidraw_imageAtlasLinear_size_y)")
+    .add_macro("fastuidraw_imageAtlasLinear_size_reciprocal_x", "(1.0 / float(fastuidraw_imageAtlasLinear_size_x) )")
+    .add_macro("fastuidraw_imageAtlasLinear_size_reciprocal_y", "(1.0 / float(fastuidraw_imageAtlasLinear_size_y) )")
+    .add_macro("fastuidraw_imageAtlasLinear_size_reciprocal", "vec2(fastuidraw_imageAtlasLinear_size_reciprocal_x, fastuidraw_imageAtlasLinear_size_reciprocal_y)")
 
     .add_macro("fastuidraw_colorStopAtlas_size", colorstop_atlas_size)
     .add_macro("fastuidraw_colorStopAtlas_size_reciprocal", "(1.0 / float(fastuidraw_colorStopAtlas_size) )");
@@ -1021,8 +1021,8 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_source(varying_layout_macro.c_str(), ShaderSource::from_string)
     .add_source(binding_layout_macro.c_str(), ShaderSource::from_string)
     .add_macro("FASTUIDRAW_COLORSTOP_ATLAS_BINDING", binding_params.colorstop_atlas())
-    .add_macro("FASTUIDRAW_COLOR_TILE_BINDING", binding_params.image_atlas_color_tiles_filtered())
-    .add_macro("FASTUIDRAW_COLOR_TILE_UNFILTERED_BINDING", binding_params.image_atlas_color_tiles_unfiltered())
+    .add_macro("FASTUIDRAW_COLOR_TILE_LINEAR_BINDING", binding_params.image_atlas_color_tiles_linear())
+    .add_macro("FASTUIDRAW_COLOR_TILE_NEAREST_BINDING", binding_params.image_atlas_color_tiles_nearest())
     .add_macro("FASTUIDRAW_INDEX_TILE_BINDING", binding_params.image_atlas_index_tiles())
     .add_macro("FASTUIDRAW_GLYPH_TEXEL_ATLAS_UINT_BINDING", binding_params.glyph_atlas_texel_store_uint())
     .add_macro("FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING", binding_params.glyph_atlas_texel_store_float())
@@ -1092,8 +1092,8 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_macro("FASTUIDRAW_DISCARD", discard_macro_value)
     .add_macro(shader_blend_macro)
     .add_macro("FASTUIDRAW_COLORSTOP_ATLAS_BINDING", binding_params.colorstop_atlas())
-    .add_macro("FASTUIDRAW_COLOR_TILE_BINDING", binding_params.image_atlas_color_tiles_filtered())
-    .add_macro("FASTUIDRAW_COLOR_TILE_UNFILTERED_BINDING", binding_params.image_atlas_color_tiles_unfiltered())
+    .add_macro("FASTUIDRAW_COLOR_TILE_LINEAR_BINDING", binding_params.image_atlas_color_tiles_linear())
+    .add_macro("FASTUIDRAW_COLOR_TILE_NEAREST_BINDING", binding_params.image_atlas_color_tiles_nearest())
     .add_macro("FASTUIDRAW_INDEX_TILE_BINDING", binding_params.image_atlas_index_tiles())
     .add_macro("FASTUIDRAW_GLYPH_TEXEL_ATLAS_UINT_BINDING", binding_params.glyph_atlas_texel_store_uint())
     .add_macro("FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING", binding_params.glyph_atlas_texel_store_float())
@@ -1215,9 +1215,9 @@ assign_swap_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
                  BindingPointsPrivate, unsigned int, colorstop_atlas)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
-                 BindingPointsPrivate, unsigned int, image_atlas_color_tiles_filtered)
+                 BindingPointsPrivate, unsigned int, image_atlas_color_tiles_linear)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
-                 BindingPointsPrivate, unsigned int, image_atlas_color_tiles_unfiltered)
+                 BindingPointsPrivate, unsigned int, image_atlas_color_tiles_nearest)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
                  BindingPointsPrivate, unsigned int, image_atlas_index_tiles)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,

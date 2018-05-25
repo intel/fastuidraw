@@ -403,8 +403,8 @@ namespace fastuidraw
      *  - mat3 fastuidraw_item_matrix (the 3x3 matrix from item coordinate to clip coordinates)
      *
      * Available to both the vertex and fragment shader are the following:
-     *  - sampler2DArray fastuidraw_imageAtlas the color texels (AtlasColorBackingStoreBase) for images unfiltered
-     *  - sampler2DArray fastuidraw_imageAtlasFiltered the color texels (AtlasColorBackingStoreBase) for images bilinearly filtered
+     *  - sampler2DArray fastuidraw_imageAtlasLinear the color texels (AtlasColorBackingStoreBase) for images unfiltered
+     *  - sampler2DArray fastuidraw_imageAtlasLinearFiltered the color texels (AtlasColorBackingStoreBase) for images bilinearly filtered
      *  - usampler2DArray fastuidraw_imageIndexAtlas the texels of the index atlas (AtlasIndexBackingStoreBase) for images
      *  - usampler2DArray fastuidraw_glyphTexelStoreUINT the glyph texels (GlyphAtlasTexelBackingStoreBase), only available
      *    if FASTUIDRAW_PAINTER_EMULATE_GLYPH_TEXEL_STORE_FLOAT is NOT defined
