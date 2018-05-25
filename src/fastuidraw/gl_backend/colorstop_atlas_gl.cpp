@@ -68,9 +68,9 @@ namespace
     #ifdef FASTUIDRAW_GL_USE_GLES
 
     typedef fastuidraw::gl::detail::TextureGL<GL_TEXTURE_2D_ARRAY,
-                                             GL_RGBA8, GL_RGBA,
-                                             GL_UNSIGNED_BYTE,
-                                             GL_LINEAR> TextureGL;
+                                              GL_RGBA8, GL_RGBA,
+                                              GL_UNSIGNED_BYTE,
+                                              GL_LINEAR, GL_LINEAR> TextureGL;
 
     static
     fastuidraw::ivec3
@@ -89,9 +89,9 @@ namespace
     #else
 
     typedef fastuidraw::gl::detail::TextureGL<GL_TEXTURE_1D_ARRAY,
-                                             GL_RGBA8, GL_RGBA,
-                                             GL_UNSIGNED_BYTE,
-                                             GL_LINEAR> TextureGL;
+                                              GL_RGBA8, GL_RGBA,
+                                              GL_UNSIGNED_BYTE,
+                                              GL_LINEAR, GL_LINEAR> TextureGL;
 
     static
     fastuidraw::ivec2

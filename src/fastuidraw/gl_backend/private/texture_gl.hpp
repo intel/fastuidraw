@@ -371,7 +371,8 @@ public:
   TextureGLGeneric(GLenum internal_format,
                    GLenum external_format,
                    GLenum external_type,
-                   GLenum filter,
+                   GLenum mag_filter,
+                   GLenum min_filter,
                    DimensionType dims, bool delayed,
                    unsigned int mipmap_levels = 1);
   ~TextureGLGeneric();
@@ -414,7 +415,8 @@ private:
   GLenum m_internal_format;
   GLenum m_external_format;
   GLenum m_external_type;
-  GLenum m_filter;
+  GLenum m_mag_filter;
+  GLenum m_min_filter;
 
   bool m_delayed;
   vecN<int, N> m_dims;
@@ -438,13 +440,15 @@ TextureGLGeneric<texture_target>::
 TextureGLGeneric(GLenum internal_format,
                  GLenum external_format,
                  GLenum external_type,
-                 GLenum filter,
+                 GLenum mag_filter,
+                 GLenum min_filter,
                  vecN<int, N> dims, bool delayed,
                  unsigned int mipmap_levels):
   m_internal_format(internal_format),
   m_external_format(external_format),
   m_external_type(external_type),
-  m_filter(filter),
+  m_mag_filter(mag_filter),
+  m_min_filter(min_filter),
   m_delayed(delayed),
   m_dims(dims),
   m_num_mipmaps(mipmap_levels),
@@ -570,8 +574,9 @@ create_texture(void) const
         || ctx.has_extension("GL_ARB_texture_storage");
     }
   tex_storage<texture_target>(m_use_tex_storage, m_internal_format, m_dims, m_num_mipmaps);
-  glTexParameteri(texture_target, GL_TEXTURE_MIN_FILTER, m_filter);
-  glTexParameteri(texture_target, GL_TEXTURE_MAG_FILTER, m_filter);
+  glTexParameteri(texture_target, GL_TEXTURE_MIN_FILTER, m_min_filter);
+  glTexParameteri(texture_target, GL_TEXTURE_MAG_FILTER, m_mag_filter);
+  glTexParameteri(texture_target, GL_TEXTURE_MAX_LEVEL, m_num_mipmaps);
   ++m_number_times_create_texture_called;
 }
 
@@ -672,13 +677,14 @@ template<GLenum texture_target,
          GLenum internal_format,
          GLenum external_format,
          GLenum external_type,
-         GLenum filter>
+         GLenum mag_filter,
+         GLenum min_filter>
 class TextureGL:public TextureGLGeneric<texture_target>
 {
 public:
   TextureGL(typename TextureGLGeneric<texture_target>::DimensionType dims, bool delayed):
     TextureGLGeneric<texture_target>(internal_format, external_format,
-                                     external_type, filter,
+                                     external_type, mag_filter, min_filter,
                                      dims, delayed)
   {}
 };

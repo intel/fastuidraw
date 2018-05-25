@@ -64,7 +64,7 @@ namespace
     typedef fastuidraw::gl::detail::TextureGL<GL_TEXTURE_2D_ARRAY,
                                               GL_R8UI, GL_RED_INTEGER,
                                               GL_UNSIGNED_BYTE,
-                                              GL_NEAREST> TextureGL;
+                                              GL_NEAREST, GL_NEAREST> TextureGL;
     TextureGL m_backing_store;
     mutable GLuint m_texture_as_r8;
   };
@@ -354,7 +354,8 @@ GeometryStoreGL_Texture(fastuidraw::ivec2 log2_wh, unsigned int number_texels, b
   GeometryStoreGL(number_texels, N, GL_TEXTURE_2D_ARRAY, log2_wh),
   m_layer_dims(1 << log2_wh.x(), 1 << log2_wh.y()),
   m_texels_per_layer(m_layer_dims.x() * m_layer_dims.y()),
-  m_backing_store(internal_format(N), external_format(N), GL_FLOAT, GL_NEAREST,
+  m_backing_store(internal_format(N), external_format(N), GL_FLOAT,
+                  GL_NEAREST, GL_NEAREST,
                   texture_size(m_layer_dims, number_texels), delayed)
 {
   FASTUIDRAWassert(N <= 4 && N > 0);
