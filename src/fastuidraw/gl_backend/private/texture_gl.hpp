@@ -576,7 +576,7 @@ create_texture(void) const
   tex_storage<texture_target>(m_use_tex_storage, m_internal_format, m_dims, m_num_mipmaps);
   glTexParameteri(texture_target, GL_TEXTURE_MIN_FILTER, m_min_filter);
   glTexParameteri(texture_target, GL_TEXTURE_MAG_FILTER, m_mag_filter);
-  glTexParameteri(texture_target, GL_TEXTURE_MAX_LEVEL, m_num_mipmaps);
+  glTexParameteri(texture_target, GL_TEXTURE_MAX_LEVEL, m_num_mipmaps - 1);
   ++m_number_times_create_texture_called;
 }
 
@@ -682,10 +682,11 @@ template<GLenum texture_target,
 class TextureGL:public TextureGLGeneric<texture_target>
 {
 public:
-  TextureGL(typename TextureGLGeneric<texture_target>::DimensionType dims, bool delayed):
+  TextureGL(typename TextureGLGeneric<texture_target>::DimensionType dims, bool delayed,
+            unsigned int num_mip_map_levels = 1):
     TextureGLGeneric<texture_target>(internal_format, external_format,
                                      external_type, mag_filter, min_filter,
-                                     dims, delayed)
+                                     dims, delayed, num_mip_map_levels)
   {}
 };
 
