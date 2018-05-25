@@ -36,7 +36,7 @@ namespace
   public:
     typedef fastuidraw::gl::detail::TextureGL<GL_TEXTURE_2D_ARRAY,
                                               internal_format, external_format,
-                                              GL_UNSIGNED_BYTE, filter> type;
+                                              GL_UNSIGNED_BYTE, filter, filter> type;
   };
 
   class ColorBackingStoreGL:public fastuidraw::AtlasColorBackingStoreBase
