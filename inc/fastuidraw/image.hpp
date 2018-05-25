@@ -50,6 +50,19 @@ class Image;
     {}
 
     /*!
+     * To be implemented by a derived class to return true
+     * if a region (across all mipmap levels) has a constant
+     * color.
+     * \param location location at LOD 0
+     * \param square_size width and height of region to check
+     * \param dst if all have texels of the region have the same
+     *            color, write that color value to dst.
+     */
+    virtual
+    bool
+    all_same_color(ivec2 location, int square_size, u8vec4 *dst) const = 0;
+
+    /*!
      * To be implemented by a derived class to write to
      * a \ref c_array of \ref u8vec4 data a rectangle of
      * texels of a particular mipmap level. NOTE: if pixels
@@ -68,10 +81,9 @@ class Image;
      *            0 <= x < square_size and 0 <= y < square_size()
      */
     virtual
-    bool
+    void
     fetch_texels(unsigned int mimpap_level, ivec2 location,
-                 int square_size,
-                 c_array<u8vec4> dst) const = 0;
+                 unsigned int square_size, c_array<u8vec4> dst) const = 0;
   };
 
   /*!
@@ -93,11 +105,14 @@ class Image;
      */
     ImageSourceCArray(uvec2 dimension,
                       c_array<const c_array<const u8vec4> > pdata);
-
     virtual
     bool
-    fetch_texels(unsigned int mimpap_level, ivec2 location, int square_size,
-                 c_array<u8vec4> dst) const;
+    all_same_color(ivec2 location, int square_size, u8vec4 *dst) const;
+
+    virtual
+    void
+    fetch_texels(unsigned int mimpap_level, ivec2 location,
+                 unsigned int square_size, c_array<u8vec4> dst) const;
 
   private:
     uvec2 m_dimensions;
@@ -138,18 +153,27 @@ class Image;
 
     /*!
      * To be implemented by a derived class to set color data into the backing store.
-     * \param x horizontal position
-     * \param y vertical position
-     * \param l layer of position
-     * \param w width of data
-     * \param h height of data
-     * \param data RGBA8 values
+     * \param dst_xy x and y coordinates of location to place data in the atlas
+     * \param dst_l layer of position to place data in the atlas
+     * \param src_xy x and y coordinates from which to take data from the ImageSourceBase
+     * \param size width and height of region to copy into the backing store.
+     * \param data ImageSourceBase from which to src data
      */
     virtual
     void
-    set_data(int x, int y, int l,
-             int w, int h,
-             c_array<const u8vec4> data) = 0;
+    set_data(ivec2 dst_xy, int dst_l, ivec2 src_xy,
+             unsigned int size, const ImageSourceBase &data) = 0;
+
+    /*!
+     * To be implemented by a derived class to set color data into the backing store.
+     * \param dst_xy x and y coordinates of location to place data in the atlas
+     * \param dst_l layer of position to place data in the atlas
+     * \param size width and height of region to copy into the backing store.
+     * \param color_value value with which to fill EVERY texel of the
+     */
+    virtual
+    void
+    set_data(ivec2 dst_xy, int dst_l, unsigned int size, u8vec4 color_value) = 0;
 
     /*!
      * To be implemented by a derived class
@@ -465,10 +489,20 @@ class Image;
      * Adds a tile to the atlas returning the location
      * (in pixels) of the tile in the backing store
      * of the atlas.
-     * \param data color/image data to which to set the tile
+     * \param src_xy location from ImageSourceBase to take data
+     * \param image_data image data to which to set the tile
      */
     ivec3
-    add_color_tile(c_array<const u8vec4> data);
+    add_color_tile(ivec2 src_xy, const ImageSourceBase &image_data);
+
+    /*!
+     * Adds a tile of a cosntant color to the atlas returning
+     * the location (in pixels) of the tile in the backing store
+     * of the atlas.
+     * \param image_data image data to which to set the tile
+     */
+    ivec3
+    add_color_tile(u8vec4 color_data);
 
     /*!
      * Mark a tile as free in the atlas
