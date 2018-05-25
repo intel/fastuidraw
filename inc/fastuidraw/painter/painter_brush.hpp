@@ -303,7 +303,7 @@ namespace fastuidraw
         /*!
          * first bit used to store Image::number_index_lookups()
          */
-        image_number_index_lookups_bit0,
+        image_number_index_lookups_bit0 = 0,
 
         /*!
          * first bit used to store Image::slack()
