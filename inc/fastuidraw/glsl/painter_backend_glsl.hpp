@@ -362,14 +362,28 @@ namespace fastuidraw
          * as unfiltered backed by ImageAtlas::color_store().
          */
         unsigned int
-        image_atlas_color_tiles(void) const;
+        image_atlas_color_tiles_unfiltered(void) const;
 
         /*!
-         * Set the value returned by image_atlas_color_tiles(void) const.
+         * Set the value returned by (void) const.
          * Default value is 1.
          */
         BindingPoints&
-        image_atlas_color_tiles(unsigned int);
+        image_atlas_color_tiles_unfiltered(unsigned int);
+
+        /*!
+         * Specifies the binding point for the sampler2DArray
+         * as filtered backed by ImageAtlas::color_store().
+         */
+        unsigned int
+        image_atlas_color_tiles_filtered(void) const;
+
+        /*!
+         * Set the value returned by image_atlas_color_tiles_filtered(void) const.
+         * Default value is 2.
+         */
+        BindingPoints&
+        image_atlas_color_tiles_filtered(unsigned int);
 
         /*!
          * Specifies the binding point for the usampler2DArray
@@ -380,7 +394,7 @@ namespace fastuidraw
 
         /*!
          * Set the value returned by image_atlas_index_tiles(void) const.
-         * Default value is 2.
+         * Default value is 3.
          */
         BindingPoints&
         image_atlas_index_tiles(unsigned int);
@@ -394,7 +408,7 @@ namespace fastuidraw
 
         /*!
          * Set the value returned by glyph_atlas_texel_store_uint(void) const.
-         * Default value is 3.
+         * Default value is 4.
          */
         BindingPoints&
         glyph_atlas_texel_store_uint(unsigned int);
@@ -410,7 +424,7 @@ namespace fastuidraw
 
         /*!
          * Set the value returned by glyph_atlas_texel_store_float(void) const.
-         * Default value is 4.
+         * Default value is 5.
          */
         BindingPoints&
         glyph_atlas_texel_store_float(unsigned int);
@@ -428,7 +442,7 @@ namespace fastuidraw
 
         /*!
          * Set the value returned by glyph_atlas_geometry_store(void) const.
-         * Default value is 5.
+         * Default value is 6.
          */
         BindingPoints&
         glyph_atlas_geometry_store(unsigned int);
@@ -459,7 +473,7 @@ namespace fastuidraw
 
         /*!
          * Set the value returned by data_store_buffer_tbo(void) const.
-         * Default value is 6.
+         * Default value is 7.
          */
         BindingPoints&
         data_store_buffer_tbo(unsigned int);
