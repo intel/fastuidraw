@@ -12,26 +12,26 @@
 
 void
 FASTUIDRAW_ATLAS_COMPUTE_COORD(in vec2 punnormalized_index_tex_coord,
-                              in int pindex_layer,
-                              in int pnum_levels,
-                              in int slack,
-                              out vec2 return_value_unnormalized_texcoord_xy,
-                              out int return_value_layer)
+                               in uint pindex_layer,
+                               in uint pnum_levels,
+                               in uint slack,
+                               out vec2 return_value_unnormalized_texcoord_xy,
+                               out uint return_value_layer)
 {
-  int index_layer = pindex_layer;
+  uint index_layer = pindex_layer;
   vec2 unnormalized_index_tex_coord = punnormalized_index_tex_coord;
-  ivec4 tile_id;
+  uvec4 tile_id;
   vec2 color_atlas_texcoord_xy;
   ivec2 itexel_coordinate;
 
 
   itexel_coordinate = ivec2(unnormalized_index_tex_coord);
-  tile_id = ivec4(texelFetch(FASTUIDRAW_INDEX_ATLAS,
-                             ivec3(itexel_coordinate, index_layer),
-                             0));
-  index_layer = tile_id.z + 256 * tile_id.w;
+  tile_id = texelFetch(FASTUIDRAW_INDEX_ATLAS,
+                       ivec3(itexel_coordinate, index_layer),
+                       0);
+  index_layer = tile_id.z + 256u * tile_id.w;
 
-  for(int i = 1; i < pnum_levels; ++i)
+  for(uint i = 1u; i < pnum_levels; ++i)
     {
       vec2 index_tile_offset;
       vec2 texel_coordinate;
@@ -42,13 +42,12 @@ FASTUIDRAW_ATLAS_COMPUTE_COORD(in vec2 punnormalized_index_tex_coord,
         + vec2(tile_id.xy) * float(FASTUIDRAW_INDEX_TILE_SIZE);
 
       itexel_coordinate = ivec2(texel_coordinate);
-      tile_id = ivec4(texelFetch(FASTUIDRAW_INDEX_ATLAS,
-                                 ivec3(itexel_coordinate, index_layer),
-                                 0));
-      index_layer = tile_id.z + 256 * tile_id.w;
+      tile_id = texelFetch(FASTUIDRAW_INDEX_ATLAS,
+                           ivec3(itexel_coordinate, index_layer),
+                           0);
+      index_layer = tile_id.z + 256u * tile_id.w;
 
       unnormalized_index_tex_coord = texel_coordinate;
-
     }
 
   /* at this point index_layer gives
@@ -57,9 +56,10 @@ FASTUIDRAW_ATLAS_COMPUTE_COORD(in vec2 punnormalized_index_tex_coord,
      the color atlas
   */
   vec2 tile_offset;
-  int subtile_image_size;
+  uint subtile_image_size;
 
-  subtile_image_size = FASTUIDRAW_COLOR_TILE_SIZE - 2 * slack;
+  subtile_image_size = uint(FASTUIDRAW_COLOR_TILE_SIZE);
+  subtile_image_size -= 2u * slack;
   tile_offset = (unnormalized_index_tex_coord - vec2(itexel_coordinate)) * float(subtile_image_size);
 
   return_value_unnormalized_texcoord_xy = tile_offset //offset into tile
