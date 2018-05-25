@@ -106,6 +106,13 @@ class TextureTargetDimension<GL_TEXTURE_3D>
 public:
   enum { N = 3 };
   enum { Binding = GL_TEXTURE_BINDING_3D };
+
+  static
+  vecN<GLsizei, 3>
+  next_lod_size(vecN<GLsizei, 3> dims)
+  {
+    return dims / 2;
+  }
 };
 #endif
 
@@ -115,6 +122,14 @@ class TextureTargetDimension<GL_TEXTURE_2D_ARRAY>
 public:
   enum { N = 3 };
   enum { Binding = GL_TEXTURE_BINDING_2D_ARRAY };
+
+  static
+  vecN<GLsizei, 3>
+  next_lod_size(vecN<GLsizei, 3> dims)
+  {
+    vecN<GLsizei, 3> R(dims.x() / 2, dims.y() / 2, dims.z());
+    return R;
+  }
 };
 
 #ifdef GL_TEXTURE_CUBE_MAP_ARRAY
@@ -124,36 +139,48 @@ class TextureTargetDimension<GL_TEXTURE_CUBE_MAP_ARRAY>
 public:
   enum { N = 3 };
   enum { Binding = GL_TEXTURE_BINDING_CUBE_MAP_ARRAY };
+
+  static
+  vecN<GLsizei, 3>
+  next_lod_size(vecN<GLsizei, 3> dims)
+  {
+    vecN<GLsizei, 3> R(dims.x() / 2, dims.y() / 2, dims.z());
+    return R;
+  }
 };
 #endif
 
+template<GLenum texture_target>
 inline
 void
-tex_storage(bool use_tex_storage,
-            GLenum texture_target,
-            GLint internalformat,
-            vecN<GLsizei, 3> size)
+tex_storage(bool use_tex_storage, GLint internalformat, vecN<GLsizei, 3> size,
+            unsigned int num_levels = 1)
 {
   if (use_tex_storage)
     {
-      glTexStorage3D(texture_target, 1, internalformat,
+      glTexStorage3D(texture_target, num_levels, internalformat,
                      size.x(), size.y(), size.z());
     }
   else
     {
-      glTexImage3D(texture_target,
-                   0,
-                   internalformat,
-                   size.x(), size.y(), size.z(), 0,
-                   format_from_internal_format(internalformat),
-                   type_from_internal_format(internalformat),
-                   nullptr);
+      for (unsigned int i = 0; i < num_levels; ++i)
+        {
+          glTexImage3D(texture_target,
+                       i,
+                       internalformat,
+                       size.x(), size.y(), size.z(), 0,
+                       format_from_internal_format(internalformat),
+                       type_from_internal_format(internalformat),
+                       nullptr);
+          size = TextureTargetDimension<texture_target>::next_lod_size(size);
+        }
     }
 }
 
+template<GLenum texture_target>
 inline
 void
-tex_sub_image(GLenum texture_target, vecN<GLint, 3> offset,
+tex_sub_image(vecN<GLint, 3> offset,
               vecN<GLsizei, 3> size, GLenum format, GLenum type,
               const void *pixels)
 {
@@ -163,9 +190,10 @@ tex_sub_image(GLenum texture_target, vecN<GLint, 3> offset,
                   format, type, pixels);
 }
 
+template<GLenum texture_target>
 inline
 void
-tex_sub_image(GLenum texture_target, int level, vecN<GLint, 3> offset,
+tex_sub_image(int level, vecN<GLint, 3> offset,
               vecN<GLsizei, 3> size, GLenum format, GLenum type,
               const void *pixels)
 {
@@ -184,6 +212,14 @@ class TextureTargetDimension<GL_TEXTURE_2D>
 public:
   enum { N = 2 };
   enum { Binding = GL_TEXTURE_BINDING_2D };
+
+  static
+  vecN<GLsizei, 2>
+  next_lod_size(vecN<GLsizei, 2> dims)
+  {
+    vecN<GLsizei, 2> R(dims.x() / 2, dims.y() / 2);
+    return R;
+  }
 };
 
 #ifdef GL_TEXTURE_1D_ARRAY
@@ -193,6 +229,14 @@ class TextureTargetDimension<GL_TEXTURE_1D_ARRAY>
 public:
   enum { N = 2 };
   enum { Binding = GL_TEXTURE_BINDING_1D_ARRAY };
+
+  static
+  vecN<GLsizei, 2>
+  next_lod_size(vecN<GLsizei, 2> dims)
+  {
+    vecN<GLsizei, 2> R(dims.x() / 2, dims.y());
+    return R;
+  }
 };
 #endif
 
@@ -203,34 +247,45 @@ class TextureTargetDimension<GL_TEXTURE_RECTANGLE>
 public:
   enum { N = 2 };
   enum { Binding = GL_TEXTURE_BINDING_RECTANGLE };
+
+  vecN<GLsizei, 2>
+  next_lod_size(vecN<GLsizei, 2> dims)
+  {
+    return dims;
+  }
 };
 #endif
 
+template<GLenum texture_target>
 inline
 void
-tex_storage(bool use_tex_storage,
-            GLenum texture_target, GLint internalformat, vecN<GLsizei, 2> size)
+tex_storage(bool use_tex_storage, GLint internalformat, vecN<GLsizei, 2> size,
+            unsigned int num_levels = 1)
 {
   if (use_tex_storage)
     {
-      glTexStorage2D(texture_target, 1, internalformat, size.x(), size.y());
+      glTexStorage2D(texture_target, num_levels, internalformat, size.x(), size.y());
     }
   else
     {
-      glTexImage2D(texture_target,
-                   0,
-                   internalformat,
-                   size.x(), size.y(), 0,
-                   format_from_internal_format(internalformat),
-                   type_from_internal_format(internalformat),
-                   nullptr);
+      for (unsigned int i = 0; i < num_levels; ++i)
+        {
+          glTexImage2D(texture_target,
+                       0,
+                       internalformat,
+                       size.x(), size.y(), 0,
+                       format_from_internal_format(internalformat),
+                       type_from_internal_format(internalformat),
+                       nullptr);
+          size = TextureTargetDimension<texture_target>::next_lod_size(size);
+        }
     }
 }
 
+template<GLenum texture_target>
 inline
 void
-tex_sub_image(GLenum texture_target,
-              vecN<GLint, 2> offset,
+tex_sub_image(vecN<GLint, 2> offset,
               vecN<GLsizei, 2> size,
               GLenum format, GLenum type, const void *pixels)
 {
@@ -240,10 +295,10 @@ tex_sub_image(GLenum texture_target,
                   format, type, pixels);
 }
 
+template<GLenum texture_target>
 inline
 void
-tex_sub_image(GLenum texture_target,
-              int level,
+tex_sub_image(int level,
               vecN<GLint, 2> offset,
               vecN<GLsizei, 2> size,
               GLenum format, GLenum type, const void *pixels)
@@ -264,15 +319,23 @@ class TextureTargetDimension<GL_TEXTURE_1D>
 public:
   enum { N = 1 };
   enum { Binding = GL_TEXTURE_BINDING_1D };
+
+  static
+  vecN<GLsizei, 1>
+  next_lod_size(vecN<GLsizei, 1> dims)
+  {
+    return dims / 2;
+  }
 };
 #endif
 
 #if defined(glTexStorage1D)
 
+template<GLenum texture_target>
 inline
 void
-tex_storage(bool use_tex_storage,
-            GLenum texture_target, GLint internalformat, vecN<GLsizei, 1> size)
+tex_storage(bool use_tex_storage, GLint internalformat, vecN<GLsizei, 1> size,
+            unsigned int num_levels = 1)
 {
   if (use_tex_storage)
     {
@@ -280,28 +343,34 @@ tex_storage(bool use_tex_storage,
     }
   else
     {
-      glTexImage1D(texture_target,
-                   0,
-                   internalformat,
-                   size.x(), 0,
-                   format_from_internal_format(internalformat),
-                   type_from_internal_format(internalformat),
-                   nullptr);
+      for (unsigned int i = 0; i < num_levels; ++i)
+        {
+          glTexImage1D(texture_target,
+                       0,
+                       internalformat,
+                       size.x(), 0,
+                       format_from_internal_format(internalformat),
+                       type_from_internal_format(internalformat),
+                       nullptr);
+          size = TextureTargetDimension<texture_target>::next_lod_size(size);
+        }
     }
 }
 
+template<GLenum texture_target>
 inline
 void
-tex_sub_image(GLenum texture_target, vecN<GLint, 1> offset,
+tex_sub_image(vecN<GLint, 1> offset,
               vecN<GLsizei, 1> size, GLenum format, GLenum type,
               const void *pixels)
 {
   glTexSubImage1D(texture_target, 0, offset.x(), size.x(), format, type, pixels);
 }
 
+template<GLenum texture_target>
 inline
 void
-tex_sub_image(GLenum texture_target, int level, vecN<GLint, 1> offset,
+tex_sub_image(int level, vecN<GLint, 1> offset,
               vecN<GLsizei, 1> size, GLenum format, GLenum type,
               const void *pixels)
 {
@@ -526,7 +595,7 @@ create_texture(void) const
       m_use_tex_storage = ctx.is_es() || ctx.version() >= ivec2(4, 2)
         || ctx.has_extension("GL_ARB_texture_storage");
     }
-  tex_storage(m_use_tex_storage, texture_target, m_internal_format, m_dims);
+  tex_storage<texture_target>(m_use_tex_storage, m_internal_format, m_dims);
   glTexParameteri(texture_target, GL_TEXTURE_MIN_FILTER, m_filter);
   glTexParameteri(texture_target, GL_TEXTURE_MAG_FILTER, m_filter);
   ++m_number_times_create_texture_called;
@@ -551,11 +620,10 @@ flush(void)
       for(const auto &cmd : m_unflushed_commands)
         {
           FASTUIDRAWassert(!cmd.second.empty());
-          tex_sub_image(texture_target,
-                        cmd.first.m_location,
-                        cmd.first.m_size,
-                        m_external_format, m_external_type,
-                        &cmd.second[0]);
+          tex_sub_image<texture_target>(cmd.first.m_location,
+                                        cmd.first.m_size,
+                                        m_external_format, m_external_type,
+                                        &cmd.second[0]);
         }
       m_unflushed_commands.clear();
     }
@@ -585,11 +653,10 @@ set_data_vector(const EntryLocation &loc,
       flush_size_change();
       glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
       glBindTexture(texture_target, m_texture);
-      tex_sub_image(texture_target,
-                    loc.m_location,
-                    loc.m_size,
-                    m_external_format, m_external_type,
-                    &data[0]);
+      tex_sub_image<texture_target>(loc.m_location,
+                                    loc.m_size,
+                                    m_external_format, m_external_type,
+                                    &data[0]);
     }
 }
 
@@ -616,11 +683,10 @@ set_data_c_array(const EntryLocation &loc,
       flush_size_change();
       glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
       glBindTexture(texture_target, m_texture);
-      tex_sub_image(texture_target,
-                    loc.m_location,
-                    loc.m_size,
-                    m_external_format, m_external_type,
-                    data.c_ptr());
+      tex_sub_image<texture_target>(loc.m_location,
+                                    loc.m_size,
+                                    m_external_format, m_external_type,
+                                    data.c_ptr());
 
     }
 }
@@ -691,7 +757,7 @@ clear(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset,
 
   glGetIntegerv(TextureTargetDimension<texture_target>::Binding, &old_texture);
   glBindTexture(texture_target, texture);
-  tex_sub_image(texture_target, level, offset, sz, format, type, &zeros[0]);
+  tex_sub_image<texture_target>(level, offset, sz, format, type, &zeros[0]);
   glBindTexture(texture_target, old_texture);
 }
 

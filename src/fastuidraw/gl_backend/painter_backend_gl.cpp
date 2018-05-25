@@ -1344,10 +1344,13 @@ GLuint
 SurfaceGLPrivate::
 auxiliary_buffer(enum auxiliary_buffer_t tp)
 {
+  using namespace fastuidraw;
+  using namespace gl;
+
   if (!m_auxiliary_buffer[tp])
     {
       GLenum internalFormat;
-      fastuidraw::gl::detail::ClearImageSubData clearer;
+      detail::ClearImageSubData clearer;
 
       internalFormat = auxiliaryBufferInternalFmt(tp);
       glGenTextures(1, &m_auxiliary_buffer[tp]);
@@ -1355,15 +1358,15 @@ auxiliary_buffer(enum auxiliary_buffer_t tp)
 
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, m_auxiliary_buffer[tp]);
-      fastuidraw::gl::detail::tex_storage(true, GL_TEXTURE_2D,
-                                          internalFormat,
-                                          m_properties.dimensions());
+      detail::tex_storage<GL_TEXTURE_2D>(true,
+                                         internalFormat,
+                                         m_properties.dimensions());
 
       clearer.clear<GL_TEXTURE_2D>(m_auxiliary_buffer[tp], 0,
                                    0, 0, 0, //origin
                                    m_properties.dimensions().x(), m_properties.dimensions().y(), 1, //dimensions
-                                   fastuidraw::gl::detail::format_from_internal_format(internalFormat),
-                                   fastuidraw::gl::detail::type_from_internal_format(internalFormat));
+                                   detail::format_from_internal_format(internalFormat),
+                                   detail::type_from_internal_format(internalFormat));
     }
 
   return m_auxiliary_buffer[tp];
@@ -1373,6 +1376,9 @@ GLuint
 SurfaceGLPrivate::
 buffer(enum buffer_t tp)
 {
+  using namespace fastuidraw;
+  using namespace gl;
+
   if (m_buffers[tp] == 0)
     {
       GLenum tex_target, tex_target_binding;
@@ -1396,10 +1402,10 @@ buffer(enum buffer_t tp)
       FASTUIDRAWassert(m_buffers[tp] != 0);
       glBindTexture(tex_target, m_buffers[tp]);
 
-      if (m_properties.msaa() <= 1)
+      if (tex_target == GL_TEXTURE_2D)
         {
-          fastuidraw::gl::detail::tex_storage(true, tex_target, internalFormat,
-                                              m_properties.dimensions());
+          detail::tex_storage<GL_TEXTURE_2D>(true, internalFormat,
+                                             m_properties.dimensions());
           glTexParameteri(tex_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
           glTexParameteri(tex_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         }
