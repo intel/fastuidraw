@@ -47,9 +47,12 @@ namespace
 
     virtual
     void
-    set_data(int x, int y, int l,
-             int w, int h,
-             fastuidraw::c_array<const fastuidraw::u8vec4> pdata);
+    set_data(fastuidraw::ivec2 dst_xy, int dst_l, fastuidraw::ivec2 src_xy,
+             unsigned int size, const fastuidraw::ImageSourceBase &data);
+    virtual
+    void
+    set_data(fastuidraw::ivec2 dst_xy, int dst_l,
+             unsigned int size, fastuidraw::u8vec4 color_value);
 
     virtual
     void
@@ -226,21 +229,49 @@ ColorBackingStoreGL(int log2_tile_size,
 
 void
 ColorBackingStoreGL::
-set_data(int x, int y, int l,
-         int w, int h,
-         fastuidraw::c_array<const fastuidraw::u8vec4> pdata)
+set_data(fastuidraw::ivec2 dst_xy, int dst_l, fastuidraw::ivec2 src_xy,
+         unsigned int size, const fastuidraw::ImageSourceBase &image_data)
 {
-  TextureGL::EntryLocation V;
-  fastuidraw::c_array<const uint8_t> data;
+  using namespace fastuidraw;
 
-  V.m_location.x() = x;
-  V.m_location.y() = y;
-  V.m_location.z() = l;
-  V.m_size.x() = w;
-  V.m_size.y() = h;
+  TextureGL::EntryLocation V;
+  std::vector<u8vec4> data_storage(size * size);
+  fastuidraw::c_array<u8vec4> data(make_c_array(data_storage));
+  fastuidraw::c_array<const uint8_t> raw_data;
+
+  V.m_location.x() = dst_xy.x();
+  V.m_location.y() = dst_xy.y();
+  V.m_location.z() = dst_l;
+  V.m_size.x() = size;
+  V.m_size.y() = size;
   V.m_size.z() = 1;
-  data = pdata.reinterpret_pointer<const uint8_t>();
-  m_backing_store.set_data_c_array(V, data);
+
+  image_data.fetch_texels(0, src_xy, size, data);
+  raw_data = data.reinterpret_pointer<const uint8_t>();
+  m_backing_store.set_data_c_array(V, raw_data);
+}
+
+void
+ColorBackingStoreGL::
+set_data(fastuidraw::ivec2 dst_xy, int dst_l,
+         unsigned int size, fastuidraw::u8vec4 color_value)
+{
+  using namespace fastuidraw;
+
+  TextureGL::EntryLocation V;
+  std::vector<u8vec4> data_storage(size * size, color_value);
+  fastuidraw::c_array<u8vec4> data(make_c_array(data_storage));
+  fastuidraw::c_array<const uint8_t> raw_data;
+
+  V.m_location.x() = dst_xy.x();
+  V.m_location.y() = dst_xy.y();
+  V.m_location.z() = dst_l;
+  V.m_size.x() = size;
+  V.m_size.y() = size;
+  V.m_size.z() = 1;
+
+  raw_data = data.reinterpret_pointer<const uint8_t>();
+  m_backing_store.set_data_c_array(V, raw_data);
 }
 
 fastuidraw::ivec3

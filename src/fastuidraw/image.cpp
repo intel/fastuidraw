@@ -402,7 +402,6 @@ create_color_tiles(const fastuidraw::ImageSourceBase &image_data)
   m_dimensions_index_divisor = static_cast<float>(tile_interior_size);
 
   unsigned int savings(0);
-  std::vector<fastuidraw::u8vec4> tile_data(color_tile_size * color_tile_size);
   for(int ty = 0, source_y = -m_slack;
       ty < m_num_color_tiles.y();
       ++ty, source_y += tile_interior_size)
@@ -412,19 +411,16 @@ create_color_tiles(const fastuidraw::ImageSourceBase &image_data)
           ++tx, source_x += tile_interior_size)
         {
           fastuidraw::ivec3 new_tile;
+          fastuidraw::ivec2 src_xy(source_x, source_y);
           bool all_same_color;
+          fastuidraw::u8vec4 same_color_value;
 
-          all_same_color = image_data.fetch_texels(0, //mipmap LOD
-                                                   fastuidraw::ivec2(source_x, source_y), //location
-                                                   color_tile_size, //dimensions
-                                                   make_c_array(tile_data));
+          all_same_color = image_data.all_same_color(src_xy, color_tile_size, &same_color_value);
 
           if (all_same_color)
             {
               std::map<fastuidraw::u8vec4, fastuidraw::ivec3>::iterator iter;
-              fastuidraw::u8vec4 same_color_value;
 
-              same_color_value = tile_data[0];
               iter = m_repeated_tiles.find(same_color_value);
               if (iter != m_repeated_tiles.end())
                 {
@@ -433,18 +429,13 @@ create_color_tiles(const fastuidraw::ImageSourceBase &image_data)
                 }
               else
                 {
-                  /* we only need to call std::fill if the color tile
-                   * is only partially filled, but I am lazy and just
-                   * call it always.
-                   */
-                  std::fill(tile_data.begin(), tile_data.end(), same_color_value);
-                  new_tile = m_atlas->add_color_tile(make_c_array(tile_data));
+                  new_tile = m_atlas->add_color_tile(same_color_value);
                   m_repeated_tiles[same_color_value] = new_tile;
                 }
             }
           else
             {
-              new_tile = m_atlas->add_color_tile(make_c_array(tile_data));
+              new_tile = m_atlas->add_color_tile(src_xy, image_data);
             }
 
           m_color_tiles.push_back(per_color_tile(new_tile, !all_same_color) );
@@ -718,23 +709,49 @@ ImageSourceCArray(uvec2 dimensions,
 
 bool
 fastuidraw::ImageSourceCArray::
-fetch_texels(unsigned int mipmap_level,
-             ivec2 location, int square_size,
-             c_array<u8vec4> dst) const
+all_same_color(ivec2 location, int square_size, u8vec4 *dst) const
+{
+  location.x() = t_max(location.x(), 0);
+  location.y() = t_max(location.y(), 0);
+
+  location.x() = t_min(int(m_dimensions.x()) - 1, location.x());
+  location.y() = t_min(int(m_dimensions.y()) - 1, location.y());
+
+  square_size = t_min(int(m_dimensions.x()) - location.x(), square_size);
+  square_size = t_min(int(m_dimensions.y()) - location.y(), square_size);
+
+  *dst = m_data[0][location.x() + location.y() * m_dimensions.x()];
+  for (int y = 0, sy = location.y(); y < square_size; ++y, ++sy)
+    {
+      for (int x = 0, sx = location.x(); x < square_size; ++x, ++sx)
+        {
+          if (*dst != m_data[0][sx + sy * m_dimensions.x()])
+            {
+              return false;
+            }
+        }
+    }
+  return true;
+}
+
+void
+fastuidraw::ImageSourceCArray::
+fetch_texels(unsigned int mipmap_level, ivec2 location,
+             unsigned int square_size, c_array<u8vec4> dst) const
 {
   if (mipmap_level >= m_data.size())
     {
       std::fill(dst.begin(), dst.end(), u8vec4(0u, 0u, 0u, 0u));
-      return true;
     }
-
-  return copy_sub_data(dst, square_size,
-                       m_data[mipmap_level],
-                       location.x(), location.y(),
-                       ivec2(m_dimensions.x() >> mipmap_level,
-                             m_dimensions.y() >> mipmap_level));
+  else
+    {
+      copy_sub_data(dst, square_size,
+                    m_data[mipmap_level],
+                    location.x(), location.y(),
+                    ivec2(m_dimensions.x() >> mipmap_level,
+                          m_dimensions.y() >> mipmap_level));
+    }
 }
-
 
 //////////////////////////////////////////////////
 // fastuidraw::AtlasColorBackingStoreBase methods
@@ -991,10 +1008,29 @@ number_free_color_tiles(void) const
   return d->m_color_tiles.number_free();
 }
 
+fastuidraw::ivec3
+fastuidraw::ImageAtlas::
+add_color_tile(u8vec4 color_data)
+{
+  ImageAtlasPrivate *d;
+  d = static_cast<ImageAtlasPrivate*>(m_d);
+
+  ivec3 return_value;
+  autolock_mutex M(d->m_mutex);
+
+  return_value = d->m_color_tiles.allocate_tile();
+  d->m_color_store->set_data(ivec2(return_value.x() * d->m_color_tiles.tile_size(),
+                                   return_value.y() * d->m_color_tiles.tile_size()),
+                             return_value.z(),
+                             d->m_color_tiles.tile_size(),
+                             color_data);
+
+  return return_value;
+}
 
 fastuidraw::ivec3
 fastuidraw::ImageAtlas::
-add_color_tile(fastuidraw::c_array<const u8vec4> data)
+add_color_tile(ivec2 src_xy, const ImageSourceBase &image_data)
 {
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
@@ -1002,12 +1038,11 @@ add_color_tile(fastuidraw::c_array<const u8vec4> data)
   autolock_mutex M(d->m_mutex);
 
   return_value = d->m_color_tiles.allocate_tile();
-  d->m_color_store->set_data(return_value.x() * d->m_color_tiles.tile_size(),
-                             return_value.y() * d->m_color_tiles.tile_size(),
+  d->m_color_store->set_data(ivec2(return_value.x() * d->m_color_tiles.tile_size(),
+                                   return_value.y() * d->m_color_tiles.tile_size()),
                              return_value.z(),
-                             d->m_color_tiles.tile_size(),
-                             d->m_color_tiles.tile_size(),
-                             data);
+                             src_xy, d->m_color_tiles.tile_size(),
+                             image_data);
   return return_value;
 }
 
