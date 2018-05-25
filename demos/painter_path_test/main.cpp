@@ -1954,14 +1954,12 @@ derived_init(int w, int h)
 
   if (!m_image_file.m_value.empty())
     {
-      std::vector<u8vec4> image_data;
-      ivec2 image_size;
-
-      image_size = load_image_to_array(m_image_file.m_value, image_data);
-      if (image_size.x() > 0 && image_size.y() > 0)
+      ImageLoader image_data(m_image_file.m_value);
+      if (image_data.non_empty())
         {
-          m_image = Image::create(m_painter->image_atlas(), image_size.x(), image_size.y(),
-                                  cast_c_array(image_data), m_image_slack.m_value);
+          m_image = Image::create(m_painter->image_atlas(),
+                                  image_data.width(), image_data.height(),
+                                  image_data, m_image_slack.m_value);
         }
     }
 

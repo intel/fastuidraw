@@ -135,15 +135,17 @@ protected:
   void
   add_single_image(const std::string &filename)
   {
-    std::vector<u8vec4> image_data;
-    ivec2 image_size;
+    ImageLoader image_data(filename);
 
-    image_size = load_image_to_array(filename, image_data);
-    if (image_size.x() != 0 && image_size.y() != 0)
+    if (image_data.non_empty())
       {
-        m_image_handles.push_back(Image::create(m_atlas, image_size.x(), image_size.y(),
-                                                cast_c_array(image_data), m_slack.m_value));
+        reference_counted_ptr<Image> p;
+        p = Image::create(m_atlas, image_data.width(), image_data.height(),
+                          image_data, m_slack.m_value);
+
+        m_image_handles.push_back(p);
         m_image_names.push_back(filename);
+
         if (m_print_loaded_image_list.m_value)
           {
             std::cout << "Image \"" << filename
