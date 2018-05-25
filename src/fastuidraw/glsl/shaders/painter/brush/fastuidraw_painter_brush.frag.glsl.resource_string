@@ -119,7 +119,7 @@ fastuidraw_brush_compute_image_atlas_coord(in vec2 image_shader_coord,
 
 
 vec4
-fastuidraw_image_of_atlas(in vec2 q, in uint image_filter)
+fastuidraw_image_of_atlas(in vec2 q, in uint image_filter, in vec2 qdx, in vec2 qdy)
 {
   vec2 index_coord, texel_coord, image_xy;
   uint color_layer, image_layer;
@@ -146,8 +146,10 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter)
     }
   else if (image_filter == uint(fastuidraw_shader_image_filter_linear))
     {
-      image_color = texture(fastuidraw_imageAtlas,
-                            vec3(texel_coord * fastuidraw_imageAtlas_size_reciprocal, color_layer)).rgba;
+      image_color = textureGrad(fastuidraw_imageAtlas,
+                                vec3(texel_coord * fastuidraw_imageAtlas_size_reciprocal, color_layer),
+                                fastuidraw_imageAtlas_size_reciprocal.x * qdx,
+                                fastuidraw_imageAtlas_size_reciprocal.y * qdy);
     }
   else
     {
@@ -161,6 +163,7 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter)
       vec4 corner_coords, weight_sums, texture_coords;
       vec4 t00, t10, t01, t11;
 
+      /* TODO: obey qdx, qdy to get an LOD level */
       texel_coord -= vec2(0.5, 0.5);
       fract_texel_coord = fract(texel_coord);
       texel_coord -= fract_texel_coord;
@@ -176,10 +179,10 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter)
       texture_coords = corner_coords + vec4(x_weights.y, x_weights.w, y_weights.y, y_weights.w) / weight_sums;
       texture_coords *= fastuidraw_imageAtlas_size_reciprocal.xyxy;
 
-      t00 = texture(fastuidraw_imageAtlas, vec3(texture_coords.xz, color_layer));
-      t10 = texture(fastuidraw_imageAtlas, vec3(texture_coords.yz, color_layer));
-      t01 = texture(fastuidraw_imageAtlas, vec3(texture_coords.xw, color_layer));
-      t11 = texture(fastuidraw_imageAtlas, vec3(texture_coords.yw, color_layer));
+      t00 = textureLod(fastuidraw_imageAtlas, vec3(texture_coords.xz, color_layer), 0);
+      t10 = textureLod(fastuidraw_imageAtlas, vec3(texture_coords.yz, color_layer), 0);
+      t01 = textureLod(fastuidraw_imageAtlas, vec3(texture_coords.xw, color_layer), 0);
+      t11 = textureLod(fastuidraw_imageAtlas, vec3(texture_coords.yw, color_layer), 0);
 
       linear_weight.x = weight_sums.y / (weight_sums.x + weight_sums.y);
       linear_weight.y = weight_sums.w / (weight_sums.z + weight_sums.w);
@@ -195,7 +198,7 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter)
 #if defined(FASTUIDRAW_SUPPORT_BINDLESS_TEXTURE)
 
 vec4
-fastuidraw_image_of_bindless(in vec2 texel_coord, in uint image_filter)
+fastuidraw_image_of_bindless(in vec2 texel_coord, in uint image_filter, in vec2 qdx, in vec2 qdy)
 {
   #if defined(FASTUIDRAW_BINDLESS_HANDLE_UVEC2)
     uvec2 handle;
@@ -217,10 +220,9 @@ fastuidraw_image_of_bindless(in vec2 texel_coord, in uint image_filter)
     }
   else if (image_filter == uint(fastuidraw_shader_image_filter_linear))
     {
-      vec2 tex_coords;
-
-      tex_coords = texel_coord / textureSize(im, 0);
-      image_color = texture(im, tex_coords);
+      vec2 recip_sz = 1.0 / textureSize(im, 0);
+      image_color = textureGrad(im, texel_coord * recip_sz,
+                                qdx * recip_sz, qdy * recip_sz);
     }
   else
     {
@@ -230,6 +232,7 @@ fastuidraw_image_of_bindless(in vec2 texel_coord, in uint image_filter)
       vec4 t00, t10, t01, t11;
       vec2 recip_texSize = 1.0 / vec2(textureSize(im, 0));
 
+      /* TODO: obey qdx, qdy to get an LOD level */
       texel_coord -= vec2(0.5, 0.5);
       fract_texel_coord = fract(texel_coord);
       texel_coord -= fract_texel_coord;
@@ -245,10 +248,10 @@ fastuidraw_image_of_bindless(in vec2 texel_coord, in uint image_filter)
       texture_coords = corner_coords + vec4(x_weights.y, x_weights.w, y_weights.y, y_weights.w) / weight_sums;
       texture_coords *= recip_texSize.xyxy;
 
-      t00 = texture(im, texture_coords.xz);
-      t10 = texture(im, texture_coords.yz);
-      t01 = texture(im, texture_coords.xw);
-      t11 = texture(im, texture_coords.yw);
+      t00 = textureLod(im, texture_coords.xz, 0);
+      t10 = textureLod(im, texture_coords.yz, 0);
+      t01 = textureLod(im, texture_coords.xw, 0);
+      t11 = textureLod(im, texture_coords.yw, 0);
 
       linear_weight.x = weight_sums.y / (weight_sums.x + weight_sums.y);
       linear_weight.y = weight_sums.w / (weight_sums.z + weight_sums.w);
@@ -264,7 +267,7 @@ fastuidraw_image_of_bindless(in vec2 texel_coord, in uint image_filter)
 #else
 
 vec4
-fastuidraw_image_of_bindless(in vec2 p, in uint image_filter)
+fastuidraw_image_of_bindless(in vec2 p, in uint image_filter, in vec2 qdx, in vec2 qdy)
 {
   return vec4(1.0, 1.0, 1.0, 1.0);
 }
@@ -280,8 +283,12 @@ fastuidraw_compute_brush_color(void)
                            fastuidraw_brush_pen_color_z,
                            fastuidraw_brush_pen_color_w);
   vec2 p;
+  vec2 dfdpx, dfdpy;
 
   p = fastuidraw_brush_position;
+  dfdpx = dFdx(p);
+  dfdpy = dFdy(p);
+
   if (fastuidraw_brush_shader_has_repeat_window(fastuidraw_brush_shader))
     {
       p -= vec2(fastuidraw_brush_repeat_window_x, fastuidraw_brush_repeat_window_y);
@@ -326,13 +333,20 @@ fastuidraw_compute_brush_color(void)
       image_filter = FASTUIDRAW_EXTRACT_BITS(fastuidraw_shader_image_filter_bit0,
                                              fastuidraw_shader_image_filter_num_bits,
                                              fastuidraw_brush_shader);
+
+      if (!fastuidraw_brush_shader_use_mipmaps(fastuidraw_brush_shader))
+        {
+          dfdpx = vec2(0.0);
+          dfdpy = vec2(0.0);
+        }
+
       if (image_type == uint(fastuidraw_image_type_on_atlas))
         {
-          return_value *= fastuidraw_image_of_atlas(q, image_filter);
+          return_value *= fastuidraw_image_of_atlas(q, image_filter, dfdpx, dfdpy);
         }
       else
         {
-          return_value *= fastuidraw_image_of_bindless(q, image_filter);
+          return_value *= fastuidraw_image_of_bindless(q, image_filter, dfdpx, dfdpy);
         }
     }
 
