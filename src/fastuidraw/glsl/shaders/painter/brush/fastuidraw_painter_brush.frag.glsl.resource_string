@@ -88,11 +88,11 @@ fastuidraw_brush_cubic_weights(float x)
 
 void
 fastuidraw_brush_compute_image_atlas_coord(in vec2 image_shader_coord,
-                                          in int index_layer,
-                                          in int num_lookups,
-                                          in int slack,
-                                          out vec2 image_atlas_coord,
-                                          out int image_atlas_layer)
+                                           in uint index_layer,
+                                           in uint num_lookups,
+                                           in uint slack,
+                                           out vec2 image_atlas_coord,
+                                           out uint image_atlas_layer)
 {
   /* this seams silly, but there is a reason.
      On Mesa/i965 (as of Oct 23, 2015) without this wrapper,
@@ -101,30 +101,31 @@ fastuidraw_brush_compute_image_atlas_coord(in vec2 image_shader_coord,
      However, making the case of 1 explicit makes this
      thing work.
    */
-  if (num_lookups == 1)
+  if (num_lookups == 1u)
     {
       fastuidraw_compute_image_atlas_coord(image_shader_coord, index_layer,
-                                          1, slack,
-                                          image_atlas_coord,
-                                          image_atlas_layer);
+                                           1u, slack,
+                                           image_atlas_coord,
+                                           image_atlas_layer);
     }
   else
     {
       fastuidraw_compute_image_atlas_coord(image_shader_coord, index_layer,
-                                          num_lookups, slack,
-                                          image_atlas_coord,
-                                          image_atlas_layer);
+                                           num_lookups, slack,
+                                           image_atlas_coord,
+                                           image_atlas_layer);
     }
 }
+
 
 vec4
 fastuidraw_image_of_atlas(in vec2 q, in uint image_filter)
 {
   vec2 index_coord, texel_coord, image_xy;
-  int color_layer;
+  uint color_layer, image_layer;
   uint slack, number_lookups;
   vec4 image_color;
-
+  
   slack = fastuidraw_brush_image_slack;
   number_lookups = fastuidraw_brush_image_number_index_lookups;
 
@@ -134,8 +135,9 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter)
   /* lookup the texel coordinate in the large atlas from the index-tile
    *  coordinate.
    */
-  fastuidraw_brush_compute_image_atlas_coord(image_xy, int(fastuidraw_brush_image_layer),
-                                             int(number_lookups), int(slack),
+  image_layer = fastuidraw_brush_image_layer;
+  fastuidraw_brush_compute_image_atlas_coord(image_xy, image_layer,
+                                             number_lookups, slack,
                                              texel_coord, color_layer);
 
   if (image_filter == uint(fastuidraw_shader_image_filter_nearest))
@@ -186,7 +188,7 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter)
                         mix(t01, t11, linear_weight.x),
                         linear_weight.y);
     }
-
+    
   return image_color;
 }
 

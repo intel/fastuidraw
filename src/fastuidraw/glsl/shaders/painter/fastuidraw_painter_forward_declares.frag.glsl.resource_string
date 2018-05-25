@@ -33,11 +33,11 @@ fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_loca
 
 void
 fastuidraw_compute_image_atlas_coord(in vec2 image_shader_coord,
-                                     in int index_layer,
-                                     in int num_lookups,
-                                     in int slack,
+                                     in uint index_layer,
+                                     in uint num_lookups,
+                                     in uint slack,
                                      out vec2 image_atlas_coord,
-                                     out int image_atlas_layer);
+                                     out uint image_atlas_layer);
 
 uint
 fastuidraw_read_dashed_stroking_params_header(in uint location, out fastuidraw_dashed_stroking_params_header p);

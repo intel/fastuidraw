@@ -361,10 +361,10 @@ ready_brush_varyings(void)
      */
     .add_float_varying("fastuidraw_brush_image_x", varying_list::interpolation_flat)
     .add_float_varying("fastuidraw_brush_image_y", varying_list::interpolation_flat)
-    .add_float_varying("fastuidraw_brush_image_layer", varying_list::interpolation_flat)
     .add_float_varying("fastuidraw_brush_image_size_x", varying_list::interpolation_flat)
     .add_float_varying("fastuidraw_brush_image_size_y", varying_list::interpolation_flat)
     .add_float_varying("fastuidraw_brush_image_factor", varying_list::interpolation_flat)
+    .add_uint_varying("fastuidraw_brush_image_layer")
     .add_uint_varying("fastuidraw_brush_image_slack")
     .add_uint_varying("fastuidraw_brush_image_number_index_lookups")
 

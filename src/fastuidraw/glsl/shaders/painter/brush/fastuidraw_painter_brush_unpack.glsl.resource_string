@@ -47,9 +47,6 @@ fastuidraw_process_image_data_on_atlas(in fastuidraw_brush_image_data_raw raw,
                                                  raw.image_slack_number_lookups);
 
   master_xyz.xy *= uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_SIZE);
-  cooked.master_index_tile_atlas_location_xyz = vec3(master_xyz);
-  cooked.slack = slack;
-  cooked.number_index_lookups = number_index_lookups;
 
   if (number_index_lookups > uint(0))
     {
@@ -59,14 +56,18 @@ fastuidraw_process_image_data_on_atlas(in fastuidraw_brush_image_data_raw raw,
           = pow(2, log2(SizeOfImageTile) * (NumberIndexLookUps - 1))
         Bit shifting gives us the pow(2, V)
        */
-      ww = uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE) * (number_index_lookups - uint(1));
-      index_pows = uint(1) << ww;
-      cooked.image_size_over_master_size = (uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE) - uint(2) * slack) * index_pows;
+      ww = uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_INDEX_TILE_LOG2_SIZE) * (number_index_lookups - 1u);
+      index_pows = 1u << ww;
+      cooked.image_size_over_master_size = (uint(FASTUIDRAW_PAINTER_IMAGE_ATLAS_COLOR_TILE_SIZE) - 2u * slack) * index_pows;
     }
   else
     {
       cooked.image_size_over_master_size = uint(1);
     }
+
+  cooked.slack = slack;
+  cooked.master_index_tile_atlas_location_xyz = vec3(master_xyz);
+  cooked.number_index_lookups = number_index_lookups;
 }
 
 void
@@ -174,15 +175,6 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
                                            shader);
       data_ptr = fastuidraw_read_brush_image_data(data_ptr, image_type, image);
     }
-  else
-    {
-      image_type = uint(fastuidraw_image_type_on_atlas);
-      image.master_index_tile_atlas_location_xyz = vec3(0.0, 0.0, 0.0);
-      image.image_size = uvec2(1, 1);
-      image.slack = uint(0);
-      image.number_index_lookups = uint(0);
-      image.image_size_over_master_size = uint(1);
-    }
 
   if (fastuidraw_brush_shader_has_radial_gradient(shader))
     {
@@ -234,7 +226,7 @@ fastuidraw_painter_brush_unpack_values(in uint shader, inout uint data_ptr)
       T = image.master_index_tile_atlas_location_xyz.xy + vec2(image.image_start) * image_factor;
       fastuidraw_brush_image_x = T.x;
       fastuidraw_brush_image_y = T.y;
-      fastuidraw_brush_image_layer = image.master_index_tile_atlas_location_xyz.z;
+      fastuidraw_brush_image_layer = uint(image.master_index_tile_atlas_location_xyz.z);
       fastuidraw_brush_image_factor = image_factor;
       fastuidraw_brush_image_slack = image.slack;
       fastuidraw_brush_image_number_index_lookups = image.number_index_lookups;
