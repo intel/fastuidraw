@@ -146,7 +146,7 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter)
     }
   else if (image_filter == uint(fastuidraw_shader_image_filter_linear))
     {
-      image_color = texture(fastuidraw_imageAtlasFiltered,
+      image_color = texture(fastuidraw_imageAtlas,
                             vec3(texel_coord * fastuidraw_imageAtlas_size_reciprocal, color_layer)).rgba;
     }
   else
@@ -176,10 +176,10 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter)
       texture_coords = corner_coords + vec4(x_weights.y, x_weights.w, y_weights.y, y_weights.w) / weight_sums;
       texture_coords *= fastuidraw_imageAtlas_size_reciprocal.xyxy;
 
-      t00 = texture(fastuidraw_imageAtlasFiltered, vec3(texture_coords.xz, color_layer));
-      t10 = texture(fastuidraw_imageAtlasFiltered, vec3(texture_coords.yz, color_layer));
-      t01 = texture(fastuidraw_imageAtlasFiltered, vec3(texture_coords.xw, color_layer));
-      t11 = texture(fastuidraw_imageAtlasFiltered, vec3(texture_coords.yw, color_layer));
+      t00 = texture(fastuidraw_imageAtlas, vec3(texture_coords.xz, color_layer));
+      t10 = texture(fastuidraw_imageAtlas, vec3(texture_coords.yz, color_layer));
+      t01 = texture(fastuidraw_imageAtlas, vec3(texture_coords.xw, color_layer));
+      t11 = texture(fastuidraw_imageAtlas, vec3(texture_coords.yw, color_layer));
 
       linear_weight.x = weight_sums.y / (weight_sums.x + weight_sums.y);
       linear_weight.y = weight_sums.w / (weight_sums.z + weight_sums.w);

@@ -419,7 +419,6 @@ namespace
     std::string m_gles_clip_plane_extension;
     bool m_has_multi_draw_elements;
 
-    GLuint m_linear_filter_sampler;
     fastuidraw::gl::PreLinkActionArray m_attribute_binder;
     fastuidraw::gl::ProgramInitializerArray m_initializer;
     fastuidraw::glsl::ShaderSource m_front_matter_vert;
@@ -1468,7 +1467,6 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL 
   m_tex_buffer_support(fastuidraw::gl::detail::tex_buffer_not_computed),
   m_number_clip_planes(0),
   m_clip_plane0(GL_INVALID_ENUM),
-  m_linear_filter_sampler(0),
   m_pool(nullptr),
   m_surface_gl(nullptr),
   m_p(p)
@@ -1479,11 +1477,6 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL 
 PainterBackendGLPrivate::
 ~PainterBackendGLPrivate()
 {
-  if (m_linear_filter_sampler != 0)
-    {
-      glDeleteSamplers(1, &m_linear_filter_sampler);
-    }
-
   if (m_pool)
     {
       FASTUIDRAWdelete(m_pool);
@@ -1776,8 +1769,7 @@ configure_source_front_matter(void)
     {
       const PainterBackendGLSL::BindingPoints &binding_points(m_uber_shader_builder_params.binding_points());
       m_initializer
-        .add_sampler_initializer("fastuidraw_imageAtlas", binding_points.image_atlas_color_tiles_unfiltered())
-        .add_sampler_initializer("fastuidraw_imageAtlasFiltered", binding_points.image_atlas_color_tiles_filtered())
+        .add_sampler_initializer("fastuidraw_imageAtlas", binding_points.image_atlas_color_tiles())
         .add_sampler_initializer("fastuidraw_imageIndexAtlas", binding_points.image_atlas_index_tiles())
         .add_sampler_initializer("fastuidraw_glyphTexelStoreUINT", binding_points.glyph_atlas_texel_store_uint())
         .add_sampler_initializer("fastuidraw_glyphGeometryDataStore", binding_points.glyph_atlas_geometry_store())
@@ -2199,12 +2191,8 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
       FASTUIDRAWassert(dynamic_cast<ColorStopAtlasGL*>(m_p->colorstop_atlas().get()));
       color = static_cast<ColorStopAtlasGL*>(m_p->colorstop_atlas().get());
 
-      glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_color_tiles_unfiltered());
-      glBindSampler(binding_points.image_atlas_color_tiles_unfiltered(), 0);
-      glBindTexture(GL_TEXTURE_2D_ARRAY, image->color_texture());
-
-      glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_color_tiles_filtered());
-      glBindSampler(binding_points.image_atlas_color_tiles_filtered(), m_linear_filter_sampler);
+      glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_color_tiles());
+      glBindSampler(binding_points.image_atlas_color_tiles(), 0);
       glBindTexture(GL_TEXTURE_2D_ARRAY, image->color_texture());
 
       glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_index_tiles());
@@ -2535,14 +2523,6 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
   d = static_cast<PainterBackendGLPrivate*>(m_d);
   d->m_surface_gl = static_cast<SurfaceGLPrivate*>(SurfaceGLPrivate::surface_gl(surface)->m_d);
 
-  if (d->m_linear_filter_sampler == 0)
-    {
-      glGenSamplers(1, &d->m_linear_filter_sampler);
-      FASTUIDRAWassert(d->m_linear_filter_sampler != 0);
-      glSamplerParameteri(d->m_linear_filter_sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glSamplerParameteri(d->m_linear_filter_sampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    }
-
   PainterBackendGLSL::viewport(d->m_surface_gl->m_viewport);
   d->set_gl_state(gpu_dirty_state::all, true, clear_color_buffer);
 
@@ -2572,11 +2552,7 @@ on_post_draw(void)
   const glsl::PainterBackendGLSL::UberShaderParams &uber_params(d->m_uber_shader_builder_params);
   const glsl::PainterBackendGLSL::BindingPoints &binding_points(uber_params.binding_points());
 
-  glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_color_tiles_unfiltered());
-  glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-
-  glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_color_tiles_filtered());
-  glBindSampler(binding_points.image_atlas_color_tiles_filtered(), 0);
+  glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_color_tiles());
   glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
 
   glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_index_tiles());
