@@ -424,6 +424,7 @@ private:
   unsigned int m_active_color_stop;
   unsigned int m_gradient_draw_mode;
   unsigned int m_image_filter;
+  bool m_apply_mipmapping;
   bool m_draw_stats;
   float m_curve_flatness;
 
@@ -563,6 +564,7 @@ painter_stroke_test(void):
   m_active_color_stop(0),
   m_gradient_draw_mode(draw_no_gradient),
   m_image_filter(image_nearest_filter),
+  m_apply_mipmapping(false),
   m_draw_stats(false),
   m_with_aa(true),
   m_wire_frame(false),
@@ -598,6 +600,7 @@ painter_stroke_test(void):
             << "\tr: cycle through fill rules\n"
             << "\te: toggle fill by drawing clip rect\n"
             << "\ti: cycle through image filter to apply to fill (no image, nearest, linear, cubic)\n"
+            << "\tctrl-i: toggle mipmap filtering when applying an image\n"
             << "\ts: cycle through defined color stops for gradient\n"
             << "\tg: cycle through gradient types (linear or radial)\n"
             << "\th: toggle repeat gradient\n"
@@ -1112,17 +1115,30 @@ handle_event(const SDL_Event &ev)
         case SDLK_i:
           if (m_image && m_draw_fill)
             {
-              cycle_value(m_image_filter, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), number_image_filter_modes);
-              std::cout << "Image filter mode set to: " << m_image_filter_mode_labels[m_image_filter] << "\n";
-              if (m_image_filter == image_linear_filter && m_image->slack() < 1)
+              if (ev.key.keysym.mod & (KMOD_CTRL|KMOD_ALT))
                 {
-                  std::cout << "\tWarning: image slack = " << m_image->slack()
-                            << " which insufficient to correctly apply linear filter (requires atleast 1)\n";
+                  m_apply_mipmapping = !m_apply_mipmapping;
+                  std::cout << "Mipmapping ";
+                  if (!m_apply_mipmapping)
+                    {
+                      std::cout << "NOT ";
+                    }
+                  std::cout << "applied.\n";
                 }
-              else if (m_image_filter == image_cubic_filter && m_image->slack() < 2)
+              else
                 {
-                  std::cout << "\tWarning: image slack = " << m_image->slack()
-                            << " which insufficient to correctly apply cubic filter (requires atleast 2)\n";
+                  cycle_value(m_image_filter, ev.key.keysym.mod & KMOD_SHIFT, number_image_filter_modes);
+                  std::cout << "Image filter mode set to: " << m_image_filter_mode_labels[m_image_filter] << "\n";
+                  if (m_image_filter == image_linear_filter && m_image->slack() < 1)
+                    {
+                      std::cout << "\tWarning: image slack = " << m_image->slack()
+                                << " which insufficient to correctly apply linear filter (requires atleast 1)\n";
+                    }
+                  else if (m_image_filter == image_cubic_filter && m_image->slack() < 2)
+                    {
+                      std::cout << "\tWarning: image slack = " << m_image->slack()
+                                << " which insufficient to correctly apply cubic filter (requires atleast 2)\n";
+                    }
                 }
             }
           break;
@@ -1598,7 +1614,7 @@ draw_scene(bool drawing_wire_frame)
               FASTUIDRAWassert(!"Incorrect value for m_image_filter!");
               f = PainterBrush::image_filter_nearest;
             }
-          fill_brush.sub_image(m_image, m_image_offset, m_image_size, f);
+          fill_brush.sub_image(m_image, m_image_offset, m_image_size, f, m_apply_mipmapping);
         }
 
       CustomFillRuleFunction fill_rule_function(everything_filled);
