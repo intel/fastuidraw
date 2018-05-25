@@ -352,36 +352,41 @@ void
 painter_cells::
 add_single_image(const std::string &filename, std::vector<named_image> &dest)
 {
-  std::vector<u8vec4> image_data;
-  ivec2 image_size;
-  image_size = load_image_to_array(filename, image_data);
-  if (image_size.x() > 0 && image_size.y() > 0)
+  ImageLoader image_data(filename);
+  if (image_data.non_empty())
     {
       reference_counted_ptr<const Image> im;
       int slack(0);
 
        std::cout << "\tImage \"" << filename << "\" of size "
-                 << image_size << " loaded";
+                 << image_data.dimensions() << " loaded";
       if (m_use_bindless.m_value && m_bindless_texture_support != no_bindless_texture)
         {
           GLuint tex(0u);
           GLuint64 handle;
+          int w(image_data.width()), h(image_data.height());
 
           glGenTextures(1, &tex);
           FASTUIDRAWassert(tex != 0);
           glBindTexture(GL_TEXTURE_2D, tex);
-          glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, image_size.x(), image_size.y());
-          glTexSubImage2D(GL_TEXTURE_2D, 0,
-                          0, 0, image_size.x(), image_size.y(),
-                          GL_RGBA, GL_UNSIGNED_BYTE, &image_data[0]);
-          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+          glTexStorage2D(GL_TEXTURE_2D, image_data.data().size(), GL_RGBA8, w, h);
+          for (unsigned int level = 0; level < image_data.data().size(); ++level)
+            {
+              glTexSubImage2D(GL_TEXTURE_2D, level,
+                              0, 0, w, h,
+                              GL_RGBA, GL_UNSIGNED_BYTE,
+                              image_data.data()[level].c_ptr());
+              w = t_max(1, w / 2);
+              h = t_max(1, h / 2);
+            }
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
           glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
           glBindTexture(GL_TEXTURE_2D, 0);
 
           handle = get_texture_handle(tex);
           make_texture_handle_resident(handle);
 
-          im = Image::create_bindless(image_size.x(), image_size.y(),
+          im = Image::create_bindless(image_data.width(), image_data.height(),
                                       Image::bindless_texture2d,
                                       handle);
 
@@ -392,8 +397,9 @@ add_single_image(const std::string &filename, std::vector<named_image> &dest)
         }
       else
         {
-          im = Image::create(m_painter->image_atlas(), image_size.x(), image_size.y(),
-                             cast_c_array(image_data), slack);
+          im = Image::create(m_painter->image_atlas(),
+                             image_data.width(), image_data.height(),
+                             image_data, slack);
         }
 
       std::cout << " @" << im.get() << ".\n";
