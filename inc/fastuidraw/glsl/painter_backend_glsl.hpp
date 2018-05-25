@@ -359,31 +359,31 @@ namespace fastuidraw
 
         /*!
          * Specifies the binding point for the sampler2DArray
-         * as unfiltered backed by ImageAtlas::color_store().
+         * with nearest filtering backed by ImageAtlas::color_store().
          */
         unsigned int
-        image_atlas_color_tiles_unfiltered(void) const;
+        image_atlas_color_tiles_nearest(void) const;
 
         /*!
          * Set the value returned by (void) const.
          * Default value is 1.
          */
         BindingPoints&
-        image_atlas_color_tiles_unfiltered(unsigned int);
+        image_atlas_color_tiles_nearest(unsigned int);
 
         /*!
          * Specifies the binding point for the sampler2DArray
-         * as filtered backed by ImageAtlas::color_store().
+         * with linear filtering backed by ImageAtlas::color_store().
          */
         unsigned int
-        image_atlas_color_tiles_filtered(void) const;
+        image_atlas_color_tiles_linear(void) const;
 
         /*!
-         * Set the value returned by image_atlas_color_tiles_filtered(void) const.
+         * Set the value returned by image_atlas_color_tiles_linear(void) const.
          * Default value is 2.
          */
         BindingPoints&
-        image_atlas_color_tiles_filtered(unsigned int);
+        image_atlas_color_tiles_linear(unsigned int);
 
         /*!
          * Specifies the binding point for the usampler2DArray

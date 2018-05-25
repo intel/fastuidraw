@@ -10,7 +10,8 @@
 
 #endif
 
-FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_COLOR_TILE_BINDING) uniform sampler2DArray fastuidraw_imageAtlas;
+FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_COLOR_TILE_LINEAR_BINDING) uniform sampler2DArray fastuidraw_imageAtlasLinear;
+FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_COLOR_TILE_NEAREST_BINDING) uniform sampler2DArray fastuidraw_imageAtlasNearest;
 FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_INDEX_TILE_BINDING) uniform usampler2DArray fastuidraw_imageIndexAtlas;
 
 FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_TEXEL_ATLAS_UINT_BINDING) uniform usampler2DArray fastuidraw_glyphTexelStoreUINT;
