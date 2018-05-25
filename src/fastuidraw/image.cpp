@@ -292,7 +292,7 @@ namespace
   public:
     ImagePrivate(fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> patlas,
                  int w, int h,
-                 fastuidraw::c_array<const fastuidraw::u8vec4> image_data,
+                 const fastuidraw::ImageSourceBase &image_data,
                  unsigned int pslack);
 
     ImagePrivate(int w, int h, fastuidraw::Image::type_t t, uint64_t handle):
@@ -310,7 +310,7 @@ namespace
     ~ImagePrivate();
 
     void
-    create_color_tiles(fastuidraw::c_array<const fastuidraw::u8vec4> image_data);
+    create_color_tiles(const fastuidraw::ImageSourceBase &image_data);
 
     void
     create_index_tiles(void);
@@ -347,7 +347,7 @@ namespace
 ImagePrivate::
 ImagePrivate(fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> patlas,
              int w, int h,
-             fastuidraw::c_array<const fastuidraw::u8vec4> image_data,
+             const fastuidraw::ImageSourceBase &image_data,
              unsigned int pslack):
   m_atlas(patlas),
   m_dimensions(w,h),
@@ -390,7 +390,7 @@ ImagePrivate::
 
 void
 ImagePrivate::
-create_color_tiles(fastuidraw::c_array<const fastuidraw::u8vec4> image_data)
+create_color_tiles(const fastuidraw::ImageSourceBase &image_data)
 {
   int tile_interior_size;
   int color_tile_size;
@@ -414,9 +414,11 @@ create_color_tiles(fastuidraw::c_array<const fastuidraw::u8vec4> image_data)
           fastuidraw::ivec3 new_tile;
           bool all_same_color;
 
-          all_same_color = copy_sub_data<fastuidraw::u8vec4>(make_c_array(tile_data), color_tile_size,
-                                                            image_data, source_x, source_y,
-                                                            m_dimensions);
+          all_same_color = image_data.fetch_texels(0, //mipmap LOD
+                                                   fastuidraw::ivec2(source_x, source_y), //location
+                                                   color_tile_size, //dimensions
+                                                   make_c_array(tile_data));
+
           if (all_same_color)
             {
               std::map<fastuidraw::u8vec4, fastuidraw::ivec3>::iterator iter;
@@ -703,7 +705,38 @@ resize_to_fit(int num_tiles)
     }
 }
 
-///////////////////////////////////////////
+
+
+////////////////////////////////////////
+// fastuidraw::ImageSourceCArray methods
+fastuidraw::ImageSourceCArray::
+ImageSourceCArray(uvec2 dimensions,
+                  c_array<const c_array<const u8vec4> > pdata):
+  m_dimensions(dimensions),
+  m_data(pdata)
+{}
+
+bool
+fastuidraw::ImageSourceCArray::
+fetch_texels(unsigned int mipmap_level,
+             ivec2 location, int square_size,
+             c_array<u8vec4> dst) const
+{
+  if (mipmap_level >= m_data.size())
+    {
+      std::fill(dst.begin(), dst.end(), u8vec4(0u, 0u, 0u, 0u));
+      return true;
+    }
+
+  return copy_sub_data(dst, square_size,
+                       m_data[mipmap_level],
+                       location.x(), location.y(),
+                       ivec2(m_dimensions.x() >> mipmap_level,
+                             m_dimensions.y() >> mipmap_level));
+}
+
+
+//////////////////////////////////////////////////
 // fastuidraw::AtlasColorBackingStoreBase methods
 fastuidraw::AtlasColorBackingStoreBase::
 AtlasColorBackingStoreBase(ivec3 whl, bool presizable)
@@ -1048,8 +1081,22 @@ resize_to_fit(int num_color_tiles, int num_index_tiles)
 // fastuidraw::Image methods
 fastuidraw::reference_counted_ptr<fastuidraw::Image>
 fastuidraw::Image::
-create(fastuidraw::reference_counted_ptr<ImageAtlas> atlas, int w, int h,
+create(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
        c_array<const u8vec4> image_data, unsigned int pslack)
+{
+  if (w <= 0 || h <= 0)
+    {
+      return reference_counted_ptr<Image>();
+    }
+
+  c_array<const c_array<const u8vec4> > data(&image_data, 1);
+  return create(atlas, w, h, ImageSourceCArray(uvec2(w, h), data), pslack);
+}
+
+fastuidraw::reference_counted_ptr<fastuidraw::Image>
+fastuidraw::Image::
+create(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
+       const ImageSourceBase &image_data, unsigned int pslack)
 {
   int tile_interior_size;
   int color_tile_size;
@@ -1110,9 +1157,9 @@ Image(int w, int h, enum type_t type, uint64_t handle)
 }
 
 fastuidraw::Image::
-Image(fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> patlas,
+Image(reference_counted_ptr<ImageAtlas> patlas,
       int w, int h,
-      fastuidraw::c_array<const fastuidraw::u8vec4> image_data,
+      const ImageSourceBase &image_data,
       unsigned int pslack)
 {
   m_d = FASTUIDRAWnew ImagePrivate(patlas, w, h, image_data, pslack);
