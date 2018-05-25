@@ -180,19 +180,6 @@ tex_storage(bool use_tex_storage, GLint internalformat, vecN<GLsizei, 3> size,
 template<GLenum texture_target>
 inline
 void
-tex_sub_image(vecN<GLint, 3> offset,
-              vecN<GLsizei, 3> size, GLenum format, GLenum type,
-              const void *pixels)
-{
-  glTexSubImage3D(texture_target, 0,
-                  offset.x(), offset.y(), offset.z(),
-                  size.x(), size.y(), size.z(),
-                  format, type, pixels);
-}
-
-template<GLenum texture_target>
-inline
-void
 tex_sub_image(int level, vecN<GLint, 3> offset,
               vecN<GLsizei, 3> size, GLenum format, GLenum type,
               const void *pixels)
@@ -285,19 +272,6 @@ tex_storage(bool use_tex_storage, GLint internalformat, vecN<GLsizei, 2> size,
 template<GLenum texture_target>
 inline
 void
-tex_sub_image(vecN<GLint, 2> offset,
-              vecN<GLsizei, 2> size,
-              GLenum format, GLenum type, const void *pixels)
-{
-  glTexSubImage2D(texture_target, 0,
-                  offset.x(), offset.y(),
-                  size.x(), size.y(),
-                  format, type, pixels);
-}
-
-template<GLenum texture_target>
-inline
-void
 tex_sub_image(int level,
               vecN<GLint, 2> offset,
               vecN<GLsizei, 2> size,
@@ -360,16 +334,6 @@ tex_storage(bool use_tex_storage, GLint internalformat, vecN<GLsizei, 1> size,
 template<GLenum texture_target>
 inline
 void
-tex_sub_image(vecN<GLint, 1> offset,
-              vecN<GLsizei, 1> size, GLenum format, GLenum type,
-              const void *pixels)
-{
-  glTexSubImage1D(texture_target, 0, offset.x(), size.x(), format, type, pixels);
-}
-
-template<GLenum texture_target>
-inline
-void
 tex_sub_image(int level, vecN<GLint, 1> offset,
               vecN<GLsizei, 1> size, GLenum format, GLenum type,
               const void *pixels)
@@ -384,8 +348,14 @@ class EntryLocationN
 {
 public:
   typedef std::pair<EntryLocationN, std::vector<uint8_t> > with_data;
+
+  EntryLocationN(void):
+    m_mipmap_level(0u)
+  {}
+
   vecN<int, N> m_location;
   vecN<GLsizei, N> m_size;
+  unsigned int m_mipmap_level;
 };
 
 template<GLenum texture_target>
@@ -402,7 +372,8 @@ public:
                    GLenum external_format,
                    GLenum external_type,
                    GLenum filter,
-                   DimensionType dims, bool delayed);
+                   DimensionType dims, bool delayed,
+                   unsigned int mipmap_levels = 1);
   ~TextureGLGeneric();
 
   void
@@ -447,6 +418,7 @@ private:
 
   bool m_delayed;
   vecN<int, N> m_dims;
+  unsigned int m_num_mipmaps;
   vecN<int, N> m_texture_dimension;
   mutable GLuint m_texture;
   mutable bool m_use_tex_storage;
@@ -467,13 +439,15 @@ TextureGLGeneric(GLenum internal_format,
                  GLenum external_format,
                  GLenum external_type,
                  GLenum filter,
-                 vecN<int, N> dims, bool delayed):
+                 vecN<int, N> dims, bool delayed,
+                 unsigned int mipmap_levels):
   m_internal_format(internal_format),
   m_external_format(external_format),
   m_external_type(external_type),
   m_filter(filter),
   m_delayed(delayed),
   m_dims(dims),
+  m_num_mipmaps(mipmap_levels),
   m_texture(0),
   m_number_times_create_texture_called(0)
 {
@@ -595,7 +569,7 @@ create_texture(void) const
       m_use_tex_storage = ctx.is_es() || ctx.version() >= ivec2(4, 2)
         || ctx.has_extension("GL_ARB_texture_storage");
     }
-  tex_storage<texture_target>(m_use_tex_storage, m_internal_format, m_dims);
+  tex_storage<texture_target>(m_use_tex_storage, m_internal_format, m_dims, m_num_mipmaps);
   glTexParameteri(texture_target, GL_TEXTURE_MIN_FILTER, m_filter);
   glTexParameteri(texture_target, GL_TEXTURE_MAG_FILTER, m_filter);
   ++m_number_times_create_texture_called;
@@ -620,7 +594,8 @@ flush(void)
       for(const auto &cmd : m_unflushed_commands)
         {
           FASTUIDRAWassert(!cmd.second.empty());
-          tex_sub_image<texture_target>(cmd.first.m_location,
+          tex_sub_image<texture_target>(cmd.first.m_mipmap_level,
+                                        cmd.first.m_location,
                                         cmd.first.m_size,
                                         m_external_format, m_external_type,
                                         &cmd.second[0]);
@@ -653,7 +628,8 @@ set_data_vector(const EntryLocation &loc,
       flush_size_change();
       glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
       glBindTexture(texture_target, m_texture);
-      tex_sub_image<texture_target>(loc.m_location,
+      tex_sub_image<texture_target>(loc.m_mipmap_level,
+                                    loc.m_location,
                                     loc.m_size,
                                     m_external_format, m_external_type,
                                     &data[0]);
@@ -683,7 +659,8 @@ set_data_c_array(const EntryLocation &loc,
       flush_size_change();
       glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
       glBindTexture(texture_target, m_texture);
-      tex_sub_image<texture_target>(loc.m_location,
+      tex_sub_image<texture_target>(loc.m_mipmap_level,
+                                    loc.m_location,
                                     loc.m_size,
                                     m_external_format, m_external_type,
                                     data.c_ptr());
