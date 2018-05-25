@@ -30,13 +30,15 @@ namespace
 {
   template<GLenum internal_format,
            GLenum external_format,
-           GLenum filter>
+           GLenum mag_filter,
+           GLenum min_filter>
   class Texture
   {
   public:
     typedef fastuidraw::gl::detail::TextureGL<GL_TEXTURE_2D_ARRAY,
                                               internal_format, external_format,
-                                              GL_UNSIGNED_BYTE, filter, filter> type;
+                                              GL_UNSIGNED_BYTE,
+                                              mag_filter, min_filter> type;
   };
 
   class ColorBackingStoreGL:public fastuidraw::AtlasColorBackingStoreBase
@@ -91,10 +93,10 @@ namespace
     }
 
   private:
-    typedef Texture<GL_RGBA8, GL_RGBA, GL_LINEAR>::type TextureGL;
+    typedef Texture<GL_RGBA8, GL_RGBA, GL_LINEAR, GL_NEAREST_MIPMAP_LINEAR>::type TextureGL;
     TextureGL m_backing_store;
+    unsigned int m_number_mipmap_levels;
   };
-
 
   class IndexBackingStoreGL:public fastuidraw::AtlasIndexBackingStoreBase
   {
@@ -174,7 +176,7 @@ namespace
      *  ColorBackingStore must be no larger than 2^8 * color_tile_size
      *  For color_tile_size = 2^5, then value is 2^13 = 8192
      */
-    typedef Texture<GL_RGBA8UI, GL_RGBA_INTEGER, GL_NEAREST>::type TextureGL;
+    typedef Texture<GL_RGBA8UI, GL_RGBA_INTEGER, GL_NEAREST, GL_NEAREST>::type TextureGL;
     TextureGL m_backing_store;
   };
 
@@ -224,7 +226,8 @@ ColorBackingStoreGL(int log2_tile_size,
                     bool delayed):
   fastuidraw::AtlasColorBackingStoreBase(store_size(log2_tile_size, log2_num_tiles_per_row_per_col, number_layers),
                                          true),
-  m_backing_store(dimensions(), delayed)
+  m_backing_store(dimensions(), delayed, log2_tile_size),
+  m_number_mipmap_levels(log2_tile_size)
 {}
 
 void
@@ -246,9 +249,19 @@ set_data(fastuidraw::ivec2 dst_xy, int dst_l, fastuidraw::ivec2 src_xy,
   V.m_size.y() = size;
   V.m_size.z() = 1;
 
-  image_data.fetch_texels(0, src_xy, size, data);
-  raw_data = data.reinterpret_pointer<const uint8_t>();
-  m_backing_store.set_data_c_array(V, raw_data);
+  for (V.m_mipmap_level = 0; V.m_mipmap_level < m_number_mipmap_levels; ++V.m_mipmap_level)
+    {
+      image_data.fetch_texels(V.m_mipmap_level, src_xy, size, data);
+      raw_data = data.reinterpret_pointer<const uint8_t>();
+      m_backing_store.set_data_c_array(V, raw_data);
+
+      src_xy /= 2;
+      size /= 2;
+      V.m_size.x() = size;
+      V.m_size.y() = size;
+      V.m_location.x() /= 2;
+      V.m_location.y() /= 2;
+    }
 }
 
 void
@@ -271,7 +284,15 @@ set_data(fastuidraw::ivec2 dst_xy, int dst_l,
   V.m_size.z() = 1;
 
   raw_data = data.reinterpret_pointer<const uint8_t>();
-  m_backing_store.set_data_c_array(V, raw_data);
+  for (V.m_mipmap_level = 0; V.m_mipmap_level < m_number_mipmap_levels; ++V.m_mipmap_level)
+    {
+      m_backing_store.set_data_c_array(V, raw_data);
+
+      V.m_size.x() /= 2;
+      V.m_size.y() /= 2;
+      V.m_location.x() /= 2;
+      V.m_location.y() /= 2;
+    }
 }
 
 fastuidraw::ivec3
