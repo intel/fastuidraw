@@ -38,6 +38,74 @@ class Image;
 
   /*!
    * \brief
+   * ImageSourceBase defines the inteface for copying texel data
+   * from a source (CPU memory, a file, etc) to an
+   * AtlasColorBackingStoreBase derived object.
+   */
+  class ImageSourceBase
+  {
+  public:
+    virtual
+    ~ImageSourceBase()
+    {}
+
+    /*!
+     * To be implemented by a derived class to write to
+     * a \ref c_array of \ref u8vec4 data a rectangle of
+     * texels of a particular mipmap level. NOTE: if pixels
+     * are requested to be fetched from outside the sources
+     * natural dimensions, those pixels outside are to be
+     * duplicates of the boundary values.
+     *
+     * \param mimpap_level LOD of data where 0 represents the highest
+     *                     level of detail and each successive level
+     *                     is half the resolution in each dimension.
+     * \param location (x, y) location of data from which to copy
+     * \param square_size width and height of data from which to copy
+     * \param dst location to which to write data, data is to be packed
+     *            dst[x + square_size * y] holds the texel data
+     *            (x + location.x(), y + location.y()) with
+     *            0 <= x < square_size and 0 <= y < square_size()
+     */
+    virtual
+    bool
+    fetch_texels(unsigned int mimpap_level, ivec2 location,
+                 int square_size,
+                 c_array<u8vec4> dst) const = 0;
+  };
+
+  /*!
+   * \brief
+   * An implementation of \ref ImageSourceBase where the data is backed
+   * by a c_array<const u8vec4> data.
+   */
+  class ImageSourceCArray:public ImageSourceBase
+  {
+  public:
+    /*!
+     * Ctor.
+     * \param dimensions width and height of the LOD level 0 mipmap;
+     *                   the LOD level n is then assumed to be size
+     *                   (dimensions.x() >> n, dimensions.y() >> n)
+     * \param pdata the texel data, the data is NOT copied, thus the
+     *              contents backing the texel data must not be freed
+     *              until the ImageSourceCArray goes out of scope.
+     */
+    ImageSourceCArray(uvec2 dimension,
+                      c_array<const c_array<const u8vec4> > pdata);
+
+    virtual
+    bool
+    fetch_texels(unsigned int mimpap_level, ivec2 location, int square_size,
+                 c_array<u8vec4> dst) const;
+
+  private:
+    uvec2 m_dimensions;
+    c_array<const c_array<const u8vec4> > m_data;
+  };
+
+  /*!
+   * \brief
    * Represents the interface for a backing store for color data of images.
    *
    * For example in GL, this can be a GL_TEXTURE_2D_ARRAY. An implementation
@@ -472,6 +540,22 @@ class Image;
     static
     reference_counted_ptr<Image>
     create(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
+           const ImageSourceBase &image_data, unsigned int pslack);
+
+    /*!
+     * Construct an \ref Image backed by an \ref ImageAtlas. If there is
+     * insufficient room on the atlas, returns a nullptr handle.
+     * \param atlas ImageAtlas atlas onto which to place the image.
+     * \param w width of the image
+     * \param h height of the image
+     * \param image_data image data to which to initialize the image
+     * \param pslack number of pixels allowed to sample outside of color tile
+     *               for the image. A value of one allows for bilinear
+     *               filtering and a value of two allows for cubic filtering.
+     */
+    static
+    reference_counted_ptr<Image>
+    create(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
            c_array<const u8vec4> image_data, unsigned int pslack);
 
     /*!
@@ -564,7 +648,7 @@ class Image;
 
   private:
     Image(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
-          c_array<const u8vec4> image_data, unsigned int pslack);
+          const ImageSourceBase &image_data, unsigned int pslack);
 
     Image(int w, int h, enum type_t type, uint64_t handle);
 
