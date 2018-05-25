@@ -250,7 +250,7 @@ protected:
           }
         if (m_program[m_current_program].m_uniform_image_num_lookups != -1)
           {
-            int num_lookups(m_image_handles[m_current_image]->number_index_lookups());
+            unsigned int num_lookups(m_image_handles[m_current_image]->number_index_lookups());
             gl::Uniform(m_program[m_current_program].m_uniform_image_num_lookups, num_lookups);
           }
 
@@ -533,9 +533,9 @@ private:
                                      .add_uniform_initializer<float>("color_tile_size",
                                                                      float(m_atlas->color_tile_size() - 2 * m_slack.m_value))
                                      .add_uniform_initializer<float>("index_tile_size", float(m_atlas->index_tile_size()))
-                                     .add_uniform_initializer<int>("uniform_image_num_lookups",
-                                                                   m_image_handles.front()->number_index_lookups())
-                                     .add_uniform_initializer<int>("image_slack", m_slack.m_value)
+                                     .add_uniform_initializer<unsigned int>("uniform_image_num_lookups",
+                                                                            m_image_handles.front()->number_index_lookups())
+                                     .add_uniform_initializer<unsigned int>("image_slack", m_slack.m_value)
                                      .add_uniform_initializer<vec3>("imageAtlasDims",
                                                                     vec3(m_atlas->color_store()->dimensions())) );
 
