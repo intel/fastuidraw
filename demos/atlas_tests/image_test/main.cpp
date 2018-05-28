@@ -325,7 +325,7 @@ protected:
                 std::cout << "Set to draw image \"" << m_image_names[m_current_image] << "\"\n";
 
                 vec2 image_size(m_image_handles[m_current_image]->dimensions());
-                vecN<vec2, 2> corner(gl::ImageAtlasGL::shader_coords(m_image_handles[m_current_image]));
+                vecN<vec2, 2> corner(shader_coords(m_image_handles[m_current_image]));
                 float layer(m_image_handles[m_current_image]->master_index_tile().z());
                 float image_index_attribs[] =
                   {
@@ -557,8 +557,6 @@ private:
   void
   set_attributes_indices(void)
   {
-
-
     glGenBuffers(1, &m_ibo);
     FASTUIDRAWassert(m_ibo != 0);
 
@@ -600,7 +598,7 @@ private:
         glBindVertexArray(m_program[draw_image_on_atlas].m_vao);
 
         vec2 image_size(m_image_handles.front()->dimensions());
-        vecN<vec2, 2> corner(gl::ImageAtlasGL::shader_coords(m_image_handles.front()));
+        vecN<vec2, 2> corner(shader_coords(m_image_handles.front()));
         float layer(m_image_handles.front()->master_index_tile().z());
         float image_index_attribs[] =
           {
@@ -630,6 +628,19 @@ private:
                               p + 2 * sizeof(float));
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
       }
+  }
+
+  static
+  vecN<vec2, 2>
+  shader_coords(reference_counted_ptr<Image> image)
+  {
+    FASTUIDRAWassert(image->number_index_lookups() > 0);
+    ivec2 master_index_tile(image->master_index_tile());
+    vec2 wh(image->master_index_tile_dims());
+    float f(image->atlas()->index_tile_size());
+    vec2 fmaster_index_tile(master_index_tile);
+    vec2 c0(f * fmaster_index_tile);
+    return vecN<vec2, 2>(c0, c0 + wh);
   }
 
   enum

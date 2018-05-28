@@ -515,21 +515,6 @@ index_texture(void) const
   return p->texture();
 }
 
-fastuidraw::vecN<fastuidraw::vec2, 2>
-fastuidraw::gl::ImageAtlasGL::
-shader_coords(reference_counted_ptr<Image> image)
-{
-  ivec2 master_index_tile(image->master_index_tile());
-
-  FASTUIDRAWassert(image->number_index_lookups() > 0);
-
-  vec2 wh(image->master_index_tile_dims());
-  float f(image->atlas()->index_tile_size());
-  vec2 fmaster_index_tile(master_index_tile);
-  vec2 c0(f * fmaster_index_tile);
-  return vecN<vec2, 2>(c0, c0 + wh);
-}
-
 fastuidraw::reference_counted_ptr<fastuidraw::Image>
 fastuidraw::gl::ImageAtlasGL::
 create_bindless(int pw, int ph, unsigned int m, const ImageSourceBase &image,

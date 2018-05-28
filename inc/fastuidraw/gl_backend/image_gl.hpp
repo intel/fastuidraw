@@ -247,17 +247,6 @@ namespace gl
                     GLenum mag_filter = GL_LINEAR,
                     GLuint *tex = nullptr);
 
-    /*!
-     * Returns the coordinates to use for the corners
-     * of drawing an image that are fed as the 1st
-     * argument to the GLSL function defined by
-     * glsl_compute_coord_src().
-     * \param image from which coordinates are requested
-     */
-    static
-    vecN<vec2, 2>
-    shader_coords(reference_counted_ptr<Image> image);
-
   private:
     void *m_d;
   };
