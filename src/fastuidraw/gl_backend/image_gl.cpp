@@ -22,6 +22,7 @@
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/image_gl.hpp>
 #include "private/texture_gl.hpp"
+#include "private/bindless.hpp"
 #include "../private/util_private.hpp"
 
 
@@ -178,6 +179,16 @@ namespace
      */
     typedef Texture<GL_RGBA8UI, GL_RGBA_INTEGER, GL_NEAREST, GL_NEAREST>::type TextureGL;
     TextureGL m_backing_store;
+  };
+
+  class ImageGLBindless:public fastuidraw::Image
+  {
+  public:
+    ImageGLBindless(int w, int h, unsigned int m, GLuint tex, GLuint64 handle);
+    ~ImageGLBindless();
+
+  private:
+    GLuint m_texture;
   };
 
   class ImageAtlasGLParamsPrivate
@@ -370,6 +381,26 @@ store_size(int log2_tile_size, int log2_num_index_tiles_per_row_per_col, int num
   return fastuidraw::ivec3(v, v, num_layers);
 }
 
+////////////////////////////////////////////
+// ImageGLBindless methods
+ImageGLBindless::
+ImageGLBindless(int w, int h, unsigned int m,
+                GLuint tex, GLuint64 handle):
+  fastuidraw::Image(w, h, m, fastuidraw::Image::bindless_texture2d, handle),
+  m_texture(tex)
+{
+}
+
+ImageGLBindless::
+~ImageGLBindless()
+{
+  using namespace fastuidraw;
+  using namespace gl;
+
+  detail::bindless().make_texture_handle_non_resident(bindless_handle());
+  glDeleteTextures(1, &m_texture);
+}
+
 //////////////////////////////////////////////
 // fastuidraw::gl::ImageAtlasGL::params methods
 fastuidraw::gl::ImageAtlasGL::params::
@@ -497,4 +528,50 @@ shader_coords(reference_counted_ptr<Image> image)
   vec2 fmaster_index_tile(master_index_tile);
   vec2 c0(f * fmaster_index_tile);
   return vecN<vec2, 2>(c0, c0 + wh);
+}
+
+fastuidraw::reference_counted_ptr<fastuidraw::Image>
+fastuidraw::gl::ImageAtlasGL::
+create_bindless(int pw, int ph, unsigned int m, const ImageSourceBase &image,
+                GLenum min_filter, GLenum mag_filter, GLuint *tex)
+{
+  GLuint texture;
+  GLuint64 handle;
+  int w(pw), h(ph);
+
+  if (detail::bindless().not_supported() || w <= 0 || h <= 0 || m <= 0)
+    {
+      return reference_counted_ptr<fastuidraw::Image>();
+    }
+
+  std::vector<u8vec4> data_storage(w * h);
+  c_array<u8vec4> data(make_c_array(data_storage));
+
+  glGenTextures(1, &texture);
+  FASTUIDRAWassert(texture != 0u);
+  glBindTexture(GL_TEXTURE_2D, texture);
+
+  detail::tex_storage<GL_TEXTURE_2D>(true, GL_RGBA8, ivec2(w, h), m);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
+
+  m = t_min(m, image.num_mipmap_levels());
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, m - 1);
+  for (unsigned int l = 0; l < m && w > 0 && h > 0; ++l, w /= 2, h /= 2)
+    {
+      image.fetch_texels(l, ivec2(0, 0), t_max(w, 1), t_max(h, 1), data);
+      glTexSubImage2D(GL_TEXTURE_2D, l, 0, 0,
+                      t_max(w, 1), t_max(h, 1),
+                      GL_RGBA, GL_UNSIGNED_BYTE,
+                      data.c_ptr());
+    }
+  glBindTexture(GL_TEXTURE_2D, 0);
+  handle = detail::bindless().get_texture_handle(texture);
+  detail::bindless().make_texture_handle_resident(handle);
+  if (tex)
+    {
+      *tex = texture;
+    }
+
+  return FASTUIDRAWnew ImageGLBindless(pw, ph, m, texture, handle);
 }

@@ -225,6 +225,27 @@ namespace gl
      */
     const params&
     param_values(void) const;
+    /*!
+     * Create an Image that is bindless that is backed directly
+     * by a texture. Will return a nullptr if the current GL-context
+     * does not support bindless texturing.
+     * \param w width of the image
+     * \param h height of the image
+     * \param m number of mipmap levels of the image
+     * \parwm min_filter value to pass to GL for the minification filter
+     * \parwm mag_filter value to pass to GL for the magnification filter
+     * \param tex if non-NULL write the name of the texture to tex;
+     *            do NOT delete the texture or reallocate its backing
+     *            store (i.e. glTexImage2D or glTexStorage2D). However,
+     *            one can change texture parameters (via glTexParameter)
+     *            or image data (via glTexSubImage2D) freely.
+     */
+    static
+    reference_counted_ptr<Image>
+    create_bindless(int w, int h, unsigned int m, const ImageSourceBase &image,
+                    GLenum min_filter = GL_LINEAR_MIPMAP_LINEAR,
+                    GLenum mag_filter = GL_LINEAR,
+                    GLuint *tex = nullptr);
 
     /*!
      * Returns the coordinates to use for the corners
