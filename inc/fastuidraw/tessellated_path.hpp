@@ -112,8 +112,8 @@ public:
     }
 
     /*!
-     * Set the value of \ref m_max_segments.
-     * \param v value to which to assign to \ref m_max_segments
+     * Set the value of \ref m_max_recursion.
+     * \param v value to which to assign to \ref m_max_recursion
      */
     TessellationParams&
     max_recursion(unsigned int v)
@@ -166,8 +166,7 @@ public:
   {
   public:
     /*!
-     * Specifies the segment type which in turn determines the
-     * meaning of \ref m_p, \ref m_data and \ref m_radius
+     * Specifies the segment type.
      */
     enum segment_type_t m_type;
 
@@ -262,7 +261,7 @@ public:
    * A wrapper over a dynamic array of \ref segment objects;
    * segment values added to SegmentStorage must be added
    * in order of time along the domain of a \ref
-   * PathContour::interpolate_base
+   * PathContour::interpolator_base
    */
   class SegmentStorage:fastuidraw::noncopyable
   {

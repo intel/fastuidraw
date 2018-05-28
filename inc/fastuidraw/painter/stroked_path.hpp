@@ -150,10 +150,6 @@ public:
    *                          than max_attribute_cnt attributes
    * \param max_index_cnt only allow those chunks for which have no more
    *                      than max_index_cnt indices
-   * \param take_joins_outside_of_region if true, take even those joins outside of the region
-   *                                     (this is for handling miter-joins where the weather
-   *                                     or not a miter-join is included is also a function of
-   *                                     the miter-limit when stroking).
    * \param[out] dst location to which to write output
    */
   void

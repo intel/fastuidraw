@@ -231,9 +231,10 @@ namespace gl
      * does not support bindless texturing.
      * \param w width of the image
      * \param h height of the image
-     * \param m number of mipmap levels of the image
-     * \parwm min_filter value to pass to GL for the minification filter
-     * \parwm mag_filter value to pass to GL for the magnification filter
+     * \param m number of mipmap levels for the texture to have
+     * \param image image data to copy to the texture
+     * \param min_filter value to pass to GL for the minification filter
+     * \param mag_filter value to pass to GL for the magnification filter
      * \param tex if non-NULL write the name of the texture to tex;
      *            do NOT delete the texture or reallocate its backing
      *            store (i.e. glTexImage2D or glTexStorage2D). However,
