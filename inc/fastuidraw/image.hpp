@@ -67,7 +67,7 @@ class Image;
      * mipmap levels of image source has.
      */
     virtual
-    int
+    unsigned int
     num_mipmap_levels(void) const = 0;
 
     /*!
@@ -120,7 +120,7 @@ class Image;
     all_same_color(ivec2 location, int square_size, u8vec4 *dst) const;
 
     virtual
-    int
+    unsigned int
     num_mipmap_levels(void) const;
 
     virtual
@@ -620,7 +620,7 @@ class Image;
      */
     static
     reference_counted_ptr<Image>
-    create_bindless(int w, int h, int m, enum type_t type, uint64_t handle);
+    create_bindless(int w, int h, unsigned int m, enum type_t type, uint64_t handle);
 
     ~Image();
 
@@ -641,7 +641,7 @@ class Image;
     /*!
      * Returns the number of mipmap levels the image supports.
      */
-    int
+    unsigned int
     number_mipmap_levels(void) const;
 
     /*!
@@ -704,7 +704,7 @@ class Image;
     type(void) const;
 
   protected:
-    Image(int w, int h, int m, enum type_t type, uint64_t handle);
+    Image(int w, int h, unsigned int m, enum type_t type, uint64_t handle);
 
   private:
     Image(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
