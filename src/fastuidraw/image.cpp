@@ -289,7 +289,7 @@ namespace
                  const fastuidraw::ImageSourceBase &image_data,
                  unsigned int pslack);
 
-    ImagePrivate(int w, int h, int m, fastuidraw::Image::type_t t, uint64_t handle):
+    ImagePrivate(int w, int h, unsigned int m, fastuidraw::Image::type_t t, uint64_t handle):
       m_dimensions(w, h),
       m_num_mipmap_levels(m),
       m_type(t),
@@ -731,7 +731,7 @@ all_same_color(ivec2 location, int square_size, u8vec4 *dst) const
   return true;
 }
 
-int
+unsigned int
 fastuidraw::ImageSourceCArray::
 num_mipmap_levels(void) const
 {
@@ -1197,7 +1197,7 @@ create(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
 
 fastuidraw::reference_counted_ptr<fastuidraw::Image>
 fastuidraw::Image::
-create_bindless(int w, int h, int m, enum type_t type, uint64_t handle)
+create_bindless(int w, int h, unsigned int m, enum type_t type, uint64_t handle)
 {
   Image *p(nullptr);
   if (type != on_atlas)
@@ -1208,7 +1208,7 @@ create_bindless(int w, int h, int m, enum type_t type, uint64_t handle)
 }
 
 fastuidraw::Image::
-Image(int w, int h, int m, enum type_t type, uint64_t handle)
+Image(int w, int h, unsigned int m, enum type_t type, uint64_t handle)
 {
   m_d = FASTUIDRAWnew ImagePrivate(w, h, m, type, handle);
 }
@@ -1250,7 +1250,7 @@ dimensions(void) const
   return d->m_dimensions;
 }
 
-int
+unsigned int
 fastuidraw::Image::
 number_mipmap_levels(void) const
 {
