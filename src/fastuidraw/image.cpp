@@ -61,24 +61,25 @@ namespace
   template<typename T, typename S>
   void
   copy_sub_data(fastuidraw::c_array<T> dest,
-                int dest_dim,
+                int w, int h,
                 fastuidraw::c_array<const S> src,
                 int source_x, int source_y,
                 fastuidraw::ivec2 src_dims)
   {
     using namespace fastuidraw;
 
-    FASTUIDRAWassert(dest_dim > 0);
+    FASTUIDRAWassert(w > 0);
+    FASTUIDRAWassert(h > 0);
     FASTUIDRAWassert(src_dims.x() > 0);
     FASTUIDRAWassert(src_dims.y() > 0);
 
-    for(int src_y = source_y, dst_y = 0; dst_y < dest_dim; ++src_y, ++dst_y)
+    for(int src_y = source_y, dst_y = 0; dst_y < h; ++src_y, ++dst_y)
       {
         c_array<const S> line_src;
         c_array<T> line_dest;
         int dst_x, src_x, src_start;
 
-        line_dest = dest.sub_array(dst_y * dest_dim, dest_dim);
+        line_dest = dest.sub_array(dst_y * w, w);
         if (src_y < 0)
           {
             src_start = 0;
@@ -99,13 +100,13 @@ namespace
           }
 
         for(src_x = t_max(0, source_x);
-            src_x < src_dims.x() && dst_x < dest_dim;
+            src_x < src_dims.x() && dst_x < w;
             ++src_x, ++dst_x)
           {
             line_dest[dst_x] = line_src[src_x];
           }
 
-        for(;dst_x < dest_dim; ++dst_x)
+        for(;dst_x < w; ++dst_x)
           {
             line_dest[dst_x] = line_src[src_dims.x() - 1];
           }
@@ -474,11 +475,9 @@ create_index_layer(fastuidraw::c_array<const T> src_tiles,
       for(int source_x = 0; source_x < src_dims.x(); source_x += index_tile_size)
         {
           fastuidraw::ivec3 new_tile;
-          copy_sub_data<fastuidraw::ivec3, T>(tile_data,
-                                             index_tile_size,
-                                             src_tiles,
-                                             source_x, source_y,
-                                             src_dims);
+          copy_sub_data<fastuidraw::ivec3, T>(tile_data, index_tile_size, index_tile_size,
+                                              src_tiles, source_x, source_y,
+                                              src_dims);
           if (slack == -1)
             {
               new_tile = m_atlas->add_index_tile_index_data(tile_data);
@@ -741,7 +740,8 @@ num_mipmap_levels(void) const
 void
 fastuidraw::ImageSourceCArray::
 fetch_texels(unsigned int mipmap_level, ivec2 location,
-             unsigned int square_size, c_array<u8vec4> dst) const
+             unsigned int w, unsigned int h,
+             c_array<u8vec4> dst) const
 {
   if (mipmap_level >= m_data.size())
     {
@@ -749,7 +749,7 @@ fetch_texels(unsigned int mipmap_level, ivec2 location,
     }
   else
     {
-      copy_sub_data(dst, square_size,
+      copy_sub_data(dst, w, h,
                     m_data[mipmap_level],
                     location.x(), location.y(),
                     ivec2(m_dimensions.x() >> mipmap_level,

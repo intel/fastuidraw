@@ -84,16 +84,18 @@ class Image;
      *                     it is gauranteed by the called that
      *                     0 <= mimpap_level() < num_mipmap_levels()
      * \param location (x, y) location of data from which to copy
-     * \param square_size width and height of data from which to copy
+     * \param w width of data from which to copy
+     * \param h height of data from which to copy
      * \param dst location to which to write data, data is to be packed
-     *            dst[x + square_size * y] holds the texel data
+     *            dst[x + w * y] holds the texel data
      *            (x + location.x(), y + location.y()) with
-     *            0 <= x < square_size and 0 <= y < square_size()
+     *            0 <= x < w and 0 <= y < h
      */
     virtual
     void
     fetch_texels(unsigned int mimpap_level, ivec2 location,
-                 unsigned int square_size, c_array<u8vec4> dst) const = 0;
+                 unsigned int w, unsigned int h,
+                 c_array<u8vec4> dst) const = 0;
   };
 
   /*!
@@ -126,7 +128,8 @@ class Image;
     virtual
     void
     fetch_texels(unsigned int mimpap_level, ivec2 location,
-                 unsigned int square_size, c_array<u8vec4> dst) const;
+                 unsigned int w, unsigned int h,
+                 c_array<u8vec4> dst) const;
 
   private:
     uvec2 m_dimensions;

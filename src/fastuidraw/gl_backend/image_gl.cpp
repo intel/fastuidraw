@@ -253,7 +253,8 @@ set_data(int mipmap_level, fastuidraw::ivec2 dst_xy, int dst_l, fastuidraw::ivec
   V.m_size.y() = size;
   V.m_size.z() = 1;
 
-  image_data.fetch_texels(V.m_mipmap_level, src_xy, size, data);
+  image_data.fetch_texels(V.m_mipmap_level, src_xy,
+                          V.m_size.x(), V.m_size.y(), data);
   m_backing_store.set_data_c_array(V, raw_data);
 }
 
