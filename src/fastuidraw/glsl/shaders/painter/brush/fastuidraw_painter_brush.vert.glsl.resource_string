@@ -1,3 +1,22 @@
+/*!
+ * \file fastuidraw_painter_brush.vert.glsl.resource_string
+ * \brief file fastuidraw_painter_brush.vert.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+
 void
 fastuidraw_vert_brush_processing(in vec2 in_p, in fastuidraw_shader_header h)
 {

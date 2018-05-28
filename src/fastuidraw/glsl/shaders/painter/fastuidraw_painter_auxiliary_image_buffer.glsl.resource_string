@@ -1,3 +1,22 @@
+/*!
+ * \file fastuidraw_painter_auxiliary_image_buffer.glsl.resource_string
+ * \brief file fastuidraw_painter_auxiliary_image_buffer.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+
 #if defined(FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_INTERLOCK) || defined(FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_INTERLOCK_MAIN_ONLY)
 
   layout(binding = FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING, r8) restrict lowp uniform image2D fastuidraw_auxiliary_buffer;

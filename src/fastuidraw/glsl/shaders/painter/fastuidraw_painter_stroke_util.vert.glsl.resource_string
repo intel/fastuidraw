@@ -1,3 +1,22 @@
+/*!
+ * \file fastuidraw_painter_stroke_util.vert.glsl.resource_string
+ * \brief file fastuidraw_painter_stroke_util.vert.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+
 struct fastuidraw_dashed_struct_base
 {
   float d; //distance at current vertex
