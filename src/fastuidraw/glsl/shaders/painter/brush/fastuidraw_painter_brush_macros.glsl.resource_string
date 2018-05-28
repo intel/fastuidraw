@@ -5,7 +5,6 @@
 #define fastuidraw_brush_shader_has_repeat_window(shader) ((shader & uint(fastuidraw_shader_repeat_window_mask)) != uint(0))
 #define fastuidraw_brush_shader_has_transformation_matrix(shader) ((shader & uint(fastuidraw_shader_transformation_matrix_mask)) != uint(0))
 #define fastuidraw_brush_shader_has_transformation_translation(shader) ((shader & uint(fastuidraw_shader_transformation_translation_mask)) != uint(0))
-#define fastuidraw_brush_shader_use_mipmaps(shader) ((shader & uint(fastuidraw_shader_image_use_mipmap_mask)) != uint(0))
 
 #define fastuidraw_brush_image_bindless_low_handle fastuidraw_brush_image_slack
 #define fastuidraw_brush_image_bindless_high_handle fastuidraw_brush_image_number_index_lookups

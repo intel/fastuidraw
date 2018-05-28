@@ -214,9 +214,6 @@ namespace
 
 } //namespace
 
-
-
-
 ////////////////////////////////////////////
 // ColorBackingStoreGL methods
 ColorBackingStoreGL::

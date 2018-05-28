@@ -117,19 +117,25 @@ namespace fastuidraw
         image_type_num_bits = 4,
 
         /*!
+         * Numer of bits used to encode number of mipmap
+         * levels (when an image is present).
+         */
+        image_mipmap_num_bits = 7,
+
+        /*!
          * first bit for if image is present on the brush and if so, what filter
          */
         image_filter_bit0 = 0,
 
         /*!
-         * if up, indicates to use mipmapping in image lookup
+         * first bit to indicate maximum mipmap level to use
          */
-        image_filter_use_mipmaps_bit = image_filter_bit0 + image_filter_num_bits,
+        image_mipmap_bit0 = image_filter_bit0 + image_filter_num_bits,
 
         /*!
          * Bit is up if a gradient is present
          */
-        gradient_bit,
+        gradient_bit = image_mipmap_bit0 + image_mipmap_num_bits,
 
         /*!
          * bit is up if gradient is present and it is radial
@@ -161,6 +167,12 @@ namespace fastuidraw
          * the value is the enumeration in \ref Image::type_t
          */
         image_type_bit0,
+
+        /*!
+         * Must be last enum, gives number of bits needed to hold shader bits
+         * of a PainterBrush.
+         */
+        number_shader_bits,
       };
 
     /*!
@@ -177,9 +189,9 @@ namespace fastuidraw
         image_mask = FASTUIDRAW_MASK(image_filter_bit0, image_filter_num_bits),
 
         /*!
-         * mask generated from \ref image_filter_use_mipmaps_bit
+         * mask generated from \ref image_mipmap_bit0 and image_mipmap_num_bits
          */
-        image_filter_use_mipmaps_mask = FASTUIDRAW_MASK(image_filter_use_mipmaps_bit, 1),
+        image_mipmap_mask = FASTUIDRAW_MASK(image_mipmap_bit0, image_mipmap_num_bits),
 
         /*!
          * mask generated from \ref gradient_bit
@@ -590,12 +602,12 @@ namespace fastuidraw
      *           then sets brush to not have an image.
      * \param f filter to apply to image, only has effect if im
      *          is non-nullptr
-     * \param use_mipmaps if true apply the image with mipmapping
+     * \param max_mipmap_level max mipmap level to use with image
      */
     PainterBrush&
     image(const reference_counted_ptr<const Image> &im,
           enum image_filter f = image_filter_nearest,
-          bool use_mipmaps = false);
+          unsigned int max_mipmap_level = 0);
 
     /*!
      * Set the brush to source from a sub-rectangle of an image
@@ -604,12 +616,12 @@ namespace fastuidraw
      * \param wh width and height of sub-rectangle of image to use
      * \param f filter to apply to image, only has effect if im
      *          is non-nullptr
-     * \param use_mipmaps if true apply the image with mipmapping
+     * \param max_mipmap_level max mipmap level to use with image
      */
     PainterBrush&
     sub_image(const reference_counted_ptr<const Image> &im, uvec2 xy, uvec2 wh,
               enum image_filter f = image_filter_nearest,
-              bool use_mipmaps = false);
+              unsigned int max_mipmap_level = 0);
 
     /*!
      * Sets the brush to not have an image.
