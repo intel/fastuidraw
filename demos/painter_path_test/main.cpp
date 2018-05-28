@@ -1599,6 +1599,8 @@ draw_scene(bool drawing_wire_frame)
       else
         {
           enum PainterBrush::image_filter f;
+          unsigned int mip_max_level;
+
           switch(m_image_filter)
             {
             case image_nearest_filter:
@@ -1614,7 +1616,9 @@ draw_scene(bool drawing_wire_frame)
               FASTUIDRAWassert(!"Incorrect value for m_image_filter!");
               f = PainterBrush::image_filter_nearest;
             }
-          fill_brush.sub_image(m_image, m_image_offset, m_image_size, f, m_apply_mipmapping);
+          mip_max_level = (m_apply_mipmapping) ? m_image->number_mipmap_levels() : 0u;
+          fill_brush.sub_image(m_image, m_image_offset, m_image_size, f,
+                               mip_max_level);
         }
 
       CustomFillRuleFunction fill_rule_function(everything_filled);
