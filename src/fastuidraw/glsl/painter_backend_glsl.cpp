@@ -456,7 +456,10 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_image_type_on_atlas", Image::on_atlas)
     .add_macro("fastuidraw_image_type_bindless_texture2d", Image::bindless_texture2d)
 
-    .add_macro("fastuidraw_shader_image_use_mipmap_mask", PainterBrush::image_filter_use_mipmaps_mask)
+    .add_macro("fastuidraw_image_mipmap_mask", PainterBrush::image_mipmap_mask)
+    .add_macro("fastuidraw_image_mipmap_bit0", PainterBrush::image_mipmap_bit0)
+    .add_macro("fastuidraw_image_mipmap_num_bits", PainterBrush::image_mipmap_num_bits)
+
     .add_macro("fastuidraw_shader_linear_gradient_mask", PainterBrush::gradient_mask)
     .add_macro("fastuidraw_shader_radial_gradient_mask", PainterBrush::radial_gradient_mask)
     .add_macro("fastuidraw_shader_gradient_repeat_mask", PainterBrush::gradient_repeat_mask)

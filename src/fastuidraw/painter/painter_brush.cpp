@@ -208,31 +208,29 @@ fastuidraw::PainterBrush&
 fastuidraw::PainterBrush::
 sub_image(const reference_counted_ptr<const Image> &im,
           uvec2 xy, uvec2 wh, enum image_filter f,
-          bool use_mipmaps)
+          unsigned int max_mipmap_level)
 {
-  uint32_t filter_bits, type_bits;
+  uint32_t filter_bits, type_bits, mip_bits;
 
-  filter_bits = (im) ? f : 0;
+  filter_bits = (im) ? uint32_t(f) : uint32_t(0);
   type_bits = (im) ? uint32_t(im->type()) : uint32_t(0);
+  mip_bits = (im) ?
+    uint32_t(t_min(max_mipmap_level, im->number_mipmap_levels())):
+    uint32_t(0);
+  mip_bits = t_min(mip_bits, FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(image_mipmap_num_bits));
 
   m_data.m_image = im;
   m_data.m_image_start = xy;
   m_data.m_image_size = wh;
 
   m_data.m_shader_raw &= ~image_mask;
-  m_data.m_shader_raw |= (filter_bits << image_filter_bit0);
+  m_data.m_shader_raw |= pack_bits(image_filter_bit0, image_filter_num_bits, filter_bits);
 
   m_data.m_shader_raw &= ~image_type_mask;
-  m_data.m_shader_raw |= (type_bits << image_type_bit0);
+  m_data.m_shader_raw |= pack_bits(image_type_bit0, image_type_num_bits, type_bits);
 
-  if (use_mipmaps)
-    {
-      m_data.m_shader_raw |= image_filter_use_mipmaps_mask;
-    }
-  else
-    {
-      m_data.m_shader_raw &= ~image_filter_use_mipmaps_mask;
-    }
+  m_data.m_shader_raw &= ~image_mipmap_mask;
+  m_data.m_shader_raw |= pack_bits(image_mipmap_bit0, image_mipmap_num_bits, mip_bits);
 
   return *this;
 }
@@ -240,14 +238,14 @@ sub_image(const reference_counted_ptr<const Image> &im,
 fastuidraw::PainterBrush&
 fastuidraw::PainterBrush::
 image(const reference_counted_ptr<const Image> &im, enum image_filter f,
-      bool use_mipmaps)
+      unsigned int max_mipmap_level)
 {
   uvec2 sz(0, 0);
   if (im)
     {
       sz = uvec2(im->dimensions());
     }
-  return sub_image(im, uvec2(0,0), sz, f, use_mipmaps);
+  return sub_image(im, uvec2(0,0), sz, f, max_mipmap_level);
 }
 
 uint32_t
@@ -256,12 +254,14 @@ shader(void) const
 {
   uint32_t return_value;
 
+  FASTUIDRAWstatic_assert(number_shader_bits <= 32u);
+
   return_value = m_data.m_shader_raw;
-  /* lacking an image or gradient means the brush does
-   * nothing and so all bits should be down.
-   */
   if (!m_data.m_image && !m_data.m_cs)
     {
+      /* lacking an image or gradient means the brush does
+       * nothing and so all bits should be down.
+       */
       return_value = 0;
     }
   return return_value;

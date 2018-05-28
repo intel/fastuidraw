@@ -320,7 +320,7 @@ fastuidraw_compute_brush_color(void)
 
   if (fastuidraw_brush_shader_has_image(fastuidraw_brush_shader))
     {
-      uint image_filter, image_type;
+      uint image_filter, image_type, mipmap_max_level;
       vec2 q;
       float lod;
 
@@ -338,11 +338,16 @@ fastuidraw_compute_brush_color(void)
                                              fastuidraw_shader_image_filter_num_bits,
                                              fastuidraw_brush_shader);
 
-      if (fastuidraw_brush_shader_use_mipmaps(fastuidraw_brush_shader))
+      mipmap_max_level = FASTUIDRAW_EXTRACT_BITS(fastuidraw_image_mipmap_bit0,
+                                                 fastuidraw_image_mipmap_num_bits,
+                                                 fastuidraw_brush_shader);
+
+      if (mipmap_max_level > 0u)
         {
           float rho;
           rho = (dot(dfdpx, dfdpx) + dot(dfdpy, dfdpy)) * 0.5;
           lod = 0.5 * log2(max(1.0, rho));
+          lod = min(float(mipmap_max_level), lod);
         }
       else
         {
