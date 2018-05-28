@@ -400,6 +400,12 @@ public:
     m_dims = new_num_layers;
   }
 
+  int
+  num_mipmaps(void) const
+  {
+    return m_num_mipmaps;
+  }
+
 private:
 
   void

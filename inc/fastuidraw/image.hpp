@@ -67,7 +67,7 @@ class Image;
      * mipmap levels of image source has.
      */
     virtual
-    unsigned int
+    int
     num_mipmap_levels(void) const = 0;
 
     /*!
@@ -120,7 +120,7 @@ class Image;
     all_same_color(ivec2 location, int square_size, u8vec4 *dst) const;
 
     virtual
-    unsigned int
+    int
     num_mipmap_levels(void) const;
 
     virtual
@@ -167,6 +167,7 @@ class Image;
 
     /*!
      * To be implemented by a derived class to set color data into the backing store.
+     * \param mimap_level what mipmap level
      * \param dst_xy x and y coordinates of location to place data in the atlas
      * \param dst_l layer of position to place data in the atlas
      * \param src_xy x and y coordinates from which to take data from the ImageSourceBase
@@ -175,11 +176,12 @@ class Image;
      */
     virtual
     void
-    set_data(ivec2 dst_xy, int dst_l, ivec2 src_xy,
+    set_data(int mimap_level, ivec2 dst_xy, int dst_l, ivec2 src_xy,
              unsigned int size, const ImageSourceBase &data) = 0;
 
     /*!
      * To be implemented by a derived class to set color data into the backing store.
+     * \param mimap_level what mipmap level
      * \param dst_xy x and y coordinates of location to place data in the atlas
      * \param dst_l layer of position to place data in the atlas
      * \param size width and height of region to copy into the backing store.
@@ -187,7 +189,7 @@ class Image;
      */
     virtual
     void
-    set_data(ivec2 dst_xy, int dst_l, unsigned int size, u8vec4 color_value) = 0;
+    set_data(int mimap_level, ivec2 dst_xy, int dst_l, unsigned int size, u8vec4 color_value) = 0;
 
     /*!
      * To be implemented by a derived class
@@ -610,6 +612,7 @@ class Image;
      * Create an \ref Image backed by a bindless texture.
      * \param w width of the image
      * \param h height of the image
+     * \param m number of mipmap levels of the image
      * \param type the type of the bindless texture, must NOT have value
      *             \ref on_atlas.
      * \param handle the bindless handle value used by the Gfx API in
@@ -617,7 +620,7 @@ class Image;
      */
     static
     reference_counted_ptr<Image>
-    create_bindless(int w, int h, enum type_t type, uint64_t handle);
+    create_bindless(int w, int h, int m, enum type_t type, uint64_t handle);
 
     ~Image();
 
@@ -634,6 +637,12 @@ class Image;
      */
     ivec2
     dimensions(void) const;
+
+    /*!
+     * Returns the number of mipmap levels the image supports.
+     */
+    int
+    number_mipmap_levels(void) const;
 
     /*!
      * Returns the slack of the image, i.e. how many texels ouside
@@ -698,7 +707,7 @@ class Image;
     Image(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
           const ImageSourceBase &image_data, unsigned int pslack);
 
-    Image(int w, int h, enum type_t type, uint64_t handle);
+    Image(int w, int h, int m, enum type_t type, uint64_t handle);
 
     void *m_d;
   };
