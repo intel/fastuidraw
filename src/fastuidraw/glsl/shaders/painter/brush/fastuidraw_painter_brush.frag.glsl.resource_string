@@ -164,7 +164,10 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
       vec4 corner_coords, weight_sums, texture_coords;
       vec4 t00, t10, t01, t11;
 
-      /* TODO: obey qdx, qdy to get an LOD level */
+      /* cubic filtering on atlas cannot support mipmapping.
+       * this is because we would be taking samples off of
+       * the tile at anything except LOD = 0 even with slack at 2.
+       */
       texel_coord -= vec2(0.5, 0.5);
       fract_texel_coord = fract(texel_coord);
       texel_coord -= fract_texel_coord;
