@@ -703,11 +703,13 @@ class Image;
     type_t
     type(void) const;
 
+  protected:
+    Image(int w, int h, int m, enum type_t type, uint64_t handle);
+
   private:
     Image(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
           const ImageSourceBase &image_data, unsigned int pslack);
 
-    Image(int w, int h, int m, enum type_t type, uint64_t handle);
 
     void *m_d;
   };
