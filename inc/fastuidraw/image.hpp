@@ -63,6 +63,14 @@ class Image;
     all_same_color(ivec2 location, int square_size, u8vec4 *dst) const = 0;
 
     /*!
+     * To be implemented by a derived class to return the number of
+     * mipmap levels of image source has.
+     */
+    virtual
+    unsigned int
+    num_mipmap_levels(void) const = 0;
+
+    /*!
      * To be implemented by a derived class to write to
      * a \ref c_array of \ref u8vec4 data a rectangle of
      * texels of a particular mipmap level. NOTE: if pixels
@@ -72,7 +80,9 @@ class Image;
      *
      * \param mimpap_level LOD of data where 0 represents the highest
      *                     level of detail and each successive level
-     *                     is half the resolution in each dimension.
+     *                     is half the resolution in each dimension;
+     *                     it is gauranteed by the called that
+     *                     0 <= mimpap_level() < num_mipmap_levels()
      * \param location (x, y) location of data from which to copy
      * \param square_size width and height of data from which to copy
      * \param dst location to which to write data, data is to be packed
@@ -108,6 +118,10 @@ class Image;
     virtual
     bool
     all_same_color(ivec2 location, int square_size, u8vec4 *dst) const;
+
+    virtual
+    unsigned int
+    num_mipmap_levels(void) const;
 
     virtual
     void
