@@ -728,6 +728,13 @@ all_same_color(ivec2 location, int square_size, u8vec4 *dst) const
   return true;
 }
 
+unsigned int
+fastuidraw::ImageSourceCArray::
+num_mipmap_levels(void) const
+{
+  return m_data.size();
+}
+
 void
 fastuidraw::ImageSourceCArray::
 fetch_texels(unsigned int mipmap_level, ivec2 location,
