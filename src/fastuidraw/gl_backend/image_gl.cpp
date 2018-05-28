@@ -241,7 +241,10 @@ set_data(fastuidraw::ivec2 dst_xy, int dst_l, fastuidraw::ivec2 src_xy,
   std::vector<u8vec4> data_storage(size * size);
   fastuidraw::c_array<u8vec4> data(make_c_array(data_storage));
   fastuidraw::c_array<const uint8_t> raw_data;
+  unsigned int num_levels_src;
 
+  raw_data = data.reinterpret_pointer<const uint8_t>();
+  num_levels_src = t_min(image_data.num_mipmap_levels(), m_number_mipmap_levels);
   V.m_location.x() = dst_xy.x();
   V.m_location.y() = dst_xy.y();
   V.m_location.z() = dst_l;
@@ -249,10 +252,22 @@ set_data(fastuidraw::ivec2 dst_xy, int dst_l, fastuidraw::ivec2 src_xy,
   V.m_size.y() = size;
   V.m_size.z() = 1;
 
-  for (V.m_mipmap_level = 0; V.m_mipmap_level < m_number_mipmap_levels; ++V.m_mipmap_level)
+  for (V.m_mipmap_level = 0; V.m_mipmap_level < num_levels_src; ++V.m_mipmap_level)
     {
       image_data.fetch_texels(V.m_mipmap_level, src_xy, size, data);
-      raw_data = data.reinterpret_pointer<const uint8_t>();
+      m_backing_store.set_data_c_array(V, raw_data);
+
+      src_xy /= 2;
+      size /= 2;
+      V.m_size.x() = size;
+      V.m_size.y() = size;
+      V.m_location.x() /= 2;
+      V.m_location.y() /= 2;
+    }
+
+  for (; V.m_mipmap_level < m_number_mipmap_levels; ++V.m_mipmap_level)
+    {
+      std::fill(data.c_ptr(), data.c_ptr() + size * size, u8vec4(255, 255, 0, 255));
       m_backing_store.set_data_c_array(V, raw_data);
 
       src_xy /= 2;
