@@ -1,3 +1,21 @@
+/*!
+ * \file bindless.hpp
+ * \brief file bindless.hpp
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
 #include "bindless.hpp"
