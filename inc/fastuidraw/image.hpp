@@ -115,7 +115,7 @@ class Image;
      *              contents backing the texel data must not be freed
      *              until the ImageSourceCArray goes out of scope.
      */
-    ImageSourceCArray(uvec2 dimension,
+    ImageSourceCArray(uvec2 dimensions,
                       c_array<const c_array<const u8vec4> > pdata);
     virtual
     bool
@@ -515,10 +515,11 @@ class Image;
     add_color_tile(ivec2 src_xy, const ImageSourceBase &image_data);
 
     /*!
-     * Adds a tile of a cosntant color to the atlas returning
+     * Adds a tile of a constant color to the atlas returning
      * the location (in pixels) of the tile in the backing store
      * of the atlas.
-     * \param image_data image data to which to set the tile
+     * \param color_data color value to which to set all pixels of
+     *                   the tile
      */
     ivec3
     add_color_tile(u8vec4 color_data);
@@ -707,6 +708,19 @@ class Image;
     type(void) const;
 
   protected:
+    /*!
+     * Protected ctor for creating an Image backed by a bindless texture;
+     * Applications should not use this directly and instead use create_bindless().
+     * Backends should use this ctor for Image deried classes that do
+     * cleanup (for example releasing the handle and/or deleting the texture).
+     * \param w width of underlying texture
+     * \param h height of underlying texture
+     * \param m number of mipmap levels of the image
+     * \param type the type of the bindless texture, must NOT have value
+     *             \ref on_atlas.
+     * \param handle the bindless handle value used by the Gfx API in
+     *               shaders to reference the texture.
+     */
     Image(int w, int h, unsigned int m, enum type_t type, uint64_t handle);
 
   private:

@@ -234,7 +234,7 @@ public:
    * Enumeration encoding of bits of \ref m_packed_data
    * for those with offset type \ref offset_sub_edge
    */
-  enum packed_data_sub_edge_t
+  enum packed_data_bit_sub_edge_t
     {
       /*!
        * If this bit is down indicates the point is the

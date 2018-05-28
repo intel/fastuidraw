@@ -40,6 +40,11 @@ namespace fastuidraw  {
 class ArcStrokedPoint
 {
 public:
+  /*!
+   * \brief
+   * Enumeration type to specify how to compute the location
+   * of an ArcStrokedPoint.
+   */
   enum offset_type_t
     {
       /*!

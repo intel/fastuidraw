@@ -924,10 +924,10 @@ public:
    * lazily. Additionally, if this Path changes its geometry,
    * then a new TessellatedPath will be contructed on the
    * next call to tessellation().
-   * \param max_distance the returned tessellated path will be so that
-   *                     TessellatedPath::effective_max_distance()
-   *                     is no more than thresh. A non-positive value
-   *                     will return the starting point tessellation.
+   * \param thresh the returned tessellated path will be so that
+   *               TessellatedPath::max_distance() is no more than
+   *               thresh. A non-positive value will return the
+   *               lowest level of detail tessellation.
    */
   const reference_counted_ptr<const TessellatedPath>&
   tessellation(float thresh) const;
