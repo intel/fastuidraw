@@ -387,6 +387,7 @@ add_single_image(const std::string &filename, std::vector<named_image> &dest)
           make_texture_handle_resident(handle);
 
           im = Image::create_bindless(image_data.width(), image_data.height(),
+                                      image_data.num_mipmap_levels(),
                                       Image::bindless_texture2d,
                                       handle);
 
