@@ -1,3 +1,22 @@
+/*!
+ * \file fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string
+ * \brief file fastuidraw_painter_fill_aa_fuzz.vert.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+
 vec4
 fastuidraw_gl_vert_main(in uint sub_shader,
                         in uvec4 uprimary_attrib,
