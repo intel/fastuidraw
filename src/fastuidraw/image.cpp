@@ -289,8 +289,9 @@ namespace
                  const fastuidraw::ImageSourceBase &image_data,
                  unsigned int pslack);
 
-    ImagePrivate(int w, int h, fastuidraw::Image::type_t t, uint64_t handle):
+    ImagePrivate(int w, int h, int m, fastuidraw::Image::type_t t, uint64_t handle):
       m_dimensions(w, h),
+      m_num_mipmap_levels(m),
       m_type(t),
       m_slack(~0u),
       m_num_color_tiles(-1, -1),
@@ -317,6 +318,7 @@ namespace
 
     fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> m_atlas;
     fastuidraw::ivec2 m_dimensions;
+    int m_num_mipmap_levels;
 
     enum fastuidraw::Image::type_t m_type;
 
@@ -344,7 +346,8 @@ ImagePrivate(fastuidraw::reference_counted_ptr<fastuidraw::ImageAtlas> patlas,
              const fastuidraw::ImageSourceBase &image_data,
              unsigned int pslack):
   m_atlas(patlas),
-  m_dimensions(w,h),
+  m_dimensions(w, h),
+  m_num_mipmap_levels(image_data.num_mipmap_levels()),
   m_type(fastuidraw::Image::on_atlas),
   m_slack(pslack),
   m_bindless_handle(-1)
@@ -728,7 +731,7 @@ all_same_color(ivec2 location, int square_size, u8vec4 *dst) const
   return true;
 }
 
-unsigned int
+int
 fastuidraw::ImageSourceCArray::
 num_mipmap_levels(void) const
 {
@@ -1017,13 +1020,19 @@ add_color_tile(u8vec4 color_data)
 
   ivec3 return_value;
   autolock_mutex M(d->m_mutex);
+  ivec2 dst_xy;
+  int sz;
 
   return_value = d->m_color_tiles.allocate_tile();
-  d->m_color_store->set_data(ivec2(return_value.x() * d->m_color_tiles.tile_size(),
-                                   return_value.y() * d->m_color_tiles.tile_size()),
-                             return_value.z(),
-                             d->m_color_tiles.tile_size(),
-                             color_data);
+  dst_xy.x() = return_value.x() * d->m_color_tiles.tile_size();
+  dst_xy.y() = return_value.y() * d->m_color_tiles.tile_size();
+  sz = d->m_color_tiles.tile_size();
+
+  for (int level = 0; sz > 0; ++level, sz /= 2, dst_xy /= 2)
+    {
+      d->m_color_store->set_data(level, dst_xy, return_value.z(),
+                                 sz, color_data);
+    }
 
   return return_value;
 }
@@ -1036,13 +1045,26 @@ add_color_tile(ivec2 src_xy, const ImageSourceBase &image_data)
   d = static_cast<ImageAtlasPrivate*>(m_d);
   ivec3 return_value;
   autolock_mutex M(d->m_mutex);
+  ivec2 dst_xy;
+  int sz, level, last_level;
 
   return_value = d->m_color_tiles.allocate_tile();
-  d->m_color_store->set_data(ivec2(return_value.x() * d->m_color_tiles.tile_size(),
-                                   return_value.y() * d->m_color_tiles.tile_size()),
-                             return_value.z(),
-                             src_xy, d->m_color_tiles.tile_size(),
-                             image_data);
+  dst_xy.x() = return_value.x() * d->m_color_tiles.tile_size();
+  dst_xy.y() = return_value.y() * d->m_color_tiles.tile_size();
+  sz = d->m_color_tiles.tile_size();
+  last_level = image_data.num_mipmap_levels();
+
+  for (level = 0; level < last_level && sz > 0; ++level, sz /= 2, dst_xy /= 2, src_xy /= 2)
+    {
+      d->m_color_store->set_data(level, dst_xy, return_value.z(), src_xy, sz, image_data);
+    }
+
+  for (; sz > 0; ++level, sz /= 2, dst_xy /= 2, src_xy /= 2, sz /= 2)
+    {
+      d->m_color_store->set_data(level, dst_xy, return_value.z(), sz,
+                                 u8vec4(255u, 255u, 0u, 255u));
+    }
+
   return return_value;
 }
 
@@ -1175,20 +1197,20 @@ create(reference_counted_ptr<ImageAtlas> atlas, int w, int h,
 
 fastuidraw::reference_counted_ptr<fastuidraw::Image>
 fastuidraw::Image::
-create_bindless(int w, int h, enum type_t type, uint64_t handle)
+create_bindless(int w, int h, int m, enum type_t type, uint64_t handle)
 {
   Image *p(nullptr);
   if (type != on_atlas)
     {
-      p = FASTUIDRAWnew Image(w, h, type, handle);
+      p = FASTUIDRAWnew Image(w, h, m, type, handle);
     }
   return p;
 }
 
 fastuidraw::Image::
-Image(int w, int h, enum type_t type, uint64_t handle)
+Image(int w, int h, int m, enum type_t type, uint64_t handle)
 {
-  m_d = FASTUIDRAWnew ImagePrivate(w, h, type, handle);
+  m_d = FASTUIDRAWnew ImagePrivate(w, h, m, type, handle);
 }
 
 fastuidraw::Image::
@@ -1226,6 +1248,15 @@ dimensions(void) const
   ImagePrivate *d;
   d = static_cast<ImagePrivate*>(m_d);
   return d->m_dimensions;
+}
+
+int
+fastuidraw::Image::
+number_mipmap_levels(void) const
+{
+  ImagePrivate *d;
+  d = static_cast<ImagePrivate*>(m_d);
+  return d->m_num_mipmap_levels;
 }
 
 unsigned int
