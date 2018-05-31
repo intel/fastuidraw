@@ -118,7 +118,7 @@ namespace CoordinateConverterConstants
       box_dim = (1 << log2_box_dim),
     };
 
-  /* essentially the hieght of one pixel
+  /* essentially the height of one pixel
    * from coordinate conversions. We are
    * targetting a resolution of no more
    * thant 2^13. We also can have that
@@ -152,27 +152,22 @@ namespace
   {
   public:
     unsigned int m_start, m_end, m_next;
-    bool m_draw_edge, m_draw_join;
+    bool m_is_closing_edge;
+    bool m_draw_edge, m_draw_bevel_to_next;
+  };
 
-    unsigned int
-    num_attributes(void) const
-    {
-      unsigned int e, b;
+  class AAFuzzCounts
+  {
+  public:
+    AAFuzzCounts(void):
+      m_attribute_count(0),
+      m_index_count(0),
+      m_depth_count(0)
+    {}
 
-      e = (m_draw_edge) ? 4 : 0;
-      b = (m_draw_join) ? 3 : 0;
-      return e + b;
-    }
-
-    unsigned int
-    num_indices(void) const
-    {
-      unsigned int e, b;
-
-      e = (m_draw_edge) ? 6 : 0;
-      b = (m_draw_join) ? 3 : 0;
-      return e + b;
-    }
+    unsigned int m_attribute_count;
+    unsigned int m_index_count;
+    unsigned int m_depth_count;
   };
 
   class AAFuzz:fastuidraw::noncopyable
@@ -180,10 +175,7 @@ namespace
   public:
     typedef std::vector<AAEdge> Contour;
 
-    AAFuzz(void):
-      m_attribute_count(0),
-      m_index_count(0),
-      m_depth_count(0)
+    AAFuzz(void)
     {}
 
     void
@@ -201,27 +193,15 @@ namespace
       return m_contours;
     }
 
-    unsigned int
-    attribute_count(void) const
+    const AAFuzzCounts&
+    edge_counts(void) const
     {
-      return m_attribute_count;
-    }
-
-    unsigned int
-    index_count(void) const
-    {
-      return m_index_count;
-    }
-
-    unsigned int
-    depth_count(void) const
-    {
-      return m_depth_count;
+      return m_edge_counts;
     }
 
   private:
     std::list<Contour> m_contours;
-    unsigned int m_attribute_count, m_index_count, m_depth_count;
+    AAFuzzCounts m_edge_counts;
 
     Contour m_current;
   };
@@ -719,9 +699,8 @@ namespace
 
     static
     void
-    emitmonotone_callback(int winding,
+    emitboundary_callback(int winding,
                           const unsigned int vertex_ids[],
-                          const int winding_ids[],
                           unsigned int count,
                           void *tess);
 
@@ -868,11 +847,11 @@ namespace
     }
   };
 
-  class EdgeAttributeDataFiller:public fastuidraw::PainterAttributeDataFiller
+  class AAFuzzAttributeDataFiller:public fastuidraw::PainterAttributeDataFiller
   {
   public:
     explicit
-    EdgeAttributeDataFiller(fastuidraw::c_array<const int> windings,
+    AAFuzzAttributeDataFiller(fastuidraw::c_array<const int> windings,
                             const std::vector<fastuidraw::dvec2> *pts,
                             const builder *b):
       m_windings(windings),
@@ -897,10 +876,18 @@ namespace
               fastuidraw::c_array<int> index_adjusts) const;
 
   private:
+    void //assume that vertices from before are what is used with which to bevel.
+    pack_edge(const AAEdge &E,
+              int z,
+              fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attr,
+              unsigned int &vertex_offset,
+              fastuidraw::c_array<fastuidraw::PainterIndex> dst_idx,
+              unsigned int &index_offset) const;
+
     void
-    pack_attribute(const AAEdge &edge,
-                   fastuidraw::c_array<fastuidraw::PainterAttribute> dst,
-                   unsigned int z) const;
+    pack_attribute(fastuidraw::vec2 position, float sgn,
+                   fastuidraw::vec2 normal, int z,
+                   fastuidraw::PainterAttribute *dst) const;
 
     fastuidraw::c_array<const int> m_windings;
     const std::vector<fastuidraw::dvec2> &m_pts;
@@ -1130,13 +1117,22 @@ add_edge(unsigned int p0, unsigned int p1, bool edge_drawn)
   if (!m_current.empty())
     {
       FASTUIDRAWassert(m_current.back().m_end == p0);
+      if (m_current.back().m_start == p1)
+        {
+          /* current edge cancels previous edge */
+          m_current.pop_back();
+          return;
+        }
+      m_current.back().m_draw_bevel_to_next = false
+        && edge_drawn
+        && m_current.back().m_draw_edge;
       m_current.back().m_next = p1;
-      m_current.back().m_draw_join = edge_drawn || m_current.back().m_draw_edge;
     }
 
   E.m_start = p0;
   E.m_end = p1;
   E.m_draw_edge = edge_drawn;
+  E.m_is_closing_edge = false;
   m_current.push_back(E);
 }
 
@@ -1150,22 +1146,49 @@ end_boundary(void)
     }
 
   FASTUIDRAWassert(m_current.back().m_end == m_current.front().m_start);
-  m_current.back().m_next = m_current.front().m_end;
-  m_current.back().m_draw_join = m_current.front().m_draw_edge || m_current.back().m_draw_edge;
+  m_current.back().m_is_closing_edge = true;
+  m_current.back().m_draw_bevel_to_next = m_current.back().m_draw_edge
+    && m_current.front().m_draw_edge;
 
   for(const AAEdge &e : m_current)
     {
-      if (e.m_draw_edge || e.m_draw_join)
+      if (e.m_draw_edge)
         {
-          ++m_depth_count;
-          m_attribute_count += e.num_attributes();
-          m_index_count += e.num_indices();
+          m_edge_counts.m_attribute_count += 4;
+          m_edge_counts.m_index_count += 6;
+          ++m_edge_counts.m_depth_count;
+
+          if (e.m_draw_bevel_to_next)
+            {
+              /* we are guaranteed that the next edge
+               * will be drawn, so we need only one
+               * additional attribute, the attribute
+               * for on the path.
+               */
+              m_edge_counts.m_attribute_count += 1;
+              m_edge_counts.m_index_count += 3;
+
+              /* except for the closing edge, beause
+               * if the bevel shared with the start
+               * point, the z-values would interpolate
+               * from the close to the start which would
+               * allow the bevel from the closing edge
+               * to do overdraw.
+               */
+              if (e.m_is_closing_edge)
+                {
+                  m_edge_counts.m_attribute_count += 1;
+                }
+            }
+        }
+      else
+        {
+          FASTUIDRAWassert(!e.m_draw_bevel_to_next);
         }
     }
   m_contours.push_back(Contour());
   m_contours.back().swap(m_current);
 }
-
 
 /////////////////////////////////////
 // SubPath methods
@@ -1814,8 +1837,7 @@ tesser(PointHoard &points,
   fastuidraw_gluTessCallbackCombine(m_tess, &combine_callback);
   fastuidraw_gluTessCallbackFillRule(m_tess, &winding_callBack);
   fastuidraw_gluTessCallbackBoundaryCornerPoint(m_tess, &boundary_callback);
-  fastuidraw_gluTessCallbackEmitMonotone(m_tess, emitmonotone_callback);
-  fastuidraw_gluTessPropertyBoundaryOnly(m_tess, FASTUIDRAW_GLU_FALSE);
+  fastuidraw_gluTessCallbackEmitBoundary(m_tess, emitboundary_callback);
 
   start();
   add_path(P);
@@ -2072,9 +2094,8 @@ winding_callBack(int winding_number, void *tess)
 
 void
 tesser::
-emitmonotone_callback(int glu_tess_winding,
+emitboundary_callback(int glu_tess_winding,
                       const unsigned int vertex_ids[],
-                      const int winding_ids[],
                       unsigned int count,
                       void *tess)
 {
@@ -2087,25 +2108,17 @@ emitmonotone_callback(int glu_tess_winding,
       h = FASTUIDRAWnew WindingComponentData();
     }
 
-  /* TODO: should we filter out those monotone polygons that
-   * are small (and thus do not contribute to area)? If so
-   * should we -reverse- the adding of edges, instead of add
-   * to m_hoard[winding], we add to m_hoard[winding_ids[]] ?
-   */
   h->m_aa_fuzz.begin_boundary();
   for(unsigned int i = 0; i < count; ++i)
     {
-      unsigned int inext, va, vb;
-      bool hugs_bdy, same_winding, draw_edge;
+      unsigned int va, vb;
+      unsigned int next_i;
+      bool draw_edge;
 
-      inext = (i + 1 < count) ? (i + 1) : (0);
+      next_i = (i + 1u == count) ? 0u: i + 1u;
       va = vertex_ids[i];
-      vb = vertex_ids[inext];
-
-      hugs_bdy = p->m_points.edge_hugs_boundary(va, vb);
-      same_winding = winding_ids[i] == glu_tess_winding;
-      draw_edge = !hugs_bdy && !same_winding;
-
+      vb = vertex_ids[next_i];
+      draw_edge = !p->m_points.edge_hugs_boundary(va, vb);
       h->m_aa_fuzz.add_edge(va, vb, draw_edge);
     }
   h->m_aa_fuzz.end_boundary();
@@ -2393,19 +2406,20 @@ compute_z_range(unsigned int chunk) const
 }
 
 ////////////////////////////////////
-// EdgeAttributeDataFiller methods
+// AAFuzzAttributeDataFiller methods
 void
-EdgeAttributeDataFiller::
+AAFuzzAttributeDataFiller::
 compute_sizes(unsigned int &number_attributes,
               unsigned int &number_indices,
               unsigned int &number_attribute_chunks,
               unsigned int &number_index_chunks,
               unsigned int &number_z_ranges) const
 {
-  unsigned int a;
+  unsigned int a, f, b;
 
-  a = fastuidraw::t_max(signed_to_unsigned(m_windings.front()),
-                        signed_to_unsigned(m_windings.back()));
+  f = signed_to_unsigned(m_windings.front());
+  b = signed_to_unsigned(m_windings.back());
+  a = fastuidraw::t_max(f, b);
   number_z_ranges = number_attribute_chunks = number_index_chunks = a + 1;
 
   number_attributes = 0;
@@ -2413,13 +2427,14 @@ compute_sizes(unsigned int &number_attributes,
   for(int w : m_windings)
     {
       const AAFuzz &aa_fuzz(m_builder.aa_fuzz(w));
-      number_attributes += aa_fuzz.attribute_count();
-      number_indices += aa_fuzz.index_count();
+
+      number_attributes += aa_fuzz.edge_counts().m_attribute_count;
+      number_indices += aa_fuzz.edge_counts().m_index_count;
     }
 }
 
 void
-EdgeAttributeDataFiller::
+AAFuzzAttributeDataFiller::
 fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
           fastuidraw::c_array<fastuidraw::PainterIndex> indices,
           fastuidraw::c_array<fastuidraw::c_array<const fastuidraw::PainterAttribute> > attrib_chunks,
@@ -2427,167 +2442,151 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
           fastuidraw::c_array<fastuidraw::range_type<int> > zranges,
           fastuidraw::c_array<int> index_adjusts) const
 {
-  FASTUIDRAWassert(zranges.size() == attrib_chunks.size());
-  FASTUIDRAWassert(attrib_chunks.size() > signed_to_unsigned(m_windings.front()));
-  FASTUIDRAWassert(attrib_chunks.size() > signed_to_unsigned(m_windings.back()));
+  FASTUIDRAWassert(attrib_chunks.size() == zranges.size());
   FASTUIDRAWassert(attrib_chunks.size() == index_chunks.size());
   FASTUIDRAWassert(attrib_chunks.size() == zranges.size());
   FASTUIDRAWassert(attrib_chunks.size() == index_adjusts.size());
 
-  std::vector<unsigned int> z_tmp(attrib_chunks.size(), 0);
-  std::vector<unsigned int> a_tmp(attrib_chunks.size(), 0);
-  std::vector<unsigned int> i_tmp(attrib_chunks.size(), 0);
-
   /* compute how many attribute, indices and z's per winding */
+  unsigned int atr_offset(0), idx_offset(0);
   for(int w : m_windings)
     {
       unsigned int ch;
+      unsigned int a_sz, i_sz;
       const AAFuzz &aa_fuzz(m_builder.aa_fuzz(w));
 
       ch = signed_to_unsigned(w);
-      i_tmp[ch] = aa_fuzz.index_count();
-      a_tmp[ch] = aa_fuzz.attribute_count();
-
-      zranges[ch].m_begin = 0;
-      zranges[ch].m_end = aa_fuzz.depth_count();
-    }
-
-  // set location of each attribute and index chunk.
-  for(unsigned int ch = 0, atr_offset = 0, idx_offset = 0; ch < attrib_chunks.size(); ++ch)
-    {
-      unsigned int a_sz, i_sz;
-
-      a_sz = a_tmp[ch];
-      i_sz = i_tmp[ch];
+      i_sz = aa_fuzz.edge_counts().m_index_count;
+      a_sz = aa_fuzz.edge_counts().m_attribute_count;
       attrib_chunks[ch] = attributes.sub_array(atr_offset, a_sz);
       index_chunks[ch] = indices.sub_array(idx_offset, i_sz);
-
+      index_adjusts[ch] = 0;
+      zranges[ch].m_begin = 0;
+      zranges[ch].m_end = aa_fuzz.edge_counts().m_depth_count;
       atr_offset += a_sz;
       idx_offset += i_sz;
-
-      index_adjusts[ch] = 0;
-      a_tmp[ch] = i_tmp[ch] = 0;
     }
 
   // for eaching winding number, add the edges
-  for(int w : m_windings)
+  for (int w : m_windings)
     {
-      unsigned int ch(signed_to_unsigned(w));
-      const std::list<AAFuzz::Contour> &contours(m_builder.aa_fuzz(w).contours());
+      const AAFuzz &fuzz(m_builder.aa_fuzz(w));
+      const std::list<AAFuzz::Contour> &contours(fuzz.contours());
+      unsigned int ch, vertex_offset, index_offset;
+      int z;
+      fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attrib;
+      fastuidraw::c_array<fastuidraw::PainterIndex> dst_index;
 
+      ch = signed_to_unsigned(w);
+      vertex_offset = 0u;
+      index_offset = 0u;
+      z = 0;
+      dst_attrib = attrib_chunks[ch].const_cast_pointer<fastuidraw::PainterAttribute>();
+      dst_index = index_chunks[ch].const_cast_pointer<fastuidraw::PainterIndex>();
       for(const AAFuzz::Contour &C : contours)
         {
           for(const AAEdge &E : C)
             {
-              fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attrib;
-              fastuidraw::c_array<fastuidraw::PainterIndex> dst_index;
-              unsigned int num_attribute, num_indices;
-              unsigned int start_join_idx(0), start_join_attr(0);
-
-              if (!E.m_draw_edge && !E.m_draw_join)
-                {
-                  continue;
-                }
-
-              num_attribute = E.num_attributes();
-              num_indices = E.num_indices();
-
-              dst_attrib = attrib_chunks[ch].sub_array(a_tmp[ch], num_attribute).const_cast_pointer<fastuidraw::PainterAttribute>();
-              dst_index = index_chunks[ch].sub_array(i_tmp[ch], num_indices).const_cast_pointer<fastuidraw::PainterIndex>();
-
-              FASTUIDRAWassert(static_cast<int>(z_tmp[ch]) < zranges[ch].m_end);
-              pack_attribute(E, dst_attrib, zranges[ch].m_end - 1 - z_tmp[ch]);
-
               if (E.m_draw_edge)
                 {
-                  dst_index[0] = a_tmp[ch] + 0;
-                  dst_index[1] = a_tmp[ch] + 1;
-                  dst_index[2] = a_tmp[ch] + 2;
-                  dst_index[3] = a_tmp[ch] + 0;
-                  dst_index[4] = a_tmp[ch] + 2;
-                  dst_index[5] = a_tmp[ch] + 3;
-
-                  start_join_idx = 6;
-                  start_join_attr = 4;
+                  pack_edge(E, zranges[ch].m_end - 1 - z,
+                            dst_attrib, vertex_offset,
+                            dst_index, index_offset);
+                  ++z;
                 }
-
-              if (E.m_draw_join)
-                {
-                  for (unsigned int i = 0; i < 3; ++i)
-                    {
-                      dst_index[start_join_idx + i] = a_tmp[ch] + start_join_attr + i;
-                    }
-                }
-
-              a_tmp[ch] += dst_attrib.size();
-              i_tmp[ch] += dst_index.size();
-              z_tmp[ch] += 1;
             }
         }
+      FASTUIDRAWassert(vertex_offset == dst_attrib.size());
+      FASTUIDRAWassert(index_offset == dst_index.size());
+      FASTUIDRAWassert(z == zranges[ch].m_end);
     }
 }
 
 void
-EdgeAttributeDataFiller::
-pack_attribute(const AAEdge &E,
-               fastuidraw::c_array<fastuidraw::PainterAttribute> dst,
-               unsigned int z) const
+AAFuzzAttributeDataFiller::
+pack_edge(const AAEdge &E, int z,
+          fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attr,
+          unsigned int &vertex_offset,
+          fastuidraw::c_array<fastuidraw::PainterIndex> dst_idx,
+          unsigned int &index_offset) const
 {
-  fastuidraw::dvec2 tangent, normal;
+  using namespace fastuidraw;
 
-  tangent = m_pts[E.m_end] - m_pts[E.m_start];
-  normal = fastuidraw::dvec2(-tangent.y(), tangent.x());
+  vec2 tangent, normal;
+  const float sgn[4] = { -1.0f, +1.0f, -1.0f, +1.0f };
+  const unsigned int tris[6] = { 0, 1, 2, 2, 1, 3};
 
-  const float sgn[4] =
+  tangent = vec2(m_pts[E.m_end] - m_pts[E.m_start]);
+  normal = vec2(-tangent.y(), tangent.x());
+  normal /= normal.magnitude();
+
+  for (unsigned int k = 0; k < 6; ++k, ++index_offset)
     {
-      -1.0f,
-      +1.0f,
-      +1.0f,
-      -1.0f
-    };
-
-  FASTUIDRAWassert(E.m_draw_join || E.m_draw_edge);
-
-  if (E.m_draw_edge)
-    {
-      for(unsigned int k = 0; k < 4; ++k)
-        {
-          fastuidraw::dvec2 position;
-
-          position = m_pts[(k < 2) ? E.m_start : E.m_end];
-          dst[k].m_attrib0 = fastuidraw::pack_vec4(position.x(), position.y(),
-                                                   normal.x(), normal.y());
-          dst[k].m_attrib1.x() = fastuidraw::pack_float(sgn[k]);
-          dst[k].m_attrib1.y() = z;
-        }
+      dst_idx[index_offset] = tris[k] + vertex_offset;
     }
 
-  if (E.m_draw_join)
+  for (unsigned int k = 0; k < 4; ++k, ++vertex_offset)
     {
-      float s;
-      fastuidraw::dvec2 t2, n2, p;
-
-      if (E.m_draw_edge)
-        {
-          dst = dst.sub_array(4);
-        }
-      FASTUIDRAWassert(dst.size() == 3);
-
-      p = m_pts[E.m_end];
-      t2 = m_pts[E.m_next] - m_pts[E.m_end];
-      n2 = fastuidraw::dvec2(-t2.y(), t2.x());
-      s = (dot(t2, normal) < 0.0) ? 1.0f : -1.0f;
-
-      for (unsigned int k = 0; k < 3; ++k)
-        {
-          const fastuidraw::dvec2 *n;
-
-          n = (k == 2) ? &n2 : &normal;
-          dst[k].m_attrib0 = fastuidraw::pack_vec4(p.x(), p.y(), n->x(), n->y());
-          dst[k].m_attrib1.x() = fastuidraw::pack_float((k == 1) ? 0.0 : s);
-          dst[k].m_attrib1.y() = z;
-        }
+      unsigned int q;
+      q = (k < 2) ? E.m_start : E.m_end;
+      pack_attribute(vec2(m_pts[q]),
+                     sgn[k], normal, z,
+                     &dst_attr[vertex_offset]);
     }
+
+  if (E.m_draw_bevel_to_next)
+    {
+      unsigned int current_end(vertex_offset);
+      unsigned int next_outer, current_outer, on_path, next_begin;
+      vec2 t, n;
+      float sgn;
+
+      on_path = vertex_offset;
+      pack_attribute(vec2(m_pts[E.m_end]), 0.0, vec2(0.0), z,
+                     &dst_attr[vertex_offset++]);
+      next_begin = vertex_offset;
+
+      t = vec2(m_pts[E.m_next] - m_pts[E.m_end]);
+      n = vec2(-t.y(), t.x());
+      n /= n.magnitude();
+
+      if (dot(normal, t) > 0.0f)
+        {
+          sgn = -1.0f;
+          current_outer = current_end - 2u;
+          next_outer = next_begin + 0u;
+        }
+      else
+        {
+          sgn = +1.0f;
+          current_outer = current_end - 1u;
+          next_outer = next_begin + 1u;
+        }
+
+      if (E.m_is_closing_edge)
+        {
+          next_outer = vertex_offset;
+          pack_attribute(vec2(m_pts[E.m_end]), sgn, n, z,
+                         &dst_attr[vertex_offset++]);
+        }
+
+      dst_idx[index_offset++] = current_outer;
+      dst_idx[index_offset++] = next_outer;
+      dst_idx[index_offset++] = on_path;
+    }
+}
+
+void
+AAFuzzAttributeDataFiller::
+pack_attribute(fastuidraw::vec2 position, float sgn,
+               fastuidraw::vec2 normal, int z,
+               fastuidraw::PainterAttribute *dst) const
+{
+  FASTUIDRAWassert(z >= 0);
+  dst->m_attrib0 = fastuidraw::pack_vec4(position.x(), position.y(),
+                                         normal.x(), normal.y());
+  dst->m_attrib1.x() = fastuidraw::pack_float(sgn);
+  dst->m_attrib1.y() = z;
 }
 
 ////////////////////////////////////
@@ -3030,8 +3029,8 @@ make_ready_from_sub_path(void)
   m_fuzz_painter_data = FASTUIDRAWnew fastuidraw::PainterAttributeData();
   if (!m_winding_numbers.empty())
     {
-      EdgeAttributeDataFiller edge_filler(fastuidraw::make_c_array(m_winding_numbers),
-                                          &filler.m_points, &B);
+      AAFuzzAttributeDataFiller edge_filler(fastuidraw::make_c_array(m_winding_numbers),
+                                            &filler.m_points, &B);
       m_fuzz_painter_data->set_data(edge_filler);
       m_aa_largest_attribute_block = m_fuzz_painter_data->largest_attribute_chunk();
       m_aa_largest_index_block = m_fuzz_painter_data->largest_index_chunk();
