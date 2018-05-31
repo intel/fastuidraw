@@ -148,7 +148,7 @@ namespace
     return r;
   }
 
-  class Edge
+  class AAEdge
   {
   public:
     unsigned int m_start, m_end, m_next;
@@ -175,15 +175,15 @@ namespace
     }
   };
 
-  class EdgeList:fastuidraw::noncopyable
+  class AAFuzz:fastuidraw::noncopyable
   {
   public:
-    typedef std::vector<Edge> Contour;
+    typedef std::vector<AAEdge> Contour;
 
-    EdgeList(void):
+    AAFuzz(void):
       m_attribute_count(0),
       m_index_count(0),
-      m_edge_count(0)
+      m_depth_count(0)
     {}
 
     void
@@ -214,14 +214,14 @@ namespace
     }
 
     unsigned int
-    edge_count(void) const
+    depth_count(void) const
     {
-      return m_edge_count;
+      return m_depth_count;
     }
 
   private:
     std::list<Contour> m_contours;
-    unsigned int m_attribute_count, m_index_count, m_edge_count;
+    unsigned int m_attribute_count, m_index_count, m_depth_count;
 
     Contour m_current;
   };
@@ -279,7 +279,7 @@ namespace
   {
   public:
     TriangleList m_triangles;
-    EdgeList m_edge_list;
+    AAFuzz m_aa_fuzz;
   };
 
   typedef std::map<int, fastuidraw::reference_counted_ptr<WindingComponentData> > PerWindingComponentData;
@@ -756,15 +756,15 @@ namespace
       return m_failed;
     }
 
-    const EdgeList&
-    edge_list(int winding) const
+    const AAFuzz&
+    aa_fuzz(int winding) const
     {
       PerWindingComponentData::const_iterator iter;
 
       iter = m_hoard.find(winding);
       FASTUIDRAWassert(iter != m_hoard.end());
       FASTUIDRAWassert(iter->second);
-      return iter->second->m_edge_list;
+      return iter->second->m_aa_fuzz;
     }
 
   private:
@@ -898,7 +898,7 @@ namespace
 
   private:
     void
-    pack_attribute(const Edge &edge,
+    pack_attribute(const AAEdge &edge,
                    fastuidraw::c_array<fastuidraw::PainterAttribute> dst,
                    unsigned int z) const;
 
@@ -1113,19 +1113,19 @@ namespace
 }
 
 ////////////////////////////////////
-// EdgeList methods
+// AAFuzz methods
 void
-EdgeList::
+AAFuzz::
 begin_boundary(void)
 {
   FASTUIDRAWassert(m_current.empty());
 }
 
 void
-EdgeList::
+AAFuzz::
 add_edge(unsigned int p0, unsigned int p1, bool edge_drawn)
 {
-  Edge E;
+  AAEdge E;
 
   if (!m_current.empty())
     {
@@ -1141,7 +1141,7 @@ add_edge(unsigned int p0, unsigned int p1, bool edge_drawn)
 }
 
 void
-EdgeList::
+AAFuzz::
 end_boundary(void)
 {
   if (m_current.empty())
@@ -1153,11 +1153,11 @@ end_boundary(void)
   m_current.back().m_next = m_current.front().m_end;
   m_current.back().m_draw_join = m_current.front().m_draw_edge || m_current.back().m_draw_edge;
 
-  for(const Edge &e : m_current)
+  for(const AAEdge &e : m_current)
     {
       if (e.m_draw_edge || e.m_draw_join)
         {
-          ++m_edge_count;
+          ++m_depth_count;
           m_attribute_count += e.num_attributes();
           m_index_count += e.num_indices();
         }
@@ -2092,7 +2092,7 @@ emitmonotone_callback(int glu_tess_winding,
    * should we -reverse- the adding of edges, instead of add
    * to m_hoard[winding], we add to m_hoard[winding_ids[]] ?
    */
-  h->m_edge_list.begin_boundary();
+  h->m_aa_fuzz.begin_boundary();
   for(unsigned int i = 0; i < count; ++i)
     {
       unsigned int inext, va, vb;
@@ -2106,9 +2106,9 @@ emitmonotone_callback(int glu_tess_winding,
       same_winding = winding_ids[i] == glu_tess_winding;
       draw_edge = !hugs_bdy && !same_winding;
 
-      h->m_edge_list.add_edge(va, vb, draw_edge);
+      h->m_aa_fuzz.add_edge(va, vb, draw_edge);
     }
-  h->m_edge_list.end_boundary();
+  h->m_aa_fuzz.end_boundary();
 }
 
 /////////////////////////////////////////
@@ -2412,9 +2412,9 @@ compute_sizes(unsigned int &number_attributes,
   number_indices = 0;
   for(int w : m_windings)
     {
-      const EdgeList &edge_list(m_builder.edge_list(w));
-      number_attributes += edge_list.attribute_count();
-      number_indices += edge_list.index_count();
+      const AAFuzz &aa_fuzz(m_builder.aa_fuzz(w));
+      number_attributes += aa_fuzz.attribute_count();
+      number_indices += aa_fuzz.index_count();
     }
 }
 
@@ -2442,14 +2442,14 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
   for(int w : m_windings)
     {
       unsigned int ch;
-      const EdgeList &edge_list(m_builder.edge_list(w));
+      const AAFuzz &aa_fuzz(m_builder.aa_fuzz(w));
 
       ch = signed_to_unsigned(w);
-      i_tmp[ch] = edge_list.index_count();
-      a_tmp[ch] = edge_list.attribute_count();
+      i_tmp[ch] = aa_fuzz.index_count();
+      a_tmp[ch] = aa_fuzz.attribute_count();
 
       zranges[ch].m_begin = 0;
-      zranges[ch].m_end = edge_list.edge_count();
+      zranges[ch].m_end = aa_fuzz.depth_count();
     }
 
   // set location of each attribute and index chunk.
@@ -2473,11 +2473,11 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
   for(int w : m_windings)
     {
       unsigned int ch(signed_to_unsigned(w));
-      const std::list<EdgeList::Contour> &contours(m_builder.edge_list(w).contours());
+      const std::list<AAFuzz::Contour> &contours(m_builder.aa_fuzz(w).contours());
 
-      for(const EdgeList::Contour &C : contours)
+      for(const AAFuzz::Contour &C : contours)
         {
-          for(const Edge &E : C)
+          for(const AAEdge &E : C)
             {
               fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attrib;
               fastuidraw::c_array<fastuidraw::PainterIndex> dst_index;
@@ -2529,7 +2529,7 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
 
 void
 EdgeAttributeDataFiller::
-pack_attribute(const Edge &E,
+pack_attribute(const AAEdge &E,
                fastuidraw::c_array<fastuidraw::PainterAttribute> dst,
                unsigned int z) const
 {
