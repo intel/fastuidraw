@@ -178,6 +178,8 @@ namespace
   class EdgeList:fastuidraw::noncopyable
   {
   public:
+    typedef std::vector<Edge> Contour;
+
     EdgeList(void):
       m_attribute_count(0),
       m_index_count(0),
@@ -193,10 +195,10 @@ namespace
     void
     add_edge(unsigned int p0, unsigned int p1, bool edge_drawn);
 
-    const std::list<Edge>&
-    edges(void) const
+    const std::list<Contour>&
+    contours(void) const
     {
-      return m_edges;
+      return m_contours;
     }
 
     unsigned int
@@ -218,10 +220,10 @@ namespace
     }
 
   private:
-    std::list<Edge> m_edges;
+    std::list<Contour> m_contours;
     unsigned int m_attribute_count, m_index_count, m_edge_count;
 
-    std::vector<Edge> m_current;
+    Contour m_current;
   };
 
   class TriangleList:fastuidraw::noncopyable
@@ -1155,13 +1157,13 @@ end_boundary(void)
     {
       if (e.m_draw_edge || e.m_draw_join)
         {
-          m_edges.push_back(e);
           ++m_edge_count;
           m_attribute_count += e.num_attributes();
           m_index_count += e.num_indices();
         }
     }
-  m_current.clear();
+  m_contours.push_back(Contour());
+  m_contours.back().swap(m_current);
 }
 
 
@@ -2471,48 +2473,56 @@ fill_data(fastuidraw::c_array<fastuidraw::PainterAttribute> attributes,
   for(int w : m_windings)
     {
       unsigned int ch(signed_to_unsigned(w));
-      const std::list<Edge> &edges(m_builder.edge_list(w).edges());
+      const std::list<EdgeList::Contour> &contours(m_builder.edge_list(w).contours());
 
-      for(const Edge &E : edges)
+      for(const EdgeList::Contour &C : contours)
         {
-          fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attrib;
-          fastuidraw::c_array<fastuidraw::PainterIndex> dst_index;
-          unsigned int num_attribute, num_indices;
-          unsigned int start_join_idx(0), start_join_attr(0);
-
-          num_attribute = E.num_attributes();
-          num_indices = E.num_indices();
-
-          dst_attrib = attrib_chunks[ch].sub_array(a_tmp[ch], num_attribute).const_cast_pointer<fastuidraw::PainterAttribute>();
-          dst_index = index_chunks[ch].sub_array(i_tmp[ch], num_indices).const_cast_pointer<fastuidraw::PainterIndex>();
-
-          FASTUIDRAWassert(static_cast<int>(z_tmp[ch]) < zranges[ch].m_end);
-          pack_attribute(E, dst_attrib, zranges[ch].m_end - 1 - z_tmp[ch]);
-
-          if (E.m_draw_edge)
+          for(const Edge &E : C)
             {
-              dst_index[0] = a_tmp[ch] + 0;
-              dst_index[1] = a_tmp[ch] + 1;
-              dst_index[2] = a_tmp[ch] + 2;
-              dst_index[3] = a_tmp[ch] + 0;
-              dst_index[4] = a_tmp[ch] + 2;
-              dst_index[5] = a_tmp[ch] + 3;
+              fastuidraw::c_array<fastuidraw::PainterAttribute> dst_attrib;
+              fastuidraw::c_array<fastuidraw::PainterIndex> dst_index;
+              unsigned int num_attribute, num_indices;
+              unsigned int start_join_idx(0), start_join_attr(0);
 
-              start_join_idx = 6;
-              start_join_attr = 4;
-            }
-
-          if (E.m_draw_join)
-            {
-              for (unsigned int i = 0; i < 3; ++i)
+              if (!E.m_draw_edge && !E.m_draw_join)
                 {
-                  dst_index[start_join_idx + i] = a_tmp[ch] + start_join_attr + i;
+                  continue;
                 }
-            }
 
-          a_tmp[ch] += dst_attrib.size();
-          i_tmp[ch] += dst_index.size();
-          z_tmp[ch] += 1;
+              num_attribute = E.num_attributes();
+              num_indices = E.num_indices();
+
+              dst_attrib = attrib_chunks[ch].sub_array(a_tmp[ch], num_attribute).const_cast_pointer<fastuidraw::PainterAttribute>();
+              dst_index = index_chunks[ch].sub_array(i_tmp[ch], num_indices).const_cast_pointer<fastuidraw::PainterIndex>();
+
+              FASTUIDRAWassert(static_cast<int>(z_tmp[ch]) < zranges[ch].m_end);
+              pack_attribute(E, dst_attrib, zranges[ch].m_end - 1 - z_tmp[ch]);
+
+              if (E.m_draw_edge)
+                {
+                  dst_index[0] = a_tmp[ch] + 0;
+                  dst_index[1] = a_tmp[ch] + 1;
+                  dst_index[2] = a_tmp[ch] + 2;
+                  dst_index[3] = a_tmp[ch] + 0;
+                  dst_index[4] = a_tmp[ch] + 2;
+                  dst_index[5] = a_tmp[ch] + 3;
+
+                  start_join_idx = 6;
+                  start_join_attr = 4;
+                }
+
+              if (E.m_draw_join)
+                {
+                  for (unsigned int i = 0; i < 3; ++i)
+                    {
+                      dst_index[start_join_idx + i] = a_tmp[ch] + start_join_attr + i;
+                    }
+                }
+
+              a_tmp[ch] += dst_attrib.size();
+              i_tmp[ch] += dst_index.size();
+              z_tmp[ch] += 1;
+            }
         }
     }
 }
