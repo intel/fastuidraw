@@ -88,7 +88,6 @@ public:
 
   /*** state needed for rendering callbacks (see render.c) ***/
 
-  FASTUIDRAW_GLUboolean      boundaryOnly;   /* Extract contours, not triangles */
   GLUface       *lonelyTriList;
     /* list of triangles which could not be rendered as strips or fans */
 
@@ -107,6 +106,7 @@ public:
                                                                              FASTUIDRAW_GLUboolean is_max_x,
                                                                              FASTUIDRAW_GLUboolean is_max_y,
                                                                              unsigned int *outData);
+  void (REGALFASTUIDRAW_GLU_CALL *emit_boundary)(int winding, const unsigned int vertex_ids[], unsigned int count);
 
   /*** state needed to cache single-contour polygons for renderCache() */
 
@@ -136,6 +136,8 @@ public:
                                                                                   FASTUIDRAW_GLUboolean is_max_y,
                                                                                   unsigned int *outData,
                                                                                   void *polygon_data);
+  void (REGALFASTUIDRAW_GLU_CALL *emit_boundary_data)(int winding, const unsigned int vertex_ids[],
+                                                      unsigned int count, void *polygon_data);
 
   jmp_buf env;                  /* place to jump to when memAllocs fail */
 

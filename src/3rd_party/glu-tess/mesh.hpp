@@ -119,6 +119,9 @@ struct GLUvertex {
   /* Internal data (keep hidden) */
   double        s, t;           /* projection onto the sweep plane */
   long          pqHandle;       /* to allow deletion from priority queue */
+
+  /* for copying a mesh, ID's are unique */
+  unsigned int unique_id;
 };
 
 
@@ -134,6 +137,9 @@ struct GLUface {
   FASTUIDRAW_GLUboolean      inside;         /* this face is in the polygon interior */
 
   int winding_number;
+
+  /* for copying a mesh, ID's are unique */
+  unsigned int unique_id;
 };
 
 struct GLUhalfEdge {
@@ -148,6 +154,9 @@ struct GLUhalfEdge {
   ActiveRegion  *activeRegion;  /* a region with this upper edge (sweep.c) */
   int           winding;        /* change in winding number when crossing
                                    from the right face to the left face */
+
+  /* for copying a mesh, ID's are unique */
+  unsigned int unique_id;
 };
 
 #define Rface   Sym->Lface
@@ -257,6 +266,8 @@ GLUmesh         *glu_fastuidraw_gl_meshNewMesh( void );
 GLUmesh         *glu_fastuidraw_gl_meshUnion( GLUmesh *mesh1, GLUmesh *mesh2 );
 void            glu_fastuidraw_gl_meshDeleteMesh( GLUmesh *mesh );
 void            glu_fastuidraw_gl_meshZapFace( GLUface *fZap );
+
+GLUmesh         *glu_fastuidraw_gl_copyMesh(GLUmesh *mesh);
 
 #ifdef NDEBUG
 #define         glu_fastuidraw_gl_meshCheckMesh( mesh )
