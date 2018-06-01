@@ -228,37 +228,21 @@ FASTUIDRAW_GLUboolean glu_fastuidraw_gl_renderCache( fastuidraw_GLUtesselator *t
       return TRUE;
   }
 
-  if(tess->boundaryOnly)
-    {
-      CALL_BEGIN_OR_BEGIN_DATA(FASTUIDRAW_GLU_LINE_LOOP, sign);
+  CALL_BEGIN_OR_BEGIN_DATA(FASTUIDRAW_GLU_TRIANGLES, sign);
+  if( sign > 0 ) {
+    for( vc = v0+2, vp = v0+1; vc < vn; ++vc, ++vp) {
       CALL_VERTEX_OR_VERTEX_DATA( v0->client_id );
-      if( sign > 0 ) {
-        for( vc = v0+1; vc < vn; ++vc ) {
-          CALL_VERTEX_OR_VERTEX_DATA( vc->client_id );
-        }
-      } else {
-        for( vc = vn-1; vc > v0; --vc ) {
-          CALL_VERTEX_OR_VERTEX_DATA( vc->client_id );
-        }
-      }
+      CALL_VERTEX_OR_VERTEX_DATA( vp->client_id );
+      CALL_VERTEX_OR_VERTEX_DATA( vc->client_id );
     }
-  else
-    {
-      CALL_BEGIN_OR_BEGIN_DATA(FASTUIDRAW_GLU_TRIANGLES, sign);
-      if( sign > 0 ) {
-        for( vc = v0+2, vp = v0+1; vc < vn; ++vc, ++vp) {
-          CALL_VERTEX_OR_VERTEX_DATA( v0->client_id );
-          CALL_VERTEX_OR_VERTEX_DATA( vp->client_id );
-          CALL_VERTEX_OR_VERTEX_DATA( vc->client_id );
-        }
-      } else {
-        for( vc = v0+2, vp = v0+1; vc < vn; ++vc, ++vp ) {
-          CALL_VERTEX_OR_VERTEX_DATA( v0->client_id );
-          CALL_VERTEX_OR_VERTEX_DATA( vc->client_id );
-          CALL_VERTEX_OR_VERTEX_DATA( vp->client_id );
-        }
-      }
+  } else {
+    for( vc = v0+2, vp = v0+1; vc < vn; ++vc, ++vp ) {
+      CALL_VERTEX_OR_VERTEX_DATA( v0->client_id );
+      CALL_VERTEX_OR_VERTEX_DATA( vc->client_id );
+      CALL_VERTEX_OR_VERTEX_DATA( vp->client_id );
     }
+  }
   CALL_END_OR_END_DATA();
+
   return TRUE;
 }

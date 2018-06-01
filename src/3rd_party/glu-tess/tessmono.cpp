@@ -170,18 +170,26 @@ void glu_fastuidraw_gl_meshDiscardExterior( GLUmesh *mesh )
 
 #define MARKED_FOR_DELETION     0x7fffffff
 
-/* glu_fastuidraw_gl_meshSetWindingNumber( mesh, value, keepOnlyBoundary ) resets the
- * winding numbers on all edges so that regions marked "inside" the
- * polygon have a winding number of "value", and regions outside
+/* glu_fastuidraw_gl_meshKeepOnly( mesh, winding_number) changes each
+ * regions field inside to be true if and only if its winding_number
+ * matches teh argument minding number. From there, it rests the
+ * winding numbers on all edges so that regions now marked "inside"
+ * the polygon have a winding number of 1, and regions outside
  * have a winding number of 0.
  *
- * If keepOnlyBoundary is TRUE, it also deletes all edges which do not
- * separate an interior region from an exterior one.
+ * It also deletes all edges which do not separate an interior region
+ * from an exterior one.
  */
-int glu_fastuidraw_gl_meshSetWindingNumber( GLUmesh *mesh, int value,
-                                FASTUIDRAW_GLUboolean keepOnlyBoundary )
+int glu_fastuidraw_gl_meshKeepOnly( GLUmesh *mesh, int winding_number)
 {
   GLUhalfEdge *e, *eNext;
+  GLUface *f;
+  int value(1), just_started;
+
+  for (f = mesh->fHead.next, just_started = 1; f != mesh->fHead.next || just_started; f = f->next) {
+    f->inside = (f->winding_number == winding_number);
+    just_started = 0;
+  }
 
   for( e = mesh->eHead.next; e != &mesh->eHead; e = eNext ) {
     eNext = e->next;
@@ -192,11 +200,7 @@ int glu_fastuidraw_gl_meshSetWindingNumber( GLUmesh *mesh, int value,
     } else {
 
       /* Both regions are interior, or both are exterior. */
-      if( ! keepOnlyBoundary ) {
-        e->winding = 0;
-      } else {
-        if ( !glu_fastuidraw_gl_meshDelete( e ) ) return 0;
-      }
+      if ( !glu_fastuidraw_gl_meshDelete( e ) ) return 0;
     }
   }
   return 1;

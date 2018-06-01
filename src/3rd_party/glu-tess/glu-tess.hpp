@@ -189,6 +189,21 @@ typedef void (*fastuidraw_glu_tess_function_boundary_corner_point_data)(double *
                                                                         unsigned int *outData,
                                                                         void *polygon_data);
 
+/* call back for grabbing the boundary, realized as line-loops for each
+ * winding component. Each execution of the call back represents a single
+ * line loop.
+ */
+#define FASTUIDRAW_GLU_TESS_EMIT_BOUNDARY 200106
+typedef void (*fastuidraw_glu_tess_function_emit_boundary)(int winding,
+                                                           const unsigned int vertex_ids[],
+                                                           unsigned int count);
+
+#define FASTUIDRAW_GLU_TESS_EMIT_BOUNDARY_DATA 200107
+typedef void (*fastuidraw_glu_tess_function_emit_boundary_data)(int winding,
+                                                                const unsigned int vertex_ids[],
+                                                                unsigned int count,
+                                                                void *polygon_data);
+
 /* TessContour */
 #define FASTUIDRAW_GLU_CW                             100120
 #define FASTUIDRAW_GLU_CCW                            100121
@@ -273,16 +288,6 @@ void fastuidraw_gluTessCallback (fastuidraw_GLUtesselator* tess, FASTUIDRAW_GLUe
 double fastuidraw_gluTessPropertyTolerance(fastuidraw_GLUtesselator* tess);
 void fastuidraw_gluTessPropertyTolerance(fastuidraw_GLUtesselator *tess, double value);
 
-/*
-  set and fetch weather or not to only provide line loops
-  decribing the boundary, using FASTUIDRAW_GLU_FALSE and FASTUIDRAW_GLU_TRUE.
-  If value is FASTUIDRAW_GLU_TRUE, then the boundary is provided
-  only as a sequence of line loops. If value is FASTUIDRAW_GLU_FALSE, then
-  tessellates according to the fill rule.
- */
-int fastuidraw_gluGetTessPropertyBoundaryOnly(fastuidraw_GLUtesselator *tess);
-void fastuidraw_gluTessPropertyBoundaryOnly(fastuidraw_GLUtesselator *tess, int value);
-
 
 #define FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(which, type, label)                \
   void fastuidraw_gluTessCallback##label(fastuidraw_GLUtesselator *tess, type f)
@@ -296,6 +301,7 @@ FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_COMBINE, fastuidraw_
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_WINDING_CALLBACK, fastuidraw_glu_tess_function_winding, FillRule);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_EMIT_MONOTONE, fastuidraw_glu_tess_function_emit_monotone, EmitMonotone);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_BOUNDARY_CORNER, fastuidraw_glu_tess_function_boundary_corner_point, BoundaryCornerPoint);
+FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_EMIT_BOUNDARY, fastuidraw_glu_tess_function_emit_boundary, EmitBoundary);
 
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_BEGIN_DATA, fastuidraw_glu_tess_function_begin_data, Begin);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_VERTEX_DATA, fastuidraw_glu_tess_function_vertex_data, Vertex);
@@ -305,3 +311,4 @@ FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_COMBINE_DATA, fastui
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_WINDING_CALLBACK_DATA, fastuidraw_glu_tess_function_winding_data, FillRule);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_EMIT_MONOTONE_DATA, fastuidraw_glu_tess_function_emit_monotone_data, EmitMonotone);
 FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_BOUNDARY_CORNER_DATA, fastuidraw_glu_tess_function_boundary_corner_point_data, BoundaryCornerPoint);
+FASTUIDRAW_GLU_TESS_TYPE_SAFE_CALL_BACK(FASTUIDRAW_GLU_TESS_EMIT_BOUNDARY_DATA, fastuidraw_glu_tess_function_emit_boundary_data, EmitBoundary);
