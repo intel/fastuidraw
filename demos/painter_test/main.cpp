@@ -13,6 +13,21 @@ using namespace fastuidraw;
 
 typedef std::bitset<32> bitset;
 
+c_string
+shader_extension(GLenum shader_type)
+{
+  switch (shader_type)
+    {
+    case GL_FRAGMENT_SHADER: return "frag";
+    case GL_VERTEX_SHADER: return "vert";
+    case GL_GEOMETRY_SHADER: return "geom";
+    case GL_TESS_CONTROL_SHADER: return "tesc";
+    case GL_TESS_EVALUATION_SHADER: return "tese";
+    case GL_COMPUTE_SHADER: return "comp";
+    default: return "unknown";
+    }
+}
+
 class painter_test:public sdl_painter_demo
 {
 public:
@@ -41,12 +56,10 @@ protected:
     for(unsigned int i = 0; i < cnt; ++i)
       {
         std::ostringstream name, name_log;
-        name << prefix << "."
-             << gl::Shader::gl_shader_type_label(shader_type)
-             << "." << i << ".glsl";
-        name_log << prefix << "."
-                 << gl::Shader::gl_shader_type_label(shader_type)
-                 << "." << i << ".log";
+        name << prefix << "." << i << "."
+             << shader_extension(shader_type) << ".glsl";
+        name_log << prefix << "." << i << "."
+                 << shader_extension(shader_type) << ".log";
 
         std::ofstream file(name.str().c_str());
         file << pr->shader_src_code(shader_type, i);
