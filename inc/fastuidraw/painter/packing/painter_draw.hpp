@@ -86,22 +86,41 @@ namespace fastuidraw
       void *m_d;
     };
 
+    /*!
+     * An \ref APIBase is a common base class that is used to pass
+     * graphics API specific data/environment. For example, for
+     * API's such as Vulkan or Metal it can be used to pass around
+     * the command buffer to which a backend for those API's is
+     * adding commands.
+     */
+    class APIBase
+    {
+    public:
+      virtual
+      ~APIBase()
+      {}
+    };
+
     /*!\brief
      * An \ref Action represents an action to be executed
      * between two indices to be fed the the GPU; an Action
      * will imply an draw break in the underlying 3D API.
      */
-    class Action:public reference_counted<Action>::default_base
+    class Action:public reference_counted<Action>::non_concurrent
     {
     public:
       /*!
        * To be implemented by a derived class to execute
        * the action and to return what portions of the
        * GPU state are made dirty by the action.
+       * \param api_base APIBase object active when the Action
+       *                 is called, some backends may make this
+       *                 value nullptr (for example the GL/GLES
+       *                 backends have this as nullptr).
        */
       virtual
       gpu_dirty_state
-      execute(void) const = 0;
+      execute(APIBase *api_base) const = 0;
     };
 
     /*!

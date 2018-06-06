@@ -347,7 +347,7 @@ namespace
   public:
     virtual
     fastuidraw::gpu_dirty_state
-    execute(void) const
+    execute(fastuidraw::PainterDraw::APIBase*) const
     {
       glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
       return fastuidraw::gpu_dirty_state();
@@ -359,7 +359,7 @@ namespace
   public:
     virtual
     fastuidraw::gpu_dirty_state
-    execute(void) const
+    execute(fastuidraw::PainterDraw::APIBase*) const
     {
       glMemoryBarrierByRegion(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
       return fastuidraw::gpu_dirty_state();
@@ -1052,7 +1052,7 @@ draw(PainterBackendGLPrivate *pr, const painter_vao &vao,
        * and rebind it after the action.
        */
       glBindVertexArray(0);
-      flags |= m_action->execute();
+      flags |= m_action->execute(nullptr);
       glBindVertexArray(vao.m_vao);
     }
 
