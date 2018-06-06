@@ -113,7 +113,7 @@ public:
 
   virtual
   fastuidraw::gpu_dirty_state
-  execute(void) const
+  execute(PainterDraw::APIBase *) const
   {
     if (m_lines)
       {
