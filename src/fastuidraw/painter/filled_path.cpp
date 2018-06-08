@@ -1146,6 +1146,7 @@ end_boundary(void)
     }
 
   FASTUIDRAWassert(m_current.back().m_end == m_current.front().m_start);
+  m_current.back().m_next = m_current.front().m_end;
   m_current.back().m_is_closing_edge = true;
   m_current.back().m_draw_bevel_to_next = m_current.back().m_draw_edge
     && m_current.front().m_draw_edge;
