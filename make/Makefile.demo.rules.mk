@@ -15,8 +15,7 @@ DEMO_debug_CFLAGS = -g $(DEMO_COMMON_CFLAGS)
 # $1 --> gl or gles
 # $2 --> debug or release
 define demobuildrules
-$(eval
-DEMO_$(2)_CFLAGS_$(1) = $$(DEMO_$(2)_CFLAGS) $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --cflags --incdir=inc)
+$(eval DEMO_$(2)_CFLAGS_$(1) = $$(DEMO_$(2)_CFLAGS) $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --cflags --incdir=inc)
 DEMO_$(2)_LIBS_$(1) = $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --libs --libdir=.)
 DEMO_$(2)_LIBS_STATIC_$(1) = $$(shell ./fastuidraw-config.nodir --$(1) --$(2) --static --libs --libdir=.)
 ifeq ($(BUILD_NEGL),1)
