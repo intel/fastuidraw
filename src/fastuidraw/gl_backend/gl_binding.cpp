@@ -144,7 +144,6 @@ post_call(c_string call_string_values,
                 << src_line << "] "
                 << call_string_values << "{"
                 << error << "}\n";
-      FASTUIDRAWassert(false);
     }
 
   ngl().post_call(call_string_values, call_string_src,
