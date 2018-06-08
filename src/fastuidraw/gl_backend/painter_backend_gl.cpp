@@ -2070,7 +2070,8 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
 
   aux_type = uber_params.provide_auxiliary_image_buffer();
   if (v & gpu_dirty_state::images
-      && aux_type != fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer)
+      && aux_type != fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer
+      && aux_type != fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch)
     {
       SurfaceGLPrivate::auxiliary_buffer_t tp;
 
@@ -2593,8 +2594,14 @@ on_post_draw(void)
   glActiveTexture(GL_TEXTURE0 + binding_points.colorstop_atlas());
   glBindTexture(ColorStopAtlasGL::texture_bind_target(), 0);
 
-  glBindImageTexture(binding_points.auxiliary_image_buffer(), 0,
-                     0, GL_FALSE, 0, GL_READ_ONLY, GL_R8UI);
+  enum glsl::PainterBackendGLSL::auxiliary_buffer_t aux_type;
+  aux_type = d->m_uber_shader_builder_params.provide_auxiliary_image_buffer();
+  if (aux_type != fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer
+      && aux_type != fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch)
+    {
+      glBindImageTexture(binding_points.auxiliary_image_buffer(), 0,
+			 0, GL_FALSE, 0, GL_READ_ONLY, GL_R8UI);
+    }
 
   switch(d->m_params.data_store_backing())
     {
