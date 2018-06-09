@@ -30,7 +30,6 @@ namespace fastuidraw  {
 
 ///@cond
 class Path;
-class ArcStrokedPath;
 class StrokedPath;
 class FilledPath;
 ///@endcond
@@ -492,13 +491,6 @@ public:
    */
   vec2
   bounding_box_size(void) const;
-
-  /*!
-   * Returns this TessellatedPath arc-stroked. The ArcStrokedPath
-   * object is constructed lazily.
-   */
-  const reference_counted_ptr<const ArcStrokedPath>&
-  arc_stroked(void) const;
 
   /*!
    * Returns this TessellatedPath linearly-stroked. The StrokedPath
