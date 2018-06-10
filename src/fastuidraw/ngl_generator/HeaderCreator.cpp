@@ -701,7 +701,7 @@ openGL_function_info::
 GetTypeFromArgumentEntry(string inString, ArgumentType &argumentType)
 {
   string::size_type startPlace,placeA,placeB, structPlace;
-  bool has_struct(false);
+  bool has_struct(false), has_const_struct(false);
 
   //hunt for characters that are not allowed in a name
   //namely, * and ' ' after the leading whitespace
@@ -711,6 +711,14 @@ GetTypeFromArgumentEntry(string inString, ArgumentType &argumentType)
   if (startPlace==string::npos)
     {
       inString=inString.substr(startPlace);
+    }
+
+  // check if there is a leading const struct
+  structPlace = inString.find("const struct");
+  if (structPlace != string::npos)
+    {
+      has_const_struct = true;
+      inString = inString.substr(structPlace + strlen("const struct") + 1);
     }
 
   // check if there is a leading struct
@@ -766,6 +774,11 @@ GetTypeFromArgumentEntry(string inString, ArgumentType &argumentType)
   else
     {
       argumentType.m_front = inString;
+    }
+
+  if (has_const_struct)
+    {
+      argumentType.m_front = "const struct " + argumentType.m_front;
     }
 
   if (has_struct)
