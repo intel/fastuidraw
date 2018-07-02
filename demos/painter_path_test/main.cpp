@@ -375,6 +375,10 @@ private:
   command_line_argument_value<float> m_draw_line_green;
   command_line_argument_value<float> m_draw_line_blue;
   command_line_argument_value<float> m_draw_line_alpha;
+  command_line_argument_value<bool> m_init_pan_zoom;
+  command_line_argument_value<float> m_initial_zoom;
+  command_line_argument_value<float> m_initial_pan_x;
+  command_line_argument_value<float> m_initial_pan_y;
 
   std::vector<PerPath> m_paths;
   reference_counted_ptr<Image> m_image;
@@ -554,6 +558,12 @@ painter_stroke_test(void):
   m_draw_line_green(0.0f, "draw_line_green", "green component when showing line-rasterization", *this),
   m_draw_line_blue(0.0f, "draw_line_blue", "blue component when showing line-rasterization", *this),
   m_draw_line_alpha(0.4f, "draw_line_alpha", "alpha component when showing line-rasterization", *this),
+  m_init_pan_zoom(false, "init_pan_zoom", "If true, initialize the view with values given by "
+                  "initial_zoom, initial_pan_x and initial_pan_y; if false initialize each path "
+                  "view so that the entire path just fits on screen", *this),
+  m_initial_zoom(1.0f, "initial_zoom", "initial zoom for view if init_pan_zoom is true", *this),
+  m_initial_pan_x(0.0f, "initial_pan_x", "initial x-offset for view if init_pan_zoom is true", *this),
+  m_initial_pan_y(0.0f, "initial_pan_y", "initial y-offset for view if init_pan_zoom is true", *this),
   m_selected_path(0),
   m_join_style(PainterEnums::rounded_joins),
   m_cap_style(PainterEnums::square_caps),
@@ -1363,6 +1373,19 @@ construct_paths(int w, int h)
            << Path::contour_end();
       m_paths.push_back(PerPath(path, "Default Path", w, h, false));
     }
+
+  if (m_init_pan_zoom.m_value)
+    {
+      for (PerPath &P : m_paths)
+        {
+          ScaleTranslate<float> v;
+
+          v.translation_x(m_initial_pan_x.m_value);
+          v.translation_y(m_initial_pan_y.m_value);
+          v.scale(m_initial_zoom.m_value);
+          P.m_path_zoomer.transformation(v);
+        }
+    }
 }
 
 void
@@ -1929,6 +1952,8 @@ draw_frame(void)
            << "\nMouse position:"
            << item_coordinates(mouse_position)
            << "\ncurveFlatness: " << m_curve_flatness
+           << "\nView:\n\tzoom = " << zoomer().transformation().scale()
+           << "\n\ttranslation = " << zoomer().transformation().translation()
            << "\n";
 
       PainterBrush brush;
