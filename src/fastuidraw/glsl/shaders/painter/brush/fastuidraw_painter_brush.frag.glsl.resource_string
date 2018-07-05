@@ -202,10 +202,10 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
       texture_coords = corner_coords + vec4(x_weights.y, x_weights.w, y_weights.y, y_weights.w) / weight_sums;
       texture_coords *= fastuidraw_imageAtlasLinear_size_reciprocal.xyxy;
 
-      t00 = textureLod(fastuidraw_imageAtlasLinear, vec3(texture_coords.xz, color_layer), 0);
-      t10 = textureLod(fastuidraw_imageAtlasLinear, vec3(texture_coords.yz, color_layer), 0);
-      t01 = textureLod(fastuidraw_imageAtlasLinear, vec3(texture_coords.xw, color_layer), 0);
-      t11 = textureLod(fastuidraw_imageAtlasLinear, vec3(texture_coords.yw, color_layer), 0);
+      t00 = textureLod(fastuidraw_imageAtlasLinear, vec3(texture_coords.xz, color_layer), 0.0);
+      t10 = textureLod(fastuidraw_imageAtlasLinear, vec3(texture_coords.yz, color_layer), 0.0);
+      t01 = textureLod(fastuidraw_imageAtlasLinear, vec3(texture_coords.xw, color_layer), 0.0);
+      t11 = textureLod(fastuidraw_imageAtlasLinear, vec3(texture_coords.yw, color_layer), 0.0);
 
       linear_weight.x = weight_sums.y / (weight_sums.x + weight_sums.y);
       linear_weight.y = weight_sums.w / (weight_sums.z + weight_sums.w);
@@ -270,10 +270,10 @@ fastuidraw_image_of_bindless(in vec2 texel_coord, in uint image_filter, in float
       texture_coords = corner_coords + vec4(x_weights.y, x_weights.w, y_weights.y, y_weights.w) / weight_sums;
       texture_coords *= recip_texSize.xyxy;
 
-      t00 = textureLod(im, texture_coords.xz, 0);
-      t10 = textureLod(im, texture_coords.yz, 0);
-      t01 = textureLod(im, texture_coords.xw, 0);
-      t11 = textureLod(im, texture_coords.yw, 0);
+      t00 = textureLod(im, texture_coords.xz, 0.0);
+      t10 = textureLod(im, texture_coords.yz, 0.0);
+      t01 = textureLod(im, texture_coords.xw, 0.0);
+      t11 = textureLod(im, texture_coords.yw, 0.0);
 
       linear_weight.x = weight_sums.y / (weight_sums.x + weight_sums.y);
       linear_weight.y = weight_sums.w / (weight_sums.z + weight_sums.w);
