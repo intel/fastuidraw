@@ -33,10 +33,10 @@
   #define fastuidraw_clip2 gl_ClipDistance[2]
   #define fastuidraw_clip3 gl_ClipDistance[3]
 #else
-  #define fastuidraw_clip0 fastuidraw_clip_plane0
-  #define fastuidraw_clip1 fastuidraw_clip_plane1
-  #define fastuidraw_clip2 fastuidraw_clip_plane2
-  #define fastuidraw_clip3 fastuidraw_clip_plane3
+  #define fastuidraw_clip0 fastuidraw_clip_planes.x
+  #define fastuidraw_clip1 fastuidraw_clip_planes.y
+  #define fastuidraw_clip2 fastuidraw_clip_planes.z
+  #define fastuidraw_clip3 fastuidraw_clip_planes.w
 #endif
 
 void

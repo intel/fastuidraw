@@ -476,35 +476,39 @@ add_varyings_impl(c_string append_to_name,
       "vec4",
     };
 
-  add_varyings_impl_type(append_to_name, uint_count, "flat", uint_labels, uint_varying_label());
-  add_varyings_impl_type(append_to_name, int_count, "flat", int_labels, int_varying_label());
+  add_varyings_impl_type(append_to_name, uint_count, "flat", uint_labels, uint_varying_label(), true);
+  add_varyings_impl_type(append_to_name, int_count, "flat", int_labels, int_varying_label(), true);
 
   add_varyings_impl_type(append_to_name,
                          float_counts[varying_list::interpolation_smooth],
                          "", float_labels,
-                         float_varying_label(varying_list::interpolation_smooth));
+                         float_varying_label(varying_list::interpolation_smooth),
+                         false);
 
   add_varyings_impl_type(append_to_name,
                          float_counts[varying_list::interpolation_flat],
                          "flat", float_labels,
-                         float_varying_label(varying_list::interpolation_flat));
+                         float_varying_label(varying_list::interpolation_flat),
+                         true);
 
   add_varyings_impl_type(append_to_name,
                          float_counts[varying_list::interpolation_noperspective],
                          "noperspective", float_labels,
-                         float_varying_label(varying_list::interpolation_noperspective));
+                         float_varying_label(varying_list::interpolation_noperspective),
+                         false);
 }
 
 void
 DeclareVaryings::
 add_varyings_impl_type(c_string suffix, unsigned int cnt,
                        c_string qualifier, c_string types[],
-                       c_string name)
+                       c_string name, bool is_flat)
 {
   per_varying V;
   unsigned int num_vec4(cnt / 4);
   unsigned int remaining(cnt % 4);
 
+  V.m_is_flat = is_flat;
   V.m_qualifier = qualifier;
   V.m_type = types[3];
   for (unsigned int i = 0; i < num_vec4; ++i)
@@ -526,6 +530,7 @@ add_varyings_impl_type(c_string suffix, unsigned int cnt,
 std::string
 DeclareVaryings::
 declare_varyings(c_string varying_qualifier,
+                 bool add_clip_varyings,
                  c_string interface_name,
                  c_string instance_name) const
 {
@@ -546,6 +551,12 @@ declare_varyings(c_string varying_qualifier,
       str << "FASTUIDRAW_LAYOUT_VARYING(" << V.m_slot << ") "
           << V.m_qualifier << " " << vp << " " << V.m_type
           << " " << V.m_name << ";\n";
+    }
+
+  if (add_clip_varyings)
+    {
+      str << "FASTUIDRAW_LAYOUT_VARYING(" << m_varyings.size()
+          << ") " << vp << " vec4 fastuidraw_clip_planes;\n"; 
     }
 
   if (interface_name)

@@ -300,21 +300,6 @@ ready_main_varyings(void)
     .add_uint_varying("fastuidraw_blend_shader_data_location")
     .add_float_varying("fastuidraw_brush_p_x")
     .add_float_varying("fastuidraw_brush_p_y");
-
-  if (m_config.clipping_type() != PainterBackendGLSL::clipping_via_clip_distance)
-    {
-      m_main_varyings_header_only
-        .add_float_varying("fastuidraw_clip_plane0")
-        .add_float_varying("fastuidraw_clip_plane1")
-        .add_float_varying("fastuidraw_clip_plane2")
-        .add_float_varying("fastuidraw_clip_plane3");
-
-      m_main_varyings_shaders_and_shader_datas
-        .add_float_varying("fastuidraw_clip_plane0")
-        .add_float_varying("fastuidraw_clip_plane1")
-        .add_float_varying("fastuidraw_clip_plane2")
-        .add_float_varying("fastuidraw_clip_plane3");
-    }
 }
 
 void
@@ -775,6 +760,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   DeclareVaryings declare_varyings_builder;
   std::string declare_vertex_shader_ins, declare_uniforms;
   std::string declare_frag_varyings, declare_vert_varyings;
+  std::string declare_in_geom_varyings, declare_out_geom_varyings;
   const varying_list *main_varyings;
   DeclareVaryingsStringDatum main_varying_datum, brush_varying_datum, shader_varying_datum;
   const PainterBackendGLSL::BindingPoints &binding_params(params.binding_points());
@@ -862,19 +848,42 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
                                             m_brush_varyings.float_counts(),
                                             &brush_varying_datum);
     }
-  declare_varyings_builder.add_varyings("_main",
-                                        main_varyings->uints().size(),
-                                        main_varyings->ints().size(),
-                                        main_varyings->float_counts(),
-                                        &main_varying_datum);
   declare_varyings_builder.add_varyings("_shader",
                                         m_number_uint_varyings,
                                         m_number_int_varyings,
                                         m_number_float_varyings,
                                         &shader_varying_datum);
 
-  declare_vert_varyings = declare_varyings_builder.declare_varyings("out");
-  declare_frag_varyings = declare_varyings_builder.declare_varyings("in");
+  declare_varyings_builder.add_varyings("_main",
+                                        main_varyings->uints().size(),
+                                        main_varyings->ints().size(),
+                                        main_varyings->float_counts(),
+                                        &main_varying_datum);
+  
+  if (!geom)
+    {
+      enum PainterBackendGLSL::clipping_type_t ct(m_config.clipping_type());
+      bool include_clip_varyings(ct != PainterBackendGLSL::clipping_via_clip_distance);
+
+      declare_vert_varyings = declare_varyings_builder.declare_varyings("out", include_clip_varyings);
+      declare_frag_varyings = declare_varyings_builder.declare_varyings("in", include_clip_varyings);
+    }
+  else
+    {
+      enum PainterBackendGLSL::clipping_type_t ct(m_config.clipping_type());
+      declare_vert_varyings = declare_varyings_builder.declare_varyings("out",
+                                                                        ct != PainterBackendGLSL::clipping_via_clip_distance,
+                                                                        "FastUIDraw_PerVertex");
+      declare_in_geom_varyings = declare_varyings_builder.declare_varyings("in",
+                                                                           ct != PainterBackendGLSL::clipping_via_clip_distance,
+                                                                           "FastUIDraw_PerVertex", "fastuidraw_in[]");
+      declare_out_geom_varyings = declare_varyings_builder.declare_varyings("out",
+                                                                            ct == PainterBackendGLSL::clipping_via_discard,
+                                                                            "FastUIDraw_PerVertex");
+      declare_frag_varyings = declare_varyings_builder.declare_varyings("in",
+                                                                        ct == PainterBackendGLSL::clipping_via_discard,
+                                                                        "FastUIDraw_PerVertex");
+    }
   declare_uniforms = declare_shader_uniforms(params);
 
   if (params.unpack_header_and_brush_in_frag_shader())
@@ -1053,8 +1062,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   stream_alias_varyings("_main", vert, *main_varyings, true, main_varying_datum);
   if (params.unpack_header_and_brush_in_frag_shader())
     {
-      /* we need to declare the values named in m_brush_varyings
-       */
+      /* we need to declare the values named in m_brush_varyings */
       stream_varyings_as_local_variables(vert, m_brush_varyings);
     }
   else
@@ -1156,6 +1164,70 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   stream_uber_blend_shader(params.blend_shader_use_switch(), frag,
                            make_c_array(m_blend_shaders[m_blend_type].m_shaders),
                            m_blend_type);
+
+  if (geom)
+    {
+      enum PainterBackendGLSL::clipping_type_t ct(m_config.clipping_type());
+      std::ostringstream str;
+      ShaderSource &geometry_shader(*geom);
+
+      /* create the function fastuidraw_emit_vertex() that does
+       *   1. sets each of the out values correctly as according to the barycentrics
+       *   2. sets gl_Position (and if necessary, gl_ClipDistance) as well
+       *   3. Call EmitVertex()
+       */
+      str << "void fastuidraw_emit_vertex(in float b0, in float b1, in float b2)\n"
+          << "{\n";
+
+      for (const DeclareVaryings::per_varying &V : declare_varyings_builder.varyings())
+        {
+          if (V.m_is_flat)
+            {
+              str << "\t" << V.m_name << " = "
+                  << "fastuidraw_in[0]." << V.m_name
+                  << ";\n";
+            }
+          else
+            {
+              str << "\t" << V.m_name << " = "
+                  << "b0 * fastuidraw_in[0]." << V.m_name
+                  << " + b1 * fastuidraw_in[1]." << V.m_name
+                  << " + b2 * fastuidraw_in[2]." << V.m_name
+                  << ";\n";
+            }
+        }
+
+      if (ct == PainterBackendGLSL::clipping_via_clip_distance)
+        {
+          for (int i = 0; i < 4; ++i)
+            {
+              str << "\tgl_ClipDistance[" << i << "] = "
+                  << "b0 * gl_in[0].gl_ClipDistance[" << i << "]"
+                  << " + b1 * gl_in[1].gl_ClipDistance[" << i << "]"
+                  << " + b2 * gl_in[2].gl_ClipDistance[" << i << "];\n";
+            }
+        }
+      else if (ct == PainterBackendGLSL::clipping_via_discard)
+        {
+          str << "\tfastuidraw_clip_planes = "
+              << "b0 * fastuidraw_in[0].fastuidraw_clip_planes" 
+              << " + b1 * fastuidraw_in[1].fastuidraw_clip_planes"
+              << " + b2 * fastuidraw_in[2].fastuidraw_clip_planes;\n";
+        }
+
+      str << "\tgl_Position = b0 * gl_in[0].gl_Position"
+          << " + b1 * gl_in[1].gl_Position"
+          << " + b2 * gl_in[2].gl_Position;\n"
+          << "\tEmitVertex();\n"
+          << "}\n";
+
+      geometry_shader
+        .add_source(varying_layout_macro.c_str(), ShaderSource::from_string)
+        .add_source(declare_in_geom_varyings.c_str(), ShaderSource::from_string)
+        .add_source(declare_out_geom_varyings.c_str(), ShaderSource::from_string)
+        .add_source(str.str().c_str(), ShaderSource::from_string)
+        .add_source("fastuidraw_painter_main.geom.glsl.resource_string", ShaderSource::from_resource);
+    }
 
   return fastuidraw::routine_success;
 }

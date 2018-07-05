@@ -40,6 +40,16 @@ public:
 class DeclareVaryings:fastuidraw::noncopyable
 {
 public:
+  class per_varying
+  {
+  public:
+    bool m_is_flat;
+    std::string m_type;
+    std::string m_name;
+    std::string m_qualifier;
+    unsigned int m_slot;
+  };
+
   void
   add_varyings(c_string suffix,
                size_t uint_count,
@@ -49,19 +59,17 @@ public:
 
   std::string
   declare_varyings(c_string varying_qualifier,
+                   bool add_clip_varyings,
                    c_string interface_name = nullptr,
                    c_string instance_name = nullptr) const;
+
+  const std::vector<per_varying>&
+  varyings(void) const
+  {
+    return m_varyings;
+  }
   
 private:
-  class per_varying
-  {
-  public:
-    std::string m_type;
-    std::string m_name;
-    std::string m_qualifier;
-    unsigned int m_slot;
-  };
-
   void
   add_varyings_impl(c_string suffix,
                     size_t uint_count,
@@ -71,7 +79,7 @@ private:
   void
   add_varyings_impl_type(c_string suffix, unsigned int cnt,
                          c_string qualifier, c_string types[],
-                         c_string name);
+                         c_string name, bool is_flat);
 
   std::vector<per_varying> m_varyings;
 };

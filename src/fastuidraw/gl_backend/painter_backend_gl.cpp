@@ -235,18 +235,36 @@ namespace
 
     #ifdef FASTUIDRAW_GL_USE_GLES
       {
-        switch(in_value)
+        if (in_value == PainterBackendGL::clipping_via_discard)
           {
-          case PainterBackendGL::clipping_via_clip_distance:
-            if (ctx.has_extension("GL_APPLE_clip_distance")
-                || ctx.has_extension("GL_EXT_clip_cull_distance"))
-              {
-                return in_value;
-              }
-            //fall through
-          default:
+            return in_value;
+          }
+
+        bool clip_distance_present, geom_present;
+
+        clip_distance_present = ctx.has_extension("GL_APPLE_clip_distance")
+          || ctx.has_extension("GL_EXT_clip_cull_distance");
+
+        geom_present = ctx.version() >= ivec2(3, 2)
+          || ctx.has_extension("GL_EXT_geometry_shader")
+          || ctx.has_extension("GL_OES_geometry_shader");
+
+        if (!geom_present && !clip_distance_present)
+          {
             return PainterBackendGL::clipping_via_discard;
           }
+
+        if (!geom_present && in_value == PainterBackendGL::clipping_via_geometry_shader)
+          {
+            in_value = PainterBackendGL::clipping_via_clip_distance;
+          }
+
+        if (!clip_distance_present && in_value == PainterBackendGL::clipping_via_clip_distance)
+          {
+            in_value = PainterBackendGL::clipping_via_geometry_shader;
+          }
+
+        return in_value;
       }
     #else
       {
@@ -365,11 +383,13 @@ namespace
     use_shader(const fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> &shader) const
     {
       using namespace fastuidraw::gl;
-      bool discard_active;
+      bool uses_discard, return_value;
 
-      discard_active =  m_cp == PainterBackendGL::clipping_via_discard
+      uses_discard = (m_cp == PainterBackendGL::clipping_via_discard)
         || shader->uses_discard();
-      return use_shader_helper(m_tp, discard_active);
+
+      return_value = use_shader_helper(m_tp, uses_discard);
+      return return_value;
     }
 
   private:
@@ -459,6 +479,8 @@ namespace
     fastuidraw::gl::ProgramInitializerArray m_initializer;
     fastuidraw::glsl::ShaderSource m_front_matter_vert;
     fastuidraw::glsl::ShaderSource m_front_matter_frag;
+    fastuidraw::glsl::ShaderSource m_front_matter_geom;
+    bool m_use_geometry_shader;
     program_set m_programs;
     std::vector<fastuidraw::generic_data> m_uniform_values;
     fastuidraw::c_array<fastuidraw::generic_data> m_uniform_values_ptr;
@@ -1698,7 +1720,7 @@ configure_backend(void)
    * separate the discarding and non-discarding item shaders.
    */
   m_params.separate_program_for_discard(m_params.separate_program_for_discard()
-                                        && m_params.clipping_type() == PainterBackendGL::clipping_via_discard);
+                                        && m_params.clipping_type() != PainterBackendGL::clipping_via_discard);
 
   fastuidraw::gl::ColorStopAtlasGL *color;
   FASTUIDRAWassert(dynamic_cast<ColorStopAtlasGL*>(m_params.colorstop_atlas().get()));
@@ -1713,9 +1735,8 @@ configure_backend(void)
       colorstop_tp = PainterBackendGL::colorstop_texture_1d_array;
     }
 
-  /* Some shader features require new version of GL or
-   * specific extensions.
-   */
+  m_use_geometry_shader =
+    (m_params.clipping_type() == PainterBackendGL::clipping_via_geometry_shader);
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
       if (m_ctx_properties.version() < ivec2(3, 2))
@@ -1875,19 +1896,24 @@ configure_source_front_matter(void)
 
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
-      if (m_p->configuration_glsl().use_hw_clip_planes())
+      if (m_p->configuration_glsl().clipping_type() == PainterBackendGLSL::clipping_via_clip_distance)
         {
-          m_front_matter_vert.specify_extension(m_gles_clip_plane_extension.c_str(), ShaderSource::require_extension);
+          m_front_matter_vert.specify_extension(m_gles_clip_plane_extension.c_str(),
+                                                ShaderSource::require_extension);
+          m_front_matter_geom.specify_extension(m_gles_clip_plane_extension.c_str(),
+                                                ShaderSource::require_extension);
         }
 
       if (m_ctx_properties.version() >= fastuidraw::ivec2(3, 2))
         {
           m_front_matter_vert
             .specify_version("320 es");
+
           m_front_matter_frag
             .specify_version("320 es")
             .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension)
             .specify_extension("GL_EXT_blend_func_extended", ShaderSource::enable_extension);
+          m_front_matter_geom.specify_version("320 es");
         }
       else
         {
@@ -1907,13 +1933,24 @@ configure_source_front_matter(void)
               m_front_matter_frag.specify_extension("GL_EXT_separate_shader_objects", ShaderSource::require_extension);
             }
 
+          m_front_matter_geom
+            .specify_version(version.c_str())
+            .specify_extension("GL_EXT_shader_io_blocks", ShaderSource::enable_extension)
+            .specify_extension("GL_OES_shader_io_blocks", ShaderSource::enable_extension)
+            .specify_extension("GL_EXT_geometry_shader", ShaderSource::enable_extension)
+            .specify_extension("GL_OES_geometry_shader", ShaderSource::enable_extension);
+
           m_front_matter_vert
             .specify_version(version.c_str())
+            .specify_extension("GL_EXT_shader_io_blocks", ShaderSource::enable_extension)
+            .specify_extension("GL_OES_shader_io_blocks", ShaderSource::enable_extension)
             .specify_extension("GL_EXT_texture_buffer", ShaderSource::enable_extension)
             .specify_extension("GL_OES_texture_buffer", ShaderSource::enable_extension);
 
           m_front_matter_frag
             .specify_version(version.c_str())
+            .specify_extension("GL_EXT_shader_io_blocks", ShaderSource::enable_extension)
+            .specify_extension("GL_OES_shader_io_blocks", ShaderSource::enable_extension)
             .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension)
             .specify_extension("GL_EXT_blend_func_extended", ShaderSource::enable_extension)
             .specify_extension("GL_EXT_texture_buffer", ShaderSource::enable_extension)
@@ -1921,10 +1958,12 @@ configure_source_front_matter(void)
         }
       m_front_matter_vert.add_source("fastuidraw_painter_gles_precision.glsl.resource_string", ShaderSource::from_resource);
       m_front_matter_frag.add_source("fastuidraw_painter_gles_precision.glsl.resource_string", ShaderSource::from_resource);
+      m_front_matter_geom.add_source("fastuidraw_painter_gles_precision.glsl.resource_string", ShaderSource::from_resource);
     }
   #else
     {
       bool using_glsl42;
+      std::string version;
 
       using_glsl42 = m_ctx_properties.version() >= fastuidraw::ivec2(4, 2)
         && (m_uber_shader_builder_params.assign_layout_to_varyings()
@@ -1936,14 +1975,11 @@ configure_source_front_matter(void)
 
       if (using_glsl42)
         {
-          m_front_matter_vert.specify_version("420");
-          m_front_matter_frag.specify_version("420");
+          version = "420";
         }
       else
         {
-          m_front_matter_vert.specify_version("330");
-          m_front_matter_frag.specify_version("330");
-
+          version = "330";
           if (m_uber_shader_builder_params.assign_layout_to_varyings())
             {
               m_front_matter_vert.specify_extension("GL_ARB_separate_shader_objects", ShaderSource::require_extension);
@@ -1962,6 +1998,10 @@ configure_source_front_matter(void)
                 .specify_extension("GL_ARB_shader_image_load_store", ShaderSource::require_extension);
             }
         }
+
+      m_front_matter_vert.specify_version(version.c_str());
+      m_front_matter_frag.specify_version(version.c_str());
+      m_front_matter_geom.specify_version(version.c_str());
     }
   #endif
 
@@ -2041,12 +2081,17 @@ PainterBackendGLPrivate::program_ref
 PainterBackendGLPrivate::
 build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
 {
-  fastuidraw::glsl::ShaderSource vert, frag;
+  using namespace fastuidraw;
+  using namespace glsl;
+  using namespace gl;
+  
+  std::vector<reference_counted_ptr<Shader> > shaders;
+  ShaderSource vert, frag;
   program_ref return_value;
   DiscardItemShaderFilter item_filter(tp, m_params.clipping_type());
-  fastuidraw::c_string discard_macro;
+  c_string discard_macro;
 
-  if (tp == fastuidraw::gl::PainterBackendGL::program_without_discard)
+  if (tp == PainterBackendGL::program_without_discard)
     {
       discard_macro = "fastuidraw_do_nothing()";
       frag.add_macro("FASTUIDRAW_ALLOW_EARLY_FRAGMENT_TESTS");
@@ -2066,16 +2111,36 @@ build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
     .specify_extensions(m_front_matter_frag)
     .add_source(m_front_matter_frag);
 
-  enum fastuidraw::return_code R;
-  R = m_p->construct_shader(vert, frag,
-                            m_uber_shader_builder_params,
-                            &item_filter, discard_macro);
+  enum return_code R;
+  if (m_use_geometry_shader)
+    {
+      fastuidraw::glsl::ShaderSource geom;
+
+      geom
+        .specify_version(m_front_matter_geom.version())
+        .specify_extensions(m_front_matter_geom)
+        .add_source(m_front_matter_geom);
+
+      R = m_p->construct_shader(vert, geom, frag,
+                                m_uber_shader_builder_params,
+                                &item_filter, discard_macro);
+      shaders.push_back(FASTUIDRAWnew Shader(geom, GL_GEOMETRY_SHADER));
+    }
+  else
+    {
+      R = m_p->construct_shader(vert, frag,
+                                m_uber_shader_builder_params,
+                                &item_filter, discard_macro);
+    }
   FASTUIDRAWassert(R == fastuidraw::routine_success);
   FASTUIDRAWunused(R);
 
-  return_value = FASTUIDRAWnew fastuidraw::gl::Program(vert, frag,
-                                                       m_attribute_binder,
-                                                       m_initializer);
+  shaders.push_back(FASTUIDRAWnew Shader(vert, GL_VERTEX_SHADER));
+  shaders.push_back(FASTUIDRAWnew Shader(frag, GL_FRAGMENT_SHADER));
+
+  return_value = FASTUIDRAWnew Program(make_c_array(shaders),
+                                       m_attribute_binder,
+                                       m_initializer);
   return return_value;
 }
 

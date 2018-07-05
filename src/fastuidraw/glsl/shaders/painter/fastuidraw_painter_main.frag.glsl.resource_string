@@ -48,8 +48,8 @@
        pixel (recall the clipping equations are already in clip coordinates).
      */
     float epsilon = 0.5 * fastuidraw_viewport_recip_pixels_magnitude;
-    if (fastuidraw_clip_plane0 < epsilon || fastuidraw_clip_plane1 < epsilon
-       || fastuidraw_clip_plane2 < epsilon  || fastuidraw_clip_plane3 < epsilon)
+    if (fastuidraw_clip_planes.x < epsilon || fastuidraw_clip_planes.y < epsilon
+       || fastuidraw_clip_planes.z < epsilon  || fastuidraw_clip_planes.w < epsilon)
       {
         FASTUIDRAW_DISCARD;
       }

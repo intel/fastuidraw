@@ -1,0 +1,54 @@
+/*!
+ * \file fastuidraw_painter_main.geom.glsl.resource_string
+ * \brief file fastuidraw_painter_main.geom.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+layout(triangles) in;
+
+#ifdef FASTUIDRAW_PAINTER_GEOMETRY_SHADER_CLIPPING
+layout(triangle_strip, max_vertices = 7) out;
+#else
+layout(triangle_strip, max_vertices = 3) out;
+#endif
+
+#ifdef FASTUIDRAW_PAINTER_GEOMETRY_SHADER_CLIPPING
+
+/* TODO: Implement triangle clipping in geometry shader;
+ * the data to observe the clipping is in fastuidraw_in[]
+ * on the fastuidraw_clip_planes; we need to clip the
+ * triangle against each of those values being >= 0. 
+ */
+
+void
+main(void)
+{
+  fastuidraw_emit_vertex(1.0, 0.0, 0.0);
+  fastuidraw_emit_vertex(0.0, 1.0, 0.0);
+  fastuidraw_emit_vertex(0.0, 0.0, 1.0);
+  EndPrimitive();
+}
+
+#else
+
+void
+main(void)
+{
+  fastuidraw_emit_vertex(1.0, 0.0, 0.0);
+  fastuidraw_emit_vertex(0.0, 1.0, 0.0);
+  fastuidraw_emit_vertex(0.0, 0.0, 1.0);
+  EndPrimitive();
+}
+
+#endif
