@@ -33,13 +33,7 @@
   layout(location = 0) inout vec4 fastuidraw_final_color;
 #endif
 
-#ifdef FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES
-
-  void
-  apply_clipping(void)
-  {}
-
-#else
+#ifdef FASTUIDRAW_PAINTER_DISCARD_CLIPS
 
   void
   apply_clipping(void)
@@ -60,6 +54,12 @@
         FASTUIDRAW_DISCARD;
       }
   }
+
+#else
+
+  void
+  apply_clipping(void)
+  {}
 
 #endif
 

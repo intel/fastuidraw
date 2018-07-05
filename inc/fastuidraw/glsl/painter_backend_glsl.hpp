@@ -207,6 +207,25 @@ namespace fastuidraw
         };
 
       /*!
+       * Enumeration to specify how triangles are to be clipped
+       * against the clipping equations represented by \ref
+       * PainterClipEquations.
+       */
+      enum clipping_type_t
+        {
+          /*!
+           * The clipping is done through gl_ClipDistance[]
+           * in the generated vertex shader.
+           */
+          clipping_via_clip_distance,
+
+          /*!
+           * Clipping is performed via discard
+           */
+          clipping_via_discard,
+        };
+
+      /*!
        * \brief
        * A params gives parameters how to contruct
        * a PainterBackendGLSL.
@@ -246,17 +265,19 @@ namespace fastuidraw
         swap(ConfigurationGLSL &obj);
 
         /*!
-         * If true, use HW clip planes (embodied by gl_ClipDistance).
+         * Specifies how clipping against the clip equations
+         * of a \ref PainterClipEquations are to be performed by
+         * the shaders.
          */
-        bool
-        use_hw_clip_planes(void) const;
+        enum clipping_type_t
+        clipping_type(void) const;
 
         /*!
-         * Set the value returned by use_hw_clip_planes(void) const.
+         * Set the value returned by clipping_type(void) const.
          * Default value is true.
          */
         ConfigurationGLSL&
-        use_hw_clip_planes(bool);
+        clipping_type(enum clipping_type_t);
 
         /*!
          * Sets how the default stroke shaders perform anti-aliasing.

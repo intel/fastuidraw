@@ -27,7 +27,7 @@
   #define FASTUIDRAW_DEPTH_COEFF (1.0 / float(fastuidraw_max_z) )
 #endif
 
-#ifdef FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES
+#ifdef FASTUIDRAW_PAINTER_GL_CLIP_DISTANCE_CLIPS
   #define fastuidraw_clip0 gl_ClipDistance[0]
   #define fastuidraw_clip1 gl_ClipDistance[1]
   #define fastuidraw_clip2 gl_ClipDistance[2]

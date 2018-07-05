@@ -63,11 +63,11 @@ namespace
   {
   public:
     ConfigurationGLSLPrivate(void):
-      m_use_hw_clip_planes(true),
+      m_clipping_type(fastuidraw::glsl::PainterBackendGLSL::clipping_via_clip_distance),
       m_default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz)
     {}
 
-    bool m_use_hw_clip_planes;
+    enum fastuidraw::glsl::PainterBackendGLSL::clipping_type_t m_clipping_type;
     enum fastuidraw::PainterStrokeShader::type_t m_default_stroke_shader_aa_type;
     fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_default_stroke_shader_aa_pass1_action;
     fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_default_stroke_shader_aa_pass2_action;
@@ -285,6 +285,8 @@ void
 PainterBackendGLSLPrivate::
 ready_main_varyings(void)
 {
+  using namespace fastuidraw::glsl;
+
   m_main_varyings_header_only
     .add_uint_varying("fastuidraw_header_varying")
     .add_float_varying("fastuidraw_brush_p_x")
@@ -298,7 +300,7 @@ ready_main_varyings(void)
     .add_float_varying("fastuidraw_brush_p_x")
     .add_float_varying("fastuidraw_brush_p_y");
 
-  if (!m_config.use_hw_clip_planes())
+  if (m_config.clipping_type() != PainterBackendGLSL::clipping_via_clip_distance)
     {
       m_main_varyings_header_only
         .add_float_varying("fastuidraw_clip_plane0")
@@ -895,10 +897,15 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       frag.add_macro("FASTUIDRAW_PAINTER_NORMALIZED_0_TO_1");
     }
 
-  if (m_config.use_hw_clip_planes())
+  switch (m_config.clipping_type())
     {
-      vert.add_macro("FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES");
-      frag.add_macro("FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES");
+    case PainterBackendGLSL::clipping_via_clip_distance:
+      vert.add_macro("FASTUIDRAW_PAINTER_GL_CLIP_DISTANCE_CLIPS");
+      break;
+
+    case PainterBackendGLSL::clipping_via_discard:
+      frag.add_macro("FASTUIDRAW_PAINTER_DISCARD_CLIPS");
+      break;
     }
 
   if (m_p->configuration_base().supports_bindless_texturing())
@@ -1178,7 +1185,7 @@ fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
 assign_swap_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL)
 
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL, ConfigurationGLSLPrivate,
-                 bool, use_hw_clip_planes)
+                 enum fastuidraw::glsl::PainterBackendGLSL::clipping_type_t, clipping_type)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL, ConfigurationGLSLPrivate,
                  enum fastuidraw::PainterStrokeShader::type_t, default_stroke_shader_aa_type)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL, ConfigurationGLSLPrivate,
@@ -1321,7 +1328,9 @@ PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
 {
   m_d = FASTUIDRAWnew PainterBackendGLSLPrivate(this, config_glsl,
                                                 config_base.blend_type());
-  set_hints().clipping_via_hw_clip_planes(config_glsl.use_hw_clip_planes());
+
+  set_hints()
+    .clipping_via_hw_clip_planes(config_glsl.clipping_type() != clipping_via_discard);
 }
 
 fastuidraw::glsl::PainterBackendGLSL::
