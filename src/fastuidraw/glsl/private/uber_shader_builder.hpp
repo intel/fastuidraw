@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <vector>
+#include <string>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/util.hpp>
@@ -35,15 +37,47 @@ public:
   vecN<unsigned int, varying_list::interpolation_number_types> m_float_special_index;
 };
 
-std::string
-declare_varyings_string(c_string append_to_name,
-                        size_t uint_count,
-                        size_t int_count,
-                        c_array<const size_t> float_counts,
-                        unsigned int *slot,
-                        DeclareVaryingsStringDatum *datum);
+class DeclareVaryings:fastuidraw::noncopyable
+{
+public:
+  void
+  add_varyings(c_string suffix,
+               size_t uint_count,
+               size_t int_count,
+               c_array<const size_t> float_counts,
+               DeclareVaryingsStringDatum *datum);
+
+  std::string
+  declare_varyings(c_string varying_qualifier,
+                   c_string interface_name = nullptr,
+                   c_string instance_name = nullptr) const;
+  
+private:
+  class per_varying
+  {
+  public:
+    std::string m_type;
+    std::string m_name;
+    std::string m_qualifier;
+    unsigned int m_slot;
+  };
+
+  void
+  add_varyings_impl(c_string suffix,
+                    size_t uint_count,
+                    size_t int_count,
+                    c_array<const size_t> float_counts);
+
+  void
+  add_varyings_impl_type(c_string suffix, unsigned int cnt,
+                         c_string qualifier, c_string types[],
+                         c_string name);
+
+  std::vector<per_varying> m_varyings;
+};
+
 void
-stream_alias_varyings(c_string append_to_name,
+stream_alias_varyings(c_string suffix,
                       ShaderSource &shader,
                       const varying_list &p,
                       bool define,
