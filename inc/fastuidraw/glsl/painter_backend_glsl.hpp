@@ -223,6 +223,11 @@ namespace fastuidraw
            * Clipping is performed via discard
            */
           clipping_via_discard,
+
+          /*!
+           * Clipping is performed via geometry shading
+           */
+          clipping_via_geometry_shader,
         };
 
       /*!
@@ -936,8 +941,9 @@ namespace fastuidraw
       add_fragment_shader_util(const ShaderSource &src);
 
       /*!
-       * Add the uber-vertex and fragment shaders to given
-       * ShaderSource values.
+       * Add the uber-vertex and fragment shaders to given ShaderSource values.
+       * This routine will fail if ConfigurationGLSL::clipping_type() of
+       * \ref configuration_glsl() is \ref clipping_via_geometry_shader.
        * \param out_vertex ShaderSource to which to add uber-vertex shader
        * \param out_fragment ShaderSource to which to add uber-fragment shader
        * \param contruct_params specifies how to construct the uber-shaders.
@@ -950,8 +956,33 @@ namespace fastuidraw
        *                            fragment sources use FASTUIDRAW_DISCARD
        *                            instead of discard.
        */
-      void
+      enum return_code
       construct_shader(ShaderSource &out_vertex,
+                       ShaderSource &out_fragment,
+                       const UberShaderParams &contruct_params,
+                       const ItemShaderFilter *item_shader_filter = nullptr,
+                       c_string discard_macro_value = "discard");
+
+      /*!
+       * Add the uber-vertex and fragment shaders to given ShaderSource values.
+       * This routine will succeed regardless of the value of
+       * ConfigurationGLSL::clipping_type() of \ref configuration_glsl().
+       * \param out_vertex ShaderSource to which to add uber-vertex shader
+       * \param out_geometry ShaderSource to which to add uber-geometry shader
+       * \param out_fragment ShaderSource to which to add uber-fragment shader
+       * \param contruct_params specifies how to construct the uber-shaders.
+       * \param item_shader_filter pointer to ItemShaderFilter to use to filter
+       *                           which shader to place into the uber-shader.
+       *                           A value of nullptr indicates to add all item
+       *                           shaders to the uber-shader.
+       * \param discard_macro_value macro-value definintion for the macro
+       *                            FASTUIDRAW_DISCARD. PainterItemShaderGLSL
+       *                            fragment sources use FASTUIDRAW_DISCARD
+       *                            instead of discard.
+       */
+      enum return_code
+      construct_shader(ShaderSource &out_vertex,
+                       ShaderSource &out_geometry,
                        ShaderSource &out_fragment,
                        const UberShaderParams &contruct_params,
                        const ItemShaderFilter *item_shader_filter = nullptr,

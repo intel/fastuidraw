@@ -2066,7 +2066,13 @@ build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
     .specify_extensions(m_front_matter_frag)
     .add_source(m_front_matter_frag);
 
-  m_p->construct_shader(vert, frag, m_uber_shader_builder_params, &item_filter, discard_macro);
+  enum fastuidraw::return_code R;
+  R = m_p->construct_shader(vert, frag,
+                            m_uber_shader_builder_params,
+                            &item_filter, discard_macro);
+  FASTUIDRAWassert(R == fastuidraw::routine_success);
+  FASTUIDRAWunused(R);
+
   return_value = FASTUIDRAWnew fastuidraw::gl::Program(vert, frag,
                                                        m_attribute_binder,
                                                        m_initializer);

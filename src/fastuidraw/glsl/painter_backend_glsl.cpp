@@ -157,8 +157,9 @@ namespace
                               enum fastuidraw::PainterBlendShader::shader_type blend_type);
     ~PainterBackendGLSLPrivate();
 
-    void
+    enum fastuidraw::return_code
     construct_shader(fastuidraw::glsl::ShaderSource &out_vertex,
+                     fastuidraw::glsl::ShaderSource *out_geometry,
                      fastuidraw::glsl::ShaderSource &out_fragment,
                      const fastuidraw::glsl::PainterBackendGLSL::UberShaderParams &contruct_params,
                      const fastuidraw::glsl::PainterBackendGLSL::ItemShaderFilter *item_shader_filter,
@@ -757,9 +758,10 @@ declare_shader_uniforms(const fastuidraw::glsl::PainterBackendGLSL::UberShaderPa
   return ostr.str();
 }
 
-void
+enum fastuidraw::return_code
 PainterBackendGLSLPrivate::
 construct_shader(fastuidraw::glsl::ShaderSource &vert,
+                 fastuidraw::glsl::ShaderSource *geom,
                  fastuidraw::glsl::ShaderSource &frag,
                  const fastuidraw::glsl::PainterBackendGLSL::UberShaderParams &params,
                  const fastuidraw::glsl::PainterBackendGLSL::ItemShaderFilter *item_shader_filter,
@@ -778,6 +780,11 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   const PainterBackendGLSL::BindingPoints &binding_params(params.binding_points());
   std::vector<reference_counted_ptr<PainterItemShaderGLSL> > work_shaders;
   c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders;
+
+  if (!geom && m_config.clipping_type() == PainterBackendGLSL::clipping_via_geometry_shader)
+    {
+      return fastuidraw::routine_fail;
+    }
 
   if (item_shader_filter)
     {
@@ -905,6 +912,10 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
 
     case PainterBackendGLSL::clipping_via_discard:
       frag.add_macro("FASTUIDRAW_PAINTER_DISCARD_CLIPS");
+      break;
+
+    case PainterBackendGLSL::clipping_via_geometry_shader:
+      geom->add_macro("FASTUIDRAW_PAINTER_GEOMETRY_SHADER_CLIPPING");
       break;
     }
 
@@ -1155,6 +1166,8 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   stream_uber_blend_shader(params.blend_shader_use_switch(), frag,
                            make_c_array(m_blend_shaders[m_blend_type].m_shaders),
                            m_blend_type);
+
+  return fastuidraw::routine_success;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -1486,7 +1499,7 @@ configuration_glsl(void) const
   return d->m_config;
 }
 
-void
+enum fastuidraw::return_code
 fastuidraw::glsl::PainterBackendGLSL::
 construct_shader(ShaderSource &out_vertex,
                  ShaderSource &out_fragment,
@@ -1496,8 +1509,25 @@ construct_shader(ShaderSource &out_vertex,
 {
   PainterBackendGLSLPrivate *d;
   d = static_cast<PainterBackendGLSLPrivate*>(m_d);
-  d->construct_shader(out_vertex, out_fragment, construct_params,
-                      item_shader_filter, discard_macro_value);
+  return d->construct_shader(out_vertex, nullptr, out_fragment,
+                             construct_params, item_shader_filter,
+                             discard_macro_value);
+}
+
+enum fastuidraw::return_code
+fastuidraw::glsl::PainterBackendGLSL::
+construct_shader(ShaderSource &out_vertex,
+                 ShaderSource &out_geometry,
+                 ShaderSource &out_fragment,
+                 const UberShaderParams &construct_params,
+                 const ItemShaderFilter *item_shader_filter,
+                 c_string discard_macro_value)
+{
+  PainterBackendGLSLPrivate *d;
+  d = static_cast<PainterBackendGLSLPrivate*>(m_d);
+  return d->construct_shader(out_vertex, &out_geometry, out_fragment,
+                             construct_params, item_shader_filter,
+                             discard_macro_value);
 }
 
 uint32_t
