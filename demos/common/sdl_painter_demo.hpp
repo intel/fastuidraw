@@ -50,6 +50,7 @@ protected:
 private:
   typedef enum fastuidraw::gl::PainterBackendGL::data_store_backing_t data_store_backing_t;
   typedef enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t auxiliary_buffer_t;
+  typedef enum fastuidraw::glsl::PainterBackendGLSL::clipping_type_t clipping_type_t;
   enum glyph_geometry_backing_store_t
     {
       glyph_geometry_backing_store_texture_buffer,
@@ -108,7 +109,7 @@ private:
    */
   command_separator m_painter_options_affected_by_context;
   enumerated_command_line_argument_value<auxiliary_buffer_t> m_provide_auxiliary_image_buffer;
-  command_line_argument_value<bool> m_use_hw_clip_planes;
+  enumerated_command_line_argument_value<clipping_type_t> m_use_hw_clip_planes;
   command_line_argument_value<int> m_painter_alignment;
   command_line_argument_value<int> m_painter_data_blocks_per_buffer;
   enumerated_command_line_argument_value<data_store_backing_t> m_data_store_backing;
