@@ -34,7 +34,7 @@ namespace fastuidraw
      */
     bool
     clip_against_plane(const vec3 &clip_eq, c_array<const vec2> pts,
-                       std::vector<vec2> &out_pts, std::vector<float> &scratch_space);
+                       std::vector<vec2> &out_pts);
 
     /* Clip a polygon against several planes. The clip equations
      * clip_eq and the polygon pts are both in the same coordinate
@@ -44,7 +44,6 @@ namespace fastuidraw
     bool
     clip_against_planes(c_array<const vec3> clip_eq, c_array<const vec2> in_pts,
                         std::vector<vec2> &out_pts,
-                        std::vector<float> &scratch_space_floats,
                         vecN<std::vector<vec2>, 2> &scratch_space_vec2s);
   }
 }
