@@ -292,7 +292,6 @@ namespace
     std::vector<fastuidraw::vec2> m_clipped_rect;
 
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_clip_scratch_vec2s;
-    std::vector<float> m_clip_scratch_floats;
   };
 
   class EdgeRanges
@@ -1507,7 +1506,6 @@ compute_chunks_implement(bool include_closing_edge,
   m_bb.inflated_polygon(bb, item_space_additional_room);
   unclipped = clip_against_planes(make_c_array(scratch.m_adjusted_clip_eqs),
                                   bb, scratch.m_clipped_rect,
-                                  scratch.m_clip_scratch_floats,
                                   scratch.m_clip_scratch_vec2s);
   //completely unclipped.
   if (unclipped)
