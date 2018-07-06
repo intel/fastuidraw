@@ -53,13 +53,35 @@ void
 painter_clip_test::
 draw_scene(bool with_clipping)
 {
-  ivec2 wh(dimensions());
+  vec2 wh(dimensions());
 
   /* set clipping to screen center
    */
   if (with_clipping)
     {
-      m_painter->clipInRect(vec2(wh.x(), wh.y()) * 0.25f, vec2(wh.x(), wh.y()) * 0.5f);
+      PainterBrush brush;
+      PainterStrokeParams st;
+
+      brush.pen(1.0, 1.0, 1.0, 1.0);
+      st
+        .miter_limit(-1.0f)
+        .width(4.0f)
+        .stroking_units(PainterStrokeParams::pixel_stroking_units);
+
+      Path path;
+      vec2 bl(0.25 * wh.x(), 0.1 * wh.x()), tr(0.75 * wh);
+      path << vec2(bl.x(), bl.y())
+           << vec2(bl.x(), tr.y())
+           << vec2(tr.x(), tr.y())
+           << vec2(tr.x(), bl.y())
+           << Path::contour_end();
+      m_painter->stroke_path(PainterData(&brush, &st),
+                             path, true,
+                             PainterEnums::flat_caps,
+                             PainterEnums::bevel_joins,
+                             true);
+      
+      m_painter->clipInRect(bl, tr - bl);
     }
 
   /* draw a green quad over the clipped region
@@ -96,7 +118,29 @@ draw_scene(bool with_clipping)
    */
   if (with_clipping)
     {
-      m_painter->clipInRect(vec2(wh) * 0.125f, vec2(wh) * 0.25f);
+      PainterBrush brush;
+      PainterStrokeParams st;
+
+      brush.pen(1.0, 1.0, 1.0, 1.0);
+      st
+        .miter_limit(-1.0f)
+        .width(4.0f)
+        .stroking_units(PainterStrokeParams::pixel_stroking_units);
+
+      Path path;
+      vec2 bl(0.125 * wh), tr(0.375 * wh);
+      path << vec2(bl.x(), bl.y())
+           << vec2(bl.x(), tr.y())
+           << vec2(tr.x(), tr.y())
+           << vec2(tr.x(), bl.y())
+           << Path::contour_end();
+      m_painter->stroke_path(PainterData(&brush, &st),
+                             path, true,
+                             PainterEnums::flat_caps,
+                             PainterEnums::bevel_joins,
+                             true);
+
+      m_painter->clipInRect(bl, tr - bl);
     }
 
   /* draw a blue quad
@@ -146,9 +190,16 @@ handle_event(const SDL_Event &ev)
   m_zoomer.handle_event(ev);
   switch(ev.type)
     {
-      case SDL_QUIT:
+    case SDL_QUIT:
         end_demo(0);
         break;
+
+    case SDL_WINDOWEVENT:
+      if (ev.window.event == SDL_WINDOWEVENT_RESIZED)
+        {
+          on_resize(ev.window.data1, ev.window.data2);
+        }
+      break;
 
     case SDL_KEYUP:
       switch(ev.key.keysym.sym)
