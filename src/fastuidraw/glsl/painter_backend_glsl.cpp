@@ -1168,7 +1168,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   if (geom)
     {
       enum PainterBackendGLSL::clipping_type_t ct(m_config.clipping_type());
-      std::ostringstream str;
+      std::ostringstream str, main_str;
       ShaderSource &geometry_shader(*geom);
 
       /* create the function fastuidraw_emit_vertex() that does
@@ -1176,7 +1176,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
        *   2. sets gl_Position (and if necessary, gl_ClipDistance) as well
        *   3. Call EmitVertex()
        */
-      str << "void fastuidraw_emit_vertex(in float b0, in float b1, in float b2)\n"
+      str << "void fastuidraw_emit_vertex(in vec3 b)\n"
           << "{\n";
 
       for (const DeclareVaryings::per_varying &V : declare_varyings_builder.varyings())
@@ -1190,9 +1190,9 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
           else
             {
               str << "\t" << V.m_name << " = "
-                  << "b0 * fastuidraw_in[0]." << V.m_name
-                  << " + b1 * fastuidraw_in[1]." << V.m_name
-                  << " + b2 * fastuidraw_in[2]." << V.m_name
+                  << "b.x * fastuidraw_in[0]." << V.m_name
+                  << " + b.y * fastuidraw_in[1]." << V.m_name
+                  << " + b.z * fastuidraw_in[2]." << V.m_name
                   << ";\n";
             }
         }
@@ -1202,29 +1202,32 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
           for (int i = 0; i < 4; ++i)
             {
               str << "\tgl_ClipDistance[" << i << "] = "
-                  << "b0 * gl_in[0].gl_ClipDistance[" << i << "]"
-                  << " + b1 * gl_in[1].gl_ClipDistance[" << i << "]"
-                  << " + b2 * gl_in[2].gl_ClipDistance[" << i << "];\n";
+                  << "b.x * gl_in[0].gl_ClipDistance[" << i << "]"
+                  << " + b.y * gl_in[1].gl_ClipDistance[" << i << "]"
+                  << " + b.z * gl_in[2].gl_ClipDistance[" << i << "];\n";
             }
         }
       else if (ct == PainterBackendGLSL::clipping_via_discard)
         {
           str << "\tfastuidraw_clip_planes = "
-              << "b0 * fastuidraw_in[0].fastuidraw_clip_planes" 
-              << " + b1 * fastuidraw_in[1].fastuidraw_clip_planes"
-              << " + b2 * fastuidraw_in[2].fastuidraw_clip_planes;\n";
+              << "b.x * fastuidraw_in[0].fastuidraw_clip_planes" 
+              << " + b.y * fastuidraw_in[1].fastuidraw_clip_planes"
+              << " + b.z * fastuidraw_in[2].fastuidraw_clip_planes;\n";
         }
 
-      str << "\tgl_Position = b0 * gl_in[0].gl_Position"
-          << " + b1 * gl_in[1].gl_Position"
-          << " + b2 * gl_in[2].gl_Position;\n"
+      str << "\tgl_Position = b.x * gl_in[0].gl_Position"
+          << " + b.y * gl_in[1].gl_Position"
+          << " + b.z * gl_in[2].gl_Position;\n"
           << "\tEmitVertex();\n"
-          << "}\n";
+          << "}\n\n";
 
       geometry_shader
         .add_source(varying_layout_macro.c_str(), ShaderSource::from_string)
         .add_source(declare_in_geom_varyings.c_str(), ShaderSource::from_string)
         .add_source(declare_out_geom_varyings.c_str(), ShaderSource::from_string)
+        .add_macro("fastuidraw_bary0", "vec3(1.0, 0.0, 0.0)")
+        .add_macro("fastuidraw_bary1", "vec3(0.0, 1.0, 0.0)")
+        .add_macro("fastuidraw_bary2", "vec3(0.0, 0.0, 1.0)")
         .add_source(str.str().c_str(), ShaderSource::from_string)
         .add_source("fastuidraw_painter_main.geom.glsl.resource_string", ShaderSource::from_resource);
     }

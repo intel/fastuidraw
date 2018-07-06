@@ -110,5 +110,4 @@ stream_uber_blend_shader(bool use_switch, ShaderSource &frag,
                          c_array<const reference_counted_ptr<PainterBlendShaderGLSL> > blend_shaders,
                          enum PainterBlendShader::shader_type tp);
 
-
 }}}

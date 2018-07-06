@@ -16,10 +16,12 @@
  *
  */
 
+#include <vector>
 #include <sstream>
 
 #include "uber_shader_builder.hpp"
 #include "../../private/util_private.hpp"
+#include "../../private/util_private_ostream.hpp"
 
 namespace
 {
