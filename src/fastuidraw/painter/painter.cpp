@@ -466,8 +466,7 @@ namespace
     void
     clip_polygon(fastuidraw::c_array<const fastuidraw::vec2> pts,
                  std::vector<fastuidraw::vec2> &out_pts,
-                 std::vector<fastuidraw::vec2> &work_vec2s,
-                 std::vector<float> &work_floats);
+                 std::vector<fastuidraw::vec2> &work_vec2s);
 
     bool
     rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh);
@@ -602,13 +601,11 @@ namespace
 
     /* @param (input) clip_matrix_local transformation from local to clip coordinates
      * @param (input) in_out_pts[0] convex polygon to clip
-     * @param (scratch) work_floats scratch space needed
      * @return what index into in_out_pts that holds polygon clipped
      */
     unsigned int
     clip_against_current(const fastuidraw::float3x3 &clip_matrix_local,
-                         fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> &in_out_pts,
-                         std::vector<float> &work_floats);
+                         fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> &in_out_pts);
 
   private:
     std::vector<fastuidraw::vec3> m_store;
@@ -702,7 +699,6 @@ namespace
   {
   public:
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_pts_update_clip_series;
-    std::vector<float> m_clipper_floats;
     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_clipper_vec2s;
 
     // work room for drawing polygons
@@ -1032,8 +1028,7 @@ void
 clip_rect_state::
 clip_polygon(fastuidraw::c_array<const fastuidraw::vec2> pts,
              std::vector<fastuidraw::vec2> &out_pts,
-             std::vector<fastuidraw::vec2> &work_vec2s,
-             std::vector<float> &work_floats)
+             std::vector<fastuidraw::vec2> &work_vec2s)
 {
   const fastuidraw::PainterClipEquations &eqs(m_clip_equations);
   const fastuidraw::float3x3 &m(item_matrix());
@@ -1046,19 +1041,19 @@ clip_polygon(fastuidraw::c_array<const fastuidraw::vec2> pts,
    * which is the same as post-multiplying the matrix.
    */
   fastuidraw::detail::clip_against_plane(eqs.m_clip_equations[0] * m, pts,
-                                         work_vec2s, work_floats);
+                                         work_vec2s);
 
   fastuidraw::detail::clip_against_plane(eqs.m_clip_equations[1] * m,
                                          fastuidraw::make_c_array(work_vec2s),
-                                         out_pts, work_floats);
+                                         out_pts);
 
   fastuidraw::detail::clip_against_plane(eqs.m_clip_equations[2] * m,
                                          fastuidraw::make_c_array(out_pts),
-                                         work_vec2s, work_floats);
+                                         work_vec2s);
 
   fastuidraw::detail::clip_against_plane(eqs.m_clip_equations[3] * m,
                                          fastuidraw::make_c_array(work_vec2s),
-                                         out_pts, work_floats);
+                                         out_pts);
 }
 
 bool
@@ -1099,8 +1094,7 @@ rect_is_culled(const fastuidraw::vec2 &pmin, const fastuidraw::vec2 &wh)
 unsigned int
 ClipEquationStore::
 clip_against_current(const fastuidraw::float3x3 &clip_matrix_local,
-                    fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> &in_out_pts,
-                    std::vector<float> &work_floats)
+                     fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> &in_out_pts)
 {
   fastuidraw::c_array<const fastuidraw::vec3> clips(current());
   unsigned int src, dst, i;
@@ -1111,7 +1105,7 @@ clip_against_current(const fastuidraw::float3x3 &clip_matrix_local,
 
       nc = clips[i] * clip_matrix_local;
       in = fastuidraw::make_c_array(in_out_pts[src]);
-      fastuidraw::detail::clip_against_plane(nc, in, in_out_pts[dst], work_floats);
+      fastuidraw::detail::clip_against_plane(nc, in, in_out_pts[dst]);
     }
   return src;
 }
@@ -1150,8 +1144,7 @@ update_clip_equation_series(const fastuidraw::vec2 &pmin,
   m_work_room.m_pts_update_clip_series[0][2] = pmax;
   m_work_room.m_pts_update_clip_series[0][3] = fastuidraw::vec2(pmax.x(), pmin.y());
   src = m_clip_store.clip_against_current(m_clip_rect_state.item_matrix(),
-                                          m_work_room.m_pts_update_clip_series,
-                                          m_work_room.m_clipper_floats);
+                                          m_work_room.m_pts_update_clip_series);
 
   /* the input rectangle clipped to the previous clipping equation
    * array is now stored in m_work_room.m_pts_update_clip_series[src]
@@ -1277,8 +1270,7 @@ compute_path_magnification_perspective(const fastuidraw::Path &path)
    */
   const fastuidraw::float3x3 &m(m_clip_rect_state.item_matrix());
   src = m_clip_store.clip_against_current(m,
-                                          m_work_room.m_clipper_vec2s,
-                                          m_work_room.m_clipper_floats);
+                                          m_work_room.m_clipper_vec2s);
 
   fastuidraw::c_array<const fastuidraw::vec2> poly;
   poly = make_c_array(m_work_room.m_clipper_vec2s[src]);
@@ -2016,8 +2008,7 @@ draw_convex_polygon(const PainterFillShader &shader,
   if (!d->m_core->hints().clipping_via_hw_clip_planes())
     {
       d->m_clip_rect_state.clip_polygon(pts, d->m_work_room.m_pts_draw_convex_polygon,
-                                        d->m_work_room.m_clipper_vec2s[0],
-                                        d->m_work_room.m_clipper_floats);
+                                        d->m_work_room.m_clipper_vec2s[0]);
       pts = make_c_array(d->m_work_room.m_pts_draw_convex_polygon);
       if (pts.size() < 3)
         {
