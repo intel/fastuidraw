@@ -475,7 +475,6 @@ namespace fastuidraw
 
         /*!
          * Specifies the binding point of the UBO for uniforms.
-         * Only active if UberShaderParams::use_ubo_for_uniforms()
          * is true.
          */
         unsigned int
@@ -818,27 +817,6 @@ namespace fastuidraw
          */
         UberShaderParams&
         colorstop_atlas_backing(enum colorstop_backing_t);
-
-        /*!
-         * If true, use a UBO to back the uniforms of the
-         * uber-shader. If false, use an array of uniforms
-         * instead. The name of the UBO block is
-         * fastuidraw_shader_uniforms and the name of the
-         * uniform is fastuidraw_shader_uniforms. In both cases,
-         * the buffer can be filled by the function
-         * PainterBackendGLSL::fill_uniform_buffer().
-         * For the non-UBO case, the uniforms are realized
-         * as an array of floats in GLSL.
-         */
-        bool
-        use_ubo_for_uniforms(void) const;
-
-        /*!
-         * Set the value returned by use_ubo_for_uniforms(void) const.
-         * Default value is true.
-         */
-        UberShaderParams&
-        use_ubo_for_uniforms(bool);
 
         /*!
          * If true, provide an image2D (of type r8) uniform to

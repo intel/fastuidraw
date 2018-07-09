@@ -23,30 +23,28 @@ layout(triangle_strip, max_vertices = 7) out;
 
 struct fastuidraw_clipper_data_field
 {
-  vec4 element0_3;
-  vec4 element4_7;
+  uvec4 element0_3;
+  uvec4 element4_7;
 };
 
 struct fastuidraw_clipper_data
 {
   int count; // 0 <= count <= 7
   fastuidraw_clipper_data_field b0, b1, b2;
-  vec4 write_mask;
   vec3 last_barycentric;
 };
 
-#define fastuidraw_clipper_data_bary0(A) vec3(A.b0.element0_3.x, A.b1.element0_3.x, A.b2.element0_3.x)
-#define fastuidraw_clipper_data_bary1(A) vec3(A.b0.element0_3.y, A.b1.element0_3.y, A.b2.element0_3.y)
-#define fastuidraw_clipper_data_bary2(A) vec3(A.b0.element0_3.z, A.b1.element0_3.z, A.b2.element0_3.z)
-#define fastuidraw_clipper_data_bary3(A) vec3(A.b0.element0_3.w, A.b1.element0_3.w, A.b2.element0_3.w)
-#define fastuidraw_clipper_data_bary4(A) vec3(A.b0.element4_7.x, A.b1.element4_7.x, A.b2.element4_7.x)
-#define fastuidraw_clipper_data_bary5(A) vec3(A.b0.element4_7.y, A.b1.element4_7.y, A.b2.element4_7.y)
-#define fastuidraw_clipper_data_bary6(A) vec3(A.b0.element4_7.z, A.b1.element4_7.z, A.b2.element4_7.z)
+#define fastuidraw_clipper_data_bary0(A) uintBitsToFloat(uvec3(A.b0.element0_3.x, A.b1.element0_3.x, A.b2.element0_3.x))
+#define fastuidraw_clipper_data_bary1(A) uintBitsToFloat(uvec3(A.b0.element0_3.y, A.b1.element0_3.y, A.b2.element0_3.y))
+#define fastuidraw_clipper_data_bary2(A) uintBitsToFloat(uvec3(A.b0.element0_3.z, A.b1.element0_3.z, A.b2.element0_3.z))
+#define fastuidraw_clipper_data_bary3(A) uintBitsToFloat(uvec3(A.b0.element0_3.w, A.b1.element0_3.w, A.b2.element0_3.w))
+#define fastuidraw_clipper_data_bary4(A) uintBitsToFloat(uvec3(A.b0.element4_7.x, A.b1.element4_7.x, A.b2.element4_7.x))
+#define fastuidraw_clipper_data_bary5(A) uintBitsToFloat(uvec3(A.b0.element4_7.y, A.b1.element4_7.y, A.b2.element4_7.y))
+#define fastuidraw_clipper_data_bary6(A) uintBitsToFloat(uvec3(A.b0.element4_7.z, A.b1.element4_7.z, A.b2.element4_7.z))
 
 struct fastuidraw_clipper_data_iterator
 {
   int count;
-  vec4 read_mask;
 };
 
 void
@@ -54,45 +52,43 @@ fastuidraw_clipper_data_iterator_init_front(out fastuidraw_clipper_data_iterator
                                             in fastuidraw_clipper_data src)
 {
   d.count = 0;
-  d.read_mask = vec4(1.0, 0.0, 0.0, 0.0);
 }
+
 
 vec3
 fastuidraw_clipper_data_iterator_read(in fastuidraw_clipper_data_iterator iter,
                                       in fastuidraw_clipper_data src)
 {
-  vec4 tmp0, tmp1, tmp2;
+  uint r0, r1, r2;
+  uvec4 m0_3, m4_7;
 
-  if (iter.count < 4)
-    {
-      tmp0 = src.b0.element0_3;
-      tmp1 = src.b1.element0_3;
-      tmp2 = src.b2.element0_3;
-    }
-  else
-    {
-      tmp0 = src.b0.element4_7;
-      tmp1 = src.b1.element4_7;
-      tmp2 = src.b2.element4_7;
-    }
+  m0_3 = fastuidraw_geom_mask0_3(iter.count);
+  m4_7 = fastuidraw_geom_mask4_7(iter.count);
 
-  return vec3(dot(tmp0, iter.read_mask),
-              dot(tmp1, iter.read_mask),
-              dot(tmp2, iter.read_mask));
+#define local_helper(A, B) ((A.x & B.x) + (A.y & B.y) + (A.z & B.z) + (A.w & B.w)) 
+
+  r0 = local_helper(src.b0.element0_3, m0_3)
+     + local_helper(src.b0.element4_7, m4_7);
+
+  r1 = local_helper(src.b1.element0_3, m0_3)
+     + local_helper(src.b1.element4_7, m4_7);
+
+  r2 = local_helper(src.b2.element0_3, m0_3)
+     + local_helper(src.b2.element4_7, m4_7);
+
+  return uintBitsToFloat(uvec3(r0, r1, r2));
 }
 
 void
 fastuidraw_clipper_data_iterator_increment(inout fastuidraw_clipper_data_iterator iter)
 {
   ++iter.count;
-  iter.read_mask.yzwx = iter.read_mask;
 }
 
 void
 fastuidraw_clipper_data_iterator_decrement(inout fastuidraw_clipper_data_iterator iter)
 {
   --iter.count;
-  iter.read_mask = iter.read_mask.yzwx;
 }
 
 void
@@ -100,22 +96,21 @@ fastuidraw_clipper_data_iterator_init_back(out fastuidraw_clipper_data_iterator 
                                            in fastuidraw_clipper_data src)
 {
   d.count = src.count;
-  d.read_mask = src.write_mask;
   fastuidraw_clipper_data_iterator_decrement(d);
 }
 
 void
 fastuidraw_clipper_data_field_init(out fastuidraw_clipper_data_field d)
 {
-  d.element0_3 = vec4(0.0);
-  d.element4_7 = vec4(0.0);
+  d.element0_3 = uvec4(0u);
+  d.element4_7 = uvec4(0u);
 }
 
 void
 fastuidraw_clipper_data_init(out fastuidraw_clipper_data d)
 {
   d.count = 0;
-  d.write_mask = vec4(1.0, 0.0, 0.0, 0.0);
+  d.last_barycentric = vec3(0.0);
   fastuidraw_clipper_data_field_init(d.b0);
   fastuidraw_clipper_data_field_init(d.b1);
   fastuidraw_clipper_data_field_init(d.b2);
@@ -124,27 +119,25 @@ fastuidraw_clipper_data_init(out fastuidraw_clipper_data d)
 void
 fastuidraw_clipper_data_push_back(inout fastuidraw_clipper_data d, in vec3 b)
 {
-  vec4 e0, e1, e2;
+  d.b0.element0_3 += fastuidraw_geom_mask0_3(d.count) & floatBitsToUint(b.x);
+  d.b1.element0_3 += fastuidraw_geom_mask0_3(d.count) & floatBitsToUint(b.y);
+  d.b2.element0_3 += fastuidraw_geom_mask0_3(d.count) & floatBitsToUint(b.z);
 
-  e0 = b.x * d.write_mask;
-  e1 = b.y * d.write_mask;
-  e2 = b.z * d.write_mask;
+  d.b0.element4_7 += fastuidraw_geom_mask4_7(d.count) & floatBitsToUint(b.x);
+  d.b1.element4_7 += fastuidraw_geom_mask4_7(d.count) & floatBitsToUint(b.y);
+  d.b2.element4_7 += fastuidraw_geom_mask4_7(d.count) & floatBitsToUint(b.z);
 
-  if (d.count < 4)
-    {
-      d.b0.element0_3 += e0;
-      d.b1.element0_3 += e1;
-      d.b2.element0_3 += e2;
-    }
-  else
-    {
-      d.b0.element4_7 += e0;
-      d.b1.element4_7 += e1;
-      d.b2.element4_7 += e2;
-    }
   d.last_barycentric = b;
-  d.write_mask.yzwx = d.write_mask;
   ++d.count;
+}
+
+void
+fastuidraw_clipper_data_pad(inout fastuidraw_clipper_data d, in int N)
+{
+  while (d.count < N)
+    {
+      fastuidraw_clipper_data_push_back(d, d.last_barycentric);
+    }
 }
 
 vec3
@@ -158,9 +151,9 @@ fastuidraw_compute_intersection(in vec3 p0, in float c0,
 }
 
 void
-fastuidraw_clip_polygon_dumb(in fastuidraw_clipper_data src,
-                             in vec3 clip_values,
-                             out fastuidraw_clipper_data dst)
+fastuidraw_clip_polygon(in fastuidraw_clipper_data src,
+                        in vec3 clip_values,
+                        out fastuidraw_clipper_data dst)
 {
   vec3 current_bary, last_bary;
   float current_d, last_d;
@@ -201,7 +194,6 @@ fastuidraw_clip_polygon_dumb(in fastuidraw_clipper_data src,
 }
 
 #define fastuidraw_clip_polygon_helper_define(X)                        \
-  if (src.count > X)                                                    \
     {                                                                   \
       current_bary = fastuidraw_clipper_data_bary##X(src);              \
       current_d = dot(clip_values, current_bary);                       \
@@ -340,6 +332,48 @@ fastuidraw_clipper_data_emit(in fastuidraw_clipper_data src)
 }
 
 void
+fastuidraw_clipper_data_emit_full(in fastuidraw_clipper_data src)
+{
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary0(src));
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary6(src));
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary1(src));
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary5(src));
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary2(src));
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary4(src));
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary3(src));
+  EndPrimitive();
+}
+
+void
+fastuidraw_clipper_data_emit_tris_full(in fastuidraw_clipper_data src)
+{
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary0(src));
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary1(src));
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary2(src));
+  EndPrimitive();
+
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary0(src));
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary2(src));
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary3(src));
+  EndPrimitive();
+
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary0(src));
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary3(src));
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary4(src));
+  EndPrimitive();
+
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary0(src));
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary4(src));
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary5(src));
+  EndPrimitive();
+
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary0(src));
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary5(src));
+  fastuidraw_emit_vertex(fastuidraw_clipper_data_bary6(src));
+  EndPrimitive();
+}
+
+void
 main(void)
 {
   fastuidraw_clipper_data A0, A1, A2, A3, A4;
@@ -354,23 +388,27 @@ main(void)
   C.y = fastuidraw_in[1].fastuidraw_clip_planes.x;
   C.z = fastuidraw_in[2].fastuidraw_clip_planes.x;
   fastuidraw_clip_polygon3(A0, C, A1);
+  fastuidraw_clipper_data_pad(A1, 4);
 
   C.x = fastuidraw_in[0].fastuidraw_clip_planes.y;
   C.y = fastuidraw_in[1].fastuidraw_clip_planes.y;
   C.z = fastuidraw_in[2].fastuidraw_clip_planes.y;
   fastuidraw_clip_polygon4(A1, C, A2);
+  fastuidraw_clipper_data_pad(A2, 5);
 
   C.x = fastuidraw_in[0].fastuidraw_clip_planes.z;
   C.y = fastuidraw_in[1].fastuidraw_clip_planes.z;
   C.z = fastuidraw_in[2].fastuidraw_clip_planes.z;
   fastuidraw_clip_polygon5(A2, C, A3);
+  fastuidraw_clipper_data_pad(A3, 6);
 
   C.x = fastuidraw_in[0].fastuidraw_clip_planes.w;
   C.y = fastuidraw_in[1].fastuidraw_clip_planes.w;
   C.z = fastuidraw_in[2].fastuidraw_clip_planes.w;
   fastuidraw_clip_polygon6(A3, C, A4);
+  fastuidraw_clipper_data_pad(A4, 7);
 
-  fastuidraw_clipper_data_emit(A4);
+  fastuidraw_clipper_data_emit(A2);
 }
 
 #else
