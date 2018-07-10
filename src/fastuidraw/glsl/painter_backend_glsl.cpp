@@ -42,10 +42,7 @@ namespace
 {
   enum uniform_ubo_layout
     {
-      uniform_ubo_geom_mask_start = 0,
-      uniform_ubo_geom_mask_size = 8 * 7, // 8 elements per entry, 7 entries.
-
-      uniform_ubo_resolution_x_offset = uniform_ubo_geom_mask_size,
+      uniform_ubo_resolution_x_offset,
       uniform_ubo_resolution_y_offset,
       uniform_ubo_recip_resolution_x_offset,
       uniform_ubo_recip_resolution_y_offset,
@@ -703,26 +700,23 @@ declare_shader_uniforms(const fastuidraw::glsl::PainterBackendGLSL::UberShaderPa
   ostr << "FASTUIDRAW_LAYOUT_BINDING("
        << params.binding_points().uniforms_ubo()
        << ") " << " uniform fastuidraw_uniform_block {\n"
-       << "uvec4 fastuidraw_shader_uniforms["
+       << "vec4 fastuidraw_shader_uniforms["
        << m_p->ubo_size() / 4 << "];\n"
        << "};\n"
-       << "#define fastuidraw_viewport_pixels uintBitsToFloat(uvec2(fastuidraw_shader_uniforms["
+       << "#define fastuidraw_viewport_pixels uvec2(fastuidraw_shader_uniforms["
        << uniform_ubo_resolution_x_offset / 4 << "]."
        << ext[uniform_ubo_resolution_x_offset % 4]
        << ", fastuidraw_shader_uniforms[" << uniform_ubo_resolution_y_offset / 4 << "]."
-       << ext[uniform_ubo_resolution_y_offset % 4] << "))\n"
-       << "#define fastuidraw_viewport_recip_pixels uintBitsToFloat(uvec2(fastuidraw_shader_uniforms["
+       << ext[uniform_ubo_resolution_y_offset % 4] << ")\n"
+       << "#define fastuidraw_viewport_recip_pixels uvec2(fastuidraw_shader_uniforms["
        << uniform_ubo_recip_resolution_x_offset / 4
        << "]."<< ext[uniform_ubo_recip_resolution_x_offset % 4]
        << ", fastuidraw_shader_uniforms["
        << uniform_ubo_recip_resolution_y_offset / 4 << "]."
-       << ext[uniform_ubo_recip_resolution_y_offset % 4] << "))\n"
-       << "#define fastuidraw_viewport_recip_pixels_magnitude uintBitsToFloat(fastuidraw_shader_uniforms["
+       << ext[uniform_ubo_recip_resolution_y_offset % 4] << ")\n"
+       << "#define fastuidraw_viewport_recip_pixels_magnitude fastuidraw_shader_uniforms["
        << uniform_ubo_recip_magnitude_offset / 4 << "]."
-       << ext[uniform_ubo_recip_magnitude_offset % 4] << ")\n"
-       << "#define fastuidraw_geom_mask0_3(X) fastuidraw_shader_uniforms[2 * int(X) + " << uniform_ubo_geom_mask_start << "]\n"
-       << "#define fastuidraw_geom_mask4_7(X) fastuidraw_shader_uniforms[2 * int(X) + " << uniform_ubo_geom_mask_start  + 1 << "]\n";
-
+       << ext[uniform_ubo_recip_magnitude_offset % 4] << "\n";
   return ostr.str();
 }
 
@@ -1159,8 +1153,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
        *   2. sets gl_Position (and if necessary, gl_ClipDistance) as well
        *   3. Call EmitVertex()
        */
-      str << "void fastuidraw_emit_vertex(in vec3 b)\n"
-          << "{\n";
+      str << "#define fastuidraw_emit_vertex(b) \\\n";
 
       for (const DeclareVaryings::per_varying &V : declare_varyings_builder.varyings())
         {
@@ -1168,7 +1161,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
             {
               str << "\t" << V.m_name << " = "
                   << "fastuidraw_in[0]." << V.m_name
-                  << ";\n";
+                  << ";\\\n";
             }
           else
             {
@@ -1176,7 +1169,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
                   << "b.x * fastuidraw_in[0]." << V.m_name
                   << " + b.y * fastuidraw_in[1]." << V.m_name
                   << " + b.z * fastuidraw_in[2]." << V.m_name
-                  << ";\n";
+                  << ";\\\n";
             }
         }
 
@@ -1187,7 +1180,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
               str << "\tgl_ClipDistance[" << i << "] = "
                   << "b.x * gl_in[0].gl_ClipDistance[" << i << "]"
                   << " + b.y * gl_in[1].gl_ClipDistance[" << i << "]"
-                  << " + b.z * gl_in[2].gl_ClipDistance[" << i << "];\n";
+                  << " + b.z * gl_in[2].gl_ClipDistance[" << i << "];\\\n";
             }
         }
       else if (ct == PainterBackendGLSL::clipping_via_discard)
@@ -1195,14 +1188,13 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
           str << "\tfastuidraw_clip_planes = "
               << "b.x * fastuidraw_in[0].fastuidraw_clip_planes" 
               << " + b.y * fastuidraw_in[1].fastuidraw_clip_planes"
-              << " + b.z * fastuidraw_in[2].fastuidraw_clip_planes;\n";
+              << " + b.z * fastuidraw_in[2].fastuidraw_clip_planes;\\\n";
         }
 
       str << "\tgl_Position = b.x * gl_in[0].gl_Position"
           << " + b.y * gl_in[1].gl_Position"
-          << " + b.z * gl_in[2].gl_Position;\n"
-          << "\tEmitVertex();\n"
-          << "}\n\n";
+          << " + b.z * gl_in[2].gl_Position;\\\n"
+          << "\tEmitVertex()\n";
 
       geometry_shader
         .add_source(varying_layout_macro.c_str(), ShaderSource::from_string)
@@ -1596,26 +1588,4 @@ fill_uniform_buffer(c_array<generic_data> p)
   p[uniform_ubo_recip_resolution_x_offset].f = d->m_viewport_resolution_recip.x();
   p[uniform_ubo_recip_resolution_y_offset].f = d->m_viewport_resolution_recip.y();
   p[uniform_ubo_recip_magnitude_offset].f = d->m_viewport_resolution_recip_magnitude;
-
-  static const vecN<uvec4, 2> masks[7] =
-    {
-      vecN<uvec4, 2>(uvec4(~0u,  0u,  0u,  0u), uvec4( 0u,  0u,  0u,  0u)),
-      vecN<uvec4, 2>(uvec4( 0u, ~0u,  0u,  0u), uvec4( 0u,  0u,  0u,  0u)),
-      vecN<uvec4, 2>(uvec4( 0u,  0u, ~0u,  0u), uvec4( 0u,  0u,  0u,  0u)),
-      vecN<uvec4, 2>(uvec4( 0u,  0u,  0u, ~0u), uvec4( 0u,  0u,  0u,  0u)),
-      vecN<uvec4, 2>(uvec4( 0u,  0u,  0u,  0u), uvec4(~0u,  0u,  0u,  0u)),
-      vecN<uvec4, 2>(uvec4( 0u,  0u,  0u,  0u), uvec4( 0u, ~0u,  0u,  0u)),
-      vecN<uvec4, 2>(uvec4( 0u,  0u,  0u,  0u), uvec4( 0u,  0u, ~0u,  0u)),
-    };
-
-  for (unsigned int e = 0, dst = uniform_ubo_geom_mask_start; e < 7; ++e)
-    {
-      for (unsigned int field = 0; field < 2; ++field)
-        {
-          for (unsigned int channel = 0; channel < 4; ++channel, ++dst)
-            {
-              p[dst].u = masks[e][field][channel];
-            }
-        }
-    }
 }
