@@ -29,6 +29,8 @@
 #include "../private/util_private_ostream.hpp"
 #include "../private/clip.hpp"
 
+#include "inplace_madness.hpp"
+
 namespace
 {
   class ZDelayedAction;
@@ -2004,6 +2006,70 @@ draw_convex_polygon(const PainterFillShader &shader,
     {
       return;
     }
+
+  const float3x3 &item_matrix(d->m_clip_rect_state.item_matrix());
+  PainterClipEquations clip_eqs(d->m_clip_rect_state.clip_equations());
+  for (int clip_plane = 0; clip_plane < 4; ++clip_plane)
+    {
+      clip_eqs.m_clip_equations[clip_plane] = clip_eqs.m_clip_equations[clip_plane] * item_matrix;
+    }
+
+  /*
+  for (unsigned int i = 2; i < pts.size(); ++i)
+    {
+      vecN<vec2, 3> triangle;
+      vecN<fastuidraw_per_vertex_data, 3> fastuidraw_in;
+      std::vector<vec2> padded_verts;
+
+      triangle[0] = pts[0];
+      triangle[1] = pts[i - 1];
+      triangle[2] = pts[i];
+
+      for (int clip_plane = 0; clip_plane < 4; ++clip_plane)
+        {
+          vec3 cl;
+          cl = clip_eqs.m_clip_equations[clip_plane];
+          for (int vertex = 0; vertex < 3; ++vertex)
+            {
+              float value;
+              value = cl.x() * triangle[vertex].x()
+                + cl.y() * triangle[vertex].y()
+                + cl.z();
+              fastuidraw_in[vertex].fastuidraw_clip_planes[clip_plane] = value;
+            }
+        }
+
+      inplace_clip_triangle(triangle, fastuidraw_in, padded_verts);
+      FASTUIDRAWassert(padded_verts.size() == 7);
+
+      const unsigned int tri_strip[7] =
+        {
+          0, 6, 1, 5, 2, 4, 3
+        };
+
+      d->m_work_room.m_polygon_attribs.resize(7);
+      for (int i = 0; i < 7; ++i)
+        {
+          d->m_work_room.m_polygon_attribs[i].m_attrib0 = fastuidraw::pack_vec4(padded_verts[i].x(), padded_verts[i].y(), 0.0f, 0.0f);
+          d->m_work_room.m_polygon_attribs[i].m_attrib1 = uvec4(0u, 0u, 0u, 0u);
+          d->m_work_room.m_polygon_attribs[i].m_attrib2 = uvec4(0u, 0u, 0u, 0u);
+        }
+
+      for (int i = 0; i < 5; ++i)
+        {
+          vecN<PainterIndex, 3> tri;
+          tri[0] = tri_strip[i];
+          tri[1] = tri_strip[i + 1];
+          tri[2] = tri_strip[i + 2];
+          draw_generic(shader.item_shader(), draw,
+                       make_c_array(d->m_work_room.m_polygon_attribs),
+                       tri,
+                       0,
+                       call_back);
+        }
+    }
+  return;
+  */
 
   if (!d->m_core->hints().clipping_via_hw_clip_planes())
     {
