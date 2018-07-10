@@ -2014,12 +2014,12 @@ draw_convex_polygon(const PainterFillShader &shader,
       clip_eqs.m_clip_equations[clip_plane] = clip_eqs.m_clip_equations[clip_plane] * item_matrix;
     }
 
-  /*
+  /**
   for (unsigned int i = 2; i < pts.size(); ++i)
     {
       vecN<vec2, 3> triangle;
       vecN<fastuidraw_per_vertex_data, 3> fastuidraw_in;
-      std::vector<vec2> padded_verts;
+      vecN<vec2, 7> padded_verts;
 
       triangle[0] = pts[0];
       triangle[1] = pts[i - 1];
@@ -2040,7 +2040,6 @@ draw_convex_polygon(const PainterFillShader &shader,
         }
 
       inplace_clip_triangle(triangle, fastuidraw_in, padded_verts);
-      FASTUIDRAWassert(padded_verts.size() == 7);
 
       const unsigned int tri_strip[7] =
         {
@@ -2069,7 +2068,7 @@ draw_convex_polygon(const PainterFillShader &shader,
         }
     }
   return;
-  */
+  **/
 
   if (!d->m_core->hints().clipping_via_hw_clip_planes())
     {

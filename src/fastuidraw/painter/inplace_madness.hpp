@@ -59,9 +59,8 @@ public:
   }
 
   void
-  dump_padded_barycentrics(std::vector<vec3> &dst) const
+  dump_padded_barycentrics(vecN<vec3, 7> &dst) const
   {
-    dst.clear();
     vec3 prev_vertex(last_vertex);
     dump_padded_barycentrics_upto(StaticIndex<N>(), prev_vertex, dst);
   }
@@ -73,99 +72,46 @@ public:
     dump_unpadded_barycentrics_upto(StaticIndex<N>(), dst);
   }
   
-  void
-  print_raw(std::ostream &str) const
-  {
-    str << "[count = " << count << ", ";
-    for (int i = 0; i < N - 1; ++i)
-      {
-        if (!v[i].skip_vertex)
-          {
-            str << v[i].barycentric;
-          }
-        else
-          {
-            str << "*";
-          }
-        str << ", ";
-      }
-
-    if (added_vertex_at < N)
-      {
-        str << "insert = " << added_vertex << "@"
-            << added_vertex_at << ", ";
-      }
-    str  << "last_vertex = " << last_vertex << "]";
-  }
-
-  void
-  print_unpadded(std::ostream &str) const
-  {
-    print_unpadded_impl(StaticIndex<N>(), str);
-  }
-
-  template<int I>
-  void
-  print_unpadded_impl(StaticIndex<I>, std::ostream &str) const
-  {
-    vec3 p;
-    print_unpadded_impl(StaticIndex<I - 1>(), str);
-    if (!read_vertex(StaticIndex<I - 1>(), p, &str))
-      {
-        str << p << "(" << I - 1 << "), ";
-      }
-  }
-
-  void
-  print_unpadded_impl(StaticIndex<0>, std::ostream&) const
-  {
-  }
-  
   template<int I>
   bool
-  read_vertex(StaticIndex<I>, vec3 &dst, std::ostream *str = nullptr) const
+  read_vertex(StaticIndex<I>, vec3 &dst) const
   {
     FASTUIDRAWassert(I < N);
     FASTUIDRAWassert(I >= 0);
     if (I < added_vertex_at)
       {
         dst = v[I].barycentric;
-        if (str && !v[I].skip_vertex) *str << "{P" << I << "}";
         return v[I].skip_vertex;
       }
     else if (I > added_vertex_at)
       {
         dst = v[I - 1].barycentric;
-        if (str && !v[I - 1].skip_vertex) *str << "{Q" << I - 1 << "}";
         return v[I - 1].skip_vertex;
       }
     else
       {
         dst = added_vertex;
-        if (str) *str << "{A}";
         return false;
       }
   }
 
   bool
-  read_vertex(StaticIndex<0>, vec3 &dst, std::ostream *str = nullptr) const
+  read_vertex(StaticIndex<0>, vec3 &dst) const
   {
     if (added_vertex_at == 0)
       {
         dst = added_vertex;
-        if (str && count > 0) *str << "{A}";
         return count == 0;
       }
     else
       {
         dst = v[0].barycentric;
-        if (str && !v[0].skip_vertex) *str << "{0}";
         return v[0].skip_vertex;
       }
   }
 
   bool
-  read_vertex(StaticIndex<N - 1>, vec3 &dst, std::ostream *str = nullptr) const
+  read_vertex(StaticIndex<N - 1>, vec3 &dst) const
   {
     if (N - 1 < added_vertex_at)
       {
@@ -174,13 +120,11 @@ public:
     else if (N - 1 > added_vertex_at)
       {
         dst = v[N - 2].barycentric;
-        if (str && !v[N - 2].skip_vertex) *str << "{" << N - 2 << "}";
         return v[N - 2].skip_vertex;
       }
     else
       {
         dst = added_vertex;
-        if (str && added_vertex_at == N - 1) *str << "{A}";
         return added_vertex_at != N - 1;
       }
   }
@@ -188,7 +132,7 @@ public:
 private:
   template<int I>
   void
-  dump_padded_barycentrics_upto(StaticIndex<I>, vec3 &prev_vertex, std::vector<vec3> &dst) const
+  dump_padded_barycentrics_upto(StaticIndex<I>, vec3 &prev_vertex, vecN<vec3, 7> &dst) const
   {
     vec3 p;
     dump_padded_barycentrics_upto(StaticIndex<I - 1>(), prev_vertex, dst);
@@ -196,11 +140,11 @@ private:
       {
         prev_vertex = p;
       }
-    dst.push_back(prev_vertex);
+    dst[I - 1] = prev_vertex;
   }
 
   void
-  dump_padded_barycentrics_upto(StaticIndex<0>, vec3&, std::vector<vec3>&) const
+  dump_padded_barycentrics_upto(StaticIndex<0>, vec3&, vecN<vec3, 7>&) const
   {
   }
 
@@ -358,104 +302,24 @@ public:
 
 void
 dump_positions_from_barycentrics(const vecN<vec2, 3> &triangle,
-                                 const std::vector<vec3> &barycentrics,
-                                 std::vector<vec2> &dst)
+                                 const c_array<const vec3> barycentrics,
+                                 c_array<vec2> dst)
 {
-  dst.clear();
-  for (const vec3 &p : barycentrics)
+  FASTUIDRAWassert(dst.size() == barycentrics.size());
+  for (unsigned int i = 0; i < dst.size(); ++i)
     {
-      vec2 pt;
-      pt = p.x() * triangle[0]
-        + p.y() * triangle[1]
-        + p.z() * triangle[2];
-      dst.push_back(pt);
+      const vec3 &p(barycentrics[i]);
+
+      dst[i] = p[0] * triangle[0]
+        + p[1] * triangle[1]
+        + p[2] * triangle[2];
     }
-}
-
-void
-usual_clip_triangle(const vecN<vec2, 3> &triangle,
-                    const vecN<fastuidraw_per_vertex_data, 3> &fastuidraw_in,
-                    std::vector<vec2> &out_unpadded_verts)
-{
-  std::vector<vec3> src, dst;
-
-  dst.resize(3);
-  dst[0] = vec3(1.0f, 0.0f, 0.0f);
-  dst[1] = vec3(0.0f, 1.0f, 0.0f);
-  dst[2] = vec3(0.0f, 0.0f, 1.0f);
-
-  std::cout << "\t\tusual_clip_triangle\n";
-  
-  for (int clip = 0; clip < 4 && !dst.empty(); ++clip)
-    {
-      vec3 clip_eq;
-      float current_d, prev_d;
-      vec3 p, current_vert, prev_vert;
-
-      clip_eq.x() = fastuidraw_in[0].fastuidraw_clip_planes[clip];
-      clip_eq.y() = fastuidraw_in[1].fastuidraw_clip_planes[clip];
-      clip_eq.z() = fastuidraw_in[2].fastuidraw_clip_planes[clip];
-
-      std::swap(src, dst);
-      dst.clear();
-
-      prev_vert = src.back();
-      prev_d = prev_vert.dot(clip_eq);
-
-      for (unsigned int v = 0; v < src.size(); ++v)
-        {
-          current_vert = src[v];
-          current_d = current_vert.dot(clip_eq);
-
-          if (current_d >= 0.0f)
-            {
-              if (prev_d < 0.0f)
-                {
-                  p = fastuidraw_compute_intersection(prev_vert, prev_d, current_vert, current_d);
-                  dst.push_back(p);
-                }
-              dst.push_back(current_vert);
-            }
-          else if (prev_d >= 0.0f)
-            {
-              p = fastuidraw_compute_intersection(prev_vert, prev_d, current_vert, current_d);
-              dst.push_back(p);
-            }
-
-          prev_d = current_d;
-          prev_vert = current_vert;
-        }
-      std::cout << "\t\t\tA" << clip + 1 << ": [count = " << dst.size()
-                << ", " << dst << "]\n";
-    }
-
-  dump_positions_from_barycentrics(triangle, dst, out_unpadded_verts);
-}
-
-bool
-close_enough(const std::vector<vec2> &A,
-             const std::vector<vec2> &B)
-{
-  if (A.size() != B.size())
-    return false;
-
-  for (unsigned int i = 0; i < A.size(); ++i)
-    {
-      float dx, dy;
-
-      dx = t_abs(A[i].x() - B[i].x());
-      dy = t_abs(A[i].y() - B[i].y());
-
-      if (dx > 0.0f || dy > 0.0f)
-        return false;      
-    }
-  return true;
 }
 
 void
 inplace_clip_triangle(const vecN<vec2, 3> &triangle,
                       const vecN<fastuidraw_per_vertex_data, 3> &fastuidraw_in,
-                      std::vector<vec2> &out_padded_verts)
+                      vecN<vec2, 7> &out_padded_verts)
 {
   fastuidraw_clipper_data<3> A0;
   fastuidraw_clipper_data<4> A1;
@@ -488,7 +352,7 @@ inplace_clip_triangle(const vecN<vec2, 3> &triangle,
   C.z() = fastuidraw_in[2].fastuidraw_clip_planes.w();
   fastuidraw_clip_polygon<6>(A3, C, A4);
   
-  std::vector<vec3> tmp;
+  vecN<vec3, 7> tmp;
 
   A4.dump_padded_barycentrics(tmp);
   dump_positions_from_barycentrics(triangle, tmp, out_padded_verts);
