@@ -237,7 +237,7 @@ sdl_painter_demo(const std::string &about_text,
                                *this),
   m_glyph_geometry_backing_store_type(glyph_geometry_backing_store_auto,
                                       enumerated_string_type<enum glyph_geometry_backing_store_t>()
-                                      .add_entry("buffer",
+                                      .add_entry("texture_buffer",
                                                  glyph_geometry_backing_store_texture_buffer,
                                                  "use a texture buffer, feature is core in GL but for GLES requires version 3.2, "
                                                  "for GLES version pre-3.2, requires the extension GL_OES_texture_buffer or the "
@@ -246,6 +246,10 @@ sdl_painter_demo(const std::string &about_text,
                                                  glyph_geometry_backing_store_texture_array,
                                                  "use a 2D texture array to store the glyph geometry data, "
                                                  "GL and GLES have feature in core")
+                                      .add_entry("storage_buffer",
+                                                 glyph_geometry_backing_store_ssbo,
+                                                 "use a shader storage buffer, feature is core starting in GLES 3.1 and available "
+                                                 "in GL starting at version 4.2 or via the extension GL_ARB_shader_storage_buffer")
                                       .add_entry("auto",
                                                  glyph_geometry_backing_store_auto,
                                                  "query context and decide optimal value"),
@@ -487,13 +491,23 @@ init_gl(int w, int h)
                                                                m_glyph_geometry_backing_texture_log2_h.m_value);
       break;
 
+    case glyph_geometry_backing_store_ssbo:
+      m_glyph_atlas_params.use_storage_buffer_geometry_store();
+      break;
+
     default:
       m_glyph_atlas_params.use_optimal_geometry_store_backing();
       switch(m_glyph_atlas_params.glyph_geometry_backing_store_type())
         {
         case fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_tbo:
           {
-            std::cout << "Glyph Geometry Store: auto selected buffer\n";
+            std::cout << "Glyph Geometry Store: auto selected texture buffer\n";
+          }
+          break;
+
+        case fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_ssbo:
+          {
+            std::cout << "Glyph Geometry Store: auto selected storage buffer\n";
           }
           break;
 

@@ -54,6 +54,7 @@ private:
     {
       glyph_geometry_backing_store_texture_buffer,
       glyph_geometry_backing_store_texture_array,
+      glyph_geometry_backing_store_ssbo,
       glyph_geometry_backing_store_auto,
     };
 

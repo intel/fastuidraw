@@ -39,7 +39,14 @@ FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_TEXEL_ATLAS_UINT_BINDING) uniform usa
 FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING) uniform sampler2DArray fastuidraw_glyphTexelStoreFLOAT;
 #endif
 
-#ifdef FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_ARRAY
+#ifdef FASTUIDRAW_GLYPH_DATA_STORE_SSBO
+  FASTUIDRAW_LAYOUT_BINDING_ARGS(FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING, std140) restrict readonly buffer fastuidraw_glyphGeometryDataStore
+  {
+    vec4 fastuidraw_glyphGeometryDataStore_data[];
+  };
+  #define fastuidraw_fetch_glyph_data(block) fastuidraw_glyphGeometryDataStore_data[int(block)]
+
+#elif defined(FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_ARRAY)
   /* The width and height of fastuidraw_glyphGeometryDataStore are
      powers of 2, the values given by FASTUIDRAW_GLYPH_GEOMETRY_WIDTH_LOG2
      and FASTUIDRAW_GLYPH_GEOMETRY_HEIGHT_LOG2. We want to use
