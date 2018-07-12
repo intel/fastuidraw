@@ -1770,6 +1770,8 @@ void
 PainterBackendGLPrivate::
 configure_source_front_matter(void)
 {
+  using namespace fastuidraw;
+  using namespace fastuidraw::gl;
   using namespace fastuidraw::glsl;
 
   if (!m_uber_shader_builder_params.assign_binding_points())
@@ -1780,7 +1782,8 @@ configure_source_front_matter(void)
         .add_sampler_initializer("fastuidraw_imageAtlasNearest", binding_points.image_atlas_color_tiles_nearest())
         .add_sampler_initializer("fastuidraw_imageIndexAtlas", binding_points.image_atlas_index_tiles())
         .add_sampler_initializer("fastuidraw_glyphTexelStoreUINT", binding_points.glyph_atlas_texel_store_uint())
-        .add_sampler_initializer("fastuidraw_glyphGeometryDataStore", binding_points.glyph_atlas_geometry_store())
+        .add_sampler_initializer("fastuidraw_glyphGeometryDataStore",
+                                 binding_points.glyph_atlas_geometry_store(m_uber_shader_builder_params.glyph_geometry_backing()))
         .add_sampler_initializer("fastuidraw_colorStopAtlas", binding_points.colorstop_atlas())
         .add_uniform_block_binding("fastuidraw_uniform_block", binding_points.uniforms_ubo());
 
@@ -1862,7 +1865,7 @@ configure_source_front_matter(void)
           m_front_matter_vert.specify_extension(m_gles_clip_plane_extension.c_str(), ShaderSource::require_extension);
         }
 
-      if (m_ctx_properties.version() >= fastuidraw::ivec2(3, 2))
+      if (m_ctx_properties.version() >= ivec2(3, 2))
         {
           m_front_matter_vert
             .specify_version("320 es");
@@ -1874,7 +1877,7 @@ configure_source_front_matter(void)
       else
         {
           std::string version;
-          if (m_ctx_properties.version() >= fastuidraw::ivec2(3, 1))
+          if (m_ctx_properties.version() >= ivec2(3, 1))
             {
               version = "310 es";
             }
@@ -1906,17 +1909,32 @@ configure_source_front_matter(void)
     }
   #else
     {
-      bool using_glsl42;
+      bool using_glsl42, using_glsl43;
+      GlyphAtlasGL *glyphs;
+      bool require_ssbo;
 
-      using_glsl42 = m_ctx_properties.version() >= fastuidraw::ivec2(4, 2)
+      FASTUIDRAWassert(dynamic_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get()));
+      glyphs = static_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get());
+      require_ssbo = (glyphs->geometry_binding_point() == GL_SHADER_STORAGE_BUFFER);
+      
+      using_glsl42 = m_ctx_properties.version() >= ivec2(4, 2)
         && (m_uber_shader_builder_params.assign_layout_to_varyings()
             || m_uber_shader_builder_params.assign_binding_points()
             || m_uber_shader_builder_params.provide_auxiliary_image_buffer() != PainterBackendGLSL::no_auxiliary_buffer);
 
+      using_glsl43 = using_glsl42
+        && m_ctx_properties.version() >= ivec2(4, 3)
+        && require_ssbo;
+
       m_front_matter_frag
         .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension);
 
-      if (using_glsl42)
+      if (using_glsl43)
+        {
+          m_front_matter_vert.specify_version("430");
+          m_front_matter_frag.specify_version("430");
+        }
+      else if (using_glsl42)
         {
           m_front_matter_vert.specify_version("420");
           m_front_matter_frag.specify_version("420");
@@ -1943,6 +1961,12 @@ configure_source_front_matter(void)
               m_front_matter_frag
                 .specify_extension("GL_ARB_shader_image_load_store", ShaderSource::require_extension);
             }
+        }
+
+      if (require_ssbo && !using_glsl43)
+        {
+          m_front_matter_vert.specify_extension("GL_ARB_shader_storage_buffer_object", ShaderSource::require_extension);
+          m_front_matter_frag.specify_extension("GL_ARB_shader_storage_buffer_object", ShaderSource::require_extension);
         }
     }
   #endif
@@ -2186,12 +2210,13 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
         }
     }
 
+  
+  GlyphAtlasGL *glyphs;
+  FASTUIDRAWassert(dynamic_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get()));
+  glyphs = static_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get());
+
   if (v & gpu_dirty_state::textures)
     {
-      GlyphAtlasGL *glyphs;
-      FASTUIDRAWassert(dynamic_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get()));
-      glyphs = static_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get());
-
       ImageAtlasGL *image;
       FASTUIDRAWassert(dynamic_cast<ImageAtlasGL*>(m_p->image_atlas().get()));
       image = static_cast<ImageAtlasGL*>(m_p->image_atlas().get());
@@ -2220,9 +2245,12 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
       glBindSampler(binding_points.glyph_atlas_texel_store_float(), 0);
       glBindTexture(GL_TEXTURE_2D_ARRAY, glyphs->texel_texture(false));
 
-      glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_geometry_store());
-      glBindSampler(binding_points.glyph_atlas_geometry_store(), 0);
-      glBindTexture(glyphs->geometry_texture_binding_point(), glyphs->geometry_texture());
+      if (glyphs->geometry_backed_by_texture())
+        {
+          glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_geometry_store_texture());
+          glBindSampler(binding_points.glyph_atlas_geometry_store_texture(), 0);
+          glBindTexture(glyphs->geometry_binding_point(), glyphs->geometry_backing());
+        }
 
       glActiveTexture(GL_TEXTURE0 + binding_points.colorstop_atlas());
       glBindSampler(binding_points.colorstop_atlas(), 0);
@@ -2246,7 +2274,17 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
       glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
       glUnmapBuffer(GL_UNIFORM_BUFFER);
 
-      glBindBufferBase(GL_UNIFORM_BUFFER, m_uber_shader_builder_params.binding_points().uniforms_ubo(), ubo);
+      glBindBufferBase(GL_UNIFORM_BUFFER, binding_points.uniforms_ubo(), ubo);
+    }
+
+  if (v & gpu_dirty_state::storage_buffers)
+    {
+      if (!glyphs->geometry_backed_by_texture())
+        {
+          glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
+                           binding_points.glyph_atlas_geometry_store_ssbo(),
+                           glyphs->geometry_backing());
+        }
     }
 }
 
@@ -2588,8 +2626,17 @@ on_post_draw(void)
   FASTUIDRAWassert(dynamic_cast<fastuidraw::gl::GlyphAtlasGL*>(glyph_atlas().get()));
   glyphs = static_cast<fastuidraw::gl::GlyphAtlasGL*>(glyph_atlas().get());
 
-  glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_geometry_store());
-  glBindTexture(glyphs->geometry_texture_binding_point(), 0);
+  if (glyphs->geometry_backed_by_texture())
+    {
+      glActiveTexture(GL_TEXTURE0 + binding_points.glyph_atlas_geometry_store_texture());
+      glBindTexture(glyphs->geometry_binding_point(), 0);
+    }
+  else
+    {
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
+                       binding_points.glyph_atlas_geometry_store_ssbo(),
+                       0);
+    }
 
   glActiveTexture(GL_TEXTURE0 + binding_points.colorstop_atlas());
   glBindTexture(ColorStopAtlasGL::texture_bind_target(), 0);

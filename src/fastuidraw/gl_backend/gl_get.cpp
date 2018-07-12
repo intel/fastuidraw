@@ -37,9 +37,9 @@ context_get(GLenum v, GLboolean *ptr)
 void
 context_get(GLenum v, bool *ptr)
 {
-  GLboolean bptr( *ptr?GL_TRUE:GL_FALSE);
+  GLboolean bptr(*ptr ? GL_TRUE : GL_FALSE);
   glGetBooleanv(v, &bptr);
-  *ptr=(bptr==GL_FALSE)?
+  *ptr = (bptr == GL_FALSE)?
     false:
     true;
 }

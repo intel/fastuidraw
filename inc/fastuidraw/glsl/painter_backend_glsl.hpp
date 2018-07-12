@@ -76,6 +76,11 @@ namespace fastuidraw
            * Use a sampler2DArray to access the data
            */
           glyph_geometry_texture_array,
+
+          /*!
+           * Use a buffer block to access the data
+           */
+          glyph_geometry_ssbo,
         };
 
       /*!
@@ -438,14 +443,41 @@ namespace fastuidraw
          * - samplerBuffer if value is glyph_geometry_tbo
          */
         unsigned int
-        glyph_atlas_geometry_store(void) const;
+        glyph_atlas_geometry_store_texture(void) const;
 
         /*!
-         * Set the value returned by glyph_atlas_geometry_store(void) const.
+         * Set the value returned by
+         * glyph_atlas_geometry_store_texture(void) const.
          * Default value is 6.
          */
         BindingPoints&
-        glyph_atlas_geometry_store(unsigned int);
+        glyph_atlas_geometry_store_texture(unsigned int);
+
+        /*!
+         * Specifies the binding point for an SSBO that backs
+         * GlyphAtlas::geometry_store(); only active if the
+         * geometry strore is backed by an SSBO.
+         */
+        unsigned int
+        glyph_atlas_geometry_store_ssbo(void) const;
+
+        /*!
+         * Set the value returned by
+         * glyph_atlas_geometry_store_ssbo(void) const.
+         * Default value is 0.
+         */
+        BindingPoints&
+        glyph_atlas_geometry_store_ssbo(unsigned int);
+
+        /*!
+         * Provided as a conveniance, returns one of \ref
+         * glyph_atlas_geometry_store_texture() or
+         * glyph_atlas_geometry_store_ssbo() based off of
+         * the value of the passed \ref
+         * glyph_geometry_backing_t.
+         */
+        unsigned int
+        glyph_atlas_geometry_store(enum glyph_geometry_backing_t) const;
 
         /*!
          * Specifies the binding point of the UBO for uniforms.
@@ -493,6 +525,14 @@ namespace fastuidraw
          */
         BindingPoints&
         data_store_buffer_ubo(unsigned int);
+
+        /*!Provided as a conveniance, returns one of \ref
+         * data_store_buffer_tbo() or data_store_buffer_ubo()
+         * based off of the value of the passed \ref
+         * data_store_backing_t.
+         */
+        unsigned int
+        data_store_buffer(enum data_store_backing_t) const;
 
         /*!
          * Specifies the binding point for the image1D (r8)

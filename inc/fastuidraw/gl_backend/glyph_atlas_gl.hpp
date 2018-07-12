@@ -36,10 +36,11 @@ namespace gl
    * A GlyphAtlasGL is the GL(and GLES) backend implementation
    * for \ref GlyphAtlas.
    *
-   * A GlyphAtlasGL on creation, creates a GlyphAtlasTexelBackingStoreBase
-   * (backed by a GL_TEXTURE_2D_ARRAY) and a GlyphAtlasGeometryBackingStoreBase
-   * (backed by a buffer object linked to a textuer via GL_TEXTURE_BUFFER).
-   * On deletion the GL backing stores are deleted.
+   * A GlyphAtlasGL on creation, creates an object derived from \ref
+   * GlyphAtlasTexelBackingStoreBase and an object derived from \ref
+   * GlyphAtlasGeometryBackingStoreBase. The texels of the \ref
+   * GlyphAtlasTexelBackingStoreBase derived object are backed by a
+   * GL_TEXTURE_2D_ARRAY texture.
    *
    * The method flush() must be called with a GL context current.
    * If the GlyphAtlasGL was constructed delayed, then the loading
@@ -146,6 +147,15 @@ namespace gl
 
       /*!
        * Set glyph_geometry_backing_store() to \ref
+       * glsl::PainterBackendGLSL::glyph_geometry_ssbo,
+       * i.e. for the glyph geometry data to be stored
+       * on a GL texture buffer object.
+       */
+      params&
+      use_storage_buffer_geometry_store(void);
+
+      /*!
+       * Set glyph_geometry_backing_store() to \ref
        * glsl::PainterBackendGLSL::glyph_geometry_texture_array,
        * i.e. to use a 2D texture array to store the
        * glyph geometry data. The depth of the
@@ -225,21 +235,30 @@ namespace gl
     texel_texture(bool as_integer) const;
 
     /*!
-     * Returns the GL texture ID of the GlyphAtlasGeometryBackingStoreBase
+     * Returns true if and only if the GlyphAtlasGeometryBackingStoreBase
+     * is backed by a texture.
+     */
+    bool
+    geometry_backed_by_texture(void) const;
+
+    /*!
+     * Returns the GL object ID of the GlyphAtlasGeometryBackingStoreBase
      * derived object used by this GlyphAtlasGL. If the
      * GlyphAtlasGL was constructed as delayed, then the first time
      * geometry_texture() is called, a GL context must be current (and that
      * GL context is the context to which the texture will belong).
+     * If backed by a texture, returns the name of a texture. If backed
+     * by a buffer returns the name of a GL buffer object.
      */
     GLuint
-    geometry_texture(void) const;
+    geometry_backing(void) const;
 
     /*!
      * Returns the binding point to which to bind the texture returned
      * by geometry_texture().
      */
     GLenum
-    geometry_texture_binding_point(void) const;
+    geometry_binding_point(void) const;
 
     /*!
      * In the case that the geometry data is stored in a texture

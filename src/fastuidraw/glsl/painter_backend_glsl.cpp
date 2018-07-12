@@ -83,24 +83,33 @@ namespace
       m_image_atlas_index_tiles(3),
       m_glyph_atlas_texel_store_uint(4),
       m_glyph_atlas_texel_store_float(5),
-      m_glyph_atlas_geometry_store(6),
+      m_glyph_atlas_geometry_store_texture(6),
       m_data_store_buffer_tbo(7),
       m_data_store_buffer_ubo(0),
-      m_auxiliary_image_buffer(0),
-      m_uniforms_ubo(1)
+      m_uniforms_ubo(1),
+      m_glyph_atlas_geometry_store_ssbo(0),
+      m_auxiliary_image_buffer(0)
     {}
 
+    // texture units
     unsigned int m_colorstop_atlas;
     unsigned int m_image_atlas_color_tiles_nearest;
     unsigned int m_image_atlas_color_tiles_linear;
     unsigned int m_image_atlas_index_tiles;
     unsigned int m_glyph_atlas_texel_store_uint;
     unsigned int m_glyph_atlas_texel_store_float;
-    unsigned int m_glyph_atlas_geometry_store;
+    unsigned int m_glyph_atlas_geometry_store_texture;
     unsigned int m_data_store_buffer_tbo;
+
+    // UBO units
     unsigned int m_data_store_buffer_ubo;
-    unsigned int m_auxiliary_image_buffer;
     unsigned int m_uniforms_ubo;
+
+    // SSBO units
+    unsigned int m_glyph_atlas_geometry_store_ssbo;
+
+    // image units
+    unsigned int m_auxiliary_image_buffer;
   };
 
   class UberShaderParamsPrivate
@@ -990,6 +999,13 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
         frag.add_macro("FASTUIDRAW_GLYPH_DATA_STORE_TEXTURE_BUFFER");
       }
       break;
+
+    case PainterBackendGLSL::glyph_geometry_ssbo:
+      {
+        vert.add_macro("FASTUIDRAW_GLYPH_DATA_STORE_SSBO");
+        frag.add_macro("FASTUIDRAW_GLYPH_DATA_STORE_SSBO");
+      }
+      break;
     }
 
   switch(params.provide_auxiliary_image_buffer())
@@ -1029,7 +1045,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_macro("FASTUIDRAW_INDEX_TILE_BINDING", binding_params.image_atlas_index_tiles())
     .add_macro("FASTUIDRAW_GLYPH_TEXEL_ATLAS_UINT_BINDING", binding_params.glyph_atlas_texel_store_uint())
     .add_macro("FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING", binding_params.glyph_atlas_texel_store_float())
-    .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING", binding_params.glyph_atlas_geometry_store())
+    .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING", binding_params.glyph_atlas_geometry_store(params.glyph_geometry_backing()))
     .add_macro("FASTUIDRAW_PAINTER_STORE_TBO_BINDING", binding_params.data_store_buffer_tbo())
     .add_macro("FASTUIDRAW_PAINTER_STORE_UBO_BINDING", binding_params.data_store_buffer_ubo())
     .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", binding_params.auxiliary_image_buffer())
@@ -1100,7 +1116,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_macro("FASTUIDRAW_INDEX_TILE_BINDING", binding_params.image_atlas_index_tiles())
     .add_macro("FASTUIDRAW_GLYPH_TEXEL_ATLAS_UINT_BINDING", binding_params.glyph_atlas_texel_store_uint())
     .add_macro("FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING", binding_params.glyph_atlas_texel_store_float())
-    .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING", binding_params.glyph_atlas_geometry_store())
+    .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING", binding_params.glyph_atlas_geometry_store(params.glyph_geometry_backing()))
     .add_macro("FASTUIDRAW_PAINTER_STORE_TBO_BINDING", binding_params.data_store_buffer_tbo())
     .add_macro("FASTUIDRAW_PAINTER_STORE_UBO_BINDING", binding_params.data_store_buffer_ubo())
     .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", binding_params.auxiliary_image_buffer())
@@ -1215,6 +1231,24 @@ fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
 
 assign_swap_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints)
 
+unsigned int
+fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
+glyph_atlas_geometry_store(enum glyph_geometry_backing_t tp) const
+{
+  return (tp == glyph_geometry_ssbo) ?
+    glyph_atlas_geometry_store_ssbo() :
+    glyph_atlas_geometry_store_texture();
+}
+
+unsigned int
+fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
+data_store_buffer(enum data_store_backing_t tp) const
+{
+  return (tp == data_store_tbo) ?
+    data_store_buffer_tbo() :
+    data_store_buffer_ubo();
+}
+
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
                  BindingPointsPrivate, unsigned int, colorstop_atlas)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
@@ -1228,7 +1262,9 @@ setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
                  BindingPointsPrivate, unsigned int, glyph_atlas_texel_store_float)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
-                 BindingPointsPrivate, unsigned int, glyph_atlas_geometry_store)
+                 BindingPointsPrivate, unsigned int, glyph_atlas_geometry_store_texture)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
+                 BindingPointsPrivate, unsigned int, glyph_atlas_geometry_store_ssbo)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
                  BindingPointsPrivate, unsigned int, data_store_buffer_tbo)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
