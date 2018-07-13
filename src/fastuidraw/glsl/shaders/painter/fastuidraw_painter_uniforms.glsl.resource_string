@@ -64,10 +64,16 @@ FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_GLYPH_TEXEL_ATLAS_FLOAT_BINDING) uniform sa
   #define fastuidraw_fetch_glyph_data(block) texelFetch(fastuidraw_glyphGeometryDataStore, int(block))
 #endif
 
-#ifndef FASTUIDRAW_PAINTER_USE_DATA_UBO
+#ifdef FASTUIDRAW_PAINTER_USE_DATA_TBO
   FASTUIDRAW_LAYOUT_BINDING(FASTUIDRAW_PAINTER_STORE_TBO_BINDING) uniform usamplerBuffer fastuidraw_painterStore_tbo;
   #define fastuidraw_fetch_data(block) texelFetch(fastuidraw_painterStore_tbo, int(block))
-#else
+#elif defined(FASTUIDRAW_PAINTER_USE_DATA_SSBO)
+  FASTUIDRAW_LAYOUT_BINDING_ARGS(FASTUIDRAW_PAINTER_STORE_SSBO_BINDING, std140) restrict readonly buffer fastuidraw_painterStore_ssbo
+  {
+    uvec4 fastuidraw_painterStore[];
+  };
+  #define fastuidraw_fetch_data(block) uvec4(fastuidraw_painterStore[int(block)])
+#elif defined(FASTUIDRAW_PAINTER_USE_DATA_UBO)
 /*
   Type in the array for the uniform blocks:
     FASTUIDRAW_PAINTER_DATA_STORE_UINT_TYPE is uint, uvec2, uvec3 or uvec4

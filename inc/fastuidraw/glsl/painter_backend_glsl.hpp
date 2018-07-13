@@ -57,7 +57,15 @@ namespace fastuidraw
            * PainterBackend::ConfigurationBase::alignment()
            * must then be 4.
            */
-          data_store_ubo
+          data_store_ubo,
+
+          /*!
+           * Data store is backed by a shader storage buffer
+           * object that is an array of uvec4. The value for
+           * PainterBackend::ConfigurationBase::alignment()
+           * must then be 4.
+           */
+          data_store_ssbo
         };
 
       /*!
@@ -526,10 +534,27 @@ namespace fastuidraw
         BindingPoints&
         data_store_buffer_ubo(unsigned int);
 
-        /*!Provided as a conveniance, returns one of \ref
-         * data_store_buffer_tbo() or data_store_buffer_ubo()
-         * based off of the value of the passed \ref
-         * data_store_backing_t.
+        /*!
+         * Specifies the buffer binding point of the data store
+         * buffer (PainterDraw::m_store) as an SSBO.
+         * Only active if UberShaderParams::data_store_backing()
+         * is \ref data_store_ssbo.
+         */
+        unsigned int
+        data_store_buffer_ssbo(void) const;
+
+        /*!
+         * Set the value returned by data_store_buffer_ssbo(void) const.
+         * Default value is 1.
+         */
+        BindingPoints&
+        data_store_buffer_ssbo(unsigned int);
+
+        /*!
+         * Provided as a conveniance, returns one of \ref
+         * data_store_buffer_tbo(), data_store_buffer_ubo()
+         * or data_store_buffer_ssbo() based off of the
+         * value of the passed \ref data_store_backing_t.
          */
         unsigned int
         data_store_buffer(enum data_store_backing_t) const;
