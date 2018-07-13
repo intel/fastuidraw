@@ -24,6 +24,13 @@
 
 using namespace fastuidraw;
 
+bool
+compare_named_images(const named_image &lhs,
+                     const named_image &rhs)
+{
+  return lhs.second < rhs.second;
+}
+
 class command_line_list:
   public command_line_argument,
   public std::set<std::string>
@@ -414,6 +421,9 @@ derived_init(int w, int h)
     {
       add_images(*iter, m_table_params.m_images);
     }
+  std::sort(m_table_params.m_images.begin(),
+            m_table_params.m_images.end(),
+            compare_named_images);
 
   generate_random_colors(m_num_background_colors.m_value, m_table_params.m_background_colors,
                          m_background_colors_opaque.m_value);
