@@ -88,6 +88,7 @@ namespace
       m_data_store_buffer_ubo(0),
       m_uniforms_ubo(1),
       m_glyph_atlas_geometry_store_ssbo(0),
+      m_data_store_buffer_ssbo(1),
       m_auxiliary_image_buffer(0)
     {}
 
@@ -107,6 +108,7 @@ namespace
 
     // SSBO units
     unsigned int m_glyph_atlas_geometry_store_ssbo;
+    unsigned int m_data_store_buffer_ssbo;
 
     // image units
     unsigned int m_auxiliary_image_buffer;
@@ -967,6 +969,17 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       }
       break;
 
+    case PainterBackendGLSL::data_store_ssbo:
+      {
+        unsigned int alignment(m_p->configuration_base().alignment());
+        FASTUIDRAWassert(alignment == 4);
+        FASTUIDRAWunused(alignment);
+
+        vert.add_macro("FASTUIDRAW_PAINTER_USE_DATA_SSBO");
+        frag.add_macro("FASTUIDRAW_PAINTER_USE_DATA_SSBO");
+      }
+      break;
+
     default:
       FASTUIDRAWassert(!"Invalid data_store_backing() value");
     }
@@ -1048,6 +1061,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING", binding_params.glyph_atlas_geometry_store(params.glyph_geometry_backing()))
     .add_macro("FASTUIDRAW_PAINTER_STORE_TBO_BINDING", binding_params.data_store_buffer_tbo())
     .add_macro("FASTUIDRAW_PAINTER_STORE_UBO_BINDING", binding_params.data_store_buffer_ubo())
+    .add_macro("FASTUIDRAW_PAINTER_STORE_SSBO_BINDING", binding_params.data_store_buffer_ssbo())
     .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", binding_params.auxiliary_image_buffer())
     .add_macro("fastuidraw_varying", "out")
     .add_source(declare_vertex_shader_ins.c_str(), ShaderSource::from_string)
@@ -1119,6 +1133,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_macro("FASTUIDRAW_GLYPH_GEOMETRY_STORE_BINDING", binding_params.glyph_atlas_geometry_store(params.glyph_geometry_backing()))
     .add_macro("FASTUIDRAW_PAINTER_STORE_TBO_BINDING", binding_params.data_store_buffer_tbo())
     .add_macro("FASTUIDRAW_PAINTER_STORE_UBO_BINDING", binding_params.data_store_buffer_ubo())
+    .add_macro("FASTUIDRAW_PAINTER_STORE_SSBO_BINDING", binding_params.data_store_buffer_ssbo())
     .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", binding_params.auxiliary_image_buffer())
     .add_macro("fastuidraw_varying", "in")
     .add_source(declare_brush_varyings.c_str(), ShaderSource::from_string)
@@ -1244,9 +1259,20 @@ unsigned int
 fastuidraw::glsl::PainterBackendGLSL::BindingPoints::
 data_store_buffer(enum data_store_backing_t tp) const
 {
-  return (tp == data_store_tbo) ?
-    data_store_buffer_tbo() :
-    data_store_buffer_ubo();
+  switch (tp)
+    {
+    case data_store_tbo:
+      return data_store_buffer_tbo();
+
+    case data_store_ubo:
+      return data_store_buffer_ubo();
+
+    case data_store_ssbo:
+      return data_store_buffer_ssbo();
+    }
+
+  FASTUIDRAWassert(!"Bad data_store_backing_t value");
+  return ~0u;
 }
 
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
@@ -1269,6 +1295,8 @@ setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
                  BindingPointsPrivate, unsigned int, data_store_buffer_tbo)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
                  BindingPointsPrivate, unsigned int, data_store_buffer_ubo)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
+                 BindingPointsPrivate, unsigned int, data_store_buffer_ssbo)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
                  BindingPointsPrivate, unsigned int, auxiliary_image_buffer)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,

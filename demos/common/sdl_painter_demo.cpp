@@ -51,6 +51,10 @@ namespace
         str << "ubo";
         break;
 
+      case fastuidraw::gl::PainterBackendGL::data_store_ssbo:
+        str << "ssbo";
+        break;
+
       default:
         str << "invalid value";
       }
@@ -393,7 +397,11 @@ sdl_painter_demo(const std::string &about_text,
                                   fastuidraw::gl::PainterBackendGL::data_store_ubo,
                                   "use a uniform buffer object to back the data store. "
                                   "A uniform buffer object's maximum size is much smaller than that "
-                                  "of a texture buffer object usually"),
+                                  "of a texture buffer object usually")
+                       .add_entry("ssbo",
+                                  fastuidraw::gl::PainterBackendGL::data_store_ssbo,
+                                  "use a shader storage buffer object to back the data store. "
+                                  "A shader storage buffer can have a very large maximum size"),
                        "painter_data_store_backing_type",
                        "specifies how the data store buffer is backed",
                        *this),
