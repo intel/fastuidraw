@@ -779,7 +779,8 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   using namespace fastuidraw::glsl::detail;
 
   std::string varying_layout_macro, binding_layout_macro;
-  std::string declare_shader_varyings, declare_main_varyings, declare_brush_varyings;
+  std::string declare_varyings;
+  DeclareVaryings declare_varyings_builder;
   std::string declare_vertex_shader_ins;
   std::string declare_uniforms;
   const varying_list *main_varyings;
@@ -851,7 +852,6 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       binding_layout_macro = ostr.str();
     }
 
-  unsigned int varying_slot(0);
   if (params.unpack_header_and_brush_in_frag_shader())
     {
       main_varyings = &m_main_varyings_header_only;
@@ -859,29 +859,27 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   else
     {
       main_varyings = &m_main_varyings_shaders_and_shader_datas;
-      declare_brush_varyings = declare_varyings_string("_brush",
-                                                       m_brush_varyings.uints().size(),
-                                                       m_brush_varyings.ints().size(),
-                                                       m_brush_varyings.float_counts(),
-                                                       &varying_slot,
-                                                       &brush_varying_datum);
+      declare_varyings_builder.add_varyings("_brush",
+                                            m_brush_varyings.uints().size(),
+                                            m_brush_varyings.ints().size(),
+                                            m_brush_varyings.float_counts(),
+                                            &brush_varying_datum);
     }
 
-  declare_main_varyings = declare_varyings_string("_main",
-                                                  main_varyings->uints().size(),
-                                                  main_varyings->ints().size(),
-                                                  main_varyings->float_counts(),
-                                                  &varying_slot,
-                                                  &main_varying_datum);
+  declare_varyings_builder.add_varyings("_main",
+                                        main_varyings->uints().size(),
+                                        main_varyings->ints().size(),
+                                        main_varyings->float_counts(),
+                                        &main_varying_datum);
 
-  declare_shader_varyings = declare_varyings_string("_shader",
-                                                    m_number_uint_varyings,
-                                                    m_number_int_varyings,
-                                                    m_number_float_varyings,
-                                                    &varying_slot,
-                                                    &shader_varying_datum);
+  declare_varyings_builder.add_varyings("_shader",
+                                        m_number_uint_varyings,
+                                        m_number_int_varyings,
+                                        m_number_float_varyings,
+                                        &shader_varying_datum);
 
   declare_uniforms = declare_shader_uniforms(params);
+  declare_varyings = declare_varyings_builder.declare_varyings("fastuidraw_varying");
 
   if (params.unpack_header_and_brush_in_frag_shader())
     {
@@ -908,8 +906,11 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
 
   if (m_config.use_hw_clip_planes())
     {
-      vert.add_macro("FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES");
-      frag.add_macro("FASTUIDRAW_PAINTER_USE_HW_CLIP_PLANES");
+      vert.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE");
+    }
+  else
+    {
+      frag.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_DISCARD");
     }
 
   if (m_p->configuration_base().supports_bindless_texturing())
@@ -1065,15 +1066,12 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", binding_params.auxiliary_image_buffer())
     .add_macro("fastuidraw_varying", "out")
     .add_source(declare_vertex_shader_ins.c_str(), ShaderSource::from_string)
-    .add_source(declare_brush_varyings.c_str(), ShaderSource::from_string)
-    .add_source(declare_main_varyings.c_str(), ShaderSource::from_string)
-    .add_source(declare_shader_varyings.c_str(), ShaderSource::from_string);
+    .add_source(declare_varyings.c_str(), ShaderSource::from_string);
 
   stream_alias_varyings("_main", vert, *main_varyings, true, main_varying_datum);
   if (params.unpack_header_and_brush_in_frag_shader())
     {
-      /* we need to declare the values named in m_brush_varyings
-       */
+      /* we need to declare the values named in m_brush_varyings */
       stream_varyings_as_local_variables(vert, m_brush_varyings);
     }
   else
@@ -1136,9 +1134,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_macro("FASTUIDRAW_PAINTER_STORE_SSBO_BINDING", binding_params.data_store_buffer_ssbo())
     .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", binding_params.auxiliary_image_buffer())
     .add_macro("fastuidraw_varying", "in")
-    .add_source(declare_brush_varyings.c_str(), ShaderSource::from_string)
-    .add_source(declare_main_varyings.c_str(), ShaderSource::from_string)
-    .add_source(declare_shader_varyings.c_str(), ShaderSource::from_string);
+    .add_source(declare_varyings.c_str(), ShaderSource::from_string);
 
   stream_alias_varyings("_main", frag, *main_varyings, true, main_varying_datum);
   if (params.unpack_header_and_brush_in_frag_shader())
