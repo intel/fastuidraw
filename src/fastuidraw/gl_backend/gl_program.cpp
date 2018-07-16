@@ -166,7 +166,8 @@ namespace
       m_abo_index(-1),
       m_shader_storage_buffer_index(-1),
       m_shader_storage_buffer_top_level_array_size(-1),
-      m_shader_storage_buffer_top_level_array_stride(-1)
+      m_shader_storage_buffer_top_level_array_stride(-1),
+      m_transform_feedback_buffer_index(-1)
     {
     }
 
@@ -206,6 +207,8 @@ namespace
     GLint m_shader_storage_buffer_index;
     GLint m_shader_storage_buffer_top_level_array_size;
     GLint m_shader_storage_buffer_top_level_array_stride;
+
+    GLint m_transform_feedback_buffer_index;
   };
 
   /* class to use program interface query to fill
@@ -279,8 +282,9 @@ namespace
   class ShaderVariableSet
   {
   public:
-    ShaderVariableSet(void):
-      m_finalized(false)
+    ShaderVariableSet(bool sort_by_name = true):
+      m_finalized(false),
+      m_sort_by_name(sort_by_name)
     {}
 
     unsigned int
@@ -372,7 +376,12 @@ namespace
     filter_name_leading_index(iterator begin, iterator end,
                               unsigned int *leading_index);
 
-    bool m_finalized;
+    virtual
+    void
+    tweak_before_finalize(ShaderVariableInfo&)
+    {}
+
+    bool m_finalized, m_sort_by_name;
     ShaderVariableInfo m_empty;
     std::vector<ShaderVariableInfo> m_values;
     std::map<std::string, unsigned int> m_map;
@@ -386,6 +395,73 @@ namespace
   public:
     void
     populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx);
+  };
+
+  class TransformFeedbackInfo:public ShaderVariableSet
+  {
+  public:
+    TransformFeedbackInfo(void):
+      ShaderVariableSet(false)
+    {}
+
+    void
+    populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx);
+
+  private:
+    virtual
+    void
+    tweak_before_finalize(ShaderVariableInfo &v)
+    {
+      int n;
+      
+      #define LAZY(X, M)                 \
+        case X: n = M; break;            \
+        case X##_VEC2: n = 2 * M; break; \
+        case X##_VEC3: n = 3 * M; break; \
+        case X##_VEC4: n = 4 * M; break
+
+      #define LAZYARB(X, M)                  \
+        case X##_ARB: n = M; break;          \
+        case X##_VEC2_ARB: n = 2 * M; break; \
+        case X##_VEC3_ARB: n = 3 * M; break; \
+        case X##_VEC4_ARB: n = 4 * M; break
+      
+      switch(v.m_glsl_type)
+        {
+          LAZY(GL_FLOAT, 1);
+          LAZY(GL_INT, 1);
+          LAZY(GL_UNSIGNED_INT, 1);
+          LAZY(GL_BOOL, 1);
+          #ifndef FASTUIDRAW_GL_USE_GLES
+            LAZY(GL_DOUBLE, 2);
+            LAZYARB(GL_INT64, 2);
+            LAZYARB(GL_UNSIGNED_INT64, 2);
+          #endif
+        case GL_NONE: n = 0; break;
+        default:
+          n = 1;
+        }
+#undef LAZY
+#undef LAZYARB
+
+      if (v.m_count > 1)
+        {
+          v.m_array_stride = 4 * n;
+        }
+
+      #ifdef FASTUIDRAW_GL_USE_GLES
+        {
+          v.m_transform_feedback_buffer_index = 0;
+        }
+      #endif
+    }
+
+    static
+    int
+    fake_get_location(GLuint, fastuidraw::c_string)
+    {
+      return -1;
+    }
   };
 
   class AtomicBufferInfo
@@ -693,6 +769,7 @@ namespace
     AttributeInfo m_attribute_list;
     UniformBlockSetInfo m_uniform_list;
     ShaderStorageBlockSetInfo m_storage_buffer_list;
+    TransformFeedbackInfo m_transform_feedback_list;
     fastuidraw::gl::ProgramInitializerArray m_initializers;
     fastuidraw::gl::PreLinkActionArray m_pre_link_actions;
     fastuidraw::gl::Program *m_p;
@@ -827,6 +904,10 @@ fill_variable(GLuint program,
       dst.m_shader_variable_src = fastuidraw::gl::Program::src_shader_output;
       break;
 
+    case GL_TRANSFORM_FEEDBACK_VARYING:
+      dst.m_shader_variable_src = fastuidraw::gl::Program::src_shader_transform_feedback;
+      break;
+
     default:
       FASTUIDRAWassert(!"Unhandled variable interface type to assign to m_shader_variable_src");
     }
@@ -909,12 +990,18 @@ finalize(void)
       return;
     }
 
-  m_finalized = true;
-  std::sort(m_values.begin(), m_values.end());
+  if (m_sort_by_name)
+    {
+      std::sort(m_values.begin(), m_values.end());
+    }
+
   for(unsigned int i = 0, endi = m_values.size(); i < endi; ++i)
     {
+      tweak_before_finalize(m_values[i]);
       m_map[m_values[i].m_name] = i;
     }
+
+  m_finalized = true;
 }
 
 const ShaderVariableInfo*
@@ -1041,7 +1128,10 @@ populate_non_program_interface_query(GLuint program,
           dst.m_count = psize;
           dst.m_name = std::string(pname.begin(), pname.begin() + name_length);
           dst.m_index = i;
-          dst.m_location = gptr(program, &pname[0]);
+          if (gptr)
+            {
+              dst.m_location = gptr(program, &pname[0]);
+            }
           add_element(dst);
         }
       query_list.fill_variables(program, m_values);
@@ -1263,6 +1353,51 @@ populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
                                            GL_ACTIVE_ATTRIBUTE_MAX_LENGTH,
                                            FASTUIDRAWglfunctionPointer(glGetActiveAttrib),
                                            FASTUIDRAWglfunctionPointer(glGetAttribLocation));
+    }
+}
+
+/////////////////////////////////////
+// TransformFeedbackInfo methods
+void
+TransformFeedbackInfo::
+populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
+{
+  bool use_program_interface_query;
+
+  if (ctx_props.is_es())
+    {
+      use_program_interface_query = (ctx_props.version() >= fastuidraw::ivec2(3, 1));
+    }
+  else
+    {
+      use_program_interface_query = (ctx_props.version() >= fastuidraw::ivec2(4, 3))
+        || ctx_props.has_extension("GL_ARB_program_interface_query");
+    }
+
+  if (use_program_interface_query)
+    {
+      ShaderVariableInterfaceQueryList attribute_queries;
+
+      attribute_queries
+        .add(GL_TYPE, &ShaderVariableInfo::m_glsl_type)
+        .add(GL_OFFSET, &ShaderVariableInfo::m_offset)
+        .add(GL_ARRAY_SIZE, &ShaderVariableInfo::m_count);
+
+      #ifndef FASTUIDRAW_GL_USE_GLES
+        {
+          attribute_queries.add(GL_TRANSFORM_FEEDBACK_BUFFER_INDEX,
+                                &ShaderVariableInfo::m_transform_feedback_buffer_index);
+        }
+      #endif
+      populate_from_resource(program, GL_TRANSFORM_FEEDBACK_VARYING, attribute_queries);
+    }
+  else
+    {
+      populate_non_program_interface_query(program,
+                                           GL_TRANSFORM_FEEDBACK_VARYINGS,
+                                           GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH,
+                                           FASTUIDRAWglfunctionPointer(glGetTransformFeedbackVarying),
+                                           &fake_get_location);
     }
 }
 
@@ -1966,6 +2101,17 @@ buffer_offset(unsigned int array_index,
 {
   const ShaderVariableInfo *d;
   d = static_cast<const ShaderVariableInfo*>(m_d);
+
+  if (d && d->m_array_stride == -1)
+    {
+      array_index = 0;
+    }
+
+  if (d && d->m_shader_storage_buffer_top_level_array_stride == -1)
+    {
+      leading_array_index = 0;
+    }
+
   return (d && d->m_offset != -1) ?
     d->m_offset
     + array_index * d->m_array_stride
@@ -2034,6 +2180,15 @@ shader_storage_buffer_top_level_array_stride(void) const
   const ShaderVariableInfo *d;
   d = static_cast<const ShaderVariableInfo*>(m_d);
   return (d) ? d->m_shader_storage_buffer_top_level_array_stride : -1;
+}
+
+GLint
+fastuidraw::gl::Program::shader_variable_info::
+transform_feedback_buffer_index(void) const
+{
+  const ShaderVariableInfo *d;
+  d = static_cast<const ShaderVariableInfo*>(m_d);
+  return (d) ? d->m_transform_feedback_buffer_index : -1;
 }
 
 ///////////////////////////////////////////////////
@@ -2255,6 +2410,7 @@ populate_info(void)
       m_attribute_list.populate(m_name, ctx_props);
       m_uniform_list.populate(m_name, ctx_props);
       m_storage_buffer_list.populate(m_name, ctx_props);
+      m_transform_feedback_list.populate(m_name, ctx_props);
 
       int current_program;
       bool sso_supported;
@@ -2528,7 +2684,7 @@ generate_log(void)
         }
 
       ostr << "\n\nAttributes:";
-      for(unsigned int j = 0, endj = m_p->number_active_attributes(); j < endj; ++j)
+      for (unsigned int j = 0, endj = m_p->number_active_attributes(); j < endj; ++j)
         {
           fastuidraw::gl::Program::shader_variable_info v(m_p->active_attribute(j));
 
@@ -2540,6 +2696,24 @@ generate_log(void)
                << "\n\t\tcount = " << std::dec << v.count()
                << "\n\t\tindex = " << std::dec << v.index()
                << "\n\t\tlocation = " << v.location();
+        }
+
+      ostr << "\n\nTransformFeedbacks:";
+      for (unsigned int j = 0, endj = m_p->number_transform_feedbacks(); j < endj; ++j)
+        {
+          fastuidraw::gl::Program::shader_variable_info v(m_p->transform_feedback(j));
+
+          FASTUIDRAWassert(v);
+          ostr << "\n\t"
+               << v.name()
+               << "\n\t\ttype = 0x"
+               << std::hex << v.glsl_type()
+               << "\n\t\tcount = " << std::dec << v.count()
+               << "\n\t\tindex = " << std::dec << v.index()
+               << "\n\t\toffset = " << std::dec << v.buffer_offset()
+               << "\n\t\tarray_stride = " << std::dec << v.array_stride()
+               << "\n\t\ttransform_feedback_buffer_index = " << std::dec
+               << v.transform_feedback_buffer_index();
         }
     }
 
@@ -2745,8 +2919,7 @@ find_shader_variable(c_string pname,
       return shader_variable_info();
     }
 
-  /* check the UBO's and ABO's
-   */
+  /* check the UBO's and ABO's */
   q = d->m_uniform_list.all_uniforms().find_variable(pname,
                                                      out_array_index,
                                                      out_leading_array_index,
@@ -2756,8 +2929,7 @@ find_shader_variable(c_string pname,
       return shader_variable_info(q);
     }
 
-  /* check SSBO's
-   */
+  /* check SSBO's */
   q = d->m_storage_buffer_list.all_shader_storage_variables().find_variable(pname,
                                                                             out_array_index,
                                                                             out_leading_array_index,
@@ -2884,6 +3056,38 @@ attribute_location(c_string pname)
         -1;
     }
   return -1;
+}
+
+unsigned int
+fastuidraw::gl::Program::
+number_transform_feedbacks(void)
+{
+  ProgramPrivate *d;
+  d = static_cast<ProgramPrivate*>(m_d);
+  d->assemble();
+  return d->m_link_success ?
+    d->m_transform_feedback_list.values().size() :
+    0;
+}
+
+fastuidraw::gl::Program::shader_variable_info
+fastuidraw::gl::Program::
+transform_feedback(unsigned int I)
+{
+  ProgramPrivate *d;
+  d = static_cast<ProgramPrivate*>(m_d);
+  d->assemble();
+
+  if (!d->m_link_success
+      || I >= d->m_transform_feedback_list.values().size())
+    {
+      return shader_variable_info();
+    }
+
+  const ShaderVariableInfo *q;
+  q = &d->m_transform_feedback_list.value(I);
+
+  return shader_variable_info(q);
 }
 
 unsigned int

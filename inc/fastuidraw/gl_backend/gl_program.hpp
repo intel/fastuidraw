@@ -880,6 +880,12 @@ public:
       src_shader_output,
 
       /*!
+       * Indicates that the shader variable is a
+       * transform feedback variable
+       */
+      src_shader_transform_feedback,
+
+      /*!
        * Indicates that the shader variable is a nullptr
        * value; such values are returned when a query
        * for a shader variable is made and there is
@@ -1064,6 +1070,14 @@ public:
      */
     GLint
     shader_storage_buffer_top_level_array_stride(void) const;
+
+    /*!
+     * If this variable is a transform feedback variable, returns
+     * to what transform feedback buffer the variable is written.
+     * If not a transform feedback variable, returns -1.
+     */
+    GLint
+    transform_feedback_buffer_index(void) const;
 
   private:
     explicit
@@ -1620,6 +1634,33 @@ public:
    */
   shader_variable_info
   active_attribute(unsigned int I);
+
+  /*!
+   * Returns the number of active transform feedbacks. Note that an
+   * array of transform feedback is classified as a single element.
+   * This will also include padding in the form of gl_SkipComponents1,
+   * gl_SkipComponents2, gl_SkipComponents3 and gl_SkipComponents4.
+   * In addition it will also include gl_NextBuffer to indicated
+   * advancing to the next buffer. This function should only be called
+   * either after use_program() has been called or only when the GL
+   * context is current.
+   */
+  unsigned int
+  number_transform_feedbacks(void);
+
+  /*!
+   * Returns the indexed transform-feedback. This function should only
+   * be called either after use_program() has been called or only
+   * when the GL context is current. The values are sorted in
+   * alphabetical order of shader_variable_info::name().
+   * \param I -ID- (not location or index) of transform feedbach,
+   *          if I is not less than number_transform_feedbacks(),
+   *          returns a shader_variable_info indicating null (i.e.
+   *          shader_variable_info::name() is an empty string and
+   *          shader_variable_info::index() is -1).
+   */
+  shader_variable_info
+  transform_feedback(unsigned int I);
 
   /*!
    * Searches active_attribute() to find the named attribute, including
