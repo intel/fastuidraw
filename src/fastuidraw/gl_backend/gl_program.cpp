@@ -85,6 +85,18 @@ namespace
     int m_location, m_index;
   };
 
+  class TransformFeedbackVaryingPrivate
+  {
+  public:
+    explicit
+    TransformFeedbackVaryingPrivate(GLenum buffer_mode):
+      m_buffer_mode(buffer_mode)
+    {}
+
+    GLenum m_buffer_mode;
+    fastuidraw::string_array m_transform_feedback_varyings;
+  };
+
   class PreLinkActionArrayPrivate
   {
   public:
@@ -1749,6 +1761,54 @@ action(GLuint glsl_program) const
   glProgramParameteri(glsl_program, GL_PROGRAM_SEPARABLE, GL_TRUE);
 }
 
+///////////////////////////////////////////////////
+// fastuidraw::gl::TransformFeedbackVarying methods
+fastuidraw::gl::TransformFeedbackVarying::
+TransformFeedbackVarying(GLenum mode)
+{
+  m_d = FASTUIDRAWnew TransformFeedbackVaryingPrivate(mode);
+}
+
+fastuidraw::gl::TransformFeedbackVarying::
+~TransformFeedbackVarying()
+{
+  TransformFeedbackVaryingPrivate *d;
+  d = static_cast<TransformFeedbackVaryingPrivate*>(m_d);
+  FASTUIDRAWdelete(d);
+}
+
+fastuidraw::string_array&
+fastuidraw::gl::TransformFeedbackVarying::
+transform_feedback_varyings(void)
+{
+  TransformFeedbackVaryingPrivate *d;
+  d = static_cast<TransformFeedbackVaryingPrivate*>(m_d);
+  return d->m_transform_feedback_varyings;
+}
+
+const fastuidraw::string_array&
+fastuidraw::gl::TransformFeedbackVarying::
+transform_feedback_varyings(void) const
+{
+  TransformFeedbackVaryingPrivate *d;
+  d = static_cast<TransformFeedbackVaryingPrivate*>(m_d);
+  return d->m_transform_feedback_varyings;
+}
+
+void
+fastuidraw::gl::TransformFeedbackVarying::
+action(GLuint glsl_program) const
+{
+  TransformFeedbackVaryingPrivate *d;
+  d = static_cast<TransformFeedbackVaryingPrivate*>(m_d);
+  if (d->m_transform_feedback_varyings.size() > 0)
+    {
+      glTransformFeedbackVaryings(glsl_program,
+                                  d->m_transform_feedback_varyings.size(),
+                                  d->m_transform_feedback_varyings.get().c_ptr(),
+                                  d->m_buffer_mode);
+    }
+}
 
 ////////////////////////////////////////////
 // fastuidraw::gl::PreLinkActionArray methods

@@ -23,6 +23,7 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/util/string_array.hpp>
 #include <fastuidraw/glsl/shader_source.hpp>
 #include <fastuidraw/gl_backend/gl_header.hpp>
 #include <fastuidraw/gl_backend/gluniform.hpp>
@@ -157,8 +158,6 @@ private:
   void *m_d;
 };
 
-
-
 /*!
  * \brief
  * A PreLinkAction is an action to apply to a \ref Program
@@ -259,6 +258,52 @@ private:
 
 /*!
  * \brief
+ * A TransformFeedbackVarying encapsulates a call to
+ * glTransformFeedbackVarying. Note that if there are
+ * multiple \ref TransformFeedbackVarying objects on a
+ * single \ref PreLinkActionArray, then only the last
+ * one added has effect.
+ */
+class TransformFeedbackVarying:public PreLinkAction
+{
+public:
+  /*!
+   * Ctor.
+   * \param buffer_mode the buffer mode to use on
+   *        glTransformFeedbackVarying.
+   */
+  explicit
+  TransformFeedbackVarying(GLenum buffer_mode = GL_INTERLEAVED_ATTRIBS);
+
+  ~TransformFeedbackVarying();
+
+  /*!
+   * Return the \ref string_array holding the varyings to
+   * capture in transform feedback in the order they will
+   * be captured; modify this object the change what is
+   * captured in transform feedback.
+   */
+  string_array&
+  transform_feedback_varyings(void);
+
+  /*!
+   * Return the \ref string_array holding the varyings to
+   * capture in transform feedback in the order they will
+   * be captured.
+   */
+  const string_array&
+  transform_feedback_varyings(void) const;
+
+  virtual
+  void
+  action(GLuint glsl_program) const;
+
+private:
+  void *m_d;
+};
+
+/*!
+ * \brief
  * A PreLinkActionArray is a conveniance class
  * wrapper over an array of \ref PreLinkAction handles.
  */
@@ -330,6 +375,27 @@ public:
   {
     reference_counted_ptr<PreLinkAction> h;
     h = FASTUIDRAWnew BindFragDataLocation(pname, plocation, pindex);
+    return add(h);
+  }
+
+  /*!
+   * Provided as a conveniance, equivalent to
+   * \code
+   * reference_counted_ptr<TransformFeedbackVarying> h;
+   * h = TransformFeedbackVarying(buffer_mode);
+   * h->transform_feedback_varyings() = varyings;
+   * add(h)
+   * \endcode
+   * \param varyings list of varyings to capture for transform feedback
+   * \param buffer_mode buffer mode (i.e. interleaved or not) for transform feedback
+   */
+  PreLinkActionArray&
+  set_transform_feedback(const string_array &varyings,
+                         GLenum buffer_mode = GL_INTERLEAVED_ATTRIBS)
+  {
+    reference_counted_ptr<TransformFeedbackVarying> h;
+    h = FASTUIDRAWnew TransformFeedbackVarying(buffer_mode);
+    h->transform_feedback_varyings() = varyings;
     return add(h);
   }
 
