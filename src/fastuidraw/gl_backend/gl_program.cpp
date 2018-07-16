@@ -378,7 +378,7 @@ namespace
 
     virtual
     void
-    tweak_before_finalize(ShaderVariableInfo&)
+    pre_finalize_variable(ShaderVariableInfo&)
     {}
 
     bool m_finalized, m_sort_by_name;
@@ -407,54 +407,24 @@ namespace
     void
     populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx);
 
+    unsigned int
+    buffer_stride(unsigned int buffer) const
+    {
+      return buffer < m_buffer_stride.size() ?
+        m_buffer_stride[buffer] :
+        0u;
+    }
+
+    unsigned int
+    number_buffers(void) const
+    {
+      return m_buffer_stride.size();
+    }
+
   private:
     virtual
     void
-    tweak_before_finalize(ShaderVariableInfo &v)
-    {
-      int n;
-      
-      #define LAZY(X, M)                 \
-        case X: n = M; break;            \
-        case X##_VEC2: n = 2 * M; break; \
-        case X##_VEC3: n = 3 * M; break; \
-        case X##_VEC4: n = 4 * M; break
-
-      #define LAZYARB(X, M)                  \
-        case X##_ARB: n = M; break;          \
-        case X##_VEC2_ARB: n = 2 * M; break; \
-        case X##_VEC3_ARB: n = 3 * M; break; \
-        case X##_VEC4_ARB: n = 4 * M; break
-      
-      switch(v.m_glsl_type)
-        {
-          LAZY(GL_FLOAT, 1);
-          LAZY(GL_INT, 1);
-          LAZY(GL_UNSIGNED_INT, 1);
-          LAZY(GL_BOOL, 1);
-          #ifndef FASTUIDRAW_GL_USE_GLES
-            LAZY(GL_DOUBLE, 2);
-            LAZYARB(GL_INT64, 2);
-            LAZYARB(GL_UNSIGNED_INT64, 2);
-          #endif
-        case GL_NONE: n = 0; break;
-        default:
-          n = 1;
-        }
-#undef LAZY
-#undef LAZYARB
-
-      if (v.m_count > 1)
-        {
-          v.m_array_stride = 4 * n;
-        }
-
-      #ifdef FASTUIDRAW_GL_USE_GLES
-        {
-          v.m_transform_feedback_buffer_index = 0;
-        }
-      #endif
-    }
+    pre_finalize_variable(ShaderVariableInfo &v);
 
     static
     int
@@ -462,6 +432,12 @@ namespace
     {
       return -1;
     }
+
+    void
+    max_buffer_stride(unsigned int buffer,
+                      unsigned int num_bytes);
+
+    std::vector<unsigned int> m_buffer_stride;
   };
 
   class AtomicBufferInfo
@@ -997,7 +973,7 @@ finalize(void)
 
   for(unsigned int i = 0, endi = m_values.size(); i < endi; ++i)
     {
-      tweak_before_finalize(m_values[i]);
+      pre_finalize_variable(m_values[i]);
       m_map[m_values[i].m_name] = i;
     }
 
@@ -1288,8 +1264,6 @@ add_element(ShaderVariableInfo v)
   m_members.add_element(v);
 }
 
-
-
 /////////////////////////////
 // BlockInfoPrivate methods
 void
@@ -1389,7 +1363,25 @@ populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
                                 &ShaderVariableInfo::m_transform_feedback_buffer_index);
         }
       #endif
+
       populate_from_resource(program, GL_TRANSFORM_FEEDBACK_VARYING, attribute_queries);
+
+      #ifndef FASTUIDRAW_GL_USE_GLES
+        {
+          GLint num_buffers(m_buffer_stride.size());
+          GLenum xfb_buffer_stride(GL_TRANSFORM_FEEDBACK_BUFFER_STRIDE);
+
+          m_buffer_stride.resize(num_buffers);
+          for (GLint i = 0; i < num_buffers; ++i)
+            {
+              GLint tmp(0);
+              glGetProgramResourceiv(program, GL_TRANSFORM_FEEDBACK_BUFFER, i,
+                                     1, &xfb_buffer_stride,
+                                     1, nullptr, &tmp);
+              m_buffer_stride[i] = tmp;
+            }
+        }
+      #endif
     }
   else
     {
@@ -1399,6 +1391,82 @@ populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
                                            FASTUIDRAWglfunctionPointer(glGetTransformFeedbackVarying),
                                            &fake_get_location);
     }
+}
+
+void
+TransformFeedbackInfo::
+max_buffer_stride(unsigned int buffer,
+                  unsigned int num_bytes)
+{
+  if (buffer >= m_buffer_stride.size())
+    {
+      m_buffer_stride.resize(buffer + 1, 0);
+    }
+  m_buffer_stride[buffer] = fastuidraw::t_max(num_bytes,
+                                              m_buffer_stride[buffer]);
+}
+                   
+void
+TransformFeedbackInfo::
+pre_finalize_variable(ShaderVariableInfo &v)
+{
+  int n, sz;
+      
+  #define LAZY(X, M)                       \
+    case X: n = sz = M; break;             \
+    case X##_VEC2: n = sz = 2 * M; break;  \
+    case X##_VEC3: n = sz = 3 * M; break;  \
+    case X##_VEC4: n = sz = 4 * M; break
+
+  #define LAZYARB(X, M)                        \
+    case X##_ARB: n = sz = M; break;           \
+    case X##_VEC2_ARB: n = sz = 2 * M; break;  \
+    case X##_VEC3_ARB: n = sz = 3 * M; break;  \
+    case X##_VEC4_ARB: n = sz = 4 * M; break
+      
+  switch(v.m_glsl_type)
+    {
+      LAZY(GL_FLOAT, 1);
+      LAZY(GL_INT, 1);
+      LAZY(GL_UNSIGNED_INT, 1);
+      LAZY(GL_BOOL, 1);
+      #ifndef FASTUIDRAW_GL_USE_GLES
+        LAZY(GL_DOUBLE, 2);
+        LAZYARB(GL_INT64, 2);
+        LAZYARB(GL_UNSIGNED_INT64, 2);
+      #endif
+      case GL_NONE: sz = 1; n = 0; break;
+    default:
+      n = 1;
+    }
+
+  #undef LAZY
+  #undef LAZYARB
+
+  v.m_array_stride = 4 * n;
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      /*
+       * TODO: GLES does not support GL_TRANSFORM_FEEDBACK_BUFFER_INDEX,
+       * so we just assume (potentially) incorrectly that the buffer index
+       * is 0. The right thing to do is check the program's feedback mode
+       * (interleaved or separate) and go from there.
+       */
+      v.m_transform_feedback_buffer_index = 0;
+      if (v.m_glsl_type != GL_NONE)
+        {
+          max_buffer_stride(v.m_transform_feedback_buffer_index,
+                            v.m_offset + 4 * sz * v.m_count);
+        }
+    }
+  #else
+    {
+      if (v.m_transform_feedback_buffer_index > 0)
+        {
+          max_buffer_stride(v.m_transform_feedback_buffer_index, 0);
+        }
+    }
+  #endif
 }
 
 ///////////////////////////////////////
@@ -2698,6 +2766,14 @@ generate_log(void)
                << "\n\t\tlocation = " << v.location();
         }
 
+      ostr << "\n\nNumber TransformFeedbackBuffers:"
+           << m_p->number_transform_feedback_buffers();
+      for (unsigned int j = 0; j < m_p->number_transform_feedback_buffers(); ++j)
+        {
+          ostr << "\n\tBuffer(" << j << ") stride = "
+               << m_p->transform_feedback_buffer_stride(j);
+        }
+
       ostr << "\n\nTransformFeedbacks:";
       for (unsigned int j = 0, endj = m_p->number_transform_feedbacks(); j < endj; ++j)
         {
@@ -3088,6 +3164,30 @@ transform_feedback(unsigned int I)
   q = &d->m_transform_feedback_list.value(I);
 
   return shader_variable_info(q);
+}
+
+unsigned int
+fastuidraw::gl::Program::
+transform_feedback_buffer_stride(unsigned int B)
+{
+  ProgramPrivate *d;
+  d = static_cast<ProgramPrivate*>(m_d);
+  d->assemble();
+  return d->m_link_success ?
+    d->m_transform_feedback_list.buffer_stride(B) :
+    0u;
+}
+
+unsigned int
+fastuidraw::gl::Program::
+number_transform_feedback_buffers(void)
+{
+  ProgramPrivate *d;
+  d = static_cast<ProgramPrivate*>(m_d);
+  d->assemble();
+  return d->m_link_success ?
+    d->m_transform_feedback_list.number_buffers() :
+    0u;
 }
 
 unsigned int
