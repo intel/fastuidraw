@@ -772,9 +772,9 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
 
   std::string varying_layout_macro, binding_layout_macro;
   std::string declare_varyings;
-  DeclareVaryings declare_varyings_builder;
-  DeclareVaryings::VaryingStreamerLocation main_varying_datum, brush_varying_datum;
-  DeclareVaryings::VaryingStreamerLocation clip_varying_datum, shader_varying_datum;
+  UberShaderVaryings uber_shader_varyings;
+  AliasVaryingLocation main_varying_datum, brush_varying_datum;
+  AliasVaryingLocation clip_varying_datum, shader_varying_datum;
   std::string declare_vertex_shader_ins;
   std::string declare_uniforms;
   const varying_list *main_varyings;
@@ -847,7 +847,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
 
   if (params.clipping_type() != PainterBackendGLSL::clipping_via_gl_clip_distance)
     {
-      declare_varyings_builder.add_varyings("clip", m_clip_varyings, &clip_varying_datum);
+      uber_shader_varyings.add_varyings("clip", m_clip_varyings, &clip_varying_datum);
     }
 
   if (params.unpack_header_and_brush_in_frag_shader())
@@ -857,19 +857,19 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   else
     {
       main_varyings = &m_main_varyings_shaders_and_shader_datas;
-      declare_varyings_builder.add_varyings("brush", m_brush_varyings, &brush_varying_datum);
+      uber_shader_varyings.add_varyings("brush", m_brush_varyings, &brush_varying_datum);
     }
 
-  declare_varyings_builder.add_varyings("main", *main_varyings, &main_varying_datum);
+  uber_shader_varyings.add_varyings("main", *main_varyings, &main_varying_datum);
 
-  declare_varyings_builder.add_varyings("shader",
-                                        m_number_uint_varyings,
-                                        m_number_int_varyings,
-                                        m_number_float_varyings,
-                                        &shader_varying_datum);
+  uber_shader_varyings.add_varyings("shader",
+                                    m_number_uint_varyings,
+                                    m_number_int_varyings,
+                                    m_number_float_varyings,
+                                    &shader_varying_datum);
 
   declare_uniforms = declare_shader_uniforms(params);
-  declare_varyings = declare_varyings_builder.declare_varyings("fastuidraw_varying");
+  declare_varyings = uber_shader_varyings.declare_varyings("fastuidraw_varying");
 
   if (params.unpack_header_and_brush_in_frag_shader())
     {
@@ -1062,9 +1062,9 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
 
   if (params.clipping_type() != PainterBackendGLSL::clipping_via_gl_clip_distance)
     {
-      declare_varyings_builder.stream_alias_varyings(vert, m_clip_varyings, true, clip_varying_datum);
+      uber_shader_varyings.stream_alias_varyings(vert, m_clip_varyings, true, clip_varying_datum);
     }
-  declare_varyings_builder.stream_alias_varyings(vert, *main_varyings, true, main_varying_datum);
+  uber_shader_varyings.stream_alias_varyings(vert, *main_varyings, true, main_varying_datum);
 
   if (params.unpack_header_and_brush_in_frag_shader())
     {
@@ -1073,7 +1073,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     }
   else
     {
-      declare_varyings_builder.stream_alias_varyings(vert, m_brush_varyings, true, brush_varying_datum);
+      uber_shader_varyings.stream_alias_varyings(vert, m_brush_varyings, true, brush_varying_datum);
     }
 
   vert
@@ -1091,7 +1091,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
 
   stream_unpack_code(vert);
   stream_uber_vert_shader(params.vert_shader_use_switch(), vert, item_shaders,
-                          declare_varyings_builder, shader_varying_datum);
+                          uber_shader_varyings, shader_varying_datum);
 
   c_string shader_blend_macro;
   switch(m_blend_type)
@@ -1135,9 +1135,9 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
 
   if (params.clipping_type() != PainterBackendGLSL::clipping_via_gl_clip_distance)
     {
-      declare_varyings_builder.stream_alias_varyings(frag, m_clip_varyings, true, clip_varying_datum);
+      uber_shader_varyings.stream_alias_varyings(frag, m_clip_varyings, true, clip_varying_datum);
     }
-  declare_varyings_builder.stream_alias_varyings(frag, *main_varyings, true, main_varying_datum);
+  uber_shader_varyings.stream_alias_varyings(frag, *main_varyings, true, main_varying_datum);
   if (params.unpack_header_and_brush_in_frag_shader())
     {
       /* we need to declare the values named in m_brush_varyings */
@@ -1145,7 +1145,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     }
   else
     {
-      declare_varyings_builder.stream_alias_varyings(frag, m_brush_varyings, true, brush_varying_datum);
+      uber_shader_varyings.stream_alias_varyings(frag, m_brush_varyings, true, brush_varying_datum);
     }
 
   frag
@@ -1171,7 +1171,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
 
   stream_unpack_code(frag);
   stream_uber_frag_shader(params.frag_shader_use_switch(), frag, item_shaders,
-                          declare_varyings_builder, shader_varying_datum);
+                          uber_shader_varyings, shader_varying_datum);
   stream_uber_blend_shader(params.blend_shader_use_switch(), frag,
                            make_c_array(m_blend_shaders[m_blend_type].m_shaders),
                            m_blend_type);

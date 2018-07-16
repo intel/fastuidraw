@@ -29,37 +29,28 @@
 
 namespace fastuidraw { namespace glsl { namespace detail {
 
-class DeclareVaryings:fastuidraw::noncopyable
+class UberShaderVaryings;
+class AliasVaryingLocation
+{  
+private:
+  friend class UberShaderVaryings;
+  
+  /* What varying in UberShaderVaryings to which to
+   * start aliasing: which varying and which component
+   */
+  std::string m_label;
+  uvec2 m_uint_varying_start;
+  uvec2 m_int_varying_start;
+  vecN<uvec2, varying_list::interpolation_number_types> m_float_varying_start;
+};
+
+class UberShaderVaryings:fastuidraw::noncopyable
 {
 public:
-  class VaryingStreamerLocation
-  {  
-  private:
-    friend class DeclareVaryings;
-    
-    /* What varying in DeclareVaryings to which to
-     * start aliasing: which varying and which component
-     */
-    std::string m_label;
-    uvec2 m_uint_varying_start;
-    uvec2 m_int_varying_start;
-    vecN<uvec2, varying_list::interpolation_number_types> m_float_varying_start;
-  };
-
-  class per_varying
-  {
-  public:
-    bool m_is_flat;
-    std::string m_type;
-    std::string m_name;
-    std::string m_qualifier;
-    unsigned int m_num_components;
-  };
-
   void
   add_varyings(c_string label,
                const varying_list &p,
-               VaryingStreamerLocation *datum)
+               AliasVaryingLocation *datum)
   {
     add_varyings(label,
                  p.uints().size(),
@@ -73,7 +64,7 @@ public:
                size_t uint_count,
                size_t int_count,
                c_array<const size_t> float_counts,
-               VaryingStreamerLocation *datum);
+               AliasVaryingLocation *datum);
 
   void
   declare_varyings(std::ostringstream &str,
@@ -94,7 +85,7 @@ public:
 
   /*!
    * Add or remove aliases that have elements of p
-   * refer to varying declared by a DeclareVaryings
+   * refer to varying declared by a UberShaderVaryings
    * \param shader ShaderSource to which to stream
    * \param p how many varyings of each type along with their names
    * \param add_aliases if true add the aliases by add_macro(),
@@ -103,9 +94,19 @@ public:
   void
   stream_alias_varyings(ShaderSource &shader, const varying_list &p,
                         bool add_aliases,
-                        const VaryingStreamerLocation &datum) const;
+                        const AliasVaryingLocation &datum) const;
   
 private:
+  class per_varying
+  {
+  public:
+    bool m_is_flat;
+    std::string m_type;
+    std::string m_name;
+    std::string m_qualifier;
+    unsigned int m_num_components;
+  };
+
   uvec2
   add_varyings_impl_type(std::vector<per_varying> &varyings,
                          unsigned int cnt,
@@ -135,15 +136,14 @@ stream_as_local_variables(ShaderSource &shader, const varying_list &p);
 void
 stream_uber_vert_shader(bool use_switch, ShaderSource &vert,
                         c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
-                        const DeclareVaryings &declare_varyings,
-                        const DeclareVaryings::VaryingStreamerLocation &datum);
+                        const UberShaderVaryings &declare_varyings,
+                        const AliasVaryingLocation &datum);
 
 void
 stream_uber_frag_shader(bool use_switch, ShaderSource &frag,
                         c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
-                        const DeclareVaryings &declare_varyings,
-                        const DeclareVaryings::VaryingStreamerLocation &datum);
-
+                        const UberShaderVaryings &declare_varyings,
+                        const AliasVaryingLocation &datum);
 
 void
 stream_uber_blend_shader(bool use_switch, ShaderSource &frag,

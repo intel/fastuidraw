@@ -49,8 +49,8 @@ namespace
   class pre_stream_varyings
   {
   public:
-    pre_stream_varyings(const fastuidraw::glsl::detail::DeclareVaryings &src,
-                        const fastuidraw::glsl::detail::DeclareVaryings::VaryingStreamerLocation &datum):
+    pre_stream_varyings(const fastuidraw::glsl::detail::UberShaderVaryings &src,
+                        const fastuidraw::glsl::detail::AliasVaryingLocation &datum):
       m_src(src),
       m_datum(datum)
     {}
@@ -63,15 +63,15 @@ namespace
     }
 
   private:
-    const fastuidraw::glsl::detail::DeclareVaryings &m_src;
-    const fastuidraw::glsl::detail::DeclareVaryings::VaryingStreamerLocation &m_datum;
+    const fastuidraw::glsl::detail::UberShaderVaryings &m_src;
+    const fastuidraw::glsl::detail::AliasVaryingLocation &m_datum;
   };
 
   class post_stream_varyings
   {
   public:
-    post_stream_varyings(const fastuidraw::glsl::detail::DeclareVaryings &src,
-                         const fastuidraw::glsl::detail::DeclareVaryings::VaryingStreamerLocation &datum):
+    post_stream_varyings(const fastuidraw::glsl::detail::UberShaderVaryings &src,
+                         const fastuidraw::glsl::detail::AliasVaryingLocation &datum):
       m_src(src),
       m_datum(datum)
     {}
@@ -84,8 +84,8 @@ namespace
     }
 
   private:
-    const fastuidraw::glsl::detail::DeclareVaryings &m_src;
-    const fastuidraw::glsl::detail::DeclareVaryings::VaryingStreamerLocation &m_datum;
+    const fastuidraw::glsl::detail::UberShaderVaryings &m_src;
+    const fastuidraw::glsl::detail::AliasVaryingLocation &m_datum;
   };
 
   void
@@ -375,14 +375,14 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
 namespace fastuidraw { namespace glsl { namespace detail {
 
 //////////////////////////
-// DeclareVaryings methods
+// UberShaderVaryings methods
 void
-DeclareVaryings::
+UberShaderVaryings::
 add_varyings(c_string label,
              size_t uint_count,
              size_t int_count,
              c_array<const size_t> float_counts,
-             VaryingStreamerLocation *datum)
+             AliasVaryingLocation *datum)
 {
   c_string uint_labels[]=
     {
@@ -441,7 +441,7 @@ add_varyings(c_string label,
 }
 
 uvec2
-DeclareVaryings::
+UberShaderVaryings::
 add_varyings_impl_type(std::vector<per_varying> &varyings,
                        unsigned int cnt,
                        c_string qualifier, c_string types[],
@@ -502,7 +502,7 @@ add_varyings_impl_type(std::vector<per_varying> &varyings,
 }
 
 void
-DeclareVaryings::
+UberShaderVaryings::
 declare_varyings(std::ostringstream &str,
                  c_string varying_qualifier,
                  c_string interface_name,
@@ -534,7 +534,7 @@ declare_varyings(std::ostringstream &str,
 }
       
 void
-DeclareVaryings::
+UberShaderVaryings::
 declare_varyings_impl(std::ostringstream &str,
                       const std::vector<per_varying> &varyings,
                       c_string varying_qualifier,
@@ -550,7 +550,7 @@ declare_varyings_impl(std::ostringstream &str,
 }
 
 void
-DeclareVaryings::
+UberShaderVaryings::
 stream_alias_varyings_impl(const std::vector<per_varying> &varyings_to_use,
                            ShaderSource &shader,
                            c_array<const c_string> p,
@@ -591,10 +591,10 @@ stream_alias_varyings_impl(const std::vector<per_varying> &varyings_to_use,
 }
 
 void
-DeclareVaryings::
+UberShaderVaryings::
 stream_alias_varyings(ShaderSource &shader, const varying_list &p,
                       bool add_aliases,
-                      const VaryingStreamerLocation &datum) const
+                      const AliasVaryingLocation &datum) const
 {
   shader << "//////////////////////////////////////////////////\n"
          << "// Stream variable aliases for: " << datum.m_label
@@ -638,8 +638,8 @@ void
 stream_uber_vert_shader(bool use_switch,
                         ShaderSource &vert,
                         c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
-                        const DeclareVaryings &declare_varyings,
-                        const DeclareVaryings::VaryingStreamerLocation &datum)
+                        const UberShaderVaryings &declare_varyings,
+                        const AliasVaryingLocation &datum)
 {
   UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, vert, item_shaders,
                                                          &PainterItemShaderGLSL::vertex_src,
@@ -656,8 +656,8 @@ void
 stream_uber_frag_shader(bool use_switch,
                         ShaderSource &frag,
                         c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
-                        const DeclareVaryings &declare_varyings,
-                        const DeclareVaryings::VaryingStreamerLocation &datum)
+                        const UberShaderVaryings &declare_varyings,
+                        const AliasVaryingLocation &datum)
 {
   UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, frag, item_shaders,
                                                          &PainterItemShaderGLSL::fragment_src,
