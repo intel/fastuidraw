@@ -1663,6 +1663,20 @@ public:
   transform_feedback(unsigned int I);
 
   /*!
+   * Returns the number of transform feedback buffers.
+   */
+  unsigned int
+  number_transform_feedback_buffers(void);
+
+  /*!
+   * Returns the stride in bytes between each element in the
+   * named transform feedback buffer.
+   * \param B which transform feedback buffer
+   */
+  unsigned int
+  transform_feedback_buffer_stride(unsigned int B);
+
+  /*!
    * Searches active_attribute() to find the named attribute, including
    * named elements of an array. This function should only be called
    * either after use_program() has been called or only when the GL
