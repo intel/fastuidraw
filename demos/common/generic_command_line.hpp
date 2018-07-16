@@ -36,6 +36,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <algorithm>
 #include <map>
+#include <list>
+#include <set>
 #include <string>
 #include <sstream>
 #include <ciso646>
@@ -300,21 +302,69 @@ writevalue_to_stream(const bool &value, std::ostream &ostr)
     }
 }
 
+class LabelDescription
+{
+public:
+  void
+  set_description(const std::string &desc)
+  {
+    m_description = desc;
+  }
+
+  void
+  add_value(const std::string &v)
+  {
+    m_values_as_set.insert(v);
+    m_values_as_list.push_back(v);
+  }
+
+  const std::string&
+  description(void) const
+  {
+    return m_description;
+  }
+
+  const std::list<std::string>&
+  values(void) const
+  {
+    return m_values_as_list;
+  }
+
+  bool
+  has_value(const std::string &v)
+  {
+    return m_values_as_set.find(v) != m_values_as_set.end();
+  }
+  
+private:
+  std::string m_description;
+  std::set<std::string> m_values_as_set;
+  std::list<std::string> m_values_as_list;
+};
 
 template<typename T>
 class enumerated_string_type
 {
 public:
-  typedef std::pair<std::string, std::string> label_desc;
-
   std::map<std::string, T> m_value_strings;
-  std::map<T, label_desc> m_value_Ts;
+  std::map<T, LabelDescription> m_value_Ts;
 
   enumerated_string_type&
   add_entry(const std::string &label, T v, const std::string &description)
   {
-    m_value_strings[label]=v;
-    m_value_Ts[v]=label_desc(label, description);
+    LabelDescription &L(m_value_Ts[v]);
+
+    m_value_strings[label] = v;
+    m_value_Ts[v].set_description(description);
+    m_value_Ts[v].add_value(label);
+    return *this;
+  }
+
+  enumerated_string_type&
+  add_entry_alias(const std::string &label, T v)
+  {
+    m_value_strings[label] = v;
+    m_value_Ts[v].add_value(label);
     return *this;
   }
 };
@@ -475,15 +525,15 @@ public:
     m_value(v,L)
   {
     std::ostringstream ostr;
-    typename std::map<T, typename enumerated_string_type<T>::label_desc>::const_iterator iter, end;
+    typename std::map<T, LabelDescription>::const_iterator iter, end;
 
     ostr << "\n\t"
          << m_name << " (default value=";
 
-    iter=m_value.m_label_set.m_value_Ts.find(v);
-    if (iter!=m_value.m_label_set.m_value_Ts.end())
+    iter = m_value.m_label_set.m_value_Ts.find(v);
+    if (iter != m_value.m_label_set.m_value_Ts.end())
       {
-        ostr << iter->second.first;
+        ostr << iter->second.values().front();
       }
     else
       {
@@ -493,11 +543,21 @@ public:
     ostr << ")";
     std::ostringstream ostr_desc;
     ostr_desc << desc << " Possible values:\n\n";
-    for(iter=m_value.m_label_set.m_value_Ts.begin(),
-          end=m_value.m_label_set.m_value_Ts.end();
+    for(iter = m_value.m_label_set.m_value_Ts.begin(),
+          end = m_value.m_label_set.m_value_Ts.end();
         iter!=end; ++iter)
       {
-        ostr_desc << iter->second.first << ":" << iter->second.second << "\n\n";
+        const std::list<std::string> &contents(iter->second.values());
+        for (std::list<std::string>::const_iterator siter = contents.begin();
+             siter != contents.end(); ++siter)
+          {
+            if (siter != contents.begin())
+              {
+                ostr_desc << "/";
+              }
+            ostr_desc << *siter;
+          }
+        ostr_desc << ":" << iter->second.description() << "\n\n";
       }
     ostr << format_description_string(m_name, ostr_desc.str());
     m_description=tabs_to_spaces(ostr.str());
@@ -518,21 +578,21 @@ public:
     std::string::const_iterator iter;
     int argc(argv.size());
 
-    iter=std::find(str.begin(), str.end(), '=');
-    if (iter==str.end())
+    iter = std::find(str.begin(), str.end(), '=');
+    if (iter == str.end())
       {
-        iter=std::find(str.begin(), str.end(), ':');
+        iter = std::find(str.begin(), str.end(), ':');
       }
 
-    if (iter!=str.end() && m_name==std::string(str.begin(), iter) )
+    if (iter != str.end() && m_name == std::string(str.begin(), iter) )
       {
         std::string val(iter+1, str.end());
         typename std::map<std::string, T>::const_iterator iter;
 
-        iter=m_value.m_label_set.m_value_strings.find(val);
-        if (iter!=m_value.m_label_set.m_value_strings.end())
+        iter = m_value.m_label_set.m_value_strings.find(val);
+        if (iter != m_value.m_label_set.m_value_strings.end())
           {
-            m_value.m_value=iter->second;
+            m_value.m_value = iter->second;
 
             if (m_print_at_set)
               {
@@ -543,15 +603,15 @@ public:
         m_set_by_command_line=true;
         return 1;
       }
-    else if (location<argc-1 && str==m_name)
+    else if (location < argc-1 && str == m_name)
       {
         const std::string &val(argv[location+1]);
         typename std::map<std::string, T>::const_iterator iter;
 
-        iter=m_value.m_label_set.m_value_strings.find(val);
-        if (iter!=m_value.m_label_set.m_value_strings.end())
+        iter = m_value.m_label_set.m_value_strings.find(val);
+        if (iter != m_value.m_label_set.m_value_strings.end())
           {
-            m_value.m_value=iter->second;
+            m_value.m_value = iter->second;
             if (m_print_at_set)
               {
                 std::cout << "\n\t" << m_name
@@ -580,7 +640,5 @@ public:
   {
     ostr << m_description;
   }
-
-
 
 };
