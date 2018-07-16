@@ -21,38 +21,10 @@
 
 #include "uber_shader_builder.hpp"
 #include "../../private/util_private.hpp"
+#include "../../private/util_private_ostream.hpp"
 
 namespace
 {
-  fastuidraw::c_string
-  float_varying_label(unsigned int t)
-  {
-    using namespace fastuidraw::glsl;
-    switch(t)
-      {
-      case varying_list::interpolation_smooth:
-        return "fastuidraw_varying_float_smooth";
-      case varying_list::interpolation_flat:
-        return "fastuidraw_varying_float_flat";
-      case varying_list::interpolation_noperspective:
-        return "fastuidraw_varying_float_noperspective";
-      }
-    FASTUIDRAWassert(!"Invalid varying_list::interpolation_qualifier_t");
-    return "";
-  }
-
-  fastuidraw::c_string
-  int_varying_label(void)
-  {
-    return "fastuidraw_varying_int";
-  }
-
-  fastuidraw::c_string
-  uint_varying_label(void)
-  {
-    return "fastuidraw_varying_uint";
-  }
-
   void
   stream_varyings_as_local_variables_array(fastuidraw::glsl::ShaderSource &vert,
                                            fastuidraw::c_array<const fastuidraw::c_string> p,
@@ -66,72 +38,57 @@ namespace
     vert.add_source(ostr.str().c_str(), fastuidraw::glsl::ShaderSource::from_string);
   }
 
-  unsigned int
-  compute_special_index(size_t sz)
-  {
-    if (sz % 4 == 1)
-      {
-        return sz - 1;
-      }
-    else
-      {
-        return sz;
-      }
-  }
-
-  void
-  stream_alias_varyings_array(fastuidraw::c_string append_to_name,
-                              fastuidraw::glsl::ShaderSource &vert,
-                              fastuidraw::c_array<const fastuidraw::c_string> p,
-                              const std::string &s, bool define,
-                              unsigned int special_index)
-  {
-    fastuidraw::c_string ext = "xyzw";
-    for(unsigned int i = 0; i < p.size(); ++i)
-      {
-        if (define)
-          {
-            std::ostringstream str;
-            str << s << append_to_name << i / 4;
-            if (i != special_index)
-              {
-                str << "." << ext[i % 4];
-              }
-            vert.add_macro(p[i], str.str().c_str());
-          }
-        else
-          {
-            vert.remove_macro(p[i]);
-          }
-      }
-  }
-
   std::string
   make_name(fastuidraw::c_string name,
-            fastuidraw::c_string suffix,
             unsigned int idx)
   {
     std::ostringstream str;
 
-    str << name << suffix << idx;
+    str << name << idx;
     return str.str();
   }
 
-  void
-  pre_stream_varyings(fastuidraw::glsl::ShaderSource &dst,
-                      const fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> &sh,
-                      const fastuidraw::glsl::detail::DeclareVaryingsStringDatum &datum)
+  class pre_stream_varyings
   {
-    fastuidraw::glsl::detail::stream_alias_varyings("_shader", dst, sh->varyings(), true, datum);
-  }
+  public:
+    pre_stream_varyings(const fastuidraw::glsl::detail::DeclareVaryings &src,
+                        const fastuidraw::glsl::detail::DeclareVaryings::VaryingStreamerLocation &datum):
+      m_src(src),
+      m_datum(datum)
+    {}
 
-  void
-  post_stream_varyings(fastuidraw::glsl::ShaderSource &dst,
-                       const fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> &sh,
-                       const fastuidraw::glsl::detail::DeclareVaryingsStringDatum &datum)
+    void
+    operator()(fastuidraw::glsl::ShaderSource &dst,
+               const fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> &sh) const
+    {
+      m_src.stream_alias_varyings(dst, sh->varyings(), true, m_datum);
+    }
+
+  private:
+    const fastuidraw::glsl::detail::DeclareVaryings &m_src;
+    const fastuidraw::glsl::detail::DeclareVaryings::VaryingStreamerLocation &m_datum;
+  };
+
+  class post_stream_varyings
   {
-    fastuidraw::glsl::detail::stream_alias_varyings("_shader", dst, sh->varyings(), false, datum);
-  }
+  public:
+    post_stream_varyings(const fastuidraw::glsl::detail::DeclareVaryings &src,
+                         const fastuidraw::glsl::detail::DeclareVaryings::VaryingStreamerLocation &datum):
+      m_src(src),
+      m_datum(datum)
+    {}
+
+    void
+    operator()(fastuidraw::glsl::ShaderSource &dst,
+               const fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> &sh) const
+    {
+      m_src.stream_alias_varyings(dst, sh->varyings(), false, m_datum);
+    }
+
+  private:
+    const fastuidraw::glsl::detail::DeclareVaryings &m_src;
+    const fastuidraw::glsl::detail::DeclareVaryings::VaryingStreamerLocation &m_datum;
+  };
 
   void
   add_macro_requirment(fastuidraw::glsl::ShaderSource &dst,
@@ -159,22 +116,20 @@ namespace
     typedef fastuidraw::reference_counted_ptr<T> ref_type;
     typedef fastuidraw::c_array<const ref_type> array_type;
     typedef const ShaderSource& (T::*get_src_type)(void) const;
-    typedef fastuidraw::glsl::detail::DeclareVaryingsStringDatum Datum;
-    typedef void (*pre_post_stream_type)(ShaderSource &dst, const ref_type &sh, const Datum &datum);
 
     static
     void
-    stream_nothing(ShaderSource &, const ref_type &,
-                   const Datum &)
+    stream_nothing(ShaderSource &, const ref_type &)
     {}
 
+    template<typename pre_stream_type,
+             typename post_stream_type>
     static
     void
     stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
                 get_src_type get_src,
-                pre_post_stream_type pre_stream,
-                pre_post_stream_type post_stream,
-                const Datum &datum,
+                pre_stream_type pre_stream,
+                post_stream_type post_stream,
                 const std::string &return_type,
                 const std::string &uber_func_with_args,
                 const std::string &shader_main,
@@ -193,7 +148,6 @@ namespace
     {
       stream_uber(use_switch, dst, shaders, get_src,
                   &stream_nothing, &stream_nothing,
-                  fastuidraw::glsl::detail::DeclareVaryingsStringDatum(),
                   return_type, uber_func_with_args,
                   shader_main, shader_args, shader_id);
     }
@@ -265,12 +219,14 @@ stream_source(ShaderSource &dst, const std::string &prefix,
 }
 
 template<typename T>
+template<typename pre_stream_type,
+         typename post_stream_type>
 void
 UberShaderStreamer<T>::
 stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
             get_src_type get_src,
-            pre_post_stream_type pre_stream, pre_post_stream_type post_stream,
-            const Datum &datum,
+            pre_stream_type pre_stream,
+            post_stream_type post_stream,
             const std::string &return_type,
             const std::string &uber_func_with_args,
             const std::string &shader_main,
@@ -290,11 +246,11 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
                     << "// Start Shader #" << sh->ID() << "\n";
 
       dst.add_source(start_comment.str().c_str(), ShaderSource::from_string);
-      pre_stream(dst, sh, datum);
+      pre_stream(dst, sh);
       dst.add_macro(shader_main.c_str(), str.str().c_str());
       stream_source(dst, prefix, (sh.get()->*get_src)());
       dst.remove_macro(shader_main.c_str());
-      post_stream(dst, sh, datum);
+      post_stream(dst, sh);
     }
 
   std::ostringstream str;
@@ -431,27 +387,11 @@ namespace fastuidraw { namespace glsl { namespace detail {
 // DeclareVaryings methods
 void
 DeclareVaryings::
-add_varyings(c_string suffix,
+add_varyings(c_string label,
              size_t uint_count,
              size_t int_count,
              c_array<const size_t> float_counts,
-             DeclareVaryingsStringDatum *datum)
-{
-  add_varyings_impl(suffix, uint_count, int_count, float_counts);
-  datum->m_uint_special_index = compute_special_index(uint_count);
-  datum->m_int_special_index = compute_special_index(int_count);
-  for(unsigned int i = 0; i < varying_list::interpolation_number_types; ++i)
-    {
-      datum->m_float_special_index[i] = compute_special_index(float_counts[i]);
-    }
-}
-
-void
-DeclareVaryings::
-add_varyings_impl(c_string append_to_name,
-                  size_t uint_count,
-                  size_t int_count,
-                  c_array<const size_t> float_counts)
+             VaryingStreamerLocation *datum)
 {
   c_string uint_labels[]=
     {
@@ -477,84 +417,121 @@ add_varyings_impl(c_string append_to_name,
       "vec4",
     };
 
-  add_varyings_impl_type(append_to_name, uint_count, "flat", uint_labels, uint_varying_label(), true);
-  add_varyings_impl_type(append_to_name, int_count, "flat", int_labels, int_varying_label(), true);
+  datum->m_uint_varying_start = add_varyings_impl_type(m_uint_varyings, uint_count,
+                                                       "flat", uint_labels,
+                                                       "fastuidraw_uint_varying", true);
 
-  add_varyings_impl_type(append_to_name,
-                         float_counts[varying_list::interpolation_smooth],
-                         "", float_labels,
-                         float_varying_label(varying_list::interpolation_smooth),
-                         false);
+  datum->m_int_varying_start = add_varyings_impl_type(m_int_varyings, int_count,
+                                                      "flat", int_labels,
+                                                      "fastuidraw_int_varying", true);
 
-  add_varyings_impl_type(append_to_name,
-                         float_counts[varying_list::interpolation_flat],
-                         "flat", float_labels,
-                         float_varying_label(varying_list::interpolation_flat),
-                         true);
+  datum->m_float_varying_start[varying_list::interpolation_smooth] =
+    add_varyings_impl_type(m_float_varyings[varying_list::interpolation_smooth],
+                           float_counts[varying_list::interpolation_smooth],
+                           "", float_labels,
+                           "fastuidraw_float_smooth_varying",
+                           false);
 
-  add_varyings_impl_type(append_to_name,
-                         float_counts[varying_list::interpolation_noperspective],
-                         "noperspective", float_labels,
-                         float_varying_label(varying_list::interpolation_noperspective),
-                         false);
+  datum->m_float_varying_start[varying_list::interpolation_flat] =
+    add_varyings_impl_type(m_float_varyings[varying_list::interpolation_flat],
+                           float_counts[varying_list::interpolation_flat],
+                           "flat", float_labels,
+                           "fastuidraw_float_flat_varying",
+                           true);
+
+  datum->m_float_varying_start[varying_list::interpolation_noperspective] =
+    add_varyings_impl_type(m_float_varyings[varying_list::interpolation_noperspective],
+                           float_counts[varying_list::interpolation_noperspective],
+                           "noperspective", float_labels,
+                           "fastuidraw_float_noperspective_varying",
+                           false);
+
+  datum->m_label = label;
 }
 
-void
+uvec2
 DeclareVaryings::
-add_varyings_impl_type(c_string suffix, unsigned int cnt,
+add_varyings_impl_type(std::vector<per_varying> &varyings,
+                       unsigned int cnt,
                        c_string qualifier, c_string types[],
                        c_string name, bool is_flat)
 {
+  uvec2 return_value;
+
+  /* first add to the back of varying up to 4-components */
+  if (!varyings.empty() && varyings.back().m_num_components < 4)
+    {
+      unsigned int add_to_back, space_left;
+
+      return_value.x() = varyings.size() - 1;
+      return_value.y() = varyings.back().m_num_components;
+
+      space_left = 4u - varyings.back().m_num_components;
+      add_to_back = t_min(space_left, cnt);
+
+      varyings.back().m_num_components += add_to_back;
+      varyings.back().m_type = types[varyings.back().m_num_components - 1];
+
+      cnt -= add_to_back;
+    }
+  else
+    {
+      return_value.x() = varyings.size();
+      return_value.y() = 0u;
+    }
+
+  if (cnt == 0)
+    {
+      return return_value;
+    }
+  
   per_varying V;
   unsigned int num_vec4(cnt / 4);
   unsigned int remaining(cnt % 4);
 
   V.m_is_flat = is_flat;
   V.m_qualifier = qualifier;
-  V.m_type = types[3];
   for (unsigned int i = 0; i < num_vec4; ++i)
     {
-      V.m_name = make_name(name, suffix, i);
-      V.m_slot = m_varyings.size();
+      V.m_slot = varyings.size();
+      V.m_name = make_name(name, V.m_slot);
       V.m_num_components = 4;
-      m_varyings.push_back(V);
+      V.m_type = types[V.m_num_components - 1];
+      varyings.push_back(V);
     }
 
   if (remaining > 0)
     {
-      V.m_name = make_name(name, suffix, num_vec4);
-      V.m_slot = m_varyings.size();
-      V.m_type = types[remaining - 1];
+      V.m_slot = varyings.size();
+      V.m_name = make_name(name, V.m_slot);
       V.m_num_components = remaining;
-      m_varyings.push_back(V);
+      V.m_type = types[V.m_num_components - 1];
+      varyings.push_back(V);
     }
+
+  return return_value;
 }
 
-std::string
+void
 DeclareVaryings::
-declare_varyings(c_string varying_qualifier,
+declare_varyings(std::ostringstream &str,
+                 c_string varying_qualifier,
                  c_string interface_name,
                  c_string instance_name) const
 {
-  std::ostringstream str;
-  std::string vp;
-
   if (interface_name)
     {
       str << varying_qualifier << " " << interface_name << "\n{\n";
-    }
-  else
-    {
-      vp = varying_qualifier;
+      varying_qualifier = "";
     }
 
-  for (const per_varying &V : m_varyings)
+  declare_varyings_impl(str, m_uint_varyings, varying_qualifier);
+  declare_varyings_impl(str, m_int_varyings, varying_qualifier);
+  for (unsigned int i = 0; i < varying_list::interpolation_number_types; ++i)
     {
-      str << "FASTUIDRAW_LAYOUT_VARYING(" << V.m_slot << ") "
-          << V.m_qualifier << " " << vp << " " << V.m_type
-          << " " << V.m_name << ";\n";
+      declare_varyings_impl(str, m_float_varyings[i], varying_qualifier);
     }
-
+  
   if (interface_name)
     {
       str << "}";
@@ -564,35 +541,98 @@ declare_varyings(c_string varying_qualifier,
         }
       str << ";\n";
     }
+}
+      
+void
+DeclareVaryings::
+declare_varyings_impl(std::ostringstream &str,
+                      const std::vector<per_varying> &varyings,
+                      c_string varying_qualifier) const
+{
+  for (const per_varying &V : varyings)
+    {
+      str << "FASTUIDRAW_LAYOUT_VARYING(" << V.m_slot << ") "
+          << V.m_qualifier << " " << varying_qualifier << " " << V.m_type
+          << " " << V.m_name << ";\n";
+    }
+}
 
-  return str.str();
+void
+DeclareVaryings::
+stream_alias_varyings_impl(const std::vector<per_varying> &varyings_to_use,
+                           ShaderSource &shader,
+                           c_array<const c_string> p,
+                           bool add_aliases, uvec2 start) const
+{
+  if (add_aliases)
+    {
+      fastuidraw::c_string ext = "xyzw";
+      for (unsigned int i = 0; i < p.size(); ++i, ++start.y())
+        {
+          if (start.y() == 4)
+            {
+              ++start.x();
+              start.y() = 0;
+            }
+          
+          FASTUIDRAWassert(start.x() < varyings_to_use.size());
+          FASTUIDRAWassert(start.y() < 4u);
+
+          const per_varying &V(varyings_to_use[start.x()]);
+          std::ostringstream str;
+
+          str << V.m_name;
+          if (V.m_num_components != 1)
+            {
+              str << "." << ext[start.y()];
+            }
+          shader.add_macro(p[i], str.str().c_str());
+        }
+    }
+  else
+    {
+      for (unsigned int i = 0; i < p.size(); ++i)
+        {
+          shader.remove_macro(p[i]);
+        }
+    }
+}
+
+void
+DeclareVaryings::
+stream_alias_varyings(ShaderSource &shader, const varying_list &p,
+                      bool add_aliases,
+                      const VaryingStreamerLocation &datum) const
+{
+  std::ostringstream str;
+
+  str << "//////////////////////////////////////////////////\n"
+      << "// Stream variable aliases for: " << datum.m_label
+      << " u@" << datum.m_uint_varying_start
+      << " i@" << datum.m_int_varying_start
+      << " f@" << datum.m_float_varying_start
+      << "\n";
+  shader.add_source(str.str().c_str(), ShaderSource::from_string);
+  
+  stream_alias_varyings_impl(m_uint_varyings, shader, p.uints(),
+                             add_aliases, datum.m_uint_varying_start);
+  
+  stream_alias_varyings_impl(m_int_varyings, shader, p.ints(),
+                             add_aliases, datum.m_int_varying_start);
+  for (unsigned int i = 0; i < varying_list::interpolation_number_types; ++i)
+    {
+      enum varying_list::interpolation_qualifier_t q;
+      q = static_cast<enum varying_list::interpolation_qualifier_t>(i);
+
+      stream_alias_varyings_impl(m_float_varyings[i], shader, p.floats(q),
+                                 add_aliases, datum.m_float_varying_start[i]);
+    }
 }
 
 /////////////////////
 // non-class methods
 void
-stream_alias_varyings(fastuidraw::c_string append_to_name,
-                      ShaderSource &shader,
-                      const varying_list &p,
-                      bool define,
-                      const DeclareVaryingsStringDatum &datum)
-{
-  stream_alias_varyings_array(append_to_name, shader, p.uints(), uint_varying_label(),
-                              define, datum.m_uint_special_index);
-  stream_alias_varyings_array(append_to_name, shader, p.ints(), int_varying_label(),
-                              define, datum.m_int_special_index);
-
-  for(unsigned int i = 0; i < varying_list::interpolation_number_types; ++i)
-    {
-      enum varying_list::interpolation_qualifier_t q;
-      q = static_cast<enum varying_list::interpolation_qualifier_t>(i);
-      stream_alias_varyings_array(append_to_name, shader, p.floats(q), float_varying_label(q),
-                                  define, datum.m_float_special_index[q]);
-    }
-}
-
-void
-stream_varyings_as_local_variables(ShaderSource &shader, const varying_list &p)
+stream_as_local_variables(ShaderSource &shader, const varying_list &p)
 {
   stream_varyings_as_local_variables_array(shader, p.uints(), "uint");
   stream_varyings_as_local_variables_array(shader, p.ints(), "uint");
@@ -609,11 +649,13 @@ void
 stream_uber_vert_shader(bool use_switch,
                         ShaderSource &vert,
                         c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
-                        const DeclareVaryingsStringDatum &datum)
+                        const DeclareVaryings &declare_varyings,
+                        const DeclareVaryings::VaryingStreamerLocation &datum)
 {
   UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, vert, item_shaders,
                                                          &PainterItemShaderGLSL::vertex_src,
-                                                         &pre_stream_varyings, &post_stream_varyings, datum,
+                                                         pre_stream_varyings(declare_varyings, datum),
+                                                         post_stream_varyings(declare_varyings, datum),
                                                          "vec4", "fastuidraw_run_vert_shader(in fastuidraw_shader_header h, out int add_z)",
                                                          "fastuidraw_gl_vert_main",
                                                          ", fastuidraw_primary_attribute, fastuidraw_secondary_attribute, "
@@ -625,11 +667,13 @@ void
 stream_uber_frag_shader(bool use_switch,
                         ShaderSource &frag,
                         c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
-                        const DeclareVaryingsStringDatum &datum)
+                        const DeclareVaryings &declare_varyings,
+                        const DeclareVaryings::VaryingStreamerLocation &datum)
 {
   UberShaderStreamer<PainterItemShaderGLSL>::stream_uber(use_switch, frag, item_shaders,
                                                          &PainterItemShaderGLSL::fragment_src,
-                                                         &pre_stream_varyings, &post_stream_varyings, datum,
+                                                         pre_stream_varyings(declare_varyings, datum),
+                                                         post_stream_varyings(declare_varyings, datum),
                                                          "vec4",
                                                          "fastuidraw_run_frag_shader(in uint frag_shader, "
                                                          "in uint frag_shader_data_location)",

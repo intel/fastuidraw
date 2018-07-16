@@ -29,17 +29,23 @@
 
 namespace fastuidraw { namespace glsl { namespace detail {
 
-class DeclareVaryingsStringDatum
-{
-public:
-  unsigned int m_uint_special_index;
-  unsigned int m_int_special_index;
-  vecN<unsigned int, varying_list::interpolation_number_types> m_float_special_index;
-};
-
 class DeclareVaryings:fastuidraw::noncopyable
 {
 public:
+  class VaryingStreamerLocation
+  {  
+  private:
+    friend class DeclareVaryings;
+    
+    /* What varying in DeclareVaryings to which to
+     * start aliasing: which varying and which component
+     */
+    std::string m_label;
+    uvec2 m_uint_varying_start;
+    uvec2 m_int_varying_start;
+    vecN<uvec2, varying_list::interpolation_number_types> m_float_varying_start;
+  };
+
   class per_varying
   {
   public:
@@ -52,57 +58,92 @@ public:
   };
 
   void
-  add_varyings(c_string suffix,
+  add_varyings(c_string label,
+               const varying_list &p,
+               VaryingStreamerLocation *datum)
+  {
+    add_varyings(label,
+                 p.uints().size(),
+                 p.ints().size(),
+                 p.float_counts(),
+                 datum);
+  }
+
+  void
+  add_varyings(c_string label,
                size_t uint_count,
                size_t int_count,
                c_array<const size_t> float_counts,
-               DeclareVaryingsStringDatum *datum);
+               VaryingStreamerLocation *datum);
+
+  void
+  declare_varyings(std::ostringstream &str,
+                   c_string varying_qualifier,
+                   c_string interface_name = nullptr,
+                   c_string instance_name = nullptr) const;
 
   std::string
   declare_varyings(c_string varying_qualifier,
                    c_string interface_name = nullptr,
-                   c_string instance_name = nullptr) const;
-
-  const std::vector<per_varying>&
-  varyings(void) const
+                   c_string instance_name = nullptr) const
   {
-    return m_varyings;
+    std::ostringstream str;
+    declare_varyings(str, varying_qualifier,
+                     interface_name, instance_name);
+    return str.str();
   }
+
+  /*!
+   * Add or remove aliases that have elements of p
+   * refer to varying declared by a DeclareVaryings
+   * \param shader ShaderSource to which to stream
+   * \param p how many varyings of each type along with their names
+   * \param add_aliases if true add the aliases by add_macro(),
+   *                    if false remove the aliases by remove_macro()
+   */
+  void
+  stream_alias_varyings(ShaderSource &shader, const varying_list &p,
+                        bool add_aliases,
+                        const VaryingStreamerLocation &datum) const;
   
 private:
-  void
-  add_varyings_impl(c_string suffix,
-                    size_t uint_count,
-                    size_t int_count,
-                    c_array<const size_t> float_counts);
-
-  void
-  add_varyings_impl_type(c_string suffix, unsigned int cnt,
+  uvec2
+  add_varyings_impl_type(std::vector<per_varying> &varyings,
+                         unsigned int cnt,
                          c_string qualifier, c_string types[],
                          c_string name, bool is_flat);
 
-  std::vector<per_varying> m_varyings;
+  void
+  declare_varyings_impl(std::ostringstream &str,
+                        const std::vector<per_varying> &varyings,
+                        c_string varying_qualifier) const;
+
+  void
+  stream_alias_varyings_impl(const std::vector<per_varying> &varyings_to_use,
+                             ShaderSource &shader,
+                             c_array<const c_string> p,
+                             bool add_aliases, uvec2 start) const;
+                             
+
+  std::vector<per_varying> m_uint_varyings;
+  std::vector<per_varying> m_int_varyings;
+  vecN<std::vector<per_varying>, varying_list::interpolation_number_types> m_float_varyings;
 };
 
 void
-stream_alias_varyings(c_string suffix,
-                      ShaderSource &shader,
-                      const varying_list &p,
-                      bool define,
-                      const DeclareVaryingsStringDatum &datum);
-
-void
-stream_varyings_as_local_variables(ShaderSource &shader, const varying_list &p);
+stream_as_local_variables(ShaderSource &shader, const varying_list &p);
 
 void
 stream_uber_vert_shader(bool use_switch, ShaderSource &vert,
                         c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
-                        const DeclareVaryingsStringDatum &datum);
+                        const DeclareVaryings &declare_varyings,
+                        const DeclareVaryings::VaryingStreamerLocation &datum);
 
 void
 stream_uber_frag_shader(bool use_switch, ShaderSource &frag,
                         c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders,
-                        const DeclareVaryingsStringDatum &datum);
+                        const DeclareVaryings &declare_varyings,
+                        const DeclareVaryings::VaryingStreamerLocation &datum);
 
 
 void
