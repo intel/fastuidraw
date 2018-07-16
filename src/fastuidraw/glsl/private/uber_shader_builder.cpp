@@ -30,12 +30,10 @@ namespace
                                            fastuidraw::c_array<const fastuidraw::c_string> p,
                                            fastuidraw::c_string type)
   {
-    std::ostringstream ostr;
     for(fastuidraw::c_string str : p)
       {
-        ostr << type << " " << str << ";\n";
+        vert << type << " " << str << ";\n";
       }
-    vert.add_source(ostr.str().c_str(), fastuidraw::glsl::ShaderSource::from_string);
   }
 
   std::string
@@ -96,16 +94,14 @@ namespace
                        fastuidraw::c_string macro,
                        fastuidraw::c_string error_message)
   {
-    std::ostringstream str;
     fastuidraw::c_string not_cnd, msg;
 
     not_cnd = (should_be_defined) ? "!defined" : "defined";
     msg = (should_be_defined) ? "" : "not ";
-    str << "#if " << not_cnd << "(" << macro << ")\n"
+    dst << "#if " << not_cnd << "(" << macro << ")\n"
         << "#error \"" << error_message << ": "
         << macro << " should " << msg << "be defined\"\n"
         << "#endif\n";
-    dst.add_source(str.str().c_str(), fastuidraw::glsl::ShaderSource::from_string);
   }
 
   template<typename T>
@@ -175,7 +171,6 @@ stream_source(ShaderSource &dst, const std::string &prefix,
   using namespace fastuidraw;
   std::string src, needle;
   std::string::size_type pos, last_pos;
-  std::ostringstream ostr;
 
   needle = "FASTUIDRAW_LOCAL";
   src = shader.assembled_code(true);
@@ -193,7 +188,7 @@ stream_source(ShaderSource &dst, const std::string &prefix,
       /* stream up to pos */
       if (pos > last_pos)
         {
-          ostr << src.substr(last_pos, pos - last_pos);
+          dst << src.substr(last_pos, pos - last_pos);
         }
 
       /* find the first open and close-parentesis pair after pos. */
@@ -209,13 +204,13 @@ stream_source(ShaderSource &dst, const std::string &prefix,
           // trim the string of white spaces.
           tmp.erase(0, tmp.find_first_not_of(" \t"));
           tmp.erase(tmp.find_last_not_of(" \t") + 1);
-          ostr << prefix << tmp;
+          dst << prefix << tmp;
           pos = close_pos;
         }
     }
-  ostr << src.substr(last_pos);
 
-  dst.add_source(ostr.str().c_str(), ShaderSource::from_string);
+  dst << src.substr(last_pos)
+      << "\n";
 }
 
 template<typename T>
@@ -236,34 +231,31 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
   /* first stream all of the item_shaders with predefined macros. */
   for(const auto &sh : shaders)
     {
-      std::ostringstream start_comment, str, prefix_ostr;
-      std::string prefix;
+      std::ostringstream str, prefix;
+
+      dst << "\n/////////////////////////////////////////\n"
+          << "// Start Shader #" << sh->ID() << "\n";
 
       str << shader_main << sh->ID();
-      prefix_ostr << shader_main << "_local_" << sh->ID() << "_";
-      prefix = prefix_ostr.str();
-      start_comment << "\n/////////////////////////////////////////\n"
-                    << "// Start Shader #" << sh->ID() << "\n";
+      prefix << shader_main << "_local_" << sh->ID() << "_";
 
-      dst.add_source(start_comment.str().c_str(), ShaderSource::from_string);
       pre_stream(dst, sh);
       dst.add_macro(shader_main.c_str(), str.str().c_str());
-      stream_source(dst, prefix, (sh.get()->*get_src)());
+      stream_source(dst, prefix.str(), (sh.get()->*get_src)());
       dst.remove_macro(shader_main.c_str());
       post_stream(dst, sh);
     }
 
-  std::ostringstream str;
   bool has_sub_shaders(false), has_return_value(return_type != "void");
   std::string tab;
 
-  str << return_type << "\n"
+  dst << return_type << "\n"
       << uber_func_with_args << "\n"
       << "{\n";
 
   if (has_return_value)
     {
-      str << "    " << return_type << " p;\n";
+      dst << "    " << return_type << " p;\n";
     }
 
   for(const auto &sh : shaders)
@@ -275,22 +267,22 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
           end = start + sh->number_sub_shaders();
           if (has_sub_shaders)
             {
-              str << "    else ";
+              dst << "    else ";
             }
           else
             {
-              str << "    ";
+              dst << "    ";
             }
 
-          str << "if (" << shader_id << " >= uint(" << start
+          dst << "if (" << shader_id << " >= uint(" << start
               << ") && " << shader_id << " < uint(" << end << "))\n"
               << "    {\n"
               << "        ";
           if (has_return_value)
             {
-              str << "p = ";
+              dst << "p = ";
             }
-          str << shader_main << sh->ID()
+          dst << shader_main << sh->ID()
               << "(" << shader_id << " - uint(" << start << ")" << shader_args << ");\n"
               << "    }\n";
           has_sub_shaders = true;
@@ -299,7 +291,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
 
   if (has_sub_shaders && use_switch)
     {
-      str << "    else\n"
+      dst << "    else\n"
           << "    {\n";
       tab = "        ";
     }
@@ -310,7 +302,7 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
 
   if (use_switch)
     {
-      str << tab << "switch(" << shader_id << ")\n"
+      dst << tab << "switch(" << shader_id << ")\n"
           << tab << "{\n";
     }
 
@@ -321,41 +313,41 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
         {
           if (use_switch)
             {
-              str << tab << "case uint(" << sh->ID() << "):\n";
-              str << tab << "    {\n"
+              dst << tab << "case uint(" << sh->ID() << "):\n"
+                  << tab << "    {\n"
                   << tab << "        ";
             }
           else
             {
               if (!first_entry)
                 {
-                  str << tab << "else if";
+                  dst << tab << "else if";
                 }
               else
                 {
-                  str << tab << "if";
+                  dst << tab << "if";
                 }
-              str << "(" << shader_id << " == uint(" << sh->ID() << "))\n";
-              str << tab << "{\n"
+              dst << "(" << shader_id << " == uint(" << sh->ID() << "))\n"
+                  << tab << "{\n"
                   << tab << "    ";
             }
 
           if (has_return_value)
             {
-              str << "p = ";
+              dst << "p = ";
             }
 
-          str << shader_main << sh->ID()
+          dst << shader_main << sh->ID()
               << "(uint(0)" << shader_args << ");\n";
 
           if (use_switch)
             {
-              str << tab << "    }\n"
+              dst << tab << "    }\n"
                   << tab << "    break;\n\n";
             }
           else
             {
-              str << tab << "}\n";
+              dst << tab << "}\n";
             }
           first_entry = false;
         }
@@ -363,21 +355,20 @@ stream_uber(bool use_switch, ShaderSource &dst, array_type shaders,
 
   if (use_switch)
     {
-      str << tab << "}\n";
+      dst << tab << "}\n";
     }
 
   if (has_sub_shaders && use_switch)
     {
-      str << "    }\n";
+      dst << "    }\n";
     }
 
   if (has_return_value)
     {
-      str << "    return p;\n";
+      dst << "    return p;\n";
     }
 
-  str << "}\n";
-  dst.add_source(str.str().c_str(), ShaderSource::from_string);
+  dst << "}\n";
 }
 
 
@@ -493,8 +484,7 @@ add_varyings_impl_type(std::vector<per_varying> &varyings,
   V.m_qualifier = qualifier;
   for (unsigned int i = 0; i < num_vec4; ++i)
     {
-      V.m_slot = varyings.size();
-      V.m_name = make_name(name, V.m_slot);
+      V.m_name = make_name(name, varyings.size());
       V.m_num_components = 4;
       V.m_type = types[V.m_num_components - 1];
       varyings.push_back(V);
@@ -502,8 +492,7 @@ add_varyings_impl_type(std::vector<per_varying> &varyings,
 
   if (remaining > 0)
     {
-      V.m_slot = varyings.size();
-      V.m_name = make_name(name, V.m_slot);
+      V.m_name = make_name(name, varyings.size());
       V.m_num_components = remaining;
       V.m_type = types[V.m_num_components - 1];
       varyings.push_back(V);
@@ -519,17 +508,18 @@ declare_varyings(std::ostringstream &str,
                  c_string interface_name,
                  c_string instance_name) const
 {
+  unsigned int cnt(0);
   if (interface_name)
     {
       str << varying_qualifier << " " << interface_name << "\n{\n";
       varying_qualifier = "";
     }
 
-  declare_varyings_impl(str, m_uint_varyings, varying_qualifier);
-  declare_varyings_impl(str, m_int_varyings, varying_qualifier);
+  declare_varyings_impl(str, m_uint_varyings, varying_qualifier, cnt);
+  declare_varyings_impl(str, m_int_varyings, varying_qualifier, cnt);
   for (unsigned int i = 0; i < varying_list::interpolation_number_types; ++i)
     {
-      declare_varyings_impl(str, m_float_varyings[i], varying_qualifier);
+      declare_varyings_impl(str, m_float_varyings[i], varying_qualifier, cnt);
     }
   
   if (interface_name)
@@ -547,13 +537,15 @@ void
 DeclareVaryings::
 declare_varyings_impl(std::ostringstream &str,
                       const std::vector<per_varying> &varyings,
-                      c_string varying_qualifier) const
+                      c_string varying_qualifier,
+                      unsigned int &slot) const
 {
   for (const per_varying &V : varyings)
     {
-      str << "FASTUIDRAW_LAYOUT_VARYING(" << V.m_slot << ") "
+      str << "FASTUIDRAW_LAYOUT_VARYING(" << slot << ") "
           << V.m_qualifier << " " << varying_qualifier << " " << V.m_type
           << " " << V.m_name << ";\n";
+      ++slot;
     }
 }
 
@@ -604,15 +596,12 @@ stream_alias_varyings(ShaderSource &shader, const varying_list &p,
                       bool add_aliases,
                       const VaryingStreamerLocation &datum) const
 {
-  std::ostringstream str;
-
-  str << "//////////////////////////////////////////////////\n"
-      << "// Stream variable aliases for: " << datum.m_label
-      << " u@" << datum.m_uint_varying_start
-      << " i@" << datum.m_int_varying_start
-      << " f@" << datum.m_float_varying_start
-      << "\n";
-  shader.add_source(str.str().c_str(), ShaderSource::from_string);
+  shader << "//////////////////////////////////////////////////\n"
+         << "// Stream variable aliases for: " << datum.m_label
+         << " u@" << datum.m_uint_varying_start
+         << " i@" << datum.m_int_varying_start
+         << " f@" << datum.m_float_varying_start
+         << "\n";
   
   stream_alias_varyings_impl(m_uint_varyings, shader, p.uints(),
                              add_aliases, datum.m_uint_varying_start);
@@ -688,7 +677,6 @@ stream_uber_blend_shader(bool use_switch,
                          enum PainterBlendShader::shader_type tp)
 {
   std::string sub_func_name, func_name, sub_func_args;
-  std::ostringstream check_blend_macros_correct;
 
   switch(tp)
     {

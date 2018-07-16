@@ -54,7 +54,6 @@ public:
     std::string m_name;
     std::string m_qualifier;
     unsigned int m_num_components;
-    unsigned int m_slot;
   };
 
   void
@@ -116,7 +115,8 @@ private:
   void
   declare_varyings_impl(std::ostringstream &str,
                         const std::vector<per_varying> &varyings,
-                        c_string varying_qualifier) const;
+                        c_string varying_qualifier,
+                        unsigned int &slot) const;
 
   void
   stream_alias_varyings_impl(const std::vector<per_varying> &varyings_to_use,
@@ -124,7 +124,6 @@ private:
                              c_array<const c_string> p,
                              bool add_aliases, uvec2 start) const;
                              
-
   std::vector<per_varying> m_uint_varyings;
   std::vector<per_varying> m_int_varyings;
   vecN<std::vector<per_varying>, varying_list::interpolation_number_types> m_float_varyings;

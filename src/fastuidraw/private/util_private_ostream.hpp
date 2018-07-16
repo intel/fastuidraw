@@ -21,9 +21,20 @@
 
 #include <vector>
 #include <iostream>
+#include <sstream>
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/c_array.hpp>
+#include <fastuidraw/glsl/shader_source.hpp>
 
+template<typename T>
+fastuidraw::glsl::ShaderSource&
+operator<<(fastuidraw::glsl::ShaderSource &src, const T &obj)
+{
+  std::ostringstream str;
+  str << obj;
+  src.add_source(str.str().c_str(), fastuidraw::glsl::ShaderSource::from_string);
+  return src;
+}
 
 template<typename T>
 std::ostream&

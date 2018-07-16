@@ -232,8 +232,6 @@ emit_source_line(std::ostream &output_stream,
       FASTUIDRAWunused(line_number);
     }
   #endif
-
-  output_stream << "\n";
 }
 
 void
@@ -274,6 +272,10 @@ add_source_code_from_stream(const std::string &label,
         }
 
       emit_source_line(output_stream, S, line_number, label);
+      if (!istr.eof())
+        {
+          output_stream << "\n";
+        }
       ++line_number;
       S.clear();
     }
@@ -285,6 +287,12 @@ add_source_entry(const source_code_t &v, std::ostream &output_stream)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::glsl;
+
+  /* NOTES:
+   *   - if source is a file or resource, we add a \n
+   *   - if just a string, we do NOT add a \n
+   */
+
   if (v.second == ShaderSource::from_file)
     {
       std::ifstream file(v.first.c_str());
@@ -292,6 +300,7 @@ add_source_entry(const source_code_t &v, std::ostream &output_stream)
       if (file)
         {
           add_source_code_from_stream(v.first, file, output_stream);
+          output_stream << "\n";
         }
       else
         {
@@ -301,25 +310,27 @@ add_source_entry(const source_code_t &v, std::ostream &output_stream)
     }
   else
     {
-      std::istringstream istr;
-      std::string label;
-
       if (v.second == ShaderSource::from_string)
         {
+          std::istringstream istr;
           istr.str(v.first);
-          label.clear();
+          add_source_code_from_stream("", istr, output_stream);
         }
       else
         {
           c_array<const uint8_t> resource_string;
 
           resource_string = fetch_static_resource(v.first.c_str());
-          label = v.first;
           if (!resource_string.empty() && resource_string.back() == 0)
             {
+              std::istringstream istr;
               fastuidraw::c_string s;
+
               s = reinterpret_cast<fastuidraw::c_string>(resource_string.c_ptr());
               istr.str(std::string(s));
+
+              add_source_code_from_stream(v.first, istr, output_stream);
+              output_stream << "\n";
             }
           else
             {
@@ -328,7 +339,6 @@ add_source_entry(const source_code_t &v, std::ostream &output_stream)
               return;
             }
         }
-      add_source_code_from_stream(label, istr, output_stream);
     }
 }
 
@@ -494,7 +504,8 @@ add_macro(c_string macro_name, c_string macro_value,
        << "#error \"FastUIDraw: ShaderSource::add_macro() used on "
        << "already defined macro " << stripped << "\"\n"
        << "#endif\n"
-       << "#define " << macro_name << " " << macro_value;
+       << "#define " << macro_name << " " << macro_value
+       << "\n";
   return add_source(ostr.str().c_str(), from_string, loc);
 }
 
@@ -549,7 +560,7 @@ remove_macro(c_string macro_name,
        << "#error \"FastUIDraw: ShaderSource::remove_macro() "
        << "used on undefined macro " << macro_name << "\"\n"
        << "#endif\n"
-       << "#undef " << macro_name;
+       << "#undef " << macro_name << "\n";
   return add_source(ostr.str().c_str(), from_string, loc);
 }
 

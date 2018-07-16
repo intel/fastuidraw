@@ -820,28 +820,28 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   if (params.assign_layout_to_varyings())
     {
       std::ostringstream ostr;
-      ostr << "\n#define FASTUIDRAW_LAYOUT_VARYING(X) layout(location = X)";
+      ostr << "#define FASTUIDRAW_LAYOUT_VARYING(X) layout(location = X)\n";
       varying_layout_macro = ostr.str();
     }
   else
     {
       std::ostringstream ostr;
-      ostr << "\n#define FASTUIDRAW_LAYOUT_VARYING(X)\n";
+      ostr << "#define FASTUIDRAW_LAYOUT_VARYING(X)\n";
       varying_layout_macro = ostr.str();
     }
 
   if (params.assign_binding_points())
     {
       std::ostringstream ostr;
-      ostr << "\n#define FASTUIDRAW_LAYOUT_BINDING(X) layout(binding = X)";
-      ostr << "\n#define FASTUIDRAW_LAYOUT_BINDING_ARGS(X, Y) layout(binding = X, Y)";
+      ostr << "#define FASTUIDRAW_LAYOUT_BINDING(X) layout(binding = X)\n"
+           << "#define FASTUIDRAW_LAYOUT_BINDING_ARGS(X, Y) layout(binding = X, Y)\n";
       binding_layout_macro = ostr.str();
     }
   else
     {
       std::ostringstream ostr;
-      ostr << "\n#define FASTUIDRAW_LAYOUT_BINDING(X)";
-      ostr << "\n#define FASTUIDRAW_LAYOUT_BINDING_ARGS(X, Y) layout(Y)";
+      ostr << "#define FASTUIDRAW_LAYOUT_BINDING(X)\n"
+           << "#define FASTUIDRAW_LAYOUT_BINDING_ARGS(X, Y) layout(Y)\n";
       binding_layout_macro = ostr.str();
     }
 
