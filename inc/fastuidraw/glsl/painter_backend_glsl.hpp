@@ -69,6 +69,27 @@ namespace fastuidraw
         };
 
       /*!
+       * Enumeration specifying how the uber-shaders will
+       * perform clipping against the clip-planes of \ref
+       * PainterClipEquations
+       */
+      enum clipping_type_t
+        {
+          /*!
+           * Clipping is performed in the vertex-shader
+           * using gl_ClipDistance[i] for 0 <= i < 4.
+           */
+          clipping_via_gl_clip_distance,
+
+          /*!
+           * Clipping is performed by passing the distance
+           * to each clip-plane and performing discard in
+           * the fragment shader.
+           */
+          clipping_via_discard,
+        };
+
+      /*!
        * \brief
        * Enumeration to specify how to access the backing store
        * of the glyph geometry stored in GlyphAtlas::geometry_store()
@@ -257,19 +278,6 @@ namespace fastuidraw
          */
         void
         swap(ConfigurationGLSL &obj);
-
-        /*!
-         * If true, use HW clip planes (embodied by gl_ClipDistance).
-         */
-        bool
-        use_hw_clip_planes(void) const;
-
-        /*!
-         * Set the value returned by use_hw_clip_planes(void) const.
-         * Default value is true.
-         */
-        ConfigurationGLSL&
-        use_hw_clip_planes(bool);
 
         /*!
          * Sets how the default stroke shaders perform anti-aliasing.
@@ -614,6 +622,19 @@ namespace fastuidraw
          */
         void
         swap(UberShaderParams &obj);
+
+        /*!
+         * Specifies how the uber-shader will perform clipping.
+         */
+        enum clipping_type_t
+        clipping_type(void) const;
+
+        /*!
+         * Set the value returned by clipping_type(void) const.
+         * Default value is \ref clipping_via_gl_clip_distance.
+         */
+        UberShaderParams&
+        clipping_type(enum clipping_type_t);
 
         /*!
          * Specifies the normalized device z-coordinate convention

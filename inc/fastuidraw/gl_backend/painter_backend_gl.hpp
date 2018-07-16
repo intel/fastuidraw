@@ -209,17 +209,17 @@ namespace fastuidraw
         data_store_backing(enum data_store_backing_t v);
 
         /*!
-         * If true, has the PainterBackendGL use hardware clip-planes
-         * if available (i.e. gl_ClipDistance). Default value is true.
+         * Specifies how the uber-shader will perform clipping.
          */
-        bool
-        use_hw_clip_planes(void) const;
+        enum clipping_type_t
+        clipping_type(void) const;
 
         /*!
-         * Set the value for use_hw_clip_planes(void) const
+         * Set the value returned by clipping_type(void) const.
+         * Default value is \ref clipping_via_gl_clip_distance.
          */
         ConfigurationGL&
-        use_hw_clip_planes(bool v);
+        clipping_type(enum clipping_type_t);
 
         /*!
          * If true, use switch() statements in uber vertex shader,

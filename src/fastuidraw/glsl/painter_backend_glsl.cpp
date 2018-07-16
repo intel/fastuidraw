@@ -63,11 +63,9 @@ namespace
   {
   public:
     ConfigurationGLSLPrivate(void):
-      m_use_hw_clip_planes(true),
       m_default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz)
     {}
 
-    bool m_use_hw_clip_planes;
     enum fastuidraw::PainterStrokeShader::type_t m_default_stroke_shader_aa_type;
     fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_default_stroke_shader_aa_pass1_action;
     fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_default_stroke_shader_aa_pass2_action;
@@ -118,6 +116,7 @@ namespace
   {
   public:
     UberShaderParamsPrivate(void):
+      m_clipping_type(fastuidraw::glsl::PainterBackendGLSL::clipping_via_gl_clip_distance),
       m_z_coordinate_convention(fastuidraw::glsl::PainterBackendGLSL::z_minus_1_to_1),
       m_negate_normalized_y_coordinate(false),
       m_assign_layout_to_vertex_shader_inputs(true),
@@ -138,6 +137,7 @@ namespace
       m_use_uvec2_for_bindless_handle(true)
     {}
 
+    enum fastuidraw::glsl::PainterBackendGLSL::clipping_type_t m_clipping_type;
     enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t m_z_coordinate_convention;
     bool m_negate_normalized_y_coordinate;
     bool m_assign_layout_to_vertex_shader_inputs;
@@ -213,6 +213,7 @@ namespace
 
     fastuidraw::glsl::varying_list m_main_varyings_header_only;
     fastuidraw::glsl::varying_list m_main_varyings_shaders_and_shader_datas;
+    fastuidraw::glsl::varying_list m_clip_varyings;
     fastuidraw::glsl::varying_list m_brush_varyings;
 
     fastuidraw::vec2 m_viewport_resolution;
@@ -309,20 +310,11 @@ ready_main_varyings(void)
     .add_float_varying("fastuidraw_brush_p_x")
     .add_float_varying("fastuidraw_brush_p_y");
 
-  if (!m_config.use_hw_clip_planes())
-    {
-      m_main_varyings_header_only
-        .add_float_varying("fastuidraw_clip_plane0")
-        .add_float_varying("fastuidraw_clip_plane1")
-        .add_float_varying("fastuidraw_clip_plane2")
-        .add_float_varying("fastuidraw_clip_plane3");
-
-      m_main_varyings_shaders_and_shader_datas
-        .add_float_varying("fastuidraw_clip_plane0")
-        .add_float_varying("fastuidraw_clip_plane1")
-        .add_float_varying("fastuidraw_clip_plane2")
-        .add_float_varying("fastuidraw_clip_plane3");
-    }
+  m_clip_varyings
+    .add_float_varying("fastuidraw_clip_plane0")
+    .add_float_varying("fastuidraw_clip_plane1")
+    .add_float_varying("fastuidraw_clip_plane2")
+    .add_float_varying("fastuidraw_clip_plane3");
 }
 
 void
@@ -784,7 +776,8 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
   std::string declare_vertex_shader_ins;
   std::string declare_uniforms;
   const varying_list *main_varyings;
-  DeclareVaryingsStringDatum main_varying_datum, brush_varying_datum, shader_varying_datum;
+  DeclareVaryingsStringDatum main_varying_datum, brush_varying_datum;
+  DeclareVaryingsStringDatum clip_varying_datum, shader_varying_datum;
   const PainterBackendGLSL::BindingPoints &binding_params(params.binding_points());
   std::vector<reference_counted_ptr<PainterItemShaderGLSL> > work_shaders;
   c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders;
@@ -852,6 +845,15 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       binding_layout_macro = ostr.str();
     }
 
+  if (params.clipping_type() != PainterBackendGLSL::clipping_via_gl_clip_distance)
+    {
+      declare_varyings_builder.add_varyings("_clip",
+                                            m_clip_varyings.uints().size(),
+                                            m_clip_varyings.ints().size(),
+                                            m_clip_varyings.float_counts(),
+                                            &clip_varying_datum);
+    }
+
   if (params.unpack_header_and_brush_in_frag_shader())
     {
       main_varyings = &m_main_varyings_header_only;
@@ -904,13 +906,15 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
       frag.add_macro("FASTUIDRAW_PAINTER_NORMALIZED_0_TO_1");
     }
 
-  if (m_config.use_hw_clip_planes())
+  switch(params.clipping_type())
     {
+    case PainterBackendGLSL::clipping_via_gl_clip_distance:
       vert.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_GL_CLIP_DISTACE");
-    }
-  else
-    {
+      break;
+
+    case PainterBackendGLSL::clipping_via_discard:
       frag.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_DISCARD");
+      break;
     }
 
   if (m_p->configuration_base().supports_bindless_texturing())
@@ -1068,7 +1072,12 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_source(declare_vertex_shader_ins.c_str(), ShaderSource::from_string)
     .add_source(declare_varyings.c_str(), ShaderSource::from_string);
 
+  if (params.clipping_type() != PainterBackendGLSL::clipping_via_gl_clip_distance)
+    {
+      stream_alias_varyings("_clip", vert, m_clip_varyings, true, clip_varying_datum);
+    }
   stream_alias_varyings("_main", vert, *main_varyings, true, main_varying_datum);
+
   if (params.unpack_header_and_brush_in_frag_shader())
     {
       /* we need to declare the values named in m_brush_varyings */
@@ -1136,6 +1145,10 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_macro("fastuidraw_varying", "in")
     .add_source(declare_varyings.c_str(), ShaderSource::from_string);
 
+  if (params.clipping_type() != PainterBackendGLSL::clipping_via_gl_clip_distance)
+    {
+      stream_alias_varyings("_clip", frag, m_clip_varyings, true, clip_varying_datum);
+    }
   stream_alias_varyings("_main", frag, *main_varyings, true, main_varying_datum);
   if (params.unpack_header_and_brush_in_frag_shader())
     {
@@ -1204,8 +1217,6 @@ fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
 
 assign_swap_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL)
 
-setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL, ConfigurationGLSLPrivate,
-                 bool, use_hw_clip_planes)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL, ConfigurationGLSLPrivate,
                  enum fastuidraw::PainterStrokeShader::type_t, default_stroke_shader_aa_type)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL, ConfigurationGLSLPrivate,
@@ -1326,7 +1337,13 @@ fastuidraw::glsl::PainterBackendGLSL::UberShaderParams::
 assign_swap_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams)
 
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
-                 UberShaderParamsPrivate, enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t, z_coordinate_convention)
+                 UberShaderParamsPrivate,
+                 enum fastuidraw::glsl::PainterBackendGLSL::clipping_type_t,
+                 clipping_type)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
+                 UberShaderParamsPrivate,
+                 enum fastuidraw::glsl::PainterBackendGLSL::z_coordinate_convention_t,
+                 z_coordinate_convention)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
                  UberShaderParamsPrivate, bool, negate_normalized_y_coordinate)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::UberShaderParams,
@@ -1381,7 +1398,6 @@ PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
 {
   m_d = FASTUIDRAWnew PainterBackendGLSLPrivate(this, config_glsl,
                                                 config_base.blend_type());
-  set_hints().clipping_via_hw_clip_planes(config_glsl.use_hw_clip_planes());
 }
 
 fastuidraw::glsl::PainterBackendGLSL::
