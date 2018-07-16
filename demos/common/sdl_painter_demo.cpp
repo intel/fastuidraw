@@ -64,6 +64,27 @@ namespace
 
   std::ostream&
   operator<<(std::ostream &str,
+             enum_wrapper<enum fastuidraw::gl::PainterBackendGL::clipping_type_t> v)
+  {
+    switch(v.m_v)
+      {
+      case fastuidraw::gl::PainterBackendGL::clipping_via_gl_clip_distance:
+        str << "gl_clip_distance";
+        break;
+
+      case fastuidraw::gl::PainterBackendGL::clipping_via_discard:
+        str << "discard";
+        break;
+
+      default:
+        str << "invalid value";
+      }
+
+    return str;
+  }
+
+  std::ostream&
+  operator<<(std::ostream &str,
              enum_wrapper<enum fastuidraw::PainterStrokeShader::type_t> v)
   {
     switch(v.m_v)
@@ -373,13 +394,20 @@ sdl_painter_demo(const std::string &about_text,
                                              "and if those are not satisfied will fall back to auxiliary_buffer_atomic and "
                                              "if those requirement are not satsified, then no_auxiliary_buffer"),
                                   "provide_auxiliary_image_buffer",
-                                  "Spcifies if and how to provide auxiliary image buffer; "
+                                  "Specifies if and how to provide auxiliary image buffer; "
                                   "will remove rendering artifacts on shader-based anti-aliased "
                                   "transparent path stroking",
                                   *this),
-  m_use_hw_clip_planes(m_painter_params.use_hw_clip_planes(),
+  m_use_hw_clip_planes(m_painter_params.clipping_type(),
+                       enumerated_string_type<clipping_type_t>()
+                       .add_entry("on", fastuidraw::gl::PainterBackendGL::clipping_via_gl_clip_distance,
+                                  "Use HW clip planes via gl_ClipDistance for clipping")
+                       .add_entry_alias("true", fastuidraw::gl::PainterBackendGL::clipping_via_gl_clip_distance)
+                       .add_entry("off", fastuidraw::gl::PainterBackendGL::clipping_via_discard,
+                                  "Use discard in fragment shader for clipping")
+                       .add_entry_alias("false", fastuidraw::gl::PainterBackendGL::clipping_via_discard),
                        "painter_use_hw_clip_planes",
-                       "If true, use HW clip planes (i.e. gl_ClipDistance) for clipping",
+                       "",
                        *this),
   m_painter_alignment(m_painter_base_params.alignment(), "painter_alignment",
                        "Alignment for data store of painter, must be 1, 2, 3 or 4", *this),
@@ -573,7 +601,7 @@ init_gl(int w, int h)
     .data_blocks_per_store_buffer(m_painter_data_blocks_per_buffer.m_value)
     .number_pools(m_painter_number_pools.m_value)
     .break_on_shader_change(m_painter_break_on_shader_change.m_value)
-    .use_hw_clip_planes(m_use_hw_clip_planes.m_value)
+    .clipping_type(m_use_hw_clip_planes.m_value.m_value)
     .vert_shader_use_switch(m_uber_vert_use_switch.m_value)
     .frag_shader_use_switch(m_uber_frag_use_switch.m_value)
     .blend_shader_use_switch(m_uber_blend_use_switch.m_value)
@@ -611,6 +639,13 @@ init_gl(int w, int h)
                   << "  (requested " << make_enum_wrapper(m_painter_params.X()) \
                   << ")\n";                                             \
       } while(0)
+        
+#define LAZY_ENUM(X) do {                                               \
+        std::cout << std::setw(40) << #X": " << std::setw(8)            \
+                  << make_enum_wrapper(m_backend->configuration_gl().X()) \
+                  << "  (requested " << make_enum_wrapper(m_painter_params.X()) \
+                  << ")\n";                                             \
+      } while(0)
 
       LAZY(attributes_per_buffer);
       LAZY(indices_per_buffer);
@@ -623,7 +658,7 @@ init_gl(int w, int h)
       LAZY_ENUM(separate_program_for_discard);
       LAZY(data_blocks_per_store_buffer);
       LAZY_ENUM(data_store_backing);
-      LAZY_ENUM(use_hw_clip_planes);
+      LAZY_ENUM(clipping_type);
       LAZY_ENUM(assign_layout_to_vertex_shader_inputs);
       LAZY_ENUM(assign_layout_to_varyings);
       LAZY_ENUM(assign_binding_points);
