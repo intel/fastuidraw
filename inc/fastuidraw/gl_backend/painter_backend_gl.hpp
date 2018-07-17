@@ -142,6 +142,22 @@ namespace fastuidraw
         glyph_atlas(const reference_counted_ptr<GlyphAtlasGL> &v);
 
         /*!
+         * Specifies the alignment in units of generic_data for
+         * packing of seperately accessible entries of generic data
+         * in PainterDraw::m_store.
+         */
+        int
+        alignment(void) const;
+
+        /*!
+         * Specify the value returned by alignment(void) const,
+         * default value is 4
+         * \param v value
+         */
+        ConfigurationGL&
+        alignment(int v);
+
+        /*!
          * Specifies the maximum number of attributes
          * a PainterDraw returned by
          * map_draw() may store, i.e. the size
@@ -394,9 +410,9 @@ namespace fastuidraw
 
         /*!
          * Returns the blend_type() to be used by the PainterBackendGL,
-         *        if the spcified blend type is not supported, falls back to
-         *        first to PainterBlendShader::dual_src and if that is
-         *        not supported falls back to PainterBlendShader::single_src.
+         * if the spcified blend type is not supported, falls back to
+         * first to PainterBlendShader::dual_src and if that is
+         * not supported falls back to PainterBlendShader::single_src.
          */
         enum PainterBlendShader::shader_type
         blend_type(void) const;
@@ -610,10 +626,9 @@ namespace fastuidraw
        * object to function correctly in the GL context from which
        * it was created.
        * \param config_gl ConfigurationGL providing configuration parameters
-       * \param config_base ConfigurationBase parameters inherited from PainterBackend
        */
-      PainterBackendGL(const ConfigurationGL &config_gl,
-                       const ConfigurationBase &config_base);
+      explicit
+      PainterBackendGL(const ConfigurationGL &config_gl);
 
       ~PainterBackendGL();
 

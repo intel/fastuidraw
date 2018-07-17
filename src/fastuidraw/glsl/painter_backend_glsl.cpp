@@ -63,9 +63,15 @@ namespace
   {
   public:
     ConfigurationGLSLPrivate(void):
+      m_alignment(4),
+      m_blend_type(fastuidraw::PainterBlendShader::dual_src),
+      m_supports_bindless_texturing(false),
       m_default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz)
     {}
 
+    int m_alignment;
+    enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
+    bool m_supports_bindless_texturing;
     enum fastuidraw::PainterStrokeShader::type_t m_default_stroke_shader_aa_type;
     fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_default_stroke_shader_aa_pass1_action;
     fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_default_stroke_shader_aa_pass2_action;
@@ -1209,12 +1215,29 @@ fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
 
 assign_swap_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL)
 
-setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL, ConfigurationGLSLPrivate,
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL,
+                 ConfigurationGLSLPrivate,
+                 int, alignment)
+
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL,
+                 ConfigurationGLSLPrivate,
+                 enum fastuidraw::PainterBlendShader::shader_type, blend_type)
+
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL,
+                 ConfigurationGLSLPrivate,
+                 bool, supports_bindless_texturing)
+
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL,
+                 ConfigurationGLSLPrivate,
                  enum fastuidraw::PainterStrokeShader::type_t, default_stroke_shader_aa_type)
-setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL, ConfigurationGLSLPrivate,
+
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL,
+                 ConfigurationGLSLPrivate,
                  const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
                  default_stroke_shader_aa_pass1_action)
-setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL, ConfigurationGLSLPrivate,
+
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL,
+                 ConfigurationGLSLPrivate,
                  const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
                  default_stroke_shader_aa_pass2_action)
 
@@ -1379,17 +1402,19 @@ fastuidraw::glsl::PainterBackendGLSL::
 PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                    reference_counted_ptr<ImageAtlas> image_atlas,
                    reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
-                   const ConfigurationGLSL &config_glsl,
-                   const ConfigurationBase &config_base):
-  PainterBackend(glyph_atlas, image_atlas, colorstop_atlas, config_base,
-                 detail::ShaderSetCreator(config_base.blend_type(),
+                   const ConfigurationGLSL &config_glsl):
+  PainterBackend(glyph_atlas, image_atlas, colorstop_atlas,
+                 ConfigurationBase()
+                 .alignment(config_glsl.alignment())
+                 .blend_type(config_glsl.blend_type())
+                 .supports_bindless_texturing(config_glsl.supports_bindless_texturing()),
+                 detail::ShaderSetCreator(config_glsl.blend_type(),
                                           config_glsl.default_stroke_shader_aa_type(),
                                           config_glsl.default_stroke_shader_aa_pass1_action(),
                                           config_glsl.default_stroke_shader_aa_pass2_action())
                  .create_shader_set())
 {
-  m_d = FASTUIDRAWnew PainterBackendGLSLPrivate(this, config_glsl,
-                                                config_base.blend_type());
+  m_d = FASTUIDRAWnew PainterBackendGLSLPrivate(this, config_glsl, config_glsl.blend_type());
 }
 
 fastuidraw::glsl::PainterBackendGLSL::
