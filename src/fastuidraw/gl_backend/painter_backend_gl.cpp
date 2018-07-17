@@ -1682,41 +1682,39 @@ configure_backend(void)
       break;
     }
 
-  if (m_params.clipping_type() != PainterBackendGL::clipping_via_gl_clip_distance)
+  #ifdef FASTUIDRAW_GL_USE_GLES
     {
-      m_number_clip_planes = 0;
-      m_clip_plane0 = GL_INVALID_ENUM;
+      /* NOTE: the enum values of GL_MAX_CLIP_DISTANCES_EXT
+       * and GL_MAX_CLIP_DISTANCES_APPLE are the same as are
+       * the enum values of GL_CLIP_DISTANCE0_EXT and
+       * GL_CLIP_DISTANCE0_APPLE, but we keep the separate
+       * nature for sort-of code clarity.
+       */
+      if (m_ctx_properties.has_extension("GL_EXT_clip_cull_distance"))
+        {
+          m_number_clip_planes = context_get<GLint>(GL_MAX_CLIP_DISTANCES_EXT);
+          m_clip_plane0 = GL_CLIP_DISTANCE0_EXT;
+          m_gles_clip_plane_extension = "GL_EXT_clip_cull_distance";
+        }
+      else if (m_ctx_properties.has_extension("GL_APPLE_clip_distance"))
+        {
+          m_number_clip_planes = context_get<GLint>(GL_MAX_CLIP_DISTANCES_APPLE);
+          m_clip_plane0 = GL_CLIP_DISTANCE0_APPLE;
+          m_gles_clip_plane_extension = "GL_APPLE_clip_distance";
+        }
+      else
+        {
+          m_number_clip_planes = 0;
+          m_clip_plane0 = GL_INVALID_ENUM;
+          m_params.clipping_type(PainterBackendGL::clipping_via_discard);
+        }
     }
-  else
+  #else
     {
-      #ifdef FASTUIDRAW_GL_USE_GLES
-        {
-          if (m_ctx_properties.has_extension("GL_EXT_clip_cull_distance"))
-            {
-              m_number_clip_planes = context_get<GLint>(GL_MAX_CLIP_DISTANCES_EXT );
-              m_clip_plane0 = GL_CLIP_DISTANCE0_EXT;
-              m_gles_clip_plane_extension = "GL_EXT_clip_cull_distance";
-            }
-          else if (m_ctx_properties.has_extension("GL_APPLE_clip_distance"))
-            {
-              m_number_clip_planes = context_get<GLint>(GL_MAX_CLIP_DISTANCES_APPLE);
-              m_clip_plane0 = GL_CLIP_DISTANCE0_APPLE;
-              m_gles_clip_plane_extension = "GL_APPLE_clip_distance";
-            }
-          else
-            {
-              m_number_clip_planes = 0;
-              m_clip_plane0 = GL_INVALID_ENUM;
-              m_params.clipping_type(PainterBackendGL::clipping_via_discard);
-            }
-        }
-      #else
-        {
-          m_number_clip_planes = context_get<GLint>(GL_MAX_CLIP_DISTANCES);
-          m_clip_plane0 = GL_CLIP_DISTANCE0;
-        }
-      #endif
+      m_number_clip_planes = context_get<GLint>(GL_MAX_CLIP_DISTANCES);
+      m_clip_plane0 = GL_CLIP_DISTANCE0;
     }
+  #endif
   
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
@@ -2263,10 +2261,21 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
 
   if ((v & gpu_dirty_state::hw_clip) && m_number_clip_planes > 0)
     {
-      glEnable(m_clip_plane0 + 0);
-      glEnable(m_clip_plane0 + 1);
-      glEnable(m_clip_plane0 + 2);
-      glEnable(m_clip_plane0 + 3);
+      if (m_params.clipping_type() == PainterBackendGL::clipping_via_gl_clip_distance)
+        {
+          for (int i = 0; i < 4; ++i)
+            {
+              glEnable(m_clip_plane0 + i);
+            }
+        }
+      else
+        {
+          for (int i = 0; i < 4; ++i)
+            {
+              glDisable(m_clip_plane0 + i);
+            }
+        }
+
       for(int i = 4; i < m_number_clip_planes; ++i)
         {
           glDisable(m_clip_plane0 + i);
