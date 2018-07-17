@@ -205,7 +205,7 @@ namespace
     #endif
   }
 
-  fastuidraw::PainterBlendShader::shader_type
+  enum fastuidraw::PainterBlendShader::shader_type
   compute_blend_type(enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t aux_value,
                      enum fastuidraw::PainterBlendShader::shader_type in_value,
                      const fastuidraw::gl::ContextProperties &ctx)
@@ -238,6 +238,65 @@ namespace
         && !have_dual_src_blending)
       {
         in_value = fastuidraw::PainterBlendShader::single_src;
+      }
+
+    return in_value;
+  }
+
+  enum fastuidraw::glsl::PainterBackendGLSL::clipping_type_t
+  compute_clipping_type(enum fastuidraw::PainterBlendShader::shader_type blend_type,
+                        enum fastuidraw::glsl::PainterBackendGLSL::clipping_type_t in_value,
+                        const fastuidraw::gl::ContextProperties &ctx)
+  {
+    using namespace fastuidraw;
+    using namespace fastuidraw::glsl;
+
+    bool clip_distance_supported, skip_color_write_supported;
+    skip_color_write_supported = (blend_type == PainterBlendShader::framebuffer_fetch);
+
+    if (in_value == PainterBackendGLSL::clipping_via_discard)
+      {
+        return in_value;
+      }
+
+    if (in_value == PainterBackendGLSL::clipping_via_skip_color_write)
+      {
+        if (skip_color_write_supported)
+          {
+            return in_value;
+          }
+        else
+          {
+            in_value = PainterBackendGLSL::clipping_via_gl_clip_distance;
+          }
+      }
+
+    #ifdef FASTUIDRAW_GL_USE_GLES
+      {
+        clip_distance_supported = ctx.has_extension("GL_EXT_clip_cull_distance")
+          || ctx.has_extension("GL_APPLE_clip_distance");
+      }
+    #else
+      {
+        FASTUIDRAWunused(ctx);
+        clip_distance_supported = true;
+      }
+    #endif
+
+    if (in_value == PainterBackendGLSL::clipping_via_gl_clip_distance)
+      {
+        if (clip_distance_supported)
+          {
+            return in_value;
+          }
+        else if (skip_color_write_supported)
+          {
+            in_value = PainterBackendGLSL::clipping_via_skip_color_write;
+          }
+        else
+          {
+            in_value = PainterBackendGLSL::clipping_via_discard;
+          }
       }
 
     return in_value;
@@ -1714,7 +1773,6 @@ configure_backend(void)
         {
           m_number_clip_planes = 0;
           m_clip_plane0 = GL_INVALID_ENUM;
-          m_params.clipping_type(PainterBackendGL::clipping_via_discard);
         }
     }
   #else
@@ -1723,6 +1781,12 @@ configure_backend(void)
       m_clip_plane0 = GL_CLIP_DISTANCE0;
     }
   #endif
+
+  enum PainterBackendGL::clipping_type_t clipping_type;
+  clipping_type = compute_clipping_type(m_params.blend_type(),
+                                        m_params.clipping_type(),
+                                        m_ctx_properties);
+  m_params.clipping_type(clipping_type);
   
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
@@ -2569,7 +2633,13 @@ PainterBackendGL(const ConfigurationGL &config_gl,
 {
   PainterBackendGLPrivate *d;
   m_d = d = FASTUIDRAWnew PainterBackendGLPrivate(config_gl, this);
-  set_hints().clipping_via_hw_clip_planes(d->m_params.clipping_type() != clipping_via_discard);
+  /* should this instead be clipping_type() != clipping_via_discard ?
+   * On one hand, letting the GPU do the virtual no-write incurs no CPU load,
+   * but a per-pixel load that can be avoided by CPU-clipping. On the other
+   * hand, making the CPU do as little as possble is one of FastUIDraw's
+   * sub-goals.
+   */
+  set_hints().clipping_via_hw_clip_planes(d->m_params.clipping_type() == clipping_via_gl_clip_distance);
 }
 
 fastuidraw::gl::PainterBackendGL::
