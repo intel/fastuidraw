@@ -67,6 +67,7 @@ void
 main(void)
 {
   vec4 c, b, v;
+  vec2 pbrush, pbrush_dx, pbrush_dy;
 
   apply_clipping();
 
@@ -95,13 +96,15 @@ main(void)
     }
   #endif
 
-  fastuidraw_brush_position = vec2(fastuidraw_brush_p_x, fastuidraw_brush_p_y);
+  pbrush = vec2(fastuidraw_brush_p_x, fastuidraw_brush_p_y);
+  pbrush_dx = dFdx(pbrush);
+  pbrush_dy = dFdy(pbrush);
 
   FASTUIDRAW_BEGIN_AUX_LOCK;
   c = fastuidraw_run_frag_shader(fastuidraw_frag_shader, fastuidraw_frag_shader_data_location);
   FASTUIDRAW_END_AUX_LOCK;
 
-  b = fastuidraw_compute_brush_color();
+  b = fastuidraw_compute_brush_color(pbrush, pbrush_dx, pbrush_dy);
   v = b * c;
   v.rgb *= v.a;
 

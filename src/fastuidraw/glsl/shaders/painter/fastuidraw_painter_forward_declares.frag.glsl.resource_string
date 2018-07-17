@@ -16,12 +16,6 @@
  *
  */
 
-
-/* variables that are initialized at main(), but user defined
-   fragment shader can change.
- */
-vec2 fastuidraw_brush_position;
-
 void
 fastuidraw_read_header(in uint location, out fastuidraw_shader_header h);
 
@@ -32,7 +26,7 @@ vec4
 fastuidraw_run_frag_shader(in uint frag_shader, in uint frag_shader_data_location);
 
 vec4
-fastuidraw_compute_brush_color(void);
+fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy);
 
 
 #ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
