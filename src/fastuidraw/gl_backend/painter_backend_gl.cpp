@@ -303,8 +303,15 @@ namespace
     void
     next_pool(void);
 
-    GLuint //objects are recycled; make sure size never increases!
-    request_uniform_ubo(unsigned int ubo_size, GLenum target);
+    /*
+     * returns the UBO used to hold the values filled
+     * by PainterBackendGLSL::fill_uniform_buffer().
+     * There is only one such UBO per VAO. It is assumed
+     * that the ubo_size NEVER changes once this is
+     * called once.
+     */
+    GLuint
+    uniform_ubo(unsigned int ubo_size, GLenum target);
 
   private:
     void
@@ -451,6 +458,7 @@ namespace
     fastuidraw::c_array<fastuidraw::generic_data> m_uniform_values_ptr;
     painter_vao_pool *m_pool;
     SurfaceGLPrivate *m_surface_gl;
+    bool m_uniform_ubo_ready;
 
     fastuidraw::gl::PainterBackendGL *m_p;
   };
@@ -751,7 +759,7 @@ painter_vao_pool::
 
 GLuint
 painter_vao_pool::
-request_uniform_ubo(unsigned int sz, GLenum target)
+uniform_ubo(unsigned int sz, GLenum target)
 {
   if (m_ubos[m_pool] == 0)
     {
@@ -2337,14 +2345,19 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
       void *ubo_mapped;
 
       /* Grabs and binds the buffer */
-      ubo = m_pool->request_uniform_ubo(size_bytes, GL_UNIFORM_BUFFER);
+      ubo = m_pool->uniform_ubo(size_bytes, GL_UNIFORM_BUFFER);
       FASTUIDRAWassert(ubo != 0);
-      ubo_mapped = glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
-                                    GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
 
-      m_p->fill_uniform_buffer(c_array<generic_data>(static_cast<generic_data*>(ubo_mapped), size_generics));
-      glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
-      glUnmapBuffer(GL_UNIFORM_BUFFER);
+      if (!m_uniform_ubo_ready)
+        {
+          ubo_mapped = glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
+                                        GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
+          
+          m_p->fill_uniform_buffer(c_array<generic_data>(static_cast<generic_data*>(ubo_mapped), size_generics));
+          glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
+          glUnmapBuffer(GL_UNIFORM_BUFFER);
+          m_uniform_ubo_ready = true;
+        }
 
       glBindBufferBase(GL_UNIFORM_BUFFER, binding_points.uniforms_ubo(), ubo);
     }
@@ -2657,6 +2670,7 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
     }
 
   PainterBackendGLSL::viewport(d->m_surface_gl->m_viewport);
+  d->m_uniform_ubo_ready = false;
   d->set_gl_state(gpu_dirty_state::all, true, clear_color_buffer);
 
   //makes sure that the GLSL programs are built.
