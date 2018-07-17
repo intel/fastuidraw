@@ -903,6 +903,11 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     case PainterBackendGLSL::clipping_via_discard:
       frag.add_macro("FASTUIDRAW_PAINTER_CLIPPING_USE_DISCARD");
       break;
+
+    case PainterBackendGLSL::clipping_via_skip_color_write:
+      FASTUIDRAWassert(m_blend_type == PainterBlendShader::framebuffer_fetch);
+      frag.add_macro("FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE");
+      break;
     }
 
   if (m_p->configuration_base().supports_bindless_texturing())

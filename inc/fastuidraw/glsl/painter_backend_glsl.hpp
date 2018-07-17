@@ -87,6 +87,17 @@ namespace fastuidraw
            * the fragment shader.
            */
           clipping_via_discard,
+
+          /*!
+           * Clipping is performed by passing the distance
+           * to each clip-plane and (virtually) skipping
+           * the color write. This requires that the blending
+           * mode is through framebuffer fetch, i.e. \ref
+           * PainterBackend::ConfigurationBase::blend_type()
+           * of PainterBackend::configuration_base() is \ref
+           * PainterBlendShader::framebuffer_fetch.
+           */
+          clipping_via_skip_color_write,
         };
 
       /*!
