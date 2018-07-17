@@ -181,8 +181,8 @@ namespace fastuidraw
            * an "r8" image2D in the shader source. A backend will
            * need to define the the functions (or macros) in their
            * GLSL preamble:
-           *  - fastuidraw_begin_interlock() which is called before access
-           *  - fastuidraw_end_interlock() which is called after access
+           *  - fastuidraw_begin_aux_interlock() which is called before access
+           *  - fastuidraw_end_aux_interlock() which is called after access
            */
           auxiliary_buffer_interlock,
 
@@ -195,8 +195,8 @@ namespace fastuidraw
            * an "r8" image2D in the shader source. A backend will
            * need to define the the functions (or macros) in their
            * GLSL preamble:
-           *  - fastuidraw_begin_interlock() which is called before access
-           *  - fastuidraw_end_interlock() which is called after access
+           *  - fastuidraw_begin_aux_interlock() which is called before access
+           *  - fastuidraw_end_aux_interlock() which is called after access
            */
           auxiliary_buffer_interlock_main_only,
 

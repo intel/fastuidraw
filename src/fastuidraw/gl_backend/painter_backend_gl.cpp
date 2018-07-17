@@ -1890,26 +1890,26 @@ configure_source_front_matter(void)
         {
         case no_interlock:
           m_front_matter_frag
-            .add_macro("fastuidraw_begin_interlock", "fastuidraw_do_nothing")
-            .add_macro("fastuidraw_end_interlock", "fastuidraw_do_nothing");
+            .add_macro("fastuidraw_begin_aux_interlock", "fastuidraw_do_nothing")
+            .add_macro("fastuidraw_end_aux_interlock", "fastuidraw_do_nothing");
           break;
 
         case intel_fragment_shader_ordering:
           m_front_matter_frag
-            .add_macro("fastuidraw_begin_interlock", "beginFragmentShaderOrderingINTEL")
-            .add_macro("fastuidraw_end_interlock", "fastuidraw_do_nothing");
+            .add_macro("fastuidraw_begin_aux_interlock", "beginFragmentShaderOrderingINTEL")
+            .add_macro("fastuidraw_end_aux_interlock", "fastuidraw_do_nothing");
           break;
 
         case arb_fragment_shader_interlock:
           m_front_matter_frag
-            .add_macro("fastuidraw_begin_interlock", "beginInvocationInterlockARB")
-            .add_macro("fastuidraw_end_interlock", "endInvocationInterlockARB");
+            .add_macro("fastuidraw_begin_aux_interlock", "beginInvocationInterlockARB")
+            .add_macro("fastuidraw_end_aux_interlock", "endInvocationInterlockARB");
           break;
 
         case nv_fragment_shader_interlock:
           m_front_matter_frag
-            .add_macro("fastuidraw_begin_interlock", "beginInvocationInterlockNV")
-            .add_macro("fastuidraw_end_interlock", "endInvocationInterlockNV");
+            .add_macro("fastuidraw_begin_aux_interlock", "beginInvocationInterlockNV")
+            .add_macro("fastuidraw_end_aux_interlock", "endInvocationInterlockNV");
           break;
         }
 
