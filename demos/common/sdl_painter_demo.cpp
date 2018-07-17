@@ -76,6 +76,10 @@ namespace
         str << "discard";
         break;
 
+      case fastuidraw::gl::PainterBackendGL::clipping_via_skip_color_write:
+        str << "emulate_skip_color_write";
+        break;
+
       default:
         str << "invalid value";
       }
@@ -405,7 +409,11 @@ sdl_painter_demo(const std::string &about_text,
                        .add_entry_alias("true", fastuidraw::gl::PainterBackendGL::clipping_via_gl_clip_distance)
                        .add_entry("off", fastuidraw::gl::PainterBackendGL::clipping_via_discard,
                                   "Use discard in fragment shader for clipping")
-                       .add_entry_alias("false", fastuidraw::gl::PainterBackendGL::clipping_via_discard),
+                       .add_entry_alias("false", fastuidraw::gl::PainterBackendGL::clipping_via_discard)
+                       .add_entry("emulate_skip_color_write",
+                                  fastuidraw::gl::PainterBackendGL::clipping_via_skip_color_write,
+                                  "Emulate by (virtually) skipping color writes, painter_blend_type "
+                                  "must be framebuffer_fetch"),
                        "painter_use_hw_clip_planes",
                        "",
                        *this),
