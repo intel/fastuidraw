@@ -2527,8 +2527,9 @@ assemble(void)
   m_name = glCreateProgram();
   m_link_success = true;
 
-  //attatch the shaders, attaching a bad shader makes
-  //m_link_success become false
+  /* attatch the shaders, attaching a bad shader makes
+   * m_link_success become false
+   */
   for(const auto &sh : m_shaders)
     {
       if (sh->compile_success())
@@ -2541,15 +2542,15 @@ assemble(void)
         }
     }
 
-  //we no longer need the GL shaders.
-  clear_shaders_and_save_shader_data();
-
   //perform any pre-link actions and then clear them
   m_pre_link_actions.execute_actions(m_name);
   m_pre_link_actions = fastuidraw::gl::PreLinkActionArray();
 
   //now finally link!
   glLinkProgram(m_name);
+
+  //we no longer need the GL shaders.
+  clear_shaders_and_save_shader_data();
 
   auto end_time = std::chrono::steady_clock::now();
   m_assemble_time = std::chrono::duration<float>(end_time - start_time).count();
@@ -2588,6 +2589,7 @@ clear_shaders_and_save_shader_data(void)
       m_shader_data[i].m_shader_type = m_shaders[i]->shader_type();
       m_shader_data[i].m_compile_log = m_shaders[i]->compile_log();
       m_shader_data_sorted_by_type[m_shader_data[i].m_shader_type].push_back(i);
+      glDetachShader(m_name, m_shaders[i]->name());
     }
   m_shaders.clear();
 }
