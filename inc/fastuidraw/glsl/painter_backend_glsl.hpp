@@ -54,16 +54,14 @@ namespace fastuidraw
           /*!
            * Data store is backed by a uniform buffer object
            * that is an array of uvec4. The value for
-           * PainterBackend::ConfigurationBase::alignment()
-           * must then be 4.
+           * ConfigurationGLSL::alignment() must then be 4.
            */
           data_store_ubo,
 
           /*!
            * Data store is backed by a shader storage buffer
            * object that is an array of uvec4. The value for
-           * PainterBackend::ConfigurationBase::alignment()
-           * must then be 4.
+           * ConfigurationGLSL::alignment() must then be 4.
            */
           data_store_ssbo
         };
@@ -93,8 +91,7 @@ namespace fastuidraw
            * to each clip-plane and (virtually) skipping
            * the color write. This requires that the blending
            * mode is through framebuffer fetch, i.e. \ref
-           * PainterBackend::ConfigurationBase::blend_type()
-           * of PainterBackend::configuration_base() is \ref
+           * ConfigurationGLSL::blend_type() is \ref
            * PainterBlendShader::framebuffer_fetch.
            */
           clipping_via_skip_color_write,
@@ -289,6 +286,52 @@ namespace fastuidraw
          */
         void
         swap(ConfigurationGLSL &obj);
+
+        /*!
+         * Specifies the alignment in units of generic_data for
+         * packing of seperately accessible entries of generic data
+         * in PainterDraw::m_store.
+         */
+        int
+        alignment(void) const;
+
+        /*!
+         * Specify the value returned by alignment(void) const,
+         * default value is 4
+         * \param v value
+         */
+        ConfigurationGLSL&
+        alignment(int v);
+
+        /*!
+         * Returns the PainterBlendShader::shader_type the \ref
+         * PainterBackend accepts for \ref PainterBlendShader
+         * objects.
+         */
+        enum PainterBlendShader::shader_type
+        blend_type(void) const;
+
+        /*!
+         * Specify the return value to blend_type() const.
+         * Default value is \ref PainterBlendShader::dual_src.
+         * \param tp blend shader type
+         */
+        ConfigurationGLSL&
+        blend_type(enum PainterBlendShader::shader_type tp);
+
+        /*!
+         * If true, indicates that the PainterBackend supports
+         * bindless texturing. Default value is false.
+         */
+        bool
+        supports_bindless_texturing(void) const;
+
+        /*!
+         * Specify the return value to supports_bindless_texturing() const.
+         * Default value is false.
+         */
+        ConfigurationGLSL&
+        supports_bindless_texturing(bool);
 
         /*!
          * Sets how the default stroke shaders perform anti-aliasing.
@@ -817,7 +860,7 @@ namespace fastuidraw
          * has value data_store_ubo. Gives the size in
          * blocks of PainterDraw::m_store which
          * is PainterDraw::m_store.size() divided
-         * by PainterBackend::configuration_base().alignment().
+         * by ConfigurationGLSL::alignment().
          */
         int
         data_blocks_per_store_buffer(void) const;
@@ -933,10 +976,10 @@ namespace fastuidraw
 
         /*!
          * If the PainterBackendGLSL has bindless texturing enabled,
-         * (see PainterBackend::ConfigurationBase::supports_bindless_texturing())
-         * then have that the handles to create sampler2D object
-         * is a uvec2. If false, use uint64_t as the handle type in the
-         * GLSL source code. Default value is true.
+         * (see supports_bindless_texturing()) then have that the
+         * handles to create sampler2D object is a uvec2. If false,
+         * use uint64_t as the handle type in the GLSL source code.
+         * Default value is true.
          */
         bool
         use_uvec2_for_bindless_handle(void) const;
@@ -979,18 +1022,16 @@ namespace fastuidraw
        * \param image_atlas ImageAtlas for images drawn by the PainterBackend
        * \param colorstop_atlas ColorStopAtlas for color stop sequences drawn by the PainterBackend
        * \param config_glsl ConfigurationGLSL providing configuration parameters
-       * \param config_base ConfigurationBase parameters inherited from PainterBackend
        */
       PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                          reference_counted_ptr<ImageAtlas> image_atlas,
                          reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
-                         const ConfigurationGLSL &config_glsl,
-                         const ConfigurationBase &config_base);
+                         const ConfigurationGLSL &config_glsl);
 
       ~PainterBackendGLSL();
 
       /*!
-       * Returns the ConfigurationBase passed in the ctor.
+       * Returns the ConfigurationGLSL passed in the ctor.
        */
       const ConfigurationGLSL&
       configuration_glsl(void) const;

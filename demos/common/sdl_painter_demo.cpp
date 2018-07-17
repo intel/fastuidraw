@@ -417,7 +417,7 @@ sdl_painter_demo(const std::string &about_text,
                        "painter_use_hw_clip_planes",
                        "",
                        *this),
-  m_painter_alignment(m_painter_base_params.alignment(), "painter_alignment",
+  m_painter_alignment(m_painter_params.alignment(), "painter_alignment",
                        "Alignment for data store of painter, must be 1, 2, 3 or 4", *this),
   m_painter_data_blocks_per_buffer(m_painter_params.data_blocks_per_store_buffer(),
                                    "painter_blocks_per_buffer",
@@ -594,13 +594,14 @@ init_gl(int w, int h)
 
       if (m_blend_type.m_value.m_value == fastuidraw::PainterBlendShader::framebuffer_fetch)
         {
-          std::cout << "WARNING: using framebuffer fetch with painter_msaa makes all fragment shading happen per sample (which is terribly expensive)\n"
+          std::cout << "WARNING: using framebuffer fetch with painter_msaa makes all fragment shading happen "
+                    << "per sample (which is terribly expensive)\n"
                     << std::flush;
         }
     }
 
-  m_painter_base_params.alignment(m_painter_alignment.m_value);
   m_painter_params
+    .alignment(m_painter_alignment.m_value)
     .image_atlas(m_image_atlas)
     .glyph_atlas(m_glyph_atlas)
     .colorstop_atlas(m_colorstop_atlas)
@@ -625,7 +626,7 @@ init_gl(int w, int h)
                                    fastuidraw::PainterStrokeShader::draws_solid_then_fuzz)
     .blend_type(m_blend_type.m_value.m_value);
 
-  m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params, m_painter_base_params);
+  m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params);
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
   m_glyph_cache = FASTUIDRAWnew fastuidraw::GlyphCache(m_painter->glyph_atlas());
   m_glyph_selector = FASTUIDRAWnew fastuidraw::GlyphSelector(m_glyph_cache);
@@ -673,9 +674,7 @@ init_gl(int w, int h)
       LAZY_ENUM(default_stroke_shader_aa_type);
       LAZY_ENUM(blend_type);
       LAZY_ENUM(provide_auxiliary_image_buffer);
-      std::cout << std::setw(40) << "alignment: " << std::setw(8) << m_backend->configuration_base().alignment()
-                << "  (requested " << m_painter_base_params.alignment()
-                << ")\n\n\n";
+      LAZY(alignment);
 
       #undef LAZY
       #undef LAZY_ENUM

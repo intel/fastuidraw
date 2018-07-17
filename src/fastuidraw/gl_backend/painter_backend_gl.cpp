@@ -471,11 +471,6 @@ namespace
     fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL
     compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P);
 
-    static
-    fastuidraw::PainterBackend::ConfigurationBase
-    compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P,
-                        const fastuidraw::PainterBackend::ConfigurationBase &config_base);
-
     const program_set&
     programs(bool rebuild);
 
@@ -720,6 +715,7 @@ namespace
   {
   public:
     ConfigurationGLPrivate(void):
+      m_alignment(4),
       m_attributes_per_buffer(512 * 512),
       m_indices_per_buffer((m_attributes_per_buffer * 6) / 4),
       m_data_blocks_per_store_buffer(1024 * 64),
@@ -743,6 +739,7 @@ namespace
       m_provide_auxiliary_image_buffer(fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer)
     {}
 
+    int m_alignment;
     unsigned int m_attributes_per_buffer;
     unsigned int m_indices_per_buffer;
     unsigned int m_data_blocks_per_store_buffer;
@@ -1599,37 +1596,6 @@ PainterBackendGLPrivate::
     }
 }
 
-fastuidraw::PainterBackend::ConfigurationBase
-PainterBackendGLPrivate::
-compute_base_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params,
-                    const fastuidraw::PainterBackend::ConfigurationBase &config_base)
-{
-  using namespace fastuidraw;
-  fastuidraw::gl::ContextProperties ctx;
-  PainterBackend::ConfigurationBase return_value(config_base);
-
-  if (params.data_store_backing() == gl::PainterBackendGL::data_store_ubo
-      || params.data_store_backing() == gl::PainterBackendGL::data_store_ssbo
-      || gl::detail::compute_tex_buffer_support(ctx) == gl::detail::tex_buffer_not_supported)
-    {
-      //using UBO's or SSBO's requires that the data store alignment is 4.
-      return_value.alignment(4);
-    }
-
-  /* bleck: framebuffer fetch on auxiliary buffer is
-   * not compatible with single_src and dual_src
-   * blending, need to override blend_type() for
-   * that case.
-   */
-  return_value
-    .supports_bindless_texturing(ctx.has_extension("GL_ARB_bindless_texture") || ctx.has_extension("GL_NV_bindless_texture"))
-    .blend_type(compute_blend_type(compute_provide_auxiliary_buffer(params.provide_auxiliary_image_buffer(), ctx),
-                                   params.blend_type(),
-                                   ctx));
-    
-  return return_value;
-}
-
 fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL
 PainterBackendGLPrivate::
 compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params)
@@ -1681,6 +1647,29 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
         .default_stroke_shader_aa_pass1_action(q)
         .default_stroke_shader_aa_pass2_action(q);
     }
+
+  if (params.data_store_backing() == gl::PainterBackendGL::data_store_ubo
+      || params.data_store_backing() == gl::PainterBackendGL::data_store_ssbo
+      || gl::detail::compute_tex_buffer_support(ctx) == gl::detail::tex_buffer_not_supported)
+    {
+      //using UBO's or SSBO's requires that the data store alignment is 4.
+      return_value.alignment(4);
+    }
+  else
+    {
+      return_value.alignment(params.alignment());
+    }
+
+  /* bleck: framebuffer fetch on auxiliary buffer is
+   * not compatible with single_src and dual_src
+   * blending, need to override blend_type() for
+   * that case.
+   */
+  return_value
+    .supports_bindless_texturing(ctx.has_extension("GL_ARB_bindless_texture") || ctx.has_extension("GL_NV_bindless_texture"))
+    .blend_type(compute_blend_type(compute_provide_auxiliary_buffer(params.provide_auxiliary_image_buffer(), ctx),
+                                   params.blend_type(),
+                                   ctx));
 
   return return_value;
 }
@@ -2578,6 +2567,8 @@ fastuidraw::gl::PainterBackendGL::ConfigurationGL::
 assign_swap_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL)
 
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
+                 int, alignment)
+setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  unsigned int, attributes_per_buffer)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  unsigned int, indices_per_buffer)
@@ -2623,13 +2614,11 @@ setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, Configuratio
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL methods
 fastuidraw::gl::PainterBackendGL::
-PainterBackendGL(const ConfigurationGL &config_gl,
-                 const ConfigurationBase &config_base):
+PainterBackendGL(const ConfigurationGL &config_gl):
   PainterBackendGLSL(config_gl.glyph_atlas(),
                      config_gl.image_atlas(),
                      config_gl.colorstop_atlas(),
-                     PainterBackendGLPrivate::compute_glsl_config(config_gl),
-                     PainterBackendGLPrivate::compute_base_config(config_gl, config_base))
+                     PainterBackendGLPrivate::compute_glsl_config(config_gl))
 {
   PainterBackendGLPrivate *d;
   m_d = d = FASTUIDRAWnew PainterBackendGLPrivate(config_gl, this);
