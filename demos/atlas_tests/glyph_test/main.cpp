@@ -109,6 +109,7 @@ private:
     {
       geometry_backing_store_texture_buffer,
       geometry_backing_store_texture_array,
+      geometry_backing_store_ssbo,
       geometry_backing_store_auto,
     };
 
@@ -502,6 +503,10 @@ glyph_test(void):
                                            geometry_backing_store_texture_array,
                                            "use a 2D texture array to store the glyph geometry data, "
                                            "GL and GLES have feature in core")
+                                .add_entry("ssbo",
+                                           geometry_backing_store_ssbo,
+                                           "use an SSBO, requires GLES 3.1 or GL 4.3 or the extension "
+                                           "GL_ARB_shader_storage_buffer_object")
                                 .add_entry("auto",
                                            geometry_backing_store_auto,
                                            "query context and decide optimal value"),
@@ -606,13 +611,23 @@ init_gl(int w, int h)
                                                               m_geometry_backing_texture_log2_h.m_value);
       break;
 
+    case geometry_backing_store_ssbo:
+      glyph_atlas_options.use_storage_buffer_geometry_store();
+      break;
+
     default:
       glyph_atlas_options.use_optimal_geometry_store_backing();
       switch(glyph_atlas_options.glyph_geometry_backing_store_type())
         {
         case fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_tbo:
           {
-            std::cout << "Glyph Geometry Store: auto selected buffer\n";
+            std::cout << "Glyph Geometry Store: auto selected texture buffer (tbo)\n";
+          }
+          break;
+
+        case fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_ssbo:
+          {
+            std::cout << "Glyph Geometry Store: auto selected shader storage buffer (ssbo)\n";
           }
           break;
 
@@ -650,18 +665,26 @@ ready_program(void)
   vecN<std::string, number_texel_store_modes> macros;
   std::string glyph_geom_mode;
   ivec2 geom_log2_dims(0, 0);
+  bool need_ssbo(false);
 
   macros[texel_store_uint] = "USE_UINT_TEXEL_FETCH";
   macros[texel_store_float] = "USE_FLOAT_TEXEL_FETCH";
 
-  if (m_glyph_atlas->geometry_texture_binding_point() == GL_TEXTURE_BUFFER)
+  switch(m_glyph_atlas->geometry_binding_point())
     {
+    case GL_TEXTURE_BUFFER:
       glyph_geom_mode = "GLYPH_GEOMETRY_USE_TEXTURE_BUFFER";
-    }
-  else
-    {
+      break;
+
+    case GL_TEXTURE_2D_ARRAY:
       glyph_geom_mode = "GLYPH_GEOMETRY_USE_TEXTURE_2D_ARRAY";
       geom_log2_dims = m_glyph_atlas->geometry_texture_as_2d_array_log2_dims();
+      break;
+
+    case GL_SHADER_STORAGE_BUFFER:
+      glyph_geom_mode = "GLYPH_GEOMETRY_USE_SSBO";
+      need_ssbo = true;
+      break;
     }
 
   for(int i = 0; i < number_texel_store_modes; ++i)
@@ -718,13 +741,11 @@ ready_program(void)
   for(int i = 0; i < number_texel_store_modes; ++i)
     {
       glsl::ShaderSource vert, frag;
+      gl::ContextProperties ctx;
 
       #ifdef FASTUIDRAW_GL_USE_GLES
         {
-          /* Use the latest shader version.
-           */
-          gl::ContextProperties ctx;
-          std::string version;
+          c_string version;
 
           if (ctx.version() >= ivec2(3, 2))
             {
@@ -740,18 +761,31 @@ ready_program(void)
             }
 
           vert
-            .specify_version(version.c_str())
+            .specify_version(version)
             .specify_extension("GL_OES_texture_buffer", glsl::ShaderSource::enable_extension)
             .specify_extension("GL_EXT_texture_buffer", glsl::ShaderSource::enable_extension);
           frag
-            .specify_version(version.c_str())
+            .specify_version(version)
             .specify_extension("GL_OES_texture_buffer", glsl::ShaderSource::enable_extension)
             .specify_extension("GL_EXT_texture_buffer", glsl::ShaderSource::enable_extension);
         }
       #else
         {
-          vert.specify_version("330");
-          frag.specify_version("330");
+          c_string version("330");
+          if (need_ssbo)
+            {
+              if (ctx.version() >= ivec2(4, 3))
+                {
+                  version = "430";
+                }
+              else if(ctx.has_extension("GL_ARB_shader_storage_buffer_object"))
+                {
+                  frag.specify_extension("GL_ARB_shader_storage_buffer_object", glsl::ShaderSource::require_extension);
+                  vert.specify_extension("GL_ARB_shader_storage_buffer_object", glsl::ShaderSource::require_extension);
+                }
+            }
+          vert.specify_version(version);
+          frag.specify_version(version);
         }
       #endif
 
@@ -1087,8 +1121,15 @@ draw_frame(void)
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D_ARRAY, m_glyph_atlas->texel_texture(texel_store_uint == m_texel_access_mode));
 
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(m_glyph_atlas->geometry_texture_binding_point(), m_glyph_atlas->geometry_texture());
+  if (m_glyph_atlas->geometry_binding_point() != GL_SHADER_STORAGE_BUFFER)
+    {
+      glActiveTexture(GL_TEXTURE1);
+      glBindTexture(m_glyph_atlas->geometry_binding_point(), m_glyph_atlas->geometry_backing());
+    }
+  else
+    {
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_glyph_atlas->geometry_backing());
+    }
 
   m_drawers[m_current_drawer].draw(this, m_texel_access_mode, m_pvm, m_current_layer, m_aa_mode);
 
