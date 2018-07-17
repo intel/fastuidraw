@@ -89,10 +89,10 @@ namespace
   };
 
   void
-  add_macro_requirment(fastuidraw::glsl::ShaderSource &dst,
-                       bool should_be_defined,
-                       fastuidraw::c_string macro,
-                       fastuidraw::c_string error_message)
+  add_macro_requirement(fastuidraw::glsl::ShaderSource &dst,
+                        bool should_be_defined,
+                        fastuidraw::c_string macro,
+                        fastuidraw::c_string error_message)
   {
     fastuidraw::c_string not_cnd, msg;
 
@@ -101,6 +101,19 @@ namespace
     dst << "#if " << not_cnd << "(" << macro << ")\n"
         << "#error \"" << error_message << ": "
         << macro << " should " << msg << "be defined\"\n"
+        << "#endif\n";
+  }
+
+  void
+  add_macro_requirement(fastuidraw::glsl::ShaderSource &dst,
+                        fastuidraw::c_string macro1,
+                        fastuidraw::c_string macro2,
+                        fastuidraw::c_string error_message)
+  {
+    dst << "#if (!defined(" << macro1 << ") && !defined(" << macro2 << ")) "
+        << " || (defined(" << macro1 << ") && defined(" << macro2 << "))\n"
+        << "#error \"" << error_message << ": exactly one of "
+        << macro1 << " or " << macro2 << " should be defined\"\n"
         << "#endif\n";
   }
 
@@ -687,27 +700,32 @@ stream_uber_blend_shader(bool use_switch,
       func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 in_src, out vec4 out_src)";
       sub_func_name = "fastuidraw_gl_compute_blend_value";
       sub_func_args = ", blend_shader_data_location, in_src, out_src";
-      add_macro_requirment(frag, true, "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND", "Mismatch macros determining blend shader type!");
-      add_macro_requirment(frag, false, "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND", "Mismatch macros determining blend shader type!");
-      add_macro_requirment(frag, false, "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH", "Mismatch macros determining blend shader type!");
+      add_macro_requirement(frag, true, "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND", "Mismatch macros determining blend shader type!");
+      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND", "Mismatch macros determining blend shader type!");
+      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH", "Mismatch macros determining blend shader type!");
+      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_INTERLOCK", "Mismatch macros determining blend shader type!");
       break;
 
     case PainterBlendShader::dual_src:
       func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 color0, out vec4 src0, out vec4 src1)";
       sub_func_name = "fastuidraw_gl_compute_blend_factors";
       sub_func_args = ", blend_shader_data_location, color0, src0, src1";
-      add_macro_requirment(frag, false, "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND", "Mismatch macros determining blend shader type");
-      add_macro_requirment(frag, true, "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND", "Mismatch macros determining blend shader type");
-      add_macro_requirment(frag, false, "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH", "Mismatch macros determining blend shader type");
+      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND", "Mismatch macros determining blend shader type");
+      add_macro_requirement(frag, true, "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND", "Mismatch macros determining blend shader type");
+      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH", "Mismatch macros determining blend shader type");
+      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_INTERLOCK", "Mismatch macros determining blend shader type!");
       break;
 
     case PainterBlendShader::framebuffer_fetch:
       func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 in_src, in vec4 in_fb, out vec4 out_src)";
       sub_func_name = "fastuidraw_gl_compute_post_blended_value";
       sub_func_args = ", blend_shader_data_location, in_src, in_fb, out_src";
-      add_macro_requirment(frag, false, "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND", "Mismatch macros determining blend shader type");
-      add_macro_requirment(frag, false, "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND", "Mismatch macros determining blend shader type");
-      add_macro_requirment(frag, true, "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH", "Mismatch macros determining blend shader type");
+      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND", "Mismatch macros determining blend shader type");
+      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND", "Mismatch macros determining blend shader type");
+      add_macro_requirement(frag,
+                            "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH",
+                            "FASTUIDRAW_PAINTER_BLEND_INTERLOCK",
+                            "Mismatch macros determining blend shader type");
       break;
     }
   UberShaderStreamer<PainterBlendShaderGLSL>::stream_uber(use_switch, frag, shaders,

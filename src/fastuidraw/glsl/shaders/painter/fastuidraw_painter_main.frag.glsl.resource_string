@@ -31,6 +31,8 @@
   layout(location = 0) out vec4 fastuidraw_final_color;
 #elif defined(FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH)
   layout(location = 0) inout vec4 fastuidraw_final_color;
+#elif defined(FASTUIDRAW_PAINTER_BLEND_INTERLOCK)
+  layout(binding = FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING, rgba8) coherent restrict lowp uniform image2D fastuidraw_color_buffer;
 #endif
 
 #ifdef FASTUIDRAW_PAINTER_CLIPPING_USE_DISCARD
@@ -56,8 +58,8 @@
   }
 
 #elif defined(FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE)
-  #if !defined(FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH)
-    #error "Using FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE without FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH"
+  #if !defined(FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH) && !defined(FASTUIDRAW_PAINTER_BLEND_INTERLOCK)
+    #error "Using FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE without FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH or FASTUIDRAW_PAINTER_BLEND_INTERLOCK"
   #endif
 
   bool fastuidraw_fragment_discarded;
@@ -92,7 +94,7 @@ main(void)
 
   /* Please forgive me for placing an if() inside an #ifdef */
   FASTUIDRAW_BEGIN_AUX_LOCK;
-      
+
   #ifdef FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE
   if (!fastuidraw_fragment_discarded)
   #endif
@@ -128,22 +130,17 @@ main(void)
       v = b * c;
       v.rgb *= v.a;
     }
-
   FASTUIDRAW_END_AUX_LOCK;
 
   #ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
     {
       fastuidraw_run_blend_shader(fastuidraw_blend_shader, fastuidraw_blend_shader_data_location, v, fastuidraw_final_color0, fastuidraw_final_color1);
     }
-  #endif
-
-  #ifdef FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND
+  #elif defined(FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND)
     {
       fastuidraw_run_blend_shader(fastuidraw_blend_shader, fastuidraw_blend_shader_data_location, v, fastuidraw_final_color);
     }
-  #endif
-
-  #ifdef FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH
+  #elif defined(FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH)
     {
       vec4 in_fb, out_fb;
       in_fb = fastuidraw_final_color;
@@ -164,6 +161,23 @@ main(void)
         }
       #endif
       fastuidraw_final_color = out_fb;
+    }
+  #elif defined(FASTUIDRAW_PAINTER_BLEND_INTERLOCK)
+    {
+      fastuidraw_begin_color_buffer_interlock();
+
+      #ifdef FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE
+      if(!fastuidraw_fragment_discarded)
+      #endif
+        {
+          vec4 in_fb, out_fb;
+          ivec2 pos = ivec2(gl_FragCoord.xy);
+
+          in_fb = imageLoad(fastuidraw_color_buffer, pos);
+          fastuidraw_run_blend_shader(fastuidraw_blend_shader, fastuidraw_blend_shader_data_location, v, in_fb, out_fb);
+          imageStore(fastuidraw_color_buffer, pos, out_fb);
+        }
+      fastuidraw_end_color_buffer_interlock();
     }
   #endif
 }
