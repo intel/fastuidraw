@@ -39,14 +39,15 @@ namespace fastuidraw {
  * Short version:
  *  - application should call fastuidraw::gl_binding::get_proc_function()
  *    to set the function which will be used to fetch GL function pointers.
- *  - If an application wishes, it can include <fastuidraw/ngl_gl.hpp>.
- *    The header will replace GL functions with macros. Under release
+ *  - If an application wishes, it can include <fastuidraw/gl_backend/ngl_header.hpp>.
+ *    The header will replace GL/GLES functions with macros. Under release
  *    the macros are to function pointers that automatically set themselves up
  *    correcty. For debug, the macros preceed and postceed each GL
  *    function call with error checking call backs so an application writer
  *    can quickly know what line/file triggered an GL error. If an application does
  *    not wish to use the macro system (and will also need to fetch function pointers
- *    somehow) in can just include GL/gl.h (and optionally GL/glext.h).
+ *    itself) it can just include <fastuidraw/gl_backend/gl_header.hpp> which
+ *    will include the correct system GL/GLES headers.
  *
  * Long Version:
  *
