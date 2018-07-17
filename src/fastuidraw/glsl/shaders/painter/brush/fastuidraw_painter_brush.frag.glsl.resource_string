@@ -296,20 +296,13 @@ fastuidraw_image_of_bindless(in vec2 p, in uint image_filter, in float lod)
 
 #endif
     
-
 vec4
-fastuidraw_compute_brush_color(void)
+fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
 {
   vec4 return_value = vec4(fastuidraw_brush_pen_color_x,
                            fastuidraw_brush_pen_color_y,
                            fastuidraw_brush_pen_color_z,
                            fastuidraw_brush_pen_color_w);
-  vec2 p;
-  vec2 dfdpx, dfdpy;
-
-  p = fastuidraw_brush_position;
-  dfdpx = dFdx(p);
-  dfdpy = dFdy(p);
 
   if (fastuidraw_brush_shader_has_repeat_window(fastuidraw_brush_shader))
     {
@@ -364,7 +357,7 @@ fastuidraw_compute_brush_color(void)
       if (mipmap_max_level > 0u)
         {
           float rho;
-          rho = (dot(dfdpx, dfdpx) + dot(dfdpy, dfdpy)) * 0.5;
+          rho = (dot(dpdx, dpdx) + dot(dpdy, dpdy)) * 0.5;
           lod = 0.5 * log2(max(1.0, rho));
           lod = min(float(mipmap_max_level), lod);
         }
