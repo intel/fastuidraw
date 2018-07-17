@@ -64,13 +64,13 @@ namespace
   public:
     ConfigurationGLSLPrivate(void):
       m_alignment(4),
-      m_blend_type(fastuidraw::PainterBlendShader::dual_src),
+      m_blending_type(fastuidraw::glsl::PainterBackendGLSL::blending_dual_src),
       m_supports_bindless_texturing(false),
       m_default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz)
     {}
 
     int m_alignment;
-    enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
+    enum fastuidraw::glsl::PainterBackendGLSL::blending_type_t m_blending_type;
     bool m_supports_bindless_texturing;
     enum fastuidraw::PainterStrokeShader::type_t m_default_stroke_shader_aa_type;
     fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_default_stroke_shader_aa_pass1_action;
@@ -93,7 +93,8 @@ namespace
       m_uniforms_ubo(1),
       m_glyph_atlas_geometry_store_ssbo(0),
       m_data_store_buffer_ssbo(1),
-      m_auxiliary_image_buffer(0)
+      m_auxiliary_image_buffer(0),
+      m_color_interlock_image_buffer(1)
     {}
 
     // texture units
@@ -116,6 +117,7 @@ namespace
 
     // image units
     unsigned int m_auxiliary_image_buffer;
+    unsigned int m_color_interlock_image_buffer;
   };
 
   class UberShaderParamsPrivate
@@ -170,8 +172,7 @@ namespace
   public:
     explicit
     PainterBackendGLSLPrivate(fastuidraw::glsl::PainterBackendGLSL *p,
-                              const fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL &config,
-                              enum fastuidraw::PainterBlendShader::shader_type blend_type);
+                              const fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL &config);
     ~PainterBackendGLSLPrivate();
 
     void
@@ -201,6 +202,10 @@ namespace
 
     void
     stream_unpack_code(fastuidraw::glsl::ShaderSource &src);
+
+    static
+    enum fastuidraw::PainterBlendShader::shader_type
+    shader_blend_type(enum fastuidraw::glsl::PainterBackendGLSL::blending_type_t);
 
     fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL m_config;
     enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
@@ -234,10 +239,9 @@ namespace
 // PainterBackendGLSLPrivate methods
 PainterBackendGLSLPrivate::
 PainterBackendGLSLPrivate(fastuidraw::glsl::PainterBackendGLSL *p,
-                          const fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL &config,
-                          enum fastuidraw::PainterBlendShader::shader_type blend_type):
+                          const fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL &config):
   m_config(config),
-  m_blend_type(blend_type),
+  m_blend_type(shader_blend_type(config.blending_type())),
   m_shader_code_added(false),
   m_next_item_shader_ID(1),
   m_next_blend_shader_ID(1),
@@ -297,6 +301,29 @@ PainterBackendGLSLPrivate(fastuidraw::glsl::PainterBackendGLSL *p,
 PainterBackendGLSLPrivate::
 ~PainterBackendGLSLPrivate()
 {
+}
+
+enum fastuidraw::PainterBlendShader::shader_type
+PainterBackendGLSLPrivate::
+shader_blend_type(enum fastuidraw::glsl::PainterBackendGLSL::blending_type_t in_value)
+{
+  using namespace fastuidraw;
+  using namespace fastuidraw::glsl;
+  switch(in_value)
+    {
+    case PainterBackendGLSL::blending_single_src:
+      return PainterBlendShader::single_src;
+
+    case PainterBackendGLSL::blending_dual_src:
+      return PainterBlendShader::dual_src;
+
+    case PainterBackendGLSL::blending_framebuffer_fetch:
+    case PainterBackendGLSL::blending_interlock:
+      return PainterBlendShader::framebuffer_fetch;
+    }
+
+  FASTUIDRAWassert(!"Bad blending_type_t value");
+  return PainterBlendShader::single_src;
 }
 
 void
@@ -1067,6 +1094,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_macro("FASTUIDRAW_PAINTER_STORE_UBO_BINDING", binding_params.data_store_buffer_ubo())
     .add_macro("FASTUIDRAW_PAINTER_STORE_SSBO_BINDING", binding_params.data_store_buffer_ssbo())
     .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", binding_params.auxiliary_image_buffer())
+    .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", binding_params.color_interlock_image_buffer())
     .add_macro("fastuidraw_varying", "out")
     .add_source(declare_vertex_shader_ins.c_str(), ShaderSource::from_string)
     .add_source(declare_varyings.c_str(), ShaderSource::from_string);
@@ -1105,17 +1133,21 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
                           uber_shader_varyings, shader_varying_datum);
 
   c_string shader_blend_macro;
-  switch(m_blend_type)
+  switch(m_config.blending_type())
     {
-    case PainterBlendShader::framebuffer_fetch:
+    case PainterBackendGLSL::blending_framebuffer_fetch:
       shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH";
       break;
 
-    case PainterBlendShader::dual_src:
+    case PainterBackendGLSL::blending_interlock:
+      shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_INTERLOCK";
+      break;
+
+    case PainterBackendGLSL::blending_dual_src:
       shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND";
       break;
 
-    case PainterBlendShader::single_src:
+    case PainterBackendGLSL::blending_single_src:
       shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND";
       break;
 
@@ -1141,6 +1173,7 @@ construct_shader(fastuidraw::glsl::ShaderSource &vert,
     .add_macro("FASTUIDRAW_PAINTER_STORE_UBO_BINDING", binding_params.data_store_buffer_ubo())
     .add_macro("FASTUIDRAW_PAINTER_STORE_SSBO_BINDING", binding_params.data_store_buffer_ssbo())
     .add_macro("FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING", binding_params.auxiliary_image_buffer())
+    .add_macro("FASTUIDRAW_PAINTER_BLEND_INTERLOCK_BINDING", binding_params.color_interlock_image_buffer())
     .add_macro("fastuidraw_varying", "in")
     .add_source(declare_varyings.c_str(), ShaderSource::from_string);
 
@@ -1215,13 +1248,47 @@ fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
 
 assign_swap_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL)
 
+enum fastuidraw::PainterBlendShader::shader_type
+fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
+blend_type(void) const
+{
+  return PainterBackendGLSLPrivate::shader_blend_type(blending_type());
+}
+
+fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL&
+fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
+blend_type(enum PainterBlendShader::shader_type v)
+{
+  enum blending_type_t w;
+  switch(v)
+    {
+    case PainterBlendShader::single_src:
+      w = blending_single_src;
+      break;
+
+    case PainterBlendShader::dual_src:
+      w = blending_dual_src;
+      break;
+
+    case PainterBlendShader::framebuffer_fetch:
+      w = blending_framebuffer_fetch;
+      break;
+
+    default:
+      FASTUIDRAWassert(!"Invalid PainterBlendShader::shader_type value");
+      w = blending_single_src;
+    }
+  blending_type(w);
+  return *this;
+}
+
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL,
                  ConfigurationGLSLPrivate,
                  int, alignment)
 
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL,
                  ConfigurationGLSLPrivate,
-                 enum fastuidraw::PainterBlendShader::shader_type, blend_type)
+                 enum fastuidraw::glsl::PainterBackendGLSL::blending_type_t, blending_type)
 
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL,
                  ConfigurationGLSLPrivate,
@@ -1323,6 +1390,8 @@ setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
                  BindingPointsPrivate, unsigned int, auxiliary_image_buffer)
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
                  BindingPointsPrivate, unsigned int, uniforms_ubo)
+setget_implement(fastuidraw::glsl::PainterBackendGLSL::BindingPoints,
+                 BindingPointsPrivate, unsigned int, color_interlock_image_buffer)
 
 ////////////////////////////////////////////////////////////////
 // fastuidraw::glsl::PainterBackendGLSL::UberShaderParams methods
@@ -1414,7 +1483,7 @@ PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                                           config_glsl.default_stroke_shader_aa_pass2_action())
                  .create_shader_set())
 {
-  m_d = FASTUIDRAWnew PainterBackendGLSLPrivate(this, config_glsl, config_glsl.blend_type());
+  m_d = FASTUIDRAWnew PainterBackendGLSLPrivate(this, config_glsl);
 }
 
 fastuidraw::glsl::PainterBackendGLSL::

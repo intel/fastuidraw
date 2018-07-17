@@ -89,12 +89,48 @@ namespace fastuidraw
           /*!
            * Clipping is performed by passing the distance
            * to each clip-plane and (virtually) skipping
-           * the color write. This requires that the blending
-           * mode is through framebuffer fetch, i.e. \ref
-           * ConfigurationGLSL::blend_type() is \ref
-           * PainterBlendShader::framebuffer_fetch.
+           * the color write. This requires that the
+           * blending mode is through framebuffer fetch,
+           * i.e. ConfigurationGLSL::blending_type() is \ref
+           * blending_framebuffer_fetch or \ref blending_interlock
            */
           clipping_via_skip_color_write,
+        };
+
+      /*!
+       * \brief
+       * Enumeration to specify how to perform painter blending.
+       */
+      enum blending_type_t
+        {
+          /*!
+           * Use single source blending; the non-seperable blending
+           * modes are not supported.
+           */
+          blending_single_src,
+
+          /*!
+           * Use dual soruce blending; the non-seperable blending
+           * modes are not supported.
+           */
+          blending_dual_src,
+
+          /*!
+           * Use framebuffer fetch blending; all blending modes
+           * are supported.
+           */
+          blending_framebuffer_fetch,
+
+          /*!
+           * Have the color buffer realized as an image2D and use
+           * fragment shader interlock to get blending order correct;
+           * all blending modes are supported. A backend will
+           * need to define the the functions (or macros) in their
+           * GLSL preamble:
+           *   - fastuidraw_begin_color_buffer_interlock()
+           *   - fastuidraw_end_color_buffer_interlock()
+           */
+          blending_interlock,
         };
 
       /*!
@@ -304,20 +340,34 @@ namespace fastuidraw
         alignment(int v);
 
         /*!
-         * Returns the PainterBlendShader::shader_type the \ref
-         * PainterBackend accepts for \ref PainterBlendShader
-         * objects.
+         * Returns how the painter will perform blending.
+         */
+        enum blending_type_t
+        blending_type(void) const;
+
+        /*!
+         * Specify the return value to blending_type() const.
+         * Default value is \ref blending_dual_src
+         * \param tp blend shader type
+         */
+        ConfigurationGLSL&
+        blending_type(enum blending_type_t tp);
+
+        /*!
+         * Returns a \ref PainterBlendShader::shader_type
+         * value derived from blending_type().
          */
         enum PainterBlendShader::shader_type
         blend_type(void) const;
 
         /*!
-         * Specify the return value to blend_type() const.
-         * Default value is \ref PainterBlendShader::dual_src.
-         * \param tp blend shader type
+         * Alternative way to set the value of blending_type() where
+         * - \ref PainterBlendShader::single_src --> \ref blending_single_src
+         * - \ref PainterBlendShader::dual_src --> \ref blending_dual_src
+         * - \ref PainterBlendShader::framebuffer_fetch_src --> \ref blending_framebuffer_fetch
          */
         ConfigurationGLSL&
-        blend_type(enum PainterBlendShader::shader_type tp);
+        blend_type(enum PainterBlendShader::shader_type);
 
         /*!
          * If true, indicates that the PainterBackend supports
@@ -622,8 +672,8 @@ namespace fastuidraw
         data_store_buffer(enum data_store_backing_t) const;
 
         /*!
-         * Specifies the binding point for the image1D (r8)
-         * image buffer; only active if
+         * Specifies the binding point for the image2D (r8)
+         * auxiliary image buffer; only active if
          * UberShaderParams::provide_auxiliary_image_buffer()
          * is true. Default value is 0.
          */
@@ -636,6 +686,21 @@ namespace fastuidraw
          */
         BindingPoints&
         auxiliary_image_buffer(unsigned int);
+
+        /*!
+         * Specifies the binding point for the image2D (rgba8) color
+         * buffer; only active if ConfigurationGLSL::blending_type()
+         * is \ref blending_interlock. Default value is 1.
+         */
+        unsigned int
+        color_interlock_image_buffer(void) const;
+
+        /*!
+         * Set the value returned by color_interlock_image_buffer(void) const.
+         * Default value is 0.
+         */
+        BindingPoints&
+        color_interlock_image_buffer(unsigned int);
 
       private:
         void *m_d;
