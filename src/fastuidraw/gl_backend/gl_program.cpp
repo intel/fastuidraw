@@ -378,7 +378,7 @@ namespace
 
     virtual
     void
-    pre_finalize_variable(ShaderVariableInfo&)
+    pre_finalize(std::vector<ShaderVariableInfo>&)
     {}
 
     bool m_finalized, m_sort_by_name;
@@ -422,9 +422,13 @@ namespace
     }
 
   private:
+
     virtual
     void
-    pre_finalize_variable(ShaderVariableInfo &v);
+    pre_finalize(std::vector<ShaderVariableInfo>&);
+    
+    void
+    pre_finalize_variable(ShaderVariableInfo &v, unsigned int i);
 
     static
     int
@@ -437,6 +441,7 @@ namespace
     max_buffer_stride(unsigned int buffer,
                       unsigned int num_bytes);
 
+    GLenum m_buffer_mode;
     std::vector<unsigned int> m_buffer_stride;
   };
 
@@ -966,6 +971,8 @@ finalize(void)
       return;
     }
 
+  pre_finalize(m_values);
+
   if (m_sort_by_name)
     {
       std::sort(m_values.begin(), m_values.end());
@@ -973,7 +980,6 @@ finalize(void)
 
   for(unsigned int i = 0, endi = m_values.size(); i < endi; ++i)
     {
-      pre_finalize_variable(m_values[i]);
       m_map[m_values[i].m_name] = i;
     }
 
@@ -1348,6 +1354,10 @@ populate(GLuint program, const fastuidraw::gl::ContextProperties &ctx_props)
         || ctx_props.has_extension("GL_ARB_program_interface_query");
     }
 
+  GLint mode(GL_INVALID_ENUM);
+  glGetProgramiv(program, GL_TRANSFORM_FEEDBACK_BUFFER_MODE, &mode);
+  m_buffer_mode = mode;
+
   if (use_program_interface_query)
     {
       ShaderVariableInterfaceQueryList attribute_queries;
@@ -1405,10 +1415,20 @@ max_buffer_stride(unsigned int buffer,
   m_buffer_stride[buffer] = fastuidraw::t_max(num_bytes,
                                               m_buffer_stride[buffer]);
 }
+
+void
+TransformFeedbackInfo::
+pre_finalize(std::vector<ShaderVariableInfo> &vs)
+{
+  for (unsigned int i = 0; i < vs.size(); ++i)
+    {
+      pre_finalize_variable(vs[i], i);
+    }
+}
                    
 void
 TransformFeedbackInfo::
-pre_finalize_variable(ShaderVariableInfo &v)
+pre_finalize_variable(ShaderVariableInfo &v, unsigned int vi)
 {
   int n, sz;
       
@@ -1446,21 +1466,23 @@ pre_finalize_variable(ShaderVariableInfo &v)
   v.m_array_stride = 4 * n;
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
-      /*
-       * TODO: GLES does not support GL_TRANSFORM_FEEDBACK_BUFFER_INDEX,
-       * so we just assume (potentially) incorrectly that the buffer index
-       * is 0. The right thing to do is check the program's feedback mode
-       * (interleaved or separate) and go from there.
-       */
-      v.m_transform_feedback_buffer_index = 0;
       if (v.m_glsl_type != GL_NONE)
         {
+          if (m_buffer_mode == GL_INTERLEAVED_ATTRIBS)
+            {
+              v.m_transform_feedback_buffer_index = 0;
+            }
+          else
+            {
+              v.m_transform_feedback_buffer_index = vi;
+            }
           max_buffer_stride(v.m_transform_feedback_buffer_index,
                             v.m_offset + 4 * sz * v.m_count);
         }
     }
   #else
     {
+      FASTUIDRAWunused(vi);
       if (v.m_transform_feedback_buffer_index > 0)
         {
           max_buffer_stride(v.m_transform_feedback_buffer_index, 0);
