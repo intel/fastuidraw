@@ -91,6 +91,8 @@ main(void)
   apply_clipping();
 
   /* Please forgive me for placing an if() inside an #ifdef */
+  FASTUIDRAW_BEGIN_AUX_LOCK;
+      
   #ifdef FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE
   if (!fastuidraw_fragment_discarded)
   #endif
@@ -120,14 +122,14 @@ main(void)
         }
       #endif
 
-      FASTUIDRAW_BEGIN_AUX_LOCK;
       c = fastuidraw_run_frag_shader(fastuidraw_frag_shader, fastuidraw_frag_shader_data_location);
-      FASTUIDRAW_END_AUX_LOCK;
 
       b = fastuidraw_compute_brush_color(pbrush, pbrush_dx, pbrush_dy);
       v = b * c;
       v.rgb *= v.a;
     }
+
+  FASTUIDRAW_END_AUX_LOCK;
 
   #ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
     {
