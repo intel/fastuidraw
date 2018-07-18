@@ -110,20 +110,24 @@ namespace
 
   std::ostream&
   operator<<(std::ostream &str,
-             enum_wrapper<enum fastuidraw::PainterBlendShader::shader_type> v)
+             enum_wrapper<enum fastuidraw::glsl::PainterBackendGLSL::blending_type_t> v)
   {
     switch(v.m_v)
       {
-      case fastuidraw::PainterBlendShader::single_src:
+      case fastuidraw::glsl::PainterBackendGLSL::blending_single_src:
         str << "single_src";
         break;
 
-      case fastuidraw::PainterBlendShader::dual_src:
+      case fastuidraw::glsl::PainterBackendGLSL::blending_dual_src:
         str << "dual_src";
         break;
 
-      case fastuidraw::PainterBlendShader::framebuffer_fetch:
+      case fastuidraw::glsl::PainterBackendGLSL::blending_framebuffer_fetch:
         str << "framebuffer_fetch";
+        break;
+
+      case fastuidraw::glsl::PainterBackendGLSL::blending_interlock:
+        str << "interlock";
         break;
 
       default:
@@ -451,22 +455,29 @@ sdl_painter_demo(const std::string &about_text,
   m_assign_binding_points(m_painter_params.assign_binding_points(),
                           "painter_assign_binding_points",
                           "If true, use layout(binding=) in GLSL shader on samplers and buffers", *this),
-  m_blend_type(m_painter_params.blend_type(),
-	       enumerated_string_type<enum fastuidraw::PainterBlendShader::shader_type>()
+  m_blend_type(m_painter_params.blending_type(),
+	       enumerated_string_type<blending_type_t>()
 	       .add_entry("framebuffer_fetch",
-			  fastuidraw::PainterBlendShader::framebuffer_fetch,
+			  fastuidraw::glsl::PainterBackendGLSL::blending_framebuffer_fetch,
 			  "use a framebuffer fetch (if available) to perform blending, "
 			  "thus all blending operations are part of uber-shader giving "
 			  "more flexibility for blend types (namely W3C support) and "
 			  "blend mode changes do not induce pipeline state changes")
+	       .add_entry("interlock",
+			  fastuidraw::glsl::PainterBackendGLSL::blending_interlock,
+			  "use image-load store together with interlock (if both available) "
+                          "to perform blending, tus all blending operations are part of "
+                          "uber-shader giving more flexibility for blend types (namely "
+                          "W3C support) and blend mode changes do not induce pipeline "
+                          "state changes")
 	       .add_entry("dual_src",
-			  fastuidraw::PainterBlendShader::dual_src,
+			  fastuidraw::glsl::PainterBackendGLSL::blending_dual_src,
 			  "use a dual source blending (if available) to perform blending, "
 			  "which has far less flexibility for blending than framebuffer-fetch "
 			  "but has far few pipeline states (there are 3 blend mode pipeline states "
 			  "and hald of the Porter-Duff blend modes are in one blend mode pipeline state")
 	       .add_entry("single_src",
-			  fastuidraw::PainterBlendShader::single_src,
+			  fastuidraw::glsl::PainterBackendGLSL::blending_single_src,
 			  "use single source blending to perform blending, "
 			  "which is even less flexible than dual_src blending and "
 			  "every Porter-Duff blend mode is a different pipeline state"),
@@ -592,7 +603,14 @@ init_gl(int w, int h)
           m_provide_auxiliary_image_buffer.m_value.m_value = fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer;
         }
 
-      if (m_blend_type.m_value.m_value == fastuidraw::PainterBlendShader::framebuffer_fetch)
+      if (m_blend_type.m_value.m_value == fastuidraw::glsl::PainterBackendGLSL::blending_interlock)
+        {
+          std::cout << "WARNING: using interlock with painter_msaa is not possible, falling back to "
+                    << ") framebuffer_fetch\n"
+                    << std::flush;
+        }
+
+      if (m_blend_type.m_value.m_value == fastuidraw::glsl::PainterBackendGLSL::blending_framebuffer_fetch)
         {
           std::cout << "WARNING: using framebuffer fetch with painter_msaa makes all fragment shading happen "
                     << "per sample (which is terribly expensive)\n"
@@ -624,7 +642,7 @@ init_gl(int w, int h)
     .default_stroke_shader_aa_type(m_provide_auxiliary_image_buffer.m_value.m_value != fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer?
                                    fastuidraw::PainterStrokeShader::cover_then_draw :
                                    fastuidraw::PainterStrokeShader::draws_solid_then_fuzz)
-    .blend_type(m_blend_type.m_value.m_value);
+    .blending_type(m_blend_type.m_value.m_value);
 
   m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params);
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
@@ -672,7 +690,7 @@ init_gl(int w, int h)
       LAZY_ENUM(assign_layout_to_varyings);
       LAZY_ENUM(assign_binding_points);
       LAZY_ENUM(default_stroke_shader_aa_type);
-      LAZY_ENUM(blend_type);
+      LAZY_ENUM(blending_type);
       LAZY_ENUM(provide_auxiliary_image_buffer);
       LAZY(alignment);
 
