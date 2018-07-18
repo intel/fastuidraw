@@ -203,10 +203,6 @@ namespace
     void
     stream_unpack_code(fastuidraw::glsl::ShaderSource &src);
 
-    static
-    enum fastuidraw::PainterBlendShader::shader_type
-    shader_blend_type(enum fastuidraw::glsl::PainterBackendGLSL::blending_type_t);
-
     fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL m_config;
     enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
     bool m_shader_code_added;
@@ -233,6 +229,28 @@ namespace
 
     fastuidraw::glsl::PainterBackendGLSL *m_p;
   };
+
+  enum fastuidraw::PainterBlendShader::shader_type
+  shader_blend_type(enum fastuidraw::glsl::PainterBackendGLSL::blending_type_t in_value)
+  {
+    using namespace fastuidraw;
+    using namespace fastuidraw::glsl;
+    switch(in_value)
+      {
+      case PainterBackendGLSL::blending_single_src:
+        return PainterBlendShader::single_src;
+
+      case PainterBackendGLSL::blending_dual_src:
+        return PainterBlendShader::dual_src;
+
+      case PainterBackendGLSL::blending_framebuffer_fetch:
+      case PainterBackendGLSL::blending_interlock:
+        return PainterBlendShader::framebuffer_fetch;
+      }
+
+    FASTUIDRAWassert(!"Bad blending_type_t value");
+    return PainterBlendShader::single_src;
+  }
 }
 
 /////////////////////////////////////
@@ -301,29 +319,6 @@ PainterBackendGLSLPrivate(fastuidraw::glsl::PainterBackendGLSL *p,
 PainterBackendGLSLPrivate::
 ~PainterBackendGLSLPrivate()
 {
-}
-
-enum fastuidraw::PainterBlendShader::shader_type
-PainterBackendGLSLPrivate::
-shader_blend_type(enum fastuidraw::glsl::PainterBackendGLSL::blending_type_t in_value)
-{
-  using namespace fastuidraw;
-  using namespace fastuidraw::glsl;
-  switch(in_value)
-    {
-    case PainterBackendGLSL::blending_single_src:
-      return PainterBlendShader::single_src;
-
-    case PainterBackendGLSL::blending_dual_src:
-      return PainterBlendShader::dual_src;
-
-    case PainterBackendGLSL::blending_framebuffer_fetch:
-    case PainterBackendGLSL::blending_interlock:
-      return PainterBlendShader::framebuffer_fetch;
-    }
-
-  FASTUIDRAWassert(!"Bad blending_type_t value");
-  return PainterBlendShader::single_src;
 }
 
 void
@@ -1248,40 +1243,6 @@ fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
 
 assign_swap_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL)
 
-enum fastuidraw::PainterBlendShader::shader_type
-fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
-blend_type(void) const
-{
-  return PainterBackendGLSLPrivate::shader_blend_type(blending_type());
-}
-
-fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL&
-fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
-blend_type(enum PainterBlendShader::shader_type v)
-{
-  enum blending_type_t w;
-  switch(v)
-    {
-    case PainterBlendShader::single_src:
-      w = blending_single_src;
-      break;
-
-    case PainterBlendShader::dual_src:
-      w = blending_dual_src;
-      break;
-
-    case PainterBlendShader::framebuffer_fetch:
-      w = blending_framebuffer_fetch;
-      break;
-
-    default:
-      FASTUIDRAWassert(!"Invalid PainterBlendShader::shader_type value");
-      w = blending_single_src;
-    }
-  blending_type(w);
-  return *this;
-}
-
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL,
                  ConfigurationGLSLPrivate,
                  int, alignment)
@@ -1475,9 +1436,9 @@ PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
   PainterBackend(glyph_atlas, image_atlas, colorstop_atlas,
                  ConfigurationBase()
                  .alignment(config_glsl.alignment())
-                 .blend_type(config_glsl.blend_type())
+                 .blend_type(shader_blend_type(config_glsl.blending_type()))
                  .supports_bindless_texturing(config_glsl.supports_bindless_texturing()),
-                 detail::ShaderSetCreator(config_glsl.blend_type(),
+                 detail::ShaderSetCreator(shader_blend_type(config_glsl.blending_type()),
                                           config_glsl.default_stroke_shader_aa_type(),
                                           config_glsl.default_stroke_shader_aa_pass1_action(),
                                           config_glsl.default_stroke_shader_aa_pass2_action())
