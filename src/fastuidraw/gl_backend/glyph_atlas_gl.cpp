@@ -767,17 +767,18 @@ use_optimal_geometry_store_backing(void)
   GlyphAtlasGLParamsPrivate *d;
   d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
 
-  const int32_t required_max_size(1u << 26u);
+  /* Required maximal size of 64MB */
+  const int32_t required_max_size(64u << 20u);
 
-  if (detail::compute_tex_buffer_support() != detail::tex_buffer_not_supported
-     && context_get<int>(GL_MAX_TEXTURE_BUFFER_SIZE) >= required_max_size)
-    {
-      d->m_type = glsl::PainterBackendGLSL::glyph_geometry_tbo;
-      d->m_log2_dims_geometry_store = ivec2(-1, -1);
-    }
-  else if (context_get<int>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE) >= required_max_size)
+  if (context_get<int>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE) >= required_max_size)
     {
       d->m_type = glsl::PainterBackendGLSL::glyph_geometry_ssbo;
+      d->m_log2_dims_geometry_store = ivec2(-1, -1);
+    }
+  else if (detail::compute_tex_buffer_support() != detail::tex_buffer_not_supported
+           && context_get<int>(GL_MAX_TEXTURE_BUFFER_SIZE) >= required_max_size)
+    {
+      d->m_type = glsl::PainterBackendGLSL::glyph_geometry_tbo;
       d->m_log2_dims_geometry_store = ivec2(-1, -1);
     }
   else
