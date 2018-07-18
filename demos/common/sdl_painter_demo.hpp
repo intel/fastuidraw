@@ -74,8 +74,7 @@ private:
   command_line_argument_value<int> m_num_index_layers;
   command_line_argument_value<bool> m_image_atlas_delayed_upload;
 
-  /* Glyph atlas parameters
-   */
+  /* Glyph atlas parameters */
   command_separator m_glyph_atlas_options;
   command_line_argument_value<int> m_texel_store_width, m_texel_store_height;
   command_line_argument_value<int> m_texel_store_num_layers, m_geometry_store_size;
@@ -84,16 +83,14 @@ private:
   enumerated_command_line_argument_value<enum glyph_geometry_backing_store_t> m_glyph_geometry_backing_store_type;
   command_line_argument_value<int> m_glyph_geometry_backing_texture_log2_w, m_glyph_geometry_backing_texture_log2_h;
 
-  /* ColorStop atlas parameters
-   */
+  /* ColorStop atlas parameters */
   command_separator m_colorstop_atlas_options;
   command_line_argument_value<int> m_color_stop_atlas_width;
   command_line_argument_value<bool> m_color_stop_atlas_use_optimal_width;
   command_line_argument_value<int> m_color_stop_atlas_layers;
   command_line_argument_value<bool> m_color_stop_atlas_delayed_upload;
 
-  /* Painter params
-   */
+  /* Painter params */
   command_separator m_painter_options;
   command_line_argument_value<int> m_painter_attributes_per_buffer;
   command_line_argument_value<int> m_painter_indices_per_buffer;
@@ -106,8 +103,7 @@ private:
   command_line_argument_value<bool> m_separate_program_for_discard;
   command_line_argument_value<unsigned int> m_painter_msaa;
 
-  /* Painter params that can be overridden by properties of GL context
-   */
+  /* Painter params that can be overridden by properties of GL context */
   command_separator m_painter_options_affected_by_context;
   enumerated_command_line_argument_value<auxiliary_buffer_t> m_provide_auxiliary_image_buffer;
   enumerated_command_line_argument_value<clipping_type_t> m_use_hw_clip_planes;
@@ -118,7 +114,8 @@ private:
   command_line_argument_value<bool> m_assign_layout_to_varyings;
   command_line_argument_value<bool> m_assign_binding_points;
   enumerated_command_line_argument_value<blending_type_t> m_blend_type;
-
+  command_line_argument_value<bool> m_painter_optimal;
+  
   command_separator m_demo_options;
   command_line_argument_value<bool> m_print_painter_config;
   command_line_argument_value<bool> m_print_painter_shader_ids;

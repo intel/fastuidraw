@@ -484,6 +484,10 @@ sdl_painter_demo(const std::string &about_text,
 	       "painter_blend_type",
 	       "specifies how the painter will perform blending",
 	       *this),
+  m_painter_optimal(false, "painter_optimal_auto",
+                    "If set to true, override all painter options and "
+                    "query the GL/GLES context to configure the options",
+                    *this),
   m_demo_options("Demo Options", *this),
   m_print_painter_config(default_value_for_print_painter,
                          "print_painter_config",
@@ -528,7 +532,16 @@ init_gl(int w, int h)
     .delayed(m_image_atlas_delayed_upload.m_value);
   m_image_atlas = FASTUIDRAWnew fastuidraw::gl::ImageAtlasGL(m_image_atlas_params);
 
-  fastuidraw::ivec3 texel_dims(m_texel_store_width.m_value, m_texel_store_height.m_value, m_texel_store_num_layers.m_value);
+  fastuidraw::ivec3 texel_dims(m_texel_store_width.m_value,
+                               m_texel_store_height.m_value,
+                               m_texel_store_num_layers.m_value);
+
+  if (m_painter_optimal.m_value)
+    {
+      m_color_stop_atlas_use_optimal_width.m_value = true;
+      m_glyph_geometry_backing_store_type.m_value.m_value = glyph_geometry_backing_store_auto;
+    }
+
   m_glyph_atlas_params
     .texel_store_dimensions(texel_dims)
     .number_floats(m_geometry_store_size.m_value)
@@ -592,6 +605,10 @@ init_gl(int w, int h)
     }
 
   m_colorstop_atlas = FASTUIDRAWnew fastuidraw::gl::ColorStopAtlasGL(m_colorstop_atlas_params);
+  if (m_painter_optimal.m_value)
+    {
+      m_painter_params.configure_from_context(m_painter_msaa.m_value > 1);
+    }
 
   if (m_painter_msaa.m_value > 1)
     {
@@ -618,31 +635,36 @@ init_gl(int w, int h)
         }
     }
 
+  if (!m_painter_optimal.m_value)
+    {
+      m_painter_params
+        .alignment(m_painter_alignment.m_value)
+        .attributes_per_buffer(m_painter_attributes_per_buffer.m_value)
+        .indices_per_buffer(m_painter_indices_per_buffer.m_value)
+        .data_blocks_per_store_buffer(m_painter_data_blocks_per_buffer.m_value)
+        .number_pools(m_painter_number_pools.m_value)
+        .break_on_shader_change(m_painter_break_on_shader_change.m_value)
+        .clipping_type(m_use_hw_clip_planes.m_value.m_value)
+        .vert_shader_use_switch(m_uber_vert_use_switch.m_value)
+        .frag_shader_use_switch(m_uber_frag_use_switch.m_value)
+        .blend_shader_use_switch(m_uber_blend_use_switch.m_value)
+        .unpack_header_and_brush_in_frag_shader(m_unpack_header_and_brush_in_frag_shader.m_value)
+        .data_store_backing(m_data_store_backing.m_value.m_value)
+        .assign_layout_to_vertex_shader_inputs(m_assign_layout_to_vertex_shader_inputs.m_value)
+        .assign_layout_to_varyings(m_assign_layout_to_varyings.m_value)
+        .assign_binding_points(m_assign_binding_points.m_value)
+        .separate_program_for_discard(m_separate_program_for_discard.m_value)
+        .provide_auxiliary_image_buffer(m_provide_auxiliary_image_buffer.m_value.m_value)
+        .default_stroke_shader_aa_type(m_provide_auxiliary_image_buffer.m_value.m_value != fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer?
+                                       fastuidraw::PainterStrokeShader::cover_then_draw :
+                                       fastuidraw::PainterStrokeShader::draws_solid_then_fuzz)
+        .blending_type(m_blend_type.m_value.m_value);
+    }
+
   m_painter_params
-    .alignment(m_painter_alignment.m_value)
     .image_atlas(m_image_atlas)
     .glyph_atlas(m_glyph_atlas)
-    .colorstop_atlas(m_colorstop_atlas)
-    .attributes_per_buffer(m_painter_attributes_per_buffer.m_value)
-    .indices_per_buffer(m_painter_indices_per_buffer.m_value)
-    .data_blocks_per_store_buffer(m_painter_data_blocks_per_buffer.m_value)
-    .number_pools(m_painter_number_pools.m_value)
-    .break_on_shader_change(m_painter_break_on_shader_change.m_value)
-    .clipping_type(m_use_hw_clip_planes.m_value.m_value)
-    .vert_shader_use_switch(m_uber_vert_use_switch.m_value)
-    .frag_shader_use_switch(m_uber_frag_use_switch.m_value)
-    .blend_shader_use_switch(m_uber_blend_use_switch.m_value)
-    .unpack_header_and_brush_in_frag_shader(m_unpack_header_and_brush_in_frag_shader.m_value)
-    .data_store_backing(m_data_store_backing.m_value.m_value)
-    .assign_layout_to_vertex_shader_inputs(m_assign_layout_to_vertex_shader_inputs.m_value)
-    .assign_layout_to_varyings(m_assign_layout_to_varyings.m_value)
-    .assign_binding_points(m_assign_binding_points.m_value)
-    .separate_program_for_discard(m_separate_program_for_discard.m_value)
-    .provide_auxiliary_image_buffer(m_provide_auxiliary_image_buffer.m_value.m_value)
-    .default_stroke_shader_aa_type(m_provide_auxiliary_image_buffer.m_value.m_value != fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer?
-                                   fastuidraw::PainterStrokeShader::cover_then_draw :
-                                   fastuidraw::PainterStrokeShader::draws_solid_then_fuzz)
-    .blending_type(m_blend_type.m_value.m_value);
+    .colorstop_atlas(m_colorstop_atlas);
 
   m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params);
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
