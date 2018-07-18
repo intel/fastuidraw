@@ -438,6 +438,16 @@ namespace fastuidraw
         ConfigurationGL&
         provide_auxiliary_image_buffer(enum auxiliary_buffer_t);
 
+        /*!
+         * Set the values for optimal performance by quering the
+         * GL context.
+         * \param for_msaa if false, assume surface targets will
+         *                 not have MSAA (i.e. SurfaceGL::msaa() is
+         *                 0 or 1).
+         */
+        ConfigurationGL&
+        configure_from_context(bool for_msaa = false);
+
       private:
         void *m_d;
       };
