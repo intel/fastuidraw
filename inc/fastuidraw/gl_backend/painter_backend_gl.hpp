@@ -409,19 +409,18 @@ namespace fastuidraw
         default_stroke_shader_aa_type(enum PainterStrokeShader::type_t);
 
         /*!
-         * Returns the blend_type() to be used by the PainterBackendGL,
-         * if the spcified blend type is not supported, falls back to
-         * first to PainterBlendShader::dual_src and if that is
-         * not supported falls back to PainterBlendShader::single_src.
+         * Returns how the painter will perform blending.
          */
-        enum PainterBlendShader::shader_type
-        blend_type(void) const;
+        enum blending_type_t
+        blending_type(void) const;
 
         /*!
-         * Set the value for blend_type(void) const
+         * Specify the return value to blending_type() const.
+         * Default value is \ref blending_dual_src
+         * \param tp blend shader type
          */
         ConfigurationGL&
-        blend_type(enum PainterBlendShader::shader_type v);
+        blending_type(enum blending_type_t tp);
 
         /*!
          * If true, provide an image2D (of type r8) uniform to

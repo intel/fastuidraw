@@ -51,6 +51,7 @@ private:
   typedef enum fastuidraw::gl::PainterBackendGL::data_store_backing_t data_store_backing_t;
   typedef enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t auxiliary_buffer_t;
   typedef enum fastuidraw::glsl::PainterBackendGLSL::clipping_type_t clipping_type_t;
+  typedef enum fastuidraw::glsl::PainterBackendGLSL::blending_type_t blending_type_t;
   enum glyph_geometry_backing_store_t
     {
       glyph_geometry_backing_store_texture_buffer,
@@ -116,7 +117,7 @@ private:
   command_line_argument_value<bool> m_assign_layout_to_vertex_shader_inputs;
   command_line_argument_value<bool> m_assign_layout_to_varyings;
   command_line_argument_value<bool> m_assign_binding_points;
-  enumerated_command_line_argument_value<enum fastuidraw::PainterBlendShader::shader_type> m_blend_type;
+  enumerated_command_line_argument_value<blending_type_t> m_blend_type;
 
   command_separator m_demo_options;
   command_line_argument_value<bool> m_print_painter_config;
