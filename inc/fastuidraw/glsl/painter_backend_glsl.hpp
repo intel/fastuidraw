@@ -354,22 +354,6 @@ namespace fastuidraw
         blending_type(enum blending_type_t tp);
 
         /*!
-         * Returns a \ref PainterBlendShader::shader_type
-         * value derived from blending_type().
-         */
-        enum PainterBlendShader::shader_type
-        blend_type(void) const;
-
-        /*!
-         * Alternative way to set the value of blending_type() where
-         * - \ref PainterBlendShader::single_src --> \ref blending_single_src
-         * - \ref PainterBlendShader::dual_src --> \ref blending_dual_src
-         * - \ref PainterBlendShader::framebuffer_fetch_src --> \ref blending_framebuffer_fetch
-         */
-        ConfigurationGLSL&
-        blend_type(enum PainterBlendShader::shader_type);
-
-        /*!
          * If true, indicates that the PainterBackend supports
          * bindless texturing. Default value is false.
          */
