@@ -113,6 +113,12 @@ private:
   enum fastuidraw::return_code
   init_sdl(void);
 
+  void
+  set_sdl_gl_context_attributes(void);
+
+  void
+  create_sdl_gl_context(void);
+
   std::string m_about;
   command_separator m_common_label;
   command_line_argument_value<int> m_red_bits;
@@ -137,6 +143,7 @@ private:
   command_line_argument_value<bool> m_gl_forward_compatible_context;
   command_line_argument_value<bool> m_gl_debug_context;
   command_line_argument_value<bool> m_gl_core_profile;
+  command_line_argument_value<bool> m_try_to_get_latest_gl_version;
 #endif
   command_line_argument_value<bool> m_use_egl;
   command_line_argument_value<bool> m_show_framerate;

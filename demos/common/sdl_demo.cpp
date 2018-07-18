@@ -217,6 +217,11 @@ sdl_demo(const std::string &about_text, bool dimensions_must_match_default_value
   m_gl_forward_compatible_context(false, "foward_context", "if true request forward compatible context", *this),
   m_gl_debug_context(false, "debug_context", "if true request a context with debug", *this),
   m_gl_core_profile(true, "core_context", "if true request a context which is core profile", *this),
+  m_try_to_get_latest_gl_version(true, "try_to_get_latest_gl_version",
+                                 "If true, first create a GL context the old fashioned way "
+                                 "and query its context version and then max that value with "
+                                 "the requested version before making the context used by the application",
+                                 *this),
   #endif
 
   m_use_egl(false, "use_egl", "If true, use EGL API to create GL/GLES context", *this),
@@ -248,41 +253,10 @@ sdl_demo::
     }
 }
 
-enum fastuidraw::return_code
+void
 sdl_demo::
-init_sdl(void)
+set_sdl_gl_context_attributes(void)
 {
-  if (SDL_Init(SDL_INIT_EVERYTHING)<0)
-    {
-      std::cerr << "\nFailed on SDL_Init\n";
-      return fastuidraw::routine_fail;
-    }
-
-  int video_flags;
-  video_flags = SDL_WINDOW_RESIZABLE;
-
-  if (m_fullscreen.m_value)
-    {
-      video_flags = video_flags | SDL_WINDOW_FULLSCREEN;
-    }
-
-  video_flags |= SDL_WINDOW_OPENGL;
-
-  /* set GL attributes: */
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, m_stencil_bits.m_value);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, m_depth_bits.m_value);
-  SDL_GL_SetAttribute(SDL_GL_RED_SIZE, m_red_bits.m_value);
-  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, m_green_bits.m_value);
-  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, m_blue_bits.m_value);
-  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, m_alpha_bits.m_value);
-
-  if (m_use_msaa.m_value)
-    {
-      SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-      SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, m_msaa.m_value);
-    }
-
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
       SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_gl_major.m_value);
@@ -322,13 +296,109 @@ init_sdl(void)
 	}
     }
   #endif
+}
 
+void
+sdl_demo::
+create_sdl_gl_context(void)
+{
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      set_sdl_gl_context_attributes();
+      m_ctx = SDL_GL_CreateContext(m_window);
+    }
+  #else
+    {
+      if (!m_try_to_get_latest_gl_version.m_value)
+        {
+          set_sdl_gl_context_attributes();
+          m_ctx = SDL_GL_CreateContext(m_window);
+          return;
+        }
+
+      /* Some WGL/GLX implementations will only give the exact GL
+       * version requested, but for our purposes we really want the
+       * latest version we can get. Very often, by having SDL create
+       * a context the old-fashioned way, we can get a context of
+       * the greatest version for compatibility profiles. We get SDL to
+       * make a GL context the old-fashioned way by NOT setting any
+       * of the SDL-GL attributes related to context versions/profiles
+       */
+      m_ctx = SDL_GL_CreateContext(m_window);
+      if (m_ctx == nullptr)
+        {
+          std::cerr << "Unable to create vanilla GL context: " << SDL_GetError() << "\n";
+          return;
+        }
+      SDL_GL_MakeCurrent(m_window, m_ctx);
+
+      /* Query the version of a context made the old-way and max
+       * that value with the requested version; note that we
+       * CANNOT use ngl_ system because (1) the get_proc function
+       * is not yet assigned and (2) some GL implementation on
+       * MS-Windows have that the functions returned by
+       * wglGetProcAddress are only good for the context that made
+       * them (shudders).
+       */
+      PFNGLGETINTEGERVPROC get_integer;
+      get_integer = (PFNGLGETINTEGERVPROC)get_proc("glGetIntegerv");
+      if (get_integer)
+        {
+          fastuidraw::ivec2 ver(0, 0);
+          fastuidraw::ivec2 req(m_gl_major.m_value, m_gl_minor.m_value);
+
+          get_integer(GL_MAJOR_VERSION, &ver.x());
+          get_integer(GL_MINOR_VERSION, &ver.y());
+          req = fastuidraw::t_max(ver, req);     
+          m_gl_major.m_value = req.x();
+          m_gl_minor.m_value = req.y();
+        }
+
+      SDL_GL_MakeCurrent(m_window, nullptr);
+      SDL_GL_DeleteContext(m_ctx);
+      set_sdl_gl_context_attributes();
+      m_ctx = SDL_GL_CreateContext(m_window);
+    }
+  #endif
+}
+
+enum fastuidraw::return_code
+sdl_demo::
+init_sdl(void)
+{
+  if (SDL_Init(SDL_INIT_EVERYTHING)<0)
+    {
+      std::cerr << "\nFailed on SDL_Init\n";
+      return fastuidraw::routine_fail;
+    }
+
+  int video_flags;
+  video_flags = SDL_WINDOW_RESIZABLE;
+
+  if (m_fullscreen.m_value)
+    {
+      video_flags = video_flags | SDL_WINDOW_FULLSCREEN;
+    }
+
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, m_stencil_bits.m_value);
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, m_depth_bits.m_value);
+  SDL_GL_SetAttribute(SDL_GL_RED_SIZE, m_red_bits.m_value);
+  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, m_green_bits.m_value);
+  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, m_blue_bits.m_value);
+  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, m_alpha_bits.m_value);
+  if (m_use_msaa.m_value)
+    {
+      SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+      SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, m_msaa.m_value);
+    }
+
+  video_flags |= SDL_WINDOW_OPENGL;
   m_window = SDL_CreateWindow("",
                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                               m_width.m_value,
                               m_height.m_value,
                               video_flags);
-
 
   if (m_window == nullptr)
     {
@@ -377,7 +447,7 @@ init_sdl(void)
 
   if (!m_ctx_egl)
     {
-      m_ctx = SDL_GL_CreateContext(m_window);
+      create_sdl_gl_context();
       if (m_ctx == nullptr)
         {
           std::cerr << "Unable to create GL context: " << SDL_GetError() << "\n";
