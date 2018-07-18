@@ -2160,18 +2160,22 @@ configure_source_front_matter(void)
     {
       bool using_glsl42, using_glsl43;
       GlyphAtlasGL *glyphs;
-      bool require_ssbo;
+      bool require_ssbo, require_image_load_store;
 
       FASTUIDRAWassert(dynamic_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get()));
       glyphs = static_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get());
-
+      
       require_ssbo = (m_uber_shader_builder_params.data_store_backing() == PainterBackendGL::data_store_ssbo)
         || (glyphs->geometry_binding_point() == GL_SHADER_STORAGE_BUFFER);
+
+      require_image_load_store = (m_params.blending_type() == PainterBackendGL::blending_interlock)
+        || (m_uber_shader_builder_params.provide_auxiliary_image_buffer() != PainterBackendGL::no_auxiliary_buffer)
+        || require_ssbo;
       
       using_glsl42 = m_ctx_properties.version() >= ivec2(4, 2)
         && (m_uber_shader_builder_params.assign_layout_to_varyings()
             || m_uber_shader_builder_params.assign_binding_points()
-            || m_uber_shader_builder_params.provide_auxiliary_image_buffer() != PainterBackendGL::no_auxiliary_buffer);
+            || require_image_load_store);
 
       using_glsl43 = using_glsl42
         && m_ctx_properties.version() >= ivec2(4, 3)
@@ -2206,12 +2210,12 @@ configure_source_front_matter(void)
               m_front_matter_vert.specify_extension("GL_ARB_shading_language_420pack", ShaderSource::require_extension);
               m_front_matter_frag.specify_extension("GL_ARB_shading_language_420pack", ShaderSource::require_extension);
             }
+        }
 
-          if (m_uber_shader_builder_params.provide_auxiliary_image_buffer() != PainterBackendGLSL::no_auxiliary_buffer)
-            {
-              m_front_matter_frag
-                .specify_extension("GL_ARB_shader_image_load_store", ShaderSource::require_extension);
-            }
+      if (require_image_load_store && !using_glsl42)
+        {
+          m_front_matter_frag
+            .specify_extension("GL_ARB_shader_image_load_store", ShaderSource::require_extension);
         }
 
       if (require_ssbo && !using_glsl43)
