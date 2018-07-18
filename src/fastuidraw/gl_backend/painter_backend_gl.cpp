@@ -2731,6 +2731,142 @@ fastuidraw::gl::PainterBackendGL::ConfigurationGL::
   m_d = nullptr;
 }
 
+fastuidraw::gl::PainterBackendGL::ConfigurationGL&
+fastuidraw::gl::PainterBackendGL::ConfigurationGL::
+configure_from_context(bool for_msaa)
+{
+  ContextProperties ctx;
+  ConfigurationGLPrivate *d;
+  enum interlock_type_t interlock_type;
+
+  d = static_cast<ConfigurationGLPrivate*>(m_d);
+  interlock_type = compute_interlock_type(ctx);
+
+  /* First set ideal parameters */
+  d->m_alignment = 4;
+
+  d->m_break_on_shader_change = false;
+  d->m_clipping_type = clipping_via_gl_clip_distance;
+
+  /* unpacking oodles of data in frag-shader is way
+   * more expensive than having oddles of varyings.
+   */
+  d->m_unpack_header_and_brush_in_frag_shader = false;
+
+  /* These do not impact performance, but they make
+   * cleaner initialization.
+   */
+  d->m_assign_layout_to_vertex_shader_inputs = true;
+  d->m_assign_layout_to_varyings = true;
+  d->m_assign_binding_points = true;
+  d->m_separate_program_for_discard = true;
+  
+  if (!for_msaa)
+    {
+      d->m_default_stroke_shader_aa_type = PainterStrokeShader::cover_then_draw;
+      d->m_blending_type = blending_framebuffer_fetch;
+      d->m_provide_auxiliary_image_buffer = auxiliary_buffer_interlock;
+    }
+  else
+    {
+      /* if one is drawing with MSAA, one should NOT use shader based anti-aliasing
+       * when stroking or filling anways.
+       */
+      d->m_default_stroke_shader_aa_type = PainterStrokeShader::draws_solid_then_fuzz;
+      d->m_provide_auxiliary_image_buffer = no_auxiliary_buffer;
+
+      /* blending_interlock does NOT work with MSAA and blending_framebuffer_fetch would
+       * force the fragment shader to work per-sample.
+       */
+      d->m_blending_type = blending_dual_src;
+    }
+
+  /* pay attention to the context for m_provide_auxiliary_image_buffer;
+   * also, only have an auxilary buffer if an interlock is supported.
+   */
+  if (interlock_type == no_interlock)
+    {
+      /* only use an auxiliary buffer if interlock is provided in some form */
+      d->m_provide_auxiliary_image_buffer = no_auxiliary_buffer;
+    }
+  else
+    {
+      d->m_provide_auxiliary_image_buffer =
+        compute_provide_auxiliary_buffer(d->m_provide_auxiliary_image_buffer, ctx);
+    }
+  if (d->m_provide_auxiliary_image_buffer == no_auxiliary_buffer)
+    {
+      d->m_default_stroke_shader_aa_type = PainterStrokeShader::draws_solid_then_fuzz;
+    }
+
+  /* Adjust blending type from GL context properties */
+  d->m_blending_type = compute_blending_type(d->m_provide_auxiliary_image_buffer,
+                                             interlock_type, d->m_blending_type,
+                                             ctx);
+
+  /* Adjust clipping type from GL context properties */
+  d->m_clipping_type = compute_clipping_type(d->m_blending_type,
+                                             d->m_clipping_type,
+                                             ctx);
+
+  /* pay attention to the context for m_data_store_backing.
+   * Generally speaking, for caching UBO > SSBO > TBO,
+   * but max UBO size might be too tiny, we are arbitrarily
+   * guessing that the data store buffer should be 64K blocks
+   * (which is 256KB); what size is good is really depends on
+   * how much data each frame will have which mostly depends
+   * on how often the brush and transformations and clipping
+   * change.
+   */
+  d->m_data_blocks_per_store_buffer = 1024 * 64;
+  d->m_data_store_backing = data_store_ubo;
+
+  unsigned int max_ubo_size, max_num_blocks, block_size;
+  block_size = d->m_alignment * sizeof(generic_data);
+  max_ubo_size = context_get<GLint>(GL_MAX_UNIFORM_BLOCK_SIZE);
+  max_num_blocks = max_ubo_size / block_size;
+  if (max_num_blocks < d->m_data_blocks_per_store_buffer)
+    {
+      if (shader_storage_buffers_supported(ctx))
+        {
+          d->m_data_store_backing = data_store_ssbo;
+        }
+      else if (detail::compute_tex_buffer_support(ctx) != detail::tex_buffer_not_supported)
+        {
+          d->m_data_store_backing = data_store_tbo;
+        }
+    }
+
+  d->m_clipping_type = compute_clipping_type(d->m_blending_type,
+                                             d->m_clipping_type,
+                                             ctx);
+
+  /* likely shader compilers like if/ese chains more than
+   * switches, atleast Mesa really prefers if/else chains
+   */
+  d->m_vert_shader_use_switch = false;
+  d->m_frag_shader_use_switch = false;
+  d->m_blend_shader_use_switch = false;
+
+  /* UI rendering is often dominated by drawing quads which
+   * means for every 6 indices there are 4 attributes. However,
+   * how many quads per draw-call, we just guess at 512 * 512
+   * attributes
+   */
+  d->m_attributes_per_buffer = 512 * 512;
+  d->m_indices_per_buffer = (d->m_attributes_per_buffer * 6) / 4;
+
+  /* Very often drivers will have the previous frame still
+   * in flight when a new frame is started, so we do not want
+   * to modify buffers in use, so that puts the minumum number
+   * of pools to 2. Also, often enough there is triple buffering
+   * so we play it safe and make it 3.
+   */
+  d->m_number_pools = 3;
+
+  return *this;
+}
+
 assign_swap_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL)
 
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
