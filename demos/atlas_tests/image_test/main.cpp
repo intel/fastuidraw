@@ -141,12 +141,12 @@ protected:
       {
         reference_counted_ptr<Image> p;
         p = Image::create(m_atlas, image_data.width(), image_data.height(),
-                          image_data, m_slack.m_value);
+                          image_data, m_slack.value());
 
         m_image_handles.push_back(p);
         m_image_names.push_back(filename);
 
-        if (m_print_loaded_image_list.m_value)
+        if (m_print_loaded_image_list.value())
           {
             std::cout << "Image \"" << filename
                       << " of size " << m_image_handles.back()->dimensions()
@@ -428,24 +428,24 @@ private:
     int max_layers(0);
 
     max_layers = fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS);
-    if (max_layers < m_num_color_layers.m_value)
+    if (max_layers < m_num_color_layers.value())
       {
 	std::cout << "num_color_layers exceeds max number texture layers (" << max_layers
 		  << "), num_color_layers set to that value.\n";
-	m_num_color_layers.m_value = max_layers;
+	m_num_color_layers.value() = max_layers;
       }
 
     params
-      .log2_color_tile_size(m_log2_color_tile_size.m_value)
-      .log2_num_color_tiles_per_row_per_col(m_log2_num_color_tiles_per_row_per_col.m_value)
-      .num_color_layers(m_num_color_layers.m_value)
-      .log2_index_tile_size(m_log2_index_tile_size.m_value)
-      .log2_num_index_tiles_per_row_per_col(m_log2_num_index_tiles_per_row_per_col.m_value)
-      .num_index_layers(m_num_index_layers.m_value)
+      .log2_color_tile_size(m_log2_color_tile_size.value())
+      .log2_num_color_tiles_per_row_per_col(m_log2_num_color_tiles_per_row_per_col.value())
+      .num_color_layers(m_num_color_layers.value())
+      .log2_index_tile_size(m_log2_index_tile_size.value())
+      .log2_num_index_tiles_per_row_per_col(m_log2_num_index_tiles_per_row_per_col.value())
+      .num_index_layers(m_num_index_layers.value())
       .delayed(false);
 
     m_atlas = FASTUIDRAWnew gl::ImageAtlasGL(params);
-    m_slack.m_value = std::max(0, m_slack.m_value);
+    m_slack.value() = std::max(0, m_slack.value());
 
     for(command_line_list::iterator iter = m_images.begin(); iter != m_images.end(); ++iter)
       {
@@ -469,7 +469,7 @@ private:
               }
           }
         m_image_handles.push_back(Image::create(m_atlas, image_size.x(), image_size.y(),
-                                                cast_c_array(image_data), m_slack.m_value));
+                                                cast_c_array(image_data), m_slack.value()));
         m_image_names.push_back("Simple Checkerboard");
       }
 
@@ -533,11 +533,11 @@ private:
                                      .add_sampler_initializer("imageAtlas", color_atlas_texture_unit)
                                      .add_sampler_initializer("indexAtlas", index_atlas_texture_unit)
                                      .add_uniform_initializer<float>("color_tile_size",
-                                                                     float(m_atlas->color_tile_size() - 2 * m_slack.m_value))
+                                                                     float(m_atlas->color_tile_size() - 2 * m_slack.value()))
                                      .add_uniform_initializer<float>("index_tile_size", float(m_atlas->index_tile_size()))
                                      .add_uniform_initializer<unsigned int>("uniform_image_num_lookups",
                                                                             m_image_handles.front()->number_index_lookups())
-                                     .add_uniform_initializer<unsigned int>("image_slack", m_slack.m_value)
+                                     .add_uniform_initializer<unsigned int>("image_slack", m_slack.value())
                                      .add_uniform_initializer<vec3>("imageAtlasDims",
                                                                     vec3(m_atlas->color_store()->dimensions())) );
 

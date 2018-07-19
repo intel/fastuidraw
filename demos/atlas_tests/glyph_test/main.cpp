@@ -383,7 +383,7 @@ draw(glyph_test *q, int which_program, const float4x4 &pvm, int layer, unsigned 
   if (m_programs[which_program].m_fg_color_loc != -1)
     {
       gl::Uniform(m_programs[which_program].m_fg_color_loc,
-                  vec3(q->m_fg_red.m_value, q->m_fg_green.m_value, q->m_fg_blue.m_value));
+                  vec3(q->m_fg_red.value(), q->m_fg_green.value(), q->m_fg_blue.value()));
     }
 
   glDrawElements(GL_TRIANGLES, m_index_count, GL_UNSIGNED_INT, nullptr);
@@ -554,15 +554,15 @@ create_and_add_font(void)
 {
   reference_counted_ptr<FreeTypeFace::GeneratorFile> gen;
 
-  gen = FASTUIDRAWnew FreeTypeFace::GeneratorFile(m_font_file.m_value.c_str(), m_font_index.m_value);
+  gen = FASTUIDRAWnew FreeTypeFace::GeneratorFile(m_font_file.value().c_str(), m_font_index.value());
   m_face = gen->create_face();
   if (m_face)
     {
       m_font = FASTUIDRAWnew FontFreeType(gen,
                                           FontFreeType::RenderParams()
-                                          .distance_field_max_distance(m_max_distance.m_value)
-                                          .distance_field_pixel_size(m_distance_pixel_size.m_value)
-                                          .curve_pair_pixel_size(m_curve_pair_pixel_size.m_value));
+                                          .distance_field_max_distance(m_max_distance.value())
+                                          .distance_field_pixel_size(m_distance_pixel_size.value())
+                                          .curve_pair_pixel_size(m_curve_pair_pixel_size.value()));
       m_glyph_selector->add_font(m_font);
       return routine_success;
     }
@@ -570,7 +570,7 @@ create_and_add_font(void)
     {
       std::cout << "\n-----------------------------------------------------"
                 << "\nWarning: unable to create font from file \""
-                << m_font_file.m_value << "\"\n"
+                << m_font_file.value() << "\"\n"
                 << "-----------------------------------------------------\n";
       return routine_fail;
     }
@@ -588,27 +588,27 @@ void
 glyph_test::
 init_gl(int w, int h)
 {
-  ivec3 texel_dims(m_texel_store_width.m_value, m_texel_store_height.m_value,
-                   m_texel_store_num_layers.m_value);
+  ivec3 texel_dims(m_texel_store_width.value(), m_texel_store_height.value(),
+                   m_texel_store_num_layers.value());
 
   set_pvm(w, h);
 
   gl::GlyphAtlasGL::params glyph_atlas_options;
   glyph_atlas_options
     .texel_store_dimensions(texel_dims)
-    .number_floats(m_geometry_store_size.m_value)
-    .alignment(m_geometry_store_alignment.m_value)
-    .delayed(m_atlas_delayed_upload.m_value);
+    .number_floats(m_geometry_store_size.value())
+    .alignment(m_geometry_store_alignment.value())
+    .delayed(m_atlas_delayed_upload.value());
 
-  switch(m_geometry_backing_store_type.m_value.m_value)
+  switch(m_geometry_backing_store_type.value())
     {
     case geometry_backing_store_texture_buffer:
       glyph_atlas_options.use_texture_buffer_geometry_store();
       break;
 
     case geometry_backing_store_texture_array:
-      glyph_atlas_options.use_texture_2d_array_geometry_store(m_geometry_backing_texture_log2_w.m_value,
-                                                              m_geometry_backing_texture_log2_h.m_value);
+      glyph_atlas_options.use_texture_2d_array_geometry_store(m_geometry_backing_texture_log2_w.value(),
+                                                              m_geometry_backing_texture_log2_h.value());
       break;
 
     case geometry_backing_store_ssbo:
@@ -859,12 +859,12 @@ compute_glyphs_and_positions_glyph_set(fastuidraw::GlyphRender renderer, float p
   /* Get all the glyphs */
   simple_time timer;
   std::vector<int> cnts;
-  GlyphSetGenerator::generate(m_realize_glyphs_thread_count.m_value, renderer,
+  GlyphSetGenerator::generate(m_realize_glyphs_thread_count.value(), renderer,
                               m_font, m_face, glyphs, m_glyph_cache, cnts);
   std::cout << "Took " << timer.elapsed()
             << " ms to generate glyphs of type "
             << renderer << "\n";
-  for(int i = 0; i < m_realize_glyphs_thread_count.m_value; ++i)
+  for(int i = 0; i < m_realize_glyphs_thread_count.value(); ++i)
     {
       std::cout << "\tThread #" << i << " generated " << cnts[i] << " glyphs.\n";
     }
@@ -998,14 +998,14 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
                              std::vector<Glyph> &glyphs, std::vector<vec2> &positions,
                              std::vector<uint32_t> &character_codes)
 {
-  if (m_draw_glyph_set.m_value)
+  if (m_draw_glyph_set.value())
     {
       compute_glyphs_and_positions_glyph_set(renderer, pixel_size_formatting,
                                              glyphs, positions, character_codes);
     }
-  else if (m_use_file.m_value)
+  else if (m_use_file.value())
     {
-      std::ifstream istr(m_text.m_value.c_str(), std::ios::binary);
+      std::ifstream istr(m_text.value().c_str(), std::ios::binary);
       if (istr)
         {
           create_formatted_text(istr, renderer, pixel_size_formatting,
@@ -1015,7 +1015,7 @@ compute_glyphs_and_positions(fastuidraw::GlyphRender renderer, float pixel_size_
     }
   else
     {
-      std::istringstream istr(m_text.m_value);
+      std::istringstream istr(m_text.value());
       create_formatted_text(istr, renderer, pixel_size_formatting,
                             m_font, m_glyph_selector, glyphs, positions,
                             character_codes);
@@ -1033,10 +1033,10 @@ ready_attributes_indices(void)
   std::vector<uint32_t> character_codes;
 
   {
-    GlyphRender renderer(m_coverage_pixel_size.m_value);
+    GlyphRender renderer(m_coverage_pixel_size.value());
     float format_pixel_size, scale_factor;
 
-    format_pixel_size = m_render_pixel_size.m_value;
+    format_pixel_size = m_render_pixel_size.value();
     scale_factor = format_pixel_size / static_cast<float>(m_face->face()->units_per_EM);
 
     glyph_positions.clear();
@@ -1051,7 +1051,7 @@ ready_attributes_indices(void)
     GlyphRender renderer(distance_field_glyph);
     float format_pixel_size, scale_factor;
 
-    format_pixel_size = m_render_pixel_size.m_value;
+    format_pixel_size = m_render_pixel_size.value();
     scale_factor = format_pixel_size / static_cast<float>(m_face->face()->units_per_EM);
 
     glyph_positions.clear();
@@ -1066,7 +1066,7 @@ ready_attributes_indices(void)
     GlyphRender renderer(curve_pair_glyph);
     float format_pixel_size, scale_factor;
 
-    format_pixel_size = m_render_pixel_size.m_value;
+    format_pixel_size = m_render_pixel_size.value();
     scale_factor = format_pixel_size / static_cast<float>(m_face->face()->units_per_EM);
 
     glyph_positions.clear();
@@ -1112,7 +1112,7 @@ void
 glyph_test::
 draw_frame(void)
 {
-  glClearColor(m_bg_red.m_value, m_bg_green.m_value, m_bg_blue.m_value, 0.0f);
+  glClearColor(m_bg_red.value(), m_bg_green.value(), m_bg_blue.value(), 0.0f);
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

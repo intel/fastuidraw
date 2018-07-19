@@ -389,13 +389,7 @@ public:
 template<typename T>
 class command_line_argument_value:public command_line_argument
 {
-private:
-  std::string m_name;
-  std::string m_description;
-  bool m_set_by_command_line, m_print_at_set;
-
 public:
-  T m_value;
 
   command_line_argument_value(T v, const std::string &nm,
                               const std::string &desc,
@@ -500,19 +494,30 @@ public:
     ostr << m_description;
   }
 
+  const T&
+  value(void) const
+  {
+    return m_value;
+  }
+
+  T&
+  value(void)
+  {
+    return m_value;
+  }
+  
+private:
+  std::string m_name;
+  std::string m_description;
+  bool m_set_by_command_line, m_print_at_set;
+  T m_value;
 };
 
 
 template<typename T>
 class enumerated_command_line_argument_value:public command_line_argument
 {
-private:
-  std::string m_name;
-  std::string m_description;
-  bool m_set_by_command_line, m_print_at_set;
-
 public:
-  enumerated_type<T> m_value;
 
   enumerated_command_line_argument_value(T v, const enumerated_string_type<T> &L,
                                          const std::string &nm, const std::string &desc,
@@ -560,7 +565,7 @@ public:
         ostr_desc << ":" << iter->second.description() << "\n\n";
       }
     ostr << format_description_string(m_name, ostr_desc.str());
-    m_description=tabs_to_spaces(ostr.str());
+    m_description = tabs_to_spaces(ostr.str());
   }
 
   bool
@@ -568,7 +573,6 @@ public:
   {
     return m_set_by_command_line;
   }
-
 
   virtual
   int
@@ -598,9 +602,9 @@ public:
               {
                 std::cout << "\n\t" << m_name
                           << " set to " << val;
+                m_set_by_command_line = true;
               }
           }
-        m_set_by_command_line=true;
         return 1;
       }
     else if (location < argc-1 && str == m_name)
@@ -616,9 +620,9 @@ public:
               {
                 std::cout << "\n\t" << m_name
                           << " set to " << val;
+                m_set_by_command_line = true;
               }
           }
-        m_set_by_command_line=true;
         return 2;
       }
 
@@ -640,5 +644,23 @@ public:
   {
     ostr << m_description;
   }
+
+  T
+  value(void) const
+  {
+    return m_value.m_value;
+  }
+
+  T&
+  value(void)
+  {
+    return m_value.m_value;
+  }
+  
+private:
+  std::string m_name;
+  std::string m_description;
+  bool m_set_by_command_line, m_print_at_set;
+  enumerated_type<T> m_value;
 
 };
