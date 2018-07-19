@@ -176,7 +176,7 @@ void
 painter_clip_test::
 make_paths(void)
 {
-  if (routine_fail == load_path(m_path1, m_path1_file.m_value))
+  if (routine_fail == load_path(m_path1, m_path1_file.value()))
     {
       m_path1 << vec2(100.0f, 100.0f)
               << vec2(0.0f, 0.0f)
@@ -184,7 +184,7 @@ make_paths(void)
               << Path::contour_end();
     }
 
-  if (routine_fail == load_path(m_path2, m_path2_file.m_value))
+  if (routine_fail == load_path(m_path2, m_path2_file.value()))
     {
       m_path2 << vec2(100.0f, 0.0f)
               << vec2(0.0f, 100.0f)

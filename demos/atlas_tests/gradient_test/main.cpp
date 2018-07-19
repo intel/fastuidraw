@@ -234,21 +234,21 @@ private:
     int max_layers(0);
 
     max_layers = fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS);
-    if (max_layers < m_color_stop_atlas_layers.m_value)
+    if (max_layers < m_color_stop_atlas_layers.value())
       {   
 	std::cout << "atlas_layers exceeds max number texture layers (" << max_layers
 		  << ") atlas_layers set to that value.\n";
-	m_color_stop_atlas_layers.m_value = max_layers;
+	m_color_stop_atlas_layers.value() = max_layers;
       }
 
     params
-      .width(m_color_stop_atlas_width.m_value)
-      .num_layers(m_color_stop_atlas_layers.m_value)
+      .width(m_color_stop_atlas_width.value())
+      .num_layers(m_color_stop_atlas_layers.value())
       .delayed(false);
 
     m_atlas = FASTUIDRAWnew gl::ColorStopAtlasGL(params);
 
-    if (m_color_stop_args.m_values.empty())
+    if (m_color_stop_args.values().empty())
       {
         c_array<const ColorStop> src;
 
@@ -278,18 +278,18 @@ private:
       }
 
 
-    for(colorstop_data_hoard::iterator
-          iter = m_color_stop_args.m_values.begin(),
-          end = m_color_stop_args.m_values.end();
+    for(colorstop_data_hoard::const_iterator
+          iter = m_color_stop_args.values().begin(),
+          end = m_color_stop_args.values().end();
         iter != end; ++iter)
       {
         reference_counted_ptr<ColorStopSequenceOnAtlas> h;
         reference_counted_ptr<ColorStopSequenceOnAtlas> temp1, temp2;
 
-        if (m_stress.m_value)
+        if (m_stress.value())
           {
             int sz1, sz2;
-            sz1 = std::max(1, m_color_stop_atlas_width.m_value / 2);
+            sz1 = std::max(1, m_color_stop_atlas_width.value() / 2);
             sz2 = std::max(1, sz1 / 2);
             temp1 = FASTUIDRAWnew ColorStopSequenceOnAtlas(iter->second->m_stops, m_atlas, sz1);
             temp2 = FASTUIDRAWnew ColorStopSequenceOnAtlas(iter->second->m_stops,  m_atlas, sz2);

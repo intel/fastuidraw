@@ -721,7 +721,7 @@ update_cts_params(void)
       std::cout << "Angle set to: " << angle() << "\n";
     }
 
-  speed_stroke = speed * m_change_stroke_width_rate.m_value;
+  speed_stroke = speed * m_change_stroke_width_rate.value();
   if (!m_stroke_width_in_pixels)
     {
       speed_stroke /= zoomer().transformation().scale();
@@ -750,7 +750,7 @@ update_cts_params(void)
       vec2 *changer;
       float delta, delta_y;
 
-      delta = m_window_change_rate.m_value * speed / zoomer().transformation().scale();
+      delta = m_window_change_rate.value() * speed / zoomer().transformation().scale();
       if (keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL])
         {
           changer = &repeat_wh();
@@ -797,7 +797,7 @@ update_cts_params(void)
     {
       float delta;
 
-      delta = m_radial_gradient_change_rate.m_value * speed / zoomer().transformation().scale();
+      delta = m_radial_gradient_change_rate.value() * speed / zoomer().transformation().scale();
       if (keyboard_state[SDL_SCANCODE_1])
         {
           gradient_r0() -= delta;
@@ -832,12 +832,12 @@ update_cts_params(void)
     {
       if (keyboard_state[SDL_SCANCODE_N])
         {
-          m_miter_limit += m_change_miter_limit_rate.m_value * speed;
+          m_miter_limit += m_change_miter_limit_rate.value() * speed;
         }
 
       if (keyboard_state[SDL_SCANCODE_B])
         {
-          m_miter_limit -= m_change_miter_limit_rate.m_value * speed;
+          m_miter_limit -= m_change_miter_limit_rate.value() * speed;
           m_miter_limit = fastuidraw::t_max(0.0f, m_miter_limit);
         }
 
@@ -852,7 +852,7 @@ update_cts_params(void)
       vec2 *changer;
       float delta, delta_y;
 
-      delta = m_window_change_rate.m_value * speed / zoomer().transformation().scale();
+      delta = m_window_change_rate.value() * speed / zoomer().transformation().scale();
       if (keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL])
         {
           changer = &clipping_wh();
@@ -1374,15 +1374,15 @@ construct_paths(int w, int h)
       m_paths.push_back(PerPath(path, "Default Path", w, h, false));
     }
 
-  if (m_init_pan_zoom.m_value)
+  if (m_init_pan_zoom.value())
     {
       for (PerPath &P : m_paths)
         {
           ScaleTranslate<float> v;
 
-          v.translation_x(m_initial_pan_x.m_value);
-          v.translation_y(m_initial_pan_y.m_value);
-          v.scale(m_initial_zoom.m_value);
+          v.translation_x(m_initial_pan_x.value());
+          v.translation_y(m_initial_pan_y.value());
+          v.scale(m_initial_zoom.value());
           P.m_path_zoomer.transformation(v);
         }
     }
@@ -1424,7 +1424,7 @@ per_path_processing(void)
             }
         }
 
-      if (m_print_path.m_value)
+      if (m_print_path.value())
         {
           std::cout << "Path \"" << P.m_label << "\" tessellated:\n";
           for(unsigned int c = 0; c < tess->number_contours(); ++c)
@@ -1471,8 +1471,8 @@ construct_color_stops(void)
   m_color_stops.push_back(named_color_stop("Default ColorStop Sequence", h));
 
   for(color_stop_arguments::hoard::const_iterator
-        iter = m_color_stop_args.m_values.begin(),
-        end = m_color_stop_args.m_values.end();
+        iter = m_color_stop_args.values().begin(),
+        end = m_color_stop_args.values().end();
       iter != end; ++iter)
     {
       reference_counted_ptr<ColorStopSequenceOnAtlas> h;
@@ -1518,8 +1518,8 @@ draw_scene(bool drawing_wire_frame)
   if (!m_draw_line_pen)
     {
       PainterBrush br;
-      br.pen(m_draw_line_red.m_value, m_draw_line_green.m_value,
-             m_draw_line_blue.m_value, m_draw_line_alpha.m_value);
+      br.pen(m_draw_line_red.value(), m_draw_line_green.value(),
+             m_draw_line_blue.value(), m_draw_line_alpha.value());
       m_draw_line_pen = m_painter->packed_value_pool().create_packed_value(br);
     }
 
@@ -1568,8 +1568,8 @@ draw_scene(bool drawing_wire_frame)
     {
       PainterBrush fill_brush;
 
-      fill_brush.pen(m_fill_red.m_value, m_fill_green.m_value,
-                     m_fill_blue.m_value, m_fill_alpha.m_value);
+      fill_brush.pen(m_fill_red.value(), m_fill_green.value(),
+                     m_fill_blue.value(), m_fill_alpha.value());
       if (translate_brush())
         {
           fill_brush.transformation_translate(zoomer().transformation().translation());
@@ -1707,7 +1707,7 @@ draw_scene(bool drawing_wire_frame)
   if (!m_stroke_pen)
     {
       PainterBrush br;
-      br.pen(m_stroke_red.m_value, m_stroke_green.m_value, m_stroke_blue.m_value, m_stroke_alpha.m_value);
+      br.pen(m_stroke_red.value(), m_stroke_green.value(), m_stroke_blue.value(), m_stroke_alpha.value());
       m_stroke_pen = m_painter->packed_value_pool().create_packed_value(br);
     }
 
@@ -1972,19 +1972,19 @@ painter_stroke_test::
 derived_init(int w, int h)
 {
   //put into unit of per ms.
-  m_window_change_rate.m_value /= 1000.0f;
-  m_change_stroke_width_rate.m_value /= 1000.0f;
-  m_change_miter_limit_rate.m_value /= 1000.0f;
+  m_window_change_rate.value() /= 1000.0f;
+  m_change_stroke_width_rate.value() /= 1000.0f;
+  m_change_miter_limit_rate.value() /= 1000.0f;
 
   // generate font
   reference_counted_ptr<FreeTypeFace::GeneratorFile> gen;
-  gen = FASTUIDRAWnew FreeTypeFace::GeneratorFile(m_font_file.m_value.c_str(), 0);
+  gen = FASTUIDRAWnew FreeTypeFace::GeneratorFile(m_font_file.value().c_str(), 0);
   m_font = FASTUIDRAWnew FontFreeType(gen, FontFreeType::RenderParams(), m_ft_lib);
   if (gen->check_creation() != routine_success)
     {
       std::cout << "\n-----------------------------------------------------"
                 << "\nWarning: unable to create font from file \""
-                << m_font_file.m_value << "\"\n"
+                << m_font_file.value() << "\"\n"
                 << "-----------------------------------------------------\n";
     }
 
@@ -1999,12 +1999,12 @@ derived_init(int w, int h)
       m_with_aa = false;
     }
 
-  if (!m_image_file.m_value.empty())
+  if (!m_image_file.value().empty())
     {
-      ImageLoader image_data(m_image_file.m_value);
+      ImageLoader image_data(m_image_file.value());
       if (image_data.non_empty())
         {
-          if (m_use_bindless.m_value)
+          if (m_use_bindless.value())
             {
               m_image = gl::ImageAtlasGL::create_bindless(image_data.width(),
                                                           image_data.height(),
@@ -2016,23 +2016,23 @@ derived_init(int w, int h)
             {
               m_image = Image::create(m_painter->image_atlas(),
                                       image_data.width(), image_data.height(),
-                                      image_data, m_image_slack.m_value);
+                                      image_data, m_image_slack.value());
             }
         }
     }
 
   if (m_image)
     {
-      if (m_sub_image_x.m_value < 0 || m_sub_image_y.m_value < 0
-         || m_sub_image_w.m_value < 0 || m_sub_image_h.m_value < 0)
+      if (m_sub_image_x.value() < 0 || m_sub_image_y.value() < 0
+         || m_sub_image_w.value() < 0 || m_sub_image_h.value() < 0)
         {
           m_image_offset = uvec2(0, 0);
           m_image_size = uvec2(m_image->dimensions());
         }
       else
         {
-          m_image_offset = uvec2(m_sub_image_x.m_value, m_sub_image_y.m_value);
-          m_image_size = uvec2(m_sub_image_w.m_value, m_sub_image_h.m_value);
+          m_image_offset = uvec2(m_sub_image_x.value(), m_sub_image_y.value());
+          m_image_size = uvec2(m_sub_image_w.value(), m_sub_image_h.value());
         }
     }
 

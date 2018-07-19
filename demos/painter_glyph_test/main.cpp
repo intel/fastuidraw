@@ -505,34 +505,34 @@ create_and_add_font(void)
 {
   reference_counted_ptr<const FontBase> font;
 
-  if (!m_font_file.m_value.empty())
+  if (!m_font_file.value().empty())
     {
       reference_counted_ptr<FreeTypeFace::GeneratorBase> gen;
-      gen = FASTUIDRAWnew FreeTypeFace::GeneratorMemory(m_font_file.m_value.c_str(), 0);
+      gen = FASTUIDRAWnew FreeTypeFace::GeneratorMemory(m_font_file.value().c_str(), 0);
       if (gen->check_creation() == routine_success)
         {
           font = FASTUIDRAWnew FontFreeType(gen,
                                             FontFreeType::RenderParams()
-                                            .distance_field_max_distance(m_max_distance.m_value)
-                                            .distance_field_pixel_size(m_distance_pixel_size.m_value)
-                                            .curve_pair_pixel_size(m_curve_pair_pixel_size.m_value),
+                                            .distance_field_max_distance(m_max_distance.value())
+                                            .distance_field_pixel_size(m_distance_pixel_size.value())
+                                            .curve_pair_pixel_size(m_curve_pair_pixel_size.value()),
                                             m_ft_lib);
         }
     }
 
-  add_fonts_from_path(m_font_path.m_value, m_ft_lib, m_glyph_selector,
+  add_fonts_from_path(m_font_path.value(), m_ft_lib, m_glyph_selector,
                       FontFreeType::RenderParams()
-                      .distance_field_max_distance(m_max_distance.m_value)
-                      .distance_field_pixel_size(m_distance_pixel_size.m_value)
-                      .curve_pair_pixel_size(m_curve_pair_pixel_size.m_value));
+                      .distance_field_max_distance(m_max_distance.value())
+                      .distance_field_pixel_size(m_distance_pixel_size.value())
+                      .curve_pair_pixel_size(m_curve_pair_pixel_size.value()));
 
   if (!font)
     {
       FontProperties props;
-      props.style(m_font_style.m_value.c_str());
-      props.family(m_font_family.m_value.c_str());
-      props.bold(m_font_bold.m_value);
-      props.italic(m_font_italic.m_value);
+      props.style(m_font_style.value().c_str());
+      props.family(m_font_family.value().c_str());
+      props.bold(m_font_bold.value());
+      props.italic(m_font_italic.value());
 
       font = m_glyph_selector->fetch_font(props);
     }
@@ -567,7 +567,7 @@ derived_init(int w, int h)
     }
 
   //put into unit of per us
-  m_change_stroke_width_rate.m_value /= (1000.0f * 1000.0f);
+  m_change_stroke_width_rate.value() /= (1000.0f * 1000.0f);
 
   ready_glyph_attribute_data();
   m_draw_timer.restart();
@@ -577,26 +577,26 @@ void
 painter_glyph_test::
 init_glyph_draw(unsigned int I, GlyphRender renderer)
 {
-  if (m_draw_glyph_set.m_value)
+  if (m_draw_glyph_set.value())
     {
-      m_draws[I].init(m_realize_glyphs_thread_count.m_value,
+      m_draws[I].init(m_realize_glyphs_thread_count.value(),
                       m_font, m_glyph_cache, m_glyph_selector,
-                      m_render_pixel_size.m_value, renderer,
-                      m_glyphs_per_painter_draw.m_value);
+                      m_render_pixel_size.value(), renderer,
+                      m_glyphs_per_painter_draw.value());
     }
-  else if (m_use_file.m_value)
+  else if (m_use_file.value())
     {
-      std::ifstream istr(m_text.m_value.c_str(), std::ios::binary);
+      std::ifstream istr(m_text.value().c_str(), std::ios::binary);
       m_draws[I].init(istr, m_font, m_glyph_selector,
-                      m_render_pixel_size.m_value, renderer,
-                      m_glyphs_per_painter_draw.m_value);
+                      m_render_pixel_size.value(), renderer,
+                      m_glyphs_per_painter_draw.value());
     }
   else
     {
-      std::istringstream istr(m_text.m_value);
+      std::istringstream istr(m_text.value());
       m_draws[I].init(istr, m_font, m_glyph_selector,
-                      m_render_pixel_size.m_value, renderer,
-                      m_glyphs_per_painter_draw.m_value);
+                      m_render_pixel_size.value(), renderer,
+                      m_glyphs_per_painter_draw.value());
     }
 }
 
@@ -621,7 +621,7 @@ ready_glyph_attribute_data(void)
   }
 
   {
-    GlyphRender renderer(m_coverage_pixel_size.m_value);
+    GlyphRender renderer(m_coverage_pixel_size.value());
     FASTUIDRAWassert(renderer.m_type == coverage_glyph);
     init_glyph_draw(draw_glyph_coverage, renderer);
     m_draw_labels[draw_glyph_coverage] = "draw_glyph_coverage";
@@ -677,7 +677,7 @@ draw_frame(void)
 
               //make the scale of the path match how we scaled the text.
               float sc;
-              sc = m_render_pixel_size.m_value / glyphs[i].layout().m_units_per_EM;
+              sc = m_render_pixel_size.value() / glyphs[i].layout().m_units_per_EM;
 
 	      //we are drawing with y-coordinate increasing downwards
 	      //which is the opposite coordinate system as the glyph's
@@ -728,7 +728,7 @@ draw_frame(void)
 
               //make the scale of the path match how we scaled the text.
               float sc;
-              sc = m_render_pixel_size.m_value / glyphs[i].layout().m_units_per_EM;
+              sc = m_render_pixel_size.value() / glyphs[i].layout().m_units_per_EM;
 
 	      //we are drawing with y-coordinate increasing downwards
 	      //which is the opposite coordinate system as the glyph's
@@ -799,7 +799,7 @@ draw_frame(void)
 
           glyph = m_draws[src].glyphs()[G];
           layout = glyph.layout();
-          ratio = m_render_pixel_size.m_value / layout.m_units_per_EM;
+          ratio = m_render_pixel_size.value() / layout.m_units_per_EM;
 
           q.x() = m_draws[src].glyph_positions()[G].x() + ratio * layout.m_horizontal_layout_offset.x();
           q.y() = m_draws[src].glyph_positions()[G].y() - ratio * layout.m_horizontal_layout_offset.y();
@@ -858,7 +858,7 @@ update_cts_params(void)
 
   float speed;
   return_value = static_cast<float>(m_draw_timer.restart_us());
-  speed = return_value * m_change_stroke_width_rate.m_value;
+  speed = return_value * m_change_stroke_width_rate.value();
 
   if (keyboard_state[SDL_SCANCODE_LSHIFT])
     {
