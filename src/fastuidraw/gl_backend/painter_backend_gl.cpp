@@ -278,7 +278,8 @@ namespace
   enum fastuidraw::gl::PainterBackendGL::clipping_type_t
   compute_clipping_type(enum fastuidraw::gl::PainterBackendGL::blending_type_t blending_type,
                         enum fastuidraw::gl::PainterBackendGL::clipping_type_t in_value,
-                        const fastuidraw::gl::ContextProperties &ctx)
+                        const fastuidraw::gl::ContextProperties &ctx,
+                        bool allow_gl_clip_distance = true)
   {
     using namespace fastuidraw;
     using namespace fastuidraw::gl;
@@ -307,13 +308,20 @@ namespace
 
     #ifdef FASTUIDRAW_GL_USE_GLES
       {
-        clip_distance_supported = ctx.has_extension("GL_EXT_clip_cull_distance")
-          || ctx.has_extension("GL_APPLE_clip_distance");
+        if (allow_gl_clip_distance)
+          {
+            clip_distance_supported = ctx.has_extension("GL_EXT_clip_cull_distance")
+              || ctx.has_extension("GL_APPLE_clip_distance");
+          }
+        else
+          {
+            clip_distance_supported = false;
+          }
       }
     #else
       {
         FASTUIDRAWunused(ctx);
-        clip_distance_supported = true;
+        clip_distance_supported = allow_gl_clip_distance;
       }
     #endif
 
@@ -2841,9 +2849,26 @@ configure_from_context(bool for_msaa)
         }
     }
 
+  /* NVIDIA's GPU's (alteast up to 700 series) gl_ClipDistance is not
+   * robust enough to work  with FastUIDraw regardless of driver
+   * (NVIDIA proprietary or Nouveau open source). We try to detect
+   * either in the version or renderer and if so, mark gl_ClipDistance
+   * as NOT supported.
+   */
+  bool NVIDIA_detected;
+  std::string gl_version, gl_renderer;
+
+  gl_version = (const char*)glGetString(GL_VERSION);
+  gl_renderer = (const char*)glGetString(GL_RENDERER);
+  NVIDIA_detected = gl_version.find("NVIDIA") != std::string::npos
+    || gl_renderer.find("GeForce") != std::string::npos
+    || gl_version.find("nouveau") != std::string::npos
+    || gl_renderer.find("nouveau") != std::string::npos;
+
   d->m_clipping_type = compute_clipping_type(d->m_blending_type,
                                              d->m_clipping_type,
-                                             ctx);
+                                             ctx,
+                                             !NVIDIA_detected);
 
   /* likely shader compilers like if/ese chains more than
    * switches, atleast Mesa really prefers if/else chains
