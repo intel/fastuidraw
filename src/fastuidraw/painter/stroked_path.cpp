@@ -45,6 +45,11 @@ namespace
     FASTUIDRAWassert(on_boundary == 0 || on_boundary == 1);
 
     uint32_t bb(on_boundary), pp(pt);
+
+    /* clamp depth to maximum allowed value */
+    depth = t_min(depth,
+                  FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(StrokedPoint::depth_num_bits));
+
     return pack_bits(StrokedPoint::offset_type_bit0,
                      StrokedPoint::offset_type_num_bits, pp)
       | pack_bits(StrokedPoint::boundary_bit, 1u, bb)
