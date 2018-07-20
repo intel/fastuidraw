@@ -2750,9 +2750,11 @@ configure_from_context(bool for_msaa)
   ContextProperties ctx;
   ConfigurationGLPrivate *d;
   enum interlock_type_t interlock_type;
+  bool have_ffb;
 
   d = static_cast<ConfigurationGLPrivate*>(m_d);
   interlock_type = compute_interlock_type(ctx);
+  have_ffb = ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
 
   /* First set ideal parameters */
   d->m_alignment = 4;
@@ -2775,16 +2777,29 @@ configure_from_context(bool for_msaa)
   
   if (!for_msaa)
     {
-      d->m_default_stroke_shader_aa_type = PainterStrokeShader::cover_then_draw;
       d->m_blending_type = blending_framebuffer_fetch;
-      d->m_provide_auxiliary_image_buffer = auxiliary_buffer_interlock;
+
+      /* We are prefering interlock over framebuffer fetch
+       * for the auxiliary buffer because the auxiliary buffer
+       * is not always written (or read).
+       */
+      if (interlock_type == no_interlock)
+        {
+          d->m_provide_auxiliary_image_buffer = have_ffb ?
+            auxiliary_buffer_framebuffer_fetch :
+            no_auxiliary_buffer;
+        }
+      else
+        {
+          d->m_provide_auxiliary_image_buffer =
+            compute_provide_auxiliary_buffer(auxiliary_buffer_interlock, ctx);
+        }
     }
   else
     {
       /* if one is drawing with MSAA, one should NOT use shader based anti-aliasing
        * when stroking or filling anways.
        */
-      d->m_default_stroke_shader_aa_type = PainterStrokeShader::draws_solid_then_fuzz;
       d->m_provide_auxiliary_image_buffer = no_auxiliary_buffer;
 
       /* blending_interlock does NOT work with MSAA and blending_framebuffer_fetch would
@@ -2793,22 +2808,13 @@ configure_from_context(bool for_msaa)
       d->m_blending_type = blending_dual_src;
     }
 
-  /* pay attention to the context for m_provide_auxiliary_image_buffer;
-   * also, only have an auxilary buffer if an interlock is supported.
-   */
-  if (interlock_type == no_interlock)
-    {
-      /* only use an auxiliary buffer if interlock is provided in some form */
-      d->m_provide_auxiliary_image_buffer = no_auxiliary_buffer;
-    }
-  else
-    {
-      d->m_provide_auxiliary_image_buffer =
-        compute_provide_auxiliary_buffer(d->m_provide_auxiliary_image_buffer, ctx);
-    }
   if (d->m_provide_auxiliary_image_buffer == no_auxiliary_buffer)
     {
       d->m_default_stroke_shader_aa_type = PainterStrokeShader::draws_solid_then_fuzz;
+    }
+  else
+    {
+      d->m_default_stroke_shader_aa_type = PainterStrokeShader::cover_then_draw;
     }
 
   /* Adjust blending type from GL context properties */
