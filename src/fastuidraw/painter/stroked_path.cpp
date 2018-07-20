@@ -900,6 +900,13 @@ split_sub_edge(int splitting_coordinate,
       p = test_pt;
       t = (mid_angle - m_arc_angle.m_begin) / (m_arc_angle.m_end - m_arc_angle.m_begin);
       s = 1.0f - t;
+
+      mid_normal.x() = m_radius * fastuidraw::t_cos(mid_angle);
+      mid_normal.y() = m_radius * fastuidraw::t_sin(mid_angle);
+      if (m_arc_angle.m_begin > m_arc_angle.m_end)
+        {
+          mid_normal *= -1.0f;
+        }
     }
 
   out_edges[0].m_pt0 = m_pt0;
