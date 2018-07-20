@@ -623,11 +623,21 @@ resume_tessellation_worker(const T &node,
   unsigned int recurse_level;
 
   recurse_level = node.recursion_depth();
-  if (recurse_level == 0
-      || recurse_level < m_minimum_tessellation_recursion
-      || (tess_params.m_max_distance > 0.0f
-          && recurse_level <= tess_params.m_max_recursion
-          && node.max_distance() > tess_params.m_max_distance))
+
+  /* The starting data is floating point which has
+   * a 23-bit significand; going past 20 sub-divisions
+   * will likely start to produce numerical garbage
+   * as there are then so few bits left for accuracy.
+   */
+  if (recurse_level > 20)
+    {
+      dst->push_back(node);
+    }
+  else if (recurse_level == 0
+           || recurse_level < m_minimum_tessellation_recursion
+           || (tess_params.m_max_distance > 0.0f
+               && recurse_level <= tess_params.m_max_recursion
+               && node.max_distance() > tess_params.m_max_distance))
     {
       resume_tessellation_worker(node.splitL(m_h.get()), tess_params, dst);
       resume_tessellation_worker(node.splitR(m_h.get()), tess_params, dst);
