@@ -25,6 +25,7 @@
 #include <fastuidraw/gl_backend/image_gl.hpp>
 #include <fastuidraw/gl_backend/glyph_atlas_gl.hpp>
 #include <fastuidraw/gl_backend/colorstop_atlas_gl.hpp>
+#include <fastuidraw/gl_backend/gl_context_properties.hpp>
 
 namespace fastuidraw
 {
@@ -444,9 +445,31 @@ namespace fastuidraw
          * \param for_msaa if false, assume surface targets will
          *                 not have MSAA (i.e. SurfaceGL::msaa() is
          *                 0 or 1).
+         * \param ctx Optional argument to pass to avoid re-querying
+         *            the current GL context for extension and version
          */
         ConfigurationGL&
-        configure_from_context(bool for_msaa = false);
+        configure_from_context(bool for_msaa = false,
+                               const ContextProperties &ctx = ContextProperties());
+
+        /*!
+         * Adjust values for current GL context.
+         * \param ctx Optional argument to pass to avoid re-querying
+         *            the current GL context for extension and version
+         */
+        ConfigurationGL&
+        adjust_for_context(const ContextProperties &ctx = ContextProperties());
+
+        /*!
+         * For each of glyph_atlas(), colorstop_atlast() and
+         * image_atlast(), if it is a null value, then an atlas will
+         * be created using optimal and/or default values to replace
+         * the null atlases values.
+         * \param ctx Optional argument to pass to avoid re-querying
+         *            the current GL context for extension and version
+         */
+        ConfigurationGL&
+        create_missing_atlases(const ContextProperties &ctx = ContextProperties());
 
       private:
         void *m_d;
@@ -454,12 +477,13 @@ namespace fastuidraw
 
       /*!
        * A SurfaceGL is the implementatin of \ref PainterBackend::Surface
-       * for the GL backend.
+       * for the GL backend. A SurfaceGL must only be used with at most
+       * one GL context (even GL contexts in the same share group cannot
+       * shader SurfaceGL objects).
        */
       class SurfaceGL:public Surface
       {
       public:
-
         /*!
          * Properties class to define a backing color buffer
          * of a \ref SurfaceGL
@@ -625,19 +649,36 @@ namespace fastuidraw
       };
 
       /*!
-       * Ctor. When contructing a GL context must
-       * be current when contructing a PainterBackendGL object.
-       * Any GL context used with the constructed PainterBackendGL
-       * must be in the same share group as the GL context that
-       * was current when the PainterBackendGL was constructed.
-       * The values for the parameters of the created object might
-       * be adjusted from the passed parameters in order for the
-       * object to function correctly in the GL context from which
-       * it was created.
+       * Ctor. Create a PainterBackendGL configured via a ConfigurationGL
+       * value. The configuration of the created PainterBackendGL will be
+       * adjusted according to the functionaliy of the currentl current GL
+       * context. In addition, the current GL context or a GL context of
+       * its share group must be current when the PainterBackendGL is used.
+       *
        * \param config_gl ConfigurationGL providing configuration parameters
+       * \param ctx Optional argument to pass to avoid re-querying
+       *            the current GL context for extension and version
        */
-      explicit
-      PainterBackendGL(const ConfigurationGL &config_gl);
+      static
+      reference_counted_ptr<PainterBackendGL>
+      create(ConfigurationGL config_gl,
+             const ContextProperties &ctx = ContextProperties());
+
+      /*!
+       * Ctor. Create a PainterBackendGL and the atlases to be used by it.
+       * The atlases and PainterBackendGL will be configured optimally as
+       * according to the current GL context. In addition, the current GL
+       * context or a GL context of its share group must be current when
+       * the PainterBackendGL is used.
+       * \param for_msaa if false, assume surface targets will
+       *                 not have MSAA (i.e. SurfaceGL::msaa() is
+       *                 0 or 1).
+       * \param ctx Optional argument to pass to avoid re-querying
+       *            the current GL context for extension and version
+       */
+      static
+      reference_counted_ptr<PainterBackendGL>
+      create(bool for_msaa = false, const ContextProperties &ctx = ContextProperties());
 
       ~PainterBackendGL();
 
@@ -704,6 +745,9 @@ namespace fastuidraw
                                 const reference_counted_ptr<PainterBlendShader> &shader);
 
     private:
+      PainterBackendGL(const ConfigurationGL &config_gl,
+                       const ConfigurationGLSL &config_glsl);
+
       void *m_d;
     };
 /*! @} */

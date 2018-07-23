@@ -510,8 +510,10 @@ namespace
     ~PainterBackendGLPrivate();
 
     static
-    fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL
-    compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P);
+    void
+    compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P,
+                        const fastuidraw::gl::ContextProperties &ctx,
+                        fastuidraw::gl::PainterBackendGL::ConfigurationGLSL &return_value);
 
     const program_set&
     programs(bool rebuild);
@@ -1720,32 +1722,17 @@ PainterBackendGLPrivate::
     }
 }
 
-fastuidraw::gl::PainterBackendGL::ConfigurationGLSL
+void
 PainterBackendGLPrivate::
-compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params)
+compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params,
+                    const fastuidraw::gl::ContextProperties &ctx,
+                    fastuidraw::gl::PainterBackendGL::ConfigurationGLSL &return_value)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::gl;
-  enum interlock_type_t interlock_type;
   enum PainterBackendGL::auxiliary_buffer_t aux_type;
-  gl::PainterBackendGL::ConfigurationGLSL return_value;
-  ContextProperties ctx;
 
-  interlock_type = compute_interlock_type(ctx);
-  aux_type =
-    compute_provide_auxiliary_buffer(params.provide_auxiliary_image_buffer(), ctx);
-
-  if (aux_type != PainterBackendGL::no_auxiliary_buffer)
-    {
-      return_value
-        .default_stroke_shader_aa_type(params.default_stroke_shader_aa_type());
-    }
-  else
-    {
-      return_value
-        .default_stroke_shader_aa_type(PainterStrokeShader::draws_solid_then_fuzz);
-    }
-
+  aux_type = params.provide_auxiliary_image_buffer();
   if (return_value.default_stroke_shader_aa_type() == PainterStrokeShader::cover_then_draw
       && aux_type == PainterBackendGL::auxiliary_buffer_atomic)
     {
@@ -1776,31 +1763,15 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
         .default_stroke_shader_aa_pass2_action(q);
     }
 
-  if (params.data_store_backing() == PainterBackendGL::data_store_ubo
-      || params.data_store_backing() == PainterBackendGL::data_store_ssbo
-      || detail::compute_tex_buffer_support(ctx) == detail::tex_buffer_not_supported)
-    {
-      //using UBO's or SSBO's requires that the data store alignment is 4.
-      return_value.alignment(4);
-    }
-  else
-    {
-      return_value.alignment(params.alignment());
-    }
-
   bool supports_bindless;
-  enum PainterBackendGL::blending_type_t blending_type;
 
   supports_bindless = ctx.has_extension("GL_ARB_bindless_texture")
     || ctx.has_extension("GL_NV_bindless_texture");
-  blending_type = compute_blending_type(aux_type, interlock_type,
-                                        params.blending_type(), ctx);
 
   return_value
+    .default_stroke_shader_aa_type(params.default_stroke_shader_aa_type())
     .supports_bindless_texturing(supports_bindless)
-    .blending_type(blending_type);
-
-  return return_value;
+    .blending_type(params.blending_type());
 }
 
 void
@@ -1815,57 +1786,6 @@ configure_backend(void)
 
   m_backend_configured = true;
   m_tex_buffer_support = compute_tex_buffer_support(m_ctx_properties);
-
-  if (m_params.data_store_backing() == PainterBackendGL::data_store_tbo
-     && m_tex_buffer_support == tex_buffer_not_supported)
-    {
-      // TBO's not supported, fall back to using SSBO's.
-      m_params.data_store_backing(PainterBackendGL::data_store_ssbo);
-    }
-
-  if (m_params.data_store_backing() == PainterBackendGL::data_store_ssbo
-      && !shader_storage_buffers_supported(m_ctx_properties))
-    {
-      // SSBO's not supported, fall back to using UBO's.
-      m_params.data_store_backing(PainterBackendGL::data_store_ubo);
-    }
-
-  /* Query GL what is good size for data store buffer. Size is dependent
-   * how the data store is backed.
-   */
-  switch(m_params.data_store_backing())
-    {
-    case PainterBackendGL::data_store_tbo:
-      {
-        unsigned int max_texture_buffer_size(0);
-        max_texture_buffer_size = fastuidraw::gl::context_get<GLint>(GL_MAX_TEXTURE_BUFFER_SIZE);
-        m_params.data_blocks_per_store_buffer(fastuidraw::t_min(max_texture_buffer_size,
-                                                                m_params.data_blocks_per_store_buffer()));
-      }
-      break;
-
-    case PainterBackendGL::data_store_ubo:
-      {
-        unsigned int max_ubo_size_bytes, max_num_blocks, block_size_bytes;
-        block_size_bytes = m_p->configuration_base().alignment() * sizeof(fastuidraw::generic_data);
-        max_ubo_size_bytes = fastuidraw::gl::context_get<GLint>(GL_MAX_UNIFORM_BLOCK_SIZE);
-        max_num_blocks = max_ubo_size_bytes / block_size_bytes;
-        m_params.data_blocks_per_store_buffer(fastuidraw::t_min(max_num_blocks,
-                                                                m_params.data_blocks_per_store_buffer()));
-      }
-      break;
-
-    case PainterBackendGL::data_store_ssbo:
-      {
-        unsigned int max_ssbo_size_bytes, max_num_blocks, block_size_bytes;
-        block_size_bytes = m_p->configuration_base().alignment() * sizeof(fastuidraw::generic_data);
-        max_ssbo_size_bytes = fastuidraw::gl::context_get<GLint>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE);
-        max_num_blocks = max_ssbo_size_bytes / block_size_bytes;
-        m_params.data_blocks_per_store_buffer(fastuidraw::t_min(max_num_blocks,
-                                                                m_params.data_blocks_per_store_buffer()));
-      }
-      break;
-    }
 
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
@@ -1900,11 +1820,8 @@ configure_backend(void)
     }
   #endif
 
-  enum PainterBackendGL::clipping_type_t clipping_type;
-  clipping_type = compute_clipping_type(m_params.blending_type(),
-                                        m_params.clipping_type(),
-                                        m_ctx_properties);
-  m_params.clipping_type(clipping_type);
+  FASTUIDRAWassert(m_number_clip_planes >= 4
+                   || m_params.clipping_type() != PainterBackendGL::clipping_via_gl_clip_distance);
   
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
@@ -1937,47 +1854,7 @@ configure_backend(void)
       colorstop_tp = PainterBackendGL::colorstop_texture_1d_array;
     }
 
-  /* Some shader features require new version of GL or
-   * specific extensions.
-   */
-  #ifdef FASTUIDRAW_GL_USE_GLES
-    {
-      if (m_ctx_properties.version() < ivec2(3, 2))
-        {
-          m_params.assign_layout_to_varyings(m_params.assign_layout_to_varyings()
-                                             && m_ctx_properties.has_extension("GL_EXT_separate_shader_objects"));
-        }
-
-      if (m_ctx_properties.version() <= ivec2(3, 0))
-        {
-          /* GL ES 3.0 does not support layout(binding=) and
-           * does not support image-load-store either
-           */
-          m_params.assign_binding_points(false);
-        }
-    }
-  #else
-    {
-      if (m_ctx_properties.version() < ivec2(4, 2))
-        {
-          m_params.assign_layout_to_varyings(m_params.assign_layout_to_varyings()
-                                             && m_ctx_properties.has_extension("GL_ARB_separate_shader_objects"));
-          m_params.assign_binding_points(m_params.assign_binding_points()
-                                         && m_ctx_properties.has_extension("GL_ARB_shading_language_420pack"));
-        }
-    }
-  #endif
-
   m_interlock_type = compute_interlock_type(m_ctx_properties);
-  m_params.provide_auxiliary_image_buffer(compute_provide_auxiliary_buffer(m_params.provide_auxiliary_image_buffer(),
-                                                                           m_ctx_properties));
-  m_params.blending_type(m_p->configuration_glsl().blending_type());
-
-  if (m_params.provide_auxiliary_image_buffer() == PainterBackendGL::no_auxiliary_buffer)
-    {
-      m_params.default_stroke_shader_aa_type(PainterStrokeShader::draws_solid_then_fuzz);
-    }
-
   m_uber_shader_builder_params
     .assign_layout_to_vertex_shader_inputs(m_params.assign_layout_to_vertex_shader_inputs())
     .assign_layout_to_varyings(m_params.assign_layout_to_varyings())
@@ -2090,12 +1967,23 @@ configure_source_front_matter(void)
   FASTUIDRAWassert(begin_interlock_fcn);
   FASTUIDRAWassert(end_interlock_fcn);
 
-  if (m_uber_shader_builder_params.provide_auxiliary_image_buffer())
+  if (m_uber_shader_builder_params.provide_auxiliary_image_buffer() != PainterBackendGL::no_auxiliary_buffer)
     {
       m_front_matter_frag
         .add_macro("fastuidraw_begin_aux_interlock", begin_interlock_fcn)
         .add_macro("fastuidraw_end_aux_interlock", end_interlock_fcn);
+    }
 
+  if (m_params.blending_type() == PainterBackendGL::blending_interlock)
+    {
+      m_front_matter_frag
+        .add_macro("fastuidraw_begin_color_buffer_interlock", begin_interlock_fcn)
+        .add_macro("fastuidraw_end_color_buffer_interlock", end_interlock_fcn);
+    }
+
+  if (m_params.blending_type() == PainterBackendGL::blending_interlock
+      || m_uber_shader_builder_params.provide_auxiliary_image_buffer() != PainterBackendGL::no_auxiliary_buffer)
+    {
       /* Only have this front matter present if FASTUIDRAW_DISCARD is empty defined;
        * The issue is that when early_fragment_tests are enabled, then the depth
        * write happens even if the fragment shader hits discard.
@@ -2106,13 +1994,6 @@ configure_source_front_matter(void)
                            << "#endif\n";
       m_front_matter_frag.add_source(early_fragment_tests.str().c_str(),
                                      ShaderSource::from_string);
-    }
-
-  if (m_params.blending_type() == PainterBackendGL::blending_interlock)
-    {
-      m_front_matter_frag
-        .add_macro("fastuidraw_begin_color_buffer_interlock", begin_interlock_fcn)
-        .add_macro("fastuidraw_end_color_buffer_interlock", end_interlock_fcn);
     }
 
   #ifdef FASTUIDRAW_GL_USE_GLES
@@ -2745,9 +2626,8 @@ fastuidraw::gl::PainterBackendGL::ConfigurationGL::
 
 fastuidraw::gl::PainterBackendGL::ConfigurationGL&
 fastuidraw::gl::PainterBackendGL::ConfigurationGL::
-configure_from_context(bool for_msaa)
+configure_from_context(bool for_msaa, const ContextProperties &ctx)
 {
-  ContextProperties ctx;
   ConfigurationGLPrivate *d;
   enum interlock_type_t interlock_type;
   bool have_ffb;
@@ -2902,6 +2782,162 @@ configure_from_context(bool for_msaa)
   return *this;
 }
 
+fastuidraw::gl::PainterBackendGL::ConfigurationGL&
+fastuidraw::gl::PainterBackendGL::ConfigurationGL::
+adjust_for_context(const ContextProperties &ctx)
+{
+  ConfigurationGLPrivate *d;
+  enum fastuidraw::gl::detail::tex_buffer_support_t tex_buffer_support;
+  enum interlock_type_t interlock_type;
+  enum clipping_type_t clipping_type;
+
+  d = static_cast<ConfigurationGLPrivate*>(m_d);
+  interlock_type = compute_interlock_type(ctx);
+  tex_buffer_support = detail::compute_tex_buffer_support(ctx);
+
+  if (d->m_data_store_backing == data_store_tbo
+     && tex_buffer_support == detail::tex_buffer_not_supported)
+    {
+      // TBO's not supported, fall back to using SSBO's.
+      d->m_data_store_backing = data_store_ssbo;
+    }
+
+  if (d->m_data_store_backing == data_store_ssbo
+      && !shader_storage_buffers_supported(ctx))
+    {
+      // SSBO's not supported, fall back to using UBO's.
+      d->m_data_store_backing = data_store_ubo;
+    }
+
+  /* Query GL what is good size for data store buffer. Size is dependent
+   * how the data store is backed.
+   */
+  switch(d->m_data_store_backing)
+    {
+    case data_store_tbo:
+      {
+        unsigned int max_texture_buffer_size(0);
+        max_texture_buffer_size = context_get<GLint>(GL_MAX_TEXTURE_BUFFER_SIZE);
+        d->m_data_blocks_per_store_buffer = t_min(max_texture_buffer_size,
+                                                  d->m_data_blocks_per_store_buffer);
+      }
+      break;
+
+    case data_store_ubo:
+      {
+        unsigned int max_ubo_size_bytes, max_num_blocks, block_size_bytes;
+        d->m_alignment = 4;
+        block_size_bytes = d->m_alignment * sizeof(generic_data);
+        max_ubo_size_bytes = context_get<GLint>(GL_MAX_UNIFORM_BLOCK_SIZE);
+        max_num_blocks = max_ubo_size_bytes / block_size_bytes;
+        d->m_data_blocks_per_store_buffer = t_min(max_num_blocks,
+                                                  d->m_data_blocks_per_store_buffer);
+      }
+      break;
+
+    case data_store_ssbo:
+      {
+        unsigned int max_ssbo_size_bytes, max_num_blocks, block_size_bytes;
+        d->m_alignment = 4;
+        block_size_bytes = d->m_alignment * sizeof(generic_data);
+        max_ssbo_size_bytes = context_get<GLint>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE);
+        max_num_blocks = max_ssbo_size_bytes / block_size_bytes;
+        d->m_data_blocks_per_store_buffer = t_min(max_num_blocks,
+                                                  d->m_data_blocks_per_store_buffer);
+      }
+      break;
+    }
+
+  clipping_type = compute_clipping_type(d->m_blending_type, d->m_clipping_type, ctx);
+  d->m_clipping_type= clipping_type;
+
+  /* if have to use discard for clipping, then there is zero point to
+   * separate the discarding and non-discarding item shaders.
+   */
+  if (d->m_clipping_type == clipping_via_discard)
+    {
+      d->m_separate_program_for_discard = false;
+    }
+
+  /* Some shader features require new version of GL or
+   * specific extensions.
+   */
+  #ifdef FASTUIDRAW_GL_USE_GLES
+    {
+      if (ctx.version() < ivec2(3, 2))
+        {
+          d->m_assign_layout_to_varyings = d->m_assign_layout_to_varyings
+            && ctx.has_extension("GL_EXT_separate_shader_objects");
+        }
+
+      if (ctx.version() <= ivec2(3, 0))
+        {
+          /* GL ES 3.0 does not support layout(binding=) and
+           * does not support image-load-store either
+           */
+          d->m_assign_binding_points = false;
+        }
+    }
+  #else
+    {
+      if (ctx.version() < ivec2(4, 2))
+        {
+          d->m_assign_layout_to_varyings = d->m_assign_layout_to_varyings
+            && ctx.has_extension("GL_ARB_separate_shader_objects");
+
+          d->m_assign_binding_points = d->m_assign_binding_points
+            && ctx.has_extension("GL_ARB_shading_language_420pack");
+        }
+    }
+  #endif
+
+  interlock_type = compute_interlock_type(ctx);
+  d->m_provide_auxiliary_image_buffer =
+    compute_provide_auxiliary_buffer(d->m_provide_auxiliary_image_buffer, ctx);
+
+  d->m_blending_type = compute_blending_type(d->m_provide_auxiliary_image_buffer,
+                                             interlock_type,
+                                             d->m_blending_type, ctx);
+
+  if (d->m_provide_auxiliary_image_buffer == no_auxiliary_buffer)
+    {
+      d->m_default_stroke_shader_aa_type = PainterStrokeShader::draws_solid_then_fuzz;
+    }
+
+  return *this;
+}
+
+fastuidraw::gl::PainterBackendGL::ConfigurationGL&
+fastuidraw::gl::PainterBackendGL::ConfigurationGL::
+create_missing_atlases(const ContextProperties &ctx)
+{
+  ConfigurationGLPrivate *d;
+  d = static_cast<ConfigurationGLPrivate*>(m_d);
+
+  FASTUIDRAWunused(ctx);
+  if (!d->m_image_atlas)
+    {
+      ImageAtlasGL::params params;
+      d->m_image_atlas = FASTUIDRAWnew ImageAtlasGL(params);
+    }
+
+  if (!d->m_glyph_atlas)
+    {
+      GlyphAtlasGL::params params;
+      params.use_optimal_geometry_store_backing();
+      d->m_glyph_atlas = FASTUIDRAWnew GlyphAtlasGL(params);
+    }
+
+  if (!d->m_colorstop_atlas)
+    {
+      ColorStopAtlasGL::params params;
+      params.optimal_width();
+      d->m_colorstop_atlas = FASTUIDRAWnew ColorStopAtlasGL(params);
+    }
+
+  return *this;
+}
+
 assign_swap_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL)
 
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
@@ -2951,12 +2987,47 @@ setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, Configuratio
 
 ///////////////////////////////////////////////
 // fastuidraw::gl::PainterBackendGL methods
+fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendGL>
 fastuidraw::gl::PainterBackendGL::
-PainterBackendGL(const ConfigurationGL &config_gl):
+create(ConfigurationGL config_gl, const ContextProperties &ctx)
+{
+  ConfigurationGLSL config_glsl;
+
+  config_gl
+    .adjust_for_context(ctx)
+    .create_missing_atlases(ctx);
+
+  PainterBackendGLPrivate::compute_glsl_config(config_gl, ctx,
+                                               config_glsl);
+
+  return FASTUIDRAWnew PainterBackendGL(config_gl, config_glsl);
+}
+
+fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendGL>
+fastuidraw::gl::PainterBackendGL::
+create(bool for_msaa, const ContextProperties &ctx)
+{
+  ConfigurationGL config_gl;
+  ConfigurationGLSL config_glsl;
+
+  config_gl
+    .configure_from_context(for_msaa, ctx)
+    .adjust_for_context(ctx)
+    .create_missing_atlases(ctx);
+
+  PainterBackendGLPrivate::compute_glsl_config(config_gl, ctx,
+                                               config_glsl);
+
+  return FASTUIDRAWnew PainterBackendGL(config_gl, config_glsl);
+}
+
+fastuidraw::gl::PainterBackendGL::
+PainterBackendGL(const ConfigurationGL &config_gl,
+                 const ConfigurationGLSL &config_glsl):
   PainterBackendGLSL(config_gl.glyph_atlas(),
                      config_gl.image_atlas(),
                      config_gl.colorstop_atlas(),
-                     PainterBackendGLPrivate::compute_glsl_config(config_gl))
+                     config_glsl)
 {
   PainterBackendGLPrivate *d;
   m_d = d = FASTUIDRAWnew PainterBackendGLPrivate(config_gl, this);
