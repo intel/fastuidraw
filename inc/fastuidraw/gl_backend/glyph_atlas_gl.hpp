@@ -214,6 +214,7 @@ namespace gl
      * Ctor.
      * \param P parameters for constrution
      */
+    explicit
     GlyphAtlasGL(const params &P);
 
     ~GlyphAtlasGL();
