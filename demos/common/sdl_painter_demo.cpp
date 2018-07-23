@@ -674,7 +674,7 @@ init_gl(int w, int h)
     .glyph_atlas(m_glyph_atlas)
     .colorstop_atlas(m_colorstop_atlas);
 
-  m_backend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(m_painter_params);
+  m_backend = fastuidraw::gl::PainterBackendGL::create(m_painter_params);
   m_painter = FASTUIDRAWnew fastuidraw::Painter(m_backend);
   m_glyph_cache = FASTUIDRAWnew fastuidraw::GlyphCache(m_painter->glyph_atlas());
   m_glyph_selector = FASTUIDRAWnew fastuidraw::GlyphSelector(m_glyph_cache);
