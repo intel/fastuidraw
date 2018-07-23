@@ -470,40 +470,25 @@ namespace fastuidraw {
   To create a GL backend, one does:
   \code
 
-  //create atlases, the atlases hold all the GPU resources for glyphs, images and colorstops
-  //a single application should make only one set of atlases. For the case of multiple GL
-  //contexts, the application should make sure that the GL contexts all reside in the same
-  //share group.
-  fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL> imageAtlas;
-  fastuidraw::reference_counted_ptr<fastuidraw::gl::ColorStopAtlasGL> colorStopAtlas;
-  fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> glyphAtlas;
-  fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::SurfaceGL> surface;
+  
 
   //create a fastuidraw::gl::PainterBackendGL::SurfaceGL; the argument
   //to its ctor determines its properties. Of important note is that
   //a SurfaceGL can use as its backing store a GL texture passed FROM
   //the caller.
-  props.dimensions(ivec2(resolution_width, resolution_height));
+  fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::SurfaceGL> surface;
+
   fastuidraw::gl::PainterBackendGL::SurfaceGL::Properties props;
+  props.dimensions(ivec2(resolution_width, resolution_height));
   surface = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL::SurfaceGL(props);
 
-  //create the various atlases for the backend, the argument to their
-  //ctor's determines their properties.
-  imageAtlas = FASTUIDRAWnew fastuidraw::gl::ImageAtlasGL(fastuidraw::gl::ImageAtlasGL::params());
-  colorStopAtlas = FASTUIDRAWnew fastuidraw::gl::ColorStopAtlasGL(fastuidraw::gl::ColorStopAtlasGL::params());
-  glyphAtlas = FASTUIDRAWnew fastuidraw::gl::GlyphAtlasGL(fastuidraw::gl::GlyphAtlasGL::params());
-
-  //create the backend mapping to GL, the GL backend object creates the necessary GLSL programs,
-  //attribute and index pools.
-  fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendGL> painterBackend;
-  painterBackend = FASTUIDRAWnew fastuidraw::gl::PainterBackendGL(fastuidraw::gl::PainterBackendGL::ConfigurationGL()
-                                                                  .image_atlas(imageAtlas)
-                                                                  .colorstop_atlas(colorStopAtlas)
-                                                                  .glyph_atlas(glyphAtlas),
-                                                                  fastuidraw::PainterBackend::ConfigurationBase());
+  //Create a GL backend for Painter, see the methods of PainterBackendGL on
+  //how to control how the backend is configured.
+  fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> painterBackend;
+  painterBackend = fastuidraw::gl::PainterBackendGL::create();
 
   //NOTES:
-  // 1. the atlases can be used by multiple PainterBackendGL simutaneously
+  // 1. atlases can be used by multiple PainterBackendGL simutaneously
   // 2. the member class params of each of the atlas types and PainterBackendGL
   //    have additional properties one can set.
   // 3. A PainterBackendGL is a very -heavy- object (because it maintains a GLSL
