@@ -1235,6 +1235,20 @@ fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
   m_d = nullptr;
 }
 
+fastuidraw::PainterShaderSet
+fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL::
+default_shaders(void) const
+{
+  ConfigurationGLSLPrivate *d;
+  d = static_cast<ConfigurationGLSLPrivate*>(m_d);
+
+  detail::ShaderSetCreator S(shader_blend_type(d->m_blending_type),
+                             d->m_default_stroke_shader_aa_type,
+                             d->m_default_stroke_shader_aa_pass1_action,
+                             d->m_default_stroke_shader_aa_pass2_action);
+  return S.create_shader_set();                                 
+}
+
 assign_swap_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL)
 
 setget_implement(fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL,
@@ -1432,11 +1446,7 @@ PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                  .alignment(config_glsl.alignment())
                  .blend_type(shader_blend_type(config_glsl.blending_type()))
                  .supports_bindless_texturing(config_glsl.supports_bindless_texturing()),
-                 detail::ShaderSetCreator(shader_blend_type(config_glsl.blending_type()),
-                                          config_glsl.default_stroke_shader_aa_type(),
-                                          config_glsl.default_stroke_shader_aa_pass1_action(),
-                                          config_glsl.default_stroke_shader_aa_pass2_action())
-                 .create_shader_set())
+                 config_glsl.default_shaders())
 {
   m_d = FASTUIDRAWnew PainterBackendGLSLPrivate(this, config_glsl);
 }
