@@ -1141,16 +1141,16 @@ namespace fastuidraw
 
     protected:
       /*!
-       * Returns true if any shader code has been added since
-       * the last call to shader_code_added(). A derived class
-       * shall use this function to determine when it needs
-       * to recreate its uber-shader(s).
+       * Returns the total number of shaders (item and blend)
+       * registered to this PainterBackendGLSL; a derived class
+       * should track this count value and use it to determine
+       * when it needs to reconstruct its uber-shader.
        */
-      bool
-      shader_code_added(void);
+      unsigned int
+      registered_shader_count(void);
 
       /*!
-       * To be called by a derived class to tell the PainterBackendGLSL
+       * To be called by a derived class to tell this PainterBackendGLSL
        * the viewport of the target surface.
        */
       void
