@@ -2466,10 +2466,13 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
 
       if (!m_uniform_ubo_ready)
         {
+          c_array<generic_data> ubo_mapped_ptr;
           ubo_mapped = glMapBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes,
                                         GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
+          ubo_mapped_ptr = c_array<generic_data>(static_cast<generic_data*>(ubo_mapped),
+                                                 size_generics);
           
-          m_p->fill_uniform_buffer(c_array<generic_data>(static_cast<generic_data*>(ubo_mapped), size_generics));
+          m_p->fill_uniform_buffer(m_surface_gl->m_viewport, ubo_mapped_ptr);
           glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
           glUnmapBuffer(GL_UNIFORM_BUFFER);
           m_uniform_ubo_ready = true;
@@ -3140,7 +3143,6 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
       glSamplerParameteri(d->m_nearest_filter_sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
     }
 
-  PainterBackendGLSL::viewport(d->m_surface_gl->m_viewport);
   d->m_uniform_ubo_ready = false;
   d->set_gl_state(gpu_dirty_state::all, true, clear_color_buffer);
 
