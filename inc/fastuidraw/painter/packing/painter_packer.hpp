@@ -237,6 +237,14 @@ namespace fastuidraw
     colorstop_atlas(void) const;
 
     /*!
+     * Returns the PainterShaderRegistrar of the PainterBackend
+     * that was used to create this PainterPacker object. Use this
+     * return value to add custom shaders.
+     */
+    reference_counted_ptr<PainterShaderRegistrar>
+    painter_shader_registrar(void) const;
+
+    /*!
      * Returns the active blend shader
      */
     const reference_counted_ptr<PainterBlendShader>&
@@ -365,58 +373,6 @@ namespace fastuidraw
      */
     const PainterBackend::PerformanceHints&
     hints(void);
-
-    /*!
-     * Registers a shader for use. Must not be called within a
-     * begin() / end() pair.
-     */
-    void
-    register_shader(const reference_counted_ptr<PainterItemShader> &shader);
-
-    /*!
-     * Registers a shader for use. Must not be called within
-     * a begin() / end() pair.
-     */
-    void
-    register_shader(const reference_counted_ptr<PainterBlendShader> &shader);
-
-    /*!
-     * Registers a stroke shader for use. Must not be called within
-     * a begin() / end() pair.
-     * \param p PainterStrokeShader hold shaders to register
-     */
-    void
-    register_shader(const PainterStrokeShader &p);
-
-    /*!
-     * Registers a stroke shader for use. Must not be called within
-     * a begin() / end() pair.
-     * \param p PainterFillShader hold shaders to register
-     */
-    void
-    register_shader(const PainterFillShader &p);
-
-    /*!
-     * Registers a dashed stroke shader for use. Must not be called within
-     * a begin() / end() pair.
-     * \param p PainterDashedStrokeShaderSet hold shaders to register
-     */
-    void
-    register_shader(const PainterDashedStrokeShaderSet &p);
-
-    /*!
-     * Registers a glyph shader for use. Must not be called within
-     * a begin() / end() pair.
-     */
-    void
-    register_shader(const PainterGlyphShader &p);
-
-    /*!
-     * Registers a shader set for use. Must not be called within
-     * a begin() / end() pair.
-     */
-    void
-    register_shader(const PainterShaderSet &p);
 
   private:
     void *m_d;

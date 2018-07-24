@@ -2975,6 +2975,15 @@ colorstop_atlas(void) const
   return d->m_core->colorstop_atlas();
 }
 
+fastuidraw::reference_counted_ptr<fastuidraw::PainterShaderRegistrar>
+fastuidraw::Painter::
+painter_shader_registrar(void) const
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  return d->m_core->painter_shader_registrar();
+}
+
 const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader>&
 fastuidraw::Painter::
 blend_shader(void) const
@@ -3037,67 +3046,4 @@ increment_z(int amount)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
   d->m_current_z += amount;
-}
-
-void
-fastuidraw::Painter::
-register_shader(const fastuidraw::reference_counted_ptr<PainterItemShader> &shader)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  d->m_core->register_shader(shader);
-}
-
-void
-fastuidraw::Painter::
-register_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &shader)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  d->m_core->register_shader(shader);
-}
-
-void
-fastuidraw::Painter::
-register_shader(const PainterStrokeShader &p)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  d->m_core->register_shader(p);
-}
-
-void
-fastuidraw::Painter::
-register_shader(const PainterFillShader &p)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  d->m_core->register_shader(p);
-}
-
-void
-fastuidraw::Painter::
-register_shader(const PainterDashedStrokeShaderSet &p)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  d->m_core->register_shader(p);
-}
-
-void
-fastuidraw::Painter::
-register_shader(const PainterGlyphShader &p)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  d->m_core->register_shader(p);
-}
-
-void
-fastuidraw::Painter::
-register_shader(const PainterShaderSet &p)
-{
-  PainterPrivate *d;
-  d = static_cast<PainterPrivate*>(m_d);
-  d->m_core->register_shader(p);
 }
