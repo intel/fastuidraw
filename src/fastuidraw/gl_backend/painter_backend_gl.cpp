@@ -1858,6 +1858,8 @@ configure_backend(void)
 
   m_interlock_type = compute_interlock_type(m_ctx_properties);
   m_uber_shader_builder_params
+    .blending_type(m_p->configuration_glsl().blending_type())
+    .supports_bindless_texturing(m_p->configuration_glsl().supports_bindless_texturing())
     .assign_layout_to_vertex_shader_inputs(m_params.assign_layout_to_vertex_shader_inputs())
     .assign_layout_to_varyings(m_params.assign_layout_to_varyings())
     .assign_binding_points(m_params.assign_binding_points())

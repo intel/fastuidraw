@@ -59,24 +59,6 @@ namespace
     std::vector<Ref> m_shaders;
   };
 
-  class ConfigurationGLSLPrivate
-  {
-  public:
-    ConfigurationGLSLPrivate(void):
-      m_alignment(4),
-      m_blending_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_dual_src),
-      m_supports_bindless_texturing(false),
-      m_default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz)
-    {}
-
-    int m_alignment;
-    enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t m_blending_type;
-    bool m_supports_bindless_texturing;
-    enum fastuidraw::PainterStrokeShader::type_t m_default_stroke_shader_aa_type;
-    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_default_stroke_shader_aa_pass1_action;
-    fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action> m_default_stroke_shader_aa_pass2_action;
-  };
-
   class BindingPointsPrivate
   {
   public:
@@ -124,6 +106,8 @@ namespace
   {
   public:
     UberShaderParamsPrivate(void):
+      m_blending_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_dual_src),
+      m_supports_bindless_texturing(false),
       m_clipping_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::clipping_via_gl_clip_distance),
       m_z_coordinate_convention(fastuidraw::glsl::PainterShaderRegistrarGLSL::z_minus_1_to_1),
       m_negate_normalized_y_coordinate(false),
@@ -145,6 +129,8 @@ namespace
       m_use_uvec2_for_bindless_handle(true)
     {}
 
+    enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t m_blending_type;
+    bool m_supports_bindless_texturing;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::clipping_type_t m_clipping_type;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::z_coordinate_convention_t m_z_coordinate_convention;
     bool m_negate_normalized_y_coordinate;
@@ -171,7 +157,7 @@ namespace
   {
   public:
     explicit
-    PainterShaderRegistrarGLSLPrivate(const fastuidraw::glsl::PainterShaderRegistrarGLSL::ConfigurationGLSL &config);
+    PainterShaderRegistrarGLSLPrivate(void);
     ~PainterShaderRegistrarGLSLPrivate();
 
     void
@@ -203,7 +189,6 @@ namespace
     void
     stream_unpack_code(fastuidraw::PainterBackend *backend, fastuidraw::glsl::ShaderSource &src);
 
-    fastuidraw::glsl::PainterShaderRegistrarGLSL::ConfigurationGLSL m_config;
     enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> > m_item_shaders;
     unsigned int m_next_item_shader_ID;
@@ -222,36 +207,12 @@ namespace
     fastuidraw::glsl::varying_list m_clip_varyings;
     fastuidraw::glsl::varying_list m_brush_varyings;
   };
-
-  enum fastuidraw::PainterBlendShader::shader_type
-  shader_blend_type(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t in_value)
-  {
-    using namespace fastuidraw;
-    using namespace fastuidraw::glsl;
-    switch(in_value)
-      {
-      case PainterShaderRegistrarGLSL::blending_single_src:
-        return PainterBlendShader::single_src;
-
-      case PainterShaderRegistrarGLSL::blending_dual_src:
-        return PainterBlendShader::dual_src;
-
-      case PainterShaderRegistrarGLSL::blending_framebuffer_fetch:
-      case PainterShaderRegistrarGLSL::blending_interlock:
-        return PainterBlendShader::framebuffer_fetch;
-      }
-
-    FASTUIDRAWassert(!"Bad blending_type_t value");
-    return PainterBlendShader::single_src;
-  }
 }
 
 /////////////////////////////////////
 // PainterShaderRegistrarGLSLPrivate methods
 PainterShaderRegistrarGLSLPrivate::
-PainterShaderRegistrarGLSLPrivate(const fastuidraw::glsl::PainterShaderRegistrarGLSL::ConfigurationGLSL &config):
-  m_config(config),
-  m_blend_type(shader_blend_type(config.blending_type())),
+PainterShaderRegistrarGLSLPrivate(void):
   m_next_item_shader_ID(1),
   m_next_blend_shader_ID(1),
   m_number_float_varyings(0),
@@ -789,7 +750,9 @@ construct_shader(fastuidraw::PainterBackend *backend,
   const PainterShaderRegistrarGLSL::BindingPoints &binding_params(params.binding_points());
   std::vector<reference_counted_ptr<PainterItemShaderGLSL> > work_shaders;
   c_array<const reference_counted_ptr<PainterItemShaderGLSL> > item_shaders;
+  enum PainterBlendShader::shader_type blend_type;
 
+  blend_type = params.blend_type();
   if (item_shader_filter)
     {
       for(const auto &sh : m_item_shaders)
@@ -913,7 +876,7 @@ construct_shader(fastuidraw::PainterBackend *backend,
       break;
 
     case PainterShaderRegistrarGLSL::clipping_via_skip_color_write:
-      FASTUIDRAWassert(m_blend_type == PainterBlendShader::framebuffer_fetch);
+      FASTUIDRAWassert(blend_type == PainterBlendShader::framebuffer_fetch);
       frag.add_macro("FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE");
       break;
     }
@@ -1110,7 +1073,7 @@ construct_shader(fastuidraw::PainterBackend *backend,
                           uber_shader_varyings, shader_varying_datum);
 
   c_string shader_blend_macro;
-  switch(m_config.blending_type())
+  switch(params.blending_type())
     {
     case PainterShaderRegistrarGLSL::blending_framebuffer_fetch:
       shader_blend_macro = "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH";
@@ -1209,83 +1172,9 @@ construct_shader(fastuidraw::PainterBackend *backend,
   stream_uber_frag_shader(params.frag_shader_use_switch(), frag, item_shaders,
                           uber_shader_varyings, shader_varying_datum);
   stream_uber_blend_shader(params.blend_shader_use_switch(), frag,
-                           make_c_array(m_blend_shaders[m_blend_type].m_shaders),
-                           m_blend_type);
+                           make_c_array(m_blend_shaders[blend_type].m_shaders),
+                           blend_type);
 }
-
-/////////////////////////////////////////////////////////////////
-//fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::ConfigurationGLSL methods
-fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::ConfigurationGLSL::
-ConfigurationGLSL(void)
-{
-  m_d = FASTUIDRAWnew ConfigurationGLSLPrivate();
-}
-
-fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::ConfigurationGLSL::
-ConfigurationGLSL(const ConfigurationGLSL &obj)
-{
-  ConfigurationGLSLPrivate *d;
-  d = static_cast<ConfigurationGLSLPrivate*>(obj.m_d);
-  m_d = FASTUIDRAWnew ConfigurationGLSLPrivate(*d);
-}
-
-fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::ConfigurationGLSL::
-~ConfigurationGLSL()
-{
-  ConfigurationGLSLPrivate *d;
-  d = static_cast<ConfigurationGLSLPrivate*>(m_d);
-  FASTUIDRAWdelete(d);
-  m_d = nullptr;
-}
-
-fastuidraw::PainterShaderSet
-fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::ConfigurationGLSL::
-default_shaders(void) const
-{
-  ConfigurationGLSLPrivate *d;
-  d = static_cast<ConfigurationGLSLPrivate*>(m_d);
-
-  detail::ShaderSetCreator S(shader_blend_type(d->m_blending_type),
-                             d->m_default_stroke_shader_aa_type,
-                             d->m_default_stroke_shader_aa_pass1_action,
-                             d->m_default_stroke_shader_aa_pass2_action);
-  return S.create_shader_set();                                 
-}
-
-enum fastuidraw::PainterBlendShader::shader_type
-fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::ConfigurationGLSL::
-blend_type(void) const
-{
-  return shader_blend_type(blending_type());
-}
-
-assign_swap_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::ConfigurationGLSL)
-
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::ConfigurationGLSL,
-                 ConfigurationGLSLPrivate,
-                 int, alignment)
-
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::ConfigurationGLSL,
-                 ConfigurationGLSLPrivate,
-                 enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t, blending_type)
-
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::ConfigurationGLSL,
-                 ConfigurationGLSLPrivate,
-                 bool, supports_bindless_texturing)
-
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::ConfigurationGLSL,
-                 ConfigurationGLSLPrivate,
-                 enum fastuidraw::PainterStrokeShader::type_t, default_stroke_shader_aa_type)
-
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::ConfigurationGLSL,
-                 ConfigurationGLSLPrivate,
-                 const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
-                 default_stroke_shader_aa_pass1_action)
-
-setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::ConfigurationGLSL,
-                 ConfigurationGLSLPrivate,
-                 const fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw::Action>&,
-                 default_stroke_shader_aa_pass2_action)
 
 /////////////////////////////////////////////////////////////
 // fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BindingPoints methods
@@ -1397,8 +1286,32 @@ fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams::
   m_d = nullptr;
 }
 
+enum fastuidraw::PainterBlendShader::shader_type
+fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams::
+blend_type(void) const
+{
+  return detail::shader_blend_type(blending_type());
+}
+
+fastuidraw::PainterShaderSet
+fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams::
+default_shaders(enum PainterStrokeShader::type_t stroke_tp,
+                const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass1,
+                const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass2) const
+{
+  detail::ShaderSetCreator S(blend_type(), stroke_tp,
+                             stroke_action_pass1, stroke_action_pass2);
+  return S.create_shader_set();                                 
+}
+
 assign_swap_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams)
 
+setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
+                 UberShaderParamsPrivate,
+                 enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t,
+                 blending_type)
+setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, bool, supports_bindless_texturing)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate,
                  enum fastuidraw::glsl::PainterShaderRegistrarGLSL::clipping_type_t,
@@ -1447,9 +1360,9 @@ setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
 //////////////////////////////////////////////
 // fastuidraw::glsl::PainterShaderRegistrarGLSL methods
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
-PainterShaderRegistrarGLSL(const ConfigurationGLSL &config_glsl)
+PainterShaderRegistrarGLSL(void)
 {
-  m_d = FASTUIDRAWnew PainterShaderRegistrarGLSLPrivate(config_glsl);
+  m_d = FASTUIDRAWnew PainterShaderRegistrarGLSLPrivate();
 }
 
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
@@ -1581,15 +1494,6 @@ registered_shader_count(void)
     }
 
   return return_value;
-}
-
-const fastuidraw::glsl::PainterShaderRegistrarGLSL::ConfigurationGLSL&
-fastuidraw::glsl::PainterShaderRegistrarGLSL::
-configuration_glsl(void) const
-{
-  PainterShaderRegistrarGLSLPrivate *d;
-  d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
-  return d->m_config;
 }
 
 void

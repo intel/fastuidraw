@@ -52,15 +52,16 @@ namespace fastuidraw
 
           /*!
            * Data store is backed by a uniform buffer object
-           * that is an array of uvec4. The value for
-           * ConfigurationGLSL::alignment() must then be 4.
+           * that is an array of uvec4. The data store alignment
+           * (see PainterBackend::ConfigurationBase::alignment())
+           * must then be 4.
            */
           data_store_ubo,
 
           /*!
-           * Data store is backed by a shader storage buffer
-           * object that is an array of uvec4. The value for
-           * ConfigurationGLSL::alignment() must then be 4.
+           * Data store is backed by a shader storage buffer object 
+           * that is an array of uvec4. The data store alignment
+           * (see PainterBackend::ConfigurationBase::alignment())
            */
           data_store_ssbo
         };
@@ -90,7 +91,7 @@ namespace fastuidraw
            * to each clip-plane and (virtually) skipping
            * the color write. This requires that the
            * blending mode is through framebuffer fetch,
-           * i.e. ConfigurationGLSL::blending_type() is \ref
+           * i.e. UberShaderParams::blending_type() is \ref
            * blending_framebuffer_fetch or \ref blending_interlock
            */
           clipping_via_skip_color_write,
@@ -282,151 +283,6 @@ namespace fastuidraw
            */
           header_attrib_slot,
         };
-
-      /*!
-       * \brief
-       * A params gives parameters how to contruct
-       * a PainterShaderRegistrarGLSL.
-       *
-       * These values influence the behavior of both
-       * the PainterShaderRegistrarGLSL and the shaders it
-       * constructs via PainterShaderRegistrarGLSL::construct_shader().
-       */
-      class ConfigurationGLSL
-      {
-      public:
-        /*!
-         * Ctor.
-         */
-        ConfigurationGLSL(void);
-
-        /*!
-         * Copy ctor.
-         * \param obj value from which to copy
-         */
-        ConfigurationGLSL(const ConfigurationGLSL &obj);
-
-        ~ConfigurationGLSL();
-
-        /*!
-         * Assignment operator
-         * \param rhs value from which to copy
-         */
-        ConfigurationGLSL&
-        operator=(const ConfigurationGLSL &rhs);
-
-        /*!
-         * Swap operation
-         * \param obj object with which to swap
-         */
-        void
-        swap(ConfigurationGLSL &obj);
-
-        /*!
-         * Specifies the alignment in units of generic_data for
-         * packing of seperately accessible entries of generic data
-         * in PainterDraw::m_store.
-         */
-        int
-        alignment(void) const;
-
-        /*!
-         * Specify the value returned by alignment(void) const,
-         * default value is 4
-         * \param v value
-         */
-        ConfigurationGLSL&
-        alignment(int v);
-
-        /*!
-         * Returns how the painter will perform blending.
-         */
-        enum blending_type_t
-        blending_type(void) const;
-
-        /*!
-         * Specify the return value to blending_type() const.
-         * Default value is \ref blending_dual_src
-         * \param tp blend shader type
-         */
-        ConfigurationGLSL&
-        blending_type(enum blending_type_t tp);
-
-        /*!
-         * Provided as a conveniance, returns the value of
-         * blending_type(void) const as a \ref 
-         * PainterBlendShader::shader_type.
-         */
-        enum PainterBlendShader::shader_type
-        blend_type(void) const;
-
-        /*!
-         * If true, indicates that the PainterRegistrar supports
-         * bindless texturing. Default value is false.
-         */
-        bool
-        supports_bindless_texturing(void) const;
-
-        /*!
-         * Specify the return value to supports_bindless_texturing() const.
-         * Default value is false.
-         */
-        ConfigurationGLSL&
-        supports_bindless_texturing(bool);
-
-        /*!
-         * Sets how the default stroke shaders perform anti-aliasing.
-         * If the value is \ref PainterStrokeShader::cover_then_draw, then
-         * UberShaderParams::provide_auxiliary_image_buffer() must be true.
-         */
-        enum PainterStrokeShader::type_t
-        default_stroke_shader_aa_type(void) const;
-
-        /*!
-         * Set the value returned by default_stroke_shader_aa_type(void) const.
-         * Default value is \ref PainterStrokeShader::draws_solid_then_fuzz.
-         */
-        ConfigurationGLSL&
-        default_stroke_shader_aa_type(enum PainterStrokeShader::type_t);
-
-        /*!
-         * The value to use for the default stroke shaders
-         * for \ref PainterStrokeShader::aa_action_pass1().
-         */
-        const reference_counted_ptr<const PainterDraw::Action>&
-        default_stroke_shader_aa_pass1_action(void) const;
-
-        /*!
-         * Set the value returned by default_stroke_shader_aa_pass1_action(void) const.
-         * Default value is nullptr.
-         */
-        ConfigurationGLSL&
-        default_stroke_shader_aa_pass1_action(const reference_counted_ptr<const PainterDraw::Action> &action);
-
-        /*!
-         * The value to use for the default stroke shaders
-         * for \ref PainterStrokeShader::aa_action_pass2().
-         */
-        const reference_counted_ptr<const PainterDraw::Action>&
-        default_stroke_shader_aa_pass2_action(void) const;
-
-        /*!
-         * Set the value returned by default_stroke_shader_aa_pass2_action(void) const.
-         * Default value is nullptr.
-         */
-        ConfigurationGLSL&
-        default_stroke_shader_aa_pass2_action(const reference_counted_ptr<const PainterDraw::Action> &action);
-
-        /*!
-         * Returns a PainterShaderSet derived from the current values
-         * of this ConfigurationGLSL.
-         */
-        PainterShaderSet
-        default_shaders(void) const;
-
-      private:
-        void *m_d;
-      };
 
       /*!
        * \brief
@@ -687,7 +543,7 @@ namespace fastuidraw
 
         /*!
          * Specifies the binding point for the image2D (rgba8) color
-         * buffer; only active if ConfigurationGLSL::blending_type()
+         * buffer; only active if UberShaderParams::blending_type()
          * is \ref blending_interlock. Default value is 1.
          */
         unsigned int
@@ -739,6 +595,42 @@ namespace fastuidraw
          */
         void
         swap(UberShaderParams &obj);
+
+        /*!
+         * Returns how the painter will perform blending.
+         */
+        enum blending_type_t
+        blending_type(void) const;
+
+        /*!
+         * Specify the return value to blending_type() const.
+         * Default value is \ref blending_dual_src
+         * \param tp blend shader type
+         */
+        UberShaderParams&
+        blending_type(enum blending_type_t tp);
+
+        /*!
+         * Provided as a conveniance, returns the value of
+         * blending_type(void) const as a \ref 
+         * PainterBlendShader::shader_type.
+         */
+        enum PainterBlendShader::shader_type
+        blend_type(void) const;
+
+        /*!
+         * If true, indicates that the PainterRegistrar supports
+         * bindless texturing. Default value is false.
+         */
+        bool
+        supports_bindless_texturing(void) const;
+
+        /*!
+         * Specify the return value to supports_bindless_texturing() const.
+         * Default value is false.
+         */
+        UberShaderParams&
+        supports_bindless_texturing(bool);
 
         /*!
          * Specifies how the uber-shader will perform clipping.
@@ -923,7 +815,7 @@ namespace fastuidraw
          * has value data_store_ubo. Gives the size in
          * blocks of PainterDraw::m_store which
          * is PainterDraw::m_store.size() divided
-         * by ConfigurationGLSL::alignment().
+         * by PainterBackend::ConfigurationBase::alignment().
          */
         int
         data_blocks_per_store_buffer(void) const;
@@ -1054,6 +946,15 @@ namespace fastuidraw
         UberShaderParams&
         use_uvec2_for_bindless_handle(bool);
 
+        /*!
+         * Returns a PainterShaderSet derived from the current values
+         * of this UberShaderParams.
+         */
+        PainterShaderSet
+        default_shaders(enum PainterStrokeShader::type_t stroke_tp,
+                        const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass1,
+                        const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass2) const;
+
       private:
         void *m_d;
       };
@@ -1094,21 +995,11 @@ namespace fastuidraw
 
       /*!
        * Ctor.
-       * \param glyph_atlas GlyphAtlas for glyphs drawn by the PainterRegistrar
-       * \param image_atlas ImageAtlas for images drawn by the PainterRegistrar
-       * \param colorstop_atlas ColorStopAtlas for color stop sequences drawn by the PainterRegistrar
-       * \param config_glsl ConfigurationGLSL providing configuration parameters
        */
       explicit
-      PainterShaderRegistrarGLSL(const ConfigurationGLSL &config_glsl);
+      PainterShaderRegistrarGLSL(void);
 
       ~PainterShaderRegistrarGLSL();
-
-      /*!
-       * Returns the ConfigurationGLSL passed in the ctor.
-       */
-      const ConfigurationGLSL&
-      configuration_glsl(void) const;
 
       /*!
        * Add GLSL code that is to be visible to all vertex
