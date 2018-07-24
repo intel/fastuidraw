@@ -960,6 +960,190 @@ namespace fastuidraw
       };
 
       /*!
+       * A BackendConstants stores constants coming from a backend
+       * implementation that change the GLSL uber-shaders made by
+       *  PainterShaderRegisterGLSL::construct_shader().
+       */
+      class BackendConstants
+      {
+      public:
+        /*!
+         * Ctor.
+         * \param p if non-null, set all values from the passed PainterBackend object,
+         *                       otherwise set all values as 0.
+         */
+        BackendConstants(const reference_counted_ptr<PainterBackend> &p = reference_counted_ptr<PainterBackend>());
+
+        /*!
+         * Copy ctor.
+         * \param obj value from which to copy
+         */
+        BackendConstants(const BackendConstants &obj);
+
+        ~BackendConstants();
+
+        /*!
+         * Assignment operator
+         * \param rhs value from which to copy
+         */
+        BackendConstants&
+        operator=(const BackendConstants &rhs);
+
+        /*!
+         * Swap operation
+         * \param obj object with which to swap
+         */
+        void
+        swap(BackendConstants &obj);
+
+        /*!
+         * Should be the same value as PainterBackend::ConfigurationBase::alignment()
+         * of PainterBackend::configuration_base().
+         */
+        int
+        data_store_alignment(void) const;
+
+        /*!
+         * Set the value returned by data_store_alignment(void) const.
+         */
+        BackendConstants&
+        data_store_alignment(int);
+
+        /*!
+         * Should be the same as ::alignment() of GlyphAtlas::geometry_store().
+         */
+        int
+        glyph_atlas_geometry_store_alignment(void) const;
+
+        /*!
+         * Set the value returned by glyph_atlas_geometry_store_alignment(void) const.
+         */
+        BackendConstants&
+        glyph_atlas_geometry_store_alignment(int);
+
+        /*!
+         * Should be the same value as GlyphAtlasTexelBackingStoreBase::dimensions() .x()
+         * of GlyphAtlas::texel_store()
+         */
+        int
+        glyph_atlas_texel_store_width(void) const;
+
+        /*!
+         * Set the value returned by glyph_atlas_texel_store_width(void) const.
+         */
+        BackendConstants&
+        glyph_atlas_texel_store_width(int);
+
+        /*!
+         * Should be the same value as GlyphAtlasTexelBackingStoreBase::dimensions() .y()
+         * of GlyphAtlas::texel_store()
+         */
+        int
+        glyph_atlas_texel_store_height(void) const;
+
+        /*!
+         * Set the value returned by glyph_atlas_texel_store_height(void) const.
+         */
+        BackendConstants&
+        glyph_atlas_texel_store_height(int);
+
+        /*!
+         * Should be the same value as AtlasColorBackingStoreBase::dimensions() .x()
+         * of ImageAtlas::color_store()
+         */
+        int
+        image_atlas_color_store_width(void) const;
+
+        /*!
+         * Set the value returned by image_atlas_color_store_width(void) const.
+         */
+        BackendConstants&
+        image_atlas_color_store_width(int);
+
+        /*!
+         * Should be the same value as AtlasColorBackingStoreBase::dimensions() .y()
+         * of ImageAtlas::color_store()
+         */
+        int
+        image_atlas_color_store_height(void) const;
+
+        /*!
+         * Set the value returned by image_atlas_color_store_height(void) const.
+         */
+        BackendConstants&
+        image_atlas_color_store_height(int);
+
+        /*!
+         * Should be the same as ImageAtlas::index_tile_size()
+         */
+        int
+        image_atlas_index_tile_size(void) const;
+
+        /*!
+         * Set the value returned by image_atlas_index_tile_size(void) const.
+         */
+        BackendConstants&
+        image_atlas_index_tile_size(int);
+
+        /*!
+         * Should be the same as ImageAtlas::color_tile_size()
+         * and must be a power of 2.
+         */
+        int
+        image_atlas_color_tile_size(void) const;
+
+        /*!
+         * Set the value returned by image_atlas_color_tile_size(void) const.
+         */
+        BackendConstants&
+        image_atlas_color_tile_size(int);
+
+        /*!
+         * Should be the same value as ColorStopBackingStore::dimensions().x()
+         * of ColorStopAtlas::backing_store()
+         */
+        int
+        colorstop_atlas_store_width(void) const;
+
+        /*!
+         * Set the value returned by color_atlas_store_width(void) const.
+         */
+        BackendConstants&
+        colorstop_atlas_store_width(int);
+
+        /*!
+         * Set all values of this BackendConstant by taking values
+         * from a PainterBackend. 
+         */
+        BackendConstants&
+        set_from_backend(const reference_counted_ptr<PainterBackend> &p);
+
+        /*!
+         * Set all values of this BackendConstant by taking values
+         * from a PainterBackend. 
+         */
+        BackendConstants&
+        set_from_atlas(const reference_counted_ptr<ImageAtlas> &p);
+
+        /*!
+         * Set all values of this BackendConstant by taking values
+         * from a PainterBackend. 
+         */
+        BackendConstants&
+        set_from_atlas(const reference_counted_ptr<GlyphAtlas> &p);
+
+        /*!
+         * Set all values of this BackendConstant by taking values
+         * from a PainterBackend. 
+         */
+        BackendConstants&
+        set_from_atlas(const reference_counted_ptr<ColorStopAtlas> &p);
+
+      private:
+        void *m_d;
+      };
+
+      /*!
        * \brief
        * An ItemShaderFilter is used to specify whether or not
        * to include a named shader when creating an uber-shader.
@@ -1020,8 +1204,7 @@ namespace fastuidraw
       /*!
        * Add the uber-vertex and fragment shaders to given
        * ShaderSource values.
-       * \param backend PainterBackend holding the various atlases, the properties
-       *                of those atlas values affect the created uber-shader.
+       * \param backend_constants constant values that affect the created uber-shader.
        * \param out_vertex ShaderSource to which to add uber-vertex shader
        * \param out_fragment ShaderSource to which to add uber-fragment shader
        * \param contruct_params specifies how to construct the uber-shaders.
@@ -1035,7 +1218,7 @@ namespace fastuidraw
        *                            instead of discard.
        */
       void
-      construct_shader(PainterBackend *backend,
+      construct_shader(const BackendConstants &backend_constants,
                        ShaderSource &out_vertex,
                        ShaderSource &out_fragment,
                        const UberShaderParams &contruct_params,
