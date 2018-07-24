@@ -44,45 +44,11 @@
 #define GL_SRC1_ALPHA GL_SRC1_ALPHA_EXT
 #define GL_ONE_MINUS_SRC1_COLOR GL_ONE_MINUS_SRC1_COLOR_EXT
 #define GL_ONE_MINUS_SRC1_ALPHA GL_ONE_MINUS_SRC1_ALPHA_EXT
+#define GL_CLIP_DISTANCE0 GL_CLIP_DISTANCE0_EXT
 #endif
 
 namespace
 {
-  bool
-  use_shader_helper(enum fastuidraw::gl::PainterBackendGL::program_type_t tp,
-                    bool uses_discard)
-  {
-    return tp == fastuidraw::gl::PainterBackendGL::program_all
-      || (tp == fastuidraw::gl::PainterBackendGL::program_without_discard && !uses_discard)
-      || (tp == fastuidraw::gl::PainterBackendGL::program_with_discard && uses_discard);
-  }
-
-  class DiscardItemShaderFilter:public fastuidraw::gl::PainterBackendGL::ItemShaderFilter
-  {
-  public:
-    explicit
-    DiscardItemShaderFilter(enum fastuidraw::gl::PainterBackendGL::program_type_t tp,
-                            enum fastuidraw::gl::PainterBackendGL::clipping_type_t cp):
-      m_tp(tp),
-      m_cp(cp)
-    {}
-
-    bool
-    use_shader(const fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> &shader) const
-    {
-      using namespace fastuidraw::gl;
-
-      bool uses_discard;
-      uses_discard = (m_cp == PainterBackendGL::clipping_via_discard)
-        || shader->uses_discard();
-      return use_shader_helper(m_tp, uses_discard);
-    }
-
-  private:
-    enum fastuidraw::gl::PainterBackendGL::program_type_t m_tp;
-    enum fastuidraw::gl::PainterBackendGL::clipping_type_t m_cp;
-  };
-
   class ImageBarrier:public fastuidraw::PainterDraw::Action
   {
   public:
@@ -110,13 +76,8 @@ namespace
   class PainterBackendGLPrivate
   {
   public:
-    typedef fastuidraw::reference_counted_ptr<fastuidraw::gl::Program> program_ref;
-    enum { program_count = fastuidraw::gl::PainterBackendGL::number_program_types };
-    typedef fastuidraw::vecN<program_ref, program_count + 1> program_set;
-
-    PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P,
-                            const fastuidraw::gl::PainterBackendGL::UberShaderParams &uber_params,
-                            fastuidraw::gl::PainterBackendGL *p);
+    explicit
+    PainterBackendGLPrivate(fastuidraw::gl::PainterBackendGL *p);
 
     ~PainterBackendGLPrivate();
 
@@ -127,45 +88,13 @@ namespace
                                fastuidraw::gl::PainterBackendGL::UberShaderParams &out_value,
                                fastuidraw::PainterShaderSet &out_shaders);
 
-    const program_set&
-    programs(unsigned int number_shaders);
-
-    void
-    configure_backend(void);
-
-    void
-    configure_source_front_matter(void);
-
-    void
-    build_programs(void);
-
-    program_ref
-    build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp);
-
     void
     set_gl_state(fastuidraw::gpu_dirty_state v,
                  bool clear_depth, bool clear_color);
-
-    enum fastuidraw::gl::detail::interlock_type_t m_interlock_type;
-    fastuidraw::gl::PainterBackendGL::ConfigurationGL m_params;
-    fastuidraw::gl::PainterBackendGL::UberShaderParams m_uber_shader_builder_params;
-    fastuidraw::gl::PainterBackendGL::BackendConstants m_backend_contants;
+    
     fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::PainterShaderRegistrarGL> m_reg_gl;
 
-    fastuidraw::gl::ContextProperties m_ctx_properties;
-    enum fastuidraw::gl::detail::tex_buffer_support_t m_tex_buffer_support;
-    int m_number_clip_planes;
-    GLenum m_clip_plane0;
-    std::string m_gles_clip_plane_extension;
-    bool m_has_multi_draw_elements;
-
     GLuint m_nearest_filter_sampler;
-    fastuidraw::gl::PreLinkActionArray m_attribute_binder;
-    fastuidraw::gl::ProgramInitializerArray m_initializer;
-    fastuidraw::glsl::ShaderSource m_front_matter_vert;
-    fastuidraw::glsl::ShaderSource m_front_matter_frag;
-    unsigned int m_number_shaders_in_program;
-    program_set m_programs;
     std::vector<fastuidraw::generic_data> m_uniform_values;
     fastuidraw::c_array<fastuidraw::generic_data> m_uniform_values_ptr;
     fastuidraw::gl::detail::painter_vao_pool *m_pool;
@@ -482,7 +411,7 @@ DrawEntry(const fastuidraw::BlendMode &mode,
           unsigned int pz):
   m_set_blend(true),
   m_blend_mode(mode),
-  m_new_program(pr->m_programs[pz].get())
+  m_new_program(pr->m_reg_gl->programs()[pz].get())
 {}
 
 DrawEntry::
@@ -558,7 +487,7 @@ draw(PainterBackendGLPrivate *pr,
     }
   #else
     {
-      if (pr->m_has_multi_draw_elements)
+      if (pr->m_reg_gl->has_multi_draw_elements())
         {
           glMultiDrawElementsEXT(GL_TRIANGLES, &m_counts[0],
                                  opengl_trait<PainterIndex>::type,
@@ -724,11 +653,11 @@ draw(void) const
     }
 
   unsigned int choice;
-  choice = m_pr->m_params.separate_program_for_discard() ?
+  choice = m_pr->m_reg_gl->params().separate_program_for_discard() ?
     PainterBackendGL::program_without_discard :
     PainterBackendGL::program_all;
 
-  DrawState st(m_pr->m_programs[choice].get());
+  DrawState st(m_pr->m_reg_gl->programs()[choice].get());
   st.m_current_program->use_program();
 
   for(const DrawEntry &entry : m_draws)
@@ -786,17 +715,8 @@ add_entry(unsigned int indices_written) const
 ///////////////////////////////////
 // PainterBackendGLPrivate methods
 PainterBackendGLPrivate::
-PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P,
-                        const fastuidraw::gl::PainterBackendGL::UberShaderParams &uber_params,
-                        fastuidraw::gl::PainterBackendGL *p):
-  m_params(P),
-  m_uber_shader_builder_params(uber_params),
-  m_backend_contants(p),
-  m_tex_buffer_support(fastuidraw::gl::detail::tex_buffer_not_computed),
-  m_number_clip_planes(0),
-  m_clip_plane0(GL_INVALID_ENUM),
+PainterBackendGLPrivate(fastuidraw::gl::PainterBackendGL *p):
   m_nearest_filter_sampler(0),
-  m_number_shaders_in_program(0),
   m_pool(nullptr),
   m_surface_gl(nullptr),
   m_p(p)
@@ -810,7 +730,13 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL 
   FASTUIDRAWassert(reg_base.dynamic_cast_ptr<PainterShaderRegistrarGL>());
   m_reg_gl = reg_base.static_cast_ptr<PainterShaderRegistrarGL>();
 
-  configure_backend();
+  m_pool = FASTUIDRAWnew painter_vao_pool(m_reg_gl->params(), m_p->configuration_base(),
+                                          m_reg_gl->tex_buffer_support(),
+                                          m_reg_gl->uber_shader_builder_params().binding_points());
+
+  m_uniform_values.resize(glsl::PainterShaderRegistrarGLSL::ubo_size());
+  m_uniform_values_ptr = c_array<generic_data>(&m_uniform_values[0],
+                                               m_uniform_values.size());
 }
 
 PainterBackendGLPrivate::
@@ -915,425 +841,13 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
 
 void
 PainterBackendGLPrivate::
-configure_backend(void)
-{
-  using namespace fastuidraw;
-  using namespace fastuidraw::gl;
-  using namespace fastuidraw::gl::detail;
-
-  m_tex_buffer_support = compute_tex_buffer_support(m_ctx_properties);
-
-  #ifdef FASTUIDRAW_GL_USE_GLES
-    {
-      /* NOTE: the enum values of GL_MAX_CLIP_DISTANCES_EXT
-       * and GL_MAX_CLIP_DISTANCES_APPLE are the same as are
-       * the enum values of GL_CLIP_DISTANCE0_EXT and
-       * GL_CLIP_DISTANCE0_APPLE, but we keep the separate
-       * nature for sort-of code clarity.
-       */
-      if (m_ctx_properties.has_extension("GL_EXT_clip_cull_distance"))
-        {
-          m_number_clip_planes = context_get<GLint>(GL_MAX_CLIP_DISTANCES_EXT);
-          m_clip_plane0 = GL_CLIP_DISTANCE0_EXT;
-          m_gles_clip_plane_extension = "GL_EXT_clip_cull_distance";
-        }
-      else if (m_ctx_properties.has_extension("GL_APPLE_clip_distance"))
-        {
-          m_number_clip_planes = context_get<GLint>(GL_MAX_CLIP_DISTANCES_APPLE);
-          m_clip_plane0 = GL_CLIP_DISTANCE0_APPLE;
-          m_gles_clip_plane_extension = "GL_APPLE_clip_distance";
-        }
-      else
-        {
-          m_number_clip_planes = 0;
-          m_clip_plane0 = GL_INVALID_ENUM;
-        }
-    }
-  #else
-    {
-      m_number_clip_planes = context_get<GLint>(GL_MAX_CLIP_DISTANCES);
-      m_clip_plane0 = GL_CLIP_DISTANCE0;
-    }
-  #endif
-
-  FASTUIDRAWassert(m_number_clip_planes >= 4
-                   || m_params.clipping_type() != PainterBackendGL::clipping_via_gl_clip_distance);
-  
-  #ifdef FASTUIDRAW_GL_USE_GLES
-    {
-      m_has_multi_draw_elements = m_ctx_properties.has_extension("GL_EXT_multi_draw_arrays");
-    }
-  #else
-    {
-      m_has_multi_draw_elements = true;
-    }
-  #endif
-
-  m_interlock_type = compute_interlock_type(m_ctx_properties);
-
-  /* now allocate m_pool after adjusting m_params */
-  m_pool = FASTUIDRAWnew painter_vao_pool(m_params, m_p->configuration_base(),
-                                          m_tex_buffer_support,
-                                          m_uber_shader_builder_params.binding_points());
-
-  configure_source_front_matter();
-}
-
-void
-PainterBackendGLPrivate::
-configure_source_front_matter(void)
-{
-  using namespace fastuidraw;
-  using namespace fastuidraw::gl;
-  using namespace fastuidraw::glsl;
-  using namespace fastuidraw::gl::detail;
-
-  if (!m_uber_shader_builder_params.assign_binding_points())
-    {
-      const PainterBackendGL::BindingPoints &binding_points(m_uber_shader_builder_params.binding_points());
-      m_initializer
-        .add_sampler_initializer("fastuidraw_imageAtlasLinear", binding_points.image_atlas_color_tiles_linear())
-        .add_sampler_initializer("fastuidraw_imageAtlasNearest", binding_points.image_atlas_color_tiles_nearest())
-        .add_sampler_initializer("fastuidraw_imageIndexAtlas", binding_points.image_atlas_index_tiles())
-        .add_sampler_initializer("fastuidraw_glyphTexelStoreUINT", binding_points.glyph_atlas_texel_store_uint())
-        .add_sampler_initializer("fastuidraw_glyphGeometryDataStore",
-                                 binding_points.glyph_atlas_geometry_store(m_uber_shader_builder_params.glyph_geometry_backing()))
-        .add_sampler_initializer("fastuidraw_colorStopAtlas", binding_points.colorstop_atlas())
-        .add_uniform_block_binding("fastuidraw_uniform_block", binding_points.uniforms_ubo());
-
-      if (m_uber_shader_builder_params.have_float_glyph_texture_atlas())
-        {
-          m_initializer.add_sampler_initializer("fastuidraw_glyphTexelStoreFLOAT", binding_points.glyph_atlas_texel_store_float());
-        }
-
-      switch(m_uber_shader_builder_params.data_store_backing())
-        {
-        case PainterBackendGL::data_store_tbo:
-          {
-            m_initializer.add_sampler_initializer("fastuidraw_painterStore_tbo", binding_points.data_store_buffer_tbo());
-          }
-          break;
-
-        case PainterBackendGL::data_store_ubo:
-          {
-            m_initializer.add_uniform_block_binding("fastuidraw_painterStore_ubo", binding_points.data_store_buffer_ubo());
-          }
-          break;
-
-        case PainterBackendGL::data_store_ssbo:
-          {
-            m_initializer.add_uniform_block_binding("fastuidraw_painterStore_ssbo", binding_points.data_store_buffer_ssbo());
-          }
-          break;
-        }
-    }
-
-  if (!m_uber_shader_builder_params.assign_layout_to_vertex_shader_inputs())
-    {
-      m_attribute_binder
-        .add_binding("fastuidraw_primary_attribute", PainterBackendGL::primary_attrib_slot)
-        .add_binding("fastuidraw_secondary_attribute", PainterBackendGL::secondary_attrib_slot)
-        .add_binding("fastuidraw_uint_attribute", PainterBackendGL::uint_attrib_slot)
-        .add_binding("fastuidraw_header_attribute", PainterBackendGL::header_attrib_slot);
-    }
-
-  c_string begin_interlock_fcn(nullptr), end_interlock_fcn(nullptr);
-  switch(m_interlock_type)
-    {
-    case no_interlock:
-      begin_interlock_fcn = "fastuidraw_do_nothing";
-      end_interlock_fcn = "fastuidraw_do_nothing";
-      break;
-
-    case intel_fragment_shader_ordering:
-      begin_interlock_fcn = "beginFragmentShaderOrderingINTEL";
-      end_interlock_fcn = "fastuidraw_do_nothing";
-      break;
-
-    case arb_fragment_shader_interlock:
-      begin_interlock_fcn = "beginInvocationInterlockARB";
-      end_interlock_fcn = "endInvocationInterlockARB";
-      break;
-
-    case nv_fragment_shader_interlock:
-      begin_interlock_fcn = "beginInvocationInterlockNV";
-      end_interlock_fcn = "endInvocationInterlockNV";
-      break;
-    }
-  FASTUIDRAWassert(begin_interlock_fcn);
-  FASTUIDRAWassert(end_interlock_fcn);
-
-  if (m_uber_shader_builder_params.provide_auxiliary_image_buffer() != PainterBackendGL::no_auxiliary_buffer)
-    {
-      m_front_matter_frag
-        .add_macro("fastuidraw_begin_aux_interlock", begin_interlock_fcn)
-        .add_macro("fastuidraw_end_aux_interlock", end_interlock_fcn);
-    }
-
-  if (m_params.blending_type() == PainterBackendGL::blending_interlock)
-    {
-      m_front_matter_frag
-        .add_macro("fastuidraw_begin_color_buffer_interlock", begin_interlock_fcn)
-        .add_macro("fastuidraw_end_color_buffer_interlock", end_interlock_fcn);
-    }
-
-  if (m_params.blending_type() == PainterBackendGL::blending_interlock
-      || m_uber_shader_builder_params.provide_auxiliary_image_buffer() != PainterBackendGL::no_auxiliary_buffer)
-    {
-      /* Only have this front matter present if FASTUIDRAW_DISCARD is empty defined;
-       * The issue is that when early_fragment_tests are enabled, then the depth
-       * write happens even if the fragment shader hits discard.
-       */
-      std::ostringstream early_fragment_tests;
-      early_fragment_tests << "#ifdef FASTUIDRAW_ALLOW_EARLY_FRAGMENT_TESTS\n"
-                           << "layout(early_fragment_tests) in;\n"
-                           << "#endif\n";
-      m_front_matter_frag.add_source(early_fragment_tests.str().c_str(),
-                                     ShaderSource::from_string);
-    }
-
-  #ifdef FASTUIDRAW_GL_USE_GLES
-    {
-      if (m_params.clipping_type() == PainterBackendGL::clipping_via_gl_clip_distance)
-        {
-          m_front_matter_vert.specify_extension(m_gles_clip_plane_extension.c_str(), ShaderSource::require_extension);
-        }
-
-      if (m_ctx_properties.version() >= ivec2(3, 2))
-        {
-          m_front_matter_vert
-            .specify_version("320 es");
-          m_front_matter_frag
-            .specify_version("320 es")
-            .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension)
-            .specify_extension("GL_EXT_blend_func_extended", ShaderSource::enable_extension);
-        }
-      else
-        {
-          std::string version;
-          if (m_ctx_properties.version() >= ivec2(3, 1))
-            {
-              version = "310 es";
-            }
-          else
-            {
-              version = "300 es";
-            }
-
-          if (m_uber_shader_builder_params.assign_layout_to_varyings())
-            {
-              m_front_matter_vert.specify_extension("GL_EXT_separate_shader_objects", ShaderSource::require_extension);
-              m_front_matter_frag.specify_extension("GL_EXT_separate_shader_objects", ShaderSource::require_extension);
-            }
-
-          m_front_matter_vert
-            .specify_version(version.c_str())
-            .specify_extension("GL_EXT_texture_buffer", ShaderSource::enable_extension)
-            .specify_extension("GL_OES_texture_buffer", ShaderSource::enable_extension);
-
-          m_front_matter_frag
-            .specify_version(version.c_str())
-            .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension)
-            .specify_extension("GL_EXT_blend_func_extended", ShaderSource::enable_extension)
-            .specify_extension("GL_EXT_texture_buffer", ShaderSource::enable_extension)
-            .specify_extension("GL_OES_texture_buffer", ShaderSource::enable_extension);
-        }
-      m_front_matter_vert.add_source("fastuidraw_painter_gles_precision.glsl.resource_string", ShaderSource::from_resource);
-      m_front_matter_frag.add_source("fastuidraw_painter_gles_precision.glsl.resource_string", ShaderSource::from_resource);
-    }
-  #else
-    {
-      bool using_glsl42, using_glsl43;
-      GlyphAtlasGL *glyphs;
-      bool require_ssbo, require_image_load_store;
-
-      FASTUIDRAWassert(dynamic_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get()));
-      glyphs = static_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get());
-      
-      require_ssbo = (m_uber_shader_builder_params.data_store_backing() == PainterBackendGL::data_store_ssbo)
-        || (glyphs->geometry_binding_point() == GL_SHADER_STORAGE_BUFFER);
-
-      require_image_load_store = (m_params.blending_type() == PainterBackendGL::blending_interlock)
-        || (m_uber_shader_builder_params.provide_auxiliary_image_buffer() != PainterBackendGL::no_auxiliary_buffer)
-        || require_ssbo;
-      
-      using_glsl42 = m_ctx_properties.version() >= ivec2(4, 2)
-        && (m_uber_shader_builder_params.assign_layout_to_varyings()
-            || m_uber_shader_builder_params.assign_binding_points()
-            || require_image_load_store);
-
-      using_glsl43 = using_glsl42
-        && m_ctx_properties.version() >= ivec2(4, 3)
-        && require_ssbo;
-
-      m_front_matter_frag
-        .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension);
-
-      if (using_glsl43)
-        {
-          m_front_matter_vert.specify_version("430");
-          m_front_matter_frag.specify_version("430");
-        }
-      else if (using_glsl42)
-        {
-          m_front_matter_vert.specify_version("420");
-          m_front_matter_frag.specify_version("420");
-        }
-      else
-        {
-          m_front_matter_vert.specify_version("330");
-          m_front_matter_frag.specify_version("330");
-
-          if (m_uber_shader_builder_params.assign_layout_to_varyings())
-            {
-              m_front_matter_vert.specify_extension("GL_ARB_separate_shader_objects", ShaderSource::require_extension);
-              m_front_matter_frag.specify_extension("GL_ARB_separate_shader_objects", ShaderSource::require_extension);
-            }
-
-          if (m_uber_shader_builder_params.assign_binding_points())
-            {
-              m_front_matter_vert.specify_extension("GL_ARB_shading_language_420pack", ShaderSource::require_extension);
-              m_front_matter_frag.specify_extension("GL_ARB_shading_language_420pack", ShaderSource::require_extension);
-            }
-        }
-
-      if (require_image_load_store && !using_glsl42)
-        {
-          m_front_matter_frag
-            .specify_extension("GL_ARB_shader_image_load_store", ShaderSource::require_extension);
-        }
-
-      if (require_ssbo && !using_glsl43)
-        {
-          m_front_matter_vert.specify_extension("GL_ARB_shader_storage_buffer_object", ShaderSource::require_extension);
-          m_front_matter_frag.specify_extension("GL_ARB_shader_storage_buffer_object", ShaderSource::require_extension);
-        }
-    }
-  #endif
-
-  switch(m_interlock_type)
-    {
-    case intel_fragment_shader_ordering:
-      m_front_matter_frag
-        .specify_extension("GL_INTEL_fragment_shader_ordering", ShaderSource::require_extension);
-      break;
-
-    case nv_fragment_shader_interlock:
-      m_front_matter_frag
-        .specify_extension("GL_NV_fragment_shader_interlock", ShaderSource::require_extension);
-      break;
-
-    case arb_fragment_shader_interlock:
-      m_front_matter_frag
-        .specify_extension("GL_ARB_fragment_shader_interlock", ShaderSource::require_extension);
-      break;
-
-    default:
-      break;
-    }
-
-  if (m_p->configuration_base().supports_bindless_texturing())
-    {
-      if (m_uber_shader_builder_params.use_uvec2_for_bindless_handle())
-        {
-          m_front_matter_frag
-            .specify_extension("GL_ARB_bindless_texture", ShaderSource::enable_extension);
-
-          m_front_matter_vert
-            .specify_extension("GL_ARB_bindless_texture", ShaderSource::enable_extension);
-        }
-      else
-        {
-          m_front_matter_frag
-            .specify_extension("GL_NV_gpu_shader5", ShaderSource::enable_extension)
-            .specify_extension("GL_NV_bindless_texture", ShaderSource::enable_extension);
-
-          m_front_matter_vert
-            .specify_extension("GL_NV_gpu_shader5", ShaderSource::enable_extension)
-            .specify_extension("GL_NV_bindless_texture", ShaderSource::enable_extension);
-        }
-    }
-}
-
-const PainterBackendGLPrivate::program_set&
-PainterBackendGLPrivate::
-programs(unsigned int number_shaders)
-{
-  if (number_shaders != m_number_shaders_in_program)
-    {
-      build_programs();
-      m_number_shaders_in_program = number_shaders;
-    }
-  return m_programs;
-}
-
-void
-PainterBackendGLPrivate::
-build_programs(void)
-{
-  using namespace fastuidraw;
-  using namespace fastuidraw::gl;
-  using namespace fastuidraw::glsl;
-  for(unsigned int i = 0; i < PainterBackendGL::number_program_types; ++i)
-    {
-      enum PainterBackendGL::program_type_t tp;
-      tp = static_cast<enum PainterBackendGL::program_type_t>(i);
-      m_programs[tp] = build_program(tp);
-      FASTUIDRAWassert(m_programs[tp]->link_success());
-    }
-
-  m_uniform_values.resize(PainterShaderRegistrarGLSL::ubo_size());
-  m_uniform_values_ptr = c_array<generic_data>(&m_uniform_values[0],
-                                               m_uniform_values.size());
-}
-
-PainterBackendGLPrivate::program_ref
-PainterBackendGLPrivate::
-build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
-{
-  using namespace fastuidraw;
-  using namespace fastuidraw::gl;
-  using namespace fastuidraw::glsl;
-  
-  ShaderSource vert, frag;
-  program_ref return_value;
-  DiscardItemShaderFilter item_filter(tp, m_params.clipping_type());
-  c_string discard_macro;
-
-  if (tp == PainterBackendGL::program_without_discard)
-    {
-      discard_macro = "fastuidraw_do_nothing()";
-      frag.add_macro("FASTUIDRAW_ALLOW_EARLY_FRAGMENT_TESTS");
-    }
-  else
-    {
-      discard_macro = "discard";
-    }
-
-  vert
-    .specify_version(m_front_matter_vert.version())
-    .specify_extensions(m_front_matter_vert)
-    .add_source(m_front_matter_vert);
-
-  frag
-    .specify_version(m_front_matter_frag.version())
-    .specify_extensions(m_front_matter_frag)
-    .add_source(m_front_matter_frag);
-  
-  m_reg_gl->construct_shader(m_backend_contants, vert, frag, m_uber_shader_builder_params, &item_filter, discard_macro);
-  return_value = FASTUIDRAWnew Program(vert, frag, m_attribute_binder, m_initializer);
-  return return_value;
-}
-
-void
-PainterBackendGLPrivate::
 set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_buffer)
 {
   using namespace fastuidraw;
   using namespace fastuidraw::gl;
   using namespace fastuidraw::glsl;
 
-  const PainterBackendGL::UberShaderParams &uber_params(m_uber_shader_builder_params);
+  const PainterBackendGL::UberShaderParams &uber_params(m_reg_gl->uber_shader_builder_params());
   const PainterBackendGL::BindingPoints &binding_points(uber_params.binding_points());
   enum PainterBackendGL::auxiliary_buffer_t aux_type;
   enum PainterBackendGL::blending_type_t blending_type;
@@ -1342,7 +856,7 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
   bool has_images;
 
   aux_type = uber_params.provide_auxiliary_image_buffer();
-  blending_type = m_params.blending_type();
+  blending_type = m_reg_gl->params().blending_type();
   has_images = (aux_type != PainterBackendGL::no_auxiliary_buffer
                 && aux_type != PainterBackendGL::auxiliary_buffer_framebuffer_fetch)
     || (blending_type == PainterBackendGL::blending_interlock);
@@ -1483,26 +997,26 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
                  vwp.m_dimensions.x(), vwp.m_dimensions.y());
     }
 
-  if ((v & gpu_dirty_state::hw_clip) && m_number_clip_planes > 0)
+  if ((v & gpu_dirty_state::hw_clip) && m_reg_gl->number_clip_planes() > 0)
     {
-      if (m_params.clipping_type() == PainterBackendGL::clipping_via_gl_clip_distance)
+      if (m_reg_gl->params().clipping_type() == PainterBackendGL::clipping_via_gl_clip_distance)
         {
           for (int i = 0; i < 4; ++i)
             {
-              glEnable(m_clip_plane0 + i);
+              glEnable(GL_CLIP_DISTANCE0 + i);
             }
         }
       else
         {
           for (int i = 0; i < 4; ++i)
             {
-              glDisable(m_clip_plane0 + i);
+              glDisable(GL_CLIP_DISTANCE0 + i);
             }
         }
 
-      for(int i = 4; i < m_number_clip_planes; ++i)
+      for(unsigned int i = 4; i < m_reg_gl->number_clip_planes(); ++i)
         {
-          glDisable(m_clip_plane0 + i);
+          glDisable(GL_CLIP_DISTANCE0 + i);
         }
     }
 
@@ -2120,8 +1634,7 @@ create(ConfigurationGL config_gl, const ContextProperties &ctx)
     .create_missing_atlases(ctx);
 
   PainterBackendGLPrivate::compute_uber_shader_params(config_gl, ctx, uber_params, shaders);
-  reg = FASTUIDRAWnew detail::PainterShaderRegistrarGL(config_gl);
-  return FASTUIDRAWnew PainterBackendGL(config_gl, uber_params, shaders, reg);
+  return FASTUIDRAWnew PainterBackendGL(config_gl, uber_params, shaders);
 }
 
 fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendGL>
@@ -2138,12 +1651,11 @@ create(bool for_msaa, const ContextProperties &ctx)
 fastuidraw::gl::PainterBackendGL::
 PainterBackendGL(const ConfigurationGL &config_gl,
                  const UberShaderParams &uber_params,
-                 const PainterShaderSet &shaders,
-                 const reference_counted_ptr<glsl::PainterShaderRegistrarGLSL> &reg):
+                 const PainterShaderSet &shaders):
   PainterBackend(config_gl.glyph_atlas(),
                  config_gl.image_atlas(),
                  config_gl.colorstop_atlas(),
-                 reg,
+                 FASTUIDRAWnew detail::PainterShaderRegistrarGL(config_gl, uber_params),
                  ConfigurationBase()
                  .alignment(config_gl.alignment())
                  .blend_type(uber_params.blend_type())
@@ -2151,14 +1663,14 @@ PainterBackendGL(const ConfigurationGL &config_gl,
                  shaders)
 {
   PainterBackendGLPrivate *d;
-  m_d = d = FASTUIDRAWnew PainterBackendGLPrivate(config_gl, uber_params, this);
+  m_d = d = FASTUIDRAWnew PainterBackendGLPrivate(this);
   /* should this instead be clipping_type() != clipping_via_discard ?
    * On one hand, letting the GPU do the virtual no-write incurs no CPU load,
    * but a per-pixel load that can be avoided by CPU-clipping. On the other
    * hand, making the CPU do as little as possble is one of FastUIDraw's
    * sub-goals.
    */
-  set_hints().clipping_via_hw_clip_planes(d->m_params.clipping_type() == clipping_via_gl_clip_distance);
+  set_hints().clipping_via_hw_clip_planes(d->m_reg_gl->params().clipping_type() == clipping_via_gl_clip_distance);
 }
 
 fastuidraw::gl::PainterBackendGL::
@@ -2176,7 +1688,7 @@ program(enum program_type_t tp)
 {
   PainterBackendGLPrivate *d;
   d = static_cast<PainterBackendGLPrivate*>(m_d);
-  return d->programs(d->m_reg_gl->registered_shader_count())[tp];
+  return d->m_reg_gl->programs()[tp];
 }
 
 const fastuidraw::gl::PainterBackendGL::ConfigurationGL&
@@ -2185,9 +1697,8 @@ configuration_gl(void) const
 {
   PainterBackendGLPrivate *d;
   d = static_cast<PainterBackendGLPrivate*>(m_d);
-  return d->m_params;
+  return d->m_reg_gl->params();
 }
-
 
 unsigned int
 fastuidraw::gl::PainterBackendGL::
@@ -2225,8 +1736,7 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
   d->set_gl_state(gpu_dirty_state::all, true, clear_color_buffer);
 
   //makes sure that the GLSL programs are built.
-  d->programs(d->m_reg_gl->registered_shader_count());
-  FASTUIDRAWassert(d->m_number_shaders_in_program == d->m_reg_gl->registered_shader_count());
+  d->m_reg_gl->programs();
 }
 
 void
@@ -2242,8 +1752,9 @@ on_post_draw(void)
   glUseProgram(0);
   glBindVertexArray(0);
 
-  const UberShaderParams &uber_params(d->m_uber_shader_builder_params);
+  const UberShaderParams &uber_params(d->m_reg_gl->uber_shader_builder_params());
   const BindingPoints &binding_points(uber_params.binding_points());
+  const ConfigurationGL &params(d->m_reg_gl->params());
 
   glActiveTexture(GL_TEXTURE0 + binding_points.image_atlas_color_tiles_nearest());
   glBindSampler(binding_points.image_atlas_color_tiles_nearest(), 0);
@@ -2281,7 +1792,7 @@ on_post_draw(void)
   glBindTexture(ColorStopAtlasGL::texture_bind_target(), 0);
 
   enum auxiliary_buffer_t aux_type;
-  aux_type = d->m_uber_shader_builder_params.provide_auxiliary_image_buffer();
+  aux_type = uber_params.provide_auxiliary_image_buffer();
   if (aux_type != PainterBackendGL::no_auxiliary_buffer
       && aux_type != PainterBackendGL::auxiliary_buffer_framebuffer_fetch)
     {
@@ -2289,13 +1800,13 @@ on_post_draw(void)
 			 0, GL_FALSE, 0, GL_READ_ONLY, GL_R8UI);
     }
 
-  if (d->m_params.blending_type() == blending_interlock)
+  if (params.blending_type() == blending_interlock)
     {
       glBindImageTexture(binding_points.color_interlock_image_buffer(), 0,
 			 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
     }
 
-  switch(d->m_params.data_store_backing())
+  switch(params.data_store_backing())
     {
     case data_store_tbo:
       {
@@ -2317,7 +1828,7 @@ on_post_draw(void)
       break;
 
     default:
-      FASTUIDRAWassert(!"Bad value for m_params.data_store_backing()");
+      FASTUIDRAWassert(!"Bad value for params.data_store_backing()");
     }
   glBindBufferBase(GL_UNIFORM_BUFFER, binding_points.uniforms_ubo(), 0);
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -2332,7 +1843,7 @@ map_draw(void)
   PainterBackendGLPrivate *d;
   d = static_cast<PainterBackendGLPrivate*>(m_d);
 
-  return FASTUIDRAWnew DrawCommand(d->m_pool, d->m_params, d);
+  return FASTUIDRAWnew DrawCommand(d->m_pool, d->m_reg_gl->params(), d);
 }
 
 const fastuidraw::gl::PainterBackendGL::BindingPoints&
@@ -2341,5 +1852,5 @@ binding_points(void) const
 {
   PainterBackendGLPrivate *d;
   d = static_cast<PainterBackendGLPrivate*>(m_d);
-  return d->m_uber_shader_builder_params.binding_points();
+  return d->m_reg_gl->uber_shader_builder_params().binding_points();
 }

@@ -734,8 +734,7 @@ namespace fastuidraw
     private:
       PainterBackendGL(const ConfigurationGL &config_gl,
                        const UberShaderParams &uber_params,
-                       const PainterShaderSet &shaders,
-                       const reference_counted_ptr<glsl::PainterShaderRegistrarGLSL>&);
+                       const PainterShaderSet &shaders);
 
       void *m_d;
     };
