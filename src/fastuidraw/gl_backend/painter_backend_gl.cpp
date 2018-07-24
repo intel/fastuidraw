@@ -516,7 +516,7 @@ namespace
                         fastuidraw::gl::PainterBackendGL::ConfigurationGLSL &return_value);
 
     const program_set&
-    programs(bool rebuild);
+    programs(unsigned int number_shaders);
 
     void
     configure_backend(void);
@@ -551,13 +551,14 @@ namespace
     fastuidraw::gl::ProgramInitializerArray m_initializer;
     fastuidraw::glsl::ShaderSource m_front_matter_vert;
     fastuidraw::glsl::ShaderSource m_front_matter_frag;
+    unsigned int m_number_shaders_in_program;
     program_set m_programs;
     std::vector<fastuidraw::generic_data> m_uniform_values;
     fastuidraw::c_array<fastuidraw::generic_data> m_uniform_values_ptr;
     painter_vao_pool *m_pool;
     SurfaceGLPrivate *m_surface_gl;
     bool m_uniform_ubo_ready;
-
+    
     fastuidraw::gl::PainterBackendGL *m_p;
   };
 
@@ -1701,6 +1702,7 @@ PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL 
   m_number_clip_planes(0),
   m_clip_plane0(GL_INVALID_ENUM),
   m_nearest_filter_sampler(0),
+  m_number_shaders_in_program(0),
   m_pool(nullptr),
   m_surface_gl(nullptr),
   m_p(p)
@@ -2161,11 +2163,12 @@ configure_source_front_matter(void)
 
 const PainterBackendGLPrivate::program_set&
 PainterBackendGLPrivate::
-programs(bool rebuild)
+programs(unsigned int number_shaders)
 {
-  if (rebuild)
+  if (number_shaders != m_number_shaders_in_program)
     {
       build_programs();
+      m_number_shaders_in_program = number_shaders;
     }
   return m_programs;
 }
@@ -3055,7 +3058,7 @@ program(enum program_type_t tp)
 {
   PainterBackendGLPrivate *d;
   d = static_cast<PainterBackendGLPrivate*>(m_d);
-  return d->programs(shader_code_added())[tp];
+  return d->programs(registered_shader_count())[tp];
 }
 
 const fastuidraw::gl::PainterBackendGL::ConfigurationGL&
@@ -3142,8 +3145,8 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
   d->set_gl_state(gpu_dirty_state::all, true, clear_color_buffer);
 
   //makes sure that the GLSL programs are built.
-  d->programs(shader_code_added());
-  FASTUIDRAWassert(!shader_code_added());
+  d->programs(registered_shader_count());
+  FASTUIDRAWassert(d->m_number_shaders_in_program == registered_shader_count());
 }
 
 void

@@ -205,7 +205,6 @@ namespace
 
     fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL m_config;
     enum fastuidraw::PainterBlendShader::shader_type m_blend_type;
-    bool m_shader_code_added;
     std::vector<fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterItemShaderGLSL> > m_item_shaders;
     unsigned int m_next_item_shader_ID;
     fastuidraw::vecN<BlendShaderGroup, fastuidraw::PainterBlendShader::number_types> m_blend_shaders;
@@ -260,7 +259,6 @@ PainterBackendGLSLPrivate(fastuidraw::glsl::PainterBackendGLSL *p,
                           const fastuidraw::glsl::PainterBackendGLSL::ConfigurationGLSL &config):
   m_config(config),
   m_blend_type(shader_blend_type(config.blending_type())),
-  m_shader_code_added(false),
   m_next_item_shader_ID(1),
   m_next_blend_shader_ID(1),
   m_number_float_varyings(0),
@@ -1508,7 +1506,6 @@ absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader)
   FASTUIDRAWassert(shader.dynamic_cast_ptr<PainterItemShaderGLSL>());
   h = shader.static_cast_ptr<PainterItemShaderGLSL>();
 
-  d->m_shader_code_added = true;
   d->m_item_shaders.push_back(h);
   d->update_varying_size(h->varyings());
 
@@ -1543,7 +1540,6 @@ absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader)
   FASTUIDRAWassert(shader.dynamic_cast_ptr<PainterBlendShaderGLSL>());
   h = shader.static_cast_ptr<PainterBlendShaderGLSL>();
 
-  d->m_shader_code_added = true;
   d->m_blend_shaders[h->type()].m_shaders.push_back(h);
 
   return_value.m_ID = d->m_next_blend_shader_ID;
@@ -1579,15 +1575,20 @@ viewport(const Surface::Viewport &vw)
   d->m_viewport_resolution_recip_magnitude = d->m_viewport_resolution_recip.magnitude();
 }
 
-bool
+unsigned int
 fastuidraw::glsl::PainterBackendGLSL::
-shader_code_added(void)
+registered_shader_count(void)
 {
-  bool return_value;
+  unsigned int return_value;
   PainterBackendGLSLPrivate *d;
+
   d = static_cast<PainterBackendGLSLPrivate*>(m_d);
-  return_value = d->m_shader_code_added;
-  d->m_shader_code_added = false;
+  return_value = d->m_item_shaders.size();
+  for (unsigned int i = 0; i < PainterBlendShader::number_types; ++i)
+    {
+      return_value += d->m_blend_shaders[i].m_shaders.size();
+    }
+
   return return_value;
 }
 
