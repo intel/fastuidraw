@@ -31,11 +31,9 @@ namespace fastuidraw
  * @{
  */
     /*!
-     * \brief
-     * A PainterBackendGLSL is a partial implementation of PainterBackend.
-     * It handles the building of the GLSL source code of an Uber-Shader.
+     * Conveniance class to hold types from which to inherit
      */
-    class PainterBackendGLSL:public PainterBackend
+    class PainterTypesGLSL
     {
     public:
       /*!
@@ -287,11 +285,11 @@ namespace fastuidraw
       /*!
        * \brief
        * A params gives parameters how to contruct
-       * a PainterBackendGLSL.
+       * a PainterShaderRegistrarGLSL.
        *
        * These values influence the behavior of both
-       * the PainterBackendGLSL and the shaders it
-       * constructs via PainterBackendGLSL::construct_shader().
+       * the PainterShaderRegistrarGLSL and the shaders it
+       * constructs via PainterShaderRegistrarGLSL::construct_shader().
        */
       class ConfigurationGLSL
       {
@@ -354,7 +352,7 @@ namespace fastuidraw
         blending_type(enum blending_type_t tp);
 
         /*!
-         * If true, indicates that the PainterBackend supports
+         * If true, indicates that the PainterRegistrar supports
          * bindless texturing. Default value is false.
          */
         bool
@@ -996,7 +994,7 @@ namespace fastuidraw
          * fastuidraw_shader_uniforms and the name of the
          * uniform is fastuidraw_shader_uniforms. In both cases,
          * the buffer can be filled by the function
-         * PainterBackendGLSL::fill_uniform_buffer().
+         * PainterShaderRegistrarGLSL::fill_uniform_buffer().
          * For the non-UBO case, the uniforms are realized
          * as an array of floats in GLSL.
          */
@@ -1031,7 +1029,7 @@ namespace fastuidraw
         provide_auxiliary_image_buffer(enum auxiliary_buffer_t);
 
         /*!
-         * If the PainterBackendGLSL has bindless texturing enabled,
+         * If the PainterShaderRegistrarGLSL has bindless texturing enabled,
          * (see supports_bindless_texturing()) then have that the
          * handles to create sampler2D object is a uvec2. If false,
          * use uint64_t as the handle type in the GLSL source code.
@@ -1071,20 +1069,31 @@ namespace fastuidraw
         bool
         use_shader(const reference_counted_ptr<PainterItemShaderGLSL> &shader) const = 0;
       };
+    };
+    
+    /*!
+     * \brief
+     * A PainterShaderRegistrarGLSL is an implementation of PainterRegistrar
+     * that assembles the shader source code of PainterItemShaderGLSL
+     * and PainterBlendShaderGLSL into an uber-shader.
+     */
+    class PainterShaderRegistrarGLSL:
+      public PainterShaderRegistrar,
+      public PainterTypesGLSL
+    {
+    public:
 
       /*!
        * Ctor.
-       * \param glyph_atlas GlyphAtlas for glyphs drawn by the PainterBackend
-       * \param image_atlas ImageAtlas for images drawn by the PainterBackend
-       * \param colorstop_atlas ColorStopAtlas for color stop sequences drawn by the PainterBackend
+       * \param glyph_atlas GlyphAtlas for glyphs drawn by the PainterRegistrar
+       * \param image_atlas ImageAtlas for images drawn by the PainterRegistrar
+       * \param colorstop_atlas ColorStopAtlas for color stop sequences drawn by the PainterRegistrar
        * \param config_glsl ConfigurationGLSL providing configuration parameters
        */
-      PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
-                         reference_counted_ptr<ImageAtlas> image_atlas,
-                         reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
-                         const ConfigurationGLSL &config_glsl);
+      explicit
+      PainterShaderRegistrarGLSL(const ConfigurationGLSL &config_glsl);
 
-      ~PainterBackendGLSL();
+      ~PainterShaderRegistrarGLSL();
 
       /*!
        * Returns the ConfigurationGLSL passed in the ctor.
@@ -1111,6 +1120,8 @@ namespace fastuidraw
       /*!
        * Add the uber-vertex and fragment shaders to given
        * ShaderSource values.
+       * \param backend PainterBackend holding the various atlases, the properties
+       *                of those atlas values affect the created uber-shader.
        * \param out_vertex ShaderSource to which to add uber-vertex shader
        * \param out_fragment ShaderSource to which to add uber-fragment shader
        * \param contruct_params specifies how to construct the uber-shaders.
@@ -1124,33 +1135,15 @@ namespace fastuidraw
        *                            instead of discard.
        */
       void
-      construct_shader(ShaderSource &out_vertex,
+      construct_shader(PainterBackend *backend,
+                       ShaderSource &out_vertex,
                        ShaderSource &out_fragment,
                        const UberShaderParams &contruct_params,
                        const ItemShaderFilter *item_shader_filter = nullptr,
                        c_string discard_macro_value = "discard");
-
-      /*!
-       * Fill a buffer to hold the values used by the uber-shader.
-       * The buffer must be that p.size() is atleast ubo_size().
-       * \param vwp current Surface::Viewport to which is being rendered
-       * \param p buffer to which to fill uniform data
-       */
-      void
-      fill_uniform_buffer(const Surface::Viewport &vwp,
-                          c_array<generic_data> p);
-
-      /*!
-       * Total size of UBO for uniforms in units of
-       * generic_data, see also fill_uniform_ubo().
-       */
-      uint32_t
-      ubo_size(void);
-
-    protected:
       /*!
        * Returns the total number of shaders (item and blend)
-       * registered to this PainterBackendGLSL; a derived class
+       * registered to this PainterShaderRegistrarGLSL; a derived class
        * should track this count value and use it to determine
        * when it needs to reconstruct its uber-shader.
        */
@@ -1158,11 +1151,31 @@ namespace fastuidraw
       registered_shader_count(void);
 
       /*!
+       * Fill a buffer to hold the values used by the uber-shader.
+       * The buffer must be that p.size() is atleast ubo_size().
+       * \param vwp current PainterBackend::Surface::Viewport to which is being rendered
+       * \param p buffer to which to fill uniform data
+       */
+      void
+      fill_uniform_buffer(const PainterBackend::Surface::Viewport &vwp,
+                          c_array<generic_data> p);
+
+      /*!
+       * Total size of UBO for uniforms in units of
+       * generic_data, see also fill_uniform_ubo().
+       */
+      static
+      uint32_t
+      ubo_size(void);
+
+    protected:
+
+      /*!
        * To be optionally implemented by a derived class to
        * compute the shader group of a PainterItemShader.
        * The passed shader may or may not be a sub-shader.
        * Default implementation is to return 0.
-       * \param tag The value of PainterShader::tag() that PainterBackendGLSL
+       * \param tag The value of PainterShader::tag() that PainterShaderRegistrarGLSL
        *            will assign to the shader. Do NOT access PainterShader::tag(),
        *            PainterShader::ID() or PainterShader::group() as they are
        *            not yet assgined.
@@ -1178,7 +1191,7 @@ namespace fastuidraw
        * compute the shader group of a PainterItemShader.
        * The passed shader may or may not be a sub-shader.
        * Default implementation is to return 0.
-       * \param tag The value of PainterShader::tag() that PainterBackendGLSL
+       * \param tag The value of PainterShader::tag() that PainterShaderRegistrarGLSL
        *            will assign to the shader. Do NOT access PainterShader::tag(),
        *            PainterShader::ID() or PainterShader::group() as they are
        *            not yet assgined.
@@ -1190,7 +1203,7 @@ namespace fastuidraw
                                  const reference_counted_ptr<PainterBlendShader> &shader);
 
       //////////////////////////////////////////////////////////////
-      // virtual methods from PainterBackend, do NOT reimplement(!)
+      // virtual methods from PainterRegistrar, do NOT reimplement(!)
       virtual
       PainterShader::Tag
       absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader);
@@ -1210,7 +1223,39 @@ namespace fastuidraw
     private:
       void *m_d;
     };
-/*! @} */
 
+    /*!
+     * PainterBackendGLSL is a partial implementation of PainterBackend that
+     * actually does nothing: it just inherits first from PainterShaderRegistrarGLSL
+     * and uses that as the PainterShaderRegistrar in the ctor of PainterBackend.
+     */
+    class PainterBackendGLSL:
+      public PainterBackend,
+      public PainterTypesGLSL
+    {
+    public:
+      PainterBackendGLSL(reference_counted_ptr<GlyphAtlas> glyph_atlas,
+                         reference_counted_ptr<ImageAtlas> image_atlas,
+                         reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
+                         const ConfigurationGLSL &config_glsl);
+      void
+      construct_shader(ShaderSource &out_vertex,
+                       ShaderSource &out_fragment,
+                       const UberShaderParams &contruct_params,
+                       const ItemShaderFilter *item_shader_filter = nullptr,
+                       c_string discard_macro_value = "discard");
+
+      reference_counted_ptr<PainterShaderRegistrarGLSL>
+      painter_shader_registrar_glsl(void)
+      {
+        const reference_counted_ptr<PainterShaderRegistrar> &reg(painter_shader_registrar());
+        FASTUIDRAWassert(reg.dynamic_cast_ptr<PainterShaderRegistrarGLSL>());
+        return reg.static_cast_ptr<PainterShaderRegistrarGLSL>();
+      }
+
+    };
+
+/*! @} */
+    
   }
 }

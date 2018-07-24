@@ -38,7 +38,7 @@ namespace fastuidraw
    * A PainterBackend is an interface that defines the API-specific
    * elements to implement Painter:
    */
-  class PainterBackend:public PainterShaderRegistrar
+  class PainterBackend:public reference_counted<PainterBackend>::default_base
   {
   public:
     /*!
@@ -262,6 +262,7 @@ namespace fastuidraw
      * \param glyph_atlas GlyphAtlas for glyphs drawn by the PainterBackend
      * \param image_atlas ImageAtlas for images drawn by the PainterBackend
      * \param colorstop_atlas ColorStopAtlas for color stop sequences drawn by the PainterBackend
+     * \param shader_registrar PainterShaderRegistrar to which shaders are registered
      * \param config ConfigurationBase for how to pack data to PainterBackend
      * \param pdefault_shaders default shaders for PainterBackend; shaders are
      *                         registered on the first call to default_shaders(),
@@ -270,6 +271,7 @@ namespace fastuidraw
     PainterBackend(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                    reference_counted_ptr<ImageAtlas> image_atlas,
                    reference_counted_ptr<ColorStopAtlas> colorstop_atlas,
+                   reference_counted_ptr<PainterShaderRegistrar> shader_registrar,
                    const ConfigurationBase &config,
                    const PainterShaderSet &pdefault_shaders);
 
@@ -317,6 +319,12 @@ namespace fastuidraw
      */
     const reference_counted_ptr<ColorStopAtlas>&
     colorstop_atlas(void);
+
+    /*!
+     * Returns the PainterShaderRegistrar of this PainterBackend.
+     */
+    const reference_counted_ptr<PainterShaderRegistrar>&
+    painter_shader_registrar(void);
 
     /*!
      * Returns the ConfigurationBase passed in the ctor.

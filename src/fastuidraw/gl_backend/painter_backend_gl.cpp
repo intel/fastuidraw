@@ -2177,17 +2177,20 @@ void
 PainterBackendGLPrivate::
 build_programs(void)
 {
-  for(unsigned int i = 0; i < fastuidraw::gl::PainterBackendGL::number_program_types; ++i)
+  using namespace fastuidraw;
+  using namespace fastuidraw::gl;
+  using namespace fastuidraw::glsl;
+  for(unsigned int i = 0; i < PainterBackendGL::number_program_types; ++i)
     {
-      enum fastuidraw::gl::PainterBackendGL::program_type_t tp;
-      tp = static_cast<enum fastuidraw::gl::PainterBackendGL::program_type_t>(i);
+      enum PainterBackendGL::program_type_t tp;
+      tp = static_cast<enum PainterBackendGL::program_type_t>(i);
       m_programs[tp] = build_program(tp);
       FASTUIDRAWassert(m_programs[tp]->link_success());
     }
 
-  m_uniform_values.resize(m_p->ubo_size());
-  m_uniform_values_ptr = fastuidraw::c_array<fastuidraw::generic_data>(&m_uniform_values[0],
-                                                                       m_uniform_values.size());
+  m_uniform_values.resize(PainterShaderRegistrarGLSL::ubo_size());
+  m_uniform_values_ptr = c_array<generic_data>(&m_uniform_values[0],
+                                               m_uniform_values.size());
 }
 
 PainterBackendGLPrivate::program_ref
@@ -2232,6 +2235,7 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
 {
   using namespace fastuidraw;
   using namespace fastuidraw::gl;
+  using namespace fastuidraw::glsl;
 
   const PainterBackendGL::UberShaderParams &uber_params(m_uber_shader_builder_params);
   const PainterBackendGL::BindingPoints &binding_points(uber_params.binding_points());
@@ -2456,7 +2460,7 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
   if (v & gpu_dirty_state::constant_buffers)
     {
       GLuint ubo;
-      unsigned int size_generics(m_p->ubo_size());
+      unsigned int size_generics(PainterShaderRegistrarGLSL::ubo_size());
       unsigned int size_bytes(sizeof(generic_data) * size_generics);
       void *ubo_mapped;
 
@@ -2472,7 +2476,7 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
           ubo_mapped_ptr = c_array<generic_data>(static_cast<generic_data*>(ubo_mapped),
                                                  size_generics);
           
-          m_p->fill_uniform_buffer(m_surface_gl->m_viewport, ubo_mapped_ptr);
+          m_p->painter_shader_registrar_glsl()->fill_uniform_buffer(m_surface_gl->m_viewport, ubo_mapped_ptr);
           glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
           glUnmapBuffer(GL_UNIFORM_BUFFER);
           m_uniform_ubo_ready = true;
@@ -3061,7 +3065,7 @@ program(enum program_type_t tp)
 {
   PainterBackendGLPrivate *d;
   d = static_cast<PainterBackendGLPrivate*>(m_d);
-  return d->programs(registered_shader_count())[tp];
+  return d->programs(painter_shader_registrar_glsl()->registered_shader_count())[tp];
 }
 
 const fastuidraw::gl::PainterBackendGL::ConfigurationGL&
@@ -3147,8 +3151,8 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
   d->set_gl_state(gpu_dirty_state::all, true, clear_color_buffer);
 
   //makes sure that the GLSL programs are built.
-  d->programs(registered_shader_count());
-  FASTUIDRAWassert(d->m_number_shaders_in_program == registered_shader_count());
+  d->programs(painter_shader_registrar_glsl()->registered_shader_count());
+  FASTUIDRAWassert(d->m_number_shaders_in_program == painter_shader_registrar_glsl()->registered_shader_count());
 }
 
 void
