@@ -35,6 +35,7 @@
 #include "private/tex_buffer.hpp"
 #include "private/texture_gl.hpp"
 #include "private/painter_backend_gl_config.hpp"
+#include "private/painter_vao_pool.hpp"
 
 #ifdef FASTUIDRAW_GL_USE_GLES
 #define GL_SRC1_COLOR GL_SRC1_COLOR_EXT
@@ -50,99 +51,6 @@ namespace
       shader_group_discard_bit = 31u,
       shader_group_discard_mask = (1u << 31u)
     };
-
-  class painter_vao
-  {
-  public:
-    painter_vao(void):
-      m_vao(0),
-      m_attribute_bo(0),
-      m_header_bo(0),
-      m_index_bo(0),
-      m_data_bo(0),
-      m_data_tbo(0)
-    {}
-
-    GLuint m_vao;
-    GLuint m_attribute_bo, m_header_bo, m_index_bo, m_data_bo;
-    GLuint m_data_tbo;
-    enum fastuidraw::gl::PainterBackendGL::data_store_backing_t m_data_store_backing;
-    unsigned int m_data_store_binding_point;
-  };
-
-  class painter_vao_pool:fastuidraw::noncopyable
-  {
-  public:
-    explicit
-    painter_vao_pool(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params,
-                     const fastuidraw::PainterBackend::ConfigurationBase &params_base,
-                     enum fastuidraw::gl::detail::tex_buffer_support_t tex_buffer_support,
-                     const fastuidraw::gl::PainterBackendGL::BindingPoints &binding_points);
-
-    ~painter_vao_pool();
-
-    unsigned int
-    attribute_buffer_size(void) const
-    {
-      return m_attribute_buffer_size;
-    }
-
-    unsigned int
-    header_buffer_size(void) const
-    {
-      return m_header_buffer_size;
-    }
-
-    unsigned int
-    index_buffer_size(void) const
-    {
-      return m_index_buffer_size;
-    }
-
-    unsigned int
-    data_buffer_size(void) const
-    {
-      return m_data_buffer_size;
-    }
-
-    painter_vao
-    request_vao(void);
-
-    void
-    next_pool(void);
-
-    /*
-     * returns the UBO used to hold the values filled
-     * by PainterBackendGLSL::fill_uniform_buffer().
-     * There is only one such UBO per VAO. It is assumed
-     * that the ubo_size NEVER changes once this is
-     * called once.
-     */
-    GLuint
-    uniform_ubo(unsigned int ubo_size, GLenum target);
-
-  private:
-    void
-    generate_tbos(painter_vao &vao);
-
-    GLuint
-    generate_tbo(GLuint src_buffer, GLenum fmt, unsigned int unit);
-
-    GLuint
-    generate_bo(GLenum bind_target, GLsizei psize);
-
-    unsigned int m_attribute_buffer_size, m_header_buffer_size;
-    unsigned int m_index_buffer_size;
-    int m_alignment, m_blocks_per_data_buffer;
-    unsigned int m_data_buffer_size;
-    enum fastuidraw::gl::PainterBackendGL::data_store_backing_t m_data_store_backing;
-    enum fastuidraw::gl::detail::tex_buffer_support_t m_tex_buffer_support;
-    fastuidraw::gl::PainterBackendGL::BindingPoints m_binding_points;
-
-    unsigned int m_current, m_pool;
-    std::vector<std::vector<painter_vao> > m_vaos;
-    std::vector<GLuint> m_ubos;
-  };
 
   bool
   use_shader_helper(enum fastuidraw::gl::PainterBackendGL::program_type_t tp,
@@ -262,7 +170,7 @@ namespace
     program_set m_programs;
     std::vector<fastuidraw::generic_data> m_uniform_values;
     fastuidraw::c_array<fastuidraw::generic_data> m_uniform_values_ptr;
-    painter_vao_pool *m_pool;
+    fastuidraw::gl::detail::painter_vao_pool *m_pool;
     SurfaceGLPrivate *m_surface_gl;
     bool m_uniform_ubo_ready;
     
@@ -279,7 +187,7 @@ namespace
     {}
 
     void
-    restore_gl_state(const painter_vao &vao,
+    restore_gl_state(const fastuidraw::gl::detail::painter_vao &vao,
                      PainterBackendGLPrivate *pr,
                      fastuidraw::gpu_dirty_state flags) const;
 
@@ -311,7 +219,7 @@ namespace
     add_entry(GLsizei count, const void *offset);
 
     void
-    draw(PainterBackendGLPrivate *pr, const painter_vao &vao,
+    draw(PainterBackendGLPrivate *pr, const fastuidraw::gl::detail::painter_vao &vao,
          DrawState &st) const;
 
   private:
@@ -328,7 +236,7 @@ namespace
   {
   public:
     explicit
-    DrawCommand(painter_vao_pool *hnd,
+    DrawCommand(fastuidraw::gl::detail::painter_vao_pool *hnd,
                 const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params,
                 PainterBackendGLPrivate *pr);
 
@@ -365,7 +273,7 @@ namespace
     add_entry(unsigned int indices_written) const;
 
     PainterBackendGLPrivate *m_pr;
-    painter_vao m_vao;
+    fastuidraw::gl::detail::painter_vao m_vao;
     mutable unsigned int m_attributes_written, m_indices_written;
     mutable std::list<DrawEntry> m_draws;
   };
@@ -537,218 +445,11 @@ namespace
 
 }
 
-///////////////////////////////////////////
-// painter_vao_pool methods
-painter_vao_pool::
-painter_vao_pool(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params,
-                 const fastuidraw::PainterBackend::ConfigurationBase &params_base,
-                 enum fastuidraw::gl::detail::tex_buffer_support_t tex_buffer_support,
-                 const fastuidraw::gl::PainterBackendGL::BindingPoints &binding_points):
-  m_attribute_buffer_size(params.attributes_per_buffer() * sizeof(fastuidraw::PainterAttribute)),
-  m_header_buffer_size(params.attributes_per_buffer() * sizeof(uint32_t)),
-  m_index_buffer_size(params.indices_per_buffer() * sizeof(fastuidraw::PainterIndex)),
-  m_alignment(params_base.alignment()),
-  m_blocks_per_data_buffer(params.data_blocks_per_store_buffer()),
-  m_data_buffer_size(m_blocks_per_data_buffer * m_alignment * sizeof(fastuidraw::generic_data)),
-  m_data_store_backing(params.data_store_backing()),
-  m_tex_buffer_support(tex_buffer_support),
-  m_binding_points(binding_points),
-  m_current(0),
-  m_pool(0),
-  m_vaos(params.number_pools()),
-  m_ubos(params.number_pools(), 0)
-{}
-
-painter_vao_pool::
-~painter_vao_pool()
-{
-  FASTUIDRAWassert(m_ubos.size() == m_vaos.size());
-  for(unsigned int p = 0, endp = m_vaos.size(); p < endp; ++p)
-    {
-      for(const painter_vao &vao : m_vaos[p])
-        {
-          if (vao.m_data_tbo != 0)
-            {
-              glDeleteTextures(1, &vao.m_data_tbo);
-            }
-          glDeleteBuffers(1, &vao.m_attribute_bo);
-          glDeleteBuffers(1, &vao.m_header_bo);
-          glDeleteBuffers(1, &vao.m_index_bo);
-          glDeleteBuffers(1, &vao.m_data_bo);
-          glDeleteVertexArrays(1, &vao.m_vao);
-        }
-
-      if (m_ubos[p] != 0)
-        {
-          glDeleteBuffers(1, &m_ubos[p]);
-        }
-    }
-}
-
-GLuint
-painter_vao_pool::
-uniform_ubo(unsigned int sz, GLenum target)
-{
-  if (m_ubos[m_pool] == 0)
-    {
-      m_ubos[m_pool] = generate_bo(target, sz);
-    }
-  else
-    {
-      glBindBuffer(target, m_ubos[m_pool]);
-    }
-
-  #ifndef NDEBUG
-    {
-      GLint psize(0);
-      glGetBufferParameteriv(target, GL_BUFFER_SIZE, &psize);
-      FASTUIDRAWassert(psize >= static_cast<int>(sz));
-    }
-  #endif
-
-  return m_ubos[m_pool];
-}
-
-painter_vao
-painter_vao_pool::
-request_vao(void)
-{
-  painter_vao return_value;
-
-  if (m_current == m_vaos[m_pool].size())
-    {
-      fastuidraw::gl::opengl_trait_value v;
-
-      m_vaos[m_pool].resize(m_current + 1);
-      glGenVertexArrays(1, &m_vaos[m_pool][m_current].m_vao);
-
-      FASTUIDRAWassert(m_vaos[m_pool][m_current].m_vao != 0);
-      glBindVertexArray(m_vaos[m_pool][m_current].m_vao);
-
-      m_vaos[m_pool][m_current].m_data_store_backing = m_data_store_backing;
-
-      switch(m_data_store_backing)
-        {
-        case fastuidraw::gl::PainterBackendGL::data_store_tbo:
-          {
-            m_vaos[m_pool][m_current].m_data_bo = generate_bo(GL_ARRAY_BUFFER, m_data_buffer_size);
-            m_vaos[m_pool][m_current].m_data_store_binding_point = m_binding_points.data_store_buffer_tbo();
-            generate_tbos(m_vaos[m_pool][m_current]);
-          }
-          break;
-
-        case fastuidraw::gl::PainterBackendGL::data_store_ubo:
-          {
-            m_vaos[m_pool][m_current].m_data_bo = generate_bo(GL_ARRAY_BUFFER, m_data_buffer_size);
-            m_vaos[m_pool][m_current].m_data_store_binding_point = m_binding_points.data_store_buffer_ubo();
-          }
-          break;
-
-        case fastuidraw::gl::PainterBackendGL::data_store_ssbo:
-          {
-            m_vaos[m_pool][m_current].m_data_bo = generate_bo(GL_ARRAY_BUFFER, m_data_buffer_size);
-            m_vaos[m_pool][m_current].m_data_store_binding_point = m_binding_points.data_store_buffer_ssbo();
-          }
-          break;
-        }
-
-      /* generate_bo leaves the returned buffer object bound to
-       * the passed binding target.
-       */
-      m_vaos[m_pool][m_current].m_attribute_bo = generate_bo(GL_ARRAY_BUFFER, m_attribute_buffer_size);
-      m_vaos[m_pool][m_current].m_index_bo = generate_bo(GL_ELEMENT_ARRAY_BUFFER, m_index_buffer_size);
-
-      glEnableVertexAttribArray(fastuidraw::gl::PainterBackendGL::primary_attrib_slot);
-      v = fastuidraw::gl::opengl_trait_values<fastuidraw::uvec4>(sizeof(fastuidraw::PainterAttribute),
-                                                                 offsetof(fastuidraw::PainterAttribute, m_attrib0));
-      fastuidraw::gl::VertexAttribIPointer(fastuidraw::gl::PainterBackendGL::primary_attrib_slot, v);
-
-      glEnableVertexAttribArray(fastuidraw::gl::PainterBackendGL::secondary_attrib_slot);
-      v = fastuidraw::gl::opengl_trait_values<fastuidraw::uvec4>(sizeof(fastuidraw::PainterAttribute),
-                                                                 offsetof(fastuidraw::PainterAttribute, m_attrib1));
-      fastuidraw::gl::VertexAttribIPointer(fastuidraw::gl::PainterBackendGL::secondary_attrib_slot, v);
-
-      glEnableVertexAttribArray(fastuidraw::gl::PainterBackendGL::uint_attrib_slot);
-      v = fastuidraw::gl::opengl_trait_values<fastuidraw::uvec4>(sizeof(fastuidraw::PainterAttribute),
-                                                                 offsetof(fastuidraw::PainterAttribute, m_attrib2));
-      fastuidraw::gl::VertexAttribIPointer(fastuidraw::gl::PainterBackendGL::uint_attrib_slot, v);
-
-      m_vaos[m_pool][m_current].m_header_bo = generate_bo(GL_ARRAY_BUFFER, m_header_buffer_size);
-      glEnableVertexAttribArray(fastuidraw::gl::PainterBackendGL::header_attrib_slot);
-      v = fastuidraw::gl::opengl_trait_values<uint32_t>();
-      fastuidraw::gl::VertexAttribIPointer(fastuidraw::gl::PainterBackendGL::header_attrib_slot, v);
-
-      glBindVertexArray(0);
-    }
-
-  return_value = m_vaos[m_pool][m_current];
-  ++m_current;
-
-  return return_value;
-}
-
-void
-painter_vao_pool::
-next_pool(void)
-{
-  ++m_pool;
-  if (m_pool == m_vaos.size())
-    {
-      m_pool = 0;
-    }
-
-  m_current = 0;
-}
-
-
-void
-painter_vao_pool::
-generate_tbos(painter_vao &vao)
-{
-  const GLenum uint_fmts[4] =
-    {
-      GL_R32UI,
-      GL_RG32UI,
-      GL_RGB32UI,
-      GL_RGBA32UI,
-    };
-  vao.m_data_tbo = generate_tbo(vao.m_data_bo, uint_fmts[m_alignment - 1],
-                                m_binding_points.data_store_buffer_tbo());
-}
-
-GLuint
-painter_vao_pool::
-generate_tbo(GLuint src_buffer, GLenum fmt, unsigned int unit)
-{
-  GLuint return_value(0);
-
-  glGenTextures(1, &return_value);
-  FASTUIDRAWassert(return_value != 0);
-
-  glActiveTexture(GL_TEXTURE0 + unit);
-  glBindTexture(GL_TEXTURE_BUFFER, return_value);
-  fastuidraw::gl::detail::tex_buffer(m_tex_buffer_support, GL_TEXTURE_BUFFER, fmt, src_buffer);
-
-  return return_value;
-}
-
-GLuint
-painter_vao_pool::
-generate_bo(GLenum bind_target, GLsizei psize)
-{
-  GLuint return_value(0);
-  glGenBuffers(1, &return_value);
-  FASTUIDRAWassert(return_value != 0);
-  glBindBuffer(bind_target, return_value);
-  glBufferData(bind_target, psize, nullptr, GL_STREAM_DRAW);
-  return return_value;
-}
-
 ////////////////////////////////////////////
 // DrawState methods
 void
 DrawState::
-restore_gl_state(const painter_vao &vao,
+restore_gl_state(const fastuidraw::gl::detail::painter_vao &vao,
                  PainterBackendGLPrivate *pr,
                  fastuidraw::gpu_dirty_state flags) const
 {
@@ -911,7 +612,8 @@ add_entry(GLsizei count, const void *offset)
 
 void
 DrawEntry::
-draw(PainterBackendGLPrivate *pr, const painter_vao &vao,
+draw(PainterBackendGLPrivate *pr,
+     const fastuidraw::gl::detail::painter_vao &vao,
      DrawState &st) const
 {
   using namespace fastuidraw;
@@ -981,7 +683,7 @@ draw(PainterBackendGLPrivate *pr, const painter_vao &vao,
 ////////////////////////////////////
 // DrawCommand methods
 DrawCommand::
-DrawCommand(painter_vao_pool *hnd,
+DrawCommand(fastuidraw::gl::detail::painter_vao_pool *hnd,
             const fastuidraw::gl::PainterBackendGL::ConfigurationGL &params,
             PainterBackendGLPrivate *pr):
   m_pr(pr),
@@ -1446,6 +1148,7 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
 {
   using namespace fastuidraw;
   using namespace fastuidraw::gl;
+  using namespace fastuidraw::gl::detail;
   enum PainterBackendGL::auxiliary_buffer_t aux_type;
 
   aux_type = params.provide_auxiliary_image_buffer();
