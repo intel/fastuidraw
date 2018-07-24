@@ -139,10 +139,11 @@ construct_shader(ShaderSource &out_vertex,
                  const ItemShaderFilter *item_shader_filter,
                  c_string discard_macro_value)
 {
-  PainterBackend *backend(this);
+  BackendConstants backend_constants(this);
+
   FASTUIDRAWassert(m_config_glsl.blending_type() == contruct_params.blending_type());
   FASTUIDRAWassert(m_config_glsl.supports_bindless_texturing() == contruct_params.supports_bindless_texturing());
-  painter_shader_registrar_glsl()->construct_shader(backend, out_vertex, out_fragment,
+  painter_shader_registrar_glsl()->construct_shader(backend_constants, out_vertex, out_fragment,
                                                     contruct_params, item_shader_filter,
                                                     discard_macro_value);
 }
