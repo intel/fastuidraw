@@ -34,6 +34,7 @@
 #include "../private/util_private.hpp"
 #include "private/tex_buffer.hpp"
 #include "private/texture_gl.hpp"
+#include "private/painter_backend_gl_config.hpp"
 
 #ifdef FASTUIDRAW_GL_USE_GLES
 #define GL_SRC1_COLOR GL_SRC1_COLOR_EXT
@@ -49,300 +50,6 @@ namespace
       shader_group_discard_bit = 31u,
       shader_group_discard_mask = (1u << 31u)
     };
-
-  enum interlock_type_t
-    {
-      intel_fragment_shader_ordering,
-      nv_fragment_shader_interlock,
-      arb_fragment_shader_interlock,
-
-      no_interlock
-    };
-
-  bool
-  shader_storage_buffers_supported(const fastuidraw::gl::ContextProperties &ctx)
-  {
-    using namespace fastuidraw;
-
-    #ifdef FASTUIDRAW_GL_USE_GLES
-      {
-        return ctx.version() >= ivec2(3, 1);
-      }
-    #else
-      {
-        return ctx.version() >= ivec2(4, 3)
-          || ctx.has_extension("GL_ARB_shader_storage_buffer_object");
-      }
-    #endif
-  }
-  
-  enum fastuidraw::gl::PainterBackendGL::auxiliary_buffer_t
-  compute_provide_auxiliary_buffer(enum fastuidraw::gl::PainterBackendGL::auxiliary_buffer_t in_value,
-                                   const fastuidraw::gl::ContextProperties &ctx)
-  {
-    using namespace fastuidraw;
-    using namespace fastuidraw::glsl;
-
-    if (in_value == PainterBackendGLSL::no_auxiliary_buffer)
-      {
-        return in_value;
-      }
-
-    /* If asking for auxiliary_buffer_framebuffer_fetch and have
-     * the extension, immediately give the return value, otherwise
-     * fall back to interlock. Note that we do NOT fallback
-     * from interlock to framebuffer fetch because framebuffer-fetch
-     * makes MSAA render targets become shaded per-sample.
-     */
-    if (in_value == PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch)
-      {
-        if (ctx.has_extension("GL_EXT_shader_framebuffer_fetch"))
-          {
-            return in_value;
-          }
-        else
-          {
-            in_value = PainterBackendGLSL::auxiliary_buffer_interlock;
-          }
-      }
-
-    #ifdef FASTUIDRAW_GL_USE_GLES
-      {
-        if (ctx.version() <= ivec2(3, 0))
-          {
-            return PainterBackendGLSL::no_auxiliary_buffer;
-          }
-
-        if (in_value == PainterBackendGLSL::auxiliary_buffer_atomic)
-          {
-            return in_value;
-          }
-
-        if (ctx.has_extension("GL_NV_fragment_shader_interlock"))
-          {
-            return PainterBackendGLSL::auxiliary_buffer_interlock_main_only;
-          }
-        else
-          {
-            return PainterBackendGLSL::auxiliary_buffer_atomic;
-          }
-      }
-    #else
-      {
-        bool have_interlock, have_interlock_main;
-
-        if (ctx.version() <= ivec2(4, 1) && !ctx.has_extension("GL_ARB_shader_image_load_store"))
-          {
-            return PainterBackendGLSL::no_auxiliary_buffer;
-          }
-
-        if (in_value == PainterBackendGLSL::auxiliary_buffer_atomic)
-          {
-            return in_value;
-          }
-
-        have_interlock = ctx.has_extension("GL_INTEL_fragment_shader_ordering");
-        have_interlock_main = ctx.has_extension("GL_ARB_fragment_shader_interlock")
-          || ctx.has_extension("GL_NV_fragment_shader_interlock");
-
-        if (!have_interlock && !have_interlock_main)
-          {
-            return PainterBackendGLSL::auxiliary_buffer_atomic;
-          }
-
-        switch(in_value)
-          {
-          case PainterBackendGLSL::auxiliary_buffer_interlock_main_only:
-            return (have_interlock_main) ?
-              PainterBackendGLSL::auxiliary_buffer_interlock_main_only:
-              PainterBackendGLSL::auxiliary_buffer_interlock;
-
-          case PainterBackendGLSL::auxiliary_buffer_interlock:
-            return (have_interlock) ?
-              PainterBackendGLSL::auxiliary_buffer_interlock:
-              PainterBackendGLSL::auxiliary_buffer_interlock_main_only;
-
-          default:
-            return PainterBackendGLSL::auxiliary_buffer_atomic;
-          }
-      }
-    #endif
-  }
-
-  enum interlock_type_t
-  compute_interlock_type(const fastuidraw::gl::ContextProperties &ctx)
-  {
-    #ifdef FASTUIDRAW_GL_USE_GLES
-      {
-        if (ctx.has_extension("GL_NV_fragment_shader_interlock"))
-          {
-            return nv_fragment_shader_interlock;
-          }
-        else
-          {
-            return no_interlock;
-          }
-      }
-    #else
-      {
-        if (ctx.has_extension("GL_INTEL_fragment_shader_ordering"))
-          {
-            return intel_fragment_shader_ordering;
-          }
-        else if (ctx.has_extension("GL_ARB_fragment_shader_interlock"))
-          {
-            return arb_fragment_shader_interlock;
-          }
-        else if (ctx.has_extension("GL_NV_fragment_shader_interlock"))
-          {
-            return nv_fragment_shader_interlock;
-          }
-        else
-          {
-            return no_interlock;
-          }
-      }
-    #endif
-  }
-
-  enum fastuidraw::gl::PainterBackendGL::blending_type_t
-  compute_blending_type(enum fastuidraw::gl::PainterBackendGL::auxiliary_buffer_t aux_value,
-                        enum interlock_type_t interlock_value,
-                        enum fastuidraw::gl::PainterBackendGL::blending_type_t in_value,
-                        const fastuidraw::gl::ContextProperties &ctx)
-  {
-    using namespace fastuidraw;
-    using namespace fastuidraw::gl;
-
-    /*
-     * First fallback to blending_framebuffer_fetch if interlock is
-     * requested but not availabe.
-     */
-    if (interlock_value == no_interlock
-        && in_value == PainterBackendGL::blending_interlock)
-      {
-        in_value = PainterBackendGL::blending_framebuffer_fetch;
-      }
-    
-    if (aux_value == PainterBackendGL::auxiliary_buffer_framebuffer_fetch)
-      {
-        /*
-         * auxiliary framebuffer fetch cannot be used with single and
-         * dual source blending; if it is single or dual source blending
-         * we will set it to framebuffer_fetch.
-         */
-        if (in_value == PainterBackendGL::blending_single_src
-            || in_value == PainterBackendGL::blending_dual_src)
-          {
-            in_value = PainterBackendGL::blending_framebuffer_fetch;
-          }
-      }
-
-    bool have_dual_src_blending, have_framebuffer_fetch;
-    if (ctx.is_es())
-      {
-        have_dual_src_blending = ctx.has_extension("GL_EXT_blend_func_extended");
-      }
-    else
-      {
-        have_dual_src_blending = true;
-      }
-    have_framebuffer_fetch = (aux_value == PainterBackendGL::auxiliary_buffer_framebuffer_fetch)
-      || ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
-
-    if (in_value == PainterBackendGL::blending_framebuffer_fetch
-        && !have_framebuffer_fetch)
-      {
-        in_value = PainterBackendGL::blending_interlock;
-      }
-
-    /* we do the test again against interlock because framebuffer
-     * fetch code may have fallen back to interlock, but now
-     * lacking interlock falls back to blending_dual_src.
-     */
-    if (interlock_value == no_interlock
-        && in_value == PainterBackendGL::blending_interlock)
-      {
-        in_value = PainterBackendGL::blending_dual_src;
-      }
-
-    if (in_value == PainterBackendGL::blending_dual_src
-        && !have_dual_src_blending)
-      {
-        in_value = PainterBackendGL::blending_single_src;
-      }
-
-    return in_value;
-  }
-
-  enum fastuidraw::gl::PainterBackendGL::clipping_type_t
-  compute_clipping_type(enum fastuidraw::gl::PainterBackendGL::blending_type_t blending_type,
-                        enum fastuidraw::gl::PainterBackendGL::clipping_type_t in_value,
-                        const fastuidraw::gl::ContextProperties &ctx,
-                        bool allow_gl_clip_distance = true)
-  {
-    using namespace fastuidraw;
-    using namespace fastuidraw::gl;
-
-    bool clip_distance_supported, skip_color_write_supported;
-    skip_color_write_supported =
-      blending_type == PainterBackendGL::blending_framebuffer_fetch
-      || blending_type == PainterBackendGL::blending_interlock;
-
-    if (in_value == PainterBackendGL::clipping_via_discard)
-      {
-        return in_value;
-      }
-
-    if (in_value == PainterBackendGL::clipping_via_skip_color_write)
-      {
-        if (skip_color_write_supported)
-          {
-            return in_value;
-          }
-        else
-          {
-            in_value = PainterBackendGL::clipping_via_gl_clip_distance;
-          }
-      }
-
-    #ifdef FASTUIDRAW_GL_USE_GLES
-      {
-        if (allow_gl_clip_distance)
-          {
-            clip_distance_supported = ctx.has_extension("GL_EXT_clip_cull_distance")
-              || ctx.has_extension("GL_APPLE_clip_distance");
-          }
-        else
-          {
-            clip_distance_supported = false;
-          }
-      }
-    #else
-      {
-        FASTUIDRAWunused(ctx);
-        clip_distance_supported = allow_gl_clip_distance;
-      }
-    #endif
-
-    if (in_value == PainterBackendGL::clipping_via_gl_clip_distance)
-      {
-        if (clip_distance_supported)
-          {
-            return in_value;
-          }
-        else if (skip_color_write_supported)
-          {
-            in_value = PainterBackendGL::clipping_via_skip_color_write;
-          }
-        else
-          {
-            in_value = PainterBackendGL::clipping_via_discard;
-          }
-      }
-
-    return in_value;
-  }
 
   class painter_vao
   {
@@ -534,7 +241,7 @@ namespace
     set_gl_state(fastuidraw::gpu_dirty_state v,
                  bool clear_depth, bool clear_color);
 
-    enum interlock_type_t m_interlock_type;
+    enum fastuidraw::gl::detail::interlock_type_t m_interlock_type;
     fastuidraw::gl::PainterBackendGL::ConfigurationGL m_params;
     fastuidraw::gl::PainterBackendGL::UberShaderParams m_uber_shader_builder_params;
 
@@ -1046,6 +753,7 @@ restore_gl_state(const painter_vao &vao,
                  fastuidraw::gpu_dirty_state flags) const
 {
   using namespace fastuidraw;
+  using namespace fastuidraw::gl;
 
   if (flags & gpu_dirty_state::shader)
     {
@@ -1060,7 +768,7 @@ restore_gl_state(const painter_vao &vao,
    */
   switch(vao.m_data_store_backing)
     {
-    case fastuidraw::gl::PainterBackendGL::data_store_tbo:
+    case PainterBackendGL::data_store_tbo:
       if (flags & gpu_dirty_state::textures)
         {
           glActiveTexture(GL_TEXTURE0 + vao.m_data_store_binding_point);
@@ -1068,14 +776,14 @@ restore_gl_state(const painter_vao &vao,
         }
       break;
 
-    case fastuidraw::gl::PainterBackendGL::data_store_ubo:
+    case PainterBackendGL::data_store_ubo:
       if (flags & gpu_dirty_state::constant_buffers)
         {
           glBindBufferBase(GL_UNIFORM_BUFFER, vao.m_data_store_binding_point, vao.m_data_bo);
         }
       break;
 
-    case fastuidraw::gl::PainterBackendGL::data_store_ssbo:
+    case PainterBackendGL::data_store_ssbo:
       if (flags & gpu_dirty_state::storage_buffers)
         {
           glBindBufferBase(GL_SHADER_STORAGE_BUFFER, vao.m_data_store_binding_point, vao.m_data_bo);
@@ -1207,6 +915,7 @@ draw(PainterBackendGLPrivate *pr, const painter_vao &vao,
      DrawState &st) const
 {
   using namespace fastuidraw;
+  using namespace fastuidraw::gl;
 
   uint32_t flags(0);
 
@@ -1245,7 +954,7 @@ draw(PainterBackendGLPrivate *pr, const painter_vao &vao,
   #ifndef FASTUIDRAW_GL_USE_GLES
     {
       glMultiDrawElements(GL_TRIANGLES, &m_counts[0],
-                          fastuidraw::gl::opengl_trait<fastuidraw::PainterIndex>::type,
+                          opengl_trait<PainterIndex>::type,
                           &m_indices[0], m_counts.size());
     }
   #else
@@ -1253,7 +962,7 @@ draw(PainterBackendGLPrivate *pr, const painter_vao &vao,
       if (pr->m_has_multi_draw_elements)
         {
           glMultiDrawElementsEXT(GL_TRIANGLES, &m_counts[0],
-                                 fastuidraw::gl::opengl_trait<fastuidraw::PainterIndex>::type,
+                                 opengl_trait<PainterIndex>::type,
                                  &m_indices[0], m_counts.size());
         }
       else
@@ -1261,7 +970,7 @@ draw(PainterBackendGLPrivate *pr, const painter_vao &vao,
           for(unsigned int i = 0, endi = m_counts.size(); i < endi; ++i)
             {
               glDrawElements(GL_TRIANGLES, m_counts[i],
-                             fastuidraw::gl::opengl_trait<fastuidraw::PainterIndex>::type,
+                             opengl_trait<PainterIndex>::type,
                              m_indices[i]);
             }
         }
@@ -1339,8 +1048,11 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
            const fastuidraw::PainterShaderGroup &new_shaders,
            unsigned int indices_written) const
 {
+  using namespace fastuidraw;
+  using namespace fastuidraw::gl;
+  
   /* if the blend mode changes, then we need to start a new DrawEntry */
-  fastuidraw::BlendMode::packed_value old_mode, new_mode;
+  BlendMode::packed_value old_mode, new_mode;
   uint32_t new_disc, old_disc;
 
   old_mode = old_shaders.packed_blend_mode();
@@ -1353,8 +1065,8 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
     {
       unsigned int pz;
       pz = (new_disc != 0u) ?
-        fastuidraw::gl::PainterBackendGL::program_with_discard :
-        fastuidraw::gl::PainterBackendGL::program_without_discard;
+        PainterBackendGL::program_with_discard :
+        PainterBackendGL::program_without_discard;
 
       if (!m_draws.empty())
         {
@@ -1516,12 +1228,13 @@ SurfaceGLPrivate::
 auxiliary_buffer(enum auxiliary_buffer_t tp)
 {
   using namespace fastuidraw;
-  using namespace gl;
+  using namespace fastuidraw::gl;
+  using namespace fastuidraw::gl::detail;
 
   if (!m_auxiliary_buffer[tp])
     {
       GLenum internalFormat;
-      detail::ClearImageSubData clearer;
+      ClearImageSubData clearer;
 
       internalFormat = auxiliaryBufferInternalFmt(tp);
       glGenTextures(1, &m_auxiliary_buffer[tp]);
@@ -1529,15 +1242,15 @@ auxiliary_buffer(enum auxiliary_buffer_t tp)
 
       glActiveTexture(GL_TEXTURE0);
       glBindTexture(GL_TEXTURE_2D, m_auxiliary_buffer[tp]);
-      detail::tex_storage<GL_TEXTURE_2D>(true,
-                                         internalFormat,
-                                         m_properties.dimensions());
+      tex_storage<GL_TEXTURE_2D>(true,
+                                 internalFormat,
+                                 m_properties.dimensions());
 
       clearer.clear<GL_TEXTURE_2D>(m_auxiliary_buffer[tp], 0,
                                    0, 0, 0, //origin
                                    m_properties.dimensions().x(), m_properties.dimensions().y(), 1, //dimensions
-                                   detail::format_from_internal_format(internalFormat),
-                                   detail::type_from_internal_format(internalFormat));
+                                   format_from_internal_format(internalFormat),
+                                   type_from_internal_format(internalFormat));
     }
 
   return m_auxiliary_buffer[tp];
@@ -1548,7 +1261,8 @@ SurfaceGLPrivate::
 buffer(enum buffer_t tp)
 {
   using namespace fastuidraw;
-  using namespace gl;
+  using namespace fastuidraw::gl;
+  using namespace fastuidraw::gl::detail;
 
   if (m_buffers[tp] == 0)
     {
@@ -1895,6 +1609,7 @@ configure_source_front_matter(void)
   using namespace fastuidraw;
   using namespace fastuidraw::gl;
   using namespace fastuidraw::glsl;
+  using namespace fastuidraw::gl::detail;
 
   if (!m_uber_shader_builder_params.assign_binding_points())
     {
@@ -2199,12 +1914,16 @@ PainterBackendGLPrivate::program_ref
 PainterBackendGLPrivate::
 build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
 {
-  fastuidraw::glsl::ShaderSource vert, frag;
+  using namespace fastuidraw;
+  using namespace fastuidraw::gl;
+  using namespace fastuidraw::glsl;
+  
+  ShaderSource vert, frag;
   program_ref return_value;
   DiscardItemShaderFilter item_filter(tp, m_params.clipping_type());
-  fastuidraw::c_string discard_macro;
+  c_string discard_macro;
 
-  if (tp == fastuidraw::gl::PainterBackendGL::program_without_discard)
+  if (tp == PainterBackendGL::program_without_discard)
     {
       discard_macro = "fastuidraw_do_nothing()";
       frag.add_macro("FASTUIDRAW_ALLOW_EARLY_FRAGMENT_TESTS");
@@ -2225,9 +1944,7 @@ build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
     .add_source(m_front_matter_frag);
 
   m_p->construct_shader(vert, frag, m_uber_shader_builder_params, &item_filter, discard_macro);
-  return_value = FASTUIDRAWnew fastuidraw::gl::Program(vert, frag,
-                                                       m_attribute_binder,
-                                                       m_initializer);
+  return_value = FASTUIDRAWnew Program(vert, frag, m_attribute_binder, m_initializer);
   return return_value;
 }
 
@@ -2640,6 +2357,8 @@ fastuidraw::gl::PainterBackendGL::ConfigurationGL&
 fastuidraw::gl::PainterBackendGL::ConfigurationGL::
 configure_from_context(bool for_msaa, const ContextProperties &ctx)
 {
+  using namespace fastuidraw::gl::detail;
+
   ConfigurationGLPrivate *d;
   enum interlock_type_t interlock_type;
   bool have_ffb;
@@ -2798,8 +2517,10 @@ fastuidraw::gl::PainterBackendGL::ConfigurationGL&
 fastuidraw::gl::PainterBackendGL::ConfigurationGL::
 adjust_for_context(const ContextProperties &ctx)
 {
+  using namespace fastuidraw::gl::detail;
+
   ConfigurationGLPrivate *d;
-  enum fastuidraw::gl::detail::tex_buffer_support_t tex_buffer_support;
+  enum detail::tex_buffer_support_t tex_buffer_support;
   enum interlock_type_t interlock_type;
   enum clipping_type_t clipping_type;
 
