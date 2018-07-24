@@ -21,8 +21,12 @@
 #include <fastuidraw/painter/painter_shader_set.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 
 namespace fastuidraw { namespace glsl { namespace detail {
+
+enum fastuidraw::PainterBlendShader::shader_type
+shader_blend_type(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t in_value);
 
 /* Values for render pass for stroke shading */
 enum uber_stroke_render_pass_t

@@ -660,4 +660,24 @@ create_shader_set(void)
   return return_value;
 }
 
+enum fastuidraw::PainterBlendShader::shader_type
+shader_blend_type(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t in_value)
+{
+  switch(in_value)
+    {
+    case PainterShaderRegistrarGLSL::blending_single_src:
+      return PainterBlendShader::single_src;
+      
+    case PainterShaderRegistrarGLSL::blending_dual_src:
+      return PainterBlendShader::dual_src;
+      
+    case PainterShaderRegistrarGLSL::blending_framebuffer_fetch:
+    case PainterShaderRegistrarGLSL::blending_interlock:
+      return PainterBlendShader::framebuffer_fetch;
+    }
+  
+  FASTUIDRAWassert(!"Bad blending_type_t value");
+  return PainterBlendShader::single_src;
+}
+
 }}}
