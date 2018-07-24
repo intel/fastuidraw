@@ -80,6 +80,18 @@ public:
   {
     return m_has_multi_draw_elements;
   }
+
+  void
+  set_hints(PainterBackend::PerformanceHints &hints)
+  {
+    /* should this instead be clipping_type() != clipping_via_discard ?
+     * On one hand, letting the GPU do the virtual no-write incurs no CPU load,
+     * but a per-pixel load that can be avoided by CPU-clipping. On the other
+     * hand, making the CPU do as little as possble is one of FastUIDraw's
+     * sub-goals.
+     */
+    hints.clipping_via_hw_clip_planes(m_params.clipping_type() == clipping_via_gl_clip_distance);
+  }
   
 protected:
   uint32_t

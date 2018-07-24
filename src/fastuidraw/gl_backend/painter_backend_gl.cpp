@@ -1648,6 +1648,17 @@ create(bool for_msaa, const ContextProperties &ctx)
   return create(config_gl, ctx);
 }
 
+fastuidraw::reference_counted_ptr<fastuidraw::gl::PainterBackendGL>
+fastuidraw::gl::PainterBackendGL::
+create_sharing_shaders(void)
+{
+  PainterBackendGLPrivate *d;
+  d = static_cast<PainterBackendGLPrivate*>(m_d);
+  return FASTUIDRAWnew PainterBackendGL(d->m_reg_gl->params(),
+                                        d->m_reg_gl->uber_shader_builder_params(),
+                                        this);
+}
+
 fastuidraw::gl::PainterBackendGL::
 PainterBackendGL(const ConfigurationGL &config_gl,
                  const UberShaderParams &uber_params,
@@ -1664,13 +1675,26 @@ PainterBackendGL(const ConfigurationGL &config_gl,
 {
   PainterBackendGLPrivate *d;
   m_d = d = FASTUIDRAWnew PainterBackendGLPrivate(this);
-  /* should this instead be clipping_type() != clipping_via_discard ?
-   * On one hand, letting the GPU do the virtual no-write incurs no CPU load,
-   * but a per-pixel load that can be avoided by CPU-clipping. On the other
-   * hand, making the CPU do as little as possble is one of FastUIDraw's
-   * sub-goals.
-   */
-  set_hints().clipping_via_hw_clip_planes(d->m_reg_gl->params().clipping_type() == clipping_via_gl_clip_distance);
+  d->m_reg_gl->set_hints(set_hints());
+}
+
+fastuidraw::gl::PainterBackendGL::
+PainterBackendGL(const ConfigurationGL &config_gl,
+                 const UberShaderParams &uber_params,
+                 PainterBackendGL *p):
+  PainterBackend(config_gl.glyph_atlas(),
+                 config_gl.image_atlas(),
+                 config_gl.colorstop_atlas(),
+                 p->painter_shader_registrar(),
+                 ConfigurationBase()
+                 .alignment(config_gl.alignment())
+                 .blend_type(uber_params.blend_type())
+                 .supports_bindless_texturing(uber_params.supports_bindless_texturing()),
+                 p->default_shaders())
+{
+  PainterBackendGLPrivate *d;
+  m_d = d = FASTUIDRAWnew PainterBackendGLPrivate(this);
+  d->m_reg_gl->set_hints(set_hints());
 }
 
 fastuidraw::gl::PainterBackendGL::
