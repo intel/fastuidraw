@@ -410,6 +410,13 @@ namespace fastuidraw
         ConfigurationGLSL&
         default_stroke_shader_aa_pass2_action(const reference_counted_ptr<const PainterDraw::Action> &action);
 
+        /*!
+         * Returns a PainterShaderSet derived from the current values
+         * of this ConfigurationGLSL.
+         */
+        PainterShaderSet
+        default_shaders(void) const;
+
       private:
         void *m_d;
       };
@@ -1180,7 +1187,7 @@ namespace fastuidraw
       virtual
       uint32_t
       compute_blend_shader_group(PainterShader::Tag tag,
-                                const reference_counted_ptr<PainterBlendShader> &shader);
+                                 const reference_counted_ptr<PainterBlendShader> &shader);
 
       //////////////////////////////////////////////////////////////
       // virtual methods from PainterBackend, do NOT reimplement(!)
