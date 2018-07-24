@@ -22,7 +22,7 @@
 
 namespace fastuidraw
 {
-  class PainterBackend;
+  class PainterShaderRegistrar;
 
 /*!\addtogroup Painter
  * @{
@@ -43,7 +43,7 @@ namespace fastuidraw
     /*!
      * \brief
      * A Tag is how a PainterShader is described for
-     * and by a PainterBackend.
+     * and by a PainterShaderRegistrar.
      */
     class Tag
     {
@@ -91,12 +91,12 @@ namespace fastuidraw
     /*!
      * Ctor to create a PainterShader realized as a sub-shader
      * of an existing PainterShader. A sub-shader does not need
-     * to be registered to a PainterBackend (if register_shader()
+     * to be registered to a PainterShaderRegistrar (if register_shader()
      * is called on such a shader, the call is ignored).
      * \param sub_shader which sub-shader of the parent PainterShader
      * \param parent parent PainterShader that has sub-shaders.
      *               The parent PainterShader MUST already be registered
-     *               to a PainterBackend.
+     *               to a PainterShaderRegistrar.
      */
     PainterShader(unsigned int sub_shader,
                   reference_counted_ptr<PainterShader> parent);
@@ -127,7 +127,7 @@ namespace fastuidraw
 
     /*!
      * Returns the ID of the shader, the shader
-     * must be registered to a PainterBackend
+     * must be registered to a PainterShaderRegistrar
      * to have an ID.
      */
     uint32_t
@@ -153,24 +153,24 @@ namespace fastuidraw
     tag(void) const;
 
     /*!
-     * Returns the PainterBackend to which the shader
+     * Returns the PainterShaderRegistrar to which the shader
      * is registed. If not yet registered, returns nullptr.
      */
-    const PainterBackend*
+    const PainterShaderRegistrar*
     registered_to(void) const;
 
   private:
-    friend class PainterBackend;
+    friend class PainterShaderRegistrar;
 
     /*!
-     * Called by a PainterBackend to register the shader to it.
+     * Called by a PainterShaderRegistrar to register the shader to it.
      * A PainterShader may only be registered once.
      */
     void
-    register_shader(Tag tg, const PainterBackend *p);
+    register_shader(Tag tg, const PainterShaderRegistrar *p);
 
     /*!
-     * Called by PainterBackend to set the group for a sub-shader.
+     * Called by PainterShaderRegistrar to set the group for a sub-shader.
      */
     void
     set_group_of_sub_shader(uint32_t group);

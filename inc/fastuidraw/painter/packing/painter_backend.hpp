@@ -24,8 +24,7 @@
 #include <fastuidraw/image.hpp>
 #include <fastuidraw/colorstop_atlas.hpp>
 #include <fastuidraw/painter/packing/painter_draw.hpp>
-#include <fastuidraw/painter/painter_shader.hpp>
-#include <fastuidraw/painter/painter_shader_set.hpp>
+#include <fastuidraw/painter/packing/painter_shader_registrar.hpp>
 
 
 namespace fastuidraw
@@ -39,10 +38,9 @@ namespace fastuidraw
    * A PainterBackend is an interface that defines the API-specific
    * elements to implement Painter:
    */
-  class PainterBackend:public reference_counted<PainterBackend>::default_base
+  class PainterBackend:public PainterShaderRegistrar
   {
   public:
-
     /*!
      * \brief
      * A ConfigurationBase holds how data should be set to a
@@ -359,71 +357,6 @@ namespace fastuidraw
     map_draw(void) = 0;
 
     /*!
-     * Registers a vertex shader for use. Must not be called within a
-     * on_pre_draw()/on_post_draw() pair.
-     */
-    void
-    register_shader(const reference_counted_ptr<PainterItemShader> &shader);
-
-    /*!
-     * Registers a blend shader for use. Must not be called within
-     * a on_pre_draw()/on_post_draw() pair.
-     */
-    void
-    register_shader(const reference_counted_ptr<PainterBlendShader> &shader);
-
-    /*!
-     * Provided as a conveniance, equivalent to
-     * \code
-     * register_shader(p.non_aa_shader());
-     * register_shader(p.aa_shader_pass1());
-     * register_shader(p.aa_shader_pass2());
-     * \endcode
-     * \param p PainterStrokeShader hold shaders to register
-     */
-    void
-    register_shader(const PainterStrokeShader &p);
-
-    /*!
-     * Provided as a conveniance, equivalent to
-     * \code
-     * register_shader(p.fill_shader());
-     * \endcode
-     * \param p PainterFillShader hold shaders to register
-     */
-    void
-    register_shader(const PainterFillShader &p);
-
-    /*!
-     * Provided as a conveniance, equivalent to calling
-     * register_shader(const PainterStrokeShader&) on each
-     * PainterDashedStrokeShaderSet::shader(enum PainterEnums::dashed_cap_style) const.
-     * \param p PainterDashedStrokeShaderSet hold shaders to register
-     */
-    void
-    register_shader(const PainterDashedStrokeShaderSet &p);
-
-    /*!
-     * Register each of the reference_counted_ptr<PainterShader>
-     * in a PainterGlyphShader.
-     */
-    void
-    register_shader(const PainterGlyphShader &p);
-
-    /*!
-     * Register each of the reference_counted_ptr<PainterBlendShader>
-     * in a PainterBlendShaderSet.
-     */
-    void
-    register_shader(const PainterBlendShaderSet &p);
-
-    /*!
-     * Register each of the shaders in a PainterShaderSet.
-     */
-    void
-    register_shader(const PainterShaderSet &p);
-
-    /*!
      * Returns the PainterShaderSet for the backend.
      * Returned values will already be registerd by the
      * backend.
@@ -441,58 +374,6 @@ namespace fastuidraw
     hints(void) const;
 
   protected:
-    /*!
-     * To be implemented by a derived class to take into use
-     * an item shader. Typically this means inserting the
-     * the shader into a large uber shader. Returns
-     * the PainterShader::Tag to be used by the backend
-     * to identify the shader.  An implementation will never
-     * be passed an object for which PainterShader::parent()
-     * is non-nullptr.
-     * \param shader shader whose Tag is to be computed
-     */
-    virtual
-    PainterShader::Tag
-    absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader) = 0;
-
-    /*!
-     * To be implemented by a derived class to compute the PainterShader::group()
-     * of a sub-shader. When called, the value of the shader's PainterShader::ID()
-     * and PainterShader::registered_to() are already set correctly. In addition,
-     * the value of PainterShader::group() is initialized to the same value as
-     * that of the PainterItemShader::parent().
-     * \param shader shader whose group is to be computed
-     */
-    virtual
-    uint32_t
-    compute_item_sub_shader_group(const reference_counted_ptr<PainterItemShader> &shader) = 0;
-
-    /*!
-     * To be implemented by a derived class to take into use
-     * a blend shader. Typically this means inserting the
-     * the blend shader into a large uber shader. Returns
-     * the PainterShader::Tag to be used by the backend
-     * to identify the shader. An implementation will never
-     * be passed an object for which PainterShader::parent()
-     * is non-nullptr.
-     * \param shader shader whose Tag is to be computed
-     */
-    virtual
-    PainterShader::Tag
-    absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader) = 0;
-
-    /*!
-     * To be implemented by a derived class to compute the PainterShader::group()
-     * of a sub-shader. When called, the value of the shader's PainterShader::ID()
-     * and PainterShader::registered_to() are already set correctly. In addition,
-     * the value of PainterShader::group() is initialized to the same value as
-     * that of the PainterBlendShader::parent().
-     * \param shader shader whose group is to be computed
-     */
-    virtual
-    uint32_t
-    compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader) = 0;
-
     /*!
      * To be accessed by a derived class in its ctor
      * to set the performance hint values for itself.

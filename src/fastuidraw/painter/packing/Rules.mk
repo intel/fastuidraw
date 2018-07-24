@@ -4,7 +4,10 @@ dirstack_$(sp)	:= $(d)
 d		:= $(dir)
 # End standard header
 
-FASTUIDRAW_SOURCES += $(call filelist, painter_backend.cpp painter_draw.cpp painter_packer.cpp)
+FASTUIDRAW_SOURCES += $(call filelist, \
+	painter_backend.cpp \
+	painter_shader_registrar.cpp \
+	painter_draw.cpp painter_packer.cpp)
 
 # Begin standard footer
 d		:= $(dirstack_$(sp))

@@ -34,7 +34,7 @@ namespace
     }
 
     fastuidraw::PainterShader::Tag m_tag;
-    const fastuidraw::PainterBackend *m_registered_to;
+    const fastuidraw::PainterShaderRegistrar *m_registered_to;
 
     //for when shader has sub-shaders
     unsigned int m_number_sub_shaders;
@@ -135,7 +135,7 @@ parent(void) const
 
 void
 fastuidraw::PainterShader::
-register_shader(Tag tg, const PainterBackend *p)
+register_shader(Tag tg, const PainterShaderRegistrar *p)
 {
   PainterShaderPrivate *d;
   d = static_cast<PainterShaderPrivate*>(m_d);
@@ -168,7 +168,7 @@ set_group_of_sub_shader(uint32_t gr)
   d->m_tag.m_group = gr;
 }
 
-const fastuidraw::PainterBackend*
+const fastuidraw::PainterShaderRegistrar*
 fastuidraw::PainterShader::
 registered_to(void) const
 {
