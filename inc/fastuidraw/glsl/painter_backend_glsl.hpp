@@ -1124,13 +1124,14 @@ namespace fastuidraw
                        c_string discard_macro_value = "discard");
 
       /*!
-       * Fill a buffer to hold the values for the uniforms
-       * of the uber-shader. It must be that p.size() is atleast
-       * ubo_size().
+       * Fill a buffer to hold the values used by the uber-shader.
+       * The buffer must be that p.size() is atleast ubo_size().
+       * \param vwp current Surface::Viewport to which is being rendered
        * \param p buffer to which to fill uniform data
        */
       void
-      fill_uniform_buffer(c_array<generic_data> p);
+      fill_uniform_buffer(const Surface::Viewport &vwp,
+                          c_array<generic_data> p);
 
       /*!
        * Total size of UBO for uniforms in units of
@@ -1148,13 +1149,6 @@ namespace fastuidraw
        */
       unsigned int
       registered_shader_count(void);
-
-      /*!
-       * To be called by a derived class to tell this PainterBackendGLSL
-       * the viewport of the target surface.
-       */
-      void
-      viewport(const Surface::Viewport&);
 
       /*!
        * To be optionally implemented by a derived class to
