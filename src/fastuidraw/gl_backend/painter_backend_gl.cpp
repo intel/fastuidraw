@@ -1186,6 +1186,7 @@ compute_glsl_config(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &par
     || ctx.has_extension("GL_NV_bindless_texture");
 
   return_value
+    .alignment(params.alignment())
     .default_stroke_shader_aa_type(params.default_stroke_shader_aa_type())
     .supports_bindless_texturing(supports_bindless)
     .blending_type(params.blending_type());
