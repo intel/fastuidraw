@@ -491,8 +491,12 @@ namespace fastuidraw {
   // 1. atlases can be used by multiple PainterBackendGL simutaneously
   // 2. the member class params of each of the atlas types and PainterBackendGL
   //    have additional properties one can set.
-  // 3. A PainterBackendGL is a very -heavy- object (because it maintains a GLSL
-  //    program. Hence, these objects should reused during an applications lifetime.
+  // 3. A PainterBackendGL is a very -heavy- object. Hence, these objects
+  //    should reused during an applications lifetime.
+  // 4. If a program needs multiple PainterBackendGL objects, use the
+  //    method fastuidraw::gl::PainterBackendGL::create_sharing_shaders()
+  //    to create a PainterBackendGL that shares the \ref fastuidraw::gl::Program
+  //    object with the creator but has its own private buffer pools and state.
 
   fastuidraw::reference_counted_ptr<fastuidraw::Painter> painter;
   painter = FASTUIDRAWnew fastuidraw::Painter(painterBackend)
