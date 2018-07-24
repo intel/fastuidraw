@@ -154,7 +154,6 @@ namespace
     fastuidraw::gl::PainterBackendGL::UberShaderParams m_uber_shader_builder_params;
 
     fastuidraw::gl::ContextProperties m_ctx_properties;
-    bool m_backend_configured;
     enum fastuidraw::gl::detail::tex_buffer_support_t m_tex_buffer_support;
     int m_number_clip_planes;
     GLenum m_clip_plane0;
@@ -1113,7 +1112,6 @@ PainterBackendGLPrivate::
 PainterBackendGLPrivate(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P,
                         fastuidraw::gl::PainterBackendGL *p):
   m_params(P),
-  m_backend_configured(false),
   m_tex_buffer_support(fastuidraw::gl::detail::tex_buffer_not_computed),
   m_number_clip_planes(0),
   m_clip_plane0(GL_INVALID_ENUM),
@@ -1201,9 +1199,6 @@ configure_backend(void)
   using namespace fastuidraw::gl;
   using namespace fastuidraw::gl::detail;
 
-  FASTUIDRAWassert(!m_backend_configured);
-
-  m_backend_configured = true;
   m_tex_buffer_support = compute_tex_buffer_support(m_ctx_properties);
 
   #ifdef FASTUIDRAW_GL_USE_GLES
