@@ -1163,6 +1163,15 @@ colorstop_atlas(void) const
   return d->m_backend->colorstop_atlas();
 }
 
+fastuidraw::reference_counted_ptr<fastuidraw::PainterShaderRegistrar>
+fastuidraw::PainterPacker::
+painter_shader_registrar(void) const
+{
+  PainterPackerPrivate *d;
+  d = static_cast<PainterPackerPrivate*>(m_d);
+  return d->m_backend;
+}
+
 const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader>&
 fastuidraw::PainterPacker::
 blend_shader(void) const
@@ -1209,69 +1218,6 @@ hints(void)
   PainterPackerPrivate *d;
   d = static_cast<PainterPackerPrivate*>(m_d);
   return d->m_backend->hints();
-}
-
-void
-fastuidraw::PainterPacker::
-register_shader(const reference_counted_ptr<PainterItemShader> &shader)
-{
-  PainterPackerPrivate *d;
-  d = static_cast<PainterPackerPrivate*>(m_d);
-  d->m_backend->register_shader(shader);
-}
-
-void
-fastuidraw::PainterPacker::
-register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
-{
-  PainterPackerPrivate *d;
-  d = static_cast<PainterPackerPrivate*>(m_d);
-  d->m_backend->register_shader(shader);
-}
-
-void
-fastuidraw::PainterPacker::
-register_shader(const PainterStrokeShader &p)
-{
-  PainterPackerPrivate *d;
-  d = static_cast<PainterPackerPrivate*>(m_d);
-  d->m_backend->register_shader(p);
-}
-
-void
-fastuidraw::PainterPacker::
-register_shader(const PainterFillShader &p)
-{
-  PainterPackerPrivate *d;
-  d = static_cast<PainterPackerPrivate*>(m_d);
-  d->m_backend->register_shader(p);
-}
-
-void
-fastuidraw::PainterPacker::
-register_shader(const PainterDashedStrokeShaderSet &p)
-{
-  PainterPackerPrivate *d;
-  d = static_cast<PainterPackerPrivate*>(m_d);
-  d->m_backend->register_shader(p);
-}
-
-void
-fastuidraw::PainterPacker::
-register_shader(const PainterGlyphShader &p)
-{
-  PainterPackerPrivate *d;
-  d = static_cast<PainterPackerPrivate*>(m_d);
-  d->m_backend->register_shader(p);
-}
-
-void
-fastuidraw::PainterPacker::
-register_shader(const PainterShaderSet &p)
-{
-  PainterPackerPrivate *d;
-  d = static_cast<PainterPackerPrivate*>(m_d);
-  d->m_backend->register_shader(p);
 }
 
 //////////////////////////////////////////
