@@ -16,7 +16,6 @@
  *
  */
 
-
 #pragma once
 
 #include <fastuidraw/glsl/painter_backend_glsl.hpp>
@@ -39,7 +38,9 @@ namespace fastuidraw
      * A PainterBackendGL implements PainterBackend
      * using the GL (or GLES) API.
      */
-    class PainterBackendGL:public glsl::PainterBackendGLSL
+    class PainterBackendGL:
+      public glsl::PainterShaderRegistrarGLSLTypes,
+      public PainterBackend
     {
     public:
       /*!
@@ -732,21 +733,11 @@ namespace fastuidraw
       const BindingPoints&
       binding_points(void) const;
 
-    protected:
-
-      virtual
-      uint32_t
-      compute_item_shader_group(PainterShader::Tag tag,
-                                const reference_counted_ptr<PainterItemShader> &shader);
-
-      virtual
-      uint32_t
-      compute_blend_shader_group(PainterShader::Tag tag,
-                                const reference_counted_ptr<PainterBlendShader> &shader);
-
     private:
       PainterBackendGL(const ConfigurationGL &config_gl,
-                       const ConfigurationGLSL &config_glsl);
+                       const UberShaderParams &uber_params,
+                       const PainterShaderSet &shaders,
+                       const reference_counted_ptr<glsl::PainterShaderRegistrarGLSL>&);
 
       void *m_d;
     };

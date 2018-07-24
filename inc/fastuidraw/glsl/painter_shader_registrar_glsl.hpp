@@ -972,7 +972,7 @@ namespace fastuidraw
          * \param p if non-null, set all values from the passed PainterBackend object,
          *                       otherwise set all values as 0.
          */
-        BackendConstants(const reference_counted_ptr<PainterBackend> &p = reference_counted_ptr<PainterBackend>());
+        BackendConstants(PainterBackend *p = nullptr);
 
         /*!
          * Copy ctor.
@@ -1116,7 +1116,7 @@ namespace fastuidraw
          * from a PainterBackend. 
          */
         BackendConstants&
-        set_from_backend(const reference_counted_ptr<PainterBackend> &p);
+        set_from_backend(PainterBackend *p);
 
         /*!
          * Set all values of this BackendConstant by taking values
