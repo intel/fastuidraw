@@ -22,6 +22,9 @@
 #include <fastuidraw/gl_backend/painter_backend_gl.hpp>
 #include <fastuidraw/gl_backend/gl_program.hpp>
 
+#include "tex_buffer.hpp"
+#include "painter_backend_gl_config.hpp"
+
 namespace fastuidraw { namespace gl { namespace detail {
 
 class PainterShaderRegistrarGL:public glsl::PainterShaderRegistrarGLSL
@@ -33,9 +36,51 @@ public:
       shader_group_discard_mask = (1u << 31u)
     };
 
-  explicit
-  PainterShaderRegistrarGL(const PainterBackendGL::ConfigurationGL &P);
+  enum
+    {
+      program_count = PainterBackendGL::number_program_types
+    };
 
+  typedef reference_counted_ptr<Program> program_ref;
+  typedef vecN<program_ref, program_count + 1> program_set;
+
+  explicit
+  PainterShaderRegistrarGL(const PainterBackendGL::ConfigurationGL &P,
+                           const UberShaderParams &uber_params);
+
+  const program_set&
+  programs(void);
+
+  const PainterBackendGL::ConfigurationGL&
+  params(void) const
+  {
+    return m_params;
+  }
+
+  enum tex_buffer_support_t
+  tex_buffer_support(void) const
+  {
+    return m_tex_buffer_support;
+  }
+
+  const UberShaderParams&
+  uber_shader_builder_params(void) const
+  {
+    return m_uber_shader_builder_params;
+  }
+
+  unsigned int
+  number_clip_planes(void) const
+  {
+    return m_number_clip_planes;
+  }
+
+  bool
+  has_multi_draw_elements(void) const
+  {
+    return m_has_multi_draw_elements;
+  }
+  
 protected:
   uint32_t
   compute_blend_shader_group(PainterShader::Tag tag,
@@ -46,8 +91,35 @@ protected:
                             const reference_counted_ptr<PainterItemShader> &shader);
 
 private:
-  bool m_break_on_shader_change;
-  bool m_separate_program_for_discard;
+  void
+  configure_backend(void);
+
+  void
+  configure_source_front_matter(void);
+  
+  void
+  build_programs(void);
+
+  program_ref
+  build_program(enum PainterBackendGL::program_type_t tp);
+
+  PainterBackendGL::ConfigurationGL m_params;
+  UberShaderParams m_uber_shader_builder_params;
+  enum interlock_type_t m_interlock_type;
+  BackendConstants m_backend_constants;
+
+  std::string m_gles_clip_plane_extension;
+  PreLinkActionArray m_attribute_binder;
+  ProgramInitializerArray m_initializer;
+  glsl::ShaderSource m_front_matter_vert;
+  glsl::ShaderSource m_front_matter_frag;
+  unsigned int m_number_shaders_in_program;
+  program_set m_programs;
+
+  ContextProperties m_ctx_properties;
+  enum tex_buffer_support_t m_tex_buffer_support;
+  int m_number_clip_planes;
+  bool m_has_multi_draw_elements;
 };
 
 }}}
