@@ -110,23 +110,23 @@ namespace
 
   std::ostream&
   operator<<(std::ostream &str,
-             enum_wrapper<enum fastuidraw::glsl::PainterBackendGLSL::blending_type_t> v)
+             enum_wrapper<enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t> v)
   {
     switch(v.m_v)
       {
-      case fastuidraw::glsl::PainterBackendGLSL::blending_single_src:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_single_src:
         str << "single_src";
         break;
 
-      case fastuidraw::glsl::PainterBackendGLSL::blending_dual_src:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_dual_src:
         str << "dual_src";
         break;
 
-      case fastuidraw::glsl::PainterBackendGLSL::blending_framebuffer_fetch:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch:
         str << "framebuffer_fetch";
         break;
 
-      case fastuidraw::glsl::PainterBackendGLSL::blending_interlock:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_interlock:
         str << "interlock";
         break;
 
@@ -139,27 +139,27 @@ namespace
 
   std::ostream&
   operator<<(std::ostream &str,
-             enum_wrapper<enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t> v)
+             enum_wrapper<enum fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t> v)
   {
     switch(v.m_v)
       {
-      case fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer:
         str << "no_auxiliary_buffer";
         break;
 
-      case fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_atomic:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_atomic:
         str << "auxiliary_buffer_atomic";
         break;
 
-      case fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_interlock:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock:
         str << "auxiliary_buffer_interlock";
         break;
 
-      case fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_interlock_main_only:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock_main_only:
         str << "auxiliary_buffer_interlock_main_only";
         break;
 
-      case fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_framebuffer_fetch:
         str << "auxiliary_buffer_framebuffer_fetch";
         break;
 
@@ -363,10 +363,10 @@ sdl_painter_demo(const std::string &about_text,
   m_provide_auxiliary_image_buffer(m_painter_params.provide_auxiliary_image_buffer(),
                                   enumerated_string_type<auxiliary_buffer_t>()
                                   .add_entry("no_auxiliary_buffer",
-                                             fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer,
+                                             fastuidraw::glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer,
                                              "No auxiliary buffer provided")
                                   .add_entry("auxiliary_buffer_atomic",
-                                             fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_atomic,
+                                             fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_atomic,
                                              "Auxiliary buffer through atomic ops; this can be quite poor "
                                              "performing because atomics can be quite slow AND (worse) "
                                              "a draw break appears to issue a memory barrier within each "
@@ -374,7 +374,7 @@ sdl_painter_demo(const std::string &about_text,
                                              "GL 4.2 (or GL_ARB_shader_image_load_store extension) for GL "
                                              "and GLES 3.1 for GLES")
                                   .add_entry("auxiliary_buffer_interlock",
-                                             fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_interlock,
+                                             fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock,
                                              "Auxiliary buffer with interlock; this is high performant option "
                                              "as it does NOT use atomic ops and does not force any draw call "
                                              "breaks to issue a memory barrier; requires GL_INTEL_fragment_shader_ordering "
@@ -383,7 +383,7 @@ sdl_painter_demo(const std::string &about_text,
                                              "and if those are not satisfied will fall back to auxiliary_buffer_atomic and "
                                              "if those requirement are not satsified, then no_auxiliary_buffer")
                                   .add_entry("auxiliary_buffer_interlock_main_only",
-                                             fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_interlock_main_only,
+                                             fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock_main_only,
                                              "Auxiliary buffer with interlock; this is high performant option "
                                              "as it does NOT use atomic ops and does not force any draw call "
                                              "breaks to issue a memory barrier; requires GL_ARB_fragment_shader_interlock "
@@ -393,7 +393,7 @@ sdl_painter_demo(const std::string &about_text,
                                              "and if those are not satisfied will fall back to auxiliary_buffer_atomic and "
                                              "if those requirement are not satsified, then no_auxiliary_buffer")
                                   .add_entry("auxiliary_buffer_framebuffer_fetch",
-                                             fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_framebuffer_fetch,
+                                             fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_framebuffer_fetch,
                                              "Auxilary buffer via framebuffer fetch; this is high performant option "
                                              "as it does NOT use atomic ops and does not force any draw call "
                                              "breaks to issue a memory barrier; requires GL_EXT_shader_framebuffer_fetch; "
@@ -458,26 +458,26 @@ sdl_painter_demo(const std::string &about_text,
   m_blend_type(m_painter_params.blending_type(),
 	       enumerated_string_type<blending_type_t>()
 	       .add_entry("framebuffer_fetch",
-			  fastuidraw::glsl::PainterBackendGLSL::blending_framebuffer_fetch,
+			  fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch,
 			  "use a framebuffer fetch (if available) to perform blending, "
 			  "thus all blending operations are part of uber-shader giving "
 			  "more flexibility for blend types (namely W3C support) and "
 			  "blend mode changes do not induce pipeline state changes")
 	       .add_entry("interlock",
-			  fastuidraw::glsl::PainterBackendGLSL::blending_interlock,
+			  fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_interlock,
 			  "use image-load store together with interlock (if both available) "
                           "to perform blending, tus all blending operations are part of "
                           "uber-shader giving more flexibility for blend types (namely "
                           "W3C support) and blend mode changes do not induce pipeline "
                           "state changes")
 	       .add_entry("dual_src",
-			  fastuidraw::glsl::PainterBackendGLSL::blending_dual_src,
+			  fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_dual_src,
 			  "use a dual source blending (if available) to perform blending, "
 			  "which has far less flexibility for blending than framebuffer-fetch "
 			  "but has far few pipeline states (there are 3 blend mode pipeline states "
 			  "and hald of the Porter-Duff blend modes are in one blend mode pipeline state")
 	       .add_entry("single_src",
-			  fastuidraw::glsl::PainterBackendGLSL::blending_single_src,
+			  fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_single_src,
 			  "use single source blending to perform blending, "
 			  "which is even less flexible than dual_src blending and "
 			  "every Porter-Duff blend mode is a different pipeline state"),
@@ -567,19 +567,19 @@ init_gl(int w, int h)
       m_glyph_atlas_params.use_optimal_geometry_store_backing();
       switch(m_glyph_atlas_params.glyph_geometry_backing_store_type())
         {
-        case fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_tbo:
+        case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_tbo:
           {
             std::cout << "Glyph Geometry Store: auto selected texture buffer\n";
           }
           break;
 
-        case fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_ssbo:
+        case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_ssbo:
           {
             std::cout << "Glyph Geometry Store: auto selected storage buffer\n";
           }
           break;
 
-        case fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_texture_array:
+        case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_texture_array:
           {
             fastuidraw::ivec2 log2_dims(m_glyph_atlas_params.texture_2d_array_geometry_store_log2_dims());
             std::cout << "Glyph Geometry Store: auto selected texture with dimensions: (2^"
@@ -636,7 +636,7 @@ init_gl(int w, int h)
       bool use_cover_then_draw;
 
       use_cover_then_draw = (m_painter_params.provide_auxiliary_image_buffer()
-                             != fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer);
+                             != fastuidraw::glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer);
       m_painter_params
         .default_stroke_shader_aa_type(use_cover_then_draw?
                                        fastuidraw::PainterStrokeShader::cover_then_draw :
@@ -646,22 +646,22 @@ init_gl(int w, int h)
 
   if (m_painter_msaa.value() > 1)
     {
-      if (m_provide_auxiliary_image_buffer.value() != fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer)
+      if (m_provide_auxiliary_image_buffer.value() != fastuidraw::glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer)
         {
           std::cout << "Auxilary buffer cannot be used with painter_msaa "
                     << "(and there is little reason since it is used only for shader-based anti-aliasing)\n"
                     << std::flush;
-          m_provide_auxiliary_image_buffer.value() = fastuidraw::glsl::PainterBackendGLSL::no_auxiliary_buffer;
+          m_provide_auxiliary_image_buffer.value() = fastuidraw::glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer;
         }
 
-      if (m_blend_type.value() == fastuidraw::glsl::PainterBackendGLSL::blending_interlock)
+      if (m_blend_type.value() == fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_interlock)
         {
           std::cout << "WARNING: using interlock with painter_msaa is not possible, falling back to "
                     << ") framebuffer_fetch\n"
                     << std::flush;
         }
 
-      if (m_blend_type.value() == fastuidraw::glsl::PainterBackendGLSL::blending_framebuffer_fetch)
+      if (m_blend_type.value() == fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch)
         {
           std::cout << "WARNING: using framebuffer fetch with painter_msaa makes all fragment shading happen "
                     << "per sample (which is terribly expensive)\n"

@@ -235,8 +235,7 @@ namespace fastuidraw
        * Adds to a ShaderSource the GLSL code to unpack a
        * stream of values. Returns the number of blocks needed to unpack
        * the data in GLSL.
-       * \param alignment the alignment of the data store used in a
-       *                  PainterBackendGLSL (i.e. the value of
+       * \param alignment the alignment of the data store used (i.e. the
        *                  PainterBackend::ConfigurationBase::alignment(void) const)
        * \param str location to which to add the GLSL code
        * \param labels GLSL names and types to which to unpack
@@ -260,8 +259,7 @@ namespace fastuidraw
        * whose body is the unpacking of the values into an
        * out. Returns the number of blocks needed to unpack
        * the data in GLSL.
-       * \param alignment the alignment of the data store used in a
-       *                  PainterBackendGLSL (i.e. the value of
+       * \param alignment the alignment of the data store used (i.e. the
        *                  PainterBackend::ConfigurationBase::alignment(void) const)
        * \param str location to which to add the GLSL code
        * \param labels GLSL names of the fields and their types
@@ -310,8 +308,7 @@ namespace fastuidraw
        * \code
        * shader_unpack_value::stream_unpack_code(alignment, str, *this, offset_name);
        * \endcode
-       * \param alignment the alignment of the data store used in a
-       *                  PainterBackendGLSL (i.e. the value of
+       * \param alignment the alignment of the data store used (i.e. the
        *                  PainterBackend::ConfigurationBase::alignment(void) const)
        * \param str location to which to add the GLSL code
        * \param offset_name GLSL name for offset from which to unpack
@@ -332,8 +329,7 @@ namespace fastuidraw
        * shader_unpack_value::stream_unpack_function(alignment, str, *this, function_name,
        *                                                  out_type, returns_new_offset);
        * \endcode
-       * \param alignment the alignment of the data store used in a
-       *                  PainterBackendGLSL (i.e. the value of
+       * \param alignment the alignment of the data store used (i.e. the
        *                  PainterBackend::ConfigurationBase::alignment(void) const)
        * \param str location to which to add the GLSL code
        * \param function_name name to give the function
@@ -356,7 +352,7 @@ namespace fastuidraw
     /*!
      * \brief
      * A PainterItemShaderGLSL is a collection of GLSL source code
-     * fragments for a PainterBackendGL.
+     * fragments for a \ref PainterShaderRegistrarGLSL.
      *
      * The vertex shader code needs to implement the function:
      * \code

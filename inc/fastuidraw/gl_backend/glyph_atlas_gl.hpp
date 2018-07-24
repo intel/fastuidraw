@@ -20,7 +20,7 @@
 #pragma once
 
 #include <fastuidraw/text/glyph_atlas.hpp>
-#include <fastuidraw/glsl/painter_backend_glsl.hpp>
+#include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 #include <fastuidraw/gl_backend/gl_header.hpp>
 
 namespace fastuidraw
@@ -131,14 +131,14 @@ namespace gl
       /*!
        * Returns what kind of GL object is used to back
        * the glyph geometry data. Default value is
-       * \ref glsl::PainterBackendGLSL::glyph_geometry_tbo.
+       * \ref glsl::PainterShaderRegistrarGLSL::glyph_geometry_tbo.
        */
-      enum glsl::PainterBackendGLSL::glyph_geometry_backing_t
+      enum glsl::PainterShaderRegistrarGLSL::glyph_geometry_backing_t
       glyph_geometry_backing_store_type(void) const;
 
       /*!
        * Set glyph_geometry_backing_store() to \ref
-       * glsl::PainterBackendGLSL::glyph_geometry_tbo,
+       * glsl::PainterShaderRegistrarGLSL::glyph_geometry_tbo,
        * i.e. for the glyph geometry data to be stored
        * on a GL texture buffer object.
        */
@@ -147,7 +147,7 @@ namespace gl
 
       /*!
        * Set glyph_geometry_backing_store() to \ref
-       * glsl::PainterBackendGLSL::glyph_geometry_ssbo,
+       * glsl::PainterShaderRegistrarGLSL::glyph_geometry_ssbo,
        * i.e. for the glyph geometry data to be stored
        * on a GL texture buffer object.
        */
@@ -156,7 +156,7 @@ namespace gl
 
       /*!
        * Set glyph_geometry_backing_store() to \ref
-       * glsl::PainterBackendGLSL::glyph_geometry_texture_array,
+       * glsl::PainterShaderRegistrarGLSL::glyph_geometry_texture_array,
        * i.e. to use a 2D texture array to store the
        * glyph geometry data. The depth of the
        * array is set implicitely by the size given by
@@ -172,7 +172,7 @@ namespace gl
 
       /*!
        * If glyph_geometry_backing_store() returns \ref
-       * glsl::PainterBackendGLSL::glyph_geometry_texture_array,
+       * glsl::PainterShaderRegistrarGLSL::glyph_geometry_texture_array,
        * returns the values
        * set in use_texture_2d_array_geometry_store(), otherwise
        * returns a value where both components are -1.
