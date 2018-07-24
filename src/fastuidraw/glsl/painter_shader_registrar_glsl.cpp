@@ -1204,7 +1204,7 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
 //////////////////////////////////////////////////////
 // fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants methods
 fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants::
-BackendConstants(const reference_counted_ptr<PainterBackend> &p)
+BackendConstants(PainterBackend *p)
 {
   m_d = FASTUIDRAWnew BackendConstantsPrivate();
   set_from_backend(p);
@@ -1229,7 +1229,7 @@ fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants::
 
 fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants&
 fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::BackendConstants::
-set_from_backend(const reference_counted_ptr<PainterBackend> &p)
+set_from_backend(PainterBackend *p)
 {
   if (p)
     {
