@@ -36,6 +36,7 @@
 #include "private/texture_gl.hpp"
 #include "private/painter_backend_gl_config.hpp"
 #include "private/painter_vao_pool.hpp"
+#include "private/painter_shader_registrar_gl.hpp"
 
 #ifdef FASTUIDRAW_GL_USE_GLES
 #define GL_SRC1_COLOR GL_SRC1_COLOR_EXT
@@ -46,11 +47,6 @@
 
 namespace
 {
-  enum
-    {
-      shader_group_discard_bit = 31u,
-      shader_group_discard_mask = (1u << 31u)
-    };
 
   bool
   use_shader_helper(enum fastuidraw::gl::PainterBackendGL::program_type_t tp,
@@ -109,25 +105,6 @@ namespace
       glMemoryBarrierByRegion(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
       return fastuidraw::gpu_dirty_state();
     }
-  };
-
-  class PainterShaderRegistrarGL:public fastuidraw::glsl::PainterShaderRegistrarGLSL
-  {
-  public:
-    explicit
-    PainterShaderRegistrarGL(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P);
-
-  protected:
-    uint32_t
-    compute_blend_shader_group(fastuidraw::PainterShader::Tag tag,
-                               const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> &shader);
-
-    uint32_t
-    compute_item_shader_group(fastuidraw::PainterShader::Tag tag,
-                              const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader);
-
-    bool m_break_on_shader_change;
-    bool m_separate_program_for_discard;
   };
 
   class SurfaceGLPrivate;
@@ -774,6 +751,7 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
 {
   using namespace fastuidraw;
   using namespace fastuidraw::gl;
+  using namespace fastuidraw::gl::detail;
   
   /* if the blend mode changes, then we need to start a new DrawEntry */
   BlendMode::packed_value old_mode, new_mode;
@@ -782,8 +760,8 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
   old_mode = old_shaders.packed_blend_mode();
   new_mode = new_shaders.packed_blend_mode();
 
-  old_disc = old_shaders.item_group() & shader_group_discard_mask;
-  new_disc = new_shaders.item_group() & shader_group_discard_mask;
+  old_disc = old_shaders.item_group() & PainterShaderRegistrarGL::shader_group_discard_mask;
+  new_disc = new_shaders.item_group() & PainterShaderRegistrarGL::shader_group_discard_mask;
 
   if (old_disc != new_disc)
     {
@@ -1127,48 +1105,6 @@ fbo_bits(enum fastuidraw::gl::PainterBackendGL::auxiliary_buffer_t aux,
     }
 
   return tp;
-}
-
-//////////////////////////////////////
-// PainterShaderRegistrarGL methods
-PainterShaderRegistrarGL::
-PainterShaderRegistrarGL(const fastuidraw::gl::PainterBackendGL::ConfigurationGL &P):
-  fastuidraw::glsl::PainterShaderRegistrarGLSL(),
-  m_break_on_shader_change(P.break_on_shader_change()),
-  m_separate_program_for_discard(P.separate_program_for_discard())
-{}
-
-uint32_t
-PainterShaderRegistrarGL::
-compute_blend_shader_group(fastuidraw::PainterShader::Tag tag,
-                           const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> &shader)
-{
-  FASTUIDRAWunused(shader);
-  return m_break_on_shader_change ?
-    tag.m_ID:
-    0u;
-}
-
-uint32_t
-PainterShaderRegistrarGL::
-compute_item_shader_group(fastuidraw::PainterShader::Tag tag,
-                          const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &shader)
-{
-  uint32_t return_value;
-
-  return_value = m_break_on_shader_change ? tag.m_ID : 0u;
-  return_value |= (shader_group_discard_mask & tag.m_group);
-
-  if (m_separate_program_for_discard)
-    {
-      const fastuidraw::glsl::PainterItemShaderGLSL *sh;
-      sh = dynamic_cast<const fastuidraw::glsl::PainterItemShaderGLSL*>(shader.get());
-      if (sh && sh->uses_discard())
-        {
-          return_value |= shader_group_discard_mask;
-        }
-    }
-  return return_value;
 }
 
 ///////////////////////////////////
@@ -2506,7 +2442,7 @@ create(ConfigurationGL config_gl, const ContextProperties &ctx)
     .create_missing_atlases(ctx);
 
   PainterBackendGLPrivate::compute_uber_shader_params(config_gl, ctx, uber_params, shaders);
-  reg = FASTUIDRAWnew PainterShaderRegistrarGL(config_gl);
+  reg = FASTUIDRAWnew detail::PainterShaderRegistrarGL(config_gl);
   return FASTUIDRAWnew PainterBackendGL(config_gl, uber_params, shaders, reg);
 }
 
