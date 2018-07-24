@@ -1169,7 +1169,7 @@ painter_shader_registrar(void) const
 {
   PainterPackerPrivate *d;
   d = static_cast<PainterPackerPrivate*>(m_d);
-  return d->m_backend;
+  return d->m_backend->painter_shader_registrar();
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader>&
