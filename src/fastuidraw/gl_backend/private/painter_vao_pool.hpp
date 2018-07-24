@@ -93,7 +93,7 @@ public:
 
   /*
    * returns the UBO used to hold the values filled
-   * by PainterBackendGLSL::fill_uniform_buffer().
+   * by PainterShaderRegistrarGLSL::fill_uniform_buffer().
    * There is only one such UBO per VAO. It is assumed
    * that the ubo_size NEVER changes once this is
    * called once.

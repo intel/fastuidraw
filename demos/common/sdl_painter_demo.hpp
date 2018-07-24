@@ -49,9 +49,9 @@ protected:
 
 private:
   typedef enum fastuidraw::gl::PainterBackendGL::data_store_backing_t data_store_backing_t;
-  typedef enum fastuidraw::glsl::PainterBackendGLSL::auxiliary_buffer_t auxiliary_buffer_t;
-  typedef enum fastuidraw::glsl::PainterBackendGLSL::clipping_type_t clipping_type_t;
-  typedef enum fastuidraw::glsl::PainterBackendGLSL::blending_type_t blending_type_t;
+  typedef enum fastuidraw::glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t auxiliary_buffer_t;
+  typedef enum fastuidraw::glsl::PainterShaderRegistrarGLSL::clipping_type_t clipping_type_t;
+  typedef enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t blending_type_t;
   enum glyph_geometry_backing_store_t
     {
       glyph_geometry_backing_store_texture_buffer,

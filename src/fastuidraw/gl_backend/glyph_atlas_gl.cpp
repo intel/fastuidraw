@@ -213,7 +213,7 @@ namespace
       m_number_floats(1024 * 1024),
       m_delayed(false),
       m_alignment(4),
-      m_type(fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_tbo),
+      m_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_tbo),
       m_log2_dims_geometry_store(-1, -1)
     {}
 
@@ -221,7 +221,7 @@ namespace
     unsigned int m_number_floats;
     bool m_delayed;
     unsigned int m_alignment;
-    enum fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_backing_t m_type;
+    enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_backing_t m_type;
     fastuidraw::ivec2 m_log2_dims_geometry_store;
   };
 
@@ -648,15 +648,15 @@ create(const fastuidraw::gl::GlyphAtlasGL::params &P)
 
   switch(P.glyph_geometry_backing_store_type())
     {
-    case fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_tbo:
+    case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_tbo:
       p = FASTUIDRAWnew GeometryStoreGL_TextureBuffer(number_vecNs, delayed, N);
       break;
 
-    case fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_ssbo:
+    case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_ssbo:
       p = FASTUIDRAWnew GeometryStoreGL_StorageBuffer(number_vecNs, delayed);
       break;
 
-    case fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_texture_array:
+    case fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_texture_array:
       p = FASTUIDRAWnew GeometryStoreGL_Texture(P.texture_2d_array_geometry_store_log2_dims(),
                                                 number_vecNs, delayed, N);
       break;
@@ -694,7 +694,7 @@ fastuidraw::gl::GlyphAtlasGL::params::
 
 assign_swap_implement(fastuidraw::gl::GlyphAtlasGL::params);
 
-enum fastuidraw::glsl::PainterBackendGLSL::glyph_geometry_backing_t
+enum fastuidraw::glsl::PainterShaderRegistrarGLSL::glyph_geometry_backing_t
 fastuidraw::gl::GlyphAtlasGL::params::
 glyph_geometry_backing_store_type(void) const
 {
@@ -709,7 +709,7 @@ use_texture_buffer_geometry_store(void)
 {
   GlyphAtlasGLParamsPrivate *d;
   d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-  d->m_type = glsl::PainterBackendGLSL::glyph_geometry_tbo;
+  d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_geometry_tbo;
   d->m_log2_dims_geometry_store = ivec2(-1, -1);
   return *this;
 }
@@ -720,7 +720,7 @@ use_storage_buffer_geometry_store(void)
 {
   GlyphAtlasGLParamsPrivate *d;
   d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-  d->m_type = glsl::PainterBackendGLSL::glyph_geometry_ssbo;
+  d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_geometry_ssbo;
   d->m_log2_dims_geometry_store = ivec2(-1, -1);
   d->m_alignment = 4;
   return *this;
@@ -735,7 +735,7 @@ use_texture_2d_array_geometry_store(int log2_width, int log2_height)
   if (log2_width >= 0 && log2_height >= 0)
     {
       d->m_log2_dims_geometry_store = ivec2(log2_width, log2_height);
-      d->m_type = glsl::PainterBackendGLSL::glyph_geometry_texture_array;
+      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_geometry_texture_array;
     }
   return *this;
 }
@@ -755,7 +755,7 @@ alignment(void) const
 {
   GlyphAtlasGLParamsPrivate *d;
   d = static_cast<GlyphAtlasGLParamsPrivate*>(m_d);
-  return (d->m_type == glsl::PainterBackendGLSL::glyph_geometry_ssbo) ?
+  return (d->m_type == glsl::PainterShaderRegistrarGLSL::glyph_geometry_ssbo) ?
     4:
     d->m_alignment;
 }
@@ -772,13 +772,13 @@ use_optimal_geometry_store_backing(void)
 
   if (context_get<int>(GL_MAX_SHADER_STORAGE_BLOCK_SIZE) >= required_max_size)
     {
-      d->m_type = glsl::PainterBackendGLSL::glyph_geometry_ssbo;
+      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_geometry_ssbo;
       d->m_log2_dims_geometry_store = ivec2(-1, -1);
     }
   else if (detail::compute_tex_buffer_support() != detail::tex_buffer_not_supported
            && context_get<int>(GL_MAX_TEXTURE_BUFFER_SIZE) >= required_max_size)
     {
-      d->m_type = glsl::PainterBackendGLSL::glyph_geometry_tbo;
+      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_geometry_tbo;
       d->m_log2_dims_geometry_store = ivec2(-1, -1);
     }
   else
@@ -802,7 +802,7 @@ use_optimal_geometry_store_backing(void)
           ++required_height;
         }
 
-      d->m_type = glsl::PainterBackendGLSL::glyph_geometry_texture_array;
+      d->m_type = glsl::PainterShaderRegistrarGLSL::glyph_geometry_texture_array;
       d->m_log2_dims_geometry_store.x() = uint32_log2(width);
       d->m_log2_dims_geometry_store.y() = (required_height <= 1) ?
         0 : uint32_log2(required_height);

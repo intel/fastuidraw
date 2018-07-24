@@ -25,7 +25,7 @@
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
-#include <fastuidraw/glsl/painter_backend_glsl.hpp>
+#include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 
 namespace fastuidraw { namespace glsl { namespace detail {
 
