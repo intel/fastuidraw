@@ -444,10 +444,12 @@ configure_source_front_matter(void)
     }
 }
 
-const fastuidraw::gl::detail::PainterShaderRegistrarGL::program_set&
+fastuidraw::gl::detail::PainterShaderRegistrarGL::program_set
 fastuidraw::gl::detail::PainterShaderRegistrarGL::
 programs(void)
 {
+  Mutex::Guard m(mutex());
+
   unsigned int number_shaders(registered_shader_count());
   if (number_shaders != m_number_shaders_in_program)
     {
