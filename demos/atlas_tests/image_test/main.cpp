@@ -430,9 +430,9 @@ private:
     max_layers = fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS);
     if (max_layers < m_num_color_layers.value())
       {
-	std::cout << "num_color_layers exceeds max number texture layers (" << max_layers
-		  << "), num_color_layers set to that value.\n";
-	m_num_color_layers.value() = max_layers;
+        std::cout << "num_color_layers exceeds max number texture layers (" << max_layers
+                  << "), num_color_layers set to that value.\n";
+        m_num_color_layers.value() = max_layers;
       }
 
     params

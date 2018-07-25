@@ -18,7 +18,7 @@ public:
       zoom_direction_negative_y,
       zoom_direction_positive_y
     };
-  
+
   PanZoomTracker(int32_t zoom_gesture_begin_time_ms=500,
                  float zoom_divider=40.0f):
     m_scale_zooming(1.0f),
@@ -66,10 +66,8 @@ public:
    */
   float m_scale_zooming;
 
-  /*!
-   */
   enum zoom_direction_t m_zoom_direction;
-  
+
 private:
 
   int32_t m_zoom_gesture_begin_time;

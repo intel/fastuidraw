@@ -456,34 +456,34 @@ sdl_painter_demo(const std::string &about_text,
                           "painter_assign_binding_points",
                           "If true, use layout(binding=) in GLSL shader on samplers and buffers", *this),
   m_blend_type(m_painter_params.blending_type(),
-	       enumerated_string_type<blending_type_t>()
-	       .add_entry("framebuffer_fetch",
-			  fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch,
-			  "use a framebuffer fetch (if available) to perform blending, "
-			  "thus all blending operations are part of uber-shader giving "
-			  "more flexibility for blend types (namely W3C support) and "
-			  "blend mode changes do not induce pipeline state changes")
-	       .add_entry("interlock",
-			  fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_interlock,
-			  "use image-load store together with interlock (if both available) "
+               enumerated_string_type<blending_type_t>()
+               .add_entry("framebuffer_fetch",
+                          fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch,
+                          "use a framebuffer fetch (if available) to perform blending, "
+                          "thus all blending operations are part of uber-shader giving "
+                          "more flexibility for blend types (namely W3C support) and "
+                          "blend mode changes do not induce pipeline state changes")
+               .add_entry("interlock",
+                          fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_interlock,
+                          "use image-load store together with interlock (if both available) "
                           "to perform blending, tus all blending operations are part of "
                           "uber-shader giving more flexibility for blend types (namely "
                           "W3C support) and blend mode changes do not induce pipeline "
                           "state changes")
-	       .add_entry("dual_src",
-			  fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_dual_src,
-			  "use a dual source blending (if available) to perform blending, "
-			  "which has far less flexibility for blending than framebuffer-fetch "
-			  "but has far few pipeline states (there are 3 blend mode pipeline states "
-			  "and hald of the Porter-Duff blend modes are in one blend mode pipeline state")
-	       .add_entry("single_src",
-			  fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_single_src,
-			  "use single source blending to perform blending, "
-			  "which is even less flexible than dual_src blending and "
-			  "every Porter-Duff blend mode is a different pipeline state"),
-	       "painter_blend_type",
-	       "specifies how the painter will perform blending",
-	       *this),
+               .add_entry("dual_src",
+                          fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_dual_src,
+                          "use a dual source blending (if available) to perform blending, "
+                          "which has far less flexibility for blending than framebuffer-fetch "
+                          "but has far few pipeline states (there are 3 blend mode pipeline states "
+                          "and hald of the Porter-Duff blend modes are in one blend mode pipeline state")
+               .add_entry("single_src",
+                          fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_single_src,
+                          "use single source blending to perform blending, "
+                          "which is even less flexible than dual_src blending and "
+                          "every Porter-Duff blend mode is a different pipeline state"),
+               "painter_blend_type",
+               "specifies how the painter will perform blending",
+               *this),
   m_painter_optimal(true, "painter_optimal_auto",
                     "If set to true, override all painter options and "
                     "query the GL/GLES context to configure the options",
@@ -511,14 +511,14 @@ init_gl(int w, int h)
   if (max_layers < m_num_color_layers.value())
     {
       std::cout << "num_color_layers exceeds max number texture layers (" << max_layers
-		<< "), num_color_layers set to that value.\n";
+                << "), num_color_layers set to that value.\n";
       m_num_color_layers.value() = max_layers;
     }
 
   if (max_layers < m_color_stop_atlas_layers.value())
-    {   
+    {
       std::cout << "atlas_layers exceeds max number texture layers (" << max_layers
-		<< "), atlas_layers set to that value.\n";
+                << "), atlas_layers set to that value.\n";
       m_color_stop_atlas_layers.value() = max_layers;
     }
 
@@ -696,7 +696,7 @@ init_gl(int w, int h)
                   << "  (requested " << make_enum_wrapper(m_painter_params.X()) \
                   << ")\n";                                             \
       } while(0)
-        
+
 #define LAZY_ENUM(X) do {                                               \
         std::cout << std::setw(40) << #X": " << std::setw(8)            \
                   << make_enum_wrapper(m_backend->configuration_gl().X()) \
@@ -783,7 +783,7 @@ draw_text(const std::string &text, float pixel_size,
           fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
           fastuidraw::GlyphRender renderer,
           const fastuidraw::PainterData &draw,
-	  enum fastuidraw::PainterEnums::glyph_orientation orientation)
+          enum fastuidraw::PainterEnums::glyph_orientation orientation)
 {
   std::istringstream str(text);
   std::vector<fastuidraw::Glyph> glyphs;
@@ -793,11 +793,11 @@ draw_text(const std::string &text, float pixel_size,
 
   create_formatted_text(str, renderer, pixel_size, font,
                         m_glyph_selector, glyphs, positions, chars,
-			nullptr, nullptr, orientation);
+                        nullptr, nullptr, orientation);
 
   fastuidraw::PainterAttributeDataFillerGlyphs filler(cast_c_array(positions),
-						      cast_c_array(glyphs), pixel_size,
-						      orientation);
+                                                      cast_c_array(glyphs), pixel_size,
+                                                      orientation);
   P.set_data(filler);
   m_painter->draw_glyphs(draw, P);
 }

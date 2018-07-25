@@ -679,9 +679,9 @@ draw_frame(void)
               float sc;
               sc = m_render_pixel_size.value() / glyphs[i].layout().m_units_per_EM;
 
-	      //we are drawing with y-coordinate increasing downwards
-	      //which is the opposite coordinate system as the glyph's
-	      //path, thus we also need to negate in the y-direction.
+              //we are drawing with y-coordinate increasing downwards
+              //which is the opposite coordinate system as the glyph's
+              //path, thus we also need to negate in the y-direction.
               m_painter->shear(sc, -sc);
 
               m_painter->fill_path(PainterData(pbr),
@@ -730,9 +730,9 @@ draw_frame(void)
               float sc;
               sc = m_render_pixel_size.value() / glyphs[i].layout().m_units_per_EM;
 
-	      //we are drawing with y-coordinate increasing downwards
-	      //which is the opposite coordinate system as the glyph's
-	      //path, thus we also need to negate in the y-direction.
+              //we are drawing with y-coordinate increasing downwards
+              //which is the opposite coordinate system as the glyph's
+              //path, thus we also need to negate in the y-direction.
               m_painter->shear(sc, -sc);
 
               m_painter->stroke_path(PainterData(pst, pbr),

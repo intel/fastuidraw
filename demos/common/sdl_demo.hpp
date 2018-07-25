@@ -91,7 +91,7 @@ protected:
 
   void
   reverse_event_y(bool v);
-  
+
   void
   end_demo(int return_value)
   {

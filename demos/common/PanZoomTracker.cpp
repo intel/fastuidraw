@@ -58,9 +58,9 @@ handle_motion(const fastuidraw::vec2 &pos, const fastuidraw::vec2 &delta)
       ScaleTranslate<float> R;
 
       if (m_zoom_direction == zoom_direction_negative_y)
-	{
-	  zoom_factor = -zoom_factor;
-	}
+        {
+          zoom_factor = -zoom_factor;
+        }
 
       zoom_factor /= zdivide;
       if (zoom_factor < 0.0f)
