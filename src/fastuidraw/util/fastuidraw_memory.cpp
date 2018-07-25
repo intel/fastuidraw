@@ -24,6 +24,7 @@
 #include <iosfwd>
 #include <cstdlib>
 #include <sstream>
+#include <mutex>
 
 #include <fastuidraw/util/fastuidraw_memory.hpp>
 #include "../private/util_private.hpp"
@@ -68,7 +69,7 @@ namespace
     print(std::ostream &ostr);
 
   private:
-    fastuidraw::mutex m_mutex;
+    std::mutex m_mutex;
   };
 
   address_set_type&

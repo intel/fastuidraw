@@ -17,6 +17,7 @@
  */
 
 
+#include <mutex>
 #include <fastuidraw/text/glyph_atlas.hpp>
 
 #include "../private/interval_allocator.hpp"
@@ -108,7 +109,7 @@ namespace
         }
     }
 
-    fastuidraw::mutex m_mutex;
+    std::mutex m_mutex;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasTexelBackingStoreBase> m_texel_store;
     fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlasGeometryBackingStoreBase> m_geometry_store;
     std::vector<fastuidraw::reference_counted_ptr<rect_atlas_layer> > m_private_data;
@@ -309,7 +310,7 @@ allocate(fastuidraw::ivec2 size, c_array<const uint8_t> pdata,
       return return_value;
     }
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
 
   for(unsigned int i = 0, endi = d->m_private_data.size(); i < endi && r == nullptr; ++i)
     {
@@ -370,7 +371,7 @@ allocate_geometry_data(c_array<const generic_data> pdata)
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   unsigned int count, alignment;
   int block_count, return_value;
 
@@ -415,7 +416,7 @@ deallocate_geometry_data(int location, int count)
       return;
     }
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
 
   FASTUIDRAWassert(count > 0);
   d->m_geometry_data_allocator.free_interval(location, count);
@@ -429,7 +430,7 @@ clear(void)
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
 
   d->m_geometry_data_allocator.reset(d->m_geometry_data_allocator.size());
   for(unsigned int i = 0, endi = d->m_private_data.size(); i < endi; ++i)
@@ -445,7 +446,7 @@ flush(void) const
   GlyphAtlasPrivate *d;
   d = static_cast<GlyphAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   d->m_texel_store->flush();
   d->m_geometry_store->flush();
 }

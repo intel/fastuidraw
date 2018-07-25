@@ -16,6 +16,7 @@
  *
  */
 
+#include <mutex>
 #include <string>
 #include <set>
 #include <map>
@@ -215,7 +216,7 @@ namespace
     void
     add_font_no_lock(const fastuidraw::FontProperties &props, const T &h);
 
-    fastuidraw::mutex m_mutex;
+    std::mutex m_mutex;
     fastuidraw::reference_counted_ptr<font_group> m_master_group;
     font_group_map<style_bold_italic_key> m_style_bold_italic_groups;
     font_group_map<family_style_bold_italic_key> m_family_style_bold_italic_groups;
@@ -572,7 +573,7 @@ add_font(reference_counted_ptr<const FontBase> h)
   GlyphSelectorPrivate *d;
   d = static_cast<GlyphSelectorPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   d->add_font_no_lock(h->properties(), h);
 }
 
@@ -588,7 +589,7 @@ add_font_generator(reference_counted_ptr<const FontGeneratorBase> h)
   GlyphSelectorPrivate *d;
   d = static_cast<GlyphSelectorPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   d->add_font_no_lock(h->font_properties(), h);
 }
 
@@ -599,7 +600,7 @@ fetch_font(const FontProperties &prop, bool exact_match)
   GlyphSelectorPrivate *d;
   d = static_cast<GlyphSelectorPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   return d->fetch_font_group_no_lock(prop, exact_match)->first_font();
 }
 
@@ -670,7 +671,7 @@ fetch_group(const FontProperties &props, bool exact_match)
   GlyphSelectorPrivate *d;
   d = static_cast<GlyphSelectorPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   h = d->fetch_font_group_no_lock(props, exact_match);
   return_value.m_d = h.get();
 
@@ -687,7 +688,7 @@ fetch_glyph(GlyphRender tp, const FontProperties &props,
 
   d = static_cast<GlyphSelectorPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   g = d->fetch_font_group_no_lock(props, exact_match);
   return d->fetch_glyph_no_lock(tp, g, character_code, exact_match);
 }

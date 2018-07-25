@@ -19,6 +19,7 @@
 
 #include <list>
 #include <map>
+#include <mutex>
 #include <fastuidraw/image.hpp>
 #include "private/array3d.hpp"
 #include "private/util_private.hpp"
@@ -255,7 +256,7 @@ namespace
       m_resizeable(m_color_store->resizeable() && m_index_store->resizeable())
     {}
 
-    fastuidraw::mutex m_mutex;
+    std::mutex m_mutex;
 
     fastuidraw::reference_counted_ptr<fastuidraw::AtlasColorBackingStoreBase> m_color_store;
     tile_allocator m_color_tiles;
@@ -894,7 +895,7 @@ delay_tile_freeing(void)
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
 
-  autolock_mutex M(d->m_mutex);
+  std::lock_guard<std::mutex> M(d->m_mutex);
   d->m_color_tiles.delay_tile_freeing();
   d->m_index_tiles.delay_tile_freeing();
 }
@@ -906,7 +907,7 @@ undelay_tile_freeing(void)
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
 
-  autolock_mutex M(d->m_mutex);
+  std::lock_guard<std::mutex> M(d->m_mutex);
   d->m_color_tiles.undelay_tile_freeing();
   d->m_index_tiles.undelay_tile_freeing();
 }
@@ -935,7 +936,7 @@ number_free_index_tiles(void) const
 {
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
-  autolock_mutex M(d->m_mutex);
+  std::lock_guard<std::mutex> M(d->m_mutex);
   return d->m_index_tiles.number_free();
 }
 
@@ -947,7 +948,7 @@ add_index_tile(fastuidraw::c_array<const fastuidraw::ivec3> data, int slack)
   d = static_cast<ImageAtlasPrivate*>(m_d);
 
   ivec3 return_value;
-  autolock_mutex M(d->m_mutex);
+  std::lock_guard<std::mutex> M(d->m_mutex);
 
   /* TODO:
    *   have the idea of sub-index tiles (which are squares)but size is
@@ -978,7 +979,7 @@ add_index_tile_index_data(fastuidraw::c_array<const fastuidraw::ivec3> data)
   d = static_cast<ImageAtlasPrivate*>(m_d);
 
   ivec3 return_value;
-  autolock_mutex M(d->m_mutex);
+  std::lock_guard<std::mutex> M(d->m_mutex);
 
   return_value = d->m_index_tiles.allocate_tile();
   d->m_index_store->set_data(return_value.x() * d->m_index_tiles.tile_size(),
@@ -997,7 +998,7 @@ delete_index_tile(fastuidraw::ivec3 tile)
 {
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
-  autolock_mutex M(d->m_mutex);
+  std::lock_guard<std::mutex> M(d->m_mutex);
   d->m_index_tiles.delete_tile(tile);
 }
 
@@ -1007,7 +1008,7 @@ number_free_color_tiles(void) const
 {
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
-  autolock_mutex M(d->m_mutex);
+  std::lock_guard<std::mutex> M(d->m_mutex);
   return d->m_color_tiles.number_free();
 }
 
@@ -1019,7 +1020,7 @@ add_color_tile(u8vec4 color_data)
   d = static_cast<ImageAtlasPrivate*>(m_d);
 
   ivec3 return_value;
-  autolock_mutex M(d->m_mutex);
+  std::lock_guard<std::mutex> M(d->m_mutex);
   ivec2 dst_xy;
   int sz;
 
@@ -1044,7 +1045,7 @@ add_color_tile(ivec2 src_xy, const ImageSourceBase &image_data)
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
   ivec3 return_value;
-  autolock_mutex M(d->m_mutex);
+  std::lock_guard<std::mutex> M(d->m_mutex);
   ivec2 dst_xy;
   int sz, level, last_level;
 
@@ -1074,7 +1075,7 @@ delete_color_tile(fastuidraw::ivec3 tile)
 {
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
-  autolock_mutex M(d->m_mutex);
+  std::lock_guard<std::mutex> M(d->m_mutex);
   d->m_color_tiles.delete_tile(tile);
 }
 
@@ -1084,7 +1085,7 @@ flush(void) const
 {
   ImageAtlasPrivate *d;
   d = static_cast<ImageAtlasPrivate*>(m_d);
-  autolock_mutex M(d->m_mutex);
+  std::lock_guard<std::mutex> M(d->m_mutex);
   d->m_index_store->flush();
   d->m_color_store->flush();
 }

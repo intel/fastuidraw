@@ -19,10 +19,11 @@
 
 #pragma once
 
-#include <fastuidraw/util/util.hpp>
+#include <mutex>
 #include <list>
 #include <map>
 
+#include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/vecN.hpp>
@@ -389,7 +390,7 @@ private:
   }
 
   freesize_tracker m_tracker;
-  fastuidraw::mutex m_mutex;
+  std::mutex m_mutex;
   tree_base *m_root;
   rectangle m_empty_rect;
 };

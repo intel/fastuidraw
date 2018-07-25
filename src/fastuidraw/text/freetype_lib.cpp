@@ -15,8 +15,9 @@
  * \author Kevin Rogovin <kevin.rogovin@intel.com>
  *
  */
-#include <fastuidraw/text/freetype_lib.hpp>
+
 #include <mutex>
+#include <fastuidraw/text/freetype_lib.hpp>
 
 namespace
 {
