@@ -29,7 +29,6 @@
 #include <fastuidraw/gl_backend/opengl_trait.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include <fastuidraw/gl_backend/gl_context_properties.hpp>
-#include <fastuidraw/gl_backend/gluniform.hpp>
 
 #include "../private/util_private.hpp"
 #include "private/tex_buffer.hpp"
@@ -95,8 +94,6 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::PainterShaderRegistrarGL> m_reg_gl;
 
     GLuint m_nearest_filter_sampler;
-    std::vector<fastuidraw::generic_data> m_uniform_values;
-    fastuidraw::c_array<fastuidraw::generic_data> m_uniform_values_ptr;
     fastuidraw::gl::detail::painter_vao_pool *m_pool;
     fastuidraw::gl::detail::SurfaceGLPrivate *m_surface_gl;
     bool m_uniform_ubo_ready;
@@ -734,10 +731,6 @@ PainterBackendGLPrivate(fastuidraw::gl::PainterBackendGL *p):
   m_pool = FASTUIDRAWnew painter_vao_pool(m_reg_gl->params(), m_p->configuration_base(),
                                           m_reg_gl->tex_buffer_support(),
                                           m_reg_gl->uber_shader_builder_params().binding_points());
-
-  m_uniform_values.resize(glsl::PainterShaderRegistrarGLSL::ubo_size());
-  m_uniform_values_ptr = c_array<generic_data>(&m_uniform_values[0],
-                                               m_uniform_values.size());
 }
 
 PainterBackendGLPrivate::
