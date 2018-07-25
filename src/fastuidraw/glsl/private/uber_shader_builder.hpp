@@ -31,10 +31,10 @@ namespace fastuidraw { namespace glsl { namespace detail {
 
 class UberShaderVaryings;
 class AliasVaryingLocation
-{  
+{
 private:
   friend class UberShaderVaryings;
-  
+
   /* What varying in UberShaderVaryings to which to
    * start aliasing: which varying and which component
    */
@@ -95,7 +95,6 @@ public:
   stream_alias_varyings(ShaderSource &shader, const varying_list &p,
                         bool add_aliases,
                         const AliasVaryingLocation &datum) const;
-  
 private:
   class per_varying
   {
@@ -124,7 +123,7 @@ private:
                              ShaderSource &shader,
                              c_array<const c_string> p,
                              bool add_aliases, uvec2 start) const;
-                             
+
   std::vector<per_varying> m_uint_varyings;
   std::vector<per_varying> m_int_varyings;
   vecN<std::vector<per_varying>, varying_list::interpolation_number_types> m_float_varyings;

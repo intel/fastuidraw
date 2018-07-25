@@ -118,7 +118,7 @@ pack_data(unsigned int alignment, c_array<generic_data> dst) const
           uint64_t v, hi, low;
 
           v = m_data.m_image->bindless_handle();
-          
+
           hi = uint64_unpack_bits(32, 32, v);
           low = uint64_unpack_bits(0, 32, v);
 

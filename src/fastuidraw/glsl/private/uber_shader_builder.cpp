@@ -488,7 +488,7 @@ add_varyings_impl_type(std::vector<per_varying> &varyings,
     {
       return return_value;
     }
-  
+
   per_varying V;
   unsigned int num_vec4(cnt / 4);
   unsigned int remaining(cnt % 4);
@@ -534,7 +534,7 @@ declare_varyings(std::ostringstream &str,
     {
       declare_varyings_impl(str, m_float_varyings[i], varying_qualifier, cnt);
     }
-  
+
   if (interface_name)
     {
       str << "}";
@@ -545,7 +545,7 @@ declare_varyings(std::ostringstream &str,
       str << ";\n";
     }
 }
-      
+
 void
 UberShaderVaryings::
 declare_varyings_impl(std::ostringstream &str,
@@ -579,7 +579,7 @@ stream_alias_varyings_impl(const std::vector<per_varying> &varyings_to_use,
               ++start.x();
               start.y() = 0;
             }
-          
+
           FASTUIDRAWassert(start.x() < varyings_to_use.size());
           FASTUIDRAWassert(start.y() < 4u);
 
@@ -615,10 +615,10 @@ stream_alias_varyings(ShaderSource &shader, const varying_list &p,
          << " i@" << datum.m_int_varying_start
          << " f@" << datum.m_float_varying_start
          << "\n";
-  
+
   stream_alias_varyings_impl(m_uint_varyings, shader, p.uints(),
                              add_aliases, datum.m_uint_varying_start);
-  
+
   stream_alias_varyings_impl(m_int_varyings, shader, p.ints(),
                              add_aliases, datum.m_int_varying_start);
   for (unsigned int i = 0; i < varying_list::interpolation_number_types; ++i)

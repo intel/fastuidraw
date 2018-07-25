@@ -154,7 +154,7 @@ PainterBackend(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                const ConfigurationBase &config,
                const PainterShaderSet &pdefault_shaders)
 {
-  m_d = FASTUIDRAWnew PainterBackendPrivate(glyph_atlas, image_atlas, colorstop_atlas, 
+  m_d = FASTUIDRAWnew PainterBackendPrivate(glyph_atlas, image_atlas, colorstop_atlas,
                                             shader_registrar, config, pdefault_shaders);
   d->m_painter_shader_registrar->register_shader(d->m_default_shaders);
 }
