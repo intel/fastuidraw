@@ -1231,7 +1231,7 @@ namespace fastuidraw
        * registered to this PainterShaderRegistrarGLSL; a derived class
        * should track this count value and use it to determine
        * when it needs to reconstruct its uber-shader. The mutex()
-       * is locked for the duration of the function.
+       * is NOT locked for the duration of the function.
        */
       unsigned int
       registered_shader_count(void);
@@ -1260,6 +1260,7 @@ namespace fastuidraw
        * To be optionally implemented by a derived class to
        * compute the shader group of a PainterItemShader.
        * The passed shader may or may not be a sub-shader.
+       * The mutex() is locked for the duration of the function.
        * Default implementation is to return 0.
        * \param tag The value of PainterShader::tag() that PainterShaderRegistrarGLSL
        *            will assign to the shader. Do NOT access PainterShader::tag(),
@@ -1276,6 +1277,7 @@ namespace fastuidraw
        * To be optionally implemented by a derived class to
        * compute the shader group of a PainterItemShader.
        * The passed shader may or may not be a sub-shader.
+       * The mutex() is locked for the duration of the function.
        * Default implementation is to return 0.
        * \param tag The value of PainterShader::tag() that PainterShaderRegistrarGLSL
        *            will assign to the shader. Do NOT access PainterShader::tag(),
