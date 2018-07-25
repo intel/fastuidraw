@@ -1618,6 +1618,7 @@ registered_shader_count(void)
 {
   unsigned int return_value;
   PainterShaderRegistrarGLSLPrivate *d;
+  Mutex::Guard m(mutex());
 
   d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
   return_value = d->m_item_shaders.size();
