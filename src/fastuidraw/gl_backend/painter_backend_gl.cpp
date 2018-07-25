@@ -91,7 +91,7 @@ namespace
     void
     set_gl_state(fastuidraw::gpu_dirty_state v,
                  bool clear_depth, bool clear_color);
-    
+
     fastuidraw::reference_counted_ptr<fastuidraw::gl::detail::PainterShaderRegistrarGL> m_reg_gl;
 
     GLuint m_nearest_filter_sampler;
@@ -101,7 +101,7 @@ namespace
     fastuidraw::gl::detail::SurfaceGLPrivate *m_surface_gl;
     bool m_uniform_ubo_ready;
     fastuidraw::gl::detail::PainterShaderRegistrarGL::program_set m_cached_programs;
-    
+
     fastuidraw::gl::PainterBackendGL *m_p;
   };
 
@@ -580,7 +580,7 @@ draw_break(const fastuidraw::PainterShaderGroup &old_shaders,
   using namespace fastuidraw;
   using namespace fastuidraw::gl;
   using namespace fastuidraw::gl::detail;
-  
+
   /* if the blend mode changes, then we need to start a new DrawEntry */
   BlendMode::packed_value old_mode, new_mode;
   uint32_t new_disc, old_disc;
@@ -870,7 +870,7 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
       if (clear_depth)
         {
           GLbitfield mask(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-          
+
           fbo = m_surface_gl->fbo(aux_type, blending_type);
           draw_buffers = m_surface_gl->draw_buffers(aux_type, blending_type);
 
@@ -1021,7 +1021,6 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
         }
     }
 
-  
   GlyphAtlasGL *glyphs;
   FASTUIDRAWassert(dynamic_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get()));
   glyphs = static_cast<GlyphAtlasGL*>(m_p->glyph_atlas().get());
@@ -1086,7 +1085,7 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
                                         GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
           ubo_mapped_ptr = c_array<generic_data>(static_cast<generic_data*>(ubo_mapped),
                                                  size_generics);
-          
+
           m_reg_gl->fill_uniform_buffer(m_surface_gl->m_viewport, ubo_mapped_ptr);
           glFlushMappedBufferRange(GL_UNIFORM_BUFFER, 0, size_bytes);
           glUnmapBuffer(GL_UNIFORM_BUFFER);
@@ -1279,7 +1278,7 @@ configure_from_context(bool for_msaa, const ContextProperties &ctx)
   d->m_assign_layout_to_varyings = true;
   d->m_assign_binding_points = true;
   d->m_separate_program_for_discard = true;
-  
+
   if (!for_msaa)
     {
       d->m_blending_type = blending_framebuffer_fetch;
@@ -1822,13 +1821,13 @@ on_post_draw(void)
       && aux_type != PainterBackendGL::auxiliary_buffer_framebuffer_fetch)
     {
       glBindImageTexture(binding_points.auxiliary_image_buffer(), 0,
-			 0, GL_FALSE, 0, GL_READ_ONLY, GL_R8UI);
+                         0, GL_FALSE, 0, GL_READ_ONLY, GL_R8UI);
     }
 
   if (params.blending_type() == blending_interlock)
     {
       glBindImageTexture(binding_points.color_interlock_image_buffer(), 0,
-			 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+                         0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
     }
 
   switch(params.data_store_backing())

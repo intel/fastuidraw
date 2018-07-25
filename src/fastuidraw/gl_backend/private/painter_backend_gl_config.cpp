@@ -34,7 +34,7 @@ shader_storage_buffers_supported(const ContextProperties &ctx)
     }
   #endif
 }
-  
+
 enum glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t
 compute_provide_auxiliary_buffer(enum glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t in_value,
                                  const ContextProperties &ctx)
@@ -176,7 +176,7 @@ compute_blending_type(enum glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t 
     {
       in_value = glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch;
     }
-    
+
   if (aux_value == glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_framebuffer_fetch)
     {
       /*

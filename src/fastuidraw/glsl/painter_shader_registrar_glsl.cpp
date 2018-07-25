@@ -73,7 +73,7 @@ namespace
       m_image_atlas_color_tile_size(0),
       m_colorstop_atlas_store_width(0)
     {}
-    
+
     int m_data_store_alignment;
     int m_glyph_atlas_geometry_store_alignment;
     int m_glyph_atlas_texel_store_width;
@@ -1191,7 +1191,6 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
                                                         "fastuidraw_curvepair_pseudo_distance",
                                                         "fastuidraw_fetch_glyph_data",
                                                         true));
-    
 
   stream_unpack_code(backend, frag);
   stream_uber_frag_shader(params.frag_shader_use_switch(), frag, item_shaders,
@@ -1434,7 +1433,7 @@ default_shaders(enum PainterStrokeShader::type_t stroke_tp,
 {
   detail::ShaderSetCreator S(blend_type(), stroke_tp,
                              stroke_action_pass1, stroke_action_pass2);
-  return S.create_shader_set();                                 
+  return S.create_shader_set();
 }
 
 assign_swap_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams)

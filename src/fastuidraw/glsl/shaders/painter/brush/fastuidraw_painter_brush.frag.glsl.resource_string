@@ -144,7 +144,7 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
   uint color_layer, image_layer;
   uint slack, number_lookups;
   vec4 image_color;
-  
+
   slack = fastuidraw_brush_image_slack;
   number_lookups = fastuidraw_brush_image_number_index_lookups;
 
@@ -214,7 +214,7 @@ fastuidraw_image_of_atlas(in vec2 q, in uint image_filter, in float lod)
                         mix(t01, t11, linear_weight.x),
                         linear_weight.y);
     }
-    
+
   return image_color;
 }
 
@@ -295,7 +295,7 @@ fastuidraw_image_of_bindless(in vec2 p, in uint image_filter, in float lod)
 }
 
 #endif
-    
+
 vec4
 fastuidraw_compute_brush_color(in vec2 p, in vec2 dpdx, in vec2 dpdy)
 {

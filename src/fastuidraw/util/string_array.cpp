@@ -17,7 +17,7 @@ namespace
       m_strings(obj.m_strings),
       m_c_strings_ready(obj.m_strings.empty())
     {}
-    
+
     void
     ready_c_strings(void)
     {

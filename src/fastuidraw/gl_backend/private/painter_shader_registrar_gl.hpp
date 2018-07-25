@@ -92,7 +92,7 @@ public:
      */
     hints.clipping_via_hw_clip_planes(m_params.clipping_type() == clipping_via_gl_clip_distance);
   }
-  
+
 protected:
   uint32_t
   compute_blend_shader_group(PainterShader::Tag tag,
@@ -108,7 +108,7 @@ private:
 
   void
   configure_source_front_matter(void);
-  
+
   void
   build_programs(void);
 

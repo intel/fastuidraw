@@ -426,7 +426,7 @@ namespace
     virtual
     void
     pre_finalize(std::vector<ShaderVariableInfo>&);
-    
+
     void
     pre_finalize_variable(ShaderVariableInfo &v, unsigned int i);
 
@@ -1425,13 +1425,13 @@ pre_finalize(std::vector<ShaderVariableInfo> &vs)
       pre_finalize_variable(vs[i], i);
     }
 }
-                   
+
 void
 TransformFeedbackInfo::
 pre_finalize_variable(ShaderVariableInfo &v, unsigned int vi)
 {
   int n, sz;
-      
+
   #define LAZY(X, M)                       \
     case X: n = sz = M; break;             \
     case X##_VEC2: n = sz = 2 * M; break;  \
@@ -1443,7 +1443,7 @@ pre_finalize_variable(ShaderVariableInfo &v, unsigned int vi)
     case X##_VEC2_ARB: n = sz = 2 * M; break;  \
     case X##_VEC3_ARB: n = sz = 3 * M; break;  \
     case X##_VEC4_ARB: n = sz = 4 * M; break
-      
+
   switch(v.m_glsl_type)
     {
       LAZY(GL_FLOAT, 1);

@@ -136,8 +136,8 @@ configure_backend(void)
 
   FASTUIDRAWassert(m_number_clip_planes >= 4
                    || m_params.clipping_type() != clipping_via_gl_clip_distance);
-  
-  #ifdef FASTUIDRAW_GL_USE_GLES
+
+ #ifdef FASTUIDRAW_GL_USE_GLES
     {
       m_has_multi_draw_elements = m_ctx_properties.has_extension("GL_EXT_multi_draw_arrays");
     }
@@ -327,14 +327,14 @@ configure_source_front_matter(void)
       bool using_glsl42, using_glsl43;
       GlyphAtlasGL *glyphs(m_params.glyph_atlas().get());
       bool require_ssbo, require_image_load_store;
-      
+
       require_ssbo = (m_uber_shader_builder_params.data_store_backing() == data_store_ssbo)
         || (glyphs->geometry_binding_point() == GL_SHADER_STORAGE_BUFFER);
 
       require_image_load_store = (m_params.blending_type() == blending_interlock)
         || (m_uber_shader_builder_params.provide_auxiliary_image_buffer() != no_auxiliary_buffer)
         || require_ssbo;
-      
+
       using_glsl42 = m_ctx_properties.version() >= ivec2(4, 2)
         && (m_uber_shader_builder_params.assign_layout_to_varyings()
             || m_uber_shader_builder_params.assign_binding_points()
@@ -478,7 +478,7 @@ fastuidraw::gl::detail::PainterShaderRegistrarGL::
 build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
 {
   using namespace fastuidraw::glsl;
-  
+
   ShaderSource vert, frag;
   program_ref return_value;
   DiscardItemShaderFilter item_filter(tp, m_params.clipping_type());
@@ -503,7 +503,7 @@ build_program(enum fastuidraw::gl::PainterBackendGL::program_type_t tp)
     .specify_version(m_front_matter_frag.version())
     .specify_extensions(m_front_matter_frag)
     .add_source(m_front_matter_frag);
-  
+
   construct_shader(m_backend_constants, vert, frag,
                    m_uber_shader_builder_params,
                    &item_filter, discard_macro);
