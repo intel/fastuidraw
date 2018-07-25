@@ -1202,8 +1202,10 @@ namespace fastuidraw
       add_fragment_shader_util(const ShaderSource &src);
 
       /*!
-       * Add the uber-vertex and fragment shaders to given
-       * ShaderSource values.
+       * Add the uber-vertex and fragment shaders to given ShaderSource values.
+       * The \ref Mutex mutex() is NOT locked during this call, a caller should
+       * lock the mutex before calling it. This way a derived class can use the
+       * same lock as used by the PainterShaderRegistrarGLSL.
        * \param backend_constants constant values that affect the created uber-shader.
        * \param out_vertex ShaderSource to which to add uber-vertex shader
        * \param out_fragment ShaderSource to which to add uber-fragment shader
@@ -1228,7 +1230,8 @@ namespace fastuidraw
        * Returns the total number of shaders (item and blend)
        * registered to this PainterShaderRegistrarGLSL; a derived class
        * should track this count value and use it to determine
-       * when it needs to reconstruct its uber-shader.
+       * when it needs to reconstruct its uber-shader. The mutex()
+       * is locked for the duration of the function.
        */
       unsigned int
       registered_shader_count(void);
