@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <mutex>
 #include <fastuidraw/colorstop_atlas.hpp>
 #include "private/interval_allocator.hpp"
 #include "private/util_private.hpp"
@@ -71,7 +72,7 @@ namespace
     void
     deallocate_implement(fastuidraw::ivec2 location, int width);
 
-    mutable fastuidraw::mutex m_mutex;
+    mutable std::mutex m_mutex;
     int m_delayed_interval_freeing_counter;
     std::vector<delayed_free_entry> m_delayed_freed_intervals;
 
@@ -275,7 +276,7 @@ delay_interval_freeing(void)
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   ++d->m_delayed_interval_freeing_counter;
 }
 
@@ -286,7 +287,7 @@ undelay_interval_freeing(void)
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   FASTUIDRAWassert(d->m_delayed_interval_freeing_counter >= 1);
   --d->m_delayed_interval_freeing_counter;
   if (d->m_delayed_interval_freeing_counter == 0)
@@ -307,7 +308,7 @@ deallocate(ivec2 location, int width)
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   if (d->m_delayed_interval_freeing_counter == 0)
     {
       d->deallocate_implement(location, width);
@@ -325,7 +326,7 @@ flush(void) const
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   d->m_backing_store->flush();
 }
 
@@ -336,7 +337,7 @@ total_available(void) const
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   return d->m_backing_store->width_times_height() - d->m_allocated;
 }
 
@@ -347,7 +348,7 @@ largest_allocation_possible(void) const
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
   if (d->m_available_layers.empty())
     {
       return 0;
@@ -363,7 +364,7 @@ allocate(c_array<const u8vec4> data)
   ColorStopAtlasPrivate *d;
   d = static_cast<ColorStopAtlasPrivate*>(m_d);
 
-  autolock_mutex m(d->m_mutex);
+  std::lock_guard<std::mutex> m(d->m_mutex);
 
   std::map<int, std::set<int> >::iterator iter;
   ivec2 return_value;

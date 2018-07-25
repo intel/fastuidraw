@@ -16,78 +16,13 @@
  *
  */
 
-
 #pragma once
 
-#include <mutex>
 #include <vector>
 #include <fastuidraw/util/c_array.hpp>
 
 namespace fastuidraw
 {
-  /*!
-   * Wrapper over mutex type so that we can replace
-   * mutex implementation easily.
-   */
-  class mutex:fastuidraw::noncopyable
-  {
-  public:
-    void
-    lock(void)
-    {
-      m_mutex.lock();
-    }
-
-    void
-    unlock(void)
-    {
-      m_mutex.unlock();
-    }
-
-    bool
-    try_lock(void)
-    {
-      return m_mutex.try_lock();
-    }
-
-  private:
-    std::mutex m_mutex;
-  };
-
-  class dummy_mutex:fastuidraw::noncopyable
-  {
-  public:
-    void
-    lock(void) {}
-
-    void
-    unlock(void) {}
-
-    bool
-    try_lock(void) { return true; }
-  };
-
-  /*!
-   * Locks mutex on ctor and unlocks un dtor.
-   */
-  class autolock_mutex:fastuidraw::noncopyable
-  {
-  public:
-    explicit
-    autolock_mutex(mutex &m):
-      m_mutex(m)
-    {
-      m_mutex.lock();
-    }
-
-    ~autolock_mutex()
-    {
-      m_mutex.unlock();
-    }
-  private:
-    mutex &m_mutex;
-  };
-
   template<typename T>
   c_array<T>
   make_c_array(std::vector<T> &p)

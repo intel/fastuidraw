@@ -17,10 +17,10 @@
  */
 
 
-#include <fastuidraw/util/util.hpp>
 #include <map>
 #include <vector>
 #include <string>
+#include <mutex>
 
 #include <fastuidraw/util/util.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
@@ -34,7 +34,7 @@ namespace
   {
   public:
     std::map<std::string, std::vector<uint8_t> > m_data;
-    fastuidraw::mutex m_mutex;
+    std::mutex m_mutex;
   };
 
   static

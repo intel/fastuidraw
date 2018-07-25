@@ -37,7 +37,7 @@ shader_storage_buffers_supported(const ContextProperties &ctx)
   
 enum glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t
 compute_provide_auxiliary_buffer(enum glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t in_value,
-                                   const ContextProperties &ctx)
+                                 const ContextProperties &ctx)
 {
   if (in_value == glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer)
     {
