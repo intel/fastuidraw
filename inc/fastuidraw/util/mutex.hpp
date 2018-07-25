@@ -54,11 +54,11 @@ namespace fastuidraw
       {
         m_mutex.unlock();
       }
-      
+
     private:
       Mutex &m_mutex;
     };
-    
+
     /*!
      * Ctor.
      */

@@ -46,7 +46,7 @@ namespace fastuidraw
     string_array(const string_array &obj);
 
     ~string_array();
-    
+
     /*!
      * Assignment operator
      * \param rhs value from which to copy

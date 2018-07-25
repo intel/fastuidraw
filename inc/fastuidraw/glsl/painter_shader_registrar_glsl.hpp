@@ -59,7 +59,7 @@ namespace fastuidraw
           data_store_ubo,
 
           /*!
-           * Data store is backed by a shader storage buffer object 
+           * Data store is backed by a shader storage buffer object
            * that is an array of uvec4. The data store alignment
            * (see PainterBackend::ConfigurationBase::alignment())
            */
@@ -612,7 +612,7 @@ namespace fastuidraw
 
         /*!
          * Provided as a conveniance, returns the value of
-         * blending_type(void) const as a \ref 
+         * blending_type(void) const as a \ref
          * PainterBlendShader::shader_type.
          */
         enum PainterBlendShader::shader_type
@@ -1113,28 +1113,28 @@ namespace fastuidraw
 
         /*!
          * Set all values of this BackendConstant by taking values
-         * from a PainterBackend. 
+         * from a PainterBackend.
          */
         BackendConstants&
         set_from_backend(PainterBackend *p);
 
         /*!
          * Set all values of this BackendConstant by taking values
-         * from a PainterBackend. 
+         * from a PainterBackend.
          */
         BackendConstants&
         set_from_atlas(const reference_counted_ptr<ImageAtlas> &p);
 
         /*!
          * Set all values of this BackendConstant by taking values
-         * from a PainterBackend. 
+         * from a PainterBackend.
          */
         BackendConstants&
         set_from_atlas(const reference_counted_ptr<GlyphAtlas> &p);
 
         /*!
          * Set all values of this BackendConstant by taking values
-         * from a PainterBackend. 
+         * from a PainterBackend.
          */
         BackendConstants&
         set_from_atlas(const reference_counted_ptr<ColorStopAtlas> &p);
@@ -1164,7 +1164,7 @@ namespace fastuidraw
         use_shader(const reference_counted_ptr<PainterItemShaderGLSL> &shader) const = 0;
       };
     };
-    
+
     /*!
      * \brief
      * A PainterShaderRegistrarGLSL is an implementation of PainterRegistrar
@@ -1313,6 +1313,6 @@ namespace fastuidraw
     };
 
 /*! @} */
-    
+
   }
 }
