@@ -100,6 +100,7 @@ namespace
     fastuidraw::gl::detail::painter_vao_pool *m_pool;
     fastuidraw::gl::detail::SurfaceGLPrivate *m_surface_gl;
     bool m_uniform_ubo_ready;
+    fastuidraw::gl::detail::PainterShaderRegistrarGL::program_set m_cached_programs;
     
     fastuidraw::gl::PainterBackendGL *m_p;
   };
@@ -411,7 +412,7 @@ DrawEntry(const fastuidraw::BlendMode &mode,
           unsigned int pz):
   m_set_blend(true),
   m_blend_mode(mode),
-  m_new_program(pr->m_reg_gl->programs()[pz].get())
+  m_new_program(pr->m_cached_programs[pz].get())
 {}
 
 DrawEntry::
@@ -1759,8 +1760,8 @@ on_pre_draw(const reference_counted_ptr<Surface> &surface,
   d->m_uniform_ubo_ready = false;
   d->set_gl_state(gpu_dirty_state::all, true, clear_color_buffer);
 
-  //makes sure that the GLSL programs are built.
-  d->m_reg_gl->programs();
+  //cache the GLSL programs for use.
+  d->m_cached_programs = d->m_reg_gl->programs();
 }
 
 void

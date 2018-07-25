@@ -48,7 +48,7 @@ public:
   PainterShaderRegistrarGL(const PainterBackendGL::ConfigurationGL &P,
                            const UberShaderParams &uber_params);
 
-  const program_set&
+  program_set
   programs(void);
 
   const PainterBackendGL::ConfigurationGL&
