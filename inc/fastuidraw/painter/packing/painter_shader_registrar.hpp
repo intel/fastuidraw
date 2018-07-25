@@ -47,15 +47,19 @@ namespace fastuidraw
     ~PainterShaderRegistrar();
 
     /*!
-     * Registers a vertex shader for use. Must not be called within a
-     * on_pre_draw()/on_post_draw() pair.
+     * Registers an item shader for use; registring a shader more than
+     * once to the SAME PainterShaderRegistrar has no effect. However,
+     * registering a shader to multiple PainterShaderRegistrar objects
+     * is an error.
      */
     void
     register_shader(const reference_counted_ptr<PainterItemShader> &shader);
 
     /*!
-     * Registers a blend shader for use. Must not be called within
-     * a on_pre_draw()/on_post_draw() pair.
+     * Registers a blend shader for use; registring a shader more than
+     * once to the SAME PainterShaderRegistrar has no effect. However,
+     * registering a shader to multiple PainterShaderRegistrar objects
+     * is an error.
      */
     void
     register_shader(const reference_counted_ptr<PainterBlendShader> &shader);

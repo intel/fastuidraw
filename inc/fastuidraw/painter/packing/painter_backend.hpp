@@ -322,6 +322,9 @@ namespace fastuidraw
 
     /*!
      * Returns the PainterShaderRegistrar of this PainterBackend.
+     * Use this return value to add custom shaders. NOTE: shaders
+     * added within a thread are not useable within that thread
+     * until the next call to begin().
      */
     const reference_counted_ptr<PainterShaderRegistrar>&
     painter_shader_registrar(void);
