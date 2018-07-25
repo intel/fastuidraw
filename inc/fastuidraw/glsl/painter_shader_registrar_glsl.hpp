@@ -1010,7 +1010,8 @@ namespace fastuidraw
         data_store_alignment(int);
 
         /*!
-         * Should be the same as ::alignment() of GlyphAtlas::geometry_store().
+         * Should be the same as GlyphAtlasGeometryBackingStoreBase::alignment()
+         * of GlyphAtlas::geometry_store().
          */
         int
         glyph_atlas_geometry_store_alignment(void) const;
