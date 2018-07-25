@@ -265,8 +265,7 @@ namespace fastuidraw
      * \param shader_registrar PainterShaderRegistrar to which shaders are registered
      * \param config ConfigurationBase for how to pack data to PainterBackend
      * \param pdefault_shaders default shaders for PainterBackend; shaders are
-     *                         registered on the first call to default_shaders(),
-     *                         which does NOT occur on ctor of PainterBackend.
+     *                         registered at constructor.
      */
     PainterBackend(reference_counted_ptr<GlyphAtlas> glyph_atlas,
                    reference_counted_ptr<ImageAtlas> image_atlas,
