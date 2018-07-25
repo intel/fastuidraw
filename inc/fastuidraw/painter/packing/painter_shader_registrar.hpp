@@ -20,6 +20,7 @@
 #pragma once
 
 #include <fastuidraw/painter/painter_shader_set.hpp>
+#include <fastuidraw/util/mutex.hpp>
 
 namespace fastuidraw
 {
@@ -113,13 +114,20 @@ namespace fastuidraw
   protected:
 
     /*!
+     * Return the \ref Mutex used to make this object thread safe.
+     */
+    Mutex&
+    mutex(void);
+
+    /*!
      * To be implemented by a derived class to take into use
      * an item shader. Typically this means inserting the
      * the shader into a large uber shader. Returns
      * the PainterShader::Tag to be used by the backend
      * to identify the shader.  An implementation will never
      * be passed an object for which PainterShader::parent()
-     * is non-nullptr.
+     * is non-nullptr. In addition, mutex() will be locked on
+     * entry.
      * \param shader shader whose Tag is to be computed
      */
     virtual
@@ -131,7 +139,8 @@ namespace fastuidraw
      * of a sub-shader. When called, the value of the shader's PainterShader::ID()
      * and PainterShader::registered_to() are already set correctly. In addition,
      * the value of PainterShader::group() is initialized to the same value as
-     * that of the PainterItemShader::parent().
+     * that of the PainterItemShader::parent(). In addition, mutex() will be
+     * locked on entry.
      * \param shader shader whose group is to be computed
      */
     virtual
@@ -145,7 +154,8 @@ namespace fastuidraw
      * the PainterShader::Tag to be used by the backend
      * to identify the shader. An implementation will never
      * be passed an object for which PainterShader::parent()
-     * is non-nullptr.
+     * is non-nullptr. In addition, mutex() will be locked on
+     * entry.
      * \param shader shader whose Tag is to be computed
      */
     virtual
@@ -157,12 +167,16 @@ namespace fastuidraw
      * of a sub-shader. When called, the value of the shader's PainterShader::ID()
      * and PainterShader::registered_to() are already set correctly. In addition,
      * the value of PainterShader::group() is initialized to the same value as
-     * that of the PainterBlendShader::parent().
+     * that of the PainterBlendShader::parent(). In addition, mutex() will be
+     * locked on entry.
      * \param shader shader whose group is to be computed
      */
     virtual
     uint32_t
     compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader) = 0;
+
+  private:
+    void *m_d;
   };
 /*! @} */
 

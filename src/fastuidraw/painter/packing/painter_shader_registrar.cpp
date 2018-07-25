@@ -26,11 +26,24 @@
 fastuidraw::PainterShaderRegistrar::
 PainterShaderRegistrar(void)
 {
+  m_d = FASTUIDRAWnew Mutex();
 }
 
 fastuidraw::PainterShaderRegistrar::
 ~PainterShaderRegistrar()
 {
+  Mutex *d;
+  d = static_cast<Mutex*>(m_d);
+  FASTUIDRAWdelete(d);
+}
+
+fastuidraw::Mutex&
+fastuidraw::PainterShaderRegistrar::
+mutex(void)
+{
+  Mutex *d;
+  d = static_cast<Mutex*>(m_d);
+  return *d;
 }
 
 void
@@ -47,11 +60,18 @@ register_shader(const reference_counted_ptr<PainterItemShader> &shader)
       if (shader->parent())
         {
           register_shader(shader->parent().static_cast_ptr<PainterItemShader>());
+
+          /* activate the guard AFTER calling register_shader(),
+           * otherwise we would attempt to double-lock the mutex
+           */
+          Mutex::Guard m(mutex());
           shader->set_group_of_sub_shader(compute_item_sub_shader_group(shader));
         }
       else
         {
+          Mutex::Guard m(mutex());
           PainterShader::Tag tag;
+
           tag = absorb_item_shader(shader);
           shader->register_shader(tag, this);
         }
@@ -76,11 +96,18 @@ register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
       if (shader->parent())
         {
           register_shader(shader->parent().static_cast_ptr<PainterBlendShader>());
+
+          /* activate the guard AFTER calling register_shader(),
+           * otherwise we would attempt to double-lock the mutex
+           */
+          Mutex::Guard m(mutex());
           shader->set_group_of_sub_shader(compute_blend_sub_shader_group(shader));
         }
       else
         {
+          Mutex::Guard m(mutex());
           PainterShader::Tag tag;
+
           tag = absorb_blend_shader(shader);
           shader->register_shader(tag, this);
         }
