@@ -235,10 +235,10 @@ private:
 
     max_layers = fastuidraw::gl::context_get<GLint>(GL_MAX_ARRAY_TEXTURE_LAYERS);
     if (max_layers < m_color_stop_atlas_layers.value())
-      {   
-	std::cout << "atlas_layers exceeds max number texture layers (" << max_layers
-		  << ") atlas_layers set to that value.\n";
-	m_color_stop_atlas_layers.value() = max_layers;
+      {
+        std::cout << "atlas_layers exceeds max number texture layers (" << max_layers
+                  << ") atlas_layers set to that value.\n";
+        m_color_stop_atlas_layers.value() = max_layers;
       }
 
     params

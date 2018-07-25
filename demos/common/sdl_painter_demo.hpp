@@ -34,8 +34,8 @@ protected:
             fastuidraw::reference_counted_ptr<const fastuidraw::FontBase> font,
             fastuidraw::GlyphRender renderer,
             const fastuidraw::PainterData &draw,
-	    enum fastuidraw::PainterEnums::glyph_orientation orientation
-	    = fastuidraw::PainterEnums::y_increases_downwards);
+            enum fastuidraw::PainterEnums::glyph_orientation orientation
+            = fastuidraw::PainterEnums::y_increases_downwards);
 
   fastuidraw::reference_counted_ptr<fastuidraw::gl::ImageAtlasGL> m_image_atlas;
   fastuidraw::reference_counted_ptr<fastuidraw::gl::GlyphAtlasGL> m_glyph_atlas;
@@ -115,7 +115,7 @@ private:
   command_line_argument_value<bool> m_assign_binding_points;
   enumerated_command_line_argument_value<blending_type_t> m_blend_type;
   command_line_argument_value<bool> m_painter_optimal;
-  
+
   command_separator m_demo_options;
   command_line_argument_value<bool> m_print_painter_config;
   command_line_argument_value<bool> m_print_painter_shader_ids;

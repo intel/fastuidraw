@@ -274,7 +274,7 @@ readvalue_from_string(bool &value, const std::string &value_string)
       value=true;
     }
   else if (value_string==std::string("off")
-	   || value_string==std::string("false"))
+           || value_string==std::string("false"))
     {
       value=false;
     }
@@ -335,7 +335,7 @@ public:
   {
     return m_values_as_set.find(v) != m_values_as_set.end();
   }
-  
+
 private:
   std::string m_description;
   std::set<std::string> m_values_as_set;
@@ -505,7 +505,7 @@ public:
   {
     return m_value;
   }
-  
+
 private:
   std::string m_name;
   std::string m_description;
@@ -656,7 +656,7 @@ public:
   {
     return m_value.m_value;
   }
-  
+
 private:
   std::string m_name;
   std::string m_description;

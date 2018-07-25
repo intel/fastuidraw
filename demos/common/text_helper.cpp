@@ -113,7 +113,7 @@ namespace
   {
     FT_Error error_code;
     FT_Face face(nullptr);
-    
+
     lib->lock();
     error_code = FT_New_Face(lib->lib(), filename.c_str(), 0, &face);
     lib->unlock();
@@ -123,8 +123,8 @@ namespace
         fastuidraw::reference_counted_ptr<DataBufferLoader> buffer_loader;
 
         buffer_loader = FASTUIDRAWnew DataBufferLoader(filename);
-	for(unsigned int i = 0, endi = face->num_faces; i < endi; ++i)
-	  {
+        for(unsigned int i = 0, endi = face->num_faces; i < endi; ++i)
+          {
             fastuidraw::reference_counted_ptr<fastuidraw::GlyphSelector::FontGeneratorBase> h;
             std::ostringstream source_label;
             fastuidraw::FontProperties props;
@@ -140,16 +140,16 @@ namespace
             props.source_label(source_label.str().c_str());
 
             h = FASTUIDRAWnew FreeTypeFontGenerator(buffer_loader, lib, render_params, i, props);
-	    glyph_selector->add_font_generator(h);
+            glyph_selector->add_font_generator(h);
 
             //std::cout << "add font: " << props << "\n";
- 	  }
+          }
       }
 
     lib->lock();
     if (face != nullptr)
       {
-	FT_Done_Face(face);
+        FT_Done_Face(face);
       }
     lib->unlock();
   }
@@ -241,7 +241,7 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
                       std::vector<uint32_t> &character_codes,
                       std::vector<LineData> *line_data,
                       std::vector<fastuidraw::range_type<float> > *glyph_extents,
-		      enum fastuidraw::PainterEnums::glyph_orientation orientation)
+                      enum fastuidraw::PainterEnums::glyph_orientation orientation)
 {
   std::streampos current_position, end_position;
   unsigned int loc(0);
@@ -334,20 +334,20 @@ create_formatted_text(std::istream &istr, fastuidraw::GlyphRender renderer,
       if (empty_line)
         {
           offset = pixel_size + 1.0f;
-	  pen_y_advance = offset;
+          pen_y_advance = offset;
         }
       else
         {
-	  if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
-	    {
-	      offset = (tallest - last_negative_tallest);
-	      pen_y_advance = offset;
-	    }
-	  else
-	    {
-	      offset = -negative_tallest;
-	      pen_y_advance = tallest - negative_tallest;
-	    }
+          if (orientation == fastuidraw::PainterEnums::y_increases_downwards)
+            {
+              offset = (tallest - last_negative_tallest);
+              pen_y_advance = offset;
+            }
+          else
+            {
+              offset = -negative_tallest;
+              pen_y_advance = tallest - negative_tallest;
+            }
         }
 
       for(unsigned int i = 0; i < sub_p.size(); ++i)

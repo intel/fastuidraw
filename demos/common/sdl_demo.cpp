@@ -70,15 +70,15 @@ namespace
   {
     switch(ev.type)
       {
-	case SDL_MOUSEBUTTONUP:
-	case SDL_MOUSEBUTTONDOWN:
-	  ev.button.y = h - ev.button.y;
-	  break;
+        case SDL_MOUSEBUTTONUP:
+        case SDL_MOUSEBUTTONDOWN:
+          ev.button.y = h - ev.button.y;
+          break;
 
       case SDL_MOUSEMOTION:
-	ev.motion.y = h - ev.motion.y;
-	ev.motion.yrel = -ev.motion.yrel;
-	break;
+        ev.motion.y = h - ev.motion.y;
+        ev.motion.yrel = -ev.motion.yrel;
+        break;
       }
   }
 
@@ -266,34 +266,34 @@ set_sdl_gl_context_attributes(void)
   #else
     {
       if (m_gl_major.value() >= 3)
-	{
-	  int context_flags(0);
-	  int profile_mask(0);
+        {
+          int context_flags(0);
+          int profile_mask(0);
 
-	  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_gl_major.value());
-	  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_gl_minor.value());
+          SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, m_gl_major.value());
+          SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, m_gl_minor.value());
 
-	  if (m_gl_forward_compatible_context.value())
-	    {
-	      context_flags |= SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
-	    }
+          if (m_gl_forward_compatible_context.value())
+            {
+              context_flags |= SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
+            }
 
-	  if (m_gl_debug_context.value())
-	    {
-	      context_flags |= SDL_GL_CONTEXT_DEBUG_FLAG;
-	    }
+          if (m_gl_debug_context.value())
+            {
+              context_flags |= SDL_GL_CONTEXT_DEBUG_FLAG;
+            }
 
-	  if (m_gl_core_profile.value())
-	    {
-	      profile_mask = SDL_GL_CONTEXT_PROFILE_CORE;
-	    }
-	  else
-	    {
-	      profile_mask = SDL_GL_CONTEXT_PROFILE_COMPATIBILITY;
-	    }
-	  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, context_flags);
-	  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile_mask);
-	}
+          if (m_gl_core_profile.value())
+            {
+              profile_mask = SDL_GL_CONTEXT_PROFILE_CORE;
+            }
+          else
+            {
+              profile_mask = SDL_GL_CONTEXT_PROFILE_COMPATIBILITY;
+            }
+          SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, context_flags);
+          SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, profile_mask);
+        }
     }
   #endif
 }
@@ -349,7 +349,7 @@ create_sdl_gl_context(void)
 
           get_integer(GL_MAJOR_VERSION, &ver.x());
           get_integer(GL_MINOR_VERSION, &ver.y());
-          req = fastuidraw::t_max(ver, req);     
+          req = fastuidraw::t_max(ver, req);
           m_gl_major.value() = req.x();
           m_gl_minor.value() = req.y();
         }
@@ -486,8 +486,8 @@ init_sdl(void)
                 << "\nblue bits: " << GetSDLGLValue(SDL_GL_BLUE_SIZE)
                 << "\nalpha bits: " << GetSDLGLValue(SDL_GL_ALPHA_SIZE)
                 << "\ndouble buffered: " << GetSDLGLValue(SDL_GL_DOUBLEBUFFER)
-		<< "\nGL_MAJOR_VERSION: " << fastuidraw::gl::context_get<GLint>(GL_MAJOR_VERSION)
-		<< "\nGL_MINOR_VERSION: " << fastuidraw::gl::context_get<GLint>(GL_MINOR_VERSION)
+                << "\nGL_MAJOR_VERSION: " << fastuidraw::gl::context_get<GLint>(GL_MAJOR_VERSION)
+                << "\nGL_MINOR_VERSION: " << fastuidraw::gl::context_get<GLint>(GL_MINOR_VERSION)
                 << "\nGL_VERSION string:" << glGetString(GL_VERSION)
                 << "\nGL_VENDOR:" << glGetString(GL_VENDOR)
                 << "\nGL_RENDERER:" << glGetString(GL_RENDERER)
@@ -605,13 +605,13 @@ main(int argc, char **argv)
           SDL_Event ev;
           while(m_run_demo && m_handle_events && SDL_PollEvent(&ev))
             {
-	      if (m_reverse_event_y)
-		{
-		  int w, h;
-		  FASTUIDRAWassert(m_window);
-		  SDL_GetWindowSize(m_window, &w, &h);
-		  reverse_y_of_sdl_event(h, ev);
-		}
+              if (m_reverse_event_y)
+                {
+                  int w, h;
+                  FASTUIDRAWassert(m_window);
+                  SDL_GetWindowSize(m_window, &w, &h);
+                  reverse_y_of_sdl_event(h, ev);
+                }
               handle_event(ev);
             }
         }
