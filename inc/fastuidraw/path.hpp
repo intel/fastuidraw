@@ -226,7 +226,32 @@ public:
      */
     class tessellated_region:
       public reference_counted<tessellated_region>::non_concurrent
-    {};
+    {
+    public:
+      /*!
+       * To be implemented by a derived class to compute an upper-bound
+       * of the distance from the curve restricted to the region to the
+       * line segment connecting the end points of the region.
+       */
+      virtual
+      float
+      distance_to_line_segment(void) const = 0;
+
+      /*!
+       * To be implemented by a derived class to compute an upper-bound
+       * for the distance from the curve restricted to the region to a
+       * given arc that connects the end points of the region.
+       * \param arc_radius radius of the arc
+       * \param center center of the circle of the arc
+       * \param unit_vector_arc_middle unit vector from center to the midpoint of the arc
+       * \param cos_half_arc_angle the cosine of half of the arc-angle
+       */
+      virtual
+      float
+      distance_to_arc(float arc_radius, vec2 center,
+                      vec2 unit_vector_arc_middle,
+                      float cos_half_arc_angle) const = 0;
+    };
 
     /*!
      * Ctor.
@@ -254,16 +279,13 @@ public:
      * \param out_p location to which to write the position of the point
      *              on the curve in the middle (with repsect to time) of
      *              in_region
-     * \param out_max_distance location to which to write an upperbound for the
-     *                         distance between the curve and the tesseallation
-     *                         approximation.
      */
     virtual
     void
     tessellate(reference_counted_ptr<tessellated_region> in_region,
                reference_counted_ptr<tessellated_region> *out_regionA,
                reference_counted_ptr<tessellated_region> *out_regionB,
-               vec2 *out_p, float *out_max_distance) const = 0;
+               vec2 *out_p) const = 0;
 
     /*!
      * To be implemented by a derived class to return a reasonable
@@ -323,7 +345,7 @@ public:
     tessellate(reference_counted_ptr<tessellated_region> in_region,
                reference_counted_ptr<tessellated_region> *out_regionA,
                reference_counted_ptr<tessellated_region> *out_regionB,
-               vec2 *out_p, float *out_max_distance) const;
+               vec2 *out_p) const;
     virtual
     void
     approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const;
