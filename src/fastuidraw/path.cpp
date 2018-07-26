@@ -106,6 +106,22 @@ namespace
     unsigned int m_recursion_depth;
   };
 
+  class ArcSegment
+  {
+  public:
+    ArcSegment(void)
+    {}
+
+    ArcSegment(const fastuidraw::vec2 &start_pt,
+               const fastuidraw::vec2 &mid_pt,
+               const fastuidraw::vec2 &end_pt);
+
+    bool m_too_flat;
+    fastuidraw::vec2 m_center;
+    fastuidraw::range_type<float> m_angle;
+    float m_radius;
+  };
+
   class ArcTessellatorStateNode
   {
   public:
@@ -140,30 +156,24 @@ namespace
                             const fastuidraw::vec2 &end,
                             fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> L,
                             fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> R,
-                            float partition_max_distance,
                             unsigned int depth);
     void
     compute_circle(const fastuidraw::PathContour::interpolator_generic *h,
                    fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> L,
-                   fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> R,
-                   float partition_max_distance);
+                   fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> R);
 
     fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> m_L0, m_L1;
     fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> m_R0, m_R1;
     fastuidraw::vec2 m_start, m_midL, m_mid, m_midR, m_end;
-    float m_partition_max_distanceL, m_partition_max_distanceR;
 
     float m_max_distance;
     unsigned int m_recursion_depth;
 
-    /* segment data computed from m_start, m_mid, m_end.
-     * the value of m_max_distance comes from the distance
-     * between the circle and m_midL and m_midR.
+    /* The arc connecting m_start to m_end going through m_mid.
+     * The value of m_max_distance is just the maximum of the
+     * distances between m_arc to m_midL and m_arc to m_midR.
      */
-    bool m_too_flat;
-    float m_radius;
-    fastuidraw::vec2 m_center;
-    fastuidraw::range_type<float> m_angle;
+    ArcSegment m_arc;
   };
 
   template<typename T>
@@ -434,100 +444,46 @@ splitR(const fastuidraw::PathContour::interpolator_generic *h) const
   return LinearTessellatorStateNode(h, m_mid_pt, m_pt1, m_R, m_recursion_depth + 1);
 }
 
-///////////////////////////////////
-// ArcTessellatorStateNode methods
-ArcTessellatorStateNode::
-ArcTessellatorStateNode(const fastuidraw::PathContour::interpolator_generic *h):
-  m_start(h->start_pt()),
-  m_end(h->end_pt()),
-  m_recursion_depth(0)
+/////////////////////////////////
+// ArcSegment methods
+ArcSegment::
+ArcSegment(const fastuidraw::vec2 &start,
+           const fastuidraw::vec2 &mid,
+           const fastuidraw::vec2 &end)
 {
   using namespace fastuidraw;
 
-  reference_counted_ptr<PathContour::interpolator_generic::tessellated_region> L, R;
-  float partition_max_distance;
-
-  h->tessellate(nullptr, &L, &R, &m_mid, &partition_max_distance);
-  compute_circle(h, L, R, partition_max_distance);
-}
-
-ArcTessellatorStateNode::
-ArcTessellatorStateNode(const fastuidraw::PathContour::interpolator_generic *h,
-                        const fastuidraw::vec2 &start,
-                        const fastuidraw::vec2 &mid,
-                        const fastuidraw::vec2 &end,
-                        fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> L,
-                        fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> R,
-                        float partition_max_distance,
-                        unsigned int depth):
-  m_start(start),
-  m_mid(mid),
-  m_end(end),
-  m_recursion_depth(depth)
-{
-  compute_circle(h, L, R, partition_max_distance);
-}
-
-void
-ArcTessellatorStateNode::
-compute_circle(const fastuidraw::PathContour::interpolator_generic *h,
-               fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> L,
-               fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> R,
-               float partition_max_distance)
-{
-  using namespace fastuidraw;
-
-  FASTUIDRAWassert(L);
-  FASTUIDRAWassert(R);
-
-  h->tessellate(L, &m_L0, &m_L1, &m_midL, &m_partition_max_distanceL);
-  h->tessellate(R, &m_R0, &m_R1, &m_midR, &m_partition_max_distanceR);
-
-  /* compute the center of the circle going through m_start, m_mid
-   * and m_end by computing the intersection of the perpindicular
-   * bisectors of the line segments [m_start, m_mid] and [m_mid, m_end]
-   */
   vec2 v0, v1, n0, n1, p0, p1;
   float det;
   static float tol(0.00001f);
 
-  p0 = 0.5f * (m_start + m_mid);
-  p1 = 0.5f * (m_mid + m_end);
+  p0 = 0.5f * (start + mid);
+  p1 = 0.5f * (mid + end);
 
-  v0 = m_start - m_mid;
+  v0 = start - mid;
   n0 = vec2(-v0.y(), v0.x());
 
-  v1 = m_mid - m_end;
+  v1 = mid - end;
   n1 = vec2(-v1.y(), v1.x());
 
   det = n1.y() * n0.x() - n0.y() * n1.x();
   m_too_flat = (t_abs(det) < tol);
 
-  if (m_too_flat)
+  if (!m_too_flat)
     {
-      m_max_distance = partition_max_distance;
-    }
-  else
-    {
-      float s, tL, tR;
+      float s;
       vec2 cs, ce;
       const float pi(M_PI), two_pi(2.0f * pi);
 
       s = dot(v1, p1 - p0) / det;
       m_center = p0 + s * n0;
-      m_radius = (m_center - m_mid).magnitude();
-
-      tL = t_abs(m_radius - (m_center - m_midL).magnitude());
-      tR = t_abs(m_radius - (m_center - m_midR).magnitude());
-      m_max_distance = t_max(tL, tR);
-
-      cs = m_start - m_center;
-      ce = m_end - m_center;
-
+      m_radius = (m_center - mid).magnitude();
+      cs = start - m_center;
+      ce = end - m_center;
       m_angle.m_begin = cs.atan();
       m_angle.m_end = ce.atan();
 
-      /* Under linear tessellation the points from m_start to m_end
+      /* Under linear tessellation the points from start to _end
        * would be approximated by a line segment. In that spirit,
        * take the smaller arc always.
        */
@@ -545,18 +501,89 @@ compute_circle(const fastuidraw::PathContour::interpolator_generic *h,
     }
 }
 
+///////////////////////////////////
+// ArcTessellatorStateNode methods
+ArcTessellatorStateNode::
+ArcTessellatorStateNode(const fastuidraw::PathContour::interpolator_generic *h):
+  m_start(h->start_pt()),
+  m_end(h->end_pt()),
+  m_recursion_depth(0)
+{
+  using namespace fastuidraw;
+
+  reference_counted_ptr<PathContour::interpolator_generic::tessellated_region> L, R;
+  float partition_max_distance;
+
+  h->tessellate(nullptr, &L, &R, &m_mid, &partition_max_distance);
+  compute_circle(h, L, R);
+}
+
+ArcTessellatorStateNode::
+ArcTessellatorStateNode(const fastuidraw::PathContour::interpolator_generic *h,
+                        const fastuidraw::vec2 &start,
+                        const fastuidraw::vec2 &mid,
+                        const fastuidraw::vec2 &end,
+                        fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> L,
+                        fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> R,
+                        unsigned int depth):
+  m_start(start),
+  m_mid(mid),
+  m_end(end),
+  m_recursion_depth(depth)
+{
+  compute_circle(h, L, R);
+}
+
+void
+ArcTessellatorStateNode::
+compute_circle(const fastuidraw::PathContour::interpolator_generic *h,
+               fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> L,
+               fastuidraw::reference_counted_ptr<fastuidraw::PathContour::interpolator_generic::tessellated_region> R)
+{
+  using namespace fastuidraw;
+  float max_distanceL, max_distanceR;
+
+  FASTUIDRAWassert(L);
+  FASTUIDRAWassert(R);
+
+  h->tessellate(L, &m_L0, &m_L1, &m_midL, &max_distanceL);
+  h->tessellate(R, &m_R0, &m_R1, &m_midR, &max_distanceR);
+
+  /* compute the center of the circle going through m_start, m_mid
+   * and m_end by computing the intersection of the perpindicular
+   * bisectors of the line segments [m_start, m_mid] and [m_mid, m_end]
+   */
+  m_arc = ArcSegment(m_start, m_mid, m_end);
+
+  if (m_arc.m_too_flat)
+    {
+      m_max_distance = t_max(max_distanceL, max_distanceR);
+    }
+  else
+    {
+      float tL, tR;
+
+      tL = t_abs(m_arc.m_radius - (m_arc.m_center - m_midL).magnitude());
+      tR = t_abs(m_arc.m_radius - (m_arc.m_center - m_midR).magnitude());
+      m_max_distance = t_max(tL, tR);
+    }
+}
+
 void
 ArcTessellatorStateNode::
 add_segment(fastuidraw::TessellatedPath::SegmentStorage *out_data) const
 {
-  if (m_too_flat)
+  if (m_arc.m_too_flat)
     {
       out_data->add_line_segment(m_start, m_mid);
       out_data->add_line_segment(m_mid, m_end);
     }
   else
     {
-      out_data->add_arc_segment(m_start, m_end, m_center, m_radius, m_angle);
+      out_data->add_arc_segment(m_start, m_end,
+                                m_arc.m_center,
+                                m_arc.m_radius,
+                                m_arc.m_angle);
     }
 }
 
@@ -565,7 +592,7 @@ ArcTessellatorStateNode::
 splitL(const fastuidraw::PathContour::interpolator_generic *h) const
 {
   return ArcTessellatorStateNode(h, m_start, m_midL, m_mid, m_L0, m_L1,
-                                 m_partition_max_distanceL, m_recursion_depth + 1);
+                                 m_recursion_depth + 1);
 }
 
 ArcTessellatorStateNode
@@ -573,7 +600,7 @@ ArcTessellatorStateNode::
 splitR(const fastuidraw::PathContour::interpolator_generic *h) const
 {
   return ArcTessellatorStateNode(h, m_mid, m_midR, m_end, m_R0, m_R1,
-                                 m_partition_max_distanceL, m_recursion_depth + 1);
+                                 m_recursion_depth + 1);
 }
 
 /////////////////////////////////
