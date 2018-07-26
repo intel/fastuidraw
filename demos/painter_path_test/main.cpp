@@ -436,7 +436,6 @@ private:
   bool m_with_aa;
   bool m_wire_frame;
   bool m_stroke_width_in_pixels;
-  bool m_force_square_viewport;
 
   bool m_fill_by_clipping;
   bool m_draw_grid;
@@ -581,7 +580,6 @@ painter_stroke_test(void):
   m_with_aa(true),
   m_wire_frame(false),
   m_stroke_width_in_pixels(false),
-  m_force_square_viewport(false),
   m_fill_by_clipping(false),
   m_draw_grid(false),
   m_grid_path_dirty(true),
@@ -604,7 +602,7 @@ painter_stroke_test(void):
             << "\t7: y-shear (hold ctrl to decrease, hold enter for shear2)\n"
             << "\t0: Rotate left\n"
             << "\t9: Rotate right\n"
-            << "\tv: toggle force square viewport\n"
+            << "\tv: toggle linearize from arc-path\n"
             << "\tb: decrease miter limit(hold left-shift for slower rate and right shift for faster)\n"
             << "\tn: increase miter limit(hold left-shift for slower rate and right shift for faster)\n"
             << "\tm: toggle miter limit enforced\n"
@@ -1024,6 +1022,18 @@ handle_event(const SDL_Event &ev)
             }
           break;
 
+        case SDLK_v:
+          m_painter->linearize_from_arc_path(!m_painter->linearize_from_arc_path());
+          if (m_painter->linearize_from_arc_path())
+            {
+              std::cout << "Linearize from arc-path\n";
+            }
+          else
+            {
+              std::cout << "Linearize from original path\n";
+            }
+          break;
+
         case SDLK_k:
           cycle_value(m_selected_path, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_paths.size());
           std::cout << "Path " << m_paths[m_selected_path].m_label << " selected\n";
@@ -1064,18 +1074,6 @@ handle_event(const SDL_Event &ev)
           else
             {
               std::cout << "Stroke width specified in local coordinates\n";
-            }
-          break;
-
-        case SDLK_v:
-          m_force_square_viewport = !m_force_square_viewport;
-          if (m_force_square_viewport)
-            {
-              std::cout << "Viewport made to square that contains window\n";
-            }
-          else
-            {
-              std::cout << "Viewport matches window dimension\n";
             }
           break;
 
@@ -1823,41 +1821,16 @@ draw_frame(void)
   us = static_cast<float>(m_fps_timer.restart_us());
 
   update_cts_params();
-
-  if (m_force_square_viewport)
-    {
-      int d;
-      d = std::max(wh.x(), wh.y());
-      vwp.m_dimensions = ivec2(d, d);
-    }
-  else
-    {
-      vwp.m_dimensions = wh;
-    }
+  vwp.m_dimensions = wh;
 
   /* we must set the viewport of the surface
      OUTSIDE of Painter::begin()/Painter::end().
    */
   m_surface->viewport(vwp);
-
   m_painter->begin(m_surface);
 
-  if (m_force_square_viewport)
-    {
-      int d;
-      d = std::max(wh.x(), wh.y());
-      /* Make the viewport dimensions as a square.
-         The projection matrix below is the matrix to use for
-         orthogonal projection so that the top is 0
-      */
-      float3x3 proj(float_orthogonal_projection_params(0, d, wh.y(), wh.y() - d));
-      m_painter->transformation(proj);
-    }
-  else
-    {
-      float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));
-      m_painter->transformation(proj);
-    }
+  float3x3 proj(float_orthogonal_projection_params(0, wh.x(), wh.y(), 0));
+  m_painter->transformation(proj);
 
   m_painter->curveFlatness(m_curve_flatness);
   m_painter->save();
