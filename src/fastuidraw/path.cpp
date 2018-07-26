@@ -249,19 +249,20 @@ namespace
     float
     distance_to_line_segment(void) const
     {
-      /* Compute the maximum distance between the points
-       * of a BezierTessRegion and the line segment between
-       * the start and  end point of the BezierTessRegion.
-       * The curve is contained within the convex hull of the
-       * points, so this computation is fast, conservative
-       * value for getting the curve_distance.
+      using namespace fastuidraw;
+
+      /* Recall that a Bezier curve is bounded by its convex
+       * hull. Thus an upper bound on the distance between
+       * the line segment connecting the end-points to the
+       * curve is just the maximum of the distances of each
+       * of the control points to the line segment.
        */
       float return_value(0.0f);
       for(unsigned int i = 1, endi = m_pts.size(); i + 1 < endi; ++i)
         {
           float v;
           v = compute_distance(m_pts.front(), m_pts[i], m_pts.back());
-          return_value = fastuidraw::t_max(return_value, v);
+          return_value = t_max(return_value, v);
         }
       return return_value;
     }
@@ -284,6 +285,12 @@ namespace
       A.m_circle_sector_center = unit_vector_arc_middle;
       A.m_circle_sector_cos_angle = cos_arc_angle;
 
+      /* Recall that a Bezier curve is bounded by its convex
+       * hull. Thus an upper bound on the distance between
+       * an arc connecting the end-points to the curve is
+       * just the maximum of the distances of each of the
+       * control points to the arc.
+       */
       float return_value(0.0f);
       for (unsigned int i = 1, endi = m_pts.size(); i + 1 < endi; ++i)
         {
