@@ -90,6 +90,9 @@ namespace
     void
     finalize(TessellatedPathBuildingState &b);
 
+    void
+    create_path(void);
+
     std::vector<std::vector<fastuidraw::range_type<unsigned int> > > m_edge_ranges;
     std::vector<fastuidraw::TessellatedPath::segment> m_segment_data;
     fastuidraw::BoundingBox<float> m_bounding_box;
@@ -99,6 +102,7 @@ namespace
     unsigned int m_max_segments, m_max_recursion;
     fastuidraw::reference_counted_ptr<const fastuidraw::StrokedPath> m_stroked;
     fastuidraw::reference_counted_ptr<const fastuidraw::FilledPath> m_filled;
+    fastuidraw::Path m_path;
   };
 
   void
@@ -208,6 +212,40 @@ namespace
         d->push_back(S);
       }
   }
+
+  void
+  add_segment_to_path(bool last_segment,
+                      const fastuidraw::TessellatedPath::segment &S,
+                      fastuidraw::Path &path)
+  {
+    using namespace fastuidraw;
+    if (last_segment)
+      {
+        if (S.m_type == TessellatedPath::arc_segment)
+          {
+            float theta;
+            theta = S.m_arc_angle.m_end - S.m_arc_angle.m_begin;
+            path << Path::contour_end_arc(theta);
+          }
+        else
+          {
+            path << Path::contour_end();
+          }
+      }
+    else
+      {
+        if (S.m_type == TessellatedPath::arc_segment)
+          {
+            float theta;
+            theta = S.m_arc_angle.m_end - S.m_arc_angle.m_begin;
+            path << Path::arc(theta, S.m_end_pt);
+          }
+        else
+          {
+            path << S.m_end_pt;
+          }
+      }
+  }
 }
 
 //////////////////////////////////////////////
@@ -306,13 +344,24 @@ end_contour(TessellatedPathBuildingState &builder)
 {
   using namespace fastuidraw;
 
+  if (builder.m_start_contour == builder.m_temp.end())
+    {
+      return;
+    }
+  TessellatedPath::segment *last_segment;
+
+  last_segment = &builder.m_temp.back().back();
+  m_path << builder.m_start_contour->front().m_start_pt;
+
   for(std::list<std::vector<TessellatedPath::segment> >::iterator
         t = builder.m_start_contour, endt = builder.m_temp.end(); t != endt; ++t)
     {
       for(unsigned int e = 0, ende = t->size(); e < ende; ++e)
         {
-          (*t)[e].m_open_contour_length = builder.m_open_contour_length;
-          (*t)[e].m_closed_contour_length = builder.m_closed_contour_length;
+          TessellatedPath::segment &S(t->operator[](e));
+          S.m_open_contour_length = builder.m_open_contour_length;
+          S.m_closed_contour_length = builder.m_closed_contour_length;
+          add_segment_to_path(&S == last_segment, S, m_path);
         }
     }
 }
@@ -773,6 +822,17 @@ has_arcs(void) const
 
   return d->m_has_arcs;
 }
+
+const fastuidraw::Path&
+fastuidraw::TessellatedPath::
+path(void) const
+{
+  TessellatedPathPrivate *d;
+  d = static_cast<TessellatedPathPrivate*>(m_d);
+
+  return d->m_path;
+}
+
 const fastuidraw::reference_counted_ptr<const fastuidraw::StrokedPath>&
 fastuidraw::TessellatedPath::
 stroked(void) const
