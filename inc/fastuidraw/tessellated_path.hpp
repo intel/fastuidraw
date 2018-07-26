@@ -494,6 +494,16 @@ public:
   bounding_box_size(void) const;
 
   /*!
+   * Returns this TessellatedPath realized as a \ref Path;
+   * this is rarely the same value as the original \ref Path
+   * that created this TessellatedPath because the original
+   * \ref Path will have curves that are approximated by line
+   * segments and/or arcs of a circle.
+   */
+  const Path&
+  path(void) const;
+
+  /*!
    * Returns this TessellatedPath linearly-stroked. The StrokedPath
    * object is constructed lazily. NOTE: will return a null-reference
    * if \ref has_arcs() returns true.
