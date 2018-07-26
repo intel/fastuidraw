@@ -843,6 +843,7 @@ namespace
     fastuidraw::vec2 m_one_pixel_width;
     float m_curve_flatness;
     bool m_stroke_arc_path;
+    bool m_linearize_from_arc_path;
     int m_current_z;
     clip_rect_state m_clip_rect_state;
     std::vector<occluder_stack_entry> m_occluder_stack;
@@ -1118,6 +1119,7 @@ PainterPrivate(fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend> bac
   m_one_pixel_width(1.0f, 1.0f),
   m_curve_flatness(1.0f),
   m_stroke_arc_path(false),
+  m_linearize_from_arc_path(false),
   m_pool(backend->configuration_base().alignment())
 {
   m_core = FASTUIDRAWnew fastuidraw::PainterPacker(backend);
@@ -1370,7 +1372,14 @@ select_stroked_path(const fastuidraw::Path &path,
     }
   else
     {
-      tess = path.tessellation(t).get();
+      if (m_linearize_from_arc_path)
+        {
+          tess = path.arc_tessellation(t)->path().tessellation(t).get();
+        }
+      else
+        {
+          tess = path.tessellation(t).get();
+        }
     }
   return tess->stroked().get();
 }
@@ -1381,10 +1390,20 @@ select_filled_path(const fastuidraw::Path &path)
 {
   using namespace fastuidraw;
   float mag, thresh;
+  const TessellatedPath *tess;
 
   mag = compute_path_magnification(path);
   thresh = m_curve_flatness / mag;
-  return *path.tessellation(thresh)->filled();
+  if (m_linearize_from_arc_path)
+    {
+      tess = path.arc_tessellation(thresh)->path().tessellation(thresh).get();
+    }
+  else
+    {
+      tess = path.tessellation(thresh).get();
+    }
+
+  return *tess->filled();
 }
 
 void
@@ -2612,6 +2631,24 @@ stroke_arc_path(void)
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
   return d->m_stroke_arc_path;
+}
+
+void
+fastuidraw::Painter::
+linearize_from_arc_path(bool b)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  d->m_linearize_from_arc_path = b;
+}
+
+bool
+fastuidraw::Painter::
+linearize_from_arc_path(void)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  return d->m_linearize_from_arc_path;
 }
 
 void
