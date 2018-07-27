@@ -268,7 +268,8 @@ namespace
     static
     void
     process_edge(const fastuidraw::TessellatedPath &P,
-                 unsigned int contour, unsigned int edge,
+                 fastuidraw::range_type<unsigned int> R,
+                 bool is_closing_edge, const SingleSubEdge *prev,
                  std::vector<SingleSubEdge> &dst,
                  fastuidraw::BoundingBox<float> &bx);
 
@@ -986,21 +987,57 @@ create_lists(const fastuidraw::TessellatedPath &P,
              std::vector<SingleSubEdge> &data, unsigned int &num_non_closing_edges,
              fastuidraw::BoundingBox<float> &bx)
 {
+  std::vector<unsigned int> closing_edge_start(P.number_contours());
+
+  /* we need to figure out where the closing edge for each contour starts */
+  for(unsigned int o = 0; o < P.number_contours(); ++o)
+    {
+      /* find the last edge in a contour whose type
+       * is PainterEnums::starts_new_edge.
+       */
+      closing_edge_start[o] = 0;
+      for(unsigned int e = 0, ende = P.number_edges(o); e < ende; ++e)
+        {
+          if (P.edge_type(o, e) == fastuidraw::PathEnums::starts_new_edge)
+            {
+              closing_edge_start[o] = e;
+            }
+        }
+    }
+
   /* place data of closing sub-edges at the tail of the lists. */
   for(unsigned int o = 0; o < P.number_contours(); ++o)
     {
-      for(unsigned int e = 0, ende = P.number_edges(o); e + 1 < ende; ++e)
+      for(unsigned int e = 0; e < closing_edge_start[o]; ++e)
         {
-          process_edge(P, o, e, data, bx);
+          const SingleSubEdge *prev(nullptr);
+          fastuidraw::range_type<unsigned int> R;
+
+          R = P.edge_range(o, e);
+          if (e != 0 && P.edge_type(o, e) != fastuidraw::PathEnums::starts_new_edge)
+            {
+              prev = &data.back();
+            }
+
+          process_edge(P, R, false, prev, data, bx);
         }
     }
 
   num_non_closing_edges = data.size();
   for(unsigned int o = 0; o < P.number_contours(); ++o)
     {
-      if (P.number_edges(o) > 0)
+      for (unsigned int e = closing_edge_start[o], ende = P.number_edges(o); e < ende; ++e)
         {
-          process_edge(P, o, P.number_edges(o) - 1, data, bx);
+          fastuidraw::range_type<unsigned int> R;
+          const SingleSubEdge *prev(nullptr);
+
+          R = P.edge_range(o, e);
+          if (e != closing_edge_start[o]
+              && P.edge_type(o, e) != fastuidraw::PathEnums::starts_new_edge)
+            {
+              prev = &data.back();
+            }
+          process_edge(P, R, true, prev, data, bx);
         }
     }
 }
@@ -1008,18 +1045,14 @@ create_lists(const fastuidraw::TessellatedPath &P,
 void
 SubEdgeCullingHierarchy::
 process_edge(const fastuidraw::TessellatedPath &P,
-             unsigned int contour, unsigned int edge,
+             fastuidraw::range_type<unsigned int> R,
+             bool is_closing_edge, const SingleSubEdge *prev,
              std::vector<SingleSubEdge> &dst, fastuidraw::BoundingBox<float> &bx)
 {
-  fastuidraw::range_type<unsigned int> R;
   fastuidraw::c_array<const fastuidraw::TessellatedPath::segment> src_segments(P.segment_data());
-  bool is_closing_edge, has_arcs(P.has_arcs());
-  const SingleSubEdge *prev(nullptr);
+  bool has_arcs(P.has_arcs());
 
-  is_closing_edge = (edge + 1 == P.number_edges(contour));
-  R = P.edge_range(contour, edge);
   FASTUIDRAWassert(R.m_end >= R.m_begin);
-
   for(unsigned int i = R.m_begin; i < R.m_end; ++i)
     {
       uint32_t flags;
@@ -2330,6 +2363,7 @@ ready_builder_contour(const fastuidraw::TessellatedPath *tess,
                       fastuidraw::StrokedCapsJoins::Builder &b)
 {
   fastuidraw::c_array<const fastuidraw::TessellatedPath::segment> last_segs;
+  float distance_accumulated(0.0f);
 
   last_segs = tess->edge_segment_data(c, 0);
   b.begin_contour(last_segs.front().m_start_pt,
@@ -2346,14 +2380,19 @@ ready_builder_contour(const fastuidraw::TessellatedPath *tess,
        */
       delta_into = last_segs.back().m_leaving_segment_unit_vector;
       delta_leaving = segs.front().m_enter_segment_unit_vector;
+      distance_accumulated += last_segs.back().m_edge_length;
 
-      b.add_join(segs.front().m_start_pt,
-                 last_segs.back().m_edge_length,
-                 delta_into, delta_leaving);
+      if (tess->edge_type(c, e) == fastuidraw::PathEnums::starts_new_edge)
+        {
+          b.add_join(segs.front().m_start_pt,
+                     distance_accumulated,
+                     delta_into, delta_leaving);
+          distance_accumulated = 0.0f;
+        }
       last_segs = segs;
     }
 
-  b.end_contour(last_segs.back().m_edge_length,
+  b.end_contour(last_segs.back().m_edge_length + distance_accumulated,
                 last_segs.back().m_leaving_segment_unit_vector);
 }
 
