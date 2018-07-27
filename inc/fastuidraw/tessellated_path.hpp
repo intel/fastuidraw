@@ -405,16 +405,6 @@ public:
   contour_range(unsigned int contour) const;
 
   /*!
-   * Returns the range into segment_data() for the named
-   * contour lacking the closing edge.
-   * replicated (because the derivatives are different).
-   * \param contour which path contour to query, must have
-   *                that 0 <= contour < number_contours()
-   */
-  range_type<unsigned int>
-  unclosed_contour_range(unsigned int contour) const;
-
-  /*!
    * Returns the segment data of the named contour including
    * the closing edge. Provided as a conveniance equivalent to
    * \code
@@ -425,19 +415,6 @@ public:
    */
   c_array<const segment>
   contour_segment_data(unsigned int contour) const;
-
-  /*!
-   * Returns the segment data of the named contour
-   * lacking the segment data of the closing edge.
-   * Provided as a conveniance, equivalent to
-   * \code
-   * segment_data().sub_array(unclosed_contour_range(contour))
-   * \endcode
-   * \param contour which path contour to query, must have
-   *                that 0 <= contour < number_contours()
-   */
-  c_array<const segment>
-  unclosed_contour_segment_data(unsigned int contour) const;
 
   /*!
    * Returns the number of edges for the named contour
