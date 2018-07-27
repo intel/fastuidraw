@@ -25,6 +25,7 @@
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
 #include <fastuidraw/painter/stroked_caps_joins.hpp>
+#include <fastuidraw/path_enums.hpp>
 
 namespace fastuidraw  {
 
@@ -471,6 +472,17 @@ public:
    */
   c_array<const segment>
   edge_segment_data(unsigned int contour, unsigned int edge) const;
+
+  /*!
+   * Returns the edge type of the named edge of the named contour
+   * of the source Path.
+   * \param contour which path contour to query, must have
+   *                that 0 <= contour < number_contours()
+   * \param edge which edge of the contour to query, must
+   *             have that 0 <= edge < number_edges(contour)
+   */
+  enum PathEnums::edge_type_t
+  edge_type(unsigned int contour, unsigned int edge) const;
 
   /*!
    * Returns the minimum point of the bounding box of
