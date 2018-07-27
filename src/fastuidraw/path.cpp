@@ -221,84 +221,63 @@ namespace
   {
   public:
     explicit
-    BezierTessRegion(BezierTessRegion *parent, bool is_region_start)
-    {
-      float mid;
-
-      m_pts.reserve(parent->m_pts.size());
-      mid = 0.5f * (parent->m_start + parent->m_end);
-      if (is_region_start)
-        {
-          m_start = parent->m_start;
-          m_end = mid;
-        }
-      else
-        {
-          m_start = mid;
-          m_end = parent->m_end;
-        }
-    }
+    BezierTessRegion(const BezierTessRegion *parent, bool is_region_start);
 
     explicit
-    BezierTessRegion(void):
+    BezierTessRegion(const std::vector<fastuidraw::vec2> &pts):
+      m_pts(pts),
       m_start(0.0f),
       m_end(1.0f)
     {}
 
     virtual
     float
-    distance_to_line_segment(void) const
-    {
-      using namespace fastuidraw;
-
-      /* Recall that a Bezier curve is bounded by its convex
-       * hull. Thus an upper bound on the distance between
-       * the line segment connecting the end-points to the
-       * curve is just the maximum of the distances of each
-       * of the control points to the line segment.
-       */
-      float return_value(0.0f);
-      for(unsigned int i = 1, endi = m_pts.size(); i + 1 < endi; ++i)
-        {
-          float v;
-          v = compute_distance(m_pts.front(), m_pts[i], m_pts.back());
-          return_value = t_max(return_value, v);
-        }
-      return return_value;
-    }
+    distance_to_line_segment(void) const;
 
     virtual
     float
     distance_to_arc(float arc_radius, fastuidraw::vec2 arc_center,
                     fastuidraw::vec2 unit_vector_arc_middle,
-                    float cos_arc_angle) const
+                    float cos_arc_angle) const;
+
+    const fastuidraw::reference_counted_ptr<BezierTessRegion>&
+    left_child(void) const
     {
-      using namespace fastuidraw;
-
-      ArcSegment A;
-
-      A.m_too_flat = false;
-      A.m_center = arc_center;
-      A.m_radius = arc_radius;
-      A.m_circle_sector_boundary[0] = m_pts.front();
-      A.m_circle_sector_boundary[1] = m_pts.back();
-      A.m_circle_sector_center = unit_vector_arc_middle;
-      A.m_circle_sector_cos_angle = cos_arc_angle;
-
-      /* Recall that a Bezier curve is bounded by its convex
-       * hull. Thus an upper bound on the distance between
-       * an arc connecting the end-points to the curve is
-       * just the maximum of the distances of each of the
-       * control points to the arc.
-       */
-      float return_value(0.0f);
-      for (unsigned int i = 1, endi = m_pts.size(); i + 1 < endi; ++i)
-        {
-          return_value = t_max(return_value, A.distance(m_pts[i]));
-        }
-      return return_value;
+      create_children();
+      return m_L;
     }
 
+    const fastuidraw::reference_counted_ptr<BezierTessRegion>&
+    right_child(void) const
+    {
+      create_children();
+      return m_R;
+    }
+
+    const fastuidraw::vec2&
+    front(void) const
+    {
+      return m_pts.front();
+    }
+
+    const fastuidraw::vec2&
+    back(void) const
+    {
+      return m_pts.back();
+    }
+
+  private:
+    float
+    distance_to_line_segment_raw(const fastuidraw::vec2 &A,
+                                 const fastuidraw::vec2 &B) const;
+
+    float
+    distance_to_arc_raw(const ArcSegment &A) const;
+
+    void
+    create_children(void) const;
+
+    mutable fastuidraw::reference_counted_ptr<BezierTessRegion> m_L, m_R;
     std::vector<fastuidraw::vec2> m_pts;
     float m_start, m_end;
   };
@@ -312,7 +291,6 @@ namespace
     fastuidraw::BoundingBox<float> m_bb;
     fastuidraw::reference_counted_ptr<BezierTessRegion> m_start_region;
     std::vector<fastuidraw::vec2> m_pts;
-    fastuidraw::vecN<std::vector<fastuidraw::vec2>, 2> m_work_room;
   };
 
   class ArcPrivate
@@ -735,11 +713,7 @@ init(void)
     {
       m_bb.union_point(pt);
     }
-  m_start_region = FASTUIDRAWnew BezierTessRegion();
-  m_start_region->m_pts = m_pts; //original region uses original points.
-
-  m_work_room[0].resize(m_pts.size());
-  m_work_room[1].resize(m_pts.size());
+  m_start_region = FASTUIDRAWnew BezierTessRegion(m_pts);
 }
 
 ////////////////////////////////////////////
@@ -809,6 +783,156 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
       return_value = FASTUIDRAWnew TessellationState<LinearTessellatorStateNode>(this);
     }
   return_value->resume_tessellation(tess_params, out_data, out_max_distance);
+  return return_value;
+}
+
+///////////////////////////////////
+// BezierTessRegion methods
+BezierTessRegion::
+BezierTessRegion(const BezierTessRegion *parent, bool is_region_start)
+{
+  float mid;
+
+  m_pts.reserve(parent->m_pts.size());
+  mid = 0.5f * (parent->m_start + parent->m_end);
+  if (is_region_start)
+    {
+      m_start = parent->m_start;
+      m_end = mid;
+    }
+  else
+    {
+      m_start = mid;
+      m_end = parent->m_end;
+    }
+}
+
+void
+BezierTessRegion::
+create_children(void) const
+{
+  using namespace fastuidraw;
+
+  if (m_L)
+    {
+      FASTUIDRAWassert(m_R);
+      return;
+    }
+
+  FASTUIDRAWassert(!m_R);
+  m_L = FASTUIDRAWnew BezierTessRegion(this, true);
+  m_R = FASTUIDRAWnew BezierTessRegion(this, false);
+
+  c_array<vec2> dst;
+  c_array<const vec2> src;
+  vecN<std::vector<vec2>, 2> work_room;
+
+  work_room[0].resize(m_pts.size());
+  work_room[1].resize(m_pts.size());
+
+  src = make_c_array(m_pts);
+  m_L->m_pts.push_back(src.front());
+  m_R->m_pts.push_back(src.back());
+
+  /* For a Bezier curve, given by points p(0), .., p(n),
+   * and a time 0 <= t <= 1, De Casteljau's algorithm is
+   * the following.
+   *
+   * Let
+   *   q(0, j) = p(j) for 0 <= j <= n,
+   *   q(i + 1, j) = (1 - t) * q(i, j) + t * q(i, j + 1) for 0 <= i <= n, 0 <= j <= n - i
+   * then
+   *   The curve split at time t is given by
+   *     A = { q(0, 0), q(1, 0), q(2, 0), ... , q(n, 0) }
+   *     B = { q(n, 0), q(n - 1, 1), q(n - 2, 2), ... , q(0, n) }
+   *   and
+   *     the curve evaluated at t is given by q(n, 0).
+   * We use t = 0.5 because we are always doing mid-point cutting.
+   */
+  for(unsigned int i = 0, endi = src.size(), sz = endi - 1; sz > 0 && i < endi; ++i, --sz)
+    {
+      dst = make_c_array(work_room[i & 1]).sub_array(0, sz);
+      for(unsigned int j = 0; j < dst.size(); ++j)
+        {
+          dst[j] = 0.5f * src[j] + 0.5f * src[j + 1];
+        }
+      m_L->m_pts.push_back(dst.front());
+      m_R->m_pts.push_back(dst.back());
+      src = dst;
+    }
+  std::reverse(m_R->m_pts.begin(), m_R->m_pts.end());
+}
+
+float
+BezierTessRegion::
+distance_to_line_segment(void) const
+{
+  create_children();
+  return fastuidraw::t_max(m_L->distance_to_line_segment_raw(front(), back()),
+                           m_R->distance_to_line_segment_raw(front(), back()));
+}
+
+float
+BezierTessRegion::
+distance_to_arc(float arc_radius, fastuidraw::vec2 arc_center,
+                fastuidraw::vec2 unit_vector_arc_middle,
+                float cos_arc_angle) const
+{
+  ArcSegment A;
+
+  A.m_too_flat = false;
+  A.m_center = arc_center;
+  A.m_radius = arc_radius;
+  A.m_circle_sector_boundary[0] = m_pts.front();
+  A.m_circle_sector_boundary[1] = m_pts.back();
+  A.m_circle_sector_center = unit_vector_arc_middle;
+  A.m_circle_sector_cos_angle = cos_arc_angle;
+
+  create_children();
+  return fastuidraw::t_max(m_L->distance_to_arc_raw(A),
+                           m_R->distance_to_arc_raw(A));
+}
+
+float
+BezierTessRegion::
+distance_to_line_segment_raw(const fastuidraw::vec2 &A,
+                             const fastuidraw::vec2 &B) const
+{
+  using namespace fastuidraw;
+
+  /* Recall that a Bezier curve is bounded by its convex
+   * hull. Thus an upper bound on the distance between
+   * a line segment and the curve is just the maximum of
+   * the distances of each of the points (control and end
+   * points) to the line segment.
+   */
+  float return_value(0.0f);
+  for(unsigned int i = 0, endi = m_pts.size(); i < endi; ++i)
+    {
+      float v;
+      v = compute_distance(A, m_pts[i], B);
+      return_value = t_max(return_value, v);
+    }
+  return return_value;
+}
+
+float
+BezierTessRegion::
+distance_to_arc_raw(const ArcSegment &A) const
+{
+  using namespace fastuidraw;
+
+  /* Recall that a Bezier curve is bounded by its convex
+   * hull. Thus an upper bound on the distance between
+   * an arc and the curve is just the maximum of the
+   * distances of each of the points (control and end
+   * points) to the arc.
+   */
+  float return_value(0.0f);
+  for (unsigned int i = 0, endi = m_pts.size(); i < endi; ++i)
+    {
+      return_value = t_max(return_value, A.distance(m_pts[i]));
+    }
   return return_value;
 }
 
@@ -916,47 +1040,9 @@ tessellate(reference_counted_ptr<tessellated_region> in_region,
   FASTUIDRAWassert(dynamic_cast<BezierTessRegion*>(in_region.get()) != nullptr);
   in_region_casted = static_cast<BezierTessRegion*>(in_region.get());
 
-  reference_counted_ptr<BezierTessRegion> newA, newB;
-  newA = FASTUIDRAWnew BezierTessRegion(in_region_casted, true);
-  newB = FASTUIDRAWnew BezierTessRegion(in_region_casted, false);
-
-  c_array<vec2> dst, src;
-  src = make_c_array(in_region_casted->m_pts);
-
-  newA->m_pts.push_back(src.front());
-  newB->m_pts.push_back(src.back());
-
-  /* For a Bezier curve, given by points p(0), .., p(n),
-   * and a time 0 <= t <= 1, De Casteljau's algorithm is
-   * the following.
-   *
-   * Let
-   *   q(0, j) = p(j) for 0 <= j <= n,
-   *   q(i + 1, j) = (1 - t) * q(i, j) + t * q(i, j + 1) for 0 <= i <= n, 0 <= j <= n - i
-   * then
-   *   The curve split at time t is given by
-   *     A = { q(0, 0), q(1, 0), q(2, 0), ... , q(n, 0) }
-   *     B = { q(n, 0), q(n - 1, 1), q(n - 2, 2), ... , q(0, n) }
-   *   and
-   *     the curve evaluated at t is given by q(n, 0).
-   * We use t = 0.5 because we are always doing mid-point cutting.
-   */
-  for(unsigned int i = 0, endi = src.size(), sz = endi - 1; sz > 0 && i < endi; ++i, --sz)
-    {
-      dst = make_c_array(d->m_work_room[i & 1]).sub_array(0, sz);
-      for(unsigned int j = 0; j < dst.size(); ++j)
-        {
-          dst[j] = 0.5f * src[j] + 0.5f * src[j + 1];
-        }
-      newA->m_pts.push_back(dst.front());
-      newB->m_pts.push_back(dst.back());
-      src = dst;
-    }
-  std::reverse(newB->m_pts.begin(), newB->m_pts.end());
-
-  *out_regionA = newA;
-  *out_regionB = newB;
-  *out_p = newA->m_pts.back();
+  *out_regionA = in_region_casted->left_child();
+  *out_regionB = in_region_casted->right_child();
+  *out_p = in_region_casted->left_child()->back();
 }
 
 fastuidraw::PathContour::interpolator_base*
