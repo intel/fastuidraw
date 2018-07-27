@@ -24,6 +24,7 @@
 #include <fastuidraw/util/vecN.hpp>
 #include <fastuidraw/util/c_array.hpp>
 #include <fastuidraw/util/reference_counted.hpp>
+#include <fastuidraw/path_enums.hpp>
 #include <fastuidraw/tessellated_path.hpp>
 
 namespace fastuidraw  {
@@ -96,9 +97,10 @@ public:
      * \param prev interpolator to edge that ends at start of edge
      *             of this interpolator
      * \param end end point of the edge of this interpolator
+     * \param tp nature the edge represented by this interpolator_base
      */
     interpolator_base(const reference_counted_ptr<const interpolator_base> &prev,
-                      const vec2 &end);
+                      const vec2 &end, enum PathEnums::edge_type_t tp);
 
     virtual
     ~interpolator_base();
@@ -121,6 +123,12 @@ public:
      */
     const vec2&
     end_pt(void) const;
+
+    /*!
+     * Returns the edge type.
+     */
+    enum PathEnums::edge_type_t
+    edge_type(void) const;
 
     /*!
      * To be implemented by a derived class to return true if
@@ -187,10 +195,11 @@ public:
      * \param prev interpolator to edge that ends at start of edge
      *             of this interpolator
      * \param end end point of the edge of this interpolator
+     * \param tp nature the edge represented by this interpolator_base
      */
     flat(const reference_counted_ptr<const interpolator_base> &prev,
-         const vec2 &end):
-      interpolator_base(prev, end)
+         const vec2 &end, enum PathEnums::edge_type_t tp):
+      interpolator_base(prev, end, tp)
     {}
 
     virtual
@@ -258,10 +267,11 @@ public:
      * \param prev interpolator to edge that ends at start of edge
      *             of this interpolator
      * \param end end point of the edge of this interpolator
+     * \param tp nature the edge represented by this interpolator_base
      */
     interpolator_generic(const reference_counted_ptr<const interpolator_base> &prev,
-                         const vec2 &end):
-      interpolator_base(prev, end)
+                         const vec2 &end, enum PathEnums::edge_type_t tp):
+      interpolator_base(prev, end, tp)
     {}
 
     virtual
@@ -310,9 +320,10 @@ public:
      * \param start start of curve
      * \param ct control point
      * \param end end of curve
+     * \param tp nature the edge represented by this interpolator_base
      */
     bezier(const reference_counted_ptr<const interpolator_base> &start,
-           const vec2 &ct, const vec2 &end);
+           const vec2 &ct, const vec2 &end, enum PathEnums::edge_type_t tp);
 
     /*!
      * Ctor. Two control points, thus interpolation is a cubic curve.
@@ -320,18 +331,22 @@ public:
      * \param ct1 1st control point
      * \param ct2 2nd control point
      * \param end end point of curve
+     * \param tp nature the edge represented by this interpolator_base
      */
     bezier(const reference_counted_ptr<const interpolator_base> &start,
-           const vec2 &ct1, const vec2 &ct2, const vec2 &end);
+           const vec2 &ct1, const vec2 &ct2, const vec2 &end,
+           enum PathEnums::edge_type_t tp);
 
     /*!
      * Ctor. Iterator range defines the control points of the bezier curve.
      * \param start start of curve
      * \param control_pts control points
      * \param end end point of curve
+     * \param tp nature the edge represented by this interpolator_base
      */
     bezier(const reference_counted_ptr<const interpolator_base> &start,
-           c_array<const vec2> control_pts, const vec2 &end);
+           c_array<const vec2> control_pts, const vec2 &end,
+           enum PathEnums::edge_type_t tp);
 
     virtual
     ~bezier();
@@ -382,9 +397,10 @@ public:
      *              a positive value indicates to have the arc go counter-clockwise,
      *              a negative angle for the arc to go clockwise.
      * \param end end of curve
+     * \param tp nature the edge represented by this interpolator_base
      */
     arc(const reference_counted_ptr<const interpolator_base> &start,
-        float angle, const vec2 &end);
+        float angle, const vec2 &end, enum PathEnums::edge_type_t tp);
 
     ~arc();
 
@@ -433,9 +449,12 @@ public:
   /*!
    * End the current edge.
    * \param pt point location of end of edge (and thus start of new edge)
+   * \param etp the edge type of the new edge made; if this is the first
+   *            edge of the contour, the value of etp is ignored and the
+   *            value \ref PathEnums::starts_new_edge is used.
    */
   void
-  to_point(const vec2 &pt);
+  to_point(const vec2 &pt, enum PathEnums::edge_type_t etp);
 
   /*!
    * Add a control point. Will fail if end() was called
@@ -443,6 +462,12 @@ public:
    */
   void
   add_control_point(const vec2 &pt);
+
+  /*!
+   * Clear any current control points.
+   */
+  void
+  clear_control_points(void);
 
   /*!
    * Will fail if end() was called of if add_control_point() has been
@@ -458,9 +483,12 @@ public:
    * called more recently than to_point().
    * \param angle angle of arc in radians
    * \param pt point where arc ends (and next edge starts)
+   * \param etp the edge type of the new edge made; if this is the first
+   *            edge of the contour, the value of etp is ignored and the
+   *            value \ref PathEnums::starts_new_edge is used.
    */
   void
-  to_arc(float angle, const vec2 &pt);
+  to_arc(float angle, const vec2 &pt, enum PathEnums::edge_type_t etp);
 
   /*!
    * Ends with the passed interpolator_base. The interpolator
@@ -473,16 +501,18 @@ public:
   /*!
    * Ends with the Bezier curve defined by the current
    * control points added by add_control_point().
+   * \param etp the edge type of the new edge made.
    */
   void
-  end(void);
+  end(enum PathEnums::edge_type_t etp);
 
   /*!
    * Ends with an arc.
    * \param angle angle of arc in radians
+   * \param etp the edge type of the new edge made.
    */
   void
-  end_arc(float angle);
+  end_arc(float angle, enum PathEnums::edge_type_t etp);
 
   /*!
    * Returns the last interpolator added to this PathContour.
@@ -757,28 +787,51 @@ public:
   operator<<(contour_end_arc a);
 
   /*!
-   * Append a line to the current contour.
-   * \param pt point to which the line goes
+   * Operator overload to control the \ref edge_type_t
+   * of the next edge made via operator overloads.
+   * If no edge is yet present on the current contour, then
+   * the value is ignored. The tag is reset back to \ref
+   * PathEnums::starts_new_edge after an edge is added.
+   * \param etp edge type
    */
   Path&
-  line_to(const vec2 &pt);
+  operator<<(enum PathEnums::edge_type_t etp);
+
+  /*!
+   * Append a line to the current contour.
+   * \param pt point to which the line goes
+   * \param etp the edge type of the new line made; if this is the first
+   *            edge of the current contour, the value of etp is ignored
+   *            and the value \ref PathEnums::starts_new_edge is used.
+   */
+  Path&
+  line_to(const vec2 &pt,
+          enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
 
   /*!
    * Append a quadratic Bezier curve to the current contour.
    * \param ct control point of the quadratic Bezier curve
    * \param pt point to which the quadratic Bezier curve goes
+   * \param etp the edge type of the new quadratic made; if this is the first
+   *            edge of the current contour, the value of etp is ignored
+   *            and the value \ref PathEnums::starts_new_edge is used.
    */
   Path&
-  quadratic_to(const vec2 &ct, const vec2 &pt);
+  quadratic_to(const vec2 &ct, const vec2 &pt,
+               enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
 
   /*!
    * Append a cubic Bezier curve to the current contour.
    * \param ct1 first control point of the cubic Bezier curve
    * \param ct2 second control point of the cubic Bezier curve
    * \param pt point to which the cubic Bezier curve goes
+   * \param etp the edge type of the new cubic made; if this is the first
+   *            edge of the current contour, the value of etp is ignored
+   *            and the value \ref PathEnums::starts_new_edge is used.
    */
   Path&
-  cubic_to(const vec2 &ct1, const vec2 &ct2, const vec2 &pt);
+  cubic_to(const vec2 &ct1, const vec2 &ct2, const vec2 &pt,
+           enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
 
   /*!
    * Append an arc curve to the current contour.
@@ -787,9 +840,13 @@ public:
    *              value indicates counter-clockwise and a negative value indicates
    *              clockwise
    * \param pt point to which the arc curve goes
+   * \param etp the edge type of the new arc made; if this is the first
+   *            edge of the current contour, the value of etp is ignored
+   *            and the value \ref PathEnums::starts_new_edge is used.
    */
   Path&
-  arc_to(float angle, const vec2 &pt);
+  arc_to(float angle, const vec2 &pt,
+         enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
 
   /*!
    * Returns the last interpolator added to this the current
@@ -809,11 +866,20 @@ public:
   custom_to(const reference_counted_ptr<const PathContour::interpolator_base> &p);
 
   /*!
-   * Begin a new contour
+   * End the current contour and begin a new contour
    * \param pt point at which the contour begins
+   * \param etp the edge type of the closing edge made.
    */
   Path&
-  move(const vec2 &pt);
+  move(const vec2 &pt,
+       enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
+
+  /*!
+   * End the current contour.
+   * \param etp the edge type of the closing edge made.
+   */
+  Path&
+  end_contour(enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
 
   /*!
    * End the current contour in an arc and begin a new contour
@@ -822,9 +888,11 @@ public:
    *              value indicates counter-clockwise and a negative value indicates
    *              clockwise
    * \param pt point at which the contour begins
+   * \param etp the edge type of the closing edge made.
    */
   Path&
-  arc_move(float angle, const vec2 &pt);
+  arc_move(float angle, const vec2 &pt,
+           enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
 
   /*!
    * End the current contour in an arc
@@ -832,41 +900,51 @@ public:
    *              where y increases upwards and x increases to the right, a positive
    *              value indicates counter-clockwise and a negative value indicates
    *              clockwise
+   * \param etp the edge type of the closing edge made.
    */
   Path&
-  end_contour_arc(float angle);
+  end_contour_arc(float angle,
+                  enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
 
   /*!
    * End the current contour in a quadratic Bezier curve and begin a new contour
    * \param ct control point of the quadratic Bezier curve
    * \param pt point at which the contour begins
+   * \param etp the edge type of the closing edge made.
    */
   Path&
-  quadratic_move(const vec2 &ct, const vec2 &pt);
+  quadratic_move(const vec2 &ct, const vec2 &pt,
+                 enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
 
   /*!
    * End the current contour in a quadratic Bezier curve
    * \param ct control point of the quadratic Bezier curve
+   * \param etp the edge type of the closing edge made.
    */
   Path&
-  end_contour_quadratic(const vec2 &ct);
+  end_contour_quadratic(const vec2 &ct,
+                        enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
 
   /*!
    * End the current contour in a cubic Bezier curve and begin a new contour
    * \param ct1 first control point of the cubic Bezier curve
    * \param ct2 second control point of the cubic Bezier curve
    * \param pt point at which the contour begins
+   * \param etp the edge type of the closing edge made.
    */
   Path&
-  cubic_move(const vec2 &ct1, const vec2 &ct2, const vec2 &pt);
+  cubic_move(const vec2 &ct1, const vec2 &ct2, const vec2 &pt,
+             enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
 
   /*!
    * End the current contour in a cubic Bezier curve
    * \param ct1 first control point of the cubic Bezier curve
    * \param ct2 second control point of the cubic Bezier curve
+   * \param etp the edge type of the closing edge made.
    */
   Path&
-  end_contour_cubic(const vec2 &ct1, const vec2 &ct2);
+  end_contour_cubic(const vec2 &ct1, const vec2 &ct2,
+                    enum PathEnums::edge_type_t etp = PathEnums::starts_new_edge);
 
   /*!
    * Use a custom interpolator to end the current contour and begin a new contour
