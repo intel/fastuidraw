@@ -84,11 +84,6 @@ namespace
   class LinearTessellatorStateNode
   {
   public:
-    enum
-      {
-        MAX_REFINE_RECURSION_LIMIT = MAX_LINEAR_REFINE_RECURSION_LIMIT
-      };
-
     explicit
     LinearTessellatorStateNode(const fastuidraw::PathContour::interpolator_generic *h);
 
@@ -153,11 +148,6 @@ namespace
   class ArcTessellatorStateNode
   {
   public:
-    enum
-      {
-        MAX_REFINE_RECURSION_LIMIT = MAX_ARC_REFINE_RECURSION_LIMIT
-      };
-
     explicit
     ArcTessellatorStateNode(const fastuidraw::PathContour::interpolator_generic *h);
 
@@ -789,20 +779,11 @@ resume_tessellation_worker(const T &node,
 
   recurse_level = node.recursion_depth();
 
-  /* The starting data is floating point which has
-   * a 23-bit significand; going past 20 sub-divisions
-   * will likely start to produce numerical garbage
-   * as there are then so few bits left for accuracy.
-   */
-  if (recurse_level > T::MAX_REFINE_RECURSION_LIMIT)
-    {
-      dst->push_back(node);
-    }
-  else if (recurse_level == 0
-           || recurse_level < m_minimum_tessellation_recursion
-           || (tess_params.m_max_distance > 0.0f
-               && recurse_level <= tess_params.m_max_recursion
-               && node.max_distance() > tess_params.m_max_distance))
+  if (recurse_level == 0
+      || recurse_level < m_minimum_tessellation_recursion
+      || (tess_params.m_max_distance > 0.0f
+	  && recurse_level <= tess_params.m_max_recursion
+	  && node.max_distance() > tess_params.m_max_distance))
     {
       resume_tessellation_worker(node.splitL(m_h.get()), tess_params, dst);
       resume_tessellation_worker(node.splitR(m_h.get()), tess_params, dst);

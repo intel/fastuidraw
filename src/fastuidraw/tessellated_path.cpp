@@ -532,7 +532,11 @@ refine_tessellation(float max_distance,
 {
   RefinerPrivate *d;
   d = static_cast<RefinerPrivate*>(m_d);
-  d->m_path = FASTUIDRAWnew TessellatedPath(this, max_distance, additional_recursion_count);
+
+  if (d->m_path->max_distance() > max_distance)
+    {
+      d->m_path = FASTUIDRAWnew TessellatedPath(this, max_distance, additional_recursion_count);
+    }
 }
 
 //////////////////////////////////////
@@ -546,13 +550,12 @@ TessellatedPath(Refiner *p, float max_distance,
 
   ref_d = static_cast<RefinerPrivate*>(p->m_d);
 
-  TessellationParams params(ref_d->m_path->tessellation_parameters());
+  TessellationParams params;
+  params.m_allow_arcs = ref_d->m_path->tessellation_parameters().m_allow_arcs;
   params.m_max_distance = max_distance;
-  params.m_max_recursion += additional_recursion_count;
+  params.m_max_recursion = ref_d->m_path->max_recursion() + additional_recursion_count;
 
-  m_d = d = FASTUIDRAWnew TessellatedPathPrivate(ref_d->m_contours.size(),
-                                                 params);
-
+  m_d = d = FASTUIDRAWnew TessellatedPathPrivate(ref_d->m_contours.size(), params);
   if (ref_d->m_contours.empty())
     {
       return;
