@@ -29,6 +29,16 @@
 
 namespace
 {
+  enum
+    {
+      /* The starting data is floating point which has
+       * a 23-bit significand; going past 20 sub-divisions
+       * will likely start to produce numerical garbage
+       * as there are then so few bits left for accuracy.
+       */
+      MAX_REFINE_RECURSION_LIMIT = 20
+    };
+
   inline
   float
   compute_distance(const fastuidraw::vec2 &a,
@@ -736,7 +746,7 @@ resume_tessellation_worker(const T &node,
    * will likely start to produce numerical garbage
    * as there are then so few bits left for accuracy.
    */
-  if (recurse_level > 20)
+  if (recurse_level > MAX_REFINE_RECURSION_LIMIT)
     {
       dst->push_back(node);
     }
@@ -1280,7 +1290,9 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
       unsigned int needed_size;
       vec2 prev_pt;
 
-      needed_size = detail::number_segments_for_tessellation(d->m_radius, t_abs(d->m_angle_speed), tess_params);
+      needed_size = detail::number_segments_for_tessellation(d->m_radius,
+                                                             t_abs(d->m_angle_speed),
+                                                             tess_params);
       delta_angle = d->m_angle_speed / static_cast<float>(needed_size);
 
       a = d->m_start_angle + delta_angle;
@@ -1693,35 +1705,34 @@ tessellation(const fastuidraw::Path &path, float max_distance)
       return m_data.back();
     }
 
-  TessellatedPathRef ref;
   float current_max_distance;
+  current_max_distance = m_data.back()->max_distance();
 
-  ref = m_data.back();
-  current_max_distance = ref->max_distance();
-
-  while(!m_done && ref->max_distance() > max_distance)
+  while(!m_done && m_data.back()->max_distance() > max_distance)
     {
       current_max_distance *= 0.5f;
-      while(!m_done && ref->max_distance() > current_max_distance)
+      while(!m_done && m_data.back()->max_distance() > current_max_distance)
         {
-          float last_tess;
+          TessellatedPathRef ref;
 
-          last_tess = ref->max_distance();
           m_refiner->refine_tessellation(current_max_distance, 1);
           ref = m_refiner->tessellated_path();
 
-          if (last_tess > ref->max_distance())
+          /* we only add a tessellation if it is finer than the last one
+           * added. However, we do not abort if it is not as sometimes
+           * (especially with arc-tessellation) more refinement can make
+           * the tessellation improve.
+           */
+          if (m_data.back()->max_distance() > ref->max_distance())
             {
               m_data.push_back(ref);
-
-              /*
-              std::cout << "Allow arcs = " << m_allow_arcs
-                        << "(max_segs = "  << ref->max_segments() << ", tess_factor = "
-                        << ref->max_distance()
-                        << "), aiming for " << current_max_distance << "\n";
-              */
             }
-          else
+
+          /* We set an absolute abort at MAX_REFINE_RECURSION_LIMIT
+           * which represents that after sub-dividing that much, one
+           * is just handling numerical garbage.
+           */
+          if (ref->max_recursion() > MAX_REFINE_RECURSION_LIMIT)
             {
               m_done = true;
               m_refiner = nullptr;
