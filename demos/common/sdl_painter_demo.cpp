@@ -631,7 +631,7 @@ init_gl(int w, int h)
   APPLY_PARAM(provide_auxiliary_image_buffer, m_provide_auxiliary_image_buffer);
   APPLY_PARAM(blending_type, m_blend_type);
 
-  if (!m_painter_optimal.value())
+  if (!m_painter_optimal.value() || m_provide_auxiliary_image_buffer.set_by_command_line())
     {
       bool use_cover_then_draw;
 
