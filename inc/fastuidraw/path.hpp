@@ -247,9 +247,9 @@ public:
       distance_to_line_segment(void) const = 0;
 
       /*!
-       * To be implemented by a derived class to compute an upper-bound
-       * for the distance from the curve restricted to the region to a
-       * given arc that connects the end points of the region.
+       * To be implemented by a derived class to compute an approximate
+       * upper-bound for the distance from the curve restricted to the
+       * region to a given arc.
        * \param arc_radius radius of the arc
        * \param center center of the circle of the arc
        * \param unit_vector_arc_middle unit vector from center to the midpoint of the arc

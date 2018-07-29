@@ -292,11 +292,7 @@ namespace
     BezierTessRegion(const BezierTessRegion *parent, bool is_region_start);
 
     explicit
-    BezierTessRegion(const std::vector<fastuidraw::vec2> &pts):
-      m_pts(pts),
-      m_start(0.0f),
-      m_end(1.0f)
-    {}
+    BezierTessRegion(const std::vector<fastuidraw::vec2> &pts);
 
     virtual
     float
@@ -340,7 +336,7 @@ namespace
                                  const fastuidraw::vec2 &B) const;
 
     float
-    distance_to_arc_raw(const ArcSegment &A) const;
+    distance_to_arc_raw(unsigned int depth, const ArcSegment &A) const;
 
     void
     create_children(void) const;
@@ -348,6 +344,7 @@ namespace
     mutable fastuidraw::reference_counted_ptr<BezierTessRegion> m_L, m_R;
     std::vector<fastuidraw::vec2> m_pts;
     float m_start, m_end;
+    int m_arc_distance_depth;
   };
 
   class BezierPrivate
@@ -901,7 +898,8 @@ produce_tessellation(const TessellatedPath::TessellationParams &tess_params,
 ///////////////////////////////////
 // BezierTessRegion methods
 BezierTessRegion::
-BezierTessRegion(const BezierTessRegion *parent, bool is_region_start)
+BezierTessRegion(const BezierTessRegion *parent, bool is_region_start):
+  m_arc_distance_depth(parent->m_arc_distance_depth)
 {
   float mid;
 
@@ -918,6 +916,14 @@ BezierTessRegion(const BezierTessRegion *parent, bool is_region_start)
       m_end = parent->m_end;
     }
 }
+
+BezierTessRegion::
+BezierTessRegion(const std::vector<fastuidraw::vec2> &pts):
+  m_pts(pts),
+  m_start(0.0f),
+  m_end(1.0f),
+  m_arc_distance_depth(fastuidraw::uint32_log2(pts.size()))
+{}
 
 void
 BezierTessRegion::
@@ -1000,9 +1006,7 @@ distance_to_arc(float arc_radius, fastuidraw::vec2 arc_center,
   A.m_circle_sector_center = unit_vector_arc_middle;
   A.m_circle_sector_cos_angle = cos_arc_angle;
 
-  create_children();
-  return fastuidraw::t_max(m_L->distance_to_arc_raw(A),
-                           m_R->distance_to_arc_raw(A));
+  return distance_to_arc_raw(m_arc_distance_depth, A);
 }
 
 float
@@ -1030,22 +1034,20 @@ distance_to_line_segment_raw(const fastuidraw::vec2 &A,
 
 float
 BezierTessRegion::
-distance_to_arc_raw(const ArcSegment &A) const
+distance_to_arc_raw(unsigned int depth, const ArcSegment &A) const
 {
   using namespace fastuidraw;
 
-  /* Recall that a Bezier curve is bounded by its convex
-   * hull. Thus an upper bound on the distance between
-   * an arc and the curve is just the maximum of the
-   * distances of each of the points (control and end
-   * points) to the arc.
-   */
-  float return_value(0.0f);
-  for (unsigned int i = 0, endi = m_pts.size(); i < endi; ++i)
+  create_children();
+  if (depth <= 1)
     {
-      return_value = t_max(return_value, A.distance(m_pts[i]));
+      return A.distance(m_L->back());
     }
-  return return_value;
+  else
+    {
+      return t_max(m_L->distance_to_arc_raw(depth - 1, A),
+		   m_R->distance_to_arc_raw(depth - 1, A));
+    }
 }
 
 ////////////////////////////////////
