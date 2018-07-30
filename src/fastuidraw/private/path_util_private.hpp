@@ -24,6 +24,7 @@
 #include <fastuidraw/painter/stroked_point.hpp>
 #include <fastuidraw/painter/arc_stroked_point.hpp>
 #include "bounding_box.hpp"
+#include "util_private.hpp"
 
 namespace fastuidraw
 {
@@ -111,6 +112,48 @@ namespace fastuidraw
                   c_array<PainterIndex> dst_indices,
                   unsigned int &index_offset,
                   bool is_join);
+
+    inline
+    void
+    pack_arc_join(ArcStrokedPoint pt, unsigned int count,
+                  vec2 n_start, vec2 n_end,
+                  unsigned int depth,
+                  std::vector<PainterAttribute> &dst_pts,
+                  std::vector<PainterIndex> &dst_indices,
+                  bool is_join)
+    {
+      unsigned int num_verts, vertex_offset(dst_pts.size());
+      unsigned int num_indices, index_offset(dst_indices.size());
+
+      compute_arc_join_size(count, &num_verts, &num_indices);
+      dst_pts.resize(num_verts + vertex_offset);
+      dst_indices.resize(num_indices + index_offset);
+      pack_arc_join(pt, count, n_start, n_end, depth,
+                    make_c_array(dst_pts), vertex_offset,
+                    make_c_array(dst_indices), index_offset,
+                    is_join);
+    }
+
+    inline
+    void
+    pack_arc_join(ArcStrokedPoint pt, unsigned int count,
+                  vec2 n_start, float delta_angle, vec2 n_end,
+                  unsigned int depth,
+                  std::vector<PainterAttribute> &dst_pts,
+                  std::vector<PainterIndex> &dst_indices,
+                  bool is_join)
+    {
+      unsigned int num_verts, vertex_offset(dst_pts.size());
+      unsigned int num_indices, index_offset(dst_indices.size());
+
+      compute_arc_join_size(count, &num_verts, &num_indices);
+      dst_pts.resize(num_verts + vertex_offset);
+      dst_indices.resize(num_indices + index_offset);
+      pack_arc_join(pt, count, n_start, delta_angle, n_end, depth,
+                    make_c_array(dst_pts), vertex_offset,
+                    make_c_array(dst_indices), index_offset,
+                    is_join);
+    }
 
     void
     add_triangle(PainterIndex v0, PainterIndex v1, PainterIndex v2,
