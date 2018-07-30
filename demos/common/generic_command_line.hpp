@@ -56,13 +56,7 @@ class command_line_argument;
  */
 class command_line_register:fastuidraw::noncopyable
 {
-private:
-  friend class command_line_argument;
-
-  std::vector<command_line_argument*> m_children;
-
 public:
-
   command_line_register(void)
   {}
 
@@ -81,8 +75,9 @@ public:
   void
   print_detailed_help(std::ostream&) const;
 
-
-
+private:
+  friend class command_line_argument;
+  std::vector<command_line_argument*> m_children;
 };
 
 //!\class command_line_argument
@@ -92,15 +87,7 @@ public:
  */
 class command_line_argument:fastuidraw::noncopyable
 {
-private:
-
-  friend class command_line_register;
-
-  int m_location;
-  command_line_register *m_parent;
-
 public:
-
   explicit
   command_line_argument(command_line_register &parent):
     m_parent(&parent)
@@ -169,6 +156,11 @@ public:
   static
   std::string
   tabs_to_spaces(const std::string &pin);
+
+private:
+  friend class command_line_register;
+  int m_location;
+  command_line_register *m_parent;
 };
 
 /*
@@ -205,6 +197,7 @@ public:
 private:
   std::string m_label;
 };
+
 /*
   not a command line option, but prints an about
  */
@@ -240,9 +233,6 @@ private:
   std::string m_label;
 };
 
-
-
-
 template<typename T>
 void
 readvalue_from_string(T &value,
@@ -251,7 +241,6 @@ readvalue_from_string(T &value,
   std::istringstream istr(value_string);
   istr >> value;
 }
-
 
 template<>
 inline
@@ -262,21 +251,20 @@ readvalue_from_string(std::string &value,
   value=value_string;
 }
 
-
 template<>
 inline
 void
 readvalue_from_string(bool &value, const std::string &value_string)
 {
-  if (value_string==std::string("on")
-      || value_string==std::string("true"))
+  if (value_string == std::string("on")
+      || value_string == std::string("true"))
     {
-      value=true;
+      value = true;
     }
   else if (value_string==std::string("off")
            || value_string==std::string("false"))
     {
-      value=false;
+      value = false;
     }
 }
 
@@ -381,7 +369,6 @@ public:
     m_value(v),
     m_label_set(L)
   {}
-
 };
 
 
@@ -435,18 +422,17 @@ public:
     std::string::const_iterator iter;
     int argc(argv.size());
 
-    iter=std::find(str.begin(), str.end(), '=');
-    if (iter==str.end())
+    iter = std::find(str.begin(), str.end(), '=');
+    if (iter == str.end())
       {
-        iter=std::find(str.begin(), str.end(), ':');
+        iter = std::find(str.begin(), str.end(), ':');
       }
 
-    if (iter!=str.end() && m_name==std::string(str.begin(), iter) )
+    if (iter != str.end() && m_name == std::string(str.begin(), iter) )
       {
         std::string val(iter+1, str.end());
 
         readvalue_from_string(m_value, val);
-
         if (m_print_at_set)
           {
             std::cout << "\n\t" << m_name
@@ -454,11 +440,11 @@ public:
             writevalue_to_stream(m_value, std::cout);
           }
 
-        m_set_by_command_line=true;
+        m_set_by_command_line = true;
         on_set_by_command_line();
         return 1;
       }
-    else if (location<argc-1 && str==m_name)
+    else if (location < argc-1 && str == m_name)
       {
         const std::string &val(argv[location+1]);
 
@@ -470,11 +456,10 @@ public:
                       << " set to ";
             writevalue_to_stream(m_value, std::cout);
           }
-        m_set_by_command_line=true;
+        m_set_by_command_line = true;
         on_set_by_command_line();
         return 2;
       }
-
     return 0;
   }
 
@@ -506,6 +491,12 @@ public:
     return m_value;
   }
 
+  const std::string&
+  name(void) const
+  {
+    return m_name;
+  }
+
 private:
   std::string m_name;
   std::string m_description;
@@ -518,7 +509,6 @@ template<typename T>
 class enumerated_command_line_argument_value:public command_line_argument
 {
 public:
-
   enumerated_command_line_argument_value(T v, const enumerated_string_type<T> &L,
                                          const std::string &nm, const std::string &desc,
                                          command_line_register &p,
@@ -550,7 +540,7 @@ public:
     ostr_desc << desc << " Possible values:\n\n";
     for(iter = m_value.m_label_set.m_value_Ts.begin(),
           end = m_value.m_label_set.m_value_Ts.end();
-        iter!=end; ++iter)
+        iter != end; ++iter)
       {
         const std::list<std::string> &contents(iter->second.values());
         for (std::list<std::string>::const_iterator siter = contents.begin();
@@ -597,7 +587,6 @@ public:
         if (iter != m_value.m_label_set.m_value_strings.end())
           {
             m_value.m_value = iter->second;
-
             if (m_print_at_set)
               {
                 std::cout << "\n\t" << m_name
@@ -625,7 +614,6 @@ public:
           }
         return 2;
       }
-
     return 0;
   }
 
@@ -657,10 +645,15 @@ public:
     return m_value.m_value;
   }
 
+  const std::string&
+  name(void) const
+  {
+    return m_name;
+  }
+
 private:
   std::string m_name;
   std::string m_description;
   bool m_set_by_command_line, m_print_at_set;
   enumerated_type<T> m_value;
-
 };
