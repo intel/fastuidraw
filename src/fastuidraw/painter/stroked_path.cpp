@@ -1647,6 +1647,8 @@ fill_data_worker(const StrokedPathSubset *e,
       FASTUIDRAWassert(e->child(1) != nullptr);
       FASTUIDRAWassert(e->non_closing_edges().m_src.empty());
       FASTUIDRAWassert(e->closing_edges().m_src.empty());
+      FASTUIDRAWassert(e->non_closing_edges().m_src.empty());
+      FASTUIDRAWassert(e->closing_edges().m_src.empty());
 
       fill_data_worker(e->child(0), attribute_data, index_data,
                        attribute_chunks, index_chunks, zranges, index_adjusts);
@@ -1688,9 +1690,6 @@ build_chunk(const EdgeRanges &edge,
 
   if (!edge.m_src.empty())
     {
-      /* these elements are drawn AFTER the child elements,
-       * therefor they need to have a smaller depth
-       */
       unsigned int d = edge.m_depth_range.m_end - 1;
       for(unsigned int k = 0,
             v = edge.m_vertex_data_range.m_begin,
