@@ -54,7 +54,9 @@ public:
    * \brief
    * A Subset represents a handle to a portion of a FilledPath.
    * The handle is invalid once the FilledPath from which it
-   * comes goes out of scope. Do not save these handle values.
+   * comes goes out of scope. Do not save these handle values
+   * without also saving a handle of the FilledPath from which
+   * they come.
    */
   class Subset
   {
@@ -102,7 +104,7 @@ public:
     winding_numbers(void) const;
 
     /*!
-     * Returns the path of the bounding box.
+     * Returns the bounding box realized as a \ref Path.
      */
     const Path&
     bounding_path(void) const;
@@ -199,7 +201,7 @@ public:
    *                      Subset::painter_data() have no more than
    *                      max_index_cnt attributes.
    * \param[out] dst location to which to write the \ref Subset object values
-   * \returns the number of chunks that intersect the clipping region,
+   * \returns the number of Subset objects that intersect the clipping region,
    *          that number is guarnanteed to be no more than number_subsets().
    *
    */
