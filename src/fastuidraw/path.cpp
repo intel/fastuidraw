@@ -292,7 +292,10 @@ namespace
     BezierTessRegion(const BezierTessRegion *parent, bool is_region_start);
 
     explicit
-    BezierTessRegion(const std::vector<fastuidraw::vec2> &pts);
+    BezierTessRegion(fastuidraw::BoundingBox<float> &bb,
+                     const fastuidraw::vec2 &start,
+                     fastuidraw::c_array<const fastuidraw::vec2> ct,
+                     const fastuidraw::vec2 &end);
 
     virtual
     float
@@ -330,6 +333,12 @@ namespace
       return m_pts.back();
     }
 
+    const std::vector<fastuidraw::vec2>&
+    pts(void) const
+    {
+      return m_pts;
+    }
+
   private:
     float
     distance_to_line_segment_raw(const fastuidraw::vec2 &A,
@@ -350,12 +359,8 @@ namespace
   class BezierPrivate
   {
   public:
-    void
-    init(void);
-
     fastuidraw::BoundingBox<float> m_bb;
     fastuidraw::reference_counted_ptr<BezierTessRegion> m_start_region;
-    std::vector<fastuidraw::vec2> m_pts;
   };
 
   class ArcPrivate
@@ -797,21 +802,6 @@ resume_tessellation_worker(const T &node,
     }
 }
 
-////////////////////////////////////////
-// BezierPrivate methods
-void
-BezierPrivate::
-init(void)
-{
-  FASTUIDRAWassert(!m_pts.empty());
-
-  for(const fastuidraw::vec2 &pt : m_pts)
-    {
-      m_bb.union_point(pt);
-    }
-  m_start_region = FASTUIDRAWnew BezierTessRegion(m_pts);
-}
-
 ////////////////////////////////////////////
 // fastuidraw::PathContour::interpolator_base methods
 fastuidraw::PathContour::interpolator_base::
@@ -924,12 +914,27 @@ BezierTessRegion(const BezierTessRegion *parent, bool is_region_start):
 }
 
 BezierTessRegion::
-BezierTessRegion(const std::vector<fastuidraw::vec2> &pts):
-  m_pts(pts),
+BezierTessRegion(fastuidraw::BoundingBox<float> &bb,
+                 const fastuidraw::vec2 &start,
+                 fastuidraw::c_array<const fastuidraw::vec2> ct,
+                 const fastuidraw::vec2 &end):
   m_start(0.0f),
-  m_end(1.0f),
-  m_arc_distance_depth(fastuidraw::uint32_log2(pts.size()))
-{}
+  m_end(1.0f)
+{
+  m_pts.reserve(ct.size() + 2);
+  m_pts.push_back(start);
+  for (const auto &pt : ct)
+    {
+      m_pts.push_back(pt);
+    }
+  m_pts.push_back(end);
+  m_arc_distance_depth = fastuidraw::uint32_log2(m_pts.size());
+
+  for(const fastuidraw::vec2 &pt : m_pts)
+    {
+      bb.union_point(pt);
+    }
+}
 
 void
 BezierTessRegion::
@@ -1064,13 +1069,11 @@ bezier(const reference_counted_ptr<const interpolator_base> &start,
   interpolator_generic(start, end, tp)
 {
   BezierPrivate *d;
+  vecN<vec2, 1> ctl(ct);
+
   d = FASTUIDRAWnew BezierPrivate();
+  d->m_start_region = FASTUIDRAWnew BezierTessRegion(d->m_bb, start_pt(), ctl, end_pt());
   m_d = d;
-  d->m_pts.resize(3);
-  d->m_pts[0] = start_pt();
-  d->m_pts[1] = ct;
-  d->m_pts[2] = end_pt();
-  d->init();
 }
 
 fastuidraw::PathContour::bezier::
@@ -1079,30 +1082,24 @@ bezier(const reference_counted_ptr<const interpolator_base> &start, const vec2 &
   interpolator_generic(start, end, tp)
 {
   BezierPrivate *d;
+  vecN<vec2, 2> ctl(ct1, ct2);
+
   d = FASTUIDRAWnew BezierPrivate();
+  d->m_start_region = FASTUIDRAWnew BezierTessRegion(d->m_bb, start_pt(), ctl, end_pt());
   m_d = d;
-  d->m_pts.resize(4);
-  d->m_pts[0] = start_pt();
-  d->m_pts[1] = ct1;
-  d->m_pts[2] = ct2;
-  d->m_pts[3] = end_pt();
-  d->init();
 }
 
 fastuidraw::PathContour::bezier::
 bezier(const reference_counted_ptr<const interpolator_base> &start,
-       c_array<const vec2> control_pts,
+       c_array<const vec2> ctl,
        const vec2 &end, enum PathEnums::edge_type_t tp):
   interpolator_generic(start, end, tp)
 {
   BezierPrivate *d;
+
   d = FASTUIDRAWnew BezierPrivate();
+  d->m_start_region = FASTUIDRAWnew BezierTessRegion(d->m_bb, start_pt(), ctl, end_pt());
   m_d = d;
-  d->m_pts.resize(control_pts.size() + 2);
-  std::copy(control_pts.begin(), control_pts.end(), d->m_pts.begin() + 1);
-  d->m_pts.front() = start_pt();
-  d->m_pts.back() = end;
-  d->init();
 }
 
 fastuidraw::PathContour::bezier::
@@ -1129,7 +1126,7 @@ is_flat(void) const
 {
   BezierPrivate *d;
   d = static_cast<BezierPrivate*>(m_d);
-  return d->m_pts.size() <= 2;
+  return d->m_start_region->pts().size() <= 2;
 }
 
 void
@@ -1180,7 +1177,7 @@ minimum_tessellation_recursion(void) const
   BezierPrivate *d;
   d = static_cast<BezierPrivate*>(m_d);
 
-  return 1 + uint32_log2(d->m_pts.size());
+  return 1 + uint32_log2(d->m_start_region->pts().size());
 }
 
 //////////////////////////////////////
