@@ -714,7 +714,7 @@ namespace
     std::vector<int> m_stroke_index_adjusts;
     std::vector<const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>* > m_stroke_shaders_pass1;
     std::vector<const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader>* > m_stroke_shaders_pass2;
-    fastuidraw::StrokedPath::ChunkSet m_stroke_chunk_set;
+    std::vector<unsigned int> m_stroked_subsets;
     fastuidraw::StrokedPath::ScratchSpace m_stroked_path_scratch;
     fastuidraw::StrokedCapsJoins::ChunkSet m_stroke_caps_joins_chunk_set;
     fastuidraw::StrokedCapsJoins::ScratchSpace m_stroked_caps_joins_scratch;
@@ -798,8 +798,9 @@ namespace
                     bool join_use_arc_shaders,
                     bool caps_use_arc_shaders,
                     const fastuidraw::PainterData &pdraw,
-                    const fastuidraw::PainterAttributeData *edge_data,
-                    fastuidraw::c_array<const unsigned int> edge_chunks,
+                    const fastuidraw::StrokedPath *stroked_path,
+                    fastuidraw::c_array<const unsigned int> stroked_subset_ids,
+                    unsigned int stroked_path_chunk,
                     const fastuidraw::PainterAttributeData *cap_data,
                     fastuidraw::c_array<const unsigned int> cap_chunks,
                     const fastuidraw::PainterAttributeData* join_data,
@@ -1561,14 +1562,13 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
       return;
     }
 
-  const PainterAttributeData *edge_data(nullptr), *cap_data(nullptr), *join_data(nullptr);
+  const PainterAttributeData *cap_data(nullptr), *join_data(nullptr);
   bool is_miter_join;
   const PainterShaderData::DataBase *raw_data;
   const StrokedCapsJoins &caps_joins(path.caps_joins());
   bool edge_arc_shader(path.has_arcs()), cap_arc_shader(false), join_arc_shader(false);
 
   raw_data = draw.m_item_shader_data.data().data_base();
-  edge_data = &path.edges();
   if (!close_contours)
     {
       switch(cp)
@@ -1642,16 +1642,20 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
   float pixels_additional_room(0.0f), item_space_additional_room(0.0f);
   shader.stroking_data_selector()->stroking_distances(raw_data, &pixels_additional_room, &item_space_additional_room);
 
-  path.compute_chunks(m_work_room.m_stroked_path_scratch,
-                      m_clip_store.current(),
-                      m_clip_rect_state.item_matrix(),
-                      m_one_pixel_width,
-                      pixels_additional_room,
-                      item_space_additional_room,
-                      close_contours,
-                      m_max_attribs_per_block,
-                      m_max_indices_per_block,
-                      m_work_room.m_stroke_chunk_set);
+  unsigned int subset_count;
+  m_work_room.m_stroked_subsets.resize(path.number_subsets());
+
+  subset_count = path.select_subsets(m_work_room.m_stroked_path_scratch,
+                                     m_clip_store.current(),
+                                     m_clip_rect_state.item_matrix(),
+                                     m_one_pixel_width,
+                                     pixels_additional_room,
+                                     item_space_additional_room,
+                                     m_max_attribs_per_block,
+                                     m_max_indices_per_block,
+                                     make_c_array(m_work_room.m_stroked_subsets));
+  FASTUIDRAWassert(subset_count <= m_work_room.m_stroked_subsets.size());
+  m_work_room.m_stroked_subsets.resize(subset_count);
 
   caps_joins.compute_chunks(m_work_room.m_stroked_caps_joins_scratch,
                             m_clip_store.current(),
@@ -1666,7 +1670,8 @@ stroke_path_common(const fastuidraw::PainterStrokeShader &shader,
                             m_work_room.m_stroke_caps_joins_chunk_set);
 
   stroke_path_raw(shader, edge_arc_shader, join_arc_shader, cap_arc_shader, draw,
-                  edge_data, m_work_room.m_stroke_chunk_set.edge_chunks(),
+                  &path, make_c_array(m_work_room.m_stroked_subsets),
+                  close_contours ? StrokedPath::all_edges : StrokedPath::only_non_closing_edges,
                   cap_data, m_work_room.m_stroke_caps_joins_chunk_set.cap_chunks(),
                   join_data, m_work_room.m_stroke_caps_joins_chunk_set.join_chunks(),
                   with_anti_aliasing, call_back);
@@ -1679,8 +1684,9 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
                 bool join_use_arc_shaders,
                 bool cap_use_arc_shaders,
                 const fastuidraw::PainterData &pdraw,
-                const fastuidraw::PainterAttributeData *edge_data,
-                fastuidraw::c_array<const unsigned int> edge_chunks,
+                const fastuidraw::StrokedPath *stroked_path,
+                fastuidraw::c_array<const unsigned int> stroked_subset_ids,
+                unsigned int stroked_path_chunk,
                 const fastuidraw::PainterAttributeData *cap_data,
                 fastuidraw::c_array<const unsigned int> cap_chunks,
                 const fastuidraw::PainterAttributeData* join_data,
@@ -1700,9 +1706,9 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
       join_chunks = c_array<const unsigned int>();
     }
 
-  if (edge_data == nullptr)
+  if (stroked_path == nullptr)
     {
-      edge_chunks = c_array<const unsigned int>();
+      stroked_subset_ids = c_array<const unsigned int>();
     }
 
   if (cap_data == nullptr)
@@ -1716,7 +1722,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
    */
   unsigned int total_chunks;
 
-  total_chunks = cap_chunks.size() + edge_chunks.size() + join_chunks.size();
+  total_chunks = cap_chunks.size() + stroked_subset_ids.size() + join_chunks.size();
   if (total_chunks == 0)
     {
       return;
@@ -1754,16 +1760,18 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
   shaders_pass2 = make_c_array(m_work_room.m_stroke_shaders_pass2);
   current = 0;
 
-  if (!edge_chunks.empty())
+  if (!stroked_subset_ids.empty())
     {
-      stroking_items.add_element(edge_use_arc_shaders, shader, edge_chunks.size());
-      for(unsigned int E = 0; E < edge_chunks.size(); ++E, ++current)
+      stroking_items.add_element(edge_use_arc_shaders, shader, stroked_subset_ids.size());
+      for(unsigned int E = 0; E < stroked_subset_ids.size(); ++E, ++current)
         {
-          attrib_chunks[current] = edge_data->attribute_data_chunk(edge_chunks[E]);
-          index_chunks[current] = edge_data->index_data_chunk(edge_chunks[E]);
-          index_adjusts[current] = edge_data->index_adjust_chunk(edge_chunks[E]);
-          z_increments[current] = edge_data->z_range(edge_chunks[E]).difference();
-          start_zs[current] = edge_data->z_range(edge_chunks[E]).m_begin;
+          StrokedPath::Subset S(stroked_path->subset(stroked_subset_ids[E]));
+
+          attrib_chunks[current] = S.painter_data().attribute_data_chunk(stroked_path_chunk);
+          index_chunks[current] = S.painter_data().index_data_chunk(stroked_path_chunk);
+          index_adjusts[current] = S.painter_data().index_adjust_chunk(stroked_path_chunk);
+          z_increments[current] = S.painter_data().z_range(stroked_path_chunk).difference();
+          start_zs[current] = S.painter_data().z_range(stroked_path_chunk).m_begin;
           shaders_pass1[current] = stroking_items.current_shader_pass1();
           shaders_pass2[current] = stroking_items.current_shader_pass2();
           zinc_sum += z_increments[current];
