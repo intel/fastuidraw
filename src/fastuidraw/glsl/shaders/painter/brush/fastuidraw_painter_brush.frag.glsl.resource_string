@@ -243,7 +243,7 @@ fastuidraw_image_of_bindless(in vec2 texel_coord, in uint image_filter, in float
     }
   else if (image_filter == uint(fastuidraw_shader_image_filter_linear))
     {
-      vec2 recip_sz = 1.0 / textureSize(im, 0);
+      vec2 recip_sz = 1.0 / vec2(textureSize(im, 0));
       image_color = textureLod(im, texel_coord * recip_sz, lod);
     }
   else
