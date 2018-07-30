@@ -490,6 +490,16 @@ public:
   }
 
   /*!
+   * Set the value returned by depth().
+   */
+  void
+  depth(const uint32_t v)
+  {
+    m_packed_data &= ~depth_mask;
+    m_packed_data |= pack_bits(depth_bit0, depth_num_bits, v);
+  }
+
+  /*!
    * Has value 0 or 1. If the value is 0, then
    * the point is on the path. If the value has
    * absolute value 1, then indicates a point that
