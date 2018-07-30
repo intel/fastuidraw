@@ -381,6 +381,16 @@ public:
   }
 
   /*!
+   * Set the value returned by depth().
+   */
+  void
+  depth(const uint32_t v)
+  {
+    m_packed_data &= ~depth_mask;
+    m_packed_data |= pack_bits(depth_bit0, depth_num_bits, v);
+  }
+
+  /*!
    * Pack the data of this \ref ArcStrokedPoint into a \ref
    * PainterAttribute. The packing is as follows:
    * - PainterAttribute::m_attrib0 .xy -> \ref m_position (float)
