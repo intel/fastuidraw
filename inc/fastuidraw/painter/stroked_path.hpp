@@ -54,6 +54,62 @@ class StrokedPath:
 {
 public:
   /*!
+   * Chunk enumeration for those PainterAttributeData
+   * objects returned by Subset::painter_data().
+   */
+  enum chunk_selection
+    {
+      /*!
+       * Select the chunk that holds both closing and
+       * non-closing edges of the StrokedPath.
+       */
+      all_edges = 0,
+
+      /*!
+       * Select the chunk that holds the edges of
+       * ONLY the non-closing edges of the StrokedPath
+       */
+      only_non_closing_edges,
+    };
+
+  /*!
+   * \brief
+   * A Subset represents a handle to a portion of a StrokedPath.
+   * The handle is invalid once the StrokedPath from which it
+   * comes goes out of scope. Do not save these handle values
+   * without also saving a handle of the StrokedPath from which
+   * they come.
+   */
+  class Subset
+  {
+  public:
+    /*!
+     * Returns the PainterAttributeData to draw the triangles
+     * for the portion of the StrokedPath the Subset represents.
+     * Note: the data is packed with ArcStrokedPoint::pack()
+     * if StrokedPath::has_arcs() returns true, otherwise the
+     * data is packed with StrokedPoint::pack(). The values of
+     * \ref chunk_selection are to be used to selects chunks.
+     */
+    const PainterAttributeData&
+    painter_data(void) const;
+
+    /*!
+     * Returns the bounding box realized as a \ref Path.
+     */
+    const Path&
+    bounding_path(void) const;
+
+  private:
+    friend class StrokedPath;
+
+    explicit
+    Subset(void *d);
+
+    void *m_d;
+  };
+
+  /*!
    * \brief
    * Opaque object to hold work room needed for functions
    * of StrokedPath that require scratch space.
@@ -67,48 +123,6 @@ public:
     friend class StrokedPath;
     void *m_d;
   };
-
-  /*!
-   * \brief
-   * Object to hold the output of a chunk query via compute_chunks().
-   */
-  class ChunkSet:fastuidraw::noncopyable
-  {
-  public:
-    ChunkSet(void);
-
-    ~ChunkSet();
-
-    /*!
-     * The list of chunks to take from StrokedPath::edges()
-     * that have visible content.
-     */
-    c_array<const unsigned int>
-    edge_chunks(void) const;
-
-  private:
-    friend class StrokedPath;
-    void *m_d;
-  };
-
-  /*!
-   * Enumeration to select the chunk of all edges of the closing
-   * edges or all edges of the non-closing edges of a StrokedPath.
-   */
-  enum chunk_selection
-    {
-      /*!
-       * Select the chunk that holds all the edges of
-       * ONLY the non-closing edges of the StrokedPath
-       */
-      all_non_closing = StrokedCapsJoins::all_non_closing,
-
-      /*!
-       * Select the chunk that holds all the edges of
-       * ONLY the closing edges of the StrokedPath
-       */
-      all_closing = StrokedCapsJoins::all_closing,
-    };
 
   /*!
    * Ctor. Construct a StrokedPath from the data
@@ -131,6 +145,18 @@ public:
   has_arcs(void) const;
 
   /*!
+   * Returns the number of Subset objects of the StrokedPath.
+   */
+  unsigned int
+  number_subsets(void) const;
+
+  /*!
+   * Return the named Subset object of the StrokedPath.
+   */
+  Subset
+  subset(unsigned int I) const;
+
+  /*!
    * Given a set of clip equations in clip coordinates
    * and a tranformation from local coordiante to clip
    * coordinates, compute what chunks are not completely
@@ -145,42 +171,24 @@ public:
    * \param item_space_additional_room amount in local coordinates to push clip
    *                              equations by to grab additional edges
    *                              draw the closing edges of each contour
-   * \param include_closing_edges if true include the chunks needed to
    * \param max_attribute_cnt only allow those chunks for which have no more
    *                          than max_attribute_cnt attributes
    * \param max_index_cnt only allow those chunks for which have no more
    *                      than max_index_cnt indices
-   * \param[out] dst location to which to write output
+   * \param[out] dst location to which to write the \ref Subset object values
+   * \returns the number of Subset objects that intersect the clipping region,
+   *          that number is guarnanteed to be no more than number_subsets().
    */
-  void
-  compute_chunks(ScratchSpace &scratch_space,
+  unsigned int
+  select_subsets(ScratchSpace &scratch_space,
                  c_array<const vec3> clip_equations,
                  const float3x3 &clip_matrix_local,
                  const vec2 &recip_dimensions,
                  float pixels_additional_room,
                  float item_space_additional_room,
-                 bool include_closing_edges,
                  unsigned int max_attribute_cnt,
                  unsigned int max_index_cnt,
-                 ChunkSet &dst) const;
-
-  /*!
-   * Returns the data to draw the edges of a stroked path.
-   * Note: the data is packed with ArcStrokedPoint::pack()
-   * if has_arcs() returns true, otherwise the data is
-   * packed with StrokedPoint::pack().
-   */
-  const PainterAttributeData&
-  edges(void) const;
-
-  /*!
-   * Return the chunk to feed to edges() that holds all
-   * the edges of the closing edges or all the edges
-   * of the non-closing edges.
-   * \param c select edges of closing or non-closing edges
-   */
-  unsigned int
-  chunk_of_edges(enum chunk_selection c) const;
+                 c_array<unsigned int> dst) const;
 
   /*!
    * Returns the StrokedCapsJoins of the StrokedPath that
