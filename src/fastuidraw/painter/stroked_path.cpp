@@ -316,7 +316,7 @@ namespace
     fastuidraw::Path m_bounding_path;
     fastuidraw::PainterAttributeData *m_painter_data;
     unsigned int m_num_attributes, m_num_indices;
-    bool m_sizes_ready, m_has_arcs;
+    bool m_sizes_ready, m_ready, m_has_arcs;
     SubPath *m_sub_path;
   };
 
@@ -1060,6 +1060,7 @@ SubsetPrivate(int recursion_depth, SubPath *data,
   m_num_attributes(0),
   m_num_indices(0),
   m_sizes_ready(false),
+  m_ready(false),
   m_has_arcs(data->has_arcs()),
   m_sub_path(nullptr)
 {
@@ -1124,18 +1125,19 @@ void
 SubsetPrivate::
 make_ready(void)
 {
-  if (m_painter_data == nullptr)
+  if (!m_ready)
     {
       if (m_sub_path != nullptr)
         {
           make_ready_from_sub_path();
+          FASTUIDRAWassert(m_painter_data != nullptr);
         }
       else
         {
           make_ready_from_children();
         }
     }
-  FASTUIDRAWassert(m_painter_data != nullptr);
+  FASTUIDRAWassert(m_ready);
 }
 
 void
@@ -1151,6 +1153,32 @@ make_ready_from_children(void)
 
   m_children[0]->make_ready();
   m_children[1]->make_ready();
+  m_ready = true;
+
+  if (m_children[0]->m_painter_data == nullptr
+      || m_children[1]->m_painter_data == nullptr)
+    {
+      return;
+    }
+
+  /* Do NOT allow merging if the depth requirements
+   * summed between the two children is too great.
+   */
+  const unsigned int arc_max_depth(FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(ArcStrokedPoint::depth_num_bits));
+  const unsigned int linear_max_depth(FASTUIDRAW_MAX_VALUE_FROM_NUM_BITS(StrokedPoint::depth_num_bits));
+  unsigned int needed_zrange;
+  bool mergable;
+
+  needed_zrange = m_children[0]->painter_data().z_range(StrokedPath::all_edges).difference()
+    + m_children[1]->painter_data().z_range(StrokedPath::all_edges).difference();
+
+  mergable = (m_has_arcs && needed_zrange < arc_max_depth)
+    || (!m_has_arcs && needed_zrange < linear_max_depth);
+
+  if (!mergable)
+    {
+      return;
+    }
 
   m_painter_data = FASTUIDRAWnew PainterAttributeData();
   if (m_has_arcs)
@@ -1185,6 +1213,7 @@ make_ready_from_sub_path(void)
   FASTUIDRAWassert(m_sub_path != nullptr);
   FASTUIDRAWassert(m_painter_data == nullptr);
 
+  m_ready = true;
   m_painter_data = FASTUIDRAWnew PainterAttributeData();
   if (m_has_arcs)
     {
@@ -1329,10 +1358,21 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
       && m_num_attributes <= max_attribute_cnt
       && m_num_indices <= max_index_cnt)
     {
-      dst[current] = m_ID;
-      ++current;
+      make_ready();
+
+      /* if this Subset has two children but is unable
+       * to merge them, then m_painter_data will still
+       * be nullptr after make_ready().
+       */
+      if (m_painter_data)
+        {
+          dst[current] = m_ID;
+          ++current;
+          return;
+        }
     }
-  else if (have_children())
+
+  if (have_children())
     {
       m_children[0]->select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
       m_children[1]->select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
