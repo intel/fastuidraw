@@ -69,11 +69,11 @@ namespace
     switch(v.m_v)
       {
       case fastuidraw::gl::PainterBackendGL::clipping_via_gl_clip_distance:
-        str << "gl_clip_distance";
+        str << "on";
         break;
 
       case fastuidraw::gl::PainterBackendGL::clipping_via_discard:
-        str << "discard";
+        str << "off";
         break;
 
       case fastuidraw::gl::PainterBackendGL::clipping_via_skip_color_write:
@@ -631,6 +631,8 @@ init_gl(int w, int h)
   APPLY_PARAM(provide_auxiliary_image_buffer, m_provide_auxiliary_image_buffer);
   APPLY_PARAM(blending_type, m_blend_type);
 
+#undef APPLY_PARAM
+
   if (!m_painter_optimal.value() || m_provide_auxiliary_image_buffer.set_by_command_line())
     {
       bool use_cover_then_draw;
@@ -684,48 +686,44 @@ init_gl(int w, int h)
     {
       std::cout << "\nPainterBackendGL configuration:\n";
 
-      #define LAZY(X) do {                                              \
-        std::cout << std::setw(40) << #X": " << std::setw(8)            \
+      #define LAZY_PARAM(X, Y) do {                                     \
+        std::cout << std::setw(40) << Y.name() << ": " << std::setw(8)	\
                   << m_backend->configuration_gl().X()                  \
                   << "  (requested " << m_painter_params.X() << ")\n";  \
       } while(0)
 
-      #define LAZY_ENUM(X) do {                                               \
-        std::cout << std::setw(40) << #X": " << std::setw(8)            \
+      #define LAZY_PARAM_ENUM(X, Y) do {				\
+        std::cout << std::setw(40) << Y.name() <<": " << std::setw(8)	\
                   << make_enum_wrapper(m_backend->configuration_gl().X()) \
                   << "  (requested " << make_enum_wrapper(m_painter_params.X()) \
                   << ")\n";                                             \
       } while(0)
 
-#define LAZY_ENUM(X) do {                                               \
-        std::cout << std::setw(40) << #X": " << std::setw(8)            \
-                  << make_enum_wrapper(m_backend->configuration_gl().X()) \
-                  << "  (requested " << make_enum_wrapper(m_painter_params.X()) \
-                  << ")\n";                                             \
-      } while(0)
+      LAZY_PARAM(alignment, m_painter_alignment);
+      LAZY_PARAM(attributes_per_buffer, m_painter_attributes_per_buffer);
+      LAZY_PARAM(indices_per_buffer, m_painter_indices_per_buffer);
+      LAZY_PARAM(data_blocks_per_store_buffer, m_painter_data_blocks_per_buffer);
+      LAZY_PARAM(number_pools, m_painter_number_pools);
+      LAZY_PARAM_ENUM(break_on_shader_change, m_painter_break_on_shader_change);
+      LAZY_PARAM_ENUM(clipping_type, m_use_hw_clip_planes);
+      LAZY_PARAM_ENUM(vert_shader_use_switch, m_uber_vert_use_switch);
+      LAZY_PARAM_ENUM(frag_shader_use_switch, m_uber_frag_use_switch);
+      LAZY_PARAM_ENUM(blend_shader_use_switch, m_uber_blend_use_switch);
+      LAZY_PARAM_ENUM(unpack_header_and_brush_in_frag_shader, m_unpack_header_and_brush_in_frag_shader);
+      LAZY_PARAM_ENUM(data_store_backing, m_data_store_backing);
+      LAZY_PARAM_ENUM(assign_layout_to_vertex_shader_inputs, m_assign_layout_to_vertex_shader_inputs);
+      LAZY_PARAM_ENUM(assign_layout_to_varyings, m_assign_layout_to_varyings);
+      LAZY_PARAM_ENUM(assign_binding_points, m_assign_binding_points);
+      LAZY_PARAM_ENUM(separate_program_for_discard, m_separate_program_for_discard);
+      LAZY_PARAM_ENUM(provide_auxiliary_image_buffer, m_provide_auxiliary_image_buffer);
+      LAZY_PARAM_ENUM(blending_type, m_blend_type);
+      std::cout << std::setw(40) << "default_stroke_shader_aa_type:"
+		<< std::setw(8) << make_enum_wrapper(m_backend->configuration_gl().default_stroke_shader_aa_type())
+		<< " (requested " << make_enum_wrapper(m_painter_params.default_stroke_shader_aa_type())
+		<< ")\n";
 
-      LAZY(attributes_per_buffer);
-      LAZY(indices_per_buffer);
-      LAZY(number_pools);
-      LAZY_ENUM(break_on_shader_change);
-      LAZY_ENUM(vert_shader_use_switch);
-      LAZY_ENUM(frag_shader_use_switch);
-      LAZY_ENUM(blend_shader_use_switch);
-      LAZY_ENUM(unpack_header_and_brush_in_frag_shader);
-      LAZY_ENUM(separate_program_for_discard);
-      LAZY(data_blocks_per_store_buffer);
-      LAZY_ENUM(data_store_backing);
-      LAZY_ENUM(clipping_type);
-      LAZY_ENUM(assign_layout_to_vertex_shader_inputs);
-      LAZY_ENUM(assign_layout_to_varyings);
-      LAZY_ENUM(assign_binding_points);
-      LAZY_ENUM(default_stroke_shader_aa_type);
-      LAZY_ENUM(blending_type);
-      LAZY_ENUM(provide_auxiliary_image_buffer);
-      LAZY(alignment);
-
-      #undef LAZY
-      #undef LAZY_ENUM
+      #undef LAZY_PARAM
+      #undef LAZY_ENUM_PARAM
     }
 
   if (m_print_painter_shader_ids.value())
