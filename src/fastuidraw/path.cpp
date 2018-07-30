@@ -394,6 +394,12 @@ namespace
                         float *out_max_distance);
 
   private:
+    unsigned int
+    recursion_allowed_size(unsigned int d);
+
+    void
+    update_recursion_depth(unsigned int num_points);
+
     ArcPrivate m_values;
     fastuidraw::vec2 m_start_pt, m_end_pt;
     unsigned int m_recursion_depth;
@@ -1222,6 +1228,37 @@ approximate_bounding_box(vec2 *out_min_bb, vec2 *out_max_bb) const
 
 ///////////////////////////////////////////
 // ArcRefiner methods
+unsigned int
+ArcRefiner::
+recursion_allowed_size(unsigned int d)
+{
+  using namespace fastuidraw;
+
+  const float pi(M_PI), two_pi(2.0f * pi);
+  float max_size_f;
+  const unsigned int max_d(MAX_ARC_REFINE_RECURSION_LIMIT);
+  unsigned int max_size;
+
+  d = t_min(d, max_d);
+  max_size_f = static_cast<float>(1u << d) / two_pi;
+  max_size_f *= t_abs(m_values.m_angle_speed);
+
+  max_size = static_cast<unsigned int>(max_size_f);
+  return t_max(max_size, 3u);
+}
+
+void
+ArcRefiner::
+update_recursion_depth(unsigned int num_points)
+{
+  const unsigned int max_d(MAX_ARC_REFINE_RECURSION_LIMIT);
+  while(m_recursion_depth <= max_d
+        && num_points > recursion_allowed_size(m_recursion_depth))
+    {
+      ++m_recursion_depth;
+    }
+}
+
 void
 ArcRefiner::
 resume_tessellation(const fastuidraw::TessellatedPath::TessellationParams &tess_params,
@@ -1242,35 +1279,28 @@ resume_tessellation(const fastuidraw::TessellatedPath::TessellationParams &tess_
   else
     {
       float a, da, delta_angle;
-      unsigned int needed_size, recursion_allowed_size;
       vec2 prev_pt;
+      unsigned int needed_size, max_size_allowed;
 
-      recursion_allowed_size = 1u << m_recursion_depth;
+      max_size_allowed = recursion_allowed_size(m_recursion_depth);
       needed_size = detail::number_segments_for_tessellation(m_values.m_radius,
                                                              t_abs(m_values.m_angle_speed),
                                                              tess_params);
-      if (needed_size > recursion_allowed_size)
+      if (needed_size > max_size_allowed)
         {
-          unsigned int max_size;
-
-          max_size = 1u << tess_params.m_max_recursion;
-          if (max_size < needed_size)
+          max_size_allowed = recursion_allowed_size(tess_params.m_max_recursion);
+          if (needed_size >= max_size_allowed)
             {
-              needed_size = max_size;
+              needed_size = max_size_allowed;
               m_recursion_depth = tess_params.m_max_recursion;
             }
           else
             {
-              m_recursion_depth = uint32_log2(needed_size);
+              update_recursion_depth(needed_size);
             }
         }
-      /* we restrict needed_size again. We do this here so that we can
-       * constintly lie to any callers if they try to refine too much.
-       */
-      needed_size = t_min(needed_size, 1u << MAX_ARC_REFINE_RECURSION_LIMIT);
 
       delta_angle = m_values.m_angle_speed / static_cast<float>(needed_size);
-
       a = m_values.m_start_angle + delta_angle;
       da = delta_angle;
       prev_pt = m_start_pt;
