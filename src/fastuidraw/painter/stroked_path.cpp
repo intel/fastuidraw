@@ -248,6 +248,12 @@ namespace
                    fastuidraw::c_array<unsigned int> dst);
 
     void
+    select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
+                                unsigned int max_attribute_cnt,
+                                unsigned int max_index_cnt,
+                                unsigned int &current);
+
+    void
     make_ready(void);
 
     const fastuidraw::Path&
@@ -294,12 +300,6 @@ namespace
                              unsigned int max_attribute_cnt,
                              unsigned int max_index_cnt,
                              unsigned int &current);
-
-    void
-    select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
-                                unsigned int max_attribute_cnt,
-                                unsigned int max_index_cnt,
-                                unsigned int &current);
 
     void
     make_ready_from_children(void);
@@ -2457,8 +2457,8 @@ select_subsets(ScratchSpace &scratch_space,
   ScratchSpacePrivate *scratch_space_ptr;
   unsigned int return_value;
 
-
   d = static_cast<StrokedPathPrivate*>(m_d);
+  FASTUIDRAWassert(dst.size() >= d->m_subsets.size());
   scratch_space_ptr = static_cast<ScratchSpacePrivate*>(scratch_space.m_d);
 
   return_value =  d->m_root->select_subsets(*scratch_space_ptr,
@@ -2470,6 +2470,22 @@ select_subsets(ScratchSpace &scratch_space,
                                             max_attribute_cnt,
                                             max_index_cnt,
                                             dst);
+  return return_value;
+}
+
+unsigned int
+fastuidraw::StrokedPath::
+select_subsets_no_culling(unsigned int max_attribute_cnt,
+                          unsigned int max_index_cnt,
+                          c_array<unsigned int> dst) const
+{
+  StrokedPathPrivate *d;
+  unsigned int return_value(0);
+
+  d = static_cast<StrokedPathPrivate*>(m_d);
+  FASTUIDRAWassert(dst.size() >= d->m_subsets.size());
+  d->m_root->select_subsets_all_unculled(dst, max_attribute_cnt,
+                                         max_index_cnt, return_value);
   return return_value;
 }
 
