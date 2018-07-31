@@ -200,9 +200,9 @@ public:
    * \param max_index_cnt only allow those \ref Subset objects for which
    *                      Subset::painter_data() have no more than
    *                      max_index_cnt attributes.
-   * \param[out] dst location to which to write the \ref Subset object values
-   * \returns the number of Subset objects that intersect the clipping region,
-   *          that number is guarnanteed to be no more than number_subsets().
+   * \param[out] dst location to which to write the \ref Subset ID values
+   * \returns the number of Subset object ID's written to dst, that
+   *          number is guaranteed to be no more than number_subsets().
    *
    */
   unsigned int
@@ -212,6 +212,24 @@ public:
                  unsigned int max_attribute_cnt,
                  unsigned int max_index_cnt,
                  c_array<unsigned int> dst) const;
+
+  /*!
+   * In contrast to select_subsets() which performs hierarchical
+   * culling against a set of clip equations, this routine performs
+   * no culling and returns the subsets needed to draw all of the
+   * FilledPath.
+   * \param max_attribute_cnt only allow those chunks for which have no more
+   *                          than max_attribute_cnt attributes
+   * \param max_index_cnt only allow those chunks for which have no more
+   *                      than max_index_cnt indices
+   * \param[out] dst location to which to write the \ref Subset ID values
+   * \returns the number of Subset object ID's written to dst, that
+   *          number is guaranteed to be no more than number_subsets().
+   */
+  unsigned int
+  select_subsets_no_culling(unsigned int max_attribute_cnt,
+                            unsigned int max_index_cnt,
+                            c_array<unsigned int> dst) const;
 private:
   void *m_d;
 };

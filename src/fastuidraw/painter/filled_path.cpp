@@ -974,6 +974,12 @@ namespace
                    fastuidraw::c_array<unsigned int> dst);
 
     void
+    select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
+                                unsigned int max_attribute_cnt,
+                                unsigned int max_index_cnt,
+                                unsigned int &current);
+
+    void
     make_ready(void);
 
     fastuidraw::c_array<const int>
@@ -1003,6 +1009,13 @@ namespace
       return *m_fuzz_painter_data;
     }
 
+    bool
+    have_children(void) const
+    {
+      FASTUIDRAWassert(bool(m_children[0]) == bool(m_children[1]));
+      return bool(m_children[0]);
+    }
+
     static
     SubsetPrivate*
     create_root_subset(SubPath *P, std::vector<SubsetPrivate*> &out_values);
@@ -1018,12 +1031,6 @@ namespace
                              unsigned int max_attribute_cnt,
                              unsigned int max_index_cnt,
                              unsigned int &current);
-
-    void
-    select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
-                                unsigned int max_attribute_cnt,
-                                unsigned int max_index_cnt,
-                                unsigned int &current);
 
     void
     make_ready_from_children(void);
@@ -2837,8 +2844,7 @@ select_subsets_implement(ScratchSpacePrivate &scratch,
     }
 
   //completely unclipped or no children
-  FASTUIDRAWassert((m_children[0] == nullptr) == (m_children[1] == nullptr));
-  if (unclipped || m_children[0] == nullptr)
+  if (unclipped || !have_children())
     {
       select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
       return;
@@ -2855,7 +2861,7 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
                             unsigned int max_index_cnt,
                             unsigned int &current)
 {
-  if (!m_sizes_ready && m_children[0] == nullptr && m_sub_path != nullptr)
+  if (!m_sizes_ready && !have_children() && m_sub_path != nullptr)
     {
       /* we are going to need the attributes because
        * the element will be selected.
@@ -2873,7 +2879,7 @@ select_subsets_all_unculled(fastuidraw::c_array<unsigned int> dst,
       dst[current] = m_ID;
       ++current;
     }
-  else if (m_children[0] != nullptr)
+  else if (have_children())
     {
       m_children[0]->select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
       m_children[1]->select_subsets_all_unculled(dst, max_attribute_cnt, max_index_cnt, current);
@@ -2931,7 +2937,6 @@ make_ready(void)
         }
     }
 }
-
 
 void
 SubsetPrivate::
@@ -3244,6 +3249,23 @@ select_subsets(ScratchSpace &work_room,
   return_value = d->m_root->select_subsets(*static_cast<ScratchSpacePrivate*>(work_room.m_d),
                                            clip_equations, clip_matrix_local,
                                            max_attribute_cnt, max_index_cnt, dst);
+
+  return return_value;
+}
+
+unsigned int
+fastuidraw::FilledPath::
+select_subsets_no_culling(unsigned int max_attribute_cnt,
+                          unsigned int max_index_cnt,
+                          c_array<unsigned int> dst) const
+{
+  FilledPathPrivate *d;
+  unsigned int return_value(0);
+
+  d = static_cast<FilledPathPrivate*>(m_d);
+  FASTUIDRAWassert(dst.size() >= d->m_subsets.size());
+  d->m_root->select_subsets_all_unculled(dst, max_attribute_cnt,
+                                         max_index_cnt, return_value);
 
   return return_value;
 }
