@@ -81,7 +81,17 @@ protected:
 
   virtual
   void
+  pre_draw_frame(void)
+  {}
+
+  virtual
+  void
   draw_frame(void)
+  {}
+
+  virtual
+  void
+  post_draw_frame(void)
   {}
 
   virtual
