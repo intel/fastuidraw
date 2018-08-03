@@ -7,63 +7,12 @@
 #include <fastuidraw/gl_backend/gl_program.hpp>
 #include <fastuidraw/gl_backend/gl_get.hpp>
 #include "sdl_demo.hpp"
+#include "command_line_list.hpp"
 #include "ImageLoader.hpp"
 #include "PanZoomTracker.hpp"
 #include "cycle_value.hpp"
 
 using namespace fastuidraw;
-
-
-class command_line_list:
-  public command_line_argument,
-  public std::set<std::string>
-{
-public:
-  command_line_list(const std::string &nm,
-                    const std::string &desc,
-                    command_line_register &p):
-    command_line_argument(p),
-    m_name(nm)
-  {
-    std::ostringstream ostr;
-    ostr << "\n\t" << m_name << " value"
-         << format_description_string(m_name, desc);
-    m_description = tabs_to_spaces(ostr.str());
-  }
-
-  virtual
-  int
-  check_arg(const std::vector<std::string> &argv, int location)
-  {
-    int argc(argv.size());
-    if (location + 1 < argc && argv[location] == m_name)
-      {
-        insert(argv[location+1]);
-        std::cout << "\n\t" << m_name << " \""
-                  << argv[location+1] << "\" ";
-        return 2;
-      }
-    return 0;
-  }
-
-  virtual
-  void
-  print_command_line_description(std::ostream &ostr) const
-  {
-    ostr << "[" << m_name << " value] ";
-  }
-
-  virtual
-  void
-  print_detailed_description(std::ostream &ostr) const
-  {
-    ostr << m_description;
-  }
-
-private:
-  std::string m_name, m_description;
-};
-
 
 class image_test:public sdl_demo
 {
@@ -447,9 +396,9 @@ private:
     m_atlas = FASTUIDRAWnew gl::ImageAtlasGL(params);
     m_slack.value() = std::max(0, m_slack.value());
 
-    for(command_line_list::iterator iter = m_images.begin(); iter != m_images.end(); ++iter)
+    for(const auto &S : m_images)
       {
-        add_images(*iter);
+        add_images(S);
       }
 
     if (m_image_handles.empty())
@@ -708,7 +657,7 @@ private:
     PanZoomTrackerSDLEvent m_zoomer;
   };
 
-  command_line_list m_images;
+  command_line_list<std::string> m_images;
   command_line_argument_value<bool> m_print_loaded_image_list;
   command_line_argument_value<int> m_slack;
   command_line_argument_value<int> m_log2_color_tile_size, m_log2_num_color_tiles_per_row_per_col;
