@@ -596,7 +596,9 @@ main(int argc, char **argv)
           render_time.restart();
         }
 
+      pre_draw_frame();
       draw_frame();
+      post_draw_frame();
       swap_buffers();
       ++num_frames;
 
