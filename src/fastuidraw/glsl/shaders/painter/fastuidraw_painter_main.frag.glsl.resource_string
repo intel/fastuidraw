@@ -16,14 +16,6 @@
  *
  */
 
-
-#ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
-  uint fastuidraw_frag_shader;
-  uint fastuidraw_frag_shader_data_location;
-  uint fastuidraw_blend_shader;
-  uint fastuidraw_blend_shader_data_location;
-#endif
-
 #ifdef FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND
   layout(location = 0, index = 0) out vec4 fastuidraw_final_color0;
   layout(location = 0, index = 1) out vec4 fastuidraw_final_color1;
@@ -38,7 +30,7 @@
 #ifdef FASTUIDRAW_PAINTER_CLIPPING_USE_DISCARD
 
   void
-  apply_clipping(void)
+  fastuidraw_apply_clipping(void)
   {
     /* hardware clipping is slightly different in output (on GEN atleast)
        that using discard style clipping. The cause is because hardware
@@ -65,7 +57,7 @@
   bool fastuidraw_fragment_discarded;
 
   void
-  apply_clipping(void)
+  fastuidraw_apply_clipping(void)
   {
     float epsilon = 0.5 * fastuidraw_viewport_recip_pixels_magnitude;
     fastuidraw_fragment_discarded = (fastuidraw_clip_plane0 < epsilon || fastuidraw_clip_plane1 < epsilon
@@ -75,7 +67,7 @@
 #else
 
   void
-  apply_clipping(void)
+  fastuidraw_apply_clipping(void)
   {}
 
 #endif
@@ -90,7 +82,7 @@ main(void)
   pbrush_dx = dFdx(pbrush);
   pbrush_dy = dFdy(pbrush);
 
-  apply_clipping();
+  fastuidraw_apply_clipping();
 
   /* Please forgive me for placing an if() inside an #ifdef */
   FASTUIDRAW_BEGIN_AUX_LOCK;

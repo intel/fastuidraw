@@ -48,12 +48,6 @@ fastuidraw_apply_clipping(in vec3 p, in fastuidraw_clipping_data c)
   fastuidraw_clip3 = dot(c.clip3, p);
 }
 
-
-/* make the transformation matrix available to
-   vertex shader by making it global here.
- */
-mat3 fastuidraw_item_matrix;
-
 void
 main(void)
 {
