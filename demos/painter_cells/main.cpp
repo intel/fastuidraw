@@ -15,6 +15,7 @@
 #include "read_path.hpp"
 #include "ImageLoader.hpp"
 #include "colorstop_command_line.hpp"
+#include "command_line_list.hpp"
 #include "cycle_value.hpp"
 #include "text_helper.hpp"
 
@@ -30,56 +31,6 @@ compare_named_images(const named_image &lhs,
 {
   return lhs.second < rhs.second;
 }
-
-class command_line_list:
-  public command_line_argument,
-  public std::set<std::string>
-{
-public:
-  command_line_list(const std::string &nm,
-                    const std::string &desc,
-                    command_line_register &p):
-    command_line_argument(p),
-    m_name(nm)
-  {
-    std::ostringstream ostr;
-    ostr << "\n\t" << m_name << " value"
-         << format_description_string(m_name, desc);
-    m_description = tabs_to_spaces(ostr.str());
-  }
-
-  virtual
-  int
-  check_arg(const std::vector<std::string> &argv, int location)
-  {
-    int argc(argv.size());
-    if (location + 1 < argc && argv[location] == m_name)
-      {
-        insert(argv[location+1]);
-        std::cout << "\n\t" << m_name << " \""
-                  << argv[location+1] << "\" ";
-        return 2;
-      }
-    return 0;
-  }
-
-  virtual
-  void
-  print_command_line_description(std::ostream &ostr) const
-  {
-    ostr << "[" << m_name << " value] ";
-  }
-
-  virtual
-  void
-  print_detailed_description(std::ostream &ostr) const
-  {
-    ostr << m_description;
-  }
-
-private:
-  std::string m_name, m_description;
-};
 
 class painter_cells:public sdl_painter_demo
 {
@@ -125,9 +76,9 @@ private:
   command_line_argument_value<int> m_text_renderer_realized_pixel_size;
   command_line_argument_value<float> m_pixel_size;
   command_line_argument_value<float> m_fps_pixel_size;
-  command_line_list m_strings;
-  command_line_list m_files;
-  command_line_list m_images;
+  command_line_list<std::string> m_strings;
+  command_line_list<std::string> m_files;
+  command_line_list<std::string> m_images;
   command_line_argument_value<bool> m_use_bindless;
   command_line_argument_value<bool> m_draw_image_name;
   command_line_argument_value<int> m_num_background_colors;
@@ -407,19 +358,19 @@ derived_init(int w, int h)
   m_table_params.m_pixel_size = m_pixel_size.value();
 
   m_table_params.m_texts.reserve(m_strings.size() + m_files.size());
-  for(command_line_list::iterator iter = m_strings.begin(); iter != m_strings.end(); ++iter)
+  for(const auto &S : m_strings)
     {
-      m_table_params.m_texts.push_back(*iter);
+      m_table_params.m_texts.push_back(S);
     }
 
-  for(command_line_list::iterator iter = m_files.begin(); iter != m_files.end(); ++iter)
+  for(const auto &S : m_files)
     {
-      dump_file(*iter, m_table_params.m_texts);
+      dump_file(S, m_table_params.m_texts);
     }
 
-  for(command_line_list::iterator iter = m_images.begin(); iter != m_images.end(); ++iter)
+  for(const auto &S : m_images)
     {
-      add_images(*iter, m_table_params.m_images);
+      add_images(S, m_table_params.m_images);
     }
   std::sort(m_table_params.m_images.begin(),
             m_table_params.m_images.end(),
