@@ -268,6 +268,7 @@ configure_source_front_matter(void)
                                      ShaderSource::from_string);
     }
 
+  std::string glsl_version;
   #ifdef FASTUIDRAW_GL_USE_GLES
     {
       if (m_params.clipping_type() == clipping_via_gl_clip_distance)
@@ -278,23 +279,20 @@ configure_source_front_matter(void)
 
       if (m_ctx_properties.version() >= ivec2(3, 2))
         {
-          m_front_matter_vert
-            .specify_version("320 es");
+          glsl_version = "320 es";
           m_front_matter_frag
-            .specify_version("320 es")
             .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension)
             .specify_extension("GL_EXT_blend_func_extended", ShaderSource::enable_extension);
         }
       else
         {
-          std::string version;
           if (m_ctx_properties.version() >= ivec2(3, 1))
             {
-              version = "310 es";
+              glsl_version = "310 es";
             }
           else
             {
-              version = "300 es";
+              glsl_version = "300 es";
             }
 
           if (m_uber_shader_builder_params.assign_layout_to_varyings())
@@ -306,12 +304,10 @@ configure_source_front_matter(void)
             }
 
           m_front_matter_vert
-            .specify_version(version.c_str())
             .specify_extension("GL_EXT_texture_buffer", ShaderSource::enable_extension)
             .specify_extension("GL_OES_texture_buffer", ShaderSource::enable_extension);
 
           m_front_matter_frag
-            .specify_version(version.c_str())
             .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension)
             .specify_extension("GL_EXT_blend_func_extended", ShaderSource::enable_extension)
             .specify_extension("GL_EXT_texture_buffer", ShaderSource::enable_extension)
@@ -349,19 +345,15 @@ configure_source_front_matter(void)
 
       if (using_glsl43)
         {
-          m_front_matter_vert.specify_version("430");
-          m_front_matter_frag.specify_version("430");
+          glsl_version = "430";
         }
       else if (using_glsl42)
         {
-          m_front_matter_vert.specify_version("420");
-          m_front_matter_frag.specify_version("420");
+          glsl_version = "420";
         }
       else
         {
-          m_front_matter_vert.specify_version("330");
-          m_front_matter_frag.specify_version("330");
-
+          glsl_version = "330";
           if (m_uber_shader_builder_params.assign_layout_to_varyings())
             {
               m_front_matter_vert.specify_extension("GL_ARB_separate_shader_objects",
@@ -394,6 +386,15 @@ configure_source_front_matter(void)
         }
     }
   #endif
+
+  std::string tmp(m_params.glsl_version_override());
+  if (!tmp.empty())
+    {
+      glsl_version = t_max(tmp, glsl_version);
+    }
+
+  m_front_matter_vert.specify_version(glsl_version.c_str());
+  m_front_matter_frag.specify_version(glsl_version.c_str());
 
   switch(m_interlock_type)
     {

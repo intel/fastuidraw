@@ -265,6 +265,8 @@ namespace
     enum fastuidraw::PainterStrokeShader::type_t m_default_stroke_shader_aa_type;
     enum fastuidraw::gl::PainterBackendGL::blending_type_t m_blending_type;
     enum fastuidraw::gl::PainterBackendGL::auxiliary_buffer_t m_provide_auxiliary_image_buffer;
+
+    std::string m_glsl_version_override;
   };
 
 }
@@ -1237,6 +1239,25 @@ fastuidraw::gl::PainterBackendGL::ConfigurationGL::
   d = static_cast<ConfigurationGLPrivate*>(m_d);
   FASTUIDRAWdelete(d);
   m_d = nullptr;
+}
+
+fastuidraw::c_string
+fastuidraw::gl::PainterBackendGL::ConfigurationGL::
+glsl_version_override(void) const
+{
+  ConfigurationGLPrivate *d;
+  d = static_cast<ConfigurationGLPrivate*>(m_d);
+  return d->m_glsl_version_override.c_str();
+}
+
+fastuidraw::gl::PainterBackendGL::ConfigurationGL&
+fastuidraw::gl::PainterBackendGL::ConfigurationGL::
+glsl_version_override(c_string v)
+{
+  ConfigurationGLPrivate *d;
+  d = static_cast<ConfigurationGLPrivate*>(m_d);
+  d->m_glsl_version_override = (v) ? v : "";
+  return *this;
 }
 
 fastuidraw::gl::PainterBackendGL::ConfigurationGL&

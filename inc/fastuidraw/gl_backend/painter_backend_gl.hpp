@@ -439,6 +439,25 @@ namespace fastuidraw
         provide_auxiliary_image_buffer(enum auxiliary_buffer_t);
 
         /*!
+         * If a non-empty string, gives the GLSL version to be used
+         * by the uber-shaders. This value is (string) maxed with
+         * the computed GLSL version that is needed from the values
+         * of ConfigurationGL. Return value is valid until the next
+         * call to glsl_version_override(). Default value is an empty
+         * string.
+         */
+        c_string
+        glsl_version_override(void) const;
+
+        /*!
+         * Set the value returned by glsl_version_override(void) const.
+         * NOTE: the string is -copied-, thus it is legal for the passed
+         * string to be deallocated after the call.
+         */
+        ConfigurationGL&
+        glsl_version_override(c_string);
+
+        /*!
          * Set the values for optimal performance by quering the
          * GL context.
          * \param for_msaa if false, assume surface targets will
