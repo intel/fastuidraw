@@ -10,6 +10,14 @@
 class sdl_painter_demo:public sdl_demo
 {
 public:
+  enum pixel_count_t
+    {
+      frame_number_pixels,
+      frame_number_pixels_that_neighbor_helper,
+      total_number_pixels,
+      total_number_pixels_that_neighbor_helper,
+    };
+
   explicit
   sdl_painter_demo(const std::string &about_text=std::string(),
                    bool default_value_for_print_painter_config = false);
@@ -27,6 +35,26 @@ protected:
 
   void
   on_resize(int, int);
+
+  virtual
+  void
+  pre_draw_frame(void);
+
+  virtual
+  void
+  post_draw_frame(void);
+
+  uint64_t
+  pixel_count(enum pixel_count_t tp)
+  {
+    return m_pixel_counts[tp];
+  }
+
+  bool
+  pixel_counter_active(void)
+  {
+    return m_pixel_counter_stack.value() >= 0;
+  }
 
 protected:
   void
@@ -65,8 +93,7 @@ private:
   fastuidraw::gl::ImageAtlasGL::params m_image_atlas_params;
   fastuidraw::gl::PainterBackendGL::ConfigurationGL m_painter_params;
 
-  /* Image atlas parameters
-   */
+  /* Image atlas parameters */
   command_separator m_image_atlas_options;
   command_line_argument_value<int> m_log2_color_tile_size, m_log2_num_color_tiles_per_row_per_col;
   command_line_argument_value<int> m_num_color_layers;
@@ -119,4 +146,11 @@ private:
   command_separator m_demo_options;
   command_line_argument_value<bool> m_print_painter_config;
   command_line_argument_value<bool> m_print_painter_shader_ids;
+
+  /* if we are to record pixel counts only */
+  command_line_argument_value<int> m_pixel_counter_stack;
+  std::list<GLuint> m_pixel_counter_buffers;
+  unsigned int m_num_pixel_counter_buffers;
+  unsigned int m_pixel_counter_buffer_binding_index;
+  fastuidraw::vecN<uint64_t, 4> m_pixel_counts;
 };
