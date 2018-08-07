@@ -50,6 +50,7 @@ protected:
   handle_event(const SDL_Event &ev);
 
 private:
+  typedef std::pair<enum PainterEnums::blend_mode_t, std::string> named_blend_mode;
 
   static
   void
@@ -85,6 +86,8 @@ private:
   command_line_argument_value<bool> m_background_colors_opaque;
   command_line_argument_value<int> m_num_text_colors;
   command_line_argument_value<bool> m_text_colors_opaque;
+  command_line_argument_value<int> m_num_rect_colors;
+  command_line_argument_value<bool> m_rect_colors_opaque;
   command_line_argument_value<float> m_min_x_velocity, m_max_x_velocity;
   command_line_argument_value<float> m_min_y_velocity, m_max_y_velocity;
   command_line_argument_value<int> m_min_degree_per_second;
@@ -109,6 +112,9 @@ private:
   Table *m_table;
   simple_time m_time, m_draw_timer;
   PainterPackedValue<PainterBrush> m_text_brush;
+
+  unsigned int m_current_blend;
+  std::vector<named_blend_mode> m_blend_labels;
 
   int m_frame;
   uint64_t m_benchmark_time_us;
@@ -155,6 +161,10 @@ painter_cells(void):
   m_text_colors_opaque(true, "text_colors_opaque",
                        "If true, all text colors are forced to be opaque",
                        *this),
+  m_num_rect_colors(0, "num_rect_colors", "Number of distinct colors which modulates the image, 0 means no modulation", *this),
+  m_rect_colors_opaque(true, "rect_colors_opaque",
+                       "If true, all rect colors are forced to be opaque",
+                       *this),
   m_min_x_velocity(-10.0f, "min_x_velocity", "Minimum x-velocity for cell content in pixels/s", *this),
   m_max_x_velocity(+10.0f, "max_x_velocity", "Maximum x-velocity for cell content in pixels/s", *this),
   m_min_y_velocity(-10.0f, "min_y_velocity", "Minimum y-velocity for cell content in pixels/s", *this),
@@ -196,7 +206,8 @@ painter_cells(void):
   m_init_anti_alias_stroking(true, "init_antialias_stroking",
                              "Initial value for anti-aliasing for stroking",
                              *this),
-  m_table(nullptr)
+  m_table(nullptr),
+  m_current_blend(0)
 {
   std::cout << "Controls:\n"
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
@@ -380,6 +391,9 @@ derived_init(int w, int h)
                          m_background_colors_opaque.value());
   generate_random_colors(m_num_text_colors.value(), m_table_params.m_text_colors,
                          m_text_colors_opaque.value());
+  generate_random_colors(m_num_rect_colors.value(), m_table_params.m_rect_colors,
+                         m_rect_colors_opaque.value());
+
   m_table_params.m_min_speed = vec2(m_min_x_velocity.value(), m_min_y_velocity.value());
   m_table_params.m_max_speed = vec2(m_max_x_velocity.value(), m_max_y_velocity.value());
   m_table_params.m_min_degrees_per_s = m_min_degree_per_second.value();
@@ -440,6 +454,41 @@ derived_init(int w, int h)
     {
       m_frame_times.reserve(m_num_frames.value());
     }
+
+#define ADD_BLEND_MODE(X) do {                                          \
+  if (m_painter->blend_mode_supported(PainterEnums::X))                 \
+    {                                                                   \
+      m_blend_labels.push_back(named_blend_mode(PainterEnums::X, #X));  \
+    }                                                                   \
+  } while(0)
+
+  ADD_BLEND_MODE(blend_porter_duff_src_over);
+  ADD_BLEND_MODE(blend_porter_duff_clear);
+  ADD_BLEND_MODE(blend_porter_duff_src);
+  ADD_BLEND_MODE(blend_porter_duff_dst);
+  ADD_BLEND_MODE(blend_porter_duff_dst_over);
+  ADD_BLEND_MODE(blend_porter_duff_src_in);
+  ADD_BLEND_MODE(blend_porter_duff_dst_in);
+  ADD_BLEND_MODE(blend_porter_duff_src_out);
+  ADD_BLEND_MODE(blend_porter_duff_dst_out);
+  ADD_BLEND_MODE(blend_porter_duff_src_atop);
+  ADD_BLEND_MODE(blend_porter_duff_dst_atop);
+  ADD_BLEND_MODE(blend_porter_duff_xor);
+  ADD_BLEND_MODE(blend_w3c_mulitply);
+  ADD_BLEND_MODE(blend_w3c_screen);
+  ADD_BLEND_MODE(blend_w3c_overlay);
+  ADD_BLEND_MODE(blend_w3c_darken);
+  ADD_BLEND_MODE(blend_w3c_lighten);
+  ADD_BLEND_MODE(blend_w3c_color_dodge);
+  ADD_BLEND_MODE(blend_w3c_color_burn);
+  ADD_BLEND_MODE(blend_w3c_hardlight);
+  ADD_BLEND_MODE(blend_w3c_soft_light);
+  ADD_BLEND_MODE(blend_w3c_difference);
+  ADD_BLEND_MODE(blend_w3c_exclusion);
+  ADD_BLEND_MODE(blend_w3c_hue);
+  ADD_BLEND_MODE(blend_w3c_saturation);
+  ADD_BLEND_MODE(blend_w3c_color);
+  ADD_BLEND_MODE(blend_w3c_luminosity);
 }
 
 void
@@ -628,6 +677,11 @@ handle_event(const SDL_Event &ev)
         case SDLK_i:
           m_cell_shared_state.m_draw_image = !m_cell_shared_state.m_draw_image;
           std::cout << "Draw Image = " << m_cell_shared_state.m_draw_image << "\n";
+          break;
+        case SDLK_b:
+          cycle_value(m_current_blend, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_blend_labels.size());
+          std::cout << "Rect Blend mode set to: " << m_blend_labels[m_current_blend].second << "\n";
+          m_cell_shared_state.m_rect_blend_mode = m_blend_labels[m_current_blend].first;
           break;
         case SDLK_0:
           m_zoomer.transformation(ScaleTranslate<float>());

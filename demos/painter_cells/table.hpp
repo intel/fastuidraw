@@ -33,6 +33,7 @@ public:
   vec4 m_line_color;
   std::vector<vec4> m_text_colors;
   std::vector<vec4> m_background_colors;
+  std::vector<vec4> m_rect_colors;
   std::vector<std::string> m_texts;
   std::vector<named_image> m_images;
   vec2 m_min_speed, m_max_speed;

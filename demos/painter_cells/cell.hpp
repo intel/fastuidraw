@@ -22,7 +22,8 @@ public:
     m_stroke_width(10.0f),
     m_pause(false),
     m_anti_alias_stroking(true),
-    m_cells_drawn(0)
+    m_cells_drawn(0),
+    m_rect_blend_mode(PainterEnums::blend_porter_duff_src_over)
   {}
 
   bool m_draw_text;
@@ -34,6 +35,7 @@ public:
   bool m_anti_alias_stroking;
 
   int m_cells_drawn;
+  enum PainterEnums::blend_mode_t m_rect_blend_mode;
 };
 
 class CellParams

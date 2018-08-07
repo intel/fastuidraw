@@ -137,9 +137,10 @@ generate_children_in_group(const reference_counted_ptr<Painter> &painter,
                     {
                       brush.image(m_params.m_images[imJ].first);
                     }
-                  else
+
+                  if (!m_params.m_rect_colors.empty())
                     {
-                      brush.pen(vec4(0.2f, 0.7f, 0.7f, 0.6f));
+                      brush.pen(m_params.m_rect_colors[imJ]);
                     }
                   im[imJ] = painter->packed_value_pool().create_packed_value(brush);
                 }
