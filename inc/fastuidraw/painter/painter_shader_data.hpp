@@ -31,7 +31,7 @@ namespace fastuidraw
   /*!
    * \brief
    * Common base class to PainterItemShaderData and
-   * PainterBlendShaderData to hold shader data for
+   * PainterCompositeShaderData to hold shader data for
    * custom shaders.
    *
    * Derived classes CANNOT add any
@@ -170,9 +170,9 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * PainterBlendShaderData holds custom data for blend shaders
+   * PainterCompositeShaderData holds custom data for composite shaders
    */
-  class PainterBlendShaderData:public PainterShaderData
+  class PainterCompositeShaderData:public PainterShaderData
   {};
 /*! @} */
 

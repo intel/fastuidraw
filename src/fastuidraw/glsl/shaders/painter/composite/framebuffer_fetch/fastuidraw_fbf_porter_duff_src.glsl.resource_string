@@ -1,0 +1,25 @@
+/*!
+ * \file fastuidraw_fbf_porter_duff_src.glsl.resource_string
+ * \brief file fastuidraw_fbf_porter_duff_src.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+
+void
+fastuidraw_gl_compute_post_compositeed_value(in uint sub_shader, in uint composite_shader_data_location,
+                                         in vec4 in_src, in vec4 in_fb, out vec4 out_src)
+{
+  out_src = FASTUIDRAW_PORTER_DUFF_MACRO(1.0, 0.0);
+}

@@ -64,11 +64,11 @@ main(void)
 
   h.item_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_item_shader_bit0,
                                           fastuidraw_item_shader_num_bits,
-                                          h.item_blend_shader_packed);
+                                          h.item_composite_shader_packed);
 
-  h.blend_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_blend_shader_bit0,
-                                           fastuidraw_blend_shader_num_bits,
-                                           h.item_blend_shader_packed);
+  h.composite_shader = FASTUIDRAW_EXTRACT_BITS(fastuidraw_composite_shader_bit0,
+                                           fastuidraw_composite_shader_num_bits,
+                                           h.item_composite_shader_packed);
 
   #ifdef FASTUIDRAW_PAINTER_UNPACK_AT_FRAGMENT_SHADER
     {
@@ -78,8 +78,8 @@ main(void)
     {
       fastuidraw_frag_shader = h.item_shader;
       fastuidraw_frag_shader_data_location = h.item_shader_data_location;
-      fastuidraw_blend_shader = h.blend_shader;
-      fastuidraw_blend_shader_data_location = h.blend_shader_data_location;
+      fastuidraw_composite_shader = h.composite_shader;
+      fastuidraw_composite_shader_data_location = h.composite_shader_data_location;
     }
   #endif
 

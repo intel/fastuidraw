@@ -115,23 +115,30 @@ namespace fastuidraw
 
     /*!
      * \brief
-     * Enumeration specifying blend modes
+     * Enumeration specifying composite modes
      */
-    enum blend_mode_t
+    enum composite_mode_t
       {
-        blend_porter_duff_clear, /*!< Clear mode of Porter-Duff */
-        blend_porter_duff_src, /*!< Source mode of Porter-Duff */
-        blend_porter_duff_dst, /*!< Destination mode of Porter-Duff */
-        blend_porter_duff_src_over, /*!< Source over mode of Porter-Duff */
-        blend_porter_duff_dst_over, /*!< Destination over mode of Porter-Duff */
-        blend_porter_duff_src_in, /*!< Source In mode of Porter-Duff */
-        blend_porter_duff_dst_in, /*!< Destination In mode of Porter-Duff */
-        blend_porter_duff_src_out, /*!< Source Out mode of Porter-Duff */
-        blend_porter_duff_dst_out, /*!< Destination Out mode of Porter-Duff */
-        blend_porter_duff_src_atop, /*!< Source Atop mode of Porter-Duff */
-        blend_porter_duff_dst_atop, /*!< Destination Atop mode of Porter-Duff */
-        blend_porter_duff_xor, /*!< Xor mode of Porter-Duff */
+        composite_porter_duff_clear, /*!< Clear mode of Porter-Duff */
+        composite_porter_duff_src, /*!< Source mode of Porter-Duff */
+        composite_porter_duff_dst, /*!< Destination mode of Porter-Duff */
+        composite_porter_duff_src_over, /*!< Source over mode of Porter-Duff */
+        composite_porter_duff_dst_over, /*!< Destination over mode of Porter-Duff */
+        composite_porter_duff_src_in, /*!< Source In mode of Porter-Duff */
+        composite_porter_duff_dst_in, /*!< Destination In mode of Porter-Duff */
+        composite_porter_duff_src_out, /*!< Source Out mode of Porter-Duff */
+        composite_porter_duff_dst_out, /*!< Destination Out mode of Porter-Duff */
+        composite_porter_duff_src_atop, /*!< Source Atop mode of Porter-Duff */
+        composite_porter_duff_dst_atop, /*!< Destination Atop mode of Porter-Duff */
+        composite_porter_duff_xor, /*!< Xor mode of Porter-Duff */
+      };
 
+    /*!
+     * \brief
+     * Enumeration specifying W3C blending modes
+     */
+    enum blend_w3c_mode_t
+      {
         blend_w3c_mulitply, /*!< W3C multiply mode: Dest * Src */
         blend_w3c_screen, /*!< W3C screen mode: 1 - (1 - Dest) * (1 - Src) */
 
@@ -203,7 +210,6 @@ namespace fastuidraw
          * w3c luminosity mode, see w3c for formula
          */
         blend_w3c_luminosity,
-
       };
 
     /*!

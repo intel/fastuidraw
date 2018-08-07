@@ -50,7 +50,7 @@ protected:
   handle_event(const SDL_Event &ev);
 
 private:
-  typedef std::pair<enum PainterEnums::blend_mode_t, std::string> named_blend_mode;
+  typedef std::pair<enum PainterEnums::composite_mode_t, std::string> named_composite_mode;
 
   static
   void
@@ -113,8 +113,8 @@ private:
   simple_time m_time, m_draw_timer;
   PainterPackedValue<PainterBrush> m_text_brush;
 
-  unsigned int m_current_blend;
-  std::vector<named_blend_mode> m_blend_labels;
+  unsigned int m_current_composite;
+  std::vector<named_composite_mode> m_composite_labels;
 
   int m_frame;
   uint64_t m_benchmark_time_us;
@@ -207,7 +207,7 @@ painter_cells(void):
                              "Initial value for anti-aliasing for stroking",
                              *this),
   m_table(nullptr),
-  m_current_blend(0)
+  m_current_composite(0)
 {
   std::cout << "Controls:\n"
             << "\t[: decrease stroke width(hold left-shift for slower rate and right shift for faster)\n"
@@ -220,6 +220,7 @@ painter_cells(void):
             << "\tr: toggle rotating individual cells\n"
             << "\tt: toggle draw cell text\n"
             << "\ti: toggle draw cell image\n"
+            << "\tb: cycle composite mode applied to image rect\n"
             << "\tLeft Mouse Drag: pan\n"
             << "\tHold Left Mouse, then drag up/down: zoom out/in\n";
 
@@ -455,40 +456,25 @@ derived_init(int w, int h)
       m_frame_times.reserve(m_num_frames.value());
     }
 
-#define ADD_BLEND_MODE(X) do {                                          \
-  if (m_painter->blend_mode_supported(PainterEnums::X))                 \
+#define ADD_COMPOSITE_MODE(X) do {                                          \
+  if (m_painter->composite_mode_supported(PainterEnums::X))                 \
     {                                                                   \
-      m_blend_labels.push_back(named_blend_mode(PainterEnums::X, #X));  \
+      m_composite_labels.push_back(named_composite_mode(PainterEnums::X, #X));  \
     }                                                                   \
   } while(0)
 
-  ADD_BLEND_MODE(blend_porter_duff_src_over);
-  ADD_BLEND_MODE(blend_porter_duff_clear);
-  ADD_BLEND_MODE(blend_porter_duff_src);
-  ADD_BLEND_MODE(blend_porter_duff_dst);
-  ADD_BLEND_MODE(blend_porter_duff_dst_over);
-  ADD_BLEND_MODE(blend_porter_duff_src_in);
-  ADD_BLEND_MODE(blend_porter_duff_dst_in);
-  ADD_BLEND_MODE(blend_porter_duff_src_out);
-  ADD_BLEND_MODE(blend_porter_duff_dst_out);
-  ADD_BLEND_MODE(blend_porter_duff_src_atop);
-  ADD_BLEND_MODE(blend_porter_duff_dst_atop);
-  ADD_BLEND_MODE(blend_porter_duff_xor);
-  ADD_BLEND_MODE(blend_w3c_mulitply);
-  ADD_BLEND_MODE(blend_w3c_screen);
-  ADD_BLEND_MODE(blend_w3c_overlay);
-  ADD_BLEND_MODE(blend_w3c_darken);
-  ADD_BLEND_MODE(blend_w3c_lighten);
-  ADD_BLEND_MODE(blend_w3c_color_dodge);
-  ADD_BLEND_MODE(blend_w3c_color_burn);
-  ADD_BLEND_MODE(blend_w3c_hardlight);
-  ADD_BLEND_MODE(blend_w3c_soft_light);
-  ADD_BLEND_MODE(blend_w3c_difference);
-  ADD_BLEND_MODE(blend_w3c_exclusion);
-  ADD_BLEND_MODE(blend_w3c_hue);
-  ADD_BLEND_MODE(blend_w3c_saturation);
-  ADD_BLEND_MODE(blend_w3c_color);
-  ADD_BLEND_MODE(blend_w3c_luminosity);
+  ADD_COMPOSITE_MODE(composite_porter_duff_src_over);
+  ADD_COMPOSITE_MODE(composite_porter_duff_clear);
+  ADD_COMPOSITE_MODE(composite_porter_duff_src);
+  ADD_COMPOSITE_MODE(composite_porter_duff_dst);
+  ADD_COMPOSITE_MODE(composite_porter_duff_dst_over);
+  ADD_COMPOSITE_MODE(composite_porter_duff_src_in);
+  ADD_COMPOSITE_MODE(composite_porter_duff_dst_in);
+  ADD_COMPOSITE_MODE(composite_porter_duff_src_out);
+  ADD_COMPOSITE_MODE(composite_porter_duff_dst_out);
+  ADD_COMPOSITE_MODE(composite_porter_duff_src_atop);
+  ADD_COMPOSITE_MODE(composite_porter_duff_dst_atop);
+  ADD_COMPOSITE_MODE(composite_porter_duff_xor);
 }
 
 void
@@ -679,9 +665,9 @@ handle_event(const SDL_Event &ev)
           std::cout << "Draw Image = " << m_cell_shared_state.m_draw_image << "\n";
           break;
         case SDLK_b:
-          cycle_value(m_current_blend, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_blend_labels.size());
-          std::cout << "Rect Blend mode set to: " << m_blend_labels[m_current_blend].second << "\n";
-          m_cell_shared_state.m_rect_blend_mode = m_blend_labels[m_current_blend].first;
+          cycle_value(m_current_composite, ev.key.keysym.mod & (KMOD_SHIFT|KMOD_CTRL|KMOD_ALT), m_composite_labels.size());
+          std::cout << "Rect Composite mode set to: " << m_composite_labels[m_current_composite].second << "\n";
+          m_cell_shared_state.m_rect_composite_mode = m_composite_labels[m_current_composite].first;
           break;
         case SDLK_0:
           m_zoomer.transformation(ScaleTranslate<float>());

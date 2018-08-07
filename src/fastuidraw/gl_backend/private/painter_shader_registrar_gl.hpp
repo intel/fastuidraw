@@ -95,8 +95,8 @@ public:
 
 protected:
   uint32_t
-  compute_blend_shader_group(PainterShader::Tag tag,
-                             const reference_counted_ptr<PainterBlendShader> &shader);
+  compute_composite_shader_group(PainterShader::Tag tag,
+                             const reference_counted_ptr<PainterCompositeShader> &shader);
 
   uint32_t
   compute_item_shader_group(PainterShader::Tag tag,

@@ -247,27 +247,27 @@ namespace fastuidraw
     painter_shader_registrar(void) const;
 
     /*!
-     * Returns the active blend shader
+     * Returns the active composite shader
      */
-    const reference_counted_ptr<PainterBlendShader>&
-    blend_shader(void) const;
+    const reference_counted_ptr<PainterCompositeShader>&
+    composite_shader(void) const;
 
     /*!
-     * Returns the active 3D API blend mode packed
+     * Returns the active 3D API composite mode packed
      * as in BlendMode::packed().
      */
     BlendMode::packed_value
-    blend_mode(void) const;
+    composite_mode(void) const;
 
     /*!
-     * Sets the active blend shader. It is a crashing error for
+     * Sets the active composite shader. It is a crashing error for
      * h to be nullptr.
-     * \param h blend shader to use for blending.
-     * \param packed_blend_mode 3D API blend mode packed via BlendMode::packed().
+     * \param h composite shader to use for compositeing.
+     * \param packed_composite_mode 3D API composite mode packed via BlendMode::packed().
      */
     void
-    blend_shader(const reference_counted_ptr<PainterBlendShader> &h,
-                 BlendMode::packed_value packed_blend_mode);
+    composite_shader(const reference_counted_ptr<PainterCompositeShader> &h,
+                 BlendMode::packed_value packed_composite_mode);
 
     /*!
      * Indicate to start drawing. Commands are buffered and not

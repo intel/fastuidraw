@@ -80,9 +80,9 @@ register_shader(const reference_counted_ptr<PainterItemShader> &shader)
 
 void
 fastuidraw::PainterShaderRegistrar::
-register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
+register_shader(const reference_counted_ptr<PainterCompositeShader> &shader)
 {
-  /* TODO: check shader->type() against what blend types the
+  /* TODO: check shader->type() against what composite types the
    * PainterShaderRegistrar will accept.
    */
   if (!shader || shader->registered_to() == this)
@@ -95,20 +95,20 @@ register_shader(const reference_counted_ptr<PainterBlendShader> &shader)
     {
       if (shader->parent())
         {
-          register_shader(shader->parent().static_cast_ptr<PainterBlendShader>());
+          register_shader(shader->parent().static_cast_ptr<PainterCompositeShader>());
 
           /* activate the guard AFTER calling register_shader(),
            * otherwise we would attempt to double-lock the mutex
            */
           Mutex::Guard m(mutex());
-          shader->set_group_of_sub_shader(compute_blend_sub_shader_group(shader));
+          shader->set_group_of_sub_shader(compute_composite_sub_shader_group(shader));
         }
       else
         {
           Mutex::Guard m(mutex());
           PainterShader::Tag tag;
 
-          tag = absorb_blend_shader(shader);
+          tag = absorb_composite_shader(shader);
           shader->register_shader(tag, this);
         }
     }
@@ -126,14 +126,14 @@ register_shader(const PainterGlyphShader &shader)
 
 void
 fastuidraw::PainterShaderRegistrar::
-register_shader(const PainterBlendShaderSet &p)
+register_shader(const PainterCompositeShaderSet &p)
 {
   for(unsigned int i = 0, endi = p.shader_count(); i < endi; ++i)
     {
-      enum PainterEnums::blend_mode_t tp;
-      tp = static_cast<enum PainterEnums::blend_mode_t>(i);
+      enum PainterEnums::composite_mode_t tp;
+      tp = static_cast<enum PainterEnums::composite_mode_t>(i);
 
-      const reference_counted_ptr<PainterBlendShader> &sh(p.shader(tp));
+      const reference_counted_ptr<PainterCompositeShader> &sh(p.shader(tp));
       register_shader(sh);
     }
 }
@@ -147,7 +147,7 @@ register_shader(const PainterShaderSet &shaders)
   register_shader(shaders.fill_shader());
   register_shader(shaders.glyph_shader());
   register_shader(shaders.glyph_shader_anisotropic());
-  register_shader(shaders.blend_shaders());
+  register_shader(shaders.composite_shaders());
 }
 
 void

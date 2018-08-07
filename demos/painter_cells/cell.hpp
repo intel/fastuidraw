@@ -23,7 +23,7 @@ public:
     m_pause(false),
     m_anti_alias_stroking(true),
     m_cells_drawn(0),
-    m_rect_blend_mode(PainterEnums::blend_porter_duff_src_over)
+    m_rect_composite_mode(PainterEnums::composite_porter_duff_src_over)
   {}
 
   bool m_draw_text;
@@ -35,7 +35,7 @@ public:
   bool m_anti_alias_stroking;
 
   int m_cells_drawn;
-  enum PainterEnums::blend_mode_t m_rect_blend_mode;
+  enum PainterEnums::composite_mode_t m_rect_composite_mode;
 };
 
 class CellParams
