@@ -11,7 +11,7 @@ include $(dir)/Rules.mk
 dir := $(d)/brush
 include $(dir)/Rules.mk
 
-dir := $(d)/blend
+dir := $(d)/composite
 include $(dir)/Rules.mk
 
 FASTUIDRAW_RESOURCE_STRING += $(call filelist, \

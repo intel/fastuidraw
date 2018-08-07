@@ -114,73 +114,73 @@ namespace fastuidraw
     packed_value_pool(void);
 
     /*!
-     * Returns the active blend shader
+     * Returns the active composite shader
      */
-    const reference_counted_ptr<PainterBlendShader>&
-    blend_shader(void) const;
+    const reference_counted_ptr<PainterCompositeShader>&
+    composite_shader(void) const;
 
     /*!
-     * Returns the active 3D API blend mode
+     * Returns the active 3D API composite mode
      */
     BlendMode::packed_value
-    blend_mode(void) const;
+    composite_mode(void) const;
 
     /*!
-     * Sets the blend shader. It is a crashing error for
+     * Sets the composite shader. It is a crashing error for
      * h to be nullptr.
-     * \param h blend shader to use for blending.
-     * \param packed_blend_mode 3D API blend mode packed by BlendMode::packed()
+     * \param h composite shader to use for compositeing.
+     * \param packed_composite_mode 3D API composite mode packed by BlendMode::packed()
      */
     void
-    blend_shader(const reference_counted_ptr<PainterBlendShader> &h,
-                 BlendMode::packed_value packed_blend_mode);
+    composite_shader(const reference_counted_ptr<PainterCompositeShader> &h,
+                 BlendMode::packed_value packed_composite_mode);
 
     /*!
      * Equivalent to
      * \code
-     * blend_shader(shader_set.shader(m),
-     *              shader_set.blend_mode(m))
+     * composite_shader(shader_set.shader(m),
+     *              shader_set.composite_mode(m))
      * \endcode
      * It is a crashing error if shader_set does not support
-     * the named blend mode.
-     * \param shader_set PainterBlendShaderSet from which to take blend shader
-     * \param m Blend mode to use
+     * the named composite mode.
+     * \param shader_set PainterCompositeShaderSet from which to take composite shader
+     * \param m Composite mode to use
      */
     void
-    blend_shader(const PainterBlendShaderSet &shader_set,
-                 enum PainterEnums::blend_mode_t m)
+    composite_shader(const PainterCompositeShaderSet &shader_set,
+                 enum PainterEnums::composite_mode_t m)
     {
-      blend_shader(shader_set.shader(m), shader_set.blend_mode(m));
+      composite_shader(shader_set.shader(m), shader_set.composite_mode(m));
     }
 
     /*!
      * Equivalent to
      * \code
-     * blend_shader(default_shaders().blend_shaders(), m)
+     * composite_shader(default_shaders().composite_shaders(), m)
      * \endcode
      * It is a crashing error if default_shaders() does not support
-     * the named blend mode.
-     * \param m Blend mode to use
+     * the named composite mode.
+     * \param m Composite mode to use
      */
     void
-    blend_shader(enum PainterEnums::blend_mode_t m)
+    composite_shader(enum PainterEnums::composite_mode_t m)
     {
-      blend_shader(default_shaders().blend_shaders(), m);
+      composite_shader(default_shaders().composite_shaders(), m);
     }
 
     /*!
-     * Provided as a conveniance to return if a blend
+     * Provided as a conveniance to return if a composite
      * mode is supported by the default shaders, equivalent
      * to
      * \code
-     * default_shaders().blend_shaders().shader(m)
+     * default_shaders().composite_shaders().shader(m)
      * \endcode
-     * \param m blend mode to check.
+     * \param m composite mode to check.
      */
     bool
-    blend_mode_supported(enum PainterEnums::blend_mode_t m)
+    composite_mode_supported(enum PainterEnums::composite_mode_t m)
     {
-      return default_shaders().blend_shaders().shader(m);
+      return default_shaders().composite_shaders().shader(m);
     }
 
     /*!
@@ -389,7 +389,7 @@ namespace fastuidraw
      *   shear(), scale(), rotate()).
      * - clip state (see clipInRect(), clipOutPath(), clipInPath())
      * - curve flatness requirement (see curveFlatness(float))
-     * - blend shader (see blend_shader()).
+     * - composite shader (see composite_shader()).
      */
     void
     save(void);

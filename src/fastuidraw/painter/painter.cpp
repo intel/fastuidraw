@@ -509,8 +509,8 @@ namespace
   {
   public:
     unsigned int m_occluder_stack_position;
-    fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_blend;
-    fastuidraw::BlendMode::packed_value m_blend_mode;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterCompositeShader> m_composite;
+    fastuidraw::BlendMode::packed_value m_composite_mode;
     fastuidraw::range_type<unsigned int> m_clip_equation_series;
 
     clip_rect_state m_clip_rect_state;
@@ -1739,8 +1739,8 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
   c_array<const reference_counted_ptr<PainterItemShader>* > shaders_pass1;
   c_array<const reference_counted_ptr<PainterItemShader>* > shaders_pass2;
   StrokingItems stroking_items(with_anti_aliasing);
-  reference_counted_ptr<PainterBlendShader> old_blend;
-  BlendMode::packed_value old_blend_mode;
+  reference_counted_ptr<PainterCompositeShader> old_composite;
+  BlendMode::packed_value old_composite_mode;
   PainterData draw(pdraw);
 
   m_work_room.m_stroke_attrib_chunks.resize(total_chunks);
@@ -1828,12 +1828,12 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
     {
       if (aa_type == PainterStrokeShader::cover_then_draw)
         {
-          const PainterBlendShaderSet &shader_set(m_core->default_shaders().blend_shaders());
-          enum PainterEnums::blend_mode_t m(PainterEnums::blend_porter_duff_dst);
+          const PainterCompositeShaderSet &shader_set(m_core->default_shaders().composite_shaders());
+          enum PainterEnums::composite_mode_t m(PainterEnums::composite_porter_duff_dst);
 
-          old_blend = m_core->blend_shader();
-          old_blend_mode = m_core->blend_mode();
-          m_core->blend_shader(shader_set.shader(m), shader_set.blend_mode(m));
+          old_composite = m_core->composite_shader();
+          old_composite_mode = m_core->composite_mode();
+          m_core->composite_shader(shader_set.shader(m), shader_set.composite_mode(m));
           m_core->draw_break(shader.aa_action_pass1());
         }
     }
@@ -1863,7 +1863,7 @@ stroke_path_raw(const fastuidraw::PainterStrokeShader &shader,
     {
       if (aa_type == PainterStrokeShader::cover_then_draw)
         {
-          m_core->blend_shader(old_blend, old_blend_mode);
+          m_core->composite_shader(old_composite, old_composite_mode);
           m_core->draw_break(shader.aa_action_pass2());
         }
 
@@ -1936,7 +1936,7 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
   d->m_current_z = 1;
   d->m_clip_rect_state.reset();
   d->m_clip_store.set_current(d->m_clip_rect_state.clip_equations().m_clip_equations);
-  blend_shader(PainterEnums::blend_porter_duff_src_over);
+  composite_shader(PainterEnums::composite_porter_duff_src_over);
 }
 
 void
@@ -2686,8 +2686,8 @@ save(void)
 
   state_stack_entry st;
   st.m_occluder_stack_position = d->m_occluder_stack.size();
-  st.m_blend = d->m_core->blend_shader();
-  st.m_blend_mode = d->m_core->blend_mode();
+  st.m_composite = d->m_core->composite_shader();
+  st.m_composite_mode = d->m_core->composite_mode();
   st.m_clip_rect_state = d->m_clip_rect_state;
   st.m_curve_flatness = d->m_curve_flatness;
 
@@ -2706,7 +2706,7 @@ restore(void)
   const state_stack_entry &st(d->m_state_stack.back());
 
   d->m_clip_rect_state = st.m_clip_rect_state;
-  d->m_core->blend_shader(st.m_blend, st.m_blend_mode);
+  d->m_core->composite_shader(st.m_composite, st.m_composite_mode);
   d->m_curve_flatness = st.m_curve_flatness;
   while(d->m_occluder_stack.size() > st.m_occluder_stack_position)
     {
@@ -2756,8 +2756,8 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
       return;
     }
 
-  reference_counted_ptr<PainterBlendShader> old_blend;
-  BlendMode::packed_value old_blend_mode;
+  reference_counted_ptr<PainterCompositeShader> old_composite;
+  BlendMode::packed_value old_composite_mode;
   reference_counted_ptr<ZDataCallBack> zdatacallback;
 
   /* zdatacallback generates a list of PainterDraw::DelayedAction
@@ -2766,12 +2766,12 @@ clipOutPath(const Path &path, enum PainterEnums::fill_rule_t fill_rule)
    * the next time m_occluder_stack is popped.
    */
   zdatacallback = FASTUIDRAWnew ZDataCallBack();
-  old_blend = blend_shader();
-  old_blend_mode = blend_mode();
+  old_composite = composite_shader();
+  old_composite_mode = composite_mode();
 
-  blend_shader(PainterEnums::blend_porter_duff_dst);
+  composite_shader(PainterEnums::composite_porter_duff_dst);
   fill_path(PainterData(d->m_black_brush), path, fill_rule, false, zdatacallback);
-  blend_shader(old_blend, old_blend_mode);
+  composite_shader(old_composite, old_composite_mode);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
 }
@@ -2790,8 +2790,8 @@ clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
       return;
     }
 
-  fastuidraw::reference_counted_ptr<PainterBlendShader> old_blend;
-  BlendMode::packed_value old_blend_mode;
+  fastuidraw::reference_counted_ptr<PainterCompositeShader> old_composite;
+  BlendMode::packed_value old_composite_mode;
   reference_counted_ptr<ZDataCallBack> zdatacallback;
 
   /* zdatacallback generates a list of PainterDraw::DelayedAction
@@ -2800,12 +2800,12 @@ clipOutPath(const Path &path, const CustomFillRuleBase &fill_rule)
    * the next time m_occluder_stack is popped.
    */
   zdatacallback = FASTUIDRAWnew ZDataCallBack();
-  old_blend = blend_shader();
-  old_blend_mode = blend_mode();
+  old_composite = composite_shader();
+  old_composite_mode = composite_mode();
 
-  blend_shader(PainterEnums::blend_porter_duff_dst);
+  composite_shader(PainterEnums::composite_porter_duff_dst);
   fill_path(PainterData(d->m_black_brush), path, fill_rule, false, zdatacallback);
-  blend_shader(old_blend, old_blend_mode);
+  composite_shader(old_composite, old_composite_mode);
 
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
 }
@@ -2950,11 +2950,11 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   reference_counted_ptr<ZDataCallBack> zdatacallback;
   zdatacallback = FASTUIDRAWnew ZDataCallBack();
 
-  fastuidraw::reference_counted_ptr<PainterBlendShader> old_blend;
-  BlendMode::packed_value old_blend_mode;
-  old_blend = blend_shader();
-  old_blend_mode = blend_mode();
-  blend_shader(PainterEnums::blend_porter_duff_dst);
+  fastuidraw::reference_counted_ptr<PainterCompositeShader> old_composite;
+  BlendMode::packed_value old_composite_mode;
+  old_composite = composite_shader();
+  old_composite_mode = composite_mode();
+  composite_shader(PainterEnums::composite_porter_duff_dst);
 
   /* we temporarily set the clipping to a slightly
    * larger rectangle when drawing the occluders.
@@ -2990,7 +2990,7 @@ clipInRect(const vec2 &pmin, const vec2 &wh)
   d->m_occluder_stack.push_back(occluder_stack_entry(zdatacallback->m_actions));
 
   d->m_clip_rect_state.item_matrix_state(matrix_state, false);
-  blend_shader(old_blend, old_blend_mode);
+  composite_shader(old_composite, old_composite_mode);
 }
 
 const fastuidraw::reference_counted_ptr<fastuidraw::GlyphAtlas>&
@@ -3029,32 +3029,32 @@ painter_shader_registrar(void) const
   return d->m_core->painter_shader_registrar();
 }
 
-const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader>&
+const fastuidraw::reference_counted_ptr<fastuidraw::PainterCompositeShader>&
 fastuidraw::Painter::
-blend_shader(void) const
+composite_shader(void) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_core->blend_shader();
+  return d->m_core->composite_shader();
 }
 
 fastuidraw::BlendMode::packed_value
 fastuidraw::Painter::
-blend_mode(void) const
+composite_mode(void) const
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  return d->m_core->blend_mode();
+  return d->m_core->composite_mode();
 }
 
 void
 fastuidraw::Painter::
-blend_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &h,
+composite_shader(const fastuidraw::reference_counted_ptr<PainterCompositeShader> &h,
              fastuidraw::BlendMode::packed_value mode)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
-  d->m_core->blend_shader(h, mode);
+  d->m_core->composite_shader(h, mode);
 }
 
 const fastuidraw::PainterShaderSet&

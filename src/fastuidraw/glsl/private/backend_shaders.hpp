@@ -20,13 +20,13 @@
 
 #include <fastuidraw/painter/painter_shader_set.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
-#include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_composite_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 
 namespace fastuidraw { namespace glsl { namespace detail {
 
-enum fastuidraw::PainterBlendShader::shader_type
-shader_blend_type(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::blending_type_t in_value);
+enum fastuidraw::PainterCompositeShader::shader_type
+shader_composite_type(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_type_t in_value);
 
 /* Values for render pass for stroke shading */
 enum uber_stroke_render_pass_t
@@ -44,52 +44,52 @@ enum uber_stroke_render_pass_t
     uber_number_passes
   };
 
-class BlendShaderSetCreator
+class CompositeShaderSetCreator
 {
 public:
   explicit
-  BlendShaderSetCreator(enum PainterBlendShader::shader_type tp);
+  CompositeShaderSetCreator(enum PainterCompositeShader::shader_type tp);
 
-  PainterBlendShaderSet
-  create_blend_shaders(void);
+  PainterCompositeShaderSet
+  create_composite_shaders(void);
 
 private:
   void
-  add_blend_shader(PainterBlendShaderSet &out,
-                   enum PainterEnums::blend_mode_t md,
+  add_composite_shader(PainterCompositeShaderSet &out,
+                   enum PainterEnums::composite_mode_t md,
                    const BlendMode &single_md,
                    const std::string &dual_src_file,
                    const BlendMode &dual_md,
                    const std::string &framebuffer_fetch_src_file);
   void
-  add_blend_shader(PainterBlendShaderSet &out,
-                   enum PainterEnums::blend_mode_t md,
+  add_composite_shader(PainterCompositeShaderSet &out,
+                   enum PainterEnums::composite_mode_t md,
                    const std::string &dual_src_file,
                    const BlendMode &dual_md,
                    const std::string &framebuffer_fetch_src_file);
   void
-  add_blend_shader(PainterBlendShaderSet &out,
-                   enum PainterEnums::blend_mode_t md,
+  add_composite_shader(PainterCompositeShaderSet &out,
+                   enum PainterEnums::composite_mode_t md,
                    const std::string &framebuffer_fetch_src_file);
 
   void
-  add_single_src_blend_shader(PainterBlendShaderSet &out,
-                              enum PainterEnums::blend_mode_t md,
+  add_single_src_composite_shader(PainterCompositeShaderSet &out,
+                              enum PainterEnums::composite_mode_t md,
                               const BlendMode &single_md);
 
   void
-  add_dual_src_blend_shader(PainterBlendShaderSet &out,
-                            enum PainterEnums::blend_mode_t md,
+  add_dual_src_composite_shader(PainterCompositeShaderSet &out,
+                            enum PainterEnums::composite_mode_t md,
                             const std::string &dual_src_file,
                             const BlendMode &dual_md);
 
   void
-  add_fbf_blend_shader(PainterBlendShaderSet &out,
-                       enum PainterEnums::blend_mode_t md,
+  add_fbf_composite_shader(PainterCompositeShaderSet &out,
+                       enum PainterEnums::composite_mode_t md,
                        const std::string &framebuffer_fetch_src_file);
 
-  enum PainterBlendShader::shader_type m_type;
-  reference_counted_ptr<PainterBlendShaderGLSL> m_single_src_blend_shader_code;
+  enum PainterCompositeShader::shader_type m_type;
+  reference_counted_ptr<PainterCompositeShaderGLSL> m_single_src_composite_shader_code;
 };
 
 class ShaderSetCreatorStrokingConstants
@@ -113,11 +113,11 @@ private:
 
 class ShaderSetCreator:
   private ShaderSetCreatorStrokingConstants,
-  public BlendShaderSetCreator
+  public CompositeShaderSetCreator
 {
 public:
   explicit
-  ShaderSetCreator(enum PainterBlendShader::shader_type blend_tp,
+  ShaderSetCreator(enum PainterCompositeShader::shader_type composite_tp,
                    enum PainterStrokeShader::type_t stroke_tp,
                    const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass1,
                    const reference_counted_ptr<const PainterDraw::Action> &stroke_action_pass2);

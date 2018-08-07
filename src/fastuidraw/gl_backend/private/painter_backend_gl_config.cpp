@@ -161,83 +161,83 @@ compute_interlock_type(const ContextProperties &ctx)
   #endif
 }
 
-enum glsl::PainterShaderRegistrarGLSL::blending_type_t
-compute_blending_type(enum glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t aux_value,
+enum glsl::PainterShaderRegistrarGLSL::compositeing_type_t
+compute_compositeing_type(enum glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_t aux_value,
                       enum interlock_type_t interlock_value,
-                      enum glsl::PainterShaderRegistrarGLSL::blending_type_t in_value,
+                      enum glsl::PainterShaderRegistrarGLSL::compositeing_type_t in_value,
                       const ContextProperties &ctx)
 {
   /*
-   * First fallback to blending_framebuffer_fetch if interlock is
+   * First fallback to compositeing_framebuffer_fetch if interlock is
    * requested but not availabe.
    */
   if (interlock_value == no_interlock
-      && in_value == glsl::PainterShaderRegistrarGLSL::blending_interlock)
+      && in_value == glsl::PainterShaderRegistrarGLSL::compositeing_interlock)
     {
-      in_value = glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch;
+      in_value = glsl::PainterShaderRegistrarGLSL::compositeing_framebuffer_fetch;
     }
 
   if (aux_value == glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_framebuffer_fetch)
     {
       /*
        * auxiliary framebuffer fetch cannot be used with single and
-       * dual source blending; if it is single or dual source blending
+       * dual source compositeing; if it is single or dual source compositeing
        * we will set it to framebuffer_fetch.
        */
-      if (in_value == glsl::PainterShaderRegistrarGLSL::blending_single_src
-          || in_value == glsl::PainterShaderRegistrarGLSL::blending_dual_src)
+      if (in_value == glsl::PainterShaderRegistrarGLSL::compositeing_single_src
+          || in_value == glsl::PainterShaderRegistrarGLSL::compositeing_dual_src)
         {
-          in_value = glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch;
+          in_value = glsl::PainterShaderRegistrarGLSL::compositeing_framebuffer_fetch;
         }
     }
 
-  bool have_dual_src_blending, have_framebuffer_fetch;
+  bool have_dual_src_compositeing, have_framebuffer_fetch;
   if (ctx.is_es())
     {
-      have_dual_src_blending = ctx.has_extension("GL_EXT_blend_func_extended");
+      have_dual_src_compositeing = ctx.has_extension("GL_EXT_composite_func_extended");
     }
   else
     {
-      have_dual_src_blending = true;
+      have_dual_src_compositeing = true;
     }
   have_framebuffer_fetch = (aux_value == glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_framebuffer_fetch)
     || ctx.has_extension("GL_EXT_shader_framebuffer_fetch");
 
-  if (in_value == glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch
+  if (in_value == glsl::PainterShaderRegistrarGLSL::compositeing_framebuffer_fetch
       && !have_framebuffer_fetch)
     {
-      in_value = glsl::PainterShaderRegistrarGLSL::blending_interlock;
+      in_value = glsl::PainterShaderRegistrarGLSL::compositeing_interlock;
     }
 
   /* we do the test again against interlock because framebuffer
    * fetch code may have fallen back to interlock, but now
-   * lacking interlock falls back to blending_dual_src.
+   * lacking interlock falls back to compositeing_dual_src.
    */
   if (interlock_value == no_interlock
-      && in_value == glsl::PainterShaderRegistrarGLSL::blending_interlock)
+      && in_value == glsl::PainterShaderRegistrarGLSL::compositeing_interlock)
     {
-      in_value = glsl::PainterShaderRegistrarGLSL::blending_dual_src;
+      in_value = glsl::PainterShaderRegistrarGLSL::compositeing_dual_src;
     }
 
-  if (in_value == glsl::PainterShaderRegistrarGLSL::blending_dual_src
-      && !have_dual_src_blending)
+  if (in_value == glsl::PainterShaderRegistrarGLSL::compositeing_dual_src
+      && !have_dual_src_compositeing)
     {
-      in_value = glsl::PainterShaderRegistrarGLSL::blending_single_src;
+      in_value = glsl::PainterShaderRegistrarGLSL::compositeing_single_src;
     }
 
   return in_value;
 }
 
 enum glsl::PainterShaderRegistrarGLSL::clipping_type_t
-compute_clipping_type(enum glsl::PainterShaderRegistrarGLSL::blending_type_t blending_type,
+compute_clipping_type(enum glsl::PainterShaderRegistrarGLSL::compositeing_type_t compositeing_type,
                       enum glsl::PainterShaderRegistrarGLSL::clipping_type_t in_value,
                       const ContextProperties &ctx,
                       bool allow_gl_clip_distance)
 {
   bool clip_distance_supported, skip_color_write_supported;
   skip_color_write_supported =
-    blending_type == glsl::PainterShaderRegistrarGLSL::blending_framebuffer_fetch
-    || blending_type == glsl::PainterShaderRegistrarGLSL::blending_interlock;
+    compositeing_type == glsl::PainterShaderRegistrarGLSL::compositeing_framebuffer_fetch
+    || compositeing_type == glsl::PainterShaderRegistrarGLSL::compositeing_interlock;
 
   if (in_value == glsl::PainterShaderRegistrarGLSL::clipping_via_discard)
     {

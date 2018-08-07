@@ -37,10 +37,10 @@ namespace fastuidraw
   public:
     /*!
      * The group (see PainterShader::group())
-     * of the active blend shader.
+     * of the active composite shader.
      */
     uint32_t
-    blend_group(void) const;
+    composite_group(void) const;
 
     /*!
      * The group (see PainterShader::group())
@@ -60,7 +60,7 @@ namespace fastuidraw
      * The BlendMode as packed by BlendMode::packed().
      */
     BlendMode::packed_value
-    packed_blend_mode(void) const;
+    packed_composite_mode(void) const;
 
   protected:
     /*!

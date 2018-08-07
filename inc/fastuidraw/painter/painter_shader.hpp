@@ -30,7 +30,7 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * A PainterShader encapsulates how to draw or blend.
+   * A PainterShader encapsulates how to draw or composite.
    *
    * The real meat of a PainterShader is dependent
    * on the backend. Typically it is a shader source

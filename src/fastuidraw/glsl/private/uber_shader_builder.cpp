@@ -684,54 +684,54 @@ stream_uber_frag_shader(bool use_switch,
 }
 
 void
-stream_uber_blend_shader(bool use_switch,
+stream_uber_composite_shader(bool use_switch,
                          ShaderSource &frag,
-                         c_array<const reference_counted_ptr<PainterBlendShaderGLSL> > shaders,
-                         enum PainterBlendShader::shader_type tp)
+                         c_array<const reference_counted_ptr<PainterCompositeShaderGLSL> > shaders,
+                         enum PainterCompositeShader::shader_type tp)
 {
   std::string sub_func_name, func_name, sub_func_args;
 
   switch(tp)
     {
     default:
-      FASTUIDRAWassert("Unknown blend_code_type!");
+      FASTUIDRAWassert("Unknown composite_code_type!");
       //fall through
-    case PainterBlendShader::single_src:
-      func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 in_src, out vec4 out_src)";
-      sub_func_name = "fastuidraw_gl_compute_blend_value";
-      sub_func_args = ", blend_shader_data_location, in_src, out_src";
-      add_macro_requirement(frag, true, "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND", "Mismatch macros determining blend shader type!");
-      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND", "Mismatch macros determining blend shader type!");
-      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH", "Mismatch macros determining blend shader type!");
-      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_INTERLOCK", "Mismatch macros determining blend shader type!");
+    case PainterCompositeShader::single_src:
+      func_name = "fastuidraw_run_composite_shader(in uint composite_shader, in uint composite_shader_data_location, in vec4 in_src, out vec4 out_src)";
+      sub_func_name = "fastuidraw_gl_compute_composite_value";
+      sub_func_args = ", composite_shader_data_location, in_src, out_src";
+      add_macro_requirement(frag, true, "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND", "Mismatch macros determining composite shader type!");
+      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND", "Mismatch macros determining composite shader type!");
+      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH", "Mismatch macros determining composite shader type!");
+      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_INTERLOCK", "Mismatch macros determining composite shader type!");
       break;
 
-    case PainterBlendShader::dual_src:
-      func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 color0, out vec4 src0, out vec4 src1)";
-      sub_func_name = "fastuidraw_gl_compute_blend_factors";
-      sub_func_args = ", blend_shader_data_location, color0, src0, src1";
-      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND", "Mismatch macros determining blend shader type");
-      add_macro_requirement(frag, true, "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND", "Mismatch macros determining blend shader type");
-      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH", "Mismatch macros determining blend shader type");
-      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_INTERLOCK", "Mismatch macros determining blend shader type!");
+    case PainterCompositeShader::dual_src:
+      func_name = "fastuidraw_run_composite_shader(in uint composite_shader, in uint composite_shader_data_location, in vec4 color0, out vec4 src0, out vec4 src1)";
+      sub_func_name = "fastuidraw_gl_compute_composite_factors";
+      sub_func_args = ", composite_shader_data_location, color0, src0, src1";
+      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND", "Mismatch macros determining composite shader type");
+      add_macro_requirement(frag, true, "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND", "Mismatch macros determining composite shader type");
+      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH", "Mismatch macros determining composite shader type");
+      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_INTERLOCK", "Mismatch macros determining composite shader type!");
       break;
 
-    case PainterBlendShader::framebuffer_fetch:
-      func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 in_src, in vec4 in_fb, out vec4 out_src)";
-      sub_func_name = "fastuidraw_gl_compute_post_blended_value";
-      sub_func_args = ", blend_shader_data_location, in_src, in_fb, out_src";
-      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND", "Mismatch macros determining blend shader type");
-      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND", "Mismatch macros determining blend shader type");
+    case PainterCompositeShader::framebuffer_fetch:
+      func_name = "fastuidraw_run_composite_shader(in uint composite_shader, in uint composite_shader_data_location, in vec4 in_src, in vec4 in_fb, out vec4 out_src)";
+      sub_func_name = "fastuidraw_gl_compute_post_compositeed_value";
+      sub_func_args = ", composite_shader_data_location, in_src, in_fb, out_src";
+      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND", "Mismatch macros determining composite shader type");
+      add_macro_requirement(frag, false, "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND", "Mismatch macros determining composite shader type");
       add_macro_requirement(frag,
                             "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH",
                             "FASTUIDRAW_PAINTER_BLEND_INTERLOCK",
-                            "Mismatch macros determining blend shader type");
+                            "Mismatch macros determining composite shader type");
       break;
     }
-  UberShaderStreamer<PainterBlendShaderGLSL>::stream_uber(use_switch, frag, shaders,
-                                                          &PainterBlendShaderGLSL::blend_src,
+  UberShaderStreamer<PainterCompositeShaderGLSL>::stream_uber(use_switch, frag, shaders,
+                                                          &PainterCompositeShaderGLSL::composite_src,
                                                           "void", func_name,
-                                                          sub_func_name, sub_func_args, "blend_shader");
+                                                          sub_func_name, sub_func_args, "composite_shader");
 }
 
 }}}

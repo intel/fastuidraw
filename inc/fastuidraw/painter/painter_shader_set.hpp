@@ -22,7 +22,7 @@
 #include <fastuidraw/painter/painter_fill_shader.hpp>
 #include <fastuidraw/painter/painter_stroke_shader.hpp>
 #include <fastuidraw/painter/painter_glyph_shader.hpp>
-#include <fastuidraw/painter/painter_blend_shader_set.hpp>
+#include <fastuidraw/painter/painter_composite_shader_set.hpp>
 #include <fastuidraw/painter/painter_dashed_stroke_shader_set.hpp>
 #include <fastuidraw/painter/painter_enums.hpp>
 
@@ -35,7 +35,7 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * A PainterShaderSet provides shaders for blending
+   * A PainterShaderSet provides shaders for compositeing
    * and drawing each of the item types glyphs, stroking
    * paths and filling paths.
    */
@@ -141,18 +141,18 @@ namespace fastuidraw
     fill_shader(const PainterFillShader &sh);
 
     /*!
-     * Blend shaders. If an element is a nullptr shader, then that
-     * blend mode is not supported.
+     * Composite shaders. If an element is a nullptr shader, then that
+     * composite mode is not supported.
      */
-    const PainterBlendShaderSet&
-    blend_shaders(void) const;
+    const PainterCompositeShaderSet&
+    composite_shaders(void) const;
 
     /*!
-     * Set the value returned by blend_shaders(void) const.
+     * Set the value returned by composite_shaders(void) const.
      * \param sh value to use
      */
     PainterShaderSet&
-    blend_shaders(const PainterBlendShaderSet &sh);
+    composite_shaders(const PainterCompositeShaderSet &sh);
 
   private:
     void *m_d;
