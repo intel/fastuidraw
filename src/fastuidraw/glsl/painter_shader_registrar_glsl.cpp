@@ -295,6 +295,8 @@ ready_main_varyings(void)
     .add_uint_varying("fastuidraw_frag_shader_data_location")
     .add_uint_varying("fastuidraw_composite_shader")
     .add_uint_varying("fastuidraw_composite_shader_data_location")
+    .add_uint_varying("fastuidraw_blend_shader")
+    .add_uint_varying("fastuidraw_blend_shader_data_location")
     .add_float_varying("fastuidraw_brush_p_x")
     .add_float_varying("fastuidraw_brush_p_y");
 
@@ -489,12 +491,7 @@ add_enums(fastuidraw::glsl::ShaderSource &src)
     .add_macro("fastuidraw_color_stop_x_bit0",     PainterBrush::gradient_color_stop_x_bit0)
     .add_macro("fastuidraw_color_stop_x_num_bits", PainterBrush::gradient_color_stop_x_num_bits)
     .add_macro("fastuidraw_color_stop_y_bit0",     PainterBrush::gradient_color_stop_y_bit0)
-    .add_macro("fastuidraw_color_stop_y_num_bits", PainterBrush::gradient_color_stop_y_num_bits)
-
-    .add_macro("fastuidraw_item_shader_bit0", PainterHeader::item_shader_bit0)
-    .add_macro("fastuidraw_item_shader_num_bits", PainterHeader::item_shader_num_bits)
-    .add_macro("fastuidraw_composite_shader_bit0", PainterHeader::composite_shader_bit0)
-    .add_macro("fastuidraw_composite_shader_num_bits", PainterHeader::composite_shader_num_bits);
+    .add_macro("fastuidraw_color_stop_y_num_bits", PainterBrush::gradient_color_stop_y_num_bits);
 }
 
 void
@@ -605,9 +602,12 @@ stream_unpack_code(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Back
       .set(PainterHeader::brush_shader_data_location_offset, ".brush_shader_data_location", shader_unpack_value::uint_type)
       .set(PainterHeader::item_shader_data_location_offset, ".item_shader_data_location", shader_unpack_value::uint_type)
       .set(PainterHeader::composite_shader_data_location_offset, ".composite_shader_data_location", shader_unpack_value::uint_type)
+      .set(PainterHeader::blend_shader_data_location_offset, ".blend_shader_data_location", shader_unpack_value::uint_type)
       .set(PainterHeader::brush_shader_offset, ".brush_shader", shader_unpack_value::uint_type)
       .set(PainterHeader::z_offset, ".z", shader_unpack_value::int_type)
-      .set(PainterHeader::item_composite_shader_offset, ".item_composite_shader_packed", shader_unpack_value::uint_type)
+      .set(PainterHeader::item_shader_offset, ".item_shader", shader_unpack_value::uint_type)
+      .set(PainterHeader::composite_shader_offset, ".composite_shader", shader_unpack_value::uint_type)
+      .set(PainterHeader::blend_shader_offset, ".blend_shader", shader_unpack_value::uint_type)
       .stream_unpack_function(alignment, str,
                               "fastuidraw_read_header",
                               "fastuidraw_shader_header", false);

@@ -39,32 +39,6 @@ namespace fastuidraw
   {
   public:
     /*!
-     * Bit packing for item and composite shader
-     */
-    enum item_composite_shader_encoding
-      {
-       /*!
-        *  Number of bits used for the item shader ID
-        */
-        item_shader_num_bits = 16,
-
-        /*!
-         * Number of bits used for the composite shader ID
-         */
-        composite_shader_num_bits = 16,
-
-        /*!
-         * First bit used to store the item shader ID
-         */
-        item_shader_bit0 = 0,
-
-        /*!
-         * First bit used to store the composite shader ID
-         */
-        composite_shader_bit0 = item_shader_num_bits,
-      };
-
-    /*!
      * Enumerations specifying how the contents of a PainterHeader
      * are packed into a data store buffer (PainterDraw::m_store).
      */
@@ -75,12 +49,11 @@ namespace fastuidraw
         brush_shader_data_location_offset, /*!< offset to \ref m_brush_shader_data_location */
         item_shader_data_location_offset, /*!< offset to \ref m_item_shader_data_location */
         composite_shader_data_location_offset, /*!< offset to \ref m_composite_shader_data_location */
-        /*!
-         * offset to \ref m_item_shader and \ref m_composite_shader packed as
-         * according to \ref item_composite_shader_encoding
-         */
-        item_composite_shader_offset,
+        blend_shader_data_location_offset, /*!< offset to \ref m_blend_shader_data_location */
+        item_shader_offset, /*!< offset to \ref m_item_shader */
         brush_shader_offset, /*!< offset to \ref m_brush_shader */
+        composite_shader_offset, /*!< offset to \ref m_composite_shader */
+        blend_shader_offset, /*!< offset to \ref m_blend_shader */
         z_offset, /*!< offset to \ref m_z */
 
         header_size /*!< size of header */
@@ -133,13 +106,24 @@ namespace fastuidraw
     /*!
      * The location, in units of PainterBackend::ConfigurationBase::alignment()
      * generic_data tuples, to the location in the data store buffer
-     * (PainterDraw::m_store) for the item shader data. I.e.
+     * (PainterDraw::m_store) for the composite shader data. I.e.
      * the PainterCompositeShaderData value is stored (packed) at the location
      * \code
      * PainterDraw::m_store[m_composite_shader_data_location * PainterBackend::ConfigurationBase::alignment()]
      * \endcode
      */
     uint32_t m_composite_shader_data_location;
+
+    /*!
+     * The location, in units of PainterBackend::ConfigurationBase::alignment()
+     * generic_data tuples, to the location in the data store buffer
+     * (PainterDraw::m_store) for the blend shader data. I.e.
+     * the PainterCompositeShaderData value is stored (packed) at the location
+     * \code
+     * PainterDraw::m_store[m_blend_shader_data_location * PainterBackend::ConfigurationBase::alignment()]
+     * \endcode
+     */
+    uint32_t m_blend_shader_data_location;
 
     /*!
      * The ID of the item shader (i.e. PainterItemShader::ID()).
@@ -155,6 +139,11 @@ namespace fastuidraw
      * The ID of the composite shader (i.e. PainterCompositeShader::ID()).
      */
     uint32_t m_composite_shader;
+
+    /*!
+     * The ID of the blend shader (i.e. PainterBlendShader::ID()).
+     */
+    uint32_t m_blend_shader;
 
     /*!
      * The z-value to use for the item. The z-value is used
