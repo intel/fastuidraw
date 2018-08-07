@@ -38,6 +38,11 @@ Table(const TableParams &params):
                                               "nullptr"));
     }
 
+  if (m_params.m_rect_colors.empty())
+    {
+      m_params.m_rect_colors.push_back(vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    }
+
 }
 
 void
@@ -132,16 +137,18 @@ generate_children_in_group(const reference_counted_ptr<Painter> &painter,
 
               if (!im[imJ])
                 {
+                  int image, color;
+
+                  image = imJ % m_params.m_images.size();
+                  color = imJ % m_params.m_rect_colors.size();
+
                   PainterBrush brush;
-                  if (m_params.m_images[imJ].first)
+                  if (m_params.m_images[image].first)
                     {
-                      brush.image(m_params.m_images[imJ].first);
+                      brush.image(m_params.m_images[image].first);
                     }
 
-                  if (!m_params.m_rect_colors.empty())
-                    {
-                      brush.pen(m_params.m_rect_colors[imJ]);
-                    }
+                  brush.pen(m_params.m_rect_colors[color]);
                   im[imJ] = painter->packed_value_pool().create_packed_value(brush);
                 }
 
@@ -191,7 +198,7 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
 
       txt.resize(m_params.m_text_colors.size());
       bg.resize(m_params.m_background_colors.size());
-      im.resize(m_params.m_images.size());
+      im.resize(m_params.m_images.size() * m_params.m_rect_colors.size());
       m_cell_sz = m_dimensions / vec2(m_params.m_cell_count);
 
       m_params.m_cell_state->m_path << vec2(0.0f, 0.0f)
