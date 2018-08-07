@@ -42,6 +42,49 @@ BlendShaderSetCreator(enum PainterBlendShader::shader_type tp):
 
 void
 BlendShaderSetCreator::
+add_single_src_blend_shader(PainterBlendShaderSet &out,
+                            enum PainterEnums::blend_mode_t md,
+                            const BlendMode &single_md)
+{
+  FASTUIDRAWassert(m_type == PainterBlendShader::single_src);
+  out.shader(md, single_md, m_single_src_blend_shader_code);
+}
+
+void
+BlendShaderSetCreator::
+add_dual_src_blend_shader(PainterBlendShaderSet &out,
+                          enum PainterEnums::blend_mode_t md,
+                          const std::string &dual_src_file,
+                          const BlendMode &dual_md)
+{
+  FASTUIDRAWassert(m_type == PainterBlendShader::dual_src);
+
+  reference_counted_ptr<PainterBlendShader> p;
+  ShaderSource src;
+
+  src.add_source(dual_src_file.c_str(), ShaderSource::from_resource);
+  p = FASTUIDRAWnew PainterBlendShaderGLSL(m_type, src);
+  out.shader(md, dual_md, p);
+}
+
+void
+BlendShaderSetCreator::
+add_fbf_blend_shader(PainterBlendShaderSet &out,
+                     enum PainterEnums::blend_mode_t md,
+                     const std::string &framebuffer_fetch_src_file)
+{
+  FASTUIDRAWassert(m_type == PainterBlendShader::framebuffer_fetch);
+
+  reference_counted_ptr<PainterBlendShader> p;
+  ShaderSource src;
+
+  src.add_source(framebuffer_fetch_src_file.c_str(), ShaderSource::from_resource);
+  p = FASTUIDRAWnew PainterBlendShaderGLSL(m_type, src);
+  out.shader(md, BlendMode().blending_on(false), p);
+}
+
+void
+BlendShaderSetCreator::
 add_blend_shader(PainterBlendShaderSet &out,
                  enum PainterEnums::blend_mode_t md,
                  const BlendMode &single_md,
@@ -52,35 +95,71 @@ add_blend_shader(PainterBlendShaderSet &out,
   switch(m_type)
     {
     case PainterBlendShader::single_src:
-      {
-        out.shader(md, single_md, m_single_src_blend_shader_code);
-      }
+      add_single_src_blend_shader(out, md, single_md);
       break;
 
     case PainterBlendShader::dual_src:
-      {
-        reference_counted_ptr<PainterBlendShader> p;
-        p = FASTUIDRAWnew PainterBlendShaderGLSL(m_type,
-                                                 ShaderSource()
-                                                 .add_source(dual_src_file.c_str(), ShaderSource::from_resource));
-        out.shader(md, dual_md, p);
-      }
+      add_dual_src_blend_shader(out, md, dual_src_file, dual_md);
       break;
 
     case PainterBlendShader::framebuffer_fetch:
-      {
-        reference_counted_ptr<PainterBlendShader> p;
-        p = FASTUIDRAWnew PainterBlendShaderGLSL(m_type,
-                                                 ShaderSource()
-                                                 .add_source(framebuffer_fetch_src_file.c_str(), ShaderSource::from_resource));
-        out.shader(md, BlendMode().blending_on(false), p);
-      }
+      add_fbf_blend_shader(out, md, framebuffer_fetch_src_file);
       break;
 
     default:
       FASTUIDRAWassert(!"Bad m_type");
     }
 }
+
+void
+BlendShaderSetCreator::
+add_blend_shader(PainterBlendShaderSet &out,
+                 enum PainterEnums::blend_mode_t md,
+                 const std::string &dual_src_file,
+                 const BlendMode &dual_md,
+                 const std::string &framebuffer_fetch_src_file)
+{
+  switch(m_type)
+    {
+    case PainterBlendShader::single_src:
+      break;
+
+    case PainterBlendShader::dual_src:
+      add_dual_src_blend_shader(out, md, dual_src_file, dual_md);
+      break;
+
+    case PainterBlendShader::framebuffer_fetch:
+      add_fbf_blend_shader(out, md, framebuffer_fetch_src_file);
+      break;
+
+    default:
+      FASTUIDRAWassert(!"Bad m_type");
+    }
+}
+
+void
+BlendShaderSetCreator::
+add_blend_shader(PainterBlendShaderSet &out,
+                 enum PainterEnums::blend_mode_t md,
+                 const std::string &framebuffer_fetch_src_file)
+{
+  switch(m_type)
+    {
+    case PainterBlendShader::single_src:
+      break;
+
+    case PainterBlendShader::dual_src:
+      break;
+
+    case PainterBlendShader::framebuffer_fetch:
+      add_fbf_blend_shader(out, md, framebuffer_fetch_src_file);
+      break;
+
+    default:
+      FASTUIDRAWassert(!"Bad m_type");
+    }
+}
+
 
 PainterBlendShaderSet
 BlendShaderSetCreator::

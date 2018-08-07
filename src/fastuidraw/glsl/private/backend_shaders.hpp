@@ -61,6 +61,32 @@ private:
                    const std::string &dual_src_file,
                    const BlendMode &dual_md,
                    const std::string &framebuffer_fetch_src_file);
+  void
+  add_blend_shader(PainterBlendShaderSet &out,
+                   enum PainterEnums::blend_mode_t md,
+                   const std::string &dual_src_file,
+                   const BlendMode &dual_md,
+                   const std::string &framebuffer_fetch_src_file);
+  void
+  add_blend_shader(PainterBlendShaderSet &out,
+                   enum PainterEnums::blend_mode_t md,
+                   const std::string &framebuffer_fetch_src_file);
+
+  void
+  add_single_src_blend_shader(PainterBlendShaderSet &out,
+                              enum PainterEnums::blend_mode_t md,
+                              const BlendMode &single_md);
+
+  void
+  add_dual_src_blend_shader(PainterBlendShaderSet &out,
+                            enum PainterEnums::blend_mode_t md,
+                            const std::string &dual_src_file,
+                            const BlendMode &dual_md);
+
+  void
+  add_fbf_blend_shader(PainterBlendShaderSet &out,
+                       enum PainterEnums::blend_mode_t md,
+                       const std::string &framebuffer_fetch_src_file);
 
   enum PainterBlendShader::shader_type m_type;
   reference_counted_ptr<PainterBlendShaderGLSL> m_single_src_blend_shader_code;
