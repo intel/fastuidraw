@@ -157,10 +157,7 @@ paint_pre_children(const reference_counted_ptr<Painter> &painter)
         }
       painter->save();
       painter->translate(-wh * 0.5f);
-      if (painter->composite_mode_supported(m_shared_state->m_rect_composite_mode))
-        {
-          painter->composite_shader(m_shared_state->m_rect_composite_mode);
-        }
+      painter->composite_shader(m_shared_state->m_rect_composite_mode);
       painter->draw_rect(PainterData(m_image_brush), vec2(0.0, 0.0), wh);
       painter->restore();
     }
