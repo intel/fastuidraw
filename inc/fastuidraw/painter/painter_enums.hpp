@@ -140,7 +140,7 @@ namespace fastuidraw
     enum blend_w3c_mode_t
       {
         blend_w3c_normal, /*!< W3C multiply mode: Src, i.e. no blending operation */
-        blend_w3c_mulitply, /*!< W3C multiply mode: Dest * Src */
+        blend_w3c_multiply, /*!< W3C multiply mode: Dest * Src */
         blend_w3c_screen, /*!< W3C screen mode: 1 - (1 - Dest) * (1 - Src) */
 
         /*!
