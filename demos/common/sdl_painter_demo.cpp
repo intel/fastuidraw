@@ -110,23 +110,23 @@ namespace
 
   std::ostream&
   operator<<(std::ostream &str,
-             enum_wrapper<enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_type_t> v)
+             enum_wrapper<enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_type_t> v)
   {
     switch(v.m_v)
       {
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_single_src:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_single_src:
         str << "single_src";
         break;
 
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_dual_src:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_dual_src:
         str << "dual_src";
         break;
 
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_framebuffer_fetch:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_framebuffer_fetch:
         str << "framebuffer_fetch";
         break;
 
-      case fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_interlock:
+      case fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_interlock:
         str << "interlock";
         break;
 
@@ -488,34 +488,34 @@ sdl_painter_demo(const std::string &about_text,
   m_assign_binding_points(m_painter_params.assign_binding_points(),
                           "painter_assign_binding_points",
                           "If true, use layout(binding=) in GLSL shader on samplers and buffers", *this),
-  m_composite_type(m_painter_params.compositeing_type(),
-               enumerated_string_type<compositeing_type_t>()
+  m_composite_type(m_painter_params.compositing_type(),
+               enumerated_string_type<compositing_type_t>()
                .add_entry("framebuffer_fetch",
-                          fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_framebuffer_fetch,
-                          "use a framebuffer fetch (if available) to perform compositeing, "
-                          "thus all compositeing operations are part of uber-shader giving "
+                          fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_framebuffer_fetch,
+                          "use a framebuffer fetch (if available) to perform compositing, "
+                          "thus all compositing operations are part of uber-shader giving "
                           "more flexibility for composite types (namely W3C support) and "
                           "composite mode changes do not induce pipeline state changes")
                .add_entry("interlock",
-                          fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_interlock,
+                          fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_interlock,
                           "use image-load store together with interlock (if both available) "
-                          "to perform compositeing, tus all compositeing operations are part of "
+                          "to perform compositing, tus all compositing operations are part of "
                           "uber-shader giving more flexibility for composite types (namely "
                           "W3C support) and composite mode changes do not induce pipeline "
                           "state changes")
                .add_entry("dual_src",
-                          fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_dual_src,
-                          "use a dual source compositeing (if available) to perform compositeing, "
-                          "which has far less flexibility for compositeing than framebuffer-fetch "
+                          fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_dual_src,
+                          "use a dual source compositing (if available) to perform compositing, "
+                          "which has far less flexibility for compositing than framebuffer-fetch "
                           "but has far few pipeline states (there are 3 composite mode pipeline states "
                           "and hald of the Porter-Duff composite modes are in one composite mode pipeline state")
                .add_entry("single_src",
-                          fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_single_src,
-                          "use single source compositeing to perform compositeing, "
-                          "which is even less flexible than dual_src compositeing and "
+                          fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_single_src,
+                          "use single source compositing to perform compositing, "
+                          "which is even less flexible than dual_src compositing and "
                           "every Porter-Duff composite mode is a different pipeline state"),
                "painter_composite_type",
-               "specifies how the painter will perform compositeing",
+               "specifies how the painter will perform compositing",
                *this),
   m_painter_optimal(true, "painter_optimal_auto",
                     "If set to true, override all painter options and "
@@ -674,7 +674,7 @@ init_gl(int w, int h)
   APPLY_PARAM(assign_binding_points, m_assign_binding_points);
   APPLY_PARAM(separate_program_for_discard, m_separate_program_for_discard);
   APPLY_PARAM(provide_auxiliary_image_buffer, m_provide_auxiliary_image_buffer);
-  APPLY_PARAM(compositeing_type, m_composite_type);
+  APPLY_PARAM(compositing_type, m_composite_type);
 
 #undef APPLY_PARAM
 
@@ -701,14 +701,14 @@ init_gl(int w, int h)
           m_provide_auxiliary_image_buffer.value() = fastuidraw::glsl::PainterShaderRegistrarGLSL::no_auxiliary_buffer;
         }
 
-      if (m_composite_type.value() == fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_interlock)
+      if (m_composite_type.value() == fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_interlock)
         {
           std::cout << "WARNING: using interlock with painter_msaa is not possible, falling back to "
                     << ") framebuffer_fetch\n"
                     << std::flush;
         }
 
-      if (m_composite_type.value() == fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_framebuffer_fetch)
+      if (m_composite_type.value() == fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_framebuffer_fetch)
         {
           std::cout << "WARNING: using framebuffer fetch with painter_msaa makes all fragment shading happen "
                     << "per sample (which is terribly expensive)\n"
@@ -808,7 +808,7 @@ init_gl(int w, int h)
       LAZY_PARAM_ENUM(assign_binding_points, m_assign_binding_points);
       LAZY_PARAM_ENUM(separate_program_for_discard, m_separate_program_for_discard);
       LAZY_PARAM_ENUM(provide_auxiliary_image_buffer, m_provide_auxiliary_image_buffer);
-      LAZY_PARAM_ENUM(compositeing_type, m_composite_type);
+      LAZY_PARAM_ENUM(compositing_type, m_composite_type);
       std::cout << std::setw(40) << "default_stroke_shader_aa_type:"
 		<< std::setw(8) << make_enum_wrapper(m_backend->configuration_gl().default_stroke_shader_aa_type())
 		<< " (requested " << make_enum_wrapper(m_painter_params.default_stroke_shader_aa_type())
