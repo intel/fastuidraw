@@ -126,14 +126,13 @@ namespace fastuidraw
     composite_mode(void) const;
 
     /*!
-     * Sets the composite shader. It is a crashing error for
-     * h to be nullptr.
+     * Sets the composite shader.
      * \param h composite shader to use for compositeing.
      * \param packed_composite_mode 3D API composite mode packed by BlendMode::packed()
      */
     void
     composite_shader(const reference_counted_ptr<PainterCompositeShader> &h,
-                 BlendMode::packed_value packed_composite_mode);
+                     BlendMode::packed_value packed_composite_mode);
 
     /*!
      * Equivalent to
@@ -148,7 +147,7 @@ namespace fastuidraw
      */
     void
     composite_shader(const PainterCompositeShaderSet &shader_set,
-                 enum PainterEnums::composite_mode_t m)
+                     enum PainterEnums::composite_mode_t m)
     {
       composite_shader(shader_set.shader(m), shader_set.composite_mode(m));
     }
@@ -164,6 +163,32 @@ namespace fastuidraw
     composite_shader(enum PainterEnums::composite_mode_t m)
     {
       composite_shader(default_shaders().composite_shaders(), m);
+    }
+
+    /*!
+     * Returns the active blend shader
+     */
+    const reference_counted_ptr<PainterBlendShader>&
+    blend_shader(void) const;
+
+    /*!
+     * Sets the active blend shader.
+     * \param h blend shader to use for blending.
+     */
+    void
+    blend_shader(const reference_counted_ptr<PainterBlendShader> &h);
+
+    /*!
+     * Equivalent to
+     * \code
+     * blend_shader(default_shaders().blend_shaders().shader(m))
+     * \endcode
+     * \param m blend mode to use
+     */
+    void
+    blend_shader(enum PainterEnums::blend_w3c_mode_t m)
+    {
+      blend_shader(default_shaders().blend_shaders().shader(m));
     }
 
     /*!

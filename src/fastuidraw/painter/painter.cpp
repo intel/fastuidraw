@@ -510,6 +510,7 @@ namespace
   public:
     unsigned int m_occluder_stack_position;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterCompositeShader> m_composite;
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_blend;
     fastuidraw::BlendMode::packed_value m_composite_mode;
     fastuidraw::range_type<unsigned int> m_clip_equation_series;
 
@@ -1937,6 +1938,7 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
   d->m_clip_rect_state.reset();
   d->m_clip_store.set_current(d->m_clip_rect_state.clip_equations().m_clip_equations);
   composite_shader(PainterEnums::composite_porter_duff_src_over);
+  blend_shader(PainterEnums::blend_w3c_normal);
 }
 
 void
@@ -2687,6 +2689,7 @@ save(void)
   state_stack_entry st;
   st.m_occluder_stack_position = d->m_occluder_stack.size();
   st.m_composite = d->m_core->composite_shader();
+  st.m_blend = d->m_core->blend_shader();
   st.m_composite_mode = d->m_core->composite_mode();
   st.m_clip_rect_state = d->m_clip_rect_state;
   st.m_curve_flatness = d->m_curve_flatness;
@@ -2707,6 +2710,7 @@ restore(void)
 
   d->m_clip_rect_state = st.m_clip_rect_state;
   d->m_core->composite_shader(st.m_composite, st.m_composite_mode);
+  d->m_core->blend_shader(st.m_blend);
   d->m_curve_flatness = st.m_curve_flatness;
   while(d->m_occluder_stack.size() > st.m_occluder_stack_position)
     {
@@ -3050,11 +3054,29 @@ composite_mode(void) const
 void
 fastuidraw::Painter::
 composite_shader(const fastuidraw::reference_counted_ptr<PainterCompositeShader> &h,
-             fastuidraw::BlendMode::packed_value mode)
+                 fastuidraw::BlendMode::packed_value mode)
 {
   PainterPrivate *d;
   d = static_cast<PainterPrivate*>(m_d);
   d->m_core->composite_shader(h, mode);
+}
+
+const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader>&
+fastuidraw::Painter::
+blend_shader(void) const
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  return d->m_core->blend_shader();
+}
+
+void
+fastuidraw::Painter::
+blend_shader(const reference_counted_ptr<PainterBlendShader> &h)
+{
+  PainterPrivate *d;
+  d = static_cast<PainterPrivate*>(m_d);
+  d->m_core->blend_shader(h);
 }
 
 const fastuidraw::PainterShaderSet&
