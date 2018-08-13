@@ -36,7 +36,7 @@ namespace fastuidraw
 
   /*!
    * \brief
-   * A PainterShaderSet provides shaders for compositeing
+   * A PainterShaderSet provides shaders for compositing
    * and drawing each of the item types glyphs, stroking
    * paths and filling paths.
    */

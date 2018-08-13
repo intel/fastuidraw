@@ -27,7 +27,7 @@
 namespace fastuidraw { namespace glsl { namespace detail {
 
 enum fastuidraw::PainterCompositeShader::shader_type
-shader_composite_type(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_type_t in_value);
+shader_composite_type(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_type_t in_value);
 
 /* Values for render pass for stroke shading */
 enum uber_stroke_render_pass_t

@@ -761,22 +761,22 @@ create_shader_set(void)
 }
 
 enum fastuidraw::PainterCompositeShader::shader_type
-shader_composite_type(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_type_t in_value)
+shader_composite_type(enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_type_t in_value)
 {
   switch(in_value)
     {
-    case PainterShaderRegistrarGLSL::compositeing_single_src:
+    case PainterShaderRegistrarGLSL::compositing_single_src:
       return PainterCompositeShader::single_src;
 
-    case PainterShaderRegistrarGLSL::compositeing_dual_src:
+    case PainterShaderRegistrarGLSL::compositing_dual_src:
       return PainterCompositeShader::dual_src;
 
-    case PainterShaderRegistrarGLSL::compositeing_framebuffer_fetch:
-    case PainterShaderRegistrarGLSL::compositeing_interlock:
+    case PainterShaderRegistrarGLSL::compositing_framebuffer_fetch:
+    case PainterShaderRegistrarGLSL::compositing_interlock:
       return PainterCompositeShader::framebuffer_fetch;
     }
 
-  FASTUIDRAWassert(!"Bad compositeing_type_t value");
+  FASTUIDRAWassert(!"Bad compositing_type_t value");
   return PainterCompositeShader::single_src;
 }
 

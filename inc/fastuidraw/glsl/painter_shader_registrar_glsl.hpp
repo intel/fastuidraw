@@ -90,47 +90,47 @@ namespace fastuidraw
            * Clipping is performed by passing the distance
            * to each clip-plane and (virtually) skipping
            * the color write. This requires that the
-           * compositeing mode is through framebuffer fetch,
-           * i.e. UberShaderParams::compositeing_type() is \ref
-           * compositeing_framebuffer_fetch or \ref compositeing_interlock
+           * compositing mode is through framebuffer fetch,
+           * i.e. UberShaderParams::compositing_type() is \ref
+           * compositing_framebuffer_fetch or \ref compositing_interlock
            */
           clipping_via_skip_color_write,
         };
 
       /*!
        * \brief
-       * Enumeration to specify how to perform painter compositeing.
+       * Enumeration to specify how to perform painter compositing.
        */
-      enum compositeing_type_t
+      enum compositing_type_t
         {
           /*!
-           * Use single source compositeing; the non-seperable compositeing
+           * Use single source compositing; the non-seperable compositing
            * modes are not supported.
            */
-          compositeing_single_src,
+          compositing_single_src,
 
           /*!
-           * Use dual soruce compositeing; the non-seperable compositeing
+           * Use dual soruce compositing; the non-seperable compositing
            * modes are not supported.
            */
-          compositeing_dual_src,
+          compositing_dual_src,
 
           /*!
-           * Use framebuffer fetch compositeing; all compositeing modes
+           * Use framebuffer fetch compositing; all compositing modes
            * are supported.
            */
-          compositeing_framebuffer_fetch,
+          compositing_framebuffer_fetch,
 
           /*!
            * Have the color buffer realized as an image2D and use
-           * fragment shader interlock to get compositeing order correct;
-           * all compositeing modes are supported. A backend will
+           * fragment shader interlock to get compositing order correct;
+           * all compositing modes are supported. A backend will
            * need to define the the functions (or macros) in their
            * GLSL preamble:
            *   - fastuidraw_begin_color_buffer_interlock()
            *   - fastuidraw_end_color_buffer_interlock()
            */
-          compositeing_interlock,
+          compositing_interlock,
         };
 
       /*!
@@ -543,8 +543,8 @@ namespace fastuidraw
 
         /*!
          * Specifies the binding point for the image2D (rgba8) color
-         * buffer; only active if UberShaderParams::compositeing_type()
-         * is \ref compositeing_interlock. Default value is 1.
+         * buffer; only active if UberShaderParams::compositing_type()
+         * is \ref compositing_interlock. Default value is 1.
          */
         unsigned int
         color_interlock_image_buffer(void) const;
@@ -597,22 +597,22 @@ namespace fastuidraw
         swap(UberShaderParams &obj);
 
         /*!
-         * Returns how the painter will perform compositeing.
+         * Returns how the painter will perform compositing.
          */
-        enum compositeing_type_t
-        compositeing_type(void) const;
+        enum compositing_type_t
+        compositing_type(void) const;
 
         /*!
-         * Specify the return value to compositeing_type() const.
-         * Default value is \ref compositeing_dual_src
+         * Specify the return value to compositing_type() const.
+         * Default value is \ref compositing_dual_src
          * \param tp composite shader type
          */
         UberShaderParams&
-        compositeing_type(enum compositeing_type_t tp);
+        compositing_type(enum compositing_type_t tp);
 
         /*!
          * Provided as a conveniance, returns the value of
-         * compositeing_type(void) const as a \ref
+         * compositing_type(void) const as a \ref
          * PainterCompositeShader::shader_type.
          */
         enum PainterCompositeShader::shader_type

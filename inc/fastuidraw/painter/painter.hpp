@@ -127,7 +127,7 @@ namespace fastuidraw
 
     /*!
      * Sets the composite shader.
-     * \param h composite shader to use for compositeing.
+     * \param h composite shader to use for compositing.
      * \param packed_composite_mode 3D API composite mode packed by BlendMode::packed()
      */
     void
