@@ -174,6 +174,11 @@ namespace fastuidraw
     value<PainterCompositeShaderData> m_composite_shader_data;
 
     /*!
+     * value for blend shader data
+     */
+    value<PainterBlendShaderData> m_blend_shader_data;
+
+    /*!
      * Sets \ref m_brush
      */
     PainterData&
@@ -204,9 +209,19 @@ namespace fastuidraw
     }
 
     /*!
+     * Sets \ref m_blend_shader_data
+     */
+    PainterData&
+    set(const value<PainterBlendShaderData> &value)
+    {
+      m_blend_shader_data = value;
+      return *this;
+    }
+
+    /*!
      * Call value::make_packed() on \ref m_brush,
-     * \ref m_item_shader_data and \ref
-     * m_composite_shader_data.
+     * \ref m_item_shader_data, \ref m_blend_shader_data
+     * and \ref m_composite_shader_data.
      * \param pool \ref PainterPackedValuePool from
      *             which to create the packed value
      */
@@ -216,6 +231,7 @@ namespace fastuidraw
       m_brush.make_packed(pool);
       m_item_shader_data.make_packed(pool);
       m_composite_shader_data.make_packed(pool);
+      m_blend_shader_data.make_packed(pool);
     }
   };
 
