@@ -732,11 +732,15 @@ PainterBlendShaderSet
 ShaderSetCreator::
 create_blend_shaders(void)
 {
-  PainterBlendShaderSet R;
+  PainterBlendShaderSet return_value;
 
-  R.shader(PainterEnums::blend_w3c_normal,
-           create_blend_shader("fastuidraw_fbf_w3c_normal.glsl.resource_string"));
-  return R;
+  return_value
+    .shader(PainterEnums::blend_w3c_normal,
+            create_blend_shader("fastuidraw_fbf_w3c_normal.glsl.resource_string"))
+    .shader(PainterEnums::blend_w3c_multiply,
+            create_blend_shader("fastuidraw_fbf_w3c_multiply.glsl.resource_string"));
+
+  return return_value;
 }
 
 PainterShaderSet
