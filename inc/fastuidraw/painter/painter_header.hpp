@@ -118,7 +118,7 @@ namespace fastuidraw
      * The location, in units of PainterBackend::ConfigurationBase::alignment()
      * generic_data tuples, to the location in the data store buffer
      * (PainterDraw::m_store) for the blend shader data. I.e.
-     * the PainterCompositeShaderData value is stored (packed) at the location
+     * the PainterBlendShaderData value is stored (packed) at the location
      * \code
      * PainterDraw::m_store[m_blend_shader_data_location * PainterBackend::ConfigurationBase::alignment()]
      * \endcode

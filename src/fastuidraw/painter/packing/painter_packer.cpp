@@ -317,6 +317,7 @@ namespace
     PoolSet<fastuidraw::PainterItemMatrix> m_item_matrix_pool;
     PoolSet<fastuidraw::PainterItemShaderData> m_item_shader_data_pool;
     PoolSet<fastuidraw::PainterCompositeShaderData> m_composite_shader_data_pool;
+    PoolSet<fastuidraw::PainterBlendShaderData> m_blend_shader_data_pool;
   };
 
   class painter_state_location
@@ -1381,4 +1382,16 @@ create_packed_value(const PainterCompositeShaderData &value)
   d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
   e = d->m_composite_shader_data_pool.allocate(value, d->m_alignment);
   return fastuidraw::PainterPackedValue<PainterCompositeShaderData>(e);
+}
+
+fastuidraw::PainterPackedValue<fastuidraw::PainterBlendShaderData>
+fastuidraw::PainterPackedValuePool::
+create_packed_value(const PainterBlendShaderData &value)
+{
+  PainterPackedValuePoolPrivate *d;
+  Entry<PainterBlendShaderData> *e;
+
+  d = static_cast<PainterPackedValuePoolPrivate*>(m_d);
+  e = d->m_blend_shader_data_pool.allocate(value, d->m_alignment);
+  return fastuidraw::PainterPackedValue<PainterBlendShaderData>(e);
 }
