@@ -15,6 +15,7 @@ FASTUIDRAW_RESOURCE_STRING += $(call filelist, \
 	fastuidraw_fbf_w3c_color_dodge.glsl.resource_string \
 	fastuidraw_fbf_w3c_color_burn.glsl.resource_string \
 	fastuidraw_fbf_w3c_hardlight.glsl.resource_string \
+	fastuidraw_fbf_w3c_softlight.glsl.resource_string \
 	)
 
 # Begin standard footer
