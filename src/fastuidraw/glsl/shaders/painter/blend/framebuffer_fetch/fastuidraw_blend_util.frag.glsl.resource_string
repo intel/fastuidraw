@@ -1,0 +1,118 @@
+/*!
+ * \file fastuidraw_blend_util.glsl.resource_string
+ * \brief file fastuidraw_blend_util.glsl.resource_string
+ *
+ * Copyright 2018 by Intel.
+ *
+ * Contact: kevin.rogovin@intel.com
+ *
+ * This Source Code Form is subject to the
+ * terms of the Mozilla Public License, v. 2.0.
+ * If a copy of the MPL was not distributed with
+ * this file, You can obtain one at
+ * http://mozilla.org/MPL/2.0/.
+ *
+ * \author Kevin Rogovin <kevin.rogovin@intel.com>
+ *
+ */
+
+float
+fastuidraw_blend_w3c_screen(in float Cb, in float Cs)
+{
+  const float one = 1.0;
+  return one - (one - Cb) * (one - Cs);
+}
+
+float
+fastuidraw_blend_w3c_multiply(in float Cb, in float Cs)
+{
+  return Cb * Cs;
+}
+
+float
+fastuidraw_blend_w3c_hardlight(in float Cb, in float Cs)
+{
+  return (Cs <= 0.5) ?
+    fastuidraw_blend_w3c_multiply(Cb, 2.0 * Cs) :
+    fastuidraw_blend_w3c_screen(Cb, 2.0 * Cs - 1.0);
+}
+
+float
+fastuidraw_blend_w3c_overlay(in float Cb, in float Cs)
+{
+  return fastuidraw_blend_w3c_hardlight(Cs, Cb);
+}
+
+float
+fastuidraw_blend_w3c_color_dodge(in float Cb, in float Cs)
+{
+  /**
+  if (Cb <= 0.0)
+    {
+      return_value = 0.0;
+    }
+  else if (Cs >= 1.0)
+    {
+      return_value = 1.0;
+    }
+  else
+    {
+      return_value = min(1.0, Cb / (1.0 - Cs));
+    }
+  **/
+
+  return (Cb <= 0.0) ? 0.0 :
+    (Cs >= 1.0) ? 1.0 :
+    min(1.0, Cb / (1.0 - Cs));
+}
+
+float
+fastuidraw_blend_w3c_color_burn(in float Cb, in float Cs)
+{
+  /**
+  if(Cb >= 1.0)
+    {
+      return_value = 1.0;
+    }
+  else if(Cs <= 0.0)
+    {
+      return_value = 0.0;
+    }
+  else
+    {
+      return_value = 1.0 - min(1.0, (1.0 - Cb) / Cs);
+    }
+  **/
+
+  return (Cb >= 1.0) ? 1.0 :
+    (Cs <= 0.0) ? 0.0 :
+    1.0 - min(1.0, (1.0 - Cb) / Cs);
+}
+
+float
+fastuidraw_blend_w3c_softlight(in float Cb, in float Cs)
+{
+  float return_value;
+
+  if (Cs <= 0.5)
+    {
+      return_value = Cb - (1.0 - 2.0 * Cs) * Cb * (1.0 - Cb);
+    }
+  else
+    {
+      float D;
+
+      if(Cb <= 0.25)
+        {
+          D = ((16.0 * Cb - 12.0) * Cb + 4.0) * Cb;
+        }
+      else
+        {
+          D = sqrt(Cb);
+        }
+
+      return_value = Cb + (2.0 * Cs - 1.0) * (D - Cb);
+    }
+
+  return return_value;
+}
