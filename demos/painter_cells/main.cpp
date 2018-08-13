@@ -395,6 +395,12 @@ derived_init(int w, int h)
   generate_random_colors(m_num_rect_colors.value(), m_table_params.m_rect_colors,
                          m_rect_colors_opaque.value());
 
+  if (m_table_params.m_images.empty() && m_table_params.m_rect_colors.empty())
+    {
+      vec4 C(0.2f, 0.7f, 0.7f, 0.6f);
+      m_table_params.m_rect_colors.push_back(C);
+    }
+
   m_table_params.m_min_speed = vec2(m_min_x_velocity.value(), m_min_y_velocity.value());
   m_table_params.m_max_speed = vec2(m_max_x_velocity.value(), m_max_y_velocity.value());
   m_table_params.m_min_degrees_per_s = m_min_degree_per_second.value();
