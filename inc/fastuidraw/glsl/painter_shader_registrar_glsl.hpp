@@ -1289,7 +1289,24 @@ namespace fastuidraw
       virtual
       uint32_t
       compute_composite_shader_group(PainterShader::Tag tag,
-                                 const reference_counted_ptr<PainterCompositeShader> &shader);
+                                     const reference_counted_ptr<PainterCompositeShader> &shader);
+
+      /*!
+       * To be optionally implemented by a derived class to
+       * compute the shader group of a PainterBlendShader.
+       * The passed shader may or may not be a sub-shader.
+       * The mutex() is locked for the duration of the function.
+       * Default implementation is to return 0.
+       * \param tag The value of PainterShader::tag() that PainterShaderRegistrarGLSL
+       *            will assign to the shader. Do NOT access PainterShader::tag(),
+       *            PainterShader::ID() or PainterShader::group() as they are
+       *            not yet assgined.
+       * \param shader shader whose group is to be computed
+       */
+      virtual
+      uint32_t
+      compute_blend_shader_group(PainterShader::Tag tag,
+                                 const reference_counted_ptr<PainterBlendShader> &shader);
 
       //////////////////////////////////////////////////////////////
       // virtual methods from PainterRegistrar, do NOT reimplement(!)
@@ -1308,6 +1325,14 @@ namespace fastuidraw
       virtual
       uint32_t
       compute_composite_sub_shader_group(const reference_counted_ptr<PainterCompositeShader> &shader);
+
+      virtual
+      PainterShader::Tag
+      absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader);
+
+      virtual
+      uint32_t
+      compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader);
 
     private:
       void *m_d;
