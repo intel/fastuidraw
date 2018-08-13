@@ -160,7 +160,6 @@ add_composite_shader(PainterCompositeShaderSet &out,
     }
 }
 
-
 PainterCompositeShaderSet
 CompositeShaderSetCreator::
 create_composite_shaders(void)
@@ -719,6 +718,27 @@ create_fill_shader(void)
   return fill_shader;
 }
 
+reference_counted_ptr<PainterBlendShader>
+ShaderSetCreator::
+create_blend_shader(const std::string &framebuffer_fetch_src_file)
+{
+  ShaderSource src;
+
+  src.add_source(framebuffer_fetch_src_file.c_str(), ShaderSource::from_resource);
+  return FASTUIDRAWnew PainterBlendShaderGLSL(src);
+}
+
+PainterBlendShaderSet
+ShaderSetCreator::
+create_blend_shaders(void)
+{
+  PainterBlendShaderSet R;
+
+  R.shader(PainterEnums::blend_w3c_normal,
+           create_blend_shader("fastuidraw_fbf_w3c_normal.glsl.resource_string"));
+  return R;
+}
+
 PainterShaderSet
 ShaderSetCreator::
 create_shader_set(void)
@@ -735,7 +755,8 @@ create_shader_set(void)
     .stroke_shader(create_stroke_shader(number_cap_styles, se))
     .dashed_stroke_shader(create_dashed_stroke_shader_set())
     .fill_shader(create_fill_shader())
-    .composite_shaders(create_composite_shaders());
+    .composite_shaders(create_composite_shaders())
+    .blend_shaders(create_blend_shaders());
   return return_value;
 }
 

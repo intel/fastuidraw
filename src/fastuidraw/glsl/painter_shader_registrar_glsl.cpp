@@ -144,6 +144,7 @@ namespace
       m_vert_shader_use_switch(false),
       m_frag_shader_use_switch(false),
       m_composite_shader_use_switch(false),
+      m_blend_shader_use_switch(false),
       m_unpack_header_and_brush_in_frag_shader(false),
       m_data_store_backing(fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_tbo),
       m_data_blocks_per_store_buffer(-1),
@@ -167,6 +168,7 @@ namespace
     bool m_vert_shader_use_switch;
     bool m_frag_shader_use_switch;
     bool m_composite_shader_use_switch;
+    bool m_blend_shader_use_switch;
     bool m_unpack_header_and_brush_in_frag_shader;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::data_store_backing_t m_data_store_backing;
     int m_data_blocks_per_store_buffer;
@@ -1102,15 +1104,18 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
   stream_uber_vert_shader(params.vert_shader_use_switch(), vert, item_shaders,
                           uber_shader_varyings, shader_varying_datum);
 
+  bool blending_supported(false);
   c_string shader_composite_macro;
   switch(params.compositeing_type())
     {
     case PainterShaderRegistrarGLSL::compositeing_framebuffer_fetch:
       shader_composite_macro = "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH";
+      blending_supported = true;
       break;
 
     case PainterShaderRegistrarGLSL::compositeing_interlock:
       shader_composite_macro = "FASTUIDRAW_PAINTER_BLEND_INTERLOCK";
+      blending_supported = true;
       break;
 
     case PainterShaderRegistrarGLSL::compositeing_dual_src:
@@ -1202,8 +1207,14 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
   stream_uber_frag_shader(params.frag_shader_use_switch(), frag, item_shaders,
                           uber_shader_varyings, shader_varying_datum);
   stream_uber_composite_shader(params.composite_shader_use_switch(), frag,
-                           make_c_array(m_composite_shaders[composite_type].m_shaders),
-                           composite_type);
+                               make_c_array(m_composite_shaders[composite_type].m_shaders),
+                               composite_type);
+
+  if (blending_supported)
+    {
+      stream_uber_blend_shader(params.blend_shader_use_switch(), frag,
+                               make_c_array(m_blend_shaders));
+    }
 }
 
 //////////////////////////////////////////////////////
@@ -1472,6 +1483,8 @@ setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, bool, frag_shader_use_switch)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, bool, composite_shader_use_switch)
+setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
+                 UberShaderParamsPrivate, bool, blend_shader_use_switch)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, bool, unpack_header_and_brush_in_frag_shader)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,

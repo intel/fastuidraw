@@ -14,6 +14,9 @@ include $(dir)/Rules.mk
 dir := $(d)/composite
 include $(dir)/Rules.mk
 
+dir := $(d)/blend
+include $(dir)/Rules.mk
+
 FASTUIDRAW_RESOURCE_STRING += $(call filelist, \
 	fastuidraw_painter_globals.vert.glsl.resource_string \
 	fastuidraw_painter_main.vert.glsl.resource_string \
