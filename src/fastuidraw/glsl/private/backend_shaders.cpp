@@ -744,7 +744,9 @@ create_blend_shaders(void)
     .shader(PainterEnums::blend_w3c_overlay,
             create_blend_shader("fastuidraw_fbf_w3c_overlay.glsl.resource_string"))
     .shader(PainterEnums::blend_w3c_darken,
-            create_blend_shader("fastuidraw_fbf_w3c_darken.glsl.resource_string"));
+            create_blend_shader("fastuidraw_fbf_w3c_darken.glsl.resource_string"))
+    .shader(PainterEnums::blend_w3c_lighten,
+            create_blend_shader("fastuidraw_fbf_w3c_lighten.glsl.resource_string"));
 
   return return_value;
 }
