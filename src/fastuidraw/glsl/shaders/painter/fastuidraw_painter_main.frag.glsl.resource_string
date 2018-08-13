@@ -133,7 +133,8 @@ main(void)
       in_fb = fastuidraw_final_color;
       #ifndef FASTUIDRAW_PAINTER_CLIPPING_SKIP_COLOR_WRITE
         {
-          fastuidraw_run_blend_shader(fastuidraw_blend_shader, fastuidraw_composite_shader_data_location, v, in_fb, out_blend);
+          fastuidraw_run_blend_shader(fastuidraw_blend_shader, fastuidraw_composite_shader_data_location, v.rgb, in_fb.rgb, out_blend.rgb);
+          out_blend.a = v.a;
           out_blend.rgb *= out_blend.a;
           fastuidraw_run_composite_shader(fastuidraw_composite_shader, fastuidraw_composite_shader_data_location, out_blend, in_fb, out_fb);
         }
@@ -145,7 +146,8 @@ main(void)
             }
           else
             {
-              fastuidraw_run_blend_shader(fastuidraw_blend_shader, fastuidraw_composite_shader_data_location, v, in_fb, out_blend);
+              fastuidraw_run_blend_shader(fastuidraw_blend_shader, fastuidraw_composite_shader_data_location, v.rgb, in_fb.rgb, out_blend.rgb);
+              out_blend.a = v.a;
               out_blend.rgb *= out_blend.a;
               fastuidraw_run_composite_shader(fastuidraw_composite_shader, fastuidraw_composite_shader_data_location, out_blend, in_fb, out_fb);
             }
@@ -165,7 +167,8 @@ main(void)
           ivec2 pos = ivec2(gl_FragCoord.xy);
 
           in_fb = imageLoad(fastuidraw_color_buffer, pos);
-          fastuidraw_run_blend_shader(fastuidraw_blend_shader, fastuidraw_composite_shader_data_location, v, in_fb, out_blend);
+          fastuidraw_run_blend_shader(fastuidraw_blend_shader, fastuidraw_composite_shader_data_location, v.rgb, in_fb.rgb, out_blend.rgb);
+          out_blend.a = v.a;
           out_blend.rgb *= out_blend.a;
           fastuidraw_run_composite_shader(fastuidraw_composite_shader, fastuidraw_composite_shader_data_location, out_blend, in_fb, out_fb);
           imageStore(fastuidraw_color_buffer, pos, out_fb);

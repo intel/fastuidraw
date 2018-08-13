@@ -18,10 +18,9 @@
 
 void
 fastuidraw_gl_compute_post_blended_value(in uint sub_shader, in uint blend_shader_data_location,
-                                         in vec4 in_src, in vec4 in_fb, out vec4 out_src)
+                                         in vec3 in_src, in vec3 in_fb, out vec3 out_src)
 {
   out_src.r = fastuidraw_blend_w3c_softlight(in_fb.r, in_src.r);
   out_src.g = fastuidraw_blend_w3c_softlight(in_fb.g, in_src.g);
   out_src.b = fastuidraw_blend_w3c_softlight(in_fb.b, in_src.b);
-  out_src.a = fastuidraw_blend_w3c_softlight(in_fb.a, in_src.a);
 }

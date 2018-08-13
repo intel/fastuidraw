@@ -740,7 +740,7 @@ stream_uber_blend_shader(bool use_switch, ShaderSource &frag,
 {
   c_string func_name, sub_func_name, sub_func_args;
 
-  func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec4 in_src, in vec4 in_fb, out vec4 out_src)";
+  func_name = "fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location, in vec3 in_src, in vec3 in_fb, out vec3 out_src)";
   sub_func_name = "fastuidraw_gl_compute_post_blended_value";
   sub_func_args = ", blend_shader_data_location, in_src, in_fb, out_src";
 
