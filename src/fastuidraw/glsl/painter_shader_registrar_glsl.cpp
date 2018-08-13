@@ -31,6 +31,7 @@
 #include <fastuidraw/painter/painter_dashed_stroke_params.hpp>
 #include <fastuidraw/painter/painter_stroke_params.hpp>
 #include <fastuidraw/glsl/painter_composite_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/shader_code.hpp>
 
@@ -222,6 +223,8 @@ namespace
     unsigned int m_next_item_shader_ID;
     fastuidraw::vecN<CompositeShaderGroup, fastuidraw::PainterCompositeShader::number_types> m_composite_shaders;
     unsigned int m_next_composite_shader_ID;
+    std::vector<fastuidraw::reference_counted_ptr<fastuidraw::glsl::PainterBlendShaderGLSL> > m_blend_shaders;
+    unsigned int m_next_blend_shader_ID;
     fastuidraw::glsl::ShaderSource m_constant_code;
     fastuidraw::glsl::ShaderSource m_vert_shader_utils;
     fastuidraw::glsl::ShaderSource m_frag_shader_utils;
@@ -243,6 +246,7 @@ PainterShaderRegistrarGLSLPrivate::
 PainterShaderRegistrarGLSLPrivate(void):
   m_next_item_shader_ID(1),
   m_next_composite_shader_ID(1),
+  m_next_blend_shader_ID(1),
   m_number_float_varyings(0),
   m_number_uint_varyings(0),
   m_number_int_varyings(0)
@@ -1546,6 +1550,16 @@ compute_composite_shader_group(PainterShader::Tag tag,
   return 0u;
 }
 
+uint32_t
+fastuidraw::glsl::PainterShaderRegistrarGLSL::
+compute_blend_shader_group(PainterShader::Tag tag,
+                           const reference_counted_ptr<PainterBlendShader> &shader)
+{
+  FASTUIDRAWunused(shader);
+  FASTUIDRAWunused(tag);
+  return 0u;
+}
+
 fastuidraw::PainterShader::Tag
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
 absorb_item_shader(const reference_counted_ptr<PainterItemShader> &shader)
@@ -1613,6 +1627,39 @@ compute_composite_sub_shader_group(const reference_counted_ptr<PainterCompositeS
   return compute_composite_shader_group(tg, shader);
 }
 
+fastuidraw::PainterShader::Tag
+fastuidraw::glsl::PainterShaderRegistrarGLSL::
+absorb_blend_shader(const reference_counted_ptr<PainterBlendShader> &shader)
+{
+  PainterShaderRegistrarGLSLPrivate *d;
+  d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
+
+  reference_counted_ptr<glsl::PainterBlendShaderGLSL> h;
+  PainterShader::Tag return_value;
+
+  FASTUIDRAWassert(!shader->parent());
+  FASTUIDRAWassert(shader.dynamic_cast_ptr<PainterBlendShaderGLSL>());
+  h = shader.static_cast_ptr<PainterBlendShaderGLSL>();
+
+  d->m_blend_shaders.push_back(h);
+
+  return_value.m_ID = d->m_next_blend_shader_ID;
+  return_value.m_group = 0;
+  d->m_next_blend_shader_ID += h->number_sub_shaders();
+  return_value.m_group = compute_blend_shader_group(return_value, shader);
+
+  return return_value;
+}
+
+uint32_t
+fastuidraw::glsl::PainterShaderRegistrarGLSL::
+compute_blend_sub_shader_group(const reference_counted_ptr<PainterBlendShader> &shader)
+{
+  PainterShader::Tag tg(shader->parent()->tag());
+  tg.m_ID += shader->sub_shader();
+  return compute_blend_shader_group(tg, shader);
+}
+
 unsigned int
 fastuidraw::glsl::PainterShaderRegistrarGLSL::
 registered_shader_count(void)
@@ -1621,7 +1668,7 @@ registered_shader_count(void)
   PainterShaderRegistrarGLSLPrivate *d;
 
   d = static_cast<PainterShaderRegistrarGLSLPrivate*>(m_d);
-  return_value = d->m_item_shaders.size();
+  return_value = d->m_item_shaders.size() + d->m_blend_shaders.size();
   for (unsigned int i = 0; i < PainterCompositeShader::number_types; ++i)
     {
       return_value += d->m_composite_shaders[i].m_shaders.size();
