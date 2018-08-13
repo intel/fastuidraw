@@ -738,7 +738,9 @@ create_blend_shaders(void)
     .shader(PainterEnums::blend_w3c_normal,
             create_blend_shader("fastuidraw_fbf_w3c_normal.glsl.resource_string"))
     .shader(PainterEnums::blend_w3c_multiply,
-            create_blend_shader("fastuidraw_fbf_w3c_multiply.glsl.resource_string"));
+            create_blend_shader("fastuidraw_fbf_w3c_multiply.glsl.resource_string"))
+    .shader(PainterEnums::blend_w3c_screen,
+            create_blend_shader("fastuidraw_fbf_w3c_screen.glsl.resource_string"));
 
   return return_value;
 }
