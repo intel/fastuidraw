@@ -133,7 +133,7 @@ namespace
   {
   public:
     UberShaderParamsPrivate(void):
-      m_compositeing_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_dual_src),
+      m_compositing_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_dual_src),
       m_supports_bindless_texturing(false),
       m_clipping_type(fastuidraw::glsl::PainterShaderRegistrarGLSL::clipping_via_gl_clip_distance),
       m_z_coordinate_convention(fastuidraw::glsl::PainterShaderRegistrarGLSL::z_minus_1_to_1),
@@ -157,7 +157,7 @@ namespace
       m_use_uvec2_for_bindless_handle(true)
     {}
 
-    enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_type_t m_compositeing_type;
+    enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_type_t m_compositing_type;
     bool m_supports_bindless_texturing;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::clipping_type_t m_clipping_type;
     enum fastuidraw::glsl::PainterShaderRegistrarGLSL::z_coordinate_convention_t m_z_coordinate_convention;
@@ -1106,23 +1106,23 @@ construct_shader(const fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::Backen
 
   bool blending_supported(false);
   c_string shader_composite_macro;
-  switch(params.compositeing_type())
+  switch(params.compositing_type())
     {
-    case PainterShaderRegistrarGLSL::compositeing_framebuffer_fetch:
+    case PainterShaderRegistrarGLSL::compositing_framebuffer_fetch:
       shader_composite_macro = "FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH";
       blending_supported = true;
       break;
 
-    case PainterShaderRegistrarGLSL::compositeing_interlock:
+    case PainterShaderRegistrarGLSL::compositing_interlock:
       shader_composite_macro = "FASTUIDRAW_PAINTER_BLEND_INTERLOCK";
       blending_supported = true;
       break;
 
-    case PainterShaderRegistrarGLSL::compositeing_dual_src:
+    case PainterShaderRegistrarGLSL::compositing_dual_src:
       shader_composite_macro = "FASTUIDRAW_PAINTER_BLEND_DUAL_SRC_BLEND";
       break;
 
-    case PainterShaderRegistrarGLSL::compositeing_single_src:
+    case PainterShaderRegistrarGLSL::compositing_single_src:
       shader_composite_macro = "FASTUIDRAW_PAINTER_BLEND_SINGLE_SRC_BLEND";
       break;
 
@@ -1439,7 +1439,7 @@ enum fastuidraw::PainterCompositeShader::shader_type
 fastuidraw::glsl::PainterShaderRegistrarGLSLTypes::UberShaderParams::
 composite_type(void) const
 {
-  return detail::shader_composite_type(compositeing_type());
+  return detail::shader_composite_type(compositing_type());
 }
 
 fastuidraw::PainterShaderSet
@@ -1457,8 +1457,8 @@ assign_swap_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderPa
 
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate,
-                 enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositeing_type_t,
-                 compositeing_type)
+                 enum fastuidraw::glsl::PainterShaderRegistrarGLSL::compositing_type_t,
+                 compositing_type)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,
                  UberShaderParamsPrivate, bool, supports_bindless_texturing)
 setget_implement(fastuidraw::glsl::PainterShaderRegistrarGLSL::UberShaderParams,

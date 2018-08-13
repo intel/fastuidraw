@@ -246,14 +246,14 @@ configure_source_front_matter(void)
         .add_macro("fastuidraw_end_aux_interlock", end_interlock_fcn);
     }
 
-  if (m_params.compositeing_type() == compositeing_interlock)
+  if (m_params.compositing_type() == compositing_interlock)
     {
       m_front_matter_frag
         .add_macro("fastuidraw_begin_color_buffer_interlock", begin_interlock_fcn)
         .add_macro("fastuidraw_end_color_buffer_interlock", end_interlock_fcn);
     }
 
-  if (m_params.compositeing_type() == compositeing_interlock
+  if (m_params.compositing_type() == compositing_interlock
       || m_uber_shader_builder_params.provide_auxiliary_image_buffer() != no_auxiliary_buffer)
     {
       /* Only have this front matter present if FASTUIDRAW_DISCARD is empty defined;
@@ -327,7 +327,7 @@ configure_source_front_matter(void)
       require_ssbo = (m_uber_shader_builder_params.data_store_backing() == data_store_ssbo)
         || (glyphs->geometry_binding_point() == GL_SHADER_STORAGE_BUFFER);
 
-      require_image_load_store = (m_params.compositeing_type() == compositeing_interlock)
+      require_image_load_store = (m_params.compositing_type() == compositing_interlock)
         || (m_uber_shader_builder_params.provide_auxiliary_image_buffer() != no_auxiliary_buffer)
         || require_ssbo;
 

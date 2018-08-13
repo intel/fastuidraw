@@ -77,7 +77,7 @@ public:
   static
   uint32_t
   fbo_bits(enum PainterBackendGL::auxiliary_buffer_t aux,
-           enum PainterBackendGL::compositeing_type_t compositeing);
+           enum PainterBackendGL::compositing_type_t compositing);
 
   GLuint
   fbo(uint32_t tp);
@@ -87,16 +87,16 @@ public:
 
   GLuint
   fbo(enum PainterBackendGL::auxiliary_buffer_t aux,
-      enum PainterBackendGL::compositeing_type_t compositeing)
+      enum PainterBackendGL::compositing_type_t compositing)
   {
-    return fbo(fbo_bits(aux, compositeing));
+    return fbo(fbo_bits(aux, compositing));
   }
 
   c_array<const GLenum>
   draw_buffers(enum PainterBackendGL::auxiliary_buffer_t aux,
-               enum PainterBackendGL::compositeing_type_t compositeing)
+               enum PainterBackendGL::compositing_type_t compositing)
   {
-    return draw_buffers(fbo_bits(aux, compositeing));
+    return draw_buffers(fbo_bits(aux, compositing));
   }
 
   PainterBackend::Surface::Viewport m_viewport;

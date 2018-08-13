@@ -241,7 +241,7 @@ public:
    * Ctor.
    * \param pname name of attribute in GLSL code
    * \param plocation location for fragment shader output to occupy
-   * \param pindex index (used for dual source compositeing) for
+   * \param pindex index (used for dual source compositing) for
    *               fragment shader output to occupy
    */
   BindFragDataLocation(c_string pname, int plocation, int pindex = 0);
@@ -367,7 +367,7 @@ public:
    * \endcode
    * \param pname name of the attribute
    * \param plocation location for fragment shader output to occupy
-   * \param pindex index (used for dual source compositeing) for
+   * \param pindex index (used for dual source compositing) for
    *               fragment shader output to occupy
    */
   PreLinkActionArray&

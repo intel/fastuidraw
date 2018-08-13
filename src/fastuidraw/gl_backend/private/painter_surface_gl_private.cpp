@@ -213,10 +213,10 @@ draw_buffers(uint32_t tp)
 uint32_t
 fastuidraw::gl::detail::SurfaceGLPrivate::
 fbo_bits(enum PainterBackendGL::auxiliary_buffer_t aux,
-         enum PainterBackendGL::compositeing_type_t compositeing)
+         enum PainterBackendGL::compositing_type_t compositing)
 {
   uint32_t tp(0u);
-  if (compositeing != PainterBackendGL::compositeing_interlock)
+  if (compositing != PainterBackendGL::compositing_interlock)
     {
       tp |= fbo_color_buffer;
     }

@@ -409,18 +409,18 @@ namespace fastuidraw
         default_stroke_shader_aa_type(enum PainterStrokeShader::type_t);
 
         /*!
-         * Returns how the painter will perform compositeing.
+         * Returns how the painter will perform compositing.
          */
-        enum compositeing_type_t
-        compositeing_type(void) const;
+        enum compositing_type_t
+        compositing_type(void) const;
 
         /*!
-         * Specify the return value to compositeing_type() const.
-         * Default value is \ref compositeing_dual_src
+         * Specify the return value to compositing_type() const.
+         * Default value is \ref compositing_dual_src
          * \param tp composite shader type
          */
         ConfigurationGL&
-        compositeing_type(enum compositeing_type_t tp);
+        compositing_type(enum compositing_type_t tp);
 
         /*!
          * If true, provide an image2D (of type r8) uniform to

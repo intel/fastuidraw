@@ -239,7 +239,7 @@ namespace
       m_assign_binding_points(true),
       m_separate_program_for_discard(true),
       m_default_stroke_shader_aa_type(fastuidraw::PainterStrokeShader::draws_solid_then_fuzz),
-      m_compositeing_type(fastuidraw::gl::PainterBackendGL::compositeing_dual_src),
+      m_compositing_type(fastuidraw::gl::PainterBackendGL::compositing_dual_src),
       m_provide_auxiliary_image_buffer(fastuidraw::gl::PainterBackendGL::no_auxiliary_buffer)
     {}
 
@@ -263,7 +263,7 @@ namespace
     bool m_assign_binding_points;
     bool m_separate_program_for_discard;
     enum fastuidraw::PainterStrokeShader::type_t m_default_stroke_shader_aa_type;
-    enum fastuidraw::gl::PainterBackendGL::compositeing_type_t m_compositeing_type;
+    enum fastuidraw::gl::PainterBackendGL::compositing_type_t m_compositing_type;
     enum fastuidraw::gl::PainterBackendGL::auxiliary_buffer_t m_provide_auxiliary_image_buffer;
 
     std::string m_glsl_version_override;
@@ -780,7 +780,7 @@ compute_uber_shader_params(const fastuidraw::gl::PainterBackendGL::Configuration
     }
 
   out_params
-    .compositeing_type(params.compositeing_type())
+    .compositing_type(params.compositing_type())
     .supports_bindless_texturing(supports_bindless)
     .assign_layout_to_vertex_shader_inputs(params.assign_layout_to_vertex_shader_inputs())
     .assign_layout_to_varyings(params.assign_layout_to_varyings())
@@ -846,16 +846,16 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
   const PainterBackendGL::UberShaderParams &uber_params(m_reg_gl->uber_shader_builder_params());
   const PainterBackendGL::BindingPoints &binding_points(uber_params.binding_points());
   enum PainterBackendGL::auxiliary_buffer_t aux_type;
-  enum PainterBackendGL::compositeing_type_t compositeing_type;
+  enum PainterBackendGL::compositing_type_t compositing_type;
   const PainterBackend::Surface::Viewport &vwp(m_surface_gl->m_viewport);
   ivec2 dimensions(m_surface_gl->m_properties.dimensions());
   bool has_images;
 
   aux_type = uber_params.provide_auxiliary_image_buffer();
-  compositeing_type = m_reg_gl->params().compositeing_type();
+  compositing_type = m_reg_gl->params().compositing_type();
   has_images = (aux_type != PainterBackendGL::no_auxiliary_buffer
                 && aux_type != PainterBackendGL::auxiliary_buffer_framebuffer_fetch)
-    || (compositeing_type == PainterBackendGL::compositeing_interlock);
+    || (compositing_type == PainterBackendGL::compositing_interlock);
 
   if (v & gpu_dirty_state::render_target)
     {
@@ -866,8 +866,8 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
         {
           GLbitfield mask(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-          fbo = m_surface_gl->fbo(aux_type, compositeing_type);
-          draw_buffers = m_surface_gl->draw_buffers(aux_type, compositeing_type);
+          fbo = m_surface_gl->fbo(aux_type, compositing_type);
+          draw_buffers = m_surface_gl->draw_buffers(aux_type, compositing_type);
 
           if (clear_color_buffer)
             {
@@ -883,9 +883,9 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
                * is framebuffer_fetch it also gets cleared which is
                * a good thing for tiled-based renderers.
                */
-              if (compositeing_type == PainterBackendGL::compositeing_interlock)
+              if (compositing_type == PainterBackendGL::compositing_interlock)
                 {
-                  enum PainterBackendGL::compositeing_type_t bl(PainterBackendGL::compositeing_dual_src);
+                  enum PainterBackendGL::compositing_type_t bl(PainterBackendGL::compositing_dual_src);
                   fbo = m_surface_gl->fbo(aux_type, bl);
                   draw_buffers = m_surface_gl->draw_buffers(aux_type, bl);
                 }
@@ -902,10 +902,10 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
           FASTUIDRAWassert(!clear_color_buffer);
         }
 
-      fbo = m_surface_gl->fbo(aux_type, compositeing_type);
+      fbo = m_surface_gl->fbo(aux_type, compositing_type);
       if (fbo != last_fbo)
         {
-          draw_buffers = m_surface_gl->draw_buffers(aux_type, compositeing_type);
+          draw_buffers = m_surface_gl->draw_buffers(aux_type, compositing_type);
           glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
           glDrawBuffers(draw_buffers.size(), draw_buffers.c_ptr());
         }
@@ -938,7 +938,7 @@ set_gl_state(fastuidraw::gpu_dirty_state v, bool clear_depth, bool clear_color_b
                              detail::SurfaceGLPrivate::auxiliaryBufferInternalFmt(tp));
         }
 
-      if (compositeing_type == PainterBackendGL::compositeing_interlock)
+      if (compositing_type == PainterBackendGL::compositing_interlock)
         {
           glBindImageTexture(binding_points.color_interlock_image_buffer(),
                              m_surface_gl->color_buffer(), //texture
@@ -1295,7 +1295,7 @@ configure_from_context(bool for_msaa, const ContextProperties &ctx)
 
   if (!for_msaa)
     {
-      d->m_compositeing_type = compositeing_framebuffer_fetch;
+      d->m_compositing_type = compositing_framebuffer_fetch;
 
       /* We are prefering interlock over framebuffer fetch
        * for the auxiliary buffer because the auxiliary buffer
@@ -1320,10 +1320,10 @@ configure_from_context(bool for_msaa, const ContextProperties &ctx)
        */
       d->m_provide_auxiliary_image_buffer = no_auxiliary_buffer;
 
-      /* compositeing_interlock does NOT work with MSAA and compositeing_framebuffer_fetch would
+      /* compositing_interlock does NOT work with MSAA and compositing_framebuffer_fetch would
        * force the fragment shader to work per-sample.
        */
-      d->m_compositeing_type = compositeing_dual_src;
+      d->m_compositing_type = compositing_dual_src;
     }
 
   if (d->m_provide_auxiliary_image_buffer == no_auxiliary_buffer)
@@ -1335,13 +1335,13 @@ configure_from_context(bool for_msaa, const ContextProperties &ctx)
       d->m_default_stroke_shader_aa_type = PainterStrokeShader::cover_then_draw;
     }
 
-  /* Adjust compositeing type from GL context properties */
-  d->m_compositeing_type = compute_compositeing_type(d->m_provide_auxiliary_image_buffer,
-                                             interlock_type, d->m_compositeing_type,
+  /* Adjust compositing type from GL context properties */
+  d->m_compositing_type = compute_compositing_type(d->m_provide_auxiliary_image_buffer,
+                                             interlock_type, d->m_compositing_type,
                                              ctx);
 
   /* Adjust clipping type from GL context properties */
-  d->m_clipping_type = compute_clipping_type(d->m_compositeing_type,
+  d->m_clipping_type = compute_clipping_type(d->m_compositing_type,
                                              d->m_clipping_type,
                                              ctx);
 
@@ -1389,7 +1389,7 @@ configure_from_context(bool for_msaa, const ContextProperties &ctx)
     || gl_version.find("nouveau") != std::string::npos
     || gl_renderer.find("nouveau") != std::string::npos;
 
-  d->m_clipping_type = compute_clipping_type(d->m_compositeing_type,
+  d->m_clipping_type = compute_clipping_type(d->m_compositing_type,
                                              d->m_clipping_type,
                                              ctx,
                                              !NVIDIA_detected);
@@ -1488,7 +1488,7 @@ adjust_for_context(const ContextProperties &ctx)
       break;
     }
 
-  clipping_type = compute_clipping_type(d->m_compositeing_type, d->m_clipping_type, ctx);
+  clipping_type = compute_clipping_type(d->m_compositing_type, d->m_clipping_type, ctx);
   d->m_clipping_type= clipping_type;
 
   /* if have to use discard for clipping, then there is zero point to
@@ -1535,9 +1535,9 @@ adjust_for_context(const ContextProperties &ctx)
   d->m_provide_auxiliary_image_buffer =
     compute_provide_auxiliary_buffer(d->m_provide_auxiliary_image_buffer, ctx);
 
-  d->m_compositeing_type = compute_compositeing_type(d->m_provide_auxiliary_image_buffer,
+  d->m_compositing_type = compute_compositing_type(d->m_provide_auxiliary_image_buffer,
                                              interlock_type,
-                                             d->m_compositeing_type, ctx);
+                                             d->m_compositing_type, ctx);
 
   if (d->m_provide_auxiliary_image_buffer == no_auxiliary_buffer)
     {
@@ -1629,7 +1629,7 @@ setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, Configuratio
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  enum fastuidraw::PainterStrokeShader::type_t, default_stroke_shader_aa_type)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
-                 enum fastuidraw::gl::PainterBackendGL::compositeing_type_t, compositeing_type)
+                 enum fastuidraw::gl::PainterBackendGL::compositing_type_t, compositing_type)
 setget_implement(fastuidraw::gl::PainterBackendGL::ConfigurationGL, ConfigurationGLPrivate,
                  enum fastuidraw::gl::PainterBackendGL::auxiliary_buffer_t, provide_auxiliary_image_buffer)
 
@@ -1838,7 +1838,7 @@ on_post_draw(void)
                          0, GL_FALSE, 0, GL_READ_ONLY, GL_R8UI);
     }
 
-  if (params.compositeing_type() == compositeing_interlock)
+  if (params.compositing_type() == compositing_interlock)
     {
       glBindImageTexture(binding_points.color_interlock_image_buffer(), 0,
                          0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);

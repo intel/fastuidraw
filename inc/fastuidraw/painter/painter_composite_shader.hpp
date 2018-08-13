@@ -30,7 +30,7 @@ namespace fastuidraw
   /*!
    * \brief
    * A PainterCompositeShader represents a shader
-   * for performing compositeing operations.
+   * for performing compositing operations.
    */
   class PainterCompositeShader:public PainterShader
   {
@@ -42,19 +42,19 @@ namespace fastuidraw
     enum shader_type
       {
         /*!
-         * Indicates compositeing is via fixed function compositeing
-         * with single source compositeing.
+         * Indicates compositing is via fixed function compositing
+         * with single source compositing.
          */
         single_src,
 
         /*!
-         * Indicates compositeing is via fixed function compositeing
-         * with dual source compositeing.
+         * Indicates compositing is via fixed function compositing
+         * with dual source compositing.
          */
         dual_src,
 
         /*!
-         * Indicates compositeing is via framebuffer fetch.
+         * Indicates compositing is via framebuffer fetch.
          */
         framebuffer_fetch,
 
