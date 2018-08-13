@@ -328,6 +328,7 @@ namespace
     uint32_t m_brush_shader_data_loc;
     uint32_t m_item_shader_data_loc;
     uint32_t m_composite_shader_data_loc;
+    uint32_t m_blend_shader_data_loc;
   };
 
   class PainterPackerPrivate;
@@ -380,6 +381,7 @@ namespace
     unsigned int
     pack_header(unsigned int header_size,
                 uint32_t brush_shader,
+                const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> &blend_shader,
                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterCompositeShader> &composite_shader,
                 uint64_t composite_mode,
                 const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &item_shader,
@@ -605,6 +607,7 @@ namespace
     unsigned int m_alignment;
     unsigned int m_header_size;
 
+    fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> m_blend_shader;
     fastuidraw::reference_counted_ptr<fastuidraw::PainterCompositeShader> m_composite_shader;
     uint64_t m_composite_mode;
     painter_state_location m_painter_state_location;
@@ -638,7 +641,6 @@ per_draw_command(const fastuidraw::reference_counted_ptr<const fastuidraw::Paint
   m_prev_state.m_composite_group = 0;
   m_prev_state.m_composite_mode = 0;
 }
-
 
 fastuidraw::c_array<fastuidraw::generic_data>
 per_draw_command::
@@ -689,6 +691,7 @@ pack_painter_state(const fastuidraw::PainterPackerData &state,
   pack_state_data(p, state.m_matrix, out_data.m_item_matrix_data_loc);
   pack_state_data(p, state.m_item_shader_data, out_data.m_item_shader_data_loc);
   pack_state_data(p, state.m_composite_shader_data, out_data.m_composite_shader_data_loc);
+  pack_state_data(p, state.m_blend_shader_data, out_data.m_blend_shader_data_loc);
   pack_state_data(p, state.m_brush, out_data.m_brush_shader_data_loc);
 }
 
@@ -696,6 +699,7 @@ unsigned int
 per_draw_command::
 pack_header(unsigned int header_size,
             uint32_t brush_shader,
+            const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader> &blend_shader,
             const fastuidraw::reference_counted_ptr<fastuidraw::PainterCompositeShader> &composite_shader,
             uint64_t composite_mode,
             const fastuidraw::reference_counted_ptr<fastuidraw::PainterItemShader> &item_shader,
@@ -717,11 +721,18 @@ pack_header(unsigned int header_size,
 
   PainterShaderGroupPrivate current;
   fastuidraw::PainterShader::Tag composite;
+  fastuidraw::PainterShader::Tag blend;
 
   if (composite_shader)
     {
       composite = composite_shader->tag();
     }
+
+  if (blend_shader)
+    {
+      blend = blend_shader->tag();
+    }
+
   current.m_item_group = item_shader->group();
   current.m_brush = brush_shader;
   current.m_composite_group = composite.m_group;
@@ -732,11 +743,11 @@ pack_header(unsigned int header_size,
   header.m_brush_shader_data_location = loc.m_brush_shader_data_loc;
   header.m_item_shader_data_location = loc.m_item_shader_data_loc;
   header.m_composite_shader_data_location = loc.m_composite_shader_data_loc;
+  header.m_blend_shader_data_location = loc.m_blend_shader_data_loc;
   header.m_item_shader = item_shader->ID();
   header.m_brush_shader = current.m_brush;
   header.m_composite_shader = composite.m_ID;
-  header.m_blend_shader = 0;
-  header.m_blend_shader_data_location = 0;
+  header.m_blend_shader = blend.m_ID;
   header.m_z = z;
   header.pack_data(m_alignment, dst);
 
@@ -810,6 +821,7 @@ compute_room_needed_for_packing(const fastuidraw::PainterPackerData &draw_state)
   R += compute_room_needed_for_packing(draw_state.m_brush);
   R += compute_room_needed_for_packing(draw_state.m_item_shader_data);
   R += compute_room_needed_for_packing(draw_state.m_composite_shader_data);
+  R += compute_room_needed_for_packing(draw_state.m_blend_shader_data);
   return R;
 }
 
@@ -915,6 +927,7 @@ draw_generic_implement(const fastuidraw::reference_counted_ptr<fastuidraw::Paint
           allocate_header = false;
           header_loc = cmd.pack_header(m_header_size,
                                        fetch_value(draw.m_brush).shader(),
+                                       m_blend_shader,
                                        m_composite_shader,
                                        m_composite_mode,
                                        shader,
@@ -1196,13 +1209,31 @@ composite_mode(void) const
 void
 fastuidraw::PainterPacker::
 composite_shader(const fastuidraw::reference_counted_ptr<PainterCompositeShader> &h,
-             BlendMode::packed_value pcomposite_mode)
+                 BlendMode::packed_value pcomposite_mode)
 {
   PainterPackerPrivate *d;
   d = static_cast<PainterPackerPrivate*>(m_d);
-  FASTUIDRAWassert(h);
   d->m_composite_shader = h;
   d->m_composite_mode = pcomposite_mode;
+}
+
+
+const fastuidraw::reference_counted_ptr<fastuidraw::PainterBlendShader>&
+fastuidraw::PainterPacker::
+blend_shader(void) const
+{
+  PainterPackerPrivate *d;
+  d = static_cast<PainterPackerPrivate*>(m_d);
+  return d->m_blend_shader;
+}
+
+void
+fastuidraw::PainterPacker::
+blend_shader(const fastuidraw::reference_counted_ptr<PainterBlendShader> &h)
+{
+  PainterPackerPrivate *d;
+  d = static_cast<PainterPackerPrivate*>(m_d);
+  d->m_blend_shader = h;
 }
 
 const fastuidraw::PainterShaderSet&
