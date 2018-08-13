@@ -2211,17 +2211,25 @@ select_subsets(ScratchSpace &scratch_space,
 
   d = static_cast<StrokedPathPrivate*>(m_d);
   FASTUIDRAWassert(dst.size() >= d->m_subsets.size());
-  scratch_space_ptr = static_cast<ScratchSpacePrivate*>(scratch_space.m_d);
 
-  return_value =  d->m_root->select_subsets(*scratch_space_ptr,
-                                            clip_equations,
-                                            clip_matrix_local,
-                                            recip_dimensions,
-                                            pixels_additional_room,
-                                            item_space_additional_room,
-                                            max_attribute_cnt,
-                                            max_index_cnt,
-                                            dst);
+  if (d->m_root)
+    {
+      scratch_space_ptr = static_cast<ScratchSpacePrivate*>(scratch_space.m_d);
+      return_value = d->m_root->select_subsets(*scratch_space_ptr,
+                                               clip_equations,
+                                               clip_matrix_local,
+                                               recip_dimensions,
+                                               pixels_additional_room,
+                                               item_space_additional_room,
+                                               max_attribute_cnt,
+                                               max_index_cnt,
+                                               dst);
+    }
+  else
+    {
+      return_value = 0;
+    }
+
   return return_value;
 }
 
@@ -2236,8 +2244,17 @@ select_subsets_no_culling(unsigned int max_attribute_cnt,
 
   d = static_cast<StrokedPathPrivate*>(m_d);
   FASTUIDRAWassert(dst.size() >= d->m_subsets.size());
-  d->m_root->select_subsets_all_unculled(dst, max_attribute_cnt,
-                                         max_index_cnt, return_value);
+
+  if (d->m_root)
+    {
+      d->m_root->select_subsets_all_unculled(dst, max_attribute_cnt,
+                                             max_index_cnt, return_value);
+    }
+  else
+    {
+      return_value = 0;
+    }
+
   return return_value;
 }
 
