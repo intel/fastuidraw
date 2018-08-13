@@ -40,7 +40,7 @@ namespace fastuidraw
      * \code
      * void
      * fastuidraw_gl_compute_post_blended_value(in uint sub_shader, in uint blend_shader_data_location,
-     *                                          in vec4 in_src, in vec4 in_fb, out vec4 out_src)
+     *                                          in vec3 in_src, in vec3 in_fb, out vec3 out_src)
      * \endcode
      * where in_src is the color value for the fragment coming from the tiem, in_fb is
      * the value of the framebuffer at the location and out_src is the value for the
