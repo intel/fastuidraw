@@ -456,12 +456,8 @@ derived_init(int w, int h)
       m_frame_times.reserve(m_num_frames.value());
     }
 
-#define ADD_COMPOSITE_MODE(X) do {                                          \
-  if (m_painter->composite_mode_supported(PainterEnums::X))                 \
-    {                                                                   \
-      m_composite_labels.push_back(named_composite_mode(PainterEnums::X, #X));  \
-    }                                                                   \
-  } while(0)
+#define ADD_COMPOSITE_MODE(X)                                           \
+  m_composite_labels.push_back(named_composite_mode(PainterEnums::X, #X))
 
   ADD_COMPOSITE_MODE(composite_porter_duff_src_over);
   ADD_COMPOSITE_MODE(composite_porter_duff_clear);
