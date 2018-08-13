@@ -500,7 +500,7 @@ derived_init(int w, int h)
   ADD_BLEND_MODE(blend_w3c_color_dodge);
   ADD_BLEND_MODE(blend_w3c_color_burn);
   ADD_BLEND_MODE(blend_w3c_hardlight);
-  ADD_BLEND_MODE(blend_w3c_soft_light);
+  ADD_BLEND_MODE(blend_w3c_softlight);
   ADD_BLEND_MODE(blend_w3c_difference);
   ADD_BLEND_MODE(blend_w3c_exclusion);
   ADD_BLEND_MODE(blend_w3c_hue);

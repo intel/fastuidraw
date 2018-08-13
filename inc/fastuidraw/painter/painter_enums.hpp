@@ -187,7 +187,7 @@ namespace fastuidraw
          *     ((16 * Dst - 12) * Dst + 4) * Dst :
          *     sqrt(Dst)
          */
-        blend_w3c_soft_light,
+        blend_w3c_softlight,
 
         blend_w3c_difference, /*!< W3C difference mode: for each channel, abs(Dest - Src) */
         blend_w3c_exclusion, /*!< W3C exclusion mode: for each channel, Dest + Src - 2 * Dest * Src */
