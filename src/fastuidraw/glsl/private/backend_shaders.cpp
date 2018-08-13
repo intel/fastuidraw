@@ -750,7 +750,9 @@ create_blend_shaders(void)
     .shader(PainterEnums::blend_w3c_color_dodge,
             create_blend_shader("fastuidraw_fbf_w3c_color_dodge.glsl.resource_string"))
     .shader(PainterEnums::blend_w3c_color_burn,
-            create_blend_shader("fastuidraw_fbf_w3c_color_burn.glsl.resource_string"));
+            create_blend_shader("fastuidraw_fbf_w3c_color_burn.glsl.resource_string"))
+    .shader(PainterEnums::blend_w3c_hardlight,
+            create_blend_shader("fastuidraw_fbf_w3c_hardlight.glsl.resource_string"));
 
   return return_value;
 }
