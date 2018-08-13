@@ -5,9 +5,11 @@ d		:= $(dir)
 # End standard header
 
 FASTUIDRAW_RESOURCE_STRING += $(call filelist, \
+	fastuidraw_blend_util.frag.glsl.resource_string \
 	fastuidraw_fbf_w3c_normal.glsl.resource_string \
 	fastuidraw_fbf_w3c_multiply.glsl.resource_string \
 	fastuidraw_fbf_w3c_screen.glsl.resource_string \
+	fastuidraw_fbf_w3c_overlay.glsl.resource_string \
 	)
 
 # Begin standard footer
