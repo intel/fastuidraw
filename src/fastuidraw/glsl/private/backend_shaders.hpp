@@ -21,6 +21,7 @@
 #include <fastuidraw/painter/painter_shader_set.hpp>
 #include <fastuidraw/glsl/painter_item_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_composite_shader_glsl.hpp>
+#include <fastuidraw/glsl/painter_blend_shader_glsl.hpp>
 #include <fastuidraw/glsl/painter_shader_registrar_glsl.hpp>
 
 namespace fastuidraw { namespace glsl { namespace detail {
@@ -56,37 +57,37 @@ public:
 private:
   void
   add_composite_shader(PainterCompositeShaderSet &out,
-                   enum PainterEnums::composite_mode_t md,
-                   const BlendMode &single_md,
-                   const std::string &dual_src_file,
-                   const BlendMode &dual_md,
-                   const std::string &framebuffer_fetch_src_file);
+                       enum PainterEnums::composite_mode_t md,
+                       const BlendMode &single_md,
+                       const std::string &dual_src_file,
+                       const BlendMode &dual_md,
+                       const std::string &framebuffer_fetch_src_file);
   void
   add_composite_shader(PainterCompositeShaderSet &out,
-                   enum PainterEnums::composite_mode_t md,
-                   const std::string &dual_src_file,
-                   const BlendMode &dual_md,
-                   const std::string &framebuffer_fetch_src_file);
+                       enum PainterEnums::composite_mode_t md,
+                       const std::string &dual_src_file,
+                       const BlendMode &dual_md,
+                       const std::string &framebuffer_fetch_src_file);
   void
   add_composite_shader(PainterCompositeShaderSet &out,
-                   enum PainterEnums::composite_mode_t md,
-                   const std::string &framebuffer_fetch_src_file);
+                       enum PainterEnums::composite_mode_t md,
+                       const std::string &framebuffer_fetch_src_file);
 
   void
   add_single_src_composite_shader(PainterCompositeShaderSet &out,
-                              enum PainterEnums::composite_mode_t md,
-                              const BlendMode &single_md);
+                                  enum PainterEnums::composite_mode_t md,
+                                  const BlendMode &single_md);
 
   void
   add_dual_src_composite_shader(PainterCompositeShaderSet &out,
-                            enum PainterEnums::composite_mode_t md,
-                            const std::string &dual_src_file,
-                            const BlendMode &dual_md);
+                                enum PainterEnums::composite_mode_t md,
+                                const std::string &dual_src_file,
+                                const BlendMode &dual_md);
 
   void
   add_fbf_composite_shader(PainterCompositeShaderSet &out,
-                       enum PainterEnums::composite_mode_t md,
-                       const std::string &framebuffer_fetch_src_file);
+                           enum PainterEnums::composite_mode_t md,
+                           const std::string &framebuffer_fetch_src_file);
 
   enum PainterCompositeShader::shader_type m_type;
   reference_counted_ptr<PainterCompositeShaderGLSL> m_single_src_composite_shader_code;
@@ -113,7 +114,7 @@ private:
 
 class ShaderSetCreator:
   private ShaderSetCreatorStrokingConstants,
-  public CompositeShaderSetCreator
+  private CompositeShaderSetCreator
 {
 public:
   explicit
@@ -168,6 +169,12 @@ private:
 
   PainterFillShader
   create_fill_shader(void);
+
+  reference_counted_ptr<PainterBlendShader>
+  create_blend_shader(const std::string &framebuffer_fetch_src_file);
+
+  PainterBlendShaderSet
+  create_blend_shaders(void);
 
   enum PainterStrokeShader::type_t m_stroke_tp;
 

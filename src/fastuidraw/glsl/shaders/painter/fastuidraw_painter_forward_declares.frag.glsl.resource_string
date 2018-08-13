@@ -45,10 +45,7 @@ fastuidraw_run_composite_shader(in uint composite_shader, in uint composite_shad
 #if defined(FASTUIDRAW_PAINTER_BLEND_FRAMEBUFFER_FETCH) || defined(FASTUIDRAW_PAINTER_BLEND_INTERLOCK)
 void
 fastuidraw_run_blend_shader(in uint blend_shader, in uint blend_shader_data_location,
-                            in vec4 in_src, in vec4 in_fb, out vec4 out_src)
-{
-  out_src = in_src;
-}
+                            in vec4 in_src, in vec4 in_fb, out vec4 out_src);
 
 void
 fastuidraw_run_composite_shader(in uint composite_shader, in uint composite_shader_data_location,
