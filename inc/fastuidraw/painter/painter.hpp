@@ -158,29 +158,12 @@ namespace fastuidraw
      * \code
      * composite_shader(default_shaders().composite_shaders(), m)
      * \endcode
-     * It is a crashing error if default_shaders() does not support
-     * the named composite mode.
      * \param m Composite mode to use
      */
     void
     composite_shader(enum PainterEnums::composite_mode_t m)
     {
       composite_shader(default_shaders().composite_shaders(), m);
-    }
-
-    /*!
-     * Provided as a conveniance to return if a composite
-     * mode is supported by the default shaders, equivalent
-     * to
-     * \code
-     * default_shaders().composite_shaders().shader(m)
-     * \endcode
-     * \param m composite mode to check.
-     */
-    bool
-    composite_mode_supported(enum PainterEnums::composite_mode_t m)
-    {
-      return default_shaders().composite_shaders().shader(m);
     }
 
     /*!
