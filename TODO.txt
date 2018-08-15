@@ -45,10 +45,7 @@ TODO.
     the glyph data is generated). Should have an interface that is "take scalable glyph
     that is best" in GlyphSelector class.
 
- 6. W3C blend modes are not yet implemented in GL backend, but Porter-Duff blend modes
-    are.
-
- 7. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
+ 6. Vulkan backend. Reuse the GLSL code building of fastuidraw::glsl
     together with a 3rd party library to create SPIR-V from GLSL.
     Options for third part library so far are:
             a) libshaderc at https://github.com/google/shaderc.
