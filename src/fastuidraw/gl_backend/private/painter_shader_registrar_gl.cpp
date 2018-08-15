@@ -282,7 +282,8 @@ configure_source_front_matter(void)
           glsl_version = "320 es";
           m_front_matter_frag
             .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension)
-            .specify_extension("GL_EXT_composite_func_extended", ShaderSource::enable_extension);
+            .specify_extension("GL_EXT_composite_func_extended", ShaderSource::enable_extension)
+            .specify_extension("GL_NV_image_formats", ShaderSource::enable_extension);
         }
       else
         {
@@ -305,7 +306,8 @@ configure_source_front_matter(void)
 
           m_front_matter_vert
             .specify_extension("GL_EXT_texture_buffer", ShaderSource::enable_extension)
-            .specify_extension("GL_OES_texture_buffer", ShaderSource::enable_extension);
+            .specify_extension("GL_OES_texture_buffer", ShaderSource::enable_extension)
+            .specify_extension("GL_NV_image_formats", ShaderSource::enable_extension);
 
           m_front_matter_frag
             .specify_extension("GL_EXT_shader_framebuffer_fetch", ShaderSource::enable_extension)

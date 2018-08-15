@@ -74,7 +74,8 @@ compute_provide_auxiliary_buffer(enum glsl::PainterShaderRegistrarGLSL::auxiliar
           return in_value;
         }
 
-      if (ctx.has_extension("GL_NV_fragment_shader_interlock"))
+      if (ctx.has_extension("GL_NV_fragment_shader_interlock")
+          && ctx.has_extension("GL_NV_image_formats"))
         {
           return glsl::PainterShaderRegistrarGLSL::auxiliary_buffer_interlock_main_only;
         }
