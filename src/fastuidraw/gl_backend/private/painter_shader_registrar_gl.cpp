@@ -239,19 +239,9 @@ configure_source_front_matter(void)
   FASTUIDRAWassert(begin_interlock_fcn);
   FASTUIDRAWassert(end_interlock_fcn);
 
-  if (m_uber_shader_builder_params.provide_auxiliary_image_buffer() != no_auxiliary_buffer)
-    {
-      m_front_matter_frag
-        .add_macro("fastuidraw_begin_aux_interlock", begin_interlock_fcn)
-        .add_macro("fastuidraw_end_aux_interlock", end_interlock_fcn);
-    }
-
-  if (m_params.compositing_type() == compositing_interlock)
-    {
-      m_front_matter_frag
-        .add_macro("fastuidraw_begin_color_buffer_interlock", begin_interlock_fcn)
-        .add_macro("fastuidraw_end_color_buffer_interlock", end_interlock_fcn);
-    }
+  m_front_matter_frag
+    .add_macro("fastuidraw_begin_interlock", begin_interlock_fcn)
+    .add_macro("fastuidraw_end_interlock", end_interlock_fcn);
 
   if (m_params.compositing_type() == compositing_interlock
       || m_uber_shader_builder_params.provide_auxiliary_image_buffer() != no_auxiliary_buffer)
