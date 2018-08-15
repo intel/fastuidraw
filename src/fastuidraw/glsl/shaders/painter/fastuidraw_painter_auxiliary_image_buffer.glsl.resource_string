@@ -31,11 +31,12 @@
   #endif
 
   #if !defined(FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_INTERLOCK_MAIN_ONLY)
-    #define FASTUIDRAW_BEGIN_AUX_LOCK fastuidraw_begin_aux_interlock()
-    #define FASTUIDRAW_END_AUX_LOCK   fastuidraw_end_aux_interlock()
+    #define FASTUIDRAW_BEGIN_AUX_LOCK fastuidraw_begin_interlock()
+    #define FASTUIDRAW_END_AUX_LOCK   fastuidraw_end_interlock()
   #else
     #define FASTUIDRAW_BEGIN_AUX_LOCK fastuidraw_do_nothing()
     #define FASTUIDRAW_END_AUX_LOCK   fastuidraw_do_nothing()
+    #define FASTUIDRAW_AUX_NEEDS_MAIN_INTERLOCK
   #endif
 
   float
@@ -66,13 +67,6 @@
   //now define interlock functions opposite for the main.
   #undef FASTUIDRAW_BEGIN_AUX_LOCK
   #undef FASTUIDRAW_END_AUX_LOCK
-  #if defined(FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_INTERLOCK_MAIN_ONLY)
-    #define FASTUIDRAW_BEGIN_AUX_LOCK fastuidraw_begin_aux_interlock()
-    #define FASTUIDRAW_END_AUX_LOCK   fastuidraw_end_aux_interlock()
-  #else
-    #define FASTUIDRAW_BEGIN_AUX_LOCK fastuidraw_do_nothing()
-    #define FASTUIDRAW_END_AUX_LOCK   fastuidraw_do_nothing()
-  #endif
 
 #elif defined(FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_ATOMIC)
 
