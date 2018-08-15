@@ -19,7 +19,16 @@
 
 #if defined(FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_INTERLOCK) || defined(FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_INTERLOCK_MAIN_ONLY)
 
-  layout(binding = FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING, r8) coherent restrict lowp uniform image2D fastuidraw_auxiliary_buffer;
+  #ifndef GL_ES
+    layout(binding = FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING, r8) coherent restrict lowp uniform image2D fastuidraw_auxiliary_buffer;
+    #define fastuidraw_auxiliary_bufferLoad(XY) imageLoad(fastuidraw_auxiliary_buffer, XY)
+    #define fastuidraw_auxiliary_bufferStore(XY, V) imageStore(fastuidraw_auxiliary_buffer, XY, V)
+  #else
+    layout(binding = FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING, r8) coherent restrict lowp readonly uniform image2D fastuidraw_auxiliary_buffer_read;
+    layout(binding = FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_BINDING, r8) coherent restrict lowp writeonly uniform image2D fastuidraw_auxiliary_buffer_write;
+    #define fastuidraw_auxiliary_bufferLoad(XY) imageLoad(fastuidraw_auxiliary_buffer_read, XY)
+    #define fastuidraw_auxiliary_bufferStore(XY, V) imageStore(fastuidraw_auxiliary_buffer_write, XY, V)
+  #endif
 
   #if !defined(FASTUIDRAW_PAINTER_AUXILIARY_BUFFER_INTERLOCK_MAIN_ONLY)
     #define FASTUIDRAW_BEGIN_AUX_LOCK fastuidraw_begin_aux_interlock()
@@ -36,8 +45,8 @@
     ivec2 pos = ivec2(gl_FragCoord.xy);
 
     FASTUIDRAW_BEGIN_AUX_LOCK;
-    r = imageLoad(fastuidraw_auxiliary_buffer, pos).x;
-    imageStore(fastuidraw_auxiliary_buffer, pos, vec4(0.0, 0.0, 0.0, 0.0));
+    r = fastuidraw_auxiliary_bufferLoad(pos).x;
+    fastuidraw_auxiliary_bufferStore(pos, vec4(0.0, 0.0, 0.0, 0.0));
     FASTUIDRAW_END_AUX_LOCK;
     return r;
   }
@@ -49,8 +58,8 @@
 
     f = clamp(f, 0.0, 1.0);
     FASTUIDRAW_BEGIN_AUX_LOCK;
-    f = max(imageLoad(fastuidraw_auxiliary_buffer, pos).x, f);
-    imageStore(fastuidraw_auxiliary_buffer, pos, vec4(f, 0.0, 0.0, 0.0));
+    f = max(fastuidraw_auxiliary_bufferLoad(pos).x, f);
+    fastuidraw_auxiliary_bufferStore(pos, vec4(f, 0.0, 0.0, 0.0));
     FASTUIDRAW_END_AUX_LOCK;
   }
 
