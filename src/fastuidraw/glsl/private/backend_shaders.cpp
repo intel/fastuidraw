@@ -764,7 +764,9 @@ create_blend_shaders(void)
     .shader(PainterEnums::blend_w3c_saturation,
             create_blend_shader("fastuidraw_fbf_w3c_saturation.glsl.resource_string"))
     .shader(PainterEnums::blend_w3c_color,
-            create_blend_shader("fastuidraw_fbf_w3c_color.glsl.resource_string"));
+            create_blend_shader("fastuidraw_fbf_w3c_color.glsl.resource_string"))
+    .shader(PainterEnums::blend_w3c_luminosity,
+            create_blend_shader("fastuidraw_fbf_w3c_luminosity.glsl.resource_string"));
 
   return return_value;
 }
