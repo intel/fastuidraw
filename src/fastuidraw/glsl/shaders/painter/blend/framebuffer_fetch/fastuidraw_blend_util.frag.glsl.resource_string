@@ -141,7 +141,7 @@ fastuidraw_blend_w3c_sat(in vec3 C)
   return fastuidraw_blend_w3c_max(C) - fastuidraw_blend_w3c_min(C);
 }
 
-float
+vec3
 fastuidraw_blend_w3c_clipcolor(in vec3 C)
 {
   float lumC = fastuidraw_blend_w3c_lum(C);
