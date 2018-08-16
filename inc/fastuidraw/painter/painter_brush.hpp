@@ -840,6 +840,17 @@ namespace fastuidraw
     shader(void) const;
 
     /*!
+     * Returns true if the brush sources from an Image whose
+     * Image::type() is \ref Image::context_texture2d.
+     */
+    bool
+    image_requires_binding(void) const
+    {
+      return image()
+        && image()->type() == Image::context_texture2d;
+    }
+
+    /*!
      * Returns the value of the handle to the
      * Image that the brush is set to use.
      */

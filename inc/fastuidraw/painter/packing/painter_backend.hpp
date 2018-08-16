@@ -359,6 +359,17 @@ namespace fastuidraw
     on_post_draw(void) = 0;
 
     /*!
+     * Called to return an action to bind an Image whose backing
+     * store requires API binding.
+     * \im Image backed by a gfx API surface that in order to be used,
+     *           must be bound. In patricular im's Image::type() value
+     *           is Image::context_texture2d
+     */
+    virtual
+    reference_counted_ptr<PainterDraw::Action>
+    bind_image(const reference_counted_ptr<const Image> &im) = 0;
+
+    /*!
      * To be implemented by a derived class to return a PainterDraw
      * for filling of data.
      */
