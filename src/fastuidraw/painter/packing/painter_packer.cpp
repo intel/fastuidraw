@@ -616,6 +616,7 @@ namespace
     fastuidraw::reference_counted_ptr<fastuidraw::PainterBackend::Surface> m_surface;
     bool m_clear_color_buffer;
     std::vector<per_draw_command> m_accumulated_draws;
+    fastuidraw::reference_counted_ptr<const fastuidraw::Image> m_last_binded_image;
     fastuidraw::PainterPacker *m_p;
 
     PainterPackerPrivateWorkroom m_work_room;
@@ -829,6 +830,8 @@ void
 PainterPackerPrivate::
 upload_draw_state(const fastuidraw::PainterPackerData &draw_state)
 {
+  using namespace fastuidraw;
+
   unsigned int needed_room;
 
   FASTUIDRAWassert(!m_accumulated_draws.empty());
@@ -838,6 +841,16 @@ upload_draw_state(const fastuidraw::PainterPackerData &draw_state)
       start_new_command();
     }
   m_accumulated_draws.back().pack_painter_state(draw_state, this, m_painter_state_location);
+
+  const PainterBrush &brush(draw_state.m_brush.data());
+  if (brush.image_requires_binding() && brush.image() != m_last_binded_image)
+    {
+      reference_counted_ptr<PainterDraw::Action> action;
+
+      m_last_binded_image = brush.image();
+      action = m_backend->bind_image(m_last_binded_image);
+      m_accumulated_draws.back().draw_break(action);
+    }
 }
 
 template<typename T>
@@ -1044,6 +1057,7 @@ begin(const reference_counted_ptr<PainterBackend::Surface> &surface,
   d->m_surface = surface;
   d->m_clear_color_buffer = clear_color_buffer;
   d->start_new_command();
+  d->m_last_binded_image = nullptr;
   ++d->m_number_begins;
 }
 

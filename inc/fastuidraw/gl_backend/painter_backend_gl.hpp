@@ -729,6 +729,10 @@ namespace fastuidraw
       on_post_draw(void);
 
       virtual
+      reference_counted_ptr<PainterDraw::Action>
+      bind_image(const reference_counted_ptr<const Image> &im);
+
+      virtual
       reference_counted_ptr<const PainterDraw>
       map_draw(void);
 

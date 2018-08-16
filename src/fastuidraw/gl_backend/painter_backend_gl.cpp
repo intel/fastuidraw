@@ -1874,6 +1874,15 @@ on_post_draw(void)
   d->m_pool->next_pool();
 }
 
+fastuidraw::reference_counted_ptr<fastuidraw::PainterDraw::Action>
+fastuidraw::gl::PainterBackendGL::
+bind_image(const reference_counted_ptr<const Image> &im)
+{
+  /* TODO */
+  FASTUIDRAWunused(im);
+  return nullptr;
+}
+
 fastuidraw::reference_counted_ptr<const fastuidraw::PainterDraw>
 fastuidraw::gl::PainterBackendGL::
 map_draw(void)
