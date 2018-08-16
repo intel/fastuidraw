@@ -577,7 +577,19 @@ class Image;
          * Indicates that the Image is backed by a gfx API
          * texture via a bindless interface.
          */
-        bindless_texture2d
+        bindless_texture2d,
+
+        /*!
+         * Indicates to source the Image data from a currently
+         * bound texture of the 3D API context. Using images
+         * of these types should be avoided at all costs since
+         * whenever one uses Image objects of these types
+         * the 3D API state needs to change which induces a
+         * stage change and draw break, harming performance.
+         * The creation of these image types is to be handled
+         * by the backend implementation.
+         */
+        context_texture2d,
       };
 
     /*!
