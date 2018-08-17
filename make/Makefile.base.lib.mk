@@ -23,6 +23,9 @@ build/string_resources_cpp/%.resource_string.cpp: %.resource_string $(STRING_RES
 	@mkdir -p $(dir $@)
 	$(STRING_RESOURCE_CC) $< $(notdir $<) $(dir $@)
 
+${STRING_RESOURCE_CC}: shell_scripts/fastuidraw-create-resource-cpp-file.cpp
+	$(CXX) $< -o $@
+
 FASTUIDRAW_STRING_RESOURCES_SRCS = $(patsubst %.resource_string, build/string_resources_cpp/%.resource_string.cpp, $(FASTUIDRAW_RESOURCE_STRING) )
 CLEAN_FILES += $(FASTUIDRAW_STRING_RESOURCES_SRCS)
 

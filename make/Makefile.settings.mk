@@ -2,6 +2,7 @@
 MINGW_BUILD = 0
 UNAME = $(shell uname -s)
 UNAMER= $(shell uname -r)
+EXE_SUFFIX =
 ifeq ($(findstring MINGW,$(UNAME)),MINGW)
   MINGW_BUILD = 1
   ifeq ($(findstring 1.0, $(UNAMER)), 1.0)
@@ -11,6 +12,7 @@ ifeq ($(findstring MINGW,$(UNAME)),MINGW)
   else ifeq ($(findstring MINGW32,$(UNAME)),MINGW32)
 	MINGW_MODE = MINGW32
   endif
+  EXE_SUFFIX = .exe
 endif
 
 #TODO: detection for DARWIN
@@ -20,7 +22,7 @@ DARWIN_BUILD = 0
 # Setting for building libFastUIDraw.so base library
 CXX ?= g++
 CC ?= gcc
-STRING_RESOURCE_CC = shell_scripts/fastuidraw-create-resource-cpp-file.sh
+STRING_RESOURCE_CC = shell_scripts/fastuidraw-create-resource-cpp-file${EXE_SUFFIX}
 
 #######################################
 # Platform specific libraries needed
