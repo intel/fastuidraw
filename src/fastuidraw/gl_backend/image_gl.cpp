@@ -237,7 +237,7 @@ ColorBackingStoreGL(int log2_tile_size,
   fastuidraw::AtlasColorBackingStoreBase(store_size(log2_tile_size, log2_num_tiles_per_row_per_col, number_layers),
                                          true),
   m_backing_store(dimensions(), delayed, log2_tile_size),
-  m_number_mipmap_levels(log2_tile_size)
+  m_number_mipmap_levels(log2_tile_size + 1)
 {}
 
 void
